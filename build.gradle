@@ -125,3 +125,9 @@ idea.project.settings {
         }
     }
 }
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.warnings = false
+    options.compilerArgs += ['-Xmaxerrs', '500']
+}

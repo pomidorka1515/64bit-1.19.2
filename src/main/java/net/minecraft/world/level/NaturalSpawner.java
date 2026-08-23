@@ -15,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BiomeTags;
@@ -353,8 +354,8 @@ public final class NaturalSpawner {
                      BlockPos blockpos = getTopNonCollidingPos(p_220451_, mobspawnsettings$spawnerdata.type, l, i1);
                      if (mobspawnsettings$spawnerdata.type.canSummon() && isSpawnPositionOk(SpawnPlacements.getPlacementType(mobspawnsettings$spawnerdata.type), p_220451_, blockpos, mobspawnsettings$spawnerdata.type)) {
                         float f = mobspawnsettings$spawnerdata.type.getWidth();
-                        double d0 = Mth.clamp((double)l, (double)i + (double)f, (double)i + 16.0D - (double)f);
-                        double d1 = Mth.clamp((double)i1, (double)j + (double)f, (double)j + 16.0D - (double)f);
+                        double d0 = getSpawnCoordinate(l, i, f);
+                        double d1 = getSpawnCoordinate(i1, j, f);
                         if (!p_220451_.noCollision(mobspawnsettings$spawnerdata.type.getAABB(d0, (double)blockpos.getY(), d1)) || !SpawnPlacements.checkSpawnRules(mobspawnsettings$spawnerdata.type, p_220451_, MobSpawnType.CHUNK_GENERATION, new BlockPos(d0, (double)blockpos.getY(), d1), p_220451_.getRandom())) {
                            continue;
                         }
@@ -388,6 +389,35 @@ public final class NaturalSpawner {
             }
          }
 
+      }
+   }
+
+   private static double getSpawnCoordinate(long p_220455_, long p_220456_, float p_220457_) {
+      double d0 = Mth.clamp((double)p_220455_, (double)p_220456_ + (double)p_220457_, (double)p_220456_ + 16.0D - (double)p_220457_);
+      long i = SectionPos.blockToSectionCoord(p_220456_);
+      if (SectionPos.blockToSectionCoord(Mth.lfloor(d0)) == i) {
+         return d0;
+      } else {
+         // At large coordinates, converting the clamped block coordinate to a
+         // double can round it into the adjacent chunk. Use the nearest exactly
+         // representable coordinate that remains in this chunk instead.
+         long j = Math.max(p_220456_, Math.min(p_220455_, p_220456_ + 15L));
+
+         for(int k = 0; k < 16; ++k) {
+            long l = j - (long)k;
+            if (l >= p_220456_ && SectionPos.blockToSectionCoord(Mth.lfloor((double)l)) == i) {
+               return (double)l;
+            }
+
+            if (k != 0) {
+               l = j + (long)k;
+               if (l < p_220456_ + 16L && SectionPos.blockToSectionCoord(Mth.lfloor((double)l)) == i) {
+                  return (double)l;
+               }
+            }
+         }
+
+         return d0;
       }
    }
 

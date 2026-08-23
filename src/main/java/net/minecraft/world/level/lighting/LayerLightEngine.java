@@ -27,6 +27,13 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
    }
 
    public static int getLightBlockInto(LevelReader level, BlockState state, BlockPos pos, BlockState neighborState, BlockPos neighborPos, Direction direction, int lightBlock) {
+      // Full opacity already blocks all light.  For a partially transparent block,
+      // vanilla only needs the (comparatively expensive) face-shape check when it
+      // declares that it uses shape-based light occlusion.
+      if (lightBlock < 15 && !neighborState.useShapeForLightOcclusion()) {
+         return lightBlock;
+      }
+
       VoxelShape shape = state.getFaceOcclusionShape(level, pos, direction);
       VoxelShape neighborShape = neighborState.getFaceOcclusionShape(level, neighborPos, direction.getOpposite());
       return Shapes.mergedFaceOccludes(shape, neighborShape, direction) ? 15 : lightBlock;

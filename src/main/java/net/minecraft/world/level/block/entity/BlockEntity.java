@@ -31,7 +31,13 @@ public abstract class BlockEntity {
    }
 
    public static BlockPos getPosFromTag(CompoundTag p_187473_) {
-      return new BlockPos(p_187473_.getInt("x"), p_187473_.getInt("y"), p_187473_.getInt("z"));
+      // Block entities in protochunks are keyed by this position.  In particular,
+      // WorldGenRegion writes a DUMMY block-entity tag before the real entity is
+      // created.  Reading x/z as ints here truncated positions outside the signed
+      // 32-bit range, so the pending entity was stored under a different key than
+      // the placed block and could never be retrieved during feature generation.
+      // getLong also accepts legacy IntTag coordinates, preserving old saves.
+      return new BlockPos(p_187473_.getLong("x"), p_187473_.getInt("y"), p_187473_.getLong("z"));
    }
 
    @Nullable

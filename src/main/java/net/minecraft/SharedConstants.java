@@ -118,7 +118,10 @@ public class SharedConstants {
    public static final boolean DEBUG_FEATURE_COUNT = false;
    public static final long MAXIMUM_TICK_TIME_NANOS = Duration.ofMillis(300L).toNanos();
    public static boolean CHECK_DATA_FIXER_SCHEMA = true;
-   public static boolean IS_RUNNING_IN_IDE = true;
+   // Development-only pause/log paths are prohibitively expensive in a normal
+   // run-client session, especially when terrain postprocessing triggers a
+   // recoverable diagnostic such as a recursive navigation update.
+   public static boolean IS_RUNNING_IN_IDE = false;
    public static DataFixerOptimizationOption DATAFIXER_OPTIMIZATION_OPTION = DataFixerOptimizationOption.UNINITIALIZED_UNOPTIMIZED;
    public static final int WORLD_RESOLUTION = 16;
    public static final int MAX_CHAT_LENGTH = 256;

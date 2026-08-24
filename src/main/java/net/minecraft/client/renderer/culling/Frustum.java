@@ -2,6 +2,7 @@ package net.minecraft.client.renderer.culling;
 
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector4f;
+import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -14,6 +15,7 @@ public class Frustum {
    private double camX;
    private double camY;
    private double camZ;
+   private CameraRelativePosition cameraRelativePosition = CameraRelativePosition.of(0.0D, 0.0D, 0.0D);
 
    public Frustum(Matrix4f p_113000_, Matrix4f p_113001_) {
       this.calculateFrustum(p_113000_, p_113001_);
@@ -24,6 +26,7 @@ public class Frustum {
       this.camX = p_194440_.camX;
       this.camY = p_194440_.camY;
       this.camZ = p_194440_.camZ;
+      this.cameraRelativePosition = p_194440_.cameraRelativePosition;
       this.viewVector = p_194440_.viewVector;
    }
 
@@ -48,6 +51,7 @@ public class Frustum {
       this.camX = p_113003_;
       this.camY = p_113004_;
       this.camZ = p_113005_;
+      this.cameraRelativePosition = CameraRelativePosition.of(p_113003_, p_113004_, p_113005_);
    }
 
    private void calculateFrustum(Matrix4f p_113027_, Matrix4f p_113028_) {
@@ -73,6 +77,13 @@ public class Frustum {
 
    public boolean isVisible(AABB p_113030_) {
       return this.cubeInFrustum(p_113030_.minX, p_113030_.minY, p_113030_.minZ, p_113030_.maxX, p_113030_.maxY, p_113030_.maxZ);
+   }
+
+   public boolean isChunkVisible(long p_234493_, int p_234494_, long p_234495_) {
+      float f = (float)this.cameraRelativePosition.relativeX(p_234493_);
+      float f1 = (float)this.cameraRelativePosition.relativeY(p_234494_);
+      float f2 = (float)this.cameraRelativePosition.relativeZ(p_234495_);
+      return this.cubeInFrustum(f, f1, f2, f + 16.0F, f1 + 16.0F, f2 + 16.0F);
    }
 
    private boolean cubeInFrustum(double p_113007_, double p_113008_, double p_113009_, double p_113010_, double p_113011_, double p_113012_) {

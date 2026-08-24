@@ -34,6 +34,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.client.renderer.ChunkBufferBuilderPack;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -41,6 +42,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
@@ -75,7 +77,8 @@ public class ChunkRenderDispatcher {
    private final Executor executor;
    ClientLevel level;
    final LevelRenderer renderer;
-   private Vec3 camera = Vec3.ZERO;
+   private volatile Vec3 camera = Vec3.ZERO;
+   private volatile CameraRelativePosition cameraRelativePosition = CameraRelativePosition.of(Vec3.ZERO);
 
    public ChunkRenderDispatcher(ClientLevel p_194405_, LevelRenderer p_194406_, Executor p_194407_, boolean p_194408_, ChunkBufferBuilderPack p_194409_) {
       this.level = p_194405_;
@@ -183,10 +186,15 @@ public class ChunkRenderDispatcher {
 
    public void setCamera(Vec3 p_112694_) {
       this.camera = p_112694_;
+      this.cameraRelativePosition = CameraRelativePosition.of(p_112694_);
    }
 
    public Vec3 getCameraPosition() {
       return this.camera;
+   }
+
+   public CameraRelativePosition getCameraRelativePosition() {
+      return this.cameraRelativePosition;
    }
 
    public void uploadAllPendingUploads() {
@@ -341,6 +349,10 @@ public class ChunkRenderDispatcher {
          return this.bb;
       }
 
+      public boolean isVisible(Frustum p_234467_) {
+         return p_234467_.isChunkVisible(this.origin.getX(), this.origin.getY(), this.origin.getZ());
+      }
+
       public VertexBuffer getBuffer(RenderType p_112808_) {
          return this.buffers.get(p_112808_);
       }
@@ -357,11 +369,19 @@ public class ChunkRenderDispatcher {
       }
 
       protected double getDistToPlayerSqr() {
-         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
-         double d0 = this.bb.minX + 8.0D - camera.getPosition().x;
-         double d1 = this.bb.minY + 8.0D - camera.getPosition().y;
-         double d2 = this.bb.minZ + 8.0D - camera.getPosition().z;
-         return d0 * d0 + d1 * d1 + d2 * d2;
+         if (LevelRenderer.ENABLE_CHUNK_STRIPELANDS) {
+            Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+            double d0 = this.bb.minX + 8.0D - camera.getPosition().x;
+            double d1 = this.bb.minY + 8.0D - camera.getPosition().y;
+            double d2 = this.bb.minZ + 8.0D - camera.getPosition().z;
+            return d0 * d0 + d1 * d1 + d2 * d2;
+         } else {
+            CameraRelativePosition camerarelativeposition = ChunkRenderDispatcher.this.getCameraRelativePosition();
+            double d3 = camerarelativeposition.relativeX(this.origin.getX()) + 8.0D;
+            double d4 = camerarelativeposition.relativeY(this.origin.getY()) + 8.0D;
+            double d5 = camerarelativeposition.relativeZ(this.origin.getZ()) + 8.0D;
+            return d3 * d3 + d4 * d4 + d5 * d5;
+         }
       }
 
       void beginLayer(BufferBuilder p_112806_) {
@@ -527,10 +547,8 @@ public class ChunkRenderDispatcher {
                return CompletableFuture.completedFuture(ChunkRenderDispatcher.ChunkTaskResult.CANCELLED);
             } else {
                Vec3 vec3 = ChunkRenderDispatcher.this.getCameraPosition();
-               float f = (float)vec3.x;
-               float f1 = (float)vec3.y;
-               float f2 = (float)vec3.z;
-               ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults chunkrenderdispatcher$renderchunk$rebuildtask$compileresults = this.compile(f, f1, f2, p_112872_);
+               CameraRelativePosition camerarelativeposition = LevelRenderer.ENABLE_CHUNK_STRIPELANDS ? null : ChunkRenderDispatcher.this.getCameraRelativePosition();
+               ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults chunkrenderdispatcher$renderchunk$rebuildtask$compileresults = this.compile(vec3, camerarelativeposition, p_112872_);
                RenderChunk.this.updateGlobalBlockEntities(chunkrenderdispatcher$renderchunk$rebuildtask$compileresults.globalBlockEntities);
                if (this.isCancelled.get()) {
                   chunkrenderdispatcher$renderchunk$rebuildtask$compileresults.renderedLayers.values().forEach(BufferBuilder.RenderedBuffer::release);
@@ -563,7 +581,7 @@ public class ChunkRenderDispatcher {
             }
          }
 
-         private ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults compile(float p_234468_, float p_234469_, float p_234470_, ChunkBufferBuilderPack p_234471_) {
+         private ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults compile(Vec3 p_234468_, @Nullable CameraRelativePosition p_234469_, ChunkBufferBuilderPack p_234471_) {
             ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults chunkrenderdispatcher$renderchunk$rebuildtask$compileresults = new ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults();
             int i = 1;
             BlockPos blockpos = RenderChunk.this.origin.immutable();
@@ -620,7 +638,12 @@ public class ChunkRenderDispatcher {
                if (set.contains(RenderType.translucent())) {
                   BufferBuilder bufferbuilder1 = p_234471_.builder(RenderType.translucent());
                   if (!bufferbuilder1.isCurrentBatchEmpty()) {
-                     bufferbuilder1.setQuadSortOrigin(p_234468_ - (float)blockpos.getX(), p_234469_ - (float)blockpos.getY(), p_234470_ - (float)blockpos.getZ());
+                     if (LevelRenderer.ENABLE_CHUNK_STRIPELANDS) {
+                        bufferbuilder1.setQuadSortOrigin((float)p_234468_.x - (float)blockpos.getX(), (float)p_234468_.y - (float)blockpos.getY(), (float)p_234468_.z - (float)blockpos.getZ());
+                     } else {
+                        bufferbuilder1.setQuadSortOrigin((float)p_234469_.cameraRelativeToX(blockpos.getX()), (float)p_234469_.cameraRelativeToY(blockpos.getY()), (float)p_234469_.cameraRelativeToZ(blockpos.getZ()));
+                     }
+
                      chunkrenderdispatcher$renderchunk$rebuildtask$compileresults.transparencyState = bufferbuilder1.getSortState();
                   }
                }
@@ -692,15 +715,18 @@ public class ChunkRenderDispatcher {
                return CompletableFuture.completedFuture(ChunkRenderDispatcher.ChunkTaskResult.CANCELLED);
             } else {
                Vec3 vec3 = ChunkRenderDispatcher.this.getCameraPosition();
-               float f = (float)vec3.x;
-               float f1 = (float)vec3.y;
-               float f2 = (float)vec3.z;
+               CameraRelativePosition camerarelativeposition = LevelRenderer.ENABLE_CHUNK_STRIPELANDS ? null : ChunkRenderDispatcher.this.getCameraRelativePosition();
                BufferBuilder.SortState bufferbuilder$sortstate = this.compiledChunk.transparencyState;
                if (bufferbuilder$sortstate != null && !this.compiledChunk.isEmpty(RenderType.translucent())) {
                   BufferBuilder bufferbuilder = p_112893_.builder(RenderType.translucent());
                   RenderChunk.this.beginLayer(bufferbuilder);
                   bufferbuilder.restoreSortState(bufferbuilder$sortstate);
-                  bufferbuilder.setQuadSortOrigin(f - (float)RenderChunk.this.origin.getX(), f1 - (float)RenderChunk.this.origin.getY(), f2 - (float)RenderChunk.this.origin.getZ());
+                  if (LevelRenderer.ENABLE_CHUNK_STRIPELANDS) {
+                     bufferbuilder.setQuadSortOrigin((float)vec3.x - (float)RenderChunk.this.origin.getX(), (float)vec3.y - (float)RenderChunk.this.origin.getY(), (float)vec3.z - (float)RenderChunk.this.origin.getZ());
+                  } else {
+                     bufferbuilder.setQuadSortOrigin((float)camerarelativeposition.cameraRelativeToX(RenderChunk.this.origin.getX()), (float)camerarelativeposition.cameraRelativeToY(RenderChunk.this.origin.getY()), (float)camerarelativeposition.cameraRelativeToZ(RenderChunk.this.origin.getZ()));
+                  }
+
                   this.compiledChunk.transparencyState = bufferbuilder.getSortState();
                   BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = bufferbuilder.end();
                   if (this.isCancelled.get()) {

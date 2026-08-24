@@ -205,7 +205,7 @@ public abstract class PathNavigation {
          } else if (this.path != null && !this.path.isDone()) {
             Vec3 vec3 = this.getTempMobPos();
             Vec3 vec31 = this.path.getNextEntityPos(this.mob);
-            if (vec3.y > vec31.y && !this.mob.isOnGround() && Mth.floor(vec3.x) == Mth.floor(vec31.x) && Mth.floor(vec3.z) == Mth.floor(vec31.z)) {
+            if (vec3.y > vec31.y && !this.mob.isOnGround() && Mth.lfloor(vec3.x) == Mth.lfloor(vec31.x) && Mth.lfloor(vec3.z) == Mth.lfloor(vec31.z)) {
                this.path.advance();
             }
          }

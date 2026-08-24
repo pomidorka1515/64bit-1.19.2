@@ -35,7 +35,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
       int i;
       if (this.canFloat() && this.mob.isInWater()) {
          i = this.mob.getBlockY();
-         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(this.mob.getX(), (double)i, this.mob.getZ());
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(Mth.lfloor(this.mob.getX()), i, Mth.lfloor(this.mob.getZ()));
 
          for(BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos); blockstate.is(Blocks.WATER); blockstate = this.level.getBlockState(blockpos$mutableblockpos)) {
             ++i;
@@ -60,7 +60,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
    }
 
    public Target getGoal(double p_77229_, double p_77230_, double p_77231_) {
-      return this.getTargetFromNode(super.getNode(Mth.floor(p_77229_), Mth.floor(p_77230_), Mth.floor(p_77231_)));
+      return this.getTargetFromNode(super.getNode(Mth.lfloor(p_77229_), Mth.floor(p_77230_), Mth.lfloor(p_77231_)));
    }
 
    public int getNeighbors(Node[] p_77266_, Node p_77267_) {
@@ -255,7 +255,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
       }
    }
 
-   public BlockPathTypes getBlockPathType(BlockGetter p_77245_, int p_77246_, int p_77247_, int p_77248_) {
+   public BlockPathTypes getBlockPathType(BlockGetter p_77245_, long p_77246_, int p_77247_, long p_77248_) {
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
       BlockPathTypes blockpathtypes = getBlockPathTypeRaw(p_77245_, blockpos$mutableblockpos.set(p_77246_, p_77247_, p_77248_));
       if (blockpathtypes == BlockPathTypes.OPEN && p_77247_ >= p_77245_.getMinBuildHeight() + 1) {

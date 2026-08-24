@@ -38,12 +38,12 @@ public class SwimNodeEvaluator extends NodeEvaluator {
 
    @Nullable
    public Node getStart() {
-      return super.getNode(Mth.floor(this.mob.getBoundingBox().minX), Mth.floor(this.mob.getBoundingBox().minY + 0.5D), Mth.floor(this.mob.getBoundingBox().minZ));
+      return super.getNode(Mth.lfloor(this.mob.getBoundingBox().minX), Mth.floor(this.mob.getBoundingBox().minY + 0.5D), Mth.lfloor(this.mob.getBoundingBox().minZ));
    }
 
    @Nullable
    public Target getGoal(double p_77459_, double p_77460_, double p_77461_) {
-      return this.getTargetFromNode(super.getNode(Mth.floor(p_77459_), Mth.floor(p_77460_), Mth.floor(p_77461_)));
+      return this.getTargetFromNode(super.getNode(Mth.lfloor(p_77459_), Mth.floor(p_77460_), Mth.lfloor(p_77461_)));
    }
 
    public int getNeighbors(Node[] p_77483_, Node p_77484_) {
@@ -108,12 +108,12 @@ public class SwimNodeEvaluator extends NodeEvaluator {
       return this.getBlockPathType(p_77467_, p_77468_, p_77469_, p_77470_, this.mob, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
    }
 
-   public BlockPathTypes getBlockPathType(BlockGetter p_77472_, long p_77473_, int p_77474_, long p_77475_, Mob p_77476_, long p_77477_, int p_77478_, long p_77479_, boolean p_77480_, boolean p_77481_) {
+   public BlockPathTypes getBlockPathType(BlockGetter p_77472_, long p_77473_, int p_77474_, long p_77475_, Mob p_77476_, int p_77477_, int p_77478_, int p_77479_, boolean p_77480_, boolean p_77481_) {
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-      for(long i = p_77473_; i < p_77473_ + p_77477_; ++i) {
-         for(long j = p_77474_; j < p_77474_ + p_77478_; ++j) {
-            for(long k = p_77475_; k < p_77475_ + p_77479_; ++k) {
+      for(long i = p_77473_; i < p_77473_ + (long)p_77477_; ++i) {
+         for(int j = p_77474_; j < p_77474_ + p_77478_; ++j) {
+            for(long k = p_77475_; k < p_77475_ + (long)p_77479_; ++k) {
                FluidState fluidstate = p_77472_.getFluidState(blockpos$mutableblockpos.set(i, j, k));
                BlockState blockstate = p_77472_.getBlockState(blockpos$mutableblockpos.set(i, j, k));
                if (fluidstate.isEmpty() && blockstate.isPathfindable(p_77472_, blockpos$mutableblockpos.below(), PathComputationType.WATER) && blockstate.isAir()) {

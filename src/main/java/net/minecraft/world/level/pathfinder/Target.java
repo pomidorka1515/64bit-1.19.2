@@ -11,7 +11,7 @@ public class Target extends Node {
       super(p_77502_.x, p_77502_.y, p_77502_.z);
    }
 
-   public Target(int p_77498_, int p_77499_, int p_77500_) {
+   public Target(long p_77498_, int p_77499_, long p_77500_) {
       super(p_77498_, p_77499_, p_77500_);
    }
 
@@ -36,7 +36,7 @@ public class Target extends Node {
    }
 
    public static Target createFromStream(FriendlyByteBuf p_77507_) {
-      Target target = new Target(p_77507_.readInt(), p_77507_.readInt(), p_77507_.readInt());
+      Target target = new Target(p_77507_.readLong(), p_77507_.readInt(), p_77507_.readLong());
       target.walkedDistance = p_77507_.readFloat();
       target.costMalus = p_77507_.readFloat();
       target.closed = p_77507_.readBoolean();

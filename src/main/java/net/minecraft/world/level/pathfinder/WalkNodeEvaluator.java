@@ -114,7 +114,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
 
    @Nullable
    public Target getGoal(double p_77550_, double p_77551_, double p_77552_) {
-      return this.getTargetFromNode(this.getNode(Mth.floor(p_77550_), Mth.floor(p_77551_), Mth.floor(p_77552_)));
+      return this.getTargetFromNode(this.getNode(Mth.lfloor(p_77550_), Mth.floor(p_77551_), Mth.lfloor(p_77552_)));
    }
 
    public int getNeighbors(Node[] p_77640_, Node p_77641_) {
@@ -346,7 +346,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
       });
    }
 
-   public BlockPathTypes getBlockPathType(BlockGetter p_77594_, long p_77595_, int p_77596_, long p_77597_, Mob p_77598_, long p_77599_, int p_77600_, long p_77601_, boolean p_77602_, boolean p_77603_) {
+   public BlockPathTypes getBlockPathType(BlockGetter p_77594_, long p_77595_, int p_77596_, long p_77597_, Mob p_77598_, int p_77599_, int p_77600_, int p_77601_, boolean p_77602_, boolean p_77603_) {
       EnumSet<BlockPathTypes> enumset = EnumSet.noneOf(BlockPathTypes.class);
       BlockPathTypes blockpathtypes = BlockPathTypes.BLOCKED;
       BlockPos blockpos = p_77598_.blockPosition();
@@ -372,7 +372,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
       }
    }
 
-   public BlockPathTypes getBlockPathTypes(BlockGetter p_77581_, long p_77582_, int p_77583_, long p_77584_, long p_77585_, int p_77586_, long p_77587_, boolean p_77588_, boolean p_77589_, EnumSet<BlockPathTypes> p_77590_, BlockPathTypes p_77591_, BlockPos p_77592_) {
+   public BlockPathTypes getBlockPathTypes(BlockGetter p_77581_, long p_77582_, int p_77583_, long p_77584_, int p_77585_, int p_77586_, int p_77587_, boolean p_77588_, boolean p_77589_, EnumSet<BlockPathTypes> p_77590_, BlockPathTypes p_77591_, BlockPos p_77592_) {
       for(int i = 0; i < p_77585_; ++i) {
          for(int j = 0; j < p_77586_; ++j) {
             for(int k = 0; k < p_77587_; ++k) {

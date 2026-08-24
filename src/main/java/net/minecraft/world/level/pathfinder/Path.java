@@ -183,7 +183,7 @@ public class Path {
          set.add(Target.createFromStream(p_77391_));
       }
 
-      BlockPos blockpos = new BlockPos(p_77391_.readInt(), p_77391_.readInt(), p_77391_.readInt());
+      BlockPos blockpos = new BlockPos(p_77391_.readLong(), p_77391_.readInt(), p_77391_.readLong());
       List<Node> list = Lists.newArrayList();
       int l = p_77391_.readInt();
 

@@ -26,7 +26,7 @@ public class Node {
       this.x = p_77285_;
       this.y = p_77286_;
       this.z = p_77287_;
-      this.hash = createHash((int) p_77285_, p_77286_, (int) p_77287_);
+      this.hash = createHash(p_77285_, p_77286_, p_77287_);
    }
 
    public Node cloneAndMove(long p_77290_, int p_77291_, long p_77292_) {
@@ -44,7 +44,9 @@ public class Node {
    }
 
    public static int createHash(long p_77296_, int p_77297_, long p_77298_) {
-      return (int) (p_77297_ & 255 | (p_77296_ & 32767) << 8 | (p_77298_ & 32767) << 24 | (p_77296_ < 0 ? Integer.MIN_VALUE : 0) | (p_77298_ < 0 ? '\u8000' : 0));
+      int i = Long.hashCode(p_77296_);
+      i = 31 * i + p_77297_;
+      return 31 * i + Long.hashCode(p_77298_);
    }
 
    public float distanceTo(Node p_77294_) {
@@ -135,12 +137,19 @@ public class Node {
    }
 
    public static Node createFromStream(FriendlyByteBuf p_77302_) {
-      Node node = new Node(p_77302_.readInt(), p_77302_.readInt(), p_77302_.readInt());
+      Node node = new Node(p_77302_.readLong(), p_77302_.readInt(), p_77302_.readLong());
       node.walkedDistance = p_77302_.readFloat();
       node.costMalus = p_77302_.readFloat();
       node.closed = p_77302_.readBoolean();
       node.type = BlockPathTypes.values()[p_77302_.readInt()];
       node.f = p_77302_.readFloat();
       return node;
+   }
+
+   /**
+    * Complete node identity for evaluator cache lookups. The former packed
+    * 32-bit key discarded high X/Z bits and merged distinct Far Lands nodes.
+    */
+   static record NodeKey(long x, int y, long z) {
    }
 }

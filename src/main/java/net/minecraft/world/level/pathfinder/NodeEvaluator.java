@@ -1,7 +1,7 @@
 package net.minecraft.world.level.pathfinder;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -12,7 +12,7 @@ import net.minecraft.world.level.PathNavigationRegion;
 public abstract class NodeEvaluator {
    protected PathNavigationRegion level;
    protected Mob mob;
-   protected final Int2ObjectMap<Node> nodes = new Int2ObjectOpenHashMap<>();
+   protected final Object2ObjectMap<Node.NodeKey, Node> nodes = new Object2ObjectOpenHashMap<>();
    protected int entityWidth;
    protected int entityHeight;
    protected int entityDepth;
@@ -41,7 +41,7 @@ public abstract class NodeEvaluator {
 
    @Nullable
    protected Node getNode(long p_77325_, int p_77326_, long p_77327_) {
-      return this.nodes.computeIfAbsent(Node.createHash(p_77325_, p_77326_, p_77327_), (p_77332_) -> {
+      return this.nodes.computeIfAbsent(new Node.NodeKey(p_77325_, p_77326_, p_77327_), (p_77332_) -> {
          return new Node(p_77325_, p_77326_, p_77327_);
       });
    }
@@ -59,7 +59,7 @@ public abstract class NodeEvaluator {
 
    public abstract int getNeighbors(Node[] p_77353_, Node p_77354_);
 
-   public abstract BlockPathTypes getBlockPathType(BlockGetter p_77337_, long p_77338_, int p_77339_, long p_77340_, Mob p_77341_, long p_77342_, int p_77343_, long p_77344_, boolean p_77345_, boolean p_77346_);
+   public abstract BlockPathTypes getBlockPathType(BlockGetter p_77337_, long p_77338_, int p_77339_, long p_77340_, Mob p_77341_, int p_77342_, int p_77343_, int p_77344_, boolean p_77345_, boolean p_77346_);
 
    public abstract BlockPathTypes getBlockPathType(BlockGetter p_77333_, long p_77334_, int p_77335_, long p_77336_);
 

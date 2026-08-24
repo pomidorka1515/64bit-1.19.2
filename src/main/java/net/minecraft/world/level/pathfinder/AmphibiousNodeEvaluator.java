@@ -34,12 +34,12 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
 
    @Nullable
    public Node getStart() {
-      return this.getStartNode(new BlockPos(Mth.floor(this.mob.getBoundingBox().minX), Mth.floor(this.mob.getBoundingBox().minY + 0.5D), Mth.floor(this.mob.getBoundingBox().minZ)));
+      return this.getStartNode(new BlockPos(Mth.lfloor(this.mob.getBoundingBox().minX), Mth.floor(this.mob.getBoundingBox().minY + 0.5D), Mth.lfloor(this.mob.getBoundingBox().minZ)));
    }
 
    @Nullable
    public Target getGoal(double p_164662_, double p_164663_, double p_164664_) {
-      return this.getTargetFromNode(this.getNode(Mth.floor(p_164662_), Mth.floor(p_164663_ + 0.5D), Mth.floor(p_164664_)));
+      return this.getTargetFromNode(this.getNode(Mth.lfloor(p_164662_), Mth.floor(p_164663_ + 0.5D), Mth.lfloor(p_164664_)));
    }
 
    public int getNeighbors(Node[] p_164676_, Node p_164677_) {
@@ -86,7 +86,7 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
       return true;
    }
 
-   public BlockPathTypes getBlockPathType(BlockGetter p_164666_, int p_164667_, int p_164668_, int p_164669_) {
+   public BlockPathTypes getBlockPathType(BlockGetter p_164666_, long p_164667_, int p_164668_, long p_164669_) {
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
       BlockPathTypes blockpathtypes = getBlockPathTypeRaw(p_164666_, blockpos$mutableblockpos.set(p_164667_, p_164668_, p_164669_));
       if (blockpathtypes == BlockPathTypes.WATER) {

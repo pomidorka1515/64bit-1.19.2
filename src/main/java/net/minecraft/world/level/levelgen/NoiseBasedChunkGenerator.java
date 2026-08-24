@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
@@ -120,12 +121,55 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
       return mutableobject.getValue();
    }
 
+   private static volatile boolean wrapRouterDebugInfo;
+
+   /**
+    * Toggles the multiline NoiseRouter section shown on the debug screen.
+    *
+    * @return the newly selected state
+    */
+   public static boolean toggleWrapRouterDebugInfo() {
+      wrapRouterDebugInfo = !wrapRouterDebugInfo;
+      return wrapRouterDebugInfo;
+   }
+
    public void addDebugScreenInfo(List<String> p_224304_, RandomState p_224305_, BlockPos p_224306_) {
       DecimalFormat decimalformat = new DecimalFormat("0.000");
       NoiseRouter noiserouter = p_224305_.router();
       DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(p_224306_.getX(), p_224306_.getY(), p_224306_.getZ());
       double d0 = noiserouter.ridges().compute(densityfunction$singlepointcontext);
-      p_224304_.add("NoiseRouter T: " + decimalformat.format(noiserouter.temperature().compute(densityfunction$singlepointcontext)) + " V: " + decimalformat.format(noiserouter.vegetation().compute(densityfunction$singlepointcontext)) + " C: " + decimalformat.format(noiserouter.continents().compute(densityfunction$singlepointcontext)) + " E: " + decimalformat.format(noiserouter.erosion().compute(densityfunction$singlepointcontext)) + " D: " + decimalformat.format(noiserouter.depth().compute(densityfunction$singlepointcontext)) + " W: " + decimalformat.format(d0) + " PV: " + decimalformat.format((double)NoiseRouterData.peaksAndValleys((float)d0)) + " AS: " + decimalformat.format(noiserouter.initialDensityWithoutJaggedness().compute(densityfunction$singlepointcontext)) + " N: " + decimalformat.format(noiserouter.finalDensity().compute(densityfunction$singlepointcontext)));
+      double d1 = noiserouter.temperature().compute(densityfunction$singlepointcontext);
+      double d2 = noiserouter.vegetation().compute(densityfunction$singlepointcontext);
+      double d3 = noiserouter.continents().compute(densityfunction$singlepointcontext);
+      double d4 = noiserouter.erosion().compute(densityfunction$singlepointcontext);
+      double d5 = noiserouter.depth().compute(densityfunction$singlepointcontext);
+      double d6 = NoiseRouterData.peaksAndValleys((float)d0);
+      double d7 = noiserouter.initialDensityWithoutJaggedness().compute(densityfunction$singlepointcontext);
+      double d8 = noiserouter.finalDensity().compute(densityfunction$singlepointcontext);
+      boolean flag = this.stable(NoiseGeneratorSettings.END);
+      if (wrapRouterDebugInfo) {
+         p_224304_.add("(Verbose) NoiseRouter: ");
+         p_224304_.add("Temperature: " + formatDebugValue(decimalformat, d1, 1.5D));
+         p_224304_.add("Vegetation: " + formatDebugValue(decimalformat, d2, 1.5D));
+         p_224304_.add("Continents: " + formatDebugValue(decimalformat, d3, 1.5D));
+         p_224304_.add("Erosion: " + formatDebugValue(decimalformat, d4, 1.5D));
+         p_224304_.add("Depth: " + formatDebugValue(decimalformat, d5, 2.5D));
+         p_224304_.add("Weirdness: " + formatDebugValue(decimalformat, d0, 1.5D));
+         p_224304_.add("Peaks & Valleys: " + formatDebugValue(decimalformat, d6, 1.0D));
+         p_224304_.add("Initial Density: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D));
+         p_224304_.add("Final Density: " + formatDebugValue(decimalformat, d8, 3.0D));
+      } else {
+         p_224304_.add("NoiseRouter T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D) + " D: " + formatDebugValue(decimalformat, d5, 2.5D) + " W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
+      }
+   }
+
+   private static String formatDebugValue(DecimalFormat p_224307_, double p_224308_, double p_224309_) {
+      return formatDebugValue(p_224307_, p_224308_, -p_224309_, p_224309_);
+   }
+
+   private static String formatDebugValue(DecimalFormat p_224310_, double p_224311_, double p_224312_, double p_224313_) {
+      String s = p_224310_.format(p_224311_);
+      return !Double.isNaN(p_224311_) && p_224311_ >= p_224312_ && p_224311_ <= p_224313_ ? s : ChatFormatting.RED + s + ChatFormatting.RESET;
    }
 
    private OptionalInt iterateNoiseColumn(LevelHeightAccessor p_224240_, RandomState p_224241_, long p_224242_, long p_224243_, @Nullable MutableObject<NoiseColumn> p_224244_, @Nullable Predicate<BlockState> p_224245_) {

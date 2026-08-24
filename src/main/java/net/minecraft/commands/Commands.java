@@ -104,6 +104,7 @@ import net.minecraft.server.commands.TriggerCommand;
 import net.minecraft.server.commands.WeatherCommand;
 import net.minecraft.server.commands.WhitelistCommand;
 import net.minecraft.server.commands.WorldBorderCommand;
+import net.minecraft.server.commands.WrapRouterCommand;
 import net.minecraft.server.commands.data.DataCommands;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.profiling.jfr.JvmProfiler;
@@ -174,6 +175,7 @@ public class Commands {
       TriggerCommand.register(this.dispatcher);
       WeatherCommand.register(this.dispatcher);
       WorldBorderCommand.register(this.dispatcher);
+      WrapRouterCommand.register(this.dispatcher);
       if (JvmProfiler.INSTANCE.isAvailable()) {
          JfrCommand.register(this.dispatcher);
       }

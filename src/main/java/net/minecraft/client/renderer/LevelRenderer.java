@@ -1140,6 +1140,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
       }
 
       profilerfiller.popPush("clear");
+      // The framebuffer clear colour and shader fog colour are separate state. Keep the
+      // latter updated even when the sky itself is deliberately a fixed clear colour.
+      FogRenderer.setupColor(p_109604_, p_109601_, this.minecraft.level, this.minecraft.options.getEffectiveRenderDistance(), p_109605_.getDarkenWorldAmount(p_109601_));
+      FogRenderer.levelFogColor();
       RenderSystem.clearColor(0.529F, 0.808F, 0.922F, 0.0F);
       RenderSystem.clear(16640, Minecraft.ON_OSX);
       float f = p_109605_.getRenderDistance();

@@ -40,9 +40,9 @@ public final class ImprovedNoise {
       double d0 = p_75328_ + this.xo;
       double d1 = p_75329_ + this.yo;
       double d2 = p_75330_ + this.zo;
-      long i = Mth.lfloor(d0);
-      long j = Mth.lfloor(d1);
-      long k = Mth.lfloor(d2);
+      int i = Mth.floor(d0);
+      int j = Mth.floor(d1);
+      int k = Mth.floor(d2);
       double d3 = d0 - (double)i;
       double d4 = d1 - (double)j;
       double d5 = d2 - (double)k;
@@ -67,9 +67,9 @@ public final class ImprovedNoise {
       double d0 = p_164313_ + this.xo;
       double d1 = p_164314_ + this.yo;
       double d2 = p_164315_ + this.zo;
-      long i = Mth.lfloor(d0);
-      long j = Mth.lfloor(d1);
-      long k = Mth.lfloor(d2);
+      int i = Mth.floor(d0);
+      int j = Mth.floor(d1);
+      int k = Mth.floor(d2);
       double d3 = d0 - (double)i;
       double d4 = d1 - (double)j;
       double d5 = d2 - (double)k;
@@ -80,11 +80,11 @@ public final class ImprovedNoise {
       return SimplexNoise.dot(SimplexNoise.GRADIENT[p_75336_ & 15], p_75337_, p_75338_, p_75339_);
    }
 
-   private int p(long p_75334_) {
-      return this.p[(int)(p_75334_ & 255L)] & 255;
+   private int p(int p_75334_) {
+      return this.p[p_75334_ & 255] & 255;
    }
 
-   private double sampleAndLerp(long p_164318_, long p_164319_, long p_164320_, double p_164321_, double p_164322_, double p_164323_, double p_164324_) {
+   private double sampleAndLerp(int p_164318_, int p_164319_, int p_164320_, double p_164321_, double p_164322_, double p_164323_, double p_164324_) {
       int i = this.p(p_164318_);
       int j = this.p(p_164318_ + 1);
       int k = this.p(i + p_164319_);
@@ -105,7 +105,7 @@ public final class ImprovedNoise {
       return Mth.lerp3(d8, d9, d10, d0, d1, d2, d3, d4, d5, d6, d7);
    }
 
-   private double sampleWithDerivative(long p_164326_, long p_164327_, long p_164328_, double p_164329_, double p_164330_, double p_164331_, double[] p_164332_) {
+   private double sampleWithDerivative(int p_164326_, int p_164327_, int p_164328_, double p_164329_, double p_164330_, double p_164331_, double[] p_164332_) {
       int i = this.p(p_164326_);
       int j = this.p(p_164326_ + 1);
       int k = this.p(i + p_164327_);

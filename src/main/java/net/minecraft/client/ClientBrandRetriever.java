@@ -10,6 +10,6 @@ public class ClientBrandRetriever {
 
    @DontObfuscate
    public static String getClientModName() {
-      return "vanilla";
+      return "64bit-mcp";
    }
 }

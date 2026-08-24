@@ -69,7 +69,7 @@ public abstract class DimensionSpecialEffects {
 
    public abstract Vec3 getBrightnessDependentFogColor(Vec3 p_108878_, float p_108879_);
 
-   public abstract boolean isFoggyAt(int p_108874_, int p_108875_);
+   public abstract boolean isFoggyAt(long p_108874_, int p_108875_);
 
    public DimensionSpecialEffects.SkyType skyType() {
       return this.skyType;
@@ -93,7 +93,7 @@ public abstract class DimensionSpecialEffects {
          return p_108894_.scale((double)0.15F);
       }
 
-      public boolean isFoggyAt(int p_108891_, int p_108892_) {
+      public boolean isFoggyAt(long p_108891_, int p_108892_) {
          return false;
       }
 
@@ -113,7 +113,7 @@ public abstract class DimensionSpecialEffects {
          return p_108901_;
       }
 
-      public boolean isFoggyAt(int p_108898_, int p_108899_) {
+      public boolean isFoggyAt(long p_108898_, int p_108899_) {
          return true;
       }
    }
@@ -130,7 +130,7 @@ public abstract class DimensionSpecialEffects {
          return p_108908_.multiply((double)(p_108909_ * 0.94F + 0.06F), (double)(p_108909_ * 0.94F + 0.06F), (double)(p_108909_ * 0.91F + 0.09F));
       }
 
-      public boolean isFoggyAt(int p_108905_, int p_108906_) {
+      public boolean isFoggyAt(long p_108905_, int p_108906_) {
          return false;
       }
    }

@@ -65,9 +65,9 @@ public class BiomeManager {
    }
 
    public Holder<Biome> getNoiseBiomeAtPosition(double p_204207_, double p_204208_, double p_204209_) {
-      int i = QuartPos.fromBlock(Mth.floor(p_204207_));
+      long i = QuartPos.fromBlock(Mth.lfloor(p_204207_));
       int j = QuartPos.fromBlock(Mth.floor(p_204208_));
-      int k = QuartPos.fromBlock(Mth.floor(p_204209_));
+      long k = QuartPos.fromBlock(Mth.lfloor(p_204209_));
       return this.getNoiseBiomeAtQuart(i, j, k);
    }
 

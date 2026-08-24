@@ -325,7 +325,7 @@ public abstract class DistanceManager {
    }
 
    public void removeTicketsOnClosing() {
-      ImmutableSet<TicketType<?>> immutableset = ImmutableSet.of(TicketType.UNKNOWN, TicketType.POST_TELEPORT/*, TicketType.LIGHT */); // TODO: Fix light system
+      ImmutableSet<TicketType<?>> immutableset = ImmutableSet.of(TicketType.UNKNOWN, TicketType.POST_TELEPORT, TicketType.LIGHT);
       ObjectIterator<Entry<ChunkPos, SortedArraySet<Ticket<?>>>> objectiterator = this.tickets.entrySet().iterator();
 
       while(objectiterator.hasNext()) {

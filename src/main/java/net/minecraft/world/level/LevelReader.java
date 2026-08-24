@@ -166,7 +166,7 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
    }
 
    default int getMaxLocalRawBrightness(BlockPos p_46850_, int p_46851_) {
-      return p_46850_.getX() >= -30000000 && p_46850_.getZ() >= -30000000 && p_46850_.getX() < 30000000 && p_46850_.getZ() < 30000000 ? this.getRawBrightness(p_46850_, p_46851_) : 15;
+      return this.getRawBrightness(p_46850_, p_46851_);
    }
 
    /** @deprecated */

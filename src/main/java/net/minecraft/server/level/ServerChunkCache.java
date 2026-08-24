@@ -238,7 +238,7 @@ public class ServerChunkCache extends ChunkSource {
       return !this.chunkAbsent(chunkholder, i);
    }
 
-   public BlockGetter getChunkForLighting(int p_8454_, int p_8455_) {
+   public BlockGetter getChunkForLighting(long p_8454_, long p_8455_) {
       ChunkPos i = new ChunkPos(p_8454_, p_8455_);
       ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
       if (chunkholder == null) {

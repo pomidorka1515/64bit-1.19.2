@@ -76,4 +76,9 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
       }
       return computedLevel;
    }
+
+   public void onBlockEmissionIncrease(BlockPos blockPos, int emission) {
+      this.storage.runAllUpdates();
+      this.checkEdge(null, blockPos.immutable(), 15 - emission, true);
+   }
 }

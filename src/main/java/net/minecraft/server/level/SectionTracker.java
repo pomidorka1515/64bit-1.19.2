@@ -36,7 +36,7 @@ public abstract class SectionTracker extends DynamicGraphMinFixedPoint<SectionPo
                   neighbor = null;
                }
 
-               if (neighbor != excludedNeighbor) {
+               if (neighbor == null ? excludedNeighbor != null : !neighbor.equals(excludedNeighbor)) {
                   int neighborLevel = this.computeLevelFromNeighbor(neighbor, sectionPos, neighbor == null ? 0 : this.getLevel(neighbor));
                   if (computedLevel > neighborLevel) {
                      computedLevel = neighborLevel;

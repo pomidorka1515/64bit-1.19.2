@@ -1112,12 +1112,11 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
       this.blockEntityRenderDispatcher.prepare(this.level, p_109604_, this.minecraft.hitResult);
       this.entityRenderDispatcher.prepare(this.level, p_109604_, this.minecraft.crosshairPickEntity);
       ProfilerFiller profilerfiller = this.level.getProfiler();
-      // TODO: fix light system. (I deleted because of I attempted fix, But it took me 3 hours and doesn't work. :( )
       profilerfiller.popPush("light_update_queue");
       this.level.pollLightUpdates();
       profilerfiller.popPush("light_updates");
       boolean flag = this.level.isLightUpdateQueueEmpty();
-//      this.level.getChunkSource().getLightEngine().runUpdates(Integer.MAX_VALUE, flag, true);
+      this.level.getChunkSource().getLightEngine().runUpdates(Integer.MAX_VALUE, flag, true);
       Vec3 vec3 = p_109604_.getPosition();
       double d0 = vec3.x();
       double d1 = vec3.y();

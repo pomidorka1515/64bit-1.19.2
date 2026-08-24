@@ -120,4 +120,8 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
    public String getDebugData(BlockPos blockPos) {
       return super.getDebugData(blockPos) + (this.storage.isAboveData(SectionPos.of(blockPos)) ? "*" : "");
    }
+
+   public String getDebugData(SectionPos sectionPos) {
+      return super.getDebugData(sectionPos) + (this.storage.isAboveData(sectionPos) ? "*" : "");
+   }
 }

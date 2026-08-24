@@ -2,8 +2,6 @@ package net.minecraft.client.renderer.block;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2FloatLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 
@@ -548,7 +546,7 @@ public class ModelBlockRenderer {
 
       public int getLightColor(BlockState p_111222_, BlockAndTintGetter p_111223_, BlockPos p_111224_) {
          if (this.enabled) {
-            int j = this.colorCache.getInt(p_111224_);
+            int j = this.getCachedLightColor(p_111224_);
             if (j != Integer.MAX_VALUE) {
                return j;
             }
@@ -556,14 +554,28 @@ public class ModelBlockRenderer {
 
          int k = LevelRenderer.getLightColor(p_111223_, p_111222_, p_111224_);
          if (this.enabled) {
-            if (this.colorCache.size() == 100) {
-               this.colorCache.removeFirstInt();
-            }
-
-            this.colorCache.put(p_111224_, k);
+            this.cacheLightColor(p_111224_, k);
          }
 
          return k;
+      }
+
+      // Package-private so the mutable-key regression can exercise the real cache path.
+      int getCachedLightColor(BlockPos blockPos) {
+         return this.colorCache.getInt(blockPos);
+      }
+
+      void cacheLightColor(BlockPos blockPos, int lightColor) {
+         if (this.colorCache.size() == CACHE_SIZE) {
+            this.colorCache.removeFirstInt();
+         }
+
+         // Most AO samples use one MutableBlockPos repeatedly. Keeping that
+         // mutable object as a hash-map key corrupts the table as soon as it
+         // moves: its hash code changes while it is still in the old bucket.
+         // Subsequent samples can then return a light value belonging to an
+         // unrelated position (the characteristic isolated dark dots).
+         this.colorCache.put(blockPos.immutable(), lightColor);
       }
 
       public float getShadeBrightness(BlockState p_111227_, BlockAndTintGetter p_111228_, BlockPos p_111229_) {
@@ -580,7 +592,8 @@ public class ModelBlockRenderer {
                this.brightnessCache.removeFirstFloat();
             }
 
-            this.brightnessCache.put(p_111229_, f1);
+            // See getLightColor: cache a stable snapshot, never the mutable AO cursor.
+            this.brightnessCache.put(p_111229_.immutable(), f1);
          }
 
          return f1;

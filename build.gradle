@@ -46,6 +46,7 @@ repositories {
 
 dependencies {
     implementation 'net.minecraftforge:forgespi:' + spi_version
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
 //    Use the shade to add the lib to the jar
 //    or use compile if you want to load the lib from the version.json
 //    from a maven repo
@@ -130,4 +131,8 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
     options.warnings = false
     options.compilerArgs += ['-Xmaxerrs', '500']
+}
+
+test {
+    useJUnitPlatform()
 }

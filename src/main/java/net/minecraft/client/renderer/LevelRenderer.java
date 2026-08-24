@@ -1144,7 +1144,13 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
       // latter updated even when the sky itself is deliberately a fixed clear colour.
       FogRenderer.setupColor(p_109604_, p_109601_, this.minecraft.level, this.minecraft.options.getEffectiveRenderDistance(), p_109605_.getDarkenWorldAmount(p_109601_));
       FogRenderer.levelFogColor();
-      RenderSystem.clearColor(0.529F, 0.808F, 0.922F, 0.0F);
+      if (this.level.dimension() == Level.NETHER) {
+         RenderSystem.clearColor(0.35F, 0.04F, 0.04F, 0.0F);
+      } else if (this.level.dimension() == Level.END) {
+         RenderSystem.clearColor(0.0F, 0.0F, 0.0F, 0.0F);
+      } else {
+         RenderSystem.clearColor(0.529F, 0.808F, 0.922F, 0.0F);
+      }
       RenderSystem.clear(16640, Minecraft.ON_OSX);
       float f = p_109605_.getRenderDistance();
       boolean flag2 = this.minecraft.level.effects().isFoggyAt(Mth.floor(d0), Mth.floor(d1)) || this.minecraft.gui.getBossOverlay().shouldCreateWorldFog();

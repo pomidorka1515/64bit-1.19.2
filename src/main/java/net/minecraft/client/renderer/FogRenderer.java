@@ -11,8 +11,6 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.CubicSampler;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
@@ -208,69 +206,13 @@ public class FogRenderer {
       }
    }
 
+   /**
+    * Disables shader fog for all world rendering, including fog normally imposed by
+    * fluids, weather, biomes, and status effects. This leaves the loaded-chunk edge
+    * visible rather than blending it into the fog colour.
+    */
    public static void setupFog(Camera p_234173_, FogRenderer.FogMode p_234174_, float p_234175_, boolean p_234176_, float p_234177_) {
-      FogType fogtype = p_234173_.getFluidInCamera();
-      Entity entity = p_234173_.getEntity();
-      FogRenderer.FogData fogrenderer$fogdata = new FogRenderer.FogData(p_234174_);
-      FogRenderer.MobEffectFogFunction fogrenderer$mobeffectfogfunction = getPriorityFogFunction(entity, p_234177_);
-      if (fogtype == FogType.LAVA) {
-         if (entity.isSpectator()) {
-            fogrenderer$fogdata.start = -8.0F;
-            fogrenderer$fogdata.end = p_234175_ * 0.5F;
-         } else if (entity instanceof LivingEntity && ((LivingEntity)entity).hasEffect(MobEffects.FIRE_RESISTANCE)) {
-            fogrenderer$fogdata.start = 0.0F;
-            fogrenderer$fogdata.end = 3.0F;
-         } else {
-            fogrenderer$fogdata.start = 0.25F;
-            fogrenderer$fogdata.end = 1.0F;
-         }
-      } else if (fogtype == FogType.POWDER_SNOW) {
-         if (entity.isSpectator()) {
-            fogrenderer$fogdata.start = -8.0F;
-            fogrenderer$fogdata.end = p_234175_ * 0.5F;
-         } else {
-            fogrenderer$fogdata.start = 0.0F;
-            fogrenderer$fogdata.end = 2.0F;
-         }
-      } else if (fogrenderer$mobeffectfogfunction != null) {
-         LivingEntity livingentity = (LivingEntity)entity;
-         MobEffectInstance mobeffectinstance = livingentity.getEffect(fogrenderer$mobeffectfogfunction.getMobEffect());
-         if (mobeffectinstance != null) {
-            fogrenderer$mobeffectfogfunction.setupFog(fogrenderer$fogdata, livingentity, mobeffectinstance, p_234175_, p_234177_);
-         }
-      } else if (fogtype == FogType.WATER) {
-         fogrenderer$fogdata.start = -8.0F;
-         fogrenderer$fogdata.end = 96.0F;
-         if (entity instanceof LocalPlayer) {
-            LocalPlayer localplayer = (LocalPlayer)entity;
-            fogrenderer$fogdata.end *= Math.max(0.25F, localplayer.getWaterVision());
-            Holder<Biome> holder = localplayer.level.getBiome(localplayer.blockPosition());
-            if (holder.is(BiomeTags.HAS_CLOSER_WATER_FOG)) {
-               fogrenderer$fogdata.end *= 0.85F;
-            }
-         }
-
-         if (fogrenderer$fogdata.end > p_234175_) {
-            fogrenderer$fogdata.end = p_234175_;
-            fogrenderer$fogdata.shape = FogShape.CYLINDER;
-         }
-      } else if (p_234176_) {
-         fogrenderer$fogdata.start = p_234175_ * 0.05F;
-         fogrenderer$fogdata.end = Math.min(p_234175_, 192.0F) * 0.5F;
-      } else if (p_234174_ == FogRenderer.FogMode.FOG_SKY) {
-         fogrenderer$fogdata.start = 0.0F;
-         fogrenderer$fogdata.end = p_234175_;
-         fogrenderer$fogdata.shape = FogShape.CYLINDER;
-      } else {
-         float f = Mth.clamp(p_234175_ / 10.0F, 4.0F, 64.0F);
-         fogrenderer$fogdata.start = p_234175_ - f;
-         fogrenderer$fogdata.end = p_234175_;
-         fogrenderer$fogdata.shape = FogShape.CYLINDER;
-      }
-
-      RenderSystem.setShaderFogStart(fogrenderer$fogdata.start);
-      RenderSystem.setShaderFogEnd(fogrenderer$fogdata.end);
-      RenderSystem.setShaderFogShape(fogrenderer$fogdata.shape);
+      setupNoFog();
    }
 
    public static void levelFogColor() {

@@ -337,7 +337,10 @@ public abstract class LivingEntity extends Entity {
             }
          }
 
-         if (this.isEyeInFluid(FluidTags.WATER) && !this.level.getBlockState(new BlockPos(this.getX(), this.getEyeY(), this.getZ())).is(Blocks.BUBBLE_COLUMN)) {
+         BlockPos eyeBlockPos = this.hasSectorPosition()
+               ? new BlockPos(this.sectorPosition().blockX(), Mth.floor(this.getEyeY()), this.sectorPosition().blockZ())
+               : new BlockPos(this.getX(), this.getEyeY(), this.getZ());
+         if (this.isEyeInFluid(FluidTags.WATER) && !this.level.getBlockState(eyeBlockPos).is(Blocks.BUBBLE_COLUMN)) {
             boolean flag1 = !this.canBreatheUnderwater() && !MobEffectUtil.hasWaterBreathing(this) && (!flag || !((Player)this).getAbilities().invulnerable);
             if (flag1) {
                this.setAirSupply(this.decreaseAirSupply(this.getAirSupply()));
@@ -2130,9 +2133,10 @@ public abstract class LivingEntity extends Entity {
 
    public void calculateEntityAnimation(LivingEntity p_21044_, boolean p_21045_) {
       p_21044_.animationSpeedOld = p_21044_.animationSpeed;
-      double d0 = p_21044_.getX() - p_21044_.xo;
-      double d1 = p_21045_ ? p_21044_.getY() - p_21044_.yo : 0.0D;
-      double d2 = p_21044_.getZ() - p_21044_.zo;
+      Vec3 exactDelta = p_21044_.hasSectorPosition() ? p_21044_.sectorPositionDelta() : null;
+      double d0 = exactDelta != null ? exactDelta.x : p_21044_.getX() - p_21044_.xo;
+      double d1 = p_21045_ ? (exactDelta != null ? exactDelta.y : p_21044_.getY() - p_21044_.yo) : 0.0D;
+      double d2 = exactDelta != null ? exactDelta.z : p_21044_.getZ() - p_21044_.zo;
       float f = (float)Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2) * 4.0F;
       if (f > 1.0F) {
          f = 1.0F;
@@ -2246,8 +2250,9 @@ public abstract class LivingEntity extends Entity {
          this.aiStep();
       }
 
-      double d1 = this.getX() - this.xo;
-      double d0 = this.getZ() - this.zo;
+      Vec3 exactDelta = this.hasSectorPosition() ? this.sectorPositionDelta() : null;
+      double d1 = exactDelta != null ? exactDelta.x : this.getX() - this.xo;
+      double d0 = exactDelta != null ? exactDelta.z : this.getZ() - this.zo;
       float f = (float)(d1 * d1 + d0 * d0);
       float f1 = this.yBodyRot;
       float f2 = 0.0F;
@@ -3039,7 +3044,10 @@ public abstract class LivingEntity extends Entity {
 
          if (flag1) {
             this.teleportTo(p_20985_, d3, p_20987_);
-            if (level.noCollision(this) && !level.containsAnyLiquid(this.getBoundingBox())) {
+            if (this.hasSectorPosition()
+                  ? this.sectorNoCollision(this.getSectorBoundingBox(), this.getLocalBoundingBox(this.sectorPhysicsOrigin()), this.sectorPhysicsOrigin())
+                        && !this.sectorContainsAnyLiquid(this.getSectorBoundingBox())
+                  : level.noCollision(this) && !level.containsAnyLiquid(this.getBoundingBox())) {
                flag = true;
             }
          }

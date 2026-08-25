@@ -105,6 +105,30 @@ public final class SectorVec3 {
       return new SectorVec3(this.blockX, this.subX, y, this.blockZ, this.subZ);
    }
 
+   /** Returns this position with an independently supplied normalized X component. */
+   public SectorVec3 withX(long blockX, double subX) {
+      SectorVec3 normalized = fromBlockAndFraction(blockX, subX, this.y, this.blockZ, this.subZ);
+      return new SectorVec3(normalized.blockX, normalized.subX, this.y, this.blockZ, this.subZ);
+   }
+
+   /** Returns this position with an independently supplied normalized Z component. */
+   public SectorVec3 withZ(long blockZ, double subZ) {
+      SectorVec3 normalized = fromBlockAndFraction(this.blockX, this.subX, this.y, blockZ, subZ);
+      return new SectorVec3(this.blockX, this.subX, this.y, normalized.blockZ, normalized.subZ);
+   }
+
+   /**
+    * Interpolates in split-coordinate space. The interpolation delta is formed
+    * before any conversion to an absolute double, so rendering cannot turn a
+    * large-coordinate player into a staircase of representable doubles.
+    */
+   public SectorVec3 lerpTo(SectorVec3 target, double amount) {
+      if (target == null) throw new NullPointerException("target");
+      if (!Double.isFinite(amount)) throw new IllegalArgumentException("amount must be finite");
+      Vec3 delta = target.relativeTo(this);
+      return this.add(delta.x * amount, delta.y * amount, delta.z * amount);
+   }
+
    /** Returns this position minus {@code other}, in the small/local Vec3 representation. */
    public Vec3 relativeTo(SectorVec3 other) {
       if (other == null) {

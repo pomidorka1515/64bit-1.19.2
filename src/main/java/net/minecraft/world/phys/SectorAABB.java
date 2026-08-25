@@ -65,6 +65,38 @@ public final class SectorAABB {
    public long minBlockZForCollision() { return Math.subtractExact(this.minZ.floorMinusEpsilon(), 1L); }
    public long maxBlockZForCollision() { return Math.addExact(this.maxZ.ceilPlusEpsilon(), 1L); }
 
+   /** Exact equivalent of floor(minX), used by fluid and inside-block scans. */
+   public long minBlockXForRange() { return this.minX.block; }
+
+   /** Exact exclusive equivalent of ceil(maxX), used by fluid and inside-block scans. */
+   public long maxBlockXExclusive() { return this.maxBlockXOrZExclusive(this.maxX); }
+
+   public long minBlockZForRange() { return this.minZ.block; }
+
+   public long maxBlockZExclusive() { return this.maxBlockXOrZExclusive(this.maxZ); }
+
+   public int minBlockYForRange() { return floorToInt(this.minY); }
+
+   public int maxBlockYExclusive() { return ceilToInt(this.maxY); }
+
+   private long maxBlockXOrZExclusive(Endpoint endpoint) {
+      return endpoint.fraction == 0.0D ? endpoint.block : Math.addExact(endpoint.block, 1L);
+   }
+
+   private static int floorToInt(double value) {
+      if (value < Integer.MIN_VALUE || value >= (double)Integer.MAX_VALUE + 1.0D) {
+         throw new ArithmeticException("Y range overflow: " + value);
+      }
+      return (int)Math.floor(value);
+   }
+
+   private static int ceilToInt(double value) {
+      if (value < (double)Integer.MIN_VALUE || value > (double)Integer.MAX_VALUE) {
+         throw new ArithmeticException("Y range overflow: " + value);
+      }
+      return (int)Math.ceil(value);
+   }
+
    public SectorAABB move(double dx, double dy, double dz) {
       return this.withEndpoints(this.minX.add(dx), this.minY + dy, this.minZ.add(dz),
             this.maxX.add(dx), this.maxY + dy, this.maxZ.add(dz));

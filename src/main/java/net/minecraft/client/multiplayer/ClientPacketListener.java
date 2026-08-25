@@ -278,6 +278,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.PlayerTeam;
@@ -550,6 +551,35 @@ public class ClientPacketListener implements ClientGamePacketListener {
       }
 
       Vec3 vec3 = player.getDeltaMovement();
+      SectorVec3 exactPacketPosition = p_105056_.getExactPosition();
+      // The custom sector wire format carries an absolute split-coordinate target.
+      // Do not interpret its compatibility double mirrors as relative coordinates.
+      if (exactPacketPosition != null && player.hasSectorPosition()) {
+         float yRot = p_105056_.getYRot();
+         float xRot = p_105056_.getXRot();
+         if (p_105056_.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT)) {
+            xRot += player.getXRot();
+         }
+         if (p_105056_.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.Y_ROT)) {
+            yRot += player.getYRot();
+         }
+         player.applyExactPosition(exactPacketPosition);
+         Vec3 approximate = exactPacketPosition.toApproximateVec3();
+         player.xo = approximate.x;
+         player.yo = approximate.y;
+         player.zo = approximate.z;
+         player.xOld = approximate.x;
+         player.yOld = approximate.y;
+         player.zOld = approximate.z;
+         player.setDeltaMovement(Vec3.ZERO);
+         player.setYRot(yRot % 360.0F);
+         player.setXRot(Mth.clamp(xRot, -90.0F, 90.0F) % 360.0F);
+         player.yRotO = player.getYRot();
+         player.xRotO = player.getXRot();
+         this.connection.send(new ServerboundAcceptTeleportationPacket(p_105056_.getId()));
+         return;
+      }
+
       boolean flag = p_105056_.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.X);
       boolean flag1 = p_105056_.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.Y);
       boolean flag2 = p_105056_.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.Z);
@@ -589,7 +619,17 @@ public class ClientPacketListener implements ClientGamePacketListener {
          player.zOld = d5;
       }
 
-      player.setPosRaw(d1, d3, d5);
+      if (exactPacketPosition != null && player.hasSectorPosition() && !flag && !flag2) {
+         player.applyExactPosition(exactPacketPosition);
+      } else if (exactPacketPosition != null && player.hasSectorPosition()) {
+         SectorVec3 target = exactPacketPosition;
+         if (flag) target = player.sectorPosition().add(p_105056_.getX(), 0.0D, 0.0D);
+         if (flag1) target = target.withY(player.getY() + p_105056_.getY());
+         if (flag2) target = target.add(0.0D, 0.0D, p_105056_.getZ());
+         player.applyExactPosition(target);
+      } else {
+         player.setPosRaw(d1, d3, d5);
+      }
       player.xo = d1;
       player.yo = d3;
       player.zo = d5;
@@ -604,9 +644,18 @@ public class ClientPacketListener implements ClientGamePacketListener {
          f += player.getYRot();
       }
 
-      player.absMoveTo(d1, d3, d5, f, f1);
+      if (exactPacketPosition == null || !player.hasSectorPosition()) {
+         player.absMoveTo(d1, d3, d5, f, f1);
+      } else {
+         // absMoveTo() is an approximate-double ingress and would quantize the
+         // exact target we just installed. Only apply the packet rotations here.
+         player.setYRot(f % 360.0F);
+         player.setXRot(Mth.clamp(f1, -90.0F, 90.0F) % 360.0F);
+      }
       this.connection.send(new ServerboundAcceptTeleportationPacket(p_105056_.getId()));
-      this.connection.send(new ServerboundMovePlayerPacket.PosRot(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), false));
+      this.connection.send(player.hasSectorPosition()
+            ? new ServerboundMovePlayerPacket.PosRot(player.sectorPosition(), player.getYRot(), player.getXRot(), false)
+            : new ServerboundMovePlayerPacket.PosRot(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), false));
    }
 
    public void handleChatPreview(ClientboundChatPreviewPacket p_233700_) {

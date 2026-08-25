@@ -90,6 +90,9 @@ import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -116,6 +119,8 @@ public class LocalPlayer extends AbstractClientPlayer {
    private double xLast;
    private double yLast1;
    private double zLast;
+   @Nullable
+   private SectorVec3 sectorLastPosition;
    private float yRotLast;
    private float xRotLast;
    private boolean lastOnGround;
@@ -226,6 +231,10 @@ public class LocalPlayer extends AbstractClientPlayer {
    }
 
    private void sendPosition() {
+      if (!this.isControlledCamera()) {
+         return;
+      }
+
       boolean flag = this.isSprinting();
       if (flag != this.wasSprinting) {
          ServerboundPlayerCommandPacket.Action serverboundplayercommandpacket$action = flag ? ServerboundPlayerCommandPacket.Action.START_SPRINTING : ServerboundPlayerCommandPacket.Action.STOP_SPRINTING;
@@ -241,9 +250,12 @@ public class LocalPlayer extends AbstractClientPlayer {
       }
 
       if (this.isControlledCamera()) {
-         double d4 = this.getX() - this.xLast;
-         double d0 = this.getY() - this.yLast1;
-         double d1 = this.getZ() - this.zLast;
+         Vec3 exactDelta = this.hasSectorPosition() && this.sectorLastPosition != null
+               ? this.sectorPosition().relativeTo(this.sectorLastPosition)
+               : null;
+         double d4 = exactDelta != null ? exactDelta.x : this.getX() - this.xLast;
+         double d0 = exactDelta != null ? exactDelta.y : this.getY() - this.yLast1;
+         double d1 = exactDelta != null ? exactDelta.z : this.getZ() - this.zLast;
          double d2 = (double)(this.getYRot() - this.yRotLast);
          double d3 = (double)(this.getXRot() - this.xRotLast);
          ++this.positionReminder;
@@ -254,9 +266,17 @@ public class LocalPlayer extends AbstractClientPlayer {
             this.connection.send(new ServerboundMovePlayerPacket.PosRot(vec3.x, -999.0D, vec3.z, this.getYRot(), this.getXRot(), this.onGround));
             flag1 = false;
          } else if (flag1 && flag2) {
-            this.connection.send(new ServerboundMovePlayerPacket.PosRot(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot(), this.onGround));
+            if (this.hasSectorPosition()) {
+               this.connection.send(new ServerboundMovePlayerPacket.PosRot(this.sectorPosition(), this.getYRot(), this.getXRot(), this.onGround));
+            } else {
+               this.connection.send(new ServerboundMovePlayerPacket.PosRot(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot(), this.onGround));
+            }
          } else if (flag1) {
-            this.connection.send(new ServerboundMovePlayerPacket.Pos(this.getX(), this.getY(), this.getZ(), this.onGround));
+            if (this.hasSectorPosition()) {
+               this.connection.send(new ServerboundMovePlayerPacket.Pos(this.sectorPosition(), this.onGround));
+            } else {
+               this.connection.send(new ServerboundMovePlayerPacket.Pos(this.getX(), this.getY(), this.getZ(), this.onGround));
+            }
          } else if (flag2) {
             this.connection.send(new ServerboundMovePlayerPacket.Rot(this.getYRot(), this.getXRot(), this.onGround));
          } else if (this.lastOnGround != this.onGround) {
@@ -267,6 +287,7 @@ public class LocalPlayer extends AbstractClientPlayer {
             this.xLast = this.getX();
             this.yLast1 = this.getY();
             this.zLast = this.getZ();
+            this.sectorLastPosition = this.hasSectorPosition() ? this.sectorPosition() : null;
             this.positionReminder = 0;
          }
 
@@ -508,6 +529,41 @@ public class LocalPlayer extends AbstractClientPlayer {
       }
    }
 
+   private void moveTowardsClosestSectorSpace(double offsetX, double offsetZ) {
+      SectorVec3 sample = this.sectorPosition().add(offsetX, 0.0D, offsetZ);
+      BlockPos blockPos = sample.blockPosition();
+      if (this.suffocatesAtSector(blockPos)) {
+         double localX = sample.subX();
+         double localZ = sample.subZ();
+         Direction direction = null;
+         double nearest = Double.MAX_VALUE;
+         for (Direction candidate : new Direction[]{Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH}) {
+            double fraction = candidate.getAxis().choose(localX, 0.0D, localZ);
+            double distance = candidate.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1.0D - fraction : fraction;
+            if (distance < nearest && !this.suffocatesAtSector(blockPos.relative(candidate))) {
+               nearest = distance;
+               direction = candidate;
+            }
+         }
+         if (direction != null) {
+            Vec3 velocity = this.getDeltaMovement();
+            if (direction.getAxis() == Direction.Axis.X) {
+               this.setDeltaMovement(0.1D * (double)direction.getStepX(), velocity.y, velocity.z);
+            } else {
+               this.setDeltaMovement(velocity.x, velocity.y, 0.1D * (double)direction.getStepZ());
+            }
+         }
+      }
+   }
+
+   private boolean suffocatesAtSector(BlockPos blockPos) {
+      SectorAABB playerBox = SectorAABB.around(this.sectorPosition(), this.getBbWidth(), this.getBbHeight());
+      SectorAABB column = new SectorAABB(blockPos.getX(), 0.0D, playerBox.minY(), blockPos.getZ(), 0.0D,
+            Math.addExact(blockPos.getX(), 1L), 0.0D, playerBox.maxY(), Math.addExact(blockPos.getZ(), 1L), 0.0D)
+            .inflate(-1.0E-7D, -1.0E-7D, -1.0E-7D);
+      return this.sectorCollidesWithSuffocatingBlock(column);
+   }
+
    private boolean suffocatesAt(BlockPos p_108747_) {
       AABB aabb = this.getBoundingBox();
       AABB aabb1 = (new AABB((double)p_108747_.getX(), aabb.minY, (double)p_108747_.getZ(), (double)p_108747_.getX() + 1.0D, aabb.maxY, (double)p_108747_.getZ() + 1.0D)).deflate(1.0E-7D);
@@ -677,7 +733,8 @@ public class LocalPlayer extends AbstractClientPlayer {
       if (this.level != null) {
          for(double d0 = this.getY(); d0 > (double)this.level.getMinBuildHeight() && d0 < (double)this.level.getMaxBuildHeight(); ++d0) {
             this.setPos(this.getX(), d0, this.getZ());
-            if (this.level.noCollision(this)) {
+            if (this.hasSectorPosition() ? this.sectorNoCollision(this.getSectorBoundingBox(),
+                  this.getLocalBoundingBox(this.sectorPhysicsOrigin()), this.sectorPhysicsOrigin()) : this.level.noCollision(this)) {
                break;
             }
          }
@@ -718,10 +775,16 @@ public class LocalPlayer extends AbstractClientPlayer {
       }
 
       if (!this.noPhysics) {
-         this.moveTowardsClosestSpace(this.getX() - (double)this.getBbWidth() * 0.35D, this.getZ() + (double)this.getBbWidth() * 0.35D);
-         this.moveTowardsClosestSpace(this.getX() - (double)this.getBbWidth() * 0.35D, this.getZ() - (double)this.getBbWidth() * 0.35D);
-         this.moveTowardsClosestSpace(this.getX() + (double)this.getBbWidth() * 0.35D, this.getZ() - (double)this.getBbWidth() * 0.35D);
-         this.moveTowardsClosestSpace(this.getX() + (double)this.getBbWidth() * 0.35D, this.getZ() + (double)this.getBbWidth() * 0.35D);
+         if (!this.hasSectorPosition()) {
+            // Sector collision resolution is exact and prevents entering a block at the
+            // movement boundary.  Vanilla's corner-based recovery applies an arbitrary
+            // velocity whenever a sampled corner is in a solid block; at sector
+            // coordinates that turns harmless boundary contact into visible pushback.
+            this.moveTowardsClosestSpace(this.getX() - (double)this.getBbWidth() * 0.35D, this.getZ() + (double)this.getBbWidth() * 0.35D);
+            this.moveTowardsClosestSpace(this.getX() - (double)this.getBbWidth() * 0.35D, this.getZ() - (double)this.getBbWidth() * 0.35D);
+            this.moveTowardsClosestSpace(this.getX() + (double)this.getBbWidth() * 0.35D, this.getZ() - (double)this.getBbWidth() * 0.35D);
+            this.moveTowardsClosestSpace(this.getX() + (double)this.getBbWidth() * 0.35D, this.getZ() + (double)this.getBbWidth() * 0.35D);
+         }
       }
 
       if (flag1) {
@@ -916,11 +979,22 @@ public class LocalPlayer extends AbstractClientPlayer {
       return super.removeEffectNoUpdate(p_108720_);
    }
 
+   @Override
+   public void travel(Vec3 input) {
+      super.travel(input);
+   }
+
    public void move(MoverType p_108670_, Vec3 p_108671_) {
+      SectorVec3 old = this.hasSectorPosition() ? this.sectorPosition() : null;
       double d0 = this.getX();
       double d1 = this.getZ();
       super.move(p_108670_, p_108671_);
-      this.updateAutoJump((float)(this.getX() - d0), (float)(this.getZ() - d1));
+      if (old != null) {
+         Vec3 displacement = this.sectorPosition().relativeTo(old);
+         this.updateAutoJump((float)displacement.x, (float)displacement.z);
+      } else {
+         this.updateAutoJump((float)(this.getX() - d0), (float)(this.getZ() - d1));
+      }
    }
 
    public boolean isAutoJumpEnabled() {
@@ -929,7 +1003,11 @@ public class LocalPlayer extends AbstractClientPlayer {
 
    protected void updateAutoJump(float p_108744_, float p_108745_) {
       if (this.canAutoJump()) {
-         Vec3 vec3 = this.position();
+         // Auto-jump geometry is local physics geometry for sector players. The legacy
+         // position() value is intentionally not used as a collision coordinate here.
+         SectorPhysicsOrigin autoJumpOrigin = this.hasSectorPosition() ? this.sectorPhysicsOrigin() : null;
+         Vec3 vec3 = autoJumpOrigin != null ? this.sectorPosition().toLocal(autoJumpOrigin.originBlockX(),
+               autoJumpOrigin.originBlockY(), autoJumpOrigin.originBlockZ()) : this.position();
          Vec3 vec31 = vec3.add((double)p_108744_, 0.0D, (double)p_108745_);
          Vec3 vec32 = new Vec3((double)p_108744_, 0.0D, (double)p_108745_);
          float f = this.getSpeed();
@@ -953,7 +1031,9 @@ public class LocalPlayer extends AbstractClientPlayer {
          float f13 = (float)(vec313.x * vec312.x + vec313.z * vec312.z);
          if (!(f13 < -0.15F)) {
             CollisionContext collisioncontext = CollisionContext.of(this);
-            BlockPos blockpos = new BlockPos(this.getX(), this.getBoundingBox().maxY, this.getZ());
+            BlockPos blockpos = this.hasSectorPosition()
+                  ? new BlockPos(this.sectorPosition().blockX(), Mth.floor(this.getBoundingBox().maxY), this.sectorPosition().blockZ())
+                  : new BlockPos(this.getX(), this.getBoundingBox().maxY, this.getZ());
             BlockState blockstate = this.level.getBlockState(blockpos);
             if (blockstate.getCollisionShape(this.level, blockpos, collisioncontext).isEmpty()) {
                blockpos = blockpos.above();
@@ -978,7 +1058,18 @@ public class LocalPlayer extends AbstractClientPlayer {
                   Vec3 vec38 = vec34.subtract(vec36);
                   Vec3 vec39 = $$23.add(vec36);
                   Vec3 vec310 = vec34.add(vec36);
-                  Iterable<VoxelShape> iterable = this.level.getCollisions(this, aabb);
+                  Iterable<VoxelShape> iterable;
+                  if (autoJumpOrigin != null) {
+                     SectorVec3 start = this.sectorPosition();
+                     SectorVec3 end = start.add((double)p_108744_, 0.0D, (double)p_108745_)
+                           .add(vec312.x * (double)f8, 0.0D, vec312.z * (double)f8);
+                     SectorAABB exactSweep = new SectorAABB(start.blockX(), start.subX(), start.y(), start.blockZ(), start.subZ(),
+                           end.blockX(), end.subX(), end.y() + (double)f10, end.blockZ(), end.subZ())
+                           .inflate((double)f9, 0.0D, (double)f9);
+                     iterable = this.getSectorBlockCollisions(exactSweep, autoJumpOrigin);
+                  } else {
+                     iterable = this.level.getCollisions(this, aabb);
+                  }
                   Iterator<AABB> iterator = StreamSupport.stream(iterable.spliterator(), false).flatMap((p_234124_) -> {
                      return p_234124_.toAabbs().stream();
                   }).iterator();

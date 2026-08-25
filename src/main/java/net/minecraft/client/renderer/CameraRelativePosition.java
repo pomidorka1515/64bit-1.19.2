@@ -1,6 +1,7 @@
 package net.minecraft.client.renderer;
 
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -20,12 +21,19 @@ public final class CameraRelativePosition {
    private final double fractionZ;
 
    private CameraRelativePosition(double p_234500_, double p_234501_, double p_234502_) {
-      this.baseX = Mth.lfloor(p_234500_);
-      this.baseY = Mth.floor(p_234501_);
-      this.baseZ = Mth.lfloor(p_234502_);
-      this.fractionX = p_234500_ - (double)this.baseX;
-      this.fractionY = p_234501_ - (double)this.baseY;
-      this.fractionZ = p_234502_ - (double)this.baseZ;
+      this(Mth.lfloor(p_234500_), p_234500_ - (double)Mth.lfloor(p_234500_),
+            Mth.floor(p_234501_), p_234501_ - (double)Mth.floor(p_234501_),
+            Mth.lfloor(p_234502_), p_234502_ - (double)Mth.lfloor(p_234502_));
+   }
+
+   private CameraRelativePosition(long baseX, double fractionX, int baseY, double fractionY,
+                                  long baseZ, double fractionZ) {
+      this.baseX = baseX;
+      this.baseY = baseY;
+      this.baseZ = baseZ;
+      this.fractionX = fractionX;
+      this.fractionY = fractionY;
+      this.fractionZ = fractionZ;
    }
 
    public static CameraRelativePosition of(Vec3 p_234503_) {
@@ -35,6 +43,20 @@ public final class CameraRelativePosition {
    public static CameraRelativePosition of(double p_234504_, double p_234505_, double p_234506_) {
       return new CameraRelativePosition(p_234504_, p_234505_, p_234506_);
    }
+
+   public static CameraRelativePosition of(SectorVec3 position) {
+      if (position == null) throw new NullPointerException("position");
+      int baseY = Mth.floor(position.y());
+      return new CameraRelativePosition(position.blockX(), position.subX(), baseY,
+            position.y() - (double)baseY, position.blockZ(), position.subZ());
+   }
+
+   public long baseX() { return this.baseX; }
+   public int baseY() { return this.baseY; }
+   public long baseZ() { return this.baseZ; }
+   public double fractionX() { return this.fractionX; }
+   public double fractionY() { return this.fractionY; }
+   public double fractionZ() { return this.fractionZ; }
 
    public double relativeX(long p_234507_) {
       return relativeLong(p_234507_, this.baseX, this.fractionX);

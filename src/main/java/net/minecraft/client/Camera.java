@@ -3,6 +3,7 @@ package net.minecraft.client;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -26,6 +28,8 @@ public class Camera {
    private BlockGetter level;
    private Entity entity;
    private Vec3 position = Vec3.ZERO;
+   @Nullable
+   private SectorVec3 exactPosition;
    private final BlockPos.MutableBlockPos blockPosition = new BlockPos.MutableBlockPos();
    private final Vector3f forwards = new Vector3f(0.0F, 0.0F, 1.0F);
    private final Vector3f up = new Vector3f(0.0F, 1.0F, 0.0F);
@@ -44,7 +48,18 @@ public class Camera {
       this.entity = p_90577_;
       this.detached = p_90578_;
       this.setRotation(p_90577_.getViewYRot(p_90580_), p_90577_.getViewXRot(p_90580_));
-      this.setPosition(Mth.lerp((double)p_90580_, p_90577_.xo, p_90577_.getX()), Mth.lerp((double)p_90580_, p_90577_.yo, p_90577_.getY()) + (double)Mth.lerp(p_90580_, this.eyeHeightOld, this.eyeHeight), Mth.lerp((double)p_90580_, p_90577_.zo, p_90577_.getZ()));
+      this.exactPosition = p_90577_.interpolatedExactPosition(p_90580_);
+      if (this.exactPosition != null) {
+         // exactPosition must describe the actual camera, not the player's feet.
+         // The legacy Vec3 path already added eyeHeight to the camera position;
+         // keeping that addition only in the compatibility mirror left sector
+         // rendering and third-person camera motion one eye-height below it.
+         this.exactPosition = this.exactPosition.withY(this.exactPosition.y()
+               + (double)p_90577_.getEyeHeight());
+         this.setPosition(this.exactPosition.toApproximateVec3());
+      } else {
+         this.setPosition(Mth.lerp((double)p_90580_, p_90577_.xo, p_90577_.getX()), Mth.lerp((double)p_90580_, p_90577_.yo, p_90577_.getY()) + (double)Mth.lerp(p_90580_, this.eyeHeightOld, this.eyeHeight), Mth.lerp((double)p_90580_, p_90577_.zo, p_90577_.getZ()));
+      }
       if (p_90578_) {
          if (p_90579_) {
             this.setRotation(this.yRot + 180.0F, -this.xRot);
@@ -93,7 +108,16 @@ public class Camera {
       double d0 = (double)this.forwards.x() * p_90569_ + (double)this.up.x() * p_90570_ + (double)this.left.x() * p_90571_;
       double d1 = (double)this.forwards.y() * p_90569_ + (double)this.up.y() * p_90570_ + (double)this.left.y() * p_90571_;
       double d2 = (double)this.forwards.z() * p_90569_ + (double)this.up.z() * p_90570_ + (double)this.left.z() * p_90571_;
-      this.setPosition(new Vec3(this.position.x + d0, this.position.y + d1, this.position.z + d2));
+      if (this.exactPosition != null) {
+         // Third-person camera motion is not entity motion. Keep the camera's
+         // split-coordinate position in sync, otherwise renderers still use the
+         // first-person eye position while the actual camera has moved behind
+         // the player (making the player appear enormous/in the camera).
+         this.exactPosition = this.exactPosition.add(d0, d1, d2);
+         this.setPosition(this.exactPosition.toApproximateVec3());
+      } else {
+         this.setPosition(new Vec3(this.position.x + d0, this.position.y + d1, this.position.z + d2));
+      }
    }
 
    protected void setRotation(float p_90573_, float p_90574_) {
@@ -125,6 +149,11 @@ public class Camera {
 
    public BlockPos getBlockPosition() {
       return this.blockPosition;
+   }
+
+   @Nullable
+   public SectorVec3 getExactPosition() {
+      return this.exactPosition;
    }
 
    public float getXRot() {
@@ -208,6 +237,7 @@ public class Camera {
    public void reset() {
       this.level = null;
       this.entity = null;
+      this.exactPosition = null;
       this.initialized = false;
    }
 

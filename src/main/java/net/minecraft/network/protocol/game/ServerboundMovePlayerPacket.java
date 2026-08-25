@@ -2,6 +2,8 @@ package net.minecraft.network.protocol.game;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.world.phys.SectorVec3;
+import javax.annotation.Nullable;
 
 public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePacketListener> {
    protected final double x;
@@ -12,16 +14,38 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
    protected final boolean onGround;
    protected final boolean hasPos;
    protected final boolean hasRot;
+   @Nullable
+   private final Long exactBlockX;
+   private final double exactSubX;
+   @Nullable
+   private final Long exactBlockZ;
+   private final double exactSubZ;
 
    protected ServerboundMovePlayerPacket(double p_179675_, double p_179676_, double p_179677_, float p_179678_, float p_179679_, boolean p_179680_, boolean p_179681_, boolean p_179682_) {
-      this.x = p_179675_;
-      this.y = p_179676_;
-      this.z = p_179677_;
-      this.yRot = p_179678_;
-      this.xRot = p_179679_;
-      this.onGround = p_179680_;
-      this.hasPos = p_179681_;
-      this.hasRot = p_179682_;
+      this(p_179675_, p_179676_, p_179677_, p_179678_, p_179679_, p_179680_, p_179681_, p_179682_, null);
+   }
+
+   protected ServerboundMovePlayerPacket(double x, double y, double z, float yRot, float xRot, boolean onGround,
+                                         boolean hasPos, boolean hasRot, @Nullable SectorVec3 exactPosition) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      this.yRot = yRot;
+      this.xRot = xRot;
+      this.onGround = onGround;
+      this.hasPos = hasPos;
+      this.hasRot = hasRot;
+      this.exactBlockX = exactPosition == null ? null : exactPosition.blockX();
+      this.exactSubX = exactPosition == null ? 0.0D : exactPosition.subX();
+      this.exactBlockZ = exactPosition == null ? null : exactPosition.blockZ();
+      this.exactSubZ = exactPosition == null ? 0.0D : exactPosition.subZ();
+   }
+
+   /** Exact sector X/Z payload, when this packet was created by the local player. */
+   @Nullable
+   public SectorVec3 getExactPosition(double fallbackY) {
+      return this.exactBlockX == null ? null : SectorVec3.fromBlockAndFraction(this.exactBlockX, this.exactSubX,
+            fallbackY, this.exactBlockZ, this.exactSubZ);
    }
 
    public void handle(ServerGamePacketListener p_134138_) {
@@ -39,6 +63,15 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
    public double getZ(double p_134147_) {
       return this.hasPos ? this.z : p_134147_;
    }
+
+   public boolean hasExactPosition() {
+      return this.exactBlockX != null;
+   }
+
+   public long getExactBlockX() { return this.exactBlockX; }
+   public double getExactSubX() { return this.exactSubX; }
+   public long getExactBlockZ() { return this.exactBlockZ; }
+   public double getExactSubZ() { return this.exactSubZ; }
 
    public float getYRot(float p_134132_) {
       return this.hasRot ? this.yRot : p_134132_;
@@ -61,48 +94,68 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
    }
 
    public static class Pos extends ServerboundMovePlayerPacket {
-      public Pos(double p_134150_, double p_134151_, double p_134152_, boolean p_134153_) {
-         super(p_134150_, p_134151_, p_134152_, 0.0F, 0.0F, p_134153_, true, false);
+      public Pos(double x, double y, double z, boolean onGround) {
+         super(x, y, z, 0.0F, 0.0F, onGround, true, false);
       }
 
-      public static ServerboundMovePlayerPacket.Pos read(FriendlyByteBuf p_179686_) {
-         double d0 = p_179686_.readDouble();
-         double d1 = p_179686_.readDouble();
-         double d2 = p_179686_.readDouble();
-         boolean flag = p_179686_.readUnsignedByte() != 0;
-         return new ServerboundMovePlayerPacket.Pos(d0, d1, d2, flag);
+      public Pos(SectorVec3 position, boolean onGround) {
+         super(position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z,
+               0.0F, 0.0F, onGround, true, false, position);
       }
 
-      public void write(FriendlyByteBuf p_134159_) {
-         p_134159_.writeDouble(this.x);
-         p_134159_.writeDouble(this.y);
-         p_134159_.writeDouble(this.z);
-         p_134159_.writeByte(this.onGround ? 1 : 0);
+      public static ServerboundMovePlayerPacket.Pos read(FriendlyByteBuf buf) {
+         long blockX = buf.readLong();
+         double subX = buf.readDouble();
+         double y = buf.readDouble();
+         long blockZ = buf.readLong();
+         double subZ = buf.readDouble();
+         boolean onGround = buf.readUnsignedByte() != 0;
+         return new Pos(SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ), onGround);
+      }
+
+      public void write(FriendlyByteBuf buf) {
+         SectorVec3 position = this.getExactPosition(this.y);
+         buf.writeLong(position == null ? (long)Math.floor(this.x) : position.blockX());
+         buf.writeDouble(position == null ? this.x - Math.floor(this.x) : position.subX());
+         buf.writeDouble(this.y);
+         buf.writeLong(position == null ? (long)Math.floor(this.z) : position.blockZ());
+         buf.writeDouble(position == null ? this.z - Math.floor(this.z) : position.subZ());
+         buf.writeByte(this.onGround ? 1 : 0);
       }
    }
 
    public static class PosRot extends ServerboundMovePlayerPacket {
-      public PosRot(double p_134162_, double p_134163_, double p_134164_, float p_134165_, float p_134166_, boolean p_134167_) {
-         super(p_134162_, p_134163_, p_134164_, p_134165_, p_134166_, p_134167_, true, true);
+      public PosRot(double x, double y, double z, float yRot, float xRot, boolean onGround) {
+         super(x, y, z, yRot, xRot, onGround, true, true);
       }
 
-      public static ServerboundMovePlayerPacket.PosRot read(FriendlyByteBuf p_179688_) {
-         double d0 = p_179688_.readDouble();
-         double d1 = p_179688_.readDouble();
-         double d2 = p_179688_.readDouble();
-         float f = p_179688_.readFloat();
-         float f1 = p_179688_.readFloat();
-         boolean flag = p_179688_.readUnsignedByte() != 0;
-         return new ServerboundMovePlayerPacket.PosRot(d0, d1, d2, f, f1, flag);
+      public PosRot(SectorVec3 position, float yRot, float xRot, boolean onGround) {
+         super(position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z,
+               yRot, xRot, onGround, true, true, position);
       }
 
-      public void write(FriendlyByteBuf p_134173_) {
-         p_134173_.writeDouble(this.x);
-         p_134173_.writeDouble(this.y);
-         p_134173_.writeDouble(this.z);
-         p_134173_.writeFloat(this.yRot);
-         p_134173_.writeFloat(this.xRot);
-         p_134173_.writeByte(this.onGround ? 1 : 0);
+      public static ServerboundMovePlayerPacket.PosRot read(FriendlyByteBuf buf) {
+         long blockX = buf.readLong();
+         double subX = buf.readDouble();
+         double y = buf.readDouble();
+         long blockZ = buf.readLong();
+         double subZ = buf.readDouble();
+         float yRot = buf.readFloat();
+         float xRot = buf.readFloat();
+         boolean onGround = buf.readUnsignedByte() != 0;
+         return new PosRot(SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ), yRot, xRot, onGround);
+      }
+
+      public void write(FriendlyByteBuf buf) {
+         SectorVec3 position = this.getExactPosition(this.y);
+         buf.writeLong(position == null ? (long)Math.floor(this.x) : position.blockX());
+         buf.writeDouble(position == null ? this.x - Math.floor(this.x) : position.subX());
+         buf.writeDouble(this.y);
+         buf.writeLong(position == null ? (long)Math.floor(this.z) : position.blockZ());
+         buf.writeDouble(position == null ? this.z - Math.floor(this.z) : position.subZ());
+         buf.writeFloat(this.yRot);
+         buf.writeFloat(this.xRot);
+         buf.writeByte(this.onGround ? 1 : 0);
       }
    }
 

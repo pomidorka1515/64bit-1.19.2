@@ -467,13 +467,19 @@ public abstract class Player extends LivingEntity {
          this.stopRiding();
          this.setShiftKeyDown(false);
       } else {
+         SectorVec3 old = this.hasSectorPosition() ? this.sectorPosition() : null;
          double d0 = this.getX();
          double d1 = this.getY();
          double d2 = this.getZ();
          super.rideTick();
          this.oBob = this.bob;
          this.bob = 0.0F;
-         this.checkRidingStatistics(this.getX() - d0, this.getY() - d1, this.getZ() - d2);
+         if (old != null) {
+            Vec3 delta = this.sectorPosition().relativeTo(old);
+            this.checkRidingStatistics(delta.x, delta.y, delta.z);
+         } else {
+            this.checkRidingStatistics(this.getX() - d0, this.getY() - d1, this.getZ() - d2);
+         }
       }
    }
 
@@ -1394,13 +1400,16 @@ public abstract class Player extends LivingEntity {
    }
 
    public void travel(Vec3 p_36359_) {
+      SectorVec3 exactBefore = this.hasSectorPosition() ? this.sectorPosition() : null;
       double d0 = this.getX();
       double d1 = this.getY();
       double d2 = this.getZ();
       if (this.isSwimming() && !this.isPassenger()) {
          double d3 = this.getLookAngle().y;
          double d4 = d3 < -0.2D ? 0.085D : 0.06D;
-         if (d3 <= 0.0D || this.jumping || !this.level.getBlockState(new BlockPos(this.getX(), this.getY() + 1.0D - 0.1D, this.getZ())).getFluidState().isEmpty()) {
+         BlockPos upperBodyPos = new BlockPos(this.sectorPosition().blockX(),
+               Mth.floor(this.sectorPosition().y() + 0.9D), this.sectorPosition().blockZ());
+         if (d3 <= 0.0D || this.jumping || !this.level.getBlockState(upperBodyPos).getFluidState().isEmpty()) {
             Vec3 vec31 = this.getDeltaMovement();
             this.setDeltaMovement(vec31.add(0.0D, (d3 - vec31.y) * d4, 0.0D));
          }
@@ -1420,7 +1429,12 @@ public abstract class Player extends LivingEntity {
          super.travel(p_36359_);
       }
 
-      this.checkMovementStatistics(this.getX() - d0, this.getY() - d1, this.getZ() - d2);
+      if (exactBefore != null) {
+         Vec3 exactDelta = this.sectorPosition().relativeTo(exactBefore);
+         this.checkMovementStatistics(exactDelta.x, exactDelta.y, exactDelta.z);
+      } else {
+         this.checkMovementStatistics(this.getX() - d0, this.getY() - d1, this.getZ() - d2);
+      }
    }
 
    public void updateSwimming() {
@@ -1438,6 +1452,10 @@ public abstract class Player extends LivingEntity {
 
    public float getSpeed() {
       return (float)this.getAttributeValue(Attributes.MOVEMENT_SPEED);
+   }
+
+   public void checkMovementStatistics(Vec3 displacement) {
+      this.checkMovementStatistics(displacement.x, displacement.y, displacement.z);
    }
 
    public void checkMovementStatistics(double p_36379_, double p_36380_, double p_36381_) {

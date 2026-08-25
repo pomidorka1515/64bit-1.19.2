@@ -173,6 +173,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -203,6 +204,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
    private double lastGoodY;
    private double lastGoodZ;
    @Nullable
+   private SectorVec3 firstGoodSector;
+   @Nullable
+   private SectorVec3 lastGoodSector;
+   @Nullable
    private Entity lastVehicle;
    private double vehicleFirstGoodX;
    private double vehicleFirstGoodY;
@@ -212,6 +217,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
    private double vehicleLastGoodZ;
    @Nullable
    private Vec3 awaitingPositionFromClient;
+   @Nullable
+   private SectorVec3 awaitingSectorPositionFromClient;
    private int awaitingTeleport;
    private int awaitingTeleportTime;
    private boolean clientIsFloating;
@@ -256,7 +263,12 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       this.player.yo = this.player.getY();
       this.player.zo = this.player.getZ();
       this.player.doTick();
-      this.player.absMoveTo(this.firstGoodX, this.firstGoodY, this.firstGoodZ, this.player.getYRot(), this.player.getXRot());
+      if (this.player.hasSectorPosition() && this.firstGoodSector != null) {
+         // The tick baseline is exact; never restore it through legacy global doubles.
+         this.player.applyExactPosition(this.firstGoodSector);
+      } else {
+         this.player.absMoveTo(this.firstGoodX, this.firstGoodY, this.firstGoodZ, this.player.getYRot(), this.player.getXRot());
+      }
       ++this.tickCount;
       this.knownMovePacketCount = this.receivedMovePacketCount;
       if (this.clientIsFloating && !this.player.isSleeping() && !this.player.isPassenger()) {
@@ -330,6 +342,13 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       this.lastGoodX = this.player.getX();
       this.lastGoodY = this.player.getY();
       this.lastGoodZ = this.player.getZ();
+      if (this.player.hasSectorPosition()) {
+         this.firstGoodSector = this.player.sectorPosition();
+         this.lastGoodSector = this.player.sectorPosition();
+      } else {
+         this.firstGoodSector = null;
+         this.lastGoodSector = null;
+      }
    }
 
    public Connection getConnection() {
@@ -462,15 +481,22 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             return;
          }
 
-         this.player.absMoveTo(this.awaitingPositionFromClient.x, this.awaitingPositionFromClient.y, this.awaitingPositionFromClient.z, this.player.getYRot(), this.player.getXRot());
-         this.lastGoodX = this.awaitingPositionFromClient.x;
-         this.lastGoodY = this.awaitingPositionFromClient.y;
-         this.lastGoodZ = this.awaitingPositionFromClient.z;
+         if (this.player.hasSectorPosition() && this.awaitingSectorPositionFromClient != null) {
+            this.player.applyExactPosition(this.awaitingSectorPositionFromClient);
+            this.lastGoodSector = this.awaitingSectorPositionFromClient;
+         } else {
+            this.player.absMoveTo(this.awaitingPositionFromClient.x, this.awaitingPositionFromClient.y, this.awaitingPositionFromClient.z,
+                  this.player.getYRot(), this.player.getXRot());
+         }
+         this.lastGoodX = this.player.getX();
+         this.lastGoodY = this.player.getY();
+         this.lastGoodZ = this.player.getZ();
          if (this.player.isChangingDimension()) {
             this.player.hasChangedDimension();
          }
 
          this.awaitingPositionFromClient = null;
+         this.awaitingSectorPositionFromClient = null;
       }
 
    }
@@ -833,7 +859,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
    public void handleMovePlayer(ServerboundMovePlayerPacket p_9874_) {
       PacketUtils.ensureRunningOnSameThread(p_9874_, this, this.player.getLevel());
-      if (containsInvalidValues(p_9874_.getX(0.0D), p_9874_.getY(0.0D), p_9874_.getZ(0.0D), p_9874_.getYRot(0.0F), p_9874_.getXRot(0.0F))) {
+      if (!p_9874_.hasExactPosition() && containsInvalidValues(p_9874_.getX(0.0D), p_9874_.getY(0.0D), p_9874_.getZ(0.0D), p_9874_.getYRot(0.0F), p_9874_.getXRot(0.0F))) {
          this.disconnect(Component.translatable("multiplayer.disconnect.invalid_player_movement"));
       } else {
          ServerLevel serverlevel = this.player.getLevel();
@@ -845,14 +871,25 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             if (this.awaitingPositionFromClient != null) {
                if (this.tickCount - this.awaitingTeleportTime > 20) {
                   this.awaitingTeleportTime = this.tickCount;
-                  this.teleport(this.awaitingPositionFromClient.x, this.awaitingPositionFromClient.y, this.awaitingPositionFromClient.z, this.player.getYRot(), this.player.getXRot());
+                  if (this.player.hasSectorPosition() && this.awaitingSectorPositionFromClient != null) {
+                     // Re-send the preserved split-coordinate target; reconstructing it
+                     // from awaitingPositionFromClient would lose the sub-block bits.
+                     this.player.connection.send(new ClientboundPlayerPositionPacket(this.awaitingSectorPositionFromClient,
+                           this.player.getYRot(), this.player.getXRot(), Collections.emptySet(),
+                           this.awaitingTeleport, false));
+                  } else {
+                     this.teleport(this.awaitingPositionFromClient.x, this.awaitingPositionFromClient.y,
+                           this.awaitingPositionFromClient.z, this.player.getYRot(), this.player.getXRot());
+                  }
                }
 
             } else {
                this.awaitingTeleportTime = this.tickCount;
-               double d0 = clampHorizontal(p_9874_.getX(this.player.getX()));
+               SectorVec3 packetSector = p_9874_.hasExactPosition() && this.player.hasSectorPosition()
+                     ? p_9874_.getExactPosition(p_9874_.getY(this.player.getY())) : null;
+               double d0 = packetSector == null ? clampHorizontal(p_9874_.getX(this.player.getX())) : this.player.getX();
                double d1 = clampVertical(p_9874_.getY(this.player.getY()));
-               double d2 = clampHorizontal(p_9874_.getZ(this.player.getZ()));
+               double d2 = packetSector == null ? clampHorizontal(p_9874_.getZ(this.player.getZ())) : this.player.getZ();
                float f = Mth.wrapDegrees(p_9874_.getYRot(this.player.getYRot()));
                float f1 = Mth.wrapDegrees(p_9874_.getXRot(this.player.getXRot()));
                if (this.player.isPassenger()) {
@@ -863,14 +900,28 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                   double d4 = this.player.getY();
                   double d5 = this.player.getZ();
                   double d6 = this.player.getY();
-                  double d7 = d0 - this.firstGoodX;
-                  double d8 = d1 - this.firstGoodY;
-                  double d9 = d2 - this.firstGoodZ;
+                  double d7;
+                  double d8;
+                  double d9;
+                  if (packetSector != null && this.firstGoodSector != null) {
+                     Vec3 exactFirstDelta = packetSector.withY(d1).relativeTo(this.firstGoodSector);
+                     d7 = exactFirstDelta.x;
+                     d8 = exactFirstDelta.y;
+                     d9 = exactFirstDelta.z;
+                  } else {
+                     d7 = d0 - this.firstGoodX;
+                     d8 = d1 - this.firstGoodY;
+                     d9 = d2 - this.firstGoodZ;
+                  }
                   double d10 = this.player.getDeltaMovement().lengthSqr();
                   double d11 = d7 * d7 + d8 * d8 + d9 * d9;
                   if (this.player.isSleeping()) {
                      if (d11 > 1.0D) {
-                        this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), f, f1);
+                        if (this.player.hasSectorPosition()) {
+                           this.teleportExactAbsolute(this.player.sectorPosition(), f, f1);
+                        } else {
+                           this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), f, f1);
+                        }
                      }
 
                   } else {
@@ -885,15 +936,27 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                         float f2 = this.player.isFallFlying() ? 300.0F : 100.0F;
                         if (d11 - d10 > (double)(f2 * (float)i) && !this.isSingleplayerOwner()) {
                            LOGGER.warn("{} moved too quickly! {},{},{}", this.player.getName().getString(), d7, d8, d9);
-                           this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), this.player.getYRot(), this.player.getXRot());
+                           if (this.player.hasSectorPosition()) {
+                              this.teleportExactAbsolute(this.player.sectorPosition(), this.player.getYRot(), this.player.getXRot());
+                           } else {
+                              this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), this.player.getYRot(), this.player.getXRot());
+                           }
                            return;
                         }
                      }
 
                      AABB aabb = this.player.getBoundingBox();
-                     d7 = d0 - this.lastGoodX;
-                     d8 = d1 - this.lastGoodY;
-                     d9 = d2 - this.lastGoodZ;
+                     SectorVec3 movementStart = this.player.hasSectorPosition() ? this.player.sectorPosition() : null;
+                     if (packetSector != null && this.lastGoodSector != null) {
+                        Vec3 exactPacketDelta = packetSector.withY(d1).relativeTo(this.lastGoodSector);
+                        d7 = exactPacketDelta.x;
+                        d8 = exactPacketDelta.y;
+                        d9 = exactPacketDelta.z;
+                     } else {
+                        d7 = d0 - this.lastGoodX;
+                        d8 = d1 - this.lastGoodY;
+                        d9 = d2 - this.lastGoodZ;
+                     }
                      boolean flag = d8 > 0.0D;
                      if (this.player.isOnGround() && !p_9874_.isOnGround() && flag) {
                         this.player.jumpFromGround();
@@ -901,13 +964,19 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
                      boolean flag1 = this.player.verticalCollisionBelow;
                      this.player.move(MoverType.PLAYER, new Vec3(d7, d8, d9));
-                     d7 = d0 - this.player.getX();
-                     d8 = d1 - this.player.getY();
-                     if (d8 > -0.5D || d8 < 0.5D) {
-                        d8 = 0.0D;
+                     if (packetSector != null && this.player.hasSectorPosition()) {
+                        Vec3 exactRemaining = packetSector.withY(d1).relativeTo(this.player.sectorPosition());
+                        d7 = exactRemaining.x;
+                        d8 = exactRemaining.y;
+                        d9 = exactRemaining.z;
+                     } else {
+                        d7 = d0 - this.player.getX();
+                        d8 = d1 - this.player.getY();
+                        if (d8 > -0.5D || d8 < 0.5D) {
+                           d8 = 0.0D;
+                        }
+                        d9 = d2 - this.player.getZ();
                      }
-
-                     d9 = d2 - this.player.getZ();
                      d11 = d7 * d7 + d8 * d8 + d9 * d9;
                      boolean flag2 = false;
                      if (!this.player.isChangingDimension() && d11 > 0.0625D && !this.player.isSleeping() && !this.player.gameMode.isCreative() && this.player.gameMode.getGameModeForPlayer() != GameType.SPECTATOR) {
@@ -915,8 +984,15 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                         LOGGER.warn("{} moved wrongly!", (Object)this.player.getName().getString());
                      }
 
-                     this.player.absMoveTo(d0, d1, d2, f, f1);
-                     if (this.player.noPhysics || this.player.isSleeping() || (!flag2 || !serverlevel.noCollision(this.player, aabb)) && !this.isPlayerCollidingWithAnythingNew(serverlevel, aabb)) {
+                        if (packetSector != null && this.player.hasSectorPosition()) {
+                        // Movement above already resolved the exact target against local collision shapes.
+                        // Do not overwrite that resolved SectorVec3 with a lossy absolute packet mirror.
+                        this.player.setYRot(f);
+                        this.player.setXRot(f1);
+                     } else {
+                        this.player.absMoveTo(d0, d1, d2, f, f1);
+                     }
+                     if (this.player.noPhysics || this.player.isSleeping() || (!flag2 || !this.player.hasExactNoCollision()) && !this.isPlayerCollidingWithAnythingNew(serverlevel, aabb)) {
                         this.clientIsFloating = d8 >= -0.03125D && !flag1 && this.player.gameMode.getGameModeForPlayer() != GameType.SPECTATOR && !this.server.isFlightAllowed() && !this.player.getAbilities().mayfly && !this.player.hasEffect(MobEffects.LEVITATION) && !this.player.isFallFlying() && !this.player.isAutoSpinAttack() && this.noBlocksAround(this.player);
                         this.player.getLevel().getChunkSource().move(this.player);
                         this.player.doCheckFallDamage(this.player.getY() - d6, p_9874_.isOnGround());
@@ -925,12 +1001,21 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                            this.player.resetFallDistance();
                         }
 
-                        this.player.checkMovementStatistics(this.player.getX() - d3, this.player.getY() - d4, this.player.getZ() - d5);
+                        if (movementStart != null) {
+                           this.player.checkMovementStatistics(this.player.sectorPosition().relativeTo(movementStart));
+                        } else {
+                           this.player.checkMovementStatistics(this.player.getX() - d3, this.player.getY() - d4, this.player.getZ() - d5);
+                        }
                         this.lastGoodX = this.player.getX();
                         this.lastGoodY = this.player.getY();
                         this.lastGoodZ = this.player.getZ();
+                        this.lastGoodSector = this.player.hasSectorPosition() ? this.player.sectorPosition() : null;
                      } else {
-                        this.teleport(d3, d4, d5, f, f1);
+                        if (this.player.hasSectorPosition() && movementStart != null) {
+                           this.teleportExactAbsolute(movementStart, f, f1);
+                        } else {
+                           this.teleport(d3, d4, d5, f, f1);
+                        }
                      }
                   }
                }
@@ -940,6 +1025,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
    }
 
    private boolean isPlayerCollidingWithAnythingNew(LevelReader p_9796_, AABB p_9797_) {
+      // The legacy AABB here is only a lossy compatibility mirror for sector players.
+      // Rechecking it at an extreme coordinate can report a false overlap after the
+      // exact movement resolver already stopped at the block face, which teleports the
+      // player back and looks like block pushback.
+      if (this.player.hasSectorPosition()) {
+         return !this.player.hasExactNoCollision();
+      }
+
       Iterable<VoxelShape> iterable = p_9796_.getCollisions(this.player, this.player.getBoundingBox().deflate((double)1.0E-5F));
       VoxelShape voxelshape = Shapes.create(p_9797_.deflate((double)1.0E-5F));
 
@@ -956,6 +1049,20 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       this.teleport(p_143612_, p_143613_, p_143614_, p_143615_, p_143616_, Collections.emptySet(), true);
    }
 
+   private void teleportExactAbsolute(SectorVec3 position, float yRot, float xRot) {
+      this.awaitingPositionFromClient = position.toApproximateVec3();
+      this.awaitingSectorPositionFromClient = position;
+      if (++this.awaitingTeleport == Integer.MAX_VALUE) {
+         this.awaitingTeleport = 0;
+      }
+      this.awaitingTeleportTime = this.tickCount;
+      this.player.applyExactPosition(position);
+      this.player.setYRot(yRot);
+      this.player.setXRot(xRot);
+      this.player.connection.send(new ClientboundPlayerPositionPacket(position, yRot, xRot,
+            Collections.emptySet(), this.awaitingTeleport, false));
+   }
+
    public void teleport(double p_9775_, double p_9776_, double p_9777_, float p_9778_, float p_9779_) {
       this.teleport(p_9775_, p_9776_, p_9777_, p_9778_, p_9779_, Collections.emptySet(), false);
    }
@@ -970,14 +1077,46 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       double d2 = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Z) ? this.player.getZ() : 0.0D;
       float f = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y_ROT) ? this.player.getYRot() : 0.0F;
       float f1 = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT) ? this.player.getXRot() : 0.0F;
+      SectorVec3 exactTarget = null;
+      if (this.player.hasSectorPosition()) {
+         SectorVec3 current = this.player.sectorPosition();
+         // TeleportCommand has already resolved relative coordinates into the
+         // absolute Vec3 arguments. Relative flags describe the client packet;
+         // they do not mean that those resolved values must be added again.
+         // Adding them here made /tp ~ ~ ~ apply the current position twice,
+         // most visibly in Y.
+         exactTarget = current;
+         if (!p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.X)) {
+            double floorX = Math.floor(p_143618_);
+            exactTarget = exactTarget.withX((long)floorX, p_143618_ - floorX);
+         }
+         if (!p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Z)) {
+            double floorZ = Math.floor(p_143620_);
+            exactTarget = exactTarget.withZ((long)floorZ, p_143620_ - floorZ);
+         }
+         if (!p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y)) {
+            exactTarget = exactTarget.withY(p_143619_);
+         }
+      }
       this.awaitingPositionFromClient = new Vec3(p_143618_, p_143619_, p_143620_);
+      this.awaitingSectorPositionFromClient = exactTarget;
       if (++this.awaitingTeleport == Integer.MAX_VALUE) {
          this.awaitingTeleport = 0;
       }
 
       this.awaitingTeleportTime = this.tickCount;
-      this.player.absMoveTo(p_143618_, p_143619_, p_143620_, p_143621_, p_143622_);
-      this.player.connection.send(new ClientboundPlayerPositionPacket(p_143618_ - d0, p_143619_ - d1, p_143620_ - d2, p_143621_ - f, p_143622_ - f1, p_143623_, this.awaitingTeleport, p_143624_));
+      if (this.player.hasSectorPosition()) {
+         exactTarget = this.awaitingSectorPositionFromClient;
+         this.player.applyExactPosition(exactTarget);
+         this.player.setYRot(p_143621_);
+         this.player.setXRot(p_143622_);
+         this.player.connection.send(new ClientboundPlayerPositionPacket(exactTarget, p_143621_ - f, p_143622_ - f1,
+               p_143623_, this.awaitingTeleport, p_143624_));
+      } else {
+         this.player.absMoveTo(p_143618_, p_143619_, p_143620_, p_143621_, p_143622_);
+         this.player.connection.send(new ClientboundPlayerPositionPacket(p_143618_ - d0, p_143619_ - d1, p_143620_ - d2,
+               p_143621_ - f, p_143622_ - f1, p_143623_, this.awaitingTeleport, p_143624_));
+      }
    }
 
    public void handlePlayerAction(ServerboundPlayerActionPacket p_9889_) {

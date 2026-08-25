@@ -2,8 +2,10 @@ package net.minecraft.network.protocol.game;
 
 import java.util.EnumSet;
 import java.util.Set;
+import javax.annotation.Nullable;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.world.phys.SectorVec3;
 
 public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketListener> {
    private final double x;
@@ -14,38 +16,72 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
    private final Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments;
    private final int id;
    private final boolean dismountVehicle;
+   /** Absolute exact target, present only for the sector-aware integrated-server path. */
+   @Nullable
+   private final SectorVec3 exactPosition;
 
-   public ClientboundPlayerPositionPacket(double p_179149_, double p_179150_, double p_179151_, float p_179152_, float p_179153_, Set<ClientboundPlayerPositionPacket.RelativeArgument> p_179154_, int p_179155_, boolean p_179156_) {
-      this.x = p_179149_;
-      this.y = p_179150_;
-      this.z = p_179151_;
-      this.yRot = p_179152_;
-      this.xRot = p_179153_;
-      this.relativeArguments = p_179154_;
-      this.id = p_179155_;
-      this.dismountVehicle = p_179156_;
+   public ClientboundPlayerPositionPacket(double x, double y, double z, float yRot, float xRot,
+                                          Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
+                                          int id, boolean dismountVehicle) {
+      this(x, y, z, yRot, xRot, relativeArguments, id, dismountVehicle, null);
    }
 
-   public ClientboundPlayerPositionPacket(FriendlyByteBuf p_179158_) {
-      this.x = p_179158_.readDouble();
-      this.y = p_179158_.readDouble();
-      this.z = p_179158_.readDouble();
-      this.yRot = p_179158_.readFloat();
-      this.xRot = p_179158_.readFloat();
-      this.relativeArguments = ClientboundPlayerPositionPacket.RelativeArgument.unpack(p_179158_.readUnsignedByte());
-      this.id = p_179158_.readVarInt();
-      this.dismountVehicle = p_179158_.readBoolean();
+   public ClientboundPlayerPositionPacket(SectorVec3 position, float yRot, float xRot,
+                                          Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
+                                          int id, boolean dismountVehicle) {
+      this(position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z,
+            yRot, xRot, relativeArguments, id, dismountVehicle, position);
    }
 
-   public void write(FriendlyByteBuf p_132820_) {
-      p_132820_.writeDouble(this.x);
-      p_132820_.writeDouble(this.y);
-      p_132820_.writeDouble(this.z);
-      p_132820_.writeFloat(this.yRot);
-      p_132820_.writeFloat(this.xRot);
-      p_132820_.writeByte(ClientboundPlayerPositionPacket.RelativeArgument.pack(this.relativeArguments));
-      p_132820_.writeVarInt(this.id);
-      p_132820_.writeBoolean(this.dismountVehicle);
+   private ClientboundPlayerPositionPacket(double x, double y, double z, float yRot, float xRot,
+                                           Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
+                                           int id, boolean dismountVehicle, @Nullable SectorVec3 exactPosition) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      this.yRot = yRot;
+      this.xRot = xRot;
+      this.relativeArguments = relativeArguments;
+      this.id = id;
+      this.dismountVehicle = dismountVehicle;
+      this.exactPosition = exactPosition;
+   }
+
+   public ClientboundPlayerPositionPacket(FriendlyByteBuf buf) {
+      long blockX = buf.readLong();
+      double subX = buf.readDouble();
+      double y = buf.readDouble();
+      long blockZ = buf.readLong();
+      double subZ = buf.readDouble();
+      // Compatibility mirrors only; exactPosition is authoritative for sector players.
+      this.x = (double)blockX + subX;
+      this.y = y;
+      this.z = (double)blockZ + subZ;
+      this.exactPosition = SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ);
+      this.yRot = buf.readFloat();
+      this.xRot = buf.readFloat();
+      this.relativeArguments = ClientboundPlayerPositionPacket.RelativeArgument.unpack(buf.readUnsignedByte());
+      this.id = buf.readVarInt();
+      this.dismountVehicle = buf.readBoolean();
+   }
+
+   @Nullable
+   public SectorVec3 getExactPosition() {
+      return this.exactPosition;
+   }
+
+   public void write(FriendlyByteBuf buf) {
+      SectorVec3 position = this.exactPosition;
+      buf.writeLong(position == null ? (long)Math.floor(this.x) : position.blockX());
+      buf.writeDouble(position == null ? this.x - Math.floor(this.x) : position.subX());
+      buf.writeDouble(this.y);
+      buf.writeLong(position == null ? (long)Math.floor(this.z) : position.blockZ());
+      buf.writeDouble(position == null ? this.z - Math.floor(this.z) : position.subZ());
+      buf.writeFloat(this.yRot);
+      buf.writeFloat(this.xRot);
+      buf.writeByte(ClientboundPlayerPositionPacket.RelativeArgument.pack(this.relativeArguments));
+      buf.writeVarInt(this.id);
+      buf.writeBoolean(this.dismountVehicle);
    }
 
    public void handle(ClientGamePacketListener p_132817_) {

@@ -147,7 +147,9 @@ public class ProfileKeyPairManager {
          ProfilePublicKey.Data profilepublickey$data = parsePublicKey(keypairresponse);
          return new ProfileKeyPair(Crypt.stringToPemRsaPrivateKey(keypairresponse.getPrivateKey()), new ProfilePublicKey(profilepublickey$data), Instant.parse(keypairresponse.getRefreshedAfter()));
       } else {
-         throw new IOException("Could not retrieve profile key pair");
+      	 // This is a mod focused for singleplayer.
+      	 // (this warning annoys me when using ./gradlew runClient)
+         LOGGER.warn("Could not retrieve profile key pair");
       }
    }
 

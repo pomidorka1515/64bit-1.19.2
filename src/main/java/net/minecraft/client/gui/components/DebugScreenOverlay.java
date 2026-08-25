@@ -72,6 +72,7 @@ import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -229,9 +230,18 @@ public class DebugScreenOverlay extends GuiComponent {
 
          list.add(this.minecraft.level.dimension().location() + " FC: " + longset.size());
          list.add("");
-         list.add(String.format(Locale.ROOT, "XYZ: %.3f / %.5f / %.3f", this.minecraft.getCameraEntity().getX(), this.minecraft.getCameraEntity().getY(), this.minecraft.getCameraEntity().getZ()));
+         SectorVec3 exact = entity.exactPosition();
+         if (exact != null) {
+            list.add(String.format(Locale.ROOT, "XYZ: %s / %.5f / %s", exact.formatX(3), exact.y(), exact.formatZ(3)));
+         } else {
+            list.add(String.format(Locale.ROOT, "XYZ: %.3f / %.5f / %.3f", entity.getX(), entity.getY(), entity.getZ()));
+         }
          list.add(String.format(Locale.ROOT, "Block: %d %d %d [%d %d %d]", blockpos.getX(), blockpos.getY(), blockpos.getZ(), blockpos.getX() & 15, blockpos.getY() & 15, blockpos.getZ() & 15));
          list.add(String.format(Locale.ROOT, "Chunk: %d %d %d [%d %d in r.%d.%d.mca]", chunkpos.x, SectionPos.blockToSectionCoord(blockpos.getY()), chunkpos.z, chunkpos.getRegionLocalX(), chunkpos.getRegionLocalZ(), chunkpos.getRegionX(), chunkpos.getRegionZ()));
+         if (exact != null) {
+            list.add(String.format(Locale.ROOT, "Sector: [X: %d, Y: %d, Z: %d]", exact.sectorX(), exact.sectorY(), exact.sectorZ()));
+            list.add(String.format(Locale.ROOT, "SubPos: [X: %+.5f, Y: %+.5f, Z: %+.5f]", exact.subX(), exact.subY(), exact.subZ()));
+         }
          list.add(String.format(Locale.ROOT, "Facing: %s (%s) (%.1f / %.1f)", direction, s1, Mth.wrapDegrees(entity.getYRot()), Mth.wrapDegrees(entity.getXRot())));
          long maxPosition = (long) Math.max(Math.abs(this.minecraft.getCameraEntity().getX()), Math.max(Math.abs(this.minecraft.getCameraEntity().getY()), Math.abs(this.minecraft.getCameraEntity().getZ())));
          int maxBit = Long.SIZE - Long.numberOfLeadingZeros(maxPosition);

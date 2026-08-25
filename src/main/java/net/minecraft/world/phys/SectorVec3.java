@@ -1,5 +1,7 @@
 package net.minecraft.world.phys;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import net.minecraft.core.BlockPos;
 
 /**
@@ -79,12 +81,59 @@ public final class SectorVec3 {
       return this.blockX;
    }
 
+   /** Alias for the split-coordinate name used by debug and network displays. */
+   public long sectorX() {
+      return this.blockX;
+   }
+
    public long blockZ() {
       return this.blockZ;
    }
 
+   /** Alias for the split-coordinate name used by debug and network displays. */
+   public long sectorZ() {
+      return this.blockZ;
+   }
+
+   /** The integral block component of the ordinary Y coordinate. */
+   public long sectorY() {
+      double blockY = Math.floor(this.y);
+      if (blockY < -TWO_TO_THE_63 || blockY >= TWO_TO_THE_63) {
+         throw new IllegalStateException("Y coordinate is outside the representable sector range: " + this.y);
+      }
+      return (long)blockY;
+   }
+
    public double subX() {
       return this.subX;
+   }
+
+   /** The fractional component of the ordinary Y coordinate. */
+   public double subY() {
+      return this.y - (double)this.sectorY();
+   }
+
+   /**
+    * Formats a split coordinate without first reconstructing it as a double.
+    * This is important for coordinates beyond the 53-bit precision of doubles.
+    */
+   public static String formatCoordinate(long sector, double sub, int fractionalDigits) {
+      if (!Double.isFinite(sub)) {
+         throw new IllegalArgumentException("sub-coordinate must be finite: " + sub);
+      }
+      if (fractionalDigits < 0) {
+         throw new IllegalArgumentException("fractionalDigits must not be negative");
+      }
+      BigDecimal coordinate = BigDecimal.valueOf(sector).add(BigDecimal.valueOf(sub));
+      return coordinate.setScale(fractionalDigits, RoundingMode.HALF_UP).toPlainString();
+   }
+
+   public String formatX(int fractionalDigits) {
+      return formatCoordinate(this.blockX, this.subX, fractionalDigits);
+   }
+
+   public String formatZ(int fractionalDigits) {
+      return formatCoordinate(this.blockZ, this.subZ, fractionalDigits);
    }
 
    public double subZ() {

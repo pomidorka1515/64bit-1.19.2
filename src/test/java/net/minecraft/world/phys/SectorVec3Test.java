@@ -1,0 +1,92 @@
+package net.minecraft.world.phys;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import net.minecraft.core.BlockPos;
+import org.junit.jupiter.api.Test;
+
+class SectorVec3Test {
+   @Test
+   void preservesLargeBlockCoordinatesAndSubBlocks() {
+      long huge = 1L << 53;
+      SectorVec3 whole = SectorVec3.fromBlockAndFraction(huge, 0.0D, 4.5D, 0L, 0.0D);
+      SectorVec3 quarter = SectorVec3.fromBlockAndFraction(huge, 0.25D, 4.5D, 0L, 0.0D);
+      assertEquals(huge, whole.blockX());
+      assertEquals(0.0D, whole.subX());
+      assertEquals(0.25D, quarter.subX());
+      assertEquals(4.5D, quarter.y());
+      assertEquals(new BlockPos(huge, 4, 0), quarter.blockPosition());
+   }
+
+   @Test
+   void repeatedSmallMovementAtLargeCoordinatesRemainsLocal() {
+      long huge = 1L << 53;
+      SectorVec3 position = SectorVec3.fromBlockAndFraction(huge, 0.25D, 2.0D, huge, 0.25D);
+      for (int i = 0; i < 1000; ++i) position = position.add(0.001D, 0.0D, 0.001D);
+      assertEquals(huge + 1L, position.blockX());
+      assertEquals(huge + 1L, position.blockZ());
+      assertEquals(0.25D, position.subX(), 1.0E-12D);
+      assertEquals(0.25D, position.subZ(), 1.0E-12D);
+
+      long billion = 1_000_000_000_000_000_000L;
+      position = SectorVec3.fromBlockAndFraction(billion, 0.25D, 2.0D, billion, 0.25D);
+      for (int i = 0; i < 1000; ++i) position = position.add(0.001D, 0.0D, 0.001D);
+      assertEquals(billion + 1L, position.blockX());
+      assertEquals(0.25D, position.subX(), 1.0E-12D);
+   }
+
+   @Test
+   void usesFloorForNegativeApproximatePositions() {
+      SectorVec3 position = SectorVec3.fromApproximate(-1.25D, 3.0D, -2.75D);
+      assertEquals(-2L, position.blockX());
+      assertEquals(0.75D, position.subX(), 0.0D);
+      assertEquals(-3L, position.blockZ());
+      assertEquals(0.25D, position.subZ(), 0.0D);
+   }
+
+   @Test
+   void carriesAndBorrowsAcrossBothBoundaries() {
+      SectorVec3 position = SectorVec3.fromBlockAndFraction(10L, 0.999999D, 7.0D, -10L, 0.000001D);
+      position = position.add(0.000002D, 0.0D, -0.000002D);
+      assertEquals(11L, position.blockX());
+      assertEquals(0.000001D, position.subX(), 1.0E-12D);
+      assertEquals(-11L, position.blockZ());
+      assertEquals(0.999999D, position.subZ(), 1.0E-12D);
+   }
+
+   @Test
+   void computesNearbyRelativeDifferencesBeforeDoubleConversion() {
+      long huge = 1L << 53;
+      SectorVec3 origin = SectorVec3.fromBlockAndFraction(huge, 0.25D, 10.0D, -huge, 0.75D);
+      SectorVec3 nearby = SectorVec3.fromBlockAndFraction(huge + 3L, 0.5D, 12.5D, -huge - 2L, 0.25D);
+      Vec3 difference = nearby.relativeTo(origin);
+      assertEquals(3.25D, difference.x, 0.0D);
+      assertEquals(2.5D, difference.y, 0.0D);
+      assertEquals(-2.5D, difference.z, 0.0D);
+   }
+
+   @Test
+   void normalizesInvalidFractionsAndRejectsNonFiniteInput() {
+      SectorVec3 position = SectorVec3.fromBlockAndFraction(5L, 2.25D, 1.0D, 6L, -0.25D);
+      assertEquals(7L, position.blockX());
+      assertEquals(0.25D, position.subX());
+      assertEquals(5L, position.blockZ());
+      assertEquals(0.75D, position.subZ());
+      assertThrows(IllegalArgumentException.class, () -> SectorVec3.fromApproximate(Double.NaN, 0.0D, 0.0D));
+      assertThrows(IllegalArgumentException.class, () -> SectorVec3.fromBlockAndFraction(0L, 0.0D, Double.POSITIVE_INFINITY, 0L, 0.0D));
+      assertFalse(SectorVec3.fromBlockAndFraction(0L, 0.0D, 0.0D, 0L, 0.0D).isFinite() == false);
+   }
+
+   @Test
+   void preservesYAndConvertsToLocalCoordinates() {
+      long huge = 1_000_000_000_000_000_000L;
+      SectorVec3 position = SectorVec3.fromBlockAndFraction(huge, 0.25D, 64.75D, -huge, 0.5D);
+      assertEquals(64.75D, position.withY(64.75D).y());
+      Vec3 local = position.toLocal(huge, 64, -huge);
+      assertEquals(0.25D, local.x, 0.0D);
+      assertEquals(0.75D, local.y, 0.0D);
+      assertEquals(0.5D, local.z, 0.0D);
+   }
+}

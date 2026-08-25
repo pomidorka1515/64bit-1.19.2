@@ -107,6 +107,7 @@ import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -149,6 +150,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    public double yo;
    public double zo;
    private Vec3 position;
+   /** Exact player-only X/Z state. Legacy position remains a compatibility mirror. */
+   @Nullable
+   private SectorVec3 sectorPosition;
+   @Nullable
+   private SectorVec3 sectorPositionOld;
    private BlockPos blockPosition;
    private ChunkPos chunkPosition;
    private Vec3 deltaMovement = Vec3.ZERO;
@@ -376,8 +382,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public void setPos(double p_20210_, double p_20211_, double p_20212_) {
-      this.setPosRaw(p_20210_, p_20211_, p_20212_);
-      this.setBoundingBox(this.makeBoundingBox());
+      // Legacy absolute-double ingress. Exact internal player movement must use setSectorPositionRaw.
+      if (this.usesSectorPhysics()) {
+         this.setSectorPosition(SectorVec3.fromApproximate(p_20210_, p_20211_, p_20212_));
+      } else {
+         this.setPosRaw(p_20210_, p_20211_, p_20212_);
+         this.setBoundingBox(this.makeBoundingBox());
+      }
    }
 
    protected AABB makeBoundingBox() {
@@ -385,7 +396,85 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    protected void reapplyPosition() {
-      this.setPos(this.position.x, this.position.y, this.position.z);
+      if (this.usesSectorPhysics()) {
+         this.refreshLegacyPositionMirror();
+      } else {
+         this.setPos(this.position.x, this.position.y, this.position.z);
+      }
+   }
+
+   public final boolean hasSectorPosition() {
+      return this.sectorPosition != null;
+   }
+
+   public final SectorVec3 sectorPosition() {
+      if (this.sectorPosition == null) {
+         throw new IllegalStateException("Sector position is not enabled for this entity");
+      }
+      return this.sectorPosition;
+   }
+
+   protected final void enableSectorPosition(SectorVec3 initial) {
+      if (initial == null) throw new NullPointerException("initial");
+      this.sectorPosition = initial;
+      this.sectorPositionOld = initial;
+      this.applySectorPosition(initial);
+   }
+
+   protected final void setSectorPosition(SectorVec3 position) {
+      if (!this.usesSectorPhysics()) {
+         throw new IllegalStateException("Sector physics is not enabled for this entity");
+      }
+      this.setSectorPositionRaw(position);
+   }
+
+   /** Updates authoritative exact state and mirrors it to legacy caches without using global X/Z arithmetic. */
+   protected final void setSectorPositionRaw(SectorVec3 position) {
+      if (position == null) throw new NullPointerException("position");
+      if (!this.usesSectorPhysics()) {
+         throw new IllegalStateException("Sector physics is not enabled for this entity");
+      }
+      if (!position.equals(this.sectorPosition)) {
+         this.applySectorPosition(position);
+      }
+   }
+
+   protected final SectorVec3 oldSectorPosition() {
+      if (this.sectorPositionOld == null) {
+         throw new IllegalStateException("Sector position is not enabled for this entity");
+      }
+      return this.sectorPositionOld;
+   }
+
+   protected final Vec3 sectorPositionDelta() {
+      return this.sectorPosition().relativeTo(this.oldSectorPosition());
+   }
+
+   protected boolean usesSectorPhysics() {
+      return false;
+   }
+
+   private void applySectorPosition(SectorVec3 position) {
+      SectorVec3 previous = this.sectorPosition;
+      this.sectorPosition = position;
+      this.position = position.toApproximateVec3();
+      BlockPos exactBlockPosition = position.blockPosition();
+      if (!exactBlockPosition.equals(this.blockPosition)) {
+         this.blockPosition = exactBlockPosition;
+         this.feetBlockState = null;
+         this.chunkPosition = new ChunkPos(exactBlockPosition);
+      }
+      this.setBoundingBox(this.makeBoundingBox());
+      if (previous == null || !previous.equals(position)) {
+         this.levelCallback.onMove();
+      }
+   }
+
+   private void refreshLegacyPositionMirror() {
+      if (this.sectorPosition != null) {
+         this.position = this.sectorPosition.toApproximateVec3();
+         this.setBoundingBox(this.makeBoundingBox());
+      }
    }
 
    public void turn(double p_19885_, double p_19886_) {
@@ -1239,15 +1328,28 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public final void setOldPosAndRot() {
-      double d0 = this.getX();
-      double d1 = this.getY();
-      double d2 = this.getZ();
-      this.xo = d0;
-      this.yo = d1;
-      this.zo = d2;
-      this.xOld = d0;
-      this.yOld = d1;
-      this.zOld = d2;
+      if (this.usesSectorPhysics()) {
+         SectorVec3 current = this.sectorPosition();
+         this.sectorPositionOld = current;
+         // xo/yo/zo and xOld/yOld/zOld remain lossy legacy mirrors for rendering and compatibility.
+         Vec3 approximate = current.toApproximateVec3();
+         this.xo = approximate.x;
+         this.yo = approximate.y;
+         this.zo = approximate.z;
+         this.xOld = approximate.x;
+         this.yOld = approximate.y;
+         this.zOld = approximate.z;
+      } else {
+         double d0 = this.getX();
+         double d1 = this.getY();
+         double d2 = this.getZ();
+         this.xo = d0;
+         this.yo = d1;
+         this.zo = d2;
+         this.xOld = d0;
+         this.yOld = d1;
+         this.zOld = d2;
+      }
       this.yRotO = this.getYRot();
       this.xRotO = this.getXRot();
    }
@@ -2956,6 +3058,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public final void setPosRaw(double p_20344_, double p_20345_, double p_20346_) {
+      // This is still a legacy approximate absolute-double ingress for sector entities.
+      // Exact movement must call setSectorPositionRaw(SectorVec3) directly.
+      if (this.usesSectorPhysics()) {
+         this.setSectorPositionRaw(SectorVec3.fromApproximate(p_20344_, p_20345_, p_20346_));
+         return;
+      }
       if (this.position.x != p_20344_ || this.position.y != p_20345_ || this.position.z != p_20346_) {
          this.position = new Vec3(p_20344_, p_20345_, p_20346_);
          long i = Mth.lfloor(p_20344_);

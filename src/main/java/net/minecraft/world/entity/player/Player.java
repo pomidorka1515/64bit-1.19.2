@@ -108,6 +108,7 @@ import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
@@ -177,8 +178,19 @@ public abstract class Player extends LivingEntity {
       this.profilePublicKey = p_219731_;
       this.inventoryMenu = new InventoryMenu(this.inventory, !p_219727_.isClientSide, this);
       this.containerMenu = this.inventoryMenu;
-      this.moveTo((double)p_219728_.getX() + 0.5D, (double)(p_219728_.getY() + 1), (double)p_219728_.getZ() + 0.5D, p_219729_, 0.0F);
+      // Exact initial player state: BlockPos addressing is long on X/Z; only the spawn fraction is double.
+      this.enableSectorPosition(SectorVec3.fromBlockAndFraction(p_219728_.getX(), 0.5D,
+            (double)p_219728_.getY() + 1.0D, p_219728_.getZ(), 0.5D));
+      this.setYRot(p_219729_);
+      this.setXRot(0.0F);
+      this.setOldPosAndRot();
+      this.reapplyPosition();
       this.rotOffs = 180.0F;
+   }
+
+   @Override
+   protected boolean usesSectorPhysics() {
+      return true;
    }
 
    public boolean blockActionRestricted(Level p_36188_, BlockPos p_36189_, GameType p_36190_) {

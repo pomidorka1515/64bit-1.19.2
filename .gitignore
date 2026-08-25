@@ -22,3 +22,6 @@ out/
 
 # Build logs
 *.log
+
+*.md
+!README.md

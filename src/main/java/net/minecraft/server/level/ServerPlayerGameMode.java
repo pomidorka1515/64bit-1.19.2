@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.GameMasterBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
@@ -124,7 +125,9 @@ public class ServerPlayerGameMode {
    }
 
    public void handleBlockBreakAction(BlockPos p_215120_, ServerboundPlayerActionPacket.Action p_215121_, Direction p_215122_, int p_215123_, int p_215124_) {
-      if (this.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(p_215120_)) > ServerGamePacketListenerImpl.MAX_INTERACTION_DISTANCE) {
+      SectorVec3 exactBlockCenter = SectorVec3.fromBlockAndFraction(p_215120_.getX(), 0.5D,
+            (double)p_215120_.getY() + 0.5D, p_215120_.getZ(), 0.5D);
+      if (this.player.exactDistanceToSqr(exactBlockCenter) > ServerGamePacketListenerImpl.MAX_INTERACTION_DISTANCE) {
          this.debugLogging(p_215120_, false, p_215124_, "too far");
       } else if (p_215120_.getY() >= p_215123_) {
          this.player.connection.send(new ClientboundBlockUpdatePacket(p_215120_, this.level.getBlockState(p_215120_)));

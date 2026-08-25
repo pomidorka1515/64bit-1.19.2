@@ -28,24 +28,39 @@ public final class SectorVec3 {
    }
 
    public static SectorVec3 fromBlockAndFraction(long blockX, double subX, double y, long blockZ, double subZ) {
-      requireFinite(subX, "subX");
-      requireFinite(subZ, "subZ");
-      requireFinite(y, "y");
-      double xCarryDouble = Math.floor(subX);
-      double zCarryDouble = Math.floor(subZ);
-      long xCarry = checkedIntegralLong(xCarryDouble, "subX carry");
-      long zCarry = checkedIntegralLong(zCarryDouble, "subZ carry");
-      long normalizedBlockX = Math.addExact(blockX, xCarry);
-      long normalizedBlockZ = Math.addExact(blockZ, zCarry);
-      double normalizedSubX = subX - xCarryDouble;
-      double normalizedSubZ = subZ - zCarryDouble;
-      // The subtraction above is done only on the small local remainder.
-      if (!(normalizedSubX >= 0.0D && normalizedSubX < 1.0D)
-            || !(normalizedSubZ >= 0.0D && normalizedSubZ < 1.0D)) {
-         throw new IllegalArgumentException("Fractions could not be normalized");
-      }
-      return new SectorVec3(normalizedBlockX, normalizedSubX == 0.0D ? 0.0D : normalizedSubX, y,
-            normalizedBlockZ, normalizedSubZ == 0.0D ? 0.0D : normalizedSubZ);
+      // Fractions are produced by ray/voxel arithmetic and can become non-finite
+      // at a degenerate boundary.  A malformed fraction must not take down the
+      // render thread; treating it as the beginning of the supplied block is the
+      // safest recoverable position.
+      double fractionX = finiteFractionOrZero(subX);
+      double fractionZ = finiteFractionOrZero(subZ);
+      double normalizedY = Double.isFinite(y) ? y : 0.0D;
+
+      long carryX = (long)Math.floor(fractionX);
+      long carryZ = (long)Math.floor(fractionZ);
+      long normalizedBlockX = saturatingAdd(blockX, carryX);
+      long normalizedBlockZ = saturatingAdd(blockZ, carryZ);
+      double normalizedFractionX = clampFraction(fractionX - (double)carryX);
+      double normalizedFractionZ = clampFraction(fractionZ - (double)carryZ);
+      return new SectorVec3(normalizedBlockX, normalizedFractionX, normalizedY,
+            normalizedBlockZ, normalizedFractionZ);
+   }
+
+   private static double finiteFractionOrZero(double fraction) {
+      return Double.isNaN(fraction) || Double.isInfinite(fraction) ? 0.0D : fraction;
+   }
+
+   /** Keeps round-off at a voxel boundary from escaping the split-coordinate invariant. */
+   private static double clampFraction(double fraction) {
+      if (!(fraction >= 0.0D)) return 0.0D;
+      if (fraction >= 1.0D) return Math.nextDown(1.0D);
+      return fraction == 0.0D ? 0.0D : fraction;
+   }
+
+   private static long saturatingAdd(long value, long amount) {
+      if (amount > 0L && value > Long.MAX_VALUE - amount) return Long.MAX_VALUE;
+      if (amount < 0L && value < Long.MIN_VALUE - amount) return Long.MIN_VALUE;
+      return value + amount;
    }
 
    /** Creates an exact split position from an ordinary double position. This is necessarily limited by the input doubles. */

@@ -68,14 +68,22 @@ class SectorVec3Test {
    }
 
    @Test
-   void normalizesInvalidFractionsAndRejectsNonFiniteInput() {
+   void normalizesInvalidFractionsAndRejectsNonFiniteApproximateInput() {
       SectorVec3 position = SectorVec3.fromBlockAndFraction(5L, 2.25D, 1.0D, 6L, -0.25D);
       assertEquals(7L, position.blockX());
       assertEquals(0.25D, position.subX());
       assertEquals(5L, position.blockZ());
       assertEquals(0.75D, position.subZ());
+
+      SectorVec3 invalidFractions = SectorVec3.fromBlockAndFraction(10L, Double.NaN, Double.POSITIVE_INFINITY,
+            20L, Double.NEGATIVE_INFINITY);
+      assertEquals(10L, invalidFractions.blockX());
+      assertEquals(0.0D, invalidFractions.subX());
+      assertEquals(20L, invalidFractions.blockZ());
+      assertEquals(0.0D, invalidFractions.subZ());
+      assertEquals(0.0D, invalidFractions.y());
+
       assertThrows(IllegalArgumentException.class, () -> SectorVec3.fromApproximate(Double.NaN, 0.0D, 0.0D));
-      assertThrows(IllegalArgumentException.class, () -> SectorVec3.fromBlockAndFraction(0L, 0.0D, Double.POSITIVE_INFINITY, 0L, 0.0D));
       assertFalse(SectorVec3.fromBlockAndFraction(0L, 0.0D, 0.0D, 0L, 0.0D).isFinite() == false);
    }
 

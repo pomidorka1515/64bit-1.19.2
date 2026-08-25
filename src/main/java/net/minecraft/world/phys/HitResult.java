@@ -1,5 +1,6 @@
 package net.minecraft.world.phys;
 
+import javax.annotation.Nullable;
 import net.minecraft.world.entity.Entity;
 
 public abstract class HitResult {
@@ -7,6 +8,12 @@ public abstract class HitResult {
 
    protected HitResult(Vec3 p_82447_) {
       this.location = p_82447_;
+   }
+
+   /** Exact split-coordinate location for sector-aware hits; null for legacy hits. */
+   @Nullable
+   public SectorVec3 getExactLocation() {
+      return null;
    }
 
    public double distanceTo(Entity p_82449_) {

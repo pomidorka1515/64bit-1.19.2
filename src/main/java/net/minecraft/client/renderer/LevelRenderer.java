@@ -2292,7 +2292,23 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
    }
 
    private void renderHitOutline(PoseStack p_109638_, VertexConsumer p_109639_, Entity p_109640_, double p_109641_, double p_109642_, double p_109643_, BlockPos p_109644_, BlockState p_109645_) {
-      renderShape(p_109638_, p_109639_, p_109645_.getShape(this.level, p_109644_, CollisionContext.of(p_109640_)), (double)p_109644_.getX() - p_109641_, (double)p_109644_.getY() - p_109642_, (double)p_109644_.getZ() - p_109643_, 0.0F, 0.0F, 0.0F, 0.4F);
+      double x;
+      double y;
+      double z;
+      if (this.exactRenderCamera != null) {
+         // Do not subtract two large absolute doubles here.  That loses the
+         // camera's fractional position and makes the outline appear to snap
+         // while the player moves within a block.
+         x = this.exactRenderCamera.relativeX(p_109644_.getX());
+         y = this.exactRenderCamera.relativeY(p_109644_.getY());
+         z = this.exactRenderCamera.relativeZ(p_109644_.getZ());
+      } else {
+         x = (double)p_109644_.getX() - p_109641_;
+         y = (double)p_109644_.getY() - p_109642_;
+         z = (double)p_109644_.getZ() - p_109643_;
+      }
+      renderShape(p_109638_, p_109639_, p_109645_.getShape(this.level, p_109644_, CollisionContext.of(p_109640_)),
+            x, y, z, 0.0F, 0.0F, 0.0F, 0.4F);
    }
 
    public static void renderVoxelShape(PoseStack p_109655_, VertexConsumer p_109656_, VoxelShape p_109657_, double p_109658_, double p_109659_, double p_109660_, float p_109661_, float p_109662_, float p_109663_, float p_109664_) {

@@ -459,6 +459,30 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       return this.sectorPosition().relativeTo(this.oldSectorPosition());
    }
 
+   /** Exact eye position for range checks and other world interactions. */
+   @Nullable
+   public final SectorVec3 exactEyePosition() {
+      return this.sectorPosition == null ? null : this.sectorPosition.withY(this.getEyeY());
+   }
+
+   /** Squared eye-to-point distance in a split-coordinate frame, avoiding absolute X/Z doubles. */
+   public final double exactDistanceToSqr(SectorVec3 point) {
+      if (point == null) throw new NullPointerException("point");
+      if (this.sectorPosition != null) {
+         return this.exactEyePosition().relativeTo(point).lengthSqr();
+      }
+      return this.getEyePosition().distanceToSqr(point.toApproximateVec3());
+   }
+
+   /** Squared feet-to-point distance in a split-coordinate frame. */
+   public final double exactPositionDistanceToSqr(SectorVec3 point) {
+      if (point == null) throw new NullPointerException("point");
+      if (this.sectorPosition != null) {
+         return this.sectorPosition.relativeTo(point).lengthSqr();
+      }
+      return this.position().distanceToSqr(point.toApproximateVec3());
+   }
+
    protected boolean usesSectorPhysics() {
       return false;
    }
@@ -1759,10 +1783,22 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public HitResult pick(double p_19908_, float p_19909_, boolean p_19910_) {
-      Vec3 vec3 = this.getEyePosition(p_19909_);
-      Vec3 vec31 = this.getViewVector(p_19909_);
-      Vec3 vec32 = vec3.add(vec31.x * p_19908_, vec31.y * p_19908_, vec31.z * p_19908_);
-      return this.level.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, p_19910_ ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, this));
+      return this.pick(p_19908_, p_19909_, p_19910_ ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE);
+   }
+
+   public BlockHitResult pick(double range, float partialTick, ClipContext.Fluid fluidMode) {
+      if (this.sectorPosition != null) {
+         SectorVec3 interpolated = this.interpolatedExactPosition(partialTick);
+         SectorVec3 from = interpolated.withY(interpolated.y() + (double)this.getEyeHeight());
+         Vec3 view = this.getViewVector(partialTick);
+         SectorVec3 to = from.add(view.x * range, view.y * range, view.z * range);
+         return net.minecraft.world.level.SectorClipper.clip(this.level, from, to, this,
+               ClipContext.Block.OUTLINE, fluidMode);
+      }
+      Vec3 vec3 = this.getEyePosition(partialTick);
+      Vec3 vec31 = this.getViewVector(partialTick);
+      Vec3 vec32 = vec3.add(vec31.x * range, vec31.y * range, vec31.z * range);
+      return this.level.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, fluidMode, this));
    }
 
    public boolean isPickable() {

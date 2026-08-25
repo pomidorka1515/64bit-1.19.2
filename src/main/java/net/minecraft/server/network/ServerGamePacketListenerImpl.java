@@ -1179,15 +1179,19 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       Vec3 vec3 = blockhitresult.getLocation();
       BlockPos blockpos = blockhitresult.getBlockPos();
       Vec3 vec31 = Vec3.atCenterOf(blockpos);
-      if (!(this.player.getEyePosition().distanceToSqr(vec31) > MAX_INTERACTION_DISTANCE)) {
-         Vec3 vec32 = vec3.subtract(vec31);
+      SectorVec3 exactBlockCenter = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
+            (double)blockpos.getY() + 0.5D, blockpos.getZ(), 0.5D);
+      if (!(this.player.exactDistanceToSqr(exactBlockCenter) > MAX_INTERACTION_DISTANCE)) {
+         SectorVec3 exactHit = blockhitresult.getExactLocation();
+         Vec3 vec32 = exactHit == null ? vec3.subtract(vec31)
+               : exactHit.relativeTo(exactBlockCenter);
          double d0 = 1.0000001D;
          if (Math.abs(vec32.x()) < 1.0000001D && Math.abs(vec32.y()) < 1.0000001D && Math.abs(vec32.z()) < 1.0000001D) {
             Direction direction = blockhitresult.getDirection();
             this.player.resetLastActionTime();
             int i = this.player.level.getMaxBuildHeight();
             if (blockpos.getY() < i) {
-               if (this.awaitingPositionFromClient == null && this.player.distanceToSqr((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D) < 64.0D && serverlevel.mayInteract(this.player, blockpos)) {
+               if (this.awaitingPositionFromClient == null && this.player.exactPositionDistanceToSqr(exactBlockCenter) < 64.0D && serverlevel.mayInteract(this.player, blockpos)) {
                   InteractionResult interactionresult = this.player.gameMode.useItemOn(this.player, serverlevel, itemstack, interactionhand, blockhitresult);
                   if (direction == Direction.UP && !interactionresult.consumesAction() && blockpos.getY() >= i - 1 && wasBlockPlacementAttempt(this.player, itemstack)) {
                      Component component = Component.translatable("build.tooHigh", i - 1).withStyle(ChatFormatting.RED);
@@ -1671,7 +1675,9 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             return;
          }
 
-         if (entity.distanceToSqr(this.player.getEyePosition()) < MAX_INTERACTION_DISTANCE) {
+         if (this.player.hasSectorPosition() && entity.exactPosition() != null
+               ? this.player.exactDistanceToSqr(entity.exactPosition()) < MAX_INTERACTION_DISTANCE
+               : entity.distanceToSqr(this.player.getEyePosition()) < MAX_INTERACTION_DISTANCE) {
             p_9866_.dispatch(new ServerboundInteractPacket.Handler() {
                private void performInteraction(InteractionHand p_143679_, ServerGamePacketListenerImpl.EntityInteraction p_143680_) {
                   ItemStack itemstack = ServerGamePacketListenerImpl.this.player.getItemInHand(p_143679_).copy();

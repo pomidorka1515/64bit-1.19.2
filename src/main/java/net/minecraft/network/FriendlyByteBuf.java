@@ -63,6 +63,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class FriendlyByteBuf extends ByteBuf {
@@ -653,17 +654,24 @@ public class FriendlyByteBuf extends ByteBuf {
       float f1 = this.readFloat();
       float f2 = this.readFloat();
       boolean flag = this.readBoolean();
-      return new BlockHitResult(new Vec3((double)blockpos.getX() + (double)f, (double)blockpos.getY() + (double)f1, (double)blockpos.getZ() + (double)f2), direction, blockpos, flag);
+      // The packet stores the hit point relative to its long block address.
+      // Reconstruct that split before creating the compatibility Vec3 mirror.
+      return new BlockHitResult(SectorVec3.fromBlockAndFraction(blockpos.getX(), (double)f,
+            (double)blockpos.getY() + (double)f1, blockpos.getZ(), (double)f2), direction, blockpos, flag);
    }
 
    public void writeBlockHitResult(BlockHitResult p_130063_) {
       BlockPos blockpos = p_130063_.getBlockPos();
       this.writeBlockPos(blockpos);
       this.writeEnum(p_130063_.getDirection());
+      SectorVec3 exact = p_130063_.getExactLocation();
       Vec3 vec3 = p_130063_.getLocation();
-      this.writeFloat((float)(vec3.x - (double)blockpos.getX()));
-      this.writeFloat((float)(vec3.y - (double)blockpos.getY()));
-      this.writeFloat((float)(vec3.z - (double)blockpos.getZ()));
+      this.writeFloat((float)(exact == null ? vec3.x - (double)blockpos.getX() :
+            (double)(exact.blockX() - (long)blockpos.getX()) + exact.subX()));
+      this.writeFloat((float)(exact == null ? vec3.y - (double)blockpos.getY() :
+            exact.y() - (double)blockpos.getY()));
+      this.writeFloat((float)(exact == null ? vec3.z - (double)blockpos.getZ() :
+            (double)(exact.blockZ() - (long)blockpos.getZ()) + exact.subZ()));
       this.writeBoolean(p_130063_.isInside());
    }
 

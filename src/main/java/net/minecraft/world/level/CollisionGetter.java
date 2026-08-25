@@ -10,6 +10,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -72,6 +74,12 @@ public interface CollisionGetter extends BlockGetter {
       return () -> {
          return new BlockCollisions(this, p_186435_, p_186436_);
       };
+   }
+
+   /** Returns block shapes in a local frame for exact sector-physics queries. */
+   default Iterable<VoxelShape> getSectorBlockCollisions(@Nullable Entity entity, SectorAABB exactBox,
+                                                          AABB localBox, SectorPhysicsOrigin origin) {
+      return () -> new SectorBlockCollisions(this, entity, exactBox, localBox, origin);
    }
 
    @Nullable

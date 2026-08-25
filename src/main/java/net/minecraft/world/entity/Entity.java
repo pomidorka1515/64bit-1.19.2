@@ -108,6 +108,8 @@ import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -625,11 +627,64 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public boolean isFree(double p_20230_, double p_20231_, double p_20232_) {
+      if (this.usesSectorPhysics()) {
+         SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
+         SectorAABB exactBox = this.getSectorBoundingBox().move(p_20230_, p_20231_, p_20232_);
+         AABB localBox = exactBox.toLocalAABB(origin);
+         return !this.hasSectorBlockCollision(exactBox, localBox, origin);
+      }
       return this.isFree(this.getBoundingBox().move(p_20230_, p_20231_, p_20232_));
    }
 
    private boolean isFree(AABB p_20132_) {
       return this.level.noCollision(this, p_20132_) && !this.level.containsAnyLiquid(p_20132_);
+   }
+
+   /** Origin for one player physics operation; this is not the camera origin. */
+   protected final SectorPhysicsOrigin sectorPhysicsOrigin() {
+      return SectorPhysicsOrigin.from(this.sectorPosition());
+   }
+
+   /** Exact world-space player box. X/Z endpoints remain split coordinates. */
+   protected final SectorAABB getSectorBoundingBox() {
+      return SectorAABB.around(this.sectorPosition(), (double)this.getBbWidth(), (double)this.getBbHeight());
+   }
+
+   /** Local physics box. Values are small; the exact world position is never converted to a double here. */
+   protected final AABB getLocalBoundingBox(SectorPhysicsOrigin origin) {
+      return this.getSectorBoundingBox().toLocalAABB(origin);
+   }
+
+   protected final SectorAABB getSectorBoundingBoxForPose(Pose pose) {
+      EntityDimensions dimensions = this.getDimensions(pose);
+      SectorVec3 position = this.sectorPosition();
+      return new SectorAABB(position.blockX(), position.subX(), position.y(),
+            position.blockZ(), position.subZ(), position.blockX(), position.subX(),
+            position.y() + (double)dimensions.height, position.blockZ(), position.subZ())
+            .inflate((double)dimensions.width * 0.5D, 0.0D, (double)dimensions.width * 0.5D);
+   }
+
+   protected final AABB getLocalBoundingBoxForPose(Pose pose, SectorPhysicsOrigin origin) {
+      return this.getSectorBoundingBoxForPose(pose).toLocalAABB(origin);
+   }
+
+   /** Exact/local replacement for level.noCollision; callers must not pass localBox to legacy APIs. */
+   protected final boolean sectorNoCollision(SectorAABB exactBox, AABB localBox, SectorPhysicsOrigin origin) {
+      for (VoxelShape shape : this.level.getSectorBlockCollisions(this, exactBox, localBox, origin)) {
+         if (!shape.isEmpty()) return false;
+      }
+      return true;
+   }
+
+   private boolean hasSectorBlockCollision(SectorAABB exactBox, AABB localBox, SectorPhysicsOrigin origin) {
+      return !this.sectorNoCollision(exactBox, localBox, origin);
+   }
+
+   /** Tests a sector player's current box after a local movement without reconstructing global doubles. */
+   protected final boolean sectorNoCollisionAt(double dx, double dy, double dz) {
+      SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
+      SectorAABB box = this.getSectorBoundingBox().move(dx, dy, dz);
+      return this.sectorNoCollision(box, box.toLocalAABB(origin), origin);
    }
 
    public void setOnGround(boolean p_20181_) {
@@ -641,6 +696,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public void move(MoverType p_19973_, Vec3 p_19974_) {
+      if (this.usesSectorPhysics()) {
+         this.moveWithSectorPhysics(p_19973_, p_19974_);
+         return;
+      }
       if (this.noPhysics) {
          this.setPos(this.getX() + p_19974_.x, this.getY() + p_19974_.y, this.getZ() + p_19974_.z);
       } else {
@@ -813,6 +872,18 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    private BlockPos getOnPos(float p_216987_) {
+      if (this.usesSectorPhysics()) {
+         SectorVec3 position = this.sectorPosition();
+         int y = Mth.floor(position.y() - (double)p_216987_);
+         BlockPos blockpos = new BlockPos(position.blockX(), y, position.blockZ());
+         if (this.level.getBlockState(blockpos).isAir()) {
+            BlockPos below = blockpos.below();
+            BlockState belowState = this.level.getBlockState(below);
+            if (belowState.is(BlockTags.FENCES) || belowState.is(BlockTags.WALLS)
+                  || belowState.getBlock() instanceof FenceGateBlock) return below;
+         }
+         return blockpos;
+      }
       int i = Mth.floor(this.position.x);
       int j = Mth.floor(this.position.y - (double)p_216987_);
       int k = Mth.floor(this.position.z);
@@ -845,6 +916,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    protected BlockPos getBlockPosBelowThatAffectsMyMovement() {
+      if (this.usesSectorPhysics()) {
+         SectorVec3 position = this.sectorPosition();
+         return new BlockPos(position.blockX(), Mth.floor(position.y() - 0.5000001D), position.blockZ());
+      }
       return new BlockPos(this.position.x, this.getBoundingBox().minY - 0.5000001D, this.position.z);
    }
 
@@ -883,6 +958,90 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       p_20044_ = d0 - this.pistonDeltas[i];
       this.pistonDeltas[i] = d0;
       return p_20044_;
+   }
+
+   private void moveWithSectorPhysics(MoverType moverType, Vec3 movement) {
+      if (this.noPhysics) {
+         this.setSectorPositionRaw(this.sectorPosition().add(movement.x, movement.y, movement.z));
+         return;
+      }
+      this.wasOnFire = this.isOnFire();
+      if (moverType == MoverType.PISTON) {
+         movement = this.limitPistonMovement(movement);
+         if (movement.equals(Vec3.ZERO)) return;
+      }
+      this.level.getProfiler().push("move");
+      if (this.stuckSpeedMultiplier.lengthSqr() > 1.0E-7D) {
+         movement = movement.multiply(this.stuckSpeedMultiplier);
+         this.stuckSpeedMultiplier = Vec3.ZERO;
+         this.setDeltaMovement(Vec3.ZERO);
+      }
+      movement = this.maybeBackOffFromEdge(movement, moverType);
+      Vec3 resolved = this.collideSector(movement);
+      if (resolved.lengthSqr() > 1.0E-7D) {
+         this.setSectorPositionRaw(this.sectorPosition().add(resolved.x, resolved.y, resolved.z));
+      }
+      this.level.getProfiler().pop();
+      this.level.getProfiler().push("rest");
+      boolean horizontalX = !Mth.equal(movement.x, resolved.x);
+      boolean horizontalZ = !Mth.equal(movement.z, resolved.z);
+      this.horizontalCollision = horizontalX || horizontalZ;
+      this.verticalCollision = movement.y != resolved.y;
+      this.verticalCollisionBelow = this.verticalCollision && movement.y < 0.0D;
+      this.minorHorizontalCollision = this.horizontalCollision && this.isHorizontalCollisionMinor(resolved);
+      this.onGround = this.verticalCollision && movement.y < 0.0D;
+      BlockPos onPos = this.getOnPosLegacy();
+      BlockState state = this.level.getBlockState(onPos);
+      this.checkFallDamage(resolved.y, this.onGround, state, onPos);
+      if (!this.isRemoved()) {
+         if (this.horizontalCollision) {
+            Vec3 delta = this.getDeltaMovement();
+            this.setDeltaMovement(horizontalX ? 0.0D : delta.x, delta.y, horizontalZ ? 0.0D : delta.z);
+         }
+         if (movement.y != resolved.y) state.getBlock().updateEntityAfterFallOn(this.level, this);
+         if (this.onGround) state.getBlock().stepOn(this.level, onPos, state, this);
+         this.tryCheckInsideBlocks();
+         float speed = this.getBlockSpeedFactor();
+         this.setDeltaMovement(this.getDeltaMovement().multiply((double)speed, 1.0D, (double)speed));
+      }
+      this.level.getProfiler().pop();
+   }
+
+   private Vec3 collideSector(Vec3 movement) {
+      SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
+      SectorAABB exactBox = this.getSectorBoundingBox();
+      AABB localBox = exactBox.toLocalAABB(origin);
+      Vec3 resolved = this.collideSectorBoundingBox(movement, exactBox, localBox, origin);
+      boolean xBlocked = movement.x != resolved.x;
+      boolean yBlocked = movement.y != resolved.y;
+      boolean zBlocked = movement.z != resolved.z;
+      boolean canStep = this.onGround || yBlocked && movement.y < 0.0D;
+      if (this.maxUpStep > 0.0F && canStep && (xBlocked || zBlocked)) {
+         Vec3 raised = this.collideSectorBoundingBox(new Vec3(movement.x, (double)this.maxUpStep, movement.z),
+               exactBox, localBox, origin);
+         SectorAABB horizontalBox = exactBox.expandTowards(movement.x, 0.0D, movement.z);
+         Vec3 step = this.collideSectorBoundingBox(new Vec3(0.0D, (double)this.maxUpStep, 0.0D),
+               horizontalBox, horizontalBox.toLocalAABB(origin), origin);
+         if (step.y < (double)this.maxUpStep) {
+            Vec3 across = this.collideSectorBoundingBox(new Vec3(movement.x, 0.0D, movement.z),
+                  horizontalBox.move(step.x, step.y, step.z), horizontalBox.move(step.x, step.y, step.z).toLocalAABB(origin), origin).add(step);
+            if (across.horizontalDistanceSqr() > raised.horizontalDistanceSqr()) raised = across;
+         }
+         if (raised.horizontalDistanceSqr() > resolved.horizontalDistanceSqr()) {
+            return raised.add(this.collideSectorBoundingBox(new Vec3(0.0D, -raised.y + movement.y, 0.0D),
+                  exactBox.move(raised.x, raised.y, raised.z), exactBox.move(raised.x, raised.y, raised.z).toLocalAABB(origin), origin));
+         }
+      }
+      return resolved;
+   }
+
+   private Vec3 collideSectorBoundingBox(Vec3 movement, SectorAABB exactBox, AABB localBox,
+                                          SectorPhysicsOrigin origin) {
+      if (movement.lengthSqr() == 0.0D) return movement;
+      List<VoxelShape> shapes = Lists.newArrayList();
+      for (VoxelShape shape : this.level.getSectorBlockCollisions(this, exactBox.expandTowards(movement.x, movement.y, movement.z),
+            localBox.expandTowards(movement), origin)) shapes.add(shape);
+      return collideWithShapes(movement, localBox, shapes);
    }
 
    private Vec3 collide(Vec3 p_20273_) {
@@ -1872,6 +2031,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    protected boolean canEnterPose(Pose p_20176_) {
+      if (this.usesSectorPhysics()) {
+         SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
+         SectorAABB exact = this.getSectorBoundingBoxForPose(p_20176_).inflate(-1.0E-7D, -1.0E-7D, -1.0E-7D);
+         return this.sectorNoCollision(exact, exact.toLocalAABB(origin), origin);
+      }
       return this.level.noCollision(this, this.getBoundingBoxForPose(p_20176_).deflate(1.0E-7D));
    }
 

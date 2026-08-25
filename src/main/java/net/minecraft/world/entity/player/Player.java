@@ -1032,7 +1032,7 @@ public abstract class Player extends LivingEntity {
          double d1 = p_36201_.z;
          double d2 = 0.05D;
 
-         while(d0 != 0.0D && this.level.noCollision(this, this.getBoundingBox().move(d0, (double)(-this.maxUpStep), 0.0D))) {
+         while(d0 != 0.0D && this.sectorNoCollisionAt(d0, (double)(-this.maxUpStep), 0.0D)) {
             if (d0 < 0.05D && d0 >= -0.05D) {
                d0 = 0.0D;
             } else if (d0 > 0.0D) {
@@ -1042,7 +1042,7 @@ public abstract class Player extends LivingEntity {
             }
          }
 
-         while(d1 != 0.0D && this.level.noCollision(this, this.getBoundingBox().move(0.0D, (double)(-this.maxUpStep), d1))) {
+         while(d1 != 0.0D && this.sectorNoCollisionAt(0.0D, (double)(-this.maxUpStep), d1)) {
             if (d1 < 0.05D && d1 >= -0.05D) {
                d1 = 0.0D;
             } else if (d1 > 0.0D) {
@@ -1052,7 +1052,7 @@ public abstract class Player extends LivingEntity {
             }
          }
 
-         while(d0 != 0.0D && d1 != 0.0D && this.level.noCollision(this, this.getBoundingBox().move(d0, (double)(-this.maxUpStep), d1))) {
+         while(d0 != 0.0D && d1 != 0.0D && this.sectorNoCollisionAt(d0, (double)(-this.maxUpStep), d1)) {
             if (d0 < 0.05D && d0 >= -0.05D) {
                d0 = 0.0D;
             } else if (d0 > 0.0D) {
@@ -1077,7 +1077,7 @@ public abstract class Player extends LivingEntity {
    }
 
    private boolean isAboveGround() {
-      return this.onGround || this.fallDistance < this.maxUpStep && !this.level.noCollision(this, this.getBoundingBox().move(0.0D, (double)(this.fallDistance - this.maxUpStep), 0.0D));
+      return this.onGround || this.fallDistance < this.maxUpStep && !this.sectorNoCollisionAt(0.0D, (double)(this.fallDistance - this.maxUpStep), 0.0D);
    }
 
    public void attack(Entity p_36347_) {

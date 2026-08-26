@@ -1136,7 +1136,12 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
       double d1 = p_172963_.y();
       double d2 = p_172963_.z();
       this.cullingFrustum = new Frustum(matrix4f, p_172964_);
-      this.cullingFrustum.prepare(d0, d1, d2);
+      Camera camera = this.minecraft.gameRenderer.getMainCamera();
+      if (camera.getExactPosition() != null) {
+         this.cullingFrustum.prepare(camera);
+      } else {
+         this.cullingFrustum.prepare(d0, d1, d2);
+      }
    }
 
    public void renderLevel(PoseStack p_109600_, float p_109601_, long p_109602_, boolean p_109603_, Camera p_109604_, GameRenderer p_109605_, LightTexture p_109606_, Matrix4f p_109607_) {

@@ -2967,6 +2967,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       return this.getBoundingBox();
    }
 
+   /** Exact X/Z culling bounds for sector-enabled entities. */
+   @Nullable
+   public SectorAABB getSectorBoundingBoxForCulling() {
+      return this.sectorPosition == null ? null : this.getSectorBoundingBox();
+   }
+
    protected AABB getBoundingBoxForPose(Pose p_20218_) {
       EntityDimensions entitydimensions = this.getDimensions(p_20218_);
       float f = entitydimensions.width / 2.0F;

@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -54,7 +55,8 @@ public abstract class EntityRenderer<T extends Entity> {
             aabb = new AABB(p_114491_.getX() - 2.0D, p_114491_.getY() - 2.0D, p_114491_.getZ() - 2.0D, p_114491_.getX() + 2.0D, p_114491_.getY() + 2.0D, p_114491_.getZ() + 2.0D);
          }
 
-         return p_114492_.isVisible(aabb);
+         SectorAABB exactBox = p_114491_.getSectorBoundingBoxForCulling();
+         return exactBox != null ? p_114492_.isVisible(exactBox.inflate(0.5D, 0.5D, 0.5D)) : p_114492_.isVisible(aabb);
       }
    }
 

@@ -12,10 +12,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.SectorClipper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.FogType;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
@@ -90,11 +92,32 @@ public class Camera {
          f *= 0.1F;
          f1 *= 0.1F;
          f2 *= 0.1F;
-         Vec3 vec3 = this.position.add((double)f, (double)f1, (double)f2);
-         Vec3 vec31 = new Vec3(this.position.x - (double)this.forwards.x() * p_90567_ + (double)f + (double)f2, this.position.y - (double)this.forwards.y() * p_90567_ + (double)f1, this.position.z - (double)this.forwards.z() * p_90567_ + (double)f2);
-         HitResult hitresult = this.level.clip(new ClipContext(vec3, vec31, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, this.entity));
+         HitResult hitresult;
+         if (this.exactPosition != null) {
+            SectorVec3 from = this.exactPosition.add(f, f1, f2);
+            // Both endpoints are relative to the camera. Do not add the
+            // corner offset twice by deriving the far endpoint from `from`.
+            SectorVec3 to = this.exactPosition.add(-this.forwards.x() * p_90567_ + f + f2,
+                  -this.forwards.y() * p_90567_ + f1,
+                  -this.forwards.z() * p_90567_ + f2);
+            hitresult = SectorClipper.clip(this.level, from, to, this.entity,
+                  ClipContext.Block.VISUAL, ClipContext.Fluid.NONE);
+         } else {
+            Vec3 vec3 = this.position.add((double)f, (double)f1, (double)f2);
+            Vec3 vec31 = new Vec3(this.position.x - (double)this.forwards.x() * p_90567_ + (double)f + (double)f2, this.position.y - (double)this.forwards.y() * p_90567_ + (double)f1, this.position.z - (double)this.forwards.z() * p_90567_ + (double)f2);
+            hitresult = this.level.clip(new ClipContext(vec3, vec31, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, this.entity));
+         }
          if (hitresult.getType() != HitResult.Type.MISS) {
-            double d0 = hitresult.getLocation().distanceTo(this.position);
+            double d0;
+            if (this.exactPosition != null && hitresult instanceof BlockHitResult blockHit
+                  && blockHit.getExactLocation() != null) {
+               // The hit point is also split-coordinate data. Comparing its
+               // lossy Vec3 mirror with the camera position can turn a wall
+               // hit into a zero-distance hit at large coordinates.
+               d0 = blockHit.getExactLocation().relativeTo(this.exactPosition).length();
+            } else {
+               d0 = hitresult.getLocation().distanceTo(this.position);
+            }
             if (d0 < p_90567_) {
                p_90567_ = d0;
             }

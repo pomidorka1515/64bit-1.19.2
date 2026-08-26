@@ -18,6 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
@@ -50,6 +51,32 @@ public class ScreenEffectRenderer {
 
    @Nullable
    private static BlockState getViewBlockingState(Player p_110717_) {
+      // The vanilla probe reconstructs absolute X/Z doubles.  That loses the
+      // player's fractional position at large coordinates, which can make a
+      // wall-touching eye probe land on the wall's block and produce a false
+      // suffocation overlay. Sector entities already have the exact position;
+      // sample the overlay probes from that split-coordinate position instead.
+      if (p_110717_.hasSectorPosition()) {
+         SectorVec3 eye = p_110717_.exactEyePosition();
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+
+         for (int i = 0; i < 8; ++i) {
+            // Keep the offset in split-coordinate space.  Calling getX()/getZ()
+            // here would first round the absolute coordinate to a double.
+            SectorVec3 sample = eye.add(
+                  ((float)((i >> 0) % 2) - 0.5F) * (double)p_110717_.getBbWidth() * 0.8D,
+                  ((float)((i >> 1) % 2) - 0.5F) * 0.1D,
+                  ((float)((i >> 2) % 2) - 0.5F) * (double)p_110717_.getBbWidth() * 0.8D);
+            blockpos$mutableblockpos.set(sample.blockPosition());
+            BlockState blockstate = p_110717_.level.getBlockState(blockpos$mutableblockpos);
+            if (blockstate.getRenderShape() != RenderShape.INVISIBLE
+                  && blockstate.isViewBlocking(p_110717_.level, blockpos$mutableblockpos)) {
+               return blockstate;
+            }
+         }
+         return null;
+      }
+
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
       for(int i = 0; i < 8; ++i) {

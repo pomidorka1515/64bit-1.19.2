@@ -1207,7 +1207,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     * boundary round-off. This prevents a full block face from being crossed.
     */
    private static double safeCollisionDelta(double requested, double resolved) {
-      return requested > 0.0D ? Math.min(requested, resolved) : Math.max(requested, resolved);
+      // Shapes.collide normally returns a delta on the requested side of zero.
+      // At very large coordinates a local shape can nevertheless leave a tiny
+      // crossed-face result after the X/Z axis has been resolved. Never allow a
+      // resolver result to move farther than requested or to cross the origin
+      // direction; otherwise the second block in a wall can be skipped.
+      if (requested > 0.0D) {
+         return resolved < 0.0D ? 0.0D : Math.min(requested, resolved);
+      } else {
+         return resolved > 0.0D ? 0.0D : Math.max(requested, resolved);
+      }
    }
 
    protected float nextStep() {
@@ -1773,6 +1782,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    public Vec3 getLightProbePosition(float p_20309_) {
       return this.getEyePosition(p_20309_);
+   }
+
+   /** Exact block used for entity lighting; avoids converting sector X/Z to doubles. */
+   public final BlockPos getLightProbeBlockPosition(float partialTick) {
+      if (this.sectorPosition != null) {
+         SectorVec3 interpolated = this.interpolatedExactPosition(partialTick);
+         return interpolated.withY(interpolated.y() + (double)this.getEyeHeight()).blockPosition();
+      }
+      return new BlockPos(this.getLightProbePosition(partialTick));
    }
 
    public final Vec3 getPosition(float p_20319_) {

@@ -24,6 +24,8 @@ import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.entity.Entity;
@@ -384,19 +386,24 @@ public class StructureTemplate {
          if (p_74529_ == null || p_74529_.isInside(blockpos)) {
             CompoundTag compoundtag = structuretemplate$structureentityinfo.nbt.copy();
             Vec3 vec3 = transform(structuretemplate$structureentityinfo.pos, p_74526_, p_74527_, p_74528_);
+            long entityX = p_74525_.getX() + Mth.floor(vec3.x);
+            long entityZ = p_74525_.getZ() + Mth.floor(vec3.z);
+            int entityY = Mth.floor((double)p_74525_.getY() + vec3.y);
             Vec3 vec31 = vec3.add((double)p_74525_.getX(), (double)p_74525_.getY(), (double)p_74525_.getZ());
             ListTag listtag = new ListTag();
-            listtag.add(DoubleTag.valueOf(vec31.x));
+            listtag.add(DoubleTag.valueOf((double)entityX + (vec3.x - (double)Mth.floor(vec3.x))));
             listtag.add(DoubleTag.valueOf(vec31.y));
-            listtag.add(DoubleTag.valueOf(vec31.z));
+            listtag.add(DoubleTag.valueOf((double)entityZ + (vec3.z - (double)Mth.floor(vec3.z))));
             compoundtag.put("Pos", listtag);
             compoundtag.remove("UUID");
             createEntityIgnoreException(p_74524_, compoundtag).ifPresent((p_205061_) -> {
                float f = p_205061_.rotate(p_74527_);
                f += p_205061_.mirror(p_74526_) - p_205061_.getYRot();
                p_205061_.moveTo(vec31.x, vec31.y, vec31.z, f, p_205061_.getXRot());
+               BlockPos entityBlockPos = new BlockPos(entityX, entityY, entityZ);
+               p_205061_.getSelfAndPassengers().forEach((entity) -> entity.setExactBlockPosition(entityBlockPos));
                if (p_74530_ && p_205061_ instanceof Mob) {
-                  ((Mob)p_205061_).finalizeSpawn(p_74524_, p_74524_.getCurrentDifficultyAt(new BlockPos(vec31)), MobSpawnType.STRUCTURE, (SpawnGroupData)null, compoundtag);
+                  ((Mob)p_205061_).finalizeSpawn(p_74524_, p_74524_.getCurrentDifficultyAt(new BlockPos(entityX, entityY, entityZ)), MobSpawnType.STRUCTURE, (SpawnGroupData)null, compoundtag);
                }
 
                p_74524_.addFreshEntityWithPassengers(p_205061_);
@@ -609,8 +616,8 @@ public class StructureTemplate {
    public void load(CompoundTag p_74639_) {
       this.palettes.clear();
       this.entityInfoList.clear();
-      ListTag listtag = p_74639_.getList("size", 3);
-      this.size = new Vec3i(listtag.getInt(0), listtag.getInt(1), listtag.getInt(2));
+      ListTag listtag = getLongList(p_74639_, "size");
+      this.size = new Vec3i(((NumericTag)listtag.get(0)).getAsLong(), ((NumericTag)listtag.get(1)).getAsInt(), ((NumericTag)listtag.get(2)).getAsLong());
       ListTag listtag1 = p_74639_.getList("blocks", 10);
       if (p_74639_.contains("palettes", 9)) {
          ListTag listtag2 = p_74639_.getList("palettes", 9);
@@ -628,14 +635,19 @@ public class StructureTemplate {
          CompoundTag compoundtag = listtag5.getCompound(j);
          ListTag listtag3 = compoundtag.getList("pos", 6);
          Vec3 vec3 = new Vec3(listtag3.getDouble(0), listtag3.getDouble(1), listtag3.getDouble(2));
-         ListTag listtag4 = compoundtag.getList("blockPos", 3);
-         BlockPos blockpos = new BlockPos(listtag4.getInt(0), listtag4.getInt(1), listtag4.getInt(2));
+         ListTag listtag4 = getLongList(compoundtag, "blockPos");
+         BlockPos blockpos = new BlockPos(((NumericTag)listtag4.get(0)).getAsLong(), ((NumericTag)listtag4.get(1)).getAsInt(), ((NumericTag)listtag4.get(2)).getAsLong());
          if (compoundtag.contains("nbt")) {
             CompoundTag compoundtag1 = compoundtag.getCompound("nbt");
             this.entityInfoList.add(new StructureTemplate.StructureEntityInfo(vec3, blockpos, compoundtag1));
          }
       }
 
+   }
+
+   private static ListTag getLongList(CompoundTag tag, String key) {
+      ListTag list = tag.getList(key, 4);
+      return list.isEmpty() ? tag.getList(key, 3) : list;
    }
 
    private void loadPalette(ListTag p_74621_, ListTag p_74622_) {
@@ -651,8 +663,8 @@ public class StructureTemplate {
 
       for(int j = 0; j < p_74622_.size(); ++j) {
          CompoundTag compoundtag = p_74622_.getCompound(j);
-         ListTag listtag = compoundtag.getList("pos", 3);
-         BlockPos blockpos = new BlockPos(listtag.getInt(0), listtag.getInt(1), listtag.getInt(2));
+         ListTag listtag = getLongList(compoundtag, "pos");
+         BlockPos blockpos = new BlockPos(((NumericTag)listtag.get(0)).getAsLong(), listtag.getInt(1), ((NumericTag)listtag.get(2)).getAsLong());
          BlockState blockstate = structuretemplate$simplepalette.stateFor(compoundtag.getInt("state"));
          CompoundTag compoundtag1;
          if (compoundtag.contains("nbt")) {

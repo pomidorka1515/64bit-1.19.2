@@ -47,6 +47,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.AABB;
@@ -153,11 +154,15 @@ public class WorldGenRegion implements WorldGenLevel {
    }
 
    public BlockState getBlockState(BlockPos p_9587_) {
-      return this.getChunk(SectionPos.blockToSectionCoord(p_9587_.getX()), SectionPos.blockToSectionCoord(p_9587_.getZ())).getBlockState(p_9587_);
+      long i = SectionPos.blockToSectionCoord(p_9587_.getX());
+      long j = SectionPos.blockToSectionCoord(p_9587_.getZ());
+      return this.hasChunk(i, j) ? this.getChunk(i, j).getBlockState(p_9587_) : Blocks.VOID_AIR.defaultBlockState();
    }
 
    public FluidState getFluidState(BlockPos p_9577_) {
-      return this.getChunk(p_9577_).getFluidState(p_9577_);
+      long i = SectionPos.blockToSectionCoord(p_9577_.getX());
+      long j = SectionPos.blockToSectionCoord(p_9577_.getZ());
+      return this.hasChunk(i, j) ? this.getChunk(i, j).getFluidState(p_9577_) : Fluids.EMPTY.defaultFluidState();
    }
 
    @Nullable
@@ -331,7 +336,7 @@ public class WorldGenRegion implements WorldGenLevel {
 
    public DifficultyInstance getCurrentDifficultyAt(BlockPos p_9585_) {
       if (!this.hasChunk(SectionPos.blockToSectionCoord(p_9585_.getX()), SectionPos.blockToSectionCoord(p_9585_.getZ()))) {
-         throw new RuntimeException("We are asking a region for a chunk out of bound");
+         return this.level.getCurrentDifficultyAt(this.center.getPos().getWorldPosition());
       } else {
          return new DifficultyInstance(this.level.getDifficulty(), this.level.getDayTime(), 0L, this.level.getMoonBrightness());
       }

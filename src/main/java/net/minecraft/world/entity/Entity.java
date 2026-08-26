@@ -3406,6 +3406,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       return this.blockPosition;
    }
 
+   /** Updates exact block/chunk bookkeeping without reconstructing a large coordinate as a double. */
+   public final void setExactBlockPosition(BlockPos p_217013_) {
+      this.blockPosition = p_217013_;
+      this.feetBlockState = null;
+      this.chunkPosition = new ChunkPos(p_217013_);
+   }
+
    public BlockState getFeetBlockState() {
       if (this.feetBlockState == null) {
          this.feetBlockState = this.level.getBlockState(this.blockPosition());

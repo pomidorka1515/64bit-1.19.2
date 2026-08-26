@@ -77,6 +77,12 @@ public abstract class DistanceManager {
 
    protected void purgeStaleTickets() {
       ++this.ticketTickCounter;
+
+      // Movement updates the player-distance graph before this pass.  Reconcile
+      // the actual ticket map as well: PLAYER tickets are intentionally
+      // non-expiring, so a lost release message otherwise pins a ChunkHolder
+      // forever.
+      this.playerTicketManager.runAllUpdates();
       ObjectIterator<Entry<ChunkPos, SortedArraySet<Ticket<?>>>> objectiterator = this.tickets.entrySet().iterator();
 
       while(objectiterator.hasNext()) {
@@ -86,10 +92,16 @@ public abstract class DistanceManager {
 
          while(iterator.hasNext()) {
             Ticket<?> ticket = iterator.next();
-            if (ticket.timedOut(this.ticketTickCounter)) {
+            boolean stalePlayerTicket = ticket.getType() == TicketType.PLAYER
+                  && !this.playerTicketManager.hasTicketForChunk(entry.getKey());
+            if (stalePlayerTicket || ticket.timedOut(this.ticketTickCounter)) {
                iterator.remove();
                flag = true;
                this.tickingTicketsTracker.removeTicket(entry.getKey(), ticket);
+               if (stalePlayerTicket) {
+                  this.ticketThrottlerReleaser.tell(ChunkTaskPriorityQueueSorter.release(() -> {
+                  }, entry.getKey(), true));
+               }
             }
          }
 
@@ -553,6 +565,10 @@ public abstract class DistanceManager {
 
       private boolean haveTicketFor(int p_140933_) {
          return p_140933_ <= this.viewDistance - 2;
+      }
+
+      boolean hasTicketForChunk(ChunkPos p_183931_) {
+         return this.haveTicketFor(this.getLevel(p_183931_));
       }
    }
 }

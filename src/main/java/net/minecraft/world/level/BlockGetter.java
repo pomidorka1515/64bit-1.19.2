@@ -19,6 +19,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public interface BlockGetter extends LevelHeightAccessor {
+   /** Prevents an unbounded DDA from monopolizing the server tick thread. */
+   int MAX_RAYCAST_STEPS = 4096;
    @Nullable
    BlockEntity getBlockEntity(BlockPos p_45570_);
 
@@ -133,7 +135,8 @@ public interface BlockGetter extends LevelHeightAccessor {
             double d13 = d10 * (i1 > 0 ? 1.0D - Mth.frac(d4) : Mth.frac(d4));
             double d14 = d11 * (j1 > 0 ? 1.0D - Mth.frac(d5) : Mth.frac(d5));
 
-            while(d12 <= 1.0D || d13 <= 1.0D || d14 <= 1.0D) {
+            int steps = 0;
+            while ((d12 <= 1.0D || d13 <= 1.0D || d14 <= 1.0D) && steps++ < MAX_RAYCAST_STEPS) {
                if (d12 < d13) {
                   if (d12 < d14) {
                      i += l;

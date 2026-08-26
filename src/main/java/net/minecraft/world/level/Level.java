@@ -24,6 +24,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ChunkHolder;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -311,19 +312,39 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    public BlockState getBlockState(BlockPos p_46732_) {
       if (this.isOutsideBuildHeight(p_46732_)) {
          return Blocks.VOID_AIR.defaultBlockState();
-      } else {
-         LevelChunk levelchunk = this.getChunk(SectionPos.blockToSectionCoord(p_46732_.getX()), SectionPos.blockToSectionCoord(p_46732_.getZ()));
-         return levelchunk.getBlockState(p_46732_);
       }
+
+      /*
+       * Raycasts and AI queries must never synchronously create a server
+       * chunk.  getChunkNow only observes an already-completed FULL future on
+       * the server thread, so it cannot park the tick thread behind worldgen.
+       * Keep the old blocking path for client levels and non-server regions.
+       */
+      if (this instanceof ServerLevel serverLevel) {
+         LevelChunk chunk = serverLevel.getChunkSource().getChunkNow(
+               SectionPos.blockToSectionCoord(p_46732_.getX()),
+               SectionPos.blockToSectionCoord(p_46732_.getZ()));
+         return chunk == null ? Blocks.VOID_AIR.defaultBlockState() : chunk.getBlockState(p_46732_);
+      }
+
+      LevelChunk levelchunk = this.getChunk(SectionPos.blockToSectionCoord(p_46732_.getX()), SectionPos.blockToSectionCoord(p_46732_.getZ()));
+      return levelchunk.getBlockState(p_46732_);
    }
 
    public FluidState getFluidState(BlockPos p_46671_) {
       if (this.isOutsideBuildHeight(p_46671_)) {
          return Fluids.EMPTY.defaultFluidState();
-      } else {
-         LevelChunk levelchunk = this.getChunkAt(p_46671_);
-         return levelchunk.getFluidState(p_46671_);
       }
+
+      if (this instanceof ServerLevel serverLevel) {
+         LevelChunk chunk = serverLevel.getChunkSource().getChunkNow(
+               SectionPos.blockToSectionCoord(p_46671_.getX()),
+               SectionPos.blockToSectionCoord(p_46671_.getZ()));
+         return chunk == null ? Fluids.EMPTY.defaultFluidState() : chunk.getFluidState(p_46671_);
+      }
+
+      LevelChunk levelchunk = this.getChunkAt(p_46671_);
+      return levelchunk.getFluidState(p_46671_);
    }
 
    public boolean isDay() {

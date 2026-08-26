@@ -16,12 +16,16 @@ public class TicketType<T> {
    public static final TicketType<Unit> DRAGON = create("dragon", (p_9460_, p_9461_) -> {
       return 0;
    });
-   public static final TicketType<ChunkPos> PLAYER = create("player", Comparator.comparingLong(ChunkPos::hashCode));
-   public static final TicketType<ChunkPos> FORCED = create("forced", Comparator.comparingLong(ChunkPos::hashCode));
-   public static final TicketType<ChunkPos> LIGHT = create("light", Comparator.comparingLong((ChunkPos p_9469_) -> p_9469_.x).thenComparingLong((p_9470_) -> p_9470_.z));
+   /* ChunkPos coordinates are longs; hashCode() is only a lossy int hash. */
+   private static final Comparator<ChunkPos> CHUNK_POS_COMPARATOR = Comparator
+         .comparingLong((ChunkPos p_9469_) -> p_9469_.x)
+         .thenComparingLong((ChunkPos p_9470_) -> p_9470_.z);
+   public static final TicketType<ChunkPos> PLAYER = create("player", CHUNK_POS_COMPARATOR);
+   public static final TicketType<ChunkPos> FORCED = create("forced", CHUNK_POS_COMPARATOR);
+   public static final TicketType<ChunkPos> LIGHT = create("light", CHUNK_POS_COMPARATOR);
    public static final TicketType<BlockPos> PORTAL = create("portal", Vec3i::compareTo, 300);
    public static final TicketType<Integer> POST_TELEPORT = create("post_teleport", Integer::compareTo, 5);
-   public static final TicketType<ChunkPos> UNKNOWN = create("unknown", Comparator.comparingLong(ChunkPos::hashCode), 1);
+   public static final TicketType<ChunkPos> UNKNOWN = create("unknown", CHUNK_POS_COMPARATOR, 1);
 
    public static <T> TicketType<T> create(String p_9463_, Comparator<T> p_9464_) {
       return new TicketType<>(p_9463_, p_9464_, 0L);

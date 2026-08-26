@@ -17,6 +17,8 @@ gradle-app.setting
 .idea
 *.iml
 run/
+logs/
+projects/mcp
 
 out/
 
@@ -26,3 +28,4 @@ out/
 *.md
 !README.md
 !CLAUDE.md
+.claude

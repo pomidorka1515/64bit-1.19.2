@@ -1,4 +1,16 @@
-# Feature tracking
+# 64-bit Minecraft. It's real!
+I didnt make the original base mod, its made by mckuhei.
+But it had a shitton of issues, so im slowly fixing all of them.
+# Playing this
+There are no releases or builds yet because this is still in development.
+If you REALLY want to play:
+ - clone this repo
+ - `./gradlew runClient`
+ - pray to god it works
+ - (prob wont work on windows. windows is ass... wait for a release)
+
+
+# Feature tracking (regular people can ignore this)
 - Rewritten light system
 - SectorVec3 coordinate system
 - Villager AI & pathfinding converted into 64-bit
@@ -6,7 +18,8 @@
 - Chunk border fog removed
 - Client brand modified
 
-# Original mod history & backport status (TODO)
+## Original mod history & backport status
+```
 ==== history ====
 1.0.0:
 	  Inital release [+]
@@ -28,3 +41,4 @@
        Fix game stuck at "Saving level..." screen. [-]
        Fix cannot interact with entity. [-]
 =================
+```

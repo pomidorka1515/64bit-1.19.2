@@ -195,11 +195,20 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
    }
 
    private static double euclideanDistanceSquared(ChunkPos p_140227_, Entity p_140228_) {
-      double d0 = (double)SectionPos.sectionToBlockCoord(p_140227_.x, 8);
-      double d1 = (double)SectionPos.sectionToBlockCoord(p_140227_.z, 8);
-      double d2 = d0 - p_140228_.getX();
-      double d3 = d1 - p_140228_.getZ();
-      return d2 * d2 + d3 * d3;
+      double d0;
+      double d1;
+      if (p_140228_.hasSectorPosition()) {
+         // Keep the exact sector coordinate as the source of truth.  The
+         // vanilla path remains unchanged for entities without one.
+         d0 = (double)(SectionPos.sectionToBlockCoord(p_140227_.x, 8) - p_140228_.sectorPosition().blockX())
+               - p_140228_.sectorPosition().subX();
+         d1 = (double)(SectionPos.sectionToBlockCoord(p_140227_.z, 8) - p_140228_.sectorPosition().blockZ())
+               - p_140228_.sectorPosition().subZ();
+      } else {
+         d0 = (double)SectionPos.sectionToBlockCoord(p_140227_.x, 8) - p_140228_.getX();
+         d1 = (double)SectionPos.sectionToBlockCoord(p_140227_.z, 8) - p_140228_.getZ();
+      }
+      return d0 * d0 + d1 * d1;
    }
 
    public static boolean isChunkInRange(long p_200879_, long p_200880_, long p_200881_, long p_200882_, long p_200883_) {

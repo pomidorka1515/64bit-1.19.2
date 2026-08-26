@@ -16,7 +16,7 @@ The Gradle wrapper is the authoritative build entry point. The build is configur
 Common verification commands:
 
 ```bash
-./gradlew compileJava            # Compile main sources
+./gradlew compileJava --no-daemon# Compile main sources (no daemon is crucial)
 ./gradlew test                   # Run all JUnit 5 tests
 ./gradlew check                  # Verification lifecycle (currently includes tests)
 ./gradlew build                  # Compile, test, and assemble

@@ -80,9 +80,13 @@ public class EntitySelectorParser {
    @Nullable
    private Double x;
    @Nullable
+   private String exactX;
+   @Nullable
    private Double y;
    @Nullable
    private Double z;
+   @Nullable
+   private String exactZ;
    @Nullable
    private Double deltaX;
    @Nullable
@@ -150,7 +154,8 @@ public class EntitySelectorParser {
          };
       }
 
-      return new EntitySelector(this.maxResults, this.includesEntities, this.worldLimited, this.predicate, this.distance, function, aabb, this.order, this.currentEntity, this.playerName, this.entityUUID, this.type, this.usesSelectors);
+      return new EntitySelector(this.maxResults, this.includesEntities, this.worldLimited, this.predicate, this.distance, function,
+            this.exactX, this.y, this.exactZ, aabb, this.order, this.currentEntity, this.playerName, this.entityUUID, this.type, this.usesSelectors);
    }
 
    private AABB createAabb(double p_121234_, double p_121235_, double p_121236_) {
@@ -397,16 +402,26 @@ public class EntitySelectorParser {
       return this.z;
    }
 
-   public void setX(double p_121232_) {
-      this.x = p_121232_;
+   public void setX(double value) {
+      this.x = value;
+   }
+
+   public void setExactX(String value) {
+      this.exactX = value;
+      this.x = Double.parseDouble(value);
    }
 
    public void setY(double p_121283_) {
       this.y = p_121283_;
    }
 
-   public void setZ(double p_121306_) {
-      this.z = p_121306_;
+   public void setZ(double value) {
+      this.z = value;
+   }
+
+   public void setExactZ(String value) {
+      this.exactZ = value;
+      this.z = Double.parseDouble(value);
    }
 
    public void setDeltaX(double p_121319_) {

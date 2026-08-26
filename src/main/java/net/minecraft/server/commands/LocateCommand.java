@@ -74,7 +74,7 @@ public class LocateCommand {
       HolderSet<Structure> holderset = getHolders(p_214473_, registry).orElseThrow(() -> {
          return ERROR_STRUCTURE_INVALID.create(p_214473_.asPrintable());
       });
-      BlockPos blockpos = new BlockPos(p_214472_.getPosition());
+      BlockPos blockpos = p_214472_.getExactPosition().blockPosition();
       ServerLevel serverlevel = p_214472_.getLevel();
       Pair<BlockPos, Holder<Structure>> pair = serverlevel.getChunkSource().getGenerator().findNearestMapStructure(serverlevel, holderset, blockpos, 100, false);
       if (pair == null) {
@@ -85,7 +85,7 @@ public class LocateCommand {
    }
 
    private static int locateBiome(CommandSourceStack p_214502_, ResourceOrTagLocationArgument.Result<Biome> p_214503_) throws CommandSyntaxException {
-      BlockPos blockpos = new BlockPos(p_214502_.getPosition());
+      BlockPos blockpos = p_214502_.getExactPosition().blockPosition();
       Pair<BlockPos, Holder<Biome>> pair = p_214502_.getLevel().findClosestBiome3d(p_214503_, blockpos, 6400, 32, 64);
       if (pair == null) {
          throw ERROR_BIOME_NOT_FOUND.create(p_214503_.asPrintable());
@@ -95,7 +95,7 @@ public class LocateCommand {
    }
 
    private static int locatePoi(CommandSourceStack p_214509_, ResourceOrTagLocationArgument.Result<PoiType> p_214510_) throws CommandSyntaxException {
-      BlockPos blockpos = new BlockPos(p_214509_.getPosition());
+      BlockPos blockpos = p_214509_.getExactPosition().blockPosition();
       ServerLevel serverlevel = p_214509_.getLevel();
       Optional<Pair<Holder<PoiType>, BlockPos>> optional = serverlevel.getPoiManager().findClosestWithType(p_214510_, blockpos, 256, PoiManager.Occupancy.ANY);
       if (optional.isEmpty()) {
@@ -123,9 +123,9 @@ public class LocateCommand {
       return i;
    }
 
-   private static float dist(long p_137854_, long p_137855_, long p_137856_, long p_137857_) {
-      long i = p_137856_ - p_137854_;
-      long j = p_137857_ - p_137855_;
-      return Mth.sqrt((float)(i * i + j * j));
+   private static float dist(long x0, long z0, long x1, long z1) {
+      long dx = Math.subtractExact(x1, x0);
+      long dz = Math.subtractExact(z1, z0);
+      return (float)Math.sqrt((double)dx * (double)dx + (double)dz * (double)dz);
    }
 }

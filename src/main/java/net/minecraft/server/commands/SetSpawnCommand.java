@@ -19,9 +19,9 @@ public class SetSpawnCommand {
       p_138644_.register(Commands.literal("spawnpoint").requires((p_138648_) -> {
          return p_138648_.hasPermission(2);
       }).executes((p_138659_) -> {
-         return setSpawn(p_138659_.getSource(), Collections.singleton(p_138659_.getSource().getPlayerOrException()), new BlockPos(p_138659_.getSource().getPosition()), 0.0F);
+         return setSpawn(p_138659_.getSource(), Collections.singleton(p_138659_.getSource().getPlayerOrException()), p_138659_.getSource().getExactPosition().blockPosition(), 0.0F);
       }).then(Commands.argument("targets", EntityArgument.players()).executes((p_138657_) -> {
-         return setSpawn(p_138657_.getSource(), EntityArgument.getPlayers(p_138657_, "targets"), new BlockPos(p_138657_.getSource().getPosition()), 0.0F);
+         return setSpawn(p_138657_.getSource(), EntityArgument.getPlayers(p_138657_, "targets"), p_138657_.getSource().getExactPosition().blockPosition(), 0.0F);
       }).then(Commands.argument("pos", BlockPosArgument.blockPos()).executes((p_138655_) -> {
          return setSpawn(p_138655_.getSource(), EntityArgument.getPlayers(p_138655_, "targets"), BlockPosArgument.getSpawnablePos(p_138655_, "pos"), 0.0F);
       }).then(Commands.argument("angle", AngleArgument.angle()).executes((p_138646_) -> {

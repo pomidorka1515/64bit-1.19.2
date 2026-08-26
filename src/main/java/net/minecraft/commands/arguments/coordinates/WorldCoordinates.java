@@ -3,6 +3,7 @@ package net.minecraft.commands.arguments.coordinates;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -17,9 +18,19 @@ public class WorldCoordinates implements Coordinates {
       this.z = p_120885_;
    }
 
-   public Vec3 getPosition(CommandSourceStack p_120893_) {
-      Vec3 vec3 = p_120893_.getPosition();
-      return new Vec3(this.x.get(vec3.x), this.y.get(vec3.y), this.z.get(vec3.z));
+   public SectorVec3 getExactPosition(CommandSourceStack source) {
+      SectorVec3 origin = source.getExactPosition();
+      SectorVec3 result = origin;
+      if (!this.x.isRelative()) result = result.withXDecimal(this.x.getLiteral());
+      else result = result.add(this.x.getValue(), 0.0D, 0.0D);
+      if (!this.z.isRelative()) result = result.withZDecimal(this.z.getLiteral());
+      else result = result.add(0.0D, 0.0D, this.z.getValue());
+      double y = this.y.isRelative() ? origin.y() + this.y.getValue() : this.y.getValue();
+      return result.withY(y);
+   }
+
+   public Vec3 getPosition(CommandSourceStack source) {
+      return this.getExactPosition(source).toApproximateVec3();
    }
 
    public Vec2 getRotation(CommandSourceStack p_120896_) {
@@ -96,6 +107,10 @@ public class WorldCoordinates implements Coordinates {
 
    public static WorldCoordinates absolute(double p_175086_, double p_175087_, double p_175088_) {
       return new WorldCoordinates(new WorldCoordinate(false, p_175086_), new WorldCoordinate(false, p_175087_), new WorldCoordinate(false, p_175088_));
+   }
+
+   public static WorldCoordinates absolute(String x, String y, String z) {
+      return new WorldCoordinates(WorldCoordinate.absoluteDecimal(x, false), WorldCoordinate.absoluteDecimal(y, false), WorldCoordinate.absoluteDecimal(z, false));
    }
 
    public static WorldCoordinates absolute(Vec2 p_175090_) {

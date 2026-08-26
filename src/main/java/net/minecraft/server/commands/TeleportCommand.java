@@ -30,6 +30,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -52,7 +53,7 @@ public class TeleportCommand {
       }).then(Commands.argument("facingAnchor", EntityAnchorArgument.anchor()).executes((p_139041_) -> {
          return teleportToPos(p_139041_.getSource(), EntityArgument.getEntities(p_139041_, "targets"), p_139041_.getSource().getLevel(), Vec3Argument.getCoordinates(p_139041_, "location"), (Coordinates)null, new TeleportCommand.LookAt(EntityArgument.getEntity(p_139041_, "facingEntity"), EntityAnchorArgument.getAnchor(p_139041_, "facingAnchor")));
       })))).then(Commands.argument("facingLocation", Vec3Argument.vec3()).executes((p_139037_) -> {
-         return teleportToPos(p_139037_.getSource(), EntityArgument.getEntities(p_139037_, "targets"), p_139037_.getSource().getLevel(), Vec3Argument.getCoordinates(p_139037_, "location"), (Coordinates)null, new TeleportCommand.LookAt(Vec3Argument.getVec3(p_139037_, "facingLocation")));
+         return teleportToPos(p_139037_.getSource(), EntityArgument.getEntities(p_139037_, "targets"), p_139037_.getSource().getLevel(), Vec3Argument.getCoordinates(p_139037_, "location"), (Coordinates)null, new TeleportCommand.LookAt(Vec3Argument.getExactVec3(p_139037_, "facingLocation")));
       })))).then(Commands.argument("destination", EntityArgument.entity()).executes((p_139011_) -> {
          return teleportToEntity(p_139011_.getSource(), EntityArgument.getEntities(p_139011_, "targets"), EntityArgument.getEntity(p_139011_, "destination"));
       }))));
@@ -63,7 +64,7 @@ public class TeleportCommand {
 
    private static int teleportToEntity(CommandSourceStack p_139033_, Collection<? extends Entity> p_139034_, Entity p_139035_) throws CommandSyntaxException {
       for(Entity entity : p_139034_) {
-         performTeleport(p_139033_, entity, (ServerLevel)p_139035_.level, p_139035_.getX(), p_139035_.getY(), p_139035_.getZ(), EnumSet.noneOf(ClientboundPlayerPositionPacket.RelativeArgument.class), p_139035_.getYRot(), p_139035_.getXRot(), (TeleportCommand.LookAt)null);
+         performTeleport(p_139033_, entity, (ServerLevel)p_139035_.level, p_139035_.exactPosition(), p_139035_.position(), EnumSet.noneOf(ClientboundPlayerPositionPacket.RelativeArgument.class), p_139035_.getYRot(), p_139035_.getXRot(), (TeleportCommand.LookAt)null);
       }
 
       if (p_139034_.size() == 1) {
@@ -76,7 +77,8 @@ public class TeleportCommand {
    }
 
    private static int teleportToPos(CommandSourceStack p_139026_, Collection<? extends Entity> p_139027_, ServerLevel p_139028_, Coordinates p_139029_, @Nullable Coordinates p_139030_, @Nullable TeleportCommand.LookAt p_139031_) throws CommandSyntaxException {
-      Vec3 vec3 = p_139029_.getPosition(p_139026_);
+      SectorVec3 exact = p_139029_.getExactPosition(p_139026_);
+      Vec3 vec3 = exact.toApproximateVec3();
       Vec2 vec2 = p_139030_ == null ? null : p_139030_.getRotation(p_139026_);
       Set<ClientboundPlayerPositionPacket.RelativeArgument> set = EnumSet.noneOf(ClientboundPlayerPositionPacket.RelativeArgument.class);
       if (p_139029_.isXRelative()) {
@@ -106,98 +108,100 @@ public class TeleportCommand {
 
       for(Entity entity : p_139027_) {
          if (p_139030_ == null) {
-            performTeleport(p_139026_, entity, p_139028_, vec3.x, vec3.y, vec3.z, set, entity.getYRot(), entity.getXRot(), p_139031_);
+            performTeleport(p_139026_, entity, p_139028_, exact, vec3, set, entity.getYRot(), entity.getXRot(), p_139031_);
          } else {
-            performTeleport(p_139026_, entity, p_139028_, vec3.x, vec3.y, vec3.z, set, vec2.y, vec2.x, p_139031_);
+            performTeleport(p_139026_, entity, p_139028_, exact, vec3, set, vec2.y, vec2.x, p_139031_);
          }
       }
 
       if (p_139027_.size() == 1) {
-         p_139026_.sendSuccess(Component.translatable("commands.teleport.success.location.single", p_139027_.iterator().next().getDisplayName(), formatDouble(vec3.x), formatDouble(vec3.y), formatDouble(vec3.z)), true);
+         p_139026_.sendSuccess(Component.translatable("commands.teleport.success.location.single", p_139027_.iterator().next().getDisplayName(), exact.formatX(6), formatDouble(exact.y()), exact.formatZ(6)), true);
       } else {
-         p_139026_.sendSuccess(Component.translatable("commands.teleport.success.location.multiple", p_139027_.size(), formatDouble(vec3.x), formatDouble(vec3.y), formatDouble(vec3.z)), true);
+         p_139026_.sendSuccess(Component.translatable("commands.teleport.success.location.multiple", p_139027_.size(), exact.formatX(6), formatDouble(exact.y()), exact.formatZ(6)), true);
       }
 
       return p_139027_.size();
    }
 
-   private static String formatDouble(double p_142776_) {
-      return String.format(Locale.ROOT, "%f", p_142776_);
+   private static String formatDouble(double value) {
+      return String.format(Locale.ROOT, "%f", value);
    }
 
-   private static void performTeleport(CommandSourceStack p_139015_, Entity p_139016_, ServerLevel p_139017_, double p_139018_, double p_139019_, double p_139020_, Set<ClientboundPlayerPositionPacket.RelativeArgument> p_139021_, float p_139022_, float p_139023_, @Nullable TeleportCommand.LookAt p_139024_) throws CommandSyntaxException {
-      BlockPos blockpos = new BlockPos(p_139018_, p_139019_, p_139020_);
-      if (!Level.isInSpawnableBounds(blockpos)) {
-         throw INVALID_POSITION.create();
-      } else {
-         float f = Mth.wrapDegrees(p_139022_);
-         float f1 = Mth.wrapDegrees(p_139023_);
-         if (p_139016_ instanceof ServerPlayer) {
-            ChunkPos chunkpos = new ChunkPos(new BlockPos(p_139018_, p_139019_, p_139020_));
-            p_139017_.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, p_139016_.getId());
-            p_139016_.stopRiding();
-            if (((ServerPlayer)p_139016_).isSleeping()) {
-               ((ServerPlayer)p_139016_).stopSleepInBed(true, true);
-            }
+   private static String formatExact(SectorVec3 position) {
+      return position.formatX(6) + " " + String.format(Locale.ROOT, "%f", position.y()) + " " + position.formatZ(6);
+   }
 
-            if (p_139017_ == p_139016_.level) {
-               ((ServerPlayer)p_139016_).connection.teleport(p_139018_, p_139019_, p_139020_, f, f1, p_139021_);
-            } else {
-               ((ServerPlayer)p_139016_).teleportTo(p_139017_, p_139018_, p_139019_, p_139020_, f, f1);
-            }
-
-            p_139016_.setYHeadRot(f);
+   private static void performTeleport(CommandSourceStack source, Entity entity, ServerLevel level, @Nullable SectorVec3 exactPosition, Vec3 approximatePosition, Set<ClientboundPlayerPositionPacket.RelativeArgument> relative, float yRot, float xRot, @Nullable TeleportCommand.LookAt lookAt) throws CommandSyntaxException {
+      BlockPos blockpos = exactPosition != null ? exactPosition.blockPosition() : new BlockPos(approximatePosition);
+      if (!Level.isInSpawnableBounds(blockpos)) throw INVALID_POSITION.create();
+      float wrappedYRot = Mth.wrapDegrees(yRot);
+      float wrappedXRot = Mth.wrapDegrees(xRot);
+      if (entity instanceof ServerPlayer player) {
+         ChunkPos chunkpos = new ChunkPos(blockpos);
+         level.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 1, entity.getId());
+         entity.stopRiding();
+         if (player.isSleeping()) player.stopSleepInBed(true, true);
+         if (level == entity.level) {
+            if (exactPosition != null && player.hasSectorPosition()) player.connection.teleportExact(exactPosition, wrappedYRot, wrappedXRot, relative, false);
+            else player.connection.teleport(approximatePosition.x, approximatePosition.y, approximatePosition.z, wrappedYRot, wrappedXRot, relative);
          } else {
-            float f2 = Mth.clamp(f1, -90.0F, 90.0F);
-            if (p_139017_ == p_139016_.level) {
-               p_139016_.moveTo(p_139018_, p_139019_, p_139020_, f, f2);
-               p_139016_.setYHeadRot(f);
-            } else {
-               p_139016_.unRide();
-               Entity entity = p_139016_;
-               p_139016_ = p_139016_.getType().create(p_139017_);
-               if (p_139016_ == null) {
-                  return;
-               }
-
-               p_139016_.restoreFrom(entity);
-               p_139016_.moveTo(p_139018_, p_139019_, p_139020_, f, f2);
-               p_139016_.setYHeadRot(f);
-               entity.setRemoved(Entity.RemovalReason.CHANGED_DIMENSION);
-               p_139017_.addDuringTeleport(p_139016_);
-            }
+            player.teleportTo(level, approximatePosition.x, approximatePosition.y, approximatePosition.z, wrappedYRot, wrappedXRot);
+            if (exactPosition != null && player.hasSectorPosition()) player.applyExactPosition(exactPosition);
          }
-
-         if (p_139024_ != null) {
-            p_139024_.perform(p_139015_, p_139016_);
+         entity.setYHeadRot(wrappedYRot);
+      } else {
+         float clampedXRot = Mth.clamp(wrappedXRot, -90.0F, 90.0F);
+         if (level == entity.level) {
+            if (exactPosition != null && entity.hasSectorPosition()) entity.absMoveTo(exactPosition, wrappedYRot, clampedXRot);
+            else entity.moveTo(approximatePosition.x, approximatePosition.y, approximatePosition.z, wrappedYRot, clampedXRot);
+            entity.setYHeadRot(wrappedYRot);
+         } else {
+            entity.unRide();
+            Entity oldEntity = entity;
+            entity = entity.getType().create(level);
+            if (entity == null) return;
+            entity.restoreFrom(oldEntity);
+            if (exactPosition != null && entity.hasSectorPosition()) entity.applyExactPosition(exactPosition);
+            if (exactPosition != null && entity.hasSectorPosition()) entity.absMoveTo(exactPosition, wrappedYRot, clampedXRot);
+            else entity.moveTo(approximatePosition.x, approximatePosition.y, approximatePosition.z, wrappedYRot, clampedXRot);
+            entity.setYHeadRot(wrappedYRot);
+            oldEntity.setRemoved(Entity.RemovalReason.CHANGED_DIMENSION);
+            level.addDuringTeleport(entity);
          }
-
-         if (!(p_139016_ instanceof LivingEntity) || !((LivingEntity)p_139016_).isFallFlying()) {
-            p_139016_.setDeltaMovement(p_139016_.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
-            p_139016_.setOnGround(true);
-         }
-
-         if (p_139016_ instanceof PathfinderMob) {
-            ((PathfinderMob)p_139016_).getNavigation().stop();
-         }
-
       }
+      if (lookAt != null) lookAt.perform(source, entity);
+      if (!(entity instanceof LivingEntity) || !((LivingEntity)entity).isFallFlying()) {
+         entity.setDeltaMovement(entity.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
+         entity.setOnGround(true);
+      }
+      if (entity instanceof PathfinderMob mob) mob.getNavigation().stop();
    }
 
    static class LookAt {
       private final Vec3 position;
+      @Nullable
+      private final SectorVec3 exactPosition;
       private final Entity entity;
       private final EntityAnchorArgument.Anchor anchor;
 
-      public LookAt(Entity p_139056_, EntityAnchorArgument.Anchor p_139057_) {
-         this.entity = p_139056_;
-         this.anchor = p_139057_;
-         this.position = p_139057_.apply(p_139056_);
+      public LookAt(Entity entity, EntityAnchorArgument.Anchor anchor) {
+         this.entity = entity;
+         this.anchor = anchor;
+         this.exactPosition = anchor == EntityAnchorArgument.Anchor.EYES && entity.exactEyePosition() != null ? entity.exactEyePosition() : entity.exactPosition();
+         this.position = this.exactPosition == null ? anchor.apply(entity) : this.exactPosition.toApproximateVec3();
       }
 
       public LookAt(Vec3 p_139059_) {
          this.entity = null;
+         this.exactPosition = null;
          this.position = p_139059_;
+         this.anchor = null;
+      }
+
+      public LookAt(SectorVec3 position) {
+         this.entity = null;
+         this.exactPosition = position;
+         this.position = position.toApproximateVec3();
          this.anchor = null;
       }
 
@@ -208,6 +212,8 @@ public class TeleportCommand {
             } else {
                p_139062_.lookAt(p_139061_.getAnchor(), this.position);
             }
+         } else if (this.exactPosition != null && p_139062_.hasSectorPosition()) {
+            p_139062_.lookAt(p_139061_.getAnchor(), this.exactPosition.toApproximateVec3());
          } else {
             p_139062_.lookAt(p_139061_.getAnchor(), this.position);
          }

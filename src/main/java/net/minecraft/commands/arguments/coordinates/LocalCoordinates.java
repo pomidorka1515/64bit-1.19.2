@@ -5,6 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import java.util.Objects;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -20,9 +21,9 @@ public class LocalCoordinates implements Coordinates {
       this.forwards = p_119904_;
    }
 
-   public Vec3 getPosition(CommandSourceStack p_119912_) {
+   public SectorVec3 getExactPosition(CommandSourceStack p_119912_) {
       Vec2 vec2 = p_119912_.getRotation();
-      Vec3 vec3 = p_119912_.getAnchor().apply(p_119912_);
+      SectorVec3 anchor = p_119912_.getExactAnchor();
       float f = Mth.cos((vec2.y + 90.0F) * ((float)Math.PI / 180F));
       float f1 = Mth.sin((vec2.y + 90.0F) * ((float)Math.PI / 180F));
       float f2 = Mth.cos(-vec2.x * ((float)Math.PI / 180F));
@@ -35,7 +36,11 @@ public class LocalCoordinates implements Coordinates {
       double d0 = vec31.x * this.forwards + vec32.x * this.up + vec33.x * this.left;
       double d1 = vec31.y * this.forwards + vec32.y * this.up + vec33.y * this.left;
       double d2 = vec31.z * this.forwards + vec32.z * this.up + vec33.z * this.left;
-      return new Vec3(vec3.x + d0, vec3.y + d1, vec3.z + d2);
+      return anchor.add(d0, d1, d2);
+   }
+
+   public Vec3 getPosition(CommandSourceStack source) {
+      return this.getExactPosition(source).toApproximateVec3();
    }
 
    public Vec2 getRotation(CommandSourceStack p_119915_) {

@@ -1071,6 +1071,15 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       this.teleport(p_9781_, p_9782_, p_9783_, p_9784_, p_9785_, p_9786_, false);
    }
 
+   public void teleportExact(SectorVec3 position, float yRot, float xRot) {
+      this.teleportExactAbsolute(position, yRot, xRot);
+   }
+
+   public void teleportExact(SectorVec3 position, float yRot, float xRot, Set<ClientboundPlayerPositionPacket.RelativeArgument> relative, boolean dismountVehicle) {
+      if (dismountVehicle) this.player.stopRiding();
+      this.teleportExactAbsolute(position, yRot, xRot);
+   }
+
    public void teleport(double p_143618_, double p_143619_, double p_143620_, float p_143621_, float p_143622_, Set<ClientboundPlayerPositionPacket.RelativeArgument> p_143623_, boolean p_143624_) {
       double d0 = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.X) ? this.player.getX() : 0.0D;
       double d1 = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y) ? this.player.getY() : 0.0D;

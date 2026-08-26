@@ -20,6 +20,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class EntitySelector {
@@ -40,8 +41,17 @@ public class EntitySelector {
    private final MinMaxBounds.Doubles range;
    private final Function<Vec3, Vec3> position;
    @Nullable
+   private final String exactX;
+   @Nullable
+   private final Double exactY;
+   @Nullable
+   private final String exactZ;
+   @Nullable
    private final AABB aabb;
    private final BiConsumer<Vec3, List<? extends Entity>> order;
+   private final boolean exactCoordinateSelector;
+   @Nullable
+   private SectorVec3 exactOriginForSorting;
    private final boolean currentEntity;
    @Nullable
    private final String playerName;
@@ -50,15 +60,19 @@ public class EntitySelector {
    private EntityTypeTest<Entity, ?> type;
    private final boolean usesSelector;
 
-   public EntitySelector(int p_121125_, boolean p_121126_, boolean p_121127_, Predicate<Entity> p_121128_, MinMaxBounds.Doubles p_121129_, Function<Vec3, Vec3> p_121130_, @Nullable AABB p_121131_, BiConsumer<Vec3, List<? extends Entity>> p_121132_, boolean p_121133_, @Nullable String p_121134_, @Nullable UUID p_121135_, @Nullable EntityType<?> p_121136_, boolean p_121137_) {
+   public EntitySelector(int p_121125_, boolean p_121126_, boolean p_121127_, Predicate<Entity> p_121128_, MinMaxBounds.Doubles p_121129_, Function<Vec3, Vec3> p_121130_, @Nullable String exactX, @Nullable Double exactY, @Nullable String exactZ, @Nullable AABB p_121131_, BiConsumer<Vec3, List<? extends Entity>> p_121132_, boolean p_121133_, @Nullable String p_121134_, @Nullable UUID p_121135_, @Nullable EntityType<?> p_121136_, boolean p_121137_) {
       this.maxResults = p_121125_;
       this.includesEntities = p_121126_;
       this.worldLimited = p_121127_;
       this.predicate = p_121128_;
       this.range = p_121129_;
       this.position = p_121130_;
+      this.exactX = exactX;
+      this.exactY = exactY;
+      this.exactZ = exactZ;
       this.aabb = p_121131_;
       this.order = p_121132_;
+      this.exactCoordinateSelector = exactX != null || exactZ != null;
       this.currentEntity = p_121133_;
       this.playerName = p_121134_;
       this.entityUUID = p_121135_;
@@ -122,7 +136,9 @@ public class EntitySelector {
          return Collections.emptyList();
       } else {
          Vec3 vec3 = this.position.apply(p_121161_.getPosition());
-         Predicate<Entity> predicate = this.getPredicate(vec3);
+         SectorVec3 exactOrigin = this.exactOrigin(p_121161_);
+         this.exactOriginForSorting = exactOrigin;
+         Predicate<Entity> predicate = this.getPredicate(vec3, exactOrigin);
          if (this.currentEntity) {
             return (List<? extends Entity>)(p_121161_.getEntity() != null && predicate.test(p_121161_.getEntity()) ? Lists.newArrayList(p_121161_.getEntity()) : Collections.emptyList());
          } else {
@@ -169,7 +185,9 @@ public class EntitySelector {
          return (List<ServerPlayer>)(serverplayer1 == null ? Collections.emptyList() : Lists.newArrayList(serverplayer1));
       } else {
          Vec3 vec3 = this.position.apply(p_121167_.getPosition());
-         Predicate<Entity> predicate = this.getPredicate(vec3);
+         SectorVec3 exactOrigin = this.exactOrigin(p_121167_);
+         this.exactOriginForSorting = exactOrigin;
+         Predicate<Entity> predicate = this.getPredicate(vec3, exactOrigin);
          if (this.currentEntity) {
             if (p_121167_.getEntity() instanceof ServerPlayer) {
                ServerPlayer serverplayer3 = (ServerPlayer)p_121167_.getEntity();
@@ -198,30 +216,60 @@ public class EntitySelector {
       }
    }
 
-   private Predicate<Entity> getPredicate(Vec3 p_121145_) {
+   private SectorVec3 exactOrigin(CommandSourceStack source) {
+      SectorVec3 result = source.getExactPosition();
+      if (this.exactX != null) result = result.withXDecimal(this.exactX);
+      if (this.exactZ != null) result = result.withZDecimal(this.exactZ);
+      return this.exactY == null ? result : result.withY(this.exactY);
+   }
+
+   private Predicate<Entity> getPredicate(Vec3 p_121145_, SectorVec3 exactOrigin) {
       Predicate<Entity> predicate = this.predicate;
       if (this.aabb != null) {
          AABB aabb = this.aabb.move(p_121145_);
-         predicate = predicate.and((p_121143_) -> {
-            return aabb.intersects(p_121143_.getBoundingBox());
+         predicate = predicate.and((entity) -> {
+            if (entity.exactPosition() == null) return aabb.intersects(entity.getBoundingBox());
+            Vec3 delta = entity.exactPosition().relativeTo(exactOrigin);
+            AABB box = entity.getBoundingBox();
+            return delta.x + box.minX - entity.getX() < this.aabb.maxX
+                  && delta.x + box.maxX - entity.getX() > this.aabb.minX
+                  && delta.y + box.minY - entity.getY() < this.aabb.maxY
+                  && delta.y + box.maxY - entity.getY() > this.aabb.minY
+                  && delta.z + box.minZ - entity.getZ() < this.aabb.maxZ
+                  && delta.z + box.maxZ - entity.getZ() > this.aabb.minZ;
          });
       }
 
       if (!this.range.isAny()) {
-         predicate = predicate.and((p_121148_) -> {
-            return this.range.matchesSqr(p_121148_.distanceToSqr(p_121145_));
+         predicate = predicate.and((entity) -> {
+            double distance = entity.exactPosition() != null
+                  ? entity.exactPosition().relativeTo(exactOrigin).lengthSqr()
+                  : entity.distanceToSqr(p_121145_);
+            return this.range.matchesSqr(distance);
          });
       }
 
       return predicate;
    }
 
-   private <T extends Entity> List<T> sortAndLimit(Vec3 p_121150_, List<T> p_121151_) {
-      if (p_121151_.size() > 1) {
-         this.order.accept(p_121150_, p_121151_);
+   private <T extends Entity> List<T> sortAndLimit(Vec3 origin, List<T> entities) {
+      if (entities.size() > 1) {
+         if (this.exactCoordinateSelector && this.exactOriginForSorting != null && this.order != EntitySelectorParser.ORDER_RANDOM && this.order != EntitySelectorParser.ORDER_ARBITRARY) {
+            entities.sort((first, second) -> {
+               int comparison = Double.compare(exactDistance(first), exactDistance(second));
+               return EntitySelectorParser.ORDER_FURTHEST.equals(this.order) ? -comparison : comparison;
+            });
+         } else {
+            this.order.accept(origin, entities);
+         }
       }
+      return entities.subList(0, Math.min(this.maxResults, entities.size()));
+   }
 
-      return p_121151_.subList(0, Math.min(this.maxResults, p_121151_.size()));
+   private double exactDistance(Entity entity) {
+      SectorVec3 origin = this.exactOriginForSorting;
+      if (origin == null) return Double.POSITIVE_INFINITY;
+      return entity.exactPosition() != null ? entity.exactPosition().relativeTo(origin).lengthSqr() : entity.distanceToSqr(origin.toApproximateVec3());
    }
 
    public static Component joinNames(List<? extends Entity> p_175104_) {

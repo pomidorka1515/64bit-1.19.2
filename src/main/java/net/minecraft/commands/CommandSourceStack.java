@@ -33,6 +33,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -41,6 +42,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
    public static final SimpleCommandExceptionType ERROR_NOT_ENTITY = new SimpleCommandExceptionType(Component.translatable("permissions.requires.entity"));
    private final CommandSource source;
    private final Vec3 worldPosition;
+   private final SectorVec3 exactPosition;
    private final ServerLevel level;
    private final int permissionLevel;
    private final String textName;
@@ -61,41 +63,61 @@ public class CommandSourceStack implements SharedSuggestionProvider {
       }, EntityAnchorArgument.Anchor.FEET, CommandSigningContext.ANONYMOUS, TaskChainer.IMMEDIATE);
    }
 
-   protected CommandSourceStack(CommandSource p_242362_, Vec3 p_242272_, Vec2 p_242166_, ServerLevel p_242273_, int p_242279_, String p_242187_, Component p_242467_, MinecraftServer p_242416_, @Nullable Entity p_242300_, boolean p_242243_, @Nullable ResultConsumer<CommandSourceStack> p_242375_, EntityAnchorArgument.Anchor p_242201_, CommandSigningContext p_242188_, TaskChainer p_242249_) {
-      this.source = p_242362_;
-      this.worldPosition = p_242272_;
-      this.level = p_242273_;
-      this.silent = p_242243_;
-      this.entity = p_242300_;
-      this.permissionLevel = p_242279_;
-      this.textName = p_242187_;
-      this.displayName = p_242467_;
-      this.server = p_242416_;
-      this.consumer = p_242375_;
-      this.anchor = p_242201_;
-      this.rotation = p_242166_;
-      this.signingContext = p_242188_;
-      this.chatMessageChainer = p_242249_;
+   protected CommandSourceStack(CommandSource source, Vec3 position, Vec2 rotation, ServerLevel level, int permission,
+                                String textName, Component displayName, MinecraftServer server, @Nullable Entity entity,
+                                boolean silent, @Nullable ResultConsumer<CommandSourceStack> consumer,
+                                EntityAnchorArgument.Anchor anchor, CommandSigningContext signingContext, TaskChainer chatMessageChainer) {
+      this(source, position, entity != null ? entity.exactPosition() : null, rotation, level, permission, textName, displayName,
+            server, entity, silent, consumer, anchor, signingContext, chatMessageChainer);
+   }
+
+   private CommandSourceStack(CommandSource source, Vec3 position, @Nullable SectorVec3 exactPosition, Vec2 rotation,
+                              ServerLevel level, int permission, String textName, Component displayName, MinecraftServer server,
+                              @Nullable Entity entity, boolean silent, @Nullable ResultConsumer<CommandSourceStack> consumer,
+                              EntityAnchorArgument.Anchor anchor, CommandSigningContext signingContext, TaskChainer chatMessageChainer) {
+      this.source = source;
+      this.worldPosition = position;
+      this.exactPosition = exactPosition != null ? exactPosition : SectorVec3.fromApproximate(position.x, position.y, position.z);
+      this.level = level;
+      this.silent = silent;
+      this.entity = entity;
+      this.permissionLevel = permission;
+      this.textName = textName;
+      this.displayName = displayName;
+      this.server = server;
+      this.consumer = consumer;
+      this.anchor = anchor;
+      this.rotation = rotation;
+      this.signingContext = signingContext;
+      this.chatMessageChainer = chatMessageChainer;
    }
 
    public CommandSourceStack withSource(CommandSource p_165485_) {
-      return this.source == p_165485_ ? this : new CommandSourceStack(p_165485_, this.worldPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+      return this.source == p_165485_ ? this : new CommandSourceStack(p_165485_, this.worldPosition, this.exactPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
    }
 
-   public CommandSourceStack withEntity(Entity p_81330_) {
-      return this.entity == p_81330_ ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, this.permissionLevel, p_81330_.getName().getString(), p_81330_.getDisplayName(), this.server, p_81330_, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+   public CommandSourceStack withEntity(Entity entity) {
+      SectorVec3 exact = entity.exactPosition();
+      Vec3 position = exact == null ? entity.position() : exact.toApproximateVec3();
+      return this.entity == entity ? this : new CommandSourceStack(this.source, position, exact, this.rotation, this.level,
+            this.permissionLevel, entity.getName().getString(), entity.getDisplayName(), this.server, entity, this.silent,
+            this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
    }
 
-   public CommandSourceStack withPosition(Vec3 p_81349_) {
-      return this.worldPosition.equals(p_81349_) ? this : new CommandSourceStack(this.source, p_81349_, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+   public CommandSourceStack withPosition(Vec3 position) {
+      return this.worldPosition.equals(position) ? this : new CommandSourceStack(this.source, position, SectorVec3.fromApproximate(position.x, position.y, position.z), this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+   }
+
+   public CommandSourceStack withExactPosition(SectorVec3 position) {
+      return this.exactPosition.equals(position) ? this : new CommandSourceStack(this.source, position.toApproximateVec3(), position, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
    }
 
    public CommandSourceStack withRotation(Vec2 p_81347_) {
-      return this.rotation.equals(p_81347_) ? this : new CommandSourceStack(this.source, this.worldPosition, p_81347_, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+      return this.rotation.equals(p_81347_) ? this : new CommandSourceStack(this.source, this.worldPosition, this.exactPosition, p_81347_, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
    }
 
    public CommandSourceStack withCallback(ResultConsumer<CommandSourceStack> p_81335_) {
-      return Objects.equals(this.consumer, p_81335_) ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, p_81335_, this.anchor, this.signingContext, this.chatMessageChainer);
+      return Objects.equals(this.consumer, p_81335_) ? this : new CommandSourceStack(this.source, this.worldPosition, this.exactPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, p_81335_, this.anchor, this.signingContext, this.chatMessageChainer);
    }
 
    public CommandSourceStack withCallback(ResultConsumer<CommandSourceStack> p_81337_, BinaryOperator<ResultConsumer<CommandSourceStack>> p_81338_) {
@@ -104,40 +126,54 @@ public class CommandSourceStack implements SharedSuggestionProvider {
    }
 
    public CommandSourceStack withSuppressedOutput() {
-      return !this.silent && !this.source.alwaysAccepts() ? new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, true, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer) : this;
+      return !this.silent && !this.source.alwaysAccepts() ? new CommandSourceStack(this.source, this.worldPosition, this.exactPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, true, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer) : this;
    }
 
    public CommandSourceStack withPermission(int p_81326_) {
-      return p_81326_ == this.permissionLevel ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, p_81326_, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+      return p_81326_ == this.permissionLevel ? this : new CommandSourceStack(this.source, this.worldPosition, this.exactPosition, this.rotation, this.level, p_81326_, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
    }
 
    public CommandSourceStack withMaximumPermission(int p_81359_) {
-      return p_81359_ <= this.permissionLevel ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, p_81359_, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+      return p_81359_ <= this.permissionLevel ? this : new CommandSourceStack(this.source, this.worldPosition, this.exactPosition, this.rotation, this.level, p_81359_, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
    }
 
    public CommandSourceStack withAnchor(EntityAnchorArgument.Anchor p_81351_) {
-      return p_81351_ == this.anchor ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, p_81351_, this.signingContext, this.chatMessageChainer);
+      return p_81351_ == this.anchor ? this : new CommandSourceStack(this.source, this.worldPosition, this.exactPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, p_81351_, this.signingContext, this.chatMessageChainer);
    }
 
-   public CommandSourceStack withLevel(ServerLevel p_81328_) {
-      if (p_81328_ == this.level) {
-         return this;
-      } else {
-         double d0 = DimensionType.getTeleportationScale(this.level.dimensionType(), p_81328_.dimensionType());
-         Vec3 vec3 = new Vec3(this.worldPosition.x * d0, this.worldPosition.y, this.worldPosition.z * d0);
-         return new CommandSourceStack(this.source, vec3, this.rotation, p_81328_, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+   public CommandSourceStack withLevel(ServerLevel level) {
+      if (level == this.level) return this;
+      SectorVec3 exact = this.exactPosition;
+      if (this.level != null) {
+         double scale = DimensionType.getTeleportationScale(this.level.dimensionType(), level.dimensionType());
+         exact = scaleExact(this.exactPosition, scale);
       }
+      return new CommandSourceStack(this.source, exact.toApproximateVec3(), exact, this.rotation, level, this.permissionLevel, this.textName,
+            this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
    }
 
-   public CommandSourceStack facing(Entity p_81332_, EntityAnchorArgument.Anchor p_81333_) {
-      return this.facing(p_81333_.apply(p_81332_));
+   private static SectorVec3 scaleExact(SectorVec3 position, double scale) {
+      if (!Double.isFinite(scale) || scale == 0.0D) throw new IllegalArgumentException("Invalid dimension scale: " + scale);
+      // Dimension scales used by vanilla are powers of two. Scaling the split
+      // components independently avoids forming a huge global double.
+      java.math.BigDecimal x = java.math.BigDecimal.valueOf(position.blockX()).add(java.math.BigDecimal.valueOf(position.subX())).multiply(java.math.BigDecimal.valueOf(scale));
+      java.math.BigDecimal z = java.math.BigDecimal.valueOf(position.blockZ()).add(java.math.BigDecimal.valueOf(position.subZ())).multiply(java.math.BigDecimal.valueOf(scale));
+      return SectorVec3.fromDecimal(x.toPlainString(), position.y(), z.toPlainString());
    }
 
-   public CommandSourceStack facing(Vec3 p_81365_) {
-      Vec3 vec3 = this.anchor.apply(this);
-      double d0 = p_81365_.x - vec3.x;
-      double d1 = p_81365_.y - vec3.y;
-      double d2 = p_81365_.z - vec3.z;
+   public CommandSourceStack facing(Entity target, EntityAnchorArgument.Anchor targetAnchor) {
+      SectorVec3 targetPosition = targetAnchor == EntityAnchorArgument.Anchor.EYES && target.exactEyePosition() != null
+            ? target.exactEyePosition() : target.exactPosition();
+      if (targetPosition != null) return this.facingExact(targetPosition);
+      Vec3 approximateTarget = targetAnchor.apply(target);
+      return this.facingExact(SectorVec3.fromApproximate(approximateTarget.x, approximateTarget.y, approximateTarget.z));
+   }
+
+   public CommandSourceStack facingExact(SectorVec3 target) {
+      Vec3 delta = target.relativeTo(this.getExactAnchor());
+      double d0 = delta.x;
+      double d1 = delta.y;
+      double d2 = delta.z;
       double d3 = Math.sqrt(d0 * d0 + d2 * d2);
       float f = Mth.wrapDegrees((float)(-(Mth.atan2(d1, d3) * (double)(180F / (float)Math.PI))));
       float f1 = Mth.wrapDegrees((float)(Mth.atan2(d2, d0) * (double)(180F / (float)Math.PI)) - 90.0F);
@@ -145,11 +181,11 @@ public class CommandSourceStack implements SharedSuggestionProvider {
    }
 
    public CommandSourceStack withSigningContext(CommandSigningContext p_230894_) {
-      return p_230894_ == this.signingContext ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, p_230894_, this.chatMessageChainer);
+      return p_230894_ == this.signingContext ? this : new CommandSourceStack(this.source, this.worldPosition, this.exactPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, p_230894_, this.chatMessageChainer);
    }
 
    public CommandSourceStack withChatMessageChainer(TaskChainer p_242228_) {
-      return p_242228_ == this.chatMessageChainer ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, p_242228_);
+      return p_242228_ == this.chatMessageChainer ? this : new CommandSourceStack(this.source, this.worldPosition, this.exactPosition, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, p_242228_);
    }
 
    public Component getDisplayName() {
@@ -170,6 +206,18 @@ public class CommandSourceStack implements SharedSuggestionProvider {
 
    public Vec3 getPosition() {
       return this.worldPosition;
+   }
+
+   public SectorVec3 getExactPosition() {
+      return this.exactPosition;
+   }
+
+   public SectorVec3 getExactAnchor() {
+      Entity entity = this.entity;
+      if (this.anchor == EntityAnchorArgument.Anchor.EYES && entity != null && entity.exactEyePosition() != null) {
+         return entity.exactEyePosition();
+      }
+      return this.exactPosition;
    }
 
    public ServerLevel getLevel() {

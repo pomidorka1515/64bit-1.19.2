@@ -28,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.scores.Team;
 
@@ -47,27 +48,27 @@ public class SpreadPlayersCommand {
       p_138697_.register(Commands.literal("spreadplayers").requires((p_201852_) -> {
          return p_201852_.hasPermission(2);
       }).then(Commands.argument("center", Vec2Argument.vec2()).then(Commands.argument("spreadDistance", FloatArgumentType.floatArg(0.0F)).then(Commands.argument("maxRange", FloatArgumentType.floatArg(1.0F)).then(Commands.argument("respectTeams", BoolArgumentType.bool()).then(Commands.argument("targets", EntityArgument.entities()).executes((p_138699_) -> {
-         return spreadPlayers(p_138699_.getSource(), Vec2Argument.getVec2(p_138699_, "center"), FloatArgumentType.getFloat(p_138699_, "spreadDistance"), FloatArgumentType.getFloat(p_138699_, "maxRange"), p_138699_.getSource().getLevel().getMaxBuildHeight(), BoolArgumentType.getBool(p_138699_, "respectTeams"), EntityArgument.getEntities(p_138699_, "targets"));
+         return spreadPlayers(p_138699_.getSource(), Vec2Argument.getExactVec2(p_138699_, "center"), FloatArgumentType.getFloat(p_138699_, "spreadDistance"), FloatArgumentType.getFloat(p_138699_, "maxRange"), p_138699_.getSource().getLevel().getMaxBuildHeight(), BoolArgumentType.getBool(p_138699_, "respectTeams"), EntityArgument.getEntities(p_138699_, "targets"));
       }))).then(Commands.literal("under").then(Commands.argument("maxHeight", IntegerArgumentType.integer()).then(Commands.argument("respectTeams", BoolArgumentType.bool()).then(Commands.argument("targets", EntityArgument.entities()).executes((p_201850_) -> {
-         return spreadPlayers(p_201850_.getSource(), Vec2Argument.getVec2(p_201850_, "center"), FloatArgumentType.getFloat(p_201850_, "spreadDistance"), FloatArgumentType.getFloat(p_201850_, "maxRange"), IntegerArgumentType.getInteger(p_201850_, "maxHeight"), BoolArgumentType.getBool(p_201850_, "respectTeams"), EntityArgument.getEntities(p_201850_, "targets"));
+         return spreadPlayers(p_201850_.getSource(), Vec2Argument.getExactVec2(p_201850_, "center"), FloatArgumentType.getFloat(p_201850_, "spreadDistance"), FloatArgumentType.getFloat(p_201850_, "maxRange"), IntegerArgumentType.getInteger(p_201850_, "maxHeight"), BoolArgumentType.getBool(p_201850_, "respectTeams"), EntityArgument.getEntities(p_201850_, "targets"));
       })))))))));
    }
 
-   private static int spreadPlayers(CommandSourceStack p_138703_, Vec2 p_138704_, float p_138705_, float p_138706_, int p_138707_, boolean p_138708_, Collection<? extends Entity> p_138709_) throws CommandSyntaxException {
+   private static int spreadPlayers(CommandSourceStack p_138703_, SectorVec3 center, float p_138705_, float p_138706_, int p_138707_, boolean p_138708_, Collection<? extends Entity> p_138709_) throws CommandSyntaxException {
       ServerLevel serverlevel = p_138703_.getLevel();
       int i = serverlevel.getMinBuildHeight();
       if (p_138707_ < i) {
          throw ERROR_INVALID_MAX_HEIGHT.create(p_138707_, i);
       } else {
          RandomSource randomsource = RandomSource.create();
-         double d0 = (double)(p_138704_.x - p_138706_);
-         double d1 = (double)(p_138704_.y - p_138706_);
-         double d2 = (double)(p_138704_.x + p_138706_);
-         double d3 = (double)(p_138704_.y + p_138706_);
+         double d0 = -p_138706_;
+         double d1 = -p_138706_;
+         double d2 = p_138706_;
+         double d3 = p_138706_;
          SpreadPlayersCommand.Position[] aspreadplayerscommand$position = createInitialPositions(randomsource, p_138708_ ? getNumberOfTeams(p_138709_) : p_138709_.size(), d0, d1, d2, d3);
-         spreadPositions(p_138704_, (double)p_138705_, serverlevel, randomsource, d0, d1, d2, d3, p_138707_, aspreadplayerscommand$position, p_138708_);
-         double d4 = setPlayerPositions(p_138709_, serverlevel, aspreadplayerscommand$position, p_138707_, p_138708_);
-         p_138703_.sendSuccess(Component.translatable("commands.spreadplayers.success." + (p_138708_ ? "teams" : "entities"), aspreadplayerscommand$position.length, p_138704_.x, p_138704_.y, String.format(Locale.ROOT, "%.2f", d4)), true);
+         spreadPositions(center, (double)p_138705_, serverlevel, randomsource, d0, d1, d2, d3, p_138707_, aspreadplayerscommand$position, p_138708_);
+         double d4 = setPlayerPositions(p_138709_, serverlevel, center, aspreadplayerscommand$position, p_138707_, p_138708_);
+         p_138703_.sendSuccess(Component.translatable("commands.spreadplayers.success." + (p_138708_ ? "teams" : "entities"), aspreadplayerscommand$position.length, center.formatX(2), center.formatZ(2), String.format(Locale.ROOT, "%.2f", d4)), true);
          return aspreadplayerscommand$position.length;
       }
    }
@@ -86,7 +87,7 @@ public class SpreadPlayersCommand {
       return set.size();
    }
 
-   private static void spreadPositions(Vec2 p_214741_, double p_214742_, ServerLevel p_214743_, RandomSource p_214744_, double p_214745_, double p_214746_, double p_214747_, double p_214748_, int p_214749_, SpreadPlayersCommand.Position[] p_214750_, boolean p_214751_) throws CommandSyntaxException {
+   private static void spreadPositions(SectorVec3 center, double p_214742_, ServerLevel p_214743_, RandomSource p_214744_, double p_214745_, double p_214746_, double p_214747_, double p_214748_, int p_214749_, SpreadPlayersCommand.Position[] p_214750_, boolean p_214751_) throws CommandSyntaxException {
       boolean flag = true;
       double d0 = (double)Float.MAX_VALUE;
 
@@ -148,14 +149,14 @@ public class SpreadPlayersCommand {
 
       if (i >= 10000) {
          if (p_214751_) {
-            throw ERROR_FAILED_TO_SPREAD_TEAMS.create(p_214750_.length, p_214741_.x, p_214741_.y, String.format(Locale.ROOT, "%.2f", d0));
+            throw ERROR_FAILED_TO_SPREAD_TEAMS.create(p_214750_.length, center.formatX(2), center.formatZ(2), String.format(Locale.ROOT, "%.2f", d0));
          } else {
-            throw ERROR_FAILED_TO_SPREAD_ENTITIES.create(p_214750_.length, p_214741_.x, p_214741_.y, String.format(Locale.ROOT, "%.2f", d0));
+            throw ERROR_FAILED_TO_SPREAD_ENTITIES.create(p_214750_.length, center.formatX(0), center.formatZ(0), String.format(Locale.ROOT, "%.2f", d0));
          }
       }
    }
 
-   private static double setPlayerPositions(Collection<? extends Entity> p_138730_, ServerLevel p_138731_, SpreadPlayersCommand.Position[] p_138732_, int p_138733_, boolean p_138734_) {
+   private static double setPlayerPositions(Collection<? extends Entity> p_138730_, ServerLevel p_138731_, SectorVec3 center, SpreadPlayersCommand.Position[] p_138732_, int p_138733_, boolean p_138734_) {
       double d0 = 0.0D;
       int i = 0;
       Map<Team, SpreadPlayersCommand.Position> map = Maps.newHashMap();
@@ -173,7 +174,11 @@ public class SpreadPlayersCommand {
             spreadplayerscommand$position = p_138732_[i++];
          }
 
-         entity.teleportToWithTicket((double)Mth.floor(spreadplayerscommand$position.x) + 0.5D, (double)spreadplayerscommand$position.getSpawnY(p_138731_, p_138733_), (double)Mth.floor(spreadplayerscommand$position.z) + 0.5D);
+         long blockX = Math.addExact(center.blockX(), (long)Math.floor(spreadplayerscommand$position.x));
+         long blockZ = Math.addExact(center.blockZ(), (long)Math.floor(spreadplayerscommand$position.z));
+         SectorVec3 target = SectorVec3.fromBlockAndFraction(blockX, 0.5D, spreadplayerscommand$position.getSpawnY(p_138731_, p_138733_), blockZ, 0.5D);
+         if (entity.hasSectorPosition()) entity.absMoveTo(target, entity.getYRot(), entity.getXRot());
+         else entity.teleportToWithTicket(target.toApproximateVec3().x, target.y(), target.toApproximateVec3().z);
          double d2 = Double.MAX_VALUE;
 
          for(SpreadPlayersCommand.Position spreadplayerscommand$position1 : p_138732_) {

@@ -13,6 +13,7 @@ import net.minecraft.commands.arguments.coordinates.Vec2Argument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
 
 public class WorldBorderCommand {
@@ -38,7 +39,7 @@ public class WorldBorderCommand {
       }).then(Commands.argument("time", IntegerArgumentType.integer(0)).executes((p_139284_) -> {
          return setSize(p_139284_.getSource(), DoubleArgumentType.getDouble(p_139284_, "distance"), (long)IntegerArgumentType.getInteger(p_139284_, "time") * 1000L);
       })))).then(Commands.literal("center").then(Commands.argument("pos", Vec2Argument.vec2()).executes((p_139282_) -> {
-         return setCenter(p_139282_.getSource(), Vec2Argument.getVec2(p_139282_, "pos"));
+         return setCenter(p_139282_.getSource(), Vec2Argument.getExactVec2(p_139282_, "pos"));
       }))).then(Commands.literal("damage").then(Commands.literal("amount").then(Commands.argument("damagePerBlock", FloatArgumentType.floatArg(0.0F)).executes((p_139280_) -> {
          return setDamageAmount(p_139280_.getSource(), FloatArgumentType.getFloat(p_139280_, "damagePerBlock"));
       }))).then(Commands.literal("buffer").then(Commands.argument("distance", FloatArgumentType.floatArg(0.0F)).executes((p_139278_) -> {
@@ -102,17 +103,16 @@ public class WorldBorderCommand {
       return Mth.floor(d0 + 0.5D);
    }
 
-   private static int setCenter(CommandSourceStack p_139263_, Vec2 p_139264_) throws CommandSyntaxException {
-      WorldBorder worldborder = p_139263_.getServer().overworld().getWorldBorder();
-      if (worldborder.getCenterX() == (double)p_139264_.x && worldborder.getCenterZ() == (double)p_139264_.y) {
-         throw ERROR_SAME_CENTER.create();
-      } else if (!((double)Math.abs(p_139264_.x) > 2.9999984E7D) && !((double)Math.abs(p_139264_.y) > 2.9999984E7D)) {
-         worldborder.setCenter((double)p_139264_.x, (double)p_139264_.y);
-         p_139263_.sendSuccess(Component.translatable("commands.worldborder.center.success", String.format(Locale.ROOT, "%.2f", p_139264_.x), String.format(Locale.ROOT, "%.2f", p_139264_.y)), true);
-         return 0;
-      } else {
-         throw ERROR_TOO_FAR_OUT.create();
-      }
+   private static int setCenter(CommandSourceStack source, SectorVec3 position) throws CommandSyntaxException {
+      WorldBorder worldborder = source.getServer().overworld().getWorldBorder();
+      double x = position.toApproximateVec3().x;
+      double z = position.toApproximateVec3().z;
+      if (worldborder.getCenterX() == x && worldborder.getCenterZ() == z) throw ERROR_SAME_CENTER.create();
+      if (position.blockX() < -29999984L || position.blockX() > 29999984L
+            || position.blockZ() < -29999984L || position.blockZ() > 29999984L) throw ERROR_TOO_FAR_OUT.create();
+      worldborder.setCenter(x, z);
+      source.sendSuccess(Component.translatable("commands.worldborder.center.success", String.format(Locale.ROOT, "%.2f", x), String.format(Locale.ROOT, "%.2f", z)), true);
+      return 0;
    }
 
    private static int setSize(CommandSourceStack p_139253_, double p_139254_, long p_139255_) throws CommandSyntaxException {

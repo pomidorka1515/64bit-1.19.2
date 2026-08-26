@@ -55,6 +55,7 @@ import net.minecraft.server.commands.data.DataAccessor;
 import net.minecraft.server.commands.data.DataCommands;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -107,17 +108,17 @@ public class ExecuteCommand {
          List<CommandSourceStack> list = Lists.newArrayList();
 
          for(Entity entity : EntityArgument.getOptionalEntities(p_137297_, "targets")) {
-            list.add(p_137297_.getSource().withLevel((ServerLevel)entity.level).withPosition(entity.position()).withRotation(entity.getRotationVector()));
+            list.add(p_137297_.getSource().withLevel((ServerLevel)entity.level).withExactPosition(entity.exactPosition() != null ? entity.exactPosition() : SectorVec3.fromApproximate(entity.getX(), entity.getY(), entity.getZ())).withRotation(entity.getRotationVector()));
          }
 
          return list;
       }))).then(Commands.literal("store").then(wrapStores(literalcommandnode, Commands.literal("result"), true)).then(wrapStores(literalcommandnode, Commands.literal("success"), false))).then(Commands.literal("positioned").then(Commands.argument("pos", Vec3Argument.vec3()).redirect(literalcommandnode, (p_137295_) -> {
-         return p_137295_.getSource().withPosition(Vec3Argument.getVec3(p_137295_, "pos")).withAnchor(EntityAnchorArgument.Anchor.FEET);
+         return p_137295_.getSource().withExactPosition(Vec3Argument.getCoordinates(p_137295_, "pos").getExactPosition(p_137295_.getSource())).withAnchor(EntityAnchorArgument.Anchor.FEET);
       })).then(Commands.literal("as").then(Commands.argument("targets", EntityArgument.entities()).fork(literalcommandnode, (p_137293_) -> {
          List<CommandSourceStack> list = Lists.newArrayList();
 
          for(Entity entity : EntityArgument.getOptionalEntities(p_137293_, "targets")) {
-            list.add(p_137293_.getSource().withPosition(entity.position()));
+            list.add(p_137293_.getSource().withExactPosition(entity.exactPosition() != null ? entity.exactPosition() : SectorVec3.fromApproximate(entity.getX(), entity.getY(), entity.getZ())));
          }
 
          return list;
@@ -141,9 +142,9 @@ public class ExecuteCommand {
 
          return list;
       })))).then(Commands.argument("pos", Vec3Argument.vec3()).redirect(literalcommandnode, (p_137285_) -> {
-         return p_137285_.getSource().facing(Vec3Argument.getVec3(p_137285_, "pos"));
+         return p_137285_.getSource().facingExact(Vec3Argument.getCoordinates(p_137285_, "pos").getExactPosition(p_137285_.getSource()));
       }))).then(Commands.literal("align").then(Commands.argument("axes", SwizzleArgument.swizzle()).redirect(literalcommandnode, (p_137283_) -> {
-         return p_137283_.getSource().withPosition(p_137283_.getSource().getPosition().align(SwizzleArgument.getSwizzle(p_137283_, "axes")));
+         return p_137283_.getSource().withExactPosition(alignExact(p_137283_.getSource().getExactPosition(), SwizzleArgument.getSwizzle(p_137283_, "axes")));
       }))).then(Commands.literal("anchored").then(Commands.argument("anchor", EntityAnchorArgument.anchor()).redirect(literalcommandnode, (p_137281_) -> {
          return p_137281_.getSource().withAnchor(EntityAnchorArgument.getAnchor(p_137281_, "anchor"));
       }))).then(Commands.literal("in").then(Commands.argument("dimension", DimensionArgument.dimension()).redirect(literalcommandnode, (p_137279_) -> {
@@ -297,6 +298,14 @@ public class ExecuteCommand {
       };
    }
 
+   private static net.minecraft.world.phys.SectorVec3 alignExact(net.minecraft.world.phys.SectorVec3 position, java.util.Set<net.minecraft.core.Direction.Axis> axes) {
+      net.minecraft.world.phys.SectorVec3 result = position;
+      if (axes.contains(net.minecraft.core.Direction.Axis.X)) result = result.withX(result.blockX(), 0.0D);
+      if (axes.contains(net.minecraft.core.Direction.Axis.Y)) result = result.withY(Math.floor(result.y()));
+      if (axes.contains(net.minecraft.core.Direction.Axis.Z)) result = result.withZ(result.blockZ(), 0.0D);
+      return result;
+   }
+
    private static int checkMatchingData(DataAccessor p_137146_, NbtPathArgument.NbtPath p_137147_) throws CommandSyntaxException {
       return p_137147_.countMatching(p_137146_.getData());
    }
@@ -325,7 +334,7 @@ public class ExecuteCommand {
 
    private static boolean checkCustomPredicate(CommandSourceStack p_137105_, LootItemCondition p_137106_) {
       ServerLevel serverlevel = p_137105_.getLevel();
-      LootContext.Builder lootcontext$builder = (new LootContext.Builder(serverlevel)).withParameter(LootContextParams.ORIGIN, p_137105_.getPosition()).withOptionalParameter(LootContextParams.THIS_ENTITY, p_137105_.getEntity());
+      LootContext.Builder lootcontext$builder = (new LootContext.Builder(serverlevel)).withParameter(LootContextParams.ORIGIN, p_137105_.getExactPosition().toApproximateVec3()).withOptionalParameter(LootContextParams.THIS_ENTITY, p_137105_.getEntity());
       return p_137106_.test(lootcontext$builder.create(LootContextParamSets.COMMAND));
    }
 

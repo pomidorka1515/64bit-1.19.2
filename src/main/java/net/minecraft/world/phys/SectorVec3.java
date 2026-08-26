@@ -2,6 +2,7 @@ package net.minecraft.world.phys;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.math.BigInteger;
 import net.minecraft.core.BlockPos;
 
 /**
@@ -63,6 +64,44 @@ public final class SectorVec3 {
       if (amount > 0L && value > Long.MAX_VALUE - amount) return Long.MAX_VALUE;
       if (amount < 0L && value < Long.MIN_VALUE - amount) return Long.MIN_VALUE;
       return value + amount;
+   }
+
+   /** Creates an exact split position from decimal text without passing through a double. */
+   public static SectorVec3 fromDecimal(String x, double y, String z) {
+      if (!Double.isFinite(y)) throw new IllegalArgumentException("y must be finite: " + y);
+      DecimalCoordinate decimalX = DecimalCoordinate.parse(x);
+      DecimalCoordinate decimalZ = DecimalCoordinate.parse(z);
+      return fromBlockAndFraction(decimalX.block, decimalX.fraction, y, decimalZ.block, decimalZ.fraction);
+   }
+
+   /** Creates an exact split position from decimal text for one horizontal coordinate. */
+   public static SectorVec3 fromDecimal(String x, String z) {
+      return fromDecimal(x, 0.0D, z);
+   }
+
+   private static final class DecimalCoordinate {
+      private final long block;
+      private final double fraction;
+
+      private DecimalCoordinate(long block, double fraction) {
+         this.block = block;
+         this.fraction = fraction;
+      }
+
+      private static DecimalCoordinate parse(String text) {
+         try {
+            BigDecimal value = new BigDecimal(text);
+            BigInteger floor = value.setScale(0, RoundingMode.FLOOR).toBigIntegerExact();
+            long block = floor.longValueExact();
+            double fraction = value.subtract(new BigDecimal(floor)).doubleValue();
+            if (!Double.isFinite(fraction) || fraction < 0.0D || fraction >= 1.0D) {
+               throw new IllegalArgumentException("coordinate fraction is not representable: " + text);
+            }
+            return new DecimalCoordinate(block, fraction);
+         } catch (NumberFormatException | ArithmeticException exception) {
+            throw new IllegalArgumentException("coordinate is not representable: " + text, exception);
+         }
+      }
    }
 
    /** Creates an exact split position from an ordinary double position. This is necessarily limited by the input doubles. */
@@ -175,10 +214,22 @@ public final class SectorVec3 {
       return new SectorVec3(normalized.blockX, normalized.subX, this.y, this.blockZ, this.subZ);
    }
 
+   /** Replaces X from its decimal command spelling without reconstructing the other axis. */
+   public SectorVec3 withXDecimal(String coordinate) {
+      DecimalCoordinate value = DecimalCoordinate.parse(coordinate);
+      return withX(value.block, value.fraction);
+   }
+
    /** Returns this position with an independently supplied normalized Z component. */
    public SectorVec3 withZ(long blockZ, double subZ) {
       SectorVec3 normalized = fromBlockAndFraction(this.blockX, this.subX, this.y, blockZ, subZ);
       return new SectorVec3(this.blockX, this.subX, this.y, normalized.blockZ, normalized.subZ);
+   }
+
+   /** Replaces Z from its decimal command spelling without reconstructing the other axis. */
+   public SectorVec3 withZDecimal(String coordinate) {
+      DecimalCoordinate value = DecimalCoordinate.parse(coordinate);
+      return withZ(value.block, value.fraction);
    }
 
    /**

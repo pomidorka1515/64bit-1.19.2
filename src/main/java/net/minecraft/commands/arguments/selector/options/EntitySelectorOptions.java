@@ -123,7 +123,15 @@ public class EntitySelectorOptions {
          }, Component.translatable("argument.entity.options.level.description"));
          register("x", (p_121413_) -> {
             p_121413_.setWorldLimited();
-            p_121413_.setX(p_121413_.getReader().readDouble());
+            int start = p_121413_.getReader().getCursor();
+            while (p_121413_.getReader().canRead() && p_121413_.getReader().peek() != ',' && p_121413_.getReader().peek() != ']') p_121413_.getReader().skip();
+            String value = p_121413_.getReader().getString().substring(start, p_121413_.getReader().getCursor()).trim();
+            try {
+               p_121413_.setExactX(value);
+            } catch (NumberFormatException exception) {
+               p_121413_.getReader().setCursor(start);
+               throw EntitySelectorParser.ERROR_EXPECTED_OPTION_VALUE.createWithContext(p_121413_.getReader(), "x");
+            }
          }, (p_121411_) -> {
             return p_121411_.getX() == null;
          }, Component.translatable("argument.entity.options.x.description"));
@@ -135,7 +143,15 @@ public class EntitySelectorOptions {
          }, Component.translatable("argument.entity.options.y.description"));
          register("z", (p_121405_) -> {
             p_121405_.setWorldLimited();
-            p_121405_.setZ(p_121405_.getReader().readDouble());
+            int start = p_121405_.getReader().getCursor();
+            while (p_121405_.getReader().canRead() && p_121405_.getReader().peek() != ',' && p_121405_.getReader().peek() != ']') p_121405_.getReader().skip();
+            String value = p_121405_.getReader().getString().substring(start, p_121405_.getReader().getCursor()).trim();
+            try {
+               p_121405_.setExactZ(value);
+            } catch (NumberFormatException exception) {
+               p_121405_.getReader().setCursor(start);
+               throw EntitySelectorParser.ERROR_EXPECTED_OPTION_VALUE.createWithContext(p_121405_.getReader(), "z");
+            }
          }, (p_121403_) -> {
             return p_121403_.getZ() == null;
          }, Component.translatable("argument.entity.options.z.description"));

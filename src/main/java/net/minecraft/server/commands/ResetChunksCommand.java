@@ -47,8 +47,8 @@ public class ResetChunksCommand {
       ServerLevel serverlevel = p_183685_.getLevel();
       ServerChunkCache serverchunkcache = serverlevel.getChunkSource();
       serverchunkcache.chunkMap.debugReloadGenerator();
-      Vec3 vec3 = p_183685_.getPosition();
-      ChunkPos chunkpos = new ChunkPos(new BlockPos(vec3));
+      net.minecraft.world.phys.SectorVec3 exact = p_183685_.getExactPosition();
+      ChunkPos chunkpos = new ChunkPos(net.minecraft.core.SectionPos.blockToSectionCoord(exact.blockX()), net.minecraft.core.SectionPos.blockToSectionCoord(exact.blockZ()));
       long i = chunkpos.z - p_183686_;
       long j = chunkpos.z + p_183686_;
       long k = chunkpos.x - p_183686_;

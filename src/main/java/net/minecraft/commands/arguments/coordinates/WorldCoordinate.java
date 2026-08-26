@@ -3,6 +3,7 @@ package net.minecraft.commands.arguments.coordinates;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import java.math.BigDecimal;
 import net.minecraft.network.chat.Component;
 
 public class WorldCoordinate {
@@ -11,15 +12,24 @@ public class WorldCoordinate {
    public static final SimpleCommandExceptionType ERROR_EXPECTED_INT = new SimpleCommandExceptionType(Component.translatable("argument.pos.missing.int"));
    private final boolean relative;
    private final double value;
+   private final String literal;
 
-   public WorldCoordinate(boolean p_120864_, double p_120865_) {
-      this.relative = p_120864_;
-      this.value = p_120865_;
+   public WorldCoordinate(boolean relative, double value) {
+      this(relative, value, Double.toString(value));
+   }
+
+   private WorldCoordinate(boolean relative, double value, String literal) {
+      this.relative = relative;
+      this.value = value;
+      this.literal = literal;
    }
 
    public double get(double p_120868_) {
       return this.relative ? this.value + p_120868_ : this.value;
    }
+
+   public double getValue() { return this.value; }
+   public String getLiteral() { return this.literal; }
 
    public static WorldCoordinate parseDouble(StringReader p_120872_, boolean p_120873_) throws CommandSyntaxException {
       if (p_120872_.canRead() && p_120872_.peek() == '^') {
@@ -29,16 +39,23 @@ public class WorldCoordinate {
       } else {
          boolean flag = isRelative(p_120872_);
          int i = p_120872_.getCursor();
-         double d0 = p_120872_.canRead() && p_120872_.peek() != ' ' ? p_120872_.readDouble() : 0.0D;
-         String s = p_120872_.getString().substring(i, p_120872_.getCursor());
+         String s = p_120872_.canRead() && p_120872_.peek() != ' ' ? readCoordinateToken(p_120872_) : "";
          if (flag && s.isEmpty()) {
-            return new WorldCoordinate(true, 0.0D);
+            return new WorldCoordinate(true, 0.0D, "0");
          } else {
-            if (!s.contains(".") && !flag && p_120873_) {
-               d0 += 0.5D;
+            try {
+               String literal = s.isEmpty() ? "0" : s;
+               if (!isDecimal(literal)) throw new NumberFormatException(literal);
+               double d0 = Double.parseDouble(literal);
+               if (!s.contains(".") && !flag && p_120873_) {
+                  d0 += 0.5D;
+                  literal = new BigDecimal(literal).add(BigDecimal.valueOf(0.5D)).toPlainString();
+               }
+               return new WorldCoordinate(flag, d0, literal);
+            } catch (NumberFormatException exception) {
+               p_120872_.setCursor(i);
+               throw ERROR_EXPECTED_DOUBLE.createWithContext(p_120872_);
             }
-
-            return new WorldCoordinate(flag, d0);
          }
       }
    }
@@ -50,14 +67,31 @@ public class WorldCoordinate {
          throw ERROR_EXPECTED_INT.createWithContext(p_120870_);
       } else {
          boolean flag = isRelative(p_120870_);
-         double d0;
-         if (p_120870_.canRead() && p_120870_.peek() != ' ') {
-            d0 = flag ? p_120870_.readDouble() : (double)p_120870_.readInt();
-         } else {
-            d0 = 0.0D;
+         int valueStart = p_120870_.getCursor();
+         String token = p_120870_.canRead() && p_120870_.peek() != ' ' ? readCoordinateToken(p_120870_) : "";
+         try {
+            String literal = token.isEmpty() ? "0" : token;
+            double d0 = token.isEmpty() ? 0.0D : (flag ? Double.parseDouble(token) : Long.parseLong(token));
+            return new WorldCoordinate(flag, d0, literal);
+         } catch (NumberFormatException exception) {
+            p_120870_.setCursor(valueStart);
+            throw ERROR_EXPECTED_INT.createWithContext(p_120870_);
          }
+      }
+   }
 
-         return new WorldCoordinate(flag, d0);
+   private static String readCoordinateToken(StringReader reader) {
+      int start = reader.getCursor();
+      while (reader.canRead() && reader.peek() != ' ') reader.skip();
+      return reader.getString().substring(start, reader.getCursor());
+   }
+
+   private static boolean isDecimal(String token) {
+      try {
+         new BigDecimal(token);
+         return true;
+      } catch (NumberFormatException exception) {
+         return false;
       }
    }
 
@@ -96,5 +130,12 @@ public class WorldCoordinate {
 
    public boolean isRelative() {
       return this.relative;
+   }
+
+   public static WorldCoordinate absoluteDecimal(String value, boolean centerCorrect) {
+      if (!isDecimal(value)) throw new IllegalArgumentException("Invalid coordinate: " + value);
+      BigDecimal decimal = new BigDecimal(value);
+      if (centerCorrect && value.indexOf('.') < 0) decimal = decimal.add(BigDecimal.valueOf(0.5D));
+      return new WorldCoordinate(false, decimal.doubleValue(), decimal.toPlainString());
    }
 }

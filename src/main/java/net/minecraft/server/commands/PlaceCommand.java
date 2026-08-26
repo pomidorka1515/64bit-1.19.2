@@ -57,19 +57,19 @@ public class PlaceCommand {
       p_214548_.register(Commands.literal("place").requires((p_214560_) -> {
          return p_214560_.hasPermission(2);
       }).then(Commands.literal("feature").then(Commands.argument("feature", ResourceKeyArgument.key(Registry.CONFIGURED_FEATURE_REGISTRY)).executes((p_214610_) -> {
-         return placeFeature(p_214610_.getSource(), ResourceKeyArgument.getConfiguredFeature(p_214610_, "feature"), new BlockPos(p_214610_.getSource().getPosition()));
+         return placeFeature(p_214610_.getSource(), ResourceKeyArgument.getConfiguredFeature(p_214610_, "feature"), p_214610_.getSource().getExactPosition().blockPosition());
       }).then(Commands.argument("pos", BlockPosArgument.blockPos()).executes((p_214608_) -> {
          return placeFeature(p_214608_.getSource(), ResourceKeyArgument.getConfiguredFeature(p_214608_, "feature"), BlockPosArgument.getLoadedBlockPos(p_214608_, "pos"));
       })))).then(Commands.literal("jigsaw").then(Commands.argument("pool", ResourceKeyArgument.key(Registry.TEMPLATE_POOL_REGISTRY)).then(Commands.argument("target", ResourceLocationArgument.id()).then(Commands.argument("max_depth", IntegerArgumentType.integer(1, 7)).executes((p_214606_) -> {
-         return placeJigsaw(p_214606_.getSource(), ResourceKeyArgument.getStructureTemplatePool(p_214606_, "pool"), ResourceLocationArgument.getId(p_214606_, "target"), IntegerArgumentType.getInteger(p_214606_, "max_depth"), new BlockPos(p_214606_.getSource().getPosition()));
+         return placeJigsaw(p_214606_.getSource(), ResourceKeyArgument.getStructureTemplatePool(p_214606_, "pool"), ResourceLocationArgument.getId(p_214606_, "target"), IntegerArgumentType.getInteger(p_214606_, "max_depth"), p_214606_.getSource().getExactPosition().blockPosition());
       }).then(Commands.argument("position", BlockPosArgument.blockPos()).executes((p_214604_) -> {
          return placeJigsaw(p_214604_.getSource(), ResourceKeyArgument.getStructureTemplatePool(p_214604_, "pool"), ResourceLocationArgument.getId(p_214604_, "target"), IntegerArgumentType.getInteger(p_214604_, "max_depth"), BlockPosArgument.getLoadedBlockPos(p_214604_, "position"));
       })))))).then(Commands.literal("structure").then(Commands.argument("structure", ResourceKeyArgument.key(Registry.STRUCTURE_REGISTRY)).executes((p_214602_) -> {
-         return placeStructure(p_214602_.getSource(), ResourceKeyArgument.getStructure(p_214602_, "structure"), new BlockPos(p_214602_.getSource().getPosition()));
+         return placeStructure(p_214602_.getSource(), ResourceKeyArgument.getStructure(p_214602_, "structure"), p_214602_.getSource().getExactPosition().blockPosition());
       }).then(Commands.argument("pos", BlockPosArgument.blockPos()).executes((p_214600_) -> {
          return placeStructure(p_214600_.getSource(), ResourceKeyArgument.getStructure(p_214600_, "structure"), BlockPosArgument.getLoadedBlockPos(p_214600_, "pos"));
       })))).then(Commands.literal("template").then(Commands.argument("template", ResourceLocationArgument.id()).suggests(SUGGEST_TEMPLATES).executes((p_214598_) -> {
-         return placeTemplate(p_214598_.getSource(), ResourceLocationArgument.getId(p_214598_, "template"), new BlockPos(p_214598_.getSource().getPosition()), Rotation.NONE, Mirror.NONE, 1.0F, 0);
+         return placeTemplate(p_214598_.getSource(), ResourceLocationArgument.getId(p_214598_, "template"), p_214598_.getSource().getExactPosition().blockPosition(), Rotation.NONE, Mirror.NONE, 1.0F, 0);
       }).then(Commands.argument("pos", BlockPosArgument.blockPos()).executes((p_214596_) -> {
          return placeTemplate(p_214596_.getSource(), ResourceLocationArgument.getId(p_214596_, "template"), BlockPosArgument.getLoadedBlockPos(p_214596_, "pos"), Rotation.NONE, Mirror.NONE, 1.0F, 0);
       }).then(Commands.argument("rotation", TemplateRotationArgument.templateRotation()).executes((p_214594_) -> {

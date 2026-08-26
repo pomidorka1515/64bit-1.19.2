@@ -15,8 +15,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
-import net.minecraft.world.phys.Vec3;
 
 public class Vec2Argument implements ArgumentType<Coordinates> {
    private static final Collection<String> EXAMPLES = Arrays.asList("0 0", "~ ~", "0.1 -0.5", "~1 ~-2");
@@ -35,9 +35,13 @@ public class Vec2Argument implements ArgumentType<Coordinates> {
       return new Vec2Argument(p_174955_);
    }
 
-   public static Vec2 getVec2(CommandContext<CommandSourceStack> p_120826_, String p_120827_) {
-      Vec3 vec3 = p_120826_.getArgument(p_120827_, Coordinates.class).getPosition(p_120826_.getSource());
-      return new Vec2((float)vec3.x, (float)vec3.z);
+   public static Vec2 getVec2(CommandContext<CommandSourceStack> context, String name) {
+      SectorVec3 position = context.getArgument(name, Coordinates.class).getExactPosition(context.getSource());
+      return new Vec2((float)position.toApproximateVec3().x, (float)position.toApproximateVec3().z);
+   }
+
+   public static SectorVec3 getExactVec2(CommandContext<CommandSourceStack> context, String name) {
+      return context.getArgument(name, Coordinates.class).getExactPosition(context.getSource());
    }
 
    public Coordinates parse(StringReader p_120824_) throws CommandSyntaxException {

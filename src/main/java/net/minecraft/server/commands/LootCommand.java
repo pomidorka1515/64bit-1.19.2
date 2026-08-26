@@ -98,7 +98,7 @@ public class LootCommand {
       }))).then(Commands.literal("give").then(p_137904_.construct(Commands.argument("players", EntityArgument.players()), (p_137992_, p_137993_, p_137994_) -> {
          return playerGive(EntityArgument.getPlayers(p_137992_, "players"), p_137993_, p_137994_);
       }))).then(Commands.literal("spawn").then(p_137904_.construct(Commands.argument("targetPos", Vec3Argument.vec3()), (p_137918_, p_137919_, p_137920_) -> {
-         return dropInWorld(p_137918_.getSource(), Vec3Argument.getVec3(p_137918_, "targetPos"), p_137919_, p_137920_);
+         return dropInWorld(p_137918_.getSource(), Vec3Argument.getCoordinates(p_137918_, "targetPos").getPosition(p_137918_.getSource()), p_137919_, p_137920_);
       })));
    }
 
@@ -287,7 +287,7 @@ public class LootCommand {
          lootcontext$builder.withOptionalParameter(LootContextParams.DIRECT_KILLER_ENTITY, entity);
          lootcontext$builder.withOptionalParameter(LootContextParams.KILLER_ENTITY, entity);
          lootcontext$builder.withParameter(LootContextParams.THIS_ENTITY, p_137907_);
-         lootcontext$builder.withParameter(LootContextParams.ORIGIN, commandsourcestack.getPosition());
+         lootcontext$builder.withParameter(LootContextParams.ORIGIN, commandsourcestack.getExactPosition().toApproximateVec3());
          LootTable loottable = commandsourcestack.getServer().getLootTables().get(resourcelocation);
          List<ItemStack> list = loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.ENTITY));
          return p_137908_.accept(p_137906_, list, (p_137975_) -> {
@@ -298,7 +298,7 @@ public class LootCommand {
 
    private static int dropChestLoot(CommandContext<CommandSourceStack> p_137933_, ResourceLocation p_137934_, LootCommand.DropConsumer p_137935_) throws CommandSyntaxException {
       CommandSourceStack commandsourcestack = p_137933_.getSource();
-      LootContext.Builder lootcontext$builder = (new LootContext.Builder(commandsourcestack.getLevel())).withOptionalParameter(LootContextParams.THIS_ENTITY, commandsourcestack.getEntity()).withParameter(LootContextParams.ORIGIN, commandsourcestack.getPosition());
+      LootContext.Builder lootcontext$builder = (new LootContext.Builder(commandsourcestack.getLevel())).withOptionalParameter(LootContextParams.THIS_ENTITY, commandsourcestack.getEntity()).withParameter(LootContextParams.ORIGIN, commandsourcestack.getExactPosition().toApproximateVec3());
       return drop(p_137933_, p_137934_, lootcontext$builder.create(LootContextParamSets.CHEST), p_137935_);
    }
 

@@ -19,6 +19,7 @@ import net.minecraft.network.protocol.game.ClientboundCustomSoundPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class PlaySoundCommand {
@@ -38,19 +39,19 @@ public class PlaySoundCommand {
 
    private static LiteralArgumentBuilder<CommandSourceStack> source(SoundSource p_138152_) {
       return Commands.literal(p_138152_.getName()).then(Commands.argument("targets", EntityArgument.players()).executes((p_138180_) -> {
-         return playSound(p_138180_.getSource(), EntityArgument.getPlayers(p_138180_, "targets"), ResourceLocationArgument.getId(p_138180_, "sound"), p_138152_, p_138180_.getSource().getPosition(), 1.0F, 1.0F, 0.0F);
+         return playSound(p_138180_.getSource(), EntityArgument.getPlayers(p_138180_, "targets"), ResourceLocationArgument.getId(p_138180_, "sound"), p_138152_, p_138180_.getSource().getExactPosition(), p_138180_.getSource().getPosition(), 1.0F, 1.0F, 0.0F);
       }).then(Commands.argument("pos", Vec3Argument.vec3()).executes((p_138177_) -> {
-         return playSound(p_138177_.getSource(), EntityArgument.getPlayers(p_138177_, "targets"), ResourceLocationArgument.getId(p_138177_, "sound"), p_138152_, Vec3Argument.getVec3(p_138177_, "pos"), 1.0F, 1.0F, 0.0F);
+         return playSound(p_138177_.getSource(), EntityArgument.getPlayers(p_138177_, "targets"), ResourceLocationArgument.getId(p_138177_, "sound"), p_138152_, Vec3Argument.getExactVec3(p_138177_, "pos"), Vec3Argument.getVec3(p_138177_, "pos"), 1.0F, 1.0F, 0.0F);
       }).then(Commands.argument("volume", FloatArgumentType.floatArg(0.0F)).executes((p_138174_) -> {
-         return playSound(p_138174_.getSource(), EntityArgument.getPlayers(p_138174_, "targets"), ResourceLocationArgument.getId(p_138174_, "sound"), p_138152_, Vec3Argument.getVec3(p_138174_, "pos"), p_138174_.getArgument("volume", Float.class), 1.0F, 0.0F);
+         return playSound(p_138174_.getSource(), EntityArgument.getPlayers(p_138174_, "targets"), ResourceLocationArgument.getId(p_138174_, "sound"), p_138152_, Vec3Argument.getExactVec3(p_138174_, "pos"), Vec3Argument.getVec3(p_138174_, "pos"), p_138174_.getArgument("volume", Float.class), 1.0F, 0.0F);
       }).then(Commands.argument("pitch", FloatArgumentType.floatArg(0.0F, 2.0F)).executes((p_138171_) -> {
-         return playSound(p_138171_.getSource(), EntityArgument.getPlayers(p_138171_, "targets"), ResourceLocationArgument.getId(p_138171_, "sound"), p_138152_, Vec3Argument.getVec3(p_138171_, "pos"), p_138171_.getArgument("volume", Float.class), p_138171_.getArgument("pitch", Float.class), 0.0F);
+         return playSound(p_138171_.getSource(), EntityArgument.getPlayers(p_138171_, "targets"), ResourceLocationArgument.getId(p_138171_, "sound"), p_138152_, Vec3Argument.getExactVec3(p_138171_, "pos"), Vec3Argument.getVec3(p_138171_, "pos"), p_138171_.getArgument("volume", Float.class), p_138171_.getArgument("pitch", Float.class), 0.0F);
       }).then(Commands.argument("minVolume", FloatArgumentType.floatArg(0.0F, 1.0F)).executes((p_138155_) -> {
-         return playSound(p_138155_.getSource(), EntityArgument.getPlayers(p_138155_, "targets"), ResourceLocationArgument.getId(p_138155_, "sound"), p_138152_, Vec3Argument.getVec3(p_138155_, "pos"), p_138155_.getArgument("volume", Float.class), p_138155_.getArgument("pitch", Float.class), p_138155_.getArgument("minVolume", Float.class));
+         return playSound(p_138155_.getSource(), EntityArgument.getPlayers(p_138155_, "targets"), ResourceLocationArgument.getId(p_138155_, "sound"), p_138152_, Vec3Argument.getExactVec3(p_138155_, "pos"), Vec3Argument.getVec3(p_138155_, "pos"), p_138155_.getArgument("volume", Float.class), p_138155_.getArgument("pitch", Float.class), p_138155_.getArgument("minVolume", Float.class));
       }))))));
    }
 
-   private static int playSound(CommandSourceStack p_138161_, Collection<ServerPlayer> p_138162_, ResourceLocation p_138163_, SoundSource p_138164_, Vec3 p_138165_, float p_138166_, float p_138167_, float p_138168_) throws CommandSyntaxException {
+   private static int playSound(CommandSourceStack p_138161_, Collection<ServerPlayer> p_138162_, ResourceLocation p_138163_, SoundSource p_138164_, SectorVec3 exactSoundPosition, Vec3 p_138165_, float p_138166_, float p_138167_, float p_138168_) throws CommandSyntaxException {
       double d0 = Math.pow(p_138166_ > 1.0F ? (double)(p_138166_ * 16.0F) : 16.0D, 2.0D);
       int i = 0;
       long j = p_138161_.getLevel().getRandom().nextLong();
@@ -76,11 +77,14 @@ public class PlaySoundCommand {
             }
 
             serverplayer = (ServerPlayer)iterator.next();
-            double d1 = p_138165_.x - serverplayer.getX();
-            double d2 = p_138165_.y - serverplayer.getY();
-            double d3 = p_138165_.z - serverplayer.getZ();
+            Vec3 delta = serverplayer.exactPosition() != null
+                  ? exactSoundPosition.relativeTo(serverplayer.exactPosition())
+                  : new Vec3(p_138165_.x - serverplayer.getX(), p_138165_.y - serverplayer.getY(), p_138165_.z - serverplayer.getZ());
+            double d1 = delta.x;
+            double d2 = delta.y;
+            double d3 = delta.z;
             double d4 = d1 * d1 + d2 * d2 + d3 * d3;
-            vec3 = p_138165_;
+            vec3 = exactSoundPosition.toApproximateVec3();
             f = p_138166_;
             if (!(d4 > d0)) {
                break;
@@ -88,7 +92,11 @@ public class PlaySoundCommand {
 
             if (!(p_138168_ <= 0.0F)) {
                double d5 = Math.sqrt(d4);
-               vec3 = new Vec3(serverplayer.getX() + d1 / d5 * 2.0D, serverplayer.getY() + d2 / d5 * 2.0D, serverplayer.getZ() + d3 / d5 * 2.0D);
+               if (serverplayer.exactPosition() != null) {
+                  vec3 = exactSoundPosition.add(-d1 / d5 * 2.0D, -d2 / d5 * 2.0D, -d3 / d5 * 2.0D).toApproximateVec3();
+               } else {
+                  vec3 = new Vec3(serverplayer.getX() + d1 / d5 * 2.0D, serverplayer.getY() + d2 / d5 * 2.0D, serverplayer.getZ() + d3 / d5 * 2.0D);
+               }
                f = p_138168_;
                break;
             }

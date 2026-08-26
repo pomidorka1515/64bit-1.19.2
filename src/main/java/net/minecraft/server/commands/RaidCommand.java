@@ -79,15 +79,20 @@ public class RaidCommand {
       Raider raider = EntityType.PILLAGER.create(p_180483_.getLevel());
       raider.setPatrolLeader(true);
       raider.setItemSlot(EquipmentSlot.HEAD, Raid.getLeaderBannerInstance());
-      raider.setPos(p_180483_.getPosition().x, p_180483_.getPosition().y, p_180483_.getPosition().z);
-      raider.finalizeSpawn(p_180483_.getLevel(), p_180483_.getLevel().getCurrentDifficultyAt(new BlockPos(p_180483_.getPosition())), MobSpawnType.COMMAND, (SpawnGroupData)null, (CompoundTag)null);
+      net.minecraft.world.phys.SectorVec3 exact = p_180483_.getExactPosition();
+      if (raider.hasSectorPosition()) raider.applyExactPosition(exact);
+      else {
+         net.minecraft.world.phys.Vec3 approximate = exact.toApproximateVec3();
+         raider.setPos(approximate.x, approximate.y, approximate.z);
+      }
+      raider.finalizeSpawn(p_180483_.getLevel(), p_180483_.getLevel().getCurrentDifficultyAt(exact.blockPosition()), MobSpawnType.COMMAND, (SpawnGroupData)null, (CompoundTag)null);
       p_180483_.getLevel().addFreshEntityWithPassengers(raider);
       return 1;
    }
 
    private static int playSound(CommandSourceStack p_180478_, Component p_180479_) {
       if (p_180479_ != null && p_180479_.getString().equals("local")) {
-         p_180478_.getLevel().playSound((Player)null, new BlockPos(p_180478_.getPosition().add(5.0D, 0.0D, 0.0D)), SoundEvents.RAID_HORN, SoundSource.NEUTRAL, 2.0F, 1.0F);
+         p_180478_.getLevel().playSound((Player)null, p_180478_.getExactPosition().add(5.0D, 0.0D, 0.0D).blockPosition(), SoundEvents.RAID_HORN, SoundSource.NEUTRAL, 2.0F, 1.0F);
       }
 
       return 1;

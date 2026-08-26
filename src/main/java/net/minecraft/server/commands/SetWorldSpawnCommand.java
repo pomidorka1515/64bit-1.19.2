@@ -13,7 +13,7 @@ public class SetWorldSpawnCommand {
       p_138661_.register(Commands.literal("setworldspawn").requires((p_138665_) -> {
          return p_138665_.hasPermission(2);
       }).executes((p_138673_) -> {
-         return setSpawn(p_138673_.getSource(), new BlockPos(p_138673_.getSource().getPosition()), 0.0F);
+         return setSpawn(p_138673_.getSource(), p_138673_.getSource().getExactPosition().blockPosition(), 0.0F);
       }).then(Commands.argument("pos", BlockPosArgument.blockPos()).executes((p_138671_) -> {
          return setSpawn(p_138671_.getSource(), BlockPosArgument.getSpawnablePos(p_138671_, "pos"), 0.0F);
       }).then(Commands.argument("angle", AngleArgument.angle()).executes((p_138663_) -> {

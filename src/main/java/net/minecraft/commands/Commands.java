@@ -54,6 +54,8 @@ import net.minecraft.server.commands.ExecuteCommand;
 import net.minecraft.server.commands.ExperienceCommand;
 import net.minecraft.server.commands.FillCommand;
 import net.minecraft.server.commands.ForceLoadCommand;
+import net.minecraft.server.commands.FrustumCommand;
+import net.minecraft.server.commands.FarlandsCommand;
 import net.minecraft.server.commands.FunctionCommand;
 import net.minecraft.server.commands.GameModeCommand;
 import net.minecraft.server.commands.GameRuleCommand;
@@ -137,6 +139,8 @@ public class Commands {
       ExperienceCommand.register(this.dispatcher);
       FillCommand.register(this.dispatcher, p_230944_);
       ForceLoadCommand.register(this.dispatcher);
+      FrustumCommand.register(this.dispatcher);
+      FarlandsCommand.register(this.dispatcher);
       FunctionCommand.register(this.dispatcher);
       GameModeCommand.register(this.dispatcher);
       GameRuleCommand.register(this.dispatcher);

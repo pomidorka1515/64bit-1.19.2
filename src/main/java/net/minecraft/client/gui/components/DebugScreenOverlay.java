@@ -40,6 +40,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
@@ -245,6 +246,7 @@ public class DebugScreenOverlay extends GuiComponent {
             list.add(String.format(Locale.ROOT, "SubPos: [X: %+.5f, Y: %+.5f, Z: %+.5f]", exact.subX(), exact.subY(), exact.subZ()));
          }
          list.add(String.format(Locale.ROOT, "Facing: %s (%s) (%.1f / %.1f)", direction, s1, Mth.wrapDegrees(entity.getYRot()), Mth.wrapDegrees(entity.getXRot())));
+         list.add((Frustum.isEnabled() ? "\247a" : "\247c") + "Frustum: " + (Frustum.isEnabled() ? "enabled" : "disabled") + "\247r");
          long maxPosition = (long) Math.max(Math.abs(this.minecraft.getCameraEntity().getX()), Math.max(Math.abs(this.minecraft.getCameraEntity().getY()), Math.abs(this.minecraft.getCameraEntity().getZ())));
          int maxBit = Long.SIZE - Long.numberOfLeadingZeros(maxPosition);
          

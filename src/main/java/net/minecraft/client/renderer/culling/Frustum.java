@@ -15,6 +15,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class Frustum {
    public static final int OFFSET_STEP = 4;
+   private static volatile boolean enabled = true;
    private final Vector4f[] frustumData = new Vector4f[6];
    private Vector4f viewVector;
    private double camX;
@@ -26,6 +27,14 @@ public class Frustum {
 
    public Frustum(Matrix4f p_113000_, Matrix4f p_113001_) {
       this.calculateFrustum(p_113000_, p_113001_);
+   }
+
+   public static boolean isEnabled() {
+      return enabled;
+   }
+
+   public static void setEnabled(boolean enabled) {
+      Frustum.enabled = enabled;
    }
 
    public Frustum(Frustum p_194440_) {
@@ -100,6 +109,7 @@ public class Frustum {
    }
 
    public boolean isVisible(AABB p_113030_) {
+      if (!enabled) return true;
       long minBlockX = Mth.lfloor(p_113030_.minX);
       int minBlockY = Mth.floor(p_113030_.minY);
       long minBlockZ = Mth.lfloor(p_113030_.minZ);
@@ -117,6 +127,7 @@ public class Frustum {
 
    /** Tests an exact X/Z box without reconstructing its endpoints as doubles. */
    public boolean isVisible(SectorAABB box) {
+      if (!enabled) return true;
       if (box == null) throw new NullPointerException("box");
       return this.cubeInFrustumLocal(
             relativeX(box.minBlockX(), box.minSubX()), box.minY() - this.camY,
@@ -126,6 +137,7 @@ public class Frustum {
 
    /** Tests a block-local shape at an exact block position. */
    public boolean isVisible(BlockPos blockPos, AABB localShape) {
+      if (!enabled) return true;
       if (blockPos == null) throw new NullPointerException("blockPos");
       if (localShape == null) throw new NullPointerException("localShape");
       return this.cubeInFrustumLocal(
@@ -135,6 +147,7 @@ public class Frustum {
    }
 
    public boolean isChunkVisible(long chunkX, int originBlockY, long chunkZ) {
+       if (!enabled) return true;
        long blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
        long blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
    

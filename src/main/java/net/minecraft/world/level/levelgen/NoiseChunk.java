@@ -194,7 +194,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
       this.inCellX = 0;
 
       for(int i = 0; i < this.cellCountXZ + 1; ++i) {
-         int j = (int) (this.firstCellZ + i);
+         long j = this.firstCellZ + i;
          this.cellStartBlockZ = j * this.cellWidth;
          this.inCellZ = 0;
          ++this.arrayInterpolationCounter;

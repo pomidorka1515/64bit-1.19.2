@@ -30,8 +30,8 @@ public class SimplexNoise {
 
    }
 
-   private int p(int p_75472_) {
-      return this.p[p_75472_ & 255];
+   private int p(long p_75472_) {
+      return this.p[(int)(p_75472_ & 255L)];
    }
 
    protected static double dot(int[] p_75480_, double p_75481_, double p_75482_, double p_75483_) {
@@ -53,9 +53,10 @@ public class SimplexNoise {
 
    public double getValue(double p_75465_, double p_75466_) {
       double d0 = (p_75465_ + p_75466_) * F2;
-      int i = Mth.floor(p_75465_ + d0);
-      int j = Mth.floor(p_75466_ + d0);
-      double d1 = (double)(i + j) * G2;
+      boolean farlands = FarlandsMode.isEnabled();
+      long i = FarlandsMode.floor(p_75465_ + d0, farlands);
+      long j = FarlandsMode.floor(p_75466_ + d0, farlands);
+      double d1 = FarlandsMode.floorSum(i, j, farlands) * G2;
       double d2 = (double)i - d1;
       double d3 = (double)j - d1;
       double d4 = p_75465_ - d2;
@@ -74,8 +75,8 @@ public class SimplexNoise {
       double d7 = d5 - (double)l + G2;
       double d8 = d4 - 1.0D + 2.0D * G2;
       double d9 = d5 - 1.0D + 2.0D * G2;
-      int i1 = i & 255;
-      int j1 = j & 255;
+      long i1 = i & 255L;
+      long j1 = j & 255L;
       int k1 = this.p(i1 + this.p(j1)) % 12;
       int l1 = this.p(i1 + k + this.p(j1 + l)) % 12;
       int i2 = this.p(i1 + 1 + this.p(j1 + 1)) % 12;
@@ -88,11 +89,12 @@ public class SimplexNoise {
    public double getValue(double p_75468_, double p_75469_, double p_75470_) {
       double d0 = 0.3333333333333333D;
       double d1 = (p_75468_ + p_75469_ + p_75470_) * 0.3333333333333333D;
-      int i = Mth.floor(p_75468_ + d1);
-      int j = Mth.floor(p_75469_ + d1);
-      int k = Mth.floor(p_75470_ + d1);
+      boolean farlands = FarlandsMode.isEnabled();
+      long i = FarlandsMode.floor(p_75468_ + d1, farlands);
+      long j = FarlandsMode.floor(p_75469_ + d1, farlands);
+      long k = FarlandsMode.floor(p_75470_ + d1, farlands);
       double d2 = 0.16666666666666666D;
-      double d3 = (double)(i + j + k) * 0.16666666666666666D;
+      double d3 = FarlandsMode.floorSum(i, j, k, farlands) * 0.16666666666666666D;
       double d4 = (double)i - d3;
       double d5 = (double)j - d3;
       double d6 = (double)k - d3;
@@ -160,9 +162,9 @@ public class SimplexNoise {
       double d16 = d7 - 1.0D + 0.5D;
       double d17 = d8 - 1.0D + 0.5D;
       double d18 = d9 - 1.0D + 0.5D;
-      int j2 = i & 255;
-      int k2 = j & 255;
-      int l2 = k & 255;
+      long j2 = i & 255L;
+      long k2 = j & 255L;
+      long l2 = k & 255L;
       int i3 = this.p(j2 + this.p(k2 + this.p(l2))) % 12;
       int j3 = this.p(j2 + l + this.p(k2 + i1 + this.p(l2 + j1))) % 12;
       int k3 = this.p(j2 + k1 + this.p(k2 + l1 + this.p(l2 + i2))) % 12;

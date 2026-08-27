@@ -24,6 +24,7 @@ public class ClientboundCustomPayloadPacket implements Packet<ClientGamePacketLi
    public static final ResourceLocation DEBUG_RAIDS = new ResourceLocation("debug/raids");
    public static final ResourceLocation DEBUG_GAME_EVENT = new ResourceLocation("debug/game_event");
    public static final ResourceLocation DEBUG_GAME_EVENT_LISTENER = new ResourceLocation("debug/game_event_listeners");
+   public static final ResourceLocation FRUSTUM_TOGGLE = new ResourceLocation("minecraft", "frustum_toggle");
    private final ResourceLocation identifier;
    private final FriendlyByteBuf data;
 

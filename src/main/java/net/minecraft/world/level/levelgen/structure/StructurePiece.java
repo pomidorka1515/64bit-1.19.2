@@ -18,6 +18,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -63,7 +64,7 @@ public abstract class StructurePiece {
    }
 
    protected static BoundingBox makeBoundingBox(long p_163542_, int p_163543_, long p_163544_, Direction p_163545_, int p_163546_, int p_163547_, int p_163548_) {
-      return p_163545_.getAxis() == Direction.Axis.Z ? new BoundingBox(p_163542_, p_163543_, p_163544_, p_163542_ + p_163546_ - 1, p_163543_ + p_163547_ - 1, p_163544_ + p_163548_ - 1) : new BoundingBox(p_163542_, p_163543_, p_163544_, p_163542_ + p_163548_ - 1, p_163543_ + p_163547_ - 1, p_163544_ + p_163546_ - 1);
+      return p_163545_.getAxis() == Direction.Axis.Z ? new BoundingBox(p_163542_, p_163543_, p_163544_, WorldBounds.addBlockOffset(p_163542_, (long)p_163546_ - 1L), p_163543_ + p_163547_ - 1, WorldBounds.addBlockOffset(p_163544_, (long)p_163548_ - 1L)) : new BoundingBox(p_163542_, p_163543_, p_163544_, WorldBounds.addBlockOffset(p_163542_, (long)p_163548_ - 1L), p_163543_ + p_163547_ - 1, WorldBounds.addBlockOffset(p_163544_, (long)p_163546_ - 1L));
    }
 
    protected static Direction getRandomHorizontalDirection(RandomSource p_226761_) {

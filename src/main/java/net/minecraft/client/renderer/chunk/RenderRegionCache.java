@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -20,17 +21,16 @@ public class RenderRegionCache {
 
    @Nullable
    public RenderChunkRegion createRegion(Level p_200466_, BlockPos p_200467_, BlockPos p_200468_, int p_200469_) {
-      long i = SectionPos.blockToSectionCoord(p_200467_.getX() - p_200469_);
-      long j = SectionPos.blockToSectionCoord(p_200467_.getZ() - p_200469_);
-      long k = SectionPos.blockToSectionCoord(p_200468_.getX() + p_200469_);
-      long l = SectionPos.blockToSectionCoord(p_200468_.getZ() + p_200469_);
+      long i = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(p_200467_.getX(), -(long)p_200469_));
+      long j = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(p_200467_.getZ(), -(long)p_200469_));
+      long k = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(p_200468_.getX(), p_200469_));
+      long l = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(p_200468_.getZ(), p_200469_));
       RenderRegionCache.ChunkInfo[][] arenderregioncache$chunkinfo = new RenderRegionCache.ChunkInfo[(int) (k - i + 1)][(int) (l - j + 1)];
 
       for(long i1 = i; i1 <= k; ++i1) {
          for(long j1 = j; j1 <= l; ++j1) {
-            arenderregioncache$chunkinfo[(int) (i1 - i)][(int) (j1 - j)] = this.chunkInfoCache.computeIfAbsent(new ChunkPos(i1, j1), (ChunkPos p_200464_) -> {
-               return new RenderRegionCache.ChunkInfo(p_200466_.getChunk(p_200464_.x, p_200464_.z));
-            });
+            LevelChunk levelchunk = WorldBounds.isValidChunk(i1, j1) ? p_200466_.getChunk(i1, j1) : null;
+            arenderregioncache$chunkinfo[(int) (i1 - i)][(int) (j1 - j)] = new RenderRegionCache.ChunkInfo(levelchunk);
          }
       }
 
@@ -41,7 +41,8 @@ public class RenderRegionCache {
 
          for(long l1 = i; l1 <= k; ++l1) {
             for(long k1 = j; k1 <= l; ++k1) {
-               arenderchunk[(int) (l1 - i)][(int) (k1 - j)] = arenderregioncache$chunkinfo[(int) (l1 - i)][(int) (k1 - j)].renderChunk();
+               RenderRegionCache.ChunkInfo chunkinfo = arenderregioncache$chunkinfo[(int) (l1 - i)][(int) (k1 - j)];
+               arenderchunk[(int) (l1 - i)][(int) (k1 - j)] = chunkinfo.renderChunk();
             }
          }
 
@@ -57,8 +58,8 @@ public class RenderRegionCache {
 
       for(long i1 = i; i1 <= k; ++i1) {
          for(long j1 = j; j1 <= l; ++j1) {
-            LevelChunk levelchunk = p_200475_[(int) (i1 - p_200473_)][(int) (j1 - p_200474_)].chunk();
-            if (!levelchunk.isYSpaceEmpty(p_200471_.getY(), p_200472_.getY())) {
+            RenderRegionCache.ChunkInfo info = p_200475_[(int) (i1 - p_200473_)][(int) (j1 - p_200474_)];
+            if (info != null && info.chunk() != null && !info.chunk().isYSpaceEmpty(p_200471_.getY(), p_200472_.getY())) {
                return false;
             }
          }

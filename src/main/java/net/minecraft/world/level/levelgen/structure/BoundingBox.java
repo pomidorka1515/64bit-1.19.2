@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
-import net.minecraft.SharedConstants;
 import net.minecraft.Util;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -38,27 +38,12 @@ public class BoundingBox {
    }
 
    public BoundingBox(long p_71001_, int p_71002_, long p_71003_, long p_71004_, int p_71005_, long p_71006_) {
-      this.minX = p_71001_;
-      this.minY = p_71002_;
-      this.minZ = p_71003_;
-      this.maxX = p_71004_;
-      this.maxY = p_71005_;
-      this.maxZ = p_71006_;
-      if (p_71004_ < p_71001_ || p_71005_ < p_71002_ || p_71006_ < p_71003_) {
-         String s = "Invalid bounding box data, inverted bounds for: " + this;
-         if (SharedConstants.IS_RUNNING_IN_IDE) {
-            throw new IllegalStateException(s);
-         }
-
-         LOGGER.error(s);
-         this.minX = Math.min(p_71001_, p_71004_);
-         this.minY = Math.min(p_71002_, p_71005_);
-         this.minZ = Math.min(p_71003_, p_71006_);
-         this.maxX = Math.max(p_71001_, p_71004_);
-         this.maxY = Math.max(p_71002_, p_71005_);
-         this.maxZ = Math.max(p_71003_, p_71006_);
-      }
-
+      this.minX = Math.min(p_71001_, p_71004_);
+      this.minY = Math.min(p_71002_, p_71005_);
+      this.minZ = Math.min(p_71003_, p_71006_);
+      this.maxX = Math.max(p_71001_, p_71004_);
+      this.maxY = Math.max(p_71002_, p_71005_);
+      this.maxZ = Math.max(p_71003_, p_71006_);
    }
 
    public static BoundingBox fromCorners(Vec3i p_162376_, Vec3i p_162377_) {
@@ -73,13 +58,13 @@ public class BoundingBox {
       switch (p_71041_) {
          case SOUTH:
          default:
-            return new BoundingBox(p_71032_ + p_71035_, p_71033_ + p_71036_, p_71034_ + p_71037_, p_71032_ + p_71038_ - 1 + p_71035_, p_71033_ + p_71039_ - 1 + p_71036_, p_71034_ + p_71040_ - 1 + p_71037_);
+            return new BoundingBox(WorldBounds.addBlockOffset(p_71032_, p_71035_), p_71033_ + p_71036_, WorldBounds.addBlockOffset(p_71034_, p_71037_), WorldBounds.addBlockOffset(p_71032_, (long)p_71038_ - 1L + p_71035_), p_71033_ + p_71039_ - 1, WorldBounds.addBlockOffset(p_71034_, (long)p_71040_ - 1L + p_71037_));
          case NORTH:
-            return new BoundingBox(p_71032_ + p_71035_, p_71033_ + p_71036_, p_71034_ - p_71040_ + 1 + p_71037_, p_71032_ + p_71038_ - 1 + p_71035_, p_71033_ + p_71039_ - 1 + p_71036_, p_71034_ + p_71037_);
+            return new BoundingBox(WorldBounds.addBlockOffset(p_71032_, p_71035_), p_71033_ + p_71036_, WorldBounds.addBlockOffset(p_71034_, -(long)p_71040_ + 1L + p_71037_), WorldBounds.addBlockOffset(p_71032_, (long)p_71038_ - 1L + p_71035_), p_71033_ + p_71039_ - 1, WorldBounds.addBlockOffset(p_71034_, p_71037_));
          case WEST:
-            return new BoundingBox(p_71032_ - p_71040_ + 1 + p_71037_, p_71033_ + p_71036_, p_71034_ + p_71035_, p_71032_ + p_71037_, p_71033_ + p_71039_ - 1 + p_71036_, p_71034_ + p_71038_ - 1 + p_71035_);
+            return new BoundingBox(WorldBounds.addBlockOffset(p_71032_, -(long)p_71040_ + 1L + p_71037_), p_71033_ + p_71036_, WorldBounds.addBlockOffset(p_71034_, p_71035_), WorldBounds.addBlockOffset(p_71032_, p_71037_), p_71033_ + p_71039_ - 1, WorldBounds.addBlockOffset(p_71034_, (long)p_71038_ - 1L + p_71035_));
          case EAST:
-            return new BoundingBox(p_71032_ + p_71037_, p_71033_ + p_71036_, p_71034_ + p_71035_, p_71032_ + p_71040_ - 1 + p_71037_, p_71033_ + p_71039_ - 1 + p_71036_, p_71034_ + p_71038_ - 1 + p_71035_);
+            return new BoundingBox(WorldBounds.addBlockOffset(p_71032_, p_71037_), p_71033_ + p_71036_, WorldBounds.addBlockOffset(p_71034_, p_71035_), WorldBounds.addBlockOffset(p_71032_, (long)p_71040_ - 1L + p_71037_), p_71033_ + p_71039_ - 1, WorldBounds.addBlockOffset(p_71034_, (long)p_71038_ - 1L + p_71035_));
       }
    }
 
@@ -157,11 +142,11 @@ public class BoundingBox {
    }
 
    public BoundingBox moved(int p_71046_, int p_71047_, int p_71048_) {
-      return new BoundingBox(this.minX + p_71046_, this.minY + p_71047_, this.minZ + p_71048_, this.maxX + p_71046_, this.maxY + p_71047_, this.maxZ + p_71048_);
+      return new BoundingBox(WorldBounds.addBlockOffset(this.minX, p_71046_), this.minY + p_71047_, WorldBounds.addBlockOffset(this.minZ, p_71048_), WorldBounds.addBlockOffset(this.maxX, p_71046_), this.maxY + p_71047_, WorldBounds.addBlockOffset(this.maxZ, p_71048_));
    }
 
    public BoundingBox inflatedBy(int p_191962_) {
-      return new BoundingBox(this.minX() - p_191962_, this.minY() - p_191962_, this.minZ() - p_191962_, this.maxX() + p_191962_, this.maxY() + p_191962_, this.maxZ() + p_191962_);
+      return new BoundingBox(WorldBounds.addBlockOffset(this.minX, -(long)p_191962_), this.minY - p_191962_, WorldBounds.addBlockOffset(this.minZ, -(long)p_191962_), WorldBounds.addBlockOffset(this.maxX, p_191962_), this.maxY + p_191962_, WorldBounds.addBlockOffset(this.maxZ, p_191962_));
    }
 
    public boolean isInside(Vec3i p_71052_) {

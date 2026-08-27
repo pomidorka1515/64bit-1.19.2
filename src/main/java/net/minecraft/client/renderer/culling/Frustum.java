@@ -135,17 +135,18 @@ public class Frustum {
    }
 
    public boolean isChunkVisible(long chunkX, int originBlockY, long chunkZ) {
-      long blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
-      long blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
-      
-      double minX = this.cameraRelativePosition.relativeX(blockMinX);
-      double minY = this.cameraRelativePosition.relativeY(originBlockY);
-      double minZ = this.cameraRelativePosition.relativeZ(blockMinZ);
-      double maxX = this.cameraRelativePosition.relativeX(blockMinX + 16L);
-      double maxY = this.cameraRelativePosition.relativeY(originBlockY + 16);
-      double maxZ = this.cameraRelativePosition.relativeZ(blockMinZ + 16L);
+       long blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
+       long blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
    
-      return this.cubeInFrustumLocal(minX, minY, minZ, maxX, maxY, maxZ);
+       double minX = this.cameraRelativePosition.relativeX(blockMinX);
+       double minY = this.cameraRelativePosition.relativeY(originBlockY);
+       double minZ = this.cameraRelativePosition.relativeZ(blockMinZ);
+   
+       double maxX = minX + 16.0D;
+       double maxY = minY + 16.0D;
+       double maxZ = minZ + 16.0D;
+   
+       return this.cubeInFrustumLocal(minX, minY, minZ, maxX, maxY, maxZ);
    }
 
    private double relativeX(long block, double fraction) {

@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -52,7 +53,10 @@ public class ViewArea {
    }
 
    private int getChunkIndex(long p_110856_, int p_110857_, long p_110858_) {
-      return (int) ((p_110858_ * this.chunkGridSizeY + p_110857_) * this.chunkGridSizeX + p_110856_);
+      long x = Math.floorMod(p_110856_, (long)this.chunkGridSizeX);
+      long z = Math.floorMod(p_110858_, (long)this.chunkGridSizeZ);
+      long index = (z * (long)this.chunkGridSizeY + (long)p_110857_) * (long)this.chunkGridSizeX + x;
+      return (int)index;
    }
 
    protected void setViewDistance(int p_110854_) {
@@ -62,49 +66,52 @@ public class ViewArea {
       this.chunkGridSizeZ = i;
    }
 
-   public void repositionCamera(double p_110851_, double p_110852_) {
-      long i = Mth.lceil(p_110851_);
-      long j = Mth.lceil(p_110852_);
+   public void repositionCamera(SectorVec3 exactCamera) {
+      long camBlockX = exactCamera.blockX();
+      long camBlockZ = exactCamera.blockZ();
+      long l = (long)this.chunkGridSizeX * 16L;
+      long i1 = camBlockX - 8L - l / 2L;
 
       for(int k = 0; k < this.chunkGridSizeX; ++k) {
-         int l = this.chunkGridSizeX * 16;
-         long i1 = i - 8 - l / 2;
-         long j1 = i1 + Math.floorMod(k * 16 - i1, l);
+         long j1 = i1 + Math.floorMod((long)k * 16L - i1, l);
 
          for(int k1 = 0; k1 < this.chunkGridSizeZ; ++k1) {
-            int l1 = this.chunkGridSizeZ * 16;
-            long i2 = j - 8 - l1 / 2;
-            long j2 = i2 + Math.floorMod(k1 * 16 - i2, l1);
+            long l1 = (long)this.chunkGridSizeZ * 16L;
+            long i2 = camBlockZ - 8L - l1 / 2L;
+            long j2 = i2 + Math.floorMod((long)k1 * 16L - i2, l1);
 
             for(int k2 = 0; k2 < this.chunkGridSizeY; ++k2) {
                int l2 = this.level.getMinBuildHeight() + k2 * 16;
-               ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = this.chunks[this.getChunkIndex(k, k2, k1)];
-               BlockPos blockpos = chunkrenderdispatcher$renderchunk.getOrigin();
+               ChunkRenderDispatcher.RenderChunk chunk = this.chunks[this.getChunkIndex((long)k, k2, (long)k1)];
+               BlockPos blockpos = chunk.getOrigin();
                if (j1 != blockpos.getX() || l2 != blockpos.getY() || j2 != blockpos.getZ()) {
-                  chunkrenderdispatcher$renderchunk.setOrigin(j1, l2, j2);
+                  chunk.setOrigin(j1, l2, j2);
                }
             }
          }
       }
+   }
 
+   public void repositionCamera(double x, double z) {
+      this.repositionCamera(SectorVec3.fromApproximate(x, 0.0D, z));
    }
 
    public void setDirty(long p_110860_, int p_110861_, long p_110862_, boolean p_110863_) {
-      int i = Math.floorMod(p_110860_, this.chunkGridSizeX);
+      long i = Math.floorMod(p_110860_, (long)this.chunkGridSizeX);
       int j = Math.floorMod(p_110861_ - this.level.getMinSection(), this.chunkGridSizeY);
-      int k = Math.floorMod(p_110862_, this.chunkGridSizeZ);
+      long k = Math.floorMod(p_110862_, (long)this.chunkGridSizeZ);
       ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = this.chunks[this.getChunkIndex(i, j, k)];
       chunkrenderdispatcher$renderchunk.setDirty(p_110863_);
    }
 
    @Nullable
    protected ChunkRenderDispatcher.RenderChunk getRenderChunkAt(BlockPos p_110867_) {
-      long i = Mth.longFloorDiv(p_110867_.getX(), 16);
+      long i = Math.floorDiv((long)p_110867_.getX(), 16L);
       int j = Mth.intFloorDiv(p_110867_.getY() - this.level.getMinBuildHeight(), 16);
-      long k = Mth.longFloorDiv(p_110867_.getZ(), 16);
+      long k = Math.floorDiv((long)p_110867_.getZ(), 16L);
       if (j >= 0 && j < this.chunkGridSizeY) {
-         i = Mth.positiveModulo(i, this.chunkGridSizeX);
-         k = Mth.positiveModulo(k, this.chunkGridSizeZ);
+         i = Math.floorMod(i, (long)this.chunkGridSizeX);
+         k = Math.floorMod(k, (long)this.chunkGridSizeZ);
          return this.chunks[this.getChunkIndex(i, j, k)];
       } else {
          return null;

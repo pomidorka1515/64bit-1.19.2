@@ -179,6 +179,12 @@ public class Camera {
       return this.exactPosition;
    }
 
+   /** Returns the split-coordinate camera position used by precision-sensitive render paths. */
+   @Nullable
+   public SectorVec3 exactPosition() {
+      return this.exactPosition;
+   }
+
    public float getXRot() {
       return this.xRot;
    }

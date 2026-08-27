@@ -5,8 +5,10 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -18,7 +20,7 @@ public class Frustum {
    private double camX;
    private double camY;
    private double camZ;
-   private CameraRelativePosition cameraRelativePosition = CameraRelativePosition.of(0.0D, 0.0D, 0.0D);
+   private CameraRelativePosition cameraRelativePosition = CameraRelativePosition.of(SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D));
    // Keep the integral camera block separate from the lossy Vec3 mirror.  X/Z
    // deltas must be formed as long arithmetic before they are narrowed to float.
 
@@ -56,7 +58,7 @@ public class Frustum {
       this.camX = p_113003_;
       this.camY = p_113004_;
       this.camZ = p_113005_;
-      this.cameraRelativePosition = CameraRelativePosition.of(p_113003_, p_113004_, p_113005_);
+      this.cameraRelativePosition = CameraRelativePosition.of(SectorVec3.fromApproximate(p_113003_, p_113004_, p_113005_));
    }
 
    /**
@@ -98,7 +100,19 @@ public class Frustum {
    }
 
    public boolean isVisible(AABB p_113030_) {
-      return this.cubeInFrustum(p_113030_.minX, p_113030_.minY, p_113030_.minZ, p_113030_.maxX, p_113030_.maxY, p_113030_.maxZ);
+      long minBlockX = Mth.lfloor(p_113030_.minX);
+      int minBlockY = Mth.floor(p_113030_.minY);
+      long minBlockZ = Mth.lfloor(p_113030_.minZ);
+      long maxBlockX = Mth.lfloor(p_113030_.maxX);
+      int maxBlockY = Mth.floor(p_113030_.maxY);
+      long maxBlockZ = Mth.lfloor(p_113030_.maxZ);
+      return this.cubeInFrustumLocal(
+            this.cameraRelativePosition.relativeX(minBlockX) + p_113030_.minX - (double)minBlockX,
+            this.cameraRelativePosition.relativeY(minBlockY) + p_113030_.minY - (double)minBlockY,
+            this.cameraRelativePosition.relativeZ(minBlockZ) + p_113030_.minZ - (double)minBlockZ,
+            this.cameraRelativePosition.relativeX(maxBlockX) + p_113030_.maxX - (double)maxBlockX,
+            this.cameraRelativePosition.relativeY(maxBlockY) + p_113030_.maxY - (double)maxBlockY,
+            this.cameraRelativePosition.relativeZ(maxBlockZ) + p_113030_.maxZ - (double)maxBlockZ);
    }
 
    /** Tests an exact X/Z box without reconstructing its endpoints as doubles. */
@@ -120,11 +134,18 @@ public class Frustum {
             relativeY(blockPos.getY()) + localShape.maxY, relativeZ(blockPos.getZ(), localShape.maxZ));
    }
 
-   public boolean isChunkVisible(long p_234493_, int p_234494_, long p_234495_) {
-      float f = (float)relativeX(p_234493_, 0.0D);
-      float f1 = (float)relativeY(p_234494_);
-      float f2 = (float)relativeZ(p_234495_, 0.0D);
-      return this.cubeInFrustum(f, f1, f2, f + 16.0F, f1 + 16.0F, f2 + 16.0F);
+   public boolean isChunkVisible(long chunkX, int originBlockY, long chunkZ) {
+      long blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
+      long blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
+      
+      double minX = this.cameraRelativePosition.relativeX(blockMinX);
+      double minY = this.cameraRelativePosition.relativeY(originBlockY);
+      double minZ = this.cameraRelativePosition.relativeZ(blockMinZ);
+      double maxX = this.cameraRelativePosition.relativeX(blockMinX + 16L);
+      double maxY = this.cameraRelativePosition.relativeY(originBlockY + 16);
+      double maxZ = this.cameraRelativePosition.relativeZ(blockMinZ + 16L);
+   
+      return this.cubeInFrustumLocal(minX, minY, minZ, maxX, maxY, maxZ);
    }
 
    private double relativeX(long block, double fraction) {
@@ -140,13 +161,13 @@ public class Frustum {
    }
 
    private boolean cubeInFrustum(double p_113007_, double p_113008_, double p_113009_, double p_113010_, double p_113011_, double p_113012_) {
-      float f = (float)(p_113007_ - this.camX);
-      float f1 = (float)(p_113008_ - this.camY);
-      float f2 = (float)(p_113009_ - this.camZ);
-      float f3 = (float)(p_113010_ - this.camX);
-      float f4 = (float)(p_113011_ - this.camY);
-      float f5 = (float)(p_113012_ - this.camZ);
-      return this.cubeInFrustum(f, f1, f2, f3, f4, f5);
+      return this.cubeInFrustumLocal(
+            this.cameraRelativePosition.relativeX(Mth.lfloor(p_113007_)) + p_113007_ - (double)Mth.lfloor(p_113007_),
+            this.cameraRelativePosition.relativeY(Mth.floor(p_113008_)) + p_113008_ - (double)Mth.floor(p_113008_),
+            this.cameraRelativePosition.relativeZ(Mth.lfloor(p_113009_)) + p_113009_ - (double)Mth.lfloor(p_113009_),
+            this.cameraRelativePosition.relativeX(Mth.lfloor(p_113010_)) + p_113010_ - (double)Mth.lfloor(p_113010_),
+            this.cameraRelativePosition.relativeY(Mth.floor(p_113011_)) + p_113011_ - (double)Mth.floor(p_113011_),
+            this.cameraRelativePosition.relativeZ(Mth.lfloor(p_113012_)) + p_113012_ - (double)Mth.lfloor(p_113012_));
    }
 
    private boolean cubeInFrustumLocal(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {

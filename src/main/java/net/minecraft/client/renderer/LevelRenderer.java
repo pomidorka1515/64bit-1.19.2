@@ -146,8 +146,6 @@ import org.slf4j.Logger;
 @OnlyIn(Dist.CLIENT)
 public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseable {
    private static final Logger LOGGER = LogUtils.getLogger();
-   // Compatibility/debug switch for reproducing the legacy Chunk Stripe Lands precision artifact.
-   public static final boolean ENABLE_CHUNK_STRIPELANDS = Boolean.getBoolean("net.minecraft.client.ENABLE_CHUNK_STRIPELANDS");
    public static final int CHUNK_SIZE = 16;
    private static final int HALF_CHUNK_SIZE = 8;
    private static final float SKY_DISC_RADIUS = 512.0F;
@@ -215,15 +213,12 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
    private RenderTarget cloudsTarget;
    @Nullable
    private PostChain transparencyChain;
-   private double lastCameraX = Double.MIN_VALUE;
-   private double lastCameraY = Double.MIN_VALUE;
-   private double lastCameraZ = Double.MIN_VALUE;
    private long lastCameraChunkX = Integer.MIN_VALUE;
    private int lastCameraChunkY = Integer.MIN_VALUE;
    private long lastCameraChunkZ = Integer.MIN_VALUE;
-   private double prevCamX = Double.MIN_VALUE;
-   private double prevCamY = Double.MIN_VALUE;
-   private double prevCamZ = Double.MIN_VALUE;
+   private long prevCamX = Long.MIN_VALUE;
+   private int prevCamY = Integer.MIN_VALUE;
+   private long prevCamZ = Long.MIN_VALUE;
    private double prevCamRotX = Double.MIN_VALUE;
    private double prevCamRotY = Double.MIN_VALUE;
    private int prevCloudX = Integer.MIN_VALUE;
@@ -258,10 +253,6 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
       this.entityRenderDispatcher = p_234246_;
       this.blockEntityRenderDispatcher = p_234247_;
       this.renderBuffers = p_234248_;
-      if (ENABLE_CHUNK_STRIPELANDS) {
-         LOGGER.warn("Legacy Chunk Stripe Lands terrain-rendering arithmetic is enabled");
-      }
-
       for(int i = 0; i < 32; ++i) {
          for(int j = 0; j < 32; ++j) {
             float f = (float)(j - 16);
@@ -661,9 +652,6 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
    }
 
    public void setLevel(@Nullable ClientLevel p_109702_) {
-      this.lastCameraX = Double.MIN_VALUE;
-      this.lastCameraY = Double.MIN_VALUE;
-      this.lastCameraZ = Double.MIN_VALUE;
       this.lastCameraChunkX = Integer.MIN_VALUE;
       this.lastCameraChunkY = Integer.MIN_VALUE;
       this.lastCameraChunkZ = Integer.MIN_VALUE;
@@ -795,29 +783,48 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
       }
 
       this.level.getProfiler().push("camera");
-      double d0 = ENABLE_CHUNK_STRIPELANDS ? this.minecraft.player.getX() : vec3.x;
-      double d1 = ENABLE_CHUNK_STRIPELANDS ? this.minecraft.player.getY() : vec3.y;
-      double d2 = ENABLE_CHUNK_STRIPELANDS ? this.minecraft.player.getZ() : vec3.z;
-      long i = ENABLE_CHUNK_STRIPELANDS ? SectionPos.posToSectionCoord(d0) : SectionPos.blockToSectionCoord(Mth.lfloor(d0));
-      int j = ENABLE_CHUNK_STRIPELANDS ? (int)SectionPos.posToSectionCoord(d1) : SectionPos.blockToSectionCoord(Mth.floor(d1));
-      long k = ENABLE_CHUNK_STRIPELANDS ? SectionPos.posToSectionCoord(d2) : SectionPos.blockToSectionCoord(Mth.lfloor(d2));
-      if (this.lastCameraChunkX != i || this.lastCameraChunkY != j || this.lastCameraChunkZ != k) {
-         this.lastCameraX = d0;
-         this.lastCameraY = d1;
-         this.lastCameraZ = d2;
-         this.lastCameraChunkX = i;
-         this.lastCameraChunkY = j;
-         this.lastCameraChunkZ = k;
-         this.viewArea.repositionCamera(d0, d2);
+      SectorVec3 camExact = p_194339_.exactPosition();
+      if (camExact != null) {
+         long camBlockX = camExact.blockX();
+         int camBlockY = camExact.blockPosition().getY();
+         long camBlockZ = camExact.blockZ();
+         long i = Math.floorDiv(camBlockX, 16L);
+         int j = SectionPos.blockToSectionCoord(camBlockY);
+         long k = Math.floorDiv(camBlockZ, 16L);
+         if (this.lastCameraChunkX != i || this.lastCameraChunkY != j || this.lastCameraChunkZ != k) {
+            this.lastCameraChunkX = i;
+            this.lastCameraChunkY = j;
+            this.lastCameraChunkZ = k;
+            this.viewArea.repositionCamera(camExact);
+         }
+         this.chunkRenderDispatcher.setCamera(camExact);
+      } else {
+         long i = SectionPos.blockToSectionCoord(Mth.lfloor(vec3.x));
+         int j = SectionPos.blockToSectionCoord(Mth.floor(vec3.y));
+         long k = SectionPos.blockToSectionCoord(Mth.lfloor(vec3.z));
+         if (this.lastCameraChunkX != i || this.lastCameraChunkY != j || this.lastCameraChunkZ != k) {
+            this.lastCameraChunkX = i;
+            this.lastCameraChunkY = j;
+            this.lastCameraChunkZ = k;
+            this.viewArea.repositionCamera(vec3.x, vec3.z);
+         }
+         this.chunkRenderDispatcher.setCamera(SectorVec3.fromApproximate(vec3.x, vec3.y, vec3.z));
       }
-
-      this.chunkRenderDispatcher.setCamera(vec3);
       this.level.getProfiler().popPush("cull");
       this.minecraft.getProfiler().popPush("culling");
       BlockPos blockpos = p_194339_.getBlockPosition();
-      double d3 = Math.floor(vec3.x / 8.0D);
-      double d4 = Math.floor(vec3.y / 8.0D);
-      double d5 = Math.floor(vec3.z / 8.0D);
+      long d3;
+      int d4;
+      long d5;
+      if (camExact != null) {
+         d3 = Math.floorDiv(camExact.blockX(), 8L);
+         d4 = Math.floorDiv(camExact.blockPosition().getY(), 8);
+         d5 = Math.floorDiv(camExact.blockZ(), 8L);
+      } else {
+         d3 = Math.floorDiv(Mth.lfloor(vec3.x), 8L);
+         d4 = Math.floorDiv(Mth.floor(vec3.y), 8);
+         d5 = Math.floorDiv(Mth.lfloor(vec3.z), 8L);
+      }
       this.needsFullRenderChunkUpdate = this.needsFullRenderChunkUpdate || d3 != this.prevCamX || d4 != this.prevCamY || d5 != this.prevCamZ;
       this.nextFullUpdateMillis.updateAndGet((p_234309_) -> {
          if (p_234309_ > 0L && System.currentTimeMillis() > p_234309_) {
@@ -845,7 +852,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                Queue<LevelRenderer.RenderChunkInfo> queue1 = Queues.newArrayDeque();
                this.initializeQueueForFullUpdate(p_194339_, queue1);
                LevelRenderer.RenderChunkStorage levelrenderer$renderchunkstorage1 = new LevelRenderer.RenderChunkStorage(this.viewArea.chunks.length);
-               this.updateRenderChunks(levelrenderer$renderchunkstorage1.renderChunks, levelrenderer$renderchunkstorage1.renderInfoMap, vec3, queue1, flag1);
+               this.updateRenderChunks(levelrenderer$renderchunkstorage1.renderChunks, levelrenderer$renderchunkstorage1.renderInfoMap, camExact, vec3, queue1, flag1);
                this.renderChunkStorage.set(levelrenderer$renderchunkstorage1);
                this.needsFrustumUpdate.set(true);
             });
@@ -865,7 +872,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                }
             }
 
-            this.updateRenderChunks(levelrenderer$renderchunkstorage.renderChunks, levelrenderer$renderchunkstorage.renderInfoMap, vec3, queue, flag);
+            this.updateRenderChunks(levelrenderer$renderchunkstorage.renderChunks, levelrenderer$renderchunkstorage.renderInfoMap, camExact, vec3, queue, flag);
             this.needsFrustumUpdate.set(true);
             this.minecraft.getProfiler().pop();
          }
@@ -891,7 +898,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
          for(LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : (this.renderChunkStorage.get()).renderChunks) {
             ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = levelrenderer$renderchunkinfo.chunk;
-            boolean flag = ENABLE_CHUNK_STRIPELANDS ? p_194355_.isVisible(chunkrenderdispatcher$renderchunk.getBoundingBox()) : chunkrenderdispatcher$renderchunk.isVisible(p_194355_);
+            boolean flag = chunkrenderdispatcher$renderchunk.isVisible(p_194355_);
             if (flag) {
                this.renderChunksInFrustum.add(levelrenderer$renderchunkinfo);
             }
@@ -903,18 +910,19 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
    private void initializeQueueForFullUpdate(Camera p_194344_, Queue<LevelRenderer.RenderChunkInfo> p_194345_) {
       int i = 16;
+      SectorVec3 camExact = p_194344_.exactPosition();
       Vec3 vec3 = p_194344_.getPosition();
-      CameraRelativePosition camerarelativeposition = ENABLE_CHUNK_STRIPELANDS ? null
-            : p_194344_.getExactPosition() != null ? CameraRelativePosition.of(p_194344_.getExactPosition()) : CameraRelativePosition.of(vec3);
-      BlockPos blockpos = p_194344_.getBlockPosition();
+      CameraRelativePosition camerarelativeposition = camExact != null
+            ? CameraRelativePosition.of(camExact) : CameraRelativePosition.of(SectorVec3.fromApproximate(vec3.x, vec3.y, vec3.z));
+      BlockPos blockpos = camExact != null ? camExact.blockPosition() : p_194344_.getBlockPosition();
       ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = this.viewArea.getRenderChunkAt(blockpos);
       if (chunkrenderdispatcher$renderchunk == null) {
          boolean flag = blockpos.getY() > this.level.getMinBuildHeight();
          int j = flag ? this.level.getMaxBuildHeight() - 8 : this.level.getMinBuildHeight() + 8;
-         long cameraBlockX = p_194344_.getExactPosition() != null ? p_194344_.getExactPosition().blockX() : Mth.lfloor(vec3.x);
-         long cameraBlockZ = p_194344_.getExactPosition() != null ? p_194344_.getExactPosition().blockZ() : Mth.lfloor(vec3.z);
-         long k = ENABLE_CHUNK_STRIPELANDS ? Mth.lfloor(vec3.x / 16.0D) * 16L : cameraBlockX - Math.floorMod(cameraBlockX, 16L);
-         long l = ENABLE_CHUNK_STRIPELANDS ? Mth.lfloor(vec3.z / 16.0D) * 16L : cameraBlockZ - Math.floorMod(cameraBlockZ, 16L);
+         long cameraBlockX = camExact != null ? camExact.blockX() : Mth.lfloor(vec3.x);
+         long cameraBlockZ = camExact != null ? camExact.blockZ() : Mth.lfloor(vec3.z);
+         long k = cameraBlockX - Math.floorMod(cameraBlockX, 16L);
+         long l = cameraBlockZ - Math.floorMod(cameraBlockZ, 16L);
          List<LevelRenderer.RenderChunkInfo> list = Lists.newArrayList();
 
          for(long i1 = -this.lastViewDistance; i1 <= this.lastViewDistance; ++i1) {
@@ -927,10 +935,6 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
          }
 
          list.sort(Comparator.comparingDouble((p_234303_) -> {
-            if (ENABLE_CHUNK_STRIPELANDS) {
-               return blockpos.distSqr(p_234303_.chunk.getOrigin().offset(8, 8, 8));
-            }
-
             BlockPos blockpos1 = p_234303_.chunk.getOrigin();
             double d0 = camerarelativeposition.relativeX(blockpos1.getX()) + 8.0D;
             double d1 = camerarelativeposition.relativeY(blockpos1.getY()) + 8.0D;
@@ -948,17 +952,18 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
       this.recentlyCompiledChunks.add(p_194353_);
    }
 
-   private void updateRenderChunks(LinkedHashSet<LevelRenderer.RenderChunkInfo> p_194363_, LevelRenderer.RenderInfoMap p_194364_, Vec3 p_194365_, Queue<LevelRenderer.RenderChunkInfo> p_194366_, boolean p_194367_) {
+   private void updateRenderChunks(LinkedHashSet<LevelRenderer.RenderChunkInfo> p_194363_, LevelRenderer.RenderInfoMap p_194364_, SectorVec3 camExact, Vec3 p_194365_, Queue<LevelRenderer.RenderChunkInfo> p_194366_, boolean p_194367_) {
       int i = 16;
-      long cameraBlockX = Mth.lfloor(p_194365_.x);
-      int cameraBlockY = Mth.floor(p_194365_.y);
-      long cameraBlockZ = Mth.lfloor(p_194365_.z);
-      long cameraSectionX = ENABLE_CHUNK_STRIPELANDS ? Mth.lfloor(p_194365_.x / 16.0D) * 16L : cameraBlockX - Math.floorMod(cameraBlockX, 16L);
-      int cameraSectionY = ENABLE_CHUNK_STRIPELANDS ? Mth.floor(p_194365_.y / 16.0D) * 16 : cameraBlockY - Math.floorMod(cameraBlockY, 16);
-      long cameraSectionZ = ENABLE_CHUNK_STRIPELANDS ? Mth.lfloor(p_194365_.z / 16.0D) * 16L : cameraBlockZ - Math.floorMod(cameraBlockZ, 16L);
+      long cameraBlockX = camExact != null ? camExact.blockX() : Mth.lfloor(p_194365_.x);
+      int cameraBlockY = camExact != null ? camExact.blockPosition().getY() : Mth.floor(p_194365_.y);
+      long cameraBlockZ = camExact != null ? camExact.blockZ() : Mth.lfloor(p_194365_.z);
+      long cameraSectionX = cameraBlockX - Math.floorMod(cameraBlockX, 16L);
+      int cameraSectionY = cameraBlockY - Math.floorMod(cameraBlockY, 16);
+      long cameraSectionZ = cameraBlockZ - Math.floorMod(cameraBlockZ, 16L);
       BlockPos blockpos = new BlockPos(cameraSectionX, cameraSectionY, cameraSectionZ);
       BlockPos blockpos1 = blockpos.offset(8, 8, 8);
-      boolean flag3 = !ENABLE_CHUNK_STRIPELANDS && (Math.abs(p_194365_.x) >= FIRST_INEXACT_CHUNK_COORDINATE || Math.abs(p_194365_.z) >= FIRST_INEXACT_CHUNK_COORDINATE);
+      boolean flag3 = Math.abs(p_194365_.x) >= FIRST_INEXACT_CHUNK_COORDINATE
+            || Math.abs(p_194365_.z) >= FIRST_INEXACT_CHUNK_COORDINATE;
       Entity.setViewScale(Mth.clamp((double)this.minecraft.options.getEffectiveRenderDistance() / 8.0D, 1.0D, 2.5D) * this.minecraft.options.entityDistanceScaling().get());
 
       while(!p_194366_.isEmpty()) {
@@ -986,7 +991,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                   }
                }
 
-               if (p_194367_ && flag && !flag3) {
+               if (p_194367_ && flag && !flag3) { 
                   BlockPos blockpos2;
                   byte b0;
                   label126: {
@@ -1537,8 +1542,12 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
          shaderinstance.GAME_TIME.set(RenderSystem.getShaderGameTime());
       }
 
-      CameraRelativePosition camerarelativeposition = ENABLE_CHUNK_STRIPELANDS ? null
-            : this.exactRenderCamera != null ? this.exactRenderCamera : CameraRelativePosition.of(p_172996_, p_172997_, p_172998_);
+      Camera camera = this.minecraft.gameRenderer.getMainCamera();
+      SectorVec3 camExact = camera.exactPosition();
+      if (camExact == null) {
+         camExact = SectorVec3.fromApproximate(p_172996_, p_172997_, p_172998_);
+      }
+      CameraRelativePosition camRel = CameraRelativePosition.of(camExact);
       RenderSystem.setupShaderLights(shaderinstance);
       shaderinstance.apply();
       Uniform uniform = shaderinstance.CHUNK_OFFSET;
@@ -1558,12 +1567,11 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             VertexBuffer vertexbuffer = chunkrenderdispatcher$renderchunk.getBuffer(p_172994_);
             BlockPos blockpos = chunkrenderdispatcher$renderchunk.getOrigin();
             if (uniform != null) {
-               if (ENABLE_CHUNK_STRIPELANDS) {
-                  uniform.set((float)((double)blockpos.getX() - p_172996_), (float)((double)blockpos.getY() - p_172997_), (float)((double)blockpos.getZ() - p_172998_));
-               } else {
-                  uniform.set((float)camerarelativeposition.relativeX(blockpos.getX()), (float)camerarelativeposition.relativeY(blockpos.getY()), (float)camerarelativeposition.relativeZ(blockpos.getZ()));
-               }
-
+               uniform.set(
+                     (float)camRel.relativeX(blockpos.getX()),
+                     (float)camRel.relativeY(blockpos.getY()),
+                     (float)camRel.relativeZ(blockpos.getZ())
+               );
                uniform.upload();
             }
 

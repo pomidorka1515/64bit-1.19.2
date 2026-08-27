@@ -237,7 +237,9 @@ public class DebugScreenOverlay extends GuiComponent {
             list.add(String.format(Locale.ROOT, "XYZ: %.3f / %.5f / %.3f", entity.getX(), entity.getY(), entity.getZ()));
          }
          list.add(String.format(Locale.ROOT, "Block: %d %d %d [%d %d %d]", blockpos.getX(), blockpos.getY(), blockpos.getZ(), blockpos.getX() & 15, blockpos.getY() & 15, blockpos.getZ() & 15));
-         list.add(String.format(Locale.ROOT, "Chunk: %d %d %d [%d %d in r.%d.%d.mca]", chunkpos.x, SectionPos.blockToSectionCoord(blockpos.getY()), chunkpos.z, chunkpos.getRegionLocalX(), chunkpos.getRegionLocalZ(), chunkpos.getRegionX(), chunkpos.getRegionZ()));
+         list.add(String.format(Locale.ROOT, "Chunk: %d %d %d", chunkpos.x, SectionPos.blockToSectionCoord(blockpos.getY()), chunkpos.z));
+         list.add(String.format(Locale.ROOT, "Region: %d %d in r.%d.%d.mca", chunkpos.getRegionLocalX(), chunkpos.getRegionLocalZ(), chunkpos.getRegionX(), chunkpos.getRegionZ()));
+         
          if (exact != null) {
             list.add(String.format(Locale.ROOT, "Sector: [X: %d, Y: %d, Z: %d]", exact.sectorX(), exact.sectorY(), exact.sectorZ()));
             list.add(String.format(Locale.ROOT, "SubPos: [X: %+.5f, Y: %+.5f, Z: %+.5f]", exact.subX(), exact.subY(), exact.subZ()));

@@ -12,6 +12,7 @@ import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -27,11 +28,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
@@ -41,6 +44,7 @@ import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -125,19 +129,20 @@ public class WorldGenRegion implements WorldGenLevel {
    public ChunkAccess getChunk(long p_9514_, long p_9515_, ChunkStatus p_9516_, boolean p_9517_) {
       ChunkAccess chunkaccess;
       if (this.hasChunk(p_9514_, p_9515_)) {
-    	 long i = p_9514_ - this.firstPos.x;
-    	 long j = p_9515_ - this.firstPos.z;
-         chunkaccess = this.cache.get((int) (i + j * this.size));
+         long i = p_9514_ - this.firstPos.x;
+         long j = p_9515_ - this.firstPos.z;
+         chunkaccess = this.cache.get((int)(i + j * this.size));
          if (chunkaccess.getStatus().isOrAfter(p_9516_)) {
             return chunkaccess;
          }
       } else {
          chunkaccess = null;
-//         return level.getChunk(p_9514_, p_9515_);
       }
 
       if (!p_9517_) {
          return null;
+      } else if (!this.hasChunk(p_9514_, p_9515_) || !WorldBounds.isValidChunk(p_9514_, p_9515_)) {
+         return new EmptyLevelChunk(this.level, new ChunkPos(WorldBounds.clampChunk(p_9514_), WorldBounds.clampChunk(p_9515_)), this.level.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.PLAINS));
       } else {
          LOGGER.error("Requested chunk : {} {}", p_9514_, p_9515_);
          LOGGER.error("Region bounds : {} {} | {} {}", this.firstPos.x, this.firstPos.z, this.lastPos.x, this.lastPos.z);
@@ -242,8 +247,8 @@ public class WorldGenRegion implements WorldGenLevel {
 	  long i = SectionPos.blockToSectionCoord(p_181031_.getX());
 	  long j = SectionPos.blockToSectionCoord(p_181031_.getZ());
       ChunkPos chunkpos = this.getCenter();
-      long k = Math.abs(chunkpos.x - i);
-      long l = Math.abs(chunkpos.z - j);
+      double k = WorldBounds.distance(chunkpos.x, i);
+      double l = WorldBounds.distance(chunkpos.z, j);
       if (k <= this.writeRadiusCutoff && l <= this.writeRadiusCutoff) {
          if (this.center.isUpgrading()) {
             LevelHeightAccessor levelheightaccessor = this.center.getHeightAccessorForGeneration();

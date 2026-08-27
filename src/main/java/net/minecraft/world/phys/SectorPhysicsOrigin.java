@@ -1,6 +1,7 @@
 package net.minecraft.world.phys;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 
 /** Immutable origin for a single local player-physics operation (not the camera origin). */
 public final class SectorPhysicsOrigin {
@@ -24,9 +25,9 @@ public final class SectorPhysicsOrigin {
    public long originBlockZ() { return this.originBlockZ; }
 
    public Vec3 toLocal(BlockPos blockPosition) {
-      long x = Math.subtractExact(blockPosition.getX(), this.originBlockX);
-      long z = Math.subtractExact(blockPosition.getZ(), this.originBlockZ);
-      return new Vec3((double)x, (double)blockPosition.getY() - this.originBlockY, (double)z);
+      return new Vec3(WorldBounds.signedDifference(blockPosition.getX(), this.originBlockX),
+            (double)blockPosition.getY() - this.originBlockY,
+            WorldBounds.signedDifference(blockPosition.getZ(), this.originBlockZ));
    }
 
    public Vec3 toLocal(SectorVec3 position) {

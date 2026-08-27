@@ -258,6 +258,7 @@ import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -685,6 +686,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
    public void handleLevelChunkWithLight(ClientboundLevelChunkWithLightPacket p_194241_) {
       PacketUtils.ensureRunningOnSameThread(p_194241_, this, this.minecraft);
+      if (!WorldBounds.isValidChunk(p_194241_.getX(), p_194241_.getZ())) return;
       this.updateLevelChunk(p_194241_.getX(), p_194241_.getZ(), p_194241_.getChunkData());
       this.queueLightUpdate(p_194241_.getX(), p_194241_.getZ(), p_194241_.getLightData());
    }
@@ -724,6 +726,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
       PacketUtils.ensureRunningOnSameThread(p_105014_, this, this.minecraft);
       long i = p_105014_.getX();
       long j = p_105014_.getZ();
+      if (!WorldBounds.isValidChunk(i, j)) return;
       ClientChunkCache clientchunkcache = this.level.getChunkSource();
       clientchunkcache.drop(i, j);
       this.queueLightUpdate(p_105014_);
@@ -2095,6 +2098,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
    public void handleLightUpdatePacket(ClientboundLightUpdatePacket p_194243_) {
       PacketUtils.ensureRunningOnSameThread(p_194243_, this, this.minecraft);
+      if (!WorldBounds.isValidChunk(p_194243_.getX(), p_194243_.getZ())) return;
       long i = p_194243_.getX();
       long j = p_194243_.getZ();
       ClientboundLightUpdatePacketData clientboundlightupdatepacketdata = p_194243_.getLightData();
@@ -2144,7 +2148,9 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
    public void handleSetChunkCacheCenter(ClientboundSetChunkCacheCenterPacket p_105080_) {
       PacketUtils.ensureRunningOnSameThread(p_105080_, this, this.minecraft);
-      this.level.getChunkSource().updateViewCenter(p_105080_.getX(), p_105080_.getZ());
+      long x = WorldBounds.clampChunk(p_105080_.getX());
+      long z = WorldBounds.clampChunk(p_105080_.getZ());
+      this.level.getChunkSource().updateViewCenter(x, z);
    }
 
    public void handleBlockChangedAck(ClientboundBlockChangedAckPacket p_233698_) {

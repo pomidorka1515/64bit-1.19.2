@@ -82,6 +82,7 @@ import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.boss.EnderDragonPart;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.ChunkStatus;
@@ -212,27 +213,46 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
    }
 
    public static boolean isChunkInRange(long p_200879_, long p_200880_, long p_200881_, long p_200882_, long p_200883_) {
-	  long i = Math.max(0, Math.abs(p_200879_ - p_200881_) - 1);
-	  long j = Math.max(0, Math.abs(p_200880_ - p_200882_) - 1);
-      long k = Math.max(0, Math.max(i, j) - 1);
-      long l = Math.min(i, j);
-      long i1 = l * l + k * k;
-      long j1 = p_200883_ - 1;
-      long k1 = j1 * j1;
-      return i1 <= k1;
+      if (p_200883_ < 1L) return false;
+      double dx = Math.max(0.0D, WorldBounds.distance(p_200879_, p_200881_) - 1.0D);
+      double dz = Math.max(0.0D, WorldBounds.distance(p_200880_, p_200882_) - 1.0D);
+      double far = Math.max(0.0D, Math.max(dx, dz) - 1.0D);
+      double near = Math.min(dx, dz);
+      double radius = (double)p_200883_ - 1.0D;
+      return near * near + far * far <= radius * radius;
    }
 
    private static boolean isChunkOnRangeBorder(long p_183829_, long p_183830_, long p_183831_, long p_183832_, int p_183833_) {
       if (!isChunkInRange(p_183829_, p_183830_, p_183831_, p_183832_, p_183833_)) {
          return false;
-      } else if (!isChunkInRange(p_183829_ + 1, p_183830_, p_183831_, p_183832_, p_183833_)) {
-         return true;
-      } else if (!isChunkInRange(p_183829_, p_183830_ + 1, p_183831_, p_183832_, p_183833_)) {
-         return true;
-      } else if (!isChunkInRange(p_183829_ - 1, p_183830_, p_183831_, p_183832_, p_183833_)) {
-         return true;
-      } else {
-         return !isChunkInRange(p_183829_, p_183830_ - 1, p_183831_, p_183832_, p_183833_);
+      }
+      Long plusX = WorldBounds.tryAddChunkOffset(p_183829_, 1L);
+      Long plusZ = WorldBounds.tryAddChunkOffset(p_183830_, 1L);
+      Long minusX = WorldBounds.tryAddChunkOffset(p_183829_, -1L);
+      Long minusZ = WorldBounds.tryAddChunkOffset(p_183830_, -1L);
+      return plusX == null || !isChunkInRange(plusX, p_183830_, p_183831_, p_183832_, p_183833_)
+            || plusZ == null || !isChunkInRange(p_183829_, plusZ, p_183831_, p_183832_, p_183833_)
+            || minusX == null || !isChunkInRange(minusX, p_183830_, p_183831_, p_183832_, p_183833_)
+            || minusZ == null || !isChunkInRange(p_183829_, minusZ, p_183831_, p_183832_, p_183833_);
+   }
+
+   /** Visits a small, edge-clipped rectangular chunk range without overflowing. */
+   private static void forEachChunkBox(long centerX1, long centerZ1, long centerX2, long centerZ2,
+                                       long edgeRadius, Consumer<ChunkPos> action) {
+      if (edgeRadius < 0L || !WorldBounds.isValidChunk(centerX1, centerZ1)
+            || !WorldBounds.isValidChunk(centerX2, centerZ2)) {
+         return;
+      }
+      long minX = WorldBounds.addChunkOffset(Math.min(centerX1, centerX2), -edgeRadius);
+      long minZ = WorldBounds.addChunkOffset(Math.min(centerZ1, centerZ2), -edgeRadius);
+      long maxX = WorldBounds.addChunkOffset(Math.max(centerX1, centerX2), edgeRadius);
+      long maxZ = WorldBounds.addChunkOffset(Math.max(centerZ1, centerZ2), edgeRadius);
+      for (long x = minX; ; x = WorldBounds.addChunkOffset(x, 1L)) {
+         for (long z = minZ; ; z = WorldBounds.addChunkOffset(z, 1L)) {
+            action.accept(new ChunkPos(x, z));
+            if (z == maxZ) break;
+         }
+         if (x == maxX) break;
       }
    }
 
@@ -288,7 +308,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
       for(int k = -p_140212_; k <= p_140212_; ++k) {
          for(int l = -p_140212_; l <= p_140212_; ++l) {
             int i1 = Math.max(Math.abs(l), Math.abs(k));
-            final ChunkPos chunkpos = new ChunkPos(i + l, j + k);
+            final ChunkPos chunkpos = new ChunkPos(WorldBounds.addChunkOffset(i, l), WorldBounds.addChunkOffset(j, k));
             ChunkHolder chunkholder = this.getUpdatingChunkIfPresent(chunkpos);
             if (chunkholder == null) {
                return CompletableFuture.completedFuture(Either.right(new ChunkHolder.ChunkLoadingFailure() {
@@ -320,7 +340,9 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
                final int l1 = k1;
                return Either.right(new ChunkHolder.ChunkLoadingFailure() {
                   public String toString() {
-                     return "Unloaded " + new ChunkPos(i + l1 % (p_140212_ * 2 + 1), j + l1 / (p_140212_ * 2 + 1)) + " " + either.right().get();
+                     long diameter = (long)p_140212_ * 2L + 1L;
+                     return "Unloaded " + new ChunkPos(WorldBounds.addChunkOffset(i, l1 % diameter),
+                           WorldBounds.addChunkOffset(j, l1 / diameter)) + " " + either.right().get();
                   }
                });
             }
@@ -1005,14 +1027,11 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
          }
       }
 
-      for(long l = i - this.viewDistance - 1; l <= i + this.viewDistance + 1; ++l) {
-         for(long k = j - this.viewDistance - 1; k <= j + this.viewDistance + 1; ++k) {
-            if (isChunkInRange(l, k, i, j, this.viewDistance)) {
-               ChunkPos chunkpos = new ChunkPos(l, k);
-               this.updateChunkTracking(p_140193_, chunkpos, new MutableObject<>(), !p_140194_, p_140194_);
-            }
+      forEachChunkBox(i, j, i, j, (long)this.viewDistance + 1L, (chunkpos) -> {
+         if (isChunkInRange(chunkpos.x, chunkpos.z, i, j, this.viewDistance)) {
+            this.updateChunkTracking(p_140193_, chunkpos, new MutableObject<>(), !p_140194_, p_140194_);
          }
-      }
+      });
 
    }
 
@@ -1066,35 +1085,25 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
 
       long k = sectionpos.x();
       long l = sectionpos.z();
-      if (Math.abs(k - i2) <= this.viewDistance * 2 && Math.abs(l - j2) <= this.viewDistance * 2) {
-         long l2 = Math.min(i2, k) - this.viewDistance - 1;
-         long j3 = Math.min(j2, l) - this.viewDistance - 1;
-         long k3 = Math.max(i2, k) + this.viewDistance + 1;
-         long l3 = Math.max(j2, l) + this.viewDistance + 1;
-
-         for(long k1 = l2; k1 <= k3; ++k1) {
-            for(long l1 = j3; l1 <= l3; ++l1) {
-               boolean flag5 = isChunkInRange(k1, l1, k, l, this.viewDistance);
-               boolean flag6 = isChunkInRange(k1, l1, i2, j2, this.viewDistance);
-               this.updateChunkTracking(p_140185_, new ChunkPos(k1, l1), new MutableObject<>(), flag5, flag6);
-            }
-         }
+      if (WorldBounds.within(k, i2, (long)this.viewDistance * 2L)
+            && WorldBounds.within(l, j2, (long)this.viewDistance * 2L)) {
+         forEachChunkBox(k, l, i2, j2, (long)this.viewDistance + 1L, (chunkpos) -> {
+            boolean flag5 = isChunkInRange(chunkpos.x, chunkpos.z, k, l, this.viewDistance);
+            boolean flag6 = isChunkInRange(chunkpos.x, chunkpos.z, i2, j2, this.viewDistance);
+            this.updateChunkTracking(p_140185_, chunkpos, new MutableObject<>(), flag5, flag6);
+         });
       } else {
-         for(long i1 = k - this.viewDistance - 1; i1 <= k + this.viewDistance + 1; ++i1) {
-            for(long j1 = l - this.viewDistance - 1; j1 <= l + this.viewDistance + 1; ++j1) {
-               if (isChunkInRange(i1, j1, k, l, this.viewDistance)) {
-                  this.updateChunkTracking(p_140185_, new ChunkPos(i1, j1), new MutableObject<>(), true, false);
-               }
+         forEachChunkBox(k, l, k, l, (long)this.viewDistance + 1L, (chunkpos) -> {
+            if (isChunkInRange(chunkpos.x, chunkpos.z, k, l, this.viewDistance)) {
+               this.updateChunkTracking(p_140185_, chunkpos, new MutableObject<>(), true, false);
             }
-         }
+         });
 
-         for(long k2 = i2 - this.viewDistance - 1; k2 <= i2 + this.viewDistance + 1; ++k2) {
-            for(long i3 = j2 - this.viewDistance - 1; i3 <= j2 + this.viewDistance + 1; ++i3) {
-               if (isChunkInRange(k2, i3, i2, j2, this.viewDistance)) {
-                  this.updateChunkTracking(p_140185_, new ChunkPos(k2, i3), new MutableObject<>(), false, true);
-               }
+         forEachChunkBox(i2, j2, i2, j2, (long)this.viewDistance + 1L, (chunkpos) -> {
+            if (isChunkInRange(chunkpos.x, chunkpos.z, i2, j2, this.viewDistance)) {
+               this.updateChunkTracking(p_140185_, chunkpos, new MutableObject<>(), false, true);
             }
-         }
+         });
       }
 
    }

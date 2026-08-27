@@ -88,6 +88,23 @@ class SectorVec3Test {
    }
 
    @Test
+   void movementStopsAtBothRepresentableEdges() {
+      SectorVec3 max = SectorVec3.fromBlockAndFraction(Long.MAX_VALUE, 0.5D, 0.0D, Long.MAX_VALUE, 0.5D)
+            .add(100.0D, 0.0D, 100.0D);
+      assertEquals(Long.MAX_VALUE, max.blockX());
+      assertEquals(Long.MAX_VALUE, max.blockZ());
+      assertEquals(Math.nextDown(1.0D), max.subX());
+      assertEquals(Math.nextDown(1.0D), max.subZ());
+      SectorVec3 min = SectorVec3.fromBlockAndFraction(Long.MIN_VALUE, 0.5D, 0.0D, Long.MIN_VALUE, 0.5D)
+            .add(-100.0D, 0.0D, -100.0D);
+      assertEquals(Long.MIN_VALUE, min.blockX());
+      assertEquals(Long.MIN_VALUE, min.blockZ());
+      assertEquals(0.0D, min.subX());
+      assertEquals(0.0D, min.subZ());
+      assertEquals(Double.isFinite(max.toApproximateVec3().x), true);
+   }
+
+   @Test
    void preservesYAndConvertsToLocalCoordinates() {
       long huge = 1_000_000_000_000_000_000L;
       SectorVec3 position = SectorVec3.fromBlockAndFraction(huge, 0.25D, 64.75D, -huge, 0.5D);

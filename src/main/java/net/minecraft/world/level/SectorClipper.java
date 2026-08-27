@@ -59,9 +59,13 @@ public final class SectorClipper {
    @Nullable
    private static BlockHitResult clipBlock(BlockGetter level, ClipContext context,
                                            SectorPhysicsOrigin origin, BlockPos localPos) {
-      long blockX = Math.addExact(origin.originBlockX(), localPos.getX());
-      long blockZ = Math.addExact(origin.originBlockZ(), localPos.getZ());
-      int blockY = Math.addExact(origin.originBlockY(), localPos.getY());
+      // The DDA can step just beyond the last representable block when a ray
+      // points out of the world at a long-coordinate edge.  Saturate the
+      // horizontal address instead of allowing arithmetic overflow to crash
+      // the render thread.
+      long blockX = WorldBounds.addBlockOffset(origin.originBlockX(), localPos.getX());
+      long blockZ = WorldBounds.addBlockOffset(origin.originBlockZ(), localPos.getZ());
+      int blockY = origin.originBlockY() + localPos.getY();
       BlockPos worldPos = new BlockPos(blockX, blockY, blockZ);
       BlockState state = level.getBlockState(worldPos);
       FluidState fluid = level.getFluidState(worldPos);

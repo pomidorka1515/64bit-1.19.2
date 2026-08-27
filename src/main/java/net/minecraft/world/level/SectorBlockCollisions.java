@@ -61,8 +61,8 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
       int maxY = exactBox.maxBlockYForCollision();
       long minZ = exactBox.minBlockZForCollision();
       long maxZ = exactBox.maxBlockZForCollision();
-      // SectorAABB has already checked arithmetic at the endpoint boundaries.
-      // Cursor3D is deliberately given long X/Z values, never double bounds.
+      // The outer world-edge block has no representable neighbour. Do not let
+      // Cursor3D's inclusive range arithmetic wrap there.
       this.cursor = new Cursor3D(minX, minY, minZ, maxX, maxY, maxZ);
    }
 
@@ -88,6 +88,7 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
          int blockY = this.cursor.nextY();
          long blockZ = this.cursor.nextZ();
          int type = this.cursor.getNextType();
+         if (!WorldBounds.isValidBlock(blockX, blockZ)) continue;
          if (type == Cursor3D.TYPE_CORNER) {
             continue;
          }
@@ -107,9 +108,9 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
 
          VoxelShape shape = state.getCollisionShape(this.collisionGetter, this.pos, this.context);
          // Exact integer subtraction happens before conversion to local doubles.
-         double localX = (double)Math.subtractExact(blockX, this.origin.originBlockX());
+         double localX = WorldBounds.signedDifference(blockX, this.origin.originBlockX());
          double localY = (double)blockY - (double)this.origin.originBlockY();
-         double localZ = (double)Math.subtractExact(blockZ, this.origin.originBlockZ());
+         double localZ = WorldBounds.signedDifference(blockZ, this.origin.originBlockZ());
          VoxelShape localShape = shape.move(localX, localY, localZ);
 
          if (shape == Shapes.block()

@@ -56,6 +56,7 @@ import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
@@ -613,11 +614,17 @@ public abstract class ChunkGenerator {
       long i1 = chunkpos.getMinBlockZ();
       SectionPos sectionpos = SectionPos.bottomOf(p_223079_);
 
-      for(long j1 = j - 8; j1 <= j + 8; ++j1) {
-         for(long k1 = k - 8; k1 <= k + 8; ++k1) {
-            ChunkPos l1 = new ChunkPos(j1, k1);
+      long firstX = WorldBounds.addChunkOffset(j, -8L);
+      long lastX = WorldBounds.addChunkOffset(j, 8L);
+      long firstZ = WorldBounds.addChunkOffset(k, -8L);
+      long lastZ = WorldBounds.addChunkOffset(k, 8L);
 
-            for(StructureStart structurestart : p_223077_.getChunk(j1, k1).getAllStarts().values()) {
+      for(long j1 = firstX; ; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
+         for(long k1 = firstZ; ; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
+            if (WorldBounds.isValidChunk(j1, k1)) {
+               ChunkPos l1 = new ChunkPos(j1, k1);
+
+               for(StructureStart structurestart : p_223077_.getChunk(j1, k1).getAllStarts().values()) {
                try {
                   if (structurestart.isValid() && structurestart.getBoundingBox().intersects(l, i1, l + 15, i1 + 15)) {
                      p_223078_.addReferenceForStructure(sectionpos, structurestart.getStructure(), l1, p_223079_);
@@ -641,6 +648,13 @@ public abstract class ChunkGenerator {
                   throw new ReportedException(crashreport);
                }
             }
+            }
+            if (k1 == lastZ) {
+               break;
+            }
+         }
+         if (j1 == lastX) {
+            break;
          }
       }
 

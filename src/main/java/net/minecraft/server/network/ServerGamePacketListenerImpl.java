@@ -162,6 +162,7 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CommandBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -392,15 +393,16 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
    }
 
    private static boolean containsInvalidValues(double p_143664_, double p_143665_, double p_143666_, float p_143667_, float p_143668_) {
-      return Double.isNaN(p_143664_) || Double.isNaN(p_143665_) || Double.isNaN(p_143666_) || !Floats.isFinite(p_143668_) || !Floats.isFinite(p_143667_);
+      return !Double.isFinite(p_143664_) || !Double.isFinite(p_143665_) || !Double.isFinite(p_143666_)
+            || !Floats.isFinite(p_143668_) || !Floats.isFinite(p_143667_);
    }
 
    private static double clampHorizontal(double p_143610_) {
-      return p_143610_; // Mth.clamp(p_143610_, -3.0E7D, 3.0E7D)
+      return WorldBounds.clampAbsoluteDouble(p_143610_);
    }
 
    private static double clampVertical(double p_143654_) {
-      return p_143654_; // Mth.clamp(p_143654_, -2.0E7D, 2.0E7D)
+      return WorldBounds.clampVerticalDouble(p_143654_);
    }
 
    public void handleMoveVehicle(ServerboundMoveVehiclePacket p_9876_) {
@@ -546,6 +548,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
          BaseCommandBlock basecommandblock = null;
          CommandBlockEntity commandblockentity = null;
          BlockPos blockpos = p_9911_.getPos();
+         if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ())) return;
          BlockEntity blockentity = this.player.level.getBlockEntity(blockpos);
          if (blockentity instanceof CommandBlockEntity) {
             commandblockentity = (CommandBlockEntity)blockentity;
@@ -859,7 +862,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
    public void handleMovePlayer(ServerboundMovePlayerPacket p_9874_) {
       PacketUtils.ensureRunningOnSameThread(p_9874_, this, this.player.getLevel());
-      if (!p_9874_.hasExactPosition() && containsInvalidValues(p_9874_.getX(0.0D), p_9874_.getY(0.0D), p_9874_.getZ(0.0D), p_9874_.getYRot(0.0F), p_9874_.getXRot(0.0F))) {
+      if (containsInvalidValues(p_9874_.getX(0.0D), p_9874_.getY(0.0D), p_9874_.getZ(0.0D), p_9874_.getYRot(0.0F), p_9874_.getXRot(0.0F))) {
          this.disconnect(Component.translatable("multiplayer.disconnect.invalid_player_movement"));
       } else {
          ServerLevel serverlevel = this.player.getLevel();
@@ -1131,6 +1134,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
    public void handlePlayerAction(ServerboundPlayerActionPacket p_9889_) {
       PacketUtils.ensureRunningOnSameThread(p_9889_, this, this.player.getLevel());
       BlockPos blockpos = p_9889_.getPos();
+      if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ())) return;
       this.player.resetLastActionTime();
       ServerboundPlayerActionPacket.Action serverboundplayeractionpacket$action = p_9889_.getAction();
       switch (serverboundplayeractionpacket$action) {
@@ -1187,6 +1191,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       BlockHitResult blockhitresult = p_9930_.getHitResult();
       Vec3 vec3 = blockhitresult.getLocation();
       BlockPos blockpos = blockhitresult.getBlockPos();
+      if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ())) return;
       Vec3 vec31 = Vec3.atCenterOf(blockpos);
       SectorVec3 exactBlockCenter = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
             (double)blockpos.getY() + 0.5D, blockpos.getZ(), 0.5D);

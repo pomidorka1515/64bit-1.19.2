@@ -13,6 +13,7 @@ import javax.annotation.concurrent.Immutable;
 import net.minecraft.Util;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
@@ -86,7 +87,9 @@ public class BlockPos extends Vec3i {
    }
 
    public BlockPos offset(long p_121973_, int p_121974_, long p_121975_) {
-      return p_121973_ == 0 && p_121974_ == 0 && p_121975_ == 0 ? this : new BlockPos(this.getX() + p_121973_, this.getY() + p_121974_, this.getZ() + p_121975_);
+      return p_121973_ == 0 && p_121974_ == 0 && p_121975_ == 0 ? this : new BlockPos(
+            WorldBounds.addBlockOffset(this.getX(), p_121973_), this.getY() + p_121974_,
+            WorldBounds.addBlockOffset(this.getZ(), p_121975_));
    }
 
    public BlockPos offset(Vec3i p_121956_) {
@@ -154,11 +157,15 @@ public class BlockPos extends Vec3i {
    }
 
    public BlockPos relative(Direction p_121946_) {
-      return new BlockPos(this.getX() + p_121946_.getStepX(), this.getY() + p_121946_.getStepY(), this.getZ() + p_121946_.getStepZ());
+      return new BlockPos(WorldBounds.addBlockOffset(this.getX(), p_121946_.getStepX()),
+            this.getY() + p_121946_.getStepY(), WorldBounds.addBlockOffset(this.getZ(), p_121946_.getStepZ()));
    }
 
    public BlockPos relative(Direction p_121948_, int p_121949_) {
-      return p_121949_ == 0 ? this : new BlockPos(this.getX() + p_121948_.getStepX() * p_121949_, this.getY() + p_121948_.getStepY() * p_121949_, this.getZ() + p_121948_.getStepZ() * p_121949_);
+      return p_121949_ == 0 ? this : new BlockPos(
+            WorldBounds.addBlockOffset(this.getX(), (long)p_121948_.getStepX() * p_121949_),
+            this.getY() + p_121948_.getStepY() * p_121949_,
+            WorldBounds.addBlockOffset(this.getZ(), (long)p_121948_.getStepZ() * p_121949_));
    }
 
    public BlockPos relative(Direction.Axis p_121943_, int p_121944_) {
@@ -168,7 +175,8 @@ public class BlockPos extends Vec3i {
          int i = p_121943_ == Direction.Axis.X ? p_121944_ : 0;
          int j = p_121943_ == Direction.Axis.Y ? p_121944_ : 0;
          int k = p_121943_ == Direction.Axis.Z ? p_121944_ : 0;
-         return new BlockPos(this.getX() + i, this.getY() + j, this.getZ() + k);
+         return new BlockPos(WorldBounds.addBlockOffset(this.getX(), i), this.getY() + j,
+               WorldBounds.addBlockOffset(this.getZ(), k));
       }
    }
 
@@ -440,15 +448,18 @@ public class BlockPos extends Vec3i {
       }
 
       public BlockPos.MutableBlockPos setWithOffset(Vec3i p_122160_, Direction p_122161_) {
-         return this.set(p_122160_.getX() + p_122161_.getStepX(), p_122160_.getY() + p_122161_.getStepY(), p_122160_.getZ() + p_122161_.getStepZ());
+         return this.set(WorldBounds.addBlockOffset(p_122160_.getX(), p_122161_.getStepX()),
+               p_122160_.getY() + p_122161_.getStepY(), WorldBounds.addBlockOffset(p_122160_.getZ(), p_122161_.getStepZ()));
       }
 
       public BlockPos.MutableBlockPos setWithOffset(Vec3i p_122155_, long p_122156_, int p_122157_, long p_122158_) {
-         return this.set(p_122155_.getX() + p_122156_, p_122155_.getY() + p_122157_, p_122155_.getZ() + p_122158_);
+         return this.set(WorldBounds.addBlockOffset(p_122155_.getX(), p_122156_), p_122155_.getY() + p_122157_,
+               WorldBounds.addBlockOffset(p_122155_.getZ(), p_122158_));
       }
 
       public BlockPos.MutableBlockPos setWithOffset(Vec3i p_175307_, Vec3i p_175308_) {
-         return this.set(p_175307_.getX() + p_175308_.getX(), p_175307_.getY() + p_175308_.getY(), p_175307_.getZ() + p_175308_.getZ());
+         return this.set(WorldBounds.addBlockOffset(p_175307_.getX(), p_175308_.getX()),
+               p_175307_.getY() + p_175308_.getY(), WorldBounds.addBlockOffset(p_175307_.getZ(), p_175308_.getZ()));
       }
 
       public BlockPos.MutableBlockPos move(Direction p_122174_) {
@@ -456,15 +467,19 @@ public class BlockPos extends Vec3i {
       }
 
       public BlockPos.MutableBlockPos move(Direction p_122176_, int p_122177_) {
-         return this.set(this.getX() + p_122176_.getStepX() * p_122177_, this.getY() + p_122176_.getStepY() * p_122177_, this.getZ() + p_122176_.getStepZ() * p_122177_);
+         return this.set(WorldBounds.addBlockOffset(this.getX(), (long)p_122176_.getStepX() * p_122177_),
+               this.getY() + p_122176_.getStepY() * p_122177_,
+               WorldBounds.addBlockOffset(this.getZ(), (long)p_122176_.getStepZ() * p_122177_));
       }
 
       public BlockPos.MutableBlockPos move(int p_122185_, int p_122186_, int p_122187_) {
-         return this.set(this.getX() + p_122185_, this.getY() + p_122186_, this.getZ() + p_122187_);
+         return this.set(WorldBounds.addBlockOffset(this.getX(), p_122185_), this.getY() + p_122186_,
+               WorldBounds.addBlockOffset(this.getZ(), p_122187_));
       }
 
       public BlockPos.MutableBlockPos move(Vec3i p_122194_) {
-         return this.set(this.getX() + p_122194_.getX(), this.getY() + p_122194_.getY(), this.getZ() + p_122194_.getZ());
+         return this.set(WorldBounds.addBlockOffset(this.getX(), p_122194_.getX()),
+               this.getY() + p_122194_.getY(), WorldBounds.addBlockOffset(this.getZ(), p_122194_.getZ()));
       }
 
       public BlockPos.MutableBlockPos clamp(Direction.Axis p_122148_, int p_122149_, int p_122150_) {

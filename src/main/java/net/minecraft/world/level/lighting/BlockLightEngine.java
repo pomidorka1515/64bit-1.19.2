@@ -47,7 +47,7 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
       for (Direction direction : DIRECTIONS) {
          BlockPos neighbor = blockPos.relative(direction);
          SectionPos neighborSection = SectionPos.of(neighbor);
-         if (sectionPos.equals(neighborSection) || this.storage.storingLightForSection(neighborSection)) {
+         if (!neighbor.equals(blockPos) && (sectionPos.equals(neighborSection) || this.storage.storingLightForSection(neighborSection))) {
             this.checkNeighbor(blockPos, neighbor, level, decreasing);
          }
       }

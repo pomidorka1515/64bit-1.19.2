@@ -1,6 +1,5 @@
 package net.minecraft.world.level.lighting;
 
-import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
@@ -29,9 +28,7 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
       if (opacity.getValue() >= 15) return 15;
 
       Direction direction = Direction.fromNormal(Long.signum(target.getX() - source.getX()), Integer.signum(target.getY() - source.getY()), Long.signum(target.getZ() - source.getZ()));
-      if (direction == null) {
-         throw new IllegalStateException(String.format(Locale.ROOT, "Light was spread in illegal direction %d, %d, %d", target.getX() - source.getX(), target.getY() - source.getY(), target.getZ() - source.getZ()));
-      }
+      if (direction == null) return level;
 
       BlockState sourceState = this.getStateAndOpacity(source, null);
       VoxelShape sourceShape = this.getShape(sourceState, source, direction);
@@ -55,22 +52,23 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
 
       BlockPos below = blockPos.below(1 + emptySectionsBelow * 16);
       SectionPos belowSection = SectionPos.of(below);
-      if (sectionPos.equals(belowSection) || this.storage.storingLightForSection(belowSection)) this.checkNeighbor(blockPos, below, level, decreasing);
+      if (!below.equals(blockPos) && (sectionPos.equals(belowSection) || this.storage.storingLightForSection(belowSection))) this.checkNeighbor(blockPos, below, level, decreasing);
 
       BlockPos above = blockPos.above();
       SectionPos aboveSection = SectionPos.of(above);
-      if (sectionPos.equals(aboveSection) || this.storage.storingLightForSection(aboveSection)) this.checkNeighbor(blockPos, above, level, decreasing);
+      if (!above.equals(blockPos) && (sectionPos.equals(aboveSection) || this.storage.storingLightForSection(aboveSection))) this.checkNeighbor(blockPos, above, level, decreasing);
 
       for (Direction direction : HORIZONTALS) {
          for (int distance = 0; ; ++distance) {
             BlockPos neighbor = blockPos.offset(direction.getStepX(), -distance, direction.getStepZ());
             SectionPos neighborSection = SectionPos.of(neighbor);
             if (sectionPos.equals(neighborSection)) {
-               this.checkNeighbor(blockPos, neighbor, level, decreasing);
+               if (!neighbor.equals(blockPos)) this.checkNeighbor(blockPos, neighbor, level, decreasing);
                break;
             }
             if (this.storage.storingLightForSection(neighborSection)) {
-               this.checkNeighbor(blockPos.below(distance), neighbor, level, decreasing);
+               BlockPos source = blockPos.below(distance);
+               if (!neighbor.equals(source)) this.checkNeighbor(source, neighbor, level, decreasing);
             }
             if (distance > emptySectionsBelow * 16) break;
          }

@@ -29,6 +29,7 @@ import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.LocalMobCapCalculator;
@@ -112,6 +113,7 @@ public class ServerChunkCache extends ChunkSource {
 
    @Nullable
    public ChunkAccess getChunk(long p_8360_, long p_8361_, ChunkStatus p_8362_, boolean p_8363_) {
+      if (!WorldBounds.isValidChunk(p_8360_, p_8361_)) return null;
       if (Thread.currentThread() != this.mainThread) {
          return CompletableFuture.supplyAsync(() -> {
             return this.getChunk(p_8360_, p_8361_, p_8362_, p_8363_);
@@ -148,7 +150,8 @@ public class ServerChunkCache extends ChunkSource {
    }
 
    @Nullable
-   public LevelChunk getChunkNow(int p_8357_, int p_8358_) {
+   public LevelChunk getChunkNow(long p_8357_, long p_8358_) {
+      if (!WorldBounds.isValidChunk(p_8357_, p_8358_)) return null;
       if (Thread.currentThread() != this.mainThread) {
          return null;
       } else {
@@ -191,6 +194,7 @@ public class ServerChunkCache extends ChunkSource {
    }
 
    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFuture(long p_8432_, long p_8433_, ChunkStatus p_8434_, boolean p_8435_) {
+      if (!WorldBounds.isValidChunk(p_8432_, p_8433_)) return ChunkHolder.UNLOADED_CHUNK_FUTURE;
       boolean flag = Thread.currentThread() == this.mainThread;
       CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture;
       if (flag) {
@@ -232,13 +236,15 @@ public class ServerChunkCache extends ChunkSource {
       return p_8417_ == null || p_8417_.getTicketLevel() > p_8418_;
    }
 
-   public boolean hasChunk(int p_8429_, int p_8430_) {
+   public boolean hasChunk(long p_8429_, long p_8430_) {
+      if (!WorldBounds.isValidChunk(p_8429_, p_8430_)) return false;
       ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(p_8429_, p_8430_));
       int i = 33 + ChunkStatus.getDistance(ChunkStatus.FULL);
       return !this.chunkAbsent(chunkholder, i);
    }
 
    public BlockGetter getChunkForLighting(long p_8454_, long p_8455_) {
+      if (!WorldBounds.isValidChunk(p_8454_, p_8455_)) return null;
       ChunkPos i = new ChunkPos(p_8454_, p_8455_);
       ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
       if (chunkholder == null) {

@@ -196,19 +196,24 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
    /** @deprecated */
    @Deprecated
    default boolean hasChunksAt(long p_151573_, long p_151574_, long p_151575_, long p_151576_) {
-	  long i = SectionPos.blockToSectionCoord(p_151573_);
-	  long j = SectionPos.blockToSectionCoord(p_151575_);
-	  long k = SectionPos.blockToSectionCoord(p_151574_);
-	  long l = SectionPos.blockToSectionCoord(p_151576_);
-
-      for(long i1 = i; i1 <= j; ++i1) {
-         for(long j1 = k; j1 <= l; ++j1) {
-            if (!this.hasChunk(i1, j1)) {
-               return false;
-            }
-         }
+      if (!WorldBounds.isValidBlock(p_151573_, p_151574_) || !WorldBounds.isValidBlock(p_151575_, p_151576_)) {
+         return false;
       }
-
+      long minX = Math.min(p_151573_, p_151575_);
+      long maxX = Math.max(p_151573_, p_151575_);
+      long minZ = Math.min(p_151574_, p_151576_);
+      long maxZ = Math.max(p_151574_, p_151576_);
+      long firstX = SectionPos.blockToSectionCoord(minX);
+      long lastX = SectionPos.blockToSectionCoord(maxX);
+      long firstZ = SectionPos.blockToSectionCoord(minZ);
+      long lastZ = SectionPos.blockToSectionCoord(maxZ);
+      for (long x = firstX; ; x = Math.addExact(x, 1L)) {
+         for (long z = firstZ; ; z = Math.addExact(z, 1L)) {
+            if (!this.hasChunk(x, z)) return false;
+            if (z == lastZ) break;
+         }
+         if (x == lastX) break;
+      }
       return true;
    }
 }

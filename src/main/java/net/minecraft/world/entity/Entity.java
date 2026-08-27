@@ -93,6 +93,7 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.entity.EntityAccess;
@@ -393,7 +394,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    public void setPos(double p_20210_, double p_20211_, double p_20212_) {
       // Legacy absolute-double ingress. Exact internal player movement must use setSectorPositionRaw.
       if (this.usesSectorPhysics()) {
-         this.setSectorPosition(SectorVec3.fromApproximate(p_20210_, p_20211_, p_20212_));
+         this.setSectorPosition(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20210_),
+               WorldBounds.clampVerticalDouble(p_20211_), WorldBounds.clampAbsoluteDouble(p_20212_)));
       } else {
          this.setPosRaw(p_20210_, p_20211_, p_20212_);
          this.setBoundingBox(this.makeBoundingBox());
@@ -670,12 +672,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    /** Exact sector equivalent of LevelReader.containsAnyLiquid. */
    protected final boolean sectorContainsAnyLiquid(SectorAABB exactBox) {
-      for (long x = exactBox.minBlockXForRange(); x < exactBox.maxBlockXExclusive(); x = Math.addExact(x, 1L)) {
+      for (long x = exactBox.minBlockXForRange(); ; x = WorldBounds.addBlockOffset(x, 1L)) {
          for (int y = exactBox.minBlockYForRange(); y < exactBox.maxBlockYExclusive(); ++y) {
-            for (long z = exactBox.minBlockZForRange(); z < exactBox.maxBlockZExclusive(); z = Math.addExact(z, 1L)) {
+            for (long z = exactBox.minBlockZForRange(); ; z = WorldBounds.addBlockOffset(z, 1L)) {
                if (!this.level.getFluidState(new BlockPos(x, y, z)).isEmpty()) return true;
+               if (z == exactBox.maxBlockZForRangeInclusive() || z == Long.MAX_VALUE) break;
             }
          }
+         if (x == exactBox.maxBlockXForRangeInclusive() || x == Long.MAX_VALUE) break;
       }
       return false;
    }
@@ -1246,9 +1250,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       if (this.level.hasChunksAt(blockpos, blockpos1)) {
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-         for(long i = blockpos.getX(); i <= blockpos1.getX(); ++i) {
+         for(long i = blockpos.getX(); ; i = WorldBounds.addBlockOffset(i, 1L)) {
             for(int j = blockpos.getY(); j <= blockpos1.getY(); ++j) {
-               for(long k = blockpos.getZ(); k <= blockpos1.getZ(); ++k) {
+               for(long k = blockpos.getZ(); ; k = WorldBounds.addBlockOffset(k, 1L)) {
                   blockpos$mutableblockpos.set(i, j, k);
                   BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos);
 
@@ -1261,8 +1265,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                      CrashReportCategory.populateBlockDetails(crashreportcategory, this.level, blockpos$mutableblockpos, blockstate);
                      throw new ReportedException(crashreport);
                   }
+                  if (k == blockpos1.getZ() || k == Long.MAX_VALUE) break;
                }
             }
+            if (i == blockpos1.getX() || i == Long.MAX_VALUE) break;
          }
       }
 
@@ -1274,11 +1280,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       // The small inset preserves vanilla's boundary behavior without converting the world X/Z to doubles.
       SectorAABB scan = exact.inflate(-0.001D, -0.001D, -0.001D);
       if (!this.level.hasChunksAt(scan.minBlockXForRange(), scan.minBlockYForRange(), scan.minBlockZForRange(),
-            scan.maxBlockXExclusive(), scan.maxBlockYExclusive(), scan.maxBlockZExclusive())) return;
+            scan.maxBlockXForRangeInclusive(), scan.maxBlockYExclusive(), scan.maxBlockZForRangeInclusive())) return;
       BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-      for (long x = scan.minBlockXForRange(); x < scan.maxBlockXExclusive(); x = Math.addExact(x, 1L)) {
+      for (long x = scan.minBlockXForRange(); ; x = WorldBounds.addBlockOffset(x, 1L)) {
          for (int y = scan.minBlockYForRange(); y < scan.maxBlockYExclusive(); ++y) {
-            for (long z = scan.minBlockZForRange(); z < scan.maxBlockZExclusive(); z = Math.addExact(z, 1L)) {
+            for (long z = scan.minBlockZForRange(); ; z = WorldBounds.addBlockOffset(z, 1L)) {
                pos.set(x, y, z);
                BlockState state = this.level.getBlockState(pos);
                try {
@@ -1290,8 +1296,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                   CrashReportCategory.populateBlockDetails(category, this.level, pos, state);
                   throw new ReportedException(report);
                }
+               if (z == scan.maxBlockZForRangeInclusive() || z == Long.MAX_VALUE) break;
             }
          }
+         if (x == scan.maxBlockXForRangeInclusive() || x == Long.MAX_VALUE) break;
       }
    }
 
@@ -3298,9 +3306,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       Vec3 flow = Vec3.ZERO;
       int flowCount = 0;
       BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-      for (long x = box.minBlockXForRange(); x < box.maxBlockXExclusive(); x = Math.addExact(x, 1L)) {
+      for (long x = box.minBlockXForRange(); ; x = WorldBounds.addBlockOffset(x, 1L)) {
          for (int y = box.minBlockYForRange(); y < box.maxBlockYExclusive(); ++y) {
-            for (long z = box.minBlockZForRange(); z < box.maxBlockZExclusive(); z = Math.addExact(z, 1L)) {
+            for (long z = box.minBlockZForRange(); ; z = WorldBounds.addBlockOffset(z, 1L)) {
                pos.set(x, y, z);
                FluidState state = this.level.getFluidState(pos);
                if (state.is(tag)) {
@@ -3316,8 +3324,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                      }
                   }
                }
+               if (z == box.maxBlockZForRangeInclusive() || z == Long.MAX_VALUE) break;
             }
          }
+         if (x == box.maxBlockXForRangeInclusive() || x == Long.MAX_VALUE) break;
       }
       if (flow.length() > 0.0D) {
          if (flowCount > 0) flow = flow.scale(1.0D / (double)flowCount);
@@ -3336,7 +3346,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       if (this.usesSectorPhysics()) {
          SectorAABB box = this.getSectorBoundingBox().inflate(1.0D, 1.0D, 1.0D);
          return !this.level.hasChunksAt(box.minBlockXForRange(), box.minBlockZForRange(),
-               box.maxBlockXExclusive(), box.maxBlockZExclusive());
+               box.maxBlockXForRangeInclusive(), box.maxBlockZForRangeInclusive());
       }
       AABB aabb = this.getBoundingBox().inflate(1.0D);
       int i = Mth.floor(aabb.minX);
@@ -3493,9 +3503,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       // This is still a legacy approximate absolute-double ingress for sector entities.
       // Exact movement must call setSectorPositionRaw(SectorVec3) directly.
       if (this.usesSectorPhysics()) {
-         this.setSectorPositionRaw(SectorVec3.fromApproximate(p_20344_, p_20345_, p_20346_));
+         this.setSectorPositionRaw(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20344_),
+               WorldBounds.clampVerticalDouble(p_20345_), WorldBounds.clampAbsoluteDouble(p_20346_)));
          return;
       }
+      p_20344_ = WorldBounds.clampAbsoluteDouble(p_20344_);
+      p_20345_ = WorldBounds.clampVerticalDouble(p_20345_);
+      p_20346_ = WorldBounds.clampAbsoluteDouble(p_20346_);
       if (this.position.x != p_20344_ || this.position.y != p_20345_ || this.position.z != p_20346_) {
          this.position = new Vec3(p_20344_, p_20345_, p_20346_);
          long i = Mth.lfloor(p_20344_);

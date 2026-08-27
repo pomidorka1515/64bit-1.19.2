@@ -70,7 +70,9 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
    protected int getStoredLevel(BlockPos p_75796_) {
       SectionPos i = SectionPos.of(p_75796_);
       DataLayer datalayer = this.getDataLayer(i, true);
-      return datalayer.get(SectionPos.sectionRelative(p_75796_.getX()), SectionPos.sectionRelative(p_75796_.getY()), SectionPos.sectionRelative(p_75796_.getZ()));
+      // Unloaded edge sections legitimately have no data layer.  Treat them as
+      // unlit rather than allowing a render/light query to throw an NPE.
+      return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(p_75796_.getX()), SectionPos.sectionRelative(p_75796_.getY()), SectionPos.sectionRelative(p_75796_.getZ()));
    }
 
    protected void setStoredLevel(BlockPos p_75773_, int p_75774_) {

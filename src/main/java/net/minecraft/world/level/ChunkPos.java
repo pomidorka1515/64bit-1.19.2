@@ -9,6 +9,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 
 public class ChunkPos {
+   /** The first and last chunk that can contain a signed-long block coordinate. */
+   public static final long MIN_CHUNK_COORDINATE = WorldBounds.MIN_CHUNK;
+   public static final long MAX_CHUNK_COORDINATE = WorldBounds.MAX_CHUNK;
+
    public static final ChunkPos INVALID_CHUNK_POS = null;
    public static final ChunkPos ZERO = new ChunkPos(0, 0);
    public static final int REGION_SIZE = 32;
@@ -17,26 +21,27 @@ public class ChunkPos {
    public final long z;
 
    public ChunkPos(long p_45582_, long p_45583_) {
-      this.x = p_45582_;
-      this.z = p_45583_;
+      // Neighbor/range code routinely probes one chunk beyond the legal edge.
+      // Clamp the value here so that probing cannot crash the tick thread; the
+      // chunk source performs the separate validity check before it loads data.
+      this.x = WorldBounds.clampChunk(p_45582_);
+      this.z = WorldBounds.clampChunk(p_45583_);
    }
 
    public ChunkPos(BlockPos p_45587_) {
-      this.x = SectionPos.blockToSectionCoord(p_45587_.getX());
-      this.z = SectionPos.blockToSectionCoord(p_45587_.getZ());
+      this(SectionPos.blockToSectionCoord(p_45587_.getX()), SectionPos.blockToSectionCoord(p_45587_.getZ()));
    }
 
    public ChunkPos(long p_45585_) {
-      this.x = (int)p_45585_;
-      this.z = (int)(p_45585_ >> 32);
+      this((int)p_45585_, (int)(p_45585_ >> 32));
    }
 
    public static ChunkPos minFromRegion(long p_220338_, long p_220339_) {
-      return new ChunkPos(p_220338_ << 5, p_220339_ << 5);
+      return new ChunkPos(WorldBounds.regionToChunk(p_220338_, 0L), WorldBounds.regionToChunk(p_220339_, 0L));
    }
 
    public static ChunkPos maxFromRegion(long p_220341_, long p_220342_) {
-      return new ChunkPos((p_220341_ << 5) + 31, (p_220342_ << 5) + 31);
+      return new ChunkPos(WorldBounds.regionToChunk(p_220341_, 31L), WorldBounds.regionToChunk(p_220342_, 31L));
    }
 
    public static int getX(long p_45593_) {
@@ -133,19 +138,34 @@ public class ChunkPos {
    }
 
    public long getChessboardDistance(ChunkPos p_45595_) {
-      return Math.max(Math.abs(this.x - p_45595_.x), Math.abs(this.z - p_45595_.z));
+      return Math.max(distanceLong(this.x, p_45595_.x), distanceLong(this.z, p_45595_.z));
+   }
+
+   private static long distanceLong(long first, long second) {
+      double distance = WorldBounds.distance(first, second);
+      return distance >= Long.MAX_VALUE ? Long.MAX_VALUE : (long)distance;
+   }
+
+   private static long distancePlusOne(long first, long second) {
+      double distance = WorldBounds.distance(first, second);
+      return distance >= (double)Long.MAX_VALUE ? Long.MAX_VALUE : (long)distance + 1L;
+   }
+
+   private static long safeProduct(long first, long second) {
+      if (first <= 0L || second <= 0L) return 0L;
+      return first > Long.MAX_VALUE / second ? Long.MAX_VALUE : first * second;
    }
 
    public static Stream<ChunkPos> rangeClosed(ChunkPos p_45597_, int p_45598_) {
-      return rangeClosed(new ChunkPos(p_45597_.x - p_45598_, p_45597_.z - p_45598_), new ChunkPos(p_45597_.x + p_45598_, p_45597_.z + p_45598_));
+      return rangeClosed(new ChunkPos(WorldBounds.addChunkOffset(p_45597_.x, -(long)p_45598_), WorldBounds.addChunkOffset(p_45597_.z, -(long)p_45598_)), new ChunkPos(WorldBounds.addChunkOffset(p_45597_.x, (long)p_45598_), WorldBounds.addChunkOffset(p_45597_.z, (long)p_45598_)));
    }
 
    public static Stream<ChunkPos> rangeClosed(final ChunkPos p_45600_, final ChunkPos p_45601_) {
-	  long i = Math.abs(p_45600_.x - p_45601_.x) + 1;
-	  long j = Math.abs(p_45600_.z - p_45601_.z) + 1;
+      long i = distancePlusOne(p_45600_.x, p_45601_.x);
+      long j = distancePlusOne(p_45600_.z, p_45601_.z);
       final int k = p_45600_.x < p_45601_.x ? 1 : -1;
       final int l = p_45600_.z < p_45601_.z ? 1 : -1;
-      return StreamSupport.stream(new Spliterators.AbstractSpliterator<ChunkPos>((long)(i * j), 64) {
+      return StreamSupport.stream(new Spliterators.AbstractSpliterator<ChunkPos>(safeProduct(i, j), 64) {
          @Nullable
          private ChunkPos pos;
 
@@ -160,9 +180,9 @@ public class ChunkPos {
                      return false;
                   }
 
-                  this.pos = new ChunkPos(p_45600_.x, j1 + l);
+                  this.pos = new ChunkPos(p_45600_.x, WorldBounds.addChunkOffset(j1, l));
                } else {
-                  this.pos = new ChunkPos(i1 + k, j1);
+                  this.pos = new ChunkPos(WorldBounds.addChunkOffset(i1, k), j1);
                }
             }
 

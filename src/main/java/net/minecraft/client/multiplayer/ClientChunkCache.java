@@ -56,6 +56,7 @@ public class ClientChunkCache extends ChunkSource {
    }
 
    public void drop(long i2, long j) {
+      if (!net.minecraft.world.level.WorldBounds.isValidChunk(i2, j)) return;
       if (this.storage.inRange(i2, j)) {
          int i = this.storage.getIndex(i2, j);
          LevelChunk levelchunk = this.storage.getChunk(i);
@@ -68,6 +69,7 @@ public class ClientChunkCache extends ChunkSource {
 
    @Nullable
    public LevelChunk getChunk(long p_104451_, long p_104452_, ChunkStatus p_104453_, boolean p_104454_) {
+      if (!net.minecraft.world.level.WorldBounds.isValidChunk(p_104451_, p_104452_)) return null;
       if (this.storage.inRange(p_104451_, p_104452_)) {
          LevelChunk levelchunk = this.storage.getChunk(this.storage.getIndex(p_104451_, p_104452_));
          if (isValidChunk(levelchunk, p_104451_, p_104452_)) {
@@ -84,6 +86,7 @@ public class ClientChunkCache extends ChunkSource {
 
    @Nullable
    public LevelChunk replaceWithPacketData(long p_194117_, long p_194118_, FriendlyByteBuf p_194119_, CompoundTag p_194120_, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> p_194121_) {
+      if (!net.minecraft.world.level.WorldBounds.isValidChunk(p_194117_, p_194118_)) return null;
       if (!this.storage.inRange(p_194117_, p_194118_)) {
          LOGGER.warn("Ignoring chunk since it's not in the view range: {}, {}", p_194117_, p_194118_);
          return null;
@@ -193,7 +196,8 @@ public class ClientChunkCache extends ChunkSource {
       }
 
       boolean inRange(long p_104501_, long p_104502_) {
-         return Math.abs(p_104501_ - this.viewCenterX) <= this.chunkRadius && Math.abs(p_104502_ - this.viewCenterZ) <= this.chunkRadius;
+         return net.minecraft.world.level.WorldBounds.within(p_104501_, this.viewCenterX, this.chunkRadius)
+               && net.minecraft.world.level.WorldBounds.within(p_104502_, this.viewCenterZ, this.chunkRadius);
       }
 
       @Nullable

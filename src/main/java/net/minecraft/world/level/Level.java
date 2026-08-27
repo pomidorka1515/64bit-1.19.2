@@ -154,7 +154,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    private static boolean isInWorldBoundsHorizontal(BlockPos p_46458_) {
-      return true;
+      return WorldBounds.isValidBlock(p_46458_.getX(), p_46458_.getZ());
    }
 
    private static boolean isOutsideSpawnableHeight(int p_46725_) {
@@ -171,6 +171,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
    @Nullable
    public ChunkAccess getChunk(long p_46502_, long p_46503_, ChunkStatus p_46504_, boolean p_46505_) {
+      if (!WorldBounds.isValidChunk(p_46502_, p_46503_)) return null;
       ChunkAccess chunkaccess = this.getChunkSource().getChunk(p_46502_, p_46503_, p_46504_, p_46505_);
       if (chunkaccess == null && p_46505_) {
          throw new IllegalStateException("Should always be able to create a chunk!");
@@ -184,12 +185,13 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    public boolean setBlock(BlockPos p_46605_, BlockState p_46606_, int p_46607_, int p_46608_) {
-      if (this.isOutsideBuildHeight(p_46605_)) {
+      if (!WorldBounds.isValidBlock(p_46605_.getX(), p_46605_.getZ()) || this.isOutsideBuildHeight(p_46605_)) {
          return false;
       } else if (!this.isClientSide && this.isDebug()) {
          return false;
       } else {
          LevelChunk levelchunk = this.getChunkAt(p_46605_);
+         if (levelchunk == null) return false;
          Block block = p_46606_.getBlock();
          BlockState blockstate = levelchunk.setBlockState(p_46605_, p_46606_, (p_46607_ & 64) != 0);
          if (blockstate == null) {
@@ -295,8 +297,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
    public int getHeight(Heightmap.Types p_46571_, long p_46572_, long p_46573_) {
       int i;
-      if (this.hasChunk(SectionPos.blockToSectionCoord(p_46572_), SectionPos.blockToSectionCoord(p_46573_))) {
-         i = this.getChunk(SectionPos.blockToSectionCoord(p_46572_), SectionPos.blockToSectionCoord(p_46573_)).getHeight(p_46571_, (int) (p_46572_ & 15), (int) (p_46573_ & 15)) + 1;
+      if (WorldBounds.isValidBlock(p_46572_, p_46573_)
+            && this.hasChunk(SectionPos.blockToSectionCoord(p_46572_), SectionPos.blockToSectionCoord(p_46573_))) {
+         LevelChunk chunk = this.getChunk(SectionPos.blockToSectionCoord(p_46572_), SectionPos.blockToSectionCoord(p_46573_));
+         i = chunk == null ? this.getMinBuildHeight()
+               : chunk.getHeight(p_46571_, (int)(p_46572_ & 15), (int)(p_46573_ & 15)) + 1;
       } else {
          i = this.getMinBuildHeight();
       }
@@ -310,6 +315,9 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    public BlockState getBlockState(BlockPos p_46732_) {
+      if (!WorldBounds.isValidBlock(p_46732_.getX(), p_46732_.getZ())) {
+         return Blocks.VOID_AIR.defaultBlockState();
+      }
       if (this.isOutsideBuildHeight(p_46732_)) {
          return Blocks.VOID_AIR.defaultBlockState();
       }
@@ -332,6 +340,9 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    public FluidState getFluidState(BlockPos p_46671_) {
+      if (!WorldBounds.isValidBlock(p_46671_.getX(), p_46671_.getZ())) {
+         return Fluids.EMPTY.defaultFluidState();
+      }
       if (this.isOutsideBuildHeight(p_46671_)) {
          return Fluids.EMPTY.defaultFluidState();
       }
@@ -461,28 +472,32 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
    @Nullable
    public BlockEntity getBlockEntity(BlockPos p_46716_) {
-      if (this.isOutsideBuildHeight(p_46716_)) {
+      if (this.isOutsideBuildHeight(p_46716_) || !WorldBounds.isValidBlock(p_46716_.getX(), p_46716_.getZ())
+            || !this.isClientSide && Thread.currentThread() != this.thread) {
          return null;
-      } else {
-         return !this.isClientSide && Thread.currentThread() != this.thread ? null : this.getChunkAt(p_46716_).getBlockEntity(p_46716_, LevelChunk.EntityCreationType.IMMEDIATE);
       }
+      LevelChunk chunk = this.getChunkAt(p_46716_);
+      return chunk == null ? null : chunk.getBlockEntity(p_46716_, LevelChunk.EntityCreationType.IMMEDIATE);
    }
 
    public void setBlockEntity(BlockEntity p_151524_) {
       BlockPos blockpos = p_151524_.getBlockPos();
-      if (!this.isOutsideBuildHeight(blockpos)) {
-         this.getChunkAt(blockpos).addAndRegisterBlockEntity(p_151524_);
+      if (!this.isOutsideBuildHeight(blockpos) && WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ())) {
+         LevelChunk chunk = this.getChunkAt(blockpos);
+         if (chunk != null) chunk.addAndRegisterBlockEntity(p_151524_);
       }
    }
 
    public void removeBlockEntity(BlockPos p_46748_) {
-      if (!this.isOutsideBuildHeight(p_46748_)) {
-         this.getChunkAt(p_46748_).removeBlockEntity(p_46748_);
+      if (!this.isOutsideBuildHeight(p_46748_) && WorldBounds.isValidBlock(p_46748_.getX(), p_46748_.getZ())) {
+         LevelChunk chunk = this.getChunkAt(p_46748_);
+         if (chunk != null) chunk.removeBlockEntity(p_46748_);
       }
    }
 
    public boolean isLoaded(BlockPos p_46750_) {
-      return this.isOutsideBuildHeight(p_46750_) ? false : this.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(p_46750_.getX()), SectionPos.blockToSectionCoord(p_46750_.getZ()));
+      return this.isOutsideBuildHeight(p_46750_) || !WorldBounds.isValidBlock(p_46750_.getX(), p_46750_.getZ()) ? false
+            : this.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(p_46750_.getX()), SectionPos.blockToSectionCoord(p_46750_.getZ()));
    }
 
    public boolean loadedAndEntityCanStandOnFace(BlockPos p_46579_, Entity p_46580_, Direction p_46581_) {
@@ -538,7 +553,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
    @Nullable
    public BlockGetter getChunkForCollisions(long p_46711_, long p_46712_) {
-      return this.getChunk(p_46711_, p_46712_, ChunkStatus.FULL, false);
+      return WorldBounds.isValidChunk(p_46711_, p_46712_)
+            ? this.getChunk(p_46711_, p_46712_, ChunkStatus.FULL, false) : null;
    }
 
    public List<Entity> getEntities(@Nullable Entity p_46536_, AABB p_46537_, Predicate<? super Entity> p_46538_) {
@@ -587,7 +603,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
    public void blockEntityChanged(BlockPos p_151544_) {
       if (this.hasChunkAt(p_151544_)) {
-         this.getChunkAt(p_151544_).setUnsaved(true);
+         LevelChunk chunk = this.getChunkAt(p_151544_);
+         if (chunk != null) chunk.setUnsaved(true);
       }
 
    }
@@ -810,7 +827,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
       float f = 0.0F;
       if (this.hasChunkAt(p_46730_)) {
          f = this.getMoonBrightness();
-         i = this.getChunkAt(p_46730_).getInhabitedTime();
+         LevelChunk chunk = this.getChunkAt(p_46730_);
+         if (chunk != null) i = chunk.getInhabitedTime();
       }
 
       return new DifficultyInstance(this.getDifficulty(), this.getDayTime(), i, f);

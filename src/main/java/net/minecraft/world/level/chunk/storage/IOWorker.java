@@ -28,6 +28,7 @@ import net.minecraft.util.Unit;
 import net.minecraft.util.thread.ProcessorMailbox;
 import net.minecraft.util.thread.StrictQueue;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import org.slf4j.Logger;
 
 public class IOWorker implements ChunkScanAccess, AutoCloseable {
@@ -45,8 +46,10 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
    }
 
    public boolean isOldChunkAround(ChunkPos p_223472_, int p_223473_) {
-      ChunkPos chunkpos = new ChunkPos(p_223472_.x - p_223473_, p_223472_.z - p_223473_);
-      ChunkPos chunkpos1 = new ChunkPos(p_223472_.x + p_223473_, p_223472_.z + p_223473_);
+      ChunkPos chunkpos = new ChunkPos(WorldBounds.addChunkOffset(p_223472_.x, -(long)p_223473_),
+            WorldBounds.addChunkOffset(p_223472_.z, -(long)p_223473_));
+      ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(p_223472_.x, (long)p_223473_),
+            WorldBounds.addChunkOffset(p_223472_.z, (long)p_223473_));
 
       for(long i = chunkpos.getRegionX(); i <= chunkpos1.getRegionX(); ++i) {
          for(long j = chunkpos.getRegionZ(); j <= chunkpos1.getRegionZ(); ++j) {

@@ -38,12 +38,12 @@ public class BlockCollisions extends AbstractIterator<VoxelShape> {
       this.collisionGetter = p_186406_;
       this.box = p_186408_;
       this.onlySuffocatingBlocks = p_186409_;
-      long i = Mth.lfloor(p_186408_.minX - 1.0E-7D) - 1;
-      long j = Mth.lfloor(p_186408_.maxX + 1.0E-7D) + 1;
+      long i = WorldBounds.addBlockOffset(Mth.lfloor(p_186408_.minX - 1.0E-7D), -1L);
+      long j = WorldBounds.addBlockOffset(Mth.lfloor(p_186408_.maxX + 1.0E-7D), 1L);
       int k = Mth.floor(p_186408_.minY - 1.0E-7D) - 1;
       int l = Mth.floor(p_186408_.maxY + 1.0E-7D) + 1;
-      long i1 = Mth.lfloor(p_186408_.minZ - 1.0E-7D) - 1;
-      long j1 = Mth.lfloor(p_186408_.maxZ + 1.0E-7D) + 1;
+      long i1 = WorldBounds.addBlockOffset(Mth.lfloor(p_186408_.minZ - 1.0E-7D), -1L);
+      long j1 = WorldBounds.addBlockOffset(Mth.lfloor(p_186408_.maxZ + 1.0E-7D), 1L);
       this.cursor = new Cursor3D(i, k, i1, j, l, j1);
    }
 

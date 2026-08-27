@@ -3,6 +3,7 @@ package net.minecraft.server.level;
 import com.google.common.base.Objects;
 
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.lighting.DynamicGraphMinFixedPoint;
 
 public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
@@ -21,9 +22,13 @@ public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
 
       for(int k = -1; k <= 1; ++k) {
          for(int l = -1; l <= 1; ++l) {
-            ChunkPos i1 = new ChunkPos(i + k, j + l);
-            if (i1 != p_140707_) {
-               this.checkNeighbor(p_140707_, i1, p_140708_, p_140709_);
+            Long x = WorldBounds.tryAddChunkOffset(i, k);
+            Long z = WorldBounds.tryAddChunkOffset(j, l);
+            if (x != null && z != null) {
+               ChunkPos i1 = new ChunkPos(x, z);
+               if (!i1.equals(p_140707_)) {
+                  this.checkNeighbor(p_140707_, i1, p_140708_, p_140709_);
+               }
             }
          }
       }
@@ -38,7 +43,12 @@ public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
 
       for(int l = -1; l <= 1; ++l) {
          for(int i1 = -1; i1 <= 1; ++i1) {
-        	ChunkPos j1 = new ChunkPos(j + l, k + i1);
+            Long x = WorldBounds.tryAddChunkOffset(j, l);
+            Long z = WorldBounds.tryAddChunkOffset(k, i1);
+            if (x == null || z == null) {
+               continue;
+            }
+            ChunkPos j1 = new ChunkPos(x, z);
             if (Objects.equal(j1, p_140711_)) {
                j1 = ChunkPos.INVALID_CHUNK_POS;
             }

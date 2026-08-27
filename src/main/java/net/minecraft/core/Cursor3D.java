@@ -21,10 +21,18 @@ public class Cursor3D {
       this.originX = p_122298_;
       this.originY = p_122299_;
       this.originZ = p_122300_;
-      this.width = p_122301_ - p_122298_ + 1;
-      this.height = p_122302_ - p_122299_ + 1;
-      this.depth = p_122303_ - p_122300_ + 1;
-      this.end = this.width * this.height * this.depth;
+      if (p_122301_ < p_122298_ || p_122302_ < p_122299_ || p_122303_ < p_122300_) {
+         this.width = 0L;
+         this.height = 0;
+         this.depth = 0L;
+         this.end = 0L;
+         return;
+      }
+
+      this.width = Math.addExact(Math.subtractExact(p_122301_, p_122298_), 1L);
+      this.height = Math.addExact(Math.subtractExact(p_122302_, p_122299_), 1);
+      this.depth = Math.addExact(Math.subtractExact(p_122303_, p_122300_), 1L);
+      this.end = Math.multiplyExact(Math.multiplyExact(this.width, this.height), this.depth);
    }
 
    public boolean advance() {
@@ -41,15 +49,15 @@ public class Cursor3D {
    }
 
    public long nextX() {
-      return this.originX + this.x;
+      return Math.addExact(this.originX, this.x);
    }
 
    public int nextY() {
-      return this.originY + this.y;
+      return Math.addExact(this.originY, this.y);
    }
 
    public long nextZ() {
-      return this.originZ + this.z;
+      return Math.addExact(this.originZ, this.z);
    }
 
    public int getNextType() {

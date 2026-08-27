@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.math.BigInteger;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 
 /**
  * An exact X/Z position split into a block coordinate and a local fraction.
@@ -39,14 +40,10 @@ public final class SectorVec3 {
       double fractionZ = finiteFractionOrZero(subZ);
       double normalizedY = Double.isFinite(y) ? y : 0.0D;
 
-      long carryX = (long)Math.floor(fractionX);
-      long carryZ = (long)Math.floor(fractionZ);
-      long normalizedBlockX = saturatingAdd(blockX, carryX);
-      long normalizedBlockZ = saturatingAdd(blockZ, carryZ);
-      double normalizedFractionX = clampFraction(fractionX - (double)carryX);
-      double normalizedFractionZ = clampFraction(fractionZ - (double)carryZ);
-      return new SectorVec3(normalizedBlockX, normalizedFractionX, normalizedY,
-            normalizedBlockZ, normalizedFractionZ);
+      Coordinate normalizedX = normalizeCoordinate(blockX, fractionX);
+      Coordinate normalizedZ = normalizeCoordinate(blockZ, fractionZ);
+      return new SectorVec3(normalizedX.block, normalizedX.fraction, normalizedY,
+            normalizedZ.block, normalizedZ.fraction);
    }
 
    private static double finiteFractionOrZero(double fraction) {
@@ -60,10 +57,33 @@ public final class SectorVec3 {
       return fraction == 0.0D ? 0.0D : fraction;
    }
 
-   private static long saturatingAdd(long value, long amount) {
-      if (amount > 0L && value > Long.MAX_VALUE - amount) return Long.MAX_VALUE;
-      if (amount < 0L && value < Long.MIN_VALUE - amount) return Long.MIN_VALUE;
-      return value + amount;
+   /** A normalized horizontal coordinate, clamped at the two world edges. */
+   private static final class Coordinate {
+      private final long block;
+      private final double fraction;
+
+      private Coordinate(long block, double fraction) {
+         this.block = block;
+         this.fraction = fraction;
+      }
+   }
+
+   private static Coordinate normalizeCoordinate(long block, double fraction) {
+      double carryDouble = Math.floor(fraction);
+      // A hostile packet can contain a finite but enormous fraction. It has no
+      // meaningful long block carry; clamp it to the nearest legal edge rather
+      // than allowing a narrowing conversion to wrap.
+      if (carryDouble < -0x1.0p63) return new Coordinate(Long.MIN_VALUE, 0.0D);
+      if (carryDouble >= 0x1.0p63) return new Coordinate(Long.MAX_VALUE, Math.nextDown(1.0D));
+
+      long carry = (long)carryDouble;
+      if (carry > 0L && block > Long.MAX_VALUE - carry) {
+         return new Coordinate(Long.MAX_VALUE, Math.nextDown(1.0D));
+      }
+      if (carry < 0L && block < Long.MIN_VALUE - carry) {
+         return new Coordinate(Long.MIN_VALUE, 0.0D);
+      }
+      return new Coordinate(block + carry, clampFraction(fraction - carryDouble));
    }
 
    /** Creates an exact split position from decimal text without passing through a double. */
@@ -198,9 +218,11 @@ public final class SectorVec3 {
       requireFinite(dz, "dz");
       double newSubX = this.subX + dx;
       double newSubZ = this.subZ + dz;
+      double newY = this.y + dy;
       requireFinite(newSubX, "normalized x movement");
       requireFinite(newSubZ, "normalized z movement");
-      return fromBlockAndFraction(this.blockX, newSubX, this.y + dy, this.blockZ, newSubZ);
+      requireFinite(newY, "normalized y movement");
+      return fromBlockAndFraction(this.blockX, newSubX, newY, this.blockZ, newSubZ);
    }
 
    public SectorVec3 withY(double y) {
@@ -249,23 +271,32 @@ public final class SectorVec3 {
       if (other == null) {
          throw new NullPointerException("other");
       }
-      long blockDeltaX = Math.subtractExact(this.blockX, other.blockX);
-      long blockDeltaZ = Math.subtractExact(this.blockZ, other.blockZ);
-      return new Vec3((double)blockDeltaX + (this.subX - other.subX), this.y - other.y,
-            (double)blockDeltaZ + (this.subZ - other.subZ));
+      return new Vec3(signedDifference(this.blockX, other.blockX) + (this.subX - other.subX),
+            this.y - other.y, signedDifference(this.blockZ, other.blockZ) + (this.subZ - other.subZ));
    }
 
    /** Converts an exact position to a local physics frame. Integer subtraction precedes conversion to double. */
    public Vec3 toLocal(long originBlockX, int originBlockY, long originBlockZ) {
-      long blockDeltaX = Math.subtractExact(this.blockX, originBlockX);
-      long blockDeltaZ = Math.subtractExact(this.blockZ, originBlockZ);
-      return new Vec3((double)blockDeltaX + this.subX, this.y - (double)originBlockY,
-            (double)blockDeltaZ + this.subZ);
+      return new Vec3(signedDifference(this.blockX, originBlockX) + this.subX,
+            this.y - (double)originBlockY, signedDifference(this.blockZ, originBlockZ) + this.subZ);
    }
 
    /** Lossy conversion for legacy/render/network compatibility only; never use this for exact physics. */
    public Vec3 toApproximateVec3() {
-      return new Vec3((double)this.blockX + this.subX, this.y, (double)this.blockZ + this.subZ);
+      // A double cannot represent Long.MAX_VALUE as a finite value below 2^63.
+      // Keep this compatibility mirror finite and on the legal side of the edge;
+      // exact callers must continue to use this SectorVec3 directly.
+      return new Vec3(approximateCoordinate(this.blockX, this.subX), this.y,
+            approximateCoordinate(this.blockZ, this.subZ));
+   }
+
+   private static double approximateCoordinate(long block, double fraction) {
+      double value = (double)block + fraction;
+      return value >= 0x1.0p63 ? Math.nextDown(0x1.0p63) : value;
+   }
+
+   private static double signedDifference(long value, long origin) {
+      return WorldBounds.signedDifference(value, origin);
    }
 
    public boolean isFinite() {

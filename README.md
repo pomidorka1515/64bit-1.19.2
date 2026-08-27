@@ -10,13 +10,14 @@ If you REALLY want to play:
  - (prob wont work on windows. windows is ass... wait for a release)
 
 
-# Feature tracking (regular people can ignore this)
-- Rewritten light system
-- SectorVec3 coordinate system
-- Villager AI & pathfinding converted into 64-bit
-- Sky renderer fixed to use camera-relative positions & be long-safe
-- Chunk border fog removed
-- Client brand modified
+# TODOs (regular people can ignore this)
+- Make all entities use SectorVec3
+- Make all block entities use SectorVec3
+- Particles
+- Structures crash game at boundary with no logs??
+- Random collision issues at boundary, quicksand like
+- Light update border (black outline) flashing after chunk reload
+- A billion generation issues deadlocking the server thread with also no logs
 
 ## Original mod history & backport status
 ```

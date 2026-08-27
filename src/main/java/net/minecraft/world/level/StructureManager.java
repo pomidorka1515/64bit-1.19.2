@@ -15,8 +15,10 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.StructureAccess;
 import net.minecraft.world.level.levelgen.WorldGenSettings;
@@ -46,7 +48,14 @@ public class StructureManager {
    }
 
    public List<StructureStart> startsForStructure(ChunkPos p_220478_, Predicate<Structure> p_220479_) {
-      Map<Structure, ObjectSet<ChunkPos>> map = this.level.getChunk(p_220478_.x, p_220478_.z, ChunkStatus.STRUCTURE_REFERENCES).getAllReferences();
+      if (!WorldBounds.isValidChunk(p_220478_.x, p_220478_.z)) {
+         return List.of();
+      }
+      ChunkAccess referencesChunk = this.getChunkForStructureQuery(p_220478_.x, p_220478_.z, ChunkStatus.STRUCTURE_REFERENCES);
+      if (referencesChunk == null) {
+         return List.of();
+      }
+      Map<Structure, ObjectSet<ChunkPos>> map = referencesChunk.getAllReferences();
       ImmutableList.Builder<StructureStart> builder = ImmutableList.builder();
 
       for(Entry<Structure, ObjectSet<ChunkPos>> entry : map.entrySet()) {
@@ -60,7 +69,14 @@ public class StructureManager {
    }
 
    public List<StructureStart> startsForStructure(SectionPos p_220505_, Structure p_220506_) {
-      ObjectSet<ChunkPos> longset = this.level.getChunk(p_220505_.x(), p_220505_.z(), ChunkStatus.STRUCTURE_REFERENCES).getReferencesForStructure(p_220506_);
+      if (!WorldBounds.isValidChunk(p_220505_.x(), p_220505_.z())) {
+         return List.of();
+      }
+      ChunkAccess referencesChunk = this.getChunkForStructureQuery(p_220505_.x(), p_220505_.z(), ChunkStatus.STRUCTURE_REFERENCES);
+      if (referencesChunk == null) {
+         return List.of();
+      }
+      ObjectSet<ChunkPos> longset = referencesChunk.getReferencesForStructure(p_220506_);
       ImmutableList.Builder<StructureStart> builder = ImmutableList.builder();
       this.fillStartsForStructure(p_220506_, longset, builder::add);
       return builder.build();
@@ -68,8 +84,15 @@ public class StructureManager {
 
    public void fillStartsForStructure(Structure p_220481_, ObjectSet<ChunkPos> objectSet, Consumer<StructureStart> p_220483_) {
       for(ChunkPos i : objectSet) {
+         if (!WorldBounds.isValidChunk(i.x, i.z)) {
+            continue;
+         }
          SectionPos sectionpos = SectionPos.of(i, this.level.getMinSection());
-         StructureStart structurestart = this.getStartForStructure(sectionpos, p_220481_, this.level.getChunk(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_STARTS));
+         ChunkAccess startsChunk = this.getChunkForStructureQuery(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_STARTS);
+         if (startsChunk == null) {
+            continue;
+         }
+         StructureStart structurestart = this.getStartForStructure(sectionpos, p_220481_, startsChunk);
          if (structurestart != null && structurestart.isValid()) {
             p_220483_.accept(structurestart);
          }
@@ -88,6 +111,30 @@ public class StructureManager {
 
    public void addReferenceForStructure(SectionPos p_220508_, Structure p_220509_, ChunkPos p_220510_, StructureAccess p_220511_) {
       p_220511_.addReferenceForStructure(p_220509_, p_220510_);
+   }
+
+   /**
+    * Reads structure metadata without ever synchronously loading a chunk during
+    * a normal server tick.  Location/advancement predicates run from the tick
+    * thread, so forcing STRUCTURE_REFERENCES here can wait for generation of a
+    * chunk which is outside the player's loaded area.  A world-generation
+    * region still has to use its bounded cache and may load from that cache.
+    */
+   @Nullable
+   private ChunkAccess getChunkForStructureQuery(long chunkX, long chunkZ, ChunkStatus status) {
+      if (!WorldBounds.isValidChunk(chunkX, chunkZ)) {
+         return null;
+      }
+      if (this.level instanceof ServerLevel serverLevel) {
+         return serverLevel.getChunkSource().getChunkNow(chunkX, chunkZ, status);
+      }
+      if (this.level instanceof WorldGenRegion region) {
+         // WorldGenRegion is a bounded, already-scheduled generation window;
+         // retain its normal status guarantee without touching the global
+         // server chunk cache.
+         return region.getChunk(chunkX, chunkZ, status, true);
+      }
+      return this.level.getChunk(chunkX, chunkZ, status, true);
    }
 
    public boolean shouldGenerateStructures() {
@@ -147,12 +194,20 @@ public class StructureManager {
 
    public boolean hasAnyStructureAt(BlockPos p_220487_) {
       SectionPos sectionpos = SectionPos.of(p_220487_);
-      return this.level.getChunk(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_REFERENCES).hasAnyStructureReferences();
+      if (!WorldBounds.isValidChunk(sectionpos.x(), sectionpos.z())) {
+         return false;
+      }
+      ChunkAccess referencesChunk = this.getChunkForStructureQuery(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_REFERENCES);
+      return referencesChunk != null && referencesChunk.hasAnyStructureReferences();
    }
 
    public Map<Structure, ObjectSet<ChunkPos>> getAllStructuresAt(BlockPos p_220523_) {
       SectionPos sectionpos = SectionPos.of(p_220523_);
-      return this.level.getChunk(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_REFERENCES).getAllReferences();
+      if (!WorldBounds.isValidChunk(sectionpos.x(), sectionpos.z())) {
+         return Map.of();
+      }
+      ChunkAccess referencesChunk = this.getChunkForStructureQuery(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_REFERENCES);
+      return referencesChunk == null ? Map.of() : referencesChunk.getAllReferences();
    }
 
    public StructureCheckResult checkStructurePresence(ChunkPos p_220474_, Structure p_220475_, boolean p_220476_) {

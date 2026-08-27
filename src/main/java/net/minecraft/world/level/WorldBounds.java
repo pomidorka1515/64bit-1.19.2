@@ -24,7 +24,7 @@ public final class WorldBounds {
 
    /** True for a block coordinate that is representable in the world model. */
    public static boolean isValidBlock(long coordinate) {
-      return true;
+      return coordinate >= MIN_BLOCK && coordinate <= MAX_BLOCK;
    }
 
    /** Both signed-long horizontal block coordinates are representable. */

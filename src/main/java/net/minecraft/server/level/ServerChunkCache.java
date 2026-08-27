@@ -151,40 +151,46 @@ public class ServerChunkCache extends ChunkSource {
 
    @Nullable
    public LevelChunk getChunkNow(long p_8357_, long p_8358_) {
-      if (!WorldBounds.isValidChunk(p_8357_, p_8358_)) return null;
-      if (Thread.currentThread() != this.mainThread) {
+      ChunkAccess chunkaccess = this.getChunkNow(p_8357_, p_8358_, ChunkStatus.FULL);
+      return chunkaccess instanceof LevelChunk ? (LevelChunk)chunkaccess : null;
+   }
+
+   /**
+    * Returns a chunk at the requested status only when it is already available.
+    * Unlike getChunk(), this method never adds a ticket, schedules generation,
+    * or waits on the server thread.  This is required by read-only predicates
+    * such as advancement structure checks.
+    */
+   @Nullable
+   public ChunkAccess getChunkNow(long p_8357_, long p_8358_, ChunkStatus status) {
+      if (!WorldBounds.isValidChunk(p_8357_, p_8358_) || Thread.currentThread() != this.mainThread) {
          return null;
-      } else {
-         this.level.getProfiler().incrementCounter("getChunkNow");
-         ChunkPos i = new ChunkPos(p_8357_, p_8358_);
+      }
 
-         for(int j = 0; j < 4; ++j) {
-            if (i.equals(this.lastChunkPos[j]) && this.lastChunkStatus[j] == ChunkStatus.FULL) {
-               ChunkAccess chunkaccess = this.lastChunk[j];
-               return chunkaccess instanceof LevelChunk ? (LevelChunk)chunkaccess : null;
-            }
-         }
-
-         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
-         if (chunkholder == null) {
-            return null;
-         } else {
-            Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure> either = chunkholder.getFutureIfPresent(ChunkStatus.FULL).getNow((Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>)null);
-            if (either == null) {
-               return null;
-            } else {
-               ChunkAccess chunkaccess1 = either.left().orElse((ChunkAccess)null);
-               if (chunkaccess1 != null) {
-                  this.storeInCache(i, chunkaccess1, ChunkStatus.FULL);
-                  if (chunkaccess1 instanceof LevelChunk) {
-                     return (LevelChunk)chunkaccess1;
-                  }
-               }
-
-               return null;
-            }
+      this.level.getProfiler().incrementCounter("getChunkNow");
+      ChunkPos chunkPos = new ChunkPos(p_8357_, p_8358_);
+      for (int i = 0; i < 4; ++i) {
+         if (chunkPos.equals(this.lastChunkPos[i]) && this.lastChunkStatus[i] == status) {
+            return this.lastChunk[i];
          }
       }
+
+      ChunkHolder chunkHolder = this.getVisibleChunkIfPresent(chunkPos);
+      if (chunkHolder == null) {
+         return null;
+      }
+
+      Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure> either =
+            chunkHolder.getFutureIfPresent(status).getNow(null);
+      if (either == null) {
+         return null;
+      }
+
+      ChunkAccess chunk = either.left().orElse(null);
+      if (chunk != null) {
+         this.storeInCache(chunkPos, chunk, status);
+      }
+      return chunk;
    }
 
    private void clearCache() {

@@ -172,6 +172,9 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    @Nullable
    public ChunkAccess getChunk(long p_46502_, long p_46503_, ChunkStatus p_46504_, boolean p_46505_) {
       if (!WorldBounds.isValidChunk(p_46502_, p_46503_)) return null;
+      if (!p_46505_ && this instanceof ServerLevel serverLevel) {
+         return serverLevel.getChunkSource().getChunkNow(p_46502_, p_46503_);
+      }
       ChunkAccess chunkaccess = this.getChunkSource().getChunk(p_46502_, p_46503_, p_46504_, p_46505_);
       if (chunkaccess == null && p_46505_) {
          throw new IllegalStateException("Should always be able to create a chunk!");
@@ -553,8 +556,13 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
    @Nullable
    public BlockGetter getChunkForCollisions(long p_46711_, long p_46712_) {
-      return WorldBounds.isValidChunk(p_46711_, p_46712_)
-            ? this.getChunk(p_46711_, p_46712_, ChunkStatus.FULL, false) : null;
+      if (!WorldBounds.isValidChunk(p_46711_, p_46712_)) {
+         return null;
+      }
+      if (this instanceof ServerLevel serverLevel) {
+         return serverLevel.getChunkSource().getChunkNow(p_46711_, p_46712_);
+      }
+      return this.getChunk(p_46711_, p_46712_, ChunkStatus.FULL, false);
    }
 
    public List<Entity> getEntities(@Nullable Entity p_46536_, AABB p_46537_, Predicate<? super Entity> p_46538_) {

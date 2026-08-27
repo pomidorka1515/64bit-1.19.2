@@ -51,7 +51,12 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
    }
 
    default Holder<Biome> getNoiseBiome(long p_204163_, int p_204164_, long p_204165_) {
-      ChunkAccess chunkaccess = this.getChunk(QuartPos.toSection(p_204163_), QuartPos.toSection(p_204165_), ChunkStatus.BIOMES, false);
+      long sectionX = QuartPos.toSection(p_204163_);
+      long sectionZ = QuartPos.toSection(p_204165_);
+      if (!WorldBounds.isValidChunk(sectionX, sectionZ)) {
+         return this.getUncachedNoiseBiome(p_204163_, p_204164_, p_204165_);
+      }
+      ChunkAccess chunkaccess = this.getChunk(sectionX, sectionZ, ChunkStatus.BIOMES, false);
       return chunkaccess != null ? chunkaccess.getNoiseBiome(p_204163_, p_204164_, p_204165_) : this.getUncachedNoiseBiome(p_204163_, p_204164_, p_204165_);
    }
 

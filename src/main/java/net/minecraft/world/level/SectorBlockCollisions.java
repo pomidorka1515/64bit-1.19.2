@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.core.SectionPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
@@ -75,7 +76,14 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
          return this.cachedBlockGetter;
       }
 
-      BlockGetter getter = this.collisionGetter.getChunkForCollisions(chunkX, chunkZ);
+      BlockGetter getter;
+      if (!WorldBounds.isValidChunk(chunkX, chunkZ)) {
+         getter = null;
+      } else if (this.collisionGetter instanceof ServerLevel serverLevel) {
+         getter = serverLevel.getChunkSource().getChunkNow(chunkX, chunkZ);
+      } else {
+         getter = this.collisionGetter.getChunkForCollisions(chunkX, chunkZ);
+      }
       this.cachedBlockGetter = getter;
       this.cachedBlockGetterPos = chunkPos;
       return getter;

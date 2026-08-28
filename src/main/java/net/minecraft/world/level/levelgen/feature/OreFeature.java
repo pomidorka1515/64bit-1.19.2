@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
@@ -27,24 +28,32 @@ public class OreFeature extends Feature<OreConfiguration> {
       float f = randomsource.nextFloat() * (float)Math.PI;
       float f1 = (float)oreconfiguration.size / 8.0F;
       int i = Mth.ceil(((float)oreconfiguration.size / 16.0F * 2.0F + 1.0F) / 2.0F);
-      double d0 = (double)blockpos.getX() + Math.sin((double)f) * (double)f1;
-      double d1 = (double)blockpos.getX() - Math.sin((double)f) * (double)f1;
-      double d2 = (double)blockpos.getZ() + Math.cos((double)f) * (double)f1;
-      double d3 = (double)blockpos.getZ() - Math.cos((double)f) * (double)f1;
+      double d0 = WorldBounds.clampAbsoluteDouble((double)blockpos.getX() + Math.sin((double)f) * (double)f1);
+      double d1 = WorldBounds.clampAbsoluteDouble((double)blockpos.getX() - Math.sin((double)f) * (double)f1);
+      double d2 = WorldBounds.clampAbsoluteDouble((double)blockpos.getZ() + Math.cos((double)f) * (double)f1);
+      double d3 = WorldBounds.clampAbsoluteDouble((double)blockpos.getZ() - Math.cos((double)f) * (double)f1);
       int j = 2;
       double d4 = (double)(blockpos.getY() + randomsource.nextInt(3) - 2);
       double d5 = (double)(blockpos.getY() + randomsource.nextInt(3) - 2);
-      long k = blockpos.getX() - Mth.ceil(f1) - i;
+      long k = WorldBounds.addBlockOffset(blockpos.getX(), -(long)Mth.ceil(f1) - i);
       int l = blockpos.getY() - 2 - i;
-      long i1 = blockpos.getZ() - Mth.ceil(f1) - i;
+      long i1 = WorldBounds.addBlockOffset(blockpos.getZ(), -(long)Mth.ceil(f1) - i);
       int j1 = 2 * (Mth.ceil(f1) + i);
       int k1 = 2 * (2 + i);
 
-      for(long l1 = k; l1 <= k + j1; ++l1) {
-         for(long i2 = i1; i2 <= i1 + j1; ++i2) {
+      long maxX = WorldBounds.addBlockOffset(k, j1);
+      long maxZ = WorldBounds.addBlockOffset(i1, j1);
+      for(long l1 = k; ; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
+         for(long i2 = i1; ; i2 = WorldBounds.addBlockOffset(i2, 1L)) {
             if (l <= worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, l1, i2)) {
                return this.doPlace(worldgenlevel, randomsource, oreconfiguration, d0, d1, d2, d3, d4, d5, k, l, i1, j1, k1);
             }
+            if (i2 == maxZ) {
+               break;
+            }
+         }
+         if (l1 == maxX) {
+            break;
          }
       }
 
@@ -100,23 +109,23 @@ public class OreFeature extends Feature<OreConfiguration> {
                double d11 = adouble[j4 * 4 + 0];
                double d13 = adouble[j4 * 4 + 1];
                double d15 = adouble[j4 * 4 + 2];
-               long k4 = Math.max(Mth.floor(d11 - d9), p_225181_);
+               long k4 = Math.max(safeFloor(d11 - d9), p_225181_);
                int l = Math.max(Mth.floor(d13 - d9), p_225182_);
-               long i1 = Math.max(Mth.floor(d15 - d9), p_225183_);
-               long j1 = Math.max(Mth.floor(d11 + d9), k4);
+               long i1 = Math.max(safeFloor(d15 - d9), p_225183_);
+               long j1 = Math.max(safeFloor(d11 + d9), k4);
                int k1 = Math.max(Mth.floor(d13 + d9), l);
-               long l1 = Math.max(Mth.floor(d15 + d9), i1);
+               long l1 = Math.max(safeFloor(d15 + d9), i1);
 
-               for(long i2 = k4; i2 <= j1; ++i2) {
+               for(long i2 = k4; ; i2 = WorldBounds.addBlockOffset(i2, 1L)) {
                   double d5 = ((double)i2 + 0.5D - d11) / d9;
                   if (d5 * d5 < 1.0D) {
                      for(int j2 = l; j2 <= k1; ++j2) {
                         double d6 = ((double)j2 + 0.5D - d13) / d9;
                         if (d5 * d5 + d6 * d6 < 1.0D) {
-                           for(long k2 = i1; k2 <= l1; ++k2) {
+                           for(long k2 = i1; ; k2 = WorldBounds.addBlockOffset(k2, 1L)) {
                               double d7 = ((double)k2 + 0.5D - d15) / d9;
                               if (d5 * d5 + d6 * d6 + d7 * d7 < 1.0D && !p_225172_.isOutsideBuildHeight(j2)) {
-                                 long l2 = i2 - p_225181_ + (j2 - p_225182_) * p_225184_ + (k2 - p_225183_) * p_225184_ * p_225185_;
+                                 long l2 = (long)WorldBounds.signedDifference(i2, p_225181_) + (j2 - p_225182_) * p_225184_ + (long)WorldBounds.signedDifference(k2, p_225183_) * p_225184_ * p_225185_;
                                  if (!bitset.get((int) l2)) {
                                     bitset.set((int) l2);
                                     blockpos$mutableblockpos.set(i2, j2, k2);
@@ -139,9 +148,15 @@ public class OreFeature extends Feature<OreConfiguration> {
                                     }
                                  }
                               }
+                              if (k2 == l1) {
+                                 break;
+                              }
                            }
                         }
                      }
+                  }
+                  if (i2 == j1) {
+                     break;
                   }
                }
             }
@@ -158,6 +173,10 @@ public class OreFeature extends Feature<OreConfiguration> {
 
       bulksectionaccess.close();
       return i > 0;
+   }
+
+   private static long safeFloor(double coordinate) {
+      return Mth.lfloor(WorldBounds.clampAbsoluteDouble(coordinate));
    }
 
    public static boolean canPlaceOre(BlockState p_225187_, Function<BlockPos, BlockState> p_225188_, RandomSource p_225189_, OreConfiguration p_225190_, OreConfiguration.TargetBlockState p_225191_, BlockPos.MutableBlockPos p_225192_) {

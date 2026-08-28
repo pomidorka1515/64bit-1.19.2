@@ -40,13 +40,16 @@ public class Heightmap {
 
    public static void primeHeightmaps(ChunkAccess p_64257_, Set<Heightmap.Types> p_64258_) {
       int i = p_64258_.size();
-      ObjectList<Heightmap> objectlist = new ObjectArrayList<>(i);
-      ObjectListIterator<Heightmap> objectlistiterator = objectlist.iterator();
       int j = p_64257_.getHighestSectionPosition() + 16;
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
       for(int k = 0; k < 16; ++k) {
          for(int l = 0; l < 16; ++l) {
+            // The unresolved heightmaps belong to this column only.  Keeping
+            // the list outside this loop makes an unresolved entry from every
+            // previous column accumulate and turns a normal prime into a very
+            // expensive scan (especially when a heightmap type is missing).
+            ObjectList<Heightmap> objectlist = new ObjectArrayList<>(i);
             for(Heightmap.Types heightmap$types : p_64258_) {
                objectlist.add(p_64257_.getOrCreateHeightmapUnprimed(heightmap$types));
             }
@@ -55,6 +58,7 @@ public class Heightmap {
                blockpos$mutableblockpos.set(k, i1, l);
                BlockState blockstate = p_64257_.getBlockState(blockpos$mutableblockpos);
                if (!blockstate.is(Blocks.AIR)) {
+                  ObjectListIterator<Heightmap> objectlistiterator = objectlist.iterator();
                   while(objectlistiterator.hasNext()) {
                      Heightmap heightmap = objectlistiterator.next();
                      if (heightmap.isOpaque.test(blockstate)) {
@@ -66,8 +70,6 @@ public class Heightmap {
                   if (objectlist.isEmpty()) {
                      break;
                   }
-
-                  objectlistiterator.back(i);
                }
             }
          }

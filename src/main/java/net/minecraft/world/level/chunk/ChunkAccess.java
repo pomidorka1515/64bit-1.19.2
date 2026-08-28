@@ -174,11 +174,14 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
             LOGGER.error("Unprimed heightmap: " + p_62080_ + " " + p_62081_ + " " + p_62082_);
          }
 
-         Heightmap.primeHeightmaps(this, EnumSet.of(p_62080_));
-         heightmap = this.heightmaps.get(p_62080_);
+         // Heightmaps are primed by the chunk status pipeline.  Do not scan
+         // the chunk synchronously here: this method is also called while
+         // features are being placed, and a missing map otherwise turns a
+         // height query into a full chunk scan for every ore attempt.
+         if (heightmap == null) {
+            return 0;
+         }
       }
-      
-      if(heightmap == null) return 0;
 
       return heightmap.getFirstAvailable((int) p_62081_ & 15, (int) p_62082_ & 15) - 1;
    }

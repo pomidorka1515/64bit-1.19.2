@@ -71,7 +71,11 @@ patcher {
     mcVersion = minecraft_version
 }
 
+def buildCommit = System.getenv('GIT_COMMIT') ?: 'dev'
+
 jar {
+    archiveFileName = "${buildCommit}.jar"
+
     configurations.shade.each { dep ->
         from(project.zipTree(dep)) {
             exclude 'META-INF', 'META-INF/**'

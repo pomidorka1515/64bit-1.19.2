@@ -22,6 +22,60 @@ public final class WorldBounds {
       return Math.max(MIN_CHUNK, Math.min(MAX_CHUNK, chunk));
    }
 
+   /** Converts a chunk coordinate to its first block without overflowing. */
+   public static long chunkToBlock(long chunk) {
+      return clampChunk(chunk) << 4;
+   }
+
+   /** Converts an X/Z block coordinate to a finite noise input. */
+   public static double noiseCoordinate(long coordinate) {
+      return clampAbsoluteDouble((double)coordinate);
+   }
+
+   /** Scales an X/Z coordinate without allowing infinity into a noise sampler. */
+   public static double scaledNoiseCoordinate(long coordinate, double scale) {
+      double result = (double)coordinate * scale;
+      if (Double.isNaN(result)) return 0.0D;
+      if (!Double.isFinite(result)) return result < 0.0D ? -0x1.0p63 : Math.nextDown(0x1.0p63);
+      return clampAbsoluteDouble(result);
+   }
+
+   /** Clamps an inclusive Y coordinate to a build-height interval. */
+   public static int clampBuildHeight(int coordinate, int minY, int maxYExclusive) {
+      if (maxYExclusive <= minY) return minY;
+      return Math.max(minY, Math.min(maxYExclusive - 1, coordinate));
+   }
+
+   /** Keeps a surface depth inside the generated column's finite range. */
+   public static int clampSurfaceDepth(int depth, int generationDepth) {
+      int limit = Math.max(0, generationDepth);
+      return Math.max(-limit, Math.min(limit, depth));
+   }
+
+   /** Saturating addition for values used by vertical rule expressions. */
+   public static int addSaturated(int first, int second) {
+      long result = (long)first + second;
+      return result < Integer.MIN_VALUE ? Integer.MIN_VALUE : result > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)result;
+   }
+
+   /** Saturating multiplication for values used by vertical rule expressions. */
+   public static int multiplySaturated(int first, int second) {
+      long result = (long)first * second;
+      return result < Integer.MIN_VALUE ? Integer.MIN_VALUE : result > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)result;
+   }
+
+   /**
+    * Noise is expected to be normalized.  Far-away coordinates can make the
+    * legacy noise implementation produce very large values, so do not allow
+    * those values to enter surface arithmetic.
+    */
+   public static double clampNoise(double value) {
+      if (Double.isNaN(value)) return 0.0D;
+      if (value <= -1.0D) return -1.0D;
+      if (value >= 1.0D) return 1.0D;
+      return value;
+   }
+
    /** True for a block coordinate that is representable in the world model. */
    public static boolean isValidBlock(long coordinate) {
       return coordinate >= MIN_BLOCK && coordinate <= MAX_BLOCK;

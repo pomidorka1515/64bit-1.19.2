@@ -21,6 +21,7 @@ import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -291,7 +292,7 @@ public class SurfaceRules {
          ++this.lastUpdateY;
          this.blockX = p_189570_;
          this.blockZ = p_189571_;
-         this.surfaceDepth = this.system.getSurfaceDepth(p_189570_, p_189571_);
+         this.surfaceDepth = WorldBounds.clampSurfaceDepth(this.system.getSurfaceDepth(p_189570_, p_189571_), this.context.getGenDepth());
       }
 
       protected void updateY(int p_189577_, int p_189578_, int p_189579_, long i, int p_189581_, long k) {
@@ -301,8 +302,8 @@ public class SurfaceRules {
          });
          this.blockY = p_189581_;
          this.waterHeight = p_189579_;
-         this.stoneDepthBelow = p_189578_;
-         this.stoneDepthAbove = p_189577_;
+         this.stoneDepthBelow = Math.max(0, p_189578_);
+         this.stoneDepthAbove = Math.max(0, p_189577_);
       }
 
       protected double getSurfaceSecondary() {
@@ -319,7 +320,13 @@ public class SurfaceRules {
       }
 
       private static long surfaceCellToBlockCoord(long p_198283_) {
-         return p_198283_ << 4;
+         return WorldBounds.chunkToBlock(p_198283_);
+      }
+
+      private int clampSurfaceLevel(int level) {
+         int minY = this.context.getMinGenY();
+         int maxY = WorldBounds.addSaturated(minY, this.context.getGenDepth());
+         return WorldBounds.clampBuildHeight(level, minY, maxY);
       }
 
       protected int getMinSurfaceLevel() {
@@ -328,16 +335,18 @@ public class SurfaceRules {
             long i = blockCoordToSurfaceCell(this.blockX);
             long j = blockCoordToSurfaceCell(this.blockZ);
             ChunkPos k = new ChunkPos(i, j);
-            if (k.equals(lastPreliminarySurfaceCellOrigin)) {
+            if (!k.equals(lastPreliminarySurfaceCellOrigin)) {
                this.lastPreliminarySurfaceCellOrigin = k;
                this.preliminarySurfaceCache[0] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(j));
-               this.preliminarySurfaceCache[1] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i + 1), surfaceCellToBlockCoord(j));
-               this.preliminarySurfaceCache[2] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(j + 1));
-               this.preliminarySurfaceCache[3] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i + 1), surfaceCellToBlockCoord(j + 1));
+               this.preliminarySurfaceCache[1] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(WorldBounds.addChunkOffset(i, 1L)), surfaceCellToBlockCoord(j));
+               this.preliminarySurfaceCache[2] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(WorldBounds.addChunkOffset(j, 1L)));
+               this.preliminarySurfaceCache[3] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(WorldBounds.addChunkOffset(i, 1L)), surfaceCellToBlockCoord(WorldBounds.addChunkOffset(j, 1L)));
             }
 
-            int l = Mth.floor(Mth.lerp2((double)((float)(this.blockX & 15) / 16.0F), (double)((float)(this.blockZ & 15) / 16.0F), (double)this.preliminarySurfaceCache[0], (double)this.preliminarySurfaceCache[1], (double)this.preliminarySurfaceCache[2], (double)this.preliminarySurfaceCache[3]));
-            this.minSurfaceLevel = l + this.surfaceDepth - 8;
+            double interpolatedLevel = Mth.lerp2((double)((float)(this.blockX & 15) / 16.0F), (double)((float)(this.blockZ & 15) / 16.0F), (double)this.preliminarySurfaceCache[0], (double)this.preliminarySurfaceCache[1], (double)this.preliminarySurfaceCache[2], (double)this.preliminarySurfaceCache[3]);
+            int l = Double.isFinite(interpolatedLevel) ? Mth.floor(interpolatedLevel) : this.context.getMinGenY();
+            this.minSurfaceLevel = WorldBounds.addSaturated(WorldBounds.addSaturated(l, this.surfaceDepth), -8);
+            this.minSurfaceLevel = clampSurfaceLevel(this.minSurfaceLevel);
          }
 
          return this.minSurfaceLevel;
@@ -478,8 +487,10 @@ public class SurfaceRules {
             }
 
             protected boolean compute() {
-               double d0 = normalnoise.getValue((double)this.context.blockX, 0.0D, (double)this.context.blockZ);
-               return d0 >= NoiseThresholdConditionSource.this.minThreshold && d0 <= NoiseThresholdConditionSource.this.maxThreshold;
+               double d0 = WorldBounds.clampNoise(normalnoise.getValue(WorldBounds.noiseCoordinate(this.context.blockX), 0.0D, WorldBounds.noiseCoordinate(this.context.blockZ)));
+               double min = Double.isFinite(NoiseThresholdConditionSource.this.minThreshold) ? NoiseThresholdConditionSource.this.minThreshold : 0.0D;
+               double max = Double.isFinite(NoiseThresholdConditionSource.this.maxThreshold) ? NoiseThresholdConditionSource.this.maxThreshold : 0.0D;
+               return d0 >= min && d0 <= max;
             }
          }
 
@@ -596,8 +607,11 @@ public class SurfaceRules {
             protected boolean compute() {
                int i = flag ? this.context.stoneDepthBelow : this.context.stoneDepthAbove;
                int j = StoneDepthCheck.this.addSurfaceDepth ? this.context.surfaceDepth : 0;
-               int k = StoneDepthCheck.this.secondaryDepthRange == 0 ? 0 : (int)Mth.map(this.context.getSurfaceSecondary(), -1.0D, 1.0D, 0.0D, (double)StoneDepthCheck.this.secondaryDepthRange);
-               return i <= 1 + StoneDepthCheck.this.offset + j + k;
+               int k = StoneDepthCheck.this.secondaryDepthRange == 0 ? 0 : (int)Mth.map(this.context.getSurfaceSecondary(), -1.0D, 1.0D, 0.0D, (double)Math.max(0, StoneDepthCheck.this.secondaryDepthRange));
+               int limit = WorldBounds.addSaturated(1, StoneDepthCheck.this.offset);
+               limit = WorldBounds.addSaturated(limit, j);
+               limit = WorldBounds.addSaturated(limit, k);
+               return i <= limit;
             }
          }
 
@@ -698,7 +712,11 @@ public class SurfaceRules {
             }
 
             protected boolean compute() {
-               return this.context.waterHeight == Integer.MIN_VALUE || this.context.blockY + (WaterConditionSource.this.addStoneDepth ? this.context.stoneDepthAbove : 0) >= this.context.waterHeight + WaterConditionSource.this.offset + this.context.surfaceDepth * WaterConditionSource.this.surfaceDepthMultiplier;
+               if (this.context.waterHeight == Integer.MIN_VALUE) return true;
+               int left = WorldBounds.addSaturated(this.context.blockY, WaterConditionSource.this.addStoneDepth ? this.context.stoneDepthAbove : 0);
+               int right = WorldBounds.addSaturated(this.context.waterHeight, WaterConditionSource.this.offset);
+               right = WorldBounds.addSaturated(right, WorldBounds.multiplySaturated(this.context.surfaceDepth, WaterConditionSource.this.surfaceDepthMultiplier));
+               return left >= right;
             }
          }
 
@@ -722,7 +740,10 @@ public class SurfaceRules {
             }
 
             protected boolean compute() {
-               return this.context.blockY + (YConditionSource.this.addStoneDepth ? this.context.stoneDepthAbove : 0) >= YConditionSource.this.anchor.resolveY(this.context.context) + this.context.surfaceDepth * YConditionSource.this.surfaceDepthMultiplier;
+               int left = WorldBounds.addSaturated(this.context.blockY, YConditionSource.this.addStoneDepth ? this.context.stoneDepthAbove : 0);
+               int right = YConditionSource.this.anchor.resolveY(this.context.context);
+               right = WorldBounds.addSaturated(right, WorldBounds.multiplySaturated(this.context.surfaceDepth, YConditionSource.this.surfaceDepthMultiplier));
+               return left >= right;
             }
          }
 

@@ -1,0 +1,69 @@
+name: build & release jar
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: host
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set short commit hash
+        run: echo "GIT_COMMIT=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+        
+      - name: Run Unit Tests
+        run: ./gradlew test --no-daemon
+      
+      - name: Build JAR
+        env:
+          GIT_COMMIT: ${{ env.GIT_COMMIT }}
+        run: ./gradlew jar --no-daemon
+      - name: Create Release and Upload Asset to Forgejo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORGEJO_LOCAL: "http://127.0.0.1:3000/ec952ebae0f530313056" # make sure to have a leading slash when using this
+        run: |
+          JAR_PATH="build/libs/${GIT_COMMIT}.jar"
+
+          if [ ! -f "$JAR_PATH" ]; then
+            echo "Error: $JAR_PATH was not created by gradlew!"
+            exit 1
+          fi
+
+          RELEASE_RESPONSE=$(curl -s -X POST \
+            "${FORGEJO_LOCAL}/api/v1/repos/${GITHUB_REPOSITORY}/releases" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d @- <<EOF
+          {
+            "tag_name": "${GIT_COMMIT}",
+            "target_commitish": "${GITHUB_SHA}",
+            "name": "Build ${GIT_COMMIT}",
+            "body": "Automated build for commit ${GITHUB_SHA}",
+            "draft": false,
+            "prerelease": false
+          }
+          EOF
+          )
+
+          RELEASE_ID=$(echo "$RELEASE_RESPONSE" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
+
+          if [ -z "$RELEASE_ID" ]; then
+            echo "Failed to create release. Local Forgejo response was:"
+            echo "$RELEASE_RESPONSE"
+            exit 1
+          fi
+
+          UPLOAD_RESPONSE=$(curl -s -X POST \
+            "${FORGEJO_LOCAL}/api/v1/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -F "attachment=@${JAR_PATH}")
+
+          echo "Upload complete! API Response: $UPLOAD_RESPONSE"

@@ -31,6 +31,19 @@ class WorldBoundsTest {
    }
 
    @Test
+   void surfaceArithmeticIsFiniteAndSaturating() {
+      assertEquals(Integer.MAX_VALUE, WorldBounds.addSaturated(Integer.MAX_VALUE, 1));
+      assertEquals(Integer.MIN_VALUE, WorldBounds.addSaturated(Integer.MIN_VALUE, -1));
+      assertEquals(Integer.MAX_VALUE, WorldBounds.multiplySaturated(Integer.MAX_VALUE, 2));
+      assertEquals(Integer.MIN_VALUE, WorldBounds.multiplySaturated(Integer.MIN_VALUE, 2));
+      assertEquals(-1.0D, WorldBounds.clampNoise(Double.NEGATIVE_INFINITY));
+      assertEquals(0.0D, WorldBounds.clampNoise(Double.NaN));
+      assertEquals(1.0D, WorldBounds.clampNoise(Double.POSITIVE_INFINITY));
+      assertEquals(WorldBounds.MAX_BLOCK - 15L, WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK));
+      assertEquals(WorldBounds.MIN_BLOCK, WorldBounds.chunkToBlock(WorldBounds.MIN_CHUNK));
+   }
+
+   @Test
    void cursorRejectsOverflowingRanges() {
       assertThrows(ArithmeticException.class, () -> new Cursor3D(Long.MIN_VALUE, 0, 0L, Long.MAX_VALUE, 0, 0L));
    }

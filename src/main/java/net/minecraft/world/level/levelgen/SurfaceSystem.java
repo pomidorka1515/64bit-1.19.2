@@ -155,6 +155,7 @@ public class SurfaceSystem {
                      }
                   }
                }
+               if (i3 == l2) break;
             }
 
             if (holder.is(Biomes.FROZEN_OCEAN) || holder.is(Biomes.DEEP_FROZEN_OCEAN)) {
@@ -193,7 +194,7 @@ public class SurfaceSystem {
       int j = p_189977_.getY();
       long k = p_189977_.getZ();
       surfacerules$context.updateXZ(i, k);
-      surfacerules$context.updateY(1, 1, p_189978_ ? j + 1 : Integer.MIN_VALUE, i, j, k);
+      surfacerules$context.updateY(1, 1, p_189978_ ? WorldBounds.addSaturated(j, 1) : Integer.MIN_VALUE, i, j, k);
       BlockState blockstate = surfacerules$surfacerule.tryApply(i, j, k);
       return Optional.ofNullable(blockstate);
    }
@@ -218,10 +219,13 @@ public class SurfaceSystem {
                if (blockstate.is(Blocks.WATER)) {
                   return;
                }
+               if (j == p_189959_.getMinBuildHeight()) break;
             }
 
-            for(int k = i; k >= p_189959_.getMinBuildHeight() && p_189955_.getBlock(k).isAir(); --k) {
+            for(int k = i; k >= p_189959_.getMinBuildHeight(); --k) {
+               if (!p_189955_.getBlock(k).isAir()) break;
                p_189955_.setBlock(k, this.defaultBlock);
+               if (k == p_189959_.getMinBuildHeight()) break;
             }
 
          }

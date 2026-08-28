@@ -1070,6 +1070,11 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       this.player.applyExactPosition(position);
       this.player.setYRot(yRot);
       this.player.setXRot(xRot);
+      this.player.setDeltaMovement(Vec3.ZERO);
+
+      if (this.player.getLevel().players().contains(this.player)) {
+         this.player.getLevel().getChunkSource().move(this.player);
+      }
       this.player.connection.send(new ClientboundPlayerPositionPacket(position, yRot, xRot,
             Collections.emptySet(), this.awaitingTeleport, false));
    }

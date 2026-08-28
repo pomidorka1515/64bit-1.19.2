@@ -4,6 +4,7 @@ import net.minecraft.util.Mth;
 
 /** Controls whether noise uses the intentionally broken Far Lands arithmetic. */
 public final class FarlandsMode {
+   public static final String LEVEL_DATA_KEY = "FarlandsMode";
    private static volatile boolean enabled = true;
 
    private FarlandsMode() {

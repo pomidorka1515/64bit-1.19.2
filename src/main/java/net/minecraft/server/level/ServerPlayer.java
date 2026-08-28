@@ -1379,27 +1379,73 @@ public class ServerPlayer extends Player {
    }
 
    public void teleportTo(ServerLevel p_9000_, double p_9001_, double p_9002_, double p_9003_, float p_9004_, float p_9005_) {
-      this.setCamera(this);
-      this.stopRiding();
-      if (p_9000_ == this.level) {
-         this.connection.teleport(p_9001_, p_9002_, p_9003_, p_9004_, p_9005_);
-      } else {
-         ServerLevel serverlevel = this.getLevel();
-         LevelData leveldata = p_9000_.getLevelData();
-         this.connection.send(new ClientboundRespawnPacket(p_9000_.dimensionTypeId(), p_9000_.dimension(), BiomeManager.obfuscateSeed(p_9000_.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), p_9000_.isDebug(), p_9000_.isFlat(), true, this.getLastDeathLocation()));
-         this.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
-         this.server.getPlayerList().sendPlayerPermissionLevel(this);
-         serverlevel.removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
-         this.unsetRemoved();
-         this.moveTo(p_9001_, p_9002_, p_9003_, p_9004_, p_9005_);
-         this.setLevel(p_9000_);
-         p_9000_.addDuringCommandTeleport(this);
-         this.triggerDimensionChangeTriggers(serverlevel);
-         this.connection.teleport(p_9001_, p_9002_, p_9003_, p_9004_, p_9005_);
-         this.server.getPlayerList().sendLevelInfo(this, p_9000_);
-         this.server.getPlayerList().sendAllPlayerInfo(this);
+      if (this.hasSectorPosition()) {
+         this.teleportTo(p_9000_, SectorVec3.fromApproximate(p_9001_, p_9002_, p_9003_), p_9004_, p_9005_);
+         return;
       }
 
+      this.teleportToVanilla(p_9000_, p_9001_, p_9002_, p_9003_, p_9004_, p_9005_);
+   }
+
+   /**
+    * Dimension-aware teleport that keeps the split X/Z coordinate all the way
+    * through the player and network state transitions.
+    */
+   public void teleportTo(ServerLevel level, SectorVec3 position, float yRot, float xRot) {
+      if (!this.hasSectorPosition()) {
+         this.teleportTo(level, position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z, yRot, xRot);
+         return;
+      }
+
+      this.setCamera(this);
+      this.stopRiding();
+      if (level == this.level) {
+         this.connection.teleportExact(position, yRot, xRot);
+         return;
+      }
+
+      ServerLevel oldLevel = this.getLevel();
+      LevelData leveldata = level.getLevelData();
+      this.connection.send(new ClientboundRespawnPacket(level.dimensionTypeId(), level.dimension(), BiomeManager.obfuscateSeed(level.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), level.isDebug(), level.isFlat(), true, this.getLastDeathLocation()));
+      this.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
+      this.server.getPlayerList().sendPlayerPermissionLevel(this);
+      oldLevel.removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
+      this.unsetRemoved();
+      this.setLevel(level);
+      // Update the entity state without invoking ServerPlayer.moveTo(SectorVec3),
+      // which is a network-facing method and would send a packet for the old
+      // dimension before the dimension transition is complete.
+      this.absMoveTo(position, yRot, xRot);
+      level.addDuringCommandTeleport(this);
+      this.triggerDimensionChangeTriggers(oldLevel);
+      // The dimension is now authoritative for subsequent chunk tracking and
+      // the final position packet.
+      this.connection.teleportExact(position, yRot, xRot);
+      this.server.getPlayerList().sendLevelInfo(this, level);
+      this.server.getPlayerList().sendAllPlayerInfo(this);
+   }
+
+   private void teleportToVanilla(ServerLevel level, double x, double y, double z, float yRot, float xRot) {
+      this.setCamera(this);
+      this.stopRiding();
+      if (level == this.level) {
+         this.connection.teleport(x, y, z, yRot, xRot);
+      } else {
+         ServerLevel oldLevel = this.getLevel();
+         LevelData leveldata = level.getLevelData();
+         this.connection.send(new ClientboundRespawnPacket(level.dimensionTypeId(), level.dimension(), BiomeManager.obfuscateSeed(level.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), level.isDebug(), level.isFlat(), true, this.getLastDeathLocation()));
+         this.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
+         this.server.getPlayerList().sendPlayerPermissionLevel(this);
+         oldLevel.removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
+         this.unsetRemoved();
+         this.moveTo(x, y, z, yRot, xRot);
+         this.setLevel(level);
+         level.addDuringCommandTeleport(this);
+         this.triggerDimensionChangeTriggers(oldLevel);
+         this.connection.teleport(x, y, z, yRot, xRot);
+         this.server.getPlayerList().sendLevelInfo(this, level);
+         this.server.getPlayerList().sendAllPlayerInfo(this);
+      }
    }
 
    @Nullable

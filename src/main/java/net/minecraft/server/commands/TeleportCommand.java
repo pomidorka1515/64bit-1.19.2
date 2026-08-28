@@ -145,8 +145,11 @@ public class TeleportCommand {
             if (exactPosition != null && player.hasSectorPosition()) player.connection.teleportExact(exactPosition, wrappedYRot, wrappedXRot, relative, false);
             else player.connection.teleport(approximatePosition.x, approximatePosition.y, approximatePosition.z, wrappedYRot, wrappedXRot, relative);
          } else {
-            player.teleportTo(level, approximatePosition.x, approximatePosition.y, approximatePosition.z, wrappedYRot, wrappedXRot);
-            if (exactPosition != null && player.hasSectorPosition()) player.applyExactPosition(exactPosition);
+            if (exactPosition != null && player.hasSectorPosition()) {
+               player.teleportTo(level, exactPosition, wrappedYRot, wrappedXRot);
+            } else {
+               player.teleportTo(level, approximatePosition.x, approximatePosition.y, approximatePosition.z, wrappedYRot, wrappedXRot);
+            }
          }
          entity.setYHeadRot(wrappedYRot);
       } else {

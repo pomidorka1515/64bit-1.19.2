@@ -49,6 +49,7 @@ public final class FarlandsCommand {
       }
 
       FarlandsMode.setEnabled(enabled);
+      source.getServer().saveEverything(false, false, true);
       source.sendSuccess(Component.literal("Far Lands mode has been changed to " + (enabled ? "32-bit" : "64-bit") + "."), true);
       return 1;
    }

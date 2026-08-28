@@ -2,6 +2,7 @@ package net.minecraft.world.level;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,13 +21,18 @@ import net.minecraft.world.phys.SectorAABB;
 import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class SectorBlockCollisionsTest {
-   @Test
-   void findsHugeBlockAndReturnsLocalShape() {
+   @BeforeAll
+   static void bootstrapMinecraft() {
       SharedConstants.tryDetectVersion();
       Bootstrap.bootStrap();
+   }
+
+   @Test
+   void findsHugeBlockAndReturnsLocalShape() {
       long hugeX = 1L << 53;
       long hugeZ = -(1L << 53);
       BlockPos solidPos = new BlockPos(hugeX, 64, hugeZ);
@@ -46,6 +52,20 @@ class SectorBlockCollisionsTest {
       assertEquals(1.0D, shapes.get(0).bounds().maxX, 0.0D);
       assertEquals(0.0D, shapes.get(0).bounds().minZ, 0.0D);
       assertEquals(1.0D, shapes.get(0).bounds().maxZ, 0.0D);
+   }
+
+   @Test
+   void rejectsAWorldSpanningSweepWithoutIterating() {
+      SectorAABB box = new SectorAABB(Long.MIN_VALUE, 0.25D, 64.0D, 0L, 0.25D,
+            Long.MAX_VALUE, Math.nextDown(1.0D), 65.8D, 0L, 0.75D);
+      SectorPhysicsOrigin origin = new SectorPhysicsOrigin(0L, 64, 0L);
+      CollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(0L, 64, 0L));
+      java.util.Iterator<VoxelShape> iterator = level.getSectorBlockCollisions(null, box,
+            box.toLocalAABB(origin), origin).iterator();
+
+      assertTrue(iterator.hasNext());
+      iterator.next();
+      assertFalse(iterator.hasNext());
    }
 
    private static final class SingleBlockCollisionGetter implements CollisionGetter {

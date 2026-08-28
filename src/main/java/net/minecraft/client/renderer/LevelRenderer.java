@@ -126,6 +126,7 @@ import net.minecraft.world.level.block.PointedDripstoneBlock;
 import net.minecraft.world.level.block.SculkShriekerBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -2440,23 +2441,32 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
    }
 
    private void setBlockDirty(BlockPos p_109733_, boolean p_109734_) {
-      for(long i = p_109733_.getZ() - 1; i <= p_109733_.getZ() + 1; ++i) {
-         for(long j = p_109733_.getX() - 1; j <= p_109733_.getX() + 1; ++j) {
-            for(int k = p_109733_.getY() - 1; k <= p_109733_.getY() + 1; ++k) {
-               this.setSectionDirty(SectionPos.blockToSectionCoord(j), SectionPos.blockToSectionCoord(k), SectionPos.blockToSectionCoord(i), p_109734_);
-            }
-         }
-      }
-
+      this.setBlocksDirty(p_109733_.getX(), p_109733_.getY(), p_109733_.getZ(),
+            p_109733_.getX(), p_109733_.getY(), p_109733_.getZ(), p_109734_);
    }
 
    public void setBlocksDirty(long p_109495_, int p_109496_, long p_109497_, long p_109498_, int p_109499_, long p_109500_) {
-      for(long i = p_109497_ - 1; i <= p_109500_ + 1; ++i) {
-         for(long j = p_109495_ - 1; j <= p_109498_ + 1; ++j) {
-            for(int k = p_109496_ - 1; k <= p_109499_ + 1; ++k) {
-               this.setSectionDirty(SectionPos.blockToSectionCoord(j), SectionPos.blockToSectionCoord(k), SectionPos.blockToSectionCoord(i));
+      this.setBlocksDirty(p_109495_, p_109496_, p_109497_, p_109498_, p_109499_, p_109500_, false);
+   }
+
+   private void setBlocksDirty(long p_109495_, int p_109496_, long p_109497_, long p_109498_, int p_109499_, long p_109500_, boolean p_109505_) {
+      // Do not express this as `for (x = min; x <= max; ++x)`: at MAX_VALUE,
+      // ++ wraps to MIN_VALUE and the render thread never exits the loop.
+      long minZ = WorldBounds.addBlockOffset(Math.min(p_109497_, p_109500_), -1L);
+      long maxZ = WorldBounds.addBlockOffset(Math.max(p_109497_, p_109500_), 1L);
+      long minX = WorldBounds.addBlockOffset(Math.min(p_109495_, p_109498_), -1L);
+      long maxX = WorldBounds.addBlockOffset(Math.max(p_109495_, p_109498_), 1L);
+      int minY = Math.min(p_109496_, p_109499_) - 1;
+      int maxY = Math.max(p_109496_, p_109499_) + 1;
+
+      for (long z = minZ; ; z = WorldBounds.addBlockOffset(z, 1L)) {
+         for (long x = minX; ; x = WorldBounds.addBlockOffset(x, 1L)) {
+            for (int y = minY; y <= maxY; ++y) {
+               this.setSectionDirty(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(y), SectionPos.blockToSectionCoord(z), p_109505_);
             }
+            if (x == maxX) break;
          }
+         if (z == maxZ) break;
       }
 
    }

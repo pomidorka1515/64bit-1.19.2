@@ -15,7 +15,7 @@ If you REALLY want to play:
 - Make all block entities use SectorVec3
 - Particles
 - Structures crash game at boundary with no logs??
-- Random collision issues at boundary, quicksand like
+- ~~Random collision issues at boundary, quicksand like~~
 - Light update border (black outline) flashing after chunk reload
 - A billion generation issues deadlocking the server thread with also no logs
 

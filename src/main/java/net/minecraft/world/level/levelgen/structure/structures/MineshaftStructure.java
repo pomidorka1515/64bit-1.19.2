@@ -46,7 +46,9 @@ public class MineshaftStructure extends Structure {
       ChunkGenerator chunkgenerator = p_227967_.chunkGenerator();
       MineshaftPieces.MineShaftRoom mineshaftpieces$mineshaftroom = new MineshaftPieces.MineShaftRoom(0, worldgenrandom, chunkpos.getBlockX(2), chunkpos.getBlockZ(2), this.type);
       p_227966_.addPiece(mineshaftpieces$mineshaftroom);
-      mineshaftpieces$mineshaftroom.addChildren(mineshaftpieces$mineshaftroom, p_227966_, worldgenrandom);
+      if (p_227966_.size() <= MineshaftPieces.MAX_PIECES) {
+         mineshaftpieces$mineshaftroom.addChildren(mineshaftpieces$mineshaftroom, p_227966_, worldgenrandom);
+      }
       int i = chunkgenerator.getSeaLevel();
       if (this.type == MineshaftStructure.Type.MESA) {
          BlockPos blockpos = p_227966_.getBoundingBox().getCenter();

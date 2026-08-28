@@ -15,6 +15,10 @@ public class StructurePiecesBuilder implements StructurePieceAccessor {
       this.pieces.add(p_192791_);
    }
 
+   public int size() {
+      return this.pieces.size();
+   }
+
    @Nullable
    public StructurePiece findCollisionPiece(BoundingBox p_192789_) {
       return StructurePiece.findCollisionPiece(this.pieces, p_192789_);

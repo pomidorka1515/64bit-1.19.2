@@ -23,7 +23,7 @@ public final class FarlandsCommand {
          return source.hasPermission(3);
       }).executes((context) -> {
          boolean enabled = FarlandsMode.isEnabled();
-         context.getSource().sendSuccess(Component.literal("Far Lands are currently in" + (enabled ? "32-bit" : "64-bit") + " mode."), false);
+         context.getSource().sendSuccess(Component.literal("Far Lands are currently in " + (enabled ? "32-bit" : "64-bit") + " mode."), false);
          return 1;
       }).then(Commands.literal("32bit").executes((context) -> {
          return requestChange(context.getSource(), true);
@@ -36,7 +36,7 @@ public final class FarlandsCommand {
 
    private static int requestChange(CommandSourceStack source, boolean enabled) {
       PENDING_CHANGES.put(Requester.of(source), enabled);
-      source.sendSuccess(Component.literal("Far Lands " + (enabled ? "enable" : "disable") + " requested. Run /farlands confirm to confirm."), false);
+      source.sendSuccess(Component.literal("Far Lands mode change into " + (enabled ? "32-bit" : "64-bit") + " requested. Run /farlands confirm to confirm."), false);
       return 1;
    }
 
@@ -49,7 +49,7 @@ public final class FarlandsCommand {
       }
 
       FarlandsMode.setEnabled(enabled);
-      source.sendSuccess(Component.literal("Far Lands have been " + (enabled ? "enabled" : "disabled") + ". Newly generated terrain will use the " + (enabled ? "broken Far Lands" : "stock farlands-less") + "generator."), true);
+      source.sendSuccess(Component.literal("Far Lands mode has been changed to " + (enabled ? "32-bit" : "64-bit") + "."), true);
       return 1;
    }
 

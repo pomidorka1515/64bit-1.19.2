@@ -228,8 +228,10 @@ public class DebugScreenOverlay extends GuiComponent {
          if (s2 != null) {
             list.add(s2);
          }
-
+         
          list.add(this.minecraft.level.dimension().location() + " FC: " + longset.size());
+         list.add("Frustum: " + (Frustum.isEnabled() ? "\247aenabled" : "\247cdisabled") + "\247r");
+
          list.add("");
          SectorVec3 exact = entity.exactPosition();
          if (exact != null) {
@@ -246,7 +248,6 @@ public class DebugScreenOverlay extends GuiComponent {
             list.add(String.format(Locale.ROOT, "SubPos: [X: %+.5f, Y: %+.5f, Z: %+.5f]", exact.subX(), exact.subY(), exact.subZ()));
          }
          list.add(String.format(Locale.ROOT, "Facing: %s (%s) (%.1f / %.1f)", direction, s1, Mth.wrapDegrees(entity.getYRot()), Mth.wrapDegrees(entity.getXRot())));
-         list.add((Frustum.isEnabled() ? "\247a" : "\247c") + "Frustum: " + (Frustum.isEnabled() ? "enabled" : "disabled") + "\247r");
          long maxPosition = (long) Math.max(Math.abs(this.minecraft.getCameraEntity().getX()), Math.max(Math.abs(this.minecraft.getCameraEntity().getY()), Math.abs(this.minecraft.getCameraEntity().getZ())));
          int maxBit = Long.SIZE - Long.numberOfLeadingZeros(maxPosition);
          

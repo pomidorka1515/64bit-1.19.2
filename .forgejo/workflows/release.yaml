@@ -19,12 +19,12 @@ jobs:
         run: chmod +x gradlew
         
       - name: Run Unit Tests
-        run: ./gradlew test --no-daemon
+        run: ./gradlew test --no-daemon -Dorg.gradle.java.home="$(dirname $(dirname $(readlink -f $(which java))))"
       
       - name: Build JAR
         env:
           GIT_COMMIT: ${{ env.GIT_COMMIT }}
-        run: ./gradlew jar --no-daemon
+        run: ./gradlew jar --no-daemon -Dorg.gradle.java.home="$(dirname $(dirname $(readlink -f $(which java))))"
       - name: Create Release and Upload Asset to Forgejo
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

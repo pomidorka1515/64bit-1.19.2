@@ -1881,10 +1881,28 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    public CompoundTag saveWithoutId(CompoundTag p_20241_) {
       try {
+         // Keep vanilla's Pos tag as a compatibility mirror, but never use it as
+         // the source of truth for sector-aware entities.  Reconstructing a
+         // coordinate near or beyond 2^53 through a double permanently drops
+         // its block and/or sub-block bits.
+         SectorVec3 exactPosition = this.sectorPosition;
          if (this.vehicle != null) {
             p_20241_.put("Pos", this.newDoubleList(this.vehicle.getX(), this.getY(), this.vehicle.getZ()));
+         } else if (exactPosition != null) {
+            Vec3 approximate = exactPosition.toApproximateVec3();
+            p_20241_.put("Pos", this.newDoubleList(approximate.x, approximate.y, approximate.z));
          } else {
             p_20241_.put("Pos", this.newDoubleList(this.getX(), this.getY(), this.getZ()));
+         }
+
+         if (exactPosition != null) {
+            CompoundTag exactTag = new CompoundTag();
+            exactTag.putLong("BlockX", exactPosition.blockX());
+            exactTag.putDouble("SubX", exactPosition.subX());
+            exactTag.putDouble("Y", exactPosition.y());
+            exactTag.putLong("BlockZ", exactPosition.blockZ());
+            exactTag.putDouble("SubZ", exactPosition.subZ());
+            p_20241_.put("ExactPos", exactTag);
          }
 
          Vec3 vec3 = this.getDeltaMovement();
@@ -1972,7 +1990,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          double d2 = listtag1.getDouble(2);
          this.setDeltaMovement(Math.abs(d0) > 10.0D ? 0.0D : d0, Math.abs(d1) > 10.0D ? 0.0D : d1, Math.abs(d2) > 10.0D ? 0.0D : d2);
 //         double d3 = 3.0000512E7D;
-         this.setPosRaw(listtag.getDouble(0), listtag.getDouble(1),listtag.getDouble(2));
+         if (this.usesSectorPhysics() && p_20259_.contains("ExactPos", 10)) {
+            CompoundTag exactTag = p_20259_.getCompound("ExactPos");
+            this.applyExactPosition(SectorVec3.fromBlockAndFraction(exactTag.getLong("BlockX"),
+                  exactTag.getDouble("SubX"), exactTag.getDouble("Y"),
+                  exactTag.getLong("BlockZ"), exactTag.getDouble("SubZ")));
+         } else {
+            // Legacy saves and non-sector entities continue to use vanilla Pos.
+            this.setPosRaw(listtag.getDouble(0), listtag.getDouble(1), listtag.getDouble(2));
+         }
 //         this.setPosRaw(Mth.clamp(listtag.getDouble(0), -3.0000512E7D, 3.0000512E7D), Mth.clamp(listtag.getDouble(1), -2.0E7D, 2.0E7D), Mth.clamp(listtag.getDouble(2), -3.0000512E7D, 3.0000512E7D));
          this.setYRot(listtag2.getFloat(0));
          this.setXRot(listtag2.getFloat(1));

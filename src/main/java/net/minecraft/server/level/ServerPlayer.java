@@ -137,6 +137,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Score;
@@ -1164,8 +1165,17 @@ public class ServerPlayer extends Player {
       this.connection.teleport(p_8969_, p_8970_, p_8971_, this.getYRot(), this.getXRot());
    }
 
+   public void teleportTo(SectorVec3 position) {
+      this.connection.teleportExact(position, this.getYRot(), this.getXRot());
+   }
+
    public void moveTo(double p_9171_, double p_9172_, double p_9173_) {
       this.teleportTo(p_9171_, p_9172_, p_9173_);
+      this.connection.resetPosition();
+   }
+
+   public void moveTo(SectorVec3 position) {
+      this.connection.teleportExact(position, this.getYRot(), this.getXRot());
       this.connection.resetPosition();
    }
 

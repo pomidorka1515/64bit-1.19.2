@@ -923,7 +923,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                         if (this.player.hasSectorPosition()) {
                            this.teleportExactAbsolute(this.player.sectorPosition(), f, f1);
                         } else {
-                           this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), f, f1);
+                           this.teleportPlayerToCurrentPosition(f, f1);
                         }
                      }
 
@@ -942,7 +942,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                            if (this.player.hasSectorPosition()) {
                               this.teleportExactAbsolute(this.player.sectorPosition(), this.player.getYRot(), this.player.getXRot());
                            } else {
-                              this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), this.player.getYRot(), this.player.getXRot());
+                              this.teleportPlayerToCurrentPosition(this.player.getYRot(), this.player.getXRot());
                            }
                            return;
                         }
@@ -1050,6 +1050,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
    public void dismount(double p_143612_, double p_143613_, double p_143614_, float p_143615_, float p_143616_) {
       this.teleport(p_143612_, p_143613_, p_143614_, p_143615_, p_143616_, Collections.emptySet(), true);
+   }
+
+   private void teleportPlayerToCurrentPosition(float yRot, float xRot) {
+      if (this.player.hasSectorPosition()) {
+         this.teleportExactAbsolute(this.player.sectorPosition(), yRot, xRot);
+      } else {
+         this.teleport(this.player.getX(), this.player.getY(), this.player.getZ(), yRot, xRot);
+      }
    }
 
    private void teleportExactAbsolute(SectorVec3 position, float yRot, float xRot) {

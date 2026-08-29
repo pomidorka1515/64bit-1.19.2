@@ -15,6 +15,7 @@ import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -30,7 +31,20 @@ public interface CollisionGetter extends BlockGetter {
 
    default boolean isUnobstructed(BlockState p_45753_, BlockPos p_45754_, CollisionContext p_45755_) {
       VoxelShape voxelshape = p_45753_.getCollisionShape(this, p_45754_, p_45755_);
-      return voxelshape.isEmpty() || this.isUnobstructed((Entity)null, voxelshape.move((double)p_45754_.getX(), (double)p_45754_.getY(), (double)p_45754_.getZ()));
+      if (voxelshape.isEmpty()) {
+         return true;
+      }
+
+      Entity entity = p_45755_ instanceof EntityCollisionContext entitycollisioncontext ? entitycollisioncontext.getEntity() : null;
+      if (entity != null && entity.hasSectorPosition()) {
+         if (entity.isColliding(p_45754_, p_45753_)) {
+            return false;
+         }
+
+         return this.isUnobstructed(entity, voxelshape.move((double)p_45754_.getX(), (double)p_45754_.getY(), (double)p_45754_.getZ()));
+      }
+
+      return this.isUnobstructed((Entity)null, voxelshape.move((double)p_45754_.getX(), (double)p_45754_.getY(), (double)p_45754_.getZ()));
    }
 
    default boolean isUnobstructed(Entity p_45785_) {

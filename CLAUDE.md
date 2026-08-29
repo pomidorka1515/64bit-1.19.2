@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Agent Behavior & Output
+- **Silent Tool Execution**: NEVER output text, status updates, or thought narration before or between tool calls.
+- Run all searches, edits, and terminal commands consecutively without intermediate chatter.
+- Output text ONLY once all actions are completed.
+- The final response must consist strictly of a summary of changes and verification/test results.
+
 ## Project overview
 
 This is `mcp-reborn`, a heavily modified Minecraft 1.19.2 MCP/ForgeGradle workspace. The project is pursuing long-safe X/Z coordinates, primarily to make player physics work beyond the precision limit of ordinary doubles. The source tree is a patched/deobfuscated Minecraft client and server implementation rather than a small standalone library.

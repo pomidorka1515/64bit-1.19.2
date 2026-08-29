@@ -10,7 +10,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -22,7 +22,7 @@ public class BlockStatePredictionHandler implements AutoCloseable {
 
    public void retainKnownServerState(BlockPos p_233868_, BlockState p_233869_, LocalPlayer p_233870_) {
       this.serverVerifiedStates.compute(p_233868_, (p_233862_, p_233863_) -> {
-         return p_233863_ != null ? p_233863_.setSequence(this.currentSequenceNr) : new BlockStatePredictionHandler.ServerVerifiedState(this.currentSequenceNr, p_233869_, p_233870_.position());
+         return p_233863_ != null ? p_233863_.setSequence(this.currentSequenceNr) : new BlockStatePredictionHandler.ServerVerifiedState(this.currentSequenceNr, p_233869_, p_233870_.exactPosition());
       });
    }
 
@@ -71,11 +71,11 @@ public class BlockStatePredictionHandler implements AutoCloseable {
 
    @OnlyIn(Dist.CLIENT)
    static class ServerVerifiedState {
-      final Vec3 playerPos;
+      final SectorVec3 playerPos;
       int sequence;
       BlockState blockState;
 
-      ServerVerifiedState(int p_233878_, BlockState p_233879_, Vec3 p_233880_) {
+      ServerVerifiedState(int p_233878_, BlockState p_233879_, SectorVec3 p_233880_) {
          this.sequence = p_233878_;
          this.blockState = p_233879_;
          this.playerPos = p_233880_;

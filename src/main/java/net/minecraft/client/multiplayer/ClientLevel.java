@@ -78,6 +78,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.storage.WritableLevelData;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.scores.Scoreboard;
@@ -133,13 +134,18 @@ public class ClientLevel extends Level {
 
    }
 
-   public void syncBlockState(BlockPos p_233648_, BlockState p_233649_, Vec3 p_233650_) {
+   public void syncBlockState(BlockPos p_233648_, BlockState p_233649_, SectorVec3 p_233650_) {
       BlockState blockstate = this.getBlockState(p_233648_);
       if (blockstate != p_233649_) {
          this.setBlock(p_233648_, p_233649_, 19);
          Player player = this.minecraft.player;
          if (this == player.level && player.isColliding(p_233648_, p_233649_)) {
-            player.absMoveTo(p_233650_.x, p_233650_.y, p_233650_.z);
+            if (player.hasSectorPosition()) {
+               player.applyExactPosition(p_233650_);
+            } else {
+               Vec3 vec3 = p_233650_.toApproximateVec3();
+               player.absMoveTo(vec3.x, vec3.y, vec3.z);
+            }
          }
       }
 

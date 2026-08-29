@@ -262,6 +262,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    public boolean isColliding(BlockPos p_20040_, BlockState p_20041_) {
       VoxelShape voxelshape = p_20041_.getCollisionShape(this.level, p_20040_, CollisionContext.of(this));
+      if (this.hasSectorPosition()) {
+         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(p_20040_.getX(), p_20040_.getY(), p_20040_.getZ());
+         return Shapes.joinIsNotEmpty(voxelshape, Shapes.create(this.getSectorBoundingBox().toLocalAABB(origin)), BooleanOp.AND);
+      }
       VoxelShape voxelshape1 = voxelshape.move((double)p_20040_.getX(), (double)p_20040_.getY(), (double)p_20040_.getZ());
       return Shapes.joinIsNotEmpty(voxelshape1, Shapes.create(this.getBoundingBox()), BooleanOp.AND);
    }

@@ -47,6 +47,8 @@ public class MineshaftPieces {
    private static final int MAX_PILLAR_HEIGHT = 20;
    private static final int MAX_CHAIN_HEIGHT = 50;
    private static final int MAX_DEPTH = 7;
+   private static final int MAX_CORRIDOR_SECTIONS = 4;
+   private static final int MAX_ROOM_ENTRANCE_ATTEMPTS = 4;
    static final int MAX_PIECES = 50;
    public static final int MAGIC_START_Y = 50;
 
@@ -97,6 +99,19 @@ public class MineshaftPieces {
       return new BoundingBox(addBlockOffset(box.minX(), x), box.minY() + y, addBlockOffset(box.minZ(), z), addBlockOffset(box.maxX(), x), box.maxY() + y, addBlockOffset(box.maxZ(), z));
    }
 
+   private static long randomOffset(RandomSource random, long bound) {
+      return bound <= 0L ? 0L : Math.floorMod(random.nextLong(), bound);
+   }
+
+   private static int corridorSections(BoundingBox box, Direction direction) {
+      long span = direction.getAxis() == Direction.Axis.Z ? box.getZSpan() : box.getXSpan();
+      return (int)Math.min((long)MAX_CORRIDOR_SECTIONS, Math.max(0L, span / 5L));
+   }
+
+   private static long midpoint(long min, long max) {
+      return WorldBounds.middleBlockCoordinate(min, max);
+   }
+
    public static class MineShaftCorridor extends MineshaftPieces.MineShaftPiece {
       private final boolean hasRails;
       private final boolean spiderCorridor;
@@ -108,7 +123,7 @@ public class MineshaftPieces {
          this.hasRails = p_227737_.getBoolean("hr");
          this.spiderCorridor = p_227737_.getBoolean("sc");
          this.hasPlacedSpider = p_227737_.getBoolean("hps");
-         this.numSections = p_227737_.getInt("Num");
+         this.numSections = Math.min(MAX_CORRIDOR_SECTIONS, Math.max(0, p_227737_.getInt("Num")));
       }
 
       protected void addAdditionalSaveData(StructurePieceSerializationContext p_227806_, CompoundTag p_227807_) {
@@ -124,11 +139,7 @@ public class MineshaftPieces {
          this.setOrientation(p_227734_);
          this.hasRails = p_227732_.nextInt(3) == 0;
          this.spiderCorridor = !this.hasRails && p_227732_.nextInt(23) == 0;
-         if (this.getOrientation().getAxis() == Direction.Axis.Z) {
-            this.numSections = (int) (p_227733_.getZSpan() / 5);
-         } else {
-            this.numSections = (int) (p_227733_.getXSpan() / 5);
-         }
+         this.numSections = corridorSections(p_227733_, p_227734_);
 
       }
 
@@ -170,9 +181,9 @@ public class MineshaftPieces {
                case NORTH:
                default:
                   if (j <= 1) {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, this.boundingBox.minX(), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.minZ(), -1L), direction, i);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, this.boundingBox.minX(), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), direction, i);
                   } else if (j == 2) {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), this.boundingBox.minZ(), Direction.WEST, i);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), this.boundingBox.minZ(), Direction.WEST, i);
                   } else {
                      MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), this.boundingBox.minZ(), Direction.EAST, i);
                   }
@@ -181,16 +192,16 @@ public class MineshaftPieces {
                   if (j <= 1) {
                      MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, this.boundingBox.minX(), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.maxZ(), 1L), direction, i);
                   } else if (j == 2) {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.maxZ(), -3L), Direction.WEST, i);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 3L), Direction.WEST, i);
                   } else {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.maxZ(), -3L), Direction.EAST, i);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 3L), Direction.EAST, i);
                   }
                   break;
                case WEST:
                   if (j <= 1) {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), this.boundingBox.minZ(), direction, i);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), this.boundingBox.minZ(), direction, i);
                   } else if (j == 2) {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, this.boundingBox.minX(), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, this.boundingBox.minX(), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i);
                   } else {
                      MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, this.boundingBox.minX(), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i);
                   }
@@ -199,28 +210,30 @@ public class MineshaftPieces {
                   if (j <= 1) {
                      MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), this.boundingBox.minZ(), direction, i);
                   } else if (j == 2) {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.maxX(), -3L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 3L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i);
                   } else {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.maxX(), -3L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 3L), this.boundingBox.minY() - 1 + p_227797_.nextInt(3), addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i);
                   }
             }
          }
 
          if (i < 8) {
             if (direction != Direction.NORTH && direction != Direction.SOUTH) {
-               for(long i1 = addBlockOffset(this.boundingBox.minX(), 3L); i1 <= addBlockOffset(this.boundingBox.maxX(), -3L); i1 += 5) {
+               for(int section = 0; section < this.numSections - 1; ++section) {
+                  long i1 = addBlockOffset(this.boundingBox.minX(), 3L + (long)section * 5L);
                   int j1 = p_227797_.nextInt(5);
                   if (j1 == 0) {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, i1, this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i + 1);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, i1, this.boundingBox.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i + 1);
                   } else if (j1 == 1) {
                      MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, i1, this.boundingBox.minY(), addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i + 1);
                   }
                }
             } else {
-               for(long k = addBlockOffset(this.boundingBox.minZ(), 3L); k <= addBlockOffset(this.boundingBox.maxZ(), -3L); k += 5) {
+               for(int section = 0; section < this.numSections - 1; ++section) {
+                  long k = addBlockOffset(this.boundingBox.minZ(), 3L + (long)section * 5L);
                   int l = p_227797_.nextInt(5);
                   if (l == 0) {
-                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY(), k, Direction.WEST, i + 1);
+                     MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), k, Direction.WEST, i + 1);
                   } else if (l == 1) {
                      MineshaftPieces.generateAndAddPiece(p_227795_, p_227796_, p_227797_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY(), k, Direction.EAST, i + 1);
                   }
@@ -505,33 +518,33 @@ public class MineshaftPieces {
          switch (this.direction) {
             case NORTH:
             default:
-               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i);
-               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.WEST, i);
+               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i);
+               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.WEST, i);
                MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.EAST, i);
                break;
             case SOUTH:
                MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i);
-               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.WEST, i);
+               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.WEST, i);
                MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.EAST, i);
                break;
             case WEST:
-               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i);
+               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i);
                MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i);
-               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.WEST, i);
+               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.WEST, i);
                break;
             case EAST:
-               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i);
+               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i);
                MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i);
                MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), Direction.EAST, i);
          }
 
          if (this.isTwoFloored) {
             if (p_227853_.nextBoolean()) {
-               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + 3 + 1, addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i);
+               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + 3 + 1, WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i);
             }
 
             if (p_227853_.nextBoolean()) {
-               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY() + 3 + 1, addBlockOffset(this.boundingBox.minZ(), 1L), Direction.WEST, i);
+               MineshaftPieces.generateAndAddPiece(p_227851_, p_227852_, p_227853_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + 3 + 1, addBlockOffset(this.boundingBox.minZ(), 1L), Direction.WEST, i);
             }
 
             if (p_227853_.nextBoolean()) {
@@ -549,25 +562,32 @@ public class MineshaftPieces {
          if (!this.isInInvalidLocation(p_227836_, p_227840_)) {
             BlockState blockstate = this.type.getPlanksState();
             if (this.isTwoFloored) {
-               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX() + 1, this.boundingBox.minY(), this.boundingBox.minZ(), this.boundingBox.maxX() - 1, this.boundingBox.minY() + 3 - 1, this.boundingBox.maxZ(), CAVE_AIR, CAVE_AIR, false);
-               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX(), this.boundingBox.minY(), this.boundingBox.minZ() + 1, this.boundingBox.maxX(), this.boundingBox.minY() + 3 - 1, this.boundingBox.maxZ() - 1, CAVE_AIR, CAVE_AIR, false);
-               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX() + 1, this.boundingBox.maxY() - 2, this.boundingBox.minZ(), this.boundingBox.maxX() - 1, this.boundingBox.maxY(), this.boundingBox.maxZ(), CAVE_AIR, CAVE_AIR, false);
-               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX(), this.boundingBox.maxY() - 2, this.boundingBox.minZ() + 1, this.boundingBox.maxX(), this.boundingBox.maxY(), this.boundingBox.maxZ() - 1, CAVE_AIR, CAVE_AIR, false);
-               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX() + 1, this.boundingBox.minY() + 3, this.boundingBox.minZ() + 1, this.boundingBox.maxX() - 1, this.boundingBox.minY() + 3, this.boundingBox.maxZ() - 1, CAVE_AIR, CAVE_AIR, false);
+               this.generateBox(p_227836_, p_227840_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), this.boundingBox.minZ(), WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + 3 - 1, this.boundingBox.maxZ(), CAVE_AIR, CAVE_AIR, false);
+               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX(), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), this.boundingBox.maxX(), this.boundingBox.minY() + 3 - 1, WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L), CAVE_AIR, CAVE_AIR, false);
+               this.generateBox(p_227836_, p_227840_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.maxY() - 2, this.boundingBox.minZ(), WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.maxY(), this.boundingBox.maxZ(), CAVE_AIR, CAVE_AIR, false);
+               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX(), this.boundingBox.maxY() - 2, addBlockOffset(this.boundingBox.minZ(), 1L), this.boundingBox.maxX(), this.boundingBox.maxY(), WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L), CAVE_AIR, CAVE_AIR, false);
+               this.generateBox(p_227836_, p_227840_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + 3, addBlockOffset(this.boundingBox.minZ(), 1L), WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + 3, WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L), CAVE_AIR, CAVE_AIR, false);
             } else {
-               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX() + 1, this.boundingBox.minY(), this.boundingBox.minZ(), this.boundingBox.maxX() - 1, this.boundingBox.maxY(), this.boundingBox.maxZ(), CAVE_AIR, CAVE_AIR, false);
-               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX(), this.boundingBox.minY(), this.boundingBox.minZ() + 1, this.boundingBox.maxX(), this.boundingBox.maxY(), this.boundingBox.maxZ() - 1, CAVE_AIR, CAVE_AIR, false);
+               this.generateBox(p_227836_, p_227840_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), this.boundingBox.minZ(), WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.maxY(), this.boundingBox.maxZ(), CAVE_AIR, CAVE_AIR, false);
+               this.generateBox(p_227836_, p_227840_, this.boundingBox.minX(), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), this.boundingBox.maxX(), this.boundingBox.maxY(), WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L), CAVE_AIR, CAVE_AIR, false);
             }
 
-            this.placeSupportPillar(p_227836_, p_227840_, this.boundingBox.minX() + 1, this.boundingBox.minY(), this.boundingBox.minZ() + 1, this.boundingBox.maxY());
-            this.placeSupportPillar(p_227836_, p_227840_, this.boundingBox.minX() + 1, this.boundingBox.minY(), this.boundingBox.maxZ() - 1, this.boundingBox.maxY());
-            this.placeSupportPillar(p_227836_, p_227840_, this.boundingBox.maxX() - 1, this.boundingBox.minY(), this.boundingBox.minZ() + 1, this.boundingBox.maxY());
-            this.placeSupportPillar(p_227836_, p_227840_, this.boundingBox.maxX() - 1, this.boundingBox.minY(), this.boundingBox.maxZ() - 1, this.boundingBox.maxY());
+            this.placeSupportPillar(p_227836_, p_227840_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), this.boundingBox.maxY());
+            this.placeSupportPillar(p_227836_, p_227840_, addBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L), this.boundingBox.maxY());
+            this.placeSupportPillar(p_227836_, p_227840_, WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), 1L), this.boundingBox.maxY());
+            this.placeSupportPillar(p_227836_, p_227840_, WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L), this.boundingBox.maxY());
             int i = this.boundingBox.minY() - 1;
 
-            for(long j = this.boundingBox.minX(); j <= this.boundingBox.maxX(); ++j) {
-               for(long k = this.boundingBox.minZ(); k <= this.boundingBox.maxZ(); ++k) {
+            for(long j = this.boundingBox.minX(); ; j = addBlockOffset(j, 1L)) {
+               for(long k = this.boundingBox.minZ(); ; k = addBlockOffset(k, 1L)) {
                   this.setPlanksBlock(p_227836_, p_227840_, blockstate, j, i, k);
+                  if (k == this.boundingBox.maxZ()) {
+                     break;
+                  }
+               }
+
+               if (j == this.boundingBox.maxX()) {
+                  break;
                }
             }
 
@@ -615,18 +635,18 @@ public class MineshaftPieces {
       }
 
       protected boolean isInInvalidLocation(LevelAccessor p_227882_, BoundingBox p_227883_) {
-    	 long i = Math.max(this.boundingBox.minX() - 1, p_227883_.minX());
+         long i = Math.max(WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), p_227883_.minX());
          int j = Math.max(this.boundingBox.minY() - 1, p_227883_.minY());
-         long k = Math.max(this.boundingBox.minZ() - 1, p_227883_.minZ());
-         long l = Math.min(this.boundingBox.maxX() + 1, p_227883_.maxX());
+         long k = Math.max(WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), p_227883_.minZ());
+         long l = Math.min(addBlockOffset(this.boundingBox.maxX(), 1L), p_227883_.maxX());
          int i1 = Math.min(this.boundingBox.maxY() + 1, p_227883_.maxY());
-         long j1 = Math.min(this.boundingBox.maxZ() + 1, p_227883_.maxZ());
-         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos((i + l) / 2, (j + i1) / 2, (k + j1) / 2);
+         long j1 = Math.min(addBlockOffset(this.boundingBox.maxZ(), 1L), p_227883_.maxZ());
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(midpoint(i, l), (j + i1) / 2, midpoint(k, j1));
          if (p_227882_.getBiome(blockpos$mutableblockpos).is(BiomeTags.MINESHAFT_BLOCKING)) {
             return true;
          } else {
-            for(long k1 = i; k1 <= l; ++k1) {
-               for(long l1 = k; l1 <= j1; ++l1) {
+            for(long k1 = i; ; k1 = addBlockOffset(k1, 1L)) {
+               for(long l1 = k; ; l1 = addBlockOffset(l1, 1L)) {
                   if (p_227882_.getBlockState(blockpos$mutableblockpos.set(k1, j, l1)).getMaterial().isLiquid()) {
                      return true;
                   }
@@ -634,10 +654,18 @@ public class MineshaftPieces {
                   if (p_227882_.getBlockState(blockpos$mutableblockpos.set(k1, i1, l1)).getMaterial().isLiquid()) {
                      return true;
                   }
+
+                  if (l1 == j1) {
+                     break;
+                  }
+               }
+
+               if (k1 == l) {
+                  break;
                }
             }
 
-            for(long i2 = i; i2 <= l; ++i2) {
+            for(long i2 = i; ; i2 = addBlockOffset(i2, 1L)) {
                for(int k2 = j; k2 <= i1; ++k2) {
                   if (p_227882_.getBlockState(blockpos$mutableblockpos.set(i2, k2, k)).getMaterial().isLiquid()) {
                      return true;
@@ -647,9 +675,13 @@ public class MineshaftPieces {
                      return true;
                   }
                }
+
+               if (i2 == l) {
+                  break;
+               }
             }
 
-            for(long j2 = k; j2 <= j1; ++j2) {
+            for(long j2 = k; ; j2 = addBlockOffset(j2, 1L)) {
                for(int l2 = j; l2 <= i1; ++l2) {
                   if (p_227882_.getBlockState(blockpos$mutableblockpos.set(i, l2, j2)).getMaterial().isLiquid()) {
                      return true;
@@ -658,6 +690,10 @@ public class MineshaftPieces {
                   if (p_227882_.getBlockState(blockpos$mutableblockpos.set(l, l2, j2)).getMaterial().isLiquid()) {
                      return true;
                   }
+               }
+
+               if (j2 == j1) {
+                  break;
                }
             }
 
@@ -697,56 +733,57 @@ public class MineshaftPieces {
             j = 1;
          }
 
-         int k;
-         for(k = 0; k < this.boundingBox.getXSpan(); k += 4) {
-            k += p_227924_.nextLong() % this.boundingBox.getXSpan();
-            if (k + 3 > this.boundingBox.getXSpan()) {
+         long xSpan = this.boundingBox.getXSpan();
+         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < xSpan - 2L; k += 4L, ++attempts) {
+            k += randomOffset(p_227924_, xSpan);
+            if (k > xSpan - 3L) {
                break;
             }
 
-            MineshaftPieces.MineShaftPiece mineshaftpieces$mineshaftpiece = MineshaftPieces.generateAndAddPiece(p_227922_, p_227923_, p_227924_, addBlockOffset(this.boundingBox.minX(), k), this.boundingBox.minY() + p_227924_.nextInt(j) + 1, addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i);
+            MineshaftPieces.MineShaftPiece mineshaftpieces$mineshaftpiece = MineshaftPieces.generateAndAddPiece(p_227922_, p_227923_, p_227924_, addBlockOffset(this.boundingBox.minX(), k), this.boundingBox.minY() + p_227924_.nextInt(j) + 1, WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i);
             if (mineshaftpieces$mineshaftpiece != null) {
                BoundingBox boundingbox = mineshaftpieces$mineshaftpiece.getBoundingBox();
-               this.childEntranceBoxes.add(new BoundingBox(boundingbox.minX(), boundingbox.minY(), this.boundingBox.minZ(), boundingbox.maxX(), boundingbox.maxY(), this.boundingBox.minZ() + 1));
+               this.childEntranceBoxes.add(new BoundingBox(boundingbox.minX(), boundingbox.minY(), this.boundingBox.minZ(), boundingbox.maxX(), boundingbox.maxY(), addBlockOffset(this.boundingBox.minZ(), 1L)));
             }
          }
 
-         for(k = 0; k < this.boundingBox.getXSpan(); k += 4) {
-            k += p_227924_.nextLong() % this.boundingBox.getXSpan();
-            if (k + 3 > this.boundingBox.getXSpan()) {
+         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < xSpan - 2L; k += 4L, ++attempts) {
+            k += randomOffset(p_227924_, xSpan);
+            if (k > xSpan - 3L) {
                break;
             }
 
             MineshaftPieces.MineShaftPiece mineshaftpieces$mineshaftpiece1 = MineshaftPieces.generateAndAddPiece(p_227922_, p_227923_, p_227924_, addBlockOffset(this.boundingBox.minX(), k), this.boundingBox.minY() + p_227924_.nextInt(j) + 1, addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i);
             if (mineshaftpieces$mineshaftpiece1 != null) {
                BoundingBox boundingbox1 = mineshaftpieces$mineshaftpiece1.getBoundingBox();
-               this.childEntranceBoxes.add(new BoundingBox(boundingbox1.minX(), boundingbox1.minY(), this.boundingBox.maxZ() - 1, boundingbox1.maxX(), boundingbox1.maxY(), this.boundingBox.maxZ()));
+               this.childEntranceBoxes.add(new BoundingBox(boundingbox1.minX(), boundingbox1.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L), boundingbox1.maxX(), boundingbox1.maxY(), this.boundingBox.maxZ()));
             }
          }
 
-         for(k = 0; k < this.boundingBox.getZSpan(); k += 4) {
-            k += p_227924_.nextLong() % this.boundingBox.getZSpan();
-            if (k + 3 > this.boundingBox.getZSpan()) {
+         long zSpan = this.boundingBox.getZSpan();
+         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < zSpan - 2L; k += 4L, ++attempts) {
+            k += randomOffset(p_227924_, zSpan);
+            if (k > zSpan - 3L) {
                break;
             }
 
-            MineshaftPieces.MineShaftPiece mineshaftpieces$mineshaftpiece2 = MineshaftPieces.generateAndAddPiece(p_227922_, p_227923_, p_227924_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY() + p_227924_.nextInt(j) + 1, addBlockOffset(this.boundingBox.minZ(), k), Direction.WEST, i);
+            MineshaftPieces.MineShaftPiece mineshaftpieces$mineshaftpiece2 = MineshaftPieces.generateAndAddPiece(p_227922_, p_227923_, p_227924_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + p_227924_.nextInt(j) + 1, addBlockOffset(this.boundingBox.minZ(), k), Direction.WEST, i);
             if (mineshaftpieces$mineshaftpiece2 != null) {
                BoundingBox boundingbox2 = mineshaftpieces$mineshaftpiece2.getBoundingBox();
-               this.childEntranceBoxes.add(new BoundingBox(this.boundingBox.minX(), boundingbox2.minY(), boundingbox2.minZ(), this.boundingBox.minX() + 1, boundingbox2.maxY(), boundingbox2.maxZ()));
+               this.childEntranceBoxes.add(new BoundingBox(this.boundingBox.minX(), boundingbox2.minY(), boundingbox2.minZ(), addBlockOffset(this.boundingBox.minX(), 1L), boundingbox2.maxY(), boundingbox2.maxZ()));
             }
          }
 
-         for(k = 0; k < this.boundingBox.getZSpan(); k += 4) {
-            k += p_227924_.nextLong() % this.boundingBox.getZSpan();
-            if (k + 3 > this.boundingBox.getZSpan()) {
+         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < zSpan - 2L; k += 4L, ++attempts) {
+            k += randomOffset(p_227924_, zSpan);
+            if (k > zSpan - 3L) {
                break;
             }
 
             StructurePiece structurepiece = MineshaftPieces.generateAndAddPiece(p_227922_, p_227923_, p_227924_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + p_227924_.nextInt(j) + 1, addBlockOffset(this.boundingBox.minZ(), k), Direction.EAST, i);
             if (structurepiece != null) {
                BoundingBox boundingbox3 = structurepiece.getBoundingBox();
-               this.childEntranceBoxes.add(new BoundingBox(this.boundingBox.maxX() - 1, boundingbox3.minY(), boundingbox3.minZ(), this.boundingBox.maxX(), boundingbox3.maxY(), boundingbox3.maxZ()));
+               this.childEntranceBoxes.add(new BoundingBox(WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L), boundingbox3.minY(), boundingbox3.minZ(), this.boundingBox.maxX(), boundingbox3.maxY(), boundingbox3.maxZ()));
             }
          }
 
@@ -809,7 +846,7 @@ public class MineshaftPieces {
                boundingbox = new BoundingBox(0, -5, 0, 8, 2, 2);
          }
 
-         boundingbox.move(p_227953_, p_227954_, p_227955_);
+         boundingbox = moveBoundingBox(boundingbox, p_227953_, p_227954_, p_227955_);
          return p_227951_.findCollisionPiece(boundingbox) != null ? null : boundingbox;
       }
 
@@ -820,13 +857,13 @@ public class MineshaftPieces {
             switch (direction) {
                case NORTH:
                default:
-                  MineshaftPieces.generateAndAddPiece(p_227947_, p_227948_, p_227949_, this.boundingBox.minX(), this.boundingBox.minY(), addBlockOffset(this.boundingBox.minZ(), -1L), Direction.NORTH, i);
+                  MineshaftPieces.generateAndAddPiece(p_227947_, p_227948_, p_227949_, this.boundingBox.minX(), this.boundingBox.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i);
                   break;
                case SOUTH:
                   MineshaftPieces.generateAndAddPiece(p_227947_, p_227948_, p_227949_, this.boundingBox.minX(), this.boundingBox.minY(), addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, i);
                   break;
                case WEST:
-                  MineshaftPieces.generateAndAddPiece(p_227947_, p_227948_, p_227949_, addBlockOffset(this.boundingBox.minX(), -1L), this.boundingBox.minY(), this.boundingBox.minZ(), Direction.WEST, i);
+                  MineshaftPieces.generateAndAddPiece(p_227947_, p_227948_, p_227949_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), this.boundingBox.minZ(), Direction.WEST, i);
                   break;
                case EAST:
                   MineshaftPieces.generateAndAddPiece(p_227947_, p_227948_, p_227949_, addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY(), this.boundingBox.minZ(), Direction.EAST, i);

@@ -106,7 +106,7 @@ public abstract class StructurePiece {
    public boolean isCloseToChunk(ChunkPos p_73412_, int p_73413_) {
 	  long i = p_73412_.getMinBlockX();
 	  long j = p_73412_.getMinBlockZ();
-      return this.boundingBox.intersects(i - p_73413_, j - p_73413_, i + 15 + p_73413_, j + 15 + p_73413_);
+      return this.boundingBox.intersects(WorldBounds.subtractBlockOffset(i, p_73413_), WorldBounds.subtractBlockOffset(j, p_73413_), WorldBounds.addBlockOffset(i, 15L + p_73413_), WorldBounds.addBlockOffset(j, 15L + p_73413_));
    }
 
    public BlockPos getLocatorPosition() {
@@ -125,11 +125,11 @@ public abstract class StructurePiece {
          switch (direction) {
             case NORTH:
             case SOUTH:
-               return this.boundingBox.minX() + p_73393_;
+               return WorldBounds.addBlockOffset(this.boundingBox.minX(), p_73393_);
             case WEST:
-               return this.boundingBox.maxX() - p_73394_;
+               return WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), p_73394_);
             case EAST:
-               return this.boundingBox.minX() + p_73394_;
+               return WorldBounds.addBlockOffset(this.boundingBox.minX(), p_73394_);
             default:
                return p_73393_;
          }
@@ -147,12 +147,12 @@ public abstract class StructurePiece {
       } else {
          switch (direction) {
             case NORTH:
-               return this.boundingBox.maxZ() - p_73527_;
+               return WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), p_73527_);
             case SOUTH:
-               return this.boundingBox.minZ() + p_73527_;
+               return WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_73527_);
             case WEST:
             case EAST:
-               return this.boundingBox.minZ() + p_73526_;
+               return WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_73526_);
             default:
                return p_73527_;
          }
@@ -216,8 +216,8 @@ public abstract class StructurePiece {
 
    protected void generateBox(WorldGenLevel p_73442_, BoundingBox p_73443_, long p_73444_, int p_73445_, long p_73446_, long p_73447_, int p_73448_, long p_73449_, BlockState p_73450_, BlockState p_73451_, boolean p_73452_) {
       for(int i = p_73445_; i <= p_73448_; ++i) {
-         for(long j = p_73444_; j <= p_73447_; ++j) {
-            for(long k = p_73446_; k <= p_73449_; ++k) {
+         for(long j = p_73444_; ; j = WorldBounds.addBlockOffset(j, 1L)) {
+            for(long k = p_73446_; ; k = WorldBounds.addBlockOffset(k, 1L)) {
                if (!p_73452_ || !this.getBlock(p_73442_, j, i, k, p_73443_).isAir()) {
                   if (i != p_73445_ && i != p_73448_ && j != p_73444_ && j != p_73447_ && k != p_73446_ && k != p_73449_) {
                      this.placeBlock(p_73442_, p_73451_, j, i, k, p_73443_);
@@ -225,6 +225,14 @@ public abstract class StructurePiece {
                      this.placeBlock(p_73442_, p_73450_, j, i, k, p_73443_);
                   }
                }
+
+               if (k == p_73449_) {
+                  break;
+               }
+            }
+
+            if (j == p_73447_) {
+               break;
             }
          }
       }
@@ -237,12 +245,20 @@ public abstract class StructurePiece {
 
    protected void generateBox(WorldGenLevel p_226777_, BoundingBox p_226778_, long p_226779_, int p_226780_, long p_226781_, long p_226782_, int p_226783_, long p_226784_, boolean p_226785_, RandomSource p_226786_, StructurePiece.BlockSelector p_226787_) {
       for(int i = p_226780_; i <= p_226783_; ++i) {
-         for(long j = p_226779_; j <= p_226782_; ++j) {
-            for(long k = p_226781_; k <= p_226784_; ++k) {
+         for(long j = p_226779_; ; j = WorldBounds.addBlockOffset(j, 1L)) {
+            for(long k = p_226781_; ; k = WorldBounds.addBlockOffset(k, 1L)) {
                if (!p_226785_ || !this.getBlock(p_226777_, j, i, k, p_226778_).isAir()) {
                   p_226787_.next(p_226786_, j, i, k, i == p_226780_ || i == p_226783_ || j == p_226779_ || j == p_226782_ || k == p_226781_ || k == p_226784_);
                   this.placeBlock(p_226777_, p_226787_.getNext(), j, i, k, p_226778_);
                }
+
+               if (k == p_226784_) {
+                  break;
+               }
+            }
+
+            if (j == p_226782_) {
+               break;
             }
          }
       }
@@ -278,19 +294,19 @@ public abstract class StructurePiece {
    }
 
    protected void generateUpperHalfSphere(WorldGenLevel p_73454_, BoundingBox p_73455_, long p_73456_, int p_73457_, long p_73458_, long p_73459_, int p_73460_, long p_73461_, BlockState p_73462_, boolean p_73463_) {
-      float f = (float)(p_73459_ - p_73456_ + 1);
+      float f = (float)WorldBounds.distance(p_73459_, p_73456_) + 1.0F;
       float f1 = (float)(p_73460_ - p_73457_ + 1);
-      float f2 = (float)(p_73461_ - p_73458_ + 1);
+      float f2 = (float)WorldBounds.distance(p_73461_, p_73458_) + 1.0F;
       float f3 = (float)p_73456_ + f / 2.0F;
       float f4 = (float)p_73458_ + f2 / 2.0F;
 
       for(int i = p_73457_; i <= p_73460_; ++i) {
          float f5 = (float)(i - p_73457_) / f1;
 
-         for(long j = p_73456_; j <= p_73459_; ++j) {
+         for(long j = p_73456_; ; j = WorldBounds.addBlockOffset(j, 1L)) {
             float f6 = ((float)j - f3) / (f * 0.5F);
 
-            for(long k = p_73458_; k <= p_73461_; ++k) {
+            for(long k = p_73458_; ; k = WorldBounds.addBlockOffset(k, 1L)) {
                float f7 = ((float)k - f4) / (f2 * 0.5F);
                if (!p_73463_ || !this.getBlock(p_73454_, j, i, k, p_73455_).isAir()) {
                   float f8 = f6 * f6 + f5 * f5 + f7 * f7;
@@ -298,6 +314,14 @@ public abstract class StructurePiece {
                      this.placeBlock(p_73454_, p_73462_, j, i, k, p_73455_);
                   }
                }
+
+               if (k == p_73461_) {
+                  break;
+               }
+            }
+
+            if (j == p_73459_) {
+               break;
             }
          }
       }

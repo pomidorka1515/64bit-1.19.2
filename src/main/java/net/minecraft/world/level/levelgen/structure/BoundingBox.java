@@ -126,12 +126,12 @@ public class BoundingBox {
    /** @deprecated */
    @Deprecated
    public BoundingBox move(long p_162368_, int p_162369_, long p_162370_) {
-      this.minX += p_162368_;
+      this.minX = WorldBounds.addBlockOffset(this.minX, p_162368_);
       this.minY += p_162369_;
-      this.minZ += p_162370_;
-      this.maxX += p_162368_;
+      this.minZ = WorldBounds.addBlockOffset(this.minZ, p_162370_);
+      this.maxX = WorldBounds.addBlockOffset(this.maxX, p_162368_);
       this.maxY += p_162369_;
-      this.maxZ += p_162370_;
+      this.maxZ = WorldBounds.addBlockOffset(this.maxZ, p_162370_);
       return this;
    }
 
@@ -154,11 +154,11 @@ public class BoundingBox {
    }
 
    public Vec3i getLength() {
-      return new Vec3i(this.maxX - this.minX, this.maxY - this.minY, this.maxZ - this.minZ);
+      return new Vec3i(distanceAsLong(this.minX, this.maxX), this.maxY - this.minY, distanceAsLong(this.minZ, this.maxZ));
    }
 
    public long getXSpan() {
-      return this.maxX - this.minX + 1;
+      return span(this.minX, this.maxX);
    }
 
    public int getYSpan() {
@@ -166,11 +166,25 @@ public class BoundingBox {
    }
 
    public long getZSpan() {
-      return this.maxZ - this.minZ + 1;
+      return span(this.minZ, this.maxZ);
    }
 
    public BlockPos getCenter() {
-      return new BlockPos(this.minX + (this.maxX - this.minX + 1) / 2, this.minY + (this.maxY - this.minY + 1) / 2, this.minZ + (this.maxZ - this.minZ + 1) / 2);
+      return new BlockPos(center(this.minX, this.maxX), this.minY + (this.maxY - this.minY + 1) / 2, center(this.minZ, this.maxZ));
+   }
+
+   private static long span(long min, long max) {
+      long distance = distanceAsLong(min, max);
+      return distance == Long.MAX_VALUE ? Long.MAX_VALUE : distance + 1L;
+   }
+
+   private static long distanceAsLong(long min, long max) {
+      double distance = WorldBounds.distance(max, min);
+      return distance >= (double)Long.MAX_VALUE ? Long.MAX_VALUE : (long)distance;
+   }
+
+   private static long center(long min, long max) {
+      return WorldBounds.middleBlockCoordinate(min, max);
    }
 
    public void forAllCorners(Consumer<BlockPos> p_162381_) {

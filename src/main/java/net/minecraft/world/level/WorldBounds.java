@@ -129,6 +129,12 @@ public final class WorldBounds {
       return addBlockOffset(block, (long)offset);
    }
 
+   /** Subtracts a block offset without wrapping at a signed-long edge. */
+   public static long subtractBlockOffset(long block, long offset) {
+      if (offset == Long.MIN_VALUE) return block < 0L ? MAX_BLOCK + block + 1L : MAX_BLOCK;
+      return addBlockOffset(block, -offset);
+   }
+
    /** Adds a small chunk offset without wrapping at a long edge. */
    public static long addChunkOffset(long chunk, long offset) {
       if (offset > 0L && chunk > MAX_CHUNK - offset) return MAX_CHUNK;
@@ -168,6 +174,17 @@ public final class WorldBounds {
       if (value >= 0L && origin < 0L) return (double)value - (double)origin;
       if (value < 0L && origin >= 0L) return (double)value - (double)origin;
       return (double)(value - origin);
+   }
+
+   /** Returns the upper center of an inclusive block-coordinate interval. */
+   public static long middleBlockCoordinate(long min, long max) {
+      if (min < 0L && max > 0L) {
+         long sum = min + max;
+         return sum >= 0L ? sum / 2L + sum % 2L : sum / 2L;
+      }
+
+      long difference = max - min;
+      return min + difference / 2L + difference % 2L;
    }
 
    /** Keeps legacy entity Y ingress inside the range supported by BlockPos/AABB physics. */

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import net.minecraft.core.Cursor3D;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.junit.jupiter.api.Test;
 
 class WorldBoundsTest {
@@ -31,6 +32,18 @@ class WorldBoundsTest {
    }
 
    @Test
+   void blockOffsetsNeverWrapToTheOppositeSide() {
+      assertEquals(WorldBounds.MAX_BLOCK, WorldBounds.addBlockOffset(WorldBounds.MAX_BLOCK, 1L));
+      assertEquals(WorldBounds.MIN_BLOCK, WorldBounds.addBlockOffset(WorldBounds.MIN_BLOCK, -1L));
+      assertEquals(WorldBounds.MIN_BLOCK, WorldBounds.subtractBlockOffset(WorldBounds.MIN_BLOCK, 1L));
+      assertEquals(0L, WorldBounds.subtractBlockOffset(Long.MIN_VALUE, Long.MIN_VALUE));
+      assertEquals(WorldBounds.MAX_BLOCK, WorldBounds.subtractBlockOffset(WorldBounds.MAX_BLOCK, Long.MIN_VALUE));
+      assertEquals(0L, WorldBounds.middleBlockCoordinate(Long.MIN_VALUE, Long.MAX_VALUE));
+      assertEquals(1L, WorldBounds.middleBlockCoordinate(0L, 1L));
+      assertEquals(-1L, WorldBounds.middleBlockCoordinate(-2L, -1L));
+   }
+
+   @Test
    void surfaceArithmeticIsFiniteAndSaturating() {
       assertEquals(Integer.MAX_VALUE, WorldBounds.addSaturated(Integer.MAX_VALUE, 1));
       assertEquals(Integer.MIN_VALUE, WorldBounds.addSaturated(Integer.MIN_VALUE, -1));
@@ -41,6 +54,15 @@ class WorldBoundsTest {
       assertEquals(1.0D, WorldBounds.clampNoise(Double.POSITIVE_INFINITY));
       assertEquals(WorldBounds.MAX_BLOCK - 15L, WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK));
       assertEquals(WorldBounds.MIN_BLOCK, WorldBounds.chunkToBlock(WorldBounds.MIN_CHUNK));
+   }
+
+   @Test
+   void boundingBoxSpansAndCentersRemainValidAtWorldEdges() {
+      BoundingBox fullWorld = new BoundingBox(Long.MIN_VALUE, 0, Long.MIN_VALUE, Long.MAX_VALUE, 0, Long.MAX_VALUE);
+      assertEquals(Long.MAX_VALUE, fullWorld.getXSpan());
+      assertEquals(Long.MAX_VALUE, fullWorld.getZSpan());
+      assertEquals(0L, fullWorld.getCenter().getX());
+      assertEquals(0L, fullWorld.getCenter().getZ());
    }
 
    @Test

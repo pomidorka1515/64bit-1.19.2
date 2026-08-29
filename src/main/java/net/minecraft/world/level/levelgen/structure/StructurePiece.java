@@ -137,7 +137,7 @@ public abstract class StructurePiece {
    }
 
    protected int getWorldY(int p_73545_) {
-      return this.getOrientation() == null ? p_73545_ : p_73545_ + this.boundingBox.minY();
+      return this.getOrientation() == null ? p_73545_ : WorldBounds.addSaturated(p_73545_, this.boundingBox.minY());
    }
 
    protected long getWorldZ(long p_73526_, long p_73527_) {

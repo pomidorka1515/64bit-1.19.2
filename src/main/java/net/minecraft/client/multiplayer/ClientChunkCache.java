@@ -17,6 +17,7 @@ import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.chunk.ChunkStatus;
@@ -56,7 +57,7 @@ public class ClientChunkCache extends ChunkSource {
    }
 
    public void drop(long i2, long j) {
-      if (!net.minecraft.world.level.WorldBounds.isValidChunk(i2, j)) return;
+      if (!WorldBounds.isValidChunk(i2, j)) return;
       if (this.storage.inRange(i2, j)) {
          int i = this.storage.getIndex(i2, j);
          LevelChunk levelchunk = this.storage.getChunk(i);
@@ -69,7 +70,7 @@ public class ClientChunkCache extends ChunkSource {
 
    @Nullable
    public LevelChunk getChunk(long p_104451_, long p_104452_, ChunkStatus p_104453_, boolean p_104454_) {
-      if (!net.minecraft.world.level.WorldBounds.isValidChunk(p_104451_, p_104452_)) return null;
+      if (!WorldBounds.isValidChunk(p_104451_, p_104452_)) return null;
       if (this.storage.inRange(p_104451_, p_104452_)) {
          LevelChunk levelchunk = this.storage.getChunk(this.storage.getIndex(p_104451_, p_104452_));
          if (isValidChunk(levelchunk, p_104451_, p_104452_)) {
@@ -86,7 +87,7 @@ public class ClientChunkCache extends ChunkSource {
 
    @Nullable
    public LevelChunk replaceWithPacketData(long p_194117_, long p_194118_, FriendlyByteBuf p_194119_, CompoundTag p_194120_, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> p_194121_) {
-      if (!net.minecraft.world.level.WorldBounds.isValidChunk(p_194117_, p_194118_)) return null;
+      if (!WorldBounds.isValidChunk(p_194117_, p_194118_)) return null;
       if (!this.storage.inRange(p_194117_, p_194118_)) {
          LOGGER.warn("Ignoring chunk since it's not in the view range: {}, {}", p_194117_, p_194118_);
          return null;
@@ -111,8 +112,8 @@ public class ClientChunkCache extends ChunkSource {
    }
 
    public void updateViewCenter(long p_104460_, long p_104461_) {
-      this.storage.viewCenterX = p_104460_;
-      this.storage.viewCenterZ = p_104461_;
+      this.storage.viewCenterX = WorldBounds.clampChunk(p_104460_);
+      this.storage.viewCenterZ = WorldBounds.clampChunk(p_104461_);
    }
 
    public void updateViewRadius(int p_104417_) {
@@ -170,7 +171,9 @@ public class ClientChunkCache extends ChunkSource {
       }
 
       int getIndex(long p_104482_, long p_104483_) {
-         return Math.floorMod(p_104483_, this.viewRange) * this.viewRange + Math.floorMod(p_104482_, this.viewRange);
+         long x = Math.floorMod(p_104482_, (long)this.viewRange);
+         long z = Math.floorMod(p_104483_, (long)this.viewRange);
+         return (int)(z * (long)this.viewRange + x);
       }
 
       protected void replace(int p_104485_, @Nullable LevelChunk p_104486_) {
@@ -196,8 +199,8 @@ public class ClientChunkCache extends ChunkSource {
       }
 
       boolean inRange(long p_104501_, long p_104502_) {
-         return net.minecraft.world.level.WorldBounds.within(p_104501_, this.viewCenterX, this.chunkRadius)
-               && net.minecraft.world.level.WorldBounds.within(p_104502_, this.viewCenterZ, this.chunkRadius);
+         return WorldBounds.within(p_104501_, this.viewCenterX, this.chunkRadius)
+               && WorldBounds.within(p_104502_, this.viewCenterZ, this.chunkRadius);
       }
 
       @Nullable
@@ -210,16 +213,22 @@ public class ClientChunkCache extends ChunkSource {
             FileOutputStream fileoutputstream = new FileOutputStream(p_171623_);
 
             try {
-               int i = ClientChunkCache.this.storage.chunkRadius;
+               long radius = (long)ClientChunkCache.this.storage.chunkRadius;
+               long minZ = WorldBounds.addChunkOffset(this.viewCenterZ, -radius);
+               long maxZ = WorldBounds.addChunkOffset(this.viewCenterZ, radius);
+               long minX = WorldBounds.addChunkOffset(this.viewCenterX, -radius);
+               long maxX = WorldBounds.addChunkOffset(this.viewCenterX, radius);
 
-               for(long j = this.viewCenterZ - i; j <= this.viewCenterZ + i; ++j) {
-                  for(long k = this.viewCenterX - i; k <= this.viewCenterX + i; ++k) {
-                     LevelChunk levelchunk = ClientChunkCache.this.storage.chunks.get(ClientChunkCache.this.storage.getIndex(k, j));
+               for(long z = minZ; ; z = WorldBounds.addChunkOffset(z, 1L)) {
+                  for(long x = minX; ; x = WorldBounds.addChunkOffset(x, 1L)) {
+                     LevelChunk levelchunk = ClientChunkCache.this.storage.chunks.get(ClientChunkCache.this.storage.getIndex(x, z));
                      if (levelchunk != null) {
                         ChunkPos chunkpos = levelchunk.getPos();
                         fileoutputstream.write((chunkpos.x + "\t" + chunkpos.z + "\t" + levelchunk.isEmpty() + "\n").getBytes(StandardCharsets.UTF_8));
                      }
+                     if (x == maxX) break;
                   }
+                  if (z == maxZ) break;
                }
             } catch (Throwable throwable1) {
                try {

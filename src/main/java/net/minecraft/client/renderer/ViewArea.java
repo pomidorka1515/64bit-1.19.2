@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -37,7 +38,7 @@ public class ViewArea {
             for(int k = 0; k < this.chunkGridSizeY; ++k) {
                for(int l = 0; l < this.chunkGridSizeZ; ++l) {
                   int i1 = this.getChunkIndex(j, k, l);
-                  this.chunks[i1] = p_110865_.new RenderChunk(i1, j * 16, k * 16, l * 16);
+                  this.chunks[i1] = p_110865_.new RenderChunk(i1, (long)j * 16L, k * 16, (long)l * 16L);
                }
             }
          }
@@ -67,25 +68,27 @@ public class ViewArea {
    }
 
    public void repositionCamera(SectorVec3 exactCamera) {
-      long camBlockX = exactCamera.blockX();
-      long camBlockZ = exactCamera.blockZ();
-      long l = (long)this.chunkGridSizeX * 16L;
-      long i1 = camBlockX - 8L - l / 2L;
+      long viewWidthBlocks = (long)this.chunkGridSizeX * 16L;
+      long viewDepthBlocks = (long)this.chunkGridSizeZ * 16L;
+      long minChunkX = WorldBounds.addChunkOffset(Math.floorDiv(exactCamera.blockX(), 16L), -(long)this.chunkGridSizeX / 2L);
+      long minChunkZ = WorldBounds.addChunkOffset(Math.floorDiv(exactCamera.blockZ(), 16L), -(long)this.chunkGridSizeZ / 2L);
+      long minBlockX = WorldBounds.chunkToBlock(minChunkX);
+      long minBlockZ = WorldBounds.chunkToBlock(minChunkZ);
 
-      for(int k = 0; k < this.chunkGridSizeX; ++k) {
-         long j1 = i1 + Math.floorMod((long)k * 16L - i1, l);
+      for(int xIndex = 0; xIndex < this.chunkGridSizeX; ++xIndex) {
+         long xOffset = (long)xIndex * 16L;
+         long blockX = WorldBounds.addBlockOffset(minBlockX, Math.floorMod(xOffset - Math.floorMod(minBlockX, viewWidthBlocks), viewWidthBlocks));
 
-         for(int k1 = 0; k1 < this.chunkGridSizeZ; ++k1) {
-            long l1 = (long)this.chunkGridSizeZ * 16L;
-            long i2 = camBlockZ - 8L - l1 / 2L;
-            long j2 = i2 + Math.floorMod((long)k1 * 16L - i2, l1);
+         for(int zIndex = 0; zIndex < this.chunkGridSizeZ; ++zIndex) {
+            long zOffset = (long)zIndex * 16L;
+            long blockZ = WorldBounds.addBlockOffset(minBlockZ, Math.floorMod(zOffset - Math.floorMod(minBlockZ, viewDepthBlocks), viewDepthBlocks));
 
-            for(int k2 = 0; k2 < this.chunkGridSizeY; ++k2) {
-               int l2 = this.level.getMinBuildHeight() + k2 * 16;
-               ChunkRenderDispatcher.RenderChunk chunk = this.chunks[this.getChunkIndex((long)k, k2, (long)k1)];
-               BlockPos blockpos = chunk.getOrigin();
-               if (j1 != blockpos.getX() || l2 != blockpos.getY() || j2 != blockpos.getZ()) {
-                  chunk.setOrigin(j1, l2, j2);
+            for(int yIndex = 0; yIndex < this.chunkGridSizeY; ++yIndex) {
+               int blockY = this.level.getMinBuildHeight() + yIndex * 16;
+               ChunkRenderDispatcher.RenderChunk chunk = this.chunks[this.getChunkIndex((long)xIndex, yIndex, (long)zIndex)];
+               BlockPos origin = chunk.getOrigin();
+               if (blockX != origin.getX() || blockY != origin.getY() || blockZ != origin.getZ()) {
+                  chunk.setOrigin(blockX, blockY, blockZ);
                }
             }
          }

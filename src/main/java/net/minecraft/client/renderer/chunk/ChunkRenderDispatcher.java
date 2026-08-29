@@ -47,6 +47,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.thread.ProcessorMailbox;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -362,7 +363,9 @@ public class ChunkRenderDispatcher {
       public void setOrigin(long p_112802_, int p_112803_, long p_112804_) {
          this.reset();
          this.origin.set(p_112802_, p_112803_, p_112804_);
-         this.bb = new AABB((double)p_112802_, (double)p_112803_, (double)p_112804_, (double)(p_112802_ + 16), (double)(p_112803_ + 16), (double)(p_112804_ + 16));
+         this.bb = new AABB((double)p_112802_, (double)p_112803_, (double)p_112804_,
+               (double)WorldBounds.addBlockOffset(p_112802_, 16L), (double)(p_112803_ + 16),
+               (double)WorldBounds.addBlockOffset(p_112804_, 16L));
 
          for(Direction direction : Direction.values()) {
             this.relativeOrigins[direction.ordinal()].set(this.origin).move(direction, 16);

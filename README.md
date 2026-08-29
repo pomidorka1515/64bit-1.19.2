@@ -2,12 +2,13 @@
 I didnt make the original base mod, its made by mckuhei.
 But it had a shitton of issues, so im slowly fixing all of them.
 # Playing this
-There are no releases or builds yet because this is still in development.
-If you REALLY want to play:
- - clone this repo
- - `./gradlew runClient`
- - pray to god it works
- - (prob wont work on windows. windows is ass... wait for a release)
+**Currently the mod is quite unstable. Dont expect a smoooth experience.**
+ - download the jar from the [latest release](https://pomi.site/ec952ebae0f530313056/pomi/64bit-1.19.2/releases)
+ - install [prism](https://prismlauncher.org) if you havent
+ - open Prism, create a **vanilla** 1.19.2 instance
+ - open its settings, then click "Version"
+ - click "Add to Minecraft.jar" -> select the jar you've downloaded
+ - playy
 
 
 # TODOs (regular people can ignore this)

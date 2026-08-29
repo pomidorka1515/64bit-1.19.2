@@ -1991,9 +1991,23 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
          float f2 = 4.0F;
          double d0 = 2.0E-4D;
          double d1 = (double)(((float)this.ticks + p_172957_) * 0.03F);
-         double d2 = getCloudPhase(p_172958_, d1, 0.0D);
-         double d3 = (double)(f - (float)p_172959_ + 0.33F);
-         double d4 = getCloudPhase(p_172960_, 0.0D, 0.33D);
+         Camera camera = this.minecraft.gameRenderer.getMainCamera();
+         SectorVec3 exactCamera = camera.exactPosition();
+         double d2;
+         double d3;
+         double d4;
+         if (exactCamera != null) {
+            // Keep cloud coordinates local to the camera. Only the bounded periodic phase is retained, so the large world coordinate never reaches the floating-point render transform.
+            double cloudX = (double)Math.floorMod(exactCamera.blockX(), 24576L) + exactCamera.subX();
+            double cloudZ = (double)Math.floorMod(exactCamera.blockZ(), 24576L) + exactCamera.subZ();
+            d2 = getCloudPhase(cloudX, d1, 0.0D);
+            d3 = (double)f - exactCamera.y() + 0.33D;
+            d4 = getCloudPhase(cloudZ, 0.0D, 0.33D);
+         } else {
+            d2 = getCloudPhase(p_172958_, d1, 0.0D);
+            d3 = (double)(f - (float)p_172959_ + 0.33F);
+            d4 = getCloudPhase(p_172960_, 0.0D, 0.33D);
+         }
          float f3 = (float)(d2 - (double)Mth.floor(d2));
          float f4 = (float)(d3 / 4.0D - (double)Mth.floor(d3 / 4.0D)) * 4.0F;
          float f5 = (float)(d4 - (double)Mth.floor(d4));

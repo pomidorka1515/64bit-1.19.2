@@ -49,13 +49,15 @@ public abstract class LavaFluid extends FlowingFluid {
             double d2 = p_230570_.nextDouble();
             p_230567_.addParticle(ParticleTypes.LAVA, SectorVec3.fromBlockAndFraction(p_230568_.getX(),
                   d0, d1, p_230568_.getZ(), d2), 0.0D, 0.0D, 0.0D);
-            p_230567_.playLocalSound((double)p_230568_.getX() + d0, d1,
-                  (double)p_230568_.getZ() + d2, SoundEvents.LAVA_POP, SoundSource.BLOCKS,
+            p_230567_.playLocalSound(SectorVec3.fromBlockAndFraction(p_230568_.getX(), d0, d1,
+                  p_230568_.getZ(), d2), SoundEvents.LAVA_POP, SoundSource.BLOCKS,
                   0.2F + p_230570_.nextFloat() * 0.2F, 0.9F + p_230570_.nextFloat() * 0.15F, false);
          }
 
          if (p_230570_.nextInt(200) == 0) {
-            p_230567_.playLocalSound((double)p_230568_.getX(), (double)p_230568_.getY(), (double)p_230568_.getZ(), SoundEvents.LAVA_AMBIENT, SoundSource.BLOCKS, 0.2F + p_230570_.nextFloat() * 0.2F, 0.9F + p_230570_.nextFloat() * 0.15F, false);
+            p_230567_.playLocalSound(SectorVec3.fromBlockAndFraction(p_230568_.getX(), 0.0D,
+                  (double)p_230568_.getY(), p_230568_.getZ(), 0.0D), SoundEvents.LAVA_AMBIENT, SoundSource.BLOCKS,
+                  0.2F + p_230570_.nextFloat() * 0.2F, 0.9F + p_230570_.nextFloat() * 0.15F, false);
          }
       }
 

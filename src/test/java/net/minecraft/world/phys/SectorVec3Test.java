@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import org.junit.jupiter.api.Test;
 
 class SectorVec3Test {
@@ -102,6 +103,22 @@ class SectorVec3Test {
       assertEquals(0.0D, min.subX());
       assertEquals(0.0D, min.subZ());
       assertEquals(Double.isFinite(max.toApproximateVec3().x), true);
+   }
+
+   @Test
+   void clampsLegacyDoubleIngressAtTheWorldEdges() {
+      SectorVec3 positive = SectorVec3.fromApproximate(Double.MAX_VALUE, 64.0D, Double.MAX_VALUE);
+      long maximumDoubleBlock = (long)Math.floor(WorldBounds.clampAbsoluteDouble(Double.MAX_VALUE));
+      assertEquals(maximumDoubleBlock, positive.blockX());
+      assertEquals(0.0D, positive.subX());
+      assertEquals(maximumDoubleBlock, positive.blockZ());
+      assertEquals(0.0D, positive.subZ());
+
+      SectorVec3 negative = SectorVec3.fromApproximate(-Double.MAX_VALUE, 64.0D, -Double.MAX_VALUE);
+      assertEquals(WorldBounds.MIN_BLOCK, negative.blockX());
+      assertEquals(0.0D, negative.subX());
+      assertEquals(WorldBounds.MIN_BLOCK, negative.blockZ());
+      assertEquals(0.0D, negative.subZ());
    }
 
    @Test

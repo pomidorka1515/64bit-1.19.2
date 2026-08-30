@@ -73,17 +73,20 @@ public final class SectorVec3 {
       // A hostile packet can contain a finite but enormous fraction. It has no
       // meaningful long block carry; clamp it to the nearest legal edge rather
       // than allowing a narrowing conversion to wrap.
-      if (carryDouble < -0x1.0p63) return new Coordinate(Long.MIN_VALUE, 0.0D);
-      if (carryDouble >= 0x1.0p63) return new Coordinate(Long.MAX_VALUE, Math.nextDown(1.0D));
+      if (carryDouble < -0x1.0p63) return new Coordinate(WorldBounds.MIN_BLOCK, 0.0D);
+      if (carryDouble >= 0x1.0p63) return new Coordinate(WorldBounds.MAX_BLOCK, Math.nextDown(1.0D));
 
       long carry = (long)carryDouble;
-      if (carry > 0L && block > Long.MAX_VALUE - carry) {
-         return new Coordinate(Long.MAX_VALUE, Math.nextDown(1.0D));
+      long normalizedBlock = WorldBounds.addBlockOffset(block, carry);
+      // addBlockOffset has saturated if a non-zero offset did not move in its
+      // requested direction.  Do not retain a fraction past that world edge.
+      if (carry > 0L && normalizedBlock <= block) {
+         return new Coordinate(WorldBounds.MAX_BLOCK, Math.nextDown(1.0D));
       }
-      if (carry < 0L && block < Long.MIN_VALUE - carry) {
-         return new Coordinate(Long.MIN_VALUE, 0.0D);
+      if (carry < 0L && normalizedBlock >= block) {
+         return new Coordinate(WorldBounds.MIN_BLOCK, 0.0D);
       }
-      return new Coordinate(block + carry, clampFraction(fraction - carryDouble));
+      return new Coordinate(normalizedBlock, clampFraction(fraction - carryDouble));
    }
 
    /** Creates an exact split position from decimal text without passing through a double. */
@@ -129,11 +132,24 @@ public final class SectorVec3 {
       requireFinite(x, "x");
       requireFinite(y, "y");
       requireFinite(z, "z");
-      double blockXDouble = Math.floor(x);
-      double blockZDouble = Math.floor(z);
-      long blockX = checkedIntegralLong(blockXDouble, "x block");
-      long blockZ = checkedIntegralLong(blockZDouble, "z block");
-      return fromBlockAndFraction(blockX, x - blockXDouble, y, blockZ, z - blockZDouble);
+      return fromBlockAndFraction(approximateBlock(x), approximateFraction(x), y,
+            approximateBlock(z), approximateFraction(z));
+   }
+
+   /**
+    * Splits a legacy absolute double at the nearest representable world edge.
+    * Legacy particle and sound code still supplies these doubles, so rejecting
+    * a finite coordinate here can crash the render thread before it can use the
+    * exact sector-relative path.
+    */
+   private static long approximateBlock(double coordinate) {
+      double clamped = WorldBounds.clampAbsoluteDouble(coordinate);
+      return (long)Math.floor(clamped);
+   }
+
+   private static double approximateFraction(double coordinate) {
+      double clamped = WorldBounds.clampAbsoluteDouble(coordinate);
+      return clamped - Math.floor(clamped);
    }
 
    public long blockX() {
@@ -303,8 +319,7 @@ public final class SectorVec3 {
    }
 
    private static double approximateCoordinate(long block, double fraction) {
-      double value = (double)block + fraction;
-      return value >= 0x1.0p63 ? Math.nextDown(0x1.0p63) : value;
+      return WorldBounds.clampAbsoluteDouble((double)block + fraction);
    }
 
    private static double signedDifference(long value, long origin) {
@@ -319,13 +334,6 @@ public final class SectorVec3 {
       if (!Double.isFinite(value)) {
          throw new IllegalArgumentException(name + " must be finite: " + value);
       }
-   }
-
-   private static long checkedIntegralLong(double value, String name) {
-      if (!Double.isFinite(value) || value < -TWO_TO_THE_63 || value >= TWO_TO_THE_63 || value != Math.rint(value)) {
-         throw new IllegalArgumentException(name + " is outside the representable long range: " + value);
-      }
-      return (long)value;
    }
 
    @Override

@@ -145,7 +145,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
    }
 
    public static String getDebugString() {
-      return String.format(Locale.ROOT, "Scaled X: %.3f Selector Lerp: %.3f", debugScaledX, debugSelectorLerp);
+      return String.format(Locale.ROOT, "Scaled X: %.3f Selector Lerp: %s", debugScaledX, formatDebugValue(debugSelectorLerp));
    }
 
    public static String getDebugString2() {

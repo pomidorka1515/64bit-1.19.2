@@ -502,6 +502,12 @@ public class ClientLevel extends Level {
       this.playSound(p_104600_, p_104601_, p_104602_, p_104603_, p_104604_, p_104605_, p_104606_, p_104607_, this.random.nextLong());
    }
 
+   @Override
+   public void playLocalSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
+                              boolean distanceDelay) {
+      this.playSound(position, sound, source, volume, pitch, distanceDelay, this.random.nextLong());
+   }
+
    private void playSound(double p_233603_, double p_233604_, double p_233605_, SoundEvent p_233606_, SoundSource p_233607_, float p_233608_, float p_233609_, boolean p_233610_, long p_233611_) {
       this.playSound(SectorVec3.fromApproximate(p_233603_, p_233604_, p_233605_), p_233606_, p_233607_,
             p_233608_, p_233609_, p_233610_, p_233611_);

@@ -65,6 +65,7 @@ import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.WritableLevelData;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Scoreboard;
 
 public abstract class Level implements LevelAccessor, AutoCloseable {
@@ -396,6 +397,13 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    public void playLocalSound(double p_46482_, double p_46483_, double p_46484_, SoundEvent p_46485_, SoundSource p_46486_, float p_46487_, float p_46488_, boolean p_46489_) {
+   }
+
+   /** Exact local-sound entry point for long-coordinate callers. */
+   public void playLocalSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
+                              boolean distanceDelay) {
+      Vec3 approximate = position.toApproximateVec3();
+      this.playLocalSound(approximate.x, position.y(), approximate.z, sound, source, volume, pitch, distanceDelay);
    }
 
    /** Legacy double particle entry point. Exact callers use the SectorVec3 overload. */

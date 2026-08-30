@@ -1,6 +1,7 @@
 package net.minecraft.world.level.levelgen.synth;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Locale;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
@@ -10,6 +11,11 @@ public final class ImprovedNoise {
    public final double xo;
    public final double yo;
    public final double zo;
+   private static volatile Thread debugCaptureThread;
+   private static double debugSamplePoint;
+   private static long debugGridIndex;
+   private static double debugCellOffset;
+   private static double debugSmoothedOffset;
 
    public ImprovedNoise(RandomSource p_230499_) {
       this.xo = p_230499_.nextDouble() * 256.0D;
@@ -47,6 +53,13 @@ public final class ImprovedNoise {
       double d3 = d0 - (double)i;
       double d4 = d1 - (double)j;
       double d5 = d2 - (double)k;
+      if (Thread.currentThread() == debugCaptureThread) {
+         debugSamplePoint = d0;
+         debugGridIndex = i;
+         debugCellOffset = d3;
+         debugSmoothedOffset = Mth.smoothstep(d3);
+      }
+
       double d6;
       if (p_75331_ != 0.0D) {
          double d7;
@@ -76,6 +89,22 @@ public final class ImprovedNoise {
       double d4 = d1 - (double)j;
       double d5 = d2 - (double)k;
       return this.sampleWithDerivative(i, j, k, d3, d4, d5, p_164316_);
+   }
+
+   public static void beginDebugCapture() {
+      debugCaptureThread = Thread.currentThread();
+   }
+
+   public static void endDebugCapture() {
+      debugCaptureThread = null;
+   }
+
+   public static String getDebugString() {
+      return String.format(Locale.ROOT, "Sample Point: %.3f Grid Index: %d", debugSamplePoint, debugGridIndex);
+   }
+
+   public static String getDebugString2() {
+      return String.format(Locale.ROOT, "Cell Offset: %.3f Smoothed Offset: %.3f", debugCellOffset, debugSmoothedOffset);
    }
 
    private static double gradDot(int p_75336_, double p_75337_, double p_75338_, double p_75339_) {

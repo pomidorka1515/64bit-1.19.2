@@ -39,6 +39,12 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
    private final double maxValue;
    private final double xzScale;
    private final double yScale;
+   private static volatile Thread debugCaptureThread;
+   private static double debugScaledX;
+   private static double debugSelectorLerp;
+   private static double debugMinLimit;
+   private static double debugMaxLimit;
+   private static double debugBlendedDensity;
 
    public static BlendedNoise createUnseeded(double p_230478_, double p_230479_, double p_230480_, double p_230481_, double p_230482_) {
       return new BlendedNoise(new XoroshiroRandomSource(0L), p_230478_, p_230479_, p_230480_, p_230481_, p_230482_);
@@ -118,7 +124,40 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
          d11 /= 2.0D;
       }
 
-      return Mth.clampedLerp(d8 / 512.0D, d9 / 512.0D, d16) / 128.0D;
+      double d17 = Mth.clampedLerp(d8 / 512.0D, d9 / 512.0D, d16) / 128.0D;
+      if (Thread.currentThread() == debugCaptureThread) {
+         debugScaledX = d0;
+         debugSelectorLerp = d16;
+         debugMinLimit = d8 / 512.0D;
+         debugMaxLimit = d9 / 512.0D;
+         debugBlendedDensity = d17;
+      }
+
+      return d17;
+   }
+
+   public static void beginDebugCapture() {
+      debugCaptureThread = Thread.currentThread();
+   }
+
+   public static void endDebugCapture() {
+      debugCaptureThread = null;
+   }
+
+   public static String getDebugString() {
+      return String.format(Locale.ROOT, "Scaled X: %.3f Selector Lerp: %.3f", debugScaledX, debugSelectorLerp);
+   }
+
+   public static String getDebugString2() {
+      return String.format(Locale.ROOT, "Min-Limit (Low): %s Max-Limit (High): %s Blended Density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
+   }
+
+   private static String formatDebugValue(double value) {
+      if (Math.abs(value) > 1_000_000_000.0D) {
+         return "\247c" + String.format(Locale.ROOT, "%.3e", value) + "\247r";
+      }
+
+      return String.format(Locale.ROOT, "%.3f", value);
    }
 
    public double minValue() {

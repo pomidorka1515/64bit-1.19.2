@@ -1,5 +1,6 @@
 package net.minecraft.world.level.levelgen.synth;
 
+import java.util.Locale;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
@@ -12,6 +13,11 @@ public class SimplexNoise {
    public final double xo;
    public final double yo;
    public final double zo;
+   private static final ThreadLocal<Boolean> DEBUG_CAPTURE = ThreadLocal.withInitial(() -> false);
+   private static long debugSkewGrid;
+   private static double debugCornerDeltaX;
+   private static double debugCornerDeltaY;
+   private static double debugSimplexOutput;
 
    public SimplexNoise(RandomSource p_230549_) {
       this.xo = p_230549_.nextDouble() * 256.0D;
@@ -83,7 +89,31 @@ public class SimplexNoise {
       double d10 = this.getCornerNoise3D(k1, d4, d5, 0.0D, 0.5D);
       double d11 = this.getCornerNoise3D(l1, d6, d7, 0.0D, 0.5D);
       double d12 = this.getCornerNoise3D(i2, d8, d9, 0.0D, 0.5D);
-      return 70.0D * (d10 + d11 + d12);
+      double d13 = 70.0D * (d10 + d11 + d12);
+      if (DEBUG_CAPTURE.get()) {
+         debugSkewGrid = i;
+         debugCornerDeltaX = d4;
+         debugCornerDeltaY = d5;
+         debugSimplexOutput = d13;
+      }
+
+      return d13;
+   }
+
+   public static void beginDebugCapture() {
+      DEBUG_CAPTURE.set(true);
+   }
+
+   public static void endDebugCapture() {
+      DEBUG_CAPTURE.remove();
+   }
+
+   public static String getDebugString() {
+      return String.format(Locale.ROOT, "Skew Grid: %d Corner Delta X: %.3f", debugSkewGrid, debugCornerDeltaX);
+   }
+
+   public static String getDebugString2() {
+      return String.format(Locale.ROOT, "Corner Delta Y: %.3f Simplex Output: %.3f", debugCornerDeltaY, debugSimplexOutput);
    }
 
    public double getValue(double p_75468_, double p_75469_, double p_75470_) {

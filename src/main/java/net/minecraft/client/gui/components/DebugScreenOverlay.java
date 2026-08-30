@@ -68,8 +68,13 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.EndRingsMode;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.synth.BlendedNoise;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
+import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
+import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -312,7 +317,16 @@ public class DebugScreenOverlay extends GuiComponent {
             ServerChunkCache serverchunkcache = serverlevel.getChunkSource();
             ChunkGenerator chunkgenerator = serverchunkcache.getGenerator();
             RandomState randomstate = serverchunkcache.randomState();
-            chunkgenerator.addDebugScreenInfo(list, randomstate, blockpos);
+            BlendedNoise.beginDebugCapture();
+            ImprovedNoise.beginDebugCapture();
+
+            try {
+               chunkgenerator.addDebugScreenInfo(list, randomstate, blockpos);
+            } finally {
+               ImprovedNoise.endDebugCapture();
+               BlendedNoise.endDebugCapture();
+            }
+
             Climate.Sampler climate$sampler = randomstate.sampler();
             BiomeSource biomesource = chunkgenerator.getBiomeSource();
             biomesource.addDebugInfo(list, blockpos, climate$sampler);
@@ -334,6 +348,25 @@ public class DebugScreenOverlay extends GuiComponent {
          }
 
          list.add(this.minecraft.getSoundManager().getDebugString() + String.format(Locale.ROOT, " (Mood %d%%)", Math.round(this.minecraft.player.getCurrentMood() * 100.0F)));
+         list.add("");
+         list.add("Config End Rings: " + EndRingsMode.isEnabled() + " Generator: " + (FarlandsMode.isEnabled() ? "32-bit" : "64-bit"));
+         list.add("BlendedNoise");
+         list.add(BlendedNoise.getDebugString());
+         list.add(BlendedNoise.getDebugString2());
+         list.add("ImprovedNoise");
+         list.add(ImprovedNoise.getDebugString());
+         list.add(ImprovedNoise.getDebugString2());
+         list.add("SimplexNoise");
+         SimplexNoise.beginDebugCapture();
+
+         try {
+            Biome.BIOME_INFO_NOISE.getValue((double)blockpos.getX(), (double)blockpos.getZ(), false);
+         } finally {
+            SimplexNoise.endDebugCapture();
+         }
+
+         list.add(SimplexNoise.getDebugString());
+         list.add(SimplexNoise.getDebugString2());
          return list;
       }
    }

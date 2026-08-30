@@ -5,6 +5,11 @@ Their websites are now down. If you want to get the original mod's code, you can
  - `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af`
 Beware that the original mod is not even functional and has lots of bugs. Use this fork for a playable version.
 
+# Development notice
+As of **1st September**, development will be drastically slower.
+This is because im still in school and, unfortunately, will have less free time.
+If you want to help and contribute, dm me on discord! `@pomidorka1515`
+
 # Playing this
 **Currently the mod is quite unstable. Dont expect a smoooth experience.**
  - download the jar from the [latest release](https://pomi.site/ec952ebae0f530313056/pomi/64bit-1.19.2/releases)

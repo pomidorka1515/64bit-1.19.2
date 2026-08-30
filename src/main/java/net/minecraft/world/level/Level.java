@@ -371,10 +371,19 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    public void playSound(@Nullable Player p_46560_, BlockPos p_46561_, SoundEvent p_46562_, SoundSource p_46563_, float p_46564_, float p_46565_) {
-      this.playSound(p_46560_, (double)p_46561_.getX() + 0.5D, (double)p_46561_.getY() + 0.5D, (double)p_46561_.getZ() + 0.5D, p_46562_, p_46563_, p_46564_, p_46565_);
+      this.playSeededSound(p_46560_, SectorVec3.fromBlockAndFraction(p_46561_.getX(), 0.5D,
+            (double)p_46561_.getY() + 0.5D, p_46561_.getZ(), 0.5D), p_46562_, p_46563_, p_46564_, p_46565_,
+            this.threadSafeRandom.nextLong());
    }
 
    public abstract void playSeededSound(@Nullable Player p_220363_, double p_220364_, double p_220365_, double p_220366_, SoundEvent p_220367_, SoundSource p_220368_, float p_220369_, float p_220370_, long p_220371_);
+
+   /** Exact positional-sound entry point for long-coordinate callers. */
+   public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
+                               float volume, float pitch, long seed) {
+      this.playSeededSound(player, (double)position.blockX() + position.subX(), position.y(),
+            (double)position.blockZ() + position.subZ(), sound, source, volume, pitch, seed);
+   }
 
    public abstract void playSeededSound(@Nullable Player p_220372_, Entity p_220373_, SoundEvent p_220374_, SoundSource p_220375_, float p_220376_, float p_220377_, long p_220378_);
 

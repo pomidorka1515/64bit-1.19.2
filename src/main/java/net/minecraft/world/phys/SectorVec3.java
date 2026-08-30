@@ -266,13 +266,25 @@ public final class SectorVec3 {
       return this.add(delta.x * amount, delta.y * amount, delta.z * amount);
    }
 
+   
+   public double relativeX(SectorVec3 other) {
+      if (other == null) throw new NullPointerException("other");
+      return signedDifference(this.blockX, other.blockX) + (this.subX - other.subX);
+   }
+
+   public double relativeY(SectorVec3 other) {
+      if (other == null) throw new NullPointerException("other");
+      return this.y - other.y;
+   }
+
+   public double relativeZ(SectorVec3 other) {
+      if (other == null) throw new NullPointerException("other");
+      return signedDifference(this.blockZ, other.blockZ) + (this.subZ - other.subZ);
+   }
+
    /** Returns this position minus {@code other}, in the small/local Vec3 representation. */
    public Vec3 relativeTo(SectorVec3 other) {
-      if (other == null) {
-         throw new NullPointerException("other");
-      }
-      return new Vec3(signedDifference(this.blockX, other.blockX) + (this.subX - other.subX),
-            this.y - other.y, signedDifference(this.blockZ, other.blockZ) + (this.subZ - other.subZ));
+      return new Vec3(this.relativeX(other), this.relativeY(other), this.relativeZ(other));
    }
 
    /** Converts an exact position to a local physics frame. Integer subtraction precedes conversion to double. */

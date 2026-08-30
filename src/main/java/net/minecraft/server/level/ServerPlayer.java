@@ -1505,7 +1505,7 @@ public class ServerPlayer extends Player {
    }
 
    public void playNotifySound(SoundEvent p_9019_, SoundSource p_9020_, float p_9021_, float p_9022_) {
-      this.connection.send(new ClientboundSoundPacket(p_9019_, p_9020_, this.getX(), this.getY(), this.getZ(), p_9021_, p_9022_, this.random.nextLong()));
+      this.connection.send(new ClientboundSoundPacket(p_9019_, p_9020_, this.sectorPosition(), p_9021_, p_9022_, this.random.nextLong()));
    }
 
    public Packet<?> getAddEntityPacket() {

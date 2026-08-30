@@ -6,6 +6,7 @@ import net.minecraft.client.sounds.WeighedSoundEvents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -35,6 +36,16 @@ public interface SoundInstance {
    double getY();
 
    double getZ();
+
+   /**
+    * Exact world position when this is a positional sound.  {@code null}
+    * denotes a legacy/local source, whose getX/Y/Z values are used only as a
+    * listener-space offset when it is not OpenAL-relative.
+    */
+   @Nullable
+   default SectorVec3 getExactPosition() {
+      return null;
+   }
 
    SoundInstance.Attenuation getAttenuation();
 

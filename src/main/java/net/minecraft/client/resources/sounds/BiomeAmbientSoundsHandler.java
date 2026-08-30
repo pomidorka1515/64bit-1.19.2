@@ -12,6 +12,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.biome.AmbientAdditionsSettings;
 import net.minecraft.world.level.biome.AmbientMoodSettings;
 import net.minecraft.world.level.biome.Biome;
@@ -84,16 +85,21 @@ public class BiomeAmbientSoundsHandler implements AmbientSoundHandler {
          }
 
          if (this.moodiness >= 1.0F) {
-            double d0 = (double)blockpos.getX() + 0.5D;
-            double d1 = (double)blockpos.getY() + 0.5D;
-            double d2 = (double)blockpos.getZ() + 0.5D;
-            double d3 = d0 - this.player.getX();
-            double d4 = d1 - this.player.getEyeY();
-            double d5 = d2 - this.player.getZ();
+            SectorVec3 candidate = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
+                  (double)blockpos.getY() + 0.5D, blockpos.getZ(), 0.5D);
+            SectorVec3 eye = this.player.exactEyePosition();
+            if (eye == null) {
+               eye = SectorVec3.fromApproximate(this.player.getX(), this.player.getEyeY(), this.player.getZ());
+            }
+            double d3 = candidate.relativeX(eye);
+            double d4 = candidate.relativeY(eye);
+            double d5 = candidate.relativeZ(eye);
             double d6 = Math.sqrt(d3 * d3 + d4 * d4 + d5 * d5);
-            double d7 = d6 + p_119650_.getSoundPositionOffset();
-            SimpleSoundInstance simplesoundinstance = SimpleSoundInstance.forAmbientMood(p_119650_.getSoundEvent(), this.random, this.player.getX() + d3 / d6 * d7, this.player.getEyeY() + d4 / d6 * d7, this.player.getZ() + d5 / d6 * d7);
-            this.soundManager.play(simplesoundinstance);
+            if (d6 > 0.0D) {
+               double d7 = d6 + p_119650_.getSoundPositionOffset();
+               SectorVec3 position = eye.add(d3 / d6 * d7, d4 / d6 * d7, d5 / d6 * d7);
+               this.soundManager.play(SimpleSoundInstance.forAmbientMood(p_119650_.getSoundEvent(), this.random, position));
+            }
             this.moodiness = 0.0F;
          } else {
             this.moodiness = Math.max(this.moodiness, 0.0F);

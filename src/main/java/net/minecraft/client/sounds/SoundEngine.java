@@ -30,6 +30,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -60,6 +61,8 @@ public class SoundEngine {
    private final SoundEngineExecutor executor = new SoundEngineExecutor();
    private final ChannelAccess channelAccess = new ChannelAccess(this.library, this.executor);
    private int tickCount;
+   /** Published by the render thread and captured before source work is queued. */
+   private volatile SectorVec3 listenerPosition;
    private long lastDeviceCheckTime;
    private final AtomicReference<SoundEngine.DeviceCheckState> devicePoolState = new AtomicReference<>(SoundEngine.DeviceCheckState.NO_CHANGE);
    private final Map<SoundInstance, ChannelAccess.ChannelHandle> instanceToChannel = Maps.newHashMap();
@@ -237,13 +240,13 @@ public class SoundEngine {
          } else {
             float f = this.calculateVolume(tickablesoundinstance);
             float f1 = this.calculatePitch(tickablesoundinstance);
-            Vec3 vec3 = new Vec3(tickablesoundinstance.getX(), tickablesoundinstance.getY(), tickablesoundinstance.getZ());
+            SoundEngine.SourcePosition position = this.sourcePosition(tickablesoundinstance);
             ChannelAccess.ChannelHandle channelaccess$channelhandle = this.instanceToChannel.get(tickablesoundinstance);
             if (channelaccess$channelhandle != null) {
                channelaccess$channelhandle.execute((p_194478_) -> {
                   p_194478_.setVolume(f);
                   p_194478_.setPitch(f1);
-                  p_194478_.setSelfPosition(vec3);
+                  p_194478_.setSelfPosition(position.x, position.y, position.z);
                });
             }
          }
@@ -299,6 +302,63 @@ public class SoundEngine {
 
    }
 
+   /**
+    * Converts a world-space sound to the listener frame before work crosses to
+    * the OpenAL thread.  The value is immutable, so queued Channel work cannot
+    * observe a later camera sector.  UI/OpenAL-relative sounds intentionally
+    * retain their supplied local position.
+    */
+   private SoundEngine.SourcePosition sourcePosition(SoundInstance sound) {
+      if (sound.isRelative()) {
+         return new SoundEngine.SourcePosition(sound.getX(), sound.getY(), sound.getZ());
+      }
+
+      SectorVec3 source = sound.getExactPosition();
+      SectorVec3 listenerPosition = this.listenerPosition;
+      if (source != null) {
+         // A sound can be requested during startup, before the first camera
+         // update.  Do not ever hand its absolute position to OpenAL; it will
+         // be rebased by updateSource as soon as a camera is available.
+         return listenerPosition == null ? new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D)
+               : new SoundEngine.SourcePosition(source.relativeX(listenerPosition), source.relativeY(listenerPosition),
+               source.relativeZ(listenerPosition));
+      }
+
+      // Compatibility for third-party SoundInstance implementations. A legacy
+      // double cannot retain sub-block precision past 2^53, but converting it
+      // to a split coordinate before subtracting still guarantees that no
+      // absolute world position reaches OpenAL.
+      if (listenerPosition == null) {
+         return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
+      }
+
+      try {
+         SectorVec3 legacySource = SectorVec3.fromApproximate(sound.getX(), sound.getY(), sound.getZ());
+         return new SoundEngine.SourcePosition(legacySource.relativeX(listenerPosition),
+               legacySource.relativeY(listenerPosition), legacySource.relativeZ(listenerPosition));
+      } catch (IllegalArgumentException ignored) {
+         // A malformed extension sound must not inject NaN or infinity into a
+         // native OpenAL call. It is silently placed at the listener instead.
+         return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
+      }
+   }
+
+   private static final class SourcePosition {
+      private final double x;
+      private final double y;
+      private final double z;
+
+      private SourcePosition(double x, double y, double z) {
+         this.x = x;
+         this.y = y;
+         this.z = z;
+      }
+
+      private double distanceToSqr() {
+         return this.x * this.x + this.y * this.y + this.z * this.z;
+      }
+   }
+
    private static boolean requiresManualLooping(SoundInstance p_120316_) {
       return p_120316_.getDelay() > 0;
    }
@@ -347,9 +407,9 @@ public class SoundEngine {
                   if (f2 == 0.0F && !p_120313_.canStartSilent()) {
                      LOGGER.debug(MARKER, "Skipped playing sound {}, volume was zero.", (Object)sound.getLocation());
                   } else {
-                     Vec3 vec3 = new Vec3(p_120313_.getX(), p_120313_.getY(), p_120313_.getZ());
+                     SoundEngine.SourcePosition position = this.sourcePosition(p_120313_);
                      if (!this.listeners.isEmpty()) {
-                        boolean flag1 = flag || soundinstance$attenuation == SoundInstance.Attenuation.NONE || this.listener.getListenerPosition().distanceToSqr(vec3) < (double)(f1 * f1);
+                        boolean flag1 = flag || soundinstance$attenuation == SoundInstance.Attenuation.NONE || position.distanceToSqr() < (double)(f1 * f1);
                         if (flag1) {
                            for(SoundEventListener soundeventlistener : this.listeners) {
                               soundeventlistener.onPlaySound(p_120313_, weighedsoundevents);
@@ -386,7 +446,7 @@ public class SoundEngine {
                               }
 
                               p_194488_.setLooping(flag2 && !flag3);
-                              p_194488_.setSelfPosition(vec3);
+                              p_194488_.setSelfPosition(position.x, position.y, position.z);
                               p_194488_.setRelative(flag);
                            });
                            if (!flag3) {
@@ -462,13 +522,32 @@ public class SoundEngine {
 
    public void updateSource(Camera p_120271_) {
       if (this.loaded && p_120271_.isInitialized()) {
-         Vec3 vec3 = p_120271_.getPosition();
-         Vector3f vector3f = p_120271_.getLookVector();
-         Vector3f vector3f1 = p_120271_.getUpVector();
+         SectorVec3 exactPosition = p_120271_.exactPosition();
+         Vec3 legacyPosition = p_120271_.getPosition();
+         // Old cameras/mods may not expose a split position. That compatibility
+         // frame is still safe for ordinary double worlds.
+         this.listenerPosition = exactPosition == null
+               ? SectorVec3.fromApproximate(legacyPosition.x, legacyPosition.y, legacyPosition.z)
+               : exactPosition;
+         // Camera owns mutable vectors and may update them before this work is
+         // consumed by the audio thread; copy the six floats at submission.
+         Vector3f look = p_120271_.getLookVector();
+         Vector3f up = p_120271_.getUpVector();
+         Vector3f vector3f = new Vector3f(look.x(), look.y(), look.z());
+         Vector3f vector3f1 = new Vector3f(up.x(), up.y(), up.z());
          this.executor.execute(() -> {
-            this.listener.setListenerPosition(vec3);
+            this.listener.setListenerPosition(Vec3.ZERO);
             this.listener.setListenerOrientation(vector3f, vector3f1);
          });
+         this.rebaseAllSources();
+      }
+   }
+
+   /** Rebases static and tickable positional sources after a camera-sector change. */
+   private void rebaseAllSources() {
+      for (Map.Entry<SoundInstance, ChannelAccess.ChannelHandle> entry : this.instanceToChannel.entrySet()) {
+         SoundEngine.SourcePosition position = this.sourcePosition(entry.getKey());
+         entry.getValue().execute(channel -> channel.setSelfPosition(position.x, position.y, position.z));
       }
    }
 

@@ -94,8 +94,24 @@ public class Channel {
       return this.getState() == 4116;
    }
 
+   /**
+    * Sets a source position already expressed in listener space.  OpenAL only
+    * accepts finite floats; saturating here also protects the native driver if
+    * a non-audible source was queued before its range check completed.
+    */
    public void setSelfPosition(Vec3 p_83655_) {
-      AL10.alSourcefv(this.source, 4100, new float[]{(float)p_83655_.x, (float)p_83655_.y, (float)p_83655_.z});
+      this.setSelfPosition(p_83655_.x, p_83655_.y, p_83655_.z);
+   }
+
+   public void setSelfPosition(double x, double y, double z) {
+      AL10.alSource3f(this.source, 4100, finiteFloat(x), finiteFloat(y), finiteFloat(z));
+   }
+
+   private static float finiteFloat(double value) {
+      if (Double.isNaN(value)) return 0.0F;
+      if (value <= -Float.MAX_VALUE) return -Float.MAX_VALUE;
+      if (value >= Float.MAX_VALUE) return Float.MAX_VALUE;
+      return (float)value;
    }
 
    public void setPitch(float p_83651_) {

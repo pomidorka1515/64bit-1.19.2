@@ -832,7 +832,15 @@ public class ServerLevel extends Level implements WorldGenLevel {
    }
 
    public void playSeededSound(@Nullable Player p_215017_, double p_215018_, double p_215019_, double p_215020_, SoundEvent p_215021_, SoundSource p_215022_, float p_215023_, float p_215024_, long p_215025_) {
-      this.server.getPlayerList().broadcast(p_215017_, p_215018_, p_215019_, p_215020_, (double)p_215021_.getRange(p_215023_), this.dimension(), new ClientboundSoundPacket(p_215021_, p_215022_, p_215018_, p_215019_, p_215020_, p_215023_, p_215024_, p_215025_));
+      this.playSeededSound(p_215017_, SectorVec3.fromApproximate(p_215018_, p_215019_, p_215020_), p_215021_,
+            p_215022_, p_215023_, p_215024_, p_215025_);
+   }
+
+   @Override
+   public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
+                               float volume, float pitch, long seed) {
+      this.server.getPlayerList().broadcast(player, position, (double)sound.getRange(volume), this.dimension(),
+            new ClientboundSoundPacket(sound, source, position, volume, pitch, seed));
    }
 
    public void playSeededSound(@Nullable Player p_215027_, Entity p_215028_, SoundEvent p_215029_, SoundSource p_215030_, float p_215031_, float p_215032_, long p_215033_) {

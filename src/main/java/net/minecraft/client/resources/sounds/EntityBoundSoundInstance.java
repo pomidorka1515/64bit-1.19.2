@@ -16,9 +16,7 @@ public class EntityBoundSoundInstance extends AbstractTickableSoundInstance {
       this.volume = p_235082_;
       this.pitch = p_235083_;
       this.entity = p_235084_;
-      this.x = (double)((float)this.entity.getX());
-      this.y = (double)((float)this.entity.getY());
-      this.z = (double)((float)this.entity.getZ());
+      this.updatePosition();
    }
 
    public boolean canPlaySound() {
@@ -29,9 +27,15 @@ public class EntityBoundSoundInstance extends AbstractTickableSoundInstance {
       if (this.entity.isRemoved()) {
          this.stop();
       } else {
-         this.x = (double)((float)this.entity.getX());
-         this.y = (double)((float)this.entity.getY());
-         this.z = (double)((float)this.entity.getZ());
+         this.updatePosition();
+      }
+   }
+
+   private void updatePosition() {
+      if (this.entity.hasSectorPosition()) {
+         this.setExactPosition(this.entity.sectorPosition());
+      } else {
+         this.setPosition(this.entity.getX(), this.entity.getY(), this.entity.getZ());
       }
    }
 }

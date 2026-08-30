@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -19,6 +20,9 @@ public abstract class AbstractSoundInstance implements SoundInstance {
    protected double x;
    protected double y;
    protected double z;
+
+   protected SectorVec3 exactPosition;
+
    protected boolean looping;
    protected int delay;
    protected SoundInstance.Attenuation attenuation = SoundInstance.Attenuation.LINEAR;
@@ -84,6 +88,33 @@ public abstract class AbstractSoundInstance implements SoundInstance {
 
    public double getZ() {
       return this.z;
+   }
+
+   @Override
+   public SectorVec3 getExactPosition() {
+      return this.exactPosition;
+   }
+
+   /**
+    * Updates both the exact source position and its lossy compatibility mirror.
+    * Audio/render code must consume {@link #getExactPosition()}; the doubles
+    * remain for vanilla extensions that have not yet adopted SectorVec3.
+    */
+   protected final void setExactPosition(SectorVec3 position) {
+      if (position == null) throw new NullPointerException("position");
+      this.exactPosition = position;
+      // Avoid two compatibility Vec3 allocations for every entity-bound sound
+      // tick. These mirrors are not used by the listener-relative audio path.
+      this.x = (double)position.blockX() + position.subX();
+      this.y = position.y();
+      this.z = (double)position.blockZ() + position.subZ();
+   }
+
+   protected final void setPosition(double x, double y, double z) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      this.exactPosition = null;
    }
 
    public SoundInstance.Attenuation getAttenuation() {

@@ -59,7 +59,7 @@ public class PlaySoundCommand {
 
       while(true) {
          ServerPlayer serverplayer;
-         Vec3 vec3;
+         SectorVec3 packetPosition;
          float f;
          while(true) {
             if (!iterator.hasNext()) {
@@ -84,7 +84,7 @@ public class PlaySoundCommand {
             double d2 = delta.y;
             double d3 = delta.z;
             double d4 = d1 * d1 + d2 * d2 + d3 * d3;
-            vec3 = exactSoundPosition.toApproximateVec3();
+            packetPosition = exactSoundPosition;
             f = p_138166_;
             if (!(d4 > d0)) {
                break;
@@ -93,16 +93,17 @@ public class PlaySoundCommand {
             if (!(p_138168_ <= 0.0F)) {
                double d5 = Math.sqrt(d4);
                if (serverplayer.exactPosition() != null) {
-                  vec3 = exactSoundPosition.add(-d1 / d5 * 2.0D, -d2 / d5 * 2.0D, -d3 / d5 * 2.0D).toApproximateVec3();
+                  packetPosition = exactSoundPosition.add(-d1 / d5 * 2.0D, -d2 / d5 * 2.0D, -d3 / d5 * 2.0D);
                } else {
-                  vec3 = new Vec3(serverplayer.getX() + d1 / d5 * 2.0D, serverplayer.getY() + d2 / d5 * 2.0D, serverplayer.getZ() + d3 / d5 * 2.0D);
+                  packetPosition = SectorVec3.fromApproximate(serverplayer.getX() + d1 / d5 * 2.0D,
+                        serverplayer.getY() + d2 / d5 * 2.0D, serverplayer.getZ() + d3 / d5 * 2.0D);
                }
                f = p_138168_;
                break;
             }
          }
 
-         serverplayer.connection.send(new ClientboundCustomSoundPacket(p_138163_, p_138164_, vec3, f, p_138167_, j));
+         serverplayer.connection.send(new ClientboundCustomSoundPacket(p_138163_, p_138164_, packetPosition, f, p_138167_, j));
          ++i;
       }
    }

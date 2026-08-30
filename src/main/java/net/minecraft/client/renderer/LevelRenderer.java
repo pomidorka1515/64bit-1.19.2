@@ -2525,7 +2525,8 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             this.minecraft.gui.setNowPlaying(recorditem.getDisplayName());
          }
 
-         SoundInstance simplesoundinstance = SimpleSoundInstance.forRecord(p_109515_, (double)p_109516_.getX(), (double)p_109516_.getY(), (double)p_109516_.getZ());
+         SoundInstance simplesoundinstance = SimpleSoundInstance.forRecord(p_109515_, SectorVec3.fromBlockAndFraction(
+               p_109516_.getX(), 0.0D, (double)p_109516_.getY(), p_109516_.getZ(), 0.0D));
          this.playingRecords.put(p_109516_, simplesoundinstance);
          this.minecraft.getSoundManager().play(simplesoundinstance);
       }

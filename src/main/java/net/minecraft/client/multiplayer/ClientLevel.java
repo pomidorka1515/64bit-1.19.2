@@ -473,9 +473,17 @@ public class ClientLevel extends Level {
 
    public void playSeededSound(@Nullable Player p_233621_, double p_233622_, double p_233623_, double p_233624_, SoundEvent p_233625_, SoundSource p_233626_, float p_233627_, float p_233628_, long p_233629_) {
       if (p_233621_ == this.minecraft.player) {
-         this.playSound(p_233622_, p_233623_, p_233624_, p_233625_, p_233626_, p_233627_, p_233628_, false, p_233629_);
+         this.playSound(SectorVec3.fromApproximate(p_233622_, p_233623_, p_233624_), p_233625_, p_233626_, p_233627_, p_233628_, false, p_233629_);
       }
 
+   }
+
+   @Override
+   public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
+                               float volume, float pitch, long seed) {
+      if (player == this.minecraft.player) {
+         this.playSound(position, sound, source, volume, pitch, false, seed);
+      }
    }
 
    public void playSeededSound(@Nullable Player p_233631_, Entity p_233632_, SoundEvent p_233633_, SoundSource p_233634_, float p_233635_, float p_233636_, long p_233637_) {
@@ -486,7 +494,8 @@ public class ClientLevel extends Level {
    }
 
    public void playLocalSound(BlockPos p_104678_, SoundEvent p_104679_, SoundSource p_104680_, float p_104681_, float p_104682_, boolean p_104683_) {
-      this.playLocalSound((double)p_104678_.getX() + 0.5D, (double)p_104678_.getY() + 0.5D, (double)p_104678_.getZ() + 0.5D, p_104679_, p_104680_, p_104681_, p_104682_, p_104683_);
+      this.playSound(SectorVec3.fromBlockAndFraction(p_104678_.getX(), 0.5D, (double)p_104678_.getY() + 0.5D,
+            p_104678_.getZ(), 0.5D), p_104679_, p_104680_, p_104681_, p_104682_, p_104683_, this.random.nextLong());
    }
 
    public void playLocalSound(double p_104600_, double p_104601_, double p_104602_, SoundEvent p_104603_, SoundSource p_104604_, float p_104605_, float p_104606_, boolean p_104607_) {
@@ -494,13 +503,29 @@ public class ClientLevel extends Level {
    }
 
    private void playSound(double p_233603_, double p_233604_, double p_233605_, SoundEvent p_233606_, SoundSource p_233607_, float p_233608_, float p_233609_, boolean p_233610_, long p_233611_) {
-      double d0 = this.minecraft.gameRenderer.getMainCamera().getPosition().distanceToSqr(p_233603_, p_233604_, p_233605_);
-      SimpleSoundInstance simplesoundinstance = new SimpleSoundInstance(p_233606_, p_233607_, p_233608_, p_233609_, RandomSource.create(p_233611_), p_233603_, p_233604_, p_233605_);
-      if (p_233610_ && d0 > 100.0D) {
-         double d1 = Math.sqrt(d0) / 40.0D;
-         this.minecraft.getSoundManager().playDelayed(simplesoundinstance, (int)(d1 * 20.0D));
+      this.playSound(SectorVec3.fromApproximate(p_233603_, p_233604_, p_233605_), p_233606_, p_233607_,
+            p_233608_, p_233609_, p_233610_, p_233611_);
+   }
+
+   private void playSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
+                          boolean distanceDelay, long seed) {
+      SectorVec3 camera = this.minecraft.gameRenderer.getMainCamera().exactPosition();
+      double distanceSquared;
+      if (camera == null) {
+         Vec3 legacyCamera = this.minecraft.gameRenderer.getMainCamera().getPosition();
+         double dx = ((double)position.blockX() + position.subX()) - legacyCamera.x;
+         double dy = position.y() - legacyCamera.y;
+         double dz = ((double)position.blockZ() + position.subZ()) - legacyCamera.z;
+         distanceSquared = dx * dx + dy * dy + dz * dz;
       } else {
-         this.minecraft.getSoundManager().play(simplesoundinstance);
+         distanceSquared = position.relativeTo(camera).lengthSqr();
+      }
+      SimpleSoundInstance instance = new SimpleSoundInstance(sound, source, volume, pitch, RandomSource.create(seed), position);
+      if (distanceDelay && distanceSquared > 100.0D) {
+         double delay = Math.sqrt(distanceSquared) / 40.0D;
+         this.minecraft.getSoundManager().playDelayed(instance, (int)(delay * 20.0D));
+      } else {
+         this.minecraft.getSoundManager().play(instance);
       }
 
    }

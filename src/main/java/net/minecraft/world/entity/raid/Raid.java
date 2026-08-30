@@ -55,7 +55,7 @@ import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatterns;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class Raid {
    private static final int SECTION_RADIUS_FOR_FINDING_NEW_VILLAGE_CENTER = 2;
@@ -477,14 +477,18 @@ public class Raid {
       Collection<ServerPlayer> collection = this.raidEvent.getPlayers();
       long j = this.random.nextLong();
 
+      SectorVec3 hornPosition = SectorVec3.fromBlockAndFraction(p_37744_.getX(), 0.5D, (double)p_37744_.getY() + 0.5D,
+            p_37744_.getZ(), 0.5D);
       for(ServerPlayer serverplayer : this.level.players()) {
-         Vec3 vec3 = serverplayer.position();
-         Vec3 vec31 = Vec3.atCenterOf(p_37744_);
-         double d0 = Math.sqrt((vec31.x - vec3.x) * (vec31.x - vec3.x) + (vec31.z - vec3.z) * (vec31.z - vec3.z));
-         double d1 = vec3.x + 13.0D / d0 * (vec31.x - vec3.x);
-         double d2 = vec3.z + 13.0D / d0 * (vec31.z - vec3.z);
-         if (d0 <= 64.0D || collection.contains(serverplayer)) {
-            serverplayer.connection.send(new ClientboundSoundPacket(SoundEvents.RAID_HORN, SoundSource.NEUTRAL, d1, serverplayer.getY(), d2, 64.0F, 1.0F, j));
+         SectorVec3 playerPosition = serverplayer.sectorPosition();
+         double dx = hornPosition.relativeX(playerPosition);
+         double dz = hornPosition.relativeZ(playerPosition);
+         double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+         SectorVec3 packetPosition = horizontalDistance == 0.0D ? hornPosition
+               : playerPosition.add(dx / horizontalDistance * 13.0D, 0.0D, dz / horizontalDistance * 13.0D);
+         if (horizontalDistance <= 64.0D || collection.contains(serverplayer)) {
+            serverplayer.connection.send(new ClientboundSoundPacket(SoundEvents.RAID_HORN, SoundSource.NEUTRAL,
+                  packetPosition, 64.0F, 1.0F, j));
          }
       }
 

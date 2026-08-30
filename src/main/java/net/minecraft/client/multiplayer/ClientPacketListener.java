@@ -1594,7 +1594,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
    public void handleSoundEvent(ClientboundSoundPacket p_105114_) {
       PacketUtils.ensureRunningOnSameThread(p_105114_, this, this.minecraft);
-      this.minecraft.level.playSeededSound(this.minecraft.player, p_105114_.getX(), p_105114_.getY(), p_105114_.getZ(), p_105114_.getSound(), p_105114_.getSource(), p_105114_.getVolume(), p_105114_.getPitch(), p_105114_.getSeed());
+      this.minecraft.level.playSeededSound(this.minecraft.player, p_105114_.getExactPosition(), p_105114_.getSound(),
+            p_105114_.getSource(), p_105114_.getVolume(), p_105114_.getPitch(), p_105114_.getSeed());
    }
 
    public void handleSoundEntityEvent(ClientboundSoundEntityPacket p_105112_) {
@@ -1607,7 +1608,9 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
    public void handleCustomSoundEvent(ClientboundCustomSoundPacket p_105006_) {
       PacketUtils.ensureRunningOnSameThread(p_105006_, this, this.minecraft);
-      this.minecraft.getSoundManager().play(new SimpleSoundInstance(p_105006_.getName(), p_105006_.getSource(), p_105006_.getVolume(), p_105006_.getPitch(), RandomSource.create(p_105006_.getSeed()), false, 0, SoundInstance.Attenuation.LINEAR, p_105006_.getX(), p_105006_.getY(), p_105006_.getZ(), false));
+      this.minecraft.getSoundManager().play(new SimpleSoundInstance(p_105006_.getName(), p_105006_.getSource(),
+            p_105006_.getVolume(), p_105006_.getPitch(), RandomSource.create(p_105006_.getSeed()), false, 0,
+            SoundInstance.Attenuation.LINEAR, p_105006_.getExactPosition(), false));
    }
 
    public void handleResourcePack(ClientboundResourcePackPacket p_105064_) {

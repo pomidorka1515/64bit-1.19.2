@@ -24,9 +24,11 @@ public class ElytraOnPlayerSoundInstance extends AbstractTickableSoundInstance {
    public void tick() {
       ++this.time;
       if (!this.player.isRemoved() && (this.time <= 20 || this.player.isFallFlying())) {
-         this.x = (double)((float)this.player.getX());
-         this.y = (double)((float)this.player.getY());
-         this.z = (double)((float)this.player.getZ());
+         if (this.player.hasSectorPosition()) {
+            this.setExactPosition(this.player.sectorPosition());
+         } else {
+            this.setPosition(this.player.getX(), this.player.getY(), this.player.getZ());
+         }
          float f = (float)this.player.getDeltaMovement().lengthSqr();
          if ((double)f >= 1.0E-7D) {
             this.volume = Mth.clamp(f / 4.0F, 0.0F, 1.0F);

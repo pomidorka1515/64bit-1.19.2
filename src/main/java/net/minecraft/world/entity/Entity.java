@@ -1368,7 +1368,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    public void playSound(SoundEvent p_19938_, float p_19939_, float p_19940_) {
       if (!this.isSilent()) {
-         this.level.playSound((Player)null, this.getX(), this.getY(), this.getZ(), p_19938_, this.getSoundSource(), p_19939_, p_19940_);
+         if (this.sectorPosition != null) {
+            this.level.playSeededSound((Player)null, this.sectorPosition, p_19938_, this.getSoundSource(), p_19939_,
+                  p_19940_, this.level.getRandom().nextLong());
+         } else {
+            this.level.playSound((Player)null, this.getX(), this.getY(), this.getZ(), p_19938_, this.getSoundSource(), p_19939_, p_19940_);
+         }
       }
 
    }

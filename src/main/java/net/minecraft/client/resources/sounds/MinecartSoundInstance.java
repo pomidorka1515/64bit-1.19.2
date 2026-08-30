@@ -23,9 +23,7 @@ public class MinecartSoundInstance extends AbstractTickableSoundInstance {
       this.looping = true;
       this.delay = 0;
       this.volume = 0.0F;
-      this.x = (double)((float)p_119696_.getX());
-      this.y = (double)((float)p_119696_.getY());
-      this.z = (double)((float)p_119696_.getZ());
+      this.updatePosition();
    }
 
    public boolean canPlaySound() {
@@ -40,9 +38,7 @@ public class MinecartSoundInstance extends AbstractTickableSoundInstance {
       if (this.minecart.isRemoved()) {
          this.stop();
       } else {
-         this.x = (double)((float)this.minecart.getX());
-         this.y = (double)((float)this.minecart.getY());
-         this.z = (double)((float)this.minecart.getZ());
+         this.updatePosition();
          float f = (float)this.minecart.getDeltaMovement().horizontalDistance();
          if (f >= 0.01F) {
             this.pitch = Mth.clamp(this.pitch + 0.0025F, 0.0F, 1.0F);
@@ -52,6 +48,14 @@ public class MinecartSoundInstance extends AbstractTickableSoundInstance {
             this.volume = 0.0F;
          }
 
+      }
+   }
+
+   private void updatePosition() {
+      if (this.minecart.hasSectorPosition()) {
+         this.setExactPosition(this.minecart.sectorPosition());
+      } else {
+         this.setPosition(this.minecart.getX(), this.minecart.getY(), this.minecart.getZ());
       }
    }
 }

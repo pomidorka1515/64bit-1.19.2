@@ -19,9 +19,7 @@ public abstract class BeeSoundInstance extends AbstractTickableSoundInstance {
    public BeeSoundInstance(Bee p_119621_, SoundEvent p_119622_, SoundSource p_119623_) {
       super(p_119622_, p_119623_, SoundInstance.createUnseededRandom());
       this.bee = p_119621_;
-      this.x = (double)((float)p_119621_.getX());
-      this.y = (double)((float)p_119621_.getY());
-      this.z = (double)((float)p_119621_.getZ());
+      this.updatePosition();
       this.looping = true;
       this.delay = 0;
       this.volume = 0.0F;
@@ -35,9 +33,7 @@ public abstract class BeeSoundInstance extends AbstractTickableSoundInstance {
       }
 
       if (!this.bee.isRemoved() && !this.hasSwitched) {
-         this.x = (double)((float)this.bee.getX());
-         this.y = (double)((float)this.bee.getY());
-         this.z = (double)((float)this.bee.getZ());
+         this.updatePosition();
          float f = (float)this.bee.getDeltaMovement().horizontalDistance();
          if (f >= 0.01F) {
             this.pitch = Mth.lerp(Mth.clamp(f, this.getMinPitch(), this.getMaxPitch()), this.getMinPitch(), this.getMaxPitch());
@@ -49,6 +45,14 @@ public abstract class BeeSoundInstance extends AbstractTickableSoundInstance {
 
       } else {
          this.stop();
+      }
+   }
+
+   private void updatePosition() {
+      if (this.bee.hasSectorPosition()) {
+         this.setExactPosition(this.bee.sectorPosition());
+      } else {
+         this.setPosition(this.bee.getX(), this.bee.getY(), this.bee.getZ());
       }
    }
 

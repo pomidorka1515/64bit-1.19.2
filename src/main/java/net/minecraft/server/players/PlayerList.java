@@ -83,6 +83,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -472,7 +473,9 @@ public abstract class PlayerList {
       serverplayer.initInventoryMenu();
       serverplayer.setHealth(serverplayer.getHealth());
       if (flag2) {
-         serverplayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS, (double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), 1.0F, 1.0F, serverlevel1.getRandom().nextLong()));
+         serverplayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS,
+               SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, (double)blockpos.getY(), blockpos.getZ(), 0.0D),
+               1.0F, 1.0F, serverlevel1.getRandom().nextLong()));
       }
 
       return serverplayer;
@@ -609,14 +612,31 @@ public abstract class PlayerList {
    }
 
    public void broadcast(@Nullable Player p_11242_, double p_11243_, double p_11244_, double p_11245_, double p_11246_, ResourceKey<Level> p_11247_, Packet<?> p_11248_) {
-      for(int i = 0; i < this.players.size(); ++i) {
-         ServerPlayer serverplayer = this.players.get(i);
-         if (serverplayer != p_11242_ && serverplayer.level.dimension() == p_11247_) {
-            double d0 = p_11243_ - serverplayer.getX();
-            double d1 = p_11244_ - serverplayer.getY();
-            double d2 = p_11245_ - serverplayer.getZ();
-            if (d0 * d0 + d1 * d1 + d2 * d2 < p_11246_ * p_11246_) {
-               serverplayer.connection.send(p_11248_);
+      this.broadcast(p_11242_, SectorVec3.fromApproximate(p_11243_, p_11244_, p_11245_), p_11246_, p_11247_, p_11248_);
+   }
+
+   /** Broadcasts by exact distance, avoiding a wrapped or lossy horizontal delta. */
+   public void broadcast(@Nullable Player excluded, SectorVec3 position, double radius, ResourceKey<Level> dimension,
+                         Packet<?> packet) {
+      double radiusSquared = radius * radius;
+      for (int i = 0; i < this.players.size(); ++i) {
+         ServerPlayer player = this.players.get(i);
+         if (player != excluded && player.level.dimension() == dimension) {
+            SectorVec3 playerPosition = player.exactPosition();
+            double distanceSquared;
+            if (playerPosition != null) {
+               double dx = position.relativeX(playerPosition);
+               double dy = position.relativeY(playerPosition);
+               double dz = position.relativeZ(playerPosition);
+               distanceSquared = dx * dx + dy * dy + dz * dz;
+            } else {
+               double dx = ((double)position.blockX() + position.subX()) - player.getX();
+               double dy = position.y() - player.getY();
+               double dz = ((double)position.blockZ() + position.subZ()) - player.getZ();
+               distanceSquared = dx * dx + dy * dy + dz * dz;
+            }
+            if (distanceSquared < radiusSquared) {
+               player.connection.send(packet);
             }
          }
       }

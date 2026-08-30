@@ -5,13 +5,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SimpleSoundInstance extends AbstractSoundInstance {
    public SimpleSoundInstance(SoundEvent p_235109_, SoundSource p_235110_, float p_235111_, float p_235112_, RandomSource p_235113_, BlockPos p_235114_) {
-      this(p_235109_, p_235110_, p_235111_, p_235112_, p_235113_, (double)p_235114_.getX() + 0.5D, (double)p_235114_.getY() + 0.5D, (double)p_235114_.getZ() + 0.5D);
+      this(p_235109_, p_235110_, p_235111_, p_235112_, p_235113_,
+            SectorVec3.fromBlockAndFraction(p_235114_.getX(), 0.5D, (double)p_235114_.getY() + 0.5D, p_235114_.getZ(), 0.5D));
    }
 
    public static SimpleSoundInstance forUI(SoundEvent p_119753_, float p_119754_) {
@@ -30,6 +32,11 @@ public class SimpleSoundInstance extends AbstractSoundInstance {
       return new SimpleSoundInstance(p_119748_, SoundSource.RECORDS, 4.0F, 1.0F, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.LINEAR, p_119749_, p_119750_, p_119751_);
    }
 
+   public static SimpleSoundInstance forRecord(SoundEvent sound, SectorVec3 position) {
+      return new SimpleSoundInstance(sound, SoundSource.RECORDS, 4.0F, 1.0F, SoundInstance.createUnseededRandom(),
+            false, 0, SoundInstance.Attenuation.LINEAR, position);
+   }
+
    public static SimpleSoundInstance forLocalAmbience(SoundEvent p_119767_, float p_119768_, float p_119769_) {
       return new SimpleSoundInstance(p_119767_.getLocation(), SoundSource.AMBIENT, p_119769_, p_119768_, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0D, 0.0D, 0.0D, true);
    }
@@ -42,8 +49,25 @@ public class SimpleSoundInstance extends AbstractSoundInstance {
       return new SimpleSoundInstance(p_235128_, SoundSource.AMBIENT, 1.0F, 1.0F, p_235129_, false, 0, SoundInstance.Attenuation.LINEAR, p_235130_, p_235131_, p_235132_);
    }
 
+   public static SimpleSoundInstance forAmbientMood(SoundEvent sound, RandomSource random, SectorVec3 position) {
+      return new SimpleSoundInstance(sound, SoundSource.AMBIENT, 1.0F, 1.0F, random, false, 0,
+            SoundInstance.Attenuation.LINEAR, position);
+   }
+
    public SimpleSoundInstance(SoundEvent p_235100_, SoundSource p_235101_, float p_235102_, float p_235103_, RandomSource p_235104_, double p_235105_, double p_235106_, double p_235107_) {
       this(p_235100_, p_235101_, p_235102_, p_235103_, p_235104_, false, 0, SoundInstance.Attenuation.LINEAR, p_235105_, p_235106_, p_235107_);
+   }
+
+   public SimpleSoundInstance(SoundEvent sound, SoundSource source, float volume, float pitch, RandomSource random,
+                              SectorVec3 position) {
+      this(sound, source, volume, pitch, random, false, 0, SoundInstance.Attenuation.LINEAR, position);
+   }
+
+   private SimpleSoundInstance(SoundEvent sound, SoundSource source, float volume, float pitch, RandomSource random,
+                               boolean looping, int delay, SoundInstance.Attenuation attenuation, SectorVec3 position) {
+      this(sound.getLocation(), source, volume, pitch, random, looping, delay, attenuation,
+            (double)position.blockX() + position.subX(), position.y(), (double)position.blockZ() + position.subZ(), false);
+      this.setExactPosition(position);
    }
 
    private SimpleSoundInstance(SoundEvent p_235116_, SoundSource p_235117_, float p_235118_, float p_235119_, RandomSource p_235120_, boolean p_235121_, int p_235122_, SoundInstance.Attenuation p_235123_, double p_235124_, double p_235125_, double p_235126_) {
@@ -54,12 +78,18 @@ public class SimpleSoundInstance extends AbstractSoundInstance {
       super(p_235087_, p_235088_, p_235091_);
       this.volume = p_235089_;
       this.pitch = p_235090_;
-      this.x = p_235095_;
-      this.y = p_235096_;
-      this.z = p_235097_;
+      this.setPosition(p_235095_, p_235096_, p_235097_);
       this.looping = p_235092_;
       this.delay = p_235093_;
       this.attenuation = p_235094_;
       this.relative = p_235098_;
+   }
+
+   public SimpleSoundInstance(ResourceLocation location, SoundSource source, float volume, float pitch, RandomSource random,
+                              boolean looping, int delay, SoundInstance.Attenuation attenuation, SectorVec3 position,
+                              boolean relative) {
+      this(location, source, volume, pitch, random, looping, delay, attenuation,
+            (double)position.blockX() + position.subX(), position.y(), (double)position.blockZ() + position.subZ(), relative);
+      this.setExactPosition(position);
    }
 }

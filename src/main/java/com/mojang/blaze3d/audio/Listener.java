@@ -9,15 +9,14 @@ import org.lwjgl.openal.AL10;
 @OnlyIn(Dist.CLIENT)
 public class Listener {
    private float gain = 1.0F;
-   private Vec3 position = Vec3.ZERO;
 
-   public void setListenerPosition(Vec3 p_83740_) {
-      this.position = p_83740_;
-      AL10.alListener3f(4100, (float)p_83740_.x, (float)p_83740_.y, (float)p_83740_.z);
-   }
-
-   public Vec3 getListenerPosition() {
-      return this.position;
+   /**
+    * OpenAL has no representation for the world's split 64-bit coordinates.
+    * SoundEngine therefore supplies every non-relative source in listener
+    * space, and the native listener is permanently kept at the origin.
+    */
+   public void setListenerPosition(Vec3 ignored) {
+      AL10.alListener3f(4100, 0.0F, 0.0F, 0.0F);
    }
 
    public void setListenerOrientation(Vector3f p_83742_, Vector3f p_83743_) {

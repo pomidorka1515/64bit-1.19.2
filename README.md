@@ -28,7 +28,8 @@ If you want to help and contribute, dm me on discord! `@pomidorka1515`
 - ~~Structures crash game at boundary with no logs??~~
 - ~~Random collision issues at boundary, quicksand like~~
 - ~~Light update border (black outline) flashing after chunk reload~~ keeping this in
-- A billion generation issues deadlocking the server thread with also no logs
+- ~~A billion generation issues deadlocking the server thread with also no logs~~
+- Nether & End not being stable at world boundary due to generation
 
 ## Original mod history & backport status
 ```

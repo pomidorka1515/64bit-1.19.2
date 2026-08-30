@@ -340,11 +340,17 @@ public class WorldGenRegion implements WorldGenLevel {
    }
 
    public DifficultyInstance getCurrentDifficultyAt(BlockPos p_9585_) {
-      if (!this.hasChunk(SectionPos.blockToSectionCoord(p_9585_.getX()), SectionPos.blockToSectionCoord(p_9585_.getZ()))) {
-         return this.level.getCurrentDifficultyAt(this.center.getPos().getWorldPosition());
-      } else {
-         return new DifficultyInstance(this.level.getDifficulty(), this.level.getDayTime(), 0L, this.level.getMoonBrightness());
+      long i = SectionPos.blockToSectionCoord(p_9585_.getX());
+      long j = SectionPos.blockToSectionCoord(p_9585_.getZ());
+      long k = 0L;
+      if (this.hasChunk(i, j)) {
+         ChunkAccess chunkaccess = this.getChunk(i, j, ChunkStatus.EMPTY, false);
+         if (chunkaccess != null) {
+            k = chunkaccess.getInhabitedTime();
+         }
       }
+
+      return new DifficultyInstance(this.getDifficulty(), this.dayTime(), k, this.getMoonBrightness());
    }
 
    @Nullable

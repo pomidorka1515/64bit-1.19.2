@@ -34,6 +34,7 @@ import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraft.world.level.levelgen.EndRingsMode;
 import net.minecraft.world.level.levelgen.WorldGenSettings;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.timers.TimerCallbacks;
@@ -125,6 +126,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
          return p_78531_.get("DimensionData").get("1").get("DragonFight").orElseEmptyMap().getValue();
       });
       FarlandsMode.setEnabled(p_78531_.get(FarlandsMode.LEVEL_DATA_KEY).asBoolean(true));
+      EndRingsMode.setEnabled(p_78531_.get(EndRingsMode.LEVEL_DATA_KEY).asBoolean(true));
       return new PrimaryLevelData(p_78532_, p_78533_, p_78534_, p_78531_.get("WasModded").asBoolean(false), p_78531_.get("SpawnX").asInt(0), p_78531_.get("SpawnY").asInt(0), p_78531_.get("SpawnZ").asInt(0), p_78531_.get("SpawnAngle").asFloat(0.0F), i, p_78531_.get("DayTime").asLong(i), p_78536_.levelDataVersion(), p_78531_.get("clearWeatherTime").asInt(0), p_78531_.get("rainTime").asInt(0), p_78531_.get("raining").asBoolean(false), p_78531_.get("thunderTime").asInt(0), p_78531_.get("thundering").asBoolean(false), p_78531_.get("initialized").asBoolean(true), p_78531_.get("DifficultyLocked").asBoolean(false), WorldBorder.Settings.read(p_78531_, WorldBorder.DEFAULT_SETTINGS), p_78531_.get("WanderingTraderSpawnDelay").asInt(0), p_78531_.get("WanderingTraderSpawnChance").asInt(0), p_78531_.get("WanderingTraderId").read(UUIDUtil.CODEC).result().orElse((UUID)null), p_78531_.get("ServerBrands").asStream().flatMap((p_78529_) -> {
          return p_78529_.asString().result().stream();
       }).collect(Collectors.toCollection(Sets::newLinkedHashSet)), new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS, p_78531_.get("ScheduledEvents").asStream()), (CompoundTag)p_78531_.get("CustomBossEvents").orElseEmptyMap().getValue(), compoundtag, p_78535_, p_78537_, p_78538_);
@@ -147,6 +149,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
       p_78547_.put("ServerBrands", listtag);
       p_78547_.putBoolean("WasModded", this.wasModded);
       p_78547_.putBoolean(FarlandsMode.LEVEL_DATA_KEY, FarlandsMode.isEnabled());
+      p_78547_.putBoolean(EndRingsMode.LEVEL_DATA_KEY, EndRingsMode.isEnabled());
       CompoundTag compoundtag = new CompoundTag();
       compoundtag.putString("Name", SharedConstants.getCurrentVersion().getName());
       compoundtag.putInt("Id", SharedConstants.getCurrentVersion().getDataVersion().getVersion());

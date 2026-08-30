@@ -49,6 +49,7 @@ import net.minecraft.server.commands.DefaultGameModeCommands;
 import net.minecraft.server.commands.DifficultyCommand;
 import net.minecraft.server.commands.EffectCommands;
 import net.minecraft.server.commands.EmoteCommands;
+import net.minecraft.server.commands.EndRingsCommand;
 import net.minecraft.server.commands.EnchantCommand;
 import net.minecraft.server.commands.ExecuteCommand;
 import net.minecraft.server.commands.ExperienceCommand;
@@ -135,6 +136,7 @@ public class Commands {
       DifficultyCommand.register(this.dispatcher);
       EffectCommands.register(this.dispatcher);
       EmoteCommands.register(this.dispatcher);
+      EndRingsCommand.register(this.dispatcher);
       EnchantCommand.register(this.dispatcher);
       ExperienceCommand.register(this.dispatcher);
       FillCommand.register(this.dispatcher, p_230944_);

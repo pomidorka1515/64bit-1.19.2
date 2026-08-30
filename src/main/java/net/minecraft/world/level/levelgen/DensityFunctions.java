@@ -506,7 +506,7 @@ public final class DensityFunctions {
          long j = p_224065_ / 2;
          int k = (int) (p_224064_ % 2);
          int l = (int) (p_224065_ % 2);
-         float f = 100.0F - Mth.sqrt((float)(p_224064_ * p_224064_ + p_224065_ * p_224065_)) * 8.0F;
+         float f = 100.0F - Mth.sqrt(EndRingsMode.isEnabled() ? (float)(p_224064_ * p_224064_ + p_224065_ * p_224065_) : (float)((double)p_224064_ * (double)p_224064_ + (double)p_224065_ * (double)p_224065_)) * 8.0F;
          f = Mth.clamp(f, -100.0F, 80.0F);
 
          for(int i1 = -12; i1 <= 12; ++i1) {

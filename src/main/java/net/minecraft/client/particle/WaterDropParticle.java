@@ -44,8 +44,10 @@ public class WaterDropParticle extends TextureSheetParticle {
             this.zd *= (double)0.7F;
          }
 
-         BlockPos blockpos = new BlockPos(this.x, this.y, this.z);
-         double d0 = Math.max(this.level.getBlockState(blockpos).getCollisionShape(this.level, blockpos).max(Direction.Axis.Y, this.x - (double)blockpos.getX(), this.z - (double)blockpos.getZ()), (double)this.level.getFluidState(blockpos).getHeight(this.level, blockpos));
+         BlockPos blockpos = this.blockPosition();
+         net.minecraft.world.phys.SectorVec3 position = this.exactPosition();
+         double d0 = Math.max(this.level.getBlockState(blockpos).getCollisionShape(this.level, blockpos).max(Direction.Axis.Y,
+               position.subX(), position.subZ()), (double)this.level.getFluidState(blockpos).getHeight(this.level, blockpos));
          if (d0 > 0.0D && this.y < (double)blockpos.getY() + d0) {
             this.remove();
          }

@@ -61,7 +61,8 @@ public class MinecartFurnace extends AbstractMinecart {
       }
 
       if (this.hasFuel() && this.random.nextInt(4) == 0) {
-         this.level.addParticle(ParticleTypes.LARGE_SMOKE, this.getX(), this.getY() + 0.8D, this.getZ(), 0.0D, 0.0D, 0.0D);
+         this.level.addParticle(ParticleTypes.LARGE_SMOKE, this.particlePosition(0.0D, 0.8D, 0.0D),
+               0.0D, 0.0D, 0.0D);
       }
 
    }

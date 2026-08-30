@@ -117,7 +117,9 @@ public class MushroomCow extends Cow implements Shearable {
       } else if (this.getMushroomType() == MushroomCow.MushroomType.BROWN && itemstack.is(ItemTags.SMALL_FLOWERS)) {
          if (this.effect != null) {
             for(int i = 0; i < 2; ++i) {
-               this.level.addParticle(ParticleTypes.SMOKE, this.getX() + this.random.nextDouble() / 2.0D, this.getY(0.5D), this.getZ() + this.random.nextDouble() / 2.0D, 0.0D, this.random.nextDouble() / 5.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.SMOKE, this.particlePosition(this.random.nextDouble() / 2.0D,
+                     (double)this.getBbHeight() * 0.5D, this.random.nextDouble() / 2.0D),
+                     0.0D, this.random.nextDouble() / 5.0D, 0.0D);
             }
          } else {
             Optional<Pair<MobEffect, Integer>> optional = this.getEffectFromItemStack(itemstack);
@@ -131,7 +133,9 @@ public class MushroomCow extends Cow implements Shearable {
             }
 
             for(int j = 0; j < 4; ++j) {
-               this.level.addParticle(ParticleTypes.EFFECT, this.getX() + this.random.nextDouble() / 2.0D, this.getY(0.5D), this.getZ() + this.random.nextDouble() / 2.0D, 0.0D, this.random.nextDouble() / 5.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.EFFECT, this.particlePosition(this.random.nextDouble() / 2.0D,
+                     (double)this.getBbHeight() * 0.5D, this.random.nextDouble() / 2.0D),
+                     0.0D, this.random.nextDouble() / 5.0D, 0.0D);
             }
 
             this.effect = pair.getLeft();

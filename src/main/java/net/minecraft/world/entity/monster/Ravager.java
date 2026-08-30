@@ -187,10 +187,13 @@ public class Ravager extends Raider {
 
    private void stunEffect() {
       if (this.random.nextInt(6) == 0) {
-         double d0 = this.getX() - (double)this.getBbWidth() * Math.sin((double)(this.yBodyRot * ((float)Math.PI / 180F))) + (this.random.nextDouble() * 0.6D - 0.3D);
-         double d1 = this.getY() + (double)this.getBbHeight() - 0.3D;
-         double d2 = this.getZ() + (double)this.getBbWidth() * Math.cos((double)(this.yBodyRot * ((float)Math.PI / 180F))) + (this.random.nextDouble() * 0.6D - 0.3D);
-         this.level.addParticle(ParticleTypes.ENTITY_EFFECT, d0, d1, d2, 0.4980392156862745D, 0.5137254901960784D, 0.5725490196078431D);
+         this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.particlePosition(
+               -(double)this.getBbWidth() * Math.sin((double)(this.yBodyRot * ((float)Math.PI / 180F)))
+                     + (this.random.nextDouble() * 0.6D - 0.3D),
+               (double)this.getBbHeight() - 0.3D,
+               (double)this.getBbWidth() * Math.cos((double)(this.yBodyRot * ((float)Math.PI / 180F)))
+                     + (this.random.nextDouble() * 0.6D - 0.3D)),
+               0.4980392156862745D, 0.5137254901960784D, 0.5725490196078431D);
       }
 
    }
@@ -229,13 +232,12 @@ public class Ravager extends Raider {
             this.strongKnockback(livingentity);
          }
 
-         Vec3 vec3 = this.getBoundingBox().getCenter();
-
          for(int i = 0; i < 40; ++i) {
             double d0 = this.random.nextGaussian() * 0.2D;
             double d1 = this.random.nextGaussian() * 0.2D;
             double d2 = this.random.nextGaussian() * 0.2D;
-            this.level.addParticle(ParticleTypes.POOF, vec3.x, vec3.y, vec3.z, d0, d1, d2);
+            this.level.addParticle(ParticleTypes.POOF, this.particlePosition(0.0D,
+                  (double)this.getBbHeight() * 0.5D, 0.0D), d0, d1, d2);
          }
 
          this.gameEvent(GameEvent.ENTITY_ROAR);

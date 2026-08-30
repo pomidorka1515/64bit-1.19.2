@@ -79,7 +79,8 @@ public class LlamaSpit extends Projectile {
 
       for(int i = 0; i < 7; ++i) {
          double d3 = 0.4D + 0.1D * (double)i;
-         this.level.addParticle(ParticleTypes.SPIT, this.getX(), this.getY(), this.getZ(), d0 * d3, d1, d2 * d3);
+         this.level.addParticle(ParticleTypes.SPIT, this.particlePosition(0.0D, 0.0D, 0.0D),
+               d0 * d3, d1, d2 * d3);
       }
 
       this.setDeltaMovement(d0, d1, d2);

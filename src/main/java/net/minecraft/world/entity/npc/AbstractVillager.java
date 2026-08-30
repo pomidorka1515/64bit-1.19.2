@@ -183,7 +183,10 @@ public abstract class AbstractVillager extends AgeableMob implements InventoryCa
          double d0 = this.random.nextGaussian() * 0.02D;
          double d1 = this.random.nextGaussian() * 0.02D;
          double d2 = this.random.nextGaussian() * 0.02D;
-         this.level.addParticle(p_35288_, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), d0, d1, d2);
+         this.level.addParticle(p_35288_, this.particlePosition(
+               (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.getBbWidth(),
+               this.random.nextDouble() * (double)this.getBbHeight() + 1.0D,
+               (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.getBbWidth()), d0, d1, d2);
       }
 
    }

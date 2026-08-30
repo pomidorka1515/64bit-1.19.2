@@ -48,6 +48,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -207,11 +208,16 @@ public class BeehiveBlock extends BaseEntityBlock {
    }
 
    private void spawnParticle(Level p_49613_, BlockPos p_49614_, VoxelShape p_49615_, double p_49616_) {
-      this.spawnFluidParticle(p_49613_, (double)p_49614_.getX() + p_49615_.min(Direction.Axis.X), (double)p_49614_.getX() + p_49615_.max(Direction.Axis.X), (double)p_49614_.getZ() + p_49615_.min(Direction.Axis.Z), (double)p_49614_.getZ() + p_49615_.max(Direction.Axis.Z), p_49616_);
+      this.spawnFluidParticle(p_49613_, p_49614_, p_49615_.min(Direction.Axis.X),
+            p_49615_.max(Direction.Axis.X), p_49615_.min(Direction.Axis.Z),
+            p_49615_.max(Direction.Axis.Z), p_49616_);
    }
 
-   private void spawnFluidParticle(Level p_49577_, double p_49578_, double p_49579_, double p_49580_, double p_49581_, double p_49582_) {
-      p_49577_.addParticle(ParticleTypes.DRIPPING_HONEY, Mth.lerp(p_49577_.random.nextDouble(), p_49578_, p_49579_), p_49582_, Mth.lerp(p_49577_.random.nextDouble(), p_49580_, p_49581_), 0.0D, 0.0D, 0.0D);
+   private void spawnFluidParticle(Level p_49577_, BlockPos position, double minX, double maxX, double minZ,
+                                   double maxZ, double y) {
+      p_49577_.addParticle(ParticleTypes.DRIPPING_HONEY, SectorVec3.fromBlockAndFraction(position.getX(),
+            Mth.lerp(p_49577_.random.nextDouble(), minX, maxX), y, position.getZ(),
+            Mth.lerp(p_49577_.random.nextDouble(), minZ, maxZ)), 0.0D, 0.0D, 0.0D);
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext p_49573_) {

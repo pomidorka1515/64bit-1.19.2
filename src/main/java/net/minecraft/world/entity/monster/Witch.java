@@ -164,7 +164,10 @@ public class Witch extends Raider implements RangedAttackMob {
    public void handleEntityEvent(byte p_34138_) {
       if (p_34138_ == 15) {
          for(int i = 0; i < this.random.nextInt(35) + 10; ++i) {
-            this.level.addParticle(ParticleTypes.WITCH, this.getX() + this.random.nextGaussian() * (double)0.13F, this.getBoundingBox().maxY + 0.5D + this.random.nextGaussian() * (double)0.13F, this.getZ() + this.random.nextGaussian() * (double)0.13F, 0.0D, 0.0D, 0.0D);
+            this.level.addParticle(ParticleTypes.WITCH, this.particlePosition(
+                  this.random.nextGaussian() * (double)0.13F, (double)this.getBbHeight() + 0.5D
+                        + this.random.nextGaussian() * (double)0.13F,
+                  this.random.nextGaussian() * (double)0.13F), 0.0D, 0.0D, 0.0D);
          }
       } else {
          super.handleEntityEvent(p_34138_);

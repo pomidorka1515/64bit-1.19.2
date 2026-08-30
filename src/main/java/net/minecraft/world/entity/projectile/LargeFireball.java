@@ -27,7 +27,8 @@ public class LargeFireball extends Fireball {
       super.onHit(p_37218_);
       if (!this.level.isClientSide) {
          boolean flag = this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING);
-         this.level.explode((Entity)null, this.getX(), this.getY(), this.getZ(), (float)this.explosionPower, flag, flag ? Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.NONE);
+         this.level.explode((Entity)null, this.particlePosition(0.0D, 0.0D, 0.0D), (float)this.explosionPower,
+               flag, flag ? Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.NONE);
          this.discard();
       }
 

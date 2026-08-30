@@ -21,6 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockTintCache;
 import net.minecraft.client.multiplayer.prediction.BlockStatePredictionHandler;
 import net.minecraft.client.particle.FireworkParticles;
+import net.minecraft.client.particle.Particle;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
@@ -396,13 +397,18 @@ public class ClientLevel extends Level {
       }
 
       if (p_233618_ == blockstate.getBlock()) {
-         this.addParticle(new BlockParticleOption(ParticleTypes.BLOCK_MARKER, blockstate), (double)i + 0.5D, (double)j + 0.5D, (double)k + 0.5D, 0.0D, 0.0D, 0.0D);
+         this.addParticle(new BlockParticleOption(ParticleTypes.BLOCK_MARKER, blockstate),
+               SectorVec3.fromBlockAndFraction(i, 0.5D, (double)j + 0.5D, k, 0.5D),
+               0.0D, 0.0D, 0.0D);
       }
 
       if (!blockstate.isCollisionShapeFullBlock(this, p_233619_)) {
          this.getBiome(p_233619_).value().getAmbientParticle().ifPresent((p_194166_) -> {
             if (p_194166_.canSpawn(this.random)) {
-               this.addParticle(p_194166_.getOptions(), (double)p_233619_.getX() + this.random.nextDouble(), (double)p_233619_.getY() + this.random.nextDouble(), (double)p_233619_.getZ() + this.random.nextDouble(), 0.0D, 0.0D, 0.0D);
+               this.addParticle(p_194166_.getOptions(), SectorVec3.fromBlockAndFraction(
+                     p_233619_.getX(), this.random.nextDouble(),
+                     (double)p_233619_.getY() + this.random.nextDouble(),
+                     p_233619_.getZ(), this.random.nextDouble()), 0.0D, 0.0D, 0.0D);
             }
 
          });
@@ -416,7 +422,8 @@ public class ClientLevel extends Level {
          double d0 = voxelshape.max(Direction.Axis.Y);
          if (d0 < 1.0D) {
             if (p_104693_) {
-               this.spawnFluidParticle((double)p_104690_.getX(), (double)(p_104690_.getX() + 1), (double)p_104690_.getZ(), (double)(p_104690_.getZ() + 1), (double)(p_104690_.getY() + 1) - 0.05D, p_104692_);
+               this.spawnFluidParticle(p_104690_, 0.0D, 1.0D, 0.0D, 1.0D,
+                     (double)(p_104690_.getY() + 1) - 0.05D, p_104692_);
             }
          } else if (!p_104691_.is(BlockTags.IMPERMEABLE)) {
             double d1 = voxelshape.min(Direction.Axis.Y);
@@ -437,11 +444,20 @@ public class ClientLevel extends Level {
    }
 
    private void spawnParticle(BlockPos p_104695_, ParticleOptions p_104696_, VoxelShape p_104697_, double p_104698_) {
-      this.spawnFluidParticle((double)p_104695_.getX() + p_104697_.min(Direction.Axis.X), (double)p_104695_.getX() + p_104697_.max(Direction.Axis.X), (double)p_104695_.getZ() + p_104697_.min(Direction.Axis.Z), (double)p_104695_.getZ() + p_104697_.max(Direction.Axis.Z), p_104698_, p_104696_);
+      this.spawnFluidParticle(p_104695_, p_104697_.min(Direction.Axis.X), p_104697_.max(Direction.Axis.X),
+            p_104697_.min(Direction.Axis.Z), p_104697_.max(Direction.Axis.Z), p_104698_, p_104696_);
    }
 
    private void spawnFluidParticle(double p_104593_, double p_104594_, double p_104595_, double p_104596_, double p_104597_, ParticleOptions p_104598_) {
-      this.addParticle(p_104598_, Mth.lerp(this.random.nextDouble(), p_104593_, p_104594_), p_104597_, Mth.lerp(this.random.nextDouble(), p_104595_, p_104596_), 0.0D, 0.0D, 0.0D);
+      this.addParticle(p_104598_, SectorVec3.fromApproximate(Mth.lerp(this.random.nextDouble(), p_104593_, p_104594_),
+            p_104597_, Mth.lerp(this.random.nextDouble(), p_104595_, p_104596_)), 0.0D, 0.0D, 0.0D);
+   }
+
+   private void spawnFluidParticle(BlockPos position, double minX, double maxX, double minZ, double maxZ,
+                                   double y, ParticleOptions options) {
+      this.addParticle(options, SectorVec3.fromBlockAndFraction(position.getX(),
+            Mth.lerp(this.random.nextDouble(), minX, maxX), y, position.getZ(),
+            Mth.lerp(this.random.nextDouble(), minZ, maxZ)), 0.0D, 0.0D, 0.0D);
    }
 
    public CrashReportCategory fillReportDetails(CrashReport p_104729_) {
@@ -490,7 +506,13 @@ public class ClientLevel extends Level {
    }
 
    public void createFireworks(double p_104585_, double p_104586_, double p_104587_, double p_104588_, double p_104589_, double p_104590_, @Nullable CompoundTag p_104591_) {
-      this.minecraft.particleEngine.add(new FireworkParticles.Starter(this, p_104585_, p_104586_, p_104587_, p_104588_, p_104589_, p_104590_, this.minecraft.particleEngine, p_104591_));
+      this.createFireworks(SectorVec3.fromApproximate(p_104585_, p_104586_, p_104587_), p_104588_, p_104589_, p_104590_, p_104591_);
+   }
+
+   @Override
+   public void createFireworks(SectorVec3 position, double xd, double yd, double zd, @Nullable CompoundTag fireworks) {
+      this.minecraft.particleEngine.add(Particle.createAt(position, () -> new FireworkParticles.Starter(this,
+            0.0D, position.y(), 0.0D, xd, yd, zd, this.minecraft.particleEngine, fireworks)));
    }
 
    public void sendPacketToServer(Packet<?> p_104734_) {
@@ -581,19 +603,39 @@ public class ClientLevel extends Level {
    }
 
    public void addParticle(ParticleOptions p_104706_, double p_104707_, double p_104708_, double p_104709_, double p_104710_, double p_104711_, double p_104712_) {
-      this.levelRenderer.addParticle(p_104706_, p_104706_.getType().getOverrideLimiter(), p_104707_, p_104708_, p_104709_, p_104710_, p_104711_, p_104712_);
+      this.addParticle(p_104706_, SectorVec3.fromApproximate(p_104707_, p_104708_, p_104709_), p_104710_, p_104711_, p_104712_);
+   }
+
+   @Override
+   public void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
+      this.levelRenderer.addParticle(options, options.getType().getOverrideLimiter(), position, xd, yd, zd);
    }
 
    public void addParticle(ParticleOptions p_104714_, boolean p_104715_, double p_104716_, double p_104717_, double p_104718_, double p_104719_, double p_104720_, double p_104721_) {
-      this.levelRenderer.addParticle(p_104714_, p_104714_.getType().getOverrideLimiter() || p_104715_, p_104716_, p_104717_, p_104718_, p_104719_, p_104720_, p_104721_);
+      this.addParticle(p_104714_, p_104715_, SectorVec3.fromApproximate(p_104716_, p_104717_, p_104718_), p_104719_, p_104720_, p_104721_);
+   }
+
+   @Override
+   public void addParticle(ParticleOptions options, boolean force, SectorVec3 position, double xd, double yd, double zd) {
+      this.levelRenderer.addParticle(options, options.getType().getOverrideLimiter() || force, position, xd, yd, zd);
    }
 
    public void addAlwaysVisibleParticle(ParticleOptions p_104766_, double p_104767_, double p_104768_, double p_104769_, double p_104770_, double p_104771_, double p_104772_) {
-      this.levelRenderer.addParticle(p_104766_, false, true, p_104767_, p_104768_, p_104769_, p_104770_, p_104771_, p_104772_);
+      this.addAlwaysVisibleParticle(p_104766_, SectorVec3.fromApproximate(p_104767_, p_104768_, p_104769_), p_104770_, p_104771_, p_104772_);
+   }
+
+   @Override
+   public void addAlwaysVisibleParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
+      this.levelRenderer.addParticle(options, false, true, position, xd, yd, zd);
    }
 
    public void addAlwaysVisibleParticle(ParticleOptions p_104774_, boolean p_104775_, double p_104776_, double p_104777_, double p_104778_, double p_104779_, double p_104780_, double p_104781_) {
-      this.levelRenderer.addParticle(p_104774_, p_104774_.getType().getOverrideLimiter() || p_104775_, true, p_104776_, p_104777_, p_104778_, p_104779_, p_104780_, p_104781_);
+      this.levelRenderer.addParticle(p_104774_, p_104775_, SectorVec3.fromApproximate(p_104776_, p_104777_, p_104778_), p_104779_, p_104780_, p_104781_);
+   }
+
+   @Override
+   public void addAlwaysVisibleParticle(ParticleOptions options, boolean force, SectorVec3 position, double xd, double yd, double zd) {
+      this.levelRenderer.addParticle(options, options.getType().getOverrideLimiter() || force, true, position, xd, yd, zd);
    }
 
    public List<AbstractClientPlayer> players() {

@@ -33,6 +33,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -104,13 +105,14 @@ public class EnderChestBlock extends AbstractChestBlock<EnderChestBlockEntity> i
       for(int i = 0; i < 3; ++i) {
          int j = p_221120_.nextInt(2) * 2 - 1;
          int k = p_221120_.nextInt(2) * 2 - 1;
-         double d0 = (double)p_221119_.getX() + 0.5D + 0.25D * (double)j;
+         double d0 = 0.5D + 0.25D * (double)j;
          double d1 = (double)((float)p_221119_.getY() + p_221120_.nextFloat());
-         double d2 = (double)p_221119_.getZ() + 0.5D + 0.25D * (double)k;
+         double d2 = 0.5D + 0.25D * (double)k;
          double d3 = (double)(p_221120_.nextFloat() * (float)j);
          double d4 = ((double)p_221120_.nextFloat() - 0.5D) * 0.125D;
          double d5 = (double)(p_221120_.nextFloat() * (float)k);
-         p_221118_.addParticle(ParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);
+         p_221118_.addParticle(ParticleTypes.PORTAL, SectorVec3.fromBlockAndFraction(p_221119_.getX(),
+               d0, d1, p_221119_.getZ(), d2), d3, d4, d5);
       }
 
    }

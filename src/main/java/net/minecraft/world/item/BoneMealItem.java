@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.BaseCoralWallFanBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 
 public class BoneMealItem extends Item {
    public static final int GRASS_SPREAD_WIDTH = 3;
@@ -161,7 +162,8 @@ public class BoneMealItem extends Item {
             d1 = blockstate.getShape(p_40639_, p_40640_).max(Direction.Axis.Y);
          }
 
-         p_40639_.addParticle(ParticleTypes.HAPPY_VILLAGER, (double)p_40640_.getX() + 0.5D, (double)p_40640_.getY() + 0.5D, (double)p_40640_.getZ() + 0.5D, 0.0D, 0.0D, 0.0D);
+         p_40639_.addParticle(ParticleTypes.HAPPY_VILLAGER, SectorVec3.fromBlockAndFraction(p_40640_.getX(),
+               0.5D, (double)p_40640_.getY() + 0.5D, p_40640_.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);
          RandomSource randomsource = p_40639_.getRandom();
 
          for(int i = 0; i < p_40641_; ++i) {
@@ -169,11 +171,12 @@ public class BoneMealItem extends Item {
             double d3 = randomsource.nextGaussian() * 0.02D;
             double d4 = randomsource.nextGaussian() * 0.02D;
             double d5 = 0.5D - d0;
-            double d6 = (double)p_40640_.getX() + d5 + randomsource.nextDouble() * d0 * 2.0D;
-            double d7 = (double)p_40640_.getY() + randomsource.nextDouble() * d1;
-            double d8 = (double)p_40640_.getZ() + d5 + randomsource.nextDouble() * d0 * 2.0D;
-            if (!p_40639_.getBlockState((new BlockPos(d6, d7, d8)).below()).isAir()) {
-               p_40639_.addParticle(ParticleTypes.HAPPY_VILLAGER, d6, d7, d8, d2, d3, d4);
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(p_40640_.getX(),
+                  d5 + randomsource.nextDouble() * d0 * 2.0D,
+                  (double)p_40640_.getY() + randomsource.nextDouble() * d1, p_40640_.getZ(),
+                  d5 + randomsource.nextDouble() * d0 * 2.0D);
+            if (!p_40639_.getBlockState(position.blockPosition().below()).isAir()) {
+               p_40639_.addParticle(ParticleTypes.HAPPY_VILLAGER, position, d2, d3, d4);
             }
          }
 

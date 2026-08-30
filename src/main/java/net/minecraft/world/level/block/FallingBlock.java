@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -52,10 +53,10 @@ public class FallingBlock extends Block implements Fallable {
       if (p_221132_.nextInt(16) == 0) {
          BlockPos blockpos = p_221131_.below();
          if (isFree(p_221130_.getBlockState(blockpos))) {
-            double d0 = (double)p_221131_.getX() + p_221132_.nextDouble();
-            double d1 = (double)p_221131_.getY() - 0.05D;
-            double d2 = (double)p_221131_.getZ() + p_221132_.nextDouble();
-            p_221130_.addParticle(new BlockParticleOption(ParticleTypes.FALLING_DUST, p_221129_), d0, d1, d2, 0.0D, 0.0D, 0.0D);
+            p_221130_.addParticle(new BlockParticleOption(ParticleTypes.FALLING_DUST, p_221129_),
+                  SectorVec3.fromBlockAndFraction(p_221131_.getX(), p_221132_.nextDouble(),
+                        (double)p_221131_.getY() - 0.05D, p_221131_.getZ(), p_221132_.nextDouble()),
+                  0.0D, 0.0D, 0.0D);
          }
       }
 

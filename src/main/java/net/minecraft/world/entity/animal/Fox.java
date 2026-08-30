@@ -263,7 +263,10 @@ public class Fox extends Animal {
          if (!itemstack.isEmpty()) {
             for(int i = 0; i < 8; ++i) {
                Vec3 vec3 = (new Vec3(((double)this.random.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D)).xRot(-this.getXRot() * ((float)Math.PI / 180F)).yRot(-this.getYRot() * ((float)Math.PI / 180F));
-               this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemstack), this.getX() + this.getLookAngle().x / 2.0D, this.getY(), this.getZ() + this.getLookAngle().z / 2.0D, vec3.x, vec3.y + 0.05D, vec3.z);
+               Vec3 look = this.getLookAngle();
+               this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemstack),
+                     this.particlePosition(look.x / 2.0D, 0.0D, look.z / 2.0D), vec3.x,
+                     vec3.y + 0.05D, vec3.z);
             }
          }
       } else {

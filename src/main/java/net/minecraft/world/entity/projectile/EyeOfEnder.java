@@ -130,10 +130,13 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
       float f2 = 0.25F;
       if (this.isInWater()) {
          for(int i = 0; i < 4; ++i) {
-            this.level.addParticle(ParticleTypes.BUBBLE, d0 - vec3.x * 0.25D, d1 - vec3.y * 0.25D, d2 - vec3.z * 0.25D, vec3.x, vec3.y, vec3.z);
+            this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(vec3.x * 0.75D,
+                  vec3.y * 0.75D, vec3.z * 0.75D), vec3.x, vec3.y, vec3.z);
          }
       } else {
-         this.level.addParticle(ParticleTypes.PORTAL, d0 - vec3.x * 0.25D + this.random.nextDouble() * 0.6D - 0.3D, d1 - vec3.y * 0.25D - 0.5D, d2 - vec3.z * 0.25D + this.random.nextDouble() * 0.6D - 0.3D, vec3.x, vec3.y, vec3.z);
+         this.level.addParticle(ParticleTypes.PORTAL, this.particlePosition(vec3.x * 0.75D
+               + this.random.nextDouble() * 0.6D - 0.3D, vec3.y * 0.75D - 0.5D,
+               vec3.z * 0.75D + this.random.nextDouble() * 0.6D - 0.3D), vec3.x, vec3.y, vec3.z);
       }
 
       if (!this.level.isClientSide) {

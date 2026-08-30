@@ -72,7 +72,8 @@ public abstract class ThrowableProjectile extends Projectile {
       if (this.isInWater()) {
          for(int i = 0; i < 4; ++i) {
             float f1 = 0.25F;
-            this.level.addParticle(ParticleTypes.BUBBLE, d2 - vec3.x * 0.25D, d0 - vec3.y * 0.25D, d1 - vec3.z * 0.25D, vec3.x, vec3.y, vec3.z);
+            this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(vec3.x * 0.75D,
+                  vec3.y * 0.75D, vec3.z * 0.75D), vec3.x, vec3.y, vec3.z);
          }
 
          f = 0.8F;

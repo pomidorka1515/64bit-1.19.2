@@ -197,18 +197,30 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
       boolean flag = this.isPowered();
 
       for(int l = 0; l < 3; ++l) {
-         double d8 = this.getHeadX(l);
-         double d10 = this.getHeadY(l);
-         double d2 = this.getHeadZ(l);
-         this.level.addParticle(ParticleTypes.SMOKE, d8 + this.random.nextGaussian() * (double)0.3F, d10 + this.random.nextGaussian() * (double)0.3F, d2 + this.random.nextGaussian() * (double)0.3F, 0.0D, 0.0D, 0.0D);
+         double headX = 0.0D;
+         double headY = l <= 0 ? 3.0D : 2.2D;
+         double headZ = 0.0D;
+         if (l > 0) {
+            float angle = (this.yBodyRot + (float)(180 * (l - 1))) * ((float)Math.PI / 180F);
+            headX = (double)Mth.cos(angle) * 1.3D;
+            headZ = (double)Mth.sin(angle) * 1.3D;
+         }
+
+         this.level.addParticle(ParticleTypes.SMOKE, this.particlePosition(headX
+               + this.random.nextGaussian() * (double)0.3F, headY + this.random.nextGaussian() * (double)0.3F,
+               headZ + this.random.nextGaussian() * (double)0.3F), 0.0D, 0.0D, 0.0D);
          if (flag && this.level.random.nextInt(4) == 0) {
-            this.level.addParticle(ParticleTypes.ENTITY_EFFECT, d8 + this.random.nextGaussian() * (double)0.3F, d10 + this.random.nextGaussian() * (double)0.3F, d2 + this.random.nextGaussian() * (double)0.3F, (double)0.7F, (double)0.7F, 0.5D);
+            this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.particlePosition(headX
+                  + this.random.nextGaussian() * (double)0.3F, headY + this.random.nextGaussian() * (double)0.3F,
+                  headZ + this.random.nextGaussian() * (double)0.3F), (double)0.7F, (double)0.7F, 0.5D);
          }
       }
 
       if (this.getInvulnerableTicks() > 0) {
          for(int i1 = 0; i1 < 3; ++i1) {
-            this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.getX() + this.random.nextGaussian(), this.getY() + (double)(this.random.nextFloat() * 3.3F), this.getZ() + this.random.nextGaussian(), (double)0.7F, (double)0.7F, (double)0.9F);
+            this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.particlePosition(this.random.nextGaussian(),
+                  (double)(this.random.nextFloat() * 3.3F), this.random.nextGaussian()),
+                  (double)0.7F, (double)0.7F, (double)0.9F);
          }
       }
 
@@ -220,7 +232,8 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
          this.bossEvent.setProgress(1.0F - (float)k1 / 220.0F);
          if (k1 <= 0) {
             Explosion.BlockInteraction explosion$blockinteraction = this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) ? Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.NONE;
-            this.level.explode(this, this.getX(), this.getEyeY(), this.getZ(), 7.0F, false, explosion$blockinteraction);
+            this.level.explode(this, this.particlePosition(0.0D, (double)this.getEyeHeight(), 0.0D),
+                  7.0F, false, explosion$blockinteraction);
             if (!this.isSilent()) {
                this.level.globalLevelEvent(1023, this.blockPosition(), 0);
             }

@@ -6,7 +6,6 @@ import com.mojang.math.Vector3f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -23,10 +22,10 @@ public abstract class SingleQuadParticle extends Particle {
    }
 
    public void render(VertexConsumer p_107678_, Camera p_107679_, float p_107680_) {
-      Vec3 vec3 = p_107679_.getPosition();
-      float f = (float)(Mth.lerp((double)p_107680_, this.xo, this.x) - vec3.x());
-      float f1 = (float)(Mth.lerp((double)p_107680_, this.yo, this.y) - vec3.y());
-      float f2 = (float)(Mth.lerp((double)p_107680_, this.zo, this.z) - vec3.z());
+      net.minecraft.world.phys.Vec3 relative = this.cameraRelativePosition(p_107679_, p_107680_);
+      float f = (float)relative.x;
+      float f1 = (float)relative.y;
+      float f2 = (float)relative.z;
       Quaternion quaternion;
       if (this.roll == 0.0F) {
          quaternion = p_107679_.rotation();

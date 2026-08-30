@@ -45,7 +45,7 @@ public class PlayerCloudParticle extends TextureSheetParticle {
       super.tick();
       if (!this.removed) {
          this.setSpriteFromAge(this.sprites);
-         Player player = this.level.getNearestPlayer(this.x, this.y, this.z, 2.0D, false);
+         Player player = this.nearestPlayerWithin(2.0D);
          if (player != null) {
             double d0 = player.getY();
             if (this.y > d0) {

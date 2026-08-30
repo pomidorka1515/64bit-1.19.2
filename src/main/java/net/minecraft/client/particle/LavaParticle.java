@@ -41,7 +41,7 @@ public class LavaParticle extends TextureSheetParticle {
       if (!this.removed) {
          float f = (float)this.age / (float)this.lifetime;
          if (this.random.nextFloat() > f) {
-            this.level.addParticle(ParticleTypes.SMOKE, this.x, this.y, this.z, this.xd, this.yd, this.zd);
+            this.addParticle(ParticleTypes.SMOKE, this.xd, this.yd, this.zd);
          }
       }
 

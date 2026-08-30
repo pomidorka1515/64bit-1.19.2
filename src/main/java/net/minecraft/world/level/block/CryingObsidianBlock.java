@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,7 +24,9 @@ public class CryingObsidianBlock extends Block {
                double d0 = direction.getStepX() == 0 ? p_221058_.nextDouble() : 0.5D + (double)direction.getStepX() * 0.6D;
                double d1 = direction.getStepY() == 0 ? p_221058_.nextDouble() : 0.5D + (double)direction.getStepY() * 0.6D;
                double d2 = direction.getStepZ() == 0 ? p_221058_.nextDouble() : 0.5D + (double)direction.getStepZ() * 0.6D;
-               p_221056_.addParticle(ParticleTypes.DRIPPING_OBSIDIAN_TEAR, (double)p_221057_.getX() + d0, (double)p_221057_.getY() + d1, (double)p_221057_.getZ() + d2, 0.0D, 0.0D, 0.0D);
+               p_221056_.addParticle(ParticleTypes.DRIPPING_OBSIDIAN_TEAR,
+                     SectorVec3.fromBlockAndFraction(p_221057_.getX(), d0, (double)p_221057_.getY() + d1,
+                           p_221057_.getZ(), d2), 0.0D, 0.0D, 0.0D);
             }
          }
       }

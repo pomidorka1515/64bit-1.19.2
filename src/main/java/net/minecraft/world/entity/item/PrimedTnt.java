@@ -73,7 +73,8 @@ public class PrimedTnt extends Entity {
       } else {
          this.updateInWaterStateAndDoFluidPushing();
          if (this.level.isClientSide) {
-            this.level.addParticle(ParticleTypes.SMOKE, this.getX(), this.getY() + 0.5D, this.getZ(), 0.0D, 0.0D, 0.0D);
+            this.level.addParticle(ParticleTypes.SMOKE, this.particlePosition(0.0D, 0.5D, 0.0D),
+                  0.0D, 0.0D, 0.0D);
          }
       }
 
@@ -81,7 +82,8 @@ public class PrimedTnt extends Entity {
 
    private void explode() {
       float f = 4.0F;
-      this.level.explode(this, this.getX(), this.getY(0.0625D), this.getZ(), 4.0F, Explosion.BlockInteraction.BREAK);
+      this.level.explode(this, this.particlePosition(0.0D, (double)this.getBbHeight() * 0.0625D, 0.0D),
+            4.0F, Explosion.BlockInteraction.BREAK);
    }
 
    protected void addAdditionalSaveData(CompoundTag p_32097_) {

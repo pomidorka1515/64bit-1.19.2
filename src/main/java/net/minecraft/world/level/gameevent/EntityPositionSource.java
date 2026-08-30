@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class EntityPositionSource implements PositionSource {
@@ -40,6 +41,18 @@ public class EntityPositionSource implements PositionSource {
 
       return this.entityOrUuidOrId.left().map((p_223676_) -> {
          return p_223676_.position().add(0.0D, (double)this.yOffset, 0.0D);
+      });
+   }
+
+   @Override
+   public Optional<SectorVec3> exactPosition(Level level) {
+      if (this.entityOrUuidOrId.left().isEmpty()) {
+         this.resolveEntity(level);
+      }
+      return this.entityOrUuidOrId.left().map(entity -> {
+         SectorVec3 position = entity.exactPosition();
+         return position != null ? position.add(0.0D, (double)this.yOffset, 0.0D)
+               : SectorVec3.fromApproximate(entity.getX(), entity.getY() + (double)this.yOffset, entity.getZ());
       });
    }
 

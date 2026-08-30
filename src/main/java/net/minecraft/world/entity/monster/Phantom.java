@@ -121,8 +121,10 @@ public class Phantom extends FlyingMob implements Enemy {
          float f2 = Mth.cos(this.getYRot() * ((float)Math.PI / 180F)) * (1.3F + 0.21F * (float)i);
          float f3 = Mth.sin(this.getYRot() * ((float)Math.PI / 180F)) * (1.3F + 0.21F * (float)i);
          float f4 = (0.3F + f * 0.45F) * ((float)i * 0.2F + 1.0F);
-         this.level.addParticle(ParticleTypes.MYCELIUM, this.getX() + (double)f2, this.getY() + (double)f4, this.getZ() + (double)f3, 0.0D, 0.0D, 0.0D);
-         this.level.addParticle(ParticleTypes.MYCELIUM, this.getX() - (double)f2, this.getY() + (double)f4, this.getZ() - (double)f3, 0.0D, 0.0D, 0.0D);
+         this.level.addParticle(ParticleTypes.MYCELIUM, this.particlePosition((double)f2, (double)f4,
+               (double)f3), 0.0D, 0.0D, 0.0D);
+         this.level.addParticle(ParticleTypes.MYCELIUM, this.particlePosition(-(double)f2, (double)f4,
+               -(double)f3), 0.0D, 0.0D, 0.0D);
       }
 
    }

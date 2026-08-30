@@ -1152,6 +1152,23 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       return vec3;
    }
 
+   /**
+    * Resolves a small movement against blocks addressed by an exact sector box.
+    * The movement and returned Vec3 are local deltas; no horizontal world
+    * coordinate is represented as a double.
+    */
+   public static Vec3 collideSectorBoundingBox(@Nullable Entity entity, Vec3 movement, SectorAABB exactBox,
+                                               AABB localBox, Level level, List<VoxelShape> entityShapes,
+                                               SectorPhysicsOrigin origin) {
+      ImmutableList.Builder<VoxelShape> builder = ImmutableList.builderWithExpectedSize(entityShapes.size() + 1);
+      if (!entityShapes.isEmpty()) {
+         builder.addAll(entityShapes);
+      }
+      builder.addAll(level.getSectorBlockCollisions(entity, exactBox.expandTowards(movement.x, movement.y, movement.z),
+            localBox.expandTowards(movement), origin));
+      return collideWithShapes(movement, localBox, builder.build(), true);
+   }
+
    public static Vec3 collideBoundingBox(@Nullable Entity p_198895_, Vec3 p_198896_, AABB p_198897_, Level p_198898_, List<VoxelShape> p_198899_) {
       ImmutableList.Builder<VoxelShape> builder = ImmutableList.builderWithExpectedSize(p_198899_.size() + 1);
       if (!p_198899_.isEmpty()) {
@@ -1505,6 +1522,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    }
 
+   /** Exact particle origin for sector entities; ordinary entities retain their legacy double position. */
+   public final SectorVec3 particlePosition(double dx, double dy, double dz) {
+      return this.sectorPosition != null ? this.sectorPosition.add(dx, dy, dz)
+            : SectorVec3.fromApproximate(this.getX() + dx, this.getY() + dy, this.getZ() + dz);
+   }
+
    protected void doWaterSplashEffect() {
       Entity entity = this.isVehicle() && this.getControllingPassenger() != null ? this.getControllingPassenger() : this;
       float f = entity == this ? 0.2F : 0.9F;
@@ -1521,13 +1544,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       for(int i = 0; (float)i < 1.0F + this.dimensions.width * 20.0F; ++i) {
          double d0 = (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.dimensions.width;
          double d1 = (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.dimensions.width;
-         this.level.addParticle(ParticleTypes.BUBBLE, this.getX() + d0, (double)(f2 + 1.0F), this.getZ() + d1, vec3.x, vec3.y - this.random.nextDouble() * (double)0.2F, vec3.z);
+         this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(d0, (double)(f2 + 1.0F) - this.getY(), d1),
+               vec3.x, vec3.y - this.random.nextDouble() * (double)0.2F, vec3.z);
       }
 
       for(int j = 0; (float)j < 1.0F + this.dimensions.width * 20.0F; ++j) {
          double d2 = (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.dimensions.width;
          double d3 = (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.dimensions.width;
-         this.level.addParticle(ParticleTypes.SPLASH, this.getX() + d2, (double)(f2 + 1.0F), this.getZ() + d3, vec3.x, vec3.y, vec3.z);
+         this.level.addParticle(ParticleTypes.SPLASH, this.particlePosition(d2, (double)(f2 + 1.0F) - this.getY(), d3), vec3.x, vec3.y, vec3.z);
       }
 
       this.gameEvent(GameEvent.SPLASH);
@@ -1548,14 +1572,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    protected void spawnSprintParticle() {
-      int i = Mth.floor(this.getX());
-      int j = Mth.floor(this.getY() - (double)0.2F);
-      int k = Mth.floor(this.getZ());
-      BlockPos blockpos = new BlockPos(i, j, k);
+      SectorVec3 particleOrigin = this.particlePosition(0.0D, -0.2D, 0.0D);
+      BlockPos blockpos = particleOrigin.blockPosition();
       BlockState blockstate = this.level.getBlockState(blockpos);
       if (blockstate.getRenderShape() != RenderShape.INVISIBLE) {
          Vec3 vec3 = this.getDeltaMovement();
-         this.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockstate), this.getX() + (this.random.nextDouble() - 0.5D) * (double)this.dimensions.width, this.getY() + 0.1D, this.getZ() + (this.random.nextDouble() - 0.5D) * (double)this.dimensions.width, vec3.x * -4.0D, 1.5D, vec3.z * -4.0D);
+         this.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockstate), this.particlePosition(
+               (this.random.nextDouble() - 0.5D) * (double)this.dimensions.width, 0.1D,
+               (this.random.nextDouble() - 0.5D) * (double)this.dimensions.width), vec3.x * -4.0D, 1.5D, vec3.z * -4.0D);
       }
 
    }

@@ -16,6 +16,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.AABB;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -141,18 +142,32 @@ public class BellBlockEntity extends BlockEntity {
       p_155210_.stream().filter((p_155213_) -> {
          return isRaiderWithinRange(p_155209_, p_155213_);
       }).forEach((p_155195_) -> {
-         float f = 1.0F;
-         double d0 = Math.sqrt((p_155195_.getX() - (double)p_155209_.getX()) * (p_155195_.getX() - (double)p_155209_.getX()) + (p_155195_.getZ() - (double)p_155209_.getZ()) * (p_155195_.getZ() - (double)p_155209_.getZ()));
-         double d1 = (double)((float)p_155209_.getX() + 0.5F) + 1.0D / d0 * (p_155195_.getX() - (double)p_155209_.getX());
-         double d2 = (double)((float)p_155209_.getZ() + 0.5F) + 1.0D / d0 * (p_155195_.getZ() - (double)p_155209_.getZ());
-         int j = Mth.clamp((i - 21) / -2, 3, 15);
+         SectorVec3 bellPosition = SectorVec3.fromBlockAndFraction(p_155209_.getX(), 0.5D,
+               (double)p_155209_.getY() + 0.5D, p_155209_.getZ(), 0.5D);
+         SectorVec3 raiderPosition = p_155195_.exactPosition();
+         SectorVec3 particlePosition;
+         if (raiderPosition != null) {
+            net.minecraft.world.phys.Vec3 delta = raiderPosition.relativeTo(bellPosition);
+            double length = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
+            particlePosition = length > 0.0D
+                  ? bellPosition.add(delta.x / length, 0.0D, delta.z / length)
+                  : bellPosition;
+         } else {
+            double d0 = Math.sqrt((p_155195_.getX() - (double)p_155209_.getX()) * (p_155195_.getX() - (double)p_155209_.getX())
+                  + (p_155195_.getZ() - (double)p_155209_.getZ()) * (p_155195_.getZ() - (double)p_155209_.getZ()));
+            particlePosition = SectorVec3.fromBlockAndFraction(p_155209_.getX(), 0.5D
+                  + 1.0D / d0 * (p_155195_.getX() - (double)p_155209_.getX()),
+                  (double)p_155209_.getY() + 0.5D, p_155209_.getZ(), 0.5D
+                        + 1.0D / d0 * (p_155195_.getZ() - (double)p_155209_.getZ()));
+         }
 
+         int j = Mth.clamp((i - 21) / -2, 3, 15);
          for(int k = 0; k < j; ++k) {
             int l = mutableint.addAndGet(5);
             double d3 = (double)FastColor.ARGB32.red(l) / 255.0D;
             double d4 = (double)FastColor.ARGB32.green(l) / 255.0D;
             double d5 = (double)FastColor.ARGB32.blue(l) / 255.0D;
-            p_155208_.addParticle(ParticleTypes.ENTITY_EFFECT, d1, (double)((float)p_155209_.getY() + 0.5F), d2, d3, d4, d5);
+            p_155208_.addParticle(ParticleTypes.ENTITY_EFFECT, particlePosition, d3, d4, d5);
          }
 
       });

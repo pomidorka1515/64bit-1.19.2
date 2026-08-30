@@ -22,7 +22,9 @@ public class DragonDeathPhase extends AbstractDragonPhaseInstance {
          float f = (this.dragon.getRandom().nextFloat() - 0.5F) * 8.0F;
          float f1 = (this.dragon.getRandom().nextFloat() - 0.5F) * 4.0F;
          float f2 = (this.dragon.getRandom().nextFloat() - 0.5F) * 8.0F;
-         this.dragon.level.addParticle(ParticleTypes.EXPLOSION_EMITTER, this.dragon.getX() + (double)f, this.dragon.getY() + 2.0D + (double)f1, this.dragon.getZ() + (double)f2, 0.0D, 0.0D, 0.0D);
+         this.dragon.level.addParticle(ParticleTypes.EXPLOSION_EMITTER,
+               this.dragon.particlePosition((double)f, 2.0D + (double)f1, (double)f2),
+               0.0D, 0.0D, 0.0D);
       }
 
    }

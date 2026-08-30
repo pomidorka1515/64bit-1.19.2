@@ -418,7 +418,8 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                double d3 = (double)fluidstate.getHeight(levelreader, blockpos1);
                double d4 = Math.max(d2, d3);
                ParticleOptions particleoptions = !fluidstate.is(FluidTags.LAVA) && !blockstate.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockstate) ? ParticleTypes.RAIN : ParticleTypes.SMOKE;
-               this.minecraft.level.addParticle(particleoptions, (double)blockpos1.getX() + d0, (double)blockpos1.getY() + d4, (double)blockpos1.getZ() + d1, 0.0D, 0.0D, 0.0D);
+               this.minecraft.level.addParticle(particleoptions, SectorVec3.fromBlockAndFraction(blockpos1.getX(), d0,
+                     (double)blockpos1.getY() + d4, blockpos1.getZ(), d1), 0.0D, 0.0D, 0.0D);
             }
          }
 
@@ -2539,49 +2540,76 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
    }
 
-   public void addParticle(ParticleOptions p_109744_, boolean p_109745_, double p_109746_, double p_109747_, double p_109748_, double p_109749_, double p_109750_, double p_109751_) {
-      this.addParticle(p_109744_, p_109745_, false, p_109746_, p_109747_, p_109748_, p_109749_, p_109750_, p_109751_);
+   /** Legacy double entry point; exact callers use the SectorVec3 overload. */
+   private <T extends ParticleOptions> void addParticle(T options, double x, double y, double z, double xd, double yd, double zd) {
+      this.addParticle(options, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
    }
 
-   public void addParticle(ParticleOptions p_109753_, boolean p_109754_, boolean p_109755_, double p_109756_, double p_109757_, double p_109758_, double p_109759_, double p_109760_, double p_109761_) {
+   public void addParticle(ParticleOptions options, boolean force, double x, double y, double z, double xd, double yd, double zd) {
+      this.addParticle(options, force, false, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
+   }
+
+   public void addParticle(ParticleOptions options, boolean force, boolean alwaysVisible,
+                           double x, double y, double z, double xd, double yd, double zd) {
+      this.addParticle(options, force, alwaysVisible, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
+   }
+
+   /** Adds a particle without flattening its horizontal world origin to doubles. */
+   public void addParticle(ParticleOptions options, boolean force, SectorVec3 position, double xd, double yd, double zd) {
+      this.addParticle(options, force, false, position, xd, yd, zd);
+   }
+
+   /** Adds an exact particle and applies the limiter in camera-relative space. */
+   public void addParticle(ParticleOptions options, boolean force, boolean alwaysVisible,
+                           SectorVec3 position, double xd, double yd, double zd) {
       try {
-         this.addParticleInternal(p_109753_, p_109754_, p_109755_, p_109756_, p_109757_, p_109758_, p_109759_, p_109760_, p_109761_);
+         this.addParticleInternal(options, force, alwaysVisible, position, xd, yd, zd);
       } catch (Throwable throwable) {
          CrashReport crashreport = CrashReport.forThrowable(throwable, "Exception while adding particle");
          CrashReportCategory crashreportcategory = crashreport.addCategory("Particle being added");
-         crashreportcategory.setDetail("ID", Registry.PARTICLE_TYPE.getKey(p_109753_.getType()));
-         crashreportcategory.setDetail("Parameters", p_109753_.writeToString());
-         crashreportcategory.setDetail("Position", () -> {
-            return CrashReportCategory.formatLocation(this.level, p_109756_, p_109757_, p_109758_);
-         });
+         crashreportcategory.setDetail("ID", Registry.PARTICLE_TYPE.getKey(options.getType()));
+         crashreportcategory.setDetail("Parameters", options.writeToString());
+         crashreportcategory.setDetail("Position", position::toString);
          throw new ReportedException(crashreport);
       }
    }
 
-   private <T extends ParticleOptions> void addParticle(T p_109736_, double p_109737_, double p_109738_, double p_109739_, double p_109740_, double p_109741_, double p_109742_) {
-      this.addParticle(p_109736_, p_109736_.getType().getOverrideLimiter(), p_109737_, p_109738_, p_109739_, p_109740_, p_109741_, p_109742_);
+   private <T extends ParticleOptions> void addParticle(T options, SectorVec3 position, double xd, double yd, double zd) {
+      this.addParticle(options, options.getType().getOverrideLimiter(), position, xd, yd, zd);
    }
 
    @Nullable
-   private Particle addParticleInternal(ParticleOptions p_109796_, boolean p_109797_, double p_109798_, double p_109799_, double p_109800_, double p_109801_, double p_109802_, double p_109803_) {
-      return this.addParticleInternal(p_109796_, p_109797_, false, p_109798_, p_109799_, p_109800_, p_109801_, p_109802_, p_109803_);
+   private Particle addParticleInternal(ParticleOptions options, boolean force, double x, double y, double z,
+                                        double xd, double yd, double zd) {
+      return this.addParticleInternal(options, force, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
    }
 
    @Nullable
-   private Particle addParticleInternal(ParticleOptions p_109805_, boolean p_109806_, boolean p_109807_, double p_109808_, double p_109809_, double p_109810_, double p_109811_, double p_109812_, double p_109813_) {
+   private Particle addParticleInternal(ParticleOptions options, boolean force, SectorVec3 position,
+                                        double xd, double yd, double zd) {
+      return this.addParticleInternal(options, force, false, position, xd, yd, zd);
+   }
+
+   @Nullable
+   private Particle addParticleInternal(ParticleOptions options, boolean force, boolean alwaysVisible,
+                                        SectorVec3 position, double xd, double yd, double zd) {
       Camera camera = this.minecraft.gameRenderer.getMainCamera();
       if (this.minecraft != null && camera.isInitialized() && this.minecraft.particleEngine != null) {
-         ParticleStatus particlestatus = this.calculateParticleLevel(p_109807_);
-         if (p_109806_) {
-            return this.minecraft.particleEngine.createParticle(p_109805_, p_109808_, p_109809_, p_109810_, p_109811_, p_109812_, p_109813_);
-         } else if (camera.getPosition().distanceToSqr(p_109808_, p_109809_, p_109810_) > 1024.0D) {
-            return null;
-         } else {
-            return particlestatus == ParticleStatus.MINIMAL ? null : this.minecraft.particleEngine.createParticle(p_109805_, p_109808_, p_109809_, p_109810_, p_109811_, p_109812_, p_109813_);
+         ParticleStatus particleStatus = this.calculateParticleLevel(alwaysVisible);
+         if (force) {
+            return this.minecraft.particleEngine.createParticle(options, position, xd, yd, zd);
          }
-      } else {
-         return null;
+         SectorVec3 cameraPosition = camera.exactPosition();
+         if (cameraPosition == null) {
+            Vec3 legacyCameraPosition = camera.getPosition();
+            cameraPosition = SectorVec3.fromApproximate(legacyCameraPosition.x, legacyCameraPosition.y, legacyCameraPosition.z);
+         }
+         if (position.relativeTo(cameraPosition).lengthSqr() > 1024.0D || particleStatus == ParticleStatus.MINIMAL) {
+            return null;
+         }
+         return this.minecraft.particleEngine.createParticle(options, position, xd, yd, zd);
       }
+      return null;
    }
 
    private ParticleStatus calculateParticleLevel(boolean p_109768_) {
@@ -2788,27 +2816,29 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             this.level.playLocalSound(p_234306_, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F + (randomsource.nextFloat() - randomsource.nextFloat()) * 0.8F, false);
 
             for(int k2 = 0; k2 < 8; ++k2) {
-               this.level.addParticle(ParticleTypes.LARGE_SMOKE, (double)p_234306_.getX() + randomsource.nextDouble(), (double)p_234306_.getY() + 1.2D, (double)p_234306_.getZ() + randomsource.nextDouble(), 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.LARGE_SMOKE, SectorVec3.fromBlockAndFraction(p_234306_.getX(), randomsource.nextDouble(),
+                     (double)p_234306_.getY() + 1.2D, p_234306_.getZ(), randomsource.nextDouble()), 0.0D, 0.0D, 0.0D);
             }
             break;
          case 1502:
             this.level.playLocalSound(p_234306_, SoundEvents.REDSTONE_TORCH_BURNOUT, SoundSource.BLOCKS, 0.5F, 2.6F + (randomsource.nextFloat() - randomsource.nextFloat()) * 0.8F, false);
 
             for(int j2 = 0; j2 < 5; ++j2) {
-               double d12 = (double)p_234306_.getX() + randomsource.nextDouble() * 0.6D + 0.2D;
-               double d18 = (double)p_234306_.getY() + randomsource.nextDouble() * 0.6D + 0.2D;
-               double d25 = (double)p_234306_.getZ() + randomsource.nextDouble() * 0.6D + 0.2D;
-               this.level.addParticle(ParticleTypes.SMOKE, d12, d18, d25, 0.0D, 0.0D, 0.0D);
+               double localX = randomsource.nextDouble() * 0.6D + 0.2D;
+               double particleY = (double)p_234306_.getY() + randomsource.nextDouble() * 0.6D + 0.2D;
+               double localZ = randomsource.nextDouble() * 0.6D + 0.2D;
+               this.level.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_234306_.getX(), localX,
+                     particleY, p_234306_.getZ(), localZ), 0.0D, 0.0D, 0.0D);
             }
             break;
          case 1503:
             this.level.playLocalSound(p_234306_, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 1.0F, 1.0F, false);
 
             for(int i2 = 0; i2 < 16; ++i2) {
-               double d11 = (double)p_234306_.getX() + (5.0D + randomsource.nextDouble() * 6.0D) / 16.0D;
-               double d17 = (double)p_234306_.getY() + 0.8125D;
-               double d24 = (double)p_234306_.getZ() + (5.0D + randomsource.nextDouble() * 6.0D) / 16.0D;
-               this.level.addParticle(ParticleTypes.SMOKE, d11, d17, d24, 0.0D, 0.0D, 0.0D);
+               double localX = (5.0D + randomsource.nextDouble() * 6.0D) / 16.0D;
+               double localZ = (5.0D + randomsource.nextDouble() * 6.0D) / 16.0D;
+               this.level.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_234306_.getX(), localX,
+                     (double)p_234306_.getY() + 0.8125D, p_234306_.getZ(), localZ), 0.0D, 0.0D, 0.0D);
             }
             break;
          case 1504:
@@ -2823,19 +2853,18 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             long i1 = direction1.getStepX();
             int l1 = direction1.getStepY();
             long i3 = direction1.getStepZ();
-            double d15 = (double)p_234306_.getX() + (double)i1 * 0.6D + 0.5D;
-            double d22 = (double)p_234306_.getY() + (double)l1 * 0.6D + 0.5D;
-            double d27 = (double)p_234306_.getZ() + (double)i3 * 0.6D + 0.5D;
+            SectorVec3 basePosition = SectorVec3.fromBlockAndFraction(p_234306_.getX(), 0.5D + (double)i1 * 0.6D,
+                  (double)p_234306_.getY() + 0.5D + (double)l1 * 0.6D, p_234306_.getZ(), 0.5D + (double)i3 * 0.6D);
 
             for(int i4 = 0; i4 < 10; ++i4) {
                double d31 = randomsource.nextDouble() * 0.2D + 0.01D;
-               double d3 = d15 + (double)i1 * 0.01D + (randomsource.nextDouble() - 0.5D) * (double)i3 * 0.5D;
-               double d5 = d22 + (double)l1 * 0.01D + (randomsource.nextDouble() - 0.5D) * (double)l1 * 0.5D;
-               double d32 = d27 + (double)i3 * 0.01D + (randomsource.nextDouble() - 0.5D) * (double)i1 * 0.5D;
+               double localX = (double)i1 * 0.01D + (randomsource.nextDouble() - 0.5D) * (double)i3 * 0.5D;
+               double localY = (double)l1 * 0.01D + (randomsource.nextDouble() - 0.5D) * (double)l1 * 0.5D;
+               double localZ = (double)i3 * 0.01D + (randomsource.nextDouble() - 0.5D) * (double)i1 * 0.5D;
                double d6 = (double)i1 * d31 + randomsource.nextGaussian() * 0.01D;
                double d7 = (double)l1 * d31 + randomsource.nextGaussian() * 0.01D;
                double d8 = (double)i3 * d31 + randomsource.nextGaussian() * 0.01D;
-               this.addParticle(ParticleTypes.SMOKE, d3, d5, d32, d6, d7, d8);
+               this.addParticle(ParticleTypes.SMOKE, basePosition.add(localX, localY, localZ), d6, d7, d8);
             }
             break;
          case 2001:
@@ -2849,10 +2878,12 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             break;
          case 2002:
          case 2007:
-            Vec3 vec3 = Vec3.atBottomCenterOf(p_234306_);
+            SectorVec3 potionPosition = SectorVec3.fromBlockAndFraction(p_234306_.getX(), 0.5D,
+                  (double)p_234306_.getY(), p_234306_.getZ(), 0.5D);
 
             for(int l = 0; l < 8; ++l) {
-               this.addParticle(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.SPLASH_POTION)), vec3.x, vec3.y, vec3.z, randomsource.nextGaussian() * 0.15D, randomsource.nextDouble() * 0.2D, randomsource.nextGaussian() * 0.15D);
+               this.addParticle(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.SPLASH_POTION)), potionPosition,
+                     randomsource.nextGaussian() * 0.15D, randomsource.nextDouble() * 0.2D, randomsource.nextGaussian() * 0.15D);
             }
 
             float f4 = (float)(p_234307_ >> 16 & 255) / 255.0F;
@@ -2866,7 +2897,8 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                double d30 = Math.cos(d26) * d21;
                double d2 = 0.01D + randomsource.nextDouble() * 0.5D;
                double d4 = Math.sin(d26) * d21;
-               Particle particle = this.addParticleInternal(particleoptions, particleoptions.getType().getOverrideLimiter(), vec3.x + d30 * 0.1D, vec3.y + 0.3D, vec3.z + d4 * 0.1D, d30, d2, d4);
+               Particle particle = this.addParticleInternal(particleoptions, particleoptions.getType().getOverrideLimiter(),
+                     potionPosition.add(d30 * 0.1D, 0.3D, d4 * 0.1D), d30, d2, d4);
                if (particle != null) {
                   float f3 = 0.75F + randomsource.nextFloat() * 0.25F;
                   particle.setColor(f4 * f3, f6 * f3, f8 * f3);
@@ -2877,26 +2909,28 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             this.level.playLocalSound(p_234306_, SoundEvents.SPLASH_POTION_BREAK, SoundSource.NEUTRAL, 1.0F, randomsource.nextFloat() * 0.1F + 0.9F, false);
             break;
          case 2003:
-            double d0 = (double)p_234306_.getX() + 0.5D;
-            double d10 = (double)p_234306_.getY();
-            double d14 = (double)p_234306_.getZ() + 0.5D;
+            SectorVec3 eyePosition = SectorVec3.fromBlockAndFraction(p_234306_.getX(), 0.5D,
+                  (double)p_234306_.getY(), p_234306_.getZ(), 0.5D);
 
             for(int l3 = 0; l3 < 8; ++l3) {
-               this.addParticle(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.ENDER_EYE)), d0, d10, d14, randomsource.nextGaussian() * 0.15D, randomsource.nextDouble() * 0.2D, randomsource.nextGaussian() * 0.15D);
+               this.addParticle(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.ENDER_EYE)), eyePosition,
+                     randomsource.nextGaussian() * 0.15D, randomsource.nextDouble() * 0.2D, randomsource.nextGaussian() * 0.15D);
             }
 
             for(double d20 = 0.0D; d20 < (Math.PI * 2D); d20 += 0.15707963267948966D) {
-               this.addParticle(ParticleTypes.PORTAL, d0 + Math.cos(d20) * 5.0D, d10 - 0.4D, d14 + Math.sin(d20) * 5.0D, Math.cos(d20) * -5.0D, 0.0D, Math.sin(d20) * -5.0D);
-               this.addParticle(ParticleTypes.PORTAL, d0 + Math.cos(d20) * 5.0D, d10 - 0.4D, d14 + Math.sin(d20) * 5.0D, Math.cos(d20) * -7.0D, 0.0D, Math.sin(d20) * -7.0D);
+               SectorVec3 portalPosition = eyePosition.add(Math.cos(d20) * 5.0D, -0.4D, Math.sin(d20) * 5.0D);
+               this.addParticle(ParticleTypes.PORTAL, portalPosition, Math.cos(d20) * -5.0D, 0.0D, Math.sin(d20) * -5.0D);
+               this.addParticle(ParticleTypes.PORTAL, portalPosition, Math.cos(d20) * -7.0D, 0.0D, Math.sin(d20) * -7.0D);
             }
             break;
          case 2004:
             for(int k = 0; k < 20; ++k) {
-               double d9 = (double)p_234306_.getX() + 0.5D + (randomsource.nextDouble() - 0.5D) * 2.0D;
-               double d13 = (double)p_234306_.getY() + 0.5D + (randomsource.nextDouble() - 0.5D) * 2.0D;
-               double d19 = (double)p_234306_.getZ() + 0.5D + (randomsource.nextDouble() - 0.5D) * 2.0D;
-               this.level.addParticle(ParticleTypes.SMOKE, d9, d13, d19, 0.0D, 0.0D, 0.0D);
-               this.level.addParticle(ParticleTypes.FLAME, d9, d13, d19, 0.0D, 0.0D, 0.0D);
+               SectorVec3 position = SectorVec3.fromBlockAndFraction(p_234306_.getX(),
+                     0.5D + (randomsource.nextDouble() - 0.5D) * 2.0D,
+                     (double)p_234306_.getY() + 0.5D + (randomsource.nextDouble() - 0.5D) * 2.0D,
+                     p_234306_.getZ(), 0.5D + (randomsource.nextDouble() - 0.5D) * 2.0D);
+               this.level.addParticle(ParticleTypes.SMOKE, position, 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.FLAME, position, 0.0D, 0.0D, 0.0D);
             }
             break;
          case 2005:
@@ -2909,7 +2943,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                double d16 = (double)(Mth.cos(f10) * f7);
                double d23 = 0.01D + randomsource.nextDouble() * 0.5D;
                double d29 = (double)(Mth.sin(f10) * f7);
-               Particle particle1 = this.addParticleInternal(ParticleTypes.DRAGON_BREATH, false, (double)p_234306_.getX() + d16 * 0.1D, (double)p_234306_.getY() + 0.3D, (double)p_234306_.getZ() + d29 * 0.1D, d16, d23, d29);
+               Particle particle1 = this.addParticleInternal(ParticleTypes.DRAGON_BREATH, false,
+                     SectorVec3.fromBlockAndFraction(p_234306_.getX(), d16 * 0.1D, (double)p_234306_.getY() + 0.3D,
+                           p_234306_.getZ(), d29 * 0.1D), d16, d23, d29);
                if (particle1 != null) {
                   particle1.setPower(f7);
                }
@@ -2920,15 +2956,18 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             }
             break;
          case 2008:
-            this.level.addParticle(ParticleTypes.EXPLOSION, (double)p_234306_.getX() + 0.5D, (double)p_234306_.getY() + 0.5D, (double)p_234306_.getZ() + 0.5D, 0.0D, 0.0D, 0.0D);
+            this.level.addParticle(ParticleTypes.EXPLOSION, SectorVec3.fromBlockAndFraction(p_234306_.getX(), 0.5D,
+                  (double)p_234306_.getY() + 0.5D, p_234306_.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);
             break;
          case 2009:
             for(int j1 = 0; j1 < 8; ++j1) {
-               this.level.addParticle(ParticleTypes.CLOUD, (double)p_234306_.getX() + randomsource.nextDouble(), (double)p_234306_.getY() + 1.2D, (double)p_234306_.getZ() + randomsource.nextDouble(), 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.CLOUD, SectorVec3.fromBlockAndFraction(p_234306_.getX(), randomsource.nextDouble(),
+                     (double)p_234306_.getY() + 1.2D, p_234306_.getZ(), randomsource.nextDouble()), 0.0D, 0.0D, 0.0D);
             }
             break;
          case 3000:
-            this.level.addParticle(ParticleTypes.EXPLOSION_EMITTER, true, (double)p_234306_.getX() + 0.5D, (double)p_234306_.getY() + 0.5D, (double)p_234306_.getZ() + 0.5D, 0.0D, 0.0D, 0.0D);
+            this.level.addParticle(ParticleTypes.EXPLOSION_EMITTER, true, SectorVec3.fromBlockAndFraction(p_234306_.getX(), 0.5D,
+                  (double)p_234306_.getY() + 0.5D, p_234306_.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);
             this.level.playLocalSound(p_234306_, SoundEvents.END_GATEWAY_SPAWN, SoundSource.BLOCKS, 10.0F, (1.0F + (this.level.random.nextFloat() - this.level.random.nextFloat()) * 0.2F) * 0.7F, false);
             break;
          case 3001:
@@ -2990,13 +3029,17 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                   float f12 = 2.0F * randomsource.nextFloat() - 1.0F;
                   float f14 = 2.0F * randomsource.nextFloat() - 1.0F;
                   float f15 = 2.0F * randomsource.nextFloat() - 1.0F;
-                  this.level.addParticle(ParticleTypes.SCULK_CHARGE_POP, (double)p_234306_.getX() + 0.5D + (double)(f12 * f9), (double)p_234306_.getY() + 0.5D + (double)(f14 * f9), (double)p_234306_.getZ() + 0.5D + (double)(f15 * f9), (double)(f12 * 0.07F), (double)(f14 * 0.07F), (double)(f15 * 0.07F));
+                  this.level.addParticle(ParticleTypes.SCULK_CHARGE_POP, SectorVec3.fromBlockAndFraction(p_234306_.getX(),
+                        0.5D + (double)(f12 * f9), (double)p_234306_.getY() + 0.5D + (double)(f14 * f9),
+                        p_234306_.getZ(), 0.5D + (double)(f15 * f9)), (double)(f12 * 0.07F),
+                        (double)(f14 * 0.07F), (double)(f15 * 0.07F));
                }
             }
             break;
          case 3007:
             for(int j = 0; j < 10; ++j) {
-               this.level.addParticle(new ShriekParticleOption(j * 5), false, (double)p_234306_.getX() + 0.5D, (double)p_234306_.getY() + SculkShriekerBlock.TOP_Y, (double)p_234306_.getZ() + 0.5D, 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(new ShriekParticleOption(j * 5), false, SectorVec3.fromBlockAndFraction(p_234306_.getX(), 0.5D,
+                     (double)p_234306_.getY() + SculkShriekerBlock.TOP_Y, p_234306_.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);
             }
 
             this.level.playLocalSound((double)p_234306_.getX() + 0.5D, (double)p_234306_.getY() + SculkShriekerBlock.TOP_Y, (double)p_234306_.getZ() + 0.5D, SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.BLOCKS, 2.0F, 0.6F + this.level.random.nextFloat() * 0.4F, false);

@@ -85,7 +85,10 @@ public class Blaze extends Monster {
          }
 
          for(int i = 0; i < 2; ++i) {
-            this.level.addParticle(ParticleTypes.LARGE_SMOKE, this.getRandomX(0.5D), this.getRandomY(), this.getRandomZ(0.5D), 0.0D, 0.0D, 0.0D);
+            this.level.addParticle(ParticleTypes.LARGE_SMOKE, this.particlePosition(
+                  (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth(),
+                  this.random.nextDouble() * (double)this.getBbHeight(),
+                  (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth()), 0.0D, 0.0D, 0.0D);
          }
       }
 

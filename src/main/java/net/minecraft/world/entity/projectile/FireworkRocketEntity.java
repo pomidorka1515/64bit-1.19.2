@@ -142,7 +142,9 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
 
       ++this.life;
       if (this.level.isClientSide && this.life % 2 < 2) {
-         this.level.addParticle(ParticleTypes.FIREWORK, this.getX(), this.getY(), this.getZ(), this.random.nextGaussian() * 0.05D, -this.getDeltaMovement().y * 0.5D, this.random.nextGaussian() * 0.05D);
+         this.level.addParticle(ParticleTypes.FIREWORK, this.particlePosition(0.0D, 0.0D, 0.0D),
+               this.random.nextGaussian() * 0.05D, -this.getDeltaMovement().y * 0.5D,
+               this.random.nextGaussian() * 0.05D);
       }
 
       if (!this.level.isClientSide && this.life > this.lifetime) {
@@ -234,13 +236,15 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
       if (p_37063_ == 17 && this.level.isClientSide) {
          if (!this.hasExplosion()) {
             for(int i = 0; i < this.random.nextInt(3) + 2; ++i) {
-               this.level.addParticle(ParticleTypes.POOF, this.getX(), this.getY(), this.getZ(), this.random.nextGaussian() * 0.05D, 0.005D, this.random.nextGaussian() * 0.05D);
+               this.level.addParticle(ParticleTypes.POOF, this.particlePosition(0.0D, 0.0D, 0.0D),
+                     this.random.nextGaussian() * 0.05D, 0.005D, this.random.nextGaussian() * 0.05D);
             }
          } else {
             ItemStack itemstack = this.entityData.get(DATA_ID_FIREWORKS_ITEM);
             CompoundTag compoundtag = itemstack.isEmpty() ? null : itemstack.getTagElement("Fireworks");
             Vec3 vec3 = this.getDeltaMovement();
-            this.level.createFireworks(this.getX(), this.getY(), this.getZ(), vec3.x, vec3.y, vec3.z, compoundtag);
+            this.level.createFireworks(this.particlePosition(0.0D, 0.0D, 0.0D),
+                  vec3.x, vec3.y, vec3.z, compoundtag);
          }
       }
 

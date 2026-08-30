@@ -17,7 +17,8 @@ public class TerrainParticle extends TextureSheetParticle {
    private final float vo;
 
    public TerrainParticle(ClientLevel p_108282_, double p_108283_, double p_108284_, double p_108285_, double p_108286_, double p_108287_, double p_108288_, BlockState p_108289_) {
-      this(p_108282_, p_108283_, p_108284_, p_108285_, p_108286_, p_108287_, p_108288_, p_108289_, new BlockPos(p_108283_, p_108284_, p_108285_));
+      this(p_108282_, p_108283_, p_108284_, p_108285_, p_108286_, p_108287_, p_108288_, p_108289_,
+            Particle.spawnPosition(p_108283_, p_108284_, p_108285_).blockPosition());
    }
 
    public TerrainParticle(ClientLevel p_172451_, double p_172452_, double p_172453_, double p_172454_, double p_172455_, double p_172456_, double p_172457_, BlockState p_172458_, BlockPos p_172459_) {

@@ -221,7 +221,8 @@ public class ShulkerBullet extends Projectile {
       this.setPos(this.getX() + vec31.x, this.getY() + vec31.y, this.getZ() + vec31.z);
       ProjectileUtil.rotateTowardsMovement(this, 0.5F);
       if (this.level.isClientSide) {
-         this.level.addParticle(ParticleTypes.END_ROD, this.getX() - vec31.x, this.getY() - vec31.y + 0.15D, this.getZ() - vec31.z, 0.0D, 0.0D, 0.0D);
+         this.level.addParticle(ParticleTypes.END_ROD, this.particlePosition(-vec31.x,
+               -vec31.y + 0.15D, -vec31.z), 0.0D, 0.0D, 0.0D);
       } else if (this.finalTarget != null && !this.finalTarget.isRemoved()) {
          if (this.flightSteps > 0) {
             --this.flightSteps;

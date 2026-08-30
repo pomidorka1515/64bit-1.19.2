@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.RedstoneSide;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -382,7 +383,9 @@ public class RedStoneWireBlock extends Block {
          double d0 = 0.5D + (double)(0.4375F * (float)p_221927_.getStepX()) + (double)(f2 * (float)p_221928_.getStepX());
          double d1 = 0.5D + (double)(0.4375F * (float)p_221927_.getStepY()) + (double)(f2 * (float)p_221928_.getStepY());
          double d2 = 0.5D + (double)(0.4375F * (float)p_221927_.getStepZ()) + (double)(f2 * (float)p_221928_.getStepZ());
-         p_221923_.addParticle(new DustParticleOptions(new Vector3f(p_221926_), 1.0F), (double)p_221925_.getX() + d0, (double)p_221925_.getY() + d1, (double)p_221925_.getZ() + d2, 0.0D, 0.0D, 0.0D);
+         p_221923_.addParticle(new DustParticleOptions(new Vector3f(p_221926_), 1.0F),
+               SectorVec3.fromBlockAndFraction(p_221925_.getX(), d0, (double)p_221925_.getY() + d1,
+                     p_221925_.getZ(), d2), 0.0D, 0.0D, 0.0D);
       }
    }
 

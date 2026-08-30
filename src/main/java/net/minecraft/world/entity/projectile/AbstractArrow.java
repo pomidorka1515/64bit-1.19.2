@@ -203,7 +203,8 @@ public abstract class AbstractArrow extends Projectile {
          double d1 = vec3.z;
          if (this.isCritArrow()) {
             for(int i = 0; i < 4; ++i) {
-               this.level.addParticle(ParticleTypes.CRIT, this.getX() + d5 * (double)i / 4.0D, this.getY() + d6 * (double)i / 4.0D, this.getZ() + d1 * (double)i / 4.0D, -d5, -d6 + 0.2D, -d1);
+               this.level.addParticle(ParticleTypes.CRIT, this.particlePosition(d5 * (double)i / 4.0D,
+                     d6 * (double)i / 4.0D, d1 * (double)i / 4.0D), -d5, -d6 + 0.2D, -d1);
             }
          }
 
@@ -225,7 +226,8 @@ public abstract class AbstractArrow extends Projectile {
          if (this.isInWater()) {
             for(int j = 0; j < 4; ++j) {
                float f2 = 0.25F;
-               this.level.addParticle(ParticleTypes.BUBBLE, d7 - d5 * 0.25D, d2 - d6 * 0.25D, d3 - d1 * 0.25D, d5, d6, d1);
+               this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(d5 * 0.75D,
+                     d6 * 0.75D, d1 * 0.75D), d5, d6, d1);
             }
 
             f = this.getWaterInertia();

@@ -118,7 +118,10 @@ public class Arrow extends AbstractArrow {
          double d2 = (double)(i >> 0 & 255) / 255.0D;
 
          for(int j = 0; j < p_36877_; ++j) {
-            this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.getRandomX(0.5D), this.getRandomY(), this.getRandomZ(0.5D), d0, d1, d2);
+            this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.particlePosition(
+                  (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth(),
+                  this.random.nextDouble() * (double)this.getBbHeight(),
+                  (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth()), d0, d1, d2);
          }
 
       }
@@ -213,7 +216,10 @@ public class Arrow extends AbstractArrow {
             double d2 = (double)(i >> 0 & 255) / 255.0D;
 
             for(int j = 0; j < 20; ++j) {
-               this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.getRandomX(0.5D), this.getRandomY(), this.getRandomZ(0.5D), d0, d1, d2);
+               this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.particlePosition(
+                  (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth(),
+                  this.random.nextDouble() * (double)this.getBbHeight(),
+                  (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth()), d0, d1, d2);
             }
          }
       } else {

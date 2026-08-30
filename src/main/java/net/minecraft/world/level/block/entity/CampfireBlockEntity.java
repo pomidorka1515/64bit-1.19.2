@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CampfireCookingRecipe;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -94,12 +95,15 @@ public class CampfireBlockEntity extends BlockEntity implements Clearable {
          if (!p_155322_.items.get(j).isEmpty() && randomsource.nextFloat() < 0.2F) {
             Direction direction = Direction.from2DDataValue(Math.floorMod(j + l, 4));
             float f = 0.3125F;
-            double d0 = (double)p_155320_.getX() + 0.5D - (double)((float)direction.getStepX() * 0.3125F) + (double)((float)direction.getClockWise().getStepX() * 0.3125F);
-            double d1 = (double)p_155320_.getY() + 0.5D;
-            double d2 = (double)p_155320_.getZ() + 0.5D - (double)((float)direction.getStepZ() * 0.3125F) + (double)((float)direction.getClockWise().getStepZ() * 0.3125F);
+            SectorVec3 particlePosition = SectorVec3.fromBlockAndFraction(p_155320_.getX(),
+                  0.5D - (double)((float)direction.getStepX() * 0.3125F)
+                        + (double)((float)direction.getClockWise().getStepX() * 0.3125F),
+                  (double)p_155320_.getY() + 0.5D, p_155320_.getZ(),
+                  0.5D - (double)((float)direction.getStepZ() * 0.3125F)
+                        + (double)((float)direction.getClockWise().getStepZ() * 0.3125F));
 
             for(int k = 0; k < 4; ++k) {
-               p_155319_.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0D, 5.0E-4D, 0.0D);
+               p_155319_.addParticle(ParticleTypes.SMOKE, particlePosition, 0.0D, 5.0E-4D, 0.0D);
             }
          }
       }

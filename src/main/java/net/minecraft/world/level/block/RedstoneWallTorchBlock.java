@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -51,11 +52,11 @@ public class RedstoneWallTorchBlock extends RedstoneTorchBlock {
    public void animateTick(BlockState p_221959_, Level p_221960_, BlockPos p_221961_, RandomSource p_221962_) {
       if (p_221959_.getValue(LIT)) {
          Direction direction = p_221959_.getValue(FACING).getOpposite();
-         double d0 = 0.27D;
-         double d1 = (double)p_221961_.getX() + 0.5D + (p_221962_.nextDouble() - 0.5D) * 0.2D + 0.27D * (double)direction.getStepX();
-         double d2 = (double)p_221961_.getY() + 0.7D + (p_221962_.nextDouble() - 0.5D) * 0.2D + 0.22D;
-         double d3 = (double)p_221961_.getZ() + 0.5D + (p_221962_.nextDouble() - 0.5D) * 0.2D + 0.27D * (double)direction.getStepZ();
-         p_221960_.addParticle(this.flameParticle, d1, d2, d3, 0.0D, 0.0D, 0.0D);
+         p_221960_.addParticle(this.flameParticle, SectorVec3.fromBlockAndFraction(p_221961_.getX(),
+               0.5D + (p_221962_.nextDouble() - 0.5D) * 0.2D + 0.27D * (double)direction.getStepX(),
+               (double)p_221961_.getY() + 0.92D + (p_221962_.nextDouble() - 0.5D) * 0.2D,
+               p_221961_.getZ(), 0.5D + (p_221962_.nextDouble() - 0.5D) * 0.2D
+                     + 0.27D * (double)direction.getStepZ()), 0.0D, 0.0D, 0.0D);
       }
    }
 

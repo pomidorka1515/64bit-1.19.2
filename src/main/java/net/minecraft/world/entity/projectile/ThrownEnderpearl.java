@@ -39,7 +39,9 @@ public class ThrownEnderpearl extends ThrowableItemProjectile {
       super.onHit(p_37504_);
 
       for(int i = 0; i < 32; ++i) {
-         this.level.addParticle(ParticleTypes.PORTAL, this.getX(), this.getY() + this.random.nextDouble() * 2.0D, this.getZ(), this.random.nextGaussian(), 0.0D, this.random.nextGaussian());
+         this.level.addParticle(ParticleTypes.PORTAL, this.particlePosition(0.0D,
+               this.random.nextDouble() * 2.0D, 0.0D), this.random.nextGaussian(), 0.0D,
+               this.random.nextGaussian());
       }
 
       if (!this.level.isClientSide && !this.isRemoved()) {

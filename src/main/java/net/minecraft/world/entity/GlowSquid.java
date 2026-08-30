@@ -65,7 +65,11 @@ public class GlowSquid extends Squid {
          this.setDarkTicks(i - 1);
       }
 
-      this.level.addParticle(ParticleTypes.GLOW, this.getRandomX(0.6D), this.getRandomY(), this.getRandomZ(0.6D), 0.0D, 0.0D, 0.0D);
+      this.level.addParticle(ParticleTypes.GLOW, this.particlePosition(
+            (2.0D * this.random.nextDouble() - 1.0D) * 0.6D * (double)this.getBbWidth(),
+            this.random.nextDouble() * (double)this.getBbHeight(),
+            (2.0D * this.random.nextDouble() - 1.0D) * 0.6D * (double)this.getBbWidth()),
+            0.0D, 0.0D, 0.0D);
    }
 
    public boolean hurt(DamageSource p_147114_, float p_147115_) {

@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -107,10 +108,9 @@ public class LeavesBlock extends Block implements SimpleWaterloggedBlock {
             BlockPos blockpos = p_221376_.below();
             BlockState blockstate = p_221375_.getBlockState(blockpos);
             if (!blockstate.canOcclude() || !blockstate.isFaceSturdy(p_221375_, blockpos, Direction.UP)) {
-               double d0 = (double)p_221376_.getX() + p_221377_.nextDouble();
-               double d1 = (double)p_221376_.getY() - 0.05D;
-               double d2 = (double)p_221376_.getZ() + p_221377_.nextDouble();
-               p_221375_.addParticle(ParticleTypes.DRIPPING_WATER, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+               p_221375_.addParticle(ParticleTypes.DRIPPING_WATER, SectorVec3.fromBlockAndFraction(
+                     p_221376_.getX(), p_221377_.nextDouble(), (double)p_221376_.getY() - 0.05D,
+                     p_221376_.getZ(), p_221377_.nextDouble()), 0.0D, 0.0D, 0.0D);
             }
          }
       }

@@ -7,6 +7,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,9 +32,9 @@ public class WetSpongeBlock extends Block {
          BlockPos blockpos = p_222684_.relative(direction);
          BlockState blockstate = p_222683_.getBlockState(blockpos);
          if (!p_222682_.canOcclude() || !blockstate.isFaceSturdy(p_222683_, blockpos, direction.getOpposite())) {
-            double d0 = (double)p_222684_.getX();
+            double d0 = 0.0D;
             double d1 = (double)p_222684_.getY();
-            double d2 = (double)p_222684_.getZ();
+            double d2 = 0.0D;
             if (direction == Direction.DOWN) {
                d1 -= 0.05D;
                d0 += p_222685_.nextDouble();
@@ -43,21 +44,22 @@ public class WetSpongeBlock extends Block {
                if (direction.getAxis() == Direction.Axis.X) {
                   d2 += p_222685_.nextDouble();
                   if (direction == Direction.EAST) {
-                     ++d0;
+                     d0 = 1.0D;
                   } else {
                      d0 += 0.05D;
                   }
                } else {
                   d0 += p_222685_.nextDouble();
                   if (direction == Direction.SOUTH) {
-                     ++d2;
+                     d2 = 1.0D;
                   } else {
                      d2 += 0.05D;
                   }
                }
             }
 
-            p_222683_.addParticle(ParticleTypes.DRIPPING_WATER, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+            p_222683_.addParticle(ParticleTypes.DRIPPING_WATER, SectorVec3.fromBlockAndFraction(
+                  p_222684_.getX(), d0, d1, p_222684_.getZ(), d2), 0.0D, 0.0D, 0.0D);
          }
       }
    }

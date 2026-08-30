@@ -81,8 +81,10 @@ public abstract class SpellcasterIllager extends AbstractIllager {
          float f = this.yBodyRot * ((float)Math.PI / 180F) + Mth.cos((float)this.tickCount * 0.6662F) * 0.25F;
          float f1 = Mth.cos(f);
          float f2 = Mth.sin(f);
-         this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.getX() + (double)f1 * 0.6D, this.getY() + 1.8D, this.getZ() + (double)f2 * 0.6D, d0, d1, d2);
-         this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.getX() - (double)f1 * 0.6D, this.getY() + 1.8D, this.getZ() - (double)f2 * 0.6D, d0, d1, d2);
+         this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.particlePosition((double)f1 * 0.6D,
+               1.8D, (double)f2 * 0.6D), d0, d1, d2);
+         this.level.addParticle(ParticleTypes.ENTITY_EFFECT, this.particlePosition(-(double)f1 * 0.6D,
+               1.8D, -(double)f2 * 0.6D), d0, d1, d2);
       }
 
    }

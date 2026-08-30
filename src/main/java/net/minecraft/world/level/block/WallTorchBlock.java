@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -76,14 +77,13 @@ public class WallTorchBlock extends TorchBlock {
 
    public void animateTick(BlockState p_222660_, Level p_222661_, BlockPos p_222662_, RandomSource p_222663_) {
       Direction direction = p_222660_.getValue(FACING);
-      double d0 = (double)p_222662_.getX() + 0.5D;
-      double d1 = (double)p_222662_.getY() + 0.7D;
-      double d2 = (double)p_222662_.getZ() + 0.5D;
-      double d3 = 0.22D;
-      double d4 = 0.27D;
+      double d1 = (double)p_222662_.getY() + 0.92D;
       Direction direction1 = direction.getOpposite();
-      p_222661_.addParticle(ParticleTypes.SMOKE, d0 + 0.27D * (double)direction1.getStepX(), d1 + 0.22D, d2 + 0.27D * (double)direction1.getStepZ(), 0.0D, 0.0D, 0.0D);
-      p_222661_.addParticle(this.flameParticle, d0 + 0.27D * (double)direction1.getStepX(), d1 + 0.22D, d2 + 0.27D * (double)direction1.getStepZ(), 0.0D, 0.0D, 0.0D);
+      SectorVec3 particlePosition = SectorVec3.fromBlockAndFraction(p_222662_.getX(),
+            0.5D + 0.27D * (double)direction1.getStepX(), d1, p_222662_.getZ(),
+            0.5D + 0.27D * (double)direction1.getStepZ());
+      p_222661_.addParticle(ParticleTypes.SMOKE, particlePosition, 0.0D, 0.0D, 0.0D);
+      p_222661_.addParticle(this.flameParticle, particlePosition, 0.0D, 0.0D, 0.0D);
    }
 
    public BlockState rotate(BlockState p_58140_, Rotation p_58141_) {

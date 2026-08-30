@@ -10,6 +10,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -57,8 +58,10 @@ public class FurnaceBlock extends AbstractFurnaceBlock {
          double d5 = direction$axis == Direction.Axis.X ? (double)direction.getStepX() * 0.52D : d4;
          double d6 = p_221256_.nextDouble() * 6.0D / 16.0D;
          double d7 = direction$axis == Direction.Axis.Z ? (double)direction.getStepZ() * 0.52D : d4;
-         p_221254_.addParticle(ParticleTypes.SMOKE, d0 + d5, d1 + d6, d2 + d7, 0.0D, 0.0D, 0.0D);
-         p_221254_.addParticle(ParticleTypes.FLAME, d0 + d5, d1 + d6, d2 + d7, 0.0D, 0.0D, 0.0D);
+         SectorVec3 particlePosition = SectorVec3.fromBlockAndFraction(p_221255_.getX(), 0.5D + d5,
+               d1 + d6, p_221255_.getZ(), 0.5D + d7);
+         p_221254_.addParticle(ParticleTypes.SMOKE, particlePosition, 0.0D, 0.0D, 0.0D);
+         p_221254_.addParticle(ParticleTypes.FLAME, particlePosition, 0.0D, 0.0D, 0.0D);
       }
    }
 }

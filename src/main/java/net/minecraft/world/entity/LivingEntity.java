@@ -114,6 +114,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import org.slf4j.Logger;
@@ -352,7 +353,7 @@ public abstract class LivingEntity extends Entity {
                      double d2 = this.random.nextDouble() - this.random.nextDouble();
                      double d3 = this.random.nextDouble() - this.random.nextDouble();
                      double d4 = this.random.nextDouble() - this.random.nextDouble();
-                     this.level.addParticle(ParticleTypes.BUBBLE, this.getX() + d2, this.getY() + d3, this.getZ() + d4, vec3.x, vec3.y, vec3.z);
+                     this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(d2, d3, d4), vec3.x, vec3.y, vec3.z);
                   }
 
                   this.hurt(DamageSource.DROWN, 2.0F);
@@ -428,7 +429,8 @@ public abstract class LivingEntity extends Entity {
 
    protected void spawnSoulSpeedParticle() {
       Vec3 vec3 = this.getDeltaMovement();
-      this.level.addParticle(ParticleTypes.SOUL, this.getX() + (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth(), this.getY() + 0.1D, this.getZ() + (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth(), vec3.x * -0.2D, 0.1D, vec3.z * -0.2D);
+      this.level.addParticle(ParticleTypes.SOUL, this.particlePosition((this.random.nextDouble() - 0.5D) * (double)this.getBbWidth(),
+            0.1D, (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth()), vec3.x * -0.2D, 0.1D, vec3.z * -0.2D);
       float f = this.random.nextFloat() * 0.4F + this.random.nextFloat() > 0.9F ? 0.6F : 0.0F;
       this.playSound(SoundEvents.SOUL_ESCAPE, f, 0.6F + this.random.nextFloat() * 0.4F);
    }
@@ -781,7 +783,10 @@ public abstract class LivingEntity extends Entity {
             double d0 = (double)(i >> 16 & 255) / 255.0D;
             double d1 = (double)(i >> 8 & 255) / 255.0D;
             double d2 = (double)(i >> 0 & 255) / 255.0D;
-            this.level.addParticle(flag1 ? ParticleTypes.AMBIENT_ENTITY_EFFECT : ParticleTypes.ENTITY_EFFECT, this.getRandomX(0.5D), this.getRandomY(), this.getRandomZ(0.5D), d0, d1, d2);
+            this.level.addParticle(flag1 ? ParticleTypes.AMBIENT_ENTITY_EFFECT : ParticleTypes.ENTITY_EFFECT,
+                  this.particlePosition((this.random.nextDouble() - 0.5D) * (double)this.getBbWidth(),
+                        this.random.nextDouble() * (double)this.getBbHeight(),
+                        (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth()), d0, d1, d2);
          }
       }
 
@@ -1740,10 +1745,15 @@ public abstract class LivingEntity extends Entity {
                float f = (this.random.nextFloat() - 0.5F) * 0.2F;
                float f1 = (this.random.nextFloat() - 0.5F) * 0.2F;
                float f2 = (this.random.nextFloat() - 0.5F) * 0.2F;
-               double d1 = Mth.lerp(d0, this.xo, this.getX()) + (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth() * 2.0D;
-               double d2 = Mth.lerp(d0, this.yo, this.getY()) + this.random.nextDouble() * (double)this.getBbHeight();
-               double d3 = Mth.lerp(d0, this.zo, this.getZ()) + (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth() * 2.0D;
-               this.level.addParticle(ParticleTypes.PORTAL, d1, d2, d3, (double)f, (double)f1, (double)f2);
+               SectorVec3 current = this.exactPosition();
+               SectorVec3 old = this.oldExactPosition();
+               SectorVec3 interpolated = current != null && old != null ? old.lerpTo(current, d0)
+                     : SectorVec3.fromApproximate(Mth.lerp(d0, this.xo, this.getX()), Mth.lerp(d0, this.yo, this.getY()),
+                           Mth.lerp(d0, this.zo, this.getZ()));
+               this.level.addParticle(ParticleTypes.PORTAL, interpolated.add(
+                     (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth() * 2.0D,
+                     this.random.nextDouble() * (double)this.getBbHeight(),
+                     (this.random.nextDouble() - 0.5D) * (double)this.getBbWidth() * 2.0D), (double)f, (double)f1, (double)f2);
             }
             break;
          case 47:
@@ -1781,7 +1791,9 @@ public abstract class LivingEntity extends Entity {
          double d0 = this.random.nextGaussian() * 0.02D;
          double d1 = this.random.nextGaussian() * 0.02D;
          double d2 = this.random.nextGaussian() * 0.02D;
-         this.level.addParticle(ParticleTypes.POOF, this.getRandomX(1.0D), this.getRandomY(), this.getRandomZ(1.0D), d0, d1, d2);
+         this.level.addParticle(ParticleTypes.POOF, this.particlePosition((this.random.nextDouble() * 2.0D - 1.0D) * (double)this.getBbWidth(),
+               this.random.nextDouble() * (double)this.getBbHeight(),
+               (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.getBbWidth()), d0, d1, d2);
       }
 
    }
@@ -2929,8 +2941,8 @@ public abstract class LivingEntity extends Entity {
          Vec3 vec31 = new Vec3(((double)this.random.nextFloat() - 0.5D) * 0.3D, d0, 0.6D);
          vec31 = vec31.xRot(-this.getXRot() * ((float)Math.PI / 180F));
          vec31 = vec31.yRot(-this.getYRot() * ((float)Math.PI / 180F));
-         vec31 = vec31.add(this.getX(), this.getEyeY(), this.getZ());
-         this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, p_21061_), vec31.x, vec31.y, vec31.z, vec3.x, vec3.y + 0.05D, vec3.z);
+         SectorVec3 position = this.particlePosition(vec31.x, (double)this.getEyeHeight() + vec31.y, vec31.z);
+         this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, p_21061_), position, vec3.x, vec3.y + 0.05D, vec3.z);
       }
 
    }

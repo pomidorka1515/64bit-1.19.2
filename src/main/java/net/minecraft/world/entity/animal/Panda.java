@@ -412,8 +412,9 @@ public class Panda extends Animal {
             double d0 = (double)(-this.random.nextFloat()) * 0.6D - 0.3D;
             Vec3 vec31 = new Vec3(((double)this.random.nextFloat() - 0.5D) * 0.8D, d0, 1.0D + ((double)this.random.nextFloat() - 0.5D) * 0.4D);
             vec31 = vec31.yRot(-this.yBodyRot * ((float)Math.PI / 180F));
-            vec31 = vec31.add(this.getX(), this.getEyeY() + 1.0D, this.getZ());
-            this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getItemBySlot(EquipmentSlot.MAINHAND)), vec31.x, vec31.y, vec31.z, vec3.x, vec3.y + 0.05D, vec3.z);
+            this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getItemBySlot(EquipmentSlot.MAINHAND)),
+                  this.particlePosition(vec31.x, (double)this.getEyeHeight() + 1.0D + vec31.y, vec31.z),
+                  vec3.x, vec3.y + 0.05D, vec3.z);
          }
       }
 
@@ -485,7 +486,10 @@ public class Panda extends Animal {
 
    private void afterSneeze() {
       Vec3 vec3 = this.getDeltaMovement();
-      this.level.addParticle(ParticleTypes.SNEEZE, this.getX() - (double)(this.getBbWidth() + 1.0F) * 0.5D * (double)Mth.sin(this.yBodyRot * ((float)Math.PI / 180F)), this.getEyeY() - (double)0.1F, this.getZ() + (double)(this.getBbWidth() + 1.0F) * 0.5D * (double)Mth.cos(this.yBodyRot * ((float)Math.PI / 180F)), vec3.x, 0.0D, vec3.z);
+      this.level.addParticle(ParticleTypes.SNEEZE, this.particlePosition(
+            -(double)(this.getBbWidth() + 1.0F) * 0.5D * (double)Mth.sin(this.yBodyRot * ((float)Math.PI / 180F)),
+            (double)this.getEyeHeight() - 0.1D, (double)(this.getBbWidth() + 1.0F) * 0.5D
+                  * (double)Mth.cos(this.yBodyRot * ((float)Math.PI / 180F))), vec3.x, 0.0D, vec3.z);
       this.playSound(SoundEvents.PANDA_SNEEZE, 1.0F, 1.0F);
 
       for(Panda panda : this.level.getEntitiesOfClass(Panda.class, this.getBoundingBox().inflate(10.0D))) {

@@ -10,7 +10,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.particles.VibrationParticleOption;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.gameevent.PositionSource;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -44,10 +44,10 @@ public class VibrationSignalParticle extends TextureSheetParticle {
    }
 
    private void renderSignal(VertexConsumer p_172479_, Camera p_172480_, float p_172481_, Consumer<Quaternion> p_172482_) {
-      Vec3 vec3 = p_172480_.getPosition();
-      float f = (float)(Mth.lerp((double)p_172481_, this.xo, this.x) - vec3.x());
-      float f1 = (float)(Mth.lerp((double)p_172481_, this.yo, this.y) - vec3.y());
-      float f2 = (float)(Mth.lerp((double)p_172481_, this.zo, this.z) - vec3.z());
+      net.minecraft.world.phys.Vec3 relative = this.cameraRelativePosition(p_172480_, p_172481_);
+      float f = (float)relative.x;
+      float f1 = (float)relative.y;
+      float f2 = (float)relative.z;
       Vector3f vector3f = new Vector3f(0.5F, 0.5F, 0.5F);
       vector3f.normalize();
       Quaternion quaternion = new Quaternion(vector3f, 0.0F, true);
@@ -90,18 +90,23 @@ public class VibrationSignalParticle extends TextureSheetParticle {
       if (this.age++ >= this.lifetime) {
          this.remove();
       } else {
-         Optional<Vec3> optional = this.target.getPosition(this.level);
+         Optional<SectorVec3> optional = this.target.exactPosition(this.level);
          if (optional.isEmpty()) {
             this.remove();
          } else {
             int i = this.lifetime - this.age;
             double d0 = 1.0D / (double)i;
-            Vec3 vec3 = optional.get();
-            this.x = Mth.lerp(d0, this.x, vec3.x());
-            this.y = Mth.lerp(d0, this.y, vec3.y());
-            this.z = Mth.lerp(d0, this.z, vec3.z());
+            SectorVec3 targetPosition = optional.get();
+            SectorVec3 currentPosition = this.exactPosition();
+            net.minecraft.world.phys.Vec3 targetRelative = targetPosition.relativeTo(currentPosition);
+            double dx = targetRelative.x * d0;
+            double dy = targetRelative.y * d0;
+            double dz = targetRelative.z * d0;
+            this.x += dx;
+            this.y += dy;
+            this.z += dz;
             this.yRotO = this.yRot;
-            this.yRot = (float)Mth.atan2(this.x - vec3.x(), this.z - vec3.z());
+            this.yRot = (float)Mth.atan2(-dx, -dz);
          }
       }
    }

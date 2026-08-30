@@ -19,6 +19,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.redstone.NeighborUpdater;
 import net.minecraft.world.level.storage.LevelData;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.ticks.LevelTickAccess;
 import net.minecraft.world.ticks.ScheduledTick;
@@ -89,6 +90,12 @@ public interface LevelAccessor extends CommonLevelAccessor, LevelTimeAccess {
 
    void addParticle(ParticleOptions p_46783_, double p_46784_, double p_46785_, double p_46786_, double p_46787_, double p_46788_, double p_46789_);
 
+   /** Exact particle origin for callers that already have split world coordinates. */
+   default void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
+      this.addParticle(options, position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z,
+            xd, yd, zd);
+   }
+
    void levelEvent(@Nullable Player p_46771_, int p_46772_, BlockPos p_46773_, int p_46774_);
 
    default void levelEvent(int p_46797_, BlockPos p_46798_, int p_46799_) {
@@ -96,6 +103,11 @@ public interface LevelAccessor extends CommonLevelAccessor, LevelTimeAccess {
    }
 
    void gameEvent(GameEvent p_220404_, Vec3 p_220405_, GameEvent.Context p_220406_);
+
+   /** Exact game-event origin for precision-sensitive callers. */
+   default void gameEvent(GameEvent event, SectorVec3 position, GameEvent.Context context) {
+      this.gameEvent(event, position.toApproximateVec3(), context);
+   }
 
    default void gameEvent(@Nullable Entity p_220401_, GameEvent p_220402_, Vec3 p_220403_) {
       this.gameEvent(p_220402_, p_220403_, new GameEvent.Context(p_220401_, (BlockState)null));

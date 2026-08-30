@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -245,7 +246,8 @@ public class ConduitBlockEntity extends BlockEntity {
       RandomSource randomsource = p_155419_.random;
       double d0 = (double)(Mth.sin((float)(p_155423_ + 35) * 0.1F) / 2.0F + 0.5F);
       d0 = (d0 * d0 + d0) * (double)0.3F;
-      Vec3 vec3 = new Vec3((double)p_155420_.getX() + 0.5D, (double)p_155420_.getY() + 1.5D + d0, (double)p_155420_.getZ() + 0.5D);
+      SectorVec3 particleOrigin = SectorVec3.fromBlockAndFraction(p_155420_.getX(), 0.5D,
+            (double)p_155420_.getY() + 1.5D + d0, p_155420_.getZ(), 0.5D);
 
       for(BlockPos blockpos : p_155421_) {
          if (randomsource.nextInt(50) == 0) {
@@ -253,17 +255,18 @@ public class ConduitBlockEntity extends BlockEntity {
             float f = -0.5F + randomsource.nextFloat() + (float)blockpos1.getX();
             float f1 = -2.0F + randomsource.nextFloat() + (float)blockpos1.getY();
             float f2 = -0.5F + randomsource.nextFloat() + (float)blockpos1.getZ();
-            p_155419_.addParticle(ParticleTypes.NAUTILUS, vec3.x, vec3.y, vec3.z, (double)f, (double)f1, (double)f2);
+            p_155419_.addParticle(ParticleTypes.NAUTILUS, particleOrigin, (double)f, (double)f1, (double)f2);
          }
       }
 
       if (p_155422_ != null) {
-         Vec3 vec31 = new Vec3(p_155422_.getX(), p_155422_.getEyeY(), p_155422_.getZ());
+         SectorVec3 entityParticleOrigin = p_155422_.particlePosition(0.0D,
+               (double)p_155422_.getEyeHeight(), 0.0D);
          float f3 = (-0.5F + randomsource.nextFloat()) * (3.0F + p_155422_.getBbWidth());
          float f4 = -1.0F + randomsource.nextFloat() * p_155422_.getBbHeight();
          float f5 = (-0.5F + randomsource.nextFloat()) * (3.0F + p_155422_.getBbWidth());
          Vec3 vec32 = new Vec3((double)f3, (double)f4, (double)f5);
-         p_155419_.addParticle(ParticleTypes.NAUTILUS, vec31.x, vec31.y, vec31.z, vec32.x, vec32.y, vec32.z);
+         p_155419_.addParticle(ParticleTypes.NAUTILUS, entityParticleOrigin, vec32.x, vec32.y, vec32.z);
       }
 
    }

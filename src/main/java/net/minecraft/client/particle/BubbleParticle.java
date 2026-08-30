@@ -31,7 +31,7 @@ public class BubbleParticle extends TextureSheetParticle {
          this.xd *= (double)0.85F;
          this.yd *= (double)0.85F;
          this.zd *= (double)0.85F;
-         if (!this.level.getFluidState(new BlockPos(this.x, this.y, this.z)).is(FluidTags.WATER)) {
+         if (!this.level.getFluidState(this.blockPosition()).is(FluidTags.WATER)) {
             this.remove();
          }
 

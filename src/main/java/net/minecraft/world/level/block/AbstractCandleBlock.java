@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -47,28 +48,34 @@ public abstract class AbstractCandleBlock extends Block {
    public void animateTick(BlockState p_220697_, Level p_220698_, BlockPos p_220699_, RandomSource p_220700_) {
       if (p_220697_.getValue(LIT)) {
          this.getParticleOffsets(p_220697_).forEach((p_220695_) -> {
-            addParticlesAndSound(p_220698_, p_220695_.add((double)p_220699_.getX(), (double)p_220699_.getY(), (double)p_220699_.getZ()), p_220700_);
+            addParticlesAndSound(p_220698_, SectorVec3.fromBlockAndFraction(p_220699_.getX(), p_220695_.x,
+                  (double)p_220699_.getY() + p_220695_.y, p_220699_.getZ(), p_220695_.z), p_220700_);
          });
       }
    }
 
-   private static void addParticlesAndSound(Level p_220688_, Vec3 p_220689_, RandomSource p_220690_) {
+   private static void addParticlesAndSound(Level p_220688_, SectorVec3 p_220689_, RandomSource p_220690_) {
       float f = p_220690_.nextFloat();
       if (f < 0.3F) {
-         p_220688_.addParticle(ParticleTypes.SMOKE, p_220689_.x, p_220689_.y, p_220689_.z, 0.0D, 0.0D, 0.0D);
+         p_220688_.addParticle(ParticleTypes.SMOKE, p_220689_, 0.0D, 0.0D, 0.0D);
          if (f < 0.17F) {
-            p_220688_.playLocalSound(p_220689_.x + 0.5D, p_220689_.y + 0.5D, p_220689_.z + 0.5D, SoundEvents.CANDLE_AMBIENT, SoundSource.BLOCKS, 1.0F + p_220690_.nextFloat(), p_220690_.nextFloat() * 0.7F + 0.3F, false);
+            Vec3 approximate = p_220689_.toApproximateVec3();
+            p_220688_.playLocalSound(approximate.x + 0.5D, approximate.y + 0.5D, approximate.z + 0.5D,
+                  SoundEvents.CANDLE_AMBIENT, SoundSource.BLOCKS, 1.0F + p_220690_.nextFloat(),
+                  p_220690_.nextFloat() * 0.7F + 0.3F, false);
          }
       }
 
-      p_220688_.addParticle(ParticleTypes.SMALL_FLAME, p_220689_.x, p_220689_.y, p_220689_.z, 0.0D, 0.0D, 0.0D);
+      p_220688_.addParticle(ParticleTypes.SMALL_FLAME, p_220689_, 0.0D, 0.0D, 0.0D);
    }
 
    public static void extinguish(@Nullable Player p_151900_, BlockState p_151901_, LevelAccessor p_151902_, BlockPos p_151903_) {
       setLit(p_151902_, p_151901_, p_151903_, false);
       if (p_151901_.getBlock() instanceof AbstractCandleBlock) {
          ((AbstractCandleBlock)p_151901_.getBlock()).getParticleOffsets(p_151901_).forEach((p_151926_) -> {
-            p_151902_.addParticle(ParticleTypes.SMOKE, (double)p_151903_.getX() + p_151926_.x(), (double)p_151903_.getY() + p_151926_.y(), (double)p_151903_.getZ() + p_151926_.z(), 0.0D, (double)0.1F, 0.0D);
+            p_151902_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_151903_.getX(),
+                  p_151926_.x(), (double)p_151903_.getY() + p_151926_.y, p_151903_.getZ(),
+                  p_151926_.z()), 0.0D, (double)0.1F, 0.0D);
          });
       }
 

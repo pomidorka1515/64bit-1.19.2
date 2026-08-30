@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -80,10 +81,11 @@ public class BrewingStandBlock extends BaseEntityBlock {
    }
 
    public void animateTick(BlockState p_220883_, Level p_220884_, BlockPos p_220885_, RandomSource p_220886_) {
-      double d0 = (double)p_220885_.getX() + 0.4D + (double)p_220886_.nextFloat() * 0.2D;
-      double d1 = (double)p_220885_.getY() + 0.7D + (double)p_220886_.nextFloat() * 0.3D;
-      double d2 = (double)p_220885_.getZ() + 0.4D + (double)p_220886_.nextFloat() * 0.2D;
-      p_220884_.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+      p_220884_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_220885_.getX(),
+            0.4D + (double)p_220886_.nextFloat() * 0.2D,
+            (double)p_220885_.getY() + 0.7D + (double)p_220886_.nextFloat() * 0.3D,
+            p_220885_.getZ(), 0.4D + (double)p_220886_.nextFloat() * 0.2D),
+            0.0D, 0.0D, 0.0D);
    }
 
    public void onRemove(BlockState p_50937_, Level p_50938_, BlockPos p_50939_, BlockState p_50940_, boolean p_50941_) {

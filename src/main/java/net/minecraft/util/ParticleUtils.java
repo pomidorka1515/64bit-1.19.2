@@ -7,6 +7,7 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class ParticleUtils {
@@ -33,35 +34,35 @@ public class ParticleUtils {
    }
 
    public static void spawnParticlesAlongAxis(Direction.Axis p_144968_, Level p_144969_, BlockPos p_144970_, double p_144971_, ParticleOptions p_144972_, UniformInt p_144973_) {
-      Vec3 vec3 = Vec3.atCenterOf(p_144970_);
       boolean flag = p_144968_ == Direction.Axis.X;
       boolean flag1 = p_144968_ == Direction.Axis.Y;
       boolean flag2 = p_144968_ == Direction.Axis.Z;
       int i = p_144973_.sample(p_144969_.random);
 
       for(int j = 0; j < i; ++j) {
-         double d0 = vec3.x + Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) * (flag ? 0.5D : p_144971_);
-         double d1 = vec3.y + Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) * (flag1 ? 0.5D : p_144971_);
-         double d2 = vec3.z + Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) * (flag2 ? 0.5D : p_144971_);
+         double d0 = 0.5D + Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) * (flag ? 0.5D : p_144971_);
+         double d1 = (double)p_144970_.getY() + 0.5D + Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) * (flag1 ? 0.5D : p_144971_);
+         double d2 = 0.5D + Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) * (flag2 ? 0.5D : p_144971_);
          double d3 = flag ? Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) : 0.0D;
          double d4 = flag1 ? Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) : 0.0D;
          double d5 = flag2 ? Mth.nextDouble(p_144969_.random, -1.0D, 1.0D) : 0.0D;
-         p_144969_.addParticle(p_144972_, d0, d1, d2, d3, d4, d5);
+         p_144969_.addParticle(p_144972_, SectorVec3.fromBlockAndFraction(p_144970_.getX(), d0, d1,
+               p_144970_.getZ(), d2), d3, d4, d5);
       }
 
    }
 
    public static void spawnParticleOnFace(Level p_216307_, BlockPos p_216308_, Direction p_216309_, ParticleOptions p_216310_, Vec3 p_216311_, double p_216312_) {
-      Vec3 vec3 = Vec3.atCenterOf(p_216308_);
       long i = p_216309_.getStepX();
       int j = p_216309_.getStepY();
       long k = p_216309_.getStepZ();
-      double d0 = vec3.x + (i == 0 ? Mth.nextDouble(p_216307_.random, -0.5D, 0.5D) : (double)i * p_216312_);
-      double d1 = vec3.y + (j == 0 ? Mth.nextDouble(p_216307_.random, -0.5D, 0.5D) : (double)j * p_216312_);
-      double d2 = vec3.z + (k == 0 ? Mth.nextDouble(p_216307_.random, -0.5D, 0.5D) : (double)k * p_216312_);
+      double d0 = 0.5D + (i == 0 ? Mth.nextDouble(p_216307_.random, -0.5D, 0.5D) : (double)i * p_216312_);
+      double d1 = (double)p_216308_.getY() + 0.5D + (j == 0 ? Mth.nextDouble(p_216307_.random, -0.5D, 0.5D) : (double)j * p_216312_);
+      double d2 = 0.5D + (k == 0 ? Mth.nextDouble(p_216307_.random, -0.5D, 0.5D) : (double)k * p_216312_);
       double d3 = i == 0 ? p_216311_.x() : 0.0D;
       double d4 = j == 0 ? p_216311_.y() : 0.0D;
       double d5 = k == 0 ? p_216311_.z() : 0.0D;
-      p_216307_.addParticle(p_216310_, d0, d1, d2, d3, d4, d5);
+      p_216307_.addParticle(p_216310_, SectorVec3.fromBlockAndFraction(p_216308_.getX(), d0, d1,
+            p_216308_.getZ(), d2), d3, d4, d5);
    }
 }

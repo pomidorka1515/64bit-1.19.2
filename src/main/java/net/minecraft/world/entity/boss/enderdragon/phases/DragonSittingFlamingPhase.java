@@ -28,17 +28,19 @@ public class DragonSittingFlamingPhase extends AbstractDragonSittingPhase {
       if (this.flameTicks % 2 == 0 && this.flameTicks < 10) {
          Vec3 vec3 = this.dragon.getHeadLookVector(1.0F).normalize();
          vec3.yRot((-(float)Math.PI / 4F));
-         double d0 = this.dragon.head.getX();
-         double d1 = this.dragon.head.getY(0.5D);
-         double d2 = this.dragon.head.getZ();
+         Vec3 headRelative = this.dragon.head.position().subtract(this.dragon.position());
 
          for(int i = 0; i < 8; ++i) {
-            double d3 = d0 + this.dragon.getRandom().nextGaussian() / 2.0D;
-            double d4 = d1 + this.dragon.getRandom().nextGaussian() / 2.0D;
-            double d5 = d2 + this.dragon.getRandom().nextGaussian() / 2.0D;
+            double localX = headRelative.x + this.dragon.getRandom().nextGaussian() / 2.0D;
+            double localY = headRelative.y + (double)this.dragon.getBbHeight() * 0.5D
+                  + this.dragon.getRandom().nextGaussian() / 2.0D;
+            double localZ = headRelative.z + this.dragon.getRandom().nextGaussian() / 2.0D;
 
             for(int j = 0; j < 6; ++j) {
-               this.dragon.level.addParticle(ParticleTypes.DRAGON_BREATH, d3, d4, d5, -vec3.x * (double)0.08F * (double)j, -vec3.y * (double)0.6F, -vec3.z * (double)0.08F * (double)j);
+               this.dragon.level.addParticle(ParticleTypes.DRAGON_BREATH,
+                     this.dragon.particlePosition(localX, localY, localZ),
+                     -vec3.x * (double)0.08F * (double)j, -vec3.y * (double)0.6F,
+                     -vec3.z * (double)0.08F * (double)j);
             }
 
             vec3.yRot(0.19634955F);

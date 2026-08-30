@@ -54,7 +54,8 @@ public class SpellParticle extends TextureSheetParticle {
    private boolean isCloseToScopingPlayer() {
       Minecraft minecraft = Minecraft.getInstance();
       LocalPlayer localplayer = minecraft.player;
-      return localplayer != null && localplayer.getEyePosition().distanceToSqr(this.x, this.y, this.z) <= 9.0D && minecraft.options.getCameraType().isFirstPerson() && localplayer.isScoping();
+      return localplayer != null && localplayer.exactDistanceToSqr(this.exactPosition()) <= 9.0D
+            && minecraft.options.getCameraType().isFirstPerson() && localplayer.isScoping();
    }
 
    @OnlyIn(Dist.CLIENT)

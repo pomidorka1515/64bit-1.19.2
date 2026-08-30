@@ -119,7 +119,10 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
             }
 
             for(int l = 0; l < 16; ++l) {
-               this.level.addParticle(ParticleTypes.CLOUD, this.getRandomX(0.5D), this.getRandomY(), this.getZ(0.5D), 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.CLOUD, this.particlePosition(
+                     (2.0D * this.random.nextDouble() - 1.0D) * 0.5D * (double)this.getBbWidth(),
+                     this.random.nextDouble() * (double)this.getBbHeight(),
+                     0.5D * (double)this.getBbWidth()), 0.0D, 0.0D, 0.0D);
             }
 
             this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ILLUSIONER_MIRROR_MOVE, this.getSoundSource(), 1.0F, 1.0F, false);

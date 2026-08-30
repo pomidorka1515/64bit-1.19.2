@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.portal.PortalShape;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -54,54 +55,60 @@ public abstract class BaseFireBlock extends Block {
       if (!this.canBurn(blockstate) && !blockstate.isFaceSturdy(p_220764_, blockpos, Direction.UP)) {
          if (this.canBurn(p_220764_.getBlockState(p_220765_.west()))) {
             for(int j = 0; j < 2; ++j) {
-               double d3 = (double)p_220765_.getX() + p_220766_.nextDouble() * (double)0.1F;
+               double d3 = p_220766_.nextDouble() * (double)0.1F;
                double d8 = (double)p_220765_.getY() + p_220766_.nextDouble();
-               double d13 = (double)p_220765_.getZ() + p_220766_.nextDouble();
-               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, d3, d8, d13, 0.0D, 0.0D, 0.0D);
+               double d13 = p_220766_.nextDouble();
+               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, SectorVec3.fromBlockAndFraction(
+                     p_220765_.getX(), d3, d8, p_220765_.getZ(), d13), 0.0D, 0.0D, 0.0D);
             }
          }
 
          if (this.canBurn(p_220764_.getBlockState(p_220765_.east()))) {
             for(int k = 0; k < 2; ++k) {
-               double d4 = (double)(p_220765_.getX() + 1) - p_220766_.nextDouble() * (double)0.1F;
+               double d4 = 1.0D - p_220766_.nextDouble() * (double)0.1F;
                double d9 = (double)p_220765_.getY() + p_220766_.nextDouble();
-               double d14 = (double)p_220765_.getZ() + p_220766_.nextDouble();
-               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, d4, d9, d14, 0.0D, 0.0D, 0.0D);
+               double d14 = p_220766_.nextDouble();
+               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, SectorVec3.fromBlockAndFraction(
+                     p_220765_.getX(), d4, d9, p_220765_.getZ(), d14), 0.0D, 0.0D, 0.0D);
             }
          }
 
          if (this.canBurn(p_220764_.getBlockState(p_220765_.north()))) {
             for(int l = 0; l < 2; ++l) {
-               double d5 = (double)p_220765_.getX() + p_220766_.nextDouble();
+               double d5 = p_220766_.nextDouble();
                double d10 = (double)p_220765_.getY() + p_220766_.nextDouble();
-               double d15 = (double)p_220765_.getZ() + p_220766_.nextDouble() * (double)0.1F;
-               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, d5, d10, d15, 0.0D, 0.0D, 0.0D);
+               double d15 = p_220766_.nextDouble() * (double)0.1F;
+               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, SectorVec3.fromBlockAndFraction(
+                     p_220765_.getX(), d5, d10, p_220765_.getZ(), d15), 0.0D, 0.0D, 0.0D);
             }
          }
 
          if (this.canBurn(p_220764_.getBlockState(p_220765_.south()))) {
             for(int i1 = 0; i1 < 2; ++i1) {
-               double d6 = (double)p_220765_.getX() + p_220766_.nextDouble();
+               double d6 = p_220766_.nextDouble();
                double d11 = (double)p_220765_.getY() + p_220766_.nextDouble();
-               double d16 = (double)(p_220765_.getZ() + 1) - p_220766_.nextDouble() * (double)0.1F;
-               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, d6, d11, d16, 0.0D, 0.0D, 0.0D);
+               double d16 = 1.0D - p_220766_.nextDouble() * (double)0.1F;
+               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, SectorVec3.fromBlockAndFraction(
+                     p_220765_.getX(), d6, d11, p_220765_.getZ(), d16), 0.0D, 0.0D, 0.0D);
             }
          }
 
          if (this.canBurn(p_220764_.getBlockState(p_220765_.above()))) {
             for(int j1 = 0; j1 < 2; ++j1) {
-               double d7 = (double)p_220765_.getX() + p_220766_.nextDouble();
+               double d7 = p_220766_.nextDouble();
                double d12 = (double)(p_220765_.getY() + 1) - p_220766_.nextDouble() * (double)0.1F;
-               double d17 = (double)p_220765_.getZ() + p_220766_.nextDouble();
-               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, d7, d12, d17, 0.0D, 0.0D, 0.0D);
+               double d17 = p_220766_.nextDouble();
+               p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, SectorVec3.fromBlockAndFraction(
+                     p_220765_.getX(), d7, d12, p_220765_.getZ(), d17), 0.0D, 0.0D, 0.0D);
             }
          }
       } else {
          for(int i = 0; i < 3; ++i) {
-            double d0 = (double)p_220765_.getX() + p_220766_.nextDouble();
+            double d0 = p_220766_.nextDouble();
             double d1 = (double)p_220765_.getY() + p_220766_.nextDouble() * 0.5D + 0.5D;
-            double d2 = (double)p_220765_.getZ() + p_220766_.nextDouble();
-            p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+            double d2 = p_220766_.nextDouble();
+            p_220764_.addParticle(ParticleTypes.LARGE_SMOKE, SectorVec3.fromBlockAndFraction(
+                  p_220765_.getX(), d0, d1, p_220765_.getZ(), d2), 0.0D, 0.0D, 0.0D);
          }
       }
 

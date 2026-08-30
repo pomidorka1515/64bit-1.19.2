@@ -5,11 +5,17 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.world.phys.SectorVec3;
 
+/**
+ * Particle packet whose horizontal origin remains split-coordinate exact.
+ *
+ * <p>The spread and velocity are local deltas and therefore remain ordinary
+ * floats.  The source position is never reconstructed as an absolute X/Z
+ * double on either side of the connection.</p>
+ */
 public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketListener> {
-   private final double x;
-   private final double y;
-   private final double z;
+   private final SectorVec3 position;
    private final float xDist;
    private final float yDist;
    private final float zDist;
@@ -18,65 +24,82 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
    private final boolean overrideLimiter;
    private final ParticleOptions particle;
 
-   public <T extends ParticleOptions> ClientboundLevelParticlesPacket(T p_132292_, boolean p_132293_, double p_132294_, double p_132295_, double p_132296_, float p_132297_, float p_132298_, float p_132299_, float p_132300_, int p_132301_) {
-      this.particle = p_132292_;
-      this.overrideLimiter = p_132293_;
-      this.x = p_132294_;
-      this.y = p_132295_;
-      this.z = p_132296_;
-      this.xDist = p_132297_;
-      this.yDist = p_132298_;
-      this.zDist = p_132299_;
-      this.maxSpeed = p_132300_;
-      this.count = p_132301_;
+   /** Compatibility constructor for legacy callers with already-lossy doubles. */
+   public <T extends ParticleOptions> ClientboundLevelParticlesPacket(T particle, boolean overrideLimiter,
+                                                                       double x, double y, double z,
+                                                                       float xDist, float yDist, float zDist,
+                                                                       float maxSpeed, int count) {
+      this(particle, overrideLimiter, SectorVec3.fromApproximate(x, y, z), xDist, yDist, zDist, maxSpeed, count);
    }
 
-   public ClientboundLevelParticlesPacket(FriendlyByteBuf p_178910_) {
-      ParticleType<?> particletype = p_178910_.readById(Registry.PARTICLE_TYPE);
-      this.overrideLimiter = p_178910_.readBoolean();
-      this.x = p_178910_.readDouble();
-      this.y = p_178910_.readDouble();
-      this.z = p_178910_.readDouble();
-      this.xDist = p_178910_.readFloat();
-      this.yDist = p_178910_.readFloat();
-      this.zDist = p_178910_.readFloat();
-      this.maxSpeed = p_178910_.readFloat();
-      this.count = p_178910_.readInt();
-      this.particle = this.readParticle(p_178910_, particletype);
+   public <T extends ParticleOptions> ClientboundLevelParticlesPacket(T particle, boolean overrideLimiter,
+                                                                       SectorVec3 position,
+                                                                       float xDist, float yDist, float zDist,
+                                                                       float maxSpeed, int count) {
+      this.particle = particle;
+      this.overrideLimiter = overrideLimiter;
+      this.position = position;
+      this.xDist = xDist;
+      this.yDist = yDist;
+      this.zDist = zDist;
+      this.maxSpeed = maxSpeed;
+      this.count = count;
    }
 
-   private <T extends ParticleOptions> T readParticle(FriendlyByteBuf p_132305_, ParticleType<T> p_132306_) {
-      return p_132306_.getDeserializer().fromNetwork(p_132306_, p_132305_);
+   public ClientboundLevelParticlesPacket(FriendlyByteBuf buf) {
+      ParticleType<?> particleType = buf.readById(Registry.PARTICLE_TYPE);
+      this.overrideLimiter = buf.readBoolean();
+      this.position = SectorVec3.fromBlockAndFraction(buf.readLong(), buf.readDouble(), buf.readDouble(),
+            buf.readLong(), buf.readDouble());
+      this.xDist = buf.readFloat();
+      this.yDist = buf.readFloat();
+      this.zDist = buf.readFloat();
+      this.maxSpeed = buf.readFloat();
+      this.count = buf.readInt();
+      this.particle = this.readParticle(buf, particleType);
    }
 
-   public void write(FriendlyByteBuf p_132313_) {
-      p_132313_.writeId(Registry.PARTICLE_TYPE, this.particle.getType());
-      p_132313_.writeBoolean(this.overrideLimiter);
-      p_132313_.writeDouble(this.x);
-      p_132313_.writeDouble(this.y);
-      p_132313_.writeDouble(this.z);
-      p_132313_.writeFloat(this.xDist);
-      p_132313_.writeFloat(this.yDist);
-      p_132313_.writeFloat(this.zDist);
-      p_132313_.writeFloat(this.maxSpeed);
-      p_132313_.writeInt(this.count);
-      this.particle.writeToNetwork(p_132313_);
+   private <T extends ParticleOptions> T readParticle(FriendlyByteBuf buf, ParticleType<T> particleType) {
+      return particleType.getDeserializer().fromNetwork(particleType, buf);
+   }
+
+   public void write(FriendlyByteBuf buf) {
+      buf.writeId(Registry.PARTICLE_TYPE, this.particle.getType());
+      buf.writeBoolean(this.overrideLimiter);
+      buf.writeLong(this.position.blockX());
+      buf.writeDouble(this.position.subX());
+      buf.writeDouble(this.position.y());
+      buf.writeLong(this.position.blockZ());
+      buf.writeDouble(this.position.subZ());
+      buf.writeFloat(this.xDist);
+      buf.writeFloat(this.yDist);
+      buf.writeFloat(this.zDist);
+      buf.writeFloat(this.maxSpeed);
+      buf.writeInt(this.count);
+      this.particle.writeToNetwork(buf);
    }
 
    public boolean isOverrideLimiter() {
       return this.overrideLimiter;
    }
 
+   /** Exact X/Z world position of the particle source. */
+   public SectorVec3 getExactPosition() {
+      return this.position;
+   }
+
+   /** Legacy compatibility accessor; precision-sensitive callers must use getExactPosition. */
    public double getX() {
-      return this.x;
+      return this.position.toApproximateVec3().x;
    }
 
    public double getY() {
-      return this.y;
+      return this.position.y();
    }
 
+   /** Legacy compatibility accessor; precision-sensitive callers must use getExactPosition. */
    public double getZ() {
-      return this.z;
+      return this.position.toApproximateVec3().z;
    }
 
    public float getXDist() {
@@ -103,7 +126,7 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
       return this.particle;
    }
 
-   public void handle(ClientGamePacketListener p_132310_) {
-      p_132310_.handleParticleEvent(this);
+   public void handle(ClientGamePacketListener listener) {
+      listener.handleParticleEvent(this);
    }
 }

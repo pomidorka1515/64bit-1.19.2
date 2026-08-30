@@ -3,15 +3,21 @@ package net.minecraft.client.particle;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleGroup;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -20,7 +26,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class Particle {
    private static final AABB INITIAL_AABB = new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
    private static final double MAXIMUM_COLLISION_VELOCITY_SQUARED = Mth.square(100.0D);
+   /**
+    * Particle providers still have Mojang's double-coordinate signature.  The
+    * engine installs the exact spawn coordinate here while invoking one, so a
+    * provider can keep its vanilla constructor shape without ever receiving a
+    * lossy horizontal world coordinate.
+    */
+   private static final ThreadLocal<SectorVec3> SPAWN_POSITION = new ThreadLocal<>();
    protected final ClientLevel level;
+   /** Fixed split-coordinate origin for the particle's small simulation frame. */
+   private final SectorVec3 coordinateOrigin;
    protected double xo;
    protected double yo;
    protected double zo;
@@ -50,14 +65,42 @@ public abstract class Particle {
    protected float friction = 0.98F;
    protected boolean speedUpWhenYMotionIsBlocked = false;
 
+   /** Exact provider spawn position, or a compatibility reconstruction outside engine creation. */
+   static SectorVec3 spawnPosition(double x, double y, double z) {
+      SectorVec3 position = SPAWN_POSITION.get();
+      return position != null ? position : SectorVec3.fromApproximate(x, y, z);
+   }
+
    protected Particle(ClientLevel p_107234_, double p_107235_, double p_107236_, double p_107237_) {
       this.level = p_107234_;
+      SectorVec3 spawn = spawnPosition(p_107235_, p_107236_, p_107237_);
+      this.coordinateOrigin = spawn;
       this.setSize(0.2F, 0.2F);
-      this.setPos(p_107235_, p_107236_, p_107237_);
-      this.xo = p_107235_;
-      this.yo = p_107236_;
-      this.zo = p_107237_;
+      // X/Z fields deliberately live in the particle's small frame.  Vanilla
+      // subclasses freely manipulate them, so keeping that frame stable also
+      // keeps their trajectories precise.
+      this.setPos(0.0D, spawn.y(), 0.0D);
+      this.xo = this.x;
+      this.yo = this.y;
+      this.zo = this.z;
       this.lifetime = (int)(4.0F / (this.random.nextFloat() * 0.9F + 0.1F));
+   }
+
+   /** Invokes a vanilla-shaped particle constructor at an exact world position. */
+   public static <T extends Particle> T createAt(SectorVec3 position, Supplier<T> factory) {
+      if (position == null) throw new NullPointerException("position");
+      if (factory == null) throw new NullPointerException("factory");
+      SectorVec3 previous = SPAWN_POSITION.get();
+      SPAWN_POSITION.set(position);
+      try {
+         return factory.get();
+      } finally {
+         if (previous == null) {
+            SPAWN_POSITION.remove();
+         } else {
+            SPAWN_POSITION.set(previous);
+         }
+      }
    }
 
    public Particle(ClientLevel p_107239_, double p_107240_, double p_107241_, double p_107242_, double p_107243_, double p_107244_, double p_107245_) {
@@ -138,7 +181,80 @@ public abstract class Particle {
    public abstract ParticleRenderType getRenderType();
 
    public String toString() {
-      return this.getClass().getSimpleName() + ", Pos (" + this.x + "," + this.y + "," + this.z + "), RGBA (" + this.rCol + "," + this.gCol + "," + this.bCol + "," + this.alpha + "), Age " + this.age;
+      SectorVec3 position = this.exactPosition();
+      return this.getClass().getSimpleName() + ", Pos (" + position.formatX(6) + "," + position.y() + "," + position.formatZ(6) + "), RGBA (" + this.rCol + "," + this.gCol + "," + this.bCol + "," + this.alpha + "), Age " + this.age;
+   }
+
+   /** Current exact world position reconstructed from the small particle frame. */
+   public final SectorVec3 exactPosition() {
+      return this.coordinateOrigin.add(this.x, this.y - this.coordinateOrigin.y(), this.z);
+   }
+
+   /** Previous-tick exact position reconstructed without large-double arithmetic. */
+   public final SectorVec3 oldExactPosition() {
+      return this.coordinateOrigin.add(this.xo, this.yo - this.coordinateOrigin.y(), this.zo);
+   }
+
+   /** Exact render interpolation, followed by one camera-relative subtraction. */
+   public final SectorVec3 interpolatedExactPosition(float partialTick) {
+      return this.oldExactPosition().lerpTo(this.exactPosition(), (double)partialTick);
+   }
+
+   /** Returns a small render-space offset.  Vec3 is only used after rebasing to the camera. */
+   protected final Vec3 cameraRelativePosition(Camera camera, float partialTick) {
+      SectorVec3 cameraPosition = camera.exactPosition();
+      if (cameraPosition == null) {
+         // Cameras attached to non-sector entities are legacy compatibility
+         // cameras. Their double mirror is the only available input.
+         Vec3 legacyCameraPosition = camera.getPosition();
+         cameraPosition = SectorVec3.fromApproximate(legacyCameraPosition.x, legacyCameraPosition.y, legacyCameraPosition.z);
+      }
+      return this.interpolatedExactPosition(partialTick).relativeTo(cameraPosition);
+   }
+
+   /** Exact block address for particle world queries such as fluid and light. */
+   protected final BlockPos blockPosition() {
+      return this.exactPosition().blockPosition();
+   }
+
+   /** Finds a nearby player using exact split-coordinate distance. */
+   @Nullable
+   protected final net.minecraft.world.entity.player.Player nearestPlayerWithin(double radius) {
+      double radiusSqr = radius * radius;
+      net.minecraft.world.entity.player.Player nearest = null;
+      double nearestDistance = radiusSqr;
+      SectorVec3 position = this.exactPosition();
+      for (net.minecraft.world.entity.player.Player player : this.level.players()) {
+         if (!player.isSpectator()) {
+            double distance = player.exactPositionDistanceToSqr(position);
+            if (distance < nearestDistance) {
+               nearestDistance = distance;
+               nearest = player;
+            }
+         }
+      }
+      return nearest;
+   }
+
+   /** Spawns a child at this particle's exact world location. */
+   protected final void addParticle(ParticleOptions options, double xd, double yd, double zd) {
+      this.level.addParticle(options, this.exactPosition(), xd, yd, zd);
+   }
+
+   /** Spawns a child at a local offset from this exact particle position. */
+   protected final void addParticle(ParticleOptions options, double dx, double dy, double dz,
+                                    double xd, double yd, double zd) {
+      this.level.addParticle(options, this.exactPosition().add(dx, dy, dz), xd, yd, zd);
+   }
+
+   /** Local horizontal fraction within the exact current block, for voxel-shape queries. */
+   protected final double localBlockX() {
+      return this.exactPosition().subX();
+   }
+
+   /** Local horizontal fraction within the exact current block, for voxel-shape queries. */
+   protected final double localBlockZ() {
+      return this.exactPosition().subZ();
    }
 
    public void remove() {
@@ -172,7 +288,11 @@ public abstract class Particle {
          double d1 = p_107247_;
          double d2 = p_107248_;
          if (this.hasPhysics && (p_107246_ != 0.0D || p_107247_ != 0.0D || p_107248_ != 0.0D) && p_107246_ * p_107246_ + p_107247_ * p_107247_ + p_107248_ * p_107248_ < MAXIMUM_COLLISION_VELOCITY_SQUARED) {
-            Vec3 vec3 = Entity.collideBoundingBox((Entity)null, new Vec3(p_107246_, p_107247_, p_107248_), this.getBoundingBox(), this.level, List.of());
+            SectorVec3 position = this.exactPosition();
+            SectorAABB exactBox = SectorAABB.around(position, (double)this.bbWidth, (double)this.bbHeight);
+            SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(position);
+            Vec3 vec3 = Entity.collideSectorBoundingBox((Entity)null, new Vec3(p_107246_, p_107247_, p_107248_),
+                  exactBox, exactBox.toLocalAABB(origin), this.level, List.of(), origin);
             p_107246_ = vec3.x;
             p_107247_ = vec3.y;
             p_107248_ = vec3.z;
@@ -207,7 +327,7 @@ public abstract class Particle {
    }
 
    protected int getLightColor(float p_107249_) {
-      BlockPos blockpos = new BlockPos(this.x, this.y, this.z);
+      BlockPos blockpos = this.blockPosition();
       return this.level.hasChunkAt(blockpos) ? LevelRenderer.getLightColor(this.level, blockpos) : 0;
    }
 

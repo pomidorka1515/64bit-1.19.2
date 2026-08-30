@@ -42,7 +42,8 @@ public class Snowball extends ThrowableItemProjectile {
          ParticleOptions particleoptions = this.getParticle();
 
          for(int i = 0; i < 8; ++i) {
-            this.level.addParticle(particleoptions, this.getX(), this.getY(), this.getZ(), 0.0D, 0.0D, 0.0D);
+            this.level.addParticle(particleoptions, this.particlePosition(0.0D, 0.0D, 0.0D),
+                  0.0D, 0.0D, 0.0D);
          }
       }
 

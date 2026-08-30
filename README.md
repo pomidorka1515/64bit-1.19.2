@@ -1,6 +1,10 @@
 # 64-bit Minecraft. It's real!
-I didnt make the original base mod, its made by mckuhei.
-But it had a shitton of issues, so im slowly fixing all of them.
+What this projects does: ports all X/Z coordinates to `long`, with a new sector-based movement/collision system.
+The original, incomplete mod was made by mckuhei. 
+Their websites are now down. If you want to get the original mod's code, you can checkout a specific commit, before my modifications:
+ - `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af`
+Beware that the original mod is not even functional and has lots of bugs. Use this fork for a playable version.
+
 # Playing this
 **Currently the mod is quite unstable. Dont expect a smoooth experience.**
  - download the jar from the [latest release](https://pomi.site/ec952ebae0f530313056/pomi/64bit-1.19.2/releases)
@@ -14,10 +18,11 @@ But it had a shitton of issues, so im slowly fixing all of them.
 # TODOs (regular people can ignore this)
 - Make all entities use SectorVec3
 - Make all block entities use SectorVec3
-- Particles
-- Structures crash game at boundary with no logs??
+- Sound system
+- ~~Particles~~
+- ~~Structures crash game at boundary with no logs??~~
 - ~~Random collision issues at boundary, quicksand like~~
-- Light update border (black outline) flashing after chunk reload
+- ~~Light update border (black outline) flashing after chunk reload~~ keeping this in
 - A billion generation issues deadlocking the server thread with also no logs
 
 ## Original mod history & backport status

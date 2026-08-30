@@ -81,7 +81,10 @@ public abstract class TamableAnimal extends Animal implements OwnableEntity {
          double d0 = this.random.nextGaussian() * 0.02D;
          double d1 = this.random.nextGaussian() * 0.02D;
          double d2 = this.random.nextGaussian() * 0.02D;
-         this.level.addParticle(particleoptions, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), d0, d1, d2);
+         this.level.addParticle(particleoptions, this.particlePosition(
+               (2.0D * this.random.nextDouble() - 1.0D) * (double)this.getBbWidth(),
+               this.random.nextDouble() * (double)this.getBbHeight() + 0.5D,
+               (2.0D * this.random.nextDouble() - 1.0D) * (double)this.getBbWidth()), d0, d1, d2);
       }
 
    }

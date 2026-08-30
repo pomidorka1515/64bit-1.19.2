@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.SectorVec3;
 
 public abstract class LavaFluid extends FlowingFluid {
    public static final float MIN_LEVEL_CUTOFF = 0.44444445F;
@@ -43,11 +44,14 @@ public abstract class LavaFluid extends FlowingFluid {
       BlockPos blockpos = p_230568_.above();
       if (p_230567_.getBlockState(blockpos).isAir() && !p_230567_.getBlockState(blockpos).isSolidRender(p_230567_, blockpos)) {
          if (p_230570_.nextInt(100) == 0) {
-            double d0 = (double)p_230568_.getX() + p_230570_.nextDouble();
+            double d0 = p_230570_.nextDouble();
             double d1 = (double)p_230568_.getY() + 1.0D;
-            double d2 = (double)p_230568_.getZ() + p_230570_.nextDouble();
-            p_230567_.addParticle(ParticleTypes.LAVA, d0, d1, d2, 0.0D, 0.0D, 0.0D);
-            p_230567_.playLocalSound(d0, d1, d2, SoundEvents.LAVA_POP, SoundSource.BLOCKS, 0.2F + p_230570_.nextFloat() * 0.2F, 0.9F + p_230570_.nextFloat() * 0.15F, false);
+            double d2 = p_230570_.nextDouble();
+            p_230567_.addParticle(ParticleTypes.LAVA, SectorVec3.fromBlockAndFraction(p_230568_.getX(),
+                  d0, d1, p_230568_.getZ(), d2), 0.0D, 0.0D, 0.0D);
+            p_230567_.playLocalSound((double)p_230568_.getX() + d0, d1,
+                  (double)p_230568_.getZ() + d2, SoundEvents.LAVA_POP, SoundSource.BLOCKS,
+                  0.2F + p_230570_.nextFloat() * 0.2F, 0.9F + p_230570_.nextFloat() * 0.15F, false);
          }
 
          if (p_230570_.nextInt(200) == 0) {

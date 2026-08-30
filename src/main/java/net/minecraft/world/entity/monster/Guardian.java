@@ -219,7 +219,12 @@ public class Guardian extends Monster {
                Vec3 vec31 = this.getViewVector(0.0F);
 
                for(int i = 0; i < 2; ++i) {
-                  this.level.addParticle(ParticleTypes.BUBBLE, this.getRandomX(0.5D) - vec31.x * 1.5D, this.getRandomY() - vec31.y * 1.5D, this.getRandomZ(0.5D) - vec31.z * 1.5D, 0.0D, 0.0D, 0.0D);
+                  this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(
+                        (2.0D * this.random.nextDouble() - 1.0D) * 0.5D * (double)this.getBbWidth()
+                              - vec31.x * 1.5D,
+                        this.random.nextDouble() * (double)this.getBbHeight() - vec31.y * 1.5D,
+                        (2.0D * this.random.nextDouble() - 1.0D) * 0.5D * (double)this.getBbWidth()
+                              - vec31.z * 1.5D), 0.0D, 0.0D, 0.0D);
                }
             }
 
@@ -244,7 +249,8 @@ public class Guardian extends Monster {
 
                   while(d4 < d3) {
                      d4 += 1.8D - d5 + this.random.nextDouble() * (1.7D - d5);
-                     this.level.addParticle(ParticleTypes.BUBBLE, this.getX() + d0 * d4, this.getEyeY() + d1 * d4, this.getZ() + d2 * d4, 0.0D, 0.0D, 0.0D);
+                     this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(d0 * d4,
+                           (double)this.getEyeHeight() + d1 * d4, d2 * d4), 0.0D, 0.0D, 0.0D);
                   }
                }
             }

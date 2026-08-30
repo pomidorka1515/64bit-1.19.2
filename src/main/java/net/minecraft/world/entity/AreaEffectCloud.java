@@ -171,9 +171,9 @@ public class AreaEffectCloud extends Entity {
          for(int j = 0; j < i; ++j) {
             float f2 = this.random.nextFloat() * ((float)Math.PI * 2F);
             float f3 = Mth.sqrt(this.random.nextFloat()) * f1;
-            double d0 = this.getX() + (double)(Mth.cos(f2) * f3);
+            double d0 = (double)(Mth.cos(f2) * f3);
             double d2 = this.getY();
-            double d4 = this.getZ() + (double)(Mth.sin(f2) * f3);
+            double d4 = (double)(Mth.sin(f2) * f3);
             double d5;
             double d6;
             double d7;
@@ -194,7 +194,8 @@ public class AreaEffectCloud extends Entity {
                d7 = (double)((float)(k & 255) / 255.0F);
             }
 
-            this.level.addAlwaysVisibleParticle(particleoptions, d0, d2, d4, d5, d6, d7);
+            this.level.addAlwaysVisibleParticle(particleoptions, this.particlePosition(d0, d2 - this.getY(), d4),
+                  d5, d6, d7);
          }
       } else {
          if (this.tickCount >= this.waitTime + this.duration) {

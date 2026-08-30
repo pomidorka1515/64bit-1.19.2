@@ -11,6 +11,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -37,10 +38,9 @@ public class TorchBlock extends Block {
    }
 
    public void animateTick(BlockState p_222593_, Level p_222594_, BlockPos p_222595_, RandomSource p_222596_) {
-      double d0 = (double)p_222595_.getX() + 0.5D;
-      double d1 = (double)p_222595_.getY() + 0.7D;
-      double d2 = (double)p_222595_.getZ() + 0.5D;
-      p_222594_.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0D, 0.0D, 0.0D);
-      p_222594_.addParticle(this.flameParticle, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+      SectorVec3 particlePosition = SectorVec3.fromBlockAndFraction(p_222595_.getX(), 0.5D,
+            (double)p_222595_.getY() + 0.7D, p_222595_.getZ(), 0.5D);
+      p_222594_.addParticle(ParticleTypes.SMOKE, particlePosition, 0.0D, 0.0D, 0.0D);
+      p_222594_.addParticle(this.flameParticle, particlePosition, 0.0D, 0.0D, 0.0D);
    }
 }

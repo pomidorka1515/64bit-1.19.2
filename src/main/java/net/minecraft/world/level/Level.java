@@ -64,6 +64,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.WritableLevelData;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.scores.Scoreboard;
 
 public abstract class Level implements LevelAccessor, AutoCloseable {
@@ -388,13 +389,32 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    public void playLocalSound(double p_46482_, double p_46483_, double p_46484_, SoundEvent p_46485_, SoundSource p_46486_, float p_46487_, float p_46488_, boolean p_46489_) {
    }
 
+   /** Legacy double particle entry point. Exact callers use the SectorVec3 overload. */
    public void addParticle(ParticleOptions p_46631_, double p_46632_, double p_46633_, double p_46634_, double p_46635_, double p_46636_, double p_46637_) {
+   }
+
+   /** Adds a particle at an exact X/Z world coordinate. */
+   @Override
+   public void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
    }
 
    public void addParticle(ParticleOptions p_46638_, boolean p_46639_, double p_46640_, double p_46641_, double p_46642_, double p_46643_, double p_46644_, double p_46645_) {
    }
 
+   /** Adds a limiter-controlled particle at an exact X/Z world coordinate. */
+   public void addParticle(ParticleOptions options, boolean force, SectorVec3 position, double xd, double yd, double zd) {
+   }
+
    public void addAlwaysVisibleParticle(ParticleOptions p_46684_, double p_46685_, double p_46686_, double p_46687_, double p_46688_, double p_46689_, double p_46690_) {
+   }
+
+   /** Adds an always-visible particle at an exact X/Z world coordinate. */
+   public void addAlwaysVisibleParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
+   }
+
+   /** Adds a force-controlled always-visible particle at an exact X/Z world coordinate. */
+   public void addAlwaysVisibleParticle(ParticleOptions options, boolean force, SectorVec3 position,
+                                        double xd, double yd, double zd) {
    }
 
    public void addAlwaysVisibleParticle(ParticleOptions p_46691_, boolean p_46692_, double p_46693_, double p_46694_, double p_46695_, double p_46696_, double p_46697_, double p_46698_) {
@@ -461,14 +481,32 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    public Explosion explode(@Nullable Entity p_46519_, double p_46520_, double p_46521_, double p_46522_, float p_46523_, boolean p_46524_, Explosion.BlockInteraction p_46525_) {
-      return this.explode(p_46519_, (DamageSource)null, (ExplosionDamageCalculator)null, p_46520_, p_46521_, p_46522_, p_46523_, p_46524_, p_46525_);
+      return this.explode(p_46519_, (DamageSource)null, (ExplosionDamageCalculator)null,
+            SectorVec3.fromApproximate(p_46520_, p_46521_, p_46522_), p_46523_, p_46524_, p_46525_);
    }
 
-   public Explosion explode(@Nullable Entity p_46526_, @Nullable DamageSource p_46527_, @Nullable ExplosionDamageCalculator p_46528_, double p_46529_, double p_46530_, double p_46531_, float p_46532_, boolean p_46533_, Explosion.BlockInteraction p_46534_) {
-      Explosion explosion = new Explosion(this, p_46526_, p_46527_, p_46528_, p_46529_, p_46530_, p_46531_, p_46532_, p_46533_, p_46534_);
+   public Explosion explode(@Nullable Entity source, SectorVec3 position, float radius,
+                            Explosion.BlockInteraction blockInteraction) {
+      return this.explode(source, (DamageSource)null, (ExplosionDamageCalculator)null, position, radius, false, blockInteraction);
+   }
+
+   public Explosion explode(@Nullable Entity source, SectorVec3 position, float radius, boolean fire,
+                            Explosion.BlockInteraction blockInteraction) {
+      return this.explode(source, (DamageSource)null, (ExplosionDamageCalculator)null, position, radius, fire, blockInteraction);
+   }
+
+   public Explosion explode(@Nullable Entity source, @Nullable DamageSource damageSource,
+                            @Nullable ExplosionDamageCalculator damageCalculator, SectorVec3 position, float radius,
+                            boolean fire, Explosion.BlockInteraction blockInteraction) {
+      Explosion explosion = new Explosion(this, source, damageSource, damageCalculator, position, radius, fire, blockInteraction);
       explosion.explode();
       explosion.finalizeExplosion(true);
       return explosion;
+   }
+
+   /** Legacy absolute-double explosion entry point. Exact callers use the SectorVec3 overload. */
+   public Explosion explode(@Nullable Entity p_46526_, @Nullable DamageSource p_46527_, @Nullable ExplosionDamageCalculator p_46528_, double p_46529_, double p_46530_, double p_46531_, float p_46532_, boolean p_46533_, Explosion.BlockInteraction p_46534_) {
+      return this.explode(p_46526_, p_46527_, p_46528_, SectorVec3.fromApproximate(p_46529_, p_46530_, p_46531_), p_46532_, p_46533_, p_46534_);
    }
 
    public abstract String gatherChunkSourceStats();
@@ -806,7 +844,12 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
    public abstract void destroyBlockProgress(int p_46506_, BlockPos p_46507_, int p_46508_);
 
+   /** Legacy double firework entry point. Exact callers use the SectorVec3 overload. */
    public void createFireworks(double p_46475_, double p_46476_, double p_46477_, double p_46478_, double p_46479_, double p_46480_, @Nullable CompoundTag p_46481_) {
+   }
+
+   /** Creates a firework particle sequence at an exact X/Z position. */
+   public void createFireworks(SectorVec3 position, double xd, double yd, double zd, @Nullable CompoundTag fireworks) {
    }
 
    public abstract Scoreboard getScoreboard();

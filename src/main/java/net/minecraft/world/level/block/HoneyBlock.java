@@ -16,6 +16,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -121,7 +122,8 @@ public class HoneyBlock extends HalfTransparentBlock {
          BlockState blockstate = Blocks.HONEY_BLOCK.defaultBlockState();
 
          for(int i = 0; i < p_53990_; ++i) {
-            p_53989_.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockstate), p_53989_.getX(), p_53989_.getY(), p_53989_.getZ(), 0.0D, 0.0D, 0.0D);
+            p_53989_.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockstate),
+                  p_53989_.particlePosition(0.0D, 0.0D, 0.0D), 0.0D, 0.0D, 0.0D);
          }
 
       }

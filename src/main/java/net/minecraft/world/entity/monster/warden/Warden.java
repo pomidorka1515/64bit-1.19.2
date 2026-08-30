@@ -299,10 +299,9 @@ public class Warden extends Monster implements VibrationListener.VibrationListen
          BlockState blockstate = this.getBlockStateOn();
          if (blockstate.getRenderShape() != RenderShape.INVISIBLE) {
             for(int i = 0; i < 30; ++i) {
-               double d0 = this.getX() + (double)Mth.randomBetween(randomsource, -0.7F, 0.7F);
-               double d1 = this.getY();
-               double d2 = this.getZ() + (double)Mth.randomBetween(randomsource, -0.7F, 0.7F);
-               this.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockstate), d0, d1, d2, 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockstate), this.particlePosition(
+                     (double)Mth.randomBetween(randomsource, -0.7F, 0.7F), 0.0D,
+                     (double)Mth.randomBetween(randomsource, -0.7F, 0.7F)), 0.0D, 0.0D, 0.0D);
             }
          }
       }

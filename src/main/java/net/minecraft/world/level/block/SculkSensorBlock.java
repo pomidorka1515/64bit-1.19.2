@@ -38,6 +38,7 @@ import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -239,11 +240,13 @@ public class SculkSensorBlock extends BaseEntityBlock implements SimpleWaterlogg
       if (getPhase(p_222148_) == SculkSensorPhase.ACTIVE) {
          Direction direction = Direction.getRandom(p_222151_);
          if (direction != Direction.UP && direction != Direction.DOWN) {
-            double d0 = (double)p_222150_.getX() + 0.5D + (direction.getStepX() == 0 ? 0.5D - p_222151_.nextDouble() : (double)direction.getStepX() * 0.6D);
+            double d0 = 0.5D + (direction.getStepX() == 0 ? 0.5D - p_222151_.nextDouble() : (double)direction.getStepX() * 0.6D);
             double d1 = (double)p_222150_.getY() + 0.25D;
-            double d2 = (double)p_222150_.getZ() + 0.5D + (direction.getStepZ() == 0 ? 0.5D - p_222151_.nextDouble() : (double)direction.getStepZ() * 0.6D);
+            double d2 = 0.5D + (direction.getStepZ() == 0 ? 0.5D - p_222151_.nextDouble() : (double)direction.getStepZ() * 0.6D);
             double d3 = (double)p_222151_.nextFloat() * 0.04D;
-            p_222149_.addParticle(DustColorTransitionOptions.SCULK_TO_REDSTONE, d0, d1, d2, 0.0D, d3, 0.0D);
+            p_222149_.addParticle(DustColorTransitionOptions.SCULK_TO_REDSTONE,
+                  SectorVec3.fromBlockAndFraction(p_222150_.getX(), d0, d1, p_222150_.getZ(), d2),
+                  0.0D, d3, 0.0D);
          }
       }
    }

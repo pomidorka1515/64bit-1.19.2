@@ -23,6 +23,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
@@ -57,7 +58,10 @@ public class PowderSnowBlock extends Block implements BucketPickup {
             RandomSource randomsource = p_154264_.getRandom();
             boolean flag = p_154266_.xOld != p_154266_.getX() || p_154266_.zOld != p_154266_.getZ();
             if (flag && randomsource.nextBoolean()) {
-               p_154264_.addParticle(ParticleTypes.SNOWFLAKE, p_154266_.getX(), (double)(p_154265_.getY() + 1), p_154266_.getZ(), (double)(Mth.randomBetween(randomsource, -1.0F, 1.0F) * 0.083333336F), (double)0.05F, (double)(Mth.randomBetween(randomsource, -1.0F, 1.0F) * 0.083333336F));
+               p_154264_.addParticle(ParticleTypes.SNOWFLAKE, p_154266_.particlePosition(0.0D,
+                     (double)(p_154265_.getY() + 1) - p_154266_.getY(), 0.0D),
+                     (double)(Mth.randomBetween(randomsource, -1.0F, 1.0F) * 0.083333336F),
+                     (double)0.05F, (double)(Mth.randomBetween(randomsource, -1.0F, 1.0F) * 0.083333336F));
             }
          }
       }

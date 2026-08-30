@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class RepeaterBlock extends DiodeBlock {
@@ -61,9 +62,9 @@ public class RepeaterBlock extends DiodeBlock {
    public void animateTick(BlockState p_221964_, Level p_221965_, BlockPos p_221966_, RandomSource p_221967_) {
       if (p_221964_.getValue(POWERED)) {
          Direction direction = p_221964_.getValue(FACING);
-         double d0 = (double)p_221966_.getX() + 0.5D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
+         double d0 = 0.5D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
          double d1 = (double)p_221966_.getY() + 0.4D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
-         double d2 = (double)p_221966_.getZ() + 0.5D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
+         double d2 = 0.5D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
          float f = -5.0F;
          if (p_221967_.nextBoolean()) {
             f = (float)(p_221964_.getValue(DELAY) * 2 - 1);
@@ -72,7 +73,8 @@ public class RepeaterBlock extends DiodeBlock {
          f /= 16.0F;
          double d3 = (double)(f * (float)direction.getStepX());
          double d4 = (double)(f * (float)direction.getStepZ());
-         p_221965_.addParticle(DustParticleOptions.REDSTONE, d0 + d3, d1, d2 + d4, 0.0D, 0.0D, 0.0D);
+         p_221965_.addParticle(DustParticleOptions.REDSTONE, SectorVec3.fromBlockAndFraction(
+               p_221966_.getX(), d0 + d3, d1, p_221966_.getZ(), d2 + d4), 0.0D, 0.0D, 0.0D);
       }
    }
 

@@ -453,7 +453,9 @@ public abstract class Player extends LivingEntity {
          double d0 = this.random.nextGaussian() * 0.02D;
          double d1 = this.random.nextGaussian() * 0.02D;
          double d2 = this.random.nextGaussian() * 0.02D;
-         this.level.addParticle(p_36209_, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), d0, d1, d2);
+         this.level.addParticle(p_36209_, this.particlePosition((this.random.nextDouble() * 2.0D - 1.0D) * (double)this.getBbWidth(),
+               this.random.nextDouble() * (double)this.getBbHeight() + 1.0D,
+               (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.getBbWidth()), d0, d1, d2);
       }
 
    }
@@ -1218,7 +1220,8 @@ public abstract class Player extends LivingEntity {
 
                      if (this.level instanceof ServerLevel && f5 > 2.0F) {
                         int k = (int)((double)f5 * 0.5D);
-                        ((ServerLevel)this.level).sendParticles(ParticleTypes.DAMAGE_INDICATOR, p_36347_.getX(), p_36347_.getY(0.5D), p_36347_.getZ(), k, 0.1D, 0.0D, 0.1D, 0.2D);
+                        ((ServerLevel)this.level).sendParticles(ParticleTypes.DAMAGE_INDICATOR, p_36347_.particlePosition(0.0D,
+                              p_36347_.getBbHeight() * 0.5D, 0.0D), k, 0.1D, 0.0D, 0.1D, 0.2D);
                      }
                   }
 
@@ -1263,7 +1266,8 @@ public abstract class Player extends LivingEntity {
       double d0 = (double)(-Mth.sin(this.getYRot() * ((float)Math.PI / 180F)));
       double d1 = (double)Mth.cos(this.getYRot() * ((float)Math.PI / 180F));
       if (this.level instanceof ServerLevel) {
-         ((ServerLevel)this.level).sendParticles(ParticleTypes.SWEEP_ATTACK, this.getX() + d0, this.getY(0.5D), this.getZ() + d1, 0, d0, 0.0D, d1, 0.0D);
+         ((ServerLevel)this.level).sendParticles(ParticleTypes.SWEEP_ATTACK, this.particlePosition(d0,
+               this.getBbHeight() * 0.5D, d1), 0, d0, 0.0D, d1, 0.0D);
       }
 
    }

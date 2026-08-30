@@ -31,7 +31,7 @@ public class SquidInkParticle extends SimpleAnimatedParticle {
             this.setAlpha(1.0F - ((float)this.age - (float)(this.lifetime / 2)) / (float)this.lifetime);
          }
 
-         if (this.level.getBlockState(new BlockPos(this.x, this.y, this.z)).isAir()) {
+         if (this.level.getBlockState(this.blockPosition()).isAir()) {
             this.yd -= (double)0.0074F;
          }
       }

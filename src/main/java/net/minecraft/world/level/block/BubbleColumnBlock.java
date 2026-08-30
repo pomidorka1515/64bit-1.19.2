@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -102,13 +103,17 @@ public class BubbleColumnBlock extends Block implements BucketPickup {
       double d1 = (double)p_220895_.getY();
       double d2 = (double)p_220895_.getZ();
       if (p_220893_.getValue(DRAG_DOWN)) {
-         p_220894_.addAlwaysVisibleParticle(ParticleTypes.CURRENT_DOWN, d0 + 0.5D, d1 + 0.8D, d2, 0.0D, 0.0D, 0.0D);
+         p_220894_.addAlwaysVisibleParticle(ParticleTypes.CURRENT_DOWN, SectorVec3.fromBlockAndFraction(
+               p_220895_.getX(), 0.5D, d1 + 0.8D, p_220895_.getZ(), 0.0D), 0.0D, 0.0D, 0.0D);
          if (p_220896_.nextInt(200) == 0) {
             p_220894_.playLocalSound(d0, d1, d2, SoundEvents.BUBBLE_COLUMN_WHIRLPOOL_AMBIENT, SoundSource.BLOCKS, 0.2F + p_220896_.nextFloat() * 0.2F, 0.9F + p_220896_.nextFloat() * 0.15F, false);
          }
       } else {
-         p_220894_.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, d0 + 0.5D, d1, d2 + 0.5D, 0.0D, 0.04D, 0.0D);
-         p_220894_.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, d0 + (double)p_220896_.nextFloat(), d1 + (double)p_220896_.nextFloat(), d2 + (double)p_220896_.nextFloat(), 0.0D, 0.04D, 0.0D);
+         p_220894_.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, SectorVec3.fromBlockAndFraction(
+               p_220895_.getX(), 0.5D, d1, p_220895_.getZ(), 0.5D), 0.0D, 0.04D, 0.0D);
+         p_220894_.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, SectorVec3.fromBlockAndFraction(
+               p_220895_.getX(), (double)p_220896_.nextFloat(), d1 + (double)p_220896_.nextFloat(),
+               p_220895_.getZ(), (double)p_220896_.nextFloat()), 0.0D, 0.04D, 0.0D);
          if (p_220896_.nextInt(200) == 0) {
             p_220894_.playLocalSound(d0, d1, d2, SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT, SoundSource.BLOCKS, 0.2F + p_220896_.nextFloat() * 0.2F, 0.9F + p_220896_.nextFloat() * 0.15F, false);
          }

@@ -9,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -93,10 +94,11 @@ public class RedstoneTorchBlock extends TorchBlock {
 
    public void animateTick(BlockState p_221954_, Level p_221955_, BlockPos p_221956_, RandomSource p_221957_) {
       if (p_221954_.getValue(LIT)) {
-         double d0 = (double)p_221956_.getX() + 0.5D + (p_221957_.nextDouble() - 0.5D) * 0.2D;
-         double d1 = (double)p_221956_.getY() + 0.7D + (p_221957_.nextDouble() - 0.5D) * 0.2D;
-         double d2 = (double)p_221956_.getZ() + 0.5D + (p_221957_.nextDouble() - 0.5D) * 0.2D;
-         p_221955_.addParticle(this.flameParticle, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+         p_221955_.addParticle(this.flameParticle, SectorVec3.fromBlockAndFraction(p_221956_.getX(),
+               0.5D + (p_221957_.nextDouble() - 0.5D) * 0.2D,
+               (double)p_221956_.getY() + 0.7D + (p_221957_.nextDouble() - 0.5D) * 0.2D,
+               p_221956_.getZ(), 0.5D + (p_221957_.nextDouble() - 0.5D) * 0.2D),
+               0.0D, 0.0D, 0.0D);
       }
    }
 

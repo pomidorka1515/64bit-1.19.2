@@ -789,7 +789,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
             this.level.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, (this.random.nextFloat() - this.random.nextFloat()) * 1.4F + 2.0F, false);
          }
 
-         this.minecraft.particleEngine.add(new ItemPickupParticle(this.minecraft.getEntityRenderDispatcher(), this.minecraft.renderBuffers(), this.level, entity, livingentity));
+         this.minecraft.particleEngine.add(ItemPickupParticle.create(this.minecraft.getEntityRenderDispatcher(), this.minecraft.renderBuffers(), this.level, entity, livingentity));
          if (entity instanceof ItemEntity) {
             ItemEntity itementity = (ItemEntity)entity;
             ItemStack itemstack = itementity.getItem();
@@ -1012,7 +1012,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
    public void handleExplosion(ClientboundExplodePacket p_105012_) {
       PacketUtils.ensureRunningOnSameThread(p_105012_, this, this.minecraft);
-      Explosion explosion = new Explosion(this.minecraft.level, (Entity)null, p_105012_.getX(), p_105012_.getY(), p_105012_.getZ(), p_105012_.getPower(), p_105012_.getToBlow());
+      Explosion explosion = new Explosion(this.minecraft.level, (Entity)null, p_105012_.getExactPosition(),
+            p_105012_.getPower(), p_105012_.getToBlow());
       explosion.finalizeExplosion(true);
       this.minecraft.player.setDeltaMovement(this.minecraft.player.getDeltaMovement().add((double)p_105012_.getKnockbackX(), (double)p_105012_.getKnockbackY(), (double)p_105012_.getKnockbackZ()));
    }
@@ -1193,7 +1194,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
       } else if (clientboundgameeventpacket$type == ClientboundGameEventPacket.PUFFER_FISH_STING) {
          this.level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.PUFFER_FISH_STING, SoundSource.NEUTRAL, 1.0F, 1.0F);
       } else if (clientboundgameeventpacket$type == ClientboundGameEventPacket.GUARDIAN_ELDER_EFFECT) {
-         this.level.addParticle(ParticleTypes.ELDER_GUARDIAN, player.getX(), player.getY(), player.getZ(), 0.0D, 0.0D, 0.0D);
+         this.level.addParticle(ParticleTypes.ELDER_GUARDIAN, player.particlePosition(0.0D, 0.0D, 0.0D),
+               0.0D, 0.0D, 0.0D);
          if (i == 1) {
             this.level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.ELDER_GUARDIAN_CURSE, SoundSource.HOSTILE, 1.0F, 1.0F);
          }
@@ -2023,13 +2025,14 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
    public void handleParticleEvent(ClientboundLevelParticlesPacket p_105026_) {
       PacketUtils.ensureRunningOnSameThread(p_105026_, this, this.minecraft);
+      SectorVec3 position = p_105026_.getExactPosition();
       if (p_105026_.getCount() == 0) {
          double d0 = (double)(p_105026_.getMaxSpeed() * p_105026_.getXDist());
          double d2 = (double)(p_105026_.getMaxSpeed() * p_105026_.getYDist());
          double d4 = (double)(p_105026_.getMaxSpeed() * p_105026_.getZDist());
 
          try {
-            this.level.addParticle(p_105026_.getParticle(), p_105026_.isOverrideLimiter(), p_105026_.getX(), p_105026_.getY(), p_105026_.getZ(), d0, d2, d4);
+            this.level.addParticle(p_105026_.getParticle(), p_105026_.isOverrideLimiter(), position, d0, d2, d4);
          } catch (Throwable throwable1) {
             LOGGER.warn("Could not spawn particle effect {}", (Object)p_105026_.getParticle());
          }
@@ -2043,7 +2046,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
             double d8 = this.random.nextGaussian() * (double)p_105026_.getMaxSpeed();
 
             try {
-               this.level.addParticle(p_105026_.getParticle(), p_105026_.isOverrideLimiter(), p_105026_.getX() + d1, p_105026_.getY() + d3, p_105026_.getZ() + d5, d6, d7, d8);
+               this.level.addParticle(p_105026_.getParticle(), p_105026_.isOverrideLimiter(), position.add(d1, d3, d5), d6, d7, d8);
             } catch (Throwable throwable) {
                LOGGER.warn("Could not spawn particle effect {}", (Object)p_105026_.getParticle());
                return;

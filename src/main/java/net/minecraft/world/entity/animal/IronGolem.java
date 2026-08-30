@@ -121,7 +121,11 @@ public class IronGolem extends AbstractGolem implements NeutralMob {
          int k = Mth.floor(this.getZ());
          BlockState blockstate = this.level.getBlockState(new BlockPos(i, j, k));
          if (!blockstate.isAir()) {
-            this.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockstate), this.getX() + ((double)this.random.nextFloat() - 0.5D) * (double)this.getBbWidth(), this.getY() + 0.1D, this.getZ() + ((double)this.random.nextFloat() - 0.5D) * (double)this.getBbWidth(), 4.0D * ((double)this.random.nextFloat() - 0.5D), 0.5D, ((double)this.random.nextFloat() - 0.5D) * 4.0D);
+            this.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockstate), this.particlePosition(
+                  ((double)this.random.nextFloat() - 0.5D) * (double)this.getBbWidth(), 0.1D,
+                  ((double)this.random.nextFloat() - 0.5D) * (double)this.getBbWidth()),
+                  4.0D * ((double)this.random.nextFloat() - 0.5D), 0.5D,
+                  ((double)this.random.nextFloat() - 0.5D) * 4.0D);
          }
       }
 

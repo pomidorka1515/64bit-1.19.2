@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.entity.EnchantmentTableBlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -56,7 +57,11 @@ public class EnchantmentTableBlock extends BaseEntityBlock {
 
       for(BlockPos blockpos : BOOKSHELF_OFFSETS) {
          if (p_221095_.nextInt(16) == 0 && isValidBookShelf(p_221093_, p_221094_, blockpos)) {
-            p_221093_.addParticle(ParticleTypes.ENCHANT, (double)p_221094_.getX() + 0.5D, (double)p_221094_.getY() + 2.0D, (double)p_221094_.getZ() + 0.5D, (double)((float)blockpos.getX() + p_221095_.nextFloat()) - 0.5D, (double)((float)blockpos.getY() - p_221095_.nextFloat() - 1.0F), (double)((float)blockpos.getZ() + p_221095_.nextFloat()) - 0.5D);
+            p_221093_.addParticle(ParticleTypes.ENCHANT, SectorVec3.fromBlockAndFraction(p_221094_.getX(),
+                  0.5D, (double)p_221094_.getY() + 2.0D, p_221094_.getZ(), 0.5D),
+                  (double)((float)blockpos.getX() + p_221095_.nextFloat()) - 0.5D,
+                  (double)((float)blockpos.getY() - p_221095_.nextFloat() - 1.0F),
+                  (double)((float)blockpos.getZ() + p_221095_.nextFloat()) - 0.5D);
          }
       }
 

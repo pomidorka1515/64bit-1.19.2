@@ -10,6 +10,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlastFurnaceBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -57,7 +58,8 @@ public class BlastFurnaceBlock extends AbstractFurnaceBlock {
          double d5 = direction$axis == Direction.Axis.X ? (double)direction.getStepX() * 0.52D : d4;
          double d6 = p_220821_.nextDouble() * 9.0D / 16.0D;
          double d7 = direction$axis == Direction.Axis.Z ? (double)direction.getStepZ() * 0.52D : d4;
-         p_220819_.addParticle(ParticleTypes.SMOKE, d0 + d5, d1 + d6, d2 + d7, 0.0D, 0.0D, 0.0D);
+         p_220819_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_220820_.getX(),
+               0.5D + d5, d1 + d6, p_220820_.getZ(), 0.5D + d7), 0.0D, 0.0D, 0.0D);
       }
    }
 }

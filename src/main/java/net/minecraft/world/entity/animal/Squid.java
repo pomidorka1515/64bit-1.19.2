@@ -261,7 +261,8 @@ public class Squid extends WaterAnimal {
             }
 
             if (this.fleeTicks % 10 == 5) {
-               Squid.this.level.addParticle(ParticleTypes.BUBBLE, Squid.this.getX(), Squid.this.getY(), Squid.this.getZ(), 0.0D, 0.0D, 0.0D);
+               Squid.this.level.addParticle(ParticleTypes.BUBBLE,
+                     Squid.this.particlePosition(0.0D, 0.0D, 0.0D), 0.0D, 0.0D, 0.0D);
             }
 
          }

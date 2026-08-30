@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class NoteBlock extends Block {
@@ -84,7 +85,9 @@ public class NoteBlock extends Block {
       int i = p_55023_.getValue(NOTE);
       float f = (float)Math.pow(2.0D, (double)(i - 12) / 12.0D);
       p_55024_.playSound((Player)null, p_55025_, p_55023_.getValue(INSTRUMENT).getSoundEvent(), SoundSource.RECORDS, 3.0F, f);
-      p_55024_.addParticle(ParticleTypes.NOTE, (double)p_55025_.getX() + 0.5D, (double)p_55025_.getY() + 1.2D, (double)p_55025_.getZ() + 0.5D, (double)i / 24.0D, 0.0D, 0.0D);
+      p_55024_.addParticle(ParticleTypes.NOTE, SectorVec3.fromBlockAndFraction(p_55025_.getX(),
+            0.5D, (double)p_55025_.getY() + 1.2D, p_55025_.getZ(), 0.5D),
+            (double)i / 24.0D, 0.0D, 0.0D);
       return true;
    }
 

@@ -147,6 +147,7 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.ServerLevelData;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -959,21 +960,32 @@ public class ServerLevel extends Level implements WorldGenLevel {
       return this.chunkSource;
    }
 
-   public Explosion explode(@Nullable Entity p_8653_, @Nullable DamageSource p_8654_, @Nullable ExplosionDamageCalculator p_8655_, double p_8656_, double p_8657_, double p_8658_, float p_8659_, boolean p_8660_, Explosion.BlockInteraction p_8661_) {
-      Explosion explosion = new Explosion(this, p_8653_, p_8654_, p_8655_, p_8656_, p_8657_, p_8658_, p_8659_, p_8660_, p_8661_);
+   @Override
+   public Explosion explode(@Nullable Entity source, @Nullable DamageSource damageSource,
+                            @Nullable ExplosionDamageCalculator damageCalculator, SectorVec3 position, float radius,
+                            boolean fire, Explosion.BlockInteraction blockInteraction) {
+      Explosion explosion = new Explosion(this, source, damageSource, damageCalculator, position, radius, fire, blockInteraction);
       explosion.explode();
       explosion.finalizeExplosion(false);
-      if (p_8661_ == Explosion.BlockInteraction.NONE) {
+      if (blockInteraction == Explosion.BlockInteraction.NONE) {
          explosion.clearToBlow();
       }
 
       for(ServerPlayer serverplayer : this.players) {
-         if (serverplayer.distanceToSqr(p_8656_, p_8657_, p_8658_) < 4096.0D) {
-            serverplayer.connection.send(new ClientboundExplodePacket(p_8656_, p_8657_, p_8658_, p_8659_, explosion.getToBlow(), explosion.getHitPlayers().get(serverplayer)));
+         if (serverplayer.exactPositionDistanceToSqr(position) < 4096.0D) {
+            serverplayer.connection.send(new ClientboundExplodePacket(position, radius, explosion.getToBlow(),
+                  explosion.getHitPlayers().get(serverplayer)));
          }
       }
 
       return explosion;
+   }
+
+   /** Legacy absolute-double explosion entry point. Exact callers use the SectorVec3 overload. */
+   @Override
+   public Explosion explode(@Nullable Entity p_8653_, @Nullable DamageSource p_8654_, @Nullable ExplosionDamageCalculator p_8655_, double p_8656_, double p_8657_, double p_8658_, float p_8659_, boolean p_8660_, Explosion.BlockInteraction p_8661_) {
+      return this.explode(p_8653_, p_8654_, p_8655_, SectorVec3.fromApproximate(p_8656_, p_8657_, p_8658_),
+            p_8659_, p_8660_, p_8661_);
    }
 
    public void blockEvent(BlockPos p_8746_, Block p_8747_, int p_8748_, int p_8749_) {
@@ -1023,37 +1035,52 @@ public class ServerLevel extends Level implements WorldGenLevel {
       return this.server.getStructureManager();
    }
 
-   public <T extends ParticleOptions> int sendParticles(T p_8768_, double p_8769_, double p_8770_, double p_8771_, int p_8772_, double p_8773_, double p_8774_, double p_8775_, double p_8776_) {
-      ClientboundLevelParticlesPacket clientboundlevelparticlespacket = new ClientboundLevelParticlesPacket(p_8768_, false, p_8769_, p_8770_, p_8771_, (float)p_8773_, (float)p_8774_, (float)p_8775_, (float)p_8776_, p_8772_);
-      int i = 0;
-
-      for(int j = 0; j < this.players.size(); ++j) {
-         ServerPlayer serverplayer = this.players.get(j);
-         if (this.sendParticles(serverplayer, false, p_8769_, p_8770_, p_8771_, clientboundlevelparticlespacket)) {
-            ++i;
-         }
-      }
-
-      return i;
+   /** Legacy double entry point; exact particle producers use the SectorVec3 overload. */
+   public <T extends ParticleOptions> int sendParticles(T options, double x, double y, double z, int count,
+                                                         double xDist, double yDist, double zDist, double maxSpeed) {
+      return this.sendParticles(options, SectorVec3.fromApproximate(x, y, z), count, xDist, yDist, zDist, maxSpeed);
    }
 
-   public <T extends ParticleOptions> boolean sendParticles(ServerPlayer p_8625_, T p_8626_, boolean p_8627_, double p_8628_, double p_8629_, double p_8630_, int p_8631_, double p_8632_, double p_8633_, double p_8634_, double p_8635_) {
-      Packet<?> packet = new ClientboundLevelParticlesPacket(p_8626_, p_8627_, p_8628_, p_8629_, p_8630_, (float)p_8632_, (float)p_8633_, (float)p_8634_, (float)p_8635_, p_8631_);
-      return this.sendParticles(p_8625_, p_8627_, p_8628_, p_8629_, p_8630_, packet);
-   }
-
-   private boolean sendParticles(ServerPlayer p_8637_, boolean p_8638_, double p_8639_, double p_8640_, double p_8641_, Packet<?> p_8642_) {
-      if (p_8637_.getLevel() != this) {
-         return false;
-      } else {
-         BlockPos blockpos = p_8637_.blockPosition();
-         if (blockpos.closerToCenterThan(new Vec3(p_8639_, p_8640_, p_8641_), p_8638_ ? 512.0D : 32.0D)) {
-            p_8637_.connection.send(p_8642_);
-            return true;
-         } else {
-            return false;
+   public <T extends ParticleOptions> int sendParticles(T options, SectorVec3 position, int count,
+                                                         double xDist, double yDist, double zDist, double maxSpeed) {
+      ClientboundLevelParticlesPacket packet = new ClientboundLevelParticlesPacket(options, false, position,
+            (float)xDist, (float)yDist, (float)zDist, (float)maxSpeed, count);
+      int sent = 0;
+      for(int i = 0; i < this.players.size(); ++i) {
+         if (this.sendParticles(this.players.get(i), false, position, packet)) {
+            ++sent;
          }
       }
+      return sent;
+   }
+
+   /** Legacy double entry point; exact particle producers use the SectorVec3 overload. */
+   public <T extends ParticleOptions> boolean sendParticles(ServerPlayer player, T options, boolean force,
+                                                            double x, double y, double z, int count,
+                                                            double xDist, double yDist, double zDist, double maxSpeed) {
+      return this.sendParticles(player, options, force, SectorVec3.fromApproximate(x, y, z), count,
+            xDist, yDist, zDist, maxSpeed);
+   }
+
+   public <T extends ParticleOptions> boolean sendParticles(ServerPlayer player, T options, boolean force,
+                                                            SectorVec3 position, int count,
+                                                            double xDist, double yDist, double zDist, double maxSpeed) {
+      Packet<?> packet = new ClientboundLevelParticlesPacket(options, force, position,
+            (float)xDist, (float)yDist, (float)zDist, (float)maxSpeed, count);
+      return this.sendParticles(player, force, position, packet);
+   }
+
+   private boolean sendParticles(ServerPlayer player, boolean force, SectorVec3 position, Packet<?> packet) {
+      if (player.getLevel() != this) return false;
+      SectorVec3 playerPosition = player.exactPosition();
+      if (playerPosition == null) {
+         playerPosition = SectorVec3.fromApproximate(player.getX(), player.getY(), player.getZ());
+      }
+      if (playerPosition.relativeTo(position).lengthSqr() <= Mth.square(force ? 512.0D : 32.0D)) {
+         player.connection.send(packet);
+         return true;
+      }
+      return false;
    }
 
    @Nullable

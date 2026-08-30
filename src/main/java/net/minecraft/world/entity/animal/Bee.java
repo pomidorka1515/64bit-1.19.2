@@ -247,7 +247,8 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
       super.tick();
       if (this.hasNectar() && this.getCropsGrownSincePollination() < 10 && this.random.nextFloat() < 0.05F) {
          for(int i = 0; i < this.random.nextInt(2) + 1; ++i) {
-            this.spawnFluidParticle(this.level, this.getX() - (double)0.3F, this.getX() + (double)0.3F, this.getZ() - (double)0.3F, this.getZ() + (double)0.3F, this.getY(0.5D), ParticleTypes.FALLING_NECTAR);
+            this.spawnFluidParticle(this.level, -0.3D, 0.3D, -0.3D, 0.3D,
+                  (double)this.getBbHeight() * 0.5D, ParticleTypes.FALLING_NECTAR);
          }
       }
 
@@ -255,7 +256,9 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
    }
 
    private void spawnFluidParticle(Level p_27780_, double p_27781_, double p_27782_, double p_27783_, double p_27784_, double p_27785_, ParticleOptions p_27786_) {
-      p_27780_.addParticle(p_27786_, Mth.lerp(p_27780_.random.nextDouble(), p_27781_, p_27782_), p_27785_, Mth.lerp(p_27780_.random.nextDouble(), p_27783_, p_27784_), 0.0D, 0.0D, 0.0D);
+      p_27780_.addParticle(p_27786_, this.particlePosition(
+            Mth.lerp(p_27780_.random.nextDouble(), p_27781_, p_27782_), p_27785_,
+            Mth.lerp(p_27780_.random.nextDouble(), p_27783_, p_27784_)), 0.0D, 0.0D, 0.0D);
    }
 
    void pathfindRandomlyTowards(BlockPos p_27881_) {

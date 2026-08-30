@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.SectorVec3;
 
 public abstract class WaterFluid extends FlowingFluid {
    public Fluid getFlowing() {
@@ -43,7 +44,9 @@ public abstract class WaterFluid extends FlowingFluid {
             p_230606_.playLocalSound((double)p_230607_.getX() + 0.5D, (double)p_230607_.getY() + 0.5D, (double)p_230607_.getZ() + 0.5D, SoundEvents.WATER_AMBIENT, SoundSource.BLOCKS, p_230609_.nextFloat() * 0.25F + 0.75F, p_230609_.nextFloat() + 0.5F, false);
          }
       } else if (p_230609_.nextInt(10) == 0) {
-         p_230606_.addParticle(ParticleTypes.UNDERWATER, (double)p_230607_.getX() + p_230609_.nextDouble(), (double)p_230607_.getY() + p_230609_.nextDouble(), (double)p_230607_.getZ() + p_230609_.nextDouble(), 0.0D, 0.0D, 0.0D);
+         p_230606_.addParticle(ParticleTypes.UNDERWATER, SectorVec3.fromBlockAndFraction(p_230607_.getX(),
+               p_230609_.nextDouble(), (double)p_230607_.getY() + p_230609_.nextDouble(),
+               p_230607_.getZ(), p_230609_.nextDouble()), 0.0D, 0.0D, 0.0D);
       }
 
    }

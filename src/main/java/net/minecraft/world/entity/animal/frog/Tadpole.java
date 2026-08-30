@@ -168,7 +168,11 @@ public class Tadpole extends AbstractFish {
    private void feed(Player p_218691_, ItemStack p_218692_) {
       this.usePlayerItem(p_218691_, p_218692_);
       this.ageUp(AgeableMob.getSpeedUpSecondsWhenFeeding(this.getTicksLeftUntilAdult()));
-      this.level.addParticle(ParticleTypes.HAPPY_VILLAGER, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), 0.0D, 0.0D, 0.0D);
+      this.level.addParticle(ParticleTypes.HAPPY_VILLAGER, this.particlePosition(
+            (2.0D * this.random.nextDouble() - 1.0D) * (double)this.getBbWidth(),
+            this.random.nextDouble() * (double)this.getBbHeight() + 0.5D,
+            (2.0D * this.random.nextDouble() - 1.0D) * (double)this.getBbWidth()),
+            0.0D, 0.0D, 0.0D);
    }
 
    private void usePlayerItem(Player p_218706_, ItemStack p_218707_) {

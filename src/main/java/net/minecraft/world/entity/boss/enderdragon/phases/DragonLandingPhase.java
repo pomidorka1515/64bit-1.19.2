@@ -19,17 +19,17 @@ public class DragonLandingPhase extends AbstractDragonPhaseInstance {
    public void doClientTick() {
       Vec3 vec3 = this.dragon.getHeadLookVector(1.0F).normalize();
       vec3.yRot((-(float)Math.PI / 4F));
-      double d0 = this.dragon.head.getX();
-      double d1 = this.dragon.head.getY(0.5D);
-      double d2 = this.dragon.head.getZ();
+      Vec3 headRelative = this.dragon.head.position().subtract(this.dragon.position());
 
       for(int i = 0; i < 8; ++i) {
          RandomSource randomsource = this.dragon.getRandom();
-         double d3 = d0 + randomsource.nextGaussian() / 2.0D;
-         double d4 = d1 + randomsource.nextGaussian() / 2.0D;
-         double d5 = d2 + randomsource.nextGaussian() / 2.0D;
          Vec3 vec31 = this.dragon.getDeltaMovement();
-         this.dragon.level.addParticle(ParticleTypes.DRAGON_BREATH, d3, d4, d5, -vec3.x * (double)0.08F + vec31.x, -vec3.y * (double)0.3F + vec31.y, -vec3.z * (double)0.08F + vec31.z);
+         this.dragon.level.addParticle(ParticleTypes.DRAGON_BREATH, this.dragon.particlePosition(
+               headRelative.x + randomsource.nextGaussian() / 2.0D,
+               headRelative.y + (double)this.dragon.getBbHeight() * 0.5D + randomsource.nextGaussian() / 2.0D,
+               headRelative.z + randomsource.nextGaussian() / 2.0D),
+               -vec3.x * (double)0.08F + vec31.x, -vec3.y * (double)0.3F + vec31.y,
+               -vec3.z * (double)0.08F + vec31.z);
          vec3.yRot(0.19634955F);
       }
 

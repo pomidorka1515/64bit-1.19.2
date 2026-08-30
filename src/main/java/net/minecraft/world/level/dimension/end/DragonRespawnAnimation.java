@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.levelgen.feature.SpikeFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.SpikeConfiguration;
 
@@ -57,7 +58,9 @@ public enum DragonRespawnAnimation {
                      p_64035_.removeBlock(blockpos, false);
                   }
 
-                  p_64035_.explode((Entity)null, (double)((float)spikefeature$endspike.getCenterX() + 0.5F), (double)spikefeature$endspike.getHeight(), (double)((float)spikefeature$endspike.getCenterZ() + 0.5F), 5.0F, Explosion.BlockInteraction.DESTROY);
+                  p_64035_.explode((Entity)null, SectorVec3.fromBlockAndFraction(
+                        spikefeature$endspike.getCenterX(), 0.5D, (double)spikefeature$endspike.getHeight(),
+                        spikefeature$endspike.getCenterZ(), 0.5D), 5.0F, Explosion.BlockInteraction.DESTROY);
                   SpikeConfiguration spikeconfiguration = new SpikeConfiguration(true, ImmutableList.of(spikefeature$endspike), new BlockPos(0, 128, 0));
                   Feature.END_SPIKE.place(spikeconfiguration, p_64035_, p_64035_.getChunkSource().getGenerator(), RandomSource.create(), new BlockPos(spikefeature$endspike.getCenterX(), 45, spikefeature$endspike.getCenterZ()));
                }
@@ -76,7 +79,8 @@ public enum DragonRespawnAnimation {
 
             for(EndCrystal endcrystal : p_64046_) {
                endcrystal.setBeamTarget((BlockPos)null);
-               p_64044_.explode(endcrystal, endcrystal.getX(), endcrystal.getY(), endcrystal.getZ(), 6.0F, Explosion.BlockInteraction.NONE);
+               p_64044_.explode(endcrystal, endcrystal.particlePosition(0.0D, 0.0D, 0.0D), 6.0F,
+                     Explosion.BlockInteraction.NONE);
                endcrystal.discard();
             }
          } else if (p_64047_ >= 80) {

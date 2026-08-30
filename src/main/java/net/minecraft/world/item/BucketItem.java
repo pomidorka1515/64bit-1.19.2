@@ -28,6 +28,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 
 public class BucketItem extends Item implements DispensibleContainerItem {
    private final Fluid content;
@@ -116,7 +117,8 @@ public class BucketItem extends Item implements DispensibleContainerItem {
             p_150717_.playSound(p_150716_, p_150718_, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F + (p_150717_.random.nextFloat() - p_150717_.random.nextFloat()) * 0.8F);
 
             for(int l = 0; l < 8; ++l) {
-               p_150717_.addParticle(ParticleTypes.LARGE_SMOKE, (double)i + Math.random(), (double)j + Math.random(), (double)k + Math.random(), 0.0D, 0.0D, 0.0D);
+               p_150717_.addParticle(ParticleTypes.LARGE_SMOKE, SectorVec3.fromBlockAndFraction(i,
+                     Math.random(), (double)j + Math.random(), k, Math.random()), 0.0D, 0.0D, 0.0D);
             }
 
             return true;

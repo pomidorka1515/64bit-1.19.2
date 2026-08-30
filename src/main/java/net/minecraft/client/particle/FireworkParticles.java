@@ -96,7 +96,10 @@ public class FireworkParticles {
       public void tick() {
          super.tick();
          if (this.trail && this.age < this.lifetime / 2 && (this.age + this.lifetime) % 2 == 0) {
-            FireworkParticles.SparkParticle fireworkparticles$sparkparticle = new FireworkParticles.SparkParticle(this.level, this.x, this.y, this.z, 0.0D, 0.0D, 0.0D, this.engine, this.sprites);
+            net.minecraft.world.phys.SectorVec3 position = this.exactPosition();
+            FireworkParticles.SparkParticle fireworkparticles$sparkparticle = Particle.createAt(position,
+                  () -> new FireworkParticles.SparkParticle(this.level, 0.0D, position.y(), 0.0D,
+                        0.0D, 0.0D, 0.0D, this.engine, this.sprites));
             fireworkparticles$sparkparticle.setAlpha(0.99F);
             fireworkparticles$sparkparticle.setColor(this.rCol, this.gCol, this.bCol);
             fireworkparticles$sparkparticle.age = fireworkparticles$sparkparticle.lifetime / 2;
@@ -186,7 +189,7 @@ public class FireworkParticles {
                soundevent1 = flag ? SoundEvents.FIREWORK_ROCKET_BLAST_FAR : SoundEvents.FIREWORK_ROCKET_BLAST;
             }
 
-            this.level.playLocalSound(this.x, this.y, this.z, soundevent1, SoundSource.AMBIENT, 20.0F, 0.95F + this.random.nextFloat() * 0.1F, true);
+            this.level.playLocalSound(this.blockPosition(), soundevent1, SoundSource.AMBIENT, 20.0F, 0.95F + this.random.nextFloat() * 0.1F, true);
          }
 
          if (this.life % 2 == 0 && this.explosions != null && this.life / 2 < this.explosions.size()) {
@@ -223,7 +226,7 @@ public class FireworkParticles {
             float f = (float)((j & 16711680) >> 16) / 255.0F;
             float f1 = (float)((j & '\uff00') >> 8) / 255.0F;
             float f2 = (float)((j & 255) >> 0) / 255.0F;
-            Particle particle = this.engine.createParticle(ParticleTypes.FLASH, this.x, this.y, this.z, 0.0D, 0.0D, 0.0D);
+            Particle particle = this.engine.createParticle(ParticleTypes.FLASH, this.exactPosition(), 0.0D, 0.0D, 0.0D);
             particle.setColor(f, f1, f2);
          }
 
@@ -232,7 +235,7 @@ public class FireworkParticles {
             if (this.twinkleDelay) {
                boolean flag3 = this.isFarAwayFromCamera();
                SoundEvent soundevent = flag3 ? SoundEvents.FIREWORK_ROCKET_TWINKLE_FAR : SoundEvents.FIREWORK_ROCKET_TWINKLE;
-               this.level.playLocalSound(this.x, this.y, this.z, soundevent, SoundSource.AMBIENT, 20.0F, 0.9F + this.random.nextFloat() * 0.15F, true);
+               this.level.playLocalSound(this.blockPosition(), soundevent, SoundSource.AMBIENT, 20.0F, 0.9F + this.random.nextFloat() * 0.15F, true);
             }
 
             this.remove();
@@ -242,11 +245,18 @@ public class FireworkParticles {
 
       private boolean isFarAwayFromCamera() {
          Minecraft minecraft = Minecraft.getInstance();
-         return minecraft.gameRenderer.getMainCamera().getPosition().distanceToSqr(this.x, this.y, this.z) >= 256.0D;
+         net.minecraft.world.phys.SectorVec3 camera = minecraft.gameRenderer.getMainCamera().exactPosition();
+         if (camera == null) {
+            net.minecraft.world.phys.Vec3 legacyCamera = minecraft.gameRenderer.getMainCamera().getPosition();
+            camera = net.minecraft.world.phys.SectorVec3.fromApproximate(legacyCamera.x, legacyCamera.y, legacyCamera.z);
+         }
+         return this.exactPosition().relativeTo(camera).lengthSqr() >= 256.0D;
       }
 
       private void createParticle(double p_106768_, double p_106769_, double p_106770_, double p_106771_, double p_106772_, double p_106773_, int[] p_106774_, int[] p_106775_, boolean p_106776_, boolean p_106777_) {
-         FireworkParticles.SparkParticle fireworkparticles$sparkparticle = (FireworkParticles.SparkParticle)this.engine.createParticle(ParticleTypes.FIREWORK, p_106768_, p_106769_, p_106770_, p_106771_, p_106772_, p_106773_);
+         FireworkParticles.SparkParticle fireworkparticles$sparkparticle = (FireworkParticles.SparkParticle)this.engine.createParticle(
+               ParticleTypes.FIREWORK, this.exactPosition().add(p_106768_ - this.x, p_106769_ - this.y, p_106770_ - this.z),
+               p_106771_, p_106772_, p_106773_);
          fireworkparticles$sparkparticle.setTrail(p_106776_);
          fireworkparticles$sparkparticle.setFlicker(p_106777_);
          fireworkparticles$sparkparticle.setAlpha(0.99F);

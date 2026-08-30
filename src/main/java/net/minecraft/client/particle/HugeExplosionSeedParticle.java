@@ -17,10 +17,10 @@ public class HugeExplosionSeedParticle extends NoRenderParticle {
 
    public void tick() {
       for(int i = 0; i < 6; ++i) {
-         double d0 = this.x + (this.random.nextDouble() - this.random.nextDouble()) * 4.0D;
-         double d1 = this.y + (this.random.nextDouble() - this.random.nextDouble()) * 4.0D;
-         double d2 = this.z + (this.random.nextDouble() - this.random.nextDouble()) * 4.0D;
-         this.level.addParticle(ParticleTypes.EXPLOSION, d0, d1, d2, (double)((float)this.life / (float)this.lifeTime), 0.0D, 0.0D);
+         double d0 = (this.random.nextDouble() - this.random.nextDouble()) * 4.0D;
+         double d1 = (this.random.nextDouble() - this.random.nextDouble()) * 4.0D;
+         double d2 = (this.random.nextDouble() - this.random.nextDouble()) * 4.0D;
+         this.addParticle(ParticleTypes.EXPLOSION, d0, d1, d2, (double)((float)this.life / (float)this.lifeTime), 0.0D, 0.0D);
       }
 
       ++this.life;

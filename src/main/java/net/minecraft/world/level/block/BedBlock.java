@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -91,7 +92,9 @@ public class BedBlock extends HorizontalDirectionalBlock implements EntityBlock 
                p_49516_.removeBlock(blockpos, false);
             }
 
-            p_49516_.explode((Entity)null, DamageSource.badRespawnPointExplosion(), (ExplosionDamageCalculator)null, (double)p_49517_.getX() + 0.5D, (double)p_49517_.getY() + 0.5D, (double)p_49517_.getZ() + 0.5D, 5.0F, true, Explosion.BlockInteraction.DESTROY);
+            p_49516_.explode((Entity)null, DamageSource.badRespawnPointExplosion(), (ExplosionDamageCalculator)null,
+                  SectorVec3.fromBlockAndFraction(p_49517_.getX(), 0.5D, (double)p_49517_.getY() + 0.5D,
+                        p_49517_.getZ(), 0.5D), 5.0F, true, Explosion.BlockInteraction.DESTROY);
             return InteractionResult.SUCCESS;
          } else if (p_49515_.getValue(OCCUPIED)) {
             if (!this.kickVillagerOutOfBed(p_49516_, p_49517_)) {

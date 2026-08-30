@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -35,22 +36,23 @@ public class EndGatewayBlock extends BaseEntityBlock {
          int i = ((TheEndGatewayBlockEntity)blockentity).getParticleAmount();
 
          for(int j = 0; j < i; ++j) {
-            double d0 = (double)p_221099_.getX() + p_221100_.nextDouble();
+            double d0 = p_221100_.nextDouble();
             double d1 = (double)p_221099_.getY() + p_221100_.nextDouble();
-            double d2 = (double)p_221099_.getZ() + p_221100_.nextDouble();
+            double d2 = p_221100_.nextDouble();
             double d3 = (p_221100_.nextDouble() - 0.5D) * 0.5D;
             double d4 = (p_221100_.nextDouble() - 0.5D) * 0.5D;
             double d5 = (p_221100_.nextDouble() - 0.5D) * 0.5D;
             int k = p_221100_.nextInt(2) * 2 - 1;
             if (p_221100_.nextBoolean()) {
-               d2 = (double)p_221099_.getZ() + 0.5D + 0.25D * (double)k;
+               d2 = 0.5D + 0.25D * (double)k;
                d5 = (double)(p_221100_.nextFloat() * 2.0F * (float)k);
             } else {
-               d0 = (double)p_221099_.getX() + 0.5D + 0.25D * (double)k;
+               d0 = 0.5D + 0.25D * (double)k;
                d3 = (double)(p_221100_.nextFloat() * 2.0F * (float)k);
             }
 
-            p_221098_.addParticle(ParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);
+            p_221098_.addParticle(ParticleTypes.PORTAL, SectorVec3.fromBlockAndFraction(p_221099_.getX(),
+                  d0, d1, p_221099_.getZ(), d2), d3, d4, d5);
          }
 
       }

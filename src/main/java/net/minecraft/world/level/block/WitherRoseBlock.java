@@ -14,6 +14,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -30,12 +31,13 @@ public class WitherRoseBlock extends FlowerBlock {
    public void animateTick(BlockState p_222687_, Level p_222688_, BlockPos p_222689_, RandomSource p_222690_) {
       VoxelShape voxelshape = this.getShape(p_222687_, p_222688_, p_222689_, CollisionContext.empty());
       Vec3 vec3 = voxelshape.bounds().getCenter();
-      double d0 = (double)p_222689_.getX() + vec3.x;
-      double d1 = (double)p_222689_.getZ() + vec3.z;
 
       for(int i = 0; i < 3; ++i) {
          if (p_222690_.nextBoolean()) {
-            p_222688_.addParticle(ParticleTypes.SMOKE, d0 + p_222690_.nextDouble() / 5.0D, (double)p_222689_.getY() + (0.5D - p_222690_.nextDouble()), d1 + p_222690_.nextDouble() / 5.0D, 0.0D, 0.0D, 0.0D);
+            p_222688_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_222689_.getX(),
+                  vec3.x + p_222690_.nextDouble() / 5.0D,
+                  (double)p_222689_.getY() + (0.5D - p_222690_.nextDouble()), p_222689_.getZ(),
+                  vec3.z + p_222690_.nextDouble() / 5.0D), 0.0D, 0.0D, 0.0D);
          }
       }
 

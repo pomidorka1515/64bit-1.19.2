@@ -33,6 +33,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -117,7 +118,9 @@ public class RespawnAnchorBlock extends Block {
             return p_55906_.equals(p_55893_) && flag1 ? Optional.of(Blocks.WATER.getExplosionResistance()) : super.getBlockExplosionResistance(p_55904_, p_55905_, p_55906_, p_55907_, p_55908_);
          }
       };
-      p_55892_.explode((Entity)null, DamageSource.badRespawnPointExplosion(), explosiondamagecalculator, (double)p_55893_.getX() + 0.5D, (double)p_55893_.getY() + 0.5D, (double)p_55893_.getZ() + 0.5D, 5.0F, true, Explosion.BlockInteraction.DESTROY);
+      p_55892_.explode((Entity)null, DamageSource.badRespawnPointExplosion(), explosiondamagecalculator,
+            SectorVec3.fromBlockAndFraction(p_55893_.getX(), 0.5D, (double)p_55893_.getY() + 0.5D,
+                  p_55893_.getZ(), 0.5D), 5.0F, true, Explosion.BlockInteraction.DESTROY);
    }
 
    public static boolean canSetSpawn(Level p_55851_) {
@@ -135,11 +138,12 @@ public class RespawnAnchorBlock extends Block {
             p_221970_.playSound((Player)null, (double)p_221971_.getX() + 0.5D, (double)p_221971_.getY() + 0.5D, (double)p_221971_.getZ() + 0.5D, SoundEvents.RESPAWN_ANCHOR_AMBIENT, SoundSource.BLOCKS, 1.0F, 1.0F);
          }
 
-         double d0 = (double)p_221971_.getX() + 0.5D + (0.5D - p_221972_.nextDouble());
+         double d0 = 0.5D + (0.5D - p_221972_.nextDouble());
          double d1 = (double)p_221971_.getY() + 1.0D;
-         double d2 = (double)p_221971_.getZ() + 0.5D + (0.5D - p_221972_.nextDouble());
+         double d2 = 0.5D + (0.5D - p_221972_.nextDouble());
          double d3 = (double)p_221972_.nextFloat() * 0.04D;
-         p_221970_.addParticle(ParticleTypes.REVERSE_PORTAL, d0, d1, d2, 0.0D, d3, 0.0D);
+         p_221970_.addParticle(ParticleTypes.REVERSE_PORTAL, SectorVec3.fromBlockAndFraction(
+               p_221971_.getX(), d0, d1, p_221971_.getZ(), d2), 0.0D, d3, 0.0D);
       }
    }
 

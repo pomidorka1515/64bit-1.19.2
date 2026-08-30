@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.portal.PortalShape;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -84,22 +85,23 @@ public class NetherPortalBlock extends Block {
       }
 
       for(int i = 0; i < 4; ++i) {
-         double d0 = (double)p_221796_.getX() + p_221797_.nextDouble();
+         double d0 = p_221797_.nextDouble();
          double d1 = (double)p_221796_.getY() + p_221797_.nextDouble();
-         double d2 = (double)p_221796_.getZ() + p_221797_.nextDouble();
+         double d2 = p_221797_.nextDouble();
          double d3 = ((double)p_221797_.nextFloat() - 0.5D) * 0.5D;
          double d4 = ((double)p_221797_.nextFloat() - 0.5D) * 0.5D;
          double d5 = ((double)p_221797_.nextFloat() - 0.5D) * 0.5D;
          int j = p_221797_.nextInt(2) * 2 - 1;
          if (!p_221795_.getBlockState(p_221796_.west()).is(this) && !p_221795_.getBlockState(p_221796_.east()).is(this)) {
-            d0 = (double)p_221796_.getX() + 0.5D + 0.25D * (double)j;
+            d0 = 0.5D + 0.25D * (double)j;
             d3 = (double)(p_221797_.nextFloat() * 2.0F * (float)j);
          } else {
-            d2 = (double)p_221796_.getZ() + 0.5D + 0.25D * (double)j;
+            d2 = 0.5D + 0.25D * (double)j;
             d5 = (double)(p_221797_.nextFloat() * 2.0F * (float)j);
          }
 
-         p_221795_.addParticle(ParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);
+         p_221795_.addParticle(ParticleTypes.PORTAL, SectorVec3.fromBlockAndFraction(p_221796_.getX(),
+               d0, d1, p_221796_.getZ(), d2), d3, d4, d5);
       }
 
    }

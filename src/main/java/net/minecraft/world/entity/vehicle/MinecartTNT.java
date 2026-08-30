@@ -44,7 +44,8 @@ public class MinecartTNT extends AbstractMinecart {
       super.tick();
       if (this.fuse > 0) {
          --this.fuse;
-         this.level.addParticle(ParticleTypes.SMOKE, this.getX(), this.getY() + 0.5D, this.getZ(), 0.0D, 0.0D, 0.0D);
+         this.level.addParticle(ParticleTypes.SMOKE, this.particlePosition(0.0D, 0.5D, 0.0D),
+               0.0D, 0.0D, 0.0D);
       } else if (this.fuse == 0) {
          this.explode(this.getDeltaMovement().horizontalDistanceSqr());
       }
@@ -93,7 +94,8 @@ public class MinecartTNT extends AbstractMinecart {
             d0 = 5.0D;
          }
 
-         this.level.explode(this, this.getX(), this.getY(), this.getZ(), (float)(4.0D + this.random.nextDouble() * 1.5D * d0), Explosion.BlockInteraction.BREAK);
+         this.level.explode(this, this.particlePosition(0.0D, 0.0D, 0.0D),
+               (float)(4.0D + this.random.nextDouble() * 1.5D * d0), Explosion.BlockInteraction.BREAK);
          this.discard();
       }
 

@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -177,7 +178,11 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
          double d3 = randomsource.nextGaussian() * 0.02D;
          double d4 = randomsource.nextGaussian() * 0.02D;
          double d5 = randomsource.nextGaussian() * 0.02D;
-         p_51924_.addParticle(ParticleTypes.COMPOSTER, (double)p_51925_.getX() + (double)0.13125F + (double)0.7375F * (double)randomsource.nextFloat(), (double)p_51925_.getY() + d0 + (double)randomsource.nextFloat() * (1.0D - d0), (double)p_51925_.getZ() + (double)0.13125F + (double)0.7375F * (double)randomsource.nextFloat(), d3, d4, d5);
+         p_51924_.addParticle(ParticleTypes.COMPOSTER, SectorVec3.fromBlockAndFraction(p_51925_.getX(),
+               (double)0.13125F + (double)0.7375F * (double)randomsource.nextFloat(),
+               (double)p_51925_.getY() + d0 + (double)randomsource.nextFloat() * (1.0D - d0),
+               p_51925_.getZ(), (double)0.13125F + (double)0.7375F * (double)randomsource.nextFloat()),
+               d3, d4, d5);
       }
 
    }

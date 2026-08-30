@@ -42,6 +42,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleGroup;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -268,28 +269,49 @@ public class ParticleEngine implements PreparableReloadListener {
    }
 
    public void createTrackingEmitter(Entity p_107330_, ParticleOptions p_107331_) {
-      this.trackingEmitters.add(new TrackingEmitter(this.level, p_107330_, p_107331_));
+      SectorVec3 position = p_107330_.exactPosition();
+      if (position == null) position = SectorVec3.fromApproximate(p_107330_.getX(), p_107330_.getY(), p_107330_.getZ());
+      SectorVec3 exactPosition = position;
+      this.trackingEmitters.add(Particle.createAt(exactPosition, () -> new TrackingEmitter(this.level, p_107330_, p_107331_)));
    }
 
    public void createTrackingEmitter(Entity p_107333_, ParticleOptions p_107334_, int p_107335_) {
-      this.trackingEmitters.add(new TrackingEmitter(this.level, p_107333_, p_107334_, p_107335_));
+      SectorVec3 position = p_107333_.exactPosition();
+      if (position == null) position = SectorVec3.fromApproximate(p_107333_.getX(), p_107333_.getY(), p_107333_.getZ());
+      SectorVec3 exactPosition = position;
+      this.trackingEmitters.add(Particle.createAt(exactPosition, () -> new TrackingEmitter(this.level, p_107333_, p_107334_, p_107335_)));
    }
 
+   /**
+    * Legacy double entry point retained for third-party callers.  New particle
+    * paths must supply the exact split coordinate overload below.
+    */
    @Nullable
    public Particle createParticle(ParticleOptions p_107371_, double p_107372_, double p_107373_, double p_107374_, double p_107375_, double p_107376_, double p_107377_) {
-      Particle particle = this.makeParticle(p_107371_, p_107372_, p_107373_, p_107374_, p_107375_, p_107376_, p_107377_);
+      return this.createParticle(p_107371_, SectorVec3.fromApproximate(p_107372_, p_107373_, p_107374_),
+            p_107375_, p_107376_, p_107377_);
+   }
+
+   /** Creates a particle whose world origin remains split-coordinate exact. */
+   @Nullable
+   public Particle createParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
+      Particle particle = this.makeParticle(options, position, xd, yd, zd);
       if (particle != null) {
          this.add(particle);
-         return particle;
-      } else {
-         return null;
       }
+      return particle;
    }
 
    @Nullable
-   private <T extends ParticleOptions> Particle makeParticle(T p_107396_, double p_107397_, double p_107398_, double p_107399_, double p_107400_, double p_107401_, double p_107402_) {
-      ParticleProvider<T> particleprovider = (ParticleProvider<T>)this.providers.get(Registry.PARTICLE_TYPE.getId(p_107396_.getType()));
-      return particleprovider == null ? null : particleprovider.createParticle(p_107396_, this.level, p_107397_, p_107398_, p_107399_, p_107400_, p_107401_, p_107402_);
+   private <T extends ParticleOptions> Particle makeParticle(T options, SectorVec3 position, double xd, double yd, double zd) {
+      ParticleProvider<T> provider = (ParticleProvider<T>)this.providers.get(Registry.PARTICLE_TYPE.getId(options.getType()));
+      if (provider == null) return null;
+      // Providers have vanilla's immutable double signature.  Give them a
+      // small local X/Z frame and retain the exact world origin in Particle.
+      // This also covers providers which save constructor coordinates in their
+      // own animation fields (portal/enchantment/firework particles).
+      return Particle.createAt(position, () -> provider.createParticle(options, this.level,
+            0.0D, position.y(), 0.0D, xd, yd, zd));
    }
 
    public void add(Particle p_107345_) {
@@ -437,7 +459,9 @@ public class ParticleEngine implements PreparableReloadListener {
                      double d7 = d4 * d1 + p_172273_;
                      double d8 = d5 * d2 + p_172274_;
                      double d9 = d6 * d3 + p_172275_;
-                     this.add(new TerrainParticle(this.level, (double)p_107356_.getX() + d7, (double)p_107356_.getY() + d8, (double)p_107356_.getZ() + d9, d4 - 0.5D, d5 - 0.5D, d6 - 0.5D, p_107357_, p_107356_));
+                     SectorVec3 position = SectorVec3.fromBlockAndFraction(p_107356_.getX(), d7, (double)p_107356_.getY() + d8, p_107356_.getZ(), d9);
+                     this.add(Particle.createAt(position, () -> new TerrainParticle(this.level, 0.0D, position.y(), 0.0D,
+                           d4 - 0.5D, d5 - 0.5D, d6 - 0.5D, p_107357_, p_107356_)));
                   }
                }
             }
@@ -454,34 +478,36 @@ public class ParticleEngine implements PreparableReloadListener {
          long k = p_107368_.getZ();
          float f = 0.1F;
          AABB aabb = blockstate.getShape(this.level, p_107368_).bounds();
-         double d0 = (double)i + this.random.nextDouble() * (aabb.maxX - aabb.minX - (double)0.2F) + (double)0.1F + aabb.minX;
-         double d1 = (double)j + this.random.nextDouble() * (aabb.maxY - aabb.minY - (double)0.2F) + (double)0.1F + aabb.minY;
-         double d2 = (double)k + this.random.nextDouble() * (aabb.maxZ - aabb.minZ - (double)0.2F) + (double)0.1F + aabb.minZ;
+         double localX = this.random.nextDouble() * (aabb.maxX - aabb.minX - (double)0.2F) + (double)0.1F + aabb.minX;
+         double particleY = (double)j + this.random.nextDouble() * (aabb.maxY - aabb.minY - (double)0.2F) + (double)0.1F + aabb.minY;
+         double localZ = this.random.nextDouble() * (aabb.maxZ - aabb.minZ - (double)0.2F) + (double)0.1F + aabb.minZ;
          if (p_107369_ == Direction.DOWN) {
-            d1 = (double)j + aabb.minY - (double)0.1F;
+            particleY = (double)j + aabb.minY - (double)0.1F;
          }
 
          if (p_107369_ == Direction.UP) {
-            d1 = (double)j + aabb.maxY + (double)0.1F;
+            particleY = (double)j + aabb.maxY + (double)0.1F;
          }
 
          if (p_107369_ == Direction.NORTH) {
-            d2 = (double)k + aabb.minZ - (double)0.1F;
+            localZ = aabb.minZ - (double)0.1F;
          }
 
          if (p_107369_ == Direction.SOUTH) {
-            d2 = (double)k + aabb.maxZ + (double)0.1F;
+            localZ = aabb.maxZ + (double)0.1F;
          }
 
          if (p_107369_ == Direction.WEST) {
-            d0 = (double)i + aabb.minX - (double)0.1F;
+            localX = aabb.minX - (double)0.1F;
          }
 
          if (p_107369_ == Direction.EAST) {
-            d0 = (double)i + aabb.maxX + (double)0.1F;
+            localX = aabb.maxX + (double)0.1F;
          }
 
-         this.add((new TerrainParticle(this.level, d0, d1, d2, 0.0D, 0.0D, 0.0D, blockstate, p_107368_)).setPower(0.2F).scale(0.6F));
+         SectorVec3 position = SectorVec3.fromBlockAndFraction(i, localX, particleY, k, localZ);
+         this.add(Particle.createAt(position, () -> (new TerrainParticle(this.level, 0.0D, position.y(), 0.0D,
+               0.0D, 0.0D, 0.0D, blockstate, p_107368_)).setPower(0.2F).scale(0.6F)));
       }
    }
 

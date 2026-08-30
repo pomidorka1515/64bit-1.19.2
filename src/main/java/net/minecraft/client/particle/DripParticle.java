@@ -53,7 +53,7 @@ public class DripParticle extends TextureSheetParticle {
             this.xd *= (double)0.98F;
             this.yd *= (double)0.98F;
             this.zd *= (double)0.98F;
-            BlockPos blockpos = new BlockPos(this.x, this.y, this.z);
+            BlockPos blockpos = this.blockPosition();
             FluidState fluidstate = this.level.getFluidState(blockpos);
             if (fluidstate.getType() == this.type && this.y < (double)((float)blockpos.getY() + fluidstate.getHeight(this.level, blockpos))) {
                this.remove();
@@ -101,7 +101,7 @@ public class DripParticle extends TextureSheetParticle {
       protected void preMoveUpdate() {
          if (this.lifetime-- <= 0) {
             this.remove();
-            this.level.addParticle(this.fallingParticle, this.x, this.y, this.z, this.xd, this.yd, this.zd);
+            this.addParticle(this.fallingParticle, this.xd, this.yd, this.zd);
          }
 
       }
@@ -130,10 +130,10 @@ public class DripParticle extends TextureSheetParticle {
       protected void postMoveUpdate() {
          if (this.onGround) {
             this.remove();
-            this.level.addParticle(this.landParticle, this.x, this.y, this.z, 0.0D, 0.0D, 0.0D);
+            this.addParticle(this.landParticle, 0.0D, 0.0D, 0.0D);
             SoundEvent soundevent = this.getType() == Fluids.LAVA ? SoundEvents.POINTED_DRIPSTONE_DRIP_LAVA : SoundEvents.POINTED_DRIPSTONE_DRIP_WATER;
             float f = Mth.randomBetween(this.random, 0.3F, 1.0F);
-            this.level.playLocalSound(this.x, this.y, this.z, soundevent, SoundSource.BLOCKS, f, 1.0F, false);
+            this.level.playLocalSound(this.blockPosition(), soundevent, SoundSource.BLOCKS, f, 1.0F, false);
          }
 
       }
@@ -214,7 +214,7 @@ public class DripParticle extends TextureSheetParticle {
       protected void postMoveUpdate() {
          if (this.onGround) {
             this.remove();
-            this.level.addParticle(this.landParticle, this.x, this.y, this.z, 0.0D, 0.0D, 0.0D);
+            this.addParticle(this.landParticle, 0.0D, 0.0D, 0.0D);
          }
 
       }
@@ -248,9 +248,9 @@ public class DripParticle extends TextureSheetParticle {
       protected void postMoveUpdate() {
          if (this.onGround) {
             this.remove();
-            this.level.addParticle(this.landParticle, this.x, this.y, this.z, 0.0D, 0.0D, 0.0D);
+            this.addParticle(this.landParticle, 0.0D, 0.0D, 0.0D);
             float f = Mth.randomBetween(this.random, 0.3F, 1.0F);
-            this.level.playLocalSound(this.x, this.y, this.z, SoundEvents.BEEHIVE_DRIP, SoundSource.BLOCKS, f, 1.0F, false);
+            this.level.playLocalSound(this.blockPosition(), SoundEvents.BEEHIVE_DRIP, SoundSource.BLOCKS, f, 1.0F, false);
          }
 
       }

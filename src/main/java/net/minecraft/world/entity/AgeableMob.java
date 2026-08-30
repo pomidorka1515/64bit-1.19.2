@@ -118,7 +118,11 @@ public abstract class AgeableMob extends PathfinderMob {
       if (this.level.isClientSide) {
          if (this.forcedAgeTimer > 0) {
             if (this.forcedAgeTimer % 4 == 0) {
-               this.level.addParticle(ParticleTypes.HAPPY_VILLAGER, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.HAPPY_VILLAGER, this.particlePosition(
+                     (2.0D * this.random.nextDouble() - 1.0D) * (double)this.getBbWidth(),
+                     this.random.nextDouble() * (double)this.getBbHeight() + 0.5D,
+                     (2.0D * this.random.nextDouble() - 1.0D) * (double)this.getBbWidth()),
+                     0.0D, 0.0D, 0.0D);
             }
 
             --this.forcedAgeTimer;

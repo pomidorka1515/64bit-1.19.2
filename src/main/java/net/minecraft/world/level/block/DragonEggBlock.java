@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -48,10 +49,13 @@ public class DragonEggBlock extends FallingBlock {
                   float f = (p_52937_.random.nextFloat() - 0.5F) * 0.2F;
                   float f1 = (p_52937_.random.nextFloat() - 0.5F) * 0.2F;
                   float f2 = (p_52937_.random.nextFloat() - 0.5F) * 0.2F;
-                  double d1 = Mth.lerp(d0, (double)blockpos.getX(), (double)p_52938_.getX()) + (p_52937_.random.nextDouble() - 0.5D) + 0.5D;
-                  double d2 = Mth.lerp(d0, (double)blockpos.getY(), (double)p_52938_.getY()) + p_52937_.random.nextDouble() - 0.5D;
-                  double d3 = Mth.lerp(d0, (double)blockpos.getZ(), (double)p_52938_.getZ()) + (p_52937_.random.nextDouble() - 0.5D) + 0.5D;
-                  p_52937_.addParticle(ParticleTypes.PORTAL, d1, d2, d3, (double)f, (double)f1, (double)f2);
+                  SectorVec3 destination = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D,
+                        (double)blockpos.getY(), blockpos.getZ(), 0.0D);
+                  SectorVec3 source = SectorVec3.fromBlockAndFraction(p_52938_.getX(), 0.0D,
+                        (double)p_52938_.getY(), p_52938_.getZ(), 0.0D);
+                  SectorVec3 particlePosition = destination.lerpTo(source, d0).add(p_52937_.random.nextDouble(),
+                        p_52937_.random.nextDouble() - 0.5D, p_52937_.random.nextDouble());
+                  p_52937_.addParticle(ParticleTypes.PORTAL, particlePosition, (double)f, (double)f1, (double)f2);
                }
             } else {
                p_52937_.setBlock(blockpos, p_52936_, 2);

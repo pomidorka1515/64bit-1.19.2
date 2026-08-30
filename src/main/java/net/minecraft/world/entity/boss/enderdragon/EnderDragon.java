@@ -164,7 +164,8 @@ public class EnderDragon extends Mob implements Enemy {
          float f9 = (this.random.nextFloat() - 0.5F) * 8.0F;
          float f10 = (this.random.nextFloat() - 0.5F) * 4.0F;
          float f11 = (this.random.nextFloat() - 0.5F) * 8.0F;
-         this.level.addParticle(ParticleTypes.EXPLOSION, this.getX() + (double)f9, this.getY() + 2.0D + (double)f10, this.getZ() + (double)f11, 0.0D, 0.0D, 0.0D);
+         this.level.addParticle(ParticleTypes.EXPLOSION, this.particlePosition((double)f9,
+               2.0D + (double)f10, (double)f11), 0.0D, 0.0D, 0.0D);
       } else {
          this.checkCrystals();
          Vec3 vec3 = this.getDeltaMovement();
@@ -499,7 +500,8 @@ public class EnderDragon extends Mob implements Enemy {
          float f = (this.random.nextFloat() - 0.5F) * 8.0F;
          float f1 = (this.random.nextFloat() - 0.5F) * 4.0F;
          float f2 = (this.random.nextFloat() - 0.5F) * 8.0F;
-         this.level.addParticle(ParticleTypes.EXPLOSION_EMITTER, this.getX() + (double)f, this.getY() + 2.0D + (double)f1, this.getZ() + (double)f2, 0.0D, 0.0D, 0.0D);
+         this.level.addParticle(ParticleTypes.EXPLOSION_EMITTER, this.particlePosition((double)f,
+               2.0D + (double)f1, (double)f2), 0.0D, 0.0D, 0.0D);
       }
 
       boolean flag = this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT);

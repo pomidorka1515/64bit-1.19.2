@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -103,10 +104,12 @@ public class LeverBlock extends FaceAttachedHorizontalDirectionalBlock {
    private static void makeParticle(BlockState p_54658_, LevelAccessor p_54659_, BlockPos p_54660_, float p_54661_) {
       Direction direction = p_54658_.getValue(FACING).getOpposite();
       Direction direction1 = getConnectedDirection(p_54658_).getOpposite();
-      double d0 = (double)p_54660_.getX() + 0.5D + 0.1D * (double)direction.getStepX() + 0.2D * (double)direction1.getStepX();
-      double d1 = (double)p_54660_.getY() + 0.5D + 0.1D * (double)direction.getStepY() + 0.2D * (double)direction1.getStepY();
-      double d2 = (double)p_54660_.getZ() + 0.5D + 0.1D * (double)direction.getStepZ() + 0.2D * (double)direction1.getStepZ();
-      p_54659_.addParticle(new DustParticleOptions(DustParticleOptions.REDSTONE_PARTICLE_COLOR, p_54661_), d0, d1, d2, 0.0D, 0.0D, 0.0D);
+      p_54659_.addParticle(new DustParticleOptions(DustParticleOptions.REDSTONE_PARTICLE_COLOR, p_54661_),
+            SectorVec3.fromBlockAndFraction(p_54660_.getX(), 0.5D + 0.1D * (double)direction.getStepX()
+                  + 0.2D * (double)direction1.getStepX(), (double)p_54660_.getY() + 0.5D
+                        + 0.1D * (double)direction.getStepY() + 0.2D * (double)direction1.getStepY(),
+                  p_54660_.getZ(), 0.5D + 0.1D * (double)direction.getStepZ()
+                        + 0.2D * (double)direction1.getStepZ()), 0.0D, 0.0D, 0.0D);
    }
 
    public void animateTick(BlockState p_221395_, Level p_221396_, BlockPos p_221397_, RandomSource p_221398_) {

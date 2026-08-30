@@ -252,8 +252,10 @@ public class Dolphin extends WaterAnimal {
             float f2 = 1.2F - this.random.nextFloat() * 0.7F;
 
             for(int i = 0; i < 2; ++i) {
-               this.level.addParticle(ParticleTypes.DOLPHIN, this.getX() - vec3.x * (double)f2 + (double)f, this.getY() - vec3.y, this.getZ() - vec3.z * (double)f2 + (double)f1, 0.0D, 0.0D, 0.0D);
-               this.level.addParticle(ParticleTypes.DOLPHIN, this.getX() - vec3.x * (double)f2 - (double)f, this.getY() - vec3.y, this.getZ() - vec3.z * (double)f2 - (double)f1, 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.DOLPHIN, this.particlePosition(-vec3.x * (double)f2
+                     + (double)f, -vec3.y, -vec3.z * (double)f2 + (double)f1), 0.0D, 0.0D, 0.0D);
+               this.level.addParticle(ParticleTypes.DOLPHIN, this.particlePosition(-vec3.x * (double)f2
+                     - (double)f, -vec3.y, -vec3.z * (double)f2 - (double)f1), 0.0D, 0.0D, 0.0D);
             }
          }
 
@@ -274,7 +276,10 @@ public class Dolphin extends WaterAnimal {
          double d0 = this.random.nextGaussian() * 0.01D;
          double d1 = this.random.nextGaussian() * 0.01D;
          double d2 = this.random.nextGaussian() * 0.01D;
-         this.level.addParticle(p_28338_, this.getRandomX(1.0D), this.getRandomY() + 0.2D, this.getRandomZ(1.0D), d0, d1, d2);
+         this.level.addParticle(p_28338_, this.particlePosition(
+               (2.0D * this.random.nextDouble() - 1.0D) * (double)this.getBbWidth(),
+               this.random.nextDouble() * (double)this.getBbHeight() + 0.2D,
+               (2.0D * this.random.nextDouble() - 1.0D) * (double)this.getBbWidth()), d0, d1, d2);
       }
 
    }

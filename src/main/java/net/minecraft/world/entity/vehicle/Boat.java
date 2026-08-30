@@ -179,7 +179,8 @@ public class Boat extends Entity {
          }
       }
 
-      this.level.addParticle(ParticleTypes.SPLASH, this.getX() + (double)this.random.nextFloat(), this.getY() + 0.7D, this.getZ() + (double)this.random.nextFloat(), 0.0D, 0.0D, 0.0D);
+      this.level.addParticle(ParticleTypes.SPLASH, this.particlePosition((double)this.random.nextFloat(),
+            0.7D, (double)this.random.nextFloat()), 0.0D, 0.0D, 0.0D);
       if (this.random.nextInt(20) == 0) {
          this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), this.getSwimSplashSound(), this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat(), false);
          this.gameEvent(GameEvent.SPLASH, this.getControllingPassenger());

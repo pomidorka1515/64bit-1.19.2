@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.TheEndPortalBlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -48,10 +49,9 @@ public class EndPortalBlock extends BaseEntityBlock {
    }
 
    public void animateTick(BlockState p_221102_, Level p_221103_, BlockPos p_221104_, RandomSource p_221105_) {
-      double d0 = (double)p_221104_.getX() + p_221105_.nextDouble();
-      double d1 = (double)p_221104_.getY() + 0.8D;
-      double d2 = (double)p_221104_.getZ() + p_221105_.nextDouble();
-      p_221103_.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+      p_221103_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_221104_.getX(),
+            p_221105_.nextDouble(), (double)p_221104_.getY() + 0.8D, p_221104_.getZ(),
+            p_221105_.nextDouble()), 0.0D, 0.0D, 0.0D);
    }
 
    public ItemStack getCloneItemStack(BlockGetter p_53021_, BlockPos p_53022_, BlockState p_53023_) {

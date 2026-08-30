@@ -37,6 +37,7 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -383,12 +384,11 @@ public class PointedDripstoneBlock extends Block implements Fallable, SimpleWate
    private static void spawnDripParticle(Level p_154072_, BlockPos p_154073_, BlockState p_154074_, Fluid p_154075_) {
       Vec3 vec3 = p_154074_.getOffset(p_154072_, p_154073_);
       double d0 = 0.0625D;
-      double d1 = (double)p_154073_.getX() + 0.5D + vec3.x;
       double d2 = (double)((float)(p_154073_.getY() + 1) - 0.6875F) - 0.0625D;
-      double d3 = (double)p_154073_.getZ() + 0.5D + vec3.z;
       Fluid fluid = getDripFluid(p_154072_, p_154075_);
       ParticleOptions particleoptions = fluid.is(FluidTags.LAVA) ? ParticleTypes.DRIPPING_DRIPSTONE_LAVA : ParticleTypes.DRIPPING_DRIPSTONE_WATER;
-      p_154072_.addParticle(particleoptions, d1, d2, d3, 0.0D, 0.0D, 0.0D);
+      p_154072_.addParticle(particleoptions, SectorVec3.fromBlockAndFraction(p_154073_.getX(),
+            0.5D + vec3.x, d2, p_154073_.getZ(), 0.5D + vec3.z), 0.0D, 0.0D, 0.0D);
    }
 
    @Nullable

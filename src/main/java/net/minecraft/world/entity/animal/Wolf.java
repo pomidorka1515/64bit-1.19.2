@@ -218,14 +218,14 @@ public class Wolf extends TamableAnimal implements NeutralMob {
             }
 
             if (this.shakeAnim > 0.4F) {
-               float f = (float)this.getY();
                int i = (int)(Mth.sin((this.shakeAnim - 0.4F) * (float)Math.PI) * 7.0F);
                Vec3 vec3 = this.getDeltaMovement();
 
                for(int j = 0; j < i; ++j) {
                   float f1 = (this.random.nextFloat() * 2.0F - 1.0F) * this.getBbWidth() * 0.5F;
                   float f2 = (this.random.nextFloat() * 2.0F - 1.0F) * this.getBbWidth() * 0.5F;
-                  this.level.addParticle(ParticleTypes.SPLASH, this.getX() + (double)f1, (double)(f + 0.8F), this.getZ() + (double)f2, vec3.x, vec3.y, vec3.z);
+                  this.level.addParticle(ParticleTypes.SPLASH, this.particlePosition((double)f1,
+                        0.8D, (double)f2), vec3.x, vec3.y, vec3.z);
                }
             }
          }

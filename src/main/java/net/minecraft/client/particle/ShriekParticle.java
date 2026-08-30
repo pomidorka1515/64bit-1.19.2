@@ -9,7 +9,6 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.particles.ShriekParticleOption;
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -50,10 +49,10 @@ public class ShriekParticle extends TextureSheetParticle {
    }
 
    private void renderRotatedParticle(VertexConsumer p_233989_, Camera p_233990_, float p_233991_, Consumer<Quaternion> p_233992_) {
-      Vec3 vec3 = p_233990_.getPosition();
-      float f = (float)(Mth.lerp((double)p_233991_, this.xo, this.x) - vec3.x());
-      float f1 = (float)(Mth.lerp((double)p_233991_, this.yo, this.y) - vec3.y());
-      float f2 = (float)(Mth.lerp((double)p_233991_, this.zo, this.z) - vec3.z());
+      net.minecraft.world.phys.Vec3 relative = this.cameraRelativePosition(p_233990_, p_233991_);
+      float f = (float)relative.x;
+      float f1 = (float)relative.y;
+      float f2 = (float)relative.z;
       Quaternion quaternion = new Quaternion(ROTATION_VECTOR, 0.0F, true);
       p_233992_.accept(quaternion);
       TRANSFORM_VECTOR.transform(quaternion);

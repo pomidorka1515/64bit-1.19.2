@@ -40,6 +40,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -137,7 +138,10 @@ public class CampfireBlock extends BaseEntityBlock implements SimpleWaterloggedB
 
          if (this.spawnParticles && p_220921_.nextInt(5) == 0) {
             for(int i = 0; i < p_220921_.nextInt(1) + 1; ++i) {
-               p_220919_.addParticle(ParticleTypes.LAVA, (double)p_220920_.getX() + 0.5D, (double)p_220920_.getY() + 0.5D, (double)p_220920_.getZ() + 0.5D, (double)(p_220921_.nextFloat() / 2.0F), 5.0E-5D, (double)(p_220921_.nextFloat() / 2.0F));
+               p_220919_.addParticle(ParticleTypes.LAVA, SectorVec3.fromBlockAndFraction(p_220920_.getX(),
+                     0.5D, (double)p_220920_.getY() + 0.5D, p_220920_.getZ(), 0.5D),
+                     (double)(p_220921_.nextFloat() / 2.0F), 5.0E-5D,
+                     (double)(p_220921_.nextFloat() / 2.0F));
             }
          }
 
@@ -189,9 +193,18 @@ public class CampfireBlock extends BaseEntityBlock implements SimpleWaterloggedB
    public static void makeParticles(Level p_51252_, BlockPos p_51253_, boolean p_51254_, boolean p_51255_) {
       RandomSource randomsource = p_51252_.getRandom();
       SimpleParticleType simpleparticletype = p_51254_ ? ParticleTypes.CAMPFIRE_SIGNAL_SMOKE : ParticleTypes.CAMPFIRE_COSY_SMOKE;
-      p_51252_.addAlwaysVisibleParticle(simpleparticletype, true, (double)p_51253_.getX() + 0.5D + randomsource.nextDouble() / 3.0D * (double)(randomsource.nextBoolean() ? 1 : -1), (double)p_51253_.getY() + randomsource.nextDouble() + randomsource.nextDouble(), (double)p_51253_.getZ() + 0.5D + randomsource.nextDouble() / 3.0D * (double)(randomsource.nextBoolean() ? 1 : -1), 0.0D, 0.07D, 0.0D);
+      p_51252_.addAlwaysVisibleParticle(simpleparticletype, true,
+            SectorVec3.fromBlockAndFraction(p_51253_.getX(), 0.5D + randomsource.nextDouble() / 3.0D
+                  * (double)(randomsource.nextBoolean() ? 1 : -1),
+                  (double)p_51253_.getY() + randomsource.nextDouble() + randomsource.nextDouble(),
+                  p_51253_.getZ(), 0.5D + randomsource.nextDouble() / 3.0D
+                        * (double)(randomsource.nextBoolean() ? 1 : -1)), 0.0D, 0.07D, 0.0D);
       if (p_51255_) {
-         p_51252_.addParticle(ParticleTypes.SMOKE, (double)p_51253_.getX() + 0.5D + randomsource.nextDouble() / 4.0D * (double)(randomsource.nextBoolean() ? 1 : -1), (double)p_51253_.getY() + 0.4D, (double)p_51253_.getZ() + 0.5D + randomsource.nextDouble() / 4.0D * (double)(randomsource.nextBoolean() ? 1 : -1), 0.0D, 0.005D, 0.0D);
+         p_51252_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_51253_.getX(),
+               0.5D + randomsource.nextDouble() / 4.0D * (double)(randomsource.nextBoolean() ? 1 : -1),
+               (double)p_51253_.getY() + 0.4D, p_51253_.getZ(),
+               0.5D + randomsource.nextDouble() / 4.0D * (double)(randomsource.nextBoolean() ? 1 : -1)),
+               0.0D, 0.005D, 0.0D);
       }
 
    }

@@ -22,6 +22,7 @@ import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import org.slf4j.Logger;
 
 public abstract class BaseSpawner {
@@ -54,11 +55,10 @@ public abstract class BaseSpawner {
          this.oSpin = this.spin;
       } else {
          RandomSource randomsource = p_151320_.getRandom();
-         double d0 = (double)p_151321_.getX() + randomsource.nextDouble();
-         double d1 = (double)p_151321_.getY() + randomsource.nextDouble();
-         double d2 = (double)p_151321_.getZ() + randomsource.nextDouble();
-         p_151320_.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0D, 0.0D, 0.0D);
-         p_151320_.addParticle(ParticleTypes.FLAME, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+         SectorVec3 position = SectorVec3.fromBlockAndFraction(p_151321_.getX(), randomsource.nextDouble(),
+               (double)p_151321_.getY() + randomsource.nextDouble(), p_151321_.getZ(), randomsource.nextDouble());
+         p_151320_.addParticle(ParticleTypes.SMOKE, position, 0.0D, 0.0D, 0.0D);
+         p_151320_.addParticle(ParticleTypes.FLAME, position, 0.0D, 0.0D, 0.0D);
          if (this.spawnDelay > 0) {
             --this.spawnDelay;
          }

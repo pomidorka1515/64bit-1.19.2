@@ -25,6 +25,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class VibrationListener implements GameEventListener {
@@ -94,18 +95,22 @@ public class VibrationListener implements GameEventListener {
          if (!this.config.isValidVibration(gameevent, gameevent$context)) {
             return false;
          } else {
-            Optional<Vec3> optional = this.listenerSource.getPosition(p_223767_);
+            Optional<SectorVec3> optional = this.listenerSource.exactPosition(p_223767_);
             if (optional.isEmpty()) {
                return false;
             } else {
-               Vec3 vec3 = p_223768_.source();
-               Vec3 vec31 = optional.get();
-               if (!this.config.shouldListen(p_223767_, this, new BlockPos(vec3), gameevent, gameevent$context)) {
+               Vec3 source = p_223768_.source();
+               Entity sourceEntity = gameevent$context.sourceEntity();
+               SectorVec3 exactSource = sourceEntity != null && sourceEntity.exactPosition() != null
+                     ? sourceEntity.exactPosition()
+                     : SectorVec3.fromApproximate(source.x, source.y, source.z);
+               SectorVec3 listener = optional.get();
+               if (!this.config.shouldListen(p_223767_, this, exactSource.blockPosition(), gameevent, gameevent$context)) {
                   return false;
-               } else if (isOccluded(p_223767_, vec3, vec31)) {
+               } else if (isOccluded(p_223767_, source, listener.toApproximateVec3())) {
                   return false;
                } else {
-                  this.scheduleSignal(p_223767_, gameevent, gameevent$context, vec3, vec31);
+                  this.scheduleSignal(p_223767_, gameevent, gameevent$context, exactSource, listener);
                   return true;
                }
             }
@@ -113,11 +118,16 @@ public class VibrationListener implements GameEventListener {
       }
    }
 
-   private void scheduleSignal(ServerLevel p_223770_, GameEvent p_223771_, GameEvent.Context p_223772_, Vec3 p_223773_, Vec3 p_223774_) {
-      this.receivingDistance = (float)p_223773_.distanceTo(p_223774_);
-      this.receivingEvent = new VibrationListener.ReceivingEvent(p_223771_, this.receivingDistance, p_223773_, p_223772_.sourceEntity());
+   private void scheduleSignal(ServerLevel level, GameEvent event, GameEvent.Context context,
+                               SectorVec3 source, SectorVec3 listener) {
+      this.receivingDistance = (float)source.relativeTo(listener).length();
+      // ReceivingEvent is vanilla persistence state.  Its Vec3 is a legacy
+      // compatibility mirror; the particle source below remains exact.
+      this.receivingEvent = new VibrationListener.ReceivingEvent(event, this.receivingDistance,
+            source.toApproximateVec3(), context.sourceEntity());
       this.travelTimeInTicks = Mth.floor(this.receivingDistance);
-      p_223770_.sendParticles(new VibrationParticleOption(this.listenerSource, this.travelTimeInTicks), p_223773_.x, p_223773_.y, p_223773_.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+      level.sendParticles(new VibrationParticleOption(this.listenerSource, this.travelTimeInTicks), source,
+            1, 0.0D, 0.0D, 0.0D, 0.0D);
       this.config.onSignalSchedule();
    }
 

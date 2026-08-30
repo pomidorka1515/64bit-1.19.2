@@ -6,6 +6,7 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class BlockPositionSource implements PositionSource {
@@ -22,6 +23,12 @@ public class BlockPositionSource implements PositionSource {
 
    public Optional<Vec3> getPosition(Level p_157708_) {
       return Optional.of(Vec3.atCenterOf(this.pos));
+   }
+
+   @Override
+   public Optional<SectorVec3> exactPosition(Level level) {
+      return Optional.of(SectorVec3.fromBlockAndFraction(this.pos.getX(), 0.5D,
+            (double)this.pos.getY() + 0.5D, this.pos.getZ(), 0.5D));
    }
 
    public PositionSourceType<?> getType() {

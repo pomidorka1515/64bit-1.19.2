@@ -9,6 +9,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -49,7 +50,8 @@ public class SmokerBlock extends AbstractFurnaceBlock {
             p_222444_.playLocalSound(d0, d1, d2, SoundEvents.SMOKER_SMOKE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
          }
 
-         p_222444_.addParticle(ParticleTypes.SMOKE, d0, d1 + 1.1D, d2, 0.0D, 0.0D, 0.0D);
+         p_222444_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_222445_.getX(),
+               0.5D, d1 + 1.1D, p_222445_.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);
       }
    }
 }

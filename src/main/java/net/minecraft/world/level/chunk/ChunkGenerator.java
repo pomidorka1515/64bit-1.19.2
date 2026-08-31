@@ -466,12 +466,24 @@ public abstract class ChunkGenerator {
          return false;
       } else {
          StructurePlacement structureplacement = structureset.placement();
+         long i = WorldBounds.addChunkOffset(p_223145_, -(long)p_223147_);
+         long j = WorldBounds.addChunkOffset(p_223145_, (long)p_223147_);
+         long k = WorldBounds.addChunkOffset(p_223146_, -(long)p_223147_);
+         long l = WorldBounds.addChunkOffset(p_223146_, (long)p_223147_);
 
-         for(long i = p_223145_ - p_223147_; i <= p_223145_ + p_223147_; ++i) {
-            for(long j = p_223146_ - p_223147_; j <= p_223146_ + p_223147_; ++j) {
-               if (structureplacement.isStructureChunk(this, p_223143_, p_223144_, i, j)) {
+         for(long i1 = i; ; i1 = WorldBounds.addChunkOffset(i1, 1L)) {
+            for(long j1 = k; ; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
+               if (structureplacement.isStructureChunk(this, p_223143_, p_223144_, i1, j1)) {
                   return true;
                }
+
+               if (j1 == l) {
+                  break;
+               }
+            }
+
+            if (i1 == j) {
+               break;
             }
          }
 

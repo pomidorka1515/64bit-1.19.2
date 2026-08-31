@@ -281,8 +281,8 @@ public final class NaturalSpawner {
 
    private static BlockPos getRandomPosWithin(Level p_47063_, LevelChunk p_47064_) {
       ChunkPos chunkpos = p_47064_.getPos();
-      long i = chunkpos.getMinBlockX() + p_47063_.random.nextInt(16);
-      long j = chunkpos.getMinBlockZ() + p_47063_.random.nextInt(16);
+      long i = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), p_47063_.random.nextInt(16));
+      long j = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), p_47063_.random.nextInt(16));
       int k = p_47064_.getHeight(Heightmap.Types.WORLD_SURFACE, i, j) + 1;
       int l = Mth.randomBetweenInclusive(p_47063_.random, p_47063_.getMinBuildHeight(), k);
       return new BlockPos(i, l, j);
@@ -333,8 +333,8 @@ public final class NaturalSpawner {
       MobSpawnSettings mobspawnsettings = p_220452_.value().getMobSettings();
       WeightedRandomList<MobSpawnSettings.SpawnerData> weightedrandomlist = mobspawnsettings.getMobs(MobCategory.CREATURE);
       if (!weightedrandomlist.isEmpty()) {
-         long i = /* (long) (double) */(p_220453_.getMinBlockX()); // Prevent chunk out of bound
-         long j = /* (long) (double) */(p_220453_.getMinBlockZ());
+         long i = p_220453_.getMinBlockX();
+         long j = p_220453_.getMinBlockZ();
 
          while(p_220454_.nextFloat() < mobspawnsettings.getCreatureProbability()) {
             Optional<MobSpawnSettings.SpawnerData> optional = weightedrandomlist.getRandom(p_220454_);
@@ -342,8 +342,8 @@ public final class NaturalSpawner {
                MobSpawnSettings.SpawnerData mobspawnsettings$spawnerdata = optional.get();
                int k = mobspawnsettings$spawnerdata.minCount + p_220454_.nextInt(1 + mobspawnsettings$spawnerdata.maxCount - mobspawnsettings$spawnerdata.minCount);
                SpawnGroupData spawngroupdata = null;
-               long l = /* (long) (double) */ (i + p_220454_.nextInt(16));
-               long i1 = /* (long) (double) */ (j + p_220454_.nextInt(16));
+               long l = WorldBounds.addBlockOffset(i, p_220454_.nextInt(16));
+               long i1 = WorldBounds.addBlockOffset(j, p_220454_.nextInt(16));
                long j1 = l;
                long k1 = i1;
 
@@ -379,10 +379,20 @@ public final class NaturalSpawner {
                         }
                      }
 
-                     l += p_220454_.nextInt(5) - p_220454_.nextInt(5);
-
-                     for(i1 += p_220454_.nextInt(5) - p_220454_.nextInt(5); l < i || l >= i + 16 || i1 < j || i1 >= j + 16; i1 = k1 + p_220454_.nextInt(5) - p_220454_.nextInt(5)) {
-                        l = j1 + p_220454_.nextInt(5) - p_220454_.nextInt(5);
+                     l = WorldBounds.addBlockOffset(l, p_220454_.nextInt(5) - p_220454_.nextInt(5));
+                     i1 = WorldBounds.addBlockOffset(i1, p_220454_.nextInt(5) - p_220454_.nextInt(5));
+                     if (!isInGenerationChunk(l, i1, i, j)) {
+                        // Vanilla's unbounded retry loop assumes that the chunk's
+                        // upper edge can be expressed as min + 16. At Long.MAX_VALUE
+                        // that addition wraps, so every retry remains "outside" and
+                        // the worker spins forever. A single bounded re-roll keeps
+                        // the position in this chunk without coordinate overflow.
+                        l = WorldBounds.addBlockOffset(j1, p_220454_.nextInt(5) - p_220454_.nextInt(5));
+                        i1 = WorldBounds.addBlockOffset(k1, p_220454_.nextInt(5) - p_220454_.nextInt(5));
+                        if (!isInGenerationChunk(l, i1, i, j)) {
+                           l = j1;
+                           i1 = k1;
+                        }
                      }
                   }
                }
@@ -392,27 +402,33 @@ public final class NaturalSpawner {
       }
    }
 
+   private static boolean isInGenerationChunk(long p_220455_, long p_220456_, long p_220457_, long p_220458_) {
+      return WorldBounds.isWithinChunk(p_220455_, p_220457_) && WorldBounds.isWithinChunk(p_220456_, p_220458_);
+   }
+
    private static double getSpawnCoordinate(long p_220455_, long p_220456_, float p_220457_) {
-      double d0 = Mth.clamp((double)p_220455_, (double)p_220456_ + (double)p_220457_, (double)p_220456_ + 16.0D - (double)p_220457_);
-      long i = SectionPos.blockToSectionCoord(p_220456_);
-      if (SectionPos.blockToSectionCoord(Mth.lfloor(d0)) == i) {
+      long i = WorldBounds.addBlockOffset(p_220456_, 15L);
+      long j = Math.max(p_220456_, Math.min(p_220455_, i));
+      // Form the upper limit from the last valid block, rather than min + 16,
+      // because that long addition wraps in the final chunk.
+      double d0 = WorldBounds.clampAbsoluteDouble(Mth.clamp((double)j, (double)p_220456_ + (double)p_220457_, (double)i + 1.0D - (double)p_220457_));
+      long k = SectionPos.blockToSectionCoord(p_220456_);
+      if (SectionPos.blockToSectionCoord(Mth.lfloor(d0)) == k) {
          return d0;
       } else {
-         // At large coordinates, converting the clamped block coordinate to a
-         // double can round it into the adjacent chunk. Use the nearest exactly
-         // representable coordinate that remains in this chunk instead.
-         long j = Math.max(p_220456_, Math.min(p_220455_, p_220456_ + 15L));
-
-         for(int k = 0; k < 16; ++k) {
-            long l = j - (long)k;
-            if (l >= p_220456_ && SectionPos.blockToSectionCoord(Mth.lfloor((double)l)) == i) {
-               return (double)l;
+         // At large coordinates, converting a block coordinate to a double can
+         // round it into the adjacent chunk. Search the finite chunk interval
+         // using WorldBounds so the final chunk has no overflowing upper bound.
+         for(int l = 0; l < 16; ++l) {
+            long i1 = WorldBounds.subtractBlockOffset(j, (long)l);
+            if (WorldBounds.isWithinChunk(i1, p_220456_) && SectionPos.blockToSectionCoord(Mth.lfloor((double)i1)) == k) {
+               return (double)i1;
             }
 
-            if (k != 0) {
-               l = j + (long)k;
-               if (l < p_220456_ + 16L && SectionPos.blockToSectionCoord(Mth.lfloor((double)l)) == i) {
-                  return (double)l;
+            if (l != 0) {
+               i1 = WorldBounds.addBlockOffset(j, (long)l);
+               if (WorldBounds.isWithinChunk(i1, p_220456_) && SectionPos.blockToSectionCoord(Mth.lfloor((double)i1)) == k) {
+                  return (double)i1;
                }
             }
          }

@@ -129,6 +129,15 @@ public final class WorldBounds {
       return addBlockOffset(block, (long)offset);
    }
 
+   /**
+    * Returns whether a block coordinate belongs to the 16-block chunk beginning
+    * at {@code chunkMinBlock}.  The upper edge is calculated saturating so the
+    * last chunk can be checked without making {@code min + 16} wrap negative.
+    */
+   public static boolean isWithinChunk(long block, long chunkMinBlock) {
+      return block >= chunkMinBlock && block <= addBlockOffset(chunkMinBlock, 15L);
+   }
+
    /** Subtracts a block offset without wrapping at a signed-long edge. */
    public static long subtractBlockOffset(long block, long offset) {
       if (offset == Long.MIN_VALUE) return block < 0L ? MAX_BLOCK + block + 1L : MAX_BLOCK;

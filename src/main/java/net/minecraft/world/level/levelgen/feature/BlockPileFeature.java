@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,9 +28,9 @@ public class BlockPileFeature extends Feature<BlockPileConfiguration> {
          int j = 2 + randomsource.nextInt(2);
 
          for(BlockPos blockpos1 : BlockPos.betweenClosed(blockpos.offset(-i, 0, -j), blockpos.offset(i, 1, j))) {
-            long k = blockpos.getX() - blockpos1.getX();
-            long l = blockpos.getZ() - blockpos1.getZ();
-            if ((float)(k * k + l * l) <= randomsource.nextFloat() * 10.0F - randomsource.nextFloat() * 6.0F) {
+            double k = WorldBounds.signedDifference(blockpos.getX(), blockpos1.getX());
+            double l = WorldBounds.signedDifference(blockpos.getZ(), blockpos1.getZ());
+            if (k * k + l * l <= (double)(randomsource.nextFloat() * 10.0F - randomsource.nextFloat() * 6.0F)) {
                this.tryPlaceBlock(worldgenlevel, blockpos1, randomsource, blockpileconfiguration);
             } else if ((double)randomsource.nextFloat() < 0.031D) {
                this.tryPlaceBlock(worldgenlevel, blockpos1, randomsource, blockpileconfiguration);

@@ -326,28 +326,41 @@ public class BlockPos extends Vec3i {
    }
 
    public static Iterable<BlockPos> betweenClosed(long p_121977_, int p_121978_, long p_121979_, long p_121980_, int p_121981_, long p_121982_) {
-	  long i = p_121980_ - p_121977_ + 1;
-      int j = p_121981_ - p_121978_ + 1;
-      long k = p_121982_ - p_121979_ + 1;
-      long l = i * j * k;
-      return () -> {
-         return new AbstractIterator<BlockPos>() {
-            private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-            private int index;
+      if (p_121977_ > p_121980_ || p_121978_ > p_121981_ || p_121979_ > p_121982_) {
+         return java.util.Collections::emptyIterator;
+      }
 
-            protected BlockPos computeNext() {
-               if (this.index == l) {
-                  return this.endOfData();
-               } else {
-            	  long i1 = this.index % i;
-            	  long j1 = this.index / i;
-            	  int k1 = (int) (j1 % j);
-            	  long l1 = j1 / j;
-                  ++this.index;
-                  return this.cursor.set(p_121977_ + i1, p_121978_ + k1, p_121979_ + l1);
-               }
+      // Iterate endpoint-first instead of deriving a flattened count.  The old
+      // count used signed-long subtraction/multiplication and an int index, so
+      // an edge range could wrap into an effectively endless generator loop.
+      return () -> new AbstractIterator<BlockPos>() {
+         private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+         private long x = p_121977_;
+         private int y = p_121978_;
+         private long z = p_121979_;
+         private boolean done;
+
+         protected BlockPos computeNext() {
+            if (this.done) {
+               return this.endOfData();
             }
-         };
+
+            this.cursor.set(this.x, this.y, this.z);
+            if (this.x != p_121980_) {
+               this.x = WorldBounds.addBlockOffset(this.x, 1L);
+            } else if (this.y != p_121981_) {
+               this.x = p_121977_;
+               ++this.y;
+            } else if (this.z != p_121982_) {
+               this.x = p_121977_;
+               this.y = p_121978_;
+               this.z = WorldBounds.addBlockOffset(this.z, 1L);
+            } else {
+               this.done = true;
+            }
+
+            return this.cursor;
+         }
       };
    }
 

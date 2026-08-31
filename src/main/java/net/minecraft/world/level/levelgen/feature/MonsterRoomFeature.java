@@ -9,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -92,9 +93,9 @@ public class MonsterRoomFeature extends Feature<NoneFeatureConfiguration> {
 
          for(int l3 = 0; l3 < 2; ++l3) {
             for(int j4 = 0; j4 < 3; ++j4) {
-               long l4 = blockpos.getX() + randomsource.nextInt(j * 2 + 1) - j;
+               long l4 = WorldBounds.addBlockOffset(blockpos.getX(), randomsource.nextInt(j * 2 + 1) - j);
                int i5 = blockpos.getY();
-               long j5 = blockpos.getZ() + randomsource.nextInt(k1 * 2 + 1) - k1;
+               long j5 = WorldBounds.addBlockOffset(blockpos.getZ(), randomsource.nextInt(k1 * 2 + 1) - k1);
                BlockPos blockpos3 = new BlockPos(l4, i5, j5);
                if (worldgenlevel.isEmptyBlock(blockpos3)) {
                   int j3 = 0;

@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.ConstantInt;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.valueproviders.IntProvider;
 
 public class RandomOffsetPlacement extends PlacementModifier {
@@ -37,9 +38,9 @@ public class RandomOffsetPlacement extends PlacementModifier {
    }
 
    public Stream<BlockPos> getPositions(PlacementContext p_226393_, RandomSource p_226394_, BlockPos p_226395_) {
-      long i = p_226395_.getX() + this.xzSpread.sample(p_226394_);
+      long i = WorldBounds.addBlockOffset(p_226395_.getX(), this.xzSpread.sample(p_226394_));
       int j = p_226395_.getY() + this.ySpread.sample(p_226394_);
-      long k = p_226395_.getZ() + this.xzSpread.sample(p_226394_);
+      long k = WorldBounds.addBlockOffset(p_226395_.getZ(), this.xzSpread.sample(p_226394_));
       return Stream.of(new BlockPos(i, j, k));
    }
 

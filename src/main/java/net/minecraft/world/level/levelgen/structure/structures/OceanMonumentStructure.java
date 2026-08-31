@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
@@ -42,8 +43,8 @@ public class OceanMonumentStructure extends Structure {
    }
 
    private static StructurePiece createTopPiece(ChunkPos p_228961_, WorldgenRandom p_228962_) {
-      long i = p_228961_.getMinBlockX() - 29;
-      long j = p_228961_.getMinBlockZ() - 29;
+      long i = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockX(), 29L);
+      long j = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockZ(), 29L);
       Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_228962_);
       return new OceanMonumentPieces.MonumentBuilding(p_228962_, i, j, direction);
    }

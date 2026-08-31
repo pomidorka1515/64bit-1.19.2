@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
@@ -33,7 +34,7 @@ public class FossilFeature extends Feature<FossilFeatureConfiguration> {
       StructureTemplate structuretemplate = structuretemplatemanager.getOrCreate(fossilfeatureconfiguration.fossilStructures.get(i));
       StructureTemplate structuretemplate1 = structuretemplatemanager.getOrCreate(fossilfeatureconfiguration.overlayStructures.get(i));
       ChunkPos chunkpos = new ChunkPos(blockpos);
-      BoundingBox boundingbox = new BoundingBox(chunkpos.getMinBlockX() - 16, worldgenlevel.getMinBuildHeight(), chunkpos.getMinBlockZ() - 16, chunkpos.getMaxBlockX() + 16, worldgenlevel.getMaxBuildHeight(), chunkpos.getMaxBlockZ() + 16);
+      BoundingBox boundingbox = new BoundingBox(WorldBounds.subtractBlockOffset(chunkpos.getMinBlockX(), 16L), worldgenlevel.getMinBuildHeight(), WorldBounds.subtractBlockOffset(chunkpos.getMinBlockZ(), 16L), WorldBounds.addBlockOffset(chunkpos.getMaxBlockX(), 16L), worldgenlevel.getMaxBuildHeight(), WorldBounds.addBlockOffset(chunkpos.getMaxBlockZ(), 16L));
       StructurePlaceSettings structureplacesettings = (new StructurePlaceSettings()).setRotation(rotation).setBoundingBox(boundingbox).setRandom(randomsource);
       Vec3i vec3i = structuretemplate.getSize(rotation);
       BlockPos blockpos1 = blockpos.offset(-vec3i.getX() / 2, 0, -vec3i.getZ() / 2);
@@ -41,7 +42,7 @@ public class FossilFeature extends Feature<FossilFeatureConfiguration> {
 
       for(int k = 0; k < vec3i.getX(); ++k) {
          for(int l = 0; l < vec3i.getZ(); ++l) {
-            j = Math.min(j, worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, blockpos1.getX() + k, blockpos1.getZ() + l));
+            j = Math.min(j, worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, WorldBounds.addBlockOffset(blockpos1.getX(), k), WorldBounds.addBlockOffset(blockpos1.getZ(), l)));
          }
       }
 

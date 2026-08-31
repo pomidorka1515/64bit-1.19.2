@@ -23,6 +23,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
@@ -93,11 +94,24 @@ public class LegacyStructureDataHandler {
             int i = 8;
             ObjectList<ChunkPos> longlist = new ObjectArrayList<>();
 
-            for(long j = chunkpos.x - 8; j <= chunkpos.x + 8; ++j) {
-               for(long k = chunkpos.z - 8; k <= chunkpos.z + 8; ++k) {
-                  if (this.hasLegacyStart(j, k, s)) {
-                     longlist.add(new ChunkPos(j, k));
+            long j = WorldBounds.addChunkOffset(chunkpos.x, -8L);
+            long k = WorldBounds.addChunkOffset(chunkpos.x, 8L);
+            long l = WorldBounds.addChunkOffset(chunkpos.z, -8L);
+            long i1 = WorldBounds.addChunkOffset(chunkpos.z, 8L);
+
+            for(long j1 = j; ; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
+               for(long k1 = l; ; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
+                  if (this.hasLegacyStart(j1, k1, s)) {
+                     longlist.add(new ChunkPos(j1, k1));
                   }
+
+                  if (k1 == i1) {
+                     break;
+                  }
+               }
+
+               if (j1 == k) {
+                  break;
                }
             }
 

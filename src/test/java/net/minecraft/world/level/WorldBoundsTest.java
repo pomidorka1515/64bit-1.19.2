@@ -1,9 +1,15 @@
 package net.minecraft.world.level;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.junit.jupiter.api.Test;
@@ -54,6 +60,29 @@ class WorldBoundsTest {
       assertEquals(1.0D, WorldBounds.clampNoise(Double.POSITIVE_INFINITY));
       assertEquals(WorldBounds.MAX_BLOCK - 15L, WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK));
       assertEquals(WorldBounds.MIN_BLOCK, WorldBounds.chunkToBlock(WorldBounds.MIN_CHUNK));
+   }
+
+   @Test
+   void finalChunkMembershipDoesNotWrapItsUpperBound() {
+      long firstBlock = WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK);
+      assertTrue(WorldBounds.isWithinChunk(firstBlock, firstBlock));
+      assertTrue(WorldBounds.isWithinChunk(WorldBounds.MAX_BLOCK, firstBlock));
+      assertFalse(WorldBounds.isWithinChunk(WorldBounds.MIN_BLOCK, firstBlock));
+   }
+
+   @Test
+   void blockRangesAtWorldEdgesReachTheirEndpointThenStop() {
+      List<BlockPos> atMaximum = new ArrayList<>();
+      BlockPos.betweenClosed(Long.MAX_VALUE - 1L, 0, Long.MAX_VALUE - 1L, Long.MAX_VALUE, 0, Long.MAX_VALUE).forEach(atMaximum::add);
+      assertEquals(4, atMaximum.size());
+      assertEquals(new BlockPos(Long.MAX_VALUE, 0, Long.MAX_VALUE), atMaximum.get(3));
+
+      List<BlockPos> atMinimum = new ArrayList<>();
+      BlockPos.betweenClosed(Long.MIN_VALUE, 0, Long.MIN_VALUE, Long.MIN_VALUE + 1L, 0, Long.MIN_VALUE + 1L).forEach(atMinimum::add);
+      assertEquals(4, atMinimum.size());
+      assertEquals(new BlockPos(Long.MIN_VALUE + 1L, 0, Long.MIN_VALUE + 1L), atMinimum.get(3));
+
+      assertFalse(BlockPos.betweenClosed(Long.MAX_VALUE, 0, 0L, Long.MIN_VALUE, 0, 0L).iterator().hasNext());
    }
 
    @Test

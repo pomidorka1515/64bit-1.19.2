@@ -2,6 +2,7 @@ package net.minecraft.world.level.levelgen.feature;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.WallTorchBlock;
@@ -24,7 +25,7 @@ public class EndPodiumFeature extends Feature<NoneFeatureConfiguration> {
       BlockPos blockpos = p_159723_.origin();
       WorldGenLevel worldgenlevel = p_159723_.level();
 
-      for(BlockPos blockpos1 : BlockPos.betweenClosed(new BlockPos(blockpos.getX() - 4, blockpos.getY() - 1, blockpos.getZ() - 4), new BlockPos(blockpos.getX() + 4, blockpos.getY() + 32, blockpos.getZ() + 4))) {
+      for(BlockPos blockpos1 : BlockPos.betweenClosed(new BlockPos(WorldBounds.subtractBlockOffset(blockpos.getX(), 4L), blockpos.getY() - 1, WorldBounds.subtractBlockOffset(blockpos.getZ(), 4L)), new BlockPos(WorldBounds.addBlockOffset(blockpos.getX(), 4L), blockpos.getY() + 32, WorldBounds.addBlockOffset(blockpos.getZ(), 4L)))) {
          boolean flag = blockpos1.closerThan(blockpos, 2.5D);
          if (flag || blockpos1.closerThan(blockpos, 3.5D)) {
             if (blockpos1.getY() < blockpos.getY()) {

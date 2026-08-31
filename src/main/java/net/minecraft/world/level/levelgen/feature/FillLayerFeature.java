@@ -2,6 +2,7 @@ package net.minecraft.world.level.levelgen.feature;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.levelgen.feature.configurations.LayerConfiguration;
 
@@ -18,8 +19,8 @@ public class FillLayerFeature extends Feature<LayerConfiguration> {
 
       for(int i = 0; i < 16; ++i) {
          for(int j = 0; j < 16; ++j) {
-            long k = blockpos.getX() + i;
-            long l = blockpos.getZ() + j;
+            long k = WorldBounds.addBlockOffset(blockpos.getX(), i);
+            long l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
             int i1 = worldgenlevel.getMinBuildHeight() + layerconfiguration.height;
             blockpos$mutableblockpos.set(k, i1, l);
             if (worldgenlevel.getBlockState(blockpos$mutableblockpos).isAir()) {

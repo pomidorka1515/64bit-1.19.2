@@ -18,6 +18,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -160,12 +161,28 @@ public class RuinedPortalPiece extends TemplateStructurePiece {
    }
 
    private void addNetherrackDripColumnsBelowPortal(RandomSource p_229118_, LevelAccessor p_229119_) {
-      for(long i = this.boundingBox.minX() + 1; i < this.boundingBox.maxX(); ++i) {
-         for(long j = this.boundingBox.minZ() + 1; j < this.boundingBox.maxZ(); ++j) {
-            BlockPos blockpos = new BlockPos(i, this.boundingBox.minY(), j);
+      long i = WorldBounds.addBlockOffset(this.boundingBox.minX(), 1L);
+      long j = WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L);
+      long k = WorldBounds.addBlockOffset(this.boundingBox.minZ(), 1L);
+      long l = WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L);
+      if (i > j || k > l) {
+         return;
+      }
+
+      for(long i1 = i; ; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
+         for(long j1 = k; ; j1 = WorldBounds.addBlockOffset(j1, 1L)) {
+            BlockPos blockpos = new BlockPos(i1, this.boundingBox.minY(), j1);
             if (p_229119_.getBlockState(blockpos).is(Blocks.NETHERRACK)) {
                this.addNetherrackDripColumn(p_229118_, p_229119_, blockpos.below());
             }
+
+            if (j1 == l) {
+               break;
+            }
+         }
+
+         if (i1 == j) {
+            break;
          }
       }
 
@@ -196,17 +213,22 @@ public class RuinedPortalPiece extends TemplateStructurePiece {
       int j1 = 3;
       BlockPos.MutableBlockPos blockpos$mutableblockpos = BlockPos.ZERO.mutable();
 
-      for(long k1 = i - k; k1 <= i + k; ++k1) {
-         for(long l1 = j - k; l1 <= j + k; ++l1) {
-            long i2 = Math.abs(k1 - i) + Math.abs(l1 - j);
-            long j2 = Math.max(0, i2 + i1);
-            if (j2 < k) {
-               float f = afloat[(int) j2];
+      long k1 = WorldBounds.subtractBlockOffset(i, k);
+      long l1 = WorldBounds.addBlockOffset(i, k);
+      long i2 = WorldBounds.subtractBlockOffset(j, k);
+      long j2 = WorldBounds.addBlockOffset(j, k);
+
+      for(long k2 = k1; ; k2 = WorldBounds.addBlockOffset(k2, 1L)) {
+         for(long l2 = i2; ; l2 = WorldBounds.addBlockOffset(l2, 1L)) {
+            double i3 = WorldBounds.distance(k2, i) + WorldBounds.distance(l2, j);
+            double j3 = Math.max(0.0D, i3 + (double)i1);
+            if (j3 < (double)k) {
+               float f = afloat[(int)j3];
                if (p_229179_.nextDouble() < (double)f) {
-                  int k2 = getSurfaceY(p_229180_, k1, l1, this.verticalPlacement);
-                  int l2 = flag ? k2 : Math.min(this.boundingBox.minY(), k2);
-                  blockpos$mutableblockpos.set(k1, l2, l1);
-                  if (Math.abs(l2 - this.boundingBox.minY()) <= 3 && this.canBlockBeReplacedByNetherrackOrMagma(p_229180_, blockpos$mutableblockpos)) {
+                  int k3 = getSurfaceY(p_229180_, k2, l2, this.verticalPlacement);
+                  int l3 = flag ? k3 : Math.min(this.boundingBox.minY(), k3);
+                  blockpos$mutableblockpos.set(k2, l3, l2);
+                  if (Math.abs(l3 - this.boundingBox.minY()) <= 3 && this.canBlockBeReplacedByNetherrackOrMagma(p_229180_, blockpos$mutableblockpos)) {
                      this.placeNetherrackOrMagma(p_229179_, p_229180_, blockpos$mutableblockpos);
                      if (this.properties.overgrown) {
                         this.maybeAddLeavesAbove(p_229179_, p_229180_, blockpos$mutableblockpos);
@@ -216,6 +238,14 @@ public class RuinedPortalPiece extends TemplateStructurePiece {
                   }
                }
             }
+
+            if (l2 == j2) {
+               break;
+            }
+         }
+
+         if (k2 == l1) {
+            break;
          }
       }
 

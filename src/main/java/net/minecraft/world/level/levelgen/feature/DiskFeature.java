@@ -3,6 +3,7 @@ package net.minecraft.world.level.levelgen.feature;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.DiskConfiguration;
@@ -25,9 +26,9 @@ public class DiskFeature extends Feature<DiskConfiguration> {
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
       for(BlockPos blockpos1 : BlockPos.betweenClosed(blockpos.offset(-l, 0, -l), blockpos.offset(l, 0, l))) {
-         long i1 = blockpos1.getX() - blockpos.getX();
-         long j1 = blockpos1.getZ() - blockpos.getZ();
-         if (i1 * i1 + j1 * j1 <= l * l) {
+         double i1 = WorldBounds.signedDifference(blockpos1.getX(), blockpos.getX());
+         double j1 = WorldBounds.signedDifference(blockpos1.getZ(), blockpos.getZ());
+         if (i1 * i1 + j1 * j1 <= (double)(l * l)) {
             flag |= this.placeColumn(diskconfiguration, worldgenlevel, randomsource, j, k, blockpos$mutableblockpos.set(blockpos1));
          }
       }

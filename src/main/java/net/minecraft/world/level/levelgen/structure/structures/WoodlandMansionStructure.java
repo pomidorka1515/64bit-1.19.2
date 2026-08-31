@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
@@ -45,12 +46,17 @@ public class WoodlandMansionStructure extends Structure {
       BoundingBox boundingbox = p_230233_.calculateBoundingBox();
       int j = boundingbox.minY();
 
-      for(long k = p_230231_.minX(); k <= p_230231_.maxX(); ++k) {
-         for(long l = p_230231_.minZ(); l <= p_230231_.maxZ(); ++l) {
-            blockpos$mutableblockpos.set(k, j, l);
+      long k = p_230231_.minX();
+      long l = p_230231_.maxX();
+      long i1 = p_230231_.minZ();
+      long j1 = p_230231_.maxZ();
+
+      for(long k1 = k; ; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
+         for(long l1 = i1; ; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
+            blockpos$mutableblockpos.set(k1, j, l1);
             if (!p_230227_.isEmptyBlock(blockpos$mutableblockpos) && boundingbox.isInside(blockpos$mutableblockpos) && p_230233_.isInsidePiece(blockpos$mutableblockpos)) {
-               for(int i1 = j - 1; i1 > i; --i1) {
-                  blockpos$mutableblockpos.setY(i1);
+               for(int i2 = j - 1; i2 > i; --i2) {
+                  blockpos$mutableblockpos.setY(i2);
                   if (!p_230227_.isEmptyBlock(blockpos$mutableblockpos) && !p_230227_.getBlockState(blockpos$mutableblockpos).getMaterial().isLiquid()) {
                      break;
                   }
@@ -58,6 +64,14 @@ public class WoodlandMansionStructure extends Structure {
                   p_230227_.setBlock(blockpos$mutableblockpos, Blocks.COBBLESTONE.defaultBlockState(), 2);
                }
             }
+
+            if (l1 == j1) {
+               break;
+            }
+         }
+
+         if (k1 == l) {
+            break;
          }
       }
 

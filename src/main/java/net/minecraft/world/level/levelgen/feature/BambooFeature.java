@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.BambooBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -36,12 +37,12 @@ public class BambooFeature extends Feature<ProbabilityFeatureConfiguration> {
             if (randomsource.nextFloat() < probabilityfeatureconfiguration.probability) {
                int k = randomsource.nextInt(4) + 1;
 
-               for(long l = blockpos.getX() - k; l <= blockpos.getX() + k; ++l) {
-                  for(long i1 = blockpos.getZ() - k; i1 <= blockpos.getZ() + k; ++i1) {
-                	 long j1 = l - blockpos.getX();
-                     long k1 = i1 - blockpos.getZ();
-                     if (j1 * j1 + k1 * k1 <= k * k) {
-                        blockpos$mutableblockpos1.set(l, worldgenlevel.getHeight(Heightmap.Types.WORLD_SURFACE, l, i1) - 1, i1);
+               for(int l = -k; l <= k; ++l) {
+                  long i1 = WorldBounds.addBlockOffset(blockpos.getX(), l);
+                  for(int j1 = -k; j1 <= k; ++j1) {
+                     long k1 = WorldBounds.addBlockOffset(blockpos.getZ(), j1);
+                     if (l * l + j1 * j1 <= k * k) {
+                        blockpos$mutableblockpos1.set(i1, worldgenlevel.getHeight(Heightmap.Types.WORLD_SURFACE, i1, k1) - 1, k1);
                         if (isDirt(worldgenlevel.getBlockState(blockpos$mutableblockpos1))) {
                            worldgenlevel.setBlock(blockpos$mutableblockpos1, Blocks.PODZOL.defaultBlockState(), 2);
                         }

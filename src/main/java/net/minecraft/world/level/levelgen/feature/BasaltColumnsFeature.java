@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -39,7 +40,7 @@ public class BasaltColumnsFeature extends Feature<ColumnFeatureConfiguration> {
          int l = flag ? 50 : 15;
          boolean flag1 = false;
 
-         for(BlockPos blockpos1 : BlockPos.randomBetweenClosed(randomsource, l, blockpos.getX() - k, blockpos.getY(), blockpos.getZ() - k, blockpos.getX() + k, blockpos.getY(), blockpos.getZ() + k)) {
+         for(BlockPos blockpos1 : BlockPos.randomBetweenClosed(randomsource, l, WorldBounds.subtractBlockOffset(blockpos.getX(), k), blockpos.getY(), WorldBounds.subtractBlockOffset(blockpos.getZ(), k), WorldBounds.addBlockOffset(blockpos.getX(), k), blockpos.getY(), WorldBounds.addBlockOffset(blockpos.getZ(), k))) {
             int i1 = j - blockpos1.distManhattan(blockpos);
             if (i1 >= 0) {
                flag1 |= this.placeColumn(worldgenlevel, i, blockpos1, i1, columnfeatureconfiguration.reach().sample(randomsource));
@@ -53,7 +54,7 @@ public class BasaltColumnsFeature extends Feature<ColumnFeatureConfiguration> {
    private boolean placeColumn(LevelAccessor p_65168_, int p_65169_, BlockPos p_65170_, int p_65171_, int p_65172_) {
       boolean flag = false;
 
-      for(BlockPos blockpos : BlockPos.betweenClosed(p_65170_.getX() - p_65172_, p_65170_.getY(), p_65170_.getZ() - p_65172_, p_65170_.getX() + p_65172_, p_65170_.getY(), p_65170_.getZ() + p_65172_)) {
+      for(BlockPos blockpos : BlockPos.betweenClosed(WorldBounds.subtractBlockOffset(p_65170_.getX(), p_65172_), p_65170_.getY(), WorldBounds.subtractBlockOffset(p_65170_.getZ(), p_65172_), WorldBounds.addBlockOffset(p_65170_.getX(), p_65172_), p_65170_.getY(), WorldBounds.addBlockOffset(p_65170_.getZ(), p_65172_))) {
          int i = blockpos.distManhattan(p_65170_);
          BlockPos blockpos1 = isAirOrLavaOcean(p_65168_, p_65169_, blockpos) ? findSurface(p_65168_, p_65169_, blockpos.mutable(), i) : findAir(p_65168_, blockpos.mutable(), i);
          if (blockpos1 != null) {

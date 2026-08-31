@@ -11,6 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelSimulatedReader;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
@@ -57,9 +58,9 @@ public class FancyTrunkPlacer extends TrunkPlacer {
                BlockPos blockpos = p_226097_.offset(d4, (double)(j1 - 1), d5);
                BlockPos blockpos1 = blockpos.above(5);
                if (this.makeLimb(p_226093_, p_226094_, p_226095_, blockpos, blockpos1, false, p_226098_)) {
-                  long l1 = p_226097_.getX() - blockpos.getX();
-                  long i2 = p_226097_.getZ() - blockpos.getZ();
-                  double d6 = (double)blockpos.getY() - Math.sqrt((double)(l1 * l1 + i2 * i2)) * 0.381D;
+                  double l1 = WorldBounds.signedDifference(p_226097_.getX(), blockpos.getX());
+                  double i2 = WorldBounds.signedDifference(p_226097_.getZ(), blockpos.getZ());
+                  double d6 = (double)blockpos.getY() - Math.sqrt(l1 * l1 + i2 * i2) * 0.381D;
                   int j2 = d6 > (double)i1 ? i1 : (int)d6;
                   BlockPos blockpos2 = new BlockPos(p_226097_.getX(), j2, p_226097_.getZ());
                   if (this.makeLimb(p_226093_, p_226094_, p_226095_, blockpos2, blockpos, false, p_226098_)) {
@@ -117,10 +118,10 @@ public class FancyTrunkPlacer extends TrunkPlacer {
 
    private Direction.Axis getLogAxis(BlockPos p_70130_, BlockPos p_70131_) {
       Direction.Axis direction$axis = Direction.Axis.Y;
-      long i = Math.abs(p_70131_.getX() - p_70130_.getX());
-      long j = Math.abs(p_70131_.getZ() - p_70130_.getZ());
-      long k = Math.max(i, j);
-      if (k > 0) {
+      double i = WorldBounds.distance(p_70131_.getX(), p_70130_.getX());
+      double j = WorldBounds.distance(p_70131_.getZ(), p_70130_.getZ());
+      double k = Math.max(i, j);
+      if (k > 0.0D) {
          if (i == k) {
             direction$axis = Direction.Axis.X;
          } else {

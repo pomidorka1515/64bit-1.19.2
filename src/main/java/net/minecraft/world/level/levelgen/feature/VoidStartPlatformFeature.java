@@ -3,6 +3,7 @@ package net.minecraft.world.level.levelgen.feature;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
@@ -17,8 +18,8 @@ public class VoidStartPlatformFeature extends Feature<NoneFeatureConfiguration> 
       super(p_67354_);
    }
 
-   private static long checkerboardDistance(long p_67356_, long p_67357_, long p_67358_, long p_67359_) {
-      return Math.max(Math.abs(p_67356_ - p_67358_), Math.abs(p_67357_ - p_67359_));
+   private static double checkerboardDistance(long p_67356_, long p_67357_, long p_67358_, long p_67359_) {
+      return Math.max(WorldBounds.distance(p_67356_, p_67358_), WorldBounds.distance(p_67357_, p_67359_));
    }
 
    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> p_160633_) {
@@ -30,10 +31,14 @@ public class VoidStartPlatformFeature extends Feature<NoneFeatureConfiguration> 
          BlockPos blockpos = PLATFORM_OFFSET.atY(p_160633_.origin().getY() + PLATFORM_OFFSET.getY());
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-         for(long i = chunkpos.getMinBlockZ(); i <= chunkpos.getMaxBlockZ(); ++i) {
-            for(long j = chunkpos.getMinBlockX(); j <= chunkpos.getMaxBlockX(); ++j) {
-               if (checkerboardDistance(blockpos.getX(), blockpos.getZ(), j, i) <= 16) {
-                  blockpos$mutableblockpos.set(j, blockpos.getY(), i);
+         long i = chunkpos.getMinBlockZ();
+         long j = chunkpos.getMinBlockX();
+         for(int k = 0; k < 16; ++k) {
+            long l = WorldBounds.addBlockOffset(i, k);
+            for(int i1 = 0; i1 < 16; ++i1) {
+               long j1 = WorldBounds.addBlockOffset(j, i1);
+               if (checkerboardDistance(blockpos.getX(), blockpos.getZ(), j1, l) <= 16.0D) {
+                  blockpos$mutableblockpos.set(j1, blockpos.getY(), l);
                   if (blockpos$mutableblockpos.equals(blockpos)) {
                      worldgenlevel.setBlock(blockpos$mutableblockpos, Blocks.COBBLESTONE.defaultBlockState(), 2);
                   } else {

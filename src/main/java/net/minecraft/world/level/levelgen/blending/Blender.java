@@ -19,6 +19,7 @@ import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeResolver;
@@ -78,8 +79,8 @@ public class Blender {
             for(int j = -HEIGHT_BLENDING_RANGE_CHUNKS; j <= HEIGHT_BLENDING_RANGE_CHUNKS; ++j) {
                for(int k = -HEIGHT_BLENDING_RANGE_CHUNKS; k <= HEIGHT_BLENDING_RANGE_CHUNKS; ++k) {
                   if (j * j + k * k <= i) {
-                	 long l = chunkpos.x + j;
-                	 long i1 = chunkpos.z + k;
+                     long l = WorldBounds.addChunkOffset(chunkpos.x, j);
+                     long i1 = WorldBounds.addChunkOffset(chunkpos.z, k);
                      BlendingData blendingdata = BlendingData.getOrUpdateBlendingData(p_190203_, l, i1);
                      if (blendingdata != null) {
                         long2objectopenhashmap.put(new ChunkPos(l, i1), blendingdata);
@@ -261,7 +262,7 @@ public class Blender {
          }
 
          for(Direction direction : Direction.Plane.HORIZONTAL) {
-            if (p_197032_.getChunk(chunkpos.x + direction.getStepX(), chunkpos.z + direction.getStepZ()).isOldNoiseGeneration() != flag) {
+            if (p_197032_.getChunk(WorldBounds.addChunkOffset(chunkpos.x, direction.getStepX()), WorldBounds.addChunkOffset(chunkpos.z, direction.getStepZ())).isOldNoiseGeneration() != flag) {
                int i1 = direction == Direction.EAST ? 15 : 0;
                int j1 = direction == Direction.WEST ? 0 : 15;
                int k1 = direction == Direction.SOUTH ? 15 : 0;
@@ -300,8 +301,8 @@ public class Blender {
       ImmutableMap.Builder<Direction8, BlendingData> builder = ImmutableMap.builder();
 
       for(Direction8 direction8 : Direction8.values()) {
-    	 long i = chunkpos.x + direction8.getStepX();
-    	 long j = chunkpos.z + direction8.getStepZ();
+      long i = WorldBounds.addChunkOffset(chunkpos.x, direction8.getStepX());
+      long j = WorldBounds.addChunkOffset(chunkpos.z, direction8.getStepZ());
          BlendingData blendingdata = p_197035_.getChunk(i, j).getBlendingData();
          if (blendingdata != null) {
             builder.put(direction8, blendingdata);

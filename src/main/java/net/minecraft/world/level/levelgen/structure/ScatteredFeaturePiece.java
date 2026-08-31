@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
@@ -45,13 +46,26 @@ public abstract class ScatteredFeaturePiece extends StructurePiece {
          int j = 0;
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-         for(long k = this.boundingBox.minZ(); k <= this.boundingBox.maxZ(); ++k) {
-            for(long l = this.boundingBox.minX(); l <= this.boundingBox.maxX(); ++l) {
-               blockpos$mutableblockpos.set(l, 64, k);
+         long k = this.boundingBox.minZ();
+         long l = this.boundingBox.maxZ();
+         long i1 = this.boundingBox.minX();
+         long j1 = this.boundingBox.maxX();
+
+         for(long k1 = k; ; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
+            for(long l1 = i1; ; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
+               blockpos$mutableblockpos.set(l1, 64, k1);
                if (p_72805_.isInside(blockpos$mutableblockpos)) {
                   i += p_72804_.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, blockpos$mutableblockpos).getY();
                   ++j;
                }
+
+               if (l1 == j1) {
+                  break;
+               }
+            }
+
+            if (k1 == l) {
+               break;
             }
          }
 
@@ -73,11 +87,24 @@ public abstract class ScatteredFeaturePiece extends StructurePiece {
          boolean flag = false;
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-         for(long j = this.boundingBox.minZ(); j <= this.boundingBox.maxZ(); ++j) {
-            for(long k = this.boundingBox.minX(); k <= this.boundingBox.maxX(); ++k) {
-               blockpos$mutableblockpos.set(k, 0, j);
+         long j = this.boundingBox.minZ();
+         long k = this.boundingBox.maxZ();
+         long l = this.boundingBox.minX();
+         long i1 = this.boundingBox.maxX();
+
+         for(long j1 = j; ; j1 = WorldBounds.addBlockOffset(j1, 1L)) {
+            for(long k1 = l; ; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
+               blockpos$mutableblockpos.set(k1, 0, j1);
                i = Math.min(i, p_192468_.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, blockpos$mutableblockpos).getY());
                flag = true;
+
+               if (k1 == i1) {
+                  break;
+               }
+            }
+
+            if (j1 == k) {
+               break;
             }
          }
 

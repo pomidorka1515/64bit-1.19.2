@@ -29,6 +29,7 @@ import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.BiomeManager;
@@ -262,7 +263,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
 
       for(int j = -8; j <= 8; ++j) {
          for(int k = -8; k <= 8; ++k) {
-            ChunkPos chunkpos1 = new ChunkPos(chunkpos.x + j, chunkpos.z + k);
+            ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x, j), WorldBounds.addChunkOffset(chunkpos.z, k));
             ChunkAccess chunkaccess = p_224224_.getChunk(chunkpos1.x, chunkpos1.z);
             BiomeGenerationSettings biomegenerationsettings = chunkaccess.carverBiome(() -> {
                return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(QuartPos.fromBlock(chunkpos1.getMinBlockX()), 0, QuartPos.fromBlock(chunkpos1.getMinBlockZ()), p_224226_.sampler()));
@@ -351,13 +352,13 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                   noisechunk.updateForY(k2, d0);
 
                   for(int j3 = 0; j3 < k; ++j3) {
-                     long k3 = i + k1 * k + j3;
+                     long k3 = WorldBounds.addBlockOffset(i, k1 * k + j3);
                      int l3 = (int) (k3 & 15);
                      double d1 = (double)j3 / (double)k;
                      noisechunk.updateForX(k3, d1);
 
                      for(int i4 = 0; i4 < k; ++i4) {
-                        long j4 = j + l1 * k + i4;
+                        long j4 = WorldBounds.addBlockOffset(j, l1 * k + i4);
                         int k4 = (int) (j4 & 15);
                         double d2 = (double)i4 / (double)k;
                         noisechunk.updateForZ(j4, d2);

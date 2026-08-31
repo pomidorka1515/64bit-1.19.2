@@ -2,18 +2,19 @@ package net.minecraft.world.entity.ai.behavior;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class BlockPosTracker implements PositionTracker {
    private final BlockPos blockPos;
-   private final Vec3 centerPosition;
+   private final SectorVec3 centerPosition;
 
    public BlockPosTracker(BlockPos p_22676_) {
       this.blockPos = p_22676_.immutable();
-      this.centerPosition = Vec3.atCenterOf(p_22676_);
+      this.centerPosition = SectorVec3.fromBlockAndFraction(p_22676_.getX(), 0.5D,
+            (double)p_22676_.getY() + 0.5D, p_22676_.getZ(), 0.5D);
    }
 
-   public Vec3 currentPosition() {
+   public SectorVec3 currentExactPosition() {
       return this.centerPosition;
    }
 

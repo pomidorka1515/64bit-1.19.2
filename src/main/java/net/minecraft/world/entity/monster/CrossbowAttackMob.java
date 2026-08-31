@@ -34,8 +34,9 @@ public interface CrossbowAttackMob extends RangedAttackMob {
    }
 
    default void shootCrossbowProjectile(LivingEntity p_32323_, LivingEntity p_32324_, Projectile p_32325_, float p_32326_, float p_32327_) {
-      double d0 = p_32324_.getX() - p_32323_.getX();
-      double d1 = p_32324_.getZ() - p_32323_.getZ();
+      Vec3 targetDelta = p_32324_.sectorPosition().relativeTo(p_32323_.sectorPosition());
+      double d0 = targetDelta.x;
+      double d1 = targetDelta.z;
       double d2 = Math.sqrt(d0 * d0 + d1 * d1);
       double d3 = p_32324_.getY(0.3333333333333333D) - p_32325_.getY() + d2 * (double)0.2F;
       Vector3f vector3f = this.getProjectileShotVector(p_32323_, new Vec3(d0, d3, d1), p_32326_);

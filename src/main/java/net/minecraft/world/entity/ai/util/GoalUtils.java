@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 
 public class GoalUtils {
@@ -13,8 +14,14 @@ public class GoalUtils {
       return p_26895_.getNavigation() instanceof GroundPathNavigation;
    }
 
-   public static boolean mobRestricted(PathfinderMob p_148443_, int p_148444_) {
-      return p_148443_.hasRestriction() && p_148443_.getRestrictCenter().closerToCenterThan(p_148443_.position(), (double)(p_148443_.getRestrictRadius() + (float)p_148444_) + 1.0D);
+   public static boolean mobRestricted(PathfinderMob mob, int horizontalRange) {
+      if (!mob.hasRestriction()) return false;
+      BlockPos center = mob.getRestrictCenter();
+      double maxDistance = (double)(mob.getRestrictRadius() + (float)horizontalRange) + 1.0D;
+      double dx = WorldBounds.signedDifference(mob.getBlockX(), center.getX()) + mob.sectorPosition().subX() - 0.5D;
+      double dy = mob.getY() - ((double)center.getY() + 0.5D);
+      double dz = WorldBounds.signedDifference(mob.getBlockZ(), center.getZ()) + mob.sectorPosition().subZ() - 0.5D;
+      return dx * dx + dy * dy + dz * dz < maxDistance * maxDistance;
    }
 
    public static boolean isOutsideLimits(BlockPos p_148452_, PathfinderMob p_148453_) {

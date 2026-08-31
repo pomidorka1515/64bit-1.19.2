@@ -8,15 +8,14 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class PanicGoal extends Goal {
    public static final int WATER_CHECK_DISTANCE_VERTICAL = 1;
    protected final PathfinderMob mob;
    protected final double speedModifier;
-   protected double posX;
-   protected double posY;
-   protected double posZ;
+   @Nullable
+   protected SectorVec3 panicPosition;
    protected boolean isRunning;
 
    public PanicGoal(PathfinderMob p_25691_, double p_25692_) {
@@ -32,9 +31,8 @@ public class PanicGoal extends Goal {
          if (this.mob.isOnFire()) {
             BlockPos blockpos = this.lookForWater(this.mob.level, this.mob, 5);
             if (blockpos != null) {
-               this.posX = (double)blockpos.getX();
-               this.posY = (double)blockpos.getY();
-               this.posZ = (double)blockpos.getZ();
+               this.panicPosition = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
+                     blockpos.getY(), blockpos.getZ(), 0.5D);
                return true;
             }
          }
@@ -48,15 +46,8 @@ public class PanicGoal extends Goal {
    }
 
    protected boolean findRandomPosition() {
-      Vec3 vec3 = DefaultRandomPos.getPos(this.mob, 5, 4);
-      if (vec3 == null) {
-         return false;
-      } else {
-         this.posX = vec3.x;
-         this.posY = vec3.y;
-         this.posZ = vec3.z;
-         return true;
-      }
+      this.panicPosition = DefaultRandomPos.getSectorPos(this.mob, 5, 4);
+      return this.panicPosition != null;
    }
 
    public boolean isRunning() {
@@ -64,7 +55,9 @@ public class PanicGoal extends Goal {
    }
 
    public void start() {
-      this.mob.getNavigation().moveTo(this.posX, this.posY, this.posZ, this.speedModifier);
+      if (this.panicPosition != null) {
+         this.mob.getNavigation().moveTo(this.panicPosition, this.speedModifier);
+      }
       this.isRunning = true;
    }
 

@@ -114,9 +114,71 @@ public final class WorldBounds {
       return chunk >= MIN_CHUNK && chunk <= MAX_CHUNK;
    }
 
+   /** Returns the lower of two horizontal block coordinates. */
+   public static long minBlockCoordinate(long first, long second) {
+      return Math.min(first, second);
+   }
+
+   /** Returns the higher of two horizontal block coordinates. */
+   public static long maxBlockCoordinate(long first, long second) {
+      return Math.max(first, second);
+   }
+
    /** Returns whether an inclusive horizontal range is ordered for forward iteration. */
    public static boolean isAscendingBlockRange(long first, long last) {
       return first <= last;
+   }
+
+   /** Returns whether two ordered inclusive horizontal ranges overlap. */
+   public static boolean blockRangesOverlap(long firstMin, long firstMax, long secondMin, long secondMax) {
+      return isAscendingBlockRange(firstMin, firstMax) && isAscendingBlockRange(secondMin, secondMax) && firstMax >= secondMin && firstMin <= secondMax;
+   }
+
+   /** Returns whether a horizontal coordinate belongs to an ordered inclusive range. */
+   public static boolean isWithinBlockRange(long coordinate, long min, long max) {
+      return isAscendingBlockRange(min, max) && coordinate >= min && coordinate <= max;
+   }
+
+   /**
+    * Returns the number of coordinates in an ordered inclusive horizontal
+    * range.  Ranges too wide for a long are saturated instead of wrapping.
+    */
+   public static long inclusiveBlockSpan(long min, long max) {
+      if (!isAscendingBlockRange(min, max)) return 0L;
+      long distance = signedDifferenceAsLong(max, min);
+      return distance == MAX_BLOCK ? MAX_BLOCK : distance + 1L;
+   }
+
+   /**
+    * Returns a signed horizontal difference as a long, saturating a difference
+    * outside the signed-long domain instead of wrapping it to the other edge.
+    */
+   public static long signedDifferenceAsLong(long value, long origin) {
+      double difference = signedDifference(value, origin);
+      if (difference >= (double)MAX_BLOCK) return MAX_BLOCK;
+      if (difference <= (double)MIN_BLOCK) return MIN_BLOCK;
+      return (long)difference;
+   }
+
+   /**
+    * Returns the non-negative local offset of a coordinate inside an ordered
+    * range.  Callers must verify containment first; an out-of-range coordinate
+    * is clamped to the nearest representable local offset.
+    */
+   public static long blockOffsetInRange(long coordinate, long min, long max) {
+      if (coordinate <= min) return 0L;
+      if (coordinate >= max) return inclusiveBlockSpan(min, max) - 1L;
+      return signedDifferenceAsLong(coordinate, min);
+   }
+
+   /** Returns whether a positive horizontal span fits an int-indexed voxel shape. */
+   public static boolean isPositiveIntSpan(long span) {
+      return span > 0L && span <= Integer.MAX_VALUE;
+   }
+
+   /** Returns whether three non-negative voxel dimensions fit the backing bit set. */
+   public static boolean isVoxelShapeSize(int xSpan, int ySpan, int zSpan) {
+      return xSpan >= 0 && ySpan >= 0 && zSpan >= 0 && (long)xSpan * (long)ySpan * (long)zSpan <= Integer.MAX_VALUE;
    }
 
    /**
@@ -207,17 +269,6 @@ public final class WorldBounds {
       if (value >= 0L && origin < 0L) return (double)value - (double)origin;
       if (value < 0L && origin >= 0L) return (double)value - (double)origin;
       return (double)(value - origin);
-   }
-
-   /**
-    * Returns a signed horizontal difference as a long, saturating a difference
-    * outside the signed-long domain instead of wrapping it to the other edge.
-    */
-   public static long signedDifferenceAsLong(long value, long origin) {
-      double difference = signedDifference(value, origin);
-      if (difference >= (double)MAX_BLOCK) return MAX_BLOCK;
-      if (difference <= (double)MIN_BLOCK) return MIN_BLOCK;
-      return (long)difference;
    }
 
    /** Returns the upper center of an inclusive block-coordinate interval. */

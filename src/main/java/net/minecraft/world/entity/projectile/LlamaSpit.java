@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class LlamaSpit extends Projectile {
@@ -23,7 +24,10 @@ public class LlamaSpit extends Projectile {
    public LlamaSpit(Level p_37235_, Llama p_37236_) {
       this(EntityType.LLAMA_SPIT, p_37235_);
       this.setOwner(p_37236_);
-      this.setPos(p_37236_.getX() - (double)(p_37236_.getBbWidth() + 1.0F) * 0.5D * (double)Mth.sin(p_37236_.yBodyRot * ((float)Math.PI / 180F)), p_37236_.getEyeY() - (double)0.1F, p_37236_.getZ() + (double)(p_37236_.getBbWidth() + 1.0F) * 0.5D * (double)Mth.cos(p_37236_.yBodyRot * ((float)Math.PI / 180F)));
+      double offset = (double)(p_37236_.getBbWidth() + 1.0F) * 0.5D;
+      this.applyExactPosition(p_37236_.sectorPosition().add(-offset * (double)Mth.sin(p_37236_.yBodyRot * ((float)Math.PI / 180F)),
+            p_37236_.getEyeY() - (double)0.1F - p_37236_.getY(),
+            offset * (double)Mth.cos(p_37236_.yBodyRot * ((float)Math.PI / 180F))));
    }
 
    public void tick() {
@@ -31,9 +35,7 @@ public class LlamaSpit extends Projectile {
       Vec3 vec3 = this.getDeltaMovement();
       HitResult hitresult = ProjectileUtil.getHitResult(this, this::canHitEntity);
       this.onHit(hitresult);
-      double d0 = this.getX() + vec3.x;
-      double d1 = this.getY() + vec3.y;
-      double d2 = this.getZ() + vec3.z;
+      SectorVec3 nextPosition = this.sectorPosition().add(vec3.x, vec3.y, vec3.z);
       this.updateRotation();
       float f = 0.99F;
       float f1 = 0.06F;
@@ -47,7 +49,7 @@ public class LlamaSpit extends Projectile {
             this.setDeltaMovement(this.getDeltaMovement().add(0.0D, (double)-0.06F, 0.0D));
          }
 
-         this.setPos(d0, d1, d2);
+         this.applyExactPosition(nextPosition);
       }
    }
 

@@ -26,6 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class ShulkerBullet extends Projectile {
@@ -50,10 +51,8 @@ public class ShulkerBullet extends Projectile {
       this(EntityType.SHULKER_BULLET, p_37330_);
       this.setOwner(p_37331_);
       BlockPos blockpos = p_37331_.blockPosition();
-      double d0 = (double)blockpos.getX() + 0.5D;
-      double d1 = (double)blockpos.getY() + 0.5D;
-      double d2 = (double)blockpos.getZ() + 0.5D;
-      this.moveTo(d0, d1, d2, this.getYRot(), this.getXRot());
+      this.moveTo(SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY() + 0.5D,
+            blockpos.getZ(), 0.5D), this.getYRot(), this.getXRot());
       this.finalTarget = p_37332_;
       this.currentMoveDirection = Direction.UP;
       this.selectNextMoveDirection(p_37333_);
@@ -108,42 +107,41 @@ public class ShulkerBullet extends Projectile {
    }
 
    private void selectNextMoveDirection(@Nullable Direction.Axis p_37349_) {
-      double d0 = 0.5D;
-      BlockPos blockpos;
+      double targetHeight = 0.5D;
+      BlockPos targetBlock;
       if (this.finalTarget == null) {
-         blockpos = this.blockPosition().below();
+         targetBlock = this.blockPosition().below();
       } else {
-         d0 = (double)this.finalTarget.getBbHeight() * 0.5D;
-         blockpos = new BlockPos(this.finalTarget.getX(), this.finalTarget.getY() + d0, this.finalTarget.getZ());
+         targetHeight = (double)this.finalTarget.getBbHeight() * 0.5D;
+         targetBlock = this.finalTarget.sectorPosition().withY(this.finalTarget.getY() + targetHeight).blockPosition();
       }
 
-      double d1 = (double)blockpos.getX() + 0.5D;
-      double d2 = (double)blockpos.getY() + d0;
-      double d3 = (double)blockpos.getZ() + 0.5D;
+      SectorVec3 targetPosition = SectorVec3.fromBlockAndFraction(targetBlock.getX(), 0.5D,
+            (double)targetBlock.getY() + targetHeight, targetBlock.getZ(), 0.5D);
       Direction direction = null;
-      if (!blockpos.closerToCenterThan(this.position(), 2.0D)) {
+      if (this.exactPositionDistanceToSqr(targetPosition) >= 4.0D) {
          BlockPos blockpos1 = this.blockPosition();
          List<Direction> list = Lists.newArrayList();
          if (p_37349_ != Direction.Axis.X) {
-            if (blockpos1.getX() < blockpos.getX() && this.level.isEmptyBlock(blockpos1.east())) {
+            if (blockpos1.getX() < targetBlock.getX() && this.level.isEmptyBlock(blockpos1.east())) {
                list.add(Direction.EAST);
-            } else if (blockpos1.getX() > blockpos.getX() && this.level.isEmptyBlock(blockpos1.west())) {
+            } else if (blockpos1.getX() > targetBlock.getX() && this.level.isEmptyBlock(blockpos1.west())) {
                list.add(Direction.WEST);
             }
          }
 
          if (p_37349_ != Direction.Axis.Y) {
-            if (blockpos1.getY() < blockpos.getY() && this.level.isEmptyBlock(blockpos1.above())) {
+            if (blockpos1.getY() < targetBlock.getY() && this.level.isEmptyBlock(blockpos1.above())) {
                list.add(Direction.UP);
-            } else if (blockpos1.getY() > blockpos.getY() && this.level.isEmptyBlock(blockpos1.below())) {
+            } else if (blockpos1.getY() > targetBlock.getY() && this.level.isEmptyBlock(blockpos1.below())) {
                list.add(Direction.DOWN);
             }
          }
 
          if (p_37349_ != Direction.Axis.Z) {
-            if (blockpos1.getZ() < blockpos.getZ() && this.level.isEmptyBlock(blockpos1.south())) {
+            if (blockpos1.getZ() < targetBlock.getZ() && this.level.isEmptyBlock(blockpos1.south())) {
                list.add(Direction.SOUTH);
-            } else if (blockpos1.getZ() > blockpos.getZ() && this.level.isEmptyBlock(blockpos1.north())) {
+            } else if (blockpos1.getZ() > targetBlock.getZ() && this.level.isEmptyBlock(blockpos1.north())) {
                list.add(Direction.NORTH);
             }
          }
@@ -157,16 +155,16 @@ public class ShulkerBullet extends Projectile {
             direction = list.get(this.random.nextInt(list.size()));
          }
 
-         d1 = this.getX() + (double)direction.getStepX();
-         d2 = this.getY() + (double)direction.getStepY();
-         d3 = this.getZ() + (double)direction.getStepZ();
+         targetPosition = this.sectorPosition().add((double)direction.getStepX(),
+               (double)direction.getStepY(), (double)direction.getStepZ());
       }
 
       this.setMoveDirection(direction);
-      double d6 = d1 - this.getX();
-      double d7 = d2 - this.getY();
-      double d4 = d3 - this.getZ();
-      double d5 = Math.sqrt(d6 * d6 + d7 * d7 + d4 * d4);
+      Vec3 targetDelta = targetPosition.relativeTo(this.sectorPosition());
+      double d6 = targetDelta.x;
+      double d7 = targetDelta.y;
+      double d4 = targetDelta.z;
+      double d5 = targetDelta.length();
       if (d5 == 0.0D) {
          this.targetDeltaX = 0.0D;
          this.targetDeltaY = 0.0D;
@@ -218,7 +216,7 @@ public class ShulkerBullet extends Projectile {
 
       this.checkInsideBlocks();
       Vec3 vec31 = this.getDeltaMovement();
-      this.setPos(this.getX() + vec31.x, this.getY() + vec31.y, this.getZ() + vec31.z);
+      this.applyExactPosition(this.sectorPosition().add(vec31.x, vec31.y, vec31.z));
       ProjectileUtil.rotateTowardsMovement(this, 0.5F);
       if (this.level.isClientSide) {
          this.level.addParticle(ParticleTypes.END_ROD, this.particlePosition(-vec31.x,

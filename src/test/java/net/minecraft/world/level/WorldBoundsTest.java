@@ -59,6 +59,8 @@ class WorldBoundsTest {
       assertEquals(0L, WorldBounds.middleBlockCoordinate(Long.MIN_VALUE, Long.MAX_VALUE));
       assertEquals(Long.MAX_VALUE, WorldBounds.signedDifferenceAsLong(Long.MAX_VALUE, Long.MIN_VALUE));
       assertEquals(Long.MIN_VALUE, WorldBounds.signedDifferenceAsLong(Long.MIN_VALUE, Long.MAX_VALUE));
+      assertEquals(Long.MAX_VALUE, WorldBounds.signedDifferenceAsLong(0L, Long.MIN_VALUE));
+      assertEquals(Long.MIN_VALUE, WorldBounds.signedDifferenceAsLong(-1L, Long.MAX_VALUE));
       assertEquals(1L, WorldBounds.middleBlockCoordinate(0L, 1L));
       assertEquals(-1L, WorldBounds.middleBlockCoordinate(-2L, -1L));
    }
@@ -106,6 +108,35 @@ class WorldBoundsTest {
       assertEquals(Long.MAX_VALUE, fullWorld.getZSpan());
       assertEquals(0L, fullWorld.getCenter().getX());
       assertEquals(0L, fullWorld.getCenter().getZ());
+   }
+
+   @Test
+   void boundingBoxesStayOrderedWhenExpandedAtWorldEdges() {
+      BoundingBox positiveEdge = new BoundingBox(Long.MAX_VALUE - 2L, 0, Long.MAX_VALUE - 2L, Long.MAX_VALUE, 6, Long.MAX_VALUE);
+      BoundingBox expanded = positiveEdge.inflatedBy(3);
+      assertEquals(Long.MAX_VALUE - 5L, expanded.minX());
+      assertEquals(Long.MAX_VALUE, expanded.maxX());
+      assertEquals(6L, expanded.getXSpan());
+      assertEquals(Long.MAX_VALUE - 5L, expanded.minZ());
+      assertEquals(Long.MAX_VALUE, expanded.maxZ());
+      assertEquals(6L, expanded.getZSpan());
+      assertTrue(expanded.isInside(new BlockPos(Long.MAX_VALUE, 3, Long.MAX_VALUE)));
+      assertFalse(expanded.intersects(Long.MAX_VALUE, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE));
+   }
+
+   @Test
+   void blockRangeHelpersSaturateRatherThanWrap() {
+      assertEquals(3L, WorldBounds.inclusiveBlockSpan(Long.MAX_VALUE - 2L, Long.MAX_VALUE));
+      assertEquals(0L, WorldBounds.inclusiveBlockSpan(Long.MAX_VALUE, Long.MIN_VALUE));
+      assertEquals(Long.MAX_VALUE, WorldBounds.inclusiveBlockSpan(Long.MIN_VALUE, Long.MAX_VALUE));
+      assertEquals(2L, WorldBounds.blockOffsetInRange(Long.MAX_VALUE, Long.MAX_VALUE - 2L, Long.MAX_VALUE));
+      assertTrue(WorldBounds.isPositiveIntSpan(1L));
+      assertTrue(WorldBounds.isPositiveIntSpan(Integer.MAX_VALUE));
+      assertFalse(WorldBounds.isPositiveIntSpan(0L));
+      assertFalse(WorldBounds.isPositiveIntSpan((long)Integer.MAX_VALUE + 1L));
+      assertTrue(WorldBounds.isVoxelShapeSize(0, 0, 0));
+      assertTrue(WorldBounds.isVoxelShapeSize(3, 7, 7));
+      assertFalse(WorldBounds.isVoxelShapeSize(Integer.MAX_VALUE, 2, 1));
    }
 
    @Test

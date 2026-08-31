@@ -17,6 +17,10 @@ public abstract class HitResult {
    }
 
    public double distanceTo(Entity p_82449_) {
+      SectorVec3 exact = this.getExactLocation();
+      if (exact != null && p_82449_.hasSectorPosition()) {
+         return exact.relativeTo(p_82449_.sectorPosition()).lengthSqr();
+      }
       double d0 = this.location.x - p_82449_.getX();
       double d1 = this.location.y - p_82449_.getY();
       double d2 = this.location.z - p_82449_.getZ();

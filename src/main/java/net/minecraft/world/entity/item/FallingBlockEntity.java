@@ -66,14 +66,17 @@ public class FallingBlockEntity extends Entity {
       this.blocksBuilding = true;
       this.setPos(p_31954_, p_31955_, p_31956_);
       this.setDeltaMovement(Vec3.ZERO);
-      this.xo = p_31954_;
-      this.yo = p_31955_;
-      this.zo = p_31956_;
+      this.setOldPosAndRot();
       this.setStartPos(this.blockPosition());
    }
 
    public static FallingBlockEntity fall(Level p_201972_, BlockPos p_201973_, BlockState p_201974_) {
-      FallingBlockEntity fallingblockentity = new FallingBlockEntity(p_201972_, (double)p_201973_.getX() + 0.5D, (double)p_201973_.getY(), (double)p_201973_.getZ() + 0.5D, p_201974_.hasProperty(BlockStateProperties.WATERLOGGED) ? p_201974_.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)) : p_201974_);
+      FallingBlockEntity fallingblockentity = new FallingBlockEntity(p_201972_, (double)p_201973_.getX() + 0.5D,
+            (double)p_201973_.getY(), (double)p_201973_.getZ() + 0.5D,
+            p_201974_.hasProperty(BlockStateProperties.WATERLOGGED) ? p_201974_.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)) : p_201974_);
+      fallingblockentity.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_201973_.getX(),
+            0.5D, (double)p_201973_.getY(), p_201973_.getZ(), 0.5D));
+      fallingblockentity.setOldPosAndRot();
       p_201972_.setBlock(p_201973_, p_201974_.getFluidState().createLegacyBlock(), 3);
       p_201972_.addFreshEntity(fallingblockentity);
       return fallingblockentity;
@@ -224,7 +227,7 @@ public class FallingBlockEntity extends Entity {
             }
 
             float f = (float)Math.min(Mth.floor((float)i * this.fallDamagePerDistance), this.fallDamageMax);
-            this.level.getEntities(this, this.getBoundingBox(), predicate).forEach((p_149649_) -> {
+            this.getEntitiesInExactRange(Entity.class, this.getSectorBoundingBox(), predicate).forEach((p_149649_) -> {
                p_149649_.hurt(damagesource, f);
             });
             boolean flag = this.blockState.is(BlockTags.ANVIL);

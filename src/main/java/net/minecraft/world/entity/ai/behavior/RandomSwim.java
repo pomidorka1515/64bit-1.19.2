@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class RandomSwim extends RandomStroll {
@@ -18,24 +19,26 @@ public class RandomSwim extends RandomStroll {
    }
 
    @Nullable
-   protected Vec3 getTargetPos(PathfinderMob p_147861_) {
-      Vec3 vec3 = null;
-      Vec3 vec31 = null;
+   protected SectorVec3 getTargetPos(PathfinderMob mob) {
+      SectorVec3 previous = null;
+      SectorVec3 candidate = null;
 
-      for(int[] aint : XY_DISTANCE_TIERS) {
-         if (vec3 == null) {
-            vec31 = BehaviorUtils.getRandomSwimmablePos(p_147861_, aint[0], aint[1]);
+      for (int[] distance : XY_DISTANCE_TIERS) {
+         if (previous == null) {
+            candidate = BehaviorUtils.getRandomSwimmableSectorPos(mob, distance[0], distance[1]);
          } else {
-            vec31 = p_147861_.position().add(p_147861_.position().vectorTo(vec3).normalize().multiply((double)aint[0], (double)aint[1], (double)aint[0]));
+            Vec3 direction = previous.relativeTo(mob.sectorPosition()).normalize()
+                  .multiply((double)distance[0], (double)distance[1], (double)distance[0]);
+            candidate = mob.sectorPosition().add(direction.x, direction.y, direction.z);
          }
 
-         if (vec31 == null || p_147861_.level.getFluidState(new BlockPos(vec31)).isEmpty()) {
-            return vec3;
+         if (candidate == null || mob.level.getFluidState(candidate.blockPosition()).isEmpty()) {
+            return previous;
          }
 
-         vec3 = vec31;
+         previous = candidate;
       }
 
-      return vec31;
+      return candidate;
    }
 }

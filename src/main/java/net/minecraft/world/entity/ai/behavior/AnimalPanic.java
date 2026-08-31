@@ -14,7 +14,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class AnimalPanic extends Behavior<PathfinderMob> {
    private static final int PANIC_MIN_DURATION = 100;
@@ -44,24 +44,27 @@ public class AnimalPanic extends Behavior<PathfinderMob> {
 
    protected void tick(ServerLevel p_147403_, PathfinderMob p_147404_, long p_147405_) {
       if (p_147404_.getNavigation().isDone()) {
-         Vec3 vec3 = this.getPanicPos(p_147404_, p_147403_);
-         if (vec3 != null) {
-            p_147404_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(vec3, this.speedMultiplier, 0));
+         SectorVec3 target = this.getPanicPos(p_147404_, p_147403_);
+         if (target != null) {
+            p_147404_.getBrain().setMemory(MemoryModuleType.WALK_TARGET,
+                  new WalkTarget(target, this.speedMultiplier, 0));
          }
       }
 
    }
 
    @Nullable
-   private Vec3 getPanicPos(PathfinderMob p_196639_, ServerLevel p_196640_) {
+   private SectorVec3 getPanicPos(PathfinderMob p_196639_, ServerLevel p_196640_) {
       if (p_196639_.isOnFire()) {
-         Optional<Vec3> optional = this.lookForWater(p_196640_, p_196639_).map(Vec3::atBottomCenterOf);
+         Optional<BlockPos> optional = this.lookForWater(p_196640_, p_196639_);
          if (optional.isPresent()) {
-            return optional.get();
+            BlockPos position = optional.get();
+            return SectorVec3.fromBlockAndFraction(position.getX(), 0.5D, position.getY(),
+                  position.getZ(), 0.5D);
          }
       }
 
-      return LandRandomPos.getPos(p_196639_, 5, 4);
+      return LandRandomPos.getSectorPos(p_196639_, 5, 4);
    }
 
    private Optional<BlockPos> lookForWater(BlockGetter p_196642_, Entity p_196643_) {

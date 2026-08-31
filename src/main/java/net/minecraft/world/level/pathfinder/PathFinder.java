@@ -38,12 +38,14 @@ public class PathFinder {
       if (node == null) {
          return null;
       } else {
-         Map<Target, BlockPos> map = p_77430_.stream().collect(Collectors.toMap((p_77448_) -> {
-            return this.nodeEvaluator.getGoal((double)p_77448_.getX(), (double)p_77448_.getY(), (double)p_77448_.getZ());
-         }, Function.identity()));
-         Path path = this.findPath(p_77428_.getProfiler(), node, map, p_77431_, p_77432_, p_77433_);
-         this.nodeEvaluator.done();
-         return path;
+         try {
+            Map<Target, BlockPos> map = p_77430_.stream().collect(Collectors.toMap(
+                  this.nodeEvaluator::getGoal, Function.identity()));
+            if (map.isEmpty()) return null;
+            return this.findPath(p_77428_.getProfiler(), node, map, p_77431_, p_77432_, p_77433_);
+         } finally {
+            this.nodeEvaluator.done();
+         }
       }
    }
 

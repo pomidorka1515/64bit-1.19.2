@@ -5,6 +5,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class WalkTarget {
@@ -17,7 +18,11 @@ public class WalkTarget {
    }
 
    public WalkTarget(Vec3 p_26413_, float p_26414_, int p_26415_) {
-      this(new BlockPosTracker(new BlockPos(p_26413_)), p_26414_, p_26415_);
+      this(SectorVec3.fromApproximate(p_26413_.x, p_26413_.y, p_26413_.z), p_26414_, p_26415_);
+   }
+
+   public WalkTarget(SectorVec3 position, float speedModifier, int closeEnoughDist) {
+      this(new BlockPosTracker(position.blockPosition()), speedModifier, closeEnoughDist);
    }
 
    public WalkTarget(Entity p_148209_, float p_148210_, int p_148211_) {

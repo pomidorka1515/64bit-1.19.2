@@ -10,6 +10,8 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.NodeEvaluator;
+import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class MoveControl implements Control {
@@ -20,6 +22,7 @@ public class MoveControl implements Control {
    protected double wantedX;
    protected double wantedY;
    protected double wantedZ;
+   protected SectorVec3 exactWantedPosition;
    protected double speedModifier;
    protected float strafeForwards;
    protected float strafeRight;
@@ -38,6 +41,7 @@ public class MoveControl implements Control {
    }
 
    public void setWantedPosition(double p_24984_, double p_24985_, double p_24986_, double p_24987_) {
+      this.exactWantedPosition = SectorVec3.fromApproximate(p_24984_, p_24985_, p_24986_);
       this.wantedX = p_24984_;
       this.wantedY = p_24985_;
       this.wantedZ = p_24986_;
@@ -46,6 +50,23 @@ public class MoveControl implements Control {
          this.operation = MoveControl.Operation.MOVE_TO;
       }
 
+   }
+
+   public void setWantedPosition(SectorVec3 position, double speedModifier) {
+      this.exactWantedPosition = position;
+      Vec3 approximate = position.toApproximateVec3();
+      this.wantedX = approximate.x;
+      this.wantedY = position.y();
+      this.wantedZ = approximate.z;
+      this.speedModifier = speedModifier;
+      if (this.operation != MoveControl.Operation.JUMPING) this.operation = MoveControl.Operation.MOVE_TO;
+   }
+
+   public final Vec3 wantedDelta() {
+      return this.exactWantedPosition == null
+            ? new Vec3(this.wantedX - this.mob.getX(), this.wantedY - this.mob.getY(),
+                  this.wantedZ - this.mob.getZ())
+            : this.exactWantedPosition.relativeTo(this.mob.sectorPosition());
    }
 
    public void strafe(float p_24989_, float p_24990_) {
@@ -84,9 +105,10 @@ public class MoveControl implements Control {
          this.operation = MoveControl.Operation.WAIT;
       } else if (this.operation == MoveControl.Operation.MOVE_TO) {
          this.operation = MoveControl.Operation.WAIT;
-         double d0 = this.wantedX - this.mob.getX();
-         double d1 = this.wantedZ - this.mob.getZ();
-         double d2 = this.wantedY - this.mob.getY();
+         Vec3 wantedDelta = this.wantedDelta();
+         double d0 = wantedDelta.x;
+         double d1 = wantedDelta.z;
+         double d2 = wantedDelta.y;
          double d3 = d0 * d0 + d2 * d2 + d1 * d1;
          if (d3 < (double)2.5000003E-7F) {
             this.mob.setZza(0.0F);
@@ -118,7 +140,9 @@ public class MoveControl implements Control {
       PathNavigation pathnavigation = this.mob.getNavigation();
       if (pathnavigation != null) {
          NodeEvaluator nodeevaluator = pathnavigation.getNodeEvaluator();
-         if (nodeevaluator != null && nodeevaluator.getBlockPathType(this.mob.level, Mth.floor(this.mob.getX() + (double)p_24997_), this.mob.getBlockY(), Mth.floor(this.mob.getZ() + (double)p_24998_)) != BlockPathTypes.WALKABLE) {
+         SectorVec3 probe = this.mob.sectorPosition().add((double)p_24997_, 0.0D, (double)p_24998_);
+         if (nodeevaluator != null && nodeevaluator.getBlockPathType(this.mob.level, probe.blockX(),
+               this.mob.getBlockY(), probe.blockZ()) != BlockPathTypes.WALKABLE) {
             return false;
          }
       }

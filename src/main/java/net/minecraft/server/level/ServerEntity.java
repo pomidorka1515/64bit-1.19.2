@@ -34,6 +34,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
@@ -62,7 +63,7 @@ public class ServerEntity {
       this.entity = p_8529_;
       this.updateInterval = p_8530_;
       this.trackDelta = p_8531_;
-      this.positionCodec.setBase(p_8529_.trackingPosition());
+      this.setPositionCodecBase();
       this.yRotp = Mth.floor(p_8529_.getYRot() * 256.0F / 360.0F);
       this.xRotp = Mth.floor(p_8529_.getXRot() * 256.0F / 360.0F);
       this.yHeadRotp = Mth.floor(p_8529_.getYHeadRot() * 256.0F / 360.0F);
@@ -109,7 +110,7 @@ public class ServerEntity {
                this.xRotp = l1;
             }
 
-            this.positionCodec.setBase(this.entity.trackingPosition());
+            this.setPositionCodecBase();
             this.sendDirtyEntityData();
             this.wasRiding = true;
          } else {
@@ -117,14 +118,18 @@ public class ServerEntity {
             int l = Mth.floor(this.entity.getYRot() * 256.0F / 360.0F);
             int k1 = Mth.floor(this.entity.getXRot() * 256.0F / 360.0F);
             Vec3 vec3 = this.entity.trackingPosition();
-            boolean flag2 = this.positionCodec.delta(vec3).lengthSqr() >= (double)7.6293945E-6F;
+            SectorVec3 exactPosition = this.entity.exactPosition();
+            boolean flag2 = exactPosition != null
+                  ? this.positionCodec.getSectorBase() == null
+                        || exactPosition.relativeTo(this.positionCodec.getSectorBase()).lengthSqr() >= (double)7.6293945E-6F
+                  : this.positionCodec.delta(vec3).lengthSqr() >= (double)7.6293945E-6F;
             Packet<?> packet1 = null;
             boolean flag3 = flag2 || this.tickCount % 60 == 0;
             boolean flag4 = Math.abs(l - this.yRotp) >= 1 || Math.abs(k1 - this.xRotp) >= 1;
             if (this.tickCount > 0 || this.entity instanceof AbstractArrow) {
-               long i = this.positionCodec.encodeX(vec3);
-               long j = this.positionCodec.encodeY(vec3);
-               long k = this.positionCodec.encodeZ(vec3);
+               long i = exactPosition == null ? this.positionCodec.encodeX(vec3) : this.positionCodec.encodeX(exactPosition);
+               long j = exactPosition == null ? this.positionCodec.encodeY(vec3) : this.positionCodec.encodeY(exactPosition);
+               long k = exactPosition == null ? this.positionCodec.encodeZ(vec3) : this.positionCodec.encodeZ(exactPosition);
                boolean flag = i < -32768L || i > 32767L || j < -32768L || j > 32767L || k < -32768L || k > 32767L;
                if (!flag && this.teleportDelay <= 400 && !this.wasRiding && this.wasOnGround == this.entity.isOnGround()) {
                   if ((!flag3 || !flag4) && !(this.entity instanceof AbstractArrow)) {
@@ -158,7 +163,7 @@ public class ServerEntity {
 
             this.sendDirtyEntityData();
             if (flag3) {
-               this.positionCodec.setBase(vec3);
+               this.setPositionCodecBase();
             }
 
             if (flag4) {
@@ -184,6 +189,15 @@ public class ServerEntity {
          this.entity.hurtMarked = false;
       }
 
+   }
+
+   private void setPositionCodecBase() {
+      SectorVec3 exactPosition = this.entity.exactPosition();
+      if (exactPosition != null) {
+         this.positionCodec.setBase(exactPosition);
+      } else {
+         this.positionCodec.setBase(this.entity.trackingPosition());
+      }
    }
 
    public void removePairing(ServerPlayer p_8535_) {

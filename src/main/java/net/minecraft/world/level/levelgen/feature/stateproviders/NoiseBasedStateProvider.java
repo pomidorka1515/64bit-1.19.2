@@ -5,8 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 
@@ -34,6 +34,6 @@ public abstract class NoiseBasedStateProvider extends BlockStateProvider {
    }
 
    protected double getNoiseValue(BlockPos p_191430_, double p_191431_) {
-      return this.noise.getValue(WorldBounds.scaledNoiseCoordinate(p_191430_.getX(), p_191431_), (double)p_191430_.getY() * p_191431_, WorldBounds.scaledNoiseCoordinate(p_191430_.getZ(), p_191431_));
+      return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(p_191430_.getX(), p_191431_), (double)p_191430_.getY() * p_191431_, FarlandsMode.scaledNoiseCoordinate(p_191430_.getZ(), p_191431_));
    }
 }

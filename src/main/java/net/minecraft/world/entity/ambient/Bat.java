@@ -140,7 +140,10 @@ public class Bat extends AmbientCreature {
          }
 
          if (this.targetPosition == null || this.random.nextInt(30) == 0 || this.targetPosition.closerToCenterThan(this.position(), 2.0D)) {
-            this.targetPosition = new BlockPos(this.getX() + (double)this.random.nextInt(7) - (double)this.random.nextInt(7), this.getY() + (double)this.random.nextInt(6) - 2.0D, this.getZ() + (double)this.random.nextInt(7) - (double)this.random.nextInt(7));
+            this.targetPosition = this.blockPosition().offset(
+                  (long)this.random.nextInt(7) - (long)this.random.nextInt(7),
+                  this.random.nextInt(6) - 2,
+                  (long)this.random.nextInt(7) - (long)this.random.nextInt(7));
          }
 
          double d2 = (double)this.targetPosition.getX() + 0.5D - this.getX();

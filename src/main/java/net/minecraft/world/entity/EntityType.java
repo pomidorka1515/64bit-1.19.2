@@ -340,13 +340,16 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
       } else {
          double d0;
          if (p_20662_) {
-            t.setPos((double)p_20660_.getX() + 0.5D, (double)(p_20660_.getY() + 1), (double)p_20660_.getZ() + 0.5D);
+            t.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_20660_.getX(), 0.5D,
+                  (double)(p_20660_.getY() + 1), p_20660_.getZ(), 0.5D));
             d0 = getYOffset(p_20656_, p_20660_, p_20663_, t.getBoundingBox());
          } else {
             d0 = 0.0D;
          }
 
-         t.moveTo((double)p_20660_.getX() + 0.5D, (double)p_20660_.getY() + d0, (double)p_20660_.getZ() + 0.5D, Mth.wrapDegrees(p_20656_.random.nextFloat() * 360.0F), 0.0F);
+         t.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_20660_.getX(), 0.5D,
+               (double)p_20660_.getY() + d0, p_20660_.getZ(), 0.5D),
+               Mth.wrapDegrees(p_20656_.random.nextFloat() * 360.0F), 0.0F);
          if (t instanceof Mob) {
             Mob mob = (Mob)t;
             mob.yHeadRot = mob.getYRot();

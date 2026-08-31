@@ -9,7 +9,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class RandomStroll extends Behavior<PathfinderMob> {
    private static final int MAX_XZ_DIST = 10;
@@ -44,14 +44,14 @@ public class RandomStroll extends Behavior<PathfinderMob> {
    }
 
    protected void start(ServerLevel p_23754_, PathfinderMob p_23755_, long p_23756_) {
-      Optional<Vec3> optional = Optional.ofNullable(this.getTargetPos(p_23755_));
+      Optional<SectorVec3> optional = Optional.ofNullable(this.getTargetPos(p_23755_));
       p_23755_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_23758_) -> {
          return new WalkTarget(p_23758_, this.speedModifier, 0);
       }));
    }
 
    @Nullable
-   protected Vec3 getTargetPos(PathfinderMob p_147851_) {
-      return LandRandomPos.getPos(p_147851_, this.maxHorizontalDistance, this.maxVerticalDistance);
+   protected SectorVec3 getTargetPos(PathfinderMob p_147851_) {
+      return LandRandomPos.getSectorPos(p_147851_, this.maxHorizontalDistance, this.maxVerticalDistance);
    }
 }

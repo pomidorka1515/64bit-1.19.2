@@ -245,11 +245,10 @@ public class Ravager extends Raider {
 
    }
 
-   private void strongKnockback(Entity p_33340_) {
-      double d0 = p_33340_.getX() - this.getX();
-      double d1 = p_33340_.getZ() - this.getZ();
-      double d2 = Math.max(d0 * d0 + d1 * d1, 0.001D);
-      p_33340_.push(d0 / d2 * 4.0D, 0.2D, d1 / d2 * 4.0D);
+   private void strongKnockback(Entity target) {
+      Vec3 delta = target.sectorPosition().relativeTo(this.sectorPosition());
+      double distanceSqr = Math.max(delta.x * delta.x + delta.z * delta.z, 0.001D);
+      target.push(delta.x / distanceSqr * 4.0D, 0.2D, delta.z / distanceSqr * 4.0D);
    }
 
    public void handleEntityEvent(byte p_33335_) {

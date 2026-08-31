@@ -94,9 +94,7 @@ public class ItemEntity extends Entity {
             --this.pickupDelay;
          }
 
-         this.xo = this.getX();
-         this.yo = this.getY();
-         this.zo = this.getZ();
+         this.setOldPosAndRot();
          Vec3 vec3 = this.getDeltaMovement();
          float f = this.getEyeHeight() - 0.11111111F;
          if (this.isInWater() && this.getFluidHeight(FluidTags.WATER) > (double)f) {
@@ -110,7 +108,7 @@ public class ItemEntity extends Entity {
          if (this.level.isClientSide) {
             this.noPhysics = false;
          } else {
-            this.noPhysics = !this.level.noCollision(this, this.getBoundingBox().deflate(1.0E-7D));
+            this.noPhysics = !this.hasExactNoCollision();
             if (this.noPhysics) {
                this.moveTowardsClosestSpace(this.getX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.getZ());
             }
@@ -169,9 +167,9 @@ public class ItemEntity extends Entity {
 
    private void mergeWithNeighbours() {
       if (this.isMergable()) {
-         for(ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(0.5D, 0.0D, 0.5D), (p_186268_) -> {
-            return p_186268_ != this && p_186268_.isMergable();
-         })) {
+         for(ItemEntity itementity : this.getEntitiesInExactRange(ItemEntity.class,
+               this.getSectorBoundingBox().inflate(0.5D, 0.0D, 0.5D),
+               p_186268_ -> p_186268_ != this && p_186268_.isMergable())) {
             if (itementity.isMergable()) {
                this.tryToMerge(itementity);
                if (this.isRemoved()) {

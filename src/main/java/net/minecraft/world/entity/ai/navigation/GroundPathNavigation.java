@@ -31,10 +31,6 @@ public class GroundPathNavigation extends PathNavigation {
       return this.mob.isOnGround() || this.isInLiquid() || this.mob.isPassenger();
    }
 
-   protected Vec3 getTempMobPos() {
-      return new Vec3(this.mob.getX(), (double)this.getSurfaceY(), this.mob.getZ());
-   }
-
    public Path createPath(BlockPos p_26475_, int p_26476_) {
       if (this.level.getBlockState(p_26475_).isAir()) {
          BlockPos blockpos;
@@ -70,12 +66,12 @@ public class GroundPathNavigation extends PathNavigation {
    private int getSurfaceY() {
       if (this.mob.isInWater() && this.canFloat()) {
          int i = this.mob.getBlockY();
-         BlockState blockstate = this.level.getBlockState(new BlockPos(this.mob.getX(), (double)i, this.mob.getZ()));
+         BlockState blockstate = this.level.getBlockState(new BlockPos(this.mob.getBlockX(), i, this.mob.getBlockZ()));
          int j = 0;
 
          while(blockstate.is(Blocks.WATER)) {
             ++i;
-            blockstate = this.level.getBlockState(new BlockPos(this.mob.getX(), (double)i, this.mob.getZ()));
+            blockstate = this.level.getBlockState(new BlockPos(this.mob.getBlockX(), i, this.mob.getBlockZ()));
             ++j;
             if (j > 16) {
                return this.mob.getBlockY();
@@ -91,7 +87,8 @@ public class GroundPathNavigation extends PathNavigation {
    protected void trimPath() {
       super.trimPath();
       if (this.avoidSun) {
-         if (this.level.canSeeSky(new BlockPos(this.mob.getX(), this.mob.getY() + 0.5D, this.mob.getZ()))) {
+         if (this.level.canSeeSky(new BlockPos(this.mob.getBlockX(), Mth.floor(this.mob.getY() + 0.5D),
+               this.mob.getBlockZ()))) {
             return;
          }
 

@@ -4,8 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 
 public class NoiseBasedCountPlacement extends RepeatingPlacement {
    public static final Codec<NoiseBasedCountPlacement> CODEC = RecordCodecBuilder.create((p_191736_) -> {
@@ -32,7 +32,7 @@ public class NoiseBasedCountPlacement extends RepeatingPlacement {
    }
 
    protected int count(RandomSource p_226352_, BlockPos p_226353_) {
-      double d0 = Biome.BIOME_INFO_NOISE.getValue(WorldBounds.scaledNoiseCoordinate(p_226353_.getX(), 1.0D / this.noiseFactor), WorldBounds.scaledNoiseCoordinate(p_226353_.getZ(), 1.0D / this.noiseFactor), false);
+      double d0 = Biome.BIOME_INFO_NOISE.getValue(FarlandsMode.scaledNoiseCoordinate(p_226353_.getX(), 1.0D / this.noiseFactor), FarlandsMode.scaledNoiseCoordinate(p_226353_.getZ(), 1.0D / this.noiseFactor), false);
       return (int)Math.ceil((d0 + this.noiseOffset) * (double)this.noiseToCountRatio);
    }
 

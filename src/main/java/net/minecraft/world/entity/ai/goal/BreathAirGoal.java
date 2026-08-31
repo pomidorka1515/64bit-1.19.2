@@ -47,10 +47,10 @@ public class BreathAirGoal extends Goal {
       }
 
       if (blockpos == null) {
-         blockpos = new BlockPos(this.mob.getX(), this.mob.getY() + 8.0D, this.mob.getZ());
+         blockpos = this.mob.blockPosition().above(8);
       }
 
-      this.mob.getNavigation().moveTo((double)blockpos.getX(), (double)(blockpos.getY() + 1), (double)blockpos.getZ(), 1.0D);
+      this.mob.getNavigation().moveTo(blockpos.above(), 1.0D);
    }
 
    public void tick() {

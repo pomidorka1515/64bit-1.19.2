@@ -10,15 +10,16 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class SetWalkTargetAwayFrom<T> extends Behavior<PathfinderMob> {
    private final MemoryModuleType<T> walkAwayFromMemory;
    private final float speedModifier;
    private final int desiredDistance;
-   private final Function<T, Vec3> toPosition;
+   private final Function<T, SectorVec3> toPosition;
 
-   public SetWalkTargetAwayFrom(MemoryModuleType<T> p_23987_, float p_23988_, int p_23989_, boolean p_23990_, Function<T, Vec3> p_23991_) {
+   public SetWalkTargetAwayFrom(MemoryModuleType<T> p_23987_, float p_23988_, int p_23989_, boolean p_23990_, Function<T, SectorVec3> p_23991_) {
       super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, p_23990_ ? MemoryStatus.REGISTERED : MemoryStatus.VALUE_ABSENT, p_23987_, MemoryStatus.VALUE_PRESENT));
       this.walkAwayFromMemory = p_23987_;
       this.speedModifier = p_23988_;
@@ -27,18 +28,21 @@ public class SetWalkTargetAwayFrom<T> extends Behavior<PathfinderMob> {
    }
 
    public static SetWalkTargetAwayFrom<BlockPos> pos(MemoryModuleType<BlockPos> p_24013_, float p_24014_, int p_24015_, boolean p_24016_) {
-      return new SetWalkTargetAwayFrom<>(p_24013_, p_24014_, p_24015_, p_24016_, Vec3::atBottomCenterOf);
+      return new SetWalkTargetAwayFrom<>(p_24013_, p_24014_, p_24015_, p_24016_, position ->
+            SectorVec3.fromBlockAndFraction(position.getX(), 0.5D, position.getY(), position.getZ(), 0.5D));
    }
 
    public static SetWalkTargetAwayFrom<? extends Entity> entity(MemoryModuleType<? extends Entity> p_24020_, float p_24021_, int p_24022_, boolean p_24023_) {
-      return new SetWalkTargetAwayFrom<>(p_24020_, p_24021_, p_24022_, p_24023_, Entity::position);
+      return new SetWalkTargetAwayFrom<>(p_24020_, p_24021_, p_24022_, p_24023_, Entity::sectorPosition);
    }
 
    protected boolean checkExtraStartConditions(ServerLevel p_24000_, PathfinderMob p_24001_) {
-      return this.alreadyWalkingAwayFromPosWithSameSpeed(p_24001_) ? false : p_24001_.position().closerThan(this.getPosToAvoid(p_24001_), (double)this.desiredDistance);
+      if (this.alreadyWalkingAwayFromPosWithSameSpeed(p_24001_)) return false;
+      return this.getPosToAvoid(p_24001_).relativeTo(p_24001_.sectorPosition()).lengthSqr()
+            < (double)(this.desiredDistance * this.desiredDistance);
    }
 
-   private Vec3 getPosToAvoid(PathfinderMob p_24007_) {
+   private SectorVec3 getPosToAvoid(PathfinderMob p_24007_) {
       return this.toPosition.apply(p_24007_.getBrain().getMemory(this.walkAwayFromMemory).get());
    }
 
@@ -50,9 +54,10 @@ public class SetWalkTargetAwayFrom<T> extends Behavior<PathfinderMob> {
          if (walktarget.getSpeedModifier() != this.speedModifier) {
             return false;
          } else {
-            Vec3 vec3 = walktarget.getTarget().currentPosition().subtract(p_24018_.position());
-            Vec3 vec31 = this.getPosToAvoid(p_24018_).subtract(p_24018_.position());
-            return vec3.dot(vec31) < 0.0D;
+            Vec3 walkDirection = walktarget.getTarget().currentExactPosition()
+                  .relativeTo(p_24018_.sectorPosition());
+            Vec3 avoidDirection = this.getPosToAvoid(p_24018_).relativeTo(p_24018_.sectorPosition());
+            return walkDirection.dot(avoidDirection) < 0.0D;
          }
       }
    }
@@ -61,11 +66,12 @@ public class SetWalkTargetAwayFrom<T> extends Behavior<PathfinderMob> {
       moveAwayFrom(p_24004_, this.getPosToAvoid(p_24004_), this.speedModifier);
    }
 
-   private static void moveAwayFrom(PathfinderMob p_24009_, Vec3 p_24010_, float p_24011_) {
-      for(int i = 0; i < 10; ++i) {
-         Vec3 vec3 = LandRandomPos.getPosAway(p_24009_, 16, 7, p_24010_);
-         if (vec3 != null) {
-            p_24009_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(vec3, p_24011_, 0));
+   private static void moveAwayFrom(PathfinderMob mob, SectorVec3 avoid, float speedModifier) {
+      for (int i = 0; i < 10; ++i) {
+         SectorVec3 target = LandRandomPos.getSectorPosAway(mob, 16, 7, avoid);
+         if (target != null) {
+            mob.getBrain().setMemory(MemoryModuleType.WALK_TARGET,
+                  new WalkTarget(target, speedModifier, 0));
             return;
          }
       }

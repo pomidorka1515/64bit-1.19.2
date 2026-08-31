@@ -3,6 +3,7 @@ package net.minecraft.world.entity.ai.goal;
 import java.util.EnumSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.LevelReader;
 
 public abstract class MoveToBlockGoal extends Goal {
@@ -58,7 +59,8 @@ public abstract class MoveToBlockGoal extends Goal {
    }
 
    protected void moveMobToBlock() {
-      this.mob.getNavigation().moveTo((double)((float)this.blockPos.getX()) + 0.5D, (double)(this.blockPos.getY() + 1), (double)((float)this.blockPos.getZ()) + 0.5D, this.speedModifier);
+      this.mob.getNavigation().moveTo(SectorVec3.fromBlockAndFraction(this.blockPos.getX(), 0.5D,
+            this.blockPos.getY() + 1, this.blockPos.getZ(), 0.5D), this.speedModifier);
    }
 
    public double acceptedDistance() {
@@ -75,11 +77,14 @@ public abstract class MoveToBlockGoal extends Goal {
 
    public void tick() {
       BlockPos blockpos = this.getMoveToTarget();
-      if (!blockpos.closerToCenterThan(this.mob.position(), this.acceptedDistance())) {
+      SectorVec3 target = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
+            blockpos.getY(), blockpos.getZ(), 0.5D);
+      if (target.relativeTo(this.mob.sectorPosition()).lengthSqr()
+            >= this.acceptedDistance() * this.acceptedDistance()) {
          this.reachedTarget = false;
          ++this.tryTicks;
          if (this.shouldRecalculatePath()) {
-            this.mob.getNavigation().moveTo((double)((float)blockpos.getX()) + 0.5D, (double)blockpos.getY(), (double)((float)blockpos.getZ()) + 0.5D, this.speedModifier);
+            this.mob.getNavigation().moveTo(target, this.speedModifier);
          }
       } else {
          this.reachedTarget = true;

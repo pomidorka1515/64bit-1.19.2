@@ -41,8 +41,16 @@ public class WallClimberNavigation extends GroundPathNavigation {
          super.tick();
       } else {
          if (this.pathToPosition != null) {
-            if (!this.pathToPosition.closerToCenterThan(this.mob.position(), (double)this.mob.getBbWidth()) && (!(this.mob.getY() > (double)this.pathToPosition.getY()) || !(new BlockPos((double)this.pathToPosition.getX(), this.mob.getY(), (double)this.pathToPosition.getZ())).closerToCenterThan(this.mob.position(), (double)this.mob.getBbWidth()))) {
-               this.mob.getMoveControl().setWantedPosition((double)this.pathToPosition.getX(), (double)this.pathToPosition.getY(), (double)this.pathToPosition.getZ(), this.speedModifier);
+            net.minecraft.world.phys.SectorVec3 target = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+                  this.pathToPosition.getX(), 0.5D, (double)this.pathToPosition.getY(),
+                  this.pathToPosition.getZ(), 0.5D);
+            net.minecraft.world.phys.Vec3 delta = target.relativeTo(this.mob.sectorPosition());
+            double width = (double)this.mob.getBbWidth();
+            boolean close = delta.lengthSqr() < width * width;
+            boolean closeHorizontallyAbove = this.mob.getY() > (double)this.pathToPosition.getY()
+                  && delta.x * delta.x + delta.z * delta.z < width * width;
+            if (!close && !closeHorizontallyAbove) {
+               this.mob.getMoveControl().setWantedPosition(target, this.speedModifier);
             } else {
                this.pathToPosition = null;
             }

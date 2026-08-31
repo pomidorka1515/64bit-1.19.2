@@ -2,37 +2,70 @@ package net.minecraft.world.entity.ai.util;
 
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class DefaultRandomPos {
    @Nullable
-   public static Vec3 getPos(PathfinderMob p_148404_, int p_148405_, int p_148406_) {
-      boolean flag = GoalUtils.mobRestricted(p_148404_, p_148405_);
-      return RandomPos.generateRandomPos(p_148404_, () -> {
-         BlockPos blockpos = RandomPos.generateRandomDirection(p_148404_.getRandom(), p_148405_, p_148406_);
-         return generateRandomPosTowardDirection(p_148404_, p_148405_, flag, blockpos);
+   public static Vec3 getPos(PathfinderMob mob, int horizontalRange, int verticalRange) {
+      SectorVec3 exact = getSectorPos(mob, horizontalRange, verticalRange);
+      return exact == null ? null : exact.toApproximateVec3();
+   }
+
+   @Nullable
+   public static SectorVec3 getSectorPos(PathfinderMob mob, int horizontalRange, int verticalRange) {
+      boolean restricted = GoalUtils.mobRestricted(mob, horizontalRange);
+      return RandomPos.generateRandomSectorPos(mob, () -> {
+         BlockPos offset = RandomPos.generateRandomDirection(mob.getRandom(), horizontalRange, verticalRange);
+         return generateRandomPosTowardDirection(mob, horizontalRange, restricted, offset);
       });
    }
 
    @Nullable
-   public static Vec3 getPosTowards(PathfinderMob p_148413_, int p_148414_, int p_148415_, Vec3 p_148416_, double p_148417_) {
-      Vec3 vec3 = p_148416_.subtract(p_148413_.getX(), p_148413_.getY(), p_148413_.getZ());
-      boolean flag = GoalUtils.mobRestricted(p_148413_, p_148414_);
-      return RandomPos.generateRandomPos(p_148413_, () -> {
-         BlockPos blockpos = RandomPos.generateRandomDirectionWithinRadians(p_148413_.getRandom(), p_148414_, p_148415_, 0, vec3.x, vec3.z, p_148417_);
-         return blockpos == null ? null : generateRandomPosTowardDirection(p_148413_, p_148414_, flag, blockpos);
+   public static Vec3 getPosTowards(PathfinderMob mob, int horizontalRange, int verticalRange,
+                                    Vec3 target, double maxAngle) {
+      SectorVec3 exact = getSectorPosTowards(mob, horizontalRange, verticalRange,
+            SectorVec3.fromApproximate(target.x, target.y, target.z), maxAngle);
+      return exact == null ? null : exact.toApproximateVec3();
+   }
+
+   @Nullable
+   public static SectorVec3 getSectorPosTowards(PathfinderMob mob, int horizontalRange, int verticalRange,
+                                                SectorVec3 target, double maxAngle) {
+      Vec3 direction = target.relativeTo(mob.sectorPosition());
+      boolean restricted = GoalUtils.mobRestricted(mob, horizontalRange);
+      return RandomPos.generateRandomSectorPos(mob, () -> {
+         BlockPos offset = RandomPos.generateRandomDirectionWithinRadians(mob.getRandom(), horizontalRange,
+               verticalRange, 0, direction.x, direction.z, maxAngle);
+         return offset == null ? null : generateRandomPosTowardDirection(mob, horizontalRange, restricted, offset);
       });
    }
 
    @Nullable
-   public static Vec3 getPosAway(PathfinderMob p_148408_, int p_148409_, int p_148410_, Vec3 p_148411_) {
-      Vec3 vec3 = p_148408_.position().subtract(p_148411_);
-      boolean flag = GoalUtils.mobRestricted(p_148408_, p_148409_);
-      return RandomPos.generateRandomPos(p_148408_, () -> {
-         BlockPos blockpos = RandomPos.generateRandomDirectionWithinRadians(p_148408_.getRandom(), p_148409_, p_148410_, 0, vec3.x, vec3.z, (double)((float)Math.PI / 2F));
-         return blockpos == null ? null : generateRandomPosTowardDirection(p_148408_, p_148409_, flag, blockpos);
+   public static Vec3 getPosAway(PathfinderMob mob, int horizontalRange, int verticalRange, Vec3 avoid) {
+      SectorVec3 exact = getSectorPosAway(mob, horizontalRange, verticalRange,
+            SectorVec3.fromApproximate(avoid.x, avoid.y, avoid.z));
+      return exact == null ? null : exact.toApproximateVec3();
+   }
+
+   @Nullable
+   public static SectorVec3 getSectorPosAway(PathfinderMob mob, int horizontalRange, int verticalRange,
+                                             SectorVec3 avoid) {
+      Vec3 direction = mob.sectorPosition().relativeTo(avoid);
+      boolean restricted = GoalUtils.mobRestricted(mob, horizontalRange);
+      return RandomPos.generateRandomSectorPos(mob, () -> {
+         BlockPos offset = RandomPos.generateRandomDirectionWithinRadians(mob.getRandom(), horizontalRange,
+               verticalRange, 0, direction.x, direction.z, (double)((float)Math.PI / 2F));
+         return offset == null ? null : generateRandomPosTowardDirection(mob, horizontalRange, restricted, offset);
       });
+   }
+
+   @Nullable
+   public static SectorVec3 getSectorPosAway(PathfinderMob mob, int horizontalRange, int verticalRange,
+                                             Entity avoid) {
+      return getSectorPosAway(mob, horizontalRange, verticalRange, avoid.sectorPosition());
    }
 
    @Nullable

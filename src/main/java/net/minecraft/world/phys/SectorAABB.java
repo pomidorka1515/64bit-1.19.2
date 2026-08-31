@@ -60,20 +60,13 @@ public final class SectorAABB {
    public double maxSubZ() { return this.maxZ.fraction; }
 
    /** Block range with the same one-block safety margin used by BlockCollisions. */
-   public long minBlockXForCollision() { return subtractOneSafely(this.minX.floorMinusEpsilon()); }
-   public long maxBlockXForCollision() { return addOneSafely(this.maxX.ceilPlusEpsilon()); }
-   public int minBlockYForCollision() { return floorMinusEpsilon(this.minY) - 1; }
-   public int maxBlockYForCollision() { return floorPlusEpsilon(this.maxY) + 1; }
-   public long minBlockZForCollision() { return subtractOneSafely(this.minZ.floorMinusEpsilon()); }
-   public long maxBlockZForCollision() { return addOneSafely(this.maxZ.ceilPlusEpsilon()); }
+   public long minBlockXForCollision() { return WorldBounds.addBlockOffset(this.minX.floorMinusEpsilon(), -1L); }
+   public long maxBlockXForCollision() { return WorldBounds.addBlockOffset(this.maxX.ceilPlusEpsilon(), 1L); }
+   public int minBlockYForCollision() { return WorldBounds.addSaturated(floorMinusEpsilon(this.minY), -1); }
+   public int maxBlockYForCollision() { return WorldBounds.addSaturated(floorPlusEpsilon(this.maxY), 1); }
+   public long minBlockZForCollision() { return WorldBounds.addBlockOffset(this.minZ.floorMinusEpsilon(), -1L); }
+   public long maxBlockZForCollision() { return WorldBounds.addBlockOffset(this.maxZ.ceilPlusEpsilon(), 1L); }
 
-   private static long subtractOneSafely(long value) {
-      return value == Long.MIN_VALUE ? Long.MIN_VALUE : value - 1L;
-   }
-
-   private static long addOneSafely(long value) {
-      return value == Long.MAX_VALUE ? Long.MAX_VALUE : value + 1L;
-   }
 
    /** Exact equivalent of floor(minX), used by fluid and inside-block scans. */
    public long minBlockXForRange() { return this.minX.block; }
@@ -96,13 +89,11 @@ public final class SectorAABB {
    public int maxBlockYExclusive() { return ceilToInt(this.maxY); }
 
    private long maxBlockXOrZExclusive(Endpoint endpoint) {
-      if (endpoint.fraction == 0.0D) return endpoint.block;
-      return endpoint.block == Long.MAX_VALUE ? Long.MAX_VALUE : endpoint.block + 1L;
+      return endpoint.fraction == 0.0D ? endpoint.block : WorldBounds.addBlockOffset(endpoint.block, 1L);
    }
 
    private long maxBlockForRangeInclusive(Endpoint endpoint) {
-      if (endpoint.fraction != 0.0D || endpoint.block == Long.MIN_VALUE) return endpoint.block;
-      return endpoint.block - 1L;
+      return endpoint.fraction != 0.0D ? endpoint.block : WorldBounds.addBlockOffset(endpoint.block, -1L);
    }
 
    private static int floorToInt(double value) {
@@ -122,6 +113,19 @@ public final class SectorAABB {
    public SectorAABB move(double dx, double dy, double dz) {
       return this.withEndpoints(this.minX.add(dx), this.minY + dy, this.minZ.add(dz),
             this.maxX.add(dx), this.maxY + dy, this.maxZ.add(dz));
+   }
+
+   public SectorAABB contract(double dx, double dy, double dz) {
+      Endpoint minX = this.minX;
+      Endpoint maxX = this.maxX;
+      Endpoint minZ = this.minZ;
+      Endpoint maxZ = this.maxZ;
+      if (dx < 0.0D) minX = minX.add(-dx); else if (dx > 0.0D) maxX = maxX.add(-dx);
+      if (dz < 0.0D) minZ = minZ.add(-dz); else if (dz > 0.0D) maxZ = maxZ.add(-dz);
+      double minY = this.minY;
+      double maxY = this.maxY;
+      if (dy < 0.0D) minY -= dy; else if (dy > 0.0D) maxY -= dy;
+      return this.withEndpoints(minX, minY, minZ, maxX, maxY, maxZ);
    }
 
    public SectorAABB expandTowards(double dx, double dy, double dz) {
@@ -200,13 +204,14 @@ public final class SectorAABB {
                   : new Endpoint(Long.MAX_VALUE, Math.nextDown(1.0D));
          }
          long carryLong = (long)carry;
-         if (carryLong > 0L && this.block > Long.MAX_VALUE - carryLong) {
+         long normalizedBlock = WorldBounds.addBlockOffset(this.block, carryLong);
+         if (carryLong > 0L && normalizedBlock <= this.block) {
             return new Endpoint(Long.MAX_VALUE, Math.nextDown(1.0D));
          }
-         if (carryLong < 0L && this.block < Long.MIN_VALUE - carryLong) {
+         if (carryLong < 0L && normalizedBlock >= this.block) {
             return new Endpoint(Long.MIN_VALUE, 0.0D);
          }
-         return of(this.block + carryLong, newFraction - carry);
+         return of(normalizedBlock, newFraction - carry);
       }
 
       private int compareTo(Endpoint other) {
@@ -215,11 +220,11 @@ public final class SectorAABB {
       }
 
       private long floorMinusEpsilon() {
-         return this.fraction == 0.0D && this.block != Long.MIN_VALUE ? this.block - 1L : this.block;
+         return this.fraction == 0.0D ? WorldBounds.addBlockOffset(this.block, -1L) : this.block;
       }
 
       private long ceilPlusEpsilon() {
-         return this.fraction >= 1.0D - EPSILON && this.block != Long.MAX_VALUE ? this.block + 1L : this.block;
+         return this.fraction >= 1.0D - EPSILON ? WorldBounds.addBlockOffset(this.block, 1L) : this.block;
       }
 
       private double toLocal(long originBlock) {

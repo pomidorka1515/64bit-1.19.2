@@ -743,8 +743,9 @@ public abstract class Mob extends LivingEntity {
    }
 
    public void lookAt(Entity p_21392_, float p_21393_, float p_21394_) {
-      double d0 = p_21392_.getX() - this.getX();
-      double d2 = p_21392_.getZ() - this.getZ();
+      net.minecraft.world.phys.Vec3 targetDelta = p_21392_.sectorPosition().relativeTo(this.sectorPosition());
+      double d0 = targetDelta.x;
+      double d2 = targetDelta.z;
       double d1;
       if (p_21392_ instanceof LivingEntity livingentity) {
          d1 = livingentity.getEyeY() - this.getEyeY();
@@ -1318,7 +1319,7 @@ public abstract class Mob extends LivingEntity {
    }
 
    public boolean isWithinMeleeAttackRange(LivingEntity p_217067_) {
-      double d0 = this.distanceToSqr(p_217067_.getX(), p_217067_.getY(), p_217067_.getZ());
+      double d0 = this.distanceToSqr(p_217067_);
       return d0 <= this.getMeleeAttackRangeSqr(p_217067_);
    }
 

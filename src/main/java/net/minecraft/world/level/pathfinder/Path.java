@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class Path {
@@ -74,11 +75,13 @@ public class Path {
    }
 
    public Vec3 getEntityPosAtNode(Entity p_77383_, int p_77384_) {
-      Node node = this.nodes.get(p_77384_);
-      double d0 = (double)node.x + (double)((int)(p_77383_.getBbWidth() + 1.0F)) * 0.5D;
-      double d1 = (double)node.y;
-      double d2 = (double)node.z + (double)((int)(p_77383_.getBbWidth() + 1.0F)) * 0.5D;
-      return new Vec3(d0, d1, d2);
+      return this.getExactEntityPosAtNode(p_77383_, p_77384_).toApproximateVec3();
+   }
+
+   public SectorVec3 getExactEntityPosAtNode(Entity entity, int index) {
+      Node node = this.nodes.get(index);
+      double offset = (double)((int)(entity.getBbWidth() + 1.0F)) * 0.5D;
+      return SectorVec3.fromBlockAndFraction(node.x, offset, (double)node.y, node.z, offset);
    }
 
    public BlockPos getNodePos(int p_77397_) {
@@ -87,6 +90,10 @@ public class Path {
 
    public Vec3 getNextEntityPos(Entity p_77381_) {
       return this.getEntityPosAtNode(p_77381_, this.nextNodeIndex);
+   }
+
+   public SectorVec3 getNextExactEntityPos(Entity entity) {
+      return this.getExactEntityPosAtNode(entity, this.nextNodeIndex);
    }
 
    public BlockPos getNextNodePos() {

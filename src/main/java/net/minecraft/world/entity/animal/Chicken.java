@@ -160,7 +160,8 @@ public class Chicken extends Animal {
       float f1 = Mth.cos(this.yBodyRot * ((float)Math.PI / 180F));
       float f2 = 0.1F;
       float f3 = 0.0F;
-      p_28269_.setPos(this.getX() + (double)(0.1F * f), this.getY(0.5D) + p_28269_.getMyRidingOffset() + 0.0D, this.getZ() - (double)(0.1F * f1));
+      p_28269_.applyExactPosition(this.sectorPosition().add((double)(0.1F * f),
+            (double)this.getBbHeight() * 0.5D + p_28269_.getMyRidingOffset(), (double)(-0.1F * f1)));
       if (p_28269_ instanceof LivingEntity) {
          ((LivingEntity)p_28269_).yBodyRot = this.yBodyRot;
       }

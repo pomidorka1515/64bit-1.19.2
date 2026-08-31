@@ -39,4 +39,18 @@ class SectorAABBTest {
       assertEquals(0.5D, box.maxSubX(), 1.0E-12D);
       assertEquals(6.0D, box.minY(), 0.0D);
    }
+
+   @Test
+   void compatibilityAabbRetainsExactBoundsThroughQueryTransforms() {
+      long huge = 53_905_378_846_979_544L;
+      SectorAABB exact = SectorAABB.around(
+            SectorVec3.fromBlockAndFraction(huge, 0.25D, 55.0D, huge + 744L, 0.75D), 0.6D, 1.95D);
+      AABB compatibility = AABB.fromSectorBounds(exact).inflate(16.0D, 4.0D, 16.0D)
+            .expandTowards(0.25D, -0.5D, -0.25D);
+      SectorAABB transformed = compatibility.getSectorBounds();
+      assertEquals(huge - 17L, transformed.minBlockX());
+      assertEquals(0.95D, transformed.minSubX(), 1.0E-12D);
+      assertEquals(huge + 761L, transformed.maxBlockZ());
+      assertEquals(0.05D, transformed.maxSubZ(), 1.0E-12D);
+   }
 }

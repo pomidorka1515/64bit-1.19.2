@@ -52,9 +52,7 @@ public class ExperienceOrb extends Entity {
 
    public void tick() {
       super.tick();
-      this.xo = this.getX();
-      this.yo = this.getY();
-      this.zo = this.getZ();
+      this.setOldPosAndRot();
       if (this.isEyeInFluid(FluidTags.WATER)) {
          this.setUnderwaterMovement();
       } else if (!this.isNoGravity()) {
@@ -65,7 +63,7 @@ public class ExperienceOrb extends Entity {
          this.setDeltaMovement((double)((this.random.nextFloat() - this.random.nextFloat()) * 0.2F), (double)0.2F, (double)((this.random.nextFloat() - this.random.nextFloat()) * 0.2F));
       }
 
-      if (!this.level.noCollision(this.getBoundingBox())) {
+      if (!this.hasExactNoCollision()) {
          this.moveTowardsClosestSpace(this.getX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.getZ());
       }
 
@@ -78,7 +76,8 @@ public class ExperienceOrb extends Entity {
       }
 
       if (this.followingPlayer != null) {
-         Vec3 vec3 = new Vec3(this.followingPlayer.getX() - this.getX(), this.followingPlayer.getY() + (double)this.followingPlayer.getEyeHeight() / 2.0D - this.getY(), this.followingPlayer.getZ() - this.getZ());
+         Vec3 vec3 = this.followingPlayer.sectorPosition().withY(this.followingPlayer.getY()
+               + (double)this.followingPlayer.getEyeHeight() / 2.0D).relativeTo(this.sectorPosition());
          double d0 = vec3.lengthSqr();
          if (d0 < 64.0D) {
             double d1 = 1.0D - Math.sqrt(d0) / 8.0D;
@@ -118,14 +117,38 @@ public class ExperienceOrb extends Entity {
    }
 
    public static void award(ServerLevel p_147083_, Vec3 p_147084_, int p_147085_) {
-      while(p_147085_ > 0) {
-         int i = getExperienceValue(p_147085_);
-         p_147085_ -= i;
-         if (!tryMergeToExisting(p_147083_, p_147084_, i)) {
-            p_147083_.addFreshEntity(new ExperienceOrb(p_147083_, p_147084_.x(), p_147084_.y(), p_147084_.z(), i));
+      award(p_147083_, net.minecraft.world.phys.SectorVec3.fromApproximate(p_147084_.x(), p_147084_.y(), p_147084_.z()), p_147085_);
+   }
+
+   /** Spawns and merges experience at an exact split-coordinate location. */
+   public static void award(ServerLevel level, net.minecraft.world.phys.SectorVec3 position, int value) {
+      while(value > 0) {
+         int orbValue = getExperienceValue(value);
+         value -= orbValue;
+         if (!tryMergeToExisting(level, position, orbValue)) {
+            ExperienceOrb orb = new ExperienceOrb(level, position.toApproximateVec3().x, position.y(),
+                  position.toApproximateVec3().z, orbValue);
+            orb.applyExactPosition(position);
+            level.addFreshEntity(orb);
          }
       }
+   }
 
+   private static boolean tryMergeToExisting(ServerLevel p_147097_, net.minecraft.world.phys.SectorVec3 position, int p_147099_) {
+      net.minecraft.world.phys.SectorAABB query = net.minecraft.world.phys.SectorAABB.around(position, 1.0D, 1.0D);
+      net.minecraft.world.phys.SectorPhysicsOrigin origin = net.minecraft.world.phys.SectorPhysicsOrigin.from(position);
+      AABB localQuery = query.toLocalAABB(origin);
+      int i = p_147097_.getRandom().nextInt(40);
+      for (Entity candidate : p_147097_.getSectorEntities(null, query, localQuery, origin,
+            entity -> entity instanceof ExperienceOrb)) {
+         ExperienceOrb experienceorb = (ExperienceOrb)candidate;
+         if (canMerge(experienceorb, i, p_147099_)) {
+            ++experienceorb.count;
+            experienceorb.age = 0;
+            return true;
+         }
+      }
+      return false;
    }
 
    private static boolean tryMergeToExisting(ServerLevel p_147097_, Vec3 p_147098_, int p_147099_) {

@@ -73,19 +73,19 @@ public class FollowMobGoal extends Goal {
          this.mob.getLookControl().setLookAt(this.followingMob, 10.0F, (float)this.mob.getMaxHeadXRot());
          if (--this.timeToRecalcPath <= 0) {
             this.timeToRecalcPath = this.adjustedTickDelay(10);
-            double d0 = this.mob.getX() - this.followingMob.getX();
-            double d1 = this.mob.getY() - this.followingMob.getY();
-            double d2 = this.mob.getZ() - this.followingMob.getZ();
-            double d3 = d0 * d0 + d1 * d1 + d2 * d2;
+            net.minecraft.world.phys.Vec3 separation = this.mob.sectorPosition().relativeTo(
+                  this.followingMob.sectorPosition());
+            double d3 = separation.lengthSqr();
             if (!(d3 <= (double)(this.stopDistance * this.stopDistance))) {
                this.navigation.moveTo(this.followingMob, this.speedModifier);
             } else {
                this.navigation.stop();
                LookControl lookcontrol = this.followingMob.getLookControl();
                if (d3 <= (double)this.stopDistance || lookcontrol.getWantedX() == this.mob.getX() && lookcontrol.getWantedY() == this.mob.getY() && lookcontrol.getWantedZ() == this.mob.getZ()) {
-                  double d4 = this.followingMob.getX() - this.mob.getX();
-                  double d5 = this.followingMob.getZ() - this.mob.getZ();
-                  this.navigation.moveTo(this.mob.getX() - d4, this.mob.getY(), this.mob.getZ() - d5, this.speedModifier);
+                  net.minecraft.world.phys.Vec3 towardLeader = this.followingMob.sectorPosition().relativeTo(
+                        this.mob.sectorPosition());
+                  this.navigation.moveTo(this.mob.sectorPosition().add(-towardLeader.x, 0.0D,
+                        -towardLeader.z), this.speedModifier);
                }
 
             }

@@ -23,7 +23,8 @@ public class LookAtTargetSink extends Behavior<Mob> {
 
    protected void tick(ServerLevel p_23503_, Mob p_23504_, long p_23505_) {
       p_23504_.getBrain().getMemory(MemoryModuleType.LOOK_TARGET).ifPresent((p_23486_) -> {
-         p_23504_.getLookControl().setLookAt(p_23486_.currentPosition());
+         p_23504_.getLookControl().setLookAtExact(p_23486_.currentExactPosition(),
+               (float)p_23504_.getHeadRotSpeed(), (float)p_23504_.getMaxHeadXRot());
       });
    }
 }

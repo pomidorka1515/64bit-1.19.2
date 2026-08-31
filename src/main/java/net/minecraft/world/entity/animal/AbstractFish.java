@@ -163,12 +163,16 @@ public abstract class AbstractFish extends WaterAnimal implements Bucketable {
          if (this.operation == MoveControl.Operation.MOVE_TO && !this.fish.getNavigation().isDone()) {
             float f = (float)(this.speedModifier * this.fish.getAttributeValue(Attributes.MOVEMENT_SPEED));
             this.fish.setSpeed(Mth.lerp(0.125F, this.fish.getSpeed(), f));
-            double d0 = this.wantedX - this.fish.getX();
-            double d1 = this.wantedY - this.fish.getY();
-            double d2 = this.wantedZ - this.fish.getZ();
+            Vec3 wantedDelta = this.wantedDelta();
+            double d0 = wantedDelta.x;
+            double d1 = wantedDelta.y;
+            double d2 = wantedDelta.z;
             if (d1 != 0.0D) {
                double d3 = Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
-               this.fish.setDeltaMovement(this.fish.getDeltaMovement().add(0.0D, (double)this.fish.getSpeed() * (d1 / d3) * 0.1D, 0.0D));
+               if (d3 > 1.0E-7D && Double.isFinite(d3)) {
+                  this.fish.setDeltaMovement(this.fish.getDeltaMovement().add(0.0D,
+                        (double)this.fish.getSpeed() * (d1 / d3) * 0.1D, 0.0D));
+               }
             }
 
             if (d0 != 0.0D || d2 != 0.0D) {

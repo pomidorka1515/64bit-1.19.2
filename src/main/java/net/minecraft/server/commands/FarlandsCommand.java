@@ -13,7 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 
 public final class FarlandsCommand {
-   private static final Map<Requester, Boolean> PENDING_CHANGES = new ConcurrentHashMap<>();
+   private static final Map<Requester, FarlandsMode.Mode> PENDING_CHANGES = new ConcurrentHashMap<>();
 
    private FarlandsCommand() {
    }
@@ -22,35 +22,40 @@ public final class FarlandsCommand {
       dispatcher.register(Commands.literal("farlands").requires((source) -> {
          return source.hasPermission(3);
       }).executes((context) -> {
-         boolean enabled = FarlandsMode.isEnabled();
-         context.getSource().sendSuccess(Component.literal("Far Lands are currently in " + (enabled ? "32-bit" : "64-bit") + " mode."), false);
+         FarlandsMode.Mode mode = FarlandsMode.getMode();
+         context.getSource().sendSuccess(Component.literal("Far Lands are currently in " + mode.generatorDescription() + " mode."), false);
          return 1;
       }).then(Commands.literal("32bit").executes((context) -> {
-         return requestChange(context.getSource(), true);
+         return requestChange(context.getSource(), FarlandsMode.Mode.BIT_32);
       })).then(Commands.literal("64bit").executes((context) -> {
-         return requestChange(context.getSource(), false);
+         return requestChange(context.getSource(), FarlandsMode.Mode.BIT_64);
+      })).then(Commands.literal("off").executes((context) -> {
+         return requestChange(context.getSource(), FarlandsMode.Mode.OFF);
+      })).then(Commands.literal("help").executes((context) -> {
+         context.getSource().sendSuccess(Component.literal("Generator modes:\n32-bit: Original behaviour of mckuhei's mod, farlands at 12550824.\n64-bit: uses a new 64-bit generator, with farlands at ~53.9 quadrillion blocks.\noff: uses a 64-bit generator, but with farlands fully patched."), false);
+         return 1;
       })).then(Commands.literal("confirm").executes((context) -> {
          return confirm(context.getSource());
       })));
    }
 
-   private static int requestChange(CommandSourceStack source, boolean enabled) {
-      PENDING_CHANGES.put(Requester.of(source), enabled);
-      source.sendSuccess(Component.literal("Far Lands mode change into " + (enabled ? "32-bit" : "64-bit") + " requested. Run /farlands confirm to confirm."), false);
+   private static int requestChange(CommandSourceStack source, FarlandsMode.Mode mode) {
+      PENDING_CHANGES.put(Requester.of(source), mode);
+      source.sendSuccess(Component.literal("Far Lands mode change into " + mode.generatorDescription() + " requested. Run /farlands confirm to confirm."), false);
       return 1;
    }
 
    private static int confirm(CommandSourceStack source) {
       Requester requester = Requester.of(source);
-      Boolean enabled = PENDING_CHANGES.remove(requester);
-      if (enabled == null) {
+      FarlandsMode.Mode mode = PENDING_CHANGES.remove(requester);
+      if (mode == null) {
          source.sendFailure(Component.literal("There is no Far Lands change waiting for confirmation."));
          return 0;
       }
 
-      FarlandsMode.setEnabled(enabled);
+      FarlandsMode.setMode(mode);
       source.getServer().saveEverything(false, false, true);
-      source.sendSuccess(Component.literal("Far Lands mode has been changed to " + (enabled ? "32-bit" : "64-bit") + "."), true);
+      source.sendSuccess(Component.literal("Far Lands mode has been changed to " + mode.generatorDescription() + "."), true);
       return 1;
    }
 

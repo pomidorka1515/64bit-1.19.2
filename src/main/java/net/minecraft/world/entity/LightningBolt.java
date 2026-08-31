@@ -24,7 +24,6 @@ import net.minecraft.world.level.block.LightningRodBlock;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class LightningBolt extends Entity {
@@ -96,9 +95,9 @@ public class LightningBolt extends Entity {
       if (this.life < 0) {
          if (this.flashes == 0) {
             if (this.level instanceof ServerLevel) {
-               List<Entity> list = this.level.getEntities(this, new AABB(this.getX() - 15.0D, this.getY() - 15.0D, this.getZ() - 15.0D, this.getX() + 15.0D, this.getY() + 6.0D + 15.0D, this.getZ() + 15.0D), (p_147140_) -> {
-                  return p_147140_.isAlive() && !this.hitEntities.contains(p_147140_);
-               });
+               List<Entity> list = this.getEntitiesInExactRange(Entity.class,
+                     this.getSectorBoundingBox().inflate(15.0D, 15.0D, 15.0D).expandTowards(0.0D, 6.0D, 0.0D),
+                     p_147140_ -> p_147140_.isAlive() && !this.hitEntities.contains(p_147140_));
 
                for(ServerPlayer serverplayer : ((ServerLevel)this.level).getPlayers((p_147157_) -> {
                   return p_147157_.distanceTo(this) < 256.0F;
@@ -120,7 +119,8 @@ public class LightningBolt extends Entity {
          if (!(this.level instanceof ServerLevel)) {
             this.level.setSkyFlashTime(2);
          } else if (!this.visualOnly) {
-            List<Entity> list1 = this.level.getEntities(this, new AABB(this.getX() - 3.0D, this.getY() - 3.0D, this.getZ() - 3.0D, this.getX() + 3.0D, this.getY() + 6.0D + 3.0D, this.getZ() + 3.0D), Entity::isAlive);
+            List<Entity> list1 = this.getEntitiesInExactRange(Entity.class,
+                  this.getSectorBoundingBox().inflate(3.0D, 3.0D, 3.0D).expandTowards(0.0D, 6.0D, 0.0D), Entity::isAlive);
 
             for(Entity entity : list1) {
                entity.thunderHit((ServerLevel)this.level, this);
@@ -136,8 +136,7 @@ public class LightningBolt extends Entity {
    }
 
    private BlockPos getStrikePosition() {
-      Vec3 vec3 = this.position();
-      return new BlockPos(vec3.x, vec3.y - 1.0E-6D, vec3.z);
+      return this.sectorPosition().add(0.0D, -1.0E-6D, 0.0D).blockPosition();
    }
 
    private void spawnFire(int p_20871_) {

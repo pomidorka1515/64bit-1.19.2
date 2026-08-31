@@ -86,8 +86,12 @@ public class LookAtPlayerGoal extends Goal {
 
    public void tick() {
       if (this.lookAt.isAlive()) {
-         double d0 = this.onlyHorizontal ? this.mob.getEyeY() : this.lookAt.getEyeY();
-         this.mob.getLookControl().setLookAt(this.lookAt.getX(), d0, this.lookAt.getZ());
+         if (this.onlyHorizontal) {
+            this.mob.getLookControl().setLookAtExact(this.lookAt.sectorPosition().withY(this.mob.getEyeY()),
+                  (float)this.mob.getHeadRotSpeed(), (float)this.mob.getMaxHeadXRot());
+         } else {
+            this.mob.getLookControl().setLookAt(this.lookAt);
+         }
          --this.lookTime;
       }
    }

@@ -10,7 +10,7 @@ import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.entity.raid.Raids;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class PathfindToRaidGoal<T extends Raider> extends Goal {
    private static final int RECRUITMENT_SEARCH_TICK_DELAY = 20;
@@ -40,9 +40,12 @@ public class PathfindToRaidGoal<T extends Raider> extends Goal {
          }
 
          if (!this.mob.isPathFinding()) {
-            Vec3 vec3 = DefaultRandomPos.getPosTowards(this.mob, 15, 4, Vec3.atBottomCenterOf(raid.getCenter()), (double)((float)Math.PI / 2F));
-            if (vec3 != null) {
-               this.mob.getNavigation().moveTo(vec3.x, vec3.y, vec3.z, 1.0D);
+            BlockPos center = raid.getCenter();
+            SectorVec3 target = DefaultRandomPos.getSectorPosTowards(this.mob, 15, 4,
+                  SectorVec3.fromBlockAndFraction(center.getX(), 0.5D, center.getY(), center.getZ(), 0.5D),
+                  (double)((float)Math.PI / 2F));
+            if (target != null) {
+               this.mob.getNavigation().moveTo(target, 1.0D);
             }
          }
       }

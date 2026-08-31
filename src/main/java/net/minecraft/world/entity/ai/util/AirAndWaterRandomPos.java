@@ -3,15 +3,25 @@ package net.minecraft.world.entity.ai.util;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class AirAndWaterRandomPos {
    @Nullable
-   public static Vec3 getPos(PathfinderMob p_148358_, int p_148359_, int p_148360_, int p_148361_, double p_148362_, double p_148363_, double p_148364_) {
-      boolean flag = GoalUtils.mobRestricted(p_148358_, p_148359_);
-      return RandomPos.generateRandomPos(p_148358_, () -> {
-         return generateRandomPos(p_148358_, p_148359_, p_148360_, p_148361_, p_148362_, p_148363_, p_148364_, flag);
-      });
+   public static Vec3 getPos(PathfinderMob mob, int horizontalRange, int verticalRange, int startHeight,
+                             double directionX, double directionZ, double maxAngle) {
+      SectorVec3 exact = getSectorPos(mob, horizontalRange, verticalRange, startHeight,
+            directionX, directionZ, maxAngle);
+      return exact == null ? null : exact.toApproximateVec3();
+   }
+
+   @Nullable
+   public static SectorVec3 getSectorPos(PathfinderMob mob, int horizontalRange, int verticalRange,
+                                         int startHeight, double directionX, double directionZ,
+                                         double maxAngle) {
+      boolean restricted = GoalUtils.mobRestricted(mob, horizontalRange);
+      return RandomPos.generateRandomSectorPos(mob, () -> generateRandomPos(mob, horizontalRange,
+            verticalRange, startHeight, directionX, directionZ, maxAngle, restricted));
    }
 
    @Nullable

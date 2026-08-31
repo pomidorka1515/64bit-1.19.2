@@ -6,7 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class EntityTracker implements PositionTracker {
    private final Entity entity;
@@ -17,8 +17,10 @@ public class EntityTracker implements PositionTracker {
       this.trackEyeHeight = p_22850_;
    }
 
-   public Vec3 currentPosition() {
-      return this.trackEyeHeight ? this.entity.position().add(0.0D, (double)this.entity.getEyeHeight(), 0.0D) : this.entity.position();
+   public SectorVec3 currentExactPosition() {
+      return this.trackEyeHeight
+            ? this.entity.sectorPosition().add(0.0D, (double)this.entity.getEyeHeight(), 0.0D)
+            : this.entity.sectorPosition();
    }
 
    public BlockPos currentBlockPosition() {

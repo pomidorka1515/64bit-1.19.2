@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class ThrowableProjectile extends Projectile {
@@ -25,6 +26,7 @@ public abstract class ThrowableProjectile extends Projectile {
 
    protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> p_37462_, LivingEntity p_37463_, Level p_37464_) {
       this(p_37462_, p_37463_.getX(), p_37463_.getEyeY() - (double)0.1F, p_37463_.getZ(), p_37464_);
+      this.applyExactPosition(p_37463_.sectorPosition().withY(p_37463_.getEyeY() - (double)0.1F));
       this.setOwner(p_37463_);
    }
 
@@ -64,9 +66,7 @@ public abstract class ThrowableProjectile extends Projectile {
 
       this.checkInsideBlocks();
       Vec3 vec3 = this.getDeltaMovement();
-      double d2 = this.getX() + vec3.x;
-      double d0 = this.getY() + vec3.y;
-      double d1 = this.getZ() + vec3.z;
+      SectorVec3 nextPosition = this.sectorPosition().add(vec3.x, vec3.y, vec3.z);
       this.updateRotation();
       float f;
       if (this.isInWater()) {
@@ -87,7 +87,7 @@ public abstract class ThrowableProjectile extends Projectile {
          this.setDeltaMovement(vec31.x, vec31.y - (double)this.getGravity(), vec31.z);
       }
 
-      this.setPos(d2, d0, d1);
+      this.applyExactPosition(nextPosition);
    }
 
    protected float getGravity() {

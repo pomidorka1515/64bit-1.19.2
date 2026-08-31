@@ -142,7 +142,7 @@ public class Silverfish extends Monster {
             RandomSource randomsource = this.mob.getRandom();
             if (this.mob.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) && randomsource.nextInt(reducedTickDelay(10)) == 0) {
                this.selectedDirection = Direction.getRandom(randomsource);
-               BlockPos blockpos = (new BlockPos(this.mob.getX(), this.mob.getY() + 0.5D, this.mob.getZ())).relative(this.selectedDirection);
+               BlockPos blockpos = this.mob.blockPosition().relative(this.selectedDirection);
                BlockState blockstate = this.mob.level.getBlockState(blockpos);
                if (InfestedBlock.isCompatibleHostBlock(blockstate)) {
                   this.doMerge = true;
@@ -164,7 +164,7 @@ public class Silverfish extends Monster {
             super.start();
          } else {
             LevelAccessor levelaccessor = this.mob.level;
-            BlockPos blockpos = (new BlockPos(this.mob.getX(), this.mob.getY() + 0.5D, this.mob.getZ())).relative(this.selectedDirection);
+            BlockPos blockpos = this.mob.blockPosition().relative(this.selectedDirection);
             BlockState blockstate = levelaccessor.getBlockState(blockpos);
             if (InfestedBlock.isCompatibleHostBlock(blockstate)) {
                levelaccessor.setBlock(blockpos, InfestedBlock.infestedStateByHost(blockstate), 3);

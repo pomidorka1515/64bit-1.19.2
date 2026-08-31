@@ -183,9 +183,10 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
    public void performRangedAttack(LivingEntity p_32918_, float p_32919_) {
       ItemStack itemstack = this.getProjectile(this.getItemInHand(ProjectileUtil.getWeaponHoldingHand(this, Items.BOW)));
       AbstractArrow abstractarrow = ProjectileUtil.getMobArrow(this, itemstack, p_32919_);
-      double d0 = p_32918_.getX() - this.getX();
+      Vec3 targetDelta = p_32918_.sectorPosition().relativeTo(this.sectorPosition());
+      double d0 = targetDelta.x;
       double d1 = p_32918_.getY(0.3333333333333333D) - abstractarrow.getY();
-      double d2 = p_32918_.getZ() - this.getZ();
+      double d2 = targetDelta.z;
       double d3 = Math.sqrt(d0 * d0 + d2 * d2);
       abstractarrow.shoot(d0, d1 + d3 * (double)0.2F, d2, 1.6F, (float)(14 - this.level.getDifficulty().getId() * 4));
       this.playSound(SoundEvents.SKELETON_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));

@@ -14,7 +14,7 @@ import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class MoveToTargetSink extends Behavior<Mob> {
    private static final int MAX_COOLDOWN_BEFORE_RETRYING = 40;
@@ -118,9 +118,10 @@ public class MoveToTargetSink extends Behavior<Mob> {
             return true;
          }
 
-         Vec3 vec3 = DefaultRandomPos.getPosTowards((PathfinderMob)p_23593_, 10, 7, Vec3.atBottomCenterOf(blockpos), (double)((float)Math.PI / 2F));
-         if (vec3 != null) {
-            this.path = p_23593_.getNavigation().createPath(vec3.x, vec3.y, vec3.z, 0);
+         SectorVec3 target = DefaultRandomPos.getSectorPosTowards((PathfinderMob)p_23593_, 10, 7,
+               p_23594_.getTarget().currentExactPosition(), (double)((float)Math.PI / 2F));
+         if (target != null) {
+            this.path = p_23593_.getNavigation().createPath(target.blockPosition(), 0);
             return this.path != null;
          }
       }

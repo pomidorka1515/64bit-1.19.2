@@ -25,6 +25,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class FireworkRocketEntity extends Projectile implements ItemSupplier {
@@ -61,6 +62,7 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
 
    public FireworkRocketEntity(Level p_37058_, ItemStack p_37059_, LivingEntity p_37060_) {
       this(p_37058_, p_37060_, p_37060_.getX(), p_37060_.getY(), p_37060_.getZ(), p_37059_);
+      this.applyExactPosition(p_37060_.sectorPosition());
       this.entityData.set(DATA_ATTACHED_TO_TARGET, OptionalInt.of(p_37060_.getId()));
       this.attachedToEntity = p_37060_;
    }
@@ -115,7 +117,7 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
                vec3 = Vec3.ZERO;
             }
 
-            this.setPos(this.attachedToEntity.getX() + vec3.x, this.attachedToEntity.getY() + vec3.y, this.attachedToEntity.getZ() + vec3.z);
+            this.applyExactPosition(this.attachedToEntity.sectorPosition().add(vec3.x, vec3.y, vec3.z));
             this.setDeltaMovement(this.attachedToEntity.getDeltaMovement());
          }
       } else {
@@ -199,15 +201,17 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
          }
 
          double d0 = 5.0D;
-         Vec3 vec3 = this.position();
+         net.minecraft.world.phys.SectorVec3 position = this.sectorPosition();
 
-         for(LivingEntity livingentity : this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(5.0D))) {
+         for(LivingEntity livingentity : this.getEntitiesInExactRange(LivingEntity.class,
+               this.getSectorBoundingBox().inflate(5.0D, 5.0D, 5.0D), livingentity -> true)) {
             if (livingentity != this.attachedToEntity && !(this.distanceToSqr(livingentity) > 25.0D)) {
                boolean flag = false;
 
                for(int i = 0; i < 2; ++i) {
-                  Vec3 vec31 = new Vec3(livingentity.getX(), livingentity.getY(0.5D * (double)i), livingentity.getZ());
-                  HitResult hitresult = this.level.clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+                  net.minecraft.world.phys.SectorVec3 target = livingentity.sectorPosition().withY(livingentity.getY(0.5D * (double)i));
+                  HitResult hitresult = net.minecraft.world.level.SectorClipper.clip(this.level, position, target, this,
+                        ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE);
                   if (hitresult.getType() == HitResult.Type.MISS) {
                      flag = true;
                      break;

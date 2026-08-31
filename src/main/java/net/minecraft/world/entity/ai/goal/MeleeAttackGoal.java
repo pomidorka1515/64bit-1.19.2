@@ -13,9 +13,7 @@ public class MeleeAttackGoal extends Goal {
    private final double speedModifier;
    private final boolean followingTargetEvenIfNotSeen;
    private Path path;
-   private double pathedTargetX;
-   private double pathedTargetY;
-   private double pathedTargetZ;
+   private net.minecraft.world.phys.SectorVec3 pathedTargetPosition;
    private int ticksUntilNextPathRecalculation;
    private int ticksUntilNextAttack;
    private final int attackInterval = 20;
@@ -45,7 +43,7 @@ public class MeleeAttackGoal extends Goal {
             if (this.path != null) {
                return true;
             } else {
-               return this.getAttackReachSqr(livingentity) >= this.mob.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
+               return this.getAttackReachSqr(livingentity) >= this.mob.distanceToSqr(livingentity);
             }
          }
       }
@@ -91,12 +89,14 @@ public class MeleeAttackGoal extends Goal {
       LivingEntity livingentity = this.mob.getTarget();
       if (livingentity != null) {
          this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
-         double d0 = this.mob.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
+         double d0 = this.mob.distanceToSqr(livingentity);
          this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
-         if ((this.followingTargetEvenIfNotSeen || this.mob.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.mob.getRandom().nextFloat() < 0.05F)) {
-            this.pathedTargetX = livingentity.getX();
-            this.pathedTargetY = livingentity.getY();
-            this.pathedTargetZ = livingentity.getZ();
+         if ((this.followingTargetEvenIfNotSeen || this.mob.getSensing().hasLineOfSight(livingentity))
+               && this.ticksUntilNextPathRecalculation <= 0
+               && (this.pathedTargetPosition == null
+                     || livingentity.sectorPosition().relativeTo(this.pathedTargetPosition).lengthSqr() >= 1.0D
+                     || this.mob.getRandom().nextFloat() < 0.05F)) {
+            this.pathedTargetPosition = livingentity.sectorPosition();
             this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
             if (d0 > 1024.0D) {
                this.ticksUntilNextPathRecalculation += 10;

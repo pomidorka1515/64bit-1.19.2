@@ -70,6 +70,8 @@ public class Boat extends Entity {
    private double lerpX;
    private double lerpY;
    private double lerpZ;
+   @Nullable
+   private net.minecraft.world.phys.SectorVec3 exactLerpTarget;
    private double lerpYRot;
    private double lerpXRot;
    private boolean inputLeft;
@@ -95,9 +97,14 @@ public class Boat extends Entity {
    public Boat(Level p_38293_, double p_38294_, double p_38295_, double p_38296_) {
       this(EntityType.BOAT, p_38293_);
       this.setPos(p_38294_, p_38295_, p_38296_);
-      this.xo = p_38294_;
-      this.yo = p_38295_;
-      this.zo = p_38296_;
+      this.setOldPosAndRot();
+   }
+
+   /** Creates a boat at an exact split-coordinate position. */
+   public Boat(Level level, net.minecraft.world.phys.SectorVec3 position) {
+      this(EntityType.BOAT, level);
+      this.applyExactPosition(position);
+      this.setOldPosAndRot();
    }
 
    protected float getEyeHeight(Pose p_38327_, EntityDimensions p_38328_) {
@@ -230,11 +237,22 @@ public class Boat extends Entity {
    }
 
    public void lerpTo(double p_38299_, double p_38300_, double p_38301_, float p_38302_, float p_38303_, int p_38304_, boolean p_38305_) {
+      this.exactLerpTarget = null;
       this.lerpX = p_38299_;
       this.lerpY = p_38300_;
       this.lerpZ = p_38301_;
       this.lerpYRot = (double)p_38302_;
       this.lerpXRot = (double)p_38303_;
+      this.lerpSteps = 10;
+   }
+
+   @Override
+   public void lerpTo(net.minecraft.world.phys.SectorVec3 position, float yRot, float xRot,
+                      int steps, boolean teleport) {
+      this.exactLerpTarget = position;
+      this.lerpYRot = (double)yRot;
+      this.lerpXRot = (double)xRot;
+      // Preserve boat's vanilla ten-tick smoothing while retaining exact X/Z.
       this.lerpSteps = 10;
    }
 
@@ -302,7 +320,8 @@ public class Boat extends Entity {
       }
 
       this.checkInsideBlocks();
-      List<Entity> list = this.level.getEntities(this, this.getBoundingBox().inflate((double)0.2F, (double)-0.01F, (double)0.2F), EntitySelector.pushableBy(this));
+      List<Entity> list = this.getEntitiesInExactRange(Entity.class,
+            this.getSectorBoundingBox().inflate((double)0.2F, (double)-0.01F, (double)0.2F), EntitySelector.pushableBy(this));
       if (!list.isEmpty()) {
          boolean flag = !this.level.isClientSide && !(this.getControllingPassenger() instanceof Player);
 
@@ -379,18 +398,19 @@ public class Boat extends Entity {
    private void tickLerp() {
       if (this.isControlledByLocalInstance()) {
          this.lerpSteps = 0;
-         this.syncPacketPositionCodec(this.getX(), this.getY(), this.getZ());
+         this.exactLerpTarget = null;
       }
 
       if (this.lerpSteps > 0) {
-         double d0 = this.getX() + (this.lerpX - this.getX()) / (double)this.lerpSteps;
-         double d1 = this.getY() + (this.lerpY - this.getY()) / (double)this.lerpSteps;
-         double d2 = this.getZ() + (this.lerpZ - this.getZ()) / (double)this.lerpSteps;
+         net.minecraft.world.phys.SectorVec3 target = this.exactLerpTarget != null ? this.exactLerpTarget
+               : net.minecraft.world.phys.SectorVec3.fromApproximate(this.lerpX, this.lerpY, this.lerpZ);
+         net.minecraft.world.phys.SectorVec3 next = this.sectorPosition().lerpTo(target, 1.0D / (double)this.lerpSteps);
          double d3 = Mth.wrapDegrees(this.lerpYRot - (double)this.getYRot());
          this.setYRot(this.getYRot() + (float)d3 / (float)this.lerpSteps);
          this.setXRot(this.getXRot() + (float)(this.lerpXRot - (double)this.getXRot()) / (float)this.lerpSteps);
          --this.lerpSteps;
-         this.setPos(d0, d1, d2);
+         this.applyExactPosition(next);
+         if (this.lerpSteps == 0) this.exactLerpTarget = null;
          this.setRot(this.getYRot(), this.getXRot());
       }
    }
@@ -646,7 +666,7 @@ public class Boat extends Entity {
          }
 
          Vec3 vec3 = (new Vec3((double)f, 0.0D, 0.0D)).yRot(-this.getYRot() * ((float)Math.PI / 180F) - ((float)Math.PI / 2F));
-         p_38379_.setPos(this.getX() + vec3.x, this.getY() + (double)f1, this.getZ() + vec3.z);
+         p_38379_.applyExactPosition(this.sectorPosition().add(vec3.x, (double)f1, vec3.z));
          p_38379_.setYRot(p_38379_.getYRot() + this.deltaRotation);
          p_38379_.setYHeadRot(p_38379_.getYHeadRot() + this.deltaRotation);
          this.clampRotation(p_38379_);

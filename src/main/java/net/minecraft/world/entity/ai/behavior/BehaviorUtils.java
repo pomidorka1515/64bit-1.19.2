@@ -25,6 +25,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class BehaviorUtils {
@@ -170,13 +171,22 @@ public class BehaviorUtils {
    }
 
    @Nullable
-   public static Vec3 getRandomSwimmablePos(PathfinderMob p_147445_, int p_147446_, int p_147447_) {
-      Vec3 vec3 = DefaultRandomPos.getPos(p_147445_, p_147446_, p_147447_);
+   public static Vec3 getRandomSwimmablePos(PathfinderMob mob, int horizontalRange, int verticalRange) {
+      SectorVec3 exact = getRandomSwimmableSectorPos(mob, horizontalRange, verticalRange);
+      return exact == null ? null : exact.toApproximateVec3();
+   }
 
-      for(int i = 0; vec3 != null && !p_147445_.level.getBlockState(new BlockPos(vec3)).isPathfindable(p_147445_.level, new BlockPos(vec3), PathComputationType.WATER) && i++ < 10; vec3 = DefaultRandomPos.getPos(p_147445_, p_147446_, p_147447_)) {
+   @Nullable
+   public static SectorVec3 getRandomSwimmableSectorPos(PathfinderMob mob, int horizontalRange,
+                                                         int verticalRange) {
+      SectorVec3 target = DefaultRandomPos.getSectorPos(mob, horizontalRange, verticalRange);
+
+      for (int i = 0; target != null && !mob.level.getBlockState(target.blockPosition())
+            .isPathfindable(mob.level, target.blockPosition(), PathComputationType.WATER) && i++ < 10;
+           target = DefaultRandomPos.getSectorPos(mob, horizontalRange, verticalRange)) {
       }
 
-      return vec3;
+      return target;
    }
 
    public static boolean isBreeding(LivingEntity p_217127_) {

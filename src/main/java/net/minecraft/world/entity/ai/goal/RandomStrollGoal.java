@@ -4,14 +4,13 @@ import java.util.EnumSet;
 import javax.annotation.Nullable;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class RandomStrollGoal extends Goal {
    public static final int DEFAULT_INTERVAL = 120;
    protected final PathfinderMob mob;
-   protected double wantedX;
-   protected double wantedY;
-   protected double wantedZ;
+   @Nullable
+   protected SectorVec3 wantedPosition;
    protected final double speedModifier;
    protected int interval;
    protected boolean forceTrigger;
@@ -47,22 +46,16 @@ public class RandomStrollGoal extends Goal {
             }
          }
 
-         Vec3 vec3 = this.getPosition();
-         if (vec3 == null) {
-            return false;
-         } else {
-            this.wantedX = vec3.x;
-            this.wantedY = vec3.y;
-            this.wantedZ = vec3.z;
-            this.forceTrigger = false;
-            return true;
-         }
+         this.wantedPosition = this.getPosition();
+         if (this.wantedPosition == null) return false;
+         this.forceTrigger = false;
+         return true;
       }
    }
 
    @Nullable
-   protected Vec3 getPosition() {
-      return DefaultRandomPos.getPos(this.mob, 10, 7);
+   protected SectorVec3 getPosition() {
+      return DefaultRandomPos.getSectorPos(this.mob, 10, 7);
    }
 
    public boolean canContinueToUse() {
@@ -70,7 +63,9 @@ public class RandomStrollGoal extends Goal {
    }
 
    public void start() {
-      this.mob.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
+      if (this.wantedPosition != null) {
+         this.mob.getNavigation().moveTo(this.wantedPosition, this.speedModifier);
+      }
    }
 
    public void stop() {

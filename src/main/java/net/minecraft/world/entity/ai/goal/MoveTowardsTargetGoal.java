@@ -5,15 +5,14 @@ import javax.annotation.Nullable;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class MoveTowardsTargetGoal extends Goal {
    private final PathfinderMob mob;
    @Nullable
    private LivingEntity target;
-   private double wantedX;
-   private double wantedY;
-   private double wantedZ;
+   @Nullable
+   private SectorVec3 wantedPosition;
    private final double speedModifier;
    private final float within;
 
@@ -31,15 +30,9 @@ public class MoveTowardsTargetGoal extends Goal {
       } else if (this.target.distanceToSqr(this.mob) > (double)(this.within * this.within)) {
          return false;
       } else {
-         Vec3 vec3 = DefaultRandomPos.getPosTowards(this.mob, 16, 7, this.target.position(), (double)((float)Math.PI / 2F));
-         if (vec3 == null) {
-            return false;
-         } else {
-            this.wantedX = vec3.x;
-            this.wantedY = vec3.y;
-            this.wantedZ = vec3.z;
-            return true;
-         }
+         this.wantedPosition = DefaultRandomPos.getSectorPosTowards(this.mob, 16, 7,
+               this.target.sectorPosition(), (double)((float)Math.PI / 2F));
+         return this.wantedPosition != null;
       }
    }
 
@@ -52,6 +45,8 @@ public class MoveTowardsTargetGoal extends Goal {
    }
 
    public void start() {
-      this.mob.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
+      if (this.wantedPosition != null) {
+         this.mob.getNavigation().moveTo(this.wantedPosition, this.speedModifier);
+      }
    }
 }

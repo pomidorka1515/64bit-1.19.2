@@ -44,6 +44,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class AbstractMinecart extends Entity {
@@ -80,6 +81,8 @@ public abstract class AbstractMinecart extends Entity {
    private double lx;
    private double ly;
    private double lz;
+   @Nullable
+   private SectorVec3 exactLerpTarget;
    private double lyr;
    private double lxr;
    private double lxd;
@@ -94,9 +97,7 @@ public abstract class AbstractMinecart extends Entity {
    protected AbstractMinecart(EntityType<?> p_38090_, Level p_38091_, double p_38092_, double p_38093_, double p_38094_) {
       this(p_38090_, p_38091_);
       this.setPos(p_38092_, p_38093_, p_38094_);
-      this.xo = p_38092_;
-      this.yo = p_38093_;
-      this.zo = p_38094_;
+      this.setOldPosAndRot();
    }
 
    public static AbstractMinecart createMinecart(Level p_38120_, double p_38121_, double p_38122_, double p_38123_, AbstractMinecart.Type p_38124_) {
@@ -273,14 +274,21 @@ public abstract class AbstractMinecart extends Entity {
       this.handleNetherPortal();
       if (this.level.isClientSide) {
          if (this.lSteps > 0) {
-            double d5 = this.getX() + (this.lx - this.getX()) / (double)this.lSteps;
-            double d6 = this.getY() + (this.ly - this.getY()) / (double)this.lSteps;
-            double d7 = this.getZ() + (this.lz - this.getZ()) / (double)this.lSteps;
+            SectorVec3 nextPosition;
+            if (this.exactLerpTarget != null) {
+               nextPosition = this.sectorPosition().lerpTo(this.exactLerpTarget, 1.0D / (double)this.lSteps);
+            } else {
+               nextPosition = SectorVec3.fromApproximate(
+                     this.getX() + (this.lx - this.getX()) / (double)this.lSteps,
+                     this.getY() + (this.ly - this.getY()) / (double)this.lSteps,
+                     this.getZ() + (this.lz - this.getZ()) / (double)this.lSteps);
+            }
             double d2 = Mth.wrapDegrees(this.lyr - (double)this.getYRot());
             this.setYRot(this.getYRot() + (float)d2 / (float)this.lSteps);
             this.setXRot(this.getXRot() + (float)(this.lxr - (double)this.getXRot()) / (float)this.lSteps);
             --this.lSteps;
-            this.setPos(d5, d6, d7);
+            this.applyExactPosition(nextPosition);
+            if (this.lSteps == 0) this.exactLerpTarget = null;
             this.setRot(this.getYRot(), this.getXRot());
          } else {
             this.reapplyPosition();
@@ -671,8 +679,9 @@ public abstract class AbstractMinecart extends Entity {
       if (!this.level.isClientSide) {
          if (!p_38165_.noPhysics && !this.noPhysics) {
             if (!this.hasPassenger(p_38165_)) {
-               double d0 = p_38165_.getX() - this.getX();
-               double d1 = p_38165_.getZ() - this.getZ();
+               Vec3 collisionDelta = p_38165_.sectorPosition().relativeTo(this.sectorPosition());
+               double d0 = collisionDelta.x;
+               double d1 = collisionDelta.z;
                double d2 = d0 * d0 + d1 * d1;
                if (d2 >= (double)1.0E-4F) {
                   d2 = Math.sqrt(d2);
@@ -690,9 +699,7 @@ public abstract class AbstractMinecart extends Entity {
                   d0 *= 0.5D;
                   d1 *= 0.5D;
                   if (p_38165_ instanceof AbstractMinecart) {
-                     double d4 = p_38165_.getX() - this.getX();
-                     double d5 = p_38165_.getZ() - this.getZ();
-                     Vec3 vec3 = (new Vec3(d4, 0.0D, d5)).normalize();
+                     Vec3 vec3 = (new Vec3(collisionDelta.x, 0.0D, collisionDelta.z)).normalize();
                      Vec3 vec31 = (new Vec3((double)Mth.cos(this.getYRot() * ((float)Math.PI / 180F)), 0.0D, (double)Mth.sin(this.getYRot() * ((float)Math.PI / 180F)))).normalize();
                      double d6 = Math.abs(vec3.dot(vec31));
                      if (d6 < (double)0.8F) {
@@ -729,12 +736,22 @@ public abstract class AbstractMinecart extends Entity {
    }
 
    public void lerpTo(double p_38102_, double p_38103_, double p_38104_, float p_38105_, float p_38106_, int p_38107_, boolean p_38108_) {
+      this.exactLerpTarget = null;
       this.lx = p_38102_;
       this.ly = p_38103_;
       this.lz = p_38104_;
       this.lyr = (double)p_38105_;
       this.lxr = (double)p_38106_;
       this.lSteps = p_38107_ + 2;
+      this.setDeltaMovement(this.lxd, this.lyd, this.lzd);
+   }
+
+   @Override
+   public void lerpTo(SectorVec3 position, float yRot, float xRot, int steps, boolean teleport) {
+      this.exactLerpTarget = position;
+      this.lyr = (double)yRot;
+      this.lxr = (double)xRot;
+      this.lSteps = steps + 2;
       this.setDeltaMovement(this.lxd, this.lyd, this.lzd);
    }
 

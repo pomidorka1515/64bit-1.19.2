@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class BoatItem extends Item {
@@ -52,7 +53,7 @@ public class BoatItem extends Item {
             Boat boat = this.getBoat(p_40622_, hitresult);
             boat.setType(this.type);
             boat.setYRot(p_40623_.getYRot());
-            if (!p_40622_.noCollision(boat, boat.getBoundingBox())) {
+            if (!boat.hasExactNoCollision()) {
                return InteractionResultHolder.fail(itemstack);
             } else {
                if (!p_40622_.isClientSide) {
@@ -72,7 +73,12 @@ public class BoatItem extends Item {
       }
    }
 
-   private Boat getBoat(Level p_220017_, HitResult p_220018_) {
-      return (Boat)(this.hasChest ? new ChestBoat(p_220017_, p_220018_.getLocation().x, p_220018_.getLocation().y, p_220018_.getLocation().z) : new Boat(p_220017_, p_220018_.getLocation().x, p_220018_.getLocation().y, p_220018_.getLocation().z));
+   private Boat getBoat(Level level, HitResult hitResult) {
+      SectorVec3 position = hitResult.getExactLocation();
+      if (position == null) {
+         Vec3 location = hitResult.getLocation();
+         position = SectorVec3.fromApproximate(location.x, location.y, location.z);
+      }
+      return this.hasChest ? new ChestBoat(level, position) : new Boat(level, position);
    }
 }

@@ -7,13 +7,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class FleeSunGoal extends Goal {
    protected final PathfinderMob mob;
-   private double wantedX;
-   private double wantedY;
-   private double wantedZ;
+   @Nullable
+   private SectorVec3 wantedPosition;
    private final double speedModifier;
    private final Level level;
 
@@ -39,15 +38,8 @@ public class FleeSunGoal extends Goal {
    }
 
    protected boolean setWantedPos() {
-      Vec3 vec3 = this.getHidePos();
-      if (vec3 == null) {
-         return false;
-      } else {
-         this.wantedX = vec3.x;
-         this.wantedY = vec3.y;
-         this.wantedZ = vec3.z;
-         return true;
-      }
+      this.wantedPosition = this.getHidePos();
+      return this.wantedPosition != null;
    }
 
    public boolean canContinueToUse() {
@@ -55,18 +47,21 @@ public class FleeSunGoal extends Goal {
    }
 
    public void start() {
-      this.mob.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
+      if (this.wantedPosition != null) {
+         this.mob.getNavigation().moveTo(this.wantedPosition, this.speedModifier);
+      }
    }
 
    @Nullable
-   protected Vec3 getHidePos() {
+   protected SectorVec3 getHidePos() {
       RandomSource randomsource = this.mob.getRandom();
       BlockPos blockpos = this.mob.blockPosition();
 
       for(int i = 0; i < 10; ++i) {
          BlockPos blockpos1 = blockpos.offset(randomsource.nextInt(20) - 10, randomsource.nextInt(6) - 3, randomsource.nextInt(20) - 10);
          if (!this.level.canSeeSky(blockpos1) && this.mob.getWalkTargetValue(blockpos1) < 0.0F) {
-            return Vec3.atBottomCenterOf(blockpos1);
+            return SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D, blockpos1.getY(),
+                  blockpos1.getZ(), 0.5D);
          }
       }
 

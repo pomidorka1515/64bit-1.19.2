@@ -8,6 +8,8 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.Vec3;
 
 public abstract class DoorInteractGoal extends Goal {
    protected Mob mob;
@@ -60,7 +62,9 @@ public abstract class DoorInteractGoal extends Goal {
             for(int i = 0; i < Math.min(path.getNextNodeIndex() + 2, path.getNodeCount()); ++i) {
                Node node = path.getNode(i);
                this.doorPos = new BlockPos(node.x, node.y + 1, node.z);
-               if (!(this.mob.distanceToSqr((double)this.doorPos.getX(), this.mob.getY(), (double)this.doorPos.getZ()) > 2.25D)) {
+               SectorVec3 doorPosition = SectorVec3.fromBlockAndFraction(this.doorPos.getX(), 0.0D,
+                     this.mob.getY(), this.doorPos.getZ(), 0.0D);
+               if (!(this.mob.exactPositionDistanceToSqr(doorPosition) > 2.25D)) {
                   this.hasDoor = DoorBlock.isWoodenDoor(this.mob.level, this.doorPos);
                   if (this.hasDoor) {
                      return true;
@@ -83,17 +87,24 @@ public abstract class DoorInteractGoal extends Goal {
 
    public void start() {
       this.passed = false;
-      this.doorOpenDirX = (float)((double)this.doorPos.getX() + 0.5D - this.mob.getX());
-      this.doorOpenDirZ = (float)((double)this.doorPos.getZ() + 0.5D - this.mob.getZ());
+      Vec3 delta = this.doorDelta();
+      this.doorOpenDirX = (float)delta.x;
+      this.doorOpenDirZ = (float)delta.z;
    }
 
    public boolean requiresUpdateEveryTick() {
       return true;
    }
 
+   private Vec3 doorDelta() {
+      return SectorVec3.fromBlockAndFraction(this.doorPos.getX(), 0.5D, this.mob.getY(),
+            this.doorPos.getZ(), 0.5D).relativeTo(this.mob.sectorPosition());
+   }
+
    public void tick() {
-      float f = (float)((double)this.doorPos.getX() + 0.5D - this.mob.getX());
-      float f1 = (float)((double)this.doorPos.getZ() + 0.5D - this.mob.getZ());
+      Vec3 delta = this.doorDelta();
+      float f = (float)delta.x;
+      float f1 = (float)delta.z;
       float f2 = this.doorOpenDirX * f + this.doorOpenDirZ * f1;
       if (f2 < 0.0F) {
          this.passed = true;

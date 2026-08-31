@@ -26,10 +26,6 @@ public class FlyingPathNavigation extends PathNavigation {
       return this.canFloat() && this.isInLiquid() || !this.mob.isPassenger();
    }
 
-   protected Vec3 getTempMobPos() {
-      return this.mob.position();
-   }
-
    public Path createPath(Entity p_26430_, int p_26431_) {
       return this.createPath(p_26430_.blockPosition(), p_26431_);
    }
@@ -52,8 +48,7 @@ public class FlyingPathNavigation extends PathNavigation {
 
          DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
          if (!this.isDone()) {
-            Vec3 vec31 = this.path.getNextEntityPos(this.mob);
-            this.mob.getMoveControl().setWantedPosition(vec31.x, vec31.y, vec31.z, this.speedModifier);
+            this.mob.getMoveControl().setWantedPosition(this.path.getNextExactEntityPos(this.mob), this.speedModifier);
          }
       }
    }

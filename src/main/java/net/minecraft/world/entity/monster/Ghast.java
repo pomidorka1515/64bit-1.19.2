@@ -163,8 +163,9 @@ public class Ghast extends FlyingMob implements Enemy {
             LivingEntity livingentity = this.ghast.getTarget();
             double d0 = 64.0D;
             if (livingentity.distanceToSqr(this.ghast) < 4096.0D) {
-               double d1 = livingentity.getX() - this.ghast.getX();
-               double d2 = livingentity.getZ() - this.ghast.getZ();
+               Vec3 targetDelta = livingentity.sectorPosition().relativeTo(this.ghast.sectorPosition());
+               double d1 = targetDelta.x;
+               double d2 = targetDelta.z;
                this.ghast.setYRot(-((float)Mth.atan2(d1, d2)) * (180F / (float)Math.PI));
                this.ghast.yBodyRot = this.ghast.getYRot();
             }
@@ -186,7 +187,7 @@ public class Ghast extends FlyingMob implements Enemy {
          if (this.operation == MoveControl.Operation.MOVE_TO) {
             if (this.floatDuration-- <= 0) {
                this.floatDuration += this.ghast.getRandom().nextInt(5) + 2;
-               Vec3 vec3 = new Vec3(this.wantedX - this.ghast.getX(), this.wantedY - this.ghast.getY(), this.wantedZ - this.ghast.getZ());
+               Vec3 vec3 = this.wantedDelta();
                double d0 = vec3.length();
                vec3 = vec3.normalize();
                if (this.canReach(vec3, Mth.ceil(d0))) {
@@ -251,15 +252,18 @@ public class Ghast extends FlyingMob implements Enemy {
                if (this.chargeTime == 20) {
                   double d1 = 4.0D;
                   Vec3 vec3 = this.ghast.getViewVector(1.0F);
-                  double d2 = livingentity.getX() - (this.ghast.getX() + vec3.x * 4.0D);
+                  Vec3 targetDelta = livingentity.sectorPosition().relativeTo(
+                        this.ghast.sectorPosition().add(vec3.x * 4.0D, 0.5D, vec3.z * 4.0D));
+                  double d2 = targetDelta.x;
                   double d3 = livingentity.getY(0.5D) - (0.5D + this.ghast.getY(0.5D));
-                  double d4 = livingentity.getZ() - (this.ghast.getZ() + vec3.z * 4.0D);
+                  double d4 = targetDelta.z;
                   if (!this.ghast.isSilent()) {
                      level.levelEvent((Player)null, 1016, this.ghast.blockPosition(), 0);
                   }
 
                   LargeFireball largefireball = new LargeFireball(level, this.ghast, d2, d3, d4, this.ghast.getExplosionPower());
-                  largefireball.setPos(this.ghast.getX() + vec3.x * 4.0D, this.ghast.getY(0.5D) + 0.5D, largefireball.getZ() + vec3.z * 4.0D);
+                  largefireball.applyExactPosition(this.ghast.sectorPosition().add(vec3.x * 4.0D,
+                        this.ghast.getY(0.5D) + 0.5D - this.ghast.getY(), vec3.z * 4.0D));
                   level.addFreshEntity(largefireball);
                   this.chargeTime = -40;
                }
@@ -285,10 +289,7 @@ public class Ghast extends FlyingMob implements Enemy {
          if (!movecontrol.hasWanted()) {
             return true;
          } else {
-            double d0 = movecontrol.getWantedX() - this.ghast.getX();
-            double d1 = movecontrol.getWantedY() - this.ghast.getY();
-            double d2 = movecontrol.getWantedZ() - this.ghast.getZ();
-            double d3 = d0 * d0 + d1 * d1 + d2 * d2;
+            double d3 = movecontrol.wantedDelta().lengthSqr();
             return d3 < 1.0D || d3 > 3600.0D;
          }
       }

@@ -280,7 +280,7 @@ public class Vex extends Monster {
 
       public void tick() {
          if (this.operation == MoveControl.Operation.MOVE_TO) {
-            Vec3 vec3 = new Vec3(this.wantedX - Vex.this.getX(), this.wantedY - Vex.this.getY(), this.wantedZ - Vex.this.getZ());
+            Vec3 vec3 = this.wantedDelta();
             double d0 = vec3.length();
             if (d0 < Vex.this.getBoundingBox().getSize()) {
                this.operation = MoveControl.Operation.WAIT;
@@ -292,8 +292,9 @@ public class Vex extends Monster {
                   Vex.this.setYRot(-((float)Mth.atan2(vec31.x, vec31.z)) * (180F / (float)Math.PI));
                   Vex.this.yBodyRot = Vex.this.getYRot();
                } else {
-                  double d2 = Vex.this.getTarget().getX() - Vex.this.getX();
-                  double d1 = Vex.this.getTarget().getZ() - Vex.this.getZ();
+                  Vec3 targetDelta = Vex.this.getTarget().sectorPosition().relativeTo(Vex.this.sectorPosition());
+                  double d2 = targetDelta.x;
+                  double d1 = targetDelta.z;
                   Vex.this.setYRot(-((float)Mth.atan2(d2, d1)) * (180F / (float)Math.PI));
                   Vex.this.yBodyRot = Vex.this.getYRot();
                }

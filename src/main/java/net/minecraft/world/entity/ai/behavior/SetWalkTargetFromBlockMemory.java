@@ -11,7 +11,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class SetWalkTargetFromBlockMemory extends Behavior<Villager> {
    private final MemoryModuleType<GlobalPos> memoryType;
@@ -41,11 +41,17 @@ public class SetWalkTargetFromBlockMemory extends Behavior<Villager> {
       brain.getMemory(this.memoryType).ifPresent((p_24067_) -> {
          if (!this.wrongDimension(p_24059_, p_24067_) && !this.tiredOfTryingToFindTarget(p_24059_, p_24060_)) {
             if (this.tooFar(p_24060_, p_24067_)) {
-               Vec3 vec3 = null;
+               SectorVec3 target = null;
                int i = 0;
+               BlockPos memoryPos = p_24067_.pos();
+               SectorVec3 memoryTarget = SectorVec3.fromBlockAndFraction(memoryPos.getX(), 0.5D,
+                     memoryPos.getY(), memoryPos.getZ(), 0.5D);
 
-               for(int j = 1000; i < 1000 && (vec3 == null || this.tooFar(p_24060_, GlobalPos.of(p_24059_.dimension(), new BlockPos(vec3)))); ++i) {
-                  vec3 = DefaultRandomPos.getPosTowards(p_24060_, 15, 7, Vec3.atBottomCenterOf(p_24067_.pos()), (double)((float)Math.PI / 2F));
+               while (i < 1000 && (target == null || this.tooFar(p_24060_,
+                     GlobalPos.of(p_24059_.dimension(), target.blockPosition())))) {
+                  target = DefaultRandomPos.getSectorPosTowards(p_24060_, 15, 7, memoryTarget,
+                        (double)((float)Math.PI / 2F));
+                  ++i;
                }
 
                if (i == 1000) {
@@ -53,7 +59,8 @@ public class SetWalkTargetFromBlockMemory extends Behavior<Villager> {
                   return;
                }
 
-               brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(vec3, this.speedModifier, this.closeEnoughDist));
+               brain.setMemory(MemoryModuleType.WALK_TARGET,
+                     new WalkTarget(target, this.speedModifier, this.closeEnoughDist));
             } else if (!this.closeEnough(p_24059_, p_24060_, p_24067_)) {
                brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(p_24067_.pos(), this.speedModifier, this.closeEnoughDist));
             }

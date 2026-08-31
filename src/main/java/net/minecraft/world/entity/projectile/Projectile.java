@@ -16,9 +16,12 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class Projectile extends Entity {
@@ -96,17 +99,16 @@ public abstract class Projectile extends Entity {
    }
 
    private boolean checkLeftOwner() {
-      Entity entity = this.getOwner();
-      if (entity != null) {
-         for(Entity entity1 : this.level.getEntities(this, this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0D), (p_37272_) -> {
-            return !p_37272_.isSpectator() && p_37272_.isPickable();
-         })) {
-            if (entity1.getRootVehicle() == entity.getRootVehicle()) {
-               return false;
-            }
-         }
+      Entity owner = this.getOwner();
+      if (owner == null) return true;
+      SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(this.sectorPosition());
+      SectorAABB query = this.getSectorBoundingBox().expandTowards(this.getDeltaMovement().x,
+            this.getDeltaMovement().y, this.getDeltaMovement().z).inflate(1.0D, 1.0D, 1.0D);
+      AABB localQuery = query.toLocalAABB(origin);
+      for (Entity candidate : this.level.getSectorEntities(this, query, localQuery, origin,
+            entity -> !entity.isSpectator() && entity.isPickable())) {
+         if (candidate.getRootVehicle() == owner.getRootVehicle()) return false;
       }
-
       return true;
    }
 
@@ -159,7 +161,7 @@ public abstract class Projectile extends Entity {
          this.setYRot((float)(Mth.atan2(p_37279_, p_37281_) * (double)(180F / (float)Math.PI)));
          this.xRotO = this.getXRot();
          this.yRotO = this.getYRot();
-         this.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+         this.moveTo(this.sectorPosition(), this.getYRot(), this.getXRot());
       }
 
    }

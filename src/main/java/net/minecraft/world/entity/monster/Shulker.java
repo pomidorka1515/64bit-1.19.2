@@ -617,9 +617,10 @@ public class Shulker extends AbstractGolem implements Enemy {
          Vec3i vec3i = direction.getNormal();
          Vector3f vector3f1 = new Vector3f((float)vec3i.getX(), (float)vec3i.getY(), (float)vec3i.getZ());
          vector3f1.cross(vector3f);
-         double d0 = this.wantedX - this.mob.getX();
-         double d1 = this.wantedY - this.mob.getEyeY();
-         double d2 = this.wantedZ - this.mob.getZ();
+         Vec3 wantedDelta = this.wantedDelta(this.mob.getEyeY());
+         double d0 = wantedDelta.x;
+         double d1 = wantedDelta.y;
+         double d2 = wantedDelta.z;
          Vector3f vector3f2 = new Vector3f((float)d0, (float)d1, (float)d2);
          float f = vector3f1.dot(vector3f2);
          float f1 = vector3f.dot(vector3f2);

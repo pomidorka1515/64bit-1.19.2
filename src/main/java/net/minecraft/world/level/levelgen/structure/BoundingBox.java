@@ -38,16 +38,16 @@ public class BoundingBox {
    }
 
    public BoundingBox(long p_71001_, int p_71002_, long p_71003_, long p_71004_, int p_71005_, long p_71006_) {
-      this.minX = Math.min(p_71001_, p_71004_);
+      this.minX = WorldBounds.minBlockCoordinate(p_71001_, p_71004_);
       this.minY = Math.min(p_71002_, p_71005_);
-      this.minZ = Math.min(p_71003_, p_71006_);
-      this.maxX = Math.max(p_71001_, p_71004_);
+      this.minZ = WorldBounds.minBlockCoordinate(p_71003_, p_71006_);
+      this.maxX = WorldBounds.maxBlockCoordinate(p_71001_, p_71004_);
       this.maxY = Math.max(p_71002_, p_71005_);
-      this.maxZ = Math.max(p_71003_, p_71006_);
+      this.maxZ = WorldBounds.maxBlockCoordinate(p_71003_, p_71006_);
    }
 
    public static BoundingBox fromCorners(Vec3i p_162376_, Vec3i p_162377_) {
-      return new BoundingBox(Math.min(p_162376_.getX(), p_162377_.getX()), Math.min(p_162376_.getY(), p_162377_.getY()), Math.min(p_162376_.getZ(), p_162377_.getZ()), Math.max(p_162376_.getX(), p_162377_.getX()), Math.max(p_162376_.getY(), p_162377_.getY()), Math.max(p_162376_.getZ(), p_162377_.getZ()));
+      return new BoundingBox(p_162376_.getX(), p_162376_.getY(), p_162376_.getZ(), p_162377_.getX(), p_162377_.getY(), p_162377_.getZ());
    }
 
    public static BoundingBox infinite() {
@@ -69,11 +69,11 @@ public class BoundingBox {
    }
 
    public boolean intersects(BoundingBox p_71050_) {
-      return this.maxX >= p_71050_.minX && this.minX <= p_71050_.maxX && this.maxZ >= p_71050_.minZ && this.minZ <= p_71050_.maxZ && this.maxY >= p_71050_.minY && this.minY <= p_71050_.maxY;
+      return WorldBounds.blockRangesOverlap(this.minX, this.maxX, p_71050_.minX, p_71050_.maxX) && WorldBounds.blockRangesOverlap(this.minZ, this.maxZ, p_71050_.minZ, p_71050_.maxZ) && this.maxY >= p_71050_.minY && this.minY <= p_71050_.maxY;
    }
 
    public boolean intersects(long p_71020_, long p_71021_, long p_71022_, long p_71023_) {
-      return this.maxX >= p_71020_ && this.minX <= p_71022_ && this.maxZ >= p_71021_ && this.minZ <= p_71023_;
+      return WorldBounds.blockRangesOverlap(this.minX, this.maxX, p_71020_, p_71022_) && WorldBounds.blockRangesOverlap(this.minZ, this.maxZ, p_71021_, p_71023_);
    }
 
    public static Optional<BoundingBox> encapsulatingPositions(Iterable<BlockPos> p_162379_) {
@@ -102,24 +102,24 @@ public class BoundingBox {
    /** @deprecated */
    @Deprecated
    public BoundingBox encapsulate(BoundingBox p_162387_) {
-      this.minX = Math.min(this.minX, p_162387_.minX);
+      this.minX = WorldBounds.minBlockCoordinate(this.minX, p_162387_.minX);
       this.minY = Math.min(this.minY, p_162387_.minY);
-      this.minZ = Math.min(this.minZ, p_162387_.minZ);
-      this.maxX = Math.max(this.maxX, p_162387_.maxX);
+      this.minZ = WorldBounds.minBlockCoordinate(this.minZ, p_162387_.minZ);
+      this.maxX = WorldBounds.maxBlockCoordinate(this.maxX, p_162387_.maxX);
       this.maxY = Math.max(this.maxY, p_162387_.maxY);
-      this.maxZ = Math.max(this.maxZ, p_162387_.maxZ);
+      this.maxZ = WorldBounds.maxBlockCoordinate(this.maxZ, p_162387_.maxZ);
       return this;
    }
 
    /** @deprecated */
    @Deprecated
    public BoundingBox encapsulate(BlockPos p_162372_) {
-      this.minX = Math.min(this.minX, p_162372_.getX());
+      this.minX = WorldBounds.minBlockCoordinate(this.minX, p_162372_.getX());
       this.minY = Math.min(this.minY, p_162372_.getY());
-      this.minZ = Math.min(this.minZ, p_162372_.getZ());
-      this.maxX = Math.max(this.maxX, p_162372_.getX());
+      this.minZ = WorldBounds.minBlockCoordinate(this.minZ, p_162372_.getZ());
+      this.maxX = WorldBounds.maxBlockCoordinate(this.maxX, p_162372_.getX());
       this.maxY = Math.max(this.maxY, p_162372_.getY());
-      this.maxZ = Math.max(this.maxZ, p_162372_.getZ());
+      this.maxZ = WorldBounds.maxBlockCoordinate(this.maxZ, p_162372_.getZ());
       return this;
    }
 
@@ -150,7 +150,7 @@ public class BoundingBox {
    }
 
    public boolean isInside(Vec3i p_71052_) {
-      return p_71052_.getX() >= this.minX && p_71052_.getX() <= this.maxX && p_71052_.getZ() >= this.minZ && p_71052_.getZ() <= this.maxZ && p_71052_.getY() >= this.minY && p_71052_.getY() <= this.maxY;
+      return WorldBounds.isWithinBlockRange(p_71052_.getX(), this.minX, this.maxX) && WorldBounds.isWithinBlockRange(p_71052_.getZ(), this.minZ, this.maxZ) && p_71052_.getY() >= this.minY && p_71052_.getY() <= this.maxY;
    }
 
    public Vec3i getLength() {
@@ -158,7 +158,7 @@ public class BoundingBox {
    }
 
    public long getXSpan() {
-      return span(this.minX, this.maxX);
+      return WorldBounds.inclusiveBlockSpan(this.minX, this.maxX);
    }
 
    public int getYSpan() {
@@ -166,21 +166,15 @@ public class BoundingBox {
    }
 
    public long getZSpan() {
-      return span(this.minZ, this.maxZ);
+      return WorldBounds.inclusiveBlockSpan(this.minZ, this.maxZ);
    }
 
    public BlockPos getCenter() {
       return new BlockPos(center(this.minX, this.maxX), this.minY + (this.maxY - this.minY + 1) / 2, center(this.minZ, this.maxZ));
    }
 
-   private static long span(long min, long max) {
-      long distance = distanceAsLong(min, max);
-      return distance == Long.MAX_VALUE ? Long.MAX_VALUE : distance + 1L;
-   }
-
    private static long distanceAsLong(long min, long max) {
-      double distance = WorldBounds.distance(max, min);
-      return distance >= (double)Long.MAX_VALUE ? Long.MAX_VALUE : (long)distance;
+      return WorldBounds.signedDifferenceAsLong(max, min);
    }
 
    private static long center(long min, long max) {

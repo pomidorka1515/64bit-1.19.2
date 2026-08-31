@@ -21,6 +21,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class ThrownTrident extends AbstractArrow {
@@ -63,8 +64,8 @@ public class ThrownTrident extends AbstractArrow {
             this.discard();
          } else {
             this.setNoPhysics(true);
-            Vec3 vec3 = entity.getEyePosition().subtract(this.position());
-            this.setPosRaw(this.getX(), this.getY() + vec3.y * 0.015D * (double)i, this.getZ());
+            Vec3 vec3 = entity.exactEyePosition().relativeTo(this.sectorPosition());
+            this.applyExactPosition(this.sectorPosition().add(0.0D, vec3.y * 0.015D * (double)i, 0.0D));
             if (this.level.isClientSide) {
                this.yOld = this.getY();
             }
@@ -100,7 +101,7 @@ public class ThrownTrident extends AbstractArrow {
    }
 
    @Nullable
-   protected EntityHitResult findHitEntity(Vec3 p_37575_, Vec3 p_37576_) {
+   protected EntityHitResult findHitEntity(SectorVec3 p_37575_, SectorVec3 p_37576_) {
       return this.dealtDamage ? null : super.findHitEntity(p_37575_, p_37576_);
    }
 

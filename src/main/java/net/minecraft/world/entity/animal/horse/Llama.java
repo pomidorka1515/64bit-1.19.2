@@ -153,7 +153,8 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
          float f = Mth.cos(this.yBodyRot * ((float)Math.PI / 180F));
          float f1 = Mth.sin(this.yBodyRot * ((float)Math.PI / 180F));
          float f2 = 0.3F;
-         p_30830_.setPos(this.getX() + (double)(0.3F * f1), this.getY() + this.getPassengersRidingOffset() + p_30830_.getMyRidingOffset(), this.getZ() - (double)(0.3F * f));
+         p_30830_.applyExactPosition(this.sectorPosition().add((double)(0.3F * f1),
+               this.getPassengersRidingOffset() + p_30830_.getMyRidingOffset(), (double)(-0.3F * f)));
       }
    }
 
@@ -362,9 +363,10 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
 
    private void spit(LivingEntity p_30828_) {
       LlamaSpit llamaspit = new LlamaSpit(this.level, this);
-      double d0 = p_30828_.getX() - this.getX();
+      Vec3 targetDelta = p_30828_.sectorPosition().relativeTo(this.sectorPosition());
+      double d0 = targetDelta.x;
       double d1 = p_30828_.getY(0.3333333333333333D) - llamaspit.getY();
-      double d2 = p_30828_.getZ() - this.getZ();
+      double d2 = targetDelta.z;
       double d3 = Math.sqrt(d0 * d0 + d2 * d2) * (double)0.2F;
       llamaspit.shoot(d0, d1 + d3, d2, 1.5F, 10.0F);
       if (!this.isSilent()) {

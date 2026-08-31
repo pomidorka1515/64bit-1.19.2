@@ -94,7 +94,8 @@ public class EvokerFangs extends Entity {
          }
       } else if (--this.warmupDelayTicks < 0) {
          if (this.warmupDelayTicks == -8) {
-            for(LivingEntity livingentity : this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.2D, 0.0D, 0.2D))) {
+            for(LivingEntity livingentity : this.getEntitiesInExactRange(LivingEntity.class,
+                  this.getSectorBoundingBox().inflate(0.2D, 0.0D, 0.2D), livingentity -> true)) {
                this.dealDamageTo(livingentity);
             }
          }

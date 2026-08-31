@@ -28,6 +28,13 @@ public class LevelEntityGetterAdapter<T extends EntityAccess> implements LevelEn
       return this.visibleEntities.getAllEntities();
    }
 
+   @Override
+   public void getInSections(long minSectionX, long maxSectionX, int minSectionY, int maxSectionY,
+                             long minSectionZ, long maxSectionZ, Consumer<T> consumer) {
+      this.sectionStorage.getEntitiesInSections(minSectionX, maxSectionX, minSectionY, maxSectionY,
+            minSectionZ, maxSectionZ, consumer);
+   }
+
    public <U extends T> void get(EntityTypeTest<T, U> p_156953_, Consumer<U> p_156954_) {
       this.visibleEntities.getEntities(p_156953_, p_156954_);
    }

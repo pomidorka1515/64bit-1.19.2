@@ -63,7 +63,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.level.material.FogType;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -627,6 +626,8 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
             double d0 = (double)this.minecraft.gameMode.getPickRange();
             this.minecraft.hitResult = entity.pick(d0, p_109088_, false);
             Vec3 vec3 = entity.getEyePosition(p_109088_);
+            net.minecraft.world.phys.SectorVec3 exactEye = entity.interpolatedExactPosition(p_109088_)
+                  .withY(vec3.y);
             boolean flag = false;
             int i = 3;
             double d1 = d0;
@@ -643,22 +644,29 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
 
             d1 *= d1;
             if (this.minecraft.hitResult != null) {
-               d1 = this.minecraft.hitResult.getLocation().distanceToSqr(vec3);
+               net.minecraft.world.phys.SectorVec3 exactHit = this.minecraft.hitResult.getExactLocation();
+               d1 = exactHit == null ? this.minecraft.hitResult.getLocation().distanceToSqr(vec3)
+                     : exactHit.relativeTo(exactEye).lengthSqr();
             }
 
             Vec3 vec31 = entity.getViewVector(1.0F);
             Vec3 vec32 = vec3.add(vec31.x * d0, vec31.y * d0, vec31.z * d0);
             float f = 1.0F;
-            AABB aabb = entity.getBoundingBox().expandTowards(vec31.scale(d0)).inflate(1.0D, 1.0D, 1.0D);
-            EntityHitResult entityhitresult = ProjectileUtil.getEntityHitResult(entity, vec3, vec32, aabb, (p_234237_) -> {
-               return !p_234237_.isSpectator() && p_234237_.isPickable();
-            }, d1);
+            EntityHitResult entityhitresult = ProjectileUtil.getSectorEntityHitResult(entity, exactEye,
+                  exactEye.add(vec31.x * d0, vec31.y * d0, vec31.z * d0), (p_234237_) -> {
+                     return !p_234237_.isSpectator() && p_234237_.isPickable();
+                  }, 1.0D, d1);
             if (entityhitresult != null) {
                Entity entity1 = entityhitresult.getEntity();
                Vec3 vec33 = entityhitresult.getLocation();
-               double d2 = vec3.distanceToSqr(vec33);
+               net.minecraft.world.phys.SectorVec3 exactEntityHit = entityhitresult.getExactLocation();
+               double d2 = exactEntityHit == null ? vec3.distanceToSqr(vec33)
+                     : exactEntityHit.relativeTo(exactEye).lengthSqr();
                if (flag && d2 > 9.0D) {
-                  this.minecraft.hitResult = BlockHitResult.miss(vec33, Direction.getNearest(vec31.x, vec31.y, vec31.z), new BlockPos(vec33));
+                  this.minecraft.hitResult = exactEntityHit == null
+                        ? BlockHitResult.miss(vec33, Direction.getNearest(vec31.x, vec31.y, vec31.z), new BlockPos(vec33))
+                        : BlockHitResult.missExact(exactEntityHit, Direction.getNearest(vec31.x, vec31.y, vec31.z),
+                              exactEntityHit.blockPosition());
                } else if (d2 < d1 || this.minecraft.hitResult == null) {
                   this.minecraft.hitResult = entityhitresult;
                   if (entity1 instanceof LivingEntity || entity1 instanceof ItemFrame) {

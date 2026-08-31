@@ -51,21 +51,21 @@ public class ThrownEnderpearl extends ThrowableItemProjectile {
             if (serverplayer.connection.getConnection().isConnected() && serverplayer.level == this.level && !serverplayer.isSleeping()) {
                if (this.random.nextFloat() < 0.05F && this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
                   Endermite endermite = EntityType.ENDERMITE.create(this.level);
-                  endermite.moveTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
+                  endermite.moveTo(entity.sectorPosition(), entity.getYRot(), entity.getXRot());
                   this.level.addFreshEntity(endermite);
                }
 
                if (entity.isPassenger()) {
                   serverplayer.dismountTo(this.getX(), this.getY(), this.getZ());
                } else {
-                  entity.teleportTo(this.getX(), this.getY(), this.getZ());
+                  entity.teleportTo(this.sectorPosition());
                }
 
                entity.resetFallDistance();
                entity.hurt(DamageSource.FALL, 5.0F);
             }
          } else if (entity != null) {
-            entity.teleportTo(this.getX(), this.getY(), this.getZ());
+            entity.teleportTo(this.sectorPosition());
             entity.resetFallDistance();
          }
 

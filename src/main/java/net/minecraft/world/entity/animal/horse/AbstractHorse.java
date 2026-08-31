@@ -887,7 +887,8 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
          float f = Mth.cos(this.yBodyRot * ((float)Math.PI / 180F));
          float f1 = 0.7F * this.standAnimO;
          float f2 = 0.15F * this.standAnimO;
-         p_30642_.setPos(this.getX() + (double)(f1 * f3), this.getY() + this.getPassengersRidingOffset() + p_30642_.getMyRidingOffset() + (double)f2, this.getZ() - (double)(f1 * f));
+         p_30642_.applyExactPosition(this.sectorPosition().add((double)(f1 * f3),
+               this.getPassengersRidingOffset() + p_30642_.getMyRidingOffset() + (double)f2, (double)(-f1 * f)));
          if (p_30642_ instanceof LivingEntity) {
             ((LivingEntity)p_30642_).yBodyRot = this.yBodyRot;
          }

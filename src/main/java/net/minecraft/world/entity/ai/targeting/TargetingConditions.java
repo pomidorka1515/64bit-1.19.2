@@ -77,7 +77,7 @@ public class TargetingConditions {
             if (this.range > 0.0D) {
                double d0 = this.testInvisible ? p_26887_.getVisibilityPercent(p_26886_) : 1.0D;
                double d1 = Math.max(this.range * d0, 2.0D);
-               double d2 = p_26886_.distanceToSqr(p_26887_.getX(), p_26887_.getY(), p_26887_.getZ());
+               double d2 = p_26886_.distanceToSqr(p_26887_);
                if (d2 > d1 * d1) {
                   return false;
                }

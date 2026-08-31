@@ -34,9 +34,7 @@ public class PrimedTnt extends Entity {
       double d0 = p_32079_.random.nextDouble() * (double)((float)Math.PI * 2F);
       this.setDeltaMovement(-Math.sin(d0) * 0.02D, (double)0.2F, -Math.cos(d0) * 0.02D);
       this.setFuse(80);
-      this.xo = p_32080_;
-      this.yo = p_32081_;
-      this.zo = p_32082_;
+      this.setOldPosAndRot();
       this.owner = p_32083_;
    }
 

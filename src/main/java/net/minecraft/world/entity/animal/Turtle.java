@@ -56,6 +56,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.TurtleEggBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class Turtle extends Animal {
@@ -511,10 +512,17 @@ public class Turtle extends Animal {
       public void tick() {
          this.updateSpeed();
          if (this.operation == MoveControl.Operation.MOVE_TO && !this.turtle.getNavigation().isDone()) {
-            double d0 = this.wantedX - this.turtle.getX();
-            double d1 = this.wantedY - this.turtle.getY();
-            double d2 = this.wantedZ - this.turtle.getZ();
+            Vec3 wantedDelta = this.wantedDelta();
+            double d0 = wantedDelta.x;
+            double d1 = wantedDelta.y;
+            double d2 = wantedDelta.z;
             double d3 = Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+            if (!(d3 > 1.0E-7D) || !Double.isFinite(d3)) {
+               this.turtle.setSpeed(0.0F);
+               this.turtle.setDeltaMovement(Vec3.ZERO);
+               this.operation = MoveControl.Operation.WAIT;
+               return;
+            }
             d1 /= d3;
             float f = (float)(Mth.atan2(d2, d0) * (double)(180F / (float)Math.PI)) - 90.0F;
             this.turtle.setYRot(this.rotlerp(this.turtle.getYRot(), f, 90.0F));
@@ -539,9 +547,8 @@ public class Turtle extends Animal {
          } else {
             BlockPos blockpos = this.lookForWater(this.mob.level, this.mob, 7);
             if (blockpos != null) {
-               this.posX = (double)blockpos.getX();
-               this.posY = (double)blockpos.getY();
-               this.posZ = (double)blockpos.getZ();
+               this.panicPosition = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
+                     blockpos.getY(), blockpos.getZ(), 0.5D);
                return true;
             } else {
                return this.findRandomPosition();
@@ -605,7 +612,7 @@ public class Turtle extends Animal {
             l = 0;
          }
 
-         BlockPos blockpos = new BlockPos((double)k + this.turtle.getX(), (double)l + this.turtle.getY(), (double)i1 + this.turtle.getZ());
+         BlockPos blockpos = this.turtle.blockPosition().offset((long)k, l, (long)i1);
          this.turtle.setTravelPos(blockpos);
          this.turtle.setTravelling(true);
          this.stuck = false;

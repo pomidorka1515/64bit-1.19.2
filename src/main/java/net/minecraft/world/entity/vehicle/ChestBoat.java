@@ -37,9 +37,14 @@ public class ChestBoat extends Boat implements HasCustomInventoryScreen, Contain
    public ChestBoat(Level p_219872_, double p_219873_, double p_219874_, double p_219875_) {
       this(EntityType.CHEST_BOAT, p_219872_);
       this.setPos(p_219873_, p_219874_, p_219875_);
-      this.xo = p_219873_;
-      this.yo = p_219874_;
-      this.zo = p_219875_;
+      this.setOldPosAndRot();
+   }
+
+   /** Creates a chest boat at an exact split-coordinate position. */
+   public ChestBoat(Level level, net.minecraft.world.phys.SectorVec3 position) {
+      this(EntityType.CHEST_BOAT, level);
+      this.applyExactPosition(position);
+      this.setOldPosAndRot();
    }
 
    protected float getSinglePassengerXOffset() {

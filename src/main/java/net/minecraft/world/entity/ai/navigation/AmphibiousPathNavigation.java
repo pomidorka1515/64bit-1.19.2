@@ -22,16 +22,29 @@ public class AmphibiousPathNavigation extends PathNavigation {
       return true;
    }
 
-   protected Vec3 getTempMobPos() {
-      return new Vec3(this.mob.getX(), this.mob.getY(0.5D), this.mob.getZ());
-   }
-
    protected double getGroundY(Vec3 p_217794_) {
       return p_217794_.y;
    }
 
+   @Override
+   protected double getGroundY(BlockPos blockPos, double targetY) {
+      return targetY;
+   }
+
    protected boolean canMoveDirectly(Vec3 p_217796_, Vec3 p_217797_) {
       return this.isInLiquid() ? isClearForMovementBetween(this.mob, p_217796_, p_217797_) : false;
+   }
+
+   @Override
+   protected boolean canMoveDirectlyLocal(net.minecraft.world.phys.SectorVec3 from,
+                                          net.minecraft.world.phys.SectorVec3 to) {
+      if (!this.isInLiquid()) return false;
+      net.minecraft.world.phys.SectorVec3 target = to.add(0.0D,
+            (double)this.mob.getBbHeight() * 0.5D, 0.0D);
+      return net.minecraft.world.level.SectorClipper.clip(this.level, from, target, this.mob,
+            net.minecraft.world.level.ClipContext.Block.COLLIDER,
+            net.minecraft.world.level.ClipContext.Fluid.NONE).getType()
+            == net.minecraft.world.phys.HitResult.Type.MISS;
    }
 
    public boolean isStableDestination(BlockPos p_217799_) {

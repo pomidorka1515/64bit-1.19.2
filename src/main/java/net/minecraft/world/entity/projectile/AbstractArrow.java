@@ -40,6 +40,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -76,6 +77,7 @@ public abstract class AbstractArrow extends Projectile {
 
    protected AbstractArrow(EntityType<? extends AbstractArrow> p_36717_, LivingEntity p_36718_, Level p_36719_) {
       this(p_36717_, p_36718_.getX(), p_36718_.getEyeY() - (double)0.1F, p_36718_.getZ(), p_36719_);
+      this.applyExactPosition(p_36718_.sectorPosition().withY(p_36718_.getEyeY() - (double)0.1F));
       this.setOwner(p_36718_);
       if (p_36718_ instanceof Player) {
          this.pickup = AbstractArrow.Pickup.ALLOWED;
@@ -163,15 +165,20 @@ public abstract class AbstractArrow extends Projectile {
          ++this.inGroundTime;
       } else {
          this.inGroundTime = 0;
-         Vec3 vec32 = this.position();
-         Vec3 vec33 = vec32.add(vec3);
-         HitResult hitresult = this.level.clip(new ClipContext(vec32, vec33, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-         if (hitresult.getType() != HitResult.Type.MISS) {
-            vec33 = hitresult.getLocation();
+         SectorVec3 exactStart = this.sectorPosition();
+         SectorVec3 exactEnd = exactStart.add(vec3.x, vec3.y, vec3.z);
+         Vec3 vec32 = exactStart.toApproximateVec3();
+         Vec3 vec33 = exactEnd.toApproximateVec3();
+         HitResult hitresult = net.minecraft.world.level.SectorClipper.clip(this.level, exactStart, exactEnd, this,
+               ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE);
+         SectorVec3 exactHit = hitresult.getExactLocation();
+         SectorVec3 rayEnd = hitresult.getType() != HitResult.Type.MISS && exactHit != null ? exactHit : exactEnd;
+         if (hitresult.getType() != HitResult.Type.MISS && exactHit != null) {
+            vec33 = exactHit.toApproximateVec3();
          }
 
          while(!this.isRemoved()) {
-            EntityHitResult entityhitresult = this.findHitEntity(vec32, vec33);
+            EntityHitResult entityhitresult = this.findHitEntity(exactStart, rayEnd);
             if (entityhitresult != null) {
                hitresult = entityhitresult;
             }
@@ -198,6 +205,7 @@ public abstract class AbstractArrow extends Projectile {
          }
 
          vec3 = this.getDeltaMovement();
+         SectorVec3 nextPosition = this.sectorPosition().add(vec3.x, vec3.y, vec3.z);
          double d5 = vec3.x;
          double d6 = vec3.y;
          double d1 = vec3.z;
@@ -208,9 +216,6 @@ public abstract class AbstractArrow extends Projectile {
             }
          }
 
-         double d7 = this.getX() + d5;
-         double d2 = this.getY() + d6;
-         double d3 = this.getZ() + d1;
          double d4 = vec3.horizontalDistance();
          if (flag) {
             this.setYRot((float)(Mth.atan2(-d5, -d1) * (double)(180F / (float)Math.PI)));
@@ -239,7 +244,7 @@ public abstract class AbstractArrow extends Projectile {
             this.setDeltaMovement(vec34.x, vec34.y - (double)0.05F, vec34.z);
          }
 
-         this.setPos(d7, d2, d3);
+         this.applyExactPosition(nextPosition);
          this.checkInsideBlocks();
       }
    }
@@ -392,10 +397,12 @@ public abstract class AbstractArrow extends Projectile {
    protected void onHitBlock(BlockHitResult p_36755_) {
       this.lastState = this.level.getBlockState(p_36755_.getBlockPos());
       super.onHitBlock(p_36755_);
-      Vec3 vec3 = p_36755_.getLocation().subtract(this.getX(), this.getY(), this.getZ());
+      SectorVec3 exactHit = p_36755_.getExactLocation();
+      Vec3 vec3 = exactHit == null ? p_36755_.getLocation().subtract(this.getX(), this.getY(), this.getZ())
+            : exactHit.relativeTo(this.sectorPosition());
       this.setDeltaMovement(vec3);
       Vec3 vec31 = vec3.normalize().scale((double)0.05F);
-      this.setPosRaw(this.getX() - vec31.x, this.getY() - vec31.y, this.getZ() - vec31.z);
+      this.applyExactPosition(this.sectorPosition().add(-vec31.x, -vec31.y, -vec31.z));
       this.playSound(this.getHitGroundSoundEvent(), 1.0F, 1.2F / (this.random.nextFloat() * 0.2F + 0.9F));
       this.inGround = true;
       this.shakeTime = 7;
@@ -418,8 +425,8 @@ public abstract class AbstractArrow extends Projectile {
    }
 
    @Nullable
-   protected EntityHitResult findHitEntity(Vec3 p_36758_, Vec3 p_36759_) {
-      return ProjectileUtil.getEntityHitResult(this.level, this, p_36758_, p_36759_, this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0D), this::canHitEntity);
+   protected EntityHitResult findHitEntity(SectorVec3 start, SectorVec3 end) {
+      return ProjectileUtil.getSectorEntityHitResult(this, start, end, this::canHitEntity, 1.0D);
    }
 
    protected boolean canHitEntity(Entity p_36743_) {

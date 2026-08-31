@@ -35,11 +35,10 @@ public interface HoglinBase {
       double d1 = p_34647_.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
       double d2 = d0 - d1;
       if (!(d2 <= 0.0D)) {
-         double d3 = p_34647_.getX() - p_34646_.getX();
-         double d4 = p_34647_.getZ() - p_34646_.getZ();
+         Vec3 targetDelta = p_34647_.sectorPosition().relativeTo(p_34646_.sectorPosition());
          float f = (float)(p_34646_.level.random.nextInt(21) - 10);
          double d5 = d2 * (double)(p_34646_.level.random.nextFloat() * 0.5F + 0.2F);
-         Vec3 vec3 = (new Vec3(d3, 0.0D, d4)).normalize().scale(d5).yRot(f);
+         Vec3 vec3 = (new Vec3(targetDelta.x, 0.0D, targetDelta.z)).normalize().scale(d5).yRot(f);
          double d6 = d2 * (double)p_34646_.level.random.nextFloat() * 0.5D;
          p_34647_.push(vec3.x, d6, vec3.z);
          p_34647_.hurtMarked = true;

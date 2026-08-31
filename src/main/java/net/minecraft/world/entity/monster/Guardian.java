@@ -238,9 +238,10 @@ public class Guardian extends Monster {
                   this.getLookControl().setLookAt(livingentity, 90.0F, 90.0F);
                   this.getLookControl().tick();
                   double d5 = (double)this.getAttackAnimationScale(0.0F);
-                  double d0 = livingentity.getX() - this.getX();
+                  Vec3 targetDelta = livingentity.sectorPosition().relativeTo(this.sectorPosition());
+                  double d0 = targetDelta.x;
                   double d1 = livingentity.getY(0.5D) - this.getEyeY();
-                  double d2 = livingentity.getZ() - this.getZ();
+                  double d2 = targetDelta.z;
                   double d3 = Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
                   d0 /= d3;
                   d1 /= d3;
@@ -428,8 +429,15 @@ public class Guardian extends Monster {
 
       public void tick() {
          if (this.operation == MoveControl.Operation.MOVE_TO && !this.guardian.getNavigation().isDone()) {
-            Vec3 vec3 = new Vec3(this.wantedX - this.guardian.getX(), this.wantedY - this.guardian.getY(), this.wantedZ - this.guardian.getZ());
+            Vec3 vec3 = this.wantedDelta();
             double d0 = vec3.length();
+            if (!(d0 > 1.0E-7D) || !Double.isFinite(d0)) {
+               this.guardian.setSpeed(0.0F);
+               this.guardian.setDeltaMovement(Vec3.ZERO);
+               this.guardian.setMoving(false);
+               this.operation = MoveControl.Operation.WAIT;
+               return;
+            }
             double d1 = vec3.x / d0;
             double d2 = vec3.y / d0;
             double d3 = vec3.z / d0;

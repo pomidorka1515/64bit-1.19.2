@@ -170,7 +170,6 @@ import net.minecraft.world.level.block.entity.CommandBlockEntity;
 import net.minecraft.world.level.block.entity.JigsawBlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -210,12 +209,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
    private SectorVec3 lastGoodSector;
    @Nullable
    private Entity lastVehicle;
-   private double vehicleFirstGoodX;
-   private double vehicleFirstGoodY;
-   private double vehicleFirstGoodZ;
-   private double vehicleLastGoodX;
-   private double vehicleLastGoodY;
-   private double vehicleLastGoodZ;
+   @Nullable
+   private SectorVec3 vehicleFirstGoodSector;
+   @Nullable
+   private SectorVec3 vehicleLastGoodSector;
    @Nullable
    private Vec3 awaitingPositionFromClient;
    @Nullable
@@ -285,12 +282,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
       this.lastVehicle = this.player.getRootVehicle();
       if (this.lastVehicle != this.player && this.lastVehicle.getControllingPassenger() == this.player) {
-         this.vehicleFirstGoodX = this.lastVehicle.getX();
-         this.vehicleFirstGoodY = this.lastVehicle.getY();
-         this.vehicleFirstGoodZ = this.lastVehicle.getZ();
-         this.vehicleLastGoodX = this.lastVehicle.getX();
-         this.vehicleLastGoodY = this.lastVehicle.getY();
-         this.vehicleLastGoodZ = this.lastVehicle.getZ();
+         this.vehicleFirstGoodSector = this.lastVehicle.sectorPosition();
+         this.vehicleLastGoodSector = this.lastVehicle.sectorPosition();
          if (this.clientVehicleIsFloating && this.player.getRootVehicle().getControllingPassenger() == this.player) {
             if (++this.aboveGroundVehicleTickCount > 80) {
                LOGGER.warn("{} was kicked for floating a vehicle too long!", (Object)this.player.getName().getString());
@@ -303,6 +296,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
          }
       } else {
          this.lastVehicle = null;
+         this.vehicleFirstGoodSector = null;
+         this.vehicleLastGoodSector = null;
          this.clientVehicleIsFloating = false;
          this.aboveGroundVehicleTickCount = 0;
       }
@@ -407,72 +402,78 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
    public void handleMoveVehicle(ServerboundMoveVehiclePacket p_9876_) {
       PacketUtils.ensureRunningOnSameThread(p_9876_, this, this.player.getLevel());
-      if (containsInvalidValues(p_9876_.getX(), p_9876_.getY(), p_9876_.getZ(), p_9876_.getYRot(), p_9876_.getXRot())) {
+      SectorVec3 target = p_9876_.getExactPosition();
+      if (!target.isFinite() || !Floats.isFinite(p_9876_.getYRot()) || !Floats.isFinite(p_9876_.getXRot())) {
          this.disconnect(Component.translatable("multiplayer.disconnect.invalid_vehicle_movement"));
-      } else {
-         Entity entity = this.player.getRootVehicle();
-         if (entity != this.player && entity.getControllingPassenger() == this.player && entity == this.lastVehicle) {
-            ServerLevel serverlevel = this.player.getLevel();
-            double d0 = entity.getX();
-            double d1 = entity.getY();
-            double d2 = entity.getZ();
-            double d3 = clampHorizontal(p_9876_.getX());
-            double d4 = clampVertical(p_9876_.getY());
-            double d5 = clampHorizontal(p_9876_.getZ());
-            float f = Mth.wrapDegrees(p_9876_.getYRot());
-            float f1 = Mth.wrapDegrees(p_9876_.getXRot());
-            double d6 = d3 - this.vehicleFirstGoodX;
-            double d7 = d4 - this.vehicleFirstGoodY;
-            double d8 = d5 - this.vehicleFirstGoodZ;
-            double d9 = entity.getDeltaMovement().lengthSqr();
-            double d10 = d6 * d6 + d7 * d7 + d8 * d8;
-            if (d10 - d9 > 100.0D && !this.isSingleplayerOwner()) {
-               LOGGER.warn("{} (vehicle of {}) moved too quickly! {},{},{}", entity.getName().getString(), this.player.getName().getString(), d6, d7, d8);
-               this.connection.send(new ClientboundMoveVehiclePacket(entity));
-               return;
-            }
-
-            boolean flag = serverlevel.noCollision(entity, entity.getBoundingBox().deflate(0.0625D));
-            d6 = d3 - this.vehicleLastGoodX;
-            d7 = d4 - this.vehicleLastGoodY - 1.0E-6D;
-            d8 = d5 - this.vehicleLastGoodZ;
-            boolean flag1 = entity.verticalCollisionBelow;
-            entity.move(MoverType.PLAYER, new Vec3(d6, d7, d8));
-            d6 = d3 - entity.getX();
-            d7 = d4 - entity.getY();
-            if (d7 > -0.5D || d7 < 0.5D) {
-               d7 = 0.0D;
-            }
-
-            d8 = d5 - entity.getZ();
-            d10 = d6 * d6 + d7 * d7 + d8 * d8;
-            boolean flag2 = false;
-            if (d10 > 0.0625D) {
-               flag2 = true;
-               LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", entity.getName().getString(), this.player.getName().getString(), Math.sqrt(d10));
-            }
-
-            entity.absMoveTo(d3, d4, d5, f, f1);
-            boolean flag3 = serverlevel.noCollision(entity, entity.getBoundingBox().deflate(0.0625D));
-            if (flag && (flag2 || !flag3)) {
-               entity.absMoveTo(d0, d1, d2, f, f1);
-               this.connection.send(new ClientboundMoveVehiclePacket(entity));
-               return;
-            }
-
-            this.player.getLevel().getChunkSource().move(this.player);
-            this.player.checkMovementStatistics(this.player.getX() - d0, this.player.getY() - d1, this.player.getZ() - d2);
-            this.clientVehicleIsFloating = d7 >= -0.03125D && !flag1 && !this.server.isFlightAllowed() && !entity.isNoGravity() && this.noBlocksAround(entity);
-            this.vehicleLastGoodX = entity.getX();
-            this.vehicleLastGoodY = entity.getY();
-            this.vehicleLastGoodZ = entity.getZ();
-         }
-
+         return;
       }
+
+      Entity entity = this.player.getRootVehicle();
+      if (entity == this.player || entity.getControllingPassenger() != this.player || entity != this.lastVehicle
+            || this.vehicleFirstGoodSector == null || this.vehicleLastGoodSector == null) {
+         return;
+      }
+
+      ServerLevel serverlevel = this.player.getLevel();
+      SectorVec3 before = entity.sectorPosition();
+      float yRot = Mth.wrapDegrees(p_9876_.getYRot());
+      float xRot = Mth.wrapDegrees(p_9876_.getXRot());
+      Vec3 firstDelta = target.relativeTo(this.vehicleFirstGoodSector);
+      double speedSqr = entity.getDeltaMovement().lengthSqr();
+      double firstDistanceSqr = firstDelta.lengthSqr();
+      if (firstDistanceSqr - speedSqr > 100.0D && !this.isSingleplayerOwner()) {
+         LOGGER.warn("{} (vehicle of {}) moved too quickly! {},{},{}", entity.getName().getString(),
+               this.player.getName().getString(), firstDelta.x, firstDelta.y, firstDelta.z);
+         this.connection.send(new ClientboundMoveVehiclePacket(entity));
+         return;
+      }
+
+      boolean unobstructedBefore = entity.hasExactNoCollision();
+      Vec3 requested = target.relativeTo(this.vehicleLastGoodSector);
+      requested = requested.add(0.0D, -1.0E-6D, 0.0D);
+      boolean wasOnGround = entity.verticalCollisionBelow;
+      entity.move(MoverType.PLAYER, requested);
+      Vec3 remaining = target.relativeTo(entity.sectorPosition());
+      double verticalResidual = remaining.y;
+      if (verticalResidual > -0.5D || verticalResidual < 0.5D) {
+         verticalResidual = 0.0D;
+      }
+      double residualSqr = remaining.x * remaining.x + verticalResidual * verticalResidual + remaining.z * remaining.z;
+      boolean movedWrongly = residualSqr > 0.0625D;
+      if (movedWrongly) {
+         LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", entity.getName().getString(), this.player.getName().getString(),
+               Math.sqrt(residualSqr));
+      }
+
+      entity.absMoveTo(target, yRot, xRot);
+      boolean unobstructedAfter = entity.hasExactNoCollision();
+      if (unobstructedBefore && (movedWrongly || !unobstructedAfter)) {
+         entity.absMoveTo(before, yRot, xRot);
+         this.connection.send(new ClientboundMoveVehiclePacket(entity));
+         return;
+      }
+
+      this.player.getLevel().getChunkSource().move(this.player);
+      Vec3 travelled = entity.sectorPosition().relativeTo(before);
+      this.player.checkMovementStatistics(travelled);
+      this.clientVehicleIsFloating = verticalResidual >= -0.03125D && !wasOnGround && !this.server.isFlightAllowed()
+            && !entity.isNoGravity() && this.noBlocksAround(entity);
+      this.vehicleLastGoodSector = entity.sectorPosition();
    }
 
-   private boolean noBlocksAround(Entity p_9794_) {
-      return p_9794_.level.getBlockStates(p_9794_.getBoundingBox().inflate(0.0625D).expandTowards(0.0D, -0.55D, 0.0D)).allMatch(BlockBehaviour.BlockStateBase::isAir);
+   private boolean noBlocksAround(Entity entity) {
+      net.minecraft.world.phys.SectorAABB box = entity.getSectorBoundingBox().inflate(0.0625D, 0.0625D, 0.0625D)
+            .expandTowards(0.0D, -0.55D, 0.0D);
+      for (long x = box.minBlockXForRange(); ; x = WorldBounds.addBlockOffset(x, 1L)) {
+         for (int y = box.minBlockYForRange(); y < box.maxBlockYExclusive(); ++y) {
+            for (long z = box.minBlockZForRange(); ; z = WorldBounds.addBlockOffset(z, 1L)) {
+               if (!entity.level.getBlockState(new BlockPos(x, y, z)).isAir()) return false;
+               if (z == box.maxBlockZForRangeInclusive() || z == Long.MAX_VALUE) break;
+            }
+         }
+         if (x == box.maxBlockXForRangeInclusive() || x == Long.MAX_VALUE) break;
+      }
+      return true;
    }
 
    public void handleAcceptTeleportPacket(ServerboundAcceptTeleportationPacket p_9835_) {
@@ -896,7 +897,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                float f = Mth.wrapDegrees(p_9874_.getYRot(this.player.getYRot()));
                float f1 = Mth.wrapDegrees(p_9874_.getXRot(this.player.getXRot()));
                if (this.player.isPassenger()) {
-                  this.player.absMoveTo(this.player.getX(), this.player.getY(), this.player.getZ(), f, f1);
+                  this.player.absMoveTo(this.player.sectorPosition(), f, f1);
                   this.player.getLevel().getChunkSource().move(this.player);
                } else {
                   double d3 = this.player.getX();
@@ -1702,8 +1703,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             return;
          }
 
-         if (this.player.hasSectorPosition() && entity.exactPosition() != null
-               ? this.player.exactDistanceToSqr(entity.exactPosition()) < MAX_INTERACTION_DISTANCE
+         SectorVec3 targetPosition = entity.exactPosition();
+         if (targetPosition != null) {
+            double targetY = Mth.clamp(this.player.getEyeY(), entity.getBoundingBox().minY,
+                  entity.getBoundingBox().maxY);
+            targetPosition = targetPosition.withY(targetY);
+         }
+         if (targetPosition != null
+               ? this.player.exactDistanceToSqr(targetPosition) < MAX_INTERACTION_DISTANCE
                : entity.distanceToSqr(this.player.getEyePosition()) < MAX_INTERACTION_DISTANCE) {
             p_9866_.dispatch(new ServerboundInteractPacket.Handler() {
                private void performInteraction(InteractionHand p_143679_, ServerGamePacketListenerImpl.EntityInteraction p_143680_) {

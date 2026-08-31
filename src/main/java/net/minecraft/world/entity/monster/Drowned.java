@@ -50,6 +50,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class Drowned extends Zombie implements RangedAttackMob {
@@ -222,7 +223,8 @@ public class Drowned extends Zombie implements RangedAttackMob {
       if (path != null) {
          BlockPos blockpos = path.getTarget();
          if (blockpos != null) {
-            double d0 = this.distanceToSqr((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ());
+            double d0 = this.exactPositionDistanceToSqr(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+                  blockpos.getX(), 0.0D, (double)blockpos.getY(), blockpos.getZ(), 0.0D));
             if (d0 < 4.0D) {
                return true;
             }
@@ -234,9 +236,11 @@ public class Drowned extends Zombie implements RangedAttackMob {
 
    public void performRangedAttack(LivingEntity p_32356_, float p_32357_) {
       ThrownTrident throwntrident = new ThrownTrident(this.level, this, new ItemStack(Items.TRIDENT));
-      double d0 = p_32356_.getX() - this.getX();
-      double d1 = p_32356_.getY(0.3333333333333333D) - throwntrident.getY();
-      double d2 = p_32356_.getZ() - this.getZ();
+      Vec3 targetDelta = p_32356_.sectorPosition().withY(p_32356_.getY(0.3333333333333333D))
+            .relativeTo(throwntrident.sectorPosition());
+      double d0 = targetDelta.x;
+      double d1 = targetDelta.y;
+      double d2 = targetDelta.z;
       double d3 = Math.sqrt(d0 * d0 + d2 * d2);
       throwntrident.shoot(d0, d1 + d3 * (double)0.2F, d2, 1.6F, (float)(14 - this.level.getDifficulty().getId() * 4));
       this.playSound(SoundEvents.DROWNED_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
@@ -373,10 +377,17 @@ public class Drowned extends Zombie implements RangedAttackMob {
                return;
             }
 
-            double d0 = this.wantedX - this.drowned.getX();
-            double d1 = this.wantedY - this.drowned.getY();
-            double d2 = this.wantedZ - this.drowned.getZ();
+            Vec3 wantedDelta = this.wantedDelta();
+            double d0 = wantedDelta.x;
+            double d1 = wantedDelta.y;
+            double d2 = wantedDelta.z;
             double d3 = Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+            if (!(d3 > 1.0E-7D) || !Double.isFinite(d3)) {
+               this.drowned.setSpeed(0.0F);
+               this.drowned.setDeltaMovement(Vec3.ZERO);
+               this.operation = MoveControl.Operation.WAIT;
+               return;
+            }
             d1 /= d3;
             float f = (float)(Mth.atan2(d2, d0) * (double)(180F / (float)Math.PI)) - 90.0F;
             this.drowned.setYRot(this.rotlerp(this.drowned.getYRot(), f, 90.0F));
@@ -418,13 +429,15 @@ public class Drowned extends Zombie implements RangedAttackMob {
 
       public void tick() {
          if (this.drowned.getY() < (double)(this.seaLevel - 1) && (this.drowned.getNavigation().isDone() || this.drowned.closeToNextPos())) {
-            Vec3 vec3 = DefaultRandomPos.getPosTowards(this.drowned, 4, 8, new Vec3(this.drowned.getX(), (double)(this.seaLevel - 1), this.drowned.getZ()), (double)((float)Math.PI / 2F));
-            if (vec3 == null) {
+            SectorVec3 target = DefaultRandomPos.getSectorPosTowards(this.drowned, 4, 8,
+                  this.drowned.sectorPosition().withY((double)(this.seaLevel - 1)),
+                  (double)((float)Math.PI / 2F));
+            if (target == null) {
                this.stuck = true;
                return;
             }
 
-            this.drowned.getNavigation().moveTo(vec3.x, vec3.y, vec3.z, this.speedModifier);
+            this.drowned.getNavigation().moveTo(target, this.speedModifier);
          }
 
       }

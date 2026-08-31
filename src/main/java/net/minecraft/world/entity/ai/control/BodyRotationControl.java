@@ -58,8 +58,10 @@ public class BodyRotationControl implements Control {
    }
 
    private boolean isMoving() {
-      double d0 = this.mob.getX() - this.mob.xo;
-      double d1 = this.mob.getZ() - this.mob.zo;
-      return d0 * d0 + d1 * d1 > (double)2.5000003E-7F;
+      net.minecraft.world.phys.Vec3 delta = this.mob.hasSectorPosition()
+            ? this.mob.sectorPositionDelta()
+            : new net.minecraft.world.phys.Vec3(this.mob.getX() - this.mob.xo, 0.0D,
+                  this.mob.getZ() - this.mob.zo);
+      return delta.x * delta.x + delta.z * delta.z > (double)2.5000003E-7F;
    }
 }

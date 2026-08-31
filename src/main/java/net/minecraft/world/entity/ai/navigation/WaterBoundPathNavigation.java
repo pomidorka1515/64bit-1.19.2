@@ -25,16 +25,28 @@ public class WaterBoundPathNavigation extends PathNavigation {
       return this.allowBreaching || this.isInLiquid();
    }
 
-   protected Vec3 getTempMobPos() {
-      return new Vec3(this.mob.getX(), this.mob.getY(0.5D), this.mob.getZ());
-   }
-
    protected double getGroundY(Vec3 p_186136_) {
       return p_186136_.y;
    }
 
+   @Override
+   protected double getGroundY(BlockPos blockPos, double targetY) {
+      return targetY;
+   }
+
    protected boolean canMoveDirectly(Vec3 p_186138_, Vec3 p_186139_) {
       return isClearForMovementBetween(this.mob, p_186138_, p_186139_);
+   }
+
+   @Override
+   protected boolean canMoveDirectlyLocal(net.minecraft.world.phys.SectorVec3 from,
+                                          net.minecraft.world.phys.SectorVec3 to) {
+      net.minecraft.world.phys.SectorVec3 target = to.add(0.0D,
+            (double)this.mob.getBbHeight() * 0.5D, 0.0D);
+      return net.minecraft.world.level.SectorClipper.clip(this.level, from, target, this.mob,
+            net.minecraft.world.level.ClipContext.Block.COLLIDER,
+            net.minecraft.world.level.ClipContext.Fluid.NONE).getType()
+            == net.minecraft.world.phys.HitResult.Type.MISS;
    }
 
    public boolean isStableDestination(BlockPos p_26608_) {

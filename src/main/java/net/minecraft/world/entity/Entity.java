@@ -153,7 +153,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    public double yo;
    public double zo;
    private Vec3 position;
-   /** Exact player-only X/Z state. Legacy position remains a compatibility mirror. */
+   /** Exact X/Z state for every entity. Legacy position remains a compatibility mirror. */
    @Nullable
    private SectorVec3 sectorPosition;
    @Nullable
@@ -256,7 +256,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       this.entityData.define(DATA_POSE, Pose.STANDING);
       this.entityData.define(DATA_TICKS_FROZEN, 0);
       this.defineSynchedData();
-      this.setPos(0.0D, 0.0D, 0.0D);
+      this.enableSectorPosition(SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D));
       this.eyeHeight = this.getEyeHeight(Pose.STANDING, this.dimensions);
    }
 
@@ -294,10 +294,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       this.packetPositionCodec.setBase(new Vec3(p_217007_, p_217008_, p_217009_));
    }
 
-   /** Updates vanilla's packet mirror without making it part of sector physics. */
-   protected final void syncSectorPacketPositionCodec() {
+   /** Updates the packet delta codec with the authoritative split-coordinate position. */
+   public final void syncSectorPacketPositionCodec() {
       if (this.sectorPosition != null) {
-         this.packetPositionCodec.setBase(this.sectorPosition.toApproximateVec3());
+         this.packetPositionCodec.setBase(this.sectorPosition);
       }
    }
 
@@ -376,14 +376,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public boolean closerThan(Entity p_19951_, double p_19952_) {
-      return this.position().closerThan(p_19951_.position(), p_19952_);
+      return this.distanceToSqr(p_19951_) < p_19952_ * p_19952_;
    }
 
    public boolean closerThan(Entity p_216993_, double p_216994_, double p_216995_) {
-      double d0 = p_216993_.getX() - this.getX();
-      double d1 = p_216993_.getY() - this.getY();
-      double d2 = p_216993_.getZ() - this.getZ();
-      return Mth.lengthSquared(d0, d2) < Mth.square(p_216994_) && Mth.square(d1) < Mth.square(p_216995_);
+      Vec3 delta = p_216993_.sectorPosition().relativeTo(this.sectorPosition());
+      return Mth.lengthSquared(delta.x, delta.z) < Mth.square(p_216994_)
+            && Mth.square(delta.y) < Mth.square(p_216995_);
    }
 
    protected void setRot(float p_19916_, float p_19917_) {
@@ -407,7 +406,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    protected AABB makeBoundingBox() {
-      return this.dimensions.makeBoundingBox(this.position);
+      return this.sectorPosition == null ? this.dimensions.makeBoundingBox(this.position)
+            : AABB.fromSectorBounds(SectorAABB.around(this.sectorPosition,
+                  (double)this.dimensions.width, (double)this.dimensions.height));
    }
 
    protected void reapplyPosition() {
@@ -490,7 +491,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    protected boolean usesSectorPhysics() {
-      return false;
+      return true;
    }
 
    private void applySectorPosition(SectorVec3 position) {
@@ -504,7 +505,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          this.chunkPosition = new ChunkPos(exactBlockPosition);
       }
       this.setBoundingBox(this.makeBoundingBox());
-      this.syncSectorPacketPositionCodec();
+      // The packet delta base is the last network target, not the entity's
+      // current (possibly interpolated) position. Network handlers update that
+      // codec explicitly when they consume a position packet.
       if (previous == null || !previous.equals(position)) {
          this.levelCallback.onMove();
       }
@@ -548,6 +551,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       }
 
       this.walkDistO = this.walkDist;
+      if (this.sectorPosition != null) {
+         this.sectorPositionOld = this.sectorPosition;
+      }
       this.xRotO = this.getXRot();
       this.yRotO = this.getYRot();
       this.handleNetherPortal();
@@ -698,7 +704,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    /** Exact world-space player box. X/Z endpoints remain split coordinates. */
-   protected final SectorAABB getSectorBoundingBox() {
+   public final SectorAABB getSectorBoundingBox() {
       return SectorAABB.around(this.sectorPosition(), (double)this.getBbWidth(), (double)this.getBbHeight());
    }
 
@@ -725,7 +731,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       for (VoxelShape shape : this.level.getSectorBlockCollisions(this, exactBox, localBox, origin)) {
          if (!shape.isEmpty()) return false;
       }
-      return true;
+      return this.level.getSectorEntityCollisions(this, exactBox, localBox, origin).isEmpty();
    }
 
    private boolean hasSectorBlockCollision(SectorAABB exactBox, AABB localBox, SectorPhysicsOrigin origin) {
@@ -1038,6 +1044,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    private void moveWithSectorPhysics(MoverType moverType, Vec3 movement) {
+      if (!Double.isFinite(movement.x) || !Double.isFinite(movement.y) || !Double.isFinite(movement.z)) {
+         movement = new Vec3(finiteMovementComponent(movement.x), finiteMovementComponent(movement.y),
+               finiteMovementComponent(movement.z));
+         this.setDeltaMovement(this.deltaMovement);
+      }
       if (this.noPhysics) {
          this.setSectorPositionRaw(this.sectorPosition().add(movement.x, movement.y, movement.z));
          return;
@@ -1120,10 +1131,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    private Vec3 collideSectorBoundingBox(Vec3 movement, SectorAABB exactBox, AABB localBox,
                                           SectorPhysicsOrigin origin) {
       if (movement.lengthSqr() == 0.0D) return movement;
-      List<VoxelShape> shapes = Lists.newArrayList();
-      for (VoxelShape shape : this.level.getSectorBlockCollisions(this, exactBox.expandTowards(movement.x, movement.y, movement.z),
-            localBox.expandTowards(movement), origin)) shapes.add(shape);
-      return collideWithShapes(movement, localBox, shapes, true);
+      SectorAABB sweptBox = exactBox.expandTowards(movement.x, movement.y, movement.z);
+      AABB sweptLocalBox = localBox.expandTowards(movement);
+      List<VoxelShape> entityShapes = this.level.getSectorEntityCollisions(this, sweptBox, sweptLocalBox, origin);
+      return collideSectorBoundingBox(this, movement, exactBox, localBox, this.level, entityShapes, origin);
    }
 
    private Vec3 collide(Vec3 p_20273_) {
@@ -1629,12 +1640,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public void absMoveTo(double p_20249_, double p_20250_, double p_20251_) {
-      double d0 = p_20249_; // Mth.clamp(p_20249_, -3.0E7D, 3.0E7D);
-      double d1 = p_20251_; // Mth.clamp(p_20251_, -3.0E7D, 3.0E7D);
-      this.xo = d0;
-      this.yo = p_20250_;
-      this.zo = d1;
-      this.setPos(d0, p_20250_, d1);
+      this.absMoveTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20249_),
+            WorldBounds.clampVerticalDouble(p_20250_), WorldBounds.clampAbsoluteDouble(p_20251_)),
+            this.getYRot(), this.getXRot());
    }
 
    /** Applies a split-coordinate absolute position while preserving the exact X/Z fractions. */
@@ -1642,6 +1650,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       if (!this.usesSectorPhysics()) {
          throw new IllegalStateException("Entity does not use sector physics");
       }
+      Vec3 approximate = position.toApproximateVec3();
+      this.xo = approximate.x;
+      this.yo = position.y();
+      this.zo = approximate.z;
       this.applyExactPosition(position);
       this.setYRot(yRot % 360.0F);
       this.setXRot(Mth.clamp(xRot, -90.0F, 90.0F) % 360.0F);
@@ -1658,15 +1670,25 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public void moveTo(BlockPos p_20036_, float p_20037_, float p_20038_) {
-      this.moveTo((double)p_20036_.getX() + 0.5D, (double)p_20036_.getY(), (double)p_20036_.getZ() + 0.5D, p_20037_, p_20038_);
+      this.moveTo(SectorVec3.fromBlockAndFraction(p_20036_.getX(), 0.5D, (double)p_20036_.getY(),
+            p_20036_.getZ(), 0.5D), p_20037_, p_20038_);
+   }
+
+   /** Moves to an exact split-coordinate location and resets the interpolation baseline. */
+   public final void moveTo(SectorVec3 position, float yRot, float xRot) {
+      if (!this.usesSectorPhysics()) {
+         throw new IllegalStateException("Entity does not use sector physics");
+      }
+      this.applyExactPosition(position);
+      this.setYRot(yRot);
+      this.setXRot(xRot);
+      this.setOldPosAndRot();
+      this.reapplyPosition();
    }
 
    public void moveTo(double p_20108_, double p_20109_, double p_20110_, float p_20111_, float p_20112_) {
-      this.setPosRaw(p_20108_, p_20109_, p_20110_);
-      this.setYRot(p_20111_);
-      this.setXRot(p_20112_);
-      this.setOldPosAndRot();
-      this.reapplyPosition();
+      this.moveTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20108_),
+            WorldBounds.clampVerticalDouble(p_20109_), WorldBounds.clampAbsoluteDouble(p_20110_)), p_20111_, p_20112_);
    }
 
    public final void setOldPosAndRot() {
@@ -1697,10 +1719,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public float distanceTo(Entity p_20271_) {
-      float f = (float)(this.getX() - p_20271_.getX());
-      float f1 = (float)(this.getY() - p_20271_.getY());
-      float f2 = (float)(this.getZ() - p_20271_.getZ());
-      return Mth.sqrt(f * f + f1 * f1 + f2 * f2);
+      return (float)Math.sqrt(this.distanceToSqr(p_20271_));
    }
 
    public double distanceToSqr(double p_20276_, double p_20277_, double p_20278_) {
@@ -1711,7 +1730,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public double distanceToSqr(Entity p_20281_) {
-      return this.distanceToSqr(p_20281_.position());
+      return p_20281_.sectorPosition().relativeTo(this.sectorPosition()).lengthSqr();
    }
 
    public double distanceToSqr(Vec3 p_20239_) {
@@ -2021,7 +2040,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          double d0 = listtag1.getDouble(0);
          double d1 = listtag1.getDouble(1);
          double d2 = listtag1.getDouble(2);
-         this.setDeltaMovement(Math.abs(d0) > 10.0D ? 0.0D : d0, Math.abs(d1) > 10.0D ? 0.0D : d1, Math.abs(d2) > 10.0D ? 0.0D : d2);
+         this.setDeltaMovement(!Double.isFinite(d0) || Math.abs(d0) > 10.0D ? 0.0D : d0,
+               !Double.isFinite(d1) || Math.abs(d1) > 10.0D ? 0.0D : d1,
+               !Double.isFinite(d2) || Math.abs(d2) > 10.0D ? 0.0D : d2);
 //         double d3 = 3.0000512E7D;
          if (this.usesSectorPhysics() && p_20259_.contains("ExactPos", 10)) {
             CompoundTag exactTag = p_20259_.getCompound("ExactPos");
@@ -2158,7 +2179,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       } else if (this.level.isClientSide) {
          return null;
       } else {
-         ItemEntity itementity = new ItemEntity(this.level, this.getX(), this.getY() + (double)p_19986_, this.getZ(), p_19985_);
+         SectorVec3 sourcePosition = this.sectorPosition();
+         Vec3 approximate = sourcePosition.toApproximateVec3();
+         ItemEntity itementity = new ItemEntity(this.level, approximate.x,
+               sourcePosition.y() + (double)p_19986_, approximate.z, p_19985_);
+         itementity.applyExactPosition(sourcePosition.add(0.0D, (double)p_19986_, 0.0D));
          itementity.setDefaultPickUpDelay();
          this.level.addFreshEntity(itementity);
          return itementity;
@@ -2217,7 +2242,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    private void positionRider(Entity p_19957_, Entity.MoveFunction p_19958_) {
       if (this.hasPassenger(p_19957_)) {
          double d0 = this.getY() + this.getPassengersRidingOffset() + p_19957_.getMyRidingOffset();
-         p_19958_.accept(p_19957_, this.getX(), d0, this.getZ());
+         if (this.hasSectorPosition() && p_19957_.hasSectorPosition()) {
+            p_19957_.applyExactPosition(this.sectorPosition().withY(d0));
+         } else {
+            p_19958_.accept(p_19957_, this.getX(), d0, this.getZ());
+         }
       }
    }
 
@@ -2346,6 +2375,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    public void lerpTo(double p_19896_, double p_19897_, double p_19898_, float p_19899_, float p_19900_, int p_19901_, boolean p_19902_) {
       this.setPos(p_19896_, p_19897_, p_19898_);
       this.setRot(p_19899_, p_19900_);
+   }
+
+   /** Applies an exact network target while retaining vanilla's override point. */
+   public void lerpTo(SectorVec3 position, float yRot, float xRot, int steps, boolean teleport) {
+      this.applyExactPosition(position);
+      this.setRot(yRot, xRot);
    }
 
    public void lerpHeadTo(float p_19918_, int p_19919_) {
@@ -2955,11 +2990,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public final void teleportToWithTicket(double p_20325_, double p_20326_, double p_20327_) {
+      this.teleportToWithTicket(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20325_),
+            WorldBounds.clampVerticalDouble(p_20326_), WorldBounds.clampAbsoluteDouble(p_20327_)));
+   }
+
+   /** Loads the target chunk and teleports without reconstructing large horizontal doubles. */
+   public final void teleportToWithTicket(SectorVec3 position) {
       if (this.level instanceof ServerLevel) {
-         ChunkPos chunkpos = new ChunkPos(new BlockPos(p_20325_, p_20326_, p_20327_));
+         ChunkPos chunkpos = new ChunkPos(position.blockPosition());
          ((ServerLevel)this.level).getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 0, this.getId());
          this.level.getChunk(chunkpos.x, chunkpos.z);
-         this.teleportTo(p_20325_, p_20326_, p_20327_);
+         this.teleportTo(position);
       }
    }
 
@@ -2968,11 +3009,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public void teleportTo(double p_19887_, double p_19888_, double p_19889_) {
+      this.teleportTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_19887_),
+            WorldBounds.clampVerticalDouble(p_19888_), WorldBounds.clampAbsoluteDouble(p_19889_)));
+   }
+
+   /** Teleports this entity and riders to an exact split-coordinate target. */
+   public void teleportTo(SectorVec3 position) {
       if (this.level instanceof ServerLevel) {
-         this.moveTo(p_19887_, p_19888_, p_19889_, this.getYRot(), this.getXRot());
+         this.moveTo(position, this.getYRot(), this.getXRot());
          this.getSelfAndPassengers().forEach((p_185977_) -> {
             for(Entity entity : p_185977_.passengers) {
-               p_185977_.positionRider(entity, Entity::moveTo);
+               p_185977_.positionRider(entity);
             }
 
          });
@@ -3467,6 +3514,20 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             origin.originBlockX(), origin.originBlockY(), origin.originBlockZ());
    }
 
+
+   /** Exact local-frame entity query for gameplay ranges. */
+   public final <T extends Entity> List<T> getEntitiesInExactRange(Class<T> type, SectorAABB query,
+                                                                    Predicate<? super T> predicate) {
+      SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(this.sectorPosition());
+      List<T> result = new java.util.ArrayList<>();
+      for (Entity candidate : this.level.getSectorEntities(this, query, query.toLocalAABB(origin), origin,
+            candidate -> candidate != this && type.isInstance(candidate))) {
+         T cast = type.cast(candidate);
+         if (predicate.test(cast)) result.add(cast);
+      }
+      return result;
+   }
+
    public Vec3 trackingPosition() {
       return this.position();
    }
@@ -3499,7 +3560,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public void setDeltaMovement(Vec3 p_20257_) {
-      this.deltaMovement = p_20257_;
+      // Malformed AI targets, hostile packets, and zero-length normalizations must
+      // never poison an entity for every subsequent tick. Vanilla movement can
+      // safely recover by dropping only the non-finite components.
+      this.deltaMovement = new Vec3(finiteMovementComponent(p_20257_.x),
+            finiteMovementComponent(p_20257_.y), finiteMovementComponent(p_20257_.z));
+   }
+
+   private static double finiteMovementComponent(double value) {
+      return Double.isFinite(value) ? value : 0.0D;
    }
 
    public void setDeltaMovement(double p_20335_, double p_20336_, double p_20337_) {
@@ -3596,11 +3665,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    public void recreateFromPacket(ClientboundAddEntityPacket p_146866_) {
       int i = p_146866_.getId();
-      double d0 = p_146866_.getX();
-      double d1 = p_146866_.getY();
-      double d2 = p_146866_.getZ();
-      this.syncPacketPositionCodec(d0, d1, d2);
-      this.moveTo(d0, d1, d2);
+      SectorVec3 exactPosition = p_146866_.getExactPosition();
+      this.applyExactPosition(exactPosition);
+      this.setOldPosAndRot();
+      this.syncSectorPacketPositionCodec();
       this.setXRot(p_146866_.getXRot());
       this.setYRot(p_146866_.getYRot());
       this.setId(i);

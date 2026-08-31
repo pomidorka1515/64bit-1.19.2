@@ -16,29 +16,98 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public final class ProjectileUtil {
-   public static HitResult getHitResult(Entity p_37295_, Predicate<Entity> p_37296_) {
-      Vec3 vec3 = p_37295_.getDeltaMovement();
-      Level level = p_37295_.level;
-      Vec3 vec31 = p_37295_.position();
-      Vec3 vec32 = vec31.add(vec3);
-      HitResult hitresult = level.clip(new ClipContext(vec31, vec32, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, p_37295_));
-      if (hitresult.getType() != HitResult.Type.MISS) {
-         vec32 = hitresult.getLocation();
+   public static HitResult getHitResult(Entity projectile, Predicate<Entity> predicate) {
+      Vec3 movement = projectile.getDeltaMovement();
+      SectorVec3 exactStart = projectile.sectorPosition();
+      SectorVec3 exactEnd = exactStart.add(movement.x, movement.y, movement.z);
+      HitResult blockHit = net.minecraft.world.level.SectorClipper.clip(projectile.level, exactStart, exactEnd, projectile,
+            ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE);
+      SectorVec3 exactBlockHit = blockHit.getExactLocation();
+      SectorVec3 rayEnd = blockHit.getType() == HitResult.Type.MISS || exactBlockHit == null ? exactEnd : exactBlockHit;
+      EntityHitResult entityHit = getSectorEntityHitResult(projectile, exactStart, rayEnd, predicate, 1.0D);
+      if (entityHit == null) return blockHit;
+      SectorVec3 exactEntityHit = entityHit.getExactLocation();
+      double entityDistance = exactEntityHit == null ? Double.MAX_VALUE : exactEntityHit.relativeTo(exactStart).lengthSqr();
+      double blockDistance = exactBlockHit == null ? Double.MAX_VALUE : exactBlockHit.relativeTo(exactStart).lengthSqr();
+      return entityDistance < blockDistance ? entityHit : blockHit;
+   }
+
+   /**
+    * Exact X/Z entity raycast for projectiles. Candidate boxes are translated
+    * into the projectile's local frame before clipping the short motion ray.
+    */
+   @Nullable
+   public static EntityHitResult getSectorEntityHitResult(Entity projectile, SectorVec3 start, SectorVec3 end,
+                                                          Predicate<Entity> predicate, double inflation) {
+      return getSectorEntityHitResult(projectile, start, end, predicate, inflation, Double.MAX_VALUE);
+   }
+
+   @Nullable
+   public static EntityHitResult getSectorEntityHitResult(Entity projectile, SectorVec3 start, SectorVec3 end,
+                                                          Predicate<Entity> predicate, double inflation,
+                                                          double maximumDistanceSqr) {
+      SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(start);
+      Vec3 localStart = origin.toLocal(start);
+      Vec3 localEnd = origin.toLocal(end);
+      SectorAABB query = SectorAABB.around(start, 0.0D, 0.0D).expandTowards(
+            localEnd.x - localStart.x, localEnd.y - localStart.y, localEnd.z - localStart.z).inflate(inflation, inflation, inflation);
+      AABB localQuery = query.toLocalAABB(origin);
+      double closest = maximumDistanceSqr;
+      Entity closestEntity = null;
+      Vec3 closestHit = null;
+
+      for (Entity candidate : projectile.level.getSectorEntities(projectile, query, localQuery, origin, predicate)) {
+         if (candidate == projectile) continue;
+         SectorAABB candidateBox = candidate.getSectorBoundingBoxForCulling();
+         if (candidateBox == null) continue;
+         AABB localCandidateBox = candidateBox.toLocalAABB(origin).inflate(candidate.getPickRadius());
+         if (!localCandidateBox.intersects(localQuery)) continue;
+         Optional<Vec3> hit = localCandidateBox.clip(localStart, localEnd);
+         if (localCandidateBox.contains(localStart)) {
+            if (closest >= 0.0D) {
+               closestEntity = candidate;
+               closestHit = localStart;
+               closest = 0.0D;
+            }
+         } else if (hit.isPresent()) {
+            Vec3 hitPosition = hit.get();
+            double distance = localStart.distanceToSqr(hitPosition);
+            if (distance < closest || closest == 0.0D) {
+               if (candidate.getRootVehicle() == projectile.getRootVehicle()) {
+                  if (closest == 0.0D) {
+                     closestEntity = candidate;
+                     closestHit = hitPosition;
+                  }
+               } else {
+                  closestEntity = candidate;
+                  closestHit = hitPosition;
+                  closest = distance;
+               }
+            }
+         }
       }
 
-      HitResult hitresult1 = getEntityHitResult(level, p_37295_, vec31, vec32, p_37295_.getBoundingBox().expandTowards(p_37295_.getDeltaMovement()).inflate(1.0D), p_37296_);
-      if (hitresult1 != null) {
-         hitresult = hitresult1;
-      }
-
-      return hitresult;
+      return closestEntity == null ? null : new EntityHitResult(closestEntity,
+            SectorVec3.fromBlockAndFraction(origin.originBlockX(), closestHit.x,
+                  (double)origin.originBlockY() + closestHit.y, origin.originBlockZ(), closestHit.z));
    }
 
    @Nullable
    public static EntityHitResult getEntityHitResult(Entity p_37288_, Vec3 p_37289_, Vec3 p_37290_, AABB p_37291_, Predicate<Entity> p_37292_, double p_37293_) {
+      if (p_37288_.hasSectorPosition()) {
+         SectorVec3 exactStart = p_37288_.exactEyePosition();
+         Vec3 localDelta = p_37290_.subtract(p_37289_);
+         SectorVec3 exactEnd = exactStart.add(localDelta.x, localDelta.y, localDelta.z);
+         EntityHitResult result = getSectorEntityHitResult(p_37288_, exactStart, exactEnd, p_37292_, 1.0D,
+               p_37293_);
+         return result;
+      }
       Level level = p_37288_.level;
       double d0 = p_37293_;
       Entity entity = null;

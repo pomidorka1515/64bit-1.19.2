@@ -2,8 +2,6 @@ package net.minecraft.world.level.pathfinder;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -28,7 +26,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.Material;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -36,7 +33,6 @@ public class WalkNodeEvaluator extends NodeEvaluator {
    public static final double SPACE_BETWEEN_WALL_POSTS = 0.5D;
    protected float oldWaterCost;
    private final Object2ObjectMap<BlockPos, BlockPathTypes> pathTypesByPosCache = new Object2ObjectOpenHashMap<>();
-   private final Object2BooleanMap<AABB> collisionCache = new Object2BooleanOpenHashMap<>();
 
    public void prepare(PathNavigationRegion p_77620_, Mob p_77621_) {
       super.prepare(p_77620_, p_77621_);
@@ -46,7 +42,6 @@ public class WalkNodeEvaluator extends NodeEvaluator {
    public void done() {
       this.mob.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
       this.pathTypesByPosCache.clear();
-      this.collisionCache.clear();
       super.done();
    }
 
@@ -54,7 +49,9 @@ public class WalkNodeEvaluator extends NodeEvaluator {
    public Node getStart() {
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
       int i = this.mob.getBlockY();
-      BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(this.mob.getX(), (double)i, this.mob.getZ()));
+      long mobX = this.mob.getBlockX();
+      long mobZ = this.mob.getBlockZ();
+      BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(mobX, i, mobZ));
       if (!this.mob.canStandOnFluid(blockstate.getFluidState())) {
          if (this.canFloat() && this.mob.isInWater()) {
             while(true) {
@@ -64,7 +61,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
                }
 
                ++i;
-               blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(this.mob.getX(), (double)i, this.mob.getZ()));
+               blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(mobX, i, mobZ));
             }
          } else if (this.mob.isOnGround()) {
             i = Mth.floor(this.mob.getY() + 0.5D);
@@ -78,7 +75,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
       } else {
          while(this.mob.canStandOnFluid(blockstate.getFluidState())) {
             ++i;
-            blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(this.mob.getX(), (double)i, this.mob.getZ()));
+            blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(mobX, i, mobZ));
          }
 
          --i;
@@ -87,8 +84,15 @@ public class WalkNodeEvaluator extends NodeEvaluator {
       BlockPos blockpos1 = this.mob.blockPosition();
       BlockPathTypes blockpathtypes = this.getCachedBlockType(this.mob, blockpos1.getX(), i, blockpos1.getZ());
       if (this.mob.getPathfindingMalus(blockpathtypes) < 0.0F) {
-         AABB aabb = this.mob.getBoundingBox();
-         if (this.hasPositiveMalus(blockpos$mutableblockpos.set(aabb.minX, (double)i, aabb.minZ)) || this.hasPositiveMalus(blockpos$mutableblockpos.set(aabb.minX, (double)i, aabb.maxZ)) || this.hasPositiveMalus(blockpos$mutableblockpos.set(aabb.maxX, (double)i, aabb.minZ)) || this.hasPositiveMalus(blockpos$mutableblockpos.set(aabb.maxX, (double)i, aabb.maxZ))) {
+         net.minecraft.world.phys.SectorAABB box = this.mob.getSectorBoundingBox();
+         long minX = box.minBlockXForRange();
+         long maxX = box.maxBlockXForRangeInclusive();
+         long minZ = box.minBlockZForRange();
+         long maxZ = box.maxBlockZForRangeInclusive();
+         if (this.hasPositiveMalus(blockpos$mutableblockpos.set(minX, i, minZ))
+               || this.hasPositiveMalus(blockpos$mutableblockpos.set(minX, i, maxZ))
+               || this.hasPositiveMalus(blockpos$mutableblockpos.set(maxX, i, minZ))
+               || this.hasPositiveMalus(blockpos$mutableblockpos.set(maxX, i, maxZ))) {
             return this.getStartNode(blockpos$mutableblockpos);
          }
       }
@@ -198,16 +202,16 @@ public class WalkNodeEvaluator extends NodeEvaluator {
    }
 
    private boolean canReachWithoutCollision(Node p_77625_) {
-      AABB aabb = this.mob.getBoundingBox();
-      Vec3 vec3 = new Vec3((double)p_77625_.x - this.mob.getX() + aabb.getXsize() / 2.0D, (double)p_77625_.y - this.mob.getY() + aabb.getYsize() / 2.0D, (double)p_77625_.z - this.mob.getZ() + aabb.getZsize() / 2.0D);
-      int i = Mth.ceil(vec3.length() / aabb.getSize());
-      vec3 = vec3.scale((double)(1.0F / (float)i));
+      net.minecraft.world.phys.SectorAABB box = this.mob.getSectorBoundingBox();
+      Vec3 delta = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_77625_.x, 0.5D,
+            (double)p_77625_.y, p_77625_.z, 0.5D).relativeTo(this.mob.sectorPosition());
+      double boxSize = Math.max((double)this.mob.getBbWidth(), (double)this.mob.getBbHeight());
+      int steps = Math.max(1, Mth.ceil(delta.length() / boxSize));
+      Vec3 step = delta.scale(1.0D / (double)steps);
 
-      for(int j = 1; j <= i; ++j) {
-         aabb = aabb.move(vec3);
-         if (this.hasCollisions(aabb)) {
-            return false;
-         }
+      for (int index = 1; index <= steps; ++index) {
+         box = box.move(step.x, step.y, step.z);
+         if (this.hasCollisions(box)) return false;
       }
 
       return true;
@@ -250,12 +254,16 @@ public class WalkNodeEvaluator extends NodeEvaluator {
             if ((node == null || node.costMalus < 0.0F) && p_164729_ > 0 && blockpathtypes != BlockPathTypes.FENCE && blockpathtypes != BlockPathTypes.UNPASSABLE_RAIL && blockpathtypes != BlockPathTypes.TRAPDOOR && blockpathtypes != BlockPathTypes.POWDER_SNOW) {
                node = this.findAcceptedNode(p_164726_, p_164727_ + 1, p_164728_, p_164729_ - 1, p_164730_, p_164731_, p_164732_);
                if (node != null && (node.type == BlockPathTypes.OPEN || node.type == BlockPathTypes.WALKABLE) && this.mob.getBbWidth() < 1.0F) {
-                  double d2 = (double)(p_164726_ - p_164731_.getStepX()) + 0.5D;
-                  double d3 = (double)(p_164728_ - p_164731_.getStepZ()) + 0.5D;
-                  AABB aabb = new AABB(d2 - d1, getFloorLevel(this.level, blockpos$mutableblockpos.set(d2, (double)(p_164727_ + 1), d3)) + 0.001D, d3 - d1, d2 + d1, (double)this.mob.getBbHeight() + getFloorLevel(this.level, blockpos$mutableblockpos.set((double)node.x, (double)node.y, (double)node.z)) - 0.002D, d3 + d1);
-                  if (this.hasCollisions(aabb)) {
-                     node = null;
-                  }
+                  long previousX = p_164726_ - (long)p_164731_.getStepX();
+                  long previousZ = p_164728_ - (long)p_164731_.getStepZ();
+                  double minY = getFloorLevel(this.level,
+                        blockpos$mutableblockpos.set(previousX, p_164727_ + 1, previousZ)) + 0.001D;
+                  double maxY = (double)this.mob.getBbHeight() + getFloorLevel(this.level,
+                        blockpos$mutableblockpos.set(node.x, node.y, node.z)) - 0.002D;
+                  net.minecraft.world.phys.SectorAABB box = net.minecraft.world.phys.SectorAABB.around(
+                        net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(previousX, 0.5D,
+                              minY, previousZ, 0.5D), d1 * 2.0D, Math.max(0.0D, maxY - minY));
+                  if (this.hasCollisions(box)) node = null;
                }
             }
 
@@ -340,10 +348,14 @@ public class WalkNodeEvaluator extends NodeEvaluator {
       return node;
    }
 
-   private boolean hasCollisions(AABB p_77635_) {
-      return this.collisionCache.computeIfAbsent(p_77635_, (p_192973_) -> {
-         return !this.level.noCollision(this.mob, p_77635_);
-      });
+   private boolean hasCollisions(net.minecraft.world.phys.SectorAABB box) {
+      net.minecraft.world.phys.SectorPhysicsOrigin origin = net.minecraft.world.phys.SectorPhysicsOrigin.from(
+            this.mob.sectorPosition());
+      for (VoxelShape shape : this.level.getSectorBlockCollisions(this.mob, box,
+            box.toLocalAABB(origin), origin)) {
+         if (!shape.isEmpty()) return true;
+      }
+      return false;
    }
 
    public BlockPathTypes getBlockPathType(BlockGetter p_77594_, long p_77595_, int p_77596_, long p_77597_, Mob p_77598_, int p_77599_, int p_77600_, int p_77601_, boolean p_77602_, boolean p_77603_) {

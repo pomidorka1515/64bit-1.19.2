@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -16,7 +15,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class PlayTagWithOtherKids extends Behavior<PathfinderMob> {
    private static final int MAX_FLEE_XZ_DIST = 20;
@@ -52,9 +51,10 @@ public class PlayTagWithOtherKids extends Behavior<PathfinderMob> {
 
    private void fleeFromChaser(ServerLevel p_23636_, PathfinderMob p_23637_, LivingEntity p_23638_) {
       for(int i = 0; i < 10; ++i) {
-         Vec3 vec3 = LandRandomPos.getPos(p_23637_, 20, 8);
-         if (vec3 != null && p_23636_.isVillage(new BlockPos(vec3))) {
-            p_23637_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(vec3, 0.6F, 0));
+         SectorVec3 target = LandRandomPos.getSectorPos(p_23637_, 20, 8);
+         if (target != null && p_23636_.isVillage(target.blockPosition())) {
+            p_23637_.getBrain().setMemory(MemoryModuleType.WALK_TARGET,
+                  new WalkTarget(target, 0.6F, 0));
             return;
          }
       }

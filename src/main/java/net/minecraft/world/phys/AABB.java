@@ -9,6 +9,13 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 public class AABB {
    private static final double EPSILON = 1.0E-7D;
+   /**
+    * Optional exact world-space bounds. Entity-centered boxes retain this value
+    * through the ordinary inflate/expand/move operations so legacy gameplay
+    * queries can use the long-coordinate entity index without losing X/Z bits.
+    */
+   @Nullable
+   private final SectorAABB sectorBounds;
    public final double minX;
    public final double minY;
    public final double minZ;
@@ -17,12 +24,38 @@ public class AABB {
    public final double maxZ;
 
    public AABB(double p_82295_, double p_82296_, double p_82297_, double p_82298_, double p_82299_, double p_82300_) {
-      this.minX = Math.min(p_82295_, p_82298_);
-      this.minY = Math.min(p_82296_, p_82299_);
-      this.minZ = Math.min(p_82297_, p_82300_);
-      this.maxX = Math.max(p_82295_, p_82298_);
-      this.maxY = Math.max(p_82296_, p_82299_);
-      this.maxZ = Math.max(p_82297_, p_82300_);
+      this(p_82295_, p_82296_, p_82297_, p_82298_, p_82299_, p_82300_, null);
+   }
+
+   private AABB(double minX, double minY, double minZ, double maxX, double maxY, double maxZ,
+                @Nullable SectorAABB sectorBounds) {
+      this.minX = Math.min(minX, maxX);
+      this.minY = Math.min(minY, maxY);
+      this.minZ = Math.min(minZ, maxZ);
+      this.maxX = Math.max(minX, maxX);
+      this.maxY = Math.max(minY, maxY);
+      this.maxZ = Math.max(minZ, maxZ);
+      this.sectorBounds = sectorBounds;
+   }
+
+   /** Creates the lossy compatibility mirror of an exact horizontal box. */
+   public static AABB fromSectorBounds(SectorAABB bounds) {
+      if (bounds == null) throw new NullPointerException("bounds");
+      double minX = SectorVec3.fromBlockAndFraction(bounds.minBlockX(), bounds.minSubX(), 0.0D, 0L, 0.0D)
+            .toApproximateVec3().x;
+      double minZ = SectorVec3.fromBlockAndFraction(0L, 0.0D, 0.0D, bounds.minBlockZ(), bounds.minSubZ())
+            .toApproximateVec3().z;
+      double maxX = SectorVec3.fromBlockAndFraction(bounds.maxBlockX(), bounds.maxSubX(), 0.0D, 0L, 0.0D)
+            .toApproximateVec3().x;
+      double maxZ = SectorVec3.fromBlockAndFraction(0L, 0.0D, 0.0D, bounds.maxBlockZ(), bounds.maxSubZ())
+            .toApproximateVec3().z;
+      return new AABB(minX, bounds.minY(), minZ, maxX, bounds.maxY(), maxZ, bounds);
+   }
+
+   /** Exact metadata carried by entity-centered compatibility boxes. */
+   @Nullable
+   public SectorAABB getSectorBounds() {
+      return this.sectorBounds;
    }
 
    public AABB(BlockPos p_82305_) {
@@ -140,7 +173,8 @@ public class AABB {
          d5 -= p_82313_;
       }
 
-      return new AABB(d0, d1, d2, d3, d4, d5);
+      SectorAABB exact = this.sectorBounds == null ? null : this.sectorBounds.contract(p_82311_, p_82312_, p_82313_);
+      return new AABB(d0, d1, d2, d3, d4, d5, exact);
    }
 
    public AABB expandTowards(Vec3 p_82370_) {
@@ -172,7 +206,9 @@ public class AABB {
          d5 += p_82366_;
       }
 
-      return new AABB(d0, d1, d2, d3, d4, d5);
+      SectorAABB exact = this.sectorBounds == null ? null
+            : this.sectorBounds.expandTowards(p_82364_, p_82365_, p_82366_);
+      return new AABB(d0, d1, d2, d3, d4, d5, exact);
    }
 
    public AABB inflate(double p_82378_, double p_82379_, double p_82380_) {
@@ -182,7 +218,9 @@ public class AABB {
       double d3 = this.maxX + p_82378_;
       double d4 = this.maxY + p_82379_;
       double d5 = this.maxZ + p_82380_;
-      return new AABB(d0, d1, d2, d3, d4, d5);
+      SectorAABB exact = this.sectorBounds == null ? null
+            : this.sectorBounds.inflate(p_82378_, p_82379_, p_82380_);
+      return new AABB(d0, d1, d2, d3, d4, d5, exact);
    }
 
    public AABB inflate(double p_82401_) {
@@ -210,7 +248,10 @@ public class AABB {
    }
 
    public AABB move(double p_82387_, double p_82388_, double p_82389_) {
-      return new AABB(this.minX + p_82387_, this.minY + p_82388_, this.minZ + p_82389_, this.maxX + p_82387_, this.maxY + p_82388_, this.maxZ + p_82389_);
+      SectorAABB exact = this.sectorBounds == null ? null
+            : this.sectorBounds.move(p_82387_, p_82388_, p_82389_);
+      return new AABB(this.minX + p_82387_, this.minY + p_82388_, this.minZ + p_82389_,
+            this.maxX + p_82387_, this.maxY + p_82388_, this.maxZ + p_82389_, exact);
    }
 
    public AABB move(BlockPos p_82339_) {

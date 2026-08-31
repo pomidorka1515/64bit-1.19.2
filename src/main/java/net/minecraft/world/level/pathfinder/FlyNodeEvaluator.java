@@ -35,11 +35,12 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
       int i;
       if (this.canFloat() && this.mob.isInWater()) {
          i = this.mob.getBlockY();
-         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(Mth.lfloor(this.mob.getX()), i, Mth.lfloor(this.mob.getZ()));
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(
+               this.mob.getBlockX(), i, this.mob.getBlockZ());
 
          for(BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos); blockstate.is(Blocks.WATER); blockstate = this.level.getBlockState(blockpos$mutableblockpos)) {
             ++i;
-            blockpos$mutableblockpos.set(this.mob.getX(), (double)i, this.mob.getZ());
+            blockpos$mutableblockpos.set(this.mob.getBlockX(), i, this.mob.getBlockZ());
          }
       } else {
          i = Mth.floor(this.mob.getY() + 0.5D);

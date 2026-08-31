@@ -9,6 +9,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.level.WorldBounds;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class RandomPos {
@@ -74,47 +76,64 @@ public class RandomPos {
    }
 
    @Nullable
-   public static Vec3 generateRandomPos(PathfinderMob p_148543_, Supplier<BlockPos> p_148544_) {
-      return generateRandomPos(p_148544_, p_148543_::getWalkTargetValue);
+   public static Vec3 generateRandomPos(PathfinderMob mob, Supplier<BlockPos> supplier) {
+      SectorVec3 exact = generateRandomSectorPos(mob, supplier);
+      return exact == null ? null : exact.toApproximateVec3();
    }
 
    @Nullable
-   public static Vec3 generateRandomPos(Supplier<BlockPos> p_148562_, ToDoubleFunction<BlockPos> p_148563_) {
-      double d0 = Double.NEGATIVE_INFINITY;
-      BlockPos blockpos = null;
+   public static SectorVec3 generateRandomSectorPos(PathfinderMob mob, Supplier<BlockPos> supplier) {
+      return generateRandomSectorPos(supplier, mob::getWalkTargetValue);
+   }
 
-      for(int i = 0; i < 10; ++i) {
-         BlockPos blockpos1 = p_148562_.get();
-         if (blockpos1 != null) {
-            double d1 = p_148563_.applyAsDouble(blockpos1);
-            if (d1 > d0) {
-               d0 = d1;
-               blockpos = blockpos1;
+   @Nullable
+   public static Vec3 generateRandomPos(Supplier<BlockPos> supplier, ToDoubleFunction<BlockPos> score) {
+      SectorVec3 exact = generateRandomSectorPos(supplier, score);
+      return exact == null ? null : exact.toApproximateVec3();
+   }
+
+   /** Selects a random block target without converting its long X/Z to doubles. */
+   @Nullable
+   public static SectorVec3 generateRandomSectorPos(Supplier<BlockPos> supplier,
+                                                     ToDoubleFunction<BlockPos> score) {
+      double bestScore = Double.NEGATIVE_INFINITY;
+      BlockPos best = null;
+
+      for (int i = 0; i < RANDOM_POS_ATTEMPTS; ++i) {
+         BlockPos candidate = supplier.get();
+         if (candidate != null) {
+            double value = score.applyAsDouble(candidate);
+            if (value > bestScore) {
+               bestScore = value;
+               best = candidate;
             }
          }
       }
 
-      return blockpos != null ? Vec3.atBottomCenterOf(blockpos) : null;
+      return best == null ? null : SectorVec3.fromBlockAndFraction(best.getX(), 0.5D,
+            (double)best.getY(), best.getZ(), 0.5D);
    }
 
-   public static BlockPos generateRandomPosTowardDirection(PathfinderMob p_217864_, int p_217865_, RandomSource p_217866_, BlockPos p_217867_) {
-      long i = p_217867_.getX();
-      long j = p_217867_.getZ();
-      if (p_217864_.hasRestriction() && p_217865_ > 1) {
-         BlockPos blockpos = p_217864_.getRestrictCenter();
-         if (p_217864_.getX() > (double)blockpos.getX()) {
-            i -= p_217866_.nextInt(p_217865_ / 2);
+   public static BlockPos generateRandomPosTowardDirection(PathfinderMob mob, int horizontalRange,
+                                                            RandomSource random, BlockPos offset) {
+      long offsetX = offset.getX();
+      long offsetZ = offset.getZ();
+      if (mob.hasRestriction() && horizontalRange > 1) {
+         BlockPos restriction = mob.getRestrictCenter();
+         if (mob.getBlockX() > restriction.getX()) {
+            offsetX -= random.nextInt(horizontalRange / 2);
          } else {
-            i += p_217866_.nextInt(p_217865_ / 2);
+            offsetX += random.nextInt(horizontalRange / 2);
          }
 
-         if (p_217864_.getZ() > (double)blockpos.getZ()) {
-            j -= p_217866_.nextInt(p_217865_ / 2);
+         if (mob.getBlockZ() > restriction.getZ()) {
+            offsetZ -= random.nextInt(horizontalRange / 2);
          } else {
-            j += p_217866_.nextInt(p_217865_ / 2);
+            offsetZ += random.nextInt(horizontalRange / 2);
          }
       }
 
-      return new BlockPos((double)i + p_217864_.getX(), (double)p_217867_.getY() + p_217864_.getY(), (double)j + p_217864_.getZ());
+      return new BlockPos(WorldBounds.addBlockOffset(mob.getBlockX(), offsetX),
+            mob.getBlockY() + offset.getY(), WorldBounds.addBlockOffset(mob.getBlockZ(), offsetZ));
    }
 }

@@ -15,7 +15,7 @@ public abstract class DiscreteVoxelShape {
          this.ySize = p_82788_;
          this.zSize = p_82789_;
       } else {
-         throw new IllegalArgumentException("Need all positive sizes: x: " + p_82787_ + ", y: " + p_82788_ + ", z: " + p_82789_);
+         throw new IllegalArgumentException("Need all non-negative sizes: x: " + p_82787_ + ", y: " + p_82788_ + ", z: " + p_82789_);
       }
    }
 

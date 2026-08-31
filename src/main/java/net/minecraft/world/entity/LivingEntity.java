@@ -199,6 +199,8 @@ public abstract class LivingEntity extends Entity {
    public float yya;
    public float zza;
    protected int lerpSteps;
+   @Nullable
+   protected SectorVec3 exactLerpTarget;
    protected double lerpX;
    protected double lerpY;
    protected double lerpZ;
@@ -1119,10 +1121,11 @@ public abstract class LivingEntity extends Entity {
             }
 
             if (entity1 != null) {
-               double d1 = entity1.getX() - this.getX();
+               Vec3 attackDelta = entity1.sectorPosition().relativeTo(this.sectorPosition());
+               double d1 = attackDelta.x;
 
                double d0;
-               for(d0 = entity1.getZ() - this.getZ(); d1 * d1 + d0 * d0 < 1.0E-4D; d0 = (Math.random() - Math.random()) * 0.01D) {
+               for(d0 = attackDelta.z; d1 * d1 + d0 * d0 < 1.0E-4D; d0 = (Math.random() - Math.random()) * 0.01D) {
                   d1 = (Math.random() - Math.random()) * 0.01D;
                }
 
@@ -1171,8 +1174,9 @@ public abstract class LivingEntity extends Entity {
       p_21200_.blockedByShield(this);
    }
 
-   protected void blockedByShield(LivingEntity p_21246_) {
-      p_21246_.knockback(0.5D, p_21246_.getX() - this.getX(), p_21246_.getZ() - this.getZ());
+   protected void blockedByShield(LivingEntity attacker) {
+      Vec3 attackerDelta = attacker.sectorPosition().relativeTo(this.sectorPosition());
+      attacker.knockback(0.5D, attackerDelta.x, attackerDelta.z);
    }
 
    private boolean checkTotemDeathProtection(DamageSource p_21263_) {
@@ -1307,7 +1311,11 @@ public abstract class LivingEntity extends Entity {
             }
 
             if (!flag) {
-               ItemEntity itementity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), new ItemStack(Items.WITHER_ROSE));
+               SectorVec3 position = this.sectorPosition();
+               Vec3 approximate = position.toApproximateVec3();
+               ItemEntity itementity = new ItemEntity(this.level, approximate.x, position.y(), approximate.z,
+                     new ItemStack(Items.WITHER_ROSE));
+               itementity.applyExactPosition(position);
                this.level.addFreshEntity(itementity);
             }
          }
@@ -1339,7 +1347,7 @@ public abstract class LivingEntity extends Entity {
 
    protected void dropExperience() {
       if (this.level instanceof ServerLevel && !this.wasExperienceConsumed() && (this.isAlwaysExperienceDropper() || this.lastHurtByPlayerTime > 0 && this.shouldDropExperience() && this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT))) {
-         ExperienceOrb.award((ServerLevel)this.level, this.position(), this.getExperienceReward());
+         ExperienceOrb.award((ServerLevel)this.level, this.sectorPosition(), this.getExperienceReward());
       }
 
    }
@@ -2468,18 +2476,25 @@ public abstract class LivingEntity extends Entity {
 
       if (this.isControlledByLocalInstance()) {
          this.lerpSteps = 0;
-         this.syncPacketPositionCodec(this.getX(), this.getY(), this.getZ());
+         this.exactLerpTarget = null;
       }
 
       if (this.lerpSteps > 0) {
-         double d0 = this.getX() + (this.lerpX - this.getX()) / (double)this.lerpSteps;
-         double d2 = this.getY() + (this.lerpY - this.getY()) / (double)this.lerpSteps;
-         double d4 = this.getZ() + (this.lerpZ - this.getZ()) / (double)this.lerpSteps;
          double d6 = Mth.wrapDegrees(this.lerpYRot - (double)this.getYRot());
          this.setYRot(this.getYRot() + (float)d6 / (float)this.lerpSteps);
          this.setXRot(this.getXRot() + (float)(this.lerpXRot - (double)this.getXRot()) / (float)this.lerpSteps);
+         if (this.exactLerpTarget != null) {
+            Vec3 delta = this.exactLerpTarget.relativeTo(this.sectorPosition());
+            this.applyExactPosition(this.sectorPosition().add(delta.x / (double)this.lerpSteps,
+                  delta.y / (double)this.lerpSteps, delta.z / (double)this.lerpSteps));
+         } else {
+            double d0 = this.getX() + (this.lerpX - this.getX()) / (double)this.lerpSteps;
+            double d2 = this.getY() + (this.lerpY - this.getY()) / (double)this.lerpSteps;
+            double d4 = this.getZ() + (this.lerpZ - this.getZ()) / (double)this.lerpSteps;
+            this.setPos(d0, d2, d4);
+         }
          --this.lerpSteps;
-         this.setPos(d0, d2, d4);
+         if (this.lerpSteps == 0) this.exactLerpTarget = null;
          this.setRot(this.getYRot(), this.getXRot());
       } else if (!this.isEffectiveAi()) {
          this.setDeltaMovement(this.getDeltaMovement().scale(0.98D));
@@ -2701,12 +2716,21 @@ public abstract class LivingEntity extends Entity {
    }
 
    public void lerpTo(double p_20977_, double p_20978_, double p_20979_, float p_20980_, float p_20981_, int p_20982_, boolean p_20983_) {
+      this.exactLerpTarget = null;
       this.lerpX = p_20977_;
       this.lerpY = p_20978_;
       this.lerpZ = p_20979_;
       this.lerpYRot = (double)p_20980_;
       this.lerpXRot = (double)p_20981_;
       this.lerpSteps = p_20982_;
+   }
+
+   @Override
+   public void lerpTo(SectorVec3 position, float yRot, float xRot, int steps, boolean teleport) {
+      this.exactLerpTarget = position;
+      this.lerpYRot = (double)yRot;
+      this.lerpXRot = (double)xRot;
+      this.lerpSteps = steps;
    }
 
    public void lerpHeadTo(float p_21005_, int p_21006_) {
@@ -3324,19 +3348,19 @@ public abstract class LivingEntity extends Entity {
    }
 
    public void recreateFromPacket(ClientboundAddEntityPacket p_217037_) {
-      double d0 = p_217037_.getX();
-      double d1 = p_217037_.getY();
-      double d2 = p_217037_.getZ();
       float f = p_217037_.getYRot();
       float f1 = p_217037_.getXRot();
-      this.syncPacketPositionCodec(d0, d1, d2);
+      this.applyExactPosition(p_217037_.getExactPosition());
+      this.setOldPosAndRot();
+      this.syncSectorPacketPositionCodec();
       this.yBodyRot = p_217037_.getYHeadRot();
       this.yHeadRot = p_217037_.getYHeadRot();
       this.yBodyRotO = this.yBodyRot;
       this.yHeadRotO = this.yHeadRot;
       this.setId(p_217037_.getId());
       this.setUUID(p_217037_.getUUID());
-      this.absMoveTo(d0, d1, d2, f, f1);
+      this.setYRot(f);
+      this.setXRot(f1);
       this.setDeltaMovement(p_217037_.getXa(), p_217037_.getYa(), p_217037_.getZa());
    }
 

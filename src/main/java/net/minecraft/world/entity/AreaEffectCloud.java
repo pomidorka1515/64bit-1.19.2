@@ -79,11 +79,9 @@ public class AreaEffectCloud extends Entity {
    }
 
    public void refreshDimensions() {
-      double d0 = this.getX();
-      double d1 = this.getY();
-      double d2 = this.getZ();
+      net.minecraft.world.phys.SectorVec3 position = this.sectorPosition();
       super.refreshDimensions();
-      this.setPos(d0, d1, d2);
+      this.applyExactPosition(position);
    }
 
    public float getRadius() {
@@ -236,12 +234,17 @@ public class AreaEffectCloud extends Entity {
             if (list.isEmpty()) {
                this.victims.clear();
             } else {
-               List<LivingEntity> list1 = this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox());
+               net.minecraft.world.phys.SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
+               net.minecraft.world.phys.AABB localBox = this.getSectorBoundingBox().toLocalAABB(origin);
+               List<LivingEntity> list1 = this.level.getSectorEntities(this, this.getSectorBoundingBox(), localBox,
+                     origin, livingentity -> livingentity instanceof LivingEntity).stream()
+                     .map(LivingEntity.class::cast).toList();
                if (!list1.isEmpty()) {
                   for(LivingEntity livingentity : list1) {
                      if (!this.victims.containsKey(livingentity) && livingentity.isAffectedByPotions()) {
-                        double d8 = livingentity.getX() - this.getX();
-                        double d1 = livingentity.getZ() - this.getZ();
+                        net.minecraft.world.phys.Vec3 delta = livingentity.sectorPosition().relativeTo(this.sectorPosition());
+                        double d8 = delta.x;
+                        double d1 = delta.z;
                         double d3 = d8 * d8 + d1 * d1;
                         if (d3 <= (double)(f * f)) {
                            this.victims.put(livingentity, this.tickCount + this.reapplicationDelay);

@@ -2,6 +2,7 @@ package net.minecraft.world.phys.shapes;
 
 import java.util.BitSet;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.WorldBounds;
 
 public final class BitSetDiscreteVoxelShape extends DiscreteVoxelShape {
    private final BitSet storage;
@@ -14,10 +15,18 @@ public final class BitSetDiscreteVoxelShape extends DiscreteVoxelShape {
 
    public BitSetDiscreteVoxelShape(int p_82588_, int p_82589_, int p_82590_) {
       super(p_82588_, p_82589_, p_82590_);
-      this.storage = new BitSet(p_82588_ * p_82589_ * p_82590_);
+      this.storage = new BitSet(storageSize(p_82588_, p_82589_, p_82590_));
       this.xMin = p_82588_;
       this.yMin = p_82589_;
       this.zMin = p_82590_;
+   }
+
+   private static int storageSize(int xSize, int ySize, int zSize) {
+      if (!WorldBounds.isVoxelShapeSize(xSize, ySize, zSize)) {
+         throw new IllegalArgumentException("Voxel shape is too large: x: " + xSize + ", y: " + ySize + ", z: " + zSize);
+      }
+
+      return xSize * ySize * zSize;
    }
 
    public static BitSetDiscreteVoxelShape withFilledBounds(int p_165933_, int p_165934_, int p_165935_, int p_165936_, int p_165937_, int p_165938_, int p_165939_, int p_165940_, int p_165941_) {
@@ -45,7 +54,7 @@ public final class BitSetDiscreteVoxelShape extends DiscreteVoxelShape {
       if (p_82602_ instanceof BitSetDiscreteVoxelShape) {
          this.storage = (BitSet)((BitSetDiscreteVoxelShape)p_82602_).storage.clone();
       } else {
-         this.storage = new BitSet(this.xSize * this.ySize * this.zSize);
+         this.storage = new BitSet(storageSize(this.xSize, this.ySize, this.zSize));
 
          for(int i = 0; i < this.xSize; ++i) {
             for(int j = 0; j < this.ySize; ++j) {

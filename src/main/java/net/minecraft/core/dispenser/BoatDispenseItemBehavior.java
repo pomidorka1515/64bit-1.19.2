@@ -9,6 +9,7 @@ import net.minecraft.world.entity.vehicle.ChestBoat;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.phys.SectorVec3;
 
 public class BoatDispenseItemBehavior extends DefaultDispenseItemBehavior {
    private final DefaultDispenseItemBehavior defaultDispenseItemBehavior = new DefaultDispenseItemBehavior();
@@ -27,10 +28,9 @@ public class BoatDispenseItemBehavior extends DefaultDispenseItemBehavior {
    public ItemStack execute(BlockSource p_123375_, ItemStack p_123376_) {
       Direction direction = p_123375_.getBlockState().getValue(DispenserBlock.FACING);
       Level level = p_123375_.getLevel();
-      double d0 = p_123375_.x() + (double)((float)direction.getStepX() * 1.125F);
-      double d1 = p_123375_.y() + (double)((float)direction.getStepY() * 1.125F);
-      double d2 = p_123375_.z() + (double)((float)direction.getStepZ() * 1.125F);
-      BlockPos blockpos = p_123375_.getPos().relative(direction);
+      BlockPos sourcePos = p_123375_.getPos();
+      double d1 = (double)sourcePos.getY() + 0.5D + (double)((float)direction.getStepY() * 1.125F);
+      BlockPos blockpos = sourcePos.relative(direction);
       double d3;
       if (level.getFluidState(blockpos).is(FluidTags.WATER)) {
          d3 = 1.0D;
@@ -42,7 +42,10 @@ public class BoatDispenseItemBehavior extends DefaultDispenseItemBehavior {
          d3 = 0.0D;
       }
 
-      Boat boat = (Boat)(this.isChestBoat ? new ChestBoat(level, d0, d1 + d3, d2) : new Boat(level, d0, d1 + d3, d2));
+      SectorVec3 position = SectorVec3.fromBlockAndFraction(sourcePos.getX(),
+            0.5D + (double)((float)direction.getStepX() * 1.125F), d1 + d3,
+            sourcePos.getZ(), 0.5D + (double)((float)direction.getStepZ() * 1.125F));
+      Boat boat = this.isChestBoat ? new ChestBoat(level, position) : new Boat(level, position);
       boat.setType(this.type);
       boat.setYRot(direction.toYRot());
       level.addFreshEntity(boat);

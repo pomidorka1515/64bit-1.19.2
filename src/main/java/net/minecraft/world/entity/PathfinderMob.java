@@ -35,7 +35,8 @@ public abstract class PathfinderMob extends Mob {
       Entity entity = this.getLeashHolder();
       if (entity != null && entity.level == this.level) {
          this.restrictTo(entity.blockPosition(), 5);
-         float f = this.distanceTo(entity);
+         Vec3 leashDelta = entity.sectorPosition().relativeTo(this.sectorPosition());
+         float f = (float)leashDelta.length();
          if (this instanceof TamableAnimal && ((TamableAnimal)this).isInSittingPose()) {
             if (f > 10.0F) {
                this.dropLeash(true, true);
@@ -49,15 +50,15 @@ public abstract class PathfinderMob extends Mob {
             this.dropLeash(true, true);
             this.goalSelector.disableControlFlag(Goal.Flag.MOVE);
          } else if (f > 6.0F) {
-            double d0 = (entity.getX() - this.getX()) / (double)f;
-            double d1 = (entity.getY() - this.getY()) / (double)f;
-            double d2 = (entity.getZ() - this.getZ()) / (double)f;
+            double d0 = leashDelta.x / (double)f;
+            double d1 = leashDelta.y / (double)f;
+            double d2 = leashDelta.z / (double)f;
             this.setDeltaMovement(this.getDeltaMovement().add(Math.copySign(d0 * d0 * 0.4D, d0), Math.copySign(d1 * d1 * 0.4D, d1), Math.copySign(d2 * d2 * 0.4D, d2)));
          } else if (this.shouldStayCloseToLeashHolder()) {
             this.goalSelector.enableControlFlag(Goal.Flag.MOVE);
-            float f1 = 2.0F;
-            Vec3 vec3 = (new Vec3(entity.getX() - this.getX(), entity.getY() - this.getY(), entity.getZ() - this.getZ())).normalize().scale((double)Math.max(f - 2.0F, 0.0F));
-            this.getNavigation().moveTo(this.getX() + vec3.x, this.getY() + vec3.y, this.getZ() + vec3.z, this.followLeashSpeed());
+            Vec3 step = leashDelta.normalize().scale((double)Math.max(f - 2.0F, 0.0F));
+            this.getNavigation().moveTo(this.sectorPosition().add(step.x, step.y, step.z),
+                  this.followLeashSpeed());
          }
       }
 

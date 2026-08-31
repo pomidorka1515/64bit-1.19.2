@@ -9,9 +9,9 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.InclusiveRange;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 
@@ -55,6 +55,6 @@ public class DualNoiseProvider extends NoiseProvider {
    }
 
    protected double getSlowNoiseValue(BlockPos p_191407_) {
-      return this.slowNoise.getValue(WorldBounds.scaledNoiseCoordinate(p_191407_.getX(), this.slowScale), (double)((float)p_191407_.getY() * this.slowScale), WorldBounds.scaledNoiseCoordinate(p_191407_.getZ(), this.slowScale));
+      return this.slowNoise.getValue(FarlandsMode.scaledNoiseCoordinate(p_191407_.getX(), this.slowScale), (double)((float)p_191407_.getY() * this.slowScale), FarlandsMode.scaledNoiseCoordinate(p_191407_.getZ(), this.slowScale));
    }
 }

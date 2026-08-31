@@ -349,7 +349,7 @@ public class DebugScreenOverlay extends GuiComponent {
 
          list.add(this.minecraft.getSoundManager().getDebugString() + String.format(Locale.ROOT, " (Mood %d%%)", Math.round(this.minecraft.player.getCurrentMood() * 100.0F)));
          list.add("");
-         list.add("Config End Rings: " + EndRingsMode.isEnabled() + " Generator: " + (FarlandsMode.isEnabled() ? "32-bit" : "64-bit"));
+         list.add("Config End Rings: " + EndRingsMode.isEnabled() + " Generator: " + FarlandsMode.getMode().generatorDescription());
          list.add("BlendedNoise");
          list.add(BlendedNoise.getDebugString());
          list.add(BlendedNoise.getDebugString2());

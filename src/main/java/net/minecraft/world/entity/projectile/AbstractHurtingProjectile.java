@@ -12,6 +12,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class AbstractHurtingProjectile extends Projectile {
@@ -38,6 +39,7 @@ public abstract class AbstractHurtingProjectile extends Projectile {
 
    public AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> p_36826_, LivingEntity p_36827_, double p_36828_, double p_36829_, double p_36830_, Level p_36831_) {
       this(p_36826_, p_36827_.getX(), p_36827_.getY(), p_36827_.getZ(), p_36828_, p_36829_, p_36830_, p_36831_);
+      this.applyExactPosition(p_36827_.sectorPosition());
       this.setOwner(p_36827_);
       this.setRot(p_36827_.getYRot(), p_36827_.getXRot());
    }
@@ -70,9 +72,7 @@ public abstract class AbstractHurtingProjectile extends Projectile {
 
          this.checkInsideBlocks();
          Vec3 vec3 = this.getDeltaMovement();
-         double d0 = this.getX() + vec3.x;
-         double d1 = this.getY() + vec3.y;
-         double d2 = this.getZ() + vec3.z;
+         SectorVec3 nextPosition = this.sectorPosition().add(vec3.x, vec3.y, vec3.z);
          ProjectileUtil.rotateTowardsMovement(this, 0.2F);
          float f = this.getInertia();
          if (this.isInWater()) {
@@ -88,7 +88,7 @@ public abstract class AbstractHurtingProjectile extends Projectile {
          this.setDeltaMovement(vec3.add(this.xPower, this.yPower, this.zPower).scale((double)f));
          this.level.addParticle(this.getTrailParticle(), this.particlePosition(vec3.x, vec3.y + 0.5D,
                vec3.z), 0.0D, 0.0D, 0.0D);
-         this.setPos(d0, d1, d2);
+         this.applyExactPosition(nextPosition);
       } else {
          this.discard();
       }
@@ -166,7 +166,8 @@ public abstract class AbstractHurtingProjectile extends Projectile {
    public Packet<?> getAddEntityPacket() {
       Entity entity = this.getOwner();
       int i = entity == null ? 0 : entity.getId();
-      return new ClientboundAddEntityPacket(this.getId(), this.getUUID(), this.getX(), this.getY(), this.getZ(), this.getXRot(), this.getYRot(), this.getType(), i, new Vec3(this.xPower, this.yPower, this.zPower), 0.0D);
+      return new ClientboundAddEntityPacket(this.getId(), this.getUUID(), this.sectorPosition(), this.getXRot(), this.getYRot(),
+            this.getType(), i, new Vec3(this.xPower, this.yPower, this.zPower), 0.0D);
    }
 
    public void recreateFromPacket(ClientboundAddEntityPacket p_150128_) {

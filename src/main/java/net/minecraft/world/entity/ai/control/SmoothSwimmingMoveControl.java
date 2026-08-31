@@ -3,6 +3,7 @@ package net.minecraft.world.entity.ai.control;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.phys.Vec3;
 
 public class SmoothSwimmingMoveControl extends MoveControl {
    private final int maxTurnX;
@@ -26,9 +27,10 @@ public class SmoothSwimmingMoveControl extends MoveControl {
       }
 
       if (this.operation == MoveControl.Operation.MOVE_TO && !this.mob.getNavigation().isDone()) {
-         double d0 = this.wantedX - this.mob.getX();
-         double d1 = this.wantedY - this.mob.getY();
-         double d2 = this.wantedZ - this.mob.getZ();
+         Vec3 wantedDelta = this.wantedDelta();
+         double d0 = wantedDelta.x;
+         double d1 = wantedDelta.y;
+         double d2 = wantedDelta.z;
          double d3 = d0 * d0 + d1 * d1 + d2 * d2;
          if (d3 < (double)2.5000003E-7F) {
             this.mob.setZza(0.0F);

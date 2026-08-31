@@ -10,6 +10,7 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class StrollThroughVillageGoal extends Goal {
@@ -38,10 +39,10 @@ public class StrollThroughVillageGoal extends Goal {
          if (!serverlevel.isCloseToVillage(blockpos, 6)) {
             return false;
          } else {
-            Vec3 vec3 = LandRandomPos.getPos(this.mob, 15, 7, (p_25912_) -> {
+            SectorVec3 target = LandRandomPos.getSectorPos(this.mob, 15, 7, (p_25912_) -> {
                return (double)(-serverlevel.sectionsToVillage(SectionPos.of(p_25912_)));
             });
-            this.wantedPos = vec3 == null ? null : new BlockPos(vec3);
+            this.wantedPos = target == null ? null : target.blockPosition();
             return this.wantedPos != null;
          }
       }
@@ -54,15 +55,16 @@ public class StrollThroughVillageGoal extends Goal {
    public void tick() {
       if (this.wantedPos != null) {
          PathNavigation pathnavigation = this.mob.getNavigation();
-         if (pathnavigation.isDone() && !this.wantedPos.closerToCenterThan(this.mob.position(), 10.0D)) {
-            Vec3 vec3 = Vec3.atBottomCenterOf(this.wantedPos);
-            Vec3 vec31 = this.mob.position();
-            Vec3 vec32 = vec31.subtract(vec3);
-            vec3 = vec32.scale(0.4D).add(vec3);
-            Vec3 vec33 = vec3.subtract(vec31).normalize().scale(10.0D).add(vec31);
-            BlockPos blockpos = new BlockPos(vec33);
+         SectorVec3 wantedCenter = SectorVec3.fromBlockAndFraction(this.wantedPos.getX(), 0.5D,
+               this.wantedPos.getY(), this.wantedPos.getZ(), 0.5D);
+         Vec3 delta = wantedCenter.relativeTo(this.mob.sectorPosition());
+         if (pathnavigation.isDone() && delta.lengthSqr() >= 100.0D) {
+            SectorVec3 intermediate = this.mob.sectorPosition().add(
+                  delta.x * 0.6D, delta.y * 0.6D, delta.z * 0.6D);
+            Vec3 remaining = wantedCenter.relativeTo(intermediate).normalize().scale(10.0D);
+            BlockPos blockpos = intermediate.add(remaining.x, remaining.y, remaining.z).blockPosition();
             blockpos = this.mob.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, blockpos);
-            if (!pathnavigation.moveTo((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), 1.0D)) {
+            if (!pathnavigation.moveTo(blockpos, 1.0D)) {
                this.moveRandomly();
             }
          }
@@ -73,6 +75,6 @@ public class StrollThroughVillageGoal extends Goal {
    private void moveRandomly() {
       RandomSource randomsource = this.mob.getRandom();
       BlockPos blockpos = this.mob.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, this.mob.blockPosition().offset(-8 + randomsource.nextInt(16), 0, -8 + randomsource.nextInt(16)));
-      this.mob.getNavigation().moveTo((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), 1.0D);
+      this.mob.getNavigation().moveTo(blockpos, 1.0D);
    }
 }

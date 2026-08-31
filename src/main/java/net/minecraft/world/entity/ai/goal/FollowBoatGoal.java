@@ -72,7 +72,7 @@ public class FollowBoatGoal extends Goal {
          if (this.currentGoal == BoatGoals.GO_TO_BOAT) {
             BlockPos blockpos = this.following.blockPosition().relative(this.following.getDirection().getOpposite());
             blockpos = blockpos.offset(0, -1, 0);
-            this.mob.getNavigation().moveTo((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), 1.0D);
+            this.mob.getNavigation().moveTo(blockpos, 1.0D);
             if (this.mob.distanceTo(this.following) < 4.0F) {
                this.timeToRecalcPath = 0;
                this.currentGoal = BoatGoals.GO_IN_BOAT_DIRECTION;
@@ -80,7 +80,7 @@ public class FollowBoatGoal extends Goal {
          } else if (this.currentGoal == BoatGoals.GO_IN_BOAT_DIRECTION) {
             Direction direction = this.following.getMotionDirection();
             BlockPos blockpos1 = this.following.blockPosition().relative(direction, 10);
-            this.mob.getNavigation().moveTo((double)blockpos1.getX(), (double)(blockpos1.getY() - 1), (double)blockpos1.getZ(), 1.0D);
+            this.mob.getNavigation().moveTo(blockpos1.below(), 1.0D);
             if (this.mob.distanceTo(this.following) > 12.0F) {
                this.timeToRecalcPath = 0;
                this.currentGoal = BoatGoals.GO_TO_BOAT;

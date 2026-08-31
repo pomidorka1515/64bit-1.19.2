@@ -38,7 +38,9 @@ public class SwimNodeEvaluator extends NodeEvaluator {
 
    @Nullable
    public Node getStart() {
-      return super.getNode(Mth.lfloor(this.mob.getBoundingBox().minX), Mth.floor(this.mob.getBoundingBox().minY + 0.5D), Mth.lfloor(this.mob.getBoundingBox().minZ));
+      net.minecraft.world.phys.SectorAABB box = this.mob.getSectorBoundingBox();
+      return super.getNode(box.minBlockXForRange(), Mth.floor(box.minY() + 0.5D),
+            box.minBlockZForRange());
    }
 
    @Nullable

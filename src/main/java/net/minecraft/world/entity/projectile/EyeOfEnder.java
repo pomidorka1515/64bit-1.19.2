@@ -17,13 +17,14 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class EyeOfEnder extends Entity implements ItemSupplier {
    private static final EntityDataAccessor<ItemStack> DATA_ITEM_STACK = SynchedEntityData.defineId(EyeOfEnder.class, EntityDataSerializers.ITEM_STACK);
-   private double tx;
+   @javax.annotation.Nullable
+   private SectorVec3 targetPosition;
    private double ty;
-   private double tz;
    private int life;
    private boolean surviveAfterDeath;
 
@@ -69,22 +70,18 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
    }
 
    public void signalTo(BlockPos p_36968_) {
-      double d0 = (double)p_36968_.getX();
-      int i = p_36968_.getY();
-      double d1 = (double)p_36968_.getZ();
-      double d2 = d0 - this.getX();
-      double d3 = d1 - this.getZ();
-      double d4 = Math.sqrt(d2 * d2 + d3 * d3);
-      if (d4 > 12.0D) {
-         this.tx = this.getX() + d2 / d4 * 12.0D;
-         this.tz = this.getZ() + d3 / d4 * 12.0D;
-         this.ty = this.getY() + 8.0D;
+      SectorVec3 target = SectorVec3.fromBlockAndFraction(p_36968_.getX(), 0.0D, (double)p_36968_.getY(),
+            p_36968_.getZ(), 0.0D);
+      Vec3 delta = target.relativeTo(this.sectorPosition());
+      double horizontalDistance = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
+      if (horizontalDistance > 12.0D) {
+         this.targetPosition = this.sectorPosition().add(delta.x / horizontalDistance * 12.0D, 8.0D,
+               delta.z / horizontalDistance * 12.0D);
       } else {
-         this.tx = d0;
-         this.ty = (double)i;
-         this.tz = d1;
+         this.targetPosition = target;
       }
 
+      this.ty = this.targetPosition.y();
       this.life = 0;
       this.surviveAfterDeath = this.random.nextInt(5) > 0;
    }
@@ -104,15 +101,14 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
    public void tick() {
       super.tick();
       Vec3 vec3 = this.getDeltaMovement();
-      double d0 = this.getX() + vec3.x;
-      double d1 = this.getY() + vec3.y;
-      double d2 = this.getZ() + vec3.z;
+      SectorVec3 nextPosition = this.sectorPosition().add(vec3.x, vec3.y, vec3.z);
       double d3 = vec3.horizontalDistance();
       this.setXRot(Projectile.lerpRotation(this.xRotO, (float)(Mth.atan2(vec3.y, d3) * (double)(180F / (float)Math.PI))));
       this.setYRot(Projectile.lerpRotation(this.yRotO, (float)(Mth.atan2(vec3.x, vec3.z) * (double)(180F / (float)Math.PI))));
-      if (!this.level.isClientSide) {
-         double d4 = this.tx - d0;
-         double d5 = this.tz - d2;
+      if (!this.level.isClientSide && this.targetPosition != null) {
+         Vec3 targetDelta = this.targetPosition.relativeTo(nextPosition);
+         double d4 = targetDelta.x;
+         double d5 = targetDelta.z;
          float f = (float)Math.sqrt(d4 * d4 + d5 * d5);
          float f1 = (float)Mth.atan2(d5, d4);
          double d6 = Mth.lerp(0.0025D, d3, (double)f);
@@ -139,20 +135,21 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
                vec3.z * 0.75D + this.random.nextDouble() * 0.6D - 0.3D), vec3.x, vec3.y, vec3.z);
       }
 
+      // The newly selected homing velocity applies on the next tick, matching vanilla ordering.
+      this.applyExactPosition(this.sectorPosition().add(vec3.x, vec3.y, vec3.z));
       if (!this.level.isClientSide) {
-         this.setPos(d0, d1, d2);
          ++this.life;
-         if (this.life > 80 && !this.level.isClientSide) {
+         if (this.life > 80) {
             this.playSound(SoundEvents.ENDER_EYE_DEATH, 1.0F, 1.0F);
             this.discard();
             if (this.surviveAfterDeath) {
-               this.level.addFreshEntity(new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), this.getItem()));
+               ItemEntity item = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), this.getItem());
+               item.applyExactPosition(this.sectorPosition());
+               this.level.addFreshEntity(item);
             } else {
                this.level.levelEvent(2003, this.blockPosition(), 0);
             }
          }
-      } else {
-         this.setPosRaw(d0, d1, d2);
       }
 
    }

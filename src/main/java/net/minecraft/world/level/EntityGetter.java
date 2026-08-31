@@ -9,10 +9,16 @@ import javax.annotation.Nullable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.boss.EnderDragonPart;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.entity.EntityTypeTest;
+import net.minecraft.world.level.entity.LevelEntityGetter;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -23,13 +29,51 @@ public interface EntityGetter {
    <T extends Entity> List<T> getEntities(EntityTypeTest<Entity, T> p_151464_, AABB p_151465_, Predicate<? super T> p_151466_);
 
    default <T extends Entity> List<T> getEntitiesOfClass(Class<T> p_45979_, AABB p_45980_, Predicate<? super T> p_45981_) {
+      SectorAABB exactBox = p_45980_.getSectorBounds();
+      if (exactBox != null) {
+         return this.getSectorEntities(EntityTypeTest.forClass(p_45979_), exactBox, p_45981_);
+      }
       return this.getEntities(EntityTypeTest.forClass(p_45979_), p_45980_, p_45981_);
    }
 
    List<? extends Player> players();
 
+   /**
+    * Exposes the complete entity index for exact local-frame queries. World
+    * implementations override this with their section-backed index; pure
+    * read-only implementations may return {@code null}.
+    */
+   @Nullable
+   default LevelEntityGetter<Entity> getEntityGetterForSectorQueries() {
+      return null;
+   }
+
    default List<Entity> getEntities(@Nullable Entity p_45934_, AABB p_45935_) {
-      return this.getEntities(p_45934_, p_45935_, EntitySelector.NO_SPECTATORS);
+      return this.getEntitiesExactAware(p_45934_, p_45935_, EntitySelector.NO_SPECTATORS);
+   }
+
+   /** Uses exact metadata when an entity-centered AABB carries it. */
+   default List<Entity> getEntitiesExactAware(@Nullable Entity entity, AABB box,
+                                               Predicate<? super Entity> predicate) {
+      SectorAABB exactBox = box.getSectorBounds();
+      if (exactBox == null) return this.getEntities(entity, box, predicate);
+      SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(entity != null ? entity.sectorPosition()
+            : SectorVec3.fromBlockAndFraction(exactBox.minBlockX(), exactBox.minSubX(), exactBox.minY(),
+                  exactBox.minBlockZ(), exactBox.minSubZ()));
+      return this.getSectorEntities(entity, exactBox, exactBox.toLocalAABB(origin), origin, predicate);
+   }
+
+   default <T extends Entity> List<T> getSectorEntities(EntityTypeTest<Entity, T> type, SectorAABB exactBox,
+                                                         Predicate<? super T> predicate) {
+      SectorPhysicsOrigin origin = new SectorPhysicsOrigin(exactBox.minBlockX(), exactBox.minBlockYForRange(),
+            exactBox.minBlockZ());
+      List<T> result = Lists.newArrayList();
+      for (Entity candidate : this.getSectorEntities(null, exactBox, exactBox.toLocalAABB(origin), origin,
+            entity -> true)) {
+         T cast = type.tryCast(candidate);
+         if (cast != null && predicate.test(cast)) result.add(cast);
+      }
+      return result;
    }
 
    default boolean isUnobstructed(@Nullable Entity p_45939_, VoxelShape p_45940_) {
@@ -70,6 +114,100 @@ public interface EntityGetter {
       }
    }
 
+   /**
+    * Returns entities whose exact boxes intersect a sector-physics query. The
+    * section overlap is determined in long block coordinates; the final box
+    * intersection occurs in the caller's small local frame.
+    */
+   default List<Entity> getSectorEntities(@Nullable Entity entity, SectorAABB exactBox,
+                                          AABB localBox, SectorPhysicsOrigin origin,
+                                          Predicate<? super Entity> predicate) {
+      LevelEntityGetter<Entity> entityGetter = this.getEntityGetterForSectorQueries();
+      if (entityGetter == null) return List.of();
+      long minBlockX = WorldBounds.addBlockOffset(exactBox.minBlockXForRange(), -1L);
+      long maxBlockX = WorldBounds.addBlockOffset(exactBox.maxBlockXForRangeInclusive(), 1L);
+      long minBlockZ = WorldBounds.addBlockOffset(exactBox.minBlockZForRange(), -1L);
+      long maxBlockZ = WorldBounds.addBlockOffset(exactBox.maxBlockZForRangeInclusive(), 1L);
+      int minBlockY = WorldBounds.addSaturated(exactBox.minBlockYForRange(), -1);
+      int maxBlockY = WorldBounds.addSaturated(exactBox.maxBlockYExclusive(), 1);
+      long minChunkX = Math.floorDiv(minBlockX, 16L);
+      long maxChunkX = Math.floorDiv(maxBlockX, 16L);
+      long minChunkZ = Math.floorDiv(minBlockZ, 16L);
+      long maxChunkZ = Math.floorDiv(maxBlockZ, 16L);
+      int minSectionY = Math.floorDiv(minBlockY, 16);
+      int maxSectionY = Math.floorDiv(maxBlockY, 16);
+      List<Entity> result = Lists.newArrayList();
+      entityGetter.getInSections(minChunkX, maxChunkX, minSectionY, maxSectionY, minChunkZ, maxChunkZ,
+            candidate -> {
+               addIfInSectorQuery(result, entity, candidate, localBox, origin, predicate,
+                     minChunkX, maxChunkX, minSectionY, maxSectionY, minChunkZ, maxChunkZ);
+               if (candidate instanceof EnderDragon dragon) {
+                  for (EnderDragonPart part : dragon.getSubEntities()) {
+                     addIfInSectorQuery(result, entity, part, localBox, origin, predicate,
+                           minChunkX, maxChunkX, minSectionY, maxSectionY, minChunkZ, maxChunkZ);
+                  }
+               }
+            });
+      return result;
+   }
+
+   private static void addIfInSectorQuery(List<Entity> result, @Nullable Entity excluded, Entity candidate,
+                                          AABB localBox, SectorPhysicsOrigin origin,
+                                          Predicate<? super Entity> predicate,
+                                          long minChunkX, long maxChunkX, int minSectionY, int maxSectionY,
+                                          long minChunkZ, long maxChunkZ) {
+      if (candidate == excluded || !predicate.test(candidate)
+            || !isInSectorQueryRange(candidate, minChunkX, maxChunkX, minSectionY, maxSectionY,
+                  minChunkZ, maxChunkZ)) return;
+      SectorAABB candidateBox = candidate.getSectorBoundingBoxForCulling();
+      if (candidateBox != null && candidateBox.toLocalAABB(origin).intersects(localBox)) result.add(candidate);
+   }
+
+   default List<VoxelShape> getSectorEntityCollisions(@Nullable Entity entity, SectorAABB exactBox,
+                                                       AABB localBox, SectorPhysicsOrigin origin) {
+      if (localBox.getSize() < 1.0E-7D) {
+         return List.of();
+      }
+
+      Predicate<Entity> predicate = entity == null ? EntitySelector.CAN_BE_COLLIDED_WITH
+            : EntitySelector.NO_SPECTATORS.and(entity::canCollideWith);
+      List<Entity> candidates = this.getSectorEntities(entity, exactBox, localBox, origin, predicate);
+      if (candidates.isEmpty()) {
+         return List.of();
+      }
+
+      ImmutableList.Builder<VoxelShape> builder = ImmutableList.builderWithExpectedSize(candidates.size());
+      for (Entity candidate : candidates) {
+         SectorAABB candidateBox = candidate.getSectorBoundingBoxForCulling();
+         if (candidateBox == null) {
+            continue;
+         }
+         AABB candidateLocalBox = candidateBox.toLocalAABB(origin);
+         if (candidateLocalBox.intersects(localBox)) {
+            builder.add(Shapes.create(candidateLocalBox));
+         }
+      }
+      return builder.build();
+   }
+
+   private static boolean isInSectorQueryRange(Entity entity, long minChunkX, long maxChunkX,
+                                                int minSectionY, int maxSectionY,
+                                                long minChunkZ, long maxChunkZ) {
+      SectorAABB box = entity.getSectorBoundingBoxForCulling();
+      if (box == null) {
+         return false;
+      }
+      long minEntityChunkX = Math.floorDiv(box.minBlockXForRange(), 16L);
+      long maxEntityChunkX = Math.floorDiv(box.maxBlockXForRangeInclusive(), 16L);
+      long minEntityChunkZ = Math.floorDiv(box.minBlockZForRange(), 16L);
+      long maxEntityChunkZ = Math.floorDiv(box.maxBlockZForRangeInclusive(), 16L);
+      int minEntitySectionY = Math.floorDiv(box.minBlockYForRange(), 16);
+      int maxEntitySectionY = Math.floorDiv(box.maxBlockYExclusive(), 16);
+      return maxEntityChunkX >= minChunkX && minEntityChunkX <= maxChunkX
+            && maxEntityChunkZ >= minChunkZ && minEntityChunkZ <= maxChunkZ
+            && maxEntitySectionY >= minSectionY && minEntitySectionY <= maxSectionY;
+   }
+
    @Nullable
    default Player getNearestPlayer(double p_45919_, double p_45920_, double p_45921_, double p_45922_, @Nullable Predicate<Entity> p_45923_) {
       double d0 = -1.0D;
@@ -89,8 +227,18 @@ public interface EntityGetter {
    }
 
    @Nullable
-   default Player getNearestPlayer(Entity p_45931_, double p_45932_) {
-      return this.getNearestPlayer(p_45931_.getX(), p_45931_.getY(), p_45931_.getZ(), p_45932_, false);
+   default Player getNearestPlayer(Entity entity, double range) {
+      double closest = -1.0D;
+      Player nearest = null;
+      for (Player player : this.players()) {
+         if (!EntitySelector.NO_SPECTATORS.test(player)) continue;
+         double distance = entity.distanceToSqr(player);
+         if ((range < 0.0D || distance < range * range) && (closest < 0.0D || distance < closest)) {
+            closest = distance;
+            nearest = player;
+         }
+      }
+      return nearest;
    }
 
    @Nullable
@@ -113,8 +261,8 @@ public interface EntityGetter {
    }
 
    @Nullable
-   default Player getNearestPlayer(TargetingConditions p_45947_, LivingEntity p_45948_) {
-      return this.getNearestEntity(this.players(), p_45947_, p_45948_, p_45948_.getX(), p_45948_.getY(), p_45948_.getZ());
+   default Player getNearestPlayer(TargetingConditions conditions, LivingEntity source) {
+      return this.getNearestEntity(this.players(), conditions, source);
    }
 
    @Nullable
@@ -135,12 +283,31 @@ public interface EntityGetter {
    }
 
    @Nullable
+   default <T extends LivingEntity> T getNearestEntity(List<? extends T> entities,
+                                                        TargetingConditions conditions,
+                                                        @Nullable LivingEntity source) {
+      double closest = -1.0D;
+      T nearest = null;
+      for (T candidate : entities) {
+         if (conditions.test(source, candidate)) {
+            double distance = source == null ? 0.0D : source.distanceToSqr(candidate);
+            if (closest == -1.0D || distance < closest) {
+               closest = distance;
+               nearest = candidate;
+            }
+         }
+      }
+      return nearest;
+   }
+
+   @Nullable
    default <T extends LivingEntity> T getNearestEntity(List<? extends T> p_45983_, TargetingConditions p_45984_, @Nullable LivingEntity p_45985_, double p_45986_, double p_45987_, double p_45988_) {
+      if (p_45985_ != null) return this.getNearestEntity(p_45983_, p_45984_, p_45985_);
       double d0 = -1.0D;
       T t = null;
 
       for(T t1 : p_45983_) {
-         if (p_45984_.test(p_45985_, t1)) {
+         if (p_45984_.test(null, t1)) {
             double d1 = t1.distanceToSqr(p_45986_, p_45987_, p_45988_);
             if (d0 == -1.0D || d1 < d0) {
                d0 = d1;

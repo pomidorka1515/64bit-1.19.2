@@ -34,7 +34,9 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
 
    @Nullable
    public Node getStart() {
-      return this.getStartNode(new BlockPos(Mth.lfloor(this.mob.getBoundingBox().minX), Mth.floor(this.mob.getBoundingBox().minY + 0.5D), Mth.lfloor(this.mob.getBoundingBox().minZ)));
+      net.minecraft.world.phys.SectorAABB box = this.mob.getSectorBoundingBox();
+      return this.getStartNode(new BlockPos(box.minBlockXForRange(), Mth.floor(box.minY() + 0.5D),
+            box.minBlockZForRange()));
    }
 
    @Nullable

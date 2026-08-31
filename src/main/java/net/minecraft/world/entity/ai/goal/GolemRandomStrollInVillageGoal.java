@@ -12,7 +12,7 @@ import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class GolemRandomStrollInVillageGoal extends RandomStrollGoal {
    private static final int POI_SECTION_SCAN_RADIUS = 2;
@@ -25,54 +25,56 @@ public class GolemRandomStrollInVillageGoal extends RandomStrollGoal {
    }
 
    @Nullable
-   protected Vec3 getPosition() {
-      float f = this.mob.level.random.nextFloat();
+   protected SectorVec3 getPosition() {
+      float choice = this.mob.level.random.nextFloat();
       if (this.mob.level.random.nextFloat() < 0.3F) {
          return this.getPositionTowardsAnywhere();
       } else {
-         Vec3 vec3;
-         if (f < 0.7F) {
-            vec3 = this.getPositionTowardsVillagerWhoWantsGolem();
-            if (vec3 == null) {
-               vec3 = this.getPositionTowardsPoi();
+         SectorVec3 target;
+         if (choice < 0.7F) {
+            target = this.getPositionTowardsVillagerWhoWantsGolem();
+            if (target == null) {
+               target = this.getPositionTowardsPoi();
             }
          } else {
-            vec3 = this.getPositionTowardsPoi();
-            if (vec3 == null) {
-               vec3 = this.getPositionTowardsVillagerWhoWantsGolem();
+            target = this.getPositionTowardsPoi();
+            if (target == null) {
+               target = this.getPositionTowardsVillagerWhoWantsGolem();
             }
          }
 
-         return vec3 == null ? this.getPositionTowardsAnywhere() : vec3;
+         return target == null ? this.getPositionTowardsAnywhere() : target;
       }
    }
 
    @Nullable
-   private Vec3 getPositionTowardsAnywhere() {
-      return LandRandomPos.getPos(this.mob, 10, 7);
+   private SectorVec3 getPositionTowardsAnywhere() {
+      return LandRandomPos.getSectorPos(this.mob, 10, 7);
    }
 
    @Nullable
-   private Vec3 getPositionTowardsVillagerWhoWantsGolem() {
+   private SectorVec3 getPositionTowardsVillagerWhoWantsGolem() {
       ServerLevel serverlevel = (ServerLevel)this.mob.level;
-      List<Villager> list = serverlevel.getEntities(EntityType.VILLAGER, this.mob.getBoundingBox().inflate(32.0D), this::doesVillagerWantGolem);
+      List<Villager> list = serverlevel.getSectorEntities(EntityType.VILLAGER,
+            this.mob.getSectorBoundingBox().inflate(32.0D, 32.0D, 32.0D), this::doesVillagerWantGolem);
       if (list.isEmpty()) {
          return null;
       } else {
          Villager villager = list.get(this.mob.level.random.nextInt(list.size()));
-         Vec3 vec3 = villager.position();
-         return LandRandomPos.getPosTowards(this.mob, 10, 7, vec3);
+         return LandRandomPos.getSectorPosTowards(this.mob, 10, 7, villager);
       }
    }
 
    @Nullable
-   private Vec3 getPositionTowardsPoi() {
+   private SectorVec3 getPositionTowardsPoi() {
       SectionPos sectionpos = this.getRandomVillageSection();
       if (sectionpos == null) {
          return null;
       } else {
          BlockPos blockpos = this.getRandomPoiWithinSection(sectionpos);
-         return blockpos == null ? null : LandRandomPos.getPosTowards(this.mob, 10, 7, Vec3.atBottomCenterOf(blockpos));
+         return blockpos == null ? null : LandRandomPos.getSectorPosTowards(this.mob, 10, 7,
+               SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, blockpos.getY(),
+                     blockpos.getZ(), 0.5D));
       }
    }
 

@@ -402,7 +402,7 @@ public class EnderMan extends Monster implements NeutralMob {
       }
 
       public void tick() {
-         this.enderman.getLookControl().setLookAt(this.target.getX(), this.target.getEyeY(), this.target.getZ());
+         this.enderman.getLookControl().setLookAt(this.target);
       }
    }
 

@@ -64,6 +64,8 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.WritableLevelData;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Scoreboard;
@@ -621,6 +623,13 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    public List<Entity> getEntities(@Nullable Entity p_46536_, AABB p_46537_, Predicate<? super Entity> p_46538_) {
+      SectorAABB exactBox = p_46537_.getSectorBounds();
+      if (exactBox != null) {
+         SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(p_46536_ != null ? p_46536_.sectorPosition()
+               : SectorVec3.fromBlockAndFraction(exactBox.minBlockX(), exactBox.minSubX(), exactBox.minY(),
+                     exactBox.minBlockZ(), exactBox.minSubZ()));
+         return this.getSectorEntities(p_46536_, exactBox, exactBox.toLocalAABB(origin), origin, p_46538_);
+      }
       this.getProfiler().incrementCounter("getEntities");
       List<Entity> list = Lists.newArrayList();
       this.getEntities().get(p_46537_, (p_151522_) -> {
@@ -641,6 +650,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    public <T extends Entity> List<T> getEntities(EntityTypeTest<Entity, T> p_151528_, AABB p_151529_, Predicate<? super T> p_151530_) {
+      SectorAABB exactBox = p_151529_.getSectorBounds();
+      if (exactBox != null) return this.getSectorEntities(p_151528_, exactBox, p_151530_);
       this.getProfiler().incrementCounter("getEntities");
       List<T> list = Lists.newArrayList();
       this.getEntities().get(p_151528_, p_151529_, (p_151539_) -> {
@@ -974,6 +985,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
    }
 
    protected abstract LevelEntityGetter<Entity> getEntities();
+
+   @Override
+   public final LevelEntityGetter<Entity> getEntityGetterForSectorQueries() {
+      return this.getEntities();
+   }
 
    public long nextSubTickCount() {
       return (long)(this.subTickCount++);

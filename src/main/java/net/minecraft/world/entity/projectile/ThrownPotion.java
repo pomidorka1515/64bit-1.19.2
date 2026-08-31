@@ -154,6 +154,7 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
 
    private void makeAreaOfEffectCloud(ItemStack p_37538_, Potion p_37539_) {
       AreaEffectCloud areaeffectcloud = new AreaEffectCloud(this.level, this.getX(), this.getY(), this.getZ());
+      areaeffectcloud.applyExactPosition(this.sectorPosition());
       Entity entity = this.getOwner();
       if (entity instanceof LivingEntity) {
          areaeffectcloud.setOwner((LivingEntity)entity);

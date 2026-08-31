@@ -9,7 +9,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class StrollAroundPoi extends Behavior<PathfinderMob> {
    private static final int MIN_TIME_BETWEEN_STROLLS = 180;
@@ -34,7 +34,7 @@ public class StrollAroundPoi extends Behavior<PathfinderMob> {
 
    protected void start(ServerLevel p_24322_, PathfinderMob p_24323_, long p_24324_) {
       if (p_24324_ > this.nextOkStartTime) {
-         Optional<Vec3> optional = Optional.ofNullable(LandRandomPos.getPos(p_24323_, 8, 6));
+         Optional<SectorVec3> optional = Optional.ofNullable(LandRandomPos.getSectorPos(p_24323_, 8, 6));
          p_24323_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_24326_) -> {
             return new WalkTarget(p_24326_, this.speedModifier, 1);
          }));

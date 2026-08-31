@@ -4,6 +4,7 @@ import java.util.UUID;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.SectorVec3;
 
 public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListener> {
    private final int entityId;
@@ -11,15 +12,18 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
    private final double x;
    private final double y;
    private final double z;
+   private final SectorVec3 exactPosition;
    private final byte yRot;
    private final byte xRot;
 
    public ClientboundAddPlayerPacket(Player p_131596_) {
       this.entityId = p_131596_.getId();
       this.playerId = p_131596_.getGameProfile().getId();
-      this.x = p_131596_.getX();
-      this.y = p_131596_.getY();
-      this.z = p_131596_.getZ();
+      this.exactPosition = p_131596_.sectorPosition();
+      net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
+      this.x = approximate.x;
+      this.y = approximate.y;
+      this.z = approximate.z;
       this.yRot = (byte)((int)(p_131596_.getYRot() * 256.0F / 360.0F));
       this.xRot = (byte)((int)(p_131596_.getXRot() * 256.0F / 360.0F));
    }
@@ -27,9 +31,12 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
    public ClientboundAddPlayerPacket(FriendlyByteBuf p_178570_) {
       this.entityId = p_178570_.readVarInt();
       this.playerId = p_178570_.readUUID();
-      this.x = p_178570_.readDouble();
-      this.y = p_178570_.readDouble();
-      this.z = p_178570_.readDouble();
+      this.exactPosition = SectorVec3.fromBlockAndFraction(p_178570_.readLong(), p_178570_.readDouble(),
+            p_178570_.readDouble(), p_178570_.readLong(), p_178570_.readDouble());
+      net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
+      this.x = approximate.x;
+      this.y = approximate.y;
+      this.z = approximate.z;
       this.yRot = p_178570_.readByte();
       this.xRot = p_178570_.readByte();
    }
@@ -37,9 +44,11 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
    public void write(FriendlyByteBuf p_131605_) {
       p_131605_.writeVarInt(this.entityId);
       p_131605_.writeUUID(this.playerId);
-      p_131605_.writeDouble(this.x);
-      p_131605_.writeDouble(this.y);
-      p_131605_.writeDouble(this.z);
+      p_131605_.writeLong(this.exactPosition.blockX());
+      p_131605_.writeDouble(this.exactPosition.subX());
+      p_131605_.writeDouble(this.exactPosition.y());
+      p_131605_.writeLong(this.exactPosition.blockZ());
+      p_131605_.writeDouble(this.exactPosition.subZ());
       p_131605_.writeByte(this.yRot);
       p_131605_.writeByte(this.xRot);
    }
@@ -54,6 +63,10 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
 
    public UUID getPlayerId() {
       return this.playerId;
+   }
+
+   public SectorVec3 getExactPosition() {
+      return this.exactPosition;
    }
 
    public double getX() {

@@ -5,14 +5,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class RunAroundLikeCrazyGoal extends Goal {
    private final AbstractHorse horse;
    private final double speedModifier;
-   private double posX;
-   private double posY;
-   private double posZ;
+   private SectorVec3 targetPosition;
 
    public RunAroundLikeCrazyGoal(AbstractHorse p_25890_, double p_25891_) {
       this.horse = p_25890_;
@@ -22,22 +20,17 @@ public class RunAroundLikeCrazyGoal extends Goal {
 
    public boolean canUse() {
       if (!this.horse.isTamed() && this.horse.isVehicle()) {
-         Vec3 vec3 = DefaultRandomPos.getPos(this.horse, 5, 4);
-         if (vec3 == null) {
-            return false;
-         } else {
-            this.posX = vec3.x;
-            this.posY = vec3.y;
-            this.posZ = vec3.z;
-            return true;
-         }
+         this.targetPosition = DefaultRandomPos.getSectorPos(this.horse, 5, 4);
+         return this.targetPosition != null;
       } else {
          return false;
       }
    }
 
    public void start() {
-      this.horse.getNavigation().moveTo(this.posX, this.posY, this.posZ, this.speedModifier);
+      if (this.targetPosition != null) {
+         this.horse.getNavigation().moveTo(this.targetPosition, this.speedModifier);
+      }
    }
 
    public boolean canContinueToUse() {

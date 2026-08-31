@@ -190,11 +190,12 @@ public class Blaze extends Monster {
                   this.blaze.doHurtTarget(livingentity);
                }
 
-               this.blaze.getMoveControl().setWantedPosition(livingentity.getX(), livingentity.getY(), livingentity.getZ(), 1.0D);
+               this.blaze.getMoveControl().setWantedPosition(livingentity.sectorPosition(), 1.0D);
             } else if (d0 < this.getFollowDistance() * this.getFollowDistance() && flag) {
-               double d1 = livingentity.getX() - this.blaze.getX();
+               Vec3 targetDelta = livingentity.sectorPosition().relativeTo(this.blaze.sectorPosition());
+               double d1 = targetDelta.x;
                double d2 = livingentity.getY(0.5D) - this.blaze.getY(0.5D);
-               double d3 = livingentity.getZ() - this.blaze.getZ();
+               double d3 = targetDelta.z;
                if (this.attackTime <= 0) {
                   ++this.attackStep;
                   if (this.attackStep == 1) {
@@ -224,7 +225,7 @@ public class Blaze extends Monster {
 
                this.blaze.getLookControl().setLookAt(livingentity, 10.0F, 10.0F);
             } else if (this.lastSeen < 5) {
-               this.blaze.getMoveControl().setWantedPosition(livingentity.getX(), livingentity.getY(), livingentity.getZ(), 1.0D);
+               this.blaze.getMoveControl().setWantedPosition(livingentity.sectorPosition(), 1.0D);
             }
 
             super.tick();

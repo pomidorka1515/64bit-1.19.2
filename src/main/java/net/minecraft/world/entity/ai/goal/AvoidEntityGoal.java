@@ -10,7 +10,7 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class AvoidEntityGoal<T extends LivingEntity> extends Goal {
    protected final PathfinderMob mob;
@@ -59,13 +59,14 @@ public class AvoidEntityGoal<T extends LivingEntity> extends Goal {
       if (this.toAvoid == null) {
          return false;
       } else {
-         Vec3 vec3 = DefaultRandomPos.getPosAway(this.mob, 16, 7, this.toAvoid.position());
-         if (vec3 == null) {
+         SectorVec3 target = DefaultRandomPos.getSectorPosAway(this.mob, 16, 7, this.toAvoid);
+         if (target == null) {
             return false;
-         } else if (this.toAvoid.distanceToSqr(vec3.x, vec3.y, vec3.z) < this.toAvoid.distanceToSqr(this.mob)) {
+         } else if (target.relativeTo(this.toAvoid.sectorPosition()).lengthSqr()
+               < this.toAvoid.distanceToSqr(this.mob)) {
             return false;
          } else {
-            this.path = this.pathNav.createPath(vec3.x, vec3.y, vec3.z, 0);
+            this.path = this.pathNav.createPath(target.blockPosition(), 0);
             return this.path != null;
          }
       }

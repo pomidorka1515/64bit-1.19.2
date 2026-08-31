@@ -170,7 +170,7 @@ public class FishingHook extends Projectile {
             if (this.currentState == FishingHook.FishHookState.HOOKED_IN_ENTITY) {
                if (this.hookedIn != null) {
                   if (!this.hookedIn.isRemoved() && this.hookedIn.level.dimension() == this.level.dimension()) {
-                     this.setPos(this.hookedIn.getX(), this.hookedIn.getY(0.8D), this.hookedIn.getZ());
+                     this.applyExactPosition(this.hookedIn.sectorPosition().withY(this.hookedIn.getY(0.8D)));
                   } else {
                      this.setHookedEntity((Entity)null);
                      this.currentState = FishingHook.FishHookState.FLYING;
@@ -415,13 +415,18 @@ public class FishingHook extends Projectile {
 
             for(ItemStack itemstack : list) {
                ItemEntity itementity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), itemstack);
-               double d0 = player.getX() - this.getX();
-               double d1 = player.getY() - this.getY();
-               double d2 = player.getZ() - this.getZ();
+               itementity.applyExactPosition(this.sectorPosition());
+               Vec3 playerDelta = player.sectorPosition().relativeTo(this.sectorPosition());
+               double d0 = playerDelta.x;
+               double d1 = playerDelta.y;
+               double d2 = playerDelta.z;
                double d3 = 0.1D;
                itementity.setDeltaMovement(d0 * 0.1D, d1 * 0.1D + Math.sqrt(Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2)) * 0.08D, d2 * 0.1D);
                this.level.addFreshEntity(itementity);
-               player.level.addFreshEntity(new ExperienceOrb(player.level, player.getX(), player.getY() + 0.5D, player.getZ() + 0.5D, this.random.nextInt(6) + 1));
+               ExperienceOrb experience = new ExperienceOrb(player.level, player.getX(), player.getY() + 0.5D,
+                     player.getZ() + 0.5D, this.random.nextInt(6) + 1);
+               experience.applyExactPosition(player.sectorPosition().add(0.0D, 0.5D, 0.5D));
+               player.level.addFreshEntity(experience);
                if (itemstack.is(ItemTags.FISHES)) {
                   player.awardStat(Stats.FISH_CAUGHT, 1);
                }
@@ -452,8 +457,8 @@ public class FishingHook extends Projectile {
    protected void pullEntity(Entity p_150156_) {
       Entity entity = this.getOwner();
       if (entity != null) {
-         Vec3 vec3 = (new Vec3(entity.getX() - this.getX(), entity.getY() - this.getY(), entity.getZ() - this.getZ())).scale(0.1D);
-         p_150156_.setDeltaMovement(p_150156_.getDeltaMovement().add(vec3));
+         Vec3 pull = entity.sectorPosition().relativeTo(this.sectorPosition()).scale(0.1D);
+         p_150156_.setDeltaMovement(p_150156_.getDeltaMovement().add(pull));
       }
    }
 

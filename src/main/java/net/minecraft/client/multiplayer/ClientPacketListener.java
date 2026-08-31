@@ -430,11 +430,11 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
    public void handleAddExperienceOrb(ClientboundAddExperienceOrbPacket p_104960_) {
       PacketUtils.ensureRunningOnSameThread(p_104960_, this, this.minecraft);
-      double d0 = p_104960_.getX();
-      double d1 = p_104960_.getY();
-      double d2 = p_104960_.getZ();
-      Entity entity = new ExperienceOrb(this.level, d0, d1, d2, p_104960_.getValue());
-      entity.syncPacketPositionCodec(d0, d1, d2);
+      SectorVec3 exactPosition = p_104960_.getExactPosition();
+      Vec3 approximate = exactPosition.toApproximateVec3();
+      Entity entity = new ExperienceOrb(this.level, approximate.x, exactPosition.y(), approximate.z, p_104960_.getValue());
+      entity.applyExactPosition(exactPosition);
+      entity.syncSectorPacketPositionCodec();
       entity.setYRot(0.0F);
       entity.setXRot(0.0F);
       entity.setId(p_104960_.getId());
@@ -472,8 +472,10 @@ public class ClientPacketListener implements ClientGamePacketListener {
          int i = p_104966_.getEntityId();
          RemotePlayer remoteplayer = new RemotePlayer(this.minecraft.level, playerinfo.getProfile(), playerinfo.getProfilePublicKey());
          remoteplayer.setId(i);
-         remoteplayer.syncPacketPositionCodec(d0, d1, d2);
-         remoteplayer.absMoveTo(d0, d1, d2, f, f1);
+         remoteplayer.applyExactPosition(p_104966_.getExactPosition());
+         remoteplayer.syncSectorPacketPositionCodec();
+         remoteplayer.setYRot(f);
+         remoteplayer.setXRot(f1);
          remoteplayer.setOldPosAndRot();
          this.level.addPlayer(i, remoteplayer);
       }
@@ -483,14 +485,15 @@ public class ClientPacketListener implements ClientGamePacketListener {
       PacketUtils.ensureRunningOnSameThread(p_105124_, this, this.minecraft);
       Entity entity = this.level.getEntity(p_105124_.getId());
       if (entity != null) {
-         double d0 = p_105124_.getX();
-         double d1 = p_105124_.getY();
-         double d2 = p_105124_.getZ();
-         entity.syncPacketPositionCodec(d0, d1, d2);
+         SectorVec3 exactPosition = p_105124_.getExactPosition();
          if (!entity.isControlledByLocalInstance()) {
             float f = (float)(p_105124_.getyRot() * 360) / 256.0F;
             float f1 = (float)(p_105124_.getxRot() * 360) / 256.0F;
-            entity.lerpTo(d0, d1, d2, f, f1, 3, true);
+            // An absolute teleport establishes the next relative-packet base.
+            // Set it to the packet target, never to the entity's in-progress
+            // render interpolation position.
+            entity.getPositionCodec().setBase(exactPosition);
+            entity.lerpTo(exactPosition, f, f1, 3, true);
             entity.setOnGround(p_105124_.isOnGround());
          }
 
@@ -512,15 +515,15 @@ public class ClientPacketListener implements ClientGamePacketListener {
          if (!entity.isControlledByLocalInstance()) {
             if (p_105036_.hasPosition()) {
                VecDeltaCodec vecdeltacodec = entity.getPositionCodec();
-               Vec3 vec3 = vecdeltacodec.decode((long)p_105036_.getXa(), (long)p_105036_.getYa(), (long)p_105036_.getZa());
-               vecdeltacodec.setBase(vec3);
+               SectorVec3 exactPosition = vecdeltacodec.decodeExact((long)p_105036_.getXa(), (long)p_105036_.getYa(), (long)p_105036_.getZa());
+               vecdeltacodec.setBase(exactPosition);
                float f = p_105036_.hasRotation() ? (float)(p_105036_.getyRot() * 360) / 256.0F : entity.getYRot();
                float f1 = p_105036_.hasRotation() ? (float)(p_105036_.getxRot() * 360) / 256.0F : entity.getXRot();
-               entity.lerpTo(vec3.x(), vec3.y(), vec3.z(), f, f1, 3, false);
+               entity.lerpTo(exactPosition, f, f1, 3, false);
             } else if (p_105036_.hasRotation()) {
                float f2 = (float)(p_105036_.getyRot() * 360) / 256.0F;
                float f3 = (float)(p_105036_.getxRot() * 360) / 256.0F;
-               entity.lerpTo(entity.getX(), entity.getY(), entity.getZ(), f2, f3, 3, false);
+               entity.lerpTo(entity.sectorPosition(), f2, f3, 3, false);
             }
 
             entity.setOnGround(p_105036_.isOnGround());
@@ -1708,7 +1711,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
       PacketUtils.ensureRunningOnSameThread(p_105038_, this, this.minecraft);
       Entity entity = this.minecraft.player.getRootVehicle();
       if (entity != this.minecraft.player && entity.isControlledByLocalInstance()) {
-         entity.absMoveTo(p_105038_.getX(), p_105038_.getY(), p_105038_.getZ(), p_105038_.getYRot(), p_105038_.getXRot());
+         entity.absMoveTo(p_105038_.getExactPosition(), p_105038_.getYRot(), p_105038_.getXRot());
          this.connection.send(new ServerboundMoveVehiclePacket(entity));
       }
 

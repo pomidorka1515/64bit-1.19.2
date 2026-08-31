@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 
@@ -74,9 +75,9 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
    }
 
    public double compute(DensityFunction.FunctionContext p_210621_) {
-      double d0 = (double)p_210621_.blockX() * this.xzMultiplier;
+      double d0 = WorldBounds.scaledNoiseCoordinate(p_210621_.blockX(), this.xzMultiplier);
       double d1 = (double)p_210621_.blockY() * this.yMultiplier;
-      double d2 = (double)p_210621_.blockZ() * this.xzMultiplier;
+      double d2 = WorldBounds.scaledNoiseCoordinate(p_210621_.blockZ(), this.xzMultiplier);
       double d3 = d0 / this.xzFactor;
       double d4 = d1 / this.yFactor;
       double d5 = d2 / this.xzFactor;

@@ -12,6 +12,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -71,15 +72,19 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
          int k1 =  Math.min(Mth.floor(p_190760_ + p_190763_) + 1, p_190754_.getMinGenY() + p_190754_.getGenDepth() - 1 - j1);
          long l1 = Math.max(Mth.floor(p_190761_ - p_190762_) - j - 1, 0);
          long i2 = Math.min(Mth.floor(p_190761_ + p_190762_) - j, 15);
+         if (!WorldBounds.isAscendingBlockRange(k, l) || !WorldBounds.isAscendingBlockRange(l1, i2)) {
+            return false;
+         }
+
          boolean flag = false;
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
          BlockPos.MutableBlockPos blockpos$mutableblockpos1 = new BlockPos.MutableBlockPos();
 
-         for(long j2 = k; j2 <= l; ++j2) {
+         for(long j2 = k; ; j2 = WorldBounds.addBlockOffset(j2, 1L)) {
             long k2 = chunkpos.getBlockX(j2);
             double d3 = ((double)k2 + 0.5D - p_190759_) / p_190762_;
 
-            for(long l2 = l1; l2 <= i2; ++l2) {
+            for(long l2 = l1; ; l2 = WorldBounds.addBlockOffset(l2, 1L)) {
                long i3 = chunkpos.getBlockZ(l2);
                double d4 = ((double)i3 + 0.5D - p_190761_) / p_190762_;
                if (!(d3 * d3 + d4 * d4 >= 1.0D)) {
@@ -94,6 +99,14 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
                      }
                   }
                }
+
+               if (!WorldBounds.canAdvanceBlock(l2, i2)) {
+                  break;
+               }
+            }
+
+            if (!WorldBounds.canAdvanceBlock(j2, l)) {
+               break;
             }
          }
 

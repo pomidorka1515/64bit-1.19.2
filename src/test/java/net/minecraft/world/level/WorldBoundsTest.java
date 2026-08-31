@@ -38,6 +38,18 @@ class WorldBoundsTest {
    }
 
    @Test
+   void forwardRangeHelpersStopAtBothWorldEdges() {
+      assertTrue(WorldBounds.isAscendingBlockRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE));
+      assertTrue(WorldBounds.canAdvanceBlock(Long.MAX_VALUE - 1L, Long.MAX_VALUE));
+      assertFalse(WorldBounds.canAdvanceBlock(Long.MAX_VALUE, Long.MAX_VALUE));
+      assertFalse(WorldBounds.isAscendingBlockRange(Long.MAX_VALUE, Long.MIN_VALUE));
+      assertTrue(WorldBounds.isAscendingIntRange(Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
+      assertTrue(WorldBounds.canAdvanceInt(Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
+      assertFalse(WorldBounds.canAdvanceInt(Integer.MAX_VALUE, Integer.MAX_VALUE));
+      assertFalse(WorldBounds.isAscendingIntRange(Integer.MAX_VALUE, Integer.MIN_VALUE));
+   }
+
+   @Test
    void blockOffsetsNeverWrapToTheOppositeSide() {
       assertEquals(WorldBounds.MAX_BLOCK, WorldBounds.addBlockOffset(WorldBounds.MAX_BLOCK, 1L));
       assertEquals(WorldBounds.MIN_BLOCK, WorldBounds.addBlockOffset(WorldBounds.MIN_BLOCK, -1L));
@@ -45,6 +57,8 @@ class WorldBoundsTest {
       assertEquals(0L, WorldBounds.subtractBlockOffset(Long.MIN_VALUE, Long.MIN_VALUE));
       assertEquals(WorldBounds.MAX_BLOCK, WorldBounds.subtractBlockOffset(WorldBounds.MAX_BLOCK, Long.MIN_VALUE));
       assertEquals(0L, WorldBounds.middleBlockCoordinate(Long.MIN_VALUE, Long.MAX_VALUE));
+      assertEquals(Long.MAX_VALUE, WorldBounds.signedDifferenceAsLong(Long.MAX_VALUE, Long.MIN_VALUE));
+      assertEquals(Long.MIN_VALUE, WorldBounds.signedDifferenceAsLong(Long.MIN_VALUE, Long.MAX_VALUE));
       assertEquals(1L, WorldBounds.middleBlockCoordinate(0L, 1L));
       assertEquals(-1L, WorldBounds.middleBlockCoordinate(-2L, -1L));
    }

@@ -20,6 +20,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.JigsawBlock;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -74,8 +75,8 @@ public class JigsawPlacement {
          BlockPos blockpos1 = p_227243_.subtract(vec3i);
          PoolElementStructurePiece poolelementstructurepiece = new PoolElementStructurePiece(structuretemplatemanager, structurepoolelement, blockpos1, structurepoolelement.getGroundLevelDelta(), rotation, structurepoolelement.getBoundingBox(structuretemplatemanager, blockpos1, rotation));
          BoundingBox boundingbox = poolelementstructurepiece.getBoundingBox();
-         long i = (boundingbox.maxX() + boundingbox.minX()) / 2;
-         long j = (boundingbox.maxZ() + boundingbox.minZ()) / 2;
+         long i = WorldBounds.middleBlockCoordinate(boundingbox.minX(), boundingbox.maxX());
+         long j = WorldBounds.middleBlockCoordinate(boundingbox.minZ(), boundingbox.maxZ());
          int k;
          if (p_227245_.isPresent()) {
             k = p_227243_.getY() + chunkgenerator.getFirstFreeHeight(i, j, p_227245_.get(), levelheightaccessor, p_227239_.randomState());

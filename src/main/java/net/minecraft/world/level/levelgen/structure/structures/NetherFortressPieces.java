@@ -10,6 +10,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FenceBlock;
@@ -952,7 +953,7 @@ public class NetherFortressPieces {
       }
 
       private StructurePiece generateAndAddPiece(NetherFortressPieces.StartPiece p_228392_, StructurePieceAccessor p_228393_, RandomSource p_228394_, long p_228395_, int p_228396_, long p_228397_, @Nullable Direction p_228398_, int p_228399_, boolean p_228400_) {
-         if (Math.abs(p_228395_ - p_228392_.getBoundingBox().minX()) <= 112 && Math.abs(p_228397_ - p_228392_.getBoundingBox().minZ()) <= 112) {
+         if (WorldBounds.within(p_228395_, p_228392_.getBoundingBox().minX(), 112L) && WorldBounds.within(p_228397_, p_228392_.getBoundingBox().minZ(), 112L)) {
             List<NetherFortressPieces.PieceWeight> list = p_228392_.availableBridgePieces;
             if (p_228400_) {
                list = p_228392_.availableCastlePieces;
@@ -976,13 +977,13 @@ public class NetherFortressPieces {
          if (direction != null) {
             switch (direction) {
                case NORTH:
-                  return this.generateAndAddPiece(p_228402_, p_228403_, p_228404_, this.boundingBox.minX() + p_228405_, this.boundingBox.minY() + p_228406_, this.boundingBox.minZ() - 1, direction, this.getGenDepth(), p_228407_);
+                  return this.generateAndAddPiece(p_228402_, p_228403_, p_228404_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_228405_), this.boundingBox.minY() + p_228406_, WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), direction, this.getGenDepth(), p_228407_);
                case SOUTH:
-                  return this.generateAndAddPiece(p_228402_, p_228403_, p_228404_, this.boundingBox.minX() + p_228405_, this.boundingBox.minY() + p_228406_, this.boundingBox.maxZ() + 1, direction, this.getGenDepth(), p_228407_);
+                  return this.generateAndAddPiece(p_228402_, p_228403_, p_228404_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_228405_), this.boundingBox.minY() + p_228406_, WorldBounds.addBlockOffset(this.boundingBox.maxZ(), 1L), direction, this.getGenDepth(), p_228407_);
                case WEST:
-                  return this.generateAndAddPiece(p_228402_, p_228403_, p_228404_, this.boundingBox.minX() - 1, this.boundingBox.minY() + p_228406_, this.boundingBox.minZ() + p_228405_, direction, this.getGenDepth(), p_228407_);
+                  return this.generateAndAddPiece(p_228402_, p_228403_, p_228404_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + p_228406_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_228405_), direction, this.getGenDepth(), p_228407_);
                case EAST:
-                  return this.generateAndAddPiece(p_228402_, p_228403_, p_228404_, this.boundingBox.maxX() + 1, this.boundingBox.minY() + p_228406_, this.boundingBox.minZ() + p_228405_, direction, this.getGenDepth(), p_228407_);
+                  return this.generateAndAddPiece(p_228402_, p_228403_, p_228404_, WorldBounds.addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + p_228406_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_228405_), direction, this.getGenDepth(), p_228407_);
             }
          }
 
@@ -995,13 +996,13 @@ public class NetherFortressPieces {
          if (direction != null) {
             switch (direction) {
                case NORTH:
-                  return this.generateAndAddPiece(p_228421_, p_228422_, p_228423_, this.boundingBox.minX() - 1, this.boundingBox.minY() + p_228424_, this.boundingBox.minZ() + p_228425_, Direction.WEST, this.getGenDepth(), p_228426_);
+                  return this.generateAndAddPiece(p_228421_, p_228422_, p_228423_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + p_228424_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_228425_), Direction.WEST, this.getGenDepth(), p_228426_);
                case SOUTH:
-                  return this.generateAndAddPiece(p_228421_, p_228422_, p_228423_, this.boundingBox.minX() - 1, this.boundingBox.minY() + p_228424_, this.boundingBox.minZ() + p_228425_, Direction.WEST, this.getGenDepth(), p_228426_);
+                  return this.generateAndAddPiece(p_228421_, p_228422_, p_228423_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + p_228424_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_228425_), Direction.WEST, this.getGenDepth(), p_228426_);
                case WEST:
-                  return this.generateAndAddPiece(p_228421_, p_228422_, p_228423_, this.boundingBox.minX() + p_228425_, this.boundingBox.minY() + p_228424_, this.boundingBox.minZ() - 1, Direction.NORTH, this.getGenDepth(), p_228426_);
+                  return this.generateAndAddPiece(p_228421_, p_228422_, p_228423_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_228425_), this.boundingBox.minY() + p_228424_, WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, this.getGenDepth(), p_228426_);
                case EAST:
-                  return this.generateAndAddPiece(p_228421_, p_228422_, p_228423_, this.boundingBox.minX() + p_228425_, this.boundingBox.minY() + p_228424_, this.boundingBox.minZ() - 1, Direction.NORTH, this.getGenDepth(), p_228426_);
+                  return this.generateAndAddPiece(p_228421_, p_228422_, p_228423_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_228425_), this.boundingBox.minY() + p_228424_, WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, this.getGenDepth(), p_228426_);
             }
          }
 
@@ -1014,13 +1015,13 @@ public class NetherFortressPieces {
          if (direction != null) {
             switch (direction) {
                case NORTH:
-                  return this.generateAndAddPiece(p_228428_, p_228429_, p_228430_, this.boundingBox.maxX() + 1, this.boundingBox.minY() + p_228431_, this.boundingBox.minZ() + p_228432_, Direction.EAST, this.getGenDepth(), p_228433_);
+                  return this.generateAndAddPiece(p_228428_, p_228429_, p_228430_, WorldBounds.addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + p_228431_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_228432_), Direction.EAST, this.getGenDepth(), p_228433_);
                case SOUTH:
-                  return this.generateAndAddPiece(p_228428_, p_228429_, p_228430_, this.boundingBox.maxX() + 1, this.boundingBox.minY() + p_228431_, this.boundingBox.minZ() + p_228432_, Direction.EAST, this.getGenDepth(), p_228433_);
+                  return this.generateAndAddPiece(p_228428_, p_228429_, p_228430_, WorldBounds.addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + p_228431_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_228432_), Direction.EAST, this.getGenDepth(), p_228433_);
                case WEST:
-                  return this.generateAndAddPiece(p_228428_, p_228429_, p_228430_, this.boundingBox.minX() + p_228432_, this.boundingBox.minY() + p_228431_, this.boundingBox.maxZ() + 1, Direction.SOUTH, this.getGenDepth(), p_228433_);
+                  return this.generateAndAddPiece(p_228428_, p_228429_, p_228430_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_228432_), this.boundingBox.minY() + p_228431_, WorldBounds.addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, this.getGenDepth(), p_228433_);
                case EAST:
-                  return this.generateAndAddPiece(p_228428_, p_228429_, p_228430_, this.boundingBox.minX() + p_228432_, this.boundingBox.minY() + p_228431_, this.boundingBox.maxZ() + 1, Direction.SOUTH, this.getGenDepth(), p_228433_);
+                  return this.generateAndAddPiece(p_228428_, p_228429_, p_228430_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_228432_), this.boundingBox.minY() + p_228431_, WorldBounds.addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, this.getGenDepth(), p_228433_);
             }
          }
 

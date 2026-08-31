@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -49,9 +50,9 @@ public class PatrolSpawner implements CustomSpawner {
                      } else {
                         int k = (24 + randomsource.nextInt(24)) * (randomsource.nextBoolean() ? -1 : 1);
                         int l = (24 + randomsource.nextInt(24)) * (randomsource.nextBoolean() ? -1 : 1);
-                        BlockPos.MutableBlockPos blockpos$mutableblockpos = player.blockPosition().mutable().move(k, 0, l);
+                        BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(WorldBounds.addBlockOffset(player.blockPosition().getX(), k), player.blockPosition().getY(), WorldBounds.addBlockOffset(player.blockPosition().getZ(), l));
                         int i1 = 10;
-                        if (!p_64570_.hasChunksAt(blockpos$mutableblockpos.getX() - 10, blockpos$mutableblockpos.getZ() - 10, blockpos$mutableblockpos.getX() + 10, blockpos$mutableblockpos.getZ() + 10)) {
+                        if (!p_64570_.hasChunksAt(WorldBounds.subtractBlockOffset(blockpos$mutableblockpos.getX(), 10L), WorldBounds.subtractBlockOffset(blockpos$mutableblockpos.getZ(), 10L), WorldBounds.addBlockOffset(blockpos$mutableblockpos.getX(), 10L), WorldBounds.addBlockOffset(blockpos$mutableblockpos.getZ(), 10L))) {
                            return 0;
                         } else {
                            Holder<Biome> holder = p_64570_.getBiome(blockpos$mutableblockpos);
@@ -72,8 +73,8 @@ public class PatrolSpawner implements CustomSpawner {
                                     this.spawnPatrolMember(p_64570_, blockpos$mutableblockpos, randomsource, false);
                                  }
 
-                                 blockpos$mutableblockpos.setX(blockpos$mutableblockpos.getX() + randomsource.nextInt(5) - randomsource.nextInt(5));
-                                 blockpos$mutableblockpos.setZ(blockpos$mutableblockpos.getZ() + randomsource.nextInt(5) - randomsource.nextInt(5));
+                                 blockpos$mutableblockpos.setX(WorldBounds.addBlockOffset(blockpos$mutableblockpos.getX(), randomsource.nextInt(5) - randomsource.nextInt(5)));
+                                 blockpos$mutableblockpos.setZ(WorldBounds.addBlockOffset(blockpos$mutableblockpos.getZ(), randomsource.nextInt(5) - randomsource.nextInt(5)));
                               }
 
                               return j1;

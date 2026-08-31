@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biome;
 
 public class NoiseThresholdCountPlacement extends RepeatingPlacement {
@@ -31,7 +32,7 @@ public class NoiseThresholdCountPlacement extends RepeatingPlacement {
    }
 
    protected int count(RandomSource p_226355_, BlockPos p_226356_) {
-      double d0 = Biome.BIOME_INFO_NOISE.getValue((double)p_226356_.getX() / 200.0D, (double)p_226356_.getZ() / 200.0D, false);
+      double d0 = Biome.BIOME_INFO_NOISE.getValue(WorldBounds.scaledNoiseCoordinate(p_226356_.getX(), 1.0D / 200.0D), WorldBounds.scaledNoiseCoordinate(p_226356_.getZ(), 1.0D / 200.0D), false);
       return d0 < this.noiseLevel ? this.belowNoise : this.aboveNoise;
    }
 

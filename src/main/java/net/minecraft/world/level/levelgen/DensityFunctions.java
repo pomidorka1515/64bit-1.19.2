@@ -20,6 +20,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.util.ToFloatFunction;
 import net.minecraft.util.VisibleForDebug;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
@@ -790,7 +791,7 @@ public final class DensityFunctions {
       public static final KeyDispatchDataCodec<DensityFunctions.Noise> CODEC = DensityFunctions.makeCodec(DATA_CODEC);
 
       public double compute(DensityFunction.FunctionContext p_208800_) {
-         return this.noise.getValue((double)p_208800_.blockX() * this.xzScale, (double)p_208800_.blockY() * this.yScale, (double)p_208800_.blockZ() * this.xzScale);
+         return this.noise.getValue(WorldBounds.scaledNoiseCoordinate(p_208800_.blockX(), this.xzScale), (double)p_208800_.blockY() * this.yScale, WorldBounds.scaledNoiseCoordinate(p_208800_.blockZ(), this.xzScale));
       }
 
       public void fillArray(double[] p_224079_, DensityFunction.ContextProvider p_224080_) {
@@ -962,9 +963,9 @@ public final class DensityFunctions {
       public static final KeyDispatchDataCodec<DensityFunctions.ShiftedNoise> CODEC = DensityFunctions.makeCodec(DATA_CODEC);
 
       public double compute(DensityFunction.FunctionContext p_208945_) {
-         double d0 = (double)p_208945_.blockX() * this.xzScale + this.shiftX.compute(p_208945_);
+         double d0 = WorldBounds.clampAbsoluteDouble(WorldBounds.scaledNoiseCoordinate(p_208945_.blockX(), this.xzScale) + this.shiftX.compute(p_208945_));
          double d1 = (double)p_208945_.blockY() * this.yScale + this.shiftY.compute(p_208945_);
-         double d2 = (double)p_208945_.blockZ() * this.xzScale + this.shiftZ.compute(p_208945_);
+         double d2 = WorldBounds.clampAbsoluteDouble(WorldBounds.scaledNoiseCoordinate(p_208945_.blockZ(), this.xzScale) + this.shiftZ.compute(p_208945_));
          return this.noise.getValue(d0, d1, d2);
       }
 

@@ -12,6 +12,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.JigsawBlock;
@@ -60,7 +61,7 @@ public class FeaturePoolElement extends StructurePoolElement {
 
    public BoundingBox getBoundingBox(StructureTemplateManager p_227195_, BlockPos p_227196_, Rotation p_227197_) {
       Vec3i vec3i = this.getSize(p_227195_, p_227197_);
-      return new BoundingBox(p_227196_.getX(), p_227196_.getY(), p_227196_.getZ(), p_227196_.getX() + vec3i.getX(), p_227196_.getY() + vec3i.getY(), p_227196_.getZ() + vec3i.getZ());
+      return new BoundingBox(p_227196_.getX(), p_227196_.getY(), p_227196_.getZ(), WorldBounds.addBlockOffset(p_227196_.getX(), vec3i.getX()), p_227196_.getY() + vec3i.getY(), WorldBounds.addBlockOffset(p_227196_.getZ(), vec3i.getZ()));
    }
 
    public boolean place(StructureTemplateManager p_227181_, WorldGenLevel p_227182_, StructureManager p_227183_, ChunkGenerator p_227184_, BlockPos p_227185_, BlockPos p_227186_, Rotation p_227187_, BoundingBox p_227188_, RandomSource p_227189_, boolean p_227190_) {

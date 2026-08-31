@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
@@ -30,8 +31,8 @@ public class NetherFossilStructure extends Structure {
 
    public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_228576_) {
       WorldgenRandom worldgenrandom = p_228576_.random();
-      long i = p_228576_.chunkPos().getMinBlockX() + worldgenrandom.nextInt(16);
-      long j = p_228576_.chunkPos().getMinBlockZ() + worldgenrandom.nextInt(16);
+      long i = WorldBounds.addBlockOffset(p_228576_.chunkPos().getMinBlockX(), worldgenrandom.nextInt(16));
+      long j = WorldBounds.addBlockOffset(p_228576_.chunkPos().getMinBlockZ(), worldgenrandom.nextInt(16));
       int k = p_228576_.chunkGenerator().getSeaLevel();
       WorldGenerationContext worldgenerationcontext = new WorldGenerationContext(p_228576_.chunkGenerator(), p_228576_.heightAccessor());
       int l = this.height.sample(worldgenrandom, worldgenerationcontext);

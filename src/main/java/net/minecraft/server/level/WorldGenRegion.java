@@ -129,8 +129,8 @@ public class WorldGenRegion implements WorldGenLevel {
    public ChunkAccess getChunk(long p_9514_, long p_9515_, ChunkStatus p_9516_, boolean p_9517_) {
       ChunkAccess chunkaccess;
       if (this.hasChunk(p_9514_, p_9515_)) {
-         long i = p_9514_ - this.firstPos.x;
-         long j = p_9515_ - this.firstPos.z;
+         long i = WorldBounds.signedDifferenceAsLong(p_9514_, this.firstPos.x);
+         long j = WorldBounds.signedDifferenceAsLong(p_9515_, this.firstPos.z);
          chunkaccess = this.cache.get((int)(i + j * this.size));
          if (chunkaccess.getStatus().isOrAfter(p_9516_)) {
             return chunkaccess;

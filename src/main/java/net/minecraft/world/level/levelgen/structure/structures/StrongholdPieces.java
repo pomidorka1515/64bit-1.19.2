@@ -10,6 +10,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ButtonBlock;
@@ -157,7 +158,7 @@ public class StrongholdPieces {
    static StructurePiece generateAndAddPiece(StrongholdPieces.StartPiece p_229437_, StructurePieceAccessor p_229438_, RandomSource p_229439_, long p_229440_, int p_229441_, long p_229442_, @Nullable Direction p_229443_, int p_229444_) {
       if (p_229444_ > 50) {
          return null;
-      } else if (Math.abs(p_229440_ - p_229437_.getBoundingBox().minX()) <= 112 && Math.abs(p_229442_ - p_229437_.getBoundingBox().minZ()) <= 112) {
+      } else if (WorldBounds.within(p_229440_, p_229437_.getBoundingBox().minX(), 112L) && WorldBounds.within(p_229442_, p_229437_.getBoundingBox().minZ(), 112L)) {
          StructurePiece structurepiece = generatePieceFromSmallDoor(p_229437_, p_229438_, p_229439_, p_229440_, p_229441_, p_229442_, p_229443_, p_229444_ + 1);
          if (structurepiece != null) {
             p_229438_.addPiece(structurepiece);
@@ -1232,13 +1233,13 @@ public class StrongholdPieces {
          if (direction != null) {
             switch (direction) {
                case NORTH:
-                  return StrongholdPieces.generateAndAddPiece(p_229894_, p_229895_, p_229896_, this.boundingBox.minX() + p_229897_, this.boundingBox.minY() + p_229898_, this.boundingBox.minZ() - 1, direction, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229894_, p_229895_, p_229896_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_229897_), this.boundingBox.minY() + p_229898_, WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), direction, this.getGenDepth());
                case SOUTH:
-                  return StrongholdPieces.generateAndAddPiece(p_229894_, p_229895_, p_229896_, this.boundingBox.minX() + p_229897_, this.boundingBox.minY() + p_229898_, this.boundingBox.maxZ() + 1, direction, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229894_, p_229895_, p_229896_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_229897_), this.boundingBox.minY() + p_229898_, WorldBounds.addBlockOffset(this.boundingBox.maxZ(), 1L), direction, this.getGenDepth());
                case WEST:
-                  return StrongholdPieces.generateAndAddPiece(p_229894_, p_229895_, p_229896_, this.boundingBox.minX() - 1, this.boundingBox.minY() + p_229898_, this.boundingBox.minZ() + p_229897_, direction, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229894_, p_229895_, p_229896_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + p_229898_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_229897_), direction, this.getGenDepth());
                case EAST:
-                  return StrongholdPieces.generateAndAddPiece(p_229894_, p_229895_, p_229896_, this.boundingBox.maxX() + 1, this.boundingBox.minY() + p_229898_, this.boundingBox.minZ() + p_229897_, direction, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229894_, p_229895_, p_229896_, WorldBounds.addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + p_229898_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_229897_), direction, this.getGenDepth());
             }
          }
 
@@ -1251,13 +1252,13 @@ public class StrongholdPieces {
          if (direction != null) {
             switch (direction) {
                case NORTH:
-                  return StrongholdPieces.generateAndAddPiece(p_229902_, p_229903_, p_229904_, this.boundingBox.minX() - 1, this.boundingBox.minY() + p_229905_, this.boundingBox.minZ() + p_229906_, Direction.WEST, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229902_, p_229903_, p_229904_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + p_229905_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_229906_), Direction.WEST, this.getGenDepth());
                case SOUTH:
-                  return StrongholdPieces.generateAndAddPiece(p_229902_, p_229903_, p_229904_, this.boundingBox.minX() - 1, this.boundingBox.minY() + p_229905_, this.boundingBox.minZ() + p_229906_, Direction.WEST, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229902_, p_229903_, p_229904_, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY() + p_229905_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_229906_), Direction.WEST, this.getGenDepth());
                case WEST:
-                  return StrongholdPieces.generateAndAddPiece(p_229902_, p_229903_, p_229904_, this.boundingBox.minX() + p_229906_, this.boundingBox.minY() + p_229905_, this.boundingBox.minZ() - 1, Direction.NORTH, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229902_, p_229903_, p_229904_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_229906_), this.boundingBox.minY() + p_229905_, WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, this.getGenDepth());
                case EAST:
-                  return StrongholdPieces.generateAndAddPiece(p_229902_, p_229903_, p_229904_, this.boundingBox.minX() + p_229906_, this.boundingBox.minY() + p_229905_, this.boundingBox.minZ() - 1, Direction.NORTH, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229902_, p_229903_, p_229904_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_229906_), this.boundingBox.minY() + p_229905_, WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, this.getGenDepth());
             }
          }
 
@@ -1270,13 +1271,13 @@ public class StrongholdPieces {
          if (direction != null) {
             switch (direction) {
                case NORTH:
-                  return StrongholdPieces.generateAndAddPiece(p_229908_, p_229909_, p_229910_, this.boundingBox.maxX() + 1, this.boundingBox.minY() + p_229911_, this.boundingBox.minZ() + p_229912_, Direction.EAST, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229908_, p_229909_, p_229910_, WorldBounds.addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + p_229911_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_229912_), Direction.EAST, this.getGenDepth());
                case SOUTH:
-                  return StrongholdPieces.generateAndAddPiece(p_229908_, p_229909_, p_229910_, this.boundingBox.maxX() + 1, this.boundingBox.minY() + p_229911_, this.boundingBox.minZ() + p_229912_, Direction.EAST, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229908_, p_229909_, p_229910_, WorldBounds.addBlockOffset(this.boundingBox.maxX(), 1L), this.boundingBox.minY() + p_229911_, WorldBounds.addBlockOffset(this.boundingBox.minZ(), p_229912_), Direction.EAST, this.getGenDepth());
                case WEST:
-                  return StrongholdPieces.generateAndAddPiece(p_229908_, p_229909_, p_229910_, this.boundingBox.minX() + p_229912_, this.boundingBox.minY() + p_229911_, this.boundingBox.maxZ() + 1, Direction.SOUTH, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229908_, p_229909_, p_229910_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_229912_), this.boundingBox.minY() + p_229911_, WorldBounds.addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, this.getGenDepth());
                case EAST:
-                  return StrongholdPieces.generateAndAddPiece(p_229908_, p_229909_, p_229910_, this.boundingBox.minX() + p_229912_, this.boundingBox.minY() + p_229911_, this.boundingBox.maxZ() + 1, Direction.SOUTH, this.getGenDepth());
+                  return StrongholdPieces.generateAndAddPiece(p_229908_, p_229909_, p_229910_, WorldBounds.addBlockOffset(this.boundingBox.minX(), p_229912_), this.boundingBox.minY() + p_229911_, WorldBounds.addBlockOffset(this.boundingBox.maxZ(), 1L), Direction.SOUTH, this.getGenDepth());
             }
          }
 

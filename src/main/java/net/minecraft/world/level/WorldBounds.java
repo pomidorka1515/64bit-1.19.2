@@ -114,6 +114,30 @@ public final class WorldBounds {
       return chunk >= MIN_CHUNK && chunk <= MAX_CHUNK;
    }
 
+   /** Returns whether an inclusive horizontal range is ordered for forward iteration. */
+   public static boolean isAscendingBlockRange(long first, long last) {
+      return first <= last;
+   }
+
+   /**
+    * Returns whether a forward block-coordinate iterator can move once more
+    * without crossing its inclusive endpoint.  Callers must advance using
+    * {@link #addBlockOffset(long, long)} so the addition itself cannot wrap.
+    */
+   public static boolean canAdvanceBlock(long coordinate, long last) {
+      return coordinate < last;
+   }
+
+   /** Returns whether an inclusive integer range is ordered for forward iteration. */
+   public static boolean isAscendingIntRange(int first, int last) {
+      return first <= last;
+   }
+
+   /** Returns whether a forward integer iterator can move once more. */
+   public static boolean canAdvanceInt(int coordinate, int last) {
+      return coordinate < last;
+   }
+
    /** Adds a block offset without wrapping at a signed-long edge. */
    public static long addBlockOffset(long block, long offset) {
       if (offset > 0L && block > MAX_BLOCK - offset) return MAX_BLOCK;
@@ -183,6 +207,17 @@ public final class WorldBounds {
       if (value >= 0L && origin < 0L) return (double)value - (double)origin;
       if (value < 0L && origin >= 0L) return (double)value - (double)origin;
       return (double)(value - origin);
+   }
+
+   /**
+    * Returns a signed horizontal difference as a long, saturating a difference
+    * outside the signed-long domain instead of wrapping it to the other edge.
+    */
+   public static long signedDifferenceAsLong(long value, long origin) {
+      double difference = signedDifference(value, origin);
+      if (difference >= (double)MAX_BLOCK) return MAX_BLOCK;
+      if (difference <= (double)MIN_BLOCK) return MIN_BLOCK;
+      return (long)difference;
    }
 
    /** Returns the upper center of an inclusive block-coordinate interval. */

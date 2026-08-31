@@ -641,6 +641,10 @@ public class MineshaftPieces {
          long l = Math.min(addBlockOffset(this.boundingBox.maxX(), 1L), p_227883_.maxX());
          int i1 = Math.min(this.boundingBox.maxY() + 1, p_227883_.maxY());
          long j1 = Math.min(addBlockOffset(this.boundingBox.maxZ(), 1L), p_227883_.maxZ());
+         if (!WorldBounds.isAscendingBlockRange(i, l) || !WorldBounds.isAscendingBlockRange(k, j1)) {
+            return false;
+         }
+
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(midpoint(i, l), (j + i1) / 2, midpoint(k, j1));
          if (p_227882_.getBiome(blockpos$mutableblockpos).is(BiomeTags.MINESHAFT_BLOCKING)) {
             return true;
@@ -655,12 +659,12 @@ public class MineshaftPieces {
                      return true;
                   }
 
-                  if (l1 == j1) {
+                  if (!WorldBounds.canAdvanceBlock(l1, j1)) {
                      break;
                   }
                }
 
-               if (k1 == l) {
+               if (!WorldBounds.canAdvanceBlock(k1, l)) {
                   break;
                }
             }
@@ -676,7 +680,7 @@ public class MineshaftPieces {
                   }
                }
 
-               if (i2 == l) {
+               if (!WorldBounds.canAdvanceBlock(i2, l)) {
                   break;
                }
             }
@@ -692,7 +696,7 @@ public class MineshaftPieces {
                   }
                }
 
-               if (j2 == j1) {
+               if (!WorldBounds.canAdvanceBlock(j2, j1)) {
                   break;
                }
             }
@@ -737,8 +741,8 @@ public class MineshaftPieces {
          }
 
          long xSpan = this.boundingBox.getXSpan();
-         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < xSpan - 2L; k += 4L, ++attempts) {
-            k += randomOffset(p_227924_, xSpan);
+         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < xSpan - 2L; k = WorldBounds.addBlockOffset(k, 4L), ++attempts) {
+            k = WorldBounds.addBlockOffset(k, randomOffset(p_227924_, xSpan));
             if (k > xSpan - 3L) {
                break;
             }
@@ -750,8 +754,8 @@ public class MineshaftPieces {
             }
          }
 
-         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < xSpan - 2L; k += 4L, ++attempts) {
-            k += randomOffset(p_227924_, xSpan);
+         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < xSpan - 2L; k = WorldBounds.addBlockOffset(k, 4L), ++attempts) {
+            k = WorldBounds.addBlockOffset(k, randomOffset(p_227924_, xSpan));
             if (k > xSpan - 3L) {
                break;
             }
@@ -764,8 +768,8 @@ public class MineshaftPieces {
          }
 
          long zSpan = this.boundingBox.getZSpan();
-         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < zSpan - 2L; k += 4L, ++attempts) {
-            k += randomOffset(p_227924_, zSpan);
+         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < zSpan - 2L; k = WorldBounds.addBlockOffset(k, 4L), ++attempts) {
+            k = WorldBounds.addBlockOffset(k, randomOffset(p_227924_, zSpan));
             if (k > zSpan - 3L) {
                break;
             }
@@ -777,8 +781,8 @@ public class MineshaftPieces {
             }
          }
 
-         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < zSpan - 2L; k += 4L, ++attempts) {
-            k += randomOffset(p_227924_, zSpan);
+         for(long k = 0L, attempts = 0L; attempts < MAX_ROOM_ENTRANCE_ATTEMPTS && k < zSpan - 2L; k = WorldBounds.addBlockOffset(k, 4L), ++attempts) {
+            k = WorldBounds.addBlockOffset(k, randomOffset(p_227924_, zSpan));
             if (k > zSpan - 3L) {
                break;
             }
@@ -800,7 +804,7 @@ public class MineshaftPieces {
             this.generateBox(p_227914_, p_227918_, 0, 1, 0, maxX, Math.min(3, maxY), maxZ, CAVE_AIR, CAVE_AIR, false);
 
             for(BoundingBox boundingbox : this.childEntranceBoxes) {
-               this.generateBox(p_227914_, p_227918_, boundingbox.minX() - this.boundingBox.minX(), boundingbox.maxY() - this.boundingBox.minY() - 2, boundingbox.minZ() - this.boundingBox.minZ(), boundingbox.maxX() - this.boundingBox.minX(), boundingbox.maxY() - this.boundingBox.minY(), boundingbox.maxZ() - this.boundingBox.minZ(), CAVE_AIR, CAVE_AIR, false);
+               this.generateBox(p_227914_, p_227918_, WorldBounds.signedDifferenceAsLong(boundingbox.minX(), this.boundingBox.minX()), boundingbox.maxY() - this.boundingBox.minY() - 2, WorldBounds.signedDifferenceAsLong(boundingbox.minZ(), this.boundingBox.minZ()), WorldBounds.signedDifferenceAsLong(boundingbox.maxX(), this.boundingBox.minX()), boundingbox.maxY() - this.boundingBox.minY(), WorldBounds.signedDifferenceAsLong(boundingbox.maxZ(), this.boundingBox.minZ()), CAVE_AIR, CAVE_AIR, false);
             }
 
             this.generateUpperHalfSphere(p_227914_, p_227918_, 0, 4, 0, maxX, maxY, maxZ, CAVE_AIR, false);

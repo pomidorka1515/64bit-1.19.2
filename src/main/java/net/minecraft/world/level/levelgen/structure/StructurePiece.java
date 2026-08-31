@@ -204,18 +204,37 @@ public abstract class StructurePiece {
    }
 
    protected void generateAirBox(WorldGenLevel p_73536_, BoundingBox p_73537_, int p_73538_, int p_73539_, int p_73540_, int p_73541_, int p_73542_, int p_73543_) {
-      for(int i = p_73539_; i <= p_73542_; ++i) {
-         for(int j = p_73538_; j <= p_73541_; ++j) {
-            for(int k = p_73540_; k <= p_73543_; ++k) {
+      if (!WorldBounds.isAscendingIntRange(p_73539_, p_73542_) || !WorldBounds.isAscendingIntRange(p_73538_, p_73541_) || !WorldBounds.isAscendingIntRange(p_73540_, p_73543_)) {
+         return;
+      }
+
+      for(int i = p_73539_; ; i = WorldBounds.addSaturated(i, 1)) {
+         for(int j = p_73538_; ; j = WorldBounds.addSaturated(j, 1)) {
+            for(int k = p_73540_; ; k = WorldBounds.addSaturated(k, 1)) {
                this.placeBlock(p_73536_, Blocks.AIR.defaultBlockState(), j, i, k, p_73537_);
+               if (!WorldBounds.canAdvanceInt(k, p_73543_)) {
+                  break;
+               }
             }
+
+            if (!WorldBounds.canAdvanceInt(j, p_73541_)) {
+               break;
+            }
+         }
+
+         if (!WorldBounds.canAdvanceInt(i, p_73542_)) {
+            break;
          }
       }
 
    }
 
    protected void generateBox(WorldGenLevel p_73442_, BoundingBox p_73443_, long p_73444_, int p_73445_, long p_73446_, long p_73447_, int p_73448_, long p_73449_, BlockState p_73450_, BlockState p_73451_, boolean p_73452_) {
-      for(int i = p_73445_; i <= p_73448_; ++i) {
+      if (!WorldBounds.isAscendingIntRange(p_73445_, p_73448_) || !WorldBounds.isAscendingBlockRange(p_73444_, p_73447_) || !WorldBounds.isAscendingBlockRange(p_73446_, p_73449_)) {
+         return;
+      }
+
+      for(int i = p_73445_; ; i = WorldBounds.addSaturated(i, 1)) {
          for(long j = p_73444_; ; j = WorldBounds.addBlockOffset(j, 1L)) {
             for(long k = p_73446_; ; k = WorldBounds.addBlockOffset(k, 1L)) {
                if (!p_73452_ || !this.getBlock(p_73442_, j, i, k, p_73443_).isAir()) {
@@ -226,14 +245,18 @@ public abstract class StructurePiece {
                   }
                }
 
-               if (k == p_73449_) {
+               if (!WorldBounds.canAdvanceBlock(k, p_73449_)) {
                   break;
                }
             }
 
-            if (j == p_73447_) {
+            if (!WorldBounds.canAdvanceBlock(j, p_73447_)) {
                break;
             }
+         }
+
+         if (!WorldBounds.canAdvanceInt(i, p_73448_)) {
+            break;
          }
       }
 
@@ -244,7 +267,11 @@ public abstract class StructurePiece {
    }
 
    protected void generateBox(WorldGenLevel p_226777_, BoundingBox p_226778_, long p_226779_, int p_226780_, long p_226781_, long p_226782_, int p_226783_, long p_226784_, boolean p_226785_, RandomSource p_226786_, StructurePiece.BlockSelector p_226787_) {
-      for(int i = p_226780_; i <= p_226783_; ++i) {
+      if (!WorldBounds.isAscendingIntRange(p_226780_, p_226783_) || !WorldBounds.isAscendingBlockRange(p_226779_, p_226782_) || !WorldBounds.isAscendingBlockRange(p_226781_, p_226784_)) {
+         return;
+      }
+
+      for(int i = p_226780_; ; i = WorldBounds.addSaturated(i, 1)) {
          for(long j = p_226779_; ; j = WorldBounds.addBlockOffset(j, 1L)) {
             for(long k = p_226781_; ; k = WorldBounds.addBlockOffset(k, 1L)) {
                if (!p_226785_ || !this.getBlock(p_226777_, j, i, k, p_226778_).isAir()) {
@@ -252,14 +279,18 @@ public abstract class StructurePiece {
                   this.placeBlock(p_226777_, p_226787_.getNext(), j, i, k, p_226778_);
                }
 
-               if (k == p_226784_) {
+               if (!WorldBounds.canAdvanceBlock(k, p_226784_)) {
                   break;
                }
             }
 
-            if (j == p_226782_) {
+            if (!WorldBounds.canAdvanceBlock(j, p_226782_)) {
                break;
             }
+         }
+
+         if (!WorldBounds.canAdvanceInt(i, p_226783_)) {
+            break;
          }
       }
 
@@ -270,9 +301,13 @@ public abstract class StructurePiece {
    }
 
    protected void generateMaybeBox(WorldGenLevel p_226789_, BoundingBox p_226790_, RandomSource p_226791_, float p_226792_, int p_226793_, int p_226794_, int p_226795_, int p_226796_, int p_226797_, int p_226798_, BlockState p_226799_, BlockState p_226800_, boolean p_226801_, boolean p_226802_) {
-      for(int i = p_226794_; i <= p_226797_; ++i) {
-         for(int j = p_226793_; j <= p_226796_; ++j) {
-            for(int k = p_226795_; k <= p_226798_; ++k) {
+      if (!WorldBounds.isAscendingIntRange(p_226794_, p_226797_) || !WorldBounds.isAscendingIntRange(p_226793_, p_226796_) || !WorldBounds.isAscendingIntRange(p_226795_, p_226798_)) {
+         return;
+      }
+
+      for(int i = p_226794_; ; i = WorldBounds.addSaturated(i, 1)) {
+         for(int j = p_226793_; ; j = WorldBounds.addSaturated(j, 1)) {
+            for(int k = p_226795_; ; k = WorldBounds.addSaturated(k, 1)) {
                if (!(p_226791_.nextFloat() > p_226792_) && (!p_226801_ || !this.getBlock(p_226789_, j, i, k, p_226790_).isAir()) && (!p_226802_ || this.isInterior(p_226789_, j, i, k, p_226790_))) {
                   if (i != p_226794_ && i != p_226797_ && j != p_226793_ && j != p_226796_ && k != p_226795_ && k != p_226798_) {
                      this.placeBlock(p_226789_, p_226800_, j, i, k, p_226790_);
@@ -280,7 +315,19 @@ public abstract class StructurePiece {
                      this.placeBlock(p_226789_, p_226799_, j, i, k, p_226790_);
                   }
                }
+
+               if (!WorldBounds.canAdvanceInt(k, p_226798_)) {
+                  break;
+               }
             }
+
+            if (!WorldBounds.canAdvanceInt(j, p_226796_)) {
+               break;
+            }
+         }
+
+         if (!WorldBounds.canAdvanceInt(i, p_226797_)) {
+            break;
          }
       }
 
@@ -294,14 +341,18 @@ public abstract class StructurePiece {
    }
 
    protected void generateUpperHalfSphere(WorldGenLevel p_73454_, BoundingBox p_73455_, long p_73456_, int p_73457_, long p_73458_, long p_73459_, int p_73460_, long p_73461_, BlockState p_73462_, boolean p_73463_) {
+      if (!WorldBounds.isAscendingIntRange(p_73457_, p_73460_) || !WorldBounds.isAscendingBlockRange(p_73456_, p_73459_) || !WorldBounds.isAscendingBlockRange(p_73458_, p_73461_)) {
+         return;
+      }
+
       float f = (float)WorldBounds.distance(p_73459_, p_73456_) + 1.0F;
-      float f1 = (float)(p_73460_ - p_73457_ + 1);
+      float f1 = (float)(WorldBounds.distance((long)p_73460_, (long)p_73457_) + 1.0D);
       float f2 = (float)WorldBounds.distance(p_73461_, p_73458_) + 1.0F;
       float f3 = (float)p_73456_ + f / 2.0F;
       float f4 = (float)p_73458_ + f2 / 2.0F;
 
-      for(int i = p_73457_; i <= p_73460_; ++i) {
-         float f5 = (float)(i - p_73457_) / f1;
+      for(int i = p_73457_; ; i = WorldBounds.addSaturated(i, 1)) {
+         float f5 = (float)WorldBounds.signedDifference((long)i, (long)p_73457_) / f1;
 
          for(long j = p_73456_; ; j = WorldBounds.addBlockOffset(j, 1L)) {
             float f6 = ((float)j - f3) / (f * 0.5F);
@@ -315,14 +366,18 @@ public abstract class StructurePiece {
                   }
                }
 
-               if (k == p_73461_) {
+               if (!WorldBounds.canAdvanceBlock(k, p_73461_)) {
                   break;
                }
             }
 
-            if (j == p_73459_) {
+            if (!WorldBounds.canAdvanceBlock(j, p_73459_)) {
                break;
             }
+         }
+
+         if (!WorldBounds.canAdvanceInt(i, p_73460_)) {
+            break;
          }
       }
 

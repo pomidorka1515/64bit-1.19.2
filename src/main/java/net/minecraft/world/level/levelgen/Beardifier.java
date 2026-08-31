@@ -8,6 +8,7 @@ import net.minecraft.Util;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
@@ -53,7 +54,7 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
                   for(JigsawJunction jigsawjunction : poolelementstructurepiece.getJunctions()) {
                      long k = jigsawjunction.getSourceX();
                      long l = jigsawjunction.getSourceZ();
-                     if (k > i - 12 && l > j - 12 && k < i + 15 + 12 && l < j + 15 + 12) {
+                     if (k > WorldBounds.subtractBlockOffset(i, 12L) && l > WorldBounds.subtractBlockOffset(j, 12L) && k < WorldBounds.addBlockOffset(i, 27L) && l < WorldBounds.addBlockOffset(j, 27L)) {
                         objectlist1.add(jigsawjunction);
                      }
                   }
@@ -84,8 +85,8 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
          Beardifier.Rigid beardifier$rigid = this.pieceIterator.next();
          BoundingBox boundingbox = beardifier$rigid.box();
          int l = beardifier$rigid.groundLevelDelta();
-         long i1 = Math.max(0, Math.max(boundingbox.minX() - i, i - boundingbox.maxX()));
-         long j1 = Math.max(0, Math.max(boundingbox.minZ() - k, k - boundingbox.maxZ()));
+         double i1 = Math.max(0.0D, Math.max(WorldBounds.signedDifference(boundingbox.minX(), i), WorldBounds.signedDifference(i, boundingbox.maxX())));
+         double j1 = Math.max(0.0D, Math.max(WorldBounds.signedDifference(boundingbox.minZ(), k), WorldBounds.signedDifference(k, boundingbox.maxZ())));
          int k1 = boundingbox.minY() + l;
          int l1 = j - k1;
          int i3;
@@ -125,9 +126,9 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
 
       while(this.junctionIterator.hasNext()) {
          JigsawJunction jigsawjunction = this.junctionIterator.next();
-         long j2 = i - jigsawjunction.getSourceX();
+         double j2 = WorldBounds.signedDifference(i, jigsawjunction.getSourceX());
          int k2 = j - jigsawjunction.getSourceGroundY();
-         long l2 = k - jigsawjunction.getSourceZ();
+         double l2 = WorldBounds.signedDifference(k, jigsawjunction.getSourceZ());
          d0 += getBeardContribution(j2, k2, l2, k2) * 0.4D;
       }
 
@@ -143,26 +144,26 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
       return Double.POSITIVE_INFINITY;
    }
 
-   private static double getBuryContribution(long p_158084_, int p_158085_, long p_158086_) {
-      double d0 = Mth.length((double)p_158084_, (double)p_158085_ / 2.0D, (double)p_158086_);
+   private static double getBuryContribution(double p_158084_, int p_158085_, double p_158086_) {
+      double d0 = Mth.length(p_158084_, (double)p_158085_ / 2.0D, p_158086_);
       return Mth.clampedMap(d0, 0.0D, 6.0D, 1.0D, 0.0D);
    }
 
-   private static double getBeardContribution(long p_223926_, int p_223927_, long p_223928_, int p_223929_) {
-      long i = p_223926_ + 12;
+   private static double getBeardContribution(double p_223926_, int p_223927_, double p_223928_, int p_223929_) {
+      double i = p_223926_ + 12.0D;
       int j = p_223927_ + 12;
-      long k = p_223928_ + 12;
+      double k = p_223928_ + 12.0D;
       if (isInKernelRange(i) && isInKernelRange(j) && isInKernelRange(k)) {
          double d0 = (double)p_223929_ + 0.5D;
-         double d1 = Mth.lengthSquared((double)p_223926_, d0, (double)p_223928_);
+         double d1 = Mth.lengthSquared(p_223926_, d0, p_223928_);
          double d2 = -d0 * Mth.fastInvSqrt(d1 / 2.0D) / 2.0D;
-         return d2 * (double)BEARD_KERNEL[(int) (k * 24 * 24 + i * 24 + j)];
+         return d2 * (double)BEARD_KERNEL[(int) (k * 24.0D * 24.0D + i * 24.0D + j)];
       } else {
          return 0.0D;
       }
    }
 
-   private static boolean isInKernelRange(long p_223920_) {
+   private static boolean isInKernelRange(double p_223920_) {
       return p_223920_ >= 0 && p_223920_ < 24;
    }
 

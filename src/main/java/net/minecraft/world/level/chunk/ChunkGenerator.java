@@ -498,7 +498,7 @@ public abstract class ChunkGenerator {
       LevelHeightAccessor levelheightaccessor = p_187718_.getHeightAccessorForGeneration();
       int k = levelheightaccessor.getMinBuildHeight() + 1;
       int l = levelheightaccessor.getMaxBuildHeight() - 1;
-      return new BoundingBox(i, k, j, i + 15, l, j + 15);
+      return new BoundingBox(i, k, j, WorldBounds.addBlockOffset(i, 15L), l, WorldBounds.addBlockOffset(j, 15L));
    }
 
    public abstract void buildSurface(WorldGenRegion p_223050_, StructureManager p_223051_, RandomState p_223052_, ChunkAccess p_223053_);
@@ -638,7 +638,7 @@ public abstract class ChunkGenerator {
 
                for(StructureStart structurestart : p_223077_.getChunk(j1, k1).getAllStarts().values()) {
                try {
-                  if (structurestart.isValid() && structurestart.getBoundingBox().intersects(l, i1, l + 15, i1 + 15)) {
+                  if (structurestart.isValid() && structurestart.getBoundingBox().intersects(l, i1, WorldBounds.addBlockOffset(l, 15L), WorldBounds.addBlockOffset(i1, 15L))) {
                      p_223078_.addReferenceForStructure(sectionpos, structurestart.getStructure(), l1, p_223079_);
                      DebugPackets.sendStructurePacket(p_223077_, structurestart);
                   }

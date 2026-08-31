@@ -7,6 +7,7 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.OverworldBiomeBuilder;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -78,9 +79,9 @@ public interface Aquifer {
       private final DensityFunction erosion;
       private final DensityFunction depth;
       private boolean shouldScheduleFluidUpdate;
-      private final int minGridX;
+      private final long minGridX;
       private final int minGridY;
-      private final int minGridZ;
+      private final long minGridZ;
       private final int gridSizeX;
       private final int gridSizeZ;
       private static final int[][] SURFACE_SAMPLING_OFFSETS_IN_CHUNKS = new int[][]{{-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {-3, 0}, {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {-2, 1}, {-1, 1}, {0, 1}, {1, 1}};
@@ -94,16 +95,16 @@ public interface Aquifer {
          this.erosion = p_223893_.erosion();
          this.depth = p_223893_.depth();
          this.positionalRandomFactory = p_223894_;
-         this.minGridX = (int) (this.gridX(p_223892_.getMinBlockX()) - 1);
+         this.minGridX = WorldBounds.addChunkOffset(this.gridX(p_223892_.getMinBlockX()), -1L);
          this.globalFluidPicker = p_223897_;
-         int i = (int) (this.gridX(p_223892_.getMaxBlockX()) + 1);
-         this.gridSizeX = i - this.minGridX + 1;
+         long i = WorldBounds.addChunkOffset(this.gridX(p_223892_.getMaxBlockX()), 1L);
+         this.gridSizeX = (int)(WorldBounds.signedDifferenceAsLong(i, this.minGridX) + 1L);
          this.minGridY = this.gridY(p_223895_) - 1;
          int j = this.gridY(p_223895_ + p_223896_) + 1;
          int k = j - this.minGridY + 1;
-         this.minGridZ = (int) (this.gridZ(p_223892_.getMinBlockZ()) - 1);
-         int l = (int) (this.gridZ(p_223892_.getMaxBlockZ()) + 1);
-         this.gridSizeZ = l - this.minGridZ + 1;
+         this.minGridZ = WorldBounds.addChunkOffset(this.gridZ(p_223892_.getMinBlockZ()), -1L);
+         long l = WorldBounds.addChunkOffset(this.gridZ(p_223892_.getMaxBlockZ()), 1L);
+         this.gridSizeZ = (int)(WorldBounds.signedDifferenceAsLong(l, this.minGridZ) + 1L);
          int i1 = this.gridSizeX * k * this.gridSizeZ;
          this.aquiferCache = new Aquifer.FluidStatus[i1];
          this.aquiferLocationCache = new BlockPos[i1];
@@ -111,9 +112,9 @@ public interface Aquifer {
       }
 
       private int getIndex(long p_158028_, int p_158029_, long p_158030_) {
-         long i = p_158028_ - this.minGridX;
+         long i = WorldBounds.signedDifferenceAsLong(p_158028_, this.minGridX);
          int j = p_158029_ - this.minGridY;
-         long k = p_158030_ - this.minGridZ;
+         long k = WorldBounds.signedDifferenceAsLong(p_158030_, this.minGridZ);
          return (int) ((j * this.gridSizeZ + k) * this.gridSizeX + i);
       }
 
@@ -131,12 +132,12 @@ public interface Aquifer {
                this.shouldScheduleFluidUpdate = false;
                return Blocks.LAVA.defaultBlockState();
             } else {
-               long l = Math.floorDiv(i - 5, 16);
+               long l = this.gridX(WorldBounds.subtractBlockOffset(i, 5L));
                int i1 = Math.floorDiv(j + 1, 12);
-               long j1 = Math.floorDiv(k - 5, 16);
-               long k1 = Integer.MAX_VALUE;
-               long l1 = Integer.MAX_VALUE;
-               long i2 = Integer.MAX_VALUE;
+               long j1 = this.gridZ(WorldBounds.subtractBlockOffset(k, 5L));
+               double k1 = Double.POSITIVE_INFINITY;
+               double l1 = Double.POSITIVE_INFINITY;
+               double i2 = Double.POSITIVE_INFINITY;
                BlockPos j2 = null;
                BlockPos k2 = null;
                BlockPos l2 = null;
@@ -144,9 +145,9 @@ public interface Aquifer {
                for(int i3 = 0; i3 <= 1; ++i3) {
                   for(int j3 = -1; j3 <= 1; ++j3) {
                      for(int k3 = 0; k3 <= 1; ++k3) {
-                        long l3 = l + i3;
+                        long l3 = WorldBounds.addChunkOffset(l, i3);
                         int i4 = i1 + j3;
-                        long j4 = j1 + k3;
+                        long j4 = WorldBounds.addChunkOffset(j1, k3);
                         int k4 = this.getIndex(l3, i4, j4);
                         BlockPos i5 = this.aquiferLocationCache[k4];
                         BlockPos l4;
@@ -154,14 +155,14 @@ public interface Aquifer {
                            l4 = i5;
                         } else {
                            RandomSource randomsource = this.positionalRandomFactory.at(l3, i4, j4);
-                           l4 = new BlockPos(l3 * 16 + randomsource.nextInt(10), i4 * 12 + randomsource.nextInt(9), j4 * 16 + randomsource.nextInt(10));
+                           l4 = new BlockPos(WorldBounds.addBlockOffset(WorldBounds.chunkToBlock(l3), randomsource.nextInt(10)), i4 * 12 + randomsource.nextInt(9), WorldBounds.addBlockOffset(WorldBounds.chunkToBlock(j4), randomsource.nextInt(10)));
                            this.aquiferLocationCache[k4] = l4;
                         }
 
-                        long i6 = l4.getX() - i;
+                        double i6 = WorldBounds.signedDifference(l4.getX(), i);
                         int j5 = l4.getY() - j;
-                        long k5 = l4.getZ() - k;
-                        long l5 = i6 * i6 + j5 * j5 + k5 * k5;
+                        double k5 = WorldBounds.signedDifference(l4.getZ(), k);
+                        double l5 = i6 * i6 + (double)j5 * j5 + k5 * k5;
                         if (k1 >= l5) {
                            l2 = k2;
                            k2 = j2;
@@ -230,9 +231,9 @@ public interface Aquifer {
          return this.shouldScheduleFluidUpdate;
       }
 
-      private static double similarity(long k1, long l1) {
+      private static double similarity(double k1, double l1) {
          double d0 = 25.0D;
-         return 1.0D - (double)Math.abs(l1 - k1) / 25.0D;
+         return 1.0D - Math.abs(l1 - k1) / 25.0D;
       }
 
       private double calculatePressure(DensityFunction.FunctionContext p_208189_, MutableDouble p_208190_, Aquifer.FluidStatus p_208191_, Aquifer.FluidStatus p_208192_) {

@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.IntProvider;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -39,8 +40,8 @@ public class CountOnEveryLayerPlacement extends PlacementModifier {
          flag = false;
 
          for(int j = 0; j < this.count.sample(p_226330_); ++j) {
-            long k = p_226330_.nextInt(16) + p_226331_.getX();
-            long l = p_226330_.nextInt(16) + p_226331_.getZ();
+            long k = WorldBounds.addBlockOffset(p_226331_.getX(), p_226330_.nextInt(16));
+            long l = WorldBounds.addBlockOffset(p_226331_.getZ(), p_226330_.nextInt(16));
             int i1 = p_226329_.getHeight(Heightmap.Types.MOTION_BLOCKING, k, l);
             int j1 = findOnGroundYPosition(p_226329_, k, i1, l, i);
             if (j1 != Integer.MAX_VALUE) {

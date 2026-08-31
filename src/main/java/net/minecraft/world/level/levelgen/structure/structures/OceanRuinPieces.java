@@ -18,6 +18,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
@@ -213,8 +214,8 @@ public class OceanRuinPieces {
             }
          }
 
-         long l1 = Math.abs(p_229042_.getX() - p_229044_.getX());
-         if (k - j > 2 && l > l1 - 2) {
+         double l1 = WorldBounds.distance(p_229042_.getX(), p_229044_.getX());
+         if (k - j > 2 && l > l1 - 2.0D) {
             i = j + 1;
          }
 

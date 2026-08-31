@@ -2,8 +2,9 @@ package net.minecraft.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -19,7 +20,14 @@ public interface BlockEntityRenderer<T extends BlockEntity> {
       return 64;
    }
 
-   default boolean shouldRender(T p_173568_, Vec3 p_173569_) {
-      return Vec3.atCenterOf(p_173568_.getBlockPos()).closerThan(p_173569_, (double)this.getViewDistance());
+   /**
+    * Tests the block entity's block-center distance in the camera's exact
+    * split-coordinate frame.  Block entities are addressed by {@link BlockPos},
+    * so constructing their center from that position preserves X/Z precision.
+    */
+   default boolean shouldRender(T p_173568_, SectorVec3 p_173569_) {
+      BlockPos blockpos = p_173568_.getBlockPos();
+      return SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY() + 0.5D,
+            blockpos.getZ(), 0.5D).relativeTo(p_173569_).lengthSqr() < (double)this.getViewDistance() * (double)this.getViewDistance();
    }
 }

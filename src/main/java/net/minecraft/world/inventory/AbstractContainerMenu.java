@@ -28,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.SectorVec3;
 import org.slf4j.Logger;
 
 public abstract class AbstractContainerMenu {
@@ -66,8 +67,21 @@ public abstract class AbstractContainerMenu {
 
    protected static boolean stillValid(ContainerLevelAccess p_38890_, Player p_38891_, Block p_38892_) {
       return p_38890_.evaluate((p_38916_, p_38917_) -> {
-         return !p_38916_.getBlockState(p_38917_).is(p_38892_) ? false : p_38891_.distanceToSqr((double)p_38917_.getX() + 0.5D, (double)p_38917_.getY() + 0.5D, (double)p_38917_.getZ() + 0.5D) <= 64.0D;
+         return p_38916_.getBlockState(p_38917_).is(p_38892_) && isWithinUsableDistance(p_38891_, p_38917_);
       }, true);
+   }
+
+   /** Tests menu range without reconstructing a long X/Z block position as an absolute double. */
+   protected static boolean isWithinUsableDistance(Player p_38893_, net.minecraft.core.BlockPos p_38894_) {
+      SectorVec3 position = p_38893_.exactPosition();
+      if (position != null) {
+         SectorVec3 center = SectorVec3.fromBlockAndFraction(p_38894_.getX(), 0.5D,
+               (double)p_38894_.getY() + 0.5D, p_38894_.getZ(), 0.5D);
+         return position.relativeTo(center).lengthSqr() <= 64.0D;
+      }
+
+      return p_38893_.distanceToSqr((double)p_38894_.getX() + 0.5D,
+            (double)p_38894_.getY() + 0.5D, (double)p_38894_.getZ() + 0.5D) <= 64.0D;
    }
 
    public MenuType<?> getType() {

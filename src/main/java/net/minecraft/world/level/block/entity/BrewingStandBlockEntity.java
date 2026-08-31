@@ -219,11 +219,7 @@ public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements
    }
 
    public boolean stillValid(Player p_59000_) {
-      if (this.level.getBlockEntity(this.worldPosition) != this) {
-         return false;
-      } else {
-         return !(p_59000_.distanceToSqr((double)this.worldPosition.getX() + 0.5D, (double)this.worldPosition.getY() + 0.5D, (double)this.worldPosition.getZ() + 0.5D) > 64.0D);
-      }
+      return this.level.getBlockEntity(this.worldPosition) == this && this.isWithinUsableDistance(p_59000_, 8.0D);
    }
 
    public boolean canPlaceItem(int p_59017_, ItemStack p_59018_) {

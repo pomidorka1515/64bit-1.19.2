@@ -424,11 +424,7 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
    }
 
    public boolean stillValid(Player p_58340_) {
-      if (this.level.getBlockEntity(this.worldPosition) != this) {
-         return false;
-      } else {
-         return p_58340_.distanceToSqr((double)this.worldPosition.getX() + 0.5D, (double)this.worldPosition.getY() + 0.5D, (double)this.worldPosition.getZ() + 0.5D) <= 64.0D;
-      }
+      return this.level.getBlockEntity(this.worldPosition) == this && this.isWithinUsableDistance(p_58340_, 8.0D);
    }
 
    public boolean canPlaceItem(int p_58389_, ItemStack p_58390_) {

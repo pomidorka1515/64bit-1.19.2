@@ -5,9 +5,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 
 public abstract class ContainerOpenersCounter {
    private static final int CHECK_TICK_DELAY = 5;
@@ -43,12 +42,37 @@ public abstract class ContainerOpenersCounter {
    }
 
    private int getOpenCount(Level p_155458_, BlockPos p_155459_) {
-      long i = p_155459_.getX();
-      int j = p_155459_.getY();
-      long k = p_155459_.getZ();
-      float f = 5.0F;
-      AABB aabb = new AABB((double)((float)i - 5.0F), (double)((float)j - 5.0F), (double)((float)k - 5.0F), (double)((float)(i + 1) + 5.0F), (double)((float)(j + 1) + 5.0F), (double)((float)(k + 1) + 5.0F));
-      return p_155458_.getEntities(EntityTypeTest.forClass(Player.class), aabb, this::isOwnContainer).size();
+      int i = 0;
+
+      for(Player player : p_155458_.players()) {
+         // The former float-backed AABB query drifted off the chest beyond
+         // 2^24, so scheduled rechecks erased legitimate openers.  Filtering
+         // the level's player list in split-coordinate space keeps the exact
+         // vanilla search volume: [block - 5, block + 6] on every axis.
+         if (this.isOwnContainer(player) && isWithinRecheckRange(player, p_155459_)) {
+            ++i;
+         }
+      }
+
+      return i;
+   }
+
+   static boolean isWithinRecheckRange(Player p_155460_, BlockPos p_155461_) {
+      SectorVec3 position = p_155460_.exactPosition();
+      return position != null ? isWithinRecheckRange(position, p_155461_)
+            : p_155460_.getX() >= (double)p_155461_.getX() - 5.0D && p_155460_.getX() <= (double)p_155461_.getX() + 6.0D
+                  && p_155460_.getY() >= (double)p_155461_.getY() - 5.0D && p_155460_.getY() <= (double)p_155461_.getY() + 6.0D
+                  && p_155460_.getZ() >= (double)p_155461_.getZ() - 5.0D && p_155460_.getZ() <= (double)p_155461_.getZ() + 6.0D;
+   }
+
+   static boolean isWithinRecheckRange(SectorVec3 p_155460_, BlockPos p_155461_) {
+      SectorVec3 minimum = SectorVec3.fromBlockAndFraction(p_155461_.getX(), -5.0D,
+            (double)p_155461_.getY() - 5.0D, p_155461_.getZ(), -5.0D);
+      SectorVec3 maximum = SectorVec3.fromBlockAndFraction(p_155461_.getX(), 6.0D,
+            (double)p_155461_.getY() + 6.0D, p_155461_.getZ(), 6.0D);
+      return p_155460_.relativeX(minimum) >= 0.0D && p_155460_.relativeX(maximum) <= 0.0D
+            && p_155460_.relativeY(minimum) >= 0.0D && p_155460_.relativeY(maximum) <= 0.0D
+            && p_155460_.relativeZ(minimum) >= 0.0D && p_155460_.relativeZ(maximum) <= 0.0D;
    }
 
    public void recheckOpeners(Level p_155477_, BlockPos p_155478_, BlockState p_155479_) {

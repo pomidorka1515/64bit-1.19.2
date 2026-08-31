@@ -83,7 +83,7 @@ public abstract class ItemCombinerMenu extends AbstractContainerMenu {
 
    public boolean stillValid(Player p_39780_) {
       return this.access.evaluate((p_39785_, p_39786_) -> {
-         return !this.isValidBlock(p_39785_.getBlockState(p_39786_)) ? false : p_39780_.distanceToSqr((double)p_39786_.getX() + 0.5D, (double)p_39786_.getY() + 0.5D, (double)p_39786_.getZ() + 0.5D) <= 64.0D;
+         return this.isValidBlock(p_39785_.getBlockState(p_39786_)) && isWithinUsableDistance(p_39780_, p_39786_);
       }, true);
    }
 

@@ -123,11 +123,7 @@ public abstract class RandomizableContainerBlockEntity extends BaseContainerBloc
    }
 
    public boolean stillValid(Player p_59619_) {
-      if (this.level.getBlockEntity(this.worldPosition) != this) {
-         return false;
-      } else {
-         return !(p_59619_.distanceToSqr((double)this.worldPosition.getX() + 0.5D, (double)this.worldPosition.getY() + 0.5D, (double)this.worldPosition.getZ() + 0.5D) > 64.0D);
-      }
+      return this.level.getBlockEntity(this.worldPosition) == this && this.isWithinUsableDistance(p_59619_, 8.0D);
    }
 
    public void clearContent() {

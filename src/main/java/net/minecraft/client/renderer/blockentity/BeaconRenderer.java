@@ -9,10 +9,11 @@ import java.util.List;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -106,7 +107,10 @@ public class BeaconRenderer implements BlockEntityRenderer<BeaconBlockEntity> {
       return 256;
    }
 
-   public boolean shouldRender(BeaconBlockEntity p_173531_, Vec3 p_173532_) {
-      return Vec3.atCenterOf(p_173531_.getBlockPos()).multiply(1.0D, 0.0D, 1.0D).closerThan(p_173532_.multiply(1.0D, 0.0D, 1.0D), (double)this.getViewDistance());
+   public boolean shouldRender(BeaconBlockEntity p_173531_, SectorVec3 p_173532_) {
+      BlockPos blockpos = p_173531_.getBlockPos();
+      double d0 = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, p_173532_.y(),
+            blockpos.getZ(), 0.5D).relativeTo(p_173532_).lengthSqr();
+      return d0 < (double)this.getViewDistance() * (double)this.getViewDistance();
    }
 }

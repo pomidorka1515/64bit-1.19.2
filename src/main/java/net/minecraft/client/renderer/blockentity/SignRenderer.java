@@ -23,6 +23,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -34,7 +35,7 @@ import net.minecraft.world.level.block.WallSignBlock;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -127,7 +128,14 @@ public class SignRenderer implements BlockEntityRenderer<SignBlockEntity> {
             return true;
          } else {
             Entity entity = minecraft.getCameraEntity();
-            return entity != null && entity.distanceToSqr(Vec3.atCenterOf(p_173642_.getBlockPos())) < (double)OUTLINE_RENDER_DISTANCE;
+            if (entity == null) {
+               return false;
+            }
+
+            BlockPos blockpos = p_173642_.getBlockPos();
+            SectorVec3 center = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
+                  (double)blockpos.getY() + 0.5D, blockpos.getZ(), 0.5D);
+            return entity.exactPositionDistanceToSqr(center) < (double)OUTLINE_RENDER_DISTANCE;
          }
       }
    }

@@ -23,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -64,7 +65,15 @@ public class BlockEntityRenderDispatcher implements ResourceManagerReloadListene
       BlockEntityRenderer<E> blockentityrenderer = this.getRenderer(p_112268_);
       if (blockentityrenderer != null) {
          if (p_112268_.hasLevel() && p_112268_.getType().isValid(p_112268_.getBlockState())) {
-            if (blockentityrenderer.shouldRender(p_112268_, this.camera.getPosition())) {
+            // A sector camera's Vec3 is only a legacy mirror. Derive an exact
+            // split position for the ordinary-camera fallback so every block
+            // entity range check uses the same precision-preserving API.
+            SectorVec3 cameraPosition = this.camera.exactPosition();
+            if (cameraPosition == null) {
+               cameraPosition = SectorVec3.fromApproximate(this.camera.getPosition().x,
+                     this.camera.getPosition().y, this.camera.getPosition().z);
+            }
+            if (blockentityrenderer.shouldRender(p_112268_, cameraPosition)) {
                tryRender(p_112268_, () -> {
                   setupAndRender(blockentityrenderer, p_112268_, p_112269_, p_112270_, p_112271_);
                });

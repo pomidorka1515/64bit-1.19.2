@@ -9,10 +9,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 import org.slf4j.Logger;
 
 public abstract class BlockEntity {
@@ -148,6 +150,24 @@ public abstract class BlockEntity {
 
    public BlockPos getBlockPos() {
       return this.worldPosition;
+   }
+
+   /**
+    * Tests the distance from a player to this block's center without rebuilding
+    * its long X/Z coordinates as an absolute double.
+    */
+   protected final boolean isWithinUsableDistance(Player p_155252_, double p_155253_) {
+      SectorVec3 position = p_155252_.exactPosition();
+      return position != null ? isWithinUsableDistance(position, this.worldPosition, p_155253_)
+            : p_155252_.distanceToSqr((double)this.worldPosition.getX() + 0.5D,
+                  (double)this.worldPosition.getY() + 0.5D, (double)this.worldPosition.getZ() + 0.5D) <= p_155253_ * p_155253_;
+   }
+
+   /** Exact variant shared by block-entity menu validation and regression tests. */
+   public static boolean isWithinUsableDistance(SectorVec3 p_155254_, BlockPos p_155255_, double p_155256_) {
+      SectorVec3 center = SectorVec3.fromBlockAndFraction(p_155255_.getX(), 0.5D,
+            (double)p_155255_.getY() + 0.5D, p_155255_.getZ(), 0.5D);
+      return p_155254_.relativeTo(center).lengthSqr() <= p_155256_ * p_155256_;
    }
 
    public BlockState getBlockState() {

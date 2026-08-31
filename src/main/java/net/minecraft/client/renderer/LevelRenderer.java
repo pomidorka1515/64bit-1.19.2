@@ -1280,7 +1280,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                BlockPos blockpos4 = blockentity1.getBlockPos();
                MultiBufferSource multibuffersource1 = multibuffersource$buffersource;
                p_109600_.pushPose();
-               p_109600_.translate((double)blockpos4.getX() - d0, (double)blockpos4.getY() - d1, (double)blockpos4.getZ() - d2);
+               this.translateBlockEntityToCamera(p_109600_, blockpos4, d0, d1, d2);
                SortedSet<BlockDestructionProgress> sortedset = this.destructionProgress.get(blockpos4);
                if (sortedset != null && !sortedset.isEmpty()) {
                   int j1 = sortedset.last().getProgress();
@@ -1304,7 +1304,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
          for(BlockEntity blockentity : this.globalBlockEntities) {
             BlockPos blockpos3 = blockentity.getBlockPos();
             p_109600_.pushPose();
-            p_109600_.translate((double)blockpos3.getX() - d0, (double)blockpos3.getY() - d1, (double)blockpos3.getZ() - d2);
+            this.translateBlockEntityToCamera(p_109600_, blockpos3, d0, d1, d2);
             this.blockEntityRenderDispatcher.render(blockentity, p_109601_, p_109600_, multibuffersource$buffersource);
             p_109600_.popPose();
          }
@@ -1452,6 +1452,23 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
    private void checkPoseStack(PoseStack p_109589_) {
       if (!p_109589_.clear()) {
          throw new IllegalStateException("Pose stack not empty");
+      }
+   }
+
+   /**
+    * Rebases a block entity's integral world position before it reaches the
+    * float-backed pose stack.  Unlike ordinary entities, block entities have
+    * an exact {@link BlockPos}; retaining those long X/Z components until this
+    * subtraction keeps models aligned with their intact hitboxes.
+    */
+   private void translateBlockEntityToCamera(PoseStack p_109514_, BlockPos p_109515_, double p_109516_, double p_109517_, double p_109518_) {
+      if (this.exactRenderCamera != null) {
+         p_109514_.translate(this.exactRenderCamera.relativeX(p_109515_.getX()),
+               this.exactRenderCamera.relativeY(p_109515_.getY()),
+               this.exactRenderCamera.relativeZ(p_109515_.getZ()));
+      } else {
+         p_109514_.translate((double)p_109515_.getX() - p_109516_, (double)p_109515_.getY() - p_109517_,
+               (double)p_109515_.getZ() - p_109518_);
       }
    }
 

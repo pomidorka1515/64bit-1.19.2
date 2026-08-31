@@ -60,11 +60,7 @@ public class EnderChestBlockEntity extends BlockEntity implements LidBlockEntity
    }
 
    public boolean stillValid(Player p_59283_) {
-      if (this.level.getBlockEntity(this.worldPosition) != this) {
-         return false;
-      } else {
-         return !(p_59283_.distanceToSqr((double)this.worldPosition.getX() + 0.5D, (double)this.worldPosition.getY() + 0.5D, (double)this.worldPosition.getZ() + 0.5D) > 64.0D);
-      }
+      return this.level.getBlockEntity(this.worldPosition) == this && this.isWithinUsableDistance(p_59283_, 8.0D);
    }
 
    public void recheckOpen() {

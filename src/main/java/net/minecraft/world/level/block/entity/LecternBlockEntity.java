@@ -81,7 +81,7 @@ public class LecternBlockEntity extends BlockEntity implements Clearable, MenuPr
          if (LecternBlockEntity.this.level.getBlockEntity(LecternBlockEntity.this.worldPosition) != LecternBlockEntity.this) {
             return false;
          } else {
-            return p_59588_.distanceToSqr((double)LecternBlockEntity.this.worldPosition.getX() + 0.5D, (double)LecternBlockEntity.this.worldPosition.getY() + 0.5D, (double)LecternBlockEntity.this.worldPosition.getZ() + 0.5D) > 64.0D ? false : LecternBlockEntity.this.hasBook();
+            return LecternBlockEntity.this.isWithinUsableDistance(p_59588_, 8.0D) && LecternBlockEntity.this.hasBook();
          }
       }
 

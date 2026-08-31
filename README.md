@@ -21,9 +21,10 @@ If you want to help and contribute, dm me on discord! `@pomidorka1515`
 
 
 # TODOs (regular people can ignore this)
-- Make all entities use SectorVec3
-- Make all block entities use SectorVec3
-- Sound system
+- ~~Make all entities use SectorVec3~~
+- Make entities stable without bugs and random tps spikes
+- ~~Make all block entities use SectorVec3~~
+- ~~Sound system~~
 - ~~Particles~~
 - ~~Structures crash game at boundary with no logs??~~
 - ~~Random collision issues at boundary, quicksand like~~

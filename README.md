@@ -19,7 +19,6 @@ If you want to help and contribute, dm me on discord! `@pomidorka1515`
  - click "Add to Minecraft.jar" -> select the jar you've downloaded
  - playy
 
-
 # TODOs (regular people can ignore this)
 - ~~Make all entities use SectorVec3~~
 - Make entities stable without bugs and random tps spikes

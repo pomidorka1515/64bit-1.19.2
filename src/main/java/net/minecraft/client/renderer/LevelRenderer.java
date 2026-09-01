@@ -972,7 +972,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
          LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo = p_194366_.poll();
          ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = levelrenderer$renderchunkinfo.chunk;
          p_194363_.add(levelrenderer$renderchunkinfo);
-         boolean flag = Math.abs(chunkrenderdispatcher$renderchunk.getOrigin().getX() - blockpos.getX()) > 60 || Math.abs(chunkrenderdispatcher$renderchunk.getOrigin().getY() - blockpos.getY()) > 60 || Math.abs(chunkrenderdispatcher$renderchunk.getOrigin().getZ() - blockpos.getZ()) > 60;
+         boolean flag = WorldBounds.distance(chunkrenderdispatcher$renderchunk.getOrigin().getX(), blockpos.getX()) > 60.0D
+               || Math.abs(chunkrenderdispatcher$renderchunk.getOrigin().getY() - blockpos.getY()) > 60
+               || WorldBounds.distance(chunkrenderdispatcher$renderchunk.getOrigin().getZ(), blockpos.getZ()) > 60.0D;
 
          for(Direction direction : DIRECTIONS) {
             ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk1 = this.getRelativeFrom(blockpos, chunkrenderdispatcher$renderchunk, direction);
@@ -1095,10 +1097,11 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
    @Nullable
    private ChunkRenderDispatcher.RenderChunk getRelativeFrom(BlockPos p_109729_, ChunkRenderDispatcher.RenderChunk p_109730_, Direction p_109731_) {
       BlockPos blockpos = p_109730_.getRelativeOrigin(p_109731_);
-      if (Mth.abs(p_109729_.getX() - blockpos.getX()) > this.lastViewDistance * 16) {
+      double viewDiameter = (double)this.lastViewDistance * 16.0D;
+      if (WorldBounds.distance(p_109729_.getX(), blockpos.getX()) > viewDiameter) {
          return null;
-      } else if (Mth.abs(p_109729_.getY() - blockpos.getY()) <= this.lastViewDistance * 16 && blockpos.getY() >= this.level.getMinBuildHeight() && blockpos.getY() < this.level.getMaxBuildHeight()) {
-         return Mth.abs(p_109729_.getZ() - blockpos.getZ()) > this.lastViewDistance * 16 ? null : this.viewArea.getRenderChunkAt(blockpos);
+      } else if (Math.abs(p_109729_.getY() - blockpos.getY()) <= viewDiameter && blockpos.getY() >= this.level.getMinBuildHeight() && blockpos.getY() < this.level.getMaxBuildHeight()) {
+         return WorldBounds.distance(p_109729_.getZ(), blockpos.getZ()) > viewDiameter ? null : this.viewArea.getRenderChunkAt(blockpos);
       } else {
          return null;
       }
@@ -2511,10 +2514,16 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
    }
 
    public void setSectionDirtyWithNeighbors(long p_109491_, int p_109492_, long p_109493_) {
-      for(long i = p_109493_ - 1; i <= p_109493_ + 1; ++i) {
-         for(long j = p_109491_ - 1; j <= p_109491_ + 1; ++j) {
-            for(int k = p_109492_ - 1; k <= p_109492_ + 1; ++k) {
-               this.setSectionDirty(j, k, i);
+      for(long zOffset = -1L; zOffset <= 1L; ++zOffset) {
+         Long sectionZ = WorldBounds.tryAddChunkOffset(p_109493_, zOffset);
+         if (sectionZ == null) continue;
+
+         for(long xOffset = -1L; xOffset <= 1L; ++xOffset) {
+            Long sectionX = WorldBounds.tryAddChunkOffset(p_109491_, xOffset);
+            if (sectionX == null) continue;
+
+            for(int sectionY = p_109492_ - 1; sectionY <= p_109492_ + 1; ++sectionY) {
+               this.setSectionDirty(sectionX, sectionY, sectionZ);
             }
          }
       }

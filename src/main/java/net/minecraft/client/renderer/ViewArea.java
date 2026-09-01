@@ -67,25 +67,27 @@ public class ViewArea {
       this.chunkGridSizeZ = i;
    }
 
+   static long firstChunkInView(long centerChunk, int gridSize) {
+      long span = (long)gridSize - 1L;
+      long first = WorldBounds.addChunkOffset(centerChunk, -(long)gridSize / 2L);
+      return Math.min(first, WorldBounds.MAX_CHUNK - span);
+   }
+
    public void repositionCamera(SectorVec3 exactCamera) {
-      long viewWidthBlocks = (long)this.chunkGridSizeX * 16L;
-      long viewDepthBlocks = (long)this.chunkGridSizeZ * 16L;
-      long minChunkX = WorldBounds.addChunkOffset(Math.floorDiv(exactCamera.blockX(), 16L), -(long)this.chunkGridSizeX / 2L);
-      long minChunkZ = WorldBounds.addChunkOffset(Math.floorDiv(exactCamera.blockZ(), 16L), -(long)this.chunkGridSizeZ / 2L);
-      long minBlockX = WorldBounds.chunkToBlock(minChunkX);
-      long minBlockZ = WorldBounds.chunkToBlock(minChunkZ);
+      long firstChunkX = firstChunkInView(Math.floorDiv(exactCamera.blockX(), 16L), this.chunkGridSizeX);
+      long firstChunkZ = firstChunkInView(Math.floorDiv(exactCamera.blockZ(), 16L), this.chunkGridSizeZ);
 
       for(int xIndex = 0; xIndex < this.chunkGridSizeX; ++xIndex) {
-         long xOffset = (long)xIndex * 16L;
-         long blockX = WorldBounds.addBlockOffset(minBlockX, Math.floorMod(xOffset - Math.floorMod(minBlockX, viewWidthBlocks), viewWidthBlocks));
+         long chunkX = firstChunkX + xIndex;
+         long blockX = WorldBounds.chunkToBlock(chunkX);
 
          for(int zIndex = 0; zIndex < this.chunkGridSizeZ; ++zIndex) {
-            long zOffset = (long)zIndex * 16L;
-            long blockZ = WorldBounds.addBlockOffset(minBlockZ, Math.floorMod(zOffset - Math.floorMod(minBlockZ, viewDepthBlocks), viewDepthBlocks));
+            long chunkZ = firstChunkZ + zIndex;
+            long blockZ = WorldBounds.chunkToBlock(chunkZ);
 
             for(int yIndex = 0; yIndex < this.chunkGridSizeY; ++yIndex) {
                int blockY = this.level.getMinBuildHeight() + yIndex * 16;
-               ChunkRenderDispatcher.RenderChunk chunk = this.chunks[this.getChunkIndex((long)xIndex, yIndex, (long)zIndex)];
+               ChunkRenderDispatcher.RenderChunk chunk = this.chunks[this.getChunkIndex(chunkX, yIndex, chunkZ)];
                BlockPos origin = chunk.getOrigin();
                if (blockX != origin.getX() || blockY != origin.getY() || blockZ != origin.getZ()) {
                   chunk.setOrigin(blockX, blockY, blockZ);
@@ -100,24 +102,27 @@ public class ViewArea {
    }
 
    public void setDirty(long p_110860_, int p_110861_, long p_110862_, boolean p_110863_) {
-      long i = Math.floorMod(p_110860_, (long)this.chunkGridSizeX);
-      int j = Math.floorMod(p_110861_ - this.level.getMinSection(), this.chunkGridSizeY);
-      long k = Math.floorMod(p_110862_, (long)this.chunkGridSizeZ);
-      ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = this.chunks[this.getChunkIndex(i, j, k)];
-      chunkrenderdispatcher$renderchunk.setDirty(p_110863_);
+      int j = p_110861_ - this.level.getMinSection();
+      if (j < 0 || j >= this.chunkGridSizeY || !WorldBounds.isValidChunk(p_110860_, p_110862_)) return;
+
+      ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = this.chunks[this.getChunkIndex(p_110860_, j, p_110862_)];
+      BlockPos origin = chunkrenderdispatcher$renderchunk.getOrigin();
+      if (origin.getX() == WorldBounds.chunkToBlock(p_110860_) && origin.getY() == this.level.getMinBuildHeight() + j * 16
+            && origin.getZ() == WorldBounds.chunkToBlock(p_110862_)) {
+         chunkrenderdispatcher$renderchunk.setDirty(p_110863_);
+      }
    }
 
    @Nullable
    protected ChunkRenderDispatcher.RenderChunk getRenderChunkAt(BlockPos p_110867_) {
-      long i = Math.floorDiv((long)p_110867_.getX(), 16L);
+      long i = Math.floorDiv(p_110867_.getX(), 16L);
       int j = Mth.intFloorDiv(p_110867_.getY() - this.level.getMinBuildHeight(), 16);
-      long k = Math.floorDiv((long)p_110867_.getZ(), 16L);
-      if (j >= 0 && j < this.chunkGridSizeY) {
-         i = Math.floorMod(i, (long)this.chunkGridSizeX);
-         k = Math.floorMod(k, (long)this.chunkGridSizeZ);
-         return this.chunks[this.getChunkIndex(i, j, k)];
-      } else {
-         return null;
-      }
+      long k = Math.floorDiv(p_110867_.getZ(), 16L);
+      if (j < 0 || j >= this.chunkGridSizeY || !WorldBounds.isValidChunk(i, k)) return null;
+
+      ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = this.chunks[this.getChunkIndex(i, j, k)];
+      BlockPos origin = chunkrenderdispatcher$renderchunk.getOrigin();
+      return origin.getX() == WorldBounds.chunkToBlock(i) && origin.getY() == this.level.getMinBuildHeight() + j * 16
+            && origin.getZ() == WorldBounds.chunkToBlock(k) ? chunkrenderdispatcher$renderchunk : null;
    }
 }

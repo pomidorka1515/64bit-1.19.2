@@ -11,6 +11,7 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
+import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.junit.jupiter.api.Test;
 
@@ -76,6 +77,27 @@ class WorldBoundsTest {
       assertEquals(1.0D, WorldBounds.clampNoise(Double.POSITIVE_INFINITY));
       assertEquals(WorldBounds.MAX_BLOCK - 15L, WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK));
       assertEquals(WorldBounds.MIN_BLOCK, WorldBounds.chunkToBlock(WorldBounds.MIN_CHUNK));
+   }
+
+   @Test
+   void sectionNotificationsAtWorldEdgesNeverWrapToTheOppositeSide() {
+      List<SectionPos> atMaximum = new ArrayList<>();
+      SectionPos.aroundAndAtBlockPos(Long.MAX_VALUE, 64, Long.MAX_VALUE, atMaximum::add);
+      assertTrue(atMaximum.stream().allMatch(section -> section.x() >= WorldBounds.MAX_CHUNK - 1L && section.x() <= WorldBounds.MAX_CHUNK
+            && section.z() >= WorldBounds.MAX_CHUNK - 1L && section.z() <= WorldBounds.MAX_CHUNK));
+
+      List<SectionPos> atMinimum = new ArrayList<>();
+      SectionPos.aroundAndAtBlockPos(Long.MIN_VALUE, 64, Long.MIN_VALUE, atMinimum::add);
+      assertTrue(atMinimum.stream().allMatch(section -> section.x() >= WorldBounds.MIN_CHUNK && section.x() <= WorldBounds.MIN_CHUNK + 1L
+            && section.z() >= WorldBounds.MIN_CHUNK && section.z() <= WorldBounds.MIN_CHUNK + 1L));
+   }
+
+   @Test
+   void sectionRangesAtWorldEdgesRemainInsideTheChunkDomain() {
+      assertTrue(SectionPos.cube(SectionPos.of(WorldBounds.MAX_CHUNK, 0, WorldBounds.MAX_CHUNK), 2)
+            .allMatch(section -> WorldBounds.isValidChunk(section.x(), section.z())));
+      assertTrue(SectionPos.aroundChunk(new ChunkPos(WorldBounds.MIN_CHUNK, WorldBounds.MIN_CHUNK), 2, 0, 1)
+            .allMatch(section -> WorldBounds.isValidChunk(section.x(), section.z())));
    }
 
    @Test

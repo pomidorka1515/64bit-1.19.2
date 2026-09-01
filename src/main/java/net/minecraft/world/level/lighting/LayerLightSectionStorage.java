@@ -12,6 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.SectionTracker;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.DataLayer;
 import net.minecraft.world.level.chunk.LightChunkGetter;
 
@@ -45,22 +46,28 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
       this.visibleSectionData.disableCache();
    }
 
+   private static boolean isValidSection(SectionPos sectionPos) {
+      return WorldBounds.isValidChunk(sectionPos.x(), sectionPos.z());
+   }
+
    protected boolean storingLightForSection(SectionPos p_75792_) {
-      return this.getDataLayer(p_75792_, true) != null;
+      return isValidSection(p_75792_) && this.getDataLayer(p_75792_, true) != null;
    }
 
    @Nullable
    protected DataLayer getDataLayer(SectionPos p_75759_, boolean p_75760_) {
-      return this.getDataLayer((M)(p_75760_ ? this.updatingSectionData : this.visibleSectionData), p_75759_);
+      return isValidSection(p_75759_) ? this.getDataLayer((M)(p_75760_ ? this.updatingSectionData : this.visibleSectionData), p_75759_) : null;
    }
 
    @Nullable
    protected DataLayer getDataLayer(M p_75762_, SectionPos p_75763_) {
-      return p_75762_.getLayer(p_75763_);
+      return isValidSection(p_75763_) ? p_75762_.getLayer(p_75763_) : null;
    }
 
    @Nullable
    public DataLayer getDataLayerData(SectionPos p_75794_) {
+      if (!isValidSection(p_75794_)) return null;
+
       DataLayer datalayer = this.queuedSections.get(p_75794_);
       return datalayer != null ? datalayer : this.getDataLayer(p_75794_, false);
    }
@@ -87,7 +94,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
    }
 
    protected int getLevel(SectionPos p_75781_) {
-      if (p_75781_ == null) {
+      if (p_75781_ == null || !isValidSection(p_75781_)) {
          return 2;
       } else if (this.dataSectionSet.contains(p_75781_)) {
          return 0;
@@ -97,7 +104,9 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
    }
 
    protected int getLevelFromSource(SectionPos p_75771_) {
-      if (this.toMarkNoData.contains(p_75771_)) {
+      if (!isValidSection(p_75771_)) {
+         return 2;
+      } else if (this.toMarkNoData.contains(p_75771_)) {
          return 2;
       } else {
          return !this.dataSectionSet.contains(p_75771_) && !this.toMarkData.contains(p_75771_) ? 2 : 0;
@@ -105,6 +114,8 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
    }
 
    protected void setLevel(SectionPos p_75749_, int p_75750_) {
+      if (!isValidSection(p_75749_)) return;
+
       int i = this.getLevel(p_75749_);
       if (i != 0 && p_75750_ == 0) {
          this.dataSectionSet.add(p_75749_);
@@ -128,9 +139,15 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
             long l = p_75749_.z();
 
             for(int i1 = -1; i1 <= 1; ++i1) {
+               Long affectedZ = WorldBounds.tryAddChunkOffset(l, i1);
+               if (affectedZ == null) continue;
+
                for(int j1 = -1; j1 <= 1; ++j1) {
+                  Long affectedX = WorldBounds.tryAddChunkOffset(j, j1);
+                  if (affectedX == null) continue;
+
                   for(int k1 = -1; k1 <= 1; ++k1) {
-                     this.sectionsAffectedByLightUpdates.add(SectionPos.of(j + j1, k + k1, l + i1));
+                     this.sectionsAffectedByLightUpdates.add(SectionPos.of(affectedX, k + k1, affectedZ));
                   }
                }
             }
@@ -289,6 +306,8 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
    }
 
    public void retainData(SectionPos p_75783_, boolean p_75784_) {
+      if (!isValidSection(p_75783_)) return;
+
       if (p_75784_) {
          this.columnsToRetainQueuedDataFor.add(p_75783_);
       } else {
@@ -298,6 +317,8 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
    }
 
    protected void queueSectionData(SectionPos p_75755_, @Nullable DataLayer p_75756_, boolean p_75757_) {
+      if (!isValidSection(p_75755_)) return;
+
       if (p_75756_ != null) {
          this.queuedSections.put(p_75755_, p_75756_);
          if (!p_75757_) {
@@ -310,6 +331,8 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
    }
 
    protected void updateSectionStatus(SectionPos p_75788_, boolean p_75789_) {
+      if (!isValidSection(p_75788_)) return;
+
       boolean flag = this.dataSectionSet.contains(p_75788_);
       if (!flag && !p_75789_) {
          this.toMarkData.add(p_75788_);

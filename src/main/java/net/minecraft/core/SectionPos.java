@@ -7,6 +7,7 @@ import java.util.stream.StreamSupport;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.entity.EntityAccess;
 
@@ -201,13 +202,15 @@ public class SectionPos extends Vec3i {
       long i = p_123202_.x();
       int j = p_123202_.y();
       long k = p_123202_.z();
-      return betweenClosedStream(i - p_123203_, j - p_123203_, k - p_123203_, i + p_123203_, j + p_123203_, k + p_123203_);
+      return betweenClosedStream(WorldBounds.addChunkOffset(i, -(long)p_123203_), j - p_123203_, WorldBounds.addChunkOffset(k, -(long)p_123203_),
+            WorldBounds.addChunkOffset(i, p_123203_), j + p_123203_, WorldBounds.addChunkOffset(k, p_123203_));
    }
 
    public static Stream<SectionPos> aroundChunk(ChunkPos p_175558_, int p_175559_, int p_175560_, int p_175561_) {
 	   long i = p_175558_.x;
       long j = p_175558_.z;
-      return betweenClosedStream(i - p_175559_, p_175560_, j - p_175559_, i + p_175559_, p_175561_ - 1, j + p_175559_);
+      return betweenClosedStream(WorldBounds.addChunkOffset(i, -(long)p_175559_), p_175560_, WorldBounds.addChunkOffset(j, -(long)p_175559_),
+            WorldBounds.addChunkOffset(i, p_175559_), p_175561_ - 1, WorldBounds.addChunkOffset(j, p_175559_));
    }
 
    public static Stream<SectionPos> betweenClosedStream(final long p_123178_, final int p_123179_, final long p_123180_, final long p_123181_, final int p_123182_, final long p_123183_) {
@@ -234,12 +237,12 @@ public class SectionPos extends Vec3i {
    }
 
    public static void aroundAndAtBlockPos(long p_194635_, int p_194636_, long p_194637_, Consumer<SectionPos> p_194638_) {
-	  long i = blockToSectionCoord(p_194635_ - 1);
-	  long j = blockToSectionCoord(p_194635_ + 1);
+	  long i = blockToSectionCoord(WorldBounds.addBlockOffset(p_194635_, -1L));
+	  long j = blockToSectionCoord(WorldBounds.addBlockOffset(p_194635_, 1L));
       int k = blockToSectionCoord(p_194636_ - 1);
       int l = blockToSectionCoord(p_194636_ + 1);
-      long i1 = blockToSectionCoord(p_194637_ - 1);
-      long j1 = blockToSectionCoord(p_194637_ + 1);
+      long i1 = blockToSectionCoord(WorldBounds.addBlockOffset(p_194637_, -1L));
+      long j1 = blockToSectionCoord(WorldBounds.addBlockOffset(p_194637_, 1L));
       if (i == j && k == l && i1 == j1) {
          p_194638_.accept(new SectionPos(i, k, i1));
       } else {

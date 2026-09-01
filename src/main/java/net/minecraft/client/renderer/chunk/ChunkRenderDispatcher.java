@@ -333,7 +333,10 @@ public class ChunkRenderDispatcher {
       }
 
       private boolean doesChunkExistAt(BlockPos p_112823_) {
-         return ChunkRenderDispatcher.this.level.getChunk(SectionPos.blockToSectionCoord(p_112823_.getX()), SectionPos.blockToSectionCoord(p_112823_.getZ()), ChunkStatus.FULL, false) != null;
+         long chunkX = SectionPos.blockToSectionCoord(p_112823_.getX());
+         long chunkZ = SectionPos.blockToSectionCoord(p_112823_.getZ());
+         return WorldBounds.isValidChunk(chunkX, chunkZ)
+               && ChunkRenderDispatcher.this.level.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false) != null;
       }
 
       public boolean hasAllNeighbors() {

@@ -190,7 +190,7 @@ public abstract class PathNavigation {
             } else {
                this.speedModifier = p_26538_;
                this.lastStuckCheck = this.tick;
-               this.lastStuckCheckPos = this.mob.sectorPosition();
+               this.lastStuckCheckPos = this.getTempMobSectorPos();
                return true;
             }
          }
@@ -213,8 +213,9 @@ public abstract class PathNavigation {
             this.followThePath();
          } else if (this.path != null && !this.path.isDone()) {
             SectorVec3 next = this.path.getNextExactEntityPos(this.mob);
-            if (this.mob.getY() > next.y() && !this.mob.isOnGround()
-                  && this.mob.getBlockX() == next.blockX() && this.mob.getBlockZ() == next.blockZ()) {
+            SectorVec3 mobPosition = this.getTempMobSectorPos();
+            if (mobPosition.y() > next.y() && !this.mob.isOnGround()
+                  && mobPosition.blockX() == next.blockX() && mobPosition.blockZ() == next.blockZ()) {
                this.path.advance();
             }
          }
@@ -259,11 +260,12 @@ public abstract class PathNavigation {
       }
       SectorVec3 currentNode = SectorVec3.fromBlockAndFraction(this.path.getNextNode().x, 0.5D,
             (double)this.path.getNextNode().y, this.path.getNextNode().z, 0.5D);
-      Vec3 mobFromNode = this.mob.sectorPosition().relativeTo(currentNode);
+      SectorVec3 mobPosition = this.getTempMobSectorPos();
+      Vec3 mobFromNode = mobPosition.relativeTo(currentNode);
       if (mobFromNode.lengthSqr() >= 4.0D) return false;
 
       SectorVec3 target = this.path.getNextExactEntityPos(this.mob);
-      if (this.canMoveDirectlyLocal(this.mob.sectorPosition(), target)) return true;
+      if (this.canMoveDirectlyLocal(mobPosition, target)) return true;
 
       Node following = this.path.getNode(this.path.getNextNodeIndex() + 1);
       Vec3 nextDirection = SectorVec3.fromBlockAndFraction(following.x, 0.5D, (double)following.y,
@@ -276,7 +278,7 @@ public abstract class PathNavigation {
    }
 
    protected void doStuckDetection() {
-      SectorVec3 mobPosition = this.mob.sectorPosition();
+      SectorVec3 mobPosition = this.getTempMobSectorPos();
       if (this.tick - this.lastStuckCheck > 100) {
          if (this.lastStuckCheckPos != null
                && mobPosition.relativeTo(this.lastStuckCheckPos).lengthSqr() < 2.25D) {
@@ -320,7 +322,7 @@ public abstract class PathNavigation {
       this.timeoutCachedNode = Vec3i.ZERO;
       this.timeoutTimer = 0L;
       this.timeoutLimit = 0.0D;
-      this.lastStuckCheckPos = this.mob.sectorPosition();
+      this.lastStuckCheckPos = this.getTempMobSectorPos();
       this.isStuck = false;
    }
 
@@ -334,6 +336,14 @@ public abstract class PathNavigation {
 
    public void stop() {
       this.path = null;
+   }
+
+   /**
+    * Navigation's reference point. Specialized navigators override this to
+    * preserve their vanilla surface/body-center semantics in exact coordinates.
+    */
+   protected SectorVec3 getTempMobSectorPos() {
+      return this.mob.sectorPosition();
    }
 
    protected abstract boolean canUpdatePath();

@@ -1,6 +1,7 @@
 package net.minecraft.world.phys;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +39,21 @@ class SectorAABBTest {
       assertEquals((1L << 53) + 1L, box.maxBlockX());
       assertEquals(0.5D, box.maxSubX(), 1.0E-12D);
       assertEquals(6.0D, box.minY(), 0.0D);
+   }
+
+   @Test
+   void equalExactBoxesCanBeUsedAsCollisionCacheKeys() {
+      SectorVec3 position = SectorVec3.fromBlockAndFraction(1L << 53, 0.25D, 64.0D,
+            -(1L << 53), 0.75D);
+      SectorAABB first = SectorAABB.around(position, 0.6D, 1.8D).move(1.0D, 0.0D, -1.0D);
+      SectorAABB equivalent = new SectorAABB((1L << 53), 0.95D, 64.0D, -(1L << 53) - 1L,
+            0.44999999999999996D, (1L << 53) + 1L, 0.55D, 65.8D, -(1L << 53),
+            0.050000000000000044D);
+      SectorAABB different = equivalent.move(0.0D, 1.0D, 0.0D);
+
+      assertEquals(first, equivalent);
+      assertEquals(first.hashCode(), equivalent.hashCode());
+      assertNotEquals(first, different);
    }
 
    @Test

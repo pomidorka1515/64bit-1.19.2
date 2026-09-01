@@ -9,7 +9,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.FlyNodeEvaluator;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.PathFinder;
-import net.minecraft.world.phys.Vec3;
 
 public class FlyingPathNavigation extends PathNavigation {
    public FlyingPathNavigation(Mob p_26424_, Level p_26425_) {
@@ -26,6 +25,11 @@ public class FlyingPathNavigation extends PathNavigation {
       return this.canFloat() && this.isInLiquid() || !this.mob.isPassenger();
    }
 
+   @Override
+   protected net.minecraft.world.phys.SectorVec3 getTempMobSectorPos() {
+      return this.mob.sectorPosition();
+   }
+
    public Path createPath(Entity p_26430_, int p_26431_) {
       return this.createPath(p_26430_.blockPosition(), p_26431_);
    }
@@ -40,8 +44,9 @@ public class FlyingPathNavigation extends PathNavigation {
          if (this.canUpdatePath()) {
             this.followThePath();
          } else if (this.path != null && !this.path.isDone()) {
-            Vec3 vec3 = this.path.getNextEntityPos(this.mob);
-            if (this.mob.getBlockX() == Mth.lfloor(vec3.x) && this.mob.getBlockY() == Mth.floor(vec3.y) && this.mob.getBlockZ() == Mth.lfloor(vec3.z)) {
+            net.minecraft.world.phys.SectorVec3 next = this.path.getNextExactEntityPos(this.mob);
+            if (this.mob.getBlockX() == next.blockX() && this.mob.getBlockY() == Mth.floor(next.y())
+                  && this.mob.getBlockZ() == next.blockZ()) {
                this.path.advance();
             }
          }

@@ -22,6 +22,11 @@ public class AmphibiousPathNavigation extends PathNavigation {
       return true;
    }
 
+   @Override
+   protected net.minecraft.world.phys.SectorVec3 getTempMobSectorPos() {
+      return this.mob.sectorPosition().add(0.0D, (double)this.mob.getBbHeight() * 0.5D, 0.0D);
+   }
+
    protected double getGroundY(Vec3 p_217794_) {
       return p_217794_.y;
    }

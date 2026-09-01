@@ -25,6 +25,11 @@ public class WaterBoundPathNavigation extends PathNavigation {
       return this.allowBreaching || this.isInLiquid();
    }
 
+   @Override
+   protected net.minecraft.world.phys.SectorVec3 getTempMobSectorPos() {
+      return this.mob.sectorPosition().add(0.0D, (double)this.mob.getBbHeight() * 0.5D, 0.0D);
+   }
+
    protected double getGroundY(Vec3 p_186136_) {
       return p_186136_.y;
    }

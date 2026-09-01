@@ -2,6 +2,8 @@ package net.minecraft.world.level.pathfinder;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -26,6 +28,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -33,15 +38,25 @@ public class WalkNodeEvaluator extends NodeEvaluator {
    public static final double SPACE_BETWEEN_WALL_POSTS = 0.5D;
    protected float oldWaterCost;
    private final Object2ObjectMap<BlockPos, BlockPathTypes> pathTypesByPosCache = new Object2ObjectOpenHashMap<>();
+   /**
+    * Path expansion revisits the same clearance volumes through several neighboring
+    * nodes. Keep the exact split-coordinate box as the key so a search scans each
+    * volume once without collapsing distinct far-coordinate boxes into doubles.
+    */
+   private final Object2BooleanMap<SectorAABB> collisionCache = new Object2BooleanOpenHashMap<>();
 
    public void prepare(PathNavigationRegion p_77620_, Mob p_77621_) {
       super.prepare(p_77620_, p_77621_);
+      // Keep this cache strictly scoped to one search even when a previous
+      // search exits before PathFinder reaches its normal done() callback.
+      this.collisionCache.clear();
       this.oldWaterCost = p_77621_.getPathfindingMalus(BlockPathTypes.WATER);
    }
 
    public void done() {
       this.mob.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
       this.pathTypesByPosCache.clear();
+      this.collisionCache.clear();
       super.done();
    }
 
@@ -84,7 +99,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
       BlockPos blockpos1 = this.mob.blockPosition();
       BlockPathTypes blockpathtypes = this.getCachedBlockType(this.mob, blockpos1.getX(), i, blockpos1.getZ());
       if (this.mob.getPathfindingMalus(blockpathtypes) < 0.0F) {
-         net.minecraft.world.phys.SectorAABB box = this.mob.getSectorBoundingBox();
+         SectorAABB box = this.mob.getSectorBoundingBox();
          long minX = box.minBlockXForRange();
          long maxX = box.maxBlockXForRangeInclusive();
          long minZ = box.minBlockZForRange();
@@ -202,8 +217,8 @@ public class WalkNodeEvaluator extends NodeEvaluator {
    }
 
    private boolean canReachWithoutCollision(Node p_77625_) {
-      net.minecraft.world.phys.SectorAABB box = this.mob.getSectorBoundingBox();
-      Vec3 delta = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_77625_.x, 0.5D,
+      SectorAABB box = this.mob.getSectorBoundingBox();
+      Vec3 delta = SectorVec3.fromBlockAndFraction(p_77625_.x, 0.5D,
             (double)p_77625_.y, p_77625_.z, 0.5D).relativeTo(this.mob.sectorPosition());
       double boxSize = Math.max((double)this.mob.getBbWidth(), (double)this.mob.getBbHeight());
       int steps = Math.max(1, Mth.ceil(delta.length() / boxSize));
@@ -260,8 +275,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
                         blockpos$mutableblockpos.set(previousX, p_164727_ + 1, previousZ)) + 0.001D;
                   double maxY = (double)this.mob.getBbHeight() + getFloorLevel(this.level,
                         blockpos$mutableblockpos.set(node.x, node.y, node.z)) - 0.002D;
-                  net.minecraft.world.phys.SectorAABB box = net.minecraft.world.phys.SectorAABB.around(
-                        net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(previousX, 0.5D,
+                  SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(previousX, 0.5D,
                               minY, previousZ, 0.5D), d1 * 2.0D, Math.max(0.0D, maxY - minY));
                   if (this.hasCollisions(box)) node = null;
                }
@@ -348,13 +362,20 @@ public class WalkNodeEvaluator extends NodeEvaluator {
       return node;
    }
 
-   private boolean hasCollisions(net.minecraft.world.phys.SectorAABB box) {
-      net.minecraft.world.phys.SectorPhysicsOrigin origin = net.minecraft.world.phys.SectorPhysicsOrigin.from(
-            this.mob.sectorPosition());
+   private boolean hasCollisions(SectorAABB box) {
+      return this.collisionCache.computeIfAbsent(box, this::scanCollisions);
+   }
+
+   /** Evaluates an exact box in a small local frame without reconstructing global doubles. */
+   private boolean scanCollisions(SectorAABB box) {
+      SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(this.mob.sectorPosition());
       for (VoxelShape shape : this.level.getSectorBlockCollisions(this.mob, box,
             box.toLocalAABB(origin), origin)) {
          if (!shape.isEmpty()) return true;
       }
+      // PathNavigationRegion deliberately excludes entities, matching vanilla's
+      // path-search world snapshot. Dynamic entity avoidance remains a runtime
+      // movement concern rather than an A* cache entry.
       return false;
    }
 

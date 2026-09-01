@@ -31,6 +31,11 @@ public class GroundPathNavigation extends PathNavigation {
       return this.mob.isOnGround() || this.isInLiquid() || this.mob.isPassenger();
    }
 
+   @Override
+   protected net.minecraft.world.phys.SectorVec3 getTempMobSectorPos() {
+      return this.mob.sectorPosition().withY((double)this.getSurfaceY());
+   }
+
    public Path createPath(BlockPos p_26475_, int p_26476_) {
       if (this.level.getBlockState(p_26475_).isAir()) {
          BlockPos blockpos;

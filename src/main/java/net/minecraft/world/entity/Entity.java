@@ -705,7 +705,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    /** Exact world-space player box. X/Z endpoints remain split coordinates. */
    public final SectorAABB getSectorBoundingBox() {
-      return SectorAABB.around(this.sectorPosition(), (double)this.getBbWidth(), (double)this.getBbHeight());
+      SectorAABB exactBox = this.bb.getSectorBounds();
+      return exactBox != null ? exactBox : SectorAABB.around(this.sectorPosition(),
+            (double)this.getBbWidth(), (double)this.getBbHeight());
    }
 
    /** Local physics box. Values are small; the exact world position is never converted to a double here. */

@@ -154,6 +154,31 @@ public final class SectorAABB {
             this.maxY - origin.originBlockY(), this.maxZ.toLocal(origin.originBlockZ()));
    }
 
+   /**
+    * Sector boxes are immutable value objects. Structural equality is important
+    * for pathfinding's per-search collision cache; reference identity would turn
+    * each reconstructed clearance box into a cache miss.
+    */
+   @Override
+   public boolean equals(Object object) {
+      if (this == object) return true;
+      if (!(object instanceof SectorAABB)) return false;
+      SectorAABB other = (SectorAABB)object;
+      return this.minX.equals(other.minX) && Double.compare(this.minY, other.minY) == 0
+            && this.minZ.equals(other.minZ) && this.maxX.equals(other.maxX)
+            && Double.compare(this.maxY, other.maxY) == 0 && this.maxZ.equals(other.maxZ);
+   }
+
+   @Override
+   public int hashCode() {
+      int result = this.minX.hashCode();
+      result = 31 * result + Double.hashCode(this.minY);
+      result = 31 * result + this.minZ.hashCode();
+      result = 31 * result + this.maxX.hashCode();
+      result = 31 * result + Double.hashCode(this.maxY);
+      return 31 * result + this.maxZ.hashCode();
+   }
+
    private SectorAABB withEndpoints(Endpoint minX, double minY, Endpoint minZ,
                                      Endpoint maxX, double maxY, Endpoint maxZ) {
       return new SectorAABB(minX.block, minX.fraction, minY, minZ.block, minZ.fraction,
@@ -217,6 +242,19 @@ public final class SectorAABB {
       private int compareTo(Endpoint other) {
          int result = Long.compare(this.block, other.block);
          return result != 0 ? result : Double.compare(this.fraction, other.fraction);
+      }
+
+      @Override
+      public boolean equals(Object object) {
+         if (this == object) return true;
+         if (!(object instanceof Endpoint)) return false;
+         Endpoint other = (Endpoint)object;
+         return this.block == other.block && Double.compare(this.fraction, other.fraction) == 0;
+      }
+
+      @Override
+      public int hashCode() {
+         return 31 * Long.hashCode(this.block) + Double.hashCode(this.fraction);
       }
 
       private long floorMinusEpsilon() {

@@ -120,13 +120,21 @@ public class RandomPos {
       long offsetZ = offset.getZ();
       if (mob.hasRestriction() && horizontalRange > 1) {
          BlockPos restriction = mob.getRestrictCenter();
-         if (mob.getBlockX() > restriction.getX()) {
+         // Vanilla compares the mob's coordinate with the restriction block's
+         // lower corner. Keep that behavior using the exact fractional component;
+         // comparing only getBlockX/Z made every mob in the center block choose
+         // the same outward adjustment.
+         boolean eastOfRestriction = mob.getBlockX() > restriction.getX()
+               || mob.getBlockX() == restriction.getX() && mob.sectorPosition().subX() > 0.0D;
+         if (eastOfRestriction) {
             offsetX -= random.nextInt(horizontalRange / 2);
          } else {
             offsetX += random.nextInt(horizontalRange / 2);
          }
 
-         if (mob.getBlockZ() > restriction.getZ()) {
+         boolean southOfRestriction = mob.getBlockZ() > restriction.getZ()
+               || mob.getBlockZ() == restriction.getZ() && mob.sectorPosition().subZ() > 0.0D;
+         if (southOfRestriction) {
             offsetZ -= random.nextInt(horizontalRange / 2);
          } else {
             offsetZ += random.nextInt(horizontalRange / 2);

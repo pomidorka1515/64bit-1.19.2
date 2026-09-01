@@ -43,13 +43,17 @@ public final class ImprovedNoise {
    /** @deprecated */
    @Deprecated
    public double noise(double p_75328_, double p_75329_, double p_75330_, double p_75331_, double p_75332_) {
+      return this.noise(p_75328_, p_75329_, p_75330_, p_75331_, p_75332_, FarlandsMode.isEnabled());
+   }
+
+   /** Selects the cell-floor arithmetic for legacy BlendedNoise sampling only. */
+   double noise(double p_75328_, double p_75329_, double p_75330_, double p_75331_, double p_75332_, boolean useLegacy32BitFloor) {
       double d0 = p_75328_ + this.xo;
       double d1 = p_75329_ + this.yo;
       double d2 = p_75330_ + this.zo;
-      boolean farlands = FarlandsMode.isEnabled();
-      long i = FarlandsMode.floor(d0, farlands);
-      long j = FarlandsMode.floor(d1, farlands);
-      long k = FarlandsMode.floor(d2, farlands);
+      long i = FarlandsMode.floor(d0, useLegacy32BitFloor);
+      long j = FarlandsMode.floor(d1, useLegacy32BitFloor);
+      long k = FarlandsMode.floor(d2, useLegacy32BitFloor);
       double d3 = d0 - (double)i;
       double d4 = d1 - (double)j;
       double d5 = d2 - (double)k;

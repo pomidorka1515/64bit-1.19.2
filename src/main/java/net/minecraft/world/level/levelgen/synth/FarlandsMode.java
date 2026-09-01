@@ -15,9 +15,14 @@ public final class FarlandsMode {
       return mode;
    }
 
-   /** Returns whether the original 32-bit Far Lands arithmetic is active. */
+   /** Returns whether the original 32-bit Far Lands arithmetic is active globally. */
    public static boolean isEnabled() {
       return mode == Mode.BIT_32;
+   }
+
+   /** Returns whether BlendedNoise should retain its original 32-bit arithmetic. */
+   public static boolean usesLegacyBlendedNoise() {
+      return mode == Mode.BIT_32 || mode == Mode.BIT_32_HYBRID;
    }
 
    /** Returns whether the no-Far-Lands coordinate clamp is active. */
@@ -82,6 +87,7 @@ public final class FarlandsMode {
 
    public enum Mode {
       BIT_32("32bit", "32-bit"),
+      BIT_32_HYBRID("32bit-hybrid", "32-bit (hybrid)"),
       BIT_64("64bit", "64-bit"),
       OFF("off", "64-bit (no farlands)");
 

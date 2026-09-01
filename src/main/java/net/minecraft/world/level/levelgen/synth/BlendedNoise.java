@@ -74,6 +74,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
    }
 
    public double compute(DensityFunction.FunctionContext p_210621_) {
+      boolean useLegacy32BitFloor = FarlandsMode.usesLegacyBlendedNoise();
       double d0 = FarlandsMode.scaledNoiseCoordinate(p_210621_.blockX(), this.xzMultiplier);
       double d1 = (double)p_210621_.blockY() * this.yMultiplier;
       double d2 = FarlandsMode.scaledNoiseCoordinate(p_210621_.blockZ(), this.xzMultiplier);
@@ -91,7 +92,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
       for(int i = 0; i < 8; ++i) {
          ImprovedNoise improvednoise = this.mainNoise.getOctaveNoise(i);
          if (improvednoise != null) {
-            d10 += improvednoise.noise(PerlinNoise.wrap(d3 * d11), PerlinNoise.wrap(d4 * d11), PerlinNoise.wrap(d5 * d11), d7 * d11, d4 * d11) / d11;
+            d10 += improvednoise.noise(PerlinNoise.wrap(d3 * d11), PerlinNoise.wrap(d4 * d11), PerlinNoise.wrap(d5 * d11), d7 * d11, d4 * d11, useLegacy32BitFloor) / d11;
          }
 
          d11 /= 2.0D;
@@ -110,14 +111,14 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
          if (!flag1) {
             ImprovedNoise improvednoise1 = this.minLimitNoise.getOctaveNoise(j);
             if (improvednoise1 != null) {
-               d8 += improvednoise1.noise(d12, d13, d14, d15, d1 * d11) / d11;
+               d8 += improvednoise1.noise(d12, d13, d14, d15, d1 * d11, useLegacy32BitFloor) / d11;
             }
          }
 
          if (!flag2) {
             ImprovedNoise improvednoise2 = this.maxLimitNoise.getOctaveNoise(j);
             if (improvednoise2 != null) {
-               d9 += improvednoise2.noise(d12, d13, d14, d15, d1 * d11) / d11;
+               d9 += improvednoise2.noise(d12, d13, d14, d15, d1 * d11, useLegacy32BitFloor) / d11;
             }
          }
 

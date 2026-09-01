@@ -1,24 +1,17 @@
 package net.minecraft.world.level;
 
-import com.google.common.base.Suppliers;
 import java.util.List;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkSource;
-import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
@@ -30,13 +23,9 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
    protected final ChunkAccess[][] chunks;
    protected boolean allEmpty;
    protected final Level level;
-   private final Supplier<Holder<Biome>> plains;
 
    public PathNavigationRegion(Level p_47164_, BlockPos p_47165_, BlockPos p_47166_) {
       this.level = p_47164_;
-      this.plains = Suppliers.memoize(() -> {
-         return p_47164_.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.PLAINS);
-      });
       this.centerX = SectionPos.blockToSectionCoord(p_47165_.getX());
       this.centerZ = SectionPos.blockToSectionCoord(p_47165_.getZ());
       long i = SectionPos.blockToSectionCoord(p_47166_.getX());
@@ -63,25 +52,32 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
 
    }
 
+   @Nullable
    private ChunkAccess getChunk(BlockPos p_47186_) {
       return this.getChunk(SectionPos.blockToSectionCoord(p_47186_.getX()), SectionPos.blockToSectionCoord(p_47186_.getZ()));
    }
 
+   /**
+    * The region is a snapshot of the chunks available when the search begins.
+    * Missing snapshot entries have the same void-air/empty-fluid result as
+    * the usual empty-chunk result, but constructing an EmptyLevelChunk for every
+    * path-node probe allocates a complete 24-section LevelChunk. A path search
+    * can inspect a missing edge chunk thousands of times, making those
+    * throwaway chunks a severe server-tick spike.
+    */
+   @Nullable
    private ChunkAccess getChunk(long p_47168_, long p_47169_) {
-      int i = (int) (p_47168_ - this.centerX);
-      int j = (int) (p_47169_ - this.centerZ);
-      if (i >= 0 && i < this.chunks.length && j >= 0 && j < this.chunks[i].length) {
-         ChunkAccess chunkaccess = this.chunks[i][j];
-         return (ChunkAccess)(chunkaccess != null ? chunkaccess : new EmptyLevelChunk(this.level, new ChunkPos(p_47168_, p_47169_), this.plains.get()));
-      } else {
-         return new EmptyLevelChunk(this.level, new ChunkPos(p_47168_, p_47169_), this.plains.get());
-      }
+      int i = (int)(p_47168_ - this.centerX);
+      int j = (int)(p_47169_ - this.centerZ);
+      return i >= 0 && i < this.chunks.length && j >= 0 && j < this.chunks[i].length
+            ? this.chunks[i][j] : null;
    }
 
    public WorldBorder getWorldBorder() {
       return this.level.getWorldBorder();
    }
 
+   @Nullable
    public BlockGetter getChunkForCollisions(long p_47173_, long p_47174_) {
       return this.getChunk(p_47173_, p_47174_);
    }
@@ -93,7 +89,7 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
    @Nullable
    public BlockEntity getBlockEntity(BlockPos p_47180_) {
       ChunkAccess chunkaccess = this.getChunk(p_47180_);
-      return chunkaccess.getBlockEntity(p_47180_);
+      return chunkaccess == null ? null : chunkaccess.getBlockEntity(p_47180_);
    }
 
    public BlockState getBlockState(BlockPos p_47188_) {
@@ -101,7 +97,7 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
          return Blocks.AIR.defaultBlockState();
       } else {
          ChunkAccess chunkaccess = this.getChunk(p_47188_);
-         return chunkaccess.getBlockState(p_47188_);
+         return chunkaccess == null ? Blocks.VOID_AIR.defaultBlockState() : chunkaccess.getBlockState(p_47188_);
       }
    }
 
@@ -110,7 +106,7 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
          return Fluids.EMPTY.defaultFluidState();
       } else {
          ChunkAccess chunkaccess = this.getChunk(p_47171_);
-         return chunkaccess.getFluidState(p_47171_);
+         return chunkaccess == null ? Fluids.EMPTY.defaultFluidState() : chunkaccess.getFluidState(p_47171_);
       }
    }
 

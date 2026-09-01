@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.SectorVec3;
 
 public class MinecartItem extends Item {
    private static final DispenseItemBehavior DISPENSE_ITEM_BEHAVIOR = new DefaultDispenseItemBehavior() {
@@ -23,10 +24,12 @@ public class MinecartItem extends Item {
       public ItemStack execute(BlockSource p_42949_, ItemStack p_42950_) {
          Direction direction = p_42949_.getBlockState().getValue(DispenserBlock.FACING);
          Level level = p_42949_.getLevel();
-         double d0 = p_42949_.x() + (double)direction.getStepX() * 1.125D;
+         BlockPos sourcePos = p_42949_.getPos();
          double d1 = Math.floor(p_42949_.y()) + (double)direction.getStepY();
-         double d2 = p_42949_.z() + (double)direction.getStepZ() * 1.125D;
-         BlockPos blockpos = p_42949_.getPos().relative(direction);
+         SectorVec3 railPosition = SectorVec3.fromBlockAndFraction(sourcePos.getX(),
+               0.5D + (double)direction.getStepX() * 1.125D, d1,
+               sourcePos.getZ(), 0.5D + (double)direction.getStepZ() * 1.125D);
+         BlockPos blockpos = sourcePos.relative(direction);
          BlockState blockstate = level.getBlockState(blockpos);
          RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock ? blockstate.getValue(((BaseRailBlock)blockstate.getBlock()).getShapeProperty()) : RailShape.NORTH_SOUTH;
          double d3;
@@ -50,7 +53,8 @@ public class MinecartItem extends Item {
             }
          }
 
-         AbstractMinecart abstractminecart = AbstractMinecart.createMinecart(level, d0, d1 + d3, d2, ((MinecartItem)p_42950_.getItem()).type);
+         AbstractMinecart abstractminecart = AbstractMinecart.createMinecart(level,
+               railPosition.withY(d1 + d3), ((MinecartItem)p_42950_.getItem()).type);
          if (p_42950_.hasCustomHoverName()) {
             abstractminecart.setCustomName(p_42950_.getHoverName());
          }
@@ -87,7 +91,9 @@ public class MinecartItem extends Item {
                d0 = 0.5D;
             }
 
-            AbstractMinecart abstractminecart = AbstractMinecart.createMinecart(level, (double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.0625D + d0, (double)blockpos.getZ() + 0.5D, this.type);
+            AbstractMinecart abstractminecart = AbstractMinecart.createMinecart(level,
+                  SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY() + 0.0625D + d0,
+                        blockpos.getZ(), 0.5D), this.type);
             if (itemstack.hasCustomHoverName()) {
                abstractminecart.setCustomName(itemstack.getHoverName());
             }

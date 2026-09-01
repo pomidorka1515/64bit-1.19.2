@@ -9,6 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -19,6 +20,11 @@ public class MinecartChest extends AbstractMinecartContainer {
 
    public MinecartChest(Level p_38490_, double p_38491_, double p_38492_, double p_38493_) {
       super(EntityType.CHEST_MINECART, p_38491_, p_38492_, p_38493_, p_38490_);
+   }
+
+   /** Creates a chest minecart without losing horizontal precision at placement. */
+   public MinecartChest(Level level, SectorVec3 position) {
+      super(EntityType.CHEST_MINECART, level, position);
    }
 
    protected Item getDropItem() {

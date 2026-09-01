@@ -110,8 +110,8 @@ public class MinecartTNT extends AbstractMinecart {
       return super.causeFallDamage(p_150347_, p_150348_, p_150349_);
    }
 
-   public void activateMinecart(int p_38659_, int p_38660_, int p_38661_, boolean p_38662_) {
-      if (p_38662_ && this.fuse < 0) {
+   public void activateMinecart(BlockPos position, boolean powered) {
+      if (powered && this.fuse < 0) {
          this.primeFuse();
       }
 
@@ -131,7 +131,7 @@ public class MinecartTNT extends AbstractMinecart {
       if (!this.level.isClientSide) {
          this.level.broadcastEntityEvent(this, (byte)10);
          if (!this.isSilent()) {
-            this.level.playSound((Player)null, this.getX(), this.getY(), this.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+            this.playSound(SoundEvents.TNT_PRIMED, 1.0F, 1.0F);
          }
       }
 

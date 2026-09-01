@@ -14,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -40,29 +41,33 @@ public class MinecartRenderer<T extends AbstractMinecart> extends EntityRenderer
       float f1 = (((float)(i >> 20 & 7L) + 0.5F) / 8.0F - 0.5F) * 0.004F;
       float f2 = (((float)(i >> 24 & 7L) + 0.5F) / 8.0F - 0.5F) * 0.004F;
       p_115421_.translate((double)f, (double)f1, (double)f2);
-      double d0 = Mth.lerp((double)p_115420_, p_115418_.xOld, p_115418_.getX());
+      SectorVec3 cartPosition = p_115418_.interpolatedExactPosition(p_115420_);
       double d1 = Mth.lerp((double)p_115420_, p_115418_.yOld, p_115418_.getY());
-      double d2 = Mth.lerp((double)p_115420_, p_115418_.zOld, p_115418_.getZ());
-      double d3 = (double)0.3F;
-      Vec3 vec3 = p_115418_.getPos(d0, d1, d2);
+      if (cartPosition == null) {
+         cartPosition = SectorVec3.fromApproximate(Mth.lerp((double)p_115420_, p_115418_.xOld, p_115418_.getX()),
+               d1, Mth.lerp((double)p_115420_, p_115418_.zOld, p_115418_.getZ()));
+      }
+
+      SectorVec3 railPosition = p_115418_.getExactPos(cartPosition);
       float f3 = Mth.lerp(p_115420_, p_115418_.xRotO, p_115418_.getXRot());
-      if (vec3 != null) {
-         Vec3 vec31 = p_115418_.getPosOffs(d0, d1, d2, (double)0.3F);
-         Vec3 vec32 = p_115418_.getPosOffs(d0, d1, d2, (double)-0.3F);
-         if (vec31 == null) {
-            vec31 = vec3;
+      if (railPosition != null) {
+         SectorVec3 forward = p_115418_.getExactPosOffs(cartPosition, (double)0.3F);
+         SectorVec3 backward = p_115418_.getExactPosOffs(cartPosition, (double)-0.3F);
+         if (forward == null) {
+            forward = railPosition;
          }
 
-         if (vec32 == null) {
-            vec32 = vec3;
+         if (backward == null) {
+            backward = railPosition;
          }
 
-         p_115421_.translate(vec3.x - d0, (vec31.y + vec32.y) / 2.0D - d1, vec3.z - d2);
-         Vec3 vec33 = vec32.add(-vec31.x, -vec31.y, -vec31.z);
-         if (vec33.length() != 0.0D) {
-            vec33 = vec33.normalize();
-            p_115419_ = (float)(Math.atan2(vec33.z, vec33.x) * 180.0D / Math.PI);
-            f3 = (float)(Math.atan(vec33.y) * 73.0D);
+         Vec3 railOffset = railPosition.relativeTo(cartPosition);
+         p_115421_.translate(railOffset.x, (forward.y() + backward.y()) / 2.0D - cartPosition.y(), railOffset.z);
+         Vec3 railDirection = backward.relativeTo(forward);
+         if (railDirection.length() != 0.0D) {
+            railDirection = railDirection.normalize();
+            p_115419_ = (float)(Math.atan2(railDirection.z, railDirection.x) * 180.0D / Math.PI);
+            f3 = (float)(Math.atan(railDirection.y) * 73.0D);
          }
       }
 

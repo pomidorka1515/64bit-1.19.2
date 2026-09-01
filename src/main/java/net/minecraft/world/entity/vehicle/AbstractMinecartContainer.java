@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 
 public abstract class AbstractMinecartContainer extends AbstractMinecart implements ContainerEntity {
    private NonNullList<ItemStack> itemStacks = NonNullList.withSize(36, ItemStack.EMPTY);
@@ -29,6 +30,10 @@ public abstract class AbstractMinecartContainer extends AbstractMinecart impleme
 
    protected AbstractMinecartContainer(EntityType<?> p_38207_, double p_38208_, double p_38209_, double p_38210_, Level p_38211_) {
       super(p_38207_, p_38211_, p_38208_, p_38209_, p_38210_);
+   }
+
+   protected AbstractMinecartContainer(EntityType<?> type, Level level, SectorVec3 position) {
+      super(type, level, position);
    }
 
    public void destroy(DamageSource p_38228_) {

@@ -1,6 +1,7 @@
 package net.minecraft.world.entity.vehicle;
 
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -69,8 +70,8 @@ public class MinecartCommandBlock extends AbstractMinecart {
       return this.commandBlock;
    }
 
-   public void activateMinecart(int p_38517_, int p_38518_, int p_38519_, boolean p_38520_) {
-      if (p_38520_ && this.tickCount - this.lastActivated >= 4) {
+   public void activateMinecart(BlockPos position, boolean powered) {
+      if (powered && this.tickCount - this.lastActivated >= 4) {
          this.getCommandBlock().performCommand(this.level);
          this.lastActivated = this.tickCount;
       }

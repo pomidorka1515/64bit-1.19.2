@@ -2,6 +2,7 @@ package net.minecraft.world.entity.vehicle;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -33,8 +34,8 @@ public class Minecart extends AbstractMinecart {
       return Items.MINECART;
    }
 
-   public void activateMinecart(int p_38478_, int p_38479_, int p_38480_, boolean p_38481_) {
-      if (p_38481_) {
+   public void activateMinecart(BlockPos position, boolean powered) {
+      if (powered) {
          if (this.isVehicle()) {
             this.ejectPassengers();
          }

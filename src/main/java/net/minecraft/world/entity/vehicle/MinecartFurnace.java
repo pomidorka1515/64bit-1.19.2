@@ -121,8 +121,9 @@ public class MinecartFurnace extends AbstractMinecart {
       }
 
       if (this.fuel > 0) {
-         this.xPush = this.getX() - p_38562_.getX();
-         this.zPush = this.getZ() - p_38562_.getZ();
+         Vec3 pushDirection = this.sectorPosition().relativeTo(p_38562_.sectorPosition());
+         this.xPush = pushDirection.x;
+         this.zPush = pushDirection.z;
       }
 
       return InteractionResult.sidedSuccess(this.level.isClientSide);

@@ -47,8 +47,8 @@ public class MinecartHopper extends AbstractMinecartContainer implements Hopper 
       return 5;
    }
 
-   public void activateMinecart(int p_38596_, int p_38597_, int p_38598_, boolean p_38599_) {
-      boolean flag = !p_38599_;
+   public void activateMinecart(BlockPos position, boolean powered) {
+      boolean flag = !powered;
       if (flag != this.isEnabled()) {
          this.setEnabled(flag);
       }

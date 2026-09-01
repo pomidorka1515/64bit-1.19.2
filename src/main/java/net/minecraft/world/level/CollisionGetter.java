@@ -96,6 +96,25 @@ public interface CollisionGetter extends BlockGetter {
       return () -> new SectorBlockCollisions(this, entity, exactBox, localBox, origin);
    }
 
+   /**
+    * Exact equivalent of {@link #getCollisions(Entity, AABB)}.
+    *
+    * <p>Only world implementations also exposing {@link EntityGetter} can
+    * contribute entity shapes. Read-only collision views still return their
+    * exact block shapes, matching the information available to the legacy
+    * method.</p>
+    */
+   default Iterable<VoxelShape> getSectorCollisions(@Nullable Entity entity, SectorAABB exactBox,
+                                                    AABB localBox, SectorPhysicsOrigin origin) {
+      Iterable<VoxelShape> blockCollisions = this.getSectorBlockCollisions(entity, exactBox, localBox, origin);
+      if (!(this instanceof EntityGetter entityGetter)) {
+         return blockCollisions;
+      }
+
+      List<VoxelShape> entityCollisions = entityGetter.getSectorEntityCollisions(entity, exactBox, localBox, origin);
+      return entityCollisions.isEmpty() ? blockCollisions : Iterables.concat(entityCollisions, blockCollisions);
+   }
+
    @Nullable
    private VoxelShape borderCollision(Entity p_186441_, AABB p_186442_) {
 //      WorldBorder worldborder = this.getWorldBorder();

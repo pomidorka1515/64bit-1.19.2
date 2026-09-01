@@ -148,6 +148,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.slf4j.Logger;
@@ -340,14 +343,15 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
       } else {
          double d0;
          if (p_20662_) {
-            t.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_20660_.getX(), 0.5D,
-                  (double)(p_20660_.getY() + 1), p_20660_.getZ(), 0.5D));
-            d0 = getYOffset(p_20656_, p_20660_, p_20663_, t.getBoundingBox());
+            SectorVec3 initialPosition = SectorVec3.fromBlockAndFraction(p_20660_.getX(), 0.5D,
+                  (double)(p_20660_.getY() + 1), p_20660_.getZ(), 0.5D);
+            t.applyExactPosition(initialPosition);
+            d0 = getExactYOffset(p_20656_, p_20660_, p_20663_, t);
          } else {
             d0 = 0.0D;
          }
 
-         t.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_20660_.getX(), 0.5D,
+         t.moveTo(SectorVec3.fromBlockAndFraction(p_20660_.getX(), 0.5D,
                (double)p_20660_.getY() + d0, p_20660_.getZ(), 0.5D),
                Mth.wrapDegrees(p_20656_.random.nextFloat() * 360.0F), 0.0F);
          if (t instanceof Mob) {
@@ -367,14 +371,34 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
       }
    }
 
-   protected static double getYOffset(LevelReader p_20626_, BlockPos p_20627_, boolean p_20628_, AABB p_20629_) {
-      AABB aabb = new AABB(p_20627_);
-      if (p_20628_) {
-         aabb = aabb.expandTowards(0.0D, -1.0D, 0.0D);
+   /**
+    * Computes the spawn-egg vertical offset in the entity's local exact frame.
+    *
+    * <p>The temporary entity has already been placed at the center of the
+    * target block. Its compatibility {@link AABB} carries exact X/Z bounds, so
+    * using the legacy block collision iterator would instead translate blocks
+    * to global doubles and make every horizontal fraction disappear above
+    * 2^53. That turns the normal downward placement probe into a collision with
+    * the clicked block itself. Keep both the probe and the entity box local to
+    * the target block while preserving vanilla's Y-axis calculation and its
+    * entity-collision semantics.</p>
+    */
+   private static double getExactYOffset(LevelReader level, BlockPos position, boolean canSpawnBelow, Entity entity) {
+      long probeMaxX = position.getX() == Long.MAX_VALUE ? Long.MAX_VALUE : position.getX() + 1L;
+      long probeMaxZ = position.getZ() == Long.MAX_VALUE ? Long.MAX_VALUE : position.getZ() + 1L;
+      SectorAABB exactProbe = new SectorAABB(position.getX(), 0.0D, (double)position.getY(),
+            position.getZ(), 0.0D, probeMaxX, probeMaxX == position.getX() ? Math.nextDown(1.0D) : 0.0D,
+            (double)position.getY() + 1.0D, probeMaxZ,
+            probeMaxZ == position.getZ() ? Math.nextDown(1.0D) : 0.0D);
+      if (canSpawnBelow) {
+         exactProbe = exactProbe.expandTowards(0.0D, -1.0D, 0.0D);
       }
 
-      Iterable<VoxelShape> iterable = p_20626_.getCollisions((Entity)null, aabb);
-      return 1.0D + Shapes.collide(Direction.Axis.Y, p_20629_, iterable, p_20628_ ? -2.0D : -1.0D);
+      SectorPhysicsOrigin origin = new SectorPhysicsOrigin(position.getX(), position.getY(), position.getZ());
+      AABB localEntityBox = entity.getSectorBoundingBox().toLocalAABB(origin);
+      AABB localProbe = exactProbe.toLocalAABB(origin);
+      Iterable<VoxelShape> collisions = level.getSectorCollisions((Entity)null, exactProbe, localProbe, origin);
+      return 1.0D + Shapes.collide(Direction.Axis.Y, localEntityBox, collisions, canSpawnBelow ? -2.0D : -1.0D);
    }
 
    public static void updateCustomEntityTag(Level p_20621_, @Nullable Player p_20622_, @Nullable Entity p_20623_, @Nullable CompoundTag p_20624_) {

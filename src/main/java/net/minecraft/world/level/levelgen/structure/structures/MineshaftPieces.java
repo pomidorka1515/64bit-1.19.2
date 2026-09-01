@@ -37,6 +37,7 @@ import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.phys.SectorVec3;
 import org.slf4j.Logger;
 
 public class MineshaftPieces {
@@ -248,7 +249,9 @@ public class MineshaftPieces {
          if (p_227788_.isInside(blockpos) && p_227787_.getBlockState(blockpos).isAir() && !p_227787_.getBlockState(blockpos.below()).isAir()) {
             BlockState blockstate = Blocks.RAIL.defaultBlockState().setValue(RailBlock.SHAPE, p_227789_.nextBoolean() ? RailShape.NORTH_SOUTH : RailShape.EAST_WEST);
             this.placeBlock(p_227787_, blockstate, p_227790_, p_227791_, p_227792_, p_227788_);
-            MinecartChest minecartchest = new MinecartChest(p_227787_.getLevel(), (double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.5D, (double)blockpos.getZ() + 0.5D);
+            MinecartChest minecartchest = new MinecartChest(p_227787_.getLevel(),
+                  SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY() + 0.5D,
+                        blockpos.getZ(), 0.5D));
             minecartchest.setLootTable(p_227793_, p_227789_.nextLong());
             p_227787_.addFreshEntity(minecartchest);
             return true;

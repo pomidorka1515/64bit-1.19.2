@@ -5,6 +5,10 @@ Their websites are now down. If you want to get the original mod's code, you can
  - `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af`
 Beware that the original mod is not even functional and has lots of bugs. Use this fork for a playable version.
 
+# Github mirror
+The **only** real source of this repository is [my forgejo instance](https://pomi.site/ec952ebae0f530313056/pomi/64bit-1.19.2).
+Github is intended as a read-only mirror due to the nature of this project.
+
 # Development notice
 As of **1st September**, development will be drastically slower.
 This is because im still in school and, unfortunately, will have less free time.

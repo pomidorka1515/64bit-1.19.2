@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -31,13 +32,24 @@ public class ChunkBorderRenderer implements DebugRenderer.SimpleDebugRenderer {
       Entity entity = this.minecraft.gameRenderer.getMainCamera().getEntity();
       Tesselator tesselator = Tesselator.getInstance();
       BufferBuilder bufferbuilder = tesselator.getBuilder();
+      SectorVec3 camera = this.minecraft.gameRenderer.getMainCamera().getExactPosition();
       double d0 = (double)this.minecraft.level.getMinBuildHeight() - p_113361_;
       double d1 = (double)this.minecraft.level.getMaxBuildHeight() - p_113361_;
       RenderSystem.disableTexture();
       RenderSystem.disableBlend();
       ChunkPos chunkpos = entity.chunkPosition();
-      double d2 = (double)chunkpos.getMinBlockX() - p_113360_;
-      double d3 = (double)chunkpos.getMinBlockZ() - p_113362_;
+      double d2;
+      double d3;
+      if (camera != null) {
+         SectorVec3 chunkOrigin = SectorVec3.fromBlockAndFraction(chunkpos.getMinBlockX(), 0.0D, 0.0D, chunkpos.getMinBlockZ(), 0.0D);
+         d0 = (double)this.minecraft.level.getMinBuildHeight() - camera.y();
+         d1 = (double)this.minecraft.level.getMaxBuildHeight() - camera.y();
+         d2 = chunkOrigin.relativeX(camera);
+         d3 = chunkOrigin.relativeZ(camera);
+      } else {
+         d2 = (double)chunkpos.getMinBlockX() - p_113360_;
+         d3 = (double)chunkpos.getMinBlockZ() - p_113362_;
+      }
       RenderSystem.lineWidth(1.0F);
       bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
 

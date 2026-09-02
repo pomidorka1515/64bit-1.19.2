@@ -1333,15 +1333,24 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
       for(Entry<BlockPos, SortedSet<BlockDestructionProgress>> entry : this.destructionProgress.entrySet()) {
          BlockPos blockpos2 = entry.getKey();
-         double d3 = (double)blockpos2.getX() - d0;
-         double d4 = (double)blockpos2.getY() - d1;
-         double d5 = (double)blockpos2.getZ() - d2;
+         double d3;
+         double d4;
+         double d5;
+         if (this.exactRenderCamera != null) {
+            d3 = this.exactRenderCamera.relativeX(blockpos2.getX());
+            d4 = this.exactRenderCamera.relativeY(blockpos2.getY());
+            d5 = this.exactRenderCamera.relativeZ(blockpos2.getZ());
+         } else {
+            d3 = (double)blockpos2.getX() - d0;
+            d4 = (double)blockpos2.getY() - d1;
+            d5 = (double)blockpos2.getZ() - d2;
+         }
          if (!(d3 * d3 + d4 * d4 + d5 * d5 > 1024.0D)) {
             SortedSet<BlockDestructionProgress> sortedset1 = entry.getValue();
             if (sortedset1 != null && !sortedset1.isEmpty()) {
                int k1 = sortedset1.last().getProgress();
                p_109600_.pushPose();
-               p_109600_.translate((double)blockpos2.getX() - d0, (double)blockpos2.getY() - d1, (double)blockpos2.getZ() - d2);
+               p_109600_.translate(d3, d4, d5);
                PoseStack.Pose posestack$pose = p_109600_.last();
                VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(this.renderBuffers.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(k1)), posestack$pose.pose(), posestack$pose.normal());
                this.minecraft.getBlockRenderer().renderBreakingTexture(this.level.getBlockState(blockpos2), blockpos2, this.level, p_109600_, vertexconsumer1);

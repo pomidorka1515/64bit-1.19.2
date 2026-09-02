@@ -47,6 +47,8 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
@@ -166,7 +168,22 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
    }
 
    private static void renderHitbox(PoseStack p_114442_, VertexConsumer p_114443_, Entity p_114444_, float p_114445_) {
-      AABB aabb = p_114444_.getBoundingBox().move(-p_114444_.getX(), -p_114444_.getY(), -p_114444_.getZ());
+      // The renderer's pose is already translated to the interpolated entity
+      // position. Rebase the exact bounds before they enter the float-backed
+      // pose stack; subtracting two absolute doubles collapses their X/Z size
+      // to the current double grid at far coordinates.
+      SectorVec3 exactPosition = p_114444_.interpolatedExactPosition(p_114445_);
+      // F3+B displays physical bounds, not the (occasionally enlarged) culling
+      // bounds used by renderers such as the minecart renderer.
+      SectorAABB exactBounds = p_114444_.getBoundingBox().getSectorBounds();
+      AABB aabb;
+      if (exactPosition != null && exactBounds != null) {
+         Vec3 interpolationDelta = exactPosition.relativeTo(p_114444_.sectorPosition());
+         aabb = exactBounds.move(interpolationDelta.x, interpolationDelta.y, interpolationDelta.z)
+               .toLocalAABB(exactPosition);
+      } else {
+         aabb = p_114444_.getBoundingBox().move(-p_114444_.getX(), -p_114444_.getY(), -p_114444_.getZ());
+      }
       LevelRenderer.renderLineBox(p_114442_, p_114443_, aabb, 1.0F, 1.0F, 1.0F, 1.0F);
       if (p_114444_ instanceof EnderDragon) {
          double d0 = -Mth.lerp((double)p_114445_, p_114444_.xOld, p_114444_.getX());

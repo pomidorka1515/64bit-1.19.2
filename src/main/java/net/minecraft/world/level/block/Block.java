@@ -300,12 +300,11 @@ public class Block extends BlockBehaviour implements ItemLike {
 
    public static void popResource(Level p_49841_, BlockPos p_49842_, ItemStack p_49843_) {
       float f = EntityType.ITEM.getHeight() / 2.0F;
-      double d0 = (double)((float)p_49842_.getX() + 0.5F) + Mth.nextDouble(p_49841_.random, -0.25D, 0.25D);
-      double d1 = (double)((float)p_49842_.getY() + 0.5F) + Mth.nextDouble(p_49841_.random, -0.25D, 0.25D) - (double)f;
-      double d2 = (double)((float)p_49842_.getZ() + 0.5F) + Mth.nextDouble(p_49841_.random, -0.25D, 0.25D);
-      popResource(p_49841_, () -> {
-         return new ItemEntity(p_49841_, d0, d1, d2, p_49843_);
-      }, p_49843_);
+      net.minecraft.world.phys.SectorVec3 position = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+            p_49842_.getX(), 0.5D + Mth.nextDouble(p_49841_.random, -0.25D, 0.25D),
+            (double)p_49842_.getY() + 0.5D + Mth.nextDouble(p_49841_.random, -0.25D, 0.25D) - (double)f,
+            p_49842_.getZ(), 0.5D + Mth.nextDouble(p_49841_.random, -0.25D, 0.25D));
+      popResource(p_49841_, () -> new ItemEntity(p_49841_, position, p_49843_), p_49843_);
    }
 
    public static void popResourceFromFace(Level p_152436_, BlockPos p_152437_, Direction p_152438_, ItemStack p_152439_) {
@@ -314,15 +313,15 @@ public class Block extends BlockBehaviour implements ItemLike {
       long k = p_152438_.getStepZ();
       float f = EntityType.ITEM.getWidth() / 2.0F;
       float f1 = EntityType.ITEM.getHeight() / 2.0F;
-      double d0 = (double)((float)p_152437_.getX() + 0.5F) + (i == 0 ? Mth.nextDouble(p_152436_.random, -0.25D, 0.25D) : (double)((float)i * (0.5F + f)));
-      double d1 = (double)((float)p_152437_.getY() + 0.5F) + (j == 0 ? Mth.nextDouble(p_152436_.random, -0.25D, 0.25D) : (double)((float)j * (0.5F + f1))) - (double)f1;
-      double d2 = (double)((float)p_152437_.getZ() + 0.5F) + (k == 0 ? Mth.nextDouble(p_152436_.random, -0.25D, 0.25D) : (double)((float)k * (0.5F + f)));
+      double offsetX = 0.5D + (i == 0 ? Mth.nextDouble(p_152436_.random, -0.25D, 0.25D) : (double)((float)i * (0.5F + f)));
+      double offsetY = 0.5D + (j == 0 ? Mth.nextDouble(p_152436_.random, -0.25D, 0.25D) : (double)((float)j * (0.5F + f1))) - (double)f1;
+      double offsetZ = 0.5D + (k == 0 ? Mth.nextDouble(p_152436_.random, -0.25D, 0.25D) : (double)((float)k * (0.5F + f)));
       double d3 = i == 0 ? Mth.nextDouble(p_152436_.random, -0.1D, 0.1D) : (double)i * 0.1D;
       double d4 = j == 0 ? Mth.nextDouble(p_152436_.random, 0.0D, 0.1D) : (double)j * 0.1D + 0.1D;
       double d5 = k == 0 ? Mth.nextDouble(p_152436_.random, -0.1D, 0.1D) : (double)k * 0.1D;
-      popResource(p_152436_, () -> {
-         return new ItemEntity(p_152436_, d0, d1, d2, p_152439_, d3, d4, d5);
-      }, p_152439_);
+      net.minecraft.world.phys.SectorVec3 position = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+            p_152437_.getX(), offsetX, (double)p_152437_.getY() + offsetY, p_152437_.getZ(), offsetZ);
+      popResource(p_152436_, () -> new ItemEntity(p_152436_, position, p_152439_, d3, d4, d5), p_152439_);
    }
 
    private static void popResource(Level p_152441_, Supplier<ItemEntity> p_152442_, ItemStack p_152443_) {

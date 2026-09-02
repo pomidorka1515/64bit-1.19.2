@@ -2181,11 +2181,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       } else if (this.level.isClientSide) {
          return null;
       } else {
-         SectorVec3 sourcePosition = this.sectorPosition();
-         Vec3 approximate = sourcePosition.toApproximateVec3();
-         ItemEntity itementity = new ItemEntity(this.level, approximate.x,
-               sourcePosition.y() + (double)p_19986_, approximate.z, p_19985_);
-         itementity.applyExactPosition(sourcePosition.add(0.0D, (double)p_19986_, 0.0D));
+         SectorVec3 sourcePosition = this.sectorPosition().add(0.0D, (double)p_19986_, 0.0D);
+         ItemEntity itementity = new ItemEntity(this.level, sourcePosition, p_19985_);
          itementity.setDefaultPickUpDelay();
          this.level.addFreshEntity(itementity);
          return itementity;
@@ -2792,7 +2789,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    public void copyPosition(Entity p_20360_) {
-      this.moveTo(p_20360_.getX(), p_20360_.getY(), p_20360_.getZ(), p_20360_.getYRot(), p_20360_.getXRot());
+      SectorVec3 exactPosition = p_20360_.exactPosition();
+      if (this.usesSectorPhysics() && exactPosition != null) {
+         this.moveTo(exactPosition, p_20360_.getYRot(), p_20360_.getXRot());
+      } else {
+         this.moveTo(p_20360_.getX(), p_20360_.getY(), p_20360_.getZ(), p_20360_.getYRot(), p_20360_.getXRot());
+      }
    }
 
    public void restoreFrom(Entity p_20362_) {
@@ -3508,6 +3510,20 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       if (this.sectorPosition == null) return null;
       SectorVec3 old = this.sectorPositionOld;
       return old == null ? this.sectorPosition : old.lerpTo(this.sectorPosition, (double)partialTick);
+   }
+
+   /** Sets the exact previous position for custom entities whose tick is driven by another entity. */
+   public final void setOldExactPosition(SectorVec3 position) {
+      if (!this.usesSectorPhysics()) throw new IllegalStateException("Entity does not use sector physics");
+      if (position == null) throw new NullPointerException("position");
+      this.sectorPositionOld = position;
+      Vec3 approximate = position.toApproximateVec3();
+      this.xo = approximate.x;
+      this.yo = approximate.y;
+      this.zo = approximate.z;
+      this.xOld = approximate.x;
+      this.yOld = approximate.y;
+      this.zOld = approximate.z;
    }
 
    /** Returns a small interpolation frame for this entity without subtracting large doubles. */

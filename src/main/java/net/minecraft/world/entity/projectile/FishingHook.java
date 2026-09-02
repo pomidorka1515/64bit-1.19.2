@@ -414,8 +414,7 @@ public class FishingHook extends Projectile {
             CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayer)player, p_37157_, this, list);
 
             for(ItemStack itemstack : list) {
-               ItemEntity itementity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), itemstack);
-               itementity.applyExactPosition(this.sectorPosition());
+               ItemEntity itementity = new ItemEntity(this.level, this.sectorPosition(), itemstack);
                Vec3 playerDelta = player.sectorPosition().relativeTo(this.sectorPosition());
                double d0 = playerDelta.x;
                double d1 = playerDelta.y;

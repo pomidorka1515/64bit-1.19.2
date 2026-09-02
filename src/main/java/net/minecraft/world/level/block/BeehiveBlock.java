@@ -260,7 +260,8 @@ public class BeehiveBlock extends BaseEntityBlock {
                CompoundTag compoundtag1 = new CompoundTag();
                compoundtag1.putInt("honey_level", i);
                itemstack.addTagElement("BlockStateTag", compoundtag1);
-               ItemEntity itementity = new ItemEntity(p_49608_, (double)p_49609_.getX(), (double)p_49609_.getY(), (double)p_49609_.getZ(), itemstack);
+               ItemEntity itementity = new ItemEntity(p_49608_, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+                     p_49609_.getX(), 0.0D, (double)p_49609_.getY(), p_49609_.getZ(), 0.0D), itemstack);
                itementity.setDefaultPickUpDelay();
                p_49608_.addFreshEntity(itementity);
             }

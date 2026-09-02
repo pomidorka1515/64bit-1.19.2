@@ -57,6 +57,20 @@ class SectorAABBTest {
    }
 
    @Test
+   void rebasesBoundsRelativeToExactFractionalOrigin() {
+      long huge = 53_905_378_846_979_544L;
+      SectorVec3 position = SectorVec3.fromBlockAndFraction(huge, 0.25D, 64.0D, -huge, 0.75D);
+      AABB local = SectorAABB.around(position, 0.6D, 1.8D).toLocalAABB(position);
+
+      assertEquals(-0.3D, local.minX, 1.0E-12D);
+      assertEquals(0.3D, local.maxX, 1.0E-12D);
+      assertEquals(-0.3D, local.minZ, 1.0E-12D);
+      assertEquals(0.3D, local.maxZ, 1.0E-12D);
+      assertEquals(0.0D, local.minY, 0.0D);
+      assertEquals(1.8D, local.maxY, 1.0E-12D);
+   }
+
+   @Test
    void compatibilityAabbRetainsExactBoundsThroughQueryTransforms() {
       long huge = 53_905_378_846_979_544L;
       SectorAABB exact = SectorAABB.around(

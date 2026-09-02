@@ -274,12 +274,11 @@ public class Goat extends Animal {
          }
 
          this.entityData.set(entitydataaccessor, false);
-         Vec3 vec3 = this.position();
          ItemStack itemstack = this.createHorn();
          double d0 = (double)Mth.randomBetween(this.random, -0.2F, 0.2F);
          double d1 = (double)Mth.randomBetween(this.random, 0.3F, 0.7F);
          double d2 = (double)Mth.randomBetween(this.random, -0.2F, 0.2F);
-         ItemEntity itementity = new ItemEntity(this.level, vec3.x(), vec3.y(), vec3.z(), itemstack, d0, d1, d2);
+         ItemEntity itementity = new ItemEntity(this.level, this.sectorPosition(), itemstack, d0, d1, d2);
          this.level.addFreshEntity(itementity);
          return true;
       }

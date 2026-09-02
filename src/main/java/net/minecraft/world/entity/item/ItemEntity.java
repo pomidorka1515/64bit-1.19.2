@@ -28,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class ItemEntity extends Entity {
@@ -59,6 +60,31 @@ public class ItemEntity extends Entity {
       this.setPos(p_149664_, p_149665_, p_149666_);
       this.setDeltaMovement(p_149668_, p_149669_, p_149670_);
       this.setItem(p_149667_);
+   }
+
+   /**
+    * Exact item spawn constructor for any source that already has split X/Z
+    * coordinates. The ordinary double constructors remain for legacy callers.
+    */
+   public ItemEntity(Level level, SectorVec3 position, ItemStack stack) {
+      this(EntityType.ITEM, level);
+      this.applyExactPosition(position);
+      this.setItem(stack);
+   }
+
+   public ItemEntity(Level level, SectorVec3 position, ItemStack stack, double velocityX, double velocityY, double velocityZ) {
+      this(level, position, stack);
+      this.setDeltaMovement(velocityX, velocityY, velocityZ);
+   }
+
+   /**
+    * Replaces the position of an item spawned through a legacy double-only
+    * factory. This preserves the factory's other initialization while
+    * recovering an exact source position before the entity is added to a level.
+    */
+   public ItemEntity setExactSpawnPosition(SectorVec3 position) {
+      this.applyExactPosition(position);
+      return this;
    }
 
    private ItemEntity(ItemEntity p_31994_) {

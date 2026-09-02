@@ -435,7 +435,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
       entity.move(MoverType.PLAYER, requested);
       Vec3 remaining = target.relativeTo(entity.sectorPosition());
       double verticalResidual = remaining.y;
-      if (verticalResidual > -0.5D || verticalResidual < 0.5D) {
+      if (verticalResidual > -0.5D && verticalResidual < 0.5D) {
          verticalResidual = 0.0D;
       }
       double residualSqr = remaining.x * remaining.x + verticalResidual * verticalResidual + remaining.z * remaining.z;
@@ -1638,6 +1638,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             if (this.player.isSleeping()) {
                this.player.stopSleepInBed(false, true);
                this.awaitingPositionFromClient = this.player.position();
+               this.awaitingSectorPositionFromClient = this.player.hasSectorPosition()
+                     ? this.player.sectorPosition() : null;
             }
             break;
          case START_RIDING_JUMP:

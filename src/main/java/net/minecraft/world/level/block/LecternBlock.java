@@ -185,7 +185,9 @@ public class LecternBlock extends BaseEntityBlock {
          ItemStack itemstack = lecternblockentity.getBook().copy();
          float f = 0.25F * (float)direction.getStepX();
          float f1 = 0.25F * (float)direction.getStepZ();
-         ItemEntity itementity = new ItemEntity(p_54589_, (double)p_54590_.getX() + 0.5D + (double)f, (double)(p_54590_.getY() + 1), (double)p_54590_.getZ() + 0.5D + (double)f1, itemstack);
+         ItemEntity itementity = new ItemEntity(p_54589_, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+               p_54590_.getX(), 0.5D + (double)f, (double)(p_54590_.getY() + 1),
+               p_54590_.getZ(), 0.5D + (double)f1), itemstack);
          itementity.setDefaultPickUpDelay();
          p_54589_.addFreshEntity(itementity);
          lecternblockentity.clearContent();

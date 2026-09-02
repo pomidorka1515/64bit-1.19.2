@@ -19,6 +19,7 @@ import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class GoAndGiveItemsToTarget<E extends LivingEntity & InventoryCarrier> extends Behavior<E> {
@@ -51,7 +52,7 @@ public class GoAndGiveItemsToTarget<E extends LivingEntity & InventoryCarrier> e
       Optional<PositionTracker> optional = this.targetPositionGetter.apply(p_217227_);
       if (!optional.isEmpty()) {
          PositionTracker positiontracker = optional.get();
-         double d0 = positiontracker.currentPosition().distanceTo(p_217227_.getEyePosition());
+         double d0 = p_217227_.exactEyePosition().relativeTo(positiontracker.currentExactPosition()).length();
          if (d0 < 3.0D) {
             ItemStack itemstack = p_217227_.getInventory().removeItem(0, 1);
             if (!itemstack.isEmpty()) {
@@ -85,7 +86,8 @@ public class GoAndGiveItemsToTarget<E extends LivingEntity & InventoryCarrier> e
    }
 
    private static Vec3 getThrowPosition(PositionTracker p_217212_) {
-      return p_217212_.currentPosition().add(0.0D, 1.0D, 0.0D);
+      SectorVec3 exact = p_217212_.currentExactPosition().add(0.0D, 1.0D, 0.0D);
+      return exact.toApproximateVec3();
    }
 
    public static void throwItem(LivingEntity p_217208_, ItemStack p_217209_, Vec3 p_217210_) {

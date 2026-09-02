@@ -2,6 +2,7 @@ package net.minecraft.world.entity.ai.goal;
 
 import java.util.EnumSet;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.phys.SectorVec3;
 
 public class RandomLookAroundGoal extends Goal {
    private final Mob mob;
@@ -35,6 +36,7 @@ public class RandomLookAroundGoal extends Goal {
 
    public void tick() {
       --this.lookTime;
-      this.mob.getLookControl().setLookAt(this.mob.getX() + this.relX, this.mob.getEyeY(), this.mob.getZ() + this.relZ);
+      SectorVec3 target = this.mob.sectorPosition().add(this.relX, this.mob.getEyeY() - this.mob.sectorPosition().y(), this.relZ);
+      this.mob.getLookControl().setLookAtExact(target, (float)this.mob.getHeadRotSpeed(), (float)this.mob.getMaxHeadXRot());
    }
 }

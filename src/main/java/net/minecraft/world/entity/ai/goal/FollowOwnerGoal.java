@@ -8,10 +8,12 @@ import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.phys.SectorVec3;
 
 public class FollowOwnerGoal extends Goal {
    public static final int TELEPORT_WHEN_DISTANCE_IS = 12;
@@ -112,12 +114,16 @@ public class FollowOwnerGoal extends Goal {
    }
 
    private boolean maybeTeleportTo(long p_25304_, int p_25305_, long p_25306_) {
-      if (Math.abs((double)p_25304_ - this.owner.getX()) < 2.0D && Math.abs((double)p_25306_ - this.owner.getZ()) < 2.0D) {
+      SectorVec3 ownerPosition = this.owner.sectorPosition();
+      double xDistance = WorldBounds.signedDifference(p_25304_, ownerPosition.blockX()) - ownerPosition.subX();
+      double zDistance = WorldBounds.signedDifference(p_25306_, ownerPosition.blockZ()) - ownerPosition.subZ();
+      if (Math.abs(xDistance) < 2.0D && Math.abs(zDistance) < 2.0D) {
          return false;
       } else if (!this.canTeleportTo(new BlockPos(p_25304_, p_25305_, p_25306_))) {
          return false;
       } else {
-         this.tamable.moveTo((double)p_25304_ + 0.5D, (double)p_25305_, (double)p_25306_ + 0.5D, this.tamable.getYRot(), this.tamable.getXRot());
+         this.tamable.moveTo(SectorVec3.fromBlockAndFraction(p_25304_, 0.5D, (double)p_25305_, p_25306_, 0.5D),
+               this.tamable.getYRot(), this.tamable.getXRot());
          this.navigation.stop();
          return true;
       }

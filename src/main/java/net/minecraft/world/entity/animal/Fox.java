@@ -463,7 +463,8 @@ public class Fox extends Animal {
 
    private void spitOutItem(ItemStack p_28602_) {
       if (!p_28602_.isEmpty() && !this.level.isClientSide) {
-         ItemEntity itementity = new ItemEntity(this.level, this.getX() + this.getLookAngle().x, this.getY() + 1.0D, this.getZ() + this.getLookAngle().z, p_28602_);
+         ItemEntity itementity = new ItemEntity(this.level, this.sectorPosition().add(this.getLookAngle().x,
+               1.0D, this.getLookAngle().z), p_28602_);
          itementity.setPickUpDelay(40);
          itementity.setThrower(this.getUUID());
          this.playSound(SoundEvents.FOX_SPIT, 1.0F, 1.0F);
@@ -472,7 +473,7 @@ public class Fox extends Animal {
    }
 
    private void dropItemStack(ItemStack p_28606_) {
-      ItemEntity itementity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), p_28606_);
+      ItemEntity itementity = new ItemEntity(this.level, this.sectorPosition(), p_28606_);
       this.level.addFreshEntity(itementity);
    }
 

@@ -45,7 +45,8 @@ public class SonicBoom extends Behavior<Warden> {
 
    protected void tick(ServerLevel p_217724_, Warden p_217725_, long p_217726_) {
       p_217725_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).ifPresent((p_217718_) -> {
-         p_217725_.getLookControl().setLookAt(p_217718_.position());
+         p_217725_.getLookControl().setLookAtExact(p_217718_.exactEyePosition(),
+               (float)p_217725_.getHeadRotSpeed(), (float)p_217725_.getMaxHeadXRot());
       });
       if (!p_217725_.getBrain().hasMemoryValue(MemoryModuleType.SONIC_BOOM_SOUND_DELAY) && !p_217725_.getBrain().hasMemoryValue(MemoryModuleType.SONIC_BOOM_SOUND_COOLDOWN)) {
          p_217725_.getBrain().setMemoryWithExpiry(MemoryModuleType.SONIC_BOOM_SOUND_COOLDOWN, Unit.INSTANCE, (long)(DURATION - TICKS_BEFORE_PLAYING_SOUND));

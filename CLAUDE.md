@@ -19,13 +19,10 @@ The repository's current feature direction is tracked in `README.md`, while `pro
 The Gradle wrapper is the authoritative build entry point. The build is configured for Java 17 (`gradle.properties` points at `/opt/jdk17` in this workspace), and ForgeGradle uses Gradle 7.5. Use `./gradlew` to run anything.
 
 
-Common verification commands:
+Common verification command:
 
 ```bash
-./gradlew compileJava --no-daemon# Compile main sources (no daemon is crucial)
-./gradlew test                   # Run all JUnit 5 tests
-./gradlew check                  # Verification lifecycle (currently includes tests)
-./gradlew build                  # Compile, test, and assemble
+./gradlew test                   # Run all JUnit 5 tests (compiles automatically, no need for `compileJava`)
 ```
 
 Run one test class or one test method:

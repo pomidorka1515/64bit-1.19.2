@@ -120,7 +120,8 @@ public class ShulkerBoxBlock extends BaseEntityBlock {
                itemstack.setHoverName(shulkerboxblockentity.getCustomName());
             }
 
-            ItemEntity itementity = new ItemEntity(p_56212_, (double)p_56213_.getX() + 0.5D, (double)p_56213_.getY() + 0.5D, (double)p_56213_.getZ() + 0.5D, itemstack);
+            ItemEntity itementity = new ItemEntity(p_56212_, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+                  p_56213_.getX(), 0.5D, (double)p_56213_.getY() + 0.5D, p_56213_.getZ(), 0.5D), itemstack);
             itementity.setDefaultPickUpDelay();
             p_56212_.addFreshEntity(itementity);
          } else {

@@ -520,7 +520,7 @@ public class Dolphin extends WaterAnimal {
       private void drop(ItemStack p_28429_) {
          if (!p_28429_.isEmpty()) {
             double d0 = Dolphin.this.getEyeY() - (double)0.3F;
-            ItemEntity itementity = new ItemEntity(Dolphin.this.level, Dolphin.this.getX(), d0, Dolphin.this.getZ(), p_28429_);
+            ItemEntity itementity = new ItemEntity(Dolphin.this.level, Dolphin.this.sectorPosition().withY(d0), p_28429_);
             itementity.setPickUpDelay(40);
             itementity.setThrower(Dolphin.this.getUUID());
             float f = 0.3F;

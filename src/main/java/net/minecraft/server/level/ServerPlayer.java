@@ -875,7 +875,11 @@ public class ServerPlayer extends Player {
 
       super.stopSleepInBed(p_9165_, p_9166_);
       if (this.connection != null) {
-         this.connection.teleport(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+         if (this.hasSectorPosition()) {
+            this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
+         } else {
+            this.connection.teleport(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+         }
       }
 
    }
@@ -887,7 +891,11 @@ public class ServerPlayer extends Player {
       } else {
          Entity entity1 = this.getVehicle();
          if (entity1 != entity && this.connection != null) {
-            this.connection.teleport(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+            if (this.hasSectorPosition()) {
+               this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
+            } else {
+               this.connection.teleport(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+            }
          }
 
          return true;
@@ -899,7 +907,12 @@ public class ServerPlayer extends Player {
       super.stopRiding();
       Entity entity1 = this.getVehicle();
       if (entity1 != entity && this.connection != null) {
-         this.connection.dismount(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+         if (this.hasSectorPosition()) {
+            this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot(),
+                  java.util.Collections.emptySet(), true);
+         } else {
+            this.connection.dismount(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+         }
       }
 
    }

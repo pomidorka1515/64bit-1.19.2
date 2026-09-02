@@ -27,3 +27,7 @@ out/
 !README.md
 !CLAUDE.md
 .claude
+
+.classpath
+.project
+.settings

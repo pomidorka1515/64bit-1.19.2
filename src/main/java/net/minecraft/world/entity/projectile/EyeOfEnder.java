@@ -143,8 +143,7 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
             this.playSound(SoundEvents.ENDER_EYE_DEATH, 1.0F, 1.0F);
             this.discard();
             if (this.surviveAfterDeath) {
-               ItemEntity item = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), this.getItem());
-               item.applyExactPosition(this.sectorPosition());
+               ItemEntity item = new ItemEntity(this.level, this.sectorPosition(), this.getItem());
                this.level.addFreshEntity(item);
             } else {
                this.level.levelEvent(2003, this.blockPosition(), 0);

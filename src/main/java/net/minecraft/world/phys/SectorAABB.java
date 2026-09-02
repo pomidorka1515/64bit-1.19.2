@@ -155,6 +155,20 @@ public final class SectorAABB {
    }
 
    /**
+    * Converts this exact box into coordinates relative to an exact entity or
+    * camera position.  Unlike subtracting {@link AABB#minX} from an entity's
+    * legacy {@code getX()}, this keeps the sub-block extent intact beyond the
+    * precision range of an absolute double.
+    */
+   public AABB toLocalAABB(SectorVec3 origin) {
+      if (origin == null) throw new NullPointerException("origin");
+      return new AABB(this.minX.relativeTo(origin.blockX(), origin.subX()), this.minY - origin.y(),
+            this.minZ.relativeTo(origin.blockZ(), origin.subZ()),
+            this.maxX.relativeTo(origin.blockX(), origin.subX()), this.maxY - origin.y(),
+            this.maxZ.relativeTo(origin.blockZ(), origin.subZ()));
+   }
+
+   /**
     * Sector boxes are immutable value objects. Structural equality is important
     * for pathfinding's per-search collision cache; reference identity would turn
     * each reconstructed clearance box into a cache miss.
@@ -267,6 +281,10 @@ public final class SectorAABB {
 
       private double toLocal(long originBlock) {
          return WorldBounds.signedDifference(this.block, originBlock) + this.fraction;
+      }
+
+      private double relativeTo(long originBlock, double originFraction) {
+         return WorldBounds.signedDifference(this.block, originBlock) + this.fraction - originFraction;
       }
    }
 }

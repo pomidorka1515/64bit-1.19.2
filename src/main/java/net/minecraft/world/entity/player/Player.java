@@ -664,7 +664,8 @@ public abstract class Player extends LivingEntity {
          }
 
          double d0 = this.getEyeY() - (double)0.3F;
-         ItemEntity itementity = new ItemEntity(this.level, this.getX(), d0, this.getZ(), p_36179_);
+         net.minecraft.world.phys.SectorVec3 exactDropPosition = this.sectorPosition().withY(d0);
+         ItemEntity itementity = new ItemEntity(this.level, exactDropPosition, p_36179_);
          itementity.setPickUpDelay(40);
          if (p_36181_) {
             itementity.setThrower(this.getUUID());

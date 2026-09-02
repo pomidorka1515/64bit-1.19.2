@@ -546,7 +546,11 @@ public class Cat extends TamableAnimal {
          LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel)this.cat.level)).withParameter(LootContextParams.ORIGIN, this.cat.position()).withParameter(LootContextParams.THIS_ENTITY, this.cat).withRandom(randomsource);
 
          for(ItemStack itemstack : loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.GIFT))) {
-            this.cat.level.addFreshEntity(new ItemEntity(this.cat.level, (double)blockpos$mutableblockpos.getX() - (double)Mth.sin(this.cat.yBodyRot * ((float)Math.PI / 180F)), (double)blockpos$mutableblockpos.getY(), (double)blockpos$mutableblockpos.getZ() + (double)Mth.cos(this.cat.yBodyRot * ((float)Math.PI / 180F)), itemstack));
+            this.cat.level.addFreshEntity(new ItemEntity(this.cat.level,
+                  net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos$mutableblockpos.getX(),
+                        -(double)Mth.sin(this.cat.yBodyRot * ((float)Math.PI / 180F)),
+                        (double)blockpos$mutableblockpos.getY(), blockpos$mutableblockpos.getZ(),
+                        (double)Mth.cos(this.cat.yBodyRot * ((float)Math.PI / 180F))), itemstack));
          }
 
       }

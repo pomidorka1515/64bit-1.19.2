@@ -46,7 +46,7 @@ public class ItemUtils {
       Level level = p_150953_.level;
       if (!level.isClientSide) {
          p_150954_.forEach((p_150958_) -> {
-            level.addFreshEntity(new ItemEntity(level, p_150953_.getX(), p_150953_.getY(), p_150953_.getZ(), p_150958_));
+            level.addFreshEntity(new ItemEntity(level, p_150953_.sectorPosition(), p_150958_));
          });
       }
    }

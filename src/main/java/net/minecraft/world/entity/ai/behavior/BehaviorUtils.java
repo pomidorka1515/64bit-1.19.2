@@ -90,7 +90,7 @@ public class BehaviorUtils {
 
    public static void throwItem(LivingEntity p_217134_, ItemStack p_217135_, Vec3 p_217136_, Vec3 p_217137_, float p_217138_) {
       double d0 = p_217134_.getEyeY() - (double)p_217138_;
-      ItemEntity itementity = new ItemEntity(p_217134_.level, p_217134_.getX(), d0, p_217134_.getZ(), p_217135_);
+      ItemEntity itementity = new ItemEntity(p_217134_.level, p_217134_.sectorPosition().withY(d0), p_217135_);
       itementity.setThrower(p_217134_.getUUID());
       Vec3 vec3 = p_217136_.subtract(p_217134_.position());
       vec3 = vec3.normalize().multiply(p_217137_.x, p_217137_.y, p_217137_.z);

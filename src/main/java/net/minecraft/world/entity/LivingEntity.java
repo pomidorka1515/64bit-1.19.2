@@ -1312,10 +1312,7 @@ public abstract class LivingEntity extends Entity {
 
             if (!flag) {
                SectorVec3 position = this.sectorPosition();
-               Vec3 approximate = position.toApproximateVec3();
-               ItemEntity itementity = new ItemEntity(this.level, approximate.x, position.y(), approximate.z,
-                     new ItemStack(Items.WITHER_ROSE));
-               itementity.applyExactPosition(position);
+               ItemEntity itementity = new ItemEntity(this.level, position, new ItemStack(Items.WITHER_ROSE));
                this.level.addFreshEntity(itementity);
             }
          }

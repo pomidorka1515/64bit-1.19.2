@@ -82,7 +82,8 @@ public class JukeboxBlock extends BaseEntityBlock {
                double d1 = (double)(p_54261_.random.nextFloat() * 0.7F) + (double)0.060000002F + 0.6D;
                double d2 = (double)(p_54261_.random.nextFloat() * 0.7F) + (double)0.15F;
                ItemStack itemstack1 = itemstack.copy();
-               ItemEntity itementity = new ItemEntity(p_54261_, (double)p_54262_.getX() + d0, (double)p_54262_.getY() + d1, (double)p_54262_.getZ() + d2, itemstack1);
+               ItemEntity itementity = new ItemEntity(p_54261_, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+                     p_54262_.getX(), d0, (double)p_54262_.getY() + d1, p_54262_.getZ(), d2), itemstack1);
                itementity.setDefaultPickUpDelay();
                p_54261_.addFreshEntity(itementity);
             }

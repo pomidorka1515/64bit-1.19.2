@@ -202,7 +202,9 @@ public abstract class HangingEntity extends Entity {
    public abstract void playPlacementSound();
 
    public ItemEntity spawnAtLocation(ItemStack p_31722_, float p_31723_) {
-      ItemEntity itementity = new ItemEntity(this.level, this.getX() + (double)((float)this.direction.getStepX() * 0.15F), this.getY() + (double)p_31723_, this.getZ() + (double)((float)this.direction.getStepZ() * 0.15F), p_31722_);
+      ItemEntity itementity = new ItemEntity(this.level, this.sectorPosition().add(
+            (double)((float)this.direction.getStepX() * 0.15F), (double)p_31723_,
+            (double)((float)this.direction.getStepZ() * 0.15F)), p_31722_);
       itementity.setDefaultPickUpDelay();
       this.level.addFreshEntity(itementity);
       return itementity;

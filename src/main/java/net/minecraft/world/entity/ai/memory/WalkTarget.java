@@ -22,7 +22,7 @@ public class WalkTarget {
    }
 
    public WalkTarget(SectorVec3 position, float speedModifier, int closeEnoughDist) {
-      this(new BlockPosTracker(position.blockPosition()), speedModifier, closeEnoughDist);
+      this(new BlockPosTracker(position), speedModifier, closeEnoughDist);
    }
 
    public WalkTarget(Entity p_148209_, float p_148210_, int p_148211_) {

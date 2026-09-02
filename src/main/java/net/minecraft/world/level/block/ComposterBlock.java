@@ -245,7 +245,8 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
          double d0 = (double)(p_52000_.random.nextFloat() * 0.7F) + (double)0.15F;
          double d1 = (double)(p_52000_.random.nextFloat() * 0.7F) + (double)0.060000002F + 0.6D;
          double d2 = (double)(p_52000_.random.nextFloat() * 0.7F) + (double)0.15F;
-         ItemEntity itementity = new ItemEntity(p_52000_, (double)p_52001_.getX() + d0, (double)p_52001_.getY() + d1, (double)p_52001_.getZ() + d2, new ItemStack(Items.BONE_MEAL));
+         ItemEntity itementity = new ItemEntity(p_52000_, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+               p_52001_.getX(), d0, (double)p_52001_.getY() + d1, p_52001_.getZ(), d2), new ItemStack(Items.BONE_MEAL));
          itementity.setDefaultPickUpDelay();
          p_52000_.addFreshEntity(itementity);
       }

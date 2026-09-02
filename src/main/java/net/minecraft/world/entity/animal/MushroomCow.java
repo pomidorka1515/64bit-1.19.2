@@ -171,7 +171,8 @@ public class MushroomCow extends Cow implements Shearable {
          this.level.addFreshEntity(cow);
 
          for(int i = 0; i < 5; ++i) {
-            this.level.addFreshEntity(new ItemEntity(this.level, this.getX(), this.getY(1.0D), this.getZ(), new ItemStack(this.getMushroomType().blockState.getBlock())));
+            this.level.addFreshEntity(new ItemEntity(this.level, this.sectorPosition().withY(this.getY(1.0D)),
+                  new ItemStack(this.getMushroomType().blockState.getBlock())));
          }
       }
 

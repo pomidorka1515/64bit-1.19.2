@@ -1,5 +1,6 @@
 package net.minecraft.world.entity.player;
 
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -108,8 +109,8 @@ import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.Team;
@@ -664,7 +665,7 @@ public abstract class Player extends LivingEntity {
          }
 
          double d0 = this.getEyeY() - (double)0.3F;
-         net.minecraft.world.phys.SectorVec3 exactDropPosition = this.sectorPosition().withY(d0);
+         SectorVec3 exactDropPosition = this.sectorPosition().withY(d0);
          ItemEntity itementity = new ItemEntity(this.level, exactDropPosition, p_36179_);
          itementity.setPickUpDelay(40);
          if (p_36181_) {
@@ -1329,23 +1330,30 @@ public abstract class Player extends LivingEntity {
    }
 
    public static Optional<Vec3> findRespawnPositionAndUseSpawnBlock(ServerLevel p_36131_, BlockPos p_36132_, float p_36133_, boolean p_36134_, boolean p_36135_) {
-      BlockState blockstate = p_36131_.getBlockState(p_36132_);
+      return findExactRespawnPositionAndUseSpawnBlock(p_36131_, p_36132_, p_36133_, p_36134_, p_36135_)
+            .map(SectorVec3::toApproximateVec3);
+   }
+
+   /** Exact split-coordinate respawn resolution; never reconstructs a global X/Z double. */
+   public static Optional<SectorVec3> findExactRespawnPositionAndUseSpawnBlock(ServerLevel level, BlockPos pos, float angle, boolean forcerespawn, boolean useSpawnBlock) {
+      BlockState blockstate = level.getBlockState(pos);
       Block block = blockstate.getBlock();
-      if (block instanceof RespawnAnchorBlock && blockstate.getValue(RespawnAnchorBlock.CHARGE) > 0 && RespawnAnchorBlock.canSetSpawn(p_36131_)) {
-         Optional<Vec3> optional = RespawnAnchorBlock.findStandUpPosition(EntityType.PLAYER, p_36131_, p_36132_);
-         if (!p_36135_ && optional.isPresent()) {
-            p_36131_.setBlock(p_36132_, blockstate.setValue(RespawnAnchorBlock.CHARGE, Integer.valueOf(blockstate.getValue(RespawnAnchorBlock.CHARGE) - 1)), 3);
+      if (block instanceof RespawnAnchorBlock && blockstate.getValue(RespawnAnchorBlock.CHARGE) > 0 && RespawnAnchorBlock.canSetSpawn(level)) {
+         Optional<SectorVec3> optional = RespawnAnchorBlock.findExactStandUpPosition(EntityType.PLAYER, level, pos);
+         if (!useSpawnBlock && optional.isPresent()) {
+            level.setBlock(pos, blockstate.setValue(RespawnAnchorBlock.CHARGE, Integer.valueOf(blockstate.getValue(RespawnAnchorBlock.CHARGE) - 1)), 3);
          }
 
          return optional;
-      } else if (block instanceof BedBlock && BedBlock.canSetSpawn(p_36131_)) {
-         return BedBlock.findStandUpPosition(EntityType.PLAYER, p_36131_, p_36132_, p_36133_);
-      } else if (!p_36134_) {
+      } else if (block instanceof BedBlock && BedBlock.canSetSpawn(level)) {
+         return BedBlock.findExactStandUpPosition(EntityType.PLAYER, level, pos, angle);
+      } else if (!forcerespawn) {
          return Optional.empty();
       } else {
          boolean flag = block.isPossibleToRespawnInThis();
-         boolean flag1 = p_36131_.getBlockState(p_36132_.above()).getBlock().isPossibleToRespawnInThis();
-         return flag && flag1 ? Optional.of(new Vec3((double)p_36132_.getX() + 0.5D, (double)p_36132_.getY() + 0.1D, (double)p_36132_.getZ() + 0.5D)) : Optional.empty();
+         boolean flag1 = level.getBlockState(pos.above()).getBlock().isPossibleToRespawnInThis();
+         return flag && flag1 ? Optional.of(SectorVec3.fromBlockAndFraction(pos.getX(), 0.5D,
+               (double)pos.getY() + 0.1D, pos.getZ(), 0.5D)) : Optional.empty();
       }
    }
 
@@ -1798,7 +1806,7 @@ public abstract class Player extends LivingEntity {
                ((TamableAnimal)p_219733_).setOwnerUUID(this.uuid);
             }
 
-            p_219733_.setPos(this.getX(), this.getY() + (double)0.7F, this.getZ());
+            p_219733_.moveTo(this.sectorPosition().add(0.0D, (double)0.7F, 0.0D), this.getYRot(), this.getXRot());
             ((ServerLevel)this.level).addWithUUID(p_219733_);
          });
       }

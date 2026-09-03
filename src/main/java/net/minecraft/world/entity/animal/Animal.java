@@ -224,7 +224,7 @@ public abstract class Animal extends AgeableMob {
          this.resetLove();
          p_27565_.resetLove();
          ageablemob.setBaby(true);
-         ageablemob.moveTo(this.getX(), this.getY(), this.getZ(), 0.0F, 0.0F);
+         ageablemob.moveTo(this.sectorPosition(), 0.0F, 0.0F);
          p_27564_.addFreshEntityWithPassengers(ageablemob);
          p_27564_.broadcastEntityEvent(this, (byte)18);
          if (p_27564_.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {

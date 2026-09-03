@@ -1,5 +1,7 @@
 package net.minecraft.world.level.block;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.ImmutableList;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -33,7 +35,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -176,6 +177,22 @@ public class RespawnAnchorBlock extends Block {
          Vec3 vec3 = DismountHelper.findSafeDismountLocation(p_55844_, p_55845_, blockpos$mutableblockpos, p_55847_);
          if (vec3 != null) {
             return Optional.of(vec3);
+         }
+      }
+
+      return Optional.empty();
+   }
+
+   /** Exact split-coordinate anchor respawn target; offsets stay in long block arithmetic. */
+   public static Optional<SectorVec3> findExactStandUpPosition(EntityType<?> type, CollisionGetter level, BlockPos pos) {
+      BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+
+      for(Vec3i vec3i : RESPAWN_OFFSETS) {
+         blockpos$mutableblockpos.set(net.minecraft.world.level.WorldBounds.addBlockOffset(pos.getX(), (long)vec3i.getX()),
+               pos.getY() + vec3i.getY(), net.minecraft.world.level.WorldBounds.addBlockOffset(pos.getZ(), (long)vec3i.getZ()));
+         SectorVec3 candidate = DismountHelper.findExactSafeDismountLocation(type, level, blockpos$mutableblockpos);
+         if (candidate != null) {
+            return Optional.of(candidate);
          }
       }
 

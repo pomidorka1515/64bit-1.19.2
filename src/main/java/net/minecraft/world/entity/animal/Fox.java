@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.animal;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -662,17 +664,20 @@ public class Fox extends Animal {
    }
 
    public static boolean isPathClear(Fox p_28472_, LivingEntity p_28473_) {
-      double d0 = p_28473_.getZ() - p_28472_.getZ();
-      double d1 = p_28473_.getX() - p_28472_.getX();
+      Vec3 delta = p_28473_.sectorPosition().relativeTo(p_28472_.sectorPosition());
+      double d0 = delta.z;
+      double d1 = delta.x;
       double d2 = d0 / d1;
       int i = 6;
+      SectorVec3 base = p_28472_.sectorPosition();
 
       for(int j = 0; j < 6; ++j) {
          double d3 = d2 == 0.0D ? 0.0D : d0 * (double)((float)j / 6.0F);
          double d4 = d2 == 0.0D ? d1 * (double)((float)j / 6.0F) : d3 / d2;
 
          for(int k = 1; k < 4; ++k) {
-            if (!p_28472_.level.getBlockState(new BlockPos(p_28472_.getX() + d4, p_28472_.getY() + (double)k, p_28472_.getZ() + d3)).getMaterial().isReplaceable()) {
+            SectorVec3 probe = base.add(d4, (double)k, d3);
+            if (!p_28472_.level.getBlockState(probe.blockPosition()).getMaterial().isReplaceable()) {
                return false;
             }
          }

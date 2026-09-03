@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.boss.wither;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.ImmutableList;
 import java.util.EnumSet;
 import java.util.List;
@@ -178,12 +180,11 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
          }
 
          if (entity1 != null) {
-            double d9 = this.getHeadX(j + 1);
-            double d1 = this.getHeadY(j + 1);
-            double d3 = this.getHeadZ(j + 1);
-            double d4 = entity1.getX() - d9;
-            double d5 = entity1.getEyeY() - d1;
-            double d6 = entity1.getZ() - d3;
+            SectorVec3 headPos = this.getExactHeadPos(j + 1);
+            Vec3 toTarget = entity1.sectorPosition().withY(entity1.getEyeY()).relativeTo(headPos);
+            double d4 = toTarget.x;
+            double d5 = toTarget.y;
+            double d6 = toTarget.z;
             double d7 = Math.sqrt(d4 * d4 + d6 * d6);
             float f = (float)(Mth.atan2(d6, d4) * (double)(180F / (float)Math.PI)) - 90.0F;
             float f1 = (float)(-(Mth.atan2(d5, d7) * (double)(180F / (float)Math.PI)));
@@ -257,10 +258,12 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
                   if (j3 > 15) {
                      float f = 10.0F;
                      float f1 = 5.0F;
-                     double d0 = Mth.nextDouble(this.random, this.getX() - 10.0D, this.getX() + 10.0D);
-                     double d1 = Mth.nextDouble(this.random, this.getY() - 5.0D, this.getY() + 5.0D);
-                     double d2 = Mth.nextDouble(this.random, this.getZ() - 10.0D, this.getZ() + 10.0D);
-                     this.performRangedAttack(i + 1, d0, d1, d2, true);
+                     SectorVec3 spawn = this.sectorPosition().add(
+                           (this.random.nextDouble() - 0.5D) * 2.0D * 10.0D,
+                           (this.random.nextDouble() - 0.5D) * 2.0D * 5.0D,
+                           (this.random.nextDouble() - 0.5D) * 2.0D * 10.0D);
+                     Vec3 approximate = spawn.toApproximateVec3();
+                     this.performRangedAttack(i + 1, approximate.x, approximate.y, approximate.z, true);
                      this.idleHeadUpdates[i - 1] = 0;
                   }
                }
@@ -397,9 +400,10 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
          this.level.levelEvent((Player)null, 1024, this.blockPosition(), 0);
       }
 
-      double d0 = this.getHeadX(p_31449_);
-      double d1 = this.getHeadY(p_31449_);
-      double d2 = this.getHeadZ(p_31449_);
+      SectorVec3 headPos = this.getExactHeadPos(p_31449_);
+      double d0 = headPos.toApproximateVec3().x;
+      double d1 = headPos.y();
+      double d2 = headPos.toApproximateVec3().z;
       double d3 = p_31450_ - d0;
       double d4 = p_31451_ - d1;
       double d5 = p_31452_ - d2;
@@ -409,8 +413,19 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
          witherskull.setDangerous(true);
       }
 
-      witherskull.setPosRaw(d0, d1, d2);
+      witherskull.applyExactPosition(headPos);
       this.level.addFreshEntity(witherskull);
+   }
+
+   /** Exact head position in split coordinates; head offsets are local deltas. */
+   private SectorVec3 getExactHeadPos(int head) {
+      if (head <= 0) {
+         return this.sectorPosition().withY(this.getY() + 3.0D);
+      } else {
+         float f = (this.yBodyRot + (float)(180 * (head - 1))) * ((float)Math.PI / 180F);
+         return this.sectorPosition().withY(this.getY() + 2.2D)
+               .add((double)Mth.cos(f) * 1.3D, 0.0D, (double)Mth.sin(f) * 1.3D);
+      }
    }
 
    public void performRangedAttack(LivingEntity p_31468_, float p_31469_) {

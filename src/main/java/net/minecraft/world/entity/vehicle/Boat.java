@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.vehicle;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.Lists;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -36,6 +38,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.WaterlilyBlock;
@@ -71,7 +74,7 @@ public class Boat extends Entity {
    private double lerpY;
    private double lerpZ;
    @Nullable
-   private net.minecraft.world.phys.SectorVec3 exactLerpTarget;
+   private SectorVec3 exactLerpTarget;
    private double lerpYRot;
    private double lerpXRot;
    private boolean inputLeft;
@@ -101,7 +104,7 @@ public class Boat extends Entity {
    }
 
    /** Creates a boat at an exact split-coordinate position. */
-   public Boat(Level level, net.minecraft.world.phys.SectorVec3 position) {
+   public Boat(Level level, SectorVec3 position) {
       this(EntityType.BOAT, level);
       this.applyExactPosition(position);
       this.setOldPosAndRot();
@@ -247,7 +250,7 @@ public class Boat extends Entity {
    }
 
    @Override
-   public void lerpTo(net.minecraft.world.phys.SectorVec3 position, float yRot, float xRot,
+   public void lerpTo(SectorVec3 position, float yRot, float xRot,
                       int steps, boolean teleport) {
       this.exactLerpTarget = position;
       this.lerpYRot = (double)yRot;
@@ -402,9 +405,9 @@ public class Boat extends Entity {
       }
 
       if (this.lerpSteps > 0) {
-         net.minecraft.world.phys.SectorVec3 target = this.exactLerpTarget != null ? this.exactLerpTarget
-               : net.minecraft.world.phys.SectorVec3.fromApproximate(this.lerpX, this.lerpY, this.lerpZ);
-         net.minecraft.world.phys.SectorVec3 next = this.sectorPosition().lerpTo(target, 1.0D / (double)this.lerpSteps);
+         SectorVec3 target = this.exactLerpTarget != null ? this.exactLerpTarget
+               : SectorVec3.fromApproximate(this.lerpX, this.lerpY, this.lerpZ);
+         SectorVec3 next = this.sectorPosition().lerpTo(target, 1.0D / (double)this.lerpSteps);
          double d3 = Mth.wrapDegrees(this.lerpYRot - (double)this.getYRot());
          this.setYRot(this.getYRot() + (float)d3 / (float)this.lerpSteps);
          this.setXRot(this.getXRot() + (float)(this.lerpXRot - (double)this.getXRot()) / (float)this.lerpSteps);
@@ -581,7 +584,7 @@ public class Boat extends Entity {
       this.invFriction = 0.05F;
       if (this.oldStatus == Boat.Status.IN_AIR && this.status != Boat.Status.IN_AIR && this.status != Boat.Status.ON_LAND) {
          this.waterLevel = this.getY(1.0D);
-         this.setPos(this.getX(), (double)(this.getWaterLevelAbove() - this.getBbHeight()) + 0.101D, this.getZ());
+         this.setSectorPositionRawPublic(this.sectorPosition().withY((double)(this.getWaterLevelAbove() - this.getBbHeight()) + 0.101D));
          this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D));
          this.lastYd = 0.0D;
          this.status = Boat.Status.IN_WATER;
@@ -613,6 +616,11 @@ public class Boat extends Entity {
          }
       }
 
+   }
+
+   /** Exact Y-only water snap for sector-enabled boats; X/Z never pass through a double. */
+   private void setSectorPositionRawPublic(SectorVec3 position) {
+      this.applyExactPosition(position);
    }
 
    private void controlBoat() {
@@ -708,6 +716,46 @@ public class Boat extends Entity {
       }
 
       return super.getDismountLocationForPassenger(p_38357_);
+   }
+
+   /** Exact split-coordinate boat dismount target; local escape offsets never pass through global doubles. */
+   public SectorVec3 getExactDismountLocationForPassenger(LivingEntity passenger) {
+      SectorVec3 base = this.sectorPosition();
+      Vec3 escape = getCollisionHorizontalEscapeVector((double)(this.getBbWidth() * Mth.SQRT_OF_TWO), (double)passenger.getBbWidth(), passenger.getYRot());
+      double maxY = this.getBoundingBox().maxY;
+      long blockX = WorldBounds.addBlockOffset(base.blockX(), (long)Math.floor(escape.x));
+      long blockZ = WorldBounds.addBlockOffset(base.blockZ(), (long)Math.floor(escape.z));
+      double subX = base.subX() + escape.x - Math.floor(escape.x);
+      double subZ = base.subZ() + escape.z - Math.floor(escape.z);
+      BlockPos blockpos = new BlockPos(blockX, Mth.floor(maxY), blockZ);
+      BlockPos blockpos1 = blockpos.below();
+      if (!this.level.isWaterAt(blockpos1)) {
+         double d2 = this.level.getBlockFloorHeight(blockpos);
+         if (DismountHelper.isBlockFloorValid(d2)) {
+            SectorVec3 candidate = SectorVec3.fromBlockAndFraction(
+                  blockX, subX, (double)blockpos.getY() + d2, blockZ, subZ);
+            if (canExactDismountTo(passenger, candidate)) return candidate;
+         }
+
+         double d3 = this.level.getBlockFloorHeight(blockpos1);
+         if (DismountHelper.isBlockFloorValid(d3)) {
+            SectorVec3 candidate = SectorVec3.fromBlockAndFraction(
+                  blockX, subX, (double)blockpos1.getY() + d3, blockZ, subZ);
+            if (canExactDismountTo(passenger, candidate)) return candidate;
+         }
+      }
+
+      return super.getExactDismountLocationForPassenger(passenger);
+   }
+
+   private boolean canExactDismountTo(LivingEntity passenger, SectorVec3 candidate) {
+      for(Pose pose : passenger.getDismountPoses()) {
+         if (DismountHelper.canExactDismountTo(this.level, passenger, candidate, pose)) {
+            passenger.setPose(pose);
+            return true;
+         }
+      }
+      return false;
    }
 
    protected void clampRotation(Entity p_38322_) {

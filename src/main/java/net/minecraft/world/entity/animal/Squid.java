@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.animal;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -236,9 +238,10 @@ public class Squid extends WaterAnimal {
          ++this.fleeTicks;
          LivingEntity livingentity = Squid.this.getLastHurtByMob();
          if (livingentity != null) {
-            Vec3 vec3 = new Vec3(Squid.this.getX() - livingentity.getX(), Squid.this.getY() - livingentity.getY(), Squid.this.getZ() - livingentity.getZ());
-            BlockState blockstate = Squid.this.level.getBlockState(new BlockPos(Squid.this.getX() + vec3.x, Squid.this.getY() + vec3.y, Squid.this.getZ() + vec3.z));
-            FluidState fluidstate = Squid.this.level.getFluidState(new BlockPos(Squid.this.getX() + vec3.x, Squid.this.getY() + vec3.y, Squid.this.getZ() + vec3.z));
+            Vec3 vec3 = livingentity.sectorPosition().relativeTo(Squid.this.sectorPosition());
+            SectorVec3 away = Squid.this.sectorPosition().add(vec3.x, vec3.y, vec3.z);
+            BlockState blockstate = Squid.this.level.getBlockState(away.blockPosition());
+            FluidState fluidstate = Squid.this.level.getFluidState(away.blockPosition());
             if (fluidstate.is(FluidTags.WATER) || blockstate.isAir()) {
                double d0 = vec3.length();
                if (d0 > 0.0D) {

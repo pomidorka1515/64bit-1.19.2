@@ -196,7 +196,7 @@ public class Slime extends Mob implements Enemy {
             slime.setNoAi(flag);
             slime.setInvulnerable(this.isInvulnerable());
             slime.setSize(j, true);
-            slime.moveTo(this.getX() + (double)f1, this.getY() + 0.5D, this.getZ() + (double)f2, this.random.nextFloat() * 360.0F, 0.0F);
+            slime.moveTo(this.sectorPosition().add((double)f1, 0.5D, (double)f2), this.random.nextFloat() * 360.0F, 0.0F);
             this.level.addFreshEntity(slime);
          }
       }

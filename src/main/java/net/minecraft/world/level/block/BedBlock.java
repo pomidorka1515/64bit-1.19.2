@@ -1,5 +1,7 @@
 package net.minecraft.world.level.block;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -37,7 +39,6 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -264,6 +265,43 @@ public class BedBlock extends HorizontalDirectionalBlock implements EntityBlock 
          Vec3 vec3 = DismountHelper.findSafeDismountLocation(p_49470_, p_49471_, blockpos$mutableblockpos, p_49474_);
          if (vec3 != null) {
             return Optional.of(vec3);
+         }
+      }
+
+      return Optional.empty();
+   }
+
+   /** Exact split-coordinate stand-up target; horizontal offsets stay in long block arithmetic. */
+   public static Optional<SectorVec3> findExactStandUpPosition(EntityType<?> type, CollisionGetter level, BlockPos pos, float angle) {
+      Direction direction = level.getBlockState(pos).getValue(FACING);
+      Direction direction1 = direction.getClockWise();
+      Direction direction2 = direction1.isFacingAngle(angle) ? direction1.getOpposite() : direction1;
+      if (isBunkBed(level, pos)) {
+         int[][] around = bedSurroundStandUpOffsets(direction, direction2);
+         int[][] above = bedAboveStandUpOffsets(direction);
+         Optional<SectorVec3> result = findExactStandUpPositionAtOffset(type, level, pos, around);
+         if (result.isPresent()) return result;
+         BlockPos below = pos.below();
+         result = findExactStandUpPositionAtOffset(type, level, below, around);
+         if (result.isPresent()) return result;
+         result = findExactStandUpPositionAtOffset(type, level, pos, above);
+         if (result.isPresent()) return result;
+         result = findExactStandUpPositionAtOffset(type, level, below, around);
+         return result.isPresent() ? result : findExactStandUpPositionAtOffset(type, level, pos, above);
+      } else {
+         return findExactStandUpPositionAtOffset(type, level, pos, bedStandUpOffsets(direction, direction2));
+      }
+   }
+
+   private static Optional<SectorVec3> findExactStandUpPositionAtOffset(EntityType<?> type, CollisionGetter level, BlockPos pos, int[][] offsets) {
+      BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+
+      for(int[] aint : offsets) {
+         blockpos$mutableblockpos.set(net.minecraft.world.level.WorldBounds.addBlockOffset(pos.getX(), (long)aint[0]),
+               pos.getY(), net.minecraft.world.level.WorldBounds.addBlockOffset(pos.getZ(), (long)aint[1]));
+         SectorVec3 candidate = DismountHelper.findExactSafeDismountLocation(type, level, blockpos$mutableblockpos);
+         if (candidate != null) {
+            return Optional.of(candidate);
          }
       }
 

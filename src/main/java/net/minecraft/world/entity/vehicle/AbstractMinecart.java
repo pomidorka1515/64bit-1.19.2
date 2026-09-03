@@ -1,5 +1,9 @@
 package net.minecraft.world.entity.vehicle;
 
+import net.minecraft.world.phys.SectorAABB;
+
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -36,6 +40,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -44,7 +49,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class AbstractMinecart extends Entity {
@@ -208,6 +212,46 @@ public abstract class AbstractMinecart extends Entity {
          }
 
          return super.getDismountLocationForPassenger(p_38145_);
+      }
+   }
+
+   /** Exact split-coordinate minecart dismount target derived from long block offsets only. */
+   @Override
+   public SectorVec3 getExactDismountLocationForPassenger(LivingEntity passenger) {
+      Direction direction = this.getMotionDirection();
+      if (direction.getAxis() == Direction.Axis.Y) {
+         return super.getExactDismountLocationForPassenger(passenger);
+      } else {
+         int[][] aint = DismountHelper.offsetsForDirection(direction);
+         BlockPos blockpos = this.blockPosition();
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+         ImmutableList<Pose> immutablelist = passenger.getDismountPoses();
+
+         for(Pose pose : immutablelist) {
+            EntityDimensions entitydimensions = passenger.getDimensions(pose);
+            float f = Math.min(entitydimensions.width, 1.0F) / 2.0F;
+
+            for(int i : POSE_DISMOUNT_HEIGHTS.get(pose)) {
+               for(int[] aint1 : aint) {
+                  blockpos$mutableblockpos.set(WorldBounds.addBlockOffset(blockpos.getX(), (long)aint1[0]),
+                        blockpos.getY() + i, WorldBounds.addBlockOffset(blockpos.getZ(), (long)aint1[1]));
+                  double d0 = this.level.getBlockFloorHeight(DismountHelper.nonClimbableShape(this.level, blockpos$mutableblockpos), () -> {
+                     return DismountHelper.nonClimbableShape(this.level, blockpos$mutableblockpos.below());
+                  });
+                  if (DismountHelper.isBlockFloorValid(d0)) {
+                     SectorVec3 candidate = SectorVec3.fromBlockAndFraction(
+                           blockpos$mutableblockpos.getX(), 0.5D, (double)blockpos$mutableblockpos.getY() + d0,
+                           blockpos$mutableblockpos.getZ(), 0.5D);
+                     if (DismountHelper.canExactDismountTo(this.level, passenger, candidate, pose)) {
+                        passenger.setPose(pose);
+                        return candidate;
+                     }
+                  }
+               }
+            }
+         }
+
+         return super.getExactDismountLocationForPassenger(passenger);
       }
    }
 
@@ -697,8 +741,8 @@ public abstract class AbstractMinecart extends Entity {
     */
    @Override
    @Nullable
-   public net.minecraft.world.phys.SectorAABB getSectorBoundingBoxForCulling() {
-      net.minecraft.world.phys.SectorAABB box = super.getSectorBoundingBoxForCulling();
+   public SectorAABB getSectorBoundingBoxForCulling() {
+      SectorAABB box = super.getSectorBoundingBoxForCulling();
       return box == null || !this.hasCustomDisplay() ? box
             : box.inflate((double)Math.abs(this.getDisplayOffset()) / 16.0D,
                   (double)Math.abs(this.getDisplayOffset()) / 16.0D,

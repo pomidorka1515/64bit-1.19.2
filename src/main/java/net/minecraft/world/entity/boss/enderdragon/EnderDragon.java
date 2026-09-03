@@ -331,7 +331,7 @@ public class EnderDragon extends Mob implements Enemy {
    }
 
    private void tickPart(EnderDragonPart p_31116_, double p_31117_, double p_31118_, double p_31119_) {
-      p_31116_.setPos(this.getX() + p_31117_, this.getY() + p_31118_, this.getZ() + p_31119_);
+      p_31116_.applyExactPosition(this.sectorPosition().add(p_31117_, p_31118_, p_31119_));
    }
 
    private float getHeadYOffset() {

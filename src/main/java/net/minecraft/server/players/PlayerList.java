@@ -1,5 +1,7 @@
 package net.minecraft.server.players;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -83,7 +85,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -93,7 +94,6 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.PlayerDataStorage;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.PlayerTeam;
@@ -413,9 +413,9 @@ public abstract class PlayerList {
       float f = p_11237_.getRespawnAngle();
       boolean flag = p_11237_.isRespawnForced();
       ServerLevel serverlevel = this.server.getLevel(p_11237_.getRespawnDimension());
-      Optional<Vec3> optional;
+      Optional<SectorVec3> optional;
       if (serverlevel != null && blockpos != null) {
-         optional = Player.findRespawnPositionAndUseSpawnBlock(serverlevel, blockpos, f, flag, p_11238_);
+         optional = Player.findExactRespawnPositionAndUseSpawnBlock(serverlevel, blockpos, f, flag, p_11238_);
       } else {
          optional = Optional.empty();
       }
@@ -435,16 +435,16 @@ public abstract class PlayerList {
       if (optional.isPresent()) {
          BlockState blockstate = serverlevel1.getBlockState(blockpos);
          boolean flag1 = blockstate.is(Blocks.RESPAWN_ANCHOR);
-         Vec3 vec3 = optional.get();
+         SectorVec3 exact = optional.get();
          float f1;
          if (!blockstate.is(BlockTags.BEDS) && !flag1) {
             f1 = f;
          } else {
-            Vec3 vec31 = Vec3.atBottomCenterOf(blockpos).subtract(vec3).normalize();
+            Vec3 vec31 = Vec3.atBottomCenterOf(blockpos).subtract(exact.toApproximateVec3()).normalize();
             f1 = (float)Mth.wrapDegrees(Mth.atan2(vec31.z, vec31.x) * (double)(180F / (float)Math.PI) - 90.0D);
          }
 
-         serverplayer.moveTo(vec3.x, vec3.y, vec3.z, f1, 0.0F);
+         serverplayer.moveTo(exact, f1, 0.0F);
          serverplayer.setRespawnPosition(serverlevel1.dimension(), blockpos, f, flag, false);
          flag2 = !p_11238_ && flag1;
       } else if (blockpos != null) {

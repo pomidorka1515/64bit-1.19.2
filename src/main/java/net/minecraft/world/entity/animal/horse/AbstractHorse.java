@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.animal.horse;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -62,6 +64,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
@@ -1018,6 +1021,49 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
       return null;
    }
 
+   /** Exact variant: horizontal escape offsets are applied in split-coordinate space. */
+   @Nullable
+   private SectorVec3 getExactDismountLocationInDirection(Vec3 escape, LivingEntity passenger) {
+      SectorVec3 base = this.sectorPosition();
+      long floorX = (long)Math.floor(escape.x);
+      long floorZ = (long)Math.floor(escape.z);
+      long blockX = WorldBounds.addBlockOffset(base.blockX(), floorX);
+      long blockZ = WorldBounds.addBlockOffset(base.blockZ(), floorZ);
+      double subX = base.subX() + escape.x - (double)floorX;
+      double subZ = base.subZ() + escape.z - (double)floorZ;
+      double minY = this.getBoundingBox().minY;
+      double maxY = this.getBoundingBox().maxY + 0.75D;
+      BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+
+      for(Pose pose : passenger.getDismountPoses()) {
+         blockpos$mutableblockpos.set(blockX, minY, blockZ);
+         if (blockpos$mutableblockpos.getY() > maxY) continue;
+
+         while(true) {
+            double d4 = this.level.getBlockFloorHeight(blockpos$mutableblockpos);
+            if ((double)blockpos$mutableblockpos.getY() + d4 > maxY) {
+               break;
+            }
+
+            if (DismountHelper.isBlockFloorValid(d4)) {
+               SectorVec3 candidate = SectorVec3.fromBlockAndFraction(
+                     blockX, subX, (double)blockpos$mutableblockpos.getY() + d4, blockZ, subZ);
+               if (DismountHelper.canExactDismountTo(this.level, passenger, candidate, pose)) {
+                  passenger.setPose(pose);
+                  return candidate;
+               }
+            }
+
+            blockpos$mutableblockpos.move(Direction.UP);
+            if (!((double)blockpos$mutableblockpos.getY() < maxY)) {
+               break;
+            }
+         }
+      }
+
+      return null;
+   }
+
    public Vec3 getDismountLocationForPassenger(LivingEntity p_30576_) {
       Vec3 vec3 = getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)p_30576_.getBbWidth(), this.getYRot() + (p_30576_.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F));
       Vec3 vec31 = this.getDismountLocationInDirection(vec3, p_30576_);
@@ -1027,6 +1073,20 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
          Vec3 vec32 = getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)p_30576_.getBbWidth(), this.getYRot() + (p_30576_.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F));
          Vec3 vec33 = this.getDismountLocationInDirection(vec32, p_30576_);
          return vec33 != null ? vec33 : this.position();
+      }
+   }
+
+   /** Exact split-coordinate horse dismount target. */
+   @Override
+   public SectorVec3 getExactDismountLocationForPassenger(LivingEntity passenger) {
+      Vec3 escapeRight = getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)passenger.getBbWidth(), this.getYRot() + (passenger.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F));
+      SectorVec3 candidate = this.getExactDismountLocationInDirection(escapeRight, passenger);
+      if (candidate != null) {
+         return candidate;
+      } else {
+         Vec3 escapeLeft = getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)passenger.getBbWidth(), this.getYRot() + (passenger.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F));
+         SectorVec3 fallback = this.getExactDismountLocationInDirection(escapeLeft, passenger);
+         return fallback != null ? fallback : this.sectorPosition();
       }
    }
 

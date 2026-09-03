@@ -1,5 +1,7 @@
 package net.minecraft.world.entity;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -114,7 +116,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import org.slf4j.Logger;
@@ -1956,6 +1957,18 @@ public abstract class LivingEntity extends Entity {
 
    }
 
+   /** Exact dismount target so the split-coordinate X/Z survive the vehicle exit. */
+   private SectorVec3 exactDismountVehicle(Entity p_21029_) {
+      if (this.isRemoved()) {
+         return this.sectorPosition();
+      } else if (!p_21029_.isRemoved() && !this.level.getBlockState(p_21029_.blockPosition()).is(BlockTags.PORTALS)) {
+         return p_21029_.getExactDismountLocationForPassenger(this);
+      } else {
+         double d0 = Math.max(this.getY(), p_21029_.getY());
+         return this.sectorPosition().withY(d0);
+      }
+   }
+
    private void dismountVehicle(Entity p_21029_) {
       Vec3 vec3;
       if (this.isRemoved()) {
@@ -1967,7 +1980,11 @@ public abstract class LivingEntity extends Entity {
          vec3 = new Vec3(this.getX(), d0, this.getZ());
       }
 
-      this.dismountTo(vec3.x, vec3.y, vec3.z);
+      if (this.usesSectorPhysics()) {
+         this.dismountToExact(exactDismountVehicle(p_21029_));
+      } else {
+         this.dismountTo(vec3.x, vec3.y, vec3.z);
+      }
    }
 
    public boolean shouldShowName() {
@@ -3182,21 +3199,33 @@ public abstract class LivingEntity extends Entity {
          BlockState blockstate = this.level.getBlockState(p_147228_);
          if (blockstate.getBlock() instanceof BedBlock) {
             this.level.setBlock(p_147228_, blockstate.setValue(BedBlock.OCCUPIED, Boolean.valueOf(false)), 3);
-            Vec3 vec31 = BedBlock.findStandUpPosition(this.getType(), this.level, p_147228_, this.getYRot()).orElseGet(() -> {
-               BlockPos blockpos = p_147228_.above();
-               return new Vec3((double)blockpos.getX() + 0.5D, (double)blockpos.getY() + 0.1D, (double)blockpos.getZ() + 0.5D);
-            });
+            SectorVec3 standUp = BedBlock.findExactStandUpPosition(this.getType(), this.level, p_147228_, this.getYRot())
+                  .orElseGet(() -> SectorVec3.fromBlockAndFraction(
+                        p_147228_.above().getX(), 0.5D, (double)p_147228_.above().getY() + 0.1D,
+                        p_147228_.above().getZ(), 0.5D));
+            Vec3 vec31 = standUp.toApproximateVec3();
             Vec3 vec32 = Vec3.atBottomCenterOf(p_147228_).subtract(vec31).normalize();
             float f = (float)Mth.wrapDegrees(Mth.atan2(vec32.z, vec32.x) * (double)(180F / (float)Math.PI) - 90.0D);
-            this.setPos(vec31.x, vec31.y, vec31.z);
+            if (this.usesSectorPhysics()) {
+               this.applyExactPosition(standUp);
+            } else {
+               this.setPos(vec31.x, vec31.y, vec31.z);
+            }
             this.setYRot(f);
             this.setXRot(0.0F);
          }
 
       });
-      Vec3 vec3 = this.position();
+      SectorVec3 exact = this.hasSectorPosition() ? this.sectorPosition() : null;
       this.setPose(Pose.STANDING);
-      this.setPos(vec3.x, vec3.y, vec3.z);
+      if (exact != null) {
+         // Keep the pose-change reapplication in split coordinates; the legacy
+         // Vec3 mirror would snap near-2^63 sleep positions onto the double grid.
+         this.applyExactPosition(exact);
+      } else {
+         Vec3 vec3 = this.position();
+         this.setPos(vec3.x, vec3.y, vec3.z);
+      }
       this.clearSleepingPos();
    }
 

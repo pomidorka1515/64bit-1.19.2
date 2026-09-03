@@ -143,7 +143,7 @@ public class Spider extends Monster {
       RandomSource randomsource = p_33790_.getRandom();
       if (randomsource.nextInt(100) == 0) {
          Skeleton skeleton = EntityType.SKELETON.create(this.level);
-         skeleton.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
+         skeleton.moveTo(this.sectorPosition(), this.getYRot(), 0.0F);
          skeleton.finalizeSpawn(p_33790_, p_33791_, p_33792_, (SpawnGroupData)null, (CompoundTag)null);
          skeleton.startRiding(this);
       }

@@ -1,7 +1,14 @@
 package net.minecraft.world.entity.vehicle;
 
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+
+import net.minecraft.world.phys.SectorAABB;
+
+import net.minecraft.world.phys.SectorVec3;
+
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -42,6 +49,28 @@ public class DismountHelper {
 
    public static boolean canDismountTo(CollisionGetter p_150280_, Vec3 p_150281_, LivingEntity p_150282_, Pose p_150283_) {
       return canDismountTo(p_150280_, p_150282_, p_150282_.getLocalBoundsForPose(p_150283_).move(p_150281_));
+   }
+
+   /**
+    * Exact split-coordinate variant.  The passenger's pose box stays a small
+    * local box; the collision query is centered on {@code origin}, so no
+    * global-double translation can quantize the check near 2^63.
+    */
+   public static boolean canExactDismountTo(CollisionGetter level, LivingEntity passenger,
+                                            SectorVec3 candidate, Pose pose) {
+      SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(candidate);
+      AABB localBox = passenger.getLocalBoundsForPose(pose);
+      AABB worldBox = localBox.move(candidate.blockX() - origin.originBlockX(),
+            candidate.y() - (double)origin.originBlockY(), candidate.blockZ() - origin.originBlockZ());
+      for(VoxelShape voxelshape : level.getSectorBlockCollisions(passenger,
+            SectorAABB.around(candidate, localBox.getXsize(), localBox.getYsize()),
+            worldBox, origin)) {
+         if (!voxelshape.isEmpty()) {
+            return false;
+         }
+      }
+
+      return true;
    }
 
    public static VoxelShape nonClimbableShape(BlockGetter p_38447_, BlockPos p_38448_) {
@@ -91,5 +120,33 @@ public class DismountHelper {
             return !p_38443_.getWorldBorder().isWithinBounds(aabb) ? null : vec3;
          }
       }
+   }
+
+   /** Exact split-coordinate variant of {@link #findSafeDismountLocation}; never reconstructs a global X/Z double. */
+   @Nullable
+   public static SectorVec3 findExactSafeDismountLocation(EntityType<?> type, CollisionGetter level, BlockPos pos) {
+      double floorHeight = level.getBlockFloorHeight(nonClimbableShape(level, pos), () -> {
+         return nonClimbableShape(level, pos.below());
+      });
+      if (!isBlockFloorValid(floorHeight)) {
+         return null;
+      }
+      SectorVec3 candidate = SectorVec3.fromBlockAndFraction(
+            pos.getX(), 0.5D, (double)pos.getY() + floorHeight, pos.getZ(), 0.5D);
+      SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(candidate);
+      EntityDimensions dimensions = type.getDimensions();
+      AABB localBox = new AABB(-dimensions.width / 2.0D, 0.0D, -dimensions.width / 2.0D,
+            dimensions.width / 2.0D, dimensions.height, dimensions.width / 2.0D);
+      AABB worldBox = localBox.move(candidate.blockX() - origin.originBlockX(),
+            candidate.y() - (double)origin.originBlockY(), candidate.blockZ() - origin.originBlockZ());
+      for(VoxelShape voxelshape : level.getSectorBlockCollisions(null,
+            SectorAABB.around(candidate, dimensions.width, dimensions.height),
+            worldBox, origin)) {
+         if (!voxelshape.isEmpty()) {
+            return null;
+         }
+      }
+
+      return candidate;
    }
 }

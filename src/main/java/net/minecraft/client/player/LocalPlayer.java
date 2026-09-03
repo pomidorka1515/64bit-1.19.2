@@ -1,5 +1,11 @@
 package net.minecraft.client.player;
 
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+
+import net.minecraft.world.phys.SectorAABB;
+
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.logging.LogUtils;
@@ -90,9 +96,6 @@ import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.SectorAABB;
-import net.minecraft.world.phys.SectorPhysicsOrigin;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -732,7 +735,7 @@ public class LocalPlayer extends AbstractClientPlayer {
       this.setPose(Pose.STANDING);
       if (this.level != null) {
          for(double d0 = this.getY(); d0 > (double)this.level.getMinBuildHeight() && d0 < (double)this.level.getMaxBuildHeight(); ++d0) {
-            this.setPos(this.getX(), d0, this.getZ());
+            this.applyExactPosition(this.sectorPosition().withY(d0));
             if (this.hasSectorPosition() ? this.sectorNoCollision(this.getSectorBoundingBox(),
                   this.getLocalBoundingBox(this.sectorPhysicsOrigin()), this.sectorPhysicsOrigin()) : this.level.noCollision(this)) {
                break;

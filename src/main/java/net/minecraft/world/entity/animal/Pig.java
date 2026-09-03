@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.animal;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -43,6 +45,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -199,11 +202,44 @@ public class Pig extends Animal implements ItemSteerable, Saddleable {
       }
    }
 
+   /** Exact split-coordinate pig dismount target from long block offsets only. */
+   @Override
+   public SectorVec3 getExactDismountLocationForPassenger(LivingEntity passenger) {
+      Direction direction = this.getMotionDirection();
+      if (direction.getAxis() == Direction.Axis.Y) {
+         return super.getExactDismountLocationForPassenger(passenger);
+      } else {
+         int[][] aint = DismountHelper.offsetsForDirection(direction);
+         BlockPos blockpos = this.blockPosition();
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+
+         for(Pose pose : passenger.getDismountPoses()) {
+            for(int[] aint1 : aint) {
+               blockpos$mutableblockpos.set(WorldBounds.addBlockOffset(blockpos.getX(), (long)aint1[0]),
+                     blockpos.getY(), WorldBounds.addBlockOffset(blockpos.getZ(), (long)aint1[1]));
+               double d0 = this.level.getBlockFloorHeight(blockpos$mutableblockpos);
+               if (DismountHelper.isBlockFloorValid(d0)) {
+                  SectorVec3 candidate = SectorVec3.fromBlockAndFraction(
+                        blockpos$mutableblockpos.getX(), 0.5D,
+                        (double)blockpos$mutableblockpos.getY() + d0,
+                        blockpos$mutableblockpos.getZ(), 0.5D);
+                  if (DismountHelper.canExactDismountTo(this.level, passenger, candidate, pose)) {
+                     passenger.setPose(pose);
+                     return candidate;
+                  }
+               }
+            }
+         }
+
+         return super.getExactDismountLocationForPassenger(passenger);
+      }
+   }
+
    public void thunderHit(ServerLevel p_29473_, LightningBolt p_29474_) {
       if (p_29473_.getDifficulty() != Difficulty.PEACEFUL) {
          ZombifiedPiglin zombifiedpiglin = EntityType.ZOMBIFIED_PIGLIN.create(p_29473_);
          zombifiedpiglin.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
-         zombifiedpiglin.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+         zombifiedpiglin.moveTo(this.sectorPosition(), this.getYRot(), this.getXRot());
          zombifiedpiglin.setNoAi(this.isNoAi());
          zombifiedpiglin.setBaby(this.isBaby());
          if (this.hasCustomName()) {

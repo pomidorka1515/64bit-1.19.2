@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.monster;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.Sets;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -52,6 +54,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -226,6 +229,43 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
       }
 
       return new Vec3(this.getX(), this.getBoundingBox().maxY, this.getZ());
+   }
+
+   /** Exact split-coordinate strider dismount target from long block offsets only. */
+   @Override
+   public SectorVec3 getExactDismountLocationForPassenger(LivingEntity passenger) {
+      Vec3[] avec3 = new Vec3[]{getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)passenger.getBbWidth(), passenger.getYRot()), getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)passenger.getBbWidth(), passenger.getYRot() - 22.5F), getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)passenger.getBbWidth(), passenger.getYRot() + 22.5F), getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)passenger.getBbWidth(), passenger.getYRot() - 45.0F), getCollisionHorizontalEscapeVector((double)this.getBbWidth(), (double)passenger.getBbWidth(), passenger.getYRot() + 45.0F)};
+      Set<BlockPos> set = Sets.newLinkedHashSet();
+      double d0 = this.getBoundingBox().maxY;
+      double d1 = this.getBoundingBox().minY - 0.5D;
+      BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+
+      for(Vec3 vec3 : avec3) {
+         blockpos$mutableblockpos.set(this.getX() + vec3.x, d0, this.getZ() + vec3.z);
+
+         for(double d2 = d0; d2 > d1; --d2) {
+            set.add(blockpos$mutableblockpos.immutable());
+            blockpos$mutableblockpos.move(Direction.DOWN);
+         }
+      }
+
+      for(BlockPos blockpos : set) {
+         if (!this.level.getFluidState(blockpos).is(FluidTags.LAVA)) {
+            double d3 = this.level.getBlockFloorHeight(blockpos);
+            if (DismountHelper.isBlockFloorValid(d3)) {
+               SectorVec3 candidate = SectorVec3.fromBlockAndFraction(
+                     blockpos.getX(), 0.5D, (double)blockpos.getY() + d3, blockpos.getZ(), 0.5D);
+               for(Pose pose : passenger.getDismountPoses()) {
+                  if (DismountHelper.canExactDismountTo(this.level, passenger, candidate, pose)) {
+                     passenger.setPose(pose);
+                     return candidate;
+                  }
+               }
+            }
+         }
+      }
+
+      return super.getExactDismountLocationForPassenger(passenger);
    }
 
    public void travel(Vec3 p_33943_) {
@@ -417,7 +457,7 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
    }
 
    private SpawnGroupData spawnJockey(ServerLevelAccessor p_33882_, DifficultyInstance p_33883_, Mob p_33884_, @Nullable SpawnGroupData p_33885_) {
-      p_33884_.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
+      p_33884_.moveTo(this.sectorPosition(), this.getYRot(), 0.0F);
       p_33884_.finalizeSpawn(p_33882_, p_33883_, MobSpawnType.JOCKEY, p_33885_, (CompoundTag)null);
       p_33884_.startRiding(this, true);
       return new AgeableMob.AgeableMobGroupData(0.0F);

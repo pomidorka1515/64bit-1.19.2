@@ -56,7 +56,7 @@ public class ThrownEnderpearl extends ThrowableItemProjectile {
                }
 
                if (entity.isPassenger()) {
-                  serverplayer.dismountTo(this.getX(), this.getY(), this.getZ());
+                  serverplayer.dismountToExact(this.sectorPosition());
                } else {
                   entity.teleportTo(this.sectorPosition());
                }

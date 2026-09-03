@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.monster;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -198,7 +200,8 @@ public class EnderMan extends Monster implements NeutralMob {
          return false;
       } else {
          Vec3 vec3 = p_32535_.getViewVector(1.0F).normalize();
-         Vec3 vec31 = new Vec3(this.getX() - p_32535_.getX(), this.getEyeY() - p_32535_.getEyeY(), this.getZ() - p_32535_.getZ());
+         Vec3 vec31 = this.sectorPosition().relativeTo(p_32535_.sectorPosition())
+               .add(0.0D, this.getEyeY() - p_32535_.getEyeY(), 0.0D);
          double d0 = vec31.length();
          vec31 = vec31.normalize();
          double d1 = vec3.dot(vec31);
@@ -258,17 +261,20 @@ public class EnderMan extends Monster implements NeutralMob {
    }
 
    boolean teleportTowards(Entity p_32501_) {
-      Vec3 vec3 = new Vec3(this.getX() - p_32501_.getX(), this.getY(0.5D) - p_32501_.getEyeY(), this.getZ() - p_32501_.getZ());
-      vec3 = vec3.normalize();
-      double d0 = 16.0D;
-      double d1 = this.getX() + (this.random.nextDouble() - 0.5D) * 8.0D - vec3.x * 16.0D;
-      double d2 = this.getY() + (double)(this.random.nextInt(16) - 8) - vec3.y * 16.0D;
-      double d3 = this.getZ() + (this.random.nextDouble() - 0.5D) * 8.0D - vec3.z * 16.0D;
-      return this.teleport(d1, d2, d3);
+      Vec3 away = this.sectorPosition().relativeTo(p_32501_.sectorPosition())
+            .add(0.0D, this.getY(0.5D) - this.getY() - (p_32501_.getEyeY() - p_32501_.getY()), 0.0D).normalize();
+      // Build the teleport target in split-coordinate space; a global-double
+      // target near 2^63 would snap the enderman onto the coarse double grid.
+      SectorVec3 exact = this.sectorPosition()
+            .add((this.random.nextDouble() - 0.5D) * 8.0D - away.x * 16.0D, 0.0D,
+                  (this.random.nextDouble() - 0.5D) * 8.0D - away.z * 16.0D)
+            .withY(this.getY() + (double)(this.random.nextInt(16) - 8) - away.y * 16.0D);
+      return this.teleportExact(exact);
    }
 
-   private boolean teleport(double p_32544_, double p_32545_, double p_32546_) {
-      BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(p_32544_, p_32545_, p_32546_);
+   private boolean teleportExact(SectorVec3 target) {
+      BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(
+            target.blockX(), Mth.floor(target.y()), target.blockZ());
 
       while(blockpos$mutableblockpos.getY() > this.level.getMinBuildHeight() && !this.level.getBlockState(blockpos$mutableblockpos).getMaterial().blocksMotion()) {
          blockpos$mutableblockpos.move(Direction.DOWN);
@@ -278,20 +284,28 @@ public class EnderMan extends Monster implements NeutralMob {
       boolean flag = blockstate.getMaterial().blocksMotion();
       boolean flag1 = blockstate.getFluidState().is(FluidTags.WATER);
       if (flag && !flag1) {
-         Vec3 vec3 = this.position();
-         boolean flag2 = this.randomTeleport(p_32544_, p_32545_, p_32546_, true);
-         if (flag2) {
-            this.level.gameEvent(GameEvent.TELEPORT, vec3, GameEvent.Context.of(this));
+         SectorVec3 before = this.sectorPosition();
+         SectorVec3 landing = target.withY((double)blockpos$mutableblockpos.getY());
+         this.teleportTo(landing);
+         if (this.hasExactNoCollision()) {
+            this.level.gameEvent(GameEvent.TELEPORT, before.toApproximateVec3(), GameEvent.Context.of(this));
             if (!this.isSilent()) {
                this.level.playSound((Player)null, this.xo, this.yo, this.zo, SoundEvents.ENDERMAN_TELEPORT, this.getSoundSource(), 1.0F, 1.0F);
                this.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
             }
+
+            return true;
          }
 
-         return flag2;
+         this.teleportTo(before);
+         return false;
       } else {
          return false;
       }
+   }
+
+   private boolean teleport(double p_32544_, double p_32545_, double p_32546_) {
+      return this.teleportExact(SectorVec3.fromApproximate(p_32544_, p_32545_, p_32546_));
    }
 
    protected SoundEvent getAmbientSound() {

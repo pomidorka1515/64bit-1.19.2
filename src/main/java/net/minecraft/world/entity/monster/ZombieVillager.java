@@ -236,10 +236,12 @@ public class ZombieVillager extends Zombie implements VillagerDataHolder {
       if (this.random.nextFloat() < 0.01F) {
          int j = 0;
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+         long baseX = this.getBlockX();
+         long baseZ = this.getBlockZ();
 
-         for(int k = (int)this.getX() - 4; k < (int)this.getX() + 4 && j < 14; ++k) {
-            for(int l = (int)this.getY() - 4; l < (int)this.getY() + 4 && j < 14; ++l) {
-               for(int i1 = (int)this.getZ() - 4; i1 < (int)this.getZ() + 4 && j < 14; ++i1) {
+         for(long k = baseX - 4L; k < baseX + 4L && j < 14; ++k) {
+            for(int l = this.getBlockY() - 4; l < this.getBlockY() + 4 && j < 14; ++l) {
+               for(long i1 = baseZ - 4L; i1 < baseZ + 4L && j < 14; ++i1) {
                   BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(k, l, i1));
                   if (blockstate.is(Blocks.IRON_BARS) || blockstate.getBlock() instanceof BedBlock) {
                      if (this.random.nextFloat() < 0.3F) {

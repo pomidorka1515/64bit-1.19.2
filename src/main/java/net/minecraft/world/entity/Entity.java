@@ -1,5 +1,11 @@
 package net.minecraft.world.entity;
 
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+
+import net.minecraft.world.phys.SectorAABB;
+
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -108,9 +114,6 @@ import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.SectorVec3;
-import net.minecraft.world.phys.SectorAABB;
-import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -3012,6 +3015,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       this.teleportTo(p_146825_, p_146826_, p_146827_);
    }
 
+   /** Exact split-coordinate dismount ingress; never reconstructs a lossy global X/Z double. */
+   public void dismountToExact(SectorVec3 position) {
+      this.teleportTo(position);
+   }
+
    public void teleportTo(double p_19887_, double p_19888_, double p_19889_) {
       this.teleportTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_19887_),
             WorldBounds.clampVerticalDouble(p_19888_), WorldBounds.clampAbsoluteDouble(p_19889_)));
@@ -3280,6 +3288,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    public Vec3 getDismountLocationForPassenger(LivingEntity p_20123_) {
       return new Vec3(this.getX(), this.getBoundingBox().maxY, this.getZ());
+   }
+
+   /**
+    * Exact split-coordinate dismount target.  The default preserves the
+    * passenger's own sub-block X/Z instead of reconstructing a global double
+    * that would snap onto the coarse double grid near 2^63.
+    */
+   public SectorVec3 getExactDismountLocationForPassenger(LivingEntity p_20124_) {
+      return p_20124_.sectorPosition().withY(this.getBoundingBox().maxY);
    }
 
    @Nullable

@@ -1,5 +1,7 @@
 package net.minecraft.world.entity.animal.frog;
 
+import net.minecraft.world.phys.SectorAABB;
+
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Dynamic;
 import java.util.Objects;
@@ -369,7 +371,8 @@ public class Frog extends Animal {
 
       @Nullable
       public Node getStart() {
-         return this.getStartNode(new BlockPos(Mth.floor(this.mob.getBoundingBox().minX), Mth.floor(this.mob.getBoundingBox().minY), Mth.floor(this.mob.getBoundingBox().minZ)));
+         SectorAABB box = this.mob.getSectorBoundingBox();
+         return this.getStartNode(new BlockPos(box.minBlockXForRange(), Mth.floor(this.mob.getBoundingBox().minY), box.minBlockZForRange()));
       }
 
       public BlockPathTypes getBlockPathType(BlockGetter p_218551_, int p_218552_, int p_218553_, int p_218554_) {

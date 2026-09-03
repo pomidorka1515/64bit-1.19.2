@@ -1,5 +1,9 @@
 package net.minecraft.world.entity.decoration;
 
+import net.minecraft.world.phys.SectorAABB;
+
+import net.minecraft.world.phys.SectorVec3;
+
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -36,7 +40,8 @@ public class LeashFenceKnotEntity extends HangingEntity {
    }
 
    protected void recalculateBoundingBox() {
-      this.setPosRaw((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.375D, (double)this.pos.getZ() + 0.5D);
+      this.applyExactPosition(SectorVec3.fromBlockAndFraction(
+            this.pos.getX(), 0.5D, (double)this.pos.getY() + 0.375D, this.pos.getZ(), 0.5D));
       double d0 = (double)this.getType().getWidth() / 2.0D;
       double d1 = (double)this.getType().getHeight();
       this.setBoundingBox(new AABB(this.getX() - d0, this.getY(), this.getZ() - d0, this.getX() + d0, this.getY() + d1, this.getZ() + d0));
@@ -77,7 +82,11 @@ public class LeashFenceKnotEntity extends HangingEntity {
       } else {
          boolean flag = false;
          double d0 = 7.0D;
-         List<Mob> list = this.level.getEntitiesOfClass(Mob.class, new AABB(this.getX() - 7.0D, this.getY() - 7.0D, this.getZ() - 7.0D, this.getX() + 7.0D, this.getY() + 7.0D, this.getZ() + 7.0D));
+         // Vanilla box spans [getY-7, getY+7] in Y and 14 blocks in X/Z; build
+         // the same span in split coordinates so the entity index query stays exact.
+         SectorAABB exact = SectorAABB.around(
+               this.sectorPosition(), 14.0D, 14.0D).move(0.0D, -7.0D, 0.0D);
+         List<Mob> list = this.level.getEntitiesOfClass(Mob.class, AABB.fromSectorBounds(exact));
 
          for(Mob mob : list) {
             if (mob.getLeashHolder() == p_31842_) {

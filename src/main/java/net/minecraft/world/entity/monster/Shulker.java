@@ -1,5 +1,9 @@
 package net.minecraft.world.entity.monster;
 
+import net.minecraft.world.phys.SectorAABB;
+
+import net.minecraft.world.phys.SectorVec3;
+
 import com.mojang.math.Vector3f;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -187,7 +191,15 @@ public class Shulker extends AbstractGolem implements Enemy {
       float f = getPhysicalPeek(this.currentPeekAmount);
       Direction direction = this.getAttachFace().getOpposite();
       float f1 = this.getType().getWidth() / 2.0F;
-      return getProgressAabb(direction, f).move(this.getX() - (double)f1, this.getY(), this.getZ() - (double)f1);
+      AABB local = getProgressAabb(direction, f);
+      SectorVec3 pos = this.sectorPosition();
+      SectorAABB exact = SectorAABB.around(
+            pos, 1.0D, 1.0D).contract((double)f1, 0.0D, (double)f1);
+      AABB box = AABB.fromSectorBounds(exact);
+      return box.move(0.0D, local.minY, 0.0D).expandTowards(
+            (double)direction.getStepX() * (local.getXsize() - 1.0D),
+            (double)direction.getStepY() * (local.getYsize() - 1.0D),
+            (double)direction.getStepZ() * (local.getZsize() - 1.0D));
    }
 
    private static float getPhysicalPeek(float p_149769_) {
@@ -217,7 +229,14 @@ public class Shulker extends AbstractGolem implements Enemy {
       Direction direction = this.getAttachFace().getOpposite();
       float f2 = f - f1;
       if (!(f2 <= 0.0F)) {
-         for(Entity entity : this.level.getEntities(this, getProgressDeltaAabb(direction, f1, f).move(this.getX() - 0.5D, this.getY(), this.getZ() - 0.5D), EntitySelector.NO_SPECTATORS.and((p_149771_) -> {
+         AABB localDelta = getProgressDeltaAabb(direction, f1, f);
+         SectorVec3 pos = this.sectorPosition();
+         SectorAABB exactDelta = SectorAABB.around(
+               pos.add(-0.5D, 0.0D, -0.5D), localDelta.getXsize(), localDelta.getYsize())
+               .expandTowards((double)direction.getStepX() * (localDelta.maxX - 0.5D),
+                     (double)direction.getStepY() * localDelta.maxY,
+                     (double)direction.getStepZ() * (localDelta.maxZ - 0.5D));
+         for(Entity entity : this.level.getEntitiesExactAware(this, AABB.fromSectorBounds(exactDelta), EntitySelector.NO_SPECTATORS.and((p_149771_) -> {
             return !p_149771_.isPassengerOfSameVehicle(this);
          }))) {
             if (!(entity instanceof Shulker) && !entity.noPhysics) {
@@ -359,7 +378,8 @@ public class Shulker extends AbstractGolem implements Enemy {
                   this.unRide();
                   this.setAttachFace(direction);
                   this.playSound(SoundEvents.SHULKER_TELEPORT, 1.0F, 1.0F);
-                  this.setPos((double)blockpos1.getX() + 0.5D, (double)blockpos1.getY(), (double)blockpos1.getZ() + 0.5D);
+                  this.applyExactPosition(SectorVec3.fromBlockAndFraction(
+                        blockpos1.getX(), 0.5D, (double)blockpos1.getY(), blockpos1.getZ(), 0.5D));
                   this.level.gameEvent(GameEvent.TELEPORT, blockpos, GameEvent.Context.of(this));
                   this.entityData.set(DATA_PEEK_ID, (byte)0);
                   this.setTarget((LivingEntity)null);

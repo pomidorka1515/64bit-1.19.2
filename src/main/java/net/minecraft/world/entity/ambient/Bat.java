@@ -104,7 +104,7 @@ public class Bat extends AmbientCreature {
       super.tick();
       if (this.isResting()) {
          this.setDeltaMovement(Vec3.ZERO);
-         this.setPosRaw(this.getX(), (double)Mth.floor(this.getY()) + 1.0D - (double)this.getBbHeight(), this.getZ());
+         this.applyExactPosition(this.sectorPosition().withY((double)Mth.floor(this.getY()) + 1.0D - (double)this.getBbHeight()));
       } else {
          this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.6D, 1.0D));
       }

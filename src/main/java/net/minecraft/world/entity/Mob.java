@@ -1,5 +1,7 @@
 package net.minecraft.world.entity;
 
+import net.minecraft.world.phys.SectorAABB;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import java.util.Arrays;
@@ -1408,6 +1410,15 @@ public abstract class Mob extends LivingEntity {
    }
 
    public Iterable<BlockPos> iteratePathfindingStartNodeCandidatePositions() {
-      return ImmutableSet.of(new BlockPos(this.getBoundingBox().minX, (double)this.getBlockY(), this.getBoundingBox().minZ), new BlockPos(this.getBoundingBox().minX, (double)this.getBlockY(), this.getBoundingBox().maxZ), new BlockPos(this.getBoundingBox().maxX, (double)this.getBlockY(), this.getBoundingBox().minZ), new BlockPos(this.getBoundingBox().maxX, (double)this.getBlockY(), this.getBoundingBox().maxZ));
+      SectorAABB box = this.getSectorBoundingBox();
+      long minX = box.minBlockXForRange();
+      long maxX = box.maxBlockXForRangeInclusive();
+      long minZ = box.minBlockZForRange();
+      long maxZ = box.maxBlockZForRangeInclusive();
+      return ImmutableSet.of(
+            new BlockPos(minX, this.getBlockY(), minZ),
+            new BlockPos(minX, this.getBlockY(), maxZ),
+            new BlockPos(maxX, this.getBlockY(), minZ),
+            new BlockPos(maxX, this.getBlockY(), maxZ));
    }
 }

@@ -1,5 +1,7 @@
 package net.minecraft.server.level;
 
+import net.minecraft.world.phys.SectorVec3;
+
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
@@ -137,7 +139,6 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Score;
@@ -282,7 +283,7 @@ public class ServerPlayer extends Player {
          this.moveTo(blockpos, 0.0F, 0.0F);
 
          while(!p_9202_.noCollision(this) && this.getY() < (double)(p_9202_.getMaxBuildHeight() - 1)) {
-            this.setPos(this.getX(), this.getY() + 1.0D, this.getZ());
+            this.applyExactPosition(this.sectorPosition().withY(this.getY() + 1.0D));
          }
       }
 
@@ -422,7 +423,7 @@ public class ServerPlayer extends Player {
       Entity entity = this.getCamera();
       if (entity != this) {
          if (entity.isAlive()) {
-            this.absMoveTo(entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
+            this.absMoveTo(entity.sectorPosition(), entity.getYRot(), entity.getXRot());
             this.getLevel().getChunkSource().move(this);
             if (this.wantsToStopRiding()) {
                this.setCamera(this);
@@ -923,6 +924,14 @@ public class ServerPlayer extends Player {
          this.connection.dismount(p_143389_, p_143390_, p_143391_, this.getYRot(), this.getXRot());
       }
 
+   }
+
+   /** Exact dismount path: no lossy global-double reconstruction ever reaches the client. */
+   public void dismountToExact(SectorVec3 position) {
+      this.removeVehicle();
+      if (this.connection != null) {
+         this.connection.teleportExact(position, this.getYRot(), this.getXRot());
+      }
    }
 
    public boolean isInvulnerableTo(DamageSource p_9182_) {

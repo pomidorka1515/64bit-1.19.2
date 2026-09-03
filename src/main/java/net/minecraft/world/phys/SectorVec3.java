@@ -40,10 +40,54 @@ public final class SectorVec3 {
       double fractionZ = finiteFractionOrZero(subZ);
       double normalizedY = Double.isFinite(y) ? y : 0.0D;
 
-      Coordinate normalizedX = normalizeCoordinate(blockX, fractionX);
-      Coordinate normalizedZ = normalizeCoordinate(blockZ, fractionZ);
-      return new SectorVec3(normalizedX.block, normalizedX.fraction, normalizedY,
-            normalizedZ.block, normalizedZ.fraction);
+      double carryXDouble = Math.floor(fractionX);
+      long normalizedBlockX;
+      double normalizedFractionX;
+      if (carryXDouble < -0x1.0p63) {
+         normalizedBlockX = WorldBounds.MIN_BLOCK;
+         normalizedFractionX = 0.0D;
+      } else if (carryXDouble >= 0x1.0p63) {
+         normalizedBlockX = WorldBounds.MAX_BLOCK;
+         normalizedFractionX = Math.nextDown(1.0D);
+      } else {
+         long carryX = (long)carryXDouble;
+         normalizedBlockX = WorldBounds.addBlockOffset(blockX, carryX);
+         if (carryX > 0L && normalizedBlockX <= blockX) {
+            normalizedBlockX = WorldBounds.MAX_BLOCK;
+            normalizedFractionX = Math.nextDown(1.0D);
+         } else if (carryX < 0L && normalizedBlockX >= blockX) {
+            normalizedBlockX = WorldBounds.MIN_BLOCK;
+            normalizedFractionX = 0.0D;
+         } else {
+            normalizedFractionX = clampFraction(fractionX - carryXDouble);
+         }
+      }
+
+      double carryZDouble = Math.floor(fractionZ);
+      long normalizedBlockZ;
+      double normalizedFractionZ;
+      if (carryZDouble < -0x1.0p63) {
+         normalizedBlockZ = WorldBounds.MIN_BLOCK;
+         normalizedFractionZ = 0.0D;
+      } else if (carryZDouble >= 0x1.0p63) {
+         normalizedBlockZ = WorldBounds.MAX_BLOCK;
+         normalizedFractionZ = Math.nextDown(1.0D);
+      } else {
+         long carryZ = (long)carryZDouble;
+         normalizedBlockZ = WorldBounds.addBlockOffset(blockZ, carryZ);
+         if (carryZ > 0L && normalizedBlockZ <= blockZ) {
+            normalizedBlockZ = WorldBounds.MAX_BLOCK;
+            normalizedFractionZ = Math.nextDown(1.0D);
+         } else if (carryZ < 0L && normalizedBlockZ >= blockZ) {
+            normalizedBlockZ = WorldBounds.MIN_BLOCK;
+            normalizedFractionZ = 0.0D;
+         } else {
+            normalizedFractionZ = clampFraction(fractionZ - carryZDouble);
+         }
+      }
+
+      return new SectorVec3(normalizedBlockX, normalizedFractionX, normalizedY,
+            normalizedBlockZ, normalizedFractionZ);
    }
 
    private static double finiteFractionOrZero(double fraction) {
@@ -55,38 +99,6 @@ public final class SectorVec3 {
       if (!(fraction >= 0.0D)) return 0.0D;
       if (fraction >= 1.0D) return Math.nextDown(1.0D);
       return fraction == 0.0D ? 0.0D : fraction;
-   }
-
-   /** A normalized horizontal coordinate, clamped at the two world edges. */
-   private static final class Coordinate {
-      private final long block;
-      private final double fraction;
-
-      private Coordinate(long block, double fraction) {
-         this.block = block;
-         this.fraction = fraction;
-      }
-   }
-
-   private static Coordinate normalizeCoordinate(long block, double fraction) {
-      double carryDouble = Math.floor(fraction);
-      // A hostile packet can contain a finite but enormous fraction. It has no
-      // meaningful long block carry; clamp it to the nearest legal edge rather
-      // than allowing a narrowing conversion to wrap.
-      if (carryDouble < -0x1.0p63) return new Coordinate(WorldBounds.MIN_BLOCK, 0.0D);
-      if (carryDouble >= 0x1.0p63) return new Coordinate(WorldBounds.MAX_BLOCK, Math.nextDown(1.0D));
-
-      long carry = (long)carryDouble;
-      long normalizedBlock = WorldBounds.addBlockOffset(block, carry);
-      // addBlockOffset has saturated if a non-zero offset did not move in its
-      // requested direction.  Do not retain a fraction past that world edge.
-      if (carry > 0L && normalizedBlock <= block) {
-         return new Coordinate(WorldBounds.MAX_BLOCK, Math.nextDown(1.0D));
-      }
-      if (carry < 0L && normalizedBlock >= block) {
-         return new Coordinate(WorldBounds.MIN_BLOCK, 0.0D);
-      }
-      return new Coordinate(normalizedBlock, clampFraction(fraction - carryDouble));
    }
 
    /** Creates an exact split position from decimal text without passing through a double. */

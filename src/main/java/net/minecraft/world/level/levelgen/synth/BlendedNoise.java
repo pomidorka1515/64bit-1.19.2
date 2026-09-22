@@ -153,10 +153,13 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
          if (noise != null) {
             // xzFactor division is combined into one finite scale; this is the only rounded BlendedNoise sub-term.
             double selectorScale = this.xzMultiplier * octave / this.xzFactor;
-            long x = PreciseNoiseCoordinate.scaledLattice(context.blockX(), selectorScale);
-            double fx = PreciseNoiseCoordinate.scaledFraction(context.blockX(), selectorScale);
-            long z = PreciseNoiseCoordinate.scaledLattice(context.blockZ(), selectorScale);
-            double fz = PreciseNoiseCoordinate.scaledFraction(context.blockZ(), selectorScale);
+            PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
+            PreciseNoiseCoordinate.scale(context.blockX(), selectorScale, scratch);
+            long x = scratch.lattice;
+            double fx = scratch.fraction;
+            PreciseNoiseCoordinate.scale(context.blockZ(), selectorScale, scratch);
+            long z = scratch.lattice;
+            double fz = scratch.fraction;
             double scaledY = d4 * octave;
             long yCell = (long)Math.floor(scaledY);
             selector += noise.noise(x, fx, yCell, scaledY - Math.floor(scaledY), z, fz, d7 * octave, scaledY) / octave;
@@ -172,10 +175,13 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
       octave = 1.0D;
       for(int j = 0; j < 16; ++j) {
          double octaveScale = this.xzMultiplier * octave;
-         long x = PreciseNoiseCoordinate.scaledLattice(context.blockX(), octaveScale);
-         double fx = PreciseNoiseCoordinate.scaledFraction(context.blockX(), octaveScale);
-         long z = PreciseNoiseCoordinate.scaledLattice(context.blockZ(), octaveScale);
-         double fz = PreciseNoiseCoordinate.scaledFraction(context.blockZ(), octaveScale);
+         PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
+         PreciseNoiseCoordinate.scale(context.blockX(), octaveScale, scratch);
+         long x = scratch.lattice;
+         double fx = scratch.fraction;
+         PreciseNoiseCoordinate.scale(context.blockZ(), octaveScale, scratch);
+         long z = scratch.lattice;
+         double fz = scratch.fraction;
          double scaledY = y * octave;
          if (!high) {
             ImprovedNoise noise = this.minLimitNoise.getOctaveNoise(j);

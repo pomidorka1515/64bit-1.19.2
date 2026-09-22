@@ -14,6 +14,7 @@ import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
+import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 
 public class DualNoiseProvider extends NoiseProvider {
    public static final Codec<DualNoiseProvider> CODEC = RecordCodecBuilder.create((p_191414_) -> {
@@ -55,6 +56,12 @@ public class DualNoiseProvider extends NoiseProvider {
    }
 
    protected double getSlowNoiseValue(BlockPos p_191407_) {
-      return this.slowNoise.getValue(FarlandsMode.scaledNoiseCoordinate(p_191407_.getX(), this.slowScale), (double)((float)p_191407_.getY() * this.slowScale), FarlandsMode.scaledNoiseCoordinate(p_191407_.getZ(), this.slowScale));
+      long blockX = p_191407_.getX();
+      long blockZ = p_191407_.getZ();
+      if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
+         return this.slowNoise.getValueScaled(blockX, this.slowScale, p_191407_.getY(), this.slowScale, blockZ);
+      }
+
+      return this.slowNoise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, this.slowScale), (double)((float)p_191407_.getY() * this.slowScale), FarlandsMode.scaledNoiseCoordinate(blockZ, this.slowScale));
    }
 }

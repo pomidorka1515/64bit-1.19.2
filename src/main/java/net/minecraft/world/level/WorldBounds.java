@@ -1,5 +1,6 @@
 package net.minecraft.world.level;
 
+
 /**
  * The representable horizontal coordinate limits of the long-coordinate world.
  *
@@ -198,6 +199,23 @@ public final class WorldBounds {
    /** Returns whether a forward integer iterator can move once more. */
    public static boolean canAdvanceInt(int coordinate, int last) {
       return coordinate < last;
+   }
+
+   /**
+    * Adds a double offset to a block coordinate without rounding the coordinate
+    * itself through {@code double}.  Tree limbs and similar local steps keep a
+    * small fractional offset; adding that offset to a 64-bit coordinate in
+    * double arithmetic can move the block by several units of last place and
+    * make a vertical log look like an X/Z step.
+    */
+   public static long addDoubleBlockOffset(long block, double offset) {
+      if (offset == 0.0D || !Double.isFinite(offset)) return block;
+      long whole = (long)offset;
+      if (offset < (double)whole) {
+         --whole;
+      }
+
+      return addBlockOffset(block, whole);
    }
 
    /** Adds a block offset without wrapping at a signed-long edge. */

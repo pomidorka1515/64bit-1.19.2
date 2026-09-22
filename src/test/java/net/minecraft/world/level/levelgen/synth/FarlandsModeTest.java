@@ -27,7 +27,7 @@ class FarlandsModeTest {
    }
 
    @Test
-   void offIsTheOnlyModeThatUsesTheNoFarlandsCoordinatePatch() {
+   void noFarlandsSafeguardsIncludePreciseMode() {
       long coordinate = Long.MAX_VALUE;
       double scale = 684.412D;
       double legacy = (double)coordinate * scale;
@@ -52,7 +52,17 @@ class FarlandsModeTest {
       assertEquals(WorldBounds.scaledNoiseCoordinate(coordinate, scale), FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
       assertFalse(FarlandsMode.isEnabled());
       assertTrue(FarlandsMode.isOff());
+      assertTrue(FarlandsMode.usesNoFarlandsSafeguards());
+      assertFalse(FarlandsMode.usesPreciseCoordinates());
       assertEquals("64-bit (no farlands)", FarlandsMode.getMode().generatorDescription());
+
+      FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+      assertEquals(WorldBounds.scaledNoiseCoordinate(coordinate, scale), FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
+      assertFalse(FarlandsMode.isEnabled());
+      assertFalse(FarlandsMode.isOff());
+      assertTrue(FarlandsMode.usesNoFarlandsSafeguards());
+      assertTrue(FarlandsMode.usesPreciseCoordinates());
+      assertEquals("64-bit (exact lattice)", FarlandsMode.getMode().generatorDescription());
    }
 
    @Test
@@ -61,6 +71,7 @@ class FarlandsModeTest {
       assertEquals(FarlandsMode.Mode.BIT_32_HYBRID, FarlandsMode.fromSerializedName("32bit-hybrid"));
       assertEquals(FarlandsMode.Mode.BIT_64, FarlandsMode.fromSerializedName("64bit"));
       assertEquals(FarlandsMode.Mode.OFF, FarlandsMode.fromSerializedName("off"));
+      assertEquals(FarlandsMode.Mode.BIT_64_PRECISE, FarlandsMode.fromSerializedName("64bit-precise"));
       assertEquals(FarlandsMode.Mode.BIT_32, FarlandsMode.fromSerializedName("true"));
       assertEquals(FarlandsMode.Mode.BIT_64, FarlandsMode.fromSerializedName("false"));
       assertEquals(FarlandsMode.Mode.BIT_32, FarlandsMode.fromSerializedName("unknown"));

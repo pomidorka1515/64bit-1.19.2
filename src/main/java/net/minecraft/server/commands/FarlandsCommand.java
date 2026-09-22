@@ -33,8 +33,10 @@ public final class FarlandsCommand {
          return requestChange(context.getSource(), FarlandsMode.Mode.BIT_64);
       })).then(Commands.literal("off").executes((context) -> {
          return requestChange(context.getSource(), FarlandsMode.Mode.OFF);
+      })).then(Commands.literal("64bit-precise").executes((context) -> {
+         return requestChange(context.getSource(), FarlandsMode.Mode.BIT_64_PRECISE);
       })).then(Commands.literal("help").executes((context) -> {
-         context.getSource().sendSuccess(Component.literal("Generator modes:\n32-bit: Original behaviour of mckuhei's mod, farlands at 12550824.\n32-bit-hybrid: classic 12mil farlands, but normal router, cave, aquifer, and ore noise use 64-bit arithmetic.\n64-bit: uses a new 64-bit generator, with farlands at ~53.9 quadrillion blocks.\noff: uses a 64-bit generator, but with farlands fully patched."), false);
+         context.getSource().sendSuccess(Component.literal("Generator modes:\n32-bit: Original behaviour of mckuhei's mod, farlands at 12550824.\n32-bit-hybrid: classic 12mil farlands, but normal router, cave, aquifer, and ore noise use 64-bit arithmetic.\n64-bit: uses a new 64-bit generator, with farlands at ~53.9 quadrillion blocks.\noff: uses a 64-bit generator, but with farlands fully patched.\n64bit-precise: like off, but noise keeps exact block precision past 53-bit coordinates."), false);
          return 1;
       })).then(Commands.literal("confirm").executes((context) -> {
          return confirm(context.getSource());

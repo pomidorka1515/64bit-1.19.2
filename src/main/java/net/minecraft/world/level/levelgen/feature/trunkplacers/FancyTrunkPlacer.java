@@ -12,6 +12,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelSimulatedReader;
 import net.minecraft.world.level.WorldBounds;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
@@ -55,7 +56,7 @@ public class FancyTrunkPlacer extends TrunkPlacer {
                double d3 = (double)(p_226095_.nextFloat() * 2.0F) * Math.PI;
                double d4 = d2 * Math.sin(d3) + 0.5D;
                double d5 = d2 * Math.cos(d3) + 0.5D;
-               BlockPos blockpos = p_226097_.offset(d4, (double)(j1 - 1), d5);
+               BlockPos blockpos = offsetLocal(p_226097_, d4, (double)(j1 - 1), d5);
                BlockPos blockpos1 = blockpos.above(5);
                if (this.makeLimb(p_226093_, p_226094_, p_226095_, blockpos, blockpos1, false, p_226098_)) {
                   double l1 = WorldBounds.signedDifference(p_226097_.getX(), blockpos.getX());
@@ -95,7 +96,7 @@ public class FancyTrunkPlacer extends TrunkPlacer {
          float f2 = (float)blockpos.getZ() / (float)i;
 
          for(int j = 0; j <= i; ++j) {
-            BlockPos blockpos1 = p_226111_.offset((double)(0.5F + (float)j * f), (double)(0.5F + (float)j * f1), (double)(0.5F + (float)j * f2));
+            BlockPos blockpos1 = offsetLocal(p_226111_, (double)(0.5F + (float)j * f), (double)(0.5F + (float)j * f1), (double)(0.5F + (float)j * f2));
             if (p_226113_) {
                this.placeLog(p_226108_, p_226109_, p_226110_, blockpos1, p_226114_, (p_161826_) -> {
                   return p_161826_.setValue(RotatedPillarBlock.AXIS, this.getLogAxis(p_226111_, blockpos1));
@@ -106,6 +107,15 @@ public class FancyTrunkPlacer extends TrunkPlacer {
          }
 
          return true;
+      }
+   }
+
+
+   private static BlockPos offsetLocal(BlockPos origin, double dx, double dy, double dz) {
+      if (FarlandsMode.usesPreciseCoordinates()) {
+         return new BlockPos(WorldBounds.addDoubleBlockOffset(origin.getX(), dx), Mth.floor((double)origin.getY() + dy), WorldBounds.addDoubleBlockOffset(origin.getZ(), dz));
+      } else {
+         return origin.offset(dx, dy, dz);
       }
    }
 

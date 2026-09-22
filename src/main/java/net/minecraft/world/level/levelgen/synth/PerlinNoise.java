@@ -166,6 +166,35 @@ public class PerlinNoise {
       return d0;
    }
 
+   public double getValue(long cellX, double fracX, double y, long cellZ, double fracZ) {
+      long cellY = (long)Math.floor(y);
+      return this.getValue(cellX, fracX, cellY, y - (double)cellY, cellZ, fracZ);
+   }
+
+   public double getValue(long cellX, double fracX, long cellY, double fracY, long cellZ, double fracZ) {
+      double value = 0.0D;
+      double valueFactor = this.lowestFreqValueFactor;
+      int octavePower = this.firstOctave;
+
+      for(int i = 0; i < this.noiseLevels.length; ++i) {
+         ImprovedNoise improvednoise = this.noiseLevels[i];
+         if (improvednoise != null) {
+            long x = PreciseNoiseCoordinate.powerOfTwoLattice(cellX, fracX, octavePower);
+            double xFraction = PreciseNoiseCoordinate.powerOfTwoFraction(cellX, fracX, octavePower);
+            long y = PreciseNoiseCoordinate.powerOfTwoLattice(cellY, fracY, octavePower);
+            double yFraction = PreciseNoiseCoordinate.powerOfTwoFraction(cellY, fracY, octavePower);
+            long z = PreciseNoiseCoordinate.powerOfTwoLattice(cellZ, fracZ, octavePower);
+            double zFraction = PreciseNoiseCoordinate.powerOfTwoFraction(cellZ, fracZ, octavePower);
+            value += this.amplitudes.getDouble(i) * improvednoise.noise(x, xFraction, y, yFraction, z, zFraction) * valueFactor;
+         }
+
+         ++octavePower;
+         valueFactor /= 2.0D;
+      }
+
+      return value;
+   }
+
    public double maxBrokenValue(double p_210644_) {
       return this.edgeValue(p_210644_ + 2.0D);
    }

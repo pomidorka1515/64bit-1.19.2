@@ -25,7 +25,17 @@ public final class FarlandsMode {
       return mode == Mode.BIT_32 || mode == Mode.BIT_32_HYBRID;
    }
 
-   /** Returns whether the no-Far-Lands coordinate clamp is active. */
+   /** Returns whether finite, no-Far-Lands coordinate safeguards are active. */
+   public static boolean usesNoFarlandsSafeguards() {
+      return mode == Mode.OFF || mode == Mode.BIT_64_PRECISE;
+   }
+
+   /** Returns whether generator noise should retain split integer/fraction coordinates. */
+   public static boolean usesPreciseCoordinates() {
+      return mode == Mode.BIT_64_PRECISE;
+   }
+
+   /** Returns whether the explicit no-Far-Lands mode is selected. */
    public static boolean isOff() {
       return mode == Mode.OFF;
    }
@@ -60,17 +70,14 @@ public final class FarlandsMode {
       }
    }
 
-   /**
-    * Applies the newer finite-coordinate patch only to the explicit off mode.
-    * The 32-bit and 64-bit routes deliberately retain their old expressions.
-    */
+   /** Applies finite-coordinate handling to all modes without Far Lands arithmetic. */
    public static double scaledNoiseCoordinate(long coordinate, double scale) {
-      return isOff() ? WorldBounds.scaledNoiseCoordinate(coordinate, scale) : (double)coordinate * scale;
+      return usesNoFarlandsSafeguards() ? WorldBounds.scaledNoiseCoordinate(coordinate, scale) : (double)coordinate * scale;
    }
 
-   /** Applies the shifted-noise portion of the patch only to the off mode. */
+   /** Applies finite-coordinate handling to shifted noise in no-Far-Lands modes. */
    public static double shiftedNoiseCoordinate(long coordinate, double scale, double shift) {
-      return isOff() ? WorldBounds.clampAbsoluteDouble(WorldBounds.scaledNoiseCoordinate(coordinate, scale) + shift) : (double)coordinate * scale + shift;
+      return usesNoFarlandsSafeguards() ? WorldBounds.clampAbsoluteDouble(WorldBounds.scaledNoiseCoordinate(coordinate, scale) + shift) : (double)coordinate * scale + shift;
    }
 
    static long floor(double value, boolean farlands) {
@@ -89,7 +96,8 @@ public final class FarlandsMode {
       BIT_32("32bit", "32-bit"),
       BIT_32_HYBRID("32bit-hybrid", "32-bit (hybrid)"),
       BIT_64("64bit", "64-bit"),
-      OFF("off", "64-bit (no farlands)");
+      OFF("off", "64-bit (no farlands)"),
+      BIT_64_PRECISE("64bit-precise", "64-bit (exact lattice)");
 
       private final String serializedName;
       private final String generatorDescription;

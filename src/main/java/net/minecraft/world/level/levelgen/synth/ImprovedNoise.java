@@ -81,6 +81,29 @@ public final class ImprovedNoise {
       return this.sampleAndLerp(i, j, k, d3, d4 - d6, d5, d4);
    }
 
+   public double noise(long cellX, double fracX, long cellY, double fracY, long cellZ, double fracZ) {
+      return this.noise(cellX, fracX, cellY, fracY, cellZ, fracZ, 0.0D, 0.0D);
+   }
+
+   /** Precise split-coordinate variant retaining the legacy vertical smear operation. */
+   public double noise(long cellX, double fracX, long cellY, double fracY, long cellZ, double fracZ, double smearScale, double smearOffset) {
+      double x = fracX + this.xo;
+      double y = fracY + this.yo;
+      double z = fracZ + this.zo;
+      long xCell = cellX + (long)Math.floor(x);
+      long yCell = cellY + (long)Math.floor(y);
+      long zCell = cellZ + (long)Math.floor(z);
+      double fx = x - Math.floor(x);
+      double fy = y - Math.floor(y);
+      double fz = z - Math.floor(z);
+      double smear = 0.0D;
+      if (smearScale != 0.0D) {
+         double smearInput = smearOffset >= 0.0D && smearOffset < fy ? smearOffset : fy;
+         smear = (double)Mth.floor(smearInput / smearScale + (double)1.0E-7F) * smearScale;
+      }
+      return this.sampleAndLerp(xCell, yCell, zCell, fx, fy - smear, fz, fy);
+   }
+
    public double noiseWithDerivative(double p_164313_, double p_164314_, double p_164315_, double[] p_164316_) {
       double d0 = p_164313_ + this.xo;
       double d1 = p_164314_ + this.yo;

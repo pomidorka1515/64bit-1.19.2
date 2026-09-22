@@ -26,7 +26,9 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.placement.CaveSurface;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
+import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 
 public class SurfaceRules {
    public static final SurfaceRules.ConditionSource ON_FLOOR = stoneDepthCheck(0, false, CaveSurface.FLOOR);
@@ -487,7 +489,12 @@ public class SurfaceRules {
             }
 
             protected boolean compute() {
-               double d0 = WorldBounds.clampNoise(normalnoise.getValue(WorldBounds.noiseCoordinate(this.context.blockX), 0.0D, WorldBounds.noiseCoordinate(this.context.blockZ)));
+               long blockX = this.context.blockX;
+               long blockZ = this.context.blockZ;
+               double d0 = FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))
+                  ? normalnoise.getValueScaled(blockX, 1.0D, 0L, 0.0D, blockZ)
+                  : normalnoise.getValue(WorldBounds.noiseCoordinate(blockX), 0.0D, WorldBounds.noiseCoordinate(blockZ));
+               d0 = WorldBounds.clampNoise(d0);
                double min = Double.isFinite(NoiseThresholdConditionSource.this.minThreshold) ? NoiseThresholdConditionSource.this.minThreshold : 0.0D;
                double max = Double.isFinite(NoiseThresholdConditionSource.this.maxThreshold) ? NoiseThresholdConditionSource.this.maxThreshold : 0.0D;
                return d0 >= min && d0 <= max;

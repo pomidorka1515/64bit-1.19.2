@@ -91,6 +91,26 @@ public interface DensityFunction {
          return this.noise == null ? 0.0D : this.noise.getValue(p_224007_, p_224008_, p_224009_);
       }
 
+      public double getValue(long cellX, double fracX, double y, long cellZ, double fracZ) {
+         return this.noise == null ? 0.0D : this.noise.getValue(cellX, fracX, y, cellZ, fracZ);
+      }
+
+      public double getValue(long cellX, double fracX, long cellY, double fracY, long cellZ, double fracZ) {
+         return this.noise == null ? 0.0D : this.noise.getValue(cellX, fracX, cellY, fracY, cellZ, fracZ);
+      }
+
+      public double getValueScaled(long blockX, double xzScale, double y, long blockZ) {
+         return this.noise == null ? 0.0D : this.noise.getValueScaled(blockX, xzScale, y, blockZ);
+      }
+
+      public double getValueScaled(long blockX, double xzScale, long blockY, double yScale, long blockZ) {
+         return this.noise == null ? 0.0D : this.noise.getValueScaled(blockX, xzScale, blockY, yScale, blockZ);
+      }
+
+      public double getValueScaledShifted(long blockX, double xzScale, double shiftX, double y, long blockZ, double shiftZ) {
+         return this.noise == null ? 0.0D : this.noise.getValueScaledShifted(blockX, xzScale, shiftX, y, blockZ, shiftZ);
+      }
+
       public double maxValue() {
          return this.noise == null ? 2.0D : this.noise.maxValue();
       }

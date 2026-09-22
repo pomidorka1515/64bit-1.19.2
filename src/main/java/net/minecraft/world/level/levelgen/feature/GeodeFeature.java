@@ -22,7 +22,9 @@ import net.minecraft.world.level.levelgen.GeodeLayerSettings;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.feature.configurations.GeodeConfiguration;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
+import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 import net.minecraft.world.level.material.FluidState;
 
 public class GeodeFeature extends Feature<GeodeConfiguration> {
@@ -98,7 +100,11 @@ public class GeodeFeature extends Feature<GeodeConfiguration> {
       Predicate<BlockState> predicate = isReplaceable(geodeconfiguration.geodeBlockSettings.cannotReplace);
 
       for(BlockPos blockpos3 : BlockPos.betweenClosed(blockpos.offset(i, i, i), blockpos.offset(j, j, j))) {
-         double d8 = normalnoise.getValue((double)blockpos3.getX(), (double)blockpos3.getY(), (double)blockpos3.getZ()) * geodeconfiguration.noiseMultiplier;
+         long blockX = blockpos3.getX();
+         long blockZ = blockpos3.getZ();
+         double d8 = FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))
+            ? normalnoise.getValueScaled(blockX, 1.0D, blockpos3.getY(), 1.0D, blockZ) * geodeconfiguration.noiseMultiplier
+            : normalnoise.getValue((double)blockX, (double)blockpos3.getY(), (double)blockZ) * geodeconfiguration.noiseMultiplier;
          double d6 = 0.0D;
          double d7 = 0.0D;
 

@@ -14,6 +14,7 @@ import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 
 public class OreFeature extends Feature<OreConfiguration> {
    public OreFeature(Codec<OreConfiguration> p_66531_) {
@@ -28,10 +29,26 @@ public class OreFeature extends Feature<OreConfiguration> {
       float f = randomsource.nextFloat() * (float)Math.PI;
       float f1 = (float)oreconfiguration.size / 8.0F;
       int i = Mth.ceil(((float)oreconfiguration.size / 16.0F * 2.0F + 1.0F) / 2.0F);
-      double d0 = WorldBounds.clampAbsoluteDouble((double)blockpos.getX() + Math.sin((double)f) * (double)f1);
-      double d1 = WorldBounds.clampAbsoluteDouble((double)blockpos.getX() - Math.sin((double)f) * (double)f1);
-      double d2 = WorldBounds.clampAbsoluteDouble((double)blockpos.getZ() + Math.cos((double)f) * (double)f1);
-      double d3 = WorldBounds.clampAbsoluteDouble((double)blockpos.getZ() - Math.cos((double)f) * (double)f1);
+      // Precise mode keeps horizontal ellipsoid endpoints relative to the exact block
+      // origin: adding a small radius to a far-away long coordinate as a double rounds
+      // both endpoints onto the same value, crushing the blob into a 2D planar sheet.
+      // All other modes retain the legacy absolute-double endpoints untouched.
+      boolean preciseEllipsoid = FarlandsMode.usesPreciseCoordinates();
+      double d0;
+      double d1;
+      double d2;
+      double d3;
+      if (preciseEllipsoid) {
+         d0 = Math.sin((double)f) * (double)f1;
+         d1 = -d0;
+         d2 = Math.cos((double)f) * (double)f1;
+         d3 = -d2;
+      } else {
+         d0 = WorldBounds.clampAbsoluteDouble((double)blockpos.getX() + Math.sin((double)f) * (double)f1);
+         d1 = WorldBounds.clampAbsoluteDouble((double)blockpos.getX() - Math.sin((double)f) * (double)f1);
+         d2 = WorldBounds.clampAbsoluteDouble((double)blockpos.getZ() + Math.cos((double)f) * (double)f1);
+         d3 = WorldBounds.clampAbsoluteDouble((double)blockpos.getZ() - Math.cos((double)f) * (double)f1);
+      }
       int j = 2;
       double d4 = (double)(blockpos.getY() + randomsource.nextInt(3) - 2);
       double d5 = (double)(blockpos.getY() + randomsource.nextInt(3) - 2);
@@ -46,7 +63,7 @@ public class OreFeature extends Feature<OreConfiguration> {
       for(long l1 = k; ; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
          for(long i2 = i1; ; i2 = WorldBounds.addBlockOffset(i2, 1L)) {
             if (l <= worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, l1, i2)) {
-               return this.doPlace(worldgenlevel, randomsource, oreconfiguration, d0, d1, d2, d3, d4, d5, k, l, i1, j1, k1);
+               return this.doPlace(worldgenlevel, randomsource, oreconfiguration, d0, d1, d2, d3, d4, d5, blockpos.getX(), blockpos.getZ(), preciseEllipsoid, k, l, i1, j1, k1);
             }
             if (i2 == maxZ) {
                break;
@@ -60,7 +77,7 @@ public class OreFeature extends Feature<OreConfiguration> {
       return false;
    }
 
-   protected boolean doPlace(WorldGenLevel p_225172_, RandomSource p_225173_, OreConfiguration p_225174_, double p_225175_, double p_225176_, double p_225177_, double p_225178_, double p_225179_, double p_225180_, long p_225181_, int p_225182_, long p_225183_, int p_225184_, int p_225185_) {
+   protected boolean doPlace(WorldGenLevel p_225172_, RandomSource p_225173_, OreConfiguration p_225174_, double p_225175_, double p_225176_, double p_225177_, double p_225178_, double p_225179_, double p_225180_, long centerX, long centerZ, boolean preciseEllipsoid, long p_225181_, int p_225182_, long p_225183_, int p_225184_, int p_225185_) {
       int i = 0;
       BitSet bitset = new BitSet(p_225184_ * p_225185_ * p_225184_);
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -109,21 +126,38 @@ public class OreFeature extends Feature<OreConfiguration> {
                double d11 = adouble[j4 * 4 + 0];
                double d13 = adouble[j4 * 4 + 1];
                double d15 = adouble[j4 * 4 + 2];
-               long k4 = Math.max(safeFloor(d11 - d9), p_225181_);
-               int l = Math.max(Mth.floor(d13 - d9), p_225182_);
-               long i1 = Math.max(safeFloor(d15 - d9), p_225183_);
-               long j1 = Math.max(safeFloor(d11 + d9), k4);
-               int k1 = Math.max(Mth.floor(d13 + d9), l);
-               long l1 = Math.max(safeFloor(d15 + d9), i1);
+               long k4;
+               int l;
+               long i1;
+               long j1;
+               int k1;
+               long l1;
+               if (preciseEllipsoid) {
+                  // d11/d15 are origin-relative offsets; expand them from the exact long center
+                  // so the X/Z spans cannot be crushed together by absolute-double rounding.
+                  k4 = Math.max(WorldBounds.addBlockOffset(centerX, safeFloor(d11 - d9)), p_225181_);
+                  l = Math.max(Mth.floor(d13 - d9), p_225182_);
+                  i1 = Math.max(WorldBounds.addBlockOffset(centerZ, safeFloor(d15 - d9)), p_225183_);
+                  j1 = Math.max(WorldBounds.addBlockOffset(centerX, safeFloor(d11 + d9)), k4);
+                  k1 = Math.max(Mth.floor(d13 + d9), l);
+                  l1 = Math.max(WorldBounds.addBlockOffset(centerZ, safeFloor(d15 + d9)), i1);
+               } else {
+                  k4 = Math.max(safeFloor(d11 - d9), p_225181_);
+                  l = Math.max(Mth.floor(d13 - d9), p_225182_);
+                  i1 = Math.max(safeFloor(d15 - d9), p_225183_);
+                  j1 = Math.max(safeFloor(d11 + d9), k4);
+                  k1 = Math.max(Mth.floor(d13 + d9), l);
+                  l1 = Math.max(safeFloor(d15 + d9), i1);
+               }
 
                for(long i2 = k4; ; i2 = WorldBounds.addBlockOffset(i2, 1L)) {
-                  double d5 = ((double)i2 + 0.5D - d11) / d9;
+                  double d5 = ((preciseEllipsoid ? WorldBounds.signedDifference(i2, centerX) : (double)i2) + 0.5D - d11) / d9;
                   if (d5 * d5 < 1.0D) {
                      for(int j2 = l; j2 <= k1; ++j2) {
                         double d6 = ((double)j2 + 0.5D - d13) / d9;
                         if (d5 * d5 + d6 * d6 < 1.0D) {
                            for(long k2 = i1; ; k2 = WorldBounds.addBlockOffset(k2, 1L)) {
-                              double d7 = ((double)k2 + 0.5D - d15) / d9;
+                              double d7 = ((preciseEllipsoid ? WorldBounds.signedDifference(k2, centerZ) : (double)k2) + 0.5D - d15) / d9;
                               if (d5 * d5 + d6 * d6 + d7 * d7 < 1.0D && !p_225172_.isOutsideBuildHeight(j2)) {
                                  long l2 = (long)WorldBounds.signedDifference(i2, p_225181_) + (j2 - p_225182_) * p_225184_ + (long)WorldBounds.signedDifference(k2, p_225183_) * p_225184_ * p_225185_;
                                  if (!bitset.get((int) l2)) {

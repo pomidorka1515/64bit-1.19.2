@@ -74,6 +74,10 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
    }
 
    public double compute(DensityFunction.FunctionContext p_210621_) {
+      if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(p_210621_.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(p_210621_.blockZ()))) {
+         return this.computePrecise(p_210621_);
+      }
+
       boolean useLegacy32BitFloor = FarlandsMode.usesLegacyBlendedNoise();
       double d0 = FarlandsMode.scaledNoiseCoordinate(p_210621_.blockX(), this.xzMultiplier);
       double d1 = (double)p_210621_.blockY() * this.yMultiplier;
@@ -135,6 +139,56 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
       }
 
       return d17;
+   }
+
+   private double computePrecise(DensityFunction.FunctionContext context) {
+      double y = (double)context.blockY() * this.yMultiplier;
+      double d4 = y / this.yFactor;
+      double d6 = this.yMultiplier * this.smearScaleMultiplier;
+      double d7 = d6 / this.yFactor;
+      double selector = 0.0D;
+      double octave = 1.0D;
+      for(int i = 0; i < 8; ++i) {
+         ImprovedNoise noise = this.mainNoise.getOctaveNoise(i);
+         if (noise != null) {
+            // xzFactor division is combined into one finite scale; this is the only rounded BlendedNoise sub-term.
+            double selectorScale = this.xzMultiplier * octave / this.xzFactor;
+            long x = PreciseNoiseCoordinate.scaledLattice(context.blockX(), selectorScale);
+            double fx = PreciseNoiseCoordinate.scaledFraction(context.blockX(), selectorScale);
+            long z = PreciseNoiseCoordinate.scaledLattice(context.blockZ(), selectorScale);
+            double fz = PreciseNoiseCoordinate.scaledFraction(context.blockZ(), selectorScale);
+            double scaledY = d4 * octave;
+            long yCell = (long)Math.floor(scaledY);
+            selector += noise.noise(x, fx, yCell, scaledY - Math.floor(scaledY), z, fz, d7 * octave, scaledY) / octave;
+         }
+         octave /= 2.0D;
+      }
+
+      double selectorLerp = (selector / 10.0D + 1.0D) / 2.0D;
+      boolean high = selectorLerp >= 1.0D;
+      boolean low = selectorLerp <= 0.0D;
+      double min = 0.0D;
+      double max = 0.0D;
+      octave = 1.0D;
+      for(int j = 0; j < 16; ++j) {
+         double octaveScale = this.xzMultiplier * octave;
+         long x = PreciseNoiseCoordinate.scaledLattice(context.blockX(), octaveScale);
+         double fx = PreciseNoiseCoordinate.scaledFraction(context.blockX(), octaveScale);
+         long z = PreciseNoiseCoordinate.scaledLattice(context.blockZ(), octaveScale);
+         double fz = PreciseNoiseCoordinate.scaledFraction(context.blockZ(), octaveScale);
+         double scaledY = y * octave;
+         if (!high) {
+            ImprovedNoise noise = this.minLimitNoise.getOctaveNoise(j);
+            if (noise != null) min += noise.noise(x, fx, (long)Math.floor(scaledY), scaledY - Math.floor(scaledY), z, fz, d6 * octave, scaledY) * (1.0D / octave);
+         }
+         if (!low) {
+            ImprovedNoise noise = this.maxLimitNoise.getOctaveNoise(j);
+            if (noise != null) max += noise.noise(x, fx, (long)Math.floor(scaledY), scaledY - Math.floor(scaledY), z, fz, d6 * octave, scaledY) * (1.0D / octave);
+         }
+         octave /= 2.0D;
+      }
+
+      return Mth.clampedLerp(min / 512.0D, max / 512.0D, selectorLerp) / 128.0D;
    }
 
    public static void beginDebugCapture() {

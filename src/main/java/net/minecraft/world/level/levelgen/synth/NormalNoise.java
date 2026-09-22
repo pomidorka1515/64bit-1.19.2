@@ -80,6 +80,66 @@ public class NormalNoise {
       return (this.first.getValue(p_75381_, p_75382_, p_75383_) + this.second.getValue(d0, d1, d2)) * this.valueFactor;
    }
 
+   public double getValue(long cellX, double fracX, double y, long cellZ, double fracZ) {
+      long cellY = (long)Math.floor(y);
+      return this.getValue(cellX, fracX, cellY, y - (double)cellY, cellZ, fracZ);
+   }
+
+   public double getValue(long cellX, double fracX, long cellY, double fracY, long cellZ, double fracZ) {
+      double factor = 1.0181268882175227D;
+      long secondX = PreciseNoiseCoordinate.scaledSplitLattice(cellX, fracX, factor);
+      double secondFracX = PreciseNoiseCoordinate.scaledSplitFraction(cellX, fracX, factor);
+      long secondY = PreciseNoiseCoordinate.scaledSplitLattice(cellY, fracY, factor);
+      double secondFracY = PreciseNoiseCoordinate.scaledSplitFraction(cellY, fracY, factor);
+      long secondZ = PreciseNoiseCoordinate.scaledSplitLattice(cellZ, fracZ, factor);
+      double secondFracZ = PreciseNoiseCoordinate.scaledSplitFraction(cellZ, fracZ, factor);
+      return (this.first.getValue(cellX, fracX, cellY, fracY, cellZ, fracZ) + this.second.getValue(secondX, secondFracX, secondY, secondFracY, secondZ, secondFracZ)) * this.valueFactor;
+   }
+
+   public double getValueScaled(long blockX, double xzScale, double y, long blockZ) {
+      long cellY = (long)Math.floor(y);
+      return this.getValueScaled(blockX, xzScale, cellY, y - (double)cellY, blockZ);
+   }
+
+   /** Samples a block-coordinate noise function while splitting all three scaled axes. */
+   public double getValueScaled(long blockX, double xzScale, long blockY, double yScale, long blockZ) {
+      long firstX = PreciseNoiseCoordinate.scaledLattice(blockX, xzScale);
+      double firstFracX = PreciseNoiseCoordinate.scaledFraction(blockX, xzScale);
+      long firstY = PreciseNoiseCoordinate.scaledLattice(blockY, yScale);
+      double firstFracY = PreciseNoiseCoordinate.scaledFraction(blockY, yScale);
+      long firstZ = PreciseNoiseCoordinate.scaledLattice(blockZ, xzScale);
+      double firstFracZ = PreciseNoiseCoordinate.scaledFraction(blockZ, xzScale);
+      double factor = 1.0181268882175227D;
+      long secondX = PreciseNoiseCoordinate.scaledLattice(blockX, xzScale * factor);
+      double secondFracX = PreciseNoiseCoordinate.scaledFraction(blockX, xzScale * factor);
+      long secondY = PreciseNoiseCoordinate.scaledLattice(blockY, yScale * factor);
+      double secondFracY = PreciseNoiseCoordinate.scaledFraction(blockY, yScale * factor);
+      long secondZ = PreciseNoiseCoordinate.scaledLattice(blockZ, xzScale * factor);
+      double secondFracZ = PreciseNoiseCoordinate.scaledFraction(blockZ, xzScale * factor);
+      return (this.first.getValue(firstX, firstFracX, firstY, firstFracY, firstZ, firstFracZ) + this.second.getValue(secondX, secondFracX, secondY, secondFracY, secondZ, secondFracZ)) * this.valueFactor;
+   }
+
+   public double getValueScaledShifted(long blockX, double xzScale, double shiftX, double y, long blockZ, double shiftZ) {
+      long firstX = PreciseNoiseCoordinate.scaledLattice(blockX, xzScale);
+      double firstFracX = PreciseNoiseCoordinate.scaledFraction(blockX, xzScale);
+      long shiftedFirstX = PreciseNoiseCoordinate.shiftedLattice(firstX, firstFracX, shiftX);
+      firstFracX = PreciseNoiseCoordinate.shiftedFraction(firstX, firstFracX, shiftX);
+      long firstZ = PreciseNoiseCoordinate.scaledLattice(blockZ, xzScale);
+      double firstFracZ = PreciseNoiseCoordinate.scaledFraction(blockZ, xzScale);
+      long shiftedFirstZ = PreciseNoiseCoordinate.shiftedLattice(firstZ, firstFracZ, shiftZ);
+      firstFracZ = PreciseNoiseCoordinate.shiftedFraction(firstZ, firstFracZ, shiftZ);
+      double factor = 1.0181268882175227D;
+      long secondX = PreciseNoiseCoordinate.scaledLattice(blockX, xzScale * factor);
+      double secondFracX = PreciseNoiseCoordinate.scaledFraction(blockX, xzScale * factor);
+      long shiftedSecondX = PreciseNoiseCoordinate.shiftedLattice(secondX, secondFracX, shiftX * factor);
+      secondFracX = PreciseNoiseCoordinate.shiftedFraction(secondX, secondFracX, shiftX * factor);
+      long secondZ = PreciseNoiseCoordinate.scaledLattice(blockZ, xzScale * factor);
+      double secondFracZ = PreciseNoiseCoordinate.scaledFraction(blockZ, xzScale * factor);
+      long shiftedSecondZ = PreciseNoiseCoordinate.shiftedLattice(secondZ, secondFracZ, shiftZ * factor);
+      secondFracZ = PreciseNoiseCoordinate.shiftedFraction(secondZ, secondFracZ, shiftZ * factor);
+      return (this.first.getValue(shiftedFirstX, firstFracX, y, shiftedFirstZ, firstFracZ) + this.second.getValue(shiftedSecondX, secondFracX, y * factor, shiftedSecondZ, secondFracZ)) * this.valueFactor;
+   }
+
    public NormalNoise.NoiseParameters parameters() {
       return this.parameters;
    }

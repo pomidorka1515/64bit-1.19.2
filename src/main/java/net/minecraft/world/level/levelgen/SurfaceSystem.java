@@ -21,7 +21,9 @@ import net.minecraft.world.level.chunk.BlockColumn;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.carver.CarvingContext;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
+import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 import net.minecraft.world.level.material.Material;
 
 public class SurfaceSystem {
@@ -167,14 +169,14 @@ public class SurfaceSystem {
    }
 
    protected int getSurfaceDepth(long p_189928_, long p_189929_) {
-      double d0 = WorldBounds.clampNoise(this.surfaceNoise.getValue(WorldBounds.noiseCoordinate(p_189928_), 0.0D, WorldBounds.noiseCoordinate(p_189929_)));
+      double d0 = WorldBounds.clampNoise(sampleNoise(this.surfaceNoise, p_189928_, 1.0D, p_189929_));
       double depth = d0 * 2.75D + 3.0D + this.noiseRandom.at(p_189928_, 0, p_189929_).nextDouble() * 0.25D;
       if (!Double.isFinite(depth)) depth = 3.0D;
       return WorldBounds.clampSurfaceDepth((int)Math.round(depth), DimensionType.Y_SIZE);
    }
 
    protected double getSurfaceSecondary(long p_202190_, long p_202191_) {
-      return WorldBounds.clampNoise(this.surfaceSecondaryNoise.getValue(WorldBounds.noiseCoordinate(p_202190_), 0.0D, WorldBounds.noiseCoordinate(p_202191_)));
+      return WorldBounds.clampNoise(sampleNoise(this.surfaceSecondaryNoise, p_202190_, 1.0D, p_202191_));
    }
 
    private static int clampSurfaceHeight(int height, int minBuildHeight, int maxBuildHeight) {
@@ -201,12 +203,12 @@ public class SurfaceSystem {
 
    private void erodedBadlandsExtension(BlockColumn p_189955_, long p_189956_, long p_189957_, int p_189958_, LevelHeightAccessor p_189959_) {
       double d0 = 0.2D;
-      double d1 = Math.min(Math.abs(WorldBounds.clampNoise(this.badlandsSurfaceNoise.getValue(WorldBounds.noiseCoordinate(p_189956_), 0.0D, WorldBounds.noiseCoordinate(p_189957_))) * 8.25D), WorldBounds.clampNoise(this.badlandsPillarNoise.getValue(WorldBounds.scaledNoiseCoordinate(p_189956_, 0.2D), 0.0D, WorldBounds.scaledNoiseCoordinate(p_189957_, 0.2D))) * 15.0D);
+      double d1 = Math.min(Math.abs(WorldBounds.clampNoise(sampleNoise(this.badlandsSurfaceNoise, p_189956_, 1.0D, p_189957_)) * 8.25D), WorldBounds.clampNoise(sampleNoise(this.badlandsPillarNoise, p_189956_, 0.2D, p_189957_)) * 15.0D);
       if (!Double.isFinite(d1)) return;
       if (!(d1 <= 0.0D)) {
          double d2 = 0.75D;
          double d3 = 1.5D;
-         double d4 = Math.abs(WorldBounds.clampNoise(this.badlandsPillarRoofNoise.getValue(WorldBounds.scaledNoiseCoordinate(p_189956_, 0.75D), 0.0D, WorldBounds.scaledNoiseCoordinate(p_189957_, 0.75D))) * 1.5D);
+         double d4 = Math.abs(WorldBounds.clampNoise(sampleNoise(this.badlandsPillarRoofNoise, p_189956_, 0.75D, p_189957_)) * 1.5D);
          double d5 = 64.0D + Math.min(d1 * d1 * 2.5D, Math.ceil(d4 * 50.0D) + 24.0D);
          int i = WorldBounds.clampBuildHeight(Mth.floor(d5), p_189959_.getMinBuildHeight(), p_189959_.getMaxBuildHeight());
          if (p_189958_ <= i) {
@@ -234,12 +236,12 @@ public class SurfaceSystem {
 
    private void frozenOceanExtension(int p_189935_, Biome p_189936_, BlockColumn p_189937_, BlockPos.MutableBlockPos p_189938_, long p_189939_, long p_189940_, int p_189941_, LevelHeightAccessor heightAccessor) {
       double d0 = 1.28D;
-      double d1 = Math.min(Math.abs(WorldBounds.clampNoise(this.icebergSurfaceNoise.getValue(WorldBounds.noiseCoordinate(p_189939_), 0.0D, WorldBounds.noiseCoordinate(p_189940_))) * 8.25D), WorldBounds.clampNoise(this.icebergPillarNoise.getValue(WorldBounds.scaledNoiseCoordinate(p_189939_, 1.28D), 0.0D, WorldBounds.scaledNoiseCoordinate(p_189940_, 1.28D))) * 15.0D);
+      double d1 = Math.min(Math.abs(WorldBounds.clampNoise(sampleNoise(this.icebergSurfaceNoise, p_189939_, 1.0D, p_189940_)) * 8.25D), WorldBounds.clampNoise(sampleNoise(this.icebergPillarNoise, p_189939_, 1.28D, p_189940_)) * 15.0D);
       if (!Double.isFinite(d1)) return;
       if (!(d1 <= 1.8D)) {
          double d3 = 1.17D;
          double d4 = 1.5D;
-         double d5 = Math.abs(WorldBounds.clampNoise(this.icebergPillarRoofNoise.getValue(WorldBounds.scaledNoiseCoordinate(p_189939_, 1.17D), 0.0D, WorldBounds.scaledNoiseCoordinate(p_189940_, 1.17D))) * 1.5D);
+         double d5 = Math.abs(WorldBounds.clampNoise(sampleNoise(this.icebergPillarRoofNoise, p_189939_, 1.17D, p_189940_)) * 1.5D);
          double d6 = Math.min(d1 * d1 * 1.2D, Math.ceil(d5 * 40.0D) + 14.0D);
          if (!Double.isFinite(d6)) d6 = 0.0D;
          if (p_189936_.shouldMeltFrozenOceanIcebergSlightly(p_189938_.set(p_189939_, 63, p_189940_))) {
@@ -328,9 +330,17 @@ public class SurfaceSystem {
    }
 
    protected BlockState getBand(long p_189931_, int p_189932_, long p_189933_) {
-      double offsetNoise = WorldBounds.clampNoise(this.clayBandsOffsetNoise.getValue(WorldBounds.noiseCoordinate(p_189931_), 0.0D, WorldBounds.noiseCoordinate(p_189933_)));
+      double offsetNoise = WorldBounds.clampNoise(sampleNoise(this.clayBandsOffsetNoise, p_189931_, 1.0D, p_189933_));
       int i = Double.isFinite(offsetNoise) ? (int)Math.round(offsetNoise * 4.0D) : 0;
       int index = Math.floorMod(WorldBounds.addSaturated(p_189932_, i), this.clayBands.length);
       return this.clayBands[index];
+   }
+
+   private static double sampleNoise(NormalNoise noise, long blockX, double scale, long blockZ) {
+      if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
+         return noise.getValueScaled(blockX, scale, 0L, 0.0D, blockZ);
+      }
+
+      return noise.getValue(WorldBounds.scaledNoiseCoordinate(blockX, scale), 0.0D, WorldBounds.scaledNoiseCoordinate(blockZ, scale));
    }
 }

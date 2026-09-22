@@ -24,6 +24,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
+import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 import org.slf4j.Logger;
 
@@ -791,7 +792,13 @@ public final class DensityFunctions {
       public static final KeyDispatchDataCodec<DensityFunctions.Noise> CODEC = DensityFunctions.makeCodec(DATA_CODEC);
 
       public double compute(DensityFunction.FunctionContext p_208800_) {
-         return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(p_208800_.blockX(), this.xzScale), (double)p_208800_.blockY() * this.yScale, FarlandsMode.scaledNoiseCoordinate(p_208800_.blockZ(), this.xzScale));
+         long blockX = p_208800_.blockX();
+         long blockZ = p_208800_.blockZ();
+         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
+            return this.noise.getValueScaled(blockX, this.xzScale, p_208800_.blockY(), this.yScale, blockZ);
+         }
+
+         return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, this.xzScale), (double)p_208800_.blockY() * this.yScale, FarlandsMode.scaledNoiseCoordinate(blockZ, this.xzScale));
       }
 
       public void fillArray(double[] p_224079_, DensityFunction.ContextProvider p_224080_) {
@@ -880,6 +887,9 @@ public final class DensityFunctions {
       static final KeyDispatchDataCodec<DensityFunctions.Shift> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.Shift::new, DensityFunctions.Shift::offsetNoise);
 
       public double compute(DensityFunction.FunctionContext p_208864_) {
+         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(p_208864_.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(p_208864_.blockZ()))) {
+            return this.computePrecise(p_208864_.blockX(), p_208864_.blockY(), p_208864_.blockZ(), true, true, true);
+         }
          return this.compute((double)p_208864_.blockX(), (double)p_208864_.blockY(), (double)p_208864_.blockZ());
       }
 
@@ -900,6 +910,9 @@ public final class DensityFunctions {
       static final KeyDispatchDataCodec<DensityFunctions.ShiftA> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.ShiftA::new, DensityFunctions.ShiftA::offsetNoise);
 
       public double compute(DensityFunction.FunctionContext p_208884_) {
+         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(p_208884_.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(p_208884_.blockZ()))) {
+            return this.computePrecise(p_208884_.blockX(), p_208884_.blockY(), p_208884_.blockZ(), true, false, true);
+         }
          return this.compute((double)p_208884_.blockX(), 0.0D, (double)p_208884_.blockZ());
       }
 
@@ -920,6 +933,9 @@ public final class DensityFunctions {
       static final KeyDispatchDataCodec<DensityFunctions.ShiftB> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.ShiftB::new, DensityFunctions.ShiftB::offsetNoise);
 
       public double compute(DensityFunction.FunctionContext p_208904_) {
+         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(p_208904_.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(p_208904_.blockZ()))) {
+            return this.computePrecise(p_208904_.blockZ(), p_208904_.blockX(), p_208904_.blockY(), true, true, false);
+         }
          return this.compute((double)p_208904_.blockZ(), (double)p_208904_.blockX(), 0.0D);
       }
 
@@ -951,6 +967,22 @@ public final class DensityFunctions {
          return this.offsetNoise().getValue(p_208918_ * 0.25D, p_208919_ * 0.25D, p_208920_ * 0.25D) * 4.0D;
       }
 
+      default double computePrecise(long blockX, long blockY, long blockZ, boolean useX, boolean useY, boolean useZ) {
+         long cellX = useX ? blockX : 0L;
+         double fracX = 0.0D;
+         long cellY = useY ? blockY : 0L;
+         double fracY = 0.0D;
+         long cellZ = useZ ? blockZ : 0L;
+         double fracZ = 0.0D;
+         long scaledX = PreciseNoiseCoordinate.powerOfTwoLattice(cellX, fracX, -2);
+         double scaledFracX = PreciseNoiseCoordinate.powerOfTwoFraction(cellX, fracX, -2);
+         long scaledY = PreciseNoiseCoordinate.powerOfTwoLattice(cellY, fracY, -2);
+         double scaledFracY = PreciseNoiseCoordinate.powerOfTwoFraction(cellY, fracY, -2);
+         long scaledZ = PreciseNoiseCoordinate.powerOfTwoLattice(cellZ, fracZ, -2);
+         double scaledFracZ = PreciseNoiseCoordinate.powerOfTwoFraction(cellZ, fracZ, -2);
+         return this.offsetNoise().getValue(scaledX, scaledFracX, scaledY, scaledFracY, scaledZ, scaledFracZ) * 4.0D;
+      }
+
       default void fillArray(double[] p_224103_, DensityFunction.ContextProvider p_224104_) {
          p_224104_.fillAllDirectly(p_224103_, this);
       }
@@ -963,9 +995,17 @@ public final class DensityFunctions {
       public static final KeyDispatchDataCodec<DensityFunctions.ShiftedNoise> CODEC = DensityFunctions.makeCodec(DATA_CODEC);
 
       public double compute(DensityFunction.FunctionContext p_208945_) {
-         double d0 = FarlandsMode.shiftedNoiseCoordinate(p_208945_.blockX(), this.xzScale, this.shiftX.compute(p_208945_));
+         long blockX = p_208945_.blockX();
+         long blockZ = p_208945_.blockZ();
+         double shiftX = this.shiftX.compute(p_208945_);
+         double shiftZ = this.shiftZ.compute(p_208945_);
+         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
+            return this.noise.getValueScaledShifted(blockX, this.xzScale, shiftX, (double)p_208945_.blockY() * this.yScale + this.shiftY.compute(p_208945_), blockZ, shiftZ);
+         }
+
+         double d0 = FarlandsMode.shiftedNoiseCoordinate(blockX, this.xzScale, shiftX);
          double d1 = (double)p_208945_.blockY() * this.yScale + this.shiftY.compute(p_208945_);
-         double d2 = FarlandsMode.shiftedNoiseCoordinate(p_208945_.blockZ(), this.xzScale, this.shiftZ.compute(p_208945_));
+         double d2 = FarlandsMode.shiftedNoiseCoordinate(blockZ, this.xzScale, shiftZ);
          return this.noise.getValue(d0, d1, d2);
       }
 
@@ -1195,7 +1235,13 @@ public final class DensityFunctions {
 
       public double transform(DensityFunction.FunctionContext p_208440_, double p_208441_) {
          double d0 = this.rarityValueMapper.mapper.get(p_208441_);
-         return d0 * Math.abs(this.noise.getValue((double)p_208440_.blockX() / d0, (double)p_208440_.blockY() / d0, (double)p_208440_.blockZ() / d0));
+         long blockX = p_208440_.blockX();
+         long blockZ = p_208440_.blockZ();
+         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
+            return d0 * Math.abs(this.noise.getValueScaled(blockX, 1.0D / d0, p_208440_.blockY(), 1.0D / d0, blockZ));
+         }
+
+         return d0 * Math.abs(this.noise.getValue((double)blockX / d0, (double)p_208440_.blockY() / d0, (double)blockZ / d0));
       }
 
       public DensityFunction mapAll(DensityFunction.Visitor p_208443_) {

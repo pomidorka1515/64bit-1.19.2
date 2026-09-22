@@ -67,6 +67,17 @@ class WorldBoundsTest {
    }
 
    @Test
+   void doubleBlockOffsetsKeepTheIntegerCoordinate() {
+      long huge = 52999999999999981L;
+      assertEquals(huge, WorldBounds.addDoubleBlockOffset(huge, 0.5D));
+      assertEquals(huge, WorldBounds.addDoubleBlockOffset(huge, 0.0D));
+      assertEquals(huge + 3L, WorldBounds.addDoubleBlockOffset(huge, 3.9D));
+      assertEquals(huge - 2L, WorldBounds.addDoubleBlockOffset(huge, -1.1D));
+      assertEquals(huge, WorldBounds.addDoubleBlockOffset(huge, Double.NaN));
+      assertEquals(huge, WorldBounds.addDoubleBlockOffset(huge, Double.POSITIVE_INFINITY));
+   }
+
+   @Test
    void surfaceArithmeticIsFiniteAndSaturating() {
       assertEquals(Integer.MAX_VALUE, WorldBounds.addSaturated(Integer.MAX_VALUE, 1));
       assertEquals(Integer.MIN_VALUE, WorldBounds.addSaturated(Integer.MIN_VALUE, -1));

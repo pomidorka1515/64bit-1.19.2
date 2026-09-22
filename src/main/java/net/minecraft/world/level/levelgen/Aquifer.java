@@ -51,7 +51,9 @@ public interface Aquifer {
       }
 
       public BlockState at(int p_188406_) {
-         return p_188406_ < this.fluidLevel ? this.fluidType : Blocks.AIR.defaultBlockState();
+         // The configured sea level is inclusive: an ocean may occupy the
+         // block at sea level itself, not only the blocks below it.
+         return p_188406_ <= this.fluidLevel ? this.fluidType : Blocks.AIR.defaultBlockState();
       }
    }
 

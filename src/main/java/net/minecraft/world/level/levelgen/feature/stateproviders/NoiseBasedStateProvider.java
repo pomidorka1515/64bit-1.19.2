@@ -9,6 +9,7 @@ import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
+import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 
 public abstract class NoiseBasedStateProvider extends BlockStateProvider {
    protected final long seed;
@@ -34,6 +35,12 @@ public abstract class NoiseBasedStateProvider extends BlockStateProvider {
    }
 
    protected double getNoiseValue(BlockPos p_191430_, double p_191431_) {
-      return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(p_191430_.getX(), p_191431_), (double)p_191430_.getY() * p_191431_, FarlandsMode.scaledNoiseCoordinate(p_191430_.getZ(), p_191431_));
+      long blockX = p_191430_.getX();
+      long blockZ = p_191430_.getZ();
+      if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
+         return this.noise.getValueScaled(blockX, p_191431_, p_191430_.getY(), p_191431_, blockZ);
+      }
+
+      return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, p_191431_), (double)p_191430_.getY() * p_191431_, FarlandsMode.scaledNoiseCoordinate(blockZ, p_191431_));
    }
 }

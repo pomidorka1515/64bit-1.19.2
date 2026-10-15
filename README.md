@@ -2,11 +2,11 @@
 What this projects does: ports all X/Z coordinates to `long`, with a new sector-based movement/collision system.
 The original, incomplete mod was made by mckuhei. 
 Their websites are now down. If you want to get the original mod's code, you can checkout a specific commit, before my modifications:
- - `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af`
+ - `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af`  
 Beware that the original mod is not even functional and has lots of bugs. Use this fork for a playable version.
 
 # Github mirror
-The **only** real source of this repository is [my forgejo instance](https://pomi.site/ec952ebae0f530313056/pomi/64bit-1.19.2).
+The **only** real source of this repository is [my forgejo instance](https://git.pomi.site/pomi/64bit-1.19.2).
 Github is intended as a read-only mirror due to the nature of this project.
 
 # Development notice
@@ -16,7 +16,7 @@ If you want to help and contribute, dm me on discord! `@pomidorka1515`
 
 # Playing this
 **Currently the mod is quite unstable. Dont expect a smoooth experience.**
- - download the jar from the [latest release](https://pomi.site/ec952ebae0f530313056/pomi/64bit-1.19.2/releases)
+ - download the jar from the [latest release](https://git.pomi.site/pomi/64bit-1.19.2/releases)
  - install [prism](https://prismlauncher.org) if you havent
  - open Prism, create a **vanilla** 1.19.2 instance
  - open its settings, then click "Version"
@@ -25,13 +25,13 @@ If you want to help and contribute, dm me on discord! `@pomidorka1515`
 
 # TODOs (regular people can ignore this)
 - ~~Make all entities use SectorVec3~~
-- Make entities stable without bugs and random tps spikes
+- ~~Make entities stable without bugs and random tps spikes~~
 - ~~Make all block entities use SectorVec3~~
 - ~~Sound system~~
 - ~~Particles~~
 - ~~Structures crash game at boundary with no logs??~~
 - ~~Random collision issues at boundary, quicksand like~~
-- ~~Light update border (black outline) flashing after chunk reload~~ keeping this in
+- ~~Light update border (black outline) flashing after chunk reload~~
 - ~~A billion generation issues deadlocking the server thread with also no logs~~
 - Nether & End not being stable at world boundary due to generation
 
@@ -52,10 +52,10 @@ If you want to help and contribute, dm me on discord! `@pomidorka1515`
       Add a patch to fix 'chunk out of bound' exception. [+]
 =================
 1.0.3:
-      Add a patch to restore farlands. [+/-]
+      Add a patch to restore farlands. [+]
 =================
 1.0.4:
-       Fix game stuck at "Saving level..." screen. [-]
-       Fix cannot interact with entity. [-]
+       Fix game stuck at "Saving level..." screen. [+]
+       Fix cannot interact with entity. [+/-]
 =================
 ```

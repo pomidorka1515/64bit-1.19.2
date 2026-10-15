@@ -14,6 +14,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -252,7 +253,7 @@ public class VineBlock extends Block {
 
    private boolean canSpread(BlockGetter p_57851_, BlockPos p_57852_) {
       int i = 4;
-      Iterable<BlockPos> iterable = BlockPos.betweenClosed(p_57852_.getX() - 4, p_57852_.getY() - 1, p_57852_.getZ() - 4, p_57852_.getX() + 4, p_57852_.getY() + 1, p_57852_.getZ() + 4);
+      Iterable<BlockPos> iterable = BlockPos.betweenClosed(WorldBounds.subtractBlockOffset(p_57852_.getX(), 4), p_57852_.getY() - 1, WorldBounds.subtractBlockOffset(p_57852_.getZ(), 4), WorldBounds.addBlockOffset(p_57852_.getX(), 4), p_57852_.getY() + 1, WorldBounds.addBlockOffset(p_57852_.getZ(), 4));
       int j = 5;
 
       for(BlockPos blockpos : iterable) {

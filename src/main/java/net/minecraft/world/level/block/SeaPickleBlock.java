@@ -11,6 +11,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -114,7 +115,7 @@ public class SeaPickleBlock extends BushBlock implements BonemealableBlock, Simp
          int j = 1;
          int k = 2;
          int l = 0;
-         long i1 = p_222415_.getX() - 2;
+         long i1 = WorldBounds.subtractBlockOffset(p_222415_.getX(), 2);
          int j1 = 0;
 
          for(int k1 = 0; k1 < 5; ++k1) {

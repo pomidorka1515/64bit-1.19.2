@@ -50,6 +50,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatterns;
@@ -634,7 +635,7 @@ public class Raid {
          blockpos$mutableblockpos.set(j, k, l);
          if (!this.level.isVillage(blockpos$mutableblockpos) || p_37708_ >= 2) {
             int j1 = 10;
-            if (this.level.hasChunksAt(blockpos$mutableblockpos.getX() - 10, blockpos$mutableblockpos.getZ() - 10, blockpos$mutableblockpos.getX() + 10, blockpos$mutableblockpos.getZ() + 10) && this.level.isPositionEntityTicking(blockpos$mutableblockpos) && (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, this.level, blockpos$mutableblockpos, EntityType.RAVAGER) || this.level.getBlockState(blockpos$mutableblockpos.below()).is(Blocks.SNOW) && this.level.getBlockState(blockpos$mutableblockpos).isAir())) {
+            if (this.level.hasChunksAt(WorldBounds.subtractBlockOffset(blockpos$mutableblockpos.getX(), 10), WorldBounds.subtractBlockOffset(blockpos$mutableblockpos.getZ(), 10), WorldBounds.addBlockOffset(blockpos$mutableblockpos.getX(), 10), WorldBounds.addBlockOffset(blockpos$mutableblockpos.getZ(), 10)) && this.level.isPositionEntityTicking(blockpos$mutableblockpos) && (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, this.level, blockpos$mutableblockpos, EntityType.RAVAGER) || this.level.getBlockState(blockpos$mutableblockpos.below()).is(Blocks.SNOW) && this.level.getBlockState(blockpos$mutableblockpos).isAir())) {
                return blockpos$mutableblockpos;
             }
          }

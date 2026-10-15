@@ -20,6 +20,7 @@ import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -237,7 +238,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
          for(int j = -p_59945_; j <= p_59945_; ++j) {
             if (i != 0 || j != 0 || p_59946_) {
                for(int k = p_59943_.getMaxBuildHeight() - 1; k > (blockpos == null ? p_59943_.getMinBuildHeight() : blockpos.getY()); --k) {
-                  BlockPos blockpos1 = new BlockPos(p_59944_.getX() + i, k, p_59944_.getZ() + j);
+                  BlockPos blockpos1 = new BlockPos(WorldBounds.addBlockOffset(p_59944_.getX(), i), k, WorldBounds.addBlockOffset(p_59944_.getZ(), j));
                   BlockState blockstate = p_59943_.getBlockState(blockpos1);
                   if (blockstate.isCollisionShapeFullBlock(p_59943_, blockpos1) && (p_59946_ || !blockstate.is(Blocks.BEDROCK))) {
                      blockpos = blockpos1;

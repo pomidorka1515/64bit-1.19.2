@@ -110,6 +110,7 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
@@ -442,7 +443,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
                for(int k = 0; k < p_8716_; ++k) {
                   BlockPos blockpos1 = this.getBlockRandomPos(i, l, j, 15);
                   profilerfiller.push("randomTick");
-                  BlockState blockstate = levelchunksection.getBlockState((int) (blockpos1.getX() - i), blockpos1.getY() - l, (int) (blockpos1.getZ() - j));
+                  BlockState blockstate = levelchunksection.getBlockState((int) (WorldBounds.subtractBlockOffset(blockpos1.getX(), i)), blockpos1.getY() - l, (int) (WorldBounds.subtractBlockOffset(blockpos1.getZ(), j)));
                   if (blockstate.isRandomlyTicking()) {
                      blockstate.randomTick(this, blockpos1, this.random);
                   }
@@ -862,12 +863,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
    public void gameEvent(GameEvent p_215041_, Vec3 p_215042_, GameEvent.Context p_215043_) {
       int i = p_215041_.getNotificationRadius();
       BlockPos blockpos = new BlockPos(p_215042_);
-      long j = SectionPos.blockToSectionCoord(blockpos.getX() - i);
+      long j = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getX(), i));
       int k = SectionPos.blockToSectionCoord(blockpos.getY() - i);
-      long l = SectionPos.blockToSectionCoord(blockpos.getZ() - i);
-      long i1 = SectionPos.blockToSectionCoord(blockpos.getX() + i);
+      long l = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getZ(), i));
+      long i1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getX(), i));
       int j1 = SectionPos.blockToSectionCoord(blockpos.getY() + i);
-      long k1 = SectionPos.blockToSectionCoord(blockpos.getZ() + i);
+      long k1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getZ(), i));
       List<GameEvent.Message> list = new ArrayList<>();
       boolean flag = false;
 

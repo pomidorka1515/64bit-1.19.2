@@ -37,6 +37,7 @@ import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
@@ -113,12 +114,12 @@ public class TestCommand {
       if (p_127970_ <= 48 && p_127971_ <= 48 && p_127972_ <= 48) {
          ServerLevel serverlevel = p_127968_.getLevel();
          BlockPos blockpos = new BlockPos(p_127968_.getPosition());
-         BlockPos blockpos1 = new BlockPos(blockpos.getX(), p_127968_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY(), blockpos.getZ() + 3);
+         BlockPos blockpos1 = new BlockPos(blockpos.getX(), p_127968_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY(), WorldBounds.addBlockOffset(blockpos.getZ(), 3));
          StructureUtils.createNewEmptyStructureBlock(p_127969_.toLowerCase(), blockpos1, new Vec3i(p_127970_, p_127971_, p_127972_), Rotation.NONE, serverlevel);
 
          for(int i = 0; i < p_127970_; ++i) {
             for(int j = 0; j < p_127972_; ++j) {
-               BlockPos blockpos2 = new BlockPos(blockpos1.getX() + i, blockpos1.getY() + 1, blockpos1.getZ() + j);
+               BlockPos blockpos2 = new BlockPos(WorldBounds.addBlockOffset(blockpos1.getX(), i), blockpos1.getY() + 1, WorldBounds.addBlockOffset(blockpos1.getZ(), j));
                Block block = Blocks.POLISHED_ANDESITE;
                BlockInput blockinput = new BlockInput(block.defaultBlockState(), Collections.emptySet(), (CompoundTag)null);
                blockinput.place(serverlevel, blockpos2, 2);
@@ -232,7 +233,7 @@ public class TestCommand {
       ServerLevel serverlevel = p_127979_.getLevel();
       BlockPos blockpos = new BlockPos(p_127979_.getPosition());
       int i = p_127979_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY();
-      BlockPos blockpos1 = new BlockPos(blockpos.getX(), i, blockpos.getZ() + 3);
+      BlockPos blockpos1 = new BlockPos(blockpos.getX(), i, WorldBounds.addBlockOffset(blockpos.getZ(), 3));
       GameTestRunner.clearMarkers(serverlevel);
       runTestPreparation(p_127980_, serverlevel);
       Rotation rotation = StructureUtils.getRotationForRotationSteps(p_127981_);
@@ -288,7 +289,7 @@ public class TestCommand {
 
    private static void runTests(CommandSourceStack p_127974_, Collection<TestFunction> p_127975_, int p_127976_, int p_127977_) {
       BlockPos blockpos = new BlockPos(p_127974_.getPosition());
-      BlockPos blockpos1 = new BlockPos(blockpos.getX(), p_127974_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY(), blockpos.getZ() + 3);
+      BlockPos blockpos1 = new BlockPos(blockpos.getX(), p_127974_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY(), WorldBounds.addBlockOffset(blockpos.getZ(), 3));
       ServerLevel serverlevel = p_127974_.getLevel();
       Rotation rotation = StructureUtils.getRotationForRotationSteps(p_127976_);
       Collection<GameTestInfo> collection = GameTestRunner.runTests(p_127975_, blockpos1, rotation, serverlevel, GameTestTicker.SINGLETON, p_127977_);

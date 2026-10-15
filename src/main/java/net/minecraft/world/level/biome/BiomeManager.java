@@ -6,6 +6,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.util.LinearCongruentialGenerator;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.WorldBounds;
 
 public class BiomeManager {
    public static final int CHUNK_CENTER_QUART = QuartPos.fromBlock(8);
@@ -29,9 +30,9 @@ public class BiomeManager {
    }
 
    public Holder<Biome> getBiome(BlockPos p_204215_) {
-      long i = p_204215_.getX() - 2;
+      long i = WorldBounds.subtractBlockOffset(p_204215_.getX(), 2);
       int j = p_204215_.getY() - 2;
-      long k = p_204215_.getZ() - 2;
+      long k = WorldBounds.subtractBlockOffset(p_204215_.getZ(), 2);
       long l = i >> 2;
       int i1 = j >> 2;
       long j1 = k >> 2;

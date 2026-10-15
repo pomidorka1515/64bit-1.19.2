@@ -63,6 +63,7 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.Biomes;
@@ -814,7 +815,7 @@ public class ClientLevel extends Level {
          int k = 0;
          int l = 0;
          int i1 = 0;
-         Cursor3D cursor3d = new Cursor3D(p_104763_.getX() - i, p_104763_.getY(), p_104763_.getZ() - i, p_104763_.getX() + i, p_104763_.getY(), p_104763_.getZ() + i);
+         Cursor3D cursor3d = new Cursor3D(WorldBounds.subtractBlockOffset(p_104763_.getX(), i), p_104763_.getY(), WorldBounds.subtractBlockOffset(p_104763_.getZ(), i), WorldBounds.addBlockOffset(p_104763_.getX(), i), p_104763_.getY(), WorldBounds.addBlockOffset(p_104763_.getZ(), i));
 
          int j1;
          for(BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(); cursor3d.advance(); i1 += j1 & 255) {

@@ -67,9 +67,9 @@ public class ClientboundExplodePacket implements Packet<ClientGamePacketListener
       int blockY = Mth.floor(this.position.y());
       long blockZ = this.position.blockZ();
       buffer.writeCollection(this.toBlow, (output, block) -> {
-         long deltaX = block.getX() - blockX;
+         long deltaX = WorldBounds.subtractBlockOffset(block.getX(), blockX);
          int deltaY = block.getY() - blockY;
-         long deltaZ = block.getZ() - blockZ;
+         long deltaZ = WorldBounds.subtractBlockOffset(block.getZ(), blockZ);
          output.writeByte((int)deltaX);
          output.writeByte(deltaY);
          output.writeByte((int)deltaZ);

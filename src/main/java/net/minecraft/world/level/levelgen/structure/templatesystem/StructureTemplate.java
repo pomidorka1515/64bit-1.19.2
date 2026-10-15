@@ -39,6 +39,7 @@ import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlockContainer;
@@ -305,7 +306,7 @@ public class StructureTemplate {
 
                   for(Pair<BlockPos, CompoundTag> pair1 : list3) {
                      BlockPos blockpos2 = pair1.getFirst();
-                     discretevoxelshape.fill((int) (blockpos2.getX() - k1), blockpos2.getY() - l1, (int) (blockpos2.getZ() - j2));
+                     discretevoxelshape.fill((int) (WorldBounds.subtractBlockOffset(blockpos2.getX(), k1)), blockpos2.getY() - l1, (int) (WorldBounds.subtractBlockOffset(blockpos2.getZ(), j2)));
                   }
 
                   updateShapeAtEdge(p_230329_, p_230334_, discretevoxelshape, k1, l1, j2);

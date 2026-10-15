@@ -30,6 +30,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -141,15 +142,15 @@ public class StructureUtils {
       if (p_127886_ == Rotation.NONE) {
          blockpos = p_127885_;
       } else if (p_127886_ == Rotation.CLOCKWISE_90) {
-         blockpos = p_127885_.offset(vec3i.getZ() - 1, 0, 0);
+         blockpos = p_127885_.offset(WorldBounds.subtractBlockOffset(vec3i.getZ(), 1), 0, 0);
       } else if (p_127886_ == Rotation.CLOCKWISE_180) {
-         blockpos = p_127885_.offset(vec3i.getX() - 1, 0, vec3i.getZ() - 1);
+         blockpos = p_127885_.offset(WorldBounds.subtractBlockOffset(vec3i.getX(), 1), 0, WorldBounds.subtractBlockOffset(vec3i.getZ(), 1));
       } else {
          if (p_127886_ != Rotation.COUNTERCLOCKWISE_90) {
             throw new IllegalArgumentException("Invalid rotation: " + p_127886_);
          }
 
-         blockpos = p_127885_.offset(0, 0, vec3i.getX() - 1);
+         blockpos = p_127885_.offset(0, 0, WorldBounds.subtractBlockOffset(vec3i.getX(), 1));
       }
 
       forceLoadChunks(p_127885_, p_127888_);
@@ -193,7 +194,7 @@ public class StructureUtils {
       BoundingBox boundingbox = BoundingBox.fromCorners(p_177761_, blockpos1);
       long i = Math.min(boundingbox.minX(), boundingbox.maxX());
       long j = Math.min(boundingbox.minZ(), boundingbox.maxZ());
-      return boundingbox.move(p_177761_.getX() - i, 0, p_177761_.getZ() - j);
+      return boundingbox.move(WorldBounds.subtractBlockOffset(p_177761_.getX(), i), 0, WorldBounds.subtractBlockOffset(p_177761_.getZ(), j));
    }
 
    public static Optional<BlockPos> findStructureBlockContainingPos(BlockPos p_127854_, int p_127855_, ServerLevel p_127856_) {

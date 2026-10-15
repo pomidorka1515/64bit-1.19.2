@@ -211,7 +211,7 @@ public class BlockPos extends Vec3i {
    }
 
    public static Iterable<BlockPos> randomInCube(RandomSource p_235651_, int p_235652_, BlockPos p_235653_, int p_235654_) {
-      return randomBetweenClosed(p_235651_, p_235652_, p_235653_.getX() - p_235654_, p_235653_.getY() - p_235654_, p_235653_.getZ() - p_235654_, p_235653_.getX() + p_235654_, p_235653_.getY() + p_235654_, p_235653_.getZ() + p_235654_);
+      return randomBetweenClosed(p_235651_, p_235652_, WorldBounds.subtractBlockOffset(p_235653_.getX(), p_235654_), p_235653_.getY() - p_235654_, WorldBounds.subtractBlockOffset(p_235653_.getZ(), p_235654_), WorldBounds.addBlockOffset(p_235653_.getX(), p_235654_), p_235653_.getY() + p_235654_, WorldBounds.addBlockOffset(p_235653_.getZ(), p_235654_));
    }
 
    public static Iterable<BlockPos> randomBetweenClosed(RandomSource p_235642_, int p_235643_, long p_235644_, int p_235645_, long p_235646_, long p_235647_, int p_235648_, long o) {
@@ -254,7 +254,7 @@ public class BlockPos extends Vec3i {
             protected BlockPos computeNext() {
                if (this.zMirror) {
                   this.zMirror = false;
-                  this.cursor.setZ(l - (this.cursor.getZ() - l));
+                  this.cursor.setZ(l - (WorldBounds.subtractBlockOffset(this.cursor.getZ(), l)));
                   return this.cursor;
                } else {
                   BlockPos blockpos;

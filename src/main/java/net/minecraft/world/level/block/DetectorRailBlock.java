@@ -14,6 +14,7 @@ import net.minecraft.world.entity.vehicle.MinecartCommandBlock;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -150,7 +151,7 @@ public class DetectorRailBlock extends BaseRailBlock {
 
    private AABB getSearchBB(BlockPos p_52471_) {
       double d0 = 0.2D;
-      return new AABB((double)p_52471_.getX() + 0.2D, (double)p_52471_.getY(), (double)p_52471_.getZ() + 0.2D, (double)(p_52471_.getX() + 1) - 0.2D, (double)(p_52471_.getY() + 1) - 0.2D, (double)(p_52471_.getZ() + 1) - 0.2D);
+      return new AABB((double)p_52471_.getX() + 0.2D, (double)p_52471_.getY(), (double)p_52471_.getZ() + 0.2D, (double)(WorldBounds.addBlockOffset(p_52471_.getX(), 1)) - 0.2D, (double)(p_52471_.getY() + 1) - 0.2D, (double)(WorldBounds.addBlockOffset(p_52471_.getZ(), 1)) - 0.2D);
    }
 
    public BlockState rotate(BlockState p_52466_, Rotation p_52467_) {

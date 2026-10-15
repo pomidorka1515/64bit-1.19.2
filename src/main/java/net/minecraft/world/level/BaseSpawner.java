@@ -118,7 +118,7 @@ public abstract class BaseSpawner {
                      return;
                   }
 
-                  int k = p_151312_.getEntitiesOfClass(entity.getClass(), (new AABB((double)p_151313_.getX(), (double)p_151313_.getY(), (double)p_151313_.getZ(), (double)(p_151313_.getX() + 1), (double)(p_151313_.getY() + 1), (double)(p_151313_.getZ() + 1))).inflate((double)this.spawnRange)).size();
+                  int k = p_151312_.getEntitiesOfClass(entity.getClass(), (new AABB((double)p_151313_.getX(), (double)p_151313_.getY(), (double)p_151313_.getZ(), (double)(WorldBounds.addBlockOffset(p_151313_.getX(), 1)), (double)(p_151313_.getY() + 1), (double)(WorldBounds.addBlockOffset(p_151313_.getZ(), 1)))).inflate((double)this.spawnRange)).size();
                   if (k >= this.maxNearbyEntities) {
                      this.delay(p_151312_, p_151313_);
                      return;

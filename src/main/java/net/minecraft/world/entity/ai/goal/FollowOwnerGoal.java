@@ -105,7 +105,7 @@ public class FollowOwnerGoal extends Goal {
          int j = this.randomIntInclusive(-3, 3);
          int k = this.randomIntInclusive(-1, 1);
          int l = this.randomIntInclusive(-3, 3);
-         boolean flag = this.maybeTeleportTo(blockpos.getX() + j, blockpos.getY() + k, blockpos.getZ() + l);
+         boolean flag = this.maybeTeleportTo(WorldBounds.addBlockOffset(blockpos.getX(), j), blockpos.getY() + k, WorldBounds.addBlockOffset(blockpos.getZ(), l));
          if (flag) {
             return;
          }

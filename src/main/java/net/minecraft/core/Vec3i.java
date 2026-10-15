@@ -10,6 +10,7 @@ import java.util.stream.LongStream;
 import javax.annotation.concurrent.Immutable;
 import net.minecraft.Util;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.WorldBounds;
 
 @Immutable
 public class Vec3i implements Comparable<Vec3i> {
@@ -106,7 +107,7 @@ public class Vec3i implements Comparable<Vec3i> {
    }
 
    public Vec3i offset(long p_175593_, int p_175594_, long p_175595_) {
-      return p_175593_ == 0 && p_175594_ == 0 && p_175595_ == 0 ? this : new Vec3i(this.getX() + p_175593_, this.getY() + p_175594_, this.getZ() + p_175595_);
+      return p_175593_ == 0 && p_175594_ == 0 && p_175595_ == 0 ? this : new Vec3i(WorldBounds.addBlockOffset(this.getX(), p_175593_), this.getY() + p_175594_, WorldBounds.addBlockOffset(this.getZ(), p_175595_));
    }
 
    public Vec3i offset(Vec3i p_175597_) {
@@ -188,7 +189,7 @@ public class Vec3i implements Comparable<Vec3i> {
          int i = p_175590_ == Direction.Axis.X ? p_175591_ : 0;
          int j = p_175590_ == Direction.Axis.Y ? p_175591_ : 0;
          int k = p_175590_ == Direction.Axis.Z ? p_175591_ : 0;
-         return new Vec3i(this.getX() + i, this.getY() + j, this.getZ() + k);
+         return new Vec3i(WorldBounds.addBlockOffset(this.getX(), i), this.getY() + j, WorldBounds.addBlockOffset(this.getZ(), k));
       }
    }
 

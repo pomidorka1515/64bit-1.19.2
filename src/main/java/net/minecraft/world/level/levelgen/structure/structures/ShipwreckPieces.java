@@ -10,6 +10,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -79,7 +80,7 @@ public class ShipwreckPieces {
          if (k == 0) {
             j = p_229363_.getHeight(heightmap$types, this.templatePosition.getX(), this.templatePosition.getZ());
          } else {
-            BlockPos blockpos = this.templatePosition.offset(vec3i.getX() - 1, 0, vec3i.getZ() - 1);
+            BlockPos blockpos = this.templatePosition.offset(WorldBounds.subtractBlockOffset(vec3i.getX(), 1), 0, WorldBounds.subtractBlockOffset(vec3i.getZ(), 1));
 
             for(BlockPos blockpos1 : BlockPos.betweenClosed(this.templatePosition, blockpos)) {
                int l = p_229363_.getHeight(heightmap$types, blockpos1.getX(), blockpos1.getZ());

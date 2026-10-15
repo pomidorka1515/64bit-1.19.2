@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 public class AABB {
@@ -59,7 +60,7 @@ public class AABB {
    }
 
    public AABB(BlockPos p_82305_) {
-      this((double)p_82305_.getX(), (double)p_82305_.getY(), (double)p_82305_.getZ(), (double)(p_82305_.getX() + 1), (double)(p_82305_.getY() + 1), (double)(p_82305_.getZ() + 1));
+      this((double)p_82305_.getX(), (double)p_82305_.getY(), (double)p_82305_.getZ(), (double)(WorldBounds.addBlockOffset(p_82305_.getX(), 1)), (double)(p_82305_.getY() + 1), (double)(WorldBounds.addBlockOffset(p_82305_.getZ(), 1)));
    }
 
    public AABB(BlockPos p_82307_, BlockPos p_82308_) {

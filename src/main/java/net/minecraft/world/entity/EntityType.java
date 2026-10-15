@@ -142,6 +142,7 @@ import net.minecraft.world.entity.vehicle.MinecartTNT;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -384,8 +385,8 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
     * entity-collision semantics.</p>
     */
    private static double getExactYOffset(LevelReader level, BlockPos position, boolean canSpawnBelow, Entity entity) {
-      long probeMaxX = position.getX() == Long.MAX_VALUE ? Long.MAX_VALUE : position.getX() + 1L;
-      long probeMaxZ = position.getZ() == Long.MAX_VALUE ? Long.MAX_VALUE : position.getZ() + 1L;
+      long probeMaxX = position.getX() == Long.MAX_VALUE ? Long.MAX_VALUE : WorldBounds.addBlockOffset(position.getX(), 1L);
+      long probeMaxZ = position.getZ() == Long.MAX_VALUE ? Long.MAX_VALUE : WorldBounds.addBlockOffset(position.getZ(), 1L);
       SectorAABB exactProbe = new SectorAABB(position.getX(), 0.0D, (double)position.getY(),
             position.getZ(), 0.0D, probeMaxX, probeMaxX == position.getX() ? Math.nextDown(1.0D) : 0.0D,
             (double)position.getY() + 1.0D, probeMaxZ,

@@ -14,6 +14,7 @@ import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ComparatorBlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -93,7 +94,7 @@ public class ComparatorBlock extends DiodeBlock implements EntityBlock {
 
    @Nullable
    private ItemFrame getItemFrame(Level p_51865_, Direction p_51866_, BlockPos p_51867_) {
-      List<ItemFrame> list = p_51865_.getEntitiesOfClass(ItemFrame.class, new AABB((double)p_51867_.getX(), (double)p_51867_.getY(), (double)p_51867_.getZ(), (double)(p_51867_.getX() + 1), (double)(p_51867_.getY() + 1), (double)(p_51867_.getZ() + 1)), (p_51890_) -> {
+      List<ItemFrame> list = p_51865_.getEntitiesOfClass(ItemFrame.class, new AABB((double)p_51867_.getX(), (double)p_51867_.getY(), (double)p_51867_.getZ(), (double)(WorldBounds.addBlockOffset(p_51867_.getX(), 1)), (double)(p_51867_.getY() + 1), (double)(WorldBounds.addBlockOffset(p_51867_.getZ(), 1))), (p_51890_) -> {
          return p_51890_ != null && p_51890_.getDirection() == p_51866_;
       });
       return list.size() == 1 ? list.get(0) : null;

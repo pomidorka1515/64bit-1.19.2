@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.phys.AABB;
 
 public class CatSpawner implements CustomSpawner {
@@ -39,7 +40,7 @@ public class CatSpawner implements CustomSpawner {
                int j = (8 + randomsource.nextInt(24)) * (randomsource.nextBoolean() ? -1 : 1);
                BlockPos blockpos = player.blockPosition().offset(i, 0, j);
                int k = 10;
-               if (!p_35330_.hasChunksAt(blockpos.getX() - 10, blockpos.getZ() - 10, blockpos.getX() + 10, blockpos.getZ() + 10)) {
+               if (!p_35330_.hasChunksAt(WorldBounds.subtractBlockOffset(blockpos.getX(), 10), WorldBounds.subtractBlockOffset(blockpos.getZ(), 10), WorldBounds.addBlockOffset(blockpos.getX(), 10), WorldBounds.addBlockOffset(blockpos.getZ(), 10))) {
                   return 0;
                } else {
                   if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, p_35330_, blockpos, EntityType.CAT)) {

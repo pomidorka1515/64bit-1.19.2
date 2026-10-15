@@ -18,6 +18,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -261,15 +262,15 @@ public class StructureBlockEntity extends BlockEntity {
       } else {
          BlockPos blockpos = this.getBlockPos();
          int i = 80;
-         BlockPos blockpos1 = new BlockPos(blockpos.getX() - 80, this.level.getMinBuildHeight(), blockpos.getZ() - 80);
-         BlockPos blockpos2 = new BlockPos(blockpos.getX() + 80, this.level.getMaxBuildHeight() - 1, blockpos.getZ() + 80);
+         BlockPos blockpos1 = new BlockPos(WorldBounds.subtractBlockOffset(blockpos.getX(), 80), this.level.getMinBuildHeight(), WorldBounds.subtractBlockOffset(blockpos.getZ(), 80));
+         BlockPos blockpos2 = new BlockPos(WorldBounds.addBlockOffset(blockpos.getX(), 80), this.level.getMaxBuildHeight() - 1, WorldBounds.addBlockOffset(blockpos.getZ(), 80));
          Stream<BlockPos> stream = this.getRelatedCorners(blockpos1, blockpos2);
          return calculateEnclosingBoundingBox(blockpos, stream).filter((p_155790_) -> {
             long j = p_155790_.maxX() - p_155790_.minX();
             int k = p_155790_.maxY() - p_155790_.minY();
             long l = p_155790_.maxZ() - p_155790_.minZ();
             if (j > 1 && k > 1 && l > 1) {
-               this.structurePos = new BlockPos(p_155790_.minX() - blockpos.getX() + 1, p_155790_.minY() - blockpos.getY() + 1, p_155790_.minZ() - blockpos.getZ() + 1);
+               this.structurePos = new BlockPos(p_155790_.minX() - WorldBounds.addBlockOffset(blockpos.getX(), 1), p_155790_.minY() - blockpos.getY() + 1, p_155790_.minZ() - WorldBounds.addBlockOffset(blockpos.getZ(), 1));
                this.structureSize = new Vec3i(j - 1, k - 1, l - 1);
                this.setChanged();
                BlockState blockstate = this.level.getBlockState(blockpos);

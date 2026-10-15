@@ -32,6 +32,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -310,7 +311,7 @@ public class ChestBlock extends AbstractChestBlock<ChestBlockEntity> implements 
    }
 
    private static boolean isCatSittingOnChest(LevelAccessor p_51564_, BlockPos p_51565_) {
-      List<Cat> list = p_51564_.getEntitiesOfClass(Cat.class, new AABB((double)p_51565_.getX(), (double)(p_51565_.getY() + 1), (double)p_51565_.getZ(), (double)(p_51565_.getX() + 1), (double)(p_51565_.getY() + 2), (double)(p_51565_.getZ() + 1)));
+      List<Cat> list = p_51564_.getEntitiesOfClass(Cat.class, new AABB((double)p_51565_.getX(), (double)(p_51565_.getY() + 1), (double)p_51565_.getZ(), (double)(WorldBounds.addBlockOffset(p_51565_.getX(), 1)), (double)(p_51565_.getY() + 2), (double)(WorldBounds.addBlockOffset(p_51565_.getZ(), 1))));
       if (!list.isEmpty()) {
          for(Cat cat : list) {
             if (cat.isInSittingPose()) {

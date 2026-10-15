@@ -129,6 +129,7 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelSettings;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.border.BorderChangeListener;
 import net.minecraft.world.level.border.WorldBorder;
@@ -383,7 +384,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          int i = serverchunkcache.getGenerator().getSpawnHeight(p_177897_);
          if (i < p_177897_.getMinBuildHeight()) {
             BlockPos blockpos = chunkpos.getWorldPosition();
-            i = p_177897_.getHeight(Heightmap.Types.WORLD_SURFACE, blockpos.getX() + 8, blockpos.getZ() + 8);
+            i = p_177897_.getHeight(Heightmap.Types.WORLD_SURFACE, WorldBounds.addBlockOffset(blockpos.getX(), 8), WorldBounds.addBlockOffset(blockpos.getZ(), 8));
          }
 
          p_177898_.setSpawn(chunkpos.getWorldPosition().offset(8, i, 8), 0.0F);

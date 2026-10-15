@@ -13,9 +13,7 @@ public class TemptGoal extends Goal {
    private final TargetingConditions targetingConditions;
    protected final PathfinderMob mob;
    private final double speedModifier;
-   private double px;
-   private double py;
-   private double pz;
+   private net.minecraft.world.phys.SectorVec3 previousPlayerPosition;
    private double pRotX;
    private double pRotY;
    @Nullable
@@ -51,7 +49,7 @@ public class TemptGoal extends Goal {
    public boolean canContinueToUse() {
       if (this.canScare()) {
          if (this.mob.distanceToSqr(this.player) < 36.0D) {
-            if (this.player.distanceToSqr(this.px, this.py, this.pz) > 0.010000000000000002D) {
+            if (this.player.exactPositionDistanceToSqr(this.previousPlayerPosition) > 0.010000000000000002D) {
                return false;
             }
 
@@ -59,9 +57,7 @@ public class TemptGoal extends Goal {
                return false;
             }
          } else {
-            this.px = this.player.getX();
-            this.py = this.player.getY();
-            this.pz = this.player.getZ();
+            this.previousPlayerPosition = this.player.sectorPosition();
          }
 
          this.pRotX = (double)this.player.getXRot();
@@ -76,9 +72,7 @@ public class TemptGoal extends Goal {
    }
 
    public void start() {
-      this.px = this.player.getX();
-      this.py = this.player.getY();
-      this.pz = this.player.getZ();
+      this.previousPlayerPosition = this.player.sectorPosition();
       this.isRunning = true;
    }
 

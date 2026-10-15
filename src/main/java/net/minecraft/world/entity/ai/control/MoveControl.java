@@ -63,10 +63,12 @@ public class MoveControl implements Control {
    }
 
    public final Vec3 wantedDelta() {
-      return this.exactWantedPosition == null
-            ? new Vec3(this.wantedX - this.mob.getX(), this.wantedY - this.mob.getY(),
-                  this.wantedZ - this.mob.getZ())
-            : this.exactWantedPosition.relativeTo(this.mob.sectorPosition());
+      return this.getExactWantedPosition().relativeTo(this.mob.sectorPosition());
+   }
+
+   public final SectorVec3 getExactWantedPosition() {
+      return this.exactWantedPosition != null ? this.exactWantedPosition
+            : SectorVec3.fromApproximate(this.wantedX, this.wantedY, this.wantedZ);
    }
 
    public void strafe(float p_24989_, float p_24990_) {

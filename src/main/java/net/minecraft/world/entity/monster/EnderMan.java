@@ -251,10 +251,10 @@ public class EnderMan extends Monster implements NeutralMob {
 
    protected boolean teleport() {
       if (!this.level.isClientSide() && this.isAlive()) {
-         double d0 = this.getX() + (this.random.nextDouble() - 0.5D) * 64.0D;
-         double d1 = this.getY() + (double)(this.random.nextInt(64) - 32);
-         double d2 = this.getZ() + (this.random.nextDouble() - 0.5D) * 64.0D;
-         return this.teleport(d0, d1, d2);
+         double d0 = (this.random.nextDouble() - 0.5D) * 64.0D;
+         double d1 = (double)(this.random.nextInt(64) - 32);
+         double d2 = (this.random.nextDouble() - 0.5D) * 64.0D;
+         return this.teleportExact(this.sectorPosition().add(d0, d1, d2));
       } else {
          return false;
       }
@@ -440,10 +440,8 @@ public class EnderMan extends Monster implements NeutralMob {
       public void tick() {
          RandomSource randomsource = this.enderman.getRandom();
          Level level = this.enderman.level;
-         int i = Mth.floor(this.enderman.getX() - 1.0D + randomsource.nextDouble() * 2.0D);
-         int j = Mth.floor(this.enderman.getY() + randomsource.nextDouble() * 2.0D);
-         int k = Mth.floor(this.enderman.getZ() - 1.0D + randomsource.nextDouble() * 2.0D);
-         BlockPos blockpos = new BlockPos(i, j, k);
+         BlockPos blockpos = this.enderman.sectorPosition().add(-1.0D + randomsource.nextDouble() * 2.0D,
+               randomsource.nextDouble() * 2.0D, -1.0D + randomsource.nextDouble() * 2.0D).blockPosition();
          BlockState blockstate = level.getBlockState(blockpos);
          BlockPos blockpos1 = blockpos.below();
          BlockState blockstate1 = level.getBlockState(blockpos1);
@@ -460,7 +458,9 @@ public class EnderMan extends Monster implements NeutralMob {
       }
 
       private boolean canPlaceBlock(Level p_32559_, BlockPos p_32560_, BlockState p_32561_, BlockState p_32562_, BlockState p_32563_, BlockPos p_32564_) {
-         return p_32562_.isAir() && !p_32563_.isAir() && !p_32563_.is(Blocks.BEDROCK) && p_32563_.isCollisionShapeFullBlock(p_32559_, p_32564_) && p_32561_.canSurvive(p_32559_, p_32560_) && p_32559_.getEntities(this.enderman, AABB.unitCubeFromLowerCorner(Vec3.atLowerCornerOf(p_32560_))).isEmpty();
+         SectorVec3 center = SectorVec3.fromBlockAndFraction(p_32560_.getX(), 0.5D, (double)p_32560_.getY(), p_32560_.getZ(), 0.5D);
+         return p_32562_.isAir() && !p_32563_.isAir() && !p_32563_.is(Blocks.BEDROCK) && p_32563_.isCollisionShapeFullBlock(p_32559_, p_32564_) && p_32561_.canSurvive(p_32559_, p_32560_) && p_32559_.getEntities(this.enderman,
+               AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(center, 1.0D, 1.0D))).isEmpty();
       }
    }
 
@@ -560,14 +560,12 @@ public class EnderMan extends Monster implements NeutralMob {
       public void tick() {
          RandomSource randomsource = this.enderman.getRandom();
          Level level = this.enderman.level;
-         int i = Mth.floor(this.enderman.getX() - 2.0D + randomsource.nextDouble() * 4.0D);
-         int j = Mth.floor(this.enderman.getY() + randomsource.nextDouble() * 3.0D);
-         int k = Mth.floor(this.enderman.getZ() - 2.0D + randomsource.nextDouble() * 4.0D);
-         BlockPos blockpos = new BlockPos(i, j, k);
+         BlockPos blockpos = this.enderman.sectorPosition().add(-2.0D + randomsource.nextDouble() * 4.0D,
+               randomsource.nextDouble() * 3.0D, -2.0D + randomsource.nextDouble() * 4.0D).blockPosition();
          BlockState blockstate = level.getBlockState(blockpos);
-         Vec3 vec3 = new Vec3((double)this.enderman.getBlockX() + 0.5D, (double)j + 0.5D, (double)this.enderman.getBlockZ() + 0.5D);
-         Vec3 vec31 = new Vec3((double)i + 0.5D, (double)j + 0.5D, (double)k + 0.5D);
-         BlockHitResult blockhitresult = level.clip(new ClipContext(vec3, vec31, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, this.enderman));
+         SectorVec3 vec3 = SectorVec3.fromBlockAndFraction(this.enderman.getBlockX(), 0.5D, (double)blockpos.getY() + 0.5D, this.enderman.getBlockZ(), 0.5D);
+         SectorVec3 vec31 = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY() + 0.5D, blockpos.getZ(), 0.5D);
+         BlockHitResult blockhitresult = net.minecraft.world.level.SectorClipper.clip(level, vec3, vec31, this.enderman, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE);
          boolean flag = blockhitresult.getBlockPos().equals(blockpos);
          if (blockstate.is(BlockTags.ENDERMAN_HOLDABLE) && flag) {
             level.removeBlock(blockpos, false);

@@ -58,8 +58,9 @@ public class RamTarget extends Behavior<Goat> {
    protected void start(ServerLevel p_217359_, Goat p_217360_, long p_217361_) {
       BlockPos blockpos = p_217360_.blockPosition();
       Brain<?> brain = p_217360_.getBrain();
-      Vec3 vec3 = brain.getMemory(MemoryModuleType.RAM_TARGET).get();
-      this.ramDirection = (new Vec3((double)blockpos.getX() - vec3.x(), 0.0D, (double)blockpos.getZ() - vec3.z())).normalize();
+      net.minecraft.world.phys.SectorVec3 vec3 = brain.getMemory(MemoryModuleType.RAM_TARGET).get();
+      this.ramDirection = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D,
+            vec3.y(), blockpos.getZ(), 0.0D).relativeTo(vec3).normalize();
       brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(vec3, this.speed, 0));
    }
 
@@ -87,8 +88,8 @@ public class RamTarget extends Behavior<Goat> {
          this.finishRam(p_217366_, p_217367_);
       } else {
          Optional<WalkTarget> optional = brain.getMemory(MemoryModuleType.WALK_TARGET);
-         Optional<Vec3> optional1 = brain.getMemory(MemoryModuleType.RAM_TARGET);
-         boolean flag1 = !optional.isPresent() || !optional1.isPresent() || optional.get().getTarget().currentPosition().closerThan(optional1.get(), 0.25D);
+         Optional<net.minecraft.world.phys.SectorVec3> optional1 = brain.getMemory(MemoryModuleType.RAM_TARGET);
+         boolean flag1 = !optional.isPresent() || !optional1.isPresent() || optional.get().getTarget().currentExactPosition().relativeTo(optional1.get()).lengthSqr() < 0.0625D;
          if (flag1) {
             this.finishRam(p_217366_, p_217367_);
          }
@@ -98,7 +99,7 @@ public class RamTarget extends Behavior<Goat> {
 
    private boolean hasRammedHornBreakingBlock(ServerLevel p_217363_, Goat p_217364_) {
       Vec3 vec3 = p_217364_.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D).normalize();
-      BlockPos blockpos = new BlockPos(p_217364_.position().add(vec3));
+      BlockPos blockpos = p_217364_.sectorPosition().add(vec3.x, vec3.y, vec3.z).blockPosition();
       return p_217363_.getBlockState(blockpos).is(BlockTags.SNAPS_GOAT_HORN) || p_217363_.getBlockState(blockpos.above()).is(BlockTags.SNAPS_GOAT_HORN);
    }
 

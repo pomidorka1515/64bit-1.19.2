@@ -362,7 +362,7 @@ public abstract class Raider extends PatrollingMonster {
       }
 
       public void tick() {
-         if (this.mob.getNavigation().getTargetPos().closerToCenterThan(this.mob.position(), 1.414D)) {
+         if (this.mob.getNavigation().getTargetPos().closerToCenterThan(this.mob.sectorPosition(), 1.414D)) {
             List<ItemEntity> list = this.mob.level.getEntitiesOfClass(ItemEntity.class, this.mob.getBoundingBox().inflate(4.0D, 4.0D, 4.0D), Raider.ALLOWED_ITEMS);
             if (!list.isEmpty()) {
                this.mob.pickUpItem(list.get(0));
@@ -450,12 +450,12 @@ public abstract class Raider extends PatrollingMonster {
          if (this.raider.getNavigation().isDone()) {
             return false;
          } else {
-            return this.raider.getTarget() == null && !this.poiPos.closerToCenterThan(this.raider.position(), (double)(this.raider.getBbWidth() + (float)this.distanceToPoi)) && !this.stuck;
+            return this.raider.getTarget() == null && !this.poiPos.closerToCenterThan(this.raider.sectorPosition(), (double)(this.raider.getBbWidth() + (float)this.distanceToPoi)) && !this.stuck;
          }
       }
 
       public void stop() {
-         if (this.poiPos.closerToCenterThan(this.raider.position(), (double)this.distanceToPoi)) {
+         if (this.poiPos.closerToCenterThan(this.raider.sectorPosition(), (double)this.distanceToPoi)) {
             this.visited.add(this.poiPos);
          }
 
@@ -464,16 +464,16 @@ public abstract class Raider extends PatrollingMonster {
       public void start() {
          super.start();
          this.raider.setNoActionTime(0);
-         this.raider.getNavigation().moveTo((double)this.poiPos.getX(), (double)this.poiPos.getY(), (double)this.poiPos.getZ(), this.speedModifier);
+         this.raider.getNavigation().moveTo(this.poiPos, this.speedModifier);
          this.stuck = false;
       }
 
       public void tick() {
          if (this.raider.getNavigation().isDone()) {
-            Vec3 vec3 = Vec3.atBottomCenterOf(this.poiPos);
-            Vec3 vec31 = DefaultRandomPos.getPosTowards(this.raider, 16, 7, vec3, (double)((float)Math.PI / 10F));
+            net.minecraft.world.phys.SectorVec3 vec3 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.poiPos.getX(), 0.5D, (double)this.poiPos.getY(), this.poiPos.getZ(), 0.5D);
+            net.minecraft.world.phys.SectorVec3 vec31 = DefaultRandomPos.getSectorPosTowards(this.raider, 16, 7, vec3, (double)((float)Math.PI / 10F));
             if (vec31 == null) {
-               vec31 = DefaultRandomPos.getPosTowards(this.raider, 8, 7, vec3, (double)((float)Math.PI / 2F));
+               vec31 = DefaultRandomPos.getSectorPosTowards(this.raider, 8, 7, vec3, (double)((float)Math.PI / 2F));
             }
 
             if (vec31 == null) {
@@ -481,7 +481,7 @@ public abstract class Raider extends PatrollingMonster {
                return;
             }
 
-            this.raider.getNavigation().moveTo(vec31.x, vec31.y, vec31.z, this.speedModifier);
+            this.raider.getNavigation().moveTo(vec31, this.speedModifier);
          }
 
       }

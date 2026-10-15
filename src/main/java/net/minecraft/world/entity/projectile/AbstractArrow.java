@@ -136,10 +136,11 @@ public abstract class AbstractArrow extends Projectile {
       if (!blockstate.isAir() && !flag) {
          VoxelShape voxelshape = blockstate.getCollisionShape(this.level, blockpos);
          if (!voxelshape.isEmpty()) {
-            Vec3 vec31 = this.position();
+            SectorVec3 exactPosition = this.sectorPosition();
+            Vec3 vec31 = new Vec3(exactPosition.subX(), exactPosition.y() - (double)blockpos.getY(), exactPosition.subZ());
 
             for(AABB aabb : voxelshape.toAabbs()) {
-               if (aabb.move(blockpos).contains(vec31)) {
+               if (aabb.contains(vec31)) {
                   this.inGround = true;
                   break;
                }
@@ -250,7 +251,10 @@ public abstract class AbstractArrow extends Projectile {
    }
 
    private boolean shouldFall() {
-      return this.inGround && this.level.noCollision((new AABB(this.position(), this.position())).inflate(0.06D));
+      SectorVec3 position = this.sectorPosition();
+      return this.inGround && this.level.noCollision(AABB.fromSectorBounds(new net.minecraft.world.phys.SectorAABB(
+            position.blockX(), position.subX(), position.y(), position.blockZ(), position.subZ(),
+            position.blockX(), position.subX(), position.y(), position.blockZ(), position.subZ()).inflate(0.06D, 0.06D, 0.06D)));
    }
 
    private void startFalling() {

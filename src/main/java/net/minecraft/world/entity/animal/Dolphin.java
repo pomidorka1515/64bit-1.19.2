@@ -326,7 +326,7 @@ public class Dolphin extends WaterAnimal {
 
    protected boolean closeToNextPos() {
       BlockPos blockpos = this.getNavigation().getTargetPos();
-      return blockpos != null ? blockpos.closerToCenterThan(this.position(), 12.0D) : false;
+      return blockpos != null ? blockpos.closerToCenterThan(this.sectorPosition(), 12.0D) : false;
    }
 
    public void travel(Vec3 p_28383_) {
@@ -366,7 +366,7 @@ public class Dolphin extends WaterAnimal {
 
       public boolean canContinueToUse() {
          BlockPos blockpos = this.dolphin.getTreasurePos();
-         return !(new BlockPos((double)blockpos.getX(), this.dolphin.getY(), (double)blockpos.getZ())).closerToCenterThan(this.dolphin.position(), 4.0D) && !this.stuck && this.dolphin.getAirSupply() >= 100;
+         return !(new BlockPos(blockpos.getX(), this.dolphin.getBlockY(), blockpos.getZ())).closerToCenterThan(this.dolphin.sectorPosition(), 4.0D) && !this.stuck && this.dolphin.getAirSupply() >= 100;
       }
 
       public void start() {
@@ -387,7 +387,7 @@ public class Dolphin extends WaterAnimal {
 
       public void stop() {
          BlockPos blockpos = this.dolphin.getTreasurePos();
-         if ((new BlockPos((double)blockpos.getX(), this.dolphin.getY(), (double)blockpos.getZ())).closerToCenterThan(this.dolphin.position(), 4.0D) || this.stuck) {
+         if ((new BlockPos(blockpos.getX(), this.dolphin.getBlockY(), blockpos.getZ())).closerToCenterThan(this.dolphin.sectorPosition(), 4.0D) || this.stuck) {
             this.dolphin.setGotFish(false);
          }
 
@@ -396,16 +396,18 @@ public class Dolphin extends WaterAnimal {
       public void tick() {
          Level level = this.dolphin.level;
          if (this.dolphin.closeToNextPos() || this.dolphin.getNavigation().isDone()) {
-            Vec3 vec3 = Vec3.atCenterOf(this.dolphin.getTreasurePos());
-            Vec3 vec31 = DefaultRandomPos.getPosTowards(this.dolphin, 16, 1, vec3, (double)((float)Math.PI / 8F));
+            BlockPos treasure = this.dolphin.getTreasurePos();
+            net.minecraft.world.phys.SectorVec3 vec3 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(treasure.getX(), 0.5D,
+                  (double)treasure.getY() + 0.5D, treasure.getZ(), 0.5D);
+            net.minecraft.world.phys.SectorVec3 vec31 = DefaultRandomPos.getSectorPosTowards(this.dolphin, 16, 1, vec3, (double)((float)Math.PI / 8F));
             if (vec31 == null) {
-               vec31 = DefaultRandomPos.getPosTowards(this.dolphin, 8, 4, vec3, (double)((float)Math.PI / 2F));
+               vec31 = DefaultRandomPos.getSectorPosTowards(this.dolphin, 8, 4, vec3, (double)((float)Math.PI / 2F));
             }
 
             if (vec31 != null) {
-               BlockPos blockpos = new BlockPos(vec31);
+               BlockPos blockpos = vec31.blockPosition();
                if (!level.getFluidState(blockpos).is(FluidTags.WATER) || !level.getBlockState(blockpos).isPathfindable(level, blockpos, PathComputationType.WATER)) {
-                  vec31 = DefaultRandomPos.getPosTowards(this.dolphin, 8, 5, vec3, (double)((float)Math.PI / 2F));
+                  vec31 = DefaultRandomPos.getSectorPosTowards(this.dolphin, 8, 5, vec3, (double)((float)Math.PI / 2F));
                }
             }
 
@@ -414,8 +416,8 @@ public class Dolphin extends WaterAnimal {
                return;
             }
 
-            this.dolphin.getLookControl().setLookAt(vec31.x, vec31.y, vec31.z, (float)(this.dolphin.getMaxHeadYRot() + 20), (float)this.dolphin.getMaxHeadXRot());
-            this.dolphin.getNavigation().moveTo(vec31.x, vec31.y, vec31.z, 1.3D);
+            this.dolphin.getLookControl().setLookAtExact(vec31, (float)(this.dolphin.getMaxHeadYRot() + 20), (float)this.dolphin.getMaxHeadXRot());
+            this.dolphin.getNavigation().moveTo(vec31, 1.3D);
             if (level.random.nextInt(this.adjustedTickDelay(80)) == 0) {
                level.broadcastEntityEvent(this.dolphin, (byte)38);
             }

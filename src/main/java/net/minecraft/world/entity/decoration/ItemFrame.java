@@ -87,10 +87,10 @@ public class ItemFrame extends HangingEntity {
    protected void recalculateBoundingBox() {
       if (this.direction != null) {
          double d0 = 0.46875D;
-         double d1 = (double)this.pos.getX() + 0.5D - (double)this.direction.getStepX() * 0.46875D;
+         double d1 = 0.5D - (double)this.direction.getStepX() * 0.46875D;
          double d2 = (double)this.pos.getY() + 0.5D - (double)this.direction.getStepY() * 0.46875D;
-         double d3 = (double)this.pos.getZ() + 0.5D - (double)this.direction.getStepZ() * 0.46875D;
-         this.setPosRaw(d1, d2, d3);
+         double d3 = 0.5D - (double)this.direction.getStepZ() * 0.46875D;
+         this.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.pos.getX(), d1, d2, this.pos.getZ(), d3));
          double d4 = (double)this.getWidth();
          double d5 = (double)this.getHeight();
          double d6 = (double)this.getWidth();
@@ -109,7 +109,9 @@ public class ItemFrame extends HangingEntity {
          d4 /= 32.0D;
          d5 /= 32.0D;
          d6 /= 32.0D;
-         this.setBoundingBox(new AABB(d1 - d4, d2 - d5, d3 - d6, d1 + d4, d2 + d5, d3 + d6));
+         net.minecraft.world.phys.SectorVec3 center = this.sectorPosition();
+         this.setBoundingBox(AABB.fromSectorBounds(new net.minecraft.world.phys.SectorAABB(center.blockX(), center.subX(), d2,
+               center.blockZ(), center.subZ(), center.blockX(), center.subX(), d2, center.blockZ(), center.subZ()).inflate(d4, d5, d6)));
       }
    }
 

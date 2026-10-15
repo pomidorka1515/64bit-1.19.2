@@ -28,7 +28,7 @@ public class DragonSittingFlamingPhase extends AbstractDragonSittingPhase {
       if (this.flameTicks % 2 == 0 && this.flameTicks < 10) {
          Vec3 vec3 = this.dragon.getHeadLookVector(1.0F).normalize();
          vec3.yRot((-(float)Math.PI / 4F));
-         Vec3 headRelative = this.dragon.head.position().subtract(this.dragon.position());
+         Vec3 headRelative = this.dragon.head.sectorPosition().relativeTo(this.dragon.sectorPosition());
 
          for(int i = 0; i < 8; ++i) {
             double localX = headRelative.x + this.dragon.getRandom().nextGaussian() / 2.0D;
@@ -58,13 +58,12 @@ public class DragonSittingFlamingPhase extends AbstractDragonSittingPhase {
             this.dragon.getPhaseManager().setPhase(EnderDragonPhase.SITTING_SCANNING);
          }
       } else if (this.flameTicks == 10) {
-         Vec3 vec3 = (new Vec3(this.dragon.head.getX() - this.dragon.getX(), 0.0D, this.dragon.head.getZ() - this.dragon.getZ())).normalize();
+         Vec3 vec3 = this.dragon.head.sectorPosition().relativeTo(this.dragon.sectorPosition()).multiply(1.0D, 0.0D, 1.0D).normalize();
          float f = 5.0F;
-         double d0 = this.dragon.head.getX() + vec3.x * 5.0D / 2.0D;
-         double d1 = this.dragon.head.getZ() + vec3.z * 5.0D / 2.0D;
+         net.minecraft.world.phys.SectorVec3 target = this.dragon.head.sectorPosition().add(vec3.x * 5.0D / 2.0D, 0.0D, vec3.z * 5.0D / 2.0D);
          double d2 = this.dragon.head.getY(0.5D);
          double d3 = d2;
-         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(d0, d2, d1);
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = target.withY(d2).blockPosition().mutable();
 
          while(this.dragon.level.isEmptyBlock(blockpos$mutableblockpos)) {
             --d3;
@@ -73,11 +72,12 @@ public class DragonSittingFlamingPhase extends AbstractDragonSittingPhase {
                break;
             }
 
-            blockpos$mutableblockpos.set(d0, d3, d1);
+            blockpos$mutableblockpos.set(target.withY(d3).blockPosition());
          }
 
          d3 = (double)(Mth.floor(d3) + 1);
-         this.flame = new AreaEffectCloud(this.dragon.level, d0, d3, d1);
+         this.flame = new AreaEffectCloud(this.dragon.level, 0.0D, d3, 0.0D);
+         this.flame.applyExactPosition(target.withY(d3));
          this.flame.setOwner(this.dragon);
          this.flame.setRadius(5.0F);
          this.flame.setDuration(200);

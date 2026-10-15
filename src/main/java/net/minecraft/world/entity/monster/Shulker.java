@@ -429,7 +429,7 @@ public class Shulker extends AbstractGolem implements Enemy {
    }
 
    private void hitByShulkerBullet() {
-      Vec3 vec3 = this.position();
+      net.minecraft.world.phys.SectorVec3 vec3 = this.sectorPosition();
       AABB aabb = this.getBoundingBox();
       if (!this.isClosed() && this.teleportSomewhere()) {
          int i = this.level.getEntities(EntityType.SHULKER, aabb.inflate(8.0D), Entity::isAlive).size();
@@ -441,7 +441,7 @@ public class Shulker extends AbstractGolem implements Enemy {
                shulker.setColor(dyecolor);
             }
 
-            shulker.moveTo(vec3);
+            shulker.moveTo(vec3, shulker.getYRot(), shulker.getXRot());
             this.level.addFreshEntity(shulker);
          }
       }

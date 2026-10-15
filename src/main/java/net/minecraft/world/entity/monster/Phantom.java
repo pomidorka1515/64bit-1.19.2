@@ -39,12 +39,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class Phantom extends FlyingMob implements Enemy {
    public static final float FLAP_DEGREES_PER_TICK = 7.448451F;
    public static final int TICKS_PER_FLAP = Mth.ceil(24.166098F);
    private static final EntityDataAccessor<Integer> ID_SIZE = SynchedEntityData.defineId(Phantom.class, EntityDataSerializers.INT);
-   Vec3 moveTargetPoint = Vec3.ZERO;
+   SectorVec3 moveTargetPoint = SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D);
    BlockPos anchorPoint = BlockPos.ZERO;
    Phantom.AttackPhase attackPhase = Phantom.AttackPhase.CIRCLE;
 
@@ -330,12 +331,12 @@ public class Phantom extends FlyingMob implements Enemy {
             this.selectNext();
          }
 
-         if (Phantom.this.moveTargetPoint.y < Phantom.this.getY() && !Phantom.this.level.isEmptyBlock(Phantom.this.blockPosition().below(1))) {
+         if (Phantom.this.moveTargetPoint.y() < Phantom.this.getY() && !Phantom.this.level.isEmptyBlock(Phantom.this.blockPosition().below(1))) {
             this.height = Math.max(1.0F, this.height);
             this.selectNext();
          }
 
-         if (Phantom.this.moveTargetPoint.y > Phantom.this.getY() && !Phantom.this.level.isEmptyBlock(Phantom.this.blockPosition().above(1))) {
+         if (Phantom.this.moveTargetPoint.y() > Phantom.this.getY() && !Phantom.this.level.isEmptyBlock(Phantom.this.blockPosition().above(1))) {
             this.height = Math.min(-1.0F, this.height);
             this.selectNext();
          }
@@ -348,7 +349,9 @@ public class Phantom extends FlyingMob implements Enemy {
          }
 
          this.angle += this.clockwise * 15.0F * ((float)Math.PI / 180F);
-         Phantom.this.moveTargetPoint = Vec3.atLowerCornerOf(Phantom.this.anchorPoint).add((double)(this.distance * Mth.cos(this.angle)), (double)(-4.0F + this.height), (double)(this.distance * Mth.sin(this.angle)));
+         Phantom.this.moveTargetPoint = SectorVec3.fromBlockAndFraction(Phantom.this.anchorPoint.getX(), 0.0D,
+               (double)Phantom.this.anchorPoint.getY(), Phantom.this.anchorPoint.getZ(), 0.0D)
+               .add((double)(this.distance * Mth.cos(this.angle)), (double)(-4.0F + this.height), (double)(this.distance * Mth.sin(this.angle)));
       }
    }
 
@@ -374,9 +377,10 @@ public class Phantom extends FlyingMob implements Enemy {
             this.speed = 0.1F;
          }
 
-         double d0 = Phantom.this.moveTargetPoint.x - Phantom.this.getX();
-         double d1 = Phantom.this.moveTargetPoint.y - Phantom.this.getY();
-         double d2 = Phantom.this.moveTargetPoint.z - Phantom.this.getZ();
+         Vec3 targetDelta = Phantom.this.moveTargetPoint.relativeTo(Phantom.this.sectorPosition());
+         double d0 = targetDelta.x;
+         double d1 = targetDelta.y;
+         double d2 = targetDelta.z;
          double d3 = Math.sqrt(d0 * d0 + d2 * d2);
          if (Math.abs(d3) > (double)1.0E-5F) {
             double d4 = 1.0D - Math.abs(d1 * (double)0.7F) / d3;
@@ -415,7 +419,7 @@ public class Phantom extends FlyingMob implements Enemy {
       }
 
       protected boolean touchingTarget() {
-         return Phantom.this.moveTargetPoint.distanceToSqr(Phantom.this.getX(), Phantom.this.getY(), Phantom.this.getZ()) < 4.0D;
+         return Phantom.this.moveTargetPoint.relativeTo(Phantom.this.sectorPosition()).lengthSqr() < 4.0D;
       }
    }
 
@@ -472,7 +476,7 @@ public class Phantom extends FlyingMob implements Enemy {
       public void tick() {
          LivingEntity livingentity = Phantom.this.getTarget();
          if (livingentity != null) {
-            Phantom.this.moveTargetPoint = new Vec3(livingentity.getX(), livingentity.getY(0.5D), livingentity.getZ());
+            Phantom.this.moveTargetPoint = livingentity.sectorPosition().withY(livingentity.getY(0.5D));
             if (Phantom.this.getBoundingBox().inflate((double)0.2F).intersects(livingentity.getBoundingBox())) {
                Phantom.this.doHurtTarget(livingentity);
                Phantom.this.attackPhase = Phantom.AttackPhase.CIRCLE;

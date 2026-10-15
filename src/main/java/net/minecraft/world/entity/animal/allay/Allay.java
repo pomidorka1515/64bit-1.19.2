@@ -292,7 +292,7 @@ public class Allay extends PathfinderMob implements InventoryCarrier {
          this.swing(InteractionHand.MAIN_HAND);
 
          for(ItemStack itemstack2 : this.getInventory().removeAllItems()) {
-            BehaviorUtils.throwItem(this, itemstack2, this.position());
+            BehaviorUtils.throwItem(this, itemstack2, this.sectorPosition());
          }
 
          this.getBrain().eraseMemory(MemoryModuleType.LIKED_PLAYER);
@@ -362,7 +362,7 @@ public class Allay extends PathfinderMob implements InventoryCarrier {
    }
 
    private boolean shouldStopDancing() {
-      return this.jukeboxPos == null || !this.jukeboxPos.closerToCenterThan(this.position(), (double)GameEvent.JUKEBOX_PLAY.getNotificationRadius()) || !this.level.getBlockState(this.jukeboxPos).is(Blocks.JUKEBOX);
+      return this.jukeboxPos == null || !this.jukeboxPos.closerToCenterThan(this.sectorPosition(), (double)GameEvent.JUKEBOX_PLAY.getNotificationRadius()) || !this.level.getBlockState(this.jukeboxPos).is(Blocks.JUKEBOX);
    }
 
    public float getHoldingItemAnimationProgress(float p_218395_) {
@@ -449,7 +449,7 @@ public class Allay extends PathfinderMob implements InventoryCarrier {
    private void duplicateAllay() {
       Allay allay = EntityType.ALLAY.create(this.level);
       if (allay != null) {
-         allay.moveTo(this.position());
+         allay.moveTo(this.sectorPosition(), allay.getYRot(), allay.getXRot());
          allay.setPersistenceRequired();
          allay.resetDuplicationCooldown();
          this.resetDuplicationCooldown();

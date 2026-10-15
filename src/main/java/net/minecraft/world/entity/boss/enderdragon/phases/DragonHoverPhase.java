@@ -6,7 +6,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class DragonHoverPhase extends AbstractDragonPhaseInstance {
    @Nullable
-   private Vec3 targetLocation;
+   private net.minecraft.world.phys.SectorVec3 targetLocation;
 
    public DragonHoverPhase(EnderDragon p_31246_) {
       super(p_31246_);
@@ -14,7 +14,7 @@ public class DragonHoverPhase extends AbstractDragonPhaseInstance {
 
    public void doServerTick() {
       if (this.targetLocation == null) {
-         this.targetLocation = this.dragon.position();
+         this.targetLocation = this.dragon.sectorPosition();
       }
 
    }
@@ -33,6 +33,10 @@ public class DragonHoverPhase extends AbstractDragonPhaseInstance {
 
    @Nullable
    public Vec3 getFlyTargetLocation() {
+      return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+   }
+
+   public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
       return this.targetLocation;
    }
 

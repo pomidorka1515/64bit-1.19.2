@@ -128,7 +128,7 @@ public class ZombifiedPiglin extends Zombie implements NeutralMob {
 
    private void alertOthers() {
       double d0 = this.getAttributeValue(Attributes.FOLLOW_RANGE);
-      AABB aabb = AABB.unitCubeFromLowerCorner(this.position()).inflate(d0, 10.0D, d0);
+      AABB aabb = this.exactUnitCubeAtPosition().inflate(d0, 10.0D, d0);
       this.level.getEntitiesOfClass(ZombifiedPiglin.class, aabb, EntitySelector.NO_SPECTATORS).stream().filter((p_34463_) -> {
          return p_34463_ != this;
       }).filter((p_34461_) -> {

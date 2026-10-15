@@ -95,14 +95,17 @@ public class WardenSpawnTracker {
    }
 
    private static boolean hasNearbyWarden(ServerLevel p_219575_, BlockPos p_219576_) {
-      AABB aabb = AABB.ofSize(Vec3.atCenterOf(p_219576_), 48.0D, 48.0D, 48.0D);
+      net.minecraft.world.phys.SectorVec3 center = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_219576_.getX(), 0.5D,
+            (double)p_219576_.getY() + 0.5D, p_219576_.getZ(), 0.5D);
+      AABB aabb = AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(center.add(0.0D, -24.0D, 0.0D), 48.0D, 48.0D));
       return !p_219575_.getEntitiesOfClass(Warden.class, aabb).isEmpty();
    }
 
    private static List<ServerPlayer> getNearbyPlayers(ServerLevel p_219595_, BlockPos p_219596_) {
-      Vec3 vec3 = Vec3.atCenterOf(p_219596_);
+      net.minecraft.world.phys.SectorVec3 vec3 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_219596_.getX(), 0.5D,
+            (double)p_219596_.getY() + 0.5D, p_219596_.getZ(), 0.5D);
       Predicate<ServerPlayer> predicate = (p_219592_) -> {
-         return p_219592_.position().closerThan(vec3, 16.0D);
+         return p_219592_.exactPositionDistanceToSqr(vec3) < 256.0D;
       };
       return p_219595_.getPlayers(predicate.and(LivingEntity::isAlive).and(EntitySelector.NO_SPECTATORS));
    }

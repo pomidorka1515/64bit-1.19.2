@@ -204,8 +204,20 @@ public class Vec3i implements Comparable<Vec3i> {
       return this.distToCenterSqr(p_203196_) < Mth.square(p_203197_);
    }
 
+   public boolean closerToCenterThan(net.minecraft.world.phys.SectorVec3 position, double distance) {
+      return this.distToCenterSqr(position) < Mth.square(distance);
+   }
+
+   public double distToCenterSqr(net.minecraft.world.phys.SectorVec3 position) {
+      return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.getX(), 0.5D,
+            (double)this.getY() + 0.5D, this.getZ(), 0.5D).relativeTo(position).lengthSqr();
+   }
+
    public double distSqr(Vec3i p_123332_) {
-      return this.distToLowCornerSqr((double)p_123332_.getX(), (double)p_123332_.getY(), (double)p_123332_.getZ());
+      double dx = net.minecraft.world.level.WorldBounds.signedDifference(this.getX(), p_123332_.getX());
+      double dy = (double)this.getY() - (double)p_123332_.getY();
+      double dz = net.minecraft.world.level.WorldBounds.signedDifference(this.getZ(), p_123332_.getZ());
+      return dx * dx + dy * dy + dz * dz;
    }
 
    public double distToCenterSqr(Position p_203194_) {

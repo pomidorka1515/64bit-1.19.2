@@ -293,7 +293,7 @@ public class Turtle extends Animal {
          this.moveRelative(0.1F, p_30218_);
          this.move(MoverType.SELF, this.getDeltaMovement());
          this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
-         if (this.getTarget() == null && (!this.isGoingHome() || !this.getHomePos().closerToCenterThan(this.position(), 20.0D))) {
+         if (this.getTarget() == null && (!this.isGoingHome() || !this.getHomePos().closerToCenterThan(this.sectorPosition(), 20.0D))) {
             this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.005D, 0.0D));
          }
       } else {
@@ -364,7 +364,7 @@ public class Turtle extends Animal {
          } else if (this.turtle.getRandom().nextInt(reducedTickDelay(700)) != 0) {
             return false;
          } else {
-            return !this.turtle.getHomePos().closerToCenterThan(this.turtle.position(), 64.0D);
+            return !this.turtle.getHomePos().closerToCenterThan(this.turtle.sectorPosition(), 64.0D);
          }
       }
 
@@ -379,25 +379,25 @@ public class Turtle extends Animal {
       }
 
       public boolean canContinueToUse() {
-         return !this.turtle.getHomePos().closerToCenterThan(this.turtle.position(), 7.0D) && !this.stuck && this.closeToHomeTryTicks <= this.adjustedTickDelay(600);
+         return !this.turtle.getHomePos().closerToCenterThan(this.turtle.sectorPosition(), 7.0D) && !this.stuck && this.closeToHomeTryTicks <= this.adjustedTickDelay(600);
       }
 
       public void tick() {
          BlockPos blockpos = this.turtle.getHomePos();
-         boolean flag = blockpos.closerToCenterThan(this.turtle.position(), 16.0D);
+         boolean flag = blockpos.closerToCenterThan(this.turtle.sectorPosition(), 16.0D);
          if (flag) {
             ++this.closeToHomeTryTicks;
          }
 
          if (this.turtle.getNavigation().isDone()) {
-            Vec3 vec3 = Vec3.atBottomCenterOf(blockpos);
-            Vec3 vec31 = DefaultRandomPos.getPosTowards(this.turtle, 16, 3, vec3, (double)((float)Math.PI / 10F));
+            SectorVec3 vec3 = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY(), blockpos.getZ(), 0.5D);
+            SectorVec3 vec31 = DefaultRandomPos.getSectorPosTowards(this.turtle, 16, 3, vec3, (double)((float)Math.PI / 10F));
             if (vec31 == null) {
-               vec31 = DefaultRandomPos.getPosTowards(this.turtle, 8, 7, vec3, (double)((float)Math.PI / 2F));
+               vec31 = DefaultRandomPos.getSectorPosTowards(this.turtle, 8, 7, vec3, (double)((float)Math.PI / 2F));
             }
 
-            if (vec31 != null && !flag && !this.turtle.level.getBlockState(new BlockPos(vec31)).is(Blocks.WATER)) {
-               vec31 = DefaultRandomPos.getPosTowards(this.turtle, 16, 5, vec3, (double)((float)Math.PI / 2F));
+            if (vec31 != null && !flag && !this.turtle.level.getBlockState(vec31.blockPosition()).is(Blocks.WATER)) {
+               vec31 = DefaultRandomPos.getSectorPosTowards(this.turtle, 16, 5, vec3, (double)((float)Math.PI / 2F));
             }
 
             if (vec31 == null) {
@@ -405,7 +405,7 @@ public class Turtle extends Animal {
                return;
             }
 
-            this.turtle.getNavigation().moveTo(vec31.x, vec31.y, vec31.z, this.speedModifier);
+            this.turtle.getNavigation().moveTo(vec31, this.speedModifier);
          }
 
       }
@@ -451,11 +451,11 @@ public class Turtle extends Animal {
       }
 
       public boolean canUse() {
-         return this.turtle.hasEgg() && this.turtle.getHomePos().closerToCenterThan(this.turtle.position(), 9.0D) ? super.canUse() : false;
+         return this.turtle.hasEgg() && this.turtle.getHomePos().closerToCenterThan(this.turtle.sectorPosition(), 9.0D) ? super.canUse() : false;
       }
 
       public boolean canContinueToUse() {
-         return super.canContinueToUse() && this.turtle.hasEgg() && this.turtle.getHomePos().closerToCenterThan(this.turtle.position(), 9.0D);
+         return super.canContinueToUse() && this.turtle.hasEgg() && this.turtle.getHomePos().closerToCenterThan(this.turtle.sectorPosition(), 9.0D);
       }
 
       public void tick() {
@@ -496,7 +496,7 @@ public class Turtle extends Animal {
       private void updateSpeed() {
          if (this.turtle.isInWater()) {
             this.turtle.setDeltaMovement(this.turtle.getDeltaMovement().add(0.0D, 0.005D, 0.0D));
-            if (!this.turtle.getHomePos().closerToCenterThan(this.turtle.position(), 16.0D)) {
+            if (!this.turtle.getHomePos().closerToCenterThan(this.turtle.sectorPosition(), 16.0D)) {
                this.turtle.setSpeed(Math.max(this.turtle.getSpeed() / 2.0F, 0.08F));
             }
 
@@ -620,15 +620,16 @@ public class Turtle extends Animal {
 
       public void tick() {
          if (this.turtle.getNavigation().isDone()) {
-            Vec3 vec3 = Vec3.atBottomCenterOf(this.turtle.getTravelPos());
-            Vec3 vec31 = DefaultRandomPos.getPosTowards(this.turtle, 16, 3, vec3, (double)((float)Math.PI / 10F));
+            BlockPos travel = this.turtle.getTravelPos();
+            SectorVec3 vec3 = SectorVec3.fromBlockAndFraction(travel.getX(), 0.5D, (double)travel.getY(), travel.getZ(), 0.5D);
+            SectorVec3 vec31 = DefaultRandomPos.getSectorPosTowards(this.turtle, 16, 3, vec3, (double)((float)Math.PI / 10F));
             if (vec31 == null) {
-               vec31 = DefaultRandomPos.getPosTowards(this.turtle, 8, 7, vec3, (double)((float)Math.PI / 2F));
+               vec31 = DefaultRandomPos.getSectorPosTowards(this.turtle, 8, 7, vec3, (double)((float)Math.PI / 2F));
             }
 
             if (vec31 != null) {
-               int i = Mth.floor(vec31.x);
-               int j = Mth.floor(vec31.z);
+               long i = vec31.blockX();
+               long j = vec31.blockZ();
                int k = 34;
                if (!this.turtle.level.hasChunksAt(i - 34, j - 34, i + 34, j + 34)) {
                   vec31 = null;
@@ -640,7 +641,7 @@ public class Turtle extends Animal {
                return;
             }
 
-            this.turtle.getNavigation().moveTo(vec31.x, vec31.y, vec31.z, this.speedModifier);
+            this.turtle.getNavigation().moveTo(vec31, this.speedModifier);
          }
 
       }

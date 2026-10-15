@@ -302,9 +302,7 @@ public class Drowned extends Zombie implements RangedAttackMob {
 
    static class DrownedGoToWaterGoal extends Goal {
       private final PathfinderMob mob;
-      private double wantedX;
-      private double wantedY;
-      private double wantedZ;
+      private net.minecraft.world.phys.SectorVec3 wantedPosition;
       private final double speedModifier;
       private final Level level;
 
@@ -321,13 +319,11 @@ public class Drowned extends Zombie implements RangedAttackMob {
          } else if (this.mob.isInWater()) {
             return false;
          } else {
-            Vec3 vec3 = this.getWaterPos();
+            net.minecraft.world.phys.SectorVec3 vec3 = this.getWaterPos();
             if (vec3 == null) {
                return false;
             } else {
-               this.wantedX = vec3.x;
-               this.wantedY = vec3.y;
-               this.wantedZ = vec3.z;
+               this.wantedPosition = vec3;
                return true;
             }
          }
@@ -338,18 +334,18 @@ public class Drowned extends Zombie implements RangedAttackMob {
       }
 
       public void start() {
-         this.mob.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
+         this.mob.getNavigation().moveTo(this.wantedPosition, this.speedModifier);
       }
 
       @Nullable
-      private Vec3 getWaterPos() {
+      private net.minecraft.world.phys.SectorVec3 getWaterPos() {
          RandomSource randomsource = this.mob.getRandom();
          BlockPos blockpos = this.mob.blockPosition();
 
          for(int i = 0; i < 10; ++i) {
             BlockPos blockpos1 = blockpos.offset(randomsource.nextInt(20) - 10, 2 - randomsource.nextInt(8), randomsource.nextInt(20) - 10);
             if (this.level.getBlockState(blockpos1).is(Blocks.WATER)) {
-               return Vec3.atBottomCenterOf(blockpos1);
+               return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D, (double)blockpos1.getY(), blockpos1.getZ(), 0.5D);
             }
          }
 

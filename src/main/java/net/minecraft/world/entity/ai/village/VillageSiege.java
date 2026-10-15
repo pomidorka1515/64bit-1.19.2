@@ -94,7 +94,7 @@ public class VillageSiege implements CustomSpawner {
    }
 
    private void trySpawn(ServerLevel p_27017_) {
-      Vec3 vec3 = this.findRandomSpawnPos(p_27017_, new BlockPos(this.spawnX, this.spawnY, this.spawnZ));
+      net.minecraft.world.phys.SectorVec3 vec3 = this.findRandomSpawnPos(p_27017_, new BlockPos(this.spawnX, this.spawnY, this.spawnZ));
       if (vec3 != null) {
          Zombie zombie;
          try {
@@ -105,20 +105,20 @@ public class VillageSiege implements CustomSpawner {
             return;
          }
 
-         zombie.moveTo(vec3.x, vec3.y, vec3.z, p_27017_.random.nextFloat() * 360.0F, 0.0F);
+         zombie.moveTo(vec3, p_27017_.random.nextFloat() * 360.0F, 0.0F);
          p_27017_.addFreshEntityWithPassengers(zombie);
       }
    }
 
    @Nullable
-   private Vec3 findRandomSpawnPos(ServerLevel p_27010_, BlockPos p_27011_) {
+   private net.minecraft.world.phys.SectorVec3 findRandomSpawnPos(ServerLevel p_27010_, BlockPos p_27011_) {
       for(int i = 0; i < 10; ++i) {
          long j = p_27011_.getX() + p_27010_.random.nextInt(16) - 8;
          long k = p_27011_.getZ() + p_27010_.random.nextInt(16) - 8;
          int l = p_27010_.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
          BlockPos blockpos = new BlockPos(j, l, k);
          if (p_27010_.isVillage(blockpos) && Monster.checkMonsterSpawnRules(EntityType.ZOMBIE, p_27010_, MobSpawnType.EVENT, blockpos, p_27010_.random)) {
-            return Vec3.atBottomCenterOf(blockpos);
+            return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY(), blockpos.getZ(), 0.5D);
          }
       }
 

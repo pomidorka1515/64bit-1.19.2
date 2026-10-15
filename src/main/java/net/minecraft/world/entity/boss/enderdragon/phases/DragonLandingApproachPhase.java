@@ -17,7 +17,7 @@ public class DragonLandingApproachPhase extends AbstractDragonPhaseInstance {
    @Nullable
    private Path currentPath;
    @Nullable
-   private Vec3 targetLocation;
+   private net.minecraft.world.phys.SectorVec3 targetLocation;
 
    public DragonLandingApproachPhase(EnderDragon p_31258_) {
       super(p_31258_);
@@ -33,7 +33,7 @@ public class DragonLandingApproachPhase extends AbstractDragonPhaseInstance {
    }
 
    public void doServerTick() {
-      double d0 = this.targetLocation == null ? 0.0D : this.targetLocation.distanceToSqr(this.dragon.getX(), this.dragon.getY(), this.dragon.getZ());
+      double d0 = this.targetLocation == null ? 0.0D : this.targetLocation.relativeTo(this.dragon.sectorPosition()).lengthSqr();
       if (d0 < 100.0D || d0 > 22500.0D || this.dragon.horizontalCollision || this.dragon.verticalCollision) {
          this.findNewTarget();
       }
@@ -42,6 +42,10 @@ public class DragonLandingApproachPhase extends AbstractDragonPhaseInstance {
 
    @Nullable
    public Vec3 getFlyTargetLocation() {
+      return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+   }
+
+   public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
       return this.targetLocation;
    }
 
@@ -76,15 +80,13 @@ public class DragonLandingApproachPhase extends AbstractDragonPhaseInstance {
       if (this.currentPath != null && !this.currentPath.isDone()) {
          Vec3i vec3i = this.currentPath.getNextNodePos();
          this.currentPath.advance();
-         double d0 = (double)vec3i.getX();
-         double d1 = (double)vec3i.getZ();
 
          double d2;
          do {
             d2 = (double)((float)vec3i.getY() + this.dragon.getRandom().nextFloat() * 20.0F);
          } while(d2 < (double)vec3i.getY());
 
-         this.targetLocation = new Vec3(d0, d2, d1);
+         this.targetLocation = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(vec3i.getX(), 0.0D, d2, vec3i.getZ(), 0.0D);
       }
 
    }

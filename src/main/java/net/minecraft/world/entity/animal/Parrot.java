@@ -172,7 +172,7 @@ public class Parrot extends ShoulderRidingEntity implements FlyingAnimal {
    }
 
    public void aiStep() {
-      if (this.jukebox == null || !this.jukebox.closerToCenterThan(this.position(), 3.46D) || !this.level.getBlockState(this.jukebox).is(Blocks.JUKEBOX)) {
+      if (this.jukebox == null || !this.jukebox.closerToCenterThan(this.sectorPosition(), 3.46D) || !this.level.getBlockState(this.jukebox).is(Blocks.JUKEBOX)) {
          this.partyParrot = false;
          this.jukebox = null;
       }

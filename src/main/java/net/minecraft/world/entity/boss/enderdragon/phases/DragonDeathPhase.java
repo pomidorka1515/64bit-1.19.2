@@ -10,7 +10,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class DragonDeathPhase extends AbstractDragonPhaseInstance {
    @Nullable
-   private Vec3 targetLocation;
+   private net.minecraft.world.phys.SectorVec3 targetLocation;
    private int time;
 
    public DragonDeathPhase(EnderDragon p_31217_) {
@@ -33,10 +33,10 @@ public class DragonDeathPhase extends AbstractDragonPhaseInstance {
       ++this.time;
       if (this.targetLocation == null) {
          BlockPos blockpos = this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, EndPodiumFeature.END_PODIUM_LOCATION);
-         this.targetLocation = Vec3.atBottomCenterOf(blockpos);
+         this.targetLocation = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY(), blockpos.getZ(), 0.5D);
       }
 
-      double d0 = this.targetLocation.distanceToSqr(this.dragon.getX(), this.dragon.getY(), this.dragon.getZ());
+      double d0 = this.targetLocation.relativeTo(this.dragon.sectorPosition()).lengthSqr();
       if (!(d0 < 100.0D) && !(d0 > 22500.0D) && !this.dragon.horizontalCollision && !this.dragon.verticalCollision) {
          this.dragon.setHealth(1.0F);
       } else {
@@ -56,6 +56,10 @@ public class DragonDeathPhase extends AbstractDragonPhaseInstance {
 
    @Nullable
    public Vec3 getFlyTargetLocation() {
+      return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+   }
+
+   public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
       return this.targetLocation;
    }
 

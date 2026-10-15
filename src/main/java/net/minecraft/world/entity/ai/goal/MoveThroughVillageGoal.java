@@ -57,7 +57,7 @@ public class MoveThroughVillageGoal extends Goal {
             if (!serverlevel.isCloseToVillage(blockpos, 6)) {
                return false;
             } else {
-               Vec3 vec3 = LandRandomPos.getPos(this.mob, 15, 7, (p_217751_) -> {
+               net.minecraft.world.phys.SectorVec3 vec3 = LandRandomPos.getSectorPos(this.mob, 15, 7, (p_217751_) -> {
                   if (!serverlevel.isVillage(p_217751_)) {
                      return Double.NEGATIVE_INFINITY;
                   } else {
@@ -74,7 +74,7 @@ public class MoveThroughVillageGoal extends Goal {
                } else {
                   Optional<BlockPos> optional = serverlevel.getPoiManager().find((p_217756_) -> {
                      return p_217756_.is(PoiTypeTags.VILLAGE);
-                  }, this::hasNotVisited, new BlockPos(vec3), 10, PoiManager.Occupancy.IS_OCCUPIED);
+                  }, this::hasNotVisited, vec3.blockPosition(), 10, PoiManager.Occupancy.IS_OCCUPIED);
                   if (optional.isEmpty()) {
                      return false;
                   } else {
@@ -85,13 +85,15 @@ public class MoveThroughVillageGoal extends Goal {
                      this.path = groundpathnavigation.createPath(this.poiPos, 0);
                      groundpathnavigation.setCanOpenDoors(flag);
                      if (this.path == null) {
-                        Vec3 vec31 = DefaultRandomPos.getPosTowards(this.mob, 10, 7, Vec3.atBottomCenterOf(this.poiPos), (double)((float)Math.PI / 2F));
+                        net.minecraft.world.phys.SectorVec3 target = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.poiPos.getX(), 0.5D,
+                              (double)this.poiPos.getY(), this.poiPos.getZ(), 0.5D);
+                        net.minecraft.world.phys.SectorVec3 vec31 = DefaultRandomPos.getSectorPosTowards(this.mob, 10, 7, target, (double)((float)Math.PI / 2F));
                         if (vec31 == null) {
                            return false;
                         }
 
                         groundpathnavigation.setCanOpenDoors(this.canDealWithDoors.getAsBoolean());
-                        this.path = this.mob.getNavigation().createPath(vec31.x, vec31.y, vec31.z, 0);
+                        this.path = this.mob.getNavigation().createPath(vec31.blockPosition(), 0);
                         groundpathnavigation.setCanOpenDoors(flag);
                         if (this.path == null) {
                            return false;
@@ -119,7 +121,7 @@ public class MoveThroughVillageGoal extends Goal {
       if (this.mob.getNavigation().isDone()) {
          return false;
       } else {
-         return !this.poiPos.closerToCenterThan(this.mob.position(), (double)(this.mob.getBbWidth() + (float)this.distanceToPoi));
+         return !this.poiPos.closerToCenterThan(this.mob.sectorPosition(), (double)(this.mob.getBbWidth() + (float)this.distanceToPoi));
       }
    }
 
@@ -128,7 +130,7 @@ public class MoveThroughVillageGoal extends Goal {
    }
 
    public void stop() {
-      if (this.mob.getNavigation().isDone() || this.poiPos.closerToCenterThan(this.mob.position(), (double)this.distanceToPoi)) {
+      if (this.mob.getNavigation().isDone() || this.poiPos.closerToCenterThan(this.mob.sectorPosition(), (double)this.distanceToPoi)) {
          this.visited.add(this.poiPos);
       }
 

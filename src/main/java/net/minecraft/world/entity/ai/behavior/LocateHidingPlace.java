@@ -32,7 +32,7 @@ public class LocateHidingPlace extends Behavior<LivingEntity> {
       }, (p_23425_) -> {
          return true;
       }, p_23413_.blockPosition(), this.closeEnoughDist + 1, PoiManager.Occupancy.ANY);
-      if (optional.isPresent() && optional.get().closerToCenterThan(p_23413_.position(), (double)this.closeEnoughDist)) {
+      if (optional.isPresent() && optional.get().closerToCenterThan(p_23413_.sectorPosition(), (double)this.closeEnoughDist)) {
          this.currentPos = optional;
       } else {
          this.currentPos = Optional.empty();
@@ -64,7 +64,7 @@ public class LocateHidingPlace extends Behavior<LivingEntity> {
          brain.eraseMemory(MemoryModuleType.BREED_TARGET);
          brain.eraseMemory(MemoryModuleType.INTERACTION_TARGET);
          brain.setMemory(MemoryModuleType.HIDING_PLACE, GlobalPos.of(p_23415_.dimension(), optional.get()));
-         if (!optional.get().closerToCenterThan(p_23416_.position(), (double)this.closeEnoughDist)) {
+         if (!optional.get().closerToCenterThan(p_23416_.sectorPosition(), (double)this.closeEnoughDist)) {
             brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(optional.get(), this.speedModifier, this.closeEnoughDist));
          }
       }

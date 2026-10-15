@@ -43,7 +43,7 @@ public class BreakDoorGoal extends DoorInteractGoal {
    }
 
    public boolean canContinueToUse() {
-      return this.breakTime <= this.getDoorBreakTime() && !this.isOpen() && this.doorPos.closerToCenterThan(this.mob.position(), 2.0D) && this.isValidDifficulty(this.mob.level.getDifficulty());
+      return this.breakTime <= this.getDoorBreakTime() && !this.isOpen() && this.doorPos.closerToCenterThan(this.mob.sectorPosition(), 2.0D) && this.isValidDifficulty(this.mob.level.getDifficulty());
    }
 
    public void stop() {

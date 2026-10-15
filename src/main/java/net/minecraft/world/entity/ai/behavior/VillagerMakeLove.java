@@ -113,7 +113,7 @@ public class VillagerMakeLove extends Behavior<Villager> {
          p_24657_.setAge(6000);
          p_24658_.setAge(6000);
          villager.setAge(-24000);
-         villager.moveTo(p_24657_.getX(), p_24657_.getY(), p_24657_.getZ(), 0.0F, 0.0F);
+         villager.moveTo(p_24657_.sectorPosition(), 0.0F, 0.0F);
          p_24656_.addFreshEntityWithPassengers(villager);
          p_24656_.broadcastEntityEvent(villager, (byte)12);
          return Optional.of(villager);

@@ -550,7 +550,7 @@ public class Raid {
          p_37715_.setCanJoinRaid(true);
          p_37715_.setTicksOutsideRaid(0);
          if (!p_37717_ && p_37716_ != null) {
-            p_37715_.setPos((double)p_37716_.getX() + 0.5D, (double)p_37716_.getY() + 1.0D, (double)p_37716_.getZ() + 0.5D);
+            p_37715_.applyExactPosition(SectorVec3.fromBlockAndFraction(p_37716_.getX(), 0.5D, (double)p_37716_.getY() + 1.0D, p_37716_.getZ(), 0.5D));
             p_37715_.finalizeSpawn(this.level, this.level.getCurrentDifficultyAt(p_37716_), MobSpawnType.EVENT, (SpawnGroupData)null, (CompoundTag)null);
             p_37715_.applyRaidBuffs(p_37714_, false);
             p_37715_.setOnGround(true);

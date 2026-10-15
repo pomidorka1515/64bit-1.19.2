@@ -88,10 +88,7 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
    public void aiStep() {
       super.aiStep();
       if (!this.level.isClientSide) {
-         int i = Mth.floor(this.getX());
-         int j = Mth.floor(this.getY());
-         int k = Mth.floor(this.getZ());
-         BlockPos blockpos = new BlockPos(i, j, k);
+         BlockPos blockpos = this.blockPosition();
          Biome biome = this.level.getBiome(blockpos).value();
          if (biome.shouldSnowGolemBurn(blockpos)) {
             this.hurt(DamageSource.ON_FIRE, 1.0F);
@@ -104,10 +101,8 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
          BlockState blockstate = Blocks.SNOW.defaultBlockState();
 
          for(int l = 0; l < 4; ++l) {
-            i = Mth.floor(this.getX() + (double)((float)(l % 2 * 2 - 1) * 0.25F));
-            j = Mth.floor(this.getY());
-            k = Mth.floor(this.getZ() + (double)((float)(l / 2 % 2 * 2 - 1) * 0.25F));
-            BlockPos blockpos1 = new BlockPos(i, j, k);
+            BlockPos blockpos1 = this.sectorPosition().add((double)((float)(l % 2 * 2 - 1) * 0.25F),
+                  0.0D, (double)((float)(l / 2 % 2 * 2 - 1) * 0.25F)).blockPosition();
             if (this.level.getBlockState(blockpos1).isAir() && blockstate.canSurvive(this.level, blockpos1)) {
                this.level.setBlockAndUpdate(blockpos1, blockstate);
                this.level.gameEvent(GameEvent.BLOCK_PLACE, blockpos1, GameEvent.Context.of(this, blockstate));

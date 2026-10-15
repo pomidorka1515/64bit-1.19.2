@@ -713,6 +713,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             (double)this.getBbWidth(), (double)this.getBbHeight());
    }
 
+   public final AABB exactUnitCubeAtPosition() {
+      return AABB.fromSectorBounds(SectorAABB.around(this.sectorPosition().add(0.5D, 0.0D, 0.5D), 1.0D, 1.0D));
+   }
+
    /** Local physics box. Values are small; the exact world position is never converted to a double here. */
    protected final AABB getLocalBoundingBox(SectorPhysicsOrigin origin) {
       return this.getSectorBoundingBox().toLocalAABB(origin);
@@ -1459,7 +1463,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
    private boolean isInRain() {
       BlockPos blockpos = this.blockPosition();
-      return this.level.isRainingAt(blockpos) || this.level.isRainingAt(new BlockPos((double)blockpos.getX(), this.getBoundingBox().maxY, (double)blockpos.getZ()));
+      return this.level.isRainingAt(blockpos) || this.level.isRainingAt(new BlockPos(blockpos.getX(), Mth.floor(this.getBoundingBox().maxY), blockpos.getZ()));
    }
 
    private boolean isInBubbleColumn() {
@@ -1633,7 +1637,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    /** @deprecated */
    @Deprecated
    public float getLightLevelDependentMagicValue() {
-      return this.level.hasChunkAt(this.getBlockX(), this.getBlockZ()) ? this.level.getLightLevelDependentMagicValue(new BlockPos(this.getX(), this.getEyeY(), this.getZ())) : 0.0F;
+      return this.level.hasChunkAt(this.getBlockX(), this.getBlockZ()) ? this.level.getLightLevelDependentMagicValue(this.sectorPosition().withY(this.getEyeY()).blockPosition()) : 0.0F;
    }
 
    public void absMoveTo(double p_19891_, double p_19892_, double p_19893_, float p_19894_, float p_19895_) {
@@ -2697,8 +2701,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    protected void moveTowardsClosestSpace(double p_20315_, double p_20316_, double p_20317_) {
-      BlockPos blockpos = new BlockPos(p_20315_, p_20316_, p_20317_);
-      Vec3 vec3 = new Vec3(p_20315_ - (double)blockpos.getX(), p_20316_ - (double)blockpos.getY(), p_20317_ - (double)blockpos.getZ());
+      this.moveTowardsClosestSpace(SectorVec3.fromApproximate(p_20315_, p_20316_, p_20317_));
+   }
+
+   protected void moveTowardsClosestSpace(SectorVec3 position) {
+      BlockPos blockpos = position.blockPosition();
+      Vec3 vec3 = new Vec3(position.subX(), position.y() - (double)blockpos.getY(), position.subZ());
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
       Direction direction = Direction.UP;
       double d0 = Double.MAX_VALUE;
@@ -2796,7 +2804,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       if (this.usesSectorPhysics() && exactPosition != null) {
          this.moveTo(exactPosition, p_20360_.getYRot(), p_20360_.getXRot());
       } else {
-         this.moveTo(p_20360_.getX(), p_20360_.getY(), p_20360_.getZ(), p_20360_.getYRot(), p_20360_.getXRot());
+         this.moveTo(p_20360_.sectorPosition(), p_20360_.getYRot(), p_20360_.getXRot());
       }
    }
 
@@ -3058,6 +3066,28 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
       this.reapplyPosition();
       boolean flag = (double)entitydimensions1.width <= 4.0D && (double)entitydimensions1.height <= 4.0D;
       if (!this.level.isClientSide && !this.firstTick && !this.noPhysics && flag && (entitydimensions1.width > entitydimensions.width || entitydimensions1.height > entitydimensions.height) && !(this instanceof Player)) {
+         if (this.usesSectorPhysics()) {
+            SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
+            SectorVec3 center = this.sectorPosition().add(0.0D, (double)entitydimensions.height / 2.0D, 0.0D);
+            Vec3 localCenter = center.toLocal(origin.originBlockX(), origin.originBlockY(), origin.originBlockZ());
+            double width = (double)Math.max(0.0F, entitydimensions1.width - entitydimensions.width) + 1.0E-6D;
+            double height = (double)Math.max(0.0F, entitydimensions1.height - entitydimensions.height) + 1.0E-6D;
+            VoxelShape candidate = Shapes.create(AABB.ofSize(localCenter, width, height, width));
+            SectorAABB search = SectorAABB.around(center.add(0.0D, -height / 2.0D, 0.0D), width, height)
+                  .inflate((double)entitydimensions1.width, (double)entitydimensions1.height, (double)entitydimensions1.width);
+            VoxelShape obstacles = Shapes.empty();
+            for (VoxelShape shape : this.level.getSectorBlockCollisions(this, search, search.toLocalAABB(origin), origin)) {
+               for (AABB box : shape.toAabbs()) {
+                  obstacles = Shapes.or(obstacles, Shapes.create(box.inflate((double)entitydimensions1.width / 2.0D,
+                        (double)entitydimensions1.height / 2.0D, (double)entitydimensions1.width / 2.0D)));
+               }
+            }
+            Shapes.join(candidate, obstacles, BooleanOp.ONLY_FIRST).closestPointTo(localCenter).ifPresent(point -> {
+               Vec3 delta = point.subtract(localCenter);
+               this.setSectorPosition(center.add(delta.x, delta.y - (double)entitydimensions1.height / 2.0D, delta.z));
+            });
+            return;
+         }
          Vec3 vec3 = this.position().add(0.0D, (double)entitydimensions.height / 2.0D, 0.0D);
          double d0 = (double)Math.max(0.0F, entitydimensions1.width - entitydimensions.width) + 1.0E-6D;
          double d1 = (double)Math.max(0.0F, entitydimensions1.height - entitydimensions.height) + 1.0E-6D;
@@ -3100,6 +3130,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
    }
 
    protected AABB getBoundingBoxForPose(Pose p_20218_) {
+      if (this.usesSectorPhysics()) return AABB.fromSectorBounds(this.getSectorBoundingBoxForPose(p_20218_));
       EntityDimensions entitydimensions = this.getDimensions(p_20218_);
       float f = entitydimensions.width / 2.0F;
       Vec3 vec3 = new Vec3(this.getX() - (double)f, this.getY(), this.getZ() - (double)f);

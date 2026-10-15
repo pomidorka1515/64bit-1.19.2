@@ -84,15 +84,23 @@ public class BehaviorUtils {
    }
 
    public static void throwItem(LivingEntity p_22614_, ItemStack p_22615_, Vec3 p_22616_) {
+      throwItem(p_22614_, p_22615_, SectorVec3.fromApproximate(p_22616_.x, p_22616_.y, p_22616_.z));
+   }
+
+   public static void throwItem(LivingEntity p_22614_, ItemStack p_22615_, SectorVec3 p_22616_) {
       Vec3 vec3 = new Vec3((double)0.3F, (double)0.3F, (double)0.3F);
       throwItem(p_22614_, p_22615_, p_22616_, vec3, 0.3F);
    }
 
    public static void throwItem(LivingEntity p_217134_, ItemStack p_217135_, Vec3 p_217136_, Vec3 p_217137_, float p_217138_) {
+      throwItem(p_217134_, p_217135_, SectorVec3.fromApproximate(p_217136_.x, p_217136_.y, p_217136_.z), p_217137_, p_217138_);
+   }
+
+   public static void throwItem(LivingEntity p_217134_, ItemStack p_217135_, SectorVec3 p_217136_, Vec3 p_217137_, float p_217138_) {
       double d0 = p_217134_.getEyeY() - (double)p_217138_;
       ItemEntity itementity = new ItemEntity(p_217134_.level, p_217134_.sectorPosition().withY(d0), p_217135_);
       itementity.setThrower(p_217134_.getUUID());
-      Vec3 vec3 = p_217136_.subtract(p_217134_.position());
+      Vec3 vec3 = p_217136_.relativeTo(p_217134_.sectorPosition());
       vec3 = vec3.normalize().multiply(p_217137_.x, p_217137_.y, p_217137_.z);
       itementity.setDeltaMovement(vec3);
       itementity.setDefaultPickUpDelay();
@@ -123,8 +131,8 @@ public class BehaviorUtils {
       if (optional.isEmpty()) {
          return false;
       } else {
-         double d0 = p_22599_.distanceToSqr(optional.get().position());
-         double d1 = p_22599_.distanceToSqr(p_22600_.position());
+         double d0 = p_22599_.distanceToSqr(optional.get());
+         double d1 = p_22599_.distanceToSqr(p_22600_);
          return d1 > d0 + p_22601_ * p_22601_;
       }
    }
@@ -139,9 +147,7 @@ public class BehaviorUtils {
    }
 
    public static LivingEntity getTargetNearestMe(LivingEntity p_22607_, LivingEntity p_22608_, LivingEntity p_22609_) {
-      Vec3 vec3 = p_22608_.position();
-      Vec3 vec31 = p_22609_.position();
-      return p_22607_.distanceToSqr(vec3) < p_22607_.distanceToSqr(vec31) ? p_22608_ : p_22609_;
+      return p_22607_.distanceToSqr(p_22608_) < p_22607_.distanceToSqr(p_22609_) ? p_22608_ : p_22609_;
    }
 
    public static Optional<LivingEntity> getLivingEntityFromUUIDMemory(LivingEntity p_22611_, MemoryModuleType<UUID> p_22612_) {

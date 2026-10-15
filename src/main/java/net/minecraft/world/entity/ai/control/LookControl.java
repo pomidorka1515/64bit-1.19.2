@@ -40,7 +40,7 @@ public class LookControl implements Control {
    }
 
    public void setLookAt(double p_24951_, double p_24952_, double p_24953_, float p_24954_, float p_24955_) {
-      this.exactWantedPosition = null;
+      this.exactWantedPosition = SectorVec3.fromApproximate(p_24951_, p_24952_, p_24953_);
       this.wantedX = p_24951_;
       this.wantedY = p_24952_;
       this.wantedZ = p_24953_;
@@ -107,26 +107,28 @@ public class LookControl implements Control {
       return this.wantedZ;
    }
 
+   public SectorVec3 getExactWantedPosition() {
+      return this.exactWantedPosition != null ? this.exactWantedPosition
+            : SectorVec3.fromApproximate(this.wantedX, this.wantedY, this.wantedZ);
+   }
+
    protected final Vec3 wantedDelta(double originY) {
-      return this.exactWantedPosition == null
-            ? new Vec3(this.wantedX - this.mob.getX(), this.wantedY - originY,
-                  this.wantedZ - this.mob.getZ())
-            : this.exactWantedPosition.relativeTo(this.mob.sectorPosition().withY(originY));
+      return this.getExactWantedPosition().relativeTo(this.mob.sectorPosition().withY(originY));
    }
 
    protected Optional<Float> getXRotD() {
       Vec3 exactDelta = this.wantedDelta(this.mob.getEyeY());
-      double d0 = exactDelta == null ? this.wantedX - this.mob.getX() : exactDelta.x;
-      double d1 = exactDelta == null ? this.wantedY - this.mob.getEyeY() : exactDelta.y;
-      double d2 = exactDelta == null ? this.wantedZ - this.mob.getZ() : exactDelta.z;
+      double d0 = exactDelta.x;
+      double d1 = exactDelta.y;
+      double d2 = exactDelta.z;
       double d3 = Math.sqrt(d0 * d0 + d2 * d2);
       return !(Math.abs(d1) > (double)1.0E-5F) && !(Math.abs(d3) > (double)1.0E-5F) ? Optional.empty() : Optional.of((float)(-(Mth.atan2(d1, d3) * (double)(180F / (float)Math.PI))));
    }
 
    protected Optional<Float> getYRotD() {
       Vec3 exactDelta = this.wantedDelta(this.mob.getY());
-      double d0 = exactDelta == null ? this.wantedX - this.mob.getX() : exactDelta.x;
-      double d1 = exactDelta == null ? this.wantedZ - this.mob.getZ() : exactDelta.z;
+      double d0 = exactDelta.x;
+      double d1 = exactDelta.z;
       return !(Math.abs(d1) > (double)1.0E-5F) && !(Math.abs(d0) > (double)1.0E-5F) ? Optional.empty() : Optional.of((float)(Mth.atan2(d1, d0) * (double)(180F / (float)Math.PI)) - 90.0F);
    }
 

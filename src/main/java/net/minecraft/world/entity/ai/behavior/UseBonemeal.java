@@ -95,7 +95,7 @@ public class UseBonemeal extends Behavior<Villager> {
 
    protected void tick(ServerLevel p_24512_, Villager p_24513_, long p_24514_) {
       BlockPos blockpos = this.cropPos.get();
-      if (p_24514_ >= this.nextWorkCycleTime && blockpos.closerToCenterThan(p_24513_.position(), 1.0D)) {
+      if (p_24514_ >= this.nextWorkCycleTime && blockpos.closerToCenterThan(p_24513_.sectorPosition(), 1.0D)) {
          ItemStack itemstack = ItemStack.EMPTY;
          SimpleContainer simplecontainer = p_24513_.getInventory();
          int i = simplecontainer.getContainerSize();

@@ -36,7 +36,7 @@ public class BreathAirGoal extends Goal {
    }
 
    private void findAirPosition() {
-      Iterable<BlockPos> iterable = BlockPos.betweenClosed(Mth.floor(this.mob.getX() - 1.0D), this.mob.getBlockY(), Mth.floor(this.mob.getZ() - 1.0D), Mth.floor(this.mob.getX() + 1.0D), Mth.floor(this.mob.getY() + 8.0D), Mth.floor(this.mob.getZ() + 1.0D));
+      Iterable<BlockPos> iterable = BlockPos.betweenClosed(this.mob.sectorPosition().add(-1.0D, 0.0D, -1.0D).blockPosition(), this.mob.sectorPosition().add(1.0D, 8.0D, 1.0D).blockPosition());
       BlockPos blockpos = null;
 
       for(BlockPos blockpos1 : iterable) {

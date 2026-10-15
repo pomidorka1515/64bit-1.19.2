@@ -121,7 +121,7 @@ public class InteractWithDoor extends Behavior<LivingEntity> {
       return !brain.hasMemoryValue(MemoryModuleType.NEAREST_LIVING_ENTITIES) ? false : brain.getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES).get().stream().filter((p_201950_) -> {
          return p_201950_.getType() == p_23305_.getType();
       }).filter((p_201955_) -> {
-         return p_23306_.closerToCenterThan(p_201955_.position(), 2.0D);
+         return p_23306_.closerToCenterThan(p_201955_.sectorPosition(), 2.0D);
       }).anyMatch((p_201947_) -> {
          return isMobComingThroughDoor(p_23304_, p_201947_, p_23306_);
       });
@@ -147,7 +147,7 @@ public class InteractWithDoor extends Behavior<LivingEntity> {
    }
 
    private static boolean isDoorTooFarAway(ServerLevel p_23308_, LivingEntity p_23309_, GlobalPos p_23310_) {
-      return p_23310_.dimension() != p_23308_.dimension() || !p_23310_.pos().closerToCenterThan(p_23309_.position(), 2.0D);
+      return p_23310_.dimension() != p_23308_.dimension() || !p_23310_.pos().closerToCenterThan(p_23309_.sectorPosition(), 2.0D);
    }
 
    private void rememberDoorToClose(ServerLevel p_23326_, LivingEntity p_23327_, BlockPos p_23328_) {

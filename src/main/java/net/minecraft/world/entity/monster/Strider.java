@@ -203,7 +203,7 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
       for(Vec3 vec3 : avec3) {
-         blockpos$mutableblockpos.set(this.getX() + vec3.x, d0, this.getZ() + vec3.z);
+         blockpos$mutableblockpos.set(this.sectorPosition().add(vec3.x, 0.0D, vec3.z).withY(d0).blockPosition());
 
          for(double d2 = d0; d2 > d1; --d2) {
             set.add(blockpos$mutableblockpos.immutable());
@@ -241,7 +241,7 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
       BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
       for(Vec3 vec3 : avec3) {
-         blockpos$mutableblockpos.set(this.getX() + vec3.x, d0, this.getZ() + vec3.z);
+         blockpos$mutableblockpos.set(this.sectorPosition().add(vec3.x, 0.0D, vec3.z).withY(d0).blockPosition());
 
          for(double d2 = d0; d2 > d1; --d2) {
             set.add(blockpos$mutableblockpos.immutable());

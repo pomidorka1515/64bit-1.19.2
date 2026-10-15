@@ -84,10 +84,8 @@ public class FishingHook extends Projectile {
       float f3 = Mth.sin(-f1 * ((float)Math.PI / 180F) - (float)Math.PI);
       float f4 = -Mth.cos(-f * ((float)Math.PI / 180F));
       float f5 = Mth.sin(-f * ((float)Math.PI / 180F));
-      double d0 = p_37106_.getX() - (double)f3 * 0.3D;
       double d1 = p_37106_.getEyeY();
-      double d2 = p_37106_.getZ() - (double)f2 * 0.3D;
-      this.moveTo(d0, d1, d2, f1, f);
+      this.moveTo(p_37106_.sectorPosition().withY(d1).add(-(double)f3 * 0.3D, 0.0D, -(double)f2 * 0.3D), f1, f);
       Vec3 vec3 = new Vec3((double)(-f3), (double)Mth.clamp(-(f5 / f4), -5.0F, 5.0F), (double)(-f2));
       double d3 = vec3.length();
       vec3 = vec3.multiply(0.6D / d3 + this.random.triangle(0.5D, 0.0103365D), 0.6D / d3 + this.random.triangle(0.5D, 0.0103365D), 0.6D / d3 + this.random.triangle(0.5D, 0.0103365D));

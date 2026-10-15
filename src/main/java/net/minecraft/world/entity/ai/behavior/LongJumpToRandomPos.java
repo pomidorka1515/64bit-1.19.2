@@ -42,7 +42,7 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
    protected final int maxLongJumpWidth;
    protected final float maxJumpVelocity;
    protected List<LongJumpToRandomPos.PossibleJump> jumpCandidates = Lists.newArrayList();
-   protected Optional<Vec3> initialPosition = Optional.empty();
+   protected Optional<net.minecraft.world.phys.SectorVec3> initialPosition = Optional.empty();
    @Nullable
    protected Vec3 chosenJump;
    protected int findJumpTries;
@@ -76,7 +76,7 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
    }
 
    protected boolean canStillUse(ServerLevel p_147653_, Mob p_147654_, long p_147655_) {
-      boolean flag = this.initialPosition.isPresent() && this.initialPosition.get().equals(p_147654_.position()) && this.findJumpTries > 0 && !p_147654_.isInWaterOrBubble() && (this.chosenJump != null || !this.jumpCandidates.isEmpty());
+      boolean flag = this.initialPosition.isPresent() && this.initialPosition.get().equals(p_147654_.sectorPosition()) && this.findJumpTries > 0 && !p_147654_.isInWaterOrBubble() && (this.chosenJump != null || !this.jumpCandidates.isEmpty());
       if (!flag && p_147654_.getBrain().getMemory(MemoryModuleType.LONG_JUMP_MID_JUMP).isEmpty()) {
          p_147654_.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, this.timeBetweenLongJumps.sample(p_147653_.random) / 2);
          p_147654_.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
@@ -88,7 +88,7 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
    protected void start(ServerLevel p_147676_, E p_147677_, long p_147678_) {
       this.chosenJump = null;
       this.findJumpTries = 20;
-      this.initialPosition = Optional.of(p_147677_.position());
+      this.initialPosition = Optional.of(p_147677_.sectorPosition());
       BlockPos blockpos = p_147677_.blockPosition();
       long i = blockpos.getX();
       int j = blockpos.getY();
@@ -132,7 +132,8 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
                continue;
             }
 
-            Vec3 vec3 = Vec3.atCenterOf(blockpos);
+            net.minecraft.world.phys.SectorVec3 vec3 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
+                  (double)blockpos.getY() + 0.5D, blockpos.getZ(), 0.5D);
             Vec3 vec31 = this.calculateOptimalJumpVector(p_217320_, vec3);
             if (vec31 == null) {
                continue;
@@ -175,6 +176,10 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
 
    @Nullable
    protected Vec3 calculateOptimalJumpVector(Mob p_217304_, Vec3 p_217305_) {
+      return this.calculateOptimalJumpVector(p_217304_, net.minecraft.world.phys.SectorVec3.fromApproximate(p_217305_.x, p_217305_.y, p_217305_.z));
+   }
+
+   protected Vec3 calculateOptimalJumpVector(Mob p_217304_, net.minecraft.world.phys.SectorVec3 p_217305_) {
       List<Integer> list = Lists.newArrayList(ALLOWED_ANGLES);
       Collections.shuffle(list);
 
@@ -189,11 +194,10 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
    }
 
    @Nullable
-   private Vec3 calculateJumpVectorForAngle(Mob p_217307_, Vec3 p_217308_, int p_217309_) {
-      Vec3 vec3 = p_217307_.position();
-      Vec3 vec31 = (new Vec3(p_217308_.x - vec3.x, 0.0D, p_217308_.z - vec3.z)).normalize().scale(0.5D);
-      p_217308_ = p_217308_.subtract(vec31);
-      Vec3 vec32 = p_217308_.subtract(vec3);
+   private Vec3 calculateJumpVectorForAngle(Mob p_217307_, net.minecraft.world.phys.SectorVec3 target, int p_217309_) {
+      Vec3 delta = target.relativeTo(p_217307_.sectorPosition());
+      Vec3 vec31 = (new Vec3(delta.x, 0.0D, delta.z)).normalize().scale(0.5D);
+      Vec3 vec32 = delta.subtract(vec31);
       float f = (float)p_217309_ * (float)Math.PI / 180.0F;
       double d0 = Math.atan2(vec32.z, vec32.x);
       double d1 = vec32.subtract(0.0D, vec32.y, 0.0D).lengthSqr();
@@ -225,7 +229,7 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
                double d16 = d7 / d8 * d15 - Math.pow(d15, 2.0D) * 0.08D / (2.0D * d11 * Math.pow(d8, 2.0D));
                double d17 = d15 * d10;
                double d18 = d15 * d9;
-               Vec3 vec34 = new Vec3(vec3.x + d17, vec3.y + d16, vec3.z + d18);
+               Vec3 vec34 = new Vec3(d17, d16, d18);
                if (vec33 != null && !this.isClearTransition(p_217307_, vec33, vec34)) {
                   return null;
                }
@@ -248,7 +252,9 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
 
       for(int j = 0; j < i; ++j) {
          vec32 = j == i - 1 ? p_147666_ : vec32.add(vec31.scale(d0 * (double)0.9F));
-         AABB aabb = entitydimensions.makeBoundingBox(vec32);
+         net.minecraft.world.phys.SectorVec3 position = p_147664_.sectorPosition().add(vec32.x, vec32.y, vec32.z);
+         AABB aabb = AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(position,
+               (double)entitydimensions.width, (double)entitydimensions.height));
          if (!p_147664_.level.noCollision(p_147664_, aabb)) {
             return false;
          }

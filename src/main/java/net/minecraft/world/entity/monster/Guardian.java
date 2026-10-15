@@ -453,19 +453,10 @@ public class Guardian extends Monster {
             double d7 = Math.sin((double)(this.guardian.tickCount + this.guardian.getId()) * 0.75D) * 0.05D;
             this.guardian.setDeltaMovement(this.guardian.getDeltaMovement().add(d4 * d5, d7 * (d6 + d5) * 0.25D + (double)f2 * d2 * 0.1D, d4 * d6));
             LookControl lookcontrol = this.guardian.getLookControl();
-            double d8 = this.guardian.getX() + d1 * 2.0D;
-            double d9 = this.guardian.getEyeY() + d2 / d0;
-            double d10 = this.guardian.getZ() + d3 * 2.0D;
-            double d11 = lookcontrol.getWantedX();
-            double d12 = lookcontrol.getWantedY();
-            double d13 = lookcontrol.getWantedZ();
-            if (!lookcontrol.isLookingAtTarget()) {
-               d11 = d8;
-               d12 = d9;
-               d13 = d10;
-            }
-
-            this.guardian.getLookControl().setLookAt(Mth.lerp(0.125D, d11, d8), Mth.lerp(0.125D, d12, d9), Mth.lerp(0.125D, d13, d10), 10.0F, 40.0F);
+            net.minecraft.world.phys.SectorVec3 target = this.guardian.sectorPosition().withY(this.guardian.getEyeY())
+                  .add(d1 * 2.0D, d2 / d0, d3 * 2.0D);
+            net.minecraft.world.phys.SectorVec3 previous = lookcontrol.isLookingAtTarget() ? lookcontrol.getExactWantedPosition() : target;
+            lookcontrol.setLookAtExact(previous.lerpTo(target, 0.125D), 10.0F, 40.0F);
             this.guardian.setMoving(true);
          } else {
             this.guardian.setSpeed(0.0F);

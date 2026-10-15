@@ -31,13 +31,13 @@ public abstract class FlyingMob extends Mob {
          } else {
             float f = 0.91F;
             if (this.onGround) {
-               f = this.level.getBlockState(new BlockPos(this.getX(), this.getY() - 1.0D, this.getZ())).getBlock().getFriction() * 0.91F;
+               f = this.level.getBlockState(this.sectorPosition().add(0.0D, -1.0D, 0.0D).blockPosition()).getBlock().getFriction() * 0.91F;
             }
 
             float f1 = 0.16277137F / (f * f * f);
             f = 0.91F;
             if (this.onGround) {
-               f = this.level.getBlockState(new BlockPos(this.getX(), this.getY() - 1.0D, this.getZ())).getBlock().getFriction() * 0.91F;
+               f = this.level.getBlockState(this.sectorPosition().add(0.0D, -1.0D, 0.0D).blockPosition()).getBlock().getFriction() * 0.91F;
             }
 
             this.moveRelative(this.onGround ? 0.1F * f1 : 0.02F, p_20818_);

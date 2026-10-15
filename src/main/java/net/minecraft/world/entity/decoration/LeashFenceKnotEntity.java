@@ -36,7 +36,7 @@ public class LeashFenceKnotEntity extends HangingEntity {
 
    public LeashFenceKnotEntity(Level p_31831_, BlockPos p_31832_) {
       super(EntityType.LEASH_KNOT, p_31831_, p_31832_);
-      this.setPos((double)p_31832_.getX(), (double)p_31832_.getY(), (double)p_31832_.getZ());
+      this.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_31832_.getX(), 0.0D, (double)p_31832_.getY(), p_31832_.getZ(), 0.0D));
    }
 
    protected void recalculateBoundingBox() {
@@ -44,7 +44,7 @@ public class LeashFenceKnotEntity extends HangingEntity {
             this.pos.getX(), 0.5D, (double)this.pos.getY() + 0.375D, this.pos.getZ(), 0.5D));
       double d0 = (double)this.getType().getWidth() / 2.0D;
       double d1 = (double)this.getType().getHeight();
-      this.setBoundingBox(new AABB(this.getX() - d0, this.getY(), this.getZ() - d0, this.getX() + d0, this.getY() + d1, this.getZ() + d0));
+      this.setBoundingBox(AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(this.sectorPosition(), d0 * 2.0D, d1)));
    }
 
    public void setDirection(Direction p_31848_) {

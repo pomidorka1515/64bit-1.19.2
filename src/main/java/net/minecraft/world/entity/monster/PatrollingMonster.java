@@ -163,17 +163,18 @@ public abstract class PatrollingMonster extends Monster {
             List<PatrollingMonster> list = this.findPatrolCompanions();
             if (this.mob.isPatrolling() && list.isEmpty()) {
                this.mob.setPatrolling(false);
-            } else if (flag && this.mob.getPatrolTarget().closerToCenterThan(this.mob.position(), 10.0D)) {
+            } else if (flag && this.mob.getPatrolTarget().closerToCenterThan(this.mob.sectorPosition(), 10.0D)) {
                this.mob.findPatrolTarget();
             } else {
-               Vec3 vec3 = Vec3.atBottomCenterOf(this.mob.getPatrolTarget());
-               Vec3 vec31 = this.mob.position();
-               Vec3 vec32 = vec31.subtract(vec3);
+               BlockPos target = this.mob.getPatrolTarget();
+               Vec3 vec3 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(target.getX(), 0.5D,
+                     (double)target.getY(), target.getZ(), 0.5D).relativeTo(this.mob.sectorPosition());
+               Vec3 vec32 = vec3.scale(-1.0D);
                vec3 = vec32.yRot(90.0F).scale(0.4D).add(vec3);
-               Vec3 vec33 = vec3.subtract(vec31).normalize().scale(10.0D).add(vec31);
-               BlockPos blockpos = new BlockPos(vec33);
+               Vec3 vec33 = vec3.normalize().scale(10.0D);
+               BlockPos blockpos = this.mob.sectorPosition().add(vec33.x, vec33.y, vec33.z).blockPosition();
                blockpos = this.mob.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, blockpos);
-               if (!pathnavigation.moveTo((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), flag ? this.leaderSpeedModifier : this.speedModifier)) {
+               if (!pathnavigation.moveTo(blockpos, flag ? this.leaderSpeedModifier : this.speedModifier)) {
                   this.moveRandomly();
                   this.cooldownUntil = this.mob.level.getGameTime() + 200L;
                } else if (flag) {
@@ -195,7 +196,7 @@ public abstract class PatrollingMonster extends Monster {
       private boolean moveRandomly() {
          RandomSource randomsource = this.mob.getRandom();
          BlockPos blockpos = this.mob.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, this.mob.blockPosition().offset(-8 + randomsource.nextInt(16), 0, -8 + randomsource.nextInt(16)));
-         return this.mob.getNavigation().moveTo((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), this.speedModifier);
+         return this.mob.getNavigation().moveTo(blockpos, this.speedModifier);
       }
    }
 }

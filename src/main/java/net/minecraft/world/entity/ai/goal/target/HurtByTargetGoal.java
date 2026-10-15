@@ -70,7 +70,7 @@ public class HurtByTargetGoal extends TargetGoal {
 
    protected void alertOthers() {
       double d0 = this.getFollowDistance();
-      AABB aabb = AABB.unitCubeFromLowerCorner(this.mob.position()).inflate(d0, 10.0D, d0);
+      AABB aabb = this.mob.exactUnitCubeAtPosition().inflate(d0, 10.0D, d0);
       List<? extends Mob> list = this.mob.level.getEntitiesOfClass(this.mob.getClass(), aabb, EntitySelector.NO_SPECTATORS);
       Iterator iterator = list.iterator();
 

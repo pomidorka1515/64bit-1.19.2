@@ -311,10 +311,10 @@ public class PiglinAi {
    }
 
    private static void throwItemsTowardPlayer(Piglin p_34851_, Player p_34852_, List<ItemStack> p_34853_) {
-      throwItemsTowardPos(p_34851_, p_34853_, p_34852_.position());
+      throwItemsTowardPos(p_34851_, p_34853_, p_34852_.sectorPosition());
    }
 
-   private static void throwItemsTowardPos(Piglin p_34864_, List<ItemStack> p_34865_, Vec3 p_34866_) {
+   private static void throwItemsTowardPos(Piglin p_34864_, List<ItemStack> p_34865_, net.minecraft.world.phys.SectorVec3 p_34866_) {
       if (!p_34865_.isEmpty()) {
          p_34864_.swing(InteractionHand.OFF_HAND);
 
@@ -690,9 +690,9 @@ public class PiglinAi {
       p_35015_.getBrain().setMemoryWithExpiry(MemoryModuleType.ATE_RECENTLY, true, 200L);
    }
 
-   private static Vec3 getRandomNearbyPos(Piglin p_35017_) {
-      Vec3 vec3 = LandRandomPos.getPos(p_35017_, 4, 2);
-      return vec3 == null ? p_35017_.position() : vec3;
+   private static net.minecraft.world.phys.SectorVec3 getRandomNearbyPos(Piglin p_35017_) {
+      net.minecraft.world.phys.SectorVec3 vec3 = LandRandomPos.getSectorPos(p_35017_, 4, 2);
+      return vec3 == null ? p_35017_.sectorPosition() : vec3;
    }
 
    private static boolean hasEatenRecently(Piglin p_35019_) {

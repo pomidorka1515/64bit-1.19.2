@@ -191,9 +191,9 @@ public class Witch extends Raider implements RangedAttackMob {
    public void performRangedAttack(LivingEntity p_34143_, float p_34144_) {
       if (!this.isDrinkingPotion()) {
          Vec3 vec3 = p_34143_.getDeltaMovement();
-         double d0 = p_34143_.getX() + vec3.x - this.getX();
+         double d0 = p_34143_.sectorPosition().relativeX(this.sectorPosition()) + vec3.x;
          double d1 = p_34143_.getEyeY() - (double)1.1F - this.getY();
-         double d2 = p_34143_.getZ() + vec3.z - this.getZ();
+         double d2 = p_34143_.sectorPosition().relativeZ(this.sectorPosition()) + vec3.z;
          double d3 = Math.sqrt(d0 * d0 + d2 * d2);
          Potion potion = Potions.HARMING;
          if (p_34143_ instanceof Raider) {

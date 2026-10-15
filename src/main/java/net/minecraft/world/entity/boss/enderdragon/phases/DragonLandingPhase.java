@@ -10,7 +10,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class DragonLandingPhase extends AbstractDragonPhaseInstance {
    @Nullable
-   private Vec3 targetLocation;
+   private net.minecraft.world.phys.SectorVec3 targetLocation;
 
    public DragonLandingPhase(EnderDragon p_31305_) {
       super(p_31305_);
@@ -19,7 +19,7 @@ public class DragonLandingPhase extends AbstractDragonPhaseInstance {
    public void doClientTick() {
       Vec3 vec3 = this.dragon.getHeadLookVector(1.0F).normalize();
       vec3.yRot((-(float)Math.PI / 4F));
-      Vec3 headRelative = this.dragon.head.position().subtract(this.dragon.position());
+      Vec3 headRelative = this.dragon.head.sectorPosition().relativeTo(this.dragon.sectorPosition());
 
       for(int i = 0; i < 8; ++i) {
          RandomSource randomsource = this.dragon.getRandom();
@@ -37,10 +37,11 @@ public class DragonLandingPhase extends AbstractDragonPhaseInstance {
 
    public void doServerTick() {
       if (this.targetLocation == null) {
-         this.targetLocation = Vec3.atBottomCenterOf(this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EndPodiumFeature.END_PODIUM_LOCATION));
+         net.minecraft.core.BlockPos target = this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EndPodiumFeature.END_PODIUM_LOCATION);
+         this.targetLocation = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(target.getX(), 0.5D, (double)target.getY(), target.getZ(), 0.5D);
       }
 
-      if (this.targetLocation.distanceToSqr(this.dragon.getX(), this.dragon.getY(), this.dragon.getZ()) < 1.0D) {
+      if (this.targetLocation.relativeTo(this.dragon.sectorPosition()).lengthSqr() < 1.0D) {
          this.dragon.getPhaseManager().getPhase(EnderDragonPhase.SITTING_FLAMING).resetFlameCount();
          this.dragon.getPhaseManager().setPhase(EnderDragonPhase.SITTING_SCANNING);
       }
@@ -63,6 +64,10 @@ public class DragonLandingPhase extends AbstractDragonPhaseInstance {
 
    @Nullable
    public Vec3 getFlyTargetLocation() {
+      return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+   }
+
+   public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
       return this.targetLocation;
    }
 

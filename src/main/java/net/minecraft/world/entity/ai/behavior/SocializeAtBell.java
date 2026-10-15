@@ -21,7 +21,7 @@ public class SocializeAtBell extends Behavior<LivingEntity> {
    protected boolean checkExtraStartConditions(ServerLevel p_24170_, LivingEntity p_24171_) {
       Brain<?> brain = p_24171_.getBrain();
       Optional<GlobalPos> optional = brain.getMemory(MemoryModuleType.MEETING_POINT);
-      return p_24170_.getRandom().nextInt(100) == 0 && optional.isPresent() && p_24170_.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(p_24171_.position(), 4.0D) && brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get().contains((p_24189_) -> {
+      return p_24170_.getRandom().nextInt(100) == 0 && optional.isPresent() && p_24170_.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(p_24171_.sectorPosition(), 4.0D) && brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get().contains((p_24189_) -> {
          return EntityType.VILLAGER.equals(p_24189_.getType());
       });
    }

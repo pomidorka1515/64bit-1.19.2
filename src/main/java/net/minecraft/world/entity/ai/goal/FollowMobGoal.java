@@ -81,7 +81,7 @@ public class FollowMobGoal extends Goal {
             } else {
                this.navigation.stop();
                LookControl lookcontrol = this.followingMob.getLookControl();
-               if (d3 <= (double)this.stopDistance || lookcontrol.getWantedX() == this.mob.getX() && lookcontrol.getWantedY() == this.mob.getY() && lookcontrol.getWantedZ() == this.mob.getZ()) {
+               if (d3 <= (double)this.stopDistance || lookcontrol.getExactWantedPosition().equals(this.mob.sectorPosition())) {
                   net.minecraft.world.phys.Vec3 towardLeader = this.followingMob.sectorPosition().relativeTo(
                         this.mob.sectorPosition());
                   this.navigation.moveTo(this.mob.sectorPosition().add(-towardLeader.x, 0.0D,

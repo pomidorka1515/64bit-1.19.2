@@ -218,11 +218,12 @@ public class EnderDragon extends Mob implements Enemy {
                   dragonphaseinstance.doServerTick();
                }
 
-               Vec3 vec31 = dragonphaseinstance.getFlyTargetLocation();
+               net.minecraft.world.phys.SectorVec3 vec31 = dragonphaseinstance.getExactFlyTargetLocation();
                if (vec31 != null) {
-                  double d7 = vec31.x - this.getX();
-                  double d8 = vec31.y - this.getY();
-                  double d9 = vec31.z - this.getZ();
+                  Vec3 targetDelta = vec31.relativeTo(this.sectorPosition());
+                  double d7 = targetDelta.x;
+                  double d8 = targetDelta.y;
+                  double d9 = targetDelta.z;
                   double d3 = d7 * d7 + d8 * d8 + d9 * d9;
                   float f5 = dragonphaseinstance.getFlySpeed();
                   double d4 = Math.sqrt(d7 * d7 + d9 * d9);
@@ -232,7 +233,7 @@ public class EnderDragon extends Mob implements Enemy {
 
                   this.setDeltaMovement(this.getDeltaMovement().add(0.0D, d8 * 0.01D, 0.0D));
                   this.setYRot(Mth.wrapDegrees(this.getYRot()));
-                  Vec3 vec32 = vec31.subtract(this.getX(), this.getY(), this.getZ()).normalize();
+                  Vec3 vec32 = targetDelta.normalize();
                   Vec3 vec33 = (new Vec3((double)Mth.sin(this.getYRot() * ((float)Math.PI / 180F)), this.getDeltaMovement().y, (double)(-Mth.cos(this.getYRot() * ((float)Math.PI / 180F))))).normalize();
                   float f6 = Math.max(((float)vec33.dot(vec32) + 0.5F) / 1.5F, 0.0F);
                   if (Math.abs(d7) > (double)1.0E-5F || Math.abs(d9) > (double)1.0E-5F) {
@@ -372,13 +373,11 @@ public class EnderDragon extends Mob implements Enemy {
    }
 
    private void knockBack(List<Entity> p_31132_) {
-      double d0 = (this.body.getBoundingBox().minX + this.body.getBoundingBox().maxX) / 2.0D;
-      double d1 = (this.body.getBoundingBox().minZ + this.body.getBoundingBox().maxZ) / 2.0D;
 
       for(Entity entity : p_31132_) {
          if (entity instanceof LivingEntity) {
-            double d2 = entity.getX() - d0;
-            double d3 = entity.getZ() - d1;
+            double d2 = entity.sectorPosition().relativeX(this.body.sectorPosition());
+            double d3 = entity.sectorPosition().relativeZ(this.body.sectorPosition());
             double d4 = Math.max(d2 * d2 + d3 * d3, 0.1D);
             entity.push(d2 / d4 * 4.0D, (double)0.2F, d3 / d4 * 4.0D);
             if (!this.phaseManager.getCurrentPhase().isSitting() && ((LivingEntity)entity).getLastHurtByMobTimestamp() < entity.tickCount - 2) {
@@ -405,6 +404,25 @@ public class EnderDragon extends Mob implements Enemy {
    }
 
    private boolean checkWalls(AABB p_31140_) {
+      net.minecraft.world.phys.SectorAABB exact = p_31140_.getSectorBounds();
+      if (exact != null) {
+         boolean blocked = false;
+         BlockPos removed = null;
+         BlockPos min = new BlockPos(exact.minBlockXForRange(), exact.minBlockYForRange(), exact.minBlockZForRange());
+         BlockPos max = new BlockPos(exact.maxBlockXForRangeInclusive(), Mth.floor(p_31140_.maxY), exact.maxBlockZForRangeInclusive());
+         for (BlockPos position : BlockPos.betweenClosed(min, max)) {
+            BlockState state = this.level.getBlockState(position);
+            if (!state.isAir() && !state.is(BlockTags.DRAGON_TRANSPARENT)) {
+               if (this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) && !state.is(BlockTags.DRAGON_IMMUNE)) {
+                  if (this.level.removeBlock(position, false)) removed = position.immutable();
+               } else {
+                  blocked = true;
+               }
+            }
+         }
+         if (removed != null) this.level.levelEvent(2008, removed, 0);
+         return blocked;
+      }
       int i = Mth.floor(p_31140_.minX);
       int j = Mth.floor(p_31140_.minY);
       int k = Mth.floor(p_31140_.minZ);
@@ -588,13 +606,17 @@ public class EnderDragon extends Mob implements Enemy {
          this.nodeAdjacency[23] = 8257536;
       }
 
-      return this.findClosestNode(this.getX(), this.getY(), this.getZ());
+      return this.findClosestNode(this.sectorPosition());
    }
 
    public int findClosestNode(double p_31171_, double p_31172_, double p_31173_) {
+      return this.findClosestNode(net.minecraft.world.phys.SectorVec3.fromApproximate(p_31171_, p_31172_, p_31173_));
+   }
+
+   public int findClosestNode(net.minecraft.world.phys.SectorVec3 position) {
       float f = 10000.0F;
       int i = 0;
-      Node node = new Node(Mth.floor(p_31171_), Mth.floor(p_31172_), Mth.floor(p_31173_));
+      Node node = new Node(position.blockX(), position.blockPosition().getY(), position.blockZ());
       int j = 0;
       if (this.dragonFight == null || this.dragonFight.getCrystalsAlive() == 0) {
          j = 12;

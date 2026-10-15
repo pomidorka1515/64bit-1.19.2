@@ -100,7 +100,7 @@ public class GiveGiftToHero extends Behavior<Villager> {
 
    private void throwGift(Villager p_23012_, LivingEntity p_23013_) {
       for(ItemStack itemstack : this.getItemToThrow(p_23012_)) {
-         BehaviorUtils.throwItem(p_23012_, itemstack, p_23013_.position());
+         BehaviorUtils.throwItem(p_23012_, itemstack, p_23013_.sectorPosition());
       }
 
    }

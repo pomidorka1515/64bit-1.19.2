@@ -790,7 +790,7 @@ public class Fox extends Animal {
       private final TargetingConditions alertableTargeting = TargetingConditions.forCombat().range(12.0D).ignoreLineOfSight().selector(Fox.this.new FoxAlertableEntitiesSelector());
 
       protected boolean hasShelter() {
-         BlockPos blockpos = new BlockPos(Fox.this.getX(), Fox.this.getBoundingBox().maxY, Fox.this.getZ());
+         BlockPos blockpos = Fox.this.sectorPosition().withY(Fox.this.getBoundingBox().maxY).blockPosition();
          return !Fox.this.level.canSeeSky(blockpos) && Fox.this.getWalkTargetValue(blockpos) >= 0.0F;
       }
 
@@ -837,7 +837,7 @@ public class Fox extends Animal {
             this.animal.resetLove();
             this.partner.resetLove();
             fox.setAge(-24000);
-            fox.moveTo(this.animal.getX(), this.animal.getY(), this.animal.getZ(), 0.0F, 0.0F);
+            fox.moveTo(this.animal.sectorPosition(), 0.0F, 0.0F);
             serverlevel.addFreshEntityWithPassengers(fox);
             this.level.broadcastEntityEvent(this.animal, (byte)18);
             if (this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
@@ -1099,7 +1099,7 @@ public class Fox extends Animal {
          LivingEntity livingentity = Fox.this.getTarget();
          if (livingentity != null) {
             Fox.this.getLookControl().setLookAt(livingentity, 60.0F, 30.0F);
-            Vec3 vec3 = (new Vec3(livingentity.getX() - Fox.this.getX(), livingentity.getY() - Fox.this.getY(), livingentity.getZ() - Fox.this.getZ())).normalize();
+            Vec3 vec3 = livingentity.sectorPosition().relativeTo(Fox.this.sectorPosition()).normalize();
             Fox.this.setDeltaMovement(Fox.this.getDeltaMovement().add(vec3.x * 0.8D, 0.9D, vec3.z * 0.8D));
          }
 
@@ -1241,7 +1241,7 @@ public class Fox extends Animal {
             this.resetLook();
          }
 
-         Fox.this.getLookControl().setLookAt(Fox.this.getX() + this.relX, Fox.this.getEyeY(), Fox.this.getZ() + this.relZ, (float)Fox.this.getMaxHeadYRot(), (float)Fox.this.getMaxHeadXRot());
+         Fox.this.getLookControl().setLookAtExact(Fox.this.sectorPosition().withY(Fox.this.getEyeY()).add(this.relX, 0.0D, this.relZ), (float)Fox.this.getMaxHeadYRot(), (float)Fox.this.getMaxHeadXRot());
       }
 
       private void resetLook() {
@@ -1323,7 +1323,7 @@ public class Fox extends Animal {
          Fox.this.setJumping(false);
          Fox.this.setSleeping(true);
          Fox.this.getNavigation().stop();
-         Fox.this.getMoveControl().setWantedPosition(Fox.this.getX(), Fox.this.getY(), Fox.this.getZ(), 0.0D);
+         Fox.this.getMoveControl().setWantedPosition(Fox.this.sectorPosition(), 0.0D);
       }
    }
 

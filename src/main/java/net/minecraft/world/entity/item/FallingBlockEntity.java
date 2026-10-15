@@ -123,7 +123,7 @@ public class FallingBlockEntity extends Entity {
             boolean flag1 = flag && this.level.getFluidState(blockpos).is(FluidTags.WATER);
             double d0 = this.getDeltaMovement().lengthSqr();
             if (flag && d0 > 1.0D) {
-               BlockHitResult blockhitresult = this.level.clip(new ClipContext(new Vec3(this.xo, this.yo, this.zo), this.position(), ClipContext.Block.COLLIDER, ClipContext.Fluid.SOURCE_ONLY, this));
+               BlockHitResult blockhitresult = net.minecraft.world.level.SectorClipper.clip(this.level, this.oldExactPosition(), this.sectorPosition(), this, ClipContext.Block.COLLIDER, ClipContext.Fluid.SOURCE_ONLY);
                if (blockhitresult.getType() != HitResult.Type.MISS && this.level.getFluidState(blockhitresult.getBlockPos()).is(FluidTags.WATER)) {
                   blockpos = blockhitresult.getBlockPos();
                   flag1 = true;

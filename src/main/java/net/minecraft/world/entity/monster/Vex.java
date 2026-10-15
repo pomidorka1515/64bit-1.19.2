@@ -222,8 +222,7 @@ public class Vex extends Monster {
       public void start() {
          LivingEntity livingentity = Vex.this.getTarget();
          if (livingentity != null) {
-            Vec3 vec3 = livingentity.getEyePosition();
-            Vex.this.moveControl.setWantedPosition(vec3.x, vec3.y, vec3.z, 1.0D);
+            Vex.this.moveControl.setWantedPosition(livingentity.exactEyePosition(), 1.0D);
          }
 
          Vex.this.setIsCharging(true);
@@ -247,8 +246,7 @@ public class Vex extends Monster {
             } else {
                double d0 = Vex.this.distanceToSqr(livingentity);
                if (d0 < 9.0D) {
-                  Vec3 vec3 = livingentity.getEyePosition();
-                  Vex.this.moveControl.setWantedPosition(vec3.x, vec3.y, vec3.z, 1.0D);
+                  Vex.this.moveControl.setWantedPosition(livingentity.exactEyePosition(), 1.0D);
                }
             }
 
@@ -326,9 +324,11 @@ public class Vex extends Monster {
          for(int i = 0; i < 3; ++i) {
             BlockPos blockpos1 = blockpos.offset(Vex.this.random.nextInt(15) - 7, Vex.this.random.nextInt(11) - 5, Vex.this.random.nextInt(15) - 7);
             if (Vex.this.level.isEmptyBlock(blockpos1)) {
-               Vex.this.moveControl.setWantedPosition((double)blockpos1.getX() + 0.5D, (double)blockpos1.getY() + 0.5D, (double)blockpos1.getZ() + 0.5D, 0.25D);
+               net.minecraft.world.phys.SectorVec3 target = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D,
+                     (double)blockpos1.getY() + 0.5D, blockpos1.getZ(), 0.5D);
+               Vex.this.moveControl.setWantedPosition(target, 0.25D);
                if (Vex.this.getTarget() == null) {
-                  Vex.this.getLookControl().setLookAt((double)blockpos1.getX() + 0.5D, (double)blockpos1.getY() + 0.5D, (double)blockpos1.getZ() + 0.5D, 180.0F, 20.0F);
+                  Vex.this.getLookControl().setLookAtExact(target, 180.0F, 20.0F);
                }
                break;
             }

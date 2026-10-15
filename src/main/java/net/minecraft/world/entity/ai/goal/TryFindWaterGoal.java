@@ -19,7 +19,7 @@ public class TryFindWaterGoal extends Goal {
    public void start() {
       BlockPos blockpos = null;
 
-      for(BlockPos blockpos1 : BlockPos.betweenClosed(Mth.floor(this.mob.getX() - 2.0D), Mth.floor(this.mob.getY() - 2.0D), Mth.floor(this.mob.getZ() - 2.0D), Mth.floor(this.mob.getX() + 2.0D), this.mob.getBlockY(), Mth.floor(this.mob.getZ() + 2.0D))) {
+      for(BlockPos blockpos1 : BlockPos.betweenClosed(this.mob.sectorPosition().add(-2.0D, -2.0D, -2.0D).blockPosition(), this.mob.sectorPosition().add(2.0D, 0.0D, 2.0D).blockPosition())) {
          if (this.mob.level.getFluidState(blockpos1).is(FluidTags.WATER)) {
             blockpos = blockpos1;
             break;
@@ -27,7 +27,7 @@ public class TryFindWaterGoal extends Goal {
       }
 
       if (blockpos != null) {
-         this.mob.getMoveControl().setWantedPosition((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), 1.0D);
+         this.mob.getMoveControl().setWantedPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, (double)blockpos.getY(), blockpos.getZ(), 0.0D), 1.0D);
       }
 
    }

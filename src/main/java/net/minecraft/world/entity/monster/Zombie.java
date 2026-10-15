@@ -274,20 +274,20 @@ public class Zombie extends Monster {
          }
 
          if (livingentity != null && this.level.getDifficulty() == Difficulty.HARD && (double)this.random.nextFloat() < this.getAttributeValue(Attributes.SPAWN_REINFORCEMENTS_CHANCE) && this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
-            int i = Mth.floor(this.getX());
+            long i = this.getBlockX();
             int j = Mth.floor(this.getY());
-            int k = Mth.floor(this.getZ());
+            long k = this.getBlockZ();
             Zombie zombie = new Zombie(this.level);
 
             for(int l = 0; l < 50; ++l) {
-               int i1 = i + Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1);
+               long i1 = net.minecraft.world.level.WorldBounds.addBlockOffset(i, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
                int j1 = j + Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1);
-               int k1 = k + Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1);
+               long k1 = net.minecraft.world.level.WorldBounds.addBlockOffset(k, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
                BlockPos blockpos = new BlockPos(i1, j1, k1);
                EntityType<?> entitytype = zombie.getType();
                SpawnPlacements.Type spawnplacements$type = SpawnPlacements.getPlacementType(entitytype);
                if (NaturalSpawner.isSpawnPositionOk(spawnplacements$type, this.level, blockpos, entitytype) && SpawnPlacements.checkSpawnRules(entitytype, serverlevel, MobSpawnType.REINFORCEMENT, blockpos, this.level.random)) {
-                  zombie.setPos((double)i1, (double)j1, (double)k1);
+                  zombie.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(i1, 0.0D, (double)j1, k1, 0.0D));
                   if (!this.level.hasNearbyAlivePlayer((double)i1, (double)j1, (double)k1, 7.0D) && this.level.isUnobstructed(zombie) && this.level.noCollision(zombie) && !this.level.containsAnyLiquid(zombie.getBoundingBox())) {
                      zombie.setTarget(livingentity);
                      zombie.finalizeSpawn(serverlevel, this.level.getCurrentDifficultyAt(zombie.blockPosition()), MobSpawnType.REINFORCEMENT, (SpawnGroupData)null, (CompoundTag)null);

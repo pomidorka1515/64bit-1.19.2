@@ -723,10 +723,11 @@ public class Boat extends Entity {
       SectorVec3 base = this.sectorPosition();
       Vec3 escape = getCollisionHorizontalEscapeVector((double)(this.getBbWidth() * Mth.SQRT_OF_TWO), (double)passenger.getBbWidth(), passenger.getYRot());
       double maxY = this.getBoundingBox().maxY;
-      long blockX = WorldBounds.addBlockOffset(base.blockX(), (long)Math.floor(escape.x));
-      long blockZ = WorldBounds.addBlockOffset(base.blockZ(), (long)Math.floor(escape.z));
-      double subX = base.subX() + escape.x - Math.floor(escape.x);
-      double subZ = base.subZ() + escape.z - Math.floor(escape.z);
+      SectorVec3 escaped = base.add(escape.x, 0.0D, escape.z);
+      long blockX = escaped.blockX();
+      long blockZ = escaped.blockZ();
+      double subX = escaped.subX();
+      double subZ = escaped.subZ();
       BlockPos blockpos = new BlockPos(blockX, Mth.floor(maxY), blockZ);
       BlockPos blockpos1 = blockpos.below();
       if (!this.level.isWaterAt(blockpos1)) {

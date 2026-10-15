@@ -58,9 +58,9 @@ public abstract class HangingEntity extends Entity {
 
    protected void recalculateBoundingBox() {
       if (this.direction != null) {
-         double d0 = (double)this.pos.getX() + 0.5D;
+         double d0 = 0.5D;
          double d1 = (double)this.pos.getY() + 0.5D;
-         double d2 = (double)this.pos.getZ() + 0.5D;
+         double d2 = 0.5D;
          double d3 = 0.46875D;
          double d4 = this.offs(this.getWidth());
          double d5 = this.offs(this.getHeight());
@@ -70,7 +70,7 @@ public abstract class HangingEntity extends Entity {
          Direction direction = this.direction.getCounterClockWise();
          d0 += d4 * (double)direction.getStepX();
          d2 += d4 * (double)direction.getStepZ();
-         this.setPosRaw(d0, d1, d2);
+         this.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.pos.getX(), d0, d1, this.pos.getZ(), d2));
          double d6 = (double)this.getWidth();
          double d7 = (double)this.getHeight();
          double d8 = (double)this.getWidth();
@@ -83,7 +83,9 @@ public abstract class HangingEntity extends Entity {
          d6 /= 32.0D;
          d7 /= 32.0D;
          d8 /= 32.0D;
-         this.setBoundingBox(new AABB(d0 - d6, d1 - d7, d2 - d8, d0 + d6, d1 + d7, d2 + d8));
+         net.minecraft.world.phys.SectorVec3 center = this.sectorPosition();
+         this.setBoundingBox(AABB.fromSectorBounds(new net.minecraft.world.phys.SectorAABB(center.blockX(), center.subX(), d1,
+               center.blockZ(), center.subZ(), center.blockX(), center.subX(), d1, center.blockZ(), center.subZ()).inflate(d6, d7, d8)));
       }
    }
 

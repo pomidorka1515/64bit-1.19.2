@@ -101,11 +101,12 @@ public class PrepareRamNearestTarget<E extends PathfinderMob> extends Behavior<E
       }
    }
 
-   private Vec3 getEdgeOfBlock(BlockPos p_147755_, BlockPos p_147756_) {
+   private net.minecraft.world.phys.SectorVec3 getEdgeOfBlock(BlockPos p_147755_, BlockPos p_147756_) {
       double d0 = 0.5D;
-      double d1 = 0.5D * (double)Mth.sign((double)(p_147756_.getX() - p_147755_.getX()));
-      double d2 = 0.5D * (double)Mth.sign((double)(p_147756_.getZ() - p_147755_.getZ()));
-      return Vec3.atBottomCenterOf(p_147756_).add(d1, 0.0D, d2);
+      double d1 = 0.5D * Long.compare(p_147756_.getX(), p_147755_.getX());
+      double d2 = 0.5D * Long.compare(p_147756_.getZ(), p_147755_.getZ());
+      return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_147756_.getX(), 0.5D + d1,
+            (double)p_147756_.getY(), p_147756_.getZ(), 0.5D + d2);
    }
 
    private Optional<BlockPos> calculateRammingStartPosition(PathfinderMob p_147743_, LivingEntity p_147744_) {

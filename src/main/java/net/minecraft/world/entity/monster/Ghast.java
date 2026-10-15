@@ -300,10 +300,10 @@ public class Ghast extends FlyingMob implements Enemy {
 
       public void start() {
          RandomSource randomsource = this.ghast.getRandom();
-         double d0 = this.ghast.getX() + (double)((randomsource.nextFloat() * 2.0F - 1.0F) * 16.0F);
-         double d1 = this.ghast.getY() + (double)((randomsource.nextFloat() * 2.0F - 1.0F) * 16.0F);
-         double d2 = this.ghast.getZ() + (double)((randomsource.nextFloat() * 2.0F - 1.0F) * 16.0F);
-         this.ghast.getMoveControl().setWantedPosition(d0, d1, d2, 1.0D);
+         double d0 = (double)((randomsource.nextFloat() * 2.0F - 1.0F) * 16.0F);
+         double d1 = (double)((randomsource.nextFloat() * 2.0F - 1.0F) * 16.0F);
+         double d2 = (double)((randomsource.nextFloat() * 2.0F - 1.0F) * 16.0F);
+         this.ghast.getMoveControl().setWantedPosition(this.ghast.sectorPosition().add(d0, d1, d2), 1.0D);
       }
    }
 }

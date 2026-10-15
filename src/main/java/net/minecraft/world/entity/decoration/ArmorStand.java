@@ -96,11 +96,10 @@ public class ArmorStand extends LivingEntity {
    }
 
    public void refreshDimensions() {
-      double d0 = this.getX();
-      double d1 = this.getY();
-      double d2 = this.getZ();
+      net.minecraft.world.phys.SectorVec3 position = this.sectorPosition();
       super.refreshDimensions();
-      this.setPos(d0, d1, d2);
+      this.setSectorPosition(position);
+      this.reapplyPosition();
    }
 
    private boolean hasPhysics() {
@@ -752,7 +751,8 @@ public class ArmorStand extends LivingEntity {
 
    public Vec3 getLightProbePosition(float p_31665_) {
       if (this.isMarker()) {
-         AABB aabb = this.getDimensionsMarker(false).makeBoundingBox(this.position());
+         EntityDimensions dimensions = this.getDimensionsMarker(false);
+         AABB aabb = AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(this.sectorPosition(), dimensions.width, dimensions.height));
          BlockPos blockpos = this.blockPosition();
          int i = Integer.MIN_VALUE;
 

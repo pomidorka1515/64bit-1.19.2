@@ -519,7 +519,7 @@ public class Cat extends TamableAnimal {
       public void start() {
          if (this.goalPos != null) {
             this.cat.setInSittingPose(false);
-            this.cat.getNavigation().moveTo((double)this.goalPos.getX(), (double)this.goalPos.getY(), (double)this.goalPos.getZ(), (double)1.1F);
+            this.cat.getNavigation().moveTo(this.goalPos, (double)1.1F);
          }
 
       }
@@ -540,7 +540,9 @@ public class Cat extends TamableAnimal {
          RandomSource randomsource = this.cat.getRandom();
          BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
          blockpos$mutableblockpos.set(this.cat.blockPosition());
-         this.cat.randomTeleport((double)(blockpos$mutableblockpos.getX() + randomsource.nextInt(11) - 5), (double)(blockpos$mutableblockpos.getY() + randomsource.nextInt(5) - 2), (double)(blockpos$mutableblockpos.getZ() + randomsource.nextInt(11) - 5), false);
+         this.cat.randomTeleport(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos$mutableblockpos.getX(),
+               (double)(randomsource.nextInt(11) - 5), (double)(blockpos$mutableblockpos.getY() + randomsource.nextInt(5) - 2),
+               blockpos$mutableblockpos.getZ(), (double)(randomsource.nextInt(11) - 5)), false);
          blockpos$mutableblockpos.set(this.cat.blockPosition());
          LootTable loottable = this.cat.level.getServer().getLootTables().get(BuiltInLootTables.CAT_MORNING_GIFT);
          LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel)this.cat.level)).withParameter(LootContextParams.ORIGIN, this.cat.position()).withParameter(LootContextParams.THIS_ENTITY, this.cat).withRandom(randomsource);
@@ -558,7 +560,7 @@ public class Cat extends TamableAnimal {
       public void tick() {
          if (this.ownerPlayer != null && this.goalPos != null) {
             this.cat.setInSittingPose(false);
-            this.cat.getNavigation().moveTo((double)this.goalPos.getX(), (double)this.goalPos.getY(), (double)this.goalPos.getZ(), (double)1.1F);
+            this.cat.getNavigation().moveTo(this.goalPos, (double)1.1F);
             if (this.cat.distanceToSqr(this.ownerPlayer) < 2.5D) {
                ++this.onBedTicks;
                if (this.onBedTicks > this.adjustedTickDelay(16)) {

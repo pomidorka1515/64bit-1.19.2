@@ -50,7 +50,7 @@ public class HarvestFarmland extends Behavior<Villager> {
          for(int i = -1; i <= 1; ++i) {
             for(int j = -1; j <= 1; ++j) {
                for(int k = -1; k <= 1; ++k) {
-                  blockpos$mutableblockpos.set(p_23175_.getX() + (double)i, p_23175_.getY() + (double)j, p_23175_.getZ() + (double)k);
+                  blockpos$mutableblockpos.set(p_23175_.sectorPosition().add((double)i, (double)j, (double)k).blockPosition());
                   if (this.validPos(blockpos$mutableblockpos, p_23174_)) {
                      this.validFarmlandAroundVillager.add(new BlockPos(blockpos$mutableblockpos));
                   }
@@ -91,7 +91,7 @@ public class HarvestFarmland extends Behavior<Villager> {
    }
 
    protected void tick(ServerLevel p_23196_, Villager p_23197_, long p_23198_) {
-      if (this.aboveFarmlandPos == null || this.aboveFarmlandPos.closerToCenterThan(p_23197_.position(), 1.0D)) {
+      if (this.aboveFarmlandPos == null || this.aboveFarmlandPos.closerToCenterThan(p_23197_.sectorPosition(), 1.0D)) {
          if (this.aboveFarmlandPos != null && p_23198_ > this.nextOkStartTime) {
             BlockState blockstate = p_23196_.getBlockState(this.aboveFarmlandPos);
             Block block = blockstate.getBlock();

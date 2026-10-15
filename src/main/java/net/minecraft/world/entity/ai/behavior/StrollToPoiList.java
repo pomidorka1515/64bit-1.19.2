@@ -37,7 +37,7 @@ public class StrollToPoiList extends Behavior<Villager> {
          List<GlobalPos> list = optional.get();
          if (!list.isEmpty()) {
             this.targetPos = list.get(p_24375_.getRandom().nextInt(list.size()));
-            return this.targetPos != null && p_24375_.dimension() == this.targetPos.dimension() && optional1.get().pos().closerToCenterThan(p_24376_.position(), (double)this.maxDistanceFromPoi);
+            return this.targetPos != null && p_24375_.dimension() == this.targetPos.dimension() && optional1.get().pos().closerToCenterThan(p_24376_.sectorPosition(), (double)this.maxDistanceFromPoi);
          }
       }
 

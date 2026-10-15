@@ -29,7 +29,7 @@ public class StrollAroundPoi extends Behavior<PathfinderMob> {
 
    protected boolean checkExtraStartConditions(ServerLevel p_24319_, PathfinderMob p_24320_) {
       Optional<GlobalPos> optional = p_24320_.getBrain().getMemory(this.memoryType);
-      return optional.isPresent() && p_24319_.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(p_24320_.position(), (double)this.maxDistanceFromPoi);
+      return optional.isPresent() && p_24319_.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(p_24320_.sectorPosition(), (double)this.maxDistanceFromPoi);
    }
 
    protected void start(ServerLevel p_24322_, PathfinderMob p_24323_, long p_24324_) {

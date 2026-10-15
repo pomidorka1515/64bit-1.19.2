@@ -72,7 +72,7 @@ public class MemoryModuleType<U> {
    public static final MemoryModuleType<Boolean> LONG_JUMP_MID_JUMP = register("long_jump_mid_jump");
    public static final MemoryModuleType<Boolean> HAS_HUNTING_COOLDOWN = register("has_hunting_cooldown", Codec.BOOL);
    public static final MemoryModuleType<Integer> RAM_COOLDOWN_TICKS = register("ram_cooldown_ticks", Codec.INT);
-   public static final MemoryModuleType<Vec3> RAM_TARGET = register("ram_target");
+   public static final MemoryModuleType<net.minecraft.world.phys.SectorVec3> RAM_TARGET = register("ram_target");
    public static final MemoryModuleType<Unit> IS_IN_WATER = register("is_in_water", Codec.unit(Unit.INSTANCE));
    public static final MemoryModuleType<Unit> IS_PREGNANT = register("is_pregnant", Codec.unit(Unit.INSTANCE));
    public static final MemoryModuleType<Boolean> IS_PANICKING = register("is_panicking", Codec.BOOL);

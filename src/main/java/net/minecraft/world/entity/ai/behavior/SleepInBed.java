@@ -41,7 +41,7 @@ public class SleepInBed extends Behavior<LivingEntity> {
             }
 
             BlockState blockstate = p_24154_.getBlockState(globalpos.pos());
-            return globalpos.pos().closerToCenterThan(p_24155_.position(), 2.0D) && blockstate.is(BlockTags.BEDS) && !blockstate.getValue(BedBlock.OCCUPIED);
+            return globalpos.pos().closerToCenterThan(p_24155_.sectorPosition(), 2.0D) && blockstate.is(BlockTags.BEDS) && !blockstate.getValue(BedBlock.OCCUPIED);
          }
       }
    }
@@ -52,7 +52,7 @@ public class SleepInBed extends Behavior<LivingEntity> {
          return false;
       } else {
          BlockPos blockpos = optional.get().pos();
-         return p_24162_.getBrain().isActive(Activity.REST) && p_24162_.getY() > (double)blockpos.getY() + 0.4D && blockpos.closerToCenterThan(p_24162_.position(), 1.14D);
+         return p_24162_.getBrain().isActive(Activity.REST) && p_24162_.getY() > (double)blockpos.getY() + 0.4D && blockpos.closerToCenterThan(p_24162_.sectorPosition(), 1.14D);
       }
    }
 

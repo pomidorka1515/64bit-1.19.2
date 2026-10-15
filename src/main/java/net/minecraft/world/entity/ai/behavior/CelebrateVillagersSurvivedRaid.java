@@ -52,6 +52,7 @@ public class CelebrateVillagersSurvivedRaid extends Behavior<Villager> {
          int i = randomsource.nextInt(3);
          ItemStack itemstack = this.getFirework(dyecolor, i);
          FireworkRocketEntity fireworkrocketentity = new FireworkRocketEntity(p_22713_.level, p_22713_, p_22713_.getX(), p_22713_.getEyeY(), p_22713_.getZ(), itemstack);
+         fireworkrocketentity.applyExactPosition(p_22713_.exactEyePosition());
          p_22713_.level.addFreshEntity(fireworkrocketentity);
       }
 

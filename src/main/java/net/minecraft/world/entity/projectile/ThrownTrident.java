@@ -138,7 +138,7 @@ public class ThrownTrident extends AbstractArrow {
          BlockPos blockpos = entity.blockPosition();
          if (this.level.canSeeSky(blockpos)) {
             LightningBolt lightningbolt = EntityType.LIGHTNING_BOLT.create(this.level);
-            lightningbolt.moveTo(Vec3.atBottomCenterOf(blockpos));
+            lightningbolt.moveTo(blockpos, lightningbolt.getYRot(), lightningbolt.getXRot());
             lightningbolt.setCause(entity1 instanceof ServerPlayer ? (ServerPlayer)entity1 : null);
             this.level.addFreshEntity(lightningbolt);
             soundevent = SoundEvents.TRIDENT_THUNDER;

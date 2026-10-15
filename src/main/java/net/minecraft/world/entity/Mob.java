@@ -1371,7 +1371,7 @@ public abstract class Mob extends LivingEntity {
    protected boolean isSunBurnTick() {
       if (this.level.isDay() && !this.level.isClientSide) {
          float f = this.getLightLevelDependentMagicValue();
-         BlockPos blockpos = new BlockPos(this.getX(), this.getEyeY(), this.getZ());
+         BlockPos blockpos = this.sectorPosition().withY(this.getEyeY()).blockPosition();
          boolean flag = this.isInWaterRainOrBubble() || this.isInPowderSnow || this.wasInPowderSnow;
          if (f > 0.5F && this.random.nextFloat() * 30.0F < (f - 0.4F) * 2.0F && !flag && this.level.canSeeSky(blockpos)) {
             return true;

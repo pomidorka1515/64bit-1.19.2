@@ -133,7 +133,8 @@ public class Warden extends Monster implements VibrationListener.VibrationListen
    }
 
    public boolean checkSpawnObstruction(LevelReader p_219398_) {
-      return super.checkSpawnObstruction(p_219398_) && p_219398_.noCollision(this, this.getType().getDimensions().makeBoundingBox(this.position()));
+      return super.checkSpawnObstruction(p_219398_) && p_219398_.noCollision(this, net.minecraft.world.phys.AABB.fromSectorBounds(
+            net.minecraft.world.phys.SectorAABB.around(this.sectorPosition(), this.getType().getDimensions().width, this.getType().getDimensions().height)));
    }
 
    public float getWalkTargetValue(BlockPos p_219410_, LevelReader p_219411_) {

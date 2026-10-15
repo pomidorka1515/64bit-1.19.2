@@ -64,7 +64,7 @@ public class ExperienceOrb extends Entity {
       }
 
       if (!this.hasExactNoCollision()) {
-         this.moveTowardsClosestSpace(this.getX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.getZ());
+         this.moveTowardsClosestSpace(this.sectorPosition().withY((this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D));
       }
 
       if (this.tickCount % 20 == 1) {
@@ -88,7 +88,7 @@ public class ExperienceOrb extends Entity {
       this.move(MoverType.SELF, this.getDeltaMovement());
       float f = 0.98F;
       if (this.onGround) {
-         f = this.level.getBlockState(new BlockPos(this.getX(), this.getY() - 1.0D, this.getZ())).getBlock().getFriction() * 0.98F;
+         f = this.level.getBlockState(this.sectorPosition().add(0.0D, -1.0D, 0.0D).blockPosition()).getBlock().getFriction() * 0.98F;
       }
 
       this.setDeltaMovement(this.getDeltaMovement().multiply((double)f, 0.98D, (double)f));

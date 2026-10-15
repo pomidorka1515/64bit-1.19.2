@@ -10,7 +10,7 @@ public class DragonChargePlayerPhase extends AbstractDragonPhaseInstance {
    private static final Logger LOGGER = LogUtils.getLogger();
    private static final int CHARGE_RECOVERY_TIME = 10;
    @Nullable
-   private Vec3 targetLocation;
+   private net.minecraft.world.phys.SectorVec3 targetLocation;
    private int timeSinceCharge;
 
    public DragonChargePlayerPhase(EnderDragon p_31206_) {
@@ -24,7 +24,7 @@ public class DragonChargePlayerPhase extends AbstractDragonPhaseInstance {
       } else if (this.timeSinceCharge > 0 && this.timeSinceCharge++ >= 10) {
          this.dragon.getPhaseManager().setPhase(EnderDragonPhase.HOLDING_PATTERN);
       } else {
-         double d0 = this.targetLocation.distanceToSqr(this.dragon.getX(), this.dragon.getY(), this.dragon.getZ());
+         double d0 = this.targetLocation.relativeTo(this.dragon.sectorPosition()).lengthSqr();
          if (d0 < 100.0D || d0 > 22500.0D || this.dragon.horizontalCollision || this.dragon.verticalCollision) {
             ++this.timeSinceCharge;
          }
@@ -38,7 +38,11 @@ public class DragonChargePlayerPhase extends AbstractDragonPhaseInstance {
    }
 
    public void setTarget(Vec3 p_31208_) {
-      this.targetLocation = p_31208_;
+      this.setTarget(net.minecraft.world.phys.SectorVec3.fromApproximate(p_31208_.x, p_31208_.y, p_31208_.z));
+   }
+
+   public void setTarget(net.minecraft.world.phys.SectorVec3 target) {
+      this.targetLocation = target;
    }
 
    public float getFlySpeed() {
@@ -47,6 +51,10 @@ public class DragonChargePlayerPhase extends AbstractDragonPhaseInstance {
 
    @Nullable
    public Vec3 getFlyTargetLocation() {
+      return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+   }
+
+   public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
       return this.targetLocation;
    }
 

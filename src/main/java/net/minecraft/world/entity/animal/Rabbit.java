@@ -144,7 +144,7 @@ public class Rabbit extends Animal {
 
    public void setSpeedModifier(double p_29726_) {
       this.getNavigation().setSpeedModifier(p_29726_);
-      this.moveControl.setWantedPosition(this.moveControl.getWantedX(), this.moveControl.getWantedY(), this.moveControl.getWantedZ(), p_29726_);
+      this.moveControl.setWantedPosition(this.moveControl.getExactWantedPosition(), p_29726_);
    }
 
    public void setJumping(boolean p_29732_) {
@@ -187,8 +187,8 @@ public class Rabbit extends Animal {
          if (this.getRabbitType() == 99 && this.jumpDelayTicks == 0) {
             LivingEntity livingentity = this.getTarget();
             if (livingentity != null && this.distanceToSqr(livingentity) < 16.0D) {
-               this.facePoint(livingentity.getX(), livingentity.getZ());
-               this.moveControl.setWantedPosition(livingentity.getX(), livingentity.getY(), livingentity.getZ(), this.moveControl.getSpeedModifier());
+               this.faceDelta(livingentity.sectorPosition().relativeTo(this.sectorPosition()));
+               this.moveControl.setWantedPosition(livingentity.sectorPosition(), this.moveControl.getSpeedModifier());
                this.startJumping();
                this.wasOnGround = true;
             }
@@ -198,12 +198,12 @@ public class Rabbit extends Animal {
          if (!rabbit$rabbitjumpcontrol.wantJump()) {
             if (this.moveControl.hasWanted() && this.jumpDelayTicks == 0) {
                Path path = this.navigation.getPath();
-               Vec3 vec3 = new Vec3(this.moveControl.getWantedX(), this.moveControl.getWantedY(), this.moveControl.getWantedZ());
+               Vec3 vec3 = this.moveControl.wantedDelta();
                if (path != null && !path.isDone()) {
-                  vec3 = path.getNextEntityPos(this);
+                  vec3 = path.getNextExactEntityPos(this).relativeTo(this.sectorPosition());
                }
 
-               this.facePoint(vec3.x, vec3.z);
+               this.faceDelta(vec3);
                this.startJumping();
             }
          } else if (!rabbit$rabbitjumpcontrol.canJump()) {
@@ -218,8 +218,8 @@ public class Rabbit extends Animal {
       return false;
    }
 
-   private void facePoint(double p_29687_, double p_29688_) {
-      this.setYRot((float)(Mth.atan2(p_29688_ - this.getZ(), p_29687_ - this.getX()) * (double)(180F / (float)Math.PI)) - 90.0F);
+   private void faceDelta(Vec3 delta) {
+      this.setYRot((float)(Mth.atan2(delta.z, delta.x) * (double)(180F / (float)Math.PI)) - 90.0F);
    }
 
    private void enableJumpControl() {
@@ -473,11 +473,15 @@ public class Rabbit extends Animal {
       }
 
       public void setWantedPosition(double p_29769_, double p_29770_, double p_29771_, double p_29772_) {
+         this.setWantedPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(p_29769_, p_29770_, p_29771_), p_29772_);
+      }
+
+      public void setWantedPosition(net.minecraft.world.phys.SectorVec3 position, double p_29772_) {
          if (this.rabbit.isInWater()) {
             p_29772_ = 1.5D;
          }
 
-         super.setWantedPosition(p_29769_, p_29770_, p_29771_, p_29772_);
+         super.setWantedPosition(position, p_29772_);
          if (p_29772_ > 0.0D) {
             this.nextJumpSpeed = p_29772_;
          }
@@ -529,7 +533,8 @@ public class Rabbit extends Animal {
 
       public void tick() {
          super.tick();
-         this.rabbit.getLookControl().setLookAt((double)this.blockPos.getX() + 0.5D, (double)(this.blockPos.getY() + 1), (double)this.blockPos.getZ() + 0.5D, 10.0F, (float)this.rabbit.getMaxHeadXRot());
+         this.rabbit.getLookControl().setLookAtExact(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.blockPos.getX(),
+               0.5D, (double)(this.blockPos.getY() + 1), this.blockPos.getZ(), 0.5D), 10.0F, (float)this.rabbit.getMaxHeadXRot());
          if (this.isReachedTarget()) {
             Level level = this.rabbit.level;
             BlockPos blockpos = this.blockPos.above();

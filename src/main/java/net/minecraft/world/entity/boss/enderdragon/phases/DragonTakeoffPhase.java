@@ -15,7 +15,7 @@ public class DragonTakeoffPhase extends AbstractDragonPhaseInstance {
    @Nullable
    private Path currentPath;
    @Nullable
-   private Vec3 targetLocation;
+   private net.minecraft.world.phys.SectorVec3 targetLocation;
 
    public DragonTakeoffPhase(EnderDragon p_31370_) {
       super(p_31370_);
@@ -24,7 +24,7 @@ public class DragonTakeoffPhase extends AbstractDragonPhaseInstance {
    public void doServerTick() {
       if (!this.firstTick && this.currentPath != null) {
          BlockPos blockpos = this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EndPodiumFeature.END_PODIUM_LOCATION);
-         if (!blockpos.closerToCenterThan(this.dragon.position(), 10.0D)) {
+         if (!blockpos.closerToCenterThan(this.dragon.sectorPosition(), 10.0D)) {
             this.dragon.getPhaseManager().setPhase(EnderDragonPhase.HOLDING_PATTERN);
          }
       } else {
@@ -71,7 +71,7 @@ public class DragonTakeoffPhase extends AbstractDragonPhaseInstance {
                d0 = (double)((float)vec3i.getY() + this.dragon.getRandom().nextFloat() * 20.0F);
             } while(d0 < (double)vec3i.getY());
 
-            this.targetLocation = new Vec3((double)vec3i.getX(), d0, (double)vec3i.getZ());
+            this.targetLocation = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(vec3i.getX(), 0.0D, d0, vec3i.getZ(), 0.0D);
          }
       }
 
@@ -79,6 +79,10 @@ public class DragonTakeoffPhase extends AbstractDragonPhaseInstance {
 
    @Nullable
    public Vec3 getFlyTargetLocation() {
+      return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+   }
+
+   public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
       return this.targetLocation;
    }
 

@@ -1483,10 +1483,7 @@ public abstract class LivingEntity extends Entity {
 
    protected void playBlockFallSound() {
       if (!this.isSilent()) {
-         int i = Mth.floor(this.getX());
-         int j = Mth.floor(this.getY() - (double)0.2F);
-         int k = Mth.floor(this.getZ());
-         BlockState blockstate = this.level.getBlockState(new BlockPos(i, j, k));
+         BlockState blockstate = this.level.getBlockState(this.sectorPosition().add(0.0D, -(double)0.2F, 0.0D).blockPosition());
          if (!blockstate.isAir()) {
             SoundType soundtype = blockstate.getSoundType();
             this.playSound(soundtype.getFallSound(), soundtype.getVolume() * 0.5F, soundtype.getPitch() * 0.75F);
@@ -2775,12 +2772,12 @@ public abstract class LivingEntity extends Entity {
       if (p_147185_.level != this.level) {
          return false;
       } else {
-         Vec3 vec3 = new Vec3(this.getX(), this.getEyeY(), this.getZ());
-         Vec3 vec31 = new Vec3(p_147185_.getX(), p_147185_.getEyeY(), p_147185_.getZ());
-         if (vec31.distanceTo(vec3) > 128.0D) {
+         SectorVec3 vec3 = this.exactEyePosition();
+         SectorVec3 vec31 = p_147185_.exactEyePosition();
+         if (vec31.relativeTo(vec3).lengthSqr() > 16384.0D) {
             return false;
          } else {
-            return this.level.clip(new ClipContext(vec3, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
+            return net.minecraft.world.level.SectorClipper.clip(this.level, vec3, vec31, this, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE).getType() == HitResult.Type.MISS;
          }
       }
    }
@@ -3071,12 +3068,14 @@ public abstract class LivingEntity extends Entity {
    }
 
    public boolean randomTeleport(double p_20985_, double p_20986_, double p_20987_, boolean p_20988_) {
-      double d0 = this.getX();
-      double d1 = this.getY();
-      double d2 = this.getZ();
-      double d3 = p_20986_;
+      return this.randomTeleport(SectorVec3.fromApproximate(p_20985_, p_20986_, p_20987_), p_20988_);
+   }
+
+   public boolean randomTeleport(SectorVec3 target, boolean p_20988_) {
+      SectorVec3 previous = this.sectorPosition();
+      double d3 = target.y();
       boolean flag = false;
-      BlockPos blockpos = new BlockPos(p_20985_, p_20986_, p_20987_);
+      BlockPos blockpos = target.blockPosition();
       Level level = this.level;
       if (level.hasChunkAt(blockpos)) {
          boolean flag1 = false;
@@ -3093,7 +3092,7 @@ public abstract class LivingEntity extends Entity {
          }
 
          if (flag1) {
-            this.teleportTo(p_20985_, d3, p_20987_);
+            this.teleportTo(target.withY(d3));
             if (this.hasSectorPosition()
                   ? this.sectorNoCollision(this.getSectorBoundingBox(), this.getLocalBoundingBox(this.sectorPhysicsOrigin()), this.sectorPhysicsOrigin())
                         && !this.sectorContainsAnyLiquid(this.getSectorBoundingBox())
@@ -3104,7 +3103,7 @@ public abstract class LivingEntity extends Entity {
       }
 
       if (!flag) {
-         this.teleportTo(d0, d1, d2);
+         this.teleportTo(previous);
          return false;
       } else {
          if (p_20988_) {
@@ -3185,7 +3184,7 @@ public abstract class LivingEntity extends Entity {
    }
 
    private void setPosToBed(BlockPos p_21081_) {
-      this.setPos((double)p_21081_.getX() + 0.5D, (double)p_21081_.getY() + 0.6875D, (double)p_21081_.getZ() + 0.5D);
+      this.setSectorPosition(SectorVec3.fromBlockAndFraction(p_21081_.getX(), 0.5D, (double)p_21081_.getY() + 0.6875D, p_21081_.getZ(), 0.5D));
    }
 
    private boolean checkBedExists() {
@@ -3204,7 +3203,8 @@ public abstract class LivingEntity extends Entity {
                         p_147228_.above().getX(), 0.5D, (double)p_147228_.above().getY() + 0.1D,
                         p_147228_.above().getZ(), 0.5D));
             Vec3 vec31 = standUp.toApproximateVec3();
-            Vec3 vec32 = Vec3.atBottomCenterOf(p_147228_).subtract(vec31).normalize();
+            Vec3 vec32 = SectorVec3.fromBlockAndFraction(p_147228_.getX(), 0.5D, (double)p_147228_.getY(),
+                  p_147228_.getZ(), 0.5D).relativeTo(standUp).normalize();
             float f = (float)Mth.wrapDegrees(Mth.atan2(vec32.z, vec32.x) * (double)(180F / (float)Math.PI) - 90.0D);
             if (this.usesSectorPhysics()) {
                this.applyExactPosition(standUp);

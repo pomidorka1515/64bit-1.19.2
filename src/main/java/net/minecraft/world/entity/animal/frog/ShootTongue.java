@@ -32,7 +32,7 @@ public class ShootTongue extends Behavior<Frog> {
    private int calculatePathCounter;
    private final SoundEvent tongueSound;
    private final SoundEvent eatSound;
-   private Vec3 itemSpawnPos;
+   private net.minecraft.world.phys.SectorVec3 itemSpawnPos;
    private ShootTongue.State state = ShootTongue.State.DONE;
 
    public ShootTongue(SoundEvent p_218620_, SoundEvent p_218621_) {
@@ -60,7 +60,7 @@ public class ShootTongue extends Behavior<Frog> {
       LivingEntity livingentity = p_218645_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).get();
       BehaviorUtils.lookAtEntity(p_218645_, livingentity);
       p_218645_.setTongueTarget(livingentity);
-      p_218645_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(livingentity.position(), 2.0F, 0));
+      p_218645_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(livingentity.sectorPosition(), 2.0F, 0));
       this.calculatePathCounter = 10;
       this.state = ShootTongue.State.MOVE_TO_TARGET;
    }
@@ -94,12 +94,12 @@ public class ShootTongue extends Behavior<Frog> {
             if (livingentity.distanceTo(p_218661_) < 1.75F) {
                p_218660_.playSound((Player)null, p_218661_, this.tongueSound, SoundSource.NEUTRAL, 2.0F, 1.0F);
                p_218661_.setPose(Pose.USING_TONGUE);
-               livingentity.setDeltaMovement(livingentity.position().vectorTo(p_218661_.position()).normalize().scale(0.75D));
-               this.itemSpawnPos = livingentity.position();
+               livingentity.setDeltaMovement(p_218661_.sectorPosition().relativeTo(livingentity.sectorPosition()).normalize().scale(0.75D));
+               this.itemSpawnPos = livingentity.sectorPosition();
                this.eatAnimationTimer = 0;
                this.state = ShootTongue.State.CATCH_ANIMATION;
             } else if (this.calculatePathCounter <= 0) {
-               p_218661_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(livingentity.position(), 2.0F, 0));
+               p_218661_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(livingentity.sectorPosition(), 2.0F, 0));
                this.calculatePathCounter = 10;
             } else {
                --this.calculatePathCounter;

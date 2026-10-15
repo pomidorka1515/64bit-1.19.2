@@ -217,7 +217,7 @@ public class Blaze extends Monster {
 
                      for(int i = 0; i < 1; ++i) {
                         SmallFireball smallfireball = new SmallFireball(this.blaze.level, this.blaze, this.blaze.getRandom().triangle(d1, 2.297D * d4), d2, this.blaze.getRandom().triangle(d3, 2.297D * d4));
-                        smallfireball.setPos(smallfireball.getX(), this.blaze.getY(0.5D) + 0.5D, smallfireball.getZ());
+                        smallfireball.applyExactPosition(smallfireball.sectorPosition().withY(this.blaze.getY(0.5D) + 0.5D));
                         this.blaze.level.addFreshEntity(smallfireball);
                      }
                   }

@@ -242,18 +242,18 @@ public class WanderingTrader extends AbstractVillager {
          BlockPos blockpos = this.trader.getWanderTarget();
          if (blockpos != null && WanderingTrader.this.navigation.isDone()) {
             if (this.isTooFarAway(blockpos, 10.0D)) {
-               Vec3 vec3 = (new Vec3((double)blockpos.getX() - this.trader.getX(), (double)blockpos.getY() - this.trader.getY(), (double)blockpos.getZ() - this.trader.getZ())).normalize();
-               Vec3 vec31 = vec3.scale(10.0D).add(this.trader.getX(), this.trader.getY(), this.trader.getZ());
-               WanderingTrader.this.navigation.moveTo(vec31.x, vec31.y, vec31.z, this.speedModifier);
+               Vec3 vec3 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D,
+                     (double)blockpos.getY(), blockpos.getZ(), 0.0D).relativeTo(this.trader.sectorPosition()).normalize().scale(10.0D);
+               WanderingTrader.this.navigation.moveTo(this.trader.sectorPosition().add(vec3.x, vec3.y, vec3.z), this.speedModifier);
             } else {
-               WanderingTrader.this.navigation.moveTo((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), this.speedModifier);
+               WanderingTrader.this.navigation.moveTo(blockpos, this.speedModifier);
             }
          }
 
       }
 
       private boolean isTooFarAway(BlockPos p_35904_, double p_35905_) {
-         return !p_35904_.closerToCenterThan(this.trader.position(), p_35905_);
+         return !p_35904_.closerToCenterThan(this.trader.sectorPosition(), p_35905_);
       }
    }
 }

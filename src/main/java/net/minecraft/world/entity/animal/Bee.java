@@ -88,6 +88,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class Bee extends Animal implements NeutralMob, FlyingAnimal {
    public static final float FLAP_DEGREES_PER_TICK = 120.32113F;
@@ -262,10 +263,10 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
    }
 
    void pathfindRandomlyTowards(BlockPos p_27881_) {
-      Vec3 vec3 = Vec3.atBottomCenterOf(p_27881_);
+      SectorVec3 vec3 = SectorVec3.fromBlockAndFraction(p_27881_.getX(), 0.5D, (double)p_27881_.getY(), p_27881_.getZ(), 0.5D);
       int i = 0;
       BlockPos blockpos = this.blockPosition();
-      int j = (int)vec3.y - blockpos.getY();
+      int j = (int)vec3.y() - blockpos.getY();
       if (j > 2) {
          i = 4;
       } else if (j < -2) {
@@ -280,10 +281,10 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
          l = i1 / 2;
       }
 
-      Vec3 vec31 = AirRandomPos.getPosTowards(this, k, l, i, vec3, (double)((float)Math.PI / 10F));
+      SectorVec3 vec31 = AirRandomPos.getSectorPosTowards(this, k, l, i, vec3, (double)((float)Math.PI / 10F));
       if (vec31 != null) {
          this.navigation.setMaxVisitedNodesMultiplier(0.5F);
-         this.navigation.moveTo(vec31.x, vec31.y, vec31.z, 1.0D);
+         this.navigation.moveTo(vec31, 1.0D);
       }
    }
 
@@ -684,7 +685,7 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
 
    class BeeEnterHiveGoal extends Bee.BaseBeeGoal {
       public boolean canBeeUse() {
-         if (Bee.this.hasHive() && Bee.this.wantsToEnterHive() && Bee.this.hivePos.closerToCenterThan(Bee.this.position(), 2.0D)) {
+         if (Bee.this.hasHive() && Bee.this.wantsToEnterHive() && Bee.this.hivePos.closerToCenterThan(Bee.this.sectorPosition(), 2.0D)) {
             BlockEntity blockentity = Bee.this.level.getBlockEntity(Bee.this.hivePos);
             if (blockentity instanceof BeehiveBlockEntity) {
                BeehiveBlockEntity beehiveblockentity = (BeehiveBlockEntity)blockentity;
@@ -781,7 +782,7 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
 
       private boolean pathfindDirectlyTowards(BlockPos p_27991_) {
          Bee.this.navigation.setMaxVisitedNodesMultiplier(10.0F);
-         Bee.this.navigation.moveTo((double)p_27991_.getX(), (double)p_27991_.getY(), (double)p_27991_.getZ(), 1.0D);
+         Bee.this.navigation.moveTo(p_27991_, 1.0D);
          return Bee.this.navigation.getPath() != null && Bee.this.navigation.getPath().canReach();
       }
 
@@ -1028,7 +1029,7 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
       private int lastSoundPlayedTick;
       private boolean pollinating;
       @Nullable
-      private Vec3 hoverPos;
+      private SectorVec3 hoverPos;
       private int pollinatingTicks;
       private static final int MAX_POLLINATING_TICKS = 600;
 
@@ -1047,7 +1048,8 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
             Optional<BlockPos> optional = this.findNearbyFlower();
             if (optional.isPresent()) {
                Bee.this.savedFlowerPos = optional.get();
-               Bee.this.navigation.moveTo((double)Bee.this.savedFlowerPos.getX() + 0.5D, (double)Bee.this.savedFlowerPos.getY() + 0.5D, (double)Bee.this.savedFlowerPos.getZ() + 0.5D, (double)1.2F);
+               Bee.this.navigation.moveTo(SectorVec3.fromBlockAndFraction(Bee.this.savedFlowerPos.getX(), 0.5D,
+                     (double)Bee.this.savedFlowerPos.getY() + 0.5D, Bee.this.savedFlowerPos.getZ(), 0.5D), (double)1.2F);
                return true;
             } else {
                Bee.this.remainingCooldownBeforeLocatingNewFlower = Mth.nextInt(Bee.this.random, 20, 60);
@@ -1112,8 +1114,9 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
          if (this.pollinatingTicks > 600) {
             Bee.this.savedFlowerPos = null;
          } else {
-            Vec3 vec3 = Vec3.atBottomCenterOf(Bee.this.savedFlowerPos).add(0.0D, (double)0.6F, 0.0D);
-            if (vec3.distanceTo(Bee.this.position()) > 1.0D) {
+            SectorVec3 vec3 = SectorVec3.fromBlockAndFraction(Bee.this.savedFlowerPos.getX(), 0.5D,
+                  (double)Bee.this.savedFlowerPos.getY() + (double)0.6F, Bee.this.savedFlowerPos.getZ(), 0.5D);
+            if (vec3.relativeTo(Bee.this.sectorPosition()).length() > 1.0D) {
                this.hoverPos = vec3;
                this.setWantedPos();
             } else {
@@ -1121,7 +1124,7 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
                   this.hoverPos = vec3;
                }
 
-               boolean flag = Bee.this.position().distanceTo(this.hoverPos) <= 0.1D;
+               boolean flag = this.hoverPos.relativeTo(Bee.this.sectorPosition()).length() <= 0.1D;
                boolean flag1 = true;
                if (!flag && this.pollinatingTicks > 600) {
                   Bee.this.savedFlowerPos = null;
@@ -1129,13 +1132,13 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
                   if (flag) {
                      boolean flag2 = Bee.this.random.nextInt(25) == 0;
                      if (flag2) {
-                        this.hoverPos = new Vec3(vec3.x() + (double)this.getOffset(), vec3.y(), vec3.z() + (double)this.getOffset());
+                        this.hoverPos = vec3.add((double)this.getOffset(), 0.0D, (double)this.getOffset());
                         Bee.this.navigation.stop();
                      } else {
                         flag1 = false;
                      }
 
-                     Bee.this.getLookControl().setLookAt(vec3.x(), vec3.y(), vec3.z());
+                     Bee.this.getLookControl().setLookAtExact(vec3, (float)Bee.this.getHeadRotSpeed(), (float)Bee.this.getMaxHeadXRot());
                   }
 
                   if (flag1) {
@@ -1154,7 +1157,7 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
       }
 
       private void setWantedPos() {
-         Bee.this.getMoveControl().setWantedPosition(this.hoverPos.x(), this.hoverPos.y(), this.hoverPos.z(), (double)0.35F);
+         Bee.this.getMoveControl().setWantedPosition(this.hoverPos, (double)0.35F);
       }
 
       private float getOffset() {
@@ -1202,26 +1205,27 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
       }
 
       public void start() {
-         Vec3 vec3 = this.findPos();
+         SectorVec3 vec3 = this.findPos();
          if (vec3 != null) {
-            Bee.this.navigation.moveTo(Bee.this.navigation.createPath(new BlockPos(vec3), 1), 1.0D);
+            Bee.this.navigation.moveTo(Bee.this.navigation.createPath(vec3.blockPosition(), 1), 1.0D);
          }
 
       }
 
       @Nullable
-      private Vec3 findPos() {
+      private SectorVec3 findPos() {
          Vec3 vec3;
          if (Bee.this.isHiveValid() && !Bee.this.closerThan(Bee.this.hivePos, 22)) {
-            Vec3 vec31 = Vec3.atCenterOf(Bee.this.hivePos);
-            vec3 = vec31.subtract(Bee.this.position()).normalize();
+            SectorVec3 vec31 = SectorVec3.fromBlockAndFraction(Bee.this.hivePos.getX(), 0.5D,
+                  (double)Bee.this.hivePos.getY() + 0.5D, Bee.this.hivePos.getZ(), 0.5D);
+            vec3 = vec31.relativeTo(Bee.this.sectorPosition()).normalize();
          } else {
             vec3 = Bee.this.getViewVector(0.0F);
          }
 
          int i = 8;
-         Vec3 vec32 = HoverRandomPos.getPos(Bee.this, 8, 7, vec3.x, vec3.z, ((float)Math.PI / 2F), 3, 1);
-         return vec32 != null ? vec32 : AirAndWaterRandomPos.getPos(Bee.this, 8, 4, -2, vec3.x, vec3.z, (double)((float)Math.PI / 2F));
+         SectorVec3 vec32 = HoverRandomPos.getSectorPos(Bee.this, 8, 7, vec3.x, vec3.z, ((float)Math.PI / 2F), 3, 1);
+         return vec32 != null ? vec32 : AirAndWaterRandomPos.getSectorPos(Bee.this, 8, 4, -2, vec3.x, vec3.z, (double)((float)Math.PI / 2F));
       }
    }
 }

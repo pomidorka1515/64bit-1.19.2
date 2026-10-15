@@ -139,16 +139,18 @@ public class Bat extends AmbientCreature {
             this.targetPosition = null;
          }
 
-         if (this.targetPosition == null || this.random.nextInt(30) == 0 || this.targetPosition.closerToCenterThan(this.position(), 2.0D)) {
+         if (this.targetPosition == null || this.random.nextInt(30) == 0 || this.targetPosition.closerToCenterThan(this.sectorPosition(), 2.0D)) {
             this.targetPosition = this.blockPosition().offset(
                   (long)this.random.nextInt(7) - (long)this.random.nextInt(7),
                   this.random.nextInt(6) - 2,
                   (long)this.random.nextInt(7) - (long)this.random.nextInt(7));
          }
 
-         double d2 = (double)this.targetPosition.getX() + 0.5D - this.getX();
-         double d0 = (double)this.targetPosition.getY() + 0.1D - this.getY();
-         double d1 = (double)this.targetPosition.getZ() + 0.5D - this.getZ();
+         Vec3 targetDelta = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.targetPosition.getX(),
+               0.5D, (double)this.targetPosition.getY() + 0.1D, this.targetPosition.getZ(), 0.5D).relativeTo(this.sectorPosition());
+         double d2 = targetDelta.x;
+         double d0 = targetDelta.y;
+         double d1 = targetDelta.z;
          Vec3 vec3 = this.getDeltaMovement();
          Vec3 vec31 = vec3.add((Math.signum(d2) * 0.5D - vec3.x) * (double)0.1F, (Math.signum(d0) * (double)0.7F - vec3.y) * (double)0.1F, (Math.signum(d1) * 0.5D - vec3.z) * (double)0.1F);
          this.setDeltaMovement(vec31);

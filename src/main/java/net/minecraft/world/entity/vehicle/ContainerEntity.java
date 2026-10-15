@@ -33,6 +33,8 @@ import net.minecraft.world.phys.Vec3;
 public interface ContainerEntity extends Container, MenuProvider {
    Vec3 position();
 
+   net.minecraft.world.phys.SectorVec3 sectorPosition();
+
    @Nullable
    ResourceLocation getLootTable();
 
@@ -179,6 +181,6 @@ public interface ContainerEntity extends Container, MenuProvider {
    }
 
    default boolean isChestVehicleStillValid(Player p_219955_) {
-      return !this.isRemoved() && this.position().closerThan(p_219955_.position(), 8.0D);
+      return !this.isRemoved() && this.sectorPosition().relativeTo(p_219955_.sectorPosition()).lengthSqr() < 64.0D;
    }
 }

@@ -53,12 +53,13 @@ public class SonicBoom extends Behavior<Warden> {
          p_217725_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).filter(p_217725_::canTargetEntity).filter((p_217707_) -> {
             return p_217725_.closerThan(p_217707_, 15.0D, 20.0D);
          }).ifPresent((p_217704_) -> {
-            Vec3 vec3 = p_217725_.position().add(0.0D, (double)1.6F, 0.0D);
-            Vec3 vec31 = p_217704_.getEyePosition().subtract(vec3);
+            net.minecraft.world.phys.SectorVec3 origin = p_217725_.sectorPosition().add(0.0D, (double)1.6F, 0.0D);
+            Vec3 vec31 = p_217704_.exactEyePosition().relativeTo(origin);
             Vec3 vec32 = vec31.normalize();
 
             for(int i = 1; i < Mth.floor(vec31.length()) + 7; ++i) {
-               Vec3 vec33 = vec3.add(vec32.scale((double)i));
+               Vec3 offset = vec32.scale((double)i);
+               Vec3 vec33 = origin.add(offset.x, offset.y, offset.z).toApproximateVec3();
                p_217724_.sendParticles(ParticleTypes.SONIC_BOOM, vec33.x, vec33.y, vec33.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
             }
 

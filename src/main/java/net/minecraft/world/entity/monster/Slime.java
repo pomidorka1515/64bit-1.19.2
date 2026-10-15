@@ -151,11 +151,10 @@ public class Slime extends Mob implements Enemy {
    }
 
    public void refreshDimensions() {
-      double d0 = this.getX();
-      double d1 = this.getY();
-      double d2 = this.getZ();
+      net.minecraft.world.phys.SectorVec3 position = this.sectorPosition();
       super.refreshDimensions();
-      this.setPos(d0, d1, d2);
+      this.setSectorPosition(position);
+      this.reapplyPosition();
    }
 
    public void onSyncedDataUpdated(EntityDataAccessor<?> p_33609_) {

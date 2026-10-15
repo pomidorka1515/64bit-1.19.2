@@ -145,29 +145,30 @@ public class Evoker extends SpellcasterIllager {
          LivingEntity livingentity = Evoker.this.getTarget();
          double d0 = Math.min(livingentity.getY(), Evoker.this.getY());
          double d1 = Math.max(livingentity.getY(), Evoker.this.getY()) + 1.0D;
-         float f = (float)Mth.atan2(livingentity.getZ() - Evoker.this.getZ(), livingentity.getX() - Evoker.this.getX());
+         float f = (float)Mth.atan2(livingentity.sectorPosition().relativeZ(Evoker.this.sectorPosition()), livingentity.sectorPosition().relativeX(Evoker.this.sectorPosition()));
          if (Evoker.this.distanceToSqr(livingentity) < 9.0D) {
             for(int i = 0; i < 5; ++i) {
                float f1 = f + (float)i * (float)Math.PI * 0.4F;
-               this.createSpellEntity(Evoker.this.getX() + (double)Mth.cos(f1) * 1.5D, Evoker.this.getZ() + (double)Mth.sin(f1) * 1.5D, d0, d1, f1, 0);
+               this.createSpellEntity((double)Mth.cos(f1) * 1.5D, (double)Mth.sin(f1) * 1.5D, d0, d1, f1, 0);
             }
 
             for(int k = 0; k < 8; ++k) {
                float f2 = f + (float)k * (float)Math.PI * 2.0F / 8.0F + 1.2566371F;
-               this.createSpellEntity(Evoker.this.getX() + (double)Mth.cos(f2) * 2.5D, Evoker.this.getZ() + (double)Mth.sin(f2) * 2.5D, d0, d1, f2, 3);
+               this.createSpellEntity((double)Mth.cos(f2) * 2.5D, (double)Mth.sin(f2) * 2.5D, d0, d1, f2, 3);
             }
          } else {
             for(int l = 0; l < 16; ++l) {
                double d2 = 1.25D * (double)(l + 1);
                int j = 1 * l;
-               this.createSpellEntity(Evoker.this.getX() + (double)Mth.cos(f) * d2, Evoker.this.getZ() + (double)Mth.sin(f) * d2, d0, d1, f, j);
+               this.createSpellEntity((double)Mth.cos(f) * d2, (double)Mth.sin(f) * d2, d0, d1, f, j);
             }
          }
 
       }
 
       private void createSpellEntity(double p_32673_, double p_32674_, double p_32675_, double p_32676_, float p_32677_, int p_32678_) {
-         BlockPos blockpos = new BlockPos(p_32673_, p_32676_, p_32674_);
+         net.minecraft.world.phys.SectorVec3 target = Evoker.this.sectorPosition().add(p_32673_, 0.0D, p_32674_).withY(p_32676_);
+         BlockPos blockpos = target.blockPosition();
          boolean flag = false;
          double d0 = 0.0D;
 
@@ -191,7 +192,9 @@ public class Evoker extends SpellcasterIllager {
          } while(blockpos.getY() >= Mth.floor(p_32675_) - 1);
 
          if (flag) {
-            Evoker.this.level.addFreshEntity(new EvokerFangs(Evoker.this.level, p_32673_, (double)blockpos.getY() + d0, p_32674_, p_32677_, p_32678_, Evoker.this));
+            EvokerFangs fangs = new EvokerFangs(Evoker.this.level, 0.0D, (double)blockpos.getY() + d0, 0.0D, p_32677_, p_32678_, Evoker.this);
+            fangs.applyExactPosition(target.withY((double)blockpos.getY() + d0));
+            Evoker.this.level.addFreshEntity(fangs);
          }
 
       }

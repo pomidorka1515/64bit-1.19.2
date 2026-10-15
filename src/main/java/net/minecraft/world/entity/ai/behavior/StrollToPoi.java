@@ -27,7 +27,7 @@ public class StrollToPoi extends Behavior<PathfinderMob> {
 
    protected boolean checkExtraStartConditions(ServerLevel p_24345_, PathfinderMob p_24346_) {
       Optional<GlobalPos> optional = p_24346_.getBrain().getMemory(this.memoryType);
-      return optional.isPresent() && p_24345_.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(p_24346_.position(), (double)this.maxDistanceFromPoi);
+      return optional.isPresent() && p_24345_.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(p_24346_.sectorPosition(), (double)this.maxDistanceFromPoi);
    }
 
    protected void start(ServerLevel p_24348_, PathfinderMob p_24349_, long p_24350_) {

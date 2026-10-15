@@ -45,7 +45,7 @@ public class TryFindWater extends Behavior<PathfinderMob> {
                      break;
                   }
 
-                  if (blockpos1 == null && !blockpos3.closerToCenterThan(p_148020_.position(), 1.5D)) {
+                  if (blockpos1 == null && !blockpos3.closerToCenterThan(p_148020_.sectorPosition(), 1.5D)) {
                      blockpos1 = blockpos3.immutable();
                   }
                }

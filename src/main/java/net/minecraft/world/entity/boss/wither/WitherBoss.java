@@ -152,7 +152,7 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
             }
 
             vec3 = new Vec3(vec3.x, d0, vec3.z);
-            Vec3 vec31 = new Vec3(entity.getX() - this.getX(), 0.0D, entity.getZ() - this.getZ());
+            Vec3 vec31 = entity.sectorPosition().relativeTo(this.sectorPosition()).multiply(1.0D, 0.0D, 1.0D);
             if (vec31.horizontalDistanceSqr() > 9.0D) {
                Vec3 vec32 = vec31.normalize();
                vec3 = vec3.add(vec32.x * 0.3D - vec3.x * 0.6D, 0.0D, vec32.z * 0.3D - vec3.z * 0.6D);
@@ -262,8 +262,7 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
                            (this.random.nextDouble() - 0.5D) * 2.0D * 10.0D,
                            (this.random.nextDouble() - 0.5D) * 2.0D * 5.0D,
                            (this.random.nextDouble() - 0.5D) * 2.0D * 10.0D);
-                     Vec3 approximate = spawn.toApproximateVec3();
-                     this.performRangedAttack(i + 1, approximate.x, approximate.y, approximate.z, true);
+                      this.performRangedAttack(i + 1, spawn, true);
                      this.idleHeadUpdates[i - 1] = 0;
                   }
                }
@@ -297,18 +296,12 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
          if (this.destroyBlocksTick > 0) {
             --this.destroyBlocksTick;
             if (this.destroyBlocksTick == 0 && this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
-               int j1 = Mth.floor(this.getY());
-               int i2 = Mth.floor(this.getX());
-               int j2 = Mth.floor(this.getZ());
                boolean flag = false;
 
                for(int j = -1; j <= 1; ++j) {
                   for(int k2 = -1; k2 <= 1; ++k2) {
                      for(int k = 0; k <= 3; ++k) {
-                        int l2 = i2 + j;
-                        int l = j1 + k;
-                        int i1 = j2 + k2;
-                        BlockPos blockpos = new BlockPos(l2, l, i1);
+                        BlockPos blockpos = this.blockPosition().offset(j, k, k2);
                         BlockState blockstate = this.level.getBlockState(blockpos);
                         if (canDestroy(blockstate)) {
                            flag = this.level.destroyBlock(blockpos, true, this) || flag;
@@ -392,21 +385,23 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
    }
 
    private void performRangedAttack(int p_31458_, LivingEntity p_31459_) {
-      this.performRangedAttack(p_31458_, p_31459_.getX(), p_31459_.getY() + (double)p_31459_.getEyeHeight() * 0.5D, p_31459_.getZ(), p_31458_ == 0 && this.random.nextFloat() < 0.001F);
+      this.performRangedAttack(p_31458_, p_31459_.sectorPosition().add(0.0D, (double)p_31459_.getEyeHeight() * 0.5D, 0.0D), p_31458_ == 0 && this.random.nextFloat() < 0.001F);
    }
 
    private void performRangedAttack(int p_31449_, double p_31450_, double p_31451_, double p_31452_, boolean p_31453_) {
+      this.performRangedAttack(p_31449_, SectorVec3.fromApproximate(p_31450_, p_31451_, p_31452_), p_31453_);
+   }
+
+   private void performRangedAttack(int p_31449_, SectorVec3 target, boolean p_31453_) {
       if (!this.isSilent()) {
          this.level.levelEvent((Player)null, 1024, this.blockPosition(), 0);
       }
 
       SectorVec3 headPos = this.getExactHeadPos(p_31449_);
-      double d0 = headPos.toApproximateVec3().x;
-      double d1 = headPos.y();
-      double d2 = headPos.toApproximateVec3().z;
-      double d3 = p_31450_ - d0;
-      double d4 = p_31451_ - d1;
-      double d5 = p_31452_ - d2;
+      Vec3 delta = target.relativeTo(headPos);
+      double d3 = delta.x;
+      double d4 = delta.y;
+      double d5 = delta.z;
       WitherSkull witherskull = new WitherSkull(this.level, this, d3, d4, d5);
       witherskull.setOwner(this);
       if (p_31453_) {

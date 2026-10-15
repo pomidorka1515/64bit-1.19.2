@@ -29,13 +29,13 @@ public class DragonSittingScanningPhase extends AbstractDragonSittingPhase {
          if (this.scanningTime > 25) {
             this.dragon.getPhaseManager().setPhase(EnderDragonPhase.SITTING_ATTACKING);
          } else {
-            Vec3 vec3 = (new Vec3(livingentity.getX() - this.dragon.getX(), 0.0D, livingentity.getZ() - this.dragon.getZ())).normalize();
+            Vec3 vec3 = livingentity.sectorPosition().relativeTo(this.dragon.sectorPosition()).multiply(1.0D, 0.0D, 1.0D).normalize();
             Vec3 vec31 = (new Vec3((double)Mth.sin(this.dragon.getYRot() * ((float)Math.PI / 180F)), 0.0D, (double)(-Mth.cos(this.dragon.getYRot() * ((float)Math.PI / 180F))))).normalize();
             float f = (float)vec31.dot(vec3);
             float f1 = (float)(Math.acos((double)f) * (double)(180F / (float)Math.PI)) + 0.5F;
             if (f1 < 0.0F || f1 > 10.0F) {
-               double d0 = livingentity.getX() - this.dragon.head.getX();
-               double d1 = livingentity.getZ() - this.dragon.head.getZ();
+               double d0 = livingentity.sectorPosition().relativeX(this.dragon.head.sectorPosition());
+               double d1 = livingentity.sectorPosition().relativeZ(this.dragon.head.sectorPosition());
                double d2 = Mth.clamp(Mth.wrapDegrees(180.0D - Mth.atan2(d0, d1) * (double)(180F / (float)Math.PI) - (double)this.dragon.getYRot()), -100.0D, 100.0D);
                this.dragon.yRotA *= 0.8F;
                float f2 = (float)Math.sqrt(d0 * d0 + d1 * d1) + 1.0F;
@@ -53,7 +53,7 @@ public class DragonSittingScanningPhase extends AbstractDragonSittingPhase {
          this.dragon.getPhaseManager().setPhase(EnderDragonPhase.TAKEOFF);
          if (livingentity != null) {
             this.dragon.getPhaseManager().setPhase(EnderDragonPhase.CHARGING_PLAYER);
-            this.dragon.getPhaseManager().getPhase(EnderDragonPhase.CHARGING_PLAYER).setTarget(new Vec3(livingentity.getX(), livingentity.getY(), livingentity.getZ()));
+            this.dragon.getPhaseManager().getPhase(EnderDragonPhase.CHARGING_PLAYER).setTarget(livingentity.sectorPosition());
          }
       }
 

@@ -48,6 +48,13 @@ public interface CollisionGetter extends BlockGetter {
     }
 
     default boolean isUnobstructed(Entity pEntity) {
+        if (pEntity.hasSectorPosition() && this instanceof EntityGetter getter) {
+            SectorAABB box = pEntity.getSectorBoundingBox();
+            SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(pEntity.sectorPosition());
+            return getter.getSectorEntities(pEntity, box, box.toLocalAABB(origin), origin,
+                    candidate -> !candidate.isRemoved() && candidate.blocksBuilding
+                            && !candidate.isPassengerOfSameVehicle(pEntity)).isEmpty();
+        }
         return this.isUnobstructed(pEntity, Shapes.create(pEntity.getBoundingBox()));
     }
 
@@ -60,6 +67,16 @@ public interface CollisionGetter extends BlockGetter {
     }
 
     default boolean noCollision(@Nullable Entity pEntity, AABB pCollisionBox) {
+        SectorAABB exactBox = pCollisionBox.getSectorBounds();
+        if (exactBox != null) {
+            SectorPhysicsOrigin origin = new SectorPhysicsOrigin(exactBox.minBlockX(), exactBox.minBlockYForRange(), exactBox.minBlockZ());
+            for (VoxelShape shape : this.getSectorCollisions(pEntity, exactBox, exactBox.toLocalAABB(origin), origin)) {
+                if (!shape.isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
         for (VoxelShape voxelshape : this.getBlockCollisions(pEntity, pCollisionBox)) {
             if (!voxelshape.isEmpty()) {
                 return false;

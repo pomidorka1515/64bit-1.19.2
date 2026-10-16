@@ -32,8 +32,12 @@ public class ExperienceOrb extends Entity {
     private Player followingPlayer;
 
     public ExperienceOrb(Level pLevel, double pX, double pY, double pZ, int pValue) {
+        this(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ), pValue);
+    }
+
+    public ExperienceOrb(Level pLevel, net.minecraft.world.phys.SectorVec3 position, int pValue) {
         this(EntityType.EXPERIENCE_ORB, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(position);
         this.setYRot((float) (this.random.nextDouble() * 360.0D));
         this.setDeltaMovement((this.random.nextDouble() * (double) 0.2F - (double) 0.1F) * 2.0D, this.random.nextDouble() * 0.2D * 2.0D, (this.random.nextDouble() * (double) 0.2F - (double) 0.1F) * 2.0D);
         this.value = pValue;
@@ -125,9 +129,7 @@ public class ExperienceOrb extends Entity {
             int orbValue = getExperienceValue(value);
             value -= orbValue;
             if (!tryMergeToExisting(level, position, orbValue)) {
-                ExperienceOrb orb = new ExperienceOrb(level, position.toApproximateVec3().x, position.y(),
-                        position.toApproximateVec3().z, orbValue);
-                orb.applyExactPosition(position);
+                ExperienceOrb orb = new ExperienceOrb(level, position, orbValue);
                 level.addFreshEntity(orb);
             }
         }

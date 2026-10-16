@@ -32,6 +32,16 @@ class SectorBlockCollisionsTest {
     }
 
     @Test
+    void spawnCollisionChecksUseExactBoundsRatherThanCollapsedDoubleBoxes() {
+        for (long coordinate : new long[] {1L << 60, -(1L << 60), Long.MIN_VALUE + 8L, Long.MAX_VALUE - 8L}) {
+            CollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(coordinate, 64, coordinate));
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.5D, 64.0D, coordinate, 0.5D);
+            assertFalse(level.noCollision(AABB.fromSectorBounds(SectorAABB.around(position, 0.6D, 1.8D))));
+            assertTrue(level.noCollision(AABB.fromSectorBounds(SectorAABB.around(position.add(1.0D, 0.0D, 0.0D), 0.6D, 1.8D))));
+        }
+    }
+
+    @Test
     void findsHugeBlockAndReturnsLocalShape() {
         long hugeX = 1L << 53;
         long hugeZ = -(1L << 53);

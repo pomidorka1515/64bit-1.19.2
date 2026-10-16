@@ -62,7 +62,7 @@ public class DragonHoldingPatternPhase extends AbstractDragonPhaseInstance {
             }
 
             double d0 = 64.0D;
-            Player player = this.dragon.level.getNearestPlayer(NEW_TARGET_TARGETING, this.dragon, (double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ());
+            Player player = this.dragon.level.getNearestPlayer(NEW_TARGET_TARGETING, this.dragon, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, blockpos.getY(), blockpos.getZ(), 0.0D));
             if (player != null) {
                 d0 = blockpos.distToCenterSqr(player.sectorPosition()) / 512.0D;
             }

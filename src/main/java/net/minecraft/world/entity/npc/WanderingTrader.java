@@ -153,7 +153,7 @@ public class WanderingTrader extends AbstractVillager {
     protected void rewardTradeXp(MerchantOffer pOffer) {
         if (pOffer.shouldRewardExp()) {
             int i = 3 + this.random.nextInt(4);
-            this.level.addFreshEntity(new ExperienceOrb(this.level, this.getX(), this.getY() + 0.5D, this.getZ(), i));
+            this.level.addFreshEntity(new ExperienceOrb(this.level, this.sectorPosition().add(0.0D, 0.5D, 0.0D), i));
         }
     }
 

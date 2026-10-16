@@ -79,7 +79,8 @@ public class PoiManager extends SectionStorage<PoiSection> {
                                                               })
                 .filter((p_217971_) -> {
                     BlockPos blockpos = p_217971_.getPos();
-                    return Math.abs(blockpos.getX() - pPos.getX()) <= pDistance && Math.abs(blockpos.getZ() - pPos.getZ()) <= pDistance;
+                    return Math.abs(net.minecraft.world.level.WorldBounds.signedDifference(blockpos.getX(), pPos.getX())) <= pDistance
+                            && Math.abs(net.minecraft.world.level.WorldBounds.signedDifference(blockpos.getZ(), pPos.getZ())) <= pDistance;
                 });
     }
 

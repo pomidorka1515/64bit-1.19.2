@@ -43,9 +43,13 @@ public final class MobEffectUtil {
     }
 
     public static List<ServerPlayer> addEffectToPlayersAround(ServerLevel pLevel, @Nullable Entity pSource, Vec3 pPos, double pRadius, MobEffectInstance pEffect, int pDuration) {
+        return addEffectToPlayersAround(pLevel, pSource, net.minecraft.world.phys.SectorVec3.fromApproximate(pPos.x, pPos.y, pPos.z), pRadius, pEffect, pDuration);
+    }
+
+    public static List<ServerPlayer> addEffectToPlayersAround(ServerLevel pLevel, @Nullable Entity pSource, net.minecraft.world.phys.SectorVec3 pPos, double pRadius, MobEffectInstance pEffect, int pDuration) {
         MobEffect mobeffect = pEffect.getEffect();
         List<ServerPlayer> list = pLevel.getPlayers((p_238228_) -> {
-            return p_238228_.gameMode.isSurvival() && (pSource == null || !pSource.isAlliedTo(p_238228_)) && pPos.closerThan(p_238228_.position(), pRadius) && (!p_238228_.hasEffect(mobeffect) || p_238228_.getEffect(mobeffect).getAmplifier() < pEffect.getAmplifier() || p_238228_.getEffect(mobeffect).getDuration() < pDuration);
+            return p_238228_.gameMode.isSurvival() && (pSource == null || !pSource.isAlliedTo(p_238228_)) && pPos.relativeTo(p_238228_.sectorPosition()).lengthSqr() < pRadius * pRadius && (!p_238228_.hasEffect(mobeffect) || p_238228_.getEffect(mobeffect).getAmplifier() < pEffect.getAmplifier() || p_238228_.getEffect(mobeffect).getDuration() < pDuration);
         });
         list.forEach((p_238232_) -> {
             p_238232_.addEffect(new MobEffectInstance(pEffect), pSource);

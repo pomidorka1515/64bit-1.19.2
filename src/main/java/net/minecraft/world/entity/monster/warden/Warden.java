@@ -253,7 +253,7 @@ public class Warden extends Monster implements VibrationListener.VibrationListen
         this.level.getProfiler().pop();
         super.customServerAiStep();
         if ((this.tickCount + this.getId()) % 120 == 0) {
-            applyDarknessAround(serverlevel, this.position(), this, 20);
+            applyDarknessAround(serverlevel, this.sectorPosition(), this, 20);
         }
 
         if (this.tickCount % 20 == 0) {
@@ -366,6 +366,10 @@ public class Warden extends Monster implements VibrationListener.VibrationListen
     }
 
     public static void applyDarknessAround(ServerLevel pLevel, Vec3 pPos, @Nullable Entity pSource, int pRadius) {
+        applyDarknessAround(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pPos.x, pPos.y, pPos.z), pSource, pRadius);
+    }
+
+    public static void applyDarknessAround(ServerLevel pLevel, net.minecraft.world.phys.SectorVec3 pPos, @Nullable Entity pSource, int pRadius) {
         MobEffectInstance mobeffectinstance = new MobEffectInstance(MobEffects.DARKNESS, 260, 0, false, false);
         MobEffectUtil.addEffectToPlayersAround(pLevel, pSource, pPos, (double) pRadius, mobeffectinstance, 200);
     }

@@ -1063,7 +1063,7 @@ public abstract class Mob extends LivingEntity {
             if (itemstack.getItem() instanceof SpawnEggItem) {
                 if (this.level instanceof ServerLevel) {
                     SpawnEggItem spawneggitem = (SpawnEggItem) itemstack.getItem();
-               Optional<Mob> optional = spawneggitem.spawnOffspringFromSpawnEgg(pPlayer, this, (EntityType<? extends Mob>)this.getType(), (ServerLevel)this.level, this.position(), itemstack);
+               Optional<Mob> optional = spawneggitem.spawnOffspringFromSpawnEgg(pPlayer, this, (EntityType<? extends Mob>)this.getType(), (ServerLevel)this.level, this.sectorPosition(), itemstack);
                optional.ifPresent((p_21476_) -> {
                    this.onOffspringSpawnedFromEgg(pPlayer, p_21476_);
                });

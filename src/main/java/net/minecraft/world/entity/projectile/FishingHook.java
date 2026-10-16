@@ -419,9 +419,7 @@ public class FishingHook extends Projectile {
                     double d3 = 0.1D;
                     itementity.setDeltaMovement(d0 * 0.1D, d1 * 0.1D + Math.sqrt(Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2)) * 0.08D, d2 * 0.1D);
                     this.level.addFreshEntity(itementity);
-                    ExperienceOrb experience = new ExperienceOrb(player.level, player.getX(), player.getY() + 0.5D,
-                            player.getZ() + 0.5D, this.random.nextInt(6) + 1);
-                    experience.applyExactPosition(player.sectorPosition().add(0.0D, 0.5D, 0.5D));
+                    ExperienceOrb experience = new ExperienceOrb(player.level, player.sectorPosition().add(0.0D, 0.5D, 0.5D), this.random.nextInt(6) + 1);
                     player.level.addFreshEntity(experience);
                     if (itemstack.is(ItemTags.FISHES)) {
                         player.awardStat(Stats.FISH_CAUGHT, 1);

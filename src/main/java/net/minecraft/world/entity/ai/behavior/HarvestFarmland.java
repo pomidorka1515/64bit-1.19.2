@@ -130,7 +130,7 @@ public class HarvestFarmland extends Behavior<Villager> {
                         }
 
                         if (flag) {
-                            pLevel.playSound((Player) null, (double) this.aboveFarmlandPos.getX(), (double) this.aboveFarmlandPos.getY(), (double) this.aboveFarmlandPos.getZ(), SoundEvents.CROP_PLANTED, SoundSource.BLOCKS, 1.0F, 1.0F);
+                            pLevel.playSound((Player) null, this.aboveFarmlandPos, SoundEvents.CROP_PLANTED, SoundSource.BLOCKS, 1.0F, 1.0F);
                             itemstack.shrink(1);
                             if (itemstack.isEmpty()) {
                                 simplecontainer.setItem(i, ItemStack.EMPTY);

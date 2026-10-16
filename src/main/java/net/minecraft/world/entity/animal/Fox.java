@@ -830,7 +830,7 @@ public class Fox extends Animal {
                 serverlevel.addFreshEntityWithPassengers(fox);
                 this.level.broadcastEntityEvent(this.animal, (byte) 18);
                 if (this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
-                    this.level.addFreshEntity(new ExperienceOrb(this.level, this.animal.getX(), this.animal.getY(), this.animal.getZ(), this.animal.getRandom().nextInt(7) + 1));
+                    this.level.addFreshEntity(new ExperienceOrb(this.level, this.animal.sectorPosition(), this.animal.getRandom().nextInt(7) + 1));
                 }
             }
         }

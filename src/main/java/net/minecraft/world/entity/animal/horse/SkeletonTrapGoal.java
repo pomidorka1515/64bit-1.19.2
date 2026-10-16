@@ -22,7 +22,7 @@ public class SkeletonTrapGoal extends Goal {
     }
 
     public boolean canUse() {
-        return this.horse.level.hasNearbyAlivePlayer(this.horse.getX(), this.horse.getY(), this.horse.getZ(), 10.0D);
+        return this.horse.level.hasNearbyAlivePlayer(this.horse.sectorPosition(), 10.0D);
     }
 
     public void tick() {

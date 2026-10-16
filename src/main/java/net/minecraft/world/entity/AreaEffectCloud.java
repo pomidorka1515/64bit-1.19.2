@@ -71,6 +71,11 @@ public class AreaEffectCloud extends Entity {
         this.getEntityData().define(DATA_PARTICLE, ParticleTypes.ENTITY_EFFECT);
     }
 
+    public AreaEffectCloud(Level level, net.minecraft.world.phys.SectorVec3 position) {
+        this(EntityType.AREA_EFFECT_CLOUD, level);
+        this.applyExactPosition(position);
+    }
+
     public void setRadius(float pRadius) {
         if (!this.level.isClientSide) {
             this.getEntityData().set(DATA_RADIUS, Mth.clamp(pRadius, 0.0F, 32.0F));

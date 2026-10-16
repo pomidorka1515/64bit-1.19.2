@@ -822,7 +822,7 @@ public class EnderDragon extends Mob implements Enemy {
         if (pDamageSource.getEntity() instanceof Player) {
             player = (Player) pDamageSource.getEntity();
         } else {
-            player = this.level.getNearestPlayer(CRYSTAL_DESTROY_TARGETING, (double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ());
+            player = this.level.getNearestPlayer(CRYSTAL_DESTROY_TARGETING, null, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D));
         }
 
         if (pCrystal == this.nearestCrystal) {

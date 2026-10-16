@@ -84,12 +84,15 @@ public class GoAndGiveItemsToTarget<E extends LivingEntity & InventoryCarrier> e
         }
     }
 
-    private static Vec3 getThrowPosition(PositionTracker pPositionTracker) {
-        SectorVec3 exact = pPositionTracker.currentExactPosition().add(0.0D, 1.0D, 0.0D);
-        return exact.toApproximateVec3();
+    private static SectorVec3 getThrowPosition(PositionTracker pPositionTracker) {
+        return pPositionTracker.currentExactPosition().add(0.0D, 1.0D, 0.0D);
     }
 
     public static void throwItem(LivingEntity p_217208_, ItemStack p_217209_, Vec3 p_217210_) {
+        throwItem(p_217208_, p_217209_, SectorVec3.fromApproximate(p_217210_.x, p_217210_.y, p_217210_.z));
+    }
+
+    public static void throwItem(LivingEntity p_217208_, ItemStack p_217209_, SectorVec3 p_217210_) {
         Vec3 vec3 = new Vec3((double) 0.2F, (double) 0.3F, (double) 0.2F);
         BehaviorUtils.throwItem(p_217208_, p_217209_, p_217210_, vec3, 0.2F);
         Level level = p_217208_.level;

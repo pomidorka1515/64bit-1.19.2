@@ -496,6 +496,10 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
                 });
     }
 
+    public AABB getAABB(SectorVec3 position) {
+        return AABB.fromSectorBounds(SectorAABB.around(position, this.getWidth(), this.getHeight()));
+    }
+
     public AABB getAABB(double pX, double pY, double pZ) {
         float f = this.getWidth() / 2.0F;
         return new AABB(pX - (double) f, pY, pZ - (double) f, pX + (double) f, pY + (double) this.getHeight(), pZ + (double) f);

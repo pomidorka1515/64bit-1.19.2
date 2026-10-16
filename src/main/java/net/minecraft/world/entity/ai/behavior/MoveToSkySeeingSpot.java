@@ -11,7 +11,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class MoveToSkySeeingSpot extends Behavior<LivingEntity> {
     private final float speedModifier;
@@ -22,7 +22,7 @@ public class MoveToSkySeeingSpot extends Behavior<LivingEntity> {
     }
 
     protected void start(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
-        Optional<Vec3> optional = Optional.ofNullable(this.getOutdoorPosition(pLevel, pEntity));
+        Optional<SectorVec3> optional = Optional.ofNullable(this.getOutdoorPosition(pLevel, pEntity));
         if (optional.isPresent()) {
             pEntity.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_23563_) -> {
                 return new WalkTarget(p_23563_, this.speedModifier, 0);
@@ -35,14 +35,14 @@ public class MoveToSkySeeingSpot extends Behavior<LivingEntity> {
     }
 
     @Nullable
-    private Vec3 getOutdoorPosition(ServerLevel pLevel, LivingEntity pWalker) {
+    private SectorVec3 getOutdoorPosition(ServerLevel pLevel, LivingEntity pWalker) {
         RandomSource randomsource = pWalker.getRandom();
         BlockPos blockpos = pWalker.blockPosition();
 
         for (int i = 0; i < 10; ++i) {
             BlockPos blockpos1 = blockpos.offset(randomsource.nextInt(20) - 10, randomsource.nextInt(6) - 3, randomsource.nextInt(20) - 10);
             if (hasNoBlocksAbove(pLevel, pWalker, blockpos1)) {
-                return Vec3.atBottomCenterOf(blockpos1);
+                return SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D, blockpos1.getY(), blockpos1.getZ(), 0.5D);
             }
         }
 

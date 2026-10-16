@@ -121,7 +121,7 @@ public class Endermite extends Monster {
 
     public static boolean checkEndermiteSpawnRules(EntityType<Endermite> pEndermite, LevelAccessor pServerLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
         if (checkAnyLightMonsterSpawnRules(pEndermite, pServerLevel, pSpawnType, pPos, pRandom)) {
-            Player player = pServerLevel.getNearestPlayer((double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, 5.0D, true);
+            Player player = pServerLevel.getNearestPlayer(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 0.5D, pPos.getZ(), 0.5D), 5.0D, true);
             return player == null;
         } else {
             return false;

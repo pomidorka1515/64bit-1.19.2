@@ -42,9 +42,13 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
     }
 
     public FireworkRocketEntity(Level pLevel, double pX, double pY, double pZ, ItemStack pStack) {
+        this(pLevel, SectorVec3.fromApproximate(pX, pY, pZ), pStack);
+    }
+
+    public FireworkRocketEntity(Level pLevel, SectorVec3 position, ItemStack pStack) {
         super(EntityType.FIREWORK_ROCKET, pLevel);
         this.life = 0;
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(position);
         int i = 1;
         if (!pStack.isEmpty() && pStack.hasTag()) {
             this.entityData.set(DATA_ID_FIREWORKS_ITEM, pStack.copy());
@@ -57,6 +61,11 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
 
     public FireworkRocketEntity(Level pLevel, @Nullable Entity pShooter, double pX, double pY, double pZ, ItemStack pStack) {
         this(pLevel, pX, pY, pZ, pStack);
+        this.setOwner(pShooter);
+    }
+
+    public FireworkRocketEntity(Level pLevel, @Nullable Entity pShooter, SectorVec3 position, ItemStack pStack) {
+        this(pLevel, position, pStack);
         this.setOwner(pShooter);
     }
 

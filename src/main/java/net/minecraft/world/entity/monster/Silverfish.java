@@ -112,7 +112,7 @@ public class Silverfish extends Monster {
 
     public static boolean checkSilverfishSpawnRules(EntityType<Silverfish> pSilverfish, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
         if (checkAnyLightMonsterSpawnRules(pSilverfish, pLevel, pSpawnType, pPos, pRandom)) {
-            Player player = pLevel.getNearestPlayer((double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, 5.0D, true);
+            Player player = pLevel.getNearestPlayer(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 0.5D, pPos.getZ(), 0.5D), 5.0D, true);
             return player == null;
         } else {
             return false;

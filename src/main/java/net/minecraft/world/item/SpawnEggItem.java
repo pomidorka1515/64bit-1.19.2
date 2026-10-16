@@ -149,6 +149,11 @@ public class SpawnEggItem extends Item {
     }
 
     public Optional<Mob> spawnOffspringFromSpawnEgg(Player pPlayer, Mob pMob, EntityType<? extends Mob> pEntityType, ServerLevel pServerLevel, Vec3 pPos, ItemStack pStack) {
+        return this.spawnOffspringFromSpawnEgg(pPlayer, pMob, pEntityType, pServerLevel,
+                net.minecraft.world.phys.SectorVec3.fromApproximate(pPos.x, pPos.y, pPos.z), pStack);
+    }
+
+    public Optional<Mob> spawnOffspringFromSpawnEgg(Player pPlayer, Mob pMob, EntityType<? extends Mob> pEntityType, ServerLevel pServerLevel, net.minecraft.world.phys.SectorVec3 pPos, ItemStack pStack) {
         if (!this.spawnsEntity(pStack.getTag(), pEntityType)) {
             return Optional.empty();
         } else {
@@ -166,7 +171,7 @@ public class SpawnEggItem extends Item {
                 if (!mob.isBaby()) {
                     return Optional.empty();
                 } else {
-                    mob.moveTo(pPos.x(), pPos.y(), pPos.z(), 0.0F, 0.0F);
+                    mob.moveTo(pPos, 0.0F, 0.0F);
                     pServerLevel.addFreshEntityWithPassengers(mob);
                     if (pStack.hasCustomHoverName()) {
                         mob.setCustomName(pStack.getHoverName());

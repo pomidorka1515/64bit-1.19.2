@@ -75,9 +75,9 @@ public class VillageSiege implements CustomSpawner {
                 if (pLevel.isVillage(blockpos) && !pLevel.getBiome(blockpos).is(BiomeTags.WITHOUT_ZOMBIE_SIEGES)) {
                     for (int i = 0; i < 10; ++i) {
                         float f = pLevel.random.nextFloat() * ((float) Math.PI * 2F);
-                        this.spawnX = blockpos.getX() + Mth.floor(Mth.cos(f) * 32.0F);
+                        this.spawnX = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), Mth.floor(Mth.cos(f) * 32.0F));
                         this.spawnY = blockpos.getY();
-                        this.spawnZ = blockpos.getZ() + Mth.floor(Mth.sin(f) * 32.0F);
+                        this.spawnZ = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), Mth.floor(Mth.sin(f) * 32.0F));
                         if (this.findRandomSpawnPos(pLevel, new BlockPos(this.spawnX, this.spawnY, this.spawnZ)) != null) {
                             this.nextSpawnTime = 0;
                             this.zombiesToSpawn = 20;
@@ -99,13 +99,13 @@ public class VillageSiege implements CustomSpawner {
             Zombie zombie;
             try {
                 zombie = new Zombie(pLevel);
+                zombie.moveTo(vec3, pLevel.random.nextFloat() * 360.0F, 0.0F);
                 zombie.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(zombie.blockPosition()), MobSpawnType.EVENT, (SpawnGroupData) null, (CompoundTag) null);
             } catch (Exception exception) {
                 LOGGER.warn("Failed to create zombie for village siege at {}", vec3, exception);
                 return;
             }
 
-            zombie.moveTo(vec3, pLevel.random.nextFloat() * 360.0F, 0.0F);
             pLevel.addFreshEntityWithPassengers(zombie);
         }
     }
@@ -113,8 +113,8 @@ public class VillageSiege implements CustomSpawner {
     @Nullable
     private net.minecraft.world.phys.SectorVec3 findRandomSpawnPos(ServerLevel pLevel, BlockPos pPos) {
         for (int i = 0; i < 10; ++i) {
-            long j = pPos.getX() + pLevel.random.nextInt(16) - 8;
-            long k = pPos.getZ() + pLevel.random.nextInt(16) - 8;
+            long j = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getX(), pLevel.random.nextInt(16) - 8);
+            long k = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getZ(), pLevel.random.nextInt(16) - 8);
             int l = pLevel.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
             BlockPos blockpos = new BlockPos(j, l, k);
             if (pLevel.isVillage(blockpos) && Monster.checkMonsterSpawnRules(EntityType.ZOMBIE, pLevel, MobSpawnType.EVENT, blockpos, pLevel.random)) {

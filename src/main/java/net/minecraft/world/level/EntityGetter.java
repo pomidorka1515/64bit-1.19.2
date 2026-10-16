@@ -214,6 +214,33 @@ public interface EntityGetter {
     }
 
     @Nullable
+    default Player getNearestPlayer(SectorVec3 position, double range, boolean excludeCreative) {
+        Predicate<Entity> predicate = excludeCreative ? EntitySelector.NO_CREATIVE_OR_SPECTATOR : EntitySelector.NO_SPECTATORS;
+        double closest = -1.0D;
+        Player nearest = null;
+        for (Player player : this.players()) {
+            if (predicate.test(player)) {
+                double distance = player.sectorPosition().relativeTo(position).lengthSqr();
+                if ((range < 0.0D || distance < range * range) && (closest < 0.0D || distance < closest)) {
+                    closest = distance;
+                    nearest = player;
+                }
+            }
+        }
+        return nearest;
+    }
+
+    default boolean hasNearbyAlivePlayer(SectorVec3 position, double range) {
+        for (Player player : this.players()) {
+            if (EntitySelector.NO_SPECTATORS.test(player) && EntitySelector.LIVING_ENTITY_STILL_ALIVE.test(player)
+                    && (range < 0.0D || player.sectorPosition().relativeTo(position).lengthSqr() < range * range)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Nullable
     default Player getNearestPlayer(double pX, double pY, double pZ, double pDistance, @Nullable Predicate<Entity> pPredicate) {
         double d0 = -1.0D;
         Player player = null;
@@ -272,6 +299,11 @@ public interface EntityGetter {
     }
 
     @Nullable
+    default Player getNearestPlayer(TargetingConditions conditions, @Nullable LivingEntity source, SectorVec3 position) {
+        return this.getNearestEntity(this.players(), conditions, source, position);
+    }
+
+    @Nullable
     default Player getNearestPlayer(TargetingConditions pPredicate, LivingEntity pTarget, double pX, double pY, double pZ) {
         return this.getNearestEntity(this.players(), pPredicate, pTarget, pX, pY, pZ);
     }
@@ -289,6 +321,12 @@ public interface EntityGetter {
     }
 
     @Nullable
+    default<T extends LivingEntity> T getNearestEntity(Class<? extends T> type, TargetingConditions conditions,
+            @Nullable LivingEntity source, SectorVec3 position, AABB box) {
+        return this.getNearestEntity(this.getEntitiesOfClass(type, box, entity -> true), conditions, source, position);
+    }
+
+    @Nullable
     default<T extends LivingEntity> T getNearestEntity(List<? extends T> entities,
             TargetingConditions conditions,
             @Nullable LivingEntity source) {
@@ -298,6 +336,23 @@ public interface EntityGetter {
             if (conditions.test(source, candidate)) {
                 double distance = source == null ? 0.0D : source.distanceToSqr(candidate);
                 if (closest == -1.0D || distance < closest) {
+                    closest = distance;
+                    nearest = candidate;
+                }
+            }
+        }
+        return nearest;
+    }
+
+    @Nullable
+    default<T extends LivingEntity> T getNearestEntity(List<? extends T> entities,
+            TargetingConditions conditions, @Nullable LivingEntity source, SectorVec3 position) {
+        double closest = -1.0D;
+        T nearest = null;
+        for (T candidate : entities) {
+            if (conditions.test(source, candidate)) {
+                double distance = candidate.sectorPosition().relativeTo(position).lengthSqr();
+                if (closest < 0.0D || distance < closest) {
                     closest = distance;
                     nearest = candidate;
                 }
@@ -330,7 +385,11 @@ public interface EntityGetter {
         List<Player> list = Lists.newArrayList();
 
         for (Player player : this.players()) {
-            if (pArea.contains(player.getX(), player.getY(), player.getZ()) && pPredicate.test(pTarget, player)) {
+            SectorAABB exactBox = pArea.getSectorBounds();
+            SectorPhysicsOrigin origin = exactBox == null ? null : SectorPhysicsOrigin.from(player.sectorPosition());
+            boolean contains = exactBox == null ? pArea.contains(player.getX(), player.getY(), player.getZ())
+                    : exactBox.toLocalAABB(origin).contains(origin.toLocal(player.sectorPosition()));
+            if (contains && pPredicate.test(pTarget, player)) {
                 list.add(player);
             }
         }

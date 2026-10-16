@@ -505,7 +505,7 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
         }
 
         if (pOffer.shouldRewardExp()) {
-            this.level.addFreshEntity(new ExperienceOrb(this.level, this.getX(), this.getY() + 0.5D, this.getZ(), i));
+            this.level.addFreshEntity(new ExperienceOrb(this.level, this.sectorPosition().add(0.0D, 0.5D, 0.0D), i));
         }
     }
 

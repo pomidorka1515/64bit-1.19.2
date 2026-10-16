@@ -46,7 +46,7 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.structures.NetherFortressStructure;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import org.slf4j.Logger;
 
 public final class NaturalSpawner {
@@ -155,14 +155,13 @@ public final class NaturalSpawner {
                 int l1 = 0;
 
                 for (int i2 = 0; i2 < k1; ++i2) {
-                    l += pLevel.random.nextInt(6) - pLevel.random.nextInt(6);
-                    i1 += pLevel.random.nextInt(6) - pLevel.random.nextInt(6);
+                    l = WorldBounds.addBlockOffset(l, pLevel.random.nextInt(6) - pLevel.random.nextInt(6));
+                    i1 = WorldBounds.addBlockOffset(i1, pLevel.random.nextInt(6) - pLevel.random.nextInt(6));
                     blockpos$mutableblockpos.set(l, i, i1);
-                    double d0 = (double) l + 0.5D;
-                    double d1 = (double) i1 + 0.5D;
-                    Player player = pLevel.getNearestPlayer(d0, (double) i, d1, -1.0D, false);
+                    SectorVec3 spawnPosition = SectorVec3.fromBlockAndFraction(l, 0.5D, (double) i, i1, 0.5D);
+                    Player player = pLevel.getNearestPlayer(spawnPosition, -1.0D, false);
                     if (player != null) {
-                        double d2 = player.distanceToSqr(d0, (double) i, d1);
+                        double d2 = player.sectorPosition().relativeTo(spawnPosition).lengthSqr();
                         if (isRightDistanceToPlayerAndSpawnPoint(pLevel, pChunk, blockpos$mutableblockpos, d2)) {
                             if (mobspawnsettings$spawnerdata == null) {
                                 Optional<MobSpawnSettings.SpawnerData> optional = getRandomSpawnMobAt(pLevel, structuremanager, chunkgenerator, pCategory, pLevel.random, blockpos$mutableblockpos);
@@ -180,7 +179,7 @@ public final class NaturalSpawner {
                                     return;
                                 }
 
-                                mob.moveTo(d0, (double) i, d1, pLevel.random.nextFloat() * 360.0F, 0.0F);
+                                mob.moveTo(spawnPosition, pLevel.random.nextFloat() * 360.0F, 0.0F);
                                 if (isValidPositionForMob(pLevel, mob, d2)) {
                                     spawngroupdata = mob.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.NATURAL, spawngroupdata, (CompoundTag) null);
                                     ++j;
@@ -206,7 +205,7 @@ public final class NaturalSpawner {
     private static boolean isRightDistanceToPlayerAndSpawnPoint(ServerLevel pLevel, ChunkAccess pChunk, BlockPos.MutableBlockPos pPos, double pDistance) {
         if (pDistance <= 576.0D) {
             return false;
-        } else if (pLevel.getSharedSpawnPos().closerToCenterThan(new Vec3((double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D), 24.0D)) {
+        } else if (pLevel.getSharedSpawnPos().closerToCenterThan(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY(), pPos.getZ(), 0.5D), 24.0D)) {
             return false;
         } else {
             return Objects.equals(new ChunkPos(pPos), pChunk.getPos()) || pLevel.isNaturalSpawningAllowed(pPos);
@@ -226,7 +225,7 @@ public final class NaturalSpawner {
             } else if (!SpawnPlacements.checkSpawnRules(entitytype, pLevel, MobSpawnType.NATURAL, pPos, pLevel.random)) {
                 return false;
             } else {
-                return pLevel.noCollision(entitytype.getAABB((double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D));
+                return pLevel.noCollision(entitytype.getAABB(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY(), pPos.getZ(), 0.5D)));
             }
         } else {
             return false;
@@ -353,9 +352,8 @@ public final class NaturalSpawner {
                             BlockPos blockpos = getTopNonCollidingPos(pLevelAccessor, mobspawnsettings$spawnerdata.type, l, i1);
                             if (mobspawnsettings$spawnerdata.type.canSummon() && isSpawnPositionOk(SpawnPlacements.getPlacementType(mobspawnsettings$spawnerdata.type), pLevelAccessor, blockpos, mobspawnsettings$spawnerdata.type)) {
                                 float f = mobspawnsettings$spawnerdata.type.getWidth();
-                                double d0 = getSpawnCoordinate(l, i, f);
-                                double d1 = getSpawnCoordinate(i1, j, f);
-                                if (!pLevelAccessor.noCollision(mobspawnsettings$spawnerdata.type.getAABB(d0, (double) blockpos.getY(), d1)) || !SpawnPlacements.checkSpawnRules(mobspawnsettings$spawnerdata.type, pLevelAccessor, MobSpawnType.CHUNK_GENERATION, new BlockPos(d0, (double) blockpos.getY(), d1), pLevelAccessor.getRandom())) {
+                                SectorVec3 spawnPosition = getGenerationSpawnPosition(l, blockpos.getY(), i1, i, j, f);
+                                if (!pLevelAccessor.noCollision(mobspawnsettings$spawnerdata.type.getAABB(spawnPosition)) || !SpawnPlacements.checkSpawnRules(mobspawnsettings$spawnerdata.type, pLevelAccessor, MobSpawnType.CHUNK_GENERATION, spawnPosition.blockPosition(), pLevelAccessor.getRandom())) {
                                     continue;
                                 }
 
@@ -367,7 +365,7 @@ public final class NaturalSpawner {
                                     continue;
                                 }
 
-                                entity.moveTo(d0, (double) blockpos.getY(), d1, pRandom.nextFloat() * 360.0F, 0.0F);
+                                entity.moveTo(spawnPosition, pRandom.nextFloat() * 360.0F, 0.0F);
                                 if (entity instanceof Mob) {
                                     Mob mob = (Mob) entity;
                                     if (mob.checkSpawnRules(pLevelAccessor, MobSpawnType.CHUNK_GENERATION) && mob.checkSpawnObstruction(pLevelAccessor)) {
@@ -404,35 +402,11 @@ public final class NaturalSpawner {
         return WorldBounds.isWithinChunk(p_220455_, pLevel) && WorldBounds.isWithinChunk(pPos, pCategory);
     }
 
-    private static double getSpawnCoordinate(long p_220455_, long pPos, float pLevel) {
-        long i = WorldBounds.addBlockOffset(pPos, 15L);
-        long j = Math.max(pPos, Math.min(p_220455_, i));
-        // Form the upper limit from the last valid block, rather than min + 16,
-        // because that long addition wraps in the final chunk.
-        double d0 = WorldBounds.clampAbsoluteDouble(Mth.clamp((double) j, (double) pPos + (double) pLevel, (double) i + 1.0D - (double) pLevel));
-        long k = SectionPos.blockToSectionCoord(pPos);
-        if (SectionPos.blockToSectionCoord(Mth.lfloor(d0)) == k) {
-            return d0;
-        } else {
-            // At large coordinates, converting a block coordinate to a double can
-            // round it into the adjacent chunk. Search the finite chunk interval
-            // using WorldBounds so the final chunk has no overflowing upper bound.
-            for (int l = 0; l < 16; ++l) {
-                long i1 = WorldBounds.subtractBlockOffset(j, (long) l);
-                if (WorldBounds.isWithinChunk(i1, pPos) && SectionPos.blockToSectionCoord(Mth.lfloor((double) i1)) == k) {
-                    return (double) i1;
-                }
-
-                if (l != 0) {
-                    i1 = WorldBounds.addBlockOffset(j, (long) l);
-                    if (WorldBounds.isWithinChunk(i1, pPos) && SectionPos.blockToSectionCoord(Mth.lfloor((double) i1)) == k) {
-                        return (double) i1;
-                    }
-                }
-            }
-
-            return d0;
-        }
+    static SectorVec3 getGenerationSpawnPosition(long x, int y, long z, long chunkX, long chunkZ, float width) {
+        // Clamp in the small chunk-local frame, never in absolute doubles.
+        double localX = Mth.clamp(WorldBounds.signedDifference(x, chunkX), (double) width, 16.0D - (double) width);
+        double localZ = Mth.clamp(WorldBounds.signedDifference(z, chunkZ), (double) width, 16.0D - (double) width);
+        return SectorVec3.fromBlockAndFraction(chunkX, localX, (double) y, chunkZ, localZ);
     }
 
     private static BlockPos getTopNonCollidingPos(LevelReader pLevel, EntityType<?> pEntityType, long pX, long pZ) {

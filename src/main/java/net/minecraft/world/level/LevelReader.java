@@ -144,6 +144,16 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     }
 
     default boolean containsAnyLiquid(AABB pBb) {
+        net.minecraft.world.phys.SectorAABB exactBox = pBb.getSectorBounds();
+        if (exactBox != null) {
+            for (BlockPos pos : BlockPos.betweenClosed(exactBox.minBlockXForRange(), exactBox.minBlockYForRange(), exactBox.minBlockZForRange(),
+                    exactBox.maxBlockXForRangeInclusive(), exactBox.maxBlockYExclusive() - 1, exactBox.maxBlockZForRangeInclusive())) {
+                if (!this.getFluidState(pos).isEmpty()) {
+                    return true;
+                }
+            }
+            return false;
+        }
         int i = Mth.floor(pBb.minX);
         int j = Mth.ceil(pBb.maxX);
         int k = Mth.floor(pBb.minY);

@@ -60,8 +60,7 @@ public class SonicBoom extends Behavior<Warden> {
 
                         for (int i = 1; i < Mth.floor(vec31.length()) + 7; ++i) {
                             Vec3 offset = vec32.scale((double) i);
-                            Vec3 vec33 = origin.add(offset.x, offset.y, offset.z).toApproximateVec3();
-                            pLevel.sendParticles(ParticleTypes.SONIC_BOOM, vec33.x, vec33.y, vec33.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                            pLevel.sendParticles(ParticleTypes.SONIC_BOOM, origin.add(offset.x, offset.y, offset.z), 1, 0.0D, 0.0D, 0.0D, 0.0D);
                         }
 
                         pOwner.playSound(SoundEvents.WARDEN_SONIC_BOOM, 3.0F, 1.0F);

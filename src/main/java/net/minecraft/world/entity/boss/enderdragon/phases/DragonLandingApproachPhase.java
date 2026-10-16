@@ -52,7 +52,7 @@ public class DragonLandingApproachPhase extends AbstractDragonPhaseInstance {
         if (this.currentPath == null || this.currentPath.isDone()) {
             int i = this.dragon.findClosestNode();
             BlockPos blockpos = this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EndPodiumFeature.END_PODIUM_LOCATION);
-            Player player = this.dragon.level.getNearestPlayer(NEAR_EGG_TARGETING, this.dragon, (double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ());
+            Player player = this.dragon.level.getNearestPlayer(NEAR_EGG_TARGETING, this.dragon, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, blockpos.getY(), blockpos.getZ(), 0.0D));
             int j;
             if (player != null) {
                 Vec3 vec3 = (new Vec3(player.getX(), 0.0D, player.getZ())).normalize();

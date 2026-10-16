@@ -259,7 +259,7 @@ public class Frog extends Animal {
         this.getBrain().setMemory(MemoryModuleType.IS_PREGNANT, Unit.INSTANCE);
         pLevel.broadcastEntityEvent(this, (byte) 18);
         if (pLevel.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
-            pLevel.addFreshEntity(new ExperienceOrb(pLevel, this.getX(), this.getY(), this.getZ(), this.getRandom().nextInt(7) + 1));
+            pLevel.addFreshEntity(new ExperienceOrb(pLevel, this.sectorPosition(), this.getRandom().nextInt(7) + 1));
         }
     }
 

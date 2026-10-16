@@ -80,7 +80,7 @@ public class RemoveBlockGoal extends MoveToBlockGoal {
                 this.removerMob.setDeltaMovement(vec3.x, 0.3D, vec3.z);
                 if (!level.isClientSide) {
                     double d0 = 0.08D;
-                    ((ServerLevel) level).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.EGG)), (double) blockpos1.getX() + 0.5D, (double) blockpos1.getY() + 0.7D, (double) blockpos1.getZ() + 0.5D, 3, ((double) randomsource.nextFloat() - 0.5D) * 0.08D, ((double) randomsource.nextFloat() - 0.5D) * 0.08D, ((double) randomsource.nextFloat() - 0.5D) * 0.08D, (double) 0.15F);
+                    ((ServerLevel) level).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.EGG)), net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D, (double) blockpos1.getY() + 0.7D, blockpos1.getZ(), 0.5D), 3, ((double) randomsource.nextFloat() - 0.5D) * 0.08D, ((double) randomsource.nextFloat() - 0.5D) * 0.08D, ((double) randomsource.nextFloat() - 0.5D) * 0.08D, (double) 0.15F);
                 }
             }
 
@@ -99,7 +99,7 @@ public class RemoveBlockGoal extends MoveToBlockGoal {
                         double d3 = randomsource.nextGaussian() * 0.02D;
                         double d1 = randomsource.nextGaussian() * 0.02D;
                         double d2 = randomsource.nextGaussian() * 0.02D;
-                        ((ServerLevel) level).sendParticles(ParticleTypes.POOF, (double) blockpos1.getX() + 0.5D, (double) blockpos1.getY(), (double) blockpos1.getZ() + 0.5D, 1, d3, d1, d2, (double) 0.15F);
+                        ((ServerLevel) level).sendParticles(ParticleTypes.POOF, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D, (double) blockpos1.getY(), blockpos1.getZ(), 0.5D), 1, d3, d1, d2, (double) 0.15F);
                     }
 
                     this.playBreakSound(level, blockpos1);

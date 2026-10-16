@@ -67,7 +67,7 @@ public class CatSpawner implements CustomSpawner {
         if (pServerLevel.getPoiManager().getCountInRange((p_219610_) -> {
                 return p_219610_.is(PoiTypes.HOME);
             }, pPos, 48, PoiManager.Occupancy.IS_OCCUPIED) > 4L) {
-            List<Cat> list = pServerLevel.getEntitiesOfClass(Cat.class, (new AABB(pPos)).inflate(48.0D, 8.0D, 48.0D));
+            List<Cat> list = pServerLevel.getEntitiesOfClass(Cat.class, getSpawnBox(pPos).inflate(48.0D, 8.0D, 48.0D));
             if (list.size() < 5) {
                 return this.spawnCat(pPos, pServerLevel);
             }
@@ -78,8 +78,13 @@ public class CatSpawner implements CustomSpawner {
 
     private int spawnInHut(ServerLevel pServerLevel, BlockPos pPos) {
         int i = 16;
-        List<Cat> list = pServerLevel.getEntitiesOfClass(Cat.class, (new AABB(pPos)).inflate(16.0D, 8.0D, 16.0D));
+        List<Cat> list = pServerLevel.getEntitiesOfClass(Cat.class, getSpawnBox(pPos).inflate(16.0D, 8.0D, 16.0D));
         return list.size() < 1 ? this.spawnCat(pPos, pServerLevel) : 0;
+    }
+
+    private static AABB getSpawnBox(BlockPos pos) {
+        return AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(
+                net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pos.getX(), 0.5D, pos.getY(), pos.getZ(), 0.5D), 1.0D, 1.0D));
     }
 
     private int spawnCat(BlockPos pPos, ServerLevel pServerLevel) {

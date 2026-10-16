@@ -23,6 +23,7 @@ import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.SectorAABB;
 import org.slf4j.Logger;
 
 public abstract class BaseSpawner {
@@ -47,7 +48,7 @@ public abstract class BaseSpawner {
     }
 
     private boolean isNearPlayer(Level pLevel, BlockPos pPos) {
-        return pLevel.hasNearbyAlivePlayer((double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, (double) this.requiredPlayerRange);
+        return pLevel.hasNearbyAlivePlayer(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 0.5D, pPos.getZ(), 0.5D), (double) this.requiredPlayerRange);
     }
 
     public void clientTick(Level pLevel, BlockPos pPos) {
@@ -90,11 +91,14 @@ public abstract class BaseSpawner {
                     ListTag listtag = compoundtag.getList("Pos", 6);
                     int j = listtag.size();
                     RandomSource randomsource = pServerLevel.getRandom();
-                    double d0 = j >= 1 ? listtag.getDouble(0) : (double) pPos.getX() + (randomsource.nextDouble() - randomsource.nextDouble()) * (double) this.spawnRange + 0.5D;
+                    double d0 = j >= 1 ? 0.0D : (randomsource.nextDouble() - randomsource.nextDouble()) * (double) this.spawnRange + 0.5D;
                     double d1 = j >= 2 ? listtag.getDouble(1) : (double) (pPos.getY() + randomsource.nextInt(3) - 1);
-                    double d2 = j >= 3 ? listtag.getDouble(2) : (double) pPos.getZ() + (randomsource.nextDouble() - randomsource.nextDouble()) * (double) this.spawnRange + 0.5D;
-                    if (pServerLevel.noCollision(optional.get().getAABB(d0, d1, d2))) {
-                        BlockPos blockpos = new BlockPos(d0, d1, d2);
+                    double d2 = j >= 3 ? 0.0D : (randomsource.nextDouble() - randomsource.nextDouble()) * (double) this.spawnRange + 0.5D;
+                    SectorVec3 position = compoundtag.contains("ExactPos", 10)
+                            ? getExactSpawnPosition(compoundtag.getCompound("ExactPos"))
+                            : getSpawnPosition(pPos, listtag, d0, d1, d2);
+                    if (pServerLevel.noCollision(optional.get().getAABB(position))) {
+                        BlockPos blockpos = position.blockPosition();
                         if (this.nextSpawnData.getCustomSpawnRules().isPresent()) {
                             if (!optional.get().getCategory().isFriendly() && pServerLevel.getDifficulty() == Difficulty.PEACEFUL) {
                                 continue;
@@ -109,7 +113,7 @@ public abstract class BaseSpawner {
                         }
 
                         Entity entity = EntityType.loadEntityRecursive(compoundtag, pServerLevel, (p_151310_) -> {
-                            p_151310_.moveTo(d0, d1, d2, p_151310_.getYRot(), p_151310_.getXRot());
+                            p_151310_.moveTo(position, p_151310_.getYRot(), p_151310_.getXRot());
                             return p_151310_;
                         });
                         if (entity == null) {
@@ -117,13 +121,13 @@ public abstract class BaseSpawner {
                             return;
                         }
 
-                        int k = pServerLevel.getEntitiesOfClass(entity.getClass(), (new AABB((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), (double) (WorldBounds.addBlockOffset(pPos.getX(), 1)), (double) (pPos.getY() + 1), (double) (WorldBounds.addBlockOffset(pPos.getZ(), 1)))).inflate((double) this.spawnRange)).size();
+                        int k = pServerLevel.getEntitiesOfClass(entity.getClass(), AABB.fromSectorBounds(SectorAABB.around(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY(), pPos.getZ(), 0.5D), 1.0D, 1.0D)).inflate((double) this.spawnRange)).size();
                         if (k >= this.maxNearbyEntities) {
                             this.delay(pServerLevel, pPos);
                             return;
                         }
 
-                        entity.moveTo(entity.getX(), entity.getY(), entity.getZ(), randomsource.nextFloat() * 360.0F, 0.0F);
+                        entity.moveTo(entity.sectorPosition(), randomsource.nextFloat() * 360.0F, 0.0F);
                         if (entity instanceof Mob) {
                             Mob mob = (Mob) entity;
                             if (this.nextSpawnData.getCustomSpawnRules().isEmpty() && !mob.checkSpawnRules(pServerLevel, MobSpawnType.SPAWNER) || !mob.checkSpawnObstruction(pServerLevel)) {
@@ -155,6 +159,21 @@ public abstract class BaseSpawner {
                 }
             }
         }
+    }
+
+    private static SectorVec3 getExactSpawnPosition(CompoundTag tag) {
+        return SectorVec3.fromBlockAndFraction(tag.getLong("BlockX"), tag.getDouble("SubX"), tag.getDouble("Y"),
+                tag.getLong("BlockZ"), tag.getDouble("SubZ"));
+    }
+
+    static SectorVec3 getSpawnPosition(BlockPos origin, ListTag explicitPosition, double offsetX, double y, double offsetZ) {
+        // Explicit NBT coordinates are legacy doubles; only unspecified axes are relative to the spawner.
+        SectorVec3 explicit = SectorVec3.fromApproximate(explicitPosition.size() >= 1 ? explicitPosition.getDouble(0) : 0.0D,
+                y, explicitPosition.size() >= 3 ? explicitPosition.getDouble(2) : 0.0D);
+        return SectorVec3.fromBlockAndFraction(explicitPosition.size() >= 1 ? explicit.blockX() : origin.getX(),
+                explicitPosition.size() >= 1 ? explicit.subX() : offsetX, y,
+                explicitPosition.size() >= 3 ? explicit.blockZ() : origin.getZ(),
+                explicitPosition.size() >= 3 ? explicit.subZ() : offsetZ);
     }
 
     private void delay(Level pLevel, BlockPos pPos) {

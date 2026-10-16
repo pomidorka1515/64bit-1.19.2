@@ -101,7 +101,7 @@ public class Vex extends Monster {
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         if (pCompound.contains("BoundX")) {
-            this.boundOrigin = new BlockPos(pCompound.getInt("BoundX"), pCompound.getInt("BoundY"), pCompound.getInt("BoundZ"));
+            this.boundOrigin = new BlockPos(pCompound.getLong("BoundX"), pCompound.getInt("BoundY"), pCompound.getLong("BoundZ"));
         }
 
         if (pCompound.contains("LifeTicks")) {

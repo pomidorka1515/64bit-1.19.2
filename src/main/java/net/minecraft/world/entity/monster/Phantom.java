@@ -148,7 +148,7 @@ public class Phantom extends FlyingMob implements Enemy {
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         if (pCompound.contains("AX")) {
-            this.anchorPoint = new BlockPos(pCompound.getInt("AX"), pCompound.getInt("AY"), pCompound.getInt("AZ"));
+            this.anchorPoint = new BlockPos(pCompound.getLong("AX"), pCompound.getInt("AY"), pCompound.getLong("AZ"));
         }
 
         this.setPhantomSize(pCompound.getInt("Size"));

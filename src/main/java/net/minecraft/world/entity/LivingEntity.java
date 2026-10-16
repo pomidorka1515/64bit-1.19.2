@@ -716,7 +716,7 @@ public abstract class LivingEntity extends Entity {
         }
 
         if (pCompound.contains("SleepingX", 99) && pCompound.contains("SleepingY", 99) && pCompound.contains("SleepingZ", 99)) {
-            BlockPos blockpos = new BlockPos(pCompound.getInt("SleepingX"), pCompound.getInt("SleepingY"), pCompound.getInt("SleepingZ"));
+            BlockPos blockpos = new BlockPos(pCompound.getLong("SleepingX"), pCompound.getInt("SleepingY"), pCompound.getLong("SleepingZ"));
             this.setSleepingPos(blockpos);
             this.entityData.set(DATA_POSE, Pose.SLEEPING);
             if (!this.firstTick) {

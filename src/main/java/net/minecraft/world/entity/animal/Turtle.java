@@ -153,15 +153,15 @@ public class Turtle extends Animal {
     }
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
-        int i = pCompound.getInt("HomePosX");
+        long i = pCompound.getLong("HomePosX");
         int j = pCompound.getInt("HomePosY");
-        int k = pCompound.getInt("HomePosZ");
+        long k = pCompound.getLong("HomePosZ");
         this.setHomePos(new BlockPos(i, j, k));
         super.readAdditionalSaveData(pCompound);
         this.setHasEgg(pCompound.getBoolean("HasEgg"));
-        int l = pCompound.getInt("TravelPosX");
+        long l = pCompound.getLong("TravelPosX");
         int i1 = pCompound.getInt("TravelPosY");
-        int j1 = pCompound.getInt("TravelPosZ");
+        long j1 = pCompound.getLong("TravelPosZ");
         this.setTravelPos(new BlockPos(l, i1, j1));
     }
 

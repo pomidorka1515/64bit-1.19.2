@@ -213,7 +213,7 @@ public final class NbtUtils {
     }
 
     public static BlockPos readBlockPos(CompoundTag pTag) {
-        return new BlockPos(pTag.getInt("X"), pTag.getInt("Y"), pTag.getInt("Z"));
+        return new BlockPos(pTag.getLong("X"), pTag.getInt("Y"), pTag.getLong("Z"));
     }
 
     public static CompoundTag writeBlockPos(BlockPos pPos) {

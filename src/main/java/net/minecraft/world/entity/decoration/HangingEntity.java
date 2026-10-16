@@ -185,7 +185,7 @@ public abstract class HangingEntity extends Entity {
     }
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
-        BlockPos blockpos = new BlockPos(pCompound.getInt("TileX"), pCompound.getInt("TileY"), pCompound.getInt("TileZ"));
+        BlockPos blockpos = new BlockPos(pCompound.getLong("TileX"), pCompound.getInt("TileY"), pCompound.getLong("TileZ"));
         if (!blockpos.closerThan(this.blockPosition(), 16.0D)) {
             LOGGER.error("Hanging entity at invalid position: {}", (Object) blockpos);
         } else {

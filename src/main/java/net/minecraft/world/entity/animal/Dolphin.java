@@ -134,9 +134,9 @@ public class Dolphin extends WaterAnimal {
     }
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
-        int i = pCompound.getInt("TreasurePosX");
+        long i = pCompound.getLong("TreasurePosX");
         int j = pCompound.getInt("TreasurePosY");
-        int k = pCompound.getInt("TreasurePosZ");
+        long k = pCompound.getLong("TreasurePosZ");
         this.setTreasurePos(new BlockPos(i, j, k));
         super.readAdditionalSaveData(pCompound);
         this.setGotFish(pCompound.getBoolean("GotFish"));

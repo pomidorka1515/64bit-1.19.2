@@ -128,7 +128,7 @@ public class Raid {
         this.raidCooldownTicks = pCompound.getInt("PreRaidTicks");
         this.postRaidTicks = pCompound.getInt("PostRaidTicks");
         this.totalHealth = pCompound.getFloat("TotalHealth");
-        this.center = new BlockPos(pCompound.getInt("CX"), pCompound.getInt("CY"), pCompound.getInt("CZ"));
+        this.center = new BlockPos(pCompound.getLong("CX"), pCompound.getInt("CY"), pCompound.getLong("CZ"));
         this.numGroups = pCompound.getInt("NumGroups");
         this.status = Raid.RaidStatus.getByName(pCompound.getString("Status"));
         this.heroesOfTheVillage.clear();

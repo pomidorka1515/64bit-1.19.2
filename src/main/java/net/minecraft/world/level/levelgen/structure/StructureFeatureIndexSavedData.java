@@ -52,6 +52,7 @@ public class StructureFeatureIndexSavedData extends SavedData {
             CompoundTag tag2 = new CompoundTag();
             tag2.putLong("x", chunkPos.x);
             tag2.putLong("z", chunkPos.z);
+            tag.add(tag2);
         }
         return tag;
     }

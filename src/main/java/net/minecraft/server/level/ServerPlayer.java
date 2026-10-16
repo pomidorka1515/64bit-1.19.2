@@ -307,7 +307,7 @@ public class ServerPlayer extends Player {
         }
 
         if (pCompound.contains("SpawnX", 99) && pCompound.contains("SpawnY", 99) && pCompound.contains("SpawnZ", 99)) {
-            this.respawnPosition = new BlockPos(pCompound.getInt("SpawnX"), pCompound.getInt("SpawnY"), pCompound.getInt("SpawnZ"));
+            this.respawnPosition = new BlockPos(pCompound.getLong("SpawnX"), pCompound.getInt("SpawnY"), pCompound.getLong("SpawnZ"));
             this.respawnForced = pCompound.getBoolean("SpawnForced");
             this.respawnAngle = pCompound.getFloat("SpawnAngle");
             if (pCompound.contains("SpawnDimension")) {

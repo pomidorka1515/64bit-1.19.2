@@ -46,7 +46,7 @@ public record SavedTick<T>(T type, BlockPos pos, int delay, TickPriority priorit
 
     public static <T> Optional<SavedTick<T>> loadTick(CompoundTag p_210670_, Function<String, Optional<T>> p_210671_) {
         return p_210671_.apply(p_210670_.getString("i")).map((p_210668_) -> {
-            BlockPos blockpos = new BlockPos(p_210670_.getInt("x"), p_210670_.getInt("y"), p_210670_.getInt("z"));
+            BlockPos blockpos = new BlockPos(p_210670_.getLong("x"), p_210670_.getInt("y"), p_210670_.getLong("z"));
             return new SavedTick<>(p_210668_, blockpos, p_210670_.getInt("t"), TickPriority.byValue(p_210670_.getInt("p")));
         });
     }

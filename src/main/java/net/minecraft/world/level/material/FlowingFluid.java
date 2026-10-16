@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.BlockGetter;
@@ -245,9 +246,9 @@ public abstract class FlowingFluid extends Fluid {
     protected abstract void beforeDestroyingBlock(LevelAccessor p_76002_, BlockPos p_76003_, BlockState p_76004_);
 
     private static short getCacheKey(BlockPos p_76059_, BlockPos p_76060_) {
-        long i = p_76060_.getX() - p_76059_.getX();
-        long j = p_76060_.getZ() - p_76059_.getZ();
-        return (short) ((i + 128 & 255) << 8 | j + 128 & 255);
+        long i = WorldBounds.subtractBlockOffset(p_76060_.getX(), p_76059_.getX());
+        long j = WorldBounds.subtractBlockOffset(p_76060_.getZ(), p_76059_.getZ());
+        return (short) (((i & 255) + 128 & 255) << 8 | (j & 255) + 128 & 255);
     }
 
     protected int getSlopeDistance(LevelReader p_76027_, BlockPos p_76028_, int p_76029_, Direction p_76030_, BlockState p_76031_, BlockPos p_76032_, Short2ObjectMap<Pair<BlockState, FluidState>> p_76033_, Short2BooleanMap p_76034_) {

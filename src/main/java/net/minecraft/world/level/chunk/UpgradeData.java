@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction8;
 import net.minecraft.core.Registry;
@@ -132,10 +133,10 @@ public class UpgradeData {
             boolean flag3 = set.contains(Direction.NORTH);
             boolean flag4 = set.size() == 1;
             ChunkPos chunkpos = p_63344_.getPos();
-            long k = chunkpos.getMinBlockX() + (!flag4 || !flag3 && !flag2 ? (flag1 ? 0 : 15) : 1);
-            long l = chunkpos.getMinBlockX() + (!flag4 || !flag3 && !flag2 ? (flag1 ? 0 : 15) : 14);
-            long i1 = chunkpos.getMinBlockZ() + (!flag4 || !flag && !flag1 ? (flag3 ? 0 : 15) : 1);
-            long j1 = chunkpos.getMinBlockZ() + (!flag4 || !flag && !flag1 ? (flag3 ? 0 : 15) : 14);
+            long k = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), !flag4 || !flag3 && !flag2 ? (flag1 ? 0 : 15) : 1);
+            long l = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), !flag4 || !flag3 && !flag2 ? (flag1 ? 0 : 15) : 14);
+            long i1 = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), !flag4 || !flag && !flag1 ? (flag3 ? 0 : 15) : 1);
+            long j1 = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), !flag4 || !flag && !flag1 ? (flag3 ? 0 : 15) : 14);
             Direction[] adirection = Direction.values();
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 

@@ -24,8 +24,8 @@ public class RenderRegionCache {
         long j = WorldBounds.clampChunk(WorldBounds.addBlockOffset(p_200467_.getZ(), -(long) p_200469_) >> 4);
         long k = WorldBounds.clampChunk(WorldBounds.addBlockOffset(p_200468_.getX(), p_200469_) >> 4);
         long l = WorldBounds.clampChunk(WorldBounds.addBlockOffset(p_200468_.getZ(), p_200469_) >> 4);
-        int xSize = (int) WorldBounds.signedDifference(k, i) + 1;
-        int zSize = (int) WorldBounds.signedDifference(l, j) + 1;
+        int xSize = Math.toIntExact(WorldBounds.inclusiveBlockSpan(i, k));
+        int zSize = Math.toIntExact(WorldBounds.inclusiveBlockSpan(j, l));
         RenderRegionCache.ChunkInfo[][] arenderregioncache$chunkinfo = new RenderRegionCache.ChunkInfo[xSize][zSize];
 
         for (int xIndex = 0; xIndex < xSize; ++xIndex) {
@@ -59,8 +59,10 @@ public class RenderRegionCache {
         long maxChunkX = p_200472_.getX() >> 4;
         long maxChunkZ = p_200472_.getZ() >> 4;
 
-        for (long chunkX = minChunkX; chunkX <= maxChunkX; ++chunkX) {
-            for (long chunkZ = minChunkZ; chunkZ <= maxChunkZ; ++chunkZ) {
+        boolean moreX = minChunkX <= maxChunkX;
+        for (long chunkX = minChunkX; moreX; moreX = chunkX < maxChunkX, chunkX = WorldBounds.addChunkOffset(chunkX, 1L)) {
+            boolean moreZ = minChunkZ <= maxChunkZ;
+            for (long chunkZ = minChunkZ; moreZ; moreZ = chunkZ < maxChunkZ, chunkZ = WorldBounds.addChunkOffset(chunkZ, 1L)) {
                 double xOffset = WorldBounds.signedDifference(chunkX, p_200473_);
                 double zOffset = WorldBounds.signedDifference(chunkZ, p_200474_);
                 if (xOffset < 0.0D || xOffset >= (double) p_200475_.length || zOffset < 0.0D) {

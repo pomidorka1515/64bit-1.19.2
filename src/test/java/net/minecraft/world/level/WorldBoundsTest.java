@@ -173,4 +173,42 @@ class WorldBoundsTest {
     void cursorRejectsOverflowingRanges() {
         assertThrows(ArithmeticException.class, () -> new Cursor3D(Long.MIN_VALUE, 0, 0L, Long.MAX_VALUE, 0, 0L));
     }
+
+    @Test
+    void cursorVisitsEdgeBlocksInOrderAndStops() {
+        for (long origin : new long[] {Long.MIN_VALUE, Long.MAX_VALUE - 1L}) {
+            Cursor3D cursor = new Cursor3D(origin, 4, origin, origin + 1L, 4, origin + 1L);
+            for (int z = 0; z < 2; ++z) {
+                for (int x = 0; x < 2; ++x) {
+                    assertTrue(cursor.advance());
+                    assertEquals(origin + x, cursor.nextX());
+                    assertEquals(4, cursor.nextY());
+                    assertEquals(origin + z, cursor.nextZ());
+                    assertEquals(Cursor3D.TYPE_CORNER, cursor.getNextType());
+                }
+            }
+            assertFalse(cursor.advance());
+            assertFalse(cursor.advance());
+        }
+    }
+
+    @Test
+    void sectionOffsetsAndConversionsStayAtWorldEdges() {
+        SectionPos maximum = SectionPos.of(WorldBounds.MAX_CHUNK, 4, WorldBounds.MAX_CHUNK);
+        SectionPos minimum = SectionPos.of(WorldBounds.MIN_CHUNK, 4, WorldBounds.MIN_CHUNK);
+        assertEquals(WorldBounds.MAX_CHUNK, maximum.offset(1L, 0, 1L).x());
+        assertEquals(WorldBounds.MIN_CHUNK, minimum.offset(-1L, 0, -1L).z());
+        assertEquals(Long.MAX_VALUE, maximum.maxBlockX());
+        assertEquals(Long.MIN_VALUE, minimum.minBlockZ());
+        assertEquals(Long.MAX_VALUE, SectionPos.sectionToBlockCoord(WorldBounds.MAX_CHUNK, 16L));
+        assertEquals(Long.MIN_VALUE, SectionPos.sectionToBlockCoord(WorldBounds.MIN_CHUNK, -1L));
+        assertEquals(1L << 40, SectionPos.posToSectionCoord((double) (1L << 44)));
+        assertEquals(4L, SectionPos.betweenClosedStream(WorldBounds.MAX_CHUNK - 1L, 0, WorldBounds.MAX_CHUNK - 1L,
+                WorldBounds.MAX_CHUNK, 0, WorldBounds.MAX_CHUNK).count());
+        List<SectionPos> sections = SectionPos.betweenClosedStream(WorldBounds.MAX_CHUNK - 1L, 0, WorldBounds.MAX_CHUNK - 1L,
+                WorldBounds.MAX_CHUNK, 0, WorldBounds.MAX_CHUNK).toList();
+        assertEquals(4, sections.size());
+        assertEquals(maximum.offset(0L, -4, 0L), sections.get(3));
+        assertEquals(0L, SectionPos.betweenClosedStream(1L, 0, 0L, 0L, 0, 0L).count());
+    }
 }

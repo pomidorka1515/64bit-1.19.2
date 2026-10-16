@@ -919,7 +919,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
             for (long i1 = -this.lastViewDistance; i1 <= this.lastViewDistance; ++i1) {
                 for (long j1 = -this.lastViewDistance; j1 <= this.lastViewDistance; ++j1) {
-                    ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk1 = this.viewArea.getRenderChunkAt(new BlockPos(k + SectionPos.sectionToBlockCoord(i1, 8), j, l + SectionPos.sectionToBlockCoord(j1, 8)));
+                    ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk1 = this.viewArea.getRenderChunkAt(new BlockPos(WorldBounds.addBlockOffset(k, SectionPos.sectionToBlockCoord(i1, 8)), j, WorldBounds.addBlockOffset(l, SectionPos.sectionToBlockCoord(j1, 8))));
                     if (chunkrenderdispatcher$renderchunk1 != null) {
                         list.add(new LevelRenderer.RenderChunkInfo(chunkrenderdispatcher$renderchunk1, (Direction) null, 0));
                     }

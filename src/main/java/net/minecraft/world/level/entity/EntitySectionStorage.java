@@ -16,6 +16,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 import net.minecraft.core.SectionPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.AABB;
@@ -64,13 +65,13 @@ public class EntitySectionStorage<T extends EntityAccess> {
         // Looking those keys up directly avoids the old full-world section scan on
         // every moving entity. For unusually huge ranges, scan the smaller existing
         // index instead so hostile bounds cannot create a near-unbounded loop.
-        double requestedSections = ((double) maxSectionX - (double) minSectionX + 1.0D)
+        double requestedSections = ((double) WorldBounds.inclusiveBlockSpan(minSectionX, maxSectionX))
                 * ((double) maxSectionY - (double) minSectionY + 1.0D)
-                * ((double) maxSectionZ - (double) minSectionZ + 1.0D);
+                * ((double) WorldBounds.inclusiveBlockSpan(minSectionZ, maxSectionZ));
         if (Double.isFinite(requestedSections) && requestedSections <= (double) this.sectionIds.size()) {
             for (int y = minSectionY;; ++y) {
-                for (long z = minSectionZ;; ++z) {
-                    for (long x = minSectionX;; ++x) {
+                for (long z = minSectionZ;; z = WorldBounds.addBlockOffset(z, 1L)) {
+                    for (long x = minSectionX;; x = WorldBounds.addBlockOffset(x, 1L)) {
                         this.acceptIfAccessible(SectionPos.of(x, y, z), consumer);
                         if (x == maxSectionX || x == Long.MAX_VALUE)
                             break;

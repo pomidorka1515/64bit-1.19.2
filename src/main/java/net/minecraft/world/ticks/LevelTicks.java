@@ -25,12 +25,14 @@ import java.util.function.BiConsumer;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 public class LevelTicks<T> implements LevelTickAccess<T> {
@@ -219,19 +221,23 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
     }
 
     private void forContainersInArea(BoundingBox p_193237_, LevelTicks.PosAndContainerConsumer<T> p_193238_) {
-        long i = SectionPos.posToSectionCoord((double) p_193237_.minX());
-        long j = SectionPos.posToSectionCoord((double) p_193237_.minZ());
-        long k = SectionPos.posToSectionCoord((double) p_193237_.maxX());
-        long l = SectionPos.posToSectionCoord((double) p_193237_.maxZ());
+        long i = SectionPos.blockToSectionCoord(p_193237_.minX());
+        long j = SectionPos.blockToSectionCoord(p_193237_.minZ());
+        long k = SectionPos.blockToSectionCoord(p_193237_.maxX());
+        long l = SectionPos.blockToSectionCoord(p_193237_.maxZ());
 
-        for (long i1 = i; i1 <= k; ++i1) {
-            for (long j1 = j; j1 <= l; ++j1) {
+        for (long i1 = i;; i1 = WorldBounds.addChunkOffset(i1, 1L)) {
+            for (long j1 = j;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
                 ChunkPos k1 = new ChunkPos(i1, j1);
                 LevelChunkTicks<T> levelchunkticks = this.allContainers.get(k1);
                 if (levelchunkticks != null) {
                     p_193238_.accept(k1, levelchunkticks);
                 }
+                if (j1 == l)
+                    break;
             }
+            if (i1 == k)
+                break;
         }
     }
 
@@ -256,6 +262,17 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
     }
 
     public void copyArea(BoundingBox p_193243_, Vec3i p_193244_) {
+        this.copyArea(p_193243_, pos -> pos.offset(p_193244_));
+    }
+
+    public void copyAreaTo(BoundingBox source, BlockPos destination) {
+        this.copyArea(source, pos -> new BlockPos(
+                WorldBounds.addBlockOffset(destination.getX(), WorldBounds.subtractBlockOffset(pos.getX(), source.minX())),
+                destination.getY() + (pos.getY() - source.minY()),
+                WorldBounds.addBlockOffset(destination.getZ(), WorldBounds.subtractBlockOffset(pos.getZ(), source.minZ()))));
+    }
+
+    private void copyArea(BoundingBox p_193243_, UnaryOperator<BlockPos> transform) {
         List<ScheduledTick<T>> list = new ArrayList<>();
         Predicate<ScheduledTick<T>> predicate = (p_200922_) -> {
             return p_193243_.isInside(p_200922_.pos());
@@ -269,7 +286,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
         long i = longsummarystatistics.getMin();
         long j = longsummarystatistics.getMax();
         list.forEach((p_193260_) -> {
-            this.schedule(new ScheduledTick<>(p_193260_.type(), p_193260_.pos().offset(p_193244_), p_193260_.triggerTick(), p_193260_.priority(), p_193260_.subTickOrder() - i + j + 1L));
+            this.schedule(new ScheduledTick<>(p_193260_.type(), transform.apply(p_193260_.pos()), p_193260_.triggerTick(), p_193260_.priority(), p_193260_.subTickOrder() - i + j + 1L));
         });
     }
 

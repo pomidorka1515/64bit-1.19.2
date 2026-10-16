@@ -13,6 +13,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.SectionPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -90,8 +91,12 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
             ImmutableMap.Builder<ChunkPos, String> builder = ImmutableMap.builder();
             ClientChunkCache clientchunkcache = clientlevel.getChunkSource();
 
-            for (long k = i - 12; k <= i + 12; ++k) {
-                for (long l = j - 12; l <= j + 12; ++l) {
+            long minX = WorldBounds.addChunkOffset(i, -12L);
+            long maxX = WorldBounds.addChunkOffset(i, 12L);
+            long minZ = WorldBounds.addChunkOffset(j, -12L);
+            long maxZ = WorldBounds.addChunkOffset(j, 12L);
+            for (long k = minX;; k = WorldBounds.addChunkOffset(k, 1L)) {
+                for (long l = minZ;; l = WorldBounds.addChunkOffset(l, 1L)) {
                     ChunkPos chunkpos = new ChunkPos(k, l);
                     String s = "";
                     LevelChunk levelchunk = clientchunkcache.getChunk(k, l, false);
@@ -104,7 +109,11 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
                     }
 
                     builder.put(chunkpos, s);
+                    if (l == maxZ)
+                        break;
                 }
+                if (k == maxX)
+                    break;
             }
 
             this.clientData = builder.build();
@@ -116,11 +125,15 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
                     ImmutableMap.Builder<ChunkPos, String> builder1 = ImmutableMap.builder();
                     ServerChunkCache serverchunkcache = serverlevel.getChunkSource();
 
-                    for (long i1 = i - 12; i1 <= i + 12; ++i1) {
-                        for (long j1 = j - 12; j1 <= j + 12; ++j1) {
+                    for (long i1 = minX;; i1 = WorldBounds.addChunkOffset(i1, 1L)) {
+                        for (long j1 = minZ;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
                             ChunkPos chunkpos1 = new ChunkPos(i1, j1);
                             builder1.put(chunkpos1, "Server: " + serverchunkcache.getChunkDebugData(chunkpos1));
+                            if (j1 == maxZ)
+                                break;
                         }
+                        if (i1 == maxX)
+                            break;
                     }
 
                     return builder1.build();

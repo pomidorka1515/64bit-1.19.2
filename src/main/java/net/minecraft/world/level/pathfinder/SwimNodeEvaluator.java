@@ -14,6 +14,7 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.PathNavigationRegion;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -53,7 +54,7 @@ public class SwimNodeEvaluator extends NodeEvaluator {
         Map<Direction, Node> map = Maps.newEnumMap(Direction.class);
 
         for (Direction direction : Direction.values()) {
-            Node node = this.getNode(p_77484_.x + direction.getStepX(), p_77484_.y + direction.getStepY(), p_77484_.z + direction.getStepZ());
+            Node node = this.getNode(WorldBounds.addBlockOffset(p_77484_.x, direction.getStepX()), p_77484_.y + direction.getStepY(), WorldBounds.addBlockOffset(p_77484_.z, direction.getStepZ()));
             map.put(direction, node);
             if (this.isNodeValid(node)) {
                 p_77483_[i++] = node;
@@ -62,7 +63,7 @@ public class SwimNodeEvaluator extends NodeEvaluator {
 
         for (Direction direction1 : Direction.Plane.HORIZONTAL) {
             Direction direction2 = direction1.getClockWise();
-            Node node1 = this.getNode(p_77484_.x + direction1.getStepX() + direction2.getStepX(), p_77484_.y, p_77484_.z + direction1.getStepZ() + direction2.getStepZ());
+            Node node1 = this.getNode(WorldBounds.addBlockOffset(p_77484_.x, direction1.getStepX() + direction2.getStepX()), p_77484_.y, WorldBounds.addBlockOffset(p_77484_.z, direction1.getStepZ() + direction2.getStepZ()));
             if (this.isDiagonalNodeValid(node1, map.get(direction1), map.get(direction2))) {
                 p_77483_[i++] = node1;
             }
@@ -113,9 +114,13 @@ public class SwimNodeEvaluator extends NodeEvaluator {
     public BlockPathTypes getBlockPathType(BlockGetter p_77472_, long p_77473_, int p_77474_, long p_77475_, Mob p_77476_, int p_77477_, int p_77478_, int p_77479_, boolean p_77480_, boolean p_77481_) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-        for (long i = p_77473_; i < p_77473_ + (long) p_77477_; ++i) {
+        long maxX = WorldBounds.addBlockOffset(p_77473_, (long) p_77477_ - 1L);
+        long maxZ = WorldBounds.addBlockOffset(p_77475_, (long) p_77479_ - 1L);
+        boolean moreX = p_77477_ > 0;
+        for (long i = p_77473_; moreX; moreX = i < maxX, i = WorldBounds.addBlockOffset(i, 1L)) {
             for (int j = p_77474_; j < p_77474_ + p_77478_; ++j) {
-                for (long k = p_77475_; k < p_77475_ + (long) p_77479_; ++k) {
+                boolean moreZ = p_77479_ > 0;
+                for (long k = p_77475_; moreZ; moreZ = k < maxZ, k = WorldBounds.addBlockOffset(k, 1L)) {
                     FluidState fluidstate = p_77472_.getFluidState(blockpos$mutableblockpos.set(i, j, k));
                     BlockState blockstate = p_77472_.getBlockState(blockpos$mutableblockpos.set(i, j, k));
                     if (fluidstate.isEmpty() && blockstate.isPathfindable(p_77472_, blockpos$mutableblockpos.below(), PathComputationType.WATER) && blockstate.isAir()) {

@@ -59,7 +59,7 @@ public class SectionPos extends Vec3i {
     }
 
     public static long posToSectionCoord(double p_175553_) {
-        return blockToSectionCoord(Mth.floor(p_175553_));
+        return blockToSectionCoord(Mth.lfloor(WorldBounds.clampAbsoluteDouble(p_175553_)));
     }
 
     public static long blockToSectionCoord(long p_123172_) {
@@ -106,7 +106,7 @@ public class SectionPos extends Vec3i {
     }
 
     public long relativeToBlockX(short p_123233_) {
-        return this.minBlockX() + sectionRelativeX(p_123233_);
+        return WorldBounds.addBlockOffset(this.minBlockX(), sectionRelativeX(p_123233_));
     }
 
     public int relativeToBlockY(short p_123238_) {
@@ -114,7 +114,7 @@ public class SectionPos extends Vec3i {
     }
 
     public long relativeToBlockZ(short p_123243_) {
-        return this.minBlockZ() + sectionRelativeZ(p_123243_);
+        return WorldBounds.addBlockOffset(this.minBlockZ(), sectionRelativeZ(p_123243_));
     }
 
     public BlockPos relativeToBlockPos(short p_123246_) {
@@ -126,7 +126,7 @@ public class SectionPos extends Vec3i {
     }
 
     public static long sectionToBlockCoord(long p_123224_) {
-        return p_123224_ << 4;
+        return WorldBounds.chunkToBlock(p_123224_);
     }
 
     public static int sectionToBlockCoord(int p_175555_, int p_175556_) {
@@ -134,7 +134,7 @@ public class SectionPos extends Vec3i {
     }
 
     public static long sectionToBlockCoord(long p_175555_, long p_175556_) {
-        return sectionToBlockCoord(p_175555_) + p_175556_;
+        return WorldBounds.addBlockOffset(sectionToBlockCoord(p_175555_), p_175556_);
     }
 
     public long x() {
@@ -191,7 +191,7 @@ public class SectionPos extends Vec3i {
     }
 
     public SectionPos offset(long p_175571_, int p_175572_, long p_175573_) {
-        return p_175571_ == 0 && p_175572_ == 0 && p_175573_ == 0 ? this : new SectionPos(this.x() + p_175571_, this.y() + p_175572_, this.z() + p_175573_);
+        return p_175571_ == 0 && p_175572_ == 0 && p_175573_ == 0 ? this : new SectionPos(WorldBounds.addChunkOffset(this.x(), p_175571_), this.y() + p_175572_, WorldBounds.addChunkOffset(this.z(), p_175573_));
     }
 
     public Stream<BlockPos> blocksInside() {
@@ -214,7 +214,9 @@ public class SectionPos extends Vec3i {
     }
 
     public static Stream<SectionPos> betweenClosedStream(final long p_123178_, final int p_123179_, final long p_123180_, final long p_123181_, final int p_123182_, final long p_123183_) {
-        return StreamSupport.stream(new Spliterators.AbstractSpliterator<SectionPos>((long) ((p_123181_ - p_123178_ + 1) * (p_123182_ - p_123179_ + 1) * (p_123183_ - p_123180_ + 1)), 64) {
+        long size = p_123178_ > p_123181_ || p_123179_ > p_123182_ || p_123180_ > p_123183_ ? 0L
+                : Math.multiplyExact(Math.multiplyExact(Math.addExact(Math.subtractExact(p_123181_, p_123178_), 1L), (long) p_123182_ - p_123179_ + 1L), Math.addExact(Math.subtractExact(p_123183_, p_123180_), 1L));
+        return StreamSupport.stream(new Spliterators.AbstractSpliterator<SectionPos>(size, 64) {
             final Cursor3D cursor = new Cursor3D(p_123178_, p_123179_, p_123180_, p_123181_, p_123182_, p_123183_);
 
          public boolean tryAdvance(Consumer<? super SectionPos> p_123271_) {
@@ -246,17 +248,21 @@ public class SectionPos extends Vec3i {
         if (i == j && k == l && i1 == j1) {
             p_194638_.accept(new SectionPos(i, k, i1));
         } else {
-            for (long k1 = i; k1 <= j; ++k1) {
+            for (long k1 = i;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
                 for (int l1 = k; l1 <= l; ++l1) {
-                    for (long i2 = i1; i2 <= j1; ++i2) {
+                    for (long i2 = i1;; i2 = WorldBounds.addChunkOffset(i2, 1L)) {
                         p_194638_.accept(new SectionPos(k1, l1, i2));
+                        if (i2 == j1)
+                            break;
                     }
                 }
+                if (k1 == j)
+                    break;
             }
         }
     }
 
     public SectionPos offset(Direction direction) {
-        return new SectionPos(this.x() + direction.getStepX(), this.y() + direction.getStepY(), this.z() + direction.getStepZ());
+        return this.offset(direction.getStepX(), direction.getStepY(), direction.getStepZ());
     }
 }

@@ -3,6 +3,7 @@ package net.minecraft.server.level;
 import javax.annotation.Nullable;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.ChunkPos;
@@ -48,13 +49,17 @@ public class PlayerRespawnLogic {
         if (SharedConstants.debugVoidTerrain(p_183934_)) {
             return null;
         } else {
-            for (long i = p_183934_.getMinBlockX(); i <= p_183934_.getMaxBlockX(); ++i) {
-                for (long j = p_183934_.getMinBlockZ(); j <= p_183934_.getMaxBlockZ(); ++j) {
+            for (long i = p_183934_.getMinBlockX();; i = WorldBounds.addBlockOffset(i, 1L)) {
+                for (long j = p_183934_.getMinBlockZ();; j = WorldBounds.addBlockOffset(j, 1L)) {
                     BlockPos blockpos = getOverworldRespawnPos(p_183933_, i, j);
                     if (blockpos != null) {
                         return blockpos;
                     }
+                    if (j == p_183934_.getMaxBlockZ())
+                        break;
                 }
+                if (i == p_183934_.getMaxBlockX())
+                    break;
             }
 
             return null;

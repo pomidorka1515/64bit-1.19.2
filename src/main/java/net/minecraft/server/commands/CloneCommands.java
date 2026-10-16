@@ -20,6 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
@@ -98,7 +99,11 @@ public class CloneCommands {
         if (!p_136741_.canOverlap() && boundingbox1.intersects(boundingbox)) {
             throw ERROR_OVERLAP.create();
         } else {
-            long i = boundingbox.getXSpan() * boundingbox.getYSpan() * boundingbox.getZSpan();
+            long xSpan = boundingbox.getXSpan();
+            long zSpan = boundingbox.getZSpan();
+            long ySpan = boundingbox.getYSpan();
+            long i = xSpan > Long.MAX_VALUE / zSpan || xSpan * zSpan > Long.MAX_VALUE / ySpan
+                    ? Long.MAX_VALUE : xSpan * zSpan * ySpan;
             if (i > 32768) {
                 throw ERROR_AREA_TOO_LARGE.create(32768, i);
             } else {
@@ -108,13 +113,13 @@ public class CloneCommands {
                     List<CloneCommands.CloneBlockInfo> list1 = Lists.newArrayList();
                     List<CloneCommands.CloneBlockInfo> list2 = Lists.newArrayList();
                     Deque<BlockPos> deque = Lists.newLinkedList();
-                    BlockPos blockpos1 = new BlockPos(boundingbox1.minX() - boundingbox.minX(), boundingbox1.minY() - boundingbox.minY(), boundingbox1.minZ() - boundingbox.minZ());
 
-                    for (long j = boundingbox.minZ(); j <= boundingbox.maxZ(); ++j) {
+                    for (long j = boundingbox.minZ();; j = WorldBounds.addBlockOffset(j, 1L)) {
                         for (int k = boundingbox.minY(); k <= boundingbox.maxY(); ++k) {
-                            for (long l = boundingbox.minX(); l <= boundingbox.maxX(); ++l) {
+                            for (long l = boundingbox.minX();; l = WorldBounds.addBlockOffset(l, 1L)) {
                                 BlockPos blockpos2 = new BlockPos(l, k, j);
-                                BlockPos blockpos3 = blockpos2.offset(blockpos1);
+                                BlockPos blockpos3 = new BlockPos(WorldBounds.addBlockOffset(boundingbox1.minX(), WorldBounds.subtractBlockOffset(l, boundingbox.minX())),
+                                        boundingbox1.minY() + (k - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.subtractBlockOffset(j, boundingbox.minZ())));
                                 BlockInWorld blockinworld = new BlockInWorld(serverlevel, blockpos2, false);
                                 BlockState blockstate = blockinworld.getState();
                                 if (p_136740_.test(blockinworld)) {
@@ -131,8 +136,12 @@ public class CloneCommands {
                                         deque.addLast(blockpos2);
                                     }
                                 }
+                                if (l == boundingbox.maxX())
+                                    break;
                             }
                         }
+                        if (j == boundingbox.maxZ())
+                            break;
                     }
 
                     if (p_136741_ == CloneCommands.Mode.MOVE) {
@@ -181,7 +190,7 @@ public class CloneCommands {
                         serverlevel.blockUpdated(clonecommands$cloneblockinfo3.pos, clonecommands$cloneblockinfo3.state.getBlock());
                     }
 
-                    serverlevel.getBlockTicks().copyArea(boundingbox, blockpos1);
+                    serverlevel.getBlockTicks().copyAreaTo(boundingbox, p_136739_);
                     if (i1 == 0) {
                         throw ERROR_FAILED.create();
                     } else {

@@ -51,15 +51,17 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
         ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(p_223472_.x, (long) p_223473_),
                 WorldBounds.addChunkOffset(p_223472_.z, (long) p_223473_));
 
-        for (long i = chunkpos.getRegionX(); i <= chunkpos1.getRegionX(); ++i) {
-            for (long j = chunkpos.getRegionZ(); j <= chunkpos1.getRegionZ(); ++j) {
+        boolean moreX = chunkpos.getRegionX() <= chunkpos1.getRegionX();
+        for (long i = chunkpos.getRegionX(); moreX; moreX = i < chunkpos1.getRegionX(), i = WorldBounds.addBlockOffset(i, 1L)) {
+            boolean moreZ = chunkpos.getRegionZ() <= chunkpos1.getRegionZ();
+            for (long j = chunkpos.getRegionZ(); moreZ; moreZ = j < chunkpos1.getRegionZ(), j = WorldBounds.addBlockOffset(j, 1L)) {
                 BitSet bitset = this.getOrCreateOldDataForRegion(i, j).join();
                 if (!bitset.isEmpty()) {
                     ChunkPos chunkpos2 = ChunkPos.minFromRegion(i, j);
-                    long k = Math.max(chunkpos.x - chunkpos2.x, 0);
-                    long l = Math.max(chunkpos.z - chunkpos2.z, 0);
-                    long i1 = Math.min(chunkpos1.x - chunkpos2.x, 31);
-                    long j1 = Math.min(chunkpos1.z - chunkpos2.z, 31);
+                    long k = Math.max(WorldBounds.subtractBlockOffset(chunkpos.x, chunkpos2.x), 0);
+                    long l = Math.max(WorldBounds.subtractBlockOffset(chunkpos.z, chunkpos2.z), 0);
+                    long i1 = Math.min(WorldBounds.subtractBlockOffset(chunkpos1.x, chunkpos2.x), 31);
+                    long j1 = Math.min(WorldBounds.subtractBlockOffset(chunkpos1.z, chunkpos2.z), 31);
 
                     for (long k1 = k; k1 <= i1; ++k1) {
                         for (long l1 = l; l1 <= j1; ++l1) {

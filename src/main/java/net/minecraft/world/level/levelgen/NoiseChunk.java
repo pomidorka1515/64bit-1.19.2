@@ -19,6 +19,7 @@ import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -108,12 +109,12 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         this.blendOffset = new NoiseChunk.FlatCache(new NoiseChunk.BlendOffset(), false);
 
         for (int i = 0; i <= this.noiseSizeXZ; ++i) {
-            long j = this.firstNoiseX + i;
-            long k = QuartPos.toBlock(j);
+            long j = WorldBounds.addBlockOffset(this.firstNoiseX, i);
+            long k = cellToBlock(j, 4);
 
             for (int l = 0; l <= this.noiseSizeXZ; ++l) {
-                long i1 = this.firstNoiseZ + l;
-                long j1 = QuartPos.toBlock(i1);
+                long i1 = WorldBounds.addBlockOffset(this.firstNoiseZ, l);
+                long j1 = cellToBlock(i1, 4);
                 Blender.BlendingOutput blender$blendingoutput = p_224351_.blendOffsetAndFactor(k, j1);
                 this.blendAlpha.values[i][l] = blender$blendingoutput.alpha();
                 this.blendOffset.values[i][l] = blender$blendingoutput.blendingOffset();
@@ -153,7 +154,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     public long blockX() {
-        return this.cellStartBlockX + this.inCellX;
+        return WorldBounds.addBlockOffset(this.cellStartBlockX, this.inCellX);
     }
 
     public int blockY() {
@@ -161,7 +162,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     public long blockZ() {
-        return this.cellStartBlockZ + this.inCellZ;
+        return WorldBounds.addBlockOffset(this.cellStartBlockZ, this.inCellZ);
     }
 
     public int preliminarySurfaceLevel(long p_198257_, long p_198258_) {
@@ -189,12 +190,12 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     private void fillSlice(boolean p_209221_, long p_209222_) {
-        this.cellStartBlockX = p_209222_ * this.cellWidth;
+        this.cellStartBlockX = cellToBlock(p_209222_, this.cellWidth);
         this.inCellX = 0;
 
         for (int i = 0; i < this.cellCountXZ + 1; ++i) {
-            long j = this.firstCellZ + i;
-            this.cellStartBlockZ = j * this.cellWidth;
+            long j = WorldBounds.addBlockOffset(this.firstCellZ, i);
+            this.cellStartBlockZ = cellToBlock(j, this.cellWidth);
             this.inCellZ = 0;
             ++this.arrayInterpolationCounter;
 
@@ -218,8 +219,17 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     public void advanceCellX(int p_188750_) {
-        this.fillSlice(false, this.firstCellX + p_188750_ + 1);
-        this.cellStartBlockX = (this.firstCellX + p_188750_) * this.cellWidth;
+        this.fillSlice(false, WorldBounds.addBlockOffset(this.firstCellX, (long) p_188750_ + 1L));
+        this.cellStartBlockX = cellToBlock(WorldBounds.addBlockOffset(this.firstCellX, p_188750_), this.cellWidth);
+    }
+
+    /** Cell widths are positive powers of two, so the minimum block is cell-aligned. */
+    private static long cellToBlock(long cell, int width) {
+        if (cell > WorldBounds.MAX_BLOCK / width)
+            return WorldBounds.MAX_BLOCK;
+        if (cell < WorldBounds.MIN_BLOCK / width)
+            return WorldBounds.MIN_BLOCK;
+        return cell * width;
     }
 
     public NoiseChunk forIndex(int p_209240_) {
@@ -257,7 +267,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         });
         this.fillingCell = true;
         this.cellStartBlockY = (p_188811_ + this.cellNoiseMinY) * this.cellHeight;
-        this.cellStartBlockZ = (this.firstCellZ + p_188812_) * this.cellWidth;
+        this.cellStartBlockZ = cellToBlock(WorldBounds.addBlockOffset(this.firstCellZ, p_188812_), this.cellWidth);
         ++this.arrayInterpolationCounter;
 
         for (NoiseChunk.CacheAllInCell noisechunk$cacheallincell : this.cellCaches) {
@@ -276,14 +286,14 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     public void updateForX(long p_209231_, double p_209232_) {
-        this.inCellX = p_209231_ - this.cellStartBlockX;
+        this.inCellX = WorldBounds.subtractBlockOffset(p_209231_, this.cellStartBlockX);
         this.interpolators.forEach((p_209229_) -> {
             p_209229_.updateForX(p_209232_);
         });
     }
 
     public void updateForZ(long p_209242_, double p_209243_) {
-        this.inCellZ = p_209242_ - this.cellStartBlockZ;
+        this.inCellZ = WorldBounds.subtractBlockOffset(p_209242_, this.cellStartBlockZ);
         ++this.interpolationCounter;
         this.interpolators.forEach((p_209188_) -> {
             p_209188_.updateForZ(p_209243_);
@@ -575,12 +585,12 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
             this.values = new double[NoiseChunk.this.noiseSizeXZ + 1][NoiseChunk.this.noiseSizeXZ + 1];
             if (p_209331_) {
                 for (int i = 0; i <= NoiseChunk.this.noiseSizeXZ; ++i) {
-                    long j = NoiseChunk.this.firstNoiseX + i;
-                    long k = QuartPos.toBlock(j);
+                    long j = WorldBounds.addBlockOffset(NoiseChunk.this.firstNoiseX, i);
+                    long k = cellToBlock(j, 4);
 
                     for (int l = 0; l <= NoiseChunk.this.noiseSizeXZ; ++l) {
-                        long i1 = NoiseChunk.this.firstNoiseZ + l;
-                        long j1 = QuartPos.toBlock(i1);
+                        long i1 = WorldBounds.addBlockOffset(NoiseChunk.this.firstNoiseZ, l);
+                        long j1 = cellToBlock(i1, 4);
                         this.values[i][l] = p_209330_.compute(new DensityFunction.SinglePointContext(k, 0, j1));
                     }
                 }
@@ -590,10 +600,10 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         public double compute(DensityFunction.FunctionContext p_209333_) {
             long i = QuartPos.fromBlock(p_209333_.blockX());
             long j = QuartPos.fromBlock(p_209333_.blockZ());
-            int k = (int) (i - NoiseChunk.this.firstNoiseX);
-            int l = (int) (j - NoiseChunk.this.firstNoiseZ);
+            long k = WorldBounds.subtractBlockOffset(i, NoiseChunk.this.firstNoiseX);
+            long l = WorldBounds.subtractBlockOffset(j, NoiseChunk.this.firstNoiseZ);
             int i1 = this.values.length;
-            return k >= 0 && l >= 0 && k < i1 && l < i1 ? this.values[k][l] : this.noiseFiller.compute(p_209333_);
+            return k >= 0 && l >= 0 && k < i1 && l < i1 ? this.values[(int) k][(int) l] : this.noiseFiller.compute(p_209333_);
         }
 
         public void fillArray(double[] p_209335_, DensityFunction.ContextProvider p_209336_) {

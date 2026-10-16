@@ -12,6 +12,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.commands.arguments.coordinates.ColumnPosArgument;
 import net.minecraft.core.SectionPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ColumnPos;
@@ -109,7 +110,9 @@ public class ForceLoadCommand {
         long j1 = SectionPos.blockToSectionCoord(j);
         long k1 = SectionPos.blockToSectionCoord(k);
         long l1 = SectionPos.blockToSectionCoord(l);
-        long i2 = ((long) (k1 - i1) + 1L) * ((long) (l1 - j1) + 1L);
+        long xSpan = WorldBounds.inclusiveBlockSpan(i1, k1);
+        long zSpan = WorldBounds.inclusiveBlockSpan(j1, l1);
+        long i2 = xSpan > Long.MAX_VALUE / zSpan ? Long.MAX_VALUE : xSpan * zSpan;
         if (i2 > 256L) {
             throw ERROR_TOO_MANY_CHUNKS.create(256, i2);
         } else {
@@ -118,8 +121,8 @@ public class ForceLoadCommand {
             ChunkPos chunkpos = null;
             int j2 = 0;
 
-            for (long k2 = i1; k2 <= k1; ++k2) {
-                for (long l2 = j1; l2 <= l1; ++l2) {
+            for (long k2 = i1;; k2 = WorldBounds.addChunkOffset(k2, 1L)) {
+                for (long l2 = j1;; l2 = WorldBounds.addChunkOffset(l2, 1L)) {
                     boolean flag = serverlevel.setChunkForced(k2, l2, p_137689_);
                     if (flag) {
                         ++j2;
@@ -127,7 +130,11 @@ public class ForceLoadCommand {
                             chunkpos = new ChunkPos(k2, l2);
                         }
                     }
+                    if (l2 == l1)
+                        break;
                 }
+                if (k2 == k1)
+                    break;
             }
 
             if (j2 == 0) {

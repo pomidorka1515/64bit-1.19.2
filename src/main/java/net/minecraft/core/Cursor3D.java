@@ -1,5 +1,7 @@
 package net.minecraft.core;
 
+import net.minecraft.world.level.WorldBounds;
+
 public class Cursor3D {
     public static final int TYPE_INSIDE = 0;
     public static final int TYPE_FACE = 1;
@@ -12,7 +14,7 @@ public class Cursor3D {
     private final int height;
     private final long depth;
     private final long end;
-    private int index;
+    private long index;
     private long x;
     private int y;
     private long z;
@@ -49,7 +51,7 @@ public class Cursor3D {
     }
 
     public long nextX() {
-        return Math.addExact(this.originX, this.x);
+        return WorldBounds.addBlockOffset(this.originX, this.x);
     }
 
     public int nextY() {
@@ -57,7 +59,7 @@ public class Cursor3D {
     }
 
     public long nextZ() {
-        return Math.addExact(this.originZ, this.z);
+        return WorldBounds.addBlockOffset(this.originZ, this.z);
     }
 
     public int getNextType() {

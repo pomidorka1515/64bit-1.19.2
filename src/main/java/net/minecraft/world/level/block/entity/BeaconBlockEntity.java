@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -190,13 +191,19 @@ public class BeaconBlockEntity extends BlockEntity implements MenuProvider {
 
             boolean flag = true;
 
-            for (long l = p_155094_ - j; l <= p_155094_ + j && flag; ++l) {
-                for (long i1 = p_155096_ - j; i1 <= p_155096_ + j; ++i1) {
+            long maxX = WorldBounds.addBlockOffset(p_155094_, j);
+            long maxZ = WorldBounds.addBlockOffset(p_155096_, j);
+            for (long l = WorldBounds.addBlockOffset(p_155094_, -j); flag; l = WorldBounds.addBlockOffset(l, 1L)) {
+                for (long i1 = WorldBounds.addBlockOffset(p_155096_, -j);; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
                     if (!p_155093_.getBlockState(new BlockPos(l, k, i1)).is(BlockTags.BEACON_BASE_BLOCKS)) {
                         flag = false;
                         break;
                     }
+                    if (i1 == maxZ)
+                        break;
                 }
+                if (l == maxX)
+                    break;
             }
 
             if (!flag) {

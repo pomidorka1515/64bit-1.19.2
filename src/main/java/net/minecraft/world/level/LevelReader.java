@@ -212,8 +212,8 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
         long lastX = SectionPos.blockToSectionCoord(maxX);
         long firstZ = SectionPos.blockToSectionCoord(minZ);
         long lastZ = SectionPos.blockToSectionCoord(maxZ);
-        for (long x = firstX;; x = Math.addExact(x, 1L)) {
-            for (long z = firstZ;; z = Math.addExact(z, 1L)) {
+        for (long x = firstX;; x = WorldBounds.addChunkOffset(x, 1L)) {
+            for (long z = firstZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
                 if (!this.hasChunk(x, z))
                     return false;
                 if (z == lastZ)

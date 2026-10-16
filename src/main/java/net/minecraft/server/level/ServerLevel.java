@@ -852,8 +852,10 @@ public class ServerLevel extends Level implements WorldGenLevel {
         List<GameEvent.Message> list = new ArrayList<>();
         boolean flag = false;
 
-        for (long l1 = j; l1 <= i1; ++l1) {
-            for (long i2 = l; i2 <= k1; ++i2) {
+        boolean moreX = j <= i1;
+        for (long l1 = j; moreX; moreX = l1 < i1, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
+            boolean moreZ = l <= k1;
+            for (long i2 = l; moreZ; moreZ = i2 < k1, i2 = WorldBounds.addChunkOffset(i2, 1L)) {
                 ChunkAccess chunkaccess = this.getChunkSource().getChunkNow(l1, i2);
                 if (chunkaccess != null) {
                     for (int j2 = k; j2 <= j1; ++j2) {

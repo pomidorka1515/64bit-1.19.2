@@ -30,18 +30,22 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
         this.centerZ = SectionPos.blockToSectionCoord(p_47165_.getZ());
         long i = SectionPos.blockToSectionCoord(p_47166_.getX());
         long j = SectionPos.blockToSectionCoord(p_47166_.getZ());
-        this.chunks = new ChunkAccess[(int) (i - this.centerX + 1)][(int) (j - this.centerZ + 1)];
+        this.chunks = new ChunkAccess[Math.toIntExact(WorldBounds.inclusiveBlockSpan(this.centerX, i))][Math.toIntExact(WorldBounds.inclusiveBlockSpan(this.centerZ, j))];
         ChunkSource chunksource = p_47164_.getChunkSource();
         this.allEmpty = true;
 
-        for (long k = this.centerX; k <= i; ++k) {
-            for (long l = this.centerZ; l <= j; ++l) {
+        boolean moreX = this.centerX <= i;
+        for (long k = this.centerX; moreX; moreX = k < i, k = WorldBounds.addChunkOffset(k, 1L)) {
+            boolean moreZ = this.centerZ <= j;
+            for (long l = this.centerZ; moreZ; moreZ = l < j, l = WorldBounds.addChunkOffset(l, 1L)) {
                 this.chunks[(int) (k - this.centerX)][(int) (l - this.centerZ)] = chunksource.getChunkNow(k, l);
             }
         }
 
-        for (long i1 = SectionPos.blockToSectionCoord(p_47165_.getX()); i1 <= SectionPos.blockToSectionCoord(p_47166_.getX()); ++i1) {
-            for (long j1 = SectionPos.blockToSectionCoord(p_47165_.getZ()); j1 <= SectionPos.blockToSectionCoord(p_47166_.getZ()); ++j1) {
+        moreX = this.centerX <= i;
+        for (long i1 = this.centerX; moreX; moreX = i1 < i, i1 = WorldBounds.addChunkOffset(i1, 1L)) {
+            boolean moreZ = this.centerZ <= j;
+            for (long j1 = this.centerZ; moreZ; moreZ = j1 < j, j1 = WorldBounds.addChunkOffset(j1, 1L)) {
                 ChunkAccess chunkaccess = this.chunks[(int) (i1 - this.centerX)][(int) (j1 - this.centerZ)];
                 if (chunkaccess != null && !chunkaccess.isYSpaceEmpty(p_47165_.getY(), p_47166_.getY())) {
                     this.allEmpty = false;
@@ -66,10 +70,10 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
     */
     @Nullable
     private ChunkAccess getChunk(long p_47168_, long p_47169_) {
-        int i = (int) (p_47168_ - this.centerX);
-        int j = (int) (p_47169_ - this.centerZ);
-        return i >= 0 && i < this.chunks.length && j >= 0 && j < this.chunks[i].length
-                ? this.chunks[i][j]
+        long i = WorldBounds.subtractBlockOffset(p_47168_, this.centerX);
+        long j = WorldBounds.subtractBlockOffset(p_47169_, this.centerZ);
+        return i >= 0 && i < this.chunks.length && j >= 0 && j < this.chunks[(int) i].length
+                ? this.chunks[(int) i][(int) j]
                 : null;
     }
 

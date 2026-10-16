@@ -7,6 +7,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -237,9 +238,13 @@ public class ZombieVillager extends Zombie implements VillagerDataHolder {
             long baseX = this.getBlockX();
             long baseZ = this.getBlockZ();
 
-            for (long k = baseX - 4L; k < baseX + 4L && j < 14; ++k) {
+            long maxX = WorldBounds.addBlockOffset(baseX, 3L);
+            long maxZ = WorldBounds.addBlockOffset(baseZ, 3L);
+            boolean moreX = true;
+            for (long k = WorldBounds.addBlockOffset(baseX, -4L); moreX && j < 14; moreX = k < maxX, k = WorldBounds.addBlockOffset(k, 1L)) {
                 for (int l = this.getBlockY() - 4; l < this.getBlockY() + 4 && j < 14; ++l) {
-                    for (long i1 = baseZ - 4L; i1 < baseZ + 4L && j < 14; ++i1) {
+                    boolean moreZ = true;
+                    for (long i1 = WorldBounds.addBlockOffset(baseZ, -4L); moreZ && j < 14; moreZ = i1 < maxZ, i1 = WorldBounds.addBlockOffset(i1, 1L)) {
                         BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(k, l, i1));
                         if (blockstate.is(Blocks.IRON_BARS) || blockstate.getBlock() instanceof BedBlock) {
                             if (this.random.nextFloat() < 0.3F) {

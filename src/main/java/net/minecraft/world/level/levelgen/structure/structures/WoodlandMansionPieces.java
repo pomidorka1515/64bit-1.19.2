@@ -7,6 +7,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -177,15 +178,15 @@ public class WoodlandMansionPieces {
         private void recursiveCorridor(WoodlandMansionPieces.SimpleGrid p_230058_, long p_230059_, long p_230060_, Direction p_230061_, int p_230062_) {
             if (p_230062_ > 0) {
                 p_230058_.set(p_230059_, p_230060_, 1);
-                p_230058_.setif(p_230059_ + p_230061_.getStepX(), p_230060_ + p_230061_.getStepZ(), 0, 1);
+                p_230058_.setif(WorldBounds.addBlockOffset(p_230059_, p_230061_.getStepX()), WorldBounds.addBlockOffset(p_230060_, p_230061_.getStepZ()), 0, 1);
 
                 for (int i = 0; i < 8; ++i) {
                     Direction direction = Direction.from2DDataValue(this.random.nextInt(4));
                     if (direction != p_230061_.getOpposite() && (direction != Direction.EAST || !this.random.nextBoolean())) {
-                        long j = p_230059_ + p_230061_.getStepX();
-                        long k = p_230060_ + p_230061_.getStepZ();
-                        if (p_230058_.get(j + direction.getStepX(), k + direction.getStepZ()) == 0 && p_230058_.get(j + direction.getStepX() * 2, k + direction.getStepZ() * 2) == 0) {
-                            this.recursiveCorridor(p_230058_, p_230059_ + p_230061_.getStepX() + direction.getStepX(), p_230060_ + p_230061_.getStepZ() + direction.getStepZ(), direction, p_230062_ - 1);
+                        long j = WorldBounds.addBlockOffset(p_230059_, p_230061_.getStepX());
+                        long k = WorldBounds.addBlockOffset(p_230060_, p_230061_.getStepZ());
+                        if (p_230058_.get(WorldBounds.addBlockOffset(j, direction.getStepX()), WorldBounds.addBlockOffset(k, direction.getStepZ())) == 0 && p_230058_.get(WorldBounds.addBlockOffset(j, direction.getStepX() * 2), WorldBounds.addBlockOffset(k, direction.getStepZ() * 2)) == 0) {
+                            this.recursiveCorridor(p_230058_, WorldBounds.addBlockOffset(p_230059_, p_230061_.getStepX() + direction.getStepX()), WorldBounds.addBlockOffset(p_230060_, p_230061_.getStepZ() + direction.getStepZ()), direction, p_230062_ - 1);
                             break;
                         }
                     }
@@ -193,13 +194,13 @@ public class WoodlandMansionPieces {
 
                 Direction direction1 = p_230061_.getClockWise();
                 Direction direction2 = p_230061_.getCounterClockWise();
-                p_230058_.setif(p_230059_ + direction1.getStepX(), p_230060_ + direction1.getStepZ(), 0, 2);
-                p_230058_.setif(p_230059_ + direction2.getStepX(), p_230060_ + direction2.getStepZ(), 0, 2);
-                p_230058_.setif(p_230059_ + p_230061_.getStepX() + direction1.getStepX(), p_230060_ + p_230061_.getStepZ() + direction1.getStepZ(), 0, 2);
-                p_230058_.setif(p_230059_ + p_230061_.getStepX() + direction2.getStepX(), p_230060_ + p_230061_.getStepZ() + direction2.getStepZ(), 0, 2);
-                p_230058_.setif(p_230059_ + p_230061_.getStepX() * 2, p_230060_ + p_230061_.getStepZ() * 2, 0, 2);
-                p_230058_.setif(p_230059_ + direction1.getStepX() * 2, p_230060_ + direction1.getStepZ() * 2, 0, 2);
-                p_230058_.setif(p_230059_ + direction2.getStepX() * 2, p_230060_ + direction2.getStepZ() * 2, 0, 2);
+                p_230058_.setif(WorldBounds.addBlockOffset(p_230059_, direction1.getStepX()), WorldBounds.addBlockOffset(p_230060_, direction1.getStepZ()), 0, 2);
+                p_230058_.setif(WorldBounds.addBlockOffset(p_230059_, direction2.getStepX()), WorldBounds.addBlockOffset(p_230060_, direction2.getStepZ()), 0, 2);
+                p_230058_.setif(WorldBounds.addBlockOffset(p_230059_, p_230061_.getStepX() + direction1.getStepX()), WorldBounds.addBlockOffset(p_230060_, p_230061_.getStepZ() + direction1.getStepZ()), 0, 2);
+                p_230058_.setif(WorldBounds.addBlockOffset(p_230059_, p_230061_.getStepX() + direction2.getStepX()), WorldBounds.addBlockOffset(p_230060_, p_230061_.getStepZ() + direction2.getStepZ()), 0, 2);
+                p_230058_.setif(WorldBounds.addBlockOffset(p_230059_, p_230061_.getStepX() * 2), WorldBounds.addBlockOffset(p_230060_, p_230061_.getStepZ() * 2), 0, 2);
+                p_230058_.setif(WorldBounds.addBlockOffset(p_230059_, direction1.getStepX() * 2), WorldBounds.addBlockOffset(p_230060_, direction1.getStepZ() * 2), 0, 2);
+                p_230058_.setif(WorldBounds.addBlockOffset(p_230059_, direction2.getStepX() * 2), WorldBounds.addBlockOffset(p_230060_, direction2.getStepZ() * 2), 0, 2);
             }
         }
 
@@ -946,7 +947,8 @@ public class WoodlandMansionPieces {
         }
 
         public void set(long p_230171_, long p_230172_, int p_230173_) {
-            set((int) p_230171_, (int) p_230172_, p_230173_);
+            if (p_230171_ >= 0L && p_230171_ < this.width && p_230172_ >= 0L && p_230172_ < this.height)
+                set((int) p_230171_, (int) p_230172_, p_230173_);
         }
 
         public void set(int p_230180_, int p_230181_, int p_230182_, int p_230183_, int p_230184_) {
@@ -962,7 +964,8 @@ public class WoodlandMansionPieces {
         }
 
         public int get(long p_230168_, long p_230169_) {
-            return get((int) p_230168_, (int) p_230169_);
+            return p_230168_ >= 0L && p_230168_ < this.width && p_230169_ >= 0L && p_230169_ < this.height
+                    ? get((int) p_230168_, (int) p_230169_) : this.valueIfOutside;
         }
 
         public void setif(long p_230175_, long p_230176_, int p_230177_, int p_230178_) {

@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -97,13 +98,13 @@ public class ClientboundLevelChunkPacketData {
     }
 
     private void getBlockEntitiesTags(ClientboundLevelChunkPacketData.BlockEntityTagOutput p_195675_, long p_195676_, long p_195677_) {
-        long i = 16 * p_195676_;
-        long j = 16 * p_195677_;
+        long i = WorldBounds.chunkToBlock(p_195676_);
+        long j = WorldBounds.chunkToBlock(p_195677_);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (ClientboundLevelChunkPacketData.BlockEntityInfo clientboundlevelchunkpacketdata$blockentityinfo : this.blockEntitiesData) {
-            long k = i + SectionPos.sectionRelative(clientboundlevelchunkpacketdata$blockentityinfo.packedXZ >> 4);
-            long l = j + SectionPos.sectionRelative(clientboundlevelchunkpacketdata$blockentityinfo.packedXZ);
+            long k = WorldBounds.addBlockOffset(i, SectionPos.sectionRelative(clientboundlevelchunkpacketdata$blockentityinfo.packedXZ >> 4));
+            long l = WorldBounds.addBlockOffset(j, SectionPos.sectionRelative(clientboundlevelchunkpacketdata$blockentityinfo.packedXZ));
             blockpos$mutableblockpos.set(k, clientboundlevelchunkpacketdata$blockentityinfo.y, l);
             p_195675_.accept(blockpos$mutableblockpos, clientboundlevelchunkpacketdata$blockentityinfo.type, clientboundlevelchunkpacketdata$blockentityinfo.tag);
         }

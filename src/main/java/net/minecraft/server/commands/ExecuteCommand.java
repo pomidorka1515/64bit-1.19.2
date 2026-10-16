@@ -41,6 +41,7 @@ import net.minecraft.commands.arguments.coordinates.RotationArgument;
 import net.minecraft.commands.arguments.coordinates.SwizzleArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
@@ -404,18 +405,22 @@ public class ExecuteCommand {
     private static OptionalInt checkRegions(ServerLevel p_137037_, BlockPos p_137038_, BlockPos p_137039_, BlockPos p_137040_, boolean p_137041_) throws CommandSyntaxException {
         BoundingBox boundingbox = BoundingBox.fromCorners(p_137038_, p_137039_);
         BoundingBox boundingbox1 = BoundingBox.fromCorners(p_137040_, p_137040_.offset(boundingbox.getLength()));
-        BlockPos blockpos = new BlockPos(boundingbox1.minX() - boundingbox.minX(), boundingbox1.minY() - boundingbox.minY(), boundingbox1.minZ() - boundingbox.minZ());
-        long i = boundingbox.getXSpan() * boundingbox.getYSpan() * boundingbox.getZSpan();
+        long xSpan = boundingbox.getXSpan();
+        long zSpan = boundingbox.getZSpan();
+        long ySpan = boundingbox.getYSpan();
+        long i = xSpan > Long.MAX_VALUE / zSpan || xSpan * zSpan > Long.MAX_VALUE / ySpan
+                ? Long.MAX_VALUE : xSpan * zSpan * ySpan;
         if (i > 32768) {
             throw ERROR_AREA_TOO_LARGE.create(32768, i);
         } else {
             int j = 0;
 
-            for (long k = boundingbox.minZ(); k <= boundingbox.maxZ(); ++k) {
+            for (long k = boundingbox.minZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
                 for (int l = boundingbox.minY(); l <= boundingbox.maxY(); ++l) {
-                    for (long i1 = boundingbox.minX(); i1 <= boundingbox.maxX(); ++i1) {
+                    for (long i1 = boundingbox.minX();; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
                         BlockPos blockpos1 = new BlockPos(i1, l, k);
-                        BlockPos blockpos2 = blockpos1.offset(blockpos);
+                        BlockPos blockpos2 = new BlockPos(WorldBounds.addBlockOffset(boundingbox1.minX(), WorldBounds.subtractBlockOffset(i1, boundingbox.minX())),
+                                boundingbox1.minY() + (l - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.subtractBlockOffset(k, boundingbox.minZ())));
                         BlockState blockstate = p_137037_.getBlockState(blockpos1);
                         if (!p_137041_ || !blockstate.is(Blocks.AIR)) {
                             if (blockstate != p_137037_.getBlockState(blockpos2)) {
@@ -442,8 +447,12 @@ public class ExecuteCommand {
 
                             ++j;
                         }
+                        if (i1 == boundingbox.maxX())
+                            break;
                     }
                 }
+                if (k == boundingbox.maxZ())
+                    break;
             }
 
             return OptionalInt.of(j);

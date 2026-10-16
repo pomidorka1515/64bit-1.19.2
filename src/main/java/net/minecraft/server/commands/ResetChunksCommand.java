@@ -14,6 +14,7 @@ import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -52,13 +53,15 @@ public class ResetChunksCommand {
         serverchunkcache.chunkMap.debugReloadGenerator();
         net.minecraft.world.phys.SectorVec3 exact = p_183685_.getExactPosition();
         ChunkPos chunkpos = new ChunkPos(net.minecraft.core.SectionPos.blockToSectionCoord(exact.blockX()), net.minecraft.core.SectionPos.blockToSectionCoord(exact.blockZ()));
-        long i = chunkpos.z - p_183686_;
-        long j = chunkpos.z + p_183686_;
-        long k = chunkpos.x - p_183686_;
-        long l = chunkpos.x + p_183686_;
+        long i = WorldBounds.addChunkOffset(chunkpos.z, -(long) p_183686_);
+        long j = WorldBounds.addChunkOffset(chunkpos.z, p_183686_);
+        long k = WorldBounds.addChunkOffset(chunkpos.x, -(long) p_183686_);
+        long l = WorldBounds.addChunkOffset(chunkpos.x, p_183686_);
 
-        for (long i1 = i; i1 <= j; ++i1) {
-            for (long j1 = k; j1 <= l; ++j1) {
+        boolean moreZ = i <= j;
+        for (long i1 = i; moreZ; moreZ = i1 < j, i1 = WorldBounds.addChunkOffset(i1, 1L)) {
+            boolean moreX = k <= l;
+            for (long j1 = k; moreX; moreX = j1 < l, j1 = WorldBounds.addChunkOffset(j1, 1L)) {
                 ChunkPos chunkpos1 = new ChunkPos(j1, i1);
                 LevelChunk levelchunk = serverchunkcache.getChunk(j1, i1, false);
                 if (levelchunk != null && (!p_183687_ || !levelchunk.isOldNoiseGeneration())) {
@@ -79,16 +82,21 @@ public class ResetChunksCommand {
                 return Unit.INSTANCE;
             }, processormailbox::tell);
 
-            for (long i2 = chunkpos.z - p_183686_; i2 <= chunkpos.z + p_183686_; ++i2) {
-                for (long j2 = chunkpos.x - p_183686_; j2 <= chunkpos.x + p_183686_; ++j2) {
+            boolean moreStageZ = i <= j;
+            for (long i2 = i; moreStageZ; moreStageZ = i2 < j, i2 = WorldBounds.addChunkOffset(i2, 1L)) {
+                boolean moreStageX = k <= l;
+                for (long j2 = k; moreStageX; moreStageX = j2 < l, j2 = WorldBounds.addChunkOffset(j2, 1L)) {
                     ChunkPos chunkpos2 = new ChunkPos(j2, i2);
                     LevelChunk levelchunk1 = serverchunkcache.getChunk(j2, i2, false);
                     if (levelchunk1 != null && (!p_183687_ || !levelchunk1.isOldNoiseGeneration())) {
                         List<ChunkAccess> list = Lists.newArrayList();
                         int k2 = Math.max(1, chunkstatus.getRange());
 
-                        for (long l2 = chunkpos2.z - k2; l2 <= chunkpos2.z + k2; ++l2) {
-                            for (long i3 = chunkpos2.x - k2; i3 <= chunkpos2.x + k2; ++i3) {
+                        // Generation requires a square, center-indexed neighborhood even at a world edge.
+                        for (int zOffset = -k2; zOffset <= k2; ++zOffset) {
+                            long l2 = WorldBounds.addChunkOffset(chunkpos2.z, zOffset);
+                            for (int xOffset = -k2; xOffset <= k2; ++xOffset) {
+                                long i3 = WorldBounds.addChunkOffset(chunkpos2.x, xOffset);
                                 ChunkAccess chunkaccess = serverchunkcache.getChunk(i3, l2, chunkstatus.getParent(), true);
                                 ChunkAccess chunkaccess1;
                                 if (chunkaccess instanceof ImposterProtoChunk) {
@@ -126,8 +134,10 @@ public class ResetChunksCommand {
 
         long l3 = System.currentTimeMillis();
 
-        for (long i4 = chunkpos.z - p_183686_; i4 <= chunkpos.z + p_183686_; ++i4) {
-            for (long l1 = chunkpos.x - p_183686_; l1 <= chunkpos.x + p_183686_; ++l1) {
+        moreZ = i <= j;
+        for (long i4 = i; moreZ; moreZ = i4 < j, i4 = WorldBounds.addChunkOffset(i4, 1L)) {
+            boolean moreX = k <= l;
+            for (long l1 = k; moreX; moreX = l1 < l, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
                 ChunkPos chunkpos3 = new ChunkPos(l1, i4);
                 LevelChunk levelchunk2 = serverchunkcache.getChunk(l1, i4, false);
                 if (levelchunk2 != null && (!p_183687_ || !levelchunk2.isOldNoiseGeneration())) {

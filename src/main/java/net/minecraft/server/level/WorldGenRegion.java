@@ -125,13 +125,21 @@ public class WorldGenRegion implements WorldGenLevel {
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.EMPTY);
     }
 
+    static int getChunkIndex(ChunkPos center, int size, long chunkX, long chunkZ) {
+        // ChunkMap retains a full square of slots even when offsets clamp at
+        // the world edge. Index from the center, not the clamped first chunk:
+        // duplicate edge slots must resolve to the one nearest the center,
+        // which has the strongest scheduled generation-status dependency.
+        long x = WorldBounds.signedDifferenceAsLong(chunkX, center.x) + size / 2;
+        long z = WorldBounds.signedDifferenceAsLong(chunkZ, center.z) + size / 2;
+        return (int) (x + z * size);
+    }
+
     @Nullable
     public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
         ChunkAccess chunkaccess;
         if (this.hasChunk(pX, pZ)) {
-            long i = WorldBounds.signedDifferenceAsLong(pX, this.firstPos.x);
-            long j = WorldBounds.signedDifferenceAsLong(pZ, this.firstPos.z);
-            chunkaccess = this.cache.get((int) (i + j * this.size));
+            chunkaccess = this.cache.get(getChunkIndex(this.center.getPos(), this.size, pX, pZ));
             if (chunkaccess.getStatus().isOrAfter(pRequiredStatus)) {
                 return chunkaccess;
             }

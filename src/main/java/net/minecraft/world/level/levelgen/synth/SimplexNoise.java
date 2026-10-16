@@ -66,6 +66,34 @@ public class SimplexNoise {
         double d3 = (double) j - d1;
         double d4 = pX - d2;
         double d5 = pY - d3;
+        return this.getValue2D(i, j, d4, d5);
+    }
+
+    /** Samples integer positions without rounding away the skew lattice or local offsets. */
+    public double getValueAt(long x, long y) {
+        // Keep the established near-origin terrain bit-for-bit unchanged.
+        if (x >= -1048576L && x <= 1048576L && y >= -1048576L && y <= 1048576L) {
+            return this.getValue((double) x, (double) y);
+        }
+
+        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
+        PreciseNoiseCoordinate.scale(x, F2, split);
+        long skew = split.lattice;
+        double fraction = split.fraction;
+        PreciseNoiseCoordinate.scale(y, F2, split);
+        skew += split.lattice;
+        fraction += split.fraction;
+        long carry = (long) Math.floor(fraction);
+        skew += carry;
+        fraction -= carry;
+
+        // Both skewed coordinates have the same fraction for integer inputs.
+        // Unskew these small fractions, never subtract huge global doubles.
+        double delta = fraction * (1.0D - 2.0D * G2);
+        return this.getValue2D(x + skew, y + skew, delta, delta);
+    }
+
+    private double getValue2D(long i, long j, double d4, double d5) {
         int k;
         int l;
         if (d4 > d5) {

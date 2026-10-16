@@ -15,6 +15,7 @@ import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.world.phys.AABB;
 import org.slf4j.Logger;
 
 public class BoundingBox {
@@ -47,7 +48,17 @@ public class BoundingBox {
     }
 
     public static BoundingBox infinite() {
-        return new BoundingBox(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        return new BoundingBox(Long.MIN_VALUE, Integer.MIN_VALUE, Long.MIN_VALUE, Long.MAX_VALUE, Integer.MAX_VALUE, Long.MAX_VALUE);
+    }
+
+    /** Converts inclusive block bounds into a small, origin-relative shape. */
+    public AABB toLocalAABB(BlockPos origin) {
+        // Subtract exact block coordinates BEFORE converting to floating point.
+        // Add the exclusive upper endpoint locally, even at Long.MAX_VALUE.
+        return new AABB(WorldBounds.signedDifference(this.minX, origin.getX()), (double) this.minY - origin.getY(),
+                WorldBounds.signedDifference(this.minZ, origin.getZ()),
+                WorldBounds.signedDifference(this.maxX, origin.getX()) + 1.0D, (double) this.maxY - origin.getY() + 1.0D,
+                WorldBounds.signedDifference(this.maxZ, origin.getZ()) + 1.0D);
     }
 
     public static BoundingBox orientBox(long pStructureMinX, int pStructureMinY, long pStructureMinZ, int pXMin, int pYMin, int pZMin, int pXMax, int pYMax, int pZMax, Direction pFacing) {

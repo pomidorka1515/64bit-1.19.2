@@ -48,7 +48,7 @@ public final class StructureStart {
                 LOGGER.error("Unknown stucture id: {}", (Object) s);
                 return null;
             } else {
-                ChunkPos chunkpos = new ChunkPos(p_226859_.getInt("ChunkX"), p_226859_.getInt("ChunkZ"));
+                ChunkPos chunkpos = new ChunkPos(p_226859_.getLong("ChunkX"), p_226859_.getLong("ChunkZ"));
                 int i = p_226859_.getInt("references");
                 ListTag listtag = p_226859_.getList("Children", 10);
 

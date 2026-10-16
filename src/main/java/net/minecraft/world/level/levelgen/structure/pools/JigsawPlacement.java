@@ -91,9 +91,10 @@ public class JigsawPlacement {
                 List<PoolElementStructurePiece> list = Lists.newArrayList();
                 list.add(poolelementstructurepiece);
                 if (p_227242_ > 0) {
-                    AABB aabb = new AABB((double) (i - p_227246_), (double) (i1 - p_227246_), (double) (j - p_227246_), (double) (i + p_227246_ + 1), (double) (i1 + p_227246_ + 1), (double) (j + p_227246_ + 1));
-                    VoxelShape voxelshape = Shapes.join(Shapes.create(aabb), Shapes.create(AABB.of(boundingbox)), BooleanOp.ONLY_FIRST);
-                    addPieces(p_227239_.randomState(), p_227242_, p_227244_, chunkgenerator, structuretemplatemanager, levelheightaccessor, worldgenrandom, registry, poolelementstructurepiece, list, voxelshape);
+                    BlockPos shapeOrigin = new BlockPos(i, i1, j);
+                    AABB aabb = new AABB(-p_227246_, -p_227246_, -p_227246_, (double) p_227246_ + 1.0D, (double) p_227246_ + 1.0D, (double) p_227246_ + 1.0D);
+                    VoxelShape voxelshape = Shapes.join(Shapes.create(aabb), Shapes.create(boundingbox.toLocalAABB(shapeOrigin)), BooleanOp.ONLY_FIRST);
+                    addPieces(p_227239_.randomState(), p_227242_, p_227244_, chunkgenerator, structuretemplatemanager, levelheightaccessor, worldgenrandom, registry, poolelementstructurepiece, list, voxelshape, shapeOrigin);
                     list.forEach(p_227237_::addPiece);
                 }
             }));
@@ -115,8 +116,8 @@ public class JigsawPlacement {
         return optional;
     }
 
-    private static void addPieces(RandomState p_227211_, int p_227212_, boolean p_227213_, ChunkGenerator p_227214_, StructureTemplateManager p_227215_, LevelHeightAccessor p_227216_, RandomSource p_227217_, Registry<StructureTemplatePool> p_227218_, PoolElementStructurePiece p_227219_, List<PoolElementStructurePiece> p_227220_, VoxelShape p_227221_) {
-        JigsawPlacement.Placer jigsawplacement$placer = new JigsawPlacement.Placer(p_227218_, p_227212_, p_227214_, p_227215_, p_227220_, p_227217_);
+    private static void addPieces(RandomState p_227211_, int p_227212_, boolean p_227213_, ChunkGenerator p_227214_, StructureTemplateManager p_227215_, LevelHeightAccessor p_227216_, RandomSource p_227217_, Registry<StructureTemplatePool> p_227218_, PoolElementStructurePiece p_227219_, List<PoolElementStructurePiece> p_227220_, VoxelShape p_227221_, BlockPos shapeOrigin) {
+        JigsawPlacement.Placer jigsawplacement$placer = new JigsawPlacement.Placer(p_227218_, p_227212_, p_227214_, p_227215_, p_227220_, p_227217_, shapeOrigin);
         jigsawplacement$placer.placing.addLast(new JigsawPlacement.PieceState(p_227219_, new MutableObject<>(p_227221_), 0));
 
         while (!jigsawplacement$placer.placing.isEmpty()) {
@@ -169,15 +170,18 @@ public class JigsawPlacement {
         private final StructureTemplateManager structureTemplateManager;
         private final List<? super PoolElementStructurePiece> pieces;
         private final RandomSource random;
+        // All free-space shapes, including nested interior spaces, share this frame.
+        private final BlockPos shapeOrigin;
         final Deque<JigsawPlacement.PieceState> placing = Queues.newArrayDeque();
 
-        Placer(Registry<StructureTemplatePool> pPools, int pMaxDepth, ChunkGenerator pChunkGenerator, StructureTemplateManager pStructureTemplateManager, List<? super PoolElementStructurePiece> pPieces, RandomSource pRandom) {
+        Placer(Registry<StructureTemplatePool> pPools, int pMaxDepth, ChunkGenerator pChunkGenerator, StructureTemplateManager pStructureTemplateManager, List<? super PoolElementStructurePiece> pPieces, RandomSource pRandom, BlockPos shapeOrigin) {
             this.pools = pPools;
             this.maxDepth = pMaxDepth;
             this.chunkGenerator = pChunkGenerator;
             this.structureTemplateManager = pStructureTemplateManager;
             this.pieces = pPieces;
             this.random = pRandom;
+            this.shapeOrigin = shapeOrigin.immutable();
         }
 
         void tryPlacingChildren(PoolElementStructurePiece p_227265_, MutableObject<VoxelShape> p_227266_, int p_227267_, boolean p_227268_, LevelHeightAccessor p_227269_, RandomState p_227270_) {
@@ -208,7 +212,7 @@ public class JigsawPlacement {
                         if (flag1) {
                             mutableobject1 = mutableobject;
                             if (mutableobject.getValue() == null) {
-                                mutableobject.setValue(Shapes.create(AABB.of(boundingbox)));
+                                mutableobject.setValue(Shapes.create(boundingbox.toLocalAABB(this.shapeOrigin)));
                             }
                         } else {
                             mutableobject1 = p_227266_;
@@ -286,8 +290,9 @@ public class JigsawPlacement {
                                             boundingbox3.encapsulate(new BlockPos(boundingbox3.minX(), boundingbox3.minY() + j2, boundingbox3.minZ()));
                                         }
 
-                                        if (!Shapes.joinIsNotEmpty(mutableobject1.getValue(), Shapes.create(AABB.of(boundingbox3).deflate(0.25D)), BooleanOp.ONLY_SECOND)) {
-                                            mutableobject1.setValue(Shapes.joinUnoptimized(mutableobject1.getValue(), Shapes.create(AABB.of(boundingbox3)), BooleanOp.ONLY_FIRST));
+                                        AABB localBox = boundingbox3.toLocalAABB(this.shapeOrigin);
+                                        if (!Shapes.joinIsNotEmpty(mutableobject1.getValue(), Shapes.create(localBox.deflate(0.25D)), BooleanOp.ONLY_SECOND)) {
+                                            mutableobject1.setValue(Shapes.joinUnoptimized(mutableobject1.getValue(), Shapes.create(localBox), BooleanOp.ONLY_FIRST));
                                             int i3 = p_227265_.getGroundLevelDelta();
                                             int k2;
                                             if (flag2) {

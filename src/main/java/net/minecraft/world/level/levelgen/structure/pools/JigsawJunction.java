@@ -46,7 +46,7 @@ public class JigsawJunction {
     }
 
     public static <T> JigsawJunction deserialize(Dynamic<T> pDynamic) {
-        return new JigsawJunction(pDynamic.get("source_x").asInt(0), pDynamic.get("source_ground_y").asInt(0), pDynamic.get("source_z").asInt(0), pDynamic.get("delta_y").asInt(0), StructureTemplatePool.Projection.byName(pDynamic.get("dest_proj").asString("")));
+        return new JigsawJunction(pDynamic.get("source_x").asLong(0L), pDynamic.get("source_ground_y").asInt(0), pDynamic.get("source_z").asLong(0L), pDynamic.get("delta_y").asInt(0), StructureTemplatePool.Projection.byName(pDynamic.get("dest_proj").asString("")));
     }
 
     public boolean equals(Object pOther) {

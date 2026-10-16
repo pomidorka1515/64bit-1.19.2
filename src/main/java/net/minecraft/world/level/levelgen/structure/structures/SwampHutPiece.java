@@ -91,7 +91,7 @@ public class SwampHutPiece extends ScatteredFeaturePiece {
                     this.spawnedWitch = true;
                     Witch witch = EntityType.WITCH.create(pLevel.getLevel());
                     witch.setPersistenceRequired();
-                    witch.moveTo((double) blockpos.getX() + 0.5D, (double) blockpos.getY(), (double) blockpos.getZ() + 0.5D, 0.0F, 0.0F);
+                    witch.moveTo(blockpos, 0.0F, 0.0F);
                     witch.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(blockpos), MobSpawnType.STRUCTURE, (SpawnGroupData) null, (CompoundTag) null);
                     pLevel.addFreshEntityWithPassengers(witch);
                 }
@@ -108,7 +108,7 @@ public class SwampHutPiece extends ScatteredFeaturePiece {
                 this.spawnedCat = true;
                 Cat cat = EntityType.CAT.create(pLevel.getLevel());
                 cat.setPersistenceRequired();
-                cat.moveTo((double) blockpos.getX() + 0.5D, (double) blockpos.getY(), (double) blockpos.getZ() + 0.5D, 0.0F, 0.0F);
+                cat.moveTo(blockpos, 0.0F, 0.0F);
                 cat.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(blockpos), MobSpawnType.STRUCTURE, (SpawnGroupData) null, (CompoundTag) null);
                 pLevel.addFreshEntityWithPassengers(cat);
             }

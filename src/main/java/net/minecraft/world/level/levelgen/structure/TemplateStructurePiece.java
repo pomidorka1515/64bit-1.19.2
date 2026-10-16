@@ -46,7 +46,7 @@ public abstract class TemplateStructurePiece extends StructurePiece {
         super(pType, pTag);
         this.setOrientation(Direction.NORTH);
         this.templateName = pTag.getString("Template");
-        this.templatePosition = new BlockPos(pTag.getInt("TPX"), pTag.getInt("TPY"), pTag.getInt("TPZ"));
+        this.templatePosition = new BlockPos(pTag.getLong("TPX"), pTag.getInt("TPY"), pTag.getLong("TPZ"));
         ResourceLocation resourcelocation = this.makeTemplateLocation();
         this.template = pStructureTemplateManager.getOrCreate(resourcelocation);
         this.placeSettings = pPlaceSettingsFactory.apply(resourcelocation);

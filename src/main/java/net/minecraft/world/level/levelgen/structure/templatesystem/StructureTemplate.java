@@ -52,6 +52,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.BitSetDiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 
@@ -385,24 +386,23 @@ public class StructureTemplate {
             if (p_74529_ == null || p_74529_.isInside(blockpos)) {
                 CompoundTag compoundtag = structuretemplate$structureentityinfo.nbt.copy();
                 Vec3 vec3 = transform(structuretemplate$structureentityinfo.pos, p_74526_, p_74527_, p_74528_);
-                long entityX = p_74525_.getX() + Mth.floor(vec3.x);
-                long entityZ = p_74525_.getZ() + Mth.floor(vec3.z);
-                int entityY = Mth.floor((double) p_74525_.getY() + vec3.y);
-                Vec3 vec31 = vec3.add((double) p_74525_.getX(), (double) p_74525_.getY(), (double) p_74525_.getZ());
+                SectorVec3 entityPosition = SectorVec3.fromBlockAndFraction(p_74525_.getX(), vec3.x,
+                        (double) p_74525_.getY() + vec3.y, p_74525_.getZ(), vec3.z);
+                Vec3 vec31 = entityPosition.toApproximateVec3();
                 ListTag listtag = new ListTag();
-                listtag.add(DoubleTag.valueOf((double) entityX + (vec3.x - (double) Mth.floor(vec3.x))));
+                listtag.add(DoubleTag.valueOf(vec31.x));
                 listtag.add(DoubleTag.valueOf(vec31.y));
-                listtag.add(DoubleTag.valueOf((double) entityZ + (vec3.z - (double) Mth.floor(vec3.z))));
+                listtag.add(DoubleTag.valueOf(vec31.z));
                 compoundtag.put("Pos", listtag);
                 compoundtag.remove("UUID");
                 createEntityIgnoreException(p_74524_, compoundtag).ifPresent((p_205061_) -> {
                     float f = p_205061_.rotate(p_74527_);
                     f += p_205061_.mirror(p_74526_) - p_205061_.getYRot();
-                    p_205061_.moveTo(vec31.x, vec31.y, vec31.z, f, p_205061_.getXRot());
-                    BlockPos entityBlockPos = new BlockPos(entityX, entityY, entityZ);
-                    p_205061_.getSelfAndPassengers().forEach((entity) -> entity.setExactBlockPosition(entityBlockPos));
+                    p_205061_.moveTo(entityPosition, f, p_205061_.getXRot());
+                    p_205061_.getSelfAndPassengers().filter((entity) -> entity != p_205061_)
+                            .forEach((entity) -> entity.setExactBlockPosition(entityPosition.blockPosition()));
                     if (p_74530_ && p_205061_ instanceof Mob) {
-                        ((Mob) p_205061_).finalizeSpawn(p_74524_, p_74524_.getCurrentDifficultyAt(new BlockPos(entityX, entityY, entityZ)), MobSpawnType.STRUCTURE, (SpawnGroupData) null, compoundtag);
+                        ((Mob) p_205061_).finalizeSpawn(p_74524_, p_74524_.getCurrentDifficultyAt(entityPosition.blockPosition()), MobSpawnType.STRUCTURE, (SpawnGroupData) null, compoundtag);
                     }
 
                     p_74524_.addFreshEntityWithPassengers(p_205061_);

@@ -1424,7 +1424,7 @@ public class OceanMonumentPieces {
             if (pBox.isInside(blockpos)) {
                 ElderGuardian elderguardian = EntityType.ELDER_GUARDIAN.create(pLevel.getLevel());
                 elderguardian.heal(elderguardian.getMaxHealth());
-                elderguardian.moveTo((double) blockpos.getX() + 0.5D, (double) blockpos.getY(), (double) blockpos.getZ() + 0.5D, 0.0F, 0.0F);
+                elderguardian.moveTo(blockpos, 0.0F, 0.0F);
                 elderguardian.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(elderguardian.blockPosition()), MobSpawnType.STRUCTURE, (SpawnGroupData) null, (CompoundTag) null);
                 pLevel.addFreshEntityWithPassengers(elderguardian);
                 return true;

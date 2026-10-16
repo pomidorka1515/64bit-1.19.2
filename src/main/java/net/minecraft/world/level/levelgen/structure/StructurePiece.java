@@ -342,17 +342,17 @@ public abstract class StructurePiece {
         float f = (float) WorldBounds.distance(pMaxX, pMinX) + 1.0F;
         float f1 = (float) (WorldBounds.distance((long) pMaxY, (long) pMinY) + 1.0D);
         float f2 = (float) WorldBounds.distance(pMaxZ, pMinZ) + 1.0F;
-        float f3 = (float) pMinX + f / 2.0F;
-        float f4 = (float) pMinZ + f2 / 2.0F;
+        float f3 = f / 2.0F;
+        float f4 = f2 / 2.0F;
 
         for (int i = pMinY;; i = WorldBounds.addSaturated(i, 1)) {
             float f5 = (float) WorldBounds.signedDifference((long) i, (long) pMinY) / f1;
 
             for (long j = pMinX;; j = WorldBounds.addBlockOffset(j, 1L)) {
-                float f6 = ((float) j - f3) / (f * 0.5F);
+                float f6 = ((float) WorldBounds.signedDifference(j, pMinX) - f3) / (f * 0.5F);
 
                 for (long k = pMinZ;; k = WorldBounds.addBlockOffset(k, 1L)) {
-                    float f7 = ((float) k - f4) / (f2 * 0.5F);
+                    float f7 = ((float) WorldBounds.signedDifference(k, pMinZ) - f4) / (f2 * 0.5F);
                     if (!pExcludeAir || !this.getBlock(pLevel, j, i, k, pBox).isAir()) {
                         float f8 = f6 * f6 + f5 * f5 + f7 * f7;
                         if (f8 <= 1.05F) {

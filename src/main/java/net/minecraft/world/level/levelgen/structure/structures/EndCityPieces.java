@@ -254,7 +254,7 @@ public class EndCityPieces {
             } else if (pBox.isInside(pPos) && Level.isInSpawnableBounds(pPos)) {
                 if (pName.startsWith("Sentry")) {
                     Shulker shulker = EntityType.SHULKER.create(pLevel.getLevel());
-                    shulker.setPos((double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D);
+                    shulker.moveTo(pPos, shulker.getYRot(), shulker.getXRot());
                     pLevel.addFreshEntity(shulker);
                 } else if (pName.startsWith("Elytra")) {
                     ItemFrame itemframe = new ItemFrame(pLevel.getLevel(), pPos, this.placeSettings.getRotation().rotate(Direction.SOUTH));

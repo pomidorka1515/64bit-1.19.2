@@ -46,7 +46,7 @@ public class PoolElementStructurePiece extends StructurePiece {
     public PoolElementStructurePiece(StructurePieceSerializationContext pContext, CompoundTag pTag) {
         super(StructurePieceType.JIGSAW, pTag);
         this.structureTemplateManager = pContext.structureTemplateManager();
-        this.position = new BlockPos(pTag.getInt("PosX"), pTag.getInt("PosY"), pTag.getInt("PosZ"));
+        this.position = new BlockPos(pTag.getLong("PosX"), pTag.getInt("PosY"), pTag.getLong("PosZ"));
         this.groundLevelDelta = pTag.getInt("ground_level_delta");
         DynamicOps<Tag> dynamicops = RegistryOps.create(NbtOps.INSTANCE, pContext.registryAccess());
         this.element = StructurePoolElement.CODEC.parse(dynamicops, pTag.getCompound("pool_element")).resultOrPartial(LOGGER::error).orElseThrow(() -> {

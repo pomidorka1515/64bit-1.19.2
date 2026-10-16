@@ -91,7 +91,7 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
         DataLayer layer = this.storage.getDataLayer(sectionPos, true);
         for (Direction direction : DIRECTIONS) {
             BlockPos neighbor = blockPos.relative(direction);
-            if (!neighbor.equals(excludedNeighbor)) {
+            if (!neighbor.equals(blockPos) && !neighbor.equals(excludedNeighbor)) {
                 SectionPos neighborSection = SectionPos.of(neighbor);
                 DataLayer neighborLayer = sectionPos.equals(neighborSection) ? layer : this.storage.getDataLayer(neighborSection, true);
                 int neighborLevel;

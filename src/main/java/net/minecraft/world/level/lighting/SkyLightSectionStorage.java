@@ -175,7 +175,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
                     long z = SectionPos.sectionToBlockCoord(sectionPos.z());
                     for (Direction direction : HORIZONTALS) {
                         SectionPos neighbor = sectionPos.offset(direction);
-                        if ((this.sectionsToRemoveSourcesFrom.contains(neighbor) || (!this.sectionsWithSources.contains(neighbor) && !this.sectionsToAddSourcesTo.contains(neighbor))) && this.storingLightForSection(neighbor)) {
+                        if (!neighbor.equals(sectionPos) && (this.sectionsToRemoveSourcesFrom.contains(neighbor) || (!this.sectionsWithSources.contains(neighbor) && !this.sectionsToAddSourcesTo.contains(neighbor))) && this.storingLightForSection(neighbor)) {
                             for (int first = 0; first < 16; ++first) {
                                 for (int second = 0; second < 16; ++second) {
                                     BlockPos from;

@@ -262,7 +262,9 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         long z = SectionPos.sectionToBlockCoord(sectionPos.z());
         for (Direction direction : DIRECTIONS) {
             SectionPos neighborSection = sectionPos.offset(direction);
-            if (this.queuedSections.containsKey(neighborSection) || !this.storingLightForSection(neighborSection))
+            // Section offsets saturate at the world edge. There is no adjacent
+            // section there; constructing its block face would wrap long X/Z.
+            if (neighborSection.equals(sectionPos) || this.queuedSections.containsKey(neighborSection) || !this.storingLightForSection(neighborSection))
                 continue;
 
             for (int first = 0; first < 16; ++first) {

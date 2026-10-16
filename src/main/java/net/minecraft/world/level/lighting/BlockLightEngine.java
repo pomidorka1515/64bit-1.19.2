@@ -72,7 +72,7 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
         DataLayer layer = this.storage.getDataLayer(sectionPos, true);
         for (Direction direction : DIRECTIONS) {
             BlockPos neighbor = blockPos.relative(direction);
-            if (!neighbor.equals(excludedNeighbor)) {
+            if (!neighbor.equals(blockPos) && !neighbor.equals(excludedNeighbor)) {
                 DataLayer neighborLayer = sectionPos.equals(SectionPos.of(neighbor)) ? layer : this.storage.getDataLayer(SectionPos.of(neighbor), true);
                 if (neighborLayer != null) {
                     int neighborLevel = this.computeLevelFromNeighbor(neighbor, blockPos, this.getLevel(neighborLayer, neighbor));

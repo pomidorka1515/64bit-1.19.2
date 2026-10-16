@@ -787,10 +787,14 @@ public class ClientLevel extends Level {
 
     public int calculateBlockTint(BlockPos pBlockPos, ColorResolver pColorResolver) {
         int i = Minecraft.getInstance().options.biomeBlendRadius().get();
+        return calculateBlockTint(pBlockPos, i, pos -> pColorResolver.getColor(this.getBiome(pos).value(), (double) pos.getX(), (double) pos.getZ()));
+    }
+
+    static int calculateBlockTint(BlockPos pBlockPos, int i, java.util.function.ToIntFunction<BlockPos> colorSource) {
         if (i == 0) {
-            return pColorResolver.getColor(this.getBiome(pBlockPos).value(), (double) pBlockPos.getX(), (double) pBlockPos.getZ());
+            return colorSource.applyAsInt(pBlockPos);
         } else {
-            int j = (i * 2 + 1) * (i * 2 + 1);
+            int j = 0;
             int k = 0;
             int l = 0;
             int i1 = 0;
@@ -799,7 +803,8 @@ public class ClientLevel extends Level {
             int j1;
             for (BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(); cursor3d.advance(); i1 += j1 & 255) {
                 blockpos$mutableblockpos.set(cursor3d.nextX(), cursor3d.nextY(), cursor3d.nextZ());
-                j1 = pColorResolver.getColor(this.getBiome(blockpos$mutableblockpos).value(), (double) blockpos$mutableblockpos.getX(), (double) blockpos$mutableblockpos.getZ());
+                j1 = colorSource.applyAsInt(blockpos$mutableblockpos);
+                ++j;
                 k += (j1 & 16711680) >> 16;
                 l += (j1 & '\uff00') >> 8;
             }

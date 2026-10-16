@@ -122,13 +122,20 @@ public class Block extends BlockBehaviour implements ItemLike {
     }
 
     public static BlockState pushEntitiesUp(BlockState pOldState, BlockState pNewState, LevelAccessor pLevel, BlockPos pPos) {
-        VoxelShape voxelshape = Shapes.joinUnoptimized(pOldState.getCollisionShape(pLevel, pPos), pNewState.getCollisionShape(pLevel, pPos), BooleanOp.ONLY_SECOND).move((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ());
+        VoxelShape voxelshape = Shapes.joinUnoptimized(pOldState.getCollisionShape(pLevel, pPos), pNewState.getCollisionShape(pLevel, pPos), BooleanOp.ONLY_SECOND);
         if (voxelshape.isEmpty()) {
             return pNewState;
         } else {
-            for (Entity entity : pLevel.getEntities((Entity) null, voxelshape.bounds())) {
-                double d0 = Shapes.collide(Direction.Axis.Y, entity.getBoundingBox().move(0.0D, 1.0D, 0.0D), List.of(voxelshape), -1.0D);
-                entity.teleportTo(entity.getX(), entity.getY() + 1.0D + d0, entity.getZ());
+            // Keep the new collision volume in the block's local frame. Absolute
+            // doubles can lose entire blocks here, including the teleport's X/Z.
+            net.minecraft.world.phys.SectorPhysicsOrigin origin = new net.minecraft.world.phys.SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ());
+            net.minecraft.world.phys.AABB bounds = voxelshape.bounds();
+            net.minecraft.world.phys.SectorAABB exactBounds = new net.minecraft.world.phys.SectorAABB(
+                    pPos.getX(), bounds.minX, (double) pPos.getY() + bounds.minY, pPos.getZ(), bounds.minZ,
+                    pPos.getX(), bounds.maxX, (double) pPos.getY() + bounds.maxY, pPos.getZ(), bounds.maxZ);
+            for (Entity entity : pLevel.getSectorEntities(null, exactBounds, bounds, origin, net.minecraft.world.entity.EntitySelector.NO_SPECTATORS)) {
+                double d0 = Shapes.collide(Direction.Axis.Y, entity.getSectorBoundingBox().toLocalAABB(origin).move(0.0D, 1.0D, 0.0D), List.of(voxelshape), -1.0D);
+                entity.teleportTo(entity.sectorPosition().add(0.0D, 1.0D + d0, 0.0D));
             }
 
             return pNewState;

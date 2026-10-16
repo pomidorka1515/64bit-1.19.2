@@ -30,8 +30,8 @@ public class RandomSpreadStructurePlacement extends StructurePlacement {
         this.spreadType = p_227007_;
     }
 
-    public RandomSpreadStructurePlacement(int p_204980_, int p_204981_, RandomSpreadType p_204982_, int p_204983_) {
-        this(Vec3i.ZERO, StructurePlacement.FrequencyReductionMethod.DEFAULT, 1.0F, p_204983_, Optional.empty(), p_204980_, p_204981_, p_204982_);
+    public RandomSpreadStructurePlacement(int pSpacing, int pSeparation, RandomSpreadType pSpreadType, int pSalt) {
+        this(Vec3i.ZERO, StructurePlacement.FrequencyReductionMethod.DEFAULT, 1.0F, pSalt, Optional.empty(), pSpacing, pSeparation, pSpreadType);
     }
 
     public int spacing() {
@@ -57,9 +57,9 @@ public class RandomSpreadStructurePlacement extends StructurePlacement {
         return new ChunkPos(i * this.spacing + l, j * this.spacing + i1);
     }
 
-    protected boolean isPlacementChunk(ChunkGenerator p_227013_, RandomState p_227014_, long p_227015_, long p_227016_, long p_227017_) {
-        ChunkPos chunkpos = this.getPotentialStructureChunk(p_227015_, p_227016_, p_227017_);
-        return chunkpos.x == p_227016_ && chunkpos.z == p_227017_;
+    protected boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pY) {
+        ChunkPos chunkpos = this.getPotentialStructureChunk(pSeed, pX, pY);
+        return chunkpos.x == pX && chunkpos.z == pY;
     }
 
     public StructurePlacementType<?> type() {

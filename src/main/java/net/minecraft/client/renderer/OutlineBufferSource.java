@@ -17,17 +17,17 @@ public class OutlineBufferSource implements MultiBufferSource {
     private int teamB = 255;
     private int teamA = 255;
 
-    public OutlineBufferSource(MultiBufferSource.BufferSource p_109927_) {
-        this.bufferSource = p_109927_;
+    public OutlineBufferSource(MultiBufferSource.BufferSource pBufferSource) {
+        this.bufferSource = pBufferSource;
     }
 
-    public VertexConsumer getBuffer(RenderType p_109935_) {
-        if (p_109935_.isOutline()) {
-            VertexConsumer vertexconsumer2 = this.outlineBufferSource.getBuffer(p_109935_);
+    public VertexConsumer getBuffer(RenderType pRenderType) {
+        if (pRenderType.isOutline()) {
+            VertexConsumer vertexconsumer2 = this.outlineBufferSource.getBuffer(pRenderType);
             return new OutlineBufferSource.EntityOutlineGenerator(vertexconsumer2, this.teamR, this.teamG, this.teamB, this.teamA);
         } else {
-            VertexConsumer vertexconsumer = this.bufferSource.getBuffer(p_109935_);
-            Optional<RenderType> optional = p_109935_.outline();
+            VertexConsumer vertexconsumer = this.bufferSource.getBuffer(pRenderType);
+            Optional<RenderType> optional = pRenderType.outline();
             if (optional.isPresent()) {
                 VertexConsumer vertexconsumer1 = this.outlineBufferSource.getBuffer(optional.get());
                 OutlineBufferSource.EntityOutlineGenerator outlinebuffersource$entityoutlinegenerator = new OutlineBufferSource.EntityOutlineGenerator(vertexconsumer1, this.teamR, this.teamG, this.teamB, this.teamA);
@@ -38,11 +38,11 @@ public class OutlineBufferSource implements MultiBufferSource {
         }
     }
 
-    public void setColor(int p_109930_, int p_109931_, int p_109932_, int p_109933_) {
-        this.teamR = p_109930_;
-        this.teamG = p_109931_;
-        this.teamB = p_109932_;
-        this.teamA = p_109933_;
+    public void setColor(int pRed, int pGreen, int pBlue, int pAlpha) {
+        this.teamR = pRed;
+        this.teamG = pGreen;
+        this.teamB = pBlue;
+        this.teamA = pAlpha;
     }
 
     public void endOutlineBatch() {
@@ -58,48 +58,48 @@ public class OutlineBufferSource implements MultiBufferSource {
         private float u;
         private float v;
 
-        EntityOutlineGenerator(VertexConsumer p_109943_, int p_109944_, int p_109945_, int p_109946_, int p_109947_) {
-            this.delegate = p_109943_;
-            super.defaultColor(p_109944_, p_109945_, p_109946_, p_109947_);
+        EntityOutlineGenerator(VertexConsumer pDelegate, int pDefaultR, int pDefaultG, int pDefaultB, int pDefaultA) {
+            this.delegate = pDelegate;
+            super.defaultColor(pDefaultR, pDefaultG, pDefaultB, pDefaultA);
         }
 
-        public void defaultColor(int p_109993_, int p_109994_, int p_109995_, int p_109996_) {
+        public void defaultColor(int pDefaultR, int pDefaultG, int pDefaultB, int pDefaultA) {
         }
 
         public void unsetDefaultColor() {
         }
 
-        public VertexConsumer vertex(double p_109956_, double p_109957_, double p_109958_) {
-            this.x = p_109956_;
-            this.y = p_109957_;
-            this.z = p_109958_;
+        public VertexConsumer vertex(double pX, double pY, double pZ) {
+            this.x = pX;
+            this.y = pY;
+            this.z = pZ;
             return this;
         }
 
-        public VertexConsumer color(int p_109981_, int p_109982_, int p_109983_, int p_109984_) {
+        public VertexConsumer color(int pRed, int pGreen, int pBlue, int pAlpha) {
             return this;
         }
 
-        public VertexConsumer uv(float p_109960_, float p_109961_) {
-            this.u = p_109960_;
-            this.v = p_109961_;
+        public VertexConsumer uv(float pU, float pV) {
+            this.u = pU;
+            this.v = pV;
             return this;
         }
 
-        public VertexConsumer overlayCoords(int p_109978_, int p_109979_) {
+        public VertexConsumer overlayCoords(int pU, int pV) {
             return this;
         }
 
-        public VertexConsumer uv2(int p_109990_, int p_109991_) {
+        public VertexConsumer uv2(int pU, int pV) {
             return this;
         }
 
-        public VertexConsumer normal(float p_109986_, float p_109987_, float p_109988_) {
+        public VertexConsumer normal(float pX, float pY, float pZ) {
             return this;
         }
 
-        public void vertex(float p_109963_, float p_109964_, float p_109965_, float p_109966_, float p_109967_, float p_109968_, float p_109969_, float p_109970_, float p_109971_, int p_109972_, int p_109973_, float p_109974_, float p_109975_, float p_109976_) {
-            this.delegate.vertex((double) p_109963_, (double) p_109964_, (double) p_109965_).color(this.defaultR, this.defaultG, this.defaultB, this.defaultA).uv(p_109970_, p_109971_).endVertex();
+        public void vertex(float pX, float pY, float pZ, float pRed, float pGreen, float pBlue, float pAlpha, float pTexU, float pTexV, int pOverlayUV, int pLightmapUV, float pNormalX, float pNormalY, float pNormalZ) {
+            this.delegate.vertex((double) pX, (double) pY, (double) pZ).color(this.defaultR, this.defaultG, this.defaultB, this.defaultA).uv(pTexU, pTexV).endVertex();
         }
 
         public void endVertex() {

@@ -11,27 +11,27 @@ public class ClientboundBlockUpdatePacket implements Packet<ClientGamePacketList
     private final BlockPos pos;
     private final BlockState blockState;
 
-    public ClientboundBlockUpdatePacket(BlockPos p_131738_, BlockState p_131739_) {
-        this.pos = p_131738_;
-        this.blockState = p_131739_;
+    public ClientboundBlockUpdatePacket(BlockPos pPos, BlockState pBlockState) {
+        this.pos = pPos;
+        this.blockState = pBlockState;
     }
 
-    public ClientboundBlockUpdatePacket(BlockGetter p_131735_, BlockPos p_131736_) {
-        this(p_131736_, p_131735_.getBlockState(p_131736_));
+    public ClientboundBlockUpdatePacket(BlockGetter pBlockGetter, BlockPos pPos) {
+        this(pPos, pBlockGetter.getBlockState(pPos));
     }
 
-    public ClientboundBlockUpdatePacket(FriendlyByteBuf p_178628_) {
-        this.pos = p_178628_.readBlockPos();
-        this.blockState = p_178628_.readById(Block.BLOCK_STATE_REGISTRY);
+    public ClientboundBlockUpdatePacket(FriendlyByteBuf pBuffer) {
+        this.pos = pBuffer.readBlockPos();
+        this.blockState = pBuffer.readById(Block.BLOCK_STATE_REGISTRY);
     }
 
-    public void write(FriendlyByteBuf p_131748_) {
-        p_131748_.writeBlockPos(this.pos);
-        p_131748_.writeId(Block.BLOCK_STATE_REGISTRY, this.blockState);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBlockPos(this.pos);
+        pBuffer.writeId(Block.BLOCK_STATE_REGISTRY, this.blockState);
     }
 
-    public void handle(ClientGamePacketListener p_131745_) {
-        p_131745_.handleBlockUpdate(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleBlockUpdate(this);
     }
 
     public BlockState getBlockState() {

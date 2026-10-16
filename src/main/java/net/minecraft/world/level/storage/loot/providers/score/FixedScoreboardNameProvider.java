@@ -13,12 +13,12 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
 public class FixedScoreboardNameProvider implements ScoreboardNameProvider {
     final String name;
 
-    FixedScoreboardNameProvider(String p_165842_) {
-        this.name = p_165842_;
+    FixedScoreboardNameProvider(String pName) {
+        this.name = pName;
     }
 
-    public static ScoreboardNameProvider forName(String p_165847_) {
-        return new FixedScoreboardNameProvider(p_165847_);
+    public static ScoreboardNameProvider forName(String pName) {
+        return new FixedScoreboardNameProvider(pName);
     }
 
     public LootScoreProviderType getType() {
@@ -30,7 +30,7 @@ public class FixedScoreboardNameProvider implements ScoreboardNameProvider {
     }
 
     @Nullable
-    public String getScoreboardName(LootContext p_165845_) {
+    public String getScoreboardName(LootContext pLootContext) {
         return this.name;
     }
 

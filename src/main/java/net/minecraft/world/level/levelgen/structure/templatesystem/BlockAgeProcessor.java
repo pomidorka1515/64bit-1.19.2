@@ -51,53 +51,53 @@ public class BlockAgeProcessor extends StructureProcessor {
     }
 
     @Nullable
-    private BlockState maybeReplaceFullStoneBlock(RandomSource p_230256_) {
-        if (p_230256_.nextFloat() >= 0.5F) {
+    private BlockState maybeReplaceFullStoneBlock(RandomSource pRandom) {
+        if (pRandom.nextFloat() >= 0.5F) {
             return null;
         } else {
-            BlockState[] ablockstate = new BlockState[] {Blocks.CRACKED_STONE_BRICKS.defaultBlockState(), getRandomFacingStairs(p_230256_, Blocks.STONE_BRICK_STAIRS)};
-            BlockState[] ablockstate1 = new BlockState[] {Blocks.MOSSY_STONE_BRICKS.defaultBlockState(), getRandomFacingStairs(p_230256_, Blocks.MOSSY_STONE_BRICK_STAIRS)};
-            return this.getRandomBlock(p_230256_, ablockstate, ablockstate1);
+            BlockState[] ablockstate = new BlockState[] {Blocks.CRACKED_STONE_BRICKS.defaultBlockState(), getRandomFacingStairs(pRandom, Blocks.STONE_BRICK_STAIRS)};
+            BlockState[] ablockstate1 = new BlockState[] {Blocks.MOSSY_STONE_BRICKS.defaultBlockState(), getRandomFacingStairs(pRandom, Blocks.MOSSY_STONE_BRICK_STAIRS)};
+            return this.getRandomBlock(pRandom, ablockstate, ablockstate1);
         }
     }
 
     @Nullable
-    private BlockState maybeReplaceStairs(RandomSource p_230261_, BlockState p_230262_) {
-        Direction direction = p_230262_.getValue(StairBlock.FACING);
-        Half half = p_230262_.getValue(StairBlock.HALF);
-        if (p_230261_.nextFloat() >= 0.5F) {
+    private BlockState maybeReplaceStairs(RandomSource pRandom, BlockState pState) {
+        Direction direction = pState.getValue(StairBlock.FACING);
+        Half half = pState.getValue(StairBlock.HALF);
+        if (pRandom.nextFloat() >= 0.5F) {
             return null;
         } else {
             BlockState[] ablockstate = new BlockState[] {Blocks.MOSSY_STONE_BRICK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, direction).setValue(StairBlock.HALF, half), Blocks.MOSSY_STONE_BRICK_SLAB.defaultBlockState()};
-            return this.getRandomBlock(p_230261_, NON_MOSSY_REPLACEMENTS, ablockstate);
+            return this.getRandomBlock(pRandom, NON_MOSSY_REPLACEMENTS, ablockstate);
         }
     }
 
     @Nullable
-    private BlockState maybeReplaceSlab(RandomSource p_230271_) {
-        return p_230271_.nextFloat() < this.mossiness ? Blocks.MOSSY_STONE_BRICK_SLAB.defaultBlockState() : null;
+    private BlockState maybeReplaceSlab(RandomSource pRandom) {
+        return pRandom.nextFloat() < this.mossiness ? Blocks.MOSSY_STONE_BRICK_SLAB.defaultBlockState() : null;
     }
 
     @Nullable
-    private BlockState maybeReplaceWall(RandomSource p_230273_) {
-        return p_230273_.nextFloat() < this.mossiness ? Blocks.MOSSY_STONE_BRICK_WALL.defaultBlockState() : null;
+    private BlockState maybeReplaceWall(RandomSource pRandom) {
+        return pRandom.nextFloat() < this.mossiness ? Blocks.MOSSY_STONE_BRICK_WALL.defaultBlockState() : null;
     }
 
     @Nullable
-    private BlockState maybeReplaceObsidian(RandomSource p_230275_) {
-        return p_230275_.nextFloat() < 0.15F ? Blocks.CRYING_OBSIDIAN.defaultBlockState() : null;
+    private BlockState maybeReplaceObsidian(RandomSource pRandom) {
+        return pRandom.nextFloat() < 0.15F ? Blocks.CRYING_OBSIDIAN.defaultBlockState() : null;
     }
 
-    private static BlockState getRandomFacingStairs(RandomSource p_230258_, Block p_230259_) {
-        return p_230259_.defaultBlockState().setValue(StairBlock.FACING, Direction.Plane.HORIZONTAL.getRandomDirection(p_230258_)).setValue(StairBlock.HALF, Half.values()[p_230258_.nextInt(Half.values().length)]);
+    private static BlockState getRandomFacingStairs(RandomSource pRandom, Block pStairsBlock) {
+        return pStairsBlock.defaultBlockState().setValue(StairBlock.FACING, Direction.Plane.HORIZONTAL.getRandomDirection(pRandom)).setValue(StairBlock.HALF, Half.values()[pRandom.nextInt(Half.values().length)]);
     }
 
-    private BlockState getRandomBlock(RandomSource p_230267_, BlockState[] p_230268_, BlockState[] p_230269_) {
-        return p_230267_.nextFloat() < this.mossiness ? getRandomBlock(p_230267_, p_230269_) : getRandomBlock(p_230267_, p_230268_);
+    private BlockState getRandomBlock(RandomSource pRandom, BlockState[] pNormalStates, BlockState[] pMossyStates) {
+        return pRandom.nextFloat() < this.mossiness ? getRandomBlock(pRandom, pMossyStates) : getRandomBlock(pRandom, pNormalStates);
     }
 
-    private static BlockState getRandomBlock(RandomSource p_230264_, BlockState[] p_230265_) {
-        return p_230265_[p_230264_.nextInt(p_230265_.length)];
+    private static BlockState getRandomBlock(RandomSource pRandom, BlockState[] pStates) {
+        return pStates[pRandom.nextInt(pStates.length)];
     }
 
     protected StructureProcessorType<?> getType() {

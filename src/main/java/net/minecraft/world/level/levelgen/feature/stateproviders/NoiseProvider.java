@@ -31,17 +31,17 @@ public class NoiseProvider extends NoiseBasedStateProvider {
         return BlockStateProviderType.NOISE_PROVIDER;
     }
 
-    public BlockState getState(RandomSource p_225913_, BlockPos p_225914_) {
-        return this.getRandomState(this.states, p_225914_, (double) this.scale);
+    public BlockState getState(RandomSource pRandom, BlockPos pState) {
+        return this.getRandomState(this.states, pState, (double) this.scale);
     }
 
-    protected BlockState getRandomState(List<BlockState> p_191453_, BlockPos p_191454_, double p_191455_) {
-        double d0 = this.getNoiseValue(p_191454_, p_191455_);
-        return this.getRandomState(p_191453_, d0);
+    protected BlockState getRandomState(List<BlockState> pPossibleStates, BlockPos pPos, double pDelta) {
+        double d0 = this.getNoiseValue(pPos, pDelta);
+        return this.getRandomState(pPossibleStates, d0);
     }
 
-    protected BlockState getRandomState(List<BlockState> p_191450_, double p_191451_) {
-        double d0 = Mth.clamp((1.0D + p_191451_) / 2.0D, 0.0D, 0.9999D);
-        return p_191450_.get((int) (d0 * (double) p_191450_.size()));
+    protected BlockState getRandomState(List<BlockState> pPossibleStates, double pDelta) {
+        double d0 = Mth.clamp((1.0D + pDelta) / 2.0D, 0.0D, 0.9999D);
+        return pPossibleStates.get((int) (d0 * (double) pPossibleStates.size()));
     }
 }

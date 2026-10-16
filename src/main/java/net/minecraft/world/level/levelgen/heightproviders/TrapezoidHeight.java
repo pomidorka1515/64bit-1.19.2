@@ -33,28 +33,28 @@ public class TrapezoidHeight extends HeightProvider {
         this.plateau = p_162002_;
     }
 
-    public static TrapezoidHeight of(VerticalAnchor p_162010_, VerticalAnchor p_162011_, int p_162012_) {
-        return new TrapezoidHeight(p_162010_, p_162011_, p_162012_);
+    public static TrapezoidHeight of(VerticalAnchor pMinInclusive, VerticalAnchor pMaxInclusive, int pPlateau) {
+        return new TrapezoidHeight(pMinInclusive, pMaxInclusive, pPlateau);
     }
 
-    public static TrapezoidHeight of(VerticalAnchor p_162007_, VerticalAnchor p_162008_) {
-        return of(p_162007_, p_162008_, 0);
+    public static TrapezoidHeight of(VerticalAnchor pMinInclusive, VerticalAnchor pMaxInclusive) {
+        return of(pMinInclusive, pMaxInclusive, 0);
     }
 
-    public int sample(RandomSource p_226305_, WorldGenerationContext p_226306_) {
-        int i = this.minInclusive.resolveY(p_226306_);
-        int j = this.maxInclusive.resolveY(p_226306_);
+    public int sample(RandomSource pRandom, WorldGenerationContext pContext) {
+        int i = this.minInclusive.resolveY(pContext);
+        int j = this.maxInclusive.resolveY(pContext);
         if (i > j) {
             LOGGER.warn("Empty height range: {}", (Object) this);
             return i;
         } else {
             int k = j - i;
             if (this.plateau >= k) {
-                return Mth.randomBetweenInclusive(p_226305_, i, j);
+                return Mth.randomBetweenInclusive(pRandom, i, j);
             } else {
                 int l = (k - this.plateau) / 2;
                 int i1 = k - l;
-                return i + Mth.randomBetweenInclusive(p_226305_, 0, i1) + Mth.randomBetweenInclusive(p_226305_, 0, l);
+                return i + Mth.randomBetweenInclusive(pRandom, 0, i1) + Mth.randomBetweenInclusive(pRandom, 0, l);
             }
         }
     }

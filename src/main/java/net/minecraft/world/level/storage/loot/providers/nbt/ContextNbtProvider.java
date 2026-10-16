@@ -37,26 +37,26 @@ public class ContextNbtProvider implements NbtProvider {
     public static final ContextNbtProvider BLOCK_ENTITY = new ContextNbtProvider(BLOCK_ENTITY_PROVIDER);
     final ContextNbtProvider.Getter getter;
 
-    private static ContextNbtProvider.Getter forEntity(final LootContext.EntityTarget p_165578_) {
+    private static ContextNbtProvider.Getter forEntity(final LootContext.EntityTarget pEntityTarget) {
         return new ContextNbtProvider.Getter() {
             @Nullable
             public Tag get(LootContext p_165589_) {
-                Entity entity = p_165589_.getParamOrNull(p_165578_.getParam());
+                Entity entity = p_165589_.getParamOrNull(pEntityTarget.getParam());
                 return entity != null ? NbtPredicate.getEntityTagToCompare(entity) : null;
             }
 
             public String getId() {
-                return p_165578_.name();
+                return pEntityTarget.name();
             }
 
             public Set<LootContextParam<?>> getReferencedContextParams() {
-                return ImmutableSet.of(p_165578_.getParam());
+                return ImmutableSet.of(pEntityTarget.getParam());
             }
         };
     }
 
-    private ContextNbtProvider(ContextNbtProvider.Getter p_165568_) {
-        this.getter = p_165568_;
+    private ContextNbtProvider(ContextNbtProvider.Getter pGetter) {
+        this.getter = pGetter;
     }
 
     public LootNbtProviderType getType() {
@@ -64,30 +64,30 @@ public class ContextNbtProvider implements NbtProvider {
     }
 
     @Nullable
-    public Tag get(LootContext p_165573_) {
-        return this.getter.get(p_165573_);
+    public Tag get(LootContext pLootContext) {
+        return this.getter.get(pLootContext);
     }
 
     public Set<LootContextParam<?>> getReferencedContextParams() {
         return this.getter.getReferencedContextParams();
     }
 
-    public static NbtProvider forContextEntity(LootContext.EntityTarget p_165571_) {
-        return new ContextNbtProvider(forEntity(p_165571_));
+    public static NbtProvider forContextEntity(LootContext.EntityTarget pEntityTarget) {
+        return new ContextNbtProvider(forEntity(pEntityTarget));
     }
 
-    static ContextNbtProvider createFromContext(String p_165575_) {
-        if (p_165575_.equals("block_entity")) {
+    static ContextNbtProvider createFromContext(String pTargetName) {
+        if (pTargetName.equals("block_entity")) {
             return new ContextNbtProvider(BLOCK_ENTITY_PROVIDER);
         } else {
-            LootContext.EntityTarget lootcontext$entitytarget = LootContext.EntityTarget.getByName(p_165575_);
+            LootContext.EntityTarget lootcontext$entitytarget = LootContext.EntityTarget.getByName(pTargetName);
             return new ContextNbtProvider(forEntity(lootcontext$entitytarget));
         }
     }
 
     interface Getter {
         @Nullable
-        Tag get(LootContext p_165591_);
+        Tag get(LootContext pLootContext);
 
         String getId();
 

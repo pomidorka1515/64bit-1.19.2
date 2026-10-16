@@ -8,34 +8,34 @@ public class NetworkDataOutputStream {
     private final ByteArrayOutputStream outputStream;
     private final DataOutputStream dataOutputStream;
 
-    public NetworkDataOutputStream(int p_11470_) {
-        this.outputStream = new ByteArrayOutputStream(p_11470_);
+    public NetworkDataOutputStream(int pCapacity) {
+        this.outputStream = new ByteArrayOutputStream(pCapacity);
         this.dataOutputStream = new DataOutputStream(this.outputStream);
     }
 
-    public void writeBytes(byte[] p_11479_) throws IOException {
-        this.dataOutputStream.write(p_11479_, 0, p_11479_.length);
+    public void writeBytes(byte[] pData) throws IOException {
+        this.dataOutputStream.write(pData, 0, pData.length);
     }
 
-    public void writeString(String p_11475_) throws IOException {
-        this.dataOutputStream.writeBytes(p_11475_);
+    public void writeString(String pData) throws IOException {
+        this.dataOutputStream.writeBytes(pData);
         this.dataOutputStream.write(0);
     }
 
-    public void write(int p_11473_) throws IOException {
-        this.dataOutputStream.write(p_11473_);
+    public void write(int pData) throws IOException {
+        this.dataOutputStream.write(pData);
     }
 
-    public void writeShort(short p_11477_) throws IOException {
-        this.dataOutputStream.writeShort(Short.reverseBytes(p_11477_));
+    public void writeShort(short pData) throws IOException {
+        this.dataOutputStream.writeShort(Short.reverseBytes(pData));
     }
 
-    public void writeInt(int p_144019_) throws IOException {
-        this.dataOutputStream.writeInt(Integer.reverseBytes(p_144019_));
+    public void writeInt(int pData) throws IOException {
+        this.dataOutputStream.writeInt(Integer.reverseBytes(pData));
     }
 
-    public void writeFloat(float p_144017_) throws IOException {
-        this.dataOutputStream.writeInt(Integer.reverseBytes(Float.floatToIntBits(p_144017_)));
+    public void writeFloat(float pData) throws IOException {
+        this.dataOutputStream.writeInt(Integer.reverseBytes(Float.floatToIntBits(pData)));
     }
 
     public byte[] toByteArray() {

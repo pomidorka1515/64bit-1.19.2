@@ -78,13 +78,13 @@ public class WorldSelectionList extends ObjectSelectionList<WorldSelectionList.E
     private String filter;
     private final WorldSelectionList.LoadingHeader loadingHeader;
 
-    public WorldSelectionList(SelectWorldScreen p_239540_, Minecraft p_239541_, int p_239542_, int p_239543_, int p_239544_, int p_239545_, int p_239546_, String p_239547_, @Nullable WorldSelectionList p_239548_) {
-        super(p_239541_, p_239542_, p_239543_, p_239544_, p_239545_, p_239546_);
-        this.screen = p_239540_;
-        this.loadingHeader = new WorldSelectionList.LoadingHeader(p_239541_);
-        this.filter = p_239547_;
-        if (p_239548_ != null) {
-            this.pendingLevels = p_239548_.pendingLevels;
+    public WorldSelectionList(SelectWorldScreen pScreen, Minecraft pMinecraft, int pWidth, int pHeight, int pY0, int pY1, int pItemHeight, String pFilter, @Nullable WorldSelectionList pWorldSelectionList) {
+        super(pMinecraft, pWidth, pHeight, pY0, pY1, pItemHeight);
+        this.screen = pScreen;
+        this.loadingHeader = new WorldSelectionList.LoadingHeader(pMinecraft);
+        this.filter = pFilter;
+        if (pWorldSelectionList != null) {
+            this.pendingLevels = pWorldSelectionList.pendingLevels;
         } else {
             this.pendingLevels = this.loadLevels();
         }
@@ -105,13 +105,13 @@ public class WorldSelectionList extends ObjectSelectionList<WorldSelectionList.E
         this.pendingLevels = this.loadLevels();
     }
 
-    public void render(PoseStack p_239123_, int p_239124_, int p_239125_, float p_239126_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         List<LevelSummary> list = this.pollLevelsIgnoreErrors();
         if (list != this.currentlyDisplayedLevels) {
             this.handleNewLevels(list);
         }
 
-        super.render(p_239123_, p_239124_, p_239125_, p_239126_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     private void handleNewLevels(@Nullable List<LevelSummary> p_239665_) {
@@ -196,13 +196,13 @@ public class WorldSelectionList extends ObjectSelectionList<WorldSelectionList.E
         return this.screen.getFocused() == this;
     }
 
-    public void setSelected(@Nullable WorldSelectionList.Entry p_233190_) {
-        super.setSelected(p_233190_);
-        this.screen.updateButtonStatus(p_233190_ != null && p_233190_.isSelectable());
+    public void setSelected(@Nullable WorldSelectionList.Entry pSelected) {
+        super.setSelected(pSelected);
+        this.screen.updateButtonStatus(pSelected != null && pSelected.isSelectable());
     }
 
-    protected void moveSelection(AbstractSelectionList.SelectionDirection p_101673_) {
-        this.moveSelection(p_101673_, WorldSelectionList.Entry::isSelectable);
+    protected void moveSelection(AbstractSelectionList.SelectionDirection pOrdering) {
+        this.moveSelection(pOrdering, WorldSelectionList.Entry::isSelectable);
     }
 
     public Optional<WorldSelectionList.WorldListEntry> getSelectedOpt() {
@@ -218,11 +218,11 @@ public class WorldSelectionList extends ObjectSelectionList<WorldSelectionList.E
         return this.screen;
     }
 
-    public void updateNarration(NarrationElementOutput p_233188_) {
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
         if (this.children().contains(this.loadingHeader)) {
-            this.loadingHeader.updateNarration(p_233188_);
+            this.loadingHeader.updateNarration(pNarrationElementOutput);
         } else {
-            super.updateNarration(p_233188_);
+            super.updateNarration(pNarrationElementOutput);
         }
     }
 
@@ -239,18 +239,18 @@ public class WorldSelectionList extends ObjectSelectionList<WorldSelectionList.E
         private static final Component LOADING_LABEL = Component.translatable("selectWorld.loading_list");
         private final Minecraft minecraft;
 
-        public LoadingHeader(Minecraft p_233222_) {
-            this.minecraft = p_233222_;
+        public LoadingHeader(Minecraft pMinecraft) {
+            this.minecraft = pMinecraft;
         }
 
-        public void render(PoseStack p_233225_, int p_233226_, int p_233227_, int p_233228_, int p_233229_, int p_233230_, int p_233231_, int p_233232_, boolean p_233233_, float p_233234_) {
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
             int i = (this.minecraft.screen.width - this.minecraft.font.width(LOADING_LABEL)) / 2;
-            int j = p_233227_ + (p_233230_ - 9) / 2;
-            this.minecraft.font.draw(p_233225_, LOADING_LABEL, (float) i, (float) j, 16777215);
+            int j = pTop + (pHeight - 9) / 2;
+            this.minecraft.font.draw(pPoseStack, LOADING_LABEL, (float) i, (float) j, 16777215);
             String s = LoadingDotsText.get(Util.getMillis());
             int k = (this.minecraft.screen.width - this.minecraft.font.width(s)) / 2;
             int l = j + 9;
-            this.minecraft.font.draw(p_233225_, s, (float) k, (float) l, 8421504);
+            this.minecraft.font.draw(pPoseStack, s, (float) k, (float) l, 8421504);
         }
 
         public Component getNarration() {
@@ -308,67 +308,67 @@ public class WorldSelectionList extends ObjectSelectionList<WorldSelectionList.E
             return Component.translatable("narrator.select", component1);
         }
 
-        public void render(PoseStack p_101721_, int p_101722_, int p_101723_, int p_101724_, int p_101725_, int p_101726_, int p_101727_, int p_101728_, boolean p_101729_, float p_101730_) {
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
             String s = this.summary.getLevelName();
             String s1 = this.summary.getLevelId() + " (" + WorldSelectionList.DATE_FORMAT.format(new Date(this.summary.getLastPlayed())) + ")";
             if (StringUtils.isEmpty(s)) {
-                s = I18n.get("selectWorld.world") + " " + (p_101722_ + 1);
+                s = I18n.get("selectWorld.world") + " " + (pIndex + 1);
             }
 
             Component component = this.summary.getInfo();
-            this.minecraft.font.draw(p_101721_, s, (float) (p_101724_ + 32 + 3), (float) (p_101723_ + 1), 16777215);
-            this.minecraft.font.draw(p_101721_, s1, (float) (p_101724_ + 32 + 3), (float) (p_101723_ + 9 + 3), 8421504);
-            this.minecraft.font.draw(p_101721_, component, (float) (p_101724_ + 32 + 3), (float) (p_101723_ + 9 + 9 + 3), 8421504);
+            this.minecraft.font.draw(pPoseStack, s, (float) (pLeft + 32 + 3), (float) (pTop + 1), 16777215);
+            this.minecraft.font.draw(pPoseStack, s1, (float) (pLeft + 32 + 3), (float) (pTop + 9 + 3), 8421504);
+            this.minecraft.font.draw(pPoseStack, component, (float) (pLeft + 32 + 3), (float) (pTop + 9 + 9 + 3), 8421504);
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, this.icon != null ? this.iconLocation : WorldSelectionList.ICON_MISSING);
             RenderSystem.enableBlend();
-            GuiComponent.blit(p_101721_, p_101724_, p_101723_, 0.0F, 0.0F, 32, 32, 32, 32);
+            GuiComponent.blit(pPoseStack, pLeft, pTop, 0.0F, 0.0F, 32, 32, 32, 32);
             RenderSystem.disableBlend();
-            if (this.minecraft.options.touchscreen().get() || p_101729_) {
+            if (this.minecraft.options.touchscreen().get() || pIsMouseOver) {
                 RenderSystem.setShaderTexture(0, WorldSelectionList.ICON_OVERLAY_LOCATION);
-                GuiComponent.fill(p_101721_, p_101724_, p_101723_, p_101724_ + 32, p_101723_ + 32, -1601138544);
+                GuiComponent.fill(pPoseStack, pLeft, pTop, pLeft + 32, pTop + 32, -1601138544);
                 RenderSystem.setShader(GameRenderer::getPositionTexShader);
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                int i = p_101727_ - p_101724_;
+                int i = pMouseX - pLeft;
                 boolean flag = i < 32;
                 int j = flag ? 32 : 0;
                 if (this.summary.isLocked()) {
-                    GuiComponent.blit(p_101721_, p_101724_, p_101723_, 96.0F, (float) j, 32, 32, 256, 256);
+                    GuiComponent.blit(pPoseStack, pLeft, pTop, 96.0F, (float) j, 32, 32, 256, 256);
                     if (flag) {
                         this.screen.setToolTip(this.minecraft.font.split(WorldSelectionList.WORLD_LOCKED_TOOLTIP, 175));
                     }
                 } else if (this.summary.requiresManualConversion()) {
-                    GuiComponent.blit(p_101721_, p_101724_, p_101723_, 96.0F, (float) j, 32, 32, 256, 256);
+                    GuiComponent.blit(pPoseStack, pLeft, pTop, 96.0F, (float) j, 32, 32, 256, 256);
                     if (flag) {
                         this.screen.setToolTip(this.minecraft.font.split(WorldSelectionList.WORLD_REQUIRES_CONVERSION, 175));
                     }
                 } else if (this.summary.markVersionInList()) {
-                    GuiComponent.blit(p_101721_, p_101724_, p_101723_, 32.0F, (float) j, 32, 32, 256, 256);
+                    GuiComponent.blit(pPoseStack, pLeft, pTop, 32.0F, (float) j, 32, 32, 256, 256);
                     if (this.summary.askToOpenWorld()) {
-                        GuiComponent.blit(p_101721_, p_101724_, p_101723_, 96.0F, (float) j, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 96.0F, (float) j, 32, 32, 256, 256);
                         if (flag) {
                             this.screen.setToolTip(ImmutableList.of(WorldSelectionList.FROM_NEWER_TOOLTIP_1.getVisualOrderText(), WorldSelectionList.FROM_NEWER_TOOLTIP_2.getVisualOrderText()));
                         }
                     } else if (!SharedConstants.getCurrentVersion().isStable()) {
-                        GuiComponent.blit(p_101721_, p_101724_, p_101723_, 64.0F, (float) j, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 64.0F, (float) j, 32, 32, 256, 256);
                         if (flag) {
                             this.screen.setToolTip(ImmutableList.of(WorldSelectionList.SNAPSHOT_TOOLTIP_1.getVisualOrderText(), WorldSelectionList.SNAPSHOT_TOOLTIP_2.getVisualOrderText()));
                         }
                     }
                 } else {
-                    GuiComponent.blit(p_101721_, p_101724_, p_101723_, 0.0F, (float) j, 32, 32, 256, 256);
+                    GuiComponent.blit(pPoseStack, pLeft, pTop, 0.0F, (float) j, 32, 32, 256, 256);
                 }
             }
         }
 
-        public boolean mouseClicked(double p_101706_, double p_101707_, int p_101708_) {
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
             if (this.summary.isDisabled()) {
                 return true;
             } else {
                 WorldSelectionList.this.setSelected((WorldSelectionList.Entry) this);
                 this.screen.updateButtonStatus(WorldSelectionList.this.getSelectedOpt().isPresent());
-                if (p_101706_ - (double) WorldSelectionList.this.getRowLeft() <= 32.0D) {
+                if (pMouseX - (double) WorldSelectionList.this.getRowLeft() <= 32.0D) {
                     this.joinWorld();
                     return true;
                 } else if (Util.getMillis() - this.lastClickTime < 250L) {

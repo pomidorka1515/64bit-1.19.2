@@ -17,17 +17,17 @@ public abstract class AbstractTexture implements AutoCloseable {
     protected boolean blur;
     protected boolean mipmap;
 
-    public void setFilter(boolean p_117961_, boolean p_117962_) {
+    public void setFilter(boolean pBlur, boolean pMipmap) {
         RenderSystem.assertOnRenderThreadOrInit();
-        this.blur = p_117961_;
-        this.mipmap = p_117962_;
+        this.blur = pBlur;
+        this.mipmap = pMipmap;
         int i;
         int j;
-        if (p_117961_) {
-            i = p_117962_ ? 9987 : 9729;
+        if (pBlur) {
+            i = pMipmap ? 9987 : 9729;
             j = 9729;
         } else {
-            i = p_117962_ ? 9986 : 9728;
+            i = pMipmap ? 9986 : 9728;
             j = 9728;
         }
 
@@ -59,7 +59,7 @@ public abstract class AbstractTexture implements AutoCloseable {
         }
     }
 
-    public abstract void load(ResourceManager p_117955_) throws IOException;
+    public abstract void load(ResourceManager pResourceManager) throws IOException;
 
     public void bind() {
         if (!RenderSystem.isOnRenderThreadOrInit()) {
@@ -71,8 +71,8 @@ public abstract class AbstractTexture implements AutoCloseable {
         }
     }
 
-    public void reset(TextureManager p_117956_, ResourceManager p_117957_, ResourceLocation p_117958_, Executor p_117959_) {
-        p_117956_.register(p_117958_, this);
+    public void reset(TextureManager pTextureManager, ResourceManager pResourceManager, ResourceLocation pPath, Executor pExecutor) {
+        pTextureManager.register(pPath, this);
     }
 
     public void close() {

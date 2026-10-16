@@ -43,24 +43,24 @@ public class PlayerInfo {
     private final ProfilePublicKey profilePublicKey;
     private final SignedMessageValidator messageValidator;
 
-    public PlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate p_233762_, SignatureValidator p_233763_, boolean p_242970_) {
-        this.profile = p_233762_.getProfile();
-        this.gameMode = p_233762_.getGameMode();
-        this.latency = p_233762_.getLatency();
-        this.tabListDisplayName = p_233762_.getDisplayName();
+    public PlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate pPlayerUpdate, SignatureValidator pSignatureValidator, boolean pEnforcesSecureChat) {
+        this.profile = pPlayerUpdate.getProfile();
+        this.gameMode = pPlayerUpdate.getGameMode();
+        this.latency = pPlayerUpdate.getLatency();
+        this.tabListDisplayName = pPlayerUpdate.getDisplayName();
         ProfilePublicKey profilepublickey = null;
 
         try {
-            ProfilePublicKey.Data profilepublickey$data = p_233762_.getProfilePublicKey();
+            ProfilePublicKey.Data profilepublickey$data = pPlayerUpdate.getProfilePublicKey();
             if (profilepublickey$data != null) {
-                profilepublickey = ProfilePublicKey.createValidated(p_233763_, this.profile.getId(), profilepublickey$data, ProfilePublicKey.EXPIRY_GRACE_PERIOD);
+                profilepublickey = ProfilePublicKey.createValidated(pSignatureValidator, this.profile.getId(), profilepublickey$data, ProfilePublicKey.EXPIRY_GRACE_PERIOD);
             }
         } catch (Exception exception) {
             LOGGER.error("Failed to validate publicKey property for profile {}", this.profile.getId(), exception);
         }
 
         this.profilePublicKey = profilepublickey;
-        this.messageValidator = SignedMessageValidator.create(profilepublickey, p_242970_);
+        this.messageValidator = SignedMessageValidator.create(profilepublickey, pEnforcesSecureChat);
     }
 
     public GameProfile getProfile() {
@@ -81,16 +81,16 @@ public class PlayerInfo {
         return this.gameMode;
     }
 
-    protected void setGameMode(GameType p_105318_) {
-        this.gameMode = p_105318_;
+    protected void setGameMode(GameType pGameMode) {
+        this.gameMode = pGameMode;
     }
 
     public int getLatency() {
         return this.latency;
     }
 
-    protected void setLatency(int p_105314_) {
-        this.latency = p_105314_;
+    protected void setLatency(int pLatency) {
+        this.latency = pLatency;
     }
 
     public boolean isCapeLoaded() {
@@ -144,8 +144,8 @@ public class PlayerInfo {
         }
     }
 
-    public void setTabListDisplayName(@Nullable Component p_105324_) {
-        this.tabListDisplayName = p_105324_;
+    public void setTabListDisplayName(@Nullable Component pDisplayName) {
+        this.tabListDisplayName = pDisplayName;
     }
 
     @Nullable
@@ -157,39 +157,39 @@ public class PlayerInfo {
         return this.lastHealth;
     }
 
-    public void setLastHealth(int p_105327_) {
-        this.lastHealth = p_105327_;
+    public void setLastHealth(int pLastHealth) {
+        this.lastHealth = pLastHealth;
     }
 
     public int getDisplayHealth() {
         return this.displayHealth;
     }
 
-    public void setDisplayHealth(int p_105332_) {
-        this.displayHealth = p_105332_;
+    public void setDisplayHealth(int pDisplayHealth) {
+        this.displayHealth = pDisplayHealth;
     }
 
     public long getLastHealthTime() {
         return this.lastHealthTime;
     }
 
-    public void setLastHealthTime(long p_105316_) {
-        this.lastHealthTime = p_105316_;
+    public void setLastHealthTime(long pLastHealthTime) {
+        this.lastHealthTime = pLastHealthTime;
     }
 
     public long getHealthBlinkTime() {
         return this.healthBlinkTime;
     }
 
-    public void setHealthBlinkTime(long p_105329_) {
-        this.healthBlinkTime = p_105329_;
+    public void setHealthBlinkTime(long pHealthBlinkTime) {
+        this.healthBlinkTime = pHealthBlinkTime;
     }
 
     public long getRenderVisibilityId() {
         return this.renderVisibilityId;
     }
 
-    public void setRenderVisibilityId(long p_105334_) {
-        this.renderVisibilityId = p_105334_;
+    public void setRenderVisibilityId(long pRenderVisibilityId) {
+        this.renderVisibilityId = pRenderVisibilityId;
     }
 }

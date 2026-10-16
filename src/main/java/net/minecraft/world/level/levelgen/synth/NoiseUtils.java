@@ -3,8 +3,8 @@ package net.minecraft.world.level.levelgen.synth;
 import java.util.Locale;
 
 public class NoiseUtils {
-    public static double biasTowardsExtreme(double p_164335_, double p_164336_) {
-        return p_164335_ + Math.sin(Math.PI * p_164335_) * p_164336_ / Math.PI;
+    public static double biasTowardsExtreme(double pValue, double pBias) {
+        return pValue + Math.sin(Math.PI * pValue) * pBias / Math.PI;
     }
 
     public static void parityNoiseOctaveConfigString(StringBuilder p_192826_, double p_192827_, double p_192828_, double p_192829_, byte[] p_192830_) {

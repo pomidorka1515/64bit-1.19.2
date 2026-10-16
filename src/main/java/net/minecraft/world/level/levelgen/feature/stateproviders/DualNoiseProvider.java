@@ -47,25 +47,25 @@ public class DualNoiseProvider extends NoiseProvider {
         return BlockStateProviderType.DUAL_NOISE_PROVIDER;
     }
 
-    public BlockState getState(RandomSource p_225910_, BlockPos p_225911_) {
-        double d0 = this.getSlowNoiseValue(p_225911_);
+    public BlockState getState(RandomSource pRandom, BlockPos pState) {
+        double d0 = this.getSlowNoiseValue(pState);
         int i = (int) Mth.clampedMap(d0, -1.0D, 1.0D, (double) this.variety.minInclusive().intValue(), (double) (this.variety.maxInclusive() + 1));
         List<BlockState> list = Lists.newArrayListWithCapacity(i);
 
         for (int j = 0; j < i; ++j) {
-            list.add(this.getRandomState(this.states, this.getSlowNoiseValue(p_225911_.offset(j * '\ud511', 0, j * '\u85ba'))));
+            list.add(this.getRandomState(this.states, this.getSlowNoiseValue(pState.offset(j * '\ud511', 0, j * '\u85ba'))));
         }
 
-        return this.getRandomState(list, p_225911_, (double) this.scale);
+        return this.getRandomState(list, pState, (double) this.scale);
     }
 
-    protected double getSlowNoiseValue(BlockPos p_191407_) {
-        long blockX = p_191407_.getX();
-        long blockZ = p_191407_.getZ();
+    protected double getSlowNoiseValue(BlockPos pPos) {
+        long blockX = pPos.getX();
+        long blockZ = pPos.getZ();
         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
-            return this.slowNoise.getValueScaled(blockX, this.slowScale, p_191407_.getY(), this.slowScale, blockZ);
+            return this.slowNoise.getValueScaled(blockX, this.slowScale, pPos.getY(), this.slowScale, blockZ);
         }
 
-        return this.slowNoise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, this.slowScale), (double) ((float) p_191407_.getY() * this.slowScale), FarlandsMode.scaledNoiseCoordinate(blockZ, this.slowScale));
+        return this.slowNoise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, this.slowScale), (double) ((float) pPos.getY() * this.slowScale), FarlandsMode.scaledNoiseCoordinate(blockZ, this.slowScale));
     }
 }

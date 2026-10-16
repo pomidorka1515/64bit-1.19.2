@@ -15,6 +15,6 @@ public class EmptyGlyph extends BakedGlyph {
         super(RenderType.text(new ResourceLocation("")), RenderType.textSeeThrough(new ResourceLocation("")), RenderType.textPolygonOffset(new ResourceLocation("")), 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
     }
 
-    public void render(boolean p_95278_, float p_95279_, float p_95280_, Matrix4f p_95281_, VertexConsumer p_95282_, float p_95283_, float p_95284_, float p_95285_, float p_95286_, int p_95287_) {
+    public void render(boolean pItalic, float pX, float pY, Matrix4f pMatrix, VertexConsumer pBuffer, float pRed, float pGreen, float pBlue, float pAlpha, int pPackedLight) {
     }
 }

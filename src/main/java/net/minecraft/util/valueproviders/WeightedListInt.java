@@ -35,8 +35,8 @@ public class WeightedListInt extends IntProvider {
         this.maxValue = j;
     }
 
-    public int sample(RandomSource p_216870_) {
-        return this.distribution.getRandomValue(p_216870_).orElseThrow(IllegalStateException::new).sample(p_216870_);
+    public int sample(RandomSource pRandom) {
+        return this.distribution.getRandomValue(pRandom).orElseThrow(IllegalStateException::new).sample(pRandom);
     }
 
     public int getMinValue() {

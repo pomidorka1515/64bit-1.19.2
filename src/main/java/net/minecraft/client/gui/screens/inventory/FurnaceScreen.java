@@ -12,7 +12,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class FurnaceScreen extends AbstractFurnaceScreen<FurnaceMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/container/furnace.png");
 
-    public FurnaceScreen(FurnaceMenu p_98776_, Inventory p_98777_, Component p_98778_) {
-        super(p_98776_, new SmeltingRecipeBookComponent(), p_98777_, p_98778_, TEXTURE);
+    public FurnaceScreen(FurnaceMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, new SmeltingRecipeBookComponent(), pPlayerInventory, pTitle, TEXTURE);
     }
 }

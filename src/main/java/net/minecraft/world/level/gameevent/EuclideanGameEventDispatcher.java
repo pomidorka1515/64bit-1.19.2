@@ -18,29 +18,29 @@ public class EuclideanGameEventDispatcher implements GameEventDispatcher {
     private boolean processing;
     private final ServerLevel level;
 
-    public EuclideanGameEventDispatcher(ServerLevel p_223686_) {
-        this.level = p_223686_;
+    public EuclideanGameEventDispatcher(ServerLevel pLevel) {
+        this.level = pLevel;
     }
 
     public boolean isEmpty() {
         return this.listeners.isEmpty();
     }
 
-    public void register(GameEventListener p_157766_) {
+    public void register(GameEventListener pListener) {
         if (this.processing) {
-            this.listenersToAdd.add(p_157766_);
+            this.listenersToAdd.add(pListener);
         } else {
-            this.listeners.add(p_157766_);
+            this.listeners.add(pListener);
         }
 
-        DebugPackets.sendGameEventListenerInfo(this.level, p_157766_);
+        DebugPackets.sendGameEventListenerInfo(this.level, pListener);
     }
 
-    public void unregister(GameEventListener p_157768_) {
+    public void unregister(GameEventListener pListener) {
         if (this.processing) {
-            this.listenersToRemove.add(p_157768_);
+            this.listenersToRemove.add(pListener);
         } else {
-            this.listeners.remove(p_157768_);
+            this.listeners.remove(pListener);
         }
     }
 

@@ -26,13 +26,13 @@ public class LlamaDecorLayer extends RenderLayer<Llama, LlamaModel<Llama>> {
         this.model = new LlamaModel<>(p_174500_.bakeLayer(ModelLayers.LLAMA_DECOR));
     }
 
-    public void render(PoseStack p_117232_, MultiBufferSource p_117233_, int p_117234_, Llama p_117235_, float p_117236_, float p_117237_, float p_117238_, float p_117239_, float p_117240_, float p_117241_) {
-        DyeColor dyecolor = p_117235_.getSwag();
+    public void render(PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight, Llama pLivingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        DyeColor dyecolor = pLivingEntity.getSwag();
         ResourceLocation resourcelocation;
         if (dyecolor != null) {
             resourcelocation = TEXTURE_LOCATION[dyecolor.getId()];
         } else {
-            if (!p_117235_.isTraderLlama()) {
+            if (!pLivingEntity.isTraderLlama()) {
                 return;
             }
 
@@ -40,8 +40,8 @@ public class LlamaDecorLayer extends RenderLayer<Llama, LlamaModel<Llama>> {
         }
 
         this.getParentModel().copyPropertiesTo(this.model);
-        this.model.setupAnim(p_117235_, p_117236_, p_117237_, p_117239_, p_117240_, p_117241_);
-        VertexConsumer vertexconsumer = p_117233_.getBuffer(RenderType.entityCutoutNoCull(resourcelocation));
-        this.model.renderToBuffer(p_117232_, vertexconsumer, p_117234_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        this.model.setupAnim(pLivingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.entityCutoutNoCull(resourcelocation));
+        this.model.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
     }
 }

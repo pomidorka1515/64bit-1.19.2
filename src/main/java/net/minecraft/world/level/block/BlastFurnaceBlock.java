@@ -20,44 +20,44 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class BlastFurnaceBlock extends AbstractFurnaceBlock {
-    protected BlastFurnaceBlock(BlockBehaviour.Properties p_49773_) {
-        super(p_49773_);
+    protected BlastFurnaceBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    public BlockEntity newBlockEntity(BlockPos p_152386_, BlockState p_152387_) {
-        return new BlastFurnaceBlockEntity(p_152386_, p_152387_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new BlastFurnaceBlockEntity(pPos, pState);
     }
 
     @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_152382_, BlockState p_152383_, BlockEntityType<T> p_152384_) {
-        return createFurnaceTicker(p_152382_, p_152384_, BlockEntityType.BLAST_FURNACE);
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
+        return createFurnaceTicker(pLevel, pBlockEntityType, BlockEntityType.BLAST_FURNACE);
     }
 
-    protected void openContainer(Level p_49777_, BlockPos p_49778_, Player p_49779_) {
-        BlockEntity blockentity = p_49777_.getBlockEntity(p_49778_);
+    protected void openContainer(Level pLevel, BlockPos pPos, Player pPlayer) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof BlastFurnaceBlockEntity) {
-            p_49779_.openMenu((MenuProvider) blockentity);
-            p_49779_.awardStat(Stats.INTERACT_WITH_BLAST_FURNACE);
+            pPlayer.openMenu((MenuProvider) blockentity);
+            pPlayer.awardStat(Stats.INTERACT_WITH_BLAST_FURNACE);
         }
     }
 
-    public void animateTick(BlockState p_220818_, Level p_220819_, BlockPos p_220820_, RandomSource p_220821_) {
-        if (p_220818_.getValue(LIT)) {
-            double d0 = (double) p_220820_.getX() + 0.5D;
-            double d1 = (double) p_220820_.getY();
-            double d2 = (double) p_220820_.getZ() + 0.5D;
-            if (p_220821_.nextDouble() < 0.1D) {
-                p_220819_.playLocalSound(d0, d1, d2, SoundEvents.BLASTFURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pState.getValue(LIT)) {
+            double d0 = (double) pPos.getX() + 0.5D;
+            double d1 = (double) pPos.getY();
+            double d2 = (double) pPos.getZ() + 0.5D;
+            if (pRandom.nextDouble() < 0.1D) {
+                pLevel.playLocalSound(d0, d1, d2, SoundEvents.BLASTFURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
             }
 
-            Direction direction = p_220818_.getValue(FACING);
+            Direction direction = pState.getValue(FACING);
             Direction.Axis direction$axis = direction.getAxis();
             double d3 = 0.52D;
-            double d4 = p_220821_.nextDouble() * 0.6D - 0.3D;
+            double d4 = pRandom.nextDouble() * 0.6D - 0.3D;
             double d5 = direction$axis == Direction.Axis.X ? (double) direction.getStepX() * 0.52D : d4;
-            double d6 = p_220821_.nextDouble() * 9.0D / 16.0D;
+            double d6 = pRandom.nextDouble() * 9.0D / 16.0D;
             double d7 = direction$axis == Direction.Axis.Z ? (double) direction.getStepZ() * 0.52D : d4;
-            p_220819_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_220820_.getX(), 0.5D + d5, d1 + d6, p_220820_.getZ(), 0.5D + d7), 0.0D, 0.0D, 0.0D);
+            pLevel.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D + d5, d1 + d6, pPos.getZ(), 0.5D + d7), 0.0D, 0.0D, 0.0D);
         }
     }
 }

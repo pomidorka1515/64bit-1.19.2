@@ -11,8 +11,8 @@ import net.minecraft.server.MinecraftServer;
 public class SaveAllCommand {
     private static final SimpleCommandExceptionType ERROR_FAILED = new SimpleCommandExceptionType(Component.translatable("commands.save.failed"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138272_) {
-        p_138272_.register(Commands.literal("save-all").requires((p_138276_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("save-all").requires((p_138276_) -> {
                                                            return p_138276_.hasPermission(4);
                                                        })
                         .executes((p_138281_) -> {
@@ -23,14 +23,14 @@ public class SaveAllCommand {
                         })));
     }
 
-    private static int saveAll(CommandSourceStack p_138278_, boolean p_138279_) throws CommandSyntaxException {
-        p_138278_.sendSuccess(Component.translatable("commands.save.saving"), false);
-        MinecraftServer minecraftserver = p_138278_.getServer();
-        boolean flag = minecraftserver.saveEverything(true, p_138279_, true);
+    private static int saveAll(CommandSourceStack pSource, boolean pFlush) throws CommandSyntaxException {
+        pSource.sendSuccess(Component.translatable("commands.save.saving"), false);
+        MinecraftServer minecraftserver = pSource.getServer();
+        boolean flag = minecraftserver.saveEverything(true, pFlush, true);
         if (!flag) {
             throw ERROR_FAILED.create();
         } else {
-            p_138278_.sendSuccess(Component.translatable("commands.save.success"), true);
+            pSource.sendSuccess(Component.translatable("commands.save.success"), true);
             return 1;
         }
     }

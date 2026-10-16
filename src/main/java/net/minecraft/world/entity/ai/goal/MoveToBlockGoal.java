@@ -21,16 +21,16 @@ public abstract class MoveToBlockGoal extends Goal {
     private final int verticalSearchRange;
     protected int verticalSearchStart;
 
-    public MoveToBlockGoal(PathfinderMob p_25609_, double p_25610_, int p_25611_) {
-        this(p_25609_, p_25610_, p_25611_, 1);
+    public MoveToBlockGoal(PathfinderMob pMob, double pSpeedModifier, int pSearchRange) {
+        this(pMob, pSpeedModifier, pSearchRange, 1);
     }
 
-    public MoveToBlockGoal(PathfinderMob p_25613_, double p_25614_, int p_25615_, int p_25616_) {
-        this.mob = p_25613_;
-        this.speedModifier = p_25614_;
-        this.searchRange = p_25615_;
+    public MoveToBlockGoal(PathfinderMob pMob, double pSpeedModifier, int pSearchRange, int pVerticalSearchRange) {
+        this.mob = pMob;
+        this.speedModifier = pSpeedModifier;
+        this.searchRange = pSearchRange;
         this.verticalSearchStart = 0;
-        this.verticalSearchRange = p_25616_;
+        this.verticalSearchRange = pVerticalSearchRange;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.JUMP));
     }
 
@@ -44,8 +44,8 @@ public abstract class MoveToBlockGoal extends Goal {
         }
     }
 
-    protected int nextStartTick(PathfinderMob p_25618_) {
-        return reducedTickDelay(200 + p_25618_.getRandom().nextInt(200));
+    protected int nextStartTick(PathfinderMob pCreature) {
+        return reducedTickDelay(200 + pCreature.getRandom().nextInt(200));
     }
 
     public boolean canContinueToUse() {
@@ -124,5 +124,5 @@ public abstract class MoveToBlockGoal extends Goal {
         return false;
     }
 
-    protected abstract boolean isValidTarget(LevelReader p_25619_, BlockPos p_25620_);
+    protected abstract boolean isValidTarget(LevelReader pLevel, BlockPos pPos);
 }

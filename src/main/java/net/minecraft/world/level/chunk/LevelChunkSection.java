@@ -26,29 +26,29 @@ public class LevelChunkSection {
     private final PalettedContainer<BlockState> states;
     private PalettedContainerRO<Holder<Biome>> biomes;
 
-    public LevelChunkSection(int p_238255_, PalettedContainer<BlockState> p_238256_, PalettedContainerRO<Holder<Biome>> p_238257_) {
-        this.bottomBlockY = getBottomBlockY(p_238255_);
-        this.states = p_238256_;
-        this.biomes = p_238257_;
+    public LevelChunkSection(int pSectionY, PalettedContainer<BlockState> pStates, PalettedContainerRO<Holder<Biome>> pBiomes) {
+        this.bottomBlockY = getBottomBlockY(pSectionY);
+        this.states = pStates;
+        this.biomes = pBiomes;
         this.recalcBlockCounts();
     }
 
-    public LevelChunkSection(int p_188001_, Registry<Biome> p_188002_) {
-        this.bottomBlockY = getBottomBlockY(p_188001_);
+    public LevelChunkSection(int pSectionY, Registry<Biome> pBiomeRegistry) {
+        this.bottomBlockY = getBottomBlockY(pSectionY);
         this.states = new PalettedContainer<>(Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES);
-        this.biomes = new PalettedContainer<>(p_188002_.asHolderIdMap(), p_188002_.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES);
+        this.biomes = new PalettedContainer<>(pBiomeRegistry.asHolderIdMap(), pBiomeRegistry.getHolderOrThrow(Biomes.PLAINS), PalettedContainer.Strategy.SECTION_BIOMES);
     }
 
-    public static int getBottomBlockY(int p_156459_) {
-        return p_156459_ << 4;
+    public static int getBottomBlockY(int pSectionY) {
+        return pSectionY << 4;
     }
 
-    public BlockState getBlockState(int p_62983_, int p_62984_, int p_62985_) {
-        return this.states.get(p_62983_, p_62984_, p_62985_);
+    public BlockState getBlockState(int pX, int pY, int pZ) {
+        return this.states.get(pX, pY, pZ);
     }
 
-    public FluidState getFluidState(int p_63008_, int p_63009_, int p_63010_) {
-        return this.states.get(p_63008_, p_63009_, p_63010_).getFluidState();
+    public FluidState getFluidState(int pX, int pY, int pZ) {
+        return this.states.get(pX, pY, pZ).getFluidState();
     }
 
     public void acquire() {
@@ -59,20 +59,20 @@ public class LevelChunkSection {
         this.states.release();
     }
 
-    public BlockState setBlockState(int p_62987_, int p_62988_, int p_62989_, BlockState p_62990_) {
-        return this.setBlockState(p_62987_, p_62988_, p_62989_, p_62990_, true);
+    public BlockState setBlockState(int pX, int pY, int pZ, BlockState pState) {
+        return this.setBlockState(pX, pY, pZ, pState, true);
     }
 
-    public BlockState setBlockState(long p_62992_, int p_62993_, long p_62994_, BlockState p_62995_, boolean p_62996_) {
+    public BlockState setBlockState(long pX, int pY, long pZ, BlockState pState, boolean pUseLocks) {
         BlockState blockstate;
-        if (p_62996_) {
-            blockstate = this.states.getAndSet(p_62992_, p_62993_, p_62994_, p_62995_);
+        if (pUseLocks) {
+            blockstate = this.states.getAndSet(pX, pY, pZ, pState);
         } else {
-            blockstate = this.states.getAndSetUnchecked(p_62992_, p_62993_, p_62994_, p_62995_);
+            blockstate = this.states.getAndSetUnchecked(pX, pY, pZ, pState);
         }
 
         FluidState fluidstate = blockstate.getFluidState();
-        FluidState fluidstate1 = p_62995_.getFluidState();
+        FluidState fluidstate1 = pState.getFluidState();
         if (!blockstate.isAir()) {
             --this.nonEmptyBlockCount;
             if (blockstate.isRandomlyTicking()) {
@@ -84,9 +84,9 @@ public class LevelChunkSection {
             --this.tickingFluidCount;
         }
 
-        if (!p_62995_.isAir()) {
+        if (!pState.isAir()) {
             ++this.nonEmptyBlockCount;
-            if (p_62995_.isRandomlyTicking()) {
+            if (pState.isRandomlyTicking()) {
                 ++this.tickingBlockCount;
             }
         }
@@ -157,33 +157,33 @@ public class LevelChunkSection {
         return this.biomes;
     }
 
-    public void read(FriendlyByteBuf p_63005_) {
-        this.nonEmptyBlockCount = p_63005_.readShort();
-        this.states.read(p_63005_);
+    public void read(FriendlyByteBuf pBuffer) {
+        this.nonEmptyBlockCount = pBuffer.readShort();
+        this.states.read(pBuffer);
         PalettedContainer<Holder<Biome>> palettedcontainer = this.biomes.recreate();
-        palettedcontainer.read(p_63005_);
+        palettedcontainer.read(pBuffer);
         this.biomes = palettedcontainer;
     }
 
-    public void write(FriendlyByteBuf p_63012_) {
-        p_63012_.writeShort(this.nonEmptyBlockCount);
-        this.states.write(p_63012_);
-        this.biomes.write(p_63012_);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeShort(this.nonEmptyBlockCount);
+        this.states.write(pBuffer);
+        this.biomes.write(pBuffer);
     }
 
     public int getSerializedSize() {
         return 2 + this.states.getSerializedSize() + this.biomes.getSerializedSize();
     }
 
-    public boolean maybeHas(Predicate<BlockState> p_63003_) {
-        return this.states.maybeHas(p_63003_);
+    public boolean maybeHas(Predicate<BlockState> pPredicate) {
+        return this.states.maybeHas(pPredicate);
     }
 
-    public Holder<Biome> getNoiseBiome(long p_204434_, int p_204435_, long p_204436_) {
-        return this.biomes.get(p_204434_, p_204435_, p_204436_);
+    public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {
+        return this.biomes.get(pX, pY, pZ);
     }
 
-    public void fillBiomesFromNoise(BiomeResolver p_188004_, Climate.Sampler p_188005_, long p_188006_, long p_188007_) {
+    public void fillBiomesFromNoise(BiomeResolver pResolver, Climate.Sampler pSampler, long pX, long pZ) {
         PalettedContainer<Holder<Biome>> palettedcontainer = this.biomes.recreate();
         int i = QuartPos.fromBlock(this.bottomBlockY());
         int j = 4;
@@ -191,7 +191,7 @@ public class LevelChunkSection {
         for (int k = 0; k < 4; ++k) {
             for (int l = 0; l < 4; ++l) {
                 for (int i1 = 0; i1 < 4; ++i1) {
-                    palettedcontainer.getAndSetUnchecked(k, l, i1, p_188004_.getNoiseBiome(p_188006_ + k, i + l, p_188007_ + i1, p_188005_));
+                    palettedcontainer.getAndSetUnchecked(k, l, i1, pResolver.getNoiseBiome(pX + k, i + l, pZ + i1, pSampler));
                 }
             }
         }

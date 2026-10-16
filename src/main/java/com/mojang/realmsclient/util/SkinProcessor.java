@@ -16,16 +16,16 @@ public class SkinProcessor {
     private int height;
 
     @Nullable
-    public BufferedImage process(@Nullable BufferedImage p_90242_) {
-        if (p_90242_ == null) {
+    public BufferedImage process(@Nullable BufferedImage pSkinTexture) {
+        if (pSkinTexture == null) {
             return null;
         } else {
             this.width = 64;
             this.height = 64;
             BufferedImage bufferedimage = new BufferedImage(this.width, this.height, 2);
             Graphics graphics = bufferedimage.getGraphics();
-            graphics.drawImage(p_90242_, 0, 0, (ImageObserver) null);
-            boolean flag = p_90242_.getHeight() == 32;
+            graphics.drawImage(pSkinTexture, 0, 0, (ImageObserver) null);
+            boolean flag = pSkinTexture.getHeight() == 32;
             if (flag) {
                 graphics.setColor(new Color(0, 0, 0, 0));
                 graphics.fillRect(0, 32, 64, 32);
@@ -56,9 +56,9 @@ public class SkinProcessor {
         }
     }
 
-    private void doLegacyTransparencyHack(int p_90237_, int p_90238_, int p_90239_, int p_90240_) {
-        for (int i = p_90237_; i < p_90239_; ++i) {
-            for (int j = p_90238_; j < p_90240_; ++j) {
+    private void doLegacyTransparencyHack(int pStartX, int pStartY, int pEndX, int pEndY) {
+        for (int i = pStartX; i < pEndX; ++i) {
+            for (int j = pStartY; j < pEndY; ++j) {
                 int k = this.pixels[i + j * this.width];
                 if ((k >> 24 & 255) < 128) {
                     return;
@@ -66,16 +66,16 @@ public class SkinProcessor {
             }
         }
 
-        for (int l = p_90237_; l < p_90239_; ++l) {
-            for (int i1 = p_90238_; i1 < p_90240_; ++i1) {
+        for (int l = pStartX; l < pEndX; ++l) {
+            for (int i1 = pStartY; i1 < pEndY; ++i1) {
                 this.pixels[l + i1 * this.width] &= 16777215;
             }
         }
     }
 
-    private void setNoAlpha(int p_90244_, int p_90245_, int p_90246_, int p_90247_) {
-        for (int i = p_90244_; i < p_90246_; ++i) {
-            for (int j = p_90245_; j < p_90247_; ++j) {
+    private void setNoAlpha(int pStartX, int pStartY, int pEndX, int pEndY) {
+        for (int i = pStartX; i < pEndX; ++i) {
+            for (int j = pStartY; j < pEndY; ++j) {
                 this.pixels[i + j * this.width] |= -16777216;
             }
         }

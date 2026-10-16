@@ -48,30 +48,30 @@ public class IntArrayTag extends CollectionTag<IntTag> {
     };
     private int[] data;
 
-    public IntArrayTag(int[] p_128605_) {
-        this.data = p_128605_;
+    public IntArrayTag(int[] pData) {
+        this.data = pData;
     }
 
-    public IntArrayTag(List<Integer> p_128603_) {
-        this(toArray(p_128603_));
+    public IntArrayTag(List<Integer> pDataList) {
+        this(toArray(pDataList));
     }
 
-    private static int[] toArray(List<Integer> p_128621_) {
-        int[] aint = new int[p_128621_.size()];
+    private static int[] toArray(List<Integer> pDataList) {
+        int[] aint = new int[pDataList.size()];
 
-        for (int i = 0; i < p_128621_.size(); ++i) {
-            Integer integer = p_128621_.get(i);
+        for (int i = 0; i < pDataList.size(); ++i) {
+            Integer integer = pDataList.get(i);
             aint[i] = integer == null ? 0 : integer;
         }
 
         return aint;
     }
 
-    public void write(DataOutput p_128616_) throws IOException {
-        p_128616_.writeInt(this.data.length);
+    public void write(DataOutput pOutput) throws IOException {
+        pOutput.writeInt(this.data.length);
 
         for (int i : this.data) {
-            p_128616_.writeInt(i);
+            pOutput.writeInt(i);
         }
     }
 
@@ -93,11 +93,11 @@ public class IntArrayTag extends CollectionTag<IntTag> {
         return new IntArrayTag(aint);
     }
 
-    public boolean equals(Object p_128647_) {
-        if (this == p_128647_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_128647_ instanceof IntArrayTag && Arrays.equals(this.data, ((IntArrayTag) p_128647_).data);
+            return pOther instanceof IntArrayTag && Arrays.equals(this.data, ((IntArrayTag) pOther).data);
         }
     }
 
@@ -109,8 +109,8 @@ public class IntArrayTag extends CollectionTag<IntTag> {
         return this.data;
     }
 
-    public void accept(TagVisitor p_177869_) {
-        p_177869_.visitIntArray(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitIntArray(this);
     }
 
     public int size() {
@@ -131,18 +131,18 @@ public class IntArrayTag extends CollectionTag<IntTag> {
         this.data = ArrayUtils.add(this.data, p_128629_, p_128630_.getAsInt());
     }
 
-    public boolean setTag(int p_128613_, Tag p_128614_) {
-        if (p_128614_ instanceof NumericTag) {
-            this.data[p_128613_] = ((NumericTag) p_128614_).getAsInt();
+    public boolean setTag(int pIndex, Tag pNbt) {
+        if (pNbt instanceof NumericTag) {
+            this.data[pIndex] = ((NumericTag) pNbt).getAsInt();
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean addTag(int p_128632_, Tag p_128633_) {
-        if (p_128633_ instanceof NumericTag) {
-            this.data = ArrayUtils.add(this.data, p_128632_, ((NumericTag) p_128633_).getAsInt());
+    public boolean addTag(int pIndex, Tag pNbt) {
+        if (pNbt instanceof NumericTag) {
+            this.data = ArrayUtils.add(this.data, pIndex, ((NumericTag) pNbt).getAsInt());
             return true;
         } else {
             return false;
@@ -163,7 +163,7 @@ public class IntArrayTag extends CollectionTag<IntTag> {
         this.data = new int[0];
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197474_) {
-        return p_197474_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 }

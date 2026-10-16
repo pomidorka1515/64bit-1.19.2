@@ -155,10 +155,10 @@ public class JigsawPlacement {
         final MutableObject<VoxelShape> free;
         final int depth;
 
-        PieceState(PoolElementStructurePiece p_210311_, MutableObject<VoxelShape> p_210312_, int p_210313_) {
-            this.piece = p_210311_;
-            this.free = p_210312_;
-            this.depth = p_210313_;
+        PieceState(PoolElementStructurePiece pPiece, MutableObject<VoxelShape> pFree, int pDepth) {
+            this.piece = pPiece;
+            this.free = pFree;
+            this.depth = pDepth;
         }
     }
 
@@ -171,13 +171,13 @@ public class JigsawPlacement {
         private final RandomSource random;
         final Deque<JigsawPlacement.PieceState> placing = Queues.newArrayDeque();
 
-        Placer(Registry<StructureTemplatePool> p_227258_, int p_227259_, ChunkGenerator p_227260_, StructureTemplateManager p_227261_, List<? super PoolElementStructurePiece> p_227262_, RandomSource p_227263_) {
-            this.pools = p_227258_;
-            this.maxDepth = p_227259_;
-            this.chunkGenerator = p_227260_;
-            this.structureTemplateManager = p_227261_;
-            this.pieces = p_227262_;
-            this.random = p_227263_;
+        Placer(Registry<StructureTemplatePool> pPools, int pMaxDepth, ChunkGenerator pChunkGenerator, StructureTemplateManager pStructureTemplateManager, List<? super PoolElementStructurePiece> pPieces, RandomSource pRandom) {
+            this.pools = pPools;
+            this.maxDepth = pMaxDepth;
+            this.chunkGenerator = pChunkGenerator;
+            this.structureTemplateManager = pStructureTemplateManager;
+            this.pieces = pPieces;
+            this.random = pRandom;
         }
 
         void tryPlacingChildren(PoolElementStructurePiece p_227265_, MutableObject<VoxelShape> p_227266_, int p_227267_, boolean p_227268_, LevelHeightAccessor p_227269_, RandomState p_227270_) {

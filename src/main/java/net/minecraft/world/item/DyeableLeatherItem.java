@@ -8,39 +8,39 @@ public interface DyeableLeatherItem {
     String TAG_DISPLAY = "display";
     int DEFAULT_LEATHER_COLOR = 10511680;
 
-    default boolean hasCustomColor(ItemStack p_41114_) {
-        CompoundTag compoundtag = p_41114_.getTagElement("display");
+    default boolean hasCustomColor(ItemStack pStack) {
+        CompoundTag compoundtag = pStack.getTagElement("display");
         return compoundtag != null && compoundtag.contains("color", 99);
     }
 
-    default int getColor(ItemStack p_41122_) {
-        CompoundTag compoundtag = p_41122_.getTagElement("display");
+    default int getColor(ItemStack pStack) {
+        CompoundTag compoundtag = pStack.getTagElement("display");
         return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 10511680;
     }
 
-    default void clearColor(ItemStack p_41124_) {
-        CompoundTag compoundtag = p_41124_.getTagElement("display");
+    default void clearColor(ItemStack pStack) {
+        CompoundTag compoundtag = pStack.getTagElement("display");
         if (compoundtag != null && compoundtag.contains("color")) {
             compoundtag.remove("color");
         }
     }
 
-    default void setColor(ItemStack p_41116_, int p_41117_) {
-        p_41116_.getOrCreateTagElement("display").putInt("color", p_41117_);
+    default void setColor(ItemStack pStack, int pColor) {
+        pStack.getOrCreateTagElement("display").putInt("color", pColor);
     }
 
-    static ItemStack dyeArmor(ItemStack p_41119_, List<DyeItem> p_41120_) {
+    static ItemStack dyeArmor(ItemStack pStack, List<DyeItem> pDyes) {
         ItemStack itemstack = ItemStack.EMPTY;
         int[] aint = new int[3];
         int i = 0;
         int j = 0;
-        Item item = p_41119_.getItem();
+        Item item = pStack.getItem();
         DyeableLeatherItem dyeableleatheritem = null;
         if (item instanceof DyeableLeatherItem) {
             dyeableleatheritem = (DyeableLeatherItem) item;
-            itemstack = p_41119_.copy();
+            itemstack = pStack.copy();
             itemstack.setCount(1);
-            if (dyeableleatheritem.hasCustomColor(p_41119_)) {
+            if (dyeableleatheritem.hasCustomColor(pStack)) {
                 int k = dyeableleatheritem.getColor(itemstack);
                 float f = (float) (k >> 16 & 255) / 255.0F;
                 float f1 = (float) (k >> 8 & 255) / 255.0F;
@@ -52,7 +52,7 @@ public interface DyeableLeatherItem {
                 ++j;
             }
 
-            for (DyeItem dyeitem : p_41120_) {
+            for (DyeItem dyeitem : pDyes) {
                 float[] afloat = dyeitem.getDyeColor().getTextureDiffuseColors();
                 int i2 = (int) (afloat[0] * 255.0F);
                 int l = (int) (afloat[1] * 255.0F);

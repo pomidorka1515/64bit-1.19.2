@@ -19,12 +19,12 @@ public class BackupConfirmScreen extends Screen {
     protected int id;
     private Checkbox eraseCache;
 
-    public BackupConfirmScreen(Screen p_95543_, BackupConfirmScreen.Listener p_95544_, Component p_95545_, Component p_95546_, boolean p_95547_) {
-        super(p_95545_);
-        this.lastScreen = p_95543_;
-        this.listener = p_95544_;
-        this.description = p_95546_;
-        this.promptForCacheErase = p_95547_;
+    public BackupConfirmScreen(Screen pLastScreen, BackupConfirmScreen.Listener pListener, Component pTitle, Component pDescription, boolean pPromptForCacheErase) {
+        super(pTitle);
+        this.lastScreen = pLastScreen;
+        this.listener = pListener;
+        this.description = pDescription;
+        this.promptForCacheErase = pPromptForCacheErase;
     }
 
     protected void init() {
@@ -46,28 +46,28 @@ public class BackupConfirmScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_95553_, int p_95554_, int p_95555_, float p_95556_) {
-        this.renderBackground(p_95553_);
-        drawCenteredString(p_95553_, this.font, this.title, this.width / 2, 50, 16777215);
-        this.message.renderCentered(p_95553_, this.width / 2, 70);
-        super.render(p_95553_, p_95554_, p_95555_, p_95556_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 50, 16777215);
+        this.message.renderCentered(pPoseStack, this.width / 2, 70);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public boolean shouldCloseOnEsc() {
         return false;
     }
 
-    public boolean keyPressed(int p_95549_, int p_95550_, int p_95551_) {
-        if (p_95549_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.lastScreen);
             return true;
         } else {
-            return super.keyPressed(p_95549_, p_95550_, p_95551_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
     public interface Listener {
-        void proceed(boolean p_95566_, boolean p_95567_);
+        void proceed(boolean pConfirmed, boolean pEraseCache);
     }
 }

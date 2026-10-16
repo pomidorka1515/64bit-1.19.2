@@ -242,10 +242,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     @Nullable
     private BlockState feetBlockState = null;
 
-    public Entity(EntityType<?> p_19870_, Level p_19871_) {
-        this.type = p_19870_;
-        this.level = p_19871_;
-        this.dimensions = p_19870_.getDimensions();
+    public Entity(EntityType<?> pEntityType, Level pLevel) {
+        this.type = pEntityType;
+        this.level = pLevel;
+        this.dimensions = pEntityType.getDimensions();
         this.position = Vec3.ZERO;
         this.blockPosition = BlockPos.ZERO;
         this.chunkPosition = ChunkPos.ZERO;
@@ -263,13 +263,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.eyeHeight = this.getEyeHeight(Pose.STANDING, this.dimensions);
     }
 
-    public boolean isColliding(BlockPos p_20040_, BlockState p_20041_) {
-        VoxelShape voxelshape = p_20041_.getCollisionShape(this.level, p_20040_, CollisionContext.of(this));
+    public boolean isColliding(BlockPos pPos, BlockState pState) {
+        VoxelShape voxelshape = pState.getCollisionShape(this.level, pPos, CollisionContext.of(this));
         if (this.hasSectorPosition()) {
-            SectorPhysicsOrigin origin = new SectorPhysicsOrigin(p_20040_.getX(), p_20040_.getY(), p_20040_.getZ());
+            SectorPhysicsOrigin origin = new SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ());
             return Shapes.joinIsNotEmpty(voxelshape, Shapes.create(this.getSectorBoundingBox().toLocalAABB(origin)), BooleanOp.AND);
         }
-        VoxelShape voxelshape1 = voxelshape.move((double) p_20040_.getX(), (double) p_20040_.getY(), (double) p_20040_.getZ());
+        VoxelShape voxelshape1 = voxelshape.move((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ());
         return Shapes.joinIsNotEmpty(voxelshape1, Shapes.create(this.getBoundingBox()), BooleanOp.AND);
     }
 
@@ -292,8 +292,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public void syncPacketPositionCodec(double p_217007_, double p_217008_, double p_217009_) {
-        this.packetPositionCodec.setBase(new Vec3(p_217007_, p_217008_, p_217009_));
+    public void syncPacketPositionCodec(double pX, double pY, double pZ) {
+        this.packetPositionCodec.setBase(new Vec3(pX, pY, pZ));
     }
 
     /** Updates the packet delta codec with the authoritative split-coordinate position. */
@@ -315,20 +315,20 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.id;
     }
 
-    public void setId(int p_20235_) {
-        this.id = p_20235_;
+    public void setId(int pId) {
+        this.id = pId;
     }
 
     public Set<String> getTags() {
         return this.tags;
     }
 
-    public boolean addTag(String p_20050_) {
-        return this.tags.size() >= 1024 ? false : this.tags.add(p_20050_);
+    public boolean addTag(String pTag) {
+        return this.tags.size() >= 1024 ? false : this.tags.add(pTag);
     }
 
-    public boolean removeTag(String p_20138_) {
-        return this.tags.remove(p_20138_);
+    public boolean removeTag(String pTag) {
+        return this.tags.remove(pTag);
     }
 
     public void kill() {
@@ -346,9 +346,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.entityData;
     }
 
-    public boolean equals(Object p_20245_) {
-        if (p_20245_ instanceof Entity) {
-            return ((Entity) p_20245_).id == this.id;
+    public boolean equals(Object pObject) {
+        if (pObject instanceof Entity) {
+            return ((Entity) pObject).id == this.id;
         } else {
             return false;
         }
@@ -358,15 +358,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.id;
     }
 
-    public void remove(Entity.RemovalReason p_146834_) {
-        this.setRemoved(p_146834_);
+    public void remove(Entity.RemovalReason pReason) {
+        this.setRemoved(pReason);
     }
 
     public void onClientRemoval() {
     }
 
-    public void setPose(Pose p_20125_) {
-        this.entityData.set(DATA_POSE, p_20125_);
+    public void setPose(Pose pPose) {
+        this.entityData.set(DATA_POSE, pPose);
     }
 
     public Pose getPose() {
@@ -377,23 +377,23 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.getPose() == p_217004_;
     }
 
-    public boolean closerThan(Entity p_19951_, double p_19952_) {
-        return this.distanceToSqr(p_19951_) < p_19952_ * p_19952_;
+    public boolean closerThan(Entity pEntity, double pDistance) {
+        return this.distanceToSqr(pEntity) < pDistance * pDistance;
     }
 
-    public boolean closerThan(Entity p_216993_, double p_216994_, double p_216995_) {
-        Vec3 delta = p_216993_.sectorPosition().relativeTo(this.sectorPosition());
-        return Mth.lengthSquared(delta.x, delta.z) < Mth.square(p_216994_)
-                && Mth.square(delta.y) < Mth.square(p_216995_);
+    public boolean closerThan(Entity pEntity, double pHorizontalDistance, double pVerticalDistance) {
+        Vec3 delta = pEntity.sectorPosition().relativeTo(this.sectorPosition());
+        return Mth.lengthSquared(delta.x, delta.z) < Mth.square(pHorizontalDistance)
+                && Mth.square(delta.y) < Mth.square(pVerticalDistance);
     }
 
-    protected void setRot(float p_19916_, float p_19917_) {
-        this.setYRot(p_19916_ % 360.0F);
-        this.setXRot(p_19917_ % 360.0F);
+    protected void setRot(float pYRot, float pXRot) {
+        this.setYRot(pYRot % 360.0F);
+        this.setXRot(pXRot % 360.0F);
     }
 
-    public final void setPos(Vec3 p_146885_) {
-        this.setPos(p_146885_.x(), p_146885_.y(), p_146885_.z());
+    public final void setPos(Vec3 pPos) {
+        this.setPos(pPos.x(), pPos.y(), pPos.z());
     }
 
     public void setPos(double p_20210_, double p_20211_, double p_20212_) {
@@ -526,9 +526,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public void turn(double p_19885_, double p_19886_) {
-        float f = (float) p_19886_ * 0.15F;
-        float f1 = (float) p_19885_ * 0.15F;
+    public void turn(double pYRot, double pXRot) {
+        float f = (float) pXRot * 0.15F;
+        float f1 = (float) pYRot * 0.15F;
         this.setXRot(this.getXRot() + f);
         this.setYRot(this.getYRot() + f1);
         this.setXRot(Mth.clamp(this.getXRot(), -90.0F, 90.0F));
@@ -607,8 +607,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.level.getProfiler().pop();
     }
 
-    public void setSharedFlagOnFire(boolean p_146869_) {
-        this.setSharedFlag(0, p_146869_ || this.hasVisualFire);
+    public void setSharedFlagOnFire(boolean pIsOnFire) {
+        this.setSharedFlag(0, pIsOnFire || this.hasVisualFire);
     }
 
     public void checkOutOfWorld() {
@@ -644,8 +644,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public void setSecondsOnFire(int p_20255_) {
-        int i = p_20255_ * 20;
+    public void setSecondsOnFire(int pSeconds) {
+        int i = pSeconds * 20;
         if (this instanceof LivingEntity) {
             i = ProtectionEnchantment.getFireAfterDampener((LivingEntity) this, i);
         }
@@ -655,8 +655,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public void setRemainingFireTicks(int p_20269_) {
-        this.remainingFireTicks = p_20269_;
+    public void setRemainingFireTicks(int pRemainingFireTicks) {
+        this.remainingFireTicks = pRemainingFireTicks;
     }
 
     public int getRemainingFireTicks() {
@@ -671,14 +671,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.discard();
     }
 
-    public boolean isFree(double p_20230_, double p_20231_, double p_20232_) {
+    public boolean isFree(double pX, double pY, double pZ) {
         if (this.usesSectorPhysics()) {
             SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
-            SectorAABB exactBox = this.getSectorBoundingBox().move(p_20230_, p_20231_, p_20232_);
+            SectorAABB exactBox = this.getSectorBoundingBox().move(pX, pY, pZ);
             AABB localBox = exactBox.toLocalAABB(origin);
             return this.sectorNoCollision(exactBox, localBox, origin) && !this.sectorContainsAnyLiquid(exactBox);
         }
-        return this.isFree(this.getBoundingBox().move(p_20230_, p_20231_, p_20232_));
+        return this.isFree(this.getBoundingBox().move(pX, pY, pZ));
     }
 
     /** Exact sector equivalent of LevelReader.containsAnyLiquid. */
@@ -698,8 +698,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return false;
     }
 
-    private boolean isFree(AABB p_20132_) {
-        return this.level.noCollision(this, p_20132_) && !this.level.containsAnyLiquid(p_20132_);
+    private boolean isFree(AABB pBox) {
+        return this.level.noCollision(this, pBox) && !this.level.containsAnyLiquid(pBox);
     }
 
     /** Origin for one player physics operation; this is not the camera origin. */
@@ -783,39 +783,39 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 .hasNext();
     }
 
-    public void setOnGround(boolean p_20181_) {
-        this.onGround = p_20181_;
+    public void setOnGround(boolean pOnGround) {
+        this.onGround = pOnGround;
     }
 
     public boolean isOnGround() {
         return this.onGround;
     }
 
-    public void move(MoverType p_19973_, Vec3 p_19974_) {
+    public void move(MoverType pType, Vec3 pPos) {
         if (this.usesSectorPhysics()) {
-            this.moveWithSectorPhysics(p_19973_, p_19974_);
+            this.moveWithSectorPhysics(pType, pPos);
             return;
         }
         if (this.noPhysics) {
-            this.setPos(this.getX() + p_19974_.x, this.getY() + p_19974_.y, this.getZ() + p_19974_.z);
+            this.setPos(this.getX() + pPos.x, this.getY() + pPos.y, this.getZ() + pPos.z);
         } else {
             this.wasOnFire = this.isOnFire();
-            if (p_19973_ == MoverType.PISTON) {
-                p_19974_ = this.limitPistonMovement(p_19974_);
-                if (p_19974_.equals(Vec3.ZERO)) {
+            if (pType == MoverType.PISTON) {
+                pPos = this.limitPistonMovement(pPos);
+                if (pPos.equals(Vec3.ZERO)) {
                     return;
                 }
             }
 
             this.level.getProfiler().push("move");
             if (this.stuckSpeedMultiplier.lengthSqr() > 1.0E-7D) {
-                p_19974_ = p_19974_.multiply(this.stuckSpeedMultiplier);
+                pPos = pPos.multiply(this.stuckSpeedMultiplier);
                 this.stuckSpeedMultiplier = Vec3.ZERO;
                 this.setDeltaMovement(Vec3.ZERO);
             }
 
-            p_19974_ = this.maybeBackOffFromEdge(p_19974_, p_19973_);
-            Vec3 vec3 = this.collide(p_19974_);
+            pPos = this.maybeBackOffFromEdge(pPos, pType);
+            Vec3 vec3 = this.collide(pPos);
             double d0 = vec3.lengthSqr();
             if (d0 > 1.0E-7D) {
                 if (this.fallDistance != 0.0F && d0 >= 1.0D) {
@@ -830,18 +830,18 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
             this.level.getProfiler().pop();
             this.level.getProfiler().push("rest");
-            boolean flag2 = !Mth.equal(p_19974_.x, vec3.x);
-            boolean flag = !Mth.equal(p_19974_.z, vec3.z);
+            boolean flag2 = !Mth.equal(pPos.x, vec3.x);
+            boolean flag = !Mth.equal(pPos.z, vec3.z);
             this.horizontalCollision = flag2 || flag;
-            this.verticalCollision = p_19974_.y != vec3.y;
-            this.verticalCollisionBelow = this.verticalCollision && p_19974_.y < 0.0D;
+            this.verticalCollision = pPos.y != vec3.y;
+            this.verticalCollisionBelow = this.verticalCollision && pPos.y < 0.0D;
             if (this.horizontalCollision) {
                 this.minorHorizontalCollision = this.isHorizontalCollisionMinor(vec3);
             } else {
                 this.minorHorizontalCollision = false;
             }
 
-            this.onGround = this.verticalCollision && p_19974_.y < 0.0D;
+            this.onGround = this.verticalCollision && pPos.y < 0.0D;
             BlockPos blockpos = this.getOnPosLegacy();
             BlockState blockstate = this.level.getBlockState(blockpos);
             this.checkFallDamage(vec3.y, this.onGround, blockstate, blockpos);
@@ -854,7 +854,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 }
 
                 Block block = blockstate.getBlock();
-                if (p_19974_.y != vec3.y) {
+                if (pPos.y != vec3.y) {
                     block.updateEntityAfterFallOn(this.level, this);
                 }
 
@@ -895,7 +895,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                                 this.playStepSound(blockpos, blockstate);
                             }
 
-                            if (entity$movementemission.emitsEvents() && (this.onGround || p_19974_.y == 0.0D || this.isInPowderSnow || flag1)) {
+                            if (entity$movementemission.emitsEvents() && (this.onGround || pPos.y == 0.0D || this.isInPowderSnow || flag1)) {
                                 this.level.gameEvent(GameEvent.STEP, this.position, GameEvent.Context.of(this, this.getBlockStateOn()));
                             }
                         }
@@ -928,7 +928,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    protected boolean isHorizontalCollisionMinor(Vec3 p_196625_) {
+    protected boolean isHorizontalCollisionMinor(Vec3 pDeltaMovement) {
         return false;
     }
 
@@ -966,10 +966,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.getOnPos(1.0E-5F);
     }
 
-    private BlockPos getOnPos(float p_216987_) {
+    private BlockPos getOnPos(float pYOffset) {
         if (this.usesSectorPhysics()) {
             SectorVec3 position = this.sectorPosition();
-            int y = Mth.floor(position.y() - (double) p_216987_);
+            int y = Mth.floor(position.y() - (double) pYOffset);
             BlockPos blockpos = new BlockPos(position.blockX(), y, position.blockZ());
             if (this.level.getBlockState(blockpos).isAir()) {
                 BlockPos below = blockpos.below();
@@ -981,7 +981,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             return blockpos;
         }
         int i = Mth.floor(this.position.x);
-        int j = Mth.floor(this.position.y - (double) p_216987_);
+        int j = Mth.floor(this.position.y - (double) pYOffset);
         int k = Mth.floor(this.position.z);
         BlockPos blockpos = new BlockPos(i, j, k);
         if (this.level.getBlockState(blockpos).isAir()) {
@@ -1019,13 +1019,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return new BlockPos(this.position.x, this.getBoundingBox().minY - 0.5000001D, this.position.z);
     }
 
-    protected Vec3 maybeBackOffFromEdge(Vec3 p_20019_, MoverType p_20020_) {
-        return p_20019_;
+    protected Vec3 maybeBackOffFromEdge(Vec3 pVec, MoverType pMover) {
+        return pVec;
     }
 
-    protected Vec3 limitPistonMovement(Vec3 p_20134_) {
-        if (p_20134_.lengthSqr() <= 1.0E-7D) {
-            return p_20134_;
+    protected Vec3 limitPistonMovement(Vec3 pPos) {
+        if (pPos.lengthSqr() <= 1.0E-7D) {
+            return pPos;
         } else {
             long i = this.level.getGameTime();
             if (i != this.pistonDeltasGameTime) {
@@ -1033,14 +1033,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 this.pistonDeltasGameTime = i;
             }
 
-            if (p_20134_.x != 0.0D) {
-                double d2 = this.applyPistonMovementRestriction(Direction.Axis.X, p_20134_.x);
+            if (pPos.x != 0.0D) {
+                double d2 = this.applyPistonMovementRestriction(Direction.Axis.X, pPos.x);
                 return Math.abs(d2) <= (double) 1.0E-5F ? Vec3.ZERO : new Vec3(d2, 0.0D, 0.0D);
-            } else if (p_20134_.y != 0.0D) {
-                double d1 = this.applyPistonMovementRestriction(Direction.Axis.Y, p_20134_.y);
+            } else if (pPos.y != 0.0D) {
+                double d1 = this.applyPistonMovementRestriction(Direction.Axis.Y, pPos.y);
                 return Math.abs(d1) <= (double) 1.0E-5F ? Vec3.ZERO : new Vec3(0.0D, d1, 0.0D);
-            } else if (p_20134_.z != 0.0D) {
-                double d0 = this.applyPistonMovementRestriction(Direction.Axis.Z, p_20134_.z);
+            } else if (pPos.z != 0.0D) {
+                double d0 = this.applyPistonMovementRestriction(Direction.Axis.Z, pPos.z);
                 return Math.abs(d0) <= (double) 1.0E-5F ? Vec3.ZERO : new Vec3(0.0D, 0.0D, d0);
             } else {
                 return Vec3.ZERO;
@@ -1048,12 +1048,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    private double applyPistonMovementRestriction(Direction.Axis p_20043_, double p_20044_) {
-        int i = p_20043_.ordinal();
-        double d0 = Mth.clamp(p_20044_ + this.pistonDeltas[i], -0.51D, 0.51D);
-        p_20044_ = d0 - this.pistonDeltas[i];
+    private double applyPistonMovementRestriction(Direction.Axis pAxis, double pDistance) {
+        int i = pAxis.ordinal();
+        double d0 = Mth.clamp(pDistance + this.pistonDeltas[i], -0.51D, 0.51D);
+        pDistance = d0 - this.pistonDeltas[i];
         this.pistonDeltas[i] = d0;
-        return p_20044_;
+        return pDistance;
     }
 
     private void moveWithSectorPhysics(MoverType moverType, Vec3 movement) {
@@ -1156,26 +1156,26 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return collideSectorBoundingBox(this, movement, exactBox, localBox, this.level, entityShapes, origin);
     }
 
-    private Vec3 collide(Vec3 p_20273_) {
+    private Vec3 collide(Vec3 pVec) {
         AABB aabb = this.getBoundingBox();
-        List<VoxelShape> list = this.level.getEntityCollisions(this, aabb.expandTowards(p_20273_));
-        Vec3 vec3 = p_20273_.lengthSqr() == 0.0D ? p_20273_ : collideBoundingBox(this, p_20273_, aabb, this.level, list);
-        boolean flag = p_20273_.x != vec3.x;
-        boolean flag1 = p_20273_.y != vec3.y;
-        boolean flag2 = p_20273_.z != vec3.z;
-        boolean flag3 = this.onGround || flag1 && p_20273_.y < 0.0D;
+        List<VoxelShape> list = this.level.getEntityCollisions(this, aabb.expandTowards(pVec));
+        Vec3 vec3 = pVec.lengthSqr() == 0.0D ? pVec : collideBoundingBox(this, pVec, aabb, this.level, list);
+        boolean flag = pVec.x != vec3.x;
+        boolean flag1 = pVec.y != vec3.y;
+        boolean flag2 = pVec.z != vec3.z;
+        boolean flag3 = this.onGround || flag1 && pVec.y < 0.0D;
         if (this.maxUpStep > 0.0F && flag3 && (flag || flag2)) {
-            Vec3 vec31 = collideBoundingBox(this, new Vec3(p_20273_.x, (double) this.maxUpStep, p_20273_.z), aabb, this.level, list);
-            Vec3 vec32 = collideBoundingBox(this, new Vec3(0.0D, (double) this.maxUpStep, 0.0D), aabb.expandTowards(p_20273_.x, 0.0D, p_20273_.z), this.level, list);
+            Vec3 vec31 = collideBoundingBox(this, new Vec3(pVec.x, (double) this.maxUpStep, pVec.z), aabb, this.level, list);
+            Vec3 vec32 = collideBoundingBox(this, new Vec3(0.0D, (double) this.maxUpStep, 0.0D), aabb.expandTowards(pVec.x, 0.0D, pVec.z), this.level, list);
             if (vec32.y < (double) this.maxUpStep) {
-                Vec3 vec33 = collideBoundingBox(this, new Vec3(p_20273_.x, 0.0D, p_20273_.z), aabb.move(vec32), this.level, list).add(vec32);
+                Vec3 vec33 = collideBoundingBox(this, new Vec3(pVec.x, 0.0D, pVec.z), aabb.move(vec32), this.level, list).add(vec32);
                 if (vec33.horizontalDistanceSqr() > vec31.horizontalDistanceSqr()) {
                     vec31 = vec33;
                 }
             }
 
             if (vec31.horizontalDistanceSqr() > vec3.horizontalDistanceSqr()) {
-                return vec31.add(collideBoundingBox(this, new Vec3(0.0D, -vec31.y + p_20273_.y, 0.0D), aabb.move(vec31), this.level, list));
+                return vec31.add(collideBoundingBox(this, new Vec3(0.0D, -vec31.y + pVec.y, 0.0D), aabb.move(vec31), this.level, list));
             }
         }
 
@@ -1199,10 +1199,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return collideWithShapes(movement, localBox, builder.build(), true);
     }
 
-    public static Vec3 collideBoundingBox(@Nullable Entity p_198895_, Vec3 p_198896_, AABB p_198897_, Level p_198898_, List<VoxelShape> p_198899_) {
-        ImmutableList.Builder<VoxelShape> builder = ImmutableList.builderWithExpectedSize(p_198899_.size() + 1);
-        if (!p_198899_.isEmpty()) {
-            builder.addAll(p_198899_);
+    public static Vec3 collideBoundingBox(@Nullable Entity pEntity, Vec3 pVec, AABB pCollisionBox, Level pLevel, List<VoxelShape> pPotentialHits) {
+        ImmutableList.Builder<VoxelShape> builder = ImmutableList.builderWithExpectedSize(pPotentialHits.size() + 1);
+        if (!pPotentialHits.isEmpty()) {
+            builder.addAll(pPotentialHits);
         }
 
         //      WorldBorder worldborder = p_198898_.getWorldBorder();
@@ -1211,44 +1211,44 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         //         builder.add(worldborder.getCollisionShape());
         //      }
 
-        builder.addAll(p_198898_.getBlockCollisions(p_198895_, p_198897_.expandTowards(p_198896_)));
-        return collideWithShapes(p_198896_, p_198897_, builder.build(), false);
+        builder.addAll(pLevel.getBlockCollisions(pEntity, pCollisionBox.expandTowards(pVec)));
+        return collideWithShapes(pVec, pCollisionBox, builder.build(), false);
     }
 
-    private static Vec3 collideWithShapes(Vec3 p_198901_, AABB p_198902_, List<VoxelShape> p_198903_, boolean exactSector) {
-        if (p_198903_.isEmpty()) {
-            return p_198901_;
+    private static Vec3 collideWithShapes(Vec3 pDeltaMovement, AABB pEntityBB, List<VoxelShape> pShapes, boolean exactSector) {
+        if (pShapes.isEmpty()) {
+            return pDeltaMovement;
         } else {
-            double d0 = p_198901_.x;
-            double d1 = p_198901_.y;
-            double d2 = p_198901_.z;
+            double d0 = pDeltaMovement.x;
+            double d1 = pDeltaMovement.y;
+            double d2 = pDeltaMovement.z;
             if (d1 != 0.0D) {
-                d1 = Shapes.collide(Direction.Axis.Y, p_198902_, p_198903_, d1);
+                d1 = Shapes.collide(Direction.Axis.Y, pEntityBB, pShapes, d1);
                 if (d1 != 0.0D) {
-                    p_198902_ = p_198902_.move(0.0D, d1, 0.0D);
+                    pEntityBB = pEntityBB.move(0.0D, d1, 0.0D);
                 }
             }
 
             boolean flag = Math.abs(d0) < Math.abs(d2);
             if (flag && d2 != 0.0D) {
-                d2 = exactSector ? safeCollisionDelta(d2, Shapes.collide(Direction.Axis.Z, p_198902_, p_198903_, d2))
-                                 : Shapes.collide(Direction.Axis.Z, p_198902_, p_198903_, d2);
+                d2 = exactSector ? safeCollisionDelta(d2, Shapes.collide(Direction.Axis.Z, pEntityBB, pShapes, d2))
+                                 : Shapes.collide(Direction.Axis.Z, pEntityBB, pShapes, d2);
                 if (d2 != 0.0D) {
-                    p_198902_ = p_198902_.move(0.0D, 0.0D, d2);
+                    pEntityBB = pEntityBB.move(0.0D, 0.0D, d2);
                 }
             }
 
             if (d0 != 0.0D) {
-                d0 = exactSector ? safeCollisionDelta(d0, Shapes.collide(Direction.Axis.X, p_198902_, p_198903_, d0))
-                                 : Shapes.collide(Direction.Axis.X, p_198902_, p_198903_, d0);
+                d0 = exactSector ? safeCollisionDelta(d0, Shapes.collide(Direction.Axis.X, pEntityBB, pShapes, d0))
+                                 : Shapes.collide(Direction.Axis.X, pEntityBB, pShapes, d0);
                 if (!flag && d0 != 0.0D) {
-                    p_198902_ = p_198902_.move(d0, 0.0D, 0.0D);
+                    pEntityBB = pEntityBB.move(d0, 0.0D, 0.0D);
                 }
             }
 
             if (!flag && d2 != 0.0D) {
-                d2 = exactSector ? safeCollisionDelta(d2, Shapes.collide(Direction.Axis.Z, p_198902_, p_198903_, d2))
-                                 : Shapes.collide(Direction.Axis.Z, p_198902_, p_198903_, d2);
+                d2 = exactSector ? safeCollisionDelta(d2, Shapes.collide(Direction.Axis.Z, pEntityBB, pShapes, d2))
+                                 : Shapes.collide(Direction.Axis.Z, pEntityBB, pShapes, d2);
             }
 
             return new Vec3(d0, d1, d2);
@@ -1358,27 +1358,27 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    protected void onInsideBlock(BlockState p_20005_) {
+    protected void onInsideBlock(BlockState pState) {
     }
 
-    public void gameEvent(GameEvent p_146853_, @Nullable Entity p_146854_) {
-        this.level.gameEvent(p_146854_, p_146853_, this.position);
+    public void gameEvent(GameEvent pEvent, @Nullable Entity pEntity) {
+        this.level.gameEvent(pEntity, pEvent, this.position);
     }
 
-    public void gameEvent(GameEvent p_146851_) {
-        this.gameEvent(p_146851_, this);
+    public void gameEvent(GameEvent pEvent) {
+        this.gameEvent(pEvent, this);
     }
 
-    protected void playStepSound(BlockPos p_20135_, BlockState p_20136_) {
-        if (!p_20136_.getMaterial().isLiquid()) {
-            BlockState blockstate = this.level.getBlockState(p_20135_.above());
-            SoundType soundtype = blockstate.is(BlockTags.INSIDE_STEP_SOUND_BLOCKS) ? blockstate.getSoundType() : p_20136_.getSoundType();
+    protected void playStepSound(BlockPos pPos, BlockState pState) {
+        if (!pState.getMaterial().isLiquid()) {
+            BlockState blockstate = this.level.getBlockState(pPos.above());
+            SoundType soundtype = blockstate.is(BlockTags.INSIDE_STEP_SOUND_BLOCKS) ? blockstate.getSoundType() : pState.getSoundType();
             this.playSound(soundtype.getStepSound(), soundtype.getVolume() * 0.15F, soundtype.getPitch());
         }
     }
 
-    private void playAmethystStepSound(BlockState p_146883_) {
-        if (p_146883_.is(BlockTags.CRYSTAL_SOUND_BLOCKS) && this.tickCount >= this.lastCrystalSoundPlayTick + 20) {
+    private void playAmethystStepSound(BlockState pState) {
+        if (pState.is(BlockTags.CRYSTAL_SOUND_BLOCKS) && this.tickCount >= this.lastCrystalSoundPlayTick + 20) {
             this.crystalSoundIntensity *= (float) Math.pow(0.997D, (double) (this.tickCount - this.lastCrystalSoundPlayTick));
             this.crystalSoundIntensity = Math.min(1.0F, this.crystalSoundIntensity + 0.07F);
             float f = 0.5F + this.crystalSoundIntensity * this.random.nextFloat() * 1.2F;
@@ -1388,8 +1388,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    protected void playSwimSound(float p_20213_) {
-        this.playSound(this.getSwimSound(), p_20213_, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.4F);
+    protected void playSwimSound(float pVolume) {
+        this.playSound(this.getSwimSound(), pVolume, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.4F);
     }
 
     protected void onFlap() {
@@ -1399,20 +1399,20 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return false;
     }
 
-    public void playSound(SoundEvent p_19938_, float p_19939_, float p_19940_) {
+    public void playSound(SoundEvent pSound, float pVolume, float pPitch) {
         if (!this.isSilent()) {
             if (this.sectorPosition != null) {
-                this.level.playSeededSound((Player) null, this.sectorPosition, p_19938_, this.getSoundSource(), p_19939_,
-                        p_19940_, this.level.getRandom().nextLong());
+                this.level.playSeededSound((Player) null, this.sectorPosition, pSound, this.getSoundSource(), pVolume,
+                        pPitch, this.level.getRandom().nextLong());
             } else {
-                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), p_19938_, this.getSoundSource(), p_19939_, p_19940_);
+                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch);
             }
         }
     }
 
-    public void playSound(SoundEvent p_216991_) {
+    public void playSound(SoundEvent pSound) {
         if (!this.isSilent()) {
-            this.playSound(p_216991_, 1.0F, 1.0F);
+            this.playSound(pSound, 1.0F, 1.0F);
         }
     }
 
@@ -1420,16 +1420,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.entityData.get(DATA_SILENT);
     }
 
-    public void setSilent(boolean p_20226_) {
-        this.entityData.set(DATA_SILENT, p_20226_);
+    public void setSilent(boolean pIsSilent) {
+        this.entityData.set(DATA_SILENT, pIsSilent);
     }
 
     public boolean isNoGravity() {
         return this.entityData.get(DATA_NO_GRAVITY);
     }
 
-    public void setNoGravity(boolean p_20243_) {
-        this.entityData.set(DATA_NO_GRAVITY, p_20243_);
+    public void setNoGravity(boolean pNoGravity) {
+        this.entityData.set(DATA_NO_GRAVITY, pNoGravity);
     }
 
     protected Entity.MovementEmission getMovementEmission() {
@@ -1440,16 +1440,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return false;
     }
 
-    protected void checkFallDamage(double p_19911_, boolean p_19912_, BlockState p_19913_, BlockPos p_19914_) {
-        if (p_19912_) {
+    protected void checkFallDamage(double pY, boolean pOnGround, BlockState pState, BlockPos pPos) {
+        if (pOnGround) {
             if (this.fallDistance > 0.0F) {
-                p_19913_.getBlock().fallOn(this.level, p_19913_, p_19914_, this, this.fallDistance);
+                pState.getBlock().fallOn(this.level, pState, pPos, this, this.fallDistance);
                 this.level.gameEvent(GameEvent.HIT_GROUND, this.position, GameEvent.Context.of(this, this.getBlockStateOn()));
             }
 
             this.resetFallDistance();
-        } else if (p_19911_ < 0.0D) {
-            this.fallDistance -= (float) p_19911_;
+        } else if (pY < 0.0D) {
+            this.fallDistance -= (float) pY;
         }
     }
 
@@ -1457,10 +1457,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.getType().fireImmune();
     }
 
-    public boolean causeFallDamage(float p_146828_, float p_146829_, DamageSource p_146830_) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         if (this.isVehicle()) {
             for (Entity entity : this.getPassengers()) {
-                entity.causeFallDamage(p_146828_, p_146829_, p_146830_);
+                entity.causeFallDamage(pFallDistance, pMultiplier, pSource);
             }
         }
 
@@ -1613,27 +1613,27 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public boolean isEyeInFluid(TagKey<Fluid> p_204030_) {
-        return this.fluidOnEyes.contains(p_204030_);
+    public boolean isEyeInFluid(TagKey<Fluid> pFluidTag) {
+        return this.fluidOnEyes.contains(pFluidTag);
     }
 
     public boolean isInLava() {
         return !this.firstTick && this.fluidHeight.getDouble(FluidTags.LAVA) > 0.0D;
     }
 
-    public void moveRelative(float p_19921_, Vec3 p_19922_) {
-        Vec3 vec3 = getInputVector(p_19922_, p_19921_, this.getYRot());
+    public void moveRelative(float pAmount, Vec3 pRelative) {
+        Vec3 vec3 = getInputVector(pRelative, pAmount, this.getYRot());
         this.setDeltaMovement(this.getDeltaMovement().add(vec3));
     }
 
-    private static Vec3 getInputVector(Vec3 p_20016_, float p_20017_, float p_20018_) {
-        double d0 = p_20016_.lengthSqr();
+    private static Vec3 getInputVector(Vec3 pRelative, float pMotionScaler, float pFacing) {
+        double d0 = pRelative.lengthSqr();
         if (d0 < 1.0E-7D) {
             return Vec3.ZERO;
         } else {
-            Vec3 vec3 = (d0 > 1.0D ? p_20016_.normalize() : p_20016_).scale((double) p_20017_);
-            float f = Mth.sin(p_20018_ * ((float) Math.PI / 180F));
-            float f1 = Mth.cos(p_20018_ * ((float) Math.PI / 180F));
+            Vec3 vec3 = (d0 > 1.0D ? pRelative.normalize() : pRelative).scale((double) pMotionScaler);
+            float f = Mth.sin(pFacing * ((float) Math.PI / 180F));
+            float f1 = Mth.cos(pFacing * ((float) Math.PI / 180F));
             return new Vec3(vec3.x * (double) f1 - vec3.z * (double) f, vec3.y, vec3.z * (double) f1 + vec3.x * (double) f);
         }
     }
@@ -1644,17 +1644,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.level.hasChunkAt(this.getBlockX(), this.getBlockZ()) ? this.level.getLightLevelDependentMagicValue(this.sectorPosition().withY(this.getEyeY()).blockPosition()) : 0.0F;
     }
 
-    public void absMoveTo(double p_19891_, double p_19892_, double p_19893_, float p_19894_, float p_19895_) {
-        this.absMoveTo(p_19891_, p_19892_, p_19893_);
-        this.setYRot(p_19894_ % 360.0F);
-        this.setXRot(Mth.clamp(p_19895_, -90.0F, 90.0F) % 360.0F);
+    public void absMoveTo(double pX, double pY, double pZ, float pYRot, float pXRot) {
+        this.absMoveTo(pX, pY, pZ);
+        this.setYRot(pYRot % 360.0F);
+        this.setXRot(Mth.clamp(pXRot, -90.0F, 90.0F) % 360.0F);
         this.yRotO = this.getYRot();
         this.xRotO = this.getXRot();
     }
 
-    public void absMoveTo(double p_20249_, double p_20250_, double p_20251_) {
-        this.absMoveTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20249_),
-                               WorldBounds.clampVerticalDouble(p_20250_), WorldBounds.clampAbsoluteDouble(p_20251_)),
+    public void absMoveTo(double pX, double pY, double pZ) {
+        this.absMoveTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
+                               WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)),
                 this.getYRot(), this.getXRot());
     }
 
@@ -1674,18 +1674,18 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.xRotO = this.getXRot();
     }
 
-    public void moveTo(Vec3 p_20220_) {
-        this.moveTo(p_20220_.x, p_20220_.y, p_20220_.z);
+    public void moveTo(Vec3 pVec) {
+        this.moveTo(pVec.x, pVec.y, pVec.z);
     }
 
     public void moveTo(double p_20105_, double p_20106_, double p_20107_) {
         this.moveTo(p_20105_, p_20106_, p_20107_, this.getYRot(), this.getXRot());
     }
 
-    public void moveTo(BlockPos p_20036_, float p_20037_, float p_20038_) {
-        this.moveTo(SectorVec3.fromBlockAndFraction(p_20036_.getX(), 0.5D, (double) p_20036_.getY(),
-                            p_20036_.getZ(), 0.5D),
-                p_20037_, p_20038_);
+    public void moveTo(BlockPos pPos, float pYRot, float pXRot) {
+        this.moveTo(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY(),
+                            pPos.getZ(), 0.5D),
+                pYRot, pXRot);
     }
 
     /** Moves to an exact split-coordinate location and resets the interpolation baseline. */
@@ -1700,10 +1700,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.reapplyPosition();
     }
 
-    public void moveTo(double p_20108_, double p_20109_, double p_20110_, float p_20111_, float p_20112_) {
-        this.moveTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20108_),
-                            WorldBounds.clampVerticalDouble(p_20109_), WorldBounds.clampAbsoluteDouble(p_20110_)),
-                p_20111_, p_20112_);
+    public void moveTo(double pX, double pY, double pZ, float pYRot, float pXRot) {
+        this.moveTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
+                            WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)),
+                pYRot, pXRot);
     }
 
     public final void setOldPosAndRot() {
@@ -1733,39 +1733,39 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.xRotO = this.getXRot();
     }
 
-    public float distanceTo(Entity p_20271_) {
-        return (float) Math.sqrt(this.distanceToSqr(p_20271_));
+    public float distanceTo(Entity pEntity) {
+        return (float) Math.sqrt(this.distanceToSqr(pEntity));
     }
 
-    public double distanceToSqr(double p_20276_, double p_20277_, double p_20278_) {
-        double d0 = this.getX() - p_20276_;
-        double d1 = this.getY() - p_20277_;
-        double d2 = this.getZ() - p_20278_;
+    public double distanceToSqr(double pX, double pY, double pZ) {
+        double d0 = this.getX() - pX;
+        double d1 = this.getY() - pY;
+        double d2 = this.getZ() - pZ;
         return d0 * d0 + d1 * d1 + d2 * d2;
     }
 
-    public double distanceToSqr(Entity p_20281_) {
-        return p_20281_.sectorPosition().relativeTo(this.sectorPosition()).lengthSqr();
+    public double distanceToSqr(Entity pEntity) {
+        return pEntity.sectorPosition().relativeTo(this.sectorPosition()).lengthSqr();
     }
 
-    public double distanceToSqr(Vec3 p_20239_) {
-        double d0 = this.getX() - p_20239_.x;
-        double d1 = this.getY() - p_20239_.y;
-        double d2 = this.getZ() - p_20239_.z;
+    public double distanceToSqr(Vec3 pVec) {
+        double d0 = this.getX() - pVec.x;
+        double d1 = this.getY() - pVec.y;
+        double d2 = this.getZ() - pVec.z;
         return d0 * d0 + d1 * d1 + d2 * d2;
     }
 
-    public void playerTouch(Player p_20081_) {
+    public void playerTouch(Player pPlayer) {
     }
 
-    public void push(Entity p_20293_) {
-        if (!this.isPassengerOfSameVehicle(p_20293_)) {
-            if (!p_20293_.noPhysics && !this.noPhysics) {
-                Vec3 exactDelta = this.sectorPosition != null && p_20293_.sectorPosition != null
-                        ? p_20293_.sectorPosition.relativeTo(this.sectorPosition)
+    public void push(Entity pEntity) {
+        if (!this.isPassengerOfSameVehicle(pEntity)) {
+            if (!pEntity.noPhysics && !this.noPhysics) {
+                Vec3 exactDelta = this.sectorPosition != null && pEntity.sectorPosition != null
+                        ? pEntity.sectorPosition.relativeTo(this.sectorPosition)
                         : null;
-                double d0 = exactDelta != null ? exactDelta.x : p_20293_.getX() - this.getX();
-                double d1 = exactDelta != null ? exactDelta.z : p_20293_.getZ() - this.getZ();
+                double d0 = exactDelta != null ? exactDelta.x : pEntity.getX() - this.getX();
+                double d1 = exactDelta != null ? exactDelta.z : pEntity.getZ() - this.getZ();
                 double d2 = Mth.absMax(d0, d1);
                 if (d2 >= (double) 0.01F) {
                     d2 = Math.sqrt(d2);
@@ -1784,16 +1784,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                         this.push(-d0, 0.0D, -d1);
                     }
 
-                    if (!p_20293_.isVehicle() && p_20293_.isPushable()) {
-                        p_20293_.push(d0, 0.0D, d1);
+                    if (!pEntity.isVehicle() && pEntity.isPushable()) {
+                        pEntity.push(d0, 0.0D, d1);
                     }
                 }
             }
         }
     }
 
-    public void push(double p_20286_, double p_20287_, double p_20288_) {
-        this.setDeltaMovement(this.getDeltaMovement().add(p_20286_, p_20287_, p_20288_));
+    public void push(double pX, double pY, double pZ) {
+        this.setDeltaMovement(this.getDeltaMovement().add(pX, pY, pZ));
         this.hasImpulse = true;
     }
 
@@ -1801,8 +1801,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.hurtMarked = true;
     }
 
-    public boolean hurt(DamageSource p_19946_, float p_19947_) {
-        if (this.isInvulnerableTo(p_19946_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else {
             this.markHurt();
@@ -1810,21 +1810,21 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public final Vec3 getViewVector(float p_20253_) {
-        return this.calculateViewVector(this.getViewXRot(p_20253_), this.getViewYRot(p_20253_));
+    public final Vec3 getViewVector(float pPartialTicks) {
+        return this.calculateViewVector(this.getViewXRot(pPartialTicks), this.getViewYRot(pPartialTicks));
     }
 
-    public float getViewXRot(float p_20268_) {
-        return p_20268_ == 1.0F ? this.getXRot() : Mth.lerp(p_20268_, this.xRotO, this.getXRot());
+    public float getViewXRot(float pPartialTicks) {
+        return pPartialTicks == 1.0F ? this.getXRot() : Mth.lerp(pPartialTicks, this.xRotO, this.getXRot());
     }
 
-    public float getViewYRot(float p_20279_) {
-        return p_20279_ == 1.0F ? this.getYRot() : Mth.lerp(p_20279_, this.yRotO, this.getYRot());
+    public float getViewYRot(float pPartialTick) {
+        return pPartialTick == 1.0F ? this.getYRot() : Mth.lerp(pPartialTick, this.yRotO, this.getYRot());
     }
 
-    protected final Vec3 calculateViewVector(float p_20172_, float p_20173_) {
-        float f = p_20172_ * ((float) Math.PI / 180F);
-        float f1 = -p_20173_ * ((float) Math.PI / 180F);
+    protected final Vec3 calculateViewVector(float pXRot, float pYRot) {
+        float f = pXRot * ((float) Math.PI / 180F);
+        float f1 = -pYRot * ((float) Math.PI / 180F);
         float f2 = Mth.cos(f1);
         float f3 = Mth.sin(f1);
         float f4 = Mth.cos(f);
@@ -1832,31 +1832,31 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return new Vec3((double) (f3 * f4), (double) (-f5), (double) (f2 * f4));
     }
 
-    public final Vec3 getUpVector(float p_20290_) {
-        return this.calculateUpVector(this.getViewXRot(p_20290_), this.getViewYRot(p_20290_));
+    public final Vec3 getUpVector(float pPartialTicks) {
+        return this.calculateUpVector(this.getViewXRot(pPartialTicks), this.getViewYRot(pPartialTicks));
     }
 
-    protected final Vec3 calculateUpVector(float p_20215_, float p_20216_) {
-        return this.calculateViewVector(p_20215_ - 90.0F, p_20216_);
+    protected final Vec3 calculateUpVector(float pXRot, float pYRot) {
+        return this.calculateViewVector(pXRot - 90.0F, pYRot);
     }
 
     public final Vec3 getEyePosition() {
         return new Vec3(this.getX(), this.getEyeY(), this.getZ());
     }
 
-    public final Vec3 getEyePosition(float p_20300_) {
+    public final Vec3 getEyePosition(float pPartialTicks) {
         if (this.sectorPosition != null) {
-            SectorVec3 interpolated = this.interpolatedExactPosition(p_20300_);
+            SectorVec3 interpolated = this.interpolatedExactPosition(pPartialTicks);
             return interpolated.withY(interpolated.y() + (double) this.getEyeHeight()).toApproximateVec3();
         }
-        double d0 = Mth.lerp((double) p_20300_, this.xo, this.getX());
-        double d1 = Mth.lerp((double) p_20300_, this.yo, this.getY()) + (double) this.getEyeHeight();
-        double d2 = Mth.lerp((double) p_20300_, this.zo, this.getZ());
+        double d0 = Mth.lerp((double) pPartialTicks, this.xo, this.getX());
+        double d1 = Mth.lerp((double) pPartialTicks, this.yo, this.getY()) + (double) this.getEyeHeight();
+        double d2 = Mth.lerp((double) pPartialTicks, this.zo, this.getZ());
         return new Vec3(d0, d1, d2);
     }
 
-    public Vec3 getLightProbePosition(float p_20309_) {
-        return this.getEyePosition(p_20309_);
+    public Vec3 getLightProbePosition(float pPartialTicks) {
+        return this.getEyePosition(pPartialTicks);
     }
 
     /** Exact block used for entity lighting; avoids converting sector X/Z to doubles. */
@@ -1868,15 +1868,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return new BlockPos(this.getLightProbePosition(partialTick));
     }
 
-    public final Vec3 getPosition(float p_20319_) {
-        double d0 = Mth.lerp((double) p_20319_, this.xo, this.getX());
-        double d1 = Mth.lerp((double) p_20319_, this.yo, this.getY());
-        double d2 = Mth.lerp((double) p_20319_, this.zo, this.getZ());
+    public final Vec3 getPosition(float pPartialTicks) {
+        double d0 = Mth.lerp((double) pPartialTicks, this.xo, this.getX());
+        double d1 = Mth.lerp((double) pPartialTicks, this.yo, this.getY());
+        double d2 = Mth.lerp((double) pPartialTicks, this.zo, this.getZ());
         return new Vec3(d0, d1, d2);
     }
 
-    public HitResult pick(double p_19908_, float p_19909_, boolean p_19910_) {
-        return this.pick(p_19908_, p_19909_, p_19910_ ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE);
+    public HitResult pick(double pHitDistance, float pPartialTicks, boolean pHitFluids) {
+        return this.pick(pHitDistance, pPartialTicks, pHitFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE);
     }
 
     public BlockHitResult pick(double range, float partialTick, ClipContext.Fluid fluidMode) {
@@ -1902,31 +1902,31 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return false;
     }
 
-    public void awardKillScore(Entity p_19953_, int p_19954_, DamageSource p_19955_) {
-        if (p_19953_ instanceof ServerPlayer) {
-            CriteriaTriggers.ENTITY_KILLED_PLAYER.trigger((ServerPlayer) p_19953_, this, p_19955_);
+    public void awardKillScore(Entity pKilled, int pScoreValue, DamageSource pSource) {
+        if (pKilled instanceof ServerPlayer) {
+            CriteriaTriggers.ENTITY_KILLED_PLAYER.trigger((ServerPlayer) pKilled, this, pSource);
         }
     }
 
-    public boolean shouldRender(double p_20296_, double p_20297_, double p_20298_) {
-        double d0 = this.getX() - p_20296_;
-        double d1 = this.getY() - p_20297_;
-        double d2 = this.getZ() - p_20298_;
+    public boolean shouldRender(double pX, double pY, double pZ) {
+        double d0 = this.getX() - pX;
+        double d1 = this.getY() - pY;
+        double d2 = this.getZ() - pZ;
         double d3 = d0 * d0 + d1 * d1 + d2 * d2;
         return this.shouldRenderAtSqrDistance(d3);
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_19883_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         double d0 = this.getBoundingBox().getSize();
         if (Double.isNaN(d0)) {
             d0 = 1.0D;
         }
 
         d0 *= 64.0D * viewScale;
-        return p_19883_ < d0 * d0;
+        return pDistance < d0 * d0;
     }
 
-    public boolean saveAsPassenger(CompoundTag p_20087_) {
+    public boolean saveAsPassenger(CompoundTag pCompound) {
         if (this.removalReason != null && !this.removalReason.shouldSave()) {
             return false;
         } else {
@@ -1934,18 +1934,18 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             if (s == null) {
                 return false;
             } else {
-                p_20087_.putString("id", s);
-                this.saveWithoutId(p_20087_);
+                pCompound.putString("id", s);
+                this.saveWithoutId(pCompound);
                 return true;
             }
         }
     }
 
-    public boolean save(CompoundTag p_20224_) {
-        return this.isPassenger() ? false : this.saveAsPassenger(p_20224_);
+    public boolean save(CompoundTag pCompound) {
+        return this.isPassenger() ? false : this.saveAsPassenger(pCompound);
     }
 
-    public CompoundTag saveWithoutId(CompoundTag p_20241_) {
+    public CompoundTag saveWithoutId(CompoundTag pCompound) {
         try {
             // Keep vanilla's Pos tag as a compatibility mirror, but never use it as
             // the source of truth for sector-aware entities.  Reconstructing a
@@ -1953,12 +1953,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             // its block and/or sub-block bits.
             SectorVec3 exactPosition = this.sectorPosition;
             if (this.vehicle != null) {
-                p_20241_.put("Pos", this.newDoubleList(this.vehicle.getX(), this.getY(), this.vehicle.getZ()));
+                pCompound.put("Pos", this.newDoubleList(this.vehicle.getX(), this.getY(), this.vehicle.getZ()));
             } else if (exactPosition != null) {
                 Vec3 approximate = exactPosition.toApproximateVec3();
-                p_20241_.put("Pos", this.newDoubleList(approximate.x, approximate.y, approximate.z));
+                pCompound.put("Pos", this.newDoubleList(approximate.x, approximate.y, approximate.z));
             } else {
-                p_20241_.put("Pos", this.newDoubleList(this.getX(), this.getY(), this.getZ()));
+                pCompound.put("Pos", this.newDoubleList(this.getX(), this.getY(), this.getZ()));
             }
 
             if (exactPosition != null) {
@@ -1968,47 +1968,47 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 exactTag.putDouble("Y", exactPosition.y());
                 exactTag.putLong("BlockZ", exactPosition.blockZ());
                 exactTag.putDouble("SubZ", exactPosition.subZ());
-                p_20241_.put("ExactPos", exactTag);
+                pCompound.put("ExactPos", exactTag);
             }
 
             Vec3 vec3 = this.getDeltaMovement();
-            p_20241_.put("Motion", this.newDoubleList(vec3.x, vec3.y, vec3.z));
-            p_20241_.put("Rotation", this.newFloatList(this.getYRot(), this.getXRot()));
-            p_20241_.putFloat("FallDistance", this.fallDistance);
-            p_20241_.putShort("Fire", (short) this.remainingFireTicks);
-            p_20241_.putShort("Air", (short) this.getAirSupply());
-            p_20241_.putBoolean("OnGround", this.onGround);
-            p_20241_.putBoolean("Invulnerable", this.invulnerable);
-            p_20241_.putInt("PortalCooldown", this.portalCooldown);
-            p_20241_.putUUID("UUID", this.getUUID());
+            pCompound.put("Motion", this.newDoubleList(vec3.x, vec3.y, vec3.z));
+            pCompound.put("Rotation", this.newFloatList(this.getYRot(), this.getXRot()));
+            pCompound.putFloat("FallDistance", this.fallDistance);
+            pCompound.putShort("Fire", (short) this.remainingFireTicks);
+            pCompound.putShort("Air", (short) this.getAirSupply());
+            pCompound.putBoolean("OnGround", this.onGround);
+            pCompound.putBoolean("Invulnerable", this.invulnerable);
+            pCompound.putInt("PortalCooldown", this.portalCooldown);
+            pCompound.putUUID("UUID", this.getUUID());
             Component component = this.getCustomName();
             if (component != null) {
-                p_20241_.putString("CustomName", Component.Serializer.toJson(component));
+                pCompound.putString("CustomName", Component.Serializer.toJson(component));
             }
 
             if (this.isCustomNameVisible()) {
-                p_20241_.putBoolean("CustomNameVisible", this.isCustomNameVisible());
+                pCompound.putBoolean("CustomNameVisible", this.isCustomNameVisible());
             }
 
             if (this.isSilent()) {
-                p_20241_.putBoolean("Silent", this.isSilent());
+                pCompound.putBoolean("Silent", this.isSilent());
             }
 
             if (this.isNoGravity()) {
-                p_20241_.putBoolean("NoGravity", this.isNoGravity());
+                pCompound.putBoolean("NoGravity", this.isNoGravity());
             }
 
             if (this.hasGlowingTag) {
-                p_20241_.putBoolean("Glowing", true);
+                pCompound.putBoolean("Glowing", true);
             }
 
             int i = this.getTicksFrozen();
             if (i > 0) {
-                p_20241_.putInt("TicksFrozen", this.getTicksFrozen());
+                pCompound.putInt("TicksFrozen", this.getTicksFrozen());
             }
 
             if (this.hasVisualFire) {
-                p_20241_.putBoolean("HasVisualFire", this.hasVisualFire);
+                pCompound.putBoolean("HasVisualFire", this.hasVisualFire);
             }
 
             if (!this.tags.isEmpty()) {
@@ -2018,10 +2018,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                     listtag.add(StringTag.valueOf(s));
                 }
 
-                p_20241_.put("Tags", listtag);
+                pCompound.put("Tags", listtag);
             }
 
-            this.addAdditionalSaveData(p_20241_);
+            this.addAdditionalSaveData(pCompound);
             if (this.isVehicle()) {
                 ListTag listtag1 = new ListTag();
 
@@ -2033,11 +2033,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 }
 
                 if (!listtag1.isEmpty()) {
-                    p_20241_.put("Passengers", listtag1);
+                    pCompound.put("Passengers", listtag1);
                 }
             }
 
-            return p_20241_;
+            return pCompound;
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Saving entity NBT");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Entity being saved");
@@ -2046,11 +2046,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public void load(CompoundTag p_20259_) {
+    public void load(CompoundTag pCompound) {
         try {
-            ListTag listtag = p_20259_.getList("Pos", 6);
-            ListTag listtag1 = p_20259_.getList("Motion", 6);
-            ListTag listtag2 = p_20259_.getList("Rotation", 5);
+            ListTag listtag = pCompound.getList("Pos", 6);
+            ListTag listtag1 = pCompound.getList("Motion", 6);
+            ListTag listtag2 = pCompound.getList("Rotation", 5);
             double d0 = listtag1.getDouble(0);
             double d1 = listtag1.getDouble(1);
             double d2 = listtag1.getDouble(2);
@@ -2058,8 +2058,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                     !Double.isFinite(d1) || Math.abs(d1) > 10.0D ? 0.0D : d1,
                     !Double.isFinite(d2) || Math.abs(d2) > 10.0D ? 0.0D : d2);
             //         double d3 = 3.0000512E7D;
-            if (this.usesSectorPhysics() && p_20259_.contains("ExactPos", 10)) {
-                CompoundTag exactTag = p_20259_.getCompound("ExactPos");
+            if (this.usesSectorPhysics() && pCompound.contains("ExactPos", 10)) {
+                CompoundTag exactTag = pCompound.getCompound("ExactPos");
                 this.applyExactPosition(SectorVec3.fromBlockAndFraction(exactTag.getLong("BlockX"),
                         exactTag.getDouble("SubX"), exactTag.getDouble("Y"),
                         exactTag.getLong("BlockZ"), exactTag.getDouble("SubZ")));
@@ -2073,17 +2073,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             this.setOldPosAndRot();
             this.setYHeadRot(this.getYRot());
             this.setYBodyRot(this.getYRot());
-            this.fallDistance = p_20259_.getFloat("FallDistance");
-            this.remainingFireTicks = p_20259_.getShort("Fire");
-            if (p_20259_.contains("Air")) {
-                this.setAirSupply(p_20259_.getShort("Air"));
+            this.fallDistance = pCompound.getFloat("FallDistance");
+            this.remainingFireTicks = pCompound.getShort("Fire");
+            if (pCompound.contains("Air")) {
+                this.setAirSupply(pCompound.getShort("Air"));
             }
 
-            this.onGround = p_20259_.getBoolean("OnGround");
-            this.invulnerable = p_20259_.getBoolean("Invulnerable");
-            this.portalCooldown = p_20259_.getInt("PortalCooldown");
-            if (p_20259_.hasUUID("UUID")) {
-                this.uuid = p_20259_.getUUID("UUID");
+            this.onGround = pCompound.getBoolean("OnGround");
+            this.invulnerable = pCompound.getBoolean("Invulnerable");
+            this.portalCooldown = pCompound.getInt("PortalCooldown");
+            if (pCompound.hasUUID("UUID")) {
+                this.uuid = pCompound.getUUID("UUID");
                 this.stringUUID = this.uuid.toString();
             }
 
@@ -2091,8 +2091,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 if (Double.isFinite((double) this.getYRot()) && Double.isFinite((double) this.getXRot())) {
                     this.reapplyPosition();
                     this.setRot(this.getYRot(), this.getXRot());
-                    if (p_20259_.contains("CustomName", 8)) {
-                        String s = p_20259_.getString("CustomName");
+                    if (pCompound.contains("CustomName", 8)) {
+                        String s = pCompound.getString("CustomName");
 
                         try {
                             this.setCustomName(Component.Serializer.fromJson(s));
@@ -2101,15 +2101,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                         }
                     }
 
-                    this.setCustomNameVisible(p_20259_.getBoolean("CustomNameVisible"));
-                    this.setSilent(p_20259_.getBoolean("Silent"));
-                    this.setNoGravity(p_20259_.getBoolean("NoGravity"));
-                    this.setGlowingTag(p_20259_.getBoolean("Glowing"));
-                    this.setTicksFrozen(p_20259_.getInt("TicksFrozen"));
-                    this.hasVisualFire = p_20259_.getBoolean("HasVisualFire");
-                    if (p_20259_.contains("Tags", 9)) {
+                    this.setCustomNameVisible(pCompound.getBoolean("CustomNameVisible"));
+                    this.setSilent(pCompound.getBoolean("Silent"));
+                    this.setNoGravity(pCompound.getBoolean("NoGravity"));
+                    this.setGlowingTag(pCompound.getBoolean("Glowing"));
+                    this.setTicksFrozen(pCompound.getInt("TicksFrozen"));
+                    this.hasVisualFire = pCompound.getBoolean("HasVisualFire");
+                    if (pCompound.contains("Tags", 9)) {
                         this.tags.clear();
-                        ListTag listtag3 = p_20259_.getList("Tags", 8);
+                        ListTag listtag3 = pCompound.getList("Tags", 8);
                         int i = Math.min(listtag3.size(), 1024);
 
                         for (int j = 0; j < i; ++j) {
@@ -2117,7 +2117,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                         }
                     }
 
-                    this.readAdditionalSaveData(p_20259_);
+                    this.readAdditionalSaveData(pCompound);
                     if (this.repositionEntityAfterLoad()) {
                         this.reapplyPosition();
                     }
@@ -2147,24 +2147,24 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return entitytype.canSerialize() && resourcelocation != null ? resourcelocation.toString() : null;
     }
 
-    protected abstract void readAdditionalSaveData(CompoundTag p_20052_);
+    protected abstract void readAdditionalSaveData(CompoundTag pCompound);
 
-    protected abstract void addAdditionalSaveData(CompoundTag p_20139_);
+    protected abstract void addAdditionalSaveData(CompoundTag pCompound);
 
-    protected ListTag newDoubleList(double... p_20064_) {
+    protected ListTag newDoubleList(double... pNumbers) {
         ListTag listtag = new ListTag();
 
-        for (double d0 : p_20064_) {
+        for (double d0 : pNumbers) {
             listtag.add(DoubleTag.valueOf(d0));
         }
 
         return listtag;
     }
 
-    protected ListTag newFloatList(float... p_20066_) {
+    protected ListTag newFloatList(float... pNumbers) {
         ListTag listtag = new ListTag();
 
-        for (float f : p_20066_) {
+        for (float f : pNumbers) {
             listtag.add(FloatTag.valueOf(f));
         }
 
@@ -2172,29 +2172,29 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     @Nullable
-    public ItemEntity spawnAtLocation(ItemLike p_19999_) {
-        return this.spawnAtLocation(p_19999_, 0);
+    public ItemEntity spawnAtLocation(ItemLike pItem) {
+        return this.spawnAtLocation(pItem, 0);
     }
 
     @Nullable
-    public ItemEntity spawnAtLocation(ItemLike p_20001_, int p_20002_) {
-        return this.spawnAtLocation(new ItemStack(p_20001_), (float) p_20002_);
+    public ItemEntity spawnAtLocation(ItemLike pItem, int pOffsetY) {
+        return this.spawnAtLocation(new ItemStack(pItem), (float) pOffsetY);
     }
 
     @Nullable
-    public ItemEntity spawnAtLocation(ItemStack p_19984_) {
-        return this.spawnAtLocation(p_19984_, 0.0F);
+    public ItemEntity spawnAtLocation(ItemStack pStack) {
+        return this.spawnAtLocation(pStack, 0.0F);
     }
 
     @Nullable
-    public ItemEntity spawnAtLocation(ItemStack p_19985_, float p_19986_) {
-        if (p_19985_.isEmpty()) {
+    public ItemEntity spawnAtLocation(ItemStack pStack, float pOffsetY) {
+        if (pStack.isEmpty()) {
             return null;
         } else if (this.level.isClientSide) {
             return null;
         } else {
-            SectorVec3 sourcePosition = this.sectorPosition().add(0.0D, (double) p_19986_, 0.0D);
-            ItemEntity itementity = new ItemEntity(this.level, sourcePosition, p_19985_);
+            SectorVec3 sourcePosition = this.sectorPosition().add(0.0D, (double) pOffsetY, 0.0D);
+            ItemEntity itementity = new ItemEntity(this.level, sourcePosition, pStack);
             itementity.setDefaultPickUpDelay();
             this.level.addFreshEntity(itementity);
             return itementity;
@@ -2227,12 +2227,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public InteractionResult interact(Player p_19978_, InteractionHand p_19979_) {
+    public InteractionResult interact(Player pPlayer, InteractionHand pHand) {
         return InteractionResult.PASS;
     }
 
-    public boolean canCollideWith(Entity p_20303_) {
-        return p_20303_.canBeCollidedWith() && !this.isPassengerOfSameVehicle(p_20303_);
+    public boolean canCollideWith(Entity pEntity) {
+        return pEntity.canBeCollidedWith() && !this.isPassengerOfSameVehicle(pEntity);
     }
 
     public boolean canBeCollidedWith() {
@@ -2247,22 +2247,22 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public void positionRider(Entity p_20312_) {
-        this.positionRider(p_20312_, Entity::setPos);
+    public void positionRider(Entity pPassenger) {
+        this.positionRider(pPassenger, Entity::setPos);
     }
 
-    private void positionRider(Entity p_19957_, Entity.MoveFunction p_19958_) {
-        if (this.hasPassenger(p_19957_)) {
-            double d0 = this.getY() + this.getPassengersRidingOffset() + p_19957_.getMyRidingOffset();
-            if (this.hasSectorPosition() && p_19957_.hasSectorPosition()) {
-                p_19957_.applyExactPosition(this.sectorPosition().withY(d0));
+    private void positionRider(Entity pPassenger, Entity.MoveFunction pCallback) {
+        if (this.hasPassenger(pPassenger)) {
+            double d0 = this.getY() + this.getPassengersRidingOffset() + pPassenger.getMyRidingOffset();
+            if (this.hasSectorPosition() && pPassenger.hasSectorPosition()) {
+                pPassenger.applyExactPosition(this.sectorPosition().withY(d0));
             } else {
-                p_19958_.accept(p_19957_, this.getX(), d0, this.getZ());
+                pCallback.accept(pPassenger, this.getX(), d0, this.getZ());
             }
         }
     }
 
-    public void onPassengerTurned(Entity p_20320_) {
+    public void onPassengerTurned(Entity pEntityToUpdate) {
     }
 
     public double getMyRidingOffset() {
@@ -2273,33 +2273,33 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return (double) this.dimensions.height * 0.75D;
     }
 
-    public boolean startRiding(Entity p_20330_) {
-        return this.startRiding(p_20330_, false);
+    public boolean startRiding(Entity pVehicle) {
+        return this.startRiding(pVehicle, false);
     }
 
     public boolean showVehicleHealth() {
         return this instanceof LivingEntity;
     }
 
-    public boolean startRiding(Entity p_19966_, boolean p_19967_) {
-        if (p_19966_ == this.vehicle) {
+    public boolean startRiding(Entity pVehicle, boolean pForce) {
+        if (pVehicle == this.vehicle) {
             return false;
         } else {
-            for (Entity entity = p_19966_; entity.vehicle != null; entity = entity.vehicle) {
+            for (Entity entity = pVehicle; entity.vehicle != null; entity = entity.vehicle) {
                 if (entity.vehicle == this) {
                     return false;
                 }
             }
 
-            if (p_19967_ || this.canRide(p_19966_) && p_19966_.canAddPassenger(this)) {
+            if (pForce || this.canRide(pVehicle) && pVehicle.canAddPassenger(this)) {
                 if (this.isPassenger()) {
                     this.stopRiding();
                 }
 
                 this.setPose(Pose.STANDING);
-                this.vehicle = p_19966_;
+                this.vehicle = pVehicle;
                 this.vehicle.addPassenger(this);
-                p_19966_.getIndirectPassengersStream().filter((p_185984_) -> {
+                pVehicle.getIndirectPassengersStream().filter((p_185984_) -> {
                                                           return p_185984_ instanceof ServerPlayer;
                                                       })
                         .forEach((p_185982_) -> {
@@ -2312,17 +2312,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    protected boolean canRide(Entity p_20339_) {
+    protected boolean canRide(Entity pVehicle) {
         return !this.isShiftKeyDown() && this.boardingCooldown <= 0;
     }
 
-    protected boolean canEnterPose(Pose p_20176_) {
+    protected boolean canEnterPose(Pose pPose) {
         if (this.usesSectorPhysics()) {
             SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
-            SectorAABB exact = this.getSectorBoundingBoxForPose(p_20176_).inflate(-1.0E-7D, -1.0E-7D, -1.0E-7D);
+            SectorAABB exact = this.getSectorBoundingBoxForPose(pPose).inflate(-1.0E-7D, -1.0E-7D, -1.0E-7D);
             return this.sectorNoCollision(exact, exact.toLocalAABB(origin), origin);
         }
-        return this.level.noCollision(this, this.getBoundingBoxForPose(p_20176_).deflate(1.0E-7D));
+        return this.level.noCollision(this, this.getBoundingBoxForPose(pPose).deflate(1.0E-7D));
     }
 
     public void ejectPassengers() {
@@ -2343,18 +2343,18 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.removeVehicle();
     }
 
-    protected void addPassenger(Entity p_20349_) {
-        if (p_20349_.getVehicle() != this) {
+    protected void addPassenger(Entity pPassenger) {
+        if (pPassenger.getVehicle() != this) {
             throw new IllegalStateException("Use x.startRiding(y), not y.addPassenger(x)");
         } else {
             if (this.passengers.isEmpty()) {
-                this.passengers = ImmutableList.of(p_20349_);
+                this.passengers = ImmutableList.of(pPassenger);
             } else {
                 List<Entity> list = Lists.newArrayList(this.passengers);
-                if (!this.level.isClientSide && p_20349_ instanceof Player && !(this.getControllingPassenger() instanceof Player)) {
-                    list.add(0, p_20349_);
+                if (!this.level.isClientSide && pPassenger instanceof Player && !(this.getControllingPassenger() instanceof Player)) {
+                    list.add(0, pPassenger);
                 } else {
-                    list.add(p_20349_);
+                    list.add(pPassenger);
                 }
 
                 this.passengers = ImmutableList.copyOf(list);
@@ -2362,30 +2362,30 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    protected void removePassenger(Entity p_20352_) {
-        if (p_20352_.getVehicle() == this) {
+    protected void removePassenger(Entity pPassenger) {
+        if (pPassenger.getVehicle() == this) {
             throw new IllegalStateException("Use x.stopRiding(y), not y.removePassenger(x)");
         } else {
-            if (this.passengers.size() == 1 && this.passengers.get(0) == p_20352_) {
+            if (this.passengers.size() == 1 && this.passengers.get(0) == pPassenger) {
                 this.passengers = ImmutableList.of();
             } else {
                 this.passengers = this.passengers.stream().filter((p_185980_) -> {
-                                                              return p_185980_ != p_20352_;
+                                                              return p_185980_ != pPassenger;
                                                           })
                                           .collect(ImmutableList.toImmutableList());
             }
 
-            p_20352_.boardingCooldown = 60;
+            pPassenger.boardingCooldown = 60;
         }
     }
 
-    protected boolean canAddPassenger(Entity p_20354_) {
+    protected boolean canAddPassenger(Entity pPassenger) {
         return this.passengers.isEmpty();
     }
 
-    public void lerpTo(double p_19896_, double p_19897_, double p_19898_, float p_19899_, float p_19900_, int p_19901_, boolean p_19902_) {
-        this.setPos(p_19896_, p_19897_, p_19898_);
-        this.setRot(p_19899_, p_19900_);
+    public void lerpTo(double pX, double pY, double pZ, float pYRot, float pXRot, int pLerpSteps, boolean pTeleport) {
+        this.setPos(pX, pY, pZ);
+        this.setRot(pYRot, pXRot);
     }
 
     /** Applies an exact network target while retaining vanilla's override point. */
@@ -2394,8 +2394,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.setRot(yRot, xRot);
     }
 
-    public void lerpHeadTo(float p_19918_, int p_19919_) {
-        this.setYHeadRot(p_19918_);
+    public void lerpHeadTo(float pYaw, int pPitch) {
+        this.setYHeadRot(pYaw);
     }
 
     public float getPickRadius() {
@@ -2406,11 +2406,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.calculateViewVector(this.getXRot(), this.getYRot());
     }
 
-    public Vec3 getHandHoldingItemAngle(Item p_204035_) {
+    public Vec3 getHandHoldingItemAngle(Item pItem) {
         if (!(this instanceof Player player)) {
             return Vec3.ZERO;
         } else {
-            boolean flag = player.getOffhandItem().is(p_204035_) && !player.getMainHandItem().is(p_204035_);
+            boolean flag = player.getOffhandItem().is(pItem) && !player.getMainHandItem().is(pItem);
             HumanoidArm humanoidarm = flag ? player.getMainArm().getOpposite() : player.getMainArm();
             return this.calculateViewVector(0.0F, this.getYRot() + (float) (humanoidarm == HumanoidArm.RIGHT ? 80 : -80)).scale(0.5D);
         }
@@ -2424,12 +2424,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return Vec3.directionFromRotation(this.getRotationVector());
     }
 
-    public void handleInsidePortal(BlockPos p_20222_) {
+    public void handleInsidePortal(BlockPos pPos) {
         if (this.isOnPortalCooldown()) {
             this.setPortalCooldown();
         } else {
-            if (!this.level.isClientSide && !p_20222_.equals(this.portalEntrancePos)) {
-                this.portalEntrancePos = p_20222_.immutable();
+            if (!this.level.isClientSide && !pPos.equals(this.portalEntrancePos)) {
+                this.portalEntrancePos = pPos.immutable();
             }
 
             this.isInsidePortal = true;
@@ -2471,12 +2471,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return 300;
     }
 
-    public void lerpMotion(double p_20306_, double p_20307_, double p_20308_) {
-        this.setDeltaMovement(p_20306_, p_20307_, p_20308_);
+    public void lerpMotion(double pX, double pY, double pZ) {
+        this.setDeltaMovement(pX, pY, pZ);
     }
 
-    public void handleEntityEvent(byte p_19882_) {
-        switch (p_19882_) {
+    public void handleEntityEvent(byte pId) {
+        switch (pId) {
             case 53:
                 HoneyBlock.showSlideParticles(this);
             default:
@@ -2498,7 +2498,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return Iterables.concat(this.getHandSlots(), this.getArmorSlots());
     }
 
-    public void setItemSlot(EquipmentSlot p_19968_, ItemStack p_19969_) {
+    public void setItemSlot(EquipmentSlot pSlot, ItemStack pStack) {
     }
 
     public boolean isOnFire() {
@@ -2518,8 +2518,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return true;
     }
 
-    public void setShiftKeyDown(boolean p_20261_) {
-        this.setSharedFlag(1, p_20261_);
+    public void setShiftKeyDown(boolean pKeyDown) {
+        this.setSharedFlag(1, pKeyDown);
     }
 
     public boolean isShiftKeyDown() {
@@ -2550,8 +2550,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.getSharedFlag(3);
     }
 
-    public void setSprinting(boolean p_20274_) {
-        this.setSharedFlag(3, p_20274_);
+    public void setSprinting(boolean pSprinting) {
+        this.setSharedFlag(3, pSprinting);
     }
 
     public boolean isSwimming() {
@@ -2566,16 +2566,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.isVisuallySwimming() && !this.isInWater();
     }
 
-    public void setSwimming(boolean p_20283_) {
-        this.setSharedFlag(4, p_20283_);
+    public void setSwimming(boolean pSwimming) {
+        this.setSharedFlag(4, pSwimming);
     }
 
     public final boolean hasGlowingTag() {
         return this.hasGlowingTag;
     }
 
-    public final void setGlowingTag(boolean p_146916_) {
-        this.hasGlowingTag = p_146916_;
+    public final void setGlowingTag(boolean pHasGlowingTag) {
+        this.hasGlowingTag = pHasGlowingTag;
         this.setSharedFlag(6, this.isCurrentlyGlowing());
     }
 
@@ -2587,16 +2587,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.getSharedFlag(5);
     }
 
-    public boolean isInvisibleTo(Player p_20178_) {
-        if (p_20178_.isSpectator()) {
+    public boolean isInvisibleTo(Player pPlayer) {
+        if (pPlayer.isSpectator()) {
             return false;
         } else {
             Team team = this.getTeam();
-            return team != null && p_20178_ != null && p_20178_.getTeam() == team && team.canSeeFriendlyInvisibles() ? false : this.isInvisible();
+            return team != null && pPlayer != null && pPlayer.getTeam() == team && team.canSeeFriendlyInvisibles() ? false : this.isInvisible();
         }
     }
 
-    public void updateDynamicGameEventListener(BiConsumer<DynamicGameEventListener<?>, ServerLevel> p_216996_) {
+    public void updateDynamicGameEventListener(BiConsumer<DynamicGameEventListener<?>, ServerLevel> pListenerConsumer) {
     }
 
     @Nullable
@@ -2604,28 +2604,28 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.level.getScoreboard().getPlayersTeam(this.getScoreboardName());
     }
 
-    public boolean isAlliedTo(Entity p_20355_) {
-        return this.isAlliedTo(p_20355_.getTeam());
+    public boolean isAlliedTo(Entity pEntity) {
+        return this.isAlliedTo(pEntity.getTeam());
     }
 
-    public boolean isAlliedTo(Team p_20032_) {
-        return this.getTeam() != null ? this.getTeam().isAlliedTo(p_20032_) : false;
+    public boolean isAlliedTo(Team pTeam) {
+        return this.getTeam() != null ? this.getTeam().isAlliedTo(pTeam) : false;
     }
 
-    public void setInvisible(boolean p_20304_) {
-        this.setSharedFlag(5, p_20304_);
+    public void setInvisible(boolean pInvisible) {
+        this.setSharedFlag(5, pInvisible);
     }
 
-    protected boolean getSharedFlag(int p_20292_) {
-        return (this.entityData.get(DATA_SHARED_FLAGS_ID) & 1 << p_20292_) != 0;
+    protected boolean getSharedFlag(int pFlag) {
+        return (this.entityData.get(DATA_SHARED_FLAGS_ID) & 1 << pFlag) != 0;
     }
 
-    protected void setSharedFlag(int p_20116_, boolean p_20117_) {
+    protected void setSharedFlag(int pFlag, boolean pSet) {
         byte b0 = this.entityData.get(DATA_SHARED_FLAGS_ID);
-        if (p_20117_) {
-            this.entityData.set(DATA_SHARED_FLAGS_ID, (byte) (b0 | 1 << p_20116_));
+        if (pSet) {
+            this.entityData.set(DATA_SHARED_FLAGS_ID, (byte) (b0 | 1 << pFlag));
         } else {
-            this.entityData.set(DATA_SHARED_FLAGS_ID, (byte) (b0 & ~(1 << p_20116_)));
+            this.entityData.set(DATA_SHARED_FLAGS_ID, (byte) (b0 & ~(1 << pFlag)));
         }
     }
 
@@ -2637,16 +2637,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.entityData.get(DATA_AIR_SUPPLY_ID);
     }
 
-    public void setAirSupply(int p_20302_) {
-        this.entityData.set(DATA_AIR_SUPPLY_ID, p_20302_);
+    public void setAirSupply(int pAir) {
+        this.entityData.set(DATA_AIR_SUPPLY_ID, pAir);
     }
 
     public int getTicksFrozen() {
         return this.entityData.get(DATA_TICKS_FROZEN);
     }
 
-    public void setTicksFrozen(int p_146918_) {
-        this.entityData.set(DATA_TICKS_FROZEN, p_146918_);
+    public void setTicksFrozen(int pTicksFrozen) {
+        this.entityData.set(DATA_TICKS_FROZEN, pTicksFrozen);
     }
 
     public float getPercentFrozen() {
@@ -2662,7 +2662,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return 140;
     }
 
-    public void thunderHit(ServerLevel p_19927_, LightningBolt p_19928_) {
+    public void thunderHit(ServerLevel pLevel, LightningBolt pLightning) {
         this.setRemainingFireTicks(this.remainingFireTicks + 1);
         if (this.remainingFireTicks == 0) {
             this.setSecondsOnFire(8);
@@ -2671,10 +2671,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.hurt(DamageSource.LIGHTNING_BOLT, 5.0F);
     }
 
-    public void onAboveBubbleCol(boolean p_20313_) {
+    public void onAboveBubbleCol(boolean pDownwards) {
         Vec3 vec3 = this.getDeltaMovement();
         double d0;
-        if (p_20313_) {
+        if (pDownwards) {
             d0 = Math.max(-0.9D, vec3.y - 0.03D);
         } else {
             d0 = Math.min(1.8D, vec3.y + 0.1D);
@@ -2683,10 +2683,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.setDeltaMovement(vec3.x, d0, vec3.z);
     }
 
-    public void onInsideBubbleColumn(boolean p_20322_) {
+    public void onInsideBubbleColumn(boolean pDownwards) {
         Vec3 vec3 = this.getDeltaMovement();
         double d0;
-        if (p_20322_) {
+        if (pDownwards) {
             d0 = Math.max(-0.3D, vec3.y - 0.03D);
         } else {
             d0 = Math.min(0.7D, vec3.y + 0.06D);
@@ -2696,7 +2696,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.resetFallDistance();
     }
 
-    public boolean wasKilled(ServerLevel p_216988_, LivingEntity p_216989_) {
+    public boolean wasKilled(ServerLevel pLevel, LivingEntity pEntity) {
         return true;
     }
 
@@ -2704,8 +2704,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.fallDistance = 0.0F;
     }
 
-    protected void moveTowardsClosestSpace(double p_20315_, double p_20316_, double p_20317_) {
-        this.moveTowardsClosestSpace(SectorVec3.fromApproximate(p_20315_, p_20316_, p_20317_));
+    protected void moveTowardsClosestSpace(double pX, double pY, double pZ) {
+        this.moveTowardsClosestSpace(SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     protected void moveTowardsClosestSpace(SectorVec3 position) {
@@ -2739,15 +2739,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public void makeStuckInBlock(BlockState p_20006_, Vec3 p_20007_) {
+    public void makeStuckInBlock(BlockState pState, Vec3 pMotionMultiplier) {
         this.resetFallDistance();
-        this.stuckSpeedMultiplier = p_20007_;
+        this.stuckSpeedMultiplier = pMotionMultiplier;
     }
 
-    private static Component removeAction(Component p_20141_) {
-        MutableComponent mutablecomponent = p_20141_.plainCopy().setStyle(p_20141_.getStyle().withClickEvent((ClickEvent) null));
+    private static Component removeAction(Component pName) {
+        MutableComponent mutablecomponent = pName.plainCopy().setStyle(pName.getStyle().withClickEvent((ClickEvent) null));
 
-        for (Component component : p_20141_.getSiblings()) {
+        for (Component component : pName.getSiblings()) {
             mutablecomponent.append(removeAction(component));
         }
 
@@ -2763,25 +2763,25 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.type.getDescription();
     }
 
-    public boolean is(Entity p_20356_) {
-        return this == p_20356_;
+    public boolean is(Entity pEntity) {
+        return this == pEntity;
     }
 
     public float getYHeadRot() {
         return 0.0F;
     }
 
-    public void setYHeadRot(float p_20328_) {
+    public void setYHeadRot(float pYHeadRot) {
     }
 
-    public void setYBodyRot(float p_20338_) {
+    public void setYBodyRot(float pYBodyRot) {
     }
 
     public boolean isAttackable() {
         return true;
     }
 
-    public boolean skipAttackInteraction(Entity p_20357_) {
+    public boolean skipAttackInteraction(Entity pEntity) {
         return false;
     }
 
@@ -2790,61 +2790,61 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.removalReason != null ? String.format(Locale.ROOT, "%s['%s'/%d, l='%s', x=%.2f, y=%.2f, z=%.2f, removed=%s]", this.getClass().getSimpleName(), this.getName().getString(), this.id, s, this.getX(), this.getY(), this.getZ(), this.removalReason) : String.format(Locale.ROOT, "%s['%s'/%d, l='%s', x=%.2f, y=%.2f, z=%.2f]", this.getClass().getSimpleName(), this.getName().getString(), this.id, s, this.getX(), this.getY(), this.getZ());
     }
 
-    public boolean isInvulnerableTo(DamageSource p_20122_) {
-        return this.isRemoved() || this.invulnerable && p_20122_ != DamageSource.OUT_OF_WORLD && !p_20122_.isCreativePlayer() || p_20122_.isFire() && this.fireImmune();
+    public boolean isInvulnerableTo(DamageSource pSource) {
+        return this.isRemoved() || this.invulnerable && pSource != DamageSource.OUT_OF_WORLD && !pSource.isCreativePlayer() || pSource.isFire() && this.fireImmune();
     }
 
     public boolean isInvulnerable() {
         return this.invulnerable;
     }
 
-    public void setInvulnerable(boolean p_20332_) {
-        this.invulnerable = p_20332_;
+    public void setInvulnerable(boolean pIsInvulnerable) {
+        this.invulnerable = pIsInvulnerable;
     }
 
-    public void copyPosition(Entity p_20360_) {
-        SectorVec3 exactPosition = p_20360_.exactPosition();
+    public void copyPosition(Entity pEntity) {
+        SectorVec3 exactPosition = pEntity.exactPosition();
         if (this.usesSectorPhysics() && exactPosition != null) {
-            this.moveTo(exactPosition, p_20360_.getYRot(), p_20360_.getXRot());
+            this.moveTo(exactPosition, pEntity.getYRot(), pEntity.getXRot());
         } else {
-            this.moveTo(p_20360_.sectorPosition(), p_20360_.getYRot(), p_20360_.getXRot());
+            this.moveTo(pEntity.sectorPosition(), pEntity.getYRot(), pEntity.getXRot());
         }
     }
 
-    public void restoreFrom(Entity p_20362_) {
-        CompoundTag compoundtag = p_20362_.saveWithoutId(new CompoundTag());
+    public void restoreFrom(Entity pEntity) {
+        CompoundTag compoundtag = pEntity.saveWithoutId(new CompoundTag());
         compoundtag.remove("Dimension");
         this.load(compoundtag);
-        this.portalCooldown = p_20362_.portalCooldown;
-        this.portalEntrancePos = p_20362_.portalEntrancePos;
+        this.portalCooldown = pEntity.portalCooldown;
+        this.portalEntrancePos = pEntity.portalEntrancePos;
     }
 
     @Nullable
-    public Entity changeDimension(ServerLevel p_20118_) {
+    public Entity changeDimension(ServerLevel pDestination) {
         if (this.level instanceof ServerLevel && !this.isRemoved()) {
             this.level.getProfiler().push("changeDimension");
             this.unRide();
             this.level.getProfiler().push("reposition");
-            PortalInfo portalinfo = this.findDimensionEntryPoint(p_20118_);
+            PortalInfo portalinfo = this.findDimensionEntryPoint(pDestination);
             if (portalinfo == null) {
                 return null;
             } else {
                 this.level.getProfiler().popPush("reloading");
-                Entity entity = this.getType().create(p_20118_);
+                Entity entity = this.getType().create(pDestination);
                 if (entity != null) {
                     entity.restoreFrom(this);
                     entity.moveTo(portalinfo.pos.x, portalinfo.pos.y, portalinfo.pos.z, portalinfo.yRot, entity.getXRot());
                     entity.setDeltaMovement(portalinfo.speed);
-                    p_20118_.addDuringTeleport(entity);
-                    if (p_20118_.dimension() == Level.END) {
-                        ServerLevel.makeObsidianPlatform(p_20118_);
+                    pDestination.addDuringTeleport(entity);
+                    if (pDestination.dimension() == Level.END) {
+                        ServerLevel.makeObsidianPlatform(pDestination);
                     }
                 }
 
                 this.removeAfterChangingDimensions();
                 this.level.getProfiler().pop();
                 ((ServerLevel) this.level).resetEmptyTime();
-                p_20118_.resetEmptyTime();
+                pDestination.resetEmptyTime();
                 this.level.getProfiler().pop();
                 return entity;
             }
@@ -2858,18 +2858,18 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     @Nullable
-    protected PortalInfo findDimensionEntryPoint(ServerLevel p_19923_) {
-        boolean flag = this.level.dimension() == Level.END && p_19923_.dimension() == Level.OVERWORLD;
-        boolean flag1 = p_19923_.dimension() == Level.END;
+    protected PortalInfo findDimensionEntryPoint(ServerLevel pDestination) {
+        boolean flag = this.level.dimension() == Level.END && pDestination.dimension() == Level.OVERWORLD;
+        boolean flag1 = pDestination.dimension() == Level.END;
         if (!flag && !flag1) {
-            boolean flag2 = p_19923_.dimension() == Level.NETHER;
+            boolean flag2 = pDestination.dimension() == Level.NETHER;
             if (this.level.dimension() != Level.NETHER && !flag2) {
                 return null;
             } else {
-                WorldBorder worldborder = p_19923_.getWorldBorder();
-                double d0 = DimensionType.getTeleportationScale(this.level.dimensionType(), p_19923_.dimensionType());
+                WorldBorder worldborder = pDestination.getWorldBorder();
+                double d0 = DimensionType.getTeleportationScale(this.level.dimensionType(), pDestination.dimensionType());
                 BlockPos blockpos1 = worldborder.clampToBounds(this.getX() * d0, this.getY(), this.getZ() * d0);
-                return this.getExitPortal(p_19923_, blockpos1, flag2, worldborder).map((p_185941_) -> {
+                return this.getExitPortal(pDestination, blockpos1, flag2, worldborder).map((p_185941_) -> {
                                                                                       BlockState blockstate = this.level.getBlockState(this.portalEntrancePos);
                                                                                       Direction.Axis direction$axis;
                                                                                       Vec3 vec3;
@@ -2884,7 +2884,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                                                                                           vec3 = new Vec3(0.5D, 0.0D, 0.0D);
                                                                                       }
 
-                                                                                      return PortalShape.createPortalInfo(p_19923_, p_185941_, direction$axis, vec3, this.getDimensions(this.getPose()), this.getDeltaMovement(), this.getYRot(), this.getXRot());
+                                                                                      return PortalShape.createPortalInfo(pDestination, p_185941_, direction$axis, vec3, this.getDimensions(this.getPose()), this.getDeltaMovement(), this.getYRot(), this.getXRot());
                                                                                   })
                         .orElse((PortalInfo) null);
             }
@@ -2893,30 +2893,30 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             if (flag1) {
                 blockpos = ServerLevel.END_SPAWN_POINT;
             } else {
-                blockpos = p_19923_.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, p_19923_.getSharedSpawnPos());
+                blockpos = pDestination.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pDestination.getSharedSpawnPos());
             }
 
             return new PortalInfo(new Vec3((double) blockpos.getX() + 0.5D, (double) blockpos.getY(), (double) blockpos.getZ() + 0.5D), this.getDeltaMovement(), this.getYRot(), this.getXRot());
         }
     }
 
-    protected Vec3 getRelativePortalPosition(Direction.Axis p_20045_, BlockUtil.FoundRectangle p_20046_) {
-        return PortalShape.getRelativePosition(p_20046_, p_20045_, this.position(), this.getDimensions(this.getPose()));
+    protected Vec3 getRelativePortalPosition(Direction.Axis pAxis, BlockUtil.FoundRectangle pPortal) {
+        return PortalShape.getRelativePosition(pPortal, pAxis, this.position(), this.getDimensions(this.getPose()));
     }
 
-    protected Optional<BlockUtil.FoundRectangle> getExitPortal(ServerLevel p_185935_, BlockPos p_185936_, boolean p_185937_, WorldBorder p_185938_) {
-        return p_185935_.getPortalForcer().findPortalAround(p_185936_, p_185937_, p_185938_);
+    protected Optional<BlockUtil.FoundRectangle> getExitPortal(ServerLevel pDestination, BlockPos pFindFrom, boolean pIsToNether, WorldBorder pWorldBorder) {
+        return pDestination.getPortalForcer().findPortalAround(pFindFrom, pIsToNether, pWorldBorder);
     }
 
     public boolean canChangeDimensions() {
         return true;
     }
 
-    public float getBlockExplosionResistance(Explosion p_19992_, BlockGetter p_19993_, BlockPos p_19994_, BlockState p_19995_, FluidState p_19996_, float p_19997_) {
-        return p_19997_;
+    public float getBlockExplosionResistance(Explosion pExplosion, BlockGetter pLevel, BlockPos pPos, BlockState pBlockState, FluidState pFluidState, float pExplosionPower) {
+        return pExplosionPower;
     }
 
-    public boolean shouldBlockExplode(Explosion p_19987_, BlockGetter p_19988_, BlockPos p_19989_, BlockState p_19990_, float p_19991_) {
+    public boolean shouldBlockExplode(Explosion pExplosion, BlockGetter pLevel, BlockPos pPos, BlockState pBlockState, float pExplosionPower) {
         return true;
     }
 
@@ -2928,22 +2928,22 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return false;
     }
 
-    public void fillCrashReportCategory(CrashReportCategory p_20051_) {
-        p_20051_.setDetail("Entity Type", () -> {
+    public void fillCrashReportCategory(CrashReportCategory pCategory) {
+        pCategory.setDetail("Entity Type", () -> {
             return EntityType.getKey(this.getType()) + " (" + this.getClass().getCanonicalName() + ")";
         });
-        p_20051_.setDetail("Entity ID", this.id);
-        p_20051_.setDetail("Entity Name", () -> {
+        pCategory.setDetail("Entity ID", this.id);
+        pCategory.setDetail("Entity Name", () -> {
             return this.getName().getString();
         });
-        p_20051_.setDetail("Entity's Exact location", String.format(Locale.ROOT, "%.2f, %.2f, %.2f", this.getX(), this.getY(), this.getZ()));
-        p_20051_.setDetail("Entity's Block location", CrashReportCategory.formatLocation(this.level, Mth.floor(this.getX()), Mth.floor(this.getY()), Mth.floor(this.getZ())));
+        pCategory.setDetail("Entity's Exact location", String.format(Locale.ROOT, "%.2f, %.2f, %.2f", this.getX(), this.getY(), this.getZ()));
+        pCategory.setDetail("Entity's Block location", CrashReportCategory.formatLocation(this.level, Mth.floor(this.getX()), Mth.floor(this.getY()), Mth.floor(this.getZ())));
         Vec3 vec3 = this.getDeltaMovement();
-        p_20051_.setDetail("Entity's Momentum", String.format(Locale.ROOT, "%.2f, %.2f, %.2f", vec3.x, vec3.y, vec3.z));
-        p_20051_.setDetail("Entity's Passengers", () -> {
+        pCategory.setDetail("Entity's Momentum", String.format(Locale.ROOT, "%.2f, %.2f, %.2f", vec3.x, vec3.y, vec3.z));
+        pCategory.setDetail("Entity's Passengers", () -> {
             return this.getPassengers().toString();
         });
-        p_20051_.setDetail("Entity's Vehicle", () -> {
+        pCategory.setDetail("Entity's Vehicle", () -> {
             return String.valueOf((Object) this.getVehicle());
         });
     }
@@ -2952,8 +2952,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.isOnFire() && !this.isSpectator();
     }
 
-    public void setUUID(UUID p_20085_) {
-        this.uuid = p_20085_;
+    public void setUUID(UUID pUniqueId) {
+        this.uuid = pUniqueId;
         this.stringUUID = this.uuid.toString();
     }
 
@@ -2977,8 +2977,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return viewScale;
     }
 
-    public static void setViewScale(double p_20104_) {
-        viewScale = p_20104_;
+    public static void setViewScale(double pRenderDistWeight) {
+        viewScale = pRenderDistWeight;
     }
 
     public Component getDisplayName() {
@@ -2987,8 +2987,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         });
     }
 
-    public void setCustomName(@Nullable Component p_20053_) {
-        this.entityData.set(DATA_CUSTOM_NAME, Optional.ofNullable(p_20053_));
+    public void setCustomName(@Nullable Component pName) {
+        this.entityData.set(DATA_CUSTOM_NAME, Optional.ofNullable(pName));
     }
 
     @Nullable
@@ -3000,17 +3000,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.entityData.get(DATA_CUSTOM_NAME).isPresent();
     }
 
-    public void setCustomNameVisible(boolean p_20341_) {
-        this.entityData.set(DATA_CUSTOM_NAME_VISIBLE, p_20341_);
+    public void setCustomNameVisible(boolean pAlwaysRenderNameTag) {
+        this.entityData.set(DATA_CUSTOM_NAME_VISIBLE, pAlwaysRenderNameTag);
     }
 
     public boolean isCustomNameVisible() {
         return this.entityData.get(DATA_CUSTOM_NAME_VISIBLE);
     }
 
-    public final void teleportToWithTicket(double p_20325_, double p_20326_, double p_20327_) {
-        this.teleportToWithTicket(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20325_),
-                WorldBounds.clampVerticalDouble(p_20326_), WorldBounds.clampAbsoluteDouble(p_20327_)));
+    public final void teleportToWithTicket(double pX, double pY, double pZ) {
+        this.teleportToWithTicket(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
+                WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)));
     }
 
     /** Loads the target chunk and teleports without reconstructing large horizontal doubles. */
@@ -3023,8 +3023,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public void dismountTo(double p_146825_, double p_146826_, double p_146827_) {
-        this.teleportTo(p_146825_, p_146826_, p_146827_);
+    public void dismountTo(double pX, double pY, double pZ) {
+        this.teleportTo(pX, pY, pZ);
     }
 
     /** Exact split-coordinate dismount ingress; never reconstructs a lossy global X/Z double. */
@@ -3032,9 +3032,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.teleportTo(position);
     }
 
-    public void teleportTo(double p_19887_, double p_19888_, double p_19889_) {
-        this.teleportTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_19887_),
-                WorldBounds.clampVerticalDouble(p_19888_), WorldBounds.clampAbsoluteDouble(p_19889_)));
+    public void teleportTo(double pX, double pY, double pZ) {
+        this.teleportTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
+                WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)));
     }
 
     /** Teleports this entity and riders to an exact split-coordinate target. */
@@ -3053,8 +3053,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.isCustomNameVisible();
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_20059_) {
-        if (DATA_POSE.equals(p_20059_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        if (DATA_POSE.equals(pKey)) {
             this.refreshDimensions();
         }
     }
@@ -3111,7 +3111,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return new HoverEvent(HoverEvent.Action.SHOW_ENTITY, new HoverEvent.EntityTooltipInfo(this.getType(), this.getUUID(), this.getName()));
     }
 
-    public boolean broadcastToPlayer(ServerPlayer p_19937_) {
+    public boolean broadcastToPlayer(ServerPlayer pPlayer) {
         return true;
     }
 
@@ -3129,26 +3129,26 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.sectorPosition == null ? null : this.getSectorBoundingBox();
     }
 
-    protected AABB getBoundingBoxForPose(Pose p_20218_) {
+    protected AABB getBoundingBoxForPose(Pose pPose) {
         if (this.usesSectorPhysics())
-            return AABB.fromSectorBounds(this.getSectorBoundingBoxForPose(p_20218_));
-        EntityDimensions entitydimensions = this.getDimensions(p_20218_);
+            return AABB.fromSectorBounds(this.getSectorBoundingBoxForPose(pPose));
+        EntityDimensions entitydimensions = this.getDimensions(pPose);
         float f = entitydimensions.width / 2.0F;
         Vec3 vec3 = new Vec3(this.getX() - (double) f, this.getY(), this.getZ() - (double) f);
         Vec3 vec31 = new Vec3(this.getX() + (double) f, this.getY() + (double) entitydimensions.height, this.getZ() + (double) f);
         return new AABB(vec3, vec31);
     }
 
-    public final void setBoundingBox(AABB p_20012_) {
-        this.bb = p_20012_;
+    public final void setBoundingBox(AABB pBb) {
+        this.bb = pBb;
     }
 
-    protected float getEyeHeight(Pose p_19976_, EntityDimensions p_19977_) {
-        return p_19977_.height * 0.85F;
+    protected float getEyeHeight(Pose pPose, EntityDimensions pDimensions) {
+        return pDimensions.height * 0.85F;
     }
 
-    public float getEyeHeight(Pose p_20237_) {
-        return this.getEyeHeight(p_20237_, this.getDimensions(p_20237_));
+    public float getEyeHeight(Pose pPose) {
+        return this.getEyeHeight(pPose, this.getDimensions(pPose));
     }
 
     public final float getEyeHeight() {
@@ -3159,11 +3159,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return new Vec3(0.0D, (double) this.getEyeHeight(), (double) (this.getBbWidth() * 0.4F));
     }
 
-    public SlotAccess getSlot(int p_146919_) {
+    public SlotAccess getSlot(int pSlot) {
         return SlotAccess.NULL;
     }
 
-    public void sendSystemMessage(Component p_216998_) {
+    public void sendSystemMessage(Component pComponent) {
     }
 
     public Level getCommandSenderWorld() {
@@ -3175,7 +3175,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.level.getServer();
     }
 
-    public InteractionResult interactAt(Player p_19980_, Vec3 p_19981_, InteractionHand p_19982_) {
+    public InteractionResult interactAt(Player pPlayer, Vec3 pVec, InteractionHand pHand) {
         return InteractionResult.PASS;
     }
 
@@ -3183,23 +3183,23 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return false;
     }
 
-    public void doEnchantDamageEffects(LivingEntity p_19971_, Entity p_19972_) {
-        if (p_19972_ instanceof LivingEntity) {
-            EnchantmentHelper.doPostHurtEffects((LivingEntity) p_19972_, p_19971_);
+    public void doEnchantDamageEffects(LivingEntity pAttacker, Entity pTarget) {
+        if (pTarget instanceof LivingEntity) {
+            EnchantmentHelper.doPostHurtEffects((LivingEntity) pTarget, pAttacker);
         }
 
-        EnchantmentHelper.doPostDamageEffects(p_19971_, p_19972_);
+        EnchantmentHelper.doPostDamageEffects(pAttacker, pTarget);
     }
 
-    public void startSeenByPlayer(ServerPlayer p_20119_) {
+    public void startSeenByPlayer(ServerPlayer pServerPlayer) {
     }
 
-    public void stopSeenByPlayer(ServerPlayer p_20174_) {
+    public void stopSeenByPlayer(ServerPlayer pServerPlayer) {
     }
 
-    public float rotate(Rotation p_20004_) {
+    public float rotate(Rotation pTransformRotation) {
         float f = Mth.wrapDegrees(this.getYRot());
-        switch (p_20004_) {
+        switch (pTransformRotation) {
             case CLOCKWISE_180:
                 return f + 180.0F;
             case COUNTERCLOCKWISE_90:
@@ -3211,9 +3211,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    public float mirror(Mirror p_20003_) {
+    public float mirror(Mirror pTransformMirror) {
         float f = Mth.wrapDegrees(this.getYRot());
-        switch (p_20003_) {
+        switch (pTransformMirror) {
             case FRONT_BACK:
                 return -f;
             case LEFT_RIGHT:
@@ -3245,13 +3245,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.passengers.isEmpty() ? null : this.passengers.get(0);
     }
 
-    public boolean hasPassenger(Entity p_20364_) {
-        return this.passengers.contains(p_20364_);
+    public boolean hasPassenger(Entity pEntity) {
+        return this.passengers.contains(pEntity);
     }
 
-    public boolean hasPassenger(Predicate<Entity> p_146863_) {
+    public boolean hasPassenger(Predicate<Entity> pPredicate) {
         for (Entity entity : this.passengers) {
-            if (p_146863_.test(entity)) {
+            if (pPredicate.test(entity)) {
                 return true;
             }
         }
@@ -3293,13 +3293,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return entity;
     }
 
-    public boolean isPassengerOfSameVehicle(Entity p_20366_) {
-        return this.getRootVehicle() == p_20366_.getRootVehicle();
+    public boolean isPassengerOfSameVehicle(Entity pEntity) {
+        return this.getRootVehicle() == pEntity.getRootVehicle();
     }
 
-    public boolean hasIndirectPassenger(Entity p_20368_) {
+    public boolean hasIndirectPassenger(Entity pEntity) {
         return this.getIndirectPassengersStream().anyMatch((p_185946_) -> {
-            return p_185946_ == p_20368_;
+            return p_185946_ == pEntity;
         });
     }
 
@@ -3312,15 +3312,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    protected static Vec3 getCollisionHorizontalEscapeVector(double p_19904_, double p_19905_, float p_19906_) {
-        double d0 = (p_19904_ + p_19905_ + (double) 1.0E-5F) / 2.0D;
-        float f = -Mth.sin(p_19906_ * ((float) Math.PI / 180F));
-        float f1 = Mth.cos(p_19906_ * ((float) Math.PI / 180F));
+    protected static Vec3 getCollisionHorizontalEscapeVector(double pVehicleWidth, double pPassengerWidth, float pYRot) {
+        double d0 = (pVehicleWidth + pPassengerWidth + (double) 1.0E-5F) / 2.0D;
+        float f = -Mth.sin(pYRot * ((float) Math.PI / 180F));
+        float f1 = Mth.cos(pYRot * ((float) Math.PI / 180F));
         float f2 = Math.max(Math.abs(f), Math.abs(f1));
         return new Vec3((double) f * d0 / (double) f2, 0.0D, (double) f1 * d0 / (double) f2);
     }
 
-    public Vec3 getDismountLocationForPassenger(LivingEntity p_20123_) {
+    public Vec3 getDismountLocationForPassenger(LivingEntity pPassenger) {
         return new Vec3(this.getX(), this.getBoundingBox().maxY, this.getZ());
     }
 
@@ -3358,8 +3358,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return 0;
     }
 
-    public boolean hasPermissions(int p_20311_) {
-        return this.getPermissionLevel() >= p_20311_;
+    public boolean hasPermissions(int pLevel) {
+        return this.getPermissionLevel() >= pLevel;
     }
 
     public boolean acceptsSuccess() {
@@ -3374,11 +3374,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return true;
     }
 
-    public void lookAt(EntityAnchorArgument.Anchor p_20033_, Vec3 p_20034_) {
-        Vec3 vec3 = p_20033_.apply(this);
-        double d0 = p_20034_.x - vec3.x;
-        double d1 = p_20034_.y - vec3.y;
-        double d2 = p_20034_.z - vec3.z;
+    public void lookAt(EntityAnchorArgument.Anchor pAnchor, Vec3 pTarget) {
+        Vec3 vec3 = pAnchor.apply(this);
+        double d0 = pTarget.x - vec3.x;
+        double d1 = pTarget.y - vec3.y;
+        double d2 = pTarget.z - vec3.z;
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
         this.setXRot(Mth.wrapDegrees((float) (-(Mth.atan2(d1, d3) * (double) (180F / (float) Math.PI)))));
         this.setYRot(Mth.wrapDegrees((float) (Mth.atan2(d2, d0) * (double) (180F / (float) Math.PI)) - 90.0F));
@@ -3387,9 +3387,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.yRotO = this.getYRot();
     }
 
-    public boolean updateFluidHeightAndDoFluidPushing(TagKey<Fluid> p_204032_, double p_204033_) {
+    public boolean updateFluidHeightAndDoFluidPushing(TagKey<Fluid> pFluidTag, double pMotionScale) {
         if (this.usesSectorPhysics()) {
-            return this.updateSectorFluidHeightAndDoFluidPushing(p_204032_, p_204033_);
+            return this.updateSectorFluidHeightAndDoFluidPushing(pFluidTag, pMotionScale);
         }
         if (this.touchingUnloadedChunk()) {
             return false;
@@ -3413,7 +3413,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                     for (int j2 = i1; j2 < j1; ++j2) {
                         blockpos$mutableblockpos.set(l1, i2, j2);
                         FluidState fluidstate = this.level.getFluidState(blockpos$mutableblockpos);
-                        if (fluidstate.is(p_204032_)) {
+                        if (fluidstate.is(pFluidTag)) {
                             double d1 = (double) ((float) i2 + fluidstate.getHeight(this.level, blockpos$mutableblockpos));
                             if (d1 >= aabb.minY) {
                                 flag1 = true;
@@ -3443,7 +3443,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 }
 
                 Vec3 vec32 = this.getDeltaMovement();
-                vec3 = vec3.scale(p_204033_ * 1.0D);
+                vec3 = vec3.scale(pMotionScale * 1.0D);
                 double d2 = 0.003D;
                 if (Math.abs(vec32.x) < 0.003D && Math.abs(vec32.z) < 0.003D && vec3.length() < 0.0045000000000000005D) {
                     vec3 = vec3.normalize().scale(0.0045000000000000005D);
@@ -3452,7 +3452,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 this.setDeltaMovement(this.getDeltaMovement().add(vec3));
             }
 
-            this.fluidHeight.put(p_204032_, d0);
+            this.fluidHeight.put(pFluidTag, d0);
             return flag1;
         }
     }
@@ -3522,8 +3522,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return !this.level.hasChunksAt(i, k, j, l);
     }
 
-    public double getFluidHeight(TagKey<Fluid> p_204037_) {
-        return this.fluidHeight.getDouble(p_204037_);
+    public double getFluidHeight(TagKey<Fluid> pFluidTag) {
+        return this.fluidHeight.getDouble(pFluidTag);
     }
 
     public double getFluidJumpThreshold() {
@@ -3540,7 +3540,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     public abstract Packet<?> getAddEntityPacket();
 
-    public EntityDimensions getDimensions(Pose p_19975_) {
+    public EntityDimensions getDimensions(Pose pPose) {
         return this.type.getDimensions();
     }
 
@@ -3635,20 +3635,20 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.deltaMovement;
     }
 
-    public void setDeltaMovement(Vec3 p_20257_) {
+    public void setDeltaMovement(Vec3 pMotion) {
         // Malformed AI targets, hostile packets, and zero-length normalizations must
         // never poison an entity for every subsequent tick. Vanilla movement can
         // safely recover by dropping only the non-finite components.
-        this.deltaMovement = new Vec3(finiteMovementComponent(p_20257_.x),
-                finiteMovementComponent(p_20257_.y), finiteMovementComponent(p_20257_.z));
+        this.deltaMovement = new Vec3(finiteMovementComponent(pMotion.x),
+                finiteMovementComponent(pMotion.y), finiteMovementComponent(pMotion.z));
     }
 
     private static double finiteMovementComponent(double value) {
         return Double.isFinite(value) ? value : 0.0D;
     }
 
-    public void setDeltaMovement(double p_20335_, double p_20336_, double p_20337_) {
-        this.setDeltaMovement(new Vec3(p_20335_, p_20336_, p_20337_));
+    public void setDeltaMovement(double pX, double pY, double pZ) {
+        this.setDeltaMovement(new Vec3(pX, pY, pZ));
     }
 
     public final long getBlockX() {
@@ -3659,12 +3659,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.position.x;
     }
 
-    public double getX(double p_20166_) {
-        return this.position.x + (double) this.getBbWidth() * p_20166_;
+    public double getX(double pScale) {
+        return this.position.x + (double) this.getBbWidth() * pScale;
     }
 
-    public double getRandomX(double p_20209_) {
-        return this.getX((2.0D * this.random.nextDouble() - 1.0D) * p_20209_);
+    public double getRandomX(double pScale) {
+        return this.getX((2.0D * this.random.nextDouble() - 1.0D) * pScale);
     }
 
     public final int getBlockY() {
@@ -3675,8 +3675,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.position.y;
     }
 
-    public double getY(double p_20228_) {
-        return this.position.y + (double) this.getBbHeight() * p_20228_;
+    public double getY(double pScale) {
+        return this.position.y + (double) this.getBbHeight() * pScale;
     }
 
     public double getRandomY() {
@@ -3695,30 +3695,30 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.position.z;
     }
 
-    public double getZ(double p_20247_) {
-        return this.position.z + (double) this.getBbWidth() * p_20247_;
+    public double getZ(double pScale) {
+        return this.position.z + (double) this.getBbWidth() * pScale;
     }
 
-    public double getRandomZ(double p_20263_) {
-        return this.getZ((2.0D * this.random.nextDouble() - 1.0D) * p_20263_);
+    public double getRandomZ(double pScale) {
+        return this.getZ((2.0D * this.random.nextDouble() - 1.0D) * pScale);
     }
 
-    public final void setPosRaw(double p_20344_, double p_20345_, double p_20346_) {
+    public final void setPosRaw(double pX, double pY, double pZ) {
         // This is still a legacy approximate absolute-double ingress for sector entities.
         // Exact movement must call setSectorPositionRaw(SectorVec3) directly.
         if (this.usesSectorPhysics()) {
-            this.setSectorPositionRaw(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20344_),
-                    WorldBounds.clampVerticalDouble(p_20345_), WorldBounds.clampAbsoluteDouble(p_20346_)));
+            this.setSectorPositionRaw(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
+                    WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)));
             return;
         }
-        p_20344_ = WorldBounds.clampAbsoluteDouble(p_20344_);
-        p_20345_ = WorldBounds.clampVerticalDouble(p_20345_);
-        p_20346_ = WorldBounds.clampAbsoluteDouble(p_20346_);
-        if (this.position.x != p_20344_ || this.position.y != p_20345_ || this.position.z != p_20346_) {
-            this.position = new Vec3(p_20344_, p_20345_, p_20346_);
-            long i = Mth.lfloor(p_20344_);
-            long j = Mth.lfloor(p_20345_);
-            long k = Mth.lfloor(p_20346_);
+        pX = WorldBounds.clampAbsoluteDouble(pX);
+        pY = WorldBounds.clampVerticalDouble(pY);
+        pZ = WorldBounds.clampAbsoluteDouble(pZ);
+        if (this.position.x != pX || this.position.y != pY || this.position.z != pZ) {
+            this.position = new Vec3(pX, pY, pZ);
+            long i = Mth.lfloor(pX);
+            long j = Mth.lfloor(pY);
+            long k = Mth.lfloor(pZ);
             if (i != this.blockPosition.getX() || j != this.blockPosition.getY() || k != this.blockPosition.getZ()) {
                 this.blockPosition = new BlockPos(i, j, k);
                 this.feetBlockState = null;
@@ -3734,20 +3734,20 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     public void checkDespawn() {
     }
 
-    public Vec3 getRopeHoldPosition(float p_20347_) {
-        return this.getPosition(p_20347_).add(0.0D, (double) this.eyeHeight * 0.7D, 0.0D);
+    public Vec3 getRopeHoldPosition(float pPartialTicks) {
+        return this.getPosition(pPartialTicks).add(0.0D, (double) this.eyeHeight * 0.7D, 0.0D);
     }
 
-    public void recreateFromPacket(ClientboundAddEntityPacket p_146866_) {
-        int i = p_146866_.getId();
-        SectorVec3 exactPosition = p_146866_.getExactPosition();
+    public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
+        int i = pPacket.getId();
+        SectorVec3 exactPosition = pPacket.getExactPosition();
         this.applyExactPosition(exactPosition);
         this.setOldPosAndRot();
         this.syncSectorPacketPositionCodec();
-        this.setXRot(p_146866_.getXRot());
-        this.setYRot(p_146866_.getYRot());
+        this.setXRot(pPacket.getXRot());
+        this.setYRot(pPacket.getYRot());
         this.setId(i);
-        this.setUUID(p_146866_.getUUID());
+        this.setUUID(pPacket.getUUID());
     }
 
     @Nullable
@@ -3755,8 +3755,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return null;
     }
 
-    public void setIsInPowderSnow(boolean p_146925_) {
-        this.isInPowderSnow = p_146925_;
+    public void setIsInPowderSnow(boolean pIsInPowderSnow) {
+        this.isInPowderSnow = pIsInPowderSnow;
     }
 
     public boolean canFreeze() {
@@ -3775,11 +3775,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.getYRot();
     }
 
-    public void setYRot(float p_146923_) {
-        if (!Float.isFinite(p_146923_)) {
-            Util.logAndPauseIfInIde("Invalid entity rotation: " + p_146923_ + ", discarding.");
+    public void setYRot(float pYRot) {
+        if (!Float.isFinite(pYRot)) {
+            Util.logAndPauseIfInIde("Invalid entity rotation: " + pYRot + ", discarding.");
         } else {
-            this.yRot = p_146923_;
+            this.yRot = pYRot;
         }
     }
 
@@ -3787,11 +3787,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.xRot;
     }
 
-    public void setXRot(float p_146927_) {
-        if (!Float.isFinite(p_146927_)) {
-            Util.logAndPauseIfInIde("Invalid entity rotation: " + p_146927_ + ", discarding.");
+    public void setXRot(float pXRot) {
+        if (!Float.isFinite(pXRot)) {
+            Util.logAndPauseIfInIde("Invalid entity rotation: " + pXRot + ", discarding.");
         } else {
-            this.xRot = p_146927_;
+            this.xRot = pXRot;
         }
     }
 
@@ -3804,9 +3804,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.removalReason;
     }
 
-    public final void setRemoved(Entity.RemovalReason p_146876_) {
+    public final void setRemoved(Entity.RemovalReason pRemovalReason) {
         if (this.removalReason == null) {
-            this.removalReason = p_146876_;
+            this.removalReason = pRemovalReason;
         }
 
         if (this.removalReason.shouldDestroy()) {
@@ -3814,15 +3814,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
 
         this.getPassengers().forEach(Entity::stopRiding);
-        this.levelCallback.onRemove(p_146876_);
+        this.levelCallback.onRemove(pRemovalReason);
     }
 
     protected void unsetRemoved() {
         this.removalReason = null;
     }
 
-    public void setLevelCallback(EntityInLevelCallback p_146849_) {
-        this.levelCallback = p_146849_;
+    public void setLevelCallback(EntityInLevelCallback pLevelCallback) {
+        this.levelCallback = pLevelCallback;
     }
 
     public boolean shouldBeSaved() {
@@ -3839,7 +3839,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return false;
     }
 
-    public boolean mayInteract(Level p_146843_, BlockPos p_146844_) {
+    public boolean mayInteract(Level pLevel, BlockPos pPos) {
         return true;
     }
 
@@ -3849,7 +3849,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     @FunctionalInterface
     public interface MoveFunction {
-        void accept(Entity p_20373_, double p_20374_, double p_20375_, double p_20376_);
+        void accept(Entity pEntity, double pX, double pY, double pZ);
     }
 
     public static enum MovementEmission {

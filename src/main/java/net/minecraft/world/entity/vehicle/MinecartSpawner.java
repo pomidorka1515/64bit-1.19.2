@@ -19,25 +19,25 @@ public class MinecartSpawner extends AbstractMinecart {
     };
     private final Runnable ticker;
 
-    public MinecartSpawner(EntityType<? extends MinecartSpawner> p_38623_, Level p_38624_) {
-        super(p_38623_, p_38624_);
-        this.ticker = this.createTicker(p_38624_);
+    public MinecartSpawner(EntityType<? extends MinecartSpawner> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
+        this.ticker = this.createTicker(pLevel);
     }
 
-    public MinecartSpawner(Level p_38626_, double p_38627_, double p_38628_, double p_38629_) {
-        super(EntityType.SPAWNER_MINECART, p_38626_, p_38627_, p_38628_, p_38629_);
-        this.ticker = this.createTicker(p_38626_);
+    public MinecartSpawner(Level pLevel, double pX, double pY, double pZ) {
+        super(EntityType.SPAWNER_MINECART, pLevel, pX, pY, pZ);
+        this.ticker = this.createTicker(pLevel);
     }
 
     protected Item getDropItem() {
         return Items.MINECART;
     }
 
-    private Runnable createTicker(Level p_150335_) {
-        return p_150335_ instanceof ServerLevel ? () -> {
-            this.spawner.serverTick((ServerLevel) p_150335_, this.blockPosition());
+    private Runnable createTicker(Level pLevel) {
+        return pLevel instanceof ServerLevel ? () -> {
+            this.spawner.serverTick((ServerLevel) pLevel, this.blockPosition());
         } : () -> {
-            this.spawner.clientTick(p_150335_, this.blockPosition());
+            this.spawner.clientTick(pLevel, this.blockPosition());
         };
     }
 
@@ -49,18 +49,18 @@ public class MinecartSpawner extends AbstractMinecart {
         return Blocks.SPAWNER.defaultBlockState();
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_38633_) {
-        super.readAdditionalSaveData(p_38633_);
-        this.spawner.load(this.level, this.blockPosition(), p_38633_);
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.spawner.load(this.level, this.blockPosition(), pCompound);
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_38635_) {
-        super.addAdditionalSaveData(p_38635_);
-        this.spawner.save(p_38635_);
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        this.spawner.save(pCompound);
     }
 
-    public void handleEntityEvent(byte p_38631_) {
-        this.spawner.onEventTriggered(this.level, p_38631_);
+    public void handleEntityEvent(byte pId) {
+        this.spawner.onEventTriggered(this.level, pId);
     }
 
     public void tick() {

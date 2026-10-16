@@ -16,24 +16,24 @@ public class Criterion {
     @Nullable
     private final CriterionTriggerInstance trigger;
 
-    public Criterion(CriterionTriggerInstance p_11415_) {
-        this.trigger = p_11415_;
+    public Criterion(CriterionTriggerInstance pTrigger) {
+        this.trigger = pTrigger;
     }
 
     public Criterion() {
         this.trigger = null;
     }
 
-    public void serializeToNetwork(FriendlyByteBuf p_11424_) {
+    public void serializeToNetwork(FriendlyByteBuf pBuffer) {
     }
 
-    public static Criterion criterionFromJson(JsonObject p_11418_, DeserializationContext p_11419_) {
-        ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_11418_, "trigger"));
+    public static Criterion criterionFromJson(JsonObject pJson, DeserializationContext pContext) {
+        ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pJson, "trigger"));
         CriterionTrigger<?> criteriontrigger = CriteriaTriggers.getCriterion(resourcelocation);
         if (criteriontrigger == null) {
             throw new JsonSyntaxException("Invalid criterion trigger: " + resourcelocation);
         } else {
-            CriterionTriggerInstance criteriontriggerinstance = criteriontrigger.createInstance(GsonHelper.getAsJsonObject(p_11418_, "conditions", new JsonObject()), p_11419_);
+            CriterionTriggerInstance criteriontriggerinstance = criteriontrigger.createInstance(GsonHelper.getAsJsonObject(pJson, "conditions", new JsonObject()), pContext);
             return new Criterion(criteriontriggerinstance);
         }
     }
@@ -42,22 +42,22 @@ public class Criterion {
         return new Criterion();
     }
 
-    public static Map<String, Criterion> criteriaFromJson(JsonObject p_11427_, DeserializationContext p_11428_) {
+    public static Map<String, Criterion> criteriaFromJson(JsonObject pJson, DeserializationContext pContext) {
         Map<String, Criterion> map = Maps.newHashMap();
 
-        for (Map.Entry<String, JsonElement> entry : p_11427_.entrySet()) {
-            map.put(entry.getKey(), criterionFromJson(GsonHelper.convertToJsonObject(entry.getValue(), "criterion"), p_11428_));
+        for (Map.Entry<String, JsonElement> entry : pJson.entrySet()) {
+            map.put(entry.getKey(), criterionFromJson(GsonHelper.convertToJsonObject(entry.getValue(), "criterion"), pContext));
         }
 
         return map;
     }
 
-    public static Map<String, Criterion> criteriaFromNetwork(FriendlyByteBuf p_11432_) {
-        return p_11432_.readMap(FriendlyByteBuf::readUtf, Criterion::criterionFromNetwork);
+    public static Map<String, Criterion> criteriaFromNetwork(FriendlyByteBuf pBuffer) {
+        return pBuffer.readMap(FriendlyByteBuf::readUtf, Criterion::criterionFromNetwork);
     }
 
-    public static void serializeToNetwork(Map<String, Criterion> p_11421_, FriendlyByteBuf p_11422_) {
-        p_11422_.writeMap(p_11421_, FriendlyByteBuf::writeUtf, (p_145258_, p_145259_) -> {
+    public static void serializeToNetwork(Map<String, Criterion> pCriteria, FriendlyByteBuf pBuffer) {
+        pBuffer.writeMap(pCriteria, FriendlyByteBuf::writeUtf, (p_145258_, p_145259_) -> {
             p_145259_.serializeToNetwork(p_145258_);
         });
     }

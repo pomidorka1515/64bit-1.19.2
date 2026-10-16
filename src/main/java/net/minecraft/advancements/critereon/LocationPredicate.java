@@ -36,56 +36,56 @@ public class LocationPredicate {
     private final BlockPredicate block;
     private final FluidPredicate fluid;
 
-    public LocationPredicate(MinMaxBounds.Doubles p_207916_, MinMaxBounds.Doubles p_207917_, MinMaxBounds.Doubles p_207918_, @Nullable ResourceKey<Biome> p_207919_, @Nullable ResourceKey<Structure> p_207920_, @Nullable ResourceKey<Level> p_207921_, @Nullable Boolean p_207922_, LightPredicate p_207923_, BlockPredicate p_207924_, FluidPredicate p_207925_) {
-        this.x = p_207916_;
-        this.y = p_207917_;
-        this.z = p_207918_;
-        this.biome = p_207919_;
-        this.structure = p_207920_;
-        this.dimension = p_207921_;
-        this.smokey = p_207922_;
-        this.light = p_207923_;
-        this.block = p_207924_;
-        this.fluid = p_207925_;
+    public LocationPredicate(MinMaxBounds.Doubles pX, MinMaxBounds.Doubles pY, MinMaxBounds.Doubles pZ, @Nullable ResourceKey<Biome> pBiome, @Nullable ResourceKey<Structure> pFeature, @Nullable ResourceKey<Level> pDimension, @Nullable Boolean pSmokey, LightPredicate pLight, BlockPredicate pBlock, FluidPredicate pFluid) {
+        this.x = pX;
+        this.y = pY;
+        this.z = pZ;
+        this.biome = pBiome;
+        this.structure = pFeature;
+        this.dimension = pDimension;
+        this.smokey = pSmokey;
+        this.light = pLight;
+        this.block = pBlock;
+        this.fluid = pFluid;
     }
 
-    public static LocationPredicate inBiome(ResourceKey<Biome> p_52635_) {
-        return new LocationPredicate(MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, p_52635_, (ResourceKey<Structure>) null, (ResourceKey<Level>) null, (Boolean) null, LightPredicate.ANY, BlockPredicate.ANY, FluidPredicate.ANY);
+    public static LocationPredicate inBiome(ResourceKey<Biome> pBiome) {
+        return new LocationPredicate(MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, pBiome, (ResourceKey<Structure>) null, (ResourceKey<Level>) null, (Boolean) null, LightPredicate.ANY, BlockPredicate.ANY, FluidPredicate.ANY);
     }
 
-    public static LocationPredicate inDimension(ResourceKey<Level> p_52639_) {
-        return new LocationPredicate(MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, (ResourceKey<Biome>) null, (ResourceKey<Structure>) null, p_52639_, (Boolean) null, LightPredicate.ANY, BlockPredicate.ANY, FluidPredicate.ANY);
+    public static LocationPredicate inDimension(ResourceKey<Level> pDimension) {
+        return new LocationPredicate(MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, (ResourceKey<Biome>) null, (ResourceKey<Structure>) null, pDimension, (Boolean) null, LightPredicate.ANY, BlockPredicate.ANY, FluidPredicate.ANY);
     }
 
-    public static LocationPredicate inStructure(ResourceKey<Structure> p_220590_) {
-        return new LocationPredicate(MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, (ResourceKey<Biome>) null, p_220590_, (ResourceKey<Level>) null, (Boolean) null, LightPredicate.ANY, BlockPredicate.ANY, FluidPredicate.ANY);
+    public static LocationPredicate inStructure(ResourceKey<Structure> pStructure) {
+        return new LocationPredicate(MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, MinMaxBounds.Doubles.ANY, (ResourceKey<Biome>) null, pStructure, (ResourceKey<Level>) null, (Boolean) null, LightPredicate.ANY, BlockPredicate.ANY, FluidPredicate.ANY);
     }
 
-    public static LocationPredicate atYLocation(MinMaxBounds.Doubles p_187443_) {
-        return new LocationPredicate(MinMaxBounds.Doubles.ANY, p_187443_, MinMaxBounds.Doubles.ANY, (ResourceKey<Biome>) null, (ResourceKey<Structure>) null, (ResourceKey<Level>) null, (Boolean) null, LightPredicate.ANY, BlockPredicate.ANY, FluidPredicate.ANY);
+    public static LocationPredicate atYLocation(MinMaxBounds.Doubles pYRange) {
+        return new LocationPredicate(MinMaxBounds.Doubles.ANY, pYRange, MinMaxBounds.Doubles.ANY, (ResourceKey<Biome>) null, (ResourceKey<Structure>) null, (ResourceKey<Level>) null, (Boolean) null, LightPredicate.ANY, BlockPredicate.ANY, FluidPredicate.ANY);
     }
 
-    public boolean matches(ServerLevel p_52618_, double p_52619_, double p_52620_, double p_52621_) {
-        if (!this.x.matches(p_52619_)) {
+    public boolean matches(ServerLevel pLevel, double pX, double pY, double pZ) {
+        if (!this.x.matches(pX)) {
             return false;
-        } else if (!this.y.matches(p_52620_)) {
+        } else if (!this.y.matches(pY)) {
             return false;
-        } else if (!this.z.matches(p_52621_)) {
+        } else if (!this.z.matches(pZ)) {
             return false;
-        } else if (this.dimension != null && this.dimension != p_52618_.dimension()) {
+        } else if (this.dimension != null && this.dimension != pLevel.dimension()) {
             return false;
         } else {
-            BlockPos blockpos = new BlockPos(p_52619_, p_52620_, p_52621_);
-            boolean flag = p_52618_.isLoaded(blockpos);
-            if (this.biome == null || flag && p_52618_.getBiome(blockpos).is(this.biome)) {
-                if (this.structure == null || flag && p_52618_.structureManager().getStructureWithPieceAt(blockpos, this.structure).isValid()) {
-                    if (this.smokey == null || flag && this.smokey == CampfireBlock.isSmokeyPos(p_52618_, blockpos)) {
-                        if (!this.light.matches(p_52618_, blockpos)) {
+            BlockPos blockpos = new BlockPos(pX, pY, pZ);
+            boolean flag = pLevel.isLoaded(blockpos);
+            if (this.biome == null || flag && pLevel.getBiome(blockpos).is(this.biome)) {
+                if (this.structure == null || flag && pLevel.structureManager().getStructureWithPieceAt(blockpos, this.structure).isValid()) {
+                    if (this.smokey == null || flag && this.smokey == CampfireBlock.isSmokeyPos(pLevel, blockpos)) {
+                        if (!this.light.matches(pLevel, blockpos)) {
                             return false;
-                        } else if (!this.block.matches(p_52618_, blockpos)) {
+                        } else if (!this.block.matches(pLevel, blockpos)) {
                             return false;
                         } else {
-                            return this.fluid.matches(p_52618_, blockpos);
+                            return this.fluid.matches(pLevel, blockpos);
                         }
                     } else {
                         return false;
@@ -137,9 +137,9 @@ public class LocationPredicate {
         }
     }
 
-    public static LocationPredicate fromJson(@Nullable JsonElement p_52630_) {
-        if (p_52630_ != null && !p_52630_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_52630_, "location");
+    public static LocationPredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "location");
             JsonObject jsonobject1 = GsonHelper.getAsJsonObject(jsonobject, "position", new JsonObject());
             MinMaxBounds.Doubles minmaxbounds$doubles = MinMaxBounds.Doubles.fromJson(jsonobject1.get("x"));
             MinMaxBounds.Doubles minmaxbounds$doubles1 = MinMaxBounds.Doubles.fromJson(jsonobject1.get("y"));
@@ -190,53 +190,53 @@ public class LocationPredicate {
             return new LocationPredicate.Builder();
         }
 
-        public LocationPredicate.Builder setX(MinMaxBounds.Doubles p_153971_) {
-            this.x = p_153971_;
+        public LocationPredicate.Builder setX(MinMaxBounds.Doubles pX) {
+            this.x = pX;
             return this;
         }
 
-        public LocationPredicate.Builder setY(MinMaxBounds.Doubles p_153975_) {
-            this.y = p_153975_;
+        public LocationPredicate.Builder setY(MinMaxBounds.Doubles pY) {
+            this.y = pY;
             return this;
         }
 
-        public LocationPredicate.Builder setZ(MinMaxBounds.Doubles p_153979_) {
-            this.z = p_153979_;
+        public LocationPredicate.Builder setZ(MinMaxBounds.Doubles pZ) {
+            this.z = pZ;
             return this;
         }
 
-        public LocationPredicate.Builder setBiome(@Nullable ResourceKey<Biome> p_52657_) {
-            this.biome = p_52657_;
+        public LocationPredicate.Builder setBiome(@Nullable ResourceKey<Biome> pBiome) {
+            this.biome = pBiome;
             return this;
         }
 
-        public LocationPredicate.Builder setStructure(@Nullable ResourceKey<Structure> p_220593_) {
-            this.structure = p_220593_;
+        public LocationPredicate.Builder setStructure(@Nullable ResourceKey<Structure> pStructure) {
+            this.structure = pStructure;
             return this;
         }
 
-        public LocationPredicate.Builder setDimension(@Nullable ResourceKey<Level> p_153977_) {
-            this.dimension = p_153977_;
+        public LocationPredicate.Builder setDimension(@Nullable ResourceKey<Level> pDimension) {
+            this.dimension = pDimension;
             return this;
         }
 
-        public LocationPredicate.Builder setLight(LightPredicate p_153969_) {
-            this.light = p_153969_;
+        public LocationPredicate.Builder setLight(LightPredicate pLight) {
+            this.light = pLight;
             return this;
         }
 
-        public LocationPredicate.Builder setBlock(BlockPredicate p_52653_) {
-            this.block = p_52653_;
+        public LocationPredicate.Builder setBlock(BlockPredicate pBlock) {
+            this.block = pBlock;
             return this;
         }
 
-        public LocationPredicate.Builder setFluid(FluidPredicate p_153967_) {
-            this.fluid = p_153967_;
+        public LocationPredicate.Builder setFluid(FluidPredicate pFluid) {
+            this.fluid = pFluid;
             return this;
         }
 
-        public LocationPredicate.Builder setSmokey(Boolean p_52655_) {
-            this.smokey = p_52655_;
+        public LocationPredicate.Builder setSmokey(Boolean pSmokey) {
+            this.smokey = pSmokey;
             return this;
         }
 

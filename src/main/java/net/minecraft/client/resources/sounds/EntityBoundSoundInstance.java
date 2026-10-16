@@ -11,11 +11,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class EntityBoundSoundInstance extends AbstractTickableSoundInstance {
     private final Entity entity;
 
-    public EntityBoundSoundInstance(SoundEvent p_235080_, SoundSource p_235081_, float p_235082_, float p_235083_, Entity p_235084_, long p_235085_) {
-        super(p_235080_, p_235081_, RandomSource.create(p_235085_));
-        this.volume = p_235082_;
-        this.pitch = p_235083_;
-        this.entity = p_235084_;
+    public EntityBoundSoundInstance(SoundEvent pSoundEvent, SoundSource pSource, float pVolume, float pPitch, Entity pEntity, long pSeed) {
+        super(pSoundEvent, pSource, RandomSource.create(pSeed));
+        this.volume = pVolume;
+        this.pitch = pPitch;
+        this.entity = pEntity;
         this.updatePosition();
     }
 

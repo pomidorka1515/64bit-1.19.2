@@ -35,15 +35,15 @@ public class TagLoader<T> {
     final Function<ResourceLocation, Optional<T>> idToValue;
     private final String directory;
 
-    public TagLoader(Function<ResourceLocation, Optional<T>> p_144493_, String p_144494_) {
-        this.idToValue = p_144493_;
-        this.directory = p_144494_;
+    public TagLoader(Function<ResourceLocation, Optional<T>> pIdToValue, String pDirectory) {
+        this.idToValue = pIdToValue;
+        this.directory = pDirectory;
     }
 
-    public Map<ResourceLocation, List<TagLoader.EntryWithSource>> load(ResourceManager p_144496_) {
+    public Map<ResourceLocation, List<TagLoader.EntryWithSource>> load(ResourceManager pResourceManager) {
         Map<ResourceLocation, List<TagLoader.EntryWithSource>> map = Maps.newHashMap();
 
-        for (Map.Entry<ResourceLocation, List<Resource>> entry : p_144496_.listResourceStacks(this.directory, (p_216016_) -> {
+        for (Map.Entry<ResourceLocation, List<Resource>> entry : pResourceManager.listResourceStacks(this.directory, (p_216016_) -> {
                                                                               return p_216016_.getPath().endsWith(".json");
                                                                           }).entrySet()) {
             ResourceLocation resourcelocation = entry.getKey();
@@ -92,28 +92,28 @@ public class TagLoader<T> {
         return map;
     }
 
-    private static void visitDependenciesAndElement(Map<ResourceLocation, List<TagLoader.EntryWithSource>> p_144524_, Multimap<ResourceLocation, ResourceLocation> p_144525_, Set<ResourceLocation> p_144526_, ResourceLocation p_144527_, BiConsumer<ResourceLocation, List<TagLoader.EntryWithSource>> p_144528_) {
-        if (p_144526_.add(p_144527_)) {
-            p_144525_.get(p_144527_).forEach((p_216014_) -> {
-                visitDependenciesAndElement(p_144524_, p_144525_, p_144526_, p_216014_, p_144528_);
+    private static void visitDependenciesAndElement(Map<ResourceLocation, List<TagLoader.EntryWithSource>> pBuilders, Multimap<ResourceLocation, ResourceLocation> pDependencyNames, Set<ResourceLocation> pNames, ResourceLocation pName, BiConsumer<ResourceLocation, List<TagLoader.EntryWithSource>> pVisitor) {
+        if (pNames.add(pName)) {
+            pDependencyNames.get(pName).forEach((p_216014_) -> {
+                visitDependenciesAndElement(pBuilders, pDependencyNames, pNames, p_216014_, pVisitor);
             });
-            List<TagLoader.EntryWithSource> list = p_144524_.get(p_144527_);
+            List<TagLoader.EntryWithSource> list = pBuilders.get(pName);
             if (list != null) {
-                p_144528_.accept(p_144527_, list);
+                pVisitor.accept(pName, list);
             }
         }
     }
 
-    private static boolean isCyclic(Multimap<ResourceLocation, ResourceLocation> p_144502_, ResourceLocation p_144503_, ResourceLocation p_144504_) {
-        Collection<ResourceLocation> collection = p_144502_.get(p_144504_);
-        return collection.contains(p_144503_) ? true : collection.stream().anyMatch((p_216032_) -> {
-            return isCyclic(p_144502_, p_144503_, p_216032_);
+    private static boolean isCyclic(Multimap<ResourceLocation, ResourceLocation> pDependencyNames, ResourceLocation pName, ResourceLocation pDependencyName) {
+        Collection<ResourceLocation> collection = pDependencyNames.get(pDependencyName);
+        return collection.contains(pName) ? true : collection.stream().anyMatch((p_216032_) -> {
+            return isCyclic(pDependencyNames, pName, p_216032_);
         });
     }
 
-    private static void addDependencyIfNotCyclic(Multimap<ResourceLocation, ResourceLocation> p_144551_, ResourceLocation p_144552_, ResourceLocation p_144553_) {
-        if (!isCyclic(p_144551_, p_144552_, p_144553_)) {
-            p_144551_.put(p_144552_, p_144553_);
+    private static void addDependencyIfNotCyclic(Multimap<ResourceLocation, ResourceLocation> pDependencyNames, ResourceLocation pName, ResourceLocation pDependencyName) {
+        if (!isCyclic(pDependencyNames, pName, pDependencyName)) {
+            pDependencyNames.put(pName, pDependencyName);
         }
     }
 
@@ -130,7 +130,7 @@ public class TagLoader<T> {
         return list.isEmpty() ? Either.right(builder.build()) : Either.left(list);
     }
 
-    public Map<ResourceLocation, Collection<T>> build(Map<ResourceLocation, List<TagLoader.EntryWithSource>> p_203899_) {
+    public Map<ResourceLocation, Collection<T>> build(Map<ResourceLocation, List<TagLoader.EntryWithSource>> pBuilders) {
         final Map<ResourceLocation, Collection<T>> map = Maps.newHashMap();
         TagEntry.Lookup<T> lookup = new TagEntry.Lookup<T>() {
             @Nullable
@@ -144,14 +144,14 @@ public class TagLoader<T> {
             }
         };
         Multimap<ResourceLocation, ResourceLocation> multimap = HashMultimap.create();
-        p_203899_.forEach((p_216023_, p_216024_) -> {
+        pBuilders.forEach((p_216023_, p_216024_) -> {
             p_216024_.forEach((p_216020_) -> {
                 p_216020_.entry.visitRequiredDependencies((p_144563_) -> {
                     addDependencyIfNotCyclic(multimap, p_216023_, p_144563_);
                 });
             });
         });
-        p_203899_.forEach((p_215992_, p_215993_) -> {
+        pBuilders.forEach((p_215992_, p_215993_) -> {
             p_215993_.forEach((p_215989_) -> {
                 p_215989_.entry.visitOptionalDependencies((p_216028_) -> {
                     addDependencyIfNotCyclic(multimap, p_215992_, p_216028_);
@@ -159,8 +159,8 @@ public class TagLoader<T> {
             });
         });
         Set<ResourceLocation> set = Sets.newHashSet();
-        p_203899_.keySet().forEach((p_216008_) -> {
-            visitDependenciesAndElement(p_203899_, multimap, set, p_216008_, (p_215984_, p_215985_) -> {
+        pBuilders.keySet().forEach((p_216008_) -> {
+            visitDependenciesAndElement(pBuilders, multimap, set, p_216008_, (p_215984_, p_215985_) -> {
                 this.build(lookup, p_215985_).ifLeft((p_215977_) -> {
                                                  LOGGER.error("Couldn't load tag {} as it is missing following references: {}", p_215984_, p_215977_.stream().map(Objects::toString).collect(Collectors.joining(", ")));
                                              })
@@ -172,8 +172,8 @@ public class TagLoader<T> {
         return map;
     }
 
-    public Map<ResourceLocation, Collection<T>> loadAndBuild(ResourceManager p_203901_) {
-        return this.build(this.load(p_203901_));
+    public Map<ResourceLocation, Collection<T>> loadAndBuild(ResourceManager pResourceManager) {
+        return this.build(this.load(pResourceManager));
     }
 
     public static record EntryWithSource(TagEntry entry, String source) {

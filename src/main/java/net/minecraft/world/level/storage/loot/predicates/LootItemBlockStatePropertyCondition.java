@@ -20,9 +20,9 @@ public class LootItemBlockStatePropertyCondition implements LootItemCondition {
     final Block block;
     final StatePropertiesPredicate properties;
 
-    LootItemBlockStatePropertyCondition(Block p_81762_, StatePropertiesPredicate p_81763_) {
-        this.block = p_81762_;
-        this.properties = p_81763_;
+    LootItemBlockStatePropertyCondition(Block pBlock, StatePropertiesPredicate pStatePredicate) {
+        this.block = pBlock;
+        this.properties = pStatePredicate;
     }
 
     public LootItemConditionType getType() {
@@ -38,20 +38,20 @@ public class LootItemBlockStatePropertyCondition implements LootItemCondition {
         return blockstate != null && blockstate.is(this.block) && this.properties.matches(blockstate);
     }
 
-    public static LootItemBlockStatePropertyCondition.Builder hasBlockStateProperties(Block p_81770_) {
-        return new LootItemBlockStatePropertyCondition.Builder(p_81770_);
+    public static LootItemBlockStatePropertyCondition.Builder hasBlockStateProperties(Block pBlock) {
+        return new LootItemBlockStatePropertyCondition.Builder(pBlock);
     }
 
     public static class Builder implements LootItemCondition.Builder {
         private final Block block;
         private StatePropertiesPredicate properties = StatePropertiesPredicate.ANY;
 
-        public Builder(Block p_81783_) {
-            this.block = p_81783_;
+        public Builder(Block pBlock) {
+            this.block = pBlock;
         }
 
-        public LootItemBlockStatePropertyCondition.Builder setProperties(StatePropertiesPredicate.Builder p_81785_) {
-            this.properties = p_81785_.build();
+        public LootItemBlockStatePropertyCondition.Builder setProperties(StatePropertiesPredicate.Builder pStatePredicateBuilder) {
+            this.properties = pStatePredicateBuilder.build();
             return this;
         }
 

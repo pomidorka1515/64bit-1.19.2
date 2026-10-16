@@ -16,14 +16,14 @@ import org.apache.commons.lang3.Validate;
 public class BannerItem extends StandingAndWallBlockItem {
     private static final String PATTERN_PREFIX = "block.minecraft.banner.";
 
-    public BannerItem(Block p_40534_, Block p_40535_, Item.Properties p_40536_) {
-        super(p_40534_, p_40535_, p_40536_);
-        Validate.isInstanceOf(AbstractBannerBlock.class, p_40534_);
-        Validate.isInstanceOf(AbstractBannerBlock.class, p_40535_);
+    public BannerItem(Block pStandingBlock, Block pWallBlock, Item.Properties pProperties) {
+        super(pStandingBlock, pWallBlock, pProperties);
+        Validate.isInstanceOf(AbstractBannerBlock.class, pStandingBlock);
+        Validate.isInstanceOf(AbstractBannerBlock.class, pWallBlock);
     }
 
-    public static void appendHoverTextFromBannerBlockEntityTag(ItemStack p_40543_, List<Component> p_40544_) {
-        CompoundTag compoundtag = BlockItem.getBlockEntityData(p_40543_);
+    public static void appendHoverTextFromBannerBlockEntityTag(ItemStack pStack, List<Component> pTooltipComponents) {
+        CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
         if (compoundtag != null && compoundtag.contains("Patterns")) {
             ListTag listtag = compoundtag.getList("Patterns", 10);
 
@@ -36,7 +36,7 @@ public class BannerItem extends StandingAndWallBlockItem {
                                           return p_220002_.location().toShortLanguageKey();
                                       })
                             .ifPresent((p_220006_) -> {
-                                p_40544_.add(Component.translatable("block.minecraft.banner." + p_220006_ + "." + dyecolor.getName()).withStyle(ChatFormatting.GRAY));
+                                pTooltipComponents.add(Component.translatable("block.minecraft.banner." + p_220006_ + "." + dyecolor.getName()).withStyle(ChatFormatting.GRAY));
                             });
                 }
             }
@@ -47,7 +47,7 @@ public class BannerItem extends StandingAndWallBlockItem {
         return ((AbstractBannerBlock) this.getBlock()).getColor();
     }
 
-    public void appendHoverText(ItemStack p_40538_, @Nullable Level p_40539_, List<Component> p_40540_, TooltipFlag p_40541_) {
-        appendHoverTextFromBannerBlockEntityTag(p_40538_, p_40540_);
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        appendHoverTextFromBannerBlockEntityTag(pStack, pTooltip);
     }
 }

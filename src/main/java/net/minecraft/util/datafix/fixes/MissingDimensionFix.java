@@ -19,8 +19,8 @@ import java.util.List;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class MissingDimensionFix extends DataFix {
-    public MissingDimensionFix(Schema p_16420_, boolean p_16421_) {
-        super(p_16420_, p_16421_);
+    public MissingDimensionFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected static <A> Type<Pair<A, Dynamic<?>>> fields(String p_16439_, Type<A> p_16440_) {

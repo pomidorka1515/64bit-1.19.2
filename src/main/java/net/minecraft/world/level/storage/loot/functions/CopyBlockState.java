@@ -25,10 +25,10 @@ public class CopyBlockState extends LootItemConditionalFunction {
     final Block block;
     final Set<Property<?>> properties;
 
-    CopyBlockState(LootItemCondition[] p_80050_, Block p_80051_, Set<Property<?>> p_80052_) {
-        super(p_80050_);
-        this.block = p_80051_;
-        this.properties = p_80052_;
+    CopyBlockState(LootItemCondition[] pConditions, Block pBlock, Set<Property<?>> pProperties) {
+        super(pConditions);
+        this.block = pBlock;
+        this.properties = pProperties;
     }
 
     public LootItemFunctionType getType() {
@@ -39,10 +39,10 @@ public class CopyBlockState extends LootItemConditionalFunction {
         return ImmutableSet.of(LootContextParams.BLOCK_STATE);
     }
 
-    protected ItemStack run(ItemStack p_80060_, LootContext p_80061_) {
-        BlockState blockstate = p_80061_.getParamOrNull(LootContextParams.BLOCK_STATE);
+    protected ItemStack run(ItemStack pStack, LootContext pContext) {
+        BlockState blockstate = pContext.getParamOrNull(LootContextParams.BLOCK_STATE);
         if (blockstate != null) {
-            CompoundTag compoundtag = p_80060_.getOrCreateTag();
+            CompoundTag compoundtag = pStack.getOrCreateTag();
             CompoundTag compoundtag1;
             if (compoundtag.contains("BlockStateTag", 10)) {
                 compoundtag1 = compoundtag.getCompound("BlockStateTag");
@@ -56,31 +56,31 @@ public class CopyBlockState extends LootItemConditionalFunction {
             });
         }
 
-        return p_80060_;
+        return pStack;
     }
 
-    public static CopyBlockState.Builder copyState(Block p_80063_) {
-        return new CopyBlockState.Builder(p_80063_);
+    public static CopyBlockState.Builder copyState(Block pBlock) {
+        return new CopyBlockState.Builder(pBlock);
     }
 
-    private static <T extends Comparable<T>> String serialize(BlockState p_80065_, Property<T> p_80066_) {
-        T t = p_80065_.getValue(p_80066_);
-        return p_80066_.getName(t);
+    private static <T extends Comparable<T>> String serialize(BlockState pBlockState, Property<T> pProperty) {
+        T t = pBlockState.getValue(pProperty);
+        return pProperty.getName(t);
     }
 
     public static class Builder extends LootItemConditionalFunction.Builder<CopyBlockState.Builder> {
         private final Block block;
         private final Set<Property<?>> properties = Sets.newHashSet();
 
-        Builder(Block p_80079_) {
-            this.block = p_80079_;
+        Builder(Block pBlock) {
+            this.block = pBlock;
         }
 
-        public CopyBlockState.Builder copy(Property<?> p_80085_) {
-            if (!this.block.getStateDefinition().getProperties().contains(p_80085_)) {
-                throw new IllegalStateException("Property " + p_80085_ + " is not present on block " + this.block);
+        public CopyBlockState.Builder copy(Property<?> pProperty) {
+            if (!this.block.getStateDefinition().getProperties().contains(pProperty)) {
+                throw new IllegalStateException("Property " + pProperty + " is not present on block " + this.block);
             } else {
-                this.properties.add(p_80085_);
+                this.properties.add(pProperty);
                 return this;
             }
         }
@@ -95,31 +95,31 @@ public class CopyBlockState extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<CopyBlockState> {
-        public void serialize(JsonObject p_80097_, CopyBlockState p_80098_, JsonSerializationContext p_80099_) {
-            super.serialize(p_80097_, p_80098_, p_80099_);
-            p_80097_.addProperty("block", Registry.BLOCK.getKey(p_80098_.block).toString());
+        public void serialize(JsonObject pJson, CopyBlockState pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            pJson.addProperty("block", Registry.BLOCK.getKey(pValue.block).toString());
             JsonArray jsonarray = new JsonArray();
-            p_80098_.properties.forEach((p_80091_) -> {
+            pValue.properties.forEach((p_80091_) -> {
                 jsonarray.add(p_80091_.getName());
             });
-            p_80097_.add("properties", jsonarray);
+            pJson.add("properties", jsonarray);
         }
 
-        public CopyBlockState deserialize(JsonObject p_80093_, JsonDeserializationContext p_80094_, LootItemCondition[] p_80095_) {
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_80093_, "block"));
+        public CopyBlockState deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pObject, "block"));
             Block block = Registry.BLOCK.getOptional(resourcelocation).orElseThrow(() -> {
                 return new IllegalArgumentException("Can't find block " + resourcelocation);
             });
             StateDefinition<Block, BlockState> statedefinition = block.getStateDefinition();
             Set<Property<?>> set = Sets.newHashSet();
-            JsonArray jsonarray = GsonHelper.getAsJsonArray(p_80093_, "properties", (JsonArray) null);
+            JsonArray jsonarray = GsonHelper.getAsJsonArray(pObject, "properties", (JsonArray) null);
             if (jsonarray != null) {
                 jsonarray.forEach((p_80111_) -> {
                     set.add(statedefinition.getProperty(GsonHelper.convertToString(p_80111_, "property")));
                 });
             }
 
-            return new CopyBlockState(p_80095_, block, set);
+            return new CopyBlockState(pConditions, block, set);
         }
     }
 }

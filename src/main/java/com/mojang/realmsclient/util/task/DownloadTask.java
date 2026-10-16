@@ -21,11 +21,11 @@ public class DownloadTask extends LongRunningTask {
     private final Screen lastScreen;
     private final String downloadName;
 
-    public DownloadTask(long p_90320_, int p_90321_, String p_90322_, Screen p_90323_) {
-        this.worldId = p_90320_;
-        this.slot = p_90321_;
-        this.lastScreen = p_90323_;
-        this.downloadName = p_90322_;
+    public DownloadTask(long pWorldId, int pSlot, String pDownloadName, Screen pLastScreen) {
+        this.worldId = pWorldId;
+        this.slot = pSlot;
+        this.lastScreen = pLastScreen;
+        this.downloadName = pDownloadName;
     }
 
     public void run() {

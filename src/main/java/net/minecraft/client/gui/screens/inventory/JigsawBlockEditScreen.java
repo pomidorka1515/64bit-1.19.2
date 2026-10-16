@@ -39,9 +39,9 @@ public class JigsawBlockEditScreen extends Screen {
     private Button generateButton;
     private JigsawBlockEntity.JointType joint;
 
-    public JigsawBlockEditScreen(JigsawBlockEntity p_98949_) {
+    public JigsawBlockEditScreen(JigsawBlockEntity pJigsawEntity) {
         super(GameNarrator.NO_TITLE);
-        this.jigsawEntity = p_98949_;
+        this.jigsawEntity = pJigsawEntity;
     }
 
     public void tick() {
@@ -143,14 +143,14 @@ public class JigsawBlockEditScreen extends Screen {
         this.generateButton.active = flag;
     }
 
-    public void resize(Minecraft p_98960_, int p_98961_, int p_98962_) {
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
         String s = this.nameEdit.getValue();
         String s1 = this.targetEdit.getValue();
         String s2 = this.poolEdit.getValue();
         String s3 = this.finalStateEdit.getValue();
         int i = this.levels;
         JigsawBlockEntity.JointType jigsawblockentity$jointtype = this.joint;
-        this.init(p_98960_, p_98961_, p_98962_);
+        this.init(pMinecraft, pWidth, pHeight);
         this.nameEdit.setValue(s);
         this.targetEdit.setValue(s1);
         this.poolEdit.setValue(s2);
@@ -164,10 +164,10 @@ public class JigsawBlockEditScreen extends Screen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_98951_, int p_98952_, int p_98953_) {
-        if (super.keyPressed(p_98951_, p_98952_, p_98953_)) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (!this.doneButton.active || p_98951_ != 257 && p_98951_ != 335) {
+        } else if (!this.doneButton.active || pKeyCode != 257 && pKeyCode != 335) {
             return false;
         } else {
             this.onDone();
@@ -175,20 +175,20 @@ public class JigsawBlockEditScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_98955_, int p_98956_, int p_98957_, float p_98958_) {
-        this.renderBackground(p_98955_);
-        drawString(p_98955_, this.font, POOL_LABEL, this.width / 2 - 153, 10, 10526880);
-        this.poolEdit.render(p_98955_, p_98956_, p_98957_, p_98958_);
-        drawString(p_98955_, this.font, NAME_LABEL, this.width / 2 - 153, 45, 10526880);
-        this.nameEdit.render(p_98955_, p_98956_, p_98957_, p_98958_);
-        drawString(p_98955_, this.font, TARGET_LABEL, this.width / 2 - 153, 80, 10526880);
-        this.targetEdit.render(p_98955_, p_98956_, p_98957_, p_98958_);
-        drawString(p_98955_, this.font, FINAL_STATE_LABEL, this.width / 2 - 153, 115, 10526880);
-        this.finalStateEdit.render(p_98955_, p_98956_, p_98957_, p_98958_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawString(pPoseStack, this.font, POOL_LABEL, this.width / 2 - 153, 10, 10526880);
+        this.poolEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawString(pPoseStack, this.font, NAME_LABEL, this.width / 2 - 153, 45, 10526880);
+        this.nameEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawString(pPoseStack, this.font, TARGET_LABEL, this.width / 2 - 153, 80, 10526880);
+        this.targetEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawString(pPoseStack, this.font, FINAL_STATE_LABEL, this.width / 2 - 153, 115, 10526880);
+        this.finalStateEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (JigsawBlock.getFrontFacing(this.jigsawEntity.getBlockState()).getAxis().isVertical()) {
-            drawString(p_98955_, this.font, JOINT_LABEL, this.width / 2 - 153, 156, 16777215);
+            drawString(pPoseStack, this.font, JOINT_LABEL, this.width / 2 - 153, 156, 16777215);
         }
 
-        super.render(p_98955_, p_98956_, p_98957_, p_98958_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

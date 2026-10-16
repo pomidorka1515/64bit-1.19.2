@@ -17,9 +17,9 @@ public class LootItemRandomChanceWithLootingCondition implements LootItemConditi
     final float percent;
     final float lootingMultiplier;
 
-    LootItemRandomChanceWithLootingCondition(float p_81956_, float p_81957_) {
-        this.percent = p_81956_;
-        this.lootingMultiplier = p_81957_;
+    LootItemRandomChanceWithLootingCondition(float pPercent, float pLootingMultiplier) {
+        this.percent = pPercent;
+        this.lootingMultiplier = pLootingMultiplier;
     }
 
     public LootItemConditionType getType() {
@@ -40,9 +40,9 @@ public class LootItemRandomChanceWithLootingCondition implements LootItemConditi
         return p_81967_.getRandom().nextFloat() < this.percent + (float) i * this.lootingMultiplier;
     }
 
-    public static LootItemCondition.Builder randomChanceAndLootingBoost(float p_81964_, float p_81965_) {
+    public static LootItemCondition.Builder randomChanceAndLootingBoost(float pChance, float pLootingMultiplier) {
         return () -> {
-            return new LootItemRandomChanceWithLootingCondition(p_81964_, p_81965_);
+            return new LootItemRandomChanceWithLootingCondition(pChance, pLootingMultiplier);
         };
     }
 

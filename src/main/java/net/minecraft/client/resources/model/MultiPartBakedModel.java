@@ -31,9 +31,9 @@ public class MultiPartBakedModel implements BakedModel {
     protected final ItemOverrides overrides;
     private final Map<BlockState, BitSet> selectorCache = new Object2ObjectOpenCustomHashMap<>(Util.identityStrategy());
 
-    public MultiPartBakedModel(List<Pair<Predicate<BlockState>, BakedModel>> p_119462_) {
-        this.selectors = p_119462_;
-        BakedModel bakedmodel = p_119462_.iterator().next().getRight();
+    public MultiPartBakedModel(List<Pair<Predicate<BlockState>, BakedModel>> pSelectors) {
+        this.selectors = pSelectors;
+        BakedModel bakedmodel = pSelectors.iterator().next().getRight();
         this.hasAmbientOcclusion = bakedmodel.useAmbientOcclusion();
         this.isGui3d = bakedmodel.isGui3d();
         this.usesBlockLight = bakedmodel.usesBlockLight();
@@ -42,30 +42,30 @@ public class MultiPartBakedModel implements BakedModel {
         this.overrides = bakedmodel.getOverrides();
     }
 
-    public List<BakedQuad> getQuads(@Nullable BlockState p_235050_, @Nullable Direction p_235051_, RandomSource p_235052_) {
-        if (p_235050_ == null) {
+    public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pDirection, RandomSource pRandom) {
+        if (pState == null) {
             return Collections.emptyList();
         } else {
-            BitSet bitset = this.selectorCache.get(p_235050_);
+            BitSet bitset = this.selectorCache.get(pState);
             if (bitset == null) {
                 bitset = new BitSet();
 
                 for (int i = 0; i < this.selectors.size(); ++i) {
                     Pair<Predicate<BlockState>, BakedModel> pair = this.selectors.get(i);
-                    if (pair.getLeft().test(p_235050_)) {
+                    if (pair.getLeft().test(pState)) {
                         bitset.set(i);
                     }
                 }
 
-                this.selectorCache.put(p_235050_, bitset);
+                this.selectorCache.put(pState, bitset);
             }
 
             List<BakedQuad> list = Lists.newArrayList();
-            long k = p_235052_.nextLong();
+            long k = pRandom.nextLong();
 
             for (int j = 0; j < bitset.length(); ++j) {
                 if (bitset.get(j)) {
-                    list.addAll(this.selectors.get(j).getRight().getQuads(p_235050_, p_235051_, RandomSource.create(k)));
+                    list.addAll(this.selectors.get(j).getRight().getQuads(pState, pDirection, RandomSource.create(k)));
                 }
             }
 
@@ -105,8 +105,8 @@ public class MultiPartBakedModel implements BakedModel {
     public static class Builder {
         private final List<Pair<Predicate<BlockState>, BakedModel>> selectors = Lists.newArrayList();
 
-        public void add(Predicate<BlockState> p_119478_, BakedModel p_119479_) {
-            this.selectors.add(Pair.of(p_119478_, p_119479_));
+        public void add(Predicate<BlockState> pPredicate, BakedModel pModel) {
+            this.selectors.add(Pair.of(pPredicate, pModel));
         }
 
         public BakedModel build() {

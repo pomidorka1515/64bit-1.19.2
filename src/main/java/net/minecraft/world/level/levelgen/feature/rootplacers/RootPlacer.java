@@ -36,18 +36,18 @@ public abstract class RootPlacer {
                 }));
     }
 
-    public RootPlacer(IntProvider p_225865_, BlockStateProvider p_225866_, Optional<AboveRootPlacement> p_225867_) {
-        this.trunkOffsetY = p_225865_;
-        this.rootProvider = p_225866_;
-        this.aboveRootPlacement = p_225867_;
+    public RootPlacer(IntProvider pTrunkOffset, BlockStateProvider pRootProvider, Optional<AboveRootPlacement> pAboveRootPlacement) {
+        this.trunkOffsetY = pTrunkOffset;
+        this.rootProvider = pRootProvider;
+        this.aboveRootPlacement = pAboveRootPlacement;
     }
 
     protected abstract RootPlacerType<?> type();
 
     public abstract boolean placeRoots(LevelSimulatedReader p_225879_, BiConsumer<BlockPos, BlockState> p_225880_, RandomSource p_225881_, BlockPos p_225882_, BlockPos p_225883_, TreeConfiguration p_225884_);
 
-    protected boolean canPlaceRoot(LevelSimulatedReader p_225868_, BlockPos p_225869_) {
-        return TreeFeature.validTreePos(p_225868_, p_225869_);
+    protected boolean canPlaceRoot(LevelSimulatedReader pLevel, BlockPos pPos) {
+        return TreeFeature.validTreePos(pLevel, pPos);
     }
 
     protected void placeRoot(LevelSimulatedReader p_225874_, BiConsumer<BlockPos, BlockState> p_225875_, RandomSource p_225876_, BlockPos p_225877_, TreeConfiguration p_225878_) {
@@ -63,18 +63,18 @@ public abstract class RootPlacer {
         }
     }
 
-    protected BlockState getPotentiallyWaterloggedState(LevelSimulatedReader p_225871_, BlockPos p_225872_, BlockState p_225873_) {
-        if (p_225873_.hasProperty(BlockStateProperties.WATERLOGGED)) {
-            boolean flag = p_225871_.isFluidAtPosition(p_225872_, (p_225890_) -> {
+    protected BlockState getPotentiallyWaterloggedState(LevelSimulatedReader pLevel, BlockPos pPos, BlockState pState) {
+        if (pState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+            boolean flag = pLevel.isFluidAtPosition(pPos, (p_225890_) -> {
                 return p_225890_.is(FluidTags.WATER);
             });
-            return p_225873_.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(flag));
+            return pState.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(flag));
         } else {
-            return p_225873_;
+            return pState;
         }
     }
 
-    public BlockPos getTrunkOrigin(BlockPos p_225892_, RandomSource p_225893_) {
-        return p_225892_.above(this.trunkOffsetY.sample(p_225893_));
+    public BlockPos getTrunkOrigin(BlockPos pPos, RandomSource pRandom) {
+        return pPos.above(this.trunkOffsetY.sample(pRandom));
     }
 }

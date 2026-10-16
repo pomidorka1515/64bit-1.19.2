@@ -31,13 +31,13 @@ public class UniformHeight extends HeightProvider {
         this.maxInclusive = p_162030_;
     }
 
-    public static UniformHeight of(VerticalAnchor p_162035_, VerticalAnchor p_162036_) {
-        return new UniformHeight(p_162035_, p_162036_);
+    public static UniformHeight of(VerticalAnchor pMinInclusive, VerticalAnchor pMaxInclusive) {
+        return new UniformHeight(pMinInclusive, pMaxInclusive);
     }
 
-    public int sample(RandomSource p_226308_, WorldGenerationContext p_226309_) {
-        int i = this.minInclusive.resolveY(p_226309_);
-        int j = this.maxInclusive.resolveY(p_226309_);
+    public int sample(RandomSource pRandom, WorldGenerationContext pContext) {
+        int i = this.minInclusive.resolveY(pContext);
+        int j = this.maxInclusive.resolveY(pContext);
         if (i > j) {
             if (this.warnedFor.add((long) i << 32 | (long) j)) {
                 LOGGER.warn("Empty height range: {}", (Object) this);
@@ -45,7 +45,7 @@ public class UniformHeight extends HeightProvider {
 
             return i;
         } else {
-            return Mth.randomBetweenInclusive(p_226308_, i, j);
+            return Mth.randomBetweenInclusive(pRandom, i, j);
         }
     }
 

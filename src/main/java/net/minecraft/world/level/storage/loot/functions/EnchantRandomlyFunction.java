@@ -33,27 +33,27 @@ public class EnchantRandomlyFunction extends LootItemConditionalFunction {
     private static final Logger LOGGER = LogUtils.getLogger();
     final List<Enchantment> enchantments;
 
-    EnchantRandomlyFunction(LootItemCondition[] p_80418_, Collection<Enchantment> p_80419_) {
-        super(p_80418_);
-        this.enchantments = ImmutableList.copyOf(p_80419_);
+    EnchantRandomlyFunction(LootItemCondition[] pConditions, Collection<Enchantment> pPossibleEnchantments) {
+        super(pConditions);
+        this.enchantments = ImmutableList.copyOf(pPossibleEnchantments);
     }
 
     public LootItemFunctionType getType() {
         return LootItemFunctions.ENCHANT_RANDOMLY;
     }
 
-    public ItemStack run(ItemStack p_80429_, LootContext p_80430_) {
-        RandomSource randomsource = p_80430_.getRandom();
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        RandomSource randomsource = pContext.getRandom();
         Enchantment enchantment;
         if (this.enchantments.isEmpty()) {
-            boolean flag = p_80429_.is(Items.BOOK);
+            boolean flag = pStack.is(Items.BOOK);
             List<Enchantment> list = Registry.ENCHANTMENT.stream().filter(Enchantment::isDiscoverable).filter((p_80436_) -> {
-                                                                                                          return flag || p_80436_.canEnchant(p_80429_);
+                                                                                                          return flag || p_80436_.canEnchant(pStack);
                                                                                                       })
                                              .collect(Collectors.toList());
             if (list.isEmpty()) {
-                LOGGER.warn("Couldn't find a compatible enchantment for {}", (Object) p_80429_);
-                return p_80429_;
+                LOGGER.warn("Couldn't find a compatible enchantment for {}", (Object) pStack);
+                return pStack;
             }
 
             enchantment = list.get(randomsource.nextInt(list.size()));
@@ -61,19 +61,19 @@ public class EnchantRandomlyFunction extends LootItemConditionalFunction {
             enchantment = this.enchantments.get(randomsource.nextInt(this.enchantments.size()));
         }
 
-        return enchantItem(p_80429_, enchantment, randomsource);
+        return enchantItem(pStack, enchantment, randomsource);
     }
 
-    private static ItemStack enchantItem(ItemStack p_230980_, Enchantment p_230981_, RandomSource p_230982_) {
-        int i = Mth.nextInt(p_230982_, p_230981_.getMinLevel(), p_230981_.getMaxLevel());
-        if (p_230980_.is(Items.BOOK)) {
-            p_230980_ = new ItemStack(Items.ENCHANTED_BOOK);
-            EnchantedBookItem.addEnchantment(p_230980_, new EnchantmentInstance(p_230981_, i));
+    private static ItemStack enchantItem(ItemStack pStack, Enchantment pEnchantment, RandomSource pRandom) {
+        int i = Mth.nextInt(pRandom, pEnchantment.getMinLevel(), pEnchantment.getMaxLevel());
+        if (pStack.is(Items.BOOK)) {
+            pStack = new ItemStack(Items.ENCHANTED_BOOK);
+            EnchantedBookItem.addEnchantment(pStack, new EnchantmentInstance(pEnchantment, i));
         } else {
-            p_230980_.enchant(p_230981_, i);
+            pStack.enchant(pEnchantment, i);
         }
 
-        return p_230980_;
+        return pStack;
     }
 
     public static EnchantRandomlyFunction.Builder randomEnchantment() {
@@ -93,8 +93,8 @@ public class EnchantRandomlyFunction extends LootItemConditionalFunction {
             return this;
         }
 
-        public EnchantRandomlyFunction.Builder withEnchantment(Enchantment p_80445_) {
-            this.enchantments.add(p_80445_);
+        public EnchantRandomlyFunction.Builder withEnchantment(Enchantment pEnchantment) {
+            this.enchantments.add(pEnchantment);
             return this;
         }
 
@@ -104,12 +104,12 @@ public class EnchantRandomlyFunction extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<EnchantRandomlyFunction> {
-        public void serialize(JsonObject p_80454_, EnchantRandomlyFunction p_80455_, JsonSerializationContext p_80456_) {
-            super.serialize(p_80454_, p_80455_, p_80456_);
-            if (!p_80455_.enchantments.isEmpty()) {
+        public void serialize(JsonObject pJson, EnchantRandomlyFunction pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            if (!pValue.enchantments.isEmpty()) {
                 JsonArray jsonarray = new JsonArray();
 
-                for (Enchantment enchantment : p_80455_.enchantments) {
+                for (Enchantment enchantment : pValue.enchantments) {
                     ResourceLocation resourcelocation = Registry.ENCHANTMENT.getKey(enchantment);
                     if (resourcelocation == null) {
                         throw new IllegalArgumentException("Don't know how to serialize enchantment " + enchantment);
@@ -118,14 +118,14 @@ public class EnchantRandomlyFunction extends LootItemConditionalFunction {
                     jsonarray.add(new JsonPrimitive(resourcelocation.toString()));
                 }
 
-                p_80454_.add("enchantments", jsonarray);
+                pJson.add("enchantments", jsonarray);
             }
         }
 
-        public EnchantRandomlyFunction deserialize(JsonObject p_80450_, JsonDeserializationContext p_80451_, LootItemCondition[] p_80452_) {
+        public EnchantRandomlyFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
             List<Enchantment> list = Lists.newArrayList();
-            if (p_80450_.has("enchantments")) {
-                for (JsonElement jsonelement : GsonHelper.getAsJsonArray(p_80450_, "enchantments")) {
+            if (pObject.has("enchantments")) {
+                for (JsonElement jsonelement : GsonHelper.getAsJsonArray(pObject, "enchantments")) {
                     String s = GsonHelper.convertToString(jsonelement, "enchantment");
                     Enchantment enchantment = Registry.ENCHANTMENT.getOptional(new ResourceLocation(s)).orElseThrow(() -> {
                         return new JsonSyntaxException("Unknown enchantment '" + s + "'");
@@ -134,7 +134,7 @@ public class EnchantRandomlyFunction extends LootItemConditionalFunction {
                 }
             }
 
-            return new EnchantRandomlyFunction(p_80452_, list);
+            return new EnchantRandomlyFunction(pConditions, list);
         }
     }
 }

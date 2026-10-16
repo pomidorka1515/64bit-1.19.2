@@ -61,12 +61,12 @@ public class RealmsDownloadLatestWorldScreen extends RealmsScreen {
     private boolean checked;
     private final BooleanConsumer callback;
 
-    public RealmsDownloadLatestWorldScreen(Screen p_88625_, WorldDownload p_88626_, String p_88627_, BooleanConsumer p_88628_) {
+    public RealmsDownloadLatestWorldScreen(Screen pLastScreen, WorldDownload pWorldDownload, String pWorldName, BooleanConsumer pCallback) {
         super(GameNarrator.NO_TITLE);
-        this.callback = p_88628_;
-        this.lastScreen = p_88625_;
-        this.worldName = p_88627_;
-        this.worldDownload = p_88626_;
+        this.callback = pCallback;
+        this.lastScreen = pLastScreen;
+        this.worldName = pWorldName;
+        this.worldDownload = pWorldDownload;
         this.downloadStatus = new RealmsDownloadLatestWorldScreen.DownloadStatus();
         this.downloadTitle = Component.translatable("mco.download.title");
         this.narrationRateLimiter = RateLimiter.create((double) 0.1F);
@@ -97,9 +97,9 @@ public class RealmsDownloadLatestWorldScreen extends RealmsScreen {
         }
     }
 
-    private long getContentLength(String p_88647_) {
+    private long getContentLength(String pUri) {
         FileDownload filedownload = new FileDownload();
-        return filedownload.contentLength(p_88647_);
+        return filedownload.contentLength(pUri);
     }
 
     public void tick() {
@@ -127,13 +127,13 @@ public class RealmsDownloadLatestWorldScreen extends RealmsScreen {
         return CommonComponents.joinLines(list);
     }
 
-    public boolean keyPressed(int p_88630_, int p_88631_, int p_88632_) {
-        if (p_88630_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.cancelled = true;
             this.backButtonClicked();
             return true;
         } else {
-            return super.keyPressed(p_88630_, p_88631_, p_88632_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -145,36 +145,36 @@ public class RealmsDownloadLatestWorldScreen extends RealmsScreen {
         this.minecraft.setScreen(this.lastScreen);
     }
 
-    public void render(PoseStack p_88634_, int p_88635_, int p_88636_, float p_88637_) {
-        this.renderBackground(p_88634_);
-        drawCenteredString(p_88634_, this.font, this.downloadTitle, this.width / 2, 20, 16777215);
-        drawCenteredString(p_88634_, this.font, this.status, this.width / 2, 50, 16777215);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.downloadTitle, this.width / 2, 20, 16777215);
+        drawCenteredString(pPoseStack, this.font, this.status, this.width / 2, 50, 16777215);
         if (this.showDots) {
-            this.drawDots(p_88634_);
+            this.drawDots(pPoseStack);
         }
 
         if (this.downloadStatus.bytesWritten != 0L && !this.cancelled) {
-            this.drawProgressBar(p_88634_);
-            this.drawDownloadSpeed(p_88634_);
+            this.drawProgressBar(pPoseStack);
+            this.drawDownloadSpeed(pPoseStack);
         }
 
         if (this.errorMessage != null) {
-            drawCenteredString(p_88634_, this.font, this.errorMessage, this.width / 2, 110, 16711680);
+            drawCenteredString(pPoseStack, this.font, this.errorMessage, this.width / 2, 110, 16711680);
         }
 
-        super.render(p_88634_, p_88635_, p_88636_, p_88637_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    private void drawDots(PoseStack p_88645_) {
+    private void drawDots(PoseStack pPoseStack) {
         int i = this.font.width(this.status);
         if (this.animTick % 10 == 0) {
             ++this.dotIndex;
         }
 
-        this.font.draw(p_88645_, DOTS[this.dotIndex % DOTS.length], (float) (this.width / 2 + i / 2 + 5), 50.0F, 16777215);
+        this.font.draw(pPoseStack, DOTS[this.dotIndex % DOTS.length], (float) (this.width / 2 + i / 2 + 5), 50.0F, 16777215);
     }
 
-    private void drawProgressBar(PoseStack p_88649_) {
+    private void drawProgressBar(PoseStack pPoseStack) {
         double d0 = Math.min((double) this.downloadStatus.bytesWritten / (double) this.downloadStatus.totalBytes, 1.0D);
         this.progress = String.format(Locale.ROOT, "%.1f", d0 * 100.0D);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -195,10 +195,10 @@ public class RealmsDownloadLatestWorldScreen extends RealmsScreen {
         bufferbuilder.vertex(d1, 80.0D, 0.0D).color(128, 128, 128, 255).endVertex();
         tesselator.end();
         RenderSystem.enableTexture();
-        drawCenteredString(p_88649_, this.font, this.progress + " %", this.width / 2, 84, 16777215);
+        drawCenteredString(pPoseStack, this.font, this.progress + " %", this.width / 2, 84, 16777215);
     }
 
-    private void drawDownloadSpeed(PoseStack p_88654_) {
+    private void drawDownloadSpeed(PoseStack pPoseStack) {
         if (this.animTick % 20 == 0) {
             if (this.previousWrittenBytes != null) {
                 long i = Util.getMillis() - this.previousTimeSnapshot;
@@ -207,21 +207,21 @@ public class RealmsDownloadLatestWorldScreen extends RealmsScreen {
                 }
 
                 this.bytesPersSecond = 1000L * (this.downloadStatus.bytesWritten - this.previousWrittenBytes) / i;
-                this.drawDownloadSpeed0(p_88654_, this.bytesPersSecond);
+                this.drawDownloadSpeed0(pPoseStack, this.bytesPersSecond);
             }
 
             this.previousWrittenBytes = this.downloadStatus.bytesWritten;
             this.previousTimeSnapshot = Util.getMillis();
         } else {
-            this.drawDownloadSpeed0(p_88654_, this.bytesPersSecond);
+            this.drawDownloadSpeed0(pPoseStack, this.bytesPersSecond);
         }
     }
 
-    private void drawDownloadSpeed0(PoseStack p_88639_, long p_88640_) {
-        if (p_88640_ > 0L) {
+    private void drawDownloadSpeed0(PoseStack pPoseStack, long pBytesPersSecond) {
+        if (pBytesPersSecond > 0L) {
             int i = this.font.width(this.progress);
-            String s = "(" + Unit.humanReadable(p_88640_) + "/s)";
-            this.font.draw(p_88639_, s, (float) (this.width / 2 + i / 2 + 15), 84.0F, 16777215);
+            String s = "(" + Unit.humanReadable(pBytesPersSecond) + "/s)";
+            this.font.draw(pPoseStack, s, (float) (this.width / 2 + i / 2 + 15), 84.0F, 16777215);
         }
     }
 

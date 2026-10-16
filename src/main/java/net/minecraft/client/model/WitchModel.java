@@ -16,8 +16,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class WitchModel<T extends Entity> extends VillagerModel<T> {
     private boolean holdingItem;
 
-    public WitchModel(ModelPart p_171055_) {
-        super(p_171055_);
+    public WitchModel(ModelPart pRoot) {
+        super(pRoot);
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -33,13 +33,13 @@ public class WitchModel<T extends Entity> extends VillagerModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 128);
     }
 
-    public void setupAnim(T p_104067_, float p_104068_, float p_104069_, float p_104070_, float p_104071_, float p_104072_) {
-        super.setupAnim(p_104067_, p_104068_, p_104069_, p_104070_, p_104071_, p_104072_);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
         this.nose.setPos(0.0F, -2.0F, 0.0F);
-        float f = 0.01F * (float) (p_104067_.getId() % 10);
-        this.nose.xRot = Mth.sin((float) p_104067_.tickCount * f) * 4.5F * ((float) Math.PI / 180F);
+        float f = 0.01F * (float) (pEntity.getId() % 10);
+        this.nose.xRot = Mth.sin((float) pEntity.tickCount * f) * 4.5F * ((float) Math.PI / 180F);
         this.nose.yRot = 0.0F;
-        this.nose.zRot = Mth.cos((float) p_104067_.tickCount * f) * 2.5F * ((float) Math.PI / 180F);
+        this.nose.zRot = Mth.cos((float) pEntity.tickCount * f) * 2.5F * ((float) Math.PI / 180F);
         if (this.holdingItem) {
             this.nose.setPos(0.0F, 1.0F, -1.5F);
             this.nose.xRot = -0.9F;
@@ -50,7 +50,7 @@ public class WitchModel<T extends Entity> extends VillagerModel<T> {
         return this.nose;
     }
 
-    public void setHoldingItem(boolean p_104075_) {
-        this.holdingItem = p_104075_;
+    public void setHoldingItem(boolean pHoldingItem) {
+        this.holdingItem = pHoldingItem;
     }
 }

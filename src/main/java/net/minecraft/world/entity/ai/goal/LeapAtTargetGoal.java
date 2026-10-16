@@ -10,9 +10,9 @@ public class LeapAtTargetGoal extends Goal {
     private LivingEntity target;
     private final float yd;
 
-    public LeapAtTargetGoal(Mob p_25492_, float p_25493_) {
-        this.mob = p_25492_;
-        this.yd = p_25493_;
+    public LeapAtTargetGoal(Mob pMob, float pYd) {
+        this.mob = pMob;
+        this.yd = pYd;
         this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
     }
 

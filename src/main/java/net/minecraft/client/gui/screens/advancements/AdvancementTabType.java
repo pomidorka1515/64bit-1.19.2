@@ -32,23 +32,23 @@ enum AdvancementTabType {
         return this.max;
     }
 
-    public void draw(PoseStack p_97226_, GuiComponent p_97227_, int p_97228_, int p_97229_, boolean p_97230_, int p_97231_) {
+    public void draw(PoseStack pPoseStack, GuiComponent pAbstractGui, int pOffsetX, int pOffsetY, boolean pIsSelected, int pIndex) {
         int i = this.textureX;
-        if (p_97231_ > 0) {
+        if (pIndex > 0) {
             i += this.width;
         }
 
-        if (p_97231_ == this.max - 1) {
+        if (pIndex == this.max - 1) {
             i += this.width;
         }
 
-        int j = p_97230_ ? this.textureY + this.height : this.textureY;
-        p_97227_.blit(p_97226_, p_97228_ + this.getX(p_97231_), p_97229_ + this.getY(p_97231_), i, j, this.width, this.height);
+        int j = pIsSelected ? this.textureY + this.height : this.textureY;
+        pAbstractGui.blit(pPoseStack, pOffsetX + this.getX(pIndex), pOffsetY + this.getY(pIndex), i, j, this.width, this.height);
     }
 
-    public void drawIcon(int p_97220_, int p_97221_, int p_97222_, ItemRenderer p_97223_, ItemStack p_97224_) {
-        int i = p_97220_ + this.getX(p_97222_);
-        int j = p_97221_ + this.getY(p_97222_);
+    public void drawIcon(int pOffsetX, int pOffsetY, int pIndex, ItemRenderer pRenderItem, ItemStack pStack) {
+        int i = pOffsetX + this.getX(pIndex);
+        int j = pOffsetY + this.getY(pIndex);
         switch (this) {
             case ABOVE:
                 i += 6;
@@ -67,15 +67,15 @@ enum AdvancementTabType {
                 j += 5;
         }
 
-        p_97223_.renderAndDecorateFakeItem(p_97224_, i, j);
+        pRenderItem.renderAndDecorateFakeItem(pStack, i, j);
     }
 
-    public int getX(int p_97212_) {
+    public int getX(int pIndex) {
         switch (this) {
             case ABOVE:
-                return (this.width + 4) * p_97212_;
+                return (this.width + 4) * pIndex;
             case BELOW:
-                return (this.width + 4) * p_97212_;
+                return (this.width + 4) * pIndex;
             case LEFT:
                 return -this.width + 4;
             case RIGHT:
@@ -85,24 +85,24 @@ enum AdvancementTabType {
         }
     }
 
-    public int getY(int p_97233_) {
+    public int getY(int pIndex) {
         switch (this) {
             case ABOVE:
                 return -this.height + 4;
             case BELOW:
                 return 136;
             case LEFT:
-                return this.height * p_97233_;
+                return this.height * pIndex;
             case RIGHT:
-                return this.height * p_97233_;
+                return this.height * pIndex;
             default:
                 throw new UnsupportedOperationException("Don't know what this tab type is!" + this);
         }
     }
 
-    public boolean isMouseOver(int p_97214_, int p_97215_, int p_97216_, double p_97217_, double p_97218_) {
-        int i = p_97214_ + this.getX(p_97216_);
-        int j = p_97215_ + this.getY(p_97216_);
-        return p_97217_ > (double) i && p_97217_ < (double) (i + this.width) && p_97218_ > (double) j && p_97218_ < (double) (j + this.height);
+    public boolean isMouseOver(int pOffsetX, int pOffsetY, int pIndex, double pMouseX, double pMouseY) {
+        int i = pOffsetX + this.getX(pIndex);
+        int j = pOffsetY + this.getY(pIndex);
+        return pMouseX > (double) i && pMouseX < (double) (i + this.width) && pMouseY > (double) j && pMouseY < (double) (j + this.height);
     }
 }

@@ -19,39 +19,39 @@ public class CommonComponents {
     public static final Component NARRATION_SEPARATOR = Component.literal(". ");
     public static final Component ELLIPSIS = Component.literal("...");
 
-    public static MutableComponent days(long p_239423_) {
-        return Component.translatable("gui.days", p_239423_);
+    public static MutableComponent days(long pDays) {
+        return Component.translatable("gui.days", pDays);
     }
 
-    public static MutableComponent hours(long p_240042_) {
-        return Component.translatable("gui.hours", p_240042_);
+    public static MutableComponent hours(long pHours) {
+        return Component.translatable("gui.hours", pHours);
     }
 
-    public static MutableComponent minutes(long p_239878_) {
-        return Component.translatable("gui.minutes", p_239878_);
+    public static MutableComponent minutes(long pMinutes) {
+        return Component.translatable("gui.minutes", pMinutes);
     }
 
-    public static Component optionStatus(boolean p_130667_) {
-        return p_130667_ ? OPTION_ON : OPTION_OFF;
+    public static Component optionStatus(boolean pIsEnabled) {
+        return pIsEnabled ? OPTION_ON : OPTION_OFF;
     }
 
-    public static MutableComponent optionStatus(Component p_130664_, boolean p_130665_) {
-        return Component.translatable(p_130665_ ? "options.on.composed" : "options.off.composed", p_130664_);
+    public static MutableComponent optionStatus(Component pMessage, boolean pComposed) {
+        return Component.translatable(pComposed ? "options.on.composed" : "options.off.composed", pMessage);
     }
 
-    public static MutableComponent optionNameValue(Component p_178394_, Component p_178395_) {
-        return Component.translatable("options.generic_value", p_178394_, p_178395_);
+    public static MutableComponent optionNameValue(Component pCaption, Component pValueMessage) {
+        return Component.translatable("options.generic_value", pCaption, pValueMessage);
     }
 
-    public static MutableComponent joinForNarration(Component p_178399_, Component p_178400_) {
-        return Component.empty().append(p_178399_).append(NARRATION_SEPARATOR).append(p_178400_);
+    public static MutableComponent joinForNarration(Component pFirstComponent, Component pSecondComponent) {
+        return Component.empty().append(pFirstComponent).append(NARRATION_SEPARATOR).append(pSecondComponent);
     }
 
-    public static Component joinLines(Component... p_178397_) {
-        return joinLines(Arrays.asList(p_178397_));
+    public static Component joinLines(Component... pLines) {
+        return joinLines(Arrays.asList(pLines));
     }
 
-    public static Component joinLines(Collection<? extends Component> p_178392_) {
-        return ComponentUtils.formatList(p_178392_, NEW_LINE);
+    public static Component joinLines(Collection<? extends Component> pLines) {
+        return ComponentUtils.formatList(pLines, NEW_LINE);
     }
 }

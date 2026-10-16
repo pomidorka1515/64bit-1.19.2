@@ -54,11 +54,11 @@ public class WinScreen extends Screen {
     private float scrollSpeed;
     private final float unmodifiedScrollSpeed;
 
-    public WinScreen(boolean p_96877_, Runnable p_96878_) {
+    public WinScreen(boolean pPoem, Runnable pOnFinished) {
         super(GameNarrator.NO_TITLE);
-        this.poem = p_96877_;
-        this.onFinished = p_96878_;
-        if (!p_96877_) {
+        this.poem = pPoem;
+        this.onFinished = pOnFinished;
+        if (!pPoem) {
             this.unmodifiedScrollSpeed = 0.75F;
         } else {
             this.unmodifiedScrollSpeed = 0.5F;
@@ -80,28 +80,28 @@ public class WinScreen extends Screen {
         }
     }
 
-    public boolean keyPressed(int p_169469_, int p_169470_, int p_169471_) {
-        if (p_169469_ != 341 && p_169469_ != 345) {
-            if (p_169469_ == 32) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode != 341 && pKeyCode != 345) {
+            if (pKeyCode == 32) {
                 this.speedupActive = true;
             }
         } else {
-            this.speedupModifiers.add(p_169469_);
+            this.speedupModifiers.add(pKeyCode);
         }
 
         this.scrollSpeed = this.calculateScrollSpeed();
-        return super.keyPressed(p_169469_, p_169470_, p_169471_);
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
     }
 
-    public boolean keyReleased(int p_169476_, int p_169477_, int p_169478_) {
-        if (p_169476_ == 32) {
+    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 32) {
             this.speedupActive = false;
-        } else if (p_169476_ == 341 || p_169476_ == 345) {
-            this.speedupModifiers.remove(p_169476_);
+        } else if (pKeyCode == 341 || pKeyCode == 345) {
+            this.speedupModifiers.remove(pKeyCode);
         }
 
         this.scrollSpeed = this.calculateScrollSpeed();
-        return super.keyReleased(p_169476_, p_169477_, p_169478_);
+        return super.keyReleased(pKeyCode, pScanCode, pModifiers);
     }
 
     public void onClose() {
@@ -130,12 +130,12 @@ public class WinScreen extends Screen {
         }
     }
 
-    private void wrapCreditsIO(String p_197399_, WinScreen.CreditsReader p_197400_) {
+    private void wrapCreditsIO(String pCreditsLocation, WinScreen.CreditsReader pReader) {
         try {
-            Reader reader = this.minecraft.getResourceManager().openAsReader(new ResourceLocation(p_197399_));
+            Reader reader = this.minecraft.getResourceManager().openAsReader(new ResourceLocation(pCreditsLocation));
 
             try {
-                p_197400_.read(reader);
+                pReader.read(reader);
             } catch (Throwable throwable1) {
                 if (reader != null) {
                     try {
@@ -210,16 +210,16 @@ public class WinScreen extends Screen {
         this.lines.add(FormattedCharSequence.EMPTY);
     }
 
-    private void addPoemLines(String p_181398_) {
-        this.lines.addAll(this.minecraft.font.split(Component.literal(p_181398_), 274));
+    private void addPoemLines(String pText) {
+        this.lines.addAll(this.minecraft.font.split(Component.literal(pText), 274));
     }
 
-    private void addCreditsLine(Component p_169473_, boolean p_169474_) {
-        if (p_169474_) {
+    private void addCreditsLine(Component pCreditsLine, boolean pCentered) {
+        if (pCentered) {
             this.centeredLines.add(this.lines.size());
         }
 
-        this.lines.add(p_169473_.getVisualOrderText());
+        this.lines.add(pCreditsLine.getVisualOrderText());
     }
 
     private void renderBg() {
@@ -253,47 +253,47 @@ public class WinScreen extends Screen {
         tesselator.end();
     }
 
-    public void render(PoseStack p_96884_, int p_96885_, int p_96886_, float p_96887_) {
-        this.scroll += p_96887_ * this.scrollSpeed;
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.scroll += pPartialTick * this.scrollSpeed;
         this.renderBg();
         int i = this.width / 2 - 137;
         int j = this.height + 50;
         float f = -this.scroll;
-        p_96884_.pushPose();
-        p_96884_.translate(0.0D, (double) f, 0.0D);
+        pPoseStack.pushPose();
+        pPoseStack.translate(0.0D, (double) f, 0.0D);
         RenderSystem.setShaderTexture(0, LOGO_LOCATION);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.enableBlend();
         this.blitOutlineBlack(i, j, (p_96890_, p_96891_) -> {
-            this.blit(p_96884_, p_96890_ + 0, p_96891_, 0, 0, 155, 44);
-            this.blit(p_96884_, p_96890_ + 155, p_96891_, 0, 45, 155, 44);
+            this.blit(pPoseStack, p_96890_ + 0, p_96891_, 0, 0, 155, 44);
+            this.blit(pPoseStack, p_96890_ + 155, p_96891_, 0, 45, 155, 44);
         });
         RenderSystem.disableBlend();
         RenderSystem.setShaderTexture(0, EDITION_LOCATION);
-        blit(p_96884_, i + 88, j + 37, 0.0F, 0.0F, 98, 14, 128, 16);
+        blit(pPoseStack, i + 88, j + 37, 0.0F, 0.0F, 98, 14, 128, 16);
         int k = j + 100;
 
         for (int l = 0; l < this.lines.size(); ++l) {
             if (l == this.lines.size() - 1) {
                 float f1 = (float) k + f - (float) (this.height / 2 - 6);
                 if (f1 < 0.0F) {
-                    p_96884_.translate(0.0D, (double) (-f1), 0.0D);
+                    pPoseStack.translate(0.0D, (double) (-f1), 0.0D);
                 }
             }
 
             if ((float) k + f + 12.0F + 8.0F > 0.0F && (float) k + f < (float) this.height) {
                 FormattedCharSequence formattedcharsequence = this.lines.get(l);
                 if (this.centeredLines.contains(l)) {
-                    this.font.drawShadow(p_96884_, formattedcharsequence, (float) (i + (274 - this.font.width(formattedcharsequence)) / 2), (float) k, 16777215);
+                    this.font.drawShadow(pPoseStack, formattedcharsequence, (float) (i + (274 - this.font.width(formattedcharsequence)) / 2), (float) k, 16777215);
                 } else {
-                    this.font.drawShadow(p_96884_, formattedcharsequence, (float) i, (float) k, 16777215);
+                    this.font.drawShadow(pPoseStack, formattedcharsequence, (float) i, (float) k, 16777215);
                 }
             }
 
             k += 12;
         }
 
-        p_96884_.popPose();
+        pPoseStack.popPose();
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderTexture(0, VIGNETTE_LOCATION);
         RenderSystem.enableBlend();
@@ -309,12 +309,12 @@ public class WinScreen extends Screen {
         bufferbuilder.vertex(0.0D, 0.0D, (double) this.getBlitOffset()).uv(0.0F, 0.0F).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
         tesselator.end();
         RenderSystem.disableBlend();
-        super.render(p_96884_, p_96885_, p_96886_, p_96887_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     @FunctionalInterface
     @OnlyIn(Dist.CLIENT)
     interface CreditsReader {
-        void read(Reader p_232822_) throws IOException;
+        void read(Reader pReader) throws IOException;
     }
 }

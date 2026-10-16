@@ -23,37 +23,37 @@ public class KelpBlock extends GrowingPlantHeadBlock implements LiquidBlockConta
         super(p_54300_, Direction.UP, SHAPE, true, 0.14D);
     }
 
-    protected boolean canGrowInto(BlockState p_54321_) {
-        return p_54321_.is(Blocks.WATER);
+    protected boolean canGrowInto(BlockState pState) {
+        return pState.is(Blocks.WATER);
     }
 
     protected Block getBodyBlock() {
         return Blocks.KELP_PLANT;
     }
 
-    protected boolean canAttachTo(BlockState p_153455_) {
-        return !p_153455_.is(Blocks.MAGMA_BLOCK);
+    protected boolean canAttachTo(BlockState pState) {
+        return !pState.is(Blocks.MAGMA_BLOCK);
     }
 
-    public boolean canPlaceLiquid(BlockGetter p_54304_, BlockPos p_54305_, BlockState p_54306_, Fluid p_54307_) {
+    public boolean canPlaceLiquid(BlockGetter pLevel, BlockPos pPos, BlockState pState, Fluid pFluid) {
         return false;
     }
 
-    public boolean placeLiquid(LevelAccessor p_54309_, BlockPos p_54310_, BlockState p_54311_, FluidState p_54312_) {
+    public boolean placeLiquid(LevelAccessor pLevel, BlockPos pPos, BlockState pState, FluidState pFluidState) {
         return false;
     }
 
-    protected int getBlocksToGrowWhenBonemealed(RandomSource p_221366_) {
+    protected int getBlocksToGrowWhenBonemealed(RandomSource pRandom) {
         return 1;
     }
 
     @Nullable
-    public BlockState getStateForPlacement(BlockPlaceContext p_54302_) {
-        FluidState fluidstate = p_54302_.getLevel().getFluidState(p_54302_.getClickedPos());
-        return fluidstate.is(FluidTags.WATER) && fluidstate.getAmount() == 8 ? super.getStateForPlacement(p_54302_) : null;
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        FluidState fluidstate = pContext.getLevel().getFluidState(pContext.getClickedPos());
+        return fluidstate.is(FluidTags.WATER) && fluidstate.getAmount() == 8 ? super.getStateForPlacement(pContext) : null;
     }
 
-    public FluidState getFluidState(BlockState p_54319_) {
+    public FluidState getFluidState(BlockState pState) {
         return Fluids.WATER.getSource(false);
     }
 }

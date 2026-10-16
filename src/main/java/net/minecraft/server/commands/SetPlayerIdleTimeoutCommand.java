@@ -7,8 +7,8 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 
 public class SetPlayerIdleTimeoutCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> p_138635_) {
-        p_138635_.register(Commands.literal("setidletimeout").requires((p_138639_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("setidletimeout").requires((p_138639_) -> {
                                                                  return p_138639_.hasPermission(3);
                                                              })
                         .then(Commands.argument("minutes", IntegerArgumentType.integer(0)).executes((p_138637_) -> {
@@ -16,9 +16,9 @@ public class SetPlayerIdleTimeoutCommand {
                         })));
     }
 
-    private static int setIdleTimeout(CommandSourceStack p_138641_, int p_138642_) {
-        p_138641_.getServer().setPlayerIdleTimeout(p_138642_);
-        p_138641_.sendSuccess(Component.translatable("commands.setidletimeout.success", p_138642_), true);
-        return p_138642_;
+    private static int setIdleTimeout(CommandSourceStack pSource, int pIdleTimeout) {
+        pSource.getServer().setPlayerIdleTimeout(pIdleTimeout);
+        pSource.sendSuccess(Component.translatable("commands.setidletimeout.success", pIdleTimeout), true);
+        return pIdleTimeout;
     }
 }

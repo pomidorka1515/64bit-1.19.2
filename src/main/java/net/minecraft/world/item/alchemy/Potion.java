@@ -12,21 +12,21 @@ public class Potion {
     private final String name;
     private final ImmutableList<MobEffectInstance> effects;
 
-    public static Potion byName(String p_43490_) {
-        return Registry.POTION.get(ResourceLocation.tryParse(p_43490_));
+    public static Potion byName(String pName) {
+        return Registry.POTION.get(ResourceLocation.tryParse(pName));
     }
 
-    public Potion(MobEffectInstance... p_43487_) {
-        this((String) null, p_43487_);
+    public Potion(MobEffectInstance... pEffects) {
+        this((String) null, pEffects);
     }
 
-    public Potion(@Nullable String p_43484_, MobEffectInstance... p_43485_) {
-        this.name = p_43484_;
-        this.effects = ImmutableList.copyOf(p_43485_);
+    public Potion(@Nullable String pName, MobEffectInstance... pEffects) {
+        this.name = pName;
+        this.effects = ImmutableList.copyOf(pEffects);
     }
 
-    public String getName(String p_43493_) {
-        return p_43493_ + (this.name == null ? Registry.POTION.getKey(this).getPath() : this.name);
+    public String getName(String pPrefix) {
+        return pPrefix + (this.name == null ? Registry.POTION.getKey(this).getPath() : this.name);
     }
 
     public List<MobEffectInstance> getEffects() {

@@ -17,21 +17,21 @@ public interface TutorialStepInstance {
     default void tick() {
     }
 
-    default void onInput(Input p_120623_) {
+    default void onInput(Input pInput) {
     }
 
-    default void onMouse(double p_120614_, double p_120615_) {
+    default void onMouse(double pVelocityX, double pVelocityY) {
     }
 
-    default void onLookAt(ClientLevel p_120617_, HitResult p_120618_) {
+    default void onLookAt(ClientLevel pLevel, HitResult pResult) {
     }
 
-    default void onDestroyBlock(ClientLevel p_120619_, BlockPos p_120620_, BlockState p_120621_, float p_120622_) {
+    default void onDestroyBlock(ClientLevel pLevel, BlockPos pPos, BlockState pState, float pDiggingStage) {
     }
 
     default void onOpenInventory() {
     }
 
-    default void onGetItem(ItemStack p_120616_) {
+    default void onGetItem(ItemStack pStack) {
     }
 }

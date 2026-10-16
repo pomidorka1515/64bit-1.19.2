@@ -20,13 +20,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class EffectRenderingInventoryScreen<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> {
-    public EffectRenderingInventoryScreen(T p_98701_, Inventory p_98702_, Component p_98703_) {
-        super(p_98701_, p_98702_, p_98703_);
+    public EffectRenderingInventoryScreen(T pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle);
     }
 
-    public void render(PoseStack p_98705_, int p_98706_, int p_98707_, float p_98708_) {
-        super.render(p_98705_, p_98706_, p_98707_, p_98708_);
-        this.renderEffects(p_98705_, p_98706_, p_98707_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderEffects(pPoseStack, pMouseX, pMouseY);
     }
 
     public boolean canSeeEffects() {
@@ -35,7 +35,7 @@ public abstract class EffectRenderingInventoryScreen<T extends AbstractContainer
         return j >= 32;
     }
 
-    private void renderEffects(PoseStack p_194015_, int p_194016_, int p_194017_) {
+    private void renderEffects(PoseStack pPoseStack, int pMouseX, int pMouseY) {
         int i = this.leftPos + this.imageWidth + 2;
         int j = this.width - i;
         Collection<MobEffectInstance> collection = this.minecraft.player.getActiveEffects();
@@ -48,16 +48,16 @@ public abstract class EffectRenderingInventoryScreen<T extends AbstractContainer
             }
 
             Iterable<MobEffectInstance> iterable = Ordering.natural().sortedCopy(collection);
-            this.renderBackgrounds(p_194015_, i, k, iterable, flag);
-            this.renderIcons(p_194015_, i, k, iterable, flag);
+            this.renderBackgrounds(pPoseStack, i, k, iterable, flag);
+            this.renderIcons(pPoseStack, i, k, iterable, flag);
             if (flag) {
-                this.renderLabels(p_194015_, i, k, iterable);
-            } else if (p_194016_ >= i && p_194016_ <= i + 33) {
+                this.renderLabels(pPoseStack, i, k, iterable);
+            } else if (pMouseX >= i && pMouseX <= i + 33) {
                 int l = this.topPos;
                 MobEffectInstance mobeffectinstance = null;
 
                 for (MobEffectInstance mobeffectinstance1 : iterable) {
-                    if (p_194017_ >= l && p_194017_ <= l + k) {
+                    if (pMouseY >= l && pMouseY <= l + k) {
                         mobeffectinstance = mobeffectinstance1;
                     }
 
@@ -66,7 +66,7 @@ public abstract class EffectRenderingInventoryScreen<T extends AbstractContainer
 
                 if (mobeffectinstance != null) {
                     List<Component> list = List.of(this.getEffectName(mobeffectinstance), Component.literal(MobEffectUtil.formatDuration(mobeffectinstance, 1.0F)));
-                    this.renderTooltip(p_194015_, list, Optional.empty(), p_194016_, p_194017_);
+                    this.renderTooltip(pPoseStack, list, Optional.empty(), pMouseX, pMouseY);
                 }
             }
         }
@@ -101,22 +101,22 @@ public abstract class EffectRenderingInventoryScreen<T extends AbstractContainer
         }
     }
 
-    private void renderLabels(PoseStack p_98723_, int p_98724_, int p_98725_, Iterable<MobEffectInstance> p_98726_) {
+    private void renderLabels(PoseStack pPoseStack, int pRenderX, int pYOffset, Iterable<MobEffectInstance> pEffects) {
         int i = this.topPos;
 
-        for (MobEffectInstance mobeffectinstance : p_98726_) {
+        for (MobEffectInstance mobeffectinstance : pEffects) {
             Component component = this.getEffectName(mobeffectinstance);
-            this.font.drawShadow(p_98723_, component, (float) (p_98724_ + 10 + 18), (float) (i + 6), 16777215);
+            this.font.drawShadow(pPoseStack, component, (float) (pRenderX + 10 + 18), (float) (i + 6), 16777215);
             String s = MobEffectUtil.formatDuration(mobeffectinstance, 1.0F);
-            this.font.drawShadow(p_98723_, s, (float) (p_98724_ + 10 + 18), (float) (i + 6 + 10), 8355711);
-            i += p_98725_;
+            this.font.drawShadow(pPoseStack, s, (float) (pRenderX + 10 + 18), (float) (i + 6 + 10), 8355711);
+            i += pYOffset;
         }
     }
 
-    private Component getEffectName(MobEffectInstance p_194001_) {
-        MutableComponent mutablecomponent = p_194001_.getEffect().getDisplayName().copy();
-        if (p_194001_.getAmplifier() >= 1 && p_194001_.getAmplifier() <= 9) {
-            mutablecomponent.append(" ").append(Component.translatable("enchantment.level." + (p_194001_.getAmplifier() + 1)));
+    private Component getEffectName(MobEffectInstance pEffect) {
+        MutableComponent mutablecomponent = pEffect.getEffect().getDisplayName().copy();
+        if (pEffect.getAmplifier() >= 1 && pEffect.getAmplifier() <= 9) {
+            mutablecomponent.append(" ").append(Component.translatable("enchantment.level." + (pEffect.getAmplifier() + 1)));
         }
 
         return mutablecomponent;

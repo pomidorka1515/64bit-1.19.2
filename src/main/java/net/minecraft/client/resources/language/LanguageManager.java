@@ -28,13 +28,13 @@ public class LanguageManager implements ResourceManagerReloadListener {
     private String currentCode;
     private LanguageInfo currentLanguage = DEFAULT_LANGUAGE;
 
-    public LanguageManager(String p_118971_) {
-        this.currentCode = p_118971_;
+    public LanguageManager(String pCurrentCode) {
+        this.currentCode = pCurrentCode;
     }
 
-    private static Map<String, LanguageInfo> extractLanguages(Stream<PackResources> p_118982_) {
+    private static Map<String, LanguageInfo> extractLanguages(Stream<PackResources> pPackResources) {
         Map<String, LanguageInfo> map = Maps.newHashMap();
-        p_118982_.forEach((p_118980_) -> {
+        pPackResources.forEach((p_118980_) -> {
             try {
                 LanguageMetadataSection languagemetadatasection = p_118980_.getMetadataSection(LanguageMetadataSection.SERIALIZER);
                 if (languagemetadatasection != null) {
@@ -49,8 +49,8 @@ public class LanguageManager implements ResourceManagerReloadListener {
         return ImmutableMap.copyOf(map);
     }
 
-    public void onResourceManagerReload(ResourceManager p_118973_) {
-        this.languages = extractLanguages(p_118973_.listPacks());
+    public void onResourceManagerReload(ResourceManager pResourceManager) {
+        this.languages = extractLanguages(pResourceManager.listPacks());
         LanguageInfo languageinfo = this.languages.getOrDefault("en_us", DEFAULT_LANGUAGE);
         this.currentLanguage = this.languages.getOrDefault(this.currentCode, languageinfo);
         List<LanguageInfo> list = Lists.newArrayList(languageinfo);
@@ -58,14 +58,14 @@ public class LanguageManager implements ResourceManagerReloadListener {
             list.add(this.currentLanguage);
         }
 
-        ClientLanguage clientlanguage = ClientLanguage.loadFrom(p_118973_, list);
+        ClientLanguage clientlanguage = ClientLanguage.loadFrom(pResourceManager, list);
         I18n.setLanguage(clientlanguage);
         Language.inject(clientlanguage);
     }
 
-    public void setSelected(LanguageInfo p_118975_) {
-        this.currentCode = p_118975_.getCode();
-        this.currentLanguage = p_118975_;
+    public void setSelected(LanguageInfo pCurrentLanguage) {
+        this.currentCode = pCurrentLanguage.getCode();
+        this.currentLanguage = pCurrentLanguage;
     }
 
     public LanguageInfo getSelected() {
@@ -76,7 +76,7 @@ public class LanguageManager implements ResourceManagerReloadListener {
         return Sets.newTreeSet(this.languages.values());
     }
 
-    public LanguageInfo getLanguage(String p_118977_) {
-        return this.languages.get(p_118977_);
+    public LanguageInfo getLanguage(String pCode) {
+        return this.languages.get(pCode);
     }
 }

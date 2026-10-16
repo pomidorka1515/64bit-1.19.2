@@ -13,29 +13,29 @@ public class BlockHitResult extends HitResult {
     @Nullable
     private final SectorVec3 exactLocation;
 
-    public static BlockHitResult miss(Vec3 p_82427_, Direction p_82428_, BlockPos p_82429_) {
-        return new BlockHitResult(true, p_82427_, p_82428_, p_82429_, false, null);
+    public static BlockHitResult miss(Vec3 pLocation, Direction pDirection, BlockPos pPos) {
+        return new BlockHitResult(true, pLocation, pDirection, pPos, false, null);
     }
 
-    public static BlockHitResult missExact(SectorVec3 p_82427_, Direction p_82428_, BlockPos p_82429_) {
-        return new BlockHitResult(true, p_82427_.toApproximateVec3(), p_82428_, p_82429_, false, p_82427_);
+    public static BlockHitResult missExact(SectorVec3 pLocation, Direction pDirection, BlockPos pPos) {
+        return new BlockHitResult(true, pLocation.toApproximateVec3(), pDirection, pPos, false, pLocation);
     }
 
-    public BlockHitResult(Vec3 p_82415_, Direction p_82416_, BlockPos p_82417_, boolean p_82418_) {
-        this(false, p_82415_, p_82416_, p_82417_, p_82418_, null);
+    public BlockHitResult(Vec3 pLocation, Direction pDirection, BlockPos pBlockPos, boolean pInside) {
+        this(false, pLocation, pDirection, pBlockPos, pInside, null);
     }
 
     /** Creates a hit whose world X/Z are retained exactly. */
-    public BlockHitResult(SectorVec3 p_82415_, Direction p_82416_, BlockPos p_82417_, boolean p_82418_) {
-        this(false, p_82415_.toApproximateVec3(), p_82416_, p_82417_, p_82418_, p_82415_);
+    public BlockHitResult(SectorVec3 pLocation, Direction pDirection, BlockPos pBlockPos, boolean pInside) {
+        this(false, pLocation.toApproximateVec3(), pDirection, pBlockPos, pInside, pLocation);
     }
 
-    private BlockHitResult(boolean p_82420_, Vec3 p_82421_, Direction p_82422_, BlockPos p_82423_, boolean p_82424_, @Nullable SectorVec3 exactLocation) {
-        super(p_82421_);
-        this.miss = p_82420_;
-        this.direction = p_82422_;
-        this.blockPos = p_82423_;
-        this.inside = p_82424_;
+    private BlockHitResult(boolean pMiss, Vec3 pLocation, Direction pDirection, BlockPos pBlockPos, boolean pInside, @Nullable SectorVec3 exactLocation) {
+        super(pLocation);
+        this.miss = pMiss;
+        this.direction = pDirection;
+        this.blockPos = pBlockPos;
+        this.inside = pInside;
         this.exactLocation = exactLocation;
     }
 
@@ -44,12 +44,12 @@ public class BlockHitResult extends HitResult {
         return this.exactLocation;
     }
 
-    public BlockHitResult withDirection(Direction p_82433_) {
-        return new BlockHitResult(this.miss, this.location, p_82433_, this.blockPos, this.inside, this.exactLocation);
+    public BlockHitResult withDirection(Direction pNewFace) {
+        return new BlockHitResult(this.miss, this.location, pNewFace, this.blockPos, this.inside, this.exactLocation);
     }
 
-    public BlockHitResult withPosition(BlockPos p_82431_) {
-        return new BlockHitResult(this.miss, this.location, this.direction, p_82431_, this.inside, this.exactLocation);
+    public BlockHitResult withPosition(BlockPos pPos) {
+        return new BlockHitResult(this.miss, this.location, this.direction, pPos, this.inside, this.exactLocation);
     }
 
     public BlockPos getBlockPos() {

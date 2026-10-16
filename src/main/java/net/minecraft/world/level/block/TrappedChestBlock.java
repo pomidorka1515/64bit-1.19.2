@@ -21,23 +21,23 @@ public class TrappedChestBlock extends ChestBlock {
         });
     }
 
-    public BlockEntity newBlockEntity(BlockPos p_154834_, BlockState p_154835_) {
-        return new TrappedChestBlockEntity(p_154834_, p_154835_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new TrappedChestBlockEntity(pPos, pState);
     }
 
     protected Stat<ResourceLocation> getOpenChestStat() {
         return Stats.CUSTOM.get(Stats.TRIGGER_TRAPPED_CHEST);
     }
 
-    public boolean isSignalSource(BlockState p_57587_) {
+    public boolean isSignalSource(BlockState pState) {
         return true;
     }
 
-    public int getSignal(BlockState p_57577_, BlockGetter p_57578_, BlockPos p_57579_, Direction p_57580_) {
-        return Mth.clamp(ChestBlockEntity.getOpenCount(p_57578_, p_57579_), 0, 15);
+    public int getSignal(BlockState pBlockState, BlockGetter pBlockAccess, BlockPos pPos, Direction pSide) {
+        return Mth.clamp(ChestBlockEntity.getOpenCount(pBlockAccess, pPos), 0, 15);
     }
 
-    public int getDirectSignal(BlockState p_57582_, BlockGetter p_57583_, BlockPos p_57584_, Direction p_57585_) {
-        return p_57585_ == Direction.UP ? p_57582_.getSignal(p_57583_, p_57584_, p_57585_) : 0;
+    public int getDirectSignal(BlockState pBlockState, BlockGetter pBlockAccess, BlockPos pPos, Direction pSide) {
+        return pSide == Direction.UP ? pBlockState.getSignal(pBlockAccess, pPos, pSide) : 0;
     }
 }

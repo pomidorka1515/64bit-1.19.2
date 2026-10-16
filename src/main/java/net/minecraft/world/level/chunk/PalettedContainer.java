@@ -41,65 +41,65 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
         this.threadingDetector.checkAndUnlock();
     }
 
-    public static <T> Codec<PalettedContainer<T>> codecRW(IdMap<T> p_238372_, Codec<T> p_238373_, PalettedContainer.Strategy p_238374_, T p_238375_) {
+    public static <T> Codec<PalettedContainer<T>> codecRW(IdMap<T> pRegistry, Codec<T> pCodec, PalettedContainer.Strategy pStrategy, T pValue) {
         PalettedContainerRO.Unpacker<T, PalettedContainer<T>> unpacker = PalettedContainer::unpack;
-        return codec(p_238372_, p_238373_, p_238374_, p_238375_, unpacker);
+        return codec(pRegistry, pCodec, pStrategy, pValue, unpacker);
     }
 
-    public static <T> Codec<PalettedContainerRO<T>> codecRO(IdMap<T> p_238419_, Codec<T> p_238420_, PalettedContainer.Strategy p_238421_, T p_238422_) {
+    public static <T> Codec<PalettedContainerRO<T>> codecRO(IdMap<T> pRegistry, Codec<T> pCodec, PalettedContainer.Strategy pStrategy, T pValue) {
         PalettedContainerRO.Unpacker<T, PalettedContainerRO<T>> unpacker = (p_238265_, p_238266_, p_238267_) -> {
             return unpack(p_238265_, p_238266_, p_238267_).map((p_238264_) -> {
                 return p_238264_;
             });
         };
-        return codec(p_238419_, p_238420_, p_238421_, p_238422_, unpacker);
+        return codec(pRegistry, pCodec, pStrategy, pValue, unpacker);
     }
 
-    private static <T, C extends PalettedContainerRO<T>> Codec<C> codec(IdMap<T> p_238428_, Codec<T> p_238429_, PalettedContainer.Strategy p_238430_, T p_238431_, PalettedContainerRO.Unpacker<T, C> p_238432_) {
+    private static <T, C extends PalettedContainerRO<T>> Codec<C> codec(IdMap<T> pRegistry, Codec<T> pCodec, PalettedContainer.Strategy pStrategy, T pValue, PalettedContainerRO.Unpacker<T, C> pUnpacker) {
         return RecordCodecBuilder.<PalettedContainerRO.PackedData<T>>create((p_188047_) -> {
-                                     return p_188047_.group(p_238429_.mapResult(ExtraCodecs.orElsePartial(p_238431_)).listOf().fieldOf("palette").forGetter(PalettedContainerRO.PackedData::paletteEntries), Codec.LONG_STREAM.optionalFieldOf("data").forGetter(PalettedContainerRO.PackedData::storage)).apply(p_188047_, PalettedContainerRO.PackedData::new);
+                                     return p_188047_.group(pCodec.mapResult(ExtraCodecs.orElsePartial(pValue)).listOf().fieldOf("palette").forGetter(PalettedContainerRO.PackedData::paletteEntries), Codec.LONG_STREAM.optionalFieldOf("data").forGetter(PalettedContainerRO.PackedData::storage)).apply(p_188047_, PalettedContainerRO.PackedData::new);
                                  })
-                .<C>comapFlatMap((p_238262_) -> { return p_238432_.read(p_238428_, p_238430_, p_238262_); }, (p_238263_) -> { return p_238263_.pack(p_238428_, p_238430_); });
+                .<C>comapFlatMap((p_238262_) -> { return pUnpacker.read(pRegistry, pStrategy, p_238262_); }, (p_238263_) -> { return p_238263_.pack(pRegistry, pStrategy); });
     }
 
-    public PalettedContainer(IdMap<T> p_188035_, PalettedContainer.Strategy p_188036_, PalettedContainer.Configuration<T> p_188037_, BitStorage p_188038_, List<T> p_188039_) {
-        this.registry = p_188035_;
-        this.strategy = p_188036_;
-        this.data = new PalettedContainer.Data<>(p_188037_, p_188038_, p_188037_.factory().create(p_188037_.bits(), p_188035_, this, p_188039_));
+    public PalettedContainer(IdMap<T> pRegistry, PalettedContainer.Strategy pStrategy, PalettedContainer.Configuration<T> pConfiguration, BitStorage pStorage, List<T> pValues) {
+        this.registry = pRegistry;
+        this.strategy = pStrategy;
+        this.data = new PalettedContainer.Data<>(pConfiguration, pStorage, pConfiguration.factory().create(pConfiguration.bits(), pRegistry, this, pValues));
     }
 
-    private PalettedContainer(IdMap<T> p_199928_, PalettedContainer.Strategy p_199929_, PalettedContainer.Data<T> p_199930_) {
-        this.registry = p_199928_;
-        this.strategy = p_199929_;
-        this.data = p_199930_;
+    private PalettedContainer(IdMap<T> pRegistry, PalettedContainer.Strategy pStrategy, PalettedContainer.Data<T> pData) {
+        this.registry = pRegistry;
+        this.strategy = pStrategy;
+        this.data = pData;
     }
 
-    public PalettedContainer(IdMap<T> p_188041_, T p_188042_, PalettedContainer.Strategy p_188043_) {
-        this.strategy = p_188043_;
-        this.registry = p_188041_;
+    public PalettedContainer(IdMap<T> pRegistry, T pPalette, PalettedContainer.Strategy pStrategy) {
+        this.strategy = pStrategy;
+        this.registry = pRegistry;
         this.data = this.createOrReuseData((PalettedContainer.Data<T>) null, 0);
-        this.data.palette.idFor(p_188042_);
+        this.data.palette.idFor(pPalette);
     }
 
-    private PalettedContainer.Data<T> createOrReuseData(@Nullable PalettedContainer.Data<T> p_188052_, int p_188053_) {
-        PalettedContainer.Configuration<T> configuration = this.strategy.getConfiguration(this.registry, p_188053_);
-        return p_188052_ != null && configuration.equals(p_188052_.configuration()) ? p_188052_ : configuration.createData(this.registry, this, this.strategy.size());
+    private PalettedContainer.Data<T> createOrReuseData(@Nullable PalettedContainer.Data<T> pData, int pId) {
+        PalettedContainer.Configuration<T> configuration = this.strategy.getConfiguration(this.registry, pId);
+        return pData != null && configuration.equals(pData.configuration()) ? pData : configuration.createData(this.registry, this, this.strategy.size());
     }
 
-    public int onResize(int p_63142_, T p_63143_) {
+    public int onResize(int pBits, T pObjectAdded) {
         PalettedContainer.Data<T> data = this.data;
-        PalettedContainer.Data<T> data1 = this.createOrReuseData(data, p_63142_);
+        PalettedContainer.Data<T> data1 = this.createOrReuseData(data, pBits);
         data1.copyFrom(data.palette, data.storage);
         this.data = data1;
-        return data1.palette.idFor(p_63143_);
+        return data1.palette.idFor(pObjectAdded);
     }
 
-    public T getAndSet(long p_63092_, int p_63093_, long p_63094_, T p_63095_) {
+    public T getAndSet(long pX, int pY, long pZ, T pState) {
         this.acquire();
 
         Object object;
         try {
-            object = this.getAndSet(this.strategy.getIndex(p_63092_, p_63093_, p_63094_), p_63095_);
+            object = this.getAndSet(this.strategy.getIndex(pX, pY, pZ), pState);
         } finally {
             this.release();
         }
@@ -107,68 +107,68 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
         return (T) object;
     }
 
-    public T getAndSetUnchecked(long p_63128_, int p_63129_, long p_63130_, T p_63131_) {
-        return this.getAndSet(this.strategy.getIndex(p_63128_, p_63129_, p_63130_), p_63131_);
+    public T getAndSetUnchecked(long pX, int pY, long pZ, T pState) {
+        return this.getAndSet(this.strategy.getIndex(pX, pY, pZ), pState);
     }
 
-    private T getAndSet(int p_63097_, T p_63098_) {
-        int i = this.data.palette.idFor(p_63098_);
-        int j = this.data.storage.getAndSet(p_63097_, i);
+    private T getAndSet(int pIndex, T pState) {
+        int i = this.data.palette.idFor(pState);
+        int j = this.data.storage.getAndSet(pIndex, i);
         return this.data.palette.valueFor(j);
     }
 
-    public void set(long p_156471_, int p_156472_, long p_156473_, T p_156474_) {
+    public void set(long pX, int pY, long pZ, T pState) {
         this.acquire();
 
         try {
-            this.set(this.strategy.getIndex(p_156471_, p_156472_, p_156473_), p_156474_);
+            this.set(this.strategy.getIndex(pX, pY, pZ), pState);
         } finally {
             this.release();
         }
     }
 
-    private void set(int p_63133_, T p_63134_) {
-        int i = this.data.palette.idFor(p_63134_);
-        this.data.storage.set(p_63133_, i);
+    private void set(int pIndex, T pState) {
+        int i = this.data.palette.idFor(pState);
+        this.data.storage.set(pIndex, i);
     }
 
-    public T get(long p_63088_, int p_63089_, long p_63090_) {
-        return this.get(this.strategy.getIndex(p_63088_, p_63089_, p_63090_));
+    public T get(long pX, int pY, long pZ) {
+        return this.get(this.strategy.getIndex(pX, pY, pZ));
     }
 
-    protected T get(int p_63086_) {
+    protected T get(int pIndex) {
         PalettedContainer.Data<T> data = this.data;
-        return data.palette.valueFor(data.storage.get(p_63086_));
+        return data.palette.valueFor(data.storage.get(pIndex));
     }
 
-    public void getAll(Consumer<T> p_196880_) {
+    public void getAll(Consumer<T> pConsumer) {
         Palette<T> palette = this.data.palette();
         IntSet intset = new IntArraySet();
         this.data.storage.getAll(intset::add);
         intset.forEach((p_238274_) -> {
-            p_196880_.accept(palette.valueFor(p_238274_));
+            pConsumer.accept(palette.valueFor(p_238274_));
         });
     }
 
-    public void read(FriendlyByteBuf p_63119_) {
+    public void read(FriendlyByteBuf pBuffer) {
         this.acquire();
 
         try {
-            int i = p_63119_.readByte();
+            int i = pBuffer.readByte();
             PalettedContainer.Data<T> data = this.createOrReuseData(this.data, i);
-            data.palette.read(p_63119_);
-            p_63119_.readLongArray(data.storage.getRaw());
+            data.palette.read(pBuffer);
+            pBuffer.readLongArray(data.storage.getRaw());
             this.data = data;
         } finally {
             this.release();
         }
     }
 
-    public void write(FriendlyByteBuf p_63136_) {
+    public void write(FriendlyByteBuf pBuffer) {
         this.acquire();
 
         try {
-            this.data.write(p_63136_);
+            this.data.write(pBuffer);
         } finally {
             this.release();
         }
@@ -242,18 +242,18 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
         return palettedcontainerro$packeddata;
     }
 
-    private static <T> void swapPalette(int[] p_198190_, IntUnaryOperator p_198191_) {
+    private static <T> void swapPalette(int[] pBits, IntUnaryOperator pOperator) {
         int i = -1;
         int j = -1;
 
-        for (int k = 0; k < p_198190_.length; ++k) {
-            int l = p_198190_[k];
+        for (int k = 0; k < pBits.length; ++k) {
+            int l = pBits[k];
             if (l != i) {
                 i = l;
-                j = p_198191_.applyAsInt(l);
+                j = pOperator.applyAsInt(l);
             }
 
-            p_198190_[k] = j;
+            pBits[k] = j;
         }
     }
 
@@ -261,8 +261,8 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
         return this.data.getSerializedSize();
     }
 
-    public boolean maybeHas(Predicate<T> p_63110_) {
-        return this.data.palette.maybeHas(p_63110_);
+    public boolean maybeHas(Predicate<T> pPredicate) {
+        return this.data.palette.maybeHas(pPredicate);
     }
 
     public PalettedContainer<T> copy() {
@@ -273,37 +273,37 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
         return new PalettedContainer<>(this.registry, this.data.palette.valueFor(0), this.strategy);
     }
 
-    public void count(PalettedContainer.CountConsumer<T> p_63100_) {
+    public void count(PalettedContainer.CountConsumer<T> pCountConsumer) {
         if (this.data.palette.getSize() == 1) {
-            p_63100_.accept(this.data.palette.valueFor(0), this.data.storage.getSize());
+            pCountConsumer.accept(this.data.palette.valueFor(0), this.data.storage.getSize());
         } else {
             Int2IntOpenHashMap int2intopenhashmap = new Int2IntOpenHashMap();
             this.data.storage.getAll((p_238269_) -> {
                 int2intopenhashmap.addTo(p_238269_, 1);
             });
             int2intopenhashmap.int2IntEntrySet().forEach((p_238271_) -> {
-                p_63100_.accept(this.data.palette.valueFor(p_238271_.getIntKey()), p_238271_.getIntValue());
+                pCountConsumer.accept(this.data.palette.valueFor(p_238271_.getIntKey()), p_238271_.getIntValue());
             });
         }
     }
 
     static record Configuration<T>(Palette.Factory factory, int bits) {
-        public PalettedContainer.Data<T> createData(IdMap<T> p_188092_, PaletteResize<T> p_188093_, int p_188094_) {
-            BitStorage bitstorage = (BitStorage) (this.bits == 0 ? new ZeroBitStorage(p_188094_) : new SimpleBitStorage(this.bits, p_188094_));
-            Palette<T> palette = this.factory.create(this.bits, p_188092_, p_188093_, List.of());
+        public PalettedContainer.Data<T> createData(IdMap<T> pRegistry, PaletteResize<T> pPaletteResize, int pSize) {
+            BitStorage bitstorage = (BitStorage) (this.bits == 0 ? new ZeroBitStorage(pSize) : new SimpleBitStorage(this.bits, pSize));
+            Palette<T> palette = this.factory.create(this.bits, pRegistry, pPaletteResize, List.of());
             return new PalettedContainer.Data<>(this, bitstorage, palette);
         }
     }
 
     @FunctionalInterface
     public interface CountConsumer<T> {
-        void accept(T p_63145_, int p_63146_);
+        void accept(T pState, int pCount);
     }
 
     static record Data<T>(PalettedContainer.Configuration<T> configuration, BitStorage storage, Palette<T> palette) {
-        public void copyFrom(Palette<T> p_188112_, BitStorage p_188113_) {
-            for (int i = 0; i < p_188113_.getSize(); ++i) {
-                T t = p_188112_.valueFor(p_188113_.get(i));
+        public void copyFrom(Palette<T> pPalette, BitStorage pBitStorage) {
+            for (int i = 0; i < pBitStorage.getSize(); ++i) {
+                T t = pPalette.valueFor(pBitStorage.get(i));
                 this.storage.set(i, this.palette.idFor(t));
             }
         }
@@ -312,10 +312,10 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
             return 1 + this.palette.getSerializedSize() + FriendlyByteBuf.getVarIntSize(this.storage.getSize()) + this.storage.getRaw().length * 8;
         }
 
-        public void write(FriendlyByteBuf p_188115_) {
-            p_188115_.writeByte(this.storage.getBits());
-            this.palette.write(p_188115_);
-            p_188115_.writeLongArray(this.storage.getRaw());
+        public void write(FriendlyByteBuf pBuffer) {
+            pBuffer.writeByte(this.storage.getBits());
+            this.palette.write(pBuffer);
+            pBuffer.writeLongArray(this.storage.getRaw());
         }
 
         public PalettedContainer.Data<T> copy() {
@@ -375,23 +375,23 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
         };
         private final int sizeBits;
 
-        Strategy(int p_188143_) {
-            this.sizeBits = p_188143_;
+        Strategy(int pSizeBits) {
+            this.sizeBits = pSizeBits;
         }
 
         public int size() {
             return 1 << this.sizeBits * 3;
         }
 
-        public int getIndex(long p_188146_, int p_188147_, long p_188148_) {
-            return (int) ((p_188147_ << this.sizeBits | p_188148_) << this.sizeBits | p_188146_);
+        public int getIndex(long pX, int pY, long pZ) {
+            return (int) ((pY << this.sizeBits | pZ) << this.sizeBits | pX);
         }
 
-        public abstract <A> PalettedContainer.Configuration<A> getConfiguration(IdMap<A> p_188149_, int p_188150_);
+        public abstract <A> PalettedContainer.Configuration<A> getConfiguration(IdMap<A> pRegistry, int pId);
 
-        <A> int calculateBitsForSerialization(IdMap<A> p_188152_, int p_188153_) {
-            int i = Mth.ceillog2(p_188153_);
-            PalettedContainer.Configuration<A> configuration = this.getConfiguration(p_188152_, i);
+        <A> int calculateBitsForSerialization(IdMap<A> pRegistry, int pSize) {
+            int i = Mth.ceillog2(pSize);
+            PalettedContainer.Configuration<A> configuration = this.getConfiguration(pRegistry, i);
             return configuration.factory() == GLOBAL_PALETTE_FACTORY ? i : configuration.bits();
         }
     }

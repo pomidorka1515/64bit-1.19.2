@@ -9,9 +9,9 @@ import java.util.Map;
 public class VariantRenameFix extends NamedEntityFix {
     private final Map<String, String> renames;
 
-    public VariantRenameFix(Schema p_216742_, String p_216743_, DSL.TypeReference p_216744_, String p_216745_, Map<String, String> p_216746_) {
-        super(p_216742_, false, p_216743_, p_216744_, p_216745_);
-        this.renames = p_216746_;
+    public VariantRenameFix(Schema pOutputSchema, String pName, DSL.TypeReference pType, String pEntityName, Map<String, String> pRenames) {
+        super(pOutputSchema, false, pName, pType, pEntityName);
+        this.renames = pRenames;
     }
 
     protected Typed<?> fix(Typed<?> p_216748_) {

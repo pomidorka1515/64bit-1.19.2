@@ -13,9 +13,9 @@ import java.util.Locale;
 public abstract class EntityRenameFix extends DataFix {
     protected final String name;
 
-    public EntityRenameFix(String p_15618_, Schema p_15619_, boolean p_15620_) {
-        super(p_15619_, p_15620_);
-        this.name = p_15618_;
+    public EntityRenameFix(String pName, Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
+        this.name = pName;
     }
 
     public TypeRewriteRule makeRule() {

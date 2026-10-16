@@ -15,18 +15,18 @@ public abstract class IntProvider {
     public static final Codec<IntProvider> NON_NEGATIVE_CODEC = codec(0, Integer.MAX_VALUE);
     public static final Codec<IntProvider> POSITIVE_CODEC = codec(1, Integer.MAX_VALUE);
 
-    public static Codec<IntProvider> codec(int p_146546_, int p_146547_) {
+    public static Codec<IntProvider> codec(int pMinInclusive, int pMaxInclusive) {
         Function<IntProvider, DataResult<IntProvider>> function = (p_146539_) -> {
-            if (p_146539_.getMinValue() < p_146546_) {
-                return DataResult.error("Value provider too low: " + p_146546_ + " [" + p_146539_.getMinValue() + "-" + p_146539_.getMaxValue() + "]");
+            if (p_146539_.getMinValue() < pMinInclusive) {
+                return DataResult.error("Value provider too low: " + pMinInclusive + " [" + p_146539_.getMinValue() + "-" + p_146539_.getMaxValue() + "]");
             } else {
-                return p_146539_.getMaxValue() > p_146547_ ? DataResult.error("Value provider too high: " + p_146547_ + " [" + p_146539_.getMinValue() + "-" + p_146539_.getMaxValue() + "]") : DataResult.success(p_146539_);
+                return p_146539_.getMaxValue() > pMaxInclusive ? DataResult.error("Value provider too high: " + pMaxInclusive + " [" + p_146539_.getMinValue() + "-" + p_146539_.getMaxValue() + "]") : DataResult.success(p_146539_);
             }
         };
         return CODEC.flatXmap(function, function);
     }
 
-    public abstract int sample(RandomSource p_216855_);
+    public abstract int sample(RandomSource pRandom);
 
     public abstract int getMinValue();
 

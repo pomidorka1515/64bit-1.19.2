@@ -18,15 +18,15 @@ public class LavaSlimeModel<T extends Slime> extends HierarchicalModel<T> {
     private final ModelPart root;
     private final ModelPart[] bodyCubes = new ModelPart[8];
 
-    public LavaSlimeModel(ModelPart p_170703_) {
-        this.root = p_170703_;
+    public LavaSlimeModel(ModelPart pRoot) {
+        this.root = pRoot;
         Arrays.setAll(this.bodyCubes, (p_170709_) -> {
-            return p_170703_.getChild(getSegmentName(p_170709_));
+            return pRoot.getChild(getSegmentName(p_170709_));
         });
     }
 
-    private static String getSegmentName(int p_170706_) {
-        return "cube" + p_170706_;
+    private static String getSegmentName(int pIndex) {
+        return "cube" + pIndex;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -51,11 +51,11 @@ public class LavaSlimeModel<T extends Slime> extends HierarchicalModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
-    public void setupAnim(T p_102992_, float p_102993_, float p_102994_, float p_102995_, float p_102996_, float p_102997_) {
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
     }
 
-    public void prepareMobModel(T p_102987_, float p_102988_, float p_102989_, float p_102990_) {
-        float f = Mth.lerp(p_102990_, p_102987_.oSquish, p_102987_.squish);
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        float f = Mth.lerp(pPartialTick, pEntity.oSquish, pEntity.squish);
         if (f < 0.0F) {
             f = 0.0F;
         }

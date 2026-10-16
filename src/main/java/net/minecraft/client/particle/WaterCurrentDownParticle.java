@@ -12,8 +12,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class WaterCurrentDownParticle extends TextureSheetParticle {
     private float angle;
 
-    WaterCurrentDownParticle(ClientLevel p_108450_, double p_108451_, double p_108452_, double p_108453_) {
-        super(p_108450_, p_108451_, p_108452_, p_108453_);
+    WaterCurrentDownParticle(ClientLevel pLevel, double pX, double pY, double pZ) {
+        super(pLevel, pX, pY, pZ);
         this.lifetime = (int) (Math.random() * 60.0D) + 30;
         this.hasPhysics = false;
         this.xd = 0.0D;
@@ -53,12 +53,12 @@ public class WaterCurrentDownParticle extends TextureSheetParticle {
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public Provider(SpriteSet p_108464_) {
-            this.sprite = p_108464_;
+        public Provider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_108475_, ClientLevel p_108476_, double p_108477_, double p_108478_, double p_108479_, double p_108480_, double p_108481_, double p_108482_) {
-            WaterCurrentDownParticle watercurrentdownparticle = new WaterCurrentDownParticle(p_108476_, p_108477_, p_108478_, p_108479_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            WaterCurrentDownParticle watercurrentdownparticle = new WaterCurrentDownParticle(pLevel, pX, pY, pZ);
             watercurrentdownparticle.pickSprite(this.sprite);
             return watercurrentdownparticle;
         }

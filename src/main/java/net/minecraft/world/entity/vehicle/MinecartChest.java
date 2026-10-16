@@ -14,12 +14,12 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class MinecartChest extends AbstractMinecartContainer {
-    public MinecartChest(EntityType<? extends MinecartChest> p_38487_, Level p_38488_) {
-        super(p_38487_, p_38488_);
+    public MinecartChest(EntityType<? extends MinecartChest> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public MinecartChest(Level p_38490_, double p_38491_, double p_38492_, double p_38493_) {
-        super(EntityType.CHEST_MINECART, p_38491_, p_38492_, p_38493_, p_38490_);
+    public MinecartChest(Level pLevel, double pX, double pY, double pZ) {
+        super(EntityType.CHEST_MINECART, pX, pY, pZ, pLevel);
     }
 
     /** Creates a chest minecart without losing horizontal precision at placement. */
@@ -47,7 +47,7 @@ public class MinecartChest extends AbstractMinecartContainer {
         return 8;
     }
 
-    public AbstractContainerMenu createMenu(int p_38496_, Inventory p_38497_) {
-        return ChestMenu.threeRows(p_38496_, p_38497_, this);
+    public AbstractContainerMenu createMenu(int pId, Inventory pPlayerInventory) {
+        return ChestMenu.threeRows(pId, pPlayerInventory, this);
     }
 }

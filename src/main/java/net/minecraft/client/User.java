@@ -22,13 +22,13 @@ public class User {
     private final Optional<String> clientId;
     private final User.Type type;
 
-    public User(String p_193799_, String p_193800_, String p_193801_, Optional<String> p_193802_, Optional<String> p_193803_, User.Type p_193804_) {
-        this.name = p_193799_;
-        this.uuid = p_193800_;
-        this.accessToken = p_193801_;
-        this.xuid = p_193802_;
-        this.clientId = p_193803_;
-        this.type = p_193804_;
+    public User(String pName, String pUuid, String pAccessToken, Optional<String> pXuid, Optional<String> pClientId, User.Type pType) {
+        this.name = pName;
+        this.uuid = pUuid;
+        this.accessToken = pAccessToken;
+        this.xuid = pXuid;
+        this.clientId = pClientId;
+        this.type = pType;
     }
 
     public String getSessionId() {
@@ -88,8 +88,8 @@ public class User {
         }
 
         @Nullable
-        public static User.Type byName(String p_92562_) {
-            return BY_NAME.get(p_92562_.toLowerCase(Locale.ROOT));
+        public static User.Type byName(String pTypeName) {
+            return BY_NAME.get(pTypeName.toLowerCase(Locale.ROOT));
         }
 
         public String getName() {

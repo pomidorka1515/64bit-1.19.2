@@ -7,10 +7,10 @@ import net.minecraft.world.phys.AABB;
 
 public interface LevelEntityGetter<T extends EntityAccess> {
     @Nullable
-    T get(int p_156931_);
+    T get(int pId);
 
     @Nullable
-    T get(UUID p_156939_);
+    T get(UUID pUuid);
 
     Iterable<T> getAll();
 
@@ -20,9 +20,9 @@ public interface LevelEntityGetter<T extends EntityAccess> {
         for (T entity : this.getAll()) consumer.accept(entity);
     }
 
-    <U extends T> void get(EntityTypeTest<T, U> p_156935_, Consumer<U> p_156936_);
+    <U extends T> void get(EntityTypeTest<T, U> pTest, Consumer<U> pConsumer);
 
-    void get(AABB p_156937_, Consumer<T> p_156938_);
+    void get(AABB pBoundingBox, Consumer<T> pConsumer);
 
-    <U extends T> void get(EntityTypeTest<T, U> p_156932_, AABB p_156933_, Consumer<U> p_156934_);
+    <U extends T> void get(EntityTypeTest<T, U> pTest, AABB pBounds, Consumer<U> pConsumer);
 }

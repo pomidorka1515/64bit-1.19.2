@@ -15,29 +15,29 @@ public class ContainerScreen extends AbstractContainerScreen<ChestMenu> implemen
     private static final ResourceLocation CONTAINER_BACKGROUND = new ResourceLocation("textures/gui/container/generic_54.png");
     private final int containerRows;
 
-    public ContainerScreen(ChestMenu p_98409_, Inventory p_98410_, Component p_98411_) {
-        super(p_98409_, p_98410_, p_98411_);
+    public ContainerScreen(ChestMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle);
         this.passEvents = false;
         int i = 222;
         int j = 114;
-        this.containerRows = p_98409_.getRowCount();
+        this.containerRows = pMenu.getRowCount();
         this.imageHeight = 114 + this.containerRows * 18;
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
-    public void render(PoseStack p_98418_, int p_98419_, int p_98420_, float p_98421_) {
-        this.renderBackground(p_98418_);
-        super.render(p_98418_, p_98419_, p_98420_, p_98421_);
-        this.renderTooltip(p_98418_, p_98419_, p_98420_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
-    protected void renderBg(PoseStack p_98413_, float p_98414_, int p_98415_, int p_98416_) {
+    protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, CONTAINER_BACKGROUND);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        this.blit(p_98413_, i, j, 0, 0, this.imageWidth, this.containerRows * 18 + 17);
-        this.blit(p_98413_, i, j + this.containerRows * 18 + 17, 0, 126, this.imageWidth, 96);
+        this.blit(pPoseStack, i, j, 0, 0, this.imageWidth, this.containerRows * 18 + 17);
+        this.blit(pPoseStack, i, j + this.containerRows * 18 + 17, 0, 126, this.imageWidth, 96);
     }
 }

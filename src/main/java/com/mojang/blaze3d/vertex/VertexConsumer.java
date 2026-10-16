@@ -15,62 +15,62 @@ import org.lwjgl.system.MemoryStack;
 
 @OnlyIn(Dist.CLIENT)
 public interface VertexConsumer {
-    VertexConsumer vertex(double p_85945_, double p_85946_, double p_85947_);
+    VertexConsumer vertex(double pX, double pY, double pZ);
 
-    VertexConsumer color(int p_85973_, int p_85974_, int p_85975_, int p_85976_);
+    VertexConsumer color(int pRed, int pGreen, int pBlue, int pAlpha);
 
-    VertexConsumer uv(float p_85948_, float p_85949_);
+    VertexConsumer uv(float pU, float pV);
 
-    VertexConsumer overlayCoords(int p_85971_, int p_85972_);
+    VertexConsumer overlayCoords(int pU, int pV);
 
-    VertexConsumer uv2(int p_86010_, int p_86011_);
+    VertexConsumer uv2(int pU, int pV);
 
-    VertexConsumer normal(float p_86005_, float p_86006_, float p_86007_);
+    VertexConsumer normal(float pX, float pY, float pZ);
 
     void endVertex();
 
-    default void vertex(float p_85955_, float p_85956_, float p_85957_, float p_85958_, float p_85959_, float p_85960_, float p_85961_, float p_85962_, float p_85963_, int p_85964_, int p_85965_, float p_85966_, float p_85967_, float p_85968_) {
-        this.vertex((double) p_85955_, (double) p_85956_, (double) p_85957_);
-        this.color(p_85958_, p_85959_, p_85960_, p_85961_);
-        this.uv(p_85962_, p_85963_);
-        this.overlayCoords(p_85964_);
-        this.uv2(p_85965_);
-        this.normal(p_85966_, p_85967_, p_85968_);
+    default void vertex(float pX, float pY, float pZ, float pRed, float pGreen, float pBlue, float pAlpha, float pTexU, float pTexV, int pOverlayUV, int pLightmapUV, float pNormalX, float pNormalY, float pNormalZ) {
+        this.vertex((double) pX, (double) pY, (double) pZ);
+        this.color(pRed, pGreen, pBlue, pAlpha);
+        this.uv(pTexU, pTexV);
+        this.overlayCoords(pOverlayUV);
+        this.uv2(pLightmapUV);
+        this.normal(pNormalX, pNormalY, pNormalZ);
         this.endVertex();
     }
 
-    void defaultColor(int p_166901_, int p_166902_, int p_166903_, int p_166904_);
+    void defaultColor(int pDefaultR, int pDefaultG, int pDefaultB, int pDefaultA);
 
     void unsetDefaultColor();
 
-    default VertexConsumer color(float p_85951_, float p_85952_, float p_85953_, float p_85954_) {
-        return this.color((int) (p_85951_ * 255.0F), (int) (p_85952_ * 255.0F), (int) (p_85953_ * 255.0F), (int) (p_85954_ * 255.0F));
+    default VertexConsumer color(float pRed, float pGreen, float pBlue, float pAlpha) {
+        return this.color((int) (pRed * 255.0F), (int) (pGreen * 255.0F), (int) (pBlue * 255.0F), (int) (pAlpha * 255.0F));
     }
 
-    default VertexConsumer color(int p_193480_) {
-        return this.color(FastColor.ARGB32.red(p_193480_), FastColor.ARGB32.green(p_193480_), FastColor.ARGB32.blue(p_193480_), FastColor.ARGB32.alpha(p_193480_));
+    default VertexConsumer color(int pColorARGB) {
+        return this.color(FastColor.ARGB32.red(pColorARGB), FastColor.ARGB32.green(pColorARGB), FastColor.ARGB32.blue(pColorARGB), FastColor.ARGB32.alpha(pColorARGB));
     }
 
-    default VertexConsumer uv2(int p_85970_) {
-        return this.uv2(p_85970_ & '\uffff', p_85970_ >> 16 & '\uffff');
+    default VertexConsumer uv2(int pLightmapUV) {
+        return this.uv2(pLightmapUV & '\uffff', pLightmapUV >> 16 & '\uffff');
     }
 
-    default VertexConsumer overlayCoords(int p_86009_) {
-        return this.overlayCoords(p_86009_ & '\uffff', p_86009_ >> 16 & '\uffff');
+    default VertexConsumer overlayCoords(int pOverlayUV) {
+        return this.overlayCoords(pOverlayUV & '\uffff', pOverlayUV >> 16 & '\uffff');
     }
 
-    default void putBulkData(PoseStack.Pose p_85988_, BakedQuad p_85989_, float p_85990_, float p_85991_, float p_85992_, int p_85993_, int p_85994_) {
-        this.putBulkData(p_85988_, p_85989_, new float[] {1.0F, 1.0F, 1.0F, 1.0F}, p_85990_, p_85991_, p_85992_, new int[] {p_85993_, p_85993_, p_85993_, p_85993_}, p_85994_, false);
+    default void putBulkData(PoseStack.Pose pPoseEntry, BakedQuad pQuad, float pRed, float pGreen, float pBlue, int pCombinedLight, int pCombinedOverlay) {
+        this.putBulkData(pPoseEntry, pQuad, new float[] {1.0F, 1.0F, 1.0F, 1.0F}, pRed, pGreen, pBlue, new int[] {pCombinedLight, pCombinedLight, pCombinedLight, pCombinedLight}, pCombinedOverlay, false);
     }
 
-    default void putBulkData(PoseStack.Pose p_85996_, BakedQuad p_85997_, float[] p_85998_, float p_85999_, float p_86000_, float p_86001_, int[] p_86002_, int p_86003_, boolean p_86004_) {
-        float[] afloat = new float[] {p_85998_[0], p_85998_[1], p_85998_[2], p_85998_[3]};
-        int[] aint = new int[] {p_86002_[0], p_86002_[1], p_86002_[2], p_86002_[3]};
-        int[] aint1 = p_85997_.getVertices();
-        Vec3i vec3i = p_85997_.getDirection().getNormal();
+    default void putBulkData(PoseStack.Pose pPoseEntry, BakedQuad pQuad, float[] pColorMuls, float pRed, float pGreen, float pBlue, int[] pCombinedLights, int pCombinedOverlay, boolean pMulColor) {
+        float[] afloat = new float[] {pColorMuls[0], pColorMuls[1], pColorMuls[2], pColorMuls[3]};
+        int[] aint = new int[] {pCombinedLights[0], pCombinedLights[1], pCombinedLights[2], pCombinedLights[3]};
+        int[] aint1 = pQuad.getVertices();
+        Vec3i vec3i = pQuad.getDirection().getNormal();
         Vector3f vector3f = new Vector3f((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ());
-        Matrix4f matrix4f = p_85996_.pose();
-        vector3f.transform(p_85996_.normal());
+        Matrix4f matrix4f = pPoseEntry.pose();
+        vector3f.transform(pPoseEntry.normal());
         int i = 8;
         int j = aint1.length / 8;
         MemoryStack memorystack = MemoryStack.stackPush();
@@ -88,17 +88,17 @@ public interface VertexConsumer {
                 float f3;
                 float f4;
                 float f5;
-                if (p_86004_) {
+                if (pMulColor) {
                     float f6 = (float) (bytebuffer.get(12) & 255) / 255.0F;
                     float f7 = (float) (bytebuffer.get(13) & 255) / 255.0F;
                     float f8 = (float) (bytebuffer.get(14) & 255) / 255.0F;
-                    f3 = f6 * afloat[k] * p_85999_;
-                    f4 = f7 * afloat[k] * p_86000_;
-                    f5 = f8 * afloat[k] * p_86001_;
+                    f3 = f6 * afloat[k] * pRed;
+                    f4 = f7 * afloat[k] * pGreen;
+                    f5 = f8 * afloat[k] * pBlue;
                 } else {
-                    f3 = afloat[k] * p_85999_;
-                    f4 = afloat[k] * p_86000_;
-                    f5 = afloat[k] * p_86001_;
+                    f3 = afloat[k] * pRed;
+                    f4 = afloat[k] * pGreen;
+                    f5 = afloat[k] * pBlue;
                 }
 
                 int l = aint[k];
@@ -106,7 +106,7 @@ public interface VertexConsumer {
                 float f10 = bytebuffer.getFloat(20);
                 Vector4f vector4f = new Vector4f(f, f1, f2, 1.0F);
                 vector4f.transform(matrix4f);
-                this.vertex(vector4f.x(), vector4f.y(), vector4f.z(), f3, f4, f5, 1.0F, f9, f10, p_86003_, l, vector3f.x(), vector3f.y(), vector3f.z());
+                this.vertex(vector4f.x(), vector4f.y(), vector4f.z(), f3, f4, f5, 1.0F, f9, f10, pCombinedOverlay, l, vector3f.x(), vector3f.y(), vector3f.z());
             }
         } catch (Throwable throwable1) {
             if (memorystack != null) {
@@ -125,15 +125,15 @@ public interface VertexConsumer {
         }
     }
 
-    default VertexConsumer vertex(Matrix4f p_85983_, float p_85984_, float p_85985_, float p_85986_) {
-        Vector4f vector4f = new Vector4f(p_85984_, p_85985_, p_85986_, 1.0F);
-        vector4f.transform(p_85983_);
+    default VertexConsumer vertex(Matrix4f pMatrix, float pX, float pY, float pZ) {
+        Vector4f vector4f = new Vector4f(pX, pY, pZ, 1.0F);
+        vector4f.transform(pMatrix);
         return this.vertex((double) vector4f.x(), (double) vector4f.y(), (double) vector4f.z());
     }
 
-    default VertexConsumer normal(Matrix3f p_85978_, float p_85979_, float p_85980_, float p_85981_) {
-        Vector3f vector3f = new Vector3f(p_85979_, p_85980_, p_85981_);
-        vector3f.transform(p_85978_);
+    default VertexConsumer normal(Matrix3f pMatrix, float pX, float pY, float pZ) {
+        Vector3f vector3f = new Vector3f(pX, pY, pZ);
+        vector3f.transform(pMatrix);
         return this.normal(vector3f.x(), vector3f.y(), vector3f.z());
     }
 }

@@ -15,13 +15,13 @@ public class BackupList extends ValueObject {
     private static final Logger LOGGER = LogUtils.getLogger();
     public List<Backup> backups;
 
-    public static BackupList parse(String p_87410_) {
+    public static BackupList parse(String pJson) {
         JsonParser jsonparser = new JsonParser();
         BackupList backuplist = new BackupList();
         backuplist.backups = Lists.newArrayList();
 
         try {
-            JsonElement jsonelement = jsonparser.parse(p_87410_).getAsJsonObject().get("backups");
+            JsonElement jsonelement = jsonparser.parse(pJson).getAsJsonObject().get("backups");
             if (jsonelement.isJsonArray()) {
                 Iterator<JsonElement> iterator = jsonelement.getAsJsonArray().iterator();
 

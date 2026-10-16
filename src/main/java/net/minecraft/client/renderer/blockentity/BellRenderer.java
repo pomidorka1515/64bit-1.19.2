@@ -26,8 +26,8 @@ public class BellRenderer implements BlockEntityRenderer<BellBlockEntity> {
     private static final String BELL_BODY = "bell_body";
     private final ModelPart bellBody;
 
-    public BellRenderer(BlockEntityRendererProvider.Context p_173554_) {
-        ModelPart modelpart = p_173554_.bakeLayer(ModelLayers.BELL);
+    public BellRenderer(BlockEntityRendererProvider.Context pContext) {
+        ModelPart modelpart = pContext.bakeLayer(ModelLayers.BELL);
         this.bellBody = modelpart.getChild("bell_body");
     }
 
@@ -39,26 +39,26 @@ public class BellRenderer implements BlockEntityRenderer<BellBlockEntity> {
         return LayerDefinition.create(meshdefinition, 32, 32);
     }
 
-    public void render(BellBlockEntity p_112233_, float p_112234_, PoseStack p_112235_, MultiBufferSource p_112236_, int p_112237_, int p_112238_) {
-        float f = (float) p_112233_.ticks + p_112234_;
+    public void render(BellBlockEntity pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        float f = (float) pBlockEntity.ticks + pPartialTick;
         float f1 = 0.0F;
         float f2 = 0.0F;
-        if (p_112233_.shaking) {
+        if (pBlockEntity.shaking) {
             float f3 = Mth.sin(f / (float) Math.PI) / (4.0F + f / 3.0F);
-            if (p_112233_.clickDirection == Direction.NORTH) {
+            if (pBlockEntity.clickDirection == Direction.NORTH) {
                 f1 = -f3;
-            } else if (p_112233_.clickDirection == Direction.SOUTH) {
+            } else if (pBlockEntity.clickDirection == Direction.SOUTH) {
                 f1 = f3;
-            } else if (p_112233_.clickDirection == Direction.EAST) {
+            } else if (pBlockEntity.clickDirection == Direction.EAST) {
                 f2 = -f3;
-            } else if (p_112233_.clickDirection == Direction.WEST) {
+            } else if (pBlockEntity.clickDirection == Direction.WEST) {
                 f2 = f3;
             }
         }
 
         this.bellBody.xRot = f1;
         this.bellBody.zRot = f2;
-        VertexConsumer vertexconsumer = BELL_RESOURCE_LOCATION.buffer(p_112236_, RenderType::entitySolid);
-        this.bellBody.render(p_112235_, vertexconsumer, p_112237_, p_112238_);
+        VertexConsumer vertexconsumer = BELL_RESOURCE_LOCATION.buffer(pBufferSource, RenderType::entitySolid);
+        this.bellBody.render(pPoseStack, vertexconsumer, pPackedLight, pPackedOverlay);
     }
 }

@@ -23,11 +23,11 @@ public class Path {
     private final float distToTarget;
     private final boolean reached;
 
-    public Path(List<Node> p_77371_, BlockPos p_77372_, boolean p_77373_) {
-        this.nodes = p_77371_;
-        this.target = p_77372_;
-        this.distToTarget = p_77371_.isEmpty() ? Float.MAX_VALUE : this.nodes.get(this.nodes.size() - 1).distanceManhattan(this.target);
-        this.reached = p_77373_;
+    public Path(List<Node> pNodes, BlockPos pTarget, boolean pReached) {
+        this.nodes = pNodes;
+        this.target = pTarget;
+        this.distToTarget = pNodes.isEmpty() ? Float.MAX_VALUE : this.nodes.get(this.nodes.size() - 1).distanceManhattan(this.target);
+        this.reached = pReached;
     }
 
     public void advance() {
@@ -47,18 +47,18 @@ public class Path {
         return !this.nodes.isEmpty() ? this.nodes.get(this.nodes.size() - 1) : null;
     }
 
-    public Node getNode(int p_77376_) {
-        return this.nodes.get(p_77376_);
+    public Node getNode(int pIndex) {
+        return this.nodes.get(pIndex);
     }
 
-    public void truncateNodes(int p_77389_) {
-        if (this.nodes.size() > p_77389_) {
-            this.nodes.subList(p_77389_, this.nodes.size()).clear();
+    public void truncateNodes(int pLength) {
+        if (this.nodes.size() > pLength) {
+            this.nodes.subList(pLength, this.nodes.size()).clear();
         }
     }
 
-    public void replaceNode(int p_77378_, Node p_77379_) {
-        this.nodes.set(p_77378_, p_77379_);
+    public void replaceNode(int pIndex, Node pPoint) {
+        this.nodes.set(pIndex, pPoint);
     }
 
     public int getNodeCount() {
@@ -69,12 +69,12 @@ public class Path {
         return this.nextNodeIndex;
     }
 
-    public void setNextNodeIndex(int p_77394_) {
-        this.nextNodeIndex = p_77394_;
+    public void setNextNodeIndex(int pCurrentPathIndex) {
+        this.nextNodeIndex = pCurrentPathIndex;
     }
 
-    public Vec3 getEntityPosAtNode(Entity p_77383_, int p_77384_) {
-        return this.getExactEntityPosAtNode(p_77383_, p_77384_).toApproximateVec3();
+    public Vec3 getEntityPosAtNode(Entity pEntity, int pIndex) {
+        return this.getExactEntityPosAtNode(pEntity, pIndex).toApproximateVec3();
     }
 
     public SectorVec3 getExactEntityPosAtNode(Entity entity, int index) {
@@ -87,8 +87,8 @@ public class Path {
         return this.nodes.get(p_77397_).asBlockPos();
     }
 
-    public Vec3 getNextEntityPos(Entity p_77381_) {
-        return this.getEntityPosAtNode(p_77381_, this.nextNodeIndex);
+    public Vec3 getNextEntityPos(Entity pEntity) {
+        return this.getEntityPosAtNode(pEntity, this.nextNodeIndex);
     }
 
     public SectorVec3 getNextExactEntityPos(Entity entity) {
@@ -108,15 +108,15 @@ public class Path {
         return this.nextNodeIndex > 0 ? this.nodes.get(this.nextNodeIndex - 1) : null;
     }
 
-    public boolean sameAs(@Nullable Path p_77386_) {
-        if (p_77386_ == null) {
+    public boolean sameAs(@Nullable Path pPathentity) {
+        if (pPathentity == null) {
             return false;
-        } else if (p_77386_.nodes.size() != this.nodes.size()) {
+        } else if (pPathentity.nodes.size() != this.nodes.size()) {
             return false;
         } else {
             for (int i = 0; i < this.nodes.size(); ++i) {
                 Node node = this.nodes.get(i);
-                Node node1 = p_77386_.nodes.get(i);
+                Node node1 = pPathentity.nodes.get(i);
                 if (node.x != node1.x || node.y != node1.y || node.z != node1.z) {
                     return false;
                 }
@@ -131,10 +131,10 @@ public class Path {
     }
 
     @VisibleForDebug
-    void setDebug(Node[] p_164710_, Node[] p_164711_, Set<Target> p_164712_) {
-        this.openSet = p_164710_;
-        this.closedSet = p_164711_;
-        this.targetNodes = p_164712_;
+    void setDebug(Node[] pOpenSet, Node[] pClosedSet, Set<Target> pTargetNodes) {
+        this.openSet = pOpenSet;
+        this.closedSet = pClosedSet;
+        this.targetNodes = pTargetNodes;
     }
 
     @VisibleForDebug
@@ -147,65 +147,65 @@ public class Path {
         return this.closedSet;
     }
 
-    public void writeToStream(FriendlyByteBuf p_164705_) {
+    public void writeToStream(FriendlyByteBuf pBuffer) {
         if (this.targetNodes != null && !this.targetNodes.isEmpty()) {
-            p_164705_.writeBoolean(this.reached);
-            p_164705_.writeInt(this.nextNodeIndex);
-            p_164705_.writeInt(this.targetNodes.size());
+            pBuffer.writeBoolean(this.reached);
+            pBuffer.writeInt(this.nextNodeIndex);
+            pBuffer.writeInt(this.targetNodes.size());
             this.targetNodes.forEach((p_164708_) -> {
-                p_164708_.writeToStream(p_164705_);
+                p_164708_.writeToStream(pBuffer);
             });
-            p_164705_.writeLong(this.target.getX());
-            p_164705_.writeInt(this.target.getY());
-            p_164705_.writeLong(this.target.getZ());
-            p_164705_.writeInt(this.nodes.size());
+            pBuffer.writeLong(this.target.getX());
+            pBuffer.writeInt(this.target.getY());
+            pBuffer.writeLong(this.target.getZ());
+            pBuffer.writeInt(this.nodes.size());
 
             for (Node node : this.nodes) {
-                node.writeToStream(p_164705_);
+                node.writeToStream(pBuffer);
             }
 
-            p_164705_.writeInt(this.openSet.length);
+            pBuffer.writeInt(this.openSet.length);
 
             for (Node node1 : this.openSet) {
-                node1.writeToStream(p_164705_);
+                node1.writeToStream(pBuffer);
             }
 
-            p_164705_.writeInt(this.closedSet.length);
+            pBuffer.writeInt(this.closedSet.length);
 
             for (Node node2 : this.closedSet) {
-                node2.writeToStream(p_164705_);
+                node2.writeToStream(pBuffer);
             }
         }
     }
 
-    public static Path createFromStream(FriendlyByteBuf p_77391_) {
-        boolean flag = p_77391_.readBoolean();
-        int i = p_77391_.readInt();
-        int j = p_77391_.readInt();
+    public static Path createFromStream(FriendlyByteBuf pBuf) {
+        boolean flag = pBuf.readBoolean();
+        int i = pBuf.readInt();
+        int j = pBuf.readInt();
         Set<Target> set = Sets.newHashSet();
 
         for (int k = 0; k < j; ++k) {
-            set.add(Target.createFromStream(p_77391_));
+            set.add(Target.createFromStream(pBuf));
         }
 
-        BlockPos blockpos = new BlockPos(p_77391_.readLong(), p_77391_.readInt(), p_77391_.readLong());
+        BlockPos blockpos = new BlockPos(pBuf.readLong(), pBuf.readInt(), pBuf.readLong());
         List<Node> list = Lists.newArrayList();
-        int l = p_77391_.readInt();
+        int l = pBuf.readInt();
 
         for (int i1 = 0; i1 < l; ++i1) {
-            list.add(Node.createFromStream(p_77391_));
+            list.add(Node.createFromStream(pBuf));
         }
 
-        Node[] anode = new Node[p_77391_.readInt()];
+        Node[] anode = new Node[pBuf.readInt()];
 
         for (int j1 = 0; j1 < anode.length; ++j1) {
-            anode[j1] = Node.createFromStream(p_77391_);
+            anode[j1] = Node.createFromStream(pBuf);
         }
 
-        Node[] anode1 = new Node[p_77391_.readInt()];
+        Node[] anode1 = new Node[pBuf.readInt()];
 
         for (int k1 = 0; k1 < anode1.length; ++k1) {
-            anode1[k1] = Node.createFromStream(p_77391_);
+            anode1[k1] = Node.createFromStream(pBuf);
         }
 
         Path path = new Path(list, blockpos, flag);

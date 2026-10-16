@@ -28,7 +28,7 @@ public class AmbientParticleSettings {
         return this.options;
     }
 
-    public boolean canSpawn(RandomSource p_220528_) {
-        return p_220528_.nextFloat() <= this.probability;
+    public boolean canSpawn(RandomSource pRandom) {
+        return pRandom.nextFloat() <= this.probability;
     }
 }

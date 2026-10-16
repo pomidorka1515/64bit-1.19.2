@@ -36,16 +36,16 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
     private static final double SPLASH_RANGE_SQ = 16.0D;
     public static final Predicate<LivingEntity> WATER_SENSITIVE = LivingEntity::isSensitiveToWater;
 
-    public ThrownPotion(EntityType<? extends ThrownPotion> p_37527_, Level p_37528_) {
-        super(p_37527_, p_37528_);
+    public ThrownPotion(EntityType<? extends ThrownPotion> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public ThrownPotion(Level p_37535_, LivingEntity p_37536_) {
-        super(EntityType.POTION, p_37536_, p_37535_);
+    public ThrownPotion(Level pLevel, LivingEntity pShooter) {
+        super(EntityType.POTION, pShooter, pLevel);
     }
 
-    public ThrownPotion(Level p_37530_, double p_37531_, double p_37532_, double p_37533_) {
-        super(EntityType.POTION, p_37531_, p_37532_, p_37533_, p_37530_);
+    public ThrownPotion(Level pLevel, double pX, double pY, double pZ) {
+        super(EntityType.POTION, pX, pY, pZ, pLevel);
     }
 
     protected Item getDefaultItem() {
@@ -56,15 +56,15 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
         return 0.05F;
     }
 
-    protected void onHitBlock(BlockHitResult p_37541_) {
-        super.onHitBlock(p_37541_);
+    protected void onHitBlock(BlockHitResult pResult) {
+        super.onHitBlock(pResult);
         if (!this.level.isClientSide) {
             ItemStack itemstack = this.getItem();
             Potion potion = PotionUtils.getPotion(itemstack);
             List<MobEffectInstance> list = PotionUtils.getMobEffects(itemstack);
             boolean flag = potion == Potions.WATER && list.isEmpty();
-            Direction direction = p_37541_.getDirection();
-            BlockPos blockpos = p_37541_.getBlockPos();
+            Direction direction = pResult.getDirection();
+            BlockPos blockpos = pResult.getBlockPos();
             BlockPos blockpos1 = blockpos.relative(direction);
             if (flag) {
                 this.dowseFire(blockpos1);
@@ -77,8 +77,8 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
         }
     }
 
-    protected void onHit(HitResult p_37543_) {
-        super.onHit(p_37543_);
+    protected void onHit(HitResult pResult) {
+        super.onHit(pResult);
         if (!this.level.isClientSide) {
             ItemStack itemstack = this.getItem();
             Potion potion = PotionUtils.getPotion(itemstack);
@@ -90,7 +90,7 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
                 if (this.isLingering()) {
                     this.makeAreaOfEffectCloud(itemstack, potion);
                 } else {
-                    this.applySplash(list, p_37543_.getType() == HitResult.Type.ENTITY ? ((EntityHitResult) p_37543_).getEntity() : null);
+                    this.applySplash(list, pResult.getType() == HitResult.Type.ENTITY ? ((EntityHitResult) pResult).getEntity() : null);
                 }
             }
 
@@ -117,7 +117,7 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
         }
     }
 
-    private void applySplash(List<MobEffectInstance> p_37548_, @Nullable Entity p_37549_) {
+    private void applySplash(List<MobEffectInstance> pEffectInstances, @Nullable Entity pTarget) {
         AABB aabb = this.getBoundingBox().inflate(4.0D, 2.0D, 4.0D);
         List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, aabb);
         if (!list.isEmpty()) {
@@ -128,11 +128,11 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
                     double d0 = this.distanceToSqr(livingentity);
                     if (d0 < 16.0D) {
                         double d1 = 1.0D - Math.sqrt(d0) / 4.0D;
-                        if (livingentity == p_37549_) {
+                        if (livingentity == pTarget) {
                             d1 = 1.0D;
                         }
 
-                        for (MobEffectInstance mobeffectinstance : p_37548_) {
+                        for (MobEffectInstance mobeffectinstance : pEffectInstances) {
                             MobEffect mobeffect = mobeffectinstance.getEffect();
                             if (mobeffect.isInstantenous()) {
                                 mobeffect.applyInstantenousEffect(this, this.getOwner(), livingentity, mobeffectinstance.getAmplifier(), d1);
@@ -149,7 +149,7 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
         }
     }
 
-    private void makeAreaOfEffectCloud(ItemStack p_37538_, Potion p_37539_) {
+    private void makeAreaOfEffectCloud(ItemStack pStack, Potion pPotion) {
         AreaEffectCloud areaeffectcloud = new AreaEffectCloud(this.level, this.getX(), this.getY(), this.getZ());
         areaeffectcloud.applyExactPosition(this.sectorPosition());
         Entity entity = this.getOwner();
@@ -161,13 +161,13 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
         areaeffectcloud.setRadiusOnUse(-0.5F);
         areaeffectcloud.setWaitTime(10);
         areaeffectcloud.setRadiusPerTick(-areaeffectcloud.getRadius() / (float) areaeffectcloud.getDuration());
-        areaeffectcloud.setPotion(p_37539_);
+        areaeffectcloud.setPotion(pPotion);
 
-        for (MobEffectInstance mobeffectinstance : PotionUtils.getCustomEffects(p_37538_)) {
+        for (MobEffectInstance mobeffectinstance : PotionUtils.getCustomEffects(pStack)) {
             areaeffectcloud.addEffect(new MobEffectInstance(mobeffectinstance));
         }
 
-        CompoundTag compoundtag = p_37538_.getTag();
+        CompoundTag compoundtag = pStack.getTag();
         if (compoundtag != null && compoundtag.contains("CustomPotionColor", 99)) {
             areaeffectcloud.setFixedColor(compoundtag.getInt("CustomPotionColor"));
         }
@@ -179,16 +179,16 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
         return this.getItem().is(Items.LINGERING_POTION);
     }
 
-    private void dowseFire(BlockPos p_150193_) {
-        BlockState blockstate = this.level.getBlockState(p_150193_);
+    private void dowseFire(BlockPos pPos) {
+        BlockState blockstate = this.level.getBlockState(pPos);
         if (blockstate.is(BlockTags.FIRE)) {
-            this.level.removeBlock(p_150193_, false);
+            this.level.removeBlock(pPos, false);
         } else if (AbstractCandleBlock.isLit(blockstate)) {
-            AbstractCandleBlock.extinguish((Player) null, blockstate, this.level, p_150193_);
+            AbstractCandleBlock.extinguish((Player) null, blockstate, this.level, pPos);
         } else if (CampfireBlock.isLitCampfire(blockstate)) {
-            this.level.levelEvent((Player) null, 1009, p_150193_, 0);
-            CampfireBlock.dowse(this.getOwner(), this.level, p_150193_, blockstate);
-            this.level.setBlockAndUpdate(p_150193_, blockstate.setValue(CampfireBlock.LIT, Boolean.valueOf(false)));
+            this.level.levelEvent((Player) null, 1009, pPos, 0);
+            CampfireBlock.dowse(this.getOwner(), this.level, pPos, blockstate);
+            this.level.setBlockAndUpdate(pPos, blockstate.setValue(CampfireBlock.LIT, Boolean.valueOf(false)));
         }
     }
 }

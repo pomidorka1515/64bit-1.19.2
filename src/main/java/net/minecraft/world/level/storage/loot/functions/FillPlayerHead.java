@@ -20,9 +20,9 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 public class FillPlayerHead extends LootItemConditionalFunction {
     final LootContext.EntityTarget entityTarget;
 
-    public FillPlayerHead(LootItemCondition[] p_80604_, LootContext.EntityTarget p_80605_) {
-        super(p_80604_);
-        this.entityTarget = p_80605_;
+    public FillPlayerHead(LootItemCondition[] pConditions, LootContext.EntityTarget pEntityTarget) {
+        super(pConditions);
+        this.entityTarget = pEntityTarget;
     }
 
     public LootItemFunctionType getType() {
@@ -33,33 +33,33 @@ public class FillPlayerHead extends LootItemConditionalFunction {
         return ImmutableSet.of(this.entityTarget.getParam());
     }
 
-    public ItemStack run(ItemStack p_80608_, LootContext p_80609_) {
-        if (p_80608_.is(Items.PLAYER_HEAD)) {
-            Entity entity = p_80609_.getParamOrNull(this.entityTarget.getParam());
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        if (pStack.is(Items.PLAYER_HEAD)) {
+            Entity entity = pContext.getParamOrNull(this.entityTarget.getParam());
             if (entity instanceof Player) {
                 GameProfile gameprofile = ((Player) entity).getGameProfile();
-                p_80608_.getOrCreateTag().put("SkullOwner", NbtUtils.writeGameProfile(new CompoundTag(), gameprofile));
+                pStack.getOrCreateTag().put("SkullOwner", NbtUtils.writeGameProfile(new CompoundTag(), gameprofile));
             }
         }
 
-        return p_80608_;
+        return pStack;
     }
 
-    public static LootItemConditionalFunction.Builder<?> fillPlayerHead(LootContext.EntityTarget p_165208_) {
+    public static LootItemConditionalFunction.Builder<?> fillPlayerHead(LootContext.EntityTarget pEntityTarget) {
         return simpleBuilder((p_165211_) -> {
-            return new FillPlayerHead(p_165211_, p_165208_);
+            return new FillPlayerHead(p_165211_, pEntityTarget);
         });
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<FillPlayerHead> {
-        public void serialize(JsonObject p_80619_, FillPlayerHead p_80620_, JsonSerializationContext p_80621_) {
-            super.serialize(p_80619_, p_80620_, p_80621_);
-            p_80619_.add("entity", p_80621_.serialize(p_80620_.entityTarget));
+        public void serialize(JsonObject pJson, FillPlayerHead pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            pJson.add("entity", pSerializationContext.serialize(pValue.entityTarget));
         }
 
-        public FillPlayerHead deserialize(JsonObject p_80615_, JsonDeserializationContext p_80616_, LootItemCondition[] p_80617_) {
-            LootContext.EntityTarget lootcontext$entitytarget = GsonHelper.getAsObject(p_80615_, "entity", p_80616_, LootContext.EntityTarget.class);
-            return new FillPlayerHead(p_80617_, lootcontext$entitytarget);
+        public FillPlayerHead deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            LootContext.EntityTarget lootcontext$entitytarget = GsonHelper.getAsObject(pObject, "entity", pDeserializationContext, LootContext.EntityTarget.class);
+            return new FillPlayerHead(pConditions, lootcontext$entitytarget);
         }
     }
 }

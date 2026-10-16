@@ -13,14 +13,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class SmithingScreen extends ItemCombinerScreen<SmithingMenu> {
     private static final ResourceLocation SMITHING_LOCATION = new ResourceLocation("textures/gui/container/smithing.png");
 
-    public SmithingScreen(SmithingMenu p_99290_, Inventory p_99291_, Component p_99292_) {
-        super(p_99290_, p_99291_, p_99292_, SMITHING_LOCATION);
+    public SmithingScreen(SmithingMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle, SMITHING_LOCATION);
         this.titleLabelX = 60;
         this.titleLabelY = 18;
     }
 
-    protected void renderLabels(PoseStack p_99294_, int p_99295_, int p_99296_) {
+    protected void renderLabels(PoseStack pPoseStack, int pX, int pY) {
         RenderSystem.disableBlend();
-        super.renderLabels(p_99294_, p_99295_, p_99296_);
+        super.renderLabels(pPoseStack, pX, pY);
     }
 }

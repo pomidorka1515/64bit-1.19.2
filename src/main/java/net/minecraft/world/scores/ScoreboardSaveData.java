@@ -12,27 +12,27 @@ public class ScoreboardSaveData extends SavedData {
     public static final String FILE_ID = "scoreboard";
     private final Scoreboard scoreboard;
 
-    public ScoreboardSaveData(Scoreboard p_166101_) {
-        this.scoreboard = p_166101_;
+    public ScoreboardSaveData(Scoreboard pScoreboard) {
+        this.scoreboard = pScoreboard;
     }
 
-    public ScoreboardSaveData load(CompoundTag p_166103_) {
-        this.loadObjectives(p_166103_.getList("Objectives", 10));
-        this.scoreboard.loadPlayerScores(p_166103_.getList("PlayerScores", 10));
-        if (p_166103_.contains("DisplaySlots", 10)) {
-            this.loadDisplaySlots(p_166103_.getCompound("DisplaySlots"));
+    public ScoreboardSaveData load(CompoundTag pTag) {
+        this.loadObjectives(pTag.getList("Objectives", 10));
+        this.scoreboard.loadPlayerScores(pTag.getList("PlayerScores", 10));
+        if (pTag.contains("DisplaySlots", 10)) {
+            this.loadDisplaySlots(pTag.getCompound("DisplaySlots"));
         }
 
-        if (p_166103_.contains("Teams", 9)) {
-            this.loadTeams(p_166103_.getList("Teams", 10));
+        if (pTag.contains("Teams", 9)) {
+            this.loadTeams(pTag.getList("Teams", 10));
         }
 
         return this;
     }
 
-    private void loadTeams(ListTag p_83525_) {
-        for (int i = 0; i < p_83525_.size(); ++i) {
-            CompoundTag compoundtag = p_83525_.getCompound(i);
+    private void loadTeams(ListTag pTagList) {
+        for (int i = 0; i < pTagList.size(); ++i) {
+            CompoundTag compoundtag = pTagList.getCompound(i);
             String s = compoundtag.getString("Name");
             PlayerTeam playerteam = this.scoreboard.addPlayerTeam(s);
             Component component = Component.Serializer.fromJson(compoundtag.getString("DisplayName"));
@@ -91,25 +91,25 @@ public class ScoreboardSaveData extends SavedData {
         }
     }
 
-    private void loadTeamPlayers(PlayerTeam p_83515_, ListTag p_83516_) {
-        for (int i = 0; i < p_83516_.size(); ++i) {
-            this.scoreboard.addPlayerToTeam(p_83516_.getString(i), p_83515_);
+    private void loadTeamPlayers(PlayerTeam pPlayerTeam, ListTag pTagList) {
+        for (int i = 0; i < pTagList.size(); ++i) {
+            this.scoreboard.addPlayerToTeam(pTagList.getString(i), pPlayerTeam);
         }
     }
 
-    private void loadDisplaySlots(CompoundTag p_83531_) {
+    private void loadDisplaySlots(CompoundTag pCompound) {
         for (int i = 0; i < 19; ++i) {
-            if (p_83531_.contains("slot_" + i, 8)) {
-                String s = p_83531_.getString("slot_" + i);
+            if (pCompound.contains("slot_" + i, 8)) {
+                String s = pCompound.getString("slot_" + i);
                 Objective objective = this.scoreboard.getObjective(s);
                 this.scoreboard.setDisplayObjective(i, objective);
             }
         }
     }
 
-    private void loadObjectives(ListTag p_83529_) {
-        for (int i = 0; i < p_83529_.size(); ++i) {
-            CompoundTag compoundtag = p_83529_.getCompound(i);
+    private void loadObjectives(ListTag pTag) {
+        for (int i = 0; i < pTag.size(); ++i) {
+            CompoundTag compoundtag = pTag.getCompound(i);
             ObjectiveCriteria.byName(compoundtag.getString("CriteriaName")).ifPresent((p_83523_) -> {
                 String s = compoundtag.getString("Name");
                 Component component = Component.Serializer.fromJson(compoundtag.getString("DisplayName"));
@@ -119,12 +119,12 @@ public class ScoreboardSaveData extends SavedData {
         }
     }
 
-    public CompoundTag save(CompoundTag p_83527_) {
-        p_83527_.put("Objectives", this.saveObjectives());
-        p_83527_.put("PlayerScores", this.scoreboard.savePlayerScores());
-        p_83527_.put("Teams", this.saveTeams());
-        this.saveDisplaySlots(p_83527_);
-        return p_83527_;
+    public CompoundTag save(CompoundTag pCompound) {
+        pCompound.put("Objectives", this.saveObjectives());
+        pCompound.put("PlayerScores", this.scoreboard.savePlayerScores());
+        pCompound.put("Teams", this.saveTeams());
+        this.saveDisplaySlots(pCompound);
+        return pCompound;
     }
 
     private ListTag saveTeams() {
@@ -158,7 +158,7 @@ public class ScoreboardSaveData extends SavedData {
         return listtag;
     }
 
-    private void saveDisplaySlots(CompoundTag p_83533_) {
+    private void saveDisplaySlots(CompoundTag pCompound) {
         CompoundTag compoundtag = new CompoundTag();
         boolean flag = false;
 
@@ -171,7 +171,7 @@ public class ScoreboardSaveData extends SavedData {
         }
 
         if (flag) {
-            p_83533_.put("DisplaySlots", compoundtag);
+            pCompound.put("DisplaySlots", compoundtag);
         }
     }
 

@@ -17,17 +17,17 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class LlamaSpit extends Projectile {
-    public LlamaSpit(EntityType<? extends LlamaSpit> p_37224_, Level p_37225_) {
-        super(p_37224_, p_37225_);
+    public LlamaSpit(EntityType<? extends LlamaSpit> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public LlamaSpit(Level p_37235_, Llama p_37236_) {
-        this(EntityType.LLAMA_SPIT, p_37235_);
-        this.setOwner(p_37236_);
-        double offset = (double) (p_37236_.getBbWidth() + 1.0F) * 0.5D;
-        this.applyExactPosition(p_37236_.sectorPosition().add(-offset * (double) Mth.sin(p_37236_.yBodyRot * ((float) Math.PI / 180F)),
-                p_37236_.getEyeY() - (double) 0.1F - p_37236_.getY(),
-                offset * (double) Mth.cos(p_37236_.yBodyRot * ((float) Math.PI / 180F))));
+    public LlamaSpit(Level pLevel, Llama pSpitter) {
+        this(EntityType.LLAMA_SPIT, pLevel);
+        this.setOwner(pSpitter);
+        double offset = (double) (pSpitter.getBbWidth() + 1.0F) * 0.5D;
+        this.applyExactPosition(pSpitter.sectorPosition().add(-offset * (double) Mth.sin(pSpitter.yBodyRot * ((float) Math.PI / 180F)),
+                pSpitter.getEyeY() - (double) 0.1F - pSpitter.getY(),
+                offset * (double) Mth.cos(pSpitter.yBodyRot * ((float) Math.PI / 180F))));
     }
 
     public void tick() {
@@ -53,16 +53,16 @@ public class LlamaSpit extends Projectile {
         }
     }
 
-    protected void onHitEntity(EntityHitResult p_37241_) {
-        super.onHitEntity(p_37241_);
+    protected void onHitEntity(EntityHitResult pResult) {
+        super.onHitEntity(pResult);
         Entity entity = this.getOwner();
         if (entity instanceof LivingEntity) {
-            p_37241_.getEntity().hurt(DamageSource.indirectMobAttack(this, (LivingEntity) entity).setProjectile(), 1.0F);
+            pResult.getEntity().hurt(DamageSource.indirectMobAttack(this, (LivingEntity) entity).setProjectile(), 1.0F);
         }
     }
 
-    protected void onHitBlock(BlockHitResult p_37239_) {
-        super.onHitBlock(p_37239_);
+    protected void onHitBlock(BlockHitResult pResult) {
+        super.onHitBlock(pResult);
         if (!this.level.isClientSide) {
             this.discard();
         }
@@ -71,11 +71,11 @@ public class LlamaSpit extends Projectile {
     protected void defineSynchedData() {
     }
 
-    public void recreateFromPacket(ClientboundAddEntityPacket p_150162_) {
-        super.recreateFromPacket(p_150162_);
-        double d0 = p_150162_.getXa();
-        double d1 = p_150162_.getYa();
-        double d2 = p_150162_.getZa();
+    public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
+        super.recreateFromPacket(pPacket);
+        double d0 = pPacket.getXa();
+        double d1 = pPacket.getYa();
+        double d2 = pPacket.getZa();
 
         for (int i = 0; i < 7; ++i) {
             double d3 = 0.4D + 0.1D * (double) i;

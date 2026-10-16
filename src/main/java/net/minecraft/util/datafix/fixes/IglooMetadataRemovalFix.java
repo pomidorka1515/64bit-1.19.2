@@ -7,8 +7,8 @@ import com.mojang.datafixers.types.Type;
 import com.mojang.serialization.Dynamic;
 
 public class IglooMetadataRemovalFix extends DataFix {
-    public IglooMetadataRemovalFix(Schema p_15902_, boolean p_15903_) {
-        super(p_15902_, p_15903_);
+    public IglooMetadataRemovalFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

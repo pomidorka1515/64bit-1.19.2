@@ -22,9 +22,9 @@ public interface PlacementModifierType<P extends PlacementModifier> {
 
     Codec<P> codec();
 
-    private static <P extends PlacementModifier> PlacementModifierType<P> register(String p_191867_, Codec<P> p_191868_) {
-        return Registry.register(Registry.PLACEMENT_MODIFIERS, p_191867_, () -> {
-            return p_191868_;
+    private static <P extends PlacementModifier> PlacementModifierType<P> register(String pName, Codec<P> pCodec) {
+        return Registry.register(Registry.PLACEMENT_MODIFIERS, pName, () -> {
+            return pCodec;
         });
     }
 }

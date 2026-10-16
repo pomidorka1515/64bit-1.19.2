@@ -40,22 +40,22 @@ public class SpawnEggItem extends Item {
     private final int highlightColor;
     private final EntityType<?> defaultType;
 
-    public SpawnEggItem(EntityType<? extends Mob> p_43207_, int p_43208_, int p_43209_, Item.Properties p_43210_) {
-        super(p_43210_);
-        this.defaultType = p_43207_;
-        this.backgroundColor = p_43208_;
-        this.highlightColor = p_43209_;
-        BY_ID.put(p_43207_, this);
+    public SpawnEggItem(EntityType<? extends Mob> pDefaultType, int pBackgroundColor, int pHighlightColor, Item.Properties pProperties) {
+        super(pProperties);
+        this.defaultType = pDefaultType;
+        this.backgroundColor = pBackgroundColor;
+        this.highlightColor = pHighlightColor;
+        BY_ID.put(pDefaultType, this);
     }
 
-    public InteractionResult useOn(UseOnContext p_43223_) {
-        Level level = p_43223_.getLevel();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
         if (!(level instanceof ServerLevel)) {
             return InteractionResult.SUCCESS;
         } else {
-            ItemStack itemstack = p_43223_.getItemInHand();
-            BlockPos blockpos = p_43223_.getClickedPos();
-            Direction direction = p_43223_.getClickedFace();
+            ItemStack itemstack = pContext.getItemInHand();
+            BlockPos blockpos = pContext.getClickedPos();
+            Direction direction = pContext.getClickedFace();
             BlockState blockstate = level.getBlockState(blockpos);
             if (blockstate.is(Blocks.SPAWNER)) {
                 BlockEntity blockentity = level.getBlockEntity(blockpos);
@@ -65,7 +65,7 @@ public class SpawnEggItem extends Item {
                     basespawner.setEntityId(entitytype1);
                     blockentity.setChanged();
                     level.sendBlockUpdated(blockpos, blockstate, blockstate, 3);
-                    level.gameEvent(p_43223_.getPlayer(), GameEvent.BLOCK_CHANGE, blockpos);
+                    level.gameEvent(pContext.getPlayer(), GameEvent.BLOCK_CHANGE, blockpos);
                     itemstack.shrink(1);
                     return InteractionResult.CONSUME;
                 }
@@ -79,39 +79,39 @@ public class SpawnEggItem extends Item {
             }
 
             EntityType<?> entitytype = this.getType(itemstack.getTag());
-            if (entitytype.spawn((ServerLevel) level, itemstack, p_43223_.getPlayer(), blockpos1, MobSpawnType.SPAWN_EGG, true, !Objects.equals(blockpos, blockpos1) && direction == Direction.UP) != null) {
+            if (entitytype.spawn((ServerLevel) level, itemstack, pContext.getPlayer(), blockpos1, MobSpawnType.SPAWN_EGG, true, !Objects.equals(blockpos, blockpos1) && direction == Direction.UP) != null) {
                 itemstack.shrink(1);
-                level.gameEvent(p_43223_.getPlayer(), GameEvent.ENTITY_PLACE, blockpos);
+                level.gameEvent(pContext.getPlayer(), GameEvent.ENTITY_PLACE, blockpos);
             }
 
             return InteractionResult.CONSUME;
         }
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_43225_, Player p_43226_, InteractionHand p_43227_) {
-        ItemStack itemstack = p_43226_.getItemInHand(p_43227_);
-        HitResult hitresult = getPlayerPOVHitResult(p_43225_, p_43226_, ClipContext.Fluid.SOURCE_ONLY);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
+        HitResult hitresult = getPlayerPOVHitResult(pLevel, pPlayer, ClipContext.Fluid.SOURCE_ONLY);
         if (hitresult.getType() != HitResult.Type.BLOCK) {
             return InteractionResultHolder.pass(itemstack);
-        } else if (!(p_43225_ instanceof ServerLevel)) {
+        } else if (!(pLevel instanceof ServerLevel)) {
             return InteractionResultHolder.success(itemstack);
         } else {
             BlockHitResult blockhitresult = (BlockHitResult) hitresult;
             BlockPos blockpos = blockhitresult.getBlockPos();
-            if (!(p_43225_.getBlockState(blockpos).getBlock() instanceof LiquidBlock)) {
+            if (!(pLevel.getBlockState(blockpos).getBlock() instanceof LiquidBlock)) {
                 return InteractionResultHolder.pass(itemstack);
-            } else if (p_43225_.mayInteract(p_43226_, blockpos) && p_43226_.mayUseItemAt(blockpos, blockhitresult.getDirection(), itemstack)) {
+            } else if (pLevel.mayInteract(pPlayer, blockpos) && pPlayer.mayUseItemAt(blockpos, blockhitresult.getDirection(), itemstack)) {
                 EntityType<?> entitytype = this.getType(itemstack.getTag());
-                Entity entity = entitytype.spawn((ServerLevel) p_43225_, itemstack, p_43226_, blockpos, MobSpawnType.SPAWN_EGG, false, false);
+                Entity entity = entitytype.spawn((ServerLevel) pLevel, itemstack, pPlayer, blockpos, MobSpawnType.SPAWN_EGG, false, false);
                 if (entity == null) {
                     return InteractionResultHolder.pass(itemstack);
                 } else {
-                    if (!p_43226_.getAbilities().instabuild) {
+                    if (!pPlayer.getAbilities().instabuild) {
                         itemstack.shrink(1);
                     }
 
-                    p_43226_.awardStat(Stats.ITEM_USED.get(this));
-                    p_43225_.gameEvent(p_43226_, GameEvent.ENTITY_PLACE, entity.position());
+                    pPlayer.awardStat(Stats.ITEM_USED.get(this));
+                    pLevel.gameEvent(pPlayer, GameEvent.ENTITY_PLACE, entity.position());
                     return InteractionResultHolder.consume(itemstack);
                 }
             } else {
@@ -120,26 +120,26 @@ public class SpawnEggItem extends Item {
         }
     }
 
-    public boolean spawnsEntity(@Nullable CompoundTag p_43231_, EntityType<?> p_43232_) {
-        return Objects.equals(this.getType(p_43231_), p_43232_);
+    public boolean spawnsEntity(@Nullable CompoundTag pNbt, EntityType<?> pType) {
+        return Objects.equals(this.getType(pNbt), pType);
     }
 
-    public int getColor(int p_43212_) {
-        return p_43212_ == 0 ? this.backgroundColor : this.highlightColor;
+    public int getColor(int pTintIndex) {
+        return pTintIndex == 0 ? this.backgroundColor : this.highlightColor;
     }
 
     @Nullable
-    public static SpawnEggItem byId(@Nullable EntityType<?> p_43214_) {
-        return BY_ID.get(p_43214_);
+    public static SpawnEggItem byId(@Nullable EntityType<?> pType) {
+        return BY_ID.get(pType);
     }
 
     public static Iterable<SpawnEggItem> eggs() {
         return Iterables.unmodifiableIterable(BY_ID.values());
     }
 
-    public EntityType<?> getType(@Nullable CompoundTag p_43229_) {
-        if (p_43229_ != null && p_43229_.contains("EntityTag", 10)) {
-            CompoundTag compoundtag = p_43229_.getCompound("EntityTag");
+    public EntityType<?> getType(@Nullable CompoundTag pNbt) {
+        if (pNbt != null && pNbt.contains("EntityTag", 10)) {
+            CompoundTag compoundtag = pNbt.getCompound("EntityTag");
             if (compoundtag.contains("id", 8)) {
                 return EntityType.byString(compoundtag.getString("id")).orElse(this.defaultType);
             }
@@ -148,15 +148,15 @@ public class SpawnEggItem extends Item {
         return this.defaultType;
     }
 
-    public Optional<Mob> spawnOffspringFromSpawnEgg(Player p_43216_, Mob p_43217_, EntityType<? extends Mob> p_43218_, ServerLevel p_43219_, Vec3 p_43220_, ItemStack p_43221_) {
-        if (!this.spawnsEntity(p_43221_.getTag(), p_43218_)) {
+    public Optional<Mob> spawnOffspringFromSpawnEgg(Player pPlayer, Mob pMob, EntityType<? extends Mob> pEntityType, ServerLevel pServerLevel, Vec3 pPos, ItemStack pStack) {
+        if (!this.spawnsEntity(pStack.getTag(), pEntityType)) {
             return Optional.empty();
         } else {
             Mob mob;
-            if (p_43217_ instanceof AgeableMob) {
-                mob = ((AgeableMob) p_43217_).getBreedOffspring(p_43219_, (AgeableMob) p_43217_);
+            if (pMob instanceof AgeableMob) {
+                mob = ((AgeableMob) pMob).getBreedOffspring(pServerLevel, (AgeableMob) pMob);
             } else {
-                mob = p_43218_.create(p_43219_);
+                mob = pEntityType.create(pServerLevel);
             }
 
             if (mob == null) {
@@ -166,14 +166,14 @@ public class SpawnEggItem extends Item {
                 if (!mob.isBaby()) {
                     return Optional.empty();
                 } else {
-                    mob.moveTo(p_43220_.x(), p_43220_.y(), p_43220_.z(), 0.0F, 0.0F);
-                    p_43219_.addFreshEntityWithPassengers(mob);
-                    if (p_43221_.hasCustomHoverName()) {
-                        mob.setCustomName(p_43221_.getHoverName());
+                    mob.moveTo(pPos.x(), pPos.y(), pPos.z(), 0.0F, 0.0F);
+                    pServerLevel.addFreshEntityWithPassengers(mob);
+                    if (pStack.hasCustomHoverName()) {
+                        mob.setCustomName(pStack.getHoverName());
                     }
 
-                    if (!p_43216_.getAbilities().instabuild) {
-                        p_43221_.shrink(1);
+                    if (!pPlayer.getAbilities().instabuild) {
+                        pStack.shrink(1);
                     }
 
                     return Optional.of(mob);

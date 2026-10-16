@@ -15,12 +15,12 @@ public class RarityFilter extends PlacementFilter {
         this.chance = p_191899_;
     }
 
-    public static RarityFilter onAverageOnceEvery(int p_191901_) {
-        return new RarityFilter(p_191901_);
+    public static RarityFilter onAverageOnceEvery(int pChance) {
+        return new RarityFilter(pChance);
     }
 
-    protected boolean shouldPlace(PlacementContext p_226397_, RandomSource p_226398_, BlockPos p_226399_) {
-        return p_226398_.nextFloat() < 1.0F / (float) this.chance;
+    protected boolean shouldPlace(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
+        return pRandom.nextFloat() < 1.0F / (float) this.chance;
     }
 
     public PlacementModifierType<?> type() {

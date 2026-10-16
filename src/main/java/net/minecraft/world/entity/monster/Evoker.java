@@ -42,8 +42,8 @@ public class Evoker extends SpellcasterIllager {
     @Nullable
     private Sheep wololoTarget;
 
-    public Evoker(EntityType<? extends Evoker> p_32627_, Level p_32628_) {
-        super(p_32627_, p_32628_);
+    public Evoker(EntityType<? extends Evoker> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.xpReward = 10;
     }
 
@@ -72,33 +72,33 @@ public class Evoker extends SpellcasterIllager {
         super.defineSynchedData();
     }
 
-    public void readAdditionalSaveData(CompoundTag p_32642_) {
-        super.readAdditionalSaveData(p_32642_);
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
     }
 
     public SoundEvent getCelebrateSound() {
         return SoundEvents.EVOKER_CELEBRATE;
     }
 
-    public void addAdditionalSaveData(CompoundTag p_32646_) {
-        super.addAdditionalSaveData(p_32646_);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
     }
 
     protected void customServerAiStep() {
         super.customServerAiStep();
     }
 
-    public boolean isAlliedTo(Entity p_32665_) {
-        if (p_32665_ == null) {
+    public boolean isAlliedTo(Entity pEntity) {
+        if (pEntity == null) {
             return false;
-        } else if (p_32665_ == this) {
+        } else if (pEntity == this) {
             return true;
-        } else if (super.isAlliedTo(p_32665_)) {
+        } else if (super.isAlliedTo(pEntity)) {
             return true;
-        } else if (p_32665_ instanceof Vex) {
-            return this.isAlliedTo(((Vex) p_32665_).getOwner());
-        } else if (p_32665_ instanceof LivingEntity && ((LivingEntity) p_32665_).getMobType() == MobType.ILLAGER) {
-            return this.getTeam() == null && p_32665_.getTeam() == null;
+        } else if (pEntity instanceof Vex) {
+            return this.isAlliedTo(((Vex) pEntity).getOwner());
+        } else if (pEntity instanceof LivingEntity && ((LivingEntity) pEntity).getMobType() == MobType.ILLAGER) {
+            return this.getTeam() == null && pEntity.getTeam() == null;
         } else {
             return false;
         }
@@ -112,12 +112,12 @@ public class Evoker extends SpellcasterIllager {
         return SoundEvents.EVOKER_DEATH;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_32654_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.EVOKER_HURT;
     }
 
-    void setWololoTarget(@Nullable Sheep p_32635_) {
-        this.wololoTarget = p_32635_;
+    void setWololoTarget(@Nullable Sheep pWololoTarget) {
+        this.wololoTarget = pWololoTarget;
     }
 
     @Nullable
@@ -129,7 +129,7 @@ public class Evoker extends SpellcasterIllager {
         return SoundEvents.EVOKER_CAST_SPELL;
     }
 
-    public void applyRaidBuffs(int p_32632_, boolean p_32633_) {
+    public void applyRaidBuffs(int pWave, boolean pUnusedFalse) {
     }
 
     class EvokerAttackSpellGoal extends SpellcasterIllager.SpellcasterUseSpellGoal {
@@ -165,8 +165,8 @@ public class Evoker extends SpellcasterIllager {
             }
         }
 
-        private void createSpellEntity(double p_32673_, double p_32674_, double p_32675_, double p_32676_, float p_32677_, int p_32678_) {
-            net.minecraft.world.phys.SectorVec3 target = Evoker.this.sectorPosition().add(p_32673_, 0.0D, p_32674_).withY(p_32676_);
+        private void createSpellEntity(double pX, double pZ, double pMinY, double pMaxY, float pYRot, int pWarmupDelay) {
+            net.minecraft.world.phys.SectorVec3 target = Evoker.this.sectorPosition().add(pX, 0.0D, pZ).withY(pMaxY);
             BlockPos blockpos = target.blockPosition();
             boolean flag = false;
             double d0 = 0.0D;
@@ -188,10 +188,10 @@ public class Evoker extends SpellcasterIllager {
                 }
 
                 blockpos = blockpos.below();
-            } while (blockpos.getY() >= Mth.floor(p_32675_) - 1);
+            } while (blockpos.getY() >= Mth.floor(pMinY) - 1);
 
             if (flag) {
-                EvokerFangs fangs = new EvokerFangs(Evoker.this.level, 0.0D, (double) blockpos.getY() + d0, 0.0D, p_32677_, p_32678_, Evoker.this);
+                EvokerFangs fangs = new EvokerFangs(Evoker.this.level, 0.0D, (double) blockpos.getY() + d0, 0.0D, pYRot, pWarmupDelay, Evoker.this);
                 fangs.applyExactPosition(target.withY((double) blockpos.getY() + d0));
                 Evoker.this.level.addFreshEntity(fangs);
             }

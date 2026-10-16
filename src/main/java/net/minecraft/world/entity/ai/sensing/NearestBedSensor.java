@@ -38,11 +38,11 @@ public class NearestBedSensor extends Sensor<Mob> {
         return ImmutableSet.of(MemoryModuleType.NEAREST_BED);
     }
 
-    protected void doTick(ServerLevel p_26685_, Mob p_26686_) {
-        if (p_26686_.isBaby()) {
+    protected void doTick(ServerLevel pLevel, Mob pEntity) {
+        if (pEntity.isBaby()) {
             this.triedCount = 0;
-            this.lastUpdate = p_26685_.getGameTime() + (long) p_26685_.getRandom().nextInt(20);
-            PoiManager poimanager = p_26685_.getPoiManager();
+            this.lastUpdate = pLevel.getGameTime() + (long) pLevel.getRandom().nextInt(20);
+            PoiManager poimanager = pLevel.getPoiManager();
             Predicate<BlockPos> predicate = (p_26688_) -> {
                 if (this.batchCache.containsKey(p_26688_)) {
                     return false;
@@ -55,13 +55,13 @@ public class NearestBedSensor extends Sensor<Mob> {
             };
             Set<Pair<Holder<PoiType>, BlockPos>> set = poimanager.findAllWithType((p_217819_) -> {
                                                                      return p_217819_.is(PoiTypes.HOME);
-                                                                 }, predicate, p_26686_.blockPosition(), 48, PoiManager.Occupancy.ANY).collect(Collectors.toSet());
-            Path path = AcquirePoi.findPathToPois(p_26686_, set);
+                                                                 }, predicate, pEntity.blockPosition(), 48, PoiManager.Occupancy.ANY).collect(Collectors.toSet());
+            Path path = AcquirePoi.findPathToPois(pEntity, set);
             if (path != null && path.canReach()) {
                 BlockPos blockpos = path.getTarget();
                 Optional<Holder<PoiType>> optional = poimanager.getType(blockpos);
                 if (optional.isPresent()) {
-                    p_26686_.getBrain().setMemory(MemoryModuleType.NEAREST_BED, blockpos);
+                    pEntity.getBrain().setMemory(MemoryModuleType.NEAREST_BED, blockpos);
                 }
             } else if (this.triedCount < 5) {
                 this.batchCache.object2LongEntrySet().removeIf((p_217821_) -> {

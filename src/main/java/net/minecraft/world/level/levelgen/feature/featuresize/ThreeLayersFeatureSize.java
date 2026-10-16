@@ -43,11 +43,11 @@ public class ThreeLayersFeatureSize extends FeatureSize {
         return FeatureSizeType.THREE_LAYERS_FEATURE_SIZE;
     }
 
-    public int getSizeAtHeight(int p_68321_, int p_68322_) {
-        if (p_68322_ < this.limit) {
+    public int getSizeAtHeight(int pHeight, int pMidpoint) {
+        if (pMidpoint < this.limit) {
             return this.lowerSize;
         } else {
-            return p_68322_ >= p_68321_ - this.upperLimit ? this.upperSize : this.middleSize;
+            return pMidpoint >= pHeight - this.upperLimit ? this.upperSize : this.middleSize;
         }
     }
 }

@@ -18,9 +18,9 @@ public class PanicGoal extends Goal {
     protected SectorVec3 panicPosition;
     protected boolean isRunning;
 
-    public PanicGoal(PathfinderMob p_25691_, double p_25692_) {
-        this.mob = p_25691_;
-        this.speedModifier = p_25692_;
+    public PanicGoal(PathfinderMob pMob, double pSpeedModifier) {
+        this.mob = pMob;
+        this.speedModifier = pSpeedModifier;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
@@ -70,10 +70,10 @@ public class PanicGoal extends Goal {
     }
 
     @Nullable
-    protected BlockPos lookForWater(BlockGetter p_198173_, Entity p_198174_, int p_198175_) {
-        BlockPos blockpos = p_198174_.blockPosition();
-        return !p_198173_.getBlockState(blockpos).getCollisionShape(p_198173_, blockpos).isEmpty() ? null : BlockPos.findClosestMatch(p_198174_.blockPosition(), p_198175_, 1, (p_196649_) -> {
-                                                                                                                        return p_198173_.getFluidState(p_196649_).is(FluidTags.WATER);
+    protected BlockPos lookForWater(BlockGetter pLevel, Entity pEntity, int pRange) {
+        BlockPos blockpos = pEntity.blockPosition();
+        return !pLevel.getBlockState(blockpos).getCollisionShape(pLevel, blockpos).isEmpty() ? null : BlockPos.findClosestMatch(pEntity.blockPosition(), pRange, 1, (p_196649_) -> {
+                                                                                                                        return pLevel.getFluidState(p_196649_).is(FluidTags.WATER);
                                                                                                                     }).orElse((BlockPos) null);
     }
 }

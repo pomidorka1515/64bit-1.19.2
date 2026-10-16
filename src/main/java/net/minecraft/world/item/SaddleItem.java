@@ -9,20 +9,20 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.gameevent.GameEvent;
 
 public class SaddleItem extends Item {
-    public SaddleItem(Item.Properties p_43053_) {
-        super(p_43053_);
+    public SaddleItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResult interactLivingEntity(ItemStack p_43055_, Player p_43056_, LivingEntity p_43057_, InteractionHand p_43058_) {
-        if (p_43057_ instanceof Saddleable saddleable && p_43057_.isAlive()) {
+    public InteractionResult interactLivingEntity(ItemStack pStack, Player pPlayer, LivingEntity pTarget, InteractionHand pHand) {
+        if (pTarget instanceof Saddleable saddleable && pTarget.isAlive()) {
             if (!saddleable.isSaddled() && saddleable.isSaddleable()) {
-                if (!p_43056_.level.isClientSide) {
+                if (!pPlayer.level.isClientSide) {
                     saddleable.equipSaddle(SoundSource.NEUTRAL);
-                    p_43057_.level.gameEvent(p_43057_, GameEvent.EQUIP, p_43057_.position());
-                    p_43055_.shrink(1);
+                    pTarget.level.gameEvent(pTarget, GameEvent.EQUIP, pTarget.position());
+                    pStack.shrink(1);
                 }
 
-                return InteractionResult.sidedSuccess(p_43056_.level.isClientSide);
+                return InteractionResult.sidedSuccess(pPlayer.level.isClientSide);
             }
         }
 

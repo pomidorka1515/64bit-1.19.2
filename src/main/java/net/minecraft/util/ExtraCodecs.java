@@ -77,8 +77,8 @@ public class ExtraCodecs {
         return p_216178_.isPresent() ? Optional.of(p_216178_.getAsLong()) : Optional.empty();
     };
 
-    public static <F, S> Codec<Either<F, S>> xor(Codec<F> p_144640_, Codec<S> p_144641_) {
-        return new ExtraCodecs.XorCodec<>(p_144640_, p_144641_);
+    public static <F, S> Codec<Either<F, S>> xor(Codec<F> pFirst, Codec<S> pSecond) {
+        return new ExtraCodecs.XorCodec<>(pFirst, pSecond);
     }
 
     public static <P, I> Codec<I> intervalCodec(Codec<P> p_184362_, String p_184363_, String p_184364_, BiFunction<P, P, DataResult<I>> p_184365_, Function<I, P> p_184366_, Function<I, P> p_184367_) {
@@ -171,14 +171,14 @@ public class ExtraCodecs {
         });
     }
 
-    private static <N extends Number & Comparable<N>> Function<N, DataResult<N>> checkRangeWithMessage(N p_144645_, N p_144646_, Function<N, String> p_144647_) {
+    private static <N extends Number & Comparable<N>> Function<N, DataResult<N>> checkRangeWithMessage(N pMin, N pMax, Function<N, String> pErrorMessage) {
         return (p_184438_) -> {
-            return p_184438_.compareTo(p_144645_) >= 0 && p_184438_.compareTo(p_144646_) <= 0 ? DataResult.success(p_184438_) : DataResult.error(p_144647_.apply(p_184438_));
+            return p_184438_.compareTo(pMin) >= 0 && p_184438_.compareTo(pMax) <= 0 ? DataResult.success(p_184438_) : DataResult.error(pErrorMessage.apply(p_184438_));
         };
     }
 
-    private static Codec<Integer> intRangeWithMessage(int p_144634_, int p_144635_, Function<Integer, String> p_144636_) {
-        Function<Integer, DataResult<Integer>> function = checkRangeWithMessage(p_144634_, p_144635_, p_144636_);
+    private static Codec<Integer> intRangeWithMessage(int pMin, int pMax, Function<Integer, String> pErrorMessage) {
+        Function<Integer, DataResult<Integer>> function = checkRangeWithMessage(pMin, pMax, pErrorMessage);
         return Codec.INT.flatXmap(function, function);
     }
 
@@ -199,8 +199,8 @@ public class ExtraCodecs {
         };
     }
 
-    public static <T> Codec<List<T>> nonEmptyList(Codec<List<T>> p_144638_) {
-        return p_144638_.flatXmap(nonEmptyListCheck(), nonEmptyListCheck());
+    public static <T> Codec<List<T>> nonEmptyList(Codec<List<T>> pCodec) {
+        return pCodec.flatXmap(nonEmptyListCheck(), nonEmptyListCheck());
     }
 
     public static <T> Function<HolderSet<T>, DataResult<HolderSet<T>>> nonEmptyHolderSetCheck() {
@@ -288,9 +288,9 @@ public class ExtraCodecs {
         private final Codec<F> first;
         private final Codec<S> second;
 
-        public EitherCodec(Codec<F> p_184508_, Codec<S> p_184509_) {
-            this.first = p_184508_;
-            this.second = p_184509_;
+        public EitherCodec(Codec<F> pFirst, Codec<S> pSecond) {
+            this.first = pFirst;
+            this.second = pSecond;
         }
 
         public <T> DataResult<Pair<Either<F, S>, T>> decode(DynamicOps<T> p_184530_, T p_184531_) {
@@ -361,16 +361,16 @@ public class ExtraCodecs {
         private final Codec<F> first;
         private final Codec<S> second;
 
-        public XorCodec(Codec<F> p_144660_, Codec<S> p_144661_) {
-            this.first = p_144660_;
-            this.second = p_144661_;
+        public XorCodec(Codec<F> pFirst, Codec<S> pSecond) {
+            this.first = pFirst;
+            this.second = pSecond;
         }
 
-        public <T> DataResult<Pair<Either<F, S>, T>> decode(DynamicOps<T> p_144679_, T p_144680_) {
-            DataResult<Pair<Either<F, S>, T>> dataresult = this.first.decode(p_144679_, p_144680_).map((p_144673_) -> {
+        public <T> DataResult<Pair<Either<F, S>, T>> decode(DynamicOps<T> pOps, T pInput) {
+            DataResult<Pair<Either<F, S>, T>> dataresult = this.first.decode(pOps, pInput).map((p_144673_) -> {
                 return p_144673_.mapFirst(Either::left);
             });
-            DataResult<Pair<Either<F, S>, T>> dataresult1 = this.second.decode(p_144679_, p_144680_).map((p_144667_) -> {
+            DataResult<Pair<Either<F, S>, T>> dataresult1 = this.second.decode(pOps, pInput).map((p_144667_) -> {
                 return p_144667_.mapFirst(Either::right);
             });
             Optional<Pair<Either<F, S>, T>> optional = dataresult.result();
@@ -382,15 +382,15 @@ public class ExtraCodecs {
             }
         }
 
-        public <T> DataResult<T> encode(Either<F, S> p_144663_, DynamicOps<T> p_144664_, T p_144665_) {
-            return p_144663_.map((p_144677_) -> { return this.first.encode(p_144677_, p_144664_, p_144665_); }, (p_144671_) -> { return this.second.encode(p_144671_, p_144664_, p_144665_); });
+        public <T> DataResult<T> encode(Either<F, S> pInput, DynamicOps<T> pOps, T pPrefix) {
+            return pInput.map((p_144677_) -> { return this.first.encode(p_144677_, pOps, pPrefix); }, (p_144671_) -> { return this.second.encode(p_144671_, pOps, pPrefix); });
         }
 
-        public boolean equals(Object p_144686_) {
-            if (this == p_144686_) {
+        public boolean equals(Object pOther) {
+            if (this == pOther) {
                 return true;
-            } else if (p_144686_ != null && this.getClass() == p_144686_.getClass()) {
-                ExtraCodecs.XorCodec<?, ?> xorcodec = (ExtraCodecs.XorCodec) p_144686_;
+            } else if (pOther != null && this.getClass() == pOther.getClass()) {
+                ExtraCodecs.XorCodec<?, ?> xorcodec = (ExtraCodecs.XorCodec) pOther;
                 return Objects.equals(this.first, xorcodec.first) && Objects.equals(this.second, xorcodec.second);
             } else {
                 return false;

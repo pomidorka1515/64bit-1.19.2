@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.state.BlockState;
 public class InstantNeighborUpdater implements NeighborUpdater {
     private final Level level;
 
-    public InstantNeighborUpdater(Level p_230743_) {
-        this.level = p_230743_;
+    public InstantNeighborUpdater(Level pLevel) {
+        this.level = pLevel;
     }
 
     public void shapeUpdate(Direction p_230755_, BlockState p_230756_, BlockPos p_230757_, BlockPos p_230758_, int p_230759_, int p_230760_) {

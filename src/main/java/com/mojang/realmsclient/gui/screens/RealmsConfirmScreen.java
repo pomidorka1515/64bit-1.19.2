@@ -16,11 +16,11 @@ public class RealmsConfirmScreen extends RealmsScreen {
     private final Component title1;
     private final Component title2;
 
-    public RealmsConfirmScreen(BooleanConsumer p_88550_, Component p_88551_, Component p_88552_) {
+    public RealmsConfirmScreen(BooleanConsumer pCallback, Component pTitle1, Component pTitle2) {
         super(GameNarrator.NO_TITLE);
-        this.callback = p_88550_;
-        this.title1 = p_88551_;
-        this.title2 = p_88552_;
+        this.callback = pCallback;
+        this.title1 = pTitle1;
+        this.title2 = pTitle2;
     }
 
     public void init() {
@@ -32,10 +32,10 @@ public class RealmsConfirmScreen extends RealmsScreen {
         }));
     }
 
-    public void render(PoseStack p_88554_, int p_88555_, int p_88556_, float p_88557_) {
-        this.renderBackground(p_88554_);
-        drawCenteredString(p_88554_, this.font, this.title1, this.width / 2, row(3), 16777215);
-        drawCenteredString(p_88554_, this.font, this.title2, this.width / 2, row(5), 16777215);
-        super.render(p_88554_, p_88555_, p_88556_, p_88557_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title1, this.width / 2, row(3), 16777215);
+        drawCenteredString(pPoseStack, this.font, this.title2, this.width / 2, row(5), 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

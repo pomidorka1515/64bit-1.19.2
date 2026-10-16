@@ -9,8 +9,8 @@ import net.minecraft.world.level.storage.loot.LootContext;
 public class LootItemRandomChanceCondition implements LootItemCondition {
     final float probability;
 
-    LootItemRandomChanceCondition(float p_81923_) {
-        this.probability = p_81923_;
+    LootItemRandomChanceCondition(float pProbability) {
+        this.probability = pProbability;
     }
 
     public LootItemConditionType getType() {
@@ -21,9 +21,9 @@ public class LootItemRandomChanceCondition implements LootItemCondition {
         return p_81930_.getRandom().nextFloat() < this.probability;
     }
 
-    public static LootItemCondition.Builder randomChance(float p_81928_) {
+    public static LootItemCondition.Builder randomChance(float pProbability) {
         return () -> {
-            return new LootItemRandomChanceCondition(p_81928_);
+            return new LootItemRandomChanceCondition(pProbability);
         };
     }
 

@@ -10,26 +10,26 @@ public class ServerboundPlaceRecipePacket implements Packet<ServerGamePacketList
     private final ResourceLocation recipe;
     private final boolean shiftDown;
 
-    public ServerboundPlaceRecipePacket(int p_134240_, Recipe<?> p_134241_, boolean p_134242_) {
-        this.containerId = p_134240_;
-        this.recipe = p_134241_.getId();
-        this.shiftDown = p_134242_;
+    public ServerboundPlaceRecipePacket(int pContainerId, Recipe<?> pRecipe, boolean pShiftDown) {
+        this.containerId = pContainerId;
+        this.recipe = pRecipe.getId();
+        this.shiftDown = pShiftDown;
     }
 
-    public ServerboundPlaceRecipePacket(FriendlyByteBuf p_179706_) {
-        this.containerId = p_179706_.readByte();
-        this.recipe = p_179706_.readResourceLocation();
-        this.shiftDown = p_179706_.readBoolean();
+    public ServerboundPlaceRecipePacket(FriendlyByteBuf pBuffer) {
+        this.containerId = pBuffer.readByte();
+        this.recipe = pBuffer.readResourceLocation();
+        this.shiftDown = pBuffer.readBoolean();
     }
 
-    public void write(FriendlyByteBuf p_134251_) {
-        p_134251_.writeByte(this.containerId);
-        p_134251_.writeResourceLocation(this.recipe);
-        p_134251_.writeBoolean(this.shiftDown);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeByte(this.containerId);
+        pBuffer.writeResourceLocation(this.recipe);
+        pBuffer.writeBoolean(this.shiftDown);
     }
 
-    public void handle(ServerGamePacketListener p_134248_) {
-        p_134248_.handlePlaceRecipe(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handlePlaceRecipe(this);
     }
 
     public int getContainerId() {

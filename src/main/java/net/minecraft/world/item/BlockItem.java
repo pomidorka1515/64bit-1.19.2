@@ -37,26 +37,26 @@ public class BlockItem extends Item {
     @Deprecated
     private final Block block;
 
-    public BlockItem(Block p_40565_, Item.Properties p_40566_) {
-        super(p_40566_);
-        this.block = p_40565_;
+    public BlockItem(Block pBlock, Item.Properties pProperties) {
+        super(pProperties);
+        this.block = pBlock;
     }
 
-    public InteractionResult useOn(UseOnContext p_40581_) {
-        InteractionResult interactionresult = this.place(new BlockPlaceContext(p_40581_));
+    public InteractionResult useOn(UseOnContext pContext) {
+        InteractionResult interactionresult = this.place(new BlockPlaceContext(pContext));
         if (!interactionresult.consumesAction() && this.isEdible()) {
-            InteractionResult interactionresult1 = this.use(p_40581_.getLevel(), p_40581_.getPlayer(), p_40581_.getHand()).getResult();
+            InteractionResult interactionresult1 = this.use(pContext.getLevel(), pContext.getPlayer(), pContext.getHand()).getResult();
             return interactionresult1 == InteractionResult.CONSUME ? InteractionResult.CONSUME_PARTIAL : interactionresult1;
         } else {
             return interactionresult;
         }
     }
 
-    public InteractionResult place(BlockPlaceContext p_40577_) {
-        if (!p_40577_.canPlace()) {
+    public InteractionResult place(BlockPlaceContext pContext) {
+        if (!pContext.canPlace()) {
             return InteractionResult.FAIL;
         } else {
-            BlockPlaceContext blockplacecontext = this.updatePlacementContext(p_40577_);
+            BlockPlaceContext blockplacecontext = this.updatePlacementContext(pContext);
             if (blockplacecontext == null) {
                 return InteractionResult.FAIL;
             } else {
@@ -93,31 +93,31 @@ public class BlockItem extends Item {
         }
     }
 
-    protected SoundEvent getPlaceSound(BlockState p_40588_) {
-        return p_40588_.getSoundType().getPlaceSound();
+    protected SoundEvent getPlaceSound(BlockState pState) {
+        return pState.getSoundType().getPlaceSound();
     }
 
     @Nullable
-    public BlockPlaceContext updatePlacementContext(BlockPlaceContext p_40609_) {
-        return p_40609_;
+    public BlockPlaceContext updatePlacementContext(BlockPlaceContext pContext) {
+        return pContext;
     }
 
-    protected boolean updateCustomBlockEntityTag(BlockPos p_40597_, Level p_40598_, @Nullable Player p_40599_, ItemStack p_40600_, BlockState p_40601_) {
-        return updateCustomBlockEntityTag(p_40598_, p_40599_, p_40597_, p_40600_);
+    protected boolean updateCustomBlockEntityTag(BlockPos pPos, Level pLevel, @Nullable Player pPlayer, ItemStack pStack, BlockState pState) {
+        return updateCustomBlockEntityTag(pLevel, pPlayer, pPos, pStack);
     }
 
     @Nullable
-    protected BlockState getPlacementState(BlockPlaceContext p_40613_) {
-        BlockState blockstate = this.getBlock().getStateForPlacement(p_40613_);
-        return blockstate != null && this.canPlace(p_40613_, blockstate) ? blockstate : null;
+    protected BlockState getPlacementState(BlockPlaceContext pContext) {
+        BlockState blockstate = this.getBlock().getStateForPlacement(pContext);
+        return blockstate != null && this.canPlace(pContext, blockstate) ? blockstate : null;
     }
 
-    private BlockState updateBlockStateFromTag(BlockPos p_40603_, Level p_40604_, ItemStack p_40605_, BlockState p_40606_) {
-        BlockState blockstate = p_40606_;
-        CompoundTag compoundtag = p_40605_.getTag();
+    private BlockState updateBlockStateFromTag(BlockPos pPos, Level pLevel, ItemStack pStack, BlockState pState) {
+        BlockState blockstate = pState;
+        CompoundTag compoundtag = pStack.getTag();
         if (compoundtag != null) {
             CompoundTag compoundtag1 = compoundtag.getCompound("BlockStateTag");
-            StateDefinition<Block, BlockState> statedefinition = p_40606_.getBlock().getStateDefinition();
+            StateDefinition<Block, BlockState> statedefinition = pState.getBlock().getStateDefinition();
 
             for (String s : compoundtag1.getAllKeys()) {
                 Property<?> property = statedefinition.getProperty(s);
@@ -128,44 +128,44 @@ public class BlockItem extends Item {
             }
         }
 
-        if (blockstate != p_40606_) {
-            p_40604_.setBlock(p_40603_, blockstate, 2);
+        if (blockstate != pState) {
+            pLevel.setBlock(pPos, blockstate, 2);
         }
 
         return blockstate;
     }
 
-    private static <T extends Comparable<T>> BlockState updateState(BlockState p_40594_, Property<T> p_40595_, String p_40596_) {
-        return p_40595_.getValue(p_40596_).map((p_40592_) -> {
-                                              return p_40594_.setValue(p_40595_, p_40592_);
+    private static <T extends Comparable<T>> BlockState updateState(BlockState pState, Property<T> pProperty, String pValueIdentifier) {
+        return pProperty.getValue(pValueIdentifier).map((p_40592_) -> {
+                                              return pState.setValue(pProperty, p_40592_);
                                           })
-                .orElse(p_40594_);
+                .orElse(pState);
     }
 
-    protected boolean canPlace(BlockPlaceContext p_40611_, BlockState p_40612_) {
-        Player player = p_40611_.getPlayer();
+    protected boolean canPlace(BlockPlaceContext pContext, BlockState pState) {
+        Player player = pContext.getPlayer();
         CollisionContext collisioncontext = player == null ? CollisionContext.empty() : CollisionContext.of(player);
-        return (!this.mustSurvive() || p_40612_.canSurvive(p_40611_.getLevel(), p_40611_.getClickedPos())) && p_40611_.getLevel().isUnobstructed(p_40612_, p_40611_.getClickedPos(), collisioncontext);
+        return (!this.mustSurvive() || pState.canSurvive(pContext.getLevel(), pContext.getClickedPos())) && pContext.getLevel().isUnobstructed(pState, pContext.getClickedPos(), collisioncontext);
     }
 
     protected boolean mustSurvive() {
         return true;
     }
 
-    protected boolean placeBlock(BlockPlaceContext p_40578_, BlockState p_40579_) {
-        return p_40578_.getLevel().setBlock(p_40578_.getClickedPos(), p_40579_, 11);
+    protected boolean placeBlock(BlockPlaceContext pContext, BlockState pState) {
+        return pContext.getLevel().setBlock(pContext.getClickedPos(), pState, 11);
     }
 
-    public static boolean updateCustomBlockEntityTag(Level p_40583_, @Nullable Player p_40584_, BlockPos p_40585_, ItemStack p_40586_) {
-        MinecraftServer minecraftserver = p_40583_.getServer();
+    public static boolean updateCustomBlockEntityTag(Level pLevel, @Nullable Player pPlayer, BlockPos pPos, ItemStack pStack) {
+        MinecraftServer minecraftserver = pLevel.getServer();
         if (minecraftserver == null) {
             return false;
         } else {
-            CompoundTag compoundtag = getBlockEntityData(p_40586_);
+            CompoundTag compoundtag = getBlockEntityData(pStack);
             if (compoundtag != null) {
-                BlockEntity blockentity = p_40583_.getBlockEntity(p_40585_);
+                BlockEntity blockentity = pLevel.getBlockEntity(pPos);
                 if (blockentity != null) {
-                    if (!p_40583_.isClientSide && blockentity.onlyOpCanSetNbt() && (p_40584_ == null || !p_40584_.canUseGameMasterBlocks())) {
+                    if (!pLevel.isClientSide && blockentity.onlyOpCanSetNbt() && (pPlayer == null || !pPlayer.canUseGameMasterBlocks())) {
                         return false;
                     }
 
@@ -188,51 +188,51 @@ public class BlockItem extends Item {
         return this.getBlock().getDescriptionId();
     }
 
-    public void fillItemCategory(CreativeModeTab p_40569_, NonNullList<ItemStack> p_40570_) {
-        if (this.allowedIn(p_40569_)) {
-            this.getBlock().fillItemCategory(p_40569_, p_40570_);
+    public void fillItemCategory(CreativeModeTab pGroup, NonNullList<ItemStack> pItems) {
+        if (this.allowedIn(pGroup)) {
+            this.getBlock().fillItemCategory(pGroup, pItems);
         }
     }
 
-    public void appendHoverText(ItemStack p_40572_, @Nullable Level p_40573_, List<Component> p_40574_, TooltipFlag p_40575_) {
-        super.appendHoverText(p_40572_, p_40573_, p_40574_, p_40575_);
-        this.getBlock().appendHoverText(p_40572_, p_40573_, p_40574_, p_40575_);
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        super.appendHoverText(pStack, pLevel, pTooltip, pFlag);
+        this.getBlock().appendHoverText(pStack, pLevel, pTooltip, pFlag);
     }
 
     public Block getBlock() {
         return this.block;
     }
 
-    public void registerBlocks(Map<Block, Item> p_40607_, Item p_40608_) {
-        p_40607_.put(this.getBlock(), p_40608_);
+    public void registerBlocks(Map<Block, Item> pBlockToItemMap, Item pItem) {
+        pBlockToItemMap.put(this.getBlock(), pItem);
     }
 
     public boolean canFitInsideContainerItems() {
         return !(this.block instanceof ShulkerBoxBlock);
     }
 
-    public void onDestroyed(ItemEntity p_150700_) {
+    public void onDestroyed(ItemEntity pItemEntity) {
         if (this.block instanceof ShulkerBoxBlock) {
-            ItemStack itemstack = p_150700_.getItem();
+            ItemStack itemstack = pItemEntity.getItem();
             CompoundTag compoundtag = getBlockEntityData(itemstack);
             if (compoundtag != null && compoundtag.contains("Items", 9)) {
                 ListTag listtag = compoundtag.getList("Items", 10);
-                ItemUtils.onContainerDestroyed(p_150700_, listtag.stream().map(CompoundTag.class ::cast).map(ItemStack::of));
+                ItemUtils.onContainerDestroyed(pItemEntity, listtag.stream().map(CompoundTag.class ::cast).map(ItemStack::of));
             }
         }
     }
 
     @Nullable
-    public static CompoundTag getBlockEntityData(ItemStack p_186337_) {
-        return p_186337_.getTagElement("BlockEntityTag");
+    public static CompoundTag getBlockEntityData(ItemStack pStack) {
+        return pStack.getTagElement("BlockEntityTag");
     }
 
-    public static void setBlockEntityData(ItemStack p_186339_, BlockEntityType<?> p_186340_, CompoundTag p_186341_) {
-        if (p_186341_.isEmpty()) {
-            p_186339_.removeTagKey("BlockEntityTag");
+    public static void setBlockEntityData(ItemStack pStack, BlockEntityType<?> pBlockEntityType, CompoundTag pBlockEntityData) {
+        if (pBlockEntityData.isEmpty()) {
+            pStack.removeTagKey("BlockEntityTag");
         } else {
-            BlockEntity.addEntityType(p_186341_, p_186340_);
-            p_186339_.addTagElement("BlockEntityTag", p_186341_);
+            BlockEntity.addEntityType(pBlockEntityData, pBlockEntityType);
+            pStack.addTagElement("BlockEntityTag", pBlockEntityData);
         }
     }
 }

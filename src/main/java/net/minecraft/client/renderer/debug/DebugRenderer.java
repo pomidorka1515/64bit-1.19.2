@@ -48,24 +48,24 @@ public class DebugRenderer {
     public final GameEventListenerRenderer gameEventListenerRenderer;
     private boolean renderChunkborder;
 
-    public DebugRenderer(Minecraft p_113433_) {
-        this.waterDebugRenderer = new WaterDebugRenderer(p_113433_);
-        this.chunkBorderRenderer = new ChunkBorderRenderer(p_113433_);
-        this.heightMapRenderer = new HeightMapRenderer(p_113433_);
-        this.collisionBoxRenderer = new CollisionBoxRenderer(p_113433_);
-        this.neighborsUpdateRenderer = new NeighborsUpdateRenderer(p_113433_);
-        this.structureRenderer = new StructureRenderer(p_113433_);
-        this.lightDebugRenderer = new LightDebugRenderer(p_113433_);
+    public DebugRenderer(Minecraft pMinecraft) {
+        this.waterDebugRenderer = new WaterDebugRenderer(pMinecraft);
+        this.chunkBorderRenderer = new ChunkBorderRenderer(pMinecraft);
+        this.heightMapRenderer = new HeightMapRenderer(pMinecraft);
+        this.collisionBoxRenderer = new CollisionBoxRenderer(pMinecraft);
+        this.neighborsUpdateRenderer = new NeighborsUpdateRenderer(pMinecraft);
+        this.structureRenderer = new StructureRenderer(pMinecraft);
+        this.lightDebugRenderer = new LightDebugRenderer(pMinecraft);
         this.worldGenAttemptRenderer = new WorldGenAttemptRenderer();
-        this.solidFaceRenderer = new SolidFaceRenderer(p_113433_);
-        this.chunkRenderer = new ChunkDebugRenderer(p_113433_);
-        this.brainDebugRenderer = new BrainDebugRenderer(p_113433_);
+        this.solidFaceRenderer = new SolidFaceRenderer(pMinecraft);
+        this.chunkRenderer = new ChunkDebugRenderer(pMinecraft);
+        this.brainDebugRenderer = new BrainDebugRenderer(pMinecraft);
         this.villageSectionsDebugRenderer = new VillageSectionsDebugRenderer();
-        this.beeDebugRenderer = new BeeDebugRenderer(p_113433_);
-        this.raidDebugRenderer = new RaidDebugRenderer(p_113433_);
-        this.goalSelectorRenderer = new GoalSelectorDebugRenderer(p_113433_);
+        this.beeDebugRenderer = new BeeDebugRenderer(pMinecraft);
+        this.raidDebugRenderer = new RaidDebugRenderer(pMinecraft);
+        this.goalSelectorRenderer = new GoalSelectorDebugRenderer(pMinecraft);
         this.gameTestDebugRenderer = new GameTestDebugRenderer();
-        this.gameEventListenerRenderer = new GameEventListenerRenderer(p_113433_);
+        this.gameEventListenerRenderer = new GameEventListenerRenderer(pMinecraft);
     }
 
     public void clear() {
@@ -94,27 +94,27 @@ public class DebugRenderer {
         return this.renderChunkborder;
     }
 
-    public void render(PoseStack p_113458_, MultiBufferSource.BufferSource p_113459_, double p_113460_, double p_113461_, double p_113462_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource.BufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         if (this.renderChunkborder && !Minecraft.getInstance().showOnlyReducedInfo()) {
-            this.chunkBorderRenderer.render(p_113458_, p_113459_, p_113460_, p_113461_, p_113462_);
+            this.chunkBorderRenderer.render(pPoseStack, pBufferSource, pCamX, pCamY, pCamZ);
         }
 
-        this.gameTestDebugRenderer.render(p_113458_, p_113459_, p_113460_, p_113461_, p_113462_);
+        this.gameTestDebugRenderer.render(pPoseStack, pBufferSource, pCamX, pCamY, pCamZ);
     }
 
-    public static Optional<Entity> getTargetedEntity(@Nullable Entity p_113449_, int p_113450_) {
-        if (p_113449_ == null) {
+    public static Optional<Entity> getTargetedEntity(@Nullable Entity pEntity, int pDistance) {
+        if (pEntity == null) {
             return Optional.empty();
         } else {
-            Vec3 vec3 = p_113449_.getEyePosition();
-            Vec3 vec31 = p_113449_.getViewVector(1.0F).scale((double) p_113450_);
+            Vec3 vec3 = pEntity.getEyePosition();
+            Vec3 vec31 = pEntity.getViewVector(1.0F).scale((double) pDistance);
             Vec3 vec32 = vec3.add(vec31);
-            AABB aabb = p_113449_.getBoundingBox().expandTowards(vec31).inflate(1.0D);
-            int i = p_113450_ * p_113450_;
+            AABB aabb = pEntity.getBoundingBox().expandTowards(vec31).inflate(1.0D);
+            int i = pDistance * pDistance;
             Predicate<Entity> predicate = (p_113447_) -> {
                 return !p_113447_.isSpectator() && p_113447_.isPickable();
             };
-            EntityHitResult entityhitresult = ProjectileUtil.getEntityHitResult(p_113449_, vec3, vec32, aabb, predicate, (double) i);
+            EntityHitResult entityhitresult = ProjectileUtil.getEntityHitResult(pEntity, vec3, vec32, aabb, predicate, (double) i);
             if (entityhitresult == null) {
                 return Optional.empty();
             } else {
@@ -123,50 +123,50 @@ public class DebugRenderer {
         }
     }
 
-    public static void renderFilledBox(BlockPos p_113471_, BlockPos p_113472_, float p_113473_, float p_113474_, float p_113475_, float p_113476_) {
+    public static void renderFilledBox(BlockPos pStart, BlockPos pEnd, float pRed, float pGreen, float pBlue, float pAlpha) {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         if (camera.isInitialized()) {
             Vec3 vec3 = camera.getPosition().reverse();
-            AABB aabb = (new AABB(p_113471_, p_113472_)).move(vec3);
-            renderFilledBox(aabb, p_113473_, p_113474_, p_113475_, p_113476_);
+            AABB aabb = (new AABB(pStart, pEnd)).move(vec3);
+            renderFilledBox(aabb, pRed, pGreen, pBlue, pAlpha);
         }
     }
 
-    public static void renderFilledBox(BlockPos p_113464_, float p_113465_, float p_113466_, float p_113467_, float p_113468_, float p_113469_) {
+    public static void renderFilledBox(BlockPos pPos, float pSize, float pRed, float pGreen, float pBlue, float pAlpha) {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         if (camera.isInitialized()) {
             Vec3 vec3 = camera.getPosition().reverse();
-            AABB aabb = (new AABB(p_113464_)).move(vec3).inflate((double) p_113465_);
-            renderFilledBox(aabb, p_113466_, p_113467_, p_113468_, p_113469_);
+            AABB aabb = (new AABB(pPos)).move(vec3).inflate((double) pSize);
+            renderFilledBox(aabb, pRed, pGreen, pBlue, pAlpha);
         }
     }
 
-    public static void renderFilledBox(AABB p_113452_, float p_113453_, float p_113454_, float p_113455_, float p_113456_) {
-        renderFilledBox(p_113452_.minX, p_113452_.minY, p_113452_.minZ, p_113452_.maxX, p_113452_.maxY, p_113452_.maxZ, p_113453_, p_113454_, p_113455_, p_113456_);
+    public static void renderFilledBox(AABB pBox, float pRed, float pGreen, float pBlue, float pAlpha) {
+        renderFilledBox(pBox.minX, pBox.minY, pBox.minZ, pBox.maxX, pBox.maxY, pBox.maxZ, pRed, pGreen, pBlue, pAlpha);
     }
 
-    public static void renderFilledBox(double p_113436_, double p_113437_, double p_113438_, double p_113439_, double p_113440_, double p_113441_, float p_113442_, float p_113443_, float p_113444_, float p_113445_) {
+    public static void renderFilledBox(double pMinX, double pMinY, double pMinZ, double pMaxX, double pMaxY, double pMaxZ, float pRed, float pGreen, float pBlue, float pAlpha) {
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        LevelRenderer.addChainedFilledBoxVertices(bufferbuilder, p_113436_, p_113437_, p_113438_, p_113439_, p_113440_, p_113441_, p_113442_, p_113443_, p_113444_, p_113445_);
+        LevelRenderer.addChainedFilledBoxVertices(bufferbuilder, pMinX, pMinY, pMinZ, pMaxX, pMaxY, pMaxZ, pRed, pGreen, pBlue, pAlpha);
         tesselator.end();
     }
 
-    public static void renderFloatingText(String p_113501_, int p_113502_, int p_113503_, int p_113504_, int p_113505_) {
-        renderFloatingText(p_113501_, (double) p_113502_ + 0.5D, (double) p_113503_ + 0.5D, (double) p_113504_ + 0.5D, p_113505_);
+    public static void renderFloatingText(String pText, int pX, int pY, int pZ, int pColor) {
+        renderFloatingText(pText, (double) pX + 0.5D, (double) pY + 0.5D, (double) pZ + 0.5D, pColor);
     }
 
-    public static void renderFloatingText(String p_113478_, double p_113479_, double p_113480_, double p_113481_, int p_113482_) {
-        renderFloatingText(p_113478_, p_113479_, p_113480_, p_113481_, p_113482_, 0.02F);
+    public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor) {
+        renderFloatingText(pText, pX, pY, pZ, pColor, 0.02F);
     }
 
-    public static void renderFloatingText(String p_113484_, double p_113485_, double p_113486_, double p_113487_, int p_113488_, float p_113489_) {
-        renderFloatingText(p_113484_, p_113485_, p_113486_, p_113487_, p_113488_, p_113489_, true, 0.0F, false);
+    public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor, float pScale) {
+        renderFloatingText(pText, pX, pY, pZ, pColor, pScale, true, 0.0F, false);
     }
 
-    public static void renderFloatingText(String p_113491_, double p_113492_, double p_113493_, double p_113494_, int p_113495_, float p_113496_, boolean p_113497_, float p_113498_, boolean p_113499_) {
+    public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor, float pScale, boolean pCenter, float pXOffset, boolean pTransparent) {
         Minecraft minecraft = Minecraft.getInstance();
         Camera camera = minecraft.gameRenderer.getMainCamera();
         if (camera.isInitialized() && minecraft.getEntityRenderDispatcher().options != null) {
@@ -176,11 +176,11 @@ public class DebugRenderer {
             double d2 = camera.getPosition().z;
             PoseStack posestack = RenderSystem.getModelViewStack();
             posestack.pushPose();
-            posestack.translate((double) ((float) (p_113492_ - d0)), (double) ((float) (p_113493_ - d1) + 0.07F), (double) ((float) (p_113494_ - d2)));
+            posestack.translate((double) ((float) (pX - d0)), (double) ((float) (pY - d1) + 0.07F), (double) ((float) (pZ - d2)));
             posestack.mulPoseMatrix(new Matrix4f(camera.rotation()));
-            posestack.scale(p_113496_, -p_113496_, p_113496_);
+            posestack.scale(pScale, -pScale, pScale);
             RenderSystem.enableTexture();
-            if (p_113499_) {
+            if (pTransparent) {
                 RenderSystem.disableDepthTest();
             } else {
                 RenderSystem.enableDepthTest();
@@ -189,10 +189,10 @@ public class DebugRenderer {
             RenderSystem.depthMask(true);
             posestack.scale(-1.0F, 1.0F, 1.0F);
             RenderSystem.applyModelViewMatrix();
-            float f = p_113497_ ? (float) (-font.width(p_113491_)) / 2.0F : 0.0F;
-            f -= p_113498_ / p_113496_;
+            float f = pCenter ? (float) (-font.width(pText)) / 2.0F : 0.0F;
+            f -= pXOffset / pScale;
             MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-            font.drawInBatch(p_113491_, f, 0.0F, p_113495_, false, Transformation.identity().getMatrix(), multibuffersource$buffersource, p_113499_, 0, 15728880);
+            font.drawInBatch(pText, f, 0.0F, pColor, false, Transformation.identity().getMatrix(), multibuffersource$buffersource, pTransparent, 0, 15728880);
             multibuffersource$buffersource.endBatch();
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.enableDepthTest();
@@ -203,7 +203,7 @@ public class DebugRenderer {
 
     @OnlyIn(Dist.CLIENT)
     public interface SimpleDebugRenderer {
-        void render(PoseStack p_113507_, MultiBufferSource p_113508_, double p_113509_, double p_113510_, double p_113511_);
+        void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ);
 
         default void clear() {
         }

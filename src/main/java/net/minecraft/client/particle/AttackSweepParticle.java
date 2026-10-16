@@ -9,19 +9,19 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class AttackSweepParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
 
-    AttackSweepParticle(ClientLevel p_105546_, double p_105547_, double p_105548_, double p_105549_, double p_105550_, SpriteSet p_105551_) {
-        super(p_105546_, p_105547_, p_105548_, p_105549_, 0.0D, 0.0D, 0.0D);
-        this.sprites = p_105551_;
+    AttackSweepParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pQuadSizeMultiplier, SpriteSet pSprites) {
+        super(pLevel, pX, pY, pZ, 0.0D, 0.0D, 0.0D);
+        this.sprites = pSprites;
         this.lifetime = 4;
         float f = this.random.nextFloat() * 0.6F + 0.4F;
         this.rCol = f;
         this.gCol = f;
         this.bCol = f;
-        this.quadSize = 1.0F - (float) p_105550_ * 0.5F;
-        this.setSpriteFromAge(p_105551_);
+        this.quadSize = 1.0F - (float) pQuadSizeMultiplier * 0.5F;
+        this.setSpriteFromAge(pSprites);
     }
 
-    public int getLightColor(float p_105562_) {
+    public int getLightColor(float pPartialTick) {
         return 15728880;
     }
 
@@ -44,12 +44,12 @@ public class AttackSweepParticle extends TextureSheetParticle {
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 
-        public Provider(SpriteSet p_105566_) {
-            this.sprites = p_105566_;
+        public Provider(SpriteSet pSprites) {
+            this.sprites = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_105577_, ClientLevel p_105578_, double p_105579_, double p_105580_, double p_105581_, double p_105582_, double p_105583_, double p_105584_) {
-            return new AttackSweepParticle(p_105578_, p_105579_, p_105580_, p_105581_, p_105582_, this.sprites);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            return new AttackSweepParticle(pLevel, pX, pY, pZ, pXSpeed, this.sprites);
         }
     }
 }

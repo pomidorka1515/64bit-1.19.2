@@ -14,10 +14,10 @@ public class RenameBiomesFix extends DataFix {
     private final String name;
     private final Map<String, String> biomes;
 
-    public RenameBiomesFix(Schema p_16837_, boolean p_16838_, String p_16839_, Map<String, String> p_16840_) {
-        super(p_16837_, p_16838_);
-        this.biomes = p_16840_;
-        this.name = p_16839_;
+    public RenameBiomesFix(Schema pOutputSchema, boolean pChangesType, String pName, Map<String, String> pBiomes) {
+        super(pOutputSchema, pChangesType);
+        this.biomes = pBiomes;
+        this.name = pName;
     }
 
     protected TypeRewriteRule makeRule() {

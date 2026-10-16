@@ -27,7 +27,7 @@ public class WeightedPlacedFeature {
         this.chance = p_204787_;
     }
 
-    public boolean place(WorldGenLevel p_225368_, ChunkGenerator p_225369_, RandomSource p_225370_, BlockPos p_225371_) {
-        return this.feature.value().place(p_225368_, p_225369_, p_225370_, p_225371_);
+    public boolean place(WorldGenLevel pLevel, ChunkGenerator pChunkGenerator, RandomSource pRandom, BlockPos pPos) {
+        return this.feature.value().place(pLevel, pChunkGenerator, pRandom, pPos);
     }
 }

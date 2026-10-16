@@ -30,18 +30,18 @@ public class RealmsConnect {
     @Nullable
     Connection connection;
 
-    public RealmsConnect(Screen p_120693_) {
-        this.onlineScreen = p_120693_;
+    public RealmsConnect(Screen pOnlineScreen) {
+        this.onlineScreen = pOnlineScreen;
     }
 
-    public void connect(final RealmsServer p_175032_, ServerAddress p_175033_) {
+    public void connect(final RealmsServer pServer, ServerAddress pAddress) {
         final Minecraft minecraft = Minecraft.getInstance();
         minecraft.setConnectedToRealms(true);
         minecraft.prepareForMultiplayer();
         minecraft.getNarrator().sayNow(Component.translatable("mco.connect.success"));
         final CompletableFuture<Optional<ProfilePublicKey.Data>> completablefuture = minecraft.getProfileKeyPairManager().preparePublicKey();
-        final String s = p_175033_.getHost();
-        final int i = p_175033_.getPort();
+        final String s = pAddress.getHost();
+        final int i = pAddress.getPort();
         (new Thread("Realms-connect-task") {
             public void run() {
                 InetSocketAddress inetsocketaddress = null;
@@ -70,7 +70,7 @@ public class RealmsConnect {
                     String s1 = minecraft.getUser().getName();
                     UUID uuid = minecraft.getUser().getProfileId();
                     RealmsConnect.this.connection.send(new ServerboundHelloPacket(s1, completablefuture.join(), Optional.ofNullable(uuid)));
-                    minecraft.setCurrentServer(p_175032_, s);
+                    minecraft.setCurrentServer(pServer, s);
                 } catch (Exception exception) {
                     minecraft.getClientPackSource().clearServerPack();
                     if (RealmsConnect.this.aborted) {

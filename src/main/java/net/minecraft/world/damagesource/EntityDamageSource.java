@@ -12,9 +12,9 @@ public class EntityDamageSource extends DamageSource {
     protected final Entity entity;
     private boolean isThorns;
 
-    public EntityDamageSource(String p_19394_, Entity p_19395_) {
-        super(p_19394_);
-        this.entity = p_19395_;
+    public EntityDamageSource(String pDamageTypeId, Entity pEntity) {
+        super(pDamageTypeId);
+        this.entity = pEntity;
     }
 
     public EntityDamageSource setThorns() {
@@ -30,10 +30,10 @@ public class EntityDamageSource extends DamageSource {
         return this.entity;
     }
 
-    public Component getLocalizedDeathMessage(LivingEntity p_19397_) {
+    public Component getLocalizedDeathMessage(LivingEntity pLivingEntity) {
         ItemStack itemstack = this.entity instanceof LivingEntity ? ((LivingEntity) this.entity).getMainHandItem() : ItemStack.EMPTY;
         String s = "death.attack." + this.msgId;
-        return !itemstack.isEmpty() && itemstack.hasCustomHoverName() ? Component.translatable(s + ".item", p_19397_.getDisplayName(), this.entity.getDisplayName(), itemstack.getDisplayName()) : Component.translatable(s, p_19397_.getDisplayName(), this.entity.getDisplayName());
+        return !itemstack.isEmpty() && itemstack.hasCustomHoverName() ? Component.translatable(s + ".item", pLivingEntity.getDisplayName(), this.entity.getDisplayName(), itemstack.getDisplayName()) : Component.translatable(s, pLivingEntity.getDisplayName(), this.entity.getDisplayName());
     }
 
     public boolean scalesWithDifficulty() {

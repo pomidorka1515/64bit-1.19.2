@@ -7,23 +7,23 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SonicBoomParticle extends HugeExplosionParticle {
-    protected SonicBoomParticle(ClientLevel p_234028_, double p_234029_, double p_234030_, double p_234031_, double p_234032_, SpriteSet p_234033_) {
-        super(p_234028_, p_234029_, p_234030_, p_234031_, p_234032_, p_234033_);
+    protected SonicBoomParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pQuadSizeMultiplier, SpriteSet pSprites) {
+        super(pLevel, pX, pY, pZ, pQuadSizeMultiplier, pSprites);
         this.lifetime = 16;
         this.quadSize = 1.5F;
-        this.setSpriteFromAge(p_234033_);
+        this.setSpriteFromAge(pSprites);
     }
 
     @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 
-        public Provider(SpriteSet p_234036_) {
-            this.sprites = p_234036_;
+        public Provider(SpriteSet pSprites) {
+            this.sprites = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_234047_, ClientLevel p_234048_, double p_234049_, double p_234050_, double p_234051_, double p_234052_, double p_234053_, double p_234054_) {
-            return new SonicBoomParticle(p_234048_, p_234049_, p_234050_, p_234051_, p_234052_, this.sprites);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            return new SonicBoomParticle(pLevel, pX, pY, pZ, pXSpeed, this.sprites);
         }
     }
 }

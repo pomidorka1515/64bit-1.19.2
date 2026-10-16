@@ -12,8 +12,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class LegacyStuffWrapper {
     /** @deprecated */
     @Deprecated
-    public static int[] getPixels(ResourceManager p_118727_, ResourceLocation p_118728_) throws IOException {
-        InputStream inputstream = p_118727_.open(p_118728_);
+    public static int[] getPixels(ResourceManager pManager, ResourceLocation pLocation) throws IOException {
+        InputStream inputstream = pManager.open(pLocation);
 
         int[] aint;
         try {

@@ -24,70 +24,70 @@ public abstract class AbstractMinecartContainer extends AbstractMinecart impleme
     private ResourceLocation lootTable;
     private long lootTableSeed;
 
-    protected AbstractMinecartContainer(EntityType<?> p_38213_, Level p_38214_) {
-        super(p_38213_, p_38214_);
+    protected AbstractMinecartContainer(EntityType<?> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    protected AbstractMinecartContainer(EntityType<?> p_38207_, double p_38208_, double p_38209_, double p_38210_, Level p_38211_) {
-        super(p_38207_, p_38211_, p_38208_, p_38209_, p_38210_);
+    protected AbstractMinecartContainer(EntityType<?> pEntityType, double pX, double pY, double pZ, Level pLevel) {
+        super(pEntityType, pLevel, pX, pY, pZ);
     }
 
     protected AbstractMinecartContainer(EntityType<?> type, Level level, SectorVec3 position) {
         super(type, level, position);
     }
 
-    public void destroy(DamageSource p_38228_) {
-        super.destroy(p_38228_);
-        this.chestVehicleDestroyed(p_38228_, this.level, this);
+    public void destroy(DamageSource pSource) {
+        super.destroy(pSource);
+        this.chestVehicleDestroyed(pSource, this.level, this);
     }
 
-    public ItemStack getItem(int p_38218_) {
-        return this.getChestVehicleItem(p_38218_);
+    public ItemStack getItem(int pIndex) {
+        return this.getChestVehicleItem(pIndex);
     }
 
-    public ItemStack removeItem(int p_38220_, int p_38221_) {
-        return this.removeChestVehicleItem(p_38220_, p_38221_);
+    public ItemStack removeItem(int pIndex, int pCount) {
+        return this.removeChestVehicleItem(pIndex, pCount);
     }
 
-    public ItemStack removeItemNoUpdate(int p_38244_) {
-        return this.removeChestVehicleItemNoUpdate(p_38244_);
+    public ItemStack removeItemNoUpdate(int pIndex) {
+        return this.removeChestVehicleItemNoUpdate(pIndex);
     }
 
-    public void setItem(int p_38225_, ItemStack p_38226_) {
-        this.setChestVehicleItem(p_38225_, p_38226_);
+    public void setItem(int pIndex, ItemStack pStack) {
+        this.setChestVehicleItem(pIndex, pStack);
     }
 
-    public SlotAccess getSlot(int p_150257_) {
-        return this.getChestVehicleSlot(p_150257_);
+    public SlotAccess getSlot(int pSlot) {
+        return this.getChestVehicleSlot(pSlot);
     }
 
     public void setChanged() {
     }
 
-    public boolean stillValid(Player p_38230_) {
-        return this.isChestVehicleStillValid(p_38230_);
+    public boolean stillValid(Player pPlayer) {
+        return this.isChestVehicleStillValid(pPlayer);
     }
 
-    public void remove(Entity.RemovalReason p_150255_) {
-        if (!this.level.isClientSide && p_150255_.shouldDestroy()) {
+    public void remove(Entity.RemovalReason pReason) {
+        if (!this.level.isClientSide && pReason.shouldDestroy()) {
             Containers.dropContents(this.level, this, this);
         }
 
-        super.remove(p_150255_);
+        super.remove(pReason);
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_38248_) {
-        super.addAdditionalSaveData(p_38248_);
-        this.addChestVehicleSaveData(p_38248_);
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        this.addChestVehicleSaveData(pCompound);
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_38235_) {
-        super.readAdditionalSaveData(p_38235_);
-        this.readChestVehicleSaveData(p_38235_);
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.readChestVehicleSaveData(pCompound);
     }
 
-    public InteractionResult interact(Player p_38232_, InteractionHand p_38233_) {
-        return this.interactWithChestVehicle(this::gameEvent, p_38232_);
+    public InteractionResult interact(Player pPlayer, InteractionHand pHand) {
+        return this.interactWithChestVehicle(this::gameEvent, pPlayer);
     }
 
     protected void applyNaturalSlowdown() {
@@ -108,38 +108,38 @@ public abstract class AbstractMinecartContainer extends AbstractMinecart impleme
         this.clearChestVehicleContent();
     }
 
-    public void setLootTable(ResourceLocation p_38237_, long p_38238_) {
-        this.lootTable = p_38237_;
-        this.lootTableSeed = p_38238_;
+    public void setLootTable(ResourceLocation pLootTable, long pLootTableSeed) {
+        this.lootTable = pLootTable;
+        this.lootTableSeed = pLootTableSeed;
     }
 
     @Nullable
-    public AbstractContainerMenu createMenu(int p_38251_, Inventory p_38252_, Player p_38253_) {
-        if (this.lootTable != null && p_38253_.isSpectator()) {
+    public AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
+        if (this.lootTable != null && pPlayer.isSpectator()) {
             return null;
         } else {
-            this.unpackChestVehicleLootTable(p_38252_.player);
-            return this.createMenu(p_38251_, p_38252_);
+            this.unpackChestVehicleLootTable(pPlayerInventory.player);
+            return this.createMenu(pContainerId, pPlayerInventory);
         }
     }
 
-    protected abstract AbstractContainerMenu createMenu(int p_38222_, Inventory p_38223_);
+    protected abstract AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory);
 
     @Nullable
     public ResourceLocation getLootTable() {
         return this.lootTable;
     }
 
-    public void setLootTable(@Nullable ResourceLocation p_219859_) {
-        this.lootTable = p_219859_;
+    public void setLootTable(@Nullable ResourceLocation pLootTable) {
+        this.lootTable = pLootTable;
     }
 
     public long getLootTableSeed() {
         return this.lootTableSeed;
     }
 
-    public void setLootTableSeed(long p_219857_) {
-        this.lootTableSeed = p_219857_;
+    public void setLootTableSeed(long pLootTableSeed) {
+        this.lootTableSeed = pLootTableSeed;
     }
 
     public NonNullList<ItemStack> getItemStacks() {

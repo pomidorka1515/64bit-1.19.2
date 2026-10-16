@@ -8,23 +8,23 @@ public class ClientboundSetDefaultSpawnPositionPacket implements Packet<ClientGa
     private final BlockPos pos;
     private final float angle;
 
-    public ClientboundSetDefaultSpawnPositionPacket(BlockPos p_133115_, float p_133116_) {
-        this.pos = p_133115_;
-        this.angle = p_133116_;
+    public ClientboundSetDefaultSpawnPositionPacket(BlockPos pPos, float pAngle) {
+        this.pos = pPos;
+        this.angle = pAngle;
     }
 
-    public ClientboundSetDefaultSpawnPositionPacket(FriendlyByteBuf p_179286_) {
-        this.pos = p_179286_.readBlockPos();
-        this.angle = p_179286_.readFloat();
+    public ClientboundSetDefaultSpawnPositionPacket(FriendlyByteBuf pBuffer) {
+        this.pos = pBuffer.readBlockPos();
+        this.angle = pBuffer.readFloat();
     }
 
-    public void write(FriendlyByteBuf p_133125_) {
-        p_133125_.writeBlockPos(this.pos);
-        p_133125_.writeFloat(this.angle);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBlockPos(this.pos);
+        pBuffer.writeFloat(this.angle);
     }
 
-    public void handle(ClientGamePacketListener p_133122_) {
-        p_133122_.handleSetSpawn(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleSetSpawn(this);
     }
 
     public BlockPos getPos() {

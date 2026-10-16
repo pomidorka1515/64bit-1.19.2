@@ -27,12 +27,12 @@ public class BiasedToBottomInt extends IntProvider {
         this.maxInclusive = p_146365_;
     }
 
-    public static BiasedToBottomInt of(int p_146368_, int p_146369_) {
-        return new BiasedToBottomInt(p_146368_, p_146369_);
+    public static BiasedToBottomInt of(int pMinInclusive, int pMaxInclusive) {
+        return new BiasedToBottomInt(pMinInclusive, pMaxInclusive);
     }
 
-    public int sample(RandomSource p_216832_) {
-        return this.minInclusive + p_216832_.nextInt(p_216832_.nextInt(this.maxInclusive - this.minInclusive + 1) + 1);
+    public int sample(RandomSource pRandom) {
+        return this.minInclusive + pRandom.nextInt(pRandom.nextInt(this.maxInclusive - this.minInclusive + 1) + 1);
     }
 
     public int getMinValue() {

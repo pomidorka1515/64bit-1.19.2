@@ -16,22 +16,22 @@ public class LeashKnotRenderer extends EntityRenderer<LeashFenceKnotEntity> {
     private static final ResourceLocation KNOT_LOCATION = new ResourceLocation("textures/entity/lead_knot.png");
     private final LeashKnotModel<LeashFenceKnotEntity> model;
 
-    public LeashKnotRenderer(EntityRendererProvider.Context p_174284_) {
-        super(p_174284_);
-        this.model = new LeashKnotModel<>(p_174284_.bakeLayer(ModelLayers.LEASH_KNOT));
+    public LeashKnotRenderer(EntityRendererProvider.Context pContext) {
+        super(pContext);
+        this.model = new LeashKnotModel<>(pContext.bakeLayer(ModelLayers.LEASH_KNOT));
     }
 
-    public void render(LeashFenceKnotEntity p_115246_, float p_115247_, float p_115248_, PoseStack p_115249_, MultiBufferSource p_115250_, int p_115251_) {
-        p_115249_.pushPose();
-        p_115249_.scale(-1.0F, -1.0F, 1.0F);
-        this.model.setupAnim(p_115246_, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-        VertexConsumer vertexconsumer = p_115250_.getBuffer(this.model.renderType(KNOT_LOCATION));
-        this.model.renderToBuffer(p_115249_, vertexconsumer, p_115251_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-        p_115249_.popPose();
-        super.render(p_115246_, p_115247_, p_115248_, p_115249_, p_115250_, p_115251_);
+    public void render(LeashFenceKnotEntity pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        pMatrixStack.pushPose();
+        pMatrixStack.scale(-1.0F, -1.0F, 1.0F);
+        this.model.setupAnim(pEntity, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(this.model.renderType(KNOT_LOCATION));
+        this.model.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        pMatrixStack.popPose();
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
     }
 
-    public ResourceLocation getTextureLocation(LeashFenceKnotEntity p_115244_) {
+    public ResourceLocation getTextureLocation(LeashFenceKnotEntity pEntity) {
         return KNOT_LOCATION;
     }
 }

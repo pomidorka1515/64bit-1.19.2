@@ -9,8 +9,8 @@ public class OcelotAttackGoal extends Goal {
     private LivingEntity target;
     private int attackTime;
 
-    public OcelotAttackGoal(Mob p_25658_) {
-        this.mob = p_25658_;
+    public OcelotAttackGoal(Mob pMob) {
+        this.mob = pMob;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 

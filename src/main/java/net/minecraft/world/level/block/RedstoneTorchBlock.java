@@ -31,87 +31,87 @@ public class RedstoneTorchBlock extends TorchBlock {
         this.registerDefaultState(this.stateDefinition.any().setValue(LIT, Boolean.valueOf(true)));
     }
 
-    public void onPlace(BlockState p_55724_, Level p_55725_, BlockPos p_55726_, BlockState p_55727_, boolean p_55728_) {
+    public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
         for (Direction direction : Direction.values()) {
-            p_55725_.updateNeighborsAt(p_55726_.relative(direction), this);
+            pLevel.updateNeighborsAt(pPos.relative(direction), this);
         }
     }
 
-    public void onRemove(BlockState p_55706_, Level p_55707_, BlockPos p_55708_, BlockState p_55709_, boolean p_55710_) {
-        if (!p_55710_) {
+    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+        if (!pIsMoving) {
             for (Direction direction : Direction.values()) {
-                p_55707_.updateNeighborsAt(p_55708_.relative(direction), this);
+                pLevel.updateNeighborsAt(pPos.relative(direction), this);
             }
         }
     }
 
-    public int getSignal(BlockState p_55694_, BlockGetter p_55695_, BlockPos p_55696_, Direction p_55697_) {
-        return p_55694_.getValue(LIT) && Direction.UP != p_55697_ ? 15 : 0;
+    public int getSignal(BlockState pBlockState, BlockGetter pBlockAccess, BlockPos pPos, Direction pSide) {
+        return pBlockState.getValue(LIT) && Direction.UP != pSide ? 15 : 0;
     }
 
-    protected boolean hasNeighborSignal(Level p_55681_, BlockPos p_55682_, BlockState p_55683_) {
-        return p_55681_.hasSignal(p_55682_.below(), Direction.DOWN);
+    protected boolean hasNeighborSignal(Level pLevel, BlockPos pPos, BlockState pState) {
+        return pLevel.hasSignal(pPos.below(), Direction.DOWN);
     }
 
-    public void tick(BlockState p_221949_, ServerLevel p_221950_, BlockPos p_221951_, RandomSource p_221952_) {
-        boolean flag = this.hasNeighborSignal(p_221950_, p_221951_, p_221949_);
-        List<RedstoneTorchBlock.Toggle> list = RECENT_TOGGLES.get(p_221950_);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        boolean flag = this.hasNeighborSignal(pLevel, pPos, pState);
+        List<RedstoneTorchBlock.Toggle> list = RECENT_TOGGLES.get(pLevel);
 
-        while (list != null && !list.isEmpty() && p_221950_.getGameTime() - (list.get(0)).when > 60L) {
+        while (list != null && !list.isEmpty() && pLevel.getGameTime() - (list.get(0)).when > 60L) {
             list.remove(0);
         }
 
-        if (p_221949_.getValue(LIT)) {
+        if (pState.getValue(LIT)) {
             if (flag) {
-                p_221950_.setBlock(p_221951_, p_221949_.setValue(LIT, Boolean.valueOf(false)), 3);
-                if (isToggledTooFrequently(p_221950_, p_221951_, true)) {
-                    p_221950_.levelEvent(1502, p_221951_, 0);
-                    p_221950_.scheduleTick(p_221951_, p_221950_.getBlockState(p_221951_).getBlock(), 160);
+                pLevel.setBlock(pPos, pState.setValue(LIT, Boolean.valueOf(false)), 3);
+                if (isToggledTooFrequently(pLevel, pPos, true)) {
+                    pLevel.levelEvent(1502, pPos, 0);
+                    pLevel.scheduleTick(pPos, pLevel.getBlockState(pPos).getBlock(), 160);
                 }
             }
-        } else if (!flag && !isToggledTooFrequently(p_221950_, p_221951_, false)) {
-            p_221950_.setBlock(p_221951_, p_221949_.setValue(LIT, Boolean.valueOf(true)), 3);
+        } else if (!flag && !isToggledTooFrequently(pLevel, pPos, false)) {
+            pLevel.setBlock(pPos, pState.setValue(LIT, Boolean.valueOf(true)), 3);
         }
     }
 
-    public void neighborChanged(BlockState p_55699_, Level p_55700_, BlockPos p_55701_, Block p_55702_, BlockPos p_55703_, boolean p_55704_) {
-        if (p_55699_.getValue(LIT) == this.hasNeighborSignal(p_55700_, p_55701_, p_55699_) && !p_55700_.getBlockTicks().willTickThisTick(p_55701_, this)) {
-            p_55700_.scheduleTick(p_55701_, this, 2);
+    public void neighborChanged(BlockState pState, Level pLevel, BlockPos pPos, Block pBlock, BlockPos pFromPos, boolean pIsMoving) {
+        if (pState.getValue(LIT) == this.hasNeighborSignal(pLevel, pPos, pState) && !pLevel.getBlockTicks().willTickThisTick(pPos, this)) {
+            pLevel.scheduleTick(pPos, this, 2);
         }
     }
 
-    public int getDirectSignal(BlockState p_55719_, BlockGetter p_55720_, BlockPos p_55721_, Direction p_55722_) {
-        return p_55722_ == Direction.DOWN ? p_55719_.getSignal(p_55720_, p_55721_, p_55722_) : 0;
+    public int getDirectSignal(BlockState pBlockState, BlockGetter pBlockAccess, BlockPos pPos, Direction pSide) {
+        return pSide == Direction.DOWN ? pBlockState.getSignal(pBlockAccess, pPos, pSide) : 0;
     }
 
-    public boolean isSignalSource(BlockState p_55730_) {
+    public boolean isSignalSource(BlockState pState) {
         return true;
     }
 
-    public void animateTick(BlockState p_221954_, Level p_221955_, BlockPos p_221956_, RandomSource p_221957_) {
-        if (p_221954_.getValue(LIT)) {
-            p_221955_.addParticle(this.flameParticle, SectorVec3.fromBlockAndFraction(p_221956_.getX(), 0.5D + (p_221957_.nextDouble() - 0.5D) * 0.2D, (double) p_221956_.getY() + 0.7D + (p_221957_.nextDouble() - 0.5D) * 0.2D, p_221956_.getZ(), 0.5D + (p_221957_.nextDouble() - 0.5D) * 0.2D),
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pState.getValue(LIT)) {
+            pLevel.addParticle(this.flameParticle, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D + (pRandom.nextDouble() - 0.5D) * 0.2D, (double) pPos.getY() + 0.7D + (pRandom.nextDouble() - 0.5D) * 0.2D, pPos.getZ(), 0.5D + (pRandom.nextDouble() - 0.5D) * 0.2D),
                     0.0D, 0.0D, 0.0D);
         }
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_55717_) {
-        p_55717_.add(LIT);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(LIT);
     }
 
-    private static boolean isToggledTooFrequently(Level p_55685_, BlockPos p_55686_, boolean p_55687_) {
-        List<RedstoneTorchBlock.Toggle> list = RECENT_TOGGLES.computeIfAbsent(p_55685_, (p_55680_) -> {
+    private static boolean isToggledTooFrequently(Level pLevel, BlockPos pLevelConflicting, boolean pAddToggle) {
+        List<RedstoneTorchBlock.Toggle> list = RECENT_TOGGLES.computeIfAbsent(pLevel, (p_55680_) -> {
             return Lists.newArrayList();
         });
-        if (p_55687_) {
-            list.add(new RedstoneTorchBlock.Toggle(p_55686_.immutable(), p_55685_.getGameTime()));
+        if (pAddToggle) {
+            list.add(new RedstoneTorchBlock.Toggle(pLevelConflicting.immutable(), pLevel.getGameTime()));
         }
 
         int i = 0;
 
         for (int j = 0; j < list.size(); ++j) {
             RedstoneTorchBlock.Toggle redstonetorchblock$toggle = list.get(j);
-            if (redstonetorchblock$toggle.pos.equals(p_55686_)) {
+            if (redstonetorchblock$toggle.pos.equals(pLevelConflicting)) {
                 ++i;
                 if (i >= 8) {
                     return true;
@@ -126,9 +126,9 @@ public class RedstoneTorchBlock extends TorchBlock {
         final BlockPos pos;
         final long when;
 
-        public Toggle(BlockPos p_55734_, long p_55735_) {
-            this.pos = p_55734_;
-            this.when = p_55735_;
+        public Toggle(BlockPos pPos, long pWhen) {
+            this.pos = pPos;
+            this.when = pWhen;
         }
     }
 }

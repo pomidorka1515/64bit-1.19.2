@@ -152,8 +152,8 @@ public abstract class RenderType extends RenderStateShard {
         return CUTOUT;
     }
 
-    private static RenderType.CompositeState translucentState(RenderStateShard.ShaderStateShard p_173208_) {
-        return RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setShaderState(p_173208_).setTextureState(BLOCK_SHEET_MIPPED).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setOutputState(TRANSLUCENT_TARGET).createCompositeState(true);
+    private static RenderType.CompositeState translucentState(RenderStateShard.ShaderStateShard pState) {
+        return RenderType.CompositeState.builder().setLightmapState(LIGHTMAP).setShaderState(pState).setTextureState(BLOCK_SHEET_MIPPED).setTransparencyState(TRANSLUCENT_TRANSPARENCY).setOutputState(TRANSLUCENT_TARGET).createCompositeState(true);
     }
 
     public static RenderType translucent() {
@@ -172,88 +172,88 @@ public abstract class RenderType extends RenderStateShard {
         return TRANSLUCENT_NO_CRUMBLING;
     }
 
-    public static RenderType armorCutoutNoCull(ResourceLocation p_110432_) {
-        return ARMOR_CUTOUT_NO_CULL.apply(p_110432_);
+    public static RenderType armorCutoutNoCull(ResourceLocation pLocation) {
+        return ARMOR_CUTOUT_NO_CULL.apply(pLocation);
     }
 
-    public static RenderType entitySolid(ResourceLocation p_110447_) {
-        return ENTITY_SOLID.apply(p_110447_);
+    public static RenderType entitySolid(ResourceLocation pLocation) {
+        return ENTITY_SOLID.apply(pLocation);
     }
 
-    public static RenderType entityCutout(ResourceLocation p_110453_) {
-        return ENTITY_CUTOUT.apply(p_110453_);
+    public static RenderType entityCutout(ResourceLocation pLocation) {
+        return ENTITY_CUTOUT.apply(pLocation);
     }
 
-    public static RenderType entityCutoutNoCull(ResourceLocation p_110444_, boolean p_110445_) {
-        return ENTITY_CUTOUT_NO_CULL.apply(p_110444_, p_110445_);
+    public static RenderType entityCutoutNoCull(ResourceLocation pLocation, boolean pOutline) {
+        return ENTITY_CUTOUT_NO_CULL.apply(pLocation, pOutline);
     }
 
-    public static RenderType entityCutoutNoCull(ResourceLocation p_110459_) {
-        return entityCutoutNoCull(p_110459_, true);
+    public static RenderType entityCutoutNoCull(ResourceLocation pLocation) {
+        return entityCutoutNoCull(pLocation, true);
     }
 
-    public static RenderType entityCutoutNoCullZOffset(ResourceLocation p_110449_, boolean p_110450_) {
-        return ENTITY_CUTOUT_NO_CULL_Z_OFFSET.apply(p_110449_, p_110450_);
+    public static RenderType entityCutoutNoCullZOffset(ResourceLocation pLocation, boolean pOutline) {
+        return ENTITY_CUTOUT_NO_CULL_Z_OFFSET.apply(pLocation, pOutline);
     }
 
-    public static RenderType entityCutoutNoCullZOffset(ResourceLocation p_110465_) {
-        return entityCutoutNoCullZOffset(p_110465_, true);
+    public static RenderType entityCutoutNoCullZOffset(ResourceLocation pLocation) {
+        return entityCutoutNoCullZOffset(pLocation, true);
     }
 
-    public static RenderType itemEntityTranslucentCull(ResourceLocation p_110468_) {
-        return ITEM_ENTITY_TRANSLUCENT_CULL.apply(p_110468_);
+    public static RenderType itemEntityTranslucentCull(ResourceLocation pLocation) {
+        return ITEM_ENTITY_TRANSLUCENT_CULL.apply(pLocation);
     }
 
-    public static RenderType entityTranslucentCull(ResourceLocation p_110471_) {
-        return ENTITY_TRANSLUCENT_CULL.apply(p_110471_);
+    public static RenderType entityTranslucentCull(ResourceLocation pLocation) {
+        return ENTITY_TRANSLUCENT_CULL.apply(pLocation);
     }
 
-    public static RenderType entityTranslucent(ResourceLocation p_110455_, boolean p_110456_) {
-        return ENTITY_TRANSLUCENT.apply(p_110455_, p_110456_);
+    public static RenderType entityTranslucent(ResourceLocation pLocation, boolean pOutline) {
+        return ENTITY_TRANSLUCENT.apply(pLocation, pOutline);
     }
 
-    public static RenderType entityTranslucent(ResourceLocation p_110474_) {
-        return entityTranslucent(p_110474_, true);
+    public static RenderType entityTranslucent(ResourceLocation pLocation) {
+        return entityTranslucent(pLocation, true);
     }
 
     public static RenderType entityTranslucentEmissive(ResourceLocation p_234336_, boolean p_234337_) {
         return ENTITY_TRANSLUCENT_EMISSIVE.apply(p_234336_, p_234337_);
     }
 
-    public static RenderType entityTranslucentEmissive(ResourceLocation p_234339_) {
-        return entityTranslucentEmissive(p_234339_, true);
+    public static RenderType entityTranslucentEmissive(ResourceLocation pLocation) {
+        return entityTranslucentEmissive(pLocation, true);
     }
 
-    public static RenderType entitySmoothCutout(ResourceLocation p_110477_) {
-        return ENTITY_SMOOTH_CUTOUT.apply(p_110477_);
+    public static RenderType entitySmoothCutout(ResourceLocation pLocation) {
+        return ENTITY_SMOOTH_CUTOUT.apply(pLocation);
     }
 
-    public static RenderType beaconBeam(ResourceLocation p_110461_, boolean p_110462_) {
-        return BEACON_BEAM.apply(p_110461_, p_110462_);
+    public static RenderType beaconBeam(ResourceLocation pLocation, boolean pColorFlag) {
+        return BEACON_BEAM.apply(pLocation, pColorFlag);
     }
 
-    public static RenderType entityDecal(ResourceLocation p_110480_) {
-        return ENTITY_DECAL.apply(p_110480_);
+    public static RenderType entityDecal(ResourceLocation pLocation) {
+        return ENTITY_DECAL.apply(pLocation);
     }
 
-    public static RenderType entityNoOutline(ResourceLocation p_110483_) {
-        return ENTITY_NO_OUTLINE.apply(p_110483_);
+    public static RenderType entityNoOutline(ResourceLocation pLocation) {
+        return ENTITY_NO_OUTLINE.apply(pLocation);
     }
 
-    public static RenderType entityShadow(ResourceLocation p_110486_) {
-        return ENTITY_SHADOW.apply(p_110486_);
+    public static RenderType entityShadow(ResourceLocation pLocation) {
+        return ENTITY_SHADOW.apply(pLocation);
     }
 
-    public static RenderType dragonExplosionAlpha(ResourceLocation p_173236_) {
-        return DRAGON_EXPLOSION_ALPHA.apply(p_173236_);
+    public static RenderType dragonExplosionAlpha(ResourceLocation pId) {
+        return DRAGON_EXPLOSION_ALPHA.apply(pId);
     }
 
-    public static RenderType eyes(ResourceLocation p_110489_) {
-        return EYES.apply(p_110489_);
+    public static RenderType eyes(ResourceLocation pLocation) {
+        return EYES.apply(pLocation);
     }
 
-    public static RenderType energySwirl(ResourceLocation p_110437_, float p_110438_, float p_110439_) {
-        return create("energy_swirl", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder().setShaderState(RENDERTYPE_ENERGY_SWIRL_SHADER).setTextureState(new RenderStateShard.TextureStateShard(p_110437_, false, false)).setTexturingState(new RenderStateShard.OffsetTexturingStateShard(p_110438_, p_110439_)).setTransparencyState(ADDITIVE_TRANSPARENCY).setCullState(NO_CULL).setLightmapState(LIGHTMAP).setOverlayState(OVERLAY).createCompositeState(false));
+    public static RenderType energySwirl(ResourceLocation pLocation, float pU, float pV) {
+        return create("energy_swirl", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder().setShaderState(RENDERTYPE_ENERGY_SWIRL_SHADER).setTextureState(new RenderStateShard.TextureStateShard(pLocation, false, false)).setTexturingState(new RenderStateShard.OffsetTexturingStateShard(pU, pV)).setTransparencyState(ADDITIVE_TRANSPARENCY).setCullState(NO_CULL).setLightmapState(LIGHTMAP).setOverlayState(OVERLAY).createCompositeState(false));
     }
 
     public static RenderType leash() {
@@ -264,8 +264,8 @@ public abstract class RenderType extends RenderStateShard {
         return WATER_MASK;
     }
 
-    public static RenderType outline(ResourceLocation p_110492_) {
-        return RenderType.CompositeRenderType.OUTLINE.apply(p_110492_, NO_CULL);
+    public static RenderType outline(ResourceLocation pLocation) {
+        return RenderType.CompositeRenderType.OUTLINE.apply(pLocation, NO_CULL);
     }
 
     public static RenderType armorGlint() {
@@ -296,32 +296,32 @@ public abstract class RenderType extends RenderStateShard {
         return ENTITY_GLINT_DIRECT;
     }
 
-    public static RenderType crumbling(ResourceLocation p_110495_) {
-        return CRUMBLING.apply(p_110495_);
+    public static RenderType crumbling(ResourceLocation pLocation) {
+        return CRUMBLING.apply(pLocation);
     }
 
-    public static RenderType text(ResourceLocation p_110498_) {
-        return TEXT.apply(p_110498_);
+    public static RenderType text(ResourceLocation pLocation) {
+        return TEXT.apply(pLocation);
     }
 
-    public static RenderType textIntensity(ResourceLocation p_173238_) {
-        return TEXT_INTENSITY.apply(p_173238_);
+    public static RenderType textIntensity(ResourceLocation pId) {
+        return TEXT_INTENSITY.apply(pId);
     }
 
-    public static RenderType textPolygonOffset(ResourceLocation p_181445_) {
-        return TEXT_POLYGON_OFFSET.apply(p_181445_);
+    public static RenderType textPolygonOffset(ResourceLocation pId) {
+        return TEXT_POLYGON_OFFSET.apply(pId);
     }
 
-    public static RenderType textIntensityPolygonOffset(ResourceLocation p_181447_) {
-        return TEXT_INTENSITY_POLYGON_OFFSET.apply(p_181447_);
+    public static RenderType textIntensityPolygonOffset(ResourceLocation pId) {
+        return TEXT_INTENSITY_POLYGON_OFFSET.apply(pId);
     }
 
-    public static RenderType textSeeThrough(ResourceLocation p_110501_) {
-        return TEXT_SEE_THROUGH.apply(p_110501_);
+    public static RenderType textSeeThrough(ResourceLocation pLocation) {
+        return TEXT_SEE_THROUGH.apply(pLocation);
     }
 
-    public static RenderType textIntensitySeeThrough(ResourceLocation p_173241_) {
-        return TEXT_INTENSITY_SEE_THROUGH.apply(p_173241_);
+    public static RenderType textIntensitySeeThrough(ResourceLocation pId) {
+        return TEXT_INTENSITY_SEE_THROUGH.apply(pId);
     }
 
     public static RenderType lightning() {
@@ -352,31 +352,31 @@ public abstract class RenderType extends RenderStateShard {
         return LINE_STRIP;
     }
 
-    public RenderType(String p_173178_, VertexFormat p_173179_, VertexFormat.Mode p_173180_, int p_173181_, boolean p_173182_, boolean p_173183_, Runnable p_173184_, Runnable p_173185_) {
-        super(p_173178_, p_173184_, p_173185_);
-        this.format = p_173179_;
-        this.mode = p_173180_;
-        this.bufferSize = p_173181_;
-        this.affectsCrumbling = p_173182_;
-        this.sortOnUpload = p_173183_;
+    public RenderType(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, boolean pAffectsCrumbling, boolean pSortOnUpload, Runnable pSetupState, Runnable pClearState) {
+        super(pName, pSetupState, pClearState);
+        this.format = pFormat;
+        this.mode = pMode;
+        this.bufferSize = pBufferSize;
+        this.affectsCrumbling = pAffectsCrumbling;
+        this.sortOnUpload = pSortOnUpload;
         this.asOptional = Optional.of(this);
     }
 
-    static RenderType.CompositeRenderType create(String p_173210_, VertexFormat p_173211_, VertexFormat.Mode p_173212_, int p_173213_, RenderType.CompositeState p_173214_) {
-        return create(p_173210_, p_173211_, p_173212_, p_173213_, false, false, p_173214_);
+    static RenderType.CompositeRenderType create(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, RenderType.CompositeState pState) {
+        return create(pName, pFormat, pMode, pBufferSize, false, false, pState);
     }
 
-    private static RenderType.CompositeRenderType create(String p_173216_, VertexFormat p_173217_, VertexFormat.Mode p_173218_, int p_173219_, boolean p_173220_, boolean p_173221_, RenderType.CompositeState p_173222_) {
-        return new RenderType.CompositeRenderType(p_173216_, p_173217_, p_173218_, p_173219_, p_173220_, p_173221_, p_173222_);
+    private static RenderType.CompositeRenderType create(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, boolean pAffectsCrumbling, boolean pSortOnUpload, RenderType.CompositeState pState) {
+        return new RenderType.CompositeRenderType(pName, pFormat, pMode, pBufferSize, pAffectsCrumbling, pSortOnUpload, pState);
     }
 
-    public void end(BufferBuilder p_110413_, int p_110414_, int p_110415_, int p_110416_) {
-        if (p_110413_.building()) {
+    public void end(BufferBuilder pBuffer, int pCameraX, int pCameraY, int pCameraZ) {
+        if (pBuffer.building()) {
             if (this.sortOnUpload) {
-                p_110413_.setQuadSortOrigin((float) p_110414_, (float) p_110415_, (float) p_110416_);
+                pBuffer.setQuadSortOrigin((float) pCameraX, (float) pCameraY, (float) pCameraZ);
             }
 
-            BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = p_110413_.end();
+            BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = pBuffer.end();
             this.setupRenderState();
             BufferUploader.drawWithShader(bufferbuilder$renderedbuffer);
             this.clearRenderState();
@@ -432,14 +432,14 @@ public abstract class RenderType extends RenderStateShard {
         private final Optional<RenderType> outline;
         private final boolean isOutline;
 
-        CompositeRenderType(String p_173258_, VertexFormat p_173259_, VertexFormat.Mode p_173260_, int p_173261_, boolean p_173262_, boolean p_173263_, RenderType.CompositeState p_173264_) {
-            super(p_173258_, p_173259_, p_173260_, p_173261_, p_173262_, p_173263_, () -> { p_173264_.states.forEach(RenderStateShard::setupRenderState); }, () -> { p_173264_.states.forEach(RenderStateShard::clearRenderState); });
-            this.state = p_173264_;
-            this.outline = p_173264_.outlineProperty == RenderType.OutlineProperty.AFFECTS_OUTLINE ? p_173264_.textureState.cutoutTexture().map((p_173270_) -> {
-                return OUTLINE.apply(p_173270_, p_173264_.cullState);
+        CompositeRenderType(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, boolean pAffectsCrumbling, boolean pSortOnUpload, RenderType.CompositeState pState) {
+            super(pName, pFormat, pMode, pBufferSize, pAffectsCrumbling, pSortOnUpload, () -> { pState.states.forEach(RenderStateShard::setupRenderState); }, () -> { pState.states.forEach(RenderStateShard::clearRenderState); });
+            this.state = pState;
+            this.outline = pState.outlineProperty == RenderType.OutlineProperty.AFFECTS_OUTLINE ? pState.textureState.cutoutTexture().map((p_173270_) -> {
+                return OUTLINE.apply(p_173270_, pState.cullState);
             })
                                                                                                    : Optional.empty();
-            this.isOutline = p_173264_.outlineProperty == RenderType.OutlineProperty.IS_OUTLINE;
+            this.isOutline = pState.outlineProperty == RenderType.OutlineProperty.IS_OUTLINE;
         }
 
         public Optional<RenderType> outline() {
@@ -476,20 +476,20 @@ public abstract class RenderType extends RenderStateShard {
         final RenderType.OutlineProperty outlineProperty;
         final ImmutableList<RenderStateShard> states;
 
-        CompositeState(RenderStateShard.EmptyTextureStateShard p_173276_, RenderStateShard.ShaderStateShard p_173277_, RenderStateShard.TransparencyStateShard p_173278_, RenderStateShard.DepthTestStateShard p_173279_, RenderStateShard.CullStateShard p_173280_, RenderStateShard.LightmapStateShard p_173281_, RenderStateShard.OverlayStateShard p_173282_, RenderStateShard.LayeringStateShard p_173283_, RenderStateShard.OutputStateShard p_173284_, RenderStateShard.TexturingStateShard p_173285_, RenderStateShard.WriteMaskStateShard p_173286_, RenderStateShard.LineStateShard p_173287_, RenderType.OutlineProperty p_173288_) {
-            this.textureState = p_173276_;
-            this.shaderState = p_173277_;
-            this.transparencyState = p_173278_;
-            this.depthTestState = p_173279_;
-            this.cullState = p_173280_;
-            this.lightmapState = p_173281_;
-            this.overlayState = p_173282_;
-            this.layeringState = p_173283_;
-            this.outputState = p_173284_;
-            this.texturingState = p_173285_;
-            this.writeMaskState = p_173286_;
-            this.lineState = p_173287_;
-            this.outlineProperty = p_173288_;
+        CompositeState(RenderStateShard.EmptyTextureStateShard pTextureState, RenderStateShard.ShaderStateShard pShaderState, RenderStateShard.TransparencyStateShard pTransparencyState, RenderStateShard.DepthTestStateShard pDepthTestState, RenderStateShard.CullStateShard pCullState, RenderStateShard.LightmapStateShard pLightmapState, RenderStateShard.OverlayStateShard pOverlayState, RenderStateShard.LayeringStateShard pLayeringState, RenderStateShard.OutputStateShard pOutputState, RenderStateShard.TexturingStateShard pTexturingState, RenderStateShard.WriteMaskStateShard pWriteMaskState, RenderStateShard.LineStateShard pLineState, RenderType.OutlineProperty pOutlineProperty) {
+            this.textureState = pTextureState;
+            this.shaderState = pShaderState;
+            this.transparencyState = pTransparencyState;
+            this.depthTestState = pDepthTestState;
+            this.cullState = pCullState;
+            this.lightmapState = pLightmapState;
+            this.overlayState = pOverlayState;
+            this.layeringState = pLayeringState;
+            this.outputState = pOutputState;
+            this.texturingState = pTexturingState;
+            this.writeMaskState = pWriteMaskState;
+            this.lineState = pLineState;
+            this.outlineProperty = pOutlineProperty;
             this.states = ImmutableList.of(this.textureState, this.shaderState, this.transparencyState, this.depthTestState, this.cullState, this.lightmapState, this.overlayState, this.layeringState, this.outputState, this.texturingState, this.writeMaskState, this.lineState);
         }
 
@@ -519,72 +519,72 @@ public abstract class RenderType extends RenderStateShard {
             CompositeStateBuilder() {
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setTextureState(RenderStateShard.EmptyTextureStateShard p_173291_) {
-                this.textureState = p_173291_;
+            public RenderType.CompositeState.CompositeStateBuilder setTextureState(RenderStateShard.EmptyTextureStateShard pTextureState) {
+                this.textureState = pTextureState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setShaderState(RenderStateShard.ShaderStateShard p_173293_) {
-                this.shaderState = p_173293_;
+            public RenderType.CompositeState.CompositeStateBuilder setShaderState(RenderStateShard.ShaderStateShard pShaderState) {
+                this.shaderState = pShaderState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setTransparencyState(RenderStateShard.TransparencyStateShard p_110686_) {
-                this.transparencyState = p_110686_;
+            public RenderType.CompositeState.CompositeStateBuilder setTransparencyState(RenderStateShard.TransparencyStateShard pTransparencyState) {
+                this.transparencyState = pTransparencyState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setDepthTestState(RenderStateShard.DepthTestStateShard p_110664_) {
-                this.depthTestState = p_110664_;
+            public RenderType.CompositeState.CompositeStateBuilder setDepthTestState(RenderStateShard.DepthTestStateShard pDepthTestState) {
+                this.depthTestState = pDepthTestState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setCullState(RenderStateShard.CullStateShard p_110662_) {
-                this.cullState = p_110662_;
+            public RenderType.CompositeState.CompositeStateBuilder setCullState(RenderStateShard.CullStateShard pCullState) {
+                this.cullState = pCullState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setLightmapState(RenderStateShard.LightmapStateShard p_110672_) {
-                this.lightmapState = p_110672_;
+            public RenderType.CompositeState.CompositeStateBuilder setLightmapState(RenderStateShard.LightmapStateShard pLightmapState) {
+                this.lightmapState = pLightmapState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setOverlayState(RenderStateShard.OverlayStateShard p_110678_) {
-                this.overlayState = p_110678_;
+            public RenderType.CompositeState.CompositeStateBuilder setOverlayState(RenderStateShard.OverlayStateShard pOverlayState) {
+                this.overlayState = pOverlayState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setLayeringState(RenderStateShard.LayeringStateShard p_110670_) {
-                this.layeringState = p_110670_;
+            public RenderType.CompositeState.CompositeStateBuilder setLayeringState(RenderStateShard.LayeringStateShard pLayerState) {
+                this.layeringState = pLayerState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setOutputState(RenderStateShard.OutputStateShard p_110676_) {
-                this.outputState = p_110676_;
+            public RenderType.CompositeState.CompositeStateBuilder setOutputState(RenderStateShard.OutputStateShard pOutputState) {
+                this.outputState = pOutputState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setTexturingState(RenderStateShard.TexturingStateShard p_110684_) {
-                this.texturingState = p_110684_;
+            public RenderType.CompositeState.CompositeStateBuilder setTexturingState(RenderStateShard.TexturingStateShard pTexturingState) {
+                this.texturingState = pTexturingState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setWriteMaskState(RenderStateShard.WriteMaskStateShard p_110688_) {
-                this.writeMaskState = p_110688_;
+            public RenderType.CompositeState.CompositeStateBuilder setWriteMaskState(RenderStateShard.WriteMaskStateShard pWriteMaskState) {
+                this.writeMaskState = pWriteMaskState;
                 return this;
             }
 
-            public RenderType.CompositeState.CompositeStateBuilder setLineState(RenderStateShard.LineStateShard p_110674_) {
-                this.lineState = p_110674_;
+            public RenderType.CompositeState.CompositeStateBuilder setLineState(RenderStateShard.LineStateShard pLineState) {
+                this.lineState = pLineState;
                 return this;
             }
 
-            public RenderType.CompositeState createCompositeState(boolean p_110692_) {
-                return this.createCompositeState(p_110692_ ? RenderType.OutlineProperty.AFFECTS_OUTLINE : RenderType.OutlineProperty.NONE);
+            public RenderType.CompositeState createCompositeState(boolean pOutline) {
+                return this.createCompositeState(pOutline ? RenderType.OutlineProperty.AFFECTS_OUTLINE : RenderType.OutlineProperty.NONE);
             }
 
-            public RenderType.CompositeState createCompositeState(RenderType.OutlineProperty p_110690_) {
-                return new RenderType.CompositeState(this.textureState, this.shaderState, this.transparencyState, this.depthTestState, this.cullState, this.lightmapState, this.overlayState, this.layeringState, this.outputState, this.texturingState, this.writeMaskState, this.lineState, p_110690_);
+            public RenderType.CompositeState createCompositeState(RenderType.OutlineProperty pOutlineState) {
+                return new RenderType.CompositeState(this.textureState, this.shaderState, this.transparencyState, this.depthTestState, this.cullState, this.lightmapState, this.overlayState, this.layeringState, this.outputState, this.texturingState, this.writeMaskState, this.lineState, pOutlineState);
             }
         }
     }

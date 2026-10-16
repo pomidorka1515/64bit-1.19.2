@@ -15,8 +15,8 @@ public abstract class GenericThread implements Runnable {
     @Nullable
     protected Thread thread;
 
-    protected GenericThread(String p_11522_) {
-        this.name = p_11522_;
+    protected GenericThread(String pName) {
+        this.name = pName;
     }
 
     public synchronized boolean start() {

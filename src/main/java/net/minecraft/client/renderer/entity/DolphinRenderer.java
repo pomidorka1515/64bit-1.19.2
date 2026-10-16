@@ -17,7 +17,7 @@ public class DolphinRenderer extends MobRenderer<Dolphin, DolphinModel<Dolphin>>
         this.addLayer(new DolphinCarryingItemLayer(this, p_173960_.getItemInHandRenderer()));
     }
 
-    public ResourceLocation getTextureLocation(Dolphin p_114059_) {
+    public ResourceLocation getTextureLocation(Dolphin pEntity) {
         return DOLPHIN_LOCATION;
     }
 }

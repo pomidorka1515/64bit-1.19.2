@@ -24,13 +24,13 @@ public abstract class EntityTypePredicate {
     };
     private static final Joiner COMMA_JOINER = Joiner.on(", ");
 
-    public abstract boolean matches(EntityType<?> p_37642_);
+    public abstract boolean matches(EntityType<?> pType);
 
     public abstract JsonElement serializeToJson();
 
-    public static EntityTypePredicate fromJson(@Nullable JsonElement p_37644_) {
-        if (p_37644_ != null && !p_37644_.isJsonNull()) {
-            String s = GsonHelper.convertToString(p_37644_, "type");
+    public static EntityTypePredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            String s = GsonHelper.convertToString(pJson, "type");
             if (s.startsWith("#")) {
                 ResourceLocation resourcelocation1 = new ResourceLocation(s.substring(1));
                 return new EntityTypePredicate.TagPredicate(TagKey.create(Registry.ENTITY_TYPE_REGISTRY, resourcelocation1));
@@ -46,23 +46,23 @@ public abstract class EntityTypePredicate {
         }
     }
 
-    public static EntityTypePredicate of(EntityType<?> p_37648_) {
-        return new EntityTypePredicate.TypePredicate(p_37648_);
+    public static EntityTypePredicate of(EntityType<?> pType) {
+        return new EntityTypePredicate.TypePredicate(pType);
     }
 
-    public static EntityTypePredicate of(TagKey<EntityType<?>> p_204082_) {
-        return new EntityTypePredicate.TagPredicate(p_204082_);
+    public static EntityTypePredicate of(TagKey<EntityType<?>> pTag) {
+        return new EntityTypePredicate.TagPredicate(pTag);
     }
 
     static class TagPredicate extends EntityTypePredicate {
         private final TagKey<EntityType<?>> tag;
 
-        public TagPredicate(TagKey<EntityType<?>> p_204084_) {
-            this.tag = p_204084_;
+        public TagPredicate(TagKey<EntityType<?>> pTag) {
+            this.tag = pTag;
         }
 
-        public boolean matches(EntityType<?> p_37658_) {
-            return p_37658_.is(this.tag);
+        public boolean matches(EntityType<?> pType) {
+            return pType.is(this.tag);
         }
 
         public JsonElement serializeToJson() {
@@ -73,12 +73,12 @@ public abstract class EntityTypePredicate {
     static class TypePredicate extends EntityTypePredicate {
         private final EntityType<?> type;
 
-        public TypePredicate(EntityType<?> p_37661_) {
-            this.type = p_37661_;
+        public TypePredicate(EntityType<?> pType) {
+            this.type = pType;
         }
 
-        public boolean matches(EntityType<?> p_37664_) {
-            return this.type == p_37664_;
+        public boolean matches(EntityType<?> pType) {
+            return this.type == pType;
         }
 
         public JsonElement serializeToJson() {

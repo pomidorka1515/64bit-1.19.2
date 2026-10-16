@@ -17,8 +17,8 @@ public class DragonHeadModel extends SkullModelBase {
     private final ModelPart head;
     private final ModelPart jaw;
 
-    public DragonHeadModel(ModelPart p_171097_) {
-        this.head = p_171097_.getChild("head");
+    public DragonHeadModel(ModelPart pRoot) {
+        this.head = pRoot.getChild("head");
         this.jaw = this.head.getChild("jaw");
     }
 
@@ -37,11 +37,11 @@ public class DragonHeadModel extends SkullModelBase {
         this.head.xRot = p_104190_ * ((float) Math.PI / 180F);
     }
 
-    public void renderToBuffer(PoseStack p_104192_, VertexConsumer p_104193_, int p_104194_, int p_104195_, float p_104196_, float p_104197_, float p_104198_, float p_104199_) {
-        p_104192_.pushPose();
-        p_104192_.translate(0.0D, (double) -0.374375F, 0.0D);
-        p_104192_.scale(0.75F, 0.75F, 0.75F);
-        this.head.render(p_104192_, p_104193_, p_104194_, p_104195_, p_104196_, p_104197_, p_104198_, p_104199_);
-        p_104192_.popPose();
+    public void renderToBuffer(PoseStack pPoseStack, VertexConsumer pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {
+        pPoseStack.pushPose();
+        pPoseStack.translate(0.0D, (double) -0.374375F, 0.0D);
+        pPoseStack.scale(0.75F, 0.75F, 0.75F);
+        this.head.render(pPoseStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+        pPoseStack.popPose();
     }
 }

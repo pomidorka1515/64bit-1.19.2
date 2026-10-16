@@ -16,12 +16,12 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
 public class ContextScoreboardNameProvider implements ScoreboardNameProvider {
     final LootContext.EntityTarget target;
 
-    ContextScoreboardNameProvider(LootContext.EntityTarget p_165805_) {
-        this.target = p_165805_;
+    ContextScoreboardNameProvider(LootContext.EntityTarget pTarget) {
+        this.target = pTarget;
     }
 
-    public static ScoreboardNameProvider forTarget(LootContext.EntityTarget p_165808_) {
-        return new ContextScoreboardNameProvider(p_165808_);
+    public static ScoreboardNameProvider forTarget(LootContext.EntityTarget pTarget) {
+        return new ContextScoreboardNameProvider(pTarget);
     }
 
     public LootScoreProviderType getType() {
@@ -29,8 +29,8 @@ public class ContextScoreboardNameProvider implements ScoreboardNameProvider {
     }
 
     @Nullable
-    public String getScoreboardName(LootContext p_165810_) {
-        Entity entity = p_165810_.getParamOrNull(this.target.getParam());
+    public String getScoreboardName(LootContext pLootContext) {
+        Entity entity = pLootContext.getParamOrNull(this.target.getParam());
         return entity != null ? entity.getScoreboardName() : null;
     }
 

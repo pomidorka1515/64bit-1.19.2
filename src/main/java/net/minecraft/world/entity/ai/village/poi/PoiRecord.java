@@ -15,7 +15,7 @@ public class PoiRecord {
     private int freeTickets;
     private final Runnable setDirty;
 
-    public static Codec<PoiRecord> codec(Runnable p_27243_) {
+    public static Codec<PoiRecord> codec(Runnable pExecutable) {
         return RecordCodecBuilder.create((p_27246_) -> {
             return p_27246_.group(BlockPos.CODEC.fieldOf("pos").forGetter((p_148673_) -> {
                                return p_148673_.pos;
@@ -26,7 +26,7 @@ public class PoiRecord {
                                    Codec.INT.fieldOf("free_tickets").orElse(0).forGetter((p_148669_) -> {
                                        return p_148669_.freeTickets;
                                    }),
-                                   RecordCodecBuilder.point(p_27243_))
+                                   RecordCodecBuilder.point(pExecutable))
                     .apply(p_27246_, PoiRecord::new);
         });
     }
@@ -38,8 +38,8 @@ public class PoiRecord {
         this.setDirty = p_218011_;
     }
 
-    public PoiRecord(BlockPos p_218013_, Holder<PoiType> p_218014_, Runnable p_218015_) {
-        this(p_218013_, p_218014_, p_218014_.value().maxTickets(), p_218015_);
+    public PoiRecord(BlockPos pPod, Holder<PoiType> pPoiType, Runnable pSetDirty) {
+        this(pPod, pPoiType, pPoiType.value().maxTickets(), pSetDirty);
     }
 
     /** @deprecated */
@@ -85,11 +85,11 @@ public class PoiRecord {
         return this.poiType;
     }
 
-    public boolean equals(Object p_27256_) {
-        if (this == p_27256_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_27256_ != null && this.getClass() == p_27256_.getClass() ? Objects.equals(this.pos, ((PoiRecord) p_27256_).pos) : false;
+            return pOther != null && this.getClass() == pOther.getClass() ? Objects.equals(this.pos, ((PoiRecord) pOther).pos) : false;
         }
     }
 

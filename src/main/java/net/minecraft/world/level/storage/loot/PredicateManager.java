@@ -29,13 +29,13 @@ public class PredicateManager extends SimpleJsonResourceReloadListener {
     }
 
     @Nullable
-    public LootItemCondition get(ResourceLocation p_79253_) {
-        return this.conditions.get(p_79253_);
+    public LootItemCondition get(ResourceLocation pId) {
+        return this.conditions.get(pId);
     }
 
-    protected void apply(Map<ResourceLocation, JsonElement> p_79249_, ResourceManager p_79250_, ProfilerFiller p_79251_) {
+    protected void apply(Map<ResourceLocation, JsonElement> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         ImmutableMap.Builder<ResourceLocation, LootItemCondition> builder = ImmutableMap.builder();
-        p_79249_.forEach((p_79235_, p_79236_) -> {
+        pObject.forEach((p_79235_, p_79236_) -> {
             try {
                 if (p_79236_.isJsonArray()) {
                     LootItemCondition[] alootitemcondition = GSON.fromJson(p_79236_, LootItemCondition[].class);
@@ -69,20 +69,20 @@ public class PredicateManager extends SimpleJsonResourceReloadListener {
         private final LootItemCondition[] terms;
         private final Predicate<LootContext> composedPredicate;
 
-        CompositePredicate(LootItemCondition[] p_79259_) {
-            this.terms = p_79259_;
-            this.composedPredicate = LootItemConditions.andConditions(p_79259_);
+        CompositePredicate(LootItemCondition[] pTerms) {
+            this.terms = pTerms;
+            this.composedPredicate = LootItemConditions.andConditions(pTerms);
         }
 
         public final boolean test(LootContext p_79264_) {
             return this.composedPredicate.test(p_79264_);
         }
 
-        public void validate(ValidationContext p_79266_) {
-            LootItemCondition.super.validate(p_79266_);
+        public void validate(ValidationContext pContext) {
+            LootItemCondition.super.validate(pContext);
 
             for (int i = 0; i < this.terms.length; ++i) {
-                this.terms[i].validate(p_79266_.forChild(".term[" + i + "]"));
+                this.terms[i].validate(pContext.forChild(".term[" + i + "]"));
             }
         }
 

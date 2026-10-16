@@ -27,7 +27,7 @@ public class ItemColors {
     private static final int DEFAULT = -1;
     private final IdMapper<ItemColor> itemColors = new IdMapper<>(32);
 
-    public static ItemColors createDefault(BlockColors p_92684_) {
+    public static ItemColors createDefault(BlockColors pColors) {
         ItemColors itemcolors = new ItemColors();
         itemcolors.register((p_92708_, p_92709_) -> {
             return p_92709_ > 0 ? -1 : ((DyeableLeatherItem) p_92708_.getItem()).getColor(p_92708_);
@@ -77,7 +77,7 @@ public class ItemColors {
 
         itemcolors.register((p_92687_, p_92688_) -> {
             BlockState blockstate = ((BlockItem) p_92687_.getItem()).getBlock().defaultBlockState();
-            return p_92684_.getColor(blockstate, (BlockAndTintGetter) null, (BlockPos) null, p_92688_);
+            return pColors.getColor(blockstate, (BlockAndTintGetter) null, (BlockPos) null, p_92688_);
         }, Blocks.GRASS_BLOCK, Blocks.GRASS, Blocks.FERN, Blocks.VINE, Blocks.OAK_LEAVES, Blocks.SPRUCE_LEAVES, Blocks.BIRCH_LEAVES, Blocks.JUNGLE_LEAVES, Blocks.ACACIA_LEAVES, Blocks.DARK_OAK_LEAVES, Blocks.LILY_PAD);
         itemcolors.register((p_92696_, p_92697_) -> {
             return FoliageColor.getMangroveColor();
@@ -91,14 +91,14 @@ public class ItemColors {
         return itemcolors;
     }
 
-    public int getColor(ItemStack p_92677_, int p_92678_) {
-        ItemColor itemcolor = this.itemColors.byId(Registry.ITEM.getId(p_92677_.getItem()));
-        return itemcolor == null ? -1 : itemcolor.getColor(p_92677_, p_92678_);
+    public int getColor(ItemStack pStack, int pTintIndex) {
+        ItemColor itemcolor = this.itemColors.byId(Registry.ITEM.getId(pStack.getItem()));
+        return itemcolor == null ? -1 : itemcolor.getColor(pStack, pTintIndex);
     }
 
-    public void register(ItemColor p_92690_, ItemLike... p_92691_) {
-        for (ItemLike itemlike : p_92691_) {
-            this.itemColors.addMapping(p_92690_, Item.getId(itemlike.asItem()));
+    public void register(ItemColor pItemColor, ItemLike... pItems) {
+        for (ItemLike itemlike : pItems) {
+            this.itemColors.addMapping(pItemColor, Item.getId(itemlike.asItem()));
         }
     }
 }

@@ -13,23 +13,23 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public record BlockDataSource(String posPattern, @Nullable Coordinates compiledPos) implements DataSource {
-    public BlockDataSource(String p_237312_) {
-        this(p_237312_, compilePos(p_237312_));
+    public BlockDataSource(String pPosPattern) {
+        this(pPosPattern, compilePos(pPosPattern));
     }
 
     @Nullable
-    private static Coordinates compilePos(String p_237318_) {
+    private static Coordinates compilePos(String pPosPattern) {
         try {
-            return BlockPosArgument.blockPos().parse(new StringReader(p_237318_));
+            return BlockPosArgument.blockPos().parse(new StringReader(pPosPattern));
         } catch (CommandSyntaxException commandsyntaxexception) {
             return null;
         }
     }
 
-    public Stream<CompoundTag> getData(CommandSourceStack p_237323_) {
+    public Stream<CompoundTag> getData(CommandSourceStack pSource) {
         if (this.compiledPos != null) {
-            ServerLevel serverlevel = p_237323_.getLevel();
-            BlockPos blockpos = this.compiledPos.getBlockPos(p_237323_);
+            ServerLevel serverlevel = pSource.getLevel();
+            BlockPos blockpos = this.compiledPos.getBlockPos(pSource);
             if (serverlevel.isLoaded(blockpos)) {
                 BlockEntity blockentity = serverlevel.getBlockEntity(blockpos);
                 if (blockentity != null) {
@@ -45,12 +45,12 @@ public record BlockDataSource(String posPattern, @Nullable Coordinates compiledP
         return "block=" + this.posPattern;
     }
 
-    public boolean equals(Object p_237321_) {
-        if (this == p_237321_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            if (p_237321_ instanceof BlockDataSource) {
-                BlockDataSource blockdatasource = (BlockDataSource) p_237321_;
+            if (pOther instanceof BlockDataSource) {
+                BlockDataSource blockdatasource = (BlockDataSource) pOther;
                 if (this.posPattern.equals(blockdatasource.posPattern)) {
                     return true;
                 }

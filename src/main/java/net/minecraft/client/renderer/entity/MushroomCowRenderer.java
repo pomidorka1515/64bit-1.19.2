@@ -23,7 +23,7 @@ public class MushroomCowRenderer extends MobRenderer<MushroomCow, CowModel<Mushr
         this.addLayer(new MushroomCowMushroomLayer<>(this, p_174324_.getBlockRenderDispatcher()));
     }
 
-    public ResourceLocation getTextureLocation(MushroomCow p_115514_) {
-        return TEXTURES.get(p_115514_.getMushroomType());
+    public ResourceLocation getTextureLocation(MushroomCow pEntity) {
+        return TEXTURES.get(pEntity.getMushroomType());
     }
 }

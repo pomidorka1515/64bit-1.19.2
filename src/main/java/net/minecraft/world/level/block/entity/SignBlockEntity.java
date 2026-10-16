@@ -38,50 +38,50 @@ public class SignBlockEntity extends BlockEntity {
     private DyeColor color = DyeColor.BLACK;
     private boolean hasGlowingText;
 
-    public SignBlockEntity(BlockPos p_155700_, BlockState p_155701_) {
-        super(BlockEntityType.SIGN, p_155700_, p_155701_);
+    public SignBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.SIGN, pPos, pBlockState);
     }
 
-    protected void saveAdditional(CompoundTag p_187515_) {
-        super.saveAdditional(p_187515_);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
 
         for (int i = 0; i < 4; ++i) {
             Component component = this.messages[i];
             String s = Component.Serializer.toJson(component);
-            p_187515_.putString(RAW_TEXT_FIELD_NAMES[i], s);
+            pTag.putString(RAW_TEXT_FIELD_NAMES[i], s);
             Component component1 = this.filteredMessages[i];
             if (!component1.equals(component)) {
-                p_187515_.putString(FILTERED_TEXT_FIELD_NAMES[i], Component.Serializer.toJson(component1));
+                pTag.putString(FILTERED_TEXT_FIELD_NAMES[i], Component.Serializer.toJson(component1));
             }
         }
 
-        p_187515_.putString("Color", this.color.getName());
-        p_187515_.putBoolean("GlowingText", this.hasGlowingText);
+        pTag.putString("Color", this.color.getName());
+        pTag.putBoolean("GlowingText", this.hasGlowingText);
     }
 
-    public void load(CompoundTag p_155716_) {
+    public void load(CompoundTag pTag) {
         this.isEditable = false;
-        super.load(p_155716_);
-        this.color = DyeColor.byName(p_155716_.getString("Color"), DyeColor.BLACK);
+        super.load(pTag);
+        this.color = DyeColor.byName(pTag.getString("Color"), DyeColor.BLACK);
 
         for (int i = 0; i < 4; ++i) {
-            String s = p_155716_.getString(RAW_TEXT_FIELD_NAMES[i]);
+            String s = pTag.getString(RAW_TEXT_FIELD_NAMES[i]);
             Component component = this.loadLine(s);
             this.messages[i] = component;
             String s1 = FILTERED_TEXT_FIELD_NAMES[i];
-            if (p_155716_.contains(s1, 8)) {
-                this.filteredMessages[i] = this.loadLine(p_155716_.getString(s1));
+            if (pTag.contains(s1, 8)) {
+                this.filteredMessages[i] = this.loadLine(pTag.getString(s1));
             } else {
                 this.filteredMessages[i] = component;
             }
         }
 
         this.renderMessages = null;
-        this.hasGlowingText = p_155716_.getBoolean("GlowingText");
+        this.hasGlowingText = pTag.getBoolean("GlowingText");
     }
 
-    private Component loadLine(String p_155712_) {
-        Component component = this.deserializeTextSafe(p_155712_);
+    private Component loadLine(String pLine) {
+        Component component = this.deserializeTextSafe(pLine);
         if (this.level instanceof ServerLevel) {
             try {
                 return ComponentUtils.updateForEntity(this.createCommandSourceStack((ServerPlayer) null), component, (Entity) null, 0);
@@ -92,9 +92,9 @@ public class SignBlockEntity extends BlockEntity {
         return component;
     }
 
-    private Component deserializeTextSafe(String p_155721_) {
+    private Component deserializeTextSafe(String pText) {
         try {
-            Component component = Component.Serializer.fromJson(p_155721_);
+            Component component = Component.Serializer.fromJson(pText);
             if (component != null) {
                 return component;
             }
@@ -104,35 +104,35 @@ public class SignBlockEntity extends BlockEntity {
         return CommonComponents.EMPTY;
     }
 
-    public Component getMessage(int p_155707_, boolean p_155708_) {
-        return this.getMessages(p_155708_)[p_155707_];
+    public Component getMessage(int pLine, boolean pFiltered) {
+        return this.getMessages(pFiltered)[pLine];
     }
 
-    public void setMessage(int p_59733_, Component p_59734_) {
-        this.setMessage(p_59733_, p_59734_, p_59734_);
+    public void setMessage(int pLine, Component pMessage) {
+        this.setMessage(pLine, pMessage, pMessage);
     }
 
-    public void setMessage(int p_155703_, Component p_155704_, Component p_155705_) {
-        this.messages[p_155703_] = p_155704_;
-        this.filteredMessages[p_155703_] = p_155705_;
+    public void setMessage(int pLine, Component pMessage, Component pFilteredMessage) {
+        this.messages[pLine] = pMessage;
+        this.filteredMessages[pLine] = pFilteredMessage;
         this.renderMessages = null;
     }
 
-    public FormattedCharSequence[] getRenderMessages(boolean p_155718_, Function<Component, FormattedCharSequence> p_155719_) {
-        if (this.renderMessages == null || this.renderMessagedFiltered != p_155718_) {
-            this.renderMessagedFiltered = p_155718_;
+    public FormattedCharSequence[] getRenderMessages(boolean pFiltered, Function<Component, FormattedCharSequence> pMessageTransformer) {
+        if (this.renderMessages == null || this.renderMessagedFiltered != pFiltered) {
+            this.renderMessagedFiltered = pFiltered;
             this.renderMessages = new FormattedCharSequence[4];
 
             for (int i = 0; i < 4; ++i) {
-                this.renderMessages[i] = p_155719_.apply(this.getMessage(i, p_155718_));
+                this.renderMessages[i] = pMessageTransformer.apply(this.getMessage(i, pFiltered));
             }
         }
 
         return this.renderMessages;
     }
 
-    private Component[] getMessages(boolean p_155725_) {
-        return p_155725_ ? this.filteredMessages : this.messages;
+    private Component[] getMessages(boolean pFiltered) {
+        return pFiltered ? this.filteredMessages : this.messages;
     }
 
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -151,15 +151,15 @@ public class SignBlockEntity extends BlockEntity {
         return this.isEditable;
     }
 
-    public void setEditable(boolean p_59747_) {
-        this.isEditable = p_59747_;
-        if (!p_59747_) {
+    public void setEditable(boolean pIsEditable) {
+        this.isEditable = pIsEditable;
+        if (!pIsEditable) {
             this.playerWhoMayEdit = null;
         }
     }
 
-    public void setAllowedPlayerEditor(UUID p_155714_) {
-        this.playerWhoMayEdit = p_155714_;
+    public void setAllowedPlayerEditor(UUID pPlayWhoMayEdit) {
+        this.playerWhoMayEdit = pPlayWhoMayEdit;
     }
 
     @Nullable
@@ -167,31 +167,31 @@ public class SignBlockEntity extends BlockEntity {
         return this.playerWhoMayEdit;
     }
 
-    public boolean executeClickCommands(ServerPlayer p_155710_) {
-        for (Component component : this.getMessages(p_155710_.isTextFilteringEnabled())) {
+    public boolean executeClickCommands(ServerPlayer pLevel) {
+        for (Component component : this.getMessages(pLevel.isTextFilteringEnabled())) {
             Style style = component.getStyle();
             ClickEvent clickevent = style.getClickEvent();
             if (clickevent != null && clickevent.getAction() == ClickEvent.Action.RUN_COMMAND) {
-                p_155710_.getServer().getCommands().performPrefixedCommand(this.createCommandSourceStack(p_155710_), clickevent.getValue());
+                pLevel.getServer().getCommands().performPrefixedCommand(this.createCommandSourceStack(pLevel), clickevent.getValue());
             }
         }
 
         return true;
     }
 
-    public CommandSourceStack createCommandSourceStack(@Nullable ServerPlayer p_59736_) {
-        String s = p_59736_ == null ? "Sign" : p_59736_.getName().getString();
-        Component component = (Component) (p_59736_ == null ? Component.literal("Sign") : p_59736_.getDisplayName());
-        return new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(this.worldPosition), Vec2.ZERO, (ServerLevel) this.level, 2, s, component, this.level.getServer(), p_59736_);
+    public CommandSourceStack createCommandSourceStack(@Nullable ServerPlayer pPlayer) {
+        String s = pPlayer == null ? "Sign" : pPlayer.getName().getString();
+        Component component = (Component) (pPlayer == null ? Component.literal("Sign") : pPlayer.getDisplayName());
+        return new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(this.worldPosition), Vec2.ZERO, (ServerLevel) this.level, 2, s, component, this.level.getServer(), pPlayer);
     }
 
     public DyeColor getColor() {
         return this.color;
     }
 
-    public boolean setColor(DyeColor p_59740_) {
-        if (p_59740_ != this.getColor()) {
-            this.color = p_59740_;
+    public boolean setColor(DyeColor pColor) {
+        if (pColor != this.getColor()) {
+            this.color = pColor;
             this.markUpdated();
             return true;
         } else {
@@ -203,9 +203,9 @@ public class SignBlockEntity extends BlockEntity {
         return this.hasGlowingText;
     }
 
-    public boolean setHasGlowingText(boolean p_155723_) {
-        if (this.hasGlowingText != p_155723_) {
-            this.hasGlowingText = p_155723_;
+    public boolean setHasGlowingText(boolean pHasGlowingText) {
+        if (this.hasGlowingText != pHasGlowingText) {
+            this.hasGlowingText = pHasGlowingText;
             this.markUpdated();
             return true;
         } else {

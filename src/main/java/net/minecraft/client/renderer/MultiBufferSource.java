@@ -13,15 +13,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface MultiBufferSource {
-    static MultiBufferSource.BufferSource immediate(BufferBuilder p_109899_) {
-        return immediateWithBuffers(ImmutableMap.of(), p_109899_);
+    static MultiBufferSource.BufferSource immediate(BufferBuilder pBuilder) {
+        return immediateWithBuffers(ImmutableMap.of(), pBuilder);
     }
 
-    static MultiBufferSource.BufferSource immediateWithBuffers(Map<RenderType, BufferBuilder> p_109901_, BufferBuilder p_109902_) {
-        return new MultiBufferSource.BufferSource(p_109902_, p_109901_);
+    static MultiBufferSource.BufferSource immediateWithBuffers(Map<RenderType, BufferBuilder> pMapBuilders, BufferBuilder pBuilder) {
+        return new MultiBufferSource.BufferSource(pBuilder, pMapBuilders);
     }
 
-    VertexConsumer getBuffer(RenderType p_109903_);
+    VertexConsumer getBuffer(RenderType pRenderType);
 
     @OnlyIn(Dist.CLIENT)
     public static class BufferSource implements MultiBufferSource {
@@ -30,15 +30,15 @@ public interface MultiBufferSource {
         protected Optional<RenderType> lastState = Optional.empty();
         protected final Set<BufferBuilder> startedBuffers = Sets.newHashSet();
 
-        protected BufferSource(BufferBuilder p_109909_, Map<RenderType, BufferBuilder> p_109910_) {
-            this.builder = p_109909_;
-            this.fixedBuffers = p_109910_;
+        protected BufferSource(BufferBuilder pBuilder, Map<RenderType, BufferBuilder> pFixedBuffers) {
+            this.builder = pBuilder;
+            this.fixedBuffers = pFixedBuffers;
         }
 
-        public VertexConsumer getBuffer(RenderType p_109919_) {
-            Optional<RenderType> optional = p_109919_.asOptional();
-            BufferBuilder bufferbuilder = this.getBuilderRaw(p_109919_);
-            if (!Objects.equals(this.lastState, optional) || !p_109919_.canConsolidateConsecutiveGeometry()) {
+        public VertexConsumer getBuffer(RenderType pRenderType) {
+            Optional<RenderType> optional = pRenderType.asOptional();
+            BufferBuilder bufferbuilder = this.getBuilderRaw(pRenderType);
+            if (!Objects.equals(this.lastState, optional) || !pRenderType.canConsolidateConsecutiveGeometry()) {
                 if (this.lastState.isPresent()) {
                     RenderType rendertype = this.lastState.get();
                     if (!this.fixedBuffers.containsKey(rendertype)) {
@@ -47,7 +47,7 @@ public interface MultiBufferSource {
                 }
 
                 if (this.startedBuffers.add(bufferbuilder)) {
-                    bufferbuilder.begin(p_109919_.mode(), p_109919_.format());
+                    bufferbuilder.begin(pRenderType.mode(), pRenderType.format());
                 }
 
                 this.lastState = optional;
@@ -56,8 +56,8 @@ public interface MultiBufferSource {
             return bufferbuilder;
         }
 
-        private BufferBuilder getBuilderRaw(RenderType p_109915_) {
-            return this.fixedBuffers.getOrDefault(p_109915_, this.builder);
+        private BufferBuilder getBuilderRaw(RenderType pRenderType) {
+            return this.fixedBuffers.getOrDefault(pRenderType, this.builder);
         }
 
         public void endLastBatch() {
@@ -84,12 +84,12 @@ public interface MultiBufferSource {
             }
         }
 
-        public void endBatch(RenderType p_109913_) {
-            BufferBuilder bufferbuilder = this.getBuilderRaw(p_109913_);
-            boolean flag = Objects.equals(this.lastState, p_109913_.asOptional());
+        public void endBatch(RenderType pRenderType) {
+            BufferBuilder bufferbuilder = this.getBuilderRaw(pRenderType);
+            boolean flag = Objects.equals(this.lastState, pRenderType.asOptional());
             if (flag || bufferbuilder != this.builder) {
                 if (this.startedBuffers.remove(bufferbuilder)) {
-                    p_109913_.end(bufferbuilder, 0, 0, 0);
+                    pRenderType.end(bufferbuilder, 0, 0, 0);
                     if (flag) {
                         this.lastState = Optional.empty();
                     }

@@ -11,8 +11,8 @@ import net.minecraft.world.level.levelgen.structure.StructurePieceAccessor;
 public class StructurePiecesBuilder implements StructurePieceAccessor {
     private final List<StructurePiece> pieces = Lists.newArrayList();
 
-    public void addPiece(StructurePiece p_192791_) {
-        this.pieces.add(p_192791_);
+    public void addPiece(StructurePiece pPiece) {
+        this.pieces.add(pPiece);
     }
 
     public int size() {
@@ -20,15 +20,15 @@ public class StructurePiecesBuilder implements StructurePieceAccessor {
     }
 
     @Nullable
-    public StructurePiece findCollisionPiece(BoundingBox p_192789_) {
-        return StructurePiece.findCollisionPiece(this.pieces, p_192789_);
+    public StructurePiece findCollisionPiece(BoundingBox pBox) {
+        return StructurePiece.findCollisionPiece(this.pieces, pBox);
     }
 
     /** @deprecated */
     @Deprecated
-    public void offsetPiecesVertically(int p_192782_) {
+    public void offsetPiecesVertically(int pOffset) {
         for (StructurePiece structurepiece : this.pieces) {
-            structurepiece.move(0, p_192782_, 0);
+            structurepiece.move(0, pOffset, 0);
         }
     }
 

@@ -16,13 +16,13 @@ public abstract class StateTestingPredicate implements BlockPredicate {
         }));
     }
 
-    protected StateTestingPredicate(Vec3i p_190541_) {
-        this.offset = p_190541_;
+    protected StateTestingPredicate(Vec3i pOffset) {
+        this.offset = pOffset;
     }
 
     public final boolean test(WorldGenLevel p_190543_, BlockPos p_190544_) {
         return this.test(p_190543_.getBlockState(p_190544_.offset(this.offset)));
     }
 
-    protected abstract boolean test(BlockState p_190545_);
+    protected abstract boolean test(BlockState pState);
 }

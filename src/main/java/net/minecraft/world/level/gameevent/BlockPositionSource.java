@@ -22,7 +22,7 @@ public class BlockPositionSource implements PositionSource {
         this.pos = p_157703_;
     }
 
-    public Optional<Vec3> getPosition(Level p_157708_) {
+    public Optional<Vec3> getPosition(Level pLevel) {
         return Optional.of(Vec3.atCenterOf(this.pos));
     }
 

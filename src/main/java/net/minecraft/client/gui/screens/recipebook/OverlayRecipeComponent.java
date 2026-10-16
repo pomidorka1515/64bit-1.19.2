@@ -95,7 +95,7 @@ public class OverlayRecipeComponent extends GuiComponent implements Widget, GuiE
         this.lastRecipeClicked = null;
     }
 
-    public boolean changeFocus(boolean p_100224_) {
+    public boolean changeFocus(boolean pFocus) {
         return false;
     }
 
@@ -108,12 +108,12 @@ public class OverlayRecipeComponent extends GuiComponent implements Widget, GuiE
         return this.lastRecipeClicked;
     }
 
-    public boolean mouseClicked(double p_100186_, double p_100187_, int p_100188_) {
-        if (p_100188_ != 0) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (pButton != 0) {
             return false;
         } else {
             for (OverlayRecipeComponent.OverlayRecipeButton overlayrecipecomponent$overlayrecipebutton : this.recipeButtons) {
-                if (overlayrecipecomponent$overlayrecipebutton.mouseClicked(p_100186_, p_100187_, p_100188_)) {
+                if (overlayrecipecomponent$overlayrecipebutton.mouseClicked(pMouseX, pMouseY, pButton)) {
                     this.lastRecipeClicked = overlayrecipecomponent$overlayrecipebutton.recipe;
                     return true;
                 }
@@ -123,18 +123,18 @@ public class OverlayRecipeComponent extends GuiComponent implements Widget, GuiE
         }
     }
 
-    public boolean isMouseOver(double p_100208_, double p_100209_) {
+    public boolean isMouseOver(double pMouseX, double pMouseY) {
         return false;
     }
 
-    public void render(PoseStack p_100190_, int p_100191_, int p_100192_, float p_100193_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.isVisible) {
-            this.time += p_100193_;
+            this.time += pPartialTick;
             RenderSystem.enableBlend();
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, RECIPE_BOOK_LOCATION);
-            p_100190_.pushPose();
-            p_100190_.translate(0.0D, 0.0D, 170.0D);
+            pPoseStack.pushPose();
+            pPoseStack.translate(0.0D, 0.0D, 170.0D);
             int i = this.recipeButtons.size() <= 16 ? 4 : 5;
             int j = Math.min(this.recipeButtons.size(), i);
             int k = Mth.ceil((float) this.recipeButtons.size() / (float) i);
@@ -142,14 +142,14 @@ public class OverlayRecipeComponent extends GuiComponent implements Widget, GuiE
             int i1 = 4;
             int j1 = 82;
             int k1 = 208;
-            this.nineInchSprite(p_100190_, j, k, 24, 4, 82, 208);
+            this.nineInchSprite(pPoseStack, j, k, 24, 4, 82, 208);
             RenderSystem.disableBlend();
 
             for (OverlayRecipeComponent.OverlayRecipeButton overlayrecipecomponent$overlayrecipebutton : this.recipeButtons) {
-                overlayrecipecomponent$overlayrecipebutton.render(p_100190_, p_100191_, p_100192_, p_100193_);
+                overlayrecipecomponent$overlayrecipebutton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             }
 
-            p_100190_.popPose();
+            pPoseStack.popPose();
         }
     }
 
@@ -184,8 +184,8 @@ public class OverlayRecipeComponent extends GuiComponent implements Widget, GuiE
         }
     }
 
-    public void setVisible(boolean p_100205_) {
-        this.isVisible = p_100205_;
+    public void setVisible(boolean pIsVisible) {
+        this.isVisible = pIsVisible;
     }
 
     public boolean isVisible() {
@@ -207,22 +207,22 @@ public class OverlayRecipeComponent extends GuiComponent implements Widget, GuiE
             this.calculateIngredientsPositions(p_100234_);
         }
 
-        protected void calculateIngredientsPositions(Recipe<?> p_100236_) {
-            this.placeRecipe(3, 3, -1, p_100236_, p_100236_.getIngredients().iterator(), 0);
+        protected void calculateIngredientsPositions(Recipe<?> pRecipe) {
+            this.placeRecipe(3, 3, -1, pRecipe, pRecipe.getIngredients().iterator(), 0);
         }
 
-        public void updateNarration(NarrationElementOutput p_170040_) {
-            this.defaultButtonNarrationText(p_170040_);
+        public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+            this.defaultButtonNarrationText(pNarrationElementOutput);
         }
 
-        public void addItemToSlot(Iterator<Ingredient> p_100240_, int p_100241_, int p_100242_, int p_100243_, int p_100244_) {
-            ItemStack[] aitemstack = p_100240_.next().getItems();
+        public void addItemToSlot(Iterator<Ingredient> pIngredients, int pSlot, int pMaxAmount, int pY, int pX) {
+            ItemStack[] aitemstack = pIngredients.next().getItems();
             if (aitemstack.length != 0) {
-                this.ingredientPos.add(new OverlayRecipeComponent.OverlayRecipeButton.Pos(3 + p_100244_ * 7, 3 + p_100243_ * 7, aitemstack));
+                this.ingredientPos.add(new OverlayRecipeComponent.OverlayRecipeButton.Pos(3 + pX * 7, 3 + pY * 7, aitemstack));
             }
         }
 
-        public void renderButton(PoseStack p_100246_, int p_100247_, int p_100248_, float p_100249_) {
+        public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
             RenderSystem.setShaderTexture(0, OverlayRecipeComponent.RECIPE_BOOK_LOCATION);
             int i = 152;
             if (!this.isCraftable) {
@@ -234,7 +234,7 @@ public class OverlayRecipeComponent extends GuiComponent implements Widget, GuiE
                 j += 26;
             }
 
-            this.blit(p_100246_, this.x, this.y, i, j, this.width, this.height);
+            this.blit(pPoseStack, this.x, this.y, i, j, this.width, this.height);
             PoseStack posestack = RenderSystem.getModelViewStack();
             posestack.pushPose();
             posestack.translate((double) (this.x + 2), (double) (this.y + 2), 125.0D);

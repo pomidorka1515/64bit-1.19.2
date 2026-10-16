@@ -11,8 +11,8 @@ public class LanguageMetadataSection {
     public static final boolean DEFAULT_BIDIRECTIONAL = false;
     private final Collection<LanguageInfo> languages;
 
-    public LanguageMetadataSection(Collection<LanguageInfo> p_119100_) {
-        this.languages = p_119100_;
+    public LanguageMetadataSection(Collection<LanguageInfo> pLanguages) {
+        this.languages = pLanguages;
     }
 
     public Collection<LanguageInfo> getLanguages() {

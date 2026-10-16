@@ -14,9 +14,9 @@ public class WeatherCheck implements LootItemCondition {
     @Nullable
     final Boolean isThundering;
 
-    WeatherCheck(@Nullable Boolean p_82059_, @Nullable Boolean p_82060_) {
-        this.isRaining = p_82059_;
-        this.isThundering = p_82060_;
+    WeatherCheck(@Nullable Boolean pIsRaining, @Nullable Boolean pIsThundering) {
+        this.isRaining = pIsRaining;
+        this.isThundering = pIsThundering;
     }
 
     public LootItemConditionType getType() {
@@ -42,13 +42,13 @@ public class WeatherCheck implements LootItemCondition {
         @Nullable
         private Boolean isThundering;
 
-        public WeatherCheck.Builder setRaining(@Nullable Boolean p_165557_) {
-            this.isRaining = p_165557_;
+        public WeatherCheck.Builder setRaining(@Nullable Boolean pIsRaining) {
+            this.isRaining = pIsRaining;
             return this;
         }
 
-        public WeatherCheck.Builder setThundering(@Nullable Boolean p_165560_) {
-            this.isThundering = p_165560_;
+        public WeatherCheck.Builder setThundering(@Nullable Boolean pIsThundering) {
+            this.isThundering = pIsThundering;
             return this;
         }
 

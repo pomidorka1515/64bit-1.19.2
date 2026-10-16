@@ -51,12 +51,12 @@ public enum ArmorMaterials implements ArmorMaterial {
         this.repairIngredient = new LazyLoadedValue<>(p_40481_);
     }
 
-    public int getDurabilityForSlot(EquipmentSlot p_40484_) {
-        return HEALTH_PER_SLOT[p_40484_.getIndex()] * this.durabilityMultiplier;
+    public int getDurabilityForSlot(EquipmentSlot pSlot) {
+        return HEALTH_PER_SLOT[pSlot.getIndex()] * this.durabilityMultiplier;
     }
 
-    public int getDefenseForSlot(EquipmentSlot p_40487_) {
-        return this.slotProtections[p_40487_.getIndex()];
+    public int getDefenseForSlot(EquipmentSlot pSlot) {
+        return this.slotProtections[pSlot.getIndex()];
     }
 
     public int getEnchantmentValue() {

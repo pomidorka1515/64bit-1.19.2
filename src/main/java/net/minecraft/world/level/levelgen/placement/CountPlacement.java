@@ -16,16 +16,16 @@ public class CountPlacement extends RepeatingPlacement {
         this.count = p_191627_;
     }
 
-    public static CountPlacement of(IntProvider p_191631_) {
-        return new CountPlacement(p_191631_);
+    public static CountPlacement of(IntProvider pCount) {
+        return new CountPlacement(pCount);
     }
 
-    public static CountPlacement of(int p_191629_) {
-        return of(ConstantInt.of(p_191629_));
+    public static CountPlacement of(int pCount) {
+        return of(ConstantInt.of(pCount));
     }
 
-    protected int count(RandomSource p_226333_, BlockPos p_226334_) {
-        return this.count.sample(p_226333_);
+    protected int count(RandomSource pRandom, BlockPos pPos) {
+        return this.count.sample(pRandom);
     }
 
     public PlacementModifierType<?> type() {

@@ -5,8 +5,8 @@ import java.util.List;
 public class StructureProcessorList {
     private final List<StructureProcessor> list;
 
-    public StructureProcessorList(List<StructureProcessor> p_74424_) {
-        this.list = p_74424_;
+    public StructureProcessorList(List<StructureProcessor> pList) {
+        this.list = pList;
     }
 
     public List<StructureProcessor> list() {

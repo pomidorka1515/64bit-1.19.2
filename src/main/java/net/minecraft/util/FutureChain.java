@@ -12,13 +12,13 @@ public class FutureChain implements TaskChainer {
     private CompletableFuture<?> head = CompletableFuture.completedFuture((Object) null);
     private final Executor executor;
 
-    public FutureChain(Executor p_242395_) {
-        this.executor = p_242395_;
+    public FutureChain(Executor pExecutor) {
+        this.executor = pExecutor;
     }
 
-    public void append(TaskChainer.DelayedTask p_242381_) {
+    public void append(TaskChainer.DelayedTask pDelayedTask) {
         this.head = this.head.thenComposeAsync((p_242302_) -> {
-                                 return p_242381_.get();
+                                 return pDelayedTask.get();
                              }, this.executor).exceptionally((p_242215_) -> {
             if (p_242215_ instanceof CompletionException completionexception) {
                 p_242215_ = completionexception.getCause();

@@ -70,20 +70,20 @@ public class MinecartItem extends Item {
     };
     final AbstractMinecart.Type type;
 
-    public MinecartItem(AbstractMinecart.Type p_42938_, Item.Properties p_42939_) {
-        super(p_42939_);
-        this.type = p_42938_;
+    public MinecartItem(AbstractMinecart.Type pType, Item.Properties pProperties) {
+        super(pProperties);
+        this.type = pType;
         DispenserBlock.registerBehavior(this, DISPENSE_ITEM_BEHAVIOR);
     }
 
-    public InteractionResult useOn(UseOnContext p_42943_) {
-        Level level = p_42943_.getLevel();
-        BlockPos blockpos = p_42943_.getClickedPos();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
         if (!blockstate.is(BlockTags.RAILS)) {
             return InteractionResult.FAIL;
         } else {
-            ItemStack itemstack = p_42943_.getItemInHand();
+            ItemStack itemstack = pContext.getItemInHand();
             if (!level.isClientSide) {
                 RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock ? blockstate.getValue(((BaseRailBlock) blockstate.getBlock()).getShapeProperty()) : RailShape.NORTH_SOUTH;
                 double d0 = 0.0D;
@@ -100,7 +100,7 @@ public class MinecartItem extends Item {
                 }
 
                 level.addFreshEntity(abstractminecart);
-                level.gameEvent(GameEvent.ENTITY_PLACE, blockpos, GameEvent.Context.of(p_42943_.getPlayer(), level.getBlockState(blockpos.below())));
+                level.gameEvent(GameEvent.ENTITY_PLACE, blockpos, GameEvent.Context.of(pContext.getPlayer(), level.getBlockState(blockpos.below())));
             }
 
             itemstack.shrink(1);

@@ -17,7 +17,7 @@ public class EmptyLootItem extends LootPoolSingletonContainer {
         return LootPoolEntries.EMPTY;
     }
 
-    public void createItemStack(Consumer<ItemStack> p_79531_, LootContext p_79532_) {
+    public void createItemStack(Consumer<ItemStack> pStackConsumer, LootContext pLootContext) {
     }
 
     public static LootPoolSingletonContainer.Builder<?> emptyItem() {
@@ -25,8 +25,8 @@ public class EmptyLootItem extends LootPoolSingletonContainer {
     }
 
     public static class Serializer extends LootPoolSingletonContainer.Serializer<EmptyLootItem> {
-        public EmptyLootItem deserialize(JsonObject p_79536_, JsonDeserializationContext p_79537_, int p_79538_, int p_79539_, LootItemCondition[] p_79540_, LootItemFunction[] p_79541_) {
-            return new EmptyLootItem(p_79538_, p_79539_, p_79540_, p_79541_);
+        public EmptyLootItem deserialize(JsonObject pObject, JsonDeserializationContext pContext, int pWeight, int pQuality, LootItemCondition[] pConditions, LootItemFunction[] pFunctions) {
+            return new EmptyLootItem(pWeight, pQuality, pConditions, pFunctions);
         }
     }
 }

@@ -15,8 +15,8 @@ import javax.annotation.Nullable;
 
 public class LowerCaseEnumTypeAdapterFactory implements TypeAdapterFactory {
     @Nullable
-    public <T> TypeAdapter<T> create(Gson p_13982_, TypeToken<T> p_13983_) {
-        Class<T> oclass = (Class<T>) p_13983_.getRawType();
+    public <T> TypeAdapter<T> create(Gson pGson, TypeToken<T> pTypeToken) {
+        Class<T> oclass = (Class<T>) pTypeToken.getRawType();
         if (!oclass.isEnum()) {
             return null;
         } else {
@@ -48,7 +48,7 @@ public class LowerCaseEnumTypeAdapterFactory implements TypeAdapterFactory {
         }
     }
 
-    String toLowercase(Object p_13980_) {
-        return p_13980_ instanceof Enum ? ((Enum) p_13980_).name().toLowerCase(Locale.ROOT) : p_13980_.toString().toLowerCase(Locale.ROOT);
+    String toLowercase(Object pObject) {
+        return pObject instanceof Enum ? ((Enum) pObject).name().toLowerCase(Locale.ROOT) : pObject.toString().toLowerCase(Locale.ROOT);
     }
 }

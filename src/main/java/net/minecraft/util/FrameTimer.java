@@ -7,8 +7,8 @@ public class FrameTimer {
     private int logLength;
     private int logEnd;
 
-    public void logFrameDuration(long p_13756_) {
-        this.loggedTimes[this.logEnd] = p_13756_;
+    public void logFrameDuration(long pRunningTime) {
+        this.loggedTimes[this.logEnd] = pRunningTime;
         ++this.logEnd;
         if (this.logEnd == 240) {
             this.logEnd = 0;
@@ -38,9 +38,9 @@ public class FrameTimer {
         return this.scaleSampleTo(this.getAverageDuration(p_144735_), p_144736_, 60);
     }
 
-    public int scaleSampleTo(long p_13758_, int p_13759_, int p_13760_) {
-        double d0 = (double) p_13758_ / (double) (1000000000L / (long) p_13760_);
-        return (int) (d0 * (double) p_13759_);
+    public int scaleSampleTo(long pValue, int pScale, int pDivisor) {
+        double d0 = (double) pValue / (double) (1000000000L / (long) pDivisor);
+        return (int) (d0 * (double) pScale);
     }
 
     public int getLogStart() {
@@ -51,8 +51,8 @@ public class FrameTimer {
         return this.logEnd;
     }
 
-    public int wrapIndex(int p_13763_) {
-        return p_13763_ % 240;
+    public int wrapIndex(int pRawIndex) {
+        return pRawIndex % 240;
     }
 
     public long[] getLog() {

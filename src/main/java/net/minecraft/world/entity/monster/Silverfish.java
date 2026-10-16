@@ -37,8 +37,8 @@ public class Silverfish extends Monster {
     @Nullable
     private Silverfish.SilverfishWakeUpFriendsGoal friendsGoal;
 
-    public Silverfish(EntityType<? extends Silverfish> p_33523_, Level p_33524_) {
-        super(p_33523_, p_33524_);
+    public Silverfish(EntityType<? extends Silverfish> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -56,7 +56,7 @@ public class Silverfish extends Monster {
         return 0.1D;
     }
 
-    protected float getStandingEyeHeight(Pose p_33540_, EntityDimensions p_33541_) {
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
         return 0.13F;
     }
 
@@ -72,7 +72,7 @@ public class Silverfish extends Monster {
         return SoundEvents.SILVERFISH_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_33549_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.SILVERFISH_HURT;
     }
 
@@ -80,19 +80,19 @@ public class Silverfish extends Monster {
         return SoundEvents.SILVERFISH_DEATH;
     }
 
-    protected void playStepSound(BlockPos p_33543_, BlockState p_33544_) {
+    protected void playStepSound(BlockPos pPos, BlockState pBlock) {
         this.playSound(SoundEvents.SILVERFISH_STEP, 0.15F, 1.0F);
     }
 
-    public boolean hurt(DamageSource p_33527_, float p_33528_) {
-        if (this.isInvulnerableTo(p_33527_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else {
-            if ((p_33527_ instanceof EntityDamageSource || p_33527_ == DamageSource.MAGIC) && this.friendsGoal != null) {
+            if ((pSource instanceof EntityDamageSource || pSource == DamageSource.MAGIC) && this.friendsGoal != null) {
                 this.friendsGoal.notifyHurt();
             }
 
-            return super.hurt(p_33527_, p_33528_);
+            return super.hurt(pSource, pAmount);
         }
     }
 
@@ -101,18 +101,18 @@ public class Silverfish extends Monster {
         super.tick();
     }
 
-    public void setYBodyRot(float p_33553_) {
-        this.setYRot(p_33553_);
-        super.setYBodyRot(p_33553_);
+    public void setYBodyRot(float pOffset) {
+        this.setYRot(pOffset);
+        super.setYBodyRot(pOffset);
     }
 
-    public float getWalkTargetValue(BlockPos p_33530_, LevelReader p_33531_) {
-        return InfestedBlock.isCompatibleHostBlock(p_33531_.getBlockState(p_33530_.below())) ? 10.0F : super.getWalkTargetValue(p_33530_, p_33531_);
+    public float getWalkTargetValue(BlockPos pPos, LevelReader pLevel) {
+        return InfestedBlock.isCompatibleHostBlock(pLevel.getBlockState(pPos.below())) ? 10.0F : super.getWalkTargetValue(pPos, pLevel);
     }
 
-    public static boolean checkSilverfishSpawnRules(EntityType<Silverfish> p_219077_, LevelAccessor p_219078_, MobSpawnType p_219079_, BlockPos p_219080_, RandomSource p_219081_) {
-        if (checkAnyLightMonsterSpawnRules(p_219077_, p_219078_, p_219079_, p_219080_, p_219081_)) {
-            Player player = p_219078_.getNearestPlayer((double) p_219080_.getX() + 0.5D, (double) p_219080_.getY() + 0.5D, (double) p_219080_.getZ() + 0.5D, 5.0D, true);
+    public static boolean checkSilverfishSpawnRules(EntityType<Silverfish> pSilverfish, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        if (checkAnyLightMonsterSpawnRules(pSilverfish, pLevel, pSpawnType, pPos, pRandom)) {
+            Player player = pLevel.getNearestPlayer((double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, 5.0D, true);
             return player == null;
         } else {
             return false;
@@ -128,8 +128,8 @@ public class Silverfish extends Monster {
         private Direction selectedDirection;
         private boolean doMerge;
 
-        public SilverfishMergeWithStoneGoal(Silverfish p_33558_) {
-            super(p_33558_, 1.0D, 10);
+        public SilverfishMergeWithStoneGoal(Silverfish pSilverfish) {
+            super(pSilverfish, 1.0D, 10);
             this.setFlags(EnumSet.of(Goal.Flag.MOVE));
         }
 
@@ -179,8 +179,8 @@ public class Silverfish extends Monster {
         private final Silverfish silverfish;
         private int lookForFriends;
 
-        public SilverfishWakeUpFriendsGoal(Silverfish p_33565_) {
-            this.silverfish = p_33565_;
+        public SilverfishWakeUpFriendsGoal(Silverfish pSilverfish) {
+            this.silverfish = pSilverfish;
         }
 
         public void notifyHurt() {

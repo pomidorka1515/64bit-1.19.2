@@ -12,15 +12,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.BlockPileConfiguration;
 
 public class BlockPileFeature extends Feature<BlockPileConfiguration> {
-    public BlockPileFeature(Codec<BlockPileConfiguration> p_65262_) {
-        super(p_65262_);
+    public BlockPileFeature(Codec<BlockPileConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<BlockPileConfiguration> p_159473_) {
-        BlockPos blockpos = p_159473_.origin();
-        WorldGenLevel worldgenlevel = p_159473_.level();
-        RandomSource randomsource = p_159473_.random();
-        BlockPileConfiguration blockpileconfiguration = p_159473_.config();
+    public boolean place(FeaturePlaceContext<BlockPileConfiguration> pContext) {
+        BlockPos blockpos = pContext.origin();
+        WorldGenLevel worldgenlevel = pContext.level();
+        RandomSource randomsource = pContext.random();
+        BlockPileConfiguration blockpileconfiguration = pContext.config();
         if (blockpos.getY() < worldgenlevel.getMinBuildHeight() + 5) {
             return false;
         } else {
@@ -41,15 +41,15 @@ public class BlockPileFeature extends Feature<BlockPileConfiguration> {
         }
     }
 
-    private boolean mayPlaceOn(LevelAccessor p_224945_, BlockPos p_224946_, RandomSource p_224947_) {
-        BlockPos blockpos = p_224946_.below();
-        BlockState blockstate = p_224945_.getBlockState(blockpos);
-        return blockstate.is(Blocks.DIRT_PATH) ? p_224947_.nextBoolean() : blockstate.isFaceSturdy(p_224945_, blockpos, Direction.UP);
+    private boolean mayPlaceOn(LevelAccessor pLevel, BlockPos pPos, RandomSource pRandom) {
+        BlockPos blockpos = pPos.below();
+        BlockState blockstate = pLevel.getBlockState(blockpos);
+        return blockstate.is(Blocks.DIRT_PATH) ? pRandom.nextBoolean() : blockstate.isFaceSturdy(pLevel, blockpos, Direction.UP);
     }
 
-    private void tryPlaceBlock(LevelAccessor p_224949_, BlockPos p_224950_, RandomSource p_224951_, BlockPileConfiguration p_224952_) {
-        if (p_224949_.isEmptyBlock(p_224950_) && this.mayPlaceOn(p_224949_, p_224950_, p_224951_)) {
-            p_224949_.setBlock(p_224950_, p_224952_.stateProvider.getState(p_224951_, p_224950_), 4);
+    private void tryPlaceBlock(LevelAccessor pLevel, BlockPos pPos, RandomSource pRandom, BlockPileConfiguration pConfig) {
+        if (pLevel.isEmptyBlock(pPos) && this.mayPlaceOn(pLevel, pPos, pRandom)) {
+            pLevel.setBlock(pPos, pConfig.stateProvider.getState(pRandom, pPos), 4);
         }
     }
 }

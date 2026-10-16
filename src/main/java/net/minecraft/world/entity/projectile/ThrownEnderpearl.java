@@ -18,25 +18,25 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
 public class ThrownEnderpearl extends ThrowableItemProjectile {
-    public ThrownEnderpearl(EntityType<? extends ThrownEnderpearl> p_37491_, Level p_37492_) {
-        super(p_37491_, p_37492_);
+    public ThrownEnderpearl(EntityType<? extends ThrownEnderpearl> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public ThrownEnderpearl(Level p_37499_, LivingEntity p_37500_) {
-        super(EntityType.ENDER_PEARL, p_37500_, p_37499_);
+    public ThrownEnderpearl(Level pLevel, LivingEntity pShooter) {
+        super(EntityType.ENDER_PEARL, pShooter, pLevel);
     }
 
     protected Item getDefaultItem() {
         return Items.ENDER_PEARL;
     }
 
-    protected void onHitEntity(EntityHitResult p_37502_) {
-        super.onHitEntity(p_37502_);
-        p_37502_.getEntity().hurt(DamageSource.thrown(this, this.getOwner()), 0.0F);
+    protected void onHitEntity(EntityHitResult pResult) {
+        super.onHitEntity(pResult);
+        pResult.getEntity().hurt(DamageSource.thrown(this, this.getOwner()), 0.0F);
     }
 
-    protected void onHit(HitResult p_37504_) {
-        super.onHit(p_37504_);
+    protected void onHit(HitResult pResult) {
+        super.onHit(pResult);
 
         for (int i = 0; i < 32; ++i) {
             this.level.addParticle(ParticleTypes.PORTAL, this.particlePosition(0.0D, this.random.nextDouble() * 2.0D, 0.0D), this.random.nextGaussian(), 0.0D,
@@ -82,12 +82,12 @@ public class ThrownEnderpearl extends ThrowableItemProjectile {
     }
 
     @Nullable
-    public Entity changeDimension(ServerLevel p_37506_) {
+    public Entity changeDimension(ServerLevel pServer) {
         Entity entity = this.getOwner();
-        if (entity != null && entity.level.dimension() != p_37506_.dimension()) {
+        if (entity != null && entity.level.dimension() != pServer.dimension()) {
             this.setOwner((Entity) null);
         }
 
-        return super.changeDimension(p_37506_);
+        return super.changeDimension(pServer);
     }
 }

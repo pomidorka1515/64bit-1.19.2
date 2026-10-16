@@ -6,7 +6,7 @@ import net.minecraft.sounds.SoundSource;
 public interface Saddleable {
     boolean isSaddleable();
 
-    void equipSaddle(@Nullable SoundSource p_21748_);
+    void equipSaddle(@Nullable SoundSource pSource);
 
     boolean isSaddled();
 }

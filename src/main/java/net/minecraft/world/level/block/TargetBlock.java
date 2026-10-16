@@ -27,35 +27,35 @@ public class TargetBlock extends Block {
     private static final int ACTIVATION_TICKS_ARROWS = 20;
     private static final int ACTIVATION_TICKS_OTHER = 8;
 
-    public TargetBlock(BlockBehaviour.Properties p_57379_) {
-        super(p_57379_);
+    public TargetBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(OUTPUT_POWER, Integer.valueOf(0)));
     }
 
-    public void onProjectileHit(Level p_57381_, BlockState p_57382_, BlockHitResult p_57383_, Projectile p_57384_) {
-        int i = updateRedstoneOutput(p_57381_, p_57382_, p_57383_, p_57384_);
-        Entity entity = p_57384_.getOwner();
+    public void onProjectileHit(Level pLevel, BlockState pState, BlockHitResult pHit, Projectile pProjectile) {
+        int i = updateRedstoneOutput(pLevel, pState, pHit, pProjectile);
+        Entity entity = pProjectile.getOwner();
         if (entity instanceof ServerPlayer serverplayer) {
             serverplayer.awardStat(Stats.TARGET_HIT);
-            CriteriaTriggers.TARGET_BLOCK_HIT.trigger(serverplayer, p_57384_, p_57383_.getLocation(), i);
+            CriteriaTriggers.TARGET_BLOCK_HIT.trigger(serverplayer, pProjectile, pHit.getLocation(), i);
         }
     }
 
-    private static int updateRedstoneOutput(LevelAccessor p_57392_, BlockState p_57393_, BlockHitResult p_57394_, Entity p_57395_) {
-        int i = getRedstoneStrength(p_57394_, p_57394_.getLocation());
-        int j = p_57395_ instanceof AbstractArrow ? 20 : 8;
-        if (!p_57392_.getBlockTicks().hasScheduledTick(p_57394_.getBlockPos(), p_57393_.getBlock())) {
-            setOutputPower(p_57392_, p_57393_, i, p_57394_.getBlockPos(), j);
+    private static int updateRedstoneOutput(LevelAccessor pLevel, BlockState pState, BlockHitResult pHit, Entity pProjectile) {
+        int i = getRedstoneStrength(pHit, pHit.getLocation());
+        int j = pProjectile instanceof AbstractArrow ? 20 : 8;
+        if (!pLevel.getBlockTicks().hasScheduledTick(pHit.getBlockPos(), pState.getBlock())) {
+            setOutputPower(pLevel, pState, i, pHit.getBlockPos(), j);
         }
 
         return i;
     }
 
-    private static int getRedstoneStrength(BlockHitResult p_57409_, Vec3 p_57410_) {
-        Direction direction = p_57409_.getDirection();
-        double d0 = Math.abs(Mth.frac(p_57410_.x) - 0.5D);
-        double d1 = Math.abs(Mth.frac(p_57410_.y) - 0.5D);
-        double d2 = Math.abs(Mth.frac(p_57410_.z) - 0.5D);
+    private static int getRedstoneStrength(BlockHitResult pHit, Vec3 pHitLocation) {
+        Direction direction = pHit.getDirection();
+        double d0 = Math.abs(Mth.frac(pHitLocation.x) - 0.5D);
+        double d1 = Math.abs(Mth.frac(pHitLocation.y) - 0.5D);
+        double d2 = Math.abs(Mth.frac(pHitLocation.z) - 0.5D);
         Direction.Axis direction$axis = direction.getAxis();
         double d3;
         if (direction$axis == Direction.Axis.Y) {
@@ -69,33 +69,33 @@ public class TargetBlock extends Block {
         return Math.max(1, Mth.ceil(15.0D * Mth.clamp((0.5D - d3) / 0.5D, 0.0D, 1.0D)));
     }
 
-    private static void setOutputPower(LevelAccessor p_57386_, BlockState p_57387_, int p_57388_, BlockPos p_57389_, int p_57390_) {
-        p_57386_.setBlock(p_57389_, p_57387_.setValue(OUTPUT_POWER, Integer.valueOf(p_57388_)), 3);
-        p_57386_.scheduleTick(p_57389_, p_57387_.getBlock(), p_57390_);
+    private static void setOutputPower(LevelAccessor pLevel, BlockState pState, int pPower, BlockPos pPos, int pWaitTime) {
+        pLevel.setBlock(pPos, pState.setValue(OUTPUT_POWER, Integer.valueOf(pPower)), 3);
+        pLevel.scheduleTick(pPos, pState.getBlock(), pWaitTime);
     }
 
-    public void tick(BlockState p_222588_, ServerLevel p_222589_, BlockPos p_222590_, RandomSource p_222591_) {
-        if (p_222588_.getValue(OUTPUT_POWER) != 0) {
-            p_222589_.setBlock(p_222590_, p_222588_.setValue(OUTPUT_POWER, Integer.valueOf(0)), 3);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pState.getValue(OUTPUT_POWER) != 0) {
+            pLevel.setBlock(pPos, pState.setValue(OUTPUT_POWER, Integer.valueOf(0)), 3);
         }
     }
 
-    public int getSignal(BlockState p_57402_, BlockGetter p_57403_, BlockPos p_57404_, Direction p_57405_) {
-        return p_57402_.getValue(OUTPUT_POWER);
+    public int getSignal(BlockState pBlockState, BlockGetter pBlockAccess, BlockPos pPos, Direction pSide) {
+        return pBlockState.getValue(OUTPUT_POWER);
     }
 
-    public boolean isSignalSource(BlockState p_57418_) {
+    public boolean isSignalSource(BlockState pState) {
         return true;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_57407_) {
-        p_57407_.add(OUTPUT_POWER);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(OUTPUT_POWER);
     }
 
-    public void onPlace(BlockState p_57412_, Level p_57413_, BlockPos p_57414_, BlockState p_57415_, boolean p_57416_) {
-        if (!p_57413_.isClientSide() && !p_57412_.is(p_57415_.getBlock())) {
-            if (p_57412_.getValue(OUTPUT_POWER) > 0 && !p_57413_.getBlockTicks().hasScheduledTick(p_57414_, this)) {
-                p_57413_.setBlock(p_57414_, p_57412_.setValue(OUTPUT_POWER, Integer.valueOf(0)), 18);
+    public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
+        if (!pLevel.isClientSide() && !pState.is(pOldState.getBlock())) {
+            if (pState.getValue(OUTPUT_POWER) > 0 && !pLevel.getBlockTicks().hasScheduledTick(pPos, this)) {
+                pLevel.setBlock(pPos, pState.setValue(OUTPUT_POWER, Integer.valueOf(0)), 18);
             }
         }
     }

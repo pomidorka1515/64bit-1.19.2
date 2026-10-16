@@ -50,13 +50,13 @@ public class SculkSpreader {
     private List<SculkSpreader.ChargeCursor> cursors = new ArrayList<>();
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public SculkSpreader(boolean p_222248_, TagKey<Block> p_222249_, int p_222250_, int p_222251_, int p_222252_, int p_222253_) {
-        this.isWorldGeneration = p_222248_;
-        this.replaceableBlocks = p_222249_;
-        this.growthSpawnCost = p_222250_;
-        this.noGrowthRadius = p_222251_;
-        this.chargeDecayRate = p_222252_;
-        this.additionalDecayRate = p_222253_;
+    public SculkSpreader(boolean pIsWorldGeneration, TagKey<Block> pReplaceableBlocks, int pGrowthSpawnCoat, int pNoGrowthRadius, int pChargeDecayRate, int pAdditionalDecayRate) {
+        this.isWorldGeneration = pIsWorldGeneration;
+        this.replaceableBlocks = pReplaceableBlocks;
+        this.growthSpawnCost = pGrowthSpawnCoat;
+        this.noGrowthRadius = pNoGrowthRadius;
+        this.chargeDecayRate = pChargeDecayRate;
+        this.additionalDecayRate = pAdditionalDecayRate;
     }
 
     public static SculkSpreader createLevelSpreader() {
@@ -100,10 +100,10 @@ public class SculkSpreader {
         this.cursors.clear();
     }
 
-    public void load(CompoundTag p_222270_) {
-        if (p_222270_.contains("cursors", 9)) {
+    public void load(CompoundTag pTag) {
+        if (pTag.contains("cursors", 9)) {
             this.cursors.clear();
-            List<SculkSpreader.ChargeCursor> list = SculkSpreader.ChargeCursor.CODEC.listOf().parse(new Dynamic<>(NbtOps.INSTANCE, p_222270_.getList("cursors", 10))).resultOrPartial(LOGGER::error).orElseGet(ArrayList::new);
+            List<SculkSpreader.ChargeCursor> list = SculkSpreader.ChargeCursor.CODEC.listOf().parse(new Dynamic<>(NbtOps.INSTANCE, pTag.getList("cursors", 10))).resultOrPartial(LOGGER::error).orElseGet(ArrayList::new);
             int i = Math.min(list.size(), 32);
 
             for (int j = 0; j < i; ++j) {
@@ -112,23 +112,23 @@ public class SculkSpreader {
         }
     }
 
-    public void save(CompoundTag p_222276_) {
+    public void save(CompoundTag pTag) {
         SculkSpreader.ChargeCursor.CODEC.listOf().encodeStart(NbtOps.INSTANCE, this.cursors).resultOrPartial(LOGGER::error).ifPresent((p_222273_) -> {
-            p_222276_.put("cursors", p_222273_);
+            pTag.put("cursors", p_222273_);
         });
     }
 
-    public void addCursors(BlockPos p_222267_, int p_222268_) {
-        while (p_222268_ > 0) {
-            int i = Math.min(p_222268_, 1000);
-            this.addCursor(new SculkSpreader.ChargeCursor(p_222267_, i));
-            p_222268_ -= i;
+    public void addCursors(BlockPos pPos, int pCharge) {
+        while (pCharge > 0) {
+            int i = Math.min(pCharge, 1000);
+            this.addCursor(new SculkSpreader.ChargeCursor(pPos, i));
+            pCharge -= i;
         }
     }
 
-    private void addCursor(SculkSpreader.ChargeCursor p_222261_) {
+    private void addCursor(SculkSpreader.ChargeCursor pCursor) {
         if (this.cursors.size() < 32) {
-            this.cursors.add(p_222261_);
+            this.cursors.add(pCursor);
         }
     }
 
@@ -214,8 +214,8 @@ public class SculkSpreader {
             this.facings = p_222303_.orElse((Set<Direction>) null);
         }
 
-        public ChargeCursor(BlockPos p_222296_, int p_222297_) {
-            this(p_222296_, p_222297_, 1, 0, Optional.empty());
+        public ChargeCursor(BlockPos pPos, int pCharge) {
+            this(pPos, pCharge, 1, 0, Optional.empty());
         }
 
         public BlockPos getPos() {
@@ -291,14 +291,14 @@ public class SculkSpreader {
             }
         }
 
-        void mergeWith(SculkSpreader.ChargeCursor p_222332_) {
-            this.charge += p_222332_.charge;
-            p_222332_.charge = 0;
-            this.updateDelay = Math.min(this.updateDelay, p_222332_.updateDelay);
+        void mergeWith(SculkSpreader.ChargeCursor pCursor) {
+            this.charge += pCursor.charge;
+            pCursor.charge = 0;
+            this.updateDelay = Math.min(this.updateDelay, pCursor.updateDelay);
         }
 
-        private static SculkBehaviour getBlockBehaviour(BlockState p_222334_) {
-            Block block = p_222334_.getBlock();
+        private static SculkBehaviour getBlockBehaviour(BlockState pState) {
+            Block block = pState.getBlock();
             SculkBehaviour sculkbehaviour1;
             if (block instanceof SculkBehaviour sculkbehaviour) {
                 sculkbehaviour1 = sculkbehaviour;
@@ -309,50 +309,50 @@ public class SculkSpreader {
             return sculkbehaviour1;
         }
 
-        private static List<Vec3i> getRandomizedNonCornerNeighbourOffsets(RandomSource p_222306_) {
-            return Util.shuffledCopy(NON_CORNER_NEIGHBOURS, p_222306_);
+        private static List<Vec3i> getRandomizedNonCornerNeighbourOffsets(RandomSource pRandom) {
+            return Util.shuffledCopy(NON_CORNER_NEIGHBOURS, pRandom);
         }
 
         @Nullable
-        private static BlockPos getValidMovementPos(LevelAccessor p_222308_, BlockPos p_222309_, RandomSource p_222310_) {
-            BlockPos.MutableBlockPos blockpos$mutableblockpos = p_222309_.mutable();
-            BlockPos.MutableBlockPos blockpos$mutableblockpos1 = p_222309_.mutable();
+        private static BlockPos getValidMovementPos(LevelAccessor pLevel, BlockPos pPos, RandomSource pRandom) {
+            BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable();
+            BlockPos.MutableBlockPos blockpos$mutableblockpos1 = pPos.mutable();
 
-            for (Vec3i vec3i : getRandomizedNonCornerNeighbourOffsets(p_222310_)) {
-                blockpos$mutableblockpos1.setWithOffset(p_222309_, vec3i);
-                BlockState blockstate = p_222308_.getBlockState(blockpos$mutableblockpos1);
-                if (blockstate.getBlock() instanceof SculkBehaviour && isMovementUnobstructed(p_222308_, p_222309_, blockpos$mutableblockpos1)) {
+            for (Vec3i vec3i : getRandomizedNonCornerNeighbourOffsets(pRandom)) {
+                blockpos$mutableblockpos1.setWithOffset(pPos, vec3i);
+                BlockState blockstate = pLevel.getBlockState(blockpos$mutableblockpos1);
+                if (blockstate.getBlock() instanceof SculkBehaviour && isMovementUnobstructed(pLevel, pPos, blockpos$mutableblockpos1)) {
                     blockpos$mutableblockpos.set(blockpos$mutableblockpos1);
-                    if (SculkVeinBlock.hasSubstrateAccess(p_222308_, blockstate, blockpos$mutableblockpos1)) {
+                    if (SculkVeinBlock.hasSubstrateAccess(pLevel, blockstate, blockpos$mutableblockpos1)) {
                         break;
                     }
                 }
             }
 
-            return blockpos$mutableblockpos.equals(p_222309_) ? null : blockpos$mutableblockpos;
+            return blockpos$mutableblockpos.equals(pPos) ? null : blockpos$mutableblockpos;
         }
 
-        private static boolean isMovementUnobstructed(LevelAccessor p_222318_, BlockPos p_222319_, BlockPos p_222320_) {
-            if (p_222319_.distManhattan(p_222320_) == 1) {
+        private static boolean isMovementUnobstructed(LevelAccessor pLevel, BlockPos pFromPos, BlockPos pToPos) {
+            if (pFromPos.distManhattan(pToPos) == 1) {
                 return true;
             } else {
-                BlockPos blockpos = p_222320_.subtract(p_222319_);
+                BlockPos blockpos = pToPos.subtract(pFromPos);
                 Direction direction = Direction.fromAxisAndDirection(Direction.Axis.X, blockpos.getX() < 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE);
                 Direction direction1 = Direction.fromAxisAndDirection(Direction.Axis.Y, blockpos.getY() < 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE);
                 Direction direction2 = Direction.fromAxisAndDirection(Direction.Axis.Z, blockpos.getZ() < 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE);
                 if (blockpos.getX() == 0) {
-                    return isUnobstructed(p_222318_, p_222319_, direction1) || isUnobstructed(p_222318_, p_222319_, direction2);
+                    return isUnobstructed(pLevel, pFromPos, direction1) || isUnobstructed(pLevel, pFromPos, direction2);
                 } else if (blockpos.getY() == 0) {
-                    return isUnobstructed(p_222318_, p_222319_, direction) || isUnobstructed(p_222318_, p_222319_, direction2);
+                    return isUnobstructed(pLevel, pFromPos, direction) || isUnobstructed(pLevel, pFromPos, direction2);
                 } else {
-                    return isUnobstructed(p_222318_, p_222319_, direction) || isUnobstructed(p_222318_, p_222319_, direction1);
+                    return isUnobstructed(pLevel, pFromPos, direction) || isUnobstructed(pLevel, pFromPos, direction1);
                 }
             }
         }
 
-        private static boolean isUnobstructed(LevelAccessor p_222322_, BlockPos p_222323_, Direction p_222324_) {
-            BlockPos blockpos = p_222323_.relative(p_222324_);
-            return !p_222322_.getBlockState(blockpos).isFaceSturdy(p_222322_, blockpos, p_222324_.getOpposite());
+        private static boolean isUnobstructed(LevelAccessor pLevel, BlockPos pPos, Direction pDirection) {
+            BlockPos blockpos = pPos.relative(pDirection);
+            return !pLevel.getBlockState(blockpos).isFaceSturdy(pLevel, blockpos, pDirection.getOpposite());
         }
     }
 }

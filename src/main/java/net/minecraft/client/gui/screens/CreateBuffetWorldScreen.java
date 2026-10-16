@@ -32,16 +32,16 @@ public class CreateBuffetWorldScreen extends Screen {
     Holder<Biome> biome;
     private Button doneButton;
 
-    public CreateBuffetWorldScreen(Screen p_232732_, WorldCreationContext p_232733_, Consumer<Holder<Biome>> p_232734_) {
+    public CreateBuffetWorldScreen(Screen pParent, WorldCreationContext pContext, Consumer<Holder<Biome>> pApplySettings) {
         super(Component.translatable("createWorld.customize.buffet.title"));
-        this.parent = p_232732_;
-        this.applySettings = p_232734_;
-        this.biomes = p_232733_.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+        this.parent = pParent;
+        this.applySettings = pApplySettings;
+        this.biomes = pContext.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
         Holder<Biome> holder = this.biomes.getHolder(Biomes.PLAINS).or(() -> {
                                                                        return this.biomes.holders().findAny();
                                                                    })
                                        .orElseThrow();
-        this.biome = p_232733_.worldGenSettings().overworld().getBiomeSource().possibleBiomes().stream().findFirst().orElse(holder);
+        this.biome = pContext.worldGenSettings().overworld().getBiomeSource().possibleBiomes().stream().findFirst().orElse(holder);
     }
 
     public void onClose() {
@@ -70,12 +70,12 @@ public class CreateBuffetWorldScreen extends Screen {
         this.doneButton.active = this.list.getSelected() != null;
     }
 
-    public void render(PoseStack p_95756_, int p_95757_, int p_95758_, float p_95759_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.renderDirtBackground(0);
-        this.list.render(p_95756_, p_95757_, p_95758_, p_95759_);
-        drawCenteredString(p_95756_, this.font, this.title, this.width / 2, 8, 16777215);
-        drawCenteredString(p_95756_, this.font, BIOME_SELECT_INFO, this.width / 2, 28, 10526880);
-        super.render(p_95756_, p_95757_, p_95758_, p_95759_);
+        this.list.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 8, 16777215);
+        drawCenteredString(pPoseStack, this.font, BIOME_SELECT_INFO, this.width / 2, 28, 10526880);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -98,10 +98,10 @@ public class CreateBuffetWorldScreen extends Screen {
             return CreateBuffetWorldScreen.this.getFocused() == this;
         }
 
-        public void setSelected(@Nullable CreateBuffetWorldScreen.BiomeList.Entry p_95785_) {
-            super.setSelected(p_95785_);
-            if (p_95785_ != null) {
-                CreateBuffetWorldScreen.this.biome = p_95785_.biome;
+        public void setSelected(@Nullable CreateBuffetWorldScreen.BiomeList.Entry pEntry) {
+            super.setSelected(pEntry);
+            if (pEntry != null) {
+                CreateBuffetWorldScreen.this.biome = pEntry.biome;
             }
 
             CreateBuffetWorldScreen.this.updateButtonValidity();
@@ -127,12 +127,12 @@ public class CreateBuffetWorldScreen extends Screen {
                 return Component.translatable("narrator.select", this.name);
             }
 
-            public void render(PoseStack p_95802_, int p_95803_, int p_95804_, int p_95805_, int p_95806_, int p_95807_, int p_95808_, int p_95809_, boolean p_95810_, float p_95811_) {
-                GuiComponent.drawString(p_95802_, CreateBuffetWorldScreen.this.font, this.name, p_95805_ + 5, p_95804_ + 2, 16777215);
+            public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+                GuiComponent.drawString(pPoseStack, CreateBuffetWorldScreen.this.font, this.name, pLeft + 5, pTop + 2, 16777215);
             }
 
-            public boolean mouseClicked(double p_95798_, double p_95799_, int p_95800_) {
-                if (p_95800_ == 0) {
+            public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+                if (pButton == 0) {
                     BiomeList.this.setSelected(this);
                     return true;
                 } else {

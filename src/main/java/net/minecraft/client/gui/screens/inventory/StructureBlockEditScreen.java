@@ -69,9 +69,9 @@ public class StructureBlockEditScreen extends Screen {
     private CycleButton<Boolean> toggleBoundingBox;
     private final DecimalFormat decimalFormat = new DecimalFormat("0.0###");
 
-    public StructureBlockEditScreen(StructureBlockEntity p_99398_) {
+    public StructureBlockEditScreen(StructureBlockEntity pStructure) {
         super(Component.translatable(Blocks.STRUCTURE_BLOCK.getDescriptionId()));
-        this.structure = p_99398_;
+        this.structure = pStructure;
         this.decimalFormat.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ROOT));
     }
 
@@ -225,7 +225,7 @@ public class StructureBlockEditScreen extends Screen {
         this.setInitialFocus(this.nameEdit);
     }
 
-    public void resize(Minecraft p_99411_, int p_99412_, int p_99413_) {
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
         String s = this.nameEdit.getValue();
         String s1 = this.posXEdit.getValue();
         String s2 = this.posYEdit.getValue();
@@ -236,7 +236,7 @@ public class StructureBlockEditScreen extends Screen {
         String s7 = this.integrityEdit.getValue();
         String s8 = this.seedEdit.getValue();
         String s9 = this.dataEdit.getValue();
-        this.init(p_99411_, p_99412_, p_99413_);
+        this.init(pMinecraft, pWidth, pHeight);
         this.nameEdit.setValue(s);
         this.posXEdit.setValue(s1);
         this.posYEdit.setValue(s2);
@@ -273,7 +273,7 @@ public class StructureBlockEditScreen extends Screen {
         }
     }
 
-    private void updateMode(StructureMode p_169839_) {
+    private void updateMode(StructureMode pStructureMode) {
         this.nameEdit.setVisible(false);
         this.posXEdit.setVisible(false);
         this.posYEdit.setVisible(false);
@@ -295,7 +295,7 @@ public class StructureBlockEditScreen extends Screen {
         this.rot270Button.visible = false;
         this.toggleAirButton.visible = false;
         this.toggleBoundingBox.visible = false;
-        switch (p_169839_) {
+        switch (pStructureMode) {
             case SAVE:
                 this.nameEdit.setVisible(true);
                 this.posXEdit.setVisible(true);
@@ -334,34 +334,34 @@ public class StructureBlockEditScreen extends Screen {
         }
     }
 
-    private boolean sendToServer(StructureBlockEntity.UpdateType p_99404_) {
+    private boolean sendToServer(StructureBlockEntity.UpdateType pUpdateType) {
         BlockPos blockpos = new BlockPos(this.parseCoordinate(this.posXEdit.getValue()), this.parseCoordinate(this.posYEdit.getValue()), this.parseCoordinate(this.posZEdit.getValue()));
         Vec3i vec3i = new Vec3i(this.parseCoordinate(this.sizeXEdit.getValue()), this.parseCoordinate(this.sizeYEdit.getValue()), this.parseCoordinate(this.sizeZEdit.getValue()));
         float f = this.parseIntegrity(this.integrityEdit.getValue());
         long i = this.parseSeed(this.seedEdit.getValue());
-        this.minecraft.getConnection().send(new ServerboundSetStructureBlockPacket(this.structure.getBlockPos(), p_99404_, this.structure.getMode(), this.nameEdit.getValue(), blockpos, vec3i, this.structure.getMirror(), this.structure.getRotation(), this.dataEdit.getValue(), this.structure.isIgnoreEntities(), this.structure.getShowAir(), this.structure.getShowBoundingBox(), f, i));
+        this.minecraft.getConnection().send(new ServerboundSetStructureBlockPacket(this.structure.getBlockPos(), pUpdateType, this.structure.getMode(), this.nameEdit.getValue(), blockpos, vec3i, this.structure.getMirror(), this.structure.getRotation(), this.dataEdit.getValue(), this.structure.isIgnoreEntities(), this.structure.getShowAir(), this.structure.getShowBoundingBox(), f, i));
         return true;
     }
 
-    private long parseSeed(String p_99427_) {
+    private long parseSeed(String pSeed) {
         try {
-            return Long.valueOf(p_99427_);
+            return Long.valueOf(pSeed);
         } catch (NumberFormatException numberformatexception) {
             return 0L;
         }
     }
 
-    private float parseIntegrity(String p_99431_) {
+    private float parseIntegrity(String pIntegrity) {
         try {
-            return Float.valueOf(p_99431_);
+            return Float.valueOf(pIntegrity);
         } catch (NumberFormatException numberformatexception) {
             return 1.0F;
         }
     }
 
-    private int parseCoordinate(String p_99436_) {
+    private int parseCoordinate(String pCoordinate) {
         try {
-            return Integer.parseInt(p_99436_);
+            return Integer.parseInt(pCoordinate);
         } catch (NumberFormatException numberformatexception) {
             return 0;
         }
@@ -371,10 +371,10 @@ public class StructureBlockEditScreen extends Screen {
         this.onCancel();
     }
 
-    public boolean keyPressed(int p_99400_, int p_99401_, int p_99402_) {
-        if (super.keyPressed(p_99400_, p_99401_, p_99402_)) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (p_99400_ != 257 && p_99400_ != 335) {
+        } else if (pKeyCode != 257 && pKeyCode != 335) {
             return false;
         } else {
             this.onDone();
@@ -382,46 +382,46 @@ public class StructureBlockEditScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_99406_, int p_99407_, int p_99408_, float p_99409_) {
-        this.renderBackground(p_99406_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
         StructureMode structuremode = this.structure.getMode();
-        drawCenteredString(p_99406_, this.font, this.title, this.width / 2, 10, 16777215);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 10, 16777215);
         if (structuremode != StructureMode.DATA) {
-            drawString(p_99406_, this.font, NAME_LABEL, this.width / 2 - 153, 30, 10526880);
-            this.nameEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
+            drawString(pPoseStack, this.font, NAME_LABEL, this.width / 2 - 153, 30, 10526880);
+            this.nameEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
         if (structuremode == StructureMode.LOAD || structuremode == StructureMode.SAVE) {
-            drawString(p_99406_, this.font, POSITION_LABEL, this.width / 2 - 153, 70, 10526880);
-            this.posXEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
-            this.posYEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
-            this.posZEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
-            drawString(p_99406_, this.font, INCLUDE_ENTITIES_LABEL, this.width / 2 + 154 - this.font.width(INCLUDE_ENTITIES_LABEL), 150, 10526880);
+            drawString(pPoseStack, this.font, POSITION_LABEL, this.width / 2 - 153, 70, 10526880);
+            this.posXEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.posYEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.posZEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            drawString(pPoseStack, this.font, INCLUDE_ENTITIES_LABEL, this.width / 2 + 154 - this.font.width(INCLUDE_ENTITIES_LABEL), 150, 10526880);
         }
 
         if (structuremode == StructureMode.SAVE) {
-            drawString(p_99406_, this.font, SIZE_LABEL, this.width / 2 - 153, 110, 10526880);
-            this.sizeXEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
-            this.sizeYEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
-            this.sizeZEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
-            drawString(p_99406_, this.font, DETECT_SIZE_LABEL, this.width / 2 + 154 - this.font.width(DETECT_SIZE_LABEL), 110, 10526880);
-            drawString(p_99406_, this.font, SHOW_AIR_LABEL, this.width / 2 + 154 - this.font.width(SHOW_AIR_LABEL), 70, 10526880);
+            drawString(pPoseStack, this.font, SIZE_LABEL, this.width / 2 - 153, 110, 10526880);
+            this.sizeXEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.sizeYEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.sizeZEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            drawString(pPoseStack, this.font, DETECT_SIZE_LABEL, this.width / 2 + 154 - this.font.width(DETECT_SIZE_LABEL), 110, 10526880);
+            drawString(pPoseStack, this.font, SHOW_AIR_LABEL, this.width / 2 + 154 - this.font.width(SHOW_AIR_LABEL), 70, 10526880);
         }
 
         if (structuremode == StructureMode.LOAD) {
-            drawString(p_99406_, this.font, INTEGRITY_LABEL, this.width / 2 - 153, 110, 10526880);
-            this.integrityEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
-            this.seedEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
-            drawString(p_99406_, this.font, SHOW_BOUNDING_BOX_LABEL, this.width / 2 + 154 - this.font.width(SHOW_BOUNDING_BOX_LABEL), 70, 10526880);
+            drawString(pPoseStack, this.font, INTEGRITY_LABEL, this.width / 2 - 153, 110, 10526880);
+            this.integrityEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.seedEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            drawString(pPoseStack, this.font, SHOW_BOUNDING_BOX_LABEL, this.width / 2 + 154 - this.font.width(SHOW_BOUNDING_BOX_LABEL), 70, 10526880);
         }
 
         if (structuremode == StructureMode.DATA) {
-            drawString(p_99406_, this.font, CUSTOM_DATA_LABEL, this.width / 2 - 153, 110, 10526880);
-            this.dataEdit.render(p_99406_, p_99407_, p_99408_, p_99409_);
+            drawString(pPoseStack, this.font, CUSTOM_DATA_LABEL, this.width / 2 - 153, 110, 10526880);
+            this.dataEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
-        drawString(p_99406_, this.font, structuremode.getDisplayName(), this.width / 2 - 153, 174, 10526880);
-        super.render(p_99406_, p_99407_, p_99408_, p_99409_);
+        drawString(pPoseStack, this.font, structuremode.getDisplayName(), this.width / 2 - 153, 174, 10526880);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public boolean isPauseScreen() {

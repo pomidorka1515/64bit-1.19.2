@@ -38,61 +38,61 @@ public class PrepareRamNearestTarget<E extends PathfinderMob> extends Behavior<E
     private Optional<Long> reachedRamPositionTimestamp = Optional.empty();
     private Optional<PrepareRamNearestTarget.RamCandidate> ramCandidate = Optional.empty();
 
-    public PrepareRamNearestTarget(ToIntFunction<E> p_147724_, int p_147725_, int p_147726_, float p_147727_, TargetingConditions p_147728_, int p_147729_, Function<E, SoundEvent> p_147730_) {
+    public PrepareRamNearestTarget(ToIntFunction<E> pGetCooldownOnFall, int pMinRamDistance, int pMaxRamDistance, float pWalkSpeed, TargetingConditions pRamTargeting, int pRamPrepareTime, Function<E, SoundEvent> pGetPrepareRamSound) {
         super(ImmutableMap.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.RAM_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT, MemoryModuleType.RAM_TARGET, MemoryStatus.VALUE_ABSENT), 160);
-        this.getCooldownOnFail = p_147724_;
-        this.minRamDistance = p_147725_;
-        this.maxRamDistance = p_147726_;
-        this.walkSpeed = p_147727_;
-        this.ramTargeting = p_147728_;
-        this.ramPrepareTime = p_147729_;
-        this.getPrepareRamSound = p_147730_;
+        this.getCooldownOnFail = pGetCooldownOnFall;
+        this.minRamDistance = pMinRamDistance;
+        this.maxRamDistance = pMaxRamDistance;
+        this.walkSpeed = pWalkSpeed;
+        this.ramTargeting = pRamTargeting;
+        this.ramPrepareTime = pRamPrepareTime;
+        this.getPrepareRamSound = pGetPrepareRamSound;
     }
 
-    protected void start(ServerLevel p_147736_, PathfinderMob p_147737_, long p_147738_) {
-        Brain<?> brain = p_147737_.getBrain();
+    protected void start(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        Brain<?> brain = pEntity.getBrain();
         brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).flatMap((p_186049_) -> {
                                                                              return p_186049_.findClosest((p_147789_) -> {
-                                                                                 return this.ramTargeting.test(p_147737_, p_147789_);
+                                                                                 return this.ramTargeting.test(pEntity, p_147789_);
                                                                              });
                                                                          })
                 .ifPresent((p_147778_) -> {
-                    this.chooseRamPosition(p_147737_, p_147778_);
+                    this.chooseRamPosition(pEntity, p_147778_);
                 });
     }
 
-    protected void stop(ServerLevel p_147762_, E p_147763_, long p_147764_) {
-        Brain<?> brain = p_147763_.getBrain();
+    protected void stop(ServerLevel pLevel, E pEntity, long pGameTime) {
+        Brain<?> brain = pEntity.getBrain();
         if (!brain.hasMemoryValue(MemoryModuleType.RAM_TARGET)) {
-            p_147762_.broadcastEntityEvent(p_147763_, (byte) 59);
-            brain.setMemory(MemoryModuleType.RAM_COOLDOWN_TICKS, this.getCooldownOnFail.applyAsInt(p_147763_));
+            pLevel.broadcastEntityEvent(pEntity, (byte) 59);
+            brain.setMemory(MemoryModuleType.RAM_COOLDOWN_TICKS, this.getCooldownOnFail.applyAsInt(pEntity));
         }
     }
 
-    protected boolean canStillUse(ServerLevel p_147773_, PathfinderMob p_147774_, long p_147775_) {
+    protected boolean canStillUse(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
         return this.ramCandidate.isPresent() && this.ramCandidate.get().getTarget().isAlive();
     }
 
-    protected void tick(ServerLevel p_147784_, E p_147785_, long p_147786_) {
+    protected void tick(ServerLevel pLevel, E pOwner, long pGameTime) {
         if (this.ramCandidate.isPresent()) {
-            p_147785_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(this.ramCandidate.get().getStartPosition(), this.walkSpeed, 0));
-            p_147785_.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(this.ramCandidate.get().getTarget(), true));
+            pOwner.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(this.ramCandidate.get().getStartPosition(), this.walkSpeed, 0));
+            pOwner.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(this.ramCandidate.get().getTarget(), true));
             boolean flag = !this.ramCandidate.get().getTarget().blockPosition().equals(this.ramCandidate.get().getTargetPosition());
             if (flag) {
-                p_147784_.broadcastEntityEvent(p_147785_, (byte) 59);
-                p_147785_.getNavigation().stop();
-                this.chooseRamPosition(p_147785_, (this.ramCandidate.get()).target);
+                pLevel.broadcastEntityEvent(pOwner, (byte) 59);
+                pOwner.getNavigation().stop();
+                this.chooseRamPosition(pOwner, (this.ramCandidate.get()).target);
             } else {
-                BlockPos blockpos = p_147785_.blockPosition();
+                BlockPos blockpos = pOwner.blockPosition();
                 if (blockpos.equals(this.ramCandidate.get().getStartPosition())) {
-                    p_147784_.broadcastEntityEvent(p_147785_, (byte) 58);
+                    pLevel.broadcastEntityEvent(pOwner, (byte) 58);
                     if (!this.reachedRamPositionTimestamp.isPresent()) {
-                        this.reachedRamPositionTimestamp = Optional.of(p_147786_);
+                        this.reachedRamPositionTimestamp = Optional.of(pGameTime);
                     }
 
-                    if (p_147786_ - this.reachedRamPositionTimestamp.get() >= (long) this.ramPrepareTime) {
-                        p_147785_.getBrain().setMemory(MemoryModuleType.RAM_TARGET, this.getEdgeOfBlock(blockpos, this.ramCandidate.get().getTargetPosition()));
-                        p_147784_.playSound((Player) null, p_147785_, this.getPrepareRamSound.apply(p_147785_), SoundSource.HOSTILE, 1.0F, p_147785_.getVoicePitch());
+                    if (pGameTime - this.reachedRamPositionTimestamp.get() >= (long) this.ramPrepareTime) {
+                        pOwner.getBrain().setMemory(MemoryModuleType.RAM_TARGET, this.getEdgeOfBlock(blockpos, this.ramCandidate.get().getTargetPosition()));
+                        pLevel.playSound((Player) null, pOwner, this.getPrepareRamSound.apply(pOwner), SoundSource.HOSTILE, 1.0F, pOwner.getVoicePitch());
                         this.ramCandidate = Optional.empty();
                     }
                 }
@@ -100,17 +100,17 @@ public class PrepareRamNearestTarget<E extends PathfinderMob> extends Behavior<E
         }
     }
 
-    private net.minecraft.world.phys.SectorVec3 getEdgeOfBlock(BlockPos p_147755_, BlockPos p_147756_) {
+    private net.minecraft.world.phys.SectorVec3 getEdgeOfBlock(BlockPos pPos, BlockPos pOther) {
         double d0 = 0.5D;
-        double d1 = 0.5D * Long.compare(p_147756_.getX(), p_147755_.getX());
-        double d2 = 0.5D * Long.compare(p_147756_.getZ(), p_147755_.getZ());
-        return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_147756_.getX(), 0.5D + d1,
-                (double) p_147756_.getY(), p_147756_.getZ(), 0.5D + d2);
+        double d1 = 0.5D * Long.compare(pOther.getX(), pPos.getX());
+        double d2 = 0.5D * Long.compare(pOther.getZ(), pPos.getZ());
+        return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pOther.getX(), 0.5D + d1,
+                (double) pOther.getY(), pOther.getZ(), 0.5D + d2);
     }
 
-    private Optional<BlockPos> calculateRammingStartPosition(PathfinderMob p_147743_, LivingEntity p_147744_) {
-        BlockPos blockpos = p_147744_.blockPosition();
-        if (!this.isWalkableBlock(p_147743_, blockpos)) {
+    private Optional<BlockPos> calculateRammingStartPosition(PathfinderMob pPathfinder, LivingEntity pEntity) {
+        BlockPos blockpos = pEntity.blockPosition();
+        if (!this.isWalkableBlock(pPathfinder, blockpos)) {
             return Optional.empty();
         } else {
             List<BlockPos> list = Lists.newArrayList();
@@ -120,7 +120,7 @@ public class PrepareRamNearestTarget<E extends PathfinderMob> extends Behavior<E
                 blockpos$mutableblockpos.set(blockpos);
 
                 for (int i = 0; i < this.maxRamDistance; ++i) {
-                    if (!this.isWalkableBlock(p_147743_, blockpos$mutableblockpos.move(direction))) {
+                    if (!this.isWalkableBlock(pPathfinder, blockpos$mutableblockpos.move(direction))) {
                         blockpos$mutableblockpos.move(direction.getOpposite());
                         break;
                     }
@@ -131,8 +131,8 @@ public class PrepareRamNearestTarget<E extends PathfinderMob> extends Behavior<E
                 }
             }
 
-            PathNavigation pathnavigation = p_147743_.getNavigation();
-            return list.stream().sorted(Comparator.comparingDouble(p_147743_.blockPosition()::distSqr)).filter((p_147753_) -> {
+            PathNavigation pathnavigation = pPathfinder.getNavigation();
+            return list.stream().sorted(Comparator.comparingDouble(pPathfinder.blockPosition()::distSqr)).filter((p_147753_) -> {
                                                                                                            Path path = pathnavigation.createPath(p_147753_, 0);
                                                                                                            return path != null && path.canReach();
                                                                                                        })
@@ -140,14 +140,14 @@ public class PrepareRamNearestTarget<E extends PathfinderMob> extends Behavior<E
         }
     }
 
-    private boolean isWalkableBlock(PathfinderMob p_147746_, BlockPos p_147747_) {
-        return p_147746_.getNavigation().isStableDestination(p_147747_) && p_147746_.getPathfindingMalus(WalkNodeEvaluator.getBlockPathTypeStatic(p_147746_.level, p_147747_.mutable())) == 0.0F;
+    private boolean isWalkableBlock(PathfinderMob pPathfinder, BlockPos pPos) {
+        return pPathfinder.getNavigation().isStableDestination(pPos) && pPathfinder.getPathfindingMalus(WalkNodeEvaluator.getBlockPathTypeStatic(pPathfinder.level, pPos.mutable())) == 0.0F;
     }
 
-    private void chooseRamPosition(PathfinderMob p_147766_, LivingEntity p_147767_) {
+    private void chooseRamPosition(PathfinderMob pPathfinder, LivingEntity pEntity) {
         this.reachedRamPositionTimestamp = Optional.empty();
-        this.ramCandidate = this.calculateRammingStartPosition(p_147766_, p_147767_).map((p_147741_) -> {
-            return new PrepareRamNearestTarget.RamCandidate(p_147741_, p_147767_.blockPosition(), p_147767_);
+        this.ramCandidate = this.calculateRammingStartPosition(pPathfinder, pEntity).map((p_147741_) -> {
+            return new PrepareRamNearestTarget.RamCandidate(p_147741_, pEntity.blockPosition(), pEntity);
         });
     }
 
@@ -156,10 +156,10 @@ public class PrepareRamNearestTarget<E extends PathfinderMob> extends Behavior<E
         private final BlockPos targetPosition;
         final LivingEntity target;
 
-        public RamCandidate(BlockPos p_147794_, BlockPos p_147795_, LivingEntity p_147796_) {
-            this.startPosition = p_147794_;
-            this.targetPosition = p_147795_;
-            this.target = p_147796_;
+        public RamCandidate(BlockPos pStartPosition, BlockPos pTargetPosition, LivingEntity pTarget) {
+            this.startPosition = pStartPosition;
+            this.targetPosition = pTargetPosition;
+            this.target = pTarget;
         }
 
         public BlockPos getStartPosition() {

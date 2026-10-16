@@ -9,16 +9,16 @@ public class LayerDefinition {
     private final MeshDefinition mesh;
     private final MaterialDefinition material;
 
-    private LayerDefinition(MeshDefinition p_171562_, MaterialDefinition p_171563_) {
-        this.mesh = p_171562_;
-        this.material = p_171563_;
+    private LayerDefinition(MeshDefinition pMesh, MaterialDefinition pMaterial) {
+        this.mesh = pMesh;
+        this.material = pMaterial;
     }
 
     public ModelPart bakeRoot() {
         return this.mesh.getRoot().bake(this.material.xTexSize, this.material.yTexSize);
     }
 
-    public static LayerDefinition create(MeshDefinition p_171566_, int p_171567_, int p_171568_) {
-        return new LayerDefinition(p_171566_, new MaterialDefinition(p_171567_, p_171568_));
+    public static LayerDefinition create(MeshDefinition pMesh, int pTexWidth, int pTexHeight) {
+        return new LayerDefinition(pMesh, new MaterialDefinition(pTexWidth, pTexHeight));
     }
 }

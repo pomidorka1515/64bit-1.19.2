@@ -27,11 +27,11 @@ public abstract class PacketEvent extends Event {
     @DataAmount
     public final int bytes;
 
-    public PacketEvent(int p_185419_, int p_185420_, SocketAddress p_185421_, int p_185422_) {
-        this.protocolId = p_185419_;
-        this.packetId = p_185420_;
-        this.remoteAddress = p_185421_.toString();
-        this.bytes = p_185422_;
+    public PacketEvent(int pProtocolId, int pPacketId, SocketAddress pRemoteAddress, int pBytes) {
+        this.protocolId = pProtocolId;
+        this.packetId = pPacketId;
+        this.remoteAddress = pRemoteAddress.toString();
+        this.bytes = pBytes;
     }
 
     public static final class Fields {

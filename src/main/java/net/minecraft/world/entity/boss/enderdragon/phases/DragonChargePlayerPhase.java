@@ -13,8 +13,8 @@ public class DragonChargePlayerPhase extends AbstractDragonPhaseInstance {
     private net.minecraft.world.phys.SectorVec3 targetLocation;
     private int timeSinceCharge;
 
-    public DragonChargePlayerPhase(EnderDragon p_31206_) {
-        super(p_31206_);
+    public DragonChargePlayerPhase(EnderDragon pDragon) {
+        super(pDragon);
     }
 
     public void doServerTick() {
@@ -36,8 +36,8 @@ public class DragonChargePlayerPhase extends AbstractDragonPhaseInstance {
         this.timeSinceCharge = 0;
     }
 
-    public void setTarget(Vec3 p_31208_) {
-        this.setTarget(net.minecraft.world.phys.SectorVec3.fromApproximate(p_31208_.x, p_31208_.y, p_31208_.z));
+    public void setTarget(Vec3 pTargetLocation) {
+        this.setTarget(net.minecraft.world.phys.SectorVec3.fromApproximate(pTargetLocation.x, pTargetLocation.y, pTargetLocation.z));
     }
 
     public void setTarget(net.minecraft.world.phys.SectorVec3 target) {

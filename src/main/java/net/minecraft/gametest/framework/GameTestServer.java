@@ -60,11 +60,11 @@ public class GameTestServer extends MinecraftServer {
     @Nullable
     private MultipleTestTracker testTracker;
 
-    public static GameTestServer create(Thread p_206607_, LevelStorageSource.LevelStorageAccess p_206608_, PackRepository p_206609_, Collection<GameTestBatch> p_206610_, BlockPos p_206611_) {
-        if (p_206610_.isEmpty()) {
+    public static GameTestServer create(Thread pServerThread, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, Collection<GameTestBatch> pTestBatches, BlockPos pSpawnPos) {
+        if (pTestBatches.isEmpty()) {
             throw new IllegalArgumentException("No test batches were given!");
         } else {
-            WorldLoader.PackConfig worldloader$packconfig = new WorldLoader.PackConfig(p_206609_, DataPackConfig.DEFAULT, false);
+            WorldLoader.PackConfig worldloader$packconfig = new WorldLoader.PackConfig(pPackRepository, DataPackConfig.DEFAULT, false);
             WorldLoader.InitConfig worldloader$initconfig = new WorldLoader.InitConfig(worldloader$packconfig, Commands.CommandSelection.DEDICATED, 4);
 
             try {
@@ -80,7 +80,7 @@ public class GameTestServer extends MinecraftServer {
                                           }).get();
                 stopwatch.stop();
                 LOGGER.debug("Finished resource loading after {} ms", (long) stopwatch.elapsed(TimeUnit.MILLISECONDS));
-                return new GameTestServer(p_206607_, p_206608_, p_206609_, worldstem, p_206610_, p_206611_);
+                return new GameTestServer(pServerThread, pStorageSource, pPackRepository, worldstem, pTestBatches, pSpawnPos);
             } catch (Exception exception) {
                 LOGGER.warn("Failed to load vanilla datapack, bit oops", (Throwable) exception);
                 System.exit(-1);
@@ -89,10 +89,10 @@ public class GameTestServer extends MinecraftServer {
         }
     }
 
-    private GameTestServer(Thread p_206597_, LevelStorageSource.LevelStorageAccess p_206598_, PackRepository p_206599_, WorldStem p_206600_, Collection<GameTestBatch> p_206601_, BlockPos p_206602_) {
-        super(p_206597_, p_206598_, p_206599_, p_206600_, Proxy.NO_PROXY, DataFixers.getDataFixer(), NO_SERVICES, LoggerChunkProgressListener::new);
-        this.testBatches = Lists.newArrayList(p_206601_);
-        this.spawnPos = p_206602_;
+    private GameTestServer(Thread pServerThread, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, Collection<GameTestBatch> pTestBatches, BlockPos pSpawnPos) {
+        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, Proxy.NO_PROXY, DataFixers.getDataFixer(), NO_SERVICES, LoggerChunkProgressListener::new);
+        this.testBatches = Lists.newArrayList(pTestBatches);
+        this.spawnPos = pSpawnPos;
     }
 
     public boolean initServer() {
@@ -107,8 +107,8 @@ public class GameTestServer extends MinecraftServer {
         return true;
     }
 
-    public void tickServer(BooleanSupplier p_177619_) {
-        super.tickServer(p_177619_);
+    public void tickServer(BooleanSupplier pHasTimeLeft) {
+        super.tickServer(pHasTimeLeft);
         ServerLevel serverlevel = this.overworld();
         if (!this.haveTestsStarted()) {
             this.startTests(serverlevel);
@@ -143,9 +143,9 @@ public class GameTestServer extends MinecraftServer {
         }
     }
 
-    public SystemReport fillServerSystemReport(SystemReport p_177613_) {
-        p_177613_.setDetail("Type", "Game test server");
-        return p_177613_;
+    public SystemReport fillServerSystemReport(SystemReport pReport) {
+        pReport.setDetail("Type", "Game test server");
+        return pReport;
     }
 
     public void onServerExit() {
@@ -154,14 +154,14 @@ public class GameTestServer extends MinecraftServer {
         System.exit(this.testTracker.getFailedRequiredCount());
     }
 
-    public void onServerCrash(CrashReport p_177623_) {
-        super.onServerCrash(p_177623_);
-        LOGGER.error("Game test server crashed\n{}", (Object) p_177623_.getFriendlyReport());
+    public void onServerCrash(CrashReport pReport) {
+        super.onServerCrash(pReport);
+        LOGGER.error("Game test server crashed\n{}", (Object) pReport.getFriendlyReport());
         System.exit(1);
     }
 
-    private void startTests(ServerLevel p_177625_) {
-        Collection<GameTestInfo> collection = GameTestRunner.runTestBatches(this.testBatches, new BlockPos(0, -60, 0), Rotation.NONE, p_177625_, GameTestTicker.SINGLETON, 8);
+    private void startTests(ServerLevel pServerLevel) {
+        Collection<GameTestInfo> collection = GameTestRunner.runTestBatches(this.testBatches, new BlockPos(0, -60, 0), Rotation.NONE, pServerLevel, GameTestTicker.SINGLETON, 8);
         this.testTracker = new MultipleTestTracker(collection);
         LOGGER.info("{} tests are now running!", (int) this.testTracker.getTotalCount());
     }
@@ -210,7 +210,7 @@ public class GameTestServer extends MinecraftServer {
         return false;
     }
 
-    public boolean isSingleplayerOwner(GameProfile p_177617_) {
+    public boolean isSingleplayerOwner(GameProfile pProfile) {
         return false;
     }
 }

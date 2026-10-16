@@ -32,19 +32,19 @@ public class BiasedToBottomHeight extends HeightProvider {
         this.inner = p_161927_;
     }
 
-    public static BiasedToBottomHeight of(VerticalAnchor p_161932_, VerticalAnchor p_161933_, int p_161934_) {
-        return new BiasedToBottomHeight(p_161932_, p_161933_, p_161934_);
+    public static BiasedToBottomHeight of(VerticalAnchor pMinInclusive, VerticalAnchor pMaxInclusive, int pInner) {
+        return new BiasedToBottomHeight(pMinInclusive, pMaxInclusive, pInner);
     }
 
-    public int sample(RandomSource p_226297_, WorldGenerationContext p_226298_) {
-        int i = this.minInclusive.resolveY(p_226298_);
-        int j = this.maxInclusive.resolveY(p_226298_);
+    public int sample(RandomSource pRandom, WorldGenerationContext pContext) {
+        int i = this.minInclusive.resolveY(pContext);
+        int j = this.maxInclusive.resolveY(pContext);
         if (j - i - this.inner + 1 <= 0) {
             LOGGER.warn("Empty height range: {}", (Object) this);
             return i;
         } else {
-            int k = p_226297_.nextInt(j - i - this.inner + 1);
-            return p_226297_.nextInt(k + this.inner) + i;
+            int k = pRandom.nextInt(j - i - this.inner + 1);
+            return pRandom.nextInt(k + this.inner) + i;
         }
     }
 

@@ -17,8 +17,8 @@ public record ModCheck(ModCheck.Confidence confidence, String description) {
         return this.confidence.shouldReportAsModified;
     }
 
-    public ModCheck merge(ModCheck p_184599_) {
-        return new ModCheck(ObjectUtils.max(this.confidence, p_184599_.confidence), this.description + "; " + p_184599_.description);
+    public ModCheck merge(ModCheck pOther) {
+        return new ModCheck(ObjectUtils.max(this.confidence, pOther.confidence), this.description + "; " + pOther.description);
     }
 
     public String fullDescription() {

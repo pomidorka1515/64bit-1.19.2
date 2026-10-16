@@ -22,9 +22,9 @@ public class EntityHasScoreCondition implements LootItemCondition {
     final Map<String, IntRange> scores;
     final LootContext.EntityTarget entityTarget;
 
-    EntityHasScoreCondition(Map<String, IntRange> p_81618_, LootContext.EntityTarget p_81619_) {
-        this.scores = ImmutableMap.copyOf(p_81618_);
-        this.entityTarget = p_81619_;
+    EntityHasScoreCondition(Map<String, IntRange> pScoreRanges, LootContext.EntityTarget pEntityTarget) {
+        this.scores = ImmutableMap.copyOf(pScoreRanges);
+        this.entityTarget = pEntityTarget;
     }
 
     public LootItemConditionType getType() {
@@ -55,30 +55,30 @@ public class EntityHasScoreCondition implements LootItemCondition {
         }
     }
 
-    protected boolean hasScore(LootContext p_165491_, Entity p_165492_, Scoreboard p_165493_, String p_165494_, IntRange p_165495_) {
-        Objective objective = p_165493_.getObjective(p_165494_);
+    protected boolean hasScore(LootContext pLootContext, Entity pTargetEntity, Scoreboard pScoreboard, String pObjectiveName, IntRange pScoreRange) {
+        Objective objective = pScoreboard.getObjective(pObjectiveName);
         if (objective == null) {
             return false;
         } else {
-            String s = p_165492_.getScoreboardName();
-            return !p_165493_.hasPlayerScore(s, objective) ? false : p_165495_.test(p_165491_, p_165493_.getOrCreatePlayerScore(s, objective).getScore());
+            String s = pTargetEntity.getScoreboardName();
+            return !pScoreboard.hasPlayerScore(s, objective) ? false : pScoreRange.test(pLootContext, pScoreboard.getOrCreatePlayerScore(s, objective).getScore());
         }
     }
 
-    public static EntityHasScoreCondition.Builder hasScores(LootContext.EntityTarget p_165489_) {
-        return new EntityHasScoreCondition.Builder(p_165489_);
+    public static EntityHasScoreCondition.Builder hasScores(LootContext.EntityTarget pEntityTarget) {
+        return new EntityHasScoreCondition.Builder(pEntityTarget);
     }
 
     public static class Builder implements LootItemCondition.Builder {
         private final Map<String, IntRange> scores = Maps.newHashMap();
         private final LootContext.EntityTarget entityTarget;
 
-        public Builder(LootContext.EntityTarget p_165499_) {
-            this.entityTarget = p_165499_;
+        public Builder(LootContext.EntityTarget pEntityTarget) {
+            this.entityTarget = pEntityTarget;
         }
 
-        public EntityHasScoreCondition.Builder withScore(String p_165501_, IntRange p_165502_) {
-            this.scores.put(p_165501_, p_165502_);
+        public EntityHasScoreCondition.Builder withScore(String pObjectiveName, IntRange pScoreRange) {
+            this.scores.put(pObjectiveName, pScoreRange);
             return this;
         }
 

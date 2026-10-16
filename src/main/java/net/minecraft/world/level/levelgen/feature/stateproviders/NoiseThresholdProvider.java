@@ -47,12 +47,12 @@ public class NoiseThresholdProvider extends NoiseBasedStateProvider {
         return BlockStateProviderType.NOISE_THRESHOLD_PROVIDER;
     }
 
-    public BlockState getState(RandomSource p_225916_, BlockPos p_225917_) {
-        double d0 = this.getNoiseValue(p_225917_, (double) this.scale);
+    public BlockState getState(RandomSource pRandom, BlockPos pState) {
+        double d0 = this.getNoiseValue(pState, (double) this.scale);
         if (d0 < (double) this.threshold) {
-            return Util.getRandom(this.lowStates, p_225916_);
+            return Util.getRandom(this.lowStates, pRandom);
         } else {
-            return p_225916_.nextFloat() < this.highChance ? Util.getRandom(this.highStates, p_225916_) : this.defaultState;
+            return pRandom.nextFloat() < this.highChance ? Util.getRandom(this.highStates, pRandom) : this.defaultState;
         }
     }
 }

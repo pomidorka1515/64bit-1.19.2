@@ -23,11 +23,11 @@ public enum Visibility {
         return this.accessible;
     }
 
-    public static Visibility fromFullChunkStatus(ChunkHolder.FullChunkStatus p_157693_) {
-        if (p_157693_.isOrAfter(ChunkHolder.FullChunkStatus.ENTITY_TICKING)) {
+    public static Visibility fromFullChunkStatus(ChunkHolder.FullChunkStatus pChunkStatus) {
+        if (pChunkStatus.isOrAfter(ChunkHolder.FullChunkStatus.ENTITY_TICKING)) {
             return TICKING;
         } else {
-            return p_157693_.isOrAfter(ChunkHolder.FullChunkStatus.BORDER) ? TRACKED : HIDDEN;
+            return pChunkStatus.isOrAfter(ChunkHolder.FullChunkStatus.BORDER) ? TRACKED : HIDDEN;
         }
     }
 }

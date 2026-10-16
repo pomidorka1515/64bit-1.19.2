@@ -33,16 +33,16 @@ public class PiglinRenderer extends HumanoidMobRenderer<Mob, PiglinModel<Mob>> {
         return piglinmodel;
     }
 
-    public ResourceLocation getTextureLocation(Mob p_115708_) {
-        ResourceLocation resourcelocation = TEXTURES.get(p_115708_.getType());
+    public ResourceLocation getTextureLocation(Mob pEntity) {
+        ResourceLocation resourcelocation = TEXTURES.get(pEntity.getType());
         if (resourcelocation == null) {
-            throw new IllegalArgumentException("I don't know what texture to use for " + p_115708_.getType());
+            throw new IllegalArgumentException("I don't know what texture to use for " + pEntity.getType());
         } else {
             return resourcelocation;
         }
     }
 
-    protected boolean isShaking(Mob p_115712_) {
-        return super.isShaking(p_115712_) || p_115712_ instanceof AbstractPiglin && ((AbstractPiglin) p_115712_).isConverting();
+    protected boolean isShaking(Mob pEntity) {
+        return super.isShaking(pEntity) || pEntity instanceof AbstractPiglin && ((AbstractPiglin) pEntity).isConverting();
     }
 }

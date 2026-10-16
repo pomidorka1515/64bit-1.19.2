@@ -106,7 +106,7 @@ public interface ParticleRenderType {
         }
     };
 
-    void begin(BufferBuilder p_107436_, TextureManager p_107437_);
+    void begin(BufferBuilder pBuilder, TextureManager pTextureManager);
 
-    void end(Tesselator p_107438_);
+    void end(Tesselator pTesselator);
 }

@@ -30,11 +30,11 @@ public class LootTableProvider implements DataProvider {
     private final DataGenerator.PathProvider pathProvider;
     private final List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>> subProviders = ImmutableList.of(Pair.of(FishingLoot::new, LootContextParamSets.FISHING), Pair.of(ChestLoot::new, LootContextParamSets.CHEST), Pair.of(EntityLoot::new, LootContextParamSets.ENTITY), Pair.of(BlockLoot::new, LootContextParamSets.BLOCK), Pair.of(PiglinBarterLoot::new, LootContextParamSets.PIGLIN_BARTER), Pair.of(GiftLoot::new, LootContextParamSets.GIFT));
 
-    public LootTableProvider(DataGenerator p_124437_) {
-        this.pathProvider = p_124437_.createPathProvider(DataGenerator.Target.DATA_PACK, "loot_tables");
+    public LootTableProvider(DataGenerator pGenerator) {
+        this.pathProvider = pGenerator.createPathProvider(DataGenerator.Target.DATA_PACK, "loot_tables");
     }
 
-    public void run(CachedOutput p_236269_) {
+    public void run(CachedOutput pOutput) {
         Map<ResourceLocation, LootTable> map = Maps.newHashMap();
         this.subProviders.forEach((p_124458_) -> {
             p_124458_.getFirst().get().accept((p_176077_, p_176078_) -> {
@@ -65,7 +65,7 @@ public class LootTableProvider implements DataProvider {
                 Path path = this.pathProvider.json(p_236272_);
 
                 try {
-                    DataProvider.saveStable(p_236269_, LootTables.serialize(p_236273_), path);
+                    DataProvider.saveStable(pOutput, LootTables.serialize(p_236273_), path);
                 } catch (IOException ioexception) {
                     LOGGER.error("Couldn't save loot table {}", path, ioexception);
                 }

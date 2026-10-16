@@ -16,18 +16,18 @@ public class LoggerChunkProgressListener implements ChunkProgressListener {
     private long startTime;
     private long nextTickTime = Long.MAX_VALUE;
 
-    public LoggerChunkProgressListener(int p_9629_) {
-        int i = p_9629_ * 2 + 1;
+    public LoggerChunkProgressListener(int pRadius) {
+        int i = pRadius * 2 + 1;
         this.maxCount = i * i;
     }
 
-    public void updateSpawnPos(ChunkPos p_9631_) {
+    public void updateSpawnPos(ChunkPos pCenter) {
         this.nextTickTime = Util.getMillis();
         this.startTime = this.nextTickTime;
     }
 
-    public void onStatusChange(ChunkPos p_9633_, @Nullable ChunkStatus p_9634_) {
-        if (p_9634_ == ChunkStatus.FULL) {
+    public void onStatusChange(ChunkPos pChunkPosition, @Nullable ChunkStatus pNewStatus) {
+        if (pNewStatus == ChunkStatus.FULL) {
             ++this.count;
         }
 

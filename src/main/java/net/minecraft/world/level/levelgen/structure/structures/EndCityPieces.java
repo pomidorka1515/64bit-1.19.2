@@ -163,50 +163,50 @@ public class EndCityPieces {
         }
     };
 
-    static EndCityPieces.EndCityPiece addPiece(StructureTemplateManager p_227430_, EndCityPieces.EndCityPiece p_227431_, BlockPos p_227432_, String p_227433_, Rotation p_227434_, boolean p_227435_) {
-        EndCityPieces.EndCityPiece endcitypieces$endcitypiece = new EndCityPieces.EndCityPiece(p_227430_, p_227433_, p_227431_.templatePosition(), p_227434_, p_227435_);
-        BlockPos blockpos = p_227431_.template().calculateConnectedPosition(p_227431_.placeSettings(), p_227432_, endcitypieces$endcitypiece.placeSettings(), BlockPos.ZERO);
+    static EndCityPieces.EndCityPiece addPiece(StructureTemplateManager pStructureTemplateManager, EndCityPieces.EndCityPiece pPiece, BlockPos pStartPos, String pName, Rotation pRotation, boolean pOverwrite) {
+        EndCityPieces.EndCityPiece endcitypieces$endcitypiece = new EndCityPieces.EndCityPiece(pStructureTemplateManager, pName, pPiece.templatePosition(), pRotation, pOverwrite);
+        BlockPos blockpos = pPiece.template().calculateConnectedPosition(pPiece.placeSettings(), pStartPos, endcitypieces$endcitypiece.placeSettings(), BlockPos.ZERO);
         endcitypieces$endcitypiece.move(blockpos.getX(), blockpos.getY(), blockpos.getZ());
         return endcitypieces$endcitypiece;
     }
 
-    public static void startHouseTower(StructureTemplateManager p_227445_, BlockPos p_227446_, Rotation p_227447_, List<StructurePiece> p_227448_, RandomSource p_227449_) {
+    public static void startHouseTower(StructureTemplateManager pStructureTemplateManager, BlockPos pStartPos, Rotation pRotation, List<StructurePiece> pPieces, RandomSource pRandom) {
         FAT_TOWER_GENERATOR.init();
         HOUSE_TOWER_GENERATOR.init();
         TOWER_BRIDGE_GENERATOR.init();
         TOWER_GENERATOR.init();
-        EndCityPieces.EndCityPiece endcitypieces$endcitypiece = addHelper(p_227448_, new EndCityPieces.EndCityPiece(p_227445_, "base_floor", p_227446_, p_227447_, true));
-        endcitypieces$endcitypiece = addHelper(p_227448_, addPiece(p_227445_, endcitypieces$endcitypiece, new BlockPos(-1, 0, -1), "second_floor_1", p_227447_, false));
-        endcitypieces$endcitypiece = addHelper(p_227448_, addPiece(p_227445_, endcitypieces$endcitypiece, new BlockPos(-1, 4, -1), "third_floor_1", p_227447_, false));
-        endcitypieces$endcitypiece = addHelper(p_227448_, addPiece(p_227445_, endcitypieces$endcitypiece, new BlockPos(-1, 8, -1), "third_roof", p_227447_, true));
-        recursiveChildren(p_227445_, TOWER_GENERATOR, 1, endcitypieces$endcitypiece, (BlockPos) null, p_227448_, p_227449_);
+        EndCityPieces.EndCityPiece endcitypieces$endcitypiece = addHelper(pPieces, new EndCityPieces.EndCityPiece(pStructureTemplateManager, "base_floor", pStartPos, pRotation, true));
+        endcitypieces$endcitypiece = addHelper(pPieces, addPiece(pStructureTemplateManager, endcitypieces$endcitypiece, new BlockPos(-1, 0, -1), "second_floor_1", pRotation, false));
+        endcitypieces$endcitypiece = addHelper(pPieces, addPiece(pStructureTemplateManager, endcitypieces$endcitypiece, new BlockPos(-1, 4, -1), "third_floor_1", pRotation, false));
+        endcitypieces$endcitypiece = addHelper(pPieces, addPiece(pStructureTemplateManager, endcitypieces$endcitypiece, new BlockPos(-1, 8, -1), "third_roof", pRotation, true));
+        recursiveChildren(pStructureTemplateManager, TOWER_GENERATOR, 1, endcitypieces$endcitypiece, (BlockPos) null, pPieces, pRandom);
     }
 
-    static EndCityPieces.EndCityPiece addHelper(List<StructurePiece> p_227451_, EndCityPieces.EndCityPiece p_227452_) {
-        p_227451_.add(p_227452_);
-        return p_227452_;
+    static EndCityPieces.EndCityPiece addHelper(List<StructurePiece> pPieces, EndCityPieces.EndCityPiece pPiece) {
+        pPieces.add(pPiece);
+        return pPiece;
     }
 
-    static boolean recursiveChildren(StructureTemplateManager p_227437_, EndCityPieces.SectionGenerator p_227438_, int p_227439_, EndCityPieces.EndCityPiece p_227440_, BlockPos p_227441_, List<StructurePiece> p_227442_, RandomSource p_227443_) {
-        if (p_227439_ > 8) {
+    static boolean recursiveChildren(StructureTemplateManager pStructureTemplateManager, EndCityPieces.SectionGenerator pSectionGenerator, int pCounter, EndCityPieces.EndCityPiece pPiece, BlockPos pStartPos, List<StructurePiece> pPieces, RandomSource pRandom) {
+        if (pCounter > 8) {
             return false;
         } else {
             List<StructurePiece> list = Lists.newArrayList();
-            if (p_227438_.generate(p_227437_, p_227439_, p_227440_, p_227441_, list, p_227443_)) {
+            if (pSectionGenerator.generate(pStructureTemplateManager, pCounter, pPiece, pStartPos, list, pRandom)) {
                 boolean flag = false;
-                int i = p_227443_.nextInt();
+                int i = pRandom.nextInt();
 
                 for (StructurePiece structurepiece : list) {
                     structurepiece.setGenDepth(i);
-                    StructurePiece structurepiece1 = StructurePiece.findCollisionPiece(p_227442_, structurepiece.getBoundingBox());
-                    if (structurepiece1 != null && structurepiece1.getGenDepth() != p_227440_.getGenDepth()) {
+                    StructurePiece structurepiece1 = StructurePiece.findCollisionPiece(pPieces, structurepiece.getBoundingBox());
+                    if (structurepiece1 != null && structurepiece1.getGenDepth() != pPiece.getGenDepth()) {
                         flag = true;
                         break;
                     }
                 }
 
                 if (!flag) {
-                    p_227442_.addAll(list);
+                    pPieces.addAll(list);
                     return true;
                 }
             }
@@ -216,50 +216,50 @@ public class EndCityPieces {
     }
 
     public static class EndCityPiece extends TemplateStructurePiece {
-        public EndCityPiece(StructureTemplateManager p_227491_, String p_227492_, BlockPos p_227493_, Rotation p_227494_, boolean p_227495_) {
-            super(StructurePieceType.END_CITY_PIECE, 0, p_227491_, makeResourceLocation(p_227492_), p_227492_, makeSettings(p_227495_, p_227494_), p_227493_);
+        public EndCityPiece(StructureTemplateManager pStructureTemplateManager, String pName, BlockPos pStartPos, Rotation pRotation, boolean pOverwrite) {
+            super(StructurePieceType.END_CITY_PIECE, 0, pStructureTemplateManager, makeResourceLocation(pName), pName, makeSettings(pOverwrite, pRotation), pStartPos);
         }
 
-        public EndCityPiece(StructureTemplateManager p_227497_, CompoundTag p_227498_) {
-            super(StructurePieceType.END_CITY_PIECE, p_227498_, p_227497_, (p_227512_) -> {
-                return makeSettings(p_227498_.getBoolean("OW"), Rotation.valueOf(p_227498_.getString("Rot")));
+        public EndCityPiece(StructureTemplateManager pStructureTemplateManager, CompoundTag pTag) {
+            super(StructurePieceType.END_CITY_PIECE, pTag, pStructureTemplateManager, (p_227512_) -> {
+                return makeSettings(pTag.getBoolean("OW"), Rotation.valueOf(pTag.getString("Rot")));
             });
         }
 
-        private static StructurePlaceSettings makeSettings(boolean p_227514_, Rotation p_227515_) {
-            BlockIgnoreProcessor blockignoreprocessor = p_227514_ ? BlockIgnoreProcessor.STRUCTURE_BLOCK : BlockIgnoreProcessor.STRUCTURE_AND_AIR;
-            return (new StructurePlaceSettings()).setIgnoreEntities(true).addProcessor(blockignoreprocessor).setRotation(p_227515_);
+        private static StructurePlaceSettings makeSettings(boolean pOverwrite, Rotation pRotation) {
+            BlockIgnoreProcessor blockignoreprocessor = pOverwrite ? BlockIgnoreProcessor.STRUCTURE_BLOCK : BlockIgnoreProcessor.STRUCTURE_AND_AIR;
+            return (new StructurePlaceSettings()).setIgnoreEntities(true).addProcessor(blockignoreprocessor).setRotation(pRotation);
         }
 
         protected ResourceLocation makeTemplateLocation() {
             return makeResourceLocation(this.templateName);
         }
 
-        private static ResourceLocation makeResourceLocation(String p_227503_) {
-            return new ResourceLocation("end_city/" + p_227503_);
+        private static ResourceLocation makeResourceLocation(String pName) {
+            return new ResourceLocation("end_city/" + pName);
         }
 
-        protected void addAdditionalSaveData(StructurePieceSerializationContext p_227500_, CompoundTag p_227501_) {
-            super.addAdditionalSaveData(p_227500_, p_227501_);
-            p_227501_.putString("Rot", this.placeSettings.getRotation().name());
-            p_227501_.putBoolean("OW", this.placeSettings.getProcessors().get(0) == BlockIgnoreProcessor.STRUCTURE_BLOCK);
+        protected void addAdditionalSaveData(StructurePieceSerializationContext pContext, CompoundTag pTag) {
+            super.addAdditionalSaveData(pContext, pTag);
+            pTag.putString("Rot", this.placeSettings.getRotation().name());
+            pTag.putBoolean("OW", this.placeSettings.getProcessors().get(0) == BlockIgnoreProcessor.STRUCTURE_BLOCK);
         }
 
-        protected void handleDataMarker(String p_227505_, BlockPos p_227506_, ServerLevelAccessor p_227507_, RandomSource p_227508_, BoundingBox p_227509_) {
-            if (p_227505_.startsWith("Chest")) {
-                BlockPos blockpos = p_227506_.below();
-                if (p_227509_.isInside(blockpos)) {
-                    RandomizableContainerBlockEntity.setLootTable(p_227507_, p_227508_, blockpos, BuiltInLootTables.END_CITY_TREASURE);
+        protected void handleDataMarker(String pName, BlockPos pPos, ServerLevelAccessor pLevel, RandomSource pRandom, BoundingBox pBox) {
+            if (pName.startsWith("Chest")) {
+                BlockPos blockpos = pPos.below();
+                if (pBox.isInside(blockpos)) {
+                    RandomizableContainerBlockEntity.setLootTable(pLevel, pRandom, blockpos, BuiltInLootTables.END_CITY_TREASURE);
                 }
-            } else if (p_227509_.isInside(p_227506_) && Level.isInSpawnableBounds(p_227506_)) {
-                if (p_227505_.startsWith("Sentry")) {
-                    Shulker shulker = EntityType.SHULKER.create(p_227507_.getLevel());
-                    shulker.setPos((double) p_227506_.getX() + 0.5D, (double) p_227506_.getY(), (double) p_227506_.getZ() + 0.5D);
-                    p_227507_.addFreshEntity(shulker);
-                } else if (p_227505_.startsWith("Elytra")) {
-                    ItemFrame itemframe = new ItemFrame(p_227507_.getLevel(), p_227506_, this.placeSettings.getRotation().rotate(Direction.SOUTH));
+            } else if (pBox.isInside(pPos) && Level.isInSpawnableBounds(pPos)) {
+                if (pName.startsWith("Sentry")) {
+                    Shulker shulker = EntityType.SHULKER.create(pLevel.getLevel());
+                    shulker.setPos((double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D);
+                    pLevel.addFreshEntity(shulker);
+                } else if (pName.startsWith("Elytra")) {
+                    ItemFrame itemframe = new ItemFrame(pLevel.getLevel(), pPos, this.placeSettings.getRotation().rotate(Direction.SOUTH));
                     itemframe.setItem(new ItemStack(Items.ELYTRA), false);
-                    p_227507_.addFreshEntity(itemframe);
+                    pLevel.addFreshEntity(itemframe);
                 }
             }
         }
@@ -268,6 +268,6 @@ public class EndCityPieces {
     interface SectionGenerator {
         void init();
 
-        boolean generate(StructureTemplateManager p_227517_, int p_227518_, EndCityPieces.EndCityPiece p_227519_, BlockPos p_227520_, List<StructurePiece> p_227521_, RandomSource p_227522_);
+        boolean generate(StructureTemplateManager pStructureTemplateManager, int pCounter, EndCityPieces.EndCityPiece pPiece, BlockPos pStartPos, List<StructurePiece> pPieces, RandomSource pRandom);
     }
 }

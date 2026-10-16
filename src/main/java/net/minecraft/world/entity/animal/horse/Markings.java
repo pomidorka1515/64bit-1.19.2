@@ -23,7 +23,7 @@ public enum Markings {
         return this.id;
     }
 
-    public static Markings byId(int p_30871_) {
-        return BY_ID[p_30871_ % BY_ID.length];
+    public static Markings byId(int pId) {
+        return BY_ID[pId % BY_ID.length];
     }
 }

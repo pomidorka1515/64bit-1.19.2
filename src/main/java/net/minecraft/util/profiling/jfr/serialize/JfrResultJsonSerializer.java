@@ -37,32 +37,32 @@ public class JfrResultJsonSerializer {
     private static final String COUNT_PER_SECOND = "countPerSecond";
     final Gson gson = (new GsonBuilder()).setPrettyPrinting().setLongSerializationPolicy(LongSerializationPolicy.DEFAULT).create();
 
-    public String format(JfrStatsResult p_185536_) {
+    public String format(JfrStatsResult pResult) {
         JsonObject jsonobject = new JsonObject();
-        jsonobject.addProperty("startedEpoch", p_185536_.recordingStarted().toEpochMilli());
-        jsonobject.addProperty("endedEpoch", p_185536_.recordingEnded().toEpochMilli());
-        jsonobject.addProperty("durationMs", p_185536_.recordingDuration().toMillis());
-        Duration duration = p_185536_.worldCreationDuration();
+        jsonobject.addProperty("startedEpoch", pResult.recordingStarted().toEpochMilli());
+        jsonobject.addProperty("endedEpoch", pResult.recordingEnded().toEpochMilli());
+        jsonobject.addProperty("durationMs", pResult.recordingDuration().toMillis());
+        Duration duration = pResult.worldCreationDuration();
         if (duration != null) {
             jsonobject.addProperty("worldGenDurationMs", duration.toMillis());
         }
 
-        jsonobject.add("heap", this.heap(p_185536_.heapSummary()));
-        jsonobject.add("cpuPercent", this.cpu(p_185536_.cpuLoadStats()));
-        jsonobject.add("network", this.network(p_185536_));
-        jsonobject.add("fileIO", this.fileIO(p_185536_));
-        jsonobject.add("serverTick", this.serverTicks(p_185536_.tickTimes()));
-        jsonobject.add("threadAllocation", this.threadAllocations(p_185536_.threadAllocationSummary()));
-        jsonobject.add("chunkGen", this.chunkGen(p_185536_.chunkGenSummary()));
+        jsonobject.add("heap", this.heap(pResult.heapSummary()));
+        jsonobject.add("cpuPercent", this.cpu(pResult.cpuLoadStats()));
+        jsonobject.add("network", this.network(pResult));
+        jsonobject.add("fileIO", this.fileIO(pResult));
+        jsonobject.add("serverTick", this.serverTicks(pResult.tickTimes()));
+        jsonobject.add("threadAllocation", this.threadAllocations(pResult.threadAllocationSummary()));
+        jsonobject.add("chunkGen", this.chunkGen(pResult.chunkGenSummary()));
         return this.gson.toJson((JsonElement) jsonobject);
     }
 
-    private JsonElement heap(GcHeapStat.Summary p_185542_) {
+    private JsonElement heap(GcHeapStat.Summary pSummary) {
         JsonObject jsonobject = new JsonObject();
-        jsonobject.addProperty("allocationRateBytesPerSecond", p_185542_.allocationRateBytesPerSecond());
-        jsonobject.addProperty("gcCount", p_185542_.totalGCs());
-        jsonobject.addProperty("gcOverHeadPercent", p_185542_.gcOverHead());
-        jsonobject.addProperty("gcTotalDurationMs", p_185542_.gcTotalDuration().toMillis());
+        jsonobject.addProperty("allocationRateBytesPerSecond", pSummary.allocationRateBytesPerSecond());
+        jsonobject.addProperty("gcCount", pSummary.totalGCs());
+        jsonobject.addProperty("gcOverHeadPercent", pSummary.gcOverHead());
+        jsonobject.addProperty("gcTotalDurationMs", pSummary.gcTotalDuration().toMillis());
         return jsonobject;
     }
 
@@ -107,9 +107,9 @@ public class JfrResultJsonSerializer {
         return jsonobject;
     }
 
-    private JsonElement threadAllocations(ThreadAllocationStat.Summary p_185546_) {
+    private JsonElement threadAllocations(ThreadAllocationStat.Summary pSummary) {
         JsonArray jsonarray = new JsonArray();
-        p_185546_.allocationsPerSecondByThread().forEach((p_185554_, p_185555_) -> {
+        pSummary.allocationsPerSecondByThread().forEach((p_185554_, p_185555_) -> {
             jsonarray.add(Util.make(new JsonObject(), (p_185571_) -> {
                 p_185571_.addProperty("thread", p_185554_);
                 p_185571_.addProperty("bytesPerSecond", p_185555_);
@@ -118,12 +118,12 @@ public class JfrResultJsonSerializer {
         return jsonarray;
     }
 
-    private JsonElement serverTicks(List<TickTimeStat> p_185587_) {
-        if (p_185587_.isEmpty()) {
+    private JsonElement serverTicks(List<TickTimeStat> pStats) {
+        if (pStats.isEmpty()) {
             return JsonNull.INSTANCE;
         } else {
             JsonObject jsonobject = new JsonObject();
-            double[] adouble = p_185587_.stream().mapToDouble((p_185548_) -> {
+            double[] adouble = pStats.stream().mapToDouble((p_185548_) -> {
                                                      return (double) p_185548_.currentAverage().toNanos() / 1000000.0D;
                                                  })
                                        .toArray();
@@ -139,22 +139,22 @@ public class JfrResultJsonSerializer {
         }
     }
 
-    private JsonElement fileIO(JfrStatsResult p_185578_) {
+    private JsonElement fileIO(JfrStatsResult pResult) {
         JsonObject jsonobject = new JsonObject();
-        jsonobject.add("write", this.fileIoSummary(p_185578_.fileWrites()));
-        jsonobject.add("read", this.fileIoSummary(p_185578_.fileReads()));
+        jsonobject.add("write", this.fileIoSummary(pResult.fileWrites()));
+        jsonobject.add("read", this.fileIoSummary(pResult.fileReads()));
         return jsonobject;
     }
 
-    private JsonElement fileIoSummary(FileIOStat.Summary p_185540_) {
+    private JsonElement fileIoSummary(FileIOStat.Summary pSummary) {
         JsonObject jsonobject = new JsonObject();
-        jsonobject.addProperty("totalBytes", p_185540_.totalBytes());
-        jsonobject.addProperty("count", p_185540_.counts());
-        jsonobject.addProperty("bytesPerSecond", p_185540_.bytesPerSecond());
-        jsonobject.addProperty("countPerSecond", p_185540_.countsPerSecond());
+        jsonobject.addProperty("totalBytes", pSummary.totalBytes());
+        jsonobject.addProperty("count", pSummary.counts());
+        jsonobject.addProperty("bytesPerSecond", pSummary.bytesPerSecond());
+        jsonobject.addProperty("countPerSecond", pSummary.countsPerSecond());
         JsonArray jsonarray = new JsonArray();
         jsonobject.add("topContributors", jsonarray);
-        p_185540_.topTenContributorsByTotalBytes().forEach((p_185581_) -> {
+        pSummary.topTenContributorsByTotalBytes().forEach((p_185581_) -> {
             JsonObject jsonobject1 = new JsonObject();
             jsonarray.add(jsonobject1);
             jsonobject1.addProperty("path", p_185581_.getFirst());
@@ -163,22 +163,22 @@ public class JfrResultJsonSerializer {
         return jsonobject;
     }
 
-    private JsonElement network(JfrStatsResult p_185589_) {
+    private JsonElement network(JfrStatsResult pResult) {
         JsonObject jsonobject = new JsonObject();
-        jsonobject.add("sent", this.packets(p_185589_.sentPacketsSummary()));
-        jsonobject.add("received", this.packets(p_185589_.receivedPacketsSummary()));
+        jsonobject.add("sent", this.packets(pResult.sentPacketsSummary()));
+        jsonobject.add("received", this.packets(pResult.receivedPacketsSummary()));
         return jsonobject;
     }
 
-    private JsonElement packets(NetworkPacketSummary p_185544_) {
+    private JsonElement packets(NetworkPacketSummary pSummary) {
         JsonObject jsonobject = new JsonObject();
-        jsonobject.addProperty("totalBytes", p_185544_.getTotalSize());
-        jsonobject.addProperty("count", p_185544_.getTotalCount());
-        jsonobject.addProperty("bytesPerSecond", p_185544_.getSizePerSecond());
-        jsonobject.addProperty("countPerSecond", p_185544_.getCountsPerSecond());
+        jsonobject.addProperty("totalBytes", pSummary.getTotalSize());
+        jsonobject.addProperty("count", pSummary.getTotalCount());
+        jsonobject.addProperty("bytesPerSecond", pSummary.getSizePerSecond());
+        jsonobject.addProperty("countPerSecond", pSummary.getCountsPerSecond());
         JsonArray jsonarray = new JsonArray();
         jsonobject.add("topContributors", jsonarray);
-        p_185544_.largestSizeContributors().forEach((p_185551_) -> {
+        pSummary.largestSizeContributors().forEach((p_185551_) -> {
             JsonObject jsonobject1 = new JsonObject();
             jsonarray.add(jsonobject1);
             NetworkPacketSummary.PacketIdentification networkpacketsummary$packetidentification = p_185551_.getFirst();
@@ -192,7 +192,7 @@ public class JfrResultJsonSerializer {
         return jsonobject;
     }
 
-    private JsonElement cpu(List<CpuLoadStat> p_185591_) {
+    private JsonElement cpu(List<CpuLoadStat> pStats) {
         JsonObject jsonobject = new JsonObject();
         BiFunction<List<CpuLoadStat>, ToDoubleFunction<CpuLoadStat>, JsonObject> bifunction = (p_185575_, p_185576_) -> {
             JsonObject jsonobject1 = new JsonObject();
@@ -202,9 +202,9 @@ public class JfrResultJsonSerializer {
             jsonobject1.addProperty("max", doublesummarystatistics.getMax());
             return jsonobject1;
         };
-        jsonobject.add("jvm", bifunction.apply(p_185591_, CpuLoadStat::jvm));
-        jsonobject.add("userJvm", bifunction.apply(p_185591_, CpuLoadStat::userJvm));
-        jsonobject.add("system", bifunction.apply(p_185591_, CpuLoadStat::system));
+        jsonobject.add("jvm", bifunction.apply(pStats, CpuLoadStat::jvm));
+        jsonobject.add("userJvm", bifunction.apply(pStats, CpuLoadStat::userJvm));
+        jsonobject.add("system", bifunction.apply(pStats, CpuLoadStat::system));
         return jsonobject;
     }
 }

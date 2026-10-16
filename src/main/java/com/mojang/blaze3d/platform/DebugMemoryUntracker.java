@@ -27,17 +27,17 @@ public class DebugMemoryUntracker {
         }
     });
 
-    public static void untrack(long p_84002_) {
+    public static void untrack(long pMemAddr) {
         if (UNTRACK != null) {
             try {
-                UNTRACK.invoke(p_84002_);
+                UNTRACK.invoke(pMemAddr);
             } catch (Throwable throwable) {
                 throw new RuntimeException(throwable);
             }
         }
     }
 
-    public static void untrack(Pointer p_84004_) {
-        untrack(p_84004_.address());
+    public static void untrack(Pointer pPointer) {
+        untrack(pPointer.address());
     }
 }

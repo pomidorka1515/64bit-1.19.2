@@ -7,8 +7,8 @@ import net.minecraft.world.level.levelgen.presets.WorldPreset;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 
 public class WorldPresetTagsProvider extends TagsProvider<WorldPreset> {
-    public WorldPresetTagsProvider(DataGenerator p_236457_) {
-        super(p_236457_, BuiltinRegistries.WORLD_PRESET);
+    public WorldPresetTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, BuiltinRegistries.WORLD_PRESET);
     }
 
     protected void addTags() {

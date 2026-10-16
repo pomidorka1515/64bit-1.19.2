@@ -49,10 +49,10 @@ public class MultiNoiseBiomeSource extends BiomeSource {
         this(p_187057_, Optional.empty());
     }
 
-    MultiNoiseBiomeSource(Climate.ParameterList<Holder<Biome>> p_187059_, Optional<MultiNoiseBiomeSource.PresetInstance> p_187060_) {
-        super(p_187059_.values().stream().map(Pair::getSecond));
-        this.preset = p_187060_;
-        this.parameters = p_187059_;
+    MultiNoiseBiomeSource(Climate.ParameterList<Holder<Biome>> pParameters, Optional<MultiNoiseBiomeSource.PresetInstance> pPreset) {
+        super(pParameters.values().stream().map(Pair::getSecond));
+        this.preset = pPreset;
+        this.parameters = pParameters;
     }
 
     protected Codec<? extends BiomeSource> codec() {
@@ -63,24 +63,24 @@ public class MultiNoiseBiomeSource extends BiomeSource {
         return this.preset;
     }
 
-    public boolean stable(MultiNoiseBiomeSource.Preset p_187064_) {
-        return this.preset.isPresent() && Objects.equals(this.preset.get().preset(), p_187064_);
+    public boolean stable(MultiNoiseBiomeSource.Preset pPreset) {
+        return this.preset.isPresent() && Objects.equals(this.preset.get().preset(), pPreset);
     }
 
-    public Holder<Biome> getNoiseBiome(long p_204272_, int p_204273_, long p_204274_, Climate.Sampler p_204275_) {
-        return this.getNoiseBiome(p_204275_.sample(p_204272_, p_204273_, p_204274_));
+    public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ, Climate.Sampler pSampler) {
+        return this.getNoiseBiome(pSampler.sample(pX, pY, pZ));
     }
 
     @VisibleForDebug
-    public Holder<Biome> getNoiseBiome(Climate.TargetPoint p_204270_) {
-        return this.parameters.findValue(p_204270_);
+    public Holder<Biome> getNoiseBiome(Climate.TargetPoint pTargetPoint) {
+        return this.parameters.findValue(pTargetPoint);
     }
 
-    public void addDebugInfo(List<String> p_207895_, BlockPos p_207896_, Climate.Sampler p_207897_) {
-        long i = QuartPos.fromBlock(p_207896_.getX());
-        int j = QuartPos.fromBlock(p_207896_.getY());
-        long k = QuartPos.fromBlock(p_207896_.getZ());
-        Climate.TargetPoint climate$targetpoint = p_207897_.sample(i, j, k);
+    public void addDebugInfo(List<String> pInfo, BlockPos pPos, Climate.Sampler pSampler) {
+        long i = QuartPos.fromBlock(pPos.getX());
+        int j = QuartPos.fromBlock(pPos.getY());
+        long k = QuartPos.fromBlock(pPos.getZ());
+        Climate.TargetPoint climate$targetpoint = pSampler.sample(i, j, k);
         float f = Climate.unquantizeCoord(climate$targetpoint.continentalness());
         float f1 = Climate.unquantizeCoord(climate$targetpoint.erosion());
         float f2 = Climate.unquantizeCoord(climate$targetpoint.temperature());
@@ -88,7 +88,7 @@ public class MultiNoiseBiomeSource extends BiomeSource {
         float f4 = Climate.unquantizeCoord(climate$targetpoint.weirdness());
         double d0 = (double) NoiseRouterData.peaksAndValleys(f4);
         OverworldBiomeBuilder overworldbiomebuilder = new OverworldBiomeBuilder();
-        p_207895_.add("Biome builder PV: " + OverworldBiomeBuilder.getDebugStringForPeaksAndValleys(d0) + " C: " + overworldbiomebuilder.getDebugStringForContinentalness((double) f) + " E: " + overworldbiomebuilder.getDebugStringForErosion((double) f1) + " T: " + overworldbiomebuilder.getDebugStringForTemperature((double) f2) + " H: " + overworldbiomebuilder.getDebugStringForHumidity((double) f3));
+        pInfo.add("Biome builder PV: " + OverworldBiomeBuilder.getDebugStringForPeaksAndValleys(d0) + " C: " + overworldbiomebuilder.getDebugStringForContinentalness((double) f) + " E: " + overworldbiomebuilder.getDebugStringForErosion((double) f1) + " T: " + overworldbiomebuilder.getDebugStringForTemperature((double) f2) + " H: " + overworldbiomebuilder.getDebugStringForHumidity((double) f3));
     }
 
     public static class Preset {
@@ -106,10 +106,10 @@ public class MultiNoiseBiomeSource extends BiomeSource {
         final ResourceLocation name;
         private final Function<Registry<Biome>, Climate.ParameterList<Holder<Biome>>> parameterSource;
 
-        public Preset(ResourceLocation p_187090_, Function<Registry<Biome>, Climate.ParameterList<Holder<Biome>>> p_187091_) {
-            this.name = p_187090_;
-            this.parameterSource = p_187091_;
-            BY_NAME.put(p_187090_, this);
+        public Preset(ResourceLocation pName, Function<Registry<Biome>, Climate.ParameterList<Holder<Biome>>> pParameterSource) {
+            this.name = pName;
+            this.parameterSource = pParameterSource;
+            BY_NAME.put(pName, this);
         }
 
         @VisibleForDebug
@@ -119,17 +119,17 @@ public class MultiNoiseBiomeSource extends BiomeSource {
             });
         }
 
-        MultiNoiseBiomeSource biomeSource(MultiNoiseBiomeSource.PresetInstance p_187093_, boolean p_187094_) {
-            Climate.ParameterList<Holder<Biome>> parameterlist = this.parameterSource.apply(p_187093_.biomes());
-            return new MultiNoiseBiomeSource(parameterlist, p_187094_ ? Optional.of(p_187093_) : Optional.empty());
+        MultiNoiseBiomeSource biomeSource(MultiNoiseBiomeSource.PresetInstance pPresetInstance, boolean pHasParams) {
+            Climate.ParameterList<Holder<Biome>> parameterlist = this.parameterSource.apply(pPresetInstance.biomes());
+            return new MultiNoiseBiomeSource(parameterlist, pHasParams ? Optional.of(pPresetInstance) : Optional.empty());
         }
 
-        public MultiNoiseBiomeSource biomeSource(Registry<Biome> p_187105_, boolean p_187106_) {
-            return this.biomeSource(new MultiNoiseBiomeSource.PresetInstance(this, p_187105_), p_187106_);
+        public MultiNoiseBiomeSource biomeSource(Registry<Biome> pBiomes, boolean pHasParams) {
+            return this.biomeSource(new MultiNoiseBiomeSource.PresetInstance(this, pBiomes), pHasParams);
         }
 
-        public MultiNoiseBiomeSource biomeSource(Registry<Biome> p_187100_) {
-            return this.biomeSource(p_187100_, true);
+        public MultiNoiseBiomeSource biomeSource(Registry<Biome> pRegistry) {
+            return this.biomeSource(pRegistry, true);
         }
 
         public Stream<ResourceKey<Biome>> possibleBiomes() {

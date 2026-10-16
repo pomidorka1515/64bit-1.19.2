@@ -21,12 +21,12 @@ public class SnowGolemModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart leftArm;
     private final ModelPart rightArm;
 
-    public SnowGolemModel(ModelPart p_170965_) {
-        this.root = p_170965_;
-        this.head = p_170965_.getChild("head");
-        this.leftArm = p_170965_.getChild("left_arm");
-        this.rightArm = p_170965_.getChild("right_arm");
-        this.upperBody = p_170965_.getChild("upper_body");
+    public SnowGolemModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.head = pRoot.getChild("head");
+        this.leftArm = pRoot.getChild("left_arm");
+        this.rightArm = pRoot.getChild("right_arm");
+        this.upperBody = pRoot.getChild("upper_body");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -43,10 +43,10 @@ public class SnowGolemModel<T extends Entity> extends HierarchicalModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 64);
     }
 
-    public void setupAnim(T p_103845_, float p_103846_, float p_103847_, float p_103848_, float p_103849_, float p_103850_) {
-        this.head.yRot = p_103849_ * ((float) Math.PI / 180F);
-        this.head.xRot = p_103850_ * ((float) Math.PI / 180F);
-        this.upperBody.yRot = p_103849_ * ((float) Math.PI / 180F) * 0.25F;
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.upperBody.yRot = pNetHeadYaw * ((float) Math.PI / 180F) * 0.25F;
         float f = Mth.sin(this.upperBody.yRot);
         float f1 = Mth.cos(this.upperBody.yRot);
         this.leftArm.yRot = this.upperBody.yRot;

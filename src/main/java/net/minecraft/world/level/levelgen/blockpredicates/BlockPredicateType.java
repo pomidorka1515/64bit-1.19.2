@@ -19,9 +19,9 @@ public interface BlockPredicateType<P extends BlockPredicate> {
 
     Codec<P> codec();
 
-    private static <P extends BlockPredicate> BlockPredicateType<P> register(String p_190450_, Codec<P> p_190451_) {
-        return Registry.register(Registry.BLOCK_PREDICATE_TYPES, p_190450_, () -> {
-            return p_190451_;
+    private static <P extends BlockPredicate> BlockPredicateType<P> register(String pName, Codec<P> pCodec) {
+        return Registry.register(Registry.BLOCK_PREDICATE_TYPES, pName, () -> {
+            return pCodec;
         });
     }
 }

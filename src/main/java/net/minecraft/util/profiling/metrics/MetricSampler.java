@@ -23,19 +23,19 @@ public class MetricSampler {
     final MetricSampler.ThresholdTest thresholdTest;
     private double currentValue;
 
-    protected MetricSampler(String p_145996_, MetricCategory p_145997_, DoubleSupplier p_145998_, @Nullable Runnable p_145999_, @Nullable MetricSampler.ThresholdTest p_146000_) {
-        this.name = p_145996_;
-        this.category = p_145997_;
-        this.beforeTick = p_145999_;
-        this.sampler = p_145998_;
-        this.thresholdTest = p_146000_;
+    protected MetricSampler(String pName, MetricCategory pCategory, DoubleSupplier pSampler, @Nullable Runnable pBeforeTick, @Nullable MetricSampler.ThresholdTest pThresholdTest) {
+        this.name = pName;
+        this.category = pCategory;
+        this.beforeTick = pBeforeTick;
+        this.sampler = pSampler;
+        this.thresholdTest = pThresholdTest;
         this.values = ByteBufAllocator.DEFAULT.buffer();
         this.ticks = ByteBufAllocator.DEFAULT.buffer();
         this.isRunning = true;
     }
 
-    public static MetricSampler create(String p_146010_, MetricCategory p_146011_, DoubleSupplier p_146012_) {
-        return new MetricSampler(p_146010_, p_146011_, p_146012_, (Runnable) null, (MetricSampler.ThresholdTest) null);
+    public static MetricSampler create(String pName, MetricCategory pCategory, DoubleSupplier pSampler) {
+        return new MetricSampler(pName, pCategory, pSampler, (Runnable) null, (MetricSampler.ThresholdTest) null);
     }
 
     public static <T> MetricSampler create(String p_146005_, MetricCategory p_146006_, T p_146007_, ToDoubleFunction<T> p_146008_) {
@@ -110,11 +110,11 @@ public class MetricSampler {
         return this.thresholdTest != null && this.thresholdTest.test(this.currentValue);
     }
 
-    public boolean equals(Object p_146023_) {
-        if (this == p_146023_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_146023_ != null && this.getClass() == p_146023_.getClass()) {
-            MetricSampler metricsampler = (MetricSampler) p_146023_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            MetricSampler metricsampler = (MetricSampler) pOther;
             return this.name.equals(metricsampler.name) && this.category.equals(metricsampler.category);
         } else {
             return false;
@@ -151,8 +151,8 @@ public class MetricSampler {
             return this;
         }
 
-        public MetricSampler.MetricSamplerBuilder<T> withThresholdAlert(MetricSampler.ThresholdTest p_146041_) {
-            this.thresholdTest = p_146041_;
+        public MetricSampler.MetricSamplerBuilder<T> withThresholdAlert(MetricSampler.ThresholdTest pThresholdTest) {
+            this.thresholdTest = pThresholdTest;
             return this;
         }
 
@@ -166,14 +166,14 @@ public class MetricSampler {
         private final int firstTick;
         private final int lastTick;
 
-        public SamplerResult(int p_146053_, int p_146054_, Int2DoubleMap p_146055_) {
-            this.firstTick = p_146053_;
-            this.lastTick = p_146054_;
-            this.recording = p_146055_;
+        public SamplerResult(int pFirstTick, int pLastTick, Int2DoubleMap pRecording) {
+            this.firstTick = pFirstTick;
+            this.lastTick = pLastTick;
+            this.recording = pRecording;
         }
 
-        public double valueAtTick(int p_146058_) {
-            return this.recording.get(p_146058_);
+        public double valueAtTick(int pTick) {
+            return this.recording.get(pTick);
         }
 
         public int getFirstTick() {
@@ -186,26 +186,26 @@ public class MetricSampler {
     }
 
     public interface ThresholdTest {
-        boolean test(double p_146060_);
+        boolean test(double pValue);
     }
 
     public static class ValueIncreasedByPercentage implements MetricSampler.ThresholdTest {
         private final float percentageIncreaseThreshold;
         private double previousValue = Double.MIN_VALUE;
 
-        public ValueIncreasedByPercentage(float p_146064_) {
-            this.percentageIncreaseThreshold = p_146064_;
+        public ValueIncreasedByPercentage(float pPercentageIncreaseThreshold) {
+            this.percentageIncreaseThreshold = pPercentageIncreaseThreshold;
         }
 
-        public boolean test(double p_146066_) {
+        public boolean test(double pValue) {
             boolean flag;
-            if (this.previousValue != Double.MIN_VALUE && !(p_146066_ <= this.previousValue)) {
-                flag = (p_146066_ - this.previousValue) / this.previousValue >= (double) this.percentageIncreaseThreshold;
+            if (this.previousValue != Double.MIN_VALUE && !(pValue <= this.previousValue)) {
+                flag = (pValue - this.previousValue) / this.previousValue >= (double) this.percentageIncreaseThreshold;
             } else {
                 flag = false;
             }
 
-            this.previousValue = p_146066_;
+            this.previousValue = pValue;
             return flag;
         }
     }

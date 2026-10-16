@@ -151,10 +151,10 @@ public class ModelBakery {
         p_119309_.defaultReturnValue(-1);
     });
 
-    public ModelBakery(ResourceManager p_119247_, BlockColors p_119248_, ProfilerFiller p_119249_, int p_119250_) {
-        this.resourceManager = p_119247_;
-        this.blockColors = p_119248_;
-        p_119249_.push("missing_model");
+    public ModelBakery(ResourceManager pResourceManager, BlockColors pBlockColors, ProfilerFiller pProfiler, int pMaxMipmapLevel) {
+        this.resourceManager = pResourceManager;
+        this.blockColors = pBlockColors;
+        pProfiler.push("missing_model");
 
         try {
             this.unbakedCache.put(MISSING_MODEL_LOCATION, this.loadBlockModel(MISSING_MODEL_LOCATION));
@@ -164,13 +164,13 @@ public class ModelBakery {
             throw new RuntimeException(ioexception);
         }
 
-        p_119249_.popPush("static_definitions");
+        pProfiler.popPush("static_definitions");
         STATIC_DEFINITIONS.forEach((p_119347_, p_119348_) -> {
             p_119348_.getPossibleStates().forEach((p_174905_) -> {
                 this.loadTopLevel(BlockModelShaper.stateToModelLocation(p_119347_, p_174905_));
             });
         });
-        p_119249_.popPush("blocks");
+        pProfiler.popPush("blocks");
 
         for (Block block : Registry.BLOCK) {
             block.getStateDefinition().getPossibleStates().forEach((p_119264_) -> {
@@ -178,16 +178,16 @@ public class ModelBakery {
             });
         }
 
-        p_119249_.popPush("items");
+        pProfiler.popPush("items");
 
         for (ResourceLocation resourcelocation : Registry.ITEM.keySet()) {
             this.loadTopLevel(new ModelResourceLocation(resourcelocation, "inventory"));
         }
 
-        p_119249_.popPush("special");
+        pProfiler.popPush("special");
         this.loadTopLevel(new ModelResourceLocation("minecraft:trident_in_hand#inventory"));
         this.loadTopLevel(new ModelResourceLocation("minecraft:spyglass_in_hand#inventory"));
-        p_119249_.popPush("textures");
+        pProfiler.popPush("textures");
         Set<Pair<String, String>> set = Sets.newLinkedHashSet();
         Set<Material> set1 = this.topLevelModels.values().stream().flatMap((p_119340_) -> {
                                                                       return p_119340_.getMaterials(this::getModel, set).stream();
@@ -201,32 +201,32 @@ public class ModelBakery {
                     LOGGER.warn("Unable to resolve texture reference: {} in {}", p_119292_.getFirst(), p_119292_.getSecond());
                 });
         Map<ResourceLocation, List<Material>> map = set1.stream().collect(Collectors.groupingBy(Material::atlasLocation));
-        p_119249_.popPush("stitching");
+        pProfiler.popPush("stitching");
         this.atlasPreparations = Maps.newHashMap();
 
         for (Map.Entry<ResourceLocation, List<Material>> entry : map.entrySet()) {
             TextureAtlas textureatlas = new TextureAtlas(entry.getKey());
-            TextureAtlas.Preparations textureatlas$preparations = textureatlas.prepareToStitch(this.resourceManager, entry.getValue().stream().map(Material::texture), p_119249_, p_119250_);
+            TextureAtlas.Preparations textureatlas$preparations = textureatlas.prepareToStitch(this.resourceManager, entry.getValue().stream().map(Material::texture), pProfiler, pMaxMipmapLevel);
             this.atlasPreparations.put(entry.getKey(), Pair.of(textureatlas, textureatlas$preparations));
         }
 
-        p_119249_.pop();
+        pProfiler.pop();
     }
 
-    public AtlasSet uploadTextures(TextureManager p_119299_, ProfilerFiller p_119300_) {
-        p_119300_.push("atlas");
+    public AtlasSet uploadTextures(TextureManager pResourceManager, ProfilerFiller pProfiler) {
+        pProfiler.push("atlas");
 
         for (Pair<TextureAtlas, TextureAtlas.Preparations> pair : this.atlasPreparations.values()) {
             TextureAtlas textureatlas = pair.getFirst();
             TextureAtlas.Preparations textureatlas$preparations = pair.getSecond();
             textureatlas.reload(textureatlas$preparations);
-            p_119299_.register(textureatlas.location(), textureatlas);
-            p_119299_.bindForSetup(textureatlas.location());
+            pResourceManager.register(textureatlas.location(), textureatlas);
+            pResourceManager.bindForSetup(textureatlas.location());
             textureatlas.updateFilter(textureatlas$preparations);
         }
 
         this.atlasSet = new AtlasSet(this.atlasPreparations.values().stream().map(Pair::getFirst).collect(Collectors.toList()));
-        p_119300_.popPush("baking");
+        pProfiler.popPush("baking");
         this.topLevelModels.keySet().forEach((p_119369_) -> {
             BakedModel bakedmodel = null;
 
@@ -240,18 +240,18 @@ public class ModelBakery {
                 this.bakedTopLevelModels.put(p_119369_, bakedmodel);
             }
         });
-        p_119300_.pop();
+        pProfiler.pop();
         return this.atlasSet;
     }
 
-    private static Predicate<BlockState> predicate(StateDefinition<Block, BlockState> p_119274_, String p_119275_) {
+    private static Predicate<BlockState> predicate(StateDefinition<Block, BlockState> pContainer, String pVariant) {
         Map<Property<?>, Comparable<?>> map = Maps.newHashMap();
 
-        for (String s : COMMA_SPLITTER.split(p_119275_)) {
+        for (String s : COMMA_SPLITTER.split(pVariant)) {
             Iterator<String> iterator = EQUAL_SPLITTER.split(s).iterator();
             if (iterator.hasNext()) {
                 String s1 = iterator.next();
-                Property<?> property = p_119274_.getProperty(s1);
+                Property<?> property = pContainer.getProperty(s1);
                 if (property != null && iterator.hasNext()) {
                     String s2 = iterator.next();
                     Comparable<?> comparable = getValueHelper(property, s2);
@@ -266,7 +266,7 @@ public class ModelBakery {
             }
         }
 
-        Block block = p_119274_.getOwner();
+        Block block = pContainer.getOwner();
         return (p_119262_) -> {
             if (p_119262_ != null && p_119262_.is(block)) {
                 for (Map.Entry<Property<?>, Comparable<?>> entry : map.entrySet()) {
@@ -283,8 +283,8 @@ public class ModelBakery {
     }
 
     @Nullable
-    static <T extends Comparable<T>> T getValueHelper(Property<T> p_119277_, String p_119278_) {
-        return p_119277_.getValue(p_119278_).orElse((T) null);
+    static <T extends Comparable<T>> T getValueHelper(Property<T> pProperty, String pValue) {
+        return pProperty.getValue(pValue).orElse((T) null);
     }
 
     public UnbakedModel getModel(ResourceLocation p_119342_) {
@@ -318,17 +318,17 @@ public class ModelBakery {
         }
     }
 
-    private void loadModel(ResourceLocation p_119363_) throws Exception {
-        if (!(p_119363_ instanceof ModelResourceLocation modelresourcelocation)) {
-            this.cacheAndQueueDependencies(p_119363_, this.loadBlockModel(p_119363_));
+    private void loadModel(ResourceLocation pBlockstateLocation) throws Exception {
+        if (!(pBlockstateLocation instanceof ModelResourceLocation modelresourcelocation)) {
+            this.cacheAndQueueDependencies(pBlockstateLocation, this.loadBlockModel(pBlockstateLocation));
         } else {
             if (Objects.equals(modelresourcelocation.getVariant(), "inventory")) {
-                ResourceLocation resourcelocation = new ResourceLocation(p_119363_.getNamespace(), "item/" + p_119363_.getPath());
+                ResourceLocation resourcelocation = new ResourceLocation(pBlockstateLocation.getNamespace(), "item/" + pBlockstateLocation.getPath());
                 BlockModel blockmodel = this.loadBlockModel(resourcelocation);
                 this.cacheAndQueueDependencies(modelresourcelocation, blockmodel);
                 this.unbakedCache.put(resourcelocation, blockmodel);
             } else {
-                ResourceLocation resourcelocation2 = new ResourceLocation(p_119363_.getNamespace(), p_119363_.getPath());
+                ResourceLocation resourcelocation2 = new ResourceLocation(pBlockstateLocation.getNamespace(), pBlockstateLocation.getPath());
                 StateDefinition<Block, BlockState> statedefinition = Optional.ofNullable(STATIC_DEFINITIONS.get(resourcelocation2)).orElseGet(() -> {
                     return Registry.BLOCK.get(resourcelocation2).getStateDefinition();
                 });
@@ -340,7 +340,7 @@ public class ModelBakery {
                     map.put(BlockModelShaper.stateToModelLocation(resourcelocation2, p_119330_), p_119330_);
                 });
                 Map<BlockState, Pair<UnbakedModel, Supplier<ModelBakery.ModelGroupKey>>> map1 = Maps.newHashMap();
-                ResourceLocation resourcelocation1 = new ResourceLocation(p_119363_.getNamespace(), "blockstates/" + p_119363_.getPath() + ".json");
+                ResourceLocation resourcelocation1 = new ResourceLocation(pBlockstateLocation.getNamespace(), "blockstates/" + pBlockstateLocation.getPath() + ".json");
                 UnbakedModel unbakedmodel = this.unbakedCache.get(MISSING_MODEL_LOCATION);
                 ModelBakery.ModelGroupKey modelbakery$modelgroupkey = new ModelBakery.ModelGroupKey(ImmutableList.of(unbakedmodel), ImmutableList.of());
                 Pair<UnbakedModel, Supplier<ModelBakery.ModelGroupKey>> pair = Pair.of(unbakedmodel, () -> {
@@ -457,52 +457,52 @@ public class ModelBakery {
         }
     }
 
-    private void cacheAndQueueDependencies(ResourceLocation p_119353_, UnbakedModel p_119354_) {
-        this.unbakedCache.put(p_119353_, p_119354_);
-        this.loadingStack.addAll(p_119354_.getDependencies());
+    private void cacheAndQueueDependencies(ResourceLocation pLocation, UnbakedModel pModel) {
+        this.unbakedCache.put(pLocation, pModel);
+        this.loadingStack.addAll(pModel.getDependencies());
     }
 
-    private void loadTopLevel(ModelResourceLocation p_119307_) {
-        UnbakedModel unbakedmodel = this.getModel(p_119307_);
-        this.unbakedCache.put(p_119307_, unbakedmodel);
-        this.topLevelModels.put(p_119307_, unbakedmodel);
+    private void loadTopLevel(ModelResourceLocation pLocation) {
+        UnbakedModel unbakedmodel = this.getModel(pLocation);
+        this.unbakedCache.put(pLocation, unbakedmodel);
+        this.topLevelModels.put(pLocation, unbakedmodel);
     }
 
-    private void registerModelGroup(Iterable<BlockState> p_119311_) {
+    private void registerModelGroup(Iterable<BlockState> pBlockStates) {
         int i = this.nextModelGroup++;
-        p_119311_.forEach((p_119256_) -> {
+        pBlockStates.forEach((p_119256_) -> {
             this.modelGroups.put(p_119256_, i);
         });
     }
 
     @Nullable
-    public BakedModel bake(ResourceLocation p_119350_, ModelState p_119351_) {
-        Triple<ResourceLocation, Transformation, Boolean> triple = Triple.of(p_119350_, p_119351_.getRotation(), p_119351_.isUvLocked());
+    public BakedModel bake(ResourceLocation pLocation, ModelState pTransform) {
+        Triple<ResourceLocation, Transformation, Boolean> triple = Triple.of(pLocation, pTransform.getRotation(), pTransform.isUvLocked());
         if (this.bakedCache.containsKey(triple)) {
             return this.bakedCache.get(triple);
         } else if (this.atlasSet == null) {
             throw new IllegalStateException("bake called too early");
         } else {
-            UnbakedModel unbakedmodel = this.getModel(p_119350_);
+            UnbakedModel unbakedmodel = this.getModel(pLocation);
             if (unbakedmodel instanceof BlockModel) {
                 BlockModel blockmodel = (BlockModel) unbakedmodel;
                 if (blockmodel.getRootModel() == GENERATION_MARKER) {
-                    return ITEM_MODEL_GENERATOR.generateBlockModel(this.atlasSet::getSprite, blockmodel).bake(this, blockmodel, this.atlasSet::getSprite, p_119351_, p_119350_, false);
+                    return ITEM_MODEL_GENERATOR.generateBlockModel(this.atlasSet::getSprite, blockmodel).bake(this, blockmodel, this.atlasSet::getSprite, pTransform, pLocation, false);
                 }
             }
 
-            BakedModel bakedmodel = unbakedmodel.bake(this, this.atlasSet::getSprite, p_119351_, p_119350_);
+            BakedModel bakedmodel = unbakedmodel.bake(this, this.atlasSet::getSprite, pTransform, pLocation);
             this.bakedCache.put(triple, bakedmodel);
             return bakedmodel;
         }
     }
 
-    private BlockModel loadBlockModel(ResourceLocation p_119365_) throws IOException {
+    private BlockModel loadBlockModel(ResourceLocation pLocation) throws IOException {
         Reader reader = null;
 
         BlockModel blockmodel;
         try {
-            String s = p_119365_.getPath();
+            String s = pLocation.getPath();
             if (!"builtin/generated".equals(s)) {
                 if ("builtin/entity".equals(s)) {
                     return BLOCK_ENTITY_MARKER;
@@ -512,16 +512,16 @@ public class ModelBakery {
                     String s2 = s.substring("builtin/".length());
                     String s1 = BUILTIN_MODELS.get(s2);
                     if (s1 == null) {
-                        throw new FileNotFoundException(p_119365_.toString());
+                        throw new FileNotFoundException(pLocation.toString());
                     }
 
                     reader = new StringReader(s1);
                 } else {
-                    reader = this.resourceManager.openAsReader(new ResourceLocation(p_119365_.getNamespace(), "models/" + p_119365_.getPath() + ".json"));
+                    reader = this.resourceManager.openAsReader(new ResourceLocation(pLocation.getNamespace(), "models/" + pLocation.getPath() + ".json"));
                 }
 
                 blockmodel = BlockModel.fromStream(reader);
-                blockmodel.name = p_119365_.toString();
+                blockmodel.name = pLocation.toString();
                 return blockmodel;
             }
 
@@ -543,8 +543,8 @@ public class ModelBakery {
 
     @OnlyIn(Dist.CLIENT)
     static class BlockStateDefinitionException extends RuntimeException {
-        public BlockStateDefinitionException(String p_119373_) {
-            super(p_119373_);
+        public BlockStateDefinitionException(String pMessage) {
+            super(pMessage);
         }
     }
 
@@ -553,18 +553,18 @@ public class ModelBakery {
         private final List<UnbakedModel> models;
         private final List<Object> coloringValues;
 
-        public ModelGroupKey(List<UnbakedModel> p_119377_, List<Object> p_119378_) {
-            this.models = p_119377_;
-            this.coloringValues = p_119378_;
+        public ModelGroupKey(List<UnbakedModel> pModels, List<Object> pColoringValues) {
+            this.models = pModels;
+            this.coloringValues = pColoringValues;
         }
 
-        public boolean equals(Object p_119395_) {
-            if (this == p_119395_) {
+        public boolean equals(Object pOther) {
+            if (this == pOther) {
                 return true;
-            } else if (!(p_119395_ instanceof ModelBakery.ModelGroupKey)) {
+            } else if (!(pOther instanceof ModelBakery.ModelGroupKey)) {
                 return false;
             } else {
-                ModelBakery.ModelGroupKey modelbakery$modelgroupkey = (ModelBakery.ModelGroupKey) p_119395_;
+                ModelBakery.ModelGroupKey modelbakery$modelgroupkey = (ModelBakery.ModelGroupKey) pOther;
                 return Objects.equals(this.models, modelbakery$modelgroupkey.models) && Objects.equals(this.coloringValues, modelbakery$modelgroupkey.coloringValues);
             }
         }
@@ -573,24 +573,24 @@ public class ModelBakery {
             return 31 * this.models.hashCode() + this.coloringValues.hashCode();
         }
 
-        public static ModelBakery.ModelGroupKey create(BlockState p_119380_, MultiPart p_119381_, Collection<Property<?>> p_119382_) {
-            StateDefinition<Block, BlockState> statedefinition = p_119380_.getBlock().getStateDefinition();
-            List<UnbakedModel> list = p_119381_.getSelectors().stream().filter((p_119393_) -> {
-                                                                           return p_119393_.getPredicate(statedefinition).test(p_119380_);
+        public static ModelBakery.ModelGroupKey create(BlockState pBlockState, MultiPart pMultipart, Collection<Property<?>> pProperties) {
+            StateDefinition<Block, BlockState> statedefinition = pBlockState.getBlock().getStateDefinition();
+            List<UnbakedModel> list = pMultipart.getSelectors().stream().filter((p_119393_) -> {
+                                                                           return p_119393_.getPredicate(statedefinition).test(pBlockState);
                                                                        })
                                               .map(Selector::getVariant)
                                               .collect(ImmutableList.toImmutableList());
-            List<Object> list1 = getColoringValues(p_119380_, p_119382_);
+            List<Object> list1 = getColoringValues(pBlockState, pProperties);
             return new ModelBakery.ModelGroupKey(list, list1);
         }
 
-        public static ModelBakery.ModelGroupKey create(BlockState p_119384_, UnbakedModel p_119385_, Collection<Property<?>> p_119386_) {
-            List<Object> list = getColoringValues(p_119384_, p_119386_);
-            return new ModelBakery.ModelGroupKey(ImmutableList.of(p_119385_), list);
+        public static ModelBakery.ModelGroupKey create(BlockState pBlockState, UnbakedModel pModel, Collection<Property<?>> pProperties) {
+            List<Object> list = getColoringValues(pBlockState, pProperties);
+            return new ModelBakery.ModelGroupKey(ImmutableList.of(pModel), list);
         }
 
-        private static List<Object> getColoringValues(BlockState p_119388_, Collection<Property<?>> p_119389_) {
-            return p_119389_.stream().map(p_119388_::getValue).collect(ImmutableList.toImmutableList());
+        private static List<Object> getColoringValues(BlockState pBlockState, Collection<Property<?>> pProperties) {
+            return pProperties.stream().map(pBlockState::getValue).collect(ImmutableList.toImmutableList());
         }
     }
 }

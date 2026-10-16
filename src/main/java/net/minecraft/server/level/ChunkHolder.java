@@ -69,26 +69,26 @@ public class ChunkHolder {
     private boolean resendLight;
     private CompletableFuture<Void> pendingFullStateConfirmation = CompletableFuture.completedFuture((Void) null);
 
-    public ChunkHolder(ChunkPos p_142986_, int p_142987_, LevelHeightAccessor p_142988_, LevelLightEngine p_142989_, ChunkHolder.LevelChangeListener p_142990_, ChunkHolder.PlayerProvider p_142991_) {
-        this.pos = p_142986_;
-        this.levelHeightAccessor = p_142988_;
-        this.lightEngine = p_142989_;
-        this.onLevelChange = p_142990_;
-        this.playerProvider = p_142991_;
+    public ChunkHolder(ChunkPos pPos, int pTicketLevel, LevelHeightAccessor pLevelHeightAccessor, LevelLightEngine pLightEngine, ChunkHolder.LevelChangeListener pOnLevelChange, ChunkHolder.PlayerProvider pPlayerProvider) {
+        this.pos = pPos;
+        this.levelHeightAccessor = pLevelHeightAccessor;
+        this.lightEngine = pLightEngine;
+        this.onLevelChange = pOnLevelChange;
+        this.playerProvider = pPlayerProvider;
         this.oldTicketLevel = ChunkMap.MAX_CHUNK_DISTANCE + 1;
         this.ticketLevel = this.oldTicketLevel;
         this.queueLevel = this.oldTicketLevel;
-        this.setTicketLevel(p_142987_);
-        this.changedBlocksPerSection = new ShortSet[p_142988_.getSectionsCount()];
+        this.setTicketLevel(pTicketLevel);
+        this.changedBlocksPerSection = new ShortSet[pLevelHeightAccessor.getSectionsCount()];
     }
 
-    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getFutureIfPresentUnchecked(ChunkStatus p_140048_) {
-        CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture = this.futures.get(p_140048_.getIndex());
+    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getFutureIfPresentUnchecked(ChunkStatus pChunkStatus) {
+        CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture = this.futures.get(pChunkStatus.getIndex());
         return completablefuture == null ? UNLOADED_CHUNK_FUTURE : completablefuture;
     }
 
-    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getFutureIfPresent(ChunkStatus p_140081_) {
-        return getStatus(this.ticketLevel).isOrAfter(p_140081_) ? this.getFutureIfPresentUnchecked(p_140081_) : UNLOADED_CHUNK_FUTURE;
+    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getFutureIfPresent(ChunkStatus pChunkStatus) {
+        return getStatus(this.ticketLevel).isOrAfter(pChunkStatus) ? this.getFutureIfPresentUnchecked(pChunkStatus) : UNLOADED_CHUNK_FUTURE;
     }
 
     public CompletableFuture<Either<LevelChunk, ChunkHolder.ChunkLoadingFailure>> getTickingChunkFuture() {
@@ -150,20 +150,20 @@ public class ChunkHolder {
         return this.chunkToSave;
     }
 
-    public void blockChanged(BlockPos p_140057_) {
+    public void blockChanged(BlockPos pPos) {
         LevelChunk levelchunk = this.getTickingChunk();
         if (levelchunk != null) {
-            int i = this.levelHeightAccessor.getSectionIndex(p_140057_.getY());
+            int i = this.levelHeightAccessor.getSectionIndex(pPos.getY());
             if (this.changedBlocksPerSection[i] == null) {
                 this.hasChangedSections = true;
                 this.changedBlocksPerSection[i] = new ShortOpenHashSet();
             }
 
-            this.changedBlocksPerSection[i].add(SectionPos.sectionRelativePos(p_140057_));
+            this.changedBlocksPerSection[i].add(SectionPos.sectionRelativePos(pPos));
         }
     }
 
-    public void sectionLightChanged(LightLayer p_140037_, int p_140038_) {
+    public void sectionLightChanged(LightLayer pType, int pSectionY) {
         Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure> either = this.getFutureIfPresent(ChunkStatus.FEATURES).getNow((Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>) null);
         if (either != null) {
             ChunkAccess chunkaccess = either.left().orElse((ChunkAccess) null);
@@ -173,9 +173,9 @@ public class ChunkHolder {
                 if (levelchunk != null) {
                     int i = this.lightEngine.getMinLightSection();
                     int j = this.lightEngine.getMaxLightSection();
-                    if (p_140038_ >= i && p_140038_ <= j) {
-                        int k = p_140038_ - i;
-                        if (p_140037_ == LightLayer.SKY) {
+                    if (pSectionY >= i && pSectionY <= j) {
+                        int k = pSectionY - i;
+                        if (pType == LightLayer.SKY) {
                             this.skyChangedLightSectionFilter.set(k);
                         } else {
                             this.blockChangedLightSectionFilter.set(k);
@@ -186,9 +186,9 @@ public class ChunkHolder {
         }
     }
 
-    public void broadcastChanges(LevelChunk p_140055_) {
+    public void broadcastChanges(LevelChunk pChunk) {
         if (this.hasChangedSections || !this.skyChangedLightSectionFilter.isEmpty() || !this.blockChangedLightSectionFilter.isEmpty()) {
-            Level level = p_140055_.getLevel();
+            Level level = pChunk.getLevel();
             int i = 0;
 
             for (int j = 0; j < this.changedBlocksPerSection.length; ++j) {
@@ -197,7 +197,7 @@ public class ChunkHolder {
 
             this.resendLight |= i >= 64;
             if (!this.skyChangedLightSectionFilter.isEmpty() || !this.blockChangedLightSectionFilter.isEmpty()) {
-                this.broadcast(new ClientboundLightUpdatePacket(p_140055_.getPos(), this.lightEngine, this.skyChangedLightSectionFilter, this.blockChangedLightSectionFilter, true), !this.resendLight);
+                this.broadcast(new ClientboundLightUpdatePacket(pChunk.getPos(), this.lightEngine, this.skyChangedLightSectionFilter, this.blockChangedLightSectionFilter, true), !this.resendLight);
                 this.skyChangedLightSectionFilter.clear();
                 this.blockChangedLightSectionFilter.clear();
             }
@@ -206,14 +206,14 @@ public class ChunkHolder {
                 ShortSet shortset = this.changedBlocksPerSection[l];
                 if (shortset != null) {
                     int k = this.levelHeightAccessor.getSectionYFromSectionIndex(l);
-                    SectionPos sectionpos = SectionPos.of(p_140055_.getPos(), k);
+                    SectionPos sectionpos = SectionPos.of(pChunk.getPos(), k);
                     if (shortset.size() == 1) {
                         BlockPos blockpos = sectionpos.relativeToBlockPos(shortset.iterator().nextShort());
                         BlockState blockstate = level.getBlockState(blockpos);
                         this.broadcast(new ClientboundBlockUpdatePacket(blockpos, blockstate), false);
                         this.broadcastBlockEntityIfNeeded(level, blockpos, blockstate);
                     } else {
-                        LevelChunkSection levelchunksection = p_140055_.getSection(l);
+                        LevelChunkSection levelchunksection = pChunk.getSection(l);
                         ClientboundSectionBlocksUpdatePacket clientboundsectionblocksupdatepacket = new ClientboundSectionBlocksUpdatePacket(sectionpos, shortset, levelchunksection, this.resendLight);
                         this.broadcast(clientboundsectionblocksupdatepacket, false);
                         clientboundsectionblocksupdatepacket.runUpdates((p_140078_, p_140079_) -> {
@@ -229,14 +229,14 @@ public class ChunkHolder {
         }
     }
 
-    private void broadcastBlockEntityIfNeeded(Level p_140033_, BlockPos p_140034_, BlockState p_140035_) {
-        if (p_140035_.hasBlockEntity()) {
-            this.broadcastBlockEntity(p_140033_, p_140034_);
+    private void broadcastBlockEntityIfNeeded(Level pLevel, BlockPos pPos, BlockState pState) {
+        if (pState.hasBlockEntity()) {
+            this.broadcastBlockEntity(pLevel, pPos);
         }
     }
 
-    private void broadcastBlockEntity(Level p_140030_, BlockPos p_140031_) {
-        BlockEntity blockentity = p_140030_.getBlockEntity(p_140031_);
+    private void broadcastBlockEntity(Level pLevel, BlockPos pPos) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity != null) {
             Packet<?> packet = blockentity.getUpdatePacket();
             if (packet != null) {
@@ -245,9 +245,9 @@ public class ChunkHolder {
         }
     }
 
-    private void broadcast(Packet<?> p_140064_, boolean p_140065_) {
-        this.playerProvider.getPlayers(this.pos, p_140065_).forEach((p_140062_) -> {
-            p_140062_.connection.send(p_140064_);
+    private void broadcast(Packet<?> pPacket, boolean pBoundaryOnly) {
+        this.playerProvider.getPlayers(this.pos, pBoundaryOnly).forEach((p_140062_) -> {
+            p_140062_.connection.send(pPacket);
         });
     }
 
@@ -316,8 +316,8 @@ public class ChunkHolder {
         this.queueLevel = p_140087_;
     }
 
-    public void setTicketLevel(int p_140028_) {
-        this.ticketLevel = p_140028_;
+    public void setTicketLevel(int pLevel) {
+        this.ticketLevel = pLevel;
     }
 
     private void scheduleFullChunkPromotion(ChunkMap p_142999_, CompletableFuture<Either<LevelChunk, ChunkHolder.ChunkLoadingFailure>> p_143000_, Executor p_143001_, ChunkHolder.FullChunkStatus p_143002_) {
@@ -413,12 +413,12 @@ public class ChunkHolder {
         this.oldTicketLevel = this.ticketLevel;
     }
 
-    public static ChunkStatus getStatus(int p_140075_) {
-        return p_140075_ < 33 ? ChunkStatus.FULL : ChunkStatus.getStatusAroundFullChunk(p_140075_ - 33);
+    public static ChunkStatus getStatus(int pLevel) {
+        return pLevel < 33 ? ChunkStatus.FULL : ChunkStatus.getStatusAroundFullChunk(pLevel - 33);
     }
 
-    public static ChunkHolder.FullChunkStatus getFullChunkStatus(int p_140084_) {
-        return FULL_CHUNK_STATUSES[Mth.clamp(33 - p_140084_ + 1, 0, FULL_CHUNK_STATUSES.length - 1)];
+    public static ChunkHolder.FullChunkStatus getFullChunkStatus(int pLevel) {
+        return FULL_CHUNK_STATUSES[Mth.clamp(33 - pLevel + 1, 0, FULL_CHUNK_STATUSES.length - 1)];
     }
 
     public boolean wasAccessibleSinceLastSave() {
@@ -466,10 +466,10 @@ public class ChunkHolder {
         private final CompletableFuture<?> future;
         private final String source;
 
-        ChunkSaveDebug(Thread p_143027_, CompletableFuture<?> p_143028_, String p_143029_) {
-            this.thread = p_143027_;
-            this.future = p_143028_;
-            this.source = p_143029_;
+        ChunkSaveDebug(Thread pThread, CompletableFuture<?> pFuture, String pSource) {
+            this.thread = pThread;
+            this.future = pFuture;
+            this.source = pSource;
         }
     }
 
@@ -479,8 +479,8 @@ public class ChunkHolder {
         TICKING,
         ENTITY_TICKING;
 
-        public boolean isOrAfter(ChunkHolder.FullChunkStatus p_140115_) {
-            return this.ordinal() >= p_140115_.ordinal();
+        public boolean isOrAfter(ChunkHolder.FullChunkStatus pType) {
+            return this.ordinal() >= pType.ordinal();
         }
     }
 
@@ -490,6 +490,6 @@ public class ChunkHolder {
     }
 
     public interface PlayerProvider {
-        List<ServerPlayer> getPlayers(ChunkPos p_183717_, boolean p_183718_);
+        List<ServerPlayer> getPlayers(ChunkPos pPos, boolean pBoundaryOnly);
     }
 }

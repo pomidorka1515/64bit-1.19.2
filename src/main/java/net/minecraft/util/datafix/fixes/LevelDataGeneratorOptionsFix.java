@@ -102,8 +102,8 @@ public class LevelDataGeneratorOptionsFix extends DataFix {
     });
     public static final String GENERATOR_OPTIONS = "generatorOptions";
 
-    public LevelDataGeneratorOptionsFix(Schema p_16309_, boolean p_16310_) {
-        super(p_16309_, p_16310_);
+    public LevelDataGeneratorOptionsFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

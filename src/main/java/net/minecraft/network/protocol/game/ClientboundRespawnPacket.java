@@ -23,44 +23,44 @@ public class ClientboundRespawnPacket implements Packet<ClientGamePacketListener
     private final boolean keepAllPlayerData;
     private final Optional<GlobalPos> lastDeathLocation;
 
-    public ClientboundRespawnPacket(ResourceKey<DimensionType> p_238301_, ResourceKey<Level> p_238302_, long p_238303_, GameType p_238304_, @Nullable GameType p_238305_, boolean p_238306_, boolean p_238307_, boolean p_238308_, Optional<GlobalPos> p_238309_) {
-        this.dimensionType = p_238301_;
-        this.dimension = p_238302_;
-        this.seed = p_238303_;
-        this.playerGameType = p_238304_;
-        this.previousPlayerGameType = p_238305_;
-        this.isDebug = p_238306_;
-        this.isFlat = p_238307_;
-        this.keepAllPlayerData = p_238308_;
-        this.lastDeathLocation = p_238309_;
+    public ClientboundRespawnPacket(ResourceKey<DimensionType> pDimensionType, ResourceKey<Level> pDimension, long pSeed, GameType pPlayerGameType, @Nullable GameType pPreviousPlayerGameType, boolean pIsDebug, boolean pIsFlat, boolean pKeepAllPlayerData, Optional<GlobalPos> pLastDeathLocation) {
+        this.dimensionType = pDimensionType;
+        this.dimension = pDimension;
+        this.seed = pSeed;
+        this.playerGameType = pPlayerGameType;
+        this.previousPlayerGameType = pPreviousPlayerGameType;
+        this.isDebug = pIsDebug;
+        this.isFlat = pIsFlat;
+        this.keepAllPlayerData = pKeepAllPlayerData;
+        this.lastDeathLocation = pLastDeathLocation;
     }
 
-    public ClientboundRespawnPacket(FriendlyByteBuf p_179191_) {
-        this.dimensionType = p_179191_.readResourceKey(Registry.DIMENSION_TYPE_REGISTRY);
-        this.dimension = p_179191_.readResourceKey(Registry.DIMENSION_REGISTRY);
-        this.seed = p_179191_.readLong();
-        this.playerGameType = GameType.byId(p_179191_.readUnsignedByte());
-        this.previousPlayerGameType = GameType.byNullableId(p_179191_.readByte());
-        this.isDebug = p_179191_.readBoolean();
-        this.isFlat = p_179191_.readBoolean();
-        this.keepAllPlayerData = p_179191_.readBoolean();
-        this.lastDeathLocation = p_179191_.readOptional(FriendlyByteBuf::readGlobalPos);
+    public ClientboundRespawnPacket(FriendlyByteBuf pBuffer) {
+        this.dimensionType = pBuffer.readResourceKey(Registry.DIMENSION_TYPE_REGISTRY);
+        this.dimension = pBuffer.readResourceKey(Registry.DIMENSION_REGISTRY);
+        this.seed = pBuffer.readLong();
+        this.playerGameType = GameType.byId(pBuffer.readUnsignedByte());
+        this.previousPlayerGameType = GameType.byNullableId(pBuffer.readByte());
+        this.isDebug = pBuffer.readBoolean();
+        this.isFlat = pBuffer.readBoolean();
+        this.keepAllPlayerData = pBuffer.readBoolean();
+        this.lastDeathLocation = pBuffer.readOptional(FriendlyByteBuf::readGlobalPos);
     }
 
-    public void write(FriendlyByteBuf p_132954_) {
-        p_132954_.writeResourceKey(this.dimensionType);
-        p_132954_.writeResourceKey(this.dimension);
-        p_132954_.writeLong(this.seed);
-        p_132954_.writeByte(this.playerGameType.getId());
-        p_132954_.writeByte(GameType.getNullableId(this.previousPlayerGameType));
-        p_132954_.writeBoolean(this.isDebug);
-        p_132954_.writeBoolean(this.isFlat);
-        p_132954_.writeBoolean(this.keepAllPlayerData);
-        p_132954_.writeOptional(this.lastDeathLocation, FriendlyByteBuf::writeGlobalPos);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeResourceKey(this.dimensionType);
+        pBuffer.writeResourceKey(this.dimension);
+        pBuffer.writeLong(this.seed);
+        pBuffer.writeByte(this.playerGameType.getId());
+        pBuffer.writeByte(GameType.getNullableId(this.previousPlayerGameType));
+        pBuffer.writeBoolean(this.isDebug);
+        pBuffer.writeBoolean(this.isFlat);
+        pBuffer.writeBoolean(this.keepAllPlayerData);
+        pBuffer.writeOptional(this.lastDeathLocation, FriendlyByteBuf::writeGlobalPos);
     }
 
-    public void handle(ClientGamePacketListener p_132951_) {
-        p_132951_.handleRespawn(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleRespawn(this);
     }
 
     public ResourceKey<DimensionType> getDimensionType() {

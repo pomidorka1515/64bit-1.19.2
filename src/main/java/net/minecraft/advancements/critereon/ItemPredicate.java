@@ -52,35 +52,35 @@ public class ItemPredicate {
         this.nbt = NbtPredicate.ANY;
     }
 
-    public ItemPredicate(@Nullable TagKey<Item> p_204137_, @Nullable Set<Item> p_204138_, MinMaxBounds.Ints p_204139_, MinMaxBounds.Ints p_204140_, EnchantmentPredicate[] p_204141_, EnchantmentPredicate[] p_204142_, @Nullable Potion p_204143_, NbtPredicate p_204144_) {
-        this.tag = p_204137_;
-        this.items = p_204138_;
-        this.count = p_204139_;
-        this.durability = p_204140_;
-        this.enchantments = p_204141_;
-        this.storedEnchantments = p_204142_;
-        this.potion = p_204143_;
-        this.nbt = p_204144_;
+    public ItemPredicate(@Nullable TagKey<Item> pTag, @Nullable Set<Item> pItems, MinMaxBounds.Ints pCount, MinMaxBounds.Ints pDurability, EnchantmentPredicate[] pEnchantments, EnchantmentPredicate[] pStoredEnchantments, @Nullable Potion pPotion, NbtPredicate pNbt) {
+        this.tag = pTag;
+        this.items = pItems;
+        this.count = pCount;
+        this.durability = pDurability;
+        this.enchantments = pEnchantments;
+        this.storedEnchantments = pStoredEnchantments;
+        this.potion = pPotion;
+        this.nbt = pNbt;
     }
 
-    public boolean matches(ItemStack p_45050_) {
+    public boolean matches(ItemStack pItem) {
         if (this == ANY) {
             return true;
-        } else if (this.tag != null && !p_45050_.is(this.tag)) {
+        } else if (this.tag != null && !pItem.is(this.tag)) {
             return false;
-        } else if (this.items != null && !this.items.contains(p_45050_.getItem())) {
+        } else if (this.items != null && !this.items.contains(pItem.getItem())) {
             return false;
-        } else if (!this.count.matches(p_45050_.getCount())) {
+        } else if (!this.count.matches(pItem.getCount())) {
             return false;
-        } else if (!this.durability.isAny() && !p_45050_.isDamageableItem()) {
+        } else if (!this.durability.isAny() && !pItem.isDamageableItem()) {
             return false;
-        } else if (!this.durability.matches(p_45050_.getMaxDamage() - p_45050_.getDamageValue())) {
+        } else if (!this.durability.matches(pItem.getMaxDamage() - pItem.getDamageValue())) {
             return false;
-        } else if (!this.nbt.matches(p_45050_)) {
+        } else if (!this.nbt.matches(pItem)) {
             return false;
         } else {
             if (this.enchantments.length > 0) {
-                Map<Enchantment, Integer> map = EnchantmentHelper.deserializeEnchantments(p_45050_.getEnchantmentTags());
+                Map<Enchantment, Integer> map = EnchantmentHelper.deserializeEnchantments(pItem.getEnchantmentTags());
 
                 for (EnchantmentPredicate enchantmentpredicate : this.enchantments) {
                     if (!enchantmentpredicate.containedIn(map)) {
@@ -90,7 +90,7 @@ public class ItemPredicate {
             }
 
             if (this.storedEnchantments.length > 0) {
-                Map<Enchantment, Integer> map1 = EnchantmentHelper.deserializeEnchantments(EnchantedBookItem.getEnchantments(p_45050_));
+                Map<Enchantment, Integer> map1 = EnchantmentHelper.deserializeEnchantments(EnchantedBookItem.getEnchantments(pItem));
 
                 for (EnchantmentPredicate enchantmentpredicate1 : this.storedEnchantments) {
                     if (!enchantmentpredicate1.containedIn(map1)) {
@@ -99,14 +99,14 @@ public class ItemPredicate {
                 }
             }
 
-            Potion potion = PotionUtils.getPotion(p_45050_);
+            Potion potion = PotionUtils.getPotion(pItem);
             return this.potion == null || this.potion == potion;
         }
     }
 
-    public static ItemPredicate fromJson(@Nullable JsonElement p_45052_) {
-        if (p_45052_ != null && !p_45052_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_45052_, "item");
+    public static ItemPredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "item");
             MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(jsonobject.get("count"));
             MinMaxBounds.Ints minmaxbounds$ints1 = MinMaxBounds.Ints.fromJson(jsonobject.get("durability"));
             if (jsonobject.has("data")) {
@@ -201,9 +201,9 @@ public class ItemPredicate {
         }
     }
 
-    public static ItemPredicate[] fromJsonArray(@Nullable JsonElement p_45056_) {
-        if (p_45056_ != null && !p_45056_.isJsonNull()) {
-            JsonArray jsonarray = GsonHelper.convertToJsonArray(p_45056_, "items");
+    public static ItemPredicate[] fromJsonArray(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonArray jsonarray = GsonHelper.convertToJsonArray(pJson, "items");
             ItemPredicate[] aitempredicate = new ItemPredicate[jsonarray.size()];
 
             for (int i = 0; i < aitempredicate.length; ++i) {
@@ -236,43 +236,43 @@ public class ItemPredicate {
             return new ItemPredicate.Builder();
         }
 
-        public ItemPredicate.Builder of(ItemLike... p_151446_) {
-            this.items = Stream.of(p_151446_).map(ItemLike::asItem).collect(ImmutableSet.toImmutableSet());
+        public ItemPredicate.Builder of(ItemLike... pItems) {
+            this.items = Stream.of(pItems).map(ItemLike::asItem).collect(ImmutableSet.toImmutableSet());
             return this;
         }
 
-        public ItemPredicate.Builder of(TagKey<Item> p_204146_) {
-            this.tag = p_204146_;
+        public ItemPredicate.Builder of(TagKey<Item> pTag) {
+            this.tag = pTag;
             return this;
         }
 
-        public ItemPredicate.Builder withCount(MinMaxBounds.Ints p_151444_) {
-            this.count = p_151444_;
+        public ItemPredicate.Builder withCount(MinMaxBounds.Ints pCount) {
+            this.count = pCount;
             return this;
         }
 
-        public ItemPredicate.Builder hasDurability(MinMaxBounds.Ints p_151450_) {
-            this.durability = p_151450_;
+        public ItemPredicate.Builder hasDurability(MinMaxBounds.Ints pDurability) {
+            this.durability = pDurability;
             return this;
         }
 
-        public ItemPredicate.Builder isPotion(Potion p_151442_) {
-            this.potion = p_151442_;
+        public ItemPredicate.Builder isPotion(Potion pPotion) {
+            this.potion = pPotion;
             return this;
         }
 
-        public ItemPredicate.Builder hasNbt(CompoundTag p_45076_) {
-            this.nbt = new NbtPredicate(p_45076_);
+        public ItemPredicate.Builder hasNbt(CompoundTag pNbt) {
+            this.nbt = new NbtPredicate(pNbt);
             return this;
         }
 
-        public ItemPredicate.Builder hasEnchantment(EnchantmentPredicate p_45072_) {
-            this.enchantments.add(p_45072_);
+        public ItemPredicate.Builder hasEnchantment(EnchantmentPredicate pEnchantment) {
+            this.enchantments.add(pEnchantment);
             return this;
         }
 
-        public ItemPredicate.Builder hasStoredEnchantment(EnchantmentPredicate p_151448_) {
-            this.storedEnchantments.add(p_151448_);
+        public ItemPredicate.Builder hasStoredEnchantment(EnchantmentPredicate pStoredEnchantment) {
+            this.storedEnchantments.add(pStoredEnchantment);
             return this;
         }
 

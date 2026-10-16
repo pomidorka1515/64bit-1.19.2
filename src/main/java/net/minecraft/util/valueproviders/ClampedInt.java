@@ -27,8 +27,8 @@ public class ClampedInt extends IntProvider {
     private int minInclusive;
     private int maxInclusive;
 
-    public static ClampedInt of(IntProvider p_146396_, int p_146397_, int p_146398_) {
-        return new ClampedInt(p_146396_, p_146397_, p_146398_);
+    public static ClampedInt of(IntProvider pSource, int pMinInclusive, int pMaxInclusive) {
+        return new ClampedInt(pSource, pMinInclusive, pMaxInclusive);
     }
 
     public ClampedInt(IntProvider p_146389_, int p_146390_, int p_146391_) {
@@ -37,8 +37,8 @@ public class ClampedInt extends IntProvider {
         this.maxInclusive = p_146391_;
     }
 
-    public int sample(RandomSource p_216834_) {
-        return Mth.clamp(this.source.sample(p_216834_), this.minInclusive, this.maxInclusive);
+    public int sample(RandomSource pRandom) {
+        return Mth.clamp(this.source.sample(pRandom), this.minInclusive, this.maxInclusive);
     }
 
     public int getMinValue() {

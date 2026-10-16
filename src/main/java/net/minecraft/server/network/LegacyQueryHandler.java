@@ -17,8 +17,8 @@ public class LegacyQueryHandler extends ChannelInboundHandlerAdapter {
     public static final int FAKE_PROTOCOL_VERSION = 127;
     private final ServerConnectionListener serverConnectionListener;
 
-    public LegacyQueryHandler(ServerConnectionListener p_9679_) {
-        this.serverConnectionListener = p_9679_;
+    public LegacyQueryHandler(ServerConnectionListener pServerConnectionListener) {
+        this.serverConnectionListener = pServerConnectionListener;
     }
 
     public void channelRead(ChannelHandlerContext p_9686_, Object p_9687_) {
@@ -85,14 +85,14 @@ public class LegacyQueryHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void sendFlushAndClose(ChannelHandlerContext p_9681_, ByteBuf p_9682_) {
-        p_9681_.pipeline().firstContext().writeAndFlush(p_9682_).addListener(ChannelFutureListener.CLOSE);
+    private void sendFlushAndClose(ChannelHandlerContext pCtx, ByteBuf pData) {
+        pCtx.pipeline().firstContext().writeAndFlush(pData).addListener(ChannelFutureListener.CLOSE);
     }
 
-    private ByteBuf createReply(String p_9684_) {
+    private ByteBuf createReply(String pString) {
         ByteBuf bytebuf = Unpooled.buffer();
         bytebuf.writeByte(255);
-        char[] achar = p_9684_.toCharArray();
+        char[] achar = pString.toCharArray();
         bytebuf.writeShort(achar.length);
 
         for (char c0 : achar) {

@@ -22,8 +22,8 @@ import net.minecraft.world.level.ServerLevelAccessor;
 public class TraderLlama extends Llama {
     private int despawnDelay = 47999;
 
-    public TraderLlama(EntityType<? extends TraderLlama> p_30939_, Level p_30940_) {
-        super(p_30939_, p_30940_);
+    public TraderLlama(EntityType<? extends TraderLlama> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     public boolean isTraderLlama() {
@@ -34,15 +34,15 @@ public class TraderLlama extends Llama {
         return EntityType.TRADER_LLAMA.create(this.level);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_30950_) {
-        super.addAdditionalSaveData(p_30950_);
-        p_30950_.putInt("DespawnDelay", this.despawnDelay);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("DespawnDelay", this.despawnDelay);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_30948_) {
-        super.readAdditionalSaveData(p_30948_);
-        if (p_30948_.contains("DespawnDelay", 99)) {
-            this.despawnDelay = p_30948_.getInt("DespawnDelay");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("DespawnDelay", 99)) {
+            this.despawnDelay = pCompound.getInt("DespawnDelay");
         }
     }
 
@@ -52,14 +52,14 @@ public class TraderLlama extends Llama {
         this.targetSelector.addGoal(1, new TraderLlama.TraderLlamaDefendWanderingTraderGoal(this));
     }
 
-    public void setDespawnDelay(int p_149556_) {
-        this.despawnDelay = p_149556_;
+    public void setDespawnDelay(int pDespawnDelay) {
+        this.despawnDelay = pDespawnDelay;
     }
 
-    protected void doPlayerRide(Player p_30958_) {
+    protected void doPlayerRide(Player pPlayer) {
         Entity entity = this.getLeashHolder();
         if (!(entity instanceof WanderingTrader)) {
-            super.doPlayerRide(p_30958_);
+            super.doPlayerRide(pPlayer);
         }
     }
 
@@ -93,16 +93,16 @@ public class TraderLlama extends Llama {
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_30942_, DifficultyInstance p_30943_, MobSpawnType p_30944_, @Nullable SpawnGroupData p_30945_, @Nullable CompoundTag p_30946_) {
-        if (p_30944_ == MobSpawnType.EVENT) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        if (pReason == MobSpawnType.EVENT) {
             this.setAge(0);
         }
 
-        if (p_30945_ == null) {
-            p_30945_ = new AgeableMob.AgeableMobGroupData(false);
+        if (pSpawnData == null) {
+            pSpawnData = new AgeableMob.AgeableMobGroupData(false);
         }
 
-        return super.finalizeSpawn(p_30942_, p_30943_, p_30944_, p_30945_, p_30946_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
     protected static class TraderLlamaDefendWanderingTraderGoal extends TargetGoal {
@@ -110,9 +110,9 @@ public class TraderLlama extends Llama {
         private LivingEntity ownerLastHurtBy;
         private int timestamp;
 
-        public TraderLlamaDefendWanderingTraderGoal(Llama p_149558_) {
-            super(p_149558_, false);
-            this.llama = p_149558_;
+        public TraderLlamaDefendWanderingTraderGoal(Llama pLlama) {
+            super(pLlama, false);
+            this.llama = pLlama;
             this.setFlags(EnumSet.of(Goal.Flag.TARGET));
         }
 

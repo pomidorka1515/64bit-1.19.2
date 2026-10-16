@@ -9,8 +9,8 @@ public class NbtProviders {
     public static final LootNbtProviderType STORAGE = register("storage", new StorageNbtProvider.Serializer());
     public static final LootNbtProviderType CONTEXT = register("context", new ContextNbtProvider.Serializer());
 
-    private static LootNbtProviderType register(String p_165629_, Serializer<? extends NbtProvider> p_165630_) {
-        return Registry.register(Registry.LOOT_NBT_PROVIDER_TYPE, new ResourceLocation(p_165629_), new LootNbtProviderType(p_165630_));
+    private static LootNbtProviderType register(String pId, Serializer<? extends NbtProvider> pSerializer) {
+        return Registry.register(Registry.LOOT_NBT_PROVIDER_TYPE, new ResourceLocation(pId), new LootNbtProviderType(pSerializer));
     }
 
     public static Object createGsonAdapter() {

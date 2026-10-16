@@ -18,10 +18,10 @@ import net.minecraft.world.level.block.state.BlockState;
 public class FlyNodeEvaluator extends WalkNodeEvaluator {
     private final Object2ObjectMap<BlockPos, BlockPathTypes> pathTypeByPosCache = new Object2ObjectOpenHashMap<>();
 
-    public void prepare(PathNavigationRegion p_77261_, Mob p_77262_) {
-        super.prepare(p_77261_, p_77262_);
+    public void prepare(PathNavigationRegion pLevel, Mob pMob) {
+        super.prepare(pLevel, pMob);
         this.pathTypeByPosCache.clear();
-        this.oldWaterCost = p_77262_.getPathfindingMalus(BlockPathTypes.WATER);
+        this.oldWaterCost = pMob.getPathfindingMalus(BlockPathTypes.WATER);
     }
 
     public void done() {
@@ -60,8 +60,8 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         return super.getStartNode(new BlockPos(blockpos1.getX(), i, blockpos1.getZ()));
     }
 
-    public Target getGoal(double p_77229_, double p_77230_, double p_77231_) {
-        return this.getTargetFromNode(super.getNode(Mth.lfloor(p_77229_), Mth.floor(p_77230_), Mth.lfloor(p_77231_)));
+    public Target getGoal(double pX, double pY, double pZ) {
+        return this.getTargetFromNode(super.getNode(Mth.lfloor(pX), Mth.floor(pY), Mth.lfloor(pZ)));
     }
 
     public int getNeighbors(Node[] p_77266_, Node p_77267_) {
@@ -199,21 +199,21 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         return i;
     }
 
-    private boolean hasMalus(@Nullable Node p_77264_) {
-        return p_77264_ != null && p_77264_.costMalus >= 0.0F;
+    private boolean hasMalus(@Nullable Node pNode) {
+        return pNode != null && pNode.costMalus >= 0.0F;
     }
 
-    private boolean isOpen(@Nullable Node p_77270_) {
-        return p_77270_ != null && !p_77270_.closed;
+    private boolean isOpen(@Nullable Node pNode) {
+        return pNode != null && !pNode.closed;
     }
 
     @Nullable
-    protected Node getNode(long p_77233_, int p_77234_, long p_77235_) {
+    protected Node getNode(long pX, int pY, long pZ) {
         Node node = null;
-        BlockPathTypes blockpathtypes = this.getCachedBlockPathType(p_77233_, p_77234_, p_77235_);
+        BlockPathTypes blockpathtypes = this.getCachedBlockPathType(pX, pY, pZ);
         float f = this.mob.getPathfindingMalus(blockpathtypes);
         if (f >= 0.0F) {
-            node = super.getNode(p_77233_, p_77234_, p_77235_);
+            node = super.getNode(pX, pY, pZ);
             if (node != null) {
                 node.type = blockpathtypes;
                 node.costMalus = Math.max(node.costMalus, f);
@@ -226,41 +226,41 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         return node;
     }
 
-    private BlockPathTypes getCachedBlockPathType(long p_164694_, int p_164695_, long p_164696_) {
-        return this.pathTypeByPosCache.computeIfAbsent(new BlockPos(p_164694_, p_164695_, p_164696_), (p_164692_) -> {
-            return this.getBlockPathType(this.level, p_164694_, p_164695_, p_164696_, this.mob, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
+    private BlockPathTypes getCachedBlockPathType(long pX, int pY, long pZ) {
+        return this.pathTypeByPosCache.computeIfAbsent(new BlockPos(pX, pY, pZ), (p_164692_) -> {
+            return this.getBlockPathType(this.level, pX, pY, pZ, this.mob, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
         });
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter p_77250_, long p_77251_, int p_77252_, long p_77253_, Mob p_77254_, int p_77255_, int p_77256_, int p_77257_, boolean p_77258_, boolean p_77259_) {
+    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, long pX, int pY, long pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
         EnumSet<BlockPathTypes> enumset = EnumSet.noneOf(BlockPathTypes.class);
         BlockPathTypes blockpathtypes = BlockPathTypes.BLOCKED;
-        BlockPos blockpos = p_77254_.blockPosition();
-        blockpathtypes = super.getBlockPathTypes(p_77250_, p_77251_, p_77252_, p_77253_, p_77255_, p_77256_, p_77257_, p_77258_, p_77259_, enumset, blockpathtypes, blockpos);
+        BlockPos blockpos = pEntityliving.blockPosition();
+        blockpathtypes = super.getBlockPathTypes(pBlockaccess, pX, pY, pZ, pXSize, pYSize, pZSize, pCanBreakDoors, pCanEnterDoors, enumset, blockpathtypes, blockpos);
         if (enumset.contains(BlockPathTypes.FENCE)) {
             return BlockPathTypes.FENCE;
         } else {
             BlockPathTypes blockpathtypes1 = BlockPathTypes.BLOCKED;
 
             for (BlockPathTypes blockpathtypes2 : enumset) {
-                if (p_77254_.getPathfindingMalus(blockpathtypes2) < 0.0F) {
+                if (pEntityliving.getPathfindingMalus(blockpathtypes2) < 0.0F) {
                     return blockpathtypes2;
                 }
 
-                if (p_77254_.getPathfindingMalus(blockpathtypes2) >= p_77254_.getPathfindingMalus(blockpathtypes1)) {
+                if (pEntityliving.getPathfindingMalus(blockpathtypes2) >= pEntityliving.getPathfindingMalus(blockpathtypes1)) {
                     blockpathtypes1 = blockpathtypes2;
                 }
             }
 
-            return blockpathtypes == BlockPathTypes.OPEN && p_77254_.getPathfindingMalus(blockpathtypes1) == 0.0F ? BlockPathTypes.OPEN : blockpathtypes1;
+            return blockpathtypes == BlockPathTypes.OPEN && pEntityliving.getPathfindingMalus(blockpathtypes1) == 0.0F ? BlockPathTypes.OPEN : blockpathtypes1;
         }
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter p_77245_, long p_77246_, int p_77247_, long p_77248_) {
+    public BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        BlockPathTypes blockpathtypes = getBlockPathTypeRaw(p_77245_, blockpos$mutableblockpos.set(p_77246_, p_77247_, p_77248_));
-        if (blockpathtypes == BlockPathTypes.OPEN && p_77247_ >= p_77245_.getMinBuildHeight() + 1) {
-            BlockPathTypes blockpathtypes1 = getBlockPathTypeRaw(p_77245_, blockpos$mutableblockpos.set(p_77246_, p_77247_ - 1, p_77248_));
+        BlockPathTypes blockpathtypes = getBlockPathTypeRaw(pLevel, blockpos$mutableblockpos.set(pX, pY, pZ));
+        if (blockpathtypes == BlockPathTypes.OPEN && pY >= pLevel.getMinBuildHeight() + 1) {
+            BlockPathTypes blockpathtypes1 = getBlockPathTypeRaw(pLevel, blockpos$mutableblockpos.set(pX, pY - 1, pZ));
             if (blockpathtypes1 != BlockPathTypes.DAMAGE_FIRE && blockpathtypes1 != BlockPathTypes.LAVA) {
                 if (blockpathtypes1 == BlockPathTypes.DAMAGE_CACTUS) {
                     blockpathtypes = BlockPathTypes.DAMAGE_CACTUS;
@@ -281,7 +281,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         }
 
         if (blockpathtypes == BlockPathTypes.WALKABLE || blockpathtypes == BlockPathTypes.OPEN) {
-            blockpathtypes = checkNeighbourBlocks(p_77245_, blockpos$mutableblockpos.set(p_77246_, p_77247_, p_77248_), blockpathtypes);
+            blockpathtypes = checkNeighbourBlocks(pLevel, blockpos$mutableblockpos.set(pX, pY, pZ), blockpathtypes);
         }
 
         return blockpathtypes;

@@ -303,8 +303,8 @@ public class ItemBlockRenderTypes {
     });
     private static boolean renderCutout;
 
-    public static RenderType getChunkRenderType(BlockState p_109283_) {
-        Block block = p_109283_.getBlock();
+    public static RenderType getChunkRenderType(BlockState pState) {
+        Block block = pState.getBlock();
         if (block instanceof LeavesBlock) {
             return renderCutout ? RenderType.cutoutMipped() : RenderType.solid();
         } else {
@@ -313,8 +313,8 @@ public class ItemBlockRenderTypes {
         }
     }
 
-    public static RenderType getMovingBlockRenderType(BlockState p_109294_) {
-        Block block = p_109294_.getBlock();
+    public static RenderType getMovingBlockRenderType(BlockState pState) {
+        Block block = pState.getBlock();
         if (block instanceof LeavesBlock) {
             return renderCutout ? RenderType.cutoutMipped() : RenderType.solid();
         } else {
@@ -327,35 +327,35 @@ public class ItemBlockRenderTypes {
         }
     }
 
-    public static RenderType getRenderType(BlockState p_109285_, boolean p_109286_) {
-        RenderType rendertype = getChunkRenderType(p_109285_);
+    public static RenderType getRenderType(BlockState pState, boolean pCull) {
+        RenderType rendertype = getChunkRenderType(pState);
         if (rendertype == RenderType.translucent()) {
             if (!Minecraft.useShaderTransparency()) {
                 return Sheets.translucentCullBlockSheet();
             } else {
-                return p_109286_ ? Sheets.translucentCullBlockSheet() : Sheets.translucentItemSheet();
+                return pCull ? Sheets.translucentCullBlockSheet() : Sheets.translucentItemSheet();
             }
         } else {
             return Sheets.cutoutBlockSheet();
         }
     }
 
-    public static RenderType getRenderType(ItemStack p_109280_, boolean p_109281_) {
-        Item item = p_109280_.getItem();
+    public static RenderType getRenderType(ItemStack pStack, boolean pCull) {
+        Item item = pStack.getItem();
         if (item instanceof BlockItem) {
             Block block = ((BlockItem) item).getBlock();
-            return getRenderType(block.defaultBlockState(), p_109281_);
+            return getRenderType(block.defaultBlockState(), pCull);
         } else {
-            return p_109281_ ? Sheets.translucentCullBlockSheet() : Sheets.translucentItemSheet();
+            return pCull ? Sheets.translucentCullBlockSheet() : Sheets.translucentItemSheet();
         }
     }
 
-    public static RenderType getRenderLayer(FluidState p_109288_) {
-        RenderType rendertype = TYPE_BY_FLUID.get(p_109288_.getType());
+    public static RenderType getRenderLayer(FluidState pFluidState) {
+        RenderType rendertype = TYPE_BY_FLUID.get(pFluidState.getType());
         return rendertype != null ? rendertype : RenderType.solid();
     }
 
-    public static void setFancy(boolean p_109292_) {
-        renderCutout = p_109292_;
+    public static void setFancy(boolean pFancy) {
+        renderCutout = pFancy;
     }
 }

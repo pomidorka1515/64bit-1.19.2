@@ -13,13 +13,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface ClientTooltipComponent {
-    static ClientTooltipComponent create(FormattedCharSequence p_169949_) {
-        return new ClientTextTooltip(p_169949_);
+    static ClientTooltipComponent create(FormattedCharSequence pText) {
+        return new ClientTextTooltip(pText);
     }
 
-    static ClientTooltipComponent create(TooltipComponent p_169951_) {
-        if (p_169951_ instanceof BundleTooltip) {
-            return new ClientBundleTooltip((BundleTooltip) p_169951_);
+    static ClientTooltipComponent create(TooltipComponent pVisualTooltipComponent) {
+        if (pVisualTooltipComponent instanceof BundleTooltip) {
+            return new ClientBundleTooltip((BundleTooltip) pVisualTooltipComponent);
         } else {
             throw new IllegalArgumentException("Unknown TooltipComponent");
         }
@@ -27,11 +27,11 @@ public interface ClientTooltipComponent {
 
     int getHeight();
 
-    int getWidth(Font p_169952_);
+    int getWidth(Font pFont);
 
-    default void renderText(Font p_169953_, int p_169954_, int p_169955_, Matrix4f p_169956_, MultiBufferSource.BufferSource p_169957_) {
+    default void renderText(Font pFont, int pX, int pY, Matrix4f pMatrix4f, MultiBufferSource.BufferSource pBufferSource) {
     }
 
-    default void renderImage(Font p_194048_, int p_194049_, int p_194050_, PoseStack p_194051_, ItemRenderer p_194052_, int p_194053_) {
+    default void renderImage(Font pFont, int pMouseX, int pMouseY, PoseStack pPoseStack, ItemRenderer pItemRenderer, int pBlitOffset) {
     }
 }

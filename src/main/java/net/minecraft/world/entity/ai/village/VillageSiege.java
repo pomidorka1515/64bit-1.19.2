@@ -28,18 +28,18 @@ public class VillageSiege implements CustomSpawner {
     private int spawnY;
     private long spawnZ;
 
-    public int tick(ServerLevel p_27013_, boolean p_27014_, boolean p_27015_) {
-        if (!p_27013_.isDay() && p_27014_) {
-            float f = p_27013_.getTimeOfDay(0.0F);
+    public int tick(ServerLevel pLevel, boolean pSpawnHostiles, boolean pSpawnPassives) {
+        if (!pLevel.isDay() && pSpawnHostiles) {
+            float f = pLevel.getTimeOfDay(0.0F);
             if ((double) f == 0.5D) {
-                this.siegeState = p_27013_.random.nextInt(10) == 0 ? VillageSiege.State.SIEGE_TONIGHT : VillageSiege.State.SIEGE_DONE;
+                this.siegeState = pLevel.random.nextInt(10) == 0 ? VillageSiege.State.SIEGE_TONIGHT : VillageSiege.State.SIEGE_DONE;
             }
 
             if (this.siegeState == VillageSiege.State.SIEGE_DONE) {
                 return 0;
             } else {
                 if (!this.hasSetupSiege) {
-                    if (!this.tryToSetupSiege(p_27013_)) {
+                    if (!this.tryToSetupSiege(pLevel)) {
                         return 0;
                     }
 
@@ -52,7 +52,7 @@ public class VillageSiege implements CustomSpawner {
                 } else {
                     this.nextSpawnTime = 2;
                     if (this.zombiesToSpawn > 0) {
-                        this.trySpawn(p_27013_);
+                        this.trySpawn(pLevel);
                         --this.zombiesToSpawn;
                     } else {
                         this.siegeState = VillageSiege.State.SIEGE_DONE;
@@ -68,17 +68,17 @@ public class VillageSiege implements CustomSpawner {
         }
     }
 
-    private boolean tryToSetupSiege(ServerLevel p_27008_) {
-        for (Player player : p_27008_.players()) {
+    private boolean tryToSetupSiege(ServerLevel pLevel) {
+        for (Player player : pLevel.players()) {
             if (!player.isSpectator()) {
                 BlockPos blockpos = player.blockPosition();
-                if (p_27008_.isVillage(blockpos) && !p_27008_.getBiome(blockpos).is(BiomeTags.WITHOUT_ZOMBIE_SIEGES)) {
+                if (pLevel.isVillage(blockpos) && !pLevel.getBiome(blockpos).is(BiomeTags.WITHOUT_ZOMBIE_SIEGES)) {
                     for (int i = 0; i < 10; ++i) {
-                        float f = p_27008_.random.nextFloat() * ((float) Math.PI * 2F);
+                        float f = pLevel.random.nextFloat() * ((float) Math.PI * 2F);
                         this.spawnX = blockpos.getX() + Mth.floor(Mth.cos(f) * 32.0F);
                         this.spawnY = blockpos.getY();
                         this.spawnZ = blockpos.getZ() + Mth.floor(Mth.sin(f) * 32.0F);
-                        if (this.findRandomSpawnPos(p_27008_, new BlockPos(this.spawnX, this.spawnY, this.spawnZ)) != null) {
+                        if (this.findRandomSpawnPos(pLevel, new BlockPos(this.spawnX, this.spawnY, this.spawnZ)) != null) {
                             this.nextSpawnTime = 0;
                             this.zombiesToSpawn = 20;
                             break;
@@ -93,31 +93,31 @@ public class VillageSiege implements CustomSpawner {
         return false;
     }
 
-    private void trySpawn(ServerLevel p_27017_) {
-        net.minecraft.world.phys.SectorVec3 vec3 = this.findRandomSpawnPos(p_27017_, new BlockPos(this.spawnX, this.spawnY, this.spawnZ));
+    private void trySpawn(ServerLevel pLevel) {
+        net.minecraft.world.phys.SectorVec3 vec3 = this.findRandomSpawnPos(pLevel, new BlockPos(this.spawnX, this.spawnY, this.spawnZ));
         if (vec3 != null) {
             Zombie zombie;
             try {
-                zombie = new Zombie(p_27017_);
-                zombie.finalizeSpawn(p_27017_, p_27017_.getCurrentDifficultyAt(zombie.blockPosition()), MobSpawnType.EVENT, (SpawnGroupData) null, (CompoundTag) null);
+                zombie = new Zombie(pLevel);
+                zombie.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(zombie.blockPosition()), MobSpawnType.EVENT, (SpawnGroupData) null, (CompoundTag) null);
             } catch (Exception exception) {
                 LOGGER.warn("Failed to create zombie for village siege at {}", vec3, exception);
                 return;
             }
 
-            zombie.moveTo(vec3, p_27017_.random.nextFloat() * 360.0F, 0.0F);
-            p_27017_.addFreshEntityWithPassengers(zombie);
+            zombie.moveTo(vec3, pLevel.random.nextFloat() * 360.0F, 0.0F);
+            pLevel.addFreshEntityWithPassengers(zombie);
         }
     }
 
     @Nullable
-    private net.minecraft.world.phys.SectorVec3 findRandomSpawnPos(ServerLevel p_27010_, BlockPos p_27011_) {
+    private net.minecraft.world.phys.SectorVec3 findRandomSpawnPos(ServerLevel pLevel, BlockPos pPos) {
         for (int i = 0; i < 10; ++i) {
-            long j = p_27011_.getX() + p_27010_.random.nextInt(16) - 8;
-            long k = p_27011_.getZ() + p_27010_.random.nextInt(16) - 8;
-            int l = p_27010_.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
+            long j = pPos.getX() + pLevel.random.nextInt(16) - 8;
+            long k = pPos.getZ() + pLevel.random.nextInt(16) - 8;
+            int l = pLevel.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
             BlockPos blockpos = new BlockPos(j, l, k);
-            if (p_27010_.isVillage(blockpos) && Monster.checkMonsterSpawnRules(EntityType.ZOMBIE, p_27010_, MobSpawnType.EVENT, blockpos, p_27010_.random)) {
+            if (pLevel.isVillage(blockpos) && Monster.checkMonsterSpawnRules(EntityType.ZOMBIE, pLevel, MobSpawnType.EVENT, blockpos, pLevel.random)) {
                 return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double) blockpos.getY(), blockpos.getZ(), 0.5D);
             }
         }

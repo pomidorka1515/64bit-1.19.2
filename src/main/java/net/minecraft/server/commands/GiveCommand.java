@@ -21,11 +21,11 @@ import net.minecraft.world.item.ItemStack;
 public class GiveCommand {
     public static final int MAX_ALLOWED_ITEMSTACKS = 100;
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_214446_, CommandBuildContext p_214447_) {
-        p_214446_.register(Commands.literal("give").requires((p_137777_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher, CommandBuildContext pContext) {
+        pDispatcher.register(Commands.literal("give").requires((p_137777_) -> {
                                                        return p_137777_.hasPermission(2);
                                                    })
-                        .then(Commands.argument("targets", EntityArgument.players()).then(Commands.argument("item", ItemArgument.item(p_214447_)).executes((p_137784_) -> {
+                        .then(Commands.argument("targets", EntityArgument.players()).then(Commands.argument("item", ItemArgument.item(pContext)).executes((p_137784_) -> {
                                                                                                                                                      return giveItem(p_137784_.getSource(), ItemArgument.getItem(p_137784_, "item"), EntityArgument.getPlayers(p_137784_, "targets"), 1);
                                                                                                                                                  })
                                         .then(Commands.argument("count", IntegerArgumentType.integer(1)).executes((p_137775_) -> {
@@ -33,20 +33,20 @@ public class GiveCommand {
                                         })))));
     }
 
-    private static int giveItem(CommandSourceStack p_137779_, ItemInput p_137780_, Collection<ServerPlayer> p_137781_, int p_137782_) throws CommandSyntaxException {
-        int i = p_137780_.getItem().getMaxStackSize();
+    private static int giveItem(CommandSourceStack pSource, ItemInput pItem, Collection<ServerPlayer> pTargets, int pCount) throws CommandSyntaxException {
+        int i = pItem.getItem().getMaxStackSize();
         int j = i * 100;
-        if (p_137782_ > j) {
-            p_137779_.sendFailure(Component.translatable("commands.give.failed.toomanyitems", j, p_137780_.createItemStack(p_137782_, false).getDisplayName()));
+        if (pCount > j) {
+            pSource.sendFailure(Component.translatable("commands.give.failed.toomanyitems", j, pItem.createItemStack(pCount, false).getDisplayName()));
             return 0;
         } else {
-            for (ServerPlayer serverplayer : p_137781_) {
-                int k = p_137782_;
+            for (ServerPlayer serverplayer : pTargets) {
+                int k = pCount;
 
                 while (k > 0) {
                     int l = Math.min(i, k);
                     k -= l;
-                    ItemStack itemstack = p_137780_.createItemStack(l, false);
+                    ItemStack itemstack = pItem.createItemStack(l, false);
                     boolean flag = serverplayer.getInventory().add(itemstack);
                     if (flag && itemstack.isEmpty()) {
                         itemstack.setCount(1);
@@ -67,13 +67,13 @@ public class GiveCommand {
                 }
             }
 
-            if (p_137781_.size() == 1) {
-                p_137779_.sendSuccess(Component.translatable("commands.give.success.single", p_137782_, p_137780_.createItemStack(p_137782_, false).getDisplayName(), p_137781_.iterator().next().getDisplayName()), true);
+            if (pTargets.size() == 1) {
+                pSource.sendSuccess(Component.translatable("commands.give.success.single", pCount, pItem.createItemStack(pCount, false).getDisplayName(), pTargets.iterator().next().getDisplayName()), true);
             } else {
-                p_137779_.sendSuccess(Component.translatable("commands.give.success.single", p_137782_, p_137780_.createItemStack(p_137782_, false).getDisplayName(), p_137781_.size()), true);
+                pSource.sendSuccess(Component.translatable("commands.give.success.single", pCount, pItem.createItemStack(pCount, false).getDisplayName(), pTargets.size()), true);
             }
 
-            return p_137781_.size();
+            return pTargets.size();
         }
     }
 }

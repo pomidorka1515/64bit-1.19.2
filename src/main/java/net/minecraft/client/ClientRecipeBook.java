@@ -28,8 +28,8 @@ public class ClientRecipeBook extends RecipeBook {
     private Map<RecipeBookCategories, List<RecipeCollection>> collectionsByTab = ImmutableMap.of();
     private List<RecipeCollection> allCollections = ImmutableList.of();
 
-    public void setupCollections(Iterable<Recipe<?>> p_90626_) {
-        Map<RecipeBookCategories, List<List<Recipe<?>>>> map = categorizeAndGroupRecipes(p_90626_);
+    public void setupCollections(Iterable<Recipe<?>> pRecipes) {
+        Map<RecipeBookCategories, List<List<Recipe<?>>>> map = categorizeAndGroupRecipes(pRecipes);
         Map<RecipeBookCategories, List<RecipeCollection>> map1 = Maps.newHashMap();
         ImmutableList.Builder<RecipeCollection> builder = ImmutableList.builder();
         map.forEach((p_90630_, p_90631_) -> {
@@ -45,11 +45,11 @@ public class ClientRecipeBook extends RecipeBook {
         this.allCollections = builder.build();
     }
 
-    private static Map<RecipeBookCategories, List<List<Recipe<?>>>> categorizeAndGroupRecipes(Iterable<Recipe<?>> p_90643_) {
+    private static Map<RecipeBookCategories, List<List<Recipe<?>>>> categorizeAndGroupRecipes(Iterable<Recipe<?>> pRecipes) {
         Map<RecipeBookCategories, List<List<Recipe<?>>>> map = Maps.newHashMap();
         Table<RecipeBookCategories, String, List<Recipe<?>>> table = HashBasedTable.create();
 
-        for (Recipe<?> recipe : p_90643_) {
+        for (Recipe<?> recipe : pRecipes) {
             if (!recipe.isSpecial() && !recipe.isIncomplete()) {
                 RecipeBookCategories recipebookcategories = getCategory(recipe);
                 String s = recipe.getGroup();
@@ -75,10 +75,10 @@ public class ClientRecipeBook extends RecipeBook {
         return map;
     }
 
-    private static RecipeBookCategories getCategory(Recipe<?> p_90647_) {
-        RecipeType<?> recipetype = p_90647_.getType();
+    private static RecipeBookCategories getCategory(Recipe<?> pRecipe) {
+        RecipeType<?> recipetype = pRecipe.getType();
         if (recipetype == RecipeType.CRAFTING) {
-            ItemStack itemstack = p_90647_.getResultItem();
+            ItemStack itemstack = pRecipe.getResultItem();
             CreativeModeTab creativemodetab = itemstack.getItem().getItemCategory();
             if (creativemodetab == CreativeModeTab.TAB_BUILDING_BLOCKS) {
                 return RecipeBookCategories.CRAFTING_BUILDING_BLOCKS;
@@ -88,13 +88,13 @@ public class ClientRecipeBook extends RecipeBook {
                 return RecipeBookCategories.CRAFTING_EQUIPMENT;
             }
         } else if (recipetype == RecipeType.SMELTING) {
-            if (p_90647_.getResultItem().getItem().isEdible()) {
+            if (pRecipe.getResultItem().getItem().isEdible()) {
                 return RecipeBookCategories.FURNACE_FOOD;
             } else {
-                return p_90647_.getResultItem().getItem() instanceof BlockItem ? RecipeBookCategories.FURNACE_BLOCKS : RecipeBookCategories.FURNACE_MISC;
+                return pRecipe.getResultItem().getItem() instanceof BlockItem ? RecipeBookCategories.FURNACE_BLOCKS : RecipeBookCategories.FURNACE_MISC;
             }
         } else if (recipetype == RecipeType.BLASTING) {
-            return p_90647_.getResultItem().getItem() instanceof BlockItem ? RecipeBookCategories.BLAST_FURNACE_BLOCKS : RecipeBookCategories.BLAST_FURNACE_MISC;
+            return pRecipe.getResultItem().getItem() instanceof BlockItem ? RecipeBookCategories.BLAST_FURNACE_BLOCKS : RecipeBookCategories.BLAST_FURNACE_MISC;
         } else if (recipetype == RecipeType.SMOKING) {
             return RecipeBookCategories.SMOKER_FOOD;
         } else if (recipetype == RecipeType.STONECUTTING) {
@@ -105,9 +105,9 @@ public class ClientRecipeBook extends RecipeBook {
             return RecipeBookCategories.SMITHING;
         } else {
             LOGGER.warn("Unknown recipe category: {}/{}", LogUtils.defer(() -> {
-                return Registry.RECIPE_TYPE.getKey(p_90647_.getType());
+                return Registry.RECIPE_TYPE.getKey(pRecipe.getType());
             }),
-                    LogUtils.defer(p_90647_::getId));
+                    LogUtils.defer(pRecipe::getId));
             return RecipeBookCategories.UNKNOWN;
         }
     }
@@ -116,7 +116,7 @@ public class ClientRecipeBook extends RecipeBook {
         return this.allCollections;
     }
 
-    public List<RecipeCollection> getCollection(RecipeBookCategories p_90624_) {
-        return this.collectionsByTab.getOrDefault(p_90624_, Collections.emptyList());
+    public List<RecipeCollection> getCollection(RecipeBookCategories pCategories) {
+        return this.collectionsByTab.getOrDefault(pCategories, Collections.emptyList());
     }
 }

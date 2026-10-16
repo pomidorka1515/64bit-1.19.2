@@ -21,12 +21,12 @@ public interface RangeArgument<T extends MinMaxBounds<?>> extends ArgumentType<T
     public static class Floats implements RangeArgument<MinMaxBounds.Doubles> {
         private static final Collection<String> EXAMPLES = Arrays.asList("0..5.2", "0", "-5.4", "-100.76..", "..100");
 
-        public static MinMaxBounds.Doubles getRange(CommandContext<CommandSourceStack> p_170805_, String p_170806_) {
-            return p_170805_.getArgument(p_170806_, MinMaxBounds.Doubles.class);
+        public static MinMaxBounds.Doubles getRange(CommandContext<CommandSourceStack> pContext, String pName) {
+            return pContext.getArgument(pName, MinMaxBounds.Doubles.class);
         }
 
-        public MinMaxBounds.Doubles parse(StringReader p_170803_) throws CommandSyntaxException {
-            return MinMaxBounds.Doubles.fromReader(p_170803_);
+        public MinMaxBounds.Doubles parse(StringReader pReader) throws CommandSyntaxException {
+            return MinMaxBounds.Doubles.fromReader(pReader);
         }
 
         public Collection<String> getExamples() {
@@ -37,12 +37,12 @@ public interface RangeArgument<T extends MinMaxBounds<?>> extends ArgumentType<T
     public static class Ints implements RangeArgument<MinMaxBounds.Ints> {
         private static final Collection<String> EXAMPLES = Arrays.asList("0..5", "0", "-5", "-100..", "..100");
 
-        public static MinMaxBounds.Ints getRange(CommandContext<CommandSourceStack> p_105420_, String p_105421_) {
-            return p_105420_.getArgument(p_105421_, MinMaxBounds.Ints.class);
+        public static MinMaxBounds.Ints getRange(CommandContext<CommandSourceStack> pContext, String pName) {
+            return pContext.getArgument(pName, MinMaxBounds.Ints.class);
         }
 
-        public MinMaxBounds.Ints parse(StringReader p_105418_) throws CommandSyntaxException {
-            return MinMaxBounds.Ints.fromReader(p_105418_);
+        public MinMaxBounds.Ints parse(StringReader pReader) throws CommandSyntaxException {
+            return MinMaxBounds.Ints.fromReader(pReader);
         }
 
         public Collection<String> getExamples() {

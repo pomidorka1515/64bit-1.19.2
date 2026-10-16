@@ -6,19 +6,19 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class V2571 extends NamespacedSchema {
-    public V2571(int p_145845_, Schema p_145846_) {
-        super(p_145845_, p_145846_);
+    public V2571(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    protected static void registerMob(Schema p_145850_, Map<String, Supplier<TypeTemplate>> p_145851_, String p_145852_) {
-        p_145850_.register(p_145851_, p_145852_, () -> {
-            return V100.equipment(p_145850_);
+    protected static void registerMob(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return V100.equipment(pSchema);
         });
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema p_145854_) {
-        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(p_145854_);
-        registerMob(p_145854_, map, "minecraft:goat");
+    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema pSchema) {
+        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(pSchema);
+        registerMob(pSchema, map, "minecraft:goat");
         return map;
     }
 }

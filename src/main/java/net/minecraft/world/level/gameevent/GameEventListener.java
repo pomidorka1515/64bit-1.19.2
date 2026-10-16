@@ -11,5 +11,5 @@ public interface GameEventListener {
 
     int getListenerRadius();
 
-    boolean handleGameEvent(ServerLevel p_223757_, GameEvent.Message p_223758_);
+    boolean handleGameEvent(ServerLevel pLevel, GameEvent.Message pEventMessage);
 }

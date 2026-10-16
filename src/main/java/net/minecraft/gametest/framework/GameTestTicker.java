@@ -7,8 +7,8 @@ public class GameTestTicker {
     public static final GameTestTicker SINGLETON = new GameTestTicker();
     private final Collection<GameTestInfo> testInfos = Lists.newCopyOnWriteArrayList();
 
-    public void add(GameTestInfo p_127789_) {
-        this.testInfos.add(p_127789_);
+    public void add(GameTestInfo pTestInfo) {
+        this.testInfos.add(pTestInfo);
     }
 
     public void clear() {

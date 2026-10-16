@@ -18,9 +18,9 @@ public class EatBlockGoal extends Goal {
     private final Level level;
     private int eatAnimationTick;
 
-    public EatBlockGoal(Mob p_25207_) {
-        this.mob = p_25207_;
-        this.level = p_25207_.level;
+    public EatBlockGoal(Mob pMob) {
+        this.mob = pMob;
+        this.level = pMob.level;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK, Goal.Flag.JUMP));
     }
 

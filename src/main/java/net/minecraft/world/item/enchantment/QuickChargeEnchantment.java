@@ -3,15 +3,15 @@ package net.minecraft.world.item.enchantment;
 import net.minecraft.world.entity.EquipmentSlot;
 
 public class QuickChargeEnchantment extends Enchantment {
-    public QuickChargeEnchantment(Enchantment.Rarity p_45167_, EquipmentSlot... p_45168_) {
-        super(p_45167_, EnchantmentCategory.CROSSBOW, p_45168_);
+    public QuickChargeEnchantment(Enchantment.Rarity pRarity, EquipmentSlot... pApplicableSlots) {
+        super(pRarity, EnchantmentCategory.CROSSBOW, pApplicableSlots);
     }
 
-    public int getMinCost(int p_45171_) {
-        return 12 + (p_45171_ - 1) * 20;
+    public int getMinCost(int pEnchantmentLevel) {
+        return 12 + (pEnchantmentLevel - 1) * 20;
     }
 
-    public int getMaxCost(int p_45173_) {
+    public int getMaxCost(int pEnchantmentLevel) {
         return 50;
     }
 

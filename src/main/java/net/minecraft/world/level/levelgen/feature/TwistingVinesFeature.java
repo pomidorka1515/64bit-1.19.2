@@ -13,18 +13,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.TwistingVinesConfig;
 
 public class TwistingVinesFeature extends Feature<TwistingVinesConfig> {
-    public TwistingVinesFeature(Codec<TwistingVinesConfig> p_67292_) {
-        super(p_67292_);
+    public TwistingVinesFeature(Codec<TwistingVinesConfig> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<TwistingVinesConfig> p_160558_) {
-        WorldGenLevel worldgenlevel = p_160558_.level();
-        BlockPos blockpos = p_160558_.origin();
+    public boolean place(FeaturePlaceContext<TwistingVinesConfig> pContext) {
+        WorldGenLevel worldgenlevel = pContext.level();
+        BlockPos blockpos = pContext.origin();
         if (isInvalidPlacementLocation(worldgenlevel, blockpos)) {
             return false;
         } else {
-            RandomSource randomsource = p_160558_.random();
-            TwistingVinesConfig twistingvinesconfig = p_160558_.config();
+            RandomSource randomsource = pContext.random();
+            TwistingVinesConfig twistingvinesconfig = pContext.config();
             int i = twistingvinesconfig.spreadWidth();
             int j = twistingvinesconfig.spreadHeight();
             int k = twistingvinesconfig.maxHeight();
@@ -52,38 +52,38 @@ public class TwistingVinesFeature extends Feature<TwistingVinesConfig> {
         }
     }
 
-    private static boolean findFirstAirBlockAboveGround(LevelAccessor p_67294_, BlockPos.MutableBlockPos p_67295_) {
+    private static boolean findFirstAirBlockAboveGround(LevelAccessor pLevel, BlockPos.MutableBlockPos pPos) {
         do {
-            p_67295_.move(0, -1, 0);
-            if (p_67294_.isOutsideBuildHeight(p_67295_)) {
+            pPos.move(0, -1, 0);
+            if (pLevel.isOutsideBuildHeight(pPos)) {
                 return false;
             }
-        } while (p_67294_.getBlockState(p_67295_).isAir());
+        } while (pLevel.getBlockState(pPos).isAir());
 
-        p_67295_.move(0, 1, 0);
+        pPos.move(0, 1, 0);
         return true;
     }
 
-    public static void placeWeepingVinesColumn(LevelAccessor p_225301_, RandomSource p_225302_, BlockPos.MutableBlockPos p_225303_, int p_225304_, int p_225305_, int p_225306_) {
-        for (int i = 1; i <= p_225304_; ++i) {
-            if (p_225301_.isEmptyBlock(p_225303_)) {
-                if (i == p_225304_ || !p_225301_.isEmptyBlock(p_225303_.above())) {
-                    p_225301_.setBlock(p_225303_, Blocks.TWISTING_VINES.defaultBlockState().setValue(GrowingPlantHeadBlock.AGE, Integer.valueOf(Mth.nextInt(p_225302_, p_225305_, p_225306_))), 2);
+    public static void placeWeepingVinesColumn(LevelAccessor pLevel, RandomSource pRandom, BlockPos.MutableBlockPos pPos, int pLength, int pMinAge, int pMaxAge) {
+        for (int i = 1; i <= pLength; ++i) {
+            if (pLevel.isEmptyBlock(pPos)) {
+                if (i == pLength || !pLevel.isEmptyBlock(pPos.above())) {
+                    pLevel.setBlock(pPos, Blocks.TWISTING_VINES.defaultBlockState().setValue(GrowingPlantHeadBlock.AGE, Integer.valueOf(Mth.nextInt(pRandom, pMinAge, pMaxAge))), 2);
                     break;
                 }
 
-                p_225301_.setBlock(p_225303_, Blocks.TWISTING_VINES_PLANT.defaultBlockState(), 2);
+                pLevel.setBlock(pPos, Blocks.TWISTING_VINES_PLANT.defaultBlockState(), 2);
             }
 
-            p_225303_.move(Direction.UP);
+            pPos.move(Direction.UP);
         }
     }
 
-    private static boolean isInvalidPlacementLocation(LevelAccessor p_67297_, BlockPos p_67298_) {
-        if (!p_67297_.isEmptyBlock(p_67298_)) {
+    private static boolean isInvalidPlacementLocation(LevelAccessor pLevel, BlockPos pPos) {
+        if (!pLevel.isEmptyBlock(pPos)) {
             return true;
         } else {
-            BlockState blockstate = p_67297_.getBlockState(p_67298_.below());
+            BlockState blockstate = pLevel.getBlockState(pPos.below());
             return !blockstate.is(Blocks.NETHERRACK) && !blockstate.is(Blocks.WARPED_NYLIUM) && !blockstate.is(Blocks.WARPED_WART_BLOCK);
         }
     }

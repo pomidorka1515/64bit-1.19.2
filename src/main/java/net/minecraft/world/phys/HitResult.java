@@ -6,8 +6,8 @@ import net.minecraft.world.entity.Entity;
 public abstract class HitResult {
     protected final Vec3 location;
 
-    protected HitResult(Vec3 p_82447_) {
-        this.location = p_82447_;
+    protected HitResult(Vec3 pLocation) {
+        this.location = pLocation;
     }
 
     /** Exact split-coordinate location for sector-aware hits; null for legacy hits. */
@@ -16,14 +16,14 @@ public abstract class HitResult {
         return null;
     }
 
-    public double distanceTo(Entity p_82449_) {
+    public double distanceTo(Entity pEntity) {
         SectorVec3 exact = this.getExactLocation();
-        if (exact != null && p_82449_.hasSectorPosition()) {
-            return exact.relativeTo(p_82449_.sectorPosition()).lengthSqr();
+        if (exact != null && pEntity.hasSectorPosition()) {
+            return exact.relativeTo(pEntity.sectorPosition()).lengthSqr();
         }
-        double d0 = this.location.x - p_82449_.getX();
-        double d1 = this.location.y - p_82449_.getY();
-        double d2 = this.location.z - p_82449_.getZ();
+        double d0 = this.location.x - pEntity.getX();
+        double d1 = this.location.y - pEntity.getY();
+        double d2 = this.location.z - pEntity.getZ();
         return d0 * d0 + d1 * d1 + d2 * d2;
     }
 

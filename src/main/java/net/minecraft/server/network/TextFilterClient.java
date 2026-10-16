@@ -53,16 +53,16 @@ public class TextFilterClient implements AutoCloseable {
     final TextFilterClient.IgnoreStrategy chatIgnoreStrategy;
     final ExecutorService workerPool;
 
-    private TextFilterClient(URL p_215275_, TextFilterClient.MessageEncoder p_215276_, URL p_215277_, TextFilterClient.JoinOrLeaveEncoder p_215278_, URL p_215279_, TextFilterClient.JoinOrLeaveEncoder p_215280_, String p_215281_, TextFilterClient.IgnoreStrategy p_215282_, int p_215283_) {
-        this.authKey = p_215281_;
-        this.chatIgnoreStrategy = p_215282_;
-        this.chatEndpoint = p_215275_;
-        this.chatEncoder = p_215276_;
-        this.joinEndpoint = p_215277_;
-        this.joinEncoder = p_215278_;
-        this.leaveEndpoint = p_215279_;
-        this.leaveEncoder = p_215280_;
-        this.workerPool = Executors.newFixedThreadPool(p_215283_, THREAD_FACTORY);
+    private TextFilterClient(URL pChatEndpoint, TextFilterClient.MessageEncoder pChatEncoder, URL pJoinEndpoint, TextFilterClient.JoinOrLeaveEncoder pJoinEncoder, URL pLeaveEndpoint, TextFilterClient.JoinOrLeaveEncoder pLeaveEncoder, String pAuthKey, TextFilterClient.IgnoreStrategy pChatIgnoreStrategy, int pWorkerThreadCount) {
+        this.authKey = pAuthKey;
+        this.chatIgnoreStrategy = pChatIgnoreStrategy;
+        this.chatEndpoint = pChatEndpoint;
+        this.chatEncoder = pChatEncoder;
+        this.joinEndpoint = pJoinEndpoint;
+        this.joinEncoder = pJoinEncoder;
+        this.leaveEndpoint = pLeaveEndpoint;
+        this.leaveEncoder = pLeaveEncoder;
+        this.workerPool = Executors.newFixedThreadPool(pWorkerThreadCount, THREAD_FACTORY);
     }
 
     private static URL getEndpoint(URI p_212246_, @Nullable JsonObject p_212247_, String p_212248_, String p_212249_) throws MalformedURLException {
@@ -156,42 +156,42 @@ public class TextFilterClient implements AutoCloseable {
         });
     }
 
-    CompletableFuture<FilteredText> requestMessageProcessing(GameProfile p_10137_, String p_10138_, TextFilterClient.IgnoreStrategy p_10139_, Executor p_10140_) {
-        return p_10138_.isEmpty() ? CompletableFuture.completedFuture(FilteredText.EMPTY) : CompletableFuture.supplyAsync(() -> {
-            JsonObject jsonobject = this.chatEncoder.encode(p_10137_, p_10138_);
+    CompletableFuture<FilteredText> requestMessageProcessing(GameProfile pProfile, String pText, TextFilterClient.IgnoreStrategy pIgnoreStrategy, Executor pExecutor) {
+        return pText.isEmpty() ? CompletableFuture.completedFuture(FilteredText.EMPTY) : CompletableFuture.supplyAsync(() -> {
+            JsonObject jsonobject = this.chatEncoder.encode(pProfile, pText);
 
             try {
                 JsonObject jsonobject1 = this.processRequestResponse(jsonobject, this.chatEndpoint);
                 boolean flag = GsonHelper.getAsBoolean(jsonobject1, "response", false);
                 if (flag) {
-                    return FilteredText.passThrough(p_10138_);
+                    return FilteredText.passThrough(pText);
                 } else {
                     String s = GsonHelper.getAsString(jsonobject1, "hashed", (String) null);
                     if (s == null) {
-                        return FilteredText.fullyFiltered(p_10138_);
+                        return FilteredText.fullyFiltered(pText);
                     } else {
                         JsonArray jsonarray = GsonHelper.getAsJsonArray(jsonobject1, "hashes");
-                        FilterMask filtermask = this.parseMask(p_10138_, jsonarray, p_10139_);
-                        return new FilteredText(p_10138_, filtermask);
+                        FilterMask filtermask = this.parseMask(pText, jsonarray, pIgnoreStrategy);
+                        return new FilteredText(pText, filtermask);
                     }
                 }
             } catch (Exception exception) {
-                LOGGER.warn("Failed to validate message '{}'", p_10138_, exception);
-                return FilteredText.fullyFiltered(p_10138_);
+                LOGGER.warn("Failed to validate message '{}'", pText, exception);
+                return FilteredText.fullyFiltered(pText);
             }
-        }, p_10140_);
+        }, pExecutor);
     }
 
-    private FilterMask parseMask(String p_243283_, JsonArray p_243222_, TextFilterClient.IgnoreStrategy p_243237_) {
-        if (p_243222_.isEmpty()) {
+    private FilterMask parseMask(String pText, JsonArray pHashes, TextFilterClient.IgnoreStrategy pIgnoreStrategy) {
+        if (pHashes.isEmpty()) {
             return FilterMask.PASS_THROUGH;
-        } else if (p_243237_.shouldIgnore(p_243283_, p_243222_.size())) {
+        } else if (pIgnoreStrategy.shouldIgnore(pText, pHashes.size())) {
             return FilterMask.FULLY_FILTERED;
         } else {
-            FilterMask filtermask = new FilterMask(p_243283_.length());
+            FilterMask filtermask = new FilterMask(pText.length());
 
-            for (int i = 0; i < p_243222_.size(); ++i) {
-                filtermask.setFiltered(p_243222_.get(i).getAsInt());
+            for (int i = 0; i < pHashes.size(); ++i) {
+                filtermask.setFiltered(pHashes.get(i).getAsInt());
             }
 
             return filtermask;
@@ -324,8 +324,8 @@ public class TextFilterClient implements AutoCloseable {
         }
     }
 
-    public TextFilter createContext(GameProfile p_10135_) {
-        return new TextFilterClient.PlayerContext(p_10135_);
+    public TextFilter createContext(GameProfile pProfile) {
+        return new TextFilterClient.PlayerContext(pProfile);
     }
 
     @FunctionalInterface
@@ -390,8 +390,8 @@ public class TextFilterClient implements AutoCloseable {
             TextFilterClient.this.processJoinOrLeave(this.profile, TextFilterClient.this.leaveEndpoint, TextFilterClient.this.leaveEncoder, this.streamExecutor);
         }
 
-        public CompletableFuture<List<FilteredText>> processMessageBundle(List<String> p_10190_) {
-            List<CompletableFuture<FilteredText>> list = p_10190_.stream().map((p_10195_) -> {
+        public CompletableFuture<List<FilteredText>> processMessageBundle(List<String> pTexts) {
+            List<CompletableFuture<FilteredText>> list = pTexts.stream().map((p_10195_) -> {
                                                                               return TextFilterClient.this.requestMessageProcessing(this.profile, p_10195_, TextFilterClient.this.chatIgnoreStrategy, this.streamExecutor);
                                                                           })
                                                                  .collect(ImmutableList.toImmutableList());
@@ -400,14 +400,14 @@ public class TextFilterClient implements AutoCloseable {
             });
         }
 
-        public CompletableFuture<FilteredText> processStreamMessage(String p_10186_) {
-            return TextFilterClient.this.requestMessageProcessing(this.profile, p_10186_, TextFilterClient.this.chatIgnoreStrategy, this.streamExecutor);
+        public CompletableFuture<FilteredText> processStreamMessage(String pText) {
+            return TextFilterClient.this.requestMessageProcessing(this.profile, pText, TextFilterClient.this.chatIgnoreStrategy, this.streamExecutor);
         }
     }
 
     public static class RequestFailedException extends RuntimeException {
-        RequestFailedException(String p_10199_) {
-            super(p_10199_);
+        RequestFailedException(String pMessage) {
+            super(pMessage);
         }
     }
 }

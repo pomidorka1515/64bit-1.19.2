@@ -16,8 +16,8 @@ public class SummaryReporter {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Runnable onDeregistration;
 
-    protected SummaryReporter(Runnable p_185398_) {
-        this.onDeregistration = p_185398_;
+    protected SummaryReporter(Runnable pOnDeregistration) {
+        this.onDeregistration = pOnDeregistration;
     }
 
     public void recordingStopped(@Nullable Path p_185401_) {

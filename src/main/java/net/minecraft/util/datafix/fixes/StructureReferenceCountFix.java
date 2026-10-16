@@ -8,8 +8,8 @@ import com.mojang.datafixers.types.Type;
 import com.mojang.serialization.Dynamic;
 
 public class StructureReferenceCountFix extends DataFix {
-    public StructureReferenceCountFix(Schema p_16961_, boolean p_16962_) {
-        super(p_16961_, p_16962_);
+    public StructureReferenceCountFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

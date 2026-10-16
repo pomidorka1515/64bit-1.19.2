@@ -41,29 +41,29 @@ public class ChunkTaskPriorityQueueSorter implements ChunkHolder.LevelChangeList
         return this.mailbox.hasWork() || this.queues.values().stream().anyMatch(ChunkTaskPriorityQueue::hasWork);
     }
 
-    public static <T> ChunkTaskPriorityQueueSorter.Message<T> message(Function<ProcessorHandle<Unit>, T> p_143182_, ChunkPos p_143183_, IntSupplier p_143184_) {
-        return new ChunkTaskPriorityQueueSorter.Message<>(p_143182_, p_143183_, p_143184_);
+    public static <T> ChunkTaskPriorityQueueSorter.Message<T> message(Function<ProcessorHandle<Unit>, T> pTask, ChunkPos pPos, IntSupplier pLevel) {
+        return new ChunkTaskPriorityQueueSorter.Message<>(pTask, pPos, pLevel);
     }
 
-    public static ChunkTaskPriorityQueueSorter.Message<Runnable> message(Runnable p_140625_, ChunkPos p_140626_, IntSupplier p_140627_) {
+    public static ChunkTaskPriorityQueueSorter.Message<Runnable> message(Runnable pTask, ChunkPos pPos, IntSupplier pLevel) {
         return new ChunkTaskPriorityQueueSorter.Message<>((p_140634_) -> {
             return () -> {
-                p_140625_.run();
+                pTask.run();
                 p_140634_.tell(Unit.INSTANCE);
             };
-        }, p_140626_, p_140627_);
+        }, pPos, pLevel);
     }
 
-    public static ChunkTaskPriorityQueueSorter.Message<Runnable> message(ChunkHolder p_140643_, Runnable p_140644_) {
-        return message(p_140644_, p_140643_.getPos(), p_140643_::getQueueLevel);
+    public static ChunkTaskPriorityQueueSorter.Message<Runnable> message(ChunkHolder pChunkHolder, Runnable pTask) {
+        return message(pTask, pChunkHolder.getPos(), pChunkHolder::getQueueLevel);
     }
 
-    public static <T> ChunkTaskPriorityQueueSorter.Message<T> message(ChunkHolder p_143157_, Function<ProcessorHandle<Unit>, T> p_143158_) {
-        return message(p_143158_, p_143157_.getPos(), p_143157_::getQueueLevel);
+    public static <T> ChunkTaskPriorityQueueSorter.Message<T> message(ChunkHolder pChunkHolder, Function<ProcessorHandle<Unit>, T> pTask) {
+        return message(pTask, pChunkHolder.getPos(), pChunkHolder::getQueueLevel);
     }
 
-    public static ChunkTaskPriorityQueueSorter.Release release(Runnable p_140629_, ChunkPos p_140630_, boolean p_140631_) {
-        return new ChunkTaskPriorityQueueSorter.Release(p_140629_, p_140630_, p_140631_);
+    public static ChunkTaskPriorityQueueSorter.Release release(Runnable pTask, ChunkPos pPos, boolean pClearQueue) {
+        return new ChunkTaskPriorityQueueSorter.Release(pTask, pPos, pClearQueue);
     }
 
     public <T> ProcessorHandle<ChunkTaskPriorityQueueSorter.Message<T>> getProcessor(ProcessorHandle<T> p_140605_, boolean p_140606_) {
@@ -178,10 +178,10 @@ public class ChunkTaskPriorityQueueSorter implements ChunkHolder.LevelChangeList
         final ChunkPos pos;
         final IntSupplier level;
 
-        Message(Function<ProcessorHandle<Unit>, T> p_140668_, ChunkPos p_140669_, IntSupplier p_140670_) {
-            this.task = p_140668_;
-            this.pos = p_140669_;
-            this.level = p_140670_;
+        Message(Function<ProcessorHandle<Unit>, T> pTask, ChunkPos pPos, IntSupplier pLevel) {
+            this.task = pTask;
+            this.pos = pPos;
+            this.level = pLevel;
         }
     }
 
@@ -190,10 +190,10 @@ public class ChunkTaskPriorityQueueSorter implements ChunkHolder.LevelChangeList
         final ChunkPos pos;
         final boolean clearQueue;
 
-        Release(Runnable p_140686_, ChunkPos p_140687_, boolean p_140688_) {
-            this.task = p_140686_;
-            this.pos = p_140687_;
-            this.clearQueue = p_140688_;
+        Release(Runnable pTask, ChunkPos pPos, boolean pClearQueue) {
+            this.task = pTask;
+            this.pos = pPos;
+            this.clearQueue = pClearQueue;
         }
     }
 }

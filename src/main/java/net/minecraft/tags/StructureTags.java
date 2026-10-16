@@ -18,7 +18,7 @@ public interface StructureTags {
     TagKey<Structure> RUINED_PORTAL = create("ruined_portal");
     TagKey<Structure> OCEAN_RUIN = create("ocean_ruin");
 
-    private static TagKey<Structure> create(String p_215896_) {
-        return TagKey.create(Registry.STRUCTURE_REGISTRY, new ResourceLocation(p_215896_));
+    private static TagKey<Structure> create(String pName) {
+        return TagKey.create(Registry.STRUCTURE_REGISTRY, new ResourceLocation(pName));
     }
 }

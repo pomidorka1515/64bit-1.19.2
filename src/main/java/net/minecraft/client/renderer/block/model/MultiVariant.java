@@ -29,19 +29,19 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class MultiVariant implements UnbakedModel {
     private final List<Variant> variants;
 
-    public MultiVariant(List<Variant> p_111847_) {
-        this.variants = p_111847_;
+    public MultiVariant(List<Variant> pVariants) {
+        this.variants = pVariants;
     }
 
     public List<Variant> getVariants() {
         return this.variants;
     }
 
-    public boolean equals(Object p_111862_) {
-        if (this == p_111862_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_111862_ instanceof MultiVariant) {
-            MultiVariant multivariant = (MultiVariant) p_111862_;
+        } else if (pOther instanceof MultiVariant) {
+            MultiVariant multivariant = (MultiVariant) pOther;
             return this.variants.equals(multivariant.variants);
         } else {
             return false;
@@ -56,22 +56,22 @@ public class MultiVariant implements UnbakedModel {
         return this.getVariants().stream().map(Variant::getModelLocation).collect(Collectors.toSet());
     }
 
-    public Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> p_111855_, Set<Pair<String, String>> p_111856_) {
+    public Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> pModelGetter, Set<Pair<String, String>> pMissingTextureErrors) {
         return this.getVariants().stream().map(Variant::getModelLocation).distinct().flatMap((p_111860_) -> {
-                                                                                        return p_111855_.apply(p_111860_).getMaterials(p_111855_, p_111856_).stream();
+                                                                                        return pModelGetter.apply(p_111860_).getMaterials(pModelGetter, pMissingTextureErrors).stream();
                                                                                     })
                 .collect(Collectors.toSet());
     }
 
     @Nullable
-    public BakedModel bake(ModelBakery p_111850_, Function<Material, TextureAtlasSprite> p_111851_, ModelState p_111852_, ResourceLocation p_111853_) {
+    public BakedModel bake(ModelBakery pModelBakery, Function<Material, TextureAtlasSprite> pSpriteGetter, ModelState pTransform, ResourceLocation pLocation) {
         if (this.getVariants().isEmpty()) {
             return null;
         } else {
             WeightedBakedModel.Builder weightedbakedmodel$builder = new WeightedBakedModel.Builder();
 
             for (Variant variant : this.getVariants()) {
-                BakedModel bakedmodel = p_111850_.bake(variant.getModelLocation(), variant);
+                BakedModel bakedmodel = pModelBakery.bake(variant.getModelLocation(), variant);
                 weightedbakedmodel$builder.add(bakedmodel, variant.getWeight());
             }
 
@@ -81,19 +81,19 @@ public class MultiVariant implements UnbakedModel {
 
     @OnlyIn(Dist.CLIENT)
     public static class Deserializer implements JsonDeserializer<MultiVariant> {
-        public MultiVariant deserialize(JsonElement p_111867_, Type p_111868_, JsonDeserializationContext p_111869_) throws JsonParseException {
+        public MultiVariant deserialize(JsonElement pJson, Type pType, JsonDeserializationContext pContext) throws JsonParseException {
             List<Variant> list = Lists.newArrayList();
-            if (p_111867_.isJsonArray()) {
-                JsonArray jsonarray = p_111867_.getAsJsonArray();
+            if (pJson.isJsonArray()) {
+                JsonArray jsonarray = pJson.getAsJsonArray();
                 if (jsonarray.size() == 0) {
                     throw new JsonParseException("Empty variant array");
                 }
 
                 for (JsonElement jsonelement : jsonarray) {
-                    list.add(p_111869_.deserialize(jsonelement, Variant.class));
+                    list.add(pContext.deserialize(jsonelement, Variant.class));
                 }
             } else {
-                list.add(p_111869_.deserialize(p_111867_, Variant.class));
+                list.add(pContext.deserialize(pJson, Variant.class));
             }
 
             return new MultiVariant(list);

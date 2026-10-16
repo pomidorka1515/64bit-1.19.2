@@ -9,19 +9,19 @@ public class LevelEntityGetterAdapter<T extends EntityAccess> implements LevelEn
     private final EntityLookup<T> visibleEntities;
     private final EntitySectionStorage<T> sectionStorage;
 
-    public LevelEntityGetterAdapter(EntityLookup<T> p_156943_, EntitySectionStorage<T> p_156944_) {
-        this.visibleEntities = p_156943_;
-        this.sectionStorage = p_156944_;
+    public LevelEntityGetterAdapter(EntityLookup<T> pVisibleEntities, EntitySectionStorage<T> pSectionStorage) {
+        this.visibleEntities = pVisibleEntities;
+        this.sectionStorage = pSectionStorage;
     }
 
     @Nullable
-    public T get(int p_156947_) {
-        return this.visibleEntities.getEntity(p_156947_);
+    public T get(int pId) {
+        return this.visibleEntities.getEntity(pId);
     }
 
     @Nullable
-    public T get(UUID p_156959_) {
-        return this.visibleEntities.getEntity(p_156959_);
+    public T get(UUID pUuid) {
+        return this.visibleEntities.getEntity(pUuid);
     }
 
     public Iterable<T> getAll() {
@@ -35,15 +35,15 @@ public class LevelEntityGetterAdapter<T extends EntityAccess> implements LevelEn
                 minSectionZ, maxSectionZ, consumer);
     }
 
-    public <U extends T> void get(EntityTypeTest<T, U> p_156953_, Consumer<U> p_156954_) {
-        this.visibleEntities.getEntities(p_156953_, p_156954_);
+    public <U extends T> void get(EntityTypeTest<T, U> pTest, Consumer<U> pConsumer) {
+        this.visibleEntities.getEntities(pTest, pConsumer);
     }
 
-    public void get(AABB p_156956_, Consumer<T> p_156957_) {
-        this.sectionStorage.getEntities(p_156956_, p_156957_);
+    public void get(AABB pBoundingBox, Consumer<T> pConsumer) {
+        this.sectionStorage.getEntities(pBoundingBox, pConsumer);
     }
 
-    public <U extends T> void get(EntityTypeTest<T, U> p_156949_, AABB p_156950_, Consumer<U> p_156951_) {
-        this.sectionStorage.getEntities(p_156949_, p_156950_, p_156951_);
+    public <U extends T> void get(EntityTypeTest<T, U> pTest, AABB pBounds, Consumer<U> pConsumer) {
+        this.sectionStorage.getEntities(pTest, pBounds, pConsumer);
     }
 }

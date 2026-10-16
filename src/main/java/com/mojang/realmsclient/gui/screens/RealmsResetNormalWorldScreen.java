@@ -22,10 +22,10 @@ public class RealmsResetNormalWorldScreen extends RealmsScreen {
     private boolean generateStructures = true;
     private final Component buttonTitle;
 
-    public RealmsResetNormalWorldScreen(Consumer<WorldGenerationInfo> p_167438_, Component p_167439_) {
+    public RealmsResetNormalWorldScreen(Consumer<WorldGenerationInfo> pCallback, Component pButtonTitle) {
         super(Component.translatable("mco.reset.world.generate"));
-        this.callback = p_167438_;
-        this.buttonTitle = p_167439_;
+        this.callback = pCallback;
+        this.buttonTitle = pButtonTitle;
     }
 
     public void tick() {
@@ -61,11 +61,11 @@ public class RealmsResetNormalWorldScreen extends RealmsScreen {
         this.callback.accept((WorldGenerationInfo) null);
     }
 
-    public void render(PoseStack p_89283_, int p_89284_, int p_89285_, float p_89286_) {
-        this.renderBackground(p_89283_);
-        drawCenteredString(p_89283_, this.font, this.title, this.width / 2, 17, 16777215);
-        this.font.draw(p_89283_, SEED_LABEL, (float) (this.width / 2 - 100), (float) row(1), 10526880);
-        this.seedEdit.render(p_89283_, p_89284_, p_89285_, p_89286_);
-        super.render(p_89283_, p_89284_, p_89285_, p_89286_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 17, 16777215);
+        this.font.draw(pPoseStack, SEED_LABEL, (float) (this.width / 2 - 100), (float) row(1), 10526880);
+        this.seedEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

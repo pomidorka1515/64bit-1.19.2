@@ -296,78 +296,78 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
     private ResourceLocation lootTable;
     private final EntityDimensions dimensions;
 
-    private static <T extends Entity> EntityType<T> register(String p_20635_, EntityType.Builder<T> p_20636_) {
-        return Registry.register(Registry.ENTITY_TYPE, p_20635_, p_20636_.build(p_20635_));
+    private static <T extends Entity> EntityType<T> register(String pKey, EntityType.Builder<T> pBuilder) {
+        return Registry.register(Registry.ENTITY_TYPE, pKey, pBuilder.build(pKey));
     }
 
-    public static ResourceLocation getKey(EntityType<?> p_20614_) {
-        return Registry.ENTITY_TYPE.getKey(p_20614_);
+    public static ResourceLocation getKey(EntityType<?> pEntityType) {
+        return Registry.ENTITY_TYPE.getKey(pEntityType);
     }
 
-    public static Optional<EntityType<?>> byString(String p_20633_) {
-        return Registry.ENTITY_TYPE.getOptional(ResourceLocation.tryParse(p_20633_));
+    public static Optional<EntityType<?>> byString(String pKey) {
+        return Registry.ENTITY_TYPE.getOptional(ResourceLocation.tryParse(pKey));
     }
 
-    public EntityType(EntityType.EntityFactory<T> p_20574_, MobCategory p_20575_, boolean p_20576_, boolean p_20577_, boolean p_20578_, boolean p_20579_, ImmutableSet<Block> p_20580_, EntityDimensions p_20581_, int p_20582_, int p_20583_) {
-        this.factory = p_20574_;
-        this.category = p_20575_;
-        this.canSpawnFarFromPlayer = p_20579_;
-        this.serialize = p_20576_;
-        this.summon = p_20577_;
-        this.fireImmune = p_20578_;
-        this.immuneTo = p_20580_;
-        this.dimensions = p_20581_;
-        this.clientTrackingRange = p_20582_;
-        this.updateInterval = p_20583_;
-    }
-
-    @Nullable
-    public Entity spawn(ServerLevel p_20593_, @Nullable ItemStack p_20594_, @Nullable Player p_20595_, BlockPos p_20596_, MobSpawnType p_20597_, boolean p_20598_, boolean p_20599_) {
-        return this.spawn(p_20593_, p_20594_ == null ? null : p_20594_.getTag(), p_20594_ != null && p_20594_.hasCustomHoverName() ? p_20594_.getHoverName() : null, p_20595_, p_20596_, p_20597_, p_20598_, p_20599_);
+    public EntityType(EntityType.EntityFactory<T> pFactory, MobCategory pCategory, boolean pSerialize, boolean pSummon, boolean pFireImmune, boolean pCanSpawnFarFromPlayer, ImmutableSet<Block> pImmuneTo, EntityDimensions pDimensions, int pClientTrackingRange, int pUpdateInterval) {
+        this.factory = pFactory;
+        this.category = pCategory;
+        this.canSpawnFarFromPlayer = pCanSpawnFarFromPlayer;
+        this.serialize = pSerialize;
+        this.summon = pSummon;
+        this.fireImmune = pFireImmune;
+        this.immuneTo = pImmuneTo;
+        this.dimensions = pDimensions;
+        this.clientTrackingRange = pClientTrackingRange;
+        this.updateInterval = pUpdateInterval;
     }
 
     @Nullable
-    public T spawn(ServerLevel p_20601_, @Nullable CompoundTag p_20602_, @Nullable Component p_20603_, @Nullable Player p_20604_, BlockPos p_20605_, MobSpawnType p_20606_, boolean p_20607_, boolean p_20608_) {
-        T t = this.create(p_20601_, p_20602_, p_20603_, p_20604_, p_20605_, p_20606_, p_20607_, p_20608_);
+    public Entity spawn(ServerLevel pServerLevel, @Nullable ItemStack pStack, @Nullable Player pPlayer, BlockPos pPos, MobSpawnType pSpawnType, boolean pShouldOffsetY, boolean pShouldOffsetYMore) {
+        return this.spawn(pServerLevel, pStack == null ? null : pStack.getTag(), pStack != null && pStack.hasCustomHoverName() ? pStack.getHoverName() : null, pPlayer, pPos, pSpawnType, pShouldOffsetY, pShouldOffsetYMore);
+    }
+
+    @Nullable
+    public T spawn(ServerLevel pLevel, @Nullable CompoundTag pCompound, @Nullable Component pCustomName, @Nullable Player pPlayer, BlockPos pPos, MobSpawnType pSpawnType, boolean pShouldOffsetY, boolean pShouldOffsetYMore) {
+        T t = this.create(pLevel, pCompound, pCustomName, pPlayer, pPos, pSpawnType, pShouldOffsetY, pShouldOffsetYMore);
         if (t != null) {
-            p_20601_.addFreshEntityWithPassengers(t);
+            pLevel.addFreshEntityWithPassengers(t);
         }
 
         return t;
     }
 
     @Nullable
-    public T create(ServerLevel p_20656_, @Nullable CompoundTag p_20657_, @Nullable Component p_20658_, @Nullable Player p_20659_, BlockPos p_20660_, MobSpawnType p_20661_, boolean p_20662_, boolean p_20663_) {
-        T t = this.create(p_20656_);
+    public T create(ServerLevel pLevel, @Nullable CompoundTag pCompound, @Nullable Component pCustomName, @Nullable Player pPlayer, BlockPos pPos, MobSpawnType pSpawnType, boolean pShouldOffsetY, boolean pShouldOffsetYMore) {
+        T t = this.create(pLevel);
         if (t == null) {
             return (T) null;
         } else {
             double d0;
-            if (p_20662_) {
-                SectorVec3 initialPosition = SectorVec3.fromBlockAndFraction(p_20660_.getX(), 0.5D,
-                        (double) (p_20660_.getY() + 1), p_20660_.getZ(), 0.5D);
+            if (pShouldOffsetY) {
+                SectorVec3 initialPosition = SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D,
+                        (double) (pPos.getY() + 1), pPos.getZ(), 0.5D);
                 t.applyExactPosition(initialPosition);
-                d0 = getExactYOffset(p_20656_, p_20660_, p_20663_, t);
+                d0 = getExactYOffset(pLevel, pPos, pShouldOffsetYMore, t);
             } else {
                 d0 = 0.0D;
             }
 
-            t.moveTo(SectorVec3.fromBlockAndFraction(p_20660_.getX(), 0.5D,
-                             (double) p_20660_.getY() + d0, p_20660_.getZ(), 0.5D),
-                    Mth.wrapDegrees(p_20656_.random.nextFloat() * 360.0F), 0.0F);
+            t.moveTo(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D,
+                             (double) pPos.getY() + d0, pPos.getZ(), 0.5D),
+                    Mth.wrapDegrees(pLevel.random.nextFloat() * 360.0F), 0.0F);
             if (t instanceof Mob) {
                 Mob mob = (Mob) t;
                 mob.yHeadRot = mob.getYRot();
                 mob.yBodyRot = mob.getYRot();
-                mob.finalizeSpawn(p_20656_, p_20656_.getCurrentDifficultyAt(mob.blockPosition()), p_20661_, (SpawnGroupData) null, p_20657_);
+                mob.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(mob.blockPosition()), pSpawnType, (SpawnGroupData) null, pCompound);
                 mob.playAmbientSound();
             }
 
-            if (p_20658_ != null && t instanceof LivingEntity) {
-                t.setCustomName(p_20658_);
+            if (pCustomName != null && t instanceof LivingEntity) {
+                t.setCustomName(pCustomName);
             }
 
-            updateCustomEntityTag(p_20656_, p_20659_, t, p_20657_);
+            updateCustomEntityTag(pLevel, pPlayer, t, pCompound);
             return t;
         }
     }
@@ -402,16 +402,16 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
         return 1.0D + Shapes.collide(Direction.Axis.Y, localEntityBox, collisions, canSpawnBelow ? -2.0D : -1.0D);
     }
 
-    public static void updateCustomEntityTag(Level p_20621_, @Nullable Player p_20622_, @Nullable Entity p_20623_, @Nullable CompoundTag p_20624_) {
-        if (p_20624_ != null && p_20624_.contains("EntityTag", 10)) {
-            MinecraftServer minecraftserver = p_20621_.getServer();
-            if (minecraftserver != null && p_20623_ != null) {
-                if (p_20621_.isClientSide || !p_20623_.onlyOpCanSetNbt() || p_20622_ != null && minecraftserver.getPlayerList().isOp(p_20622_.getGameProfile())) {
-                    CompoundTag compoundtag = p_20623_.saveWithoutId(new CompoundTag());
-                    UUID uuid = p_20623_.getUUID();
-                    compoundtag.merge(p_20624_.getCompound("EntityTag"));
-                    p_20623_.setUUID(uuid);
-                    p_20623_.load(compoundtag);
+    public static void updateCustomEntityTag(Level pLevel, @Nullable Player pPlayer, @Nullable Entity pSpawnedEntity, @Nullable CompoundTag pItemNBT) {
+        if (pItemNBT != null && pItemNBT.contains("EntityTag", 10)) {
+            MinecraftServer minecraftserver = pLevel.getServer();
+            if (minecraftserver != null && pSpawnedEntity != null) {
+                if (pLevel.isClientSide || !pSpawnedEntity.onlyOpCanSetNbt() || pPlayer != null && minecraftserver.getPlayerList().isOp(pPlayer.getGameProfile())) {
+                    CompoundTag compoundtag = pSpawnedEntity.saveWithoutId(new CompoundTag());
+                    UUID uuid = pSpawnedEntity.getUUID();
+                    compoundtag.merge(pItemNBT.getCompound("EntityTag"));
+                    pSpawnedEntity.setUUID(uuid);
+                    pSpawnedEntity.load(compoundtag);
                 }
             }
         }
@@ -480,34 +480,34 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
     }
 
     @Nullable
-    public T create(Level p_20616_) {
-        return this.factory.create(this, p_20616_);
+    public T create(Level pLevel) {
+        return this.factory.create(this, pLevel);
     }
 
-    public static Optional<Entity> create(CompoundTag p_20643_, Level p_20644_) {
-        return Util.ifElse(by(p_20643_).map((p_185998_) -> {
-            return p_185998_.create(p_20644_);
+    public static Optional<Entity> create(CompoundTag pCompound, Level pLevel) {
+        return Util.ifElse(by(pCompound).map((p_185998_) -> {
+            return p_185998_.create(pLevel);
         }),
                 (p_185990_) -> {
-                    p_185990_.load(p_20643_);
+                    p_185990_.load(pCompound);
                 },
                 () -> {
-                    LOGGER.warn("Skipping Entity with id {}", (Object) p_20643_.getString("id"));
+                    LOGGER.warn("Skipping Entity with id {}", (Object) pCompound.getString("id"));
                 });
     }
 
-    public AABB getAABB(double p_20586_, double p_20587_, double p_20588_) {
+    public AABB getAABB(double pX, double pY, double pZ) {
         float f = this.getWidth() / 2.0F;
-        return new AABB(p_20586_ - (double) f, p_20587_, p_20588_ - (double) f, p_20586_ + (double) f, p_20587_ + (double) this.getHeight(), p_20588_ + (double) f);
+        return new AABB(pX - (double) f, pY, pZ - (double) f, pX + (double) f, pY + (double) this.getHeight(), pZ + (double) f);
     }
 
-    public boolean isBlockDangerous(BlockState p_20631_) {
-        if (this.immuneTo.contains(p_20631_.getBlock())) {
+    public boolean isBlockDangerous(BlockState pState) {
+        if (this.immuneTo.contains(pState.getBlock())) {
             return false;
-        } else if (!this.fireImmune && WalkNodeEvaluator.isBurningBlock(p_20631_)) {
+        } else if (!this.fireImmune && WalkNodeEvaluator.isBurningBlock(pState)) {
             return true;
         } else {
-            return p_20631_.is(Blocks.WITHER_ROSE) || p_20631_.is(Blocks.SWEET_BERRY_BUSH) || p_20631_.is(Blocks.CACTUS) || p_20631_.is(Blocks.POWDER_SNOW);
+            return pState.is(Blocks.WITHER_ROSE) || pState.is(Blocks.SWEET_BERRY_BUSH) || pState.is(Blocks.CACTUS) || pState.is(Blocks.POWDER_SNOW);
         }
     }
 
@@ -515,18 +515,18 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
         return this.dimensions;
     }
 
-    public static Optional<EntityType<?>> by(CompoundTag p_20638_) {
-        return Registry.ENTITY_TYPE.getOptional(new ResourceLocation(p_20638_.getString("id")));
+    public static Optional<EntityType<?>> by(CompoundTag pCompound) {
+        return Registry.ENTITY_TYPE.getOptional(new ResourceLocation(pCompound.getString("id")));
     }
 
     @Nullable
-    public static Entity loadEntityRecursive(CompoundTag p_20646_, Level p_20647_, Function<Entity, Entity> p_20648_) {
-        return loadStaticEntity(p_20646_, p_20647_).map(p_20648_).map((p_185995_) -> {
-                                                                     if (p_20646_.contains("Passengers", 9)) {
-                                                                         ListTag listtag = p_20646_.getList("Passengers", 10);
+    public static Entity loadEntityRecursive(CompoundTag pCompound, Level pLevel, Function<Entity, Entity> pEntityFunction) {
+        return loadStaticEntity(pCompound, pLevel).map(pEntityFunction).map((p_185995_) -> {
+                                                                     if (pCompound.contains("Passengers", 9)) {
+                                                                         ListTag listtag = pCompound.getList("Passengers", 10);
 
                                                                          for (int i = 0; i < listtag.size(); ++i) {
-                                                                             Entity entity = loadEntityRecursive(listtag.getCompound(i), p_20647_, p_20648_);
+                                                                             Entity entity = loadEntityRecursive(listtag.getCompound(i), pLevel, pEntityFunction);
                                                                              if (entity != null) {
                                                                                  entity.startRiding(p_185995_, true);
                                                                              }
@@ -538,12 +538,12 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
                 .orElse((Entity) null);
     }
 
-    public static Stream<Entity> loadEntitiesRecursive(final List<? extends Tag> p_147046_, final Level p_147047_) {
-        final Spliterator<? extends Tag> spliterator = p_147046_.spliterator();
+    public static Stream<Entity> loadEntitiesRecursive(final List<? extends Tag> pTags, final Level pLevel) {
+        final Spliterator<? extends Tag> spliterator = pTags.spliterator();
         return StreamSupport.stream(new Spliterator<Entity>() {
          public boolean tryAdvance(Consumer<? super Entity> p_147066_) {
              return spliterator.tryAdvance((p_147059_) -> {
-                 EntityType.loadEntityRecursive((CompoundTag) p_147059_, p_147047_, (p_147062_) -> {
+                 EntityType.loadEntityRecursive((CompoundTag) p_147059_, pLevel, (p_147062_) -> {
                      p_147066_.accept(p_147062_);
                      return p_147062_;
                  });
@@ -555,7 +555,7 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
          }
 
          public long estimateSize() {
-             return (long) p_147046_.size();
+             return (long) pTags.size();
          }
 
          public int characteristics() {
@@ -564,9 +564,9 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
         }, false);
     }
 
-    private static Optional<Entity> loadStaticEntity(CompoundTag p_20670_, Level p_20671_) {
+    private static Optional<Entity> loadStaticEntity(CompoundTag pCompound, Level pLevel) {
         try {
-            return create(p_20670_, p_20671_);
+            return create(pCompound, pLevel);
         } catch (RuntimeException runtimeexception) {
             LOGGER.warn("Exception loading entity: ", (Throwable) runtimeexception);
             return Optional.empty();
@@ -585,13 +585,13 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
         return this != PLAYER && this != LLAMA_SPIT && this != WITHER && this != BAT && this != ITEM_FRAME && this != GLOW_ITEM_FRAME && this != LEASH_KNOT && this != PAINTING && this != END_CRYSTAL && this != EVOKER_FANGS;
     }
 
-    public boolean is(TagKey<EntityType<?>> p_204040_) {
-        return this.builtInRegistryHolder.is(p_204040_);
+    public boolean is(TagKey<EntityType<?>> pTag) {
+        return this.builtInRegistryHolder.is(pTag);
     }
 
     @Nullable
-    public T tryCast(Entity p_147042_) {
-        return (T) (p_147042_.getType() == this ? p_147042_ : null);
+    public T tryCast(Entity pEntity) {
+        return (T) (pEntity.getType() == this ? pEntity : null);
     }
 
     public Class<? extends Entity> getBaseClass() {
@@ -616,24 +616,24 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
         private int updateInterval = 3;
         private EntityDimensions dimensions = EntityDimensions.scalable(0.6F, 1.8F);
 
-        private Builder(EntityType.EntityFactory<T> p_20696_, MobCategory p_20697_) {
-            this.factory = p_20696_;
-            this.category = p_20697_;
-            this.canSpawnFarFromPlayer = p_20697_ == MobCategory.CREATURE || p_20697_ == MobCategory.MISC;
+        private Builder(EntityType.EntityFactory<T> pFactory, MobCategory pCategory) {
+            this.factory = pFactory;
+            this.category = pCategory;
+            this.canSpawnFarFromPlayer = pCategory == MobCategory.CREATURE || pCategory == MobCategory.MISC;
         }
 
-        public static <T extends Entity> EntityType.Builder<T> of(EntityType.EntityFactory<T> p_20705_, MobCategory p_20706_) {
-            return new EntityType.Builder<>(p_20705_, p_20706_);
+        public static <T extends Entity> EntityType.Builder<T> of(EntityType.EntityFactory<T> pFactory, MobCategory pCategory) {
+            return new EntityType.Builder<>(pFactory, pCategory);
         }
 
-        public static <T extends Entity> EntityType.Builder<T> createNothing(MobCategory p_20711_) {
+        public static <T extends Entity> EntityType.Builder<T> createNothing(MobCategory pCategory) {
             return new EntityType.Builder<>((p_20708_, p_20709_) -> {
                 return (T) null;
-            }, p_20711_);
+            }, pCategory);
         }
 
-        public EntityType.Builder<T> sized(float p_20700_, float p_20701_) {
-            this.dimensions = EntityDimensions.scalable(p_20700_, p_20701_);
+        public EntityType.Builder<T> sized(float pWidth, float pHeight) {
+            this.dimensions = EntityDimensions.scalable(pWidth, pHeight);
             return this;
         }
 
@@ -652,8 +652,8 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
             return this;
         }
 
-        public EntityType.Builder<T> immuneTo(Block... p_20715_) {
-            this.immuneTo = ImmutableSet.copyOf(p_20715_);
+        public EntityType.Builder<T> immuneTo(Block... pBlocks) {
+            this.immuneTo = ImmutableSet.copyOf(pBlocks);
             return this;
         }
 
@@ -662,19 +662,19 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
             return this;
         }
 
-        public EntityType.Builder<T> clientTrackingRange(int p_20703_) {
-            this.clientTrackingRange = p_20703_;
+        public EntityType.Builder<T> clientTrackingRange(int pClientTrackingRange) {
+            this.clientTrackingRange = pClientTrackingRange;
             return this;
         }
 
-        public EntityType.Builder<T> updateInterval(int p_20718_) {
-            this.updateInterval = p_20718_;
+        public EntityType.Builder<T> updateInterval(int pUpdateInterval) {
+            this.updateInterval = pUpdateInterval;
             return this;
         }
 
-        public EntityType<T> build(String p_20713_) {
+        public EntityType<T> build(String pKey) {
             if (this.serialize) {
-                Util.fetchChoiceType(References.ENTITY_TREE, p_20713_);
+                Util.fetchChoiceType(References.ENTITY_TREE, pKey);
             }
 
             return new EntityType<>(this.factory, this.category, this.serialize, this.summon, this.fireImmune, this.canSpawnFarFromPlayer, this.immuneTo, this.dimensions, this.clientTrackingRange, this.updateInterval);
@@ -682,6 +682,6 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
     }
 
     public interface EntityFactory<T extends Entity> {
-        T create(EntityType<T> p_20722_, Level p_20723_);
+        T create(EntityType<T> pEntityType, Level pLevel);
     }
 }

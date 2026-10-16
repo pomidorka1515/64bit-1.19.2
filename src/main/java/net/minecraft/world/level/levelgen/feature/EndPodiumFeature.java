@@ -16,14 +16,14 @@ public class EndPodiumFeature extends Feature<NoneFeatureConfiguration> {
     public static final BlockPos END_PODIUM_LOCATION = BlockPos.ZERO;
     private final boolean active;
 
-    public EndPodiumFeature(boolean p_65718_) {
+    public EndPodiumFeature(boolean pActive) {
         super(NoneFeatureConfiguration.CODEC);
-        this.active = p_65718_;
+        this.active = pActive;
     }
 
-    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> p_159723_) {
-        BlockPos blockpos = p_159723_.origin();
-        WorldGenLevel worldgenlevel = p_159723_.level();
+    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> pContext) {
+        BlockPos blockpos = pContext.origin();
+        WorldGenLevel worldgenlevel = pContext.level();
 
         for (BlockPos blockpos1 : BlockPos.betweenClosed(new BlockPos(WorldBounds.subtractBlockOffset(blockpos.getX(), 4L), blockpos.getY() - 1, WorldBounds.subtractBlockOffset(blockpos.getZ(), 4L)), new BlockPos(WorldBounds.addBlockOffset(blockpos.getX(), 4L), blockpos.getY() + 32, WorldBounds.addBlockOffset(blockpos.getZ(), 4L)))) {
             boolean flag = blockpos1.closerThan(blockpos, 2.5D);

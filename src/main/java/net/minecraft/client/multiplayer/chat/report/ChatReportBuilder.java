@@ -58,30 +58,30 @@ public class ChatReportBuilder {
     @Nullable
     private ReportReason reason;
 
-    private ChatReportBuilder(UUID p_239204_, Instant p_239205_, UUID p_239206_, AbuseReportLimits p_239207_) {
-        this.reportId = p_239204_;
-        this.createdAt = p_239205_;
-        this.reportedProfileId = p_239206_;
-        this.limits = p_239207_;
+    private ChatReportBuilder(UUID pReportId, Instant pCreatedAt, UUID pReportedProfileId, AbuseReportLimits pLimits) {
+        this.reportId = pReportId;
+        this.createdAt = pCreatedAt;
+        this.reportedProfileId = pReportedProfileId;
+        this.limits = pLimits;
     }
 
-    public ChatReportBuilder(UUID p_239528_, AbuseReportLimits p_239529_) {
-        this(UUID.randomUUID(), Instant.now(), p_239528_, p_239529_);
+    public ChatReportBuilder(UUID pReportedProfileId, AbuseReportLimits pLimits) {
+        this(UUID.randomUUID(), Instant.now(), pReportedProfileId, pLimits);
     }
 
-    public void setComments(String p_239080_) {
-        this.comments = p_239080_;
+    public void setComments(String pComments) {
+        this.comments = pComments;
     }
 
-    public void setReason(ReportReason p_239098_) {
-        this.reason = p_239098_;
+    public void setReason(ReportReason pReason) {
+        this.reason = pReason;
     }
 
-    public void toggleReported(int p_239052_) {
-        if (this.reportedMessages.contains(p_239052_)) {
-            this.reportedMessages.remove(p_239052_);
+    public void toggleReported(int pId) {
+        if (this.reportedMessages.contains(pId)) {
+            this.reportedMessages.remove(pId);
         } else if (this.reportedMessages.size() < this.limits.maxReportedMessageCount()) {
-            this.reportedMessages.add(p_239052_);
+            this.reportedMessages.add(pId);
         }
     }
 
@@ -102,8 +102,8 @@ public class ChatReportBuilder {
         return this.reason;
     }
 
-    public boolean isReported(int p_243333_) {
-        return this.reportedMessages.contains(p_243333_);
+    public boolean isReported(int pId) {
+        return this.reportedMessages.contains(pId);
     }
 
     @Nullable
@@ -119,23 +119,23 @@ public class ChatReportBuilder {
         }
     }
 
-    public Either<ChatReportBuilder.Result, ChatReportBuilder.CannotBuildReason> build(ReportingContext p_240129_) {
+    public Either<ChatReportBuilder.Result, ChatReportBuilder.CannotBuildReason> build(ReportingContext pContext) {
         ChatReportBuilder.CannotBuildReason chatreportbuilder$cannotbuildreason = this.checkBuildable();
         if (chatreportbuilder$cannotbuildreason != null) {
             return Either.right(chatreportbuilder$cannotbuildreason);
         } else {
             String s = Objects.requireNonNull(this.reason).backendName();
-            ReportEvidence reportevidence = this.buildEvidence(p_240129_.chatLog());
+            ReportEvidence reportevidence = this.buildEvidence(pContext.chatLog());
             ReportedEntity reportedentity = new ReportedEntity(this.reportedProfileId);
             AbuseReport abusereport = new AbuseReport(this.comments, s, reportevidence, reportedentity, this.createdAt);
             return Either.left(new ChatReportBuilder.Result(this.reportId, abusereport));
         }
     }
 
-    private ReportEvidence buildEvidence(ChatLog p_239183_) {
+    private ReportEvidence buildEvidence(ChatLog pChatLog) {
         Int2ObjectSortedMap<ReportChatMessage> int2objectsortedmap = new Int2ObjectRBTreeMap<>();
         this.reportedMessages.forEach((p_242060_) -> {
-            Int2ObjectMap<LoggedChatMessage.Player> int2objectmap = collectReferencedContext(p_239183_, p_242060_, this.limits);
+            Int2ObjectMap<LoggedChatMessage.Player> int2objectmap = collectReferencedContext(pChatLog, p_242060_, this.limits);
             Set<UUID> set = new ObjectOpenHashSet<>();
 
             for (Int2ObjectMap.Entry<LoggedChatMessage.Player> entry : Int2ObjectMaps.fastIterable(int2objectmap)) {
@@ -146,7 +146,7 @@ public class ChatReportBuilder {
             }
 
             for (UUID uuid : set) {
-                this.chainForPlayer(p_239183_, int2objectmap, uuid).forEach((p_242067_) -> {
+                this.chainForPlayer(pChatLog, int2objectmap, uuid).forEach((p_242067_) -> {
                     LoggedChatMessageLink loggedchatmessagelink = p_242067_.event();
                     if (loggedchatmessagelink instanceof LoggedChatMessage.Player loggedchatmessage$player1) {
                         int2objectsortedmap.putIfAbsent(p_242067_.id(), this.buildReportedChatMessage(p_242067_.id(), loggedchatmessage$player1));
@@ -248,8 +248,8 @@ public class ChatReportBuilder {
         return intlist;
     }
 
-    private ReportChatMessage buildReportedChatMessage(int p_242213_, LoggedChatMessage.Player p_242239_) {
-        PlayerChatMessage playerchatmessage = p_242239_.message();
+    private ReportChatMessage buildReportedChatMessage(int pChatId, LoggedChatMessage.Player pLoggedPlayerChatMessage) {
+        PlayerChatMessage playerchatmessage = pLoggedPlayerChatMessage.message();
         SignedMessageBody signedmessagebody = playerchatmessage.signedBody();
         Instant instant = playerchatmessage.timeStamp();
         long i = playerchatmessage.salt();
@@ -262,7 +262,7 @@ public class ChatReportBuilder {
                                                                                                                 return new ReportChatMessageBody.LastSeenSignature(p_242068_.profileId(), p_242068_.lastSignature().asByteBuffer());
                                                                                                             })
                                                                      .toList();
-        return new ReportChatMessage(new ReportChatMessageHeader(bytebuffer1, p_242239_.profileId(), bytebuffer2, bytebuffer), new ReportChatMessageBody(instant, i, list, reportchatmessagecontent), s, this.isReported(p_242213_));
+        return new ReportChatMessage(new ReportChatMessageHeader(bytebuffer1, pLoggedPlayerChatMessage.profileId(), bytebuffer2, bytebuffer), new ReportChatMessageBody(instant, i, list, reportchatmessagecontent), s, this.isReported(pChatId));
     }
 
     private ReportChatMessage buildReportedChatHeader(LoggedChatMessageLink p_242212_) {

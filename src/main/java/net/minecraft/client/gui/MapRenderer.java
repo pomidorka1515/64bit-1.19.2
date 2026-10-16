@@ -29,24 +29,24 @@ public class MapRenderer implements AutoCloseable {
     final TextureManager textureManager;
     private final Int2ObjectMap<MapRenderer.MapInstance> maps = new Int2ObjectOpenHashMap<>();
 
-    public MapRenderer(TextureManager p_93259_) {
-        this.textureManager = p_93259_;
+    public MapRenderer(TextureManager pTextureManager) {
+        this.textureManager = pTextureManager;
     }
 
-    public void update(int p_168766_, MapItemSavedData p_168767_) {
-        this.getOrCreateMapInstance(p_168766_, p_168767_).forceUpload();
+    public void update(int pMapId, MapItemSavedData pMapData) {
+        this.getOrCreateMapInstance(pMapId, pMapData).forceUpload();
     }
 
-    public void render(PoseStack p_168772_, MultiBufferSource p_168773_, int p_168774_, MapItemSavedData p_168775_, boolean p_168776_, int p_168777_) {
-        this.getOrCreateMapInstance(p_168774_, p_168775_).draw(p_168772_, p_168773_, p_168776_, p_168777_);
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, int pMapId, MapItemSavedData pMapData, boolean pActive, int pPackedLight) {
+        this.getOrCreateMapInstance(pMapId, pMapData).draw(pPoseStack, pBufferSource, pActive, pPackedLight);
     }
 
-    private MapRenderer.MapInstance getOrCreateMapInstance(int p_168779_, MapItemSavedData p_168780_) {
-        return this.maps.compute(p_168779_, (p_182563_, p_182564_) -> {
+    private MapRenderer.MapInstance getOrCreateMapInstance(int pMapId, MapItemSavedData pMapData) {
+        return this.maps.compute(pMapId, (p_182563_, p_182564_) -> {
             if (p_182564_ == null) {
-                return new MapRenderer.MapInstance(p_182563_, p_168780_);
+                return new MapRenderer.MapInstance(p_182563_, pMapData);
             } else {
-                p_182564_.replaceMapData(p_168780_);
+                p_182564_.replaceMapData(pMapData);
                 return p_182564_;
             }
         });
@@ -78,9 +78,9 @@ public class MapRenderer implements AutoCloseable {
             this.renderType = RenderType.text(resourcelocation);
         }
 
-        void replaceMapData(MapItemSavedData p_182568_) {
-            boolean flag = this.data != p_182568_;
-            this.data = p_182568_;
+        void replaceMapData(MapItemSavedData pData) {
+            boolean flag = this.data != pData;
+            this.data = pData;
             this.requiresUpload |= flag;
         }
 
@@ -99,7 +99,7 @@ public class MapRenderer implements AutoCloseable {
             this.texture.upload();
         }
 
-        void draw(PoseStack p_93292_, MultiBufferSource p_93293_, boolean p_93294_, int p_93295_) {
+        void draw(PoseStack pPoseStack, MultiBufferSource pBufferSource, boolean pActive, int pPackedLight) {
             if (this.requiresUpload) {
                 this.updateTexture();
                 this.requiresUpload = false;
@@ -108,45 +108,45 @@ public class MapRenderer implements AutoCloseable {
             int i = 0;
             int j = 0;
             float f = 0.0F;
-            Matrix4f matrix4f = p_93292_.last().pose();
-            VertexConsumer vertexconsumer = p_93293_.getBuffer(this.renderType);
-            vertexconsumer.vertex(matrix4f, 0.0F, 128.0F, -0.01F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 128.0F, 128.0F, -0.01F).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 128.0F, 0.0F, -0.01F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(p_93295_).endVertex();
-            vertexconsumer.vertex(matrix4f, 0.0F, 0.0F, -0.01F).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(p_93295_).endVertex();
+            Matrix4f matrix4f = pPoseStack.last().pose();
+            VertexConsumer vertexconsumer = pBufferSource.getBuffer(this.renderType);
+            vertexconsumer.vertex(matrix4f, 0.0F, 128.0F, -0.01F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(pPackedLight).endVertex();
+            vertexconsumer.vertex(matrix4f, 128.0F, 128.0F, -0.01F).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(pPackedLight).endVertex();
+            vertexconsumer.vertex(matrix4f, 128.0F, 0.0F, -0.01F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(pPackedLight).endVertex();
+            vertexconsumer.vertex(matrix4f, 0.0F, 0.0F, -0.01F).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(pPackedLight).endVertex();
             int k = 0;
 
             for (MapDecoration mapdecoration : this.data.getDecorations()) {
-                if (!p_93294_ || mapdecoration.renderOnFrame()) {
-                    p_93292_.pushPose();
-                    p_93292_.translate((double) (0.0F + (float) mapdecoration.getX() / 2.0F + 64.0F), (double) (0.0F + (float) mapdecoration.getY() / 2.0F + 64.0F), (double) -0.02F);
-                    p_93292_.mulPose(Vector3f.ZP.rotationDegrees((float) (mapdecoration.getRot() * 360) / 16.0F));
-                    p_93292_.scale(4.0F, 4.0F, 3.0F);
-                    p_93292_.translate(-0.125D, 0.125D, 0.0D);
+                if (!pActive || mapdecoration.renderOnFrame()) {
+                    pPoseStack.pushPose();
+                    pPoseStack.translate((double) (0.0F + (float) mapdecoration.getX() / 2.0F + 64.0F), (double) (0.0F + (float) mapdecoration.getY() / 2.0F + 64.0F), (double) -0.02F);
+                    pPoseStack.mulPose(Vector3f.ZP.rotationDegrees((float) (mapdecoration.getRot() * 360) / 16.0F));
+                    pPoseStack.scale(4.0F, 4.0F, 3.0F);
+                    pPoseStack.translate(-0.125D, 0.125D, 0.0D);
                     byte b0 = mapdecoration.getImage();
                     float f1 = (float) (b0 % 16 + 0) / 16.0F;
                     float f2 = (float) (b0 / 16 + 0) / 16.0F;
                     float f3 = (float) (b0 % 16 + 1) / 16.0F;
                     float f4 = (float) (b0 / 16 + 1) / 16.0F;
-                    Matrix4f matrix4f1 = p_93292_.last().pose();
+                    Matrix4f matrix4f1 = pPoseStack.last().pose();
                     float f5 = -0.001F;
-                    VertexConsumer vertexconsumer1 = p_93293_.getBuffer(MapRenderer.MAP_ICONS);
-                    vertexconsumer1.vertex(matrix4f1, -1.0F, 1.0F, (float) k * -0.001F).color(255, 255, 255, 255).uv(f1, f2).uv2(p_93295_).endVertex();
-                    vertexconsumer1.vertex(matrix4f1, 1.0F, 1.0F, (float) k * -0.001F).color(255, 255, 255, 255).uv(f3, f2).uv2(p_93295_).endVertex();
-                    vertexconsumer1.vertex(matrix4f1, 1.0F, -1.0F, (float) k * -0.001F).color(255, 255, 255, 255).uv(f3, f4).uv2(p_93295_).endVertex();
-                    vertexconsumer1.vertex(matrix4f1, -1.0F, -1.0F, (float) k * -0.001F).color(255, 255, 255, 255).uv(f1, f4).uv2(p_93295_).endVertex();
-                    p_93292_.popPose();
+                    VertexConsumer vertexconsumer1 = pBufferSource.getBuffer(MapRenderer.MAP_ICONS);
+                    vertexconsumer1.vertex(matrix4f1, -1.0F, 1.0F, (float) k * -0.001F).color(255, 255, 255, 255).uv(f1, f2).uv2(pPackedLight).endVertex();
+                    vertexconsumer1.vertex(matrix4f1, 1.0F, 1.0F, (float) k * -0.001F).color(255, 255, 255, 255).uv(f3, f2).uv2(pPackedLight).endVertex();
+                    vertexconsumer1.vertex(matrix4f1, 1.0F, -1.0F, (float) k * -0.001F).color(255, 255, 255, 255).uv(f3, f4).uv2(pPackedLight).endVertex();
+                    vertexconsumer1.vertex(matrix4f1, -1.0F, -1.0F, (float) k * -0.001F).color(255, 255, 255, 255).uv(f1, f4).uv2(pPackedLight).endVertex();
+                    pPoseStack.popPose();
                     if (mapdecoration.getName() != null) {
                         Font font = Minecraft.getInstance().font;
                         Component component = mapdecoration.getName();
                         float f6 = (float) font.width(component);
                         float f7 = Mth.clamp(25.0F / f6, 0.0F, 6.0F / 9.0F);
-                        p_93292_.pushPose();
-                        p_93292_.translate((double) (0.0F + (float) mapdecoration.getX() / 2.0F + 64.0F - f6 * f7 / 2.0F), (double) (0.0F + (float) mapdecoration.getY() / 2.0F + 64.0F + 4.0F), (double) -0.025F);
-                        p_93292_.scale(f7, f7, 1.0F);
-                        p_93292_.translate(0.0D, 0.0D, (double) -0.1F);
-                        font.drawInBatch(component, 0.0F, 0.0F, -1, false, p_93292_.last().pose(), p_93293_, false, Integer.MIN_VALUE, p_93295_);
-                        p_93292_.popPose();
+                        pPoseStack.pushPose();
+                        pPoseStack.translate((double) (0.0F + (float) mapdecoration.getX() / 2.0F + 64.0F - f6 * f7 / 2.0F), (double) (0.0F + (float) mapdecoration.getY() / 2.0F + 64.0F + 4.0F), (double) -0.025F);
+                        pPoseStack.scale(f7, f7, 1.0F);
+                        pPoseStack.translate(0.0D, 0.0D, (double) -0.1F);
+                        font.drawInBatch(component, 0.0F, 0.0F, -1, false, pPoseStack.last().pose(), pBufferSource, false, Integer.MIN_VALUE, pPackedLight);
+                        pPoseStack.popPose();
                     }
 
                     ++k;

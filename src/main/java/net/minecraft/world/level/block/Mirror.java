@@ -22,29 +22,29 @@ public enum Mirror implements StringRepresentable {
         this.rotation = p_221530_;
     }
 
-    public int mirror(int p_54844_, int p_54845_) {
-        int i = p_54845_ / 2;
-        int j = p_54844_ > i ? p_54844_ - p_54845_ : p_54844_;
+    public int mirror(int pRotation, int pRotationCount) {
+        int i = pRotationCount / 2;
+        int j = pRotation > i ? pRotation - pRotationCount : pRotation;
         switch (this) {
             case FRONT_BACK:
-                return (p_54845_ - j) % p_54845_;
+                return (pRotationCount - j) % pRotationCount;
             case LEFT_RIGHT:
-                return (i - j + p_54845_) % p_54845_;
+                return (i - j + pRotationCount) % pRotationCount;
             default:
-                return p_54844_;
+                return pRotation;
         }
     }
 
-    public Rotation getRotation(Direction p_54847_) {
-        Direction.Axis direction$axis = p_54847_.getAxis();
+    public Rotation getRotation(Direction pFacing) {
+        Direction.Axis direction$axis = pFacing.getAxis();
         return (this != LEFT_RIGHT || direction$axis != Direction.Axis.Z) && (this != FRONT_BACK || direction$axis != Direction.Axis.X) ? Rotation.NONE : Rotation.CLOCKWISE_180;
     }
 
-    public Direction mirror(Direction p_54849_) {
-        if (this == FRONT_BACK && p_54849_.getAxis() == Direction.Axis.X) {
-            return p_54849_.getOpposite();
+    public Direction mirror(Direction pFacing) {
+        if (this == FRONT_BACK && pFacing.getAxis() == Direction.Axis.X) {
+            return pFacing.getOpposite();
         } else {
-            return this == LEFT_RIGHT && p_54849_.getAxis() == Direction.Axis.Z ? p_54849_.getOpposite() : p_54849_;
+            return this == LEFT_RIGHT && pFacing.getAxis() == Direction.Axis.Z ? pFacing.getOpposite() : pFacing;
         }
     }
 

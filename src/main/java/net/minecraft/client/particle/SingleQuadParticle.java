@@ -13,32 +13,32 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class SingleQuadParticle extends Particle {
     protected float quadSize = 0.1F * (this.random.nextFloat() * 0.5F + 0.5F) * 2.0F;
 
-    protected SingleQuadParticle(ClientLevel p_107665_, double p_107666_, double p_107667_, double p_107668_) {
-        super(p_107665_, p_107666_, p_107667_, p_107668_);
+    protected SingleQuadParticle(ClientLevel pLevel, double pX, double pY, double pZ) {
+        super(pLevel, pX, pY, pZ);
     }
 
-    protected SingleQuadParticle(ClientLevel p_107670_, double p_107671_, double p_107672_, double p_107673_, double p_107674_, double p_107675_, double p_107676_) {
-        super(p_107670_, p_107671_, p_107672_, p_107673_, p_107674_, p_107675_, p_107676_);
+    protected SingleQuadParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
     }
 
-    public void render(VertexConsumer p_107678_, Camera p_107679_, float p_107680_) {
-        net.minecraft.world.phys.Vec3 relative = this.cameraRelativePosition(p_107679_, p_107680_);
+    public void render(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+        net.minecraft.world.phys.Vec3 relative = this.cameraRelativePosition(pRenderInfo, pPartialTicks);
         float f = (float) relative.x;
         float f1 = (float) relative.y;
         float f2 = (float) relative.z;
         Quaternion quaternion;
         if (this.roll == 0.0F) {
-            quaternion = p_107679_.rotation();
+            quaternion = pRenderInfo.rotation();
         } else {
-            quaternion = new Quaternion(p_107679_.rotation());
-            float f3 = Mth.lerp(p_107680_, this.oRoll, this.roll);
+            quaternion = new Quaternion(pRenderInfo.rotation());
+            float f3 = Mth.lerp(pPartialTicks, this.oRoll, this.roll);
             quaternion.mul(Vector3f.ZP.rotation(f3));
         }
 
         Vector3f vector3f1 = new Vector3f(-1.0F, -1.0F, 0.0F);
         vector3f1.transform(quaternion);
         Vector3f[] avector3f = new Vector3f[] {new Vector3f(-1.0F, -1.0F, 0.0F), new Vector3f(-1.0F, 1.0F, 0.0F), new Vector3f(1.0F, 1.0F, 0.0F), new Vector3f(1.0F, -1.0F, 0.0F)};
-        float f4 = this.getQuadSize(p_107680_);
+        float f4 = this.getQuadSize(pPartialTicks);
 
         for (int i = 0; i < 4; ++i) {
             Vector3f vector3f = avector3f[i];
@@ -51,20 +51,20 @@ public abstract class SingleQuadParticle extends Particle {
         float f8 = this.getU1();
         float f5 = this.getV0();
         float f6 = this.getV1();
-        int j = this.getLightColor(p_107680_);
-        p_107678_.vertex((double) avector3f[0].x(), (double) avector3f[0].y(), (double) avector3f[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) avector3f[1].x(), (double) avector3f[1].y(), (double) avector3f[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) avector3f[2].x(), (double) avector3f[2].y(), (double) avector3f[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) avector3f[3].x(), (double) avector3f[3].y(), (double) avector3f[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        int j = this.getLightColor(pPartialTicks);
+        pBuffer.vertex((double) avector3f[0].x(), (double) avector3f[0].y(), (double) avector3f[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex((double) avector3f[1].x(), (double) avector3f[1].y(), (double) avector3f[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex((double) avector3f[2].x(), (double) avector3f[2].y(), (double) avector3f[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex((double) avector3f[3].x(), (double) avector3f[3].y(), (double) avector3f[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
     }
 
-    public float getQuadSize(float p_107681_) {
+    public float getQuadSize(float pScaleFactor) {
         return this.quadSize;
     }
 
-    public Particle scale(float p_107683_) {
-        this.quadSize *= p_107683_;
-        return super.scale(p_107683_);
+    public Particle scale(float pScale) {
+        this.quadSize *= pScale;
+        return super.scale(pScale);
     }
 
     protected abstract float getU0();

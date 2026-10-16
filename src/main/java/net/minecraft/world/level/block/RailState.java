@@ -17,12 +17,12 @@ public class RailState {
     private final boolean isStraight;
     private final List<BlockPos> connections = Lists.newArrayList();
 
-    public RailState(Level p_55421_, BlockPos p_55422_, BlockState p_55423_) {
-        this.level = p_55421_;
-        this.pos = p_55422_;
-        this.state = p_55423_;
-        this.block = (BaseRailBlock) p_55423_.getBlock();
-        RailShape railshape = p_55423_.getValue(this.block.getShapeProperty());
+    public RailState(Level pLevel, BlockPos pPos, BlockState pState) {
+        this.level = pLevel;
+        this.pos = pPos;
+        this.state = pState;
+        this.block = (BaseRailBlock) pState.getBlock();
+        RailShape railshape = pState.getValue(this.block.getShapeProperty());
         this.isStraight = this.block.isStraight();
         this.updateConnections(railshape);
     }
@@ -31,9 +31,9 @@ public class RailState {
         return this.connections;
     }
 
-    private void updateConnections(RailShape p_55428_) {
+    private void updateConnections(RailShape pShape) {
         this.connections.clear();
-        switch (p_55428_) {
+        switch (pShape) {
             case NORTH_SOUTH:
                 this.connections.add(this.pos.north());
                 this.connections.add(this.pos.south());
@@ -87,36 +87,36 @@ public class RailState {
         }
     }
 
-    private boolean hasRail(BlockPos p_55430_) {
-        return BaseRailBlock.isRail(this.level, p_55430_) || BaseRailBlock.isRail(this.level, p_55430_.above()) || BaseRailBlock.isRail(this.level, p_55430_.below());
+    private boolean hasRail(BlockPos pPos) {
+        return BaseRailBlock.isRail(this.level, pPos) || BaseRailBlock.isRail(this.level, pPos.above()) || BaseRailBlock.isRail(this.level, pPos.below());
     }
 
     @Nullable
-    private RailState getRail(BlockPos p_55439_) {
-        BlockState blockstate = this.level.getBlockState(p_55439_);
+    private RailState getRail(BlockPos pPos) {
+        BlockState blockstate = this.level.getBlockState(pPos);
         if (BaseRailBlock.isRail(blockstate)) {
-            return new RailState(this.level, p_55439_, blockstate);
+            return new RailState(this.level, pPos, blockstate);
         } else {
-            BlockPos $$1 = p_55439_.above();
+            BlockPos $$1 = pPos.above();
             blockstate = this.level.getBlockState($$1);
             if (BaseRailBlock.isRail(blockstate)) {
                 return new RailState(this.level, $$1, blockstate);
             } else {
-                $$1 = p_55439_.below();
+                $$1 = pPos.below();
                 blockstate = this.level.getBlockState($$1);
                 return BaseRailBlock.isRail(blockstate) ? new RailState(this.level, $$1, blockstate) : null;
             }
         }
     }
 
-    private boolean connectsTo(RailState p_55426_) {
-        return this.hasConnection(p_55426_.pos);
+    private boolean connectsTo(RailState pState) {
+        return this.hasConnection(pState.pos);
     }
 
-    private boolean hasConnection(BlockPos p_55444_) {
+    private boolean hasConnection(BlockPos pPos) {
         for (int i = 0; i < this.connections.size(); ++i) {
             BlockPos blockpos = this.connections.get(i);
-            if (blockpos.getX() == p_55444_.getX() && blockpos.getZ() == p_55444_.getZ()) {
+            if (blockpos.getX() == pPos.getX() && blockpos.getZ() == pPos.getZ()) {
                 return true;
             }
         }
@@ -136,12 +136,12 @@ public class RailState {
         return i;
     }
 
-    private boolean canConnectTo(RailState p_55437_) {
-        return this.connectsTo(p_55437_) || this.connections.size() != 2;
+    private boolean canConnectTo(RailState pState) {
+        return this.connectsTo(pState) || this.connections.size() != 2;
     }
 
-    private void connectTo(RailState p_55442_) {
-        this.connections.add(p_55442_.pos);
+    private void connectTo(RailState pState) {
+        this.connections.add(pState.pos);
         BlockPos blockpos = this.pos.north();
         BlockPos blockpos1 = this.pos.south();
         BlockPos blockpos2 = this.pos.west();
@@ -205,8 +205,8 @@ public class RailState {
         this.level.setBlock(this.pos, this.state, 3);
     }
 
-    private boolean hasNeighborRail(BlockPos p_55447_) {
-        RailState railstate = this.getRail(p_55447_);
+    private boolean hasNeighborRail(BlockPos pPos) {
+        RailState railstate = this.getRail(pPos);
         if (railstate == null) {
             return false;
         } else {
@@ -215,7 +215,7 @@ public class RailState {
         }
     }
 
-    public RailState place(boolean p_55432_, boolean p_55433_, RailShape p_55434_) {
+    public RailState place(boolean pPowered, boolean pPlaceBlock, RailShape pShape) {
         BlockPos blockpos = this.pos.north();
         BlockPos blockpos1 = this.pos.south();
         BlockPos blockpos2 = this.pos.west();
@@ -259,7 +259,7 @@ public class RailState {
 
         if (railshape == null) {
             if (flag4 && flag5) {
-                railshape = p_55434_;
+                railshape = pShape;
             } else if (flag4) {
                 railshape = RailShape.NORTH_SOUTH;
             } else if (flag5) {
@@ -267,7 +267,7 @@ public class RailState {
             }
 
             if (!this.isStraight) {
-                if (p_55432_) {
+                if (pPowered) {
                     if (flag6) {
                         railshape = RailShape.SOUTH_EAST;
                     }
@@ -324,12 +324,12 @@ public class RailState {
         }
 
         if (railshape == null) {
-            railshape = p_55434_;
+            railshape = pShape;
         }
 
         this.updateConnections(railshape);
         this.state = this.state.setValue(this.block.getShapeProperty(), railshape);
-        if (p_55433_ || this.level.getBlockState(this.pos) != this.state) {
+        if (pPlaceBlock || this.level.getBlockState(this.pos) != this.state) {
             this.level.setBlock(this.pos, this.state, 3);
 
             for (int i = 0; i < this.connections.size(); ++i) {

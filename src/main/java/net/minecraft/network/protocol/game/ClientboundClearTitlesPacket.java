@@ -6,20 +6,20 @@ import net.minecraft.network.protocol.Packet;
 public class ClientboundClearTitlesPacket implements Packet<ClientGamePacketListener> {
     private final boolean resetTimes;
 
-    public ClientboundClearTitlesPacket(boolean p_178781_) {
-        this.resetTimes = p_178781_;
+    public ClientboundClearTitlesPacket(boolean pResetTimes) {
+        this.resetTimes = pResetTimes;
     }
 
-    public ClientboundClearTitlesPacket(FriendlyByteBuf p_178779_) {
-        this.resetTimes = p_178779_.readBoolean();
+    public ClientboundClearTitlesPacket(FriendlyByteBuf pBuffer) {
+        this.resetTimes = pBuffer.readBoolean();
     }
 
-    public void write(FriendlyByteBuf p_178783_) {
-        p_178783_.writeBoolean(this.resetTimes);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBoolean(this.resetTimes);
     }
 
-    public void handle(ClientGamePacketListener p_178787_) {
-        p_178787_.handleTitlesClear(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleTitlesClear(this);
     }
 
     public boolean shouldResetTimes() {

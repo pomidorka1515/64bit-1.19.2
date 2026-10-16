@@ -26,37 +26,37 @@ public class FolderPackResources extends AbstractPackResources {
     private static final boolean ON_WINDOWS = Util.getPlatform() == Util.OS.WINDOWS;
     private static final CharMatcher BACKSLASH_MATCHER = CharMatcher.is('\\');
 
-    public FolderPackResources(File p_10257_) {
-        super(p_10257_);
+    public FolderPackResources(File pFile) {
+        super(pFile);
     }
 
-    public static boolean validatePath(File p_10274_, String p_10275_) throws IOException {
-        String s = p_10274_.getCanonicalPath();
+    public static boolean validatePath(File pPath, String pFilename) throws IOException {
+        String s = pPath.getCanonicalPath();
         if (ON_WINDOWS) {
             s = BACKSLASH_MATCHER.replaceFrom(s, '/');
         }
 
-        return s.endsWith(p_10275_);
+        return s.endsWith(pFilename);
     }
 
-    protected InputStream getResource(String p_10277_) throws IOException {
-        File file1 = this.getFile(p_10277_);
+    protected InputStream getResource(String pResourcePath) throws IOException {
+        File file1 = this.getFile(pResourcePath);
         if (file1 == null) {
-            throw new ResourcePackFileNotFoundException(this.file, p_10277_);
+            throw new ResourcePackFileNotFoundException(this.file, pResourcePath);
         } else {
             return new FileInputStream(file1);
         }
     }
 
-    protected boolean hasResource(String p_10279_) {
-        return this.getFile(p_10279_) != null;
+    protected boolean hasResource(String pResourcePath) {
+        return this.getFile(pResourcePath) != null;
     }
 
     @Nullable
-    private File getFile(String p_10282_) {
+    private File getFile(String pFilename) {
         try {
-            File file1 = new File(this.file, p_10282_);
-            if (file1.isFile() && validatePath(file1, p_10282_)) {
+            File file1 = new File(this.file, pFilename);
+            if (file1.isFile() && validatePath(file1, pFilename)) {
                 return file1;
             }
         } catch (IOException ioexception) {
@@ -65,9 +65,9 @@ public class FolderPackResources extends AbstractPackResources {
         return null;
     }
 
-    public Set<String> getNamespaces(PackType p_10259_) {
+    public Set<String> getNamespaces(PackType pType) {
         Set<String> set = Sets.newHashSet();
-        File file1 = new File(this.file, p_10259_.getDirectory());
+        File file1 = new File(this.file, pType.getDirectory());
         File[] afile = file1.listFiles((FileFilter) DirectoryFileFilter.DIRECTORY);
         if (afile != null) {
             for (File file2 : afile) {
@@ -86,10 +86,10 @@ public class FolderPackResources extends AbstractPackResources {
     public void close() {
     }
 
-    public Collection<ResourceLocation> getResources(PackType p_215329_, String p_215330_, String p_215331_, Predicate<ResourceLocation> p_215332_) {
-        File file1 = new File(this.file, p_215329_.getDirectory());
+    public Collection<ResourceLocation> getResources(PackType pType, String pNamespace, String pPath, Predicate<ResourceLocation> pFilter) {
+        File file1 = new File(this.file, pType.getDirectory());
         List<ResourceLocation> list = Lists.newArrayList();
-        this.listResources(new File(new File(file1, p_215330_), p_215331_), p_215330_, list, p_215331_ + "/", p_215332_);
+        this.listResources(new File(new File(file1, pNamespace), pPath), pNamespace, list, pPath + "/", pFilter);
         return list;
     }
 

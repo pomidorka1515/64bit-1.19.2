@@ -20,8 +20,8 @@ public class ClientboundLightUpdatePacketData {
     private final List<byte[]> blockUpdates;
     private final boolean trustEdges;
 
-    public ClientboundLightUpdatePacketData(ChunkPos p_195731_, LevelLightEngine p_195732_, @Nullable BitSet p_195733_, @Nullable BitSet p_195734_, boolean p_195735_) {
-        this.trustEdges = p_195735_;
+    public ClientboundLightUpdatePacketData(ChunkPos pChunkPos, LevelLightEngine pLevelLightEngine, @Nullable BitSet pSkyLight, @Nullable BitSet pBlockLight, boolean pTrustEdges) {
+        this.trustEdges = pTrustEdges;
         this.skyYMask = new BitSet();
         this.blockYMask = new BitSet();
         this.emptySkyYMask = new BitSet();
@@ -29,13 +29,13 @@ public class ClientboundLightUpdatePacketData {
         this.skyUpdates = Lists.newArrayList();
         this.blockUpdates = Lists.newArrayList();
 
-        for (int i = 0; i < p_195732_.getLightSectionCount(); ++i) {
-            if (p_195733_ == null || p_195733_.get(i)) {
-                this.prepareSectionData(p_195731_, p_195732_, LightLayer.SKY, i, this.skyYMask, this.emptySkyYMask, this.skyUpdates);
+        for (int i = 0; i < pLevelLightEngine.getLightSectionCount(); ++i) {
+            if (pSkyLight == null || pSkyLight.get(i)) {
+                this.prepareSectionData(pChunkPos, pLevelLightEngine, LightLayer.SKY, i, this.skyYMask, this.emptySkyYMask, this.skyUpdates);
             }
 
-            if (p_195734_ == null || p_195734_.get(i)) {
-                this.prepareSectionData(p_195731_, p_195732_, LightLayer.BLOCK, i, this.blockYMask, this.emptyBlockYMask, this.blockUpdates);
+            if (pBlockLight == null || pBlockLight.get(i)) {
+                this.prepareSectionData(pChunkPos, pLevelLightEngine, LightLayer.BLOCK, i, this.blockYMask, this.emptyBlockYMask, this.blockUpdates);
             }
         }
     }
@@ -54,14 +54,14 @@ public class ClientboundLightUpdatePacketData {
         });
     }
 
-    public void write(FriendlyByteBuf p_195750_) {
-        p_195750_.writeBoolean(this.trustEdges);
-        p_195750_.writeBitSet(this.skyYMask);
-        p_195750_.writeBitSet(this.blockYMask);
-        p_195750_.writeBitSet(this.emptySkyYMask);
-        p_195750_.writeBitSet(this.emptyBlockYMask);
-        p_195750_.writeCollection(this.skyUpdates, FriendlyByteBuf::writeByteArray);
-        p_195750_.writeCollection(this.blockUpdates, FriendlyByteBuf::writeByteArray);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBoolean(this.trustEdges);
+        pBuffer.writeBitSet(this.skyYMask);
+        pBuffer.writeBitSet(this.blockYMask);
+        pBuffer.writeBitSet(this.emptySkyYMask);
+        pBuffer.writeBitSet(this.emptyBlockYMask);
+        pBuffer.writeCollection(this.skyUpdates, FriendlyByteBuf::writeByteArray);
+        pBuffer.writeCollection(this.blockUpdates, FriendlyByteBuf::writeByteArray);
     }
 
     private void prepareSectionData(ChunkPos p_195742_, LevelLightEngine p_195743_, LightLayer p_195744_, int p_195745_, BitSet p_195746_, BitSet p_195747_, List<byte[]> p_195748_) {

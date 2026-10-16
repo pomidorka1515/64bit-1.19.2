@@ -19,8 +19,8 @@ public abstract class SpellcasterIllager extends AbstractIllager {
     protected int spellCastingTickCount;
     private SpellcasterIllager.IllagerSpell currentSpell = SpellcasterIllager.IllagerSpell.NONE;
 
-    protected SpellcasterIllager(EntityType<? extends SpellcasterIllager> p_33724_, Level p_33725_) {
-        super(p_33724_, p_33725_);
+    protected SpellcasterIllager(EntityType<? extends SpellcasterIllager> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void defineSynchedData() {
@@ -28,14 +28,14 @@ public abstract class SpellcasterIllager extends AbstractIllager {
         this.entityData.define(DATA_SPELL_CASTING_ID, (byte) 0);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_33732_) {
-        super.readAdditionalSaveData(p_33732_);
-        this.spellCastingTickCount = p_33732_.getInt("SpellTicks");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.spellCastingTickCount = pCompound.getInt("SpellTicks");
     }
 
-    public void addAdditionalSaveData(CompoundTag p_33734_) {
-        super.addAdditionalSaveData(p_33734_);
-        p_33734_.putInt("SpellTicks", this.spellCastingTickCount);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("SpellTicks", this.spellCastingTickCount);
     }
 
     public AbstractIllager.IllagerArmPose getArmPose() {
@@ -54,9 +54,9 @@ public abstract class SpellcasterIllager extends AbstractIllager {
         }
     }
 
-    public void setIsCastingSpell(SpellcasterIllager.IllagerSpell p_33728_) {
-        this.currentSpell = p_33728_;
-        this.entityData.set(DATA_SPELL_CASTING_ID, (byte) p_33728_.id);
+    public void setIsCastingSpell(SpellcasterIllager.IllagerSpell pCurrentSpell) {
+        this.currentSpell = pCurrentSpell;
+        this.entityData.set(DATA_SPELL_CASTING_ID, (byte) pCurrentSpell.id);
     }
 
     protected SpellcasterIllager.IllagerSpell getCurrentSpell() {
@@ -107,9 +107,9 @@ public abstract class SpellcasterIllager extends AbstractIllager {
             this.spellColor = new double[] {p_33755_, p_33756_, p_33757_};
         }
 
-        public static SpellcasterIllager.IllagerSpell byId(int p_33759_) {
+        public static SpellcasterIllager.IllagerSpell byId(int pId) {
             for (SpellcasterIllager.IllagerSpell spellcasterillager$illagerspell : values()) {
-                if (p_33759_ == spellcasterillager$illagerspell.id) {
+                if (pId == spellcasterillager$illagerspell.id) {
                     return spellcasterillager$illagerspell;
                 }
             }

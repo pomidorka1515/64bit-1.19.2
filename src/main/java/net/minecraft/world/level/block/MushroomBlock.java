@@ -20,22 +20,22 @@ public class MushroomBlock extends BushBlock implements BonemealableBlock {
     protected static final VoxelShape SHAPE = Block.box(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D);
     private final Supplier<Holder<? extends ConfiguredFeature<?, ?>>> featureSupplier;
 
-    public MushroomBlock(BlockBehaviour.Properties p_153983_, Supplier<Holder<? extends ConfiguredFeature<?, ?>>> p_153984_) {
-        super(p_153983_);
-        this.featureSupplier = p_153984_;
+    public MushroomBlock(BlockBehaviour.Properties pProperties, Supplier<Holder<? extends ConfiguredFeature<?, ?>>> pFeatureSupplier) {
+        super(pProperties);
+        this.featureSupplier = pFeatureSupplier;
     }
 
-    public VoxelShape getShape(BlockState p_54889_, BlockGetter p_54890_, BlockPos p_54891_, CollisionContext p_54892_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
-    public void randomTick(BlockState p_221784_, ServerLevel p_221785_, BlockPos p_221786_, RandomSource p_221787_) {
-        if (p_221787_.nextInt(25) == 0) {
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pRandom.nextInt(25) == 0) {
             int i = 5;
             int j = 4;
 
-            for (BlockPos blockpos : BlockPos.betweenClosed(p_221786_.offset(-4, -1, -4), p_221786_.offset(4, 1, 4))) {
-                if (p_221785_.getBlockState(blockpos).is(this)) {
+            for (BlockPos blockpos : BlockPos.betweenClosed(pPos.offset(-4, -1, -4), pPos.offset(4, 1, 4))) {
+                if (pLevel.getBlockState(blockpos).is(this)) {
                     --i;
                     if (i <= 0) {
                         return;
@@ -43,55 +43,55 @@ public class MushroomBlock extends BushBlock implements BonemealableBlock {
                 }
             }
 
-            BlockPos blockpos1 = p_221786_.offset(p_221787_.nextInt(3) - 1, p_221787_.nextInt(2) - p_221787_.nextInt(2), p_221787_.nextInt(3) - 1);
+            BlockPos blockpos1 = pPos.offset(pRandom.nextInt(3) - 1, pRandom.nextInt(2) - pRandom.nextInt(2), pRandom.nextInt(3) - 1);
 
             for (int k = 0; k < 4; ++k) {
-                if (p_221785_.isEmptyBlock(blockpos1) && p_221784_.canSurvive(p_221785_, blockpos1)) {
-                    p_221786_ = blockpos1;
+                if (pLevel.isEmptyBlock(blockpos1) && pState.canSurvive(pLevel, blockpos1)) {
+                    pPos = blockpos1;
                 }
 
-                blockpos1 = p_221786_.offset(p_221787_.nextInt(3) - 1, p_221787_.nextInt(2) - p_221787_.nextInt(2), p_221787_.nextInt(3) - 1);
+                blockpos1 = pPos.offset(pRandom.nextInt(3) - 1, pRandom.nextInt(2) - pRandom.nextInt(2), pRandom.nextInt(3) - 1);
             }
 
-            if (p_221785_.isEmptyBlock(blockpos1) && p_221784_.canSurvive(p_221785_, blockpos1)) {
-                p_221785_.setBlock(blockpos1, p_221784_, 2);
+            if (pLevel.isEmptyBlock(blockpos1) && pState.canSurvive(pLevel, blockpos1)) {
+                pLevel.setBlock(blockpos1, pState, 2);
             }
         }
     }
 
-    protected boolean mayPlaceOn(BlockState p_54894_, BlockGetter p_54895_, BlockPos p_54896_) {
-        return p_54894_.isSolidRender(p_54895_, p_54896_);
+    protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+        return pState.isSolidRender(pLevel, pPos);
     }
 
-    public boolean canSurvive(BlockState p_54880_, LevelReader p_54881_, BlockPos p_54882_) {
-        BlockPos blockpos = p_54882_.below();
-        BlockState blockstate = p_54881_.getBlockState(blockpos);
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        BlockPos blockpos = pPos.below();
+        BlockState blockstate = pLevel.getBlockState(blockpos);
         if (blockstate.is(BlockTags.MUSHROOM_GROW_BLOCK)) {
             return true;
         } else {
-            return p_54881_.getRawBrightness(p_54882_, 0) < 13 && this.mayPlaceOn(blockstate, p_54881_, blockpos);
+            return pLevel.getRawBrightness(pPos, 0) < 13 && this.mayPlaceOn(blockstate, pLevel, blockpos);
         }
     }
 
-    public boolean growMushroom(ServerLevel p_221774_, BlockPos p_221775_, BlockState p_221776_, RandomSource p_221777_) {
-        p_221774_.removeBlock(p_221775_, false);
-        if (this.featureSupplier.get().value().place(p_221774_, p_221774_.getChunkSource().getGenerator(), p_221777_, p_221775_)) {
+    public boolean growMushroom(ServerLevel pLevel, BlockPos pPos, BlockState pState, RandomSource pRandom) {
+        pLevel.removeBlock(pPos, false);
+        if (this.featureSupplier.get().value().place(pLevel, pLevel.getChunkSource().getGenerator(), pRandom, pPos)) {
             return true;
         } else {
-            p_221774_.setBlock(p_221775_, p_221776_, 3);
+            pLevel.setBlock(pPos, pState, 3);
             return false;
         }
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_54870_, BlockPos p_54871_, BlockState p_54872_, boolean p_54873_) {
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
         return true;
     }
 
-    public boolean isBonemealSuccess(Level p_221779_, RandomSource p_221780_, BlockPos p_221781_, BlockState p_221782_) {
-        return (double) p_221780_.nextFloat() < 0.4D;
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        return (double) pRandom.nextFloat() < 0.4D;
     }
 
-    public void performBonemeal(ServerLevel p_221769_, RandomSource p_221770_, BlockPos p_221771_, BlockState p_221772_) {
-        this.growMushroom(p_221769_, p_221771_, p_221772_, p_221770_);
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        this.growMushroom(pLevel, pPos, pState, pRandom);
     }
 }

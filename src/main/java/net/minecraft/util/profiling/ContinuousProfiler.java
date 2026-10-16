@@ -8,9 +8,9 @@ public class ContinuousProfiler {
     private final IntSupplier tickCount;
     private ProfileCollector profiler = InactiveProfiler.INSTANCE;
 
-    public ContinuousProfiler(LongSupplier p_18434_, IntSupplier p_18435_) {
-        this.realTime = p_18434_;
-        this.tickCount = p_18435_;
+    public ContinuousProfiler(LongSupplier pRealTime, IntSupplier pTickCount) {
+        this.realTime = pRealTime;
+        this.tickCount = pTickCount;
     }
 
     public boolean isEnabled() {

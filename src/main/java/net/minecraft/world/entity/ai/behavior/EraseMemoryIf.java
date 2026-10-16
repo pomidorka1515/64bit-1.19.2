@@ -11,17 +11,17 @@ public class EraseMemoryIf<E extends LivingEntity> extends Behavior<E> {
     private final Predicate<E> predicate;
     private final MemoryModuleType<?> memoryType;
 
-    public EraseMemoryIf(Predicate<E> p_22859_, MemoryModuleType<?> p_22860_) {
-        super(ImmutableMap.of(p_22860_, MemoryStatus.VALUE_PRESENT));
-        this.predicate = p_22859_;
-        this.memoryType = p_22860_;
+    public EraseMemoryIf(Predicate<E> pPredicate, MemoryModuleType<?> pMemoryType) {
+        super(ImmutableMap.of(pMemoryType, MemoryStatus.VALUE_PRESENT));
+        this.predicate = pPredicate;
+        this.memoryType = pMemoryType;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_22862_, E p_22863_) {
-        return this.predicate.test(p_22863_);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, E pOwner) {
+        return this.predicate.test(pOwner);
     }
 
-    protected void start(ServerLevel p_22865_, E p_22866_, long p_22867_) {
-        p_22866_.getBrain().eraseMemory(this.memoryType);
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
+        pEntity.getBrain().eraseMemory(this.memoryType);
     }
 }

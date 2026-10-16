@@ -13,8 +13,8 @@ public class DragonDeathPhase extends AbstractDragonPhaseInstance {
     private net.minecraft.world.phys.SectorVec3 targetLocation;
     private int time;
 
-    public DragonDeathPhase(EnderDragon p_31217_) {
-        super(p_31217_);
+    public DragonDeathPhase(EnderDragon pDragon) {
+        super(pDragon);
     }
 
     public void doClientTick() {

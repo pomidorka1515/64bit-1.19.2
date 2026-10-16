@@ -32,12 +32,12 @@ public class TestClassNameArgument implements ArgumentType<String> {
         return new TestClassNameArgument();
     }
 
-    public static String getTestClassName(CommandContext<CommandSourceStack> p_127921_, String p_127922_) {
-        return p_127921_.getArgument(p_127922_, String.class);
+    public static String getTestClassName(CommandContext<CommandSourceStack> pContext, String pArgument) {
+        return pContext.getArgument(pArgument, String.class);
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_127925_, SuggestionsBuilder p_127926_) {
-        return SharedSuggestionProvider.suggest(GameTestRegistry.getAllTestClassNames().stream(), p_127926_);
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return SharedSuggestionProvider.suggest(GameTestRegistry.getAllTestClassNames().stream(), pBuilder);
     }
 
     public Collection<String> getExamples() {

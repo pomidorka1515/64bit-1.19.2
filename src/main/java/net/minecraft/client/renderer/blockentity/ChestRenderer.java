@@ -48,21 +48,21 @@ public class ChestRenderer<T extends BlockEntity & LidBlockEntity> implements Bl
     private final ModelPart doubleRightLock;
     private boolean xmasTextures;
 
-    public ChestRenderer(BlockEntityRendererProvider.Context p_173607_) {
+    public ChestRenderer(BlockEntityRendererProvider.Context pContext) {
         Calendar calendar = Calendar.getInstance();
         if (calendar.get(2) + 1 == 12 && calendar.get(5) >= 24 && calendar.get(5) <= 26) {
             this.xmasTextures = true;
         }
 
-        ModelPart modelpart = p_173607_.bakeLayer(ModelLayers.CHEST);
+        ModelPart modelpart = pContext.bakeLayer(ModelLayers.CHEST);
         this.bottom = modelpart.getChild("bottom");
         this.lid = modelpart.getChild("lid");
         this.lock = modelpart.getChild("lock");
-        ModelPart modelpart1 = p_173607_.bakeLayer(ModelLayers.DOUBLE_CHEST_LEFT);
+        ModelPart modelpart1 = pContext.bakeLayer(ModelLayers.DOUBLE_CHEST_LEFT);
         this.doubleLeftBottom = modelpart1.getChild("bottom");
         this.doubleLeftLid = modelpart1.getChild("lid");
         this.doubleLeftLock = modelpart1.getChild("lock");
-        ModelPart modelpart2 = p_173607_.bakeLayer(ModelLayers.DOUBLE_CHEST_RIGHT);
+        ModelPart modelpart2 = pContext.bakeLayer(ModelLayers.DOUBLE_CHEST_RIGHT);
         this.doubleRightBottom = modelpart2.getChild("bottom");
         this.doubleRightLid = modelpart2.getChild("lid");
         this.doubleRightLock = modelpart2.getChild("lock");
@@ -95,51 +95,51 @@ public class ChestRenderer<T extends BlockEntity & LidBlockEntity> implements Bl
         return LayerDefinition.create(meshdefinition, 64, 64);
     }
 
-    public void render(T p_112363_, float p_112364_, PoseStack p_112365_, MultiBufferSource p_112366_, int p_112367_, int p_112368_) {
-        Level level = p_112363_.getLevel();
+    public void render(T pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        Level level = pBlockEntity.getLevel();
         boolean flag = level != null;
-        BlockState blockstate = flag ? p_112363_.getBlockState() : Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.SOUTH);
+        BlockState blockstate = flag ? pBlockEntity.getBlockState() : Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.SOUTH);
         ChestType chesttype = blockstate.hasProperty(ChestBlock.TYPE) ? blockstate.getValue(ChestBlock.TYPE) : ChestType.SINGLE;
         Block block = blockstate.getBlock();
         if (block instanceof AbstractChestBlock<?> abstractchestblock) {
             boolean flag1 = chesttype != ChestType.SINGLE;
-            p_112365_.pushPose();
+            pPoseStack.pushPose();
             float f = blockstate.getValue(ChestBlock.FACING).toYRot();
-            p_112365_.translate(0.5D, 0.5D, 0.5D);
-            p_112365_.mulPose(Vector3f.YP.rotationDegrees(-f));
-            p_112365_.translate(-0.5D, -0.5D, -0.5D);
+            pPoseStack.translate(0.5D, 0.5D, 0.5D);
+            pPoseStack.mulPose(Vector3f.YP.rotationDegrees(-f));
+            pPoseStack.translate(-0.5D, -0.5D, -0.5D);
             DoubleBlockCombiner.NeighborCombineResult<? extends ChestBlockEntity> neighborcombineresult;
             if (flag) {
-                neighborcombineresult = abstractchestblock.combine(blockstate, level, p_112363_.getBlockPos(), true);
+                neighborcombineresult = abstractchestblock.combine(blockstate, level, pBlockEntity.getBlockPos(), true);
             } else {
                 neighborcombineresult = DoubleBlockCombiner.Combiner::acceptNone;
             }
 
-            float f1 = neighborcombineresult.<Float2FloatFunction>apply(ChestBlock.opennessCombiner(p_112363_)).get(p_112364_);
+            float f1 = neighborcombineresult.<Float2FloatFunction>apply(ChestBlock.opennessCombiner(pBlockEntity)).get(pPartialTick);
             f1 = 1.0F - f1;
             f1 = 1.0F - f1 * f1 * f1;
-            int i = neighborcombineresult.<Int2IntFunction>apply(new BrightnessCombiner<>()).applyAsInt(p_112367_);
-            Material material = Sheets.chooseMaterial(p_112363_, chesttype, this.xmasTextures);
-            VertexConsumer vertexconsumer = material.buffer(p_112366_, RenderType::entityCutout);
+            int i = neighborcombineresult.<Int2IntFunction>apply(new BrightnessCombiner<>()).applyAsInt(pPackedLight);
+            Material material = Sheets.chooseMaterial(pBlockEntity, chesttype, this.xmasTextures);
+            VertexConsumer vertexconsumer = material.buffer(pBufferSource, RenderType::entityCutout);
             if (flag1) {
                 if (chesttype == ChestType.LEFT) {
-                    this.render(p_112365_, vertexconsumer, this.doubleLeftLid, this.doubleLeftLock, this.doubleLeftBottom, f1, i, p_112368_);
+                    this.render(pPoseStack, vertexconsumer, this.doubleLeftLid, this.doubleLeftLock, this.doubleLeftBottom, f1, i, pPackedOverlay);
                 } else {
-                    this.render(p_112365_, vertexconsumer, this.doubleRightLid, this.doubleRightLock, this.doubleRightBottom, f1, i, p_112368_);
+                    this.render(pPoseStack, vertexconsumer, this.doubleRightLid, this.doubleRightLock, this.doubleRightBottom, f1, i, pPackedOverlay);
                 }
             } else {
-                this.render(p_112365_, vertexconsumer, this.lid, this.lock, this.bottom, f1, i, p_112368_);
+                this.render(pPoseStack, vertexconsumer, this.lid, this.lock, this.bottom, f1, i, pPackedOverlay);
             }
 
-            p_112365_.popPose();
+            pPoseStack.popPose();
         }
     }
 
-    private void render(PoseStack p_112370_, VertexConsumer p_112371_, ModelPart p_112372_, ModelPart p_112373_, ModelPart p_112374_, float p_112375_, int p_112376_, int p_112377_) {
-        p_112372_.xRot = -(p_112375_ * ((float) Math.PI / 2F));
-        p_112373_.xRot = p_112372_.xRot;
-        p_112372_.render(p_112370_, p_112371_, p_112376_, p_112377_);
-        p_112373_.render(p_112370_, p_112371_, p_112376_, p_112377_);
-        p_112374_.render(p_112370_, p_112371_, p_112376_, p_112377_);
+    private void render(PoseStack pPoseStack, VertexConsumer pConsumer, ModelPart pLidPart, ModelPart pLockPart, ModelPart pBottomPart, float pLidAngle, int pPackedLight, int pPackedOverlay) {
+        pLidPart.xRot = -(pLidAngle * ((float) Math.PI / 2F));
+        pLockPart.xRot = pLidPart.xRot;
+        pLidPart.render(pPoseStack, pConsumer, pPackedLight, pPackedOverlay);
+        pLockPart.render(pPoseStack, pConsumer, pPackedLight, pPackedOverlay);
+        pBottomPart.render(pPoseStack, pConsumer, pPackedLight, pPackedOverlay);
     }
 }

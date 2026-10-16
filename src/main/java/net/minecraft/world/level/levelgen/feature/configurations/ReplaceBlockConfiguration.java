@@ -16,8 +16,8 @@ public class ReplaceBlockConfiguration implements FeatureConfiguration {
     });
     public final List<OreConfiguration.TargetBlockState> targetStates;
 
-    public ReplaceBlockConfiguration(BlockState p_68028_, BlockState p_68029_) {
-        this(ImmutableList.of(OreConfiguration.target(new BlockStateMatchTest(p_68028_), p_68029_)));
+    public ReplaceBlockConfiguration(BlockState pTargetState, BlockState pState) {
+        this(ImmutableList.of(OreConfiguration.target(new BlockStateMatchTest(pTargetState), pState)));
     }
 
     public ReplaceBlockConfiguration(List<OreConfiguration.TargetBlockState> p_161085_) {

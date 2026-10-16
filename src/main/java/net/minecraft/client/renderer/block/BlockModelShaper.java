@@ -19,16 +19,16 @@ public class BlockModelShaper {
     private final Map<BlockState, BakedModel> modelByStateCache = Maps.newIdentityHashMap();
     private final ModelManager modelManager;
 
-    public BlockModelShaper(ModelManager p_110880_) {
-        this.modelManager = p_110880_;
+    public BlockModelShaper(ModelManager pModelManager) {
+        this.modelManager = pModelManager;
     }
 
-    public TextureAtlasSprite getParticleIcon(BlockState p_110883_) {
-        return this.getBlockModel(p_110883_).getParticleIcon();
+    public TextureAtlasSprite getParticleIcon(BlockState pState) {
+        return this.getBlockModel(pState).getParticleIcon();
     }
 
-    public BakedModel getBlockModel(BlockState p_110894_) {
-        BakedModel bakedmodel = this.modelByStateCache.get(p_110894_);
+    public BakedModel getBlockModel(BlockState pState) {
+        BakedModel bakedmodel = this.modelByStateCache.get(pState);
         if (bakedmodel == null) {
             bakedmodel = this.modelManager.getMissingModel();
         }
@@ -50,18 +50,18 @@ public class BlockModelShaper {
         }
     }
 
-    public static ModelResourceLocation stateToModelLocation(BlockState p_110896_) {
-        return stateToModelLocation(Registry.BLOCK.getKey(p_110896_.getBlock()), p_110896_);
+    public static ModelResourceLocation stateToModelLocation(BlockState pState) {
+        return stateToModelLocation(Registry.BLOCK.getKey(pState.getBlock()), pState);
     }
 
-    public static ModelResourceLocation stateToModelLocation(ResourceLocation p_110890_, BlockState p_110891_) {
-        return new ModelResourceLocation(p_110890_, statePropertiesToString(p_110891_.getValues()));
+    public static ModelResourceLocation stateToModelLocation(ResourceLocation pLocation, BlockState pState) {
+        return new ModelResourceLocation(pLocation, statePropertiesToString(pState.getValues()));
     }
 
-    public static String statePropertiesToString(Map<Property<?>, Comparable<?>> p_110888_) {
+    public static String statePropertiesToString(Map<Property<?>, Comparable<?>> pPropertyValues) {
         StringBuilder stringbuilder = new StringBuilder();
 
-        for (Map.Entry<Property<?>, Comparable<?>> entry : p_110888_.entrySet()) {
+        for (Map.Entry<Property<?>, Comparable<?>> entry : pPropertyValues.entrySet()) {
             if (stringbuilder.length() != 0) {
                 stringbuilder.append(',');
             }
@@ -75,7 +75,7 @@ public class BlockModelShaper {
         return stringbuilder.toString();
     }
 
-    private static <T extends Comparable<T>> String getValue(Property<T> p_110885_, Comparable<?> p_110886_) {
-        return p_110885_.getName((T) p_110886_);
+    private static <T extends Comparable<T>> String getValue(Property<T> pProperty, Comparable<?> pValue) {
+        return pProperty.getName((T) pValue);
     }
 }

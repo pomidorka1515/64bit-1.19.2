@@ -32,7 +32,7 @@ public enum ChatPreviewStatus implements OptionEnum {
         return this.id;
     }
 
-    public static ChatPreviewStatus byId(int p_242383_) {
-        return BY_ID[Mth.positiveModulo(p_242383_, BY_ID.length)];
+    public static ChatPreviewStatus byId(int pId) {
+        return BY_ID[Mth.positiveModulo(pId, BY_ID.length)];
     }
 }

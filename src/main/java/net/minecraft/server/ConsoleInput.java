@@ -6,8 +6,8 @@ public class ConsoleInput {
     public final String msg;
     public final CommandSourceStack source;
 
-    public ConsoleInput(String p_135931_, CommandSourceStack p_135932_) {
-        this.msg = p_135931_;
-        this.source = p_135932_;
+    public ConsoleInput(String pMsg, CommandSourceStack pSource) {
+        this.msg = pMsg;
+        this.source = pSource;
     }
 }

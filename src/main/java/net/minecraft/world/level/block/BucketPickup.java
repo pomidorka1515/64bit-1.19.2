@@ -8,7 +8,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 
 public interface BucketPickup {
-    ItemStack pickupBlock(LevelAccessor p_152719_, BlockPos p_152720_, BlockState p_152721_);
+    ItemStack pickupBlock(LevelAccessor pLevel, BlockPos pPos, BlockState pState);
 
     Optional<SoundEvent> getPickupSound();
 }

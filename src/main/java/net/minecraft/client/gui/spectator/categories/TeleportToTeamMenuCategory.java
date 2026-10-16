@@ -44,17 +44,17 @@ public class TeleportToTeamMenuCategory implements SpectatorMenuCategory, Specta
         return TELEPORT_PROMPT;
     }
 
-    public void selectItem(SpectatorMenu p_101886_) {
-        p_101886_.selectCategory(this);
+    public void selectItem(SpectatorMenu pMenu) {
+        pMenu.selectCategory(this);
     }
 
     public Component getName() {
         return TELEPORT_TEXT;
     }
 
-    public void renderIcon(PoseStack p_101882_, float p_101883_, int p_101884_) {
+    public void renderIcon(PoseStack pPoseStack, float pShadeColor, int pAlpha) {
         RenderSystem.setShaderTexture(0, SpectatorGui.SPECTATOR_LOCATION);
-        GuiComponent.blit(p_101882_, 0, 0, 16.0F, 0.0F, 16, 16, 256, 256);
+        GuiComponent.blit(pPoseStack, 0, 0, 16.0F, 0.0F, 16, 16, 256, 256);
     }
 
     public boolean isEnabled() {
@@ -73,11 +73,11 @@ public class TeleportToTeamMenuCategory implements SpectatorMenuCategory, Specta
         private final ResourceLocation location;
         private final List<PlayerInfo> players;
 
-        public TeamSelectionItem(PlayerTeam p_194115_) {
-            this.team = p_194115_;
+        public TeamSelectionItem(PlayerTeam pTeam) {
+            this.team = pTeam;
             this.players = Lists.newArrayList();
 
-            for (String s : p_194115_.getPlayers()) {
+            for (String s : pTeam.getPlayers()) {
                 PlayerInfo playerinfo = Minecraft.getInstance().getConnection().getPlayerInfo(s);
                 if (playerinfo != null) {
                     this.players.add(playerinfo);
@@ -93,26 +93,26 @@ public class TeleportToTeamMenuCategory implements SpectatorMenuCategory, Specta
             }
         }
 
-        public void selectItem(SpectatorMenu p_101902_) {
-            p_101902_.selectCategory(new TeleportToPlayerMenuCategory(this.players));
+        public void selectItem(SpectatorMenu pMenu) {
+            pMenu.selectCategory(new TeleportToPlayerMenuCategory(this.players));
         }
 
         public Component getName() {
             return this.team.getDisplayName();
         }
 
-        public void renderIcon(PoseStack p_101898_, float p_101899_, int p_101900_) {
+        public void renderIcon(PoseStack pPoseStack, float pShadeColor, int pAlpha) {
             Integer integer = this.team.getColor().getColor();
             if (integer != null) {
                 float f = (float) (integer >> 16 & 255) / 255.0F;
                 float f1 = (float) (integer >> 8 & 255) / 255.0F;
                 float f2 = (float) (integer & 255) / 255.0F;
-                GuiComponent.fill(p_101898_, 1, 1, 15, 15, Mth.color(f * p_101899_, f1 * p_101899_, f2 * p_101899_) | p_101900_ << 24);
+                GuiComponent.fill(pPoseStack, 1, 1, 15, 15, Mth.color(f * pShadeColor, f1 * pShadeColor, f2 * pShadeColor) | pAlpha << 24);
             }
 
             RenderSystem.setShaderTexture(0, this.location);
-            RenderSystem.setShaderColor(p_101899_, p_101899_, p_101899_, (float) p_101900_ / 255.0F);
-            PlayerFaceRenderer.draw(p_101898_, 2, 2, 12);
+            RenderSystem.setShaderColor(pShadeColor, pShadeColor, pShadeColor, (float) pAlpha / 255.0F);
+            PlayerFaceRenderer.draw(pPoseStack, 2, 2, 12);
         }
 
         public boolean isEnabled() {

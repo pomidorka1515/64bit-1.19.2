@@ -43,55 +43,55 @@ public class SkullBlockRenderer implements BlockEntityRenderer<SkullBlockEntity>
         p_112552_.put(SkullBlock.Types.PLAYER, DefaultPlayerSkin.getDefaultSkin());
     });
 
-    public static Map<SkullBlock.Type, SkullModelBase> createSkullRenderers(EntityModelSet p_173662_) {
+    public static Map<SkullBlock.Type, SkullModelBase> createSkullRenderers(EntityModelSet pEntityModelSet) {
         ImmutableMap.Builder<SkullBlock.Type, SkullModelBase> builder = ImmutableMap.builder();
-        builder.put(SkullBlock.Types.SKELETON, new SkullModel(p_173662_.bakeLayer(ModelLayers.SKELETON_SKULL)));
-        builder.put(SkullBlock.Types.WITHER_SKELETON, new SkullModel(p_173662_.bakeLayer(ModelLayers.WITHER_SKELETON_SKULL)));
-        builder.put(SkullBlock.Types.PLAYER, new SkullModel(p_173662_.bakeLayer(ModelLayers.PLAYER_HEAD)));
-        builder.put(SkullBlock.Types.ZOMBIE, new SkullModel(p_173662_.bakeLayer(ModelLayers.ZOMBIE_HEAD)));
-        builder.put(SkullBlock.Types.CREEPER, new SkullModel(p_173662_.bakeLayer(ModelLayers.CREEPER_HEAD)));
-        builder.put(SkullBlock.Types.DRAGON, new DragonHeadModel(p_173662_.bakeLayer(ModelLayers.DRAGON_SKULL)));
+        builder.put(SkullBlock.Types.SKELETON, new SkullModel(pEntityModelSet.bakeLayer(ModelLayers.SKELETON_SKULL)));
+        builder.put(SkullBlock.Types.WITHER_SKELETON, new SkullModel(pEntityModelSet.bakeLayer(ModelLayers.WITHER_SKELETON_SKULL)));
+        builder.put(SkullBlock.Types.PLAYER, new SkullModel(pEntityModelSet.bakeLayer(ModelLayers.PLAYER_HEAD)));
+        builder.put(SkullBlock.Types.ZOMBIE, new SkullModel(pEntityModelSet.bakeLayer(ModelLayers.ZOMBIE_HEAD)));
+        builder.put(SkullBlock.Types.CREEPER, new SkullModel(pEntityModelSet.bakeLayer(ModelLayers.CREEPER_HEAD)));
+        builder.put(SkullBlock.Types.DRAGON, new DragonHeadModel(pEntityModelSet.bakeLayer(ModelLayers.DRAGON_SKULL)));
         return builder.build();
     }
 
-    public SkullBlockRenderer(BlockEntityRendererProvider.Context p_173660_) {
-        this.modelByType = createSkullRenderers(p_173660_.getModelSet());
+    public SkullBlockRenderer(BlockEntityRendererProvider.Context pContext) {
+        this.modelByType = createSkullRenderers(pContext.getModelSet());
     }
 
-    public void render(SkullBlockEntity p_112534_, float p_112535_, PoseStack p_112536_, MultiBufferSource p_112537_, int p_112538_, int p_112539_) {
-        float f = p_112534_.getMouthAnimation(p_112535_);
-        BlockState blockstate = p_112534_.getBlockState();
+    public void render(SkullBlockEntity pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        float f = pBlockEntity.getMouthAnimation(pPartialTick);
+        BlockState blockstate = pBlockEntity.getBlockState();
         boolean flag = blockstate.getBlock() instanceof WallSkullBlock;
         Direction direction = flag ? blockstate.getValue(WallSkullBlock.FACING) : null;
         float f1 = 22.5F * (float) (flag ? (2 + direction.get2DDataValue()) * 4 : blockstate.getValue(SkullBlock.ROTATION));
         SkullBlock.Type skullblock$type = ((AbstractSkullBlock) blockstate.getBlock()).getType();
         SkullModelBase skullmodelbase = this.modelByType.get(skullblock$type);
-        RenderType rendertype = getRenderType(skullblock$type, p_112534_.getOwnerProfile());
-        renderSkull(direction, f1, f, p_112536_, p_112537_, p_112538_, skullmodelbase, rendertype);
+        RenderType rendertype = getRenderType(skullblock$type, pBlockEntity.getOwnerProfile());
+        renderSkull(direction, f1, f, pPoseStack, pBufferSource, pPackedLight, skullmodelbase, rendertype);
     }
 
-    public static void renderSkull(@Nullable Direction p_173664_, float p_173665_, float p_173666_, PoseStack p_173667_, MultiBufferSource p_173668_, int p_173669_, SkullModelBase p_173670_, RenderType p_173671_) {
-        p_173667_.pushPose();
-        if (p_173664_ == null) {
-            p_173667_.translate(0.5D, 0.0D, 0.5D);
+    public static void renderSkull(@Nullable Direction pDirection, float pYRot, float pMouthAnimation, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, SkullModelBase pModel, RenderType pRenderType) {
+        pPoseStack.pushPose();
+        if (pDirection == null) {
+            pPoseStack.translate(0.5D, 0.0D, 0.5D);
         } else {
             float f = 0.25F;
-            p_173667_.translate((double) (0.5F - (float) p_173664_.getStepX() * 0.25F), 0.25D, (double) (0.5F - (float) p_173664_.getStepZ() * 0.25F));
+            pPoseStack.translate((double) (0.5F - (float) pDirection.getStepX() * 0.25F), 0.25D, (double) (0.5F - (float) pDirection.getStepZ() * 0.25F));
         }
 
-        p_173667_.scale(-1.0F, -1.0F, 1.0F);
-        VertexConsumer vertexconsumer = p_173668_.getBuffer(p_173671_);
-        p_173670_.setupAnim(p_173666_, p_173665_, 0.0F);
-        p_173670_.renderToBuffer(p_173667_, vertexconsumer, p_173669_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-        p_173667_.popPose();
+        pPoseStack.scale(-1.0F, -1.0F, 1.0F);
+        VertexConsumer vertexconsumer = pBufferSource.getBuffer(pRenderType);
+        pModel.setupAnim(pMouthAnimation, pYRot, 0.0F);
+        pModel.renderToBuffer(pPoseStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        pPoseStack.popPose();
     }
 
-    public static RenderType getRenderType(SkullBlock.Type p_112524_, @Nullable GameProfile p_112525_) {
-        ResourceLocation resourcelocation = SKIN_BY_TYPE.get(p_112524_);
-        if (p_112524_ == SkullBlock.Types.PLAYER && p_112525_ != null) {
+    public static RenderType getRenderType(SkullBlock.Type pSkullType, @Nullable GameProfile pGameProfile) {
+        ResourceLocation resourcelocation = SKIN_BY_TYPE.get(pSkullType);
+        if (pSkullType == SkullBlock.Types.PLAYER && pGameProfile != null) {
             Minecraft minecraft = Minecraft.getInstance();
-            Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraft.getSkinManager().getInsecureSkinInformation(p_112525_);
-            return map.containsKey(Type.SKIN) ? RenderType.entityTranslucent(minecraft.getSkinManager().registerTexture(map.get(Type.SKIN), Type.SKIN)) : RenderType.entityCutoutNoCull(DefaultPlayerSkin.getDefaultSkin(UUIDUtil.getOrCreatePlayerUUID(p_112525_)));
+            Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraft.getSkinManager().getInsecureSkinInformation(pGameProfile);
+            return map.containsKey(Type.SKIN) ? RenderType.entityTranslucent(minecraft.getSkinManager().registerTexture(map.get(Type.SKIN), Type.SKIN)) : RenderType.entityCutoutNoCull(DefaultPlayerSkin.getDefaultSkin(UUIDUtil.getOrCreatePlayerUUID(pGameProfile)));
         } else {
             return RenderType.entityCutoutNoCullZOffset(resourcelocation);
         }

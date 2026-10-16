@@ -48,8 +48,8 @@ public final class NetworkPacketSummary {
     public static record PacketCountAndSize(long totalCount, long totalSize) {
         static final Comparator<NetworkPacketSummary.PacketCountAndSize> SIZE_THEN_COUNT = Comparator.comparing(NetworkPacketSummary.PacketCountAndSize::totalSize).thenComparing(NetworkPacketSummary.PacketCountAndSize::totalCount).reversed();
 
-        NetworkPacketSummary.PacketCountAndSize add(NetworkPacketSummary.PacketCountAndSize p_185755_) {
-            return new NetworkPacketSummary.PacketCountAndSize(this.totalCount + p_185755_.totalCount, this.totalSize + p_185755_.totalSize);
+        NetworkPacketSummary.PacketCountAndSize add(NetworkPacketSummary.PacketCountAndSize pPacketCountAndSize) {
+            return new NetworkPacketSummary.PacketCountAndSize(this.totalCount + pPacketCountAndSize.totalCount, this.totalSize + pPacketCountAndSize.totalSize);
         }
     }
 
@@ -60,8 +60,8 @@ public final class NetworkPacketSummary {
             return PACKET_NAME_BY_ID.getOrDefault(this, "unknown");
         }
 
-        public static NetworkPacketSummary.PacketIdentification from(RecordedEvent p_185778_) {
-            return new NetworkPacketSummary.PacketIdentification(p_185778_.getEventType().getName().equals("minecraft.PacketSent") ? PacketFlow.CLIENTBOUND : PacketFlow.SERVERBOUND, p_185778_.getInt("protocolId"), p_185778_.getInt("packetId"));
+        public static NetworkPacketSummary.PacketIdentification from(RecordedEvent pEvent) {
+            return new NetworkPacketSummary.PacketIdentification(pEvent.getEventType().getName().equals("minecraft.PacketSent") ? PacketFlow.CLIENTBOUND : PacketFlow.SERVERBOUND, pEvent.getInt("protocolId"), pEvent.getInt("packetId"));
         }
 
         static {

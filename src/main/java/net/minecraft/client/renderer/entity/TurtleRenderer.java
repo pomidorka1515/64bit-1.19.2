@@ -17,15 +17,15 @@ public class TurtleRenderer extends MobRenderer<Turtle, TurtleModel<Turtle>> {
         super(p_174430_, new TurtleModel<>(p_174430_.bakeLayer(ModelLayers.TURTLE)), 0.7F);
     }
 
-    public void render(Turtle p_116261_, float p_116262_, float p_116263_, PoseStack p_116264_, MultiBufferSource p_116265_, int p_116266_) {
-        if (p_116261_.isBaby()) {
+    public void render(Turtle pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        if (pEntity.isBaby()) {
             this.shadowRadius *= 0.5F;
         }
 
-        super.render(p_116261_, p_116262_, p_116263_, p_116264_, p_116265_, p_116266_);
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
     }
 
-    public ResourceLocation getTextureLocation(Turtle p_116259_) {
+    public ResourceLocation getTextureLocation(Turtle pEntity) {
         return TURTLE_LOCATION;
     }
 }

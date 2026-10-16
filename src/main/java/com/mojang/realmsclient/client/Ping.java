@@ -14,14 +14,14 @@ import org.apache.commons.io.IOUtils;
 
 @OnlyIn(Dist.CLIENT)
 public class Ping {
-    public static List<RegionPingResult> ping(Ping.Region... p_87131_) {
-        for (Ping.Region ping$region : p_87131_) {
+    public static List<RegionPingResult> ping(Ping.Region... pRegions) {
+        for (Ping.Region ping$region : pRegions) {
             ping(ping$region.endpoint);
         }
 
         List<RegionPingResult> list = Lists.newArrayList();
 
-        for (Ping.Region ping$region1 : p_87131_) {
+        for (Ping.Region ping$region1 : pRegions) {
             list.add(new RegionPingResult(ping$region1.name, ping(ping$region1.endpoint)));
         }
 
@@ -29,14 +29,14 @@ public class Ping {
         return list;
     }
 
-    private static int ping(String p_87127_) {
+    private static int ping(String pHostname) {
         int i = 700;
         long j = 0L;
         Socket socket = null;
 
         for (int k = 0; k < 5; ++k) {
             try {
-                SocketAddress socketaddress = new InetSocketAddress(p_87127_, 80);
+                SocketAddress socketaddress = new InetSocketAddress(pHostname, 80);
                 socket = new Socket();
                 long l = now();
                 socket.connect(socketaddress, 700);

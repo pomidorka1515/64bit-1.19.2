@@ -18,7 +18,7 @@ public class FollowTemptation extends Behavior<PathfinderMob> {
     public static final double CLOSE_ENOUGH_DIST = 2.5D;
     private final Function<LivingEntity, Float> speedModifier;
 
-    public FollowTemptation(Function<LivingEntity, Float> p_147486_) {
+    public FollowTemptation(Function<LivingEntity, Float> pSpeedModifier) {
         super(Util.make(() -> {
             ImmutableMap.Builder<MemoryModuleType<?>, MemoryStatus> builder = ImmutableMap.builder();
             builder.put(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED);
@@ -30,45 +30,45 @@ public class FollowTemptation extends Behavior<PathfinderMob> {
             builder.put(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT);
             return builder.build();
         }));
-        this.speedModifier = p_147486_;
+        this.speedModifier = pSpeedModifier;
     }
 
-    protected float getSpeedModifier(PathfinderMob p_147498_) {
-        return this.speedModifier.apply(p_147498_);
+    protected float getSpeedModifier(PathfinderMob pPathfinder) {
+        return this.speedModifier.apply(pPathfinder);
     }
 
-    private Optional<Player> getTemptingPlayer(PathfinderMob p_147509_) {
-        return p_147509_.getBrain().getMemory(MemoryModuleType.TEMPTING_PLAYER);
+    private Optional<Player> getTemptingPlayer(PathfinderMob pPathfinder) {
+        return pPathfinder.getBrain().getMemory(MemoryModuleType.TEMPTING_PLAYER);
     }
 
-    protected boolean timedOut(long p_147488_) {
+    protected boolean timedOut(long pGameTime) {
         return false;
     }
 
-    protected boolean canStillUse(ServerLevel p_147494_, PathfinderMob p_147495_, long p_147496_) {
-        return this.getTemptingPlayer(p_147495_).isPresent() && !p_147495_.getBrain().hasMemoryValue(MemoryModuleType.BREED_TARGET) && !p_147495_.getBrain().hasMemoryValue(MemoryModuleType.IS_PANICKING);
+    protected boolean canStillUse(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        return this.getTemptingPlayer(pEntity).isPresent() && !pEntity.getBrain().hasMemoryValue(MemoryModuleType.BREED_TARGET) && !pEntity.getBrain().hasMemoryValue(MemoryModuleType.IS_PANICKING);
     }
 
-    protected void start(ServerLevel p_147505_, PathfinderMob p_147506_, long p_147507_) {
-        p_147506_.getBrain().setMemory(MemoryModuleType.IS_TEMPTED, true);
+    protected void start(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        pEntity.getBrain().setMemory(MemoryModuleType.IS_TEMPTED, true);
     }
 
-    protected void stop(ServerLevel p_147515_, PathfinderMob p_147516_, long p_147517_) {
-        Brain<?> brain = p_147516_.getBrain();
+    protected void stop(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        Brain<?> brain = pEntity.getBrain();
         brain.setMemory(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS, 100);
         brain.setMemory(MemoryModuleType.IS_TEMPTED, false);
         brain.eraseMemory(MemoryModuleType.WALK_TARGET);
         brain.eraseMemory(MemoryModuleType.LOOK_TARGET);
     }
 
-    protected void tick(ServerLevel p_147523_, PathfinderMob p_147524_, long p_147525_) {
-        Player player = this.getTemptingPlayer(p_147524_).get();
-        Brain<?> brain = p_147524_.getBrain();
+    protected void tick(ServerLevel pLevel, PathfinderMob pOwner, long pGameTime) {
+        Player player = this.getTemptingPlayer(pOwner).get();
+        Brain<?> brain = pOwner.getBrain();
         brain.setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(player, true));
-        if (p_147524_.distanceToSqr(player) < 6.25D) {
+        if (pOwner.distanceToSqr(player) < 6.25D) {
             brain.eraseMemory(MemoryModuleType.WALK_TARGET);
         } else {
-            brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(new EntityTracker(player, false), this.getSpeedModifier(p_147524_), 2));
+            brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(new EntityTracker(player, false), this.getSpeedModifier(pOwner), 2));
         }
     }
 }

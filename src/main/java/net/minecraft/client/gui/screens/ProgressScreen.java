@@ -18,54 +18,54 @@ public class ProgressScreen extends Screen implements ProgressListener {
     private boolean stop;
     private final boolean clearScreenAfterStop;
 
-    public ProgressScreen(boolean p_169364_) {
+    public ProgressScreen(boolean pClearScreenAfterStop) {
         super(GameNarrator.NO_TITLE);
-        this.clearScreenAfterStop = p_169364_;
+        this.clearScreenAfterStop = pClearScreenAfterStop;
     }
 
     public boolean shouldCloseOnEsc() {
         return false;
     }
 
-    public void progressStartNoAbort(Component p_96520_) {
-        this.progressStart(p_96520_);
+    public void progressStartNoAbort(Component pComponent) {
+        this.progressStart(pComponent);
     }
 
-    public void progressStart(Component p_96523_) {
-        this.header = p_96523_;
+    public void progressStart(Component pComponent) {
+        this.header = pComponent;
         this.progressStage(Component.translatable("progress.working"));
     }
 
-    public void progressStage(Component p_96525_) {
-        this.stage = p_96525_;
+    public void progressStage(Component pComponent) {
+        this.stage = pComponent;
         this.progressStagePercentage(0);
     }
 
-    public void progressStagePercentage(int p_96513_) {
-        this.progress = p_96513_;
+    public void progressStagePercentage(int pProgress) {
+        this.progress = pProgress;
     }
 
     public void stop() {
         this.stop = true;
     }
 
-    public void render(PoseStack p_96515_, int p_96516_, int p_96517_, float p_96518_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.stop) {
             if (this.clearScreenAfterStop) {
                 this.minecraft.setScreen((Screen) null);
             }
 
         } else {
-            this.renderBackground(p_96515_);
+            this.renderBackground(pPoseStack);
             if (this.header != null) {
-                drawCenteredString(p_96515_, this.font, this.header, this.width / 2, 70, 16777215);
+                drawCenteredString(pPoseStack, this.font, this.header, this.width / 2, 70, 16777215);
             }
 
             if (this.stage != null && this.progress != 0) {
-                drawCenteredString(p_96515_, this.font, Component.empty().append(this.stage).append(" " + this.progress + "%"), this.width / 2, 90, 16777215);
+                drawCenteredString(pPoseStack, this.font, Component.empty().append(this.stage).append(" " + this.progress + "%"), this.width / 2, 90, 16777215);
             }
 
-            super.render(p_96515_, p_96516_, p_96517_, p_96518_);
+            super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
     }
 }

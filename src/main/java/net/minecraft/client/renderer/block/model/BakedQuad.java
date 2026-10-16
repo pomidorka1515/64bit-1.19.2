@@ -13,12 +13,12 @@ public class BakedQuad {
     protected final TextureAtlasSprite sprite;
     private final boolean shade;
 
-    public BakedQuad(int[] p_111298_, int p_111299_, Direction p_111300_, TextureAtlasSprite p_111301_, boolean p_111302_) {
-        this.vertices = p_111298_;
-        this.tintIndex = p_111299_;
-        this.direction = p_111300_;
-        this.sprite = p_111301_;
-        this.shade = p_111302_;
+    public BakedQuad(int[] pVertices, int pTintIndex, Direction pDirection, TextureAtlasSprite pSprite, boolean pShade) {
+        this.vertices = pVertices;
+        this.tintIndex = pTintIndex;
+        this.direction = pDirection;
+        this.sprite = pSprite;
+        this.shade = pShade;
     }
 
     public TextureAtlasSprite getSprite() {

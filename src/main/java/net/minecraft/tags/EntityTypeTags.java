@@ -20,7 +20,7 @@ public final class EntityTypeTags {
     private EntityTypeTags() {
     }
 
-    private static TagKey<EntityType<?>> create(String p_203849_) {
-        return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(p_203849_));
+    private static TagKey<EntityType<?>> create(String pName) {
+        return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(pName));
     }
 }

@@ -9,8 +9,8 @@ public class VillagerFollowRangeFix extends NamedEntityFix {
     private static final double ORIGINAL_VALUE = 16.0D;
     private static final double NEW_BASE_VALUE = 48.0D;
 
-    public VillagerFollowRangeFix(Schema p_17064_) {
-        super(p_17064_, false, "Villager Follow Range Fix", References.ENTITY, "minecraft:villager");
+    public VillagerFollowRangeFix(Schema pOutputSchema) {
+        super(pOutputSchema, false, "Villager Follow Range Fix", References.ENTITY, "minecraft:villager");
     }
 
     protected Typed<?> fix(Typed<?> p_17066_) {

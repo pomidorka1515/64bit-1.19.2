@@ -9,17 +9,17 @@ import net.minecraft.util.Mth;
 public class SpatialLongSet extends LongLinkedOpenHashSet {
     private final SpatialLongSet.InternalMap map;
 
-    public SpatialLongSet(int p_164462_, float p_164463_) {
-        super(p_164462_, p_164463_);
-        this.map = new SpatialLongSet.InternalMap(p_164462_ / 64, p_164463_);
+    public SpatialLongSet(int pExpectedSize, float pLoadFactor) {
+        super(pExpectedSize, pLoadFactor);
+        this.map = new SpatialLongSet.InternalMap(pExpectedSize / 64, pLoadFactor);
     }
 
-    public boolean add(long p_164465_) {
-        return this.map.addBit(p_164465_);
+    public boolean add(long pValue) {
+        return this.map.addBit(pValue);
     }
 
-    public boolean rem(long p_164468_) {
-        return this.map.removeBit(p_164468_);
+    public boolean rem(long pValue) {
+        return this.map.removeBit(pValue);
     }
 
     public long removeFirstLong() {
@@ -46,9 +46,9 @@ public class SpatialLongSet extends LongLinkedOpenHashSet {
         private long lastOuterKey;
         private final int minSize;
 
-        public InternalMap(int p_164483_, float p_164484_) {
-            super(p_164483_, p_164484_);
-            this.minSize = p_164483_;
+        public InternalMap(int pMinSize, float pLoadFactor) {
+            super(pMinSize, pLoadFactor);
+            this.minSize = pMinSize;
         }
 
         static long getOuterKey(long p_164490_) {
@@ -207,9 +207,9 @@ public class SpatialLongSet extends LongLinkedOpenHashSet {
             }
         }
 
-        protected void rehash(int p_164506_) {
-            if (p_164506_ > this.minSize) {
-                super.rehash(p_164506_);
+        protected void rehash(int pNewSize) {
+            if (pNewSize > this.minSize) {
+                super.rehash(pNewSize);
             }
         }
     }

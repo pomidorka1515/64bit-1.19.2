@@ -16,23 +16,23 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 public class SetPotionFunction extends LootItemConditionalFunction {
     final Potion potion;
 
-    SetPotionFunction(LootItemCondition[] p_193069_, Potion p_193070_) {
-        super(p_193069_);
-        this.potion = p_193070_;
+    SetPotionFunction(LootItemCondition[] pConditions, Potion pPotion) {
+        super(pConditions);
+        this.potion = pPotion;
     }
 
     public LootItemFunctionType getType() {
         return LootItemFunctions.SET_POTION;
     }
 
-    public ItemStack run(ItemStack p_193073_, LootContext p_193074_) {
-        PotionUtils.setPotion(p_193073_, this.potion);
-        return p_193073_;
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        PotionUtils.setPotion(pStack, this.potion);
+        return pStack;
     }
 
-    public static LootItemConditionalFunction.Builder<?> setPotion(Potion p_193076_) {
+    public static LootItemConditionalFunction.Builder<?> setPotion(Potion pPotion) {
         return simpleBuilder((p_193079_) -> {
-            return new SetPotionFunction(p_193079_, p_193076_);
+            return new SetPotionFunction(p_193079_, pPotion);
         });
     }
 

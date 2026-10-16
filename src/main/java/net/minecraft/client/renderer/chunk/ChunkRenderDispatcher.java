@@ -80,14 +80,14 @@ public class ChunkRenderDispatcher {
     private volatile SectorVec3 exactCamera = SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D);
     private volatile CameraRelativePosition cameraRelativePosition = CameraRelativePosition.of(this.exactCamera);
 
-    public ChunkRenderDispatcher(ClientLevel p_194405_, LevelRenderer p_194406_, Executor p_194407_, boolean p_194408_, ChunkBufferBuilderPack p_194409_) {
-        this.level = p_194405_;
-        this.renderer = p_194406_;
+    public ChunkRenderDispatcher(ClientLevel pLevel, LevelRenderer pRenderer, Executor pExecutor, boolean pIs64Bit, ChunkBufferBuilderPack pFixedBuffers) {
+        this.level = pLevel;
+        this.renderer = pRenderer;
         int i = Math.max(1, (int) ((double) Runtime.getRuntime().maxMemory() * 0.3D) / (RenderType.chunkBufferLayers().stream().mapToInt(RenderType::bufferSize).sum() * 4) - 1);
         int j = Runtime.getRuntime().availableProcessors();
-        int k = p_194408_ ? j : Math.min(j, 4);
+        int k = pIs64Bit ? j : Math.min(j, 4);
         int l = Math.max(1, Math.min(k, i));
-        this.fixedBuffers = p_194409_;
+        this.fixedBuffers = pFixedBuffers;
         List<ChunkBufferBuilderPack> list = Lists.newArrayListWithExpectedSize(l);
 
         try {
@@ -107,13 +107,13 @@ public class ChunkRenderDispatcher {
 
         this.freeBuffers = Queues.newArrayDeque(list);
         this.freeBufferCount = this.freeBuffers.size();
-        this.executor = p_194407_;
-        this.mailbox = ProcessorMailbox.create(p_194407_, "Chunk Renderer");
+        this.executor = pExecutor;
+        this.mailbox = ProcessorMailbox.create(pExecutor, "Chunk Renderer");
         this.mailbox.tell(this::runTask);
     }
 
-    public void setLevel(ClientLevel p_194411_) {
-        this.level = p_194411_;
+    public void setLevel(ClientLevel pLevel) {
+        this.level = pLevel;
     }
 
     private void runTask() {
@@ -205,20 +205,20 @@ public class ChunkRenderDispatcher {
         }
     }
 
-    public void rebuildChunkSync(ChunkRenderDispatcher.RenderChunk p_200432_, RenderRegionCache p_200433_) {
-        p_200432_.compileSync(p_200433_);
+    public void rebuildChunkSync(ChunkRenderDispatcher.RenderChunk pChunk, RenderRegionCache pRegionCache) {
+        pChunk.compileSync(pRegionCache);
     }
 
     public void blockUntilClear() {
         this.clearBatchQueue();
     }
 
-    public void schedule(ChunkRenderDispatcher.RenderChunk.ChunkCompileTask p_112710_) {
+    public void schedule(ChunkRenderDispatcher.RenderChunk.ChunkCompileTask pTask) {
         this.mailbox.tell(() -> {
-            if (p_112710_.isHighPriority) {
-                this.toBatchHighPriority.offer(p_112710_);
+            if (pTask.isHighPriority) {
+                this.toBatchHighPriority.offer(pTask);
             } else {
-                this.toBatchLowPriority.offer(p_112710_);
+                this.toBatchLowPriority.offer(pTask);
             }
 
             this.toBatchCount = this.toBatchHighPriority.size() + this.toBatchLowPriority.size();
@@ -226,11 +226,11 @@ public class ChunkRenderDispatcher {
         });
     }
 
-    public CompletableFuture<Void> uploadChunkLayer(BufferBuilder.RenderedBuffer p_234451_, VertexBuffer p_234452_) {
+    public CompletableFuture<Void> uploadChunkLayer(BufferBuilder.RenderedBuffer pBuilder, VertexBuffer pBuffer) {
         return CompletableFuture.runAsync(() -> {
-            if (!p_234452_.isInvalid()) {
-                p_234452_.bind();
-                p_234452_.upload(p_234451_);
+            if (!pBuffer.isInvalid()) {
+                pBuffer.bind();
+                pBuffer.upload(pBuilder);
                 VertexBuffer.unbind();
             }
         }, this.toUpload::add);
@@ -287,16 +287,16 @@ public class ChunkRenderDispatcher {
             return this.hasBlocks.isEmpty();
         }
 
-        public boolean isEmpty(RenderType p_112759_) {
-            return !this.hasBlocks.contains(p_112759_);
+        public boolean isEmpty(RenderType pRenderType) {
+            return !this.hasBlocks.contains(pRenderType);
         }
 
         public List<BlockEntity> getRenderableBlockEntities() {
             return this.renderableBlockEntities;
         }
 
-        public boolean facesCanSeeEachother(Direction p_112771_, Direction p_112772_) {
-            return this.visibilitySet.visibilityBetween(p_112771_, p_112772_);
+        public boolean facesCanSeeEachother(Direction pFace, Direction pOtherFace) {
+            return this.visibilitySet.visibilityBetween(pFace, pOtherFace);
         }
     }
 
@@ -327,9 +327,9 @@ public class ChunkRenderDispatcher {
             this.setOrigin(p_202437_, p_202438_, p_202439_);
         }
 
-        private boolean doesChunkExistAt(BlockPos p_112823_) {
-            long chunkX = SectionPos.blockToSectionCoord(p_112823_.getX());
-            long chunkZ = SectionPos.blockToSectionCoord(p_112823_.getZ());
+        private boolean doesChunkExistAt(BlockPos pPos) {
+            long chunkX = SectionPos.blockToSectionCoord(pPos.getX());
+            long chunkZ = SectionPos.blockToSectionCoord(pPos.getZ());
             return WorldBounds.isValidChunk(chunkX, chunkZ)
                     && ChunkRenderDispatcher.this.level.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false) != null;
         }
@@ -354,16 +354,16 @@ public class ChunkRenderDispatcher {
                     SectionPos.blockToSectionCoord(this.origin.getZ()));
         }
 
-        public VertexBuffer getBuffer(RenderType p_112808_) {
-            return this.buffers.get(p_112808_);
+        public VertexBuffer getBuffer(RenderType pRenderType) {
+            return this.buffers.get(pRenderType);
         }
 
-        public void setOrigin(long p_112802_, int p_112803_, long p_112804_) {
+        public void setOrigin(long pX, int pY, long pZ) {
             this.reset();
-            this.origin.set(p_112802_, p_112803_, p_112804_);
-            this.bb = new AABB((double) p_112802_, (double) p_112803_, (double) p_112804_,
-                    (double) WorldBounds.addBlockOffset(p_112802_, 16L), (double) (p_112803_ + 16),
-                    (double) WorldBounds.addBlockOffset(p_112804_, 16L));
+            this.origin.set(pX, pY, pZ);
+            this.bb = new AABB((double) pX, (double) pY, (double) pZ,
+                    (double) WorldBounds.addBlockOffset(pX, 16L), (double) (pY + 16),
+                    (double) WorldBounds.addBlockOffset(pZ, 16L));
 
             for (Direction direction : Direction.values()) {
                 this.relativeOrigins[direction.ordinal()].set(this.origin).move(direction, 16);
@@ -378,8 +378,8 @@ public class ChunkRenderDispatcher {
             return d0 * d0 + d1 * d1 + d2 * d2;
         }
 
-        void beginLayer(BufferBuilder p_112806_) {
-            p_112806_.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
+        void beginLayer(BufferBuilder pBuilder) {
+            pBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
         }
 
         public ChunkRenderDispatcher.CompiledChunk getCompiledChunk() {
@@ -401,10 +401,10 @@ public class ChunkRenderDispatcher {
             return this.origin;
         }
 
-        public void setDirty(boolean p_112829_) {
+        public void setDirty(boolean pReRenderOnMainThread) {
             boolean flag = this.dirty;
             this.dirty = true;
-            this.playerChanged = p_112829_ | (flag && this.playerChanged);
+            this.playerChanged = pReRenderOnMainThread | (flag && this.playerChanged);
         }
 
         public void setNotDirty() {
@@ -420,21 +420,21 @@ public class ChunkRenderDispatcher {
             return this.dirty && this.playerChanged;
         }
 
-        public BlockPos getRelativeOrigin(Direction p_112825_) {
-            return this.relativeOrigins[p_112825_.ordinal()];
+        public BlockPos getRelativeOrigin(Direction pDirection) {
+            return this.relativeOrigins[pDirection.ordinal()];
         }
 
-        public boolean resortTransparency(RenderType p_112810_, ChunkRenderDispatcher p_112811_) {
+        public boolean resortTransparency(RenderType pType, ChunkRenderDispatcher pDispatcher) {
             ChunkRenderDispatcher.CompiledChunk chunkrenderdispatcher$compiledchunk = this.getCompiledChunk();
             if (this.lastResortTransparencyTask != null) {
                 this.lastResortTransparencyTask.cancel();
             }
 
-            if (!chunkrenderdispatcher$compiledchunk.hasBlocks.contains(p_112810_)) {
+            if (!chunkrenderdispatcher$compiledchunk.hasBlocks.contains(pType)) {
                 return false;
             } else {
                 this.lastResortTransparencyTask = new ChunkRenderDispatcher.RenderChunk.ResortTransparencyTask(this.getDistToPlayerSqr(), chunkrenderdispatcher$compiledchunk);
-                p_112811_.schedule(this.lastResortTransparencyTask);
+                pDispatcher.schedule(this.lastResortTransparencyTask);
                 return true;
             }
         }
@@ -474,15 +474,15 @@ public class ChunkRenderDispatcher {
             p_200435_.schedule(chunkrenderdispatcher$renderchunk$chunkcompiletask);
         }
 
-        void updateGlobalBlockEntities(Collection<BlockEntity> p_234466_) {
-            Set<BlockEntity> set = Sets.newHashSet(p_234466_);
+        void updateGlobalBlockEntities(Collection<BlockEntity> pBlockEntities) {
+            Set<BlockEntity> set = Sets.newHashSet(pBlockEntities);
             Set<BlockEntity> set1;
             synchronized (this.globalBlockEntities) {
                 set1 = Sets.newHashSet(this.globalBlockEntities);
                 set.removeAll(this.globalBlockEntities);
-                set1.removeAll(p_234466_);
+                set1.removeAll(pBlockEntities);
                 this.globalBlockEntities.clear();
-                this.globalBlockEntities.addAll(p_234466_);
+                this.globalBlockEntities.addAll(pBlockEntities);
             }
 
             ChunkRenderDispatcher.this.renderer.updateGlobalBlockEntities(set1, set);
@@ -504,14 +504,14 @@ public class ChunkRenderDispatcher {
                 this.isHighPriority = p_194424_;
             }
 
-            public abstract CompletableFuture<ChunkRenderDispatcher.ChunkTaskResult> doTask(ChunkBufferBuilderPack p_112853_);
+            public abstract CompletableFuture<ChunkRenderDispatcher.ChunkTaskResult> doTask(ChunkBufferBuilderPack pBuffers);
 
             public abstract void cancel();
 
             protected abstract String name();
 
-            public int compareTo(ChunkRenderDispatcher.RenderChunk.ChunkCompileTask p_112855_) {
-                return Doubles.compare(this.distAtCreation, p_112855_.distAtCreation);
+            public int compareTo(ChunkRenderDispatcher.RenderChunk.ChunkCompileTask pOther) {
+                return Doubles.compare(this.distAtCreation, pOther.distAtCreation);
             }
         }
 
@@ -529,7 +529,7 @@ public class ChunkRenderDispatcher {
                 return "rend_chk_rebuild";
             }
 
-            public CompletableFuture<ChunkRenderDispatcher.ChunkTaskResult> doTask(ChunkBufferBuilderPack p_112872_) {
+            public CompletableFuture<ChunkRenderDispatcher.ChunkTaskResult> doTask(ChunkBufferBuilderPack pBuffers) {
                 if (this.isCancelled.get()) {
                     return CompletableFuture.completedFuture(ChunkRenderDispatcher.ChunkTaskResult.CANCELLED);
                 } else if (!RenderChunk.this.hasAllNeighbors()) {
@@ -541,7 +541,7 @@ public class ChunkRenderDispatcher {
                     return CompletableFuture.completedFuture(ChunkRenderDispatcher.ChunkTaskResult.CANCELLED);
                 } else {
                     CameraRelativePosition camerarelativeposition = ChunkRenderDispatcher.this.getCameraRelativePosition();
-                    ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults chunkrenderdispatcher$renderchunk$rebuildtask$compileresults = this.compile(camerarelativeposition, p_112872_);
+                    ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults chunkrenderdispatcher$renderchunk$rebuildtask$compileresults = this.compile(camerarelativeposition, pBuffers);
                     RenderChunk.this.updateGlobalBlockEntities(chunkrenderdispatcher$renderchunk$rebuildtask$compileresults.globalBlockEntities);
                     if (this.isCancelled.get()) {
                         chunkrenderdispatcher$renderchunk$rebuildtask$compileresults.renderedLayers.values().forEach(BufferBuilder.RenderedBuffer::release);
@@ -654,12 +654,12 @@ public class ChunkRenderDispatcher {
                 return chunkrenderdispatcher$renderchunk$rebuildtask$compileresults;
             }
 
-            private <E extends BlockEntity> void handleBlockEntity(ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults p_234477_, E p_234478_) {
-                BlockEntityRenderer<E> blockentityrenderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(p_234478_);
+            private <E extends BlockEntity> void handleBlockEntity(ChunkRenderDispatcher.RenderChunk.RebuildTask.CompileResults pCompileResults, E pBlockEntity) {
+                BlockEntityRenderer<E> blockentityrenderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(pBlockEntity);
                 if (blockentityrenderer != null) {
-                    p_234477_.blockEntities.add(p_234478_);
-                    if (blockentityrenderer.shouldRenderOffScreen(p_234478_)) {
-                        p_234477_.globalBlockEntities.add(p_234478_);
+                    pCompileResults.blockEntities.add(pBlockEntity);
+                    if (blockentityrenderer.shouldRenderOffScreen(pBlockEntity)) {
+                        pCompileResults.globalBlockEntities.add(pBlockEntity);
                     }
                 }
             }
@@ -695,7 +695,7 @@ public class ChunkRenderDispatcher {
                 return "rend_chk_sort";
             }
 
-            public CompletableFuture<ChunkRenderDispatcher.ChunkTaskResult> doTask(ChunkBufferBuilderPack p_112893_) {
+            public CompletableFuture<ChunkRenderDispatcher.ChunkTaskResult> doTask(ChunkBufferBuilderPack pBuffers) {
                 if (this.isCancelled.get()) {
                     return CompletableFuture.completedFuture(ChunkRenderDispatcher.ChunkTaskResult.CANCELLED);
                 } else if (!RenderChunk.this.hasAllNeighbors()) {
@@ -707,7 +707,7 @@ public class ChunkRenderDispatcher {
                     CameraRelativePosition camerarelativeposition = ChunkRenderDispatcher.this.getCameraRelativePosition();
                     BufferBuilder.SortState bufferbuilder$sortstate = this.compiledChunk.transparencyState;
                     if (bufferbuilder$sortstate != null && !this.compiledChunk.isEmpty(RenderType.translucent())) {
-                        BufferBuilder bufferbuilder = p_112893_.builder(RenderType.translucent());
+                        BufferBuilder bufferbuilder = pBuffers.builder(RenderType.translucent());
                         RenderChunk.this.beginLayer(bufferbuilder);
                         bufferbuilder.restoreSortState(bufferbuilder$sortstate);
                         bufferbuilder.setQuadSortOrigin(

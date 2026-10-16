@@ -5,15 +5,15 @@ import net.minecraft.core.IdMap;
 import net.minecraft.network.FriendlyByteBuf;
 
 public interface EntityDataSerializer<T> {
-    void write(FriendlyByteBuf p_135025_, T p_135026_);
+    void write(FriendlyByteBuf pBuffer, T pValue);
 
-    T read(FriendlyByteBuf p_135024_);
+    T read(FriendlyByteBuf pBuffer);
 
-    default EntityDataAccessor<T> createAccessor(int p_135022_) {
-        return new EntityDataAccessor<>(p_135022_, this);
+    default EntityDataAccessor<T> createAccessor(int pId) {
+        return new EntityDataAccessor<>(pId, this);
     }
 
-    T copy(T p_135023_);
+    T copy(T pValue);
 
     static <T> EntityDataSerializer<T> simple(final FriendlyByteBuf.Writer<T> p_238096_, final FriendlyByteBuf.Reader<T> p_238097_) {
         return new EntityDataSerializer.ForValueType<T>() {

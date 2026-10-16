@@ -17,18 +17,18 @@ public abstract class EntityModel<T extends Entity> extends Model {
         this(RenderType::entityCutoutNoCull);
     }
 
-    protected EntityModel(Function<ResourceLocation, RenderType> p_102613_) {
-        super(p_102613_);
+    protected EntityModel(Function<ResourceLocation, RenderType> pRenderType) {
+        super(pRenderType);
     }
 
-    public abstract void setupAnim(T p_102618_, float p_102619_, float p_102620_, float p_102621_, float p_102622_, float p_102623_);
+    public abstract void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch);
 
-    public void prepareMobModel(T p_102614_, float p_102615_, float p_102616_, float p_102617_) {
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
     }
 
-    public void copyPropertiesTo(EntityModel<T> p_102625_) {
-        p_102625_.attackTime = this.attackTime;
-        p_102625_.riding = this.riding;
-        p_102625_.young = this.young;
+    public void copyPropertiesTo(EntityModel<T> pOtherModel) {
+        pOtherModel.attackTime = this.attackTime;
+        pOtherModel.riding = this.riding;
+        pOtherModel.young = this.young;
     }
 }

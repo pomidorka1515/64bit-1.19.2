@@ -36,12 +36,12 @@ public class FontSet implements AutoCloseable {
     private final Int2ObjectMap<IntList> glyphsByWidth = new Int2ObjectOpenHashMap<>();
     private final List<FontTexture> textures = Lists.newArrayList();
 
-    public FontSet(TextureManager p_95062_, ResourceLocation p_95063_) {
-        this.textureManager = p_95062_;
-        this.name = p_95063_;
+    public FontSet(TextureManager pTextureManager, ResourceLocation pName) {
+        this.textureManager = pTextureManager;
+        this.name = pName;
     }
 
-    public void reload(List<GlyphProvider> p_95072_) {
+    public void reload(List<GlyphProvider> pGlyphProviders) {
         this.closeProviders();
         this.closeTextures();
         this.glyphs.clear();
@@ -51,13 +51,13 @@ public class FontSet implements AutoCloseable {
         this.whiteGlyph = SpecialGlyphs.WHITE.bake(this::stitch);
         IntSet intset = new IntOpenHashSet();
 
-        for (GlyphProvider glyphprovider : p_95072_) {
+        for (GlyphProvider glyphprovider : pGlyphProviders) {
             intset.addAll(glyphprovider.getSupportedGlyphs());
         }
 
         Set<GlyphProvider> set = Sets.newHashSet();
         intset.forEach((int p_232561_) -> {
-            for (GlyphProvider glyphprovider1 : p_95072_) {
+            for (GlyphProvider glyphprovider1 : pGlyphProviders) {
                 GlyphInfo glyphinfo = glyphprovider1.getGlyph(p_232561_);
                 if (glyphinfo != null) {
                     set.add(glyphprovider1);
@@ -70,7 +70,7 @@ public class FontSet implements AutoCloseable {
                 }
             }
         });
-        p_95072_.stream().filter(set::contains).forEach(this.providers::add);
+        pGlyphProviders.stream().filter(set::contains).forEach(this.providers::add);
     }
 
     public void close() {
@@ -94,10 +94,10 @@ public class FontSet implements AutoCloseable {
         this.textures.clear();
     }
 
-    private static boolean hasFishyAdvance(GlyphInfo p_243323_) {
-        float f = p_243323_.getAdvance(false);
+    private static boolean hasFishyAdvance(GlyphInfo pGlyph) {
+        float f = pGlyph.getAdvance(false);
         if (!(f < 0.0F) && !(f > 32.0F)) {
-            float f1 = p_243323_.getAdvance(true);
+            float f1 = pGlyph.getAdvance(true);
             return f1 < 0.0F || f1 > 32.0F;
         } else {
             return true;
@@ -123,8 +123,8 @@ public class FontSet implements AutoCloseable {
         return glyphinfo != null ? new FontSet.GlyphInfoFilter(glyphinfo, SpecialGlyphs.MISSING) : FontSet.GlyphInfoFilter.MISSING;
     }
 
-    public GlyphInfo getGlyphInfo(int p_243235_, boolean p_243251_) {
-        return this.glyphInfos.computeIfAbsent(p_243235_, this::computeGlyphInfo).select(p_243251_);
+    public GlyphInfo getGlyphInfo(int pCharacter, boolean pFilterFishyGlyphs) {
+        return this.glyphInfos.computeIfAbsent(pCharacter, this::computeGlyphInfo).select(pFilterFishyGlyphs);
     }
 
     private BakedGlyph computeBakedGlyph(int p_232565_) {
@@ -138,8 +138,8 @@ public class FontSet implements AutoCloseable {
         return this.missingGlyph;
     }
 
-    public BakedGlyph getGlyph(int p_95079_) {
-        return this.glyphs.computeIfAbsent(p_95079_, this::computeBakedGlyph);
+    public BakedGlyph getGlyph(int pCharacter) {
+        return this.glyphs.computeIfAbsent(pCharacter, this::computeBakedGlyph);
     }
 
     private BakedGlyph stitch(SheetGlyphInfo p_232557_) {
@@ -157,8 +157,8 @@ public class FontSet implements AutoCloseable {
         return bakedglyph1 == null ? this.missingGlyph : bakedglyph1;
     }
 
-    public BakedGlyph getRandomGlyph(GlyphInfo p_95068_) {
-        IntList intlist = this.glyphsByWidth.get(Mth.ceil(p_95068_.getAdvance(false)));
+    public BakedGlyph getRandomGlyph(GlyphInfo pGlyph) {
+        IntList intlist = this.glyphsByWidth.get(Mth.ceil(pGlyph.getAdvance(false)));
         return intlist != null && !intlist.isEmpty() ? this.getGlyph(intlist.getInt(RANDOM.nextInt(intlist.size()))) : this.missingGlyph;
     }
 
@@ -170,8 +170,8 @@ public class FontSet implements AutoCloseable {
     static record GlyphInfoFilter(GlyphInfo glyphInfo, GlyphInfo glyphInfoNotFishy) {
         static final FontSet.GlyphInfoFilter MISSING = new FontSet.GlyphInfoFilter(SpecialGlyphs.MISSING, SpecialGlyphs.MISSING);
 
-        GlyphInfo select(boolean p_243218_) {
-            return p_243218_ ? this.glyphInfoNotFishy : this.glyphInfo;
+        GlyphInfo select(boolean pFilterFishyGlyphs) {
+            return pFilterFishyGlyphs ? this.glyphInfoNotFishy : this.glyphInfo;
         }
     }
 }

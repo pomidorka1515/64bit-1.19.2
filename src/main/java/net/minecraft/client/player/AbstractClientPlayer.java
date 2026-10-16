@@ -36,9 +36,9 @@ public abstract class AbstractClientPlayer extends Player {
     public float elytraRotZ;
     public final ClientLevel clientLevel;
 
-    public AbstractClientPlayer(ClientLevel p_234112_, GameProfile p_234113_, @Nullable ProfilePublicKey p_234114_) {
-        super(p_234112_, p_234112_.getSharedSpawnPos(), p_234112_.getSharedSpawnAngle(), p_234113_, p_234114_);
-        this.clientLevel = p_234112_;
+    public AbstractClientPlayer(ClientLevel pClientLevel, GameProfile pGameProfile, @Nullable ProfilePublicKey pProfilePublicKey) {
+        super(pClientLevel, pClientLevel.getSharedSpawnPos(), pClientLevel.getSharedSpawnAngle(), pGameProfile, pProfilePublicKey);
+        this.clientLevel = pClientLevel;
     }
 
     public boolean isSpectator() {
@@ -90,17 +90,17 @@ public abstract class AbstractClientPlayer extends Player {
         return playerinfo == null ? null : playerinfo.getElytraLocation();
     }
 
-    public static void registerSkinTexture(ResourceLocation p_172522_, String p_172523_) {
+    public static void registerSkinTexture(ResourceLocation pTextureLocation, String pName) {
         TextureManager texturemanager = Minecraft.getInstance().getTextureManager();
-        AbstractTexture abstracttexture = texturemanager.getTexture(p_172522_, MissingTextureAtlasSprite.getTexture());
+        AbstractTexture abstracttexture = texturemanager.getTexture(pTextureLocation, MissingTextureAtlasSprite.getTexture());
         if (abstracttexture == MissingTextureAtlasSprite.getTexture()) {
-            AbstractTexture httptexture = new HttpTexture((File) null, String.format(Locale.ROOT, "http://skins.minecraft.net/MinecraftSkins/%s.png", StringUtil.stripColor(p_172523_)), DefaultPlayerSkin.getDefaultSkin(UUIDUtil.createOfflinePlayerUUID(p_172523_)), true, (Runnable) null);
-            texturemanager.register(p_172522_, httptexture);
+            AbstractTexture httptexture = new HttpTexture((File) null, String.format(Locale.ROOT, "http://skins.minecraft.net/MinecraftSkins/%s.png", StringUtil.stripColor(pName)), DefaultPlayerSkin.getDefaultSkin(UUIDUtil.createOfflinePlayerUUID(pName)), true, (Runnable) null);
+            texturemanager.register(pTextureLocation, httptexture);
         }
     }
 
-    public static ResourceLocation getSkinLocation(String p_108557_) {
-        return new ResourceLocation("skins/" + Hashing.sha1().hashUnencodedChars(StringUtil.stripColor(p_108557_)));
+    public static ResourceLocation getSkinLocation(String pUsername) {
+        return new ResourceLocation("skins/" + Hashing.sha1().hashUnencodedChars(StringUtil.stripColor(pUsername)));
     }
 
     public String getModelName() {

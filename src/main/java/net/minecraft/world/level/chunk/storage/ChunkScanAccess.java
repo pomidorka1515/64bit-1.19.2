@@ -5,5 +5,5 @@ import net.minecraft.nbt.StreamTagVisitor;
 import net.minecraft.world.level.ChunkPos;
 
 public interface ChunkScanAccess {
-    CompletableFuture<Void> scanChunk(ChunkPos p_196888_, StreamTagVisitor p_196889_);
+    CompletableFuture<Void> scanChunk(ChunkPos pChunkPos, StreamTagVisitor pVisitor);
 }

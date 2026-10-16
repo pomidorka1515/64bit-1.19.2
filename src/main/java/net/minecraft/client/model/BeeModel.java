@@ -34,9 +34,9 @@ public class BeeModel<T extends Bee> extends AgeableListModel<T> {
     private final ModelPart rightAntenna;
     private float rollAmount;
 
-    public BeeModel(ModelPart p_170439_) {
+    public BeeModel(ModelPart pRoot) {
         super(false, 24.0F, 0.0F);
-        this.bone = p_170439_.getChild("bone");
+        this.bone = pRoot.getChild("bone");
         ModelPart modelpart = this.bone.getChild("body");
         this.stinger = modelpart.getChild("stinger");
         this.leftAntenna = modelpart.getChild("left_antenna");
@@ -66,18 +66,18 @@ public class BeeModel<T extends Bee> extends AgeableListModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 64);
     }
 
-    public void prepareMobModel(T p_102232_, float p_102233_, float p_102234_, float p_102235_) {
-        super.prepareMobModel(p_102232_, p_102233_, p_102234_, p_102235_);
-        this.rollAmount = p_102232_.getRollAmount(p_102235_);
-        this.stinger.visible = !p_102232_.hasStung();
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        super.prepareMobModel(pEntity, pLimbSwing, pLimbSwingAmount, pPartialTick);
+        this.rollAmount = pEntity.getRollAmount(pPartialTick);
+        this.stinger.visible = !pEntity.hasStung();
     }
 
-    public void setupAnim(T p_102237_, float p_102238_, float p_102239_, float p_102240_, float p_102241_, float p_102242_) {
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
         this.rightWing.xRot = 0.0F;
         this.leftAntenna.xRot = 0.0F;
         this.rightAntenna.xRot = 0.0F;
         this.bone.xRot = 0.0F;
-        boolean flag = p_102237_.isOnGround() && p_102237_.getDeltaMovement().lengthSqr() < 1.0E-7D;
+        boolean flag = pEntity.isOnGround() && pEntity.getDeltaMovement().lengthSqr() < 1.0E-7D;
         if (flag) {
             this.rightWing.yRot = -0.2618F;
             this.rightWing.zRot = 0.0F;
@@ -88,7 +88,7 @@ public class BeeModel<T extends Bee> extends AgeableListModel<T> {
             this.midLeg.xRot = 0.0F;
             this.backLeg.xRot = 0.0F;
         } else {
-            float f = p_102240_ * 120.32113F * ((float) Math.PI / 180F);
+            float f = pAgeInTicks * 120.32113F * ((float) Math.PI / 180F);
             this.rightWing.yRot = 0.0F;
             this.rightWing.zRot = Mth.cos(f) * (float) Math.PI * 0.15F;
             this.leftWing.xRot = this.rightWing.xRot;
@@ -102,18 +102,18 @@ public class BeeModel<T extends Bee> extends AgeableListModel<T> {
             this.bone.zRot = 0.0F;
         }
 
-        if (!p_102237_.isAngry()) {
+        if (!pEntity.isAngry()) {
             this.bone.xRot = 0.0F;
             this.bone.yRot = 0.0F;
             this.bone.zRot = 0.0F;
             if (!flag) {
-                float f1 = Mth.cos(p_102240_ * 0.18F);
+                float f1 = Mth.cos(pAgeInTicks * 0.18F);
                 this.bone.xRot = 0.1F + f1 * (float) Math.PI * 0.025F;
                 this.leftAntenna.xRot = f1 * (float) Math.PI * 0.03F;
                 this.rightAntenna.xRot = f1 * (float) Math.PI * 0.03F;
                 this.frontLeg.xRot = -f1 * (float) Math.PI * 0.1F + ((float) Math.PI / 8F);
                 this.backLeg.xRot = -f1 * (float) Math.PI * 0.05F + ((float) Math.PI / 4F);
-                this.bone.y = 19.0F - Mth.cos(p_102240_ * 0.18F) * 0.9F;
+                this.bone.y = 19.0F - Mth.cos(pAgeInTicks * 0.18F) * 0.9F;
             }
         }
 

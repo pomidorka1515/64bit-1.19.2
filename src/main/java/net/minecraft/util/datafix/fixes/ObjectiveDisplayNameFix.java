@@ -9,8 +9,8 @@ import com.mojang.datafixers.types.Type;
 import net.minecraft.network.chat.Component;
 
 public class ObjectiveDisplayNameFix extends DataFix {
-    public ObjectiveDisplayNameFix(Schema p_16521_, boolean p_16522_) {
-        super(p_16521_, p_16522_);
+    public ObjectiveDisplayNameFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

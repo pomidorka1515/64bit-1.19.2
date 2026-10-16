@@ -34,33 +34,33 @@ public abstract class AbstractWidget extends GuiComponent implements Widget, Gui
     protected float alpha = 1.0F;
     private boolean focused;
 
-    public AbstractWidget(int p_93629_, int p_93630_, int p_93631_, int p_93632_, Component p_93633_) {
-        this.x = p_93629_;
-        this.y = p_93630_;
-        this.width = p_93631_;
-        this.height = p_93632_;
-        this.message = p_93633_;
+    public AbstractWidget(int pX, int pY, int pWidth, int pHeight, Component pMessage) {
+        this.x = pX;
+        this.y = pY;
+        this.width = pWidth;
+        this.height = pHeight;
+        this.message = pMessage;
     }
 
     public int getHeight() {
         return this.height;
     }
 
-    protected int getYImage(boolean p_93668_) {
+    protected int getYImage(boolean pIsHovered) {
         int i = 1;
         if (!this.active) {
             i = 0;
-        } else if (p_93668_) {
+        } else if (pIsHovered) {
             i = 2;
         }
 
         return i;
     }
 
-    public void render(PoseStack p_93657_, int p_93658_, int p_93659_, float p_93660_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.visible) {
-            this.isHovered = p_93658_ >= this.x && p_93659_ >= this.y && p_93658_ < this.x + this.width && p_93659_ < this.y + this.height;
-            this.renderButton(p_93657_, p_93658_, p_93659_, p_93660_);
+            this.isHovered = pMouseX >= this.x && pMouseY >= this.y && pMouseX < this.x + this.width && pMouseY < this.y + this.height;
+            this.renderButton(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
     }
 
@@ -68,11 +68,11 @@ public abstract class AbstractWidget extends GuiComponent implements Widget, Gui
         return wrapDefaultNarrationMessage(this.getMessage());
     }
 
-    public static MutableComponent wrapDefaultNarrationMessage(Component p_168800_) {
-        return Component.translatable("gui.narrate.button", p_168800_);
+    public static MutableComponent wrapDefaultNarrationMessage(Component pMessage) {
+        return Component.translatable("gui.narrate.button", pMessage);
     }
 
-    public void renderButton(PoseStack p_93676_, int p_93677_, int p_93678_, float p_93679_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -82,32 +82,32 @@ public abstract class AbstractWidget extends GuiComponent implements Widget, Gui
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(p_93676_, this.x, this.y, 0, 46 + i * 20, this.width / 2, this.height);
-        this.blit(p_93676_, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
-        this.renderBg(p_93676_, minecraft, p_93677_, p_93678_);
+        this.blit(pPoseStack, this.x, this.y, 0, 46 + i * 20, this.width / 2, this.height);
+        this.blit(pPoseStack, this.x + this.width / 2, this.y, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
+        this.renderBg(pPoseStack, minecraft, pMouseX, pMouseY);
         int j = this.active ? 16777215 : 10526880;
-        drawCenteredString(p_93676_, font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | Mth.ceil(this.alpha * 255.0F) << 24);
+        drawCenteredString(pPoseStack, font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | Mth.ceil(this.alpha * 255.0F) << 24);
     }
 
-    protected void renderBg(PoseStack p_93661_, Minecraft p_93662_, int p_93663_, int p_93664_) {
+    protected void renderBg(PoseStack pPoseStack, Minecraft pMinecraft, int pMouseX, int pMouseY) {
     }
 
-    public void onClick(double p_93634_, double p_93635_) {
+    public void onClick(double pMouseX, double pMouseY) {
     }
 
-    public void onRelease(double p_93669_, double p_93670_) {
+    public void onRelease(double pMouseX, double pMouseY) {
     }
 
-    protected void onDrag(double p_93636_, double p_93637_, double p_93638_, double p_93639_) {
+    protected void onDrag(double pMouseX, double pMouseY, double pDragX, double pDragY) {
     }
 
-    public boolean mouseClicked(double p_93641_, double p_93642_, int p_93643_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (this.active && this.visible) {
-            if (this.isValidClickButton(p_93643_)) {
-                boolean flag = this.clicked(p_93641_, p_93642_);
+            if (this.isValidClickButton(pButton)) {
+                boolean flag = this.clicked(pMouseX, pMouseY);
                 if (flag) {
                     this.playDownSound(Minecraft.getInstance().getSoundManager());
-                    this.onClick(p_93641_, p_93642_);
+                    this.onClick(pMouseX, pMouseY);
                     return true;
                 }
             }
@@ -118,37 +118,37 @@ public abstract class AbstractWidget extends GuiComponent implements Widget, Gui
         }
     }
 
-    public boolean mouseReleased(double p_93684_, double p_93685_, int p_93686_) {
-        if (this.isValidClickButton(p_93686_)) {
-            this.onRelease(p_93684_, p_93685_);
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+        if (this.isValidClickButton(pButton)) {
+            this.onRelease(pMouseX, pMouseY);
             return true;
         } else {
             return false;
         }
     }
 
-    protected boolean isValidClickButton(int p_93652_) {
-        return p_93652_ == 0;
+    protected boolean isValidClickButton(int pButton) {
+        return pButton == 0;
     }
 
-    public boolean mouseDragged(double p_93645_, double p_93646_, int p_93647_, double p_93648_, double p_93649_) {
-        if (this.isValidClickButton(p_93647_)) {
-            this.onDrag(p_93645_, p_93646_, p_93648_, p_93649_);
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        if (this.isValidClickButton(pButton)) {
+            this.onDrag(pMouseX, pMouseY, pDragX, pDragY);
             return true;
         } else {
             return false;
         }
     }
 
-    protected boolean clicked(double p_93681_, double p_93682_) {
-        return this.active && this.visible && p_93681_ >= (double) this.x && p_93682_ >= (double) this.y && p_93681_ < (double) (this.x + this.width) && p_93682_ < (double) (this.y + this.height);
+    protected boolean clicked(double pMouseX, double pMouseY) {
+        return this.active && this.visible && pMouseX >= (double) this.x && pMouseY >= (double) this.y && pMouseX < (double) (this.x + this.width) && pMouseY < (double) (this.y + this.height);
     }
 
     public boolean isHoveredOrFocused() {
         return this.isHovered || this.focused;
     }
 
-    public boolean changeFocus(boolean p_93691_) {
+    public boolean changeFocus(boolean pFocus) {
         if (this.active && this.visible) {
             this.focused = !this.focused;
             this.onFocusedChanged(this.focused);
@@ -158,34 +158,34 @@ public abstract class AbstractWidget extends GuiComponent implements Widget, Gui
         }
     }
 
-    protected void onFocusedChanged(boolean p_93689_) {
+    protected void onFocusedChanged(boolean pFocused) {
     }
 
-    public boolean isMouseOver(double p_93672_, double p_93673_) {
-        return this.active && this.visible && p_93672_ >= (double) this.x && p_93673_ >= (double) this.y && p_93672_ < (double) (this.x + this.width) && p_93673_ < (double) (this.y + this.height);
+    public boolean isMouseOver(double pMouseX, double pMouseY) {
+        return this.active && this.visible && pMouseX >= (double) this.x && pMouseY >= (double) this.y && pMouseX < (double) (this.x + this.width) && pMouseY < (double) (this.y + this.height);
     }
 
-    public void renderToolTip(PoseStack p_93653_, int p_93654_, int p_93655_) {
+    public void renderToolTip(PoseStack pPoseStack, int pMouseX, int pMouseY) {
     }
 
-    public void playDownSound(SoundManager p_93665_) {
-        p_93665_.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+    public void playDownSound(SoundManager pHandler) {
+        pHandler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     public int getWidth() {
         return this.width;
     }
 
-    public void setWidth(int p_93675_) {
-        this.width = p_93675_;
+    public void setWidth(int pWidth) {
+        this.width = pWidth;
     }
 
-    public void setAlpha(float p_93651_) {
-        this.alpha = p_93651_;
+    public void setAlpha(float pAlpha) {
+        this.alpha = pAlpha;
     }
 
-    public void setMessage(Component p_93667_) {
-        this.message = p_93667_;
+    public void setMessage(Component pMessage) {
+        this.message = pMessage;
     }
 
     public Component getMessage() {
@@ -200,8 +200,8 @@ public abstract class AbstractWidget extends GuiComponent implements Widget, Gui
         return this.visible && this.active;
     }
 
-    protected void setFocused(boolean p_93693_) {
-        this.focused = p_93693_;
+    protected void setFocused(boolean pFocused) {
+        this.focused = pFocused;
     }
 
     public NarratableEntry.NarrationPriority narrationPriority() {
@@ -212,13 +212,13 @@ public abstract class AbstractWidget extends GuiComponent implements Widget, Gui
         }
     }
 
-    protected void defaultButtonNarrationText(NarrationElementOutput p_168803_) {
-        p_168803_.add(NarratedElementType.TITLE, this.createNarrationMessage());
+    protected void defaultButtonNarrationText(NarrationElementOutput pNarrationElementOutput) {
+        pNarrationElementOutput.add(NarratedElementType.TITLE, this.createNarrationMessage());
         if (this.active) {
             if (this.isFocused()) {
-                p_168803_.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.focused"));
+                pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.focused"));
             } else {
-                p_168803_.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.hovered"));
+                pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.hovered"));
             }
         }
     }

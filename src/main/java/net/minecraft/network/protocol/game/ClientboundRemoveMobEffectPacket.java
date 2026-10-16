@@ -12,28 +12,28 @@ public class ClientboundRemoveMobEffectPacket implements Packet<ClientGamePacket
     private final int entityId;
     private final MobEffect effect;
 
-    public ClientboundRemoveMobEffectPacket(int p_132899_, MobEffect p_132900_) {
-        this.entityId = p_132899_;
-        this.effect = p_132900_;
+    public ClientboundRemoveMobEffectPacket(int pEntityId, MobEffect pEffect) {
+        this.entityId = pEntityId;
+        this.effect = pEffect;
     }
 
-    public ClientboundRemoveMobEffectPacket(FriendlyByteBuf p_179177_) {
-        this.entityId = p_179177_.readVarInt();
-        this.effect = p_179177_.readById(Registry.MOB_EFFECT);
+    public ClientboundRemoveMobEffectPacket(FriendlyByteBuf pBuffer) {
+        this.entityId = pBuffer.readVarInt();
+        this.effect = pBuffer.readById(Registry.MOB_EFFECT);
     }
 
-    public void write(FriendlyByteBuf p_132911_) {
-        p_132911_.writeVarInt(this.entityId);
-        p_132911_.writeId(Registry.MOB_EFFECT, this.effect);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.entityId);
+        pBuffer.writeId(Registry.MOB_EFFECT, this.effect);
     }
 
-    public void handle(ClientGamePacketListener p_132908_) {
-        p_132908_.handleRemoveMobEffect(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleRemoveMobEffect(this);
     }
 
     @Nullable
-    public Entity getEntity(Level p_132902_) {
-        return p_132902_.getEntity(this.entityId);
+    public Entity getEntity(Level pLevel) {
+        return pLevel.getEntity(this.entityId);
     }
 
     @Nullable

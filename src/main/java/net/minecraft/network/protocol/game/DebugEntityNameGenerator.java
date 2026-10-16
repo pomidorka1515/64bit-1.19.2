@@ -11,25 +11,25 @@ public class DebugEntityNameGenerator {
     private static final String[] NAMES_FIRST_PART = new String[] {"Slim", "Far", "River", "Silly", "Fat", "Thin", "Fish", "Bat", "Dark", "Oak", "Sly", "Bush", "Zen", "Bark", "Cry", "Slack", "Soup", "Grim", "Hook", "Dirt", "Mud", "Sad", "Hard", "Crook", "Sneak", "Stink", "Weird", "Fire", "Soot", "Soft", "Rough", "Cling", "Scar"};
     private static final String[] NAMES_SECOND_PART = new String[] {"Fox", "Tail", "Jaw", "Whisper", "Twig", "Root", "Finder", "Nose", "Brow", "Blade", "Fry", "Seek", "Wart", "Tooth", "Foot", "Leaf", "Stone", "Fall", "Face", "Tongue", "Voice", "Lip", "Mouth", "Snail", "Toe", "Ear", "Hair", "Beard", "Shirt", "Fist"};
 
-    public static String getEntityName(Entity p_179487_) {
-        if (p_179487_ instanceof Player) {
-            return p_179487_.getName().getString();
+    public static String getEntityName(Entity pEntity) {
+        if (pEntity instanceof Player) {
+            return pEntity.getName().getString();
         } else {
-            Component component = p_179487_.getCustomName();
-            return component != null ? component.getString() : getEntityName(p_179487_.getUUID());
+            Component component = pEntity.getCustomName();
+            return component != null ? component.getString() : getEntityName(pEntity.getUUID());
         }
     }
 
-    public static String getEntityName(UUID p_133669_) {
-        RandomSource randomsource = getRandom(p_133669_);
+    public static String getEntityName(UUID pUuid) {
+        RandomSource randomsource = getRandom(pUuid);
         return getRandomString(randomsource, NAMES_FIRST_PART) + getRandomString(randomsource, NAMES_SECOND_PART);
     }
 
-    private static String getRandomString(RandomSource p_237881_, String[] p_237882_) {
-        return Util.getRandom(p_237882_, p_237881_);
+    private static String getRandomString(RandomSource pRandom, String[] pStrings) {
+        return Util.getRandom(pStrings, pRandom);
     }
 
-    private static RandomSource getRandom(UUID p_237884_) {
-        return RandomSource.create((long) (p_237884_.hashCode() >> 2));
+    private static RandomSource getRandom(UUID pUuid) {
+        return RandomSource.create((long) (pUuid.hashCode() >> 2));
     }
 }

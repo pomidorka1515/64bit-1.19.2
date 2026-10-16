@@ -13,11 +13,11 @@ public class CriteriaRenameFix extends DataFix {
     private final String advancementId;
     private final UnaryOperator<String> conversions;
 
-    public CriteriaRenameFix(Schema p_216585_, String p_216586_, String p_216587_, UnaryOperator<String> p_216588_) {
-        super(p_216585_, false);
-        this.name = p_216586_;
-        this.advancementId = p_216587_;
-        this.conversions = p_216588_;
+    public CriteriaRenameFix(Schema pOutputSchema, String pName, String pAdvancementId, UnaryOperator<String> pConversions) {
+        super(pOutputSchema, false);
+        this.name = pName;
+        this.advancementId = pAdvancementId;
+        this.conversions = pConversions;
     }
 
     protected TypeRewriteRule makeRule() {

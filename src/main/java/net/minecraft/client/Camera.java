@@ -44,32 +44,32 @@ public class Camera {
     private float eyeHeightOld;
     public static final float FOG_DISTANCE_SCALE = 0.083333336F;
 
-    public void setup(BlockGetter p_90576_, Entity p_90577_, boolean p_90578_, boolean p_90579_, float p_90580_) {
+    public void setup(BlockGetter pLevel, Entity pEntity, boolean pDetached, boolean pThirdPersonReverse, float pPartialTick) {
         this.initialized = true;
-        this.level = p_90576_;
-        this.entity = p_90577_;
-        this.detached = p_90578_;
-        this.setRotation(p_90577_.getViewYRot(p_90580_), p_90577_.getViewXRot(p_90580_));
-        this.exactPosition = p_90577_.interpolatedExactPosition(p_90580_);
+        this.level = pLevel;
+        this.entity = pEntity;
+        this.detached = pDetached;
+        this.setRotation(pEntity.getViewYRot(pPartialTick), pEntity.getViewXRot(pPartialTick));
+        this.exactPosition = pEntity.interpolatedExactPosition(pPartialTick);
         if (this.exactPosition != null) {
             // exactPosition must describe the actual camera, not the player's feet.
             // The legacy Vec3 path already added eyeHeight to the camera position;
             // keeping that addition only in the compatibility mirror left sector
             // rendering and third-person camera motion one eye-height below it.
             this.exactPosition = this.exactPosition.withY(this.exactPosition.y()
-                    + (double) p_90577_.getEyeHeight());
+                    + (double) pEntity.getEyeHeight());
             this.setPosition(this.exactPosition.toApproximateVec3());
         } else {
-            this.setPosition(Mth.lerp((double) p_90580_, p_90577_.xo, p_90577_.getX()), Mth.lerp((double) p_90580_, p_90577_.yo, p_90577_.getY()) + (double) Mth.lerp(p_90580_, this.eyeHeightOld, this.eyeHeight), Mth.lerp((double) p_90580_, p_90577_.zo, p_90577_.getZ()));
+            this.setPosition(Mth.lerp((double) pPartialTick, pEntity.xo, pEntity.getX()), Mth.lerp((double) pPartialTick, pEntity.yo, pEntity.getY()) + (double) Mth.lerp(pPartialTick, this.eyeHeightOld, this.eyeHeight), Mth.lerp((double) pPartialTick, pEntity.zo, pEntity.getZ()));
         }
-        if (p_90578_) {
-            if (p_90579_) {
+        if (pDetached) {
+            if (pThirdPersonReverse) {
                 this.setRotation(this.yRot + 180.0F, -this.xRot);
             }
 
             this.move(-this.getMaxZoom(4.0D), 0.0D, 0.0D);
-        } else if (p_90577_ instanceof LivingEntity && ((LivingEntity) p_90577_).isSleeping()) {
-            Direction direction = ((LivingEntity) p_90577_).getBedOrientation();
+        } else if (pEntity instanceof LivingEntity && ((LivingEntity) pEntity).isSleeping()) {
+            Direction direction = ((LivingEntity) pEntity).getBedOrientation();
             this.setRotation(direction != null ? direction.toYRot() - 180.0F : 0.0F, 0.0F);
             this.move(0.0D, 0.3D, 0.0D);
         }
@@ -82,7 +82,7 @@ public class Camera {
         }
     }
 
-    private double getMaxZoom(double p_90567_) {
+    private double getMaxZoom(double pStartingDistance) {
         for (int i = 0; i < 8; ++i) {
             float f = (float) ((i & 1) * 2 - 1);
             float f1 = (float) ((i >> 1 & 1) * 2 - 1);
@@ -95,14 +95,14 @@ public class Camera {
                 SectorVec3 from = this.exactPosition.add(f, f1, f2);
                 // Both endpoints are relative to the camera. Do not add the
                 // corner offset twice by deriving the far endpoint from `from`.
-                SectorVec3 to = this.exactPosition.add(-this.forwards.x() * p_90567_ + f + f2,
-                        -this.forwards.y() * p_90567_ + f1,
-                        -this.forwards.z() * p_90567_ + f2);
+                SectorVec3 to = this.exactPosition.add(-this.forwards.x() * pStartingDistance + f + f2,
+                        -this.forwards.y() * pStartingDistance + f1,
+                        -this.forwards.z() * pStartingDistance + f2);
                 hitresult = SectorClipper.clip(this.level, from, to, this.entity,
                         ClipContext.Block.VISUAL, ClipContext.Fluid.NONE);
             } else {
                 Vec3 vec3 = this.position.add((double) f, (double) f1, (double) f2);
-                Vec3 vec31 = new Vec3(this.position.x - (double) this.forwards.x() * p_90567_ + (double) f + (double) f2, this.position.y - (double) this.forwards.y() * p_90567_ + (double) f1, this.position.z - (double) this.forwards.z() * p_90567_ + (double) f2);
+                Vec3 vec31 = new Vec3(this.position.x - (double) this.forwards.x() * pStartingDistance + (double) f + (double) f2, this.position.y - (double) this.forwards.y() * pStartingDistance + (double) f1, this.position.z - (double) this.forwards.z() * pStartingDistance + (double) f2);
                 hitresult = this.level.clip(new ClipContext(vec3, vec31, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, this.entity));
             }
             if (hitresult.getType() != HitResult.Type.MISS) {
@@ -116,19 +116,19 @@ public class Camera {
                 } else {
                     d0 = hitresult.getLocation().distanceTo(this.position);
                 }
-                if (d0 < p_90567_) {
-                    p_90567_ = d0;
+                if (d0 < pStartingDistance) {
+                    pStartingDistance = d0;
                 }
             }
         }
 
-        return p_90567_;
+        return pStartingDistance;
     }
 
-    protected void move(double p_90569_, double p_90570_, double p_90571_) {
-        double d0 = (double) this.forwards.x() * p_90569_ + (double) this.up.x() * p_90570_ + (double) this.left.x() * p_90571_;
-        double d1 = (double) this.forwards.y() * p_90569_ + (double) this.up.y() * p_90570_ + (double) this.left.y() * p_90571_;
-        double d2 = (double) this.forwards.z() * p_90569_ + (double) this.up.z() * p_90570_ + (double) this.left.z() * p_90571_;
+    protected void move(double pDistanceOffset, double pVerticalOffset, double pHorizontalOffset) {
+        double d0 = (double) this.forwards.x() * pDistanceOffset + (double) this.up.x() * pVerticalOffset + (double) this.left.x() * pHorizontalOffset;
+        double d1 = (double) this.forwards.y() * pDistanceOffset + (double) this.up.y() * pVerticalOffset + (double) this.left.y() * pHorizontalOffset;
+        double d2 = (double) this.forwards.z() * pDistanceOffset + (double) this.up.z() * pVerticalOffset + (double) this.left.z() * pHorizontalOffset;
         if (this.exactPosition != null) {
             // Third-person camera motion is not entity motion. Keep the camera's
             // split-coordinate position in sync, otherwise renderers still use the
@@ -141,12 +141,12 @@ public class Camera {
         }
     }
 
-    protected void setRotation(float p_90573_, float p_90574_) {
-        this.xRot = p_90574_;
-        this.yRot = p_90573_;
+    protected void setRotation(float pYRot, float pXRot) {
+        this.xRot = pXRot;
+        this.yRot = pYRot;
         this.rotation.set(0.0F, 0.0F, 0.0F, 1.0F);
-        this.rotation.mul(Vector3f.YP.rotationDegrees(-p_90573_));
-        this.rotation.mul(Vector3f.XP.rotationDegrees(p_90574_));
+        this.rotation.mul(Vector3f.YP.rotationDegrees(-pYRot));
+        this.rotation.mul(Vector3f.XP.rotationDegrees(pXRot));
         this.forwards.set(0.0F, 0.0F, 1.0F);
         this.forwards.transform(this.rotation);
         this.up.set(0.0F, 1.0F, 0.0F);
@@ -155,13 +155,13 @@ public class Camera {
         this.left.transform(this.rotation);
     }
 
-    protected void setPosition(double p_90585_, double p_90586_, double p_90587_) {
-        this.setPosition(new Vec3(p_90585_, p_90586_, p_90587_));
+    protected void setPosition(double pX, double pY, double pZ) {
+        this.setPosition(new Vec3(pX, pY, pZ));
     }
 
-    protected void setPosition(Vec3 p_90582_) {
-        this.position = p_90582_;
-        this.blockPosition.set(p_90582_.x, p_90582_.y, p_90582_.z);
+    protected void setPosition(Vec3 pPos) {
+        this.position = pPos;
+        this.blockPosition.set(pPos.x, pPos.y, pPos.z);
     }
 
     public Vec3 getPosition() {
@@ -274,10 +274,10 @@ public class Camera {
         private final Vec3 left;
         private final Vec3 up;
 
-        NearPlane(Vec3 p_167691_, Vec3 p_167692_, Vec3 p_167693_) {
-            this.forward = p_167691_;
-            this.left = p_167692_;
-            this.up = p_167693_;
+        NearPlane(Vec3 pForward, Vec3 pLeft, Vec3 pUp) {
+            this.forward = pForward;
+            this.left = pLeft;
+            this.up = pUp;
         }
 
         public Vec3 getTopLeft() {
@@ -296,8 +296,8 @@ public class Camera {
             return this.forward.subtract(this.up).subtract(this.left);
         }
 
-        public Vec3 getPointOnPlane(float p_167696_, float p_167697_) {
-            return this.forward.add(this.up.scale((double) p_167697_)).subtract(this.left.scale((double) p_167696_));
+        public Vec3 getPointOnPlane(float pLeftScale, float pUpScale) {
+            return this.forward.add(this.up.scale((double) pUpScale)).subtract(this.left.scale((double) pLeftScale));
         }
     }
 }

@@ -14,16 +14,16 @@ public class EffectsChangedTrigger extends SimpleCriterionTrigger<EffectsChanged
         return ID;
     }
 
-    public EffectsChangedTrigger.TriggerInstance createInstance(JsonObject p_26766_, EntityPredicate.Composite p_26767_, DeserializationContext p_26768_) {
-        MobEffectsPredicate mobeffectspredicate = MobEffectsPredicate.fromJson(p_26766_.get("effects"));
-        EntityPredicate.Composite entitypredicate$composite = EntityPredicate.Composite.fromJson(p_26766_, "source", p_26768_);
-        return new EffectsChangedTrigger.TriggerInstance(p_26767_, mobeffectspredicate, entitypredicate$composite);
+    public EffectsChangedTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        MobEffectsPredicate mobeffectspredicate = MobEffectsPredicate.fromJson(pJson.get("effects"));
+        EntityPredicate.Composite entitypredicate$composite = EntityPredicate.Composite.fromJson(pJson, "source", pConditionsParser);
+        return new EffectsChangedTrigger.TriggerInstance(pEntityPredicate, mobeffectspredicate, entitypredicate$composite);
     }
 
-    public void trigger(ServerPlayer p_149263_, @Nullable Entity p_149264_) {
-        LootContext lootcontext = p_149264_ != null ? EntityPredicate.createContext(p_149263_, p_149264_) : null;
-        this.trigger(p_149263_, (p_149268_) -> {
-            return p_149268_.matches(p_149263_, lootcontext);
+    public void trigger(ServerPlayer pPlayer, @Nullable Entity pSource) {
+        LootContext lootcontext = pSource != null ? EntityPredicate.createContext(pPlayer, pSource) : null;
+        this.trigger(pPlayer, (p_149268_) -> {
+            return p_149268_.matches(pPlayer, lootcontext);
         });
     }
 
@@ -31,32 +31,32 @@ public class EffectsChangedTrigger extends SimpleCriterionTrigger<EffectsChanged
         private final MobEffectsPredicate effects;
         private final EntityPredicate.Composite source;
 
-        public TriggerInstance(EntityPredicate.Composite p_149271_, MobEffectsPredicate p_149272_, EntityPredicate.Composite p_149273_) {
-            super(EffectsChangedTrigger.ID, p_149271_);
-            this.effects = p_149272_;
-            this.source = p_149273_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, MobEffectsPredicate pEffects, EntityPredicate.Composite pSource) {
+            super(EffectsChangedTrigger.ID, pPlayer);
+            this.effects = pEffects;
+            this.source = pSource;
         }
 
-        public static EffectsChangedTrigger.TriggerInstance hasEffects(MobEffectsPredicate p_26781_) {
-            return new EffectsChangedTrigger.TriggerInstance(EntityPredicate.Composite.ANY, p_26781_, EntityPredicate.Composite.ANY);
+        public static EffectsChangedTrigger.TriggerInstance hasEffects(MobEffectsPredicate pEffects) {
+            return new EffectsChangedTrigger.TriggerInstance(EntityPredicate.Composite.ANY, pEffects, EntityPredicate.Composite.ANY);
         }
 
-        public static EffectsChangedTrigger.TriggerInstance gotEffectsFrom(EntityPredicate p_149278_) {
-            return new EffectsChangedTrigger.TriggerInstance(EntityPredicate.Composite.ANY, MobEffectsPredicate.ANY, EntityPredicate.Composite.wrap(p_149278_));
+        public static EffectsChangedTrigger.TriggerInstance gotEffectsFrom(EntityPredicate pSource) {
+            return new EffectsChangedTrigger.TriggerInstance(EntityPredicate.Composite.ANY, MobEffectsPredicate.ANY, EntityPredicate.Composite.wrap(pSource));
         }
 
-        public boolean matches(ServerPlayer p_149275_, @Nullable LootContext p_149276_) {
-            if (!this.effects.matches(p_149275_)) {
+        public boolean matches(ServerPlayer pPlayer, @Nullable LootContext pLootContext) {
+            if (!this.effects.matches(pPlayer)) {
                 return false;
             } else {
-                return this.source == EntityPredicate.Composite.ANY || p_149276_ != null && this.source.matches(p_149276_);
+                return this.source == EntityPredicate.Composite.ANY || pLootContext != null && this.source.matches(pLootContext);
             }
         }
 
-        public JsonObject serializeToJson(SerializationContext p_26783_) {
-            JsonObject jsonobject = super.serializeToJson(p_26783_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             jsonobject.add("effects", this.effects.serializeToJson());
-            jsonobject.add("source", this.source.toJson(p_26783_));
+            jsonobject.add("source", this.source.toJson(pConditions));
             return jsonobject;
         }
     }

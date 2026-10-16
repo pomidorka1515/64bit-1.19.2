@@ -46,17 +46,17 @@ public final class TextureSlot {
     @Nullable
     private final TextureSlot parent;
 
-    private static TextureSlot create(String p_125899_) {
-        return new TextureSlot(p_125899_, (TextureSlot) null);
+    private static TextureSlot create(String pId) {
+        return new TextureSlot(pId, (TextureSlot) null);
     }
 
-    private static TextureSlot create(String p_125901_, TextureSlot p_125902_) {
-        return new TextureSlot(p_125901_, p_125902_);
+    private static TextureSlot create(String pId, TextureSlot pParent) {
+        return new TextureSlot(pId, pParent);
     }
 
-    private TextureSlot(String p_125895_, @Nullable TextureSlot p_125896_) {
-        this.id = p_125895_;
-        this.parent = p_125896_;
+    private TextureSlot(String pId, @Nullable TextureSlot pParent) {
+        this.id = pId;
+        this.parent = pParent;
     }
 
     public String getId() {

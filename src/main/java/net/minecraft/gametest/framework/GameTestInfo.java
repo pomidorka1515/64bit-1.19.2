@@ -36,15 +36,15 @@ public class GameTestInfo {
     @Nullable
     private StructureBlockEntity structureBlockEntity;
 
-    public GameTestInfo(TestFunction p_127613_, Rotation p_127614_, ServerLevel p_127615_) {
-        this.testFunction = p_127613_;
-        this.level = p_127615_;
-        this.timeoutTicks = p_127613_.getMaxTicks();
-        this.rotation = p_127613_.getRotation().getRotated(p_127614_);
+    public GameTestInfo(TestFunction pFunction, Rotation pRotation, ServerLevel pServerLevel) {
+        this.testFunction = pFunction;
+        this.level = pServerLevel;
+        this.timeoutTicks = pFunction.getMaxTicks();
+        this.rotation = pFunction.getRotation().getRotated(pRotation);
     }
 
-    void setStructureBlockPos(BlockPos p_127618_) {
-        this.structureBlockPos = p_127618_;
+    void setStructureBlockPos(BlockPos pPos) {
+        this.structureBlockPos = pPos;
     }
 
     void startExecution() {
@@ -124,8 +124,8 @@ public class GameTestInfo {
         }
     }
 
-    public void setRunAtTickTime(long p_177473_, Runnable p_177474_) {
-        this.runAtTickTimeMap.put(p_177474_, p_177473_);
+    public void setRunAtTickTime(long pTickTime, Runnable pTask) {
+        this.runAtTickTimeMap.put(pTask, pTickTime);
     }
 
     public String getTestName() {
@@ -190,8 +190,8 @@ public class GameTestInfo {
         }
     }
 
-    public void fail(Throwable p_127623_) {
-        this.error = p_127623_;
+    public void fail(Throwable pError) {
+        this.error = pError;
         this.finish();
     }
 
@@ -204,8 +204,8 @@ public class GameTestInfo {
         return this.getTestName();
     }
 
-    public void addListener(GameTestListener p_127625_) {
-        this.listeners.add(p_127625_);
+    public void addListener(GameTestListener pListener) {
+        this.listeners.add(pListener);
     }
 
     public void spawnStructure(BlockPos p_127620_, int p_127621_) {

@@ -12,8 +12,8 @@ import java.util.Objects;
 import net.minecraft.network.chat.Component;
 
 public class TeamDisplayNameFix extends DataFix {
-    public TeamDisplayNameFix(Schema p_17001_, boolean p_17002_) {
-        super(p_17001_, p_17002_);
+    public TeamDisplayNameFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

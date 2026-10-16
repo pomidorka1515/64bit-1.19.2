@@ -42,16 +42,16 @@ public class SignEditScreen extends Screen {
     private SignRenderer.SignModel signModel;
     private final String[] messages;
 
-    public SignEditScreen(SignBlockEntity p_169811_, boolean p_169812_) {
+    public SignEditScreen(SignBlockEntity pSign, boolean pIsTextFilteringEnabled) {
         super(Component.translatable("sign.edit"));
         this.messages = IntStream.range(0, 4).mapToObj((p_169818_) -> {
-                                                 return p_169811_.getMessage(p_169818_, p_169812_);
+                                                 return pSign.getMessage(p_169818_, pIsTextFilteringEnabled);
                                              })
                                 .map(Component::getString)
                                 .toArray((p_169814_) -> {
                                     return new String[p_169814_];
                                 });
-        this.sign = p_169811_;
+        this.sign = pSign;
     }
 
     protected void init() {
@@ -90,8 +90,8 @@ public class SignEditScreen extends Screen {
         this.minecraft.setScreen((Screen) null);
     }
 
-    public boolean charTyped(char p_99262_, int p_99263_) {
-        this.signField.charTyped(p_99262_);
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        this.signField.charTyped(pCodePoint);
         return true;
     }
 
@@ -99,13 +99,13 @@ public class SignEditScreen extends Screen {
         this.onDone();
     }
 
-    public boolean keyPressed(int p_99267_, int p_99268_, int p_99269_) {
-        if (p_99267_ == 265) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 265) {
             this.line = this.line - 1 & 3;
             this.signField.setCursorToEnd();
             return true;
-        } else if (p_99267_ != 264 && p_99267_ != 257 && p_99267_ != 335) {
-            return this.signField.keyPressed(p_99267_) ? true : super.keyPressed(p_99267_, p_99268_, p_99269_);
+        } else if (pKeyCode != 264 && pKeyCode != 257 && pKeyCode != 335) {
+            return this.signField.keyPressed(pKeyCode) ? true : super.keyPressed(pKeyCode, pScanCode, pModifiers);
         } else {
             this.line = this.line + 1 & 3;
             this.signField.setCursorToEnd();
@@ -113,39 +113,39 @@ public class SignEditScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_99271_, int p_99272_, int p_99273_, float p_99274_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         Lighting.setupForFlatItems();
-        this.renderBackground(p_99271_);
-        drawCenteredString(p_99271_, this.font, this.title, this.width / 2, 40, 16777215);
-        p_99271_.pushPose();
-        p_99271_.translate((double) (this.width / 2), 0.0D, 50.0D);
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 40, 16777215);
+        pPoseStack.pushPose();
+        pPoseStack.translate((double) (this.width / 2), 0.0D, 50.0D);
         float f = 93.75F;
-        p_99271_.scale(93.75F, -93.75F, 93.75F);
-        p_99271_.translate(0.0D, -1.3125D, 0.0D);
+        pPoseStack.scale(93.75F, -93.75F, 93.75F);
+        pPoseStack.translate(0.0D, -1.3125D, 0.0D);
         BlockState blockstate = this.sign.getBlockState();
         boolean flag = blockstate.getBlock() instanceof StandingSignBlock;
         if (!flag) {
-            p_99271_.translate(0.0D, -0.3125D, 0.0D);
+            pPoseStack.translate(0.0D, -0.3125D, 0.0D);
         }
 
         boolean flag1 = this.frame / 6 % 2 == 0;
         float f1 = 0.6666667F;
-        p_99271_.pushPose();
-        p_99271_.scale(0.6666667F, -0.6666667F, -0.6666667F);
+        pPoseStack.pushPose();
+        pPoseStack.scale(0.6666667F, -0.6666667F, -0.6666667F);
         MultiBufferSource.BufferSource multibuffersource$buffersource = this.minecraft.renderBuffers().bufferSource();
         Material material = Sheets.getSignMaterial(this.woodType);
         VertexConsumer vertexconsumer = material.buffer(multibuffersource$buffersource, this.signModel::renderType);
         this.signModel.stick.visible = flag;
-        this.signModel.root.render(p_99271_, vertexconsumer, 15728880, OverlayTexture.NO_OVERLAY);
-        p_99271_.popPose();
+        this.signModel.root.render(pPoseStack, vertexconsumer, 15728880, OverlayTexture.NO_OVERLAY);
+        pPoseStack.popPose();
         float f2 = 0.010416667F;
-        p_99271_.translate(0.0D, (double) 0.33333334F, (double) 0.046666667F);
-        p_99271_.scale(0.010416667F, -0.010416667F, 0.010416667F);
+        pPoseStack.translate(0.0D, (double) 0.33333334F, (double) 0.046666667F);
+        pPoseStack.scale(0.010416667F, -0.010416667F, 0.010416667F);
         int i = this.sign.getColor().getTextColor();
         int j = this.signField.getCursorPos();
         int k = this.signField.getSelectionPos();
         int l = this.line * 10 - this.messages.length * 5;
-        Matrix4f matrix4f = p_99271_.last().pose();
+        Matrix4f matrix4f = pPoseStack.last().pose();
 
         for (int i1 = 0; i1 < this.messages.length; ++i1) {
             String s = this.messages[i1];
@@ -174,7 +174,7 @@ public class SignEditScreen extends Screen {
                 int j3 = this.minecraft.font.width(s1.substring(0, Math.max(Math.min(j, s1.length()), 0)));
                 int k3 = j3 - this.minecraft.font.width(s1) / 2;
                 if (flag1 && j < s1.length()) {
-                    fill(p_99271_, k3, l - 1, k3 + 1, l + 9, -16777216 | i);
+                    fill(pPoseStack, k3, l - 1, k3 + 1, l + 9, -16777216 | i);
                 }
 
                 if (k != j) {
@@ -202,8 +202,8 @@ public class SignEditScreen extends Screen {
             }
         }
 
-        p_99271_.popPose();
+        pPoseStack.popPose();
         Lighting.setupFor3DItems();
-        super.render(p_99271_, p_99272_, p_99273_, p_99274_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

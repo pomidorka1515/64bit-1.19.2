@@ -23,9 +23,9 @@ public class PhantomModel<T extends Phantom> extends HierarchicalModel<T> {
     private final ModelPart tailBase;
     private final ModelPart tailTip;
 
-    public PhantomModel(ModelPart p_170788_) {
-        this.root = p_170788_;
-        ModelPart modelpart = p_170788_.getChild("body");
+    public PhantomModel(ModelPart pRoot) {
+        this.root = pRoot;
+        ModelPart modelpart = pRoot.getChild("body");
         this.tailBase = modelpart.getChild("tail_base");
         this.tailTip = this.tailBase.getChild("tail_tip");
         this.leftWingBase = modelpart.getChild("left_wing_base");
@@ -52,8 +52,8 @@ public class PhantomModel<T extends Phantom> extends HierarchicalModel<T> {
         return this.root;
     }
 
-    public void setupAnim(T p_170791_, float p_170792_, float p_170793_, float p_170794_, float p_170795_, float p_170796_) {
-        float f = ((float) p_170791_.getUniqueFlapTickOffset() + p_170794_) * 7.448451F * ((float) Math.PI / 180F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        float f = ((float) pEntity.getUniqueFlapTickOffset() + pAgeInTicks) * 7.448451F * ((float) Math.PI / 180F);
         float f1 = 16.0F;
         this.leftWingBase.zRot = Mth.cos(f) * 16.0F * ((float) Math.PI / 180F);
         this.leftWingTip.zRot = Mth.cos(f) * 16.0F * ((float) Math.PI / 180F);

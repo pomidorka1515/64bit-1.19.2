@@ -24,9 +24,9 @@ public class ServerWatchdog implements Runnable {
     private final DedicatedServer server;
     private final long maxTickTime;
 
-    public ServerWatchdog(DedicatedServer p_139786_) {
-        this.server = p_139786_;
-        this.maxTickTime = p_139786_.getMaxTickLength();
+    public ServerWatchdog(DedicatedServer pServer) {
+        this.server = pServer;
+        this.maxTickTime = pServer.getMaxTickLength();
     }
 
     public void run() {

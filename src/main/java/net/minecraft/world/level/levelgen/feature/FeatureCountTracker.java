@@ -25,17 +25,17 @@ public class FeatureCountTracker {
         }
     });
 
-    public static void chunkDecorated(ServerLevel p_190882_) {
+    public static void chunkDecorated(ServerLevel pLevel) {
         try {
-            data.get(p_190882_).chunksWithFeatures().increment();
+            data.get(pLevel).chunksWithFeatures().increment();
         } catch (Exception exception) {
             LOGGER.error("Failed to increment chunk count", (Throwable) exception);
         }
     }
 
-    public static void featurePlaced(ServerLevel p_190884_, ConfiguredFeature<?, ?> p_190885_, Optional<PlacedFeature> p_190886_) {
+    public static void featurePlaced(ServerLevel pLevel, ConfiguredFeature<?, ?> pFeature, Optional<PlacedFeature> pTopFeature) {
         try {
-            data.get(p_190884_).featureData().computeInt(new FeatureCountTracker.FeatureData(p_190885_, p_190886_), (p_190891_, p_190892_) -> {
+            data.get(pLevel).featureData().computeInt(new FeatureCountTracker.FeatureData(pFeature, pTopFeature), (p_190891_, p_190892_) -> {
                 return p_190892_ == null ? 1 : p_190892_ + 1;
             });
         } catch (Exception exception) {

@@ -14,30 +14,30 @@ public class SetWalkTargetFromAttackTargetIfTargetOutOfReach extends Behavior<Mo
     private static final int PROJECTILE_ATTACK_RANGE_BUFFER = 1;
     private final Function<LivingEntity, Float> speedModifier;
 
-    public SetWalkTargetFromAttackTargetIfTargetOutOfReach(float p_24026_) {
+    public SetWalkTargetFromAttackTargetIfTargetOutOfReach(float pSpeedModifier) {
         this((p_147908_) -> {
-            return p_24026_;
+            return pSpeedModifier;
         });
     }
 
-    public SetWalkTargetFromAttackTargetIfTargetOutOfReach(Function<LivingEntity, Float> p_147905_) {
+    public SetWalkTargetFromAttackTargetIfTargetOutOfReach(Function<LivingEntity, Float> pSpeedModifier) {
         super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryStatus.REGISTERED));
-        this.speedModifier = p_147905_;
+        this.speedModifier = pSpeedModifier;
     }
 
-    protected void start(ServerLevel p_24032_, Mob p_24033_, long p_24034_) {
-        LivingEntity livingentity = p_24033_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).get();
-        if (BehaviorUtils.canSee(p_24033_, livingentity) && BehaviorUtils.isWithinAttackRange(p_24033_, livingentity, 1)) {
-            this.clearWalkTarget(p_24033_);
+    protected void start(ServerLevel pLevel, Mob pEntity, long pGameTime) {
+        LivingEntity livingentity = pEntity.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).get();
+        if (BehaviorUtils.canSee(pEntity, livingentity) && BehaviorUtils.isWithinAttackRange(pEntity, livingentity, 1)) {
+            this.clearWalkTarget(pEntity);
         } else {
-            this.setWalkAndLookTarget(p_24033_, livingentity);
+            this.setWalkAndLookTarget(pEntity, livingentity);
         }
     }
 
-    private void setWalkAndLookTarget(LivingEntity p_24038_, LivingEntity p_24039_) {
-        Brain<?> brain = p_24038_.getBrain();
-        brain.setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(p_24039_, true));
-        WalkTarget walktarget = new WalkTarget(new EntityTracker(p_24039_, false), this.speedModifier.apply(p_24038_), 0);
+    private void setWalkAndLookTarget(LivingEntity pEntity, LivingEntity pTarget) {
+        Brain<?> brain = pEntity.getBrain();
+        brain.setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(pTarget, true));
+        WalkTarget walktarget = new WalkTarget(new EntityTracker(pTarget, false), this.speedModifier.apply(pEntity), 0);
         brain.setMemory(MemoryModuleType.WALK_TARGET, walktarget);
     }
 

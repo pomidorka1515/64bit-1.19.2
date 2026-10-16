@@ -8,8 +8,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class BeeAggressiveSoundInstance extends BeeSoundInstance {
-    public BeeAggressiveSoundInstance(Bee p_119611_) {
-        super(p_119611_, SoundEvents.BEE_LOOP_AGGRESSIVE, SoundSource.NEUTRAL);
+    public BeeAggressiveSoundInstance(Bee pBee) {
+        super(pBee, SoundEvents.BEE_LOOP_AGGRESSIVE, SoundSource.NEUTRAL);
         this.delay = 0;
     }
 

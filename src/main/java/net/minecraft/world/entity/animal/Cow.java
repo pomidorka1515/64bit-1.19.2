@@ -31,8 +31,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class Cow extends Animal {
-    public Cow(EntityType<? extends Cow> p_28285_, Level p_28286_) {
-        super(p_28285_, p_28286_);
+    public Cow(EntityType<? extends Cow> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -54,7 +54,7 @@ public class Cow extends Animal {
         return SoundEvents.COW_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_28306_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.COW_HURT;
     }
 
@@ -62,7 +62,7 @@ public class Cow extends Animal {
         return SoundEvents.COW_DEATH;
     }
 
-    protected void playStepSound(BlockPos p_28301_, BlockState p_28302_) {
+    protected void playStepSound(BlockPos pPos, BlockState pBlock) {
         this.playSound(SoundEvents.COW_STEP, 0.15F, 1.0F);
     }
 
@@ -70,23 +70,23 @@ public class Cow extends Animal {
         return 0.4F;
     }
 
-    public InteractionResult mobInteract(Player p_28298_, InteractionHand p_28299_) {
-        ItemStack itemstack = p_28298_.getItemInHand(p_28299_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (itemstack.is(Items.BUCKET) && !this.isBaby()) {
-            p_28298_.playSound(SoundEvents.COW_MILK, 1.0F, 1.0F);
-            ItemStack itemstack1 = ItemUtils.createFilledResult(itemstack, p_28298_, Items.MILK_BUCKET.getDefaultInstance());
-            p_28298_.setItemInHand(p_28299_, itemstack1);
+            pPlayer.playSound(SoundEvents.COW_MILK, 1.0F, 1.0F);
+            ItemStack itemstack1 = ItemUtils.createFilledResult(itemstack, pPlayer, Items.MILK_BUCKET.getDefaultInstance());
+            pPlayer.setItemInHand(pHand, itemstack1);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         } else {
-            return super.mobInteract(p_28298_, p_28299_);
+            return super.mobInteract(pPlayer, pHand);
         }
     }
 
-    public Cow getBreedOffspring(ServerLevel p_148890_, AgeableMob p_148891_) {
-        return EntityType.COW.create(p_148890_);
+    public Cow getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        return EntityType.COW.create(pLevel);
     }
 
-    protected float getStandingEyeHeight(Pose p_28295_, EntityDimensions p_28296_) {
-        return this.isBaby() ? p_28296_.height * 0.95F : 1.3F;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return this.isBaby() ? pSize.height * 0.95F : 1.3F;
     }
 }

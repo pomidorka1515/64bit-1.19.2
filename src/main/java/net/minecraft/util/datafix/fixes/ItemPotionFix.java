@@ -148,8 +148,8 @@ public class ItemPotionFix extends DataFix {
     });
     public static final String DEFAULT = "minecraft:water";
 
-    public ItemPotionFix(Schema p_15990_, boolean p_15991_) {
-        super(p_15990_, p_15991_);
+    public ItemPotionFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

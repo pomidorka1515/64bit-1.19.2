@@ -20,8 +20,8 @@ import net.minecraft.world.phys.Vec3;
 public class ParticleCommand {
     private static final SimpleCommandExceptionType ERROR_FAILED = new SimpleCommandExceptionType(Component.translatable("commands.particle.failed"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138123_) {
-        p_138123_.register(Commands.literal("particle").requires((p_138127_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("particle").requires((p_138127_) -> {
                                                            return p_138127_.hasPermission(2);
                                                        })
                         .then(Commands.argument("name", ParticleArgument.particle()).executes((p_138148_) -> {
@@ -47,11 +47,11 @@ public class ParticleCommand {
                                                                                         })))))))));
     }
 
-    private static int sendParticles(CommandSourceStack p_138129_, ParticleOptions p_138130_, Vec3 p_138131_, Vec3 p_138132_, float p_138133_, int p_138134_, boolean p_138135_, Collection<ServerPlayer> p_138136_) throws CommandSyntaxException {
+    private static int sendParticles(CommandSourceStack pSource, ParticleOptions pParticleData, Vec3 pPos, Vec3 pDelta, float pSpeed, int pCount, boolean pForce, Collection<ServerPlayer> pViewers) throws CommandSyntaxException {
         int i = 0;
 
-        for (ServerPlayer serverplayer : p_138136_) {
-            if (p_138129_.getLevel().sendParticles(serverplayer, p_138130_, p_138135_, p_138131_.x, p_138131_.y, p_138131_.z, p_138134_, p_138132_.x, p_138132_.y, p_138132_.z, (double) p_138133_)) {
+        for (ServerPlayer serverplayer : pViewers) {
+            if (pSource.getLevel().sendParticles(serverplayer, pParticleData, pForce, pPos.x, pPos.y, pPos.z, pCount, pDelta.x, pDelta.y, pDelta.z, (double) pSpeed)) {
                 ++i;
             }
         }
@@ -59,7 +59,7 @@ public class ParticleCommand {
         if (i == 0) {
             throw ERROR_FAILED.create();
         } else {
-            p_138129_.sendSuccess(Component.translatable("commands.particle.success", Registry.PARTICLE_TYPE.getKey(p_138130_.getType()).toString()), true);
+            pSource.sendSuccess(Component.translatable("commands.particle.success", Registry.PARTICLE_TYPE.getKey(pParticleData.getType()).toString()), true);
             return i;
         }
     }

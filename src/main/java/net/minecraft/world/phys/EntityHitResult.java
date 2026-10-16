@@ -8,12 +8,12 @@ public class EntityHitResult extends HitResult {
     @Nullable
     private final SectorVec3 exactLocation;
 
-    public EntityHitResult(Entity p_82439_) {
-        this(p_82439_, p_82439_.position(), p_82439_.exactPosition());
+    public EntityHitResult(Entity pEntity) {
+        this(pEntity, pEntity.position(), pEntity.exactPosition());
     }
 
-    public EntityHitResult(Entity p_82441_, Vec3 p_82442_) {
-        this(p_82441_, p_82442_, null);
+    public EntityHitResult(Entity pEntity, Vec3 pLocation) {
+        this(pEntity, pLocation, null);
     }
 
     /** Creates an entity hit retaining its split-coordinate X/Z location. */

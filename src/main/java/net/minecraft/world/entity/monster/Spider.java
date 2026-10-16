@@ -46,8 +46,8 @@ public class Spider extends Monster {
     private static final EntityDataAccessor<Byte> DATA_FLAGS_ID = SynchedEntityData.defineId(Spider.class, EntityDataSerializers.BYTE);
     private static final float SPIDER_SPECIAL_EFFECT_CHANCE = 0.1F;
 
-    public Spider(EntityType<? extends Spider> p_33786_, Level p_33787_) {
-        super(p_33786_, p_33787_);
+    public Spider(EntityType<? extends Spider> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -66,8 +66,8 @@ public class Spider extends Monster {
         return (double) (this.getBbHeight() * 0.5F);
     }
 
-    protected PathNavigation createNavigation(Level p_33802_) {
-        return new WallClimberNavigation(this, p_33802_);
+    protected PathNavigation createNavigation(Level pLevel) {
+        return new WallClimberNavigation(this, pLevel);
     }
 
     protected void defineSynchedData() {
@@ -90,7 +90,7 @@ public class Spider extends Monster {
         return SoundEvents.SPIDER_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_33814_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.SPIDER_HURT;
     }
 
@@ -98,7 +98,7 @@ public class Spider extends Monster {
         return SoundEvents.SPIDER_DEATH;
     }
 
-    protected void playStepSound(BlockPos p_33804_, BlockState p_33805_) {
+    protected void playStepSound(BlockPos pPos, BlockState pBlock) {
         this.playSound(SoundEvents.SPIDER_STEP, 0.15F, 1.0F);
     }
 
@@ -106,9 +106,9 @@ public class Spider extends Monster {
         return this.isClimbing();
     }
 
-    public void makeStuckInBlock(BlockState p_33796_, Vec3 p_33797_) {
-        if (!p_33796_.is(Blocks.COBWEB)) {
-            super.makeStuckInBlock(p_33796_, p_33797_);
+    public void makeStuckInBlock(BlockState pState, Vec3 pMotionMultiplier) {
+        if (!pState.is(Blocks.COBWEB)) {
+            super.makeStuckInBlock(pState, pMotionMultiplier);
         }
     }
 
@@ -116,17 +116,17 @@ public class Spider extends Monster {
         return MobType.ARTHROPOD;
     }
 
-    public boolean canBeAffected(MobEffectInstance p_33809_) {
-        return p_33809_.getEffect() == MobEffects.POISON ? false : super.canBeAffected(p_33809_);
+    public boolean canBeAffected(MobEffectInstance pPotioneffect) {
+        return pPotioneffect.getEffect() == MobEffects.POISON ? false : super.canBeAffected(pPotioneffect);
     }
 
     public boolean isClimbing() {
         return (this.entityData.get(DATA_FLAGS_ID) & 1) != 0;
     }
 
-    public void setClimbing(boolean p_33820_) {
+    public void setClimbing(boolean pClimbing) {
         byte b0 = this.entityData.get(DATA_FLAGS_ID);
-        if (p_33820_) {
+        if (pClimbing) {
             b0 = (byte) (b0 | 1);
         } else {
             b0 = (byte) (b0 & -2);
@@ -136,40 +136,40 @@ public class Spider extends Monster {
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_33790_, DifficultyInstance p_33791_, MobSpawnType p_33792_, @Nullable SpawnGroupData p_33793_, @Nullable CompoundTag p_33794_) {
-        p_33793_ = super.finalizeSpawn(p_33790_, p_33791_, p_33792_, p_33793_, p_33794_);
-        RandomSource randomsource = p_33790_.getRandom();
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        pSpawnData = super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
+        RandomSource randomsource = pLevel.getRandom();
         if (randomsource.nextInt(100) == 0) {
             Skeleton skeleton = EntityType.SKELETON.create(this.level);
             skeleton.moveTo(this.sectorPosition(), this.getYRot(), 0.0F);
-            skeleton.finalizeSpawn(p_33790_, p_33791_, p_33792_, (SpawnGroupData) null, (CompoundTag) null);
+            skeleton.finalizeSpawn(pLevel, pDifficulty, pReason, (SpawnGroupData) null, (CompoundTag) null);
             skeleton.startRiding(this);
         }
 
-        if (p_33793_ == null) {
-            p_33793_ = new Spider.SpiderEffectsGroupData();
-            if (p_33790_.getDifficulty() == Difficulty.HARD && randomsource.nextFloat() < 0.1F * p_33791_.getSpecialMultiplier()) {
-                ((Spider.SpiderEffectsGroupData) p_33793_).setRandomEffect(randomsource);
+        if (pSpawnData == null) {
+            pSpawnData = new Spider.SpiderEffectsGroupData();
+            if (pLevel.getDifficulty() == Difficulty.HARD && randomsource.nextFloat() < 0.1F * pDifficulty.getSpecialMultiplier()) {
+                ((Spider.SpiderEffectsGroupData) pSpawnData).setRandomEffect(randomsource);
             }
         }
 
-        if (p_33793_ instanceof Spider.SpiderEffectsGroupData) {
-            MobEffect mobeffect = ((Spider.SpiderEffectsGroupData) p_33793_).effect;
+        if (pSpawnData instanceof Spider.SpiderEffectsGroupData) {
+            MobEffect mobeffect = ((Spider.SpiderEffectsGroupData) pSpawnData).effect;
             if (mobeffect != null) {
                 this.addEffect(new MobEffectInstance(mobeffect, Integer.MAX_VALUE));
             }
         }
 
-        return p_33793_;
+        return pSpawnData;
     }
 
-    protected float getStandingEyeHeight(Pose p_33799_, EntityDimensions p_33800_) {
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
         return 0.65F;
     }
 
     static class SpiderAttackGoal extends MeleeAttackGoal {
-        public SpiderAttackGoal(Spider p_33822_) {
-            super(p_33822_, 1.0D, true);
+        public SpiderAttackGoal(Spider pSpider) {
+            super(pSpider, 1.0D, true);
         }
 
         public boolean canUse() {
@@ -186,8 +186,8 @@ public class Spider extends Monster {
             }
         }
 
-        protected double getAttackReachSqr(LivingEntity p_33825_) {
-            return (double) (4.0F + p_33825_.getBbWidth());
+        protected double getAttackReachSqr(LivingEntity pAttackTarget) {
+            return (double) (4.0F + pAttackTarget.getBbWidth());
         }
     }
 
@@ -195,8 +195,8 @@ public class Spider extends Monster {
         @Nullable
         public MobEffect effect;
 
-        public void setRandomEffect(RandomSource p_219119_) {
-            int i = p_219119_.nextInt(5);
+        public void setRandomEffect(RandomSource pRandom) {
+            int i = pRandom.nextInt(5);
             if (i <= 1) {
                 this.effect = MobEffects.MOVEMENT_SPEED;
             } else if (i <= 2) {
@@ -210,8 +210,8 @@ public class Spider extends Monster {
     }
 
     static class SpiderTargetGoal<T extends LivingEntity> extends NearestAttackableTargetGoal<T> {
-        public SpiderTargetGoal(Spider p_33832_, Class<T> p_33833_) {
-            super(p_33832_, p_33833_, true);
+        public SpiderTargetGoal(Spider pSpider, Class<T> pEntityTypeToTarget) {
+            super(pSpider, pEntityTypeToTarget, true);
         }
 
         public boolean canUse() {

@@ -11,5 +11,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @Deprecated
 @OnlyIn(Dist.CLIENT)
 public interface ItemPropertyFunction {
-    float call(ItemStack p_174676_, @Nullable ClientLevel p_174677_, @Nullable LivingEntity p_174678_, int p_174679_);
+    float call(ItemStack pStack, @Nullable ClientLevel pLevel, @Nullable LivingEntity pEntity, int pSeed);
 }

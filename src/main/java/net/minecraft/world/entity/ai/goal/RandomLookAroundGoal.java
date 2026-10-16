@@ -10,8 +10,8 @@ public class RandomLookAroundGoal extends Goal {
     private double relZ;
     private int lookTime;
 
-    public RandomLookAroundGoal(Mob p_25720_) {
-        this.mob = p_25720_;
+    public RandomLookAroundGoal(Mob pMob) {
+        this.mob = pMob;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 

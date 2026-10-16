@@ -26,13 +26,13 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
 public class EnderEyeItem extends Item {
-    public EnderEyeItem(Item.Properties p_41180_) {
-        super(p_41180_);
+    public EnderEyeItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResult useOn(UseOnContext p_41182_) {
-        Level level = p_41182_.getLevel();
-        BlockPos blockpos = p_41182_.getClickedPos();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
         if (blockstate.is(Blocks.END_PORTAL_FRAME) && !blockstate.getValue(EndPortalFrameBlock.HAS_EYE)) {
             if (level.isClientSide) {
@@ -42,7 +42,7 @@ public class EnderEyeItem extends Item {
                 Block.pushEntitiesUp(blockstate, blockstate1, level, blockpos);
                 level.setBlock(blockpos, blockstate1, 2);
                 level.updateNeighbourForOutputSignal(blockpos, Blocks.END_PORTAL_FRAME);
-                p_41182_.getItemInHand().shrink(1);
+                pContext.getItemInHand().shrink(1);
                 level.levelEvent(1503, blockpos, 0);
                 BlockPattern.BlockPatternMatch blockpattern$blockpatternmatch = EndPortalFrameBlock.getOrCreatePortalShape().find(level, blockpos);
                 if (blockpattern$blockpatternmatch != null) {
@@ -64,34 +64,34 @@ public class EnderEyeItem extends Item {
         }
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_41184_, Player p_41185_, InteractionHand p_41186_) {
-        ItemStack itemstack = p_41185_.getItemInHand(p_41186_);
-        HitResult hitresult = getPlayerPOVHitResult(p_41184_, p_41185_, ClipContext.Fluid.NONE);
-        if (hitresult.getType() == HitResult.Type.BLOCK && p_41184_.getBlockState(((BlockHitResult) hitresult).getBlockPos()).is(Blocks.END_PORTAL_FRAME)) {
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
+        HitResult hitresult = getPlayerPOVHitResult(pLevel, pPlayer, ClipContext.Fluid.NONE);
+        if (hitresult.getType() == HitResult.Type.BLOCK && pLevel.getBlockState(((BlockHitResult) hitresult).getBlockPos()).is(Blocks.END_PORTAL_FRAME)) {
             return InteractionResultHolder.pass(itemstack);
         } else {
-            p_41185_.startUsingItem(p_41186_);
-            if (p_41184_ instanceof ServerLevel) {
-                ServerLevel serverlevel = (ServerLevel) p_41184_;
-                BlockPos blockpos = serverlevel.findNearestMapStructure(StructureTags.EYE_OF_ENDER_LOCATED, p_41185_.blockPosition(), 100, false);
+            pPlayer.startUsingItem(pHand);
+            if (pLevel instanceof ServerLevel) {
+                ServerLevel serverlevel = (ServerLevel) pLevel;
+                BlockPos blockpos = serverlevel.findNearestMapStructure(StructureTags.EYE_OF_ENDER_LOCATED, pPlayer.blockPosition(), 100, false);
                 if (blockpos != null) {
-                    EyeOfEnder eyeofender = new EyeOfEnder(p_41184_, p_41185_.getX(), p_41185_.getY(0.5D), p_41185_.getZ());
+                    EyeOfEnder eyeofender = new EyeOfEnder(pLevel, pPlayer.getX(), pPlayer.getY(0.5D), pPlayer.getZ());
                     eyeofender.setItem(itemstack);
                     eyeofender.signalTo(blockpos);
-                    p_41184_.gameEvent(GameEvent.PROJECTILE_SHOOT, eyeofender.position(), GameEvent.Context.of(p_41185_));
-                    p_41184_.addFreshEntity(eyeofender);
-                    if (p_41185_ instanceof ServerPlayer) {
-                        CriteriaTriggers.USED_ENDER_EYE.trigger((ServerPlayer) p_41185_, blockpos);
+                    pLevel.gameEvent(GameEvent.PROJECTILE_SHOOT, eyeofender.position(), GameEvent.Context.of(pPlayer));
+                    pLevel.addFreshEntity(eyeofender);
+                    if (pPlayer instanceof ServerPlayer) {
+                        CriteriaTriggers.USED_ENDER_EYE.trigger((ServerPlayer) pPlayer, blockpos);
                     }
 
-                    p_41184_.playSound((Player) null, p_41185_.getX(), p_41185_.getY(), p_41185_.getZ(), SoundEvents.ENDER_EYE_LAUNCH, SoundSource.NEUTRAL, 0.5F, 0.4F / (p_41184_.getRandom().nextFloat() * 0.4F + 0.8F));
-                    p_41184_.levelEvent((Player) null, 1003, p_41185_.blockPosition(), 0);
-                    if (!p_41185_.getAbilities().instabuild) {
+                    pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.ENDER_EYE_LAUNCH, SoundSource.NEUTRAL, 0.5F, 0.4F / (pLevel.getRandom().nextFloat() * 0.4F + 0.8F));
+                    pLevel.levelEvent((Player) null, 1003, pPlayer.blockPosition(), 0);
+                    if (!pPlayer.getAbilities().instabuild) {
                         itemstack.shrink(1);
                     }
 
-                    p_41185_.awardStat(Stats.ITEM_USED.get(this));
-                    p_41185_.swing(p_41186_, true);
+                    pPlayer.awardStat(Stats.ITEM_USED.get(this));
+                    pPlayer.swing(pHand, true);
                     return InteractionResultHolder.success(itemstack);
                 }
             }

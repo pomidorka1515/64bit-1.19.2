@@ -90,8 +90,8 @@ public class RenderRegionCache {
         @Nullable
         private RenderChunk renderChunk;
 
-        ChunkInfo(LevelChunk p_200479_) {
-            this.chunk = p_200479_;
+        ChunkInfo(LevelChunk pChunk) {
+            this.chunk = pChunk;
         }
 
         public LevelChunk chunk() {

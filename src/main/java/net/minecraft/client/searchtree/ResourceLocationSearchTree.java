@@ -50,7 +50,7 @@ public interface ResourceLocationSearchTree<T> {
         }
     }
 
-    List<T> searchNamespace(String p_235211_);
+    List<T> searchNamespace(String pQuery);
 
-    List<T> searchPath(String p_235215_);
+    List<T> searchPath(String pQuery);
 }

@@ -73,18 +73,18 @@ public class Crypt {
         }
     }
 
-    public static byte[] digestData(String p_13591_, PublicKey p_13592_, SecretKey p_13593_) throws CryptException {
+    public static byte[] digestData(String pServerId, PublicKey pPublicKey, SecretKey pSecretKey) throws CryptException {
         try {
-            return digestData(p_13591_.getBytes("ISO_8859_1"), p_13593_.getEncoded(), p_13592_.getEncoded());
+            return digestData(pServerId.getBytes("ISO_8859_1"), pSecretKey.getEncoded(), pPublicKey.getEncoded());
         } catch (Exception exception) {
             throw new CryptException(exception);
         }
     }
 
-    private static byte[] digestData(byte[]... p_13603_) throws Exception {
+    private static byte[] digestData(byte[]... pData) throws Exception {
         MessageDigest messagedigest = MessageDigest.getInstance("SHA-1");
 
-        for (byte[] abyte : p_13603_) {
+        for (byte[] abyte : pData) {
             messagedigest.update(abyte);
         }
 
@@ -150,8 +150,8 @@ public class Crypt {
         }
     }
 
-    public static SecretKey decryptByteToSecretKey(PrivateKey p_13598_, byte[] p_13599_) throws CryptException {
-        byte[] abyte = decryptUsingKey(p_13598_, p_13599_);
+    public static SecretKey decryptByteToSecretKey(PrivateKey pKey, byte[] pSecretKeyEncrypted) throws CryptException {
+        byte[] abyte = decryptUsingKey(pKey, pSecretKeyEncrypted);
 
         try {
             return new SecretKeySpec(abyte, "AES");
@@ -160,32 +160,32 @@ public class Crypt {
         }
     }
 
-    public static byte[] encryptUsingKey(Key p_13595_, byte[] p_13596_) throws CryptException {
-        return cipherData(1, p_13595_, p_13596_);
+    public static byte[] encryptUsingKey(Key pKey, byte[] pData) throws CryptException {
+        return cipherData(1, pKey, pData);
     }
 
-    public static byte[] decryptUsingKey(Key p_13606_, byte[] p_13607_) throws CryptException {
-        return cipherData(2, p_13606_, p_13607_);
+    public static byte[] decryptUsingKey(Key pKey, byte[] pData) throws CryptException {
+        return cipherData(2, pKey, pData);
     }
 
-    private static byte[] cipherData(int p_13587_, Key p_13588_, byte[] p_13589_) throws CryptException {
+    private static byte[] cipherData(int pOpMode, Key pKey, byte[] pData) throws CryptException {
         try {
-            return setupCipher(p_13587_, p_13588_.getAlgorithm(), p_13588_).doFinal(p_13589_);
+            return setupCipher(pOpMode, pKey.getAlgorithm(), pKey).doFinal(pData);
         } catch (Exception exception) {
             throw new CryptException(exception);
         }
     }
 
-    private static Cipher setupCipher(int p_13580_, String p_13581_, Key p_13582_) throws Exception {
-        Cipher cipher = Cipher.getInstance(p_13581_);
-        cipher.init(p_13580_, p_13582_);
+    private static Cipher setupCipher(int pOpMode, String pTransformation, Key pKey) throws Exception {
+        Cipher cipher = Cipher.getInstance(pTransformation);
+        cipher.init(pOpMode, pKey);
         return cipher;
     }
 
-    public static Cipher getCipher(int p_13584_, Key p_13585_) throws CryptException {
+    public static Cipher getCipher(int pOpMode, Key pKey) throws CryptException {
         try {
             Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
-            cipher.init(p_13584_, p_13585_, new IvParameterSpec(p_13585_.getEncoded()));
+            cipher.init(pOpMode, pKey, new IvParameterSpec(pKey.getEncoded()));
             return cipher;
         } catch (Exception exception) {
             throw new CryptException(exception);

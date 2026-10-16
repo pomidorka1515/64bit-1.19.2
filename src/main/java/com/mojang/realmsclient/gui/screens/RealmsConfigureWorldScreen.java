@@ -65,10 +65,10 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
     private int clicks;
     private final List<RealmsWorldSlotButton> slotButtonList = Lists.newArrayList();
 
-    public RealmsConfigureWorldScreen(RealmsMainScreen p_88411_, long p_88412_) {
+    public RealmsConfigureWorldScreen(RealmsMainScreen pLastScreen, long pServerId) {
         super(TITLE);
-        this.lastScreen = p_88411_;
-        this.serverId = p_88412_;
+        this.lastScreen = pLastScreen;
+        this.serverId = pServerId;
     }
 
     public void init() {
@@ -175,28 +175,28 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         this.slotButtonList.forEach(RealmsWorldSlotButton::tick);
     }
 
-    public void render(PoseStack p_88429_, int p_88430_, int p_88431_, float p_88432_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.toolTip = null;
-        this.renderBackground(p_88429_);
-        drawCenteredString(p_88429_, this.font, WORLD_LIST_TITLE, this.width / 2, row(4), 16777215);
-        super.render(p_88429_, p_88430_, p_88431_, p_88432_);
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, WORLD_LIST_TITLE, this.width / 2, row(4), 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (this.serverData == null) {
-            drawCenteredString(p_88429_, this.font, this.title, this.width / 2, 17, 16777215);
+            drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 17, 16777215);
         } else {
             String s = this.serverData.getName();
             int i = this.font.width(s);
             int j = this.serverData.state == RealmsServer.State.CLOSED ? 10526880 : 8388479;
             int k = this.font.width(this.title);
-            drawCenteredString(p_88429_, this.font, this.title, this.width / 2, 12, 16777215);
-            drawCenteredString(p_88429_, this.font, s, this.width / 2, 24, j);
+            drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 12, 16777215);
+            drawCenteredString(pPoseStack, this.font, s, this.width / 2, 24, j);
             int l = Math.min(this.centerButton(2, 3) + 80 - 11, this.width / 2 + i / 2 + k / 2 + 10);
-            this.drawServerStatus(p_88429_, l, 7, p_88430_, p_88431_);
+            this.drawServerStatus(pPoseStack, l, 7, pMouseX, pMouseY);
             if (this.isMinigame()) {
-                this.font.draw(p_88429_, MINIGAME_PREFIX.copy().append(this.serverData.getMinigameName()), (float) (this.leftX + 80 + 20 + 10), (float) row(13), 16777215);
+                this.font.draw(pPoseStack, MINIGAME_PREFIX.copy().append(this.serverData.getMinigameName()), (float) (this.leftX + 80 + 20 + 10), (float) row(13), 16777215);
             }
 
             if (this.toolTip != null) {
-                this.renderMousehoverTooltip(p_88429_, this.toolTip, p_88430_, p_88431_);
+                this.renderMousehoverTooltip(pPoseStack, this.toolTip, pMouseX, pMouseY);
             }
         }
     }
@@ -209,12 +209,12 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_88417_, int p_88418_, int p_88419_) {
-        if (p_88417_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.backButtonClicked();
             return true;
         } else {
-            return super.keyPressed(p_88417_, p_88418_, p_88419_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -226,12 +226,12 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         this.minecraft.setScreen(this.lastScreen);
     }
 
-    private void fetchServerData(long p_88427_) {
+    private void fetchServerData(long pServerId) {
         (new Thread(() -> {
             RealmsClient realmsclient = RealmsClient.create();
 
             try {
-                RealmsServer realmsserver = realmsclient.getOwnWorld(p_88427_);
+                RealmsServer realmsserver = realmsclient.getOwnWorld(pServerId);
                 this.minecraft.execute(() -> {
                     this.serverData = realmsserver;
                     this.disableButtons();
@@ -261,9 +261,9 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         this.resetWorldButton.active = !this.serverData.expired;
     }
 
-    private void joinRealm(RealmsServer p_88439_) {
+    private void joinRealm(RealmsServer pServer) {
         if (this.serverData.state == RealmsServer.State.OPEN) {
-            this.lastScreen.play(p_88439_, new RealmsConfigureWorldScreen(this.lastScreen.newScreen(), this.serverId));
+            this.lastScreen.play(pServer, new RealmsConfigureWorldScreen(this.lastScreen.newScreen(), this.serverId));
         } else {
             this.openTheWorld(true, new RealmsConfigureWorldScreen(this.lastScreen.newScreen(), this.serverId));
         }
@@ -275,12 +275,12 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         this.minecraft.setScreen(realmsselectworldtemplatescreen);
     }
 
-    private void switchToFullSlot(int p_88421_, RealmsServer p_88422_) {
+    private void switchToFullSlot(int pSlot, RealmsServer pServer) {
         Component component = Component.translatable("mco.configure.world.slot.switch.question.line1");
         Component component1 = Component.translatable("mco.configure.world.slot.switch.question.line2");
         this.minecraft.setScreen(new RealmsLongConfirmationScreen((p_167405_) -> {
             if (p_167405_) {
-                this.minecraft.setScreen(new RealmsLongRunningMcoTaskScreen(this.lastScreen, new SwitchSlotTask(p_88422_.id, p_88421_, () -> {
+                this.minecraft.setScreen(new RealmsLongRunningMcoTaskScreen(this.lastScreen, new SwitchSlotTask(pServer.id, pSlot, () -> {
                     this.minecraft.execute(() -> {
                         this.minecraft.setScreen(this.getNewScreen());
                     });
@@ -291,15 +291,15 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         }, RealmsLongConfirmationScreen.Type.Info, component, component1, true));
     }
 
-    private void switchToEmptySlot(int p_88469_, RealmsServer p_88470_) {
+    private void switchToEmptySlot(int pSlot, RealmsServer pServer) {
         Component component = Component.translatable("mco.configure.world.slot.switch.question.line1");
         Component component1 = Component.translatable("mco.configure.world.slot.switch.question.line2");
         this.minecraft.setScreen(new RealmsLongConfirmationScreen((p_167393_) -> {
             if (p_167393_) {
-                RealmsResetWorldScreen realmsresetworldscreen = new RealmsResetWorldScreen(this, p_88470_, Component.translatable("mco.configure.world.switch.slot"), Component.translatable("mco.configure.world.switch.slot.subtitle"), 10526880, CommonComponents.GUI_CANCEL, () -> { this.minecraft.execute(() -> {
+                RealmsResetWorldScreen realmsresetworldscreen = new RealmsResetWorldScreen(this, pServer, Component.translatable("mco.configure.world.switch.slot"), Component.translatable("mco.configure.world.switch.slot.subtitle"), 10526880, CommonComponents.GUI_CANCEL, () -> { this.minecraft.execute(() -> {
                                                                                                                                                                                                                                                                                              this.minecraft.setScreen(this.getNewScreen());
                                                                                                                                                                                                                                                                                          }); }, () -> { this.minecraft.setScreen(this.getNewScreen()); });
-                realmsresetworldscreen.setSlot(p_88469_);
+                realmsresetworldscreen.setSlot(pSlot);
                 realmsresetworldscreen.setResetTitle(Component.translatable("mco.create.world.reset.title"));
                 this.minecraft.setScreen(realmsresetworldscreen);
             } else {
@@ -308,16 +308,16 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         }, RealmsLongConfirmationScreen.Type.Info, component, component1, true));
     }
 
-    protected void renderMousehoverTooltip(PoseStack p_88434_, @Nullable Component p_88435_, int p_88436_, int p_88437_) {
-        int i = p_88436_ + 12;
-        int j = p_88437_ - 12;
-        int k = this.font.width(p_88435_);
+    protected void renderMousehoverTooltip(PoseStack pPoseStack, @Nullable Component pTooltip, int pMouseX, int pMouseY) {
+        int i = pMouseX + 12;
+        int j = pMouseY - 12;
+        int k = this.font.width(pTooltip);
         if (i + k + 3 > this.rightX) {
             i = i - k - 20;
         }
 
-        this.fillGradient(p_88434_, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
-        this.font.drawShadow(p_88434_, p_88435_, (float) i, (float) j, 16777215);
+        this.fillGradient(pPoseStack, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
+        this.font.drawShadow(pPoseStack, pTooltip, (float) i, (float) j, 16777215);
     }
 
     private void drawServerStatus(PoseStack p_88490_, int p_88491_, int p_88492_, int p_88493_, int p_88494_) {
@@ -391,29 +391,29 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         this.hide(this.resetWorldButton);
     }
 
-    private void hide(Button p_88451_) {
-        p_88451_.visible = false;
-        this.removeWidget(p_88451_);
+    private void hide(Button pButton) {
+        pButton.visible = false;
+        this.removeWidget(pButton);
     }
 
-    private void show(Button p_88485_) {
-        p_88485_.visible = true;
-        this.addRenderableWidget(p_88485_);
+    private void show(Button pButton) {
+        pButton.visible = true;
+        this.addRenderableWidget(pButton);
     }
 
     private void hideMinigameButtons() {
         this.hide(this.switchMinigameButton);
     }
 
-    public void saveSlotSettings(RealmsWorldOptions p_88445_) {
+    public void saveSlotSettings(RealmsWorldOptions pWorldOptions) {
         RealmsWorldOptions realmsworldoptions = this.serverData.slots.get(this.serverData.activeSlot);
-        p_88445_.templateId = realmsworldoptions.templateId;
-        p_88445_.templateImage = realmsworldoptions.templateImage;
+        pWorldOptions.templateId = realmsworldoptions.templateId;
+        pWorldOptions.templateImage = realmsworldoptions.templateImage;
         RealmsClient realmsclient = RealmsClient.create();
 
         try {
-            realmsclient.updateSlot(this.serverData.id, this.serverData.activeSlot, p_88445_);
-            this.serverData.slots.put(this.serverData.activeSlot, p_88445_);
+            realmsclient.updateSlot(this.serverData.id, this.serverData.activeSlot, pWorldOptions);
+            this.serverData.slots.put(this.serverData.activeSlot, pWorldOptions);
         } catch (RealmsServiceException realmsserviceexception) {
             LOGGER.error("Couldn't save slot settings");
             this.minecraft.setScreen(new RealmsGenericErrorScreen(realmsserviceexception, this));
@@ -423,13 +423,13 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         this.minecraft.setScreen(this);
     }
 
-    public void saveSettings(String p_88455_, String p_88456_) {
-        String s = p_88456_.trim().isEmpty() ? null : p_88456_;
+    public void saveSettings(String pKey, String pValue) {
+        String s = pValue.trim().isEmpty() ? null : pValue;
         RealmsClient realmsclient = RealmsClient.create();
 
         try {
-            realmsclient.update(this.serverData.id, p_88455_, s);
-            this.serverData.setName(p_88455_);
+            realmsclient.update(this.serverData.id, pKey, s);
+            this.serverData.setName(pKey);
             this.serverData.setDescription(s);
         } catch (RealmsServiceException realmsserviceexception) {
             LOGGER.error("Couldn't save settings");
@@ -440,12 +440,12 @@ public class RealmsConfigureWorldScreen extends RealmsScreen {
         this.minecraft.setScreen(this);
     }
 
-    public void openTheWorld(boolean p_88460_, Screen p_88461_) {
-        this.minecraft.setScreen(new RealmsLongRunningMcoTaskScreen(p_88461_, new OpenServerTask(this.serverData, this, this.lastScreen, p_88460_, this.minecraft)));
+    public void openTheWorld(boolean pJoin, Screen pLastScreen) {
+        this.minecraft.setScreen(new RealmsLongRunningMcoTaskScreen(pLastScreen, new OpenServerTask(this.serverData, this, this.lastScreen, pJoin, this.minecraft)));
     }
 
-    public void closeTheWorld(Screen p_88453_) {
-        this.minecraft.setScreen(new RealmsLongRunningMcoTaskScreen(p_88453_, new CloseServerTask(this.serverData, this)));
+    public void closeTheWorld(Screen pLastScreen) {
+        this.minecraft.setScreen(new RealmsLongRunningMcoTaskScreen(pLastScreen, new CloseServerTask(this.serverData, this)));
     }
 
     public void stateChanged() {

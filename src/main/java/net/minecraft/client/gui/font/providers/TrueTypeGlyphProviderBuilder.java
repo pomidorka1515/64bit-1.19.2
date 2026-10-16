@@ -32,20 +32,20 @@ public class TrueTypeGlyphProviderBuilder implements GlyphProviderBuilder {
     private final float shiftY;
     private final String skip;
 
-    public TrueTypeGlyphProviderBuilder(ResourceLocation p_95491_, float p_95492_, float p_95493_, float p_95494_, float p_95495_, String p_95496_) {
-        this.location = p_95491_;
-        this.size = p_95492_;
-        this.oversample = p_95493_;
-        this.shiftX = p_95494_;
-        this.shiftY = p_95495_;
-        this.skip = p_95496_;
+    public TrueTypeGlyphProviderBuilder(ResourceLocation pLocation, float pSize, float pOversample, float pShiftX, float pShiftY, String pSkip) {
+        this.location = pLocation;
+        this.size = pSize;
+        this.oversample = pOversample;
+        this.shiftX = pShiftX;
+        this.shiftY = pShiftY;
+        this.skip = pSkip;
     }
 
-    public static GlyphProviderBuilder fromJson(JsonObject p_95500_) {
+    public static GlyphProviderBuilder fromJson(JsonObject pJson) {
         float f = 0.0F;
         float f1 = 0.0F;
-        if (p_95500_.has("shift")) {
-            JsonArray jsonarray = p_95500_.getAsJsonArray("shift");
+        if (pJson.has("shift")) {
+            JsonArray jsonarray = pJson.getAsJsonArray("shift");
             if (jsonarray.size() != 2) {
                 throw new JsonParseException("Expected 2 elements in 'shift', found " + jsonarray.size());
             }
@@ -55,8 +55,8 @@ public class TrueTypeGlyphProviderBuilder implements GlyphProviderBuilder {
         }
 
         StringBuilder stringbuilder = new StringBuilder();
-        if (p_95500_.has("skip")) {
-            JsonElement jsonelement = p_95500_.get("skip");
+        if (pJson.has("skip")) {
+            JsonElement jsonelement = pJson.get("skip");
             if (jsonelement.isJsonArray()) {
                 JsonArray jsonarray1 = GsonHelper.convertToJsonArray(jsonelement, "skip");
 
@@ -68,16 +68,16 @@ public class TrueTypeGlyphProviderBuilder implements GlyphProviderBuilder {
             }
         }
 
-        return new TrueTypeGlyphProviderBuilder(new ResourceLocation(GsonHelper.getAsString(p_95500_, "file")), GsonHelper.getAsFloat(p_95500_, "size", 11.0F), GsonHelper.getAsFloat(p_95500_, "oversample", 1.0F), f, f1, stringbuilder.toString());
+        return new TrueTypeGlyphProviderBuilder(new ResourceLocation(GsonHelper.getAsString(pJson, "file")), GsonHelper.getAsFloat(pJson, "size", 11.0F), GsonHelper.getAsFloat(pJson, "oversample", 1.0F), f, f1, stringbuilder.toString());
     }
 
     @Nullable
-    public GlyphProvider create(ResourceManager p_95498_) {
+    public GlyphProvider create(ResourceManager pResourceManager) {
         STBTTFontinfo stbttfontinfo = null;
         ByteBuffer bytebuffer = null;
 
         try {
-            InputStream inputstream = p_95498_.open(new ResourceLocation(this.location.getNamespace(), "font/" + this.location.getPath()));
+            InputStream inputstream = pResourceManager.open(new ResourceLocation(this.location.getNamespace(), "font/" + this.location.getPath()));
 
             TrueTypeGlyphProvider truetypeglyphprovider;
             try {

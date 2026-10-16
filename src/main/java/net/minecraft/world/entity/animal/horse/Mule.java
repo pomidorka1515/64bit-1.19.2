@@ -10,8 +10,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 
 public class Mule extends AbstractChestedHorse {
-    public Mule(EntityType<? extends Mule> p_30878_, Level p_30879_) {
-        super(p_30878_, p_30879_);
+    public Mule(EntityType<? extends Mule> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected SoundEvent getAmbientSound() {
@@ -34,8 +34,8 @@ public class Mule extends AbstractChestedHorse {
         return SoundEvents.MULE_EAT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_30886_) {
-        super.getHurtSound(p_30886_);
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
+        super.getHurtSound(pDamageSource);
         return SoundEvents.MULE_HURT;
     }
 
@@ -43,7 +43,7 @@ public class Mule extends AbstractChestedHorse {
         this.playSound(SoundEvents.MULE_CHEST, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
     }
 
-    public AgeableMob getBreedOffspring(ServerLevel p_149549_, AgeableMob p_149550_) {
-        return EntityType.MULE.create(p_149549_);
+    public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        return EntityType.MULE.create(pLevel);
     }
 }

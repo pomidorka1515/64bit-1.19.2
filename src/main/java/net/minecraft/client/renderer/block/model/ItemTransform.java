@@ -21,36 +21,36 @@ public class ItemTransform {
     public final Vector3f translation;
     public final Vector3f scale;
 
-    public ItemTransform(Vector3f p_111760_, Vector3f p_111761_, Vector3f p_111762_) {
-        this.rotation = p_111760_.copy();
-        this.translation = p_111761_.copy();
-        this.scale = p_111762_.copy();
+    public ItemTransform(Vector3f pRotation, Vector3f pTranslation, Vector3f pScale) {
+        this.rotation = pRotation.copy();
+        this.translation = pTranslation.copy();
+        this.scale = pScale.copy();
     }
 
-    public void apply(boolean p_111764_, PoseStack p_111765_) {
+    public void apply(boolean pLeftHand, PoseStack pPoseStack) {
         if (this != NO_TRANSFORM) {
             float f = this.rotation.x();
             float f1 = this.rotation.y();
             float f2 = this.rotation.z();
-            if (p_111764_) {
+            if (pLeftHand) {
                 f1 = -f1;
                 f2 = -f2;
             }
 
-            int i = p_111764_ ? -1 : 1;
-            p_111765_.translate((double) ((float) i * this.translation.x()), (double) this.translation.y(), (double) this.translation.z());
-            p_111765_.mulPose(new Quaternion(f, f1, f2, true));
-            p_111765_.scale(this.scale.x(), this.scale.y(), this.scale.z());
+            int i = pLeftHand ? -1 : 1;
+            pPoseStack.translate((double) ((float) i * this.translation.x()), (double) this.translation.y(), (double) this.translation.z());
+            pPoseStack.mulPose(new Quaternion(f, f1, f2, true));
+            pPoseStack.scale(this.scale.x(), this.scale.y(), this.scale.z());
         }
     }
 
-    public boolean equals(Object p_111767_) {
-        if (this == p_111767_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (this.getClass() != p_111767_.getClass()) {
+        } else if (this.getClass() != pOther.getClass()) {
             return false;
         } else {
-            ItemTransform itemtransform = (ItemTransform) p_111767_;
+            ItemTransform itemtransform = (ItemTransform) pOther;
             return this.rotation.equals(itemtransform.rotation) && this.scale.equals(itemtransform.scale) && this.translation.equals(itemtransform.translation);
         }
     }
@@ -69,8 +69,8 @@ public class ItemTransform {
         public static final float MAX_TRANSLATION = 5.0F;
         public static final float MAX_SCALE = 4.0F;
 
-        public ItemTransform deserialize(JsonElement p_111775_, Type p_111776_, JsonDeserializationContext p_111777_) throws JsonParseException {
-            JsonObject jsonobject = p_111775_.getAsJsonObject();
+        public ItemTransform deserialize(JsonElement pJson, Type pType, JsonDeserializationContext pContext) throws JsonParseException {
+            JsonObject jsonobject = pJson.getAsJsonObject();
             Vector3f vector3f = this.getVector3f(jsonobject, "rotation", DEFAULT_ROTATION);
             Vector3f vector3f1 = this.getVector3f(jsonobject, "translation", DEFAULT_TRANSLATION);
             vector3f1.mul(0.0625F);
@@ -80,18 +80,18 @@ public class ItemTransform {
             return new ItemTransform(vector3f, vector3f1, vector3f2);
         }
 
-        private Vector3f getVector3f(JsonObject p_111779_, String p_111780_, Vector3f p_111781_) {
-            if (!p_111779_.has(p_111780_)) {
-                return p_111781_;
+        private Vector3f getVector3f(JsonObject pJson, String pKey, Vector3f pFallback) {
+            if (!pJson.has(pKey)) {
+                return pFallback;
             } else {
-                JsonArray jsonarray = GsonHelper.getAsJsonArray(p_111779_, p_111780_);
+                JsonArray jsonarray = GsonHelper.getAsJsonArray(pJson, pKey);
                 if (jsonarray.size() != 3) {
-                    throw new JsonParseException("Expected 3 " + p_111780_ + " values, found: " + jsonarray.size());
+                    throw new JsonParseException("Expected 3 " + pKey + " values, found: " + jsonarray.size());
                 } else {
                     float[] afloat = new float[3];
 
                     for (int i = 0; i < afloat.length; ++i) {
-                        afloat[i] = GsonHelper.convertToFloat(jsonarray.get(i), p_111780_ + "[" + i + "]");
+                        afloat[i] = GsonHelper.convertToFloat(jsonarray.get(i), pKey + "[" + i + "]");
                     }
 
                     return new Vector3f(afloat[0], afloat[1], afloat[2]);

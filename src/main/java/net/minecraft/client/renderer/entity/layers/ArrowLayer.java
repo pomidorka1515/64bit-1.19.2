@@ -17,13 +17,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ArrowLayer<T extends LivingEntity, M extends PlayerModel<T>> extends StuckInBodyLayer<T, M> {
     private final EntityRenderDispatcher dispatcher;
 
-    public ArrowLayer(EntityRendererProvider.Context p_174465_, LivingEntityRenderer<T, M> p_174466_) {
-        super(p_174466_);
-        this.dispatcher = p_174465_.getEntityRenderDispatcher();
+    public ArrowLayer(EntityRendererProvider.Context pContext, LivingEntityRenderer<T, M> pRenderer) {
+        super(pRenderer);
+        this.dispatcher = pContext.getEntityRenderDispatcher();
     }
 
-    protected int numStuck(T p_116567_) {
-        return p_116567_.getArrowCount();
+    protected int numStuck(T pEntity) {
+        return pEntity.getArrowCount();
     }
 
     protected void renderStuckItem(PoseStack p_116569_, MultiBufferSource p_116570_, int p_116571_, Entity p_116572_, float p_116573_, float p_116574_, float p_116575_, float p_116576_) {

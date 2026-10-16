@@ -55,38 +55,38 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         return new BlendedNoise(new XoroshiroRandomSource(0L), p_230478_, p_230479_, p_230480_, p_230481_, p_230482_);
     }
 
-    private BlendedNoise(PerlinNoise p_230469_, PerlinNoise p_230470_, PerlinNoise p_230471_, double p_230472_, double p_230473_, double p_230474_, double p_230475_, double p_230476_) {
-        this.minLimitNoise = p_230469_;
-        this.maxLimitNoise = p_230470_;
-        this.mainNoise = p_230471_;
-        this.xzScale = p_230472_;
-        this.yScale = p_230473_;
-        this.xzFactor = p_230474_;
-        this.yFactor = p_230475_;
-        this.smearScaleMultiplier = p_230476_;
+    private BlendedNoise(PerlinNoise pMinLimitNoise, PerlinNoise pMaxLimitNoise, PerlinNoise pMainNoise, double pXzScale, double pYScale, double pXzFactor, double pYFactor, double pSmearScaleMultiplier) {
+        this.minLimitNoise = pMinLimitNoise;
+        this.maxLimitNoise = pMaxLimitNoise;
+        this.mainNoise = pMainNoise;
+        this.xzScale = pXzScale;
+        this.yScale = pYScale;
+        this.xzFactor = pXzFactor;
+        this.yFactor = pYFactor;
+        this.smearScaleMultiplier = pSmearScaleMultiplier;
         this.xzMultiplier = 684.412D * this.xzScale;
         this.yMultiplier = 684.412D * this.yScale;
-        this.maxValue = p_230469_.maxBrokenValue(this.yMultiplier);
+        this.maxValue = pMinLimitNoise.maxBrokenValue(this.yMultiplier);
     }
 
     @VisibleForTesting
-    public BlendedNoise(RandomSource p_230462_, double p_230463_, double p_230464_, double p_230465_, double p_230466_, double p_230467_) {
-        this(PerlinNoise.createLegacyForBlendedNoise(p_230462_, IntStream.rangeClosed(-15, 0)), PerlinNoise.createLegacyForBlendedNoise(p_230462_, IntStream.rangeClosed(-15, 0)), PerlinNoise.createLegacyForBlendedNoise(p_230462_, IntStream.rangeClosed(-7, 0)), p_230463_, p_230464_, p_230465_, p_230466_, p_230467_);
+    public BlendedNoise(RandomSource pRandom, double pXzScale, double pYScale, double pXzFactor, double pYFactor, double pSmearScaleMultiplier) {
+        this(PerlinNoise.createLegacyForBlendedNoise(pRandom, IntStream.rangeClosed(-15, 0)), PerlinNoise.createLegacyForBlendedNoise(pRandom, IntStream.rangeClosed(-15, 0)), PerlinNoise.createLegacyForBlendedNoise(pRandom, IntStream.rangeClosed(-7, 0)), pXzScale, pYScale, pXzFactor, pYFactor, pSmearScaleMultiplier);
     }
 
-    public BlendedNoise withNewRandom(RandomSource p_230484_) {
-        return new BlendedNoise(p_230484_, this.xzScale, this.yScale, this.xzFactor, this.yFactor, this.smearScaleMultiplier);
+    public BlendedNoise withNewRandom(RandomSource pRandom) {
+        return new BlendedNoise(pRandom, this.xzScale, this.yScale, this.xzFactor, this.yFactor, this.smearScaleMultiplier);
     }
 
-    public double compute(DensityFunction.FunctionContext p_210621_) {
-        if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(p_210621_.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(p_210621_.blockZ()))) {
-            return this.computePrecise(p_210621_);
+    public double compute(DensityFunction.FunctionContext pContext) {
+        if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(pContext.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(pContext.blockZ()))) {
+            return this.computePrecise(pContext);
         }
 
         boolean useLegacy32BitFloor = FarlandsMode.usesLegacyBlendedNoise();
-        double d0 = FarlandsMode.scaledNoiseCoordinate(p_210621_.blockX(), this.xzMultiplier);
-        double d1 = (double) p_210621_.blockY() * this.yMultiplier;
-        double d2 = FarlandsMode.scaledNoiseCoordinate(p_210621_.blockZ(), this.xzMultiplier);
+        double d0 = FarlandsMode.scaledNoiseCoordinate(pContext.blockX(), this.xzMultiplier);
+        double d1 = (double) pContext.blockY() * this.yMultiplier;
+        double d2 = FarlandsMode.scaledNoiseCoordinate(pContext.blockZ(), this.xzMultiplier);
         double d3 = d0 / this.xzFactor;
         double d4 = d1 / this.yFactor;
         double d5 = d2 / this.xzFactor;
@@ -237,14 +237,14 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     @VisibleForTesting
-    public void parityConfigString(StringBuilder p_192818_) {
-        p_192818_.append("BlendedNoise{minLimitNoise=");
-        this.minLimitNoise.parityConfigString(p_192818_);
-        p_192818_.append(", maxLimitNoise=");
-        this.maxLimitNoise.parityConfigString(p_192818_);
-        p_192818_.append(", mainNoise=");
-        this.mainNoise.parityConfigString(p_192818_);
-        p_192818_.append(String.format(Locale.ROOT, ", xzScale=%.3f, yScale=%.3f, xzMainScale=%.3f, yMainScale=%.3f, cellWidth=4, cellHeight=8", 684.412D, 684.412D, 8.555150000000001D, 4.277575000000001D)).append('}');
+    public void parityConfigString(StringBuilder pBuilder) {
+        pBuilder.append("BlendedNoise{minLimitNoise=");
+        this.minLimitNoise.parityConfigString(pBuilder);
+        pBuilder.append(", maxLimitNoise=");
+        this.maxLimitNoise.parityConfigString(pBuilder);
+        pBuilder.append(", mainNoise=");
+        this.mainNoise.parityConfigString(pBuilder);
+        pBuilder.append(String.format(Locale.ROOT, ", xzScale=%.3f, yScale=%.3f, xzMainScale=%.3f, yMainScale=%.3f, cellWidth=4, cellHeight=8", 684.412D, 684.412D, 8.555150000000001D, 4.277575000000001D)).append('}');
     }
 
     public KeyDispatchDataCodec<? extends DensityFunction> codec() {

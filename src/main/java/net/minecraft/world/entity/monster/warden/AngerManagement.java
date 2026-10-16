@@ -74,10 +74,10 @@ public class AngerManagement {
                 .collect(Collectors.toList());
     }
 
-    public void tick(ServerLevel p_219264_, Predicate<Entity> p_219265_) {
+    public void tick(ServerLevel pLevel, Predicate<Entity> pPredicate) {
         --this.conversionDelay;
         if (this.conversionDelay <= 0) {
-            this.convertFromUuids(p_219264_);
+            this.convertFromUuids(pLevel);
             this.conversionDelay = 2;
         }
 
@@ -100,7 +100,7 @@ public class AngerManagement {
             int j = entry1.getIntValue();
             Entity entity = entry1.getKey();
             Entity.RemovalReason entity$removalreason = entity.getRemovalReason();
-            if (j > 1 && p_219265_.test(entity) && entity$removalreason == null) {
+            if (j > 1 && pPredicate.test(entity) && entity$removalreason == null) {
                 entry1.setValue(j - 1);
             } else {
                 this.suspects.remove(entity);
@@ -127,13 +127,13 @@ public class AngerManagement {
         }
     }
 
-    private void convertFromUuids(ServerLevel p_219262_) {
+    private void convertFromUuids(ServerLevel pLevel) {
         ObjectIterator<Object2IntMap.Entry<UUID>> objectiterator = this.angerByUuid.object2IntEntrySet().iterator();
 
         while (objectiterator.hasNext()) {
             Object2IntMap.Entry<UUID> entry = objectiterator.next();
             int i = entry.getIntValue();
-            Entity entity = p_219262_.getEntity(entry.getKey());
+            Entity entity = pLevel.getEntity(entry.getKey());
             if (entity != null) {
                 this.angerBySuspect.put(entity, i);
                 this.suspects.add(entity);
@@ -142,25 +142,25 @@ public class AngerManagement {
         }
     }
 
-    public int increaseAnger(Entity p_219269_, int p_219270_) {
-        boolean flag = !this.angerBySuspect.containsKey(p_219269_);
-        int i = this.angerBySuspect.computeInt(p_219269_, (p_219259_, p_219260_) -> {
-            return Math.min(150, (p_219260_ == null ? 0 : p_219260_) + p_219270_);
+    public int increaseAnger(Entity pEntity, int pOffset) {
+        boolean flag = !this.angerBySuspect.containsKey(pEntity);
+        int i = this.angerBySuspect.computeInt(pEntity, (p_219259_, p_219260_) -> {
+            return Math.min(150, (p_219260_ == null ? 0 : p_219260_) + pOffset);
         });
         if (flag) {
-            int j = this.angerByUuid.removeInt(p_219269_.getUUID());
+            int j = this.angerByUuid.removeInt(pEntity.getUUID());
             i += j;
-            this.angerBySuspect.put(p_219269_, i);
-            this.suspects.add(p_219269_);
+            this.angerBySuspect.put(pEntity, i);
+            this.suspects.add(pEntity);
         }
 
         this.sortAndUpdateHighestAnger();
         return i;
     }
 
-    public void clearAnger(Entity p_219267_) {
-        this.angerBySuspect.removeInt(p_219267_);
-        this.suspects.remove(p_219267_);
+    public void clearAnger(Entity pEntity) {
+        this.angerBySuspect.removeInt(pEntity);
+        this.suspects.remove(pEntity);
         this.sortAndUpdateHighestAnger();
     }
 
@@ -169,8 +169,8 @@ public class AngerManagement {
         return this.suspects.stream().filter(this.filter).findFirst().orElse((Entity) null);
     }
 
-    public int getActiveAnger(@Nullable Entity p_219287_) {
-        return p_219287_ == null ? this.highestAnger : this.angerBySuspect.getInt(p_219287_);
+    public int getActiveAnger(@Nullable Entity pEntity) {
+        return pEntity == null ? this.highestAnger : this.angerBySuspect.getInt(pEntity);
     }
 
     public Optional<LivingEntity> getActiveEntity() {
@@ -184,20 +184,20 @@ public class AngerManagement {
 
     @VisibleForTesting
     protected static record Sorter(AngerManagement angerManagement) implements Comparator<Entity> {
-        public int compare(Entity p_219303_, Entity p_219304_) {
-            if (p_219303_.equals(p_219304_)) {
+        public int compare(Entity pFirst, Entity pSecond) {
+            if (pFirst.equals(pSecond)) {
                 return 0;
             } else {
-                int i = this.angerManagement.angerBySuspect.getOrDefault(p_219303_, 0);
-                int j = this.angerManagement.angerBySuspect.getOrDefault(p_219304_, 0);
+                int i = this.angerManagement.angerBySuspect.getOrDefault(pFirst, 0);
+                int j = this.angerManagement.angerBySuspect.getOrDefault(pSecond, 0);
                 this.angerManagement.highestAnger = Math.max(this.angerManagement.highestAnger, Math.max(i, j));
                 boolean flag = AngerLevel.byAnger(i).isAngry();
                 boolean flag1 = AngerLevel.byAnger(j).isAngry();
                 if (flag != flag1) {
                     return flag ? -1 : 1;
                 } else {
-                    boolean flag2 = p_219303_ instanceof Player;
-                    boolean flag3 = p_219304_ instanceof Player;
+                    boolean flag2 = pFirst instanceof Player;
+                    boolean flag3 = pSecond instanceof Player;
                     if (flag2 != flag3) {
                         return flag2 ? -1 : 1;
                     } else {

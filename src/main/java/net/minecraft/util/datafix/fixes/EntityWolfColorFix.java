@@ -6,8 +6,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class EntityWolfColorFix extends NamedEntityFix {
-    public EntityWolfColorFix(Schema p_15789_, boolean p_15790_) {
-        super(p_15789_, p_15790_, "EntityWolfColorFix", References.ENTITY, "minecraft:wolf");
+    public EntityWolfColorFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "EntityWolfColorFix", References.ENTITY, "minecraft:wolf");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15794_) {

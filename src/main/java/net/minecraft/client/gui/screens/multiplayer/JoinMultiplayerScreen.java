@@ -41,9 +41,9 @@ public class JoinMultiplayerScreen extends Screen {
     private LanServerDetection.LanServerDetector lanServerDetector;
     private boolean initedOnce;
 
-    public JoinMultiplayerScreen(Screen p_99688_) {
+    public JoinMultiplayerScreen(Screen pLastScreen) {
         super(Component.translatable("multiplayer.title"));
-        this.lastScreen = p_99688_;
+        this.lastScreen = pLastScreen;
     }
 
     protected void init() {
@@ -195,15 +195,15 @@ public class JoinMultiplayerScreen extends Screen {
         }
     }
 
-    public boolean keyPressed(int p_99690_, int p_99691_, int p_99692_) {
-        if (super.keyPressed(p_99690_, p_99691_, p_99692_)) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (p_99690_ == 294) {
+        } else if (pKeyCode == 294) {
             this.refreshServerList();
             return true;
         } else if (this.serverSelectionList.getSelected() != null) {
-            if (p_99690_ != 257 && p_99690_ != 335) {
-                return this.serverSelectionList.keyPressed(p_99690_, p_99691_, p_99692_);
+            if (pKeyCode != 257 && pKeyCode != 335) {
+                return this.serverSelectionList.keyPressed(pKeyCode, pScanCode, pModifiers);
             } else {
                 this.joinSelectedServer();
                 return true;
@@ -213,14 +213,14 @@ public class JoinMultiplayerScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_99694_, int p_99695_, int p_99696_, float p_99697_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.toolTip = null;
-        this.renderBackground(p_99694_);
-        this.serverSelectionList.render(p_99694_, p_99695_, p_99696_, p_99697_);
-        drawCenteredString(p_99694_, this.font, this.title, this.width / 2, 20, 16777215);
-        super.render(p_99694_, p_99695_, p_99696_, p_99697_);
+        this.renderBackground(pPoseStack);
+        this.serverSelectionList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 20, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (this.toolTip != null) {
-            this.renderComponentTooltip(p_99694_, this.toolTip, p_99695_, p_99696_);
+            this.renderComponentTooltip(pPoseStack, this.toolTip, pMouseX, pMouseY);
         }
     }
 
@@ -234,12 +234,12 @@ public class JoinMultiplayerScreen extends Screen {
         }
     }
 
-    private void join(ServerData p_99703_) {
-        ConnectScreen.startConnecting(this, this.minecraft, ServerAddress.parseString(p_99703_.ip), p_99703_);
+    private void join(ServerData pServer) {
+        ConnectScreen.startConnecting(this, this.minecraft, ServerAddress.parseString(pServer.ip), pServer);
     }
 
-    public void setSelected(ServerSelectionList.Entry p_99701_) {
-        this.serverSelectionList.setSelected(p_99701_);
+    public void setSelected(ServerSelectionList.Entry pSelected) {
+        this.serverSelectionList.setSelected(pSelected);
         this.onSelectedChange();
     }
 
@@ -261,8 +261,8 @@ public class JoinMultiplayerScreen extends Screen {
         return this.pinger;
     }
 
-    public void setToolTip(List<Component> p_99708_) {
-        this.toolTip = p_99708_;
+    public void setToolTip(List<Component> pToolTip) {
+        this.toolTip = pToolTip;
     }
 
     public ServerList getServers() {

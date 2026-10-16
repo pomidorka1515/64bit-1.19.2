@@ -28,8 +28,8 @@ public class FilePackResources extends AbstractPackResources {
     @Nullable
     private ZipFile zipFile;
 
-    public FilePackResources(File p_10236_) {
-        super(p_10236_);
+    public FilePackResources(File pFile) {
+        super(pFile);
     }
 
     private ZipFile getOrCreateZipFile() throws IOException {
@@ -40,25 +40,25 @@ public class FilePackResources extends AbstractPackResources {
         return this.zipFile;
     }
 
-    protected InputStream getResource(String p_10246_) throws IOException {
+    protected InputStream getResource(String pResourcePath) throws IOException {
         ZipFile zipfile = this.getOrCreateZipFile();
-        ZipEntry zipentry = zipfile.getEntry(p_10246_);
+        ZipEntry zipentry = zipfile.getEntry(pResourcePath);
         if (zipentry == null) {
-            throw new ResourcePackFileNotFoundException(this.file, p_10246_);
+            throw new ResourcePackFileNotFoundException(this.file, pResourcePath);
         } else {
             return zipfile.getInputStream(zipentry);
         }
     }
 
-    public boolean hasResource(String p_10249_) {
+    public boolean hasResource(String pResourcePath) {
         try {
-            return this.getOrCreateZipFile().getEntry(p_10249_) != null;
+            return this.getOrCreateZipFile().getEntry(pResourcePath) != null;
         } catch (IOException ioexception) {
             return false;
         }
     }
 
-    public Set<String> getNamespaces(PackType p_10238_) {
+    public Set<String> getNamespaces(PackType pType) {
         ZipFile zipfile;
         try {
             zipfile = this.getOrCreateZipFile();
@@ -72,7 +72,7 @@ public class FilePackResources extends AbstractPackResources {
         while (enumeration.hasMoreElements()) {
             ZipEntry zipentry = enumeration.nextElement();
             String s = zipentry.getName();
-            if (s.startsWith(p_10238_.getDirectory() + "/")) {
+            if (s.startsWith(pType.getDirectory() + "/")) {
                 List<String> list = Lists.newArrayList(SPLITTER.split(s));
                 if (list.size() > 1) {
                     String s1 = list.get(1);
@@ -100,7 +100,7 @@ public class FilePackResources extends AbstractPackResources {
         }
     }
 
-    public Collection<ResourceLocation> getResources(PackType p_215324_, String p_215325_, String p_215326_, Predicate<ResourceLocation> p_215327_) {
+    public Collection<ResourceLocation> getResources(PackType pType, String pNamespace, String pPath, Predicate<ResourceLocation> pFilter) {
         ZipFile zipfile;
         try {
             zipfile = this.getOrCreateZipFile();
@@ -110,8 +110,8 @@ public class FilePackResources extends AbstractPackResources {
 
         Enumeration<? extends ZipEntry> enumeration = zipfile.entries();
         List<ResourceLocation> list = Lists.newArrayList();
-        String s = p_215324_.getDirectory() + "/" + p_215325_ + "/";
-        String s1 = s + p_215326_ + "/";
+        String s = pType.getDirectory() + "/" + pNamespace + "/";
+        String s1 = s + pPath + "/";
 
         while (enumeration.hasMoreElements()) {
             ZipEntry zipentry = enumeration.nextElement();
@@ -119,10 +119,10 @@ public class FilePackResources extends AbstractPackResources {
                 String s2 = zipentry.getName();
                 if (!s2.endsWith(".mcmeta") && s2.startsWith(s1)) {
                     String s3 = s2.substring(s.length());
-                    ResourceLocation resourcelocation = ResourceLocation.tryBuild(p_215325_, s3);
+                    ResourceLocation resourcelocation = ResourceLocation.tryBuild(pNamespace, s3);
                     if (resourcelocation == null) {
-                        LOGGER.warn("Invalid path in datapack: {}:{}, ignoring", p_215325_, s3);
-                    } else if (p_215327_.test(resourcelocation)) {
+                        LOGGER.warn("Invalid path in datapack: {}:{}, ignoring", pNamespace, s3);
+                    } else if (pFilter.test(resourcelocation)) {
                         list.add(resourcelocation);
                     }
                 }

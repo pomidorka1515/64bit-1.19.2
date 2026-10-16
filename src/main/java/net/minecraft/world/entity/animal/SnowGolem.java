@@ -45,8 +45,8 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
     private static final byte PUMPKIN_FLAG = 16;
     private static final float EYE_HEIGHT = 1.7F;
 
-    public SnowGolem(EntityType<? extends SnowGolem> p_29902_, Level p_29903_) {
-        super(p_29902_, p_29903_);
+    public SnowGolem(EntityType<? extends SnowGolem> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -68,15 +68,15 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
         this.entityData.define(DATA_PUMPKIN_ID, (byte) 16);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_29923_) {
-        super.addAdditionalSaveData(p_29923_);
-        p_29923_.putBoolean("Pumpkin", this.hasPumpkin());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putBoolean("Pumpkin", this.hasPumpkin());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_29915_) {
-        super.readAdditionalSaveData(p_29915_);
-        if (p_29915_.contains("Pumpkin")) {
-            this.setPumpkin(p_29915_.getBoolean("Pumpkin"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("Pumpkin")) {
+            this.setPumpkin(pCompound.getBoolean("Pumpkin"));
         }
     }
 
@@ -111,10 +111,10 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
         }
     }
 
-    public void performRangedAttack(LivingEntity p_29912_, float p_29913_) {
+    public void performRangedAttack(LivingEntity pTarget, float pDistanceFactor) {
         Snowball snowball = new Snowball(this.level, this);
-        double d0 = p_29912_.getEyeY() - (double) 1.1F;
-        Vec3 targetDelta = p_29912_.sectorPosition().relativeTo(this.sectorPosition());
+        double d0 = pTarget.getEyeY() - (double) 1.1F;
+        Vec3 targetDelta = pTarget.sectorPosition().relativeTo(this.sectorPosition());
         double d1 = targetDelta.x;
         double d2 = d0 - snowball.getY();
         double d3 = targetDelta.z;
@@ -124,18 +124,18 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
         this.level.addFreshEntity(snowball);
     }
 
-    protected float getStandingEyeHeight(Pose p_29917_, EntityDimensions p_29918_) {
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
         return 1.7F;
     }
 
-    protected InteractionResult mobInteract(Player p_29920_, InteractionHand p_29921_) {
-        ItemStack itemstack = p_29920_.getItemInHand(p_29921_);
+    protected InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (itemstack.is(Items.SHEARS) && this.readyForShearing()) {
             this.shear(SoundSource.PLAYERS);
-            this.gameEvent(GameEvent.SHEAR, p_29920_);
+            this.gameEvent(GameEvent.SHEAR, pPlayer);
             if (!this.level.isClientSide) {
-                itemstack.hurtAndBreak(1, p_29920_, (p_29910_) -> {
-                    p_29910_.broadcastBreakEvent(p_29921_);
+                itemstack.hurtAndBreak(1, pPlayer, (p_29910_) -> {
+                    p_29910_.broadcastBreakEvent(pHand);
                 });
             }
 
@@ -145,8 +145,8 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
         }
     }
 
-    public void shear(SoundSource p_29907_) {
-        this.level.playSound((Player) null, this, SoundEvents.SNOW_GOLEM_SHEAR, p_29907_, 1.0F, 1.0F);
+    public void shear(SoundSource pCategory) {
+        this.level.playSound((Player) null, this, SoundEvents.SNOW_GOLEM_SHEAR, pCategory, 1.0F, 1.0F);
         if (!this.level.isClientSide()) {
             this.setPumpkin(false);
             this.spawnAtLocation(new ItemStack(Items.CARVED_PUMPKIN), 1.7F);
@@ -161,9 +161,9 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
         return (this.entityData.get(DATA_PUMPKIN_ID) & 16) != 0;
     }
 
-    public void setPumpkin(boolean p_29937_) {
+    public void setPumpkin(boolean pPumpkinEquipped) {
         byte b0 = this.entityData.get(DATA_PUMPKIN_ID);
-        if (p_29937_) {
+        if (pPumpkinEquipped) {
             this.entityData.set(DATA_PUMPKIN_ID, (byte) (b0 | 16));
         } else {
             this.entityData.set(DATA_PUMPKIN_ID, (byte) (b0 & -17));
@@ -176,7 +176,7 @@ public class SnowGolem extends AbstractGolem implements Shearable, RangedAttackM
     }
 
     @Nullable
-    protected SoundEvent getHurtSound(DamageSource p_29929_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.SNOW_GOLEM_HURT;
     }
 

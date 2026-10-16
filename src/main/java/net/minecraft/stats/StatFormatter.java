@@ -40,5 +40,5 @@ public interface StatFormatter {
         }
     };
 
-    String format(int p_12887_);
+    String format(int pValue);
 }

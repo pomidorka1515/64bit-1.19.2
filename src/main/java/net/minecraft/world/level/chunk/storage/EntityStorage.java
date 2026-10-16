@@ -40,59 +40,59 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
     private final ProcessorMailbox<Runnable> entityDeserializerQueue;
     protected final DataFixer fixerUpper;
 
-    public EntityStorage(ServerLevel p_196924_, Path p_196925_, DataFixer p_196926_, boolean p_196927_, Executor p_196928_) {
-        this.level = p_196924_;
-        this.fixerUpper = p_196926_;
-        this.entityDeserializerQueue = ProcessorMailbox.create(p_196928_, "entity-deserializer");
-        this.worker = new IOWorker(p_196925_, p_196927_, "entities");
+    public EntityStorage(ServerLevel pLevel, Path pFolder, DataFixer pFixerUpper, boolean pSync, Executor pMainThreadExecutor) {
+        this.level = pLevel;
+        this.fixerUpper = pFixerUpper;
+        this.entityDeserializerQueue = ProcessorMailbox.create(pMainThreadExecutor, "entity-deserializer");
+        this.worker = new IOWorker(pFolder, pSync, "entities");
     }
 
-    public CompletableFuture<ChunkEntities<Entity>> loadEntities(ChunkPos p_156551_) {
-        return this.emptyChunks.contains(p_156551_) ? CompletableFuture.completedFuture(emptyChunk(p_156551_)) : this.worker.loadAsync(p_156551_).thenApplyAsync((p_223458_) -> {
+    public CompletableFuture<ChunkEntities<Entity>> loadEntities(ChunkPos pPos) {
+        return this.emptyChunks.contains(pPos) ? CompletableFuture.completedFuture(emptyChunk(pPos)) : this.worker.loadAsync(pPos).thenApplyAsync((p_223458_) -> {
             if (p_223458_.isEmpty()) {
-                this.emptyChunks.add(p_156551_);
-                return emptyChunk(p_156551_);
+                this.emptyChunks.add(pPos);
+                return emptyChunk(pPos);
             } else {
                 try {
                     ChunkPos chunkpos = readChunkPos(p_223458_.get());
-                    if (!Objects.equals(p_156551_, chunkpos)) {
-                        LOGGER.error("Chunk file at {} is in the wrong location. (Expected {}, got {})", p_156551_, p_156551_, chunkpos);
+                    if (!Objects.equals(pPos, chunkpos)) {
+                        LOGGER.error("Chunk file at {} is in the wrong location. (Expected {}, got {})", pPos, pPos, chunkpos);
                     }
                 } catch (Exception exception) {
-                    LOGGER.warn("Failed to parse chunk {} position info", p_156551_, exception);
+                    LOGGER.warn("Failed to parse chunk {} position info", pPos, exception);
                 }
 
                 CompoundTag compoundtag = this.upgradeChunkTag(p_223458_.get());
                 ListTag listtag = compoundtag.getList("Entities", 10);
                 List<Entity> list = EntityType.loadEntitiesRecursive(listtag, this.level).collect(ImmutableList.toImmutableList());
-                return new ChunkEntities<>(p_156551_, list);
+                return new ChunkEntities<>(pPos, list);
             }
         }, this.entityDeserializerQueue::tell);
     }
 
-    private static ChunkPos readChunkPos(CompoundTag p_156571_) {
-        long[] aint = p_156571_.getLongArray("Position");
+    private static ChunkPos readChunkPos(CompoundTag pTag) {
+        long[] aint = pTag.getLongArray("Position");
         return new ChunkPos(aint[0], aint[1]);
     }
 
-    private static void writeChunkPos(CompoundTag p_156563_, ChunkPos p_156564_) {
-        p_156563_.put("Position", new LongArrayTag(new long[] {p_156564_.x, p_156564_.z}));
+    private static void writeChunkPos(CompoundTag pTag, ChunkPos pPos) {
+        pTag.put("Position", new LongArrayTag(new long[] {pPos.x, pPos.z}));
     }
 
-    private static ChunkEntities<Entity> emptyChunk(ChunkPos p_156569_) {
-        return new ChunkEntities<>(p_156569_, ImmutableList.of());
+    private static ChunkEntities<Entity> emptyChunk(ChunkPos pPos) {
+        return new ChunkEntities<>(pPos, ImmutableList.of());
     }
 
-    public void storeEntities(ChunkEntities<Entity> p_156559_) {
-        ChunkPos chunkpos = p_156559_.getPos();
-        if (p_156559_.isEmpty()) {
+    public void storeEntities(ChunkEntities<Entity> pEntities) {
+        ChunkPos chunkpos = pEntities.getPos();
+        if (pEntities.isEmpty()) {
             if (this.emptyChunks.add(chunkpos)) {
                 this.worker.store(chunkpos, (CompoundTag) null);
             }
 
         } else {
             ListTag listtag = new ListTag();
-            p_156559_.getEntities().forEach((p_156567_) -> {
+            pEntities.getEntities().forEach((p_156567_) -> {
                 CompoundTag compoundtag1 = new CompoundTag();
                 if (p_156567_.save(compoundtag1)) {
                     listtag.add(compoundtag1);
@@ -110,18 +110,18 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
         }
     }
 
-    public void flush(boolean p_182487_) {
-        this.worker.synchronize(p_182487_).join();
+    public void flush(boolean pSynchronize) {
+        this.worker.synchronize(pSynchronize).join();
         this.entityDeserializerQueue.runAll();
     }
 
-    private CompoundTag upgradeChunkTag(CompoundTag p_156573_) {
-        int i = getVersion(p_156573_);
-        return NbtUtils.update(this.fixerUpper, DataFixTypes.ENTITY_CHUNK, p_156573_, i);
+    private CompoundTag upgradeChunkTag(CompoundTag pTag) {
+        int i = getVersion(pTag);
+        return NbtUtils.update(this.fixerUpper, DataFixTypes.ENTITY_CHUNK, pTag, i);
     }
 
-    public static int getVersion(CompoundTag p_156561_) {
-        return p_156561_.contains("DataVersion", 99) ? p_156561_.getInt("DataVersion") : -1;
+    public static int getVersion(CompoundTag pTag) {
+        return pTag.contains("DataVersion", 99) ? pTag.getInt("DataVersion") : -1;
     }
 
     public void close() throws IOException {

@@ -24,25 +24,25 @@ public class RenderChunkRegion implements BlockAndTintGetter {
     protected final RenderChunk[][] chunks;
     protected final Level level;
 
-    RenderChunkRegion(Level p_200456_, long p_200457_, long p_200458_, RenderChunk[][] p_200459_) {
-        this.level = p_200456_;
-        this.minChunkX = p_200457_;
-        this.minChunkZ = p_200458_;
-        this.chunks = p_200459_;
+    RenderChunkRegion(Level pLevel, long pCenterX, long pCenterZ, RenderChunk[][] pChunks) {
+        this.level = pLevel;
+        this.minChunkX = pCenterX;
+        this.minChunkZ = pCenterZ;
+        this.chunks = pChunks;
     }
 
-    public BlockState getBlockState(BlockPos p_112947_) {
-        RenderChunk renderchunk = this.getChunk(p_112947_);
-        return renderchunk == null ? Blocks.AIR.defaultBlockState() : renderchunk.getBlockState(p_112947_);
+    public BlockState getBlockState(BlockPos pPos) {
+        RenderChunk renderchunk = this.getChunk(pPos);
+        return renderchunk == null ? Blocks.AIR.defaultBlockState() : renderchunk.getBlockState(pPos);
     }
 
-    public FluidState getFluidState(BlockPos p_112943_) {
-        RenderChunk renderchunk = this.getChunk(p_112943_);
-        return renderchunk == null ? Fluids.EMPTY.defaultFluidState() : renderchunk.getBlockState(p_112943_).getFluidState();
+    public FluidState getFluidState(BlockPos pPos) {
+        RenderChunk renderchunk = this.getChunk(pPos);
+        return renderchunk == null ? Fluids.EMPTY.defaultFluidState() : renderchunk.getBlockState(pPos).getFluidState();
     }
 
-    public float getShade(Direction p_112940_, boolean p_112941_) {
-        return this.level.getShade(p_112940_, p_112941_);
+    public float getShade(Direction pDirection, boolean pShade) {
+        return this.level.getShade(pDirection, pShade);
     }
 
     public LevelLightEngine getLightEngine() {
@@ -50,9 +50,9 @@ public class RenderChunkRegion implements BlockAndTintGetter {
     }
 
     @Nullable
-    public BlockEntity getBlockEntity(BlockPos p_112945_) {
-        RenderChunk renderchunk = this.getChunk(p_112945_);
-        return renderchunk == null ? null : renderchunk.getBlockEntity(p_112945_);
+    public BlockEntity getBlockEntity(BlockPos pPos) {
+        RenderChunk renderchunk = this.getChunk(pPos);
+        return renderchunk == null ? null : renderchunk.getBlockEntity(pPos);
     }
 
     @Nullable
@@ -75,8 +75,8 @@ public class RenderChunkRegion implements BlockAndTintGetter {
         return this.chunks[i][(int) zOffset];
     }
 
-    public int getBlockTint(BlockPos p_112937_, ColorResolver p_112938_) {
-        return this.level.getBlockTint(p_112937_, p_112938_);
+    public int getBlockTint(BlockPos pPos, ColorResolver pColorResolver) {
+        return this.level.getBlockTint(pPos, pColorResolver);
     }
 
     public int getMinBuildHeight() {

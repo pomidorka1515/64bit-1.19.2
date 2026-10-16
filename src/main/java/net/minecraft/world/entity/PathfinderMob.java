@@ -10,20 +10,20 @@ import net.minecraft.world.phys.Vec3;
 public abstract class PathfinderMob extends Mob {
     protected static final float DEFAULT_WALK_TARGET_VALUE = 0.0F;
 
-    protected PathfinderMob(EntityType<? extends PathfinderMob> p_21683_, Level p_21684_) {
-        super(p_21683_, p_21684_);
+    protected PathfinderMob(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public float getWalkTargetValue(BlockPos p_21693_) {
-        return this.getWalkTargetValue(p_21693_, this.level);
+    public float getWalkTargetValue(BlockPos pPos) {
+        return this.getWalkTargetValue(pPos, this.level);
     }
 
-    public float getWalkTargetValue(BlockPos p_21688_, LevelReader p_21689_) {
+    public float getWalkTargetValue(BlockPos pPos, LevelReader pLevel) {
         return 0.0F;
     }
 
-    public boolean checkSpawnRules(LevelAccessor p_21686_, MobSpawnType p_21687_) {
-        return this.getWalkTargetValue(this.blockPosition(), p_21686_) >= 0.0F;
+    public boolean checkSpawnRules(LevelAccessor pLevel, MobSpawnType pSpawnReason) {
+        return this.getWalkTargetValue(this.blockPosition(), pLevel) >= 0.0F;
     }
 
     public boolean isPathFinding() {
@@ -71,6 +71,6 @@ public abstract class PathfinderMob extends Mob {
         return 1.0D;
     }
 
-    protected void onLeashDistance(float p_21694_) {
+    protected void onLeashDistance(float pDistance) {
     }
 }

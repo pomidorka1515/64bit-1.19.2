@@ -15,18 +15,18 @@ public class LastSeenMessagesValidator {
     private LastSeenMessages lastSeenMessages = LastSeenMessages.EMPTY;
     private final ObjectList<LastSeenMessages.Entry> pendingEntries = new ObjectArrayList<>();
 
-    public void addPending(LastSeenMessages.Entry p_242384_) {
-        this.pendingEntries.add(p_242384_);
+    public void addPending(LastSeenMessages.Entry pEntry) {
+        this.pendingEntries.add(pEntry);
     }
 
     public int pendingMessagesCount() {
         return this.pendingEntries.size();
     }
 
-    private boolean hasDuplicateProfiles(LastSeenMessages p_242422_) {
-        Set<UUID> set = new HashSet<>(p_242422_.entries().size());
+    private boolean hasDuplicateProfiles(LastSeenMessages pLastSeenMessages) {
+        Set<UUID> set = new HashSet<>(pLastSeenMessages.entries().size());
 
-        for (LastSeenMessages.Entry lastseenmessages$entry : p_242422_.entries()) {
+        for (LastSeenMessages.Entry lastseenmessages$entry : pLastSeenMessages.entries()) {
             if (!set.add(lastseenmessages$entry.profileId())) {
                 return true;
             }

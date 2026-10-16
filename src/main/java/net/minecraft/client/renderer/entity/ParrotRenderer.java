@@ -16,13 +16,13 @@ public class ParrotRenderer extends MobRenderer<Parrot, ParrotModel> {
         super(p_174336_, new ParrotModel(p_174336_.bakeLayer(ModelLayers.PARROT)), 0.3F);
     }
 
-    public ResourceLocation getTextureLocation(Parrot p_115658_) {
-        return PARROT_LOCATIONS[p_115658_.getVariant()];
+    public ResourceLocation getTextureLocation(Parrot pEntity) {
+        return PARROT_LOCATIONS[pEntity.getVariant()];
     }
 
-    public float getBob(Parrot p_115660_, float p_115661_) {
-        float f = Mth.lerp(p_115661_, p_115660_.oFlap, p_115660_.flap);
-        float f1 = Mth.lerp(p_115661_, p_115660_.oFlapSpeed, p_115660_.flapSpeed);
+    public float getBob(Parrot pLivingBase, float pPartialTicks) {
+        float f = Mth.lerp(pPartialTicks, pLivingBase.oFlap, pLivingBase.flap);
+        float f1 = Mth.lerp(pPartialTicks, pLivingBase.oFlapSpeed, pLivingBase.flapSpeed);
         return (Mth.sin(f) + 1.0F) * f1;
     }
 }

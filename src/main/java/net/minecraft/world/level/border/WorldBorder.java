@@ -28,57 +28,57 @@ public class WorldBorder {
     private WorldBorder.BorderExtent extent = new WorldBorder.StaticBorderExtent(5.9999968E7D);
     public static final WorldBorder.Settings DEFAULT_SETTINGS = new WorldBorder.Settings(0.0D, 0.0D, 0.2D, 5.0D, 5, 15, 5.9999968E7D, 0L, 0.0D);
 
-    public boolean isWithinBounds(BlockPos p_61938_) {
+    public boolean isWithinBounds(BlockPos pPos) {
         return true;
         //      return (double)(p_61938_.getX() + 1) > this.getMinX() && (double)p_61938_.getX() < this.getMaxX() && (double)(p_61938_.getZ() + 1) > this.getMinZ() && (double)p_61938_.getZ() < this.getMaxZ();
     }
 
-    public boolean isWithinBounds(ChunkPos p_61928_) {
+    public boolean isWithinBounds(ChunkPos pChunkPos) {
         return true;
         //      return (double)p_61928_.getMaxBlockX() > this.getMinX() && (double)p_61928_.getMinBlockX() < this.getMaxX() && (double)p_61928_.getMaxBlockZ() > this.getMinZ() && (double)p_61928_.getMinBlockZ() < this.getMaxZ();
     }
 
-    public boolean isWithinBounds(double p_156094_, double p_156095_) {
+    public boolean isWithinBounds(double pX, double pZ) {
         return true;
         //      return p_156094_ > this.getMinX() && p_156094_ < this.getMaxX() && p_156095_ > this.getMinZ() && p_156095_ < this.getMaxZ();
     }
 
-    public boolean isWithinBounds(double p_187563_, double p_187564_, double p_187565_) {
+    public boolean isWithinBounds(double pX, double pZ, double pOffset) {
         return true;
         //      return p_187563_ > this.getMinX() - p_187565_ && p_187563_ < this.getMaxX() + p_187565_ && p_187564_ > this.getMinZ() - p_187565_ && p_187564_ < this.getMaxZ() + p_187565_;
     }
 
-    public boolean isWithinBounds(AABB p_61936_) {
+    public boolean isWithinBounds(AABB pBox) {
         return true;
         //      return p_61936_.maxX > this.getMinX() && p_61936_.minX < this.getMaxX() && p_61936_.maxZ > this.getMinZ() && p_61936_.minZ < this.getMaxZ();
     }
 
-    public BlockPos clampToBounds(double p_187570_, double p_187571_, double p_187572_) {
-        return new BlockPos(p_187570_, p_187571_, p_187572_);
+    public BlockPos clampToBounds(double pX, double pY, double pZ) {
+        return new BlockPos(pX, pY, pZ);
         //      return new BlockPos(Mth.clamp(p_187570_, this.getMinX(), this.getMaxX()), p_187571_, Mth.clamp(p_187572_, this.getMinZ(), this.getMaxZ()));
     }
 
-    public double getDistanceToBorder(Entity p_61926_) {
-        return this.getDistanceToBorder(p_61926_.getX(), p_61926_.getZ());
+    public double getDistanceToBorder(Entity pEntity) {
+        return this.getDistanceToBorder(pEntity.getX(), pEntity.getZ());
     }
 
     public VoxelShape getCollisionShape() {
         return this.extent.getCollisionShape();
     }
 
-    public double getDistanceToBorder(double p_61942_, double p_61943_) {
-        double d0 = p_61943_ - this.getMinZ();
-        double d1 = this.getMaxZ() - p_61943_;
-        double d2 = p_61942_ - this.getMinX();
-        double d3 = this.getMaxX() - p_61942_;
+    public double getDistanceToBorder(double pX, double pZ) {
+        double d0 = pZ - this.getMinZ();
+        double d1 = this.getMaxZ() - pZ;
+        double d2 = pX - this.getMinX();
+        double d3 = this.getMaxX() - pX;
         double d4 = Math.min(d2, d3);
         d4 = Math.min(d4, d0);
         return Math.min(d4, d1);
     }
 
-    public boolean isInsideCloseToBorder(Entity p_187567_, AABB p_187568_) {
-        double d0 = Math.max(Mth.absMax(p_187568_.getXsize(), p_187568_.getZsize()), 1.0D);
-        return this.getDistanceToBorder(p_187567_) < d0 * 2.0D && this.isWithinBounds(p_187567_.getX(), p_187567_.getZ(), d0);
+    public boolean isInsideCloseToBorder(Entity pEntity, AABB pBounds) {
+        double d0 = Math.max(Mth.absMax(pBounds.getXsize(), pBounds.getZsize()), 1.0D);
+        return this.getDistanceToBorder(pEntity) < d0 * 2.0D && this.isWithinBounds(pEntity.getX(), pEntity.getZ(), d0);
     }
 
     public BorderStatus getStatus() {
@@ -109,13 +109,13 @@ public class WorldBorder {
         return this.centerZ;
     }
 
-    public void setCenter(double p_61950_, double p_61951_) {
-        this.centerX = p_61950_;
-        this.centerZ = p_61951_;
+    public void setCenter(double pX, double pZ) {
+        this.centerX = pX;
+        this.centerZ = pZ;
         this.extent.onCenterChange();
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderCenterSet(this, p_61950_, p_61951_);
+            borderchangelistener.onBorderCenterSet(this, pX, pZ);
         }
     }
 
@@ -131,19 +131,19 @@ public class WorldBorder {
         return this.extent.getLerpTarget();
     }
 
-    public void setSize(double p_61918_) {
-        this.extent = new WorldBorder.StaticBorderExtent(p_61918_);
+    public void setSize(double pSize) {
+        this.extent = new WorldBorder.StaticBorderExtent(pSize);
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderSizeSet(this, p_61918_);
+            borderchangelistener.onBorderSizeSet(this, pSize);
         }
     }
 
-    public void lerpSizeBetween(double p_61920_, double p_61921_, long p_61922_) {
-        this.extent = (WorldBorder.BorderExtent) (p_61920_ == p_61921_ ? new WorldBorder.StaticBorderExtent(p_61921_) : new WorldBorder.MovingBorderExtent(p_61920_, p_61921_, p_61922_));
+    public void lerpSizeBetween(double pOldSize, double pNewSize, long pTime) {
+        this.extent = (WorldBorder.BorderExtent) (pOldSize == pNewSize ? new WorldBorder.StaticBorderExtent(pNewSize) : new WorldBorder.MovingBorderExtent(pOldSize, pNewSize, pTime));
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderSizeLerping(this, p_61920_, p_61921_, p_61922_);
+            borderchangelistener.onBorderSizeLerping(this, pOldSize, pNewSize, pTime);
         }
     }
 
@@ -151,16 +151,16 @@ public class WorldBorder {
         return Lists.newArrayList(this.listeners);
     }
 
-    public void addListener(BorderChangeListener p_61930_) {
-        this.listeners.add(p_61930_);
+    public void addListener(BorderChangeListener pListener) {
+        this.listeners.add(pListener);
     }
 
-    public void removeListener(BorderChangeListener p_156097_) {
-        this.listeners.remove(p_156097_);
+    public void removeListener(BorderChangeListener pListener) {
+        this.listeners.remove(pListener);
     }
 
-    public void setAbsoluteMaxSize(int p_61924_) {
-        this.absoluteMaxSize = p_61924_;
+    public void setAbsoluteMaxSize(int pSize) {
+        this.absoluteMaxSize = pSize;
         this.extent.onAbsoluteMaxSizeChange();
     }
 
@@ -172,11 +172,11 @@ public class WorldBorder {
         return this.damageSafeZone;
     }
 
-    public void setDamageSafeZone(double p_61940_) {
-        this.damageSafeZone = p_61940_;
+    public void setDamageSafeZone(double pDamageSafeZone) {
+        this.damageSafeZone = pDamageSafeZone;
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderSetDamageSafeZOne(this, p_61940_);
+            borderchangelistener.onBorderSetDamageSafeZOne(this, pDamageSafeZone);
         }
     }
 
@@ -184,11 +184,11 @@ public class WorldBorder {
         return this.damagePerBlock;
     }
 
-    public void setDamagePerBlock(double p_61948_) {
-        this.damagePerBlock = p_61948_;
+    public void setDamagePerBlock(double pDamagePerBlock) {
+        this.damagePerBlock = pDamagePerBlock;
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderSetDamagePerBlock(this, p_61948_);
+            borderchangelistener.onBorderSetDamagePerBlock(this, pDamagePerBlock);
         }
     }
 
@@ -200,11 +200,11 @@ public class WorldBorder {
         return this.warningTime;
     }
 
-    public void setWarningTime(int p_61945_) {
-        this.warningTime = p_61945_;
+    public void setWarningTime(int pWarningTime) {
+        this.warningTime = pWarningTime;
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderSetWarningTime(this, p_61945_);
+            borderchangelistener.onBorderSetWarningTime(this, pWarningTime);
         }
     }
 
@@ -212,11 +212,11 @@ public class WorldBorder {
         return this.warningBlocks;
     }
 
-    public void setWarningBlocks(int p_61953_) {
-        this.warningBlocks = p_61953_;
+    public void setWarningBlocks(int pWarningDistance) {
+        this.warningBlocks = pWarningDistance;
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderSetWarningBlocks(this, p_61953_);
+            borderchangelistener.onBorderSetWarningBlocks(this, pWarningDistance);
         }
     }
 
@@ -228,16 +228,16 @@ public class WorldBorder {
         return new WorldBorder.Settings(this);
     }
 
-    public void applySettings(WorldBorder.Settings p_61932_) {
-        this.setCenter(p_61932_.getCenterX(), p_61932_.getCenterZ());
-        this.setDamagePerBlock(p_61932_.getDamagePerBlock());
-        this.setDamageSafeZone(p_61932_.getSafeZone());
-        this.setWarningBlocks(p_61932_.getWarningBlocks());
-        this.setWarningTime(p_61932_.getWarningTime());
-        if (p_61932_.getSizeLerpTime() > 0L) {
-            this.lerpSizeBetween(p_61932_.getSize(), p_61932_.getSizeLerpTarget(), p_61932_.getSizeLerpTime());
+    public void applySettings(WorldBorder.Settings pSerializer) {
+        this.setCenter(pSerializer.getCenterX(), pSerializer.getCenterZ());
+        this.setDamagePerBlock(pSerializer.getDamagePerBlock());
+        this.setDamageSafeZone(pSerializer.getSafeZone());
+        this.setWarningBlocks(pSerializer.getWarningBlocks());
+        this.setWarningTime(pSerializer.getWarningTime());
+        if (pSerializer.getSizeLerpTime() > 0L) {
+            this.lerpSizeBetween(pSerializer.getSize(), pSerializer.getSizeLerpTarget(), pSerializer.getSizeLerpTime());
         } else {
-            this.setSize(p_61932_.getSize());
+            this.setSize(pSerializer.getSize());
         }
     }
 
@@ -347,28 +347,28 @@ public class WorldBorder {
         private final long sizeLerpTime;
         private final double sizeLerpTarget;
 
-        Settings(double p_62011_, double p_62012_, double p_62013_, double p_62014_, int p_62015_, int p_62016_, double p_62017_, long p_62018_, double p_62019_) {
-            this.centerX = p_62011_;
-            this.centerZ = p_62012_;
-            this.damagePerBlock = p_62013_;
-            this.safeZone = p_62014_;
-            this.warningBlocks = p_62015_;
-            this.warningTime = p_62016_;
-            this.size = p_62017_;
-            this.sizeLerpTime = p_62018_;
-            this.sizeLerpTarget = p_62019_;
+        Settings(double pCenterX, double pCenterZ, double pDamagePerBlock, double pSafeZone, int pWarningBlocks, int pWarningTime, double pSize, long pSizeLerpTime, double pSizeLerpTarget) {
+            this.centerX = pCenterX;
+            this.centerZ = pCenterZ;
+            this.damagePerBlock = pDamagePerBlock;
+            this.safeZone = pSafeZone;
+            this.warningBlocks = pWarningBlocks;
+            this.warningTime = pWarningTime;
+            this.size = pSize;
+            this.sizeLerpTime = pSizeLerpTime;
+            this.sizeLerpTarget = pSizeLerpTarget;
         }
 
-        Settings(WorldBorder p_62032_) {
-            this.centerX = p_62032_.getCenterX();
-            this.centerZ = p_62032_.getCenterZ();
-            this.damagePerBlock = p_62032_.getDamagePerBlock();
-            this.safeZone = p_62032_.getDamageSafeZone();
-            this.warningBlocks = p_62032_.getWarningBlocks();
-            this.warningTime = p_62032_.getWarningTime();
-            this.size = p_62032_.getSize();
-            this.sizeLerpTime = p_62032_.getLerpRemainingTime();
-            this.sizeLerpTarget = p_62032_.getLerpTarget();
+        Settings(WorldBorder pBorder) {
+            this.centerX = pBorder.getCenterX();
+            this.centerZ = pBorder.getCenterZ();
+            this.damagePerBlock = pBorder.getDamagePerBlock();
+            this.safeZone = pBorder.getDamageSafeZone();
+            this.warningBlocks = pBorder.getWarningBlocks();
+            this.warningTime = pBorder.getWarningTime();
+            this.size = pBorder.getSize();
+            this.sizeLerpTime = pBorder.getLerpRemainingTime();
+            this.sizeLerpTarget = pBorder.getLerpTarget();
         }
 
         public double getCenterX() {
@@ -407,29 +407,29 @@ public class WorldBorder {
             return this.sizeLerpTarget;
         }
 
-        public static WorldBorder.Settings read(DynamicLike<?> p_62038_, WorldBorder.Settings p_62039_) {
-            double d0 = Mth.clamp(p_62038_.get("BorderCenterX").asDouble(p_62039_.centerX), -2.9999984E7D, 2.9999984E7D);
-            double d1 = Mth.clamp(p_62038_.get("BorderCenterZ").asDouble(p_62039_.centerZ), -2.9999984E7D, 2.9999984E7D);
-            double d2 = p_62038_.get("BorderSize").asDouble(p_62039_.size);
-            long i = p_62038_.get("BorderSizeLerpTime").asLong(p_62039_.sizeLerpTime);
-            double d3 = p_62038_.get("BorderSizeLerpTarget").asDouble(p_62039_.sizeLerpTarget);
-            double d4 = p_62038_.get("BorderSafeZone").asDouble(p_62039_.safeZone);
-            double d5 = p_62038_.get("BorderDamagePerBlock").asDouble(p_62039_.damagePerBlock);
-            int j = p_62038_.get("BorderWarningBlocks").asInt(p_62039_.warningBlocks);
-            int k = p_62038_.get("BorderWarningTime").asInt(p_62039_.warningTime);
+        public static WorldBorder.Settings read(DynamicLike<?> pDynamic, WorldBorder.Settings pDefaultValue) {
+            double d0 = Mth.clamp(pDynamic.get("BorderCenterX").asDouble(pDefaultValue.centerX), -2.9999984E7D, 2.9999984E7D);
+            double d1 = Mth.clamp(pDynamic.get("BorderCenterZ").asDouble(pDefaultValue.centerZ), -2.9999984E7D, 2.9999984E7D);
+            double d2 = pDynamic.get("BorderSize").asDouble(pDefaultValue.size);
+            long i = pDynamic.get("BorderSizeLerpTime").asLong(pDefaultValue.sizeLerpTime);
+            double d3 = pDynamic.get("BorderSizeLerpTarget").asDouble(pDefaultValue.sizeLerpTarget);
+            double d4 = pDynamic.get("BorderSafeZone").asDouble(pDefaultValue.safeZone);
+            double d5 = pDynamic.get("BorderDamagePerBlock").asDouble(pDefaultValue.damagePerBlock);
+            int j = pDynamic.get("BorderWarningBlocks").asInt(pDefaultValue.warningBlocks);
+            int k = pDynamic.get("BorderWarningTime").asInt(pDefaultValue.warningTime);
             return new WorldBorder.Settings(d0, d1, d5, d4, j, k, d2, i, d3);
         }
 
-        public void write(CompoundTag p_62041_) {
-            p_62041_.putDouble("BorderCenterX", this.centerX);
-            p_62041_.putDouble("BorderCenterZ", this.centerZ);
-            p_62041_.putDouble("BorderSize", this.size);
-            p_62041_.putLong("BorderSizeLerpTime", this.sizeLerpTime);
-            p_62041_.putDouble("BorderSafeZone", this.safeZone);
-            p_62041_.putDouble("BorderDamagePerBlock", this.damagePerBlock);
-            p_62041_.putDouble("BorderSizeLerpTarget", this.sizeLerpTarget);
-            p_62041_.putDouble("BorderWarningBlocks", (double) this.warningBlocks);
-            p_62041_.putDouble("BorderWarningTime", (double) this.warningTime);
+        public void write(CompoundTag pNbt) {
+            pNbt.putDouble("BorderCenterX", this.centerX);
+            pNbt.putDouble("BorderCenterZ", this.centerZ);
+            pNbt.putDouble("BorderSize", this.size);
+            pNbt.putLong("BorderSizeLerpTime", this.sizeLerpTime);
+            pNbt.putDouble("BorderSafeZone", this.safeZone);
+            pNbt.putDouble("BorderDamagePerBlock", this.damagePerBlock);
+            pNbt.putDouble("BorderSizeLerpTarget", this.sizeLerpTarget);
+            pNbt.putDouble("BorderWarningBlocks", (double) this.warningBlocks);
+            pNbt.putDouble("BorderWarningTime", (double) this.warningTime);
         }
     }
 

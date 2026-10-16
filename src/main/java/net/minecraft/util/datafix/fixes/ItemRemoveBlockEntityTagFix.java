@@ -16,9 +16,9 @@ import net.minecraft.util.datafix.schemas.NamespacedSchema;
 public class ItemRemoveBlockEntityTagFix extends DataFix {
     private final Set<String> items;
 
-    public ItemRemoveBlockEntityTagFix(Schema p_242892_, boolean p_242905_, Set<String> p_242937_) {
-        super(p_242892_, p_242905_);
-        this.items = p_242937_;
+    public ItemRemoveBlockEntityTagFix(Schema pOutputSchema, boolean pChangesType, Set<String> pItems) {
+        super(pOutputSchema, pChangesType);
+        this.items = pItems;
     }
 
     public TypeRewriteRule makeRule() {

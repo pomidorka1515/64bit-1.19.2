@@ -46,11 +46,11 @@ public class RealmsSubscriptionInfoScreen extends RealmsScreen {
     private Subscription.SubscriptionType type;
     private static final String PURCHASE_LINK = "https://aka.ms/ExtendJavaRealms";
 
-    public RealmsSubscriptionInfoScreen(Screen p_89979_, RealmsServer p_89980_, Screen p_89981_) {
+    public RealmsSubscriptionInfoScreen(Screen pLastScreen, RealmsServer pServerData, Screen pMainScreen) {
         super(GameNarrator.NO_TITLE);
-        this.lastScreen = p_89979_;
-        this.serverData = p_89980_;
-        this.mainScreen = p_89981_;
+        this.lastScreen = pLastScreen;
+        this.serverData = pServerData;
+        this.mainScreen = pMainScreen;
     }
 
     public void init() {
@@ -98,11 +98,11 @@ public class RealmsSubscriptionInfoScreen extends RealmsScreen {
         this.minecraft.setScreen(this);
     }
 
-    private void getSubscription(long p_89990_) {
+    private void getSubscription(long pServerId) {
         RealmsClient realmsclient = RealmsClient.create();
 
         try {
-            Subscription subscription = realmsclient.subscriptionFor(p_89990_);
+            Subscription subscription = realmsclient.subscriptionFor(pServerId);
             this.daysLeft = this.daysLeftPresentation(subscription.daysLeft);
             this.startDate = localPresentation(subscription.startDate);
             this.type = subscription.type;
@@ -112,9 +112,9 @@ public class RealmsSubscriptionInfoScreen extends RealmsScreen {
         }
     }
 
-    private static Component localPresentation(long p_182539_) {
+    private static Component localPresentation(long pTime) {
         Calendar calendar = new GregorianCalendar(TimeZone.getDefault());
-        calendar.setTimeInMillis(p_182539_);
+        calendar.setTimeInMillis(pTime);
         return Component.literal(DateFormat.getDateTimeInstance().format(calendar.getTime()));
     }
 
@@ -122,39 +122,39 @@ public class RealmsSubscriptionInfoScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_89986_, int p_89987_, int p_89988_) {
-        if (p_89986_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.lastScreen);
             return true;
         } else {
-            return super.keyPressed(p_89986_, p_89987_, p_89988_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    public void render(PoseStack p_89992_, int p_89993_, int p_89994_, float p_89995_) {
-        this.renderBackground(p_89992_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
         int i = this.width / 2 - 100;
-        drawCenteredString(p_89992_, this.font, SUBSCRIPTION_TITLE, this.width / 2, 17, 16777215);
-        this.font.draw(p_89992_, SUBSCRIPTION_START_LABEL, (float) i, (float) row(0), 10526880);
-        this.font.draw(p_89992_, this.startDate, (float) i, (float) row(1), 16777215);
+        drawCenteredString(pPoseStack, this.font, SUBSCRIPTION_TITLE, this.width / 2, 17, 16777215);
+        this.font.draw(pPoseStack, SUBSCRIPTION_START_LABEL, (float) i, (float) row(0), 10526880);
+        this.font.draw(pPoseStack, this.startDate, (float) i, (float) row(1), 16777215);
         if (this.type == Subscription.SubscriptionType.NORMAL) {
-            this.font.draw(p_89992_, TIME_LEFT_LABEL, (float) i, (float) row(3), 10526880);
+            this.font.draw(pPoseStack, TIME_LEFT_LABEL, (float) i, (float) row(3), 10526880);
         } else if (this.type == Subscription.SubscriptionType.RECURRING) {
-            this.font.draw(p_89992_, DAYS_LEFT_LABEL, (float) i, (float) row(3), 10526880);
+            this.font.draw(pPoseStack, DAYS_LEFT_LABEL, (float) i, (float) row(3), 10526880);
         }
 
-        this.font.draw(p_89992_, this.daysLeft, (float) i, (float) row(4), 16777215);
-        super.render(p_89992_, p_89993_, p_89994_, p_89995_);
+        this.font.draw(pPoseStack, this.daysLeft, (float) i, (float) row(4), 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    private Component daysLeftPresentation(int p_89984_) {
-        if (p_89984_ < 0 && this.serverData.expired) {
+    private Component daysLeftPresentation(int pDaysLeft) {
+        if (pDaysLeft < 0 && this.serverData.expired) {
             return SUBSCRIPTION_EXPIRED_TEXT;
-        } else if (p_89984_ <= 1) {
+        } else if (pDaysLeft <= 1) {
             return SUBSCRIPTION_LESS_THAN_A_DAY_TEXT;
         } else {
-            int i = p_89984_ / 30;
-            int j = p_89984_ % 30;
+            int i = pDaysLeft / 30;
+            int j = pDaysLeft % 30;
             MutableComponent mutablecomponent = Component.empty();
             if (i > 0) {
                 mutablecomponent.append(Integer.toString(i)).append(" ");

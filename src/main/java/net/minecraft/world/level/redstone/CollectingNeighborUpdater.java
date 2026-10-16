@@ -20,9 +20,9 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
     private final List<CollectingNeighborUpdater.NeighborUpdates> addedThisLayer = new ArrayList<>();
     private int count = 0;
 
-    public CollectingNeighborUpdater(Level p_230643_, int p_230644_) {
-        this.level = p_230643_;
-        this.maxChainedNeighborUpdates = p_230644_;
+    public CollectingNeighborUpdater(Level pLevel, int pMaxChainedNeighborUpdates) {
+        this.level = pLevel;
+        this.maxChainedNeighborUpdates = pMaxChainedNeighborUpdates;
     }
 
     public void shapeUpdate(Direction p_230664_, BlockState p_230665_, BlockPos p_230666_, BlockPos p_230667_, int p_230668_, int p_230669_) {
@@ -41,18 +41,18 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
         this.addAndRun(p_230657_, new CollectingNeighborUpdater.MultiNeighborUpdate(p_230657_.immutable(), p_230658_, p_230659_));
     }
 
-    private void addAndRun(BlockPos p_230661_, CollectingNeighborUpdater.NeighborUpdates p_230662_) {
+    private void addAndRun(BlockPos pPos, CollectingNeighborUpdater.NeighborUpdates pUpdates) {
         boolean flag = this.count > 0;
         boolean flag1 = this.maxChainedNeighborUpdates >= 0 && this.count >= this.maxChainedNeighborUpdates;
         ++this.count;
         if (!flag1) {
             if (flag) {
-                this.addedThisLayer.add(p_230662_);
+                this.addedThisLayer.add(pUpdates);
             } else {
-                this.stack.push(p_230662_);
+                this.stack.push(pUpdates);
             }
         } else if (this.count - 1 == this.maxChainedNeighborUpdates) {
-            LOGGER.error("Too many chained neighbor updates. Skipping the rest. First skipped position: " + p_230661_.toShortString());
+            LOGGER.error("Too many chained neighbor updates. Skipping the rest. First skipped position: " + pPos.toShortString());
         }
 
         if (!flag) {
@@ -98,19 +98,19 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
         private final Direction skipDirection;
         private int idx = 0;
 
-        MultiNeighborUpdate(BlockPos p_230697_, Block p_230698_, @Nullable Direction p_230699_) {
-            this.sourcePos = p_230697_;
-            this.sourceBlock = p_230698_;
-            this.skipDirection = p_230699_;
-            if (NeighborUpdater.UPDATE_ORDER[this.idx] == p_230699_) {
+        MultiNeighborUpdate(BlockPos pSourcePos, Block pSourceBlock, @Nullable Direction pSkipDirection) {
+            this.sourcePos = pSourcePos;
+            this.sourceBlock = pSourceBlock;
+            this.skipDirection = pSkipDirection;
+            if (NeighborUpdater.UPDATE_ORDER[this.idx] == pSkipDirection) {
                 ++this.idx;
             }
         }
 
-        public boolean runNext(Level p_230701_) {
+        public boolean runNext(Level pLevel) {
             BlockPos blockpos = this.sourcePos.relative(NeighborUpdater.UPDATE_ORDER[this.idx++]);
-            BlockState blockstate = p_230701_.getBlockState(blockpos);
-            blockstate.neighborChanged(p_230701_, blockpos, this.sourceBlock, this.sourcePos, false);
+            BlockState blockstate = pLevel.getBlockState(blockpos);
+            blockstate.neighborChanged(pLevel, blockpos, this.sourceBlock, this.sourcePos, false);
             if (this.idx < NeighborUpdater.UPDATE_ORDER.length && NeighborUpdater.UPDATE_ORDER[this.idx] == this.skipDirection) {
                 ++this.idx;
             }
@@ -120,7 +120,7 @@ public class CollectingNeighborUpdater implements NeighborUpdater {
     }
 
     interface NeighborUpdates {
-        boolean runNext(Level p_230702_);
+        boolean runNext(Level pLevel);
     }
 
     static record ShapeUpdate(Direction direction, BlockState state, BlockPos pos, BlockPos neighborPos, int updateFlags) implements CollectingNeighborUpdater.NeighborUpdates {

@@ -33,53 +33,53 @@ public class ImposterProtoChunk extends ProtoChunk {
     private final LevelChunk wrapped;
     private final boolean allowWrites;
 
-    public ImposterProtoChunk(LevelChunk p_187920_, boolean p_187921_) {
-        super(p_187920_.getPos(), UpgradeData.EMPTY, p_187920_.levelHeightAccessor, p_187920_.getLevel().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), p_187920_.getBlendingData());
-        this.wrapped = p_187920_;
-        this.allowWrites = p_187921_;
+    public ImposterProtoChunk(LevelChunk pWrapped, boolean pAllowWrites) {
+        super(pWrapped.getPos(), UpgradeData.EMPTY, pWrapped.levelHeightAccessor, pWrapped.getLevel().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), pWrapped.getBlendingData());
+        this.wrapped = pWrapped;
+        this.allowWrites = pAllowWrites;
     }
 
     @Nullable
-    public BlockEntity getBlockEntity(BlockPos p_62744_) {
-        return this.wrapped.getBlockEntity(p_62744_);
+    public BlockEntity getBlockEntity(BlockPos pPos) {
+        return this.wrapped.getBlockEntity(pPos);
     }
 
-    public BlockState getBlockState(BlockPos p_62749_) {
-        return this.wrapped.getBlockState(p_62749_);
+    public BlockState getBlockState(BlockPos pPos) {
+        return this.wrapped.getBlockState(pPos);
     }
 
-    public FluidState getFluidState(BlockPos p_62736_) {
-        return this.wrapped.getFluidState(p_62736_);
+    public FluidState getFluidState(BlockPos pPos) {
+        return this.wrapped.getFluidState(pPos);
     }
 
     public int getMaxLightLevel() {
         return this.wrapped.getMaxLightLevel();
     }
 
-    public LevelChunkSection getSection(int p_187932_) {
-        return this.allowWrites ? this.wrapped.getSection(p_187932_) : super.getSection(p_187932_);
+    public LevelChunkSection getSection(int pIndex) {
+        return this.allowWrites ? this.wrapped.getSection(pIndex) : super.getSection(pIndex);
     }
 
     @Nullable
-    public BlockState setBlockState(BlockPos p_62722_, BlockState p_62723_, boolean p_62724_) {
-        return this.allowWrites ? this.wrapped.setBlockState(p_62722_, p_62723_, p_62724_) : null;
+    public BlockState setBlockState(BlockPos pPos, BlockState pState, boolean pIsMoving) {
+        return this.allowWrites ? this.wrapped.setBlockState(pPos, pState, pIsMoving) : null;
     }
 
-    public void setBlockEntity(BlockEntity p_156358_) {
+    public void setBlockEntity(BlockEntity pBlockEntity) {
         if (this.allowWrites) {
-            this.wrapped.setBlockEntity(p_156358_);
+            this.wrapped.setBlockEntity(pBlockEntity);
         }
     }
 
-    public void addEntity(Entity p_62692_) {
+    public void addEntity(Entity pEntity) {
         if (this.allowWrites) {
-            this.wrapped.addEntity(p_62692_);
+            this.wrapped.addEntity(pEntity);
         }
     }
 
-    public void setStatus(ChunkStatus p_62698_) {
+    public void setStatus(ChunkStatus pStatus) {
         if (this.allowWrites) {
-            super.setStatus(p_62698_);
+            super.setStatus(pStatus);
         }
     }
 
@@ -87,27 +87,27 @@ public class ImposterProtoChunk extends ProtoChunk {
         return this.wrapped.getSections();
     }
 
-    public void setHeightmap(Heightmap.Types p_62706_, long[] p_62707_) {
+    public void setHeightmap(Heightmap.Types pType, long[] pData) {
     }
 
-    private Heightmap.Types fixType(Heightmap.Types p_62742_) {
-        if (p_62742_ == Heightmap.Types.WORLD_SURFACE_WG) {
+    private Heightmap.Types fixType(Heightmap.Types pType) {
+        if (pType == Heightmap.Types.WORLD_SURFACE_WG) {
             return Heightmap.Types.WORLD_SURFACE;
         } else {
-            return p_62742_ == Heightmap.Types.OCEAN_FLOOR_WG ? Heightmap.Types.OCEAN_FLOOR : p_62742_;
+            return pType == Heightmap.Types.OCEAN_FLOOR_WG ? Heightmap.Types.OCEAN_FLOOR : pType;
         }
     }
 
-    public Heightmap getOrCreateHeightmapUnprimed(Heightmap.Types p_187928_) {
-        return this.wrapped.getOrCreateHeightmapUnprimed(p_187928_);
+    public Heightmap getOrCreateHeightmapUnprimed(Heightmap.Types pType) {
+        return this.wrapped.getOrCreateHeightmapUnprimed(pType);
     }
 
-    public int getHeight(Heightmap.Types p_62702_, int p_62703_, int p_62704_) {
-        return this.wrapped.getHeight(this.fixType(p_62702_), p_62703_, p_62704_);
+    public int getHeight(Heightmap.Types pType, int pX, int pZ) {
+        return this.wrapped.getHeight(this.fixType(pType), pX, pZ);
     }
 
-    public Holder<Biome> getNoiseBiome(int p_204430_, int p_204431_, int p_204432_) {
-        return this.wrapped.getNoiseBiome(p_204430_, p_204431_, p_204432_);
+    public Holder<Biome> getNoiseBiome(int pX, int pY, int pZ) {
+        return this.wrapped.getNoiseBiome(pX, pY, pZ);
     }
 
     public ChunkPos getPos() {
@@ -115,36 +115,36 @@ public class ImposterProtoChunk extends ProtoChunk {
     }
 
     @Nullable
-    public StructureStart getStartForStructure(Structure p_223400_) {
-        return this.wrapped.getStartForStructure(p_223400_);
+    public StructureStart getStartForStructure(Structure pStructure) {
+        return this.wrapped.getStartForStructure(pStructure);
     }
 
-    public void setStartForStructure(Structure p_223405_, StructureStart p_223406_) {
+    public void setStartForStructure(Structure pStructure, StructureStart pStructureStart) {
     }
 
     public Map<Structure, StructureStart> getAllStarts() {
         return this.wrapped.getAllStarts();
     }
 
-    public void setAllStarts(Map<Structure, StructureStart> p_62726_) {
+    public void setAllStarts(Map<Structure, StructureStart> pStructureStarts) {
     }
 
-    public ObjectSet<ChunkPos> getReferencesForStructure(Structure p_223408_) {
-        return this.wrapped.getReferencesForStructure(p_223408_);
+    public ObjectSet<ChunkPos> getReferencesForStructure(Structure pStructure) {
+        return this.wrapped.getReferencesForStructure(pStructure);
     }
 
-    public void addReferenceForStructure(Structure p_223402_, long p_223403_) {
+    public void addReferenceForStructure(Structure pStructure, long pReference) {
     }
 
     public Map<Structure, ObjectSet<ChunkPos>> getAllReferences() {
         return this.wrapped.getAllReferences();
     }
 
-    public void setAllReferences(Map<Structure, ObjectSet<ChunkPos>> p_62738_) {
+    public void setAllReferences(Map<Structure, ObjectSet<ChunkPos>> pStructureReferencesMap) {
     }
 
-    public void setUnsaved(boolean p_62730_) {
-        this.wrapped.setUnsaved(p_62730_);
+    public void setUnsaved(boolean pUnsaved) {
+        this.wrapped.setUnsaved(pUnsaved);
     }
 
     public boolean isUnsaved() {
@@ -155,23 +155,23 @@ public class ImposterProtoChunk extends ProtoChunk {
         return this.wrapped.getStatus();
     }
 
-    public void removeBlockEntity(BlockPos p_62747_) {
+    public void removeBlockEntity(BlockPos pPos) {
     }
 
-    public void markPosForPostprocessing(BlockPos p_62752_) {
+    public void markPosForPostprocessing(BlockPos pPos) {
     }
 
-    public void setBlockEntityNbt(CompoundTag p_62728_) {
-    }
-
-    @Nullable
-    public CompoundTag getBlockEntityNbt(BlockPos p_62757_) {
-        return this.wrapped.getBlockEntityNbt(p_62757_);
+    public void setBlockEntityNbt(CompoundTag pTag) {
     }
 
     @Nullable
-    public CompoundTag getBlockEntityNbtForSaving(BlockPos p_62760_) {
-        return this.wrapped.getBlockEntityNbtForSaving(p_62760_);
+    public CompoundTag getBlockEntityNbt(BlockPos pPos) {
+        return this.wrapped.getBlockEntityNbt(pPos);
+    }
+
+    @Nullable
+    public CompoundTag getBlockEntityNbtForSaving(BlockPos pPos) {
+        return this.wrapped.getBlockEntityNbtForSaving(pPos);
     }
 
     public Stream<BlockPos> getLights() {
@@ -195,21 +195,21 @@ public class ImposterProtoChunk extends ProtoChunk {
         return this.wrapped.getBlendingData();
     }
 
-    public void setBlendingData(BlendingData p_187930_) {
-        this.wrapped.setBlendingData(p_187930_);
+    public void setBlendingData(BlendingData pBlendingData) {
+        this.wrapped.setBlendingData(pBlendingData);
     }
 
-    public CarvingMask getCarvingMask(GenerationStep.Carving p_187926_) {
+    public CarvingMask getCarvingMask(GenerationStep.Carving pStep) {
         if (this.allowWrites) {
-            return super.getCarvingMask(p_187926_);
+            return super.getCarvingMask(pStep);
         } else {
             throw (UnsupportedOperationException) Util.pauseInIde(new UnsupportedOperationException("Meaningless in this context"));
         }
     }
 
-    public CarvingMask getOrCreateCarvingMask(GenerationStep.Carving p_187934_) {
+    public CarvingMask getOrCreateCarvingMask(GenerationStep.Carving pStep) {
         if (this.allowWrites) {
-            return super.getOrCreateCarvingMask(p_187934_);
+            return super.getOrCreateCarvingMask(pStep);
         } else {
             throw (UnsupportedOperationException) Util.pauseInIde(new UnsupportedOperationException("Meaningless in this context"));
         }
@@ -223,13 +223,13 @@ public class ImposterProtoChunk extends ProtoChunk {
         return this.wrapped.isLightCorrect();
     }
 
-    public void setLightCorrect(boolean p_62740_) {
-        this.wrapped.setLightCorrect(p_62740_);
+    public void setLightCorrect(boolean pLightCorrect) {
+        this.wrapped.setLightCorrect(pLightCorrect);
     }
 
-    public void fillBiomesFromNoise(BiomeResolver p_187923_, Climate.Sampler p_187924_) {
+    public void fillBiomesFromNoise(BiomeResolver pResolver, Climate.Sampler pSampler) {
         if (this.allowWrites) {
-            this.wrapped.fillBiomesFromNoise(p_187923_, p_187924_);
+            this.wrapped.fillBiomesFromNoise(pResolver, pSampler);
         }
     }
 }

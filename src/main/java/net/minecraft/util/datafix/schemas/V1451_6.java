@@ -68,33 +68,33 @@ public class V1451_6 extends NamespacedSchema {
         }
     };
 
-    public V1451_6(int p_17532_, Schema p_17533_) {
-        super(p_17532_, p_17533_);
+    public V1451_6(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    public void registerTypes(Schema p_17540_, Map<String, Supplier<TypeTemplate>> p_17541_, Map<String, Supplier<TypeTemplate>> p_17542_) {
-        super.registerTypes(p_17540_, p_17541_, p_17542_);
+    public void registerTypes(Schema pSchema, Map<String, Supplier<TypeTemplate>> pEntityTypes, Map<String, Supplier<TypeTemplate>> pBlockEntityTypes) {
+        super.registerTypes(pSchema, pEntityTypes, pBlockEntityTypes);
         Supplier<TypeTemplate> supplier = () -> {
-            return DSL.compoundList(References.ITEM_NAME.in(p_17540_), DSL.constType(DSL.intType()));
+            return DSL.compoundList(References.ITEM_NAME.in(pSchema), DSL.constType(DSL.intType()));
         };
-        p_17540_.registerType(false, References.STATS, () -> {
-            return DSL.optionalFields("stats", DSL.optionalFields("minecraft:mined", DSL.compoundList(References.BLOCK_NAME.in(p_17540_), DSL.constType(DSL.intType())), "minecraft:crafted", supplier.get(), "minecraft:used", supplier.get(), "minecraft:broken", supplier.get(), "minecraft:picked_up", supplier.get(), DSL.optionalFields("minecraft:dropped", supplier.get(), "minecraft:killed", DSL.compoundList(References.ENTITY_NAME.in(p_17540_), DSL.constType(DSL.intType())), "minecraft:killed_by", DSL.compoundList(References.ENTITY_NAME.in(p_17540_), DSL.constType(DSL.intType())), "minecraft:custom", DSL.compoundList(DSL.constType(namespacedString()), DSL.constType(DSL.intType())))));
+        pSchema.registerType(false, References.STATS, () -> {
+            return DSL.optionalFields("stats", DSL.optionalFields("minecraft:mined", DSL.compoundList(References.BLOCK_NAME.in(pSchema), DSL.constType(DSL.intType())), "minecraft:crafted", supplier.get(), "minecraft:used", supplier.get(), "minecraft:broken", supplier.get(), "minecraft:picked_up", supplier.get(), DSL.optionalFields("minecraft:dropped", supplier.get(), "minecraft:killed", DSL.compoundList(References.ENTITY_NAME.in(pSchema), DSL.constType(DSL.intType())), "minecraft:killed_by", DSL.compoundList(References.ENTITY_NAME.in(pSchema), DSL.constType(DSL.intType())), "minecraft:custom", DSL.compoundList(DSL.constType(namespacedString()), DSL.constType(DSL.intType())))));
         });
-        Map<String, Supplier<TypeTemplate>> map = createCriterionTypes(p_17540_);
-        p_17540_.registerType(false, References.OBJECTIVE, () -> {
+        Map<String, Supplier<TypeTemplate>> map = createCriterionTypes(pSchema);
+        pSchema.registerType(false, References.OBJECTIVE, () -> {
             return DSL.hook(DSL.optionalFields("CriteriaType", DSL.taggedChoiceLazy("type", DSL.string(), map)), UNPACK_OBJECTIVE_ID, REPACK_OBJECTIVE_ID);
         });
     }
 
-    protected static Map<String, Supplier<TypeTemplate>> createCriterionTypes(Schema p_181078_) {
+    protected static Map<String, Supplier<TypeTemplate>> createCriterionTypes(Schema pSchema) {
         Supplier<TypeTemplate> supplier = () -> {
-            return DSL.optionalFields("id", References.ITEM_NAME.in(p_181078_));
+            return DSL.optionalFields("id", References.ITEM_NAME.in(pSchema));
         };
         Supplier<TypeTemplate> supplier1 = () -> {
-            return DSL.optionalFields("id", References.BLOCK_NAME.in(p_181078_));
+            return DSL.optionalFields("id", References.BLOCK_NAME.in(pSchema));
         };
         Supplier<TypeTemplate> supplier2 = () -> {
-            return DSL.optionalFields("id", References.ENTITY_NAME.in(p_181078_));
+            return DSL.optionalFields("id", References.ENTITY_NAME.in(pSchema));
         };
         Map<String, Supplier<TypeTemplate>> map = Maps.newHashMap();
         map.put("minecraft:mined", supplier1);

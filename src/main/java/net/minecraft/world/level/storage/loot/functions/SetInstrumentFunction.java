@@ -17,23 +17,23 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 public class SetInstrumentFunction extends LootItemConditionalFunction {
     final TagKey<Instrument> options;
 
-    SetInstrumentFunction(LootItemCondition[] p_231008_, TagKey<Instrument> p_231009_) {
-        super(p_231008_);
-        this.options = p_231009_;
+    SetInstrumentFunction(LootItemCondition[] pPredicates, TagKey<Instrument> pOptions) {
+        super(pPredicates);
+        this.options = pOptions;
     }
 
     public LootItemFunctionType getType() {
         return LootItemFunctions.SET_INSTRUMENT;
     }
 
-    public ItemStack run(ItemStack p_231017_, LootContext p_231018_) {
-        InstrumentItem.setRandom(p_231017_, this.options, p_231018_.getRandom());
-        return p_231017_;
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        InstrumentItem.setRandom(pStack, this.options, pContext.getRandom());
+        return pStack;
     }
 
-    public static LootItemConditionalFunction.Builder<?> setInstrumentOptions(TagKey<Instrument> p_231012_) {
+    public static LootItemConditionalFunction.Builder<?> setInstrumentOptions(TagKey<Instrument> pInstrumentOptions) {
         return simpleBuilder((p_231015_) -> {
-            return new SetInstrumentFunction(p_231015_, p_231012_);
+            return new SetInstrumentFunction(p_231015_, pInstrumentOptions);
         });
     }
 

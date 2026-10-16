@@ -12,9 +12,9 @@ public class RegionPingResult extends ValueObject implements ReflectionBasedSeri
     @SerializedName("ping")
     private final int ping;
 
-    public RegionPingResult(String p_87650_, int p_87651_) {
-        this.regionName = p_87650_;
-        this.ping = p_87651_;
+    public RegionPingResult(String pRegionName, int pPing) {
+        this.regionName = pRegionName;
+        this.ping = pPing;
     }
 
     public int ping() {

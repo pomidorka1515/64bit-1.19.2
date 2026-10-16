@@ -17,15 +17,15 @@ public class EmptyFluid extends Fluid {
         return Items.AIR;
     }
 
-    public boolean canBeReplacedWith(FluidState p_75930_, BlockGetter p_75931_, BlockPos p_75932_, Fluid p_75933_, Direction p_75934_) {
+    public boolean canBeReplacedWith(FluidState pFluidState, BlockGetter pBlockReader, BlockPos pPos, Fluid pFluid, Direction pDirection) {
         return true;
     }
 
-    public Vec3 getFlow(BlockGetter p_75918_, BlockPos p_75919_, FluidState p_75920_) {
+    public Vec3 getFlow(BlockGetter pBlockReader, BlockPos pPos, FluidState pFluidState) {
         return Vec3.ZERO;
     }
 
-    public int getTickDelay(LevelReader p_75922_) {
+    public int getTickDelay(LevelReader pLevel) {
         return 0;
     }
 
@@ -37,27 +37,27 @@ public class EmptyFluid extends Fluid {
         return 0.0F;
     }
 
-    public float getHeight(FluidState p_75926_, BlockGetter p_75927_, BlockPos p_75928_) {
+    public float getHeight(FluidState pState, BlockGetter pLevel, BlockPos pPos) {
         return 0.0F;
     }
 
-    public float getOwnHeight(FluidState p_75924_) {
+    public float getOwnHeight(FluidState pState) {
         return 0.0F;
     }
 
-    protected BlockState createLegacyBlock(FluidState p_75937_) {
+    protected BlockState createLegacyBlock(FluidState pState) {
         return Blocks.AIR.defaultBlockState();
     }
 
-    public boolean isSource(FluidState p_75944_) {
+    public boolean isSource(FluidState pState) {
         return false;
     }
 
-    public int getAmount(FluidState p_75946_) {
+    public int getAmount(FluidState pState) {
         return 0;
     }
 
-    public VoxelShape getShape(FluidState p_75939_, BlockGetter p_75940_, BlockPos p_75941_) {
+    public VoxelShape getShape(FluidState pState, BlockGetter pLevel, BlockPos pPos) {
         return Shapes.empty();
     }
 }

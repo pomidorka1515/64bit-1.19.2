@@ -43,11 +43,11 @@ public class LootContextParamSets {
         p_81425_.required(LootContextParams.BLOCK_STATE).required(LootContextParams.ORIGIN).required(LootContextParams.TOOL).optional(LootContextParams.THIS_ENTITY).optional(LootContextParams.BLOCK_ENTITY).optional(LootContextParams.EXPLOSION_RADIUS);
     });
 
-    private static LootContextParamSet register(String p_81429_, Consumer<LootContextParamSet.Builder> p_81430_) {
+    private static LootContextParamSet register(String pRegistryName, Consumer<LootContextParamSet.Builder> pBuilderConsumer) {
         LootContextParamSet.Builder lootcontextparamset$builder = new LootContextParamSet.Builder();
-        p_81430_.accept(lootcontextparamset$builder);
+        pBuilderConsumer.accept(lootcontextparamset$builder);
         LootContextParamSet lootcontextparamset = lootcontextparamset$builder.build();
-        ResourceLocation resourcelocation = new ResourceLocation(p_81429_);
+        ResourceLocation resourcelocation = new ResourceLocation(pRegistryName);
         LootContextParamSet lootcontextparamset1 = REGISTRY.put(resourcelocation, lootcontextparamset);
         if (lootcontextparamset1 != null) {
             throw new IllegalStateException("Loot table parameter set " + resourcelocation + " is already registered");
@@ -57,12 +57,12 @@ public class LootContextParamSets {
     }
 
     @Nullable
-    public static LootContextParamSet get(ResourceLocation p_81432_) {
-        return REGISTRY.get(p_81432_);
+    public static LootContextParamSet get(ResourceLocation pRegistryName) {
+        return REGISTRY.get(pRegistryName);
     }
 
     @Nullable
-    public static ResourceLocation getKey(LootContextParamSet p_81427_) {
-        return REGISTRY.inverse().get(p_81427_);
+    public static ResourceLocation getKey(LootContextParamSet pParameterSet) {
+        return REGISTRY.inverse().get(pParameterSet);
     }
 }

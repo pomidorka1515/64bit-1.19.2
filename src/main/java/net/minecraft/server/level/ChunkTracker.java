@@ -7,16 +7,16 @@ import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.lighting.DynamicGraphMinFixedPoint;
 
 public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
-    protected ChunkTracker(int p_140701_, int p_140702_, int p_140703_) {
-        super(p_140701_, p_140702_, p_140703_);
+    protected ChunkTracker(int pFirstQueuedLevel, int pWidth, int pHeight) {
+        super(pFirstQueuedLevel, pWidth, pHeight);
     }
 
-    protected boolean isSource(ChunkPos p_140705_) {
-        return p_140705_ == ChunkPos.INVALID_CHUNK_POS;
+    protected boolean isSource(ChunkPos pPos) {
+        return pPos == ChunkPos.INVALID_CHUNK_POS;
     }
 
-    protected void checkNeighborsAfterUpdate(ChunkPos p_140707_, int p_140708_, boolean p_140709_) {
-        ChunkPos chunkpos = p_140707_;
+    protected void checkNeighborsAfterUpdate(ChunkPos pPos, int pLevel, boolean pIsDecreasing) {
+        ChunkPos chunkpos = pPos;
         long i = chunkpos.x;
         long j = chunkpos.z;
 
@@ -26,17 +26,17 @@ public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
                 Long z = WorldBounds.tryAddChunkOffset(j, l);
                 if (x != null && z != null) {
                     ChunkPos i1 = new ChunkPos(x, z);
-                    if (!i1.equals(p_140707_)) {
-                        this.checkNeighbor(p_140707_, i1, p_140708_, p_140709_);
+                    if (!i1.equals(pPos)) {
+                        this.checkNeighbor(pPos, i1, pLevel, pIsDecreasing);
                     }
                 }
             }
         }
     }
 
-    protected int getComputedLevel(ChunkPos p_140711_, ChunkPos p_140712_, int p_140713_) {
-        int i = p_140713_;
-        ChunkPos chunkpos = p_140711_;
+    protected int getComputedLevel(ChunkPos pPos, ChunkPos pExcludedSourcePos, int pLevel) {
+        int i = pLevel;
+        ChunkPos chunkpos = pPos;
         long j = chunkpos.x;
         long k = chunkpos.z;
 
@@ -48,12 +48,12 @@ public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
                     continue;
                 }
                 ChunkPos j1 = new ChunkPos(x, z);
-                if (Objects.equal(j1, p_140711_)) {
+                if (Objects.equal(j1, pPos)) {
                     j1 = ChunkPos.INVALID_CHUNK_POS;
                 }
 
-                if (!Objects.equal(j1, p_140712_)) {
-                    int k1 = this.computeLevelFromNeighbor(j1, p_140711_, this.getLevel(j1));
+                if (!Objects.equal(j1, pExcludedSourcePos)) {
+                    int k1 = this.computeLevelFromNeighbor(j1, pPos, this.getLevel(j1));
                     if (i > k1) {
                         i = k1;
                     }
@@ -68,13 +68,13 @@ public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
         return i;
     }
 
-    protected int computeLevelFromNeighbor(ChunkPos p_140720_, ChunkPos p_140721_, int p_140722_) {
-        return p_140720_ == ChunkPos.INVALID_CHUNK_POS ? this.getLevelFromSource(p_140721_) : p_140722_ + 1;
+    protected int computeLevelFromNeighbor(ChunkPos pStartPos, ChunkPos pEndPos, int pStartLevel) {
+        return pStartPos == ChunkPos.INVALID_CHUNK_POS ? this.getLevelFromSource(pEndPos) : pStartLevel + 1;
     }
 
-    protected abstract int getLevelFromSource(ChunkPos p_140714_);
+    protected abstract int getLevelFromSource(ChunkPos pPos);
 
-    public void update(ChunkPos p_140716_, int p_140717_, boolean p_140718_) {
-        this.checkEdge(ChunkPos.INVALID_CHUNK_POS, p_140716_, p_140717_, p_140718_);
+    public void update(ChunkPos pPos, int pLevel, boolean pIsDecreasing) {
+        this.checkEdge(ChunkPos.INVALID_CHUNK_POS, pPos, pLevel, pIsDecreasing);
     }
 }

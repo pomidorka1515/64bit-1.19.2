@@ -25,33 +25,33 @@ public class DamagePredicate {
         this.type = DamageSourcePredicate.ANY;
     }
 
-    public DamagePredicate(MinMaxBounds.Doubles p_24911_, MinMaxBounds.Doubles p_24912_, EntityPredicate p_24913_, @Nullable Boolean p_24914_, DamageSourcePredicate p_24915_) {
-        this.dealtDamage = p_24911_;
-        this.takenDamage = p_24912_;
-        this.sourceEntity = p_24913_;
-        this.blocked = p_24914_;
-        this.type = p_24915_;
+    public DamagePredicate(MinMaxBounds.Doubles pDealtDamage, MinMaxBounds.Doubles pTakenDamage, EntityPredicate pSourceEntity, @Nullable Boolean pBlocked, DamageSourcePredicate pType) {
+        this.dealtDamage = pDealtDamage;
+        this.takenDamage = pTakenDamage;
+        this.sourceEntity = pSourceEntity;
+        this.blocked = pBlocked;
+        this.type = pType;
     }
 
-    public boolean matches(ServerPlayer p_24918_, DamageSource p_24919_, float p_24920_, float p_24921_, boolean p_24922_) {
+    public boolean matches(ServerPlayer pPlayer, DamageSource pSource, float pDealtDamage, float pTakenDamage, boolean pBlocked) {
         if (this == ANY) {
             return true;
-        } else if (!this.dealtDamage.matches((double) p_24920_)) {
+        } else if (!this.dealtDamage.matches((double) pDealtDamage)) {
             return false;
-        } else if (!this.takenDamage.matches((double) p_24921_)) {
+        } else if (!this.takenDamage.matches((double) pTakenDamage)) {
             return false;
-        } else if (!this.sourceEntity.matches(p_24918_, p_24919_.getEntity())) {
+        } else if (!this.sourceEntity.matches(pPlayer, pSource.getEntity())) {
             return false;
-        } else if (this.blocked != null && this.blocked != p_24922_) {
+        } else if (this.blocked != null && this.blocked != pBlocked) {
             return false;
         } else {
-            return this.type.matches(p_24918_, p_24919_);
+            return this.type.matches(pPlayer, pSource);
         }
     }
 
-    public static DamagePredicate fromJson(@Nullable JsonElement p_24924_) {
-        if (p_24924_ != null && !p_24924_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_24924_, "damage");
+    public static DamagePredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "damage");
             MinMaxBounds.Doubles minmaxbounds$doubles = MinMaxBounds.Doubles.fromJson(jsonobject.get("dealt"));
             MinMaxBounds.Doubles minmaxbounds$doubles1 = MinMaxBounds.Doubles.fromJson(jsonobject.get("taken"));
             Boolean obool = jsonobject.has("blocked") ? GsonHelper.getAsBoolean(jsonobject, "blocked") : null;
@@ -92,33 +92,33 @@ public class DamagePredicate {
             return new DamagePredicate.Builder();
         }
 
-        public DamagePredicate.Builder dealtDamage(MinMaxBounds.Doubles p_148146_) {
-            this.dealtDamage = p_148146_;
+        public DamagePredicate.Builder dealtDamage(MinMaxBounds.Doubles pDealtDamage) {
+            this.dealtDamage = pDealtDamage;
             return this;
         }
 
-        public DamagePredicate.Builder takenDamage(MinMaxBounds.Doubles p_148148_) {
-            this.takenDamage = p_148148_;
+        public DamagePredicate.Builder takenDamage(MinMaxBounds.Doubles pTakenDamage) {
+            this.takenDamage = pTakenDamage;
             return this;
         }
 
-        public DamagePredicate.Builder sourceEntity(EntityPredicate p_148144_) {
-            this.sourceEntity = p_148144_;
+        public DamagePredicate.Builder sourceEntity(EntityPredicate pSourceEntity) {
+            this.sourceEntity = pSourceEntity;
             return this;
         }
 
-        public DamagePredicate.Builder blocked(Boolean p_24935_) {
-            this.blocked = p_24935_;
+        public DamagePredicate.Builder blocked(Boolean pBlocked) {
+            this.blocked = pBlocked;
             return this;
         }
 
-        public DamagePredicate.Builder type(DamageSourcePredicate p_148142_) {
-            this.type = p_148142_;
+        public DamagePredicate.Builder type(DamageSourcePredicate pType) {
+            this.type = pType;
             return this;
         }
 
-        public DamagePredicate.Builder type(DamageSourcePredicate.Builder p_24933_) {
-            this.type = p_24933_.build();
+        public DamagePredicate.Builder type(DamageSourcePredicate.Builder pTypeBuilder) {
+            this.type = pTypeBuilder.build();
             return this;
         }
 

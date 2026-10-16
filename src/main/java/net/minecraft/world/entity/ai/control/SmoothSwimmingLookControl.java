@@ -8,9 +8,9 @@ public class SmoothSwimmingLookControl extends LookControl {
     private static final int HEAD_TILT_X = 10;
     private static final int HEAD_TILT_Y = 20;
 
-    public SmoothSwimmingLookControl(Mob p_148061_, int p_148062_) {
-        super(p_148061_);
-        this.maxYRotFromCenter = p_148062_;
+    public SmoothSwimmingLookControl(Mob pMob, int pMaxYRotFromCenter) {
+        super(pMob);
+        this.maxYRotFromCenter = pMaxYRotFromCenter;
     }
 
     public void tick() {

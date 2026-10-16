@@ -15,8 +15,8 @@ public class LootPoolEntries {
     public static final LootPoolEntryType SEQUENCE = register("sequence", CompositeEntryBase.createSerializer(SequentialEntry::new));
     public static final LootPoolEntryType GROUP = register("group", CompositeEntryBase.createSerializer(EntryGroup::new));
 
-    private static LootPoolEntryType register(String p_79630_, Serializer<? extends LootPoolEntryContainer> p_79631_) {
-        return Registry.register(Registry.LOOT_POOL_ENTRY_TYPE, new ResourceLocation(p_79630_), new LootPoolEntryType(p_79631_));
+    private static LootPoolEntryType register(String pName, Serializer<? extends LootPoolEntryContainer> pSerializer) {
+        return Registry.register(Registry.LOOT_POOL_ENTRY_TYPE, new ResourceLocation(pName), new LootPoolEntryType(pSerializer));
     }
 
     public static Object createGsonAdapter() {

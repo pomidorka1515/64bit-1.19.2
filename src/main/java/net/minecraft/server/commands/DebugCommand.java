@@ -32,8 +32,8 @@ public class DebugCommand {
     private static final SimpleCommandExceptionType ERROR_NOT_RUNNING = new SimpleCommandExceptionType(Component.translatable("commands.debug.notRunning"));
     private static final SimpleCommandExceptionType ERROR_ALREADY_RUNNING = new SimpleCommandExceptionType(Component.translatable("commands.debug.alreadyRunning"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_136906_) {
-        p_136906_.register(Commands.literal("debug").requires((p_180073_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("debug").requires((p_180073_) -> {
                                                         return p_180073_.hasPermission(3);
                                                     })
                         .then(Commands.literal("start").executes((p_180069_) -> {
@@ -50,33 +50,33 @@ public class DebugCommand {
                                         }))));
     }
 
-    private static int start(CommandSourceStack p_136910_) throws CommandSyntaxException {
-        MinecraftServer minecraftserver = p_136910_.getServer();
+    private static int start(CommandSourceStack pSource) throws CommandSyntaxException {
+        MinecraftServer minecraftserver = pSource.getServer();
         if (minecraftserver.isTimeProfilerRunning()) {
             throw ERROR_ALREADY_RUNNING.create();
         } else {
             minecraftserver.startTimeProfiler();
-            p_136910_.sendSuccess(Component.translatable("commands.debug.started"), true);
+            pSource.sendSuccess(Component.translatable("commands.debug.started"), true);
             return 0;
         }
     }
 
-    private static int stop(CommandSourceStack p_136916_) throws CommandSyntaxException {
-        MinecraftServer minecraftserver = p_136916_.getServer();
+    private static int stop(CommandSourceStack pSource) throws CommandSyntaxException {
+        MinecraftServer minecraftserver = pSource.getServer();
         if (!minecraftserver.isTimeProfilerRunning()) {
             throw ERROR_NOT_RUNNING.create();
         } else {
             ProfileResults profileresults = minecraftserver.stopTimeProfiler();
             double d0 = (double) profileresults.getNanoDuration() / (double) TimeUtil.NANOSECONDS_PER_SECOND;
             double d1 = (double) profileresults.getTickDuration() / d0;
-            p_136916_.sendSuccess(Component.translatable("commands.debug.stopped", String.format(Locale.ROOT, "%.2f", d0), profileresults.getTickDuration(), String.format(Locale.ROOT, "%.2f", d1)), true);
+            pSource.sendSuccess(Component.translatable("commands.debug.stopped", String.format(Locale.ROOT, "%.2f", d0), profileresults.getTickDuration(), String.format(Locale.ROOT, "%.2f", d1)), true);
             return (int) d1;
         }
     }
 
-    private static int traceFunction(CommandSourceStack p_180066_, Collection<CommandFunction> p_180067_) {
+    private static int traceFunction(CommandSourceStack pSource, Collection<CommandFunction> pFunctions) {
         int i = 0;
-        MinecraftServer minecraftserver = p_180066_.getServer();
+        MinecraftServer minecraftserver = pSource.getServer();
         String s = "debug-trace-" + Util.getFilenameFormattedDateTime() + ".txt";
 
         try {
@@ -87,10 +87,10 @@ public class DebugCommand {
             try {
                 PrintWriter printwriter = new PrintWriter(writer);
 
-                for (CommandFunction commandfunction : p_180067_) {
+                for (CommandFunction commandfunction : pFunctions) {
                     printwriter.println((Object) commandfunction.getId());
                     DebugCommand.Tracer debugcommand$tracer = new DebugCommand.Tracer(printwriter);
-                    i += p_180066_.getServer().getFunctions().execute(commandfunction, p_180066_.withSource(debugcommand$tracer).withMaximumPermission(2), debugcommand$tracer);
+                    i += pSource.getServer().getFunctions().execute(commandfunction, pSource.withSource(debugcommand$tracer).withMaximumPermission(2), debugcommand$tracer);
                 }
             } catch (Throwable throwable1) {
                 if (writer != null) {
@@ -109,13 +109,13 @@ public class DebugCommand {
             }
         } catch (IOException | UncheckedIOException uncheckedioexception) {
             LOGGER.warn("Tracing failed", (Throwable) uncheckedioexception);
-            p_180066_.sendFailure(Component.translatable("commands.debug.function.traceFailed"));
+            pSource.sendFailure(Component.translatable("commands.debug.function.traceFailed"));
         }
 
-        if (p_180067_.size() == 1) {
-            p_180066_.sendSuccess(Component.translatable("commands.debug.function.success.single", i, p_180067_.iterator().next().getId(), s), true);
+        if (pFunctions.size() == 1) {
+            pSource.sendSuccess(Component.translatable("commands.debug.function.success.single", i, pFunctions.iterator().next().getId(), s), true);
         } else {
-            p_180066_.sendSuccess(Component.translatable("commands.debug.function.success.multiple", i, p_180067_.size(), s), true);
+            pSource.sendSuccess(Component.translatable("commands.debug.function.success.multiple", i, pFunctions.size(), s), true);
         }
 
         return i;
@@ -127,17 +127,17 @@ public class DebugCommand {
         private int lastIndent;
         private boolean waitingForResult;
 
-        Tracer(PrintWriter p_180079_) {
-            this.output = p_180079_;
+        Tracer(PrintWriter pOutput) {
+            this.output = pOutput;
         }
 
-        private void indentAndSave(int p_180082_) {
-            this.printIndent(p_180082_);
-            this.lastIndent = p_180082_;
+        private void indentAndSave(int pIndent) {
+            this.printIndent(pIndent);
+            this.lastIndent = pIndent;
         }
 
-        private void printIndent(int p_180098_) {
-            for (int i = 0; i < p_180098_ + 1; ++i) {
+        private void printIndent(int pIndent) {
+            for (int i = 0; i < pIndent + 1; ++i) {
                 this.output.write("    ");
             }
         }
@@ -187,11 +187,11 @@ public class DebugCommand {
             this.output.print(p_180101_);
         }
 
-        public void sendSystemMessage(Component p_214427_) {
+        public void sendSystemMessage(Component pComponent) {
             this.newLine();
             this.printIndent(this.lastIndent + 1);
             this.output.print("[M] ");
-            this.output.println(p_214427_.getString());
+            this.output.println(pComponent.getString());
         }
 
         public boolean acceptsSuccess() {

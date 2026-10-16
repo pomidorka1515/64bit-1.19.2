@@ -156,17 +156,17 @@ public class InputConstants {
     public static final int CURSOR_NORMAL = 212993;
     public static final InputConstants.Key UNKNOWN;
 
-    public static InputConstants.Key getKey(int p_84828_, int p_84829_) {
-        return p_84828_ == -1 ? InputConstants.Type.SCANCODE.getOrCreate(p_84829_) : InputConstants.Type.KEYSYM.getOrCreate(p_84828_);
+    public static InputConstants.Key getKey(int pKeyCode, int pScanCode) {
+        return pKeyCode == -1 ? InputConstants.Type.SCANCODE.getOrCreate(pScanCode) : InputConstants.Type.KEYSYM.getOrCreate(pKeyCode);
     }
 
-    public static InputConstants.Key getKey(String p_84852_) {
-        if (InputConstants.Key.NAME_MAP.containsKey(p_84852_)) {
-            return InputConstants.Key.NAME_MAP.get(p_84852_);
+    public static InputConstants.Key getKey(String pName) {
+        if (InputConstants.Key.NAME_MAP.containsKey(pName)) {
+            return InputConstants.Key.NAME_MAP.get(pName);
         } else {
             for (InputConstants.Type inputconstants$type : InputConstants.Type.values()) {
-                if (p_84852_.startsWith(inputconstants$type.defaultPrefix)) {
-                    String s = p_84852_.substring(inputconstants$type.defaultPrefix.length() + 1);
+                if (pName.startsWith(inputconstants$type.defaultPrefix)) {
+                    String s = pName.substring(inputconstants$type.defaultPrefix.length() + 1);
                     int i = Integer.parseInt(s);
                     if (inputconstants$type == InputConstants.Type.MOUSE) {
                         --i;
@@ -176,29 +176,29 @@ public class InputConstants {
                 }
             }
 
-            throw new IllegalArgumentException("Unknown key name: " + p_84852_);
+            throw new IllegalArgumentException("Unknown key name: " + pName);
         }
     }
 
-    public static boolean isKeyDown(long p_84831_, int p_84832_) {
-        return GLFW.glfwGetKey(p_84831_, p_84832_) == 1;
+    public static boolean isKeyDown(long pWindow, int pKey) {
+        return GLFW.glfwGetKey(pWindow, pKey) == 1;
     }
 
-    public static void setupKeyboardCallbacks(long p_84845_, GLFWKeyCallbackI p_84846_, GLFWCharModsCallbackI p_84847_) {
-        GLFW.glfwSetKeyCallback(p_84845_, p_84846_);
-        GLFW.glfwSetCharModsCallback(p_84845_, p_84847_);
+    public static void setupKeyboardCallbacks(long pWindow, GLFWKeyCallbackI pKeyCallback, GLFWCharModsCallbackI pCharModifierCallback) {
+        GLFW.glfwSetKeyCallback(pWindow, pKeyCallback);
+        GLFW.glfwSetCharModsCallback(pWindow, pCharModifierCallback);
     }
 
-    public static void setupMouseCallbacks(long p_84839_, GLFWCursorPosCallbackI p_84840_, GLFWMouseButtonCallbackI p_84841_, GLFWScrollCallbackI p_84842_, GLFWDropCallbackI p_84843_) {
-        GLFW.glfwSetCursorPosCallback(p_84839_, p_84840_);
-        GLFW.glfwSetMouseButtonCallback(p_84839_, p_84841_);
-        GLFW.glfwSetScrollCallback(p_84839_, p_84842_);
-        GLFW.glfwSetDropCallback(p_84839_, p_84843_);
+    public static void setupMouseCallbacks(long pWindow, GLFWCursorPosCallbackI pCursorPositionCallback, GLFWMouseButtonCallbackI pMouseButtonCallback, GLFWScrollCallbackI pScrollCallback, GLFWDropCallbackI pDragAndDropCallback) {
+        GLFW.glfwSetCursorPosCallback(pWindow, pCursorPositionCallback);
+        GLFW.glfwSetMouseButtonCallback(pWindow, pMouseButtonCallback);
+        GLFW.glfwSetScrollCallback(pWindow, pScrollCallback);
+        GLFW.glfwSetDropCallback(pWindow, pDragAndDropCallback);
     }
 
-    public static void grabOrReleaseMouse(long p_84834_, int p_84835_, double p_84836_, double p_84837_) {
-        GLFW.glfwSetCursorPos(p_84834_, p_84836_, p_84837_);
-        GLFW.glfwSetInputMode(p_84834_, 208897, p_84835_);
+    public static void grabOrReleaseMouse(long pWindow, int pCursorValue, double pXPos, double pYPos) {
+        GLFW.glfwSetCursorPos(pWindow, pXPos, pYPos);
+        GLFW.glfwSetInputMode(pWindow, 208897, pCursorValue);
     }
 
     public static boolean isRawMouseInputSupported() {
@@ -209,9 +209,9 @@ public class InputConstants {
         }
     }
 
-    public static void updateRawMouseInput(long p_84849_, boolean p_84850_) {
+    public static void updateRawMouseInput(long pWindow, boolean pEnableRawMouseMotion) {
         if (isRawMouseInputSupported()) {
-            GLFW.glfwSetInputMode(p_84849_, GLFW_RAW_MOUSE_MOTION, p_84850_ ? 1 : 0);
+            GLFW.glfwSetInputMode(pWindow, GLFW_RAW_MOUSE_MOTION, pEnableRawMouseMotion ? 1 : 0);
         }
     }
 
@@ -243,14 +243,14 @@ public class InputConstants {
         private final LazyLoadedValue<Component> displayName;
         static final Map<String, InputConstants.Key> NAME_MAP = Maps.newHashMap();
 
-        Key(String p_84860_, InputConstants.Type p_84861_, int p_84862_) {
-            this.name = p_84860_;
-            this.type = p_84861_;
-            this.value = p_84862_;
+        Key(String pName, InputConstants.Type pType, int pValue) {
+            this.name = pName;
+            this.type = pType;
+            this.value = pValue;
             this.displayName = new LazyLoadedValue<>(() -> {
-                return p_84861_.displayTextSupplier.apply(p_84862_, p_84860_);
+                return pType.displayTextSupplier.apply(pValue, pName);
             });
-            NAME_MAP.put(p_84860_, this);
+            NAME_MAP.put(pName, this);
         }
 
         public InputConstants.Type getType() {
@@ -277,11 +277,11 @@ public class InputConstants {
             }
         }
 
-        public boolean equals(Object p_84878_) {
-            if (this == p_84878_) {
+        public boolean equals(Object pOther) {
+            if (this == pOther) {
                 return true;
-            } else if (p_84878_ != null && this.getClass() == p_84878_.getClass()) {
-                InputConstants.Key inputconstants$key = (InputConstants.Key) p_84878_;
+            } else if (pOther != null && this.getClass() == pOther.getClass()) {
+                InputConstants.Key inputconstants$key = (InputConstants.Key) pOther;
                 return this.value == inputconstants$key.value && this.type == inputconstants$key.type;
             } else {
                 return false;
@@ -315,9 +315,9 @@ public class InputConstants {
         final String defaultPrefix;
         final BiFunction<Integer, String, Component> displayTextSupplier;
 
-        private static void addKey(InputConstants.Type p_84900_, String p_84901_, int p_84902_) {
-            InputConstants.Key inputconstants$key = new InputConstants.Key(p_84901_, p_84900_, p_84902_);
-            p_84900_.map.put(p_84902_, inputconstants$key);
+        private static void addKey(InputConstants.Type pType, String pName, int pKeyCode) {
+            InputConstants.Key inputconstants$key = new InputConstants.Key(pName, pType, pKeyCode);
+            pType.map.put(pKeyCode, inputconstants$key);
         }
 
         private Type(String p_84893_, BiFunction<Integer, String, Component> p_84894_) {
@@ -325,8 +325,8 @@ public class InputConstants {
             this.displayTextSupplier = p_84894_;
         }
 
-        public InputConstants.Key getOrCreate(int p_84896_) {
-            return this.map.computeIfAbsent(p_84896_, (p_84907_) -> {
+        public InputConstants.Key getOrCreate(int pKeyCode) {
+            return this.map.computeIfAbsent(pKeyCode, (p_84907_) -> {
                 int i = p_84907_;
                 if (this == MOUSE) {
                     i = p_84907_ + 1;

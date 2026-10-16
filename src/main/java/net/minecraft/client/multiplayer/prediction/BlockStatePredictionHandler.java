@@ -20,18 +20,18 @@ public class BlockStatePredictionHandler implements AutoCloseable {
     private int currentSequenceNr;
     private boolean isPredicting;
 
-    public void retainKnownServerState(BlockPos p_233868_, BlockState p_233869_, LocalPlayer p_233870_) {
-        this.serverVerifiedStates.compute(p_233868_, (p_233862_, p_233863_) -> {
-            return p_233863_ != null ? p_233863_.setSequence(this.currentSequenceNr) : new BlockStatePredictionHandler.ServerVerifiedState(this.currentSequenceNr, p_233869_, p_233870_.exactPosition());
+    public void retainKnownServerState(BlockPos pPos, BlockState pState, LocalPlayer pPlayer) {
+        this.serverVerifiedStates.compute(pPos, (p_233862_, p_233863_) -> {
+            return p_233863_ != null ? p_233863_.setSequence(this.currentSequenceNr) : new BlockStatePredictionHandler.ServerVerifiedState(this.currentSequenceNr, pState, pPlayer.exactPosition());
         });
     }
 
-    public boolean updateKnownServerState(BlockPos p_233865_, BlockState p_233866_) {
-        BlockStatePredictionHandler.ServerVerifiedState blockstatepredictionhandler$serververifiedstate = this.serverVerifiedStates.get(p_233865_);
+    public boolean updateKnownServerState(BlockPos pPos, BlockState pState) {
+        BlockStatePredictionHandler.ServerVerifiedState blockstatepredictionhandler$serververifiedstate = this.serverVerifiedStates.get(pPos);
         if (blockstatepredictionhandler$serververifiedstate == null) {
             return false;
         } else {
-            blockstatepredictionhandler$serververifiedstate.setBlockState(p_233866_);
+            blockstatepredictionhandler$serververifiedstate.setBlockState(pState);
             return true;
         }
     }
@@ -74,19 +74,19 @@ public class BlockStatePredictionHandler implements AutoCloseable {
         int sequence;
         BlockState blockState;
 
-        ServerVerifiedState(int p_233878_, BlockState p_233879_, SectorVec3 p_233880_) {
-            this.sequence = p_233878_;
-            this.blockState = p_233879_;
-            this.playerPos = p_233880_;
+        ServerVerifiedState(int pSequence, BlockState pBlockState, SectorVec3 pPlayerPos) {
+            this.sequence = pSequence;
+            this.blockState = pBlockState;
+            this.playerPos = pPlayerPos;
         }
 
-        BlockStatePredictionHandler.ServerVerifiedState setSequence(int p_233882_) {
-            this.sequence = p_233882_;
+        BlockStatePredictionHandler.ServerVerifiedState setSequence(int pSequence) {
+            this.sequence = pSequence;
             return this;
         }
 
-        void setBlockState(BlockState p_233884_) {
-            this.blockState = p_233884_;
+        void setBlockState(BlockState pBlockState) {
+            this.blockState = pBlockState;
         }
     }
 }

@@ -26,17 +26,17 @@ public class GameProfileArgument implements ArgumentType<GameProfileArgument.Res
     private static final Collection<String> EXAMPLES = Arrays.asList("Player", "0123", "dd12be42-52a9-4a91-a8a1-11c01849e498", "@e");
     public static final SimpleCommandExceptionType ERROR_UNKNOWN_PLAYER = new SimpleCommandExceptionType(Component.translatable("argument.player.unknown"));
 
-    public static Collection<GameProfile> getGameProfiles(CommandContext<CommandSourceStack> p_94591_, String p_94592_) throws CommandSyntaxException {
-        return p_94591_.getArgument(p_94592_, GameProfileArgument.Result.class).getNames(p_94591_.getSource());
+    public static Collection<GameProfile> getGameProfiles(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        return pContext.getArgument(pName, GameProfileArgument.Result.class).getNames(pContext.getSource());
     }
 
     public static GameProfileArgument gameProfile() {
         return new GameProfileArgument();
     }
 
-    public GameProfileArgument.Result parse(StringReader p_94586_) throws CommandSyntaxException {
-        if (p_94586_.canRead() && p_94586_.peek() == '@') {
-            EntitySelectorParser entityselectorparser = new EntitySelectorParser(p_94586_);
+    public GameProfileArgument.Result parse(StringReader pReader) throws CommandSyntaxException {
+        if (pReader.canRead() && pReader.peek() == '@') {
+            EntitySelectorParser entityselectorparser = new EntitySelectorParser(pReader);
             EntitySelector entityselector = entityselectorparser.parse();
             if (entityselector.includesEntities()) {
                 throw EntityArgument.ERROR_ONLY_PLAYERS_ALLOWED.create();
@@ -44,13 +44,13 @@ public class GameProfileArgument implements ArgumentType<GameProfileArgument.Res
                 return new GameProfileArgument.SelectorResult(entityselector);
             }
         } else {
-            int i = p_94586_.getCursor();
+            int i = pReader.getCursor();
 
-            while (p_94586_.canRead() && p_94586_.peek() != ' ') {
-                p_94586_.skip();
+            while (pReader.canRead() && pReader.peek() != ' ') {
+                pReader.skip();
             }
 
-            String s = p_94586_.getString().substring(i, p_94586_.getCursor());
+            String s = pReader.getString().substring(i, pReader.getCursor());
             return (p_94595_) -> {
                 Optional<GameProfile> optional = p_94595_.getServer().getProfileCache().get(s);
                 return Collections.singleton(optional.orElseThrow(ERROR_UNKNOWN_PLAYER::create));
@@ -58,10 +58,10 @@ public class GameProfileArgument implements ArgumentType<GameProfileArgument.Res
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_94598_, SuggestionsBuilder p_94599_) {
-        if (p_94598_.getSource() instanceof SharedSuggestionProvider) {
-            StringReader stringreader = new StringReader(p_94599_.getInput());
-            stringreader.setCursor(p_94599_.getStart());
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        if (pContext.getSource() instanceof SharedSuggestionProvider) {
+            StringReader stringreader = new StringReader(pBuilder.getInput());
+            stringreader.setCursor(pBuilder.getStart());
             EntitySelectorParser entityselectorparser = new EntitySelectorParser(stringreader);
 
             try {
@@ -69,8 +69,8 @@ public class GameProfileArgument implements ArgumentType<GameProfileArgument.Res
             } catch (CommandSyntaxException commandsyntaxexception) {
             }
 
-            return entityselectorparser.fillSuggestions(p_94599_, (p_94589_) -> {
-                SharedSuggestionProvider.suggest(((SharedSuggestionProvider) p_94598_.getSource()).getOnlinePlayerNames(), p_94589_);
+            return entityselectorparser.fillSuggestions(pBuilder, (p_94589_) -> {
+                SharedSuggestionProvider.suggest(((SharedSuggestionProvider) pContext.getSource()).getOnlinePlayerNames(), p_94589_);
             });
         } else {
             return Suggestions.empty();
@@ -83,18 +83,18 @@ public class GameProfileArgument implements ArgumentType<GameProfileArgument.Res
 
     @FunctionalInterface
     public interface Result {
-        Collection<GameProfile> getNames(CommandSourceStack p_94602_) throws CommandSyntaxException;
+        Collection<GameProfile> getNames(CommandSourceStack pSource) throws CommandSyntaxException;
     }
 
     public static class SelectorResult implements GameProfileArgument.Result {
         private final EntitySelector selector;
 
-        public SelectorResult(EntitySelector p_94605_) {
-            this.selector = p_94605_;
+        public SelectorResult(EntitySelector pSelector) {
+            this.selector = pSelector;
         }
 
-        public Collection<GameProfile> getNames(CommandSourceStack p_94607_) throws CommandSyntaxException {
-            List<ServerPlayer> list = this.selector.findPlayers(p_94607_);
+        public Collection<GameProfile> getNames(CommandSourceStack pSource) throws CommandSyntaxException {
+            List<ServerPlayer> list = this.selector.findPlayers(pSource);
             if (list.isEmpty()) {
                 throw EntityArgument.NO_PLAYERS_FOUND.create();
             } else {

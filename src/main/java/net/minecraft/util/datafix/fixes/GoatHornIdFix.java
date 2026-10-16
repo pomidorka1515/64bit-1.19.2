@@ -6,8 +6,8 @@ import com.mojang.serialization.Dynamic;
 public class GoatHornIdFix extends ItemStackTagFix {
     private static final String[] INSTRUMENTS = new String[] {"minecraft:ponder_goat_horn", "minecraft:sing_goat_horn", "minecraft:seek_goat_horn", "minecraft:feel_goat_horn", "minecraft:admire_goat_horn", "minecraft:call_goat_horn", "minecraft:yearn_goat_horn", "minecraft:dream_goat_horn"};
 
-    public GoatHornIdFix(Schema p_216674_) {
-        super(p_216674_, "GoatHornIdFix", (p_216678_) -> {
+    public GoatHornIdFix(Schema pOutputSchema) {
+        super(pOutputSchema, "GoatHornIdFix", (p_216678_) -> {
             return p_216678_.equals("minecraft:goat_horn");
         });
     }

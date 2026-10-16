@@ -15,8 +15,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class SheepModel<T extends Sheep> extends QuadrupedModel<T> {
     private float headXRot;
 
-    public SheepModel(ModelPart p_170903_) {
-        super(p_170903_, false, 8.0F, 4.0F, 2.0F, 2.0F, 24);
+    public SheepModel(ModelPart pRoot) {
+        super(pRoot, false, 8.0F, 4.0F, 2.0F, 2.0F, 24);
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -27,14 +27,14 @@ public class SheepModel<T extends Sheep> extends QuadrupedModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
-    public void prepareMobModel(T p_103687_, float p_103688_, float p_103689_, float p_103690_) {
-        super.prepareMobModel(p_103687_, p_103688_, p_103689_, p_103690_);
-        this.head.y = 6.0F + p_103687_.getHeadEatPositionScale(p_103690_) * 9.0F;
-        this.headXRot = p_103687_.getHeadEatAngleScale(p_103690_);
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        super.prepareMobModel(pEntity, pLimbSwing, pLimbSwingAmount, pPartialTick);
+        this.head.y = 6.0F + pEntity.getHeadEatPositionScale(pPartialTick) * 9.0F;
+        this.headXRot = pEntity.getHeadEatAngleScale(pPartialTick);
     }
 
-    public void setupAnim(T p_103692_, float p_103693_, float p_103694_, float p_103695_, float p_103696_, float p_103697_) {
-        super.setupAnim(p_103692_, p_103693_, p_103694_, p_103695_, p_103696_, p_103697_);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
         this.head.xRot = this.headXRot;
     }
 }

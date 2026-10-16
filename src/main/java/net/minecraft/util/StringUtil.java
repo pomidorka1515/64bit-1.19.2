@@ -10,34 +10,34 @@ public class StringUtil {
     private static final Pattern LINE_PATTERN = Pattern.compile("\\r\\n|\\v");
     private static final Pattern LINE_END_PATTERN = Pattern.compile("(?:\\r\\n|\\v)$");
 
-    public static String formatTickDuration(int p_14405_) {
-        int i = p_14405_ / 20;
+    public static String formatTickDuration(int pTicks) {
+        int i = pTicks / 20;
         int j = i / 60;
         i %= 60;
         return i < 10 ? j + ":0" + i : j + ":" + i;
     }
 
-    public static String stripColor(String p_14407_) {
-        return STRIP_COLOR_PATTERN.matcher(p_14407_).replaceAll("");
+    public static String stripColor(String pText) {
+        return STRIP_COLOR_PATTERN.matcher(pText).replaceAll("");
     }
 
-    public static boolean isNullOrEmpty(@Nullable String p_14409_) {
-        return StringUtils.isEmpty(p_14409_);
+    public static boolean isNullOrEmpty(@Nullable String pString) {
+        return StringUtils.isEmpty(pString);
     }
 
-    public static String truncateStringIfNecessary(String p_144999_, int p_145000_, boolean p_145001_) {
-        if (p_144999_.length() <= p_145000_) {
-            return p_144999_;
+    public static String truncateStringIfNecessary(String pString, int pMaxSize, boolean pAddEllipsis) {
+        if (pString.length() <= pMaxSize) {
+            return pString;
         } else {
-            return p_145001_ && p_145000_ > 3 ? p_144999_.substring(0, p_145000_ - 3) + "..." : p_144999_.substring(0, p_145000_);
+            return pAddEllipsis && pMaxSize > 3 ? pString.substring(0, pMaxSize - 3) + "..." : pString.substring(0, pMaxSize);
         }
     }
 
-    public static int lineCount(String p_145003_) {
-        if (p_145003_.isEmpty()) {
+    public static int lineCount(String pString) {
+        if (pString.isEmpty()) {
             return 0;
         } else {
-            Matcher matcher = LINE_PATTERN.matcher(p_145003_);
+            Matcher matcher = LINE_PATTERN.matcher(pString);
 
             int i;
             for (i = 1; matcher.find(); ++i) {
@@ -47,8 +47,8 @@ public class StringUtil {
         }
     }
 
-    public static boolean endsWithNewLine(String p_145005_) {
-        return LINE_END_PATTERN.matcher(p_145005_).find();
+    public static boolean endsWithNewLine(String pString) {
+        return LINE_END_PATTERN.matcher(pString).find();
     }
 
     public static String trimChatMessage(String p_216470_) {

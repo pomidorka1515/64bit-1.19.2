@@ -9,25 +9,25 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class AlternativesEntry extends CompositeEntryBase {
-    AlternativesEntry(LootPoolEntryContainer[] p_79384_, LootItemCondition[] p_79385_) {
-        super(p_79384_, p_79385_);
+    AlternativesEntry(LootPoolEntryContainer[] pChildren, LootItemCondition[] pConditions) {
+        super(pChildren, pConditions);
     }
 
     public LootPoolEntryType getType() {
         return LootPoolEntries.ALTERNATIVES;
     }
 
-    protected ComposableEntryContainer compose(ComposableEntryContainer[] p_79390_) {
-        switch (p_79390_.length) {
+    protected ComposableEntryContainer compose(ComposableEntryContainer[] pEntries) {
+        switch (pEntries.length) {
             case 0:
                 return ALWAYS_FALSE;
             case 1:
-                return p_79390_[0];
+                return pEntries[0];
             case 2:
-                return p_79390_[0].or(p_79390_[1]);
+                return pEntries[0].or(pEntries[1]);
             default:
                 return (p_79393_, p_79394_) -> {
-                    for (ComposableEntryContainer composableentrycontainer : p_79390_) {
+                    for (ComposableEntryContainer composableentrycontainer : pEntries) {
                         if (composableentrycontainer.expand(p_79393_, p_79394_)) {
                             return true;
                         }
@@ -38,18 +38,18 @@ public class AlternativesEntry extends CompositeEntryBase {
         }
     }
 
-    public void validate(ValidationContext p_79388_) {
-        super.validate(p_79388_);
+    public void validate(ValidationContext pValidationContext) {
+        super.validate(pValidationContext);
 
         for (int i = 0; i < this.children.length - 1; ++i) {
             if (ArrayUtils.isEmpty((Object[]) this.children[i].conditions)) {
-                p_79388_.reportProblem("Unreachable entry!");
+                pValidationContext.reportProblem("Unreachable entry!");
             }
         }
     }
 
-    public static AlternativesEntry.Builder alternatives(LootPoolEntryContainer.Builder<?>... p_79396_) {
-        return new AlternativesEntry.Builder(p_79396_);
+    public static AlternativesEntry.Builder alternatives(LootPoolEntryContainer.Builder<?>... pChildren) {
+        return new AlternativesEntry.Builder(pChildren);
     }
 
     public static <E> AlternativesEntry.Builder alternatives(Collection<E> p_230934_, Function<E, LootPoolEntryContainer.Builder<?>> p_230935_) {
@@ -61,8 +61,8 @@ public class AlternativesEntry extends CompositeEntryBase {
     public static class Builder extends LootPoolEntryContainer.Builder<AlternativesEntry.Builder> {
         private final List<LootPoolEntryContainer> entries = Lists.newArrayList();
 
-        public Builder(LootPoolEntryContainer.Builder<?>... p_79399_) {
-            for (LootPoolEntryContainer.Builder<?> builder : p_79399_) {
+        public Builder(LootPoolEntryContainer.Builder<?>... pChildren) {
+            for (LootPoolEntryContainer.Builder<?> builder : pChildren) {
                 this.entries.add(builder.build());
             }
         }
@@ -71,8 +71,8 @@ public class AlternativesEntry extends CompositeEntryBase {
             return this;
         }
 
-        public AlternativesEntry.Builder otherwise(LootPoolEntryContainer.Builder<?> p_79402_) {
-            this.entries.add(p_79402_.build());
+        public AlternativesEntry.Builder otherwise(LootPoolEntryContainer.Builder<?> pChildBuilder) {
+            this.entries.add(pChildBuilder.build());
             return this;
         }
 

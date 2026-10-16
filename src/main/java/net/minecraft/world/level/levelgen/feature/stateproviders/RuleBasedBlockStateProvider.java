@@ -15,22 +15,22 @@ public record RuleBasedBlockStateProvider(BlockStateProvider fallback, List<Rule
         return p_225939_.group(BlockStateProvider.CODEC.fieldOf("fallback").forGetter(RuleBasedBlockStateProvider::fallback), RuleBasedBlockStateProvider.Rule.CODEC.listOf().fieldOf("rules").forGetter(RuleBasedBlockStateProvider::rules)).apply(p_225939_, RuleBasedBlockStateProvider::new);
     });
 
-    public static RuleBasedBlockStateProvider simple(BlockStateProvider p_225941_) {
-        return new RuleBasedBlockStateProvider(p_225941_, List.of());
+    public static RuleBasedBlockStateProvider simple(BlockStateProvider pFallback) {
+        return new RuleBasedBlockStateProvider(pFallback, List.of());
     }
 
-    public static RuleBasedBlockStateProvider simple(Block p_225937_) {
-        return simple(BlockStateProvider.simple(p_225937_));
+    public static RuleBasedBlockStateProvider simple(Block pBlock) {
+        return simple(BlockStateProvider.simple(pBlock));
     }
 
-    public BlockState getState(WorldGenLevel p_225933_, RandomSource p_225934_, BlockPos p_225935_) {
+    public BlockState getState(WorldGenLevel pLevel, RandomSource pRandom, BlockPos pPos) {
         for (RuleBasedBlockStateProvider.Rule rulebasedblockstateprovider$rule : this.rules) {
-            if (rulebasedblockstateprovider$rule.ifTrue().test(p_225933_, p_225935_)) {
-                return rulebasedblockstateprovider$rule.then().getState(p_225934_, p_225935_);
+            if (rulebasedblockstateprovider$rule.ifTrue().test(pLevel, pPos)) {
+                return rulebasedblockstateprovider$rule.then().getState(pRandom, pPos);
             }
         }
 
-        return this.fallback.getState(p_225934_, p_225935_);
+        return this.fallback.getState(pRandom, pPos);
     }
 
     public static record Rule(BlockPredicate ifTrue, BlockStateProvider then) {

@@ -14,12 +14,12 @@ public class TrunkPlacerType<P extends TrunkPlacer> {
     public static final TrunkPlacerType<UpwardsBranchingTrunkPlacer> UPWARDS_BRANCHING_TRUNK_PLACER = register("upwards_branching_trunk_placer", UpwardsBranchingTrunkPlacer.CODEC);
     private final Codec<P> codec;
 
-    private static <P extends TrunkPlacer> TrunkPlacerType<P> register(String p_70327_, Codec<P> p_70328_) {
-        return Registry.register(Registry.TRUNK_PLACER_TYPES, p_70327_, new TrunkPlacerType<>(p_70328_));
+    private static <P extends TrunkPlacer> TrunkPlacerType<P> register(String pKey, Codec<P> pCodec) {
+        return Registry.register(Registry.TRUNK_PLACER_TYPES, pKey, new TrunkPlacerType<>(pCodec));
     }
 
-    private TrunkPlacerType(Codec<P> p_70324_) {
-        this.codec = p_70324_;
+    private TrunkPlacerType(Codec<P> pCodec) {
+        this.codec = pCodec;
     }
 
     public Codec<P> codec() {

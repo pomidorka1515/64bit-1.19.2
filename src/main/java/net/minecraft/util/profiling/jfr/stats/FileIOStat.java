@@ -8,12 +8,12 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 public record FileIOStat(Duration duration, @Nullable String path, long bytes) {
-    public static FileIOStat.Summary summary(Duration p_185641_, List<FileIOStat> p_185642_) {
-        long i = p_185642_.stream().mapToLong((p_185652_) -> {
+    public static FileIOStat.Summary summary(Duration pDuration, List<FileIOStat> pStats) {
+        long i = pStats.stream().mapToLong((p_185652_) -> {
                                        return p_185652_.bytes;
                                    })
                          .sum();
-        return new FileIOStat.Summary(i, (double) i / (double) p_185641_.getSeconds(), (long) p_185642_.size(), (double) p_185642_.size() / (double) p_185641_.getSeconds(), p_185642_.stream().map(FileIOStat::duration).reduce(Duration.ZERO, Duration::plus), p_185642_.stream().filter((p_185650_) -> {
+        return new FileIOStat.Summary(i, (double) i / (double) pDuration.getSeconds(), (long) pStats.size(), (double) pStats.size() / (double) pDuration.getSeconds(), pStats.stream().map(FileIOStat::duration).reduce(Duration.ZERO, Duration::plus), pStats.stream().filter((p_185650_) -> {
                                                                                                                                                                                                                                                                                        return p_185650_.path != null;
                                                                                                                                                                                                                                                                                    })
                                                                                                                                                                                                                                                                          .collect(Collectors.groupingBy((p_185647_) -> {

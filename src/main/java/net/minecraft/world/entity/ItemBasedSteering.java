@@ -15,10 +15,10 @@ public class ItemBasedSteering {
     public int boostTime;
     public int boostTimeTotal;
 
-    public ItemBasedSteering(SynchedEntityData p_20841_, EntityDataAccessor<Integer> p_20842_, EntityDataAccessor<Boolean> p_20843_) {
-        this.entityData = p_20841_;
-        this.boostTimeAccessor = p_20842_;
-        this.hasSaddleAccessor = p_20843_;
+    public ItemBasedSteering(SynchedEntityData pEntityData, EntityDataAccessor<Integer> pBoostTimeAccessor, EntityDataAccessor<Boolean> pHasSaddleAccessor) {
+        this.entityData = pEntityData;
+        this.boostTimeAccessor = pBoostTimeAccessor;
+        this.hasSaddleAccessor = pHasSaddleAccessor;
     }
 
     public void onSynced() {
@@ -27,28 +27,28 @@ public class ItemBasedSteering {
         this.boostTimeTotal = this.entityData.get(this.boostTimeAccessor);
     }
 
-    public boolean boost(RandomSource p_217033_) {
+    public boolean boost(RandomSource pRandom) {
         if (this.boosting) {
             return false;
         } else {
             this.boosting = true;
             this.boostTime = 0;
-            this.boostTimeTotal = p_217033_.nextInt(841) + 140;
+            this.boostTimeTotal = pRandom.nextInt(841) + 140;
             this.entityData.set(this.boostTimeAccessor, this.boostTimeTotal);
             return true;
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_20848_) {
-        p_20848_.putBoolean("Saddle", this.hasSaddle());
+    public void addAdditionalSaveData(CompoundTag pNbt) {
+        pNbt.putBoolean("Saddle", this.hasSaddle());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_20853_) {
-        this.setSaddle(p_20853_.getBoolean("Saddle"));
+    public void readAdditionalSaveData(CompoundTag pNbt) {
+        this.setSaddle(pNbt.getBoolean("Saddle"));
     }
 
-    public void setSaddle(boolean p_20850_) {
-        this.entityData.set(this.hasSaddleAccessor, p_20850_);
+    public void setSaddle(boolean pSaddled) {
+        this.entityData.set(this.hasSaddleAccessor, pSaddled);
     }
 
     public boolean hasSaddle() {

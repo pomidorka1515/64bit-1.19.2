@@ -13,23 +13,23 @@ public class SuspiciousStewItem extends Item {
     public static final String EFFECT_ID_TAG = "EffectId";
     public static final String EFFECT_DURATION_TAG = "EffectDuration";
 
-    public SuspiciousStewItem(Item.Properties p_43257_) {
-        super(p_43257_);
+    public SuspiciousStewItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public static void saveMobEffect(ItemStack p_43259_, MobEffect p_43260_, int p_43261_) {
-        CompoundTag compoundtag = p_43259_.getOrCreateTag();
+    public static void saveMobEffect(ItemStack pBowlStack, MobEffect pEffect, int pEffectDuration) {
+        CompoundTag compoundtag = pBowlStack.getOrCreateTag();
         ListTag listtag = compoundtag.getList("Effects", 9);
         CompoundTag compoundtag1 = new CompoundTag();
-        compoundtag1.putInt("EffectId", MobEffect.getId(p_43260_));
-        compoundtag1.putInt("EffectDuration", p_43261_);
+        compoundtag1.putInt("EffectId", MobEffect.getId(pEffect));
+        compoundtag1.putInt("EffectDuration", pEffectDuration);
         listtag.add(compoundtag1);
         compoundtag.put("Effects", listtag);
     }
 
-    public ItemStack finishUsingItem(ItemStack p_43263_, Level p_43264_, LivingEntity p_43265_) {
-        ItemStack itemstack = super.finishUsingItem(p_43263_, p_43264_, p_43265_);
-        CompoundTag compoundtag = p_43263_.getTag();
+    public ItemStack finishUsingItem(ItemStack pStack, Level pLevel, LivingEntity pEntityLiving) {
+        ItemStack itemstack = super.finishUsingItem(pStack, pLevel, pEntityLiving);
+        CompoundTag compoundtag = pStack.getTag();
         if (compoundtag != null && compoundtag.contains("Effects", 9)) {
             ListTag listtag = compoundtag.getList("Effects", 10);
 
@@ -42,11 +42,11 @@ public class SuspiciousStewItem extends Item {
 
                 MobEffect mobeffect = MobEffect.byId(compoundtag1.getInt("EffectId"));
                 if (mobeffect != null) {
-                    p_43265_.addEffect(new MobEffectInstance(mobeffect, j));
+                    pEntityLiving.addEffect(new MobEffectInstance(mobeffect, j));
                 }
             }
         }
 
-        return p_43265_ instanceof Player && ((Player) p_43265_).getAbilities().instabuild ? itemstack : new ItemStack(Items.BOWL);
+        return pEntityLiving instanceof Player && ((Player) pEntityLiving).getAbilities().instabuild ? itemstack : new ItemStack(Items.BOWL);
     }
 }

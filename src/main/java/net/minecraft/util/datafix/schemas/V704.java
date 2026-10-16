@@ -142,13 +142,13 @@ public class V704 extends Schema {
         }
     };
 
-    public V704(int p_18036_, Schema p_18037_) {
-        super(p_18036_, p_18037_);
+    public V704(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    protected static void registerInventory(Schema p_18044_, Map<String, Supplier<TypeTemplate>> p_18045_, String p_18046_) {
-        p_18044_.register(p_18045_, p_18046_, () -> {
-            return DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(p_18044_)));
+    protected static void registerInventory(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(pSchema)));
         });
     }
 
@@ -156,47 +156,47 @@ public class V704 extends Schema {
         return Objects.equals(p_18060_.typeName(), References.BLOCK_ENTITY.typeName()) ? super.getChoiceType(p_18060_, NamespacedSchema.ensureNamespaced(p_18061_)) : super.getChoiceType(p_18060_, p_18061_);
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerBlockEntities(Schema p_18063_) {
+    public Map<String, Supplier<TypeTemplate>> registerBlockEntities(Schema pSchema) {
         Map<String, Supplier<TypeTemplate>> map = Maps.newHashMap();
-        registerInventory(p_18063_, map, "minecraft:furnace");
-        registerInventory(p_18063_, map, "minecraft:chest");
-        p_18063_.registerSimple(map, "minecraft:ender_chest");
-        p_18063_.register(map, "minecraft:jukebox", (p_18058_) -> {
-            return DSL.optionalFields("RecordItem", References.ITEM_STACK.in(p_18063_));
+        registerInventory(pSchema, map, "minecraft:furnace");
+        registerInventory(pSchema, map, "minecraft:chest");
+        pSchema.registerSimple(map, "minecraft:ender_chest");
+        pSchema.register(map, "minecraft:jukebox", (p_18058_) -> {
+            return DSL.optionalFields("RecordItem", References.ITEM_STACK.in(pSchema));
         });
-        registerInventory(p_18063_, map, "minecraft:dispenser");
-        registerInventory(p_18063_, map, "minecraft:dropper");
-        p_18063_.registerSimple(map, "minecraft:sign");
-        p_18063_.register(map, "minecraft:mob_spawner", (p_18055_) -> {
-            return References.UNTAGGED_SPAWNER.in(p_18063_);
+        registerInventory(pSchema, map, "minecraft:dispenser");
+        registerInventory(pSchema, map, "minecraft:dropper");
+        pSchema.registerSimple(map, "minecraft:sign");
+        pSchema.register(map, "minecraft:mob_spawner", (p_18055_) -> {
+            return References.UNTAGGED_SPAWNER.in(pSchema);
         });
-        p_18063_.registerSimple(map, "minecraft:noteblock");
-        p_18063_.registerSimple(map, "minecraft:piston");
-        registerInventory(p_18063_, map, "minecraft:brewing_stand");
-        p_18063_.registerSimple(map, "minecraft:enchanting_table");
-        p_18063_.registerSimple(map, "minecraft:end_portal");
-        p_18063_.registerSimple(map, "minecraft:beacon");
-        p_18063_.registerSimple(map, "minecraft:skull");
-        p_18063_.registerSimple(map, "minecraft:daylight_detector");
-        registerInventory(p_18063_, map, "minecraft:hopper");
-        p_18063_.registerSimple(map, "minecraft:comparator");
-        p_18063_.register(map, "minecraft:flower_pot", (p_18042_) -> {
-            return DSL.optionalFields("Item", DSL.or(DSL.constType(DSL.intType()), References.ITEM_NAME.in(p_18063_)));
+        pSchema.registerSimple(map, "minecraft:noteblock");
+        pSchema.registerSimple(map, "minecraft:piston");
+        registerInventory(pSchema, map, "minecraft:brewing_stand");
+        pSchema.registerSimple(map, "minecraft:enchanting_table");
+        pSchema.registerSimple(map, "minecraft:end_portal");
+        pSchema.registerSimple(map, "minecraft:beacon");
+        pSchema.registerSimple(map, "minecraft:skull");
+        pSchema.registerSimple(map, "minecraft:daylight_detector");
+        registerInventory(pSchema, map, "minecraft:hopper");
+        pSchema.registerSimple(map, "minecraft:comparator");
+        pSchema.register(map, "minecraft:flower_pot", (p_18042_) -> {
+            return DSL.optionalFields("Item", DSL.or(DSL.constType(DSL.intType()), References.ITEM_NAME.in(pSchema)));
         });
-        p_18063_.registerSimple(map, "minecraft:banner");
-        p_18063_.registerSimple(map, "minecraft:structure_block");
-        p_18063_.registerSimple(map, "minecraft:end_gateway");
-        p_18063_.registerSimple(map, "minecraft:command_block");
+        pSchema.registerSimple(map, "minecraft:banner");
+        pSchema.registerSimple(map, "minecraft:structure_block");
+        pSchema.registerSimple(map, "minecraft:end_gateway");
+        pSchema.registerSimple(map, "minecraft:command_block");
         return map;
     }
 
-    public void registerTypes(Schema p_18065_, Map<String, Supplier<TypeTemplate>> p_18066_, Map<String, Supplier<TypeTemplate>> p_18067_) {
-        super.registerTypes(p_18065_, p_18066_, p_18067_);
-        p_18065_.registerType(false, References.BLOCK_ENTITY, () -> {
-            return DSL.taggedChoiceLazy("id", NamespacedSchema.namespacedString(), p_18067_);
+    public void registerTypes(Schema pSchema, Map<String, Supplier<TypeTemplate>> pEntityTypes, Map<String, Supplier<TypeTemplate>> pBlockEntityTypes) {
+        super.registerTypes(pSchema, pEntityTypes, pBlockEntityTypes);
+        pSchema.registerType(false, References.BLOCK_ENTITY, () -> {
+            return DSL.taggedChoiceLazy("id", NamespacedSchema.namespacedString(), pBlockEntityTypes);
         });
-        p_18065_.registerType(true, References.ITEM_STACK, () -> {
-            return DSL.hook(DSL.optionalFields("id", References.ITEM_NAME.in(p_18065_), "tag", DSL.optionalFields("EntityTag", References.ENTITY_TREE.in(p_18065_), "BlockEntityTag", References.BLOCK_ENTITY.in(p_18065_), "CanDestroy", DSL.list(References.BLOCK_NAME.in(p_18065_)), "CanPlaceOn", DSL.list(References.BLOCK_NAME.in(p_18065_)), "Items", DSL.list(References.ITEM_STACK.in(p_18065_)))), ADD_NAMES, HookFunction.IDENTITY);
+        pSchema.registerType(true, References.ITEM_STACK, () -> {
+            return DSL.hook(DSL.optionalFields("id", References.ITEM_NAME.in(pSchema), "tag", DSL.optionalFields("EntityTag", References.ENTITY_TREE.in(pSchema), "BlockEntityTag", References.BLOCK_ENTITY.in(pSchema), "CanDestroy", DSL.list(References.BLOCK_NAME.in(pSchema)), "CanPlaceOn", DSL.list(References.BLOCK_NAME.in(pSchema)), "Items", DSL.list(References.ITEM_STACK.in(pSchema)))), ADD_NAMES, HookFunction.IDENTITY);
         });
     }
 }

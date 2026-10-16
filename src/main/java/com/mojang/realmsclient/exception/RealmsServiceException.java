@@ -14,17 +14,17 @@ public class RealmsServiceException extends Exception {
     @Nullable
     public final RealmsError realmsError;
 
-    public RealmsServiceException(int p_87783_, String p_87784_, RealmsError p_87785_) {
-        super(p_87784_);
-        this.httpResultCode = p_87783_;
-        this.rawResponse = p_87784_;
-        this.realmsError = p_87785_;
+    public RealmsServiceException(int pHttpResultCode, String pHttpResponseContent, RealmsError pRealmsError) {
+        super(pHttpResponseContent);
+        this.httpResultCode = pHttpResultCode;
+        this.rawResponse = pHttpResponseContent;
+        this.realmsError = pRealmsError;
     }
 
-    public RealmsServiceException(int p_200943_, String p_200944_) {
-        super(p_200944_);
-        this.httpResultCode = p_200943_;
-        this.rawResponse = p_200944_;
+    public RealmsServiceException(int pHttpResultCode, String pRawResponse) {
+        super(pRawResponse);
+        this.httpResultCode = pHttpResultCode;
+        this.rawResponse = pRawResponse;
         this.realmsError = null;
     }
 
@@ -38,7 +38,7 @@ public class RealmsServiceException extends Exception {
         }
     }
 
-    public int realmsErrorCodeOrDefault(int p_200946_) {
-        return this.realmsError != null ? this.realmsError.getErrorCode() : p_200946_;
+    public int realmsErrorCodeOrDefault(int pDefaultErrorCode) {
+        return this.realmsError != null ? this.realmsError.getErrorCode() : pDefaultErrorCode;
     }
 }

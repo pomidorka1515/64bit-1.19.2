@@ -8,9 +8,9 @@ public class ChunkEntities<T> {
     private final ChunkPos pos;
     private final List<T> entities;
 
-    public ChunkEntities(ChunkPos p_156789_, List<T> p_156790_) {
-        this.pos = p_156789_;
-        this.entities = p_156790_;
+    public ChunkEntities(ChunkPos pPos, List<T> pEntities) {
+        this.pos = pPos;
+        this.entities = pEntities;
     }
 
     public ChunkPos getPos() {

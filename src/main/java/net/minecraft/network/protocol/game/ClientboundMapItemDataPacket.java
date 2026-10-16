@@ -19,19 +19,19 @@ public class ClientboundMapItemDataPacket implements Packet<ClientGamePacketList
     @Nullable
     private final MapItemSavedData.MapPatch colorPatch;
 
-    public ClientboundMapItemDataPacket(int p_178970_, byte p_178971_, boolean p_178972_, @Nullable Collection<MapDecoration> p_178973_, @Nullable MapItemSavedData.MapPatch p_178974_) {
-        this.mapId = p_178970_;
-        this.scale = p_178971_;
-        this.locked = p_178972_;
-        this.decorations = p_178973_ != null ? Lists.newArrayList(p_178973_) : null;
-        this.colorPatch = p_178974_;
+    public ClientboundMapItemDataPacket(int pMapId, byte pScale, boolean pLocked, @Nullable Collection<MapDecoration> pDecorations, @Nullable MapItemSavedData.MapPatch pColorPatch) {
+        this.mapId = pMapId;
+        this.scale = pScale;
+        this.locked = pLocked;
+        this.decorations = pDecorations != null ? Lists.newArrayList(pDecorations) : null;
+        this.colorPatch = pColorPatch;
     }
 
-    public ClientboundMapItemDataPacket(FriendlyByteBuf p_178976_) {
-        this.mapId = p_178976_.readVarInt();
-        this.scale = p_178976_.readByte();
-        this.locked = p_178976_.readBoolean();
-        this.decorations = p_178976_.readNullable((p_237731_) -> {
+    public ClientboundMapItemDataPacket(FriendlyByteBuf pBuffer) {
+        this.mapId = pBuffer.readVarInt();
+        this.scale = pBuffer.readByte();
+        this.locked = pBuffer.readBoolean();
+        this.decorations = pBuffer.readNullable((p_237731_) -> {
             return p_237731_.readList((p_178981_) -> {
                 MapDecoration.Type mapdecoration$type = p_178981_.readEnum(MapDecoration.Type.class);
                 byte b0 = p_178981_.readByte();
@@ -41,23 +41,23 @@ public class ClientboundMapItemDataPacket implements Packet<ClientGamePacketList
                 return new MapDecoration(mapdecoration$type, b0, b1, b2, component);
             });
         });
-        int i = p_178976_.readUnsignedByte();
+        int i = pBuffer.readUnsignedByte();
         if (i > 0) {
-            int j = p_178976_.readUnsignedByte();
-            int k = p_178976_.readUnsignedByte();
-            int l = p_178976_.readUnsignedByte();
-            byte[] abyte = p_178976_.readByteArray();
+            int j = pBuffer.readUnsignedByte();
+            int k = pBuffer.readUnsignedByte();
+            int l = pBuffer.readUnsignedByte();
+            byte[] abyte = pBuffer.readByteArray();
             this.colorPatch = new MapItemSavedData.MapPatch(k, l, i, j, abyte);
         } else {
             this.colorPatch = null;
         }
     }
 
-    public void write(FriendlyByteBuf p_132447_) {
-        p_132447_.writeVarInt(this.mapId);
-        p_132447_.writeByte(this.scale);
-        p_132447_.writeBoolean(this.locked);
-        p_132447_.writeNullable(this.decorations, (p_237728_, p_237729_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.mapId);
+        pBuffer.writeByte(this.scale);
+        pBuffer.writeBoolean(this.locked);
+        pBuffer.writeNullable(this.decorations, (p_237728_, p_237729_) -> {
             p_237728_.writeCollection(p_237729_, (p_237725_, p_237726_) -> {
                 p_237725_.writeEnum(p_237726_.getType());
                 p_237725_.writeByte(p_237726_.getX());
@@ -67,31 +67,31 @@ public class ClientboundMapItemDataPacket implements Packet<ClientGamePacketList
             });
         });
         if (this.colorPatch != null) {
-            p_132447_.writeByte(this.colorPatch.width);
-            p_132447_.writeByte(this.colorPatch.height);
-            p_132447_.writeByte(this.colorPatch.startX);
-            p_132447_.writeByte(this.colorPatch.startY);
-            p_132447_.writeByteArray(this.colorPatch.mapColors);
+            pBuffer.writeByte(this.colorPatch.width);
+            pBuffer.writeByte(this.colorPatch.height);
+            pBuffer.writeByte(this.colorPatch.startX);
+            pBuffer.writeByte(this.colorPatch.startY);
+            pBuffer.writeByteArray(this.colorPatch.mapColors);
         } else {
-            p_132447_.writeByte(0);
+            pBuffer.writeByte(0);
         }
     }
 
-    public void handle(ClientGamePacketListener p_132444_) {
-        p_132444_.handleMapItemData(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleMapItemData(this);
     }
 
     public int getMapId() {
         return this.mapId;
     }
 
-    public void applyToMap(MapItemSavedData p_132438_) {
+    public void applyToMap(MapItemSavedData pMapdata) {
         if (this.decorations != null) {
-            p_132438_.addClientSideDecorations(this.decorations);
+            pMapdata.addClientSideDecorations(this.decorations);
         }
 
         if (this.colorPatch != null) {
-            this.colorPatch.applyToMap(p_132438_);
+            this.colorPatch.applyToMap(pMapdata);
         }
     }
 

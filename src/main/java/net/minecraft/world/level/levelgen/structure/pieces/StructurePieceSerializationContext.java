@@ -7,8 +7,8 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 
 public record StructurePieceSerializationContext(ResourceManager resourceManager, RegistryAccess registryAccess, StructureTemplateManager structureTemplateManager) {
-    public static StructurePieceSerializationContext fromLevel(ServerLevel p_192771_) {
-        MinecraftServer minecraftserver = p_192771_.getServer();
+    public static StructurePieceSerializationContext fromLevel(ServerLevel pLevel) {
+        MinecraftServer minecraftserver = pLevel.getServer();
         return new StructurePieceSerializationContext(minecraftserver.getResourceManager(), minecraftserver.registryAccess(), minecraftserver.getStructureManager());
     }
 }

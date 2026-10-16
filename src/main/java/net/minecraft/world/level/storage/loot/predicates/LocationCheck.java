@@ -14,9 +14,9 @@ public class LocationCheck implements LootItemCondition {
     final LocationPredicate predicate;
     final BlockPos offset;
 
-    LocationCheck(LocationPredicate p_81719_, BlockPos p_81720_) {
-        this.predicate = p_81719_;
-        this.offset = p_81720_;
+    LocationCheck(LocationPredicate pLocationPredicate, BlockPos pOffset) {
+        this.predicate = pLocationPredicate;
+        this.offset = pOffset;
     }
 
     public LootItemConditionType getType() {
@@ -28,15 +28,15 @@ public class LocationCheck implements LootItemCondition {
         return vec3 != null && this.predicate.matches(p_81731_.getLevel(), vec3.x() + (double) this.offset.getX(), vec3.y() + (double) this.offset.getY(), vec3.z() + (double) this.offset.getZ());
     }
 
-    public static LootItemCondition.Builder checkLocation(LocationPredicate.Builder p_81726_) {
+    public static LootItemCondition.Builder checkLocation(LocationPredicate.Builder pLocationPredicateBuilder) {
         return () -> {
-            return new LocationCheck(p_81726_.build(), BlockPos.ZERO);
+            return new LocationCheck(pLocationPredicateBuilder.build(), BlockPos.ZERO);
         };
     }
 
-    public static LootItemCondition.Builder checkLocation(LocationPredicate.Builder p_81728_, BlockPos p_81729_) {
+    public static LootItemCondition.Builder checkLocation(LocationPredicate.Builder pLocationPredicateBuilder, BlockPos pOffset) {
         return () -> {
-            return new LocationCheck(p_81728_.build(), p_81729_);
+            return new LocationCheck(pLocationPredicateBuilder.build(), pOffset);
         };
     }
 

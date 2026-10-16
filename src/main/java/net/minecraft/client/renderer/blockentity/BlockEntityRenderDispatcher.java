@@ -39,32 +39,32 @@ public class BlockEntityRenderDispatcher implements ResourceManagerReloadListene
     private final Supplier<ItemRenderer> itemRenderer;
     private final Supplier<EntityRenderDispatcher> entityRenderer;
 
-    public BlockEntityRenderDispatcher(Font p_234432_, EntityModelSet p_234433_, Supplier<BlockRenderDispatcher> p_234434_, Supplier<ItemRenderer> p_234435_, Supplier<EntityRenderDispatcher> p_234436_) {
-        this.itemRenderer = p_234435_;
-        this.entityRenderer = p_234436_;
-        this.font = p_234432_;
-        this.entityModelSet = p_234433_;
-        this.blockRenderDispatcher = p_234434_;
+    public BlockEntityRenderDispatcher(Font pFont, EntityModelSet pEntityModelSet, Supplier<BlockRenderDispatcher> pBlockRenderDispatcher, Supplier<ItemRenderer> pItemRenderer, Supplier<EntityRenderDispatcher> pEntityRenderer) {
+        this.itemRenderer = pItemRenderer;
+        this.entityRenderer = pEntityRenderer;
+        this.font = pFont;
+        this.entityModelSet = pEntityModelSet;
+        this.blockRenderDispatcher = pBlockRenderDispatcher;
     }
 
     @Nullable
-    public <E extends BlockEntity> BlockEntityRenderer<E> getRenderer(E p_112266_) {
-        return (BlockEntityRenderer<E>) this.renderers.get(p_112266_.getType());
+    public <E extends BlockEntity> BlockEntityRenderer<E> getRenderer(E pBlockEntity) {
+        return (BlockEntityRenderer<E>) this.renderers.get(pBlockEntity.getType());
     }
 
-    public void prepare(Level p_173565_, Camera p_173566_, HitResult p_173567_) {
-        if (this.level != p_173565_) {
-            this.setLevel(p_173565_);
+    public void prepare(Level pLevel, Camera pCamera, HitResult pCameraHitResult) {
+        if (this.level != pLevel) {
+            this.setLevel(pLevel);
         }
 
-        this.camera = p_173566_;
-        this.cameraHitResult = p_173567_;
+        this.camera = pCamera;
+        this.cameraHitResult = pCameraHitResult;
     }
 
-    public <E extends BlockEntity> void render(E p_112268_, float p_112269_, PoseStack p_112270_, MultiBufferSource p_112271_) {
-        BlockEntityRenderer<E> blockentityrenderer = this.getRenderer(p_112268_);
+    public <E extends BlockEntity> void render(E pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource) {
+        BlockEntityRenderer<E> blockentityrenderer = this.getRenderer(pBlockEntity);
         if (blockentityrenderer != null) {
-            if (p_112268_.hasLevel() && p_112268_.getType().isValid(p_112268_.getBlockState())) {
+            if (pBlockEntity.hasLevel() && pBlockEntity.getType().isValid(pBlockEntity.getBlockState())) {
                 // A sector camera's Vec3 is only a legacy mirror. Derive an exact
                 // split position for the ordinary-camera fallback so every block
                 // entity range check uses the same precision-preserving API.
@@ -73,58 +73,58 @@ public class BlockEntityRenderDispatcher implements ResourceManagerReloadListene
                     cameraPosition = SectorVec3.fromApproximate(this.camera.getPosition().x,
                             this.camera.getPosition().y, this.camera.getPosition().z);
                 }
-                if (blockentityrenderer.shouldRender(p_112268_, cameraPosition)) {
-                    tryRender(p_112268_, () -> {
-                        setupAndRender(blockentityrenderer, p_112268_, p_112269_, p_112270_, p_112271_);
+                if (blockentityrenderer.shouldRender(pBlockEntity, cameraPosition)) {
+                    tryRender(pBlockEntity, () -> {
+                        setupAndRender(blockentityrenderer, pBlockEntity, pPartialTick, pPoseStack, pBufferSource);
                     });
                 }
             }
         }
     }
 
-    private static <T extends BlockEntity> void setupAndRender(BlockEntityRenderer<T> p_112285_, T p_112286_, float p_112287_, PoseStack p_112288_, MultiBufferSource p_112289_) {
-        Level level = p_112286_.getLevel();
+    private static <T extends BlockEntity> void setupAndRender(BlockEntityRenderer<T> pRenderer, T pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource) {
+        Level level = pBlockEntity.getLevel();
         int i;
         if (level != null) {
-            i = LevelRenderer.getLightColor(level, p_112286_.getBlockPos());
+            i = LevelRenderer.getLightColor(level, pBlockEntity.getBlockPos());
         } else {
             i = 15728880;
         }
 
-        p_112285_.render(p_112286_, p_112287_, p_112288_, p_112289_, i, OverlayTexture.NO_OVERLAY);
+        pRenderer.render(pBlockEntity, pPartialTick, pPoseStack, pBufferSource, i, OverlayTexture.NO_OVERLAY);
     }
 
-    public <E extends BlockEntity> boolean renderItem(E p_112273_, PoseStack p_112274_, MultiBufferSource p_112275_, int p_112276_, int p_112277_) {
-        BlockEntityRenderer<E> blockentityrenderer = this.getRenderer(p_112273_);
+    public <E extends BlockEntity> boolean renderItem(E pBlockEntity, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        BlockEntityRenderer<E> blockentityrenderer = this.getRenderer(pBlockEntity);
         if (blockentityrenderer == null) {
             return true;
         } else {
-            tryRender(p_112273_, () -> {
-                blockentityrenderer.render(p_112273_, 0.0F, p_112274_, p_112275_, p_112276_, p_112277_);
+            tryRender(pBlockEntity, () -> {
+                blockentityrenderer.render(pBlockEntity, 0.0F, pPoseStack, pBufferSource, pPackedLight, pPackedOverlay);
             });
             return false;
         }
     }
 
-    private static void tryRender(BlockEntity p_112279_, Runnable p_112280_) {
+    private static void tryRender(BlockEntity pBlockEntity, Runnable pRenderer) {
         try {
-            p_112280_.run();
+            pRenderer.run();
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering Block Entity");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Block Entity Details");
-            p_112279_.fillCrashReportCategory(crashreportcategory);
+            pBlockEntity.fillCrashReportCategory(crashreportcategory);
             throw new ReportedException(crashreport);
         }
     }
 
-    public void setLevel(@Nullable Level p_112258_) {
-        this.level = p_112258_;
-        if (p_112258_ == null) {
+    public void setLevel(@Nullable Level pLevel) {
+        this.level = pLevel;
+        if (pLevel == null) {
             this.camera = null;
         }
     }
 
-    public void onResourceManagerReload(ResourceManager p_173563_) {
+    public void onResourceManagerReload(ResourceManager pResourceManager) {
         BlockEntityRendererProvider.Context blockentityrendererprovider$context = new BlockEntityRendererProvider.Context(this, this.blockRenderDispatcher.get(), this.itemRenderer.get(), this.entityRenderer.get(), this.entityModelSet, this.font);
         this.renderers = BlockEntityRenderers.createEntityRenderers(blockentityrendererprovider$context);
     }

@@ -23,12 +23,12 @@ public class SwimNodeEvaluator extends NodeEvaluator {
     private final boolean allowBreaching;
     private final Object2ObjectMap<BlockPos, BlockPathTypes> pathTypesByPosCache = new Object2ObjectOpenHashMap<>();
 
-    public SwimNodeEvaluator(boolean p_77457_) {
-        this.allowBreaching = p_77457_;
+    public SwimNodeEvaluator(boolean pAllowBreaching) {
+        this.allowBreaching = pAllowBreaching;
     }
 
-    public void prepare(PathNavigationRegion p_192959_, Mob p_192960_) {
-        super.prepare(p_192959_, p_192960_);
+    public void prepare(PathNavigationRegion pLevel, Mob pMob) {
+        super.prepare(pLevel, pMob);
         this.pathTypesByPosCache.clear();
     }
 
@@ -45,8 +45,8 @@ public class SwimNodeEvaluator extends NodeEvaluator {
     }
 
     @Nullable
-    public Target getGoal(double p_77459_, double p_77460_, double p_77461_) {
-        return this.getTargetFromNode(super.getNode(Mth.lfloor(p_77459_), Mth.floor(p_77460_), Mth.lfloor(p_77461_)));
+    public Target getGoal(double pX, double pY, double pZ) {
+        return this.getTargetFromNode(super.getNode(Mth.lfloor(pX), Mth.floor(pY), Mth.lfloor(pZ)));
     }
 
     public int getNeighbors(Node[] p_77483_, Node p_77484_) {
@@ -72,8 +72,8 @@ public class SwimNodeEvaluator extends NodeEvaluator {
         return i;
     }
 
-    protected boolean isNodeValid(@Nullable Node p_192962_) {
-        return p_192962_ != null && !p_192962_.closed;
+    protected boolean isNodeValid(@Nullable Node pNode) {
+        return pNode != null && !pNode.closed;
     }
 
     protected boolean isDiagonalNodeValid(@Nullable Node p_192964_, @Nullable Node p_192965_, @Nullable Node p_192966_) {
@@ -81,17 +81,17 @@ public class SwimNodeEvaluator extends NodeEvaluator {
     }
 
     @Nullable
-    protected Node getNode(long p_77463_, int p_77464_, long p_77465_) {
+    protected Node getNode(long pX, int pY, long pZ) {
         Node node = null;
-        BlockPathTypes blockpathtypes = this.getCachedBlockType(p_77463_, p_77464_, p_77465_);
+        BlockPathTypes blockpathtypes = this.getCachedBlockType(pX, pY, pZ);
         if (this.allowBreaching && blockpathtypes == BlockPathTypes.BREACH || blockpathtypes == BlockPathTypes.WATER) {
             float f = this.mob.getPathfindingMalus(blockpathtypes);
             if (f >= 0.0F) {
-                node = super.getNode(p_77463_, p_77464_, p_77465_);
+                node = super.getNode(pX, pY, pZ);
                 if (node != null) {
                     node.type = blockpathtypes;
                     node.costMalus = Math.max(node.costMalus, f);
-                    if (this.level.getFluidState(new BlockPos(p_77463_, p_77464_, p_77465_)).isEmpty()) {
+                    if (this.level.getFluidState(new BlockPos(pX, pY, pZ)).isEmpty()) {
                         node.costMalus += 8.0F;
                     }
                 }
@@ -101,29 +101,29 @@ public class SwimNodeEvaluator extends NodeEvaluator {
         return node;
     }
 
-    protected BlockPathTypes getCachedBlockType(long p_192968_, int p_192969_, long p_192970_) {
-        return this.pathTypesByPosCache.computeIfAbsent(new BlockPos(p_192968_, p_192969_, p_192970_), (p_192957_) -> {
-            return this.getBlockPathType(this.level, p_192968_, p_192969_, p_192970_);
+    protected BlockPathTypes getCachedBlockType(long pX, int pY, long pZ) {
+        return this.pathTypesByPosCache.computeIfAbsent(new BlockPos(pX, pY, pZ), (p_192957_) -> {
+            return this.getBlockPathType(this.level, pX, pY, pZ);
         });
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter p_77467_, long p_77468_, int p_77469_, long p_77470_) {
-        return this.getBlockPathType(p_77467_, p_77468_, p_77469_, p_77470_, this.mob, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
+    public BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ) {
+        return this.getBlockPathType(pLevel, pX, pY, pZ, this.mob, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter p_77472_, long p_77473_, int p_77474_, long p_77475_, Mob p_77476_, int p_77477_, int p_77478_, int p_77479_, boolean p_77480_, boolean p_77481_) {
+    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, long pX, int pY, long pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-        long maxX = WorldBounds.addBlockOffset(p_77473_, (long) p_77477_ - 1L);
-        long maxZ = WorldBounds.addBlockOffset(p_77475_, (long) p_77479_ - 1L);
-        boolean moreX = p_77477_ > 0;
-        for (long i = p_77473_; moreX; moreX = i < maxX, i = WorldBounds.addBlockOffset(i, 1L)) {
-            for (int j = p_77474_; j < p_77474_ + p_77478_; ++j) {
-                boolean moreZ = p_77479_ > 0;
-                for (long k = p_77475_; moreZ; moreZ = k < maxZ, k = WorldBounds.addBlockOffset(k, 1L)) {
-                    FluidState fluidstate = p_77472_.getFluidState(blockpos$mutableblockpos.set(i, j, k));
-                    BlockState blockstate = p_77472_.getBlockState(blockpos$mutableblockpos.set(i, j, k));
-                    if (fluidstate.isEmpty() && blockstate.isPathfindable(p_77472_, blockpos$mutableblockpos.below(), PathComputationType.WATER) && blockstate.isAir()) {
+        long maxX = WorldBounds.addBlockOffset(pX, (long) pXSize - 1L);
+        long maxZ = WorldBounds.addBlockOffset(pZ, (long) pZSize - 1L);
+        boolean moreX = pXSize > 0;
+        for (long i = pX; moreX; moreX = i < maxX, i = WorldBounds.addBlockOffset(i, 1L)) {
+            for (int j = pY; j < pY + pYSize; ++j) {
+                boolean moreZ = pZSize > 0;
+                for (long k = pZ; moreZ; moreZ = k < maxZ, k = WorldBounds.addBlockOffset(k, 1L)) {
+                    FluidState fluidstate = pBlockaccess.getFluidState(blockpos$mutableblockpos.set(i, j, k));
+                    BlockState blockstate = pBlockaccess.getBlockState(blockpos$mutableblockpos.set(i, j, k));
+                    if (fluidstate.isEmpty() && blockstate.isPathfindable(pBlockaccess, blockpos$mutableblockpos.below(), PathComputationType.WATER) && blockstate.isAir()) {
                         return BlockPathTypes.BREACH;
                     }
 
@@ -134,7 +134,7 @@ public class SwimNodeEvaluator extends NodeEvaluator {
             }
         }
 
-        BlockState blockstate1 = p_77472_.getBlockState(blockpos$mutableblockpos);
-        return blockstate1.isPathfindable(p_77472_, blockpos$mutableblockpos, PathComputationType.WATER) ? BlockPathTypes.WATER : BlockPathTypes.BLOCKED;
+        BlockState blockstate1 = pBlockaccess.getBlockState(blockpos$mutableblockpos);
+        return blockstate1.isPathfindable(pBlockaccess, blockpos$mutableblockpos, PathComputationType.WATER) ? BlockPathTypes.WATER : BlockPathTypes.BLOCKED;
     }
 }

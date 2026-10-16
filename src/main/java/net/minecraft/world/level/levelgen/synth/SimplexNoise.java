@@ -19,53 +19,53 @@ public class SimplexNoise {
     private static double debugCornerDeltaY;
     private static double debugSimplexOutput;
 
-    public SimplexNoise(RandomSource p_230549_) {
-        this.xo = p_230549_.nextDouble() * 256.0D;
-        this.yo = p_230549_.nextDouble() * 256.0D;
-        this.zo = p_230549_.nextDouble() * 256.0D;
+    public SimplexNoise(RandomSource pRandom) {
+        this.xo = pRandom.nextDouble() * 256.0D;
+        this.yo = pRandom.nextDouble() * 256.0D;
+        this.zo = pRandom.nextDouble() * 256.0D;
 
         for (int i = 0; i < 256; this.p[i] = i++) {
         }
 
         for (int l = 0; l < 256; ++l) {
-            int j = p_230549_.nextInt(256 - l);
+            int j = pRandom.nextInt(256 - l);
             int k = this.p[l];
             this.p[l] = this.p[j + l];
             this.p[j + l] = k;
         }
     }
 
-    private int p(long p_75472_) {
-        return this.p[(int) (p_75472_ & 255L)];
+    private int p(long pIndex) {
+        return this.p[(int) (pIndex & 255L)];
     }
 
-    protected static double dot(int[] p_75480_, double p_75481_, double p_75482_, double p_75483_) {
-        return (double) p_75480_[0] * p_75481_ + (double) p_75480_[1] * p_75482_ + (double) p_75480_[2] * p_75483_;
+    protected static double dot(int[] pGradient, double pX, double pY, double pZ) {
+        return (double) pGradient[0] * pX + (double) pGradient[1] * pY + (double) pGradient[2] * pZ;
     }
 
-    private double getCornerNoise3D(int p_75474_, double p_75475_, double p_75476_, double p_75477_, double p_75478_) {
-        double d1 = p_75478_ - p_75475_ * p_75475_ - p_75476_ * p_75476_ - p_75477_ * p_75477_;
+    private double getCornerNoise3D(int pGradientIndex, double pX, double pY, double pZ, double pOffset) {
+        double d1 = pOffset - pX * pX - pY * pY - pZ * pZ;
         double d0;
         if (d1 < 0.0D) {
             d0 = 0.0D;
         } else {
             d1 *= d1;
-            d0 = d1 * d1 * dot(GRADIENT[p_75474_], p_75475_, p_75476_, p_75477_);
+            d0 = d1 * d1 * dot(GRADIENT[pGradientIndex], pX, pY, pZ);
         }
 
         return d0;
     }
 
-    public double getValue(double p_75465_, double p_75466_) {
-        double d0 = (p_75465_ + p_75466_) * F2;
+    public double getValue(double pX, double pY) {
+        double d0 = (pX + pY) * F2;
         boolean farlands = FarlandsMode.isEnabled();
-        long i = FarlandsMode.floor(p_75465_ + d0, farlands);
-        long j = FarlandsMode.floor(p_75466_ + d0, farlands);
+        long i = FarlandsMode.floor(pX + d0, farlands);
+        long j = FarlandsMode.floor(pY + d0, farlands);
         double d1 = FarlandsMode.floorSum(i, j, farlands) * G2;
         double d2 = (double) i - d1;
         double d3 = (double) j - d1;
-        double d4 = p_75465_ - d2;
-        double d5 = p_75466_ - d3;
+        double d4 = pX - d2;
+        double d5 = pY - d3;
         int k;
         int l;
         if (d4 > d5) {
@@ -115,21 +115,21 @@ public class SimplexNoise {
         return String.format(Locale.ROOT, "Corner Delta Y: %.3f Simplex Output: %.3f", debugCornerDeltaY, debugSimplexOutput);
     }
 
-    public double getValue(double p_75468_, double p_75469_, double p_75470_) {
+    public double getValue(double pX, double pY, double pZ) {
         double d0 = 0.3333333333333333D;
-        double d1 = (p_75468_ + p_75469_ + p_75470_) * 0.3333333333333333D;
+        double d1 = (pX + pY + pZ) * 0.3333333333333333D;
         boolean farlands = FarlandsMode.isEnabled();
-        long i = FarlandsMode.floor(p_75468_ + d1, farlands);
-        long j = FarlandsMode.floor(p_75469_ + d1, farlands);
-        long k = FarlandsMode.floor(p_75470_ + d1, farlands);
+        long i = FarlandsMode.floor(pX + d1, farlands);
+        long j = FarlandsMode.floor(pY + d1, farlands);
+        long k = FarlandsMode.floor(pZ + d1, farlands);
         double d2 = 0.16666666666666666D;
         double d3 = FarlandsMode.floorSum(i, j, k, farlands) * 0.16666666666666666D;
         double d4 = (double) i - d3;
         double d5 = (double) j - d3;
         double d6 = (double) k - d3;
-        double d7 = p_75468_ - d4;
-        double d8 = p_75469_ - d5;
-        double d9 = p_75470_ - d6;
+        double d7 = pX - d4;
+        double d8 = pY - d5;
+        double d9 = pZ - d6;
         int l;
         int i1;
         int j1;

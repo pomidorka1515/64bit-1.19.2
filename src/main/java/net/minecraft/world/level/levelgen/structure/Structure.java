@@ -54,8 +54,8 @@ public abstract class Structure {
         });
     }
 
-    protected Structure(Structure.StructureSettings p_226558_) {
-        this.settings = p_226558_;
+    protected Structure(Structure.StructureSettings pSettings) {
+        this.settings = pSettings;
     }
 
     public HolderSet<Biome> biomes() {
@@ -74,8 +74,8 @@ public abstract class Structure {
         return this.settings.terrainAdaptation;
     }
 
-    public BoundingBox adjustBoundingBox(BoundingBox p_226570_) {
-        return this.terrainAdaptation() != TerrainAdjustment.NONE ? p_226570_.inflatedBy(12) : p_226570_;
+    public BoundingBox adjustBoundingBox(BoundingBox pBoundingBox) {
+        return this.terrainAdaptation() != TerrainAdjustment.NONE ? pBoundingBox.inflatedBy(12) : pBoundingBox;
     }
 
     public StructureStart generate(RegistryAccess p_226597_, ChunkGenerator p_226598_, BiomeSource p_226599_, RandomState p_226600_, StructureTemplateManager p_226601_, long p_226602_, ChunkPos p_226603_, int p_226604_, LevelHeightAccessor p_226605_, Predicate<Holder<Biome>> p_226606_) {
@@ -91,12 +91,12 @@ public abstract class Structure {
         return StructureStart.INVALID_START;
     }
 
-    protected static Optional<Structure.GenerationStub> onTopOfChunkCenter(Structure.GenerationContext p_226586_, Heightmap.Types p_226587_, Consumer<StructurePiecesBuilder> p_226588_) {
-        ChunkPos chunkpos = p_226586_.chunkPos();
+    protected static Optional<Structure.GenerationStub> onTopOfChunkCenter(Structure.GenerationContext pContext, Heightmap.Types pHeightmapTypes, Consumer<StructurePiecesBuilder> pGenerator) {
+        ChunkPos chunkpos = pContext.chunkPos();
         long i = chunkpos.getMiddleBlockX();
         long j = chunkpos.getMiddleBlockZ();
-        int k = p_226586_.chunkGenerator().getFirstOccupiedHeight(i, j, p_226587_, p_226586_.heightAccessor(), p_226586_.randomState());
-        return Optional.of(new Structure.GenerationStub(new BlockPos(i, k, j), p_226588_));
+        int k = pContext.chunkGenerator().getFirstOccupiedHeight(i, j, pHeightmapTypes, pContext.heightAccessor(), pContext.randomState());
+        return Optional.of(new Structure.GenerationStub(new BlockPos(i, k, j), pGenerator));
     }
 
     private static boolean isValidBiome(Structure.GenerationStub p_226590_, ChunkGenerator p_226591_, RandomState p_226592_, Predicate<Holder<Biome>> p_226593_) {
@@ -128,43 +128,43 @@ public abstract class Structure {
 
     /** @deprecated */
     @Deprecated
-    protected BlockPos getLowestYIn5by5BoxOffset7Blocks(Structure.GenerationContext p_226583_, Rotation p_226584_) {
+    protected BlockPos getLowestYIn5by5BoxOffset7Blocks(Structure.GenerationContext pContext, Rotation pRotation) {
         int i = 5;
         int j = 5;
-        if (p_226584_ == Rotation.CLOCKWISE_90) {
+        if (pRotation == Rotation.CLOCKWISE_90) {
             i = -5;
-        } else if (p_226584_ == Rotation.CLOCKWISE_180) {
+        } else if (pRotation == Rotation.CLOCKWISE_180) {
             i = -5;
             j = -5;
-        } else if (p_226584_ == Rotation.COUNTERCLOCKWISE_90) {
+        } else if (pRotation == Rotation.COUNTERCLOCKWISE_90) {
             j = -5;
         }
 
-        ChunkPos chunkpos = p_226583_.chunkPos();
+        ChunkPos chunkpos = pContext.chunkPos();
         long k = chunkpos.getBlockX(7);
         long l = chunkpos.getBlockZ(7);
-        return new BlockPos(k, getLowestY(p_226583_, k, l, i, j), l);
+        return new BlockPos(k, getLowestY(pContext, k, l, i, j), l);
     }
 
-    public abstract Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_226571_);
+    public abstract Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext pContext);
 
     public abstract StructureType<?> type();
 
     public static record GenerationContext(RegistryAccess registryAccess, ChunkGenerator chunkGenerator, BiomeSource biomeSource, RandomState randomState, StructureTemplateManager structureTemplateManager, WorldgenRandom random, long seed, ChunkPos chunkPos, LevelHeightAccessor heightAccessor, Predicate<Holder<Biome>> validBiome) {
-        public GenerationContext(RegistryAccess p_226632_, ChunkGenerator p_226633_, BiomeSource p_226634_, RandomState p_226635_, StructureTemplateManager p_226636_, long p_226637_, ChunkPos p_226638_, LevelHeightAccessor p_226639_, Predicate<Holder<Biome>> p_226640_) {
-            this(p_226632_, p_226633_, p_226634_, p_226635_, p_226636_, makeRandom(p_226637_, p_226638_), p_226637_, p_226638_, p_226639_, p_226640_);
+        public GenerationContext(RegistryAccess pRegistryAccess, ChunkGenerator pChunkGenerator, BiomeSource pBiomeSource, RandomState pRandomState, StructureTemplateManager pStructureTemplateManager, long pSeed, ChunkPos pChunkPos, LevelHeightAccessor pHeightAccessor, Predicate<Holder<Biome>> pValidBiome) {
+            this(pRegistryAccess, pChunkGenerator, pBiomeSource, pRandomState, pStructureTemplateManager, makeRandom(pSeed, pChunkPos), pSeed, pChunkPos, pHeightAccessor, pValidBiome);
         }
 
-        private static WorldgenRandom makeRandom(long p_226654_, ChunkPos p_226655_) {
+        private static WorldgenRandom makeRandom(long pSeed, ChunkPos pChunkPos) {
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(0L));
-            worldgenrandom.setLargeFeatureSeed(p_226654_, p_226655_.x, p_226655_.z);
+            worldgenrandom.setLargeFeatureSeed(pSeed, pChunkPos.x, pChunkPos.z);
             return worldgenrandom;
         }
     }
 
     public static record GenerationStub(BlockPos position, Either<Consumer<StructurePiecesBuilder>, StructurePiecesBuilder> generator) {
-        public GenerationStub(BlockPos p_226675_, Consumer<StructurePiecesBuilder> p_226676_) {
-            this(p_226675_, Either.left(p_226676_));
+        public GenerationStub(BlockPos pPosition, Consumer<StructurePiecesBuilder> pGenerator) {
+            this(pPosition, Either.left(pGenerator));
         }
 
         public StructurePiecesBuilder getPiecesBuilder() {

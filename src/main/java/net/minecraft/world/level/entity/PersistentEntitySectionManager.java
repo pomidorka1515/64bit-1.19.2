@@ -48,72 +48,72 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
     private final ObjectSet<ChunkPos> chunksToUnload = new ObjectOpenHashSet<>();
     private final Queue<ChunkEntities<T>> loadingInbox = Queues.newConcurrentLinkedQueue();
 
-    public PersistentEntitySectionManager(Class<T> p_157503_, LevelCallback<T> p_157504_, EntityPersistentStorage<T> p_157505_) {
+    public PersistentEntitySectionManager(Class<T> pEntityClass, LevelCallback<T> pCallbacks, EntityPersistentStorage<T> pPermanentStorage) {
         this.visibleEntityStorage = new EntityLookup<>();
-        this.sectionStorage = new EntitySectionStorage<>(p_157503_, this.chunkVisibility);
+        this.sectionStorage = new EntitySectionStorage<>(pEntityClass, this.chunkVisibility);
         this.chunkVisibility.defaultReturnValue(Visibility.HIDDEN);
         this.chunkLoadStatuses.defaultReturnValue(PersistentEntitySectionManager.ChunkLoadStatus.FRESH);
-        this.callbacks = p_157504_;
-        this.permanentStorage = p_157505_;
+        this.callbacks = pCallbacks;
+        this.permanentStorage = pPermanentStorage;
         this.entityGetter = new LevelEntityGetterAdapter<>(this.visibleEntityStorage, this.sectionStorage);
     }
 
-    void removeSectionIfEmpty(SectionPos p_157510_, EntitySection<T> p_157511_) {
-        if (p_157511_.isEmpty()) {
-            this.sectionStorage.remove(p_157510_);
+    void removeSectionIfEmpty(SectionPos pSectionKey, EntitySection<T> pSection) {
+        if (pSection.isEmpty()) {
+            this.sectionStorage.remove(pSectionKey);
         }
     }
 
-    private boolean addEntityUuid(T p_157558_) {
-        if (!this.knownUuids.add(p_157558_.getUUID())) {
-            LOGGER.warn("UUID of added entity already exists: {}", (Object) p_157558_);
+    private boolean addEntityUuid(T pEntity) {
+        if (!this.knownUuids.add(pEntity.getUUID())) {
+            LOGGER.warn("UUID of added entity already exists: {}", (Object) pEntity);
             return false;
         } else {
             return true;
         }
     }
 
-    public boolean addNewEntity(T p_157534_) {
-        return this.addEntity(p_157534_, false);
+    public boolean addNewEntity(T pEntity) {
+        return this.addEntity(pEntity, false);
     }
 
-    private boolean addEntity(T p_157539_, boolean p_157540_) {
-        if (!this.addEntityUuid(p_157539_)) {
+    private boolean addEntity(T pEntity, boolean pWorldGenSpawned) {
+        if (!this.addEntityUuid(pEntity)) {
             return false;
         } else {
-            SectionPos i = SectionPos.of(p_157539_.blockPosition());
+            SectionPos i = SectionPos.of(pEntity.blockPosition());
             EntitySection<T> entitysection = this.sectionStorage.getOrCreateSection(i);
-            entitysection.add(p_157539_);
-            p_157539_.setLevelCallback(new PersistentEntitySectionManager.Callback(p_157539_, i, entitysection));
-            if (!p_157540_) {
-                this.callbacks.onCreated(p_157539_);
+            entitysection.add(pEntity);
+            pEntity.setLevelCallback(new PersistentEntitySectionManager.Callback(pEntity, i, entitysection));
+            if (!pWorldGenSpawned) {
+                this.callbacks.onCreated(pEntity);
             }
 
-            Visibility visibility = getEffectiveStatus(p_157539_, entitysection.getStatus());
+            Visibility visibility = getEffectiveStatus(pEntity, entitysection.getStatus());
             if (visibility.isAccessible()) {
-                this.startTracking(p_157539_);
+                this.startTracking(pEntity);
             }
 
             if (visibility.isTicking()) {
-                this.startTicking(p_157539_);
+                this.startTicking(pEntity);
             }
 
             return true;
         }
     }
 
-    static <T extends EntityAccess> Visibility getEffectiveStatus(T p_157536_, Visibility p_157537_) {
-        return p_157536_.isAlwaysTicking() ? Visibility.TICKING : p_157537_;
+    static <T extends EntityAccess> Visibility getEffectiveStatus(T pEntity, Visibility pVisibility) {
+        return pEntity.isAlwaysTicking() ? Visibility.TICKING : pVisibility;
     }
 
-    public void addLegacyChunkEntities(Stream<T> p_157553_) {
-        p_157553_.forEach((p_157607_) -> {
+    public void addLegacyChunkEntities(Stream<T> pEntities) {
+        pEntities.forEach((p_157607_) -> {
             this.addEntity(p_157607_, true);
         });
     }
 
-    public void addWorldGenChunkEntities(Stream<T> p_157560_) {
-        p_157560_.forEach((p_157605_) -> {
+    public void addWorldGenChunkEntities(Stream<T> pEntities) {
+        pEntities.forEach((p_157605_) -> {
             this.addEntity(p_157605_, false);
         });
     }
@@ -136,27 +136,27 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
         this.visibleEntityStorage.remove(p_157581_);
     }
 
-    public void updateChunkStatus(ChunkPos p_157525_, ChunkHolder.FullChunkStatus p_157526_) {
-        Visibility visibility = Visibility.fromFullChunkStatus(p_157526_);
-        this.updateChunkStatus(p_157525_, visibility);
+    public void updateChunkStatus(ChunkPos pPos, ChunkHolder.FullChunkStatus pStatus) {
+        Visibility visibility = Visibility.fromFullChunkStatus(pStatus);
+        this.updateChunkStatus(pPos, visibility);
     }
 
-    public void updateChunkStatus(ChunkPos p_157528_, Visibility p_157529_) {
-        if (p_157529_ == Visibility.HIDDEN) {
-            this.chunkVisibility.remove(p_157528_);
-            this.chunksToUnload.add(p_157528_);
+    public void updateChunkStatus(ChunkPos pPos, Visibility pVisibility) {
+        if (pVisibility == Visibility.HIDDEN) {
+            this.chunkVisibility.remove(pPos);
+            this.chunksToUnload.add(pPos);
         } else {
-            this.chunkVisibility.put(p_157528_, p_157529_);
-            this.chunksToUnload.remove(p_157528_);
-            this.ensureChunkQueuedForLoad(p_157528_);
+            this.chunkVisibility.put(pPos, pVisibility);
+            this.chunksToUnload.remove(pPos);
+            this.ensureChunkQueuedForLoad(pPos);
         }
 
-        this.sectionStorage.getExistingSectionsInChunk(p_157528_).forEach((p_157545_) -> {
-            Visibility visibility = p_157545_.updateChunkStatus(p_157529_);
+        this.sectionStorage.getExistingSectionsInChunk(pPos).forEach((p_157545_) -> {
+            Visibility visibility = p_157545_.updateChunkStatus(pVisibility);
             boolean flag = visibility.isAccessible();
-            boolean flag1 = p_157529_.isAccessible();
+            boolean flag1 = pVisibility.isAccessible();
             boolean flag2 = visibility.isTicking();
-            boolean flag3 = p_157529_.isTicking();
+            boolean flag3 = pVisibility.isTicking();
             if (flag2 && !flag3) {
                 p_157545_.getEntities().filter((p_157603_) -> {
                                            return !p_157603_.isAlwaysTicking();
@@ -185,10 +185,10 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
         });
     }
 
-    private void ensureChunkQueuedForLoad(ChunkPos p_157556_) {
-        PersistentEntitySectionManager.ChunkLoadStatus persistententitysectionmanager$chunkloadstatus = this.chunkLoadStatuses.get(p_157556_);
+    private void ensureChunkQueuedForLoad(ChunkPos pChunkPosValue) {
+        PersistentEntitySectionManager.ChunkLoadStatus persistententitysectionmanager$chunkloadstatus = this.chunkLoadStatuses.get(pChunkPosValue);
         if (persistententitysectionmanager$chunkloadstatus == PersistentEntitySectionManager.ChunkLoadStatus.FRESH) {
-            this.requestChunkLoad(p_157556_);
+            this.requestChunkLoad(pChunkPosValue);
         }
     }
 
@@ -218,23 +218,23 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
         }
     }
 
-    private void requestChunkLoad(ChunkPos p_157563_) {
-        this.chunkLoadStatuses.put(p_157563_, PersistentEntitySectionManager.ChunkLoadStatus.PENDING);
-        ChunkPos chunkpos = p_157563_;
+    private void requestChunkLoad(ChunkPos pChunkPosValue) {
+        this.chunkLoadStatuses.put(pChunkPosValue, PersistentEntitySectionManager.ChunkLoadStatus.PENDING);
+        ChunkPos chunkpos = pChunkPosValue;
         this.permanentStorage.loadEntities(chunkpos).thenAccept(this.loadingInbox::add).exceptionally((p_157532_) -> {
             LOGGER.error("Failed to read chunk {}", chunkpos, p_157532_);
             return null;
         });
     }
 
-    private boolean processChunkUnload(ChunkPos p_157569_) {
-        boolean flag = this.storeChunkSections(p_157569_, (p_157595_) -> {
+    private boolean processChunkUnload(ChunkPos pChunkPosValue) {
+        boolean flag = this.storeChunkSections(pChunkPosValue, (p_157595_) -> {
             p_157595_.getPassengersAndSelf().forEach(this::unloadEntity);
         });
         if (!flag) {
             return false;
         } else {
-            this.chunkLoadStatuses.remove(p_157569_);
+            this.chunkLoadStatuses.remove(pChunkPosValue);
             return true;
         }
     }
@@ -410,9 +410,9 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
             }
         }
 
-        public void onRemove(Entity.RemovalReason p_157619_) {
+        public void onRemove(Entity.RemovalReason pReason) {
             if (!this.currentSection.remove(this.entity)) {
-                PersistentEntitySectionManager.LOGGER.warn("Entity {} wasn't found in section {} (destroying due to {})", this.entity, this.currentSectionKey, p_157619_);
+                PersistentEntitySectionManager.LOGGER.warn("Entity {} wasn't found in section {} (destroying due to {})", this.entity, this.currentSectionKey, pReason);
             }
 
             Visibility visibility = PersistentEntitySectionManager.getEffectiveStatus(this.entity, this.currentSection.getStatus());
@@ -424,7 +424,7 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
                 PersistentEntitySectionManager.this.stopTracking(this.entity);
             }
 
-            if (p_157619_.shouldDestroy()) {
+            if (pReason.shouldDestroy()) {
                 PersistentEntitySectionManager.this.callbacks.onDestroyed(this.entity);
             }
 

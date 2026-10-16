@@ -43,17 +43,17 @@ public class VisGraph {
     });
     private int empty = 4096;
 
-    public void setOpaque(BlockPos p_112972_) {
-        this.bitSet.set(getIndex(p_112972_), true);
+    public void setOpaque(BlockPos pPos) {
+        this.bitSet.set(getIndex(pPos), true);
         --this.empty;
     }
 
-    private static int getIndex(BlockPos p_112976_) {
-        return getIndex((int) p_112976_.getX() & 15, p_112976_.getY() & 15, (int) p_112976_.getZ() & 15);
+    private static int getIndex(BlockPos pPos) {
+        return getIndex((int) pPos.getX() & 15, pPos.getY() & 15, (int) pPos.getZ() & 15);
     }
 
-    private static int getIndex(int p_112962_, int p_112963_, int p_112964_) {
-        return p_112962_ << 0 | p_112963_ << 8 | p_112964_ << 4;
+    private static int getIndex(int pX, int pY, int pZ) {
+        return pX << 0 | pY << 8 | pZ << 4;
     }
 
     public VisibilitySet resolve() {
@@ -73,11 +73,11 @@ public class VisGraph {
         return visibilityset;
     }
 
-    private Set<Direction> floodFill(int p_112960_) {
+    private Set<Direction> floodFill(int pIndex) {
         Set<Direction> set = EnumSet.noneOf(Direction.class);
         IntPriorityQueue intpriorityqueue = new IntArrayFIFOQueue();
-        intpriorityqueue.enqueue(p_112960_);
-        this.bitSet.set(p_112960_, true);
+        intpriorityqueue.enqueue(pIndex);
+        this.bitSet.set(pIndex, true);
 
         while (!intpriorityqueue.isEmpty()) {
             int i = intpriorityqueue.dequeueInt();
@@ -95,67 +95,67 @@ public class VisGraph {
         return set;
     }
 
-    private void addEdges(int p_112969_, Set<Direction> p_112970_) {
-        int i = p_112969_ >> 0 & 15;
+    private void addEdges(int pIndex, Set<Direction> pFaces) {
+        int i = pIndex >> 0 & 15;
         if (i == 0) {
-            p_112970_.add(Direction.WEST);
+            pFaces.add(Direction.WEST);
         } else if (i == 15) {
-            p_112970_.add(Direction.EAST);
+            pFaces.add(Direction.EAST);
         }
 
-        int j = p_112969_ >> 8 & 15;
+        int j = pIndex >> 8 & 15;
         if (j == 0) {
-            p_112970_.add(Direction.DOWN);
+            pFaces.add(Direction.DOWN);
         } else if (j == 15) {
-            p_112970_.add(Direction.UP);
+            pFaces.add(Direction.UP);
         }
 
-        int k = p_112969_ >> 4 & 15;
+        int k = pIndex >> 4 & 15;
         if (k == 0) {
-            p_112970_.add(Direction.NORTH);
+            pFaces.add(Direction.NORTH);
         } else if (k == 15) {
-            p_112970_.add(Direction.SOUTH);
+            pFaces.add(Direction.SOUTH);
         }
     }
 
-    private int getNeighborIndexAtFace(int p_112966_, Direction p_112967_) {
-        switch (p_112967_) {
+    private int getNeighborIndexAtFace(int pIndex, Direction pFace) {
+        switch (pFace) {
             case DOWN:
-                if ((p_112966_ >> 8 & 15) == 0) {
+                if ((pIndex >> 8 & 15) == 0) {
                     return -1;
                 }
 
-                return p_112966_ - DY;
+                return pIndex - DY;
             case UP:
-                if ((p_112966_ >> 8 & 15) == 15) {
+                if ((pIndex >> 8 & 15) == 15) {
                     return -1;
                 }
 
-                return p_112966_ + DY;
+                return pIndex + DY;
             case NORTH:
-                if ((p_112966_ >> 4 & 15) == 0) {
+                if ((pIndex >> 4 & 15) == 0) {
                     return -1;
                 }
 
-                return p_112966_ - DZ;
+                return pIndex - DZ;
             case SOUTH:
-                if ((p_112966_ >> 4 & 15) == 15) {
+                if ((pIndex >> 4 & 15) == 15) {
                     return -1;
                 }
 
-                return p_112966_ + DZ;
+                return pIndex + DZ;
             case WEST:
-                if ((p_112966_ >> 0 & 15) == 0) {
+                if ((pIndex >> 0 & 15) == 0) {
                     return -1;
                 }
 
-                return p_112966_ - DX;
+                return pIndex - DX;
             case EAST:
-                if ((p_112966_ >> 0 & 15) == 15) {
+                if ((pIndex >> 0 & 15) == 15) {
                     return -1;
                 }
 
-                return p_112966_ + DX;
+                return pIndex + DX;
             default:
                 return -1;
         }

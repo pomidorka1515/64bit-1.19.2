@@ -111,10 +111,10 @@ public class DebugScreenOverlay extends GuiComponent {
     private static final int YELLOW = -256;
     private static final int GREEN = -16711936;
 
-    public DebugScreenOverlay(Minecraft p_94039_) {
-        this.minecraft = p_94039_;
+    public DebugScreenOverlay(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
         this.allocationRateCalculator = new DebugScreenOverlay.AllocationRateCalculator();
-        this.font = p_94039_.font;
+        this.font = pMinecraft.font;
     }
 
     public void clearChunkCache() {
@@ -122,26 +122,26 @@ public class DebugScreenOverlay extends GuiComponent {
         this.clientChunk = null;
     }
 
-    public void render(PoseStack p_94057_) {
+    public void render(PoseStack pPoseStack) {
         this.minecraft.getProfiler().push("debug");
         Entity entity = this.minecraft.getCameraEntity();
         this.block = entity.pick(20.0D, 0.0F, false);
         this.liquid = entity.pick(20.0D, 0.0F, true);
-        this.drawGameInformation(p_94057_);
-        this.drawSystemInformation(p_94057_);
+        this.drawGameInformation(pPoseStack);
+        this.drawSystemInformation(pPoseStack);
         if (this.minecraft.options.renderFpsChart) {
             int i = this.minecraft.getWindow().getGuiScaledWidth();
-            this.drawChart(p_94057_, this.minecraft.getFrameTimer(), 0, i / 2, true);
+            this.drawChart(pPoseStack, this.minecraft.getFrameTimer(), 0, i / 2, true);
             IntegratedServer integratedserver = this.minecraft.getSingleplayerServer();
             if (integratedserver != null) {
-                this.drawChart(p_94057_, integratedserver.getFrameTimer(), i - Math.min(i / 2, 240), i / 2, false);
+                this.drawChart(pPoseStack, integratedserver.getFrameTimer(), i - Math.min(i / 2, 240), i / 2, false);
             }
         }
 
         this.minecraft.getProfiler().pop();
     }
 
-    protected void drawGameInformation(PoseStack p_94077_) {
+    protected void drawGameInformation(PoseStack pPoseStack) {
         List<String> list = this.getGameInformation();
         list.add("");
         boolean flag = this.minecraft.getSingleplayerServer() != null;
@@ -155,13 +155,13 @@ public class DebugScreenOverlay extends GuiComponent {
                 int k = this.font.width(s);
                 int l = 2;
                 int i1 = 2 + j * i;
-                fill(p_94077_, 1, i1 - 1, 2 + k + 1, i1 + j - 1, -1873784752);
-                this.font.draw(p_94077_, s, 2.0F, (float) i1, 14737632);
+                fill(pPoseStack, 1, i1 - 1, 2 + k + 1, i1 + j - 1, -1873784752);
+                this.font.draw(pPoseStack, s, 2.0F, (float) i1, 14737632);
             }
         }
     }
 
-    protected void drawSystemInformation(PoseStack p_94080_) {
+    protected void drawSystemInformation(PoseStack pPoseStack) {
         List<String> list = this.getSystemInformation();
 
         for (int i = 0; i < list.size(); ++i) {
@@ -171,8 +171,8 @@ public class DebugScreenOverlay extends GuiComponent {
                 int k = this.font.width(s);
                 int l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
                 int i1 = 2 + j * i;
-                fill(p_94080_, l - 1, i1 - 1, l + k + 1, i1 + j - 1, -1873784752);
-                this.font.draw(p_94080_, s, (float) l, (float) i1, 14737632);
+                fill(pPoseStack, l - 1, i1 - 1, l + k + 1, i1 + j - 1, -1873784752);
+                this.font.draw(pPoseStack, s, (float) l, (float) i1, 14737632);
             }
         }
     }
@@ -372,8 +372,8 @@ public class DebugScreenOverlay extends GuiComponent {
         }
     }
 
-    private static String printBiome(Holder<Biome> p_205375_) {
-        return p_205375_.unwrap().map((p_205377_) -> { return p_205377_.location().toString(); }, (p_205367_) -> { return "[unregistered " + p_205367_ + "]"; });
+    private static String printBiome(Holder<Biome> pBiomeHolder) {
+        return pBiomeHolder.unwrap().map((p_205377_) -> { return p_205377_.location().toString(); }, (p_205367_) -> { return "[unregistered " + p_205367_ + "]"; });
     }
 
     @Nullable
@@ -475,9 +475,9 @@ public class DebugScreenOverlay extends GuiComponent {
         }
     }
 
-    private String getPropertyValueString(Map.Entry<Property<?>, Comparable<?>> p_94072_) {
-        Property<?> property = p_94072_.getKey();
-        Comparable<?> comparable = p_94072_.getValue();
+    private String getPropertyValueString(Map.Entry<Property<?>, Comparable<?>> pEntry) {
+        Property<?> property = pEntry.getKey();
+        Comparable<?> comparable = pEntry.getValue();
         String s = Util.getPropertyName(property, comparable);
         if (Boolean.TRUE.equals(comparable)) {
             s = ChatFormatting.GREEN + s;
@@ -565,28 +565,28 @@ public class DebugScreenOverlay extends GuiComponent {
         RenderSystem.enableDepthTest();
     }
 
-    private int getSampleColor(int p_94046_, int p_94047_, int p_94048_, int p_94049_) {
-        return p_94046_ < p_94048_ ? this.colorLerp(-16711936, -256, (float) p_94046_ / (float) p_94048_) : this.colorLerp(-256, -65536, (float) (p_94046_ - p_94048_) / (float) (p_94049_ - p_94048_));
+    private int getSampleColor(int pHeight, int pHeightMin, int pHeightMid, int pHeightMax) {
+        return pHeight < pHeightMid ? this.colorLerp(-16711936, -256, (float) pHeight / (float) pHeightMid) : this.colorLerp(-256, -65536, (float) (pHeight - pHeightMid) / (float) (pHeightMax - pHeightMid));
     }
 
-    private int colorLerp(int p_94042_, int p_94043_, float p_94044_) {
-        int i = p_94042_ >> 24 & 255;
-        int j = p_94042_ >> 16 & 255;
-        int k = p_94042_ >> 8 & 255;
-        int l = p_94042_ & 255;
-        int i1 = p_94043_ >> 24 & 255;
-        int j1 = p_94043_ >> 16 & 255;
-        int k1 = p_94043_ >> 8 & 255;
-        int l1 = p_94043_ & 255;
-        int i2 = Mth.clamp((int) Mth.lerp(p_94044_, (float) i, (float) i1), 0, 255);
-        int j2 = Mth.clamp((int) Mth.lerp(p_94044_, (float) j, (float) j1), 0, 255);
-        int k2 = Mth.clamp((int) Mth.lerp(p_94044_, (float) k, (float) k1), 0, 255);
-        int l2 = Mth.clamp((int) Mth.lerp(p_94044_, (float) l, (float) l1), 0, 255);
+    private int colorLerp(int pCol1, int pCol2, float pFactor) {
+        int i = pCol1 >> 24 & 255;
+        int j = pCol1 >> 16 & 255;
+        int k = pCol1 >> 8 & 255;
+        int l = pCol1 & 255;
+        int i1 = pCol2 >> 24 & 255;
+        int j1 = pCol2 >> 16 & 255;
+        int k1 = pCol2 >> 8 & 255;
+        int l1 = pCol2 & 255;
+        int i2 = Mth.clamp((int) Mth.lerp(pFactor, (float) i, (float) i1), 0, 255);
+        int j2 = Mth.clamp((int) Mth.lerp(pFactor, (float) j, (float) j1), 0, 255);
+        int k2 = Mth.clamp((int) Mth.lerp(pFactor, (float) k, (float) k1), 0, 255);
+        int l2 = Mth.clamp((int) Mth.lerp(pFactor, (float) l, (float) l1), 0, 255);
         return i2 << 24 | j2 << 16 | k2 << 8 | l2;
     }
 
-    private static long bytesToMegabytes(long p_94051_) {
-        return p_94051_ / 1024L / 1024L;
+    private static long bytesToMegabytes(long pBytes) {
+        return pBytes / 1024L / 1024L;
     }
 
     @OnlyIn(Dist.CLIENT)

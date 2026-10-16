@@ -17,26 +17,26 @@ public class MapBanner {
     @Nullable
     private final Component name;
 
-    public MapBanner(BlockPos p_77770_, DyeColor p_77771_, @Nullable Component p_77772_) {
-        this.pos = p_77770_;
-        this.color = p_77771_;
-        this.name = p_77772_;
+    public MapBanner(BlockPos pPos, DyeColor pColor, @Nullable Component pName) {
+        this.pos = pPos;
+        this.color = pColor;
+        this.name = pName;
     }
 
-    public static MapBanner load(CompoundTag p_77778_) {
-        BlockPos blockpos = NbtUtils.readBlockPos(p_77778_.getCompound("Pos"));
-        DyeColor dyecolor = DyeColor.byName(p_77778_.getString("Color"), DyeColor.WHITE);
-        Component component = p_77778_.contains("Name") ? Component.Serializer.fromJson(p_77778_.getString("Name")) : null;
+    public static MapBanner load(CompoundTag pCompoundTag) {
+        BlockPos blockpos = NbtUtils.readBlockPos(pCompoundTag.getCompound("Pos"));
+        DyeColor dyecolor = DyeColor.byName(pCompoundTag.getString("Color"), DyeColor.WHITE);
+        Component component = pCompoundTag.contains("Name") ? Component.Serializer.fromJson(pCompoundTag.getString("Name")) : null;
         return new MapBanner(blockpos, dyecolor, component);
     }
 
     @Nullable
-    public static MapBanner fromWorld(BlockGetter p_77775_, BlockPos p_77776_) {
-        BlockEntity blockentity = p_77775_.getBlockEntity(p_77776_);
+    public static MapBanner fromWorld(BlockGetter pLevel, BlockPos pPos) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof BannerBlockEntity bannerblockentity) {
             DyeColor dyecolor = bannerblockentity.getBaseColor();
             Component component = bannerblockentity.hasCustomName() ? bannerblockentity.getCustomName() : null;
-            return new MapBanner(p_77776_, dyecolor, component);
+            return new MapBanner(pPos, dyecolor, component);
         } else {
             return null;
         }

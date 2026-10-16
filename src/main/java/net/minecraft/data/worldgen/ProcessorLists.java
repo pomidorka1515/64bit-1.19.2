@@ -62,9 +62,9 @@ public class ProcessorLists {
     public static final Holder<StructureProcessorList> ANCIENT_CITY_GENERIC_DEGRADATION = register("ancient_city_generic_degradation", ImmutableList.of(new BlockRotProcessor(BlockTags.ANCIENT_CITY_REPLACEABLE, 0.95F), new RuleProcessor(ImmutableList.of(new ProcessorRule(new RandomBlockMatchTest(Blocks.DEEPSLATE_BRICKS, 0.3F), AlwaysTrueTest.INSTANCE, Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState()), new ProcessorRule(new RandomBlockMatchTest(Blocks.DEEPSLATE_TILES, 0.3F), AlwaysTrueTest.INSTANCE, Blocks.CRACKED_DEEPSLATE_TILES.defaultBlockState()), new ProcessorRule(new RandomBlockMatchTest(Blocks.SOUL_LANTERN, 0.05F), AlwaysTrueTest.INSTANCE, Blocks.AIR.defaultBlockState()))), new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)));
     public static final Holder<StructureProcessorList> ANCIENT_CITY_WALLS_DEGRADATION = register("ancient_city_walls_degradation", ImmutableList.of(new BlockRotProcessor(BlockTags.ANCIENT_CITY_REPLACEABLE, 0.95F), new RuleProcessor(ImmutableList.of(new ProcessorRule(new RandomBlockMatchTest(Blocks.DEEPSLATE_BRICKS, 0.3F), AlwaysTrueTest.INSTANCE, Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState()), new ProcessorRule(new RandomBlockMatchTest(Blocks.DEEPSLATE_TILES, 0.3F), AlwaysTrueTest.INSTANCE, Blocks.CRACKED_DEEPSLATE_TILES.defaultBlockState()), new ProcessorRule(new RandomBlockMatchTest(Blocks.DEEPSLATE_TILE_SLAB, 0.3F), AlwaysTrueTest.INSTANCE, Blocks.AIR.defaultBlockState()), new ProcessorRule(new RandomBlockMatchTest(Blocks.SOUL_LANTERN, 0.05F), AlwaysTrueTest.INSTANCE, Blocks.AIR.defaultBlockState()))), new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)));
 
-    private static Holder<StructureProcessorList> register(String p_206438_, ImmutableList<StructureProcessor> p_206439_) {
-        ResourceLocation resourcelocation = new ResourceLocation(p_206438_);
-        StructureProcessorList structureprocessorlist = new StructureProcessorList(p_206439_);
+    private static Holder<StructureProcessorList> register(String pId, ImmutableList<StructureProcessor> pProcessors) {
+        ResourceLocation resourcelocation = new ResourceLocation(pId);
+        StructureProcessorList structureprocessorlist = new StructureProcessorList(pProcessors);
         return BuiltinRegistries.register(BuiltinRegistries.PROCESSOR_LIST, resourcelocation, structureprocessorlist);
     }
 }

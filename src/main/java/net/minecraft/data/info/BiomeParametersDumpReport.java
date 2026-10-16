@@ -23,17 +23,17 @@ public class BiomeParametersDumpReport implements DataProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Path topPath;
 
-    public BiomeParametersDumpReport(DataGenerator p_236176_) {
-        this.topPath = p_236176_.getOutputFolder(DataGenerator.Target.REPORTS).resolve("biome_parameters");
+    public BiomeParametersDumpReport(DataGenerator pGenerator) {
+        this.topPath = pGenerator.getOutputFolder(DataGenerator.Target.REPORTS).resolve("biome_parameters");
     }
 
-    public void run(CachedOutput p_236186_) {
+    public void run(CachedOutput pOutput) {
         RegistryAccess.Frozen registryaccess$frozen = RegistryAccess.BUILTIN.get();
         DynamicOps<JsonElement> dynamicops = RegistryOps.create(JsonOps.INSTANCE, registryaccess$frozen);
         Registry<Biome> registry = registryaccess$frozen.registryOrThrow(Registry.BIOME_REGISTRY);
         MultiNoiseBiomeSource.Preset.getPresets().forEach((p_236184_) -> {
             MultiNoiseBiomeSource multinoisebiomesource = p_236184_.getSecond().biomeSource(registry, false);
-            dumpValue(this.createPath(p_236184_.getFirst()), p_236186_, dynamicops, MultiNoiseBiomeSource.CODEC, multinoisebiomesource);
+            dumpValue(this.createPath(p_236184_.getFirst()), pOutput, dynamicops, MultiNoiseBiomeSource.CODEC, multinoisebiomesource);
         });
     }
 
@@ -50,8 +50,8 @@ public class BiomeParametersDumpReport implements DataProvider {
         }
     }
 
-    private Path createPath(ResourceLocation p_236179_) {
-        return this.topPath.resolve(p_236179_.getNamespace()).resolve(p_236179_.getPath() + ".json");
+    private Path createPath(ResourceLocation pLocation) {
+        return this.topPath.resolve(pLocation.getNamespace()).resolve(pLocation.getPath() + ".json");
     }
 
     public String getName() {

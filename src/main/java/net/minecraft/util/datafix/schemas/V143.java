@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class V143 extends Schema {
-    public V143(int p_17415_, Schema p_17416_) {
-        super(p_17415_, p_17416_);
+    public V143(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema p_17418_) {
-        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(p_17418_);
+    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema pSchema) {
+        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(pSchema);
         map.remove("TippedArrow");
         return map;
     }

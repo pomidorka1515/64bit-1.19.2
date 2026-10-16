@@ -13,14 +13,14 @@ public class SummonedEntityTrigger extends SimpleCriterionTrigger<SummonedEntity
         return ID;
     }
 
-    public SummonedEntityTrigger.TriggerInstance createInstance(JsonObject p_68260_, EntityPredicate.Composite p_68261_, DeserializationContext p_68262_) {
-        EntityPredicate.Composite entitypredicate$composite = EntityPredicate.Composite.fromJson(p_68260_, "entity", p_68262_);
-        return new SummonedEntityTrigger.TriggerInstance(p_68261_, entitypredicate$composite);
+    public SummonedEntityTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        EntityPredicate.Composite entitypredicate$composite = EntityPredicate.Composite.fromJson(pJson, "entity", pConditionsParser);
+        return new SummonedEntityTrigger.TriggerInstance(pEntityPredicate, entitypredicate$composite);
     }
 
-    public void trigger(ServerPlayer p_68257_, Entity p_68258_) {
-        LootContext lootcontext = EntityPredicate.createContext(p_68257_, p_68258_);
-        this.trigger(p_68257_, (p_68265_) -> {
+    public void trigger(ServerPlayer pPlayer, Entity pEntity) {
+        LootContext lootcontext = EntityPredicate.createContext(pPlayer, pEntity);
+        this.trigger(pPlayer, (p_68265_) -> {
             return p_68265_.matches(lootcontext);
         });
     }
@@ -28,22 +28,22 @@ public class SummonedEntityTrigger extends SimpleCriterionTrigger<SummonedEntity
     public static class TriggerInstance extends AbstractCriterionTriggerInstance {
         private final EntityPredicate.Composite entity;
 
-        public TriggerInstance(EntityPredicate.Composite p_68273_, EntityPredicate.Composite p_68274_) {
-            super(SummonedEntityTrigger.ID, p_68273_);
-            this.entity = p_68274_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, EntityPredicate.Composite pEntity) {
+            super(SummonedEntityTrigger.ID, pPlayer);
+            this.entity = pEntity;
         }
 
-        public static SummonedEntityTrigger.TriggerInstance summonedEntity(EntityPredicate.Builder p_68276_) {
-            return new SummonedEntityTrigger.TriggerInstance(EntityPredicate.Composite.ANY, EntityPredicate.Composite.wrap(p_68276_.build()));
+        public static SummonedEntityTrigger.TriggerInstance summonedEntity(EntityPredicate.Builder pEntityPredicateBuilder) {
+            return new SummonedEntityTrigger.TriggerInstance(EntityPredicate.Composite.ANY, EntityPredicate.Composite.wrap(pEntityPredicateBuilder.build()));
         }
 
-        public boolean matches(LootContext p_68280_) {
-            return this.entity.matches(p_68280_);
+        public boolean matches(LootContext pLootContext) {
+            return this.entity.matches(pLootContext);
         }
 
-        public JsonObject serializeToJson(SerializationContext p_68278_) {
-            JsonObject jsonobject = super.serializeToJson(p_68278_);
-            jsonobject.add("entity", this.entity.toJson(p_68278_));
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
+            jsonobject.add("entity", this.entity.toJson(pConditions));
             return jsonobject;
         }
     }

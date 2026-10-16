@@ -15,14 +15,14 @@ public class Timeline {
         return ImmutableList.copyOf(this.keyframes);
     }
 
-    public Timeline addKeyframe(int p_38061_, float p_38062_) {
-        this.keyframes.add(new Keyframe(p_38061_, p_38062_));
+    public Timeline addKeyframe(int pDuration, float pActive) {
+        this.keyframes.add(new Keyframe(pDuration, pActive));
         this.sortAndDeduplicateKeyframes();
         return this;
     }
 
-    public Timeline addKeyframes(Collection<Keyframe> p_150248_) {
-        this.keyframes.addAll(p_150248_);
+    public Timeline addKeyframes(Collection<Keyframe> pFrames) {
+        this.keyframes.addAll(pFrames);
         this.sortAndDeduplicateKeyframes();
         return this;
     }
@@ -37,19 +37,19 @@ public class Timeline {
         this.previousIndex = 0;
     }
 
-    public float getValueAt(int p_38059_) {
+    public float getValueAt(int pDayTime) {
         if (this.keyframes.size() <= 0) {
             return 0.0F;
         } else {
             Keyframe keyframe = this.keyframes.get(this.previousIndex);
             Keyframe keyframe1 = this.keyframes.get(this.keyframes.size() - 1);
-            boolean flag = p_38059_ < keyframe.getTimeStamp();
+            boolean flag = pDayTime < keyframe.getTimeStamp();
             int i = flag ? 0 : this.previousIndex;
             float f = flag ? keyframe1.getValue() : keyframe.getValue();
 
             for (int j = i; j < this.keyframes.size(); ++j) {
                 Keyframe keyframe2 = this.keyframes.get(j);
-                if (keyframe2.getTimeStamp() > p_38059_) {
+                if (keyframe2.getTimeStamp() > pDayTime) {
                     break;
                 }
 

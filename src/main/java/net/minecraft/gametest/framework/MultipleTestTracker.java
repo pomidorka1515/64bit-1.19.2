@@ -19,19 +19,19 @@ public class MultipleTestTracker {
     public MultipleTestTracker() {
     }
 
-    public MultipleTestTracker(Collection<GameTestInfo> p_127802_) {
-        this.tests.addAll(p_127802_);
+    public MultipleTestTracker(Collection<GameTestInfo> pTestInfos) {
+        this.tests.addAll(pTestInfos);
     }
 
-    public void addTestToTrack(GameTestInfo p_127810_) {
-        this.tests.add(p_127810_);
-        this.listeners.forEach(p_127810_::addListener);
+    public void addTestToTrack(GameTestInfo pTestInfo) {
+        this.tests.add(pTestInfo);
+        this.listeners.forEach(pTestInfo::addListener);
     }
 
-    public void addListener(GameTestListener p_127812_) {
-        this.listeners.add(p_127812_);
+    public void addListener(GameTestListener pTestListener) {
+        this.listeners.add(pTestListener);
         this.tests.forEach((p_127815_) -> {
-            p_127815_.addListener(p_127812_);
+            p_127815_.addListener(pTestListener);
         });
     }
 

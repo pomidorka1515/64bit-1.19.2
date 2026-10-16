@@ -38,21 +38,21 @@ public class WanderingTraderSpawner implements CustomSpawner {
     private int spawnDelay;
     private int spawnChance;
 
-    public WanderingTraderSpawner(ServerLevelData p_35914_) {
-        this.serverLevelData = p_35914_;
+    public WanderingTraderSpawner(ServerLevelData pServerLevelData) {
+        this.serverLevelData = pServerLevelData;
         this.tickDelay = 1200;
-        this.spawnDelay = p_35914_.getWanderingTraderSpawnDelay();
-        this.spawnChance = p_35914_.getWanderingTraderSpawnChance();
+        this.spawnDelay = pServerLevelData.getWanderingTraderSpawnDelay();
+        this.spawnChance = pServerLevelData.getWanderingTraderSpawnChance();
         if (this.spawnDelay == 0 && this.spawnChance == 0) {
             this.spawnDelay = 24000;
-            p_35914_.setWanderingTraderSpawnDelay(this.spawnDelay);
+            pServerLevelData.setWanderingTraderSpawnDelay(this.spawnDelay);
             this.spawnChance = 25;
-            p_35914_.setWanderingTraderSpawnChance(this.spawnChance);
+            pServerLevelData.setWanderingTraderSpawnChance(this.spawnChance);
         }
     }
 
-    public int tick(ServerLevel p_35922_, boolean p_35923_, boolean p_35924_) {
-        if (!p_35922_.getGameRules().getBoolean(GameRules.RULE_DO_TRADER_SPAWNING)) {
+    public int tick(ServerLevel pLevel, boolean pSpawnHostiles, boolean pSpawnPassives) {
+        if (!pLevel.getGameRules().getBoolean(GameRules.RULE_DO_TRADER_SPAWNING)) {
             return 0;
         } else if (--this.tickDelay > 0) {
             return 0;
@@ -64,7 +64,7 @@ public class WanderingTraderSpawner implements CustomSpawner {
                 return 0;
             } else {
                 this.spawnDelay = 24000;
-                if (!p_35922_.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
+                if (!pLevel.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
                     return 0;
                 } else {
                     int i = this.spawnChance;
@@ -72,7 +72,7 @@ public class WanderingTraderSpawner implements CustomSpawner {
                     this.serverLevelData.setWanderingTraderSpawnChance(this.spawnChance);
                     if (this.random.nextInt(100) > i) {
                         return 0;
-                    } else if (this.spawn(p_35922_)) {
+                    } else if (this.spawn(pLevel)) {
                         this.spawnChance = 25;
                         return 1;
                     } else {
@@ -83,8 +83,8 @@ public class WanderingTraderSpawner implements CustomSpawner {
         }
     }
 
-    private boolean spawn(ServerLevel p_35916_) {
-        Player player = p_35916_.getRandomPlayer();
+    private boolean spawn(ServerLevel pServerLevel) {
+        Player player = pServerLevel.getRandomPlayer();
         if (player == null) {
             return true;
         } else if (this.random.nextInt(10) != 0) {
@@ -92,19 +92,19 @@ public class WanderingTraderSpawner implements CustomSpawner {
         } else {
             BlockPos blockpos = player.blockPosition();
             int i = 48;
-            PoiManager poimanager = p_35916_.getPoiManager();
+            PoiManager poimanager = pServerLevel.getPoiManager();
             Optional<BlockPos> optional = poimanager.find((p_219713_) -> { return p_219713_.is(PoiTypes.MEETING); }, (p_219711_) -> { return true; }, blockpos, 48, PoiManager.Occupancy.ANY);
             BlockPos blockpos1 = optional.orElse(blockpos);
-            BlockPos blockpos2 = this.findSpawnPositionNear(p_35916_, blockpos1, 48);
-            if (blockpos2 != null && this.hasEnoughSpace(p_35916_, blockpos2)) {
-                if (p_35916_.getBiome(blockpos2).is(BiomeTags.WITHOUT_WANDERING_TRADER_SPAWNS)) {
+            BlockPos blockpos2 = this.findSpawnPositionNear(pServerLevel, blockpos1, 48);
+            if (blockpos2 != null && this.hasEnoughSpace(pServerLevel, blockpos2)) {
+                if (pServerLevel.getBiome(blockpos2).is(BiomeTags.WITHOUT_WANDERING_TRADER_SPAWNS)) {
                     return false;
                 }
 
-                WanderingTrader wanderingtrader = EntityType.WANDERING_TRADER.spawn(p_35916_, (CompoundTag) null, (Component) null, (Player) null, blockpos2, MobSpawnType.EVENT, false, false);
+                WanderingTrader wanderingtrader = EntityType.WANDERING_TRADER.spawn(pServerLevel, (CompoundTag) null, (Component) null, (Player) null, blockpos2, MobSpawnType.EVENT, false, false);
                 if (wanderingtrader != null) {
                     for (int j = 0; j < 2; ++j) {
-                        this.tryToSpawnLlamaFor(p_35916_, wanderingtrader, 4);
+                        this.tryToSpawnLlamaFor(pServerLevel, wanderingtrader, 4);
                     }
 
                     this.serverLevelData.setWanderingTraderId(wanderingtrader.getUUID());
@@ -119,26 +119,26 @@ public class WanderingTraderSpawner implements CustomSpawner {
         }
     }
 
-    private void tryToSpawnLlamaFor(ServerLevel p_35918_, WanderingTrader p_35919_, int p_35920_) {
-        BlockPos blockpos = this.findSpawnPositionNear(p_35918_, p_35919_.blockPosition(), p_35920_);
+    private void tryToSpawnLlamaFor(ServerLevel pServerLevel, WanderingTrader pTrader, int pMaxDistance) {
+        BlockPos blockpos = this.findSpawnPositionNear(pServerLevel, pTrader.blockPosition(), pMaxDistance);
         if (blockpos != null) {
-            TraderLlama traderllama = EntityType.TRADER_LLAMA.spawn(p_35918_, (CompoundTag) null, (Component) null, (Player) null, blockpos, MobSpawnType.EVENT, false, false);
+            TraderLlama traderllama = EntityType.TRADER_LLAMA.spawn(pServerLevel, (CompoundTag) null, (Component) null, (Player) null, blockpos, MobSpawnType.EVENT, false, false);
             if (traderllama != null) {
-                traderllama.setLeashedTo(p_35919_, true);
+                traderllama.setLeashedTo(pTrader, true);
             }
         }
     }
 
     @Nullable
-    private BlockPos findSpawnPositionNear(LevelReader p_35929_, BlockPos p_35930_, int p_35931_) {
+    private BlockPos findSpawnPositionNear(LevelReader pLevel, BlockPos pPos, int pMaxDistance) {
         BlockPos blockpos = null;
 
         for (int i = 0; i < 10; ++i) {
-            long j = p_35930_.getX() + this.random.nextInt(p_35931_ * 2) - p_35931_;
-            long k = p_35930_.getZ() + this.random.nextInt(p_35931_ * 2) - p_35931_;
-            int l = p_35929_.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
+            long j = pPos.getX() + this.random.nextInt(pMaxDistance * 2) - pMaxDistance;
+            long k = pPos.getZ() + this.random.nextInt(pMaxDistance * 2) - pMaxDistance;
+            int l = pLevel.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
             BlockPos blockpos1 = new BlockPos(j, l, k);
-            if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, p_35929_, blockpos1, EntityType.WANDERING_TRADER)) {
+            if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, pLevel, blockpos1, EntityType.WANDERING_TRADER)) {
                 blockpos = blockpos1;
                 break;
             }
@@ -147,9 +147,9 @@ public class WanderingTraderSpawner implements CustomSpawner {
         return blockpos;
     }
 
-    private boolean hasEnoughSpace(BlockGetter p_35926_, BlockPos p_35927_) {
-        for (BlockPos blockpos : BlockPos.betweenClosed(p_35927_, p_35927_.offset(1, 2, 1))) {
-            if (!p_35926_.getBlockState(blockpos).getCollisionShape(p_35926_, blockpos).isEmpty()) {
+    private boolean hasEnoughSpace(BlockGetter pLevel, BlockPos pPos) {
+        for (BlockPos blockpos : BlockPos.betweenClosed(pPos, pPos.offset(1, 2, 1))) {
+            if (!pLevel.getBlockState(blockpos).getCollisionShape(pLevel, blockpos).isEmpty()) {
                 return false;
             }
         }

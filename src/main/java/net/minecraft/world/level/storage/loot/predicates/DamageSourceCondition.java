@@ -15,8 +15,8 @@ import net.minecraft.world.phys.Vec3;
 public class DamageSourceCondition implements LootItemCondition {
     final DamageSourcePredicate predicate;
 
-    DamageSourceCondition(DamageSourcePredicate p_81584_) {
-        this.predicate = p_81584_;
+    DamageSourceCondition(DamageSourcePredicate pDamageSourcePredicate) {
+        this.predicate = pDamageSourcePredicate;
     }
 
     public LootItemConditionType getType() {
@@ -33,9 +33,9 @@ public class DamageSourceCondition implements LootItemCondition {
         return vec3 != null && damagesource != null && this.predicate.matches(p_81592_.getLevel(), vec3, damagesource);
     }
 
-    public static LootItemCondition.Builder hasDamageSource(DamageSourcePredicate.Builder p_81590_) {
+    public static LootItemCondition.Builder hasDamageSource(DamageSourcePredicate.Builder pBuilder) {
         return () -> {
-            return new DamageSourceCondition(p_81590_.build());
+            return new DamageSourceCondition(pBuilder.build());
         };
     }
 

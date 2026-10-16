@@ -9,8 +9,8 @@ public class ScoreboardNameProviders {
     public static final LootScoreProviderType FIXED = register("fixed", new FixedScoreboardNameProvider.Serializer());
     public static final LootScoreProviderType CONTEXT = register("context", new ContextScoreboardNameProvider.Serializer());
 
-    private static LootScoreProviderType register(String p_165874_, Serializer<? extends ScoreboardNameProvider> p_165875_) {
-        return Registry.register(Registry.LOOT_SCORE_PROVIDER_TYPE, new ResourceLocation(p_165874_), new LootScoreProviderType(p_165875_));
+    private static LootScoreProviderType register(String pName, Serializer<? extends ScoreboardNameProvider> pSerializer) {
+        return Registry.register(Registry.LOOT_SCORE_PROVIDER_TYPE, new ResourceLocation(pName), new LootScoreProviderType(pSerializer));
     }
 
     public static Object createGsonAdapter() {

@@ -31,35 +31,35 @@ public abstract class LootPoolSingletonContainer extends LootPoolEntryContainer 
         }
     };
 
-    protected LootPoolSingletonContainer(int p_79681_, int p_79682_, LootItemCondition[] p_79683_, LootItemFunction[] p_79684_) {
-        super(p_79683_);
-        this.weight = p_79681_;
-        this.quality = p_79682_;
-        this.functions = p_79684_;
-        this.compositeFunction = LootItemFunctions.compose(p_79684_);
+    protected LootPoolSingletonContainer(int pWeight, int pQuality, LootItemCondition[] pConditions, LootItemFunction[] pFunctions) {
+        super(pConditions);
+        this.weight = pWeight;
+        this.quality = pQuality;
+        this.functions = pFunctions;
+        this.compositeFunction = LootItemFunctions.compose(pFunctions);
     }
 
-    public void validate(ValidationContext p_79686_) {
-        super.validate(p_79686_);
+    public void validate(ValidationContext pValidationContext) {
+        super.validate(pValidationContext);
 
         for (int i = 0; i < this.functions.length; ++i) {
-            this.functions[i].validate(p_79686_.forChild(".functions[" + i + "]"));
+            this.functions[i].validate(pValidationContext.forChild(".functions[" + i + "]"));
         }
     }
 
-    protected abstract void createItemStack(Consumer<ItemStack> p_79691_, LootContext p_79692_);
+    protected abstract void createItemStack(Consumer<ItemStack> pStackConsumer, LootContext pLootContext);
 
-    public boolean expand(LootContext p_79694_, Consumer<LootPoolEntry> p_79695_) {
-        if (this.canRun(p_79694_)) {
-            p_79695_.accept(this.entry);
+    public boolean expand(LootContext pLootContext, Consumer<LootPoolEntry> pEntryConsumer) {
+        if (this.canRun(pLootContext)) {
+            pEntryConsumer.accept(this.entry);
             return true;
         } else {
             return false;
         }
     }
 
-    public static LootPoolSingletonContainer.Builder<?> simpleBuilder(LootPoolSingletonContainer.EntryConstructor p_79688_) {
-        return new LootPoolSingletonContainer.DummyBuilder(p_79688_);
+    public static LootPoolSingletonContainer.Builder<?> simpleBuilder(LootPoolSingletonContainer.EntryConstructor pEntryBuilder) {
+        return new LootPoolSingletonContainer.DummyBuilder(pEntryBuilder);
     }
 
     public abstract static class Builder<T extends LootPoolSingletonContainer.Builder<T>> extends LootPoolEntryContainer.Builder<T> implements FunctionUserBuilder<T> {
@@ -67,8 +67,8 @@ public abstract class LootPoolSingletonContainer extends LootPoolEntryContainer 
         protected int quality = 0;
         private final List<LootItemFunction> functions = Lists.newArrayList();
 
-        public T apply(LootItemFunction.Builder p_79710_) {
-            this.functions.add(p_79710_.build());
+        public T apply(LootItemFunction.Builder pFunctionBuilder) {
+            this.functions.add(pFunctionBuilder.build());
             return this.getThis();
         }
 
@@ -76,13 +76,13 @@ public abstract class LootPoolSingletonContainer extends LootPoolEntryContainer 
             return this.functions.toArray(new LootItemFunction[0]);
         }
 
-        public T setWeight(int p_79708_) {
-            this.weight = p_79708_;
+        public T setWeight(int pWeight) {
+            this.weight = pWeight;
             return this.getThis();
         }
 
-        public T setQuality(int p_79712_) {
-            this.quality = p_79712_;
+        public T setQuality(int pQuality) {
+            this.quality = pQuality;
             return this.getThis();
         }
     }
@@ -90,8 +90,8 @@ public abstract class LootPoolSingletonContainer extends LootPoolEntryContainer 
     static class DummyBuilder extends LootPoolSingletonContainer.Builder<LootPoolSingletonContainer.DummyBuilder> {
         private final LootPoolSingletonContainer.EntryConstructor constructor;
 
-        public DummyBuilder(LootPoolSingletonContainer.EntryConstructor p_79717_) {
-            this.constructor = p_79717_;
+        public DummyBuilder(LootPoolSingletonContainer.EntryConstructor pConstructor) {
+            this.constructor = pConstructor;
         }
 
         protected LootPoolSingletonContainer.DummyBuilder getThis() {
@@ -104,8 +104,8 @@ public abstract class LootPoolSingletonContainer extends LootPoolEntryContainer 
     }
 
     protected abstract class EntryBase implements LootPoolEntry {
-        public int getWeight(float p_79725_) {
-            return Math.max(Mth.floor((float) LootPoolSingletonContainer.this.weight + (float) LootPoolSingletonContainer.this.quality * p_79725_), 0);
+        public int getWeight(float pLuck) {
+            return Math.max(Mth.floor((float) LootPoolSingletonContainer.this.weight + (float) LootPoolSingletonContainer.this.quality * pLuck), 0);
         }
     }
 
@@ -115,27 +115,27 @@ public abstract class LootPoolSingletonContainer extends LootPoolEntryContainer 
     }
 
     public abstract static class Serializer<T extends LootPoolSingletonContainer> extends LootPoolEntryContainer.Serializer<T> {
-        public void serializeCustom(JsonObject p_79741_, T p_79742_, JsonSerializationContext p_79743_) {
-            if (p_79742_.weight != 1) {
-                p_79741_.addProperty("weight", p_79742_.weight);
+        public void serializeCustom(JsonObject pObject, T pContext, JsonSerializationContext pConditions) {
+            if (pContext.weight != 1) {
+                pObject.addProperty("weight", pContext.weight);
             }
 
-            if (p_79742_.quality != 0) {
-                p_79741_.addProperty("quality", p_79742_.quality);
+            if (pContext.quality != 0) {
+                pObject.addProperty("quality", pContext.quality);
             }
 
-            if (!ArrayUtils.isEmpty((Object[]) p_79742_.functions)) {
-                p_79741_.add("functions", p_79743_.serialize(p_79742_.functions));
+            if (!ArrayUtils.isEmpty((Object[]) pContext.functions)) {
+                pObject.add("functions", pConditions.serialize(pContext.functions));
             }
         }
 
-        public final T deserializeCustom(JsonObject p_79733_, JsonDeserializationContext p_79734_, LootItemCondition[] p_79735_) {
-            int i = GsonHelper.getAsInt(p_79733_, "weight", 1);
-            int j = GsonHelper.getAsInt(p_79733_, "quality", 0);
-            LootItemFunction[] alootitemfunction = GsonHelper.getAsObject(p_79733_, "functions", new LootItemFunction[0], p_79734_, LootItemFunction[].class);
-            return this.deserialize(p_79733_, p_79734_, i, j, p_79735_, alootitemfunction);
+        public final T deserializeCustom(JsonObject pObject, JsonDeserializationContext pContext, LootItemCondition[] pConditions) {
+            int i = GsonHelper.getAsInt(pObject, "weight", 1);
+            int j = GsonHelper.getAsInt(pObject, "quality", 0);
+            LootItemFunction[] alootitemfunction = GsonHelper.getAsObject(pObject, "functions", new LootItemFunction[0], pContext, LootItemFunction[].class);
+            return this.deserialize(pObject, pContext, i, j, pConditions, alootitemfunction);
         }
 
-        protected abstract T deserialize(JsonObject p_79744_, JsonDeserializationContext p_79745_, int p_79746_, int p_79747_, LootItemCondition[] p_79748_, LootItemFunction[] p_79749_);
+        protected abstract T deserialize(JsonObject pObject, JsonDeserializationContext pContext, int pWeight, int pQuality, LootItemCondition[] pConditions, LootItemFunction[] pFunctions);
     }
 }

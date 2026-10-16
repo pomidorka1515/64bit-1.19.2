@@ -10,17 +10,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 public abstract class Team {
-    public boolean isAlliedTo(@Nullable Team p_83537_) {
-        if (p_83537_ == null) {
+    public boolean isAlliedTo(@Nullable Team pOther) {
+        if (pOther == null) {
             return false;
         } else {
-            return this == p_83537_;
+            return this == pOther;
         }
     }
 
     public abstract String getName();
 
-    public abstract MutableComponent getFormattedName(Component p_83538_);
+    public abstract MutableComponent getFormattedName(Component pFormattedName);
 
     public abstract boolean canSeeFriendlyInvisibles();
 
@@ -47,8 +47,8 @@ public abstract class Team {
         public final int id;
 
         @Nullable
-        public static Team.CollisionRule byName(String p_83556_) {
-            return BY_NAME.get(p_83556_);
+        public static Team.CollisionRule byName(String pName) {
+            return BY_NAME.get(pName);
         }
 
         private CollisionRule(String p_83551_, int p_83552_) {
@@ -76,8 +76,8 @@ public abstract class Team {
         }
 
         @Nullable
-        public static Team.Visibility byName(String p_83580_) {
-            return BY_NAME.get(p_83580_);
+        public static Team.Visibility byName(String pName) {
+            return BY_NAME.get(pName);
         }
 
         private Visibility(String p_83575_, int p_83576_) {

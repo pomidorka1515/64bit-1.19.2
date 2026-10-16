@@ -55,31 +55,31 @@ public class PackResourcesAdapterV4 implements PackResources {
     public static final String NEW_IRON_GOLEM_PATH = "textures/entity/iron_golem/iron_golem.png";
     private final PackResources pack;
 
-    public PackResourcesAdapterV4(PackResources p_118744_) {
-        this.pack = p_118744_;
+    public PackResourcesAdapterV4(PackResources pPack) {
+        this.pack = pPack;
     }
 
-    public InputStream getRootResource(String p_118791_) throws IOException {
-        return this.pack.getRootResource(p_118791_);
+    public InputStream getRootResource(String pFileName) throws IOException {
+        return this.pack.getRootResource(pFileName);
     }
 
-    public boolean hasResource(PackType p_118786_, ResourceLocation p_118787_) {
-        if (!"minecraft".equals(p_118787_.getNamespace())) {
-            return this.pack.hasResource(p_118786_, p_118787_);
+    public boolean hasResource(PackType pType, ResourceLocation pLocation) {
+        if (!"minecraft".equals(pLocation.getNamespace())) {
+            return this.pack.hasResource(pType, pLocation);
         } else {
-            String s = p_118787_.getPath();
+            String s = pLocation.getPath();
             if ("textures/misc/enchanted_item_glint.png".equals(s)) {
                 return false;
             } else if ("textures/entity/iron_golem/iron_golem.png".equals(s)) {
-                return this.pack.hasResource(p_118786_, OLD_IRON_GOLEM_LOCATION);
+                return this.pack.hasResource(pType, OLD_IRON_GOLEM_LOCATION);
             } else if (!"textures/entity/conduit/wind.png".equals(s) && !"textures/entity/conduit/wind_vertical.png".equals(s)) {
                 if (SHIELDS.contains(s)) {
-                    return this.pack.hasResource(p_118786_, SHIELD_BASE) && this.pack.hasResource(p_118786_, p_118787_);
+                    return this.pack.hasResource(pType, SHIELD_BASE) && this.pack.hasResource(pType, pLocation);
                 } else if (!BANNERS.contains(s)) {
                     Pair<ChestType, ResourceLocation> pair = CHESTS.get(s);
-                    return pair != null && this.pack.hasResource(p_118786_, pair.getSecond()) ? true : this.pack.hasResource(p_118786_, p_118787_);
+                    return pair != null && this.pack.hasResource(pType, pair.getSecond()) ? true : this.pack.hasResource(pType, pLocation);
                 } else {
-                    return this.pack.hasResource(p_118786_, BANNER_BASE) && this.pack.hasResource(p_118786_, p_118787_);
+                    return this.pack.hasResource(pType, BANNER_BASE) && this.pack.hasResource(pType, pLocation);
                 }
             } else {
                 return false;
@@ -87,27 +87,27 @@ public class PackResourcesAdapterV4 implements PackResources {
         }
     }
 
-    public InputStream getResource(PackType p_118755_, ResourceLocation p_118756_) throws IOException {
-        if (!"minecraft".equals(p_118756_.getNamespace())) {
-            return this.pack.getResource(p_118755_, p_118756_);
+    public InputStream getResource(PackType pType, ResourceLocation pLocation) throws IOException {
+        if (!"minecraft".equals(pLocation.getNamespace())) {
+            return this.pack.getResource(pType, pLocation);
         } else {
-            String s = p_118756_.getPath();
+            String s = pLocation.getPath();
             if ("textures/entity/iron_golem/iron_golem.png".equals(s)) {
-                return this.pack.getResource(p_118755_, OLD_IRON_GOLEM_LOCATION);
+                return this.pack.getResource(pType, OLD_IRON_GOLEM_LOCATION);
             } else {
                 if (SHIELDS.contains(s)) {
-                    InputStream inputstream2 = fixPattern(this.pack.getResource(p_118755_, SHIELD_BASE), this.pack.getResource(p_118755_, p_118756_), 64, 2, 2, 12, 22);
+                    InputStream inputstream2 = fixPattern(this.pack.getResource(pType, SHIELD_BASE), this.pack.getResource(pType, pLocation), 64, 2, 2, 12, 22);
                     if (inputstream2 != null) {
                         return inputstream2;
                     }
                 } else if (BANNERS.contains(s)) {
-                    InputStream inputstream1 = fixPattern(this.pack.getResource(p_118755_, BANNER_BASE), this.pack.getResource(p_118755_, p_118756_), 64, 0, 0, 42, 41);
+                    InputStream inputstream1 = fixPattern(this.pack.getResource(pType, BANNER_BASE), this.pack.getResource(pType, pLocation), 64, 0, 0, 42, 41);
                     if (inputstream1 != null) {
                         return inputstream1;
                     }
                 } else {
                     if ("textures/entity/enderdragon/dragon.png".equals(s) || "textures/entity/enderdragon/dragon_exploding.png".equals(s)) {
-                        NativeImage nativeimage = NativeImage.read(this.pack.getResource(p_118755_, p_118756_));
+                        NativeImage nativeimage = NativeImage.read(this.pack.getResource(pType, pLocation));
 
                         ByteArrayInputStream bytearrayinputstream;
                         try {
@@ -140,13 +140,13 @@ public class PackResourcesAdapterV4 implements PackResources {
                     }
 
                     if ("textures/entity/conduit/closed_eye.png".equals(s) || "textures/entity/conduit/open_eye.png".equals(s)) {
-                        return fixConduitEyeTexture(this.pack.getResource(p_118755_, p_118756_));
+                        return fixConduitEyeTexture(this.pack.getResource(pType, pLocation));
                     }
 
                     Pair<ChestType, ResourceLocation> pair = CHESTS.get(s);
                     if (pair != null) {
                         ChestType chesttype = pair.getFirst();
-                        InputStream inputstream = this.pack.getResource(p_118755_, pair.getSecond());
+                        InputStream inputstream = this.pack.getResource(pType, pair.getSecond());
                         if (chesttype == ChestType.SINGLE) {
                             return fixSingleChest(inputstream);
                         }
@@ -161,7 +161,7 @@ public class PackResourcesAdapterV4 implements PackResources {
                     }
                 }
 
-                return this.pack.getResource(p_118755_, p_118756_);
+                return this.pack.getResource(pType, pLocation);
             }
         }
     }
@@ -256,8 +256,8 @@ public class PackResourcesAdapterV4 implements PackResources {
         return bytearrayinputstream;
     }
 
-    public static InputStream fixConduitEyeTexture(InputStream p_118772_) throws IOException {
-        NativeImage nativeimage = NativeImage.read(p_118772_);
+    public static InputStream fixConduitEyeTexture(InputStream pInput) throws IOException {
+        NativeImage nativeimage = NativeImage.read(pInput);
 
         ByteArrayInputStream bytearrayinputstream;
         try {
@@ -298,8 +298,8 @@ public class PackResourcesAdapterV4 implements PackResources {
         return bytearrayinputstream;
     }
 
-    public static InputStream fixLeftChest(InputStream p_118789_) throws IOException {
-        NativeImage nativeimage = NativeImage.read(p_118789_);
+    public static InputStream fixLeftChest(InputStream pInput) throws IOException {
+        NativeImage nativeimage = NativeImage.read(pInput);
 
         ByteArrayInputStream bytearrayinputstream;
         try {
@@ -355,8 +355,8 @@ public class PackResourcesAdapterV4 implements PackResources {
         return bytearrayinputstream;
     }
 
-    public static InputStream fixRightChest(InputStream p_118793_) throws IOException {
-        NativeImage nativeimage = NativeImage.read(p_118793_);
+    public static InputStream fixRightChest(InputStream pInput) throws IOException {
+        NativeImage nativeimage = NativeImage.read(pInput);
 
         ByteArrayInputStream bytearrayinputstream;
         try {
@@ -412,8 +412,8 @@ public class PackResourcesAdapterV4 implements PackResources {
         return bytearrayinputstream;
     }
 
-    public static InputStream fixSingleChest(InputStream p_118798_) throws IOException {
-        NativeImage nativeimage = NativeImage.read(p_118798_);
+    public static InputStream fixSingleChest(InputStream pInput) throws IOException {
+        NativeImage nativeimage = NativeImage.read(pInput);
 
         ByteArrayInputStream bytearrayinputstream;
         try {
@@ -472,17 +472,17 @@ public class PackResourcesAdapterV4 implements PackResources {
         return bytearrayinputstream;
     }
 
-    public Collection<ResourceLocation> getResources(PackType p_235029_, String p_235030_, String p_235031_, Predicate<ResourceLocation> p_235032_) {
-        return this.pack.getResources(p_235029_, p_235030_, p_235031_, p_235032_);
+    public Collection<ResourceLocation> getResources(PackType pType, String pNamespace, String pPath, Predicate<ResourceLocation> pFilter) {
+        return this.pack.getResources(pType, pNamespace, pPath, pFilter);
     }
 
-    public Set<String> getNamespaces(PackType p_118747_) {
-        return this.pack.getNamespaces(p_118747_);
+    public Set<String> getNamespaces(PackType pType) {
+        return this.pack.getNamespaces(pType);
     }
 
     @Nullable
-    public <T> T getMetadataSection(MetadataSectionSerializer<T> p_118758_) throws IOException {
-        return this.pack.getMetadataSection(p_118758_);
+    public <T> T getMetadataSection(MetadataSectionSerializer<T> pDeserializer) throws IOException {
+        return this.pack.getMetadataSection(pDeserializer);
     }
 
     public String getName() {

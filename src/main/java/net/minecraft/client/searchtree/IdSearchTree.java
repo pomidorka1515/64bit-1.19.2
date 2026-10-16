@@ -22,18 +22,18 @@ public class IdSearchTree<T> implements RefreshableSearchTree<T> {
         this.resourceLocationSearchTree = ResourceLocationSearchTree.create(p_235168_, p_235167_);
     }
 
-    public List<T> search(String p_235173_) {
-        int i = p_235173_.indexOf(58);
-        return i == -1 ? this.searchPlainText(p_235173_) : this.searchResourceLocation(p_235173_.substring(0, i).trim(), p_235173_.substring(i + 1).trim());
+    public List<T> search(String pQuery) {
+        int i = pQuery.indexOf(58);
+        return i == -1 ? this.searchPlainText(pQuery) : this.searchResourceLocation(pQuery.substring(0, i).trim(), pQuery.substring(i + 1).trim());
     }
 
-    protected List<T> searchPlainText(String p_235169_) {
-        return this.resourceLocationSearchTree.searchPath(p_235169_);
+    protected List<T> searchPlainText(String pQuery) {
+        return this.resourceLocationSearchTree.searchPath(pQuery);
     }
 
-    protected List<T> searchResourceLocation(String p_235170_, String p_235171_) {
-        List<T> list = this.resourceLocationSearchTree.searchNamespace(p_235170_);
-        List<T> list1 = this.resourceLocationSearchTree.searchPath(p_235171_);
+    protected List<T> searchResourceLocation(String pNamespace, String pPath) {
+        List<T> list = this.resourceLocationSearchTree.searchNamespace(pNamespace);
+        List<T> list1 = this.resourceLocationSearchTree.searchPath(pPath);
         return ImmutableList.copyOf(new IntersectionIterator<>(list.iterator(), list1.iterator(), this.additionOrder));
     }
 }

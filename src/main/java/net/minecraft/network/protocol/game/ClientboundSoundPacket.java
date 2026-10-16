@@ -95,7 +95,7 @@ public class ClientboundSoundPacket implements Packet<ClientGamePacketListener> 
         return this.seed;
     }
 
-    public void handle(ClientGamePacketListener p_133454_) {
-        p_133454_.handleSoundEvent(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleSoundEvent(this);
     }
 }

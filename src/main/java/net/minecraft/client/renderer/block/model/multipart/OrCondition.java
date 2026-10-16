@@ -15,13 +15,13 @@ public class OrCondition implements Condition {
     public static final String TOKEN = "OR";
     private final Iterable<? extends Condition> conditions;
 
-    public OrCondition(Iterable<? extends Condition> p_112003_) {
-        this.conditions = p_112003_;
+    public OrCondition(Iterable<? extends Condition> pConditions) {
+        this.conditions = pConditions;
     }
 
-    public Predicate<BlockState> getPredicate(StateDefinition<Block, BlockState> p_112014_) {
+    public Predicate<BlockState> getPredicate(StateDefinition<Block, BlockState> pDefinition) {
         List<Predicate<BlockState>> list = Streams.stream(this.conditions).map((p_112009_) -> {
-                                                                              return p_112009_.getPredicate(p_112014_);
+                                                                              return p_112009_.getPredicate(pDefinition);
                                                                           })
                                                    .collect(Collectors.toList());
         return (p_112012_) -> {

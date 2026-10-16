@@ -22,19 +22,19 @@ public class VillagerRenderer extends MobRenderer<Villager, VillagerModel<Villag
         this.addLayer(new CrossedArmsItemLayer<>(this, p_174437_.getItemInHandRenderer()));
     }
 
-    public ResourceLocation getTextureLocation(Villager p_116312_) {
+    public ResourceLocation getTextureLocation(Villager pEntity) {
         return VILLAGER_BASE_SKIN;
     }
 
-    protected void scale(Villager p_116314_, PoseStack p_116315_, float p_116316_) {
+    protected void scale(Villager pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
         float f = 0.9375F;
-        if (p_116314_.isBaby()) {
+        if (pLivingEntity.isBaby()) {
             f *= 0.5F;
             this.shadowRadius = 0.25F;
         } else {
             this.shadowRadius = 0.5F;
         }
 
-        p_116315_.scale(f, f, f);
+        pMatrixStack.scale(f, f, f);
     }
 }

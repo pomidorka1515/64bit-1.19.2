@@ -7,8 +7,8 @@ import net.minecraft.world.entity.TamableAnimal;
 public class SitWhenOrderedToGoal extends Goal {
     private final TamableAnimal mob;
 
-    public SitWhenOrderedToGoal(TamableAnimal p_25898_) {
-        this.mob = p_25898_;
+    public SitWhenOrderedToGoal(TamableAnimal pMob) {
+        this.mob = pMob;
         this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
     }
 

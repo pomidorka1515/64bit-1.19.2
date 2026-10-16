@@ -13,8 +13,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class LockIconButton extends Button {
     private boolean locked;
 
-    public LockIconButton(int p_94299_, int p_94300_, Button.OnPress p_94301_) {
-        super(p_94299_, p_94300_, 20, 20, Component.translatable("narrator.button.difficulty_lock"), p_94301_);
+    public LockIconButton(int pX, int pY, Button.OnPress pOnPress) {
+        super(pX, pY, 20, 20, Component.translatable("narrator.button.difficulty_lock"), pOnPress);
     }
 
     protected MutableComponent createNarrationMessage() {
@@ -25,11 +25,11 @@ public class LockIconButton extends Button {
         return this.locked;
     }
 
-    public void setLocked(boolean p_94310_) {
-        this.locked = p_94310_;
+    public void setLocked(boolean pLocked) {
+        this.locked = pLocked;
     }
 
-    public void renderButton(PoseStack p_94304_, int p_94305_, int p_94306_, float p_94307_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, Button.WIDGETS_LOCATION);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -42,7 +42,7 @@ public class LockIconButton extends Button {
             lockiconbutton$icon = this.locked ? LockIconButton.Icon.LOCKED : LockIconButton.Icon.UNLOCKED;
         }
 
-        this.blit(p_94304_, this.x, this.y, lockiconbutton$icon.getX(), lockiconbutton$icon.getY(), this.width, this.height);
+        this.blit(pPoseStack, this.x, this.y, lockiconbutton$icon.getX(), lockiconbutton$icon.getY(), this.width, this.height);
     }
 
     @OnlyIn(Dist.CLIENT)

@@ -16,10 +16,10 @@ public class SetItemCountFunction extends LootItemConditionalFunction {
     final NumberProvider value;
     final boolean add;
 
-    SetItemCountFunction(LootItemCondition[] p_165409_, NumberProvider p_165410_, boolean p_165411_) {
-        super(p_165409_);
-        this.value = p_165410_;
-        this.add = p_165411_;
+    SetItemCountFunction(LootItemCondition[] pConditions, NumberProvider pCountValue, boolean pAdd) {
+        super(pConditions);
+        this.value = pCountValue;
+        this.add = pAdd;
     }
 
     public LootItemFunctionType getType() {
@@ -30,35 +30,35 @@ public class SetItemCountFunction extends LootItemConditionalFunction {
         return this.value.getReferencedContextParams();
     }
 
-    public ItemStack run(ItemStack p_81006_, LootContext p_81007_) {
-        int i = this.add ? p_81006_.getCount() : 0;
-        p_81006_.setCount(Mth.clamp(i + this.value.getInt(p_81007_), 0, p_81006_.getMaxStackSize()));
-        return p_81006_;
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        int i = this.add ? pStack.getCount() : 0;
+        pStack.setCount(Mth.clamp(i + this.value.getInt(pContext), 0, pStack.getMaxStackSize()));
+        return pStack;
     }
 
-    public static LootItemConditionalFunction.Builder<?> setCount(NumberProvider p_165413_) {
+    public static LootItemConditionalFunction.Builder<?> setCount(NumberProvider pCountValue) {
         return simpleBuilder((p_165423_) -> {
-            return new SetItemCountFunction(p_165423_, p_165413_, false);
+            return new SetItemCountFunction(p_165423_, pCountValue, false);
         });
     }
 
-    public static LootItemConditionalFunction.Builder<?> setCount(NumberProvider p_165415_, boolean p_165416_) {
+    public static LootItemConditionalFunction.Builder<?> setCount(NumberProvider pCountValue, boolean pAdd) {
         return simpleBuilder((p_165420_) -> {
-            return new SetItemCountFunction(p_165420_, p_165415_, p_165416_);
+            return new SetItemCountFunction(p_165420_, pCountValue, pAdd);
         });
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<SetItemCountFunction> {
-        public void serialize(JsonObject p_81026_, SetItemCountFunction p_81027_, JsonSerializationContext p_81028_) {
-            super.serialize(p_81026_, p_81027_, p_81028_);
-            p_81026_.add("count", p_81028_.serialize(p_81027_.value));
-            p_81026_.addProperty("add", p_81027_.add);
+        public void serialize(JsonObject pJson, SetItemCountFunction pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            pJson.add("count", pSerializationContext.serialize(pValue.value));
+            pJson.addProperty("add", pValue.add);
         }
 
-        public SetItemCountFunction deserialize(JsonObject p_81018_, JsonDeserializationContext p_81019_, LootItemCondition[] p_81020_) {
-            NumberProvider numberprovider = GsonHelper.getAsObject(p_81018_, "count", p_81019_, NumberProvider.class);
-            boolean flag = GsonHelper.getAsBoolean(p_81018_, "add", false);
-            return new SetItemCountFunction(p_81020_, numberprovider, flag);
+        public SetItemCountFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            NumberProvider numberprovider = GsonHelper.getAsObject(pObject, "count", pDeserializationContext, NumberProvider.class);
+            boolean flag = GsonHelper.getAsBoolean(pObject, "add", false);
+            return new SetItemCountFunction(pConditions, numberprovider, flag);
         }
     }
 }

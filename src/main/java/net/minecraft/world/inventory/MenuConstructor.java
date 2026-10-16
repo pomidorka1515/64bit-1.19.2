@@ -7,5 +7,5 @@ import net.minecraft.world.entity.player.Player;
 @FunctionalInterface
 public interface MenuConstructor {
     @Nullable
-    AbstractContainerMenu createMenu(int p_39954_, Inventory p_39955_, Player p_39956_);
+    AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer);
 }

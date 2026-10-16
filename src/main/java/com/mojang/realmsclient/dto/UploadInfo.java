@@ -25,17 +25,17 @@ public class UploadInfo extends ValueObject {
     private final String token;
     private final URI uploadEndpoint;
 
-    private UploadInfo(boolean p_87693_, @Nullable String p_87694_, URI p_87695_) {
-        this.worldClosed = p_87693_;
-        this.token = p_87694_;
-        this.uploadEndpoint = p_87695_;
+    private UploadInfo(boolean pWorldClosed, @Nullable String pToken, URI pUploadEndpoint) {
+        this.worldClosed = pWorldClosed;
+        this.token = pToken;
+        this.uploadEndpoint = pUploadEndpoint;
     }
 
     @Nullable
-    public static UploadInfo parse(String p_87701_) {
+    public static UploadInfo parse(String pJson) {
         try {
             JsonParser jsonparser = new JsonParser();
-            JsonObject jsonobject = jsonparser.parse(p_87701_).getAsJsonObject();
+            JsonObject jsonobject = jsonparser.parse(pJson).getAsJsonObject();
             String s = JsonUtils.getStringOr("uploadEndpoint", jsonobject, (String) null);
             if (s != null) {
                 int i = JsonUtils.getIntOr("port", jsonobject, -1);
@@ -55,13 +55,13 @@ public class UploadInfo extends ValueObject {
 
     @Nullable
     @VisibleForTesting
-    public static URI assembleUri(String p_87703_, int p_87704_) {
-        Matcher matcher = URI_SCHEMA_PATTERN.matcher(p_87703_);
-        String s = ensureEndpointSchema(p_87703_, matcher);
+    public static URI assembleUri(String pUri, int pPort) {
+        Matcher matcher = URI_SCHEMA_PATTERN.matcher(pUri);
+        String s = ensureEndpointSchema(pUri, matcher);
 
         try {
             URI uri = new URI(s);
-            int i = selectPortOrDefault(p_87704_, uri.getPort());
+            int i = selectPortOrDefault(pPort, uri.getPort());
             return i != uri.getPort() ? new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), i, uri.getPath(), uri.getQuery(), uri.getFragment()) : uri;
         } catch (URISyntaxException urisyntaxexception) {
             LOGGER.warn("Failed to parse URI {}", s, urisyntaxexception);
@@ -69,22 +69,22 @@ public class UploadInfo extends ValueObject {
         }
     }
 
-    private static int selectPortOrDefault(int p_87698_, int p_87699_) {
-        if (p_87698_ != -1) {
-            return p_87698_;
+    private static int selectPortOrDefault(int pPort, int pDefaultPort) {
+        if (pPort != -1) {
+            return pPort;
         } else {
-            return p_87699_ != -1 ? p_87699_ : 8080;
+            return pDefaultPort != -1 ? pDefaultPort : 8080;
         }
     }
 
-    private static String ensureEndpointSchema(String p_87706_, Matcher p_87707_) {
-        return p_87707_.find() ? p_87706_ : "http://" + p_87706_;
+    private static String ensureEndpointSchema(String pUri, Matcher pMatcher) {
+        return pMatcher.find() ? pUri : "http://" + pUri;
     }
 
-    public static String createRequest(@Nullable String p_87710_) {
+    public static String createRequest(@Nullable String pToken) {
         JsonObject jsonobject = new JsonObject();
-        if (p_87710_ != null) {
-            jsonobject.addProperty("token", p_87710_);
+        if (pToken != null) {
+            jsonobject.addProperty("token", pToken);
         }
 
         return jsonobject.toString();

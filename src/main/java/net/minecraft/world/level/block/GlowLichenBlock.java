@@ -22,8 +22,8 @@ public class GlowLichenBlock extends MultifaceBlock implements BonemealableBlock
     private static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     private final MultifaceSpreader spreader = new MultifaceSpreader(this);
 
-    public GlowLichenBlock(BlockBehaviour.Properties p_153282_) {
-        super(p_153282_);
+    public GlowLichenBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(false)));
     }
 
@@ -33,43 +33,43 @@ public class GlowLichenBlock extends MultifaceBlock implements BonemealableBlock
         };
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_153309_) {
-        super.createBlockStateDefinition(p_153309_);
-        p_153309_.add(WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        super.createBlockStateDefinition(pBuilder);
+        pBuilder.add(WATERLOGGED);
     }
 
-    public BlockState updateShape(BlockState p_153302_, Direction p_153303_, BlockState p_153304_, LevelAccessor p_153305_, BlockPos p_153306_, BlockPos p_153307_) {
-        if (p_153302_.getValue(WATERLOGGED)) {
-            p_153305_.scheduleTick(p_153306_, Fluids.WATER, Fluids.WATER.getTickDelay(p_153305_));
+    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return super.updateShape(p_153302_, p_153303_, p_153304_, p_153305_, p_153306_, p_153307_);
+        return super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
     }
 
-    public boolean canBeReplaced(BlockState p_153299_, BlockPlaceContext p_153300_) {
-        return !p_153300_.getItemInHand().is(Items.GLOW_LICHEN) || super.canBeReplaced(p_153299_, p_153300_);
+    public boolean canBeReplaced(BlockState pState, BlockPlaceContext pUseContext) {
+        return !pUseContext.getItemInHand().is(Items.GLOW_LICHEN) || super.canBeReplaced(pState, pUseContext);
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_153289_, BlockPos p_153290_, BlockState p_153291_, boolean p_153292_) {
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
         return Direction.stream().anyMatch((p_153316_) -> {
-            return this.spreader.canSpreadInAnyDirection(p_153291_, p_153289_, p_153290_, p_153316_.getOpposite());
+            return this.spreader.canSpreadInAnyDirection(pState, pLevel, pPos, p_153316_.getOpposite());
         });
     }
 
-    public boolean isBonemealSuccess(Level p_221264_, RandomSource p_221265_, BlockPos p_221266_, BlockState p_221267_) {
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
 
-    public void performBonemeal(ServerLevel p_221259_, RandomSource p_221260_, BlockPos p_221261_, BlockState p_221262_) {
-        this.spreader.spreadFromRandomFaceTowardRandomDirection(p_221262_, p_221259_, p_221261_, p_221260_);
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        this.spreader.spreadFromRandomFaceTowardRandomDirection(pState, pLevel, pPos, pRandom);
     }
 
-    public FluidState getFluidState(BlockState p_153311_) {
-        return p_153311_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_153311_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public boolean propagatesSkylightDown(BlockState p_181225_, BlockGetter p_181226_, BlockPos p_181227_) {
-        return p_181225_.getFluidState().isEmpty();
+    public boolean propagatesSkylightDown(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+        return pState.getFluidState().isEmpty();
     }
 
     public MultifaceSpreader getSpreader() {

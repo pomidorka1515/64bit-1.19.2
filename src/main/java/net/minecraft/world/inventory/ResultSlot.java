@@ -11,36 +11,36 @@ public class ResultSlot extends Slot {
     private final Player player;
     private int removeCount;
 
-    public ResultSlot(Player p_40166_, CraftingContainer p_40167_, Container p_40168_, int p_40169_, int p_40170_, int p_40171_) {
-        super(p_40168_, p_40169_, p_40170_, p_40171_);
-        this.player = p_40166_;
-        this.craftSlots = p_40167_;
+    public ResultSlot(Player pPlayer, CraftingContainer pCraftSlots, Container pContainer, int pSlot, int pXPosition, int pYPosition) {
+        super(pContainer, pSlot, pXPosition, pYPosition);
+        this.player = pPlayer;
+        this.craftSlots = pCraftSlots;
     }
 
-    public boolean mayPlace(ItemStack p_40178_) {
+    public boolean mayPlace(ItemStack pStack) {
         return false;
     }
 
-    public ItemStack remove(int p_40173_) {
+    public ItemStack remove(int pAmount) {
         if (this.hasItem()) {
-            this.removeCount += Math.min(p_40173_, this.getItem().getCount());
+            this.removeCount += Math.min(pAmount, this.getItem().getCount());
         }
 
-        return super.remove(p_40173_);
+        return super.remove(pAmount);
     }
 
-    protected void onQuickCraft(ItemStack p_40180_, int p_40181_) {
-        this.removeCount += p_40181_;
-        this.checkTakeAchievements(p_40180_);
+    protected void onQuickCraft(ItemStack pStack, int pAmount) {
+        this.removeCount += pAmount;
+        this.checkTakeAchievements(pStack);
     }
 
-    protected void onSwapCraft(int p_40183_) {
-        this.removeCount += p_40183_;
+    protected void onSwapCraft(int pNumItemsCrafted) {
+        this.removeCount += pNumItemsCrafted;
     }
 
-    protected void checkTakeAchievements(ItemStack p_40185_) {
+    protected void checkTakeAchievements(ItemStack pStack) {
         if (this.removeCount > 0) {
-            p_40185_.onCraftedBy(this.player.level, this.player, this.removeCount);
+            pStack.onCraftedBy(this.player.level, this.player, this.removeCount);
         }
 
         if (this.container instanceof RecipeHolder) {
@@ -50,9 +50,9 @@ public class ResultSlot extends Slot {
         this.removeCount = 0;
     }
 
-    public void onTake(Player p_150638_, ItemStack p_150639_) {
-        this.checkTakeAchievements(p_150639_);
-        NonNullList<ItemStack> nonnulllist = p_150638_.level.getRecipeManager().getRemainingItemsFor(RecipeType.CRAFTING, this.craftSlots, p_150638_.level);
+    public void onTake(Player pPlayer, ItemStack pStack) {
+        this.checkTakeAchievements(pStack);
+        NonNullList<ItemStack> nonnulllist = pPlayer.level.getRecipeManager().getRemainingItemsFor(RecipeType.CRAFTING, this.craftSlots, pPlayer.level);
 
         for (int i = 0; i < nonnulllist.size(); ++i) {
             ItemStack itemstack = this.craftSlots.getItem(i);

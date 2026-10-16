@@ -31,16 +31,16 @@ public class Heightmap {
     private final Predicate<BlockState> isOpaque;
     private final ChunkAccess chunk;
 
-    public Heightmap(ChunkAccess p_64237_, Heightmap.Types p_64238_) {
-        this.isOpaque = p_64238_.isOpaque();
-        this.chunk = p_64237_;
-        int i = Mth.ceillog2(p_64237_.getHeight() + 1);
+    public Heightmap(ChunkAccess pChunk, Heightmap.Types pType) {
+        this.isOpaque = pType.isOpaque();
+        this.chunk = pChunk;
+        int i = Mth.ceillog2(pChunk.getHeight() + 1);
         this.data = new SimpleBitStorage(i, 256);
     }
 
-    public static void primeHeightmaps(ChunkAccess p_64257_, Set<Heightmap.Types> p_64258_) {
-        int i = p_64258_.size();
-        int j = p_64257_.getHighestSectionPosition() + 16;
+    public static void primeHeightmaps(ChunkAccess pChunk, Set<Heightmap.Types> pTypes) {
+        int i = pTypes.size();
+        int j = pChunk.getHighestSectionPosition() + 16;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (int k = 0; k < 16; ++k) {
@@ -50,13 +50,13 @@ public class Heightmap {
                 // previous column accumulate and turns a normal prime into a very
                 // expensive scan (especially when a heightmap type is missing).
                 ObjectList<Heightmap> objectlist = new ObjectArrayList<>(i);
-                for (Heightmap.Types heightmap$types : p_64258_) {
-                    objectlist.add(p_64257_.getOrCreateHeightmapUnprimed(heightmap$types));
+                for (Heightmap.Types heightmap$types : pTypes) {
+                    objectlist.add(pChunk.getOrCreateHeightmapUnprimed(heightmap$types));
                 }
 
-                for (int i1 = j - 1; i1 >= p_64257_.getMinBuildHeight(); --i1) {
+                for (int i1 = j - 1; i1 >= pChunk.getMinBuildHeight(); --i1) {
                     blockpos$mutableblockpos.set(k, i1, l);
-                    BlockState blockstate = p_64257_.getBlockState(blockpos$mutableblockpos);
+                    BlockState blockstate = pChunk.getBlockState(blockpos$mutableblockpos);
                     if (!blockstate.is(Blocks.AIR)) {
                         ObjectListIterator<Heightmap> objectlistiterator = objectlist.iterator();
                         while (objectlistiterator.hasNext()) {
@@ -76,28 +76,28 @@ public class Heightmap {
         }
     }
 
-    public boolean update(int p_64250_, int p_64251_, int p_64252_, BlockState p_64253_) {
-        int i = this.getFirstAvailable(p_64250_, p_64252_);
-        if (p_64251_ <= i - 2) {
+    public boolean update(int pX, int pY, int pZ, BlockState pState) {
+        int i = this.getFirstAvailable(pX, pZ);
+        if (pY <= i - 2) {
             return false;
         } else {
-            if (this.isOpaque.test(p_64253_)) {
-                if (p_64251_ >= i) {
-                    this.setHeight(p_64250_, p_64252_, p_64251_ + 1);
+            if (this.isOpaque.test(pState)) {
+                if (pY >= i) {
+                    this.setHeight(pX, pZ, pY + 1);
                     return true;
                 }
-            } else if (i - 1 == p_64251_) {
+            } else if (i - 1 == pY) {
                 BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-                for (int j = p_64251_ - 1; j >= this.chunk.getMinBuildHeight(); --j) {
-                    blockpos$mutableblockpos.set(p_64250_, j, p_64252_);
+                for (int j = pY - 1; j >= this.chunk.getMinBuildHeight(); --j) {
+                    blockpos$mutableblockpos.set(pX, j, pZ);
                     if (this.isOpaque.test(this.chunk.getBlockState(blockpos$mutableblockpos))) {
-                        this.setHeight(p_64250_, p_64252_, j + 1);
+                        this.setHeight(pX, pZ, j + 1);
                         return true;
                     }
                 }
 
-                this.setHeight(p_64250_, p_64252_, this.chunk.getMinBuildHeight());
+                this.setHeight(pX, pZ, this.chunk.getMinBuildHeight());
                 return true;
             }
 
@@ -105,29 +105,29 @@ public class Heightmap {
         }
     }
 
-    public int getFirstAvailable(int p_64243_, int p_64244_) {
-        return this.getFirstAvailable(getIndex(p_64243_, p_64244_));
+    public int getFirstAvailable(int pX, int pZ) {
+        return this.getFirstAvailable(getIndex(pX, pZ));
     }
 
-    public int getHighestTaken(int p_158369_, int p_158370_) {
-        return this.getFirstAvailable(getIndex(p_158369_, p_158370_)) - 1;
+    public int getHighestTaken(int pX, int pZ) {
+        return this.getFirstAvailable(getIndex(pX, pZ)) - 1;
     }
 
-    private int getFirstAvailable(int p_64241_) {
-        return this.data.get(p_64241_) + this.chunk.getMinBuildHeight();
+    private int getFirstAvailable(int pIndex) {
+        return this.data.get(pIndex) + this.chunk.getMinBuildHeight();
     }
 
-    private void setHeight(int p_64246_, int p_64247_, int p_64248_) {
-        this.data.set(getIndex(p_64246_, p_64247_), p_64248_ - this.chunk.getMinBuildHeight());
+    private void setHeight(int pX, int pZ, int pValue) {
+        this.data.set(getIndex(pX, pZ), pValue - this.chunk.getMinBuildHeight());
     }
 
-    public void setRawData(ChunkAccess p_158365_, Heightmap.Types p_158366_, long[] p_158367_) {
+    public void setRawData(ChunkAccess pChunk, Heightmap.Types pType, long[] pData) {
         long[] along = this.data.getRaw();
-        if (along.length == p_158367_.length) {
-            System.arraycopy(p_158367_, 0, along, 0, p_158367_.length);
+        if (along.length == pData.length) {
+            System.arraycopy(pData, 0, along, 0, pData.length);
         } else {
-            LOGGER.warn("Ignoring heightmap data for chunk " + p_158365_.getPos() + ", size does not match; expected: " + along.length + ", got: " + p_158367_.length);
-            primeHeightmaps(p_158365_, EnumSet.of(p_158366_));
+            LOGGER.warn("Ignoring heightmap data for chunk " + pChunk.getPos() + ", size does not match; expected: " + along.length + ", got: " + pData.length);
+            primeHeightmaps(pChunk, EnumSet.of(pType));
         }
     }
 
@@ -135,8 +135,8 @@ public class Heightmap {
         return this.data.getRaw();
     }
 
-    private static int getIndex(int p_64266_, int p_64267_) {
-        return p_64266_ + p_64267_ * 16;
+    private static int getIndex(int pX, int pZ) {
+        return pX + pZ * 16;
     }
 
     public static enum Types implements StringRepresentable {

@@ -5,8 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 public class LootContextParam<T> {
     private final ResourceLocation name;
 
-    public LootContextParam(ResourceLocation p_81283_) {
-        this.name = p_81283_;
+    public LootContextParam(ResourceLocation pName) {
+        this.name = pName;
     }
 
     public ResourceLocation getName() {

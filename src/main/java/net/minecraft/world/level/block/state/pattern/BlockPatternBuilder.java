@@ -23,17 +23,17 @@ public class BlockPatternBuilder {
         });
     }
 
-    public BlockPatternBuilder aisle(String... p_61248_) {
-        if (!ArrayUtils.isEmpty((Object[]) p_61248_) && !StringUtils.isEmpty(p_61248_[0])) {
+    public BlockPatternBuilder aisle(String... pAisle) {
+        if (!ArrayUtils.isEmpty((Object[]) pAisle) && !StringUtils.isEmpty(pAisle[0])) {
             if (this.pattern.isEmpty()) {
-                this.height = p_61248_.length;
-                this.width = p_61248_[0].length();
+                this.height = pAisle.length;
+                this.width = pAisle[0].length();
             }
 
-            if (p_61248_.length != this.height) {
-                throw new IllegalArgumentException("Expected aisle with height of " + this.height + ", but was given one with a height of " + p_61248_.length + ")");
+            if (pAisle.length != this.height) {
+                throw new IllegalArgumentException("Expected aisle with height of " + this.height + ", but was given one with a height of " + pAisle.length + ")");
             } else {
-                for (String s : p_61248_) {
+                for (String s : pAisle) {
                     if (s.length() != this.width) {
                         throw new IllegalArgumentException("Not all rows in the given aisle are the correct width (expected " + this.width + ", found one with " + s.length() + ")");
                     }
@@ -45,7 +45,7 @@ public class BlockPatternBuilder {
                     }
                 }
 
-                this.pattern.add(p_61248_);
+                this.pattern.add(pAisle);
                 return this;
             }
         } else {
@@ -57,8 +57,8 @@ public class BlockPatternBuilder {
         return new BlockPatternBuilder();
     }
 
-    public BlockPatternBuilder where(char p_61245_, Predicate<BlockInWorld> p_61246_) {
-        this.lookup.put(p_61245_, p_61246_);
+    public BlockPatternBuilder where(char pSymbol, Predicate<BlockInWorld> pBlockMatcher) {
+        this.lookup.put(pSymbol, pBlockMatcher);
         return this;
     }
 

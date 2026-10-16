@@ -13,30 +13,30 @@ public abstract class CompositeEntryBase extends LootPoolEntryContainer {
     protected final LootPoolEntryContainer[] children;
     private final ComposableEntryContainer composedChildren;
 
-    protected CompositeEntryBase(LootPoolEntryContainer[] p_79431_, LootItemCondition[] p_79432_) {
-        super(p_79432_);
-        this.children = p_79431_;
-        this.composedChildren = this.compose(p_79431_);
+    protected CompositeEntryBase(LootPoolEntryContainer[] pChildren, LootItemCondition[] pConditions) {
+        super(pConditions);
+        this.children = pChildren;
+        this.composedChildren = this.compose(pChildren);
     }
 
-    public void validate(ValidationContext p_79434_) {
-        super.validate(p_79434_);
+    public void validate(ValidationContext pValidationContext) {
+        super.validate(pValidationContext);
         if (this.children.length == 0) {
-            p_79434_.reportProblem("Empty children list");
+            pValidationContext.reportProblem("Empty children list");
         }
 
         for (int i = 0; i < this.children.length; ++i) {
-            this.children[i].validate(p_79434_.forChild(".entry[" + i + "]"));
+            this.children[i].validate(pValidationContext.forChild(".entry[" + i + "]"));
         }
     }
 
-    protected abstract ComposableEntryContainer compose(ComposableEntryContainer[] p_79437_);
+    protected abstract ComposableEntryContainer compose(ComposableEntryContainer[] pEntries);
 
-    public final boolean expand(LootContext p_79439_, Consumer<LootPoolEntry> p_79440_) {
-        return !this.canRun(p_79439_) ? false : this.composedChildren.expand(p_79439_, p_79440_);
+    public final boolean expand(LootContext pLootContext, Consumer<LootPoolEntry> pEntryConsumer) {
+        return !this.canRun(pLootContext) ? false : this.composedChildren.expand(pLootContext, pEntryConsumer);
     }
 
-    public static <T extends CompositeEntryBase> LootPoolEntryContainer.Serializer<T> createSerializer(final CompositeEntryBase.CompositeEntryConstructor<T> p_79436_) {
+    public static <T extends CompositeEntryBase> LootPoolEntryContainer.Serializer<T> createSerializer(final CompositeEntryBase.CompositeEntryConstructor<T> pFactory) {
         return new LootPoolEntryContainer.Serializer<T>() {
             public void serializeCustom(JsonObject p_79449_, T p_79450_, JsonSerializationContext p_79451_) {
                 p_79449_.add("children", p_79451_.serialize(p_79450_.children));
@@ -44,7 +44,7 @@ public abstract class CompositeEntryBase extends LootPoolEntryContainer {
 
             public final T deserializeCustom(JsonObject p_79445_, JsonDeserializationContext p_79446_, LootItemCondition[] p_79447_) {
                 LootPoolEntryContainer[] alootpoolentrycontainer = GsonHelper.getAsObject(p_79445_, "children", p_79446_, LootPoolEntryContainer[].class);
-                return p_79436_.create(alootpoolentrycontainer, p_79447_);
+                return pFactory.create(alootpoolentrycontainer, p_79447_);
             }
         };
     }

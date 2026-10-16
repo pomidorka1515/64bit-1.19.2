@@ -8,8 +8,8 @@ public class DragonHoverPhase extends AbstractDragonPhaseInstance {
     @Nullable
     private net.minecraft.world.phys.SectorVec3 targetLocation;
 
-    public DragonHoverPhase(EnderDragon p_31246_) {
-        super(p_31246_);
+    public DragonHoverPhase(EnderDragon pDragon) {
+        super(pDragon);
     }
 
     public void doServerTick() {

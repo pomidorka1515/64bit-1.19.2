@@ -21,23 +21,23 @@ public class DirectAssetIndex extends AssetIndex {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final File assetsDirectory;
 
-    public DirectAssetIndex(File p_118635_) {
-        this.assetsDirectory = p_118635_;
+    public DirectAssetIndex(File pAssetsDirectory) {
+        this.assetsDirectory = pAssetsDirectory;
     }
 
-    public File getFile(ResourceLocation p_118653_) {
-        return new File(this.assetsDirectory, p_118653_.toString().replace(':', '/'));
+    public File getFile(ResourceLocation pLocation) {
+        return new File(this.assetsDirectory, pLocation.toString().replace(':', '/'));
     }
 
-    public File getRootFile(String p_118637_) {
-        return new File(this.assetsDirectory, p_118637_);
+    public File getRootFile(String pPath) {
+        return new File(this.assetsDirectory, pPath);
     }
 
-    public Collection<ResourceLocation> getFiles(String p_235016_, String p_235017_, Predicate<ResourceLocation> p_235018_) {
-        Path path = this.assetsDirectory.toPath().resolve(p_235017_);
+    public Collection<ResourceLocation> getFiles(String pPath, String pNamespace, Predicate<ResourceLocation> pFilter) {
+        Path path = this.assetsDirectory.toPath().resolve(pNamespace);
 
         try {
-            Stream<Path> stream = Files.walk(path.resolve(p_235016_));
+            Stream<Path> stream = Files.walk(path.resolve(pPath));
 
             Collection collection;
             try {
@@ -47,9 +47,9 @@ public class DirectAssetIndex extends AssetIndex {
                                          return !p_118648_.endsWith(".mcmeta");
                                      })
                                      .map((p_235022_) -> {
-                                         return new ResourceLocation(p_235017_, path.relativize(p_235022_).toString().replaceAll("\\\\", "/"));
+                                         return new ResourceLocation(pNamespace, path.relativize(p_235022_).toString().replaceAll("\\\\", "/"));
                                      })
-                                     .filter(p_235018_)
+                                     .filter(pFilter)
                                      .collect(Collectors.toList());
             } catch (Throwable throwable1) {
                 if (stream != null) {
@@ -70,7 +70,7 @@ public class DirectAssetIndex extends AssetIndex {
             return collection;
         } catch (NoSuchFileException nosuchfileexception) {
         } catch (IOException ioexception) {
-            LOGGER.warn("Unable to getFiles on {}", p_235016_, ioexception);
+            LOGGER.warn("Unable to getFiles on {}", pPath, ioexception);
         }
 
         return Collections.emptyList();

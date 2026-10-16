@@ -13,17 +13,17 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
     private float oldWalkableCost;
     private float oldWaterBorderCost;
 
-    public AmphibiousNodeEvaluator(boolean p_164659_) {
-        this.prefersShallowSwimming = p_164659_;
+    public AmphibiousNodeEvaluator(boolean pPrefersShallowSwimming) {
+        this.prefersShallowSwimming = pPrefersShallowSwimming;
     }
 
-    public void prepare(PathNavigationRegion p_164671_, Mob p_164672_) {
-        super.prepare(p_164671_, p_164672_);
-        p_164672_.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        this.oldWalkableCost = p_164672_.getPathfindingMalus(BlockPathTypes.WALKABLE);
-        p_164672_.setPathfindingMalus(BlockPathTypes.WALKABLE, 6.0F);
-        this.oldWaterBorderCost = p_164672_.getPathfindingMalus(BlockPathTypes.WATER_BORDER);
-        p_164672_.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 4.0F);
+    public void prepare(PathNavigationRegion pLevel, Mob pMob) {
+        super.prepare(pLevel, pMob);
+        pMob.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.oldWalkableCost = pMob.getPathfindingMalus(BlockPathTypes.WALKABLE);
+        pMob.setPathfindingMalus(BlockPathTypes.WALKABLE, 6.0F);
+        this.oldWaterBorderCost = pMob.getPathfindingMalus(BlockPathTypes.WATER_BORDER);
+        pMob.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 4.0F);
     }
 
     public void done() {
@@ -40,8 +40,8 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
     }
 
     @Nullable
-    public Target getGoal(double p_164662_, double p_164663_, double p_164664_) {
-        return this.getTargetFromNode(this.getNode(Mth.lfloor(p_164662_), Mth.floor(p_164663_ + 0.5D), Mth.lfloor(p_164664_)));
+    public Target getGoal(double pX, double pY, double pZ) {
+        return this.getTargetFromNode(this.getNode(Mth.lfloor(pX), Mth.floor(pY + 0.5D), Mth.lfloor(pZ)));
     }
 
     public int getNeighbors(Node[] p_164676_, Node p_164677_) {
@@ -80,20 +80,20 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
         return this.isNeighborValid(p_230611_, p_230612_) && p_230611_.type == BlockPathTypes.WATER;
     }
 
-    protected double getFloorLevel(BlockPos p_164674_) {
-        return this.mob.isInWater() ? (double) p_164674_.getY() + 0.5D : super.getFloorLevel(p_164674_);
+    protected double getFloorLevel(BlockPos pPos) {
+        return this.mob.isInWater() ? (double) pPos.getY() + 0.5D : super.getFloorLevel(pPos);
     }
 
     protected boolean isAmphibious() {
         return true;
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter p_164666_, long p_164667_, int p_164668_, long p_164669_) {
+    public BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        BlockPathTypes blockpathtypes = getBlockPathTypeRaw(p_164666_, blockpos$mutableblockpos.set(p_164667_, p_164668_, p_164669_));
+        BlockPathTypes blockpathtypes = getBlockPathTypeRaw(pLevel, blockpos$mutableblockpos.set(pX, pY, pZ));
         if (blockpathtypes == BlockPathTypes.WATER) {
             for (Direction direction : Direction.values()) {
-                BlockPathTypes blockpathtypes1 = getBlockPathTypeRaw(p_164666_, blockpos$mutableblockpos.set(p_164667_, p_164668_, p_164669_).move(direction));
+                BlockPathTypes blockpathtypes1 = getBlockPathTypeRaw(pLevel, blockpos$mutableblockpos.set(pX, pY, pZ).move(direction));
                 if (blockpathtypes1 == BlockPathTypes.BLOCKED) {
                     return BlockPathTypes.WATER_BORDER;
                 }
@@ -101,7 +101,7 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
 
             return BlockPathTypes.WATER;
         } else {
-            return getBlockPathTypeStatic(p_164666_, blockpos$mutableblockpos);
+            return getBlockPathTypeStatic(pLevel, blockpos$mutableblockpos);
         }
     }
 }

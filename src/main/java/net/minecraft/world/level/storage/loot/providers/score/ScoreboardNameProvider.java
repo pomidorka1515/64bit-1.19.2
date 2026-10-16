@@ -7,7 +7,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
 
 public interface ScoreboardNameProvider {
     @Nullable
-    String getScoreboardName(LootContext p_165867_);
+    String getScoreboardName(LootContext pLootContext);
 
     LootScoreProviderType getType();
 

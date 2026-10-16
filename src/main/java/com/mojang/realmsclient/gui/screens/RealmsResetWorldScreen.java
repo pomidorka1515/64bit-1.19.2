@@ -50,31 +50,31 @@ public class RealmsResetWorldScreen extends RealmsScreen {
     private final Runnable resetWorldRunnable;
     private final Runnable callback;
 
-    public RealmsResetWorldScreen(Screen p_167448_, RealmsServer p_167449_, Component p_167450_, Runnable p_167451_, Runnable p_167452_) {
-        super(p_167450_);
-        this.lastScreen = p_167448_;
-        this.serverData = p_167449_;
-        this.resetWorldRunnable = p_167451_;
-        this.callback = p_167452_;
+    public RealmsResetWorldScreen(Screen pLastScreen, RealmsServer pServerData, Component pTitle, Runnable pResetWorldRunnable, Runnable pCallback) {
+        super(pTitle);
+        this.lastScreen = pLastScreen;
+        this.serverData = pServerData;
+        this.resetWorldRunnable = pResetWorldRunnable;
+        this.callback = pCallback;
     }
 
-    public RealmsResetWorldScreen(Screen p_89329_, RealmsServer p_89330_, Runnable p_89331_, Runnable p_89332_) {
-        this(p_89329_, p_89330_, Component.translatable("mco.reset.world.title"), p_89331_, p_89332_);
+    public RealmsResetWorldScreen(Screen pLastScreen, RealmsServer pServerData, Runnable pResetWorldRunnable, Runnable pCallback) {
+        this(pLastScreen, pServerData, Component.translatable("mco.reset.world.title"), pResetWorldRunnable, pCallback);
     }
 
-    public RealmsResetWorldScreen(Screen p_89334_, RealmsServer p_89335_, Component p_89336_, Component p_89337_, int p_89338_, Component p_89339_, Runnable p_89340_, Runnable p_89341_) {
-        this(p_89334_, p_89335_, p_89336_, p_89340_, p_89341_);
-        this.subtitle = p_89337_;
-        this.subtitleColor = p_89338_;
-        this.buttonTitle = p_89339_;
+    public RealmsResetWorldScreen(Screen pLastScreen, RealmsServer pServerData, Component pTitle, Component pSubtitle, int pSubtitleColor, Component pButtonTitle, Runnable pResetWorldRunnable, Runnable pCallback) {
+        this(pLastScreen, pServerData, pTitle, pResetWorldRunnable, pCallback);
+        this.subtitle = pSubtitle;
+        this.subtitleColor = pSubtitleColor;
+        this.buttonTitle = pButtonTitle;
     }
 
-    public void setSlot(int p_89344_) {
-        this.slot = p_89344_;
+    public void setSlot(int pSlot) {
+        this.slot = pSlot;
     }
 
-    public void setResetTitle(Component p_89390_) {
-        this.resetTitle = p_89390_;
+    public void setResetTitle(Component pResetTitle) {
+        this.resetTitle = pResetTitle;
     }
 
     public void init() {
@@ -130,12 +130,12 @@ public class RealmsResetWorldScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_89346_, int p_89347_, int p_89348_) {
-        if (p_89346_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.lastScreen);
             return true;
         } else {
-            return super.keyPressed(p_89346_, p_89347_, p_89348_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -143,10 +143,10 @@ public class RealmsResetWorldScreen extends RealmsScreen {
         return this.width / 2 - 130 + (p_89393_ - 1) * 100;
     }
 
-    public void render(PoseStack p_89350_, int p_89351_, int p_89352_, float p_89353_) {
-        this.renderBackground(p_89350_);
-        drawCenteredString(p_89350_, this.font, this.title, this.width / 2, 7, 16777215);
-        super.render(p_89350_, p_89351_, p_89352_, p_89353_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 7, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     void drawFrame(PoseStack p_89355_, int p_89356_, int p_89357_, Component p_89358_, ResourceLocation p_89359_, boolean p_89360_, boolean p_89361_) {
@@ -170,8 +170,8 @@ public class RealmsResetWorldScreen extends RealmsScreen {
         drawCenteredString(p_89355_, this.font, p_89358_, p_89356_ + 30, p_89357_, i);
     }
 
-    private void startTask(LongRunningTask p_167458_) {
-        this.minecraft.setScreen(new RealmsLongRunningMcoTaskScreen(this.lastScreen, p_167458_));
+    private void startTask(LongRunningTask pTask) {
+        this.minecraft.setScreen(new RealmsLongRunningMcoTaskScreen(this.lastScreen, pTask));
     }
 
     public void switchSlot(Runnable p_89383_) {
@@ -215,8 +215,8 @@ public class RealmsResetWorldScreen extends RealmsScreen {
             this.image = p_89442_;
         }
 
-        public void renderButton(PoseStack p_89445_, int p_89446_, int p_89447_, float p_89448_) {
-            RealmsResetWorldScreen.this.drawFrame(p_89445_, this.x, this.y, this.getMessage(), this.image, this.isHoveredOrFocused(), this.isMouseOver((double) p_89446_, (double) p_89447_));
+        public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+            RealmsResetWorldScreen.this.drawFrame(pPoseStack, this.x, this.y, this.getMessage(), this.image, this.isHoveredOrFocused(), this.isMouseOver((double) pMouseX, (double) pMouseY));
         }
     }
 }

@@ -8,9 +8,9 @@ public class BlockSourceImpl implements BlockSource {
     private final ServerLevel level;
     private final BlockPos pos;
 
-    public BlockSourceImpl(ServerLevel p_122213_, BlockPos p_122214_) {
-        this.level = p_122213_;
-        this.pos = p_122214_;
+    public BlockSourceImpl(ServerLevel pLevel, BlockPos pPos) {
+        this.level = pLevel;
+        this.pos = pPos;
     }
 
     public ServerLevel getLevel() {

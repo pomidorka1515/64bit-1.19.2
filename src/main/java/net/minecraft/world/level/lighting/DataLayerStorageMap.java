@@ -12,34 +12,34 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
     private boolean cacheEnabled;
     protected final Map<SectionPos, DataLayer> map;
 
-    protected DataLayerStorageMap(Map<SectionPos, DataLayer> p_75523_) {
-        this.map = p_75523_;
+    protected DataLayerStorageMap(Map<SectionPos, DataLayer> pMap) {
+        this.map = pMap;
         this.clearCache();
         this.cacheEnabled = true;
     }
 
     public abstract M copy();
 
-    public void copyDataLayer(SectionPos p_75525_) {
-        this.map.put(p_75525_, this.map.get(p_75525_).copy());
+    public void copyDataLayer(SectionPos pSectionPos) {
+        this.map.put(pSectionPos, this.map.get(pSectionPos).copy());
         this.clearCache();
     }
 
-    public boolean hasLayer(SectionPos p_75530_) {
-        return this.map.containsKey(p_75530_);
+    public boolean hasLayer(SectionPos pSectionPos) {
+        return this.map.containsKey(pSectionPos);
     }
 
     @Nullable
-    public DataLayer getLayer(SectionPos p_75533_) {
+    public DataLayer getLayer(SectionPos pSectionPos) {
         if (this.cacheEnabled) {
             for (int i = 0; i < 2; ++i) {
-                if (p_75533_.equals(this.lastSectionKeys[i])) {
+                if (pSectionPos.equals(this.lastSectionKeys[i])) {
                     return this.lastSections[i];
                 }
             }
         }
 
-        DataLayer datalayer = this.map.get(p_75533_);
+        DataLayer datalayer = this.map.get(pSectionPos);
         if (datalayer == null) {
             return null;
         } else {
@@ -49,7 +49,7 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
                     this.lastSections[j] = this.lastSections[j - 1];
                 }
 
-                this.lastSectionKeys[0] = p_75533_;
+                this.lastSectionKeys[0] = pSectionPos;
                 this.lastSections[0] = datalayer;
             }
 
@@ -58,12 +58,12 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
     }
 
     @Nullable
-    public DataLayer removeLayer(SectionPos p_75536_) {
-        return this.map.remove(p_75536_);
+    public DataLayer removeLayer(SectionPos pSectionPos) {
+        return this.map.remove(pSectionPos);
     }
 
-    public void setLayer(SectionPos p_75527_, DataLayer p_75528_) {
-        this.map.put(p_75527_, p_75528_);
+    public void setLayer(SectionPos pSectionPos, DataLayer pArray) {
+        this.map.put(pSectionPos, pArray);
     }
 
     public void clearCache() {

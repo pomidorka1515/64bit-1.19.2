@@ -18,11 +18,11 @@ import net.minecraft.world.level.Level;
 public interface Bucketable {
     boolean fromBucket();
 
-    void setFromBucket(boolean p_148834_);
+    void setFromBucket(boolean pFromBucket);
 
-    void saveToBucketTag(ItemStack p_148833_);
+    void saveToBucketTag(ItemStack pStack);
 
-    void loadFromBucketTag(CompoundTag p_148832_);
+    void loadFromBucketTag(CompoundTag pTag);
 
     ItemStack getBucketItemStack();
 
@@ -30,77 +30,77 @@ public interface Bucketable {
 
     /** @deprecated */
     @Deprecated
-    static void saveDefaultDataToBucketTag(Mob p_148823_, ItemStack p_148824_) {
-        CompoundTag compoundtag = p_148824_.getOrCreateTag();
-        if (p_148823_.hasCustomName()) {
-            p_148824_.setHoverName(p_148823_.getCustomName());
+    static void saveDefaultDataToBucketTag(Mob pMob, ItemStack pBucket) {
+        CompoundTag compoundtag = pBucket.getOrCreateTag();
+        if (pMob.hasCustomName()) {
+            pBucket.setHoverName(pMob.getCustomName());
         }
 
-        if (p_148823_.isNoAi()) {
-            compoundtag.putBoolean("NoAI", p_148823_.isNoAi());
+        if (pMob.isNoAi()) {
+            compoundtag.putBoolean("NoAI", pMob.isNoAi());
         }
 
-        if (p_148823_.isSilent()) {
-            compoundtag.putBoolean("Silent", p_148823_.isSilent());
+        if (pMob.isSilent()) {
+            compoundtag.putBoolean("Silent", pMob.isSilent());
         }
 
-        if (p_148823_.isNoGravity()) {
-            compoundtag.putBoolean("NoGravity", p_148823_.isNoGravity());
+        if (pMob.isNoGravity()) {
+            compoundtag.putBoolean("NoGravity", pMob.isNoGravity());
         }
 
-        if (p_148823_.hasGlowingTag()) {
-            compoundtag.putBoolean("Glowing", p_148823_.hasGlowingTag());
+        if (pMob.hasGlowingTag()) {
+            compoundtag.putBoolean("Glowing", pMob.hasGlowingTag());
         }
 
-        if (p_148823_.isInvulnerable()) {
-            compoundtag.putBoolean("Invulnerable", p_148823_.isInvulnerable());
+        if (pMob.isInvulnerable()) {
+            compoundtag.putBoolean("Invulnerable", pMob.isInvulnerable());
         }
 
-        compoundtag.putFloat("Health", p_148823_.getHealth());
+        compoundtag.putFloat("Health", pMob.getHealth());
     }
 
     /** @deprecated */
     @Deprecated
-    static void loadDefaultDataFromBucketTag(Mob p_148826_, CompoundTag p_148827_) {
-        if (p_148827_.contains("NoAI")) {
-            p_148826_.setNoAi(p_148827_.getBoolean("NoAI"));
+    static void loadDefaultDataFromBucketTag(Mob pMob, CompoundTag pTag) {
+        if (pTag.contains("NoAI")) {
+            pMob.setNoAi(pTag.getBoolean("NoAI"));
         }
 
-        if (p_148827_.contains("Silent")) {
-            p_148826_.setSilent(p_148827_.getBoolean("Silent"));
+        if (pTag.contains("Silent")) {
+            pMob.setSilent(pTag.getBoolean("Silent"));
         }
 
-        if (p_148827_.contains("NoGravity")) {
-            p_148826_.setNoGravity(p_148827_.getBoolean("NoGravity"));
+        if (pTag.contains("NoGravity")) {
+            pMob.setNoGravity(pTag.getBoolean("NoGravity"));
         }
 
-        if (p_148827_.contains("Glowing")) {
-            p_148826_.setGlowingTag(p_148827_.getBoolean("Glowing"));
+        if (pTag.contains("Glowing")) {
+            pMob.setGlowingTag(pTag.getBoolean("Glowing"));
         }
 
-        if (p_148827_.contains("Invulnerable")) {
-            p_148826_.setInvulnerable(p_148827_.getBoolean("Invulnerable"));
+        if (pTag.contains("Invulnerable")) {
+            pMob.setInvulnerable(pTag.getBoolean("Invulnerable"));
         }
 
-        if (p_148827_.contains("Health", 99)) {
-            p_148826_.setHealth(p_148827_.getFloat("Health"));
+        if (pTag.contains("Health", 99)) {
+            pMob.setHealth(pTag.getFloat("Health"));
         }
     }
 
-    static <T extends LivingEntity & Bucketable> Optional<InteractionResult> bucketMobPickup(Player p_148829_, InteractionHand p_148830_, T p_148831_) {
-        ItemStack itemstack = p_148829_.getItemInHand(p_148830_);
-        if (itemstack.getItem() == Items.WATER_BUCKET && p_148831_.isAlive()) {
-            p_148831_.playSound(p_148831_.getPickupSound(), 1.0F, 1.0F);
-            ItemStack itemstack1 = p_148831_.getBucketItemStack();
-            p_148831_.saveToBucketTag(itemstack1);
-            ItemStack itemstack2 = ItemUtils.createFilledResult(itemstack, p_148829_, itemstack1, false);
-            p_148829_.setItemInHand(p_148830_, itemstack2);
-            Level level = p_148831_.level;
+    static <T extends LivingEntity & Bucketable> Optional<InteractionResult> bucketMobPickup(Player pPlayer, InteractionHand pHand, T pEntity) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
+        if (itemstack.getItem() == Items.WATER_BUCKET && pEntity.isAlive()) {
+            pEntity.playSound(pEntity.getPickupSound(), 1.0F, 1.0F);
+            ItemStack itemstack1 = pEntity.getBucketItemStack();
+            pEntity.saveToBucketTag(itemstack1);
+            ItemStack itemstack2 = ItemUtils.createFilledResult(itemstack, pPlayer, itemstack1, false);
+            pPlayer.setItemInHand(pHand, itemstack2);
+            Level level = pEntity.level;
             if (!level.isClientSide) {
-                CriteriaTriggers.FILLED_BUCKET.trigger((ServerPlayer) p_148829_, itemstack1);
+                CriteriaTriggers.FILLED_BUCKET.trigger((ServerPlayer) pPlayer, itemstack1);
             }
 
-            p_148831_.discard();
+            pEntity.discard();
             return Optional.of(InteractionResult.sidedSuccess(level.isClientSide));
         } else {
             return Optional.empty();

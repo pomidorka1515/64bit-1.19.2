@@ -11,13 +11,13 @@ public class PanoramaRenderer {
     private final CubeMap cubeMap;
     private float time;
 
-    public PanoramaRenderer(CubeMap p_110002_) {
-        this.cubeMap = p_110002_;
+    public PanoramaRenderer(CubeMap pCubeMap) {
+        this.cubeMap = pCubeMap;
         this.minecraft = Minecraft.getInstance();
     }
 
-    public void render(float p_110004_, float p_110005_) {
-        this.time += p_110004_;
-        this.cubeMap.render(this.minecraft, Mth.sin(this.time * 0.001F) * 5.0F + 25.0F, -this.time * 0.1F, p_110005_);
+    public void render(float pDeltaT, float pAlpha) {
+        this.time += pDeltaT;
+        this.cubeMap.render(this.minecraft, Mth.sin(this.time * 0.001F) * 5.0F + 25.0F, -this.time * 0.1F, pAlpha);
     }
 }

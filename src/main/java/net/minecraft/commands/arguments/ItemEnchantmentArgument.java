@@ -27,19 +27,19 @@ public class ItemEnchantmentArgument implements ArgumentType<Enchantment> {
         return new ItemEnchantmentArgument();
     }
 
-    public static Enchantment getEnchantment(CommandContext<CommandSourceStack> p_95264_, String p_95265_) {
-        return p_95264_.getArgument(p_95265_, Enchantment.class);
+    public static Enchantment getEnchantment(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, Enchantment.class);
     }
 
-    public Enchantment parse(StringReader p_95262_) throws CommandSyntaxException {
-        ResourceLocation resourcelocation = ResourceLocation.read(p_95262_);
+    public Enchantment parse(StringReader pReader) throws CommandSyntaxException {
+        ResourceLocation resourcelocation = ResourceLocation.read(pReader);
         return Registry.ENCHANTMENT.getOptional(resourcelocation).orElseThrow(() -> {
             return ERROR_UNKNOWN_ENCHANTMENT.create(resourcelocation);
         });
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_95272_, SuggestionsBuilder p_95273_) {
-        return SharedSuggestionProvider.suggestResource(Registry.ENCHANTMENT.keySet(), p_95273_);
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return SharedSuggestionProvider.suggestResource(Registry.ENCHANTMENT.keySet(), pBuilder);
     }
 
     public Collection<String> getExamples() {

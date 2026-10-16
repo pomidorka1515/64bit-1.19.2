@@ -12,12 +12,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class Ops extends ValueObject {
     public Set<String> ops = Sets.newHashSet();
 
-    public static Ops parse(String p_87421_) {
+    public static Ops parse(String pJson) {
         Ops ops = new Ops();
         JsonParser jsonparser = new JsonParser();
 
         try {
-            JsonElement jsonelement = jsonparser.parse(p_87421_);
+            JsonElement jsonelement = jsonparser.parse(pJson);
             JsonObject jsonobject = jsonelement.getAsJsonObject();
             JsonElement jsonelement1 = jsonobject.get("ops");
             if (jsonelement1.isJsonArray()) {

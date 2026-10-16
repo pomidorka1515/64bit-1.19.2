@@ -12,29 +12,29 @@ public class ClientboundServerDataPacket implements Packet<ClientGamePacketListe
     private final boolean previewsChat;
     private final boolean enforcesSecureChat;
 
-    public ClientboundServerDataPacket(@Nullable Component p_242977_, @Nullable String p_242969_, boolean p_242973_, boolean p_242974_) {
-        this.motd = Optional.ofNullable(p_242977_);
-        this.iconBase64 = Optional.ofNullable(p_242969_);
-        this.previewsChat = p_242973_;
-        this.enforcesSecureChat = p_242974_;
+    public ClientboundServerDataPacket(@Nullable Component pMotd, @Nullable String pIconBase64, boolean pPreviewsChat, boolean pEnforcesSecureChat) {
+        this.motd = Optional.ofNullable(pMotd);
+        this.iconBase64 = Optional.ofNullable(pIconBase64);
+        this.previewsChat = pPreviewsChat;
+        this.enforcesSecureChat = pEnforcesSecureChat;
     }
 
-    public ClientboundServerDataPacket(FriendlyByteBuf p_237799_) {
-        this.motd = p_237799_.readOptional(FriendlyByteBuf::readComponent);
-        this.iconBase64 = p_237799_.readOptional(FriendlyByteBuf::readUtf);
-        this.previewsChat = p_237799_.readBoolean();
-        this.enforcesSecureChat = p_237799_.readBoolean();
+    public ClientboundServerDataPacket(FriendlyByteBuf pBuffer) {
+        this.motd = pBuffer.readOptional(FriendlyByteBuf::readComponent);
+        this.iconBase64 = pBuffer.readOptional(FriendlyByteBuf::readUtf);
+        this.previewsChat = pBuffer.readBoolean();
+        this.enforcesSecureChat = pBuffer.readBoolean();
     }
 
-    public void write(FriendlyByteBuf p_237805_) {
-        p_237805_.writeOptional(this.motd, FriendlyByteBuf::writeComponent);
-        p_237805_.writeOptional(this.iconBase64, FriendlyByteBuf::writeUtf);
-        p_237805_.writeBoolean(this.previewsChat);
-        p_237805_.writeBoolean(this.enforcesSecureChat);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeOptional(this.motd, FriendlyByteBuf::writeComponent);
+        pBuffer.writeOptional(this.iconBase64, FriendlyByteBuf::writeUtf);
+        pBuffer.writeBoolean(this.previewsChat);
+        pBuffer.writeBoolean(this.enforcesSecureChat);
     }
 
-    public void handle(ClientGamePacketListener p_237809_) {
-        p_237809_.handleServerData(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleServerData(this);
     }
 
     public Optional<Component> getMotd() {

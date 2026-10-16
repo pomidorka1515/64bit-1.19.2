@@ -18,19 +18,19 @@ public abstract class LootPoolEntryContainer implements ComposableEntryContainer
     protected final LootItemCondition[] conditions;
     private final Predicate<LootContext> compositeCondition;
 
-    protected LootPoolEntryContainer(LootItemCondition[] p_79638_) {
-        this.conditions = p_79638_;
-        this.compositeCondition = LootItemConditions.andConditions(p_79638_);
+    protected LootPoolEntryContainer(LootItemCondition[] pConditions) {
+        this.conditions = pConditions;
+        this.compositeCondition = LootItemConditions.andConditions(pConditions);
     }
 
-    public void validate(ValidationContext p_79641_) {
+    public void validate(ValidationContext pValidationContext) {
         for (int i = 0; i < this.conditions.length; ++i) {
-            this.conditions[i].validate(p_79641_.forChild(".condition[" + i + "]"));
+            this.conditions[i].validate(pValidationContext.forChild(".condition[" + i + "]"));
         }
     }
 
-    protected final boolean canRun(LootContext p_79640_) {
-        return this.compositeCondition.test(p_79640_);
+    protected final boolean canRun(LootContext pLootContext) {
+        return this.compositeCondition.test(pLootContext);
     }
 
     public abstract LootPoolEntryType getType();
@@ -40,8 +40,8 @@ public abstract class LootPoolEntryContainer implements ComposableEntryContainer
 
         protected abstract T getThis();
 
-        public T when(LootItemCondition.Builder p_79646_) {
-            this.conditions.add(p_79646_.build());
+        public T when(LootItemCondition.Builder pConditionBuilder) {
+            this.conditions.add(pConditionBuilder.build());
             return this.getThis();
         }
 
@@ -53,37 +53,37 @@ public abstract class LootPoolEntryContainer implements ComposableEntryContainer
             return this.conditions.toArray(new LootItemCondition[0]);
         }
 
-        public AlternativesEntry.Builder otherwise(LootPoolEntryContainer.Builder<?> p_79644_) {
-            return new AlternativesEntry.Builder(this, p_79644_);
+        public AlternativesEntry.Builder otherwise(LootPoolEntryContainer.Builder<?> pChildBuilder) {
+            return new AlternativesEntry.Builder(this, pChildBuilder);
         }
 
-        public EntryGroup.Builder append(LootPoolEntryContainer.Builder<?> p_165148_) {
-            return new EntryGroup.Builder(this, p_165148_);
+        public EntryGroup.Builder append(LootPoolEntryContainer.Builder<?> pChildBuilder) {
+            return new EntryGroup.Builder(this, pChildBuilder);
         }
 
-        public SequentialEntry.Builder then(LootPoolEntryContainer.Builder<?> p_165149_) {
-            return new SequentialEntry.Builder(this, p_165149_);
+        public SequentialEntry.Builder then(LootPoolEntryContainer.Builder<?> pChildBuilder) {
+            return new SequentialEntry.Builder(this, pChildBuilder);
         }
 
         public abstract LootPoolEntryContainer build();
     }
 
     public abstract static class Serializer<T extends LootPoolEntryContainer> implements net.minecraft.world.level.storage.loot.Serializer<T> {
-        public final void serialize(JsonObject p_79670_, T p_79671_, JsonSerializationContext p_79672_) {
-            if (!ArrayUtils.isEmpty((Object[]) p_79671_.conditions)) {
-                p_79670_.add("conditions", p_79672_.serialize(p_79671_.conditions));
+        public final void serialize(JsonObject pJson, T pValue, JsonSerializationContext pSerializationContext) {
+            if (!ArrayUtils.isEmpty((Object[]) pValue.conditions)) {
+                pJson.add("conditions", pSerializationContext.serialize(pValue.conditions));
             }
 
-            this.serializeCustom(p_79670_, p_79671_, p_79672_);
+            this.serializeCustom(pJson, pValue, pSerializationContext);
         }
 
-        public final T deserialize(JsonObject p_79664_, JsonDeserializationContext p_79665_) {
-            LootItemCondition[] alootitemcondition = GsonHelper.getAsObject(p_79664_, "conditions", new LootItemCondition[0], p_79665_, LootItemCondition[].class);
-            return this.deserializeCustom(p_79664_, p_79665_, alootitemcondition);
+        public final T deserialize(JsonObject pJson, JsonDeserializationContext pSerializationContext) {
+            LootItemCondition[] alootitemcondition = GsonHelper.getAsObject(pJson, "conditions", new LootItemCondition[0], pSerializationContext, LootItemCondition[].class);
+            return this.deserializeCustom(pJson, pSerializationContext, alootitemcondition);
         }
 
-        public abstract void serializeCustom(JsonObject p_79656_, T p_79657_, JsonSerializationContext p_79658_);
+        public abstract void serializeCustom(JsonObject pObject, T pContext, JsonSerializationContext pConditions);
 
-        public abstract T deserializeCustom(JsonObject p_79666_, JsonDeserializationContext p_79667_, LootItemCondition[] p_79668_);
+        public abstract T deserializeCustom(JsonObject pObject, JsonDeserializationContext pContext, LootItemCondition[] pConditions);
     }
 }

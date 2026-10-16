@@ -53,13 +53,13 @@ public class LoomMenu extends AbstractContainerMenu {
         }
     };
 
-    public LoomMenu(int p_39856_, Inventory p_39857_) {
-        this(p_39856_, p_39857_, ContainerLevelAccess.NULL);
+    public LoomMenu(int pContainerId, Inventory pPlayerInventory) {
+        this(pContainerId, pPlayerInventory, ContainerLevelAccess.NULL);
     }
 
-    public LoomMenu(int p_39859_, Inventory p_39860_, final ContainerLevelAccess p_39861_) {
-        super(MenuType.LOOM, p_39859_);
-        this.access = p_39861_;
+    public LoomMenu(int pContainerId, Inventory pPlayerInventory, final ContainerLevelAccess pAccess) {
+        super(MenuType.LOOM, pContainerId);
+        this.access = pAccess;
         this.bannerSlot = this.addSlot(new Slot(this.inputContainer, 0, 13, 26) {
             public boolean mayPlace(ItemStack p_39918_) {
                 return p_39918_.getItem() instanceof BannerItem;
@@ -87,7 +87,7 @@ public class LoomMenu extends AbstractContainerMenu {
                     LoomMenu.this.selectedBannerPatternIndex.set(-1);
                 }
 
-                p_39861_.execute((p_39952_, p_39953_) -> {
+                pAccess.execute((p_39952_, p_39953_) -> {
                     long l = p_39952_.getGameTime();
                     if (LoomMenu.this.lastSoundTime != l) {
                         p_39952_.playSound((Player) null, p_39953_, SoundEvents.UI_LOOM_TAKE_RESULT, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -100,25 +100,25 @@ public class LoomMenu extends AbstractContainerMenu {
 
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(p_39860_, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
+                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
 
         for (int k = 0; k < 9; ++k) {
-            this.addSlot(new Slot(p_39860_, k, 8 + k * 18, 142));
+            this.addSlot(new Slot(pPlayerInventory, k, 8 + k * 18, 142));
         }
 
         this.addDataSlot(this.selectedBannerPatternIndex);
     }
 
-    public boolean stillValid(Player p_39865_) {
-        return stillValid(this.access, p_39865_, Blocks.LOOM);
+    public boolean stillValid(Player pPlayer) {
+        return stillValid(this.access, pPlayer, Blocks.LOOM);
     }
 
-    public boolean clickMenuButton(Player p_39867_, int p_39868_) {
-        if (p_39868_ >= 0 && p_39868_ < this.selectablePatterns.size()) {
-            this.selectedBannerPatternIndex.set(p_39868_);
-            this.setupResultSlot(this.selectablePatterns.get(p_39868_));
+    public boolean clickMenuButton(Player pPlayer, int pId) {
+        if (pId >= 0 && pId < this.selectablePatterns.size()) {
+            this.selectedBannerPatternIndex.set(pId);
+            this.setupResultSlot(this.selectablePatterns.get(pId));
             return true;
         } else {
             return false;
@@ -143,7 +143,7 @@ public class LoomMenu extends AbstractContainerMenu {
         return p_242850_ >= 0 && p_242850_ < this.selectablePatterns.size();
     }
 
-    public void slotsChanged(Container p_39863_) {
+    public void slotsChanged(Container pInventory) {
         ItemStack itemstack = this.bannerSlot.getItem();
         ItemStack itemstack1 = this.dyeSlot.getItem();
         ItemStack itemstack2 = this.patternSlot.getItem();
@@ -200,23 +200,23 @@ public class LoomMenu extends AbstractContainerMenu {
         return this.selectedBannerPatternIndex.get();
     }
 
-    public void registerUpdateListener(Runnable p_39879_) {
-        this.slotUpdateListener = p_39879_;
+    public void registerUpdateListener(Runnable pListener) {
+        this.slotUpdateListener = pListener;
     }
 
-    public ItemStack quickMoveStack(Player p_39883_, int p_39884_) {
+    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(p_39884_);
+        Slot slot = this.slots.get(pIndex);
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            if (p_39884_ == this.resultSlot.index) {
+            if (pIndex == this.resultSlot.index) {
                 if (!this.moveItemStackTo(itemstack1, 4, 40, true)) {
                     return ItemStack.EMPTY;
                 }
 
                 slot.onQuickCraft(itemstack1, itemstack);
-            } else if (p_39884_ != this.dyeSlot.index && p_39884_ != this.bannerSlot.index && p_39884_ != this.patternSlot.index) {
+            } else if (pIndex != this.dyeSlot.index && pIndex != this.bannerSlot.index && pIndex != this.patternSlot.index) {
                 if (itemstack1.getItem() instanceof BannerItem) {
                     if (!this.moveItemStackTo(itemstack1, this.bannerSlot.index, this.bannerSlot.index + 1, false)) {
                         return ItemStack.EMPTY;
@@ -229,11 +229,11 @@ public class LoomMenu extends AbstractContainerMenu {
                     if (!this.moveItemStackTo(itemstack1, this.patternSlot.index, this.patternSlot.index + 1, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (p_39884_ >= 4 && p_39884_ < 31) {
+                } else if (pIndex >= 4 && pIndex < 31) {
                     if (!this.moveItemStackTo(itemstack1, 31, 40, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (p_39884_ >= 31 && p_39884_ < 40 && !this.moveItemStackTo(itemstack1, 4, 31, false)) {
+                } else if (pIndex >= 31 && pIndex < 40 && !this.moveItemStackTo(itemstack1, 4, 31, false)) {
                     return ItemStack.EMPTY;
                 }
             } else if (!this.moveItemStackTo(itemstack1, 4, 40, false)) {
@@ -250,20 +250,20 @@ public class LoomMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(p_39883_, itemstack1);
+            slot.onTake(pPlayer, itemstack1);
         }
 
         return itemstack;
     }
 
-    public void removed(Player p_39881_) {
-        super.removed(p_39881_);
+    public void removed(Player pPlayer) {
+        super.removed(pPlayer);
         this.access.execute((p_39871_, p_39872_) -> {
-            this.clearContainer(p_39881_, this.inputContainer);
+            this.clearContainer(pPlayer, this.inputContainer);
         });
     }
 
-    private void setupResultSlot(Holder<BannerPattern> p_219992_) {
+    private void setupResultSlot(Holder<BannerPattern> pPattern) {
         ItemStack itemstack = this.bannerSlot.getItem();
         ItemStack itemstack1 = this.dyeSlot.getItem();
         ItemStack itemstack2 = ItemStack.EMPTY;
@@ -285,7 +285,7 @@ public class LoomMenu extends AbstractContainerMenu {
             }
 
             CompoundTag compoundtag1 = new CompoundTag();
-            compoundtag1.putString("Pattern", p_219992_.value().getHashname());
+            compoundtag1.putString("Pattern", pPattern.value().getHashname());
             compoundtag1.putInt("Color", dyecolor.getId());
             listtag.add(compoundtag1);
             BlockItem.setBlockEntityData(itemstack2, BlockEntityType.BANNER, compoundtag);

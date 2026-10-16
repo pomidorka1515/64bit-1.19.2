@@ -77,25 +77,25 @@ public class BlockEntityWithoutLevelRenderer implements ResourceManagerReloadLis
     private final BlockEntityRenderDispatcher blockEntityRenderDispatcher;
     private final EntityModelSet entityModelSet;
 
-    public BlockEntityWithoutLevelRenderer(BlockEntityRenderDispatcher p_172550_, EntityModelSet p_172551_) {
-        this.blockEntityRenderDispatcher = p_172550_;
-        this.entityModelSet = p_172551_;
+    public BlockEntityWithoutLevelRenderer(BlockEntityRenderDispatcher pBlockEntityRenderDispatcher, EntityModelSet pEntityModelSet) {
+        this.blockEntityRenderDispatcher = pBlockEntityRenderDispatcher;
+        this.entityModelSet = pEntityModelSet;
     }
 
-    public void onResourceManagerReload(ResourceManager p_172555_) {
+    public void onResourceManagerReload(ResourceManager pResourceManager) {
         this.shieldModel = new ShieldModel(this.entityModelSet.bakeLayer(ModelLayers.SHIELD));
         this.tridentModel = new TridentModel(this.entityModelSet.bakeLayer(ModelLayers.TRIDENT));
         this.skullModels = SkullBlockRenderer.createSkullRenderers(this.entityModelSet);
     }
 
-    public void renderByItem(ItemStack p_108830_, ItemTransforms.TransformType p_108831_, PoseStack p_108832_, MultiBufferSource p_108833_, int p_108834_, int p_108835_) {
-        Item item = p_108830_.getItem();
+    public void renderByItem(ItemStack pStack, ItemTransforms.TransformType pTransformType, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
+        Item item = pStack.getItem();
         if (item instanceof BlockItem) {
             Block block = ((BlockItem) item).getBlock();
             if (block instanceof AbstractSkullBlock) {
                 GameProfile gameprofile = null;
-                if (p_108830_.hasTag()) {
-                    CompoundTag compoundtag = p_108830_.getTag();
+                if (pStack.hasTag()) {
+                    CompoundTag compoundtag = pStack.getTag();
                     if (compoundtag.contains("SkullOwner", 10)) {
                         gameprofile = NbtUtils.readGameProfile(compoundtag.getCompound("SkullOwner"));
                     } else if (compoundtag.contains("SkullOwner", 8) && !StringUtils.isBlank(compoundtag.getString("SkullOwner"))) {
@@ -110,12 +110,12 @@ public class BlockEntityWithoutLevelRenderer implements ResourceManagerReloadLis
                 SkullBlock.Type skullblock$type = ((AbstractSkullBlock) block).getType();
                 SkullModelBase skullmodelbase = this.skullModels.get(skullblock$type);
                 RenderType rendertype = SkullBlockRenderer.getRenderType(skullblock$type, gameprofile);
-                SkullBlockRenderer.renderSkull((Direction) null, 180.0F, 0.0F, p_108832_, p_108833_, p_108834_, skullmodelbase, rendertype);
+                SkullBlockRenderer.renderSkull((Direction) null, 180.0F, 0.0F, pPoseStack, pBuffer, pPackedLight, skullmodelbase, rendertype);
             } else {
                 BlockState blockstate = block.defaultBlockState();
                 BlockEntity blockentity;
                 if (block instanceof AbstractBannerBlock) {
-                    this.banner.fromItem(p_108830_, ((AbstractBannerBlock) block).getColor());
+                    this.banner.fromItem(pStack, ((AbstractBannerBlock) block).getColor());
                     blockentity = this.banner;
                 } else if (block instanceof BedBlock) {
                     this.bed.setColor(((BedBlock) block).getColor());
@@ -141,30 +141,30 @@ public class BlockEntityWithoutLevelRenderer implements ResourceManagerReloadLis
                     }
                 }
 
-                this.blockEntityRenderDispatcher.renderItem(blockentity, p_108832_, p_108833_, p_108834_, p_108835_);
+                this.blockEntityRenderDispatcher.renderItem(blockentity, pPoseStack, pBuffer, pPackedLight, pPackedOverlay);
             }
         } else {
-            if (p_108830_.is(Items.SHIELD)) {
-                boolean flag = BlockItem.getBlockEntityData(p_108830_) != null;
-                p_108832_.pushPose();
-                p_108832_.scale(1.0F, -1.0F, -1.0F);
+            if (pStack.is(Items.SHIELD)) {
+                boolean flag = BlockItem.getBlockEntityData(pStack) != null;
+                pPoseStack.pushPose();
+                pPoseStack.scale(1.0F, -1.0F, -1.0F);
                 Material material = flag ? ModelBakery.SHIELD_BASE : ModelBakery.NO_PATTERN_SHIELD;
-                VertexConsumer vertexconsumer = material.sprite().wrap(ItemRenderer.getFoilBufferDirect(p_108833_, this.shieldModel.renderType(material.atlasLocation()), true, p_108830_.hasFoil()));
-                this.shieldModel.handle().render(p_108832_, vertexconsumer, p_108834_, p_108835_, 1.0F, 1.0F, 1.0F, 1.0F);
+                VertexConsumer vertexconsumer = material.sprite().wrap(ItemRenderer.getFoilBufferDirect(pBuffer, this.shieldModel.renderType(material.atlasLocation()), true, pStack.hasFoil()));
+                this.shieldModel.handle().render(pPoseStack, vertexconsumer, pPackedLight, pPackedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
                 if (flag) {
-                    List<Pair<Holder<BannerPattern>, DyeColor>> list = BannerBlockEntity.createPatterns(ShieldItem.getColor(p_108830_), BannerBlockEntity.getItemPatterns(p_108830_));
-                    BannerRenderer.renderPatterns(p_108832_, p_108833_, p_108834_, p_108835_, this.shieldModel.plate(), material, false, list, p_108830_.hasFoil());
+                    List<Pair<Holder<BannerPattern>, DyeColor>> list = BannerBlockEntity.createPatterns(ShieldItem.getColor(pStack), BannerBlockEntity.getItemPatterns(pStack));
+                    BannerRenderer.renderPatterns(pPoseStack, pBuffer, pPackedLight, pPackedOverlay, this.shieldModel.plate(), material, false, list, pStack.hasFoil());
                 } else {
-                    this.shieldModel.plate().render(p_108832_, vertexconsumer, p_108834_, p_108835_, 1.0F, 1.0F, 1.0F, 1.0F);
+                    this.shieldModel.plate().render(pPoseStack, vertexconsumer, pPackedLight, pPackedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
                 }
 
-                p_108832_.popPose();
-            } else if (p_108830_.is(Items.TRIDENT)) {
-                p_108832_.pushPose();
-                p_108832_.scale(1.0F, -1.0F, -1.0F);
-                VertexConsumer vertexconsumer1 = ItemRenderer.getFoilBufferDirect(p_108833_, this.tridentModel.renderType(TridentModel.TEXTURE), false, p_108830_.hasFoil());
-                this.tridentModel.renderToBuffer(p_108832_, vertexconsumer1, p_108834_, p_108835_, 1.0F, 1.0F, 1.0F, 1.0F);
-                p_108832_.popPose();
+                pPoseStack.popPose();
+            } else if (pStack.is(Items.TRIDENT)) {
+                pPoseStack.pushPose();
+                pPoseStack.scale(1.0F, -1.0F, -1.0F);
+                VertexConsumer vertexconsumer1 = ItemRenderer.getFoilBufferDirect(pBuffer, this.tridentModel.renderType(TridentModel.TEXTURE), false, pStack.hasFoil());
+                this.tridentModel.renderToBuffer(pPoseStack, vertexconsumer1, pPackedLight, pPackedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
+                pPoseStack.popPose();
             }
         }
     }

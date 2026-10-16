@@ -8,8 +8,8 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Dynamic;
 
 public class MemoryExpiryDataFix extends NamedEntityFix {
-    public MemoryExpiryDataFix(Schema p_16405_, String p_16406_) {
-        super(p_16405_, false, "Memory expiry data fix (" + p_16406_ + ")", References.ENTITY, p_16406_);
+    public MemoryExpiryDataFix(Schema pOutputSchema, String pEntityName) {
+        super(pOutputSchema, false, "Memory expiry data fix (" + pEntityName + ")", References.ENTITY, pEntityName);
     }
 
     protected Typed<?> fix(Typed<?> p_16408_) {

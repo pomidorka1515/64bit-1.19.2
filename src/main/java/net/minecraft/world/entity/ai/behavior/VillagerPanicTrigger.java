@@ -13,13 +13,13 @@ public class VillagerPanicTrigger extends Behavior<Villager> {
         super(ImmutableMap.of());
     }
 
-    protected boolean canStillUse(ServerLevel p_24684_, Villager p_24685_, long p_24686_) {
-        return isHurt(p_24685_) || hasHostile(p_24685_);
+    protected boolean canStillUse(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        return isHurt(pEntity) || hasHostile(pEntity);
     }
 
-    protected void start(ServerLevel p_24694_, Villager p_24695_, long p_24696_) {
-        if (isHurt(p_24695_) || hasHostile(p_24695_)) {
-            Brain<?> brain = p_24695_.getBrain();
+    protected void start(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        if (isHurt(pEntity) || hasHostile(pEntity)) {
+            Brain<?> brain = pEntity.getBrain();
             if (!brain.isActive(Activity.PANIC)) {
                 brain.eraseMemory(MemoryModuleType.PATH);
                 brain.eraseMemory(MemoryModuleType.WALK_TARGET);
@@ -32,17 +32,17 @@ public class VillagerPanicTrigger extends Behavior<Villager> {
         }
     }
 
-    protected void tick(ServerLevel p_24700_, Villager p_24701_, long p_24702_) {
-        if (p_24702_ % 100L == 0L) {
-            p_24701_.spawnGolemIfNeeded(p_24700_, p_24702_, 3);
+    protected void tick(ServerLevel pLevel, Villager pOwner, long pGameTime) {
+        if (pGameTime % 100L == 0L) {
+            pOwner.spawnGolemIfNeeded(pLevel, pGameTime, 3);
         }
     }
 
-    public static boolean hasHostile(LivingEntity p_24688_) {
-        return p_24688_.getBrain().hasMemoryValue(MemoryModuleType.NEAREST_HOSTILE);
+    public static boolean hasHostile(LivingEntity pEntity) {
+        return pEntity.getBrain().hasMemoryValue(MemoryModuleType.NEAREST_HOSTILE);
     }
 
-    public static boolean isHurt(LivingEntity p_24698_) {
-        return p_24698_.getBrain().hasMemoryValue(MemoryModuleType.HURT_BY);
+    public static boolean isHurt(LivingEntity pEntity) {
+        return pEntity.getBrain().hasMemoryValue(MemoryModuleType.HURT_BY);
     }
 }

@@ -24,14 +24,14 @@ public abstract class TargetGoal extends Goal {
     protected LivingEntity targetMob;
     protected int unseenMemoryTicks = 60;
 
-    public TargetGoal(Mob p_26140_, boolean p_26141_) {
-        this(p_26140_, p_26141_, false);
+    public TargetGoal(Mob pMob, boolean pMustSee) {
+        this(pMob, pMustSee, false);
     }
 
-    public TargetGoal(Mob p_26143_, boolean p_26144_, boolean p_26145_) {
-        this.mob = p_26143_;
-        this.mustSee = p_26144_;
-        this.mustReach = p_26145_;
+    public TargetGoal(Mob pMob, boolean pMustSee, boolean pMustReach) {
+        this.mob = pMob;
+        this.mustSee = pMustSee;
+        this.mustReach = pMustReach;
     }
 
     public boolean canContinueToUse() {
@@ -84,12 +84,12 @@ public abstract class TargetGoal extends Goal {
         this.targetMob = null;
     }
 
-    protected boolean canAttack(@Nullable LivingEntity p_26151_, TargetingConditions p_26152_) {
-        if (p_26151_ == null) {
+    protected boolean canAttack(@Nullable LivingEntity pPotentialTarget, TargetingConditions pTargetPredicate) {
+        if (pPotentialTarget == null) {
             return false;
-        } else if (!p_26152_.test(this.mob, p_26151_)) {
+        } else if (!pTargetPredicate.test(this.mob, pPotentialTarget)) {
             return false;
-        } else if (!this.mob.isWithinRestriction(p_26151_.blockPosition())) {
+        } else if (!this.mob.isWithinRestriction(pPotentialTarget.blockPosition())) {
             return false;
         } else {
             if (this.mustReach) {
@@ -98,7 +98,7 @@ public abstract class TargetGoal extends Goal {
                 }
 
                 if (this.reachCache == 0) {
-                    this.reachCache = this.canReach(p_26151_) ? 1 : 2;
+                    this.reachCache = this.canReach(pPotentialTarget) ? 1 : 2;
                 }
 
                 if (this.reachCache == 2) {
@@ -110,9 +110,9 @@ public abstract class TargetGoal extends Goal {
         }
     }
 
-    private boolean canReach(LivingEntity p_26149_) {
+    private boolean canReach(LivingEntity pTarget) {
         this.reachCacheTime = reducedTickDelay(10 + this.mob.getRandom().nextInt(5));
-        Path path = this.mob.getNavigation().createPath(p_26149_, 0);
+        Path path = this.mob.getNavigation().createPath(pTarget, 0);
         if (path == null) {
             return false;
         } else {
@@ -120,15 +120,15 @@ public abstract class TargetGoal extends Goal {
             if (node == null) {
                 return false;
             } else {
-                long i = node.x - p_26149_.getBlockX();
-                long j = node.z - p_26149_.getBlockZ();
+                long i = node.x - pTarget.getBlockX();
+                long j = node.z - pTarget.getBlockZ();
                 return (double) (i * i + j * j) <= 2.25D;
             }
         }
     }
 
-    public TargetGoal setUnseenMemoryTicks(int p_26147_) {
-        this.unseenMemoryTicks = p_26147_;
+    public TargetGoal setUnseenMemoryTicks(int pUnseenMemoryTicks) {
+        this.unseenMemoryTicks = pUnseenMemoryTicks;
         return this;
     }
 }

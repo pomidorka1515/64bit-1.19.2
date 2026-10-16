@@ -39,8 +39,8 @@ public class NetworkSummaryEvent extends Event {
     @Label("Received Packets")
     public int receivedPackets;
 
-    public NetworkSummaryEvent(String p_195562_) {
-        this.remoteAddress = p_195562_;
+    public NetworkSummaryEvent(String pRemoteAddress) {
+        this.remoteAddress = pRemoteAddress;
     }
 
     public static final class Fields {
@@ -61,19 +61,19 @@ public class NetworkSummaryEvent extends Event {
         private final AtomicInteger receivedPackets = new AtomicInteger();
         private final NetworkSummaryEvent event;
 
-        public SumAggregation(String p_195575_) {
-            this.event = new NetworkSummaryEvent(p_195575_);
+        public SumAggregation(String pRemoteAddress) {
+            this.event = new NetworkSummaryEvent(pRemoteAddress);
             this.event.begin();
         }
 
-        public void trackSentPacket(int p_195578_) {
+        public void trackSentPacket(int pDelta) {
             this.sentPackets.incrementAndGet();
-            this.sentBytes.addAndGet((long) p_195578_);
+            this.sentBytes.addAndGet((long) pDelta);
         }
 
-        public void trackReceivedPacket(int p_195580_) {
+        public void trackReceivedPacket(int pDelta) {
             this.receivedPackets.incrementAndGet();
-            this.receivedBytes.addAndGet((long) p_195580_);
+            this.receivedBytes.addAndGet((long) pDelta);
         }
 
         public void commitEvent() {

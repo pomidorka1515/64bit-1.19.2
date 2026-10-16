@@ -21,38 +21,38 @@ public interface HolderSet<T> extends Iterable<Holder<T>> {
 
     Either<TagKey<T>, List<Holder<T>>> unwrap();
 
-    Optional<Holder<T>> getRandomElement(RandomSource p_235712_);
+    Optional<Holder<T>> getRandomElement(RandomSource pRandom);
 
-    Holder<T> get(int p_205798_);
+    Holder<T> get(int pIndex);
 
-    boolean contains(Holder<T> p_205799_);
+    boolean contains(Holder<T> pHolder);
 
-    boolean isValidInRegistry(Registry<T> p_211041_);
-
-    @SafeVarargs
-    static <T> HolderSet.Direct<T> direct(Holder<T>... p_205810_) {
-        return new HolderSet.Direct<>(List.of(p_205810_));
-    }
-
-    static <T> HolderSet.Direct<T> direct(List<? extends Holder<T>> p_205801_) {
-        return new HolderSet.Direct<>(List.copyOf(p_205801_));
-    }
+    boolean isValidInRegistry(Registry<T> pRegistry);
 
     @SafeVarargs
-    static <E, T> HolderSet.Direct<T> direct(Function<E, Holder<T>> p_205807_, E... p_205808_) {
-        return direct(Stream.of(p_205808_).map(p_205807_).toList());
+    static <T> HolderSet.Direct<T> direct(Holder<T>... pContents) {
+        return new HolderSet.Direct<>(List.of(pContents));
     }
 
-    static <E, T> HolderSet.Direct<T> direct(Function<E, Holder<T>> p_205804_, List<E> p_205805_) {
-        return direct(p_205805_.stream().map(p_205804_).toList());
+    static <T> HolderSet.Direct<T> direct(List<? extends Holder<T>> pContents) {
+        return new HolderSet.Direct<>(List.copyOf(pContents));
+    }
+
+    @SafeVarargs
+    static <E, T> HolderSet.Direct<T> direct(Function<E, Holder<T>> pHolderFactory, E... pValues) {
+        return direct(Stream.of(pValues).map(pHolderFactory).toList());
+    }
+
+    static <E, T> HolderSet.Direct<T> direct(Function<E, Holder<T>> pHolderFactory, List<E> pValues) {
+        return direct(pValues.stream().map(pHolderFactory).toList());
     }
 
     public static class Direct<T> extends HolderSet.ListBacked<T> {
         private final List<Holder<T>> contents;
         private @Nullable Set<Holder<T>> contentsSet;
 
-        Direct(List<Holder<T>> p_205814_) {
-            this.contents = p_205814_;
+        Direct(List<Holder<T>> pContents) {
+            this.contents = pContents;
         }
 
         protected List<Holder<T>> contents() {
@@ -63,12 +63,12 @@ public interface HolderSet<T> extends Iterable<Holder<T>> {
             return Either.right(this.contents);
         }
 
-        public boolean contains(Holder<T> p_205816_) {
+        public boolean contains(Holder<T> pHolder) {
             if (this.contentsSet == null) {
                 this.contentsSet = Set.copyOf(this.contents);
             }
 
-            return this.contentsSet.contains(p_205816_);
+            return this.contentsSet.contains(pHolder);
         }
 
         public String toString() {
@@ -113,13 +113,13 @@ public interface HolderSet<T> extends Iterable<Holder<T>> {
         private final TagKey<T> key;
         private List<Holder<T>> contents = List.of();
 
-        Named(Registry<T> p_211046_, TagKey<T> p_211047_) {
-            this.registry = p_211046_;
-            this.key = p_211047_;
+        Named(Registry<T> pRegistry, TagKey<T> pKey) {
+            this.registry = pRegistry;
+            this.key = pKey;
         }
 
-        void bind(List<Holder<T>> p_205836_) {
-            this.contents = List.copyOf(p_205836_);
+        void bind(List<Holder<T>> pContents) {
+            this.contents = List.copyOf(pContents);
         }
 
         public TagKey<T> key() {
@@ -134,16 +134,16 @@ public interface HolderSet<T> extends Iterable<Holder<T>> {
             return Either.left(this.key);
         }
 
-        public boolean contains(Holder<T> p_205834_) {
-            return p_205834_.is(this.key);
+        public boolean contains(Holder<T> pHolder) {
+            return pHolder.is(this.key);
         }
 
         public String toString() {
             return "NamedSet(" + this.key + ")[" + this.contents + "]";
         }
 
-        public boolean isValidInRegistry(Registry<T> p_211049_) {
-            return this.registry == p_211049_;
+        public boolean isValidInRegistry(Registry<T> pRegistry) {
+            return this.registry == pRegistry;
         }
     }
 }

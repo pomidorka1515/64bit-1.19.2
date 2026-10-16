@@ -19,12 +19,12 @@ public class BlockPredicateFilter extends PlacementFilter {
         this.predicate = p_191573_;
     }
 
-    public static BlockPredicateFilter forPredicate(BlockPredicate p_191577_) {
-        return new BlockPredicateFilter(p_191577_);
+    public static BlockPredicateFilter forPredicate(BlockPredicate pPredicate) {
+        return new BlockPredicateFilter(pPredicate);
     }
 
-    protected boolean shouldPlace(PlacementContext p_226321_, RandomSource p_226322_, BlockPos p_226323_) {
-        return this.predicate.test(p_226321_.getLevel(), p_226323_);
+    protected boolean shouldPlace(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
+        return this.predicate.test(pContext.getLevel(), pPos);
     }
 
     public PlacementModifierType<?> type() {

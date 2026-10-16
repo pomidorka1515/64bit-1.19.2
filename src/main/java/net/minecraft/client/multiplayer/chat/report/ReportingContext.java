@@ -11,13 +11,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public record ReportingContext(AbuseReportSender sender, ReportEnvironment environment, ChatLog chatLog) {
     private static final int LOG_CAPACITY = 1024;
 
-    public static ReportingContext create(ReportEnvironment p_239686_, UserApiService p_239687_) {
+    public static ReportingContext create(ReportEnvironment pEnvironment, UserApiService pUserApiService) {
         RollingMemoryChatLog rollingmemorychatlog = new RollingMemoryChatLog(1024);
-        AbuseReportSender abusereportsender = AbuseReportSender.create(p_239686_, p_239687_);
-        return new ReportingContext(abusereportsender, p_239686_, rollingmemorychatlog);
+        AbuseReportSender abusereportsender = AbuseReportSender.create(pEnvironment, pUserApiService);
+        return new ReportingContext(abusereportsender, pEnvironment, rollingmemorychatlog);
     }
 
-    public boolean matches(ReportEnvironment p_239734_) {
-        return Objects.equals(this.environment, p_239734_);
+    public boolean matches(ReportEnvironment pEnvironment) {
+        return Objects.equals(this.environment, pEnvironment);
     }
 }

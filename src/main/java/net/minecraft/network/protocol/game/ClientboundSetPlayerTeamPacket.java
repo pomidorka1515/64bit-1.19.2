@@ -23,62 +23,62 @@ public class ClientboundSetPlayerTeamPacket implements Packet<ClientGamePacketLi
     private final Collection<String> players;
     private final Optional<ClientboundSetPlayerTeamPacket.Parameters> parameters;
 
-    private ClientboundSetPlayerTeamPacket(String p_179318_, int p_179319_, Optional<ClientboundSetPlayerTeamPacket.Parameters> p_179320_, Collection<String> p_179321_) {
-        this.name = p_179318_;
-        this.method = p_179319_;
-        this.parameters = p_179320_;
-        this.players = ImmutableList.copyOf(p_179321_);
+    private ClientboundSetPlayerTeamPacket(String pName, int pMethod, Optional<ClientboundSetPlayerTeamPacket.Parameters> pParameters, Collection<String> pPlayers) {
+        this.name = pName;
+        this.method = pMethod;
+        this.parameters = pParameters;
+        this.players = ImmutableList.copyOf(pPlayers);
     }
 
-    public static ClientboundSetPlayerTeamPacket createAddOrModifyPacket(PlayerTeam p_179333_, boolean p_179334_) {
-        return new ClientboundSetPlayerTeamPacket(p_179333_.getName(), p_179334_ ? 0 : 2, Optional.of(new ClientboundSetPlayerTeamPacket.Parameters(p_179333_)), (Collection<String>) (p_179334_ ? p_179333_.getPlayers() : ImmutableList.of()));
+    public static ClientboundSetPlayerTeamPacket createAddOrModifyPacket(PlayerTeam pTeam, boolean pUseAdd) {
+        return new ClientboundSetPlayerTeamPacket(pTeam.getName(), pUseAdd ? 0 : 2, Optional.of(new ClientboundSetPlayerTeamPacket.Parameters(pTeam)), (Collection<String>) (pUseAdd ? pTeam.getPlayers() : ImmutableList.of()));
     }
 
-    public static ClientboundSetPlayerTeamPacket createRemovePacket(PlayerTeam p_179327_) {
-        return new ClientboundSetPlayerTeamPacket(p_179327_.getName(), 1, Optional.empty(), ImmutableList.of());
+    public static ClientboundSetPlayerTeamPacket createRemovePacket(PlayerTeam pTeam) {
+        return new ClientboundSetPlayerTeamPacket(pTeam.getName(), 1, Optional.empty(), ImmutableList.of());
     }
 
-    public static ClientboundSetPlayerTeamPacket createPlayerPacket(PlayerTeam p_179329_, String p_179330_, ClientboundSetPlayerTeamPacket.Action p_179331_) {
-        return new ClientboundSetPlayerTeamPacket(p_179329_.getName(), p_179331_ == ClientboundSetPlayerTeamPacket.Action.ADD ? 3 : 4, Optional.empty(), ImmutableList.of(p_179330_));
+    public static ClientboundSetPlayerTeamPacket createPlayerPacket(PlayerTeam pTeam, String pPlayerName, ClientboundSetPlayerTeamPacket.Action pAction) {
+        return new ClientboundSetPlayerTeamPacket(pTeam.getName(), pAction == ClientboundSetPlayerTeamPacket.Action.ADD ? 3 : 4, Optional.empty(), ImmutableList.of(pPlayerName));
     }
 
-    public ClientboundSetPlayerTeamPacket(FriendlyByteBuf p_179323_) {
-        this.name = p_179323_.readUtf();
-        this.method = p_179323_.readByte();
+    public ClientboundSetPlayerTeamPacket(FriendlyByteBuf pBuffer) {
+        this.name = pBuffer.readUtf();
+        this.method = pBuffer.readByte();
         if (shouldHaveParameters(this.method)) {
-            this.parameters = Optional.of(new ClientboundSetPlayerTeamPacket.Parameters(p_179323_));
+            this.parameters = Optional.of(new ClientboundSetPlayerTeamPacket.Parameters(pBuffer));
         } else {
             this.parameters = Optional.empty();
         }
 
         if (shouldHavePlayerList(this.method)) {
-            this.players = p_179323_.readList(FriendlyByteBuf::readUtf);
+            this.players = pBuffer.readList(FriendlyByteBuf::readUtf);
         } else {
             this.players = ImmutableList.of();
         }
     }
 
-    public void write(FriendlyByteBuf p_133313_) {
-        p_133313_.writeUtf(this.name);
-        p_133313_.writeByte(this.method);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeUtf(this.name);
+        pBuffer.writeByte(this.method);
         if (shouldHaveParameters(this.method)) {
             this.parameters.orElseThrow(() -> {
                                return new IllegalStateException("Parameters not present, but method is" + this.method);
                            })
-                    .write(p_133313_);
+                    .write(pBuffer);
         }
 
         if (shouldHavePlayerList(this.method)) {
-            p_133313_.writeCollection(this.players, FriendlyByteBuf::writeUtf);
+            pBuffer.writeCollection(this.players, FriendlyByteBuf::writeUtf);
         }
     }
 
-    private static boolean shouldHavePlayerList(int p_179325_) {
-        return p_179325_ == 0 || p_179325_ == 3 || p_179325_ == 4;
+    private static boolean shouldHavePlayerList(int pMethod) {
+        return pMethod == 0 || pMethod == 3 || pMethod == 4;
     }
 
-    private static boolean shouldHaveParameters(int p_179337_) {
-        return p_179337_ == 0 || p_179337_ == 2;
+    private static boolean shouldHaveParameters(int pMethod) {
+        return pMethod == 0 || pMethod == 2;
     }
 
     @Nullable
@@ -108,8 +108,8 @@ public class ClientboundSetPlayerTeamPacket implements Packet<ClientGamePacketLi
         }
     }
 
-    public void handle(ClientGamePacketListener p_133310_) {
-        p_133310_.handleSetPlayerTeamPacket(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleSetPlayerTeamPacket(this);
     }
 
     public String getName() {
@@ -138,24 +138,24 @@ public class ClientboundSetPlayerTeamPacket implements Packet<ClientGamePacketLi
         private final ChatFormatting color;
         private final int options;
 
-        public Parameters(PlayerTeam p_179360_) {
-            this.displayName = p_179360_.getDisplayName();
-            this.options = p_179360_.packOptions();
-            this.nametagVisibility = p_179360_.getNameTagVisibility().name;
-            this.collisionRule = p_179360_.getCollisionRule().name;
-            this.color = p_179360_.getColor();
-            this.playerPrefix = p_179360_.getPlayerPrefix();
-            this.playerSuffix = p_179360_.getPlayerSuffix();
+        public Parameters(PlayerTeam pTeam) {
+            this.displayName = pTeam.getDisplayName();
+            this.options = pTeam.packOptions();
+            this.nametagVisibility = pTeam.getNameTagVisibility().name;
+            this.collisionRule = pTeam.getCollisionRule().name;
+            this.color = pTeam.getColor();
+            this.playerPrefix = pTeam.getPlayerPrefix();
+            this.playerSuffix = pTeam.getPlayerSuffix();
         }
 
-        public Parameters(FriendlyByteBuf p_179362_) {
-            this.displayName = p_179362_.readComponent();
-            this.options = p_179362_.readByte();
-            this.nametagVisibility = p_179362_.readUtf(40);
-            this.collisionRule = p_179362_.readUtf(40);
-            this.color = p_179362_.readEnum(ChatFormatting.class);
-            this.playerPrefix = p_179362_.readComponent();
-            this.playerSuffix = p_179362_.readComponent();
+        public Parameters(FriendlyByteBuf pBuffer) {
+            this.displayName = pBuffer.readComponent();
+            this.options = pBuffer.readByte();
+            this.nametagVisibility = pBuffer.readUtf(40);
+            this.collisionRule = pBuffer.readUtf(40);
+            this.color = pBuffer.readEnum(ChatFormatting.class);
+            this.playerPrefix = pBuffer.readComponent();
+            this.playerSuffix = pBuffer.readComponent();
         }
 
         public Component getDisplayName() {
@@ -186,14 +186,14 @@ public class ClientboundSetPlayerTeamPacket implements Packet<ClientGamePacketLi
             return this.playerSuffix;
         }
 
-        public void write(FriendlyByteBuf p_179365_) {
-            p_179365_.writeComponent(this.displayName);
-            p_179365_.writeByte(this.options);
-            p_179365_.writeUtf(this.nametagVisibility);
-            p_179365_.writeUtf(this.collisionRule);
-            p_179365_.writeEnum(this.color);
-            p_179365_.writeComponent(this.playerPrefix);
-            p_179365_.writeComponent(this.playerSuffix);
+        public void write(FriendlyByteBuf pBuffer) {
+            pBuffer.writeComponent(this.displayName);
+            pBuffer.writeByte(this.options);
+            pBuffer.writeUtf(this.nametagVisibility);
+            pBuffer.writeUtf(this.collisionRule);
+            pBuffer.writeEnum(this.color);
+            pBuffer.writeComponent(this.playerPrefix);
+            pBuffer.writeComponent(this.playerSuffix);
         }
     }
 }

@@ -13,18 +13,18 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class HumanoidMobRenderer<T extends Mob, M extends HumanoidModel<T>> extends MobRenderer<T, M> {
     private static final ResourceLocation DEFAULT_LOCATION = new ResourceLocation("textures/entity/steve.png");
 
-    public HumanoidMobRenderer(EntityRendererProvider.Context p_174169_, M p_174170_, float p_174171_) {
-        this(p_174169_, p_174170_, p_174171_, 1.0F, 1.0F, 1.0F);
+    public HumanoidMobRenderer(EntityRendererProvider.Context pContext, M pModel, float pShadowRadius) {
+        this(pContext, pModel, pShadowRadius, 1.0F, 1.0F, 1.0F);
     }
 
-    public HumanoidMobRenderer(EntityRendererProvider.Context p_174173_, M p_174174_, float p_174175_, float p_174176_, float p_174177_, float p_174178_) {
-        super(p_174173_, p_174174_, p_174175_);
-        this.addLayer(new CustomHeadLayer<>(this, p_174173_.getModelSet(), p_174176_, p_174177_, p_174178_, p_174173_.getItemInHandRenderer()));
-        this.addLayer(new ElytraLayer<>(this, p_174173_.getModelSet()));
-        this.addLayer(new ItemInHandLayer<>(this, p_174173_.getItemInHandRenderer()));
+    public HumanoidMobRenderer(EntityRendererProvider.Context pContext, M pModel, float pShadowRadius, float pScaleX, float pScaleY, float pScaleZ) {
+        super(pContext, pModel, pShadowRadius);
+        this.addLayer(new CustomHeadLayer<>(this, pContext.getModelSet(), pScaleX, pScaleY, pScaleZ, pContext.getItemInHandRenderer()));
+        this.addLayer(new ElytraLayer<>(this, pContext.getModelSet()));
+        this.addLayer(new ItemInHandLayer<>(this, pContext.getItemInHandRenderer()));
     }
 
-    public ResourceLocation getTextureLocation(T p_114891_) {
+    public ResourceLocation getTextureLocation(T pEntity) {
         return DEFAULT_LOCATION;
     }
 }

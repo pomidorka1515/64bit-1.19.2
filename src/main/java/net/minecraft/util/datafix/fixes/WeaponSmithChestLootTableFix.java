@@ -5,8 +5,8 @@ import com.mojang.datafixers.Typed;
 import com.mojang.datafixers.schemas.Schema;
 
 public class WeaponSmithChestLootTableFix extends NamedEntityFix {
-    public WeaponSmithChestLootTableFix(Schema p_203111_, boolean p_203112_) {
-        super(p_203111_, p_203112_, "WeaponSmithChestLootTableFix", References.BLOCK_ENTITY, "minecraft:chest");
+    public WeaponSmithChestLootTableFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "WeaponSmithChestLootTableFix", References.BLOCK_ENTITY, "minecraft:chest");
     }
 
     protected Typed<?> fix(Typed<?> p_203114_) {

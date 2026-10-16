@@ -5,12 +5,12 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.raid.Raid;
 
 public class VictoryStroll extends VillageBoundRandomStroll {
-    public VictoryStroll(float p_24535_) {
-        super(p_24535_);
+    public VictoryStroll(float pSpeedModifier) {
+        super(pSpeedModifier);
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_24540_, PathfinderMob p_24541_) {
-        Raid raid = p_24540_.getRaidAt(p_24541_.blockPosition());
-        return raid != null && raid.isVictory() && super.checkExtraStartConditions(p_24540_, p_24541_);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, PathfinderMob pOwner) {
+        Raid raid = pLevel.getRaidAt(pOwner.blockPosition());
+        return raid != null && raid.isVictory() && super.checkExtraStartConditions(pLevel, pOwner);
     }
 }

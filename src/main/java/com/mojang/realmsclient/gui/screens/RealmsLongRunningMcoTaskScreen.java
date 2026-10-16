@@ -33,12 +33,12 @@ public class RealmsLongRunningMcoTaskScreen extends RealmsScreen implements Erro
     private Button cancelOrBackButton;
     public static final String[] SYMBOLS = new String[] {"\u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583", "_ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584", "_ _ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585", "_ _ _ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586", "_ _ _ _ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587", "_ _ _ _ _ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588", "_ _ _ _ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587", "_ _ _ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586", "_ _ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585", "_ \u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584", "\u2583 \u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583", "\u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _", "\u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _ _", "\u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _ _ _", "\u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _ _ _ _", "\u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _ _ _ _ _", "\u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _ _ _ _", "\u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _ _ _", "\u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _ _", "\u2584 \u2585 \u2586 \u2587 \u2588 \u2587 \u2586 \u2585 \u2584 \u2583 _"};
 
-    public RealmsLongRunningMcoTaskScreen(Screen p_88777_, LongRunningTask p_88778_) {
+    public RealmsLongRunningMcoTaskScreen(Screen pLastScreen, LongRunningTask pTask) {
         super(GameNarrator.NO_TITLE);
-        this.lastScreen = p_88777_;
-        this.task = p_88778_;
-        p_88778_.setScreen(this);
-        Thread thread = new Thread(p_88778_, "Realms-long-running-task");
+        this.lastScreen = pLastScreen;
+        this.task = pTask;
+        pTask.setScreen(this);
+        Thread thread = new Thread(pTask, "Realms-long-running-task");
         thread.setUncaughtExceptionHandler(new RealmsDefaultUncaughtExceptionHandler(LOGGER));
         thread.start();
     }
@@ -50,12 +50,12 @@ public class RealmsLongRunningMcoTaskScreen extends RealmsScreen implements Erro
         this.task.tick();
     }
 
-    public boolean keyPressed(int p_88781_, int p_88782_, int p_88783_) {
-        if (p_88781_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.cancelOrBackButtonClicked();
             return true;
         } else {
-            return super.keyPressed(p_88781_, p_88782_, p_88783_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -72,22 +72,22 @@ public class RealmsLongRunningMcoTaskScreen extends RealmsScreen implements Erro
         this.minecraft.setScreen(this.lastScreen);
     }
 
-    public void render(PoseStack p_88785_, int p_88786_, int p_88787_, float p_88788_) {
-        this.renderBackground(p_88785_);
-        drawCenteredString(p_88785_, this.font, this.title, this.width / 2, row(3), 16777215);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, row(3), 16777215);
         Component component = this.errorMessage;
         if (component == null) {
-            drawCenteredString(p_88785_, this.font, SYMBOLS[this.animTicks % SYMBOLS.length], this.width / 2, row(8), 8421504);
+            drawCenteredString(pPoseStack, this.font, SYMBOLS[this.animTicks % SYMBOLS.length], this.width / 2, row(8), 8421504);
         } else {
-            drawCenteredString(p_88785_, this.font, component, this.width / 2, row(8), 16711680);
+            drawCenteredString(pPoseStack, this.font, component, this.width / 2, row(8), 16711680);
         }
 
-        super.render(p_88785_, p_88786_, p_88787_, p_88788_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    public void error(Component p_88792_) {
-        this.errorMessage = p_88792_;
-        this.minecraft.getNarrator().sayNow(p_88792_);
+    public void error(Component pError) {
+        this.errorMessage = pError;
+        this.minecraft.getNarrator().sayNow(pError);
         this.minecraft.execute(() -> {
             this.removeWidget(this.cancelOrBackButton);
             this.cancelOrBackButton = this.addRenderableWidget(new Button(this.width / 2 - 106, this.height / 4 + 120 + 12, 200, 20, CommonComponents.GUI_BACK, (p_88790_) -> {
@@ -96,8 +96,8 @@ public class RealmsLongRunningMcoTaskScreen extends RealmsScreen implements Erro
         });
     }
 
-    public void setTitle(Component p_88797_) {
-        this.title = p_88797_;
+    public void setTitle(Component pTitle) {
+        this.title = pTitle;
     }
 
     public boolean aborted() {

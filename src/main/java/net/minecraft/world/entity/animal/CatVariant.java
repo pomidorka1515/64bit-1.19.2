@@ -16,7 +16,7 @@ public record CatVariant(ResourceLocation texture) {
     public static final CatVariant JELLIE = register("jellie", "textures/entity/cat/jellie.png");
     public static final CatVariant ALL_BLACK = register("all_black", "textures/entity/cat/all_black.png");
 
-    private static CatVariant register(String p_218157_, String p_218158_) {
-        return Registry.register(Registry.CAT_VARIANT, p_218157_, new CatVariant(new ResourceLocation(p_218158_)));
+    private static CatVariant register(String pName, String pTextureLocation) {
+        return Registry.register(Registry.CAT_VARIANT, pName, new CatVariant(new ResourceLocation(pTextureLocation)));
     }
 }

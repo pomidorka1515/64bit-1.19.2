@@ -51,25 +51,25 @@ public class ClientHandshakePacketListenerImpl implements ClientLoginPacketListe
     private final Connection connection;
     private GameProfile localGameProfile;
 
-    public ClientHandshakePacketListenerImpl(Connection p_104526_, Minecraft p_104527_, @Nullable Screen p_104528_, Consumer<Component> p_104529_) {
-        this.connection = p_104526_;
-        this.minecraft = p_104527_;
-        this.parent = p_104528_;
-        this.updateStatus = p_104529_;
+    public ClientHandshakePacketListenerImpl(Connection pConnection, Minecraft pMinecraft, @Nullable Screen pParent, Consumer<Component> pUpdateStatus) {
+        this.connection = pConnection;
+        this.minecraft = pMinecraft;
+        this.parent = pParent;
+        this.updateStatus = pUpdateStatus;
     }
 
-    public void handleHello(ClientboundHelloPacket p_104549_) {
+    public void handleHello(ClientboundHelloPacket pPacket) {
         Cipher cipher;
         Cipher cipher1;
         String s;
         ServerboundKeyPacket serverboundkeypacket;
         try {
             SecretKey secretkey = Crypt.generateSecretKey();
-            PublicKey publickey = p_104549_.getPublicKey();
-            s = (new BigInteger(Crypt.digestData(p_104549_.getServerId(), publickey, secretkey))).toString(16);
+            PublicKey publickey = pPacket.getPublicKey();
+            s = (new BigInteger(Crypt.digestData(pPacket.getServerId(), publickey, secretkey))).toString(16);
             cipher = Crypt.getCipher(2, secretkey);
             cipher1 = Crypt.getCipher(1, secretkey);
-            byte[] abyte = p_104549_.getNonce();
+            byte[] abyte = pPacket.getNonce();
             Signer signer = this.minecraft.getProfileKeyPairManager().signer();
             if (signer == null) {
                 serverboundkeypacket = new ServerboundKeyPacket(secretkey, publickey, abyte);
@@ -105,9 +105,9 @@ public class ClientHandshakePacketListenerImpl implements ClientLoginPacketListe
     }
 
     @Nullable
-    private Component authenticateServer(String p_104532_) {
+    private Component authenticateServer(String pServerHash) {
         try {
-            this.getMinecraftSessionService().joinServer(this.minecraft.getUser().getGameProfile(), this.minecraft.getUser().getAccessToken(), p_104532_);
+            this.getMinecraftSessionService().joinServer(this.minecraft.getUser().getGameProfile(), this.minecraft.getUser().getAccessToken(), pServerHash);
             return null;
         } catch (AuthenticationUnavailableException authenticationunavailableexception) {
             return Component.translatable("disconnect.loginFailedInfo", Component.translatable("disconnect.loginFailedInfo.serversUnavailable"));
@@ -126,18 +126,18 @@ public class ClientHandshakePacketListenerImpl implements ClientLoginPacketListe
         return this.minecraft.getMinecraftSessionService();
     }
 
-    public void handleGameProfile(ClientboundGameProfilePacket p_104547_) {
+    public void handleGameProfile(ClientboundGameProfilePacket pPacket) {
         this.updateStatus.accept(Component.translatable("connect.joining"));
-        this.localGameProfile = p_104547_.getGameProfile();
+        this.localGameProfile = pPacket.getGameProfile();
         this.connection.setProtocol(ConnectionProtocol.PLAY);
         this.connection.setListener(new ClientPacketListener(this.minecraft, this.parent, this.connection, this.localGameProfile, this.minecraft.createTelemetryManager()));
     }
 
-    public void onDisconnect(Component p_104543_) {
+    public void onDisconnect(Component pReason) {
         if (this.parent != null && this.parent instanceof RealmsScreen) {
-            this.minecraft.setScreen(new DisconnectedRealmsScreen(this.parent, CommonComponents.CONNECT_FAILED, p_104543_));
+            this.minecraft.setScreen(new DisconnectedRealmsScreen(this.parent, CommonComponents.CONNECT_FAILED, pReason));
         } else {
-            this.minecraft.setScreen(new DisconnectedScreen(this.parent, CommonComponents.CONNECT_FAILED, p_104543_));
+            this.minecraft.setScreen(new DisconnectedScreen(this.parent, CommonComponents.CONNECT_FAILED, pReason));
         }
     }
 
@@ -145,18 +145,18 @@ public class ClientHandshakePacketListenerImpl implements ClientLoginPacketListe
         return this.connection;
     }
 
-    public void handleDisconnect(ClientboundLoginDisconnectPacket p_104553_) {
-        this.connection.disconnect(p_104553_.getReason());
+    public void handleDisconnect(ClientboundLoginDisconnectPacket pPacket) {
+        this.connection.disconnect(pPacket.getReason());
     }
 
-    public void handleCompression(ClientboundLoginCompressionPacket p_104551_) {
+    public void handleCompression(ClientboundLoginCompressionPacket pPacket) {
         if (!this.connection.isMemoryConnection()) {
-            this.connection.setupCompression(p_104551_.getCompressionThreshold(), false);
+            this.connection.setupCompression(pPacket.getCompressionThreshold(), false);
         }
     }
 
-    public void handleCustomQuery(ClientboundCustomQueryPacket p_104545_) {
+    public void handleCustomQuery(ClientboundCustomQueryPacket pPacket) {
         this.updateStatus.accept(Component.translatable("connect.negotiating"));
-        this.connection.send(new ServerboundCustomQueryPacket(p_104545_.getTransactionId(), (FriendlyByteBuf) null));
+        this.connection.send(new ServerboundCustomQueryPacket(pPacket.getTransactionId(), (FriendlyByteBuf) null));
     }
 }

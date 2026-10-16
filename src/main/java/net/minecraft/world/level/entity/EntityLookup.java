@@ -16,11 +16,11 @@ public class EntityLookup<T extends EntityAccess> {
     private final Int2ObjectMap<T> byId = new Int2ObjectLinkedOpenHashMap<>();
     private final Map<UUID, T> byUuid = Maps.newHashMap();
 
-    public <U extends T> void getEntities(EntityTypeTest<T, U> p_156817_, Consumer<U> p_156818_) {
+    public <U extends T> void getEntities(EntityTypeTest<T, U> pTest, Consumer<U> pConsumer) {
         for (T t : this.byId.values()) {
-            U u = (U) ((EntityAccess) p_156817_.tryCast(t));
+            U u = (U) ((EntityAccess) pTest.tryCast(t));
             if (u != null) {
-                p_156818_.accept(u);
+                pConsumer.accept(u);
             }
         }
     }
@@ -29,29 +29,29 @@ public class EntityLookup<T extends EntityAccess> {
         return Iterables.unmodifiableIterable(this.byId.values());
     }
 
-    public void add(T p_156815_) {
-        UUID uuid = p_156815_.getUUID();
+    public void add(T pEntity) {
+        UUID uuid = pEntity.getUUID();
         if (this.byUuid.containsKey(uuid)) {
-            LOGGER.warn("Duplicate entity UUID {}: {}", uuid, p_156815_);
+            LOGGER.warn("Duplicate entity UUID {}: {}", uuid, pEntity);
         } else {
-            this.byUuid.put(uuid, p_156815_);
-            this.byId.put(p_156815_.getId(), p_156815_);
+            this.byUuid.put(uuid, pEntity);
+            this.byId.put(pEntity.getId(), pEntity);
         }
     }
 
-    public void remove(T p_156823_) {
-        this.byUuid.remove(p_156823_.getUUID());
-        this.byId.remove(p_156823_.getId());
+    public void remove(T pEntity) {
+        this.byUuid.remove(pEntity.getUUID());
+        this.byId.remove(pEntity.getId());
     }
 
     @Nullable
-    public T getEntity(int p_156813_) {
-        return this.byId.get(p_156813_);
+    public T getEntity(int pId) {
+        return this.byId.get(pId);
     }
 
     @Nullable
-    public T getEntity(UUID p_156820_) {
-        return this.byUuid.get(p_156820_);
+    public T getEntity(UUID pUuid) {
+        return this.byUuid.get(pUuid);
     }
 
     public int count() {

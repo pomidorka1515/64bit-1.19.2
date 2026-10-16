@@ -14,18 +14,18 @@ public class ServerHandshakePacketListenerImpl implements ServerHandshakePacketL
     private final MinecraftServer server;
     private final Connection connection;
 
-    public ServerHandshakePacketListenerImpl(MinecraftServer p_9969_, Connection p_9970_) {
-        this.server = p_9969_;
-        this.connection = p_9970_;
+    public ServerHandshakePacketListenerImpl(MinecraftServer pServer, Connection pConnection) {
+        this.server = pServer;
+        this.connection = pConnection;
     }
 
-    public void handleIntention(ClientIntentionPacket p_9975_) {
-        switch (p_9975_.getIntention()) {
+    public void handleIntention(ClientIntentionPacket pPacket) {
+        switch (pPacket.getIntention()) {
             case LOGIN:
                 this.connection.setProtocol(ConnectionProtocol.LOGIN);
-                if (p_9975_.getProtocolVersion() != SharedConstants.getCurrentVersion().getProtocolVersion()) {
+                if (pPacket.getProtocolVersion() != SharedConstants.getCurrentVersion().getProtocolVersion()) {
                     Component component;
-                    if (p_9975_.getProtocolVersion() < 754) {
+                    if (pPacket.getProtocolVersion() < 754) {
                         component = Component.translatable("multiplayer.disconnect.outdated_client", SharedConstants.getCurrentVersion().getName());
                     } else {
                         component = Component.translatable("multiplayer.disconnect.incompatible", SharedConstants.getCurrentVersion().getName());
@@ -46,11 +46,11 @@ public class ServerHandshakePacketListenerImpl implements ServerHandshakePacketL
                 }
                 break;
             default:
-                throw new UnsupportedOperationException("Invalid intention " + p_9975_.getIntention());
+                throw new UnsupportedOperationException("Invalid intention " + pPacket.getIntention());
         }
     }
 
-    public void onDisconnect(Component p_9973_) {
+    public void onDisconnect(Component pReason) {
     }
 
     public Connection getConnection() {

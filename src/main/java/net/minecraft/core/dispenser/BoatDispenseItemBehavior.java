@@ -16,8 +16,8 @@ public class BoatDispenseItemBehavior extends DefaultDispenseItemBehavior {
     private final Boat.Type type;
     private final boolean isChestBoat;
 
-    public BoatDispenseItemBehavior(Boat.Type p_123371_) {
-        this(p_123371_, false);
+    public BoatDispenseItemBehavior(Boat.Type pType) {
+        this(pType, false);
     }
 
     public BoatDispenseItemBehavior(Boat.Type p_235891_, boolean p_235892_) {
@@ -25,10 +25,10 @@ public class BoatDispenseItemBehavior extends DefaultDispenseItemBehavior {
         this.isChestBoat = p_235892_;
     }
 
-    public ItemStack execute(BlockSource p_123375_, ItemStack p_123376_) {
-        Direction direction = p_123375_.getBlockState().getValue(DispenserBlock.FACING);
-        Level level = p_123375_.getLevel();
-        BlockPos sourcePos = p_123375_.getPos();
+    public ItemStack execute(BlockSource pSource, ItemStack pStack) {
+        Direction direction = pSource.getBlockState().getValue(DispenserBlock.FACING);
+        Level level = pSource.getLevel();
+        BlockPos sourcePos = pSource.getPos();
         double d1 = (double) sourcePos.getY() + 0.5D + (double) ((float) direction.getStepY() * 1.125F);
         BlockPos blockpos = sourcePos.relative(direction);
         double d3;
@@ -36,7 +36,7 @@ public class BoatDispenseItemBehavior extends DefaultDispenseItemBehavior {
             d3 = 1.0D;
         } else {
             if (!level.getBlockState(blockpos).isAir() || !level.getFluidState(blockpos.below()).is(FluidTags.WATER)) {
-                return this.defaultDispenseItemBehavior.dispense(p_123375_, p_123376_);
+                return this.defaultDispenseItemBehavior.dispense(pSource, pStack);
             }
 
             d3 = 0.0D;
@@ -49,11 +49,11 @@ public class BoatDispenseItemBehavior extends DefaultDispenseItemBehavior {
         boat.setType(this.type);
         boat.setYRot(direction.toYRot());
         level.addFreshEntity(boat);
-        p_123376_.shrink(1);
-        return p_123376_;
+        pStack.shrink(1);
+        return pStack;
     }
 
-    protected void playSound(BlockSource p_123373_) {
-        p_123373_.getLevel().levelEvent(1000, p_123373_.getPos(), 0);
+    protected void playSound(BlockSource pSource) {
+        pSource.getLevel().levelEvent(1000, pSource.getPos(), 0);
     }
 }

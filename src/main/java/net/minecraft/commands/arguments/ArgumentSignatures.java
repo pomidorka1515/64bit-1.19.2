@@ -13,13 +13,13 @@ public record ArgumentSignatures(List<ArgumentSignatures.Entry> entries) {
     private static final int MAX_ARGUMENT_COUNT = 8;
     private static final int MAX_ARGUMENT_NAME_LENGTH = 16;
 
-    public ArgumentSignatures(FriendlyByteBuf p_231052_) {
-        this(p_231052_.<ArgumentSignatures.Entry, List<ArgumentSignatures.Entry>>readCollection(FriendlyByteBuf.limitValue(ArrayList::new, 8), ArgumentSignatures.Entry::new));
+    public ArgumentSignatures(FriendlyByteBuf pBuffer) {
+        this(pBuffer.<ArgumentSignatures.Entry, List<ArgumentSignatures.Entry>>readCollection(FriendlyByteBuf.limitValue(ArrayList::new, 8), ArgumentSignatures.Entry::new));
     }
 
-    public MessageSignature get(String p_241493_) {
+    public MessageSignature get(String pKey) {
         for (ArgumentSignatures.Entry argumentsignatures$entry : this.entries) {
-            if (argumentsignatures$entry.name.equals(p_241493_)) {
+            if (argumentsignatures$entry.name.equals(pKey)) {
                 return argumentsignatures$entry.signature;
             }
         }
@@ -27,31 +27,31 @@ public record ArgumentSignatures(List<ArgumentSignatures.Entry> entries) {
         return MessageSignature.EMPTY;
     }
 
-    public void write(FriendlyByteBuf p_231062_) {
-        p_231062_.writeCollection(this.entries, (p_241214_, p_241215_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeCollection(this.entries, (p_241214_, p_241215_) -> {
             p_241215_.write(p_241214_);
         });
     }
 
-    public static boolean hasSignableArguments(PreviewableCommand<?> p_242912_) {
-        return p_242912_.arguments().stream().anyMatch((p_242699_) -> {
+    public static boolean hasSignableArguments(PreviewableCommand<?> pCommand) {
+        return pCommand.arguments().stream().anyMatch((p_242699_) -> {
             return p_242699_.previewType() instanceof SignedArgument;
         });
     }
 
-    public static ArgumentSignatures signCommand(PreviewableCommand<?> p_242877_, ArgumentSignatures.Signer p_242891_) {
-        List<ArgumentSignatures.Entry> list = collectPlainSignableArguments(p_242877_).stream().map((p_242081_) -> {
-                                                                                                   MessageSignature messagesignature = p_242891_.sign(p_242081_.getFirst(), p_242081_.getSecond());
+    public static ArgumentSignatures signCommand(PreviewableCommand<?> pCommand, ArgumentSignatures.Signer pSigner) {
+        List<ArgumentSignatures.Entry> list = collectPlainSignableArguments(pCommand).stream().map((p_242081_) -> {
+                                                                                                   MessageSignature messagesignature = pSigner.sign(p_242081_.getFirst(), p_242081_.getSecond());
                                                                                                    return new ArgumentSignatures.Entry(p_242081_.getFirst(), messagesignature);
                                                                                                })
                                                       .toList();
         return new ArgumentSignatures(list);
     }
 
-    public static List<Pair<String, String>> collectPlainSignableArguments(PreviewableCommand<?> p_242870_) {
+    public static List<Pair<String, String>> collectPlainSignableArguments(PreviewableCommand<?> pCommand) {
         List<Pair<String, String>> list = new ArrayList<>();
 
-        for (PreviewableCommand.Argument<?> argument : p_242870_.arguments()) {
+        for (PreviewableCommand.Argument<?> argument : pCommand.arguments()) {
             PreviewedArgument $$4 = argument.previewType();
             if ($$4 instanceof SignedArgument<?> signedargument) {
                 String s = getSignableText(signedargument, argument.parsedValue());
@@ -62,23 +62,23 @@ public record ArgumentSignatures(List<ArgumentSignatures.Entry> entries) {
         return list;
     }
 
-    private static <T> String getSignableText(SignedArgument<T> p_242374_, ParsedArgument<?, ?> p_242172_) {
-        return p_242374_.getSignableText((T) p_242172_.getResult());
+    private static <T> String getSignableText(SignedArgument<T> pSignedArgument, ParsedArgument<?, ?> pParsedArgument) {
+        return pSignedArgument.getSignableText((T) pParsedArgument.getResult());
     }
 
     public static record Entry(String name, MessageSignature signature) {
-        public Entry(FriendlyByteBuf p_241305_) {
-            this(p_241305_.readUtf(16), new MessageSignature(p_241305_));
+        public Entry(FriendlyByteBuf pBuffer) {
+            this(pBuffer.readUtf(16), new MessageSignature(pBuffer));
         }
 
-        public void write(FriendlyByteBuf p_241403_) {
-            p_241403_.writeUtf(this.name, 16);
-            this.signature.write(p_241403_);
+        public void write(FriendlyByteBuf pBuffer) {
+            pBuffer.writeUtf(this.name, 16);
+            this.signature.write(pBuffer);
         }
     }
 
     @FunctionalInterface
     public interface Signer {
-        MessageSignature sign(String p_241389_, String p_242287_);
+        MessageSignature sign(String pArgumentName, String pArgumentText);
     }
 }

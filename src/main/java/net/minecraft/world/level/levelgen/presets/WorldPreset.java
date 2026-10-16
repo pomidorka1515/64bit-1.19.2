@@ -42,12 +42,12 @@ public class WorldPreset {
         return writableregistry.freeze();
     }
 
-    public WorldGenSettings createWorldGenSettings(long p_226422_, boolean p_226423_, boolean p_226424_) {
-        return new WorldGenSettings(p_226422_, p_226423_, p_226424_, this.createRegistry());
+    public WorldGenSettings createWorldGenSettings(long pSeed, boolean pGenerateStructures, boolean pGenerateBonusChest) {
+        return new WorldGenSettings(pSeed, pGenerateStructures, pGenerateBonusChest, this.createRegistry());
     }
 
-    public WorldGenSettings recreateWorldGenSettings(WorldGenSettings p_226428_) {
-        return this.createWorldGenSettings(p_226428_.seed(), p_226428_.generateStructures(), p_226428_.generateBonusChest());
+    public WorldGenSettings recreateWorldGenSettings(WorldGenSettings pWorldGenSettings) {
+        return this.createWorldGenSettings(pWorldGenSettings.seed(), pWorldGenSettings.generateStructures(), pWorldGenSettings.generateBonusChest());
     }
 
     public Optional<LevelStem> overworld() {

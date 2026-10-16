@@ -86,8 +86,8 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
     @Nullable
     private NarratableEntry lastNarratable;
 
-    protected Screen(Component p_96550_) {
-        this.title = p_96550_;
+    protected Screen(Component pTitle) {
+        this.title = pTitle;
     }
 
     public Component getTitle() {
@@ -98,17 +98,17 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         return this.getTitle();
     }
 
-    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         for (Widget widget : this.renderables) {
-            widget.render(p_96562_, p_96563_, p_96564_, p_96565_);
+            widget.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
     }
 
-    public boolean keyPressed(int p_96552_, int p_96553_, int p_96554_) {
-        if (p_96552_ == 256 && this.shouldCloseOnEsc()) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256 && this.shouldCloseOnEsc()) {
             this.onClose();
             return true;
-        } else if (p_96552_ == 258) {
+        } else if (pKeyCode == 258) {
             boolean flag = !hasShiftDown();
             if (!this.changeFocus(flag)) {
                 this.changeFocus(flag);
@@ -116,7 +116,7 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
 
             return false;
         } else {
-            return super.keyPressed(p_96552_, p_96553_, p_96554_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -128,32 +128,32 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         this.minecraft.setScreen((Screen) null);
     }
 
-    protected <T extends GuiEventListener & Widget & NarratableEntry> T addRenderableWidget(T p_169406_) {
-        this.renderables.add(p_169406_);
-        return this.addWidget(p_169406_);
+    protected <T extends GuiEventListener & Widget & NarratableEntry> T addRenderableWidget(T pWidget) {
+        this.renderables.add(pWidget);
+        return this.addWidget(pWidget);
     }
 
-    protected <T extends Widget> T addRenderableOnly(T p_169395_) {
-        this.renderables.add(p_169395_);
-        return p_169395_;
+    protected <T extends Widget> T addRenderableOnly(T pWidget) {
+        this.renderables.add(pWidget);
+        return pWidget;
     }
 
-    protected <T extends GuiEventListener & NarratableEntry> T addWidget(T p_96625_) {
-        this.children.add(p_96625_);
-        this.narratables.add(p_96625_);
-        return p_96625_;
+    protected <T extends GuiEventListener & NarratableEntry> T addWidget(T pListener) {
+        this.children.add(pListener);
+        this.narratables.add(pListener);
+        return pListener;
     }
 
-    protected void removeWidget(GuiEventListener p_169412_) {
-        if (p_169412_ instanceof Widget) {
-            this.renderables.remove((Widget) p_169412_);
+    protected void removeWidget(GuiEventListener pListener) {
+        if (pListener instanceof Widget) {
+            this.renderables.remove((Widget) pListener);
         }
 
-        if (p_169412_ instanceof NarratableEntry) {
-            this.narratables.remove((NarratableEntry) p_169412_);
+        if (pListener instanceof NarratableEntry) {
+            this.narratables.remove((NarratableEntry) pListener);
         }
 
-        this.children.remove(p_169412_);
+        this.children.remove(pListener);
     }
 
     protected void clearWidgets() {
@@ -162,40 +162,40 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         this.narratables.clear();
     }
 
-    protected void renderTooltip(PoseStack p_96566_, ItemStack p_96567_, int p_96568_, int p_96569_) {
-        this.renderTooltip(p_96566_, this.getTooltipFromItem(p_96567_), p_96567_.getTooltipImage(), p_96568_, p_96569_);
+    protected void renderTooltip(PoseStack pPoseStack, ItemStack pItemStack, int pMouseX, int pMouseY) {
+        this.renderTooltip(pPoseStack, this.getTooltipFromItem(pItemStack), pItemStack.getTooltipImage(), pMouseX, pMouseY);
     }
 
-    public void renderTooltip(PoseStack p_169389_, List<Component> p_169390_, Optional<TooltipComponent> p_169391_, int p_169392_, int p_169393_) {
-        List<ClientTooltipComponent> list = p_169390_.stream().map(Component::getVisualOrderText).map(ClientTooltipComponent::create).collect(Collectors.toList());
-        p_169391_.ifPresent((p_169399_) -> {
+    public void renderTooltip(PoseStack pPoseStack, List<Component> pTooltips, Optional<TooltipComponent> pVisualTooltipComponent, int pMouseX, int pMouseY) {
+        List<ClientTooltipComponent> list = pTooltips.stream().map(Component::getVisualOrderText).map(ClientTooltipComponent::create).collect(Collectors.toList());
+        pVisualTooltipComponent.ifPresent((p_169399_) -> {
             list.add(1, ClientTooltipComponent.create(p_169399_));
         });
-        this.renderTooltipInternal(p_169389_, list, p_169392_, p_169393_);
+        this.renderTooltipInternal(pPoseStack, list, pMouseX, pMouseY);
     }
 
-    public List<Component> getTooltipFromItem(ItemStack p_96556_) {
-        return p_96556_.getTooltipLines(this.minecraft.player, this.minecraft.options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
+    public List<Component> getTooltipFromItem(ItemStack pItemStack) {
+        return pItemStack.getTooltipLines(this.minecraft.player, this.minecraft.options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
     }
 
-    public void renderTooltip(PoseStack p_96603_, Component p_96604_, int p_96605_, int p_96606_) {
-        this.renderTooltip(p_96603_, Arrays.asList(p_96604_.getVisualOrderText()), p_96605_, p_96606_);
+    public void renderTooltip(PoseStack pPoseStack, Component pText, int pMouseX, int pMouseY) {
+        this.renderTooltip(pPoseStack, Arrays.asList(pText.getVisualOrderText()), pMouseX, pMouseY);
     }
 
-    public void renderComponentTooltip(PoseStack p_96598_, List<Component> p_96599_, int p_96600_, int p_96601_) {
-        this.renderTooltip(p_96598_, Lists.transform(p_96599_, Component::getVisualOrderText), p_96600_, p_96601_);
+    public void renderComponentTooltip(PoseStack pPoseStack, List<Component> pTooltips, int pMouseX, int pMouseY) {
+        this.renderTooltip(pPoseStack, Lists.transform(pTooltips, Component::getVisualOrderText), pMouseX, pMouseY);
     }
 
-    public void renderTooltip(PoseStack p_96618_, List<? extends FormattedCharSequence> p_96619_, int p_96620_, int p_96621_) {
-        this.renderTooltipInternal(p_96618_, p_96619_.stream().map(ClientTooltipComponent::create).collect(Collectors.toList()), p_96620_, p_96621_);
+    public void renderTooltip(PoseStack pPoseStack, List<? extends FormattedCharSequence> pTooltips, int pMouseX, int pMouseY) {
+        this.renderTooltipInternal(pPoseStack, pTooltips.stream().map(ClientTooltipComponent::create).collect(Collectors.toList()), pMouseX, pMouseY);
     }
 
-    private void renderTooltipInternal(PoseStack p_169384_, List<ClientTooltipComponent> p_169385_, int p_169386_, int p_169387_) {
-        if (!p_169385_.isEmpty()) {
+    private void renderTooltipInternal(PoseStack pPoseStack, List<ClientTooltipComponent> pClientTooltipComponents, int pMouseX, int pMouseY) {
+        if (!pClientTooltipComponents.isEmpty()) {
             int i = 0;
-            int j = p_169385_.size() == 1 ? -2 : 0;
+            int j = pClientTooltipComponents.size() == 1 ? -2 : 0;
 
-            for (ClientTooltipComponent clienttooltipcomponent : p_169385_) {
+            for (ClientTooltipComponent clienttooltipcomponent : pClientTooltipComponents) {
                 int k = clienttooltipcomponent.getWidth(this.font);
                 if (k > i) {
                     i = k;
@@ -204,8 +204,8 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
                 j += clienttooltipcomponent.getHeight();
             }
 
-            int j2 = p_169386_ + 12;
-            int k2 = p_169387_ - 12;
+            int j2 = pMouseX + 12;
+            int k2 = pMouseY - 12;
             if (j2 + i > this.width) {
                 j2 -= 28 + i;
             }
@@ -214,7 +214,7 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
                 k2 = this.height - j - 6;
             }
 
-            p_169384_.pushPose();
+            pPoseStack.pushPose();
             int l = -267386864;
             int i1 = 1347420415;
             int j1 = 1344798847;
@@ -225,7 +225,7 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
             BufferBuilder bufferbuilder = tesselator.getBuilder();
             RenderSystem.setShader(GameRenderer::getPositionColorShader);
             bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-            Matrix4f matrix4f = p_169384_.last().pose();
+            Matrix4f matrix4f = pPoseStack.last().pose();
             fillGradient(matrix4f, bufferbuilder, j2 - 3, k2 - 4, j2 + i + 3, k2 - 3, 400, -267386864, -267386864);
             fillGradient(matrix4f, bufferbuilder, j2 - 3, k2 + j + 3, j2 + i + 3, k2 + j + 4, 400, -267386864, -267386864);
             fillGradient(matrix4f, bufferbuilder, j2 - 3, k2 - 3, j2 + i + 3, k2 + j + 3, 400, -267386864, -267386864);
@@ -243,22 +243,22 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
             RenderSystem.disableBlend();
             RenderSystem.enableTexture();
             MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-            p_169384_.translate(0.0D, 0.0D, 400.0D);
+            pPoseStack.translate(0.0D, 0.0D, 400.0D);
             int l1 = k2;
 
-            for (int i2 = 0; i2 < p_169385_.size(); ++i2) {
-                ClientTooltipComponent clienttooltipcomponent1 = p_169385_.get(i2);
+            for (int i2 = 0; i2 < pClientTooltipComponents.size(); ++i2) {
+                ClientTooltipComponent clienttooltipcomponent1 = pClientTooltipComponents.get(i2);
                 clienttooltipcomponent1.renderText(this.font, j2, l1, matrix4f, multibuffersource$buffersource);
                 l1 += clienttooltipcomponent1.getHeight() + (i2 == 0 ? 2 : 0);
             }
 
             multibuffersource$buffersource.endBatch();
-            p_169384_.popPose();
+            pPoseStack.popPose();
             l1 = k2;
 
-            for (int l2 = 0; l2 < p_169385_.size(); ++l2) {
-                ClientTooltipComponent clienttooltipcomponent2 = p_169385_.get(l2);
-                clienttooltipcomponent2.renderImage(this.font, j2, l1, p_169384_, this.itemRenderer, 400);
+            for (int l2 = 0; l2 < pClientTooltipComponents.size(); ++l2) {
+                ClientTooltipComponent clienttooltipcomponent2 = pClientTooltipComponents.get(l2);
+                clienttooltipcomponent2.renderImage(this.font, j2, l1, pPoseStack, this.itemRenderer, 400);
                 l1 += clienttooltipcomponent2.getHeight() + (l2 == 0 ? 2 : 0);
             }
 
@@ -266,39 +266,39 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         }
     }
 
-    protected void renderComponentHoverEffect(PoseStack p_96571_, @Nullable Style p_96572_, int p_96573_, int p_96574_) {
-        if (p_96572_ != null && p_96572_.getHoverEvent() != null) {
-            HoverEvent hoverevent = p_96572_.getHoverEvent();
+    protected void renderComponentHoverEffect(PoseStack pPoseStack, @Nullable Style pStyle, int pMouseX, int pMouseY) {
+        if (pStyle != null && pStyle.getHoverEvent() != null) {
+            HoverEvent hoverevent = pStyle.getHoverEvent();
             HoverEvent.ItemStackInfo hoverevent$itemstackinfo = hoverevent.getValue(HoverEvent.Action.SHOW_ITEM);
             if (hoverevent$itemstackinfo != null) {
-                this.renderTooltip(p_96571_, hoverevent$itemstackinfo.getItemStack(), p_96573_, p_96574_);
+                this.renderTooltip(pPoseStack, hoverevent$itemstackinfo.getItemStack(), pMouseX, pMouseY);
             } else {
                 HoverEvent.EntityTooltipInfo hoverevent$entitytooltipinfo = hoverevent.getValue(HoverEvent.Action.SHOW_ENTITY);
                 if (hoverevent$entitytooltipinfo != null) {
                     if (this.minecraft.options.advancedItemTooltips) {
-                        this.renderComponentTooltip(p_96571_, hoverevent$entitytooltipinfo.getTooltipLines(), p_96573_, p_96574_);
+                        this.renderComponentTooltip(pPoseStack, hoverevent$entitytooltipinfo.getTooltipLines(), pMouseX, pMouseY);
                     }
                 } else {
                     Component component = hoverevent.getValue(HoverEvent.Action.SHOW_TEXT);
                     if (component != null) {
-                        this.renderTooltip(p_96571_, this.minecraft.font.split(component, Math.max(this.width / 2, 200)), p_96573_, p_96574_);
+                        this.renderTooltip(pPoseStack, this.minecraft.font.split(component, Math.max(this.width / 2, 200)), pMouseX, pMouseY);
                     }
                 }
             }
         }
     }
 
-    protected void insertText(String p_96587_, boolean p_96588_) {
+    protected void insertText(String pText, boolean pOverwrite) {
     }
 
-    public boolean handleComponentClicked(@Nullable Style p_96592_) {
-        if (p_96592_ == null) {
+    public boolean handleComponentClicked(@Nullable Style pStyle) {
+        if (pStyle == null) {
             return false;
         } else {
-            ClickEvent clickevent = p_96592_.getClickEvent();
+            ClickEvent clickevent = pStyle.getClickEvent();
             if (hasShiftDown()) {
-                if (p_96592_.getInsertion() != null) {
-                    this.insertText(p_96592_.getInsertion(), false);
+                if (pStyle.getInsertion() != null) {
+                    this.insertText(pStyle.getInsertion(), false);
                 }
             } else if (clickevent != null) {
                 if (clickevent.getAction() == ClickEvent.Action.OPEN_URL) {
@@ -353,12 +353,12 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         }
     }
 
-    public final void init(Minecraft p_96607_, int p_96608_, int p_96609_) {
-        this.minecraft = p_96607_;
-        this.itemRenderer = p_96607_.getItemRenderer();
-        this.font = p_96607_.font;
-        this.width = p_96608_;
-        this.height = p_96609_;
+    public final void init(Minecraft pMinecraft, int pWidth, int pHeight) {
+        this.minecraft = pMinecraft;
+        this.itemRenderer = pMinecraft.getItemRenderer();
+        this.font = pMinecraft.font;
+        this.width = pWidth;
+        this.height = pHeight;
         this.rebuildWidgets();
         this.triggerImmediateNarration(false);
         this.suppressNarration(NARRATE_SUPPRESS_AFTER_INIT_TIME);
@@ -383,19 +383,19 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
     public void removed() {
     }
 
-    public void renderBackground(PoseStack p_96557_) {
-        this.renderBackground(p_96557_, 0);
+    public void renderBackground(PoseStack pPoseStack) {
+        this.renderBackground(pPoseStack, 0);
     }
 
-    public void renderBackground(PoseStack p_96559_, int p_96560_) {
+    public void renderBackground(PoseStack pPoseStack, int pVOffset) {
         if (this.minecraft.level != null) {
-            this.fillGradient(p_96559_, 0, 0, this.width, this.height, -1072689136, -804253680);
+            this.fillGradient(pPoseStack, 0, 0, this.width, this.height, -1072689136, -804253680);
         } else {
-            this.renderDirtBackground(p_96560_);
+            this.renderDirtBackground(pVOffset);
         }
     }
 
-    public void renderDirtBackground(int p_96627_) {
+    public void renderDirtBackground(int pVOffset) {
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
@@ -403,10 +403,10 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         float f = 32.0F;
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        bufferbuilder.vertex(0.0D, (double) this.height, 0.0D).uv(0.0F, (float) this.height / 32.0F + (float) p_96627_).color(64, 64, 64, 255).endVertex();
-        bufferbuilder.vertex((double) this.width, (double) this.height, 0.0D).uv((float) this.width / 32.0F, (float) this.height / 32.0F + (float) p_96627_).color(64, 64, 64, 255).endVertex();
-        bufferbuilder.vertex((double) this.width, 0.0D, 0.0D).uv((float) this.width / 32.0F, (float) p_96627_).color(64, 64, 64, 255).endVertex();
-        bufferbuilder.vertex(0.0D, 0.0D, 0.0D).uv(0.0F, (float) p_96627_).color(64, 64, 64, 255).endVertex();
+        bufferbuilder.vertex(0.0D, (double) this.height, 0.0D).uv(0.0F, (float) this.height / 32.0F + (float) pVOffset).color(64, 64, 64, 255).endVertex();
+        bufferbuilder.vertex((double) this.width, (double) this.height, 0.0D).uv((float) this.width / 32.0F, (float) this.height / 32.0F + (float) pVOffset).color(64, 64, 64, 255).endVertex();
+        bufferbuilder.vertex((double) this.width, 0.0D, 0.0D).uv((float) this.width / 32.0F, (float) pVOffset).color(64, 64, 64, 255).endVertex();
+        bufferbuilder.vertex(0.0D, 0.0D, 0.0D).uv(0.0F, (float) pVOffset).color(64, 64, 64, 255).endVertex();
         tesselator.end();
     }
 
@@ -423,8 +423,8 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         this.minecraft.setScreen(this);
     }
 
-    private void openLink(URI p_96590_) {
-        Util.getPlatform().openUri(p_96590_);
+    private void openLink(URI pUri) {
+        Util.getPlatform().openUri(pUri);
     }
 
     public static boolean hasControlDown() {
@@ -443,67 +443,67 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         return InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 342) || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 346);
     }
 
-    public static boolean isCut(int p_96629_) {
-        return p_96629_ == 88 && hasControlDown() && !hasShiftDown() && !hasAltDown();
+    public static boolean isCut(int pKeyCode) {
+        return pKeyCode == 88 && hasControlDown() && !hasShiftDown() && !hasAltDown();
     }
 
-    public static boolean isPaste(int p_96631_) {
-        return p_96631_ == 86 && hasControlDown() && !hasShiftDown() && !hasAltDown();
+    public static boolean isPaste(int pKeyCode) {
+        return pKeyCode == 86 && hasControlDown() && !hasShiftDown() && !hasAltDown();
     }
 
-    public static boolean isCopy(int p_96633_) {
-        return p_96633_ == 67 && hasControlDown() && !hasShiftDown() && !hasAltDown();
+    public static boolean isCopy(int pKeyCode) {
+        return pKeyCode == 67 && hasControlDown() && !hasShiftDown() && !hasAltDown();
     }
 
-    public static boolean isSelectAll(int p_96635_) {
-        return p_96635_ == 65 && hasControlDown() && !hasShiftDown() && !hasAltDown();
+    public static boolean isSelectAll(int pKeyCode) {
+        return pKeyCode == 65 && hasControlDown() && !hasShiftDown() && !hasAltDown();
     }
 
-    public void resize(Minecraft p_96575_, int p_96576_, int p_96577_) {
-        this.init(p_96575_, p_96576_, p_96577_);
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
+        this.init(pMinecraft, pWidth, pHeight);
     }
 
-    public static void wrapScreenError(Runnable p_96580_, String p_96581_, String p_96582_) {
+    public static void wrapScreenError(Runnable pAction, String pErrorDesc, String pScreenName) {
         try {
-            p_96580_.run();
+            pAction.run();
         } catch (Throwable throwable) {
-            CrashReport crashreport = CrashReport.forThrowable(throwable, p_96581_);
+            CrashReport crashreport = CrashReport.forThrowable(throwable, pErrorDesc);
             CrashReportCategory crashreportcategory = crashreport.addCategory("Affected screen");
             crashreportcategory.setDetail("Screen name", () -> {
-                return p_96582_;
+                return pScreenName;
             });
             throw new ReportedException(crashreport);
         }
     }
 
-    protected boolean isValidCharacterForName(String p_96584_, char p_96585_, int p_96586_) {
-        int i = p_96584_.indexOf(58);
-        int j = p_96584_.indexOf(47);
-        if (p_96585_ == ':') {
-            return (j == -1 || p_96586_ <= j) && i == -1;
-        } else if (p_96585_ == '/') {
-            return p_96586_ > i;
+    protected boolean isValidCharacterForName(String pText, char pCharTyped, int pCursorPos) {
+        int i = pText.indexOf(58);
+        int j = pText.indexOf(47);
+        if (pCharTyped == ':') {
+            return (j == -1 || pCursorPos <= j) && i == -1;
+        } else if (pCharTyped == '/') {
+            return pCursorPos > i;
         } else {
-            return p_96585_ == '_' || p_96585_ == '-' || p_96585_ >= 'a' && p_96585_ <= 'z' || p_96585_ >= '0' && p_96585_ <= '9' || p_96585_ == '.';
+            return pCharTyped == '_' || pCharTyped == '-' || pCharTyped >= 'a' && pCharTyped <= 'z' || pCharTyped >= '0' && pCharTyped <= '9' || pCharTyped == '.';
         }
     }
 
-    public boolean isMouseOver(double p_96595_, double p_96596_) {
+    public boolean isMouseOver(double pMouseX, double pMouseY) {
         return true;
     }
 
-    public void onFilesDrop(List<Path> p_96591_) {
+    public void onFilesDrop(List<Path> pPacks) {
     }
 
-    private void scheduleNarration(long p_169381_, boolean p_169382_) {
-        this.nextNarrationTime = Util.getMillis() + p_169381_;
-        if (p_169382_) {
+    private void scheduleNarration(long pDelay, boolean pStopSuppression) {
+        this.nextNarrationTime = Util.getMillis() + pDelay;
+        if (pStopSuppression) {
             this.narrationSuppressTime = Long.MIN_VALUE;
         }
     }
 
-    private void suppressNarration(long p_169379_) {
-        this.narrationSuppressTime = Util.getMillis() + p_169379_;
+    private void suppressNarration(long pTime) {
+        this.narrationSuppressTime = Util.getMillis() + pTime;
     }
 
     public void afterMouseMove() {
@@ -552,7 +552,7 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         this.updateNarratedWidget(p_169396_);
     }
 
-    protected void updateNarratedWidget(NarrationElementOutput p_169403_) {
+    protected void updateNarratedWidget(NarrationElementOutput pNarrationElementOutput) {
         ImmutableList<NarratableEntry> immutablelist = this.narratables.stream().filter(NarratableEntry::isActive).collect(ImmutableList.toImmutableList());
         Screen.NarratableSearchResult screen$narratablesearchresult = findNarratableWidget(immutablelist, this.lastNarratable);
         if (screen$narratablesearchresult != null) {
@@ -561,27 +561,27 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
             }
 
             if (immutablelist.size() > 1) {
-                p_169403_.add(NarratedElementType.POSITION, Component.translatable("narrator.position.screen", screen$narratablesearchresult.index + 1, immutablelist.size()));
+                pNarrationElementOutput.add(NarratedElementType.POSITION, Component.translatable("narrator.position.screen", screen$narratablesearchresult.index + 1, immutablelist.size()));
                 if (screen$narratablesearchresult.priority == NarratableEntry.NarrationPriority.FOCUSED) {
-                    p_169403_.add(NarratedElementType.USAGE, Component.translatable("narration.component_list.usage"));
+                    pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.component_list.usage"));
                 }
             }
 
-            screen$narratablesearchresult.entry.updateNarration(p_169403_.nest());
+            screen$narratablesearchresult.entry.updateNarration(pNarrationElementOutput.nest());
         }
     }
 
     @Nullable
-    public static Screen.NarratableSearchResult findNarratableWidget(List<? extends NarratableEntry> p_169401_, @Nullable NarratableEntry p_169402_) {
+    public static Screen.NarratableSearchResult findNarratableWidget(List<? extends NarratableEntry> pEntries, @Nullable NarratableEntry pTarget) {
         Screen.NarratableSearchResult screen$narratablesearchresult = null;
         Screen.NarratableSearchResult screen$narratablesearchresult1 = null;
         int i = 0;
 
-        for (int j = p_169401_.size(); i < j; ++i) {
-            NarratableEntry narratableentry = p_169401_.get(i);
+        for (int j = pEntries.size(); i < j; ++i) {
+            NarratableEntry narratableentry = pEntries.get(i);
             NarratableEntry.NarrationPriority narratableentry$narrationpriority = narratableentry.narrationPriority();
             if (narratableentry$narrationpriority.isTerminal()) {
-                if (narratableentry != p_169402_) {
+                if (narratableentry != pTarget) {
                     return new Screen.NarratableSearchResult(narratableentry, i, narratableentry$narrationpriority);
                 }
 
@@ -598,8 +598,8 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         this.scheduleNarration(NARRATE_DELAY_NARRATOR_ENABLED, false);
     }
 
-    protected static void hideWidgets(AbstractWidget... p_202377_) {
-        for (AbstractWidget abstractwidget : p_202377_) {
+    protected static void hideWidgets(AbstractWidget... pWidgets) {
+        for (AbstractWidget abstractwidget : pWidgets) {
             abstractwidget.visible = false;
         }
     }
@@ -610,10 +610,10 @@ public abstract class Screen extends AbstractContainerEventHandler implements Wi
         public final int index;
         public final NarratableEntry.NarrationPriority priority;
 
-        public NarratableSearchResult(NarratableEntry p_169424_, int p_169425_, NarratableEntry.NarrationPriority p_169426_) {
-            this.entry = p_169424_;
-            this.index = p_169425_;
-            this.priority = p_169426_;
+        public NarratableSearchResult(NarratableEntry pEntry, int pIndex, NarratableEntry.NarrationPriority pPriority) {
+            this.entry = pEntry;
+            this.index = pIndex;
+            this.priority = pPriority;
         }
     }
 }

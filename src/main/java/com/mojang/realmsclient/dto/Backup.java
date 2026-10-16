@@ -21,8 +21,8 @@ public class Backup extends ValueObject {
     public Map<String, String> metadata = Maps.newHashMap();
     public Map<String, String> changeList = Maps.newHashMap();
 
-    public static Backup parse(JsonElement p_87400_) {
-        JsonObject jsonobject = p_87400_.getAsJsonObject();
+    public static Backup parse(JsonElement pJson) {
+        JsonObject jsonobject = pJson.getAsJsonObject();
         Backup backup = new Backup();
 
         try {
@@ -45,8 +45,8 @@ public class Backup extends ValueObject {
         return backup;
     }
 
-    private static String format(String p_87402_) {
-        String[] astring = p_87402_.split("_");
+    private static String format(String pString) {
+        String[] astring = pString.split("_");
         StringBuilder stringbuilder = new StringBuilder();
 
         for (String s : astring) {
@@ -67,7 +67,7 @@ public class Backup extends ValueObject {
         return this.uploadedVersion;
     }
 
-    public void setUploadedVersion(boolean p_87404_) {
-        this.uploadedVersion = p_87404_;
+    public void setUploadedVersion(boolean pUploadedVersion) {
+        this.uploadedVersion = pUploadedVersion;
     }
 }

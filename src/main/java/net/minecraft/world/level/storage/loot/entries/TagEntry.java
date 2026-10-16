@@ -19,28 +19,28 @@ public class TagEntry extends LootPoolSingletonContainer {
     final TagKey<Item> tag;
     final boolean expand;
 
-    TagEntry(TagKey<Item> p_205078_, boolean p_205079_, int p_205080_, int p_205081_, LootItemCondition[] p_205082_, LootItemFunction[] p_205083_) {
-        super(p_205080_, p_205081_, p_205082_, p_205083_);
-        this.tag = p_205078_;
-        this.expand = p_205079_;
+    TagEntry(TagKey<Item> pTag, boolean pExpand, int pWeight, int pQuality, LootItemCondition[] pConditions, LootItemFunction[] pFunctions) {
+        super(pWeight, pQuality, pConditions, pFunctions);
+        this.tag = pTag;
+        this.expand = pExpand;
     }
 
     public LootPoolEntryType getType() {
         return LootPoolEntries.TAG;
     }
 
-    public void createItemStack(Consumer<ItemStack> p_79854_, LootContext p_79855_) {
+    public void createItemStack(Consumer<ItemStack> pStackConsumer, LootContext pLootContext) {
         Registry.ITEM.getTagOrEmpty(this.tag).forEach((p_205094_) -> {
-            p_79854_.accept(new ItemStack(p_205094_));
+            pStackConsumer.accept(new ItemStack(p_205094_));
         });
     }
 
-    private boolean expandTag(LootContext p_79846_, Consumer<LootPoolEntry> p_79847_) {
-        if (!this.canRun(p_79846_)) {
+    private boolean expandTag(LootContext pContext, Consumer<LootPoolEntry> pGeneratorConsumer) {
+        if (!this.canRun(pContext)) {
             return false;
         } else {
             for (final Holder<Item> holder : Registry.ITEM.getTagOrEmpty(this.tag)) {
-                p_79847_.accept(new LootPoolSingletonContainer.EntryBase() {
+                pGeneratorConsumer.accept(new LootPoolSingletonContainer.EntryBase() {
                     public void createItemStack(Consumer<ItemStack> p_79869_, LootContext p_79870_) {
                         p_79869_.accept(new ItemStack(holder));
                     }
@@ -51,34 +51,34 @@ public class TagEntry extends LootPoolSingletonContainer {
         }
     }
 
-    public boolean expand(LootContext p_79861_, Consumer<LootPoolEntry> p_79862_) {
-        return this.expand ? this.expandTag(p_79861_, p_79862_) : super.expand(p_79861_, p_79862_);
+    public boolean expand(LootContext pLootContext, Consumer<LootPoolEntry> pEntryConsumer) {
+        return this.expand ? this.expandTag(pLootContext, pEntryConsumer) : super.expand(pLootContext, pEntryConsumer);
     }
 
-    public static LootPoolSingletonContainer.Builder<?> tagContents(TagKey<Item> p_205085_) {
+    public static LootPoolSingletonContainer.Builder<?> tagContents(TagKey<Item> pTag) {
         return simpleBuilder((p_205099_, p_205100_, p_205101_, p_205102_) -> {
-            return new TagEntry(p_205085_, false, p_205099_, p_205100_, p_205101_, p_205102_);
+            return new TagEntry(pTag, false, p_205099_, p_205100_, p_205101_, p_205102_);
         });
     }
 
-    public static LootPoolSingletonContainer.Builder<?> expandTag(TagKey<Item> p_205096_) {
+    public static LootPoolSingletonContainer.Builder<?> expandTag(TagKey<Item> pTag) {
         return simpleBuilder((p_205088_, p_205089_, p_205090_, p_205091_) -> {
-            return new TagEntry(p_205096_, true, p_205088_, p_205089_, p_205090_, p_205091_);
+            return new TagEntry(pTag, true, p_205088_, p_205089_, p_205090_, p_205091_);
         });
     }
 
     public static class Serializer extends LootPoolSingletonContainer.Serializer<TagEntry> {
-        public void serializeCustom(JsonObject p_79888_, TagEntry p_79889_, JsonSerializationContext p_79890_) {
-            super.serializeCustom(p_79888_, p_79889_, p_79890_);
-            p_79888_.addProperty("name", p_79889_.tag.location().toString());
-            p_79888_.addProperty("expand", p_79889_.expand);
+        public void serializeCustom(JsonObject pObject, TagEntry pContext, JsonSerializationContext pConditions) {
+            super.serializeCustom(pObject, pContext, pConditions);
+            pObject.addProperty("name", pContext.tag.location().toString());
+            pObject.addProperty("expand", pContext.expand);
         }
 
-        protected TagEntry deserialize(JsonObject p_79873_, JsonDeserializationContext p_79874_, int p_79875_, int p_79876_, LootItemCondition[] p_79877_, LootItemFunction[] p_79878_) {
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_79873_, "name"));
+        protected TagEntry deserialize(JsonObject pObject, JsonDeserializationContext pContext, int pWeight, int pQuality, LootItemCondition[] pConditions, LootItemFunction[] pFunctions) {
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pObject, "name"));
             TagKey<Item> tagkey = TagKey.create(Registry.ITEM_REGISTRY, resourcelocation);
-            boolean flag = GsonHelper.getAsBoolean(p_79873_, "expand");
-            return new TagEntry(tagkey, flag, p_79875_, p_79876_, p_79877_, p_79878_);
+            boolean flag = GsonHelper.getAsBoolean(pObject, "expand");
+            return new TagEntry(tagkey, flag, pWeight, pQuality, pConditions, pFunctions);
         }
     }
 }

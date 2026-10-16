@@ -38,29 +38,29 @@ public class LootItemFunctions {
     public static final LootItemFunctionType SET_POTION = register("set_potion", new SetPotionFunction.Serializer());
     public static final LootItemFunctionType SET_INSTRUMENT = register("set_instrument", new SetInstrumentFunction.Serializer());
 
-    private static LootItemFunctionType register(String p_80763_, Serializer<? extends LootItemFunction> p_80764_) {
-        return Registry.register(Registry.LOOT_FUNCTION_TYPE, new ResourceLocation(p_80763_), new LootItemFunctionType(p_80764_));
+    private static LootItemFunctionType register(String pId, Serializer<? extends LootItemFunction> pSerializer) {
+        return Registry.register(Registry.LOOT_FUNCTION_TYPE, new ResourceLocation(pId), new LootItemFunctionType(pSerializer));
     }
 
     public static Object createGsonAdapter() {
         return GsonAdapterFactory.builder(Registry.LOOT_FUNCTION_TYPE, "function", "function", LootItemFunction::getType).build();
     }
 
-    public static BiFunction<ItemStack, LootContext, ItemStack> compose(BiFunction<ItemStack, LootContext, ItemStack>[] p_80771_) {
-        switch (p_80771_.length) {
+    public static BiFunction<ItemStack, LootContext, ItemStack> compose(BiFunction<ItemStack, LootContext, ItemStack>[] pFunctions) {
+        switch (pFunctions.length) {
             case 0:
                 return IDENTITY;
             case 1:
-                return p_80771_[0];
+                return pFunctions[0];
             case 2:
-                BiFunction<ItemStack, LootContext, ItemStack> bifunction = p_80771_[0];
-                BiFunction<ItemStack, LootContext, ItemStack> bifunction1 = p_80771_[1];
+                BiFunction<ItemStack, LootContext, ItemStack> bifunction = pFunctions[0];
+                BiFunction<ItemStack, LootContext, ItemStack> bifunction1 = pFunctions[1];
                 return (p_80768_, p_80769_) -> {
                     return bifunction1.apply(bifunction.apply(p_80768_, p_80769_), p_80769_);
                 };
             default:
                 return (p_80774_, p_80775_) -> {
-                    for (BiFunction<ItemStack, LootContext, ItemStack> bifunction2 : p_80771_) {
+                    for (BiFunction<ItemStack, LootContext, ItemStack> bifunction2 : pFunctions) {
                         p_80774_ = bifunction2.apply(p_80774_, p_80775_);
                     }
 

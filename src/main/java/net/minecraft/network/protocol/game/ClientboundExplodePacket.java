@@ -77,8 +77,8 @@ public class ClientboundExplodePacket implements Packet<ClientGamePacketListener
         buffer.writeFloat(this.knockbackZ);
     }
 
-    public void handle(ClientGamePacketListener p_132126_) {
-        p_132126_.handleExplosion(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleExplosion(this);
     }
 
     public float getKnockbackX() {

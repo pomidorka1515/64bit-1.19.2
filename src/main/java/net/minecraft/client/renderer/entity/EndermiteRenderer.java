@@ -15,11 +15,11 @@ public class EndermiteRenderer extends MobRenderer<Endermite, EndermiteModel<End
         super(p_173994_, new EndermiteModel<>(p_173994_.bakeLayer(ModelLayers.ENDERMITE)), 0.3F);
     }
 
-    protected float getFlipDegrees(Endermite p_114352_) {
+    protected float getFlipDegrees(Endermite pLivingEntity) {
         return 180.0F;
     }
 
-    public ResourceLocation getTextureLocation(Endermite p_114354_) {
+    public ResourceLocation getTextureLocation(Endermite pEntity) {
         return ENDERMITE_LOCATION;
     }
 }

@@ -18,41 +18,41 @@ public class WorkAtPoi extends Behavior<Villager> {
         super(ImmutableMap.of(MemoryModuleType.JOB_SITE, MemoryStatus.VALUE_PRESENT, MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED));
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_24827_, Villager p_24828_) {
-        if (p_24827_.getGameTime() - this.lastCheck < 300L) {
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, Villager pOwner) {
+        if (pLevel.getGameTime() - this.lastCheck < 300L) {
             return false;
-        } else if (p_24827_.random.nextInt(2) != 0) {
+        } else if (pLevel.random.nextInt(2) != 0) {
             return false;
         } else {
-            this.lastCheck = p_24827_.getGameTime();
-            GlobalPos globalpos = p_24828_.getBrain().getMemory(MemoryModuleType.JOB_SITE).get();
-            return globalpos.dimension() == p_24827_.dimension() && globalpos.pos().closerToCenterThan(p_24828_.sectorPosition(), 1.73D);
+            this.lastCheck = pLevel.getGameTime();
+            GlobalPos globalpos = pOwner.getBrain().getMemory(MemoryModuleType.JOB_SITE).get();
+            return globalpos.dimension() == pLevel.dimension() && globalpos.pos().closerToCenterThan(pOwner.sectorPosition(), 1.73D);
         }
     }
 
-    protected void start(ServerLevel p_24816_, Villager p_24817_, long p_24818_) {
-        Brain<Villager> brain = p_24817_.getBrain();
-        brain.setMemory(MemoryModuleType.LAST_WORKED_AT_POI, p_24818_);
+    protected void start(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        Brain<Villager> brain = pEntity.getBrain();
+        brain.setMemory(MemoryModuleType.LAST_WORKED_AT_POI, pGameTime);
         brain.getMemory(MemoryModuleType.JOB_SITE).ifPresent((p_24821_) -> {
             brain.setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(p_24821_.pos()));
         });
-        p_24817_.playWorkSound();
-        this.useWorkstation(p_24816_, p_24817_);
-        if (p_24817_.shouldRestock()) {
-            p_24817_.restock();
+        pEntity.playWorkSound();
+        this.useWorkstation(pLevel, pEntity);
+        if (pEntity.shouldRestock()) {
+            pEntity.restock();
         }
     }
 
-    protected void useWorkstation(ServerLevel p_24813_, Villager p_24814_) {
+    protected void useWorkstation(ServerLevel pLevel, Villager pVillager) {
     }
 
-    protected boolean canStillUse(ServerLevel p_24830_, Villager p_24831_, long p_24832_) {
-        Optional<GlobalPos> optional = p_24831_.getBrain().getMemory(MemoryModuleType.JOB_SITE);
+    protected boolean canStillUse(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        Optional<GlobalPos> optional = pEntity.getBrain().getMemory(MemoryModuleType.JOB_SITE);
         if (!optional.isPresent()) {
             return false;
         } else {
             GlobalPos globalpos = optional.get();
-            return globalpos.dimension() == p_24830_.dimension() && globalpos.pos().closerToCenterThan(p_24831_.sectorPosition(), 1.73D);
+            return globalpos.dimension() == pLevel.dimension() && globalpos.pos().closerToCenterThan(pEntity.sectorPosition(), 1.73D);
         }
     }
 }

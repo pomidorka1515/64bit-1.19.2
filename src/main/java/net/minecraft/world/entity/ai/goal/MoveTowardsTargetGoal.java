@@ -16,10 +16,10 @@ public class MoveTowardsTargetGoal extends Goal {
     private final double speedModifier;
     private final float within;
 
-    public MoveTowardsTargetGoal(PathfinderMob p_25646_, double p_25647_, float p_25648_) {
-        this.mob = p_25646_;
-        this.speedModifier = p_25647_;
-        this.within = p_25648_;
+    public MoveTowardsTargetGoal(PathfinderMob pMob, double pSpeedModifier, float pWithin) {
+        this.mob = pMob;
+        this.speedModifier = pSpeedModifier;
+        this.within = pWithin;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 

@@ -25,28 +25,28 @@ public class TutorialToast implements Toast {
     private float progress;
     private final boolean progressable;
 
-    public TutorialToast(TutorialToast.Icons p_94958_, Component p_94959_, @Nullable Component p_94960_, boolean p_94961_) {
-        this.icon = p_94958_;
-        this.title = p_94959_;
-        this.message = p_94960_;
-        this.progressable = p_94961_;
+    public TutorialToast(TutorialToast.Icons pIcon, Component pTitle, @Nullable Component pMessage, boolean pProgressable) {
+        this.icon = pIcon;
+        this.title = pTitle;
+        this.message = pMessage;
+        this.progressable = pProgressable;
     }
 
-    public Toast.Visibility render(PoseStack p_94965_, ToastComponent p_94966_, long p_94967_) {
+    public Toast.Visibility render(PoseStack pPoseStack, ToastComponent pToastComponent, long pTimeSinceLastVisible) {
         RenderSystem.setShaderTexture(0, TEXTURE);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        p_94966_.blit(p_94965_, 0, 0, 0, 96, this.width(), this.height());
-        this.icon.render(p_94965_, p_94966_, 6, 6);
+        pToastComponent.blit(pPoseStack, 0, 0, 0, 96, this.width(), this.height());
+        this.icon.render(pPoseStack, pToastComponent, 6, 6);
         if (this.message == null) {
-            p_94966_.getMinecraft().font.draw(p_94965_, this.title, 30.0F, 12.0F, -11534256);
+            pToastComponent.getMinecraft().font.draw(pPoseStack, this.title, 30.0F, 12.0F, -11534256);
         } else {
-            p_94966_.getMinecraft().font.draw(p_94965_, this.title, 30.0F, 7.0F, -11534256);
-            p_94966_.getMinecraft().font.draw(p_94965_, this.message, 30.0F, 18.0F, -16777216);
+            pToastComponent.getMinecraft().font.draw(pPoseStack, this.title, 30.0F, 7.0F, -11534256);
+            pToastComponent.getMinecraft().font.draw(pPoseStack, this.message, 30.0F, 18.0F, -16777216);
         }
 
         if (this.progressable) {
-            GuiComponent.fill(p_94965_, 3, 28, 157, 29, -1);
-            float f = Mth.clampedLerp(this.lastProgress, this.progress, (float) (p_94967_ - this.lastProgressTime) / 100.0F);
+            GuiComponent.fill(pPoseStack, 3, 28, 157, 29, -1);
+            float f = Mth.clampedLerp(this.lastProgress, this.progress, (float) (pTimeSinceLastVisible - this.lastProgressTime) / 100.0F);
             int i;
             if (this.progress >= this.lastProgress) {
                 i = -16755456;
@@ -54,9 +54,9 @@ public class TutorialToast implements Toast {
                 i = -11206656;
             }
 
-            GuiComponent.fill(p_94965_, 3, 28, (int) (3.0F + 154.0F * f), 29, i);
+            GuiComponent.fill(pPoseStack, 3, 28, (int) (3.0F + 154.0F * f), 29, i);
             this.lastProgress = f;
-            this.lastProgressTime = p_94967_;
+            this.lastProgressTime = pTimeSinceLastVisible;
         }
 
         return this.visibility;
@@ -66,8 +66,8 @@ public class TutorialToast implements Toast {
         this.visibility = Toast.Visibility.HIDE;
     }
 
-    public void updateProgress(float p_94963_) {
-        this.progress = p_94963_;
+    public void updateProgress(float pProgress) {
+        this.progress = pProgress;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -88,9 +88,9 @@ public class TutorialToast implements Toast {
             this.y = p_94983_;
         }
 
-        public void render(PoseStack p_94985_, GuiComponent p_94986_, int p_94987_, int p_94988_) {
+        public void render(PoseStack pPoseStack, GuiComponent pGuiComponent, int pX, int pY) {
             RenderSystem.enableBlend();
-            p_94986_.blit(p_94985_, p_94987_, p_94988_, 176 + this.x * 20, this.y * 20, 20, 20);
+            pGuiComponent.blit(pPoseStack, pX, pY, 176 + this.x * 20, this.y * 20, 20, 20);
             RenderSystem.enableBlend();
         }
     }

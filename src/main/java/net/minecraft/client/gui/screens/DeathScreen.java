@@ -21,10 +21,10 @@ public class DeathScreen extends Screen {
     private Component deathScore;
     private final List<Button> exitButtons = Lists.newArrayList();
 
-    public DeathScreen(@Nullable Component p_95911_, boolean p_95912_) {
-        super(Component.translatable(p_95912_ ? "deathScreen.title.hardcore" : "deathScreen.title"));
-        this.causeOfDeath = p_95911_;
-        this.hardcore = p_95912_;
+    public DeathScreen(@Nullable Component pCauseOfDeath, boolean pHardcore) {
+        super(Component.translatable(pHardcore ? "deathScreen.title.hardcore" : "deathScreen.title"));
+        this.causeOfDeath = pCauseOfDeath;
+        this.hardcore = pHardcore;
     }
 
     protected void init() {
@@ -73,23 +73,23 @@ public class DeathScreen extends Screen {
         this.minecraft.setScreen(new TitleScreen());
     }
 
-    public void render(PoseStack p_95920_, int p_95921_, int p_95922_, float p_95923_) {
-        this.fillGradient(p_95920_, 0, 0, this.width, this.height, 1615855616, -1602211792);
-        p_95920_.pushPose();
-        p_95920_.scale(2.0F, 2.0F, 2.0F);
-        drawCenteredString(p_95920_, this.font, this.title, this.width / 2 / 2, 30, 16777215);
-        p_95920_.popPose();
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.fillGradient(pPoseStack, 0, 0, this.width, this.height, 1615855616, -1602211792);
+        pPoseStack.pushPose();
+        pPoseStack.scale(2.0F, 2.0F, 2.0F);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2 / 2, 30, 16777215);
+        pPoseStack.popPose();
         if (this.causeOfDeath != null) {
-            drawCenteredString(p_95920_, this.font, this.causeOfDeath, this.width / 2, 85, 16777215);
+            drawCenteredString(pPoseStack, this.font, this.causeOfDeath, this.width / 2, 85, 16777215);
         }
 
-        drawCenteredString(p_95920_, this.font, this.deathScore, this.width / 2, 100, 16777215);
-        if (this.causeOfDeath != null && p_95922_ > 85 && p_95922_ < 85 + 9) {
-            Style style = this.getClickedComponentStyleAt(p_95921_);
-            this.renderComponentHoverEffect(p_95920_, style, p_95921_, p_95922_);
+        drawCenteredString(pPoseStack, this.font, this.deathScore, this.width / 2, 100, 16777215);
+        if (this.causeOfDeath != null && pMouseY > 85 && pMouseY < 85 + 9) {
+            Style style = this.getClickedComponentStyleAt(pMouseX);
+            this.renderComponentHoverEffect(pPoseStack, style, pMouseX, pMouseY);
         }
 
-        super.render(p_95920_, p_95921_, p_95922_, p_95923_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     @Nullable
@@ -104,16 +104,16 @@ public class DeathScreen extends Screen {
         }
     }
 
-    public boolean mouseClicked(double p_95914_, double p_95915_, int p_95916_) {
-        if (this.causeOfDeath != null && p_95915_ > 85.0D && p_95915_ < (double) (85 + 9)) {
-            Style style = this.getClickedComponentStyleAt((int) p_95914_);
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (this.causeOfDeath != null && pMouseY > 85.0D && pMouseY < (double) (85 + 9)) {
+            Style style = this.getClickedComponentStyleAt((int) pMouseX);
             if (style != null && style.getClickEvent() != null && style.getClickEvent().getAction() == ClickEvent.Action.OPEN_URL) {
                 this.handleComponentClicked(style);
                 return false;
             }
         }
 
-        return super.mouseClicked(p_95914_, p_95915_, p_95916_);
+        return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 
     public boolean isPauseScreen() {

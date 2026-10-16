@@ -22,8 +22,8 @@ public interface RandomSource {
         return new ThreadSafeLegacyRandomSource(RandomSupport.generateUniqueSeed());
     }
 
-    static RandomSource create(long p_216336_) {
-        return new LegacyRandomSource(p_216336_);
+    static RandomSource create(long pSeed) {
+        return new LegacyRandomSource(pSeed);
     }
 
     static RandomSource createNewThreadLocalInstance() {
@@ -34,14 +34,14 @@ public interface RandomSource {
 
     PositionalRandomFactory forkPositional();
 
-    void setSeed(long p_216342_);
+    void setSeed(long pSeed);
 
     int nextInt();
 
-    int nextInt(int p_216331_);
+    int nextInt(int pBound);
 
-    default int nextIntBetweenInclusive(int p_216333_, int p_216334_) {
-        return this.nextInt(p_216334_ - p_216333_ + 1) + p_216333_;
+    default int nextIntBetweenInclusive(int pMin, int pMax) {
+        return this.nextInt(pMax - pMin + 1) + pMin;
     }
 
     long nextLong();
@@ -54,21 +54,21 @@ public interface RandomSource {
 
     double nextGaussian();
 
-    default double triangle(double p_216329_, double p_216330_) {
-        return p_216329_ + p_216330_ * (this.nextDouble() - this.nextDouble());
+    default double triangle(double pMin, double pMax) {
+        return pMin + pMax * (this.nextDouble() - this.nextDouble());
     }
 
-    default void consumeCount(int p_216338_) {
-        for (int i = 0; i < p_216338_; ++i) {
+    default void consumeCount(int pCount) {
+        for (int i = 0; i < pCount; ++i) {
             this.nextInt();
         }
     }
 
-    default int nextInt(int p_216340_, int p_216341_) {
-        if (p_216340_ >= p_216341_) {
+    default int nextInt(int pOrigin, int pBound) {
+        if (pOrigin >= pBound) {
             throw new IllegalArgumentException("bound - origin is non positive");
         } else {
-            return p_216340_ + this.nextInt(p_216341_ - p_216340_);
+            return pOrigin + this.nextInt(pBound - pOrigin);
         }
     }
 }

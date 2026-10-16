@@ -59,15 +59,15 @@ public final class Material {
     private final boolean replaceable;
     private final boolean solid;
 
-    public Material(MaterialColor p_76324_, boolean p_76325_, boolean p_76326_, boolean p_76327_, boolean p_76328_, boolean p_76329_, boolean p_76330_, PushReaction p_76331_) {
-        this.color = p_76324_;
-        this.liquid = p_76325_;
-        this.solid = p_76326_;
-        this.blocksMotion = p_76327_;
-        this.solidBlocking = p_76328_;
-        this.flammable = p_76329_;
-        this.replaceable = p_76330_;
-        this.pushReaction = p_76331_;
+    public Material(MaterialColor pColor, boolean pLiquid, boolean pSolid, boolean pBlocksMotion, boolean pSolidBlocking, boolean pFlammable, boolean pReplaceable, PushReaction pPushReaction) {
+        this.color = pColor;
+        this.liquid = pLiquid;
+        this.solid = pSolid;
+        this.blocksMotion = pBlocksMotion;
+        this.solidBlocking = pSolidBlocking;
+        this.flammable = pFlammable;
+        this.replaceable = pReplaceable;
+        this.pushReaction = pPushReaction;
     }
 
     public boolean isLiquid() {
@@ -112,8 +112,8 @@ public final class Material {
         private final MaterialColor color;
         private boolean solidBlocking = true;
 
-        public Builder(MaterialColor p_76349_) {
-            this.color = p_76349_;
+        public Builder(MaterialColor pColor) {
+            this.color = pColor;
         }
 
         public Material.Builder liquid() {

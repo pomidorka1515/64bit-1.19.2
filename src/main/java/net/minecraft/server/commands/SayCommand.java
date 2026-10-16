@@ -8,8 +8,8 @@ import net.minecraft.network.chat.ChatType;
 import net.minecraft.server.players.PlayerList;
 
 public class SayCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> p_138410_) {
-        p_138410_.register(Commands.literal("say").requires((p_138414_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("say").requires((p_138414_) -> {
                                                       return p_138414_.hasPermission(2);
                                                   })
                         .then(Commands.argument("message", MessageArgument.message()).executes((p_214721_) -> {

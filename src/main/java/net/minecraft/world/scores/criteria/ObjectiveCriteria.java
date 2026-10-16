@@ -31,45 +31,45 @@ public class ObjectiveCriteria {
     private final boolean readOnly;
     private final ObjectiveCriteria.RenderType renderType;
 
-    private static ObjectiveCriteria registerCustom(String p_166110_, boolean p_166111_, ObjectiveCriteria.RenderType p_166112_) {
-        ObjectiveCriteria objectivecriteria = new ObjectiveCriteria(p_166110_, p_166111_, p_166112_);
-        CUSTOM_CRITERIA.put(p_166110_, objectivecriteria);
+    private static ObjectiveCriteria registerCustom(String pName, boolean pReadOnly, ObjectiveCriteria.RenderType pRenderType) {
+        ObjectiveCriteria objectivecriteria = new ObjectiveCriteria(pName, pReadOnly, pRenderType);
+        CUSTOM_CRITERIA.put(pName, objectivecriteria);
         return objectivecriteria;
     }
 
-    private static ObjectiveCriteria registerCustom(String p_166114_) {
-        return registerCustom(p_166114_, false, ObjectiveCriteria.RenderType.INTEGER);
+    private static ObjectiveCriteria registerCustom(String pName) {
+        return registerCustom(pName, false, ObjectiveCriteria.RenderType.INTEGER);
     }
 
-    protected ObjectiveCriteria(String p_83606_) {
-        this(p_83606_, false, ObjectiveCriteria.RenderType.INTEGER);
+    protected ObjectiveCriteria(String pName) {
+        this(pName, false, ObjectiveCriteria.RenderType.INTEGER);
     }
 
-    protected ObjectiveCriteria(String p_83608_, boolean p_83609_, ObjectiveCriteria.RenderType p_83610_) {
-        this.name = p_83608_;
-        this.readOnly = p_83609_;
-        this.renderType = p_83610_;
-        CRITERIA_CACHE.put(p_83608_, this);
+    protected ObjectiveCriteria(String pName, boolean pReadOnly, ObjectiveCriteria.RenderType pRenderType) {
+        this.name = pName;
+        this.readOnly = pReadOnly;
+        this.renderType = pRenderType;
+        CRITERIA_CACHE.put(pName, this);
     }
 
     public static Set<String> getCustomCriteriaNames() {
         return ImmutableSet.copyOf(CUSTOM_CRITERIA.keySet());
     }
 
-    public static Optional<ObjectiveCriteria> byName(String p_83615_) {
-        ObjectiveCriteria objectivecriteria = CRITERIA_CACHE.get(p_83615_);
+    public static Optional<ObjectiveCriteria> byName(String pName) {
+        ObjectiveCriteria objectivecriteria = CRITERIA_CACHE.get(pName);
         if (objectivecriteria != null) {
             return Optional.of(objectivecriteria);
         } else {
-            int i = p_83615_.indexOf(58);
-            return i < 0 ? Optional.empty() : Registry.STAT_TYPE.getOptional(ResourceLocation.of(p_83615_.substring(0, i), '.')).flatMap((p_83619_) -> {
-                return getStat(p_83619_, ResourceLocation.of(p_83615_.substring(i + 1), '.'));
+            int i = pName.indexOf(58);
+            return i < 0 ? Optional.empty() : Registry.STAT_TYPE.getOptional(ResourceLocation.of(pName.substring(0, i), '.')).flatMap((p_83619_) -> {
+                return getStat(p_83619_, ResourceLocation.of(pName.substring(i + 1), '.'));
             });
         }
     }
 
-    private static <T> Optional<ObjectiveCriteria> getStat(StatType<T> p_83612_, ResourceLocation p_83613_) {
-        return p_83612_.getRegistry().getOptional(p_83613_).map(p_83612_::get);
+    private static <T> Optional<ObjectiveCriteria> getStat(StatType<T> pStatType, ResourceLocation pResourceLocation) {
+        return pStatType.getRegistry().getOptional(pResourceLocation).map(pStatType::get);
     }
 
     public String getName() {
@@ -99,8 +99,8 @@ public class ObjectiveCriteria {
             return this.id;
         }
 
-        public static ObjectiveCriteria.RenderType byId(String p_83635_) {
-            return BY_ID.getOrDefault(p_83635_, INTEGER);
+        public static ObjectiveCriteria.RenderType byId(String pRenderType) {
+            return BY_ID.getOrDefault(pRenderType, INTEGER);
         }
 
         static {

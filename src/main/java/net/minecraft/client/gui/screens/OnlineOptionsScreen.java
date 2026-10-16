@@ -10,8 +10,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class OnlineOptionsScreen extends SimpleOptionsSubScreen {
-    public OnlineOptionsScreen(Screen p_193843_, Options p_193844_) {
-        super(p_193843_, p_193844_, Component.translatable("options.online.title"), new OptionInstance[] {p_193844_.realmsNotifications(), p_193844_.allowServerListing()});
+    public OnlineOptionsScreen(Screen pScreen, Options pOptions) {
+        super(pScreen, pOptions, Component.translatable("options.online.title"), new OptionInstance[] {pOptions.realmsNotifications(), pOptions.allowServerListing()});
     }
 
     protected void createFooter() {

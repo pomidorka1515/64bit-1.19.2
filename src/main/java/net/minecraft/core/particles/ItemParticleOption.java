@@ -26,17 +26,17 @@ public class ItemParticleOption implements ParticleOptions {
     private final ParticleType<ItemParticleOption> type;
     private final ItemStack itemStack;
 
-    public static Codec<ItemParticleOption> codec(ParticleType<ItemParticleOption> p_123711_) {
-        return ItemStack.CODEC.xmap((p_123714_) -> { return new ItemParticleOption(p_123711_, p_123714_); }, (p_123709_) -> { return p_123709_.itemStack; });
+    public static Codec<ItemParticleOption> codec(ParticleType<ItemParticleOption> pType) {
+        return ItemStack.CODEC.xmap((p_123714_) -> { return new ItemParticleOption(pType, p_123714_); }, (p_123709_) -> { return p_123709_.itemStack; });
     }
 
-    public ItemParticleOption(ParticleType<ItemParticleOption> p_123705_, ItemStack p_123706_) {
-        this.type = p_123705_;
-        this.itemStack = p_123706_;
+    public ItemParticleOption(ParticleType<ItemParticleOption> pType, ItemStack pItemStack) {
+        this.type = pType;
+        this.itemStack = pItemStack;
     }
 
-    public void writeToNetwork(FriendlyByteBuf p_123716_) {
-        p_123716_.writeItem(this.itemStack);
+    public void writeToNetwork(FriendlyByteBuf pBuffer) {
+        pBuffer.writeItem(this.itemStack);
     }
 
     public String writeToString() {

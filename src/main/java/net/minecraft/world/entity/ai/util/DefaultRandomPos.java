@@ -69,8 +69,8 @@ public class DefaultRandomPos {
     }
 
     @Nullable
-    private static BlockPos generateRandomPosTowardDirection(PathfinderMob p_148437_, int p_148438_, boolean p_148439_, BlockPos p_148440_) {
-        BlockPos blockpos = RandomPos.generateRandomPosTowardDirection(p_148437_, p_148438_, p_148437_.getRandom(), p_148440_);
-        return !GoalUtils.isOutsideLimits(blockpos, p_148437_) && !GoalUtils.isRestricted(p_148439_, p_148437_, blockpos) && !GoalUtils.isNotStable(p_148437_.getNavigation(), blockpos) && !GoalUtils.hasMalus(p_148437_, blockpos) ? blockpos : null;
+    private static BlockPos generateRandomPosTowardDirection(PathfinderMob pMob, int pRadius, boolean pShortCircuit, BlockPos pPos) {
+        BlockPos blockpos = RandomPos.generateRandomPosTowardDirection(pMob, pRadius, pMob.getRandom(), pPos);
+        return !GoalUtils.isOutsideLimits(blockpos, pMob) && !GoalUtils.isRestricted(pShortCircuit, pMob, blockpos) && !GoalUtils.isNotStable(pMob.getNavigation(), blockpos) && !GoalUtils.hasMalus(pMob, blockpos) ? blockpos : null;
     }
 }

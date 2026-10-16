@@ -8,9 +8,9 @@ public class BlockPosTracker implements PositionTracker {
     private final BlockPos blockPos;
     private final SectorVec3 centerPosition;
 
-    public BlockPosTracker(BlockPos p_22676_) {
-        this(SectorVec3.fromBlockAndFraction(p_22676_.getX(), 0.5D,
-                (double) p_22676_.getY() + 0.5D, p_22676_.getZ(), 0.5D));
+    public BlockPosTracker(BlockPos pBlockPos) {
+        this(SectorVec3.fromBlockAndFraction(pBlockPos.getX(), 0.5D,
+                (double) pBlockPos.getY() + 0.5D, pBlockPos.getZ(), 0.5D));
     }
 
     public BlockPosTracker(SectorVec3 position) {
@@ -26,7 +26,7 @@ public class BlockPosTracker implements PositionTracker {
         return this.blockPos;
     }
 
-    public boolean isVisibleBy(LivingEntity p_22679_) {
+    public boolean isVisibleBy(LivingEntity pEntity) {
         return true;
     }
 

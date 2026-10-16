@@ -8,8 +8,8 @@ import com.mojang.datafixers.types.Type;
 import com.mojang.serialization.Dynamic;
 
 public class BlockEntityBlockStateFix extends NamedEntityFix {
-    public BlockEntityBlockStateFix(Schema p_14810_, boolean p_14811_) {
-        super(p_14810_, p_14811_, "BlockEntityBlockStateFix", References.BLOCK_ENTITY, "minecraft:piston");
+    public BlockEntityBlockStateFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "BlockEntityBlockStateFix", References.BLOCK_ENTITY, "minecraft:piston");
     }
 
     protected Typed<?> fix(Typed<?> p_14814_) {

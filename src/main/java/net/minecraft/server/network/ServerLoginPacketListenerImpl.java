@@ -58,9 +58,9 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
     @Nullable
     private ProfilePublicKey.Data profilePublicKeyData;
 
-    public ServerLoginPacketListenerImpl(MinecraftServer p_10027_, Connection p_10028_) {
-        this.server = p_10027_;
-        this.connection = p_10028_;
+    public ServerLoginPacketListenerImpl(MinecraftServer pServer, Connection pConnection) {
+        this.server = pServer;
+        this.connection = pConnection;
         this.nonce = Ints.toByteArray(RANDOM.nextInt());
     }
 
@@ -85,11 +85,11 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
         return this.connection;
     }
 
-    public void disconnect(Component p_10054_) {
+    public void disconnect(Component pReason) {
         try {
-            LOGGER.info("Disconnecting {}: {}", this.getUserName(), p_10054_.getString());
-            this.connection.send(new ClientboundLoginDisconnectPacket(p_10054_));
-            this.connection.disconnect(p_10054_);
+            LOGGER.info("Disconnecting {}: {}", this.getUserName(), pReason.getString());
+            this.connection.send(new ClientboundLoginDisconnectPacket(pReason));
+            this.connection.disconnect(pReason);
         } catch (Exception exception) {
             LOGGER.error("Error whilst disconnecting player", (Throwable) exception);
         }
@@ -147,8 +147,8 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
         this.server.getPlayerList().placeNewPlayer(this.connection, p_143700_);
     }
 
-    public void onDisconnect(Component p_10043_) {
-        LOGGER.info("{} lost connection: {}", this.getUserName(), p_10043_.getString());
+    public void onDisconnect(Component pReason) {
+        LOGGER.info("{} lost connection: {}", this.getUserName(), pReason.getString());
     }
 
     public String getUserName() {
@@ -156,28 +156,28 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
     }
 
     @Nullable
-    private static ProfilePublicKey validatePublicKey(@Nullable ProfilePublicKey.Data p_240244_, UUID p_240245_, SignatureValidator p_240246_, boolean p_240247_) throws ProfilePublicKey.ValidationException {
-        if (p_240244_ == null) {
-            if (p_240247_) {
+    private static ProfilePublicKey validatePublicKey(@Nullable ProfilePublicKey.Data pProfilePublicKeyData, UUID pProfileId, SignatureValidator pSignatureValidator, boolean pEnforceSecureProfile) throws ProfilePublicKey.ValidationException {
+        if (pProfilePublicKeyData == null) {
+            if (pEnforceSecureProfile) {
                 throw new ProfilePublicKey.ValidationException(ProfilePublicKey.MISSING_PROFILE_PUBLIC_KEY);
             } else {
                 return null;
             }
         } else {
-            return ProfilePublicKey.createValidated(p_240246_, p_240245_, p_240244_, Duration.ZERO);
+            return ProfilePublicKey.createValidated(pSignatureValidator, pProfileId, pProfilePublicKeyData, Duration.ZERO);
         }
     }
 
-    public void handleHello(ServerboundHelloPacket p_10047_) {
+    public void handleHello(ServerboundHelloPacket pPacket) {
         Validate.validState(this.state == ServerLoginPacketListenerImpl.State.HELLO, "Unexpected hello packet");
-        Validate.validState(isValidUsername(p_10047_.name()), "Invalid characters in username");
-        this.profilePublicKeyData = p_10047_.publicKey().orElse((ProfilePublicKey.Data) null);
+        Validate.validState(isValidUsername(pPacket.name()), "Invalid characters in username");
+        this.profilePublicKeyData = pPacket.publicKey().orElse((ProfilePublicKey.Data) null);
         GameProfile gameprofile = this.server.getSingleplayerProfile();
-        if (gameprofile != null && p_10047_.name().equalsIgnoreCase(gameprofile.getName())) {
+        if (gameprofile != null && pPacket.name().equalsIgnoreCase(gameprofile.getName())) {
             this.gameProfile = gameprofile;
             this.state = ServerLoginPacketListenerImpl.State.READY_TO_ACCEPT;
         } else {
-            this.gameProfile = new GameProfile((UUID) null, p_10047_.name());
+            this.gameProfile = new GameProfile((UUID) null, pPacket.name());
             if (this.server.usesAuthentication() && !this.connection.isMemoryConnection()) {
                 this.state = ServerLoginPacketListenerImpl.State.KEY;
                 this.connection.send(new ClientboundHelloPacket("", this.server.getKeyPair().getPublic().getEncoded(), this.nonce));
@@ -187,15 +187,15 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
         }
     }
 
-    public static boolean isValidUsername(String p_203793_) {
-        return p_203793_.chars().filter((p_203791_) -> {
+    public static boolean isValidUsername(String pUsername) {
+        return pUsername.chars().filter((p_203791_) -> {
                                     return p_203791_ <= 32 || p_203791_ >= 127;
                                 })
                 .findAny()
                 .isEmpty();
     }
 
-    public void handleKey(ServerboundKeyPacket p_10049_) {
+    public void handleKey(ServerboundKeyPacket pPacket) {
         Validate.validState(this.state == ServerLoginPacketListenerImpl.State.KEY, "Unexpected key packet");
 
         final String s;
@@ -203,14 +203,14 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
             PrivateKey privatekey = this.server.getKeyPair().getPrivate();
             if (this.profilePublicKeyData != null) {
                 ProfilePublicKey profilepublickey = new ProfilePublicKey(this.profilePublicKeyData);
-                if (!p_10049_.isChallengeSignatureValid(this.nonce, profilepublickey)) {
+                if (!pPacket.isChallengeSignatureValid(this.nonce, profilepublickey)) {
                     throw new IllegalStateException("Protocol error");
                 }
-            } else if (!p_10049_.isNonceValid(this.nonce, privatekey)) {
+            } else if (!pPacket.isNonceValid(this.nonce, privatekey)) {
                 throw new IllegalStateException("Protocol error");
             }
 
-            SecretKey secretkey = p_10049_.getSecretKey(privatekey);
+            SecretKey secretkey = pPacket.getSecretKey(privatekey);
             Cipher cipher = Crypt.getCipher(2, secretkey);
             Cipher cipher1 = Crypt.getCipher(1, secretkey);
             s = (new BigInteger(Crypt.digestData("", this.server.getKeyPair().getPublic(), secretkey))).toString(16);
@@ -259,13 +259,13 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
         thread.start();
     }
 
-    public void handleCustomQueryPacket(ServerboundCustomQueryPacket p_10045_) {
+    public void handleCustomQueryPacket(ServerboundCustomQueryPacket pPacket) {
         this.disconnect(Component.translatable("multiplayer.disconnect.unexpected_query_response"));
     }
 
-    protected GameProfile createFakeProfile(GameProfile p_10039_) {
-        UUID uuid = UUIDUtil.createOfflinePlayerUUID(p_10039_.getName());
-        return new GameProfile(uuid, p_10039_.getName());
+    protected GameProfile createFakeProfile(GameProfile pOriginal) {
+        UUID uuid = UUIDUtil.createOfflinePlayerUUID(pOriginal.getName());
+        return new GameProfile(uuid, pOriginal.getName());
     }
 
     static enum State {

@@ -18,11 +18,11 @@ public class BeeRenderer extends MobRenderer<Bee, BeeModel<Bee>> {
         super(p_173931_, new BeeModel<>(p_173931_.bakeLayer(ModelLayers.BEE)), 0.4F);
     }
 
-    public ResourceLocation getTextureLocation(Bee p_113897_) {
-        if (p_113897_.isAngry()) {
-            return p_113897_.hasNectar() ? ANGRY_NECTAR_BEE_TEXTURE : ANGRY_BEE_TEXTURE;
+    public ResourceLocation getTextureLocation(Bee pEntity) {
+        if (pEntity.isAngry()) {
+            return pEntity.hasNectar() ? ANGRY_NECTAR_BEE_TEXTURE : ANGRY_BEE_TEXTURE;
         } else {
-            return p_113897_.hasNectar() ? NECTAR_BEE_TEXTURE : BEE_TEXTURE;
+            return pEntity.hasNectar() ? NECTAR_BEE_TEXTURE : BEE_TEXTURE;
         }
     }
 }

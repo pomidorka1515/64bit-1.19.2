@@ -13,20 +13,20 @@ public class ClientboundStatusResponsePacket implements Packet<ClientStatusPacke
     private static final Gson GSON = (new GsonBuilder()).registerTypeAdapter(ServerStatus.Version.class, new ServerStatus.Version.Serializer()).registerTypeAdapter(ServerStatus.Players.class, new ServerStatus.Players.Serializer()).registerTypeAdapter(ServerStatus.class, new ServerStatus.Serializer()).registerTypeHierarchyAdapter(Component.class, new Component.Serializer()).registerTypeHierarchyAdapter(Style.class, new Style.Serializer()).registerTypeAdapterFactory(new LowerCaseEnumTypeAdapterFactory()).create();
     private final ServerStatus status;
 
-    public ClientboundStatusResponsePacket(ServerStatus p_134890_) {
-        this.status = p_134890_;
+    public ClientboundStatusResponsePacket(ServerStatus pStatus) {
+        this.status = pStatus;
     }
 
-    public ClientboundStatusResponsePacket(FriendlyByteBuf p_179834_) {
-        this.status = GsonHelper.fromJson(GSON, p_179834_.readUtf(32767), ServerStatus.class);
+    public ClientboundStatusResponsePacket(FriendlyByteBuf pBuffer) {
+        this.status = GsonHelper.fromJson(GSON, pBuffer.readUtf(32767), ServerStatus.class);
     }
 
-    public void write(FriendlyByteBuf p_134899_) {
-        p_134899_.writeUtf(GSON.toJson(this.status));
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeUtf(GSON.toJson(this.status));
     }
 
-    public void handle(ClientStatusPacketListener p_134896_) {
-        p_134896_.handleStatusResponse(this);
+    public void handle(ClientStatusPacketListener pHandler) {
+        pHandler.handleStatusResponse(this);
     }
 
     public ServerStatus getStatus() {

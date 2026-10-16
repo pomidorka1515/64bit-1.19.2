@@ -22,25 +22,25 @@ public class VillageSectionsDebugRenderer implements DebugRenderer.SimpleDebugRe
         this.villageSections.clear();
     }
 
-    public void setVillageSection(SectionPos p_113710_) {
-        this.villageSections.add(p_113710_);
+    public void setVillageSection(SectionPos pPos) {
+        this.villageSections.add(pPos);
     }
 
-    public void setNotVillageSection(SectionPos p_113712_) {
-        this.villageSections.remove(p_113712_);
+    public void setNotVillageSection(SectionPos pPos) {
+        this.villageSections.remove(pPos);
     }
 
-    public void render(PoseStack p_113701_, MultiBufferSource p_113702_, double p_113703_, double p_113704_, double p_113705_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableTexture();
-        this.doRender(p_113703_, p_113704_, p_113705_);
+        this.doRender(pCamX, pCamY, pCamZ);
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
     }
 
-    private void doRender(double p_113697_, double p_113698_, double p_113699_) {
-        BlockPos blockpos = new BlockPos(p_113697_, p_113698_, p_113699_);
+    private void doRender(double pX, double pY, double pZ) {
+        BlockPos blockpos = new BlockPos(pX, pY, pZ);
         this.villageSections.forEach((p_113708_) -> {
             if (blockpos.closerThan(p_113708_.center(), 60.0D)) {
                 highlightVillageSection(p_113708_);
@@ -48,9 +48,9 @@ public class VillageSectionsDebugRenderer implements DebugRenderer.SimpleDebugRe
         });
     }
 
-    private static void highlightVillageSection(SectionPos p_113714_) {
+    private static void highlightVillageSection(SectionPos pPos) {
         float f = 1.0F;
-        BlockPos blockpos = p_113714_.center();
+        BlockPos blockpos = pPos.center();
         BlockPos blockpos1 = blockpos.offset(-1.0D, -1.0D, -1.0D);
         BlockPos blockpos2 = blockpos.offset(1.0D, 1.0D, 1.0D);
         DebugRenderer.renderFilledBox(blockpos1, blockpos2, 0.2F, 1.0F, 0.2F, 0.15F);

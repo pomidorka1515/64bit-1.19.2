@@ -28,12 +28,12 @@ public class MinecartCommandBlock extends AbstractMinecart {
     private static final int ACTIVATION_DELAY = 4;
     private int lastActivated;
 
-    public MinecartCommandBlock(EntityType<? extends MinecartCommandBlock> p_38509_, Level p_38510_) {
-        super(p_38509_, p_38510_);
+    public MinecartCommandBlock(EntityType<? extends MinecartCommandBlock> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public MinecartCommandBlock(Level p_38512_, double p_38513_, double p_38514_, double p_38515_) {
-        super(EntityType.COMMAND_BLOCK_MINECART, p_38512_, p_38513_, p_38514_, p_38515_);
+    public MinecartCommandBlock(Level pLevel, double pX, double pY, double pZ) {
+        super(EntityType.COMMAND_BLOCK_MINECART, pLevel, pX, pY, pZ);
     }
 
     protected Item getDropItem() {
@@ -46,16 +46,16 @@ public class MinecartCommandBlock extends AbstractMinecart {
         this.getEntityData().define(DATA_ID_LAST_OUTPUT, CommonComponents.EMPTY);
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_38525_) {
-        super.readAdditionalSaveData(p_38525_);
-        this.commandBlock.load(p_38525_);
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.commandBlock.load(pCompound);
         this.getEntityData().set(DATA_ID_COMMAND_NAME, this.getCommandBlock().getCommand());
         this.getEntityData().set(DATA_ID_LAST_OUTPUT, this.getCommandBlock().getLastOutput());
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_38529_) {
-        super.addAdditionalSaveData(p_38529_);
-        this.commandBlock.save(p_38529_);
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        this.commandBlock.save(pCompound);
     }
 
     public AbstractMinecart.Type getMinecartType() {
@@ -77,18 +77,18 @@ public class MinecartCommandBlock extends AbstractMinecart {
         }
     }
 
-    public InteractionResult interact(Player p_38522_, InteractionHand p_38523_) {
-        return this.commandBlock.usedBy(p_38522_);
+    public InteractionResult interact(Player pPlayer, InteractionHand pHand) {
+        return this.commandBlock.usedBy(pPlayer);
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_38527_) {
-        super.onSyncedDataUpdated(p_38527_);
-        if (DATA_ID_LAST_OUTPUT.equals(p_38527_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        super.onSyncedDataUpdated(pKey);
+        if (DATA_ID_LAST_OUTPUT.equals(pKey)) {
             try {
                 this.commandBlock.setLastOutput(this.getEntityData().get(DATA_ID_LAST_OUTPUT));
             } catch (Throwable throwable) {
             }
-        } else if (DATA_ID_COMMAND_NAME.equals(p_38527_)) {
+        } else if (DATA_ID_COMMAND_NAME.equals(pKey)) {
             this.commandBlock.setCommand(this.getEntityData().get(DATA_ID_COMMAND_NAME));
         }
     }

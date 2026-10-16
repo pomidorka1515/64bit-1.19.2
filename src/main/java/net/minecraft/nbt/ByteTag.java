@@ -36,20 +36,20 @@ public class ByteTag extends NumericTag {
     public static final ByteTag ONE = valueOf((byte) 1);
     private final byte data;
 
-    ByteTag(byte p_128261_) {
-        this.data = p_128261_;
+    ByteTag(byte pData) {
+        this.data = pData;
     }
 
-    public static ByteTag valueOf(byte p_128267_) {
-        return ByteTag.Cache.cache[128 + p_128267_];
+    public static ByteTag valueOf(byte pData) {
+        return ByteTag.Cache.cache[128 + pData];
     }
 
-    public static ByteTag valueOf(boolean p_128274_) {
-        return p_128274_ ? ONE : ZERO;
+    public static ByteTag valueOf(boolean pData) {
+        return pData ? ONE : ZERO;
     }
 
-    public void write(DataOutput p_128269_) throws IOException {
-        p_128269_.writeByte(this.data);
+    public void write(DataOutput pOutput) throws IOException {
+        pOutput.writeByte(this.data);
     }
 
     public byte getId() {
@@ -64,11 +64,11 @@ public class ByteTag extends NumericTag {
         return this;
     }
 
-    public boolean equals(Object p_128280_) {
-        if (this == p_128280_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_128280_ instanceof ByteTag && this.data == ((ByteTag) p_128280_).data;
+            return pOther instanceof ByteTag && this.data == ((ByteTag) pOther).data;
         }
     }
 
@@ -76,8 +76,8 @@ public class ByteTag extends NumericTag {
         return this.data;
     }
 
-    public void accept(TagVisitor p_177842_) {
-        p_177842_.visitByte(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitByte(this);
     }
 
     public long getAsLong() {
@@ -108,8 +108,8 @@ public class ByteTag extends NumericTag {
         return this.data;
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197436_) {
-        return p_197436_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 
     static class Cache {

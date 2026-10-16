@@ -9,8 +9,8 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.server.level.ServerPlayer;
 
 public class TellRawCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> p_139064_) {
-        p_139064_.register(Commands.literal("tellraw").requires((p_139068_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("tellraw").requires((p_139068_) -> {
                                                           return p_139068_.hasPermission(2);
                                                       })
                         .then(Commands.argument("targets", EntityArgument.players()).then(Commands.argument("message", ComponentArgument.textComponent()).executes((p_139066_) -> {

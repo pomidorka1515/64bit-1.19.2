@@ -24,10 +24,10 @@ public class SimpleReloadInstance<S> implements ReloadInstance {
     private final AtomicInteger startedTaskCounter = new AtomicInteger();
     private final AtomicInteger doneTaskCounter = new AtomicInteger();
 
-    public static SimpleReloadInstance<Void> of(ResourceManager p_10816_, List<PreparableReloadListener> p_10817_, Executor p_10818_, Executor p_10819_, CompletableFuture<Unit> p_10820_) {
-        return new SimpleReloadInstance<>(p_10818_, p_10819_, p_10816_, p_10817_, (p_10829_, p_10830_, p_10831_, p_10832_, p_10833_) -> {
-            return p_10831_.reload(p_10829_, p_10830_, InactiveProfiler.INSTANCE, InactiveProfiler.INSTANCE, p_10818_, p_10833_);
-        }, p_10820_);
+    public static SimpleReloadInstance<Void> of(ResourceManager pResourceManager, List<PreparableReloadListener> pListeners, Executor pBackgroundExecutor, Executor pGameExecutor, CompletableFuture<Unit> pAlsoWaitedFor) {
+        return new SimpleReloadInstance<>(pBackgroundExecutor, pGameExecutor, pResourceManager, pListeners, (p_10829_, p_10830_, p_10831_, p_10832_, p_10833_) -> {
+            return p_10831_.reload(p_10829_, p_10830_, InactiveProfiler.INSTANCE, InactiveProfiler.INSTANCE, pBackgroundExecutor, p_10833_);
+        }, pAlsoWaitedFor);
     }
 
     protected SimpleReloadInstance(Executor p_10808_, final Executor p_10809_, ResourceManager p_10810_, List<PreparableReloadListener> p_10811_, SimpleReloadInstance.StateFactory<S> p_10812_, CompletableFuture<Unit> p_10813_) {
@@ -81,11 +81,11 @@ public class SimpleReloadInstance<S> implements ReloadInstance {
         return f / f1;
     }
 
-    public static ReloadInstance create(ResourceManager p_203835_, List<PreparableReloadListener> p_203836_, Executor p_203837_, Executor p_203838_, CompletableFuture<Unit> p_203839_, boolean p_203840_) {
-        return (ReloadInstance) (p_203840_ ? new ProfiledReloadInstance(p_203835_, p_203836_, p_203837_, p_203838_, p_203839_) : of(p_203835_, p_203836_, p_203837_, p_203838_, p_203839_));
+    public static ReloadInstance create(ResourceManager pResourceManager, List<PreparableReloadListener> pListeners, Executor pBackgroundExecutor, Executor pGameExecutor, CompletableFuture<Unit> pAlsoWaitedFor, boolean pProfiled) {
+        return (ReloadInstance) (pProfiled ? new ProfiledReloadInstance(pResourceManager, pListeners, pBackgroundExecutor, pGameExecutor, pAlsoWaitedFor) : of(pResourceManager, pListeners, pBackgroundExecutor, pGameExecutor, pAlsoWaitedFor));
     }
 
     protected interface StateFactory<S> {
-        CompletableFuture<S> create(PreparableReloadListener.PreparationBarrier p_10864_, ResourceManager p_10865_, PreparableReloadListener p_10866_, Executor p_10867_, Executor p_10868_);
+        CompletableFuture<S> create(PreparableReloadListener.PreparationBarrier pPreperationBarrier, ResourceManager pResourceManager, PreparableReloadListener pListener, Executor pBackgroundExecutor, Executor pGameExecutor);
     }
 }

@@ -10,16 +10,16 @@ import net.minecraft.world.phys.Vec3;
 public class SlimePredicate implements EntitySubPredicate {
     private final MinMaxBounds.Ints size;
 
-    private SlimePredicate(MinMaxBounds.Ints p_223420_) {
-        this.size = p_223420_;
+    private SlimePredicate(MinMaxBounds.Ints pSize) {
+        this.size = pSize;
     }
 
-    public static SlimePredicate sized(MinMaxBounds.Ints p_223427_) {
-        return new SlimePredicate(p_223427_);
+    public static SlimePredicate sized(MinMaxBounds.Ints pSize) {
+        return new SlimePredicate(pSize);
     }
 
-    public static SlimePredicate fromJson(JsonObject p_223429_) {
-        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(p_223429_.get("size"));
+    public static SlimePredicate fromJson(JsonObject pJson) {
+        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(pJson.get("size"));
         return new SlimePredicate(minmaxbounds$ints);
     }
 

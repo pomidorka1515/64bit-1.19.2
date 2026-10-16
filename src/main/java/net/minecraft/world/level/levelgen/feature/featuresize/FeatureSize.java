@@ -17,13 +17,13 @@ public abstract class FeatureSize {
         });
     }
 
-    public FeatureSize(OptionalInt p_68285_) {
-        this.minClippedHeight = p_68285_;
+    public FeatureSize(OptionalInt pMinClippedHeight) {
+        this.minClippedHeight = pMinClippedHeight;
     }
 
     protected abstract FeatureSizeType<?> type();
 
-    public abstract int getSizeAtHeight(int p_68287_, int p_68288_);
+    public abstract int getSizeAtHeight(int pHeight, int pMidpoint);
 
     public OptionalInt minClippedHeight() {
         return this.minClippedHeight;

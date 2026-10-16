@@ -6,20 +6,20 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class V702 extends Schema {
-    public V702(int p_18007_, Schema p_18008_) {
-        super(p_18007_, p_18008_);
+    public V702(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    protected static void registerMob(Schema p_18012_, Map<String, Supplier<TypeTemplate>> p_18013_, String p_18014_) {
-        p_18012_.register(p_18013_, p_18014_, () -> {
-            return V100.equipment(p_18012_);
+    protected static void registerMob(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return V100.equipment(pSchema);
         });
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema p_18016_) {
-        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(p_18016_);
-        registerMob(p_18016_, map, "ZombieVillager");
-        registerMob(p_18016_, map, "Husk");
+    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema pSchema) {
+        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(pSchema);
+        registerMob(pSchema, map, "ZombieVillager");
+        registerMob(pSchema, map, "Husk");
         return map;
     }
 }

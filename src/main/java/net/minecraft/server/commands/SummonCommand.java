@@ -28,8 +28,8 @@ public class SummonCommand {
     private static final SimpleCommandExceptionType ERROR_DUPLICATE_UUID = new SimpleCommandExceptionType(Component.translatable("commands.summon.failed.uuid"));
     private static final SimpleCommandExceptionType INVALID_POSITION = new SimpleCommandExceptionType(Component.translatable("commands.summon.invalidPosition"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138815_) {
-        p_138815_.register(Commands.literal("summon").requires((p_138819_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("summon").requires((p_138819_) -> {
                                                          return p_138819_.hasPermission(2);
                                                      })
                         .then(Commands.argument("entity", EntitySummonArgument.id()).suggests(SuggestionProviders.SUMMONABLE_ENTITIES).executes((p_138832_) -> {
@@ -43,33 +43,33 @@ public class SummonCommand {
                                                         })))));
     }
 
-    private static int spawnEntity(CommandSourceStack p_138821_, ResourceLocation p_138822_, SectorVec3 exactPosition, CompoundTag p_138824_, boolean p_138825_) throws CommandSyntaxException {
+    private static int spawnEntity(CommandSourceStack pSource, ResourceLocation pType, SectorVec3 exactPosition, CompoundTag pNbt, boolean pRandomizeProperties) throws CommandSyntaxException {
         BlockPos blockpos = exactPosition.blockPosition();
-        Vec3 p_138823_ = exactPosition.toApproximateVec3();
+        Vec3 pPos = exactPosition.toApproximateVec3();
         if (!Level.isInSpawnableBounds(blockpos)) {
             throw INVALID_POSITION.create();
         } else {
-            CompoundTag compoundtag = p_138824_.copy();
-            compoundtag.putString("id", p_138822_.toString());
-            ServerLevel serverlevel = p_138821_.getLevel();
+            CompoundTag compoundtag = pNbt.copy();
+            compoundtag.putString("id", pType.toString());
+            ServerLevel serverlevel = pSource.getLevel();
             Entity entity = EntityType.loadEntityRecursive(compoundtag, serverlevel, (p_138828_) -> {
                 if (p_138828_.hasSectorPosition())
                     p_138828_.absMoveTo(exactPosition, p_138828_.getYRot(), p_138828_.getXRot());
                 else
-                    p_138828_.moveTo(p_138823_.x, p_138823_.y, p_138823_.z, p_138828_.getYRot(), p_138828_.getXRot());
+                    p_138828_.moveTo(pPos.x, pPos.y, pPos.z, p_138828_.getYRot(), p_138828_.getXRot());
                 return p_138828_;
             });
             if (entity == null) {
                 throw ERROR_FAILED.create();
             } else {
-                if (p_138825_ && entity instanceof Mob) {
-                    ((Mob) entity).finalizeSpawn(p_138821_.getLevel(), p_138821_.getLevel().getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.COMMAND, (SpawnGroupData) null, (CompoundTag) null);
+                if (pRandomizeProperties && entity instanceof Mob) {
+                    ((Mob) entity).finalizeSpawn(pSource.getLevel(), pSource.getLevel().getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.COMMAND, (SpawnGroupData) null, (CompoundTag) null);
                 }
 
                 if (!serverlevel.tryAddFreshEntityWithPassengers(entity)) {
                     throw ERROR_DUPLICATE_UUID.create();
                 } else {
-                    p_138821_.sendSuccess(Component.translatable("commands.summon.success", entity.getDisplayName()), true);
+                    pSource.sendSuccess(Component.translatable("commands.summon.success", entity.getDisplayName()), true);
                     return 1;
                 }
             }

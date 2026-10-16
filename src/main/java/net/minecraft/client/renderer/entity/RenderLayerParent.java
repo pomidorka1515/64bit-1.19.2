@@ -10,5 +10,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public interface RenderLayerParent<T extends Entity, M extends EntityModel<T>> {
     M getModel();
 
-    ResourceLocation getTextureLocation(T p_115812_);
+    ResourceLocation getTextureLocation(T pEntity);
 }

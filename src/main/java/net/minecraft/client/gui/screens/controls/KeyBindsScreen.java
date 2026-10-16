@@ -22,8 +22,8 @@ public class KeyBindsScreen extends OptionsSubScreen {
     private KeyBindsList keyBindsList;
     private Button resetButton;
 
-    public KeyBindsScreen(Screen p_193980_, Options p_193981_) {
-        super(p_193980_, p_193981_, Component.translatable("controls.keybinds.title"));
+    public KeyBindsScreen(Screen pLastScreen, Options pOptions) {
+        super(pLastScreen, pOptions, Component.translatable("controls.keybinds.title"));
     }
 
     protected void init() {
@@ -41,23 +41,23 @@ public class KeyBindsScreen extends OptionsSubScreen {
         }));
     }
 
-    public boolean mouseClicked(double p_193983_, double p_193984_, int p_193985_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (this.selectedKey != null) {
-            this.options.setKey(this.selectedKey, InputConstants.Type.MOUSE.getOrCreate(p_193985_));
+            this.options.setKey(this.selectedKey, InputConstants.Type.MOUSE.getOrCreate(pButton));
             this.selectedKey = null;
             KeyMapping.resetMapping();
             return true;
         } else {
-            return super.mouseClicked(p_193983_, p_193984_, p_193985_);
+            return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
     }
 
-    public boolean keyPressed(int p_193987_, int p_193988_, int p_193989_) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (this.selectedKey != null) {
-            if (p_193987_ == 256) {
+            if (pKeyCode == 256) {
                 this.options.setKey(this.selectedKey, InputConstants.UNKNOWN);
             } else {
-                this.options.setKey(this.selectedKey, InputConstants.getKey(p_193987_, p_193988_));
+                this.options.setKey(this.selectedKey, InputConstants.getKey(pKeyCode, pScanCode));
             }
 
             this.selectedKey = null;
@@ -65,14 +65,14 @@ public class KeyBindsScreen extends OptionsSubScreen {
             KeyMapping.resetMapping();
             return true;
         } else {
-            return super.keyPressed(p_193987_, p_193988_, p_193989_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    public void render(PoseStack p_193991_, int p_193992_, int p_193993_, float p_193994_) {
-        this.renderBackground(p_193991_);
-        this.keyBindsList.render(p_193991_, p_193992_, p_193993_, p_193994_);
-        drawCenteredString(p_193991_, this.font, this.title, this.width / 2, 8, 16777215);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.keyBindsList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 8, 16777215);
         boolean flag = false;
 
         for (KeyMapping keymapping : this.options.keyMappings) {
@@ -83,6 +83,6 @@ public class KeyBindsScreen extends OptionsSubScreen {
         }
 
         this.resetButton.active = flag;
-        super.render(p_193991_, p_193992_, p_193993_, p_193994_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

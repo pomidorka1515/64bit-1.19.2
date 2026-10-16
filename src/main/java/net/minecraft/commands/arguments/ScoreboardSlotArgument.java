@@ -28,12 +28,12 @@ public class ScoreboardSlotArgument implements ArgumentType<Integer> {
         return new ScoreboardSlotArgument();
     }
 
-    public static int getDisplaySlot(CommandContext<CommandSourceStack> p_109200_, String p_109201_) {
-        return p_109200_.getArgument(p_109201_, Integer.class);
+    public static int getDisplaySlot(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, Integer.class);
     }
 
-    public Integer parse(StringReader p_109198_) throws CommandSyntaxException {
-        String s = p_109198_.readUnquotedString();
+    public Integer parse(StringReader pReader) throws CommandSyntaxException {
+        String s = pReader.readUnquotedString();
         int i = Scoreboard.getDisplaySlotByName(s);
         if (i == -1) {
             throw ERROR_INVALID_VALUE.create(s);
@@ -42,8 +42,8 @@ public class ScoreboardSlotArgument implements ArgumentType<Integer> {
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_109206_, SuggestionsBuilder p_109207_) {
-        return SharedSuggestionProvider.suggest(Scoreboard.getDisplaySlotNames(), p_109207_);
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return SharedSuggestionProvider.suggest(Scoreboard.getDisplaySlotNames(), pBuilder);
     }
 
     public Collection<String> getExamples() {

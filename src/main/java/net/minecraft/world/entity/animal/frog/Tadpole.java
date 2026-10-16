@@ -44,22 +44,22 @@ public class Tadpole extends AbstractFish {
     protected static final ImmutableList<SensorType<? extends Sensor<? super Tadpole>>> SENSOR_TYPES = ImmutableList.of(SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_PLAYERS, SensorType.HURT_BY, SensorType.FROG_TEMPTATIONS);
     protected static final ImmutableList<MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(MemoryModuleType.LOOK_TARGET, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH, MemoryModuleType.NEAREST_VISIBLE_ADULT, MemoryModuleType.TEMPTATION_COOLDOWN_TICKS, MemoryModuleType.IS_TEMPTED, MemoryModuleType.TEMPTING_PLAYER, MemoryModuleType.BREED_TARGET, MemoryModuleType.IS_PANICKING);
 
-    public Tadpole(EntityType<? extends AbstractFish> p_218686_, Level p_218687_) {
-        super(p_218686_, p_218687_);
+    public Tadpole(EntityType<? extends AbstractFish> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.moveControl = new SmoothSwimmingMoveControl(this, 85, 10, 0.02F, 0.1F, true);
         this.lookControl = new SmoothSwimmingLookControl(this, 10);
     }
 
-    protected PathNavigation createNavigation(Level p_218694_) {
-        return new WaterBoundPathNavigation(this, p_218694_);
+    protected PathNavigation createNavigation(Level pLevel) {
+        return new WaterBoundPathNavigation(this, pLevel);
     }
 
     protected Brain.Provider<Tadpole> brainProvider() {
         return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
     }
 
-    protected Brain<?> makeBrain(Dynamic<?> p_218696_) {
-        return TadpoleAi.makeBrain(this.brainProvider().makeBrain(p_218696_));
+    protected Brain<?> makeBrain(Dynamic<?> pDynamic) {
+        return TadpoleAi.makeBrain(this.brainProvider().makeBrain(pDynamic));
     }
 
     public Brain<Tadpole> getBrain() {
@@ -91,14 +91,14 @@ public class Tadpole extends AbstractFish {
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_218709_) {
-        super.addAdditionalSaveData(p_218709_);
-        p_218709_.putInt("Age", this.age);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("Age", this.age);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_218698_) {
-        super.readAdditionalSaveData(p_218698_);
-        this.setAge(p_218698_.getInt("Age"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setAge(pCompound.getInt("Age"));
     }
 
     @Nullable
@@ -107,7 +107,7 @@ public class Tadpole extends AbstractFish {
     }
 
     @Nullable
-    protected SoundEvent getHurtSound(DamageSource p_218713_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.TADPOLE_HURT;
     }
 
@@ -116,13 +116,13 @@ public class Tadpole extends AbstractFish {
         return SoundEvents.TADPOLE_DEATH;
     }
 
-    public InteractionResult mobInteract(Player p_218703_, InteractionHand p_218704_) {
-        ItemStack itemstack = p_218703_.getItemInHand(p_218704_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (this.isFood(itemstack)) {
-            this.feed(p_218703_, itemstack);
+            this.feed(pPlayer, itemstack);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         } else {
-            return Bucketable.bucketMobPickup(p_218703_, p_218704_, this).orElse(super.mobInteract(p_218703_, p_218704_));
+            return Bucketable.bucketMobPickup(pPlayer, pHand, this).orElse(super.mobInteract(pPlayer, pHand));
         }
     }
 
@@ -135,19 +135,19 @@ public class Tadpole extends AbstractFish {
         return true;
     }
 
-    public void setFromBucket(boolean p_218732_) {
+    public void setFromBucket(boolean pFromBucket) {
     }
 
-    public void saveToBucketTag(ItemStack p_218725_) {
-        Bucketable.saveDefaultDataToBucketTag(this, p_218725_);
-        CompoundTag compoundtag = p_218725_.getOrCreateTag();
+    public void saveToBucketTag(ItemStack pStack) {
+        Bucketable.saveDefaultDataToBucketTag(this, pStack);
+        CompoundTag compoundtag = pStack.getOrCreateTag();
         compoundtag.putInt("Age", this.getAge());
     }
 
-    public void loadFromBucketTag(CompoundTag p_218715_) {
-        Bucketable.loadDefaultDataFromBucketTag(this, p_218715_);
-        if (p_218715_.contains("Age")) {
-            this.setAge(p_218715_.getInt("Age"));
+    public void loadFromBucketTag(CompoundTag pTag) {
+        Bucketable.loadDefaultDataFromBucketTag(this, pTag);
+        if (pTag.contains("Age")) {
+            this.setAge(pTag.getInt("Age"));
         }
     }
 
@@ -159,20 +159,20 @@ public class Tadpole extends AbstractFish {
         return SoundEvents.BUCKET_FILL_TADPOLE;
     }
 
-    private boolean isFood(ItemStack p_218727_) {
-        return Frog.TEMPTATION_ITEM.test(p_218727_);
+    private boolean isFood(ItemStack pStack) {
+        return Frog.TEMPTATION_ITEM.test(pStack);
     }
 
-    private void feed(Player p_218691_, ItemStack p_218692_) {
-        this.usePlayerItem(p_218691_, p_218692_);
+    private void feed(Player pPlayer, ItemStack pStack) {
+        this.usePlayerItem(pPlayer, pStack);
         this.ageUp(AgeableMob.getSpeedUpSecondsWhenFeeding(this.getTicksLeftUntilAdult()));
         this.level.addParticle(ParticleTypes.HAPPY_VILLAGER, this.particlePosition((2.0D * this.random.nextDouble() - 1.0D) * (double) this.getBbWidth(), this.random.nextDouble() * (double) this.getBbHeight() + 0.5D, (2.0D * this.random.nextDouble() - 1.0D) * (double) this.getBbWidth()),
                 0.0D, 0.0D, 0.0D);
     }
 
-    private void usePlayerItem(Player p_218706_, ItemStack p_218707_) {
-        if (!p_218706_.getAbilities().instabuild) {
-            p_218707_.shrink(1);
+    private void usePlayerItem(Player pPlayer, ItemStack pStack) {
+        if (!pPlayer.getAbilities().instabuild) {
+            pStack.shrink(1);
         }
     }
 
@@ -180,12 +180,12 @@ public class Tadpole extends AbstractFish {
         return this.age;
     }
 
-    private void ageUp(int p_218701_) {
-        this.setAge(this.age + p_218701_ * 20);
+    private void ageUp(int pOffset) {
+        this.setAge(this.age + pOffset * 20);
     }
 
-    private void setAge(int p_218711_) {
-        this.age = p_218711_;
+    private void setAge(int pAge) {
+        this.age = pAge;
         if (this.age >= ticksToBeFrog) {
             this.ageUp();
         }

@@ -12,16 +12,16 @@ public final class CommandBuildContext {
     private final RegistryAccess registryAccess;
     CommandBuildContext.MissingTagAccessPolicy missingTagAccessPolicy = CommandBuildContext.MissingTagAccessPolicy.FAIL;
 
-    public CommandBuildContext(RegistryAccess p_227132_) {
-        this.registryAccess = p_227132_;
+    public CommandBuildContext(RegistryAccess pRegistryAccess) {
+        this.registryAccess = pRegistryAccess;
     }
 
-    public void missingTagAccessPolicy(CommandBuildContext.MissingTagAccessPolicy p_227136_) {
-        this.missingTagAccessPolicy = p_227136_;
+    public void missingTagAccessPolicy(CommandBuildContext.MissingTagAccessPolicy pMissingTagAccessPolicy) {
+        this.missingTagAccessPolicy = pMissingTagAccessPolicy;
     }
 
-    public <T> HolderLookup<T> holderLookup(ResourceKey<? extends Registry<T>> p_227134_) {
-        return new HolderLookup.RegistryLookup<T>(this.registryAccess.registryOrThrow(p_227134_)) {
+    public <T> HolderLookup<T> holderLookup(ResourceKey<? extends Registry<T>> pRegistryResourceKey) {
+        return new HolderLookup.RegistryLookup<T>(this.registryAccess.registryOrThrow(pRegistryResourceKey)) {
             public Optional<? extends HolderSet<T>> get(TagKey<T> p_227142_) {
                 Optional optional1;
                 switch (CommandBuildContext.this.missingTagAccessPolicy) {

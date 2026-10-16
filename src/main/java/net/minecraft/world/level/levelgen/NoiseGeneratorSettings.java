@@ -40,18 +40,18 @@ public record NoiseGeneratorSettings(NoiseSettings noiseSettings, BlockState def
         return this.useLegacyRandomSource ? WorldgenRandom.Algorithm.LEGACY : WorldgenRandom.Algorithm.XOROSHIRO;
     }
 
-    private static Holder<NoiseGeneratorSettings> register(Registry<NoiseGeneratorSettings> p_224386_, ResourceKey<NoiseGeneratorSettings> p_224387_, NoiseGeneratorSettings p_224388_) {
-        return BuiltinRegistries.register(p_224386_, p_224387_.location(), p_224388_);
+    private static Holder<NoiseGeneratorSettings> register(Registry<NoiseGeneratorSettings> pRegistry, ResourceKey<NoiseGeneratorSettings> pKey, NoiseGeneratorSettings pSettings) {
+        return BuiltinRegistries.register(pRegistry, pKey.location(), pSettings);
     }
 
-    public static Holder<NoiseGeneratorSettings> bootstrap(Registry<NoiseGeneratorSettings> p_224384_) {
-        register(p_224384_, OVERWORLD, overworld(false, false));
-        register(p_224384_, LARGE_BIOMES, overworld(false, true));
-        register(p_224384_, AMPLIFIED, overworld(true, false));
-        register(p_224384_, NETHER, nether());
-        register(p_224384_, END, end());
-        register(p_224384_, CAVES, caves());
-        return register(p_224384_, FLOATING_ISLANDS, floatingIslands());
+    public static Holder<NoiseGeneratorSettings> bootstrap(Registry<NoiseGeneratorSettings> pRegistry) {
+        register(pRegistry, OVERWORLD, overworld(false, false));
+        register(pRegistry, LARGE_BIOMES, overworld(false, true));
+        register(pRegistry, AMPLIFIED, overworld(true, false));
+        register(pRegistry, NETHER, nether());
+        register(pRegistry, END, end());
+        register(pRegistry, CAVES, caves());
+        return register(pRegistry, FLOATING_ISLANDS, floatingIslands());
     }
 
     private static NoiseGeneratorSettings end() {

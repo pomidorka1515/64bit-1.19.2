@@ -21,17 +21,17 @@ public enum TutorialSteps {
         this.constructor = p_120638_;
     }
 
-    public TutorialStepInstance create(Tutorial p_120641_) {
-        return this.constructor.apply(p_120641_);
+    public TutorialStepInstance create(Tutorial pTutorial) {
+        return this.constructor.apply(pTutorial);
     }
 
     public String getName() {
         return this.name;
     }
 
-    public static TutorialSteps getByName(String p_120643_) {
+    public static TutorialSteps getByName(String pName) {
         for (TutorialSteps tutorialsteps : values()) {
-            if (tutorialsteps.name.equals(p_120643_)) {
+            if (tutorialsteps.name.equals(pName)) {
                 return tutorialsteps;
             }
         }

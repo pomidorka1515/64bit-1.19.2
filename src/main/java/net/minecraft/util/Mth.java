@@ -39,188 +39,188 @@ public class Mth {
     private static final double[] ASIN_TAB = new double[257];
     private static final double[] COS_TAB = new double[257];
 
-    public static float sin(float p_14032_) {
-        return SIN[(int) (p_14032_ * 10430.378F) & '\uffff'];
+    public static float sin(float pValue) {
+        return SIN[(int) (pValue * 10430.378F) & '\uffff'];
     }
 
-    public static float cos(float p_14090_) {
-        return SIN[(int) (p_14090_ * 10430.378F + 16384.0F) & '\uffff'];
+    public static float cos(float pValue) {
+        return SIN[(int) (pValue * 10430.378F + 16384.0F) & '\uffff'];
     }
 
-    public static float sqrt(float p_14117_) {
-        return (float) Math.sqrt((double) p_14117_);
+    public static float sqrt(float pValue) {
+        return (float) Math.sqrt((double) pValue);
     }
 
-    public static int floor(float p_14144_) {
-        int i = (int) p_14144_;
-        return p_14144_ < (float) i ? i - 1 : i;
+    public static int floor(float pValue) {
+        int i = (int) pValue;
+        return pValue < (float) i ? i - 1 : i;
     }
 
-    public static int fastFloor(double p_14081_) {
-        return (int) (p_14081_ + 1024.0D) - 1024;
+    public static int fastFloor(double pValue) {
+        return (int) (pValue + 1024.0D) - 1024;
     }
 
-    public static int floor(double p_14108_) {
-        int i = (int) p_14108_;
-        return p_14108_ < (double) i ? i - 1 : i;
+    public static int floor(double pValue) {
+        int i = (int) pValue;
+        return pValue < (double) i ? i - 1 : i;
     }
 
-    public static long lfloor(double p_14135_) {
-        long i = (long) p_14135_;
-        return p_14135_ < (double) i ? i - 1L : i;
+    public static long lfloor(double pValue) {
+        long i = (long) pValue;
+        return pValue < (double) i ? i - 1L : i;
     }
 
-    public static int absFloor(double p_144940_) {
-        return (int) (p_144940_ >= 0.0D ? p_144940_ : -p_144940_ + 1.0D);
+    public static int absFloor(double pValue) {
+        return (int) (pValue >= 0.0D ? pValue : -pValue + 1.0D);
     }
 
-    public static float abs(float p_14155_) {
-        return Math.abs(p_14155_);
+    public static float abs(float pValue) {
+        return Math.abs(pValue);
     }
 
-    public static int abs(int p_14041_) {
-        return Math.abs(p_14041_);
+    public static int abs(int pValue) {
+        return Math.abs(pValue);
     }
 
-    public static int ceil(float p_14168_) {
-        int i = (int) p_14168_;
-        return p_14168_ > (float) i ? i + 1 : i;
+    public static int ceil(float pValue) {
+        int i = (int) pValue;
+        return pValue > (float) i ? i + 1 : i;
     }
 
-    public static int ceil(double p_14166_) {
-        int i = (int) p_14166_;
-        return p_14166_ > (double) i ? i + 1 : i;
+    public static int ceil(double pValue) {
+        int i = (int) pValue;
+        return pValue > (double) i ? i + 1 : i;
     }
 
-    public static long lceil(double p_14166_) {
-        long i = (long) p_14166_;
-        return p_14166_ > (double) i ? i + 1 : i;
+    public static long lceil(double pValue) {
+        long i = (long) pValue;
+        return pValue > (double) i ? i + 1 : i;
     }
 
-    public static byte clamp(byte p_144848_, byte p_144849_, byte p_144850_) {
-        if (p_144848_ < p_144849_) {
-            return p_144849_;
+    public static byte clamp(byte pValue, byte pMin, byte pMax) {
+        if (pValue < pMin) {
+            return pMin;
         } else {
-            return p_144848_ > p_144850_ ? p_144850_ : p_144848_;
+            return pValue > pMax ? pMax : pValue;
         }
     }
 
-    public static int clamp(int p_14046_, int p_14047_, int p_14048_) {
-        if (p_14046_ < p_14047_) {
-            return p_14047_;
+    public static int clamp(int pValue, int pMin, int pMax) {
+        if (pValue < pMin) {
+            return pMin;
         } else {
-            return p_14046_ > p_14048_ ? p_14048_ : p_14046_;
+            return pValue > pMax ? pMax : pValue;
         }
     }
 
-    public static long clamp(long p_14054_, long p_14055_, long p_14056_) {
-        if (p_14054_ < p_14055_) {
-            return p_14055_;
+    public static long clamp(long pValue, long pMin, long pMax) {
+        if (pValue < pMin) {
+            return pMin;
         } else {
-            return p_14054_ > p_14056_ ? p_14056_ : p_14054_;
+            return pValue > pMax ? pMax : pValue;
         }
     }
 
-    public static float clamp(float p_14037_, float p_14038_, float p_14039_) {
-        if (p_14037_ < p_14038_) {
-            return p_14038_;
+    public static float clamp(float pValue, float pMin, float pMax) {
+        if (pValue < pMin) {
+            return pMin;
         } else {
-            return p_14037_ > p_14039_ ? p_14039_ : p_14037_;
+            return pValue > pMax ? pMax : pValue;
         }
     }
 
-    public static double clamp(double p_14009_, double p_14010_, double p_14011_) {
-        if (p_14009_ < p_14010_) {
-            return p_14010_;
+    public static double clamp(double pValue, double pMin, double pMax) {
+        if (pValue < pMin) {
+            return pMin;
         } else {
-            return p_14009_ > p_14011_ ? p_14011_ : p_14009_;
+            return pValue > pMax ? pMax : pValue;
         }
     }
 
-    public static double clampedLerp(double p_14086_, double p_14087_, double p_14088_) {
-        if (p_14088_ < 0.0D) {
-            return p_14086_;
+    public static double clampedLerp(double pStart, double pEnd, double pDelta) {
+        if (pDelta < 0.0D) {
+            return pStart;
         } else {
-            return p_14088_ > 1.0D ? p_14087_ : lerp(p_14088_, p_14086_, p_14087_);
+            return pDelta > 1.0D ? pEnd : lerp(pDelta, pStart, pEnd);
         }
     }
 
-    public static float clampedLerp(float p_144921_, float p_144922_, float p_144923_) {
-        if (p_144923_ < 0.0F) {
-            return p_144921_;
+    public static float clampedLerp(float pStart, float pEnd, float pDelta) {
+        if (pDelta < 0.0F) {
+            return pStart;
         } else {
-            return p_144923_ > 1.0F ? p_144922_ : lerp(p_144923_, p_144921_, p_144922_);
+            return pDelta > 1.0F ? pEnd : lerp(pDelta, pStart, pEnd);
         }
     }
 
-    public static double absMax(double p_14006_, double p_14007_) {
-        if (p_14006_ < 0.0D) {
-            p_14006_ = -p_14006_;
+    public static double absMax(double pX, double pY) {
+        if (pX < 0.0D) {
+            pX = -pX;
         }
 
-        if (p_14007_ < 0.0D) {
-            p_14007_ = -p_14007_;
+        if (pY < 0.0D) {
+            pY = -pY;
         }
 
-        return p_14006_ > p_14007_ ? p_14006_ : p_14007_;
+        return pX > pY ? pX : pY;
     }
 
-    public static int intFloorDiv(int p_14043_, int p_14044_) {
-        return Math.floorDiv(p_14043_, p_14044_);
+    public static int intFloorDiv(int pX, int pY) {
+        return Math.floorDiv(pX, pY);
     }
 
-    public static long longFloorDiv(long p_14043_, long p_14044_) {
-        return Math.floorDiv(p_14043_, p_14044_);
+    public static long longFloorDiv(long pX, long pY) {
+        return Math.floorDiv(pX, pY);
     }
 
-    public static int nextInt(RandomSource p_216272_, int p_216273_, int p_216274_) {
-        return p_216273_ >= p_216274_ ? p_216273_ : p_216272_.nextInt(p_216274_ - p_216273_ + 1) + p_216273_;
+    public static int nextInt(RandomSource pRandom, int pMinimum, int pMaximum) {
+        return pMinimum >= pMaximum ? pMinimum : pRandom.nextInt(pMaximum - pMinimum + 1) + pMinimum;
     }
 
-    public static float nextFloat(RandomSource p_216268_, float p_216269_, float p_216270_) {
-        return p_216269_ >= p_216270_ ? p_216269_ : p_216268_.nextFloat() * (p_216270_ - p_216269_) + p_216269_;
+    public static float nextFloat(RandomSource pRandom, float pMinimum, float pMaximum) {
+        return pMinimum >= pMaximum ? pMinimum : pRandom.nextFloat() * (pMaximum - pMinimum) + pMinimum;
     }
 
-    public static double nextDouble(RandomSource p_216264_, double p_216265_, double p_216266_) {
-        return p_216265_ >= p_216266_ ? p_216265_ : p_216264_.nextDouble() * (p_216266_ - p_216265_) + p_216265_;
+    public static double nextDouble(RandomSource pRandom, double pMinimum, double pMaximum) {
+        return pMinimum >= pMaximum ? pMinimum : pRandom.nextDouble() * (pMaximum - pMinimum) + pMinimum;
     }
 
-    public static double average(long[] p_14079_) {
+    public static double average(long[] pValues) {
         long i = 0L;
 
-        for (long j : p_14079_) {
+        for (long j : pValues) {
             i += j;
         }
 
-        return (double) i / (double) p_14079_.length;
+        return (double) i / (double) pValues.length;
     }
 
-    public static boolean equal(float p_14034_, float p_14035_) {
-        return Math.abs(p_14035_ - p_14034_) < 1.0E-5F;
+    public static boolean equal(float pX, float pY) {
+        return Math.abs(pY - pX) < 1.0E-5F;
     }
 
-    public static boolean equal(double p_14083_, double p_14084_) {
-        return Math.abs(p_14084_ - p_14083_) < (double) 1.0E-5F;
+    public static boolean equal(double pX, double pY) {
+        return Math.abs(pY - pX) < (double) 1.0E-5F;
     }
 
-    public static int positiveModulo(int p_14101_, int p_14102_) {
-        return Math.floorMod(p_14101_, p_14102_);
+    public static int positiveModulo(int pX, int pY) {
+        return Math.floorMod(pX, pY);
     }
 
-    public static long positiveModulo(long p_14101_, long p_14102_) {
-        return Math.floorMod(p_14101_, p_14102_);
+    public static long positiveModulo(long pX, long pY) {
+        return Math.floorMod(pX, pY);
     }
 
-    public static float positiveModulo(float p_14092_, float p_14093_) {
-        return (p_14092_ % p_14093_ + p_14093_) % p_14093_;
+    public static float positiveModulo(float pNumerator, float pDenominator) {
+        return (pNumerator % pDenominator + pDenominator) % pDenominator;
     }
 
-    public static double positiveModulo(double p_14110_, double p_14111_) {
-        return (p_14110_ % p_14111_ + p_14111_) % p_14111_;
+    public static double positiveModulo(double pNumerator, double pDenominator) {
+        return (pNumerator % pDenominator + pDenominator) % pDenominator;
     }
 
-    public static int wrapDegrees(int p_14099_) {
-        int i = p_14099_ % 360;
+    public static int wrapDegrees(int pAngle) {
+        int i = pAngle % 360;
         if (i >= 180) {
             i -= 360;
         }
@@ -232,8 +232,8 @@ public class Mth {
         return i;
     }
 
-    public static float wrapDegrees(float p_14178_) {
-        float f = p_14178_ % 360.0F;
+    public static float wrapDegrees(float pValue) {
+        float f = pValue % 360.0F;
         if (f >= 180.0F) {
             f -= 360.0F;
         }
@@ -245,8 +245,8 @@ public class Mth {
         return f;
     }
 
-    public static double wrapDegrees(double p_14176_) {
-        double d0 = p_14176_ % 360.0D;
+    public static double wrapDegrees(double pValue) {
+        double d0 = pValue % 360.0D;
         if (d0 >= 180.0D) {
             d0 -= 360.0D;
         }
@@ -258,52 +258,52 @@ public class Mth {
         return d0;
     }
 
-    public static float degreesDifference(float p_14119_, float p_14120_) {
-        return wrapDegrees(p_14120_ - p_14119_);
+    public static float degreesDifference(float pStart, float pEnd) {
+        return wrapDegrees(pEnd - pStart);
     }
 
-    public static float degreesDifferenceAbs(float p_14146_, float p_14147_) {
-        return abs(degreesDifference(p_14146_, p_14147_));
+    public static float degreesDifferenceAbs(float pStart, float pEnd) {
+        return abs(degreesDifference(pStart, pEnd));
     }
 
-    public static float rotateIfNecessary(float p_14095_, float p_14096_, float p_14097_) {
-        float f = degreesDifference(p_14095_, p_14096_);
-        float f1 = clamp(f, -p_14097_, p_14097_);
-        return p_14096_ - f1;
+    public static float rotateIfNecessary(float pRotationToAdjust, float pActualRotation, float pMaxDifference) {
+        float f = degreesDifference(pRotationToAdjust, pActualRotation);
+        float f1 = clamp(f, -pMaxDifference, pMaxDifference);
+        return pActualRotation - f1;
     }
 
-    public static float approach(float p_14122_, float p_14123_, float p_14124_) {
-        p_14124_ = abs(p_14124_);
-        return p_14122_ < p_14123_ ? clamp(p_14122_ + p_14124_, p_14122_, p_14123_) : clamp(p_14122_ - p_14124_, p_14123_, p_14122_);
+    public static float approach(float pValue, float pLimit, float pStepSize) {
+        pStepSize = abs(pStepSize);
+        return pValue < pLimit ? clamp(pValue + pStepSize, pValue, pLimit) : clamp(pValue - pStepSize, pLimit, pValue);
     }
 
-    public static float approachDegrees(float p_14149_, float p_14150_, float p_14151_) {
-        float f = degreesDifference(p_14149_, p_14150_);
-        return approach(p_14149_, p_14149_ + f, p_14151_);
+    public static float approachDegrees(float pAngle, float pLimit, float pStepSize) {
+        float f = degreesDifference(pAngle, pLimit);
+        return approach(pAngle, pAngle + f, pStepSize);
     }
 
-    public static int getInt(String p_14060_, int p_14061_) {
-        return NumberUtils.toInt(p_14060_, p_14061_);
+    public static int getInt(String pValue, int pDefaultValue) {
+        return NumberUtils.toInt(pValue, pDefaultValue);
     }
 
-    public static int getInt(String p_144906_, int p_144907_, int p_144908_) {
-        return Math.max(p_144908_, getInt(p_144906_, p_144907_));
+    public static int getInt(String pValue, int pDefaultValue, int pMax) {
+        return Math.max(pMax, getInt(pValue, pDefaultValue));
     }
 
-    public static double getDouble(String p_144899_, double p_144900_) {
+    public static double getDouble(String pValue, double pDefaultValue) {
         try {
-            return Double.parseDouble(p_144899_);
+            return Double.parseDouble(pValue);
         } catch (Throwable throwable) {
-            return p_144900_;
+            return pDefaultValue;
         }
     }
 
-    public static double getDouble(String p_144902_, double p_144903_, double p_144904_) {
-        return Math.max(p_144904_, getDouble(p_144902_, p_144903_));
+    public static double getDouble(String pValue, double pDefaultValue, double pMax) {
+        return Math.max(pMax, getDouble(pValue, pDefaultValue));
     }
 
-    public static int smallestEncompassingPowerOfTwo(int p_14126_) {
-        int i = p_14126_ - 1;
+    public static int smallestEncompassingPowerOfTwo(int pValue) {
+        int i = pValue - 1;
         i |= i >> 1;
         i |= i >> 2;
         i |= i >> 4;
@@ -312,57 +312,57 @@ public class Mth {
         return i + 1;
     }
 
-    public static boolean isPowerOfTwo(int p_14153_) {
-        return p_14153_ != 0 && (p_14153_ & p_14153_ - 1) == 0;
+    public static boolean isPowerOfTwo(int pValue) {
+        return pValue != 0 && (pValue & pValue - 1) == 0;
     }
 
-    public static int ceillog2(int p_14164_) {
-        p_14164_ = isPowerOfTwo(p_14164_) ? p_14164_ : smallestEncompassingPowerOfTwo(p_14164_);
-        return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int) ((long) p_14164_ * 125613361L >> 27) & 31];
+    public static int ceillog2(int pValue) {
+        pValue = isPowerOfTwo(pValue) ? pValue : smallestEncompassingPowerOfTwo(pValue);
+        return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int) ((long) pValue * 125613361L >> 27) & 31];
     }
 
-    public static int log2(int p_14174_) {
-        return ceillog2(p_14174_) - (isPowerOfTwo(p_14174_) ? 0 : 1);
+    public static int log2(int pValue) {
+        return ceillog2(pValue) - (isPowerOfTwo(pValue) ? 0 : 1);
     }
 
-    public static int color(float p_14160_, float p_14161_, float p_14162_) {
-        return color(floor(p_14160_ * 255.0F), floor(p_14161_ * 255.0F), floor(p_14162_ * 255.0F));
+    public static int color(float pR, float pG, float pB) {
+        return color(floor(pR * 255.0F), floor(pG * 255.0F), floor(pB * 255.0F));
     }
 
-    public static int color(int p_14104_, int p_14105_, int p_14106_) {
-        int $$3 = (p_14104_ << 8) + p_14105_;
-        return ($$3 << 8) + p_14106_;
+    public static int color(int pR, int pG, int pB) {
+        int $$3 = (pR << 8) + pG;
+        return ($$3 << 8) + pB;
     }
 
-    public static int colorMultiply(int p_144933_, int p_144934_) {
-        int i = (p_144933_ & 16711680) >> 16;
-        int j = (p_144934_ & 16711680) >> 16;
-        int k = (p_144933_ & '\uff00') >> 8;
-        int l = (p_144934_ & '\uff00') >> 8;
-        int i1 = (p_144933_ & 255) >> 0;
-        int j1 = (p_144934_ & 255) >> 0;
+    public static int colorMultiply(int pFirstColor, int pSecondColor) {
+        int i = (pFirstColor & 16711680) >> 16;
+        int j = (pSecondColor & 16711680) >> 16;
+        int k = (pFirstColor & '\uff00') >> 8;
+        int l = (pSecondColor & '\uff00') >> 8;
+        int i1 = (pFirstColor & 255) >> 0;
+        int j1 = (pSecondColor & 255) >> 0;
         int k1 = (int) ((float) i * (float) j / 255.0F);
         int l1 = (int) ((float) k * (float) l / 255.0F);
         int i2 = (int) ((float) i1 * (float) j1 / 255.0F);
-        return p_144933_ & -16777216 | k1 << 16 | l1 << 8 | i2;
+        return pFirstColor & -16777216 | k1 << 16 | l1 << 8 | i2;
     }
 
-    public static int colorMultiply(int p_144882_, float p_144883_, float p_144884_, float p_144885_) {
-        int i = (p_144882_ & 16711680) >> 16;
-        int j = (p_144882_ & '\uff00') >> 8;
-        int k = (p_144882_ & 255) >> 0;
-        int l = (int) ((float) i * p_144883_);
-        int i1 = (int) ((float) j * p_144884_);
-        int j1 = (int) ((float) k * p_144885_);
-        return p_144882_ & -16777216 | l << 16 | i1 << 8 | j1;
+    public static int colorMultiply(int pColor, float pRed, float pGreen, float pBlue) {
+        int i = (pColor & 16711680) >> 16;
+        int j = (pColor & '\uff00') >> 8;
+        int k = (pColor & 255) >> 0;
+        int l = (int) ((float) i * pRed);
+        int i1 = (int) ((float) j * pGreen);
+        int j1 = (int) ((float) k * pBlue);
+        return pColor & -16777216 | l << 16 | i1 << 8 | j1;
     }
 
-    public static float frac(float p_14188_) {
-        return p_14188_ - (float) floor(p_14188_);
+    public static float frac(float pNumber) {
+        return pNumber - (float) floor(pNumber);
     }
 
-    public static double frac(double p_14186_) {
-        return p_14186_ - (double) lfloor(p_14186_);
+    public static double frac(double pNumber) {
+        return pNumber - (double) lfloor(pNumber);
     }
 
     public static Vec3 catmullRomSplinePos(Vec3 p_144893_, Vec3 p_144894_, Vec3 p_144895_, Vec3 p_144896_, double p_144897_) {
@@ -373,19 +373,19 @@ public class Mth {
         return new Vec3(p_144893_.x * d0 + p_144894_.x * d1 + p_144895_.x * d2 + p_144896_.x * d3, p_144893_.y * d0 + p_144894_.y * d1 + p_144895_.y * d2 + p_144896_.y * d3, p_144893_.z * d0 + p_144894_.z * d1 + p_144895_.z * d2 + p_144896_.z * d3);
     }
 
-    public static long getSeed(Vec3i p_14058_) {
-        return getSeed(p_14058_.getX(), p_14058_.getY(), p_14058_.getZ());
+    public static long getSeed(Vec3i pPos) {
+        return getSeed(pPos.getX(), pPos.getY(), pPos.getZ());
     }
 
-    public static long getSeed(long p_14131_, int p_14132_, long p_14133_) {
-        long i = (long) (p_14131_ * 3129871) ^ (long) p_14133_ * 116129781L ^ (long) p_14132_;
+    public static long getSeed(long pX, int pY, long pZ) {
+        long i = (long) (pX * 3129871) ^ (long) pZ * 116129781L ^ (long) pY;
         i = i * i * 42317861L + i * 11L;
         return i >> 16;
     }
 
-    public static UUID createInsecureUUID(RandomSource p_216262_) {
-        long i = p_216262_.nextLong() & -61441L | 16384L;
-        long j = p_216262_.nextLong() & 4611686018427387903L | Long.MIN_VALUE;
+    public static UUID createInsecureUUID(RandomSource pRandom) {
+        long i = pRandom.nextLong() & -61441L | 16384L;
+        long j = pRandom.nextLong() & 4611686018427387903L | Long.MIN_VALUE;
         return new UUID(i, j);
     }
 
@@ -393,45 +393,45 @@ public class Mth {
         return createInsecureUUID(RANDOM);
     }
 
-    public static double inverseLerp(double p_14113_, double p_14114_, double p_14115_) {
-        return (p_14113_ - p_14114_) / (p_14115_ - p_14114_);
+    public static double inverseLerp(double pDelta, double pStart, double pEnd) {
+        return (pDelta - pStart) / (pEnd - pStart);
     }
 
-    public static float inverseLerp(float p_184656_, float p_184657_, float p_184658_) {
-        return (p_184656_ - p_184657_) / (p_184658_ - p_184657_);
+    public static float inverseLerp(float pDelta, float pStart, float pEnd) {
+        return (pDelta - pStart) / (pEnd - pStart);
     }
 
-    public static boolean rayIntersectsAABB(Vec3 p_144889_, Vec3 p_144890_, AABB p_144891_) {
-        double d0 = (p_144891_.minX + p_144891_.maxX) * 0.5D;
-        double d1 = (p_144891_.maxX - p_144891_.minX) * 0.5D;
-        double d2 = p_144889_.x - d0;
-        if (Math.abs(d2) > d1 && d2 * p_144890_.x >= 0.0D) {
+    public static boolean rayIntersectsAABB(Vec3 pStart, Vec3 pEnd, AABB pBoundingBox) {
+        double d0 = (pBoundingBox.minX + pBoundingBox.maxX) * 0.5D;
+        double d1 = (pBoundingBox.maxX - pBoundingBox.minX) * 0.5D;
+        double d2 = pStart.x - d0;
+        if (Math.abs(d2) > d1 && d2 * pEnd.x >= 0.0D) {
             return false;
         } else {
-            double d3 = (p_144891_.minY + p_144891_.maxY) * 0.5D;
-            double d4 = (p_144891_.maxY - p_144891_.minY) * 0.5D;
-            double d5 = p_144889_.y - d3;
-            if (Math.abs(d5) > d4 && d5 * p_144890_.y >= 0.0D) {
+            double d3 = (pBoundingBox.minY + pBoundingBox.maxY) * 0.5D;
+            double d4 = (pBoundingBox.maxY - pBoundingBox.minY) * 0.5D;
+            double d5 = pStart.y - d3;
+            if (Math.abs(d5) > d4 && d5 * pEnd.y >= 0.0D) {
                 return false;
             } else {
-                double d6 = (p_144891_.minZ + p_144891_.maxZ) * 0.5D;
-                double d7 = (p_144891_.maxZ - p_144891_.minZ) * 0.5D;
-                double d8 = p_144889_.z - d6;
-                if (Math.abs(d8) > d7 && d8 * p_144890_.z >= 0.0D) {
+                double d6 = (pBoundingBox.minZ + pBoundingBox.maxZ) * 0.5D;
+                double d7 = (pBoundingBox.maxZ - pBoundingBox.minZ) * 0.5D;
+                double d8 = pStart.z - d6;
+                if (Math.abs(d8) > d7 && d8 * pEnd.z >= 0.0D) {
                     return false;
                 } else {
-                    double d9 = Math.abs(p_144890_.x);
-                    double d10 = Math.abs(p_144890_.y);
-                    double d11 = Math.abs(p_144890_.z);
-                    double d12 = p_144890_.y * d8 - p_144890_.z * d5;
+                    double d9 = Math.abs(pEnd.x);
+                    double d10 = Math.abs(pEnd.y);
+                    double d11 = Math.abs(pEnd.z);
+                    double d12 = pEnd.y * d8 - pEnd.z * d5;
                     if (Math.abs(d12) > d4 * d11 + d7 * d10) {
                         return false;
                     } else {
-                        d12 = p_144890_.z * d2 - p_144890_.x * d8;
+                        d12 = pEnd.z * d2 - pEnd.x * d8;
                         if (Math.abs(d12) > d1 * d11 + d7 * d9) {
                             return false;
                         } else {
-                            d12 = p_144890_.x * d5 - p_144890_.y * d2;
+                            d12 = pEnd.x * d5 - pEnd.y * d2;
                             return Math.abs(d12) < d1 * d10 + d4 * d9;
                         }
                     }
@@ -440,37 +440,37 @@ public class Mth {
         }
     }
 
-    public static double atan2(double p_14137_, double p_14138_) {
-        double d0 = p_14138_ * p_14138_ + p_14137_ * p_14137_;
+    public static double atan2(double pY, double pX) {
+        double d0 = pX * pX + pY * pY;
         if (Double.isNaN(d0)) {
             return Double.NaN;
         } else {
-            boolean flag = p_14137_ < 0.0D;
+            boolean flag = pY < 0.0D;
             if (flag) {
-                p_14137_ = -p_14137_;
+                pY = -pY;
             }
 
-            boolean flag1 = p_14138_ < 0.0D;
+            boolean flag1 = pX < 0.0D;
             if (flag1) {
-                p_14138_ = -p_14138_;
+                pX = -pX;
             }
 
-            boolean flag2 = p_14137_ > p_14138_;
+            boolean flag2 = pY > pX;
             if (flag2) {
-                double d1 = p_14138_;
-                p_14138_ = p_14137_;
-                p_14137_ = d1;
+                double d1 = pX;
+                pX = pY;
+                pY = d1;
             }
 
             double d9 = fastInvSqrt(d0);
-            p_14138_ *= d9;
-            p_14137_ *= d9;
-            double d2 = FRAC_BIAS + p_14137_;
+            pX *= d9;
+            pY *= d9;
+            double d2 = FRAC_BIAS + pY;
             int i = (int) Double.doubleToRawLongBits(d2);
             double d3 = ASIN_TAB[i];
             double d4 = COS_TAB[i];
             double d5 = d2 - FRAC_BIAS;
-            double d6 = p_14137_ * d4 - p_14138_ * d5;
+            double d6 = pY * d4 - pX * d5;
             double d7 = (6.0D + d6 * d6) * d6 * 0.16666666666666666D;
             double d8 = d3 + d7;
             if (flag2) {
@@ -489,72 +489,72 @@ public class Mth {
         }
     }
 
-    public static float fastInvSqrt(float p_14196_) {
-        float f = 0.5F * p_14196_;
-        int i = Float.floatToIntBits(p_14196_);
+    public static float fastInvSqrt(float pNumber) {
+        float f = 0.5F * pNumber;
+        int i = Float.floatToIntBits(pNumber);
         i = 1597463007 - (i >> 1);
-        p_14196_ = Float.intBitsToFloat(i);
-        return p_14196_ * (1.5F - f * p_14196_ * p_14196_);
+        pNumber = Float.intBitsToFloat(i);
+        return pNumber * (1.5F - f * pNumber * pNumber);
     }
 
-    public static double fastInvSqrt(double p_14194_) {
-        double d0 = 0.5D * p_14194_;
-        long i = Double.doubleToRawLongBits(p_14194_);
+    public static double fastInvSqrt(double pNumber) {
+        double d0 = 0.5D * pNumber;
+        long i = Double.doubleToRawLongBits(pNumber);
         i = 6910469410427058090L - (i >> 1);
-        p_14194_ = Double.longBitsToDouble(i);
-        return p_14194_ * (1.5D - d0 * p_14194_ * p_14194_);
+        pNumber = Double.longBitsToDouble(i);
+        return pNumber * (1.5D - d0 * pNumber * pNumber);
     }
 
-    public static float fastInvCubeRoot(float p_14200_) {
-        int i = Float.floatToIntBits(p_14200_);
+    public static float fastInvCubeRoot(float pNumber) {
+        int i = Float.floatToIntBits(pNumber);
         i = 1419967116 - i / 3;
         float f = Float.intBitsToFloat(i);
-        f = 0.6666667F * f + 1.0F / (3.0F * f * f * p_14200_);
-        return 0.6666667F * f + 1.0F / (3.0F * f * f * p_14200_);
+        f = 0.6666667F * f + 1.0F / (3.0F * f * f * pNumber);
+        return 0.6666667F * f + 1.0F / (3.0F * f * f * pNumber);
     }
 
-    public static int hsvToRgb(float p_14170_, float p_14171_, float p_14172_) {
-        int i = (int) (p_14170_ * 6.0F) % 6;
-        float f = p_14170_ * 6.0F - (float) i;
-        float f1 = p_14172_ * (1.0F - p_14171_);
-        float f2 = p_14172_ * (1.0F - f * p_14171_);
-        float f3 = p_14172_ * (1.0F - (1.0F - f) * p_14171_);
+    public static int hsvToRgb(float pHue, float pSaturation, float pValue) {
+        int i = (int) (pHue * 6.0F) % 6;
+        float f = pHue * 6.0F - (float) i;
+        float f1 = pValue * (1.0F - pSaturation);
+        float f2 = pValue * (1.0F - f * pSaturation);
+        float f3 = pValue * (1.0F - (1.0F - f) * pSaturation);
         float f4;
         float f5;
         float f6;
         switch (i) {
             case 0:
-                f4 = p_14172_;
+                f4 = pValue;
                 f5 = f3;
                 f6 = f1;
                 break;
             case 1:
                 f4 = f2;
-                f5 = p_14172_;
+                f5 = pValue;
                 f6 = f1;
                 break;
             case 2:
                 f4 = f1;
-                f5 = p_14172_;
+                f5 = pValue;
                 f6 = f3;
                 break;
             case 3:
                 f4 = f1;
                 f5 = f2;
-                f6 = p_14172_;
+                f6 = pValue;
                 break;
             case 4:
                 f4 = f3;
                 f5 = f1;
-                f6 = p_14172_;
+                f6 = pValue;
                 break;
             case 5:
-                f4 = p_14172_;
+                f4 = pValue;
                 f5 = f1;
                 f6 = f2;
                 break;
             default:
-                throw new RuntimeException("Something went wrong when converting from HSV to RGB. Input was " + p_14170_ + ", " + p_14171_ + ", " + p_14172_);
+                throw new RuntimeException("Something went wrong when converting from HSV to RGB. Input was " + pHue + ", " + pSaturation + ", " + pValue);
         }
 
         int j = clamp((int) (f4 * 255.0F), 0, 255);
@@ -579,22 +579,22 @@ public class Mth {
         return p_144887_ ^ p_144887_ >>> 33;
     }
 
-    public static double[] cumulativeSum(double... p_144913_) {
+    public static double[] cumulativeSum(double... pValues) {
         double d0 = 0.0D;
 
-        for (double d1 : p_144913_) {
+        for (double d1 : pValues) {
             d0 += d1;
         }
 
-        for (int i = 0; i < p_144913_.length; ++i) {
-            p_144913_[i] /= d0;
+        for (int i = 0; i < pValues.length; ++i) {
+            pValues[i] /= d0;
         }
 
-        for (int j = 0; j < p_144913_.length; ++j) {
-            p_144913_[j] += j == 0 ? 0.0D : p_144913_[j - 1];
+        for (int j = 0; j < pValues.length; ++j) {
+            pValues[j] += j == 0 ? 0.0D : pValues[j - 1];
         }
 
-        return p_144913_;
+        return pValues;
     }
 
     public static int getRandomForDistributionIntegral(RandomSource p_216276_, double[] p_216277_) {
@@ -645,29 +645,29 @@ public class Mth {
         return adouble;
     }
 
-    public static int binarySearch(int p_14050_, int p_14051_, IntPredicate p_14052_) {
-        int i = p_14051_ - p_14050_;
+    public static int binarySearch(int pMin, int pMax, IntPredicate pIsTargetBeforeOrAt) {
+        int i = pMax - pMin;
 
         while (i > 0) {
             int j = i / 2;
-            int k = p_14050_ + j;
-            if (p_14052_.test(k)) {
+            int k = pMin + j;
+            if (pIsTargetBeforeOrAt.test(k)) {
                 i = j;
             } else {
-                p_14050_ = k + 1;
+                pMin = k + 1;
                 i -= j + 1;
             }
         }
 
-        return p_14050_;
+        return pMin;
     }
 
-    public static float lerp(float p_14180_, float p_14181_, float p_14182_) {
-        return p_14181_ + p_14180_ * (p_14182_ - p_14181_);
+    public static float lerp(float pDelta, float pStart, float pEnd) {
+        return pStart + pDelta * (pEnd - pStart);
     }
 
-    public static double lerp(double p_14140_, double p_14141_, double p_14142_) {
-        return p_14141_ + p_14140_ * (p_14142_ - p_14141_);
+    public static double lerp(double pDelta, double pStart, double pEnd) {
+        return pStart + pDelta * (pEnd - pStart);
     }
 
     public static double lerp2(double p_14013_, double p_14014_, double p_14015_, double p_14016_, double p_14017_, double p_14018_) {
@@ -690,16 +690,16 @@ public class Mth {
         return 30.0D * p_144947_ * p_144947_ * (p_144947_ - 1.0D) * (p_144947_ - 1.0D);
     }
 
-    public static int sign(double p_14206_) {
-        if (p_14206_ == 0.0D) {
+    public static int sign(double pX) {
+        if (pX == 0.0D) {
             return 0;
         } else {
-            return p_14206_ > 0.0D ? 1 : -1;
+            return pX > 0.0D ? 1 : -1;
         }
     }
 
-    public static float rotLerp(float p_14190_, float p_14191_, float p_14192_) {
-        return p_14191_ + p_14190_ * wrapDegrees(p_14192_ - p_14191_);
+    public static float rotLerp(float pDelta, float pStart, float pEnd) {
+        return pStart + pDelta * wrapDegrees(pEnd - pStart);
     }
 
     public static float diffuseLight(float p_144949_, float p_144950_, float p_144951_) {
@@ -708,50 +708,50 @@ public class Mth {
 
     /** @deprecated */
     @Deprecated
-    public static float rotlerp(float p_14202_, float p_14203_, float p_14204_) {
+    public static float rotlerp(float pStart, float pEnd, float pDelta) {
         float f;
-        for (f = p_14203_ - p_14202_; f < -180.0F; f += 360.0F) {
+        for (f = pEnd - pStart; f < -180.0F; f += 360.0F) {
         }
 
         while (f >= 180.0F) {
             f -= 360.0F;
         }
 
-        return p_14202_ + p_14204_ * f;
+        return pStart + pDelta * f;
     }
 
     /** @deprecated */
     @Deprecated
-    public static float rotWrap(double p_14210_) {
-        while (p_14210_ >= 180.0D) {
-            p_14210_ -= 360.0D;
+    public static float rotWrap(double pValue) {
+        while (pValue >= 180.0D) {
+            pValue -= 360.0D;
         }
 
-        while (p_14210_ < -180.0D) {
-            p_14210_ += 360.0D;
+        while (pValue < -180.0D) {
+            pValue += 360.0D;
         }
 
-        return (float) p_14210_;
+        return (float) pValue;
     }
 
     public static float triangleWave(float p_14157_, float p_14158_) {
         return (Math.abs(p_14157_ % p_14158_ - p_14158_ * 0.5F) - p_14158_ * 0.25F) / (p_14158_ * 0.25F);
     }
 
-    public static float square(float p_14208_) {
-        return p_14208_ * p_14208_;
+    public static float square(float pValue) {
+        return pValue * pValue;
     }
 
-    public static double square(double p_144953_) {
-        return p_144953_ * p_144953_;
+    public static double square(double pValue) {
+        return pValue * pValue;
     }
 
-    public static int square(int p_144945_) {
-        return p_144945_ * p_144945_;
+    public static int square(int pValue) {
+        return pValue * pValue;
     }
 
-    public static long square(long p_184644_) {
-        return p_184644_ * p_184644_;
+    public static long square(long pValue) {
+        return pValue * pValue;
     }
 
     public static float cube(float p_216300_) {
@@ -778,44 +778,44 @@ public class Mth {
         return p_144955_ + (2.0D * RandomSource.create((long) floor(p_144955_ * 3000.0D)).nextDouble() - 1.0D) * 1.0E-7D / 2.0D;
     }
 
-    public static int roundToward(int p_144942_, int p_144943_) {
-        return positiveCeilDiv(p_144942_, p_144943_) * p_144943_;
+    public static int roundToward(int pValue, int pFactor) {
+        return positiveCeilDiv(pValue, pFactor) * pFactor;
     }
 
-    public static int positiveCeilDiv(int p_184653_, int p_184654_) {
-        return -Math.floorDiv(-p_184653_, p_184654_);
+    public static int positiveCeilDiv(int pX, int pY) {
+        return -Math.floorDiv(-pX, pY);
     }
 
-    public static int randomBetweenInclusive(RandomSource p_216288_, int p_216289_, int p_216290_) {
-        return p_216288_.nextInt(p_216290_ - p_216289_ + 1) + p_216289_;
+    public static int randomBetweenInclusive(RandomSource pRandom, int pMinInclusive, int pMaxInclusive) {
+        return pRandom.nextInt(pMaxInclusive - pMinInclusive + 1) + pMinInclusive;
     }
 
-    public static float randomBetween(RandomSource p_216284_, float p_216285_, float p_216286_) {
-        return p_216284_.nextFloat() * (p_216286_ - p_216285_) + p_216285_;
+    public static float randomBetween(RandomSource pRandom, float pMinInclusive, float pMaxExclusive) {
+        return pRandom.nextFloat() * (pMaxExclusive - pMinInclusive) + pMinInclusive;
     }
 
-    public static float normal(RandomSource p_216292_, float p_216293_, float p_216294_) {
-        return p_216293_ + (float) p_216292_.nextGaussian() * p_216294_;
+    public static float normal(RandomSource pRandom, float pMean, float pDeviation) {
+        return pMean + (float) pRandom.nextGaussian() * pDeviation;
     }
 
-    public static double lengthSquared(double p_211590_, double p_211591_) {
-        return p_211590_ * p_211590_ + p_211591_ * p_211591_;
+    public static double lengthSquared(double pXDistance, double pYDistance) {
+        return pXDistance * pXDistance + pYDistance * pYDistance;
     }
 
-    public static double length(double p_184646_, double p_184647_) {
-        return Math.sqrt(lengthSquared(p_184646_, p_184647_));
+    public static double length(double pXDistance, double pYDistance) {
+        return Math.sqrt(lengthSquared(pXDistance, pYDistance));
     }
 
-    public static double lengthSquared(double p_211593_, double p_211594_, double p_211595_) {
-        return p_211593_ * p_211593_ + p_211594_ * p_211594_ + p_211595_ * p_211595_;
+    public static double lengthSquared(double pXDistance, double pYDistance, double pZDistance) {
+        return pXDistance * pXDistance + pYDistance * pYDistance + pZDistance * pZDistance;
     }
 
-    public static double length(double p_184649_, double p_184650_, double p_184651_) {
-        return Math.sqrt(lengthSquared(p_184649_, p_184650_, p_184651_));
+    public static double length(double pXDistance, double pYDistance, double pZDistance) {
+        return Math.sqrt(lengthSquared(pXDistance, pYDistance, pZDistance));
     }
 
-    public static int quantize(double p_184629_, int p_184630_) {
-        return floor(p_184629_ / (double) p_184630_) * p_184630_;
+    public static int quantize(double pValue, int pFactor) {
+        return floor(pValue / (double) pFactor) * pFactor;
     }
 
     public static IntStream outFromOrigin(int p_216296_, int p_216297_, int p_216298_) {

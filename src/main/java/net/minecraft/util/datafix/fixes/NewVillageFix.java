@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class NewVillageFix extends DataFix {
-    public NewVillageFix(Schema p_16476_, boolean p_16477_) {
-        super(p_16476_, p_16477_);
+    public NewVillageFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

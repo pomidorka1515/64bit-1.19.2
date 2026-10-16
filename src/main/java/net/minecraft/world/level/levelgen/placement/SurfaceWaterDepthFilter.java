@@ -19,13 +19,13 @@ public class SurfaceWaterDepthFilter extends PlacementFilter {
         this.maxWaterDepth = p_191949_;
     }
 
-    public static SurfaceWaterDepthFilter forMaxDepth(int p_191951_) {
-        return new SurfaceWaterDepthFilter(p_191951_);
+    public static SurfaceWaterDepthFilter forMaxDepth(int pMaxWaterDepth) {
+        return new SurfaceWaterDepthFilter(pMaxWaterDepth);
     }
 
-    protected boolean shouldPlace(PlacementContext p_226411_, RandomSource p_226412_, BlockPos p_226413_) {
-        int i = p_226411_.getHeight(Heightmap.Types.OCEAN_FLOOR, p_226413_.getX(), p_226413_.getZ());
-        int j = p_226411_.getHeight(Heightmap.Types.WORLD_SURFACE, p_226413_.getX(), p_226413_.getZ());
+    protected boolean shouldPlace(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
+        int i = pContext.getHeight(Heightmap.Types.OCEAN_FLOOR, pPos.getX(), pPos.getZ());
+        int j = pContext.getHeight(Heightmap.Types.WORLD_SURFACE, pPos.getX(), pPos.getZ());
         return j - i <= this.maxWaterDepth;
     }
 

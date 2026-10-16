@@ -32,8 +32,8 @@ public record GuiMessageTag(int indicatorColor, @Nullable GuiMessageTag.Icon ico
         return CHAT_NOT_SECURE;
     }
 
-    public static GuiMessageTag chatModified(String p_242878_) {
-        Component component = Component.translatable("chat.tag.modified.original", p_242878_);
+    public static GuiMessageTag chatModified(String pOriginalText) {
+        Component component = Component.translatable("chat.tag.modified.original", pOriginalText);
         Component component1 = Component.empty().append(CHAT_MODIFIED_TEXT).append(CommonComponents.NEW_LINE).append(component);
         return new GuiMessageTag(15386724, GuiMessageTag.Icon.CHAT_MODIFIED, component1, "Modified");
     }
@@ -59,9 +59,9 @@ public record GuiMessageTag(int indicatorColor, @Nullable GuiMessageTag.Icon ico
             this.height = p_240531_;
         }
 
-        public void draw(PoseStack p_243334_, int p_240533_, int p_240626_) {
+        public void draw(PoseStack pPoseStack, int pX, int pY) {
             RenderSystem.setShaderTexture(0, GuiMessageTag.TEXTURE_LOCATION);
-            GuiComponent.blit(p_243334_, p_240533_, p_240626_, (float) this.u, (float) this.v, this.width, this.height, 32, 32);
+            GuiComponent.blit(pPoseStack, pX, pY, (float) this.u, (float) this.v, this.width, this.height, 32, 32);
         }
     }
 }

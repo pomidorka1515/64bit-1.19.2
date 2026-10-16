@@ -45,20 +45,20 @@ public class PlayerRespawnLogic {
     }
 
     @Nullable
-    public static BlockPos getSpawnPosInChunk(ServerLevel p_183933_, ChunkPos p_183934_) {
-        if (SharedConstants.debugVoidTerrain(p_183934_)) {
+    public static BlockPos getSpawnPosInChunk(ServerLevel pLevel, ChunkPos pChunkPos) {
+        if (SharedConstants.debugVoidTerrain(pChunkPos)) {
             return null;
         } else {
-            for (long i = p_183934_.getMinBlockX();; i = WorldBounds.addBlockOffset(i, 1L)) {
-                for (long j = p_183934_.getMinBlockZ();; j = WorldBounds.addBlockOffset(j, 1L)) {
-                    BlockPos blockpos = getOverworldRespawnPos(p_183933_, i, j);
+            for (long i = pChunkPos.getMinBlockX();; i = WorldBounds.addBlockOffset(i, 1L)) {
+                for (long j = pChunkPos.getMinBlockZ();; j = WorldBounds.addBlockOffset(j, 1L)) {
+                    BlockPos blockpos = getOverworldRespawnPos(pLevel, i, j);
                     if (blockpos != null) {
                         return blockpos;
                     }
-                    if (j == p_183934_.getMaxBlockZ())
+                    if (j == pChunkPos.getMaxBlockZ())
                         break;
                 }
-                if (i == p_183934_.getMaxBlockX())
+                if (i == pChunkPos.getMaxBlockX())
                     break;
             }
 

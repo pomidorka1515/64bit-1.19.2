@@ -44,106 +44,106 @@ public class Font {
     final boolean filterFishyGlyphs;
     private final StringSplitter splitter;
 
-    public Font(Function<ResourceLocation, FontSet> p_243253_, boolean p_243245_) {
-        this.fonts = p_243253_;
-        this.filterFishyGlyphs = p_243245_;
+    public Font(Function<ResourceLocation, FontSet> pFonts, boolean pFilterFishyGlyphs) {
+        this.fonts = pFonts;
+        this.filterFishyGlyphs = pFilterFishyGlyphs;
         this.splitter = new StringSplitter((p_92722_, p_92723_) -> {
             return this.getFontSet(p_92723_.getFont()).getGlyphInfo(p_92722_, this.filterFishyGlyphs).getAdvance(p_92723_.isBold());
         });
     }
 
-    FontSet getFontSet(ResourceLocation p_92864_) {
-        return this.fonts.apply(p_92864_);
+    FontSet getFontSet(ResourceLocation pFontLocation) {
+        return this.fonts.apply(pFontLocation);
     }
 
-    public int drawShadow(PoseStack p_92751_, String p_92752_, float p_92753_, float p_92754_, int p_92755_) {
-        return this.drawInternal(p_92752_, p_92753_, p_92754_, p_92755_, p_92751_.last().pose(), true, this.isBidirectional());
+    public int drawShadow(PoseStack pPoseStack, String pText, float pX, float pY, int pColor) {
+        return this.drawInternal(pText, pX, pY, pColor, pPoseStack.last().pose(), true, this.isBidirectional());
     }
 
-    public int drawShadow(PoseStack p_92757_, String p_92758_, float p_92759_, float p_92760_, int p_92761_, boolean p_92762_) {
-        return this.drawInternal(p_92758_, p_92759_, p_92760_, p_92761_, p_92757_.last().pose(), true, p_92762_);
+    public int drawShadow(PoseStack pPoseStack, String pText, float pX, float pY, int pColor, boolean pTransparent) {
+        return this.drawInternal(pText, pX, pY, pColor, pPoseStack.last().pose(), true, pTransparent);
     }
 
-    public int draw(PoseStack p_92884_, String p_92885_, float p_92886_, float p_92887_, int p_92888_) {
-        return this.drawInternal(p_92885_, p_92886_, p_92887_, p_92888_, p_92884_.last().pose(), false, this.isBidirectional());
+    public int draw(PoseStack pPoseStack, String pText, float pX, float pY, int pColor) {
+        return this.drawInternal(pText, pX, pY, pColor, pPoseStack.last().pose(), false, this.isBidirectional());
     }
 
-    public int drawShadow(PoseStack p_92745_, FormattedCharSequence p_92746_, float p_92747_, float p_92748_, int p_92749_) {
-        return this.drawInternal(p_92746_, p_92747_, p_92748_, p_92749_, p_92745_.last().pose(), true);
+    public int drawShadow(PoseStack pPoseStack, FormattedCharSequence pText, float pX, float pY, int pColor) {
+        return this.drawInternal(pText, pX, pY, pColor, pPoseStack.last().pose(), true);
     }
 
-    public int drawShadow(PoseStack p_92764_, Component p_92765_, float p_92766_, float p_92767_, int p_92768_) {
-        return this.drawInternal(p_92765_.getVisualOrderText(), p_92766_, p_92767_, p_92768_, p_92764_.last().pose(), true);
+    public int drawShadow(PoseStack pPoseStack, Component pText, float pX, float pY, int pColor) {
+        return this.drawInternal(pText.getVisualOrderText(), pX, pY, pColor, pPoseStack.last().pose(), true);
     }
 
-    public int draw(PoseStack p_92878_, FormattedCharSequence p_92879_, float p_92880_, float p_92881_, int p_92882_) {
-        return this.drawInternal(p_92879_, p_92880_, p_92881_, p_92882_, p_92878_.last().pose(), false);
+    public int draw(PoseStack pPoseStack, FormattedCharSequence pText, float pX, float pY, int pColor) {
+        return this.drawInternal(pText, pX, pY, pColor, pPoseStack.last().pose(), false);
     }
 
-    public int draw(PoseStack p_92890_, Component p_92891_, float p_92892_, float p_92893_, int p_92894_) {
-        return this.drawInternal(p_92891_.getVisualOrderText(), p_92892_, p_92893_, p_92894_, p_92890_.last().pose(), false);
+    public int draw(PoseStack pPoseStack, Component pText, float pX, float pY, int pColor) {
+        return this.drawInternal(pText.getVisualOrderText(), pX, pY, pColor, pPoseStack.last().pose(), false);
     }
 
-    public String bidirectionalShaping(String p_92802_) {
+    public String bidirectionalShaping(String pText) {
         try {
-            Bidi bidi = new Bidi((new ArabicShaping(8)).shape(p_92802_), 127);
+            Bidi bidi = new Bidi((new ArabicShaping(8)).shape(pText), 127);
             bidi.setReorderingMode(0);
             return bidi.writeReordered(2);
         } catch (ArabicShapingException arabicshapingexception) {
-            return p_92802_;
+            return pText;
         }
     }
 
-    private int drawInternal(String p_92804_, float p_92805_, float p_92806_, int p_92807_, Matrix4f p_92808_, boolean p_92809_, boolean p_92810_) {
-        if (p_92804_ == null) {
+    private int drawInternal(String pText, float pX, float pY, int pColor, Matrix4f pMatrix, boolean pDropShadow, boolean pTransparent) {
+        if (pText == null) {
             return 0;
         } else {
             MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-            int i = this.drawInBatch(p_92804_, p_92805_, p_92806_, p_92807_, p_92809_, p_92808_, multibuffersource$buffersource, false, 0, 15728880, p_92810_);
+            int i = this.drawInBatch(pText, pX, pY, pColor, pDropShadow, pMatrix, multibuffersource$buffersource, false, 0, 15728880, pTransparent);
             multibuffersource$buffersource.endBatch();
             return i;
         }
     }
 
-    private int drawInternal(FormattedCharSequence p_92727_, float p_92728_, float p_92729_, int p_92730_, Matrix4f p_92731_, boolean p_92732_) {
+    private int drawInternal(FormattedCharSequence pReorderingProcessor, float pX, float pY, int pColor, Matrix4f pMatrix, boolean pDrawShadow) {
         MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-        int i = this.drawInBatch(p_92727_, p_92728_, p_92729_, p_92730_, p_92732_, p_92731_, multibuffersource$buffersource, false, 0, 15728880);
+        int i = this.drawInBatch(pReorderingProcessor, pX, pY, pColor, pDrawShadow, pMatrix, multibuffersource$buffersource, false, 0, 15728880);
         multibuffersource$buffersource.endBatch();
         return i;
     }
 
-    public int drawInBatch(String p_92812_, float p_92813_, float p_92814_, int p_92815_, boolean p_92816_, Matrix4f p_92817_, MultiBufferSource p_92818_, boolean p_92819_, int p_92820_, int p_92821_) {
-        return this.drawInBatch(p_92812_, p_92813_, p_92814_, p_92815_, p_92816_, p_92817_, p_92818_, p_92819_, p_92820_, p_92821_, this.isBidirectional());
+    public int drawInBatch(String pText, float pX, float pY, int pColor, boolean pDropShadow, Matrix4f pMatrix, MultiBufferSource pBuffer, boolean pTransparent, int pBackgroundColor, int pPackedLight) {
+        return this.drawInBatch(pText, pX, pY, pColor, pDropShadow, pMatrix, pBuffer, pTransparent, pBackgroundColor, pPackedLight, this.isBidirectional());
     }
 
-    public int drawInBatch(String p_92823_, float p_92824_, float p_92825_, int p_92826_, boolean p_92827_, Matrix4f p_92828_, MultiBufferSource p_92829_, boolean p_92830_, int p_92831_, int p_92832_, boolean p_92833_) {
-        return this.drawInternal(p_92823_, p_92824_, p_92825_, p_92826_, p_92827_, p_92828_, p_92829_, p_92830_, p_92831_, p_92832_, p_92833_);
+    public int drawInBatch(String pText, float pX, float pY, int pColor, boolean pDropShadow, Matrix4f pMatrix, MultiBufferSource pBuffer, boolean pTransparent, int pBackgroundColor, int pPackedLight, boolean pBidiFlag) {
+        return this.drawInternal(pText, pX, pY, pColor, pDropShadow, pMatrix, pBuffer, pTransparent, pBackgroundColor, pPackedLight, pBidiFlag);
     }
 
-    public int drawInBatch(Component p_92842_, float p_92843_, float p_92844_, int p_92845_, boolean p_92846_, Matrix4f p_92847_, MultiBufferSource p_92848_, boolean p_92849_, int p_92850_, int p_92851_) {
-        return this.drawInBatch(p_92842_.getVisualOrderText(), p_92843_, p_92844_, p_92845_, p_92846_, p_92847_, p_92848_, p_92849_, p_92850_, p_92851_);
+    public int drawInBatch(Component pText, float pX, float pY, int pColor, boolean pDropShadow, Matrix4f pMatrix, MultiBufferSource pBuffer, boolean pTransparent, int pBackgroundColor, int pPackedLight) {
+        return this.drawInBatch(pText.getVisualOrderText(), pX, pY, pColor, pDropShadow, pMatrix, pBuffer, pTransparent, pBackgroundColor, pPackedLight);
     }
 
-    public int drawInBatch(FormattedCharSequence p_92734_, float p_92735_, float p_92736_, int p_92737_, boolean p_92738_, Matrix4f p_92739_, MultiBufferSource p_92740_, boolean p_92741_, int p_92742_, int p_92743_) {
-        return this.drawInternal(p_92734_, p_92735_, p_92736_, p_92737_, p_92738_, p_92739_, p_92740_, p_92741_, p_92742_, p_92743_);
+    public int drawInBatch(FormattedCharSequence pText, float pX, float pY, int pColor, boolean pDropShadow, Matrix4f pMatrix, MultiBufferSource pBuffer, boolean pTransparent, int pBackgroundColor, int pPackedLight) {
+        return this.drawInternal(pText, pX, pY, pColor, pDropShadow, pMatrix, pBuffer, pTransparent, pBackgroundColor, pPackedLight);
     }
 
-    public void drawInBatch8xOutline(FormattedCharSequence p_168646_, float p_168647_, float p_168648_, int p_168649_, int p_168650_, Matrix4f p_168651_, MultiBufferSource p_168652_, int p_168653_) {
-        int i = adjustColor(p_168650_);
-        Font.StringRenderOutput font$stringrenderoutput = new Font.StringRenderOutput(p_168652_, 0.0F, 0.0F, i, false, p_168651_, Font.DisplayMode.NORMAL, p_168653_);
+    public void drawInBatch8xOutline(FormattedCharSequence pText, float pX, float pY, int pColor, int pBackgroundColor, Matrix4f pMatrix, MultiBufferSource pBuffer, int pPackedLightCoords) {
+        int i = adjustColor(pBackgroundColor);
+        Font.StringRenderOutput font$stringrenderoutput = new Font.StringRenderOutput(pBuffer, 0.0F, 0.0F, i, false, pMatrix, Font.DisplayMode.NORMAL, pPackedLightCoords);
 
         for (int j = -1; j <= 1; ++j) {
             for (int k = -1; k <= 1; ++k) {
                 if (j != 0 || k != 0) {
-                    float[] afloat = new float[] {p_168647_};
+                    float[] afloat = new float[] {pX};
                     int l = j;
                     int i1 = k;
-                    p_168646_.accept((p_168661_, p_168662_, p_168663_) -> {
+                    pText.accept((p_168661_, p_168662_, p_168663_) -> {
                         boolean flag = p_168662_.isBold();
                         FontSet fontset = this.getFontSet(p_168662_.getFont());
                         GlyphInfo glyphinfo = fontset.getGlyphInfo(p_168663_, this.filterFishyGlyphs);
                         font$stringrenderoutput.x = afloat[0] + (float) l * glyphinfo.getShadowOffset();
-                        font$stringrenderoutput.y = p_168648_ + (float) i1 * glyphinfo.getShadowOffset();
+                        font$stringrenderoutput.y = pY + (float) i1 * glyphinfo.getShadowOffset();
                         afloat[0] += glyphinfo.getAdvance(flag);
                         return font$stringrenderoutput.accept(p_168661_, p_168662_.withColor(i), p_168663_);
                     });
@@ -151,105 +151,105 @@ public class Font {
             }
         }
 
-        Font.StringRenderOutput font$stringrenderoutput1 = new Font.StringRenderOutput(p_168652_, p_168647_, p_168648_, adjustColor(p_168649_), false, p_168651_, Font.DisplayMode.POLYGON_OFFSET, p_168653_);
-        p_168646_.accept(font$stringrenderoutput1);
-        font$stringrenderoutput1.finish(0, p_168647_);
+        Font.StringRenderOutput font$stringrenderoutput1 = new Font.StringRenderOutput(pBuffer, pX, pY, adjustColor(pColor), false, pMatrix, Font.DisplayMode.POLYGON_OFFSET, pPackedLightCoords);
+        pText.accept(font$stringrenderoutput1);
+        font$stringrenderoutput1.finish(0, pX);
     }
 
-    private static int adjustColor(int p_92720_) {
-        return (p_92720_ & -67108864) == 0 ? p_92720_ | -16777216 : p_92720_;
+    private static int adjustColor(int pColor) {
+        return (pColor & -67108864) == 0 ? pColor | -16777216 : pColor;
     }
 
-    private int drawInternal(String p_92909_, float p_92910_, float p_92911_, int p_92912_, boolean p_92913_, Matrix4f p_92914_, MultiBufferSource p_92915_, boolean p_92916_, int p_92917_, int p_92918_, boolean p_92919_) {
-        if (p_92919_) {
-            p_92909_ = this.bidirectionalShaping(p_92909_);
+    private int drawInternal(String pText, float pX, float pY, int pColor, boolean pDropShadow, Matrix4f pMatrix, MultiBufferSource pBuffer, boolean pTransparent, int pColorBackground, int pPackedLight, boolean pBidiFlag) {
+        if (pBidiFlag) {
+            pText = this.bidirectionalShaping(pText);
         }
 
-        p_92912_ = adjustColor(p_92912_);
-        Matrix4f matrix4f = p_92914_.copy();
-        if (p_92913_) {
-            this.renderText(p_92909_, p_92910_, p_92911_, p_92912_, true, p_92914_, p_92915_, p_92916_, p_92917_, p_92918_);
+        pColor = adjustColor(pColor);
+        Matrix4f matrix4f = pMatrix.copy();
+        if (pDropShadow) {
+            this.renderText(pText, pX, pY, pColor, true, pMatrix, pBuffer, pTransparent, pColorBackground, pPackedLight);
             matrix4f.translate(SHADOW_OFFSET);
         }
 
-        p_92910_ = this.renderText(p_92909_, p_92910_, p_92911_, p_92912_, false, matrix4f, p_92915_, p_92916_, p_92917_, p_92918_);
-        return (int) p_92910_ + (p_92913_ ? 1 : 0);
+        pX = this.renderText(pText, pX, pY, pColor, false, matrix4f, pBuffer, pTransparent, pColorBackground, pPackedLight);
+        return (int) pX + (pDropShadow ? 1 : 0);
     }
 
-    private int drawInternal(FormattedCharSequence p_92867_, float p_92868_, float p_92869_, int p_92870_, boolean p_92871_, Matrix4f p_92872_, MultiBufferSource p_92873_, boolean p_92874_, int p_92875_, int p_92876_) {
-        p_92870_ = adjustColor(p_92870_);
-        Matrix4f matrix4f = p_92872_.copy();
-        if (p_92871_) {
-            this.renderText(p_92867_, p_92868_, p_92869_, p_92870_, true, p_92872_, p_92873_, p_92874_, p_92875_, p_92876_);
+    private int drawInternal(FormattedCharSequence pProcessor, float pX, float pY, int pColor, boolean pDrawShadow, Matrix4f pMatrix, MultiBufferSource pBuffer, boolean pTransparent, int pColorBackground, int pPackedLight) {
+        pColor = adjustColor(pColor);
+        Matrix4f matrix4f = pMatrix.copy();
+        if (pDrawShadow) {
+            this.renderText(pProcessor, pX, pY, pColor, true, pMatrix, pBuffer, pTransparent, pColorBackground, pPackedLight);
             matrix4f.translate(SHADOW_OFFSET);
         }
 
-        p_92868_ = this.renderText(p_92867_, p_92868_, p_92869_, p_92870_, false, matrix4f, p_92873_, p_92874_, p_92875_, p_92876_);
-        return (int) p_92868_ + (p_92871_ ? 1 : 0);
+        pX = this.renderText(pProcessor, pX, pY, pColor, false, matrix4f, pBuffer, pTransparent, pColorBackground, pPackedLight);
+        return (int) pX + (pDrawShadow ? 1 : 0);
     }
 
-    private float renderText(String p_92898_, float p_92899_, float p_92900_, int p_92901_, boolean p_92902_, Matrix4f p_92903_, MultiBufferSource p_92904_, boolean p_92905_, int p_92906_, int p_92907_) {
-        Font.StringRenderOutput font$stringrenderoutput = new Font.StringRenderOutput(p_92904_, p_92899_, p_92900_, p_92901_, p_92902_, p_92903_, p_92905_, p_92907_);
-        StringDecomposer.iterateFormatted(p_92898_, Style.EMPTY, font$stringrenderoutput);
-        return font$stringrenderoutput.finish(p_92906_, p_92899_);
+    private float renderText(String pText, float pX, float pY, int pColor, boolean pDropShadow, Matrix4f pPose, MultiBufferSource pBufferSource, boolean pSeeThrough, int pBackgroundColor, int pPackedLightCoords) {
+        Font.StringRenderOutput font$stringrenderoutput = new Font.StringRenderOutput(pBufferSource, pX, pY, pColor, pDropShadow, pPose, pSeeThrough, pPackedLightCoords);
+        StringDecomposer.iterateFormatted(pText, Style.EMPTY, font$stringrenderoutput);
+        return font$stringrenderoutput.finish(pBackgroundColor, pX);
     }
 
-    private float renderText(FormattedCharSequence p_92927_, float p_92928_, float p_92929_, int p_92930_, boolean p_92931_, Matrix4f p_92932_, MultiBufferSource p_92933_, boolean p_92934_, int p_92935_, int p_92936_) {
-        Font.StringRenderOutput font$stringrenderoutput = new Font.StringRenderOutput(p_92933_, p_92928_, p_92929_, p_92930_, p_92931_, p_92932_, p_92934_, p_92936_);
-        p_92927_.accept(font$stringrenderoutput);
-        return font$stringrenderoutput.finish(p_92935_, p_92928_);
+    private float renderText(FormattedCharSequence pProcessor, float pX, float pY, int pColor, boolean pIsShadow, Matrix4f pMatrix, MultiBufferSource pBuffer, boolean pIsTransparent, int pColorBackground, int pPackedLight) {
+        Font.StringRenderOutput font$stringrenderoutput = new Font.StringRenderOutput(pBuffer, pX, pY, pColor, pIsShadow, pMatrix, pIsTransparent, pPackedLight);
+        pProcessor.accept(font$stringrenderoutput);
+        return font$stringrenderoutput.finish(pColorBackground, pX);
     }
 
-    void renderChar(BakedGlyph p_92788_, boolean p_92789_, boolean p_92790_, float p_92791_, float p_92792_, float p_92793_, Matrix4f p_92794_, VertexConsumer p_92795_, float p_92796_, float p_92797_, float p_92798_, float p_92799_, int p_92800_) {
-        p_92788_.render(p_92790_, p_92792_, p_92793_, p_92794_, p_92795_, p_92796_, p_92797_, p_92798_, p_92799_, p_92800_);
-        if (p_92789_) {
-            p_92788_.render(p_92790_, p_92792_ + p_92791_, p_92793_, p_92794_, p_92795_, p_92796_, p_92797_, p_92798_, p_92799_, p_92800_);
+    void renderChar(BakedGlyph pGlyph, boolean pBold, boolean pItalic, float pBoldOffset, float pX, float pY, Matrix4f pMatrix, VertexConsumer pBuffer, float pRed, float pGreen, float pBlue, float pAlpha, int pPackedLight) {
+        pGlyph.render(pItalic, pX, pY, pMatrix, pBuffer, pRed, pGreen, pBlue, pAlpha, pPackedLight);
+        if (pBold) {
+            pGlyph.render(pItalic, pX + pBoldOffset, pY, pMatrix, pBuffer, pRed, pGreen, pBlue, pAlpha, pPackedLight);
         }
     }
 
-    public int width(String p_92896_) {
-        return Mth.ceil(this.splitter.stringWidth(p_92896_));
+    public int width(String pText) {
+        return Mth.ceil(this.splitter.stringWidth(pText));
     }
 
-    public int width(FormattedText p_92853_) {
-        return Mth.ceil(this.splitter.stringWidth(p_92853_));
+    public int width(FormattedText pText) {
+        return Mth.ceil(this.splitter.stringWidth(pText));
     }
 
-    public int width(FormattedCharSequence p_92725_) {
-        return Mth.ceil(this.splitter.stringWidth(p_92725_));
+    public int width(FormattedCharSequence pText) {
+        return Mth.ceil(this.splitter.stringWidth(pText));
     }
 
-    public String plainSubstrByWidth(String p_92838_, int p_92839_, boolean p_92840_) {
-        return p_92840_ ? this.splitter.plainTailByWidth(p_92838_, p_92839_, Style.EMPTY) : this.splitter.plainHeadByWidth(p_92838_, p_92839_, Style.EMPTY);
+    public String plainSubstrByWidth(String pText, int pMaxWidth, boolean pTail) {
+        return pTail ? this.splitter.plainTailByWidth(pText, pMaxWidth, Style.EMPTY) : this.splitter.plainHeadByWidth(pText, pMaxWidth, Style.EMPTY);
     }
 
-    public String plainSubstrByWidth(String p_92835_, int p_92836_) {
-        return this.splitter.plainHeadByWidth(p_92835_, p_92836_, Style.EMPTY);
+    public String plainSubstrByWidth(String pText, int pMaxWidth) {
+        return this.splitter.plainHeadByWidth(pText, pMaxWidth, Style.EMPTY);
     }
 
-    public FormattedText substrByWidth(FormattedText p_92855_, int p_92856_) {
-        return this.splitter.headByWidth(p_92855_, p_92856_, Style.EMPTY);
+    public FormattedText substrByWidth(FormattedText pText, int pMaxWidth) {
+        return this.splitter.headByWidth(pText, pMaxWidth, Style.EMPTY);
     }
 
-    public void drawWordWrap(FormattedText p_92858_, int p_92859_, int p_92860_, int p_92861_, int p_92862_) {
+    public void drawWordWrap(FormattedText pText, int pX, int pY, int pMaxWidth, int pColor) {
         Matrix4f matrix4f = Transformation.identity().getMatrix();
 
-        for (FormattedCharSequence formattedcharsequence : this.split(p_92858_, p_92861_)) {
-            this.drawInternal(formattedcharsequence, (float) p_92859_, (float) p_92860_, p_92862_, matrix4f, false);
-            p_92860_ += 9;
+        for (FormattedCharSequence formattedcharsequence : this.split(pText, pMaxWidth)) {
+            this.drawInternal(formattedcharsequence, (float) pX, (float) pY, pColor, matrix4f, false);
+            pY += 9;
         }
     }
 
-    public int wordWrapHeight(String p_92921_, int p_92922_) {
-        return 9 * this.splitter.splitLines(p_92921_, p_92922_, Style.EMPTY).size();
+    public int wordWrapHeight(String pStr, int pMaxWidth) {
+        return 9 * this.splitter.splitLines(pStr, pMaxWidth, Style.EMPTY).size();
     }
 
     public int wordWrapHeight(FormattedText p_239134_, int p_239135_) {
         return 9 * this.splitter.splitLines(p_239134_, p_239135_, Style.EMPTY).size();
     }
 
-    public List<FormattedCharSequence> split(FormattedText p_92924_, int p_92925_) {
-        return Language.getInstance().getVisualOrder(this.splitter.splitLines(p_92924_, p_92925_, Style.EMPTY));
+    public List<FormattedCharSequence> split(FormattedText pText, int pMaxWidth) {
+        return Language.getInstance().getVisualOrder(this.splitter.splitLines(pText, pMaxWidth, Style.EMPTY));
     }
 
     public boolean isBidirectional() {
@@ -284,12 +284,12 @@ public class Font {
         @Nullable
         private List<BakedGlyph.Effect> effects;
 
-        private void addEffect(BakedGlyph.Effect p_92965_) {
+        private void addEffect(BakedGlyph.Effect pEffect) {
             if (this.effects == null) {
                 this.effects = Lists.newArrayList();
             }
 
-            this.effects.add(p_92965_);
+            this.effects.add(pEffect);
         }
 
         public StringRenderOutput(MultiBufferSource p_92953_, float p_92954_, float p_92955_, int p_92956_, boolean p_92957_, Matrix4f p_92958_, boolean p_92959_, int p_92960_) {
@@ -311,13 +311,13 @@ public class Font {
             this.packedLightCoords = p_181372_;
         }
 
-        public boolean accept(int p_92967_, Style p_92968_, int p_92969_) {
-            FontSet fontset = Font.this.getFontSet(p_92968_.getFont());
-            GlyphInfo glyphinfo = fontset.getGlyphInfo(p_92969_, Font.this.filterFishyGlyphs);
-            BakedGlyph bakedglyph = p_92968_.isObfuscated() && p_92969_ != 32 ? fontset.getRandomGlyph(glyphinfo) : fontset.getGlyph(p_92969_);
-            boolean flag = p_92968_.isBold();
+        public boolean accept(int pPositionInCurrentSequence, Style pStyle, int pCodePoint) {
+            FontSet fontset = Font.this.getFontSet(pStyle.getFont());
+            GlyphInfo glyphinfo = fontset.getGlyphInfo(pCodePoint, Font.this.filterFishyGlyphs);
+            BakedGlyph bakedglyph = pStyle.isObfuscated() && pCodePoint != 32 ? fontset.getRandomGlyph(glyphinfo) : fontset.getGlyph(pCodePoint);
+            boolean flag = pStyle.isBold();
             float f3 = this.a;
-            TextColor textcolor = p_92968_.getColor();
+            TextColor textcolor = pStyle.getColor();
             float f;
             float f1;
             float f2;
@@ -336,16 +336,16 @@ public class Font {
                 float f5 = flag ? glyphinfo.getBoldOffset() : 0.0F;
                 float f4 = this.dropShadow ? glyphinfo.getShadowOffset() : 0.0F;
                 VertexConsumer vertexconsumer = this.bufferSource.getBuffer(bakedglyph.renderType(this.mode));
-                Font.this.renderChar(bakedglyph, flag, p_92968_.isItalic(), f5, this.x + f4, this.y + f4, this.pose, vertexconsumer, f, f1, f2, f3, this.packedLightCoords);
+                Font.this.renderChar(bakedglyph, flag, pStyle.isItalic(), f5, this.x + f4, this.y + f4, this.pose, vertexconsumer, f, f1, f2, f3, this.packedLightCoords);
             }
 
             float f6 = glyphinfo.getAdvance(flag);
             float f7 = this.dropShadow ? 1.0F : 0.0F;
-            if (p_92968_.isStrikethrough()) {
+            if (pStyle.isStrikethrough()) {
                 this.addEffect(new BakedGlyph.Effect(this.x + f7 - 1.0F, this.y + f7 + 4.5F, this.x + f7 + f6, this.y + f7 + 4.5F - 1.0F, 0.01F, f, f1, f2, f3));
             }
 
-            if (p_92968_.isUnderlined()) {
+            if (pStyle.isUnderlined()) {
                 this.addEffect(new BakedGlyph.Effect(this.x + f7 - 1.0F, this.y + f7 + 9.0F, this.x + f7 + f6, this.y + f7 + 9.0F - 1.0F, 0.01F, f, f1, f2, f3));
             }
 
@@ -353,13 +353,13 @@ public class Font {
             return true;
         }
 
-        public float finish(int p_92962_, float p_92963_) {
-            if (p_92962_ != 0) {
-                float f = (float) (p_92962_ >> 24 & 255) / 255.0F;
-                float f1 = (float) (p_92962_ >> 16 & 255) / 255.0F;
-                float f2 = (float) (p_92962_ >> 8 & 255) / 255.0F;
-                float f3 = (float) (p_92962_ & 255) / 255.0F;
-                this.addEffect(new BakedGlyph.Effect(p_92963_ - 1.0F, this.y + 9.0F, this.x + 1.0F, this.y - 1.0F, 0.01F, f1, f2, f3, f));
+        public float finish(int pBackgroundColor, float pX) {
+            if (pBackgroundColor != 0) {
+                float f = (float) (pBackgroundColor >> 24 & 255) / 255.0F;
+                float f1 = (float) (pBackgroundColor >> 16 & 255) / 255.0F;
+                float f2 = (float) (pBackgroundColor >> 8 & 255) / 255.0F;
+                float f3 = (float) (pBackgroundColor & 255) / 255.0F;
+                this.addEffect(new BakedGlyph.Effect(pX - 1.0F, this.y + 9.0F, this.x + 1.0F, this.y - 1.0F, 0.01F, f1, f2, f3, f));
             }
 
             if (this.effects != null) {

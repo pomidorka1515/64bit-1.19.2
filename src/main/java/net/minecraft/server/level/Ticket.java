@@ -8,10 +8,10 @@ public final class Ticket<T> implements Comparable<Ticket<?>> {
     private final T key;
     private long createdTick;
 
-    protected Ticket(TicketType<T> p_9425_, int p_9426_, T p_9427_) {
-        this.type = p_9425_;
-        this.ticketLevel = p_9426_;
-        this.key = p_9427_;
+    protected Ticket(TicketType<T> pType, int pTicketLevel, T pKey) {
+        this.type = pType;
+        this.ticketLevel = pTicketLevel;
+        this.key = pKey;
     }
 
     public int compareTo(Ticket<?> p_9432_) {
@@ -24,13 +24,13 @@ public final class Ticket<T> implements Comparable<Ticket<?>> {
         }
     }
 
-    public boolean equals(Object p_9439_) {
-        if (this == p_9439_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_9439_ instanceof Ticket)) {
+        } else if (!(pOther instanceof Ticket)) {
             return false;
         } else {
-            Ticket<?> ticket = (Ticket) p_9439_;
+            Ticket<?> ticket = (Ticket) pOther;
             return this.ticketLevel == ticket.ticketLevel && Objects.equals(this.type, ticket.type) && Objects.equals(this.key, ticket.key);
         }
     }
@@ -51,12 +51,12 @@ public final class Ticket<T> implements Comparable<Ticket<?>> {
         return this.ticketLevel;
     }
 
-    protected void setCreatedTick(long p_9430_) {
-        this.createdTick = p_9430_;
+    protected void setCreatedTick(long pTimestamp) {
+        this.createdTick = pTimestamp;
     }
 
-    protected boolean timedOut(long p_9435_) {
+    protected boolean timedOut(long pCurrentTime) {
         long i = this.type.timeout();
-        return i != 0L && p_9435_ - this.createdTick > i;
+        return i != 0L && pCurrentTime - this.createdTick > i;
     }
 }

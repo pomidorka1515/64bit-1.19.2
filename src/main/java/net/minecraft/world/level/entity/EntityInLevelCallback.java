@@ -13,5 +13,5 @@ public interface EntityInLevelCallback {
 
     void onMove();
 
-    void onRemove(Entity.RemovalReason p_156801_);
+    void onRemove(Entity.RemovalReason pReason);
 }

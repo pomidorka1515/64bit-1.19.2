@@ -25,27 +25,27 @@ public class LootItemConditions {
     public static final LootItemConditionType TIME_CHECK = register("time_check", new TimeCheck.Serializer());
     public static final LootItemConditionType VALUE_CHECK = register("value_check", new ValueCheckCondition.Serializer());
 
-    private static LootItemConditionType register(String p_81832_, Serializer<? extends LootItemCondition> p_81833_) {
-        return Registry.register(Registry.LOOT_CONDITION_TYPE, new ResourceLocation(p_81832_), new LootItemConditionType(p_81833_));
+    private static LootItemConditionType register(String pRegistryName, Serializer<? extends LootItemCondition> pSerializer) {
+        return Registry.register(Registry.LOOT_CONDITION_TYPE, new ResourceLocation(pRegistryName), new LootItemConditionType(pSerializer));
     }
 
     public static Object createGsonAdapter() {
         return GsonAdapterFactory.builder(Registry.LOOT_CONDITION_TYPE, "condition", "condition", LootItemCondition::getType).build();
     }
 
-    public static <T> Predicate<T> andConditions(Predicate<T>[] p_81835_) {
-        switch (p_81835_.length) {
+    public static <T> Predicate<T> andConditions(Predicate<T>[] pConditions) {
+        switch (pConditions.length) {
             case 0:
                 return (p_81840_) -> {
                     return true;
                 };
             case 1:
-                return p_81835_[0];
+                return pConditions[0];
             case 2:
-                return p_81835_[0].and(p_81835_[1]);
+                return pConditions[0].and(pConditions[1]);
             default:
                 return (p_81845_) -> {
-                    for (Predicate<T> predicate : p_81835_) {
+                    for (Predicate<T> predicate : pConditions) {
                         if (!predicate.test(p_81845_)) {
                             return false;
                         }
@@ -56,19 +56,19 @@ public class LootItemConditions {
         }
     }
 
-    public static <T> Predicate<T> orConditions(Predicate<T>[] p_81842_) {
-        switch (p_81842_.length) {
+    public static <T> Predicate<T> orConditions(Predicate<T>[] pConditions) {
+        switch (pConditions.length) {
             case 0:
                 return (p_81830_) -> {
                     return false;
                 };
             case 1:
-                return p_81842_[0];
+                return pConditions[0];
             case 2:
-                return p_81842_[0].or(p_81842_[1]);
+                return pConditions[0].or(pConditions[1]);
             default:
                 return (p_81838_) -> {
-                    for (Predicate<T> predicate : p_81842_) {
+                    for (Predicate<T> predicate : pConditions) {
                         if (predicate.test(p_81838_)) {
                             return true;
                         }

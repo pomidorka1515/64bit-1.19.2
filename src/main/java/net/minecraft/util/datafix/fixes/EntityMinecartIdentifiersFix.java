@@ -15,8 +15,8 @@ import java.util.Objects;
 public class EntityMinecartIdentifiersFix extends DataFix {
     private static final List<String> MINECART_BY_ID = Lists.newArrayList("MinecartRideable", "MinecartChest", "MinecartFurnace");
 
-    public EntityMinecartIdentifiersFix(Schema p_15479_, boolean p_15480_) {
-        super(p_15479_, p_15480_);
+    public EntityMinecartIdentifiersFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

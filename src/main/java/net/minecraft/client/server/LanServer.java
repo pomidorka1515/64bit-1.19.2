@@ -10,9 +10,9 @@ public class LanServer {
     private final String address;
     private long pingTime;
 
-    public LanServer(String p_120076_, String p_120077_) {
-        this.motd = p_120076_;
-        this.address = p_120077_;
+    public LanServer(String pMotd, String pAddress) {
+        this.motd = pMotd;
+        this.address = pAddress;
         this.pingTime = Util.getMillis();
     }
 

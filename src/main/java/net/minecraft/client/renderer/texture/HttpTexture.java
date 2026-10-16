@@ -37,15 +37,15 @@ public class HttpTexture extends SimpleTexture {
     private CompletableFuture<?> future;
     private boolean uploaded;
 
-    public HttpTexture(@Nullable File p_118002_, String p_118003_, ResourceLocation p_118004_, boolean p_118005_, @Nullable Runnable p_118006_) {
-        super(p_118004_);
-        this.file = p_118002_;
-        this.urlString = p_118003_;
-        this.processLegacySkin = p_118005_;
-        this.onDownloaded = p_118006_;
+    public HttpTexture(@Nullable File pFile, String pUrlString, ResourceLocation pLocation, boolean pProcessLegacySkin, @Nullable Runnable pOnDownloaded) {
+        super(pLocation);
+        this.file = pFile;
+        this.urlString = pUrlString;
+        this.processLegacySkin = pProcessLegacySkin;
+        this.onDownloaded = pOnDownloaded;
     }
 
-    private void loadCallback(NativeImage p_118011_) {
+    private void loadCallback(NativeImage pImage) {
         if (this.onDownloaded != null) {
             this.onDownloaded.run();
         }
@@ -54,24 +54,24 @@ public class HttpTexture extends SimpleTexture {
             this.uploaded = true;
             if (!RenderSystem.isOnRenderThread()) {
                 RenderSystem.recordRenderCall(() -> {
-                    this.upload(p_118011_);
+                    this.upload(pImage);
                 });
             } else {
-                this.upload(p_118011_);
+                this.upload(pImage);
             }
         });
     }
 
-    private void upload(NativeImage p_118021_) {
-        TextureUtil.prepareImage(this.getId(), p_118021_.getWidth(), p_118021_.getHeight());
-        p_118021_.upload(0, 0, 0, true);
+    private void upload(NativeImage pImage) {
+        TextureUtil.prepareImage(this.getId(), pImage.getWidth(), pImage.getHeight());
+        pImage.upload(0, 0, 0, true);
     }
 
-    public void load(ResourceManager p_118009_) throws IOException {
+    public void load(ResourceManager pResourceManager) throws IOException {
         Minecraft.getInstance().execute(() -> {
             if (!this.uploaded) {
                 try {
-                    super.load(p_118009_);
+                    super.load(pResourceManager);
                 } catch (IOException ioexception) {
                     LOGGER.warn("Failed to load texture: {}", this.location, ioexception);
                 }
@@ -132,11 +132,11 @@ public class HttpTexture extends SimpleTexture {
     }
 
     @Nullable
-    private NativeImage load(InputStream p_118019_) {
+    private NativeImage load(InputStream pStream) {
         NativeImage nativeimage = null;
 
         try {
-            nativeimage = NativeImage.read(p_118019_);
+            nativeimage = NativeImage.read(pStream);
             if (this.processLegacySkin) {
                 nativeimage = this.processLegacySkin(nativeimage);
             }
@@ -148,16 +148,16 @@ public class HttpTexture extends SimpleTexture {
     }
 
     @Nullable
-    private NativeImage processLegacySkin(NativeImage p_118033_) {
-        int i = p_118033_.getHeight();
-        int j = p_118033_.getWidth();
+    private NativeImage processLegacySkin(NativeImage pImage) {
+        int i = pImage.getHeight();
+        int j = pImage.getWidth();
         if (j == 64 && (i == 32 || i == 64)) {
             boolean flag = i == 32;
             if (flag) {
                 NativeImage nativeimage = new NativeImage(64, 64, true);
-                nativeimage.copyFrom(p_118033_);
-                p_118033_.close();
-                p_118033_ = nativeimage;
+                nativeimage.copyFrom(pImage);
+                pImage.close();
+                pImage = nativeimage;
                 nativeimage.fillRect(0, 32, 64, 32, 0);
                 nativeimage.copyRect(4, 16, 16, 32, 4, 4, true, false);
                 nativeimage.copyRect(8, 16, 16, 32, 4, 4, true, false);
@@ -173,42 +173,42 @@ public class HttpTexture extends SimpleTexture {
                 nativeimage.copyRect(52, 20, -8, 32, 4, 12, true, false);
             }
 
-            setNoAlpha(p_118033_, 0, 0, 32, 16);
+            setNoAlpha(pImage, 0, 0, 32, 16);
             if (flag) {
-                doNotchTransparencyHack(p_118033_, 32, 0, 64, 32);
+                doNotchTransparencyHack(pImage, 32, 0, 64, 32);
             }
 
-            setNoAlpha(p_118033_, 0, 16, 64, 32);
-            setNoAlpha(p_118033_, 16, 48, 48, 64);
-            return p_118033_;
+            setNoAlpha(pImage, 0, 16, 64, 32);
+            setNoAlpha(pImage, 16, 48, 48, 64);
+            return pImage;
         } else {
-            p_118033_.close();
+            pImage.close();
             LOGGER.warn("Discarding incorrectly sized ({}x{}) skin texture from {}", j, i, this.urlString);
             return null;
         }
     }
 
-    private static void doNotchTransparencyHack(NativeImage p_118013_, int p_118014_, int p_118015_, int p_118016_, int p_118017_) {
-        for (int i = p_118014_; i < p_118016_; ++i) {
-            for (int j = p_118015_; j < p_118017_; ++j) {
-                int k = p_118013_.getPixelRGBA(i, j);
+    private static void doNotchTransparencyHack(NativeImage pImage, int pX, int pY, int pWidth, int pHeight) {
+        for (int i = pX; i < pWidth; ++i) {
+            for (int j = pY; j < pHeight; ++j) {
+                int k = pImage.getPixelRGBA(i, j);
                 if ((k >> 24 & 255) < 128) {
                     return;
                 }
             }
         }
 
-        for (int l = p_118014_; l < p_118016_; ++l) {
-            for (int i1 = p_118015_; i1 < p_118017_; ++i1) {
-                p_118013_.setPixelRGBA(l, i1, p_118013_.getPixelRGBA(l, i1) & 16777215);
+        for (int l = pX; l < pWidth; ++l) {
+            for (int i1 = pY; i1 < pHeight; ++i1) {
+                pImage.setPixelRGBA(l, i1, pImage.getPixelRGBA(l, i1) & 16777215);
             }
         }
     }
 
-    private static void setNoAlpha(NativeImage p_118023_, int p_118024_, int p_118025_, int p_118026_, int p_118027_) {
-        for (int i = p_118024_; i < p_118026_; ++i) {
-            for (int j = p_118025_; j < p_118027_; ++j) {
-                p_118023_.setPixelRGBA(i, j, p_118023_.getPixelRGBA(i, j) | -16777216);
+    private static void setNoAlpha(NativeImage pImage, int pX, int pY, int pWidth, int pHeight) {
+        for (int i = pX; i < pWidth; ++i) {
+            for (int j = pY; j < pHeight; ++j) {
+                pImage.setPixelRGBA(i, j, pImage.getPixelRGBA(i, j) | -16777216);
             }
         }
     }

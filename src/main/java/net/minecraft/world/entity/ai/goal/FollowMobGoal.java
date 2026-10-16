@@ -23,17 +23,17 @@ public class FollowMobGoal extends Goal {
     private float oldWaterCost;
     private final float areaSize;
 
-    public FollowMobGoal(Mob p_25271_, double p_25272_, float p_25273_, float p_25274_) {
-        this.mob = p_25271_;
+    public FollowMobGoal(Mob pMob, double pSpeedModifier, float pStopDistance, float pAreaSize) {
+        this.mob = pMob;
         this.followPredicate = (p_25278_) -> {
-            return p_25278_ != null && p_25271_.getClass() != p_25278_.getClass();
+            return p_25278_ != null && pMob.getClass() != p_25278_.getClass();
         };
-        this.speedModifier = p_25272_;
-        this.navigation = p_25271_.getNavigation();
-        this.stopDistance = p_25273_;
-        this.areaSize = p_25274_;
+        this.speedModifier = pSpeedModifier;
+        this.navigation = pMob.getNavigation();
+        this.stopDistance = pStopDistance;
+        this.areaSize = pAreaSize;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
-        if (!(p_25271_.getNavigation() instanceof GroundPathNavigation) && !(p_25271_.getNavigation() instanceof FlyingPathNavigation)) {
+        if (!(pMob.getNavigation() instanceof GroundPathNavigation) && !(pMob.getNavigation() instanceof FlyingPathNavigation)) {
             throw new IllegalArgumentException("Unsupported mob type for FollowMobGoal");
         }
     }

@@ -16,9 +16,9 @@ public class SoundBuffer {
     private boolean hasAlBuffer;
     private int alBuffer;
 
-    public SoundBuffer(ByteBuffer p_83798_, AudioFormat p_83799_) {
-        this.data = p_83798_;
-        this.format = p_83799_;
+    public SoundBuffer(ByteBuffer pData, AudioFormat pFormat) {
+        this.data = pData;
+        this.format = pFormat;
     }
 
     OptionalInt getAlBuffer() {

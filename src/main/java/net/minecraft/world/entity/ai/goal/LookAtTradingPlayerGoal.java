@@ -6,9 +6,9 @@ import net.minecraft.world.entity.player.Player;
 public class LookAtTradingPlayerGoal extends LookAtPlayerGoal {
     private final AbstractVillager villager;
 
-    public LookAtTradingPlayerGoal(AbstractVillager p_25538_) {
-        super(p_25538_, Player.class, 8.0F);
-        this.villager = p_25538_;
+    public LookAtTradingPlayerGoal(AbstractVillager pVillager) {
+        super(pVillager, Player.class, 8.0F);
+        this.villager = pVillager;
     }
 
     public boolean canUse() {

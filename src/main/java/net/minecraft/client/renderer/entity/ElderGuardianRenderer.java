@@ -16,11 +16,11 @@ public class ElderGuardianRenderer extends GuardianRenderer {
         super(p_173966_, 1.2F, ModelLayers.ELDER_GUARDIAN);
     }
 
-    protected void scale(Guardian p_114129_, PoseStack p_114130_, float p_114131_) {
-        p_114130_.scale(ElderGuardian.ELDER_SIZE_SCALE, ElderGuardian.ELDER_SIZE_SCALE, ElderGuardian.ELDER_SIZE_SCALE);
+    protected void scale(Guardian pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
+        pMatrixStack.scale(ElderGuardian.ELDER_SIZE_SCALE, ElderGuardian.ELDER_SIZE_SCALE, ElderGuardian.ELDER_SIZE_SCALE);
     }
 
-    public ResourceLocation getTextureLocation(Guardian p_114127_) {
+    public ResourceLocation getTextureLocation(Guardian pEntity) {
         return GUARDIAN_ELDER_LOCATION;
     }
 }

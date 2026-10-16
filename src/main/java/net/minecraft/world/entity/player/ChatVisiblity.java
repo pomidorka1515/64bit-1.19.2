@@ -29,7 +29,7 @@ public enum ChatVisiblity implements OptionEnum {
         return this.key;
     }
 
-    public static ChatVisiblity byId(int p_35967_) {
-        return BY_ID[Mth.positiveModulo(p_35967_, BY_ID.length)];
+    public static ChatVisiblity byId(int pId) {
+        return BY_ID[Mth.positiveModulo(pId, BY_ID.length)];
     }
 }

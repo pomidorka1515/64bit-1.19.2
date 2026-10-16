@@ -17,42 +17,42 @@ public class ClientboundPlayerInfoPacket implements Packet<ClientGamePacketListe
     private final ClientboundPlayerInfoPacket.Action action;
     private final List<ClientboundPlayerInfoPacket.PlayerUpdate> entries;
 
-    public ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action p_132724_, ServerPlayer... p_132725_) {
-        this.action = p_132724_;
-        this.entries = Lists.newArrayListWithCapacity(p_132725_.length);
+    public ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action pAction, ServerPlayer... pPlayers) {
+        this.action = pAction;
+        this.entries = Lists.newArrayListWithCapacity(pPlayers.length);
 
-        for (ServerPlayer serverplayer : p_132725_) {
+        for (ServerPlayer serverplayer : pPlayers) {
             this.entries.add(createPlayerUpdate(serverplayer));
         }
     }
 
-    public ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action p_179083_, Collection<ServerPlayer> p_179084_) {
-        this.action = p_179083_;
-        this.entries = Lists.newArrayListWithCapacity(p_179084_.size());
+    public ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action pAction, Collection<ServerPlayer> pPlayers) {
+        this.action = pAction;
+        this.entries = Lists.newArrayListWithCapacity(pPlayers.size());
 
-        for (ServerPlayer serverplayer : p_179084_) {
+        for (ServerPlayer serverplayer : pPlayers) {
             this.entries.add(createPlayerUpdate(serverplayer));
         }
     }
 
-    public ClientboundPlayerInfoPacket(FriendlyByteBuf p_179081_) {
-        this.action = p_179081_.readEnum(ClientboundPlayerInfoPacket.Action.class);
-        this.entries = p_179081_.readList(this.action::read);
+    public ClientboundPlayerInfoPacket(FriendlyByteBuf pBuffer) {
+        this.action = pBuffer.readEnum(ClientboundPlayerInfoPacket.Action.class);
+        this.entries = pBuffer.readList(this.action::read);
     }
 
-    private static ClientboundPlayerInfoPacket.PlayerUpdate createPlayerUpdate(ServerPlayer p_237773_) {
-        ProfilePublicKey profilepublickey = p_237773_.getProfilePublicKey();
+    private static ClientboundPlayerInfoPacket.PlayerUpdate createPlayerUpdate(ServerPlayer pPlayer) {
+        ProfilePublicKey profilepublickey = pPlayer.getProfilePublicKey();
         ProfilePublicKey.Data profilepublickey$data = profilepublickey != null ? profilepublickey.data() : null;
-        return new ClientboundPlayerInfoPacket.PlayerUpdate(p_237773_.getGameProfile(), p_237773_.latency, p_237773_.gameMode.getGameModeForPlayer(), p_237773_.getTabListDisplayName(), profilepublickey$data);
+        return new ClientboundPlayerInfoPacket.PlayerUpdate(pPlayer.getGameProfile(), pPlayer.latency, pPlayer.gameMode.getGameModeForPlayer(), pPlayer.getTabListDisplayName(), profilepublickey$data);
     }
 
-    public void write(FriendlyByteBuf p_132734_) {
-        p_132734_.writeEnum(this.action);
-        p_132734_.writeCollection(this.entries, this.action::write);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeEnum(this.action);
+        pBuffer.writeCollection(this.entries, this.action::write);
     }
 
-    public void handle(ClientGamePacketListener p_132731_) {
-        p_132731_.handlePlayerInfo(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handlePlayerInfo(this);
     }
 
     public List<ClientboundPlayerInfoPacket.PlayerUpdate> getEntries() {
@@ -135,9 +135,9 @@ public class ClientboundPlayerInfoPacket implements Packet<ClientGamePacketListe
             }
         };
 
-        protected abstract ClientboundPlayerInfoPacket.PlayerUpdate read(FriendlyByteBuf p_179091_);
+        protected abstract ClientboundPlayerInfoPacket.PlayerUpdate read(FriendlyByteBuf pBuffer);
 
-        protected abstract void write(FriendlyByteBuf p_179092_, ClientboundPlayerInfoPacket.PlayerUpdate p_179093_);
+        protected abstract void write(FriendlyByteBuf pBuffer, ClientboundPlayerInfoPacket.PlayerUpdate pUpdateData);
     }
 
     public static class PlayerUpdate {
@@ -149,12 +149,12 @@ public class ClientboundPlayerInfoPacket implements Packet<ClientGamePacketListe
         @Nullable
         private final ProfilePublicKey.Data profilePublicKey;
 
-        public PlayerUpdate(GameProfile p_237779_, int p_237780_, @Nullable GameType p_237781_, @Nullable Component p_237782_, @Nullable ProfilePublicKey.Data p_237783_) {
-            this.profile = p_237779_;
-            this.latency = p_237780_;
-            this.gameMode = p_237781_;
-            this.displayName = p_237782_;
-            this.profilePublicKey = p_237783_;
+        public PlayerUpdate(GameProfile pProfile, int pLatency, @Nullable GameType pGameMode, @Nullable Component pDisplayName, @Nullable ProfilePublicKey.Data pProfilePublicKey) {
+            this.profile = pProfile;
+            this.latency = pLatency;
+            this.gameMode = pGameMode;
+            this.displayName = pDisplayName;
+            this.profilePublicKey = pProfilePublicKey;
         }
 
         public GameProfile getProfile() {

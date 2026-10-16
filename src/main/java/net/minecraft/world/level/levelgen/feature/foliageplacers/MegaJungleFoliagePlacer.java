@@ -28,24 +28,24 @@ public class MegaJungleFoliagePlacer extends FoliagePlacer {
         return FoliagePlacerType.MEGA_JUNGLE_FOLIAGE_PLACER;
     }
 
-    protected void createFoliage(LevelSimulatedReader p_225657_, BiConsumer<BlockPos, BlockState> p_225658_, RandomSource p_225659_, TreeConfiguration p_225660_, int p_225661_, FoliagePlacer.FoliageAttachment p_225662_, int p_225663_, int p_225664_, int p_225665_) {
-        int i = p_225662_.doubleTrunk() ? p_225663_ : 1 + p_225659_.nextInt(2);
+    protected void createFoliage(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, TreeConfiguration pConfig, int pMaxFreeTreeHeight, FoliagePlacer.FoliageAttachment pAttachment, int pFoliageHeight, int pFoliageRadius, int pOffset) {
+        int i = pAttachment.doubleTrunk() ? pFoliageHeight : 1 + pRandom.nextInt(2);
 
-        for (int j = p_225665_; j >= p_225665_ - i; --j) {
-            int k = p_225664_ + p_225662_.radiusOffset() + 1 - j;
-            this.placeLeavesRow(p_225657_, p_225658_, p_225659_, p_225660_, p_225662_.pos(), k, j, p_225662_.doubleTrunk());
+        for (int j = pOffset; j >= pOffset - i; --j) {
+            int k = pFoliageRadius + pAttachment.radiusOffset() + 1 - j;
+            this.placeLeavesRow(pLevel, pBlockSetter, pRandom, pConfig, pAttachment.pos(), k, j, pAttachment.doubleTrunk());
         }
     }
 
-    public int foliageHeight(RandomSource p_225653_, int p_225654_, TreeConfiguration p_225655_) {
+    public int foliageHeight(RandomSource pRandom, int pHeight, TreeConfiguration pConfig) {
         return this.height;
     }
 
-    protected boolean shouldSkipLocation(RandomSource p_225646_, int p_225647_, int p_225648_, int p_225649_, int p_225650_, boolean p_225651_) {
-        if (p_225647_ + p_225649_ >= 7) {
+    protected boolean shouldSkipLocation(RandomSource pRandom, int pLocalX, int pLocalY, int pLocalZ, int pRange, boolean pLarge) {
+        if (pLocalX + pLocalZ >= 7) {
             return true;
         } else {
-            return p_225647_ * p_225647_ + p_225649_ * p_225649_ > p_225650_ * p_225650_;
+            return pLocalX * pLocalX + pLocalZ * pLocalZ > pRange * pRange;
         }
     }
 }

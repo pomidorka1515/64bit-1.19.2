@@ -28,9 +28,9 @@ public class LightTexture implements AutoCloseable {
     private final GameRenderer renderer;
     private final Minecraft minecraft;
 
-    public LightTexture(GameRenderer p_109878_, Minecraft p_109879_) {
-        this.renderer = p_109878_;
-        this.minecraft = p_109879_;
+    public LightTexture(GameRenderer pRenderer, Minecraft pMinecraft) {
+        this.renderer = pRenderer;
+        this.minecraft = pMinecraft;
         this.lightTexture = new DynamicTexture(16, 16, false);
         this.lightTextureLocation = this.minecraft.getTextureManager().register("light_map", this.lightTexture);
         this.lightPixels = this.lightTexture.getPixels();
@@ -82,7 +82,7 @@ public class LightTexture implements AutoCloseable {
         return Math.max(0.0F, Mth.cos(((float) p_234313_.tickCount - p_234315_) * (float) Math.PI * 0.025F) * f);
     }
 
-    public void updateLightTexture(float p_109882_) {
+    public void updateLightTexture(float pPartialTicks) {
         if (this.updateLightTexture) {
             this.updateLightTexture = false;
             this.minecraft.getProfiler().push("lightTex");
@@ -97,12 +97,12 @@ public class LightTexture implements AutoCloseable {
                 }
 
                 float f2 = this.minecraft.options.darknessEffectScale().get().floatValue();
-                float f3 = this.getDarknessGamma(p_109882_) * f2;
-                float f4 = this.calculateDarknessScale(this.minecraft.player, f3, p_109882_) * f2;
+                float f3 = this.getDarknessGamma(pPartialTicks) * f2;
+                float f4 = this.calculateDarknessScale(this.minecraft.player, f3, pPartialTicks) * f2;
                 float f6 = this.minecraft.player.getWaterVision();
                 float f5;
                 if (this.minecraft.player.hasEffect(MobEffects.NIGHT_VISION)) {
-                    f5 = GameRenderer.getNightVisionScale(this.minecraft.player, p_109882_);
+                    f5 = GameRenderer.getNightVisionScale(this.minecraft.player, pPartialTicks);
                 } else if (f6 > 0.0F && this.minecraft.player.hasEffect(MobEffects.CONDUIT_POWER)) {
                     f5 = f6;
                 } else {
@@ -130,8 +130,8 @@ public class LightTexture implements AutoCloseable {
                             vector3f2.mul(f8);
                             vector3f1.add(vector3f2);
                             vector3f1.lerp(new Vector3f(0.75F, 0.75F, 0.75F), 0.04F);
-                            if (this.renderer.getDarkenWorldAmount(p_109882_) > 0.0F) {
-                                float f12 = this.renderer.getDarkenWorldAmount(p_109882_);
+                            if (this.renderer.getDarkenWorldAmount(pPartialTicks) > 0.0F) {
+                                float f12 = this.renderer.getDarkenWorldAmount(pPartialTicks);
                                 Vector3f vector3f3 = vector3f1.copy();
                                 vector3f3.mul(0.7F, 0.6F, 0.6F);
                                 vector3f1.lerp(vector3f3, f12);
@@ -182,21 +182,21 @@ public class LightTexture implements AutoCloseable {
         return 1.0F - f * f * f * f;
     }
 
-    public static float getBrightness(DimensionType p_234317_, int p_234318_) {
-        float f = (float) p_234318_ / 15.0F;
+    public static float getBrightness(DimensionType pDimensionType, int pLightLevel) {
+        float f = (float) pLightLevel / 15.0F;
         float f1 = f / (4.0F - 3.0F * f);
-        return Mth.lerp(p_234317_.ambientLight(), f1, 1.0F);
+        return Mth.lerp(pDimensionType.ambientLight(), f1, 1.0F);
     }
 
-    public static int pack(int p_109886_, int p_109887_) {
-        return p_109886_ << 4 | p_109887_ << 20;
+    public static int pack(int pBlockLight, int pSkyLight) {
+        return pBlockLight << 4 | pSkyLight << 20;
     }
 
-    public static int block(int p_109884_) {
-        return p_109884_ >> 4 & '\uffff';
+    public static int block(int pPackedLight) {
+        return pPackedLight >> 4 & '\uffff';
     }
 
-    public static int sky(int p_109895_) {
-        return p_109895_ >> 20 & '\uffff';
+    public static int sky(int pPackedLight) {
+        return pPackedLight >> 20 & '\uffff';
     }
 }

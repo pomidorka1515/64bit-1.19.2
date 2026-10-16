@@ -7,13 +7,13 @@ public class ClientboundPlayerCombatEnterPacket implements Packet<ClientGamePack
     public ClientboundPlayerCombatEnterPacket() {
     }
 
-    public ClientboundPlayerCombatEnterPacket(FriendlyByteBuf p_179051_) {
+    public ClientboundPlayerCombatEnterPacket(FriendlyByteBuf pBuffer) {
     }
 
-    public void write(FriendlyByteBuf p_179053_) {
+    public void write(FriendlyByteBuf pBuffer) {
     }
 
-    public void handle(ClientGamePacketListener p_179057_) {
-        p_179057_.handlePlayerCombatEnter(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handlePlayerCombatEnter(this);
     }
 }

@@ -14,35 +14,35 @@ public class ClientboundRecipePacket implements Packet<ClientGamePacketListener>
     private final List<ResourceLocation> toHighlight;
     private final RecipeBookSettings bookSettings;
 
-    public ClientboundRecipePacket(ClientboundRecipePacket.State p_132855_, Collection<ResourceLocation> p_132856_, Collection<ResourceLocation> p_132857_, RecipeBookSettings p_132858_) {
-        this.state = p_132855_;
-        this.recipes = ImmutableList.copyOf(p_132856_);
-        this.toHighlight = ImmutableList.copyOf(p_132857_);
-        this.bookSettings = p_132858_;
+    public ClientboundRecipePacket(ClientboundRecipePacket.State pState, Collection<ResourceLocation> pRecipes, Collection<ResourceLocation> pToHighlight, RecipeBookSettings pBookSettings) {
+        this.state = pState;
+        this.recipes = ImmutableList.copyOf(pRecipes);
+        this.toHighlight = ImmutableList.copyOf(pToHighlight);
+        this.bookSettings = pBookSettings;
     }
 
-    public ClientboundRecipePacket(FriendlyByteBuf p_179162_) {
-        this.state = p_179162_.readEnum(ClientboundRecipePacket.State.class);
-        this.bookSettings = RecipeBookSettings.read(p_179162_);
-        this.recipes = p_179162_.readList(FriendlyByteBuf::readResourceLocation);
+    public ClientboundRecipePacket(FriendlyByteBuf pBuffer) {
+        this.state = pBuffer.readEnum(ClientboundRecipePacket.State.class);
+        this.bookSettings = RecipeBookSettings.read(pBuffer);
+        this.recipes = pBuffer.readList(FriendlyByteBuf::readResourceLocation);
         if (this.state == ClientboundRecipePacket.State.INIT) {
-            this.toHighlight = p_179162_.readList(FriendlyByteBuf::readResourceLocation);
+            this.toHighlight = pBuffer.readList(FriendlyByteBuf::readResourceLocation);
         } else {
             this.toHighlight = ImmutableList.of();
         }
     }
 
-    public void write(FriendlyByteBuf p_132867_) {
-        p_132867_.writeEnum(this.state);
-        this.bookSettings.write(p_132867_);
-        p_132867_.writeCollection(this.recipes, FriendlyByteBuf::writeResourceLocation);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeEnum(this.state);
+        this.bookSettings.write(pBuffer);
+        pBuffer.writeCollection(this.recipes, FriendlyByteBuf::writeResourceLocation);
         if (this.state == ClientboundRecipePacket.State.INIT) {
-            p_132867_.writeCollection(this.toHighlight, FriendlyByteBuf::writeResourceLocation);
+            pBuffer.writeCollection(this.toHighlight, FriendlyByteBuf::writeResourceLocation);
         }
     }
 
-    public void handle(ClientGamePacketListener p_132864_) {
-        p_132864_.handleAddOrRemoveRecipes(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleAddOrRemoveRecipes(this);
     }
 
     public List<ResourceLocation> getRecipes() {

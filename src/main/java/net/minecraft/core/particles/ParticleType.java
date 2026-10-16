@@ -6,9 +6,9 @@ public abstract class ParticleType<T extends ParticleOptions> {
     private final boolean overrideLimiter;
     private final ParticleOptions.Deserializer<T> deserializer;
 
-    protected ParticleType(boolean p_123740_, ParticleOptions.Deserializer<T> p_123741_) {
-        this.overrideLimiter = p_123740_;
-        this.deserializer = p_123741_;
+    protected ParticleType(boolean pOverrideLimiter, ParticleOptions.Deserializer<T> pDeserializer) {
+        this.overrideLimiter = pOverrideLimiter;
+        this.deserializer = pDeserializer;
     }
 
     public boolean getOverrideLimiter() {

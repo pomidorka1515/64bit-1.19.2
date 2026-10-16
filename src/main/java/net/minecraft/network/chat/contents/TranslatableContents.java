@@ -30,14 +30,14 @@ public class TranslatableContents implements ComponentContents {
     private List<FormattedText> decomposedParts = ImmutableList.of();
     private static final Pattern FORMAT_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?([A-Za-z%]|$)");
 
-    public TranslatableContents(String p_237504_) {
-        this.key = p_237504_;
+    public TranslatableContents(String pKey) {
+        this.key = pKey;
         this.args = NO_ARGS;
     }
 
-    public TranslatableContents(String p_237506_, Object... p_237507_) {
-        this.key = p_237506_;
-        this.args = p_237507_;
+    public TranslatableContents(String pKey, Object... pArgs) {
+        this.key = pKey;
+        this.args = pArgs;
     }
 
     private void decompose() {
@@ -56,8 +56,8 @@ public class TranslatableContents implements ComponentContents {
         }
     }
 
-    private void decomposeTemplate(String p_237516_, Consumer<FormattedText> p_237517_) {
-        Matcher matcher = FORMAT_PATTERN.matcher(p_237516_);
+    private void decomposeTemplate(String pFormatTemplate, Consumer<FormattedText> pConsumer) {
+        Matcher matcher = FORMAT_PATTERN.matcher(pFormatTemplate);
 
         try {
             int i = 0;
@@ -68,18 +68,18 @@ public class TranslatableContents implements ComponentContents {
                 int k = matcher.start();
                 l = matcher.end();
                 if (k > j) {
-                    String s = p_237516_.substring(j, k);
+                    String s = pFormatTemplate.substring(j, k);
                     if (s.indexOf(37) != -1) {
                         throw new IllegalArgumentException();
                     }
 
-                    p_237517_.accept(FormattedText.of(s));
+                    pConsumer.accept(FormattedText.of(s));
                 }
 
                 String s4 = matcher.group(2);
-                String s1 = p_237516_.substring(k, l);
+                String s1 = pFormatTemplate.substring(k, l);
                 if ("%".equals(s4) && "%%".equals(s1)) {
-                    p_237517_.accept(TEXT_PERCENT);
+                    pConsumer.accept(TEXT_PERCENT);
                 } else {
                     if (!"s".equals(s4)) {
                         throw new TranslatableFormatException(this, "Unsupported format: '" + s1 + "'");
@@ -88,18 +88,18 @@ public class TranslatableContents implements ComponentContents {
                     String s2 = matcher.group(1);
                     int i1 = s2 != null ? Integer.parseInt(s2) - 1 : i++;
                     if (i1 < this.args.length) {
-                        p_237517_.accept(this.getArgument(i1));
+                        pConsumer.accept(this.getArgument(i1));
                     }
                 }
             }
 
-            if (j < p_237516_.length()) {
-                String s3 = p_237516_.substring(j);
+            if (j < pFormatTemplate.length()) {
+                String s3 = pFormatTemplate.substring(j);
                 if (s3.indexOf(37) != -1) {
                     throw new IllegalArgumentException();
                 }
 
-                p_237517_.accept(FormattedText.of(s3));
+                pConsumer.accept(FormattedText.of(s3));
             }
 
         } catch (IllegalArgumentException illegalargumentexception) {
@@ -107,11 +107,11 @@ public class TranslatableContents implements ComponentContents {
         }
     }
 
-    private FormattedText getArgument(int p_237510_) {
-        if (p_237510_ >= this.args.length) {
-            throw new TranslatableFormatException(this, p_237510_);
+    private FormattedText getArgument(int pIndex) {
+        if (pIndex >= this.args.length) {
+            throw new TranslatableFormatException(this, pIndex);
         } else {
-            Object object = this.args[p_237510_];
+            Object object = this.args[pIndex];
             if (object instanceof Component) {
                 return (Component) object;
             } else {
@@ -120,11 +120,11 @@ public class TranslatableContents implements ComponentContents {
         }
     }
 
-    public <T> Optional<T> visit(FormattedText.StyledContentConsumer<T> p_237521_, Style p_237522_) {
+    public <T> Optional<T> visit(FormattedText.StyledContentConsumer<T> pStyledContentConsumer, Style pStyle) {
         this.decompose();
 
         for (FormattedText formattedtext : this.decomposedParts) {
-            Optional<T> optional = formattedtext.visit(p_237521_, p_237522_);
+            Optional<T> optional = formattedtext.visit(pStyledContentConsumer, pStyle);
             if (optional.isPresent()) {
                 return optional;
             }
@@ -133,11 +133,11 @@ public class TranslatableContents implements ComponentContents {
         return Optional.empty();
     }
 
-    public <T> Optional<T> visit(FormattedText.ContentConsumer<T> p_237519_) {
+    public <T> Optional<T> visit(FormattedText.ContentConsumer<T> pContentConsumer) {
         this.decompose();
 
         for (FormattedText formattedtext : this.decomposedParts) {
-            Optional<T> optional = formattedtext.visit(p_237519_);
+            Optional<T> optional = formattedtext.visit(pContentConsumer);
             if (optional.isPresent()) {
                 return optional;
             }
@@ -146,13 +146,13 @@ public class TranslatableContents implements ComponentContents {
         return Optional.empty();
     }
 
-    public MutableComponent resolve(@Nullable CommandSourceStack p_237512_, @Nullable Entity p_237513_, int p_237514_) throws CommandSyntaxException {
+    public MutableComponent resolve(@Nullable CommandSourceStack pNbtPathPattern, @Nullable Entity pEntity, int pRecursionDepth) throws CommandSyntaxException {
         Object[] aobject = new Object[this.args.length];
 
         for (int i = 0; i < aobject.length; ++i) {
             Object object = this.args[i];
             if (object instanceof Component) {
-                aobject[i] = ComponentUtils.updateForEntity(p_237512_, (Component) object, p_237513_, p_237514_);
+                aobject[i] = ComponentUtils.updateForEntity(pNbtPathPattern, (Component) object, pEntity, pRecursionDepth);
             } else {
                 aobject[i] = object;
             }
@@ -161,12 +161,12 @@ public class TranslatableContents implements ComponentContents {
         return MutableComponent.create(new TranslatableContents(this.key, aobject));
     }
 
-    public boolean equals(Object p_237526_) {
-        if (this == p_237526_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            if (p_237526_ instanceof TranslatableContents) {
-                TranslatableContents translatablecontents = (TranslatableContents) p_237526_;
+            if (pOther instanceof TranslatableContents) {
+                TranslatableContents translatablecontents = (TranslatableContents) pOther;
                 if (this.key.equals(translatablecontents.key) && Arrays.equals(this.args, translatablecontents.args)) {
                     return true;
                 }

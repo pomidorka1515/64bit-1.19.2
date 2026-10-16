@@ -27,18 +27,18 @@ public class FixedBiomeSource extends BiomeSource implements BiomeManager.NoiseB
         return CODEC;
     }
 
-    public Holder<Biome> getNoiseBiome(long p_204265_, int p_204266_, long p_204267_, Climate.Sampler p_204268_) {
+    public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ, Climate.Sampler pSampler) {
         return this.biome;
     }
 
-    public Holder<Biome> getNoiseBiome(long p_204261_, int p_204262_, long p_204263_) {
+    public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {
         return this.biome;
     }
 
     @Nullable
-    public Pair<BlockPos, Holder<Biome>> findBiomeHorizontal(int p_220640_, int p_220641_, int p_220642_, int p_220643_, int p_220644_, Predicate<Holder<Biome>> p_220645_, RandomSource p_220646_, boolean p_220647_, Climate.Sampler p_220648_) {
-        if (p_220645_.test(this.biome)) {
-            return p_220647_ ? Pair.of(new BlockPos(p_220640_, p_220641_, p_220642_), this.biome) : Pair.of(new BlockPos(p_220640_ - p_220643_ + p_220646_.nextInt(p_220643_ * 2 + 1), p_220641_, p_220642_ - p_220643_ + p_220646_.nextInt(p_220643_ * 2 + 1)), this.biome);
+    public Pair<BlockPos, Holder<Biome>> findBiomeHorizontal(int pX, int pY, int pZ, int pRadius, int pIncrement, Predicate<Holder<Biome>> pBiomePredicate, RandomSource pRandom, boolean pFindClosest, Climate.Sampler pSampler) {
+        if (pBiomePredicate.test(this.biome)) {
+            return pFindClosest ? Pair.of(new BlockPos(pX, pY, pZ), this.biome) : Pair.of(new BlockPos(pX - pRadius + pRandom.nextInt(pRadius * 2 + 1), pY, pZ - pRadius + pRandom.nextInt(pRadius * 2 + 1)), this.biome);
         } else {
             return null;
         }
@@ -49,7 +49,7 @@ public class FixedBiomeSource extends BiomeSource implements BiomeManager.NoiseB
         return p_220654_.test(this.biome) ? Pair.of(p_220650_, this.biome) : null;
     }
 
-    public Set<Holder<Biome>> getBiomesWithin(int p_187038_, int p_187039_, int p_187040_, int p_187041_, Climate.Sampler p_187042_) {
+    public Set<Holder<Biome>> getBiomesWithin(int pX, int pY, int pZ, int pRadius, Climate.Sampler pSampler) {
         return Sets.newHashSet(Set.of(this.biome));
     }
 }

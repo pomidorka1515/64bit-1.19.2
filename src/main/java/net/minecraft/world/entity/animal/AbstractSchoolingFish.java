@@ -17,8 +17,8 @@ public abstract class AbstractSchoolingFish extends AbstractFish {
     private AbstractSchoolingFish leader;
     private int schoolSize = 1;
 
-    public AbstractSchoolingFish(EntityType<? extends AbstractSchoolingFish> p_27523_, Level p_27524_) {
-        super(p_27523_, p_27524_);
+    public AbstractSchoolingFish(EntityType<? extends AbstractSchoolingFish> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -42,10 +42,10 @@ public abstract class AbstractSchoolingFish extends AbstractFish {
         return this.leader != null && this.leader.isAlive();
     }
 
-    public AbstractSchoolingFish startFollowing(AbstractSchoolingFish p_27526_) {
-        this.leader = p_27526_;
-        p_27526_.addFollower();
-        return p_27526_;
+    public AbstractSchoolingFish startFollowing(AbstractSchoolingFish pLeader) {
+        this.leader = pLeader;
+        pLeader.addFollower();
+        return pLeader;
     }
 
     public void stopFollowing() {
@@ -89,8 +89,8 @@ public abstract class AbstractSchoolingFish extends AbstractFish {
         }
     }
 
-    public void addFollowers(Stream<? extends AbstractSchoolingFish> p_27534_) {
-        p_27534_.limit((long) (this.getMaxSchoolSize() - this.schoolSize)).filter((p_27538_) -> {
+    public void addFollowers(Stream<? extends AbstractSchoolingFish> pFollowers) {
+        pFollowers.limit((long) (this.getMaxSchoolSize() - this.schoolSize)).filter((p_27538_) -> {
                                                                               return p_27538_ != this;
                                                                           })
                 .forEach((p_27536_) -> {
@@ -99,22 +99,22 @@ public abstract class AbstractSchoolingFish extends AbstractFish {
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_27528_, DifficultyInstance p_27529_, MobSpawnType p_27530_, @Nullable SpawnGroupData p_27531_, @Nullable CompoundTag p_27532_) {
-        super.finalizeSpawn(p_27528_, p_27529_, p_27530_, p_27531_, p_27532_);
-        if (p_27531_ == null) {
-            p_27531_ = new AbstractSchoolingFish.SchoolSpawnGroupData(this);
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
+        if (pSpawnData == null) {
+            pSpawnData = new AbstractSchoolingFish.SchoolSpawnGroupData(this);
         } else {
-            this.startFollowing(((AbstractSchoolingFish.SchoolSpawnGroupData) p_27531_).leader);
+            this.startFollowing(((AbstractSchoolingFish.SchoolSpawnGroupData) pSpawnData).leader);
         }
 
-        return p_27531_;
+        return pSpawnData;
     }
 
     public static class SchoolSpawnGroupData implements SpawnGroupData {
         public final AbstractSchoolingFish leader;
 
-        public SchoolSpawnGroupData(AbstractSchoolingFish p_27553_) {
-            this.leader = p_27553_;
+        public SchoolSpawnGroupData(AbstractSchoolingFish pLeader) {
+            this.leader = pLeader;
         }
     }
 }

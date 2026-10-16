@@ -13,39 +13,39 @@ public class UsedTotemTrigger extends SimpleCriterionTrigger<UsedTotemTrigger.Tr
         return ID;
     }
 
-    public UsedTotemTrigger.TriggerInstance createInstance(JsonObject p_74438_, EntityPredicate.Composite p_74439_, DeserializationContext p_74440_) {
-        ItemPredicate itempredicate = ItemPredicate.fromJson(p_74438_.get("item"));
-        return new UsedTotemTrigger.TriggerInstance(p_74439_, itempredicate);
+    public UsedTotemTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        ItemPredicate itempredicate = ItemPredicate.fromJson(pJson.get("item"));
+        return new UsedTotemTrigger.TriggerInstance(pEntityPredicate, itempredicate);
     }
 
-    public void trigger(ServerPlayer p_74432_, ItemStack p_74433_) {
-        this.trigger(p_74432_, (p_74436_) -> {
-            return p_74436_.matches(p_74433_);
+    public void trigger(ServerPlayer pPlayer, ItemStack pItem) {
+        this.trigger(pPlayer, (p_74436_) -> {
+            return p_74436_.matches(pItem);
         });
     }
 
     public static class TriggerInstance extends AbstractCriterionTriggerInstance {
         private final ItemPredicate item;
 
-        public TriggerInstance(EntityPredicate.Composite p_74448_, ItemPredicate p_74449_) {
-            super(UsedTotemTrigger.ID, p_74448_);
-            this.item = p_74449_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, ItemPredicate pItem) {
+            super(UsedTotemTrigger.ID, pPlayer);
+            this.item = pItem;
         }
 
-        public static UsedTotemTrigger.TriggerInstance usedTotem(ItemPredicate p_163725_) {
-            return new UsedTotemTrigger.TriggerInstance(EntityPredicate.Composite.ANY, p_163725_);
+        public static UsedTotemTrigger.TriggerInstance usedTotem(ItemPredicate pItem) {
+            return new UsedTotemTrigger.TriggerInstance(EntityPredicate.Composite.ANY, pItem);
         }
 
-        public static UsedTotemTrigger.TriggerInstance usedTotem(ItemLike p_74453_) {
-            return new UsedTotemTrigger.TriggerInstance(EntityPredicate.Composite.ANY, ItemPredicate.Builder.item().of(p_74453_).build());
+        public static UsedTotemTrigger.TriggerInstance usedTotem(ItemLike pItem) {
+            return new UsedTotemTrigger.TriggerInstance(EntityPredicate.Composite.ANY, ItemPredicate.Builder.item().of(pItem).build());
         }
 
-        public boolean matches(ItemStack p_74451_) {
-            return this.item.matches(p_74451_);
+        public boolean matches(ItemStack pItem) {
+            return this.item.matches(pItem);
         }
 
-        public JsonObject serializeToJson(SerializationContext p_74455_) {
-            JsonObject jsonobject = super.serializeToJson(p_74455_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             jsonobject.add("item", this.item.serializeToJson());
             return jsonobject;
         }

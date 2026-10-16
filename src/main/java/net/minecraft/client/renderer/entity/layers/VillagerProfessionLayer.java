@@ -40,15 +40,15 @@ public class VillagerProfessionLayer<T extends LivingEntity & VillagerDataHolder
     private final ResourceManager resourceManager;
     private final String path;
 
-    public VillagerProfessionLayer(RenderLayerParent<T, M> p_174550_, ResourceManager p_174551_, String p_174552_) {
-        super(p_174550_);
-        this.resourceManager = p_174551_;
-        this.path = p_174552_;
+    public VillagerProfessionLayer(RenderLayerParent<T, M> pRenderer, ResourceManager pResourceManager, String pPath) {
+        super(pRenderer);
+        this.resourceManager = pResourceManager;
+        this.path = pPath;
     }
 
-    public void render(PoseStack p_117646_, MultiBufferSource p_117647_, int p_117648_, T p_117649_, float p_117650_, float p_117651_, float p_117652_, float p_117653_, float p_117654_, float p_117655_) {
-        if (!p_117649_.isInvisible()) {
-            VillagerData villagerdata = p_117649_.getVillagerData();
+    public void render(PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight, T pLivingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        if (!pLivingEntity.isInvisible()) {
+            VillagerData villagerdata = pLivingEntity.getVillagerData();
             VillagerType villagertype = villagerdata.getType();
             VillagerProfession villagerprofession = villagerdata.getProfession();
             VillagerMetaDataSection.Hat villagermetadatasection$hat = this.getHatData(this.typeHatCache, "type", Registry.VILLAGER_TYPE, villagertype);
@@ -56,14 +56,14 @@ public class VillagerProfessionLayer<T extends LivingEntity & VillagerDataHolder
             M m = this.getParentModel();
             m.hatVisible(villagermetadatasection$hat1 == VillagerMetaDataSection.Hat.NONE || villagermetadatasection$hat1 == VillagerMetaDataSection.Hat.PARTIAL && villagermetadatasection$hat != VillagerMetaDataSection.Hat.FULL);
             ResourceLocation resourcelocation = this.getResourceLocation("type", Registry.VILLAGER_TYPE.getKey(villagertype));
-            renderColoredCutoutModel(m, resourcelocation, p_117646_, p_117647_, p_117648_, p_117649_, 1.0F, 1.0F, 1.0F);
+            renderColoredCutoutModel(m, resourcelocation, pMatrixStack, pBuffer, pPackedLight, pLivingEntity, 1.0F, 1.0F, 1.0F);
             m.hatVisible(true);
-            if (villagerprofession != VillagerProfession.NONE && !p_117649_.isBaby()) {
+            if (villagerprofession != VillagerProfession.NONE && !pLivingEntity.isBaby()) {
                 ResourceLocation resourcelocation1 = this.getResourceLocation("profession", Registry.VILLAGER_PROFESSION.getKey(villagerprofession));
-                renderColoredCutoutModel(m, resourcelocation1, p_117646_, p_117647_, p_117648_, p_117649_, 1.0F, 1.0F, 1.0F);
+                renderColoredCutoutModel(m, resourcelocation1, pMatrixStack, pBuffer, pPackedLight, pLivingEntity, 1.0F, 1.0F, 1.0F);
                 if (villagerprofession != VillagerProfession.NITWIT) {
                     ResourceLocation resourcelocation2 = this.getResourceLocation("profession_level", LEVEL_LOCATIONS.get(Mth.clamp(villagerdata.getLevel(), 1, LEVEL_LOCATIONS.size())));
-                    renderColoredCutoutModel(m, resourcelocation2, p_117646_, p_117647_, p_117648_, p_117649_, 1.0F, 1.0F, 1.0F);
+                    renderColoredCutoutModel(m, resourcelocation2, pMatrixStack, pBuffer, pPackedLight, pLivingEntity, 1.0F, 1.0F, 1.0F);
                 }
             }
         }

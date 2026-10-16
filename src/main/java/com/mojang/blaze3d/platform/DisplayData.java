@@ -12,11 +12,11 @@ public class DisplayData {
     public final OptionalInt fullscreenHeight;
     public final boolean isFullscreen;
 
-    public DisplayData(int p_84011_, int p_84012_, OptionalInt p_84013_, OptionalInt p_84014_, boolean p_84015_) {
-        this.width = p_84011_;
-        this.height = p_84012_;
-        this.fullscreenWidth = p_84013_;
-        this.fullscreenHeight = p_84014_;
-        this.isFullscreen = p_84015_;
+    public DisplayData(int pWidth, int pHeight, OptionalInt pFullscreenWidth, OptionalInt pFullscreenHeight, boolean pIsFullscreen) {
+        this.width = pWidth;
+        this.height = pHeight;
+        this.fullscreenWidth = pFullscreenWidth;
+        this.fullscreenHeight = pFullscreenHeight;
+        this.isFullscreen = pIsFullscreen;
     }
 }

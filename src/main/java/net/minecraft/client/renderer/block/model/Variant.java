@@ -23,11 +23,11 @@ public class Variant implements ModelState {
     private final boolean uvLock;
     private final int weight;
 
-    public Variant(ResourceLocation p_111879_, Transformation p_111880_, boolean p_111881_, int p_111882_) {
-        this.modelLocation = p_111879_;
-        this.rotation = p_111880_;
-        this.uvLock = p_111881_;
-        this.weight = p_111882_;
+    public Variant(ResourceLocation pModelLocation, Transformation pRotation, boolean pUvLock, int pWeight) {
+        this.modelLocation = pModelLocation;
+        this.rotation = pRotation;
+        this.uvLock = pUvLock;
+        this.weight = pWeight;
     }
 
     public ResourceLocation getModelLocation() {
@@ -50,13 +50,13 @@ public class Variant implements ModelState {
         return "Variant{modelLocation=" + this.modelLocation + ", rotation=" + this.rotation + ", uvLock=" + this.uvLock + ", weight=" + this.weight + "}";
     }
 
-    public boolean equals(Object p_111888_) {
-        if (this == p_111888_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_111888_ instanceof Variant)) {
+        } else if (!(pOther instanceof Variant)) {
             return false;
         } else {
-            Variant variant = (Variant) p_111888_;
+            Variant variant = (Variant) pOther;
             return this.modelLocation.equals(variant.modelLocation) && Objects.equals(this.rotation, variant.rotation) && this.uvLock == variant.uvLock && this.weight == variant.weight;
         }
     }
@@ -79,8 +79,8 @@ public class Variant implements ModelState {
         @VisibleForTesting
         static final int DEFAULT_Y_ROTATION = 0;
 
-        public Variant deserialize(JsonElement p_111893_, Type p_111894_, JsonDeserializationContext p_111895_) throws JsonParseException {
-            JsonObject jsonobject = p_111893_.getAsJsonObject();
+        public Variant deserialize(JsonElement pJson, Type pType, JsonDeserializationContext pContext) throws JsonParseException {
+            JsonObject jsonobject = pJson.getAsJsonObject();
             ResourceLocation resourcelocation = this.getModel(jsonobject);
             BlockModelRotation blockmodelrotation = this.getBlockRotation(jsonobject);
             boolean flag = this.getUvLock(jsonobject);
@@ -88,13 +88,13 @@ public class Variant implements ModelState {
             return new Variant(resourcelocation, blockmodelrotation.getRotation(), flag, i);
         }
 
-        private boolean getUvLock(JsonObject p_111903_) {
-            return GsonHelper.getAsBoolean(p_111903_, "uvlock", false);
+        private boolean getUvLock(JsonObject pJson) {
+            return GsonHelper.getAsBoolean(pJson, "uvlock", false);
         }
 
-        protected BlockModelRotation getBlockRotation(JsonObject p_111897_) {
-            int i = GsonHelper.getAsInt(p_111897_, "x", 0);
-            int j = GsonHelper.getAsInt(p_111897_, "y", 0);
+        protected BlockModelRotation getBlockRotation(JsonObject pJson) {
+            int i = GsonHelper.getAsInt(pJson, "x", 0);
+            int j = GsonHelper.getAsInt(pJson, "y", 0);
             BlockModelRotation blockmodelrotation = BlockModelRotation.by(i, j);
             if (blockmodelrotation == null) {
                 throw new JsonParseException("Invalid BlockModelRotation x: " + i + ", y: " + j);
@@ -103,12 +103,12 @@ public class Variant implements ModelState {
             }
         }
 
-        protected ResourceLocation getModel(JsonObject p_111899_) {
-            return new ResourceLocation(GsonHelper.getAsString(p_111899_, "model"));
+        protected ResourceLocation getModel(JsonObject pJson) {
+            return new ResourceLocation(GsonHelper.getAsString(pJson, "model"));
         }
 
-        protected int getWeight(JsonObject p_111901_) {
-            int i = GsonHelper.getAsInt(p_111901_, "weight", 1);
+        protected int getWeight(JsonObject pJson) {
+            int i = GsonHelper.getAsInt(pJson, "weight", 1);
             if (i < 1) {
                 throw new JsonParseException("Invalid weight " + i + " found, expected integer >= 1");
             } else {

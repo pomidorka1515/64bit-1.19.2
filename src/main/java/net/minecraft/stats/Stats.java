@@ -92,14 +92,14 @@ public class Stats {
     public static final ResourceLocation TARGET_HIT = makeCustomStat("target_hit", StatFormatter.DEFAULT);
     public static final ResourceLocation INTERACT_WITH_SMITHING_TABLE = makeCustomStat("interact_with_smithing_table", StatFormatter.DEFAULT);
 
-    private static ResourceLocation makeCustomStat(String p_13008_, StatFormatter p_13009_) {
-        ResourceLocation resourcelocation = new ResourceLocation(p_13008_);
-        Registry.register(Registry.CUSTOM_STAT, p_13008_, resourcelocation);
-        CUSTOM.get(resourcelocation, p_13009_);
+    private static ResourceLocation makeCustomStat(String pKey, StatFormatter pFormatter) {
+        ResourceLocation resourcelocation = new ResourceLocation(pKey);
+        Registry.register(Registry.CUSTOM_STAT, pKey, resourcelocation);
+        CUSTOM.get(resourcelocation, pFormatter);
         return resourcelocation;
     }
 
-    private static <T> StatType<T> makeRegistryStatType(String p_13011_, Registry<T> p_13012_) {
-        return Registry.register(Registry.STAT_TYPE, p_13011_, new StatType<>(p_13012_));
+    private static <T> StatType<T> makeRegistryStatType(String pKey, Registry<T> pRegistry) {
+        return Registry.register(Registry.STAT_TYPE, pKey, new StatType<>(pRegistry));
     }
 }

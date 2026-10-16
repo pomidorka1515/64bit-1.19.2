@@ -11,39 +11,39 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LayerLightEngine;
 
 public abstract class SpreadingSnowyDirtBlock extends SnowyDirtBlock {
-    protected SpreadingSnowyDirtBlock(BlockBehaviour.Properties p_56817_) {
-        super(p_56817_);
+    protected SpreadingSnowyDirtBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    private static boolean canBeGrass(BlockState p_56824_, LevelReader p_56825_, BlockPos p_56826_) {
-        BlockPos blockpos = p_56826_.above();
-        BlockState blockstate = p_56825_.getBlockState(blockpos);
+    private static boolean canBeGrass(BlockState pState, LevelReader pLevelReader, BlockPos pPos) {
+        BlockPos blockpos = pPos.above();
+        BlockState blockstate = pLevelReader.getBlockState(blockpos);
         if (blockstate.is(Blocks.SNOW) && blockstate.getValue(SnowLayerBlock.LAYERS) == 1) {
             return true;
         } else if (blockstate.getFluidState().getAmount() == 8) {
             return false;
         } else {
-            int i = LayerLightEngine.getLightBlockInto(p_56825_, p_56824_, p_56826_, blockstate, blockpos, Direction.UP, blockstate.getLightBlock(p_56825_, blockpos));
-            return i < p_56825_.getMaxLightLevel();
+            int i = LayerLightEngine.getLightBlockInto(pLevelReader, pState, pPos, blockstate, blockpos, Direction.UP, blockstate.getLightBlock(pLevelReader, blockpos));
+            return i < pLevelReader.getMaxLightLevel();
         }
     }
 
-    private static boolean canPropagate(BlockState p_56828_, LevelReader p_56829_, BlockPos p_56830_) {
-        BlockPos blockpos = p_56830_.above();
-        return canBeGrass(p_56828_, p_56829_, p_56830_) && !p_56829_.getFluidState(blockpos).is(FluidTags.WATER);
+    private static boolean canPropagate(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        BlockPos blockpos = pPos.above();
+        return canBeGrass(pState, pLevel, pPos) && !pLevel.getFluidState(blockpos).is(FluidTags.WATER);
     }
 
-    public void randomTick(BlockState p_222508_, ServerLevel p_222509_, BlockPos p_222510_, RandomSource p_222511_) {
-        if (!canBeGrass(p_222508_, p_222509_, p_222510_)) {
-            p_222509_.setBlockAndUpdate(p_222510_, Blocks.DIRT.defaultBlockState());
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (!canBeGrass(pState, pLevel, pPos)) {
+            pLevel.setBlockAndUpdate(pPos, Blocks.DIRT.defaultBlockState());
         } else {
-            if (p_222509_.getMaxLocalRawBrightness(p_222510_.above()) >= 9) {
+            if (pLevel.getMaxLocalRawBrightness(pPos.above()) >= 9) {
                 BlockState blockstate = this.defaultBlockState();
 
                 for (int i = 0; i < 4; ++i) {
-                    BlockPos blockpos = p_222510_.offset(p_222511_.nextInt(3) - 1, p_222511_.nextInt(5) - 3, p_222511_.nextInt(3) - 1);
-                    if (p_222509_.getBlockState(blockpos).is(Blocks.DIRT) && canPropagate(blockstate, p_222509_, blockpos)) {
-                        p_222509_.setBlockAndUpdate(blockpos, blockstate.setValue(SNOWY, Boolean.valueOf(p_222509_.getBlockState(blockpos.above()).is(Blocks.SNOW))));
+                    BlockPos blockpos = pPos.offset(pRandom.nextInt(3) - 1, pRandom.nextInt(5) - 3, pRandom.nextInt(3) - 1);
+                    if (pLevel.getBlockState(blockpos).is(Blocks.DIRT) && canPropagate(blockstate, pLevel, blockpos)) {
+                        pLevel.setBlockAndUpdate(blockpos, blockstate.setValue(SNOWY, Boolean.valueOf(pLevel.getBlockState(blockpos.above()).is(Blocks.SNOW))));
                     }
                 }
             }

@@ -60,9 +60,9 @@ public class GameEvent {
     private final int notificationRadius;
     private final Holder.Reference<GameEvent> builtInRegistryHolder = Registry.GAME_EVENT.createIntrusiveHolder(this);
 
-    public GameEvent(String p_157819_, int p_157820_) {
-        this.name = p_157819_;
-        this.notificationRadius = p_157820_;
+    public GameEvent(String pName, int pNotificationRadius) {
+        this.name = pName;
+        this.notificationRadius = pNotificationRadius;
     }
 
     public String getName() {
@@ -73,12 +73,12 @@ public class GameEvent {
         return this.notificationRadius;
     }
 
-    private static GameEvent register(String p_157823_) {
-        return register(p_157823_, 16);
+    private static GameEvent register(String pName) {
+        return register(pName, 16);
     }
 
-    private static GameEvent register(String p_157825_, int p_157826_) {
-        return Registry.register(Registry.GAME_EVENT, p_157825_, new GameEvent(p_157825_, p_157826_));
+    private static GameEvent register(String pName, int pNotificationRadius) {
+        return Registry.register(Registry.GAME_EVENT, pName, new GameEvent(pName, pNotificationRadius));
     }
 
     public String toString() {
@@ -91,21 +91,21 @@ public class GameEvent {
         return this.builtInRegistryHolder;
     }
 
-    public boolean is(TagKey<GameEvent> p_204529_) {
-        return this.builtInRegistryHolder.is(p_204529_);
+    public boolean is(TagKey<GameEvent> pEventTag) {
+        return this.builtInRegistryHolder.is(pEventTag);
     }
 
     public static record Context(@Nullable Entity sourceEntity, @Nullable BlockState affectedState) {
-        public static GameEvent.Context of(@Nullable Entity p_223718_) {
-            return new GameEvent.Context(p_223718_, (BlockState) null);
+        public static GameEvent.Context of(@Nullable Entity pSourceEntity) {
+            return new GameEvent.Context(pSourceEntity, (BlockState) null);
         }
 
-        public static GameEvent.Context of(@Nullable BlockState p_223723_) {
-            return new GameEvent.Context((Entity) null, p_223723_);
+        public static GameEvent.Context of(@Nullable BlockState pAffectedState) {
+            return new GameEvent.Context((Entity) null, pAffectedState);
         }
 
-        public static GameEvent.Context of(@Nullable Entity p_223720_, @Nullable BlockState p_223721_) {
-            return new GameEvent.Context(p_223720_, p_223721_);
+        public static GameEvent.Context of(@Nullable Entity pSourceEntity, @Nullable BlockState pAffectedState) {
+            return new GameEvent.Context(pSourceEntity, pAffectedState);
         }
     }
 
@@ -116,16 +116,16 @@ public class GameEvent {
         private final GameEventListener recipient;
         private final double distanceToRecipient;
 
-        public Message(GameEvent p_223735_, Vec3 p_223736_, GameEvent.Context p_223737_, GameEventListener p_223738_, Vec3 p_223739_) {
-            this.gameEvent = p_223735_;
-            this.source = p_223736_;
-            this.context = p_223737_;
-            this.recipient = p_223738_;
-            this.distanceToRecipient = p_223736_.distanceToSqr(p_223739_);
+        public Message(GameEvent pGameEvent, Vec3 pSource, GameEvent.Context pContext, GameEventListener pRecipient, Vec3 pRecipientPosition) {
+            this.gameEvent = pGameEvent;
+            this.source = pSource;
+            this.context = pContext;
+            this.recipient = pRecipient;
+            this.distanceToRecipient = pSource.distanceToSqr(pRecipientPosition);
         }
 
-        public int compareTo(GameEvent.Message p_223742_) {
-            return Double.compare(this.distanceToRecipient, p_223742_.distanceToRecipient);
+        public int compareTo(GameEvent.Message pOther) {
+            return Double.compare(this.distanceToRecipient, pOther.distanceToRecipient);
         }
 
         public GameEvent gameEvent() {

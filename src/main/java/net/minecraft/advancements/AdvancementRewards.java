@@ -30,48 +30,48 @@ public class AdvancementRewards {
     private final ResourceLocation[] recipes;
     private final CommandFunction.CacheableFunction function;
 
-    public AdvancementRewards(int p_9985_, ResourceLocation[] p_9986_, ResourceLocation[] p_9987_, CommandFunction.CacheableFunction p_9988_) {
-        this.experience = p_9985_;
-        this.loot = p_9986_;
-        this.recipes = p_9987_;
-        this.function = p_9988_;
+    public AdvancementRewards(int pExperience, ResourceLocation[] pLoot, ResourceLocation[] pRecipes, CommandFunction.CacheableFunction pFunction) {
+        this.experience = pExperience;
+        this.loot = pLoot;
+        this.recipes = pRecipes;
+        this.function = pFunction;
     }
 
     public ResourceLocation[] getRecipes() {
         return this.recipes;
     }
 
-    public void grant(ServerPlayer p_9990_) {
-        p_9990_.giveExperiencePoints(this.experience);
-        LootContext lootcontext = (new LootContext.Builder(p_9990_.getLevel())).withParameter(LootContextParams.THIS_ENTITY, p_9990_).withParameter(LootContextParams.ORIGIN, p_9990_.position()).withRandom(p_9990_.getRandom()).create(LootContextParamSets.ADVANCEMENT_REWARD);
+    public void grant(ServerPlayer pPlayer) {
+        pPlayer.giveExperiencePoints(this.experience);
+        LootContext lootcontext = (new LootContext.Builder(pPlayer.getLevel())).withParameter(LootContextParams.THIS_ENTITY, pPlayer).withParameter(LootContextParams.ORIGIN, pPlayer.position()).withRandom(pPlayer.getRandom()).create(LootContextParamSets.ADVANCEMENT_REWARD);
         boolean flag = false;
 
         for (ResourceLocation resourcelocation : this.loot) {
-            for (ItemStack itemstack : p_9990_.server.getLootTables().get(resourcelocation).getRandomItems(lootcontext)) {
-                if (p_9990_.addItem(itemstack)) {
-                    p_9990_.level.playSound((Player) null, p_9990_.getX(), p_9990_.getY(), p_9990_.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((p_9990_.getRandom().nextFloat() - p_9990_.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+            for (ItemStack itemstack : pPlayer.server.getLootTables().get(resourcelocation).getRandomItems(lootcontext)) {
+                if (pPlayer.addItem(itemstack)) {
+                    pPlayer.level.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((pPlayer.getRandom().nextFloat() - pPlayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
                     flag = true;
                 } else {
-                    ItemEntity itementity = p_9990_.drop(itemstack, false);
+                    ItemEntity itementity = pPlayer.drop(itemstack, false);
                     if (itementity != null) {
                         itementity.setNoPickUpDelay();
-                        itementity.setOwner(p_9990_.getUUID());
+                        itementity.setOwner(pPlayer.getUUID());
                     }
                 }
             }
         }
 
         if (flag) {
-            p_9990_.containerMenu.broadcastChanges();
+            pPlayer.containerMenu.broadcastChanges();
         }
 
         if (this.recipes.length > 0) {
-            p_9990_.awardRecipesByKey(this.recipes);
+            pPlayer.awardRecipesByKey(this.recipes);
         }
 
-        MinecraftServer minecraftserver = p_9990_.server;
+        MinecraftServer minecraftserver = pPlayer.server;
         this.function.get(minecraftserver.getFunctions()).ifPresent((p_9996_) -> {
-            minecraftserver.getFunctions().execute(p_9996_, p_9990_.createCommandSourceStack().withSuppressedOutput().withPermission(2));
+            minecraftserver.getFunctions().execute(p_9996_, pPlayer.createCommandSourceStack().withSuppressedOutput().withPermission(2));
         });
     }
 
@@ -116,16 +116,16 @@ public class AdvancementRewards {
         }
     }
 
-    public static AdvancementRewards deserialize(JsonObject p_9992_) throws JsonParseException {
-        int i = GsonHelper.getAsInt(p_9992_, "experience", 0);
-        JsonArray jsonarray = GsonHelper.getAsJsonArray(p_9992_, "loot", new JsonArray());
+    public static AdvancementRewards deserialize(JsonObject pJson) throws JsonParseException {
+        int i = GsonHelper.getAsInt(pJson, "experience", 0);
+        JsonArray jsonarray = GsonHelper.getAsJsonArray(pJson, "loot", new JsonArray());
         ResourceLocation[] aresourcelocation = new ResourceLocation[jsonarray.size()];
 
         for (int j = 0; j < aresourcelocation.length; ++j) {
             aresourcelocation[j] = new ResourceLocation(GsonHelper.convertToString(jsonarray.get(j), "loot[" + j + "]"));
         }
 
-        JsonArray jsonarray1 = GsonHelper.getAsJsonArray(p_9992_, "recipes", new JsonArray());
+        JsonArray jsonarray1 = GsonHelper.getAsJsonArray(pJson, "recipes", new JsonArray());
         ResourceLocation[] aresourcelocation1 = new ResourceLocation[jsonarray1.size()];
 
         for (int k = 0; k < aresourcelocation1.length; ++k) {
@@ -133,8 +133,8 @@ public class AdvancementRewards {
         }
 
         CommandFunction.CacheableFunction commandfunction$cacheablefunction;
-        if (p_9992_.has("function")) {
-            commandfunction$cacheablefunction = new CommandFunction.CacheableFunction(new ResourceLocation(GsonHelper.getAsString(p_9992_, "function")));
+        if (pJson.has("function")) {
+            commandfunction$cacheablefunction = new CommandFunction.CacheableFunction(new ResourceLocation(GsonHelper.getAsString(pJson, "function")));
         } else {
             commandfunction$cacheablefunction = CommandFunction.CacheableFunction.NONE;
         }
@@ -149,39 +149,39 @@ public class AdvancementRewards {
         @Nullable
         private ResourceLocation function;
 
-        public static AdvancementRewards.Builder experience(int p_10006_) {
-            return (new AdvancementRewards.Builder()).addExperience(p_10006_);
+        public static AdvancementRewards.Builder experience(int pExperience) {
+            return (new AdvancementRewards.Builder()).addExperience(pExperience);
         }
 
-        public AdvancementRewards.Builder addExperience(int p_10008_) {
-            this.experience += p_10008_;
+        public AdvancementRewards.Builder addExperience(int pExperience) {
+            this.experience += pExperience;
             return this;
         }
 
-        public static AdvancementRewards.Builder loot(ResourceLocation p_144823_) {
-            return (new AdvancementRewards.Builder()).addLootTable(p_144823_);
+        public static AdvancementRewards.Builder loot(ResourceLocation pLootTableId) {
+            return (new AdvancementRewards.Builder()).addLootTable(pLootTableId);
         }
 
-        public AdvancementRewards.Builder addLootTable(ResourceLocation p_144825_) {
-            this.loot.add(p_144825_);
+        public AdvancementRewards.Builder addLootTable(ResourceLocation pLootTableId) {
+            this.loot.add(pLootTableId);
             return this;
         }
 
-        public static AdvancementRewards.Builder recipe(ResourceLocation p_10010_) {
-            return (new AdvancementRewards.Builder()).addRecipe(p_10010_);
+        public static AdvancementRewards.Builder recipe(ResourceLocation pRecipeId) {
+            return (new AdvancementRewards.Builder()).addRecipe(pRecipeId);
         }
 
-        public AdvancementRewards.Builder addRecipe(ResourceLocation p_10012_) {
-            this.recipes.add(p_10012_);
+        public AdvancementRewards.Builder addRecipe(ResourceLocation pRecipeId) {
+            this.recipes.add(pRecipeId);
             return this;
         }
 
-        public static AdvancementRewards.Builder function(ResourceLocation p_144827_) {
-            return (new AdvancementRewards.Builder()).runs(p_144827_);
+        public static AdvancementRewards.Builder function(ResourceLocation pFunctionId) {
+            return (new AdvancementRewards.Builder()).runs(pFunctionId);
         }
 
-        public AdvancementRewards.Builder runs(ResourceLocation p_144829_) {
-            this.function = p_144829_;
+        public AdvancementRewards.Builder runs(ResourceLocation pFunctionId) {
+            this.function = pFunctionId;
             return this;
         }
 

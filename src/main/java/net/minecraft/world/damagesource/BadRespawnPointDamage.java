@@ -13,10 +13,10 @@ public class BadRespawnPointDamage extends DamageSource {
         this.setExplosion();
     }
 
-    public Component getLocalizedDeathMessage(LivingEntity p_19247_) {
+    public Component getLocalizedDeathMessage(LivingEntity pLivingEntity) {
         Component component = ComponentUtils.wrapInSquareBrackets(Component.translatable("death.attack.badRespawnPoint.link")).withStyle((p_19249_) -> {
             return p_19249_.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://bugs.mojang.com/browse/MCPE-28723")).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("MCPE-28723")));
         });
-        return Component.translatable("death.attack.badRespawnPoint.message", p_19247_.getDisplayName(), component);
+        return Component.translatable("death.attack.badRespawnPoint.message", pLivingEntity.getDisplayName(), component);
     }
 }

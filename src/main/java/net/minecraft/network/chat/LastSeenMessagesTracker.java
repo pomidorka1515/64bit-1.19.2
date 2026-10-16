@@ -7,18 +7,18 @@ public class LastSeenMessagesTracker {
     private int size;
     private LastSeenMessages result = LastSeenMessages.EMPTY;
 
-    public LastSeenMessagesTracker(int p_242388_) {
-        this.status = new LastSeenMessages.Entry[p_242388_];
+    public LastSeenMessagesTracker(int pSize) {
+        this.status = new LastSeenMessages.Entry[pSize];
     }
 
-    public void push(LastSeenMessages.Entry p_242466_) {
-        LastSeenMessages.Entry lastseenmessages$entry = p_242466_;
+    public void push(LastSeenMessages.Entry pEntry) {
+        LastSeenMessages.Entry lastseenmessages$entry = pEntry;
 
         for (int i = 0; i < this.size; ++i) {
             LastSeenMessages.Entry lastseenmessages$entry1 = this.status[i];
             this.status[i] = lastseenmessages$entry;
             lastseenmessages$entry = lastseenmessages$entry1;
-            if (lastseenmessages$entry1.profileId().equals(p_242466_.profileId())) {
+            if (lastseenmessages$entry1.profileId().equals(pEntry.profileId())) {
                 lastseenmessages$entry = null;
                 break;
             }

@@ -24,10 +24,10 @@ public class LanServerPinger extends Thread {
     private boolean isRunning = true;
     private final String serverAddress;
 
-    public LanServerPinger(String p_120109_, String p_120110_) throws IOException {
+    public LanServerPinger(String pMotd, String pServerAddress) throws IOException {
         super("LanServerPinger #" + UNIQUE_THREAD_ID.incrementAndGet());
-        this.motd = p_120109_;
-        this.serverAddress = p_120110_;
+        this.motd = pMotd;
+        this.serverAddress = pServerAddress;
         this.setDaemon(true);
         this.setUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler(LOGGER));
         this.socket = new DatagramSocket();
@@ -59,35 +59,35 @@ public class LanServerPinger extends Thread {
         this.isRunning = false;
     }
 
-    public static String createPingString(String p_120114_, String p_120115_) {
-        return "[MOTD]" + p_120114_ + "[/MOTD][AD]" + p_120115_ + "[/AD]";
+    public static String createPingString(String pMotdMessage, String pAdMessage) {
+        return "[MOTD]" + pMotdMessage + "[/MOTD][AD]" + pAdMessage + "[/AD]";
     }
 
-    public static String parseMotd(String p_120112_) {
-        int i = p_120112_.indexOf("[MOTD]");
+    public static String parseMotd(String pPingResponse) {
+        int i = pPingResponse.indexOf("[MOTD]");
         if (i < 0) {
             return "missing no";
         } else {
-            int j = p_120112_.indexOf("[/MOTD]", i + "[MOTD]".length());
-            return j < i ? "missing no" : p_120112_.substring(i + "[MOTD]".length(), j);
+            int j = pPingResponse.indexOf("[/MOTD]", i + "[MOTD]".length());
+            return j < i ? "missing no" : pPingResponse.substring(i + "[MOTD]".length(), j);
         }
     }
 
-    public static String parseAddress(String p_120117_) {
-        int i = p_120117_.indexOf("[/MOTD]");
+    public static String parseAddress(String pPingResponse) {
+        int i = pPingResponse.indexOf("[/MOTD]");
         if (i < 0) {
             return null;
         } else {
-            int j = p_120117_.indexOf("[/MOTD]", i + "[/MOTD]".length());
+            int j = pPingResponse.indexOf("[/MOTD]", i + "[/MOTD]".length());
             if (j >= 0) {
                 return null;
             } else {
-                int k = p_120117_.indexOf("[AD]", i + "[/MOTD]".length());
+                int k = pPingResponse.indexOf("[AD]", i + "[/MOTD]".length());
                 if (k < 0) {
                     return null;
                 } else {
-                    int l = p_120117_.indexOf("[/AD]", k + "[AD]".length());
-                    return l < k ? null : p_120117_.substring(k + "[AD]".length(), l);
+                    int l = pPingResponse.indexOf("[/AD]", k + "[AD]".length());
+                    return l < k ? null : pPingResponse.substring(k + "[AD]".length(), l);
                 }
             }
         }

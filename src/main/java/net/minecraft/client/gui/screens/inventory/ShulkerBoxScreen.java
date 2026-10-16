@@ -14,23 +14,23 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ShulkerBoxScreen extends AbstractContainerScreen<ShulkerBoxMenu> {
     private static final ResourceLocation CONTAINER_TEXTURE = new ResourceLocation("textures/gui/container/shulker_box.png");
 
-    public ShulkerBoxScreen(ShulkerBoxMenu p_99240_, Inventory p_99241_, Component p_99242_) {
-        super(p_99240_, p_99241_, p_99242_);
+    public ShulkerBoxScreen(ShulkerBoxMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle);
         ++this.imageHeight;
     }
 
-    public void render(PoseStack p_99249_, int p_99250_, int p_99251_, float p_99252_) {
-        this.renderBackground(p_99249_);
-        super.render(p_99249_, p_99250_, p_99251_, p_99252_);
-        this.renderTooltip(p_99249_, p_99250_, p_99251_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
-    protected void renderBg(PoseStack p_99244_, float p_99245_, int p_99246_, int p_99247_) {
+    protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, CONTAINER_TEXTURE);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        this.blit(p_99244_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        this.blit(pPoseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
     }
 }

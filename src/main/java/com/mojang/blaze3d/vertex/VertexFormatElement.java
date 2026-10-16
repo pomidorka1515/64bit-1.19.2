@@ -12,20 +12,20 @@ public class VertexFormatElement {
     private final int count;
     private final int byteSize;
 
-    public VertexFormatElement(int p_86037_, VertexFormatElement.Type p_86038_, VertexFormatElement.Usage p_86039_, int p_86040_) {
-        if (this.supportsUsage(p_86037_, p_86039_)) {
-            this.usage = p_86039_;
-            this.type = p_86038_;
-            this.index = p_86037_;
-            this.count = p_86040_;
-            this.byteSize = p_86038_.getSize() * this.count;
+    public VertexFormatElement(int pIndex, VertexFormatElement.Type pType, VertexFormatElement.Usage pUsage, int pCount) {
+        if (this.supportsUsage(pIndex, pUsage)) {
+            this.usage = pUsage;
+            this.type = pType;
+            this.index = pIndex;
+            this.count = pCount;
+            this.byteSize = pType.getSize() * this.count;
         } else {
             throw new IllegalStateException("Multiple vertex elements of the same type other than UVs are not supported");
         }
     }
 
-    private boolean supportsUsage(int p_86043_, VertexFormatElement.Usage p_86044_) {
-        return p_86043_ == 0 || p_86044_ == VertexFormatElement.Usage.UV;
+    private boolean supportsUsage(int pIndex, VertexFormatElement.Usage pUsage) {
+        return pIndex == 0 || pUsage == VertexFormatElement.Usage.UV;
     }
 
     public final VertexFormatElement.Type getType() {
@@ -56,11 +56,11 @@ public class VertexFormatElement {
         return this.usage == VertexFormatElement.Usage.POSITION;
     }
 
-    public boolean equals(Object p_86053_) {
-        if (this == p_86053_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_86053_ != null && this.getClass() == p_86053_.getClass()) {
-            VertexFormatElement vertexformatelement = (VertexFormatElement) p_86053_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            VertexFormatElement vertexformatelement = (VertexFormatElement) pOther;
             if (this.count != vertexformatelement.count) {
                 return false;
             } else if (this.index != vertexformatelement.index) {
@@ -82,12 +82,12 @@ public class VertexFormatElement {
         return 31 * i + this.count;
     }
 
-    public void setupBufferState(int p_166966_, long p_166967_, int p_166968_) {
-        this.usage.setupBufferState(this.count, this.type.getGlType(), p_166968_, p_166967_, this.index, p_166966_);
+    public void setupBufferState(int pStateIndex, long pOffset, int pStride) {
+        this.usage.setupBufferState(this.count, this.type.getGlType(), pStride, pOffset, this.index, pStateIndex);
     }
 
-    public void clearBufferState(int p_166964_) {
-        this.usage.clearBufferState(this.index, p_166964_);
+    public void clearBufferState(int pElementIndex) {
+        this.usage.clearBufferState(this.index, pElementIndex);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -156,12 +156,12 @@ public class VertexFormatElement {
             this.clearState = p_166977_;
         }
 
-        void setupBufferState(int p_166982_, int p_166983_, int p_166984_, long p_166985_, int p_166986_, int p_166987_) {
-            this.setupState.setupBufferState(p_166982_, p_166983_, p_166984_, p_166985_, p_166986_, p_166987_);
+        void setupBufferState(int pCount, int pGlType, int pStride, long pOffset, int pIndex, int pStateIndex) {
+            this.setupState.setupBufferState(pCount, pGlType, pStride, pOffset, pIndex, pStateIndex);
         }
 
-        public void clearBufferState(int p_166979_, int p_166980_) {
-            this.clearState.clearBufferState(p_166979_, p_166980_);
+        public void clearBufferState(int pIndex, int pElementIndex) {
+            this.clearState.clearBufferState(pIndex, pElementIndex);
         }
 
         public String getName() {
@@ -171,13 +171,13 @@ public class VertexFormatElement {
         @FunctionalInterface
         @OnlyIn(Dist.CLIENT)
         interface ClearState {
-            void clearBufferState(int p_167050_, int p_167051_);
+            void clearBufferState(int pIndex, int pElementIndex);
         }
 
         @FunctionalInterface
         @OnlyIn(Dist.CLIENT)
         interface SetupState {
-            void setupBufferState(int p_167053_, int p_167054_, int p_167055_, long p_167056_, int p_167057_, int p_167058_);
+            void setupBufferState(int pCount, int pGlType, int pStride, long pOffset, int pIndex, int pStateIndex);
         }
     }
 }

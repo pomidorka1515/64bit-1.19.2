@@ -9,26 +9,26 @@ public class ServerboundJigsawGeneratePacket implements Packet<ServerGamePacketL
     private final int levels;
     private final boolean keepJigsaws;
 
-    public ServerboundJigsawGeneratePacket(BlockPos p_134078_, int p_134079_, boolean p_134080_) {
-        this.pos = p_134078_;
-        this.levels = p_134079_;
-        this.keepJigsaws = p_134080_;
+    public ServerboundJigsawGeneratePacket(BlockPos pPos, int pLevels, boolean pKeepJigsaws) {
+        this.pos = pPos;
+        this.levels = pLevels;
+        this.keepJigsaws = pKeepJigsaws;
     }
 
-    public ServerboundJigsawGeneratePacket(FriendlyByteBuf p_179669_) {
-        this.pos = p_179669_.readBlockPos();
-        this.levels = p_179669_.readVarInt();
-        this.keepJigsaws = p_179669_.readBoolean();
+    public ServerboundJigsawGeneratePacket(FriendlyByteBuf pBuffer) {
+        this.pos = pBuffer.readBlockPos();
+        this.levels = pBuffer.readVarInt();
+        this.keepJigsaws = pBuffer.readBoolean();
     }
 
-    public void write(FriendlyByteBuf p_134089_) {
-        p_134089_.writeBlockPos(this.pos);
-        p_134089_.writeVarInt(this.levels);
-        p_134089_.writeBoolean(this.keepJigsaws);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBlockPos(this.pos);
+        pBuffer.writeVarInt(this.levels);
+        pBuffer.writeBoolean(this.keepJigsaws);
     }
 
-    public void handle(ServerGamePacketListener p_134086_) {
-        p_134086_.handleJigsawGenerate(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleJigsawGenerate(this);
     }
 
     public BlockPos getPos() {

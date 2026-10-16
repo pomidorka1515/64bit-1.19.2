@@ -38,80 +38,80 @@ public class EnchantmentTableBlock extends BaseEntityBlock {
                                                                    .map(BlockPos::immutable)
                                                                    .toList();
 
-    protected EnchantmentTableBlock(BlockBehaviour.Properties p_52953_) {
-        super(p_52953_);
+    protected EnchantmentTableBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
     public static boolean isValidBookShelf(Level p_207910_, BlockPos p_207911_, BlockPos p_207912_) {
         return p_207910_.getBlockState(p_207911_.offset(p_207912_)).is(Blocks.BOOKSHELF) && p_207910_.isEmptyBlock(p_207911_.offset(p_207912_.getX() / 2, p_207912_.getY(), p_207912_.getZ() / 2));
     }
 
-    public boolean useShapeForLightOcclusion(BlockState p_52997_) {
+    public boolean useShapeForLightOcclusion(BlockState pState) {
         return true;
     }
 
-    public VoxelShape getShape(BlockState p_52988_, BlockGetter p_52989_, BlockPos p_52990_, CollisionContext p_52991_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
-    public void animateTick(BlockState p_221092_, Level p_221093_, BlockPos p_221094_, RandomSource p_221095_) {
-        super.animateTick(p_221092_, p_221093_, p_221094_, p_221095_);
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
+        super.animateTick(pState, pLevel, pPos, pRandom);
 
         for (BlockPos blockpos : BOOKSHELF_OFFSETS) {
-            if (p_221095_.nextInt(16) == 0 && isValidBookShelf(p_221093_, p_221094_, blockpos)) {
-                p_221093_.addParticle(ParticleTypes.ENCHANT, SectorVec3.fromBlockAndFraction(p_221094_.getX(), 0.5D, (double) p_221094_.getY() + 2.0D, p_221094_.getZ(), 0.5D),
-                        (double) ((float) blockpos.getX() + p_221095_.nextFloat()) - 0.5D,
-                        (double) ((float) blockpos.getY() - p_221095_.nextFloat() - 1.0F),
-                        (double) ((float) blockpos.getZ() + p_221095_.nextFloat()) - 0.5D);
+            if (pRandom.nextInt(16) == 0 && isValidBookShelf(pLevel, pPos, blockpos)) {
+                pLevel.addParticle(ParticleTypes.ENCHANT, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 2.0D, pPos.getZ(), 0.5D),
+                        (double) ((float) blockpos.getX() + pRandom.nextFloat()) - 0.5D,
+                        (double) ((float) blockpos.getY() - pRandom.nextFloat() - 1.0F),
+                        (double) ((float) blockpos.getZ() + pRandom.nextFloat()) - 0.5D);
             }
         }
     }
 
-    public RenderShape getRenderShape(BlockState p_52986_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
-    public BlockEntity newBlockEntity(BlockPos p_153186_, BlockState p_153187_) {
-        return new EnchantmentTableBlockEntity(p_153186_, p_153187_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new EnchantmentTableBlockEntity(pPos, pState);
     }
 
     @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_153182_, BlockState p_153183_, BlockEntityType<T> p_153184_) {
-        return p_153182_.isClientSide ? createTickerHelper(p_153184_, BlockEntityType.ENCHANTING_TABLE, EnchantmentTableBlockEntity::bookAnimationTick) : null;
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
+        return pLevel.isClientSide ? createTickerHelper(pBlockEntityType, BlockEntityType.ENCHANTING_TABLE, EnchantmentTableBlockEntity::bookAnimationTick) : null;
     }
 
-    public InteractionResult use(BlockState p_52974_, Level p_52975_, BlockPos p_52976_, Player p_52977_, InteractionHand p_52978_, BlockHitResult p_52979_) {
-        if (p_52975_.isClientSide) {
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pLevel.isClientSide) {
             return InteractionResult.SUCCESS;
         } else {
-            p_52977_.openMenu(p_52974_.getMenuProvider(p_52975_, p_52976_));
+            pPlayer.openMenu(pState.getMenuProvider(pLevel, pPos));
             return InteractionResult.CONSUME;
         }
     }
 
     @Nullable
-    public MenuProvider getMenuProvider(BlockState p_52993_, Level p_52994_, BlockPos p_52995_) {
-        BlockEntity blockentity = p_52994_.getBlockEntity(p_52995_);
+    public MenuProvider getMenuProvider(BlockState pState, Level pLevel, BlockPos pPos) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof EnchantmentTableBlockEntity) {
             Component component = ((Nameable) blockentity).getDisplayName();
             return new SimpleMenuProvider((p_207906_, p_207907_, p_207908_) -> {
-                return new EnchantmentMenu(p_207906_, p_207907_, ContainerLevelAccess.create(p_52994_, p_52995_));
+                return new EnchantmentMenu(p_207906_, p_207907_, ContainerLevelAccess.create(pLevel, pPos));
             }, component);
         } else {
             return null;
         }
     }
 
-    public void setPlacedBy(Level p_52963_, BlockPos p_52964_, BlockState p_52965_, LivingEntity p_52966_, ItemStack p_52967_) {
-        if (p_52967_.hasCustomHoverName()) {
-            BlockEntity blockentity = p_52963_.getBlockEntity(p_52964_);
+    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, LivingEntity pPlacer, ItemStack pStack) {
+        if (pStack.hasCustomHoverName()) {
+            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
             if (blockentity instanceof EnchantmentTableBlockEntity) {
-                ((EnchantmentTableBlockEntity) blockentity).setCustomName(p_52967_.getHoverName());
+                ((EnchantmentTableBlockEntity) blockentity).setCustomName(pStack.getHoverName());
             }
         }
     }
 
-    public boolean isPathfindable(BlockState p_52969_, BlockGetter p_52970_, BlockPos p_52971_, PathComputationType p_52972_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 }

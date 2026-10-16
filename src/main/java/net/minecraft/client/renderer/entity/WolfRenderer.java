@@ -21,27 +21,27 @@ public class WolfRenderer extends MobRenderer<Wolf, WolfModel<Wolf>> {
         this.addLayer(new WolfCollarLayer(this));
     }
 
-    protected float getBob(Wolf p_116528_, float p_116529_) {
-        return p_116528_.getTailAngle();
+    protected float getBob(Wolf pLivingBase, float pPartialTicks) {
+        return pLivingBase.getTailAngle();
     }
 
-    public void render(Wolf p_116531_, float p_116532_, float p_116533_, PoseStack p_116534_, MultiBufferSource p_116535_, int p_116536_) {
-        if (p_116531_.isWet()) {
-            float f = p_116531_.getWetShade(p_116533_);
+    public void render(Wolf pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        if (pEntity.isWet()) {
+            float f = pEntity.getWetShade(pPartialTicks);
             this.model.setColor(f, f, f);
         }
 
-        super.render(p_116531_, p_116532_, p_116533_, p_116534_, p_116535_, p_116536_);
-        if (p_116531_.isWet()) {
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
+        if (pEntity.isWet()) {
             this.model.setColor(1.0F, 1.0F, 1.0F);
         }
     }
 
-    public ResourceLocation getTextureLocation(Wolf p_116526_) {
-        if (p_116526_.isTame()) {
+    public ResourceLocation getTextureLocation(Wolf pEntity) {
+        if (pEntity.isTame()) {
             return WOLF_TAME_LOCATION;
         } else {
-            return p_116526_.isAngry() ? WOLF_ANGRY_LOCATION : WOLF_LOCATION;
+            return pEntity.isAngry() ? WOLF_ANGRY_LOCATION : WOLF_LOCATION;
         }
     }
 }

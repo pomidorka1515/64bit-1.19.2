@@ -24,8 +24,8 @@ public class ThreadingDetector {
     @Nullable
     private volatile ReportedException fullException;
 
-    public ThreadingDetector(String p_199415_) {
-        this.name = p_199415_;
+    public ThreadingDetector(String pName) {
+        this.name = pName;
     }
 
     public void checkAndLock() {

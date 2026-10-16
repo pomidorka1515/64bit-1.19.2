@@ -33,20 +33,20 @@ public class VeryBiasedToBottomHeight extends HeightProvider {
         this.inner = p_162054_;
     }
 
-    public static VeryBiasedToBottomHeight of(VerticalAnchor p_162059_, VerticalAnchor p_162060_, int p_162061_) {
-        return new VeryBiasedToBottomHeight(p_162059_, p_162060_, p_162061_);
+    public static VeryBiasedToBottomHeight of(VerticalAnchor pMinInclusive, VerticalAnchor pMaxInclusive, int pInner) {
+        return new VeryBiasedToBottomHeight(pMinInclusive, pMaxInclusive, pInner);
     }
 
-    public int sample(RandomSource p_226311_, WorldGenerationContext p_226312_) {
-        int i = this.minInclusive.resolveY(p_226312_);
-        int j = this.maxInclusive.resolveY(p_226312_);
+    public int sample(RandomSource pRandom, WorldGenerationContext pContext) {
+        int i = this.minInclusive.resolveY(pContext);
+        int j = this.maxInclusive.resolveY(pContext);
         if (j - i - this.inner + 1 <= 0) {
             LOGGER.warn("Empty height range: {}", (Object) this);
             return i;
         } else {
-            int k = Mth.nextInt(p_226311_, i + this.inner, j);
-            int l = Mth.nextInt(p_226311_, i, k - 1);
-            return Mth.nextInt(p_226311_, i, l - 1 + this.inner);
+            int k = Mth.nextInt(pRandom, i + this.inner, j);
+            int l = Mth.nextInt(pRandom, i, k - 1);
+            return Mth.nextInt(pRandom, i, l - 1 + this.inner);
         }
     }
 

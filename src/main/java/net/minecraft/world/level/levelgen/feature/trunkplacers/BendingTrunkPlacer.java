@@ -39,21 +39,21 @@ public class BendingTrunkPlacer extends TrunkPlacer {
         return TrunkPlacerType.BENDING_TRUNK_PLACER;
     }
 
-    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader p_226079_, BiConsumer<BlockPos, BlockState> p_226080_, RandomSource p_226081_, int p_226082_, BlockPos p_226083_, TreeConfiguration p_226084_) {
-        Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_226081_);
-        int i = p_226082_ - 1;
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_226083_.mutable();
+    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, int pFreeTreeHeight, BlockPos pPos, TreeConfiguration pConfig) {
+        Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(pRandom);
+        int i = pFreeTreeHeight - 1;
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable();
         BlockPos blockpos = blockpos$mutableblockpos.below();
-        setDirtAt(p_226079_, p_226080_, p_226081_, blockpos, p_226084_);
+        setDirtAt(pLevel, pBlockSetter, pRandom, blockpos, pConfig);
         List<FoliagePlacer.FoliageAttachment> list = Lists.newArrayList();
 
         for (int j = 0; j <= i; ++j) {
-            if (j + 1 >= i + p_226081_.nextInt(2)) {
+            if (j + 1 >= i + pRandom.nextInt(2)) {
                 blockpos$mutableblockpos.move(direction);
             }
 
-            if (TreeFeature.validTreePos(p_226079_, blockpos$mutableblockpos)) {
-                this.placeLog(p_226079_, p_226080_, p_226081_, blockpos$mutableblockpos, p_226084_);
+            if (TreeFeature.validTreePos(pLevel, blockpos$mutableblockpos)) {
+                this.placeLog(pLevel, pBlockSetter, pRandom, blockpos$mutableblockpos, pConfig);
             }
 
             if (j >= this.minHeightForLeaves) {
@@ -63,11 +63,11 @@ public class BendingTrunkPlacer extends TrunkPlacer {
             blockpos$mutableblockpos.move(Direction.UP);
         }
 
-        int l = this.bendLength.sample(p_226081_);
+        int l = this.bendLength.sample(pRandom);
 
         for (int k = 0; k <= l; ++k) {
-            if (TreeFeature.validTreePos(p_226079_, blockpos$mutableblockpos)) {
-                this.placeLog(p_226079_, p_226080_, p_226081_, blockpos$mutableblockpos, p_226084_);
+            if (TreeFeature.validTreePos(pLevel, blockpos$mutableblockpos)) {
+                this.placeLog(pLevel, pBlockSetter, pRandom, blockpos$mutableblockpos, pConfig);
             }
 
             list.add(new FoliagePlacer.FoliageAttachment(blockpos$mutableblockpos.immutable(), 0, false));

@@ -8,8 +8,8 @@ import java.util.Locale;
 import java.util.Optional;
 
 public class OptionsLowerCaseLanguageFix extends DataFix {
-    public OptionsLowerCaseLanguageFix(Schema p_16659_, boolean p_16660_) {
-        super(p_16659_, p_16660_);
+    public OptionsLowerCaseLanguageFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

@@ -10,8 +10,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 public class KickCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> p_137796_) {
-        p_137796_.register(Commands.literal("kick").requires((p_137800_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("kick").requires((p_137800_) -> {
                                                        return p_137800_.hasPermission(3);
                                                    })
                         .then(Commands.argument("targets", EntityArgument.players()).executes((p_137806_) -> {
@@ -22,12 +22,12 @@ public class KickCommand {
                                         }))));
     }
 
-    private static int kickPlayers(CommandSourceStack p_137802_, Collection<ServerPlayer> p_137803_, Component p_137804_) {
-        for (ServerPlayer serverplayer : p_137803_) {
-            serverplayer.connection.disconnect(p_137804_);
-            p_137802_.sendSuccess(Component.translatable("commands.kick.success", serverplayer.getDisplayName(), p_137804_), true);
+    private static int kickPlayers(CommandSourceStack pSource, Collection<ServerPlayer> pPlayers, Component pReason) {
+        for (ServerPlayer serverplayer : pPlayers) {
+            serverplayer.connection.disconnect(pReason);
+            pSource.sendSuccess(Component.translatable("commands.kick.success", serverplayer.getDisplayName(), pReason), true);
         }
 
-        return p_137803_.size();
+        return pPlayers.size();
     }
 }

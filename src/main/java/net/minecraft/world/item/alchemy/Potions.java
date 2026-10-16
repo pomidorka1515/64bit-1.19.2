@@ -49,7 +49,7 @@ public class Potions {
     public static final Potion SLOW_FALLING = register("slow_falling", new Potion(new MobEffectInstance(MobEffects.SLOW_FALLING, 1800)));
     public static final Potion LONG_SLOW_FALLING = register("long_slow_falling", new Potion("slow_falling", new MobEffectInstance(MobEffects.SLOW_FALLING, 4800)));
 
-    private static Potion register(String p_43626_, Potion p_43627_) {
-        return Registry.register(Registry.POTION, p_43626_, p_43627_);
+    private static Potion register(String pKey, Potion pPotion) {
+        return Registry.register(Registry.POTION, pKey, pPotion);
     }
 }

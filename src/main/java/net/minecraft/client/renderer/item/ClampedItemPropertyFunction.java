@@ -12,9 +12,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public interface ClampedItemPropertyFunction extends ItemPropertyFunction {
     /** @deprecated */
     @Deprecated
-    default float call(ItemStack p_174560_, @Nullable ClientLevel p_174561_, @Nullable LivingEntity p_174562_, int p_174563_) {
-        return Mth.clamp(this.unclampedCall(p_174560_, p_174561_, p_174562_, p_174563_), 0.0F, 1.0F);
+    default float call(ItemStack pStack, @Nullable ClientLevel pLevel, @Nullable LivingEntity pEntity, int pSeed) {
+        return Mth.clamp(this.unclampedCall(pStack, pLevel, pEntity, pSeed), 0.0F, 1.0F);
     }
 
-    float unclampedCall(ItemStack p_174564_, @Nullable ClientLevel p_174565_, @Nullable LivingEntity p_174566_, int p_174567_);
+    float unclampedCall(ItemStack pStack, @Nullable ClientLevel pLevel, @Nullable LivingEntity pEntity, int pSeed);
 }

@@ -28,37 +28,37 @@ public class EnderChestBlockEntity extends BlockEntity implements LidBlockEntity
         }
     };
 
-    public EnderChestBlockEntity(BlockPos p_155513_, BlockState p_155514_) {
-        super(BlockEntityType.ENDER_CHEST, p_155513_, p_155514_);
+    public EnderChestBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.ENDER_CHEST, pPos, pBlockState);
     }
 
-    public static void lidAnimateTick(Level p_155518_, BlockPos p_155519_, BlockState p_155520_, EnderChestBlockEntity p_155521_) {
-        p_155521_.chestLidController.tickLid();
+    public static void lidAnimateTick(Level pLevel, BlockPos pPos, BlockState pState, EnderChestBlockEntity pBlockEntity) {
+        pBlockEntity.chestLidController.tickLid();
     }
 
-    public boolean triggerEvent(int p_59285_, int p_59286_) {
-        if (p_59285_ == 1) {
-            this.chestLidController.shouldBeOpen(p_59286_ > 0);
+    public boolean triggerEvent(int pId, int pType) {
+        if (pId == 1) {
+            this.chestLidController.shouldBeOpen(pType > 0);
             return true;
         } else {
-            return super.triggerEvent(p_59285_, p_59286_);
+            return super.triggerEvent(pId, pType);
         }
     }
 
-    public void startOpen(Player p_155516_) {
-        if (!this.remove && !p_155516_.isSpectator()) {
-            this.openersCounter.incrementOpeners(p_155516_, this.getLevel(), this.getBlockPos(), this.getBlockState());
+    public void startOpen(Player pPlayer) {
+        if (!this.remove && !pPlayer.isSpectator()) {
+            this.openersCounter.incrementOpeners(pPlayer, this.getLevel(), this.getBlockPos(), this.getBlockState());
         }
     }
 
-    public void stopOpen(Player p_155523_) {
-        if (!this.remove && !p_155523_.isSpectator()) {
-            this.openersCounter.decrementOpeners(p_155523_, this.getLevel(), this.getBlockPos(), this.getBlockState());
+    public void stopOpen(Player pPlayer) {
+        if (!this.remove && !pPlayer.isSpectator()) {
+            this.openersCounter.decrementOpeners(pPlayer, this.getLevel(), this.getBlockPos(), this.getBlockState());
         }
     }
 
-    public boolean stillValid(Player p_59283_) {
-        return this.level.getBlockEntity(this.worldPosition) == this && this.isWithinUsableDistance(p_59283_, 8.0D);
+    public boolean stillValid(Player pPlayer) {
+        return this.level.getBlockEntity(this.worldPosition) == this && this.isWithinUsableDistance(pPlayer, 8.0D);
     }
 
     public void recheckOpen() {
@@ -67,7 +67,7 @@ public class EnderChestBlockEntity extends BlockEntity implements LidBlockEntity
         }
     }
 
-    public float getOpenNess(float p_59281_) {
-        return this.chestLidController.getOpenness(p_59281_);
+    public float getOpenNess(float pPartialTicks) {
+        return this.chestLidController.getOpenness(pPartialTicks);
     }
 }

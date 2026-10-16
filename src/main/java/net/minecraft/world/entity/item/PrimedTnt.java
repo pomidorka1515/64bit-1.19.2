@@ -23,19 +23,19 @@ public class PrimedTnt extends Entity {
     @Nullable
     private LivingEntity owner;
 
-    public PrimedTnt(EntityType<? extends PrimedTnt> p_32076_, Level p_32077_) {
-        super(p_32076_, p_32077_);
+    public PrimedTnt(EntityType<? extends PrimedTnt> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.blocksBuilding = true;
     }
 
-    public PrimedTnt(Level p_32079_, double p_32080_, double p_32081_, double p_32082_, @Nullable LivingEntity p_32083_) {
-        this(EntityType.TNT, p_32079_);
-        this.setPos(p_32080_, p_32081_, p_32082_);
-        double d0 = p_32079_.random.nextDouble() * (double) ((float) Math.PI * 2F);
+    public PrimedTnt(Level pLevel, double pX, double pY, double pZ, @Nullable LivingEntity pOwner) {
+        this(EntityType.TNT, pLevel);
+        this.setPos(pX, pY, pZ);
+        double d0 = pLevel.random.nextDouble() * (double) ((float) Math.PI * 2F);
         this.setDeltaMovement(-Math.sin(d0) * 0.02D, (double) 0.2F, -Math.cos(d0) * 0.02D);
         this.setFuse(80);
         this.setOldPosAndRot();
-        this.owner = p_32083_;
+        this.owner = pOwner;
     }
 
     protected void defineSynchedData() {
@@ -83,12 +83,12 @@ public class PrimedTnt extends Entity {
                 4.0F, Explosion.BlockInteraction.BREAK);
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_32097_) {
-        p_32097_.putShort("Fuse", (short) this.getFuse());
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        pCompound.putShort("Fuse", (short) this.getFuse());
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_32091_) {
-        this.setFuse(p_32091_.getShort("Fuse"));
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        this.setFuse(pCompound.getShort("Fuse"));
     }
 
     @Nullable
@@ -96,12 +96,12 @@ public class PrimedTnt extends Entity {
         return this.owner;
     }
 
-    protected float getEyeHeight(Pose p_32088_, EntityDimensions p_32089_) {
+    protected float getEyeHeight(Pose pPose, EntityDimensions pSize) {
         return 0.15F;
     }
 
-    public void setFuse(int p_32086_) {
-        this.entityData.set(DATA_FUSE_ID, p_32086_);
+    public void setFuse(int pLife) {
+        this.entityData.set(DATA_FUSE_ID, pLife);
     }
 
     public int getFuse() {

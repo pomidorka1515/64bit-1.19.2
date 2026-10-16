@@ -18,9 +18,9 @@ public class TridentModel extends Model {
     public static final ResourceLocation TEXTURE = new ResourceLocation("textures/entity/trident.png");
     private final ModelPart root;
 
-    public TridentModel(ModelPart p_171016_) {
+    public TridentModel(ModelPart pRoot) {
         super(RenderType::entitySolid);
-        this.root = p_171016_;
+        this.root = pRoot;
     }
 
     public static LayerDefinition createLayer() {
@@ -34,7 +34,7 @@ public class TridentModel extends Model {
         return LayerDefinition.create(meshdefinition, 32, 32);
     }
 
-    public void renderToBuffer(PoseStack p_103919_, VertexConsumer p_103920_, int p_103921_, int p_103922_, float p_103923_, float p_103924_, float p_103925_, float p_103926_) {
-        this.root.render(p_103919_, p_103920_, p_103921_, p_103922_, p_103923_, p_103924_, p_103925_, p_103926_);
+    public void renderToBuffer(PoseStack pPoseStack, VertexConsumer pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {
+        this.root.render(pPoseStack, pBuffer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
     }
 }

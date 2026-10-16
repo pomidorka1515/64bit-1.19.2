@@ -63,17 +63,17 @@ public class SinglePoolElement extends StructurePoolElement {
         this.processors = p_210416_;
     }
 
-    public SinglePoolElement(StructureTemplate p_210419_) {
-        this(Either.right(p_210419_), ProcessorLists.EMPTY, StructureTemplatePool.Projection.RIGID);
+    public SinglePoolElement(StructureTemplate pStructureTemplate) {
+        this(Either.right(pStructureTemplate), ProcessorLists.EMPTY, StructureTemplatePool.Projection.RIGID);
     }
 
-    public Vec3i getSize(StructureTemplateManager p_227313_, Rotation p_227314_) {
-        StructureTemplate structuretemplate = this.getTemplate(p_227313_);
-        return structuretemplate.getSize(p_227314_);
+    public Vec3i getSize(StructureTemplateManager pStructureTemplateManager, Rotation pRotation) {
+        StructureTemplate structuretemplate = this.getTemplate(pStructureTemplateManager);
+        return structuretemplate.getSize(pRotation);
     }
 
-    private StructureTemplate getTemplate(StructureTemplateManager p_227300_) {
-        return this.template.map(p_227300_::getOrCreate, Function.identity());
+    private StructureTemplate getTemplate(StructureTemplateManager pStructureTemplateManager) {
+        return this.template.map(pStructureTemplateManager::getOrCreate, Function.identity());
     }
 
     public List<StructureTemplate.StructureBlockInfo> getDataMarkers(StructureTemplateManager p_227325_, BlockPos p_227326_, Rotation p_227327_, boolean p_227328_) {

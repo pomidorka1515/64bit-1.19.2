@@ -12,8 +12,8 @@ import java.util.Set;
 public class WallPropertyFix extends DataFix {
     private static final Set<String> WALL_BLOCKS = ImmutableSet.of("minecraft:andesite_wall", "minecraft:brick_wall", "minecraft:cobblestone_wall", "minecraft:diorite_wall", "minecraft:end_stone_brick_wall", "minecraft:granite_wall", "minecraft:mossy_cobblestone_wall", "minecraft:mossy_stone_brick_wall", "minecraft:nether_brick_wall", "minecraft:prismarine_wall", "minecraft:red_nether_brick_wall", "minecraft:red_sandstone_wall", "minecraft:sandstone_wall", "minecraft:stone_brick_wall");
 
-    public WallPropertyFix(Schema p_17154_, boolean p_17155_) {
-        super(p_17154_, p_17155_);
+    public WallPropertyFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

@@ -13,23 +13,23 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 
 public record EntityDataSource(String selectorPattern, @Nullable EntitySelector compiledSelector) implements DataSource {
-    public EntityDataSource(String p_237330_) {
-        this(p_237330_, compileSelector(p_237330_));
+    public EntityDataSource(String pSelectorPattern) {
+        this(pSelectorPattern, compileSelector(pSelectorPattern));
     }
 
     @Nullable
-    private static EntitySelector compileSelector(String p_237336_) {
+    private static EntitySelector compileSelector(String pSelectorPattern) {
         try {
-            EntitySelectorParser entityselectorparser = new EntitySelectorParser(new StringReader(p_237336_));
+            EntitySelectorParser entityselectorparser = new EntitySelectorParser(new StringReader(pSelectorPattern));
             return entityselectorparser.parse();
         } catch (CommandSyntaxException commandsyntaxexception) {
             return null;
         }
     }
 
-    public Stream<CompoundTag> getData(CommandSourceStack p_237341_) throws CommandSyntaxException {
+    public Stream<CompoundTag> getData(CommandSourceStack pSource) throws CommandSyntaxException {
         if (this.compiledSelector != null) {
-            List<? extends Entity> list = this.compiledSelector.findEntities(p_237341_);
+            List<? extends Entity> list = this.compiledSelector.findEntities(pSource);
             return list.stream().map(NbtPredicate::getEntityTagToCompare);
         } else {
             return Stream.empty();
@@ -40,12 +40,12 @@ public record EntityDataSource(String selectorPattern, @Nullable EntitySelector 
         return "entity=" + this.selectorPattern;
     }
 
-    public boolean equals(Object p_237339_) {
-        if (this == p_237339_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            if (p_237339_ instanceof EntityDataSource) {
-                EntityDataSource entitydatasource = (EntityDataSource) p_237339_;
+            if (pOther instanceof EntityDataSource) {
+                EntityDataSource entitydatasource = (EntityDataSource) pOther;
                 if (this.selectorPattern.equals(entitydatasource.selectorPattern)) {
                     return true;
                 }

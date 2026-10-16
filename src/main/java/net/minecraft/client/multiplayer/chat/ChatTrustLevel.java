@@ -18,23 +18,23 @@ public enum ChatTrustLevel {
     NOT_SECURE,
     BROKEN_CHAIN;
 
-    public static ChatTrustLevel evaluate(PlayerChatMessage p_240613_, Component p_240570_, @Nullable PlayerInfo p_240623_, Instant p_242386_) {
-        if (p_240623_ == null) {
+    public static ChatTrustLevel evaluate(PlayerChatMessage pChatMessage, Component pDecoratedServerContent, @Nullable PlayerInfo pPlayerInfo, Instant pTimestamp) {
+        if (pPlayerInfo == null) {
             return NOT_SECURE;
         } else {
-            SignedMessageValidator.State signedmessagevalidator$state = p_240623_.getMessageValidator().validateMessage(p_240613_);
+            SignedMessageValidator.State signedmessagevalidator$state = pPlayerInfo.getMessageValidator().validateMessage(pChatMessage);
             if (signedmessagevalidator$state == SignedMessageValidator.State.BROKEN_CHAIN) {
                 return BROKEN_CHAIN;
             } else if (signedmessagevalidator$state == SignedMessageValidator.State.NOT_SECURE) {
                 return NOT_SECURE;
-            } else if (p_240613_.hasExpiredClient(p_242386_)) {
+            } else if (pChatMessage.hasExpiredClient(pTimestamp)) {
                 return NOT_SECURE;
-            } else if (!p_240613_.filterMask().isEmpty()) {
+            } else if (!pChatMessage.filterMask().isEmpty()) {
                 return FILTERED;
-            } else if (p_240613_.unsignedContent().isPresent()) {
+            } else if (pChatMessage.unsignedContent().isPresent()) {
                 return MODIFIED;
             } else {
-                return !p_240570_.contains(p_240613_.signedContent().decorated()) ? MODIFIED : SECURE;
+                return !pDecoratedServerContent.contains(pChatMessage.signedContent().decorated()) ? MODIFIED : SECURE;
             }
         }
     }
@@ -44,11 +44,11 @@ public enum ChatTrustLevel {
     }
 
     @Nullable
-    public GuiMessageTag createTag(PlayerChatMessage p_240632_) {
+    public GuiMessageTag createTag(PlayerChatMessage pChatMessage) {
         GuiMessageTag guimessagetag;
         switch (this) {
             case MODIFIED:
-                guimessagetag = GuiMessageTag.chatModified(p_240632_.signedContent().plain());
+                guimessagetag = GuiMessageTag.chatModified(pChatMessage.signedContent().plain());
                 break;
             case FILTERED:
                 guimessagetag = GuiMessageTag.chatFiltered();

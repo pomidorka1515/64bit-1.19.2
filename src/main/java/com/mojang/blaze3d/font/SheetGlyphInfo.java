@@ -9,7 +9,7 @@ public interface SheetGlyphInfo {
 
     int getPixelHeight();
 
-    void upload(int p_231092_, int p_231093_);
+    void upload(int pXOffset, int pYOffset);
 
     boolean isColored();
 

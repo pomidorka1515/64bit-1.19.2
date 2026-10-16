@@ -31,26 +31,26 @@ public class SnbtToNbt implements DataProvider {
     private final DataGenerator generator;
     private final List<SnbtToNbt.Filter> filters = Lists.newArrayList();
 
-    public SnbtToNbt(DataGenerator p_126448_) {
-        this.generator = p_126448_;
+    public SnbtToNbt(DataGenerator pGenerator) {
+        this.generator = pGenerator;
     }
 
-    public SnbtToNbt addFilter(SnbtToNbt.Filter p_126476_) {
-        this.filters.add(p_126476_);
+    public SnbtToNbt addFilter(SnbtToNbt.Filter pFilter) {
+        this.filters.add(pFilter);
         return this;
     }
 
-    private CompoundTag applyFilters(String p_126461_, CompoundTag p_126462_) {
-        CompoundTag compoundtag = p_126462_;
+    private CompoundTag applyFilters(String pFileName, CompoundTag pTag) {
+        CompoundTag compoundtag = pTag;
 
         for (SnbtToNbt.Filter snbttonbt$filter : this.filters) {
-            compoundtag = snbttonbt$filter.apply(p_126461_, compoundtag);
+            compoundtag = snbttonbt$filter.apply(pFileName, compoundtag);
         }
 
         return compoundtag;
     }
 
-    public void run(CachedOutput p_236392_) throws IOException {
+    public void run(CachedOutput pOutput) throws IOException {
         Path path = this.generator.getOutputFolder();
         List<CompletableFuture<SnbtToNbt.TaskResult>> list = Lists.newArrayList();
 
@@ -69,7 +69,7 @@ public class SnbtToNbt implements DataProvider {
 
         for (CompletableFuture<SnbtToNbt.TaskResult> completablefuture : list) {
             try {
-                this.storeStructureIfChanged(p_236392_, completablefuture.get(), path);
+                this.storeStructureIfChanged(pOutput, completablefuture.get(), path);
             } catch (Exception exception) {
                 LOGGER.error("Failed to process structure", (Throwable) exception);
                 flag = true;
@@ -85,19 +85,19 @@ public class SnbtToNbt implements DataProvider {
         return "SNBT -> NBT";
     }
 
-    private String getName(Path p_126469_, Path p_126470_) {
-        String s = p_126469_.relativize(p_126470_).toString().replaceAll("\\\\", "/");
+    private String getName(Path pInputFolder, Path pFile) {
+        String s = pInputFolder.relativize(pFile).toString().replaceAll("\\\\", "/");
         return s.substring(0, s.length() - ".snbt".length());
     }
 
-    private SnbtToNbt.TaskResult readStructure(Path p_126466_, String p_126467_) {
+    private SnbtToNbt.TaskResult readStructure(Path pFilePath, String pFileName) {
         try {
-            BufferedReader bufferedreader = Files.newBufferedReader(p_126466_);
+            BufferedReader bufferedreader = Files.newBufferedReader(pFilePath);
 
             SnbtToNbt.TaskResult snbttonbt$taskresult;
             try {
                 String s = IOUtils.toString((Reader) bufferedreader);
-                CompoundTag compoundtag = this.applyFilters(p_126467_, NbtUtils.snbtToStructure(s));
+                CompoundTag compoundtag = this.applyFilters(pFileName, NbtUtils.snbtToStructure(s));
                 ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
                 HashingOutputStream hashingoutputstream = new HashingOutputStream(Hashing.sha1(), bytearrayoutputstream);
                 NbtIo.writeCompressed(compoundtag, hashingoutputstream);
@@ -110,7 +110,7 @@ public class SnbtToNbt implements DataProvider {
                     s1 = null;
                 }
 
-                snbttonbt$taskresult = new SnbtToNbt.TaskResult(p_126467_, abyte, s1, hashcode);
+                snbttonbt$taskresult = new SnbtToNbt.TaskResult(pFileName, abyte, s1, hashcode);
             } catch (Throwable throwable1) {
                 if (bufferedreader != null) {
                     try {
@@ -129,38 +129,38 @@ public class SnbtToNbt implements DataProvider {
 
             return snbttonbt$taskresult;
         } catch (Throwable throwable2) {
-            throw new SnbtToNbt.StructureConversionException(p_126466_, throwable2);
+            throw new SnbtToNbt.StructureConversionException(pFilePath, throwable2);
         }
     }
 
-    private void storeStructureIfChanged(CachedOutput p_236394_, SnbtToNbt.TaskResult p_236395_, Path p_236396_) {
-        if (p_236395_.snbtPayload != null) {
-            Path path = DUMP_SNBT_TO.resolve(p_236395_.name + ".snbt");
+    private void storeStructureIfChanged(CachedOutput pOutput, SnbtToNbt.TaskResult pTaskResult, Path pDirectoryPath) {
+        if (pTaskResult.snbtPayload != null) {
+            Path path = DUMP_SNBT_TO.resolve(pTaskResult.name + ".snbt");
 
             try {
-                NbtToSnbt.writeSnbt(CachedOutput.NO_CACHE, path, p_236395_.snbtPayload);
+                NbtToSnbt.writeSnbt(CachedOutput.NO_CACHE, path, pTaskResult.snbtPayload);
             } catch (IOException ioexception1) {
-                LOGGER.error("Couldn't write structure SNBT {} at {}", p_236395_.name, path, ioexception1);
+                LOGGER.error("Couldn't write structure SNBT {} at {}", pTaskResult.name, path, ioexception1);
             }
         }
 
-        Path path1 = p_236396_.resolve(p_236395_.name + ".nbt");
+        Path path1 = pDirectoryPath.resolve(pTaskResult.name + ".nbt");
 
         try {
-            p_236394_.writeIfNeeded(path1, p_236395_.payload, p_236395_.hash);
+            pOutput.writeIfNeeded(path1, pTaskResult.payload, pTaskResult.hash);
         } catch (IOException ioexception) {
-            LOGGER.error("Couldn't write structure {} at {}", p_236395_.name, path1, ioexception);
+            LOGGER.error("Couldn't write structure {} at {}", pTaskResult.name, path1, ioexception);
         }
     }
 
     @FunctionalInterface
     public interface Filter {
-        CompoundTag apply(String p_126480_, CompoundTag p_126481_);
+        CompoundTag apply(String pStructureLocationPath, CompoundTag pTag);
     }
 
     static class StructureConversionException extends RuntimeException {
-        public StructureConversionException(Path p_176820_, Throwable p_176821_) {
-            super(p_176820_.toAbsolutePath().toString(), p_176821_);
+        public StructureConversionException(Path pPath, Throwable pCause) {
+            super(pPath.toAbsolutePath().toString(), pCause);
         }
     }
 

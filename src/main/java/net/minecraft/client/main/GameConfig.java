@@ -19,12 +19,12 @@ public class GameConfig {
     public final GameConfig.GameData game;
     public final GameConfig.ServerData server;
 
-    public GameConfig(GameConfig.UserData p_101911_, DisplayData p_101912_, GameConfig.FolderData p_101913_, GameConfig.GameData p_101914_, GameConfig.ServerData p_101915_) {
-        this.user = p_101911_;
-        this.display = p_101912_;
-        this.location = p_101913_;
-        this.game = p_101914_;
-        this.server = p_101915_;
+    public GameConfig(GameConfig.UserData pUser, DisplayData pDisplay, GameConfig.FolderData pLocation, GameConfig.GameData pGame, GameConfig.ServerData pServer) {
+        this.user = pUser;
+        this.display = pDisplay;
+        this.location = pLocation;
+        this.game = pGame;
+        this.server = pServer;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -35,11 +35,11 @@ public class GameConfig {
         @Nullable
         public final String assetIndex;
 
-        public FolderData(File p_101921_, File p_101922_, File p_101923_, @Nullable String p_101924_) {
-            this.gameDirectory = p_101921_;
-            this.resourcePackDirectory = p_101922_;
-            this.assetDirectory = p_101923_;
-            this.assetIndex = p_101924_;
+        public FolderData(File pGameDirectory, File pResourcePackDirectory, File pAssetDirectory, @Nullable String pAssetIndex) {
+            this.gameDirectory = pGameDirectory;
+            this.resourcePackDirectory = pResourcePackDirectory;
+            this.assetDirectory = pAssetDirectory;
+            this.assetIndex = pAssetIndex;
         }
 
         public AssetIndex getAssetIndex() {
@@ -55,12 +55,12 @@ public class GameConfig {
         public final boolean disableMultiplayer;
         public final boolean disableChat;
 
-        public GameData(boolean p_101932_, String p_101933_, String p_101934_, boolean p_101935_, boolean p_101936_) {
-            this.demo = p_101932_;
-            this.launchVersion = p_101933_;
-            this.versionType = p_101934_;
-            this.disableMultiplayer = p_101935_;
-            this.disableChat = p_101936_;
+        public GameData(boolean pDemo, String pLaunchVersion, String pVersionType, boolean pDisableMultiplayer, boolean pDisableChat) {
+            this.demo = pDemo;
+            this.launchVersion = pLaunchVersion;
+            this.versionType = pVersionType;
+            this.disableMultiplayer = pDisableMultiplayer;
+            this.disableChat = pDisableChat;
         }
     }
 
@@ -70,9 +70,9 @@ public class GameConfig {
         public final String hostname;
         public final int port;
 
-        public ServerData(@Nullable String p_101940_, int p_101941_) {
-            this.hostname = p_101940_;
-            this.port = p_101941_;
+        public ServerData(@Nullable String pHostname, int pPort) {
+            this.hostname = pHostname;
+            this.port = pPort;
         }
     }
 
@@ -83,11 +83,11 @@ public class GameConfig {
         public final PropertyMap profileProperties;
         public final Proxy proxy;
 
-        public UserData(User p_101947_, PropertyMap p_101948_, PropertyMap p_101949_, Proxy p_101950_) {
-            this.user = p_101947_;
-            this.userProperties = p_101948_;
-            this.profileProperties = p_101949_;
-            this.proxy = p_101950_;
+        public UserData(User pUser, PropertyMap pUserProperties, PropertyMap pProfileProperties, Proxy pProxy) {
+            this.user = pUser;
+            this.userProperties = pUserProperties;
+            this.profileProperties = pProfileProperties;
+            this.proxy = pProxy;
         }
     }
 }

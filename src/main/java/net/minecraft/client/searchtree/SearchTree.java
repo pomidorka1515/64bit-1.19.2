@@ -6,5 +6,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface SearchTree<T> {
-    List<T> search(String p_119955_);
+    List<T> search(String pQuery);
 }

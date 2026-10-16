@@ -33,57 +33,57 @@ public class LightBlock extends Block implements SimpleWaterloggedBlock {
         return p_153701_.getValue(LEVEL);
     };
 
-    public LightBlock(BlockBehaviour.Properties p_153662_) {
-        super(p_153662_);
+    public LightBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(LEVEL, Integer.valueOf(15)).setValue(WATERLOGGED, Boolean.valueOf(false)));
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_153687_) {
-        p_153687_.add(LEVEL, WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(LEVEL, WATERLOGGED);
     }
 
-    public InteractionResult use(BlockState p_153673_, Level p_153674_, BlockPos p_153675_, Player p_153676_, InteractionHand p_153677_, BlockHitResult p_153678_) {
-        if (!p_153674_.isClientSide) {
-            p_153674_.setBlock(p_153675_, p_153673_.cycle(LEVEL), 2);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (!pLevel.isClientSide) {
+            pLevel.setBlock(pPos, pState.cycle(LEVEL), 2);
             return InteractionResult.SUCCESS;
         } else {
             return InteractionResult.CONSUME;
         }
     }
 
-    public VoxelShape getShape(BlockState p_153668_, BlockGetter p_153669_, BlockPos p_153670_, CollisionContext p_153671_) {
-        return p_153671_.isHoldingItem(Items.LIGHT) ? Shapes.block() : Shapes.empty();
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return pContext.isHoldingItem(Items.LIGHT) ? Shapes.block() : Shapes.empty();
     }
 
-    public boolean propagatesSkylightDown(BlockState p_153695_, BlockGetter p_153696_, BlockPos p_153697_) {
+    public boolean propagatesSkylightDown(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
         return true;
     }
 
-    public RenderShape getRenderShape(BlockState p_153693_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.INVISIBLE;
     }
 
-    public float getShadeBrightness(BlockState p_153689_, BlockGetter p_153690_, BlockPos p_153691_) {
+    public float getShadeBrightness(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
         return 1.0F;
     }
 
-    public BlockState updateShape(BlockState p_153680_, Direction p_153681_, BlockState p_153682_, LevelAccessor p_153683_, BlockPos p_153684_, BlockPos p_153685_) {
-        if (p_153680_.getValue(WATERLOGGED)) {
-            p_153683_.scheduleTick(p_153684_, Fluids.WATER, Fluids.WATER.getTickDelay(p_153683_));
+    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return super.updateShape(p_153680_, p_153681_, p_153682_, p_153683_, p_153684_, p_153685_);
+        return super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
     }
 
-    public FluidState getFluidState(BlockState p_153699_) {
-        return p_153699_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_153699_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public ItemStack getCloneItemStack(BlockGetter p_153664_, BlockPos p_153665_, BlockState p_153666_) {
-        ItemStack itemstack = super.getCloneItemStack(p_153664_, p_153665_, p_153666_);
-        if (p_153666_.getValue(LEVEL) != 15) {
+    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
+        ItemStack itemstack = super.getCloneItemStack(pLevel, pPos, pState);
+        if (pState.getValue(LEVEL) != 15) {
             CompoundTag compoundtag = new CompoundTag();
-            compoundtag.putString(LEVEL.getName(), String.valueOf((Object) p_153666_.getValue(LEVEL)));
+            compoundtag.putString(LEVEL.getName(), String.valueOf((Object) pState.getValue(LEVEL)));
             itemstack.addTagElement("BlockStateTag", compoundtag);
         }
 

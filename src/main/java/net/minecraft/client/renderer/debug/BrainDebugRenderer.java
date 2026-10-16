@@ -71,8 +71,8 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     @Nullable
     private UUID lastLookedAtUuid;
 
-    public BrainDebugRenderer(Minecraft p_113200_) {
-        this.minecraft = p_113200_;
+    public BrainDebugRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
     public void clear() {
@@ -81,39 +81,39 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         this.lastLookedAtUuid = null;
     }
 
-    public void addPoi(BrainDebugRenderer.PoiInfo p_113227_) {
-        this.pois.put(p_113227_.pos, p_113227_);
+    public void addPoi(BrainDebugRenderer.PoiInfo pPoiInfo) {
+        this.pois.put(pPoiInfo.pos, pPoiInfo);
     }
 
-    public void removePoi(BlockPos p_113229_) {
-        this.pois.remove(p_113229_);
+    public void removePoi(BlockPos pPos) {
+        this.pois.remove(pPos);
     }
 
-    public void setFreeTicketCount(BlockPos p_113231_, int p_113232_) {
-        BrainDebugRenderer.PoiInfo braindebugrenderer$poiinfo = this.pois.get(p_113231_);
+    public void setFreeTicketCount(BlockPos pPos, int pFreeTicketCount) {
+        BrainDebugRenderer.PoiInfo braindebugrenderer$poiinfo = this.pois.get(pPos);
         if (braindebugrenderer$poiinfo == null) {
-            LOGGER.warn("Strange, setFreeTicketCount was called for an unknown POI: {}", (Object) p_113231_);
+            LOGGER.warn("Strange, setFreeTicketCount was called for an unknown POI: {}", (Object) pPos);
         } else {
-            braindebugrenderer$poiinfo.freeTicketCount = p_113232_;
+            braindebugrenderer$poiinfo.freeTicketCount = pFreeTicketCount;
         }
     }
 
-    public void addOrUpdateBrainDump(BrainDebugRenderer.BrainDump p_113220_) {
-        this.brainDumpsPerEntity.put(p_113220_.uuid, p_113220_);
+    public void addOrUpdateBrainDump(BrainDebugRenderer.BrainDump pBrainDump) {
+        this.brainDumpsPerEntity.put(pBrainDump.uuid, pBrainDump);
     }
 
-    public void removeBrainDump(int p_173811_) {
+    public void removeBrainDump(int pId) {
         this.brainDumpsPerEntity.values().removeIf((p_173814_) -> {
-            return p_173814_.id == p_173811_;
+            return p_173814_.id == pId;
         });
     }
 
-    public void render(PoseStack p_113214_, MultiBufferSource p_113215_, double p_113216_, double p_113217_, double p_113218_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableTexture();
         this.clearRemovedEntities();
-        this.doRender(p_113216_, p_113217_, p_113218_);
+        this.doRender(pCamX, pCamY, pCamZ);
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
         if (!this.minecraft.player.isSpectator()) {
@@ -128,11 +128,11 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         });
     }
 
-    private void doRender(double p_113203_, double p_113204_, double p_113205_) {
-        BlockPos blockpos = new BlockPos(p_113203_, p_113204_, p_113205_);
+    private void doRender(double pX, double pY, double pZ) {
+        BlockPos blockpos = new BlockPos(pX, pY, pZ);
         this.brainDumpsPerEntity.values().forEach((p_113210_) -> {
             if (this.isPlayerCloseEnoughToMob(p_113210_)) {
-                this.renderBrainInfo(p_113210_, p_113203_, p_113204_, p_113205_);
+                this.renderBrainInfo(p_113210_, pX, pY, pZ);
             }
         });
 
@@ -154,102 +154,102 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         });
     }
 
-    private static void highlightPoi(BlockPos p_113275_) {
+    private static void highlightPoi(BlockPos pPos) {
         float f = 0.05F;
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        DebugRenderer.renderFilledBox(p_113275_, 0.05F, 0.2F, 0.2F, 1.0F, 0.3F);
+        DebugRenderer.renderFilledBox(pPos, 0.05F, 0.2F, 0.2F, 1.0F, 0.3F);
     }
 
-    private void renderGhostPoi(BlockPos p_113244_, List<String> p_113245_) {
+    private void renderGhostPoi(BlockPos pPos, List<String> pNames) {
         float f = 0.05F;
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        DebugRenderer.renderFilledBox(p_113244_, 0.05F, 0.2F, 0.2F, 1.0F, 0.3F);
-        renderTextOverPos("" + p_113245_, p_113244_, 0, -256);
-        renderTextOverPos("Ghost POI", p_113244_, 1, -65536);
+        DebugRenderer.renderFilledBox(pPos, 0.05F, 0.2F, 0.2F, 1.0F, 0.3F);
+        renderTextOverPos("" + pNames, pPos, 0, -256);
+        renderTextOverPos("Ghost POI", pPos, 1, -65536);
     }
 
-    private void renderPoiInfo(BrainDebugRenderer.PoiInfo p_113273_) {
+    private void renderPoiInfo(BrainDebugRenderer.PoiInfo pPoiInfo) {
         int i = 0;
-        Set<String> set = this.getTicketHolderNames(p_113273_);
+        Set<String> set = this.getTicketHolderNames(pPoiInfo);
         if (set.size() < 4) {
-            renderTextOverPoi("Owners: " + set, p_113273_, i, -256);
+            renderTextOverPoi("Owners: " + set, pPoiInfo, i, -256);
         } else {
-            renderTextOverPoi(set.size() + " ticket holders", p_113273_, i, -256);
+            renderTextOverPoi(set.size() + " ticket holders", pPoiInfo, i, -256);
         }
 
         ++i;
-        Set<String> set1 = this.getPotentialTicketHolderNames(p_113273_);
+        Set<String> set1 = this.getPotentialTicketHolderNames(pPoiInfo);
         if (set1.size() < 4) {
-            renderTextOverPoi("Candidates: " + set1, p_113273_, i, -23296);
+            renderTextOverPoi("Candidates: " + set1, pPoiInfo, i, -23296);
         } else {
-            renderTextOverPoi(set1.size() + " potential owners", p_113273_, i, -23296);
+            renderTextOverPoi(set1.size() + " potential owners", pPoiInfo, i, -23296);
         }
 
         ++i;
-        renderTextOverPoi("Free tickets: " + p_113273_.freeTicketCount, p_113273_, i, -256);
+        renderTextOverPoi("Free tickets: " + pPoiInfo.freeTicketCount, pPoiInfo, i, -256);
         ++i;
-        renderTextOverPoi(p_113273_.type, p_113273_, i, -1);
+        renderTextOverPoi(pPoiInfo.type, pPoiInfo, i, -1);
     }
 
-    private void renderPath(BrainDebugRenderer.BrainDump p_113222_, double p_113223_, double p_113224_, double p_113225_) {
-        if (p_113222_.path != null) {
-            PathfindingRenderer.renderPath(p_113222_.path, 0.5F, false, false, p_113223_, p_113224_, p_113225_);
+    private void renderPath(BrainDebugRenderer.BrainDump pBrainDump, double pX, double pY, double pZ) {
+        if (pBrainDump.path != null) {
+            PathfindingRenderer.renderPath(pBrainDump.path, 0.5F, false, false, pX, pY, pZ);
         }
     }
 
-    private void renderBrainInfo(BrainDebugRenderer.BrainDump p_113268_, double p_113269_, double p_113270_, double p_113271_) {
-        boolean flag = this.isMobSelected(p_113268_);
+    private void renderBrainInfo(BrainDebugRenderer.BrainDump pBrainDump, double pX, double pY, double pZ) {
+        boolean flag = this.isMobSelected(pBrainDump);
         int i = 0;
-        renderTextOverMob(p_113268_.pos, i, p_113268_.name, -1, 0.03F);
+        renderTextOverMob(pBrainDump.pos, i, pBrainDump.name, -1, 0.03F);
         ++i;
         if (flag) {
-            renderTextOverMob(p_113268_.pos, i, p_113268_.profession + " " + p_113268_.xp + " xp", -1, 0.02F);
+            renderTextOverMob(pBrainDump.pos, i, pBrainDump.profession + " " + pBrainDump.xp + " xp", -1, 0.02F);
             ++i;
         }
 
         if (flag) {
-            int j = p_113268_.health < p_113268_.maxHealth ? -23296 : -1;
-            renderTextOverMob(p_113268_.pos, i, "health: " + String.format(Locale.ROOT, "%.1f", p_113268_.health) + " / " + String.format(Locale.ROOT, "%.1f", p_113268_.maxHealth), j, 0.02F);
+            int j = pBrainDump.health < pBrainDump.maxHealth ? -23296 : -1;
+            renderTextOverMob(pBrainDump.pos, i, "health: " + String.format(Locale.ROOT, "%.1f", pBrainDump.health) + " / " + String.format(Locale.ROOT, "%.1f", pBrainDump.maxHealth), j, 0.02F);
             ++i;
         }
 
-        if (flag && !p_113268_.inventory.equals("")) {
-            renderTextOverMob(p_113268_.pos, i, p_113268_.inventory, -98404, 0.02F);
+        if (flag && !pBrainDump.inventory.equals("")) {
+            renderTextOverMob(pBrainDump.pos, i, pBrainDump.inventory, -98404, 0.02F);
             ++i;
         }
 
         if (flag) {
-            for (String s : p_113268_.behaviors) {
-                renderTextOverMob(p_113268_.pos, i, s, -16711681, 0.02F);
+            for (String s : pBrainDump.behaviors) {
+                renderTextOverMob(pBrainDump.pos, i, s, -16711681, 0.02F);
                 ++i;
             }
         }
 
         if (flag) {
-            for (String s1 : p_113268_.activities) {
-                renderTextOverMob(p_113268_.pos, i, s1, -16711936, 0.02F);
+            for (String s1 : pBrainDump.activities) {
+                renderTextOverMob(pBrainDump.pos, i, s1, -16711936, 0.02F);
                 ++i;
             }
         }
 
-        if (p_113268_.wantsGolem) {
-            renderTextOverMob(p_113268_.pos, i, "Wants Golem", -23296, 0.02F);
+        if (pBrainDump.wantsGolem) {
+            renderTextOverMob(pBrainDump.pos, i, "Wants Golem", -23296, 0.02F);
             ++i;
         }
 
-        if (flag && p_113268_.angerLevel != -1) {
-            renderTextOverMob(p_113268_.pos, i, "Anger Level: " + p_113268_.angerLevel, -98404, 0.02F);
+        if (flag && pBrainDump.angerLevel != -1) {
+            renderTextOverMob(pBrainDump.pos, i, "Anger Level: " + pBrainDump.angerLevel, -98404, 0.02F);
             ++i;
         }
 
         if (flag) {
-            for (String s2 : p_113268_.gossips) {
-                if (s2.startsWith(p_113268_.name)) {
-                    renderTextOverMob(p_113268_.pos, i, s2, -1, 0.02F);
+            for (String s2 : pBrainDump.gossips) {
+                if (s2.startsWith(pBrainDump.name)) {
+                    renderTextOverMob(pBrainDump.pos, i, s2, -1, 0.02F);
                 } else {
-                    renderTextOverMob(p_113268_.pos, i, s2, -23296, 0.02F);
+                    renderTextOverMob(pBrainDump.pos, i, s2, -23296, 0.02F);
                 }
 
                 ++i;
@@ -257,72 +257,72 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         }
 
         if (flag) {
-            for (String s3 : Lists.reverse(p_113268_.memories)) {
-                renderTextOverMob(p_113268_.pos, i, s3, -3355444, 0.02F);
+            for (String s3 : Lists.reverse(pBrainDump.memories)) {
+                renderTextOverMob(pBrainDump.pos, i, s3, -3355444, 0.02F);
                 ++i;
             }
         }
 
         if (flag) {
-            this.renderPath(p_113268_, p_113269_, p_113270_, p_113271_);
+            this.renderPath(pBrainDump, pX, pY, pZ);
         }
     }
 
-    private static void renderTextOverPoi(String p_113253_, BrainDebugRenderer.PoiInfo p_113254_, int p_113255_, int p_113256_) {
-        BlockPos blockpos = p_113254_.pos;
-        renderTextOverPos(p_113253_, blockpos, p_113255_, p_113256_);
+    private static void renderTextOverPoi(String pText, BrainDebugRenderer.PoiInfo pPoiInfo, int pYScale, int pColor) {
+        BlockPos blockpos = pPoiInfo.pos;
+        renderTextOverPos(pText, blockpos, pYScale, pColor);
     }
 
-    private static void renderTextOverPos(String p_113258_, BlockPos p_113259_, int p_113260_, int p_113261_) {
+    private static void renderTextOverPos(String pText, BlockPos pPos, int pYScale, int pColor) {
         double d0 = 1.3D;
         double d1 = 0.2D;
-        double d2 = (double) p_113259_.getX() + 0.5D;
-        double d3 = (double) p_113259_.getY() + 1.3D + (double) p_113260_ * 0.2D;
-        double d4 = (double) p_113259_.getZ() + 0.5D;
-        DebugRenderer.renderFloatingText(p_113258_, d2, d3, d4, p_113261_, 0.02F, true, 0.0F, true);
+        double d2 = (double) pPos.getX() + 0.5D;
+        double d3 = (double) pPos.getY() + 1.3D + (double) pYScale * 0.2D;
+        double d4 = (double) pPos.getZ() + 0.5D;
+        DebugRenderer.renderFloatingText(pText, d2, d3, d4, pColor, 0.02F, true, 0.0F, true);
     }
 
-    private static void renderTextOverMob(Position p_113247_, int p_113248_, String p_113249_, int p_113250_, float p_113251_) {
+    private static void renderTextOverMob(Position pPos, int pYScale, String pText, int pColor, float pScale) {
         double d0 = 2.4D;
         double d1 = 0.25D;
-        BlockPos blockpos = new BlockPos(p_113247_);
+        BlockPos blockpos = new BlockPos(pPos);
         double d2 = (double) blockpos.getX() + 0.5D;
-        double d3 = p_113247_.y() + 2.4D + (double) p_113248_ * 0.25D;
+        double d3 = pPos.y() + 2.4D + (double) pYScale * 0.25D;
         double d4 = (double) blockpos.getZ() + 0.5D;
         float f = 0.5F;
-        DebugRenderer.renderFloatingText(p_113249_, d2, d3, d4, p_113250_, p_113251_, false, 0.5F, true);
+        DebugRenderer.renderFloatingText(pText, d2, d3, d4, pColor, pScale, false, 0.5F, true);
     }
 
-    private Set<String> getTicketHolderNames(BrainDebugRenderer.PoiInfo p_113283_) {
-        return this.getTicketHolders(p_113283_.pos).stream().map(DebugEntityNameGenerator::getEntityName).collect(Collectors.toSet());
+    private Set<String> getTicketHolderNames(BrainDebugRenderer.PoiInfo pPoiInfo) {
+        return this.getTicketHolders(pPoiInfo.pos).stream().map(DebugEntityNameGenerator::getEntityName).collect(Collectors.toSet());
     }
 
-    private Set<String> getPotentialTicketHolderNames(BrainDebugRenderer.PoiInfo p_113288_) {
-        return this.getPotentialTicketHolders(p_113288_.pos).stream().map(DebugEntityNameGenerator::getEntityName).collect(Collectors.toSet());
+    private Set<String> getPotentialTicketHolderNames(BrainDebugRenderer.PoiInfo pPoiInfo) {
+        return this.getPotentialTicketHolders(pPoiInfo.pos).stream().map(DebugEntityNameGenerator::getEntityName).collect(Collectors.toSet());
     }
 
-    private boolean isMobSelected(BrainDebugRenderer.BrainDump p_113266_) {
-        return Objects.equals(this.lastLookedAtUuid, p_113266_.uuid);
+    private boolean isMobSelected(BrainDebugRenderer.BrainDump pBrainDump) {
+        return Objects.equals(this.lastLookedAtUuid, pBrainDump.uuid);
     }
 
-    private boolean isPlayerCloseEnoughToMob(BrainDebugRenderer.BrainDump p_113281_) {
+    private boolean isPlayerCloseEnoughToMob(BrainDebugRenderer.BrainDump pBrainDump) {
         Player player = this.minecraft.player;
-        BlockPos blockpos = new BlockPos(player.getX(), p_113281_.pos.y(), player.getZ());
-        BlockPos blockpos1 = new BlockPos(p_113281_.pos);
+        BlockPos blockpos = new BlockPos(player.getX(), pBrainDump.pos.y(), player.getZ());
+        BlockPos blockpos1 = new BlockPos(pBrainDump.pos);
         return blockpos.closerThan(blockpos1, 30.0D);
     }
 
-    private Collection<UUID> getTicketHolders(BlockPos p_113285_) {
+    private Collection<UUID> getTicketHolders(BlockPos pPos) {
         return this.brainDumpsPerEntity.values().stream().filter((p_113278_) -> {
-                                                             return p_113278_.hasPoi(p_113285_);
+                                                             return p_113278_.hasPoi(pPos);
                                                          })
                 .map(BrainDebugRenderer.BrainDump::getUuid)
                 .collect(Collectors.toSet());
     }
 
-    private Collection<UUID> getPotentialTicketHolders(BlockPos p_113290_) {
+    private Collection<UUID> getPotentialTicketHolders(BlockPos pPos) {
         return this.brainDumpsPerEntity.values().stream().filter((p_113235_) -> {
-                                                             return p_113235_.hasPotentialPoi(p_113290_);
+                                                             return p_113235_.hasPotentialPoi(pPos);
                                                          })
                 .map(BrainDebugRenderer.BrainDump::getUuid)
                 .collect(Collectors.toSet());
@@ -371,27 +371,27 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         public final Set<BlockPos> pois = Sets.newHashSet();
         public final Set<BlockPos> potentialPois = Sets.newHashSet();
 
-        public BrainDump(UUID p_234497_, int p_234498_, String p_234499_, String p_234500_, int p_234501_, float p_234502_, float p_234503_, Position p_234504_, String p_234505_, @Nullable Path p_234506_, boolean p_234507_, int p_234508_) {
-            this.uuid = p_234497_;
-            this.id = p_234498_;
-            this.name = p_234499_;
-            this.profession = p_234500_;
-            this.xp = p_234501_;
-            this.health = p_234502_;
-            this.maxHealth = p_234503_;
-            this.pos = p_234504_;
-            this.inventory = p_234505_;
-            this.path = p_234506_;
-            this.wantsGolem = p_234507_;
-            this.angerLevel = p_234508_;
+        public BrainDump(UUID pUuid, int pId, String pName, String pProfession, int pXp, float pHealth, float pMaxHealth, Position pPos, String pInventory, @Nullable Path pPath, boolean pWantsGolem, int pAngerLevel) {
+            this.uuid = pUuid;
+            this.id = pId;
+            this.name = pName;
+            this.profession = pProfession;
+            this.xp = pXp;
+            this.health = pHealth;
+            this.maxHealth = pMaxHealth;
+            this.pos = pPos;
+            this.inventory = pInventory;
+            this.path = pPath;
+            this.wantsGolem = pWantsGolem;
+            this.angerLevel = pAngerLevel;
         }
 
-        boolean hasPoi(BlockPos p_113327_) {
-            return this.pois.stream().anyMatch(p_113327_::equals);
+        boolean hasPoi(BlockPos pPos) {
+            return this.pois.stream().anyMatch(pPos::equals);
         }
 
-        boolean hasPotentialPoi(BlockPos p_113332_) {
-            return this.potentialPois.contains(p_113332_);
+        boolean hasPotentialPoi(BlockPos pPos) {
+            return this.potentialPois.contains(pPos);
         }
 
         public UUID getUuid() {
@@ -405,10 +405,10 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         public String type;
         public int freeTicketCount;
 
-        public PoiInfo(BlockPos p_113337_, String p_113338_, int p_113339_) {
-            this.pos = p_113337_;
-            this.type = p_113338_;
-            this.freeTicketCount = p_113339_;
+        public PoiInfo(BlockPos pPos, String pType, int pFreeTicketCount) {
+            this.pos = pPos;
+            this.type = pType;
+            this.freeTicketCount = pFreeTicketCount;
         }
     }
 }

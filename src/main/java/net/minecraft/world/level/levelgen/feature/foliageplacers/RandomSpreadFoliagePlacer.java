@@ -33,21 +33,21 @@ public class RandomSpreadFoliagePlacer extends FoliagePlacer {
         return FoliagePlacerType.RANDOM_SPREAD_FOLIAGE_PLACER;
     }
 
-    protected void createFoliage(LevelSimulatedReader p_225723_, BiConsumer<BlockPos, BlockState> p_225724_, RandomSource p_225725_, TreeConfiguration p_225726_, int p_225727_, FoliagePlacer.FoliageAttachment p_225728_, int p_225729_, int p_225730_, int p_225731_) {
-        BlockPos blockpos = p_225728_.pos();
+    protected void createFoliage(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, TreeConfiguration pConfig, int pMaxFreeTreeHeight, FoliagePlacer.FoliageAttachment pAttachment, int pFoliageHeight, int pFoliageRadius, int pOffset) {
+        BlockPos blockpos = pAttachment.pos();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = blockpos.mutable();
 
         for (int i = 0; i < this.leafPlacementAttempts; ++i) {
-            blockpos$mutableblockpos.setWithOffset(blockpos, p_225725_.nextInt(p_225730_) - p_225725_.nextInt(p_225730_), p_225725_.nextInt(p_225729_) - p_225725_.nextInt(p_225729_), p_225725_.nextInt(p_225730_) - p_225725_.nextInt(p_225730_));
-            tryPlaceLeaf(p_225723_, p_225724_, p_225725_, p_225726_, blockpos$mutableblockpos);
+            blockpos$mutableblockpos.setWithOffset(blockpos, pRandom.nextInt(pFoliageRadius) - pRandom.nextInt(pFoliageRadius), pRandom.nextInt(pFoliageHeight) - pRandom.nextInt(pFoliageHeight), pRandom.nextInt(pFoliageRadius) - pRandom.nextInt(pFoliageRadius));
+            tryPlaceLeaf(pLevel, pBlockSetter, pRandom, pConfig, blockpos$mutableblockpos);
         }
     }
 
-    public int foliageHeight(RandomSource p_225719_, int p_225720_, TreeConfiguration p_225721_) {
-        return this.foliageHeight.sample(p_225719_);
+    public int foliageHeight(RandomSource pRandom, int pHeight, TreeConfiguration pConfig) {
+        return this.foliageHeight.sample(pRandom);
     }
 
-    protected boolean shouldSkipLocation(RandomSource p_225712_, int p_225713_, int p_225714_, int p_225715_, int p_225716_, boolean p_225717_) {
+    protected boolean shouldSkipLocation(RandomSource pRandom, int pLocalX, int pLocalY, int pLocalZ, int pRange, boolean pLarge) {
         return false;
     }
 }

@@ -28,8 +28,8 @@ public class MovementTutorialStepInstance implements TutorialStepInstance {
     private int moveCompleted = -1;
     private int lookCompleted = -1;
 
-    public MovementTutorialStepInstance(Tutorial p_120522_) {
-        this.tutorial = p_120522_;
+    public MovementTutorialStepInstance(Tutorial pTutorial) {
+        this.tutorial = pTutorial;
     }
 
     public void tick() {
@@ -101,14 +101,14 @@ public class MovementTutorialStepInstance implements TutorialStepInstance {
         }
     }
 
-    public void onInput(Input p_120528_) {
-        if (p_120528_.up || p_120528_.down || p_120528_.left || p_120528_.right || p_120528_.jumping) {
+    public void onInput(Input pInput) {
+        if (pInput.up || pInput.down || pInput.left || pInput.right || pInput.jumping) {
             this.moved = true;
         }
     }
 
-    public void onMouse(double p_120525_, double p_120526_) {
-        if (Math.abs(p_120525_) > 0.01D || Math.abs(p_120526_) > 0.01D) {
+    public void onMouse(double pVelocityX, double pVelocityY) {
+        if (Math.abs(pVelocityX) > 0.01D || Math.abs(pVelocityY) > 0.01D) {
             this.turned = true;
         }
     }

@@ -17,23 +17,23 @@ public class AttributeModifier {
     private final Supplier<String> nameGetter;
     private final UUID id;
 
-    public AttributeModifier(String p_22196_, double p_22197_, AttributeModifier.Operation p_22198_) {
+    public AttributeModifier(String pName, double pAmount, AttributeModifier.Operation pOperation) {
         this(Mth.createInsecureUUID(RandomSource.createNewThreadLocalInstance()), () -> {
-            return p_22196_;
-        }, p_22197_, p_22198_);
+            return pName;
+        }, pAmount, pOperation);
     }
 
-    public AttributeModifier(UUID p_22200_, String p_22201_, double p_22202_, AttributeModifier.Operation p_22203_) {
-        this(p_22200_, () -> {
-            return p_22201_;
-        }, p_22202_, p_22203_);
+    public AttributeModifier(UUID pId, String pName, double pAmount, AttributeModifier.Operation pOperation) {
+        this(pId, () -> {
+            return pName;
+        }, pAmount, pOperation);
     }
 
-    public AttributeModifier(UUID p_22205_, Supplier<String> p_22206_, double p_22207_, AttributeModifier.Operation p_22208_) {
-        this.id = p_22205_;
-        this.nameGetter = p_22206_;
-        this.amount = p_22207_;
-        this.operation = p_22208_;
+    public AttributeModifier(UUID pId, Supplier<String> pNameGetter, double pAmount, AttributeModifier.Operation pOperation) {
+        this.id = pId;
+        this.nameGetter = pNameGetter;
+        this.amount = pAmount;
+        this.operation = pOperation;
     }
 
     public UUID getId() {
@@ -52,11 +52,11 @@ public class AttributeModifier {
         return this.amount;
     }
 
-    public boolean equals(Object p_22221_) {
-        if (this == p_22221_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_22221_ != null && this.getClass() == p_22221_.getClass()) {
-            AttributeModifier attributemodifier = (AttributeModifier) p_22221_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            AttributeModifier attributemodifier = (AttributeModifier) pOther;
             return Objects.equals(this.id, attributemodifier.id);
         } else {
             return false;
@@ -81,11 +81,11 @@ public class AttributeModifier {
     }
 
     @Nullable
-    public static AttributeModifier load(CompoundTag p_22213_) {
+    public static AttributeModifier load(CompoundTag pNbt) {
         try {
-            UUID uuid = p_22213_.getUUID("UUID");
-            AttributeModifier.Operation attributemodifier$operation = AttributeModifier.Operation.fromValue(p_22213_.getInt("Operation"));
-            return new AttributeModifier(uuid, p_22213_.getString("Name"), p_22213_.getDouble("Amount"), attributemodifier$operation);
+            UUID uuid = pNbt.getUUID("UUID");
+            AttributeModifier.Operation attributemodifier$operation = AttributeModifier.Operation.fromValue(pNbt.getInt("Operation"));
+            return new AttributeModifier(uuid, pNbt.getString("Name"), pNbt.getDouble("Amount"), attributemodifier$operation);
         } catch (Exception exception) {
             LOGGER.warn("Unable to create attribute: {}", (Object) exception.getMessage());
             return null;
@@ -108,11 +108,11 @@ public class AttributeModifier {
             return this.value;
         }
 
-        public static AttributeModifier.Operation fromValue(int p_22237_) {
-            if (p_22237_ >= 0 && p_22237_ < OPERATIONS.length) {
-                return OPERATIONS[p_22237_];
+        public static AttributeModifier.Operation fromValue(int pId) {
+            if (pId >= 0 && pId < OPERATIONS.length) {
+                return OPERATIONS[pId];
             } else {
-                throw new IllegalArgumentException("No operation with value " + p_22237_);
+                throw new IllegalArgumentException("No operation with value " + pId);
             }
         }
     }

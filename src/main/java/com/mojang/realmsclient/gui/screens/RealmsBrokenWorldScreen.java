@@ -46,11 +46,11 @@ public class RealmsBrokenWorldScreen extends RealmsScreen {
     private final List<Integer> slotsThatHasBeenDownloaded = Lists.newArrayList();
     private int animTick;
 
-    public RealmsBrokenWorldScreen(Screen p_88296_, RealmsMainScreen p_88297_, long p_88298_, boolean p_88299_) {
-        super(p_88299_ ? Component.translatable("mco.brokenworld.minigame.title") : Component.translatable("mco.brokenworld.title"));
-        this.lastScreen = p_88296_;
-        this.mainScreen = p_88297_;
-        this.serverId = p_88298_;
+    public RealmsBrokenWorldScreen(Screen pLastScreen, RealmsMainScreen pMainScreen, long pServerId, boolean pIsMinigame) {
+        super(pIsMinigame ? Component.translatable("mco.brokenworld.minigame.title") : Component.translatable("mco.brokenworld.title"));
+        this.lastScreen = pLastScreen;
+        this.mainScreen = pMainScreen;
+        this.serverId = pServerId;
     }
 
     public void init() {
@@ -129,21 +129,21 @@ public class RealmsBrokenWorldScreen extends RealmsScreen {
         ++this.animTick;
     }
 
-    public void render(PoseStack p_88316_, int p_88317_, int p_88318_, float p_88319_) {
-        this.renderBackground(p_88316_);
-        super.render(p_88316_, p_88317_, p_88318_, p_88319_);
-        drawCenteredString(p_88316_, this.font, this.title, this.width / 2, 17, 16777215);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 17, 16777215);
 
         for (int i = 0; i < this.message.length; ++i) {
-            drawCenteredString(p_88316_, this.font, this.message[i], this.width / 2, row(-1) + 3 + i * 12, 10526880);
+            drawCenteredString(pPoseStack, this.font, this.message[i], this.width / 2, row(-1) + 3 + i * 12, 10526880);
         }
 
         if (this.serverData != null) {
             for (Map.Entry<Integer, RealmsWorldOptions> entry : this.serverData.slots.entrySet()) {
                 if ((entry.getValue()).templateImage != null && (entry.getValue()).templateId != -1L) {
-                    this.drawSlotFrame(p_88316_, this.getFramePositionX(entry.getKey()), row(1) + 5, p_88317_, p_88318_, this.serverData.activeSlot == entry.getKey() && !this.isMinigame(), entry.getValue().getSlotName(entry.getKey()), entry.getKey(), (entry.getValue()).templateId, (entry.getValue()).templateImage, (entry.getValue()).empty);
+                    this.drawSlotFrame(pPoseStack, this.getFramePositionX(entry.getKey()), row(1) + 5, pMouseX, pMouseY, this.serverData.activeSlot == entry.getKey() && !this.isMinigame(), entry.getValue().getSlotName(entry.getKey()), entry.getKey(), (entry.getValue()).templateId, (entry.getValue()).templateImage, (entry.getValue()).empty);
                 } else {
-                    this.drawSlotFrame(p_88316_, this.getFramePositionX(entry.getKey()), row(1) + 5, p_88317_, p_88318_, this.serverData.activeSlot == entry.getKey() && !this.isMinigame(), entry.getValue().getSlotName(entry.getKey()), entry.getKey(), -1L, (String) null, (entry.getValue()).empty);
+                    this.drawSlotFrame(pPoseStack, this.getFramePositionX(entry.getKey()), row(1) + 5, pMouseX, pMouseY, this.serverData.activeSlot == entry.getKey() && !this.isMinigame(), entry.getValue().getSlotName(entry.getKey()), entry.getKey(), -1L, (String) null, (entry.getValue()).empty);
                 }
             }
         }
@@ -157,12 +157,12 @@ public class RealmsBrokenWorldScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_88304_, int p_88305_, int p_88306_) {
-        if (p_88304_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.backButtonClicked();
             return true;
         } else {
-            return super.keyPressed(p_88304_, p_88305_, p_88306_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -170,12 +170,12 @@ public class RealmsBrokenWorldScreen extends RealmsScreen {
         this.minecraft.setScreen(this.lastScreen);
     }
 
-    private void fetchServerData(long p_88314_) {
+    private void fetchServerData(long pServerId) {
         (new Thread(() -> {
             RealmsClient realmsclient = RealmsClient.create();
 
             try {
-                this.serverData = realmsclient.getOwnWorld(p_88314_);
+                this.serverData = realmsclient.getOwnWorld(pServerId);
                 this.addButtons();
             } catch (RealmsServiceException realmsserviceexception) {
                 LOGGER.error("Couldn't get own world");
@@ -207,14 +207,14 @@ public class RealmsBrokenWorldScreen extends RealmsScreen {
         })).start();
     }
 
-    private void downloadWorld(int p_88336_) {
+    private void downloadWorld(int pSlotIndex) {
         RealmsClient realmsclient = RealmsClient.create();
 
         try {
-            WorldDownload worlddownload = realmsclient.requestDownloadInfo(this.serverData.id, p_88336_);
-            RealmsDownloadLatestWorldScreen realmsdownloadlatestworldscreen = new RealmsDownloadLatestWorldScreen(this, worlddownload, this.serverData.getWorldName(p_88336_), (p_88312_) -> {
+            WorldDownload worlddownload = realmsclient.requestDownloadInfo(this.serverData.id, pSlotIndex);
+            RealmsDownloadLatestWorldScreen realmsdownloadlatestworldscreen = new RealmsDownloadLatestWorldScreen(this, worlddownload, this.serverData.getWorldName(pSlotIndex), (p_88312_) -> {
                 if (p_88312_) {
-                    this.slotsThatHasBeenDownloaded.add(p_88336_);
+                    this.slotsThatHasBeenDownloaded.add(pSlotIndex);
                     this.clearWidgets();
                     this.addButtons();
                 } else {
@@ -232,37 +232,37 @@ public class RealmsBrokenWorldScreen extends RealmsScreen {
         return this.serverData != null && this.serverData.worldType == RealmsServer.WorldType.MINIGAME;
     }
 
-    private void drawSlotFrame(PoseStack p_88321_, int p_88322_, int p_88323_, int p_88324_, int p_88325_, boolean p_88326_, String p_88327_, int p_88328_, long p_88329_, @Nullable String p_88330_, boolean p_88331_) {
-        if (p_88331_) {
+    private void drawSlotFrame(PoseStack pPoseStack, int pX, int pY, int pMouseX, int pMouseY, boolean pIsActiveNonMinigame, String pText, int pSlotIndex, long pSlotName, @Nullable String pTemplateId, boolean pHasTemplateImage) {
+        if (pHasTemplateImage) {
             RenderSystem.setShaderTexture(0, RealmsWorldSlotButton.EMPTY_SLOT_LOCATION);
-        } else if (p_88330_ != null && p_88329_ != -1L) {
-            RealmsTextureManager.bindWorldTemplate(String.valueOf(p_88329_), p_88330_);
-        } else if (p_88328_ == 1) {
+        } else if (pTemplateId != null && pSlotName != -1L) {
+            RealmsTextureManager.bindWorldTemplate(String.valueOf(pSlotName), pTemplateId);
+        } else if (pSlotIndex == 1) {
             RenderSystem.setShaderTexture(0, RealmsWorldSlotButton.DEFAULT_WORLD_SLOT_1);
-        } else if (p_88328_ == 2) {
+        } else if (pSlotIndex == 2) {
             RenderSystem.setShaderTexture(0, RealmsWorldSlotButton.DEFAULT_WORLD_SLOT_2);
-        } else if (p_88328_ == 3) {
+        } else if (pSlotIndex == 3) {
             RenderSystem.setShaderTexture(0, RealmsWorldSlotButton.DEFAULT_WORLD_SLOT_3);
         } else {
             RealmsTextureManager.bindWorldTemplate(String.valueOf(this.serverData.minigameId), this.serverData.minigameImage);
         }
 
-        if (!p_88326_) {
+        if (!pIsActiveNonMinigame) {
             RenderSystem.setShaderColor(0.56F, 0.56F, 0.56F, 1.0F);
-        } else if (p_88326_) {
+        } else if (pIsActiveNonMinigame) {
             float f = 0.9F + 0.1F * Mth.cos((float) this.animTick * 0.2F);
             RenderSystem.setShaderColor(f, f, f, 1.0F);
         }
 
-        GuiComponent.blit(p_88321_, p_88322_ + 3, p_88323_ + 3, 0.0F, 0.0F, 74, 74, 74, 74);
+        GuiComponent.blit(pPoseStack, pX + 3, pY + 3, 0.0F, 0.0F, 74, 74, 74, 74);
         RenderSystem.setShaderTexture(0, RealmsWorldSlotButton.SLOT_FRAME_LOCATION);
-        if (p_88326_) {
+        if (pIsActiveNonMinigame) {
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         } else {
             RenderSystem.setShaderColor(0.56F, 0.56F, 0.56F, 1.0F);
         }
 
-        GuiComponent.blit(p_88321_, p_88322_, p_88323_, 0.0F, 0.0F, 80, 80, 80, 80);
-        drawCenteredString(p_88321_, this.font, p_88327_, p_88322_ + 40, p_88323_ + 66, 16777215);
+        GuiComponent.blit(pPoseStack, pX, pY, 0.0F, 0.0F, 80, 80, 80, 80);
+        drawCenteredString(pPoseStack, this.font, pText, pX + 40, pY + 66, 16777215);
     }
 }

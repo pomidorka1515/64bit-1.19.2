@@ -32,20 +32,20 @@ public class BannerBlockEntity extends BlockEntity implements Nameable {
     @Nullable
     private List<Pair<Holder<BannerPattern>, DyeColor>> patterns;
 
-    public BannerBlockEntity(BlockPos p_155035_, BlockState p_155036_) {
-        super(BlockEntityType.BANNER, p_155035_, p_155036_);
-        this.baseColor = ((AbstractBannerBlock) p_155036_.getBlock()).getColor();
+    public BannerBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.BANNER, pPos, pBlockState);
+        this.baseColor = ((AbstractBannerBlock) pBlockState.getBlock()).getColor();
     }
 
-    public BannerBlockEntity(BlockPos p_155038_, BlockState p_155039_, DyeColor p_155040_) {
-        this(p_155038_, p_155039_);
-        this.baseColor = p_155040_;
+    public BannerBlockEntity(BlockPos pPos, BlockState pBlockState, DyeColor pBaseColor) {
+        this(pPos, pBlockState);
+        this.baseColor = pBaseColor;
     }
 
     @Nullable
-    public static ListTag getItemPatterns(ItemStack p_58488_) {
+    public static ListTag getItemPatterns(ItemStack pStack) {
         ListTag listtag = null;
-        CompoundTag compoundtag = BlockItem.getBlockEntityData(p_58488_);
+        CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
         if (compoundtag != null && compoundtag.contains("Patterns", 9)) {
             listtag = compoundtag.getList("Patterns", 10).copy();
         }
@@ -53,15 +53,15 @@ public class BannerBlockEntity extends BlockEntity implements Nameable {
         return listtag;
     }
 
-    public void fromItem(ItemStack p_58490_, DyeColor p_58491_) {
-        this.baseColor = p_58491_;
-        this.fromItem(p_58490_);
+    public void fromItem(ItemStack pStack, DyeColor pColor) {
+        this.baseColor = pColor;
+        this.fromItem(pStack);
     }
 
-    public void fromItem(ItemStack p_187454_) {
-        this.itemPatterns = getItemPatterns(p_187454_);
+    public void fromItem(ItemStack pItem) {
+        this.itemPatterns = getItemPatterns(pItem);
         this.patterns = null;
-        this.name = p_187454_.hasCustomHoverName() ? p_187454_.getHoverName() : null;
+        this.name = pItem.hasCustomHoverName() ? pItem.getHoverName() : null;
     }
 
     public Component getName() {
@@ -73,28 +73,28 @@ public class BannerBlockEntity extends BlockEntity implements Nameable {
         return this.name;
     }
 
-    public void setCustomName(Component p_58502_) {
-        this.name = p_58502_;
+    public void setCustomName(Component pName) {
+        this.name = pName;
     }
 
-    protected void saveAdditional(CompoundTag p_187456_) {
-        super.saveAdditional(p_187456_);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
         if (this.itemPatterns != null) {
-            p_187456_.put("Patterns", this.itemPatterns);
+            pTag.put("Patterns", this.itemPatterns);
         }
 
         if (this.name != null) {
-            p_187456_.putString("CustomName", Component.Serializer.toJson(this.name));
+            pTag.putString("CustomName", Component.Serializer.toJson(this.name));
         }
     }
 
-    public void load(CompoundTag p_155042_) {
-        super.load(p_155042_);
-        if (p_155042_.contains("CustomName", 8)) {
-            this.name = Component.Serializer.fromJson(p_155042_.getString("CustomName"));
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
+        if (pTag.contains("CustomName", 8)) {
+            this.name = Component.Serializer.fromJson(pTag.getString("CustomName"));
         }
 
-        this.itemPatterns = p_155042_.getList("Patterns", 10);
+        this.itemPatterns = pTag.getList("Patterns", 10);
         this.patterns = null;
     }
 
@@ -106,8 +106,8 @@ public class BannerBlockEntity extends BlockEntity implements Nameable {
         return this.saveWithoutMetadata();
     }
 
-    public static int getPatternCount(ItemStack p_58505_) {
-        CompoundTag compoundtag = BlockItem.getBlockEntityData(p_58505_);
+    public static int getPatternCount(ItemStack pStack) {
+        CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
         return compoundtag != null && compoundtag.contains("Patterns") ? compoundtag.getList("Patterns", 10).size() : 0;
     }
 
@@ -119,12 +119,12 @@ public class BannerBlockEntity extends BlockEntity implements Nameable {
         return this.patterns;
     }
 
-    public static List<Pair<Holder<BannerPattern>, DyeColor>> createPatterns(DyeColor p_58485_, @Nullable ListTag p_58486_) {
+    public static List<Pair<Holder<BannerPattern>, DyeColor>> createPatterns(DyeColor pColor, @Nullable ListTag pListTag) {
         List<Pair<Holder<BannerPattern>, DyeColor>> list = Lists.newArrayList();
-        list.add(Pair.of(Registry.BANNER_PATTERN.getHolderOrThrow(BannerPatterns.BASE), p_58485_));
-        if (p_58486_ != null) {
-            for (int i = 0; i < p_58486_.size(); ++i) {
-                CompoundTag compoundtag = p_58486_.getCompound(i);
+        list.add(Pair.of(Registry.BANNER_PATTERN.getHolderOrThrow(BannerPatterns.BASE), pColor));
+        if (pListTag != null) {
+            for (int i = 0; i < pListTag.size(); ++i) {
+                CompoundTag compoundtag = pListTag.getCompound(i);
                 Holder<BannerPattern> holder = BannerPattern.byHash(compoundtag.getString("Pattern"));
                 if (holder != null) {
                     int j = compoundtag.getInt("Color");
@@ -136,8 +136,8 @@ public class BannerBlockEntity extends BlockEntity implements Nameable {
         return list;
     }
 
-    public static void removeLastPattern(ItemStack p_58510_) {
-        CompoundTag compoundtag = BlockItem.getBlockEntityData(p_58510_);
+    public static void removeLastPattern(ItemStack pStack) {
+        CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
         if (compoundtag != null && compoundtag.contains("Patterns", 9)) {
             ListTag listtag = compoundtag.getList("Patterns", 10);
             if (!listtag.isEmpty()) {
@@ -146,7 +146,7 @@ public class BannerBlockEntity extends BlockEntity implements Nameable {
                     compoundtag.remove("Patterns");
                 }
 
-                BlockItem.setBlockEntityData(p_58510_, BlockEntityType.BANNER, compoundtag);
+                BlockItem.setBlockEntityData(pStack, BlockEntityType.BANNER, compoundtag);
             }
         }
     }

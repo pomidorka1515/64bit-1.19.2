@@ -16,10 +16,10 @@ public abstract class ItemStackTagFix extends DataFix {
     private final String name;
     private final Predicate<String> idFilter;
 
-    public ItemStackTagFix(Schema p_216682_, String p_216683_, Predicate<String> p_216684_) {
-        super(p_216682_, false);
-        this.name = p_216683_;
-        this.idFilter = p_216684_;
+    public ItemStackTagFix(Schema pOutputSchema, String pName, Predicate<String> pIdFilter) {
+        super(pOutputSchema, false);
+        this.name = pName;
+        this.idFilter = pIdFilter;
     }
 
     public final TypeRewriteRule makeRule() {

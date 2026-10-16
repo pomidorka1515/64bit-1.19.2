@@ -21,18 +21,18 @@ import net.minecraft.world.level.gameevent.GameEvent;
 public class ShovelItem extends DiggerItem {
     protected static final Map<Block, BlockState> FLATTENABLES = Maps.newHashMap((new ImmutableMap.Builder()).put(Blocks.GRASS_BLOCK, Blocks.DIRT_PATH.defaultBlockState()).put(Blocks.DIRT, Blocks.DIRT_PATH.defaultBlockState()).put(Blocks.PODZOL, Blocks.DIRT_PATH.defaultBlockState()).put(Blocks.COARSE_DIRT, Blocks.DIRT_PATH.defaultBlockState()).put(Blocks.MYCELIUM, Blocks.DIRT_PATH.defaultBlockState()).put(Blocks.ROOTED_DIRT, Blocks.DIRT_PATH.defaultBlockState()).build());
 
-    public ShovelItem(Tier p_43114_, float p_43115_, float p_43116_, Item.Properties p_43117_) {
-        super(p_43115_, p_43116_, p_43114_, BlockTags.MINEABLE_WITH_SHOVEL, p_43117_);
+    public ShovelItem(Tier pTier, float pAttackDamageModifier, float pAttackSpeedModifier, Item.Properties pProperties) {
+        super(pAttackDamageModifier, pAttackSpeedModifier, pTier, BlockTags.MINEABLE_WITH_SHOVEL, pProperties);
     }
 
-    public InteractionResult useOn(UseOnContext p_43119_) {
-        Level level = p_43119_.getLevel();
-        BlockPos blockpos = p_43119_.getClickedPos();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
-        if (p_43119_.getClickedFace() == Direction.DOWN) {
+        if (pContext.getClickedFace() == Direction.DOWN) {
             return InteractionResult.PASS;
         } else {
-            Player player = p_43119_.getPlayer();
+            Player player = pContext.getPlayer();
             BlockState blockstate1 = FLATTENABLES.get(blockstate.getBlock());
             BlockState blockstate2 = null;
             if (blockstate1 != null && level.getBlockState(blockpos.above()).isAir()) {
@@ -43,7 +43,7 @@ public class ShovelItem extends DiggerItem {
                     level.levelEvent((Player) null, 1009, blockpos, 0);
                 }
 
-                CampfireBlock.dowse(p_43119_.getPlayer(), level, blockpos, blockstate);
+                CampfireBlock.dowse(pContext.getPlayer(), level, blockpos, blockstate);
                 blockstate2 = blockstate.setValue(CampfireBlock.LIT, Boolean.valueOf(false));
             }
 
@@ -52,8 +52,8 @@ public class ShovelItem extends DiggerItem {
                     level.setBlock(blockpos, blockstate2, 11);
                     level.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, blockstate2));
                     if (player != null) {
-                        p_43119_.getItemInHand().hurtAndBreak(1, player, (p_43122_) -> {
-                            p_43122_.broadcastBreakEvent(p_43119_.getHand());
+                        pContext.getItemInHand().hurtAndBreak(1, player, (p_43122_) -> {
+                            p_43122_.broadcastBreakEvent(pContext.getHand());
                         });
                     }
                 }

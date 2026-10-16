@@ -35,22 +35,22 @@ public abstract class HangingEntity extends Entity {
     protected BlockPos pos;
     protected Direction direction = Direction.SOUTH;
 
-    protected HangingEntity(EntityType<? extends HangingEntity> p_31703_, Level p_31704_) {
-        super(p_31703_, p_31704_);
+    protected HangingEntity(EntityType<? extends HangingEntity> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    protected HangingEntity(EntityType<? extends HangingEntity> p_31706_, Level p_31707_, BlockPos p_31708_) {
-        this(p_31706_, p_31707_);
-        this.pos = p_31708_;
+    protected HangingEntity(EntityType<? extends HangingEntity> pEntityType, Level pLevel, BlockPos pPos) {
+        this(pEntityType, pLevel);
+        this.pos = pPos;
     }
 
     protected void defineSynchedData() {
     }
 
-    protected void setDirection(Direction p_31728_) {
-        Validate.notNull(p_31728_);
-        Validate.isTrue(p_31728_.getAxis().isHorizontal());
-        this.direction = p_31728_;
+    protected void setDirection(Direction pFacingDirection) {
+        Validate.notNull(pFacingDirection);
+        Validate.isTrue(pFacingDirection.getAxis().isHorizontal());
+        this.direction = pFacingDirection;
         this.setYRot((float) (this.direction.get2DDataValue() * 90));
         this.yRotO = this.getYRot();
         this.recalculateBoundingBox();
@@ -90,8 +90,8 @@ public abstract class HangingEntity extends Entity {
         }
     }
 
-    private double offs(int p_31710_) {
-        return p_31710_ % 32 == 0 ? 0.5D : 0.0D;
+    private double offs(int pOffset) {
+        return pOffset % 32 == 0 ? 0.5D : 0.0D;
     }
 
     public void tick() {
@@ -137,8 +137,8 @@ public abstract class HangingEntity extends Entity {
         return true;
     }
 
-    public boolean skipAttackInteraction(Entity p_31750_) {
-        if (p_31750_ instanceof Player player) {
+    public boolean skipAttackInteraction(Entity pEntity) {
+        if (pEntity instanceof Player player) {
             return !this.level.mayInteract(player, this.pos) ? true : this.hurt(DamageSource.playerAttack(player), 0.0F);
         } else {
             return false;
@@ -149,43 +149,43 @@ public abstract class HangingEntity extends Entity {
         return this.direction;
     }
 
-    public boolean hurt(DamageSource p_31715_, float p_31716_) {
-        if (this.isInvulnerableTo(p_31715_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else {
             if (!this.isRemoved() && !this.level.isClientSide) {
                 this.kill();
                 this.markHurt();
-                this.dropItem(p_31715_.getEntity());
+                this.dropItem(pSource.getEntity());
             }
 
             return true;
         }
     }
 
-    public void move(MoverType p_31719_, Vec3 p_31720_) {
-        if (!this.level.isClientSide && !this.isRemoved() && p_31720_.lengthSqr() > 0.0D) {
+    public void move(MoverType pType, Vec3 pPos) {
+        if (!this.level.isClientSide && !this.isRemoved() && pPos.lengthSqr() > 0.0D) {
             this.kill();
             this.dropItem((Entity) null);
         }
     }
 
-    public void push(double p_31744_, double p_31745_, double p_31746_) {
-        if (!this.level.isClientSide && !this.isRemoved() && p_31744_ * p_31744_ + p_31745_ * p_31745_ + p_31746_ * p_31746_ > 0.0D) {
+    public void push(double pX, double pY, double pZ) {
+        if (!this.level.isClientSide && !this.isRemoved() && pX * pX + pY * pY + pZ * pZ > 0.0D) {
             this.kill();
             this.dropItem((Entity) null);
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_31736_) {
+    public void addAdditionalSaveData(CompoundTag pCompound) {
         BlockPos blockpos = this.getPos();
-        p_31736_.putInt("TileX", blockpos.getX());
-        p_31736_.putInt("TileY", blockpos.getY());
-        p_31736_.putInt("TileZ", blockpos.getZ());
+        pCompound.putInt("TileX", blockpos.getX());
+        pCompound.putInt("TileY", blockpos.getY());
+        pCompound.putInt("TileZ", blockpos.getZ());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_31730_) {
-        BlockPos blockpos = new BlockPos(p_31730_.getInt("TileX"), p_31730_.getInt("TileY"), p_31730_.getInt("TileZ"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        BlockPos blockpos = new BlockPos(pCompound.getInt("TileX"), pCompound.getInt("TileY"), pCompound.getInt("TileZ"));
         if (!blockpos.closerThan(this.blockPosition(), 16.0D)) {
             LOGGER.error("Hanging entity at invalid position: {}", (Object) blockpos);
         } else {
@@ -197,12 +197,12 @@ public abstract class HangingEntity extends Entity {
 
     public abstract int getHeight();
 
-    public abstract void dropItem(@Nullable Entity p_31717_);
+    public abstract void dropItem(@Nullable Entity pBrokenEntity);
 
     public abstract void playPlacementSound();
 
-    public ItemEntity spawnAtLocation(ItemStack p_31722_, float p_31723_) {
-        ItemEntity itementity = new ItemEntity(this.level, this.sectorPosition().add((double) ((float) this.direction.getStepX() * 0.15F), (double) p_31723_, (double) ((float) this.direction.getStepZ() * 0.15F)), p_31722_);
+    public ItemEntity spawnAtLocation(ItemStack pStack, float pOffsetY) {
+        ItemEntity itementity = new ItemEntity(this.level, this.sectorPosition().add((double) ((float) this.direction.getStepX() * 0.15F), (double) pOffsetY, (double) ((float) this.direction.getStepZ() * 0.15F)), pStack);
         itementity.setDefaultPickUpDelay();
         this.level.addFreshEntity(itementity);
         return itementity;
@@ -212,8 +212,8 @@ public abstract class HangingEntity extends Entity {
         return false;
     }
 
-    public void setPos(double p_31739_, double p_31740_, double p_31741_) {
-        this.pos = new BlockPos(p_31739_, p_31740_, p_31741_);
+    public void setPos(double pX, double pY, double pZ) {
+        this.pos = new BlockPos(pX, pY, pZ);
         this.recalculateBoundingBox();
         this.hasImpulse = true;
     }
@@ -222,9 +222,9 @@ public abstract class HangingEntity extends Entity {
         return this.pos;
     }
 
-    public float rotate(Rotation p_31727_) {
+    public float rotate(Rotation pTransformRotation) {
         if (this.direction.getAxis() != Direction.Axis.Y) {
-            switch (p_31727_) {
+            switch (pTransformRotation) {
                 case CLOCKWISE_180:
                     this.direction = this.direction.getOpposite();
                     break;
@@ -237,7 +237,7 @@ public abstract class HangingEntity extends Entity {
         }
 
         float f = Mth.wrapDegrees(this.getYRot());
-        switch (p_31727_) {
+        switch (pTransformRotation) {
             case CLOCKWISE_180:
                 return f + 180.0F;
             case COUNTERCLOCKWISE_90:
@@ -249,11 +249,11 @@ public abstract class HangingEntity extends Entity {
         }
     }
 
-    public float mirror(Mirror p_31725_) {
-        return this.rotate(p_31725_.getRotation(this.direction));
+    public float mirror(Mirror pTransformMirror) {
+        return this.rotate(pTransformMirror.getRotation(this.direction));
     }
 
-    public void thunderHit(ServerLevel p_31712_, LightningBolt p_31713_) {
+    public void thunderHit(ServerLevel pLevel, LightningBolt pLightning) {
     }
 
     public void refreshDimensions() {

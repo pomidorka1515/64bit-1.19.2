@@ -7,8 +7,8 @@ import com.mojang.datafixers.TypeRewriteRule;
 import com.mojang.datafixers.schemas.Schema;
 
 public class OptionsAddTextBackgroundFix extends DataFix {
-    public OptionsAddTextBackgroundFix(Schema p_16607_, boolean p_16608_) {
-        super(p_16607_, p_16608_);
+    public OptionsAddTextBackgroundFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

@@ -14,24 +14,24 @@ public class ConditionReference implements LootItemCondition {
     private static final Logger LOGGER = LogUtils.getLogger();
     final ResourceLocation name;
 
-    ConditionReference(ResourceLocation p_81553_) {
-        this.name = p_81553_;
+    ConditionReference(ResourceLocation pName) {
+        this.name = pName;
     }
 
     public LootItemConditionType getType() {
         return LootItemConditions.REFERENCE;
     }
 
-    public void validate(ValidationContext p_81560_) {
-        if (p_81560_.hasVisitedCondition(this.name)) {
-            p_81560_.reportProblem("Condition " + this.name + " is recursively called");
+    public void validate(ValidationContext pContext) {
+        if (pContext.hasVisitedCondition(this.name)) {
+            pContext.reportProblem("Condition " + this.name + " is recursively called");
         } else {
-            LootItemCondition.super.validate(p_81560_);
-            LootItemCondition lootitemcondition = p_81560_.resolveCondition(this.name);
+            LootItemCondition.super.validate(pContext);
+            LootItemCondition lootitemcondition = pContext.resolveCondition(this.name);
             if (lootitemcondition == null) {
-                p_81560_.reportProblem("Unknown condition table called " + this.name);
+                pContext.reportProblem("Unknown condition table called " + this.name);
             } else {
-                lootitemcondition.validate(p_81560_.enterTable(".{" + this.name + "}", this.name));
+                lootitemcondition.validate(pContext.enterTable(".{" + this.name + "}", this.name));
             }
         }
     }
@@ -56,9 +56,9 @@ public class ConditionReference implements LootItemCondition {
         }
     }
 
-    public static LootItemCondition.Builder conditionReference(ResourceLocation p_165481_) {
+    public static LootItemCondition.Builder conditionReference(ResourceLocation pReferencedCondition) {
         return () -> {
-            return new ConditionReference(p_165481_);
+            return new ConditionReference(pReferencedCondition);
         };
     }
 

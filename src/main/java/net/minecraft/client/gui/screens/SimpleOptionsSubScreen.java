@@ -22,9 +22,9 @@ public abstract class SimpleOptionsSubScreen extends OptionsSubScreen {
     private AbstractWidget narratorButton;
     private OptionsList list;
 
-    public SimpleOptionsSubScreen(Screen p_232763_, Options p_232764_, Component p_232765_, OptionInstance<?>[] p_232766_) {
-        super(p_232763_, p_232764_, p_232765_);
-        this.smallOptions = p_232766_;
+    public SimpleOptionsSubScreen(Screen pLastScreen, Options pOptions, Component pTitle, OptionInstance<?>[] pSmallOptions) {
+        super(pLastScreen, pOptions, pTitle);
+        this.smallOptions = pSmallOptions;
     }
 
     protected void init() {
@@ -44,13 +44,13 @@ public abstract class SimpleOptionsSubScreen extends OptionsSubScreen {
         }));
     }
 
-    public void render(PoseStack p_96675_, int p_96676_, int p_96677_, float p_96678_) {
-        this.renderBackground(p_96675_);
-        this.list.render(p_96675_, p_96676_, p_96677_, p_96678_);
-        drawCenteredString(p_96675_, this.font, this.title, this.width / 2, 20, 16777215);
-        super.render(p_96675_, p_96676_, p_96677_, p_96678_);
-        List<FormattedCharSequence> list = tooltipAt(this.list, p_96676_, p_96677_);
-        this.renderTooltip(p_96675_, list, p_96676_, p_96677_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.list.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 20, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        List<FormattedCharSequence> list = tooltipAt(this.list, pMouseX, pMouseY);
+        this.renderTooltip(pPoseStack, list, pMouseX, pMouseY);
     }
 
     public void updateNarratorButton() {

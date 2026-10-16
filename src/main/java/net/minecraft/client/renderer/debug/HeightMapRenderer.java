@@ -27,17 +27,17 @@ public class HeightMapRenderer implements DebugRenderer.SimpleDebugRenderer {
     private static final int CHUNK_DIST = 2;
     private static final float BOX_HEIGHT = 0.09375F;
 
-    public HeightMapRenderer(Minecraft p_113572_) {
-        this.minecraft = p_113572_;
+    public HeightMapRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_113576_, MultiBufferSource p_113577_, double p_113578_, double p_113579_, double p_113580_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         LevelAccessor levelaccessor = this.minecraft.level;
         RenderSystem.disableBlend();
         RenderSystem.disableTexture();
         RenderSystem.enableDepthTest();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BlockPos blockpos = new BlockPos(p_113578_, 0.0D, p_113580_);
+        BlockPos blockpos = new BlockPos(pCamX, 0.0D, pCamZ);
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
@@ -55,8 +55,8 @@ public class HeightMapRenderer implements DebugRenderer.SimpleDebugRenderer {
                         for (int l = 0; l < 16; ++l) {
                             long i1 = SectionPos.sectionToBlockCoord(chunkpos.x, k);
                             long j1 = SectionPos.sectionToBlockCoord(chunkpos.z, l);
-                            float f = (float) ((double) ((float) levelaccessor.getHeight(heightmap$types, i1, j1) + (float) heightmap$types.ordinal() * 0.09375F) - p_113579_);
-                            LevelRenderer.addChainedFilledBoxVertices(bufferbuilder, (double) ((float) i1 + 0.25F) - p_113578_, (double) f, (double) ((float) j1 + 0.25F) - p_113580_, (double) ((float) i1 + 0.75F) - p_113578_, (double) (f + 0.09375F), (double) ((float) j1 + 0.75F) - p_113580_, vector3f.x(), vector3f.y(), vector3f.z(), 1.0F);
+                            float f = (float) ((double) ((float) levelaccessor.getHeight(heightmap$types, i1, j1) + (float) heightmap$types.ordinal() * 0.09375F) - pCamY);
+                            LevelRenderer.addChainedFilledBoxVertices(bufferbuilder, (double) ((float) i1 + 0.25F) - pCamX, (double) f, (double) ((float) j1 + 0.25F) - pCamZ, (double) ((float) i1 + 0.75F) - pCamX, (double) (f + 0.09375F), (double) ((float) j1 + 0.75F) - pCamZ, vector3f.x(), vector3f.y(), vector3f.z(), 1.0F);
                         }
                     }
                 }
@@ -67,8 +67,8 @@ public class HeightMapRenderer implements DebugRenderer.SimpleDebugRenderer {
         RenderSystem.enableTexture();
     }
 
-    private Vector3f getColor(Heightmap.Types p_113574_) {
-        switch (p_113574_) {
+    private Vector3f getColor(Heightmap.Types pTypes) {
+        switch (pTypes) {
             case WORLD_SURFACE_WG:
                 return new Vector3f(1.0F, 1.0F, 0.0F);
             case OCEAN_FLOOR_WG:

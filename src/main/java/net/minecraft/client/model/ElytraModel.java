@@ -19,9 +19,9 @@ public class ElytraModel<T extends LivingEntity> extends AgeableListModel<T> {
     private final ModelPart rightWing;
     private final ModelPart leftWing;
 
-    public ElytraModel(ModelPart p_170538_) {
-        this.leftWing = p_170538_.getChild("left_wing");
-        this.rightWing = p_170538_.getChild("right_wing");
+    public ElytraModel(ModelPart pRoot) {
+        this.leftWing = pRoot.getChild("left_wing");
+        this.rightWing = pRoot.getChild("right_wing");
     }
 
     public static LayerDefinition createLayer() {
@@ -41,14 +41,14 @@ public class ElytraModel<T extends LivingEntity> extends AgeableListModel<T> {
         return ImmutableList.of(this.leftWing, this.rightWing);
     }
 
-    public void setupAnim(T p_102544_, float p_102545_, float p_102546_, float p_102547_, float p_102548_, float p_102549_) {
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
         float f = 0.2617994F;
         float f1 = -0.2617994F;
         float f2 = 0.0F;
         float f3 = 0.0F;
-        if (p_102544_.isFallFlying()) {
+        if (pEntity.isFallFlying()) {
             float f4 = 1.0F;
-            Vec3 vec3 = p_102544_.getDeltaMovement();
+            Vec3 vec3 = pEntity.getDeltaMovement();
             if (vec3.y < 0.0D) {
                 Vec3 vec31 = vec3.normalize();
                 f4 = 1.0F - (float) Math.pow(-vec31.y, 1.5D);
@@ -56,7 +56,7 @@ public class ElytraModel<T extends LivingEntity> extends AgeableListModel<T> {
 
             f = f4 * 0.34906584F + (1.0F - f4) * f;
             f1 = f4 * (-(float) Math.PI / 2F) + (1.0F - f4) * f1;
-        } else if (p_102544_.isCrouching()) {
+        } else if (pEntity.isCrouching()) {
             f = 0.6981317F;
             f1 = (-(float) Math.PI / 4F);
             f2 = 3.0F;
@@ -64,7 +64,7 @@ public class ElytraModel<T extends LivingEntity> extends AgeableListModel<T> {
         }
 
         this.leftWing.y = f2;
-        if (p_102544_ instanceof AbstractClientPlayer abstractclientplayer) {
+        if (pEntity instanceof AbstractClientPlayer abstractclientplayer) {
             abstractclientplayer.elytraRotX += (f - abstractclientplayer.elytraRotX) * 0.1F;
             abstractclientplayer.elytraRotY += (f3 - abstractclientplayer.elytraRotY) * 0.1F;
             abstractclientplayer.elytraRotZ += (f1 - abstractclientplayer.elytraRotZ) * 0.1F;

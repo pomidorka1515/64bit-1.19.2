@@ -50,8 +50,8 @@ public class ItemStackEnchantmentNamesFix extends DataFix {
         p_16075_.put(71, "minecraft:vanishing_curse");
     });
 
-    public ItemStackEnchantmentNamesFix(Schema p_16065_, boolean p_16066_) {
-        super(p_16065_, p_16066_);
+    public ItemStackEnchantmentNamesFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

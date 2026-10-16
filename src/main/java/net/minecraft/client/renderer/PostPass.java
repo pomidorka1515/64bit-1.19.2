@@ -28,10 +28,10 @@ public class PostPass implements AutoCloseable {
     private final List<Integer> auxHeights = Lists.newArrayList();
     private Matrix4f shaderOrthoMatrix;
 
-    public PostPass(ResourceManager p_110061_, String p_110062_, RenderTarget p_110063_, RenderTarget p_110064_) throws IOException {
-        this.effect = new EffectInstance(p_110061_, p_110062_);
-        this.inTarget = p_110063_;
-        this.outTarget = p_110064_;
+    public PostPass(ResourceManager pResourceManager, String pName, RenderTarget pInTarget, RenderTarget pOutTarget) throws IOException {
+        this.effect = new EffectInstance(pResourceManager, pName);
+        this.inTarget = pInTarget;
+        this.outTarget = pOutTarget;
     }
 
     public void close() {
@@ -42,18 +42,18 @@ public class PostPass implements AutoCloseable {
         return this.effect.getName();
     }
 
-    public void addAuxAsset(String p_110070_, IntSupplier p_110071_, int p_110072_, int p_110073_) {
-        this.auxNames.add(this.auxNames.size(), p_110070_);
-        this.auxAssets.add(this.auxAssets.size(), p_110071_);
-        this.auxWidths.add(this.auxWidths.size(), p_110072_);
-        this.auxHeights.add(this.auxHeights.size(), p_110073_);
+    public void addAuxAsset(String pAuxName, IntSupplier pAuxFramebuffer, int pWidth, int pHeight) {
+        this.auxNames.add(this.auxNames.size(), pAuxName);
+        this.auxAssets.add(this.auxAssets.size(), pAuxFramebuffer);
+        this.auxWidths.add(this.auxWidths.size(), pWidth);
+        this.auxHeights.add(this.auxHeights.size(), pHeight);
     }
 
-    public void setOrthoMatrix(Matrix4f p_110068_) {
-        this.shaderOrthoMatrix = p_110068_;
+    public void setOrthoMatrix(Matrix4f pProjectionMatrix) {
+        this.shaderOrthoMatrix = pProjectionMatrix;
     }
 
-    public void process(float p_110066_) {
+    public void process(float pPartialTicks) {
         this.inTarget.unbindWrite();
         float f = (float) this.outTarget.width;
         float f1 = (float) this.outTarget.height;
@@ -68,7 +68,7 @@ public class PostPass implements AutoCloseable {
         this.effect.safeGetUniform("ProjMat").set(this.shaderOrthoMatrix);
         this.effect.safeGetUniform("InSize").set((float) this.inTarget.width, (float) this.inTarget.height);
         this.effect.safeGetUniform("OutSize").set(f, f1);
-        this.effect.safeGetUniform("Time").set(p_110066_);
+        this.effect.safeGetUniform("Time").set(pPartialTicks);
         Minecraft minecraft = Minecraft.getInstance();
         this.effect.safeGetUniform("ScreenSize").set((float) minecraft.getWindow().getWidth(), (float) minecraft.getWindow().getHeight());
         this.effect.apply();

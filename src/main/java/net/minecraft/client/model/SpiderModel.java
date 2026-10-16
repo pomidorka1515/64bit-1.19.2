@@ -30,17 +30,17 @@ public class SpiderModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart rightFrontLeg;
     private final ModelPart leftFrontLeg;
 
-    public SpiderModel(ModelPart p_170984_) {
-        this.root = p_170984_;
-        this.head = p_170984_.getChild("head");
-        this.rightHindLeg = p_170984_.getChild("right_hind_leg");
-        this.leftHindLeg = p_170984_.getChild("left_hind_leg");
-        this.rightMiddleHindLeg = p_170984_.getChild("right_middle_hind_leg");
-        this.leftMiddleHindLeg = p_170984_.getChild("left_middle_hind_leg");
-        this.rightMiddleFrontLeg = p_170984_.getChild("right_middle_front_leg");
-        this.leftMiddleFrontLeg = p_170984_.getChild("left_middle_front_leg");
-        this.rightFrontLeg = p_170984_.getChild("right_front_leg");
-        this.leftFrontLeg = p_170984_.getChild("left_front_leg");
+    public SpiderModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.head = pRoot.getChild("head");
+        this.rightHindLeg = pRoot.getChild("right_hind_leg");
+        this.leftHindLeg = pRoot.getChild("left_hind_leg");
+        this.rightMiddleHindLeg = pRoot.getChild("right_middle_hind_leg");
+        this.leftMiddleHindLeg = pRoot.getChild("left_middle_hind_leg");
+        this.rightMiddleFrontLeg = pRoot.getChild("right_middle_front_leg");
+        this.leftMiddleFrontLeg = pRoot.getChild("left_middle_front_leg");
+        this.rightFrontLeg = pRoot.getChild("right_front_leg");
+        this.leftFrontLeg = pRoot.getChild("left_front_leg");
     }
 
     public static LayerDefinition createSpiderBodyLayer() {
@@ -67,9 +67,9 @@ public class SpiderModel<T extends Entity> extends HierarchicalModel<T> {
         return this.root;
     }
 
-    public void setupAnim(T p_103866_, float p_103867_, float p_103868_, float p_103869_, float p_103870_, float p_103871_) {
-        this.head.yRot = p_103870_ * ((float) Math.PI / 180F);
-        this.head.xRot = p_103871_ * ((float) Math.PI / 180F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
         float f = ((float) Math.PI / 4F);
         this.rightHindLeg.zRot = (-(float) Math.PI / 4F);
         this.leftHindLeg.zRot = ((float) Math.PI / 4F);
@@ -89,14 +89,14 @@ public class SpiderModel<T extends Entity> extends HierarchicalModel<T> {
         this.leftMiddleFrontLeg.yRot = ((float) Math.PI / 8F);
         this.rightFrontLeg.yRot = (-(float) Math.PI / 4F);
         this.leftFrontLeg.yRot = ((float) Math.PI / 4F);
-        float f3 = -(Mth.cos(p_103867_ * 0.6662F * 2.0F + 0.0F) * 0.4F) * p_103868_;
-        float f4 = -(Mth.cos(p_103867_ * 0.6662F * 2.0F + (float) Math.PI) * 0.4F) * p_103868_;
-        float f5 = -(Mth.cos(p_103867_ * 0.6662F * 2.0F + ((float) Math.PI / 2F)) * 0.4F) * p_103868_;
-        float f6 = -(Mth.cos(p_103867_ * 0.6662F * 2.0F + ((float) Math.PI * 1.5F)) * 0.4F) * p_103868_;
-        float f7 = Math.abs(Mth.sin(p_103867_ * 0.6662F + 0.0F) * 0.4F) * p_103868_;
-        float f8 = Math.abs(Mth.sin(p_103867_ * 0.6662F + (float) Math.PI) * 0.4F) * p_103868_;
-        float f9 = Math.abs(Mth.sin(p_103867_ * 0.6662F + ((float) Math.PI / 2F)) * 0.4F) * p_103868_;
-        float f10 = Math.abs(Mth.sin(p_103867_ * 0.6662F + ((float) Math.PI * 1.5F)) * 0.4F) * p_103868_;
+        float f3 = -(Mth.cos(pLimbSwing * 0.6662F * 2.0F + 0.0F) * 0.4F) * pLimbSwingAmount;
+        float f4 = -(Mth.cos(pLimbSwing * 0.6662F * 2.0F + (float) Math.PI) * 0.4F) * pLimbSwingAmount;
+        float f5 = -(Mth.cos(pLimbSwing * 0.6662F * 2.0F + ((float) Math.PI / 2F)) * 0.4F) * pLimbSwingAmount;
+        float f6 = -(Mth.cos(pLimbSwing * 0.6662F * 2.0F + ((float) Math.PI * 1.5F)) * 0.4F) * pLimbSwingAmount;
+        float f7 = Math.abs(Mth.sin(pLimbSwing * 0.6662F + 0.0F) * 0.4F) * pLimbSwingAmount;
+        float f8 = Math.abs(Mth.sin(pLimbSwing * 0.6662F + (float) Math.PI) * 0.4F) * pLimbSwingAmount;
+        float f9 = Math.abs(Mth.sin(pLimbSwing * 0.6662F + ((float) Math.PI / 2F)) * 0.4F) * pLimbSwingAmount;
+        float f10 = Math.abs(Mth.sin(pLimbSwing * 0.6662F + ((float) Math.PI * 1.5F)) * 0.4F) * pLimbSwingAmount;
         this.rightHindLeg.yRot += f3;
         this.leftHindLeg.yRot += -f3;
         this.rightMiddleHindLeg.yRot += f4;

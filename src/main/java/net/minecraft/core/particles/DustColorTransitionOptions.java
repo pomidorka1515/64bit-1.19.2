@@ -56,11 +56,11 @@ public class DustColorTransitionOptions extends DustParticleOptionsBase {
         return this.toColor;
     }
 
-    public void writeToNetwork(FriendlyByteBuf p_175767_) {
-        super.writeToNetwork(p_175767_);
-        p_175767_.writeFloat(this.toColor.x());
-        p_175767_.writeFloat(this.toColor.y());
-        p_175767_.writeFloat(this.toColor.z());
+    public void writeToNetwork(FriendlyByteBuf pBuffer) {
+        super.writeToNetwork(pBuffer);
+        pBuffer.writeFloat(this.toColor.x());
+        pBuffer.writeFloat(this.toColor.y());
+        pBuffer.writeFloat(this.toColor.z());
     }
 
     public String writeToString() {

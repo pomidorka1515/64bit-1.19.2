@@ -15,16 +15,16 @@ public class FishingHookPredicate implements EntitySubPredicate {
     private static final String IN_OPEN_WATER_KEY = "in_open_water";
     private final boolean inOpenWater;
 
-    private FishingHookPredicate(boolean p_39760_) {
-        this.inOpenWater = p_39760_;
+    private FishingHookPredicate(boolean pInOpenWater) {
+        this.inOpenWater = pInOpenWater;
     }
 
-    public static FishingHookPredicate inOpenWater(boolean p_39767_) {
-        return new FishingHookPredicate(p_39767_);
+    public static FishingHookPredicate inOpenWater(boolean pInOpenWater) {
+        return new FishingHookPredicate(pInOpenWater);
     }
 
-    public static FishingHookPredicate fromJson(JsonObject p_219720_) {
-        JsonElement jsonelement = p_219720_.get("in_open_water");
+    public static FishingHookPredicate fromJson(JsonObject pJson) {
+        JsonElement jsonelement = pJson.get("in_open_water");
         return jsonelement != null ? new FishingHookPredicate(GsonHelper.convertToBoolean(jsonelement, "in_open_water")) : ANY;
     }
 

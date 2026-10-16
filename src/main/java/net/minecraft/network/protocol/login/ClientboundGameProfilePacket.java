@@ -7,20 +7,20 @@ import net.minecraft.network.protocol.Packet;
 public class ClientboundGameProfilePacket implements Packet<ClientLoginPacketListener> {
     private final GameProfile gameProfile;
 
-    public ClientboundGameProfilePacket(GameProfile p_134767_) {
-        this.gameProfile = p_134767_;
+    public ClientboundGameProfilePacket(GameProfile pGameProfile) {
+        this.gameProfile = pGameProfile;
     }
 
-    public ClientboundGameProfilePacket(FriendlyByteBuf p_179814_) {
-        this.gameProfile = p_179814_.readGameProfile();
+    public ClientboundGameProfilePacket(FriendlyByteBuf pBuffer) {
+        this.gameProfile = pBuffer.readGameProfile();
     }
 
-    public void write(FriendlyByteBuf p_134776_) {
-        p_134776_.writeGameProfile(this.gameProfile);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeGameProfile(this.gameProfile);
     }
 
-    public void handle(ClientLoginPacketListener p_134773_) {
-        p_134773_.handleGameProfile(this);
+    public void handle(ClientLoginPacketListener pHandler) {
+        pHandler.handleGameProfile(this);
     }
 
     public GameProfile getGameProfile() {

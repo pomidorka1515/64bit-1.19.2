@@ -18,16 +18,16 @@ public class UseOnContext {
     private final Level level;
     private final ItemStack itemStack;
 
-    public UseOnContext(Player p_43709_, InteractionHand p_43710_, BlockHitResult p_43711_) {
-        this(p_43709_.level, p_43709_, p_43710_, p_43709_.getItemInHand(p_43710_), p_43711_);
+    public UseOnContext(Player pPlayer, InteractionHand pHand, BlockHitResult pHitResult) {
+        this(pPlayer.level, pPlayer, pHand, pPlayer.getItemInHand(pHand), pHitResult);
     }
 
-    protected UseOnContext(Level p_43713_, @Nullable Player p_43714_, InteractionHand p_43715_, ItemStack p_43716_, BlockHitResult p_43717_) {
-        this.player = p_43714_;
-        this.hand = p_43715_;
-        this.hitResult = p_43717_;
-        this.itemStack = p_43716_;
-        this.level = p_43713_;
+    protected UseOnContext(Level pLevel, @Nullable Player pPlayer, InteractionHand pHand, ItemStack pItemStack, BlockHitResult pHitResult) {
+        this.player = pPlayer;
+        this.hand = pHand;
+        this.hitResult = pHitResult;
+        this.itemStack = pItemStack;
+        this.level = pLevel;
     }
 
     protected final BlockHitResult getHitResult() {

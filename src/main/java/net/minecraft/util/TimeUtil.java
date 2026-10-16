@@ -7,7 +7,7 @@ public class TimeUtil {
     public static final long NANOSECONDS_PER_SECOND = TimeUnit.SECONDS.toNanos(1L);
     public static final long NANOSECONDS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1L);
 
-    public static UniformInt rangeOfSeconds(int p_145021_, int p_145022_) {
-        return UniformInt.of(p_145021_ * 20, p_145022_ * 20);
+    public static UniformInt rangeOfSeconds(int pMinInclusive, int pMaxInclusive) {
+        return UniformInt.of(pMinInclusive * 20, pMaxInclusive * 20);
     }
 }

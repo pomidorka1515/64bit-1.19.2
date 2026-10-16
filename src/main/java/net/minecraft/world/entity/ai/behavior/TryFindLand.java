@@ -18,33 +18,33 @@ public class TryFindLand extends Behavior<PathfinderMob> {
     private final float speedModifier;
     private long nextOkStartTime;
 
-    public TryFindLand(int p_217418_, float p_217419_) {
+    public TryFindLand(int pRange, float pSpeedModifier) {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT, MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT, MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED));
-        this.range = p_217418_;
-        this.speedModifier = p_217419_;
+        this.range = pRange;
+        this.speedModifier = pSpeedModifier;
     }
 
-    protected void stop(ServerLevel p_217431_, PathfinderMob p_217432_, long p_217433_) {
-        this.nextOkStartTime = p_217433_ + 60L;
+    protected void stop(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        this.nextOkStartTime = pGameTime + 60L;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_217428_, PathfinderMob p_217429_) {
-        return p_217429_.level.getFluidState(p_217429_.blockPosition()).is(FluidTags.WATER);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, PathfinderMob pOwner) {
+        return pOwner.level.getFluidState(pOwner.blockPosition()).is(FluidTags.WATER);
     }
 
-    protected void start(ServerLevel p_217435_, PathfinderMob p_217436_, long p_217437_) {
-        if (p_217437_ >= this.nextOkStartTime) {
-            BlockPos blockpos = p_217436_.blockPosition();
+    protected void start(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        if (pGameTime >= this.nextOkStartTime) {
+            BlockPos blockpos = pEntity.blockPosition();
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-            CollisionContext collisioncontext = CollisionContext.of(p_217436_);
+            CollisionContext collisioncontext = CollisionContext.of(pEntity);
 
             for (BlockPos blockpos1 : BlockPos.withinManhattan(blockpos, this.range, this.range, this.range)) {
                 if (blockpos1.getX() != blockpos.getX() || blockpos1.getZ() != blockpos.getZ()) {
-                    BlockState blockstate = p_217435_.getBlockState(blockpos1);
-                    BlockState blockstate1 = p_217435_.getBlockState(blockpos$mutableblockpos.setWithOffset(blockpos1, Direction.DOWN));
-                    if (!blockstate.is(Blocks.WATER) && p_217435_.getFluidState(blockpos1).isEmpty() && blockstate.getCollisionShape(p_217435_, blockpos1, collisioncontext).isEmpty() && blockstate1.isFaceSturdy(p_217435_, blockpos$mutableblockpos, Direction.UP)) {
-                        this.nextOkStartTime = p_217437_ + 60L;
-                        BehaviorUtils.setWalkAndLookTargetMemories(p_217436_, blockpos1.immutable(), this.speedModifier, 1);
+                    BlockState blockstate = pLevel.getBlockState(blockpos1);
+                    BlockState blockstate1 = pLevel.getBlockState(blockpos$mutableblockpos.setWithOffset(blockpos1, Direction.DOWN));
+                    if (!blockstate.is(Blocks.WATER) && pLevel.getFluidState(blockpos1).isEmpty() && blockstate.getCollisionShape(pLevel, blockpos1, collisioncontext).isEmpty() && blockstate1.isFaceSturdy(pLevel, blockpos$mutableblockpos, Direction.UP)) {
+                        this.nextOkStartTime = pGameTime + 60L;
+                        BehaviorUtils.setWalkAndLookTargetMemories(pEntity, blockpos1.immutable(), this.speedModifier, 1);
                         return;
                     }
                 }

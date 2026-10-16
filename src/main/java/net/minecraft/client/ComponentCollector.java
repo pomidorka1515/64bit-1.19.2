@@ -11,8 +11,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ComponentCollector {
     private final List<FormattedText> parts = Lists.newArrayList();
 
-    public void append(FormattedText p_90676_) {
-        this.parts.add(p_90676_);
+    public void append(FormattedText pPart) {
+        this.parts.add(pPart);
     }
 
     @Nullable

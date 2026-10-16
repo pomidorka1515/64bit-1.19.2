@@ -100,28 +100,28 @@ public class DedicatedServerProperties extends Settings<DedicatedServerPropertie
     @Nullable
     private WorldGenSettings worldGenSettings;
 
-    public DedicatedServerProperties(Properties p_180926_) {
-        super(p_180926_);
+    public DedicatedServerProperties(Properties pProperties) {
+        super(pProperties);
         this.serverResourcePackInfo = getServerPackInfo(this.get("resource-pack", ""), this.get("resource-pack-sha1", ""), this.getLegacyString("resource-pack-hash"), this.get("require-resource-pack", false), this.get("resource-pack-prompt", ""));
     }
 
-    public static DedicatedServerProperties fromFile(Path p_180930_) {
-        return new DedicatedServerProperties(loadFromFile(p_180930_));
+    public static DedicatedServerProperties fromFile(Path pPath) {
+        return new DedicatedServerProperties(loadFromFile(pPath));
     }
 
-    protected DedicatedServerProperties reload(RegistryAccess p_139761_, Properties p_139762_) {
-        DedicatedServerProperties dedicatedserverproperties = new DedicatedServerProperties(p_139762_);
-        dedicatedserverproperties.getWorldGenSettings(p_139761_);
+    protected DedicatedServerProperties reload(RegistryAccess pRegistryAccess, Properties pProperties) {
+        DedicatedServerProperties dedicatedserverproperties = new DedicatedServerProperties(pProperties);
+        dedicatedserverproperties.getWorldGenSettings(pRegistryAccess);
         return dedicatedserverproperties;
     }
 
     @Nullable
-    private static Component parseResourcePackPrompt(String p_214815_) {
-        if (!Strings.isNullOrEmpty(p_214815_)) {
+    private static Component parseResourcePackPrompt(String pJson) {
+        if (!Strings.isNullOrEmpty(pJson)) {
             try {
-                return Component.Serializer.fromJson(p_214815_);
+                return Component.Serializer.fromJson(pJson);
             } catch (Exception exception) {
-                LOGGER.warn("Failed to parse resource pack prompt '{}'", p_214815_, exception);
+                LOGGER.warn("Failed to parse resource pack prompt '{}'", pJson, exception);
             }
         }
 
@@ -156,9 +156,9 @@ public class DedicatedServerProperties extends Settings<DedicatedServerPropertie
         }
     }
 
-    public WorldGenSettings getWorldGenSettings(RegistryAccess p_180928_) {
+    public WorldGenSettings getWorldGenSettings(RegistryAccess pRegistryAccess) {
         if (this.worldGenSettings == null) {
-            this.worldGenSettings = this.worldGenProperties.create(p_180928_);
+            this.worldGenSettings = this.worldGenProperties.create(pRegistryAccess);
         }
 
         return this.worldGenSettings;
@@ -167,9 +167,9 @@ public class DedicatedServerProperties extends Settings<DedicatedServerPropertie
     public static record WorldGenProperties(String levelSeed, JsonObject generatorSettings, boolean generateStructures, String levelType) {
         private static final Map<String, ResourceKey<WorldPreset>> LEGACY_PRESET_NAMES = Map.of("default", WorldPresets.NORMAL, "largebiomes", WorldPresets.LARGE_BIOMES);
 
-        public WorldGenSettings create(RegistryAccess p_214827_) {
+        public WorldGenSettings create(RegistryAccess pRegistryAccess) {
             long i = WorldGenSettings.parseSeed(this.levelSeed()).orElse(RandomSource.create().nextLong());
-            Registry<WorldPreset> registry = p_214827_.registryOrThrow(Registry.WORLD_PRESET_REGISTRY);
+            Registry<WorldPreset> registry = pRegistryAccess.registryOrThrow(Registry.WORLD_PRESET_REGISTRY);
             Holder<WorldPreset> holder = registry.getHolder(WorldPresets.NORMAL).or(() -> {
                                                                                     return registry.holders().findAny();
                                                                                 })
@@ -192,11 +192,11 @@ public class DedicatedServerProperties extends Settings<DedicatedServerPropertie
                                                   });
             WorldGenSettings worldgensettings = holder1.value().createWorldGenSettings(i, this.generateStructures, false);
             if (holder1.is(WorldPresets.FLAT)) {
-                RegistryOps<JsonElement> registryops = RegistryOps.create(JsonOps.INSTANCE, p_214827_);
+                RegistryOps<JsonElement> registryops = RegistryOps.create(JsonOps.INSTANCE, pRegistryAccess);
                 Optional<FlatLevelGeneratorSettings> optional = FlatLevelGeneratorSettings.CODEC.parse(new Dynamic<>(registryops, this.generatorSettings())).resultOrPartial(DedicatedServerProperties.LOGGER::error);
                 if (optional.isPresent()) {
-                    Registry<StructureSet> registry1 = p_214827_.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
-                    return WorldGenSettings.replaceOverworldGenerator(p_214827_, worldgensettings, new FlatLevelSource(registry1, optional.get()));
+                    Registry<StructureSet> registry1 = pRegistryAccess.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
+                    return WorldGenSettings.replaceOverworldGenerator(pRegistryAccess, worldgensettings, new FlatLevelSource(registry1, optional.get()));
                 }
             }
 

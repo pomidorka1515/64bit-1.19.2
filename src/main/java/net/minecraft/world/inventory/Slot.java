@@ -15,34 +15,34 @@ public class Slot {
     public final int x;
     public final int y;
 
-    public Slot(Container p_40223_, int p_40224_, int p_40225_, int p_40226_) {
-        this.container = p_40223_;
-        this.slot = p_40224_;
-        this.x = p_40225_;
-        this.y = p_40226_;
+    public Slot(Container pContainer, int pSlot, int pX, int pY) {
+        this.container = pContainer;
+        this.slot = pSlot;
+        this.x = pX;
+        this.y = pY;
     }
 
-    public void onQuickCraft(ItemStack p_40235_, ItemStack p_40236_) {
-        int i = p_40236_.getCount() - p_40235_.getCount();
+    public void onQuickCraft(ItemStack pOldStack, ItemStack pNewStack) {
+        int i = pNewStack.getCount() - pOldStack.getCount();
         if (i > 0) {
-            this.onQuickCraft(p_40236_, i);
+            this.onQuickCraft(pNewStack, i);
         }
     }
 
-    protected void onQuickCraft(ItemStack p_40232_, int p_40233_) {
+    protected void onQuickCraft(ItemStack pStack, int pAmount) {
     }
 
-    protected void onSwapCraft(int p_40237_) {
+    protected void onSwapCraft(int pNumItemsCrafted) {
     }
 
-    protected void checkTakeAchievements(ItemStack p_40239_) {
+    protected void checkTakeAchievements(ItemStack pStack) {
     }
 
-    public void onTake(Player p_150645_, ItemStack p_150646_) {
+    public void onTake(Player pPlayer, ItemStack pStack) {
         this.setChanged();
     }
 
-    public boolean mayPlace(ItemStack p_40231_) {
+    public boolean mayPlace(ItemStack pStack) {
         return true;
     }
 
@@ -54,8 +54,8 @@ public class Slot {
         return !this.getItem().isEmpty();
     }
 
-    public void set(ItemStack p_40240_) {
-        this.container.setItem(this.slot, p_40240_);
+    public void set(ItemStack pStack) {
+        this.container.setItem(this.slot, pStack);
         this.setChanged();
     }
 
@@ -72,8 +72,8 @@ public class Slot {
         return this.container.getMaxStackSize();
     }
 
-    public int getMaxStackSize(ItemStack p_40238_) {
-        return Math.min(this.getMaxStackSize(), p_40238_.getMaxStackSize());
+    public int getMaxStackSize(ItemStack pStack) {
+        return Math.min(this.getMaxStackSize(), pStack.getMaxStackSize());
     }
 
     @Nullable
@@ -81,11 +81,11 @@ public class Slot {
         return null;
     }
 
-    public ItemStack remove(int p_40227_) {
-        return this.container.removeItem(this.slot, p_40227_);
+    public ItemStack remove(int pAmount) {
+        return this.container.removeItem(this.slot, pAmount);
     }
 
-    public boolean mayPickup(Player p_40228_) {
+    public boolean mayPickup(Player pPlayer) {
         return true;
     }
 
@@ -93,14 +93,14 @@ public class Slot {
         return true;
     }
 
-    public Optional<ItemStack> tryRemove(int p_150642_, int p_150643_, Player p_150644_) {
-        if (!this.mayPickup(p_150644_)) {
+    public Optional<ItemStack> tryRemove(int pCount, int pDecrement, Player pPlayer) {
+        if (!this.mayPickup(pPlayer)) {
             return Optional.empty();
-        } else if (!this.allowModification(p_150644_) && p_150643_ < this.getItem().getCount()) {
+        } else if (!this.allowModification(pPlayer) && pDecrement < this.getItem().getCount()) {
             return Optional.empty();
         } else {
-            p_150642_ = Math.min(p_150642_, p_150643_);
-            ItemStack itemstack = this.remove(p_150642_);
+            pCount = Math.min(pCount, pDecrement);
+            ItemStack itemstack = this.remove(pCount);
             if (itemstack.isEmpty()) {
                 return Optional.empty();
             } else {
@@ -113,38 +113,38 @@ public class Slot {
         }
     }
 
-    public ItemStack safeTake(int p_150648_, int p_150649_, Player p_150650_) {
-        Optional<ItemStack> optional = this.tryRemove(p_150648_, p_150649_, p_150650_);
+    public ItemStack safeTake(int pCount, int pDecrement, Player pPlayer) {
+        Optional<ItemStack> optional = this.tryRemove(pCount, pDecrement, pPlayer);
         optional.ifPresent((p_150655_) -> {
-            this.onTake(p_150650_, p_150655_);
+            this.onTake(pPlayer, p_150655_);
         });
         return optional.orElse(ItemStack.EMPTY);
     }
 
-    public ItemStack safeInsert(ItemStack p_150660_) {
-        return this.safeInsert(p_150660_, p_150660_.getCount());
+    public ItemStack safeInsert(ItemStack pStack) {
+        return this.safeInsert(pStack, pStack.getCount());
     }
 
-    public ItemStack safeInsert(ItemStack p_150657_, int p_150658_) {
-        if (!p_150657_.isEmpty() && this.mayPlace(p_150657_)) {
+    public ItemStack safeInsert(ItemStack pStack, int pIncrement) {
+        if (!pStack.isEmpty() && this.mayPlace(pStack)) {
             ItemStack itemstack = this.getItem();
-            int i = Math.min(Math.min(p_150658_, p_150657_.getCount()), this.getMaxStackSize(p_150657_) - itemstack.getCount());
+            int i = Math.min(Math.min(pIncrement, pStack.getCount()), this.getMaxStackSize(pStack) - itemstack.getCount());
             if (itemstack.isEmpty()) {
-                this.set(p_150657_.split(i));
-            } else if (ItemStack.isSameItemSameTags(itemstack, p_150657_)) {
-                p_150657_.shrink(i);
+                this.set(pStack.split(i));
+            } else if (ItemStack.isSameItemSameTags(itemstack, pStack)) {
+                pStack.shrink(i);
                 itemstack.grow(i);
                 this.set(itemstack);
             }
 
-            return p_150657_;
+            return pStack;
         } else {
-            return p_150657_;
+            return pStack;
         }
     }
 
-    public boolean allowModification(Player p_150652_) {
-        return this.mayPickup(p_150652_) && this.mayPlace(this.getItem());
+    public boolean allowModification(Player pPlayer) {
+        return this.mayPickup(pPlayer) && this.mayPlace(this.getItem());
     }
 
     public int getContainerSlot() {

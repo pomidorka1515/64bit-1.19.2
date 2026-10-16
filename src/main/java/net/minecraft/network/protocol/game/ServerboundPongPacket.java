@@ -6,20 +6,20 @@ import net.minecraft.network.protocol.Packet;
 public class ServerboundPongPacket implements Packet<ServerGamePacketListener> {
     private final int id;
 
-    public ServerboundPongPacket(int p_179723_) {
-        this.id = p_179723_;
+    public ServerboundPongPacket(int pId) {
+        this.id = pId;
     }
 
-    public ServerboundPongPacket(FriendlyByteBuf p_179725_) {
-        this.id = p_179725_.readInt();
+    public ServerboundPongPacket(FriendlyByteBuf pBuffer) {
+        this.id = pBuffer.readInt();
     }
 
-    public void write(FriendlyByteBuf p_179727_) {
-        p_179727_.writeInt(this.id);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeInt(this.id);
     }
 
-    public void handle(ServerGamePacketListener p_179731_) {
-        p_179731_.handlePong(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handlePong(this);
     }
 
     public int getId() {

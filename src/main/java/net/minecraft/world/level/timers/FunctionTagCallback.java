@@ -9,12 +9,12 @@ import net.minecraft.server.ServerFunctionManager;
 public class FunctionTagCallback implements TimerCallback<MinecraftServer> {
     final ResourceLocation tagId;
 
-    public FunctionTagCallback(ResourceLocation p_82191_) {
-        this.tagId = p_82191_;
+    public FunctionTagCallback(ResourceLocation pTagId) {
+        this.tagId = pTagId;
     }
 
-    public void handle(MinecraftServer p_82199_, TimerQueue<MinecraftServer> p_82200_, long p_82201_) {
-        ServerFunctionManager serverfunctionmanager = p_82199_.getFunctions();
+    public void handle(MinecraftServer pObj, TimerQueue<MinecraftServer> pManager, long pGameTime) {
+        ServerFunctionManager serverfunctionmanager = pObj.getFunctions();
 
         for (CommandFunction commandfunction : serverfunctionmanager.getTag(this.tagId)) {
             serverfunctionmanager.execute(commandfunction, serverfunctionmanager.getGameLoopSender());

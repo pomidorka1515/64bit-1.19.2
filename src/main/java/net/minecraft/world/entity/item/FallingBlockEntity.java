@@ -56,29 +56,29 @@ public class FallingBlockEntity extends Entity {
     public CompoundTag blockData;
     protected static final EntityDataAccessor<BlockPos> DATA_START_POS = SynchedEntityData.defineId(FallingBlockEntity.class, EntityDataSerializers.BLOCK_POS);
 
-    public FallingBlockEntity(EntityType<? extends FallingBlockEntity> p_31950_, Level p_31951_) {
-        super(p_31950_, p_31951_);
+    public FallingBlockEntity(EntityType<? extends FallingBlockEntity> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    private FallingBlockEntity(Level p_31953_, double p_31954_, double p_31955_, double p_31956_, BlockState p_31957_) {
-        this(EntityType.FALLING_BLOCK, p_31953_);
-        this.blockState = p_31957_;
+    private FallingBlockEntity(Level pLevel, double pX, double pY, double pZ, BlockState pState) {
+        this(EntityType.FALLING_BLOCK, pLevel);
+        this.blockState = pState;
         this.blocksBuilding = true;
-        this.setPos(p_31954_, p_31955_, p_31956_);
+        this.setPos(pX, pY, pZ);
         this.setDeltaMovement(Vec3.ZERO);
         this.setOldPosAndRot();
         this.setStartPos(this.blockPosition());
     }
 
-    public static FallingBlockEntity fall(Level p_201972_, BlockPos p_201973_, BlockState p_201974_) {
-        FallingBlockEntity fallingblockentity = new FallingBlockEntity(p_201972_, (double) p_201973_.getX() + 0.5D,
-                (double) p_201973_.getY(), (double) p_201973_.getZ() + 0.5D,
-                p_201974_.hasProperty(BlockStateProperties.WATERLOGGED) ? p_201974_.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)) : p_201974_);
-        fallingblockentity.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_201973_.getX(),
-                0.5D, (double) p_201973_.getY(), p_201973_.getZ(), 0.5D));
+    public static FallingBlockEntity fall(Level pLevel, BlockPos pPos, BlockState pBlockState) {
+        FallingBlockEntity fallingblockentity = new FallingBlockEntity(pLevel, (double) pPos.getX() + 0.5D,
+                (double) pPos.getY(), (double) pPos.getZ() + 0.5D,
+                pBlockState.hasProperty(BlockStateProperties.WATERLOGGED) ? pBlockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)) : pBlockState);
+        fallingblockentity.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(),
+                0.5D, (double) pPos.getY(), pPos.getZ(), 0.5D));
         fallingblockentity.setOldPosAndRot();
-        p_201972_.setBlock(p_201973_, p_201974_.getFluidState().createLegacyBlock(), 3);
-        p_201972_.addFreshEntity(fallingblockentity);
+        pLevel.setBlock(pPos, pBlockState.getFluidState().createLegacyBlock(), 3);
+        pLevel.addFreshEntity(fallingblockentity);
         return fallingblockentity;
     }
 
@@ -86,8 +86,8 @@ public class FallingBlockEntity extends Entity {
         return false;
     }
 
-    public void setStartPos(BlockPos p_31960_) {
-        this.entityData.set(DATA_START_POS, p_31960_);
+    public void setStartPos(BlockPos pStartPos) {
+        this.entityData.set(DATA_START_POS, pStartPos);
     }
 
     public BlockPos getStartPos() {
@@ -200,17 +200,17 @@ public class FallingBlockEntity extends Entity {
         }
     }
 
-    public void callOnBrokenAfterFall(Block p_149651_, BlockPos p_149652_) {
-        if (p_149651_ instanceof Fallable) {
-            ((Fallable) p_149651_).onBrokenAfterFall(this.level, p_149652_, this);
+    public void callOnBrokenAfterFall(Block pBlock, BlockPos pPos) {
+        if (pBlock instanceof Fallable) {
+            ((Fallable) pBlock).onBrokenAfterFall(this.level, pPos, this);
         }
     }
 
-    public boolean causeFallDamage(float p_149643_, float p_149644_, DamageSource p_149645_) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         if (!this.hurtEntities) {
             return false;
         } else {
-            int i = Mth.ceil(p_149643_ - 1.0F);
+            int i = Mth.ceil(pFallDistance - 1.0F);
             if (i < 0) {
                 return false;
             } else {
@@ -244,35 +244,35 @@ public class FallingBlockEntity extends Entity {
         }
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_31973_) {
-        p_31973_.put("BlockState", NbtUtils.writeBlockState(this.blockState));
-        p_31973_.putInt("Time", this.time);
-        p_31973_.putBoolean("DropItem", this.dropItem);
-        p_31973_.putBoolean("HurtEntities", this.hurtEntities);
-        p_31973_.putFloat("FallHurtAmount", this.fallDamagePerDistance);
-        p_31973_.putInt("FallHurtMax", this.fallDamageMax);
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        pCompound.put("BlockState", NbtUtils.writeBlockState(this.blockState));
+        pCompound.putInt("Time", this.time);
+        pCompound.putBoolean("DropItem", this.dropItem);
+        pCompound.putBoolean("HurtEntities", this.hurtEntities);
+        pCompound.putFloat("FallHurtAmount", this.fallDamagePerDistance);
+        pCompound.putInt("FallHurtMax", this.fallDamageMax);
         if (this.blockData != null) {
-            p_31973_.put("TileEntityData", this.blockData);
+            pCompound.put("TileEntityData", this.blockData);
         }
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_31964_) {
-        this.blockState = NbtUtils.readBlockState(p_31964_.getCompound("BlockState"));
-        this.time = p_31964_.getInt("Time");
-        if (p_31964_.contains("HurtEntities", 99)) {
-            this.hurtEntities = p_31964_.getBoolean("HurtEntities");
-            this.fallDamagePerDistance = p_31964_.getFloat("FallHurtAmount");
-            this.fallDamageMax = p_31964_.getInt("FallHurtMax");
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        this.blockState = NbtUtils.readBlockState(pCompound.getCompound("BlockState"));
+        this.time = pCompound.getInt("Time");
+        if (pCompound.contains("HurtEntities", 99)) {
+            this.hurtEntities = pCompound.getBoolean("HurtEntities");
+            this.fallDamagePerDistance = pCompound.getFloat("FallHurtAmount");
+            this.fallDamageMax = pCompound.getInt("FallHurtMax");
         } else if (this.blockState.is(BlockTags.ANVIL)) {
             this.hurtEntities = true;
         }
 
-        if (p_31964_.contains("DropItem", 99)) {
-            this.dropItem = p_31964_.getBoolean("DropItem");
+        if (pCompound.contains("DropItem", 99)) {
+            this.dropItem = pCompound.getBoolean("DropItem");
         }
 
-        if (p_31964_.contains("TileEntityData", 10)) {
-            this.blockData = p_31964_.getCompound("TileEntityData");
+        if (pCompound.contains("TileEntityData", 10)) {
+            this.blockData = pCompound.getCompound("TileEntityData");
         }
 
         if (this.blockState.isAir()) {
@@ -280,19 +280,19 @@ public class FallingBlockEntity extends Entity {
         }
     }
 
-    public void setHurtsEntities(float p_149657_, int p_149658_) {
+    public void setHurtsEntities(float pFallDamagePerDistance, int pFallDamageMax) {
         this.hurtEntities = true;
-        this.fallDamagePerDistance = p_149657_;
-        this.fallDamageMax = p_149658_;
+        this.fallDamagePerDistance = pFallDamagePerDistance;
+        this.fallDamageMax = pFallDamageMax;
     }
 
     public boolean displayFireAnimation() {
         return false;
     }
 
-    public void fillCrashReportCategory(CrashReportCategory p_31962_) {
-        super.fillCrashReportCategory(p_31962_);
-        p_31962_.setDetail("Immitating BlockState", this.blockState.toString());
+    public void fillCrashReportCategory(CrashReportCategory pCategory) {
+        super.fillCrashReportCategory(pCategory);
+        pCategory.setDetail("Immitating BlockState", this.blockState.toString());
     }
 
     public BlockState getBlockState() {
@@ -307,13 +307,13 @@ public class FallingBlockEntity extends Entity {
         return new ClientboundAddEntityPacket(this, Block.getId(this.getBlockState()));
     }
 
-    public void recreateFromPacket(ClientboundAddEntityPacket p_149654_) {
-        super.recreateFromPacket(p_149654_);
-        this.blockState = Block.stateById(p_149654_.getData());
+    public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
+        super.recreateFromPacket(pPacket);
+        this.blockState = Block.stateById(pPacket.getData());
         this.blocksBuilding = true;
-        double d0 = p_149654_.getX();
-        double d1 = p_149654_.getY();
-        double d2 = p_149654_.getZ();
+        double d0 = pPacket.getX();
+        double d1 = pPacket.getY();
+        double d2 = pPacket.getZ();
         this.setPos(d0, d1, d2);
         this.setStartPos(this.blockPosition());
     }

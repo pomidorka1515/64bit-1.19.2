@@ -30,81 +30,81 @@ import net.minecraft.world.phys.BlockHitResult;
 public class JukeboxBlock extends BaseEntityBlock {
     public static final BooleanProperty HAS_RECORD = BlockStateProperties.HAS_RECORD;
 
-    protected JukeboxBlock(BlockBehaviour.Properties p_54257_) {
-        super(p_54257_);
+    protected JukeboxBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(HAS_RECORD, Boolean.valueOf(false)));
     }
 
-    public void setPlacedBy(Level p_54264_, BlockPos p_54265_, BlockState p_54266_, @Nullable LivingEntity p_54267_, ItemStack p_54268_) {
-        super.setPlacedBy(p_54264_, p_54265_, p_54266_, p_54267_, p_54268_);
-        CompoundTag compoundtag = BlockItem.getBlockEntityData(p_54268_);
+    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
+        super.setPlacedBy(pLevel, pPos, pState, pPlacer, pStack);
+        CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
         if (compoundtag != null && compoundtag.contains("RecordItem")) {
-            p_54264_.setBlock(p_54265_, p_54266_.setValue(HAS_RECORD, Boolean.valueOf(true)), 2);
+            pLevel.setBlock(pPos, pState.setValue(HAS_RECORD, Boolean.valueOf(true)), 2);
         }
     }
 
-    public InteractionResult use(BlockState p_54281_, Level p_54282_, BlockPos p_54283_, Player p_54284_, InteractionHand p_54285_, BlockHitResult p_54286_) {
-        if (p_54281_.getValue(HAS_RECORD)) {
-            this.dropRecording(p_54282_, p_54283_);
-            p_54281_ = p_54281_.setValue(HAS_RECORD, Boolean.valueOf(false));
-            p_54282_.gameEvent(GameEvent.JUKEBOX_STOP_PLAY, p_54283_, GameEvent.Context.of(p_54281_));
-            p_54282_.setBlock(p_54283_, p_54281_, 2);
-            p_54282_.gameEvent(GameEvent.BLOCK_CHANGE, p_54283_, GameEvent.Context.of(p_54284_, p_54281_));
-            return InteractionResult.sidedSuccess(p_54282_.isClientSide);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pState.getValue(HAS_RECORD)) {
+            this.dropRecording(pLevel, pPos);
+            pState = pState.setValue(HAS_RECORD, Boolean.valueOf(false));
+            pLevel.gameEvent(GameEvent.JUKEBOX_STOP_PLAY, pPos, GameEvent.Context.of(pState));
+            pLevel.setBlock(pPos, pState, 2);
+            pLevel.gameEvent(GameEvent.BLOCK_CHANGE, pPos, GameEvent.Context.of(pPlayer, pState));
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         } else {
             return InteractionResult.PASS;
         }
     }
 
-    public void setRecord(@Nullable Entity p_238346_, LevelAccessor p_238347_, BlockPos p_238348_, BlockState p_238349_, ItemStack p_238350_) {
-        BlockEntity blockentity = p_238347_.getBlockEntity(p_238348_);
+    public void setRecord(@Nullable Entity pEntity, LevelAccessor pLevel, BlockPos pPos, BlockState pState, ItemStack pStack) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof JukeboxBlockEntity jukeboxblockentity) {
-            jukeboxblockentity.setRecord(p_238350_.copy());
+            jukeboxblockentity.setRecord(pStack.copy());
             jukeboxblockentity.playRecord();
-            p_238347_.setBlock(p_238348_, p_238349_.setValue(HAS_RECORD, Boolean.valueOf(true)), 2);
-            p_238347_.gameEvent(GameEvent.BLOCK_CHANGE, p_238348_, GameEvent.Context.of(p_238346_, p_238349_));
+            pLevel.setBlock(pPos, pState.setValue(HAS_RECORD, Boolean.valueOf(true)), 2);
+            pLevel.gameEvent(GameEvent.BLOCK_CHANGE, pPos, GameEvent.Context.of(pEntity, pState));
         }
     }
 
-    private void dropRecording(Level p_54261_, BlockPos p_54262_) {
-        if (!p_54261_.isClientSide) {
-            BlockEntity blockentity = p_54261_.getBlockEntity(p_54262_);
+    private void dropRecording(Level pLevel, BlockPos pPos) {
+        if (!pLevel.isClientSide) {
+            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
             if (blockentity instanceof JukeboxBlockEntity) {
                 JukeboxBlockEntity jukeboxblockentity = (JukeboxBlockEntity) blockentity;
                 ItemStack itemstack = jukeboxblockentity.getRecord();
                 if (!itemstack.isEmpty()) {
-                    p_54261_.levelEvent(1010, p_54262_, 0);
+                    pLevel.levelEvent(1010, pPos, 0);
                     jukeboxblockentity.clearContent();
                     float f = 0.7F;
-                    double d0 = (double) (p_54261_.random.nextFloat() * 0.7F) + (double) 0.15F;
-                    double d1 = (double) (p_54261_.random.nextFloat() * 0.7F) + (double) 0.060000002F + 0.6D;
-                    double d2 = (double) (p_54261_.random.nextFloat() * 0.7F) + (double) 0.15F;
+                    double d0 = (double) (pLevel.random.nextFloat() * 0.7F) + (double) 0.15F;
+                    double d1 = (double) (pLevel.random.nextFloat() * 0.7F) + (double) 0.060000002F + 0.6D;
+                    double d2 = (double) (pLevel.random.nextFloat() * 0.7F) + (double) 0.15F;
                     ItemStack itemstack1 = itemstack.copy();
-                    ItemEntity itementity = new ItemEntity(p_54261_, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_54262_.getX(), d0, (double) p_54262_.getY() + d1, p_54262_.getZ(), d2), itemstack1);
+                    ItemEntity itementity = new ItemEntity(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), d0, (double) pPos.getY() + d1, pPos.getZ(), d2), itemstack1);
                     itementity.setDefaultPickUpDelay();
-                    p_54261_.addFreshEntity(itementity);
+                    pLevel.addFreshEntity(itementity);
                 }
             }
         }
     }
 
-    public void onRemove(BlockState p_54288_, Level p_54289_, BlockPos p_54290_, BlockState p_54291_, boolean p_54292_) {
-        if (!p_54288_.is(p_54291_.getBlock())) {
-            this.dropRecording(p_54289_, p_54290_);
-            super.onRemove(p_54288_, p_54289_, p_54290_, p_54291_, p_54292_);
+    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+        if (!pState.is(pNewState.getBlock())) {
+            this.dropRecording(pLevel, pPos);
+            super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
         }
     }
 
-    public BlockEntity newBlockEntity(BlockPos p_153451_, BlockState p_153452_) {
-        return new JukeboxBlockEntity(p_153451_, p_153452_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new JukeboxBlockEntity(pPos, pState);
     }
 
-    public boolean hasAnalogOutputSignal(BlockState p_54275_) {
+    public boolean hasAnalogOutputSignal(BlockState pState) {
         return true;
     }
 
-    public int getAnalogOutputSignal(BlockState p_54277_, Level p_54278_, BlockPos p_54279_) {
-        BlockEntity blockentity = p_54278_.getBlockEntity(p_54279_);
+    public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof JukeboxBlockEntity) {
             Item item = ((JukeboxBlockEntity) blockentity).getRecord().getItem();
             if (item instanceof RecordItem) {
@@ -115,16 +115,16 @@ public class JukeboxBlock extends BaseEntityBlock {
         return 0;
     }
 
-    public RenderShape getRenderShape(BlockState p_54296_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_54294_) {
-        p_54294_.add(HAS_RECORD);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(HAS_RECORD);
     }
 
     @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_239682_, BlockState p_239683_, BlockEntityType<T> p_239684_) {
-        return p_239683_.getValue(HAS_RECORD) ? createTickerHelper(p_239684_, BlockEntityType.JUKEBOX, JukeboxBlockEntity::playRecordTick) : null;
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
+        return pState.getValue(HAS_RECORD) ? createTickerHelper(pBlockEntityType, BlockEntityType.JUKEBOX, JukeboxBlockEntity::playRecordTick) : null;
     }
 }

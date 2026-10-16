@@ -14,9 +14,9 @@ import java.util.stream.Stream;
 public abstract class AbstractPoiSectionFix extends DataFix {
     private final String name;
 
-    public AbstractPoiSectionFix(Schema p_216536_, String p_216537_) {
-        super(p_216536_, false);
-        this.name = p_216537_;
+    public AbstractPoiSectionFix(Schema pOutputSchema, String pName) {
+        super(pOutputSchema, false);
+        this.name = pName;
     }
 
     protected TypeRewriteRule makeRule() {

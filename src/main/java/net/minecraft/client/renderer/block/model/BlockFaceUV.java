@@ -17,40 +17,40 @@ public class BlockFaceUV {
     public float[] uvs;
     public final int rotation;
 
-    public BlockFaceUV(@Nullable float[] p_111390_, int p_111391_) {
-        this.uvs = p_111390_;
-        this.rotation = p_111391_;
+    public BlockFaceUV(@Nullable float[] pUvs, int pRotation) {
+        this.uvs = pUvs;
+        this.rotation = pRotation;
     }
 
-    public float getU(int p_111393_) {
+    public float getU(int pIndex) {
         if (this.uvs == null) {
             throw new NullPointerException("uvs");
         } else {
-            int i = this.getShiftedIndex(p_111393_);
+            int i = this.getShiftedIndex(pIndex);
             return this.uvs[i != 0 && i != 1 ? 2 : 0];
         }
     }
 
-    public float getV(int p_111397_) {
+    public float getV(int pIndex) {
         if (this.uvs == null) {
             throw new NullPointerException("uvs");
         } else {
-            int i = this.getShiftedIndex(p_111397_);
+            int i = this.getShiftedIndex(pIndex);
             return this.uvs[i != 0 && i != 3 ? 3 : 1];
         }
     }
 
-    private int getShiftedIndex(int p_111401_) {
-        return (p_111401_ + this.rotation / 90) % 4;
+    private int getShiftedIndex(int pIndex) {
+        return (pIndex + this.rotation / 90) % 4;
     }
 
-    public int getReverseIndex(int p_111399_) {
-        return (p_111399_ + 4 - this.rotation / 90) % 4;
+    public int getReverseIndex(int pIndex) {
+        return (pIndex + 4 - this.rotation / 90) % 4;
     }
 
-    public void setMissingUv(float[] p_111395_) {
+    public void setMissingUv(float[] pUvs) {
         if (this.uvs == null) {
-            this.uvs = p_111395_;
+            this.uvs = pUvs;
         }
     }
 
@@ -58,15 +58,15 @@ public class BlockFaceUV {
     protected static class Deserializer implements JsonDeserializer<BlockFaceUV> {
         private static final int DEFAULT_ROTATION = 0;
 
-        public BlockFaceUV deserialize(JsonElement p_111404_, Type p_111405_, JsonDeserializationContext p_111406_) throws JsonParseException {
-            JsonObject jsonobject = p_111404_.getAsJsonObject();
+        public BlockFaceUV deserialize(JsonElement pJson, Type pType, JsonDeserializationContext pContext) throws JsonParseException {
+            JsonObject jsonobject = pJson.getAsJsonObject();
             float[] afloat = this.getUVs(jsonobject);
             int i = this.getRotation(jsonobject);
             return new BlockFaceUV(afloat, i);
         }
 
-        protected int getRotation(JsonObject p_111408_) {
-            int i = GsonHelper.getAsInt(p_111408_, "rotation", 0);
+        protected int getRotation(JsonObject pJson) {
+            int i = GsonHelper.getAsInt(pJson, "rotation", 0);
             if (i >= 0 && i % 90 == 0 && i / 90 <= 3) {
                 return i;
             } else {
@@ -75,11 +75,11 @@ public class BlockFaceUV {
         }
 
         @Nullable
-        private float[] getUVs(JsonObject p_111410_) {
-            if (!p_111410_.has("uv")) {
+        private float[] getUVs(JsonObject pJson) {
+            if (!pJson.has("uv")) {
                 return null;
             } else {
-                JsonArray jsonarray = GsonHelper.getAsJsonArray(p_111410_, "uv");
+                JsonArray jsonarray = GsonHelper.getAsJsonArray(pJson, "uv");
                 if (jsonarray.size() != 4) {
                     throw new JsonParseException("Expected 4 uv values, found: " + jsonarray.size());
                 } else {

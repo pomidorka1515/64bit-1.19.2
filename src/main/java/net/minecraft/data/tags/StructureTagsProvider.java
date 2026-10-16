@@ -7,8 +7,8 @@ import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 public class StructureTagsProvider extends TagsProvider<Structure> {
-    public StructureTagsProvider(DataGenerator p_236437_) {
-        super(p_236437_, BuiltinRegistries.STRUCTURES);
+    public StructureTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, BuiltinRegistries.STRUCTURES);
     }
 
     protected void addTags() {

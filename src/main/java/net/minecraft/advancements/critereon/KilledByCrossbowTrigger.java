@@ -20,22 +20,22 @@ public class KilledByCrossbowTrigger extends SimpleCriterionTrigger<KilledByCros
         return ID;
     }
 
-    public KilledByCrossbowTrigger.TriggerInstance createInstance(JsonObject p_46875_, EntityPredicate.Composite p_46876_, DeserializationContext p_46877_) {
-        EntityPredicate.Composite[] aentitypredicate$composite = EntityPredicate.Composite.fromJsonArray(p_46875_, "victims", p_46877_);
-        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(p_46875_.get("unique_entity_types"));
-        return new KilledByCrossbowTrigger.TriggerInstance(p_46876_, aentitypredicate$composite, minmaxbounds$ints);
+    public KilledByCrossbowTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        EntityPredicate.Composite[] aentitypredicate$composite = EntityPredicate.Composite.fromJsonArray(pJson, "victims", pConditionsParser);
+        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(pJson.get("unique_entity_types"));
+        return new KilledByCrossbowTrigger.TriggerInstance(pEntityPredicate, aentitypredicate$composite, minmaxbounds$ints);
     }
 
-    public void trigger(ServerPlayer p_46872_, Collection<Entity> p_46873_) {
+    public void trigger(ServerPlayer pPlayer, Collection<Entity> pEntities) {
         List<LootContext> list = Lists.newArrayList();
         Set<EntityType<?>> set = Sets.newHashSet();
 
-        for (Entity entity : p_46873_) {
+        for (Entity entity : pEntities) {
             set.add(entity.getType());
-            list.add(EntityPredicate.createContext(p_46872_, entity));
+            list.add(EntityPredicate.createContext(pPlayer, entity));
         }
 
-        this.trigger(p_46872_, (p_46881_) -> {
+        this.trigger(pPlayer, (p_46881_) -> {
             return p_46881_.matches(list, set.size());
         });
     }
@@ -44,31 +44,31 @@ public class KilledByCrossbowTrigger extends SimpleCriterionTrigger<KilledByCros
         private final EntityPredicate.Composite[] victims;
         private final MinMaxBounds.Ints uniqueEntityTypes;
 
-        public TriggerInstance(EntityPredicate.Composite p_46890_, EntityPredicate.Composite[] p_46891_, MinMaxBounds.Ints p_46892_) {
-            super(KilledByCrossbowTrigger.ID, p_46890_);
-            this.victims = p_46891_;
-            this.uniqueEntityTypes = p_46892_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, EntityPredicate.Composite[] pVictims, MinMaxBounds.Ints pUniqueEntityTypes) {
+            super(KilledByCrossbowTrigger.ID, pPlayer);
+            this.victims = pVictims;
+            this.uniqueEntityTypes = pUniqueEntityTypes;
         }
 
-        public static KilledByCrossbowTrigger.TriggerInstance crossbowKilled(EntityPredicate.Builder... p_46901_) {
-            EntityPredicate.Composite[] aentitypredicate$composite = new EntityPredicate.Composite[p_46901_.length];
+        public static KilledByCrossbowTrigger.TriggerInstance crossbowKilled(EntityPredicate.Builder... pBuilders) {
+            EntityPredicate.Composite[] aentitypredicate$composite = new EntityPredicate.Composite[pBuilders.length];
 
-            for (int i = 0; i < p_46901_.length; ++i) {
-                EntityPredicate.Builder entitypredicate$builder = p_46901_[i];
+            for (int i = 0; i < pBuilders.length; ++i) {
+                EntityPredicate.Builder entitypredicate$builder = pBuilders[i];
                 aentitypredicate$composite[i] = EntityPredicate.Composite.wrap(entitypredicate$builder.build());
             }
 
             return new KilledByCrossbowTrigger.TriggerInstance(EntityPredicate.Composite.ANY, aentitypredicate$composite, MinMaxBounds.Ints.ANY);
         }
 
-        public static KilledByCrossbowTrigger.TriggerInstance crossbowKilled(MinMaxBounds.Ints p_46894_) {
+        public static KilledByCrossbowTrigger.TriggerInstance crossbowKilled(MinMaxBounds.Ints pBounds) {
             EntityPredicate.Composite[] aentitypredicate$composite = new EntityPredicate.Composite[0];
-            return new KilledByCrossbowTrigger.TriggerInstance(EntityPredicate.Composite.ANY, aentitypredicate$composite, p_46894_);
+            return new KilledByCrossbowTrigger.TriggerInstance(EntityPredicate.Composite.ANY, aentitypredicate$composite, pBounds);
         }
 
-        public boolean matches(Collection<LootContext> p_46898_, int p_46899_) {
+        public boolean matches(Collection<LootContext> pContexts, int pBounds) {
             if (this.victims.length > 0) {
-                List<LootContext> list = Lists.newArrayList(p_46898_);
+                List<LootContext> list = Lists.newArrayList(pContexts);
 
                 for (EntityPredicate.Composite entitypredicate$composite : this.victims) {
                     boolean flag = false;
@@ -89,12 +89,12 @@ public class KilledByCrossbowTrigger extends SimpleCriterionTrigger<KilledByCros
                 }
             }
 
-            return this.uniqueEntityTypes.matches(p_46899_);
+            return this.uniqueEntityTypes.matches(pBounds);
         }
 
-        public JsonObject serializeToJson(SerializationContext p_46896_) {
-            JsonObject jsonobject = super.serializeToJson(p_46896_);
-            jsonobject.add("victims", EntityPredicate.Composite.toJson(this.victims, p_46896_));
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
+            jsonobject.add("victims", EntityPredicate.Composite.toJson(this.victims, pConditions));
             jsonobject.add("unique_entity_types", this.uniqueEntityTypes.serializeToJson());
             return jsonobject;
         }

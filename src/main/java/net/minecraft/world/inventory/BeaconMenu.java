@@ -32,58 +32,58 @@ public class BeaconMenu extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
     private final ContainerData beaconData;
 
-    public BeaconMenu(int p_39036_, Container p_39037_) {
-        this(p_39036_, p_39037_, new SimpleContainerData(3), ContainerLevelAccess.NULL);
+    public BeaconMenu(int pContainerId, Container pContainer) {
+        this(pContainerId, pContainer, new SimpleContainerData(3), ContainerLevelAccess.NULL);
     }
 
-    public BeaconMenu(int p_39039_, Container p_39040_, ContainerData p_39041_, ContainerLevelAccess p_39042_) {
-        super(MenuType.BEACON, p_39039_);
-        checkContainerDataCount(p_39041_, 3);
-        this.beaconData = p_39041_;
-        this.access = p_39042_;
+    public BeaconMenu(int pContainerId, Container pContainer, ContainerData pBeaconData, ContainerLevelAccess pAccess) {
+        super(MenuType.BEACON, pContainerId);
+        checkContainerDataCount(pBeaconData, 3);
+        this.beaconData = pBeaconData;
+        this.access = pAccess;
         this.paymentSlot = new BeaconMenu.PaymentSlot(this.beacon, 0, 136, 110);
         this.addSlot(this.paymentSlot);
-        this.addDataSlots(p_39041_);
+        this.addDataSlots(pBeaconData);
         int i = 36;
         int j = 137;
 
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(p_39040_, l + k * 9 + 9, 36 + l * 18, 137 + k * 18));
+                this.addSlot(new Slot(pContainer, l + k * 9 + 9, 36 + l * 18, 137 + k * 18));
             }
         }
 
         for (int i1 = 0; i1 < 9; ++i1) {
-            this.addSlot(new Slot(p_39040_, i1, 36 + i1 * 18, 195));
+            this.addSlot(new Slot(pContainer, i1, 36 + i1 * 18, 195));
         }
     }
 
-    public void removed(Player p_39049_) {
-        super.removed(p_39049_);
-        if (!p_39049_.level.isClientSide) {
+    public void removed(Player pPlayer) {
+        super.removed(pPlayer);
+        if (!pPlayer.level.isClientSide) {
             ItemStack itemstack = this.paymentSlot.remove(this.paymentSlot.getMaxStackSize());
             if (!itemstack.isEmpty()) {
-                p_39049_.drop(itemstack, false);
+                pPlayer.drop(itemstack, false);
             }
         }
     }
 
-    public boolean stillValid(Player p_39047_) {
-        return stillValid(this.access, p_39047_, Blocks.BEACON);
+    public boolean stillValid(Player pPlayer) {
+        return stillValid(this.access, pPlayer, Blocks.BEACON);
     }
 
-    public void setData(int p_39044_, int p_39045_) {
-        super.setData(p_39044_, p_39045_);
+    public void setData(int pId, int pData) {
+        super.setData(pId, pData);
         this.broadcastChanges();
     }
 
-    public ItemStack quickMoveStack(Player p_39051_, int p_39052_) {
+    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(p_39052_);
+        Slot slot = this.slots.get(pIndex);
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            if (p_39052_ == 0) {
+            if (pIndex == 0) {
                 if (!this.moveItemStackTo(itemstack1, 1, 37, true)) {
                     return ItemStack.EMPTY;
                 }
@@ -93,11 +93,11 @@ public class BeaconMenu extends AbstractContainerMenu {
                 if (!this.moveItemStackTo(itemstack1, 0, 1, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (p_39052_ >= 1 && p_39052_ < 28) {
+            } else if (pIndex >= 1 && pIndex < 28) {
                 if (!this.moveItemStackTo(itemstack1, 28, 37, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (p_39052_ >= 28 && p_39052_ < 37) {
+            } else if (pIndex >= 28 && pIndex < 37) {
                 if (!this.moveItemStackTo(itemstack1, 1, 28, false)) {
                     return ItemStack.EMPTY;
                 }
@@ -115,7 +115,7 @@ public class BeaconMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(p_39051_, itemstack1);
+            slot.onTake(pPlayer, itemstack1);
         }
 
         return itemstack;
@@ -135,10 +135,10 @@ public class BeaconMenu extends AbstractContainerMenu {
         return MobEffect.byId(this.beaconData.get(2));
     }
 
-    public void updateEffects(Optional<MobEffect> p_219973_, Optional<MobEffect> p_219974_) {
+    public void updateEffects(Optional<MobEffect> pPrimaryEffect, Optional<MobEffect> pSecondaryEffect) {
         if (this.paymentSlot.hasItem()) {
-            this.beaconData.set(1, p_219973_.map(MobEffect::getId).orElse(-1));
-            this.beaconData.set(2, p_219974_.map(MobEffect::getId).orElse(-1));
+            this.beaconData.set(1, pPrimaryEffect.map(MobEffect::getId).orElse(-1));
+            this.beaconData.set(2, pSecondaryEffect.map(MobEffect::getId).orElse(-1));
             this.paymentSlot.remove(1);
             this.access.execute(Level::blockEntityChanged);
         }
@@ -153,8 +153,8 @@ public class BeaconMenu extends AbstractContainerMenu {
             super(p_39071_, p_39072_, p_39073_, p_39074_);
         }
 
-        public boolean mayPlace(ItemStack p_39077_) {
-            return p_39077_.is(ItemTags.BEACON_PAYMENT_ITEMS);
+        public boolean mayPlace(ItemStack pStack) {
+            return pStack.is(ItemTags.BEACON_PAYMENT_ITEMS);
         }
 
         public int getMaxStackSize() {

@@ -39,89 +39,89 @@ public class EntityPredicate {
     @Nullable
     private final String team;
 
-    private EntityPredicate(EntityTypePredicate p_218789_, DistancePredicate p_218790_, LocationPredicate p_218791_, LocationPredicate p_218792_, MobEffectsPredicate p_218793_, NbtPredicate p_218794_, EntityFlagsPredicate p_218795_, EntityEquipmentPredicate p_218796_, EntitySubPredicate p_218797_, @Nullable String p_218798_) {
-        this.entityType = p_218789_;
-        this.distanceToPlayer = p_218790_;
-        this.location = p_218791_;
-        this.steppingOnLocation = p_218792_;
-        this.effects = p_218793_;
-        this.nbt = p_218794_;
-        this.flags = p_218795_;
-        this.equipment = p_218796_;
-        this.subPredicate = p_218797_;
+    private EntityPredicate(EntityTypePredicate pEntityType, DistancePredicate pDistanceToPlayer, LocationPredicate pLocation, LocationPredicate pSteppingOnLocation, MobEffectsPredicate pEffects, NbtPredicate pNbt, EntityFlagsPredicate pFlags, EntityEquipmentPredicate pEquipment, EntitySubPredicate pSubPredicate, @Nullable String pTeam) {
+        this.entityType = pEntityType;
+        this.distanceToPlayer = pDistanceToPlayer;
+        this.location = pLocation;
+        this.steppingOnLocation = pSteppingOnLocation;
+        this.effects = pEffects;
+        this.nbt = pNbt;
+        this.flags = pFlags;
+        this.equipment = pEquipment;
+        this.subPredicate = pSubPredicate;
         this.passenger = this;
         this.vehicle = this;
         this.targetedEntity = this;
-        this.team = p_218798_;
+        this.team = pTeam;
     }
 
-    EntityPredicate(EntityTypePredicate p_218775_, DistancePredicate p_218776_, LocationPredicate p_218777_, LocationPredicate p_218778_, MobEffectsPredicate p_218779_, NbtPredicate p_218780_, EntityFlagsPredicate p_218781_, EntityEquipmentPredicate p_218782_, EntitySubPredicate p_218783_, EntityPredicate p_218784_, EntityPredicate p_218785_, EntityPredicate p_218786_, @Nullable String p_218787_) {
-        this.entityType = p_218775_;
-        this.distanceToPlayer = p_218776_;
-        this.location = p_218777_;
-        this.steppingOnLocation = p_218778_;
-        this.effects = p_218779_;
-        this.nbt = p_218780_;
-        this.flags = p_218781_;
-        this.equipment = p_218782_;
-        this.subPredicate = p_218783_;
-        this.vehicle = p_218784_;
-        this.passenger = p_218785_;
-        this.targetedEntity = p_218786_;
-        this.team = p_218787_;
+    EntityPredicate(EntityTypePredicate pEntityType, DistancePredicate pDistanceToPlayer, LocationPredicate pLocation, LocationPredicate pSteppingOnLocation, MobEffectsPredicate pEffects, NbtPredicate pNbt, EntityFlagsPredicate pFlags, EntityEquipmentPredicate pEquipment, EntitySubPredicate pSubPredicate, EntityPredicate pVehicle, EntityPredicate pPassenger, EntityPredicate pTargetedEntity, @Nullable String pTeam) {
+        this.entityType = pEntityType;
+        this.distanceToPlayer = pDistanceToPlayer;
+        this.location = pLocation;
+        this.steppingOnLocation = pSteppingOnLocation;
+        this.effects = pEffects;
+        this.nbt = pNbt;
+        this.flags = pFlags;
+        this.equipment = pEquipment;
+        this.subPredicate = pSubPredicate;
+        this.vehicle = pVehicle;
+        this.passenger = pPassenger;
+        this.targetedEntity = pTargetedEntity;
+        this.team = pTeam;
     }
 
-    public boolean matches(ServerPlayer p_36612_, @Nullable Entity p_36613_) {
-        return this.matches(p_36612_.getLevel(), p_36612_.position(), p_36613_);
+    public boolean matches(ServerPlayer pPlayer, @Nullable Entity pEntity) {
+        return this.matches(pPlayer.getLevel(), pPlayer.position(), pEntity);
     }
 
-    public boolean matches(ServerLevel p_36608_, @Nullable Vec3 p_36609_, @Nullable Entity p_36610_) {
+    public boolean matches(ServerLevel pLevel, @Nullable Vec3 pPosition, @Nullable Entity pEntity) {
         if (this == ANY) {
             return true;
-        } else if (p_36610_ == null) {
+        } else if (pEntity == null) {
             return false;
-        } else if (!this.entityType.matches(p_36610_.getType())) {
+        } else if (!this.entityType.matches(pEntity.getType())) {
             return false;
         } else {
-            if (p_36609_ == null) {
+            if (pPosition == null) {
                 if (this.distanceToPlayer != DistancePredicate.ANY) {
                     return false;
                 }
-            } else if (!this.distanceToPlayer.matches(p_36609_.x, p_36609_.y, p_36609_.z, p_36610_.getX(), p_36610_.getY(), p_36610_.getZ())) {
+            } else if (!this.distanceToPlayer.matches(pPosition.x, pPosition.y, pPosition.z, pEntity.getX(), pEntity.getY(), pEntity.getZ())) {
                 return false;
             }
 
-            if (!this.location.matches(p_36608_, p_36610_.getX(), p_36610_.getY(), p_36610_.getZ())) {
+            if (!this.location.matches(pLevel, pEntity.getX(), pEntity.getY(), pEntity.getZ())) {
                 return false;
             } else {
                 if (this.steppingOnLocation != LocationPredicate.ANY) {
-                    Vec3 vec3 = Vec3.atCenterOf(p_36610_.getOnPosLegacy());
-                    if (!this.steppingOnLocation.matches(p_36608_, vec3.x(), vec3.y(), vec3.z())) {
+                    Vec3 vec3 = Vec3.atCenterOf(pEntity.getOnPosLegacy());
+                    if (!this.steppingOnLocation.matches(pLevel, vec3.x(), vec3.y(), vec3.z())) {
                         return false;
                     }
                 }
 
-                if (!this.effects.matches(p_36610_)) {
+                if (!this.effects.matches(pEntity)) {
                     return false;
-                } else if (!this.nbt.matches(p_36610_)) {
+                } else if (!this.nbt.matches(pEntity)) {
                     return false;
-                } else if (!this.flags.matches(p_36610_)) {
+                } else if (!this.flags.matches(pEntity)) {
                     return false;
-                } else if (!this.equipment.matches(p_36610_)) {
+                } else if (!this.equipment.matches(pEntity)) {
                     return false;
-                } else if (!this.subPredicate.matches(p_36610_, p_36608_, p_36609_)) {
+                } else if (!this.subPredicate.matches(pEntity, pLevel, pPosition)) {
                     return false;
-                } else if (!this.vehicle.matches(p_36608_, p_36609_, p_36610_.getVehicle())) {
+                } else if (!this.vehicle.matches(pLevel, pPosition, pEntity.getVehicle())) {
                     return false;
-                } else if (this.passenger != ANY && p_36610_.getPassengers().stream().noneMatch((p_150322_) -> {
-                               return this.passenger.matches(p_36608_, p_36609_, p_150322_);
+                } else if (this.passenger != ANY && pEntity.getPassengers().stream().noneMatch((p_150322_) -> {
+                               return this.passenger.matches(pLevel, pPosition, p_150322_);
                            })) {
                     return false;
-                } else if (!this.targetedEntity.matches(p_36608_, p_36609_, p_36610_ instanceof Mob ? ((Mob) p_36610_).getTarget() : null)) {
+                } else if (!this.targetedEntity.matches(pLevel, pPosition, pEntity instanceof Mob ? ((Mob) pEntity).getTarget() : null)) {
                     return false;
                 } else {
                     if (this.team != null) {
-                        Team team = p_36610_.getTeam();
+                        Team team = pEntity.getTeam();
                         if (team == null || !this.team.equals(team.getName())) {
                             return false;
                         }
@@ -133,9 +133,9 @@ public class EntityPredicate {
         }
     }
 
-    public static EntityPredicate fromJson(@Nullable JsonElement p_36615_) {
-        if (p_36615_ != null && !p_36615_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_36615_, "entity");
+    public static EntityPredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "entity");
             EntityTypePredicate entitytypepredicate = EntityTypePredicate.fromJson(jsonobject.get("type"));
             DistancePredicate distancepredicate = DistancePredicate.fromJson(jsonobject.get("distance"));
             LocationPredicate locationpredicate = LocationPredicate.fromJson(jsonobject.get("location"));
@@ -177,8 +177,8 @@ public class EntityPredicate {
         }
     }
 
-    public static LootContext createContext(ServerPlayer p_36617_, Entity p_36618_) {
-        return (new LootContext.Builder(p_36617_.getLevel())).withParameter(LootContextParams.THIS_ENTITY, p_36618_).withParameter(LootContextParams.ORIGIN, p_36617_.position()).withRandom(p_36617_.getRandom()).create(LootContextParamSets.ADVANCEMENT_ENTITY);
+    public static LootContext createContext(ServerPlayer pPlayer, Entity pEntity) {
+        return (new LootContext.Builder(pPlayer.getLevel())).withParameter(LootContextParams.THIS_ENTITY, pEntity).withParameter(LootContextParams.ORIGIN, pPlayer.position()).withRandom(pPlayer.getRandom()).create(LootContextParamSets.ADVANCEMENT_ENTITY);
     }
 
     public static class Builder {
@@ -201,78 +201,78 @@ public class EntityPredicate {
             return new EntityPredicate.Builder();
         }
 
-        public EntityPredicate.Builder of(EntityType<?> p_36637_) {
-            this.entityType = EntityTypePredicate.of(p_36637_);
+        public EntityPredicate.Builder of(EntityType<?> pEntityType) {
+            this.entityType = EntityTypePredicate.of(pEntityType);
             return this;
         }
 
-        public EntityPredicate.Builder of(TagKey<EntityType<?>> p_204078_) {
-            this.entityType = EntityTypePredicate.of(p_204078_);
+        public EntityPredicate.Builder of(TagKey<EntityType<?>> pEntityTypeTag) {
+            this.entityType = EntityTypePredicate.of(pEntityTypeTag);
             return this;
         }
 
-        public EntityPredicate.Builder entityType(EntityTypePredicate p_36647_) {
-            this.entityType = p_36647_;
+        public EntityPredicate.Builder entityType(EntityTypePredicate pEntityType) {
+            this.entityType = pEntityType;
             return this;
         }
 
-        public EntityPredicate.Builder distance(DistancePredicate p_36639_) {
-            this.distanceToPlayer = p_36639_;
+        public EntityPredicate.Builder distance(DistancePredicate pDistanceToPlayer) {
+            this.distanceToPlayer = pDistanceToPlayer;
             return this;
         }
 
-        public EntityPredicate.Builder located(LocationPredicate p_36651_) {
-            this.location = p_36651_;
+        public EntityPredicate.Builder located(LocationPredicate pLocation) {
+            this.location = pLocation;
             return this;
         }
 
-        public EntityPredicate.Builder steppingOn(LocationPredicate p_150331_) {
-            this.steppingOnLocation = p_150331_;
+        public EntityPredicate.Builder steppingOn(LocationPredicate pSteppingOnLocation) {
+            this.steppingOnLocation = pSteppingOnLocation;
             return this;
         }
 
-        public EntityPredicate.Builder effects(MobEffectsPredicate p_36653_) {
-            this.effects = p_36653_;
+        public EntityPredicate.Builder effects(MobEffectsPredicate pEffects) {
+            this.effects = pEffects;
             return this;
         }
 
-        public EntityPredicate.Builder nbt(NbtPredicate p_36655_) {
-            this.nbt = p_36655_;
+        public EntityPredicate.Builder nbt(NbtPredicate pNbt) {
+            this.nbt = pNbt;
             return this;
         }
 
-        public EntityPredicate.Builder flags(EntityFlagsPredicate p_36643_) {
-            this.flags = p_36643_;
+        public EntityPredicate.Builder flags(EntityFlagsPredicate pFlags) {
+            this.flags = pFlags;
             return this;
         }
 
-        public EntityPredicate.Builder equipment(EntityEquipmentPredicate p_36641_) {
-            this.equipment = p_36641_;
+        public EntityPredicate.Builder equipment(EntityEquipmentPredicate pEquipment) {
+            this.equipment = pEquipment;
             return this;
         }
 
-        public EntityPredicate.Builder subPredicate(EntitySubPredicate p_218801_) {
-            this.subPredicate = p_218801_;
+        public EntityPredicate.Builder subPredicate(EntitySubPredicate pSubPredicate) {
+            this.subPredicate = pSubPredicate;
             return this;
         }
 
-        public EntityPredicate.Builder vehicle(EntityPredicate p_36645_) {
-            this.vehicle = p_36645_;
+        public EntityPredicate.Builder vehicle(EntityPredicate pVehicle) {
+            this.vehicle = pVehicle;
             return this;
         }
 
-        public EntityPredicate.Builder passenger(EntityPredicate p_150329_) {
-            this.passenger = p_150329_;
+        public EntityPredicate.Builder passenger(EntityPredicate pPassenger) {
+            this.passenger = pPassenger;
             return this;
         }
 
-        public EntityPredicate.Builder targetedEntity(EntityPredicate p_36664_) {
-            this.targetedEntity = p_36664_;
+        public EntityPredicate.Builder targetedEntity(EntityPredicate pTargetedEntity) {
+            this.targetedEntity = pTargetedEntity;
             return this;
         }
 
-        public EntityPredicate.Builder team(@Nullable String p_36659_) {
-            this.team = p_36659_;
+        public EntityPredicate.Builder team(@Nullable String pTeam) {
+            this.team = pTeam;
             return this;
         }
 
@@ -286,28 +286,28 @@ public class EntityPredicate {
         private final LootItemCondition[] conditions;
         private final Predicate<LootContext> compositePredicates;
 
-        private Composite(LootItemCondition[] p_36672_) {
-            this.conditions = p_36672_;
-            this.compositePredicates = LootItemConditions.andConditions(p_36672_);
+        private Composite(LootItemCondition[] pConditions) {
+            this.conditions = pConditions;
+            this.compositePredicates = LootItemConditions.andConditions(pConditions);
         }
 
-        public static EntityPredicate.Composite create(LootItemCondition... p_36691_) {
-            return new EntityPredicate.Composite(p_36691_);
+        public static EntityPredicate.Composite create(LootItemCondition... pConditions) {
+            return new EntityPredicate.Composite(pConditions);
         }
 
-        public static EntityPredicate.Composite fromJson(JsonObject p_36678_, String p_36679_, DeserializationContext p_36680_) {
-            JsonElement jsonelement = p_36678_.get(p_36679_);
-            return fromElement(p_36679_, p_36680_, jsonelement);
+        public static EntityPredicate.Composite fromJson(JsonObject pJson, String pProperty, DeserializationContext pContext) {
+            JsonElement jsonelement = pJson.get(pProperty);
+            return fromElement(pProperty, pContext, jsonelement);
         }
 
-        public static EntityPredicate.Composite[] fromJsonArray(JsonObject p_36693_, String p_36694_, DeserializationContext p_36695_) {
-            JsonElement jsonelement = p_36693_.get(p_36694_);
+        public static EntityPredicate.Composite[] fromJsonArray(JsonObject pJson, String pProperty, DeserializationContext pContext) {
+            JsonElement jsonelement = pJson.get(pProperty);
             if (jsonelement != null && !jsonelement.isJsonNull()) {
-                JsonArray jsonarray = GsonHelper.convertToJsonArray(jsonelement, p_36694_);
+                JsonArray jsonarray = GsonHelper.convertToJsonArray(jsonelement, pProperty);
                 EntityPredicate.Composite[] aentitypredicate$composite = new EntityPredicate.Composite[jsonarray.size()];
 
                 for (int i = 0; i < jsonarray.size(); ++i) {
-                    aentitypredicate$composite[i] = fromElement(p_36694_ + "[" + i + "]", p_36695_, jsonarray.get(i));
+                    aentitypredicate$composite[i] = fromElement(pProperty + "[" + i + "]", pContext, jsonarray.get(i));
                 }
 
                 return aentitypredicate$composite;
@@ -316,41 +316,41 @@ public class EntityPredicate {
             }
         }
 
-        private static EntityPredicate.Composite fromElement(String p_36684_, DeserializationContext p_36685_, @Nullable JsonElement p_36686_) {
-            if (p_36686_ != null && p_36686_.isJsonArray()) {
-                LootItemCondition[] alootitemcondition = p_36685_.deserializeConditions(p_36686_.getAsJsonArray(), p_36685_.getAdvancementId() + "/" + p_36684_, LootContextParamSets.ADVANCEMENT_ENTITY);
+        private static EntityPredicate.Composite fromElement(String pName, DeserializationContext pContext, @Nullable JsonElement pJson) {
+            if (pJson != null && pJson.isJsonArray()) {
+                LootItemCondition[] alootitemcondition = pContext.deserializeConditions(pJson.getAsJsonArray(), pContext.getAdvancementId() + "/" + pName, LootContextParamSets.ADVANCEMENT_ENTITY);
                 return new EntityPredicate.Composite(alootitemcondition);
             } else {
-                EntityPredicate entitypredicate = EntityPredicate.fromJson(p_36686_);
+                EntityPredicate entitypredicate = EntityPredicate.fromJson(pJson);
                 return wrap(entitypredicate);
             }
         }
 
-        public static EntityPredicate.Composite wrap(EntityPredicate p_36674_) {
-            if (p_36674_ == EntityPredicate.ANY) {
+        public static EntityPredicate.Composite wrap(EntityPredicate pEntityCondition) {
+            if (pEntityCondition == EntityPredicate.ANY) {
                 return ANY;
             } else {
-                LootItemCondition lootitemcondition = LootItemEntityPropertyCondition.hasProperties(LootContext.EntityTarget.THIS, p_36674_).build();
+                LootItemCondition lootitemcondition = LootItemEntityPropertyCondition.hasProperties(LootContext.EntityTarget.THIS, pEntityCondition).build();
                 return new EntityPredicate.Composite(new LootItemCondition[] {lootitemcondition});
             }
         }
 
-        public boolean matches(LootContext p_36682_) {
-            return this.compositePredicates.test(p_36682_);
+        public boolean matches(LootContext pLootContext) {
+            return this.compositePredicates.test(pLootContext);
         }
 
-        public JsonElement toJson(SerializationContext p_36676_) {
-            return (JsonElement) (this.conditions.length == 0 ? JsonNull.INSTANCE : p_36676_.serializeConditions(this.conditions));
+        public JsonElement toJson(SerializationContext pContext) {
+            return (JsonElement) (this.conditions.length == 0 ? JsonNull.INSTANCE : pContext.serializeConditions(this.conditions));
         }
 
-        public static JsonElement toJson(EntityPredicate.Composite[] p_36688_, SerializationContext p_36689_) {
-            if (p_36688_.length == 0) {
+        public static JsonElement toJson(EntityPredicate.Composite[] pPredicates, SerializationContext pContext) {
+            if (pPredicates.length == 0) {
                 return JsonNull.INSTANCE;
             } else {
                 JsonArray jsonarray = new JsonArray();
 
-                for (EntityPredicate.Composite entitypredicate$composite : p_36688_) {
-                    jsonarray.add(entitypredicate$composite.toJson(p_36689_));
+                for (EntityPredicate.Composite entitypredicate$composite : pPredicates) {
+                    jsonarray.add(entitypredicate$composite.toJson(pContext));
                 }
 
                 return jsonarray;

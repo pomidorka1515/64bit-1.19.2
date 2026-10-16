@@ -39,56 +39,56 @@ public class TextComponentTagVisitor implements TagVisitor {
     private final int depth;
     private Component result = CommonComponents.EMPTY;
 
-    public TextComponentTagVisitor(String p_178251_, int p_178252_) {
-        this.indentation = p_178251_;
-        this.depth = p_178252_;
+    public TextComponentTagVisitor(String pIndentation, int pDepth) {
+        this.indentation = pIndentation;
+        this.depth = pDepth;
     }
 
-    public Component visit(Tag p_178282_) {
-        p_178282_.accept(this);
+    public Component visit(Tag pTag) {
+        pTag.accept(this);
         return this.result;
     }
 
-    public void visitString(StringTag p_178280_) {
-        String s = StringTag.quoteAndEscape(p_178280_.getAsString());
+    public void visitString(StringTag pTag) {
+        String s = StringTag.quoteAndEscape(pTag.getAsString());
         String s1 = s.substring(0, 1);
         Component component = Component.literal(s.substring(1, s.length() - 1)).withStyle(SYNTAX_HIGHLIGHTING_STRING);
         this.result = Component.literal(s1).append(component).append(s1);
     }
 
-    public void visitByte(ByteTag p_178258_) {
+    public void visitByte(ByteTag pTag) {
         Component component = Component.literal("b").withStyle(SYNTAX_HIGHLIGHTING_NUMBER_TYPE);
-        this.result = Component.literal(String.valueOf((Object) p_178258_.getAsNumber())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
+        this.result = Component.literal(String.valueOf((Object) pTag.getAsNumber())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
     }
 
-    public void visitShort(ShortTag p_178278_) {
+    public void visitShort(ShortTag pTag) {
         Component component = Component.literal("s").withStyle(SYNTAX_HIGHLIGHTING_NUMBER_TYPE);
-        this.result = Component.literal(String.valueOf((Object) p_178278_.getAsNumber())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
+        this.result = Component.literal(String.valueOf((Object) pTag.getAsNumber())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
     }
 
-    public void visitInt(IntTag p_178270_) {
-        this.result = Component.literal(String.valueOf((Object) p_178270_.getAsNumber())).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
+    public void visitInt(IntTag pTag) {
+        this.result = Component.literal(String.valueOf((Object) pTag.getAsNumber())).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
     }
 
-    public void visitLong(LongTag p_178276_) {
+    public void visitLong(LongTag pTag) {
         Component component = Component.literal("L").withStyle(SYNTAX_HIGHLIGHTING_NUMBER_TYPE);
-        this.result = Component.literal(String.valueOf((Object) p_178276_.getAsNumber())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
+        this.result = Component.literal(String.valueOf((Object) pTag.getAsNumber())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
     }
 
-    public void visitFloat(FloatTag p_178266_) {
+    public void visitFloat(FloatTag pTag) {
         Component component = Component.literal("f").withStyle(SYNTAX_HIGHLIGHTING_NUMBER_TYPE);
-        this.result = Component.literal(String.valueOf(p_178266_.getAsFloat())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
+        this.result = Component.literal(String.valueOf(pTag.getAsFloat())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
     }
 
-    public void visitDouble(DoubleTag p_178262_) {
+    public void visitDouble(DoubleTag pTag) {
         Component component = Component.literal("d").withStyle(SYNTAX_HIGHLIGHTING_NUMBER_TYPE);
-        this.result = Component.literal(String.valueOf(p_178262_.getAsDouble())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
+        this.result = Component.literal(String.valueOf(pTag.getAsDouble())).append(component).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
     }
 
-    public void visitByteArray(ByteArrayTag p_178256_) {
+    public void visitByteArray(ByteArrayTag pTag) {
         Component component = Component.literal("B").withStyle(SYNTAX_HIGHLIGHTING_NUMBER_TYPE);
         MutableComponent mutablecomponent = Component.literal("[").append(component).append(";");
-        byte[] abyte = p_178256_.getAsByteArray();
+        byte[] abyte = pTag.getAsByteArray();
 
         for (int i = 0; i < abyte.length; ++i) {
             MutableComponent mutablecomponent1 = Component.literal(String.valueOf((int) abyte[i])).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
@@ -102,10 +102,10 @@ public class TextComponentTagVisitor implements TagVisitor {
         this.result = mutablecomponent;
     }
 
-    public void visitIntArray(IntArrayTag p_178268_) {
+    public void visitIntArray(IntArrayTag pTag) {
         Component component = Component.literal("I").withStyle(SYNTAX_HIGHLIGHTING_NUMBER_TYPE);
         MutableComponent mutablecomponent = Component.literal("[").append(component).append(";");
-        int[] aint = p_178268_.getAsIntArray();
+        int[] aint = pTag.getAsIntArray();
 
         for (int i = 0; i < aint.length; ++i) {
             mutablecomponent.append(" ").append(Component.literal(String.valueOf(aint[i])).withStyle(SYNTAX_HIGHLIGHTING_NUMBER));
@@ -118,10 +118,10 @@ public class TextComponentTagVisitor implements TagVisitor {
         this.result = mutablecomponent;
     }
 
-    public void visitLongArray(LongArrayTag p_178274_) {
+    public void visitLongArray(LongArrayTag pTag) {
         Component component = Component.literal("L").withStyle(SYNTAX_HIGHLIGHTING_NUMBER_TYPE);
         MutableComponent mutablecomponent = Component.literal("[").append(component).append(";");
-        long[] along = p_178274_.getAsLongArray();
+        long[] along = pTag.getAsLongArray();
 
         for (int i = 0; i < along.length; ++i) {
             Component component1 = Component.literal(String.valueOf(along[i])).withStyle(SYNTAX_HIGHLIGHTING_NUMBER);
@@ -135,19 +135,19 @@ public class TextComponentTagVisitor implements TagVisitor {
         this.result = mutablecomponent;
     }
 
-    public void visitList(ListTag p_178272_) {
-        if (p_178272_.isEmpty()) {
+    public void visitList(ListTag pTag) {
+        if (pTag.isEmpty()) {
             this.result = Component.literal("[]");
-        } else if (INLINE_ELEMENT_TYPES.contains(p_178272_.getElementType()) && p_178272_.size() <= 8) {
+        } else if (INLINE_ELEMENT_TYPES.contains(pTag.getElementType()) && pTag.size() <= 8) {
             String s = ELEMENT_SEPARATOR + " ";
             MutableComponent mutablecomponent2 = Component.literal("[");
 
-            for (int j = 0; j < p_178272_.size(); ++j) {
+            for (int j = 0; j < pTag.size(); ++j) {
                 if (j != 0) {
                     mutablecomponent2.append(s);
                 }
 
-                mutablecomponent2.append((new TextComponentTagVisitor(this.indentation, this.depth)).visit(p_178272_.get(j)));
+                mutablecomponent2.append((new TextComponentTagVisitor(this.indentation, this.depth)).visit(pTag.get(j)));
             }
 
             mutablecomponent2.append("]");
@@ -158,10 +158,10 @@ public class TextComponentTagVisitor implements TagVisitor {
                 mutablecomponent.append("\n");
             }
 
-            for (int i = 0; i < p_178272_.size(); ++i) {
+            for (int i = 0; i < pTag.size(); ++i) {
                 MutableComponent mutablecomponent1 = Component.literal(Strings.repeat(this.indentation, this.depth + 1));
-                mutablecomponent1.append((new TextComponentTagVisitor(this.indentation, this.depth + 1)).visit(p_178272_.get(i)));
-                if (i != p_178272_.size() - 1) {
+                mutablecomponent1.append((new TextComponentTagVisitor(this.indentation, this.depth + 1)).visit(pTag.get(i)));
+                if (i != pTag.size() - 1) {
                     mutablecomponent1.append(ELEMENT_SEPARATOR).append(this.indentation.isEmpty() ? " " : "\n");
                 }
 
@@ -177,14 +177,14 @@ public class TextComponentTagVisitor implements TagVisitor {
         }
     }
 
-    public void visitCompound(CompoundTag p_178260_) {
-        if (p_178260_.isEmpty()) {
+    public void visitCompound(CompoundTag pTag) {
+        if (pTag.isEmpty()) {
             this.result = Component.literal("{}");
         } else {
             MutableComponent mutablecomponent = Component.literal("{");
-            Collection<String> collection = p_178260_.getAllKeys();
+            Collection<String> collection = pTag.getAllKeys();
             if (LOGGER.isDebugEnabled()) {
-                List<String> list = Lists.newArrayList(p_178260_.getAllKeys());
+                List<String> list = Lists.newArrayList(pTag.getAllKeys());
                 Collections.sort(list);
                 collection = list;
             }
@@ -196,7 +196,7 @@ public class TextComponentTagVisitor implements TagVisitor {
             MutableComponent mutablecomponent1;
             for (Iterator<String> iterator = collection.iterator(); iterator.hasNext(); mutablecomponent.append(mutablecomponent1)) {
                 String s = iterator.next();
-                mutablecomponent1 = Component.literal(Strings.repeat(this.indentation, this.depth + 1)).append(handleEscapePretty(s)).append(NAME_VALUE_SEPARATOR).append(" ").append((new TextComponentTagVisitor(this.indentation, this.depth + 1)).visit(p_178260_.get(s)));
+                mutablecomponent1 = Component.literal(Strings.repeat(this.indentation, this.depth + 1)).append(handleEscapePretty(s)).append(NAME_VALUE_SEPARATOR).append(" ").append((new TextComponentTagVisitor(this.indentation, this.depth + 1)).visit(pTag.get(s)));
                 if (iterator.hasNext()) {
                     mutablecomponent1.append(ELEMENT_SEPARATOR).append(this.indentation.isEmpty() ? " " : "\n");
                 }
@@ -211,18 +211,18 @@ public class TextComponentTagVisitor implements TagVisitor {
         }
     }
 
-    protected static Component handleEscapePretty(String p_178254_) {
-        if (SIMPLE_VALUE.matcher(p_178254_).matches()) {
-            return Component.literal(p_178254_).withStyle(SYNTAX_HIGHLIGHTING_KEY);
+    protected static Component handleEscapePretty(String pText) {
+        if (SIMPLE_VALUE.matcher(pText).matches()) {
+            return Component.literal(pText).withStyle(SYNTAX_HIGHLIGHTING_KEY);
         } else {
-            String s = StringTag.quoteAndEscape(p_178254_);
+            String s = StringTag.quoteAndEscape(pText);
             String s1 = s.substring(0, 1);
             Component component = Component.literal(s.substring(1, s.length() - 1)).withStyle(SYNTAX_HIGHLIGHTING_KEY);
             return Component.literal(s1).append(component).append(s1);
         }
     }
 
-    public void visitEnd(EndTag p_178264_) {
+    public void visitEnd(EndTag pTag) {
         this.result = CommonComponents.EMPTY;
     }
 }

@@ -14,73 +14,73 @@ public class MultifaceSpreader {
     public static final MultifaceSpreader.SpreadType[] DEFAULT_SPREAD_ORDER = new MultifaceSpreader.SpreadType[] {MultifaceSpreader.SpreadType.SAME_POSITION, MultifaceSpreader.SpreadType.SAME_PLANE, MultifaceSpreader.SpreadType.WRAP_AROUND};
     private final MultifaceSpreader.SpreadConfig config;
 
-    public MultifaceSpreader(MultifaceBlock p_221590_) {
-        this(new MultifaceSpreader.DefaultSpreaderConfig(p_221590_));
+    public MultifaceSpreader(MultifaceBlock pBlock) {
+        this(new MultifaceSpreader.DefaultSpreaderConfig(pBlock));
     }
 
-    public MultifaceSpreader(MultifaceSpreader.SpreadConfig p_221592_) {
-        this.config = p_221592_;
+    public MultifaceSpreader(MultifaceSpreader.SpreadConfig pConfig) {
+        this.config = pConfig;
     }
 
-    public boolean canSpreadInAnyDirection(BlockState p_221602_, BlockGetter p_221603_, BlockPos p_221604_, Direction p_221605_) {
+    public boolean canSpreadInAnyDirection(BlockState pState, BlockGetter pLevel, BlockPos pPos, Direction pSpreadDirection) {
         return Direction.stream().anyMatch((p_221611_) -> {
-            return this.getSpreadFromFaceTowardDirection(p_221602_, p_221603_, p_221604_, p_221605_, p_221611_, this.config::canSpreadInto).isPresent();
+            return this.getSpreadFromFaceTowardDirection(pState, pLevel, pPos, pSpreadDirection, p_221611_, this.config::canSpreadInto).isPresent();
         });
     }
 
-    public Optional<MultifaceSpreader.SpreadPos> spreadFromRandomFaceTowardRandomDirection(BlockState p_221620_, LevelAccessor p_221621_, BlockPos p_221622_, RandomSource p_221623_) {
-        return Direction.allShuffled(p_221623_).stream().filter((p_221680_) -> {
-                                                            return this.config.canSpreadFrom(p_221620_, p_221680_);
+    public Optional<MultifaceSpreader.SpreadPos> spreadFromRandomFaceTowardRandomDirection(BlockState pState, LevelAccessor pLevel, BlockPos pPos, RandomSource pRandom) {
+        return Direction.allShuffled(pRandom).stream().filter((p_221680_) -> {
+                                                            return this.config.canSpreadFrom(pState, p_221680_);
                                                         })
                 .map((p_221629_) -> {
-                    return this.spreadFromFaceTowardRandomDirection(p_221620_, p_221621_, p_221622_, p_221629_, p_221623_, false);
+                    return this.spreadFromFaceTowardRandomDirection(pState, pLevel, pPos, p_221629_, pRandom, false);
                 })
                 .filter(Optional::isPresent)
                 .findFirst()
                 .orElse(Optional.empty());
     }
 
-    public long spreadAll(BlockState p_221658_, LevelAccessor p_221659_, BlockPos p_221660_, boolean p_221661_) {
+    public long spreadAll(BlockState pState, LevelAccessor pLevel, BlockPos pPos, boolean pMarkForPostprocessing) {
         return Direction.stream().filter((p_221670_) -> {
-                                     return this.config.canSpreadFrom(p_221658_, p_221670_);
+                                     return this.config.canSpreadFrom(pState, p_221670_);
                                  })
                 .map((p_221667_) -> {
-                    return this.spreadFromFaceTowardAllDirections(p_221658_, p_221659_, p_221660_, p_221667_, p_221661_);
+                    return this.spreadFromFaceTowardAllDirections(pState, pLevel, pPos, p_221667_, pMarkForPostprocessing);
                 })
                 .reduce(0L, Long::sum);
     }
 
-    public Optional<MultifaceSpreader.SpreadPos> spreadFromFaceTowardRandomDirection(BlockState p_221631_, LevelAccessor p_221632_, BlockPos p_221633_, Direction p_221634_, RandomSource p_221635_, boolean p_221636_) {
-        return Direction.allShuffled(p_221635_).stream().map((p_221677_) -> {
-                                                            return this.spreadFromFaceTowardDirection(p_221631_, p_221632_, p_221633_, p_221634_, p_221677_, p_221636_);
+    public Optional<MultifaceSpreader.SpreadPos> spreadFromFaceTowardRandomDirection(BlockState pState, LevelAccessor pLevel, BlockPos pPos, Direction pSpreadDirection, RandomSource pRandom, boolean pMarkForPostprocessing) {
+        return Direction.allShuffled(pRandom).stream().map((p_221677_) -> {
+                                                            return this.spreadFromFaceTowardDirection(pState, pLevel, pPos, pSpreadDirection, p_221677_, pMarkForPostprocessing);
                                                         })
                 .filter(Optional::isPresent)
                 .findFirst()
                 .orElse(Optional.empty());
     }
 
-    private long spreadFromFaceTowardAllDirections(BlockState p_221645_, LevelAccessor p_221646_, BlockPos p_221647_, Direction p_221648_, boolean p_221649_) {
+    private long spreadFromFaceTowardAllDirections(BlockState pState, LevelAccessor pLevel, BlockPos pPos, Direction pSpreadDirection, boolean pMarkForPostprocessing) {
         return Direction.stream().map((p_221656_) -> {
-                                     return this.spreadFromFaceTowardDirection(p_221645_, p_221646_, p_221647_, p_221648_, p_221656_, p_221649_);
+                                     return this.spreadFromFaceTowardDirection(pState, pLevel, pPos, pSpreadDirection, p_221656_, pMarkForPostprocessing);
                                  })
                 .filter(Optional::isPresent)
                 .count();
     }
 
     @VisibleForTesting
-    public Optional<MultifaceSpreader.SpreadPos> spreadFromFaceTowardDirection(BlockState p_221638_, LevelAccessor p_221639_, BlockPos p_221640_, Direction p_221641_, Direction p_221642_, boolean p_221643_) {
-        return this.getSpreadFromFaceTowardDirection(p_221638_, p_221639_, p_221640_, p_221641_, p_221642_, this.config::canSpreadInto).flatMap((p_221600_) -> {
-            return this.spreadToFace(p_221639_, p_221600_, p_221643_);
+    public Optional<MultifaceSpreader.SpreadPos> spreadFromFaceTowardDirection(BlockState pState, LevelAccessor pLevel, BlockPos pPos, Direction pSpreadDirection, Direction pFace, boolean pMarkForPostprocessing) {
+        return this.getSpreadFromFaceTowardDirection(pState, pLevel, pPos, pSpreadDirection, pFace, this.config::canSpreadInto).flatMap((p_221600_) -> {
+            return this.spreadToFace(pLevel, p_221600_, pMarkForPostprocessing);
         });
     }
 
-    public Optional<MultifaceSpreader.SpreadPos> getSpreadFromFaceTowardDirection(BlockState p_221613_, BlockGetter p_221614_, BlockPos p_221615_, Direction p_221616_, Direction p_221617_, MultifaceSpreader.SpreadPredicate p_221618_) {
-        if (p_221617_.getAxis() == p_221616_.getAxis()) {
+    public Optional<MultifaceSpreader.SpreadPos> getSpreadFromFaceTowardDirection(BlockState pState, BlockGetter pLevel, BlockPos pPos, Direction pSpreadDirection, Direction pFace, MultifaceSpreader.SpreadPredicate pPredicate) {
+        if (pFace.getAxis() == pSpreadDirection.getAxis()) {
             return Optional.empty();
-        } else if (this.config.isOtherBlockValidAsSource(p_221613_) || this.config.hasFace(p_221613_, p_221616_) && !this.config.hasFace(p_221613_, p_221617_)) {
+        } else if (this.config.isOtherBlockValidAsSource(pState) || this.config.hasFace(pState, pSpreadDirection) && !this.config.hasFace(pState, pFace)) {
             for (MultifaceSpreader.SpreadType multifacespreader$spreadtype : this.config.getSpreadTypes()) {
-                MultifaceSpreader.SpreadPos multifacespreader$spreadpos = multifacespreader$spreadtype.getSpreadPos(p_221615_, p_221617_, p_221616_);
-                if (p_221618_.test(p_221614_, p_221615_, multifacespreader$spreadpos)) {
+                MultifaceSpreader.SpreadPos multifacespreader$spreadpos = multifacespreader$spreadtype.getSpreadPos(pPos, pFace, pSpreadDirection);
+                if (pPredicate.test(pLevel, pPos, multifacespreader$spreadpos)) {
                     return Optional.of(multifacespreader$spreadpos);
                 }
             }
@@ -91,21 +91,21 @@ public class MultifaceSpreader {
         }
     }
 
-    public Optional<MultifaceSpreader.SpreadPos> spreadToFace(LevelAccessor p_221594_, MultifaceSpreader.SpreadPos p_221595_, boolean p_221596_) {
-        BlockState blockstate = p_221594_.getBlockState(p_221595_.pos());
-        return this.config.placeBlock(p_221594_, p_221595_, blockstate, p_221596_) ? Optional.of(p_221595_) : Optional.empty();
+    public Optional<MultifaceSpreader.SpreadPos> spreadToFace(LevelAccessor pLevel, MultifaceSpreader.SpreadPos pPos, boolean pMarkForPostprocessing) {
+        BlockState blockstate = pLevel.getBlockState(pPos.pos());
+        return this.config.placeBlock(pLevel, pPos, blockstate, pMarkForPostprocessing) ? Optional.of(pPos) : Optional.empty();
     }
 
     public static class DefaultSpreaderConfig implements MultifaceSpreader.SpreadConfig {
         protected MultifaceBlock block;
 
-        public DefaultSpreaderConfig(MultifaceBlock p_221683_) {
-            this.block = p_221683_;
+        public DefaultSpreaderConfig(MultifaceBlock pBlock) {
+            this.block = pBlock;
         }
 
         @Nullable
-        public BlockState getStateForPlacement(BlockState p_221694_, BlockGetter p_221695_, BlockPos p_221696_, Direction p_221697_) {
-            return this.block.getStateForPlacement(p_221694_, p_221695_, p_221696_, p_221697_);
+        public BlockState getStateForPlacement(BlockState pCurrentState, BlockGetter pLevel, BlockPos pPos, Direction pLookingDirection) {
+            return this.block.getStateForPlacement(pCurrentState, pLevel, pPos, pLookingDirection);
         }
 
         protected boolean stateCanBeReplaced(BlockGetter p_221688_, BlockPos p_221689_, BlockPos p_221690_, Direction p_221691_, BlockState p_221692_) {
@@ -120,7 +120,7 @@ public class MultifaceSpreader {
 
     public interface SpreadConfig {
         @Nullable
-        BlockState getStateForPlacement(BlockState p_221707_, BlockGetter p_221708_, BlockPos p_221709_, Direction p_221710_);
+        BlockState getStateForPlacement(BlockState pCurrentState, BlockGetter pLevel, BlockPos pPos, Direction pLookingDirection);
 
         boolean canSpreadInto(BlockGetter p_221698_, BlockPos p_221699_, MultifaceSpreader.SpreadPos p_221700_);
 
@@ -128,26 +128,26 @@ public class MultifaceSpreader {
             return MultifaceSpreader.DEFAULT_SPREAD_ORDER;
         }
 
-        default boolean hasFace(BlockState p_221712_, Direction p_221713_) {
-            return MultifaceBlock.hasFace(p_221712_, p_221713_);
+        default boolean hasFace(BlockState pState, Direction pDirection) {
+            return MultifaceBlock.hasFace(pState, pDirection);
         }
 
-        default boolean isOtherBlockValidAsSource(BlockState p_221706_) {
+        default boolean isOtherBlockValidAsSource(BlockState pOtherBlock) {
             return false;
         }
 
-        default boolean canSpreadFrom(BlockState p_221715_, Direction p_221716_) {
-            return this.isOtherBlockValidAsSource(p_221715_) || this.hasFace(p_221715_, p_221716_);
+        default boolean canSpreadFrom(BlockState pState, Direction pDirection) {
+            return this.isOtherBlockValidAsSource(pState) || this.hasFace(pState, pDirection);
         }
 
-        default boolean placeBlock(LevelAccessor p_221702_, MultifaceSpreader.SpreadPos p_221703_, BlockState p_221704_, boolean p_221705_) {
-            BlockState blockstate = this.getStateForPlacement(p_221704_, p_221702_, p_221703_.pos(), p_221703_.face());
+        default boolean placeBlock(LevelAccessor pLevel, MultifaceSpreader.SpreadPos pPos, BlockState pState, boolean pMarkForPostprocessing) {
+            BlockState blockstate = this.getStateForPlacement(pState, pLevel, pPos.pos(), pPos.face());
             if (blockstate != null) {
-                if (p_221705_) {
-                    p_221702_.getChunk(p_221703_.pos()).markPosForPostprocessing(p_221703_.pos());
+                if (pMarkForPostprocessing) {
+                    pLevel.getChunk(pPos.pos()).markPosForPostprocessing(pPos.pos());
                 }
 
-                return p_221702_.setBlock(p_221703_.pos(), blockstate, 2);
+                return pLevel.setBlock(pPos.pos(), blockstate, 2);
             } else {
                 return false;
             }
@@ -179,6 +179,6 @@ public class MultifaceSpreader {
             }
         };
 
-        public abstract MultifaceSpreader.SpreadPos getSpreadPos(BlockPos p_221741_, Direction p_221742_, Direction p_221743_);
+        public abstract MultifaceSpreader.SpreadPos getSpreadPos(BlockPos pPos, Direction pFace, Direction pSpreadDirection);
     }
 }

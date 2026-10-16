@@ -13,32 +13,32 @@ public class BabyFollowAdult<E extends AgeableMob> extends Behavior<E> {
     private final UniformInt followRange;
     private final Function<LivingEntity, Float> speedModifier;
 
-    public BabyFollowAdult(UniformInt p_147414_, float p_147415_) {
-        this(p_147414_, (p_147421_) -> {
-            return p_147415_;
+    public BabyFollowAdult(UniformInt pFollowRange, float pSpeedModifier) {
+        this(pFollowRange, (p_147421_) -> {
+            return pSpeedModifier;
         });
     }
 
-    public BabyFollowAdult(UniformInt p_147417_, Function<LivingEntity, Float> p_147418_) {
+    public BabyFollowAdult(UniformInt pFollowRange, Function<LivingEntity, Float> pSpeedModifier) {
         super(ImmutableMap.of(MemoryModuleType.NEAREST_VISIBLE_ADULT, MemoryStatus.VALUE_PRESENT, MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
-        this.followRange = p_147417_;
-        this.speedModifier = p_147418_;
+        this.followRange = pFollowRange;
+        this.speedModifier = pSpeedModifier;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_147423_, E p_147424_) {
-        if (!p_147424_.isBaby()) {
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, E pOwner) {
+        if (!pOwner.isBaby()) {
             return false;
         } else {
-            AgeableMob ageablemob = this.getNearestAdult(p_147424_);
-            return p_147424_.closerThan(ageablemob, (double) (this.followRange.getMaxValue() + 1)) && !p_147424_.closerThan(ageablemob, (double) this.followRange.getMinValue());
+            AgeableMob ageablemob = this.getNearestAdult(pOwner);
+            return pOwner.closerThan(ageablemob, (double) (this.followRange.getMaxValue() + 1)) && !pOwner.closerThan(ageablemob, (double) this.followRange.getMinValue());
         }
     }
 
-    protected void start(ServerLevel p_147426_, E p_147427_, long p_147428_) {
-        BehaviorUtils.setWalkAndLookTargetMemories(p_147427_, this.getNearestAdult(p_147427_), this.speedModifier.apply(p_147427_), this.followRange.getMinValue() - 1);
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
+        BehaviorUtils.setWalkAndLookTargetMemories(pEntity, this.getNearestAdult(pEntity), this.speedModifier.apply(pEntity), this.followRange.getMinValue() - 1);
     }
 
-    private AgeableMob getNearestAdult(E p_147430_) {
-        return p_147430_.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_ADULT).get();
+    private AgeableMob getNearestAdult(E pEntity) {
+        return pEntity.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_ADULT).get();
     }
 }

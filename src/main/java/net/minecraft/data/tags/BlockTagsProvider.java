@@ -7,8 +7,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 public class BlockTagsProvider extends TagsProvider<Block> {
-    public BlockTagsProvider(DataGenerator p_126511_) {
-        super(p_126511_, Registry.BLOCK);
+    public BlockTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, Registry.BLOCK);
     }
 
     protected void addTags() {

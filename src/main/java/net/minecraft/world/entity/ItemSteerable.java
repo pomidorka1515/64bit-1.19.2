@@ -7,48 +7,48 @@ import net.minecraft.world.phys.Vec3;
 public interface ItemSteerable {
     boolean boost();
 
-    void travelWithInput(Vec3 p_20858_);
+    void travelWithInput(Vec3 pTravelVector);
 
     float getSteeringSpeed();
 
-    default boolean travel(Mob p_20855_, ItemBasedSteering p_20856_, Vec3 p_20857_) {
-        if (!p_20855_.isAlive()) {
+    default boolean travel(Mob pVehicle, ItemBasedSteering pHelper, Vec3 pTravelVec) {
+        if (!pVehicle.isAlive()) {
             return false;
         } else {
-            Entity entity = p_20855_.getControllingPassenger();
-            if (p_20855_.isVehicle() && entity instanceof Player) {
-                p_20855_.setYRot(entity.getYRot());
-                p_20855_.yRotO = p_20855_.getYRot();
-                p_20855_.setXRot(entity.getXRot() * 0.5F);
-                p_20855_.setRot(p_20855_.getYRot(), p_20855_.getXRot());
-                p_20855_.yBodyRot = p_20855_.getYRot();
-                p_20855_.yHeadRot = p_20855_.getYRot();
-                p_20855_.maxUpStep = 1.0F;
-                p_20855_.flyingSpeed = p_20855_.getSpeed() * 0.1F;
-                if (p_20856_.boosting && p_20856_.boostTime++ > p_20856_.boostTimeTotal) {
-                    p_20856_.boosting = false;
+            Entity entity = pVehicle.getControllingPassenger();
+            if (pVehicle.isVehicle() && entity instanceof Player) {
+                pVehicle.setYRot(entity.getYRot());
+                pVehicle.yRotO = pVehicle.getYRot();
+                pVehicle.setXRot(entity.getXRot() * 0.5F);
+                pVehicle.setRot(pVehicle.getYRot(), pVehicle.getXRot());
+                pVehicle.yBodyRot = pVehicle.getYRot();
+                pVehicle.yHeadRot = pVehicle.getYRot();
+                pVehicle.maxUpStep = 1.0F;
+                pVehicle.flyingSpeed = pVehicle.getSpeed() * 0.1F;
+                if (pHelper.boosting && pHelper.boostTime++ > pHelper.boostTimeTotal) {
+                    pHelper.boosting = false;
                 }
 
-                if (p_20855_.isControlledByLocalInstance()) {
+                if (pVehicle.isControlledByLocalInstance()) {
                     float f = this.getSteeringSpeed();
-                    if (p_20856_.boosting) {
-                        f += f * 1.15F * Mth.sin((float) p_20856_.boostTime / (float) p_20856_.boostTimeTotal * (float) Math.PI);
+                    if (pHelper.boosting) {
+                        f += f * 1.15F * Mth.sin((float) pHelper.boostTime / (float) pHelper.boostTimeTotal * (float) Math.PI);
                     }
 
-                    p_20855_.setSpeed(f);
+                    pVehicle.setSpeed(f);
                     this.travelWithInput(new Vec3(0.0D, 0.0D, 1.0D));
-                    p_20855_.lerpSteps = 0;
+                    pVehicle.lerpSteps = 0;
                 } else {
-                    p_20855_.calculateEntityAnimation(p_20855_, false);
-                    p_20855_.setDeltaMovement(Vec3.ZERO);
+                    pVehicle.calculateEntityAnimation(pVehicle, false);
+                    pVehicle.setDeltaMovement(Vec3.ZERO);
                 }
 
-                p_20855_.tryCheckInsideBlocks();
+                pVehicle.tryCheckInsideBlocks();
                 return true;
             } else {
-                p_20855_.maxUpStep = 0.5F;
-                p_20855_.flyingSpeed = 0.02F;
-                this.travelWithInput(p_20857_);
+                pVehicle.maxUpStep = 0.5F;
+                pVehicle.flyingSpeed = 0.02F;
+                this.travelWithInput(pTravelVec);
                 return false;
             }
         }

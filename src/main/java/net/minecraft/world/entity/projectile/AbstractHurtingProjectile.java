@@ -20,40 +20,40 @@ public abstract class AbstractHurtingProjectile extends Projectile {
     public double yPower;
     public double zPower;
 
-    protected AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> p_36833_, Level p_36834_) {
-        super(p_36833_, p_36834_);
+    protected AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> p_36817_, double p_36818_, double p_36819_, double p_36820_, double p_36821_, double p_36822_, double p_36823_, Level p_36824_) {
-        this(p_36817_, p_36824_);
-        this.moveTo(p_36818_, p_36819_, p_36820_, this.getYRot(), this.getXRot());
+    public AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> pEntityType, double pX, double pY, double pZ, double pOffsetX, double pOffsetY, double pOffsetZ, Level pLevel) {
+        this(pEntityType, pLevel);
+        this.moveTo(pX, pY, pZ, this.getYRot(), this.getXRot());
         this.reapplyPosition();
-        double d0 = Math.sqrt(p_36821_ * p_36821_ + p_36822_ * p_36822_ + p_36823_ * p_36823_);
+        double d0 = Math.sqrt(pOffsetX * pOffsetX + pOffsetY * pOffsetY + pOffsetZ * pOffsetZ);
         if (d0 != 0.0D) {
-            this.xPower = p_36821_ / d0 * 0.1D;
-            this.yPower = p_36822_ / d0 * 0.1D;
-            this.zPower = p_36823_ / d0 * 0.1D;
+            this.xPower = pOffsetX / d0 * 0.1D;
+            this.yPower = pOffsetY / d0 * 0.1D;
+            this.zPower = pOffsetZ / d0 * 0.1D;
         }
     }
 
-    public AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> p_36826_, LivingEntity p_36827_, double p_36828_, double p_36829_, double p_36830_, Level p_36831_) {
-        this(p_36826_, p_36827_.getX(), p_36827_.getY(), p_36827_.getZ(), p_36828_, p_36829_, p_36830_, p_36831_);
-        this.applyExactPosition(p_36827_.sectorPosition());
-        this.setOwner(p_36827_);
-        this.setRot(p_36827_.getYRot(), p_36827_.getXRot());
+    public AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> pEntityType, LivingEntity pShooter, double pOffsetX, double pOffsetY, double pOffsetZ, Level pLevel) {
+        this(pEntityType, pShooter.getX(), pShooter.getY(), pShooter.getZ(), pOffsetX, pOffsetY, pOffsetZ, pLevel);
+        this.applyExactPosition(pShooter.sectorPosition());
+        this.setOwner(pShooter);
+        this.setRot(pShooter.getYRot(), pShooter.getXRot());
     }
 
     protected void defineSynchedData() {
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_36837_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         double d0 = this.getBoundingBox().getSize() * 4.0D;
         if (Double.isNaN(d0)) {
             d0 = 4.0D;
         }
 
         d0 *= 64.0D;
-        return p_36837_ < d0 * d0;
+        return pDistance < d0 * d0;
     }
 
     public void tick() {
@@ -107,15 +107,15 @@ public abstract class AbstractHurtingProjectile extends Projectile {
         return 0.95F;
     }
 
-    public void addAdditionalSaveData(CompoundTag p_36848_) {
-        super.addAdditionalSaveData(p_36848_);
-        p_36848_.put("power", this.newDoubleList(new double[] {this.xPower, this.yPower, this.zPower}));
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.put("power", this.newDoubleList(new double[] {this.xPower, this.yPower, this.zPower}));
     }
 
-    public void readAdditionalSaveData(CompoundTag p_36844_) {
-        super.readAdditionalSaveData(p_36844_);
-        if (p_36844_.contains("power", 9)) {
-            ListTag listtag = p_36844_.getList("power", 6);
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("power", 9)) {
+            ListTag listtag = pCompound.getList("power", 6);
             if (listtag.size() == 3) {
                 this.xPower = listtag.getDouble(0);
                 this.yPower = listtag.getDouble(1);
@@ -132,12 +132,12 @@ public abstract class AbstractHurtingProjectile extends Projectile {
         return 1.0F;
     }
 
-    public boolean hurt(DamageSource p_36839_, float p_36840_) {
-        if (this.isInvulnerableTo(p_36839_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else {
             this.markHurt();
-            Entity entity = p_36839_.getEntity();
+            Entity entity = pSource.getEntity();
             if (entity != null) {
                 if (!this.level.isClientSide) {
                     Vec3 vec3 = entity.getLookAngle();
@@ -166,11 +166,11 @@ public abstract class AbstractHurtingProjectile extends Projectile {
                 this.getType(), i, new Vec3(this.xPower, this.yPower, this.zPower), 0.0D);
     }
 
-    public void recreateFromPacket(ClientboundAddEntityPacket p_150128_) {
-        super.recreateFromPacket(p_150128_);
-        double d0 = p_150128_.getXa();
-        double d1 = p_150128_.getYa();
-        double d2 = p_150128_.getZa();
+    public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
+        super.recreateFromPacket(pPacket);
+        double d0 = pPacket.getXa();
+        double d1 = pPacket.getYa();
+        double d2 = pPacket.getZa();
         double d3 = Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
         if (d3 != 0.0D) {
             this.xPower = d0 / d3 * 0.1D;

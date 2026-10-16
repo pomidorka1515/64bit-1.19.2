@@ -26,15 +26,15 @@ public class BoneMealItem extends Item {
     public static final int GRASS_SPREAD_HEIGHT = 1;
     public static final int GRASS_COUNT_MULTIPLIER = 3;
 
-    public BoneMealItem(Item.Properties p_40626_) {
-        super(p_40626_);
+    public BoneMealItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResult useOn(UseOnContext p_40637_) {
-        Level level = p_40637_.getLevel();
-        BlockPos blockpos = p_40637_.getClickedPos();
-        BlockPos blockpos1 = blockpos.relative(p_40637_.getClickedFace());
-        if (growCrop(p_40637_.getItemInHand(), level, blockpos)) {
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
+        BlockPos blockpos1 = blockpos.relative(pContext.getClickedFace());
+        if (growCrop(pContext.getItemInHand(), level, blockpos)) {
             if (!level.isClientSide) {
                 level.levelEvent(1505, blockpos, 0);
             }
@@ -42,8 +42,8 @@ public class BoneMealItem extends Item {
             return InteractionResult.sidedSuccess(level.isClientSide);
         } else {
             BlockState blockstate = level.getBlockState(blockpos);
-            boolean flag = blockstate.isFaceSturdy(level, blockpos, p_40637_.getClickedFace());
-            if (flag && growWaterPlant(p_40637_.getItemInHand(), level, blockpos1, p_40637_.getClickedFace())) {
+            boolean flag = blockstate.isFaceSturdy(level, blockpos, pContext.getClickedFace());
+            if (flag && growWaterPlant(pContext.getItemInHand(), level, blockpos1, pContext.getClickedFace())) {
                 if (!level.isClientSide) {
                     level.levelEvent(1505, blockpos1, 0);
                 }
@@ -55,17 +55,17 @@ public class BoneMealItem extends Item {
         }
     }
 
-    public static boolean growCrop(ItemStack p_40628_, Level p_40629_, BlockPos p_40630_) {
-        BlockState blockstate = p_40629_.getBlockState(p_40630_);
+    public static boolean growCrop(ItemStack pStack, Level pLevel, BlockPos pPos) {
+        BlockState blockstate = pLevel.getBlockState(pPos);
         if (blockstate.getBlock() instanceof BonemealableBlock) {
             BonemealableBlock bonemealableblock = (BonemealableBlock) blockstate.getBlock();
-            if (bonemealableblock.isValidBonemealTarget(p_40629_, p_40630_, blockstate, p_40629_.isClientSide)) {
-                if (p_40629_ instanceof ServerLevel) {
-                    if (bonemealableblock.isBonemealSuccess(p_40629_, p_40629_.random, p_40630_, blockstate)) {
-                        bonemealableblock.performBonemeal((ServerLevel) p_40629_, p_40629_.random, p_40630_, blockstate);
+            if (bonemealableblock.isValidBonemealTarget(pLevel, pPos, blockstate, pLevel.isClientSide)) {
+                if (pLevel instanceof ServerLevel) {
+                    if (bonemealableblock.isBonemealSuccess(pLevel, pLevel.random, pPos, blockstate)) {
+                        bonemealableblock.performBonemeal((ServerLevel) pLevel, pLevel.random, pPos, blockstate);
                     }
 
-                    p_40628_.shrink(1);
+                    pStack.shrink(1);
                 }
 
                 return true;
@@ -75,41 +75,41 @@ public class BoneMealItem extends Item {
         return false;
     }
 
-    public static boolean growWaterPlant(ItemStack p_40632_, Level p_40633_, BlockPos p_40634_, @Nullable Direction p_40635_) {
-        if (p_40633_.getBlockState(p_40634_).is(Blocks.WATER) && p_40633_.getFluidState(p_40634_).getAmount() == 8) {
-            if (!(p_40633_ instanceof ServerLevel)) {
+    public static boolean growWaterPlant(ItemStack pStack, Level pLevel, BlockPos pPos, @Nullable Direction pClickedSide) {
+        if (pLevel.getBlockState(pPos).is(Blocks.WATER) && pLevel.getFluidState(pPos).getAmount() == 8) {
+            if (!(pLevel instanceof ServerLevel)) {
                 return true;
             } else {
-                RandomSource randomsource = p_40633_.getRandom();
+                RandomSource randomsource = pLevel.getRandom();
 
             label78:
                 for (int i = 0; i < 128; ++i) {
-                    BlockPos blockpos = p_40634_;
+                    BlockPos blockpos = pPos;
                     BlockState blockstate = Blocks.SEAGRASS.defaultBlockState();
 
                     for (int j = 0; j < i / 16; ++j) {
                         blockpos = blockpos.offset(randomsource.nextInt(3) - 1, (randomsource.nextInt(3) - 1) * randomsource.nextInt(3) / 2, randomsource.nextInt(3) - 1);
-                        if (p_40633_.getBlockState(blockpos).isCollisionShapeFullBlock(p_40633_, blockpos)) {
+                        if (pLevel.getBlockState(blockpos).isCollisionShapeFullBlock(pLevel, blockpos)) {
                             continue label78;
                         }
                     }
 
-                    Holder<Biome> holder = p_40633_.getBiome(blockpos);
+                    Holder<Biome> holder = pLevel.getBiome(blockpos);
                     if (holder.is(BiomeTags.PRODUCES_CORALS_FROM_BONEMEAL)) {
-                        if (i == 0 && p_40635_ != null && p_40635_.getAxis().isHorizontal()) {
+                        if (i == 0 && pClickedSide != null && pClickedSide.getAxis().isHorizontal()) {
                             blockstate = Registry.BLOCK.getTag(BlockTags.WALL_CORALS).flatMap((p_204098_) -> {
-                                                                                         return p_204098_.getRandomElement(p_40633_.random);
+                                                                                         return p_204098_.getRandomElement(pLevel.random);
                                                                                      })
                                                  .map((p_204100_) -> {
                                                      return p_204100_.value().defaultBlockState();
                                                  })
                                                  .orElse(blockstate);
                             if (blockstate.hasProperty(BaseCoralWallFanBlock.FACING)) {
-                                blockstate = blockstate.setValue(BaseCoralWallFanBlock.FACING, p_40635_);
+                                blockstate = blockstate.setValue(BaseCoralWallFanBlock.FACING, pClickedSide);
                             }
                         } else if (randomsource.nextInt(4) == 0) {
                             blockstate = Registry.BLOCK.getTag(BlockTags.UNDERWATER_BONEMEALS).flatMap((p_204091_) -> {
-                                                                                                  return p_204091_.getRandomElement(p_40633_.random);
+                                                                                                  return p_204091_.getRandomElement(pLevel.random);
                                                                                               })
                                                  .map((p_204095_) -> {
                                                      return p_204095_.value().defaultBlockState();
@@ -121,22 +121,22 @@ public class BoneMealItem extends Item {
                     if (blockstate.is(BlockTags.WALL_CORALS, (p_204093_) -> {
                             return p_204093_.hasProperty(BaseCoralWallFanBlock.FACING);
                         })) {
-                        for (int k = 0; !blockstate.canSurvive(p_40633_, blockpos) && k < 4; ++k) {
+                        for (int k = 0; !blockstate.canSurvive(pLevel, blockpos) && k < 4; ++k) {
                             blockstate = blockstate.setValue(BaseCoralWallFanBlock.FACING, Direction.Plane.HORIZONTAL.getRandomDirection(randomsource));
                         }
                     }
 
-                    if (blockstate.canSurvive(p_40633_, blockpos)) {
-                        BlockState blockstate1 = p_40633_.getBlockState(blockpos);
-                        if (blockstate1.is(Blocks.WATER) && p_40633_.getFluidState(blockpos).getAmount() == 8) {
-                            p_40633_.setBlock(blockpos, blockstate, 3);
+                    if (blockstate.canSurvive(pLevel, blockpos)) {
+                        BlockState blockstate1 = pLevel.getBlockState(blockpos);
+                        if (blockstate1.is(Blocks.WATER) && pLevel.getFluidState(blockpos).getAmount() == 8) {
+                            pLevel.setBlock(blockpos, blockstate, 3);
                         } else if (blockstate1.is(Blocks.SEAGRASS) && randomsource.nextInt(10) == 0) {
-                            ((BonemealableBlock) Blocks.SEAGRASS).performBonemeal((ServerLevel) p_40633_, randomsource, blockpos, blockstate1);
+                            ((BonemealableBlock) Blocks.SEAGRASS).performBonemeal((ServerLevel) pLevel, randomsource, blockpos, blockstate1);
                         }
                     }
                 }
 
-                p_40632_.shrink(1);
+                pStack.shrink(1);
                 return true;
             }
         } else {
@@ -144,42 +144,42 @@ public class BoneMealItem extends Item {
         }
     }
 
-    public static void addGrowthParticles(LevelAccessor p_40639_, BlockPos p_40640_, int p_40641_) {
-        if (p_40641_ == 0) {
-            p_40641_ = 15;
+    public static void addGrowthParticles(LevelAccessor pLevel, BlockPos pPos, int pData) {
+        if (pData == 0) {
+            pData = 15;
         }
 
-        BlockState blockstate = p_40639_.getBlockState(p_40640_);
+        BlockState blockstate = pLevel.getBlockState(pPos);
         if (!blockstate.isAir()) {
             double d0 = 0.5D;
             double d1;
             if (blockstate.is(Blocks.WATER)) {
-                p_40641_ *= 3;
+                pData *= 3;
                 d1 = 1.0D;
                 d0 = 3.0D;
-            } else if (blockstate.isSolidRender(p_40639_, p_40640_)) {
-                p_40640_ = p_40640_.above();
-                p_40641_ *= 3;
+            } else if (blockstate.isSolidRender(pLevel, pPos)) {
+                pPos = pPos.above();
+                pData *= 3;
                 d0 = 3.0D;
                 d1 = 1.0D;
             } else {
-                d1 = blockstate.getShape(p_40639_, p_40640_).max(Direction.Axis.Y);
+                d1 = blockstate.getShape(pLevel, pPos).max(Direction.Axis.Y);
             }
 
-            p_40639_.addParticle(ParticleTypes.HAPPY_VILLAGER, SectorVec3.fromBlockAndFraction(p_40640_.getX(), 0.5D, (double) p_40640_.getY() + 0.5D, p_40640_.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);
-            RandomSource randomsource = p_40639_.getRandom();
+            pLevel.addParticle(ParticleTypes.HAPPY_VILLAGER, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 0.5D, pPos.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);
+            RandomSource randomsource = pLevel.getRandom();
 
-            for (int i = 0; i < p_40641_; ++i) {
+            for (int i = 0; i < pData; ++i) {
                 double d2 = randomsource.nextGaussian() * 0.02D;
                 double d3 = randomsource.nextGaussian() * 0.02D;
                 double d4 = randomsource.nextGaussian() * 0.02D;
                 double d5 = 0.5D - d0;
-                SectorVec3 position = SectorVec3.fromBlockAndFraction(p_40640_.getX(),
+                SectorVec3 position = SectorVec3.fromBlockAndFraction(pPos.getX(),
                         d5 + randomsource.nextDouble() * d0 * 2.0D,
-                        (double) p_40640_.getY() + randomsource.nextDouble() * d1, p_40640_.getZ(),
+                        (double) pPos.getY() + randomsource.nextDouble() * d1, pPos.getZ(),
                         d5 + randomsource.nextDouble() * d0 * 2.0D);
-                if (!p_40639_.getBlockState(position.blockPosition().below()).isAir()) {
-                    p_40639_.addParticle(ParticleTypes.HAPPY_VILLAGER, position, d2, d3, d4);
+                if (!pLevel.getBlockState(position.blockPosition().below()).isAir()) {
+                    pLevel.addParticle(ParticleTypes.HAPPY_VILLAGER, position, d2, d3, d4);
                 }
             }
         }

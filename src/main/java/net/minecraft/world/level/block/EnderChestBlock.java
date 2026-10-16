@@ -51,100 +51,100 @@ public class EnderChestBlock extends AbstractChestBlock<EnderChestBlockEntity> i
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(WATERLOGGED, Boolean.valueOf(false)));
     }
 
-    public DoubleBlockCombiner.NeighborCombineResult<? extends ChestBlockEntity> combine(BlockState p_53149_, Level p_53150_, BlockPos p_53151_, boolean p_53152_) {
+    public DoubleBlockCombiner.NeighborCombineResult<? extends ChestBlockEntity> combine(BlockState pState, Level pLevel, BlockPos pPos, boolean pOverride) {
         return DoubleBlockCombiner.Combiner::acceptNone;
     }
 
-    public VoxelShape getShape(BlockState p_53171_, BlockGetter p_53172_, BlockPos p_53173_, CollisionContext p_53174_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
-    public RenderShape getRenderShape(BlockState p_53169_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_53128_) {
-        FluidState fluidstate = p_53128_.getLevel().getFluidState(p_53128_.getClickedPos());
-        return this.defaultBlockState().setValue(FACING, p_53128_.getHorizontalDirection().getOpposite()).setValue(WATERLOGGED, Boolean.valueOf(fluidstate.getType() == Fluids.WATER));
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        FluidState fluidstate = pContext.getLevel().getFluidState(pContext.getClickedPos());
+        return this.defaultBlockState().setValue(FACING, pContext.getHorizontalDirection().getOpposite()).setValue(WATERLOGGED, Boolean.valueOf(fluidstate.getType() == Fluids.WATER));
     }
 
-    public InteractionResult use(BlockState p_53137_, Level p_53138_, BlockPos p_53139_, Player p_53140_, InteractionHand p_53141_, BlockHitResult p_53142_) {
-        PlayerEnderChestContainer playerenderchestcontainer = p_53140_.getEnderChestInventory();
-        BlockEntity blockentity = p_53138_.getBlockEntity(p_53139_);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        PlayerEnderChestContainer playerenderchestcontainer = pPlayer.getEnderChestInventory();
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (playerenderchestcontainer != null && blockentity instanceof EnderChestBlockEntity) {
-            BlockPos blockpos = p_53139_.above();
-            if (p_53138_.getBlockState(blockpos).isRedstoneConductor(p_53138_, blockpos)) {
-                return InteractionResult.sidedSuccess(p_53138_.isClientSide);
-            } else if (p_53138_.isClientSide) {
+            BlockPos blockpos = pPos.above();
+            if (pLevel.getBlockState(blockpos).isRedstoneConductor(pLevel, blockpos)) {
+                return InteractionResult.sidedSuccess(pLevel.isClientSide);
+            } else if (pLevel.isClientSide) {
                 return InteractionResult.SUCCESS;
             } else {
                 EnderChestBlockEntity enderchestblockentity = (EnderChestBlockEntity) blockentity;
                 playerenderchestcontainer.setActiveChest(enderchestblockentity);
-                p_53140_.openMenu(new SimpleMenuProvider((p_53124_, p_53125_, p_53126_) -> {
+                pPlayer.openMenu(new SimpleMenuProvider((p_53124_, p_53125_, p_53126_) -> {
                     return ChestMenu.threeRows(p_53124_, p_53125_, playerenderchestcontainer);
                 }, CONTAINER_TITLE));
-                p_53140_.awardStat(Stats.OPEN_ENDERCHEST);
-                PiglinAi.angerNearbyPiglins(p_53140_, true);
+                pPlayer.awardStat(Stats.OPEN_ENDERCHEST);
+                PiglinAi.angerNearbyPiglins(pPlayer, true);
                 return InteractionResult.CONSUME;
             }
         } else {
-            return InteractionResult.sidedSuccess(p_53138_.isClientSide);
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         }
     }
 
-    public BlockEntity newBlockEntity(BlockPos p_153208_, BlockState p_153209_) {
-        return new EnderChestBlockEntity(p_153208_, p_153209_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new EnderChestBlockEntity(pPos, pState);
     }
 
     @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_153199_, BlockState p_153200_, BlockEntityType<T> p_153201_) {
-        return p_153199_.isClientSide ? createTickerHelper(p_153201_, BlockEntityType.ENDER_CHEST, EnderChestBlockEntity::lidAnimateTick) : null;
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
+        return pLevel.isClientSide ? createTickerHelper(pBlockEntityType, BlockEntityType.ENDER_CHEST, EnderChestBlockEntity::lidAnimateTick) : null;
     }
 
-    public void animateTick(BlockState p_221117_, Level p_221118_, BlockPos p_221119_, RandomSource p_221120_) {
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
         for (int i = 0; i < 3; ++i) {
-            int j = p_221120_.nextInt(2) * 2 - 1;
-            int k = p_221120_.nextInt(2) * 2 - 1;
+            int j = pRandom.nextInt(2) * 2 - 1;
+            int k = pRandom.nextInt(2) * 2 - 1;
             double d0 = 0.5D + 0.25D * (double) j;
-            double d1 = (double) ((float) p_221119_.getY() + p_221120_.nextFloat());
+            double d1 = (double) ((float) pPos.getY() + pRandom.nextFloat());
             double d2 = 0.5D + 0.25D * (double) k;
-            double d3 = (double) (p_221120_.nextFloat() * (float) j);
-            double d4 = ((double) p_221120_.nextFloat() - 0.5D) * 0.125D;
-            double d5 = (double) (p_221120_.nextFloat() * (float) k);
-            p_221118_.addParticle(ParticleTypes.PORTAL, SectorVec3.fromBlockAndFraction(p_221119_.getX(), d0, d1, p_221119_.getZ(), d2), d3, d4, d5);
+            double d3 = (double) (pRandom.nextFloat() * (float) j);
+            double d4 = ((double) pRandom.nextFloat() - 0.5D) * 0.125D;
+            double d5 = (double) (pRandom.nextFloat() * (float) k);
+            pLevel.addParticle(ParticleTypes.PORTAL, SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2), d3, d4, d5);
         }
     }
 
-    public BlockState rotate(BlockState p_53157_, Rotation p_53158_) {
-        return p_53157_.setValue(FACING, p_53158_.rotate(p_53157_.getValue(FACING)));
+    public BlockState rotate(BlockState pState, Rotation pRot) {
+        return pState.setValue(FACING, pRot.rotate(pState.getValue(FACING)));
     }
 
-    public BlockState mirror(BlockState p_53154_, Mirror p_53155_) {
-        return p_53154_.rotate(p_53155_.getRotation(p_53154_.getValue(FACING)));
+    public BlockState mirror(BlockState pState, Mirror pMirror) {
+        return pState.rotate(pMirror.getRotation(pState.getValue(FACING)));
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_53167_) {
-        p_53167_.add(FACING, WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(FACING, WATERLOGGED);
     }
 
-    public FluidState getFluidState(BlockState p_53177_) {
-        return p_53177_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_53177_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public BlockState updateShape(BlockState p_53160_, Direction p_53161_, BlockState p_53162_, LevelAccessor p_53163_, BlockPos p_53164_, BlockPos p_53165_) {
-        if (p_53160_.getValue(WATERLOGGED)) {
-            p_53163_.scheduleTick(p_53164_, Fluids.WATER, Fluids.WATER.getTickDelay(p_53163_));
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return super.updateShape(p_53160_, p_53161_, p_53162_, p_53163_, p_53164_, p_53165_);
+        return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    public boolean isPathfindable(BlockState p_53132_, BlockGetter p_53133_, BlockPos p_53134_, PathComputationType p_53135_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 
-    public void tick(BlockState p_221112_, ServerLevel p_221113_, BlockPos p_221114_, RandomSource p_221115_) {
-        BlockEntity blockentity = p_221113_.getBlockEntity(p_221114_);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof EnderChestBlockEntity) {
             ((EnderChestBlockEntity) blockentity).recheckOpen();
         }

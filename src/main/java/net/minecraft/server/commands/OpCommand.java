@@ -15,8 +15,8 @@ import net.minecraft.server.players.PlayerList;
 public class OpCommand {
     private static final SimpleCommandExceptionType ERROR_ALREADY_OP = new SimpleCommandExceptionType(Component.translatable("commands.op.failed"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138080_) {
-        p_138080_.register(Commands.literal("op").requires((p_138087_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("op").requires((p_138087_) -> {
                                                      return p_138087_.hasPermission(3);
                                                  })
                         .then(Commands.argument("targets", GameProfileArgument.gameProfile()).suggests((p_138084_, p_138085_) -> {
@@ -34,15 +34,15 @@ public class OpCommand {
                                         })));
     }
 
-    private static int opPlayers(CommandSourceStack p_138089_, Collection<GameProfile> p_138090_) throws CommandSyntaxException {
-        PlayerList playerlist = p_138089_.getServer().getPlayerList();
+    private static int opPlayers(CommandSourceStack pSource, Collection<GameProfile> pGameProfiles) throws CommandSyntaxException {
+        PlayerList playerlist = pSource.getServer().getPlayerList();
         int i = 0;
 
-        for (GameProfile gameprofile : p_138090_) {
+        for (GameProfile gameprofile : pGameProfiles) {
             if (!playerlist.isOp(gameprofile)) {
                 playerlist.op(gameprofile);
                 ++i;
-                p_138089_.sendSuccess(Component.translatable("commands.op.success", p_138090_.iterator().next().getName()), true);
+                pSource.sendSuccess(Component.translatable("commands.op.success", pGameProfiles.iterator().next().getName()), true);
             }
         }
 

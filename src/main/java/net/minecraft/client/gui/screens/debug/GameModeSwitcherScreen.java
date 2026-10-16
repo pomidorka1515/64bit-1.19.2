@@ -68,31 +68,31 @@ public class GameModeSwitcherScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_97557_, int p_97558_, int p_97559_, float p_97560_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (!this.checkToClose()) {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
-            p_97557_.pushPose();
+            pPoseStack.pushPose();
             RenderSystem.enableBlend();
             RenderSystem.setShaderTexture(0, GAMEMODE_SWITCHER_LOCATION);
             int i = this.width / 2 - 62;
             int j = this.height / 2 - 31 - 27;
-            blit(p_97557_, i, j, 0.0F, 0.0F, 125, 75, 128, 128);
-            p_97557_.popPose();
-            super.render(p_97557_, p_97558_, p_97559_, p_97560_);
+            blit(pPoseStack, i, j, 0.0F, 0.0F, 125, 75, 128, 128);
+            pPoseStack.popPose();
+            super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             this.currentlyHovered.ifPresent((p_97563_) -> {
-                drawCenteredString(p_97557_, this.font, p_97563_.getName(), this.width / 2, this.height / 2 - 31 - 20, -1);
+                drawCenteredString(pPoseStack, this.font, p_97563_.getName(), this.width / 2, this.height / 2 - 31 - 20, -1);
             });
-            drawCenteredString(p_97557_, this.font, SELECT_KEY, this.width / 2, this.height / 2 + 5, 16777215);
+            drawCenteredString(pPoseStack, this.font, SELECT_KEY, this.width / 2, this.height / 2 + 5, 16777215);
             if (!this.setFirstMousePos) {
-                this.firstMouseX = p_97558_;
-                this.firstMouseY = p_97559_;
+                this.firstMouseX = pMouseX;
+                this.firstMouseY = pMouseY;
                 this.setFirstMousePos = true;
             }
 
-            boolean flag = this.firstMouseX == p_97558_ && this.firstMouseY == p_97559_;
+            boolean flag = this.firstMouseX == pMouseX && this.firstMouseY == pMouseY;
 
             for (GameModeSwitcherScreen.GameModeSlot gamemodeswitcherscreen$gamemodeslot : this.slots) {
-                gamemodeswitcherscreen$gamemodeslot.render(p_97557_, p_97558_, p_97559_, p_97560_);
+                gamemodeswitcherscreen$gamemodeslot.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
                 this.currentlyHovered.ifPresent((p_97569_) -> {
                     gamemodeswitcherscreen$gamemodeslot.setSelected(p_97569_ == gamemodeswitcherscreen$gamemodeslot.icon);
                 });
@@ -107,12 +107,12 @@ public class GameModeSwitcherScreen extends Screen {
         switchToHoveredGameMode(this.minecraft, this.currentlyHovered);
     }
 
-    private static void switchToHoveredGameMode(Minecraft p_97565_, Optional<GameModeSwitcherScreen.GameModeIcon> p_97566_) {
-        if (p_97565_.gameMode != null && p_97565_.player != null && p_97566_.isPresent()) {
-            Optional<GameModeSwitcherScreen.GameModeIcon> optional = GameModeSwitcherScreen.GameModeIcon.getFromGameType(p_97565_.gameMode.getPlayerMode());
-            GameModeSwitcherScreen.GameModeIcon gamemodeswitcherscreen$gamemodeicon = p_97566_.get();
-            if (optional.isPresent() && p_97565_.player.hasPermissions(2) && gamemodeswitcherscreen$gamemodeicon != optional.get()) {
-                p_97565_.player.commandUnsigned(gamemodeswitcherscreen$gamemodeicon.getCommand());
+    private static void switchToHoveredGameMode(Minecraft pMinecraft, Optional<GameModeSwitcherScreen.GameModeIcon> pIcon) {
+        if (pMinecraft.gameMode != null && pMinecraft.player != null && pIcon.isPresent()) {
+            Optional<GameModeSwitcherScreen.GameModeIcon> optional = GameModeSwitcherScreen.GameModeIcon.getFromGameType(pMinecraft.gameMode.getPlayerMode());
+            GameModeSwitcherScreen.GameModeIcon gamemodeswitcherscreen$gamemodeicon = pIcon.get();
+            if (optional.isPresent() && pMinecraft.player.hasPermissions(2) && gamemodeswitcherscreen$gamemodeicon != optional.get()) {
+                pMinecraft.player.commandUnsigned(gamemodeswitcherscreen$gamemodeicon.getCommand());
             }
         }
     }
@@ -127,13 +127,13 @@ public class GameModeSwitcherScreen extends Screen {
         }
     }
 
-    public boolean keyPressed(int p_97553_, int p_97554_, int p_97555_) {
-        if (p_97553_ == 293 && this.currentlyHovered.isPresent()) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 293 && this.currentlyHovered.isPresent()) {
             this.setFirstMousePos = false;
             this.currentlyHovered = this.currentlyHovered.get().getNext();
             return true;
         } else {
-            return super.keyPressed(p_97553_, p_97554_, p_97555_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -161,8 +161,8 @@ public class GameModeSwitcherScreen extends Screen {
             this.renderStack = p_97596_;
         }
 
-        void drawIcon(ItemRenderer p_97608_, int p_97609_, int p_97610_) {
-            p_97608_.renderAndDecorateItem(this.renderStack, p_97609_, p_97610_);
+        void drawIcon(ItemRenderer pItemRenderer, int pX, int pY) {
+            pItemRenderer.renderAndDecorateItem(this.renderStack, pX, pY);
         }
 
         Component getName() {
@@ -186,8 +186,8 @@ public class GameModeSwitcherScreen extends Screen {
             }
         }
 
-        static Optional<GameModeSwitcherScreen.GameModeIcon> getFromGameType(GameType p_97613_) {
-            switch (p_97613_) {
+        static Optional<GameModeSwitcherScreen.GameModeIcon> getFromGameType(GameType pGameType) {
+            switch (pGameType) {
                 case SPECTATOR:
                     return Optional.of(SPECTATOR);
                 case SURVIVAL:
@@ -212,43 +212,43 @@ public class GameModeSwitcherScreen extends Screen {
             this.icon = p_97627_;
         }
 
-        public void renderButton(PoseStack p_97636_, int p_97637_, int p_97638_, float p_97639_) {
+        public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
             Minecraft minecraft = Minecraft.getInstance();
-            this.drawSlot(p_97636_, minecraft.getTextureManager());
+            this.drawSlot(pPoseStack, minecraft.getTextureManager());
             this.icon.drawIcon(GameModeSwitcherScreen.this.itemRenderer, this.x + 5, this.y + 5);
             if (this.isSelected) {
-                this.drawSelection(p_97636_, minecraft.getTextureManager());
+                this.drawSelection(pPoseStack, minecraft.getTextureManager());
             }
         }
 
-        public void updateNarration(NarrationElementOutput p_169594_) {
-            this.defaultButtonNarrationText(p_169594_);
+        public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+            this.defaultButtonNarrationText(pNarrationElementOutput);
         }
 
         public boolean isHoveredOrFocused() {
             return super.isHoveredOrFocused() || this.isSelected;
         }
 
-        public void setSelected(boolean p_97644_) {
-            this.isSelected = p_97644_;
+        public void setSelected(boolean pIsSelected) {
+            this.isSelected = pIsSelected;
         }
 
-        private void drawSlot(PoseStack p_97631_, TextureManager p_97632_) {
+        private void drawSlot(PoseStack pPoseStack, TextureManager pTextureManager) {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, GameModeSwitcherScreen.GAMEMODE_SWITCHER_LOCATION);
-            p_97631_.pushPose();
-            p_97631_.translate((double) this.x, (double) this.y, 0.0D);
-            blit(p_97631_, 0, 0, 0.0F, 75.0F, 26, 26, 128, 128);
-            p_97631_.popPose();
+            pPoseStack.pushPose();
+            pPoseStack.translate((double) this.x, (double) this.y, 0.0D);
+            blit(pPoseStack, 0, 0, 0.0F, 75.0F, 26, 26, 128, 128);
+            pPoseStack.popPose();
         }
 
-        private void drawSelection(PoseStack p_97641_, TextureManager p_97642_) {
+        private void drawSelection(PoseStack pPoseStack, TextureManager pTextureManager) {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, GameModeSwitcherScreen.GAMEMODE_SWITCHER_LOCATION);
-            p_97641_.pushPose();
-            p_97641_.translate((double) this.x, (double) this.y, 0.0D);
-            blit(p_97641_, 0, 0, 26.0F, 75.0F, 26, 26, 128, 128);
-            p_97641_.popPose();
+            pPoseStack.pushPose();
+            pPoseStack.translate((double) this.x, (double) this.y, 0.0D);
+            blit(pPoseStack, 0, 0, 26.0F, 75.0F, 26, 26, 128, 128);
+            pPoseStack.popPose();
         }
     }
 }

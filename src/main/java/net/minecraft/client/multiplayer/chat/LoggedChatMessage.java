@@ -19,12 +19,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface LoggedChatMessage extends LoggedChatEvent {
-    static LoggedChatMessage.Player player(GameProfile p_242244_, Component p_242277_, PlayerChatMessage p_242412_, ChatTrustLevel p_242155_) {
-        return new LoggedChatMessage.Player(p_242244_, p_242277_, p_242412_, p_242155_);
+    static LoggedChatMessage.Player player(GameProfile pProfile, Component pDisplayName, PlayerChatMessage pMessage, ChatTrustLevel pTrustLevel) {
+        return new LoggedChatMessage.Player(pProfile, pDisplayName, pMessage, pTrustLevel);
     }
 
-    static LoggedChatMessage.System system(Component p_242325_, Instant p_242334_) {
-        return new LoggedChatMessage.System(p_242325_, p_242334_);
+    static LoggedChatMessage.System system(Component pMessage, Instant pTimestamp) {
+        return new LoggedChatMessage.System(pMessage, pTimestamp);
     }
 
     Component toContentComponent();
@@ -33,7 +33,7 @@ public interface LoggedChatMessage extends LoggedChatEvent {
         return this.toContentComponent();
     }
 
-    boolean canReport(UUID p_242315_);
+    boolean canReport(UUID pUuid);
 
     @OnlyIn(Dist.CLIENT)
     public static record Player(GameProfile profile, Component displayName, PlayerChatMessage message, ChatTrustLevel trustLevel) implements LoggedChatMessage, LoggedChatMessageLink {

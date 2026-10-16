@@ -16,8 +16,8 @@ public class EndermanModel<T extends LivingEntity> extends HumanoidModel<T> {
     public boolean carrying;
     public boolean creepy;
 
-    public EndermanModel(ModelPart p_170541_) {
-        super(p_170541_);
+    public EndermanModel(ModelPart pRoot) {
+        super(pRoot);
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -35,8 +35,8 @@ public class EndermanModel<T extends LivingEntity> extends HumanoidModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
-    public void setupAnim(T p_102588_, float p_102589_, float p_102590_, float p_102591_, float p_102592_, float p_102593_) {
-        super.setupAnim(p_102588_, p_102589_, p_102590_, p_102591_, p_102592_, p_102593_);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
         this.head.visible = true;
         int i = -14;
         this.body.xRot = 0.0F;

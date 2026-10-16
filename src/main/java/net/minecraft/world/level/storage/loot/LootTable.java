@@ -39,17 +39,17 @@ public class LootTable {
     final LootItemFunction[] functions;
     private final BiFunction<ItemStack, LootContext, ItemStack> compositeFunction;
 
-    LootTable(LootContextParamSet p_79114_, LootPool[] p_79115_, LootItemFunction[] p_79116_) {
-        this.paramSet = p_79114_;
-        this.pools = p_79115_;
-        this.functions = p_79116_;
-        this.compositeFunction = LootItemFunctions.compose(p_79116_);
+    LootTable(LootContextParamSet pParamSet, LootPool[] pPools, LootItemFunction[] pFunctions) {
+        this.paramSet = pParamSet;
+        this.pools = pPools;
+        this.functions = pFunctions;
+        this.compositeFunction = LootItemFunctions.compose(pFunctions);
     }
 
-    public static Consumer<ItemStack> createStackSplitter(Consumer<ItemStack> p_79143_) {
+    public static Consumer<ItemStack> createStackSplitter(Consumer<ItemStack> pStackConsumer) {
         return (p_79146_) -> {
             if (p_79146_.getCount() < p_79146_.getMaxStackSize()) {
-                p_79143_.accept(p_79146_);
+                pStackConsumer.accept(p_79146_);
             } else {
                 int i = p_79146_.getCount();
 
@@ -57,33 +57,33 @@ public class LootTable {
                     ItemStack itemstack = p_79146_.copy();
                     itemstack.setCount(Math.min(p_79146_.getMaxStackSize(), i));
                     i -= itemstack.getCount();
-                    p_79143_.accept(itemstack);
+                    pStackConsumer.accept(itemstack);
                 }
             }
         };
     }
 
-    public void getRandomItemsRaw(LootContext p_79132_, Consumer<ItemStack> p_79133_) {
-        if (p_79132_.addVisitedTable(this)) {
-            Consumer<ItemStack> consumer = LootItemFunction.decorate(this.compositeFunction, p_79133_, p_79132_);
+    public void getRandomItemsRaw(LootContext pContext, Consumer<ItemStack> pStacksOut) {
+        if (pContext.addVisitedTable(this)) {
+            Consumer<ItemStack> consumer = LootItemFunction.decorate(this.compositeFunction, pStacksOut, pContext);
 
             for (LootPool lootpool : this.pools) {
-                lootpool.addRandomItems(consumer, p_79132_);
+                lootpool.addRandomItems(consumer, pContext);
             }
 
-            p_79132_.removeVisitedTable(this);
+            pContext.removeVisitedTable(this);
         } else {
             LOGGER.warn("Detected infinite loop in loot tables");
         }
     }
 
-    public void getRandomItems(LootContext p_79149_, Consumer<ItemStack> p_79150_) {
-        this.getRandomItemsRaw(p_79149_, createStackSplitter(p_79150_));
+    public void getRandomItems(LootContext pContextData, Consumer<ItemStack> pStacksOut) {
+        this.getRandomItemsRaw(pContextData, createStackSplitter(pStacksOut));
     }
 
-    public ObjectArrayList<ItemStack> getRandomItems(LootContext p_230923_) {
+    public ObjectArrayList<ItemStack> getRandomItems(LootContext pContext) {
         ObjectArrayList<ItemStack> objectarraylist = new ObjectArrayList<>();
-        this.getRandomItems(p_230923_, objectarraylist::add);
+        this.getRandomItems(pContext, objectarraylist::add);
         return objectarraylist;
     }
 
@@ -91,20 +91,20 @@ public class LootTable {
         return this.paramSet;
     }
 
-    public void validate(ValidationContext p_79137_) {
+    public void validate(ValidationContext pValidator) {
         for (int i = 0; i < this.pools.length; ++i) {
-            this.pools[i].validate(p_79137_.forChild(".pools[" + i + "]"));
+            this.pools[i].validate(pValidator.forChild(".pools[" + i + "]"));
         }
 
         for (int j = 0; j < this.functions.length; ++j) {
-            this.functions[j].validate(p_79137_.forChild(".functions[" + j + "]"));
+            this.functions[j].validate(pValidator.forChild(".functions[" + j + "]"));
         }
     }
 
-    public void fill(Container p_79124_, LootContext p_79125_) {
-        ObjectArrayList<ItemStack> objectarraylist = this.getRandomItems(p_79125_);
-        RandomSource randomsource = p_79125_.getRandom();
-        List<Integer> list = this.getAvailableSlots(p_79124_, randomsource);
+    public void fill(Container pContainer, LootContext pContext) {
+        ObjectArrayList<ItemStack> objectarraylist = this.getRandomItems(pContext);
+        RandomSource randomsource = pContext.getRandom();
+        List<Integer> list = this.getAvailableSlots(pContainer, randomsource);
         this.shuffleAndSplitItems(objectarraylist, list.size(), randomsource);
 
         for (ItemStack itemstack : objectarraylist) {
@@ -114,16 +114,16 @@ public class LootTable {
             }
 
             if (itemstack.isEmpty()) {
-                p_79124_.setItem(list.remove(list.size() - 1), ItemStack.EMPTY);
+                pContainer.setItem(list.remove(list.size() - 1), ItemStack.EMPTY);
             } else {
-                p_79124_.setItem(list.remove(list.size() - 1), itemstack);
+                pContainer.setItem(list.remove(list.size() - 1), itemstack);
             }
         }
     }
 
-    private void shuffleAndSplitItems(ObjectArrayList<ItemStack> p_230925_, int p_230926_, RandomSource p_230927_) {
+    private void shuffleAndSplitItems(ObjectArrayList<ItemStack> pStacks, int pEmptySlotsCount, RandomSource pRandom) {
         List<ItemStack> list = Lists.newArrayList();
-        Iterator<ItemStack> iterator = p_230925_.iterator();
+        Iterator<ItemStack> iterator = pStacks.iterator();
 
         while (iterator.hasNext()) {
             ItemStack itemstack = iterator.next();
@@ -135,37 +135,37 @@ public class LootTable {
             }
         }
 
-        while (p_230926_ - p_230925_.size() - list.size() > 0 && !list.isEmpty()) {
-            ItemStack itemstack2 = list.remove(Mth.nextInt(p_230927_, 0, list.size() - 1));
-            int i = Mth.nextInt(p_230927_, 1, itemstack2.getCount() / 2);
+        while (pEmptySlotsCount - pStacks.size() - list.size() > 0 && !list.isEmpty()) {
+            ItemStack itemstack2 = list.remove(Mth.nextInt(pRandom, 0, list.size() - 1));
+            int i = Mth.nextInt(pRandom, 1, itemstack2.getCount() / 2);
             ItemStack itemstack1 = itemstack2.split(i);
-            if (itemstack2.getCount() > 1 && p_230927_.nextBoolean()) {
+            if (itemstack2.getCount() > 1 && pRandom.nextBoolean()) {
                 list.add(itemstack2);
             } else {
-                p_230925_.add(itemstack2);
+                pStacks.add(itemstack2);
             }
 
-            if (itemstack1.getCount() > 1 && p_230927_.nextBoolean()) {
+            if (itemstack1.getCount() > 1 && pRandom.nextBoolean()) {
                 list.add(itemstack1);
             } else {
-                p_230925_.add(itemstack1);
+                pStacks.add(itemstack1);
             }
         }
 
-        p_230925_.addAll(list);
-        Util.shuffle(p_230925_, p_230927_);
+        pStacks.addAll(list);
+        Util.shuffle(pStacks, pRandom);
     }
 
-    private List<Integer> getAvailableSlots(Container p_230920_, RandomSource p_230921_) {
+    private List<Integer> getAvailableSlots(Container pInventory, RandomSource pRandom) {
         ObjectArrayList<Integer> objectarraylist = new ObjectArrayList<>();
 
-        for (int i = 0; i < p_230920_.getContainerSize(); ++i) {
-            if (p_230920_.getItem(i).isEmpty()) {
+        for (int i = 0; i < pInventory.getContainerSize(); ++i) {
+            if (pInventory.getItem(i).isEmpty()) {
                 objectarraylist.add(i);
             }
         }
 
-        Util.shuffle(objectarraylist, p_230921_);
+        Util.shuffle(objectarraylist, pRandom);
         return objectarraylist;
     }
 
@@ -178,18 +178,18 @@ public class LootTable {
         private final List<LootItemFunction> functions = Lists.newArrayList();
         private LootContextParamSet paramSet = LootTable.DEFAULT_PARAM_SET;
 
-        public LootTable.Builder withPool(LootPool.Builder p_79162_) {
-            this.pools.add(p_79162_.build());
+        public LootTable.Builder withPool(LootPool.Builder pLootPool) {
+            this.pools.add(pLootPool.build());
             return this;
         }
 
-        public LootTable.Builder setParamSet(LootContextParamSet p_79166_) {
-            this.paramSet = p_79166_;
+        public LootTable.Builder setParamSet(LootContextParamSet pParameterSet) {
+            this.paramSet = pParameterSet;
             return this;
         }
 
-        public LootTable.Builder apply(LootItemFunction.Builder p_79164_) {
-            this.functions.add(p_79164_.build());
+        public LootTable.Builder apply(LootItemFunction.Builder pFunctionBuilder) {
+            this.functions.add(pFunctionBuilder.build());
             return this;
         }
 

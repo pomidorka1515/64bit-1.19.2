@@ -13,13 +13,13 @@ public class SpectatorPage {
     private final List<SpectatorMenuItem> items;
     private final int selection;
 
-    public SpectatorPage(List<SpectatorMenuItem> p_170331_, int p_170332_) {
-        this.items = p_170331_;
-        this.selection = p_170332_;
+    public SpectatorPage(List<SpectatorMenuItem> pItems, int pSelection) {
+        this.items = pItems;
+        this.selection = pSelection;
     }
 
-    public SpectatorMenuItem getItem(int p_101852_) {
-        return p_101852_ >= 0 && p_101852_ < this.items.size() ? MoreObjects.firstNonNull(this.items.get(p_101852_), SpectatorMenu.EMPTY_SLOT) : SpectatorMenu.EMPTY_SLOT;
+    public SpectatorMenuItem getItem(int pIndex) {
+        return pIndex >= 0 && pIndex < this.items.size() ? MoreObjects.firstNonNull(this.items.get(pIndex), SpectatorMenu.EMPTY_SLOT) : SpectatorMenu.EMPTY_SLOT;
     }
 
     public int getSelectedSlot() {

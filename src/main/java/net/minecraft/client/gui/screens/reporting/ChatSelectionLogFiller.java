@@ -19,42 +19,42 @@ public class ChatSelectionLogFiller<T extends LoggedChatMessage> {
     private int nextMessageId;
     final Class<T> tClass;
 
-    public ChatSelectionLogFiller(ChatLog p_242897_, Predicate<T> p_242845_, Class<T> p_242904_) {
-        this.log = p_242897_;
-        this.canReport = p_242845_;
-        this.nextMessageId = p_242897_.newest();
-        this.tClass = p_242904_;
+    public ChatSelectionLogFiller(ChatLog pLog, Predicate<T> pCanReport, Class<T> pTClass) {
+        this.log = pLog;
+        this.canReport = pCanReport;
+        this.nextMessageId = pLog.newest();
+        this.tClass = pTClass;
     }
 
-    public void fillNextPage(int p_239016_, ChatSelectionLogFiller.Output<T> p_239017_) {
+    public void fillNextPage(int pMaxVisibleEntries, ChatSelectionLogFiller.Output<T> pOutput) {
         int i = 0;
 
-        while (i < p_239016_) {
+        while (i < pMaxVisibleEntries) {
             ChatLogSegmenter.Results<T> results = this.nextSegment();
             if (results == null) {
                 break;
             }
 
             if (results.type().foldable()) {
-                i += this.addFoldedMessagesTo(results.messages(), p_239017_);
+                i += this.addFoldedMessagesTo(results.messages(), pOutput);
             } else {
-                p_239017_.acceptMessages(results.messages());
+                pOutput.acceptMessages(results.messages());
                 i += results.messages().size();
             }
         }
     }
 
-    private int addFoldedMessagesTo(List<ChatLog.Entry<T>> p_239253_, ChatSelectionLogFiller.Output<T> p_239254_) {
+    private int addFoldedMessagesTo(List<ChatLog.Entry<T>> pEntries, ChatSelectionLogFiller.Output<T> pOutput) {
         int i = 8;
-        if (p_239253_.size() > 8) {
-            int j = p_239253_.size() - 8;
-            p_239254_.acceptMessages(p_239253_.subList(0, 4));
-            p_239254_.acceptDivider(Component.translatable("gui.chatSelection.fold", j));
-            p_239254_.acceptMessages(p_239253_.subList(p_239253_.size() - 4, p_239253_.size()));
+        if (pEntries.size() > 8) {
+            int j = pEntries.size() - 8;
+            pOutput.acceptMessages(pEntries.subList(0, 4));
+            pOutput.acceptDivider(Component.translatable("gui.chatSelection.fold", j));
+            pOutput.acceptMessages(pEntries.subList(pEntries.size() - 4, pEntries.size()));
             return 9;
         } else {
-            p_239254_.acceptMessages(p_239253_);
-            return p_239253_.size();
+            pOutput.acceptMessages(pEntries);
+            return pEntries.size();
         }
     }
 
@@ -79,20 +79,20 @@ public class ChatSelectionLogFiller<T extends LoggedChatMessage> {
         return chatlogsegmenter.build();
     }
 
-    private ChatLogSegmenter.MessageType getMessageType(T p_242252_) {
-        return this.canReport.test(p_242252_) ? ChatLogSegmenter.MessageType.REPORTABLE : ChatLogSegmenter.MessageType.CONTEXT;
+    private ChatLogSegmenter.MessageType getMessageType(T pLoggedChatMessage) {
+        return this.canReport.test(pLoggedChatMessage) ? ChatLogSegmenter.MessageType.REPORTABLE : ChatLogSegmenter.MessageType.CONTEXT;
     }
 
     @OnlyIn(Dist.CLIENT)
     public interface Output<T extends LoggedChatMessage> {
-        default void acceptMessages(Iterable<ChatLog.Entry<T>> p_240091_) {
-            for (ChatLog.Entry<T> entry : p_240091_) {
+        default void acceptMessages(Iterable<ChatLog.Entry<T>> pEntries) {
+            for (ChatLog.Entry<T> entry : pEntries) {
                 this.acceptMessage(entry.id(), entry.event());
             }
         }
 
-        void acceptMessage(int p_239762_, T p_242411_);
+        void acceptMessage(int pChatId, T pLoggedChatMessage);
 
-        void acceptDivider(Component p_239557_);
+        void acceptDivider(Component pText);
     }
 }

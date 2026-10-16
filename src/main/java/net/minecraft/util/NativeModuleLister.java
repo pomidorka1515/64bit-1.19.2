@@ -123,8 +123,8 @@ public class NativeModuleLister {
         }
     }
 
-    public static void addCrashSection(CrashReportCategory p_184680_) {
-        p_184680_.setDetail("Modules", () -> {
+    public static void addCrashSection(CrashReportCategory pCrashSection) {
+        pCrashSection.setDetail("Modules", () -> {
             return listModules().stream().sorted(Comparator.comparing((p_184685_) -> {
                                              return p_184685_.name;
                                          }))
@@ -139,9 +139,9 @@ public class NativeModuleLister {
         public final String name;
         public final Optional<NativeModuleLister.NativeModuleVersion> version;
 
-        public NativeModuleInfo(String p_184693_, Optional<NativeModuleLister.NativeModuleVersion> p_184694_) {
-            this.name = p_184693_;
-            this.version = p_184694_;
+        public NativeModuleInfo(String pName, Optional<NativeModuleLister.NativeModuleVersion> pVersion) {
+            this.name = pName;
+            this.version = pVersion;
         }
 
         public String toString() {
@@ -157,10 +157,10 @@ public class NativeModuleLister {
         public final String version;
         public final String company;
 
-        public NativeModuleVersion(String p_184702_, String p_184703_, String p_184704_) {
-            this.description = p_184702_;
-            this.version = p_184703_;
-            this.company = p_184704_;
+        public NativeModuleVersion(String pDescription, String pVersion, String pCompany) {
+            this.description = pDescription;
+            this.version = pVersion;
+            this.company = pCompany;
         }
 
         public String toString() {

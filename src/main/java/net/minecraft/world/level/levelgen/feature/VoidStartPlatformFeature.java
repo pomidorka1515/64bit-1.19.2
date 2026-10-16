@@ -14,21 +14,21 @@ public class VoidStartPlatformFeature extends Feature<NoneFeatureConfiguration> 
     private static final int PLATFORM_RADIUS = 16;
     private static final int PLATFORM_RADIUS_CHUNKS = 1;
 
-    public VoidStartPlatformFeature(Codec<NoneFeatureConfiguration> p_67354_) {
-        super(p_67354_);
+    public VoidStartPlatformFeature(Codec<NoneFeatureConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    private static double checkerboardDistance(long p_67356_, long p_67357_, long p_67358_, long p_67359_) {
-        return Math.max(WorldBounds.distance(p_67356_, p_67358_), WorldBounds.distance(p_67357_, p_67359_));
+    private static double checkerboardDistance(long pFirstX, long pFirstZ, long pSecondX, long pSecondZ) {
+        return Math.max(WorldBounds.distance(pFirstX, pSecondX), WorldBounds.distance(pFirstZ, pSecondZ));
     }
 
-    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> p_160633_) {
-        WorldGenLevel worldgenlevel = p_160633_.level();
-        ChunkPos chunkpos = new ChunkPos(p_160633_.origin());
+    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> pContext) {
+        WorldGenLevel worldgenlevel = pContext.level();
+        ChunkPos chunkpos = new ChunkPos(pContext.origin());
         if (checkerboardDistance(chunkpos.x, chunkpos.z, PLATFORM_ORIGIN_CHUNK.x, PLATFORM_ORIGIN_CHUNK.z) > 1) {
             return true;
         } else {
-            BlockPos blockpos = PLATFORM_OFFSET.atY(p_160633_.origin().getY() + PLATFORM_OFFSET.getY());
+            BlockPos blockpos = PLATFORM_OFFSET.atY(pContext.origin().getY() + PLATFORM_OFFSET.getY());
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
             long i = chunkpos.getMinBlockZ();

@@ -20,16 +20,16 @@ public abstract class SimpleJsonResourceReloadListener extends SimplePreparableR
     private final Gson gson;
     private final String directory;
 
-    public SimpleJsonResourceReloadListener(Gson p_10768_, String p_10769_) {
-        this.gson = p_10768_;
-        this.directory = p_10769_;
+    public SimpleJsonResourceReloadListener(Gson pGson, String pDirectory) {
+        this.gson = pGson;
+        this.directory = pDirectory;
     }
 
-    protected Map<ResourceLocation, JsonElement> prepare(ResourceManager p_10771_, ProfilerFiller p_10772_) {
+    protected Map<ResourceLocation, JsonElement> prepare(ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         Map<ResourceLocation, JsonElement> map = Maps.newHashMap();
         int i = this.directory.length() + 1;
 
-        for (Map.Entry<ResourceLocation, Resource> entry : p_10771_.listResources(this.directory, (p_215600_) -> {
+        for (Map.Entry<ResourceLocation, Resource> entry : pResourceManager.listResources(this.directory, (p_215600_) -> {
                                                                        return p_215600_.getPath().endsWith(".json");
                                                                    }).entrySet()) {
             ResourceLocation resourcelocation = entry.getKey();

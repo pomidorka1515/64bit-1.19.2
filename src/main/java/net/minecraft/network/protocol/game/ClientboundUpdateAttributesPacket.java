@@ -15,18 +15,18 @@ public class ClientboundUpdateAttributesPacket implements Packet<ClientGamePacke
     private final int entityId;
     private final List<ClientboundUpdateAttributesPacket.AttributeSnapshot> attributes;
 
-    public ClientboundUpdateAttributesPacket(int p_133580_, Collection<AttributeInstance> p_133581_) {
-        this.entityId = p_133580_;
+    public ClientboundUpdateAttributesPacket(int pEntityId, Collection<AttributeInstance> pAttributes) {
+        this.entityId = pEntityId;
         this.attributes = Lists.newArrayList();
 
-        for (AttributeInstance attributeinstance : p_133581_) {
+        for (AttributeInstance attributeinstance : pAttributes) {
             this.attributes.add(new ClientboundUpdateAttributesPacket.AttributeSnapshot(attributeinstance.getAttribute(), attributeinstance.getBaseValue(), attributeinstance.getModifiers()));
         }
     }
 
-    public ClientboundUpdateAttributesPacket(FriendlyByteBuf p_179447_) {
-        this.entityId = p_179447_.readVarInt();
-        this.attributes = p_179447_.readList((p_179455_) -> {
+    public ClientboundUpdateAttributesPacket(FriendlyByteBuf pBuffer) {
+        this.entityId = pBuffer.readVarInt();
+        this.attributes = pBuffer.readList((p_179455_) -> {
             ResourceLocation resourcelocation = p_179455_.readResourceLocation();
             Attribute attribute = Registry.ATTRIBUTE.get(resourcelocation);
             double d0 = p_179455_.readDouble();
@@ -37,9 +37,9 @@ public class ClientboundUpdateAttributesPacket implements Packet<ClientGamePacke
         });
     }
 
-    public void write(FriendlyByteBuf p_133590_) {
-        p_133590_.writeVarInt(this.entityId);
-        p_133590_.writeCollection(this.attributes, (p_179452_, p_179453_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.entityId);
+        pBuffer.writeCollection(this.attributes, (p_179452_, p_179453_) -> {
             p_179452_.writeResourceLocation(Registry.ATTRIBUTE.getKey(p_179453_.getAttribute()));
             p_179452_.writeDouble(p_179453_.getBase());
             p_179452_.writeCollection(p_179453_.getModifiers(), (p_179449_, p_179450_) -> {
@@ -50,8 +50,8 @@ public class ClientboundUpdateAttributesPacket implements Packet<ClientGamePacke
         });
     }
 
-    public void handle(ClientGamePacketListener p_133587_) {
-        p_133587_.handleUpdateAttributes(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleUpdateAttributes(this);
     }
 
     public int getEntityId() {
@@ -67,10 +67,10 @@ public class ClientboundUpdateAttributesPacket implements Packet<ClientGamePacke
         private final double base;
         private final Collection<AttributeModifier> modifiers;
 
-        public AttributeSnapshot(Attribute p_179459_, double p_179460_, Collection<AttributeModifier> p_179461_) {
-            this.attribute = p_179459_;
-            this.base = p_179460_;
-            this.modifiers = p_179461_;
+        public AttributeSnapshot(Attribute pAttribute, double pBase, Collection<AttributeModifier> pModifiers) {
+            this.attribute = pAttribute;
+            this.base = pBase;
+            this.modifiers = pModifiers;
         }
 
         public Attribute getAttribute() {

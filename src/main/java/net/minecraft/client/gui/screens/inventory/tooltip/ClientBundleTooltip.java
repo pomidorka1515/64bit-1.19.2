@@ -24,20 +24,20 @@ public class ClientBundleTooltip implements ClientTooltipComponent {
     private final NonNullList<ItemStack> items;
     private final int weight;
 
-    public ClientBundleTooltip(BundleTooltip p_169873_) {
-        this.items = p_169873_.getItems();
-        this.weight = p_169873_.getWeight();
+    public ClientBundleTooltip(BundleTooltip pBundleTooltip) {
+        this.items = pBundleTooltip.getItems();
+        this.weight = pBundleTooltip.getWeight();
     }
 
     public int getHeight() {
         return this.gridSizeY() * 20 + 2 + 4;
     }
 
-    public int getWidth(Font p_169901_) {
+    public int getWidth(Font pFont) {
         return this.gridSizeX() * 18 + 2;
     }
 
-    public void renderImage(Font p_194042_, int p_194043_, int p_194044_, PoseStack p_194045_, ItemRenderer p_194046_, int p_194047_) {
+    public void renderImage(Font pFont, int pMouseX, int pMouseY, PoseStack pPoseStack, ItemRenderer pItemRenderer, int pBlitOffset) {
         int i = this.gridSizeX();
         int j = this.gridSizeY();
         boolean flag = this.weight >= 64;
@@ -45,51 +45,51 @@ public class ClientBundleTooltip implements ClientTooltipComponent {
 
         for (int l = 0; l < j; ++l) {
             for (int i1 = 0; i1 < i; ++i1) {
-                int j1 = p_194043_ + i1 * 18 + 1;
-                int k1 = p_194044_ + l * 20 + 1;
-                this.renderSlot(j1, k1, k++, flag, p_194042_, p_194045_, p_194046_, p_194047_);
+                int j1 = pMouseX + i1 * 18 + 1;
+                int k1 = pMouseY + l * 20 + 1;
+                this.renderSlot(j1, k1, k++, flag, pFont, pPoseStack, pItemRenderer, pBlitOffset);
             }
         }
 
-        this.drawBorder(p_194043_, p_194044_, i, j, p_194045_, p_194047_);
+        this.drawBorder(pMouseX, pMouseY, i, j, pPoseStack, pBlitOffset);
     }
 
-    private void renderSlot(int p_194027_, int p_194028_, int p_194029_, boolean p_194030_, Font p_194031_, PoseStack p_194032_, ItemRenderer p_194033_, int p_194034_) {
-        if (p_194029_ >= this.items.size()) {
-            this.blit(p_194032_, p_194027_, p_194028_, p_194034_, p_194030_ ? ClientBundleTooltip.Texture.BLOCKED_SLOT : ClientBundleTooltip.Texture.SLOT);
+    private void renderSlot(int pX, int pY, int pItemIndex, boolean pIsBundleFull, Font pFont, PoseStack pPoseStack, ItemRenderer pItemRenderer, int pBlitOffset) {
+        if (pItemIndex >= this.items.size()) {
+            this.blit(pPoseStack, pX, pY, pBlitOffset, pIsBundleFull ? ClientBundleTooltip.Texture.BLOCKED_SLOT : ClientBundleTooltip.Texture.SLOT);
         } else {
-            ItemStack itemstack = this.items.get(p_194029_);
-            this.blit(p_194032_, p_194027_, p_194028_, p_194034_, ClientBundleTooltip.Texture.SLOT);
-            p_194033_.renderAndDecorateItem(itemstack, p_194027_ + 1, p_194028_ + 1, p_194029_);
-            p_194033_.renderGuiItemDecorations(p_194031_, itemstack, p_194027_ + 1, p_194028_ + 1);
-            if (p_194029_ == 0) {
-                AbstractContainerScreen.renderSlotHighlight(p_194032_, p_194027_ + 1, p_194028_ + 1, p_194034_);
+            ItemStack itemstack = this.items.get(pItemIndex);
+            this.blit(pPoseStack, pX, pY, pBlitOffset, ClientBundleTooltip.Texture.SLOT);
+            pItemRenderer.renderAndDecorateItem(itemstack, pX + 1, pY + 1, pItemIndex);
+            pItemRenderer.renderGuiItemDecorations(pFont, itemstack, pX + 1, pY + 1);
+            if (pItemIndex == 0) {
+                AbstractContainerScreen.renderSlotHighlight(pPoseStack, pX + 1, pY + 1, pBlitOffset);
             }
         }
     }
 
-    private void drawBorder(int p_194020_, int p_194021_, int p_194022_, int p_194023_, PoseStack p_194024_, int p_194025_) {
-        this.blit(p_194024_, p_194020_, p_194021_, p_194025_, ClientBundleTooltip.Texture.BORDER_CORNER_TOP);
-        this.blit(p_194024_, p_194020_ + p_194022_ * 18 + 1, p_194021_, p_194025_, ClientBundleTooltip.Texture.BORDER_CORNER_TOP);
+    private void drawBorder(int pX, int pY, int pSlotWidth, int pSlotHeight, PoseStack pPoseStack, int pBlitOffset) {
+        this.blit(pPoseStack, pX, pY, pBlitOffset, ClientBundleTooltip.Texture.BORDER_CORNER_TOP);
+        this.blit(pPoseStack, pX + pSlotWidth * 18 + 1, pY, pBlitOffset, ClientBundleTooltip.Texture.BORDER_CORNER_TOP);
 
-        for (int i = 0; i < p_194022_; ++i) {
-            this.blit(p_194024_, p_194020_ + 1 + i * 18, p_194021_, p_194025_, ClientBundleTooltip.Texture.BORDER_HORIZONTAL_TOP);
-            this.blit(p_194024_, p_194020_ + 1 + i * 18, p_194021_ + p_194023_ * 20, p_194025_, ClientBundleTooltip.Texture.BORDER_HORIZONTAL_BOTTOM);
+        for (int i = 0; i < pSlotWidth; ++i) {
+            this.blit(pPoseStack, pX + 1 + i * 18, pY, pBlitOffset, ClientBundleTooltip.Texture.BORDER_HORIZONTAL_TOP);
+            this.blit(pPoseStack, pX + 1 + i * 18, pY + pSlotHeight * 20, pBlitOffset, ClientBundleTooltip.Texture.BORDER_HORIZONTAL_BOTTOM);
         }
 
-        for (int j = 0; j < p_194023_; ++j) {
-            this.blit(p_194024_, p_194020_, p_194021_ + j * 20 + 1, p_194025_, ClientBundleTooltip.Texture.BORDER_VERTICAL);
-            this.blit(p_194024_, p_194020_ + p_194022_ * 18 + 1, p_194021_ + j * 20 + 1, p_194025_, ClientBundleTooltip.Texture.BORDER_VERTICAL);
+        for (int j = 0; j < pSlotHeight; ++j) {
+            this.blit(pPoseStack, pX, pY + j * 20 + 1, pBlitOffset, ClientBundleTooltip.Texture.BORDER_VERTICAL);
+            this.blit(pPoseStack, pX + pSlotWidth * 18 + 1, pY + j * 20 + 1, pBlitOffset, ClientBundleTooltip.Texture.BORDER_VERTICAL);
         }
 
-        this.blit(p_194024_, p_194020_, p_194021_ + p_194023_ * 20, p_194025_, ClientBundleTooltip.Texture.BORDER_CORNER_BOTTOM);
-        this.blit(p_194024_, p_194020_ + p_194022_ * 18 + 1, p_194021_ + p_194023_ * 20, p_194025_, ClientBundleTooltip.Texture.BORDER_CORNER_BOTTOM);
+        this.blit(pPoseStack, pX, pY + pSlotHeight * 20, pBlitOffset, ClientBundleTooltip.Texture.BORDER_CORNER_BOTTOM);
+        this.blit(pPoseStack, pX + pSlotWidth * 18 + 1, pY + pSlotHeight * 20, pBlitOffset, ClientBundleTooltip.Texture.BORDER_CORNER_BOTTOM);
     }
 
-    private void blit(PoseStack p_194036_, int p_194037_, int p_194038_, int p_194039_, ClientBundleTooltip.Texture p_194040_) {
+    private void blit(PoseStack pPoseStack, int pX, int pY, int pBlitOffset, ClientBundleTooltip.Texture pTexture) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, TEXTURE_LOCATION);
-        GuiComponent.blit(p_194036_, p_194037_, p_194038_, p_194039_, (float) p_194040_.x, (float) p_194040_.y, p_194040_.w, p_194040_.h, 128, 128);
+        GuiComponent.blit(pPoseStack, pX, pY, pBlitOffset, (float) pTexture.x, (float) pTexture.y, pTexture.w, pTexture.h, 128, 128);
     }
 
     private int gridSizeX() {

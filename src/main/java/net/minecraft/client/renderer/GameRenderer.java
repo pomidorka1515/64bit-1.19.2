@@ -226,13 +226,13 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
     @Nullable
     private static ShaderInstance rendertypeCrumblingShader;
 
-    public GameRenderer(Minecraft p_234219_, ItemInHandRenderer p_234220_, ResourceManager p_234221_, RenderBuffers p_234222_) {
-        this.minecraft = p_234219_;
-        this.resourceManager = p_234221_;
-        this.itemInHandRenderer = p_234220_;
-        this.mapRenderer = new MapRenderer(p_234219_.getTextureManager());
-        this.lightTexture = new LightTexture(this, p_234219_);
-        this.renderBuffers = p_234222_;
+    public GameRenderer(Minecraft pMinecraft, ItemInHandRenderer pItemInHandRenderer, ResourceManager pResourceManager, RenderBuffers pRenderBuffers) {
+        this.minecraft = pMinecraft;
+        this.resourceManager = pResourceManager;
+        this.itemInHandRenderer = pItemInHandRenderer;
+        this.mapRenderer = new MapRenderer(pMinecraft.getTextureManager());
+        this.lightTexture = new LightTexture(this, pMinecraft);
+        this.renderBuffers = pRenderBuffers;
         this.postEffect = null;
     }
 
@@ -247,16 +247,16 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         }
     }
 
-    public void setRenderHand(boolean p_172737_) {
-        this.renderHand = p_172737_;
+    public void setRenderHand(boolean pRenderHand) {
+        this.renderHand = pRenderHand;
     }
 
-    public void setRenderBlockOutline(boolean p_172776_) {
-        this.renderBlockOutline = p_172776_;
+    public void setRenderBlockOutline(boolean pRenderBlockOutline) {
+        this.renderBlockOutline = pRenderBlockOutline;
     }
 
-    public void setPanoramicMode(boolean p_172780_) {
-        this.panoramicMode = p_172780_;
+    public void setPanoramicMode(boolean pPanoramicMode) {
+        this.panoramicMode = pPanoramicMode;
     }
 
     public boolean isPanoramicMode() {
@@ -276,17 +276,17 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         this.effectActive = !this.effectActive;
     }
 
-    public void checkEntityPostEffect(@Nullable Entity p_109107_) {
+    public void checkEntityPostEffect(@Nullable Entity pEntity) {
         if (this.postEffect != null) {
             this.postEffect.close();
         }
 
         this.postEffect = null;
-        if (p_109107_ instanceof Creeper) {
+        if (pEntity instanceof Creeper) {
             this.loadEffect(new ResourceLocation("shaders/post/creeper.json"));
-        } else if (p_109107_ instanceof Spider) {
+        } else if (pEntity instanceof Spider) {
             this.loadEffect(new ResourceLocation("shaders/post/spider.json"));
-        } else if (p_109107_ instanceof EnderMan) {
+        } else if (pEntity instanceof EnderMan) {
             this.loadEffect(new ResourceLocation("shaders/post/invert.json"));
         }
     }
@@ -306,28 +306,28 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         }
     }
 
-    private void loadEffect(ResourceLocation p_109129_) {
+    private void loadEffect(ResourceLocation pResourceLocation) {
         if (this.postEffect != null) {
             this.postEffect.close();
         }
 
         try {
-            this.postEffect = new PostChain(this.minecraft.getTextureManager(), this.resourceManager, this.minecraft.getMainRenderTarget(), p_109129_);
+            this.postEffect = new PostChain(this.minecraft.getTextureManager(), this.resourceManager, this.minecraft.getMainRenderTarget(), pResourceLocation);
             this.postEffect.resize(this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight());
             this.effectActive = true;
         } catch (IOException ioexception) {
-            LOGGER.warn("Failed to load shader: {}", p_109129_, ioexception);
+            LOGGER.warn("Failed to load shader: {}", pResourceLocation, ioexception);
             this.effectIndex = EFFECT_NONE;
             this.effectActive = false;
         } catch (JsonSyntaxException jsonsyntaxexception) {
-            LOGGER.warn("Failed to parse shader: {}", p_109129_, jsonsyntaxexception);
+            LOGGER.warn("Failed to parse shader: {}", pResourceLocation, jsonsyntaxexception);
             this.effectIndex = EFFECT_NONE;
             this.effectActive = false;
         }
     }
 
-    public void onResourceManagerReload(ResourceManager p_109105_) {
-        this.reloadShaders(p_109105_);
+    public void onResourceManagerReload(ResourceManager pResourceManager) {
+        this.reloadShaders(pResourceManager);
         if (this.postEffect != null) {
             this.postEffect.close();
         }
@@ -340,36 +340,36 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         }
     }
 
-    public void preloadUiShader(ResourceProvider p_172723_) {
+    public void preloadUiShader(ResourceProvider pResourceProvider) {
         if (this.blitShader != null) {
             throw new RuntimeException("Blit shader already preloaded");
         } else {
             try {
-                this.blitShader = new ShaderInstance(p_172723_, "blit_screen", DefaultVertexFormat.BLIT_SCREEN);
+                this.blitShader = new ShaderInstance(pResourceProvider, "blit_screen", DefaultVertexFormat.BLIT_SCREEN);
             } catch (IOException ioexception) {
                 throw new RuntimeException("could not preload blit shader", ioexception);
             }
 
-            positionShader = this.preloadShader(p_172723_, "position", DefaultVertexFormat.POSITION);
-            positionColorShader = this.preloadShader(p_172723_, "position_color", DefaultVertexFormat.POSITION_COLOR);
-            positionColorTexShader = this.preloadShader(p_172723_, "position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX);
-            positionTexShader = this.preloadShader(p_172723_, "position_tex", DefaultVertexFormat.POSITION_TEX);
-            positionTexColorShader = this.preloadShader(p_172723_, "position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR);
-            rendertypeTextShader = this.preloadShader(p_172723_, "rendertype_text", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
+            positionShader = this.preloadShader(pResourceProvider, "position", DefaultVertexFormat.POSITION);
+            positionColorShader = this.preloadShader(pResourceProvider, "position_color", DefaultVertexFormat.POSITION_COLOR);
+            positionColorTexShader = this.preloadShader(pResourceProvider, "position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX);
+            positionTexShader = this.preloadShader(pResourceProvider, "position_tex", DefaultVertexFormat.POSITION_TEX);
+            positionTexColorShader = this.preloadShader(pResourceProvider, "position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR);
+            rendertypeTextShader = this.preloadShader(pResourceProvider, "rendertype_text", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
         }
     }
 
-    private ShaderInstance preloadShader(ResourceProvider p_172725_, String p_172726_, VertexFormat p_172727_) {
+    private ShaderInstance preloadShader(ResourceProvider pResourceProvider, String pName, VertexFormat pFormat) {
         try {
-            ShaderInstance shaderinstance = new ShaderInstance(p_172725_, p_172726_, p_172727_);
-            this.shaders.put(p_172726_, shaderinstance);
+            ShaderInstance shaderinstance = new ShaderInstance(pResourceProvider, pName, pFormat);
+            this.shaders.put(pName, shaderinstance);
             return shaderinstance;
         } catch (Exception exception) {
-            throw new IllegalStateException("could not preload shader " + p_172726_, exception);
+            throw new IllegalStateException("could not preload shader " + pName, exception);
         }
     }
 
-    public void reloadShaders(ResourceManager p_172768_) {
+    public void reloadShaders(ResourceManager pResourceManager) {
         RenderSystem.assertOnRenderThread();
         List<Program> list = Lists.newArrayList();
         list.addAll(Program.Type.FRAGMENT.getPrograms().values());
@@ -378,169 +378,169 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         List<Pair<ShaderInstance, Consumer<ShaderInstance>>> list1 = Lists.newArrayListWithCapacity(this.shaders.size());
 
         try {
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "block", DefaultVertexFormat.BLOCK), (p_172743_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "block", DefaultVertexFormat.BLOCK), (p_172743_) -> {
                 blockShader = p_172743_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "new_entity", DefaultVertexFormat.NEW_ENTITY), (p_172740_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "new_entity", DefaultVertexFormat.NEW_ENTITY), (p_172740_) -> {
                 newEntityShader = p_172740_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "particle", DefaultVertexFormat.PARTICLE), (p_172714_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "particle", DefaultVertexFormat.PARTICLE), (p_172714_) -> {
                 particleShader = p_172714_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position", DefaultVertexFormat.POSITION), (p_172711_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position", DefaultVertexFormat.POSITION), (p_172711_) -> {
                 positionShader = p_172711_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position_color", DefaultVertexFormat.POSITION_COLOR), (p_172708_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position_color", DefaultVertexFormat.POSITION_COLOR), (p_172708_) -> {
                 positionColorShader = p_172708_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position_color_lightmap", DefaultVertexFormat.POSITION_COLOR_LIGHTMAP), (p_172705_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position_color_lightmap", DefaultVertexFormat.POSITION_COLOR_LIGHTMAP), (p_172705_) -> {
                 positionColorLightmapShader = p_172705_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX), (p_172702_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position_color_tex", DefaultVertexFormat.POSITION_COLOR_TEX), (p_172702_) -> {
                 positionColorTexShader = p_172702_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172699_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position_color_tex_lightmap", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172699_) -> {
                 positionColorTexLightmapShader = p_172699_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position_tex", DefaultVertexFormat.POSITION_TEX), (p_172696_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position_tex", DefaultVertexFormat.POSITION_TEX), (p_172696_) -> {
                 positionTexShader = p_172696_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR), (p_172693_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position_tex_color", DefaultVertexFormat.POSITION_TEX_COLOR), (p_172693_) -> {
                 positionTexColorShader = p_172693_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position_tex_color_normal", DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL), (p_172690_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position_tex_color_normal", DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL), (p_172690_) -> {
                 positionTexColorNormalShader = p_172690_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "position_tex_lightmap_color", DefaultVertexFormat.POSITION_TEX_LIGHTMAP_COLOR), (p_172687_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "position_tex_lightmap_color", DefaultVertexFormat.POSITION_TEX_LIGHTMAP_COLOR), (p_172687_) -> {
                 positionTexLightmapColorShader = p_172687_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_solid", DefaultVertexFormat.BLOCK), (p_172684_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_solid", DefaultVertexFormat.BLOCK), (p_172684_) -> {
                 rendertypeSolidShader = p_172684_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_cutout_mipped", DefaultVertexFormat.BLOCK), (p_172681_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_cutout_mipped", DefaultVertexFormat.BLOCK), (p_172681_) -> {
                 rendertypeCutoutMippedShader = p_172681_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_cutout", DefaultVertexFormat.BLOCK), (p_172678_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_cutout", DefaultVertexFormat.BLOCK), (p_172678_) -> {
                 rendertypeCutoutShader = p_172678_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_translucent", DefaultVertexFormat.BLOCK), (p_172675_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_translucent", DefaultVertexFormat.BLOCK), (p_172675_) -> {
                 rendertypeTranslucentShader = p_172675_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_translucent_moving_block", DefaultVertexFormat.BLOCK), (p_172672_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_translucent_moving_block", DefaultVertexFormat.BLOCK), (p_172672_) -> {
                 rendertypeTranslucentMovingBlockShader = p_172672_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_translucent_no_crumbling", DefaultVertexFormat.BLOCK), (p_172669_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_translucent_no_crumbling", DefaultVertexFormat.BLOCK), (p_172669_) -> {
                 rendertypeTranslucentNoCrumblingShader = p_172669_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_armor_cutout_no_cull", DefaultVertexFormat.NEW_ENTITY), (p_172666_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_armor_cutout_no_cull", DefaultVertexFormat.NEW_ENTITY), (p_172666_) -> {
                 rendertypeArmorCutoutNoCullShader = p_172666_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_solid", DefaultVertexFormat.NEW_ENTITY), (p_172663_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_solid", DefaultVertexFormat.NEW_ENTITY), (p_172663_) -> {
                 rendertypeEntitySolidShader = p_172663_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_cutout", DefaultVertexFormat.NEW_ENTITY), (p_172660_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_cutout", DefaultVertexFormat.NEW_ENTITY), (p_172660_) -> {
                 rendertypeEntityCutoutShader = p_172660_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_cutout_no_cull", DefaultVertexFormat.NEW_ENTITY), (p_172657_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_cutout_no_cull", DefaultVertexFormat.NEW_ENTITY), (p_172657_) -> {
                 rendertypeEntityCutoutNoCullShader = p_172657_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_cutout_no_cull_z_offset", DefaultVertexFormat.NEW_ENTITY), (p_172654_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_cutout_no_cull_z_offset", DefaultVertexFormat.NEW_ENTITY), (p_172654_) -> {
                 rendertypeEntityCutoutNoCullZOffsetShader = p_172654_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_item_entity_translucent_cull", DefaultVertexFormat.NEW_ENTITY), (p_172651_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_item_entity_translucent_cull", DefaultVertexFormat.NEW_ENTITY), (p_172651_) -> {
                 rendertypeItemEntityTranslucentCullShader = p_172651_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_translucent_cull", DefaultVertexFormat.NEW_ENTITY), (p_172648_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_translucent_cull", DefaultVertexFormat.NEW_ENTITY), (p_172648_) -> {
                 rendertypeEntityTranslucentCullShader = p_172648_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_translucent", DefaultVertexFormat.NEW_ENTITY), (p_172645_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_translucent", DefaultVertexFormat.NEW_ENTITY), (p_172645_) -> {
                 rendertypeEntityTranslucentShader = p_172645_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_translucent_emissive", DefaultVertexFormat.NEW_ENTITY), (p_172642_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_translucent_emissive", DefaultVertexFormat.NEW_ENTITY), (p_172642_) -> {
                 rendertypeEntityTranslucentEmissiveShader = p_172642_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_smooth_cutout", DefaultVertexFormat.NEW_ENTITY), (p_172639_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_smooth_cutout", DefaultVertexFormat.NEW_ENTITY), (p_172639_) -> {
                 rendertypeEntitySmoothCutoutShader = p_172639_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_beacon_beam", DefaultVertexFormat.BLOCK), (p_172840_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_beacon_beam", DefaultVertexFormat.BLOCK), (p_172840_) -> {
                 rendertypeBeaconBeamShader = p_172840_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_decal", DefaultVertexFormat.NEW_ENTITY), (p_172837_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_decal", DefaultVertexFormat.NEW_ENTITY), (p_172837_) -> {
                 rendertypeEntityDecalShader = p_172837_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_no_outline", DefaultVertexFormat.NEW_ENTITY), (p_172834_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_no_outline", DefaultVertexFormat.NEW_ENTITY), (p_172834_) -> {
                 rendertypeEntityNoOutlineShader = p_172834_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_shadow", DefaultVertexFormat.NEW_ENTITY), (p_172831_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_shadow", DefaultVertexFormat.NEW_ENTITY), (p_172831_) -> {
                 rendertypeEntityShadowShader = p_172831_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_alpha", DefaultVertexFormat.NEW_ENTITY), (p_172828_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_alpha", DefaultVertexFormat.NEW_ENTITY), (p_172828_) -> {
                 rendertypeEntityAlphaShader = p_172828_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_eyes", DefaultVertexFormat.NEW_ENTITY), (p_172825_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_eyes", DefaultVertexFormat.NEW_ENTITY), (p_172825_) -> {
                 rendertypeEyesShader = p_172825_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_energy_swirl", DefaultVertexFormat.NEW_ENTITY), (p_172822_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_energy_swirl", DefaultVertexFormat.NEW_ENTITY), (p_172822_) -> {
                 rendertypeEnergySwirlShader = p_172822_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_leash", DefaultVertexFormat.POSITION_COLOR_LIGHTMAP), (p_172819_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_leash", DefaultVertexFormat.POSITION_COLOR_LIGHTMAP), (p_172819_) -> {
                 rendertypeLeashShader = p_172819_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_water_mask", DefaultVertexFormat.POSITION), (p_172816_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_water_mask", DefaultVertexFormat.POSITION), (p_172816_) -> {
                 rendertypeWaterMaskShader = p_172816_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_outline", DefaultVertexFormat.POSITION_COLOR_TEX), (p_172813_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_outline", DefaultVertexFormat.POSITION_COLOR_TEX), (p_172813_) -> {
                 rendertypeOutlineShader = p_172813_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_armor_glint", DefaultVertexFormat.POSITION_TEX), (p_172810_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_armor_glint", DefaultVertexFormat.POSITION_TEX), (p_172810_) -> {
                 rendertypeArmorGlintShader = p_172810_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_armor_entity_glint", DefaultVertexFormat.POSITION_TEX), (p_172807_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_armor_entity_glint", DefaultVertexFormat.POSITION_TEX), (p_172807_) -> {
                 rendertypeArmorEntityGlintShader = p_172807_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_glint_translucent", DefaultVertexFormat.POSITION_TEX), (p_172805_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_glint_translucent", DefaultVertexFormat.POSITION_TEX), (p_172805_) -> {
                 rendertypeGlintTranslucentShader = p_172805_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_glint", DefaultVertexFormat.POSITION_TEX), (p_172803_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_glint", DefaultVertexFormat.POSITION_TEX), (p_172803_) -> {
                 rendertypeGlintShader = p_172803_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_glint_direct", DefaultVertexFormat.POSITION_TEX), (p_172801_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_glint_direct", DefaultVertexFormat.POSITION_TEX), (p_172801_) -> {
                 rendertypeGlintDirectShader = p_172801_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_glint", DefaultVertexFormat.POSITION_TEX), (p_172799_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_glint", DefaultVertexFormat.POSITION_TEX), (p_172799_) -> {
                 rendertypeEntityGlintShader = p_172799_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_entity_glint_direct", DefaultVertexFormat.POSITION_TEX), (p_172796_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_entity_glint_direct", DefaultVertexFormat.POSITION_TEX), (p_172796_) -> {
                 rendertypeEntityGlintDirectShader = p_172796_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_text", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172794_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_text", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172794_) -> {
                 rendertypeTextShader = p_172794_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_text_intensity", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172792_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_text_intensity", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172792_) -> {
                 rendertypeTextIntensityShader = p_172792_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_text_see_through", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172789_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_text_see_through", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172789_) -> {
                 rendertypeTextSeeThroughShader = p_172789_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_text_intensity_see_through", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172787_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_text_intensity_see_through", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), (p_172787_) -> {
                 rendertypeTextIntensitySeeThroughShader = p_172787_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_lightning", DefaultVertexFormat.POSITION_COLOR), (p_172785_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_lightning", DefaultVertexFormat.POSITION_COLOR), (p_172785_) -> {
                 rendertypeLightningShader = p_172785_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_tripwire", DefaultVertexFormat.BLOCK), (p_172782_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_tripwire", DefaultVertexFormat.BLOCK), (p_172782_) -> {
                 rendertypeTripwireShader = p_172782_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_end_portal", DefaultVertexFormat.POSITION), (p_172778_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_end_portal", DefaultVertexFormat.POSITION), (p_172778_) -> {
                 rendertypeEndPortalShader = p_172778_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_end_gateway", DefaultVertexFormat.POSITION), (p_172774_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_end_gateway", DefaultVertexFormat.POSITION), (p_172774_) -> {
                 rendertypeEndGatewayShader = p_172774_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_lines", DefaultVertexFormat.POSITION_COLOR_NORMAL), (p_172733_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_lines", DefaultVertexFormat.POSITION_COLOR_NORMAL), (p_172733_) -> {
                 rendertypeLinesShader = p_172733_;
             }));
-            list1.add(Pair.of(new ShaderInstance(p_172768_, "rendertype_crumbling", DefaultVertexFormat.BLOCK), (p_234230_) -> {
+            list1.add(Pair.of(new ShaderInstance(pResourceManager, "rendertype_crumbling", DefaultVertexFormat.BLOCK), (p_234230_) -> {
                 rendertypeCrumblingShader = p_234230_;
             }));
         } catch (IOException ioexception) {
@@ -565,8 +565,8 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
     }
 
     @Nullable
-    public ShaderInstance getShader(@Nullable String p_172735_) {
-        return p_172735_ == null ? null : this.shaders.get(p_172735_);
+    public ShaderInstance getShader(@Nullable String pName) {
+        return pName == null ? null : this.shaders.get(pName);
     }
 
     public void tick() {
@@ -603,24 +603,24 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         return this.postEffect;
     }
 
-    public void resize(int p_109098_, int p_109099_) {
+    public void resize(int pWidth, int pHeight) {
         if (this.postEffect != null) {
-            this.postEffect.resize(p_109098_, p_109099_);
+            this.postEffect.resize(pWidth, pHeight);
         }
 
-        this.minecraft.levelRenderer.resize(p_109098_, p_109099_);
+        this.minecraft.levelRenderer.resize(pWidth, pHeight);
     }
 
-    public void pick(float p_109088_) {
+    public void pick(float pPartialTicks) {
         Entity entity = this.minecraft.getCameraEntity();
         if (entity != null) {
             if (this.minecraft.level != null) {
                 this.minecraft.getProfiler().push("pick");
                 this.minecraft.crosshairPickEntity = null;
                 double d0 = (double) this.minecraft.gameMode.getPickRange();
-                this.minecraft.hitResult = entity.pick(d0, p_109088_, false);
-                Vec3 vec3 = entity.getEyePosition(p_109088_);
-                net.minecraft.world.phys.SectorVec3 exactEye = entity.interpolatedExactPosition(p_109088_)
+                this.minecraft.hitResult = entity.pick(d0, pPartialTicks, false);
+                Vec3 vec3 = entity.getEyePosition(pPartialTicks);
+                net.minecraft.world.phys.SectorVec3 exactEye = entity.interpolatedExactPosition(pPartialTicks)
                                                                        .withY(vec3.y);
                 boolean flag = false;
                 int i = 3;
@@ -692,22 +692,22 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         }
     }
 
-    private double getFov(Camera p_109142_, float p_109143_, boolean p_109144_) {
+    private double getFov(Camera pActiveRenderInfo, float pPartialTicks, boolean pUseFOVSetting) {
         if (this.panoramicMode) {
             return 90.0D;
         } else {
             double d0 = 70.0D;
-            if (p_109144_) {
+            if (pUseFOVSetting) {
                 d0 = (double) this.minecraft.options.fov().get().intValue();
-                d0 *= (double) Mth.lerp(p_109143_, this.oldFov, this.fov);
+                d0 *= (double) Mth.lerp(pPartialTicks, this.oldFov, this.fov);
             }
 
-            if (p_109142_.getEntity() instanceof LivingEntity && ((LivingEntity) p_109142_.getEntity()).isDeadOrDying()) {
-                float f = Math.min((float) ((LivingEntity) p_109142_.getEntity()).deathTime + p_109143_, 20.0F);
+            if (pActiveRenderInfo.getEntity() instanceof LivingEntity && ((LivingEntity) pActiveRenderInfo.getEntity()).isDeadOrDying()) {
+                float f = Math.min((float) ((LivingEntity) pActiveRenderInfo.getEntity()).deathTime + pPartialTicks, 20.0F);
                 d0 /= (double) ((1.0F - 500.0F / (f + 500.0F)) * 2.0F + 1.0F);
             }
 
-            FogType fogtype = p_109142_.getFluidInCamera();
+            FogType fogtype = pActiveRenderInfo.getFluidInCamera();
             if (fogtype == FogType.LAVA || fogtype == FogType.WATER) {
                 d0 *= Mth.lerp(this.minecraft.options.fovEffectScale().get(), 1.0D, (double) 0.85714287F);
             }
@@ -716,13 +716,13 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         }
     }
 
-    private void bobHurt(PoseStack p_109118_, float p_109119_) {
+    private void bobHurt(PoseStack pMatrixStack, float pPartialTicks) {
         if (this.minecraft.getCameraEntity() instanceof LivingEntity) {
             LivingEntity livingentity = (LivingEntity) this.minecraft.getCameraEntity();
-            float f = (float) livingentity.hurtTime - p_109119_;
+            float f = (float) livingentity.hurtTime - pPartialTicks;
             if (livingentity.isDeadOrDying()) {
-                float f1 = Math.min((float) livingentity.deathTime + p_109119_, 20.0F);
-                p_109118_.mulPose(Vector3f.ZP.rotationDegrees(40.0F - 8000.0F / (f1 + 200.0F)));
+                float f1 = Math.min((float) livingentity.deathTime + pPartialTicks, 20.0F);
+                pMatrixStack.mulPose(Vector3f.ZP.rotationDegrees(40.0F - 8000.0F / (f1 + 200.0F)));
             }
 
             if (f < 0.0F) {
@@ -732,70 +732,70 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
             f /= (float) livingentity.hurtDuration;
             f = Mth.sin(f * f * f * f * (float) Math.PI);
             float f2 = livingentity.hurtDir;
-            p_109118_.mulPose(Vector3f.YP.rotationDegrees(-f2));
-            p_109118_.mulPose(Vector3f.ZP.rotationDegrees(-f * 14.0F));
-            p_109118_.mulPose(Vector3f.YP.rotationDegrees(f2));
+            pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(-f2));
+            pMatrixStack.mulPose(Vector3f.ZP.rotationDegrees(-f * 14.0F));
+            pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(f2));
         }
     }
 
-    private void bobView(PoseStack p_109139_, float p_109140_) {
+    private void bobView(PoseStack pMatrixStack, float pPartialTicks) {
         if (this.minecraft.getCameraEntity() instanceof Player) {
             Player player = (Player) this.minecraft.getCameraEntity();
             float f = player.walkDist - player.walkDistO;
-            float f1 = -(player.walkDist + f * p_109140_);
-            float f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
-            p_109139_.translate((double) (Mth.sin(f1 * (float) Math.PI) * f2 * 0.5F), (double) (-Math.abs(Mth.cos(f1 * (float) Math.PI) * f2)), 0.0D);
-            p_109139_.mulPose(Vector3f.ZP.rotationDegrees(Mth.sin(f1 * (float) Math.PI) * f2 * 3.0F));
-            p_109139_.mulPose(Vector3f.XP.rotationDegrees(Math.abs(Mth.cos(f1 * (float) Math.PI - 0.2F) * f2) * 5.0F));
+            float f1 = -(player.walkDist + f * pPartialTicks);
+            float f2 = Mth.lerp(pPartialTicks, player.oBob, player.bob);
+            pMatrixStack.translate((double) (Mth.sin(f1 * (float) Math.PI) * f2 * 0.5F), (double) (-Math.abs(Mth.cos(f1 * (float) Math.PI) * f2)), 0.0D);
+            pMatrixStack.mulPose(Vector3f.ZP.rotationDegrees(Mth.sin(f1 * (float) Math.PI) * f2 * 3.0F));
+            pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(Math.abs(Mth.cos(f1 * (float) Math.PI - 0.2F) * f2) * 5.0F));
         }
     }
 
-    public void renderZoomed(float p_172719_, float p_172720_, float p_172721_) {
-        this.zoom = p_172719_;
-        this.zoomX = p_172720_;
-        this.zoomY = p_172721_;
+    public void renderZoomed(float pZoom, float pZoomX, float pZoomY) {
+        this.zoom = pZoom;
+        this.zoomX = pZoomX;
+        this.zoomY = pZoomY;
         this.setRenderBlockOutline(false);
         this.setRenderHand(false);
         this.renderLevel(1.0F, 0L, new PoseStack());
         this.zoom = 1.0F;
     }
 
-    private void renderItemInHand(PoseStack p_109121_, Camera p_109122_, float p_109123_) {
+    private void renderItemInHand(PoseStack pMatrixStack, Camera pActiveRenderInfo, float pPartialTicks) {
         if (!this.panoramicMode) {
-            this.resetProjectionMatrix(this.getProjectionMatrix(this.getFov(p_109122_, p_109123_, false)));
-            PoseStack.Pose posestack$pose = p_109121_.last();
+            this.resetProjectionMatrix(this.getProjectionMatrix(this.getFov(pActiveRenderInfo, pPartialTicks, false)));
+            PoseStack.Pose posestack$pose = pMatrixStack.last();
             posestack$pose.pose().setIdentity();
             posestack$pose.normal().setIdentity();
-            p_109121_.pushPose();
-            this.bobHurt(p_109121_, p_109123_);
+            pMatrixStack.pushPose();
+            this.bobHurt(pMatrixStack, pPartialTicks);
             if (this.minecraft.options.bobView().get()) {
-                this.bobView(p_109121_, p_109123_);
+                this.bobView(pMatrixStack, pPartialTicks);
             }
 
             boolean flag = this.minecraft.getCameraEntity() instanceof LivingEntity && ((LivingEntity) this.minecraft.getCameraEntity()).isSleeping();
             if (this.minecraft.options.getCameraType().isFirstPerson() && !flag && !this.minecraft.options.hideGui && this.minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR) {
                 this.lightTexture.turnOnLightLayer();
-                this.itemInHandRenderer.renderHandsWithItems(p_109123_, p_109121_, this.renderBuffers.bufferSource(), this.minecraft.player, this.minecraft.getEntityRenderDispatcher().getPackedLightCoords(this.minecraft.player, p_109123_));
+                this.itemInHandRenderer.renderHandsWithItems(pPartialTicks, pMatrixStack, this.renderBuffers.bufferSource(), this.minecraft.player, this.minecraft.getEntityRenderDispatcher().getPackedLightCoords(this.minecraft.player, pPartialTicks));
                 this.lightTexture.turnOffLightLayer();
             }
 
-            p_109121_.popPose();
+            pMatrixStack.popPose();
             if (this.minecraft.options.getCameraType().isFirstPerson() && !flag) {
-                ScreenEffectRenderer.renderScreenEffect(this.minecraft, p_109121_);
-                this.bobHurt(p_109121_, p_109123_);
+                ScreenEffectRenderer.renderScreenEffect(this.minecraft, pMatrixStack);
+                this.bobHurt(pMatrixStack, pPartialTicks);
             }
 
             if (this.minecraft.options.bobView().get()) {
-                this.bobView(p_109121_, p_109123_);
+                this.bobView(pMatrixStack, pPartialTicks);
             }
         }
     }
 
-    public void resetProjectionMatrix(Matrix4f p_109112_) {
-        RenderSystem.setProjectionMatrix(p_109112_);
+    public void resetProjectionMatrix(Matrix4f pMatrix) {
+        RenderSystem.setProjectionMatrix(pMatrix);
     }
 
-    public Matrix4f getProjectionMatrix(double p_172717_) {
+    public Matrix4f getProjectionMatrix(double pFov) {
         PoseStack posestack = new PoseStack();
         posestack.last().pose().setIdentity();
         if (this.zoom != 1.0F) {
@@ -803,7 +803,7 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
             posestack.scale(this.zoom, this.zoom, 1.0F);
         }
 
-        posestack.last().pose().multiply(Matrix4f.perspective(p_172717_, (float) this.minecraft.getWindow().getWidth() / (float) this.minecraft.getWindow().getHeight(), 0.05F, this.getDepthFar()));
+        posestack.last().pose().multiply(Matrix4f.perspective(pFov, (float) this.minecraft.getWindow().getWidth() / (float) this.minecraft.getWindow().getHeight(), 0.05F, this.getDepthFar()));
         return posestack.last().pose();
     }
 
@@ -811,12 +811,12 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         return this.renderDistance * 4.0F;
     }
 
-    public static float getNightVisionScale(LivingEntity p_109109_, float p_109110_) {
-        int i = p_109109_.getEffect(MobEffects.NIGHT_VISION).getDuration();
-        return i > 200 ? 1.0F : 0.7F + Mth.sin(((float) i - p_109110_) * (float) Math.PI * 0.2F) * 0.3F;
+    public static float getNightVisionScale(LivingEntity pLivingEntity, float pNanoTime) {
+        int i = pLivingEntity.getEffect(MobEffects.NIGHT_VISION).getDuration();
+        return i > 200 ? 1.0F : 0.7F + Mth.sin(((float) i - pNanoTime) * (float) Math.PI * 0.2F) * 0.3F;
     }
 
-    public void render(float p_109094_, long p_109095_, boolean p_109096_) {
+    public void render(float pPartialTicks, long pNanoTime, boolean pRenderLevel) {
         if (!this.minecraft.isWindowActive() && this.minecraft.options.pauseOnLostFocus && (!this.minecraft.options.touchscreen().get() || !this.minecraft.mouseHandler.isRightPressed())) {
             if (Util.getMillis() - this.lastActiveTime > 500L) {
                 this.minecraft.pauseGame(false);
@@ -829,9 +829,9 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
             int i = (int) (this.minecraft.mouseHandler.xpos() * (double) this.minecraft.getWindow().getGuiScaledWidth() / (double) this.minecraft.getWindow().getScreenWidth());
             int j = (int) (this.minecraft.mouseHandler.ypos() * (double) this.minecraft.getWindow().getGuiScaledHeight() / (double) this.minecraft.getWindow().getScreenHeight());
             RenderSystem.viewport(0, 0, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight());
-            if (p_109096_ && this.minecraft.level != null) {
+            if (pRenderLevel && this.minecraft.level != null) {
                 this.minecraft.getProfiler().push("level");
-                this.renderLevel(p_109094_, p_109095_, new PoseStack());
+                this.renderLevel(pPartialTicks, pNanoTime, new PoseStack());
                 this.tryTakeScreenshotIfNeeded();
                 this.minecraft.levelRenderer.doEntityOutline();
                 if (this.postEffect != null && this.effectActive) {
@@ -839,7 +839,7 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
                     RenderSystem.disableDepthTest();
                     RenderSystem.enableTexture();
                     RenderSystem.resetTextureMatrix();
-                    this.postEffect.process(p_109094_);
+                    this.postEffect.process(pPartialTicks);
                 }
 
                 this.minecraft.getMainRenderTarget().bindWrite(true);
@@ -855,10 +855,10 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
             RenderSystem.applyModelViewMatrix();
             Lighting.setupFor3DItems();
             PoseStack posestack1 = new PoseStack();
-            if (p_109096_ && this.minecraft.level != null) {
+            if (pRenderLevel && this.minecraft.level != null) {
                 this.minecraft.getProfiler().popPush("gui");
                 if (this.minecraft.player != null) {
-                    float f = Mth.lerp(p_109094_, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime);
+                    float f = Mth.lerp(pPartialTicks, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime);
                     float f1 = this.minecraft.options.screenEffectScale().get().floatValue();
                     if (f > 0.0F && this.minecraft.player.hasEffect(MobEffects.CONFUSION) && f1 < 1.0F) {
                         this.renderConfusionOverlay(f * (1.0F - f1));
@@ -866,8 +866,8 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
                 }
 
                 if (!this.minecraft.options.hideGui || this.minecraft.screen != null) {
-                    this.renderItemActivationAnimation(this.minecraft.getWindow().getGuiScaledWidth(), this.minecraft.getWindow().getGuiScaledHeight(), p_109094_);
-                    this.minecraft.gui.render(posestack1, p_109094_);
+                    this.renderItemActivationAnimation(this.minecraft.getWindow().getGuiScaledWidth(), this.minecraft.getWindow().getGuiScaledHeight(), pPartialTicks);
+                    this.minecraft.gui.render(posestack1, pPartialTicks);
                     RenderSystem.clear(256, Minecraft.ON_OSX);
                 }
 
@@ -938,7 +938,7 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         }
     }
 
-    private void takeAutoScreenshot(Path p_182643_) {
+    private void takeAutoScreenshot(Path pPath) {
         if (this.minecraft.levelRenderer.countRenderedChunks() > 10 && this.minecraft.levelRenderer.hasRenderedAllChunks()) {
             NativeImage nativeimage = Screenshot.takeScreenshot(this.minecraft.getMainRenderTarget());
             Util.ioPool().execute(() -> {
@@ -959,7 +959,7 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
 
                     try {
                         nativeimage.resizeSubRectTo(k, l, i, j, nativeimage1);
-                        nativeimage1.writeToFile(p_182643_);
+                        nativeimage1.writeToFile(pPath);
                     } catch (Throwable throwable1) {
                         try {
                             nativeimage1.close();
@@ -1006,55 +1006,55 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         }
     }
 
-    public void renderLevel(float p_109090_, long p_109091_, PoseStack p_109092_) {
-        this.lightTexture.updateLightTexture(p_109090_);
+    public void renderLevel(float pPartialTicks, long pFinishTimeNano, PoseStack pMatrixStack) {
+        this.lightTexture.updateLightTexture(pPartialTicks);
         if (this.minecraft.getCameraEntity() == null) {
             this.minecraft.setCameraEntity(this.minecraft.player);
         }
 
-        this.pick(p_109090_);
+        this.pick(pPartialTicks);
         this.minecraft.getProfiler().push("center");
         boolean flag = this.shouldRenderBlockOutline();
         this.minecraft.getProfiler().popPush("camera");
         Camera camera = this.mainCamera;
         this.renderDistance = (float) (this.minecraft.options.getEffectiveRenderDistance() * 16);
         PoseStack posestack = new PoseStack();
-        double d0 = this.getFov(camera, p_109090_, true);
+        double d0 = this.getFov(camera, pPartialTicks, true);
         posestack.last().pose().multiply(this.getProjectionMatrix(d0));
-        this.bobHurt(posestack, p_109090_);
+        this.bobHurt(posestack, pPartialTicks);
         if (this.minecraft.options.bobView().get()) {
-            this.bobView(posestack, p_109090_);
+            this.bobView(posestack, pPartialTicks);
         }
 
         float f = this.minecraft.options.screenEffectScale().get().floatValue();
-        float f1 = Mth.lerp(p_109090_, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime) * f * f;
+        float f1 = Mth.lerp(pPartialTicks, this.minecraft.player.oPortalTime, this.minecraft.player.portalTime) * f * f;
         if (f1 > 0.0F) {
             int i = this.minecraft.player.hasEffect(MobEffects.CONFUSION) ? 7 : 20;
             float f2 = 5.0F / (f1 * f1 + 5.0F) - f1 * 0.04F;
             f2 *= f2;
             Vector3f vector3f = new Vector3f(0.0F, Mth.SQRT_OF_TWO / 2.0F, Mth.SQRT_OF_TWO / 2.0F);
-            posestack.mulPose(vector3f.rotationDegrees(((float) this.tick + p_109090_) * (float) i));
+            posestack.mulPose(vector3f.rotationDegrees(((float) this.tick + pPartialTicks) * (float) i));
             posestack.scale(1.0F / f2, 1.0F, 1.0F);
-            float f3 = -((float) this.tick + p_109090_) * (float) i;
+            float f3 = -((float) this.tick + pPartialTicks) * (float) i;
             posestack.mulPose(vector3f.rotationDegrees(f3));
         }
 
         Matrix4f matrix4f = posestack.last().pose();
         this.resetProjectionMatrix(matrix4f);
-        camera.setup(this.minecraft.level, (Entity) (this.minecraft.getCameraEntity() == null ? this.minecraft.player : this.minecraft.getCameraEntity()), !this.minecraft.options.getCameraType().isFirstPerson(), this.minecraft.options.getCameraType().isMirrored(), p_109090_);
-        p_109092_.mulPose(Vector3f.XP.rotationDegrees(camera.getXRot()));
-        p_109092_.mulPose(Vector3f.YP.rotationDegrees(camera.getYRot() + 180.0F));
-        Matrix3f matrix3f = p_109092_.last().normal().copy();
+        camera.setup(this.minecraft.level, (Entity) (this.minecraft.getCameraEntity() == null ? this.minecraft.player : this.minecraft.getCameraEntity()), !this.minecraft.options.getCameraType().isFirstPerson(), this.minecraft.options.getCameraType().isMirrored(), pPartialTicks);
+        pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(camera.getXRot()));
+        pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(camera.getYRot() + 180.0F));
+        Matrix3f matrix3f = pMatrixStack.last().normal().copy();
         if (matrix3f.invert()) {
             RenderSystem.setInverseViewRotationMatrix(matrix3f);
         }
 
-        this.minecraft.levelRenderer.prepareCullFrustum(p_109092_, camera.getPosition(), this.getProjectionMatrix(Math.max(d0, (double) this.minecraft.options.fov().get().intValue())));
-        this.minecraft.levelRenderer.renderLevel(p_109092_, p_109090_, p_109091_, flag, camera, this, this.lightTexture, matrix4f);
+        this.minecraft.levelRenderer.prepareCullFrustum(pMatrixStack, camera.getPosition(), this.getProjectionMatrix(Math.max(d0, (double) this.minecraft.options.fov().get().intValue())));
+        this.minecraft.levelRenderer.renderLevel(pMatrixStack, pPartialTicks, pFinishTimeNano, flag, camera, this, this.lightTexture, matrix4f);
         this.minecraft.getProfiler().popPush("hand");
         if (this.renderHand) {
             RenderSystem.clear(256, Minecraft.ON_OSX);
-            this.renderItemInHand(p_109092_, camera, p_109090_);
+            this.renderItemInHand(pMatrixStack, camera, pPartialTicks);
         }
 
         this.minecraft.getProfiler().pop();
@@ -1071,28 +1071,28 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         return this.mapRenderer;
     }
 
-    public void displayItemActivation(ItemStack p_109114_) {
-        this.itemActivationItem = p_109114_;
+    public void displayItemActivation(ItemStack pStack) {
+        this.itemActivationItem = pStack;
         this.itemActivationTicks = 40;
         this.itemActivationOffX = this.random.nextFloat() * 2.0F - 1.0F;
         this.itemActivationOffY = this.random.nextFloat() * 2.0F - 1.0F;
     }
 
-    private void renderItemActivationAnimation(int p_109101_, int p_109102_, float p_109103_) {
+    private void renderItemActivationAnimation(int pWidthsp, int pHeightScaled, float pPartialTicks) {
         if (this.itemActivationItem != null && this.itemActivationTicks > 0) {
             int i = 40 - this.itemActivationTicks;
-            float f = ((float) i + p_109103_) / 40.0F;
+            float f = ((float) i + pPartialTicks) / 40.0F;
             float f1 = f * f;
             float f2 = f * f1;
             float f3 = 10.25F * f2 * f1 - 24.95F * f1 * f1 + 25.5F * f2 - 13.8F * f1 + 4.0F * f;
             float f4 = f3 * (float) Math.PI;
-            float f5 = this.itemActivationOffX * (float) (p_109101_ / 4);
-            float f6 = this.itemActivationOffY * (float) (p_109102_ / 4);
+            float f5 = this.itemActivationOffX * (float) (pWidthsp / 4);
+            float f6 = this.itemActivationOffY * (float) (pHeightScaled / 4);
             RenderSystem.enableDepthTest();
             RenderSystem.disableCull();
             PoseStack posestack = new PoseStack();
             posestack.pushPose();
-            posestack.translate((double) ((float) (p_109101_ / 2) + f5 * Mth.abs(Mth.sin(f4 * 2.0F))), (double) ((float) (p_109102_ / 2) + f6 * Mth.abs(Mth.sin(f4 * 2.0F))), -50.0D);
+            posestack.translate((double) ((float) (pWidthsp / 2) + f5 * Mth.abs(Mth.sin(f4 * 2.0F))), (double) ((float) (pHeightScaled / 2) + f6 * Mth.abs(Mth.sin(f4 * 2.0F))), -50.0D);
             float f7 = 50.0F + 175.0F * Mth.sin(f4);
             posestack.scale(f7, -f7, f7);
             posestack.mulPose(Vector3f.YP.rotationDegrees(900.0F * Mth.abs(Mth.sin(f4))));
@@ -1107,13 +1107,13 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         }
     }
 
-    private void renderConfusionOverlay(float p_109146_) {
+    private void renderConfusionOverlay(float pScalar) {
         int i = this.minecraft.getWindow().getGuiScaledWidth();
         int j = this.minecraft.getWindow().getGuiScaledHeight();
-        double d0 = Mth.lerp((double) p_109146_, 2.0D, 1.0D);
-        float f = 0.2F * p_109146_;
-        float f1 = 0.4F * p_109146_;
-        float f2 = 0.2F * p_109146_;
+        double d0 = Mth.lerp((double) pScalar, 2.0D, 1.0D);
+        float f = 0.2F * pScalar;
+        float f1 = 0.4F * pScalar;
+        float f2 = 0.2F * pScalar;
         double d1 = (double) i * d0;
         double d2 = (double) j * d0;
         double d3 = ((double) i - d1) / 2.0D;
@@ -1144,8 +1144,8 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
         return this.minecraft;
     }
 
-    public float getDarkenWorldAmount(float p_109132_) {
-        return Mth.lerp(p_109132_, this.darkenWorldAmountO, this.darkenWorldAmount);
+    public float getDarkenWorldAmount(float pPartialTicks) {
+        return Mth.lerp(pPartialTicks, this.darkenWorldAmountO, this.darkenWorldAmount);
     }
 
     public float getRenderDistance() {

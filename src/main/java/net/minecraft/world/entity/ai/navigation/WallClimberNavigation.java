@@ -11,27 +11,27 @@ public class WallClimberNavigation extends GroundPathNavigation {
     @Nullable
     private BlockPos pathToPosition;
 
-    public WallClimberNavigation(Mob p_26580_, Level p_26581_) {
-        super(p_26580_, p_26581_);
+    public WallClimberNavigation(Mob pMob, Level pLevel) {
+        super(pMob, pLevel);
     }
 
-    public Path createPath(BlockPos p_26589_, int p_26590_) {
-        this.pathToPosition = p_26589_;
-        return super.createPath(p_26589_, p_26590_);
+    public Path createPath(BlockPos pPos, int pAccuracy) {
+        this.pathToPosition = pPos;
+        return super.createPath(pPos, pAccuracy);
     }
 
-    public Path createPath(Entity p_26586_, int p_26587_) {
-        this.pathToPosition = p_26586_.blockPosition();
-        return super.createPath(p_26586_, p_26587_);
+    public Path createPath(Entity pEntity, int pAccuracy) {
+        this.pathToPosition = pEntity.blockPosition();
+        return super.createPath(pEntity, pAccuracy);
     }
 
-    public boolean moveTo(Entity p_26583_, double p_26584_) {
-        Path path = this.createPath(p_26583_, 0);
+    public boolean moveTo(Entity pEntity, double pSpeed) {
+        Path path = this.createPath(pEntity, 0);
         if (path != null) {
-            return this.moveTo(path, p_26584_);
+            return this.moveTo(path, pSpeed);
         } else {
-            this.pathToPosition = p_26583_.blockPosition();
-            this.speedModifier = p_26584_;
+            this.pathToPosition = pEntity.blockPosition();
+            this.speedModifier = pSpeed;
             return true;
         }
     }

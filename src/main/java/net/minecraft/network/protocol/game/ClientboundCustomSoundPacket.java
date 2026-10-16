@@ -93,7 +93,7 @@ public class ClientboundCustomSoundPacket implements Packet<ClientGamePacketList
         return this.seed;
     }
 
-    public void handle(ClientGamePacketListener p_132065_) {
-        p_132065_.handleCustomSoundEvent(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleCustomSoundEvent(this);
     }
 }

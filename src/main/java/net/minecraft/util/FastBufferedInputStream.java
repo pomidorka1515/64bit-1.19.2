@@ -10,13 +10,13 @@ public class FastBufferedInputStream extends InputStream {
     private int limit;
     private int position;
 
-    public FastBufferedInputStream(InputStream p_196566_) {
-        this(p_196566_, 8192);
+    public FastBufferedInputStream(InputStream pIn) {
+        this(pIn, 8192);
     }
 
-    public FastBufferedInputStream(InputStream p_196568_, int p_196569_) {
-        this.in = p_196568_;
-        this.buffer = new byte[p_196569_];
+    public FastBufferedInputStream(InputStream pIn, int pBufferSize) {
+        this.in = pIn;
+        this.buffer = new byte[pBufferSize];
     }
 
     public int read() throws IOException {
@@ -30,11 +30,11 @@ public class FastBufferedInputStream extends InputStream {
         return Byte.toUnsignedInt(this.buffer[this.position++]);
     }
 
-    public int read(byte[] p_196576_, int p_196577_, int p_196578_) throws IOException {
+    public int read(byte[] pBuffer, int pOffset, int pLength) throws IOException {
         int i = this.bytesInBuffer();
         if (i <= 0) {
-            if (p_196578_ >= this.buffer.length) {
-                return this.in.read(p_196576_, p_196577_, p_196578_);
+            if (pLength >= this.buffer.length) {
+                return this.in.read(pBuffer, pOffset, pLength);
             }
 
             this.fill();
@@ -44,13 +44,13 @@ public class FastBufferedInputStream extends InputStream {
             }
         }
 
-        if (p_196578_ > i) {
-            p_196578_ = i;
+        if (pLength > i) {
+            pLength = i;
         }
 
-        System.arraycopy(this.buffer, this.position, p_196576_, p_196577_, p_196578_);
-        this.position += p_196578_;
-        return p_196578_;
+        System.arraycopy(this.buffer, this.position, pBuffer, pOffset, pLength);
+        this.position += pLength;
+        return pLength;
     }
 
     public long skip(long p_196580_) throws IOException {

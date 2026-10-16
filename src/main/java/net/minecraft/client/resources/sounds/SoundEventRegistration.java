@@ -12,10 +12,10 @@ public class SoundEventRegistration {
     @Nullable
     private final String subtitle;
 
-    public SoundEventRegistration(List<Sound> p_119819_, boolean p_119820_, @Nullable String p_119821_) {
-        this.sounds = p_119819_;
-        this.replace = p_119820_;
-        this.subtitle = p_119821_;
+    public SoundEventRegistration(List<Sound> pSounds, boolean pReplace, @Nullable String pSubtitle) {
+        this.sounds = pSounds;
+        this.replace = pReplace;
+        this.subtitle = pSubtitle;
     }
 
     public List<Sound> getSounds() {

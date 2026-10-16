@@ -7,20 +7,20 @@ import net.minecraft.network.protocol.Packet;
 public class ClientboundSetActionBarTextPacket implements Packet<ClientGamePacketListener> {
     private final Component text;
 
-    public ClientboundSetActionBarTextPacket(Component p_179203_) {
-        this.text = p_179203_;
+    public ClientboundSetActionBarTextPacket(Component pText) {
+        this.text = pText;
     }
 
-    public ClientboundSetActionBarTextPacket(FriendlyByteBuf p_179201_) {
-        this.text = p_179201_.readComponent();
+    public ClientboundSetActionBarTextPacket(FriendlyByteBuf pBuffer) {
+        this.text = pBuffer.readComponent();
     }
 
-    public void write(FriendlyByteBuf p_179205_) {
-        p_179205_.writeComponent(this.text);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeComponent(this.text);
     }
 
-    public void handle(ClientGamePacketListener p_179209_) {
-        p_179209_.setActionBarText(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.setActionBarText(this);
     }
 
     public Component getText() {

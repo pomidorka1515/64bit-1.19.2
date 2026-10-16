@@ -40,38 +40,38 @@ public class ItemPickupParticle extends Particle {
         return position != null ? position : SectorVec3.fromApproximate(entity.xOld, entity.yOld, entity.zOld);
     }
 
-    private ItemPickupParticle(EntityRenderDispatcher p_107029_, RenderBuffers p_107030_, ClientLevel p_107031_, Entity p_107032_, Entity p_107033_, Vec3 p_107034_) {
-        super(p_107031_, 0.0D, p_107032_.getY(), 0.0D, p_107034_.x, p_107034_.y, p_107034_.z);
-        this.renderBuffers = p_107030_;
-        this.itemEntity = this.getSafeCopy(p_107032_);
-        this.target = p_107033_;
-        this.entityRenderDispatcher = p_107029_;
+    private ItemPickupParticle(EntityRenderDispatcher pEntityRenderDispatcher, RenderBuffers pBuffers, ClientLevel pLevel, Entity pItemEntity, Entity pTarget, Vec3 pSpeedVector) {
+        super(pLevel, 0.0D, pItemEntity.getY(), 0.0D, pSpeedVector.x, pSpeedVector.y, pSpeedVector.z);
+        this.renderBuffers = pBuffers;
+        this.itemEntity = this.getSafeCopy(pItemEntity);
+        this.target = pTarget;
+        this.entityRenderDispatcher = pEntityRenderDispatcher;
     }
 
-    private Entity getSafeCopy(Entity p_107037_) {
-        return (Entity) (!(p_107037_ instanceof ItemEntity) ? p_107037_ : ((ItemEntity) p_107037_).copy());
+    private Entity getSafeCopy(Entity pEntity) {
+        return (Entity) (!(pEntity instanceof ItemEntity) ? pEntity : ((ItemEntity) pEntity).copy());
     }
 
     public ParticleRenderType getRenderType() {
         return ParticleRenderType.CUSTOM;
     }
 
-    public void render(VertexConsumer p_107039_, Camera p_107040_, float p_107041_) {
-        float f = ((float) this.life + p_107041_) / 3.0F;
+    public void render(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+        float f = ((float) this.life + pPartialTicks) / 3.0F;
         f *= f;
         SectorVec3 targetCurrent = exactPosition(this.target);
         SectorVec3 targetOld = oldExactPosition(this.target);
         targetCurrent = targetCurrent.withY((targetCurrent.y() + this.target.getEyeY()) / 2.0D);
-        SectorVec3 targetPosition = targetOld.lerpTo(targetCurrent, (double) p_107041_);
+        SectorVec3 targetPosition = targetOld.lerpTo(targetCurrent, (double) pPartialTicks);
         SectorVec3 itemPosition = this.exactPosition().lerpTo(targetPosition, (double) f);
-        SectorVec3 camera = p_107040_.exactPosition();
+        SectorVec3 camera = pRenderInfo.exactPosition();
         if (camera == null) {
-            Vec3 legacyCamera = p_107040_.getPosition();
+            Vec3 legacyCamera = pRenderInfo.getPosition();
             camera = SectorVec3.fromApproximate(legacyCamera.x, legacyCamera.y, legacyCamera.z);
         }
         Vec3 relative = itemPosition.relativeTo(camera);
         MultiBufferSource.BufferSource multibuffersource$buffersource = this.renderBuffers.bufferSource();
-        this.entityRenderDispatcher.render(this.itemEntity, relative.x, relative.y, relative.z, this.itemEntity.getYRot(), p_107041_, new PoseStack(), multibuffersource$buffersource, this.entityRenderDispatcher.getPackedLightCoords(this.itemEntity, p_107041_));
+        this.entityRenderDispatcher.render(this.itemEntity, relative.x, relative.y, relative.z, this.itemEntity.getYRot(), pPartialTicks, new PoseStack(), multibuffersource$buffersource, this.entityRenderDispatcher.getPackedLightCoords(this.itemEntity, pPartialTicks));
         multibuffersource$buffersource.endBatch();
     }
 

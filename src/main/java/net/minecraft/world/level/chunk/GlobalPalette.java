@@ -8,36 +8,36 @@ import net.minecraft.network.FriendlyByteBuf;
 public class GlobalPalette<T> implements Palette<T> {
     private final IdMap<T> registry;
 
-    public GlobalPalette(IdMap<T> p_187897_) {
-        this.registry = p_187897_;
+    public GlobalPalette(IdMap<T> pRegistry) {
+        this.registry = pRegistry;
     }
 
-    public static <A> Palette<A> create(int p_187899_, IdMap<A> p_187900_, PaletteResize<A> p_187901_, List<A> p_187902_) {
-        return new GlobalPalette<>(p_187900_);
+    public static <A> Palette<A> create(int pBits, IdMap<A> pRegistry, PaletteResize<A> pResizeHandler, List<A> pValues) {
+        return new GlobalPalette<>(pRegistry);
     }
 
-    public int idFor(T p_62648_) {
-        int i = this.registry.getId(p_62648_);
+    public int idFor(T pState) {
+        int i = this.registry.getId(pState);
         return i == -1 ? 0 : i;
     }
 
-    public boolean maybeHas(Predicate<T> p_62650_) {
+    public boolean maybeHas(Predicate<T> pFilter) {
         return true;
     }
 
-    public T valueFor(int p_62646_) {
-        T t = this.registry.byId(p_62646_);
+    public T valueFor(int pId) {
+        T t = this.registry.byId(pId);
         if (t == null) {
-            throw new MissingPaletteEntryException(p_62646_);
+            throw new MissingPaletteEntryException(pId);
         } else {
             return t;
         }
     }
 
-    public void read(FriendlyByteBuf p_62654_) {
+    public void read(FriendlyByteBuf pBuffer) {
     }
 
-    public void write(FriendlyByteBuf p_62656_) {
+    public void write(FriendlyByteBuf pBuffer) {
     }
 
     public int getSerializedSize() {

@@ -69,7 +69,7 @@ public interface RegistryAccess {
         return builtinCopy().freeze();
     });
 
-    <E> Optional<Registry<E>> ownedRegistry(ResourceKey<? extends Registry<? extends E>> p_175507_);
+    <E> Optional<Registry<E>> ownedRegistry(ResourceKey<? extends Registry<? extends E>> pRegistryKey);
 
     default<E> Registry<E> ownedRegistryOrThrow(ResourceKey<? extends Registry<? extends E>> p_206192_) {
         return this.ownedRegistry(p_206192_).orElseThrow(() -> {
@@ -77,23 +77,23 @@ public interface RegistryAccess {
         });
     }
 
-    default<E> Optional<? extends Registry<E>> registry(ResourceKey<? extends Registry<? extends E>> p_123085_) {
-        Optional<? extends Registry<E>> optional = this.ownedRegistry(p_123085_);
-      return optional.isPresent() ? optional : (Optional<? extends Registry<E>>)Registry.REGISTRY.getOptional(p_123085_.location());
+    default<E> Optional<? extends Registry<E>> registry(ResourceKey<? extends Registry<? extends E>> pRegistryKey) {
+        Optional<? extends Registry<E>> optional = this.ownedRegistry(pRegistryKey);
+      return optional.isPresent() ? optional : (Optional<? extends Registry<E>>)Registry.REGISTRY.getOptional(pRegistryKey.location());
     }
 
-    default<E> Registry<E> registryOrThrow(ResourceKey<? extends Registry<? extends E>> p_175516_) {
-        return this.registry(p_175516_).orElseThrow(() -> {
-            return new IllegalStateException("Missing registry: " + p_175516_);
+    default<E> Registry<E> registryOrThrow(ResourceKey<? extends Registry<? extends E>> pRegistryKey) {
+        return this.registry(pRegistryKey).orElseThrow(() -> {
+            return new IllegalStateException("Missing registry: " + pRegistryKey);
         });
     }
 
-    private static <E> void put(ImmutableMap.Builder<ResourceKey<? extends Registry<?>>, RegistryAccess.RegistryData<?>> p_123054_, ResourceKey<? extends Registry<E>> p_123055_, Codec<E> p_123056_) {
-        p_123054_.put(p_123055_, new RegistryAccess.RegistryData<>(p_123055_, p_123056_, (Codec<E>) null));
+    private static <E> void put(ImmutableMap.Builder<ResourceKey<? extends Registry<?>>, RegistryAccess.RegistryData<?>> pBuilder, ResourceKey<? extends Registry<E>> pRegistryKey, Codec<E> pElementCodec) {
+        pBuilder.put(pRegistryKey, new RegistryAccess.RegistryData<>(pRegistryKey, pElementCodec, (Codec<E>) null));
     }
 
-    private static <E> void put(ImmutableMap.Builder<ResourceKey<? extends Registry<?>>, RegistryAccess.RegistryData<?>> p_123058_, ResourceKey<? extends Registry<E>> p_123059_, Codec<E> p_123060_, Codec<E> p_123061_) {
-        p_123058_.put(p_123059_, new RegistryAccess.RegistryData<>(p_123059_, p_123060_, p_123061_));
+    private static <E> void put(ImmutableMap.Builder<ResourceKey<? extends Registry<?>>, RegistryAccess.RegistryData<?>> pBuilder, ResourceKey<? extends Registry<E>> pRegistryKey, Codec<E> pElementCodec, Codec<E> pNetworkCodec) {
+        pBuilder.put(pRegistryKey, new RegistryAccess.RegistryData<>(pRegistryKey, pElementCodec, pNetworkCodec));
     }
 
     static Iterable<RegistryAccess.RegistryData<?>> knownRegistries() {
@@ -123,8 +123,8 @@ public interface RegistryAccess {
         return captureMap(unboundedmapcodec);
     }
 
-    private static <K extends ResourceKey<? extends Registry<?>>, V extends Registry<?>> Codec<RegistryAccess> captureMap(UnboundedMapCodec<K, V> p_206164_) {
-        return p_206164_.xmap(RegistryAccess.ImmutableRegistryAccess::new, (p_206180_) -> {
+    private static <K extends ResourceKey<? extends Registry<?>>, V extends Registry<?>> Codec<RegistryAccess> captureMap(UnboundedMapCodec<K, V> pCodec) {
+        return pCodec.xmap(RegistryAccess.ImmutableRegistryAccess::new, (p_206180_) -> {
             return p_206180_.ownedNetworkableRegistries().collect(ImmutableMap.toImmutableMap((p_206195_) -> { return (K) p_206195_.key(); }, (p_206190_) -> { return (V) p_206190_.value(); }));
         });
     }
@@ -135,13 +135,13 @@ public interface RegistryAccess {
         });
     }
 
-    private static <E> DataResult<? extends Codec<E>> getNetworkCodec(ResourceKey<? extends Registry<E>> p_206204_) {
-        return Optional.ofNullable(REGISTRIES.get(p_206204_)).map((p_206168_) -> {
+    private static <E> DataResult<? extends Codec<E>> getNetworkCodec(ResourceKey<? extends Registry<E>> pKey) {
+        return Optional.ofNullable(REGISTRIES.get(pKey)).map((p_206168_) -> {
                                                                  return (Codec<E>) p_206168_.networkCodec();
                                                              })
                 .map(DataResult::success)
                 .orElseGet(() -> {
-                    return DataResult.error("Unknown or not serializable registry: " + p_206204_);
+                    return DataResult.error("Unknown or not serializable registry: " + pKey);
                 });
     }
 
@@ -153,15 +153,15 @@ public interface RegistryAccess {
         return new RegistryAccess.WritableRegistryAccess(createFreshRegistries());
     }
 
-    static RegistryAccess.Frozen fromRegistryOfRegistries(final Registry<? extends Registry<?>> p_206166_) {
+    static RegistryAccess.Frozen fromRegistryOfRegistries(final Registry<? extends Registry<?>> pRegistryOfRegistries) {
         return new RegistryAccess.Frozen() {
          public <T> Optional<Registry<T>> ownedRegistry(ResourceKey<? extends Registry<? extends T>> p_206220_) {
-             Registry<Registry<T>> registry = (Registry<Registry<T>>) p_206166_;
+             Registry<Registry<T>> registry = (Registry<Registry<T>>) pRegistryOfRegistries;
              return registry.getOptional((ResourceKey<Registry<T>>) p_206220_);
          }
 
          public Stream<RegistryAccess.RegistryEntry<?>> ownedRegistries() {
-             return p_206166_.entrySet().stream().map(RegistryAccess.RegistryEntry::fromMapEntry);
+             return pRegistryOfRegistries.entrySet().stream().map(RegistryAccess.RegistryEntry::fromMapEntry);
          }
         };
     }
@@ -178,14 +178,14 @@ public interface RegistryAccess {
         return registryaccess$writable;
     }
 
-    private static <E> void addBuiltinElements(RegistryResourceAccess.InMemoryStorage p_211082_, RegistryAccess.RegistryData<E> p_211083_) {
-        ResourceKey<? extends Registry<E>> resourcekey = p_211083_.key();
+    private static <E> void addBuiltinElements(RegistryResourceAccess.InMemoryStorage pDestinationRegistryHolder, RegistryAccess.RegistryData<E> pData) {
+        ResourceKey<? extends Registry<E>> resourcekey = pData.key();
         Registry<E> registry = BuiltinRegistries.ACCESS.registryOrThrow(resourcekey);
 
         for (Map.Entry<ResourceKey<E>, E> entry : registry.entrySet()) {
             ResourceKey<E> resourcekey1 = entry.getKey();
             E e = entry.getValue();
-            p_211082_.add(BuiltinRegistries.ACCESS, resourcekey1, p_211083_.codec(), registry.getId(e), e, registry.lifecycle(e));
+            pDestinationRegistryHolder.add(BuiltinRegistries.ACCESS, resourcekey1, pData.codec(), registry.getId(e), e, registry.lifecycle(e));
         }
     }
 
@@ -240,16 +240,16 @@ public interface RegistryAccess {
     public static final class ImmutableRegistryAccess implements RegistryAccess.Frozen {
         private final Map<? extends ResourceKey<? extends Registry<?>>, ? extends Registry<?>> registries;
 
-        public ImmutableRegistryAccess(Map<? extends ResourceKey<? extends Registry<?>>, ? extends Registry<?>> p_206225_) {
-            this.registries = Map.copyOf(p_206225_);
+        public ImmutableRegistryAccess(Map<? extends ResourceKey<? extends Registry<?>>, ? extends Registry<?>> pRegistries) {
+            this.registries = Map.copyOf(pRegistries);
         }
 
-        ImmutableRegistryAccess(Stream<RegistryAccess.RegistryEntry<?>> p_206227_) {
-            this.registries = p_206227_.collect(ImmutableMap.toImmutableMap(RegistryAccess.RegistryEntry::key, RegistryAccess.RegistryEntry::value));
+        ImmutableRegistryAccess(Stream<RegistryAccess.RegistryEntry<?>> pRegistries) {
+            this.registries = pRegistries.collect(ImmutableMap.toImmutableMap(RegistryAccess.RegistryEntry::key, RegistryAccess.RegistryEntry::value));
         }
 
-        public <E> Optional<Registry<E>> ownedRegistry(ResourceKey<? extends Registry<? extends E>> p_206229_) {
-            return Optional.ofNullable(this.registries.get(p_206229_)).map((p_206232_) -> {
+        public <E> Optional<Registry<E>> ownedRegistry(ResourceKey<? extends Registry<? extends E>> pRegistryKey) {
+            return Optional.ofNullable(this.registries.get(pRegistryKey)).map((p_206232_) -> {
                 return (Registry<E>) p_206232_;
             });
         }
@@ -266,16 +266,16 @@ public interface RegistryAccess {
     }
 
     public static record RegistryEntry<T>(ResourceKey<? extends Registry<T>> key, Registry<T> value) {
-      private static <T, R extends Registry<? extends T>> RegistryAccess.RegistryEntry<T> fromMapEntry(Map.Entry<? extends ResourceKey<? extends Registry<?>>, R> p_206242_) {
-          return fromUntyped(p_206242_.getKey(), p_206242_.getValue());
+      private static <T, R extends Registry<? extends T>> RegistryAccess.RegistryEntry<T> fromMapEntry(Map.Entry<? extends ResourceKey<? extends Registry<?>>, R> pMapEntry) {
+          return fromUntyped(pMapEntry.getKey(), pMapEntry.getValue());
       }
 
-      private static <T> RegistryAccess.RegistryEntry<T> fromHolder(Holder.Reference<? extends Registry<? extends T>> p_206240_) {
-          return fromUntyped(p_206240_.key(), p_206240_.value());
+      private static <T> RegistryAccess.RegistryEntry<T> fromHolder(Holder.Reference<? extends Registry<? extends T>> pHolder) {
+          return fromUntyped(pHolder.key(), pHolder.value());
       }
 
-      private static <T> RegistryAccess.RegistryEntry<T> fromUntyped(ResourceKey<? extends Registry<?>> p_206244_, Registry<?> p_206245_) {
-         return new RegistryAccess.RegistryEntry<>((ResourceKey<? extends Registry<T>>)p_206244_, (Registry<T>)p_206245_);
+      private static <T> RegistryAccess.RegistryEntry<T> fromUntyped(ResourceKey<? extends Registry<?>> pKey, Registry<?> pValue) {
+         return new RegistryAccess.RegistryEntry<>((ResourceKey<? extends Registry<T>>)pKey, (Registry<T>)pValue);
       }
 
       private RegistryAccess.RegistryEntry<T> freeze() {
@@ -284,11 +284,11 @@ public interface RegistryAccess {
     }
 
     public interface Writable extends RegistryAccess {
-        <E> Optional<WritableRegistry<E>> ownedWritableRegistry(ResourceKey<? extends Registry<? extends E>> p_206252_);
+        <E> Optional<WritableRegistry<E>> ownedWritableRegistry(ResourceKey<? extends Registry<? extends E>> pRegistryKey);
 
-        default<E> WritableRegistry<E> ownedWritableRegistryOrThrow(ResourceKey<? extends Registry<? extends E>> p_206254_) {
-            return this.<E>ownedWritableRegistry(p_206254_).orElseThrow(() -> {
-                return new IllegalStateException("Missing registry: " + p_206254_);
+        default<E> WritableRegistry<E> ownedWritableRegistryOrThrow(ResourceKey<? extends Registry<? extends E>> pRegistryKey) {
+            return this.<E>ownedWritableRegistry(pRegistryKey).orElseThrow(() -> {
+                return new IllegalStateException("Missing registry: " + pRegistryKey);
             });
         }
     }
@@ -296,18 +296,18 @@ public interface RegistryAccess {
     public static final class WritableRegistryAccess implements RegistryAccess.Writable {
         private final Map<? extends ResourceKey<? extends Registry<?>>, ? extends WritableRegistry<?>> registries;
 
-        WritableRegistryAccess(Map<? extends ResourceKey<? extends Registry<?>>, ? extends WritableRegistry<?>> p_206259_) {
-            this.registries = p_206259_;
+        WritableRegistryAccess(Map<? extends ResourceKey<? extends Registry<?>>, ? extends WritableRegistry<?>> pRegistries) {
+            this.registries = pRegistries;
         }
 
-        public <E> Optional<Registry<E>> ownedRegistry(ResourceKey<? extends Registry<? extends E>> p_206263_) {
-            return Optional.ofNullable(this.registries.get(p_206263_)).map((p_206266_) -> {
+        public <E> Optional<Registry<E>> ownedRegistry(ResourceKey<? extends Registry<? extends E>> pRegistryKey) {
+            return Optional.ofNullable(this.registries.get(pRegistryKey)).map((p_206266_) -> {
                 return (Registry<E>) p_206266_;
             });
         }
 
-        public <E> Optional<WritableRegistry<E>> ownedWritableRegistry(ResourceKey<? extends Registry<? extends E>> p_206268_) {
-            return Optional.ofNullable(this.registries.get(p_206268_)).map((p_206261_) -> {
+        public <E> Optional<WritableRegistry<E>> ownedWritableRegistry(ResourceKey<? extends Registry<? extends E>> pRegistryKey) {
+            return Optional.ofNullable(this.registries.get(pRegistryKey)).map((p_206261_) -> {
                 return (WritableRegistry<E>) p_206261_;
             });
         }

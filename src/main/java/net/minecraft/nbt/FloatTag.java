@@ -36,16 +36,16 @@ public class FloatTag extends NumericTag {
     };
     private final float data;
 
-    private FloatTag(float p_128564_) {
-        this.data = p_128564_;
+    private FloatTag(float pData) {
+        this.data = pData;
     }
 
-    public static FloatTag valueOf(float p_128567_) {
-        return p_128567_ == 0.0F ? ZERO : new FloatTag(p_128567_);
+    public static FloatTag valueOf(float pData) {
+        return pData == 0.0F ? ZERO : new FloatTag(pData);
     }
 
-    public void write(DataOutput p_128569_) throws IOException {
-        p_128569_.writeFloat(this.data);
+    public void write(DataOutput pOutput) throws IOException {
+        pOutput.writeFloat(this.data);
     }
 
     public byte getId() {
@@ -60,11 +60,11 @@ public class FloatTag extends NumericTag {
         return this;
     }
 
-    public boolean equals(Object p_128578_) {
-        if (this == p_128578_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_128578_ instanceof FloatTag && this.data == ((FloatTag) p_128578_).data;
+            return pOther instanceof FloatTag && this.data == ((FloatTag) pOther).data;
         }
     }
 
@@ -72,8 +72,8 @@ public class FloatTag extends NumericTag {
         return Float.floatToIntBits(this.data);
     }
 
-    public void accept(TagVisitor p_177866_) {
-        p_177866_.visitFloat(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitFloat(this);
     }
 
     public long getAsLong() {
@@ -104,7 +104,7 @@ public class FloatTag extends NumericTag {
         return this.data;
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197468_) {
-        return p_197468_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 }

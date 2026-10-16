@@ -22,10 +22,10 @@ public class CocoaDecorator extends TreeDecorator {
         return TreeDecoratorType.COCOA;
     }
 
-    public void place(TreeDecorator.Context p_226028_) {
-        RandomSource randomsource = p_226028_.random();
+    public void place(TreeDecorator.Context pContext) {
+        RandomSource randomsource = pContext.random();
         if (!(randomsource.nextFloat() >= this.probability)) {
-            List<BlockPos> list = p_226028_.logs();
+            List<BlockPos> list = pContext.logs();
             int i = list.get(0).getY();
             list.stream().filter((p_69980_) -> {
                              return p_69980_.getY() - i <= 2;
@@ -35,8 +35,8 @@ public class CocoaDecorator extends TreeDecorator {
                             if (randomsource.nextFloat() <= 0.25F) {
                                 Direction direction1 = direction.getOpposite();
                                 BlockPos blockpos = p_226026_.offset(direction1.getStepX(), 0, direction1.getStepZ());
-                                if (p_226028_.isAir(blockpos)) {
-                                    p_226028_.setBlock(blockpos, Blocks.COCOA.defaultBlockState().setValue(CocoaBlock.AGE, Integer.valueOf(randomsource.nextInt(3))).setValue(CocoaBlock.FACING, direction));
+                                if (pContext.isAir(blockpos)) {
+                                    pContext.setBlock(blockpos, Blocks.COCOA.defaultBlockState().setValue(CocoaBlock.AGE, Integer.valueOf(randomsource.nextInt(3))).setValue(CocoaBlock.FACING, direction));
                                 }
                             }
                         }

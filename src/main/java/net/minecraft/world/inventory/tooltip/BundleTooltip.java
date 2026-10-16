@@ -7,9 +7,9 @@ public class BundleTooltip implements TooltipComponent {
     private final NonNullList<ItemStack> items;
     private final int weight;
 
-    public BundleTooltip(NonNullList<ItemStack> p_150677_, int p_150678_) {
-        this.items = p_150677_;
-        this.weight = p_150678_;
+    public BundleTooltip(NonNullList<ItemStack> pItems, int pWeight) {
+        this.items = pItems;
+        this.weight = pWeight;
     }
 
     public NonNullList<ItemStack> getItems() {

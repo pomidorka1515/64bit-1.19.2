@@ -33,20 +33,20 @@ public class PipeBlock extends Block {
     }));
     protected final VoxelShape[] shapeByIndex;
 
-    protected PipeBlock(float p_55159_, BlockBehaviour.Properties p_55160_) {
-        super(p_55160_);
-        this.shapeByIndex = this.makeShapes(p_55159_);
+    protected PipeBlock(float pApothem, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
+        this.shapeByIndex = this.makeShapes(pApothem);
     }
 
-    private VoxelShape[] makeShapes(float p_55162_) {
-        float f = 0.5F - p_55162_;
-        float f1 = 0.5F + p_55162_;
+    private VoxelShape[] makeShapes(float pApothem) {
+        float f = 0.5F - pApothem;
+        float f1 = 0.5F + pApothem;
         VoxelShape voxelshape = Block.box((double) (f * 16.0F), (double) (f * 16.0F), (double) (f * 16.0F), (double) (f1 * 16.0F), (double) (f1 * 16.0F), (double) (f1 * 16.0F));
         VoxelShape[] avoxelshape = new VoxelShape[DIRECTIONS.length];
 
         for (int i = 0; i < DIRECTIONS.length; ++i) {
             Direction direction = DIRECTIONS[i];
-            avoxelshape[i] = Shapes.box(0.5D + Math.min((double) (-p_55162_), (double) direction.getStepX() * 0.5D), 0.5D + Math.min((double) (-p_55162_), (double) direction.getStepY() * 0.5D), 0.5D + Math.min((double) (-p_55162_), (double) direction.getStepZ() * 0.5D), 0.5D + Math.max((double) p_55162_, (double) direction.getStepX() * 0.5D), 0.5D + Math.max((double) p_55162_, (double) direction.getStepY() * 0.5D), 0.5D + Math.max((double) p_55162_, (double) direction.getStepZ() * 0.5D));
+            avoxelshape[i] = Shapes.box(0.5D + Math.min((double) (-pApothem), (double) direction.getStepX() * 0.5D), 0.5D + Math.min((double) (-pApothem), (double) direction.getStepY() * 0.5D), 0.5D + Math.min((double) (-pApothem), (double) direction.getStepZ() * 0.5D), 0.5D + Math.max((double) pApothem, (double) direction.getStepX() * 0.5D), 0.5D + Math.max((double) pApothem, (double) direction.getStepY() * 0.5D), 0.5D + Math.max((double) pApothem, (double) direction.getStepZ() * 0.5D));
         }
 
         VoxelShape[] avoxelshape1 = new VoxelShape[64];
@@ -66,19 +66,19 @@ public class PipeBlock extends Block {
         return avoxelshape1;
     }
 
-    public boolean propagatesSkylightDown(BlockState p_55166_, BlockGetter p_55167_, BlockPos p_55168_) {
+    public boolean propagatesSkylightDown(BlockState pState, BlockGetter pReader, BlockPos pPos) {
         return false;
     }
 
-    public VoxelShape getShape(BlockState p_55170_, BlockGetter p_55171_, BlockPos p_55172_, CollisionContext p_55173_) {
-        return this.shapeByIndex[this.getAABBIndex(p_55170_)];
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return this.shapeByIndex[this.getAABBIndex(pState)];
     }
 
-    protected int getAABBIndex(BlockState p_55175_) {
+    protected int getAABBIndex(BlockState pState) {
         int i = 0;
 
         for (int j = 0; j < DIRECTIONS.length; ++j) {
-            if (p_55175_.getValue(PROPERTY_BY_DIRECTION.get(DIRECTIONS[j]))) {
+            if (pState.getValue(PROPERTY_BY_DIRECTION.get(DIRECTIONS[j]))) {
                 i |= 1 << j;
             }
         }

@@ -15,32 +15,32 @@ public class LecternMenu extends AbstractContainerMenu {
     private final Container lectern;
     private final ContainerData lecternData;
 
-    public LecternMenu(int p_39822_) {
-        this(p_39822_, new SimpleContainer(1), new SimpleContainerData(1));
+    public LecternMenu(int pContainerId) {
+        this(pContainerId, new SimpleContainer(1), new SimpleContainerData(1));
     }
 
-    public LecternMenu(int p_39824_, Container p_39825_, ContainerData p_39826_) {
-        super(MenuType.LECTERN, p_39824_);
-        checkContainerSize(p_39825_, 1);
-        checkContainerDataCount(p_39826_, 1);
-        this.lectern = p_39825_;
-        this.lecternData = p_39826_;
-        this.addSlot(new Slot(p_39825_, 0, 0, 0) {
+    public LecternMenu(int pContainerId, Container pLectern, ContainerData pLecternData) {
+        super(MenuType.LECTERN, pContainerId);
+        checkContainerSize(pLectern, 1);
+        checkContainerDataCount(pLecternData, 1);
+        this.lectern = pLectern;
+        this.lecternData = pLecternData;
+        this.addSlot(new Slot(pLectern, 0, 0, 0) {
             public void setChanged() {
                 super.setChanged();
                 LecternMenu.this.slotsChanged(this.container);
             }
         });
-        this.addDataSlots(p_39826_);
+        this.addDataSlots(pLecternData);
     }
 
-    public boolean clickMenuButton(Player p_39833_, int p_39834_) {
-        if (p_39834_ >= 100) {
-            int k = p_39834_ - 100;
+    public boolean clickMenuButton(Player pPlayer, int pId) {
+        if (pId >= 100) {
+            int k = pId - 100;
             this.setData(0, k);
             return true;
         } else {
-            switch (p_39834_) {
+            switch (pId) {
                 case 1:
                     int j = this.lecternData.get(0);
                     this.setData(0, j - 1);
@@ -50,14 +50,14 @@ public class LecternMenu extends AbstractContainerMenu {
                     this.setData(0, i + 1);
                     return true;
                 case 3:
-                    if (!p_39833_.mayBuild()) {
+                    if (!pPlayer.mayBuild()) {
                         return false;
                     }
 
                     ItemStack itemstack = this.lectern.removeItemNoUpdate(0);
                     this.lectern.setChanged();
-                    if (!p_39833_.getInventory().add(itemstack)) {
-                        p_39833_.drop(itemstack, false);
+                    if (!pPlayer.getInventory().add(itemstack)) {
+                        pPlayer.drop(itemstack, false);
                     }
 
                     return true;
@@ -67,17 +67,17 @@ public class LecternMenu extends AbstractContainerMenu {
         }
     }
 
-    public ItemStack quickMoveStack(Player p_219987_, int p_219988_) {
+    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         return ItemStack.EMPTY;
     }
 
-    public void setData(int p_39828_, int p_39829_) {
-        super.setData(p_39828_, p_39829_);
+    public void setData(int pId, int pData) {
+        super.setData(pId, pData);
         this.broadcastChanges();
     }
 
-    public boolean stillValid(Player p_39831_) {
-        return this.lectern.stillValid(p_39831_);
+    public boolean stillValid(Player pPlayer) {
+        return this.lectern.stillValid(pPlayer);
     }
 
     public ItemStack getBook() {

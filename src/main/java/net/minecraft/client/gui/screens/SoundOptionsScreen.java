@@ -20,8 +20,8 @@ public class SoundOptionsScreen extends OptionsSubScreen {
     @Nullable
     private AbstractWidget directionalAudioButton;
 
-    public SoundOptionsScreen(Screen p_96702_, Options p_96703_) {
-        super(p_96702_, p_96703_, Component.translatable("options.sounds.title"));
+    public SoundOptionsScreen(Screen pLastScreen, Options pOptions) {
+        super(pLastScreen, pOptions, Component.translatable("options.sounds.title"));
     }
 
     protected void init() {
@@ -53,13 +53,13 @@ public class SoundOptionsScreen extends OptionsSubScreen {
         }));
     }
 
-    public void render(PoseStack p_96705_, int p_96706_, int p_96707_, float p_96708_) {
-        this.renderBackground(p_96705_);
-        drawCenteredString(p_96705_, this.font, this.title, this.width / 2, 15, 16777215);
-        super.render(p_96705_, p_96706_, p_96707_, p_96708_);
-        if (this.directionalAudioButton != null && this.directionalAudioButton.isMouseOver((double) p_96706_, (double) p_96707_)) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 15, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        if (this.directionalAudioButton != null && this.directionalAudioButton.isMouseOver((double) pMouseX, (double) pMouseY)) {
             List<FormattedCharSequence> list = ((TooltipAccessor) this.directionalAudioButton).getTooltip();
-            this.renderTooltip(p_96705_, list, p_96706_, p_96707_);
+            this.renderTooltip(pPoseStack, list, pMouseX, pMouseY);
         }
     }
 }

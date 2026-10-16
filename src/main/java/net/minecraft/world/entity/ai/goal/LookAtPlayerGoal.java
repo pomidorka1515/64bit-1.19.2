@@ -21,27 +21,27 @@ public class LookAtPlayerGoal extends Goal {
     protected final Class<? extends LivingEntity> lookAtType;
     protected final TargetingConditions lookAtContext;
 
-    public LookAtPlayerGoal(Mob p_25520_, Class<? extends LivingEntity> p_25521_, float p_25522_) {
-        this(p_25520_, p_25521_, p_25522_, 0.02F);
+    public LookAtPlayerGoal(Mob pMob, Class<? extends LivingEntity> pLookAtType, float pLookDistance) {
+        this(pMob, pLookAtType, pLookDistance, 0.02F);
     }
 
-    public LookAtPlayerGoal(Mob p_25524_, Class<? extends LivingEntity> p_25525_, float p_25526_, float p_25527_) {
-        this(p_25524_, p_25525_, p_25526_, p_25527_, false);
+    public LookAtPlayerGoal(Mob pMob, Class<? extends LivingEntity> pLookAtType, float pLookDistance, float pProbability) {
+        this(pMob, pLookAtType, pLookDistance, pProbability, false);
     }
 
-    public LookAtPlayerGoal(Mob p_148118_, Class<? extends LivingEntity> p_148119_, float p_148120_, float p_148121_, boolean p_148122_) {
-        this.mob = p_148118_;
-        this.lookAtType = p_148119_;
-        this.lookDistance = p_148120_;
-        this.probability = p_148121_;
-        this.onlyHorizontal = p_148122_;
+    public LookAtPlayerGoal(Mob pMob, Class<? extends LivingEntity> pLookAtType, float pLookDistance, float pProbability, boolean pOnlyHorizontal) {
+        this.mob = pMob;
+        this.lookAtType = pLookAtType;
+        this.lookDistance = pLookDistance;
+        this.probability = pProbability;
+        this.onlyHorizontal = pOnlyHorizontal;
         this.setFlags(EnumSet.of(Goal.Flag.LOOK));
-        if (p_148119_ == Player.class) {
-            this.lookAtContext = TargetingConditions.forNonCombat().range((double) p_148120_).selector((p_25531_) -> {
-                return EntitySelector.notRiding(p_148118_).test(p_25531_);
+        if (pLookAtType == Player.class) {
+            this.lookAtContext = TargetingConditions.forNonCombat().range((double) pLookDistance).selector((p_25531_) -> {
+                return EntitySelector.notRiding(pMob).test(p_25531_);
             });
         } else {
-            this.lookAtContext = TargetingConditions.forNonCombat().range((double) p_148120_);
+            this.lookAtContext = TargetingConditions.forNonCombat().range((double) pLookDistance);
         }
     }
 

@@ -11,33 +11,33 @@ public class ServerboundPlayerActionPacket implements Packet<ServerGamePacketLis
     private final ServerboundPlayerActionPacket.Action action;
     private final int sequence;
 
-    public ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action p_237983_, BlockPos p_237984_, Direction p_237985_, int p_237986_) {
-        this.action = p_237983_;
-        this.pos = p_237984_.immutable();
-        this.direction = p_237985_;
-        this.sequence = p_237986_;
+    public ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action pAction, BlockPos pPos, Direction pDirection, int pSequence) {
+        this.action = pAction;
+        this.pos = pPos.immutable();
+        this.direction = pDirection;
+        this.sequence = pSequence;
     }
 
-    public ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action p_134272_, BlockPos p_134273_, Direction p_134274_) {
-        this(p_134272_, p_134273_, p_134274_, 0);
+    public ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action pAction, BlockPos pPos, Direction pDirection) {
+        this(pAction, pPos, pDirection, 0);
     }
 
-    public ServerboundPlayerActionPacket(FriendlyByteBuf p_179711_) {
-        this.action = p_179711_.readEnum(ServerboundPlayerActionPacket.Action.class);
-        this.pos = p_179711_.readBlockPos();
-        this.direction = Direction.from3DDataValue(p_179711_.readUnsignedByte());
-        this.sequence = p_179711_.readVarInt();
+    public ServerboundPlayerActionPacket(FriendlyByteBuf pBuffer) {
+        this.action = pBuffer.readEnum(ServerboundPlayerActionPacket.Action.class);
+        this.pos = pBuffer.readBlockPos();
+        this.direction = Direction.from3DDataValue(pBuffer.readUnsignedByte());
+        this.sequence = pBuffer.readVarInt();
     }
 
-    public void write(FriendlyByteBuf p_134283_) {
-        p_134283_.writeEnum(this.action);
-        p_134283_.writeBlockPos(this.pos);
-        p_134283_.writeByte(this.direction.get3DDataValue());
-        p_134283_.writeVarInt(this.sequence);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeEnum(this.action);
+        pBuffer.writeBlockPos(this.pos);
+        pBuffer.writeByte(this.direction.get3DDataValue());
+        pBuffer.writeVarInt(this.sequence);
     }
 
-    public void handle(ServerGamePacketListener p_134280_) {
-        p_134280_.handlePlayerAction(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handlePlayerAction(this);
     }
 
     public BlockPos getPos() {

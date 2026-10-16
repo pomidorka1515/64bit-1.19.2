@@ -20,11 +20,11 @@ public class AdvancementProvider implements DataProvider {
     private final DataGenerator.PathProvider pathProvider;
     private final List<Consumer<Consumer<Advancement>>> tabs = ImmutableList.of(new TheEndAdvancements(), new HusbandryAdvancements(), new AdventureAdvancements(), new NetherAdvancements(), new StoryAdvancements());
 
-    public AdvancementProvider(DataGenerator p_123966_) {
-        this.pathProvider = p_123966_.createPathProvider(DataGenerator.Target.DATA_PACK, "advancements");
+    public AdvancementProvider(DataGenerator pGenerator) {
+        this.pathProvider = pGenerator.createPathProvider(DataGenerator.Target.DATA_PACK, "advancements");
     }
 
-    public void run(CachedOutput p_236158_) {
+    public void run(CachedOutput pOutput) {
         Set<ResourceLocation> set = Sets.newHashSet();
         Consumer<Advancement> consumer = (p_236162_) -> {
             if (!set.add(p_236162_.getId())) {
@@ -33,7 +33,7 @@ public class AdvancementProvider implements DataProvider {
                 Path path = this.pathProvider.json(p_236162_.getId());
 
                 try {
-                    DataProvider.saveStable(p_236158_, p_236162_.deconstruct().serializeToJson(), path);
+                    DataProvider.saveStable(pOutput, p_236162_.deconstruct().serializeToJson(), path);
                 } catch (IOException ioexception) {
                     LOGGER.error("Couldn't save advancement {}", path, ioexception);
                 }

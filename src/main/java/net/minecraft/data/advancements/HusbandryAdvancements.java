@@ -80,46 +80,46 @@ public class HusbandryAdvancements implements Consumer<Consumer<Advancement>> {
         return p_236165_;
     }
 
-    private Advancement.Builder addFood(Advancement.Builder p_124000_) {
+    private Advancement.Builder addFood(Advancement.Builder pBuilder) {
         for (Item item : EDIBLE_ITEMS) {
-            p_124000_.addCriterion(Registry.ITEM.getKey(item).getPath(), ConsumeItemTrigger.TriggerInstance.usedItem(item));
+            pBuilder.addCriterion(Registry.ITEM.getKey(item).getPath(), ConsumeItemTrigger.TriggerInstance.usedItem(item));
         }
 
-        return p_124000_;
+        return pBuilder;
     }
 
-    private Advancement.Builder addBreedable(Advancement.Builder p_124008_) {
+    private Advancement.Builder addBreedable(Advancement.Builder pBuilder) {
         for (EntityType<?> entitytype : BREEDABLE_ANIMALS) {
-            p_124008_.addCriterion(EntityType.getKey(entitytype).toString(), BredAnimalsTrigger.TriggerInstance.bredAnimals(EntityPredicate.Builder.entity().of(entitytype)));
+            pBuilder.addCriterion(EntityType.getKey(entitytype).toString(), BredAnimalsTrigger.TriggerInstance.bredAnimals(EntityPredicate.Builder.entity().of(entitytype)));
         }
 
         for (EntityType<?> entitytype1 : INDIRECTLY_BREEDABLE_ANIMALS) {
-            p_124008_.addCriterion(EntityType.getKey(entitytype1).toString(), BredAnimalsTrigger.TriggerInstance.bredAnimals(EntityPredicate.Builder.entity().of(entitytype1).build(), EntityPredicate.Builder.entity().of(entitytype1).build(), EntityPredicate.ANY));
+            pBuilder.addCriterion(EntityType.getKey(entitytype1).toString(), BredAnimalsTrigger.TriggerInstance.bredAnimals(EntityPredicate.Builder.entity().of(entitytype1).build(), EntityPredicate.Builder.entity().of(entitytype1).build(), EntityPredicate.ANY));
         }
 
-        return p_124008_;
+        return pBuilder;
     }
 
-    private Advancement.Builder addFishBuckets(Advancement.Builder p_124010_) {
+    private Advancement.Builder addFishBuckets(Advancement.Builder pBuilder) {
         for (Item item : FISH_BUCKETS) {
-            p_124010_.addCriterion(Registry.ITEM.getKey(item).getPath(), FilledBucketTrigger.TriggerInstance.filledBucket(ItemPredicate.Builder.item().of(item).build()));
+            pBuilder.addCriterion(Registry.ITEM.getKey(item).getPath(), FilledBucketTrigger.TriggerInstance.filledBucket(ItemPredicate.Builder.item().of(item).build()));
         }
 
-        return p_124010_;
+        return pBuilder;
     }
 
-    private Advancement.Builder addFish(Advancement.Builder p_124012_) {
+    private Advancement.Builder addFish(Advancement.Builder pBuilder) {
         for (Item item : FISH) {
-            p_124012_.addCriterion(Registry.ITEM.getKey(item).getPath(), FishingRodHookedTrigger.TriggerInstance.fishedItem(ItemPredicate.ANY, EntityPredicate.ANY, ItemPredicate.Builder.item().of(item).build()));
+            pBuilder.addCriterion(Registry.ITEM.getKey(item).getPath(), FishingRodHookedTrigger.TriggerInstance.fishedItem(ItemPredicate.ANY, EntityPredicate.ANY, ItemPredicate.Builder.item().of(item).build()));
         }
 
-        return p_124012_;
+        return pBuilder;
     }
 
-    private Advancement.Builder addCatVariants(Advancement.Builder p_124014_) {
+    private Advancement.Builder addCatVariants(Advancement.Builder pBuilder) {
         Registry.CAT_VARIANT.entrySet().stream().sorted(Entry.comparingByKey(Comparator.comparing(ResourceKey::location))).forEach((p_236171_) -> {
-            p_124014_.addCriterion(p_236171_.getKey().location().toString(), TameAnimalTrigger.TriggerInstance.tamedAnimal(EntityPredicate.Builder.entity().subPredicate(EntitySubPredicate.variant(p_236171_.getValue())).build()));
+            pBuilder.addCriterion(p_236171_.getKey().location().toString(), TameAnimalTrigger.TriggerInstance.tamedAnimal(EntityPredicate.Builder.entity().subPredicate(EntitySubPredicate.variant(p_236171_.getValue())).build()));
         });
-        return p_124014_;
+        return pBuilder;
     }
 }

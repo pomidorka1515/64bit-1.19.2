@@ -38,11 +38,11 @@ public class IntRange {
         return builder.build();
     }
 
-    IntRange(@Nullable NumberProvider p_165006_, @Nullable NumberProvider p_165007_) {
-        this.min = p_165006_;
-        this.max = p_165007_;
-        if (p_165006_ == null) {
-            if (p_165007_ == null) {
+    IntRange(@Nullable NumberProvider pMin, @Nullable NumberProvider pMax) {
+        this.min = pMin;
+        this.max = pMax;
+        if (pMin == null) {
+            if (pMax == null) {
                 this.limiter = (p_165050_, p_165051_) -> {
                     return p_165051_;
                 };
@@ -51,62 +51,62 @@ public class IntRange {
                 };
             } else {
                 this.limiter = (p_165054_, p_165055_) -> {
-                    return Math.min(p_165007_.getInt(p_165054_), p_165055_);
+                    return Math.min(pMax.getInt(p_165054_), p_165055_);
                 };
                 this.predicate = (p_165047_, p_165048_) -> {
-                    return p_165048_ <= p_165007_.getInt(p_165047_);
+                    return p_165048_ <= pMax.getInt(p_165047_);
                 };
             }
-        } else if (p_165007_ == null) {
+        } else if (pMax == null) {
             this.limiter = (p_165033_, p_165034_) -> {
-                return Math.max(p_165006_.getInt(p_165033_), p_165034_);
+                return Math.max(pMin.getInt(p_165033_), p_165034_);
             };
             this.predicate = (p_165019_, p_165020_) -> {
-                return p_165020_ >= p_165006_.getInt(p_165019_);
+                return p_165020_ >= pMin.getInt(p_165019_);
             };
         } else {
             this.limiter = (p_165038_, p_165039_) -> {
-                return Mth.clamp(p_165039_, p_165006_.getInt(p_165038_), p_165007_.getInt(p_165038_));
+                return Mth.clamp(p_165039_, pMin.getInt(p_165038_), pMax.getInt(p_165038_));
             };
             this.predicate = (p_165024_, p_165025_) -> {
-                return p_165025_ >= p_165006_.getInt(p_165024_) && p_165025_ <= p_165007_.getInt(p_165024_);
+                return p_165025_ >= pMin.getInt(p_165024_) && p_165025_ <= pMax.getInt(p_165024_);
             };
         }
     }
 
-    public static IntRange exact(int p_165010_) {
-        ConstantValue constantvalue = ConstantValue.exactly((float) p_165010_);
+    public static IntRange exact(int pExactValue) {
+        ConstantValue constantvalue = ConstantValue.exactly((float) pExactValue);
         return new IntRange(constantvalue, constantvalue);
     }
 
-    public static IntRange range(int p_165012_, int p_165013_) {
-        return new IntRange(ConstantValue.exactly((float) p_165012_), ConstantValue.exactly((float) p_165013_));
+    public static IntRange range(int pMin, int pMax) {
+        return new IntRange(ConstantValue.exactly((float) pMin), ConstantValue.exactly((float) pMax));
     }
 
-    public static IntRange lowerBound(int p_165027_) {
-        return new IntRange(ConstantValue.exactly((float) p_165027_), (NumberProvider) null);
+    public static IntRange lowerBound(int pMin) {
+        return new IntRange(ConstantValue.exactly((float) pMin), (NumberProvider) null);
     }
 
-    public static IntRange upperBound(int p_165041_) {
-        return new IntRange((NumberProvider) null, ConstantValue.exactly((float) p_165041_));
+    public static IntRange upperBound(int pMax) {
+        return new IntRange((NumberProvider) null, ConstantValue.exactly((float) pMax));
     }
 
-    public int clamp(LootContext p_165015_, int p_165016_) {
-        return this.limiter.apply(p_165015_, p_165016_);
+    public int clamp(LootContext pLootContext, int pValue) {
+        return this.limiter.apply(pLootContext, pValue);
     }
 
-    public boolean test(LootContext p_165029_, int p_165030_) {
-        return this.predicate.test(p_165029_, p_165030_);
+    public boolean test(LootContext pLootContext, int pValue) {
+        return this.predicate.test(pLootContext, pValue);
     }
 
     @FunctionalInterface
     interface IntChecker {
-        boolean test(LootContext p_165057_, int p_165058_);
+        boolean test(LootContext pLootContext, int pValue);
     }
 
     @FunctionalInterface
     interface IntLimiter {
-        int apply(LootContext p_165060_, int p_165061_);
+        int apply(LootContext pLootContext, int pValue);
     }
 
     public static class Serializer implements JsonDeserializer<IntRange>, JsonSerializer<IntRange> {

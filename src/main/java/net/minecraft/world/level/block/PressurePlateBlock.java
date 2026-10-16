@@ -21,45 +21,45 @@ public class PressurePlateBlock extends BasePressurePlateBlock {
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     private final PressurePlateBlock.Sensitivity sensitivity;
 
-    protected PressurePlateBlock(PressurePlateBlock.Sensitivity p_55253_, BlockBehaviour.Properties p_55254_) {
-        super(p_55254_);
+    protected PressurePlateBlock(PressurePlateBlock.Sensitivity pSensitivity, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, Boolean.valueOf(false)));
-        this.sensitivity = p_55253_;
+        this.sensitivity = pSensitivity;
     }
 
-    protected int getSignalForState(BlockState p_55270_) {
-        return p_55270_.getValue(POWERED) ? 15 : 0;
+    protected int getSignalForState(BlockState pState) {
+        return pState.getValue(POWERED) ? 15 : 0;
     }
 
-    protected BlockState setSignalForState(BlockState p_55259_, int p_55260_) {
-        return p_55259_.setValue(POWERED, Boolean.valueOf(p_55260_ > 0));
+    protected BlockState setSignalForState(BlockState pState, int pStrength) {
+        return pState.setValue(POWERED, Boolean.valueOf(pStrength > 0));
     }
 
-    protected void playOnSound(LevelAccessor p_55256_, BlockPos p_55257_) {
+    protected void playOnSound(LevelAccessor pLevel, BlockPos pPos) {
         if (this.material != Material.WOOD && this.material != Material.NETHER_WOOD) {
-            p_55256_.playSound((Player) null, p_55257_, SoundEvents.STONE_PRESSURE_PLATE_CLICK_ON, SoundSource.BLOCKS, 0.3F, 0.6F);
+            pLevel.playSound((Player) null, pPos, SoundEvents.STONE_PRESSURE_PLATE_CLICK_ON, SoundSource.BLOCKS, 0.3F, 0.6F);
         } else {
-            p_55256_.playSound((Player) null, p_55257_, SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, SoundSource.BLOCKS, 0.3F, 0.8F);
+            pLevel.playSound((Player) null, pPos, SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, SoundSource.BLOCKS, 0.3F, 0.8F);
         }
     }
 
-    protected void playOffSound(LevelAccessor p_55267_, BlockPos p_55268_) {
+    protected void playOffSound(LevelAccessor pLevel, BlockPos pPos) {
         if (this.material != Material.WOOD && this.material != Material.NETHER_WOOD) {
-            p_55267_.playSound((Player) null, p_55268_, SoundEvents.STONE_PRESSURE_PLATE_CLICK_OFF, SoundSource.BLOCKS, 0.3F, 0.5F);
+            pLevel.playSound((Player) null, pPos, SoundEvents.STONE_PRESSURE_PLATE_CLICK_OFF, SoundSource.BLOCKS, 0.3F, 0.5F);
         } else {
-            p_55267_.playSound((Player) null, p_55268_, SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, SoundSource.BLOCKS, 0.3F, 0.7F);
+            pLevel.playSound((Player) null, pPos, SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, SoundSource.BLOCKS, 0.3F, 0.7F);
         }
     }
 
-    protected int getSignalStrength(Level p_55264_, BlockPos p_55265_) {
-        AABB aabb = TOUCH_AABB.move(p_55265_);
+    protected int getSignalStrength(Level pLevel, BlockPos pPos) {
+        AABB aabb = TOUCH_AABB.move(pPos);
         List<? extends Entity> list;
         switch (this.sensitivity) {
             case EVERYTHING:
-                list = p_55264_.getEntities((Entity) null, aabb);
+                list = pLevel.getEntities((Entity) null, aabb);
                 break;
             case MOBS:
-                list = p_55264_.getEntitiesOfClass(LivingEntity.class, aabb);
+                list = pLevel.getEntitiesOfClass(LivingEntity.class, aabb);
                 break;
             default:
                 return 0;
@@ -76,8 +76,8 @@ public class PressurePlateBlock extends BasePressurePlateBlock {
         return 0;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_55262_) {
-        p_55262_.add(POWERED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(POWERED);
     }
 
     public static enum Sensitivity {

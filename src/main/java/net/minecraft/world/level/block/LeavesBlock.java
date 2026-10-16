@@ -29,23 +29,23 @@ public class LeavesBlock extends Block implements SimpleWaterloggedBlock {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     private static final int TICK_DELAY = 1;
 
-    public LeavesBlock(BlockBehaviour.Properties p_54422_) {
-        super(p_54422_);
+    public LeavesBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(DISTANCE, Integer.valueOf(7)).setValue(PERSISTENT, Boolean.valueOf(false)).setValue(WATERLOGGED, Boolean.valueOf(false)));
     }
 
-    public VoxelShape getBlockSupportShape(BlockState p_54456_, BlockGetter p_54457_, BlockPos p_54458_) {
+    public VoxelShape getBlockSupportShape(BlockState pState, BlockGetter pReader, BlockPos pPos) {
         return Shapes.empty();
     }
 
-    public boolean isRandomlyTicking(BlockState p_54449_) {
-        return p_54449_.getValue(DISTANCE) == 7 && !p_54449_.getValue(PERSISTENT);
+    public boolean isRandomlyTicking(BlockState pState) {
+        return pState.getValue(DISTANCE) == 7 && !pState.getValue(PERSISTENT);
     }
 
-    public void randomTick(BlockState p_221379_, ServerLevel p_221380_, BlockPos p_221381_, RandomSource p_221382_) {
-        if (this.decaying(p_221379_)) {
-            dropResources(p_221379_, p_221380_, p_221381_);
-            p_221380_.removeBlock(p_221381_, false);
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (this.decaying(pState)) {
+            dropResources(pState, pLevel, pPos);
+            pLevel.removeBlock(pPos, false);
         }
     }
 
@@ -53,73 +53,73 @@ public class LeavesBlock extends Block implements SimpleWaterloggedBlock {
         return !p_221386_.getValue(PERSISTENT) && p_221386_.getValue(DISTANCE) == 7;
     }
 
-    public void tick(BlockState p_221369_, ServerLevel p_221370_, BlockPos p_221371_, RandomSource p_221372_) {
-        p_221370_.setBlock(p_221371_, updateDistance(p_221369_, p_221370_, p_221371_), 3);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        pLevel.setBlock(pPos, updateDistance(pState, pLevel, pPos), 3);
     }
 
-    public int getLightBlock(BlockState p_54460_, BlockGetter p_54461_, BlockPos p_54462_) {
+    public int getLightBlock(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
         return 1;
     }
 
-    public BlockState updateShape(BlockState p_54440_, Direction p_54441_, BlockState p_54442_, LevelAccessor p_54443_, BlockPos p_54444_, BlockPos p_54445_) {
-        if (p_54440_.getValue(WATERLOGGED)) {
-            p_54443_.scheduleTick(p_54444_, Fluids.WATER, Fluids.WATER.getTickDelay(p_54443_));
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        int i = getDistanceAt(p_54442_) + 1;
-        if (i != 1 || p_54440_.getValue(DISTANCE) != i) {
-            p_54443_.scheduleTick(p_54444_, this, 1);
+        int i = getDistanceAt(pFacingState) + 1;
+        if (i != 1 || pState.getValue(DISTANCE) != i) {
+            pLevel.scheduleTick(pCurrentPos, this, 1);
         }
 
-        return p_54440_;
+        return pState;
     }
 
-    private static BlockState updateDistance(BlockState p_54436_, LevelAccessor p_54437_, BlockPos p_54438_) {
+    private static BlockState updateDistance(BlockState pState, LevelAccessor pLevel, BlockPos pPos) {
         int i = 7;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (Direction direction : Direction.values()) {
-            blockpos$mutableblockpos.setWithOffset(p_54438_, direction);
-            i = Math.min(i, getDistanceAt(p_54437_.getBlockState(blockpos$mutableblockpos)) + 1);
+            blockpos$mutableblockpos.setWithOffset(pPos, direction);
+            i = Math.min(i, getDistanceAt(pLevel.getBlockState(blockpos$mutableblockpos)) + 1);
             if (i == 1) {
                 break;
             }
         }
 
-        return p_54436_.setValue(DISTANCE, Integer.valueOf(i));
+        return pState.setValue(DISTANCE, Integer.valueOf(i));
     }
 
-    private static int getDistanceAt(BlockState p_54464_) {
-        if (p_54464_.is(BlockTags.LOGS)) {
+    private static int getDistanceAt(BlockState pNeighbor) {
+        if (pNeighbor.is(BlockTags.LOGS)) {
             return 0;
         } else {
-            return p_54464_.getBlock() instanceof LeavesBlock ? p_54464_.getValue(DISTANCE) : 7;
+            return pNeighbor.getBlock() instanceof LeavesBlock ? pNeighbor.getValue(DISTANCE) : 7;
         }
     }
 
-    public FluidState getFluidState(BlockState p_221384_) {
-        return p_221384_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_221384_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public void animateTick(BlockState p_221374_, Level p_221375_, BlockPos p_221376_, RandomSource p_221377_) {
-        if (p_221375_.isRainingAt(p_221376_.above())) {
-            if (p_221377_.nextInt(15) == 1) {
-                BlockPos blockpos = p_221376_.below();
-                BlockState blockstate = p_221375_.getBlockState(blockpos);
-                if (!blockstate.canOcclude() || !blockstate.isFaceSturdy(p_221375_, blockpos, Direction.UP)) {
-                    p_221375_.addParticle(ParticleTypes.DRIPPING_WATER, SectorVec3.fromBlockAndFraction(p_221376_.getX(), p_221377_.nextDouble(), (double) p_221376_.getY() - 0.05D, p_221376_.getZ(), p_221377_.nextDouble()), 0.0D, 0.0D, 0.0D);
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.isRainingAt(pPos.above())) {
+            if (pRandom.nextInt(15) == 1) {
+                BlockPos blockpos = pPos.below();
+                BlockState blockstate = pLevel.getBlockState(blockpos);
+                if (!blockstate.canOcclude() || !blockstate.isFaceSturdy(pLevel, blockpos, Direction.UP)) {
+                    pLevel.addParticle(ParticleTypes.DRIPPING_WATER, SectorVec3.fromBlockAndFraction(pPos.getX(), pRandom.nextDouble(), (double) pPos.getY() - 0.05D, pPos.getZ(), pRandom.nextDouble()), 0.0D, 0.0D, 0.0D);
                 }
             }
         }
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_54447_) {
-        p_54447_.add(DISTANCE, PERSISTENT, WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(DISTANCE, PERSISTENT, WATERLOGGED);
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_54424_) {
-        FluidState fluidstate = p_54424_.getLevel().getFluidState(p_54424_.getClickedPos());
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        FluidState fluidstate = pContext.getLevel().getFluidState(pContext.getClickedPos());
         BlockState blockstate = this.defaultBlockState().setValue(PERSISTENT, Boolean.valueOf(true)).setValue(WATERLOGGED, Boolean.valueOf(fluidstate.getType() == Fluids.WATER));
-        return updateDistance(blockstate, p_54424_.getLevel(), p_54424_.getClickedPos());
+        return updateDistance(blockstate, pContext.getLevel(), pContext.getClickedPos());
     }
 }

@@ -16,12 +16,12 @@ public class Lighting {
     private static final Vector3f INVENTORY_DIFFUSE_LIGHT_0 = Util.make(new Vector3f(0.2F, -1.0F, -1.0F), Vector3f::normalize);
     private static final Vector3f INVENTORY_DIFFUSE_LIGHT_1 = Util.make(new Vector3f(-0.2F, -1.0F, 0.0F), Vector3f::normalize);
 
-    public static void setupNetherLevel(Matrix4f p_84926_) {
-        RenderSystem.setupLevelDiffuseLighting(NETHER_DIFFUSE_LIGHT_0, NETHER_DIFFUSE_LIGHT_1, p_84926_);
+    public static void setupNetherLevel(Matrix4f pLighting) {
+        RenderSystem.setupLevelDiffuseLighting(NETHER_DIFFUSE_LIGHT_0, NETHER_DIFFUSE_LIGHT_1, pLighting);
     }
 
-    public static void setupLevel(Matrix4f p_84929_) {
-        RenderSystem.setupLevelDiffuseLighting(DIFFUSE_LIGHT_0, DIFFUSE_LIGHT_1, p_84929_);
+    public static void setupLevel(Matrix4f pLighting) {
+        RenderSystem.setupLevelDiffuseLighting(DIFFUSE_LIGHT_0, DIFFUSE_LIGHT_1, pLighting);
     }
 
     public static void setupForFlatItems() {

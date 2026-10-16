@@ -24,19 +24,19 @@ public class LevelLightEngine implements LightEventListener {
         this.skyEngine = p_75807_ ? new SkyLightEngine(p_75805_) : null;
     }
 
-    public void checkBlock(BlockPos p_75823_) {
+    public void checkBlock(BlockPos pPos) {
         if (this.blockEngine != null) {
-            this.blockEngine.checkBlock(p_75823_);
+            this.blockEngine.checkBlock(pPos);
         }
 
         if (this.skyEngine != null) {
-            this.skyEngine.checkBlock(p_75823_);
+            this.skyEngine.checkBlock(pPos);
         }
     }
 
-    public void onBlockEmissionIncrease(BlockPos p_75824_, int p_75825_) {
+    public void onBlockEmissionIncrease(BlockPos pPos, int pEmissionLevel) {
         if (this.blockEngine != null) {
-            this.blockEngine.onBlockEmissionIncrease(p_75824_, p_75825_);
+            this.blockEngine.onBlockEmissionIncrease(pPos, pEmissionLevel);
         }
     }
 
@@ -48,42 +48,42 @@ public class LevelLightEngine implements LightEventListener {
         }
     }
 
-    public int runUpdates(int p_75809_, boolean p_75810_, boolean p_75811_) {
+    public int runUpdates(int pPos, boolean pIsQueueEmpty, boolean pUpdateBlockLight) {
         if (this.blockEngine != null && this.skyEngine != null) {
-            int i = p_75809_ / 2;
-            int j = this.blockEngine.runUpdates(i, p_75810_, p_75811_);
-            int k = p_75809_ - i + j;
-            int l = this.skyEngine.runUpdates(k, p_75810_, p_75811_);
-            return j == 0 && l > 0 ? this.blockEngine.runUpdates(l, p_75810_, p_75811_) : l;
+            int i = pPos / 2;
+            int j = this.blockEngine.runUpdates(i, pIsQueueEmpty, pUpdateBlockLight);
+            int k = pPos - i + j;
+            int l = this.skyEngine.runUpdates(k, pIsQueueEmpty, pUpdateBlockLight);
+            return j == 0 && l > 0 ? this.blockEngine.runUpdates(l, pIsQueueEmpty, pUpdateBlockLight) : l;
         } else if (this.blockEngine != null) {
-            return this.blockEngine.runUpdates(p_75809_, p_75810_, p_75811_);
+            return this.blockEngine.runUpdates(pPos, pIsQueueEmpty, pUpdateBlockLight);
         } else {
-            return this.skyEngine != null ? this.skyEngine.runUpdates(p_75809_, p_75810_, p_75811_) : p_75809_;
+            return this.skyEngine != null ? this.skyEngine.runUpdates(pPos, pIsQueueEmpty, pUpdateBlockLight) : pPos;
         }
     }
 
-    public void updateSectionStatus(SectionPos p_75827_, boolean p_75828_) {
+    public void updateSectionStatus(SectionPos pPos, boolean pIsEmpty) {
         if (this.blockEngine != null) {
-            this.blockEngine.updateSectionStatus(p_75827_, p_75828_);
+            this.blockEngine.updateSectionStatus(pPos, pIsEmpty);
         }
 
         if (this.skyEngine != null) {
-            this.skyEngine.updateSectionStatus(p_75827_, p_75828_);
+            this.skyEngine.updateSectionStatus(pPos, pIsEmpty);
         }
     }
 
-    public void enableLightSources(ChunkPos p_75812_, boolean p_75813_) {
+    public void enableLightSources(ChunkPos pChunkPos, boolean pIsQueueEmpty) {
         if (this.blockEngine != null) {
-            this.blockEngine.enableLightSources(p_75812_, p_75813_);
+            this.blockEngine.enableLightSources(pChunkPos, pIsQueueEmpty);
         }
 
         if (this.skyEngine != null) {
-            this.skyEngine.enableLightSources(p_75812_, p_75813_);
+            this.skyEngine.enableLightSources(pChunkPos, pIsQueueEmpty);
         }
     }
 
-    public LayerLightEventListener getLayerListener(LightLayer p_75815_) {
-        if (p_75815_ == LightLayer.BLOCK) {
+    public LayerLightEventListener getLayerListener(LightLayer pType) {
+        if (pType == LightLayer.BLOCK) {
             return this.blockEngine == null ? LayerLightEventListener.DummyLightLayerEventListener.INSTANCE : this.blockEngine;
         } else {
             return this.skyEngine == null ? LayerLightEventListener.DummyLightLayerEventListener.INSTANCE : this.skyEngine;
@@ -112,19 +112,19 @@ public class LevelLightEngine implements LightEventListener {
         }
     }
 
-    public void retainData(ChunkPos p_75829_, boolean p_75830_) {
+    public void retainData(ChunkPos pPos, boolean pRetain) {
         if (this.blockEngine != null) {
-            this.blockEngine.retainData(p_75829_, p_75830_);
+            this.blockEngine.retainData(pPos, pRetain);
         }
 
         if (this.skyEngine != null) {
-            this.skyEngine.retainData(p_75829_, p_75830_);
+            this.skyEngine.retainData(pPos, pRetain);
         }
     }
 
-    public int getRawBrightness(BlockPos p_75832_, int p_75833_) {
-        int i = this.skyEngine == null ? 0 : this.skyEngine.getLightValue(p_75832_) - p_75833_;
-        int j = this.blockEngine == null ? 0 : this.blockEngine.getLightValue(p_75832_);
+    public int getRawBrightness(BlockPos pBlockPos, int pAmount) {
+        int i = this.skyEngine == null ? 0 : this.skyEngine.getLightValue(pBlockPos) - pAmount;
+        int j = this.blockEngine == null ? 0 : this.blockEngine.getLightValue(pBlockPos);
         return Math.max(j, i);
     }
 

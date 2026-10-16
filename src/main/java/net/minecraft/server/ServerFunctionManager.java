@@ -27,10 +27,10 @@ public class ServerFunctionManager {
     private boolean postReload;
     private ServerFunctionLibrary library;
 
-    public ServerFunctionManager(MinecraftServer p_136110_, ServerFunctionLibrary p_136111_) {
-        this.server = p_136110_;
-        this.library = p_136111_;
-        this.postReload(p_136111_);
+    public ServerFunctionManager(MinecraftServer pServer, ServerFunctionLibrary pLibrary) {
+        this.server = pServer;
+        this.library = pLibrary;
+        this.postReload(pLibrary);
     }
 
     public int getCommandLimit() {
@@ -50,34 +50,34 @@ public class ServerFunctionManager {
         }
     }
 
-    private void executeTagFunctions(Collection<CommandFunction> p_136116_, ResourceLocation p_136117_) {
-        this.server.getProfiler().push(p_136117_::toString);
+    private void executeTagFunctions(Collection<CommandFunction> pFunctionObjects, ResourceLocation pIdentifier) {
+        this.server.getProfiler().push(pIdentifier::toString);
 
-        for (CommandFunction commandfunction : p_136116_) {
+        for (CommandFunction commandfunction : pFunctionObjects) {
             this.execute(commandfunction, this.getGameLoopSender());
         }
 
         this.server.getProfiler().pop();
     }
 
-    public int execute(CommandFunction p_136113_, CommandSourceStack p_136114_) {
-        return this.execute(p_136113_, p_136114_, (ServerFunctionManager.TraceCallbacks) null);
+    public int execute(CommandFunction pFunctionObject, CommandSourceStack pSource) {
+        return this.execute(pFunctionObject, pSource, (ServerFunctionManager.TraceCallbacks) null);
     }
 
-    public int execute(CommandFunction p_179961_, CommandSourceStack p_179962_, @Nullable ServerFunctionManager.TraceCallbacks p_179963_) {
+    public int execute(CommandFunction pFunctionObject, CommandSourceStack pSource, @Nullable ServerFunctionManager.TraceCallbacks pTracer) {
         if (this.context != null) {
-            if (p_179963_ != null) {
+            if (pTracer != null) {
                 this.context.reportError(NO_RECURSIVE_TRACES.getString());
                 return 0;
             } else {
-                this.context.delayFunctionCall(p_179961_, p_179962_);
+                this.context.delayFunctionCall(pFunctionObject, pSource);
                 return 0;
             }
         } else {
             int i;
             try {
-                this.context = new ServerFunctionManager.ExecutionContext(p_179963_);
-                i = this.context.runTopCommand(p_179961_, p_179962_);
+                this.context = new ServerFunctionManager.ExecutionContext(pTracer);
+                i = this.context.runTopCommand(pFunctionObject, pSource);
             } finally {
                 this.context = null;
             }
@@ -86,13 +86,13 @@ public class ServerFunctionManager {
         }
     }
 
-    public void replaceLibrary(ServerFunctionLibrary p_136121_) {
-        this.library = p_136121_;
-        this.postReload(p_136121_);
+    public void replaceLibrary(ServerFunctionLibrary pReloader) {
+        this.library = pReloader;
+        this.postReload(pReloader);
     }
 
-    private void postReload(ServerFunctionLibrary p_136126_) {
-        this.ticking = ImmutableList.copyOf(p_136126_.getTag(TICK_FUNCTION_TAG));
+    private void postReload(ServerFunctionLibrary pReloader) {
+        this.ticking = ImmutableList.copyOf(pReloader.getTag(TICK_FUNCTION_TAG));
         this.postReload = true;
     }
 
@@ -100,12 +100,12 @@ public class ServerFunctionManager {
         return this.server.createCommandSourceStack().withPermission(2).withSuppressedOutput();
     }
 
-    public Optional<CommandFunction> get(ResourceLocation p_136119_) {
-        return this.library.getFunction(p_136119_);
+    public Optional<CommandFunction> get(ResourceLocation pFunctionIdentifier) {
+        return this.library.getFunction(pFunctionIdentifier);
     }
 
-    public Collection<CommandFunction> getTag(ResourceLocation p_214332_) {
-        return this.library.getTag(p_214332_);
+    public Collection<CommandFunction> getTag(ResourceLocation pFunctionTagIdentifier) {
+        return this.library.getTag(pFunctionTagIdentifier);
     }
 
     public Iterable<ResourceLocation> getFunctionNames() {
@@ -127,20 +127,20 @@ public class ServerFunctionManager {
             this.tracer = p_179971_;
         }
 
-        void delayFunctionCall(CommandFunction p_179973_, CommandSourceStack p_179974_) {
+        void delayFunctionCall(CommandFunction pFunction, CommandSourceStack pSender) {
             int i = ServerFunctionManager.this.getCommandLimit();
             if (this.commandQueue.size() + this.nestedCalls.size() < i) {
-                this.nestedCalls.add(new ServerFunctionManager.QueuedCommand(p_179974_, this.depth, new CommandFunction.FunctionEntry(p_179973_)));
+                this.nestedCalls.add(new ServerFunctionManager.QueuedCommand(pSender, this.depth, new CommandFunction.FunctionEntry(pFunction)));
             }
         }
 
-        int runTopCommand(CommandFunction p_179978_, CommandSourceStack p_179979_) {
+        int runTopCommand(CommandFunction pFunction, CommandSourceStack pSource) {
             int i = ServerFunctionManager.this.getCommandLimit();
             int j = 0;
-            CommandFunction.Entry[] acommandfunction$entry = p_179978_.getEntries();
+            CommandFunction.Entry[] acommandfunction$entry = pFunction.getEntries();
 
             for (int k = acommandfunction$entry.length - 1; k >= 0; --k) {
-                this.commandQueue.push(new ServerFunctionManager.QueuedCommand(p_179979_, 0, acommandfunction$entry[k]));
+                this.commandQueue.push(new ServerFunctionManager.QueuedCommand(pSource, 0, acommandfunction$entry[k]));
             }
 
             while (!this.commandQueue.isEmpty()) {
@@ -166,9 +166,9 @@ public class ServerFunctionManager {
             return j;
         }
 
-        public void reportError(String p_179976_) {
+        public void reportError(String pError) {
             if (this.tracer != null) {
-                this.tracer.onError(this.depth, p_179976_);
+                this.tracer.onError(this.depth, pError);
             }
         }
     }
@@ -178,10 +178,10 @@ public class ServerFunctionManager {
         final int depth;
         private final CommandFunction.Entry entry;
 
-        public QueuedCommand(CommandSourceStack p_179982_, int p_179983_, CommandFunction.Entry p_179984_) {
-            this.sender = p_179982_;
-            this.depth = p_179983_;
-            this.entry = p_179984_;
+        public QueuedCommand(CommandSourceStack pSender, int pDepth, CommandFunction.Entry pEntry) {
+            this.sender = pSender;
+            this.depth = pDepth;
+            this.entry = pEntry;
         }
 
         public void execute(ServerFunctionManager p_179986_, Deque<ServerFunctionManager.QueuedCommand> p_179987_, int p_179988_, @Nullable ServerFunctionManager.TraceCallbacks p_179989_) {

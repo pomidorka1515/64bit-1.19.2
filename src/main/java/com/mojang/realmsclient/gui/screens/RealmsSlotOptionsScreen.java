@@ -50,23 +50,23 @@ public class RealmsSlotOptionsScreen extends RealmsScreen {
     private boolean forceGameMode;
     RealmsSlotOptionsScreen.SettingsSlider spawnProtectionButton;
 
-    public RealmsSlotOptionsScreen(RealmsConfigureWorldScreen p_89886_, RealmsWorldOptions p_89887_, RealmsServer.WorldType p_89888_, int p_89889_) {
+    public RealmsSlotOptionsScreen(RealmsConfigureWorldScreen pParent, RealmsWorldOptions pOptions, RealmsServer.WorldType pWorldType, int pActiveSlot) {
         super(Component.translatable("mco.configure.world.buttons.options"));
-        this.parent = p_89886_;
-        this.options = p_89887_;
-        this.worldType = p_89888_;
-        this.difficulty = findByIndex(DIFFICULTIES, p_89887_.difficulty, 2);
-        this.gameMode = findByIndex(GAME_MODES, p_89887_.gameMode, 0);
-        this.defaultSlotName = p_89887_.getDefaultSlotName(p_89889_);
-        this.setWorldName(p_89887_.getSlotName(p_89889_));
-        if (p_89888_ == RealmsServer.WorldType.NORMAL) {
-            this.pvp = p_89887_.pvp;
-            this.spawnProtection = p_89887_.spawnProtection;
-            this.forceGameMode = p_89887_.forceGameMode;
-            this.spawnAnimals = p_89887_.spawnAnimals;
-            this.spawnMonsters = p_89887_.spawnMonsters;
-            this.spawnNPCs = p_89887_.spawnNPCs;
-            this.commandBlocks = p_89887_.commandBlocks;
+        this.parent = pParent;
+        this.options = pOptions;
+        this.worldType = pWorldType;
+        this.difficulty = findByIndex(DIFFICULTIES, pOptions.difficulty, 2);
+        this.gameMode = findByIndex(GAME_MODES, pOptions.gameMode, 0);
+        this.defaultSlotName = pOptions.getDefaultSlotName(pActiveSlot);
+        this.setWorldName(pOptions.getSlotName(pActiveSlot));
+        if (pWorldType == RealmsServer.WorldType.NORMAL) {
+            this.pvp = pOptions.pvp;
+            this.spawnProtection = pOptions.spawnProtection;
+            this.forceGameMode = pOptions.forceGameMode;
+            this.spawnAnimals = pOptions.spawnAnimals;
+            this.spawnMonsters = pOptions.spawnMonsters;
+            this.spawnNPCs = pOptions.spawnNPCs;
+            this.commandBlocks = pOptions.commandBlocks;
         } else {
             this.pvp = true;
             this.spawnProtection = 0;
@@ -86,12 +86,12 @@ public class RealmsSlotOptionsScreen extends RealmsScreen {
         this.nameEdit.tick();
     }
 
-    public boolean keyPressed(int p_89891_, int p_89892_, int p_89893_) {
-        if (p_89891_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.parent);
             return true;
         } else {
-            return super.keyPressed(p_89891_, p_89892_, p_89893_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -205,12 +205,12 @@ public class RealmsSlotOptionsScreen extends RealmsScreen {
         return CommonComponents.joinForNarration(this.getTitle(), this.createLabelNarration());
     }
 
-    public void render(PoseStack p_89895_, int p_89896_, int p_89897_, float p_89898_) {
-        this.renderBackground(p_89895_);
-        drawCenteredString(p_89895_, this.font, this.title, this.width / 2, 17, 16777215);
-        this.font.draw(p_89895_, NAME_LABEL, (float) (this.column1X + this.columnWidth / 2 - this.font.width(NAME_LABEL) / 2), (float) (row(0) - 5), 16777215);
-        this.nameEdit.render(p_89895_, p_89896_, p_89897_, p_89898_);
-        super.render(p_89895_, p_89896_, p_89897_, p_89898_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 17, 16777215);
+        this.font.draw(pPoseStack, NAME_LABEL, (float) (this.column1X + this.columnWidth / 2 - this.font.width(NAME_LABEL) / 2), (float) (row(0) - 5), 16777215);
+        this.nameEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     private void setWorldName(String p_231314_) {
@@ -255,10 +255,10 @@ public class RealmsSlotOptionsScreen extends RealmsScreen {
             this.setMessage(CommonComponents.optionNameValue(RealmsSlotOptionsScreen.SPAWN_PROTECTION_TEXT, (Component) (RealmsSlotOptionsScreen.this.spawnProtection == 0 ? CommonComponents.OPTION_OFF : Component.literal(String.valueOf(RealmsSlotOptionsScreen.this.spawnProtection)))));
         }
 
-        public void onClick(double p_89954_, double p_89955_) {
+        public void onClick(double pMouseX, double pMouseY) {
         }
 
-        public void onRelease(double p_89957_, double p_89958_) {
+        public void onRelease(double pMouseX, double pMouseY) {
         }
     }
 }

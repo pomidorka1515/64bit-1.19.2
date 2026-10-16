@@ -17,8 +17,8 @@ public class ProfiledReloadInstance extends SimpleReloadInstance<ProfiledReloadI
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Stopwatch total = Stopwatch.createUnstarted();
 
-    public ProfiledReloadInstance(ResourceManager p_10649_, List<PreparableReloadListener> p_10650_, Executor p_10651_, Executor p_10652_, CompletableFuture<Unit> p_10653_) {
-        super(p_10651_, p_10652_, p_10649_, p_10650_, (p_10668_, p_10669_, p_10670_, p_10671_, p_10672_) -> {
+    public ProfiledReloadInstance(ResourceManager pResourceManager, List<PreparableReloadListener> pListeners, Executor pBackgroundExecutor, Executor pGameExecutor, CompletableFuture<Unit> pAlsoWaitedFor) {
+        super(pBackgroundExecutor, pGameExecutor, pResourceManager, pListeners, (p_10668_, p_10669_, p_10670_, p_10671_, p_10672_) -> {
             AtomicLong atomiclong = new AtomicLong();
             AtomicLong atomiclong1 = new AtomicLong();
             ActiveProfiler activeprofiler = new ActiveProfiler(Util.timeSource, () -> {
@@ -39,10 +39,10 @@ public class ProfiledReloadInstance extends SimpleReloadInstance<ProfiledReloadI
             return completablefuture.thenApplyAsync((p_143913_) -> {
                 LOGGER.debug("Finished reloading " + p_10670_.getName());
                 return new ProfiledReloadInstance.State(p_10670_.getName(), activeprofiler.getResults(), activeprofiler1.getResults(), atomiclong, atomiclong1);
-            }, p_10652_);
-        }, p_10653_);
+            }, pGameExecutor);
+        }, pAlsoWaitedFor);
         this.total.start();
-        this.allDone = this.allDone.thenApplyAsync(this::finish, p_10652_);
+        this.allDone = this.allDone.thenApplyAsync(this::finish, pGameExecutor);
     }
 
     private List<ProfiledReloadInstance.State> finish(List<ProfiledReloadInstance.State> p_215484_) {
@@ -72,12 +72,12 @@ public class ProfiledReloadInstance extends SimpleReloadInstance<ProfiledReloadI
         final AtomicLong preparationNanos;
         final AtomicLong reloadNanos;
 
-        State(String p_10692_, ProfileResults p_10693_, ProfileResults p_10694_, AtomicLong p_10695_, AtomicLong p_10696_) {
-            this.name = p_10692_;
-            this.preparationResult = p_10693_;
-            this.reloadResult = p_10694_;
-            this.preparationNanos = p_10695_;
-            this.reloadNanos = p_10696_;
+        State(String pName, ProfileResults pPreperationResult, ProfileResults pReloadResult, AtomicLong pPreperationNanos, AtomicLong pReloadNanos) {
+            this.name = pName;
+            this.preparationResult = pPreperationResult;
+            this.reloadResult = pReloadResult;
+            this.preparationNanos = pPreperationNanos;
+            this.reloadNanos = pReloadNanos;
         }
     }
 }

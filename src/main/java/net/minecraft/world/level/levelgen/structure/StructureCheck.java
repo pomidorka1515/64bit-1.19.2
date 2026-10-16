@@ -58,42 +58,42 @@ public class StructureCheck {
     private final Object2ObjectMap<ChunkPos, Object2IntMap<Structure>> loadedChunks = new Object2ObjectOpenHashMap<>();
     private final Map<Structure, Object2BooleanMap<ChunkPos>> featureChecks = new HashMap<>();
 
-    public StructureCheck(ChunkScanAccess p_226712_, RegistryAccess p_226713_, StructureTemplateManager p_226714_, ResourceKey<Level> p_226715_, ChunkGenerator p_226716_, RandomState p_226717_, LevelHeightAccessor p_226718_, BiomeSource p_226719_, long p_226720_, DataFixer p_226721_) {
-        this.storageAccess = p_226712_;
-        this.registryAccess = p_226713_;
-        this.structureTemplateManager = p_226714_;
-        this.dimension = p_226715_;
-        this.chunkGenerator = p_226716_;
-        this.randomState = p_226717_;
-        this.heightAccessor = p_226718_;
-        this.biomeSource = p_226719_;
-        this.seed = p_226720_;
-        this.fixerUpper = p_226721_;
-        this.biomes = p_226713_.ownedRegistryOrThrow(Registry.BIOME_REGISTRY);
-        this.structureConfigs = p_226713_.ownedRegistryOrThrow(Registry.STRUCTURE_REGISTRY);
+    public StructureCheck(ChunkScanAccess pStorageAccess, RegistryAccess pRegistryAccess, StructureTemplateManager pStructureTemplateManager, ResourceKey<Level> pDimension, ChunkGenerator pChunkGenerator, RandomState pRandomState, LevelHeightAccessor pHeightAccessor, BiomeSource pBiomeSource, long pSeed, DataFixer pFixerUpper) {
+        this.storageAccess = pStorageAccess;
+        this.registryAccess = pRegistryAccess;
+        this.structureTemplateManager = pStructureTemplateManager;
+        this.dimension = pDimension;
+        this.chunkGenerator = pChunkGenerator;
+        this.randomState = pRandomState;
+        this.heightAccessor = pHeightAccessor;
+        this.biomeSource = pBiomeSource;
+        this.seed = pSeed;
+        this.fixerUpper = pFixerUpper;
+        this.biomes = pRegistryAccess.ownedRegistryOrThrow(Registry.BIOME_REGISTRY);
+        this.structureConfigs = pRegistryAccess.ownedRegistryOrThrow(Registry.STRUCTURE_REGISTRY);
     }
 
-    public StructureCheckResult checkStart(ChunkPos p_226730_, Structure p_226731_, boolean p_226732_) {
-        Object2IntMap<Structure> object2intmap = this.loadedChunks.get(p_226730_);
+    public StructureCheckResult checkStart(ChunkPos pChunkPos, Structure pStructure, boolean pSkipKnownStructures) {
+        Object2IntMap<Structure> object2intmap = this.loadedChunks.get(pChunkPos);
         if (object2intmap != null) {
-            return this.checkStructureInfo(object2intmap, p_226731_, p_226732_);
+            return this.checkStructureInfo(object2intmap, pStructure, pSkipKnownStructures);
         } else {
-            StructureCheckResult structurecheckresult = this.tryLoadFromStorage(p_226730_, p_226731_, p_226732_, p_226730_);
+            StructureCheckResult structurecheckresult = this.tryLoadFromStorage(pChunkPos, pStructure, pSkipKnownStructures, pChunkPos);
             if (structurecheckresult != null) {
                 return structurecheckresult;
             } else {
-                boolean flag = this.featureChecks.computeIfAbsent(p_226731_, (p_226739_) -> {
+                boolean flag = this.featureChecks.computeIfAbsent(pStructure, (p_226739_) -> {
                                                      return new Object2BooleanOpenHashMap<>();
-                                                 }).computeIfAbsent(p_226730_, (p_226728_) -> {
-                    return this.canCreateStructure(p_226730_, p_226731_);
+                                                 }).computeIfAbsent(pChunkPos, (p_226728_) -> {
+                    return this.canCreateStructure(pChunkPos, pStructure);
                 });
                 return !flag ? StructureCheckResult.START_NOT_PRESENT : StructureCheckResult.CHUNK_LOAD_NEEDED;
             }
         }
     }
 
-    private boolean canCreateStructure(ChunkPos p_226756_, Structure p_226757_) {
-        return p_226757_.findGenerationPoint(new Structure.GenerationContext(this.registryAccess, this.chunkGenerator, this.biomeSource, this.randomState, this.structureTemplateManager, this.seed, p_226756_, this.heightAccessor, p_226757_.biomes()::contains)).isPresent();
+    private boolean canCreateStructure(ChunkPos pChunkPos, Structure pStructure) {
+        return pStructure.findGenerationPoint(new Structure.GenerationContext(this.registryAccess, this.chunkGenerator, this.biomeSource, this.randomState, this.structureTemplateManager, this.seed, pChunkPos, this.heightAccessor, pStructure.biomes()::contains)).isPresent();
     }
 
     @Nullable
@@ -137,11 +137,11 @@ public class StructureCheck {
     }
 
     @Nullable
-    private Object2IntMap<Structure> loadStructures(CompoundTag p_197312_) {
-        if (!p_197312_.contains("structures", 10)) {
+    private Object2IntMap<Structure> loadStructures(CompoundTag pTag) {
+        if (!pTag.contains("structures", 10)) {
             return null;
         } else {
-            CompoundTag compoundtag = p_197312_.getCompound("structures");
+            CompoundTag compoundtag = pTag.getCompound("structures");
             if (!compoundtag.contains("starts", 10)) {
                 return null;
             } else {
@@ -175,8 +175,8 @@ public class StructureCheck {
         }
     }
 
-    private static Object2IntMap<Structure> deduplicateEmptyMap(Object2IntMap<Structure> p_197299_) {
-        return p_197299_.isEmpty() ? Object2IntMaps.emptyMap() : p_197299_;
+    private static Object2IntMap<Structure> deduplicateEmptyMap(Object2IntMap<Structure> pMap) {
+        return pMap.isEmpty() ? Object2IntMaps.emptyMap() : pMap;
     }
 
     private StructureCheckResult checkStructureInfo(Object2IntMap<Structure> p_226752_, Structure p_226753_, boolean p_226754_) {

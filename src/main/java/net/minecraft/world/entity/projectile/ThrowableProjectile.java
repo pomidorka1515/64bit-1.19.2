@@ -15,29 +15,29 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class ThrowableProjectile extends Projectile {
-    protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> p_37466_, Level p_37467_) {
-        super(p_37466_, p_37467_);
+    protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> p_37456_, double p_37457_, double p_37458_, double p_37459_, Level p_37460_) {
-        this(p_37456_, p_37460_);
-        this.setPos(p_37457_, p_37458_, p_37459_);
+    protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> pEntityType, double pX, double pY, double pZ, Level pLevel) {
+        this(pEntityType, pLevel);
+        this.setPos(pX, pY, pZ);
     }
 
-    protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> p_37462_, LivingEntity p_37463_, Level p_37464_) {
-        this(p_37462_, p_37463_.getX(), p_37463_.getEyeY() - (double) 0.1F, p_37463_.getZ(), p_37464_);
-        this.applyExactPosition(p_37463_.sectorPosition().withY(p_37463_.getEyeY() - (double) 0.1F));
-        this.setOwner(p_37463_);
+    protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> pEntityType, LivingEntity pShooter, Level pLevel) {
+        this(pEntityType, pShooter.getX(), pShooter.getEyeY() - (double) 0.1F, pShooter.getZ(), pLevel);
+        this.applyExactPosition(pShooter.sectorPosition().withY(pShooter.getEyeY() - (double) 0.1F));
+        this.setOwner(pShooter);
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_37470_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         double d0 = this.getBoundingBox().getSize() * 4.0D;
         if (Double.isNaN(d0)) {
             d0 = 4.0D;
         }
 
         d0 *= 64.0D;
-        return p_37470_ < d0 * d0;
+        return pDistance < d0 * d0;
     }
 
     public void tick() {

@@ -11,10 +11,10 @@ public class AddNewChoices extends DataFix {
     private final String name;
     private final DSL.TypeReference type;
 
-    public AddNewChoices(Schema p_14628_, String p_14629_, DSL.TypeReference p_14630_) {
-        super(p_14628_, true);
-        this.name = p_14629_;
-        this.type = p_14630_;
+    public AddNewChoices(Schema pOutputSchema, String pName, DSL.TypeReference pType) {
+        super(pOutputSchema, true);
+        this.name = pName;
+        this.type = pType;
     }
 
     public TypeRewriteRule makeRule() {

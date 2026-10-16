@@ -7,9 +7,9 @@ public class CompoundContainer implements Container {
     private final Container container1;
     private final Container container2;
 
-    public CompoundContainer(Container p_18913_, Container p_18914_) {
-        this.container1 = p_18913_;
-        this.container2 = p_18914_;
+    public CompoundContainer(Container pContainer1, Container pContainer2) {
+        this.container1 = pContainer1;
+        this.container2 = pContainer2;
     }
 
     public int getContainerSize() {
@@ -20,27 +20,27 @@ public class CompoundContainer implements Container {
         return this.container1.isEmpty() && this.container2.isEmpty();
     }
 
-    public boolean contains(Container p_18928_) {
-        return this.container1 == p_18928_ || this.container2 == p_18928_;
+    public boolean contains(Container pInventory) {
+        return this.container1 == pInventory || this.container2 == pInventory;
     }
 
-    public ItemStack getItem(int p_18920_) {
-        return p_18920_ >= this.container1.getContainerSize() ? this.container2.getItem(p_18920_ - this.container1.getContainerSize()) : this.container1.getItem(p_18920_);
+    public ItemStack getItem(int pIndex) {
+        return pIndex >= this.container1.getContainerSize() ? this.container2.getItem(pIndex - this.container1.getContainerSize()) : this.container1.getItem(pIndex);
     }
 
-    public ItemStack removeItem(int p_18922_, int p_18923_) {
-        return p_18922_ >= this.container1.getContainerSize() ? this.container2.removeItem(p_18922_ - this.container1.getContainerSize(), p_18923_) : this.container1.removeItem(p_18922_, p_18923_);
+    public ItemStack removeItem(int pIndex, int pCount) {
+        return pIndex >= this.container1.getContainerSize() ? this.container2.removeItem(pIndex - this.container1.getContainerSize(), pCount) : this.container1.removeItem(pIndex, pCount);
     }
 
-    public ItemStack removeItemNoUpdate(int p_18932_) {
-        return p_18932_ >= this.container1.getContainerSize() ? this.container2.removeItemNoUpdate(p_18932_ - this.container1.getContainerSize()) : this.container1.removeItemNoUpdate(p_18932_);
+    public ItemStack removeItemNoUpdate(int pIndex) {
+        return pIndex >= this.container1.getContainerSize() ? this.container2.removeItemNoUpdate(pIndex - this.container1.getContainerSize()) : this.container1.removeItemNoUpdate(pIndex);
     }
 
-    public void setItem(int p_18925_, ItemStack p_18926_) {
-        if (p_18925_ >= this.container1.getContainerSize()) {
-            this.container2.setItem(p_18925_ - this.container1.getContainerSize(), p_18926_);
+    public void setItem(int pIndex, ItemStack pStack) {
+        if (pIndex >= this.container1.getContainerSize()) {
+            this.container2.setItem(pIndex - this.container1.getContainerSize(), pStack);
         } else {
-            this.container1.setItem(p_18925_, p_18926_);
+            this.container1.setItem(pIndex, pStack);
         }
     }
 
@@ -53,22 +53,22 @@ public class CompoundContainer implements Container {
         this.container2.setChanged();
     }
 
-    public boolean stillValid(Player p_18930_) {
-        return this.container1.stillValid(p_18930_) && this.container2.stillValid(p_18930_);
+    public boolean stillValid(Player pPlayer) {
+        return this.container1.stillValid(pPlayer) && this.container2.stillValid(pPlayer);
     }
 
-    public void startOpen(Player p_18940_) {
-        this.container1.startOpen(p_18940_);
-        this.container2.startOpen(p_18940_);
+    public void startOpen(Player pPlayer) {
+        this.container1.startOpen(pPlayer);
+        this.container2.startOpen(pPlayer);
     }
 
-    public void stopOpen(Player p_18937_) {
-        this.container1.stopOpen(p_18937_);
-        this.container2.stopOpen(p_18937_);
+    public void stopOpen(Player pPlayer) {
+        this.container1.stopOpen(pPlayer);
+        this.container2.stopOpen(pPlayer);
     }
 
-    public boolean canPlaceItem(int p_18934_, ItemStack p_18935_) {
-        return p_18934_ >= this.container1.getContainerSize() ? this.container2.canPlaceItem(p_18934_ - this.container1.getContainerSize(), p_18935_) : this.container1.canPlaceItem(p_18934_, p_18935_);
+    public boolean canPlaceItem(int pIndex, ItemStack pStack) {
+        return pIndex >= this.container1.getContainerSize() ? this.container2.canPlaceItem(pIndex - this.container1.getContainerSize(), pStack) : this.container1.canPlaceItem(pIndex, pStack);
     }
 
     public void clearContent() {

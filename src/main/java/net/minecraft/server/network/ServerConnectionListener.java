@@ -61,12 +61,12 @@ public class ServerConnectionListener {
     private final List<ChannelFuture> channels = Collections.synchronizedList(Lists.newArrayList());
     final List<Connection> connections = Collections.synchronizedList(Lists.newArrayList());
 
-    public ServerConnectionListener(MinecraftServer p_9707_) {
-        this.server = p_9707_;
+    public ServerConnectionListener(MinecraftServer pServer) {
+        this.server = pServer;
         this.running = true;
     }
 
-    public void startTcpServerListener(@Nullable InetAddress p_9712_, int p_9713_) throws IOException {
+    public void startTcpServerListener(@Nullable InetAddress pAddress, int pPort) throws IOException {
         synchronized (this.channels) {
             Class<? extends ServerSocketChannel> oclass;
             LazyLoadedValue<? extends EventLoopGroup> lazyloadedvalue;
@@ -96,7 +96,7 @@ public class ServerConnectionListener {
                                                                          }
                                                                      })
                             .group(lazyloadedvalue.get())
-                            .localAddress(p_9712_, p_9713_)
+                            .localAddress(pAddress, pPort)
                             .bind()
                             .syncUninterruptibly());
         }
@@ -180,18 +180,18 @@ public class ServerConnectionListener {
         private final int jitter;
         private final List<ServerConnectionListener.LatencySimulator.DelayedMessage> queuedMessages = Lists.newArrayList();
 
-        public LatencySimulator(int p_143593_, int p_143594_) {
-            this.delay = p_143593_;
-            this.jitter = p_143594_;
+        public LatencySimulator(int pDelay, int pJitter) {
+            this.delay = pDelay;
+            this.jitter = pJitter;
         }
 
-        public void channelRead(ChannelHandlerContext p_143601_, Object p_143602_) {
-            this.delayDownstream(p_143601_, p_143602_);
+        public void channelRead(ChannelHandlerContext pCtx, Object pMsg) {
+            this.delayDownstream(pCtx, pMsg);
         }
 
-        private void delayDownstream(ChannelHandlerContext p_143596_, Object p_143597_) {
+        private void delayDownstream(ChannelHandlerContext pCtx, Object pMsg) {
             int i = this.delay + (int) (Math.random() * (double) this.jitter);
-            this.queuedMessages.add(new ServerConnectionListener.LatencySimulator.DelayedMessage(p_143596_, p_143597_));
+            this.queuedMessages.add(new ServerConnectionListener.LatencySimulator.DelayedMessage(pCtx, pMsg));
             TIMER.newTimeout(this::onTimeout, (long) i, TimeUnit.MILLISECONDS);
         }
 
@@ -204,9 +204,9 @@ public class ServerConnectionListener {
             public final ChannelHandlerContext ctx;
             public final Object msg;
 
-            public DelayedMessage(ChannelHandlerContext p_143606_, Object p_143607_) {
-                this.ctx = p_143606_;
-                this.msg = p_143607_;
+            public DelayedMessage(ChannelHandlerContext pCtx, Object pMsg) {
+                this.ctx = pCtx;
+                this.msg = pMsg;
             }
         }
     }

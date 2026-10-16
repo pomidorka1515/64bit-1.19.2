@@ -27,13 +27,13 @@ public class SelectWorldScreen extends Screen {
     protected EditBox searchBox;
     private WorldSelectionList list;
 
-    public SelectWorldScreen(Screen p_101338_) {
+    public SelectWorldScreen(Screen pLastScreen) {
         super(Component.translatable("selectWorld.title"));
-        this.lastScreen = p_101338_;
+        this.lastScreen = pLastScreen;
     }
 
-    public boolean mouseScrolled(double p_101343_, double p_101344_, double p_101345_) {
-        return super.mouseScrolled(p_101343_, p_101344_, p_101345_);
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+        return super.mouseScrolled(pMouseX, pMouseY, pDelta);
     }
 
     public void tick() {
@@ -71,38 +71,38 @@ public class SelectWorldScreen extends Screen {
         this.setInitialFocus(this.searchBox);
     }
 
-    public boolean keyPressed(int p_101347_, int p_101348_, int p_101349_) {
-        return super.keyPressed(p_101347_, p_101348_, p_101349_) ? true : this.searchBox.keyPressed(p_101347_, p_101348_, p_101349_);
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers) ? true : this.searchBox.keyPressed(pKeyCode, pScanCode, pModifiers);
     }
 
     public void onClose() {
         this.minecraft.setScreen(this.lastScreen);
     }
 
-    public boolean charTyped(char p_101340_, int p_101341_) {
-        return this.searchBox.charTyped(p_101340_, p_101341_);
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        return this.searchBox.charTyped(pCodePoint, pModifiers);
     }
 
-    public void render(PoseStack p_101351_, int p_101352_, int p_101353_, float p_101354_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.toolTip = null;
-        this.list.render(p_101351_, p_101352_, p_101353_, p_101354_);
-        this.searchBox.render(p_101351_, p_101352_, p_101353_, p_101354_);
-        drawCenteredString(p_101351_, this.font, this.title, this.width / 2, 8, 16777215);
-        super.render(p_101351_, p_101352_, p_101353_, p_101354_);
+        this.list.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.searchBox.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 8, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (this.toolTip != null) {
-            this.renderTooltip(p_101351_, this.toolTip, p_101352_, p_101353_);
+            this.renderTooltip(pPoseStack, this.toolTip, pMouseX, pMouseY);
         }
     }
 
-    public void setToolTip(List<FormattedCharSequence> p_101364_) {
-        this.toolTip = p_101364_;
+    public void setToolTip(List<FormattedCharSequence> pToolTip) {
+        this.toolTip = pToolTip;
     }
 
-    public void updateButtonStatus(boolean p_101370_) {
-        this.selectButton.active = p_101370_;
-        this.deleteButton.active = p_101370_;
-        this.renameButton.active = p_101370_;
-        this.copyButton.active = p_101370_;
+    public void updateButtonStatus(boolean pActive) {
+        this.selectButton.active = pActive;
+        this.deleteButton.active = pActive;
+        this.renameButton.active = pActive;
+        this.copyButton.active = pActive;
     }
 
     public void removed() {

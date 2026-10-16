@@ -35,11 +35,11 @@ public class BiomeAmbientSoundsHandler implements AmbientSoundHandler {
     @Nullable
     private Biome previousBiome;
 
-    public BiomeAmbientSoundsHandler(LocalPlayer p_119639_, SoundManager p_119640_, BiomeManager p_119641_) {
-        this.random = p_119639_.level.getRandom();
-        this.player = p_119639_;
-        this.soundManager = p_119640_;
-        this.biomeManager = p_119641_;
+    public BiomeAmbientSoundsHandler(LocalPlayer pPlayer, SoundManager pSoundManager, BiomeManager pBiomeManager) {
+        this.random = pPlayer.level.getRandom();
+        this.player = pPlayer;
+        this.soundManager = pSoundManager;
+        this.biomeManager = pBiomeManager;
     }
 
     public float getMoodiness() {
@@ -111,8 +111,8 @@ public class BiomeAmbientSoundsHandler implements AmbientSoundHandler {
         private int fadeDirection;
         private int fade;
 
-        public LoopSoundInstance(SoundEvent p_119658_) {
-            super(p_119658_, SoundSource.AMBIENT, SoundInstance.createUnseededRandom());
+        public LoopSoundInstance(SoundEvent pSoundEvent) {
+            super(pSoundEvent, SoundSource.AMBIENT, SoundInstance.createUnseededRandom());
             this.looping = true;
             this.delay = 0;
             this.volume = 1.0F;

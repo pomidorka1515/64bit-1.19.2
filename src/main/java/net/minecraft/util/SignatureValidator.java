@@ -26,11 +26,11 @@ public interface SignatureValidator {
         return p_216357_.verify(p_216356_);
     }
 
-    static SignatureValidator from(PublicKey p_216370_, String p_216371_) {
+    static SignatureValidator from(PublicKey pPublicKey, String pAlgorithm) {
         return (p_216367_, p_216368_) -> {
             try {
-                Signature signature = Signature.getInstance(p_216371_);
-                signature.initVerify(p_216370_);
+                Signature signature = Signature.getInstance(pAlgorithm);
+                signature.initVerify(pPublicKey);
                 return verifySignature(p_216367_, p_216368_, signature);
             } catch (Exception exception) {
                 LOGGER.error("Failed to verify signature", (Throwable) exception);
@@ -39,9 +39,9 @@ public interface SignatureValidator {
         };
     }
 
-    static SignatureValidator from(ServicesKeyInfo p_216359_) {
+    static SignatureValidator from(ServicesKeyInfo pServicesKeyInfo) {
         return (p_216362_, p_216363_) -> {
-            Signature signature = p_216359_.signature();
+            Signature signature = pServicesKeyInfo.signature();
 
             try {
                 return verifySignature(p_216362_, p_216363_, signature);

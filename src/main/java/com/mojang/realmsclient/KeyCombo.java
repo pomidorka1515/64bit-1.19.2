@@ -10,21 +10,21 @@ public class KeyCombo {
     private int matchIndex;
     private final Runnable onCompletion;
 
-    public KeyCombo(char[] p_86225_, Runnable p_86226_) {
-        this.onCompletion = p_86226_;
-        if (p_86225_.length < 1) {
+    public KeyCombo(char[] pChars, Runnable pOnCompletion) {
+        this.onCompletion = pOnCompletion;
+        if (pChars.length < 1) {
             throw new IllegalArgumentException("Must have at least one char");
         } else {
-            this.chars = p_86225_;
+            this.chars = pChars;
         }
     }
 
-    public KeyCombo(char[] p_167171_) {
-        this(p_167171_, () -> {});
+    public KeyCombo(char[] pChars) {
+        this(pChars, () -> {});
     }
 
-    public boolean keyPressed(char p_86229_) {
-        if (p_86229_ == this.chars[this.matchIndex++]) {
+    public boolean keyPressed(char pKey) {
+        if (pKey == this.chars[this.matchIndex++]) {
             if (this.matchIndex == this.chars.length) {
                 this.reset();
                 this.onCompletion.run();

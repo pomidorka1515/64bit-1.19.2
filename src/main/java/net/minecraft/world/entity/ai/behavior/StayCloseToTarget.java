@@ -14,26 +14,26 @@ public class StayCloseToTarget<E extends LivingEntity> extends Behavior<E> {
     private final int tooFar;
     private final float speedModifier;
 
-    public StayCloseToTarget(Function<LivingEntity, Optional<PositionTracker>> p_217386_, int p_217387_, int p_217388_, float p_217389_) {
+    public StayCloseToTarget(Function<LivingEntity, Optional<PositionTracker>> pTargetPositionGetter, int pCloseEnough, int pTooFar, float pSpeedModifier) {
         super(Map.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
-        this.targetPositionGetter = p_217386_;
-        this.closeEnough = p_217387_;
-        this.tooFar = p_217388_;
-        this.speedModifier = p_217389_;
+        this.targetPositionGetter = pTargetPositionGetter;
+        this.closeEnough = pCloseEnough;
+        this.tooFar = pTooFar;
+        this.speedModifier = pSpeedModifier;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_217391_, E p_217392_) {
-        Optional<PositionTracker> optional = this.targetPositionGetter.apply(p_217392_);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, E pOwner) {
+        Optional<PositionTracker> optional = this.targetPositionGetter.apply(pOwner);
         if (optional.isEmpty()) {
             return false;
         } else {
             PositionTracker positiontracker = optional.get();
-            return positiontracker.currentExactPosition().relativeTo(p_217392_.sectorPosition()).lengthSqr()
+            return positiontracker.currentExactPosition().relativeTo(pOwner.sectorPosition()).lengthSqr()
                     > (double) (this.tooFar * this.tooFar);
         }
     }
 
-    protected void start(ServerLevel p_217394_, E p_217395_, long p_217396_) {
-        BehaviorUtils.setWalkAndLookTargetMemories(p_217395_, this.targetPositionGetter.apply(p_217395_).get(), this.speedModifier, this.closeEnough);
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
+        BehaviorUtils.setWalkAndLookTargetMemories(pEntity, this.targetPositionGetter.apply(pEntity).get(), this.speedModifier, this.closeEnough);
     }
 }

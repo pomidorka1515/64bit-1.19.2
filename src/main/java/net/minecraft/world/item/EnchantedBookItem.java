@@ -16,39 +16,39 @@ import net.minecraft.world.level.Level;
 public class EnchantedBookItem extends Item {
     public static final String TAG_STORED_ENCHANTMENTS = "StoredEnchantments";
 
-    public EnchantedBookItem(Item.Properties p_41149_) {
-        super(p_41149_);
+    public EnchantedBookItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public boolean isFoil(ItemStack p_41166_) {
+    public boolean isFoil(ItemStack pStack) {
         return true;
     }
 
-    public boolean isEnchantable(ItemStack p_41168_) {
+    public boolean isEnchantable(ItemStack pStack) {
         return false;
     }
 
-    public static ListTag getEnchantments(ItemStack p_41164_) {
-        CompoundTag compoundtag = p_41164_.getTag();
+    public static ListTag getEnchantments(ItemStack pEnchantedBookStack) {
+        CompoundTag compoundtag = pEnchantedBookStack.getTag();
         return compoundtag != null ? compoundtag.getList("StoredEnchantments", 10) : new ListTag();
     }
 
-    public void appendHoverText(ItemStack p_41157_, @Nullable Level p_41158_, List<Component> p_41159_, TooltipFlag p_41160_) {
-        super.appendHoverText(p_41157_, p_41158_, p_41159_, p_41160_);
-        ItemStack.appendEnchantmentNames(p_41159_, getEnchantments(p_41157_));
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        super.appendHoverText(pStack, pLevel, pTooltip, pFlag);
+        ItemStack.appendEnchantmentNames(pTooltip, getEnchantments(pStack));
     }
 
-    public static void addEnchantment(ItemStack p_41154_, EnchantmentInstance p_41155_) {
-        ListTag listtag = getEnchantments(p_41154_);
+    public static void addEnchantment(ItemStack pStack, EnchantmentInstance pInstance) {
+        ListTag listtag = getEnchantments(pStack);
         boolean flag = true;
-        ResourceLocation resourcelocation = EnchantmentHelper.getEnchantmentId(p_41155_.enchantment);
+        ResourceLocation resourcelocation = EnchantmentHelper.getEnchantmentId(pInstance.enchantment);
 
         for (int i = 0; i < listtag.size(); ++i) {
             CompoundTag compoundtag = listtag.getCompound(i);
             ResourceLocation resourcelocation1 = EnchantmentHelper.getEnchantmentId(compoundtag);
             if (resourcelocation1 != null && resourcelocation1.equals(resourcelocation)) {
-                if (EnchantmentHelper.getEnchantmentLevel(compoundtag) < p_41155_.level) {
-                    EnchantmentHelper.setEnchantmentLevel(compoundtag, p_41155_.level);
+                if (EnchantmentHelper.getEnchantmentLevel(compoundtag) < pInstance.level) {
+                    EnchantmentHelper.setEnchantmentLevel(compoundtag, pInstance.level);
                 }
 
                 flag = false;
@@ -57,31 +57,31 @@ public class EnchantedBookItem extends Item {
         }
 
         if (flag) {
-            listtag.add(EnchantmentHelper.storeEnchantment(resourcelocation, p_41155_.level));
+            listtag.add(EnchantmentHelper.storeEnchantment(resourcelocation, pInstance.level));
         }
 
-        p_41154_.getOrCreateTag().put("StoredEnchantments", listtag);
+        pStack.getOrCreateTag().put("StoredEnchantments", listtag);
     }
 
-    public static ItemStack createForEnchantment(EnchantmentInstance p_41162_) {
+    public static ItemStack createForEnchantment(EnchantmentInstance pInstance) {
         ItemStack itemstack = new ItemStack(Items.ENCHANTED_BOOK);
-        addEnchantment(itemstack, p_41162_);
+        addEnchantment(itemstack, pInstance);
         return itemstack;
     }
 
-    public void fillItemCategory(CreativeModeTab p_41151_, NonNullList<ItemStack> p_41152_) {
-        if (p_41151_ == CreativeModeTab.TAB_SEARCH) {
+    public void fillItemCategory(CreativeModeTab pGroup, NonNullList<ItemStack> pItems) {
+        if (pGroup == CreativeModeTab.TAB_SEARCH) {
             for (Enchantment enchantment : Registry.ENCHANTMENT) {
                 if (enchantment.category != null) {
                     for (int i = enchantment.getMinLevel(); i <= enchantment.getMaxLevel(); ++i) {
-                        p_41152_.add(createForEnchantment(new EnchantmentInstance(enchantment, i)));
+                        pItems.add(createForEnchantment(new EnchantmentInstance(enchantment, i)));
                     }
                 }
             }
-        } else if (p_41151_.getEnchantmentCategories().length != 0) {
+        } else if (pGroup.getEnchantmentCategories().length != 0) {
             for (Enchantment enchantment1 : Registry.ENCHANTMENT) {
-                if (p_41151_.hasEnchantmentCategory(enchantment1.category)) {
-                    p_41152_.add(createForEnchantment(new EnchantmentInstance(enchantment1, enchantment1.getMaxLevel())));
+                if (pGroup.hasEnchantmentCategory(enchantment1.category)) {
+                    pItems.add(createForEnchantment(new EnchantmentInstance(enchantment1, enchantment1.getMaxLevel())));
                 }
             }
         }

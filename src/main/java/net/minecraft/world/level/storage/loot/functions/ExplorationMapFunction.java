@@ -41,13 +41,13 @@ public class ExplorationMapFunction extends LootItemConditionalFunction {
     final int searchRadius;
     final boolean skipKnownStructures;
 
-    ExplorationMapFunction(LootItemCondition[] p_210652_, TagKey<Structure> p_210653_, MapDecoration.Type p_210654_, byte p_210655_, int p_210656_, boolean p_210657_) {
-        super(p_210652_);
-        this.destination = p_210653_;
-        this.mapDecoration = p_210654_;
-        this.zoom = p_210655_;
-        this.searchRadius = p_210656_;
-        this.skipKnownStructures = p_210657_;
+    ExplorationMapFunction(LootItemCondition[] pConditions, TagKey<Structure> pDestination, MapDecoration.Type pMapDecoration, byte pZoom, int pSearchRadius, boolean pSkipKnownStructures) {
+        super(pConditions);
+        this.destination = pDestination;
+        this.mapDecoration = pMapDecoration;
+        this.zoom = pZoom;
+        this.searchRadius = pSearchRadius;
+        this.skipKnownStructures = pSkipKnownStructures;
     }
 
     public LootItemFunctionType getType() {
@@ -58,13 +58,13 @@ public class ExplorationMapFunction extends LootItemConditionalFunction {
         return ImmutableSet.of(LootContextParams.ORIGIN);
     }
 
-    public ItemStack run(ItemStack p_80547_, LootContext p_80548_) {
-        if (!p_80547_.is(Items.MAP)) {
-            return p_80547_;
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        if (!pStack.is(Items.MAP)) {
+            return pStack;
         } else {
-            Vec3 vec3 = p_80548_.getParamOrNull(LootContextParams.ORIGIN);
+            Vec3 vec3 = pContext.getParamOrNull(LootContextParams.ORIGIN);
             if (vec3 != null) {
-                ServerLevel serverlevel = p_80548_.getLevel();
+                ServerLevel serverlevel = pContext.getLevel();
                 BlockPos blockpos = serverlevel.findNearestMapStructure(this.destination, new BlockPos(vec3), this.searchRadius, this.skipKnownStructures);
                 if (blockpos != null) {
                     ItemStack itemstack = MapItem.create(serverlevel, blockpos.getX(), blockpos.getZ(), this.zoom, true, true);
@@ -74,7 +74,7 @@ public class ExplorationMapFunction extends LootItemConditionalFunction {
                 }
             }
 
-            return p_80547_;
+            return pStack;
         }
     }
 
@@ -93,28 +93,28 @@ public class ExplorationMapFunction extends LootItemConditionalFunction {
             return this;
         }
 
-        public ExplorationMapFunction.Builder setDestination(TagKey<Structure> p_210659_) {
-            this.destination = p_210659_;
+        public ExplorationMapFunction.Builder setDestination(TagKey<Structure> pDestination) {
+            this.destination = pDestination;
             return this;
         }
 
-        public ExplorationMapFunction.Builder setMapDecoration(MapDecoration.Type p_80574_) {
-            this.mapDecoration = p_80574_;
+        public ExplorationMapFunction.Builder setMapDecoration(MapDecoration.Type pMapDecoration) {
+            this.mapDecoration = pMapDecoration;
             return this;
         }
 
-        public ExplorationMapFunction.Builder setZoom(byte p_80570_) {
-            this.zoom = p_80570_;
+        public ExplorationMapFunction.Builder setZoom(byte pZoom) {
+            this.zoom = pZoom;
             return this;
         }
 
-        public ExplorationMapFunction.Builder setSearchRadius(int p_165206_) {
-            this.searchRadius = p_165206_;
+        public ExplorationMapFunction.Builder setSearchRadius(int pSearchRadius) {
+            this.searchRadius = pSearchRadius;
             return this;
         }
 
-        public ExplorationMapFunction.Builder setSkipKnownStructures(boolean p_80576_) {
-            this.skipKnownStructures = p_80576_;
+        public ExplorationMapFunction.Builder setSkipKnownStructures(boolean pSkipKnownStructures) {
+            this.skipKnownStructures = pSkipKnownStructures;
             return this;
         }
 
@@ -124,32 +124,32 @@ public class ExplorationMapFunction extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<ExplorationMapFunction> {
-        public void serialize(JsonObject p_80587_, ExplorationMapFunction p_80588_, JsonSerializationContext p_80589_) {
-            super.serialize(p_80587_, p_80588_, p_80589_);
-            if (!p_80588_.destination.equals(ExplorationMapFunction.DEFAULT_DESTINATION)) {
-                p_80587_.addProperty("destination", p_80588_.destination.location().toString());
+        public void serialize(JsonObject pJson, ExplorationMapFunction pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            if (!pValue.destination.equals(ExplorationMapFunction.DEFAULT_DESTINATION)) {
+                pJson.addProperty("destination", pValue.destination.location().toString());
             }
 
-            if (p_80588_.mapDecoration != ExplorationMapFunction.DEFAULT_DECORATION) {
-                p_80587_.add("decoration", p_80589_.serialize(p_80588_.mapDecoration.toString().toLowerCase(Locale.ROOT)));
+            if (pValue.mapDecoration != ExplorationMapFunction.DEFAULT_DECORATION) {
+                pJson.add("decoration", pSerializationContext.serialize(pValue.mapDecoration.toString().toLowerCase(Locale.ROOT)));
             }
 
-            if (p_80588_.zoom != 2) {
-                p_80587_.addProperty("zoom", p_80588_.zoom);
+            if (pValue.zoom != 2) {
+                pJson.addProperty("zoom", pValue.zoom);
             }
 
-            if (p_80588_.searchRadius != 50) {
-                p_80587_.addProperty("search_radius", p_80588_.searchRadius);
+            if (pValue.searchRadius != 50) {
+                pJson.addProperty("search_radius", pValue.searchRadius);
             }
 
-            if (!p_80588_.skipKnownStructures) {
-                p_80587_.addProperty("skip_existing_chunks", p_80588_.skipKnownStructures);
+            if (!pValue.skipKnownStructures) {
+                pJson.addProperty("skip_existing_chunks", pValue.skipKnownStructures);
             }
         }
 
-        public ExplorationMapFunction deserialize(JsonObject p_80583_, JsonDeserializationContext p_80584_, LootItemCondition[] p_80585_) {
-            TagKey<Structure> tagkey = readStructure(p_80583_);
-            String s = p_80583_.has("decoration") ? GsonHelper.getAsString(p_80583_, "decoration") : "mansion";
+        public ExplorationMapFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            TagKey<Structure> tagkey = readStructure(pObject);
+            String s = pObject.has("decoration") ? GsonHelper.getAsString(pObject, "decoration") : "mansion";
             MapDecoration.Type mapdecoration$type = ExplorationMapFunction.DEFAULT_DECORATION;
 
             try {
@@ -158,10 +158,10 @@ public class ExplorationMapFunction extends LootItemConditionalFunction {
                 ExplorationMapFunction.LOGGER.error("Error while parsing loot table decoration entry. Found {}. Defaulting to {}", s, ExplorationMapFunction.DEFAULT_DECORATION);
             }
 
-            byte b0 = GsonHelper.getAsByte(p_80583_, "zoom", (byte) 2);
-            int i = GsonHelper.getAsInt(p_80583_, "search_radius", 50);
-            boolean flag = GsonHelper.getAsBoolean(p_80583_, "skip_existing_chunks", true);
-            return new ExplorationMapFunction(p_80585_, tagkey, mapdecoration$type, b0, i, flag);
+            byte b0 = GsonHelper.getAsByte(pObject, "zoom", (byte) 2);
+            int i = GsonHelper.getAsInt(pObject, "search_radius", 50);
+            boolean flag = GsonHelper.getAsBoolean(pObject, "skip_existing_chunks", true);
+            return new ExplorationMapFunction(pConditions, tagkey, mapdecoration$type, b0, i, flag);
         }
 
         private static TagKey<Structure> readStructure(JsonObject p_210661_) {

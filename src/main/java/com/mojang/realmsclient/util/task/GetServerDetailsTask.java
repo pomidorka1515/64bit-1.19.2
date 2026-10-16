@@ -34,11 +34,11 @@ public class GetServerDetailsTask extends LongRunningTask {
     private final RealmsMainScreen mainScreen;
     private final ReentrantLock connectLock;
 
-    public GetServerDetailsTask(RealmsMainScreen p_90332_, Screen p_90333_, RealmsServer p_90334_, ReentrantLock p_90335_) {
-        this.lastScreen = p_90333_;
-        this.mainScreen = p_90332_;
-        this.server = p_90334_;
-        this.connectLock = p_90335_;
+    public GetServerDetailsTask(RealmsMainScreen pMainScreen, Screen pLastScreen, RealmsServer pServer, ReentrantLock pConnectLock) {
+        this.lastScreen = pLastScreen;
+        this.mainScreen = pMainScreen;
+        this.server = pServer;
+        this.connectLock = pConnectLock;
     }
 
     public void run() {
@@ -126,9 +126,9 @@ public class GetServerDetailsTask extends LongRunningTask {
         return new RealmsLongConfirmationScreen(booleanconsumer, RealmsLongConfirmationScreen.Type.Info, Component.translatable("mco.configure.world.resourcepack.question.line1"), Component.translatable("mco.configure.world.resourcepack.question.line2"), true);
     }
 
-    private CompletableFuture<?> scheduleResourcePackDownload(RealmsServerAddress p_167652_) {
+    private CompletableFuture<?> scheduleResourcePackDownload(RealmsServerAddress pServerAddress) {
         try {
-            return Minecraft.getInstance().getClientPackSource().downloadAndSelectResourcePack(new URL(p_167652_.resourcePackUrl), p_167652_.resourcePackHash, false);
+            return Minecraft.getInstance().getClientPackSource().downloadAndSelectResourcePack(new URL(pServerAddress.resourcePackUrl), pServerAddress.resourcePackHash, false);
         } catch (Exception exception) {
             CompletableFuture<Void> completablefuture = new CompletableFuture<>();
             completablefuture.completeExceptionally(exception);

@@ -37,32 +37,32 @@ public class CocoaBlock extends HorizontalDirectionalBlock implements Bonemealab
     protected static final VoxelShape[] NORTH_AABB = new VoxelShape[] {Block.box(6.0D, 7.0D, 1.0D, 10.0D, 12.0D, 5.0D), Block.box(5.0D, 5.0D, 1.0D, 11.0D, 12.0D, 7.0D), Block.box(4.0D, 3.0D, 1.0D, 12.0D, 12.0D, 9.0D)};
     protected static final VoxelShape[] SOUTH_AABB = new VoxelShape[] {Block.box(6.0D, 7.0D, 11.0D, 10.0D, 12.0D, 15.0D), Block.box(5.0D, 5.0D, 9.0D, 11.0D, 12.0D, 15.0D), Block.box(4.0D, 3.0D, 7.0D, 12.0D, 12.0D, 15.0D)};
 
-    public CocoaBlock(BlockBehaviour.Properties p_51743_) {
-        super(p_51743_);
+    public CocoaBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(AGE, Integer.valueOf(0)));
     }
 
-    public boolean isRandomlyTicking(BlockState p_51780_) {
-        return p_51780_.getValue(AGE) < 2;
+    public boolean isRandomlyTicking(BlockState pState) {
+        return pState.getValue(AGE) < 2;
     }
 
-    public void randomTick(BlockState p_221000_, ServerLevel p_221001_, BlockPos p_221002_, RandomSource p_221003_) {
-        if (p_221001_.random.nextInt(5) == 0) {
-            int i = p_221000_.getValue(AGE);
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.random.nextInt(5) == 0) {
+            int i = pState.getValue(AGE);
             if (i < 2) {
-                p_221001_.setBlock(p_221002_, p_221000_.setValue(AGE, Integer.valueOf(i + 1)), 2);
+                pLevel.setBlock(pPos, pState.setValue(AGE, Integer.valueOf(i + 1)), 2);
             }
         }
     }
 
-    public boolean canSurvive(BlockState p_51767_, LevelReader p_51768_, BlockPos p_51769_) {
-        BlockState blockstate = p_51768_.getBlockState(p_51769_.relative(p_51767_.getValue(FACING)));
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        BlockState blockstate = pLevel.getBlockState(pPos.relative(pState.getValue(FACING)));
         return blockstate.is(BlockTags.JUNGLE_LOGS);
     }
 
-    public VoxelShape getShape(BlockState p_51787_, BlockGetter p_51788_, BlockPos p_51789_, CollisionContext p_51790_) {
-        int i = p_51787_.getValue(AGE);
-        switch ((Direction) p_51787_.getValue(FACING)) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        int i = pState.getValue(AGE);
+        switch ((Direction) pState.getValue(FACING)) {
             case SOUTH:
                 return SOUTH_AABB[i];
             case NORTH:
@@ -76,12 +76,12 @@ public class CocoaBlock extends HorizontalDirectionalBlock implements Bonemealab
     }
 
     @Nullable
-    public BlockState getStateForPlacement(BlockPlaceContext p_51750_) {
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
         BlockState blockstate = this.defaultBlockState();
-        LevelReader levelreader = p_51750_.getLevel();
-        BlockPos blockpos = p_51750_.getClickedPos();
+        LevelReader levelreader = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
 
-        for (Direction direction : p_51750_.getNearestLookingDirections()) {
+        for (Direction direction : pContext.getNearestLookingDirections()) {
             if (direction.getAxis().isHorizontal()) {
                 blockstate = blockstate.setValue(FACING, direction);
                 if (blockstate.canSurvive(levelreader, blockpos)) {
@@ -93,27 +93,27 @@ public class CocoaBlock extends HorizontalDirectionalBlock implements Bonemealab
         return null;
     }
 
-    public BlockState updateShape(BlockState p_51771_, Direction p_51772_, BlockState p_51773_, LevelAccessor p_51774_, BlockPos p_51775_, BlockPos p_51776_) {
-        return p_51772_ == p_51771_.getValue(FACING) && !p_51771_.canSurvive(p_51774_, p_51775_) ? Blocks.AIR.defaultBlockState() : super.updateShape(p_51771_, p_51772_, p_51773_, p_51774_, p_51775_, p_51776_);
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        return pFacing == pState.getValue(FACING) && !pState.canSurvive(pLevel, pCurrentPos) ? Blocks.AIR.defaultBlockState() : super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_51752_, BlockPos p_51753_, BlockState p_51754_, boolean p_51755_) {
-        return p_51754_.getValue(AGE) < 2;
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
+        return pState.getValue(AGE) < 2;
     }
 
-    public boolean isBonemealSuccess(Level p_220995_, RandomSource p_220996_, BlockPos p_220997_, BlockState p_220998_) {
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
 
-    public void performBonemeal(ServerLevel p_220990_, RandomSource p_220991_, BlockPos p_220992_, BlockState p_220993_) {
-        p_220990_.setBlock(p_220992_, p_220993_.setValue(AGE, Integer.valueOf(p_220993_.getValue(AGE) + 1)), 2);
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        pLevel.setBlock(pPos, pState.setValue(AGE, Integer.valueOf(pState.getValue(AGE) + 1)), 2);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_51778_) {
-        p_51778_.add(FACING, AGE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(FACING, AGE);
     }
 
-    public boolean isPathfindable(BlockState p_51762_, BlockGetter p_51763_, BlockPos p_51764_, PathComputationType p_51765_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 }

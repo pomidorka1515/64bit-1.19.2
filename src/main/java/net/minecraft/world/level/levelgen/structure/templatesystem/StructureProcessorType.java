@@ -26,9 +26,9 @@ public interface StructureProcessorType<P extends StructureProcessor> {
 
     Codec<P> codec();
 
-    static <P extends StructureProcessor> StructureProcessorType<P> register(String p_74477_, Codec<P> p_74478_) {
-        return Registry.register(Registry.STRUCTURE_PROCESSOR, p_74477_, () -> {
-            return p_74478_;
+    static <P extends StructureProcessor> StructureProcessorType<P> register(String pName, Codec<P> pCodec) {
+        return Registry.register(Registry.STRUCTURE_PROCESSOR, pName, () -> {
+            return pCodec;
         });
     }
 }

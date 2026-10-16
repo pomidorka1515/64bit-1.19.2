@@ -19,7 +19,7 @@ public enum InteractionResult {
         return this == SUCCESS || this == CONSUME;
     }
 
-    public static InteractionResult sidedSuccess(boolean p_19079_) {
-        return p_19079_ ? SUCCESS : CONSUME;
+    public static InteractionResult sidedSuccess(boolean pIsClientSide) {
+        return pIsClientSide ? SUCCESS : CONSUME;
     }
 }

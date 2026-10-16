@@ -22,11 +22,11 @@ public class SkeletonRenderer extends HumanoidMobRenderer<AbstractSkeleton, Skel
         this.addLayer(new HumanoidArmorLayer<>(this, new SkeletonModel(p_174382_.bakeLayer(p_174384_)), new SkeletonModel(p_174382_.bakeLayer(p_174385_))));
     }
 
-    public ResourceLocation getTextureLocation(AbstractSkeleton p_115941_) {
+    public ResourceLocation getTextureLocation(AbstractSkeleton pEntity) {
         return SKELETON_LOCATION;
     }
 
-    protected boolean isShaking(AbstractSkeleton p_174389_) {
-        return p_174389_.isShaking();
+    protected boolean isShaking(AbstractSkeleton pEntity) {
+        return pEntity.isShaking();
     }
 }

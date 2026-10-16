@@ -23,8 +23,8 @@ public class AttributeMap {
     private final Set<AttributeInstance> dirtyAttributes = Sets.newHashSet();
     private final AttributeSupplier supplier;
 
-    public AttributeMap(AttributeSupplier p_22144_) {
-        this.supplier = p_22144_;
+    public AttributeMap(AttributeSupplier pSupplier) {
+        this.supplier = pSupplier;
     }
 
     private void onAttributeModified(AttributeInstance p_22158_) {
@@ -45,38 +45,38 @@ public class AttributeMap {
     }
 
     @Nullable
-    public AttributeInstance getInstance(Attribute p_22147_) {
-        return this.attributes.computeIfAbsent(p_22147_, (p_22188_) -> {
+    public AttributeInstance getInstance(Attribute pAttribute) {
+        return this.attributes.computeIfAbsent(pAttribute, (p_22188_) -> {
             return this.supplier.createInstance(this::onAttributeModified, p_22188_);
         });
     }
 
-    public boolean hasAttribute(Attribute p_22172_) {
-        return this.attributes.get(p_22172_) != null || this.supplier.hasAttribute(p_22172_);
+    public boolean hasAttribute(Attribute pAttribute) {
+        return this.attributes.get(pAttribute) != null || this.supplier.hasAttribute(pAttribute);
     }
 
-    public boolean hasModifier(Attribute p_22155_, UUID p_22156_) {
-        AttributeInstance attributeinstance = this.attributes.get(p_22155_);
-        return attributeinstance != null ? attributeinstance.getModifier(p_22156_) != null : this.supplier.hasModifier(p_22155_, p_22156_);
+    public boolean hasModifier(Attribute pAttribute, UUID pUuid) {
+        AttributeInstance attributeinstance = this.attributes.get(pAttribute);
+        return attributeinstance != null ? attributeinstance.getModifier(pUuid) != null : this.supplier.hasModifier(pAttribute, pUuid);
     }
 
-    public double getValue(Attribute p_22182_) {
-        AttributeInstance attributeinstance = this.attributes.get(p_22182_);
-        return attributeinstance != null ? attributeinstance.getValue() : this.supplier.getValue(p_22182_);
+    public double getValue(Attribute pAttribute) {
+        AttributeInstance attributeinstance = this.attributes.get(pAttribute);
+        return attributeinstance != null ? attributeinstance.getValue() : this.supplier.getValue(pAttribute);
     }
 
-    public double getBaseValue(Attribute p_22186_) {
-        AttributeInstance attributeinstance = this.attributes.get(p_22186_);
-        return attributeinstance != null ? attributeinstance.getBaseValue() : this.supplier.getBaseValue(p_22186_);
+    public double getBaseValue(Attribute pAttribute) {
+        AttributeInstance attributeinstance = this.attributes.get(pAttribute);
+        return attributeinstance != null ? attributeinstance.getBaseValue() : this.supplier.getBaseValue(pAttribute);
     }
 
-    public double getModifierValue(Attribute p_22174_, UUID p_22175_) {
-        AttributeInstance attributeinstance = this.attributes.get(p_22174_);
-        return attributeinstance != null ? attributeinstance.getModifier(p_22175_).getAmount() : this.supplier.getModifierValue(p_22174_, p_22175_);
+    public double getModifierValue(Attribute pAttribute, UUID pUuid) {
+        AttributeInstance attributeinstance = this.attributes.get(pAttribute);
+        return attributeinstance != null ? attributeinstance.getModifier(pUuid).getAmount() : this.supplier.getModifierValue(pAttribute, pUuid);
     }
 
-    public void removeAttributeModifiers(Multimap<Attribute, AttributeModifier> p_22162_) {
-        p_22162_.asMap().forEach((p_22152_, p_22153_) -> {
+    public void removeAttributeModifiers(Multimap<Attribute, AttributeModifier> pMap) {
+        pMap.asMap().forEach((p_22152_, p_22153_) -> {
             AttributeInstance attributeinstance = this.attributes.get(p_22152_);
             if (attributeinstance != null) {
                 p_22153_.forEach(attributeinstance::removeModifier);
@@ -84,8 +84,8 @@ public class AttributeMap {
         });
     }
 
-    public void addTransientAttributeModifiers(Multimap<Attribute, AttributeModifier> p_22179_) {
-        p_22179_.forEach((p_22149_, p_22150_) -> {
+    public void addTransientAttributeModifiers(Multimap<Attribute, AttributeModifier> pMap) {
+        pMap.forEach((p_22149_, p_22150_) -> {
             AttributeInstance attributeinstance = this.getInstance(p_22149_);
             if (attributeinstance != null) {
                 attributeinstance.removeModifier(p_22150_);
@@ -94,8 +94,8 @@ public class AttributeMap {
         });
     }
 
-    public void assignValues(AttributeMap p_22160_) {
-        p_22160_.attributes.values().forEach((p_22177_) -> {
+    public void assignValues(AttributeMap pManager) {
+        pManager.attributes.values().forEach((p_22177_) -> {
             AttributeInstance attributeinstance = this.getInstance(p_22177_.getAttribute());
             if (attributeinstance != null) {
                 attributeinstance.replaceFrom(p_22177_);
@@ -113,9 +113,9 @@ public class AttributeMap {
         return listtag;
     }
 
-    public void load(ListTag p_22169_) {
-        for (int i = 0; i < p_22169_.size(); ++i) {
-            CompoundTag compoundtag = p_22169_.getCompound(i);
+    public void load(ListTag pNbt) {
+        for (int i = 0; i < pNbt.size(); ++i) {
+            CompoundTag compoundtag = pNbt.getCompound(i);
             String s = compoundtag.getString("Name");
             Util.ifElse(Registry.ATTRIBUTE.getOptional(ResourceLocation.tryParse(s)), (p_22167_) -> {
                 AttributeInstance attributeinstance = this.getInstance(p_22167_);

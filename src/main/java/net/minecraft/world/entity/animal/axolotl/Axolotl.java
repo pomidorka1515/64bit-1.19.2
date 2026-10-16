@@ -81,8 +81,8 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
     private final Map<String, Vector3f> modelRotationValues = Maps.newHashMap();
     private static final int REGEN_BUFF_BASE_DURATION = 100;
 
-    public Axolotl(EntityType<? extends Axolotl> p_149105_, Level p_149106_) {
-        super(p_149105_, p_149106_);
+    public Axolotl(EntityType<? extends Axolotl> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
         this.moveControl = new Axolotl.AxolotlMoveControl(this);
         this.lookControl = new Axolotl.AxolotlLookControl(this, 20);
@@ -93,7 +93,7 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return this.modelRotationValues;
     }
 
-    public float getWalkTargetValue(BlockPos p_149140_, LevelReader p_149141_) {
+    public float getWalkTargetValue(BlockPos pPos, LevelReader pLevel) {
         return 0.0F;
     }
 
@@ -104,16 +104,16 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         this.entityData.define(FROM_BUCKET, false);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_149158_) {
-        super.addAdditionalSaveData(p_149158_);
-        p_149158_.putInt("Variant", this.getVariant().getId());
-        p_149158_.putBoolean("FromBucket", this.fromBucket());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("Variant", this.getVariant().getId());
+        pCompound.putBoolean("FromBucket", this.fromBucket());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_149145_) {
-        super.readAdditionalSaveData(p_149145_);
-        this.setVariant(Axolotl.Variant.BY_ID[p_149145_.getInt("Variant")]);
-        this.setFromBucket(p_149145_.getBoolean("FromBucket"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setVariant(Axolotl.Variant.BY_ID[pCompound.getInt("Variant")]);
+        this.setFromBucket(pCompound.getBoolean("FromBucket"));
     }
 
     public void playAmbientSound() {
@@ -122,26 +122,26 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         }
     }
 
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_149132_, DifficultyInstance p_149133_, MobSpawnType p_149134_, @Nullable SpawnGroupData p_149135_, @Nullable CompoundTag p_149136_) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
         boolean flag = false;
-        if (p_149134_ == MobSpawnType.BUCKET) {
-            return p_149135_;
+        if (pReason == MobSpawnType.BUCKET) {
+            return pSpawnData;
         } else {
-            RandomSource randomsource = p_149132_.getRandom();
-            if (p_149135_ instanceof Axolotl.AxolotlGroupData) {
-                if (((Axolotl.AxolotlGroupData) p_149135_).getGroupSize() >= 2) {
+            RandomSource randomsource = pLevel.getRandom();
+            if (pSpawnData instanceof Axolotl.AxolotlGroupData) {
+                if (((Axolotl.AxolotlGroupData) pSpawnData).getGroupSize() >= 2) {
                     flag = true;
                 }
             } else {
-                p_149135_ = new Axolotl.AxolotlGroupData(Axolotl.Variant.getCommonSpawnVariant(randomsource), Axolotl.Variant.getCommonSpawnVariant(randomsource));
+                pSpawnData = new Axolotl.AxolotlGroupData(Axolotl.Variant.getCommonSpawnVariant(randomsource), Axolotl.Variant.getCommonSpawnVariant(randomsource));
             }
 
-            this.setVariant(((Axolotl.AxolotlGroupData) p_149135_).getVariant(randomsource));
+            this.setVariant(((Axolotl.AxolotlGroupData) pSpawnData).getVariant(randomsource));
             if (flag) {
                 this.setAge(-24000);
             }
 
-            return super.finalizeSpawn(p_149132_, p_149133_, p_149134_, p_149135_, p_149136_);
+            return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
         }
     }
 
@@ -153,9 +153,9 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         }
     }
 
-    protected void handleAirSupply(int p_149194_) {
+    protected void handleAirSupply(int pAirSupply) {
         if (this.isAlive() && !this.isInWaterRainOrBubble()) {
-            this.setAirSupply(p_149194_ - 1);
+            this.setAirSupply(pAirSupply - 1);
             if (this.getAirSupply() == -20) {
                 this.setAirSupply(0);
                 this.hurt(DamageSource.DRY_OUT, 2.0F);
@@ -178,16 +178,16 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return Axolotl.Variant.BY_ID[this.entityData.get(DATA_VARIANT)];
     }
 
-    private void setVariant(Axolotl.Variant p_149118_) {
-        this.entityData.set(DATA_VARIANT, p_149118_.getId());
+    private void setVariant(Axolotl.Variant pVariant) {
+        this.entityData.set(DATA_VARIANT, pVariant.getId());
     }
 
-    private static boolean useRareVariant(RandomSource p_218436_) {
-        return p_218436_.nextInt(1200) == 0;
+    private static boolean useRareVariant(RandomSource pRandom) {
+        return pRandom.nextInt(1200) == 0;
     }
 
-    public boolean checkSpawnObstruction(LevelReader p_149130_) {
-        return p_149130_.isUnobstructed(this);
+    public boolean checkSpawnObstruction(LevelReader pLevel) {
+        return pLevel.isUnobstructed(this);
     }
 
     public boolean canBreatheUnderwater() {
@@ -202,8 +202,8 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return MobType.WATER;
     }
 
-    public void setPlayingDead(boolean p_149199_) {
-        this.entityData.set(DATA_PLAYING_DEAD, p_149199_);
+    public void setPlayingDead(boolean pPlayingDead) {
+        this.entityData.set(DATA_PLAYING_DEAD, pPlayingDead);
     }
 
     public boolean isPlayingDead() {
@@ -214,19 +214,19 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return this.entityData.get(FROM_BUCKET);
     }
 
-    public void setFromBucket(boolean p_149196_) {
-        this.entityData.set(FROM_BUCKET, p_149196_);
+    public void setFromBucket(boolean pFromBucket) {
+        this.entityData.set(FROM_BUCKET, pFromBucket);
     }
 
     @Nullable
-    public AgeableMob getBreedOffspring(ServerLevel p_149112_, AgeableMob p_149113_) {
-        Axolotl axolotl = EntityType.AXOLOTL.create(p_149112_);
+    public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        Axolotl axolotl = EntityType.AXOLOTL.create(pLevel);
         if (axolotl != null) {
             Axolotl.Variant axolotl$variant;
             if (useRareVariant(this.random)) {
                 axolotl$variant = Axolotl.Variant.getRareSpawnVariant(this.random);
             } else {
-                axolotl$variant = this.random.nextBoolean() ? this.getVariant() : ((Axolotl) p_149113_).getVariant();
+                axolotl$variant = this.random.nextBoolean() ? this.getVariant() : ((Axolotl) pOtherParent).getVariant();
             }
 
             axolotl.setVariant(axolotl$variant);
@@ -236,15 +236,15 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return axolotl;
     }
 
-    public double getMeleeAttackRangeSqr(LivingEntity p_149185_) {
-        return 1.5D + (double) p_149185_.getBbWidth() * 2.0D;
+    public double getMeleeAttackRangeSqr(LivingEntity pEntity) {
+        return 1.5D + (double) pEntity.getBbWidth() * 2.0D;
     }
 
-    public boolean isFood(ItemStack p_149189_) {
-        return p_149189_.is(ItemTags.AXOLOTL_TEMPT_ITEMS);
+    public boolean isFood(ItemStack pStack) {
+        return pStack.is(ItemTags.AXOLOTL_TEMPT_ITEMS);
     }
 
-    public boolean canBeLeashed(Player p_149122_) {
+    public boolean canBeLeashed(Player pPlayer) {
         return true;
     }
 
@@ -265,31 +265,31 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 14.0D).add(Attributes.MOVEMENT_SPEED, 1.0D).add(Attributes.ATTACK_DAMAGE, 2.0D);
     }
 
-    protected PathNavigation createNavigation(Level p_149128_) {
-        return new AmphibiousPathNavigation(this, p_149128_);
+    protected PathNavigation createNavigation(Level pLevel) {
+        return new AmphibiousPathNavigation(this, pLevel);
     }
 
-    public boolean doHurtTarget(Entity p_149201_) {
-        boolean flag = p_149201_.hurt(DamageSource.mobAttack(this), (float) ((int) this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
+    public boolean doHurtTarget(Entity pEntity) {
+        boolean flag = pEntity.hurt(DamageSource.mobAttack(this), (float) ((int) this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
         if (flag) {
-            this.doEnchantDamageEffects(this, p_149201_);
+            this.doEnchantDamageEffects(this, pEntity);
             this.playSound(SoundEvents.AXOLOTL_ATTACK, 1.0F, 1.0F);
         }
 
         return flag;
     }
 
-    public boolean hurt(DamageSource p_149115_, float p_149116_) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
         float f = this.getHealth();
-        if (!this.level.isClientSide && !this.isNoAi() && this.level.random.nextInt(3) == 0 && ((float) this.level.random.nextInt(3) < p_149116_ || f / this.getMaxHealth() < 0.5F) && p_149116_ < f && this.isInWater() && (p_149115_.getEntity() != null || p_149115_.getDirectEntity() != null) && !this.isPlayingDead()) {
+        if (!this.level.isClientSide && !this.isNoAi() && this.level.random.nextInt(3) == 0 && ((float) this.level.random.nextInt(3) < pAmount || f / this.getMaxHealth() < 0.5F) && pAmount < f && this.isInWater() && (pSource.getEntity() != null || pSource.getDirectEntity() != null) && !this.isPlayingDead()) {
             this.brain.setMemory(MemoryModuleType.PLAY_DEAD_TICKS, 200);
         }
 
-        return super.hurt(p_149115_, p_149116_);
+        return super.hurt(pSource, pAmount);
     }
 
-    protected float getStandingEyeHeight(Pose p_149152_, EntityDimensions p_149153_) {
-        return p_149153_.height * 0.655F;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pDimensions) {
+        return pDimensions.height * 0.655F;
     }
 
     public int getMaxHeadXRot() {
@@ -300,13 +300,13 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return 1;
     }
 
-    public InteractionResult mobInteract(Player p_149155_, InteractionHand p_149156_) {
-        return Bucketable.bucketMobPickup(p_149155_, p_149156_, this).orElse(super.mobInteract(p_149155_, p_149156_));
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        return Bucketable.bucketMobPickup(pPlayer, pHand, this).orElse(super.mobInteract(pPlayer, pHand));
     }
 
-    public void saveToBucketTag(ItemStack p_149187_) {
-        Bucketable.saveDefaultDataToBucketTag(this, p_149187_);
-        CompoundTag compoundtag = p_149187_.getOrCreateTag();
+    public void saveToBucketTag(ItemStack pStack) {
+        Bucketable.saveDefaultDataToBucketTag(this, pStack);
+        CompoundTag compoundtag = pStack.getOrCreateTag();
         compoundtag.putInt("Variant", this.getVariant().getId());
         compoundtag.putInt("Age", this.getAge());
         Brain<?> brain = this.getBrain();
@@ -315,21 +315,21 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         }
     }
 
-    public void loadFromBucketTag(CompoundTag p_149163_) {
-        Bucketable.loadDefaultDataFromBucketTag(this, p_149163_);
-        int i = p_149163_.getInt("Variant");
+    public void loadFromBucketTag(CompoundTag pTag) {
+        Bucketable.loadDefaultDataFromBucketTag(this, pTag);
+        int i = pTag.getInt("Variant");
         if (i >= 0 && i < Axolotl.Variant.BY_ID.length) {
             this.setVariant(Axolotl.Variant.BY_ID[i]);
         } else {
             LOGGER.error("Invalid variant: {}", (int) i);
         }
 
-        if (p_149163_.contains("Age")) {
-            this.setAge(p_149163_.getInt("Age"));
+        if (pTag.contains("Age")) {
+            this.setAge(pTag.getInt("Age"));
         }
 
-        if (p_149163_.contains("HuntingCooldown")) {
-            this.getBrain().setMemoryWithExpiry(MemoryModuleType.HAS_HUNTING_COOLDOWN, true, p_149163_.getLong("HuntingCooldown"));
+        if (pTag.contains("HuntingCooldown")) {
+            this.getBrain().setMemoryWithExpiry(MemoryModuleType.HAS_HUNTING_COOLDOWN, true, pTag.getLong("HuntingCooldown"));
         }
     }
 
@@ -345,39 +345,39 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return !this.isPlayingDead() && super.canBeSeenAsEnemy();
     }
 
-    public static void onStopAttacking(Axolotl p_218444_, LivingEntity p_218445_) {
-        Level level = p_218444_.level;
-        if (p_218445_.isDeadOrDying()) {
-            DamageSource damagesource = p_218445_.getLastDamageSource();
+    public static void onStopAttacking(Axolotl pAxolotl, LivingEntity pTarget) {
+        Level level = pAxolotl.level;
+        if (pTarget.isDeadOrDying()) {
+            DamageSource damagesource = pTarget.getLastDamageSource();
             if (damagesource != null) {
                 Entity entity = damagesource.getEntity();
                 if (entity != null && entity.getType() == EntityType.PLAYER) {
                     Player player = (Player) entity;
-                    List<Player> list = level.getEntitiesOfClass(Player.class, p_218444_.getBoundingBox().inflate(20.0D));
+                    List<Player> list = level.getEntitiesOfClass(Player.class, pAxolotl.getBoundingBox().inflate(20.0D));
                     if (list.contains(player)) {
-                        p_218444_.applySupportingEffects(player);
+                        pAxolotl.applySupportingEffects(player);
                     }
                 }
             }
         }
     }
 
-    public void applySupportingEffects(Player p_149174_) {
-        MobEffectInstance mobeffectinstance = p_149174_.getEffect(MobEffects.REGENERATION);
+    public void applySupportingEffects(Player pPlayer) {
+        MobEffectInstance mobeffectinstance = pPlayer.getEffect(MobEffects.REGENERATION);
         int i = mobeffectinstance != null ? mobeffectinstance.getDuration() : 0;
         if (i < 2400) {
             i = Math.min(2400, 100 + i);
-            p_149174_.addEffect(new MobEffectInstance(MobEffects.REGENERATION, i, 0), this);
+            pPlayer.addEffect(new MobEffectInstance(MobEffects.REGENERATION, i, 0), this);
         }
 
-        p_149174_.removeEffect(MobEffects.DIG_SLOWDOWN);
+        pPlayer.removeEffect(MobEffects.DIG_SLOWDOWN);
     }
 
     public boolean requiresCustomPersistence() {
         return super.requiresCustomPersistence() || this.fromBucket();
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_149161_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.AXOLOTL_HURT;
     }
 
@@ -403,8 +403,8 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
     }
 
-    protected Brain<?> makeBrain(Dynamic<?> p_149138_) {
-        return AxolotlAi.makeBrain(this.brainProvider().makeBrain(p_149138_));
+    protected Brain<?> makeBrain(Dynamic<?> pDynamic) {
+        return AxolotlAi.makeBrain(this.brainProvider().makeBrain(pDynamic));
     }
 
     public Brain<Axolotl> getBrain() {
@@ -416,42 +416,42 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
         DebugPackets.sendEntityBrain(this);
     }
 
-    public void travel(Vec3 p_149181_) {
+    public void travel(Vec3 pTravelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            this.moveRelative(this.getSpeed(), p_149181_);
+            this.moveRelative(this.getSpeed(), pTravelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
         } else {
-            super.travel(p_149181_);
+            super.travel(pTravelVector);
         }
     }
 
-    protected void usePlayerItem(Player p_149124_, InteractionHand p_149125_, ItemStack p_149126_) {
-        if (p_149126_.is(Items.TROPICAL_FISH_BUCKET)) {
-            p_149124_.setItemInHand(p_149125_, new ItemStack(Items.WATER_BUCKET));
+    protected void usePlayerItem(Player pPlayer, InteractionHand pHand, ItemStack pStack) {
+        if (pStack.is(Items.TROPICAL_FISH_BUCKET)) {
+            pPlayer.setItemInHand(pHand, new ItemStack(Items.WATER_BUCKET));
         } else {
-            super.usePlayerItem(p_149124_, p_149125_, p_149126_);
+            super.usePlayerItem(pPlayer, pHand, pStack);
         }
     }
 
-    public boolean removeWhenFarAway(double p_149183_) {
+    public boolean removeWhenFarAway(double pDistanceToClosestPlayer) {
         return !this.fromBucket() && !this.hasCustomName();
     }
 
-    public static boolean checkAxolotlSpawnRules(EntityType<? extends LivingEntity> p_218438_, ServerLevelAccessor p_218439_, MobSpawnType p_218440_, BlockPos p_218441_, RandomSource p_218442_) {
-        return p_218439_.getBlockState(p_218441_.below()).is(BlockTags.AXOLOTLS_SPAWNABLE_ON);
+    public static boolean checkAxolotlSpawnRules(EntityType<? extends LivingEntity> pAxolotl, ServerLevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getBlockState(pPos.below()).is(BlockTags.AXOLOTLS_SPAWNABLE_ON);
     }
 
     public static class AxolotlGroupData extends AgeableMob.AgeableMobGroupData {
         public final Axolotl.Variant[] types;
 
-        public AxolotlGroupData(Axolotl.Variant... p_149204_) {
+        public AxolotlGroupData(Axolotl.Variant... pTypes) {
             super(false);
-            this.types = p_149204_;
+            this.types = pTypes;
         }
 
-        public Axolotl.Variant getVariant(RandomSource p_218447_) {
-            return this.types[p_218447_.nextInt(this.types.length)];
+        public Axolotl.Variant getVariant(RandomSource pRandom) {
+            return this.types[pRandom.nextInt(this.types.length)];
         }
     }
 
@@ -470,9 +470,9 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
     static class AxolotlMoveControl extends SmoothSwimmingMoveControl {
         private final Axolotl axolotl;
 
-        public AxolotlMoveControl(Axolotl p_149215_) {
-            super(p_149215_, 85, 10, 0.1F, 0.5F, false);
-            this.axolotl = p_149215_;
+        public AxolotlMoveControl(Axolotl pAxolotl) {
+            super(pAxolotl, 85, 10, 0.1F, 0.5F, false);
+            this.axolotl = pAxolotl;
         }
 
         public void tick() {
@@ -510,22 +510,22 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
             return this.name;
         }
 
-        public static Axolotl.Variant getCommonSpawnVariant(RandomSource p_218449_) {
-            return getSpawnVariant(p_218449_, true);
+        public static Axolotl.Variant getCommonSpawnVariant(RandomSource pRandom) {
+            return getSpawnVariant(pRandom, true);
         }
 
-        public static Axolotl.Variant getRareSpawnVariant(RandomSource p_218454_) {
-            return getSpawnVariant(p_218454_, false);
+        public static Axolotl.Variant getRareSpawnVariant(RandomSource pRandom) {
+            return getSpawnVariant(pRandom, false);
         }
 
-        private static Axolotl.Variant getSpawnVariant(RandomSource p_218451_, boolean p_218452_) {
+        private static Axolotl.Variant getSpawnVariant(RandomSource pRandom, boolean pCommon) {
             Axolotl.Variant[] aaxolotl$variant = Arrays.stream(BY_ID).filter((p_149252_) -> {
-                                                                         return p_149252_.common == p_218452_;
+                                                                         return p_149252_.common == pCommon;
                                                                      })
                                                          .toArray((p_149244_) -> {
                                                              return new Axolotl.Variant[p_149244_];
                                                          });
-            return Util.getRandom(aaxolotl$variant, p_218451_);
+            return Util.getRandom(aaxolotl$variant, pRandom);
         }
     }
 }

@@ -17,10 +17,10 @@ public class DisconnectedRealmsScreen extends RealmsScreen {
     private final Screen parent;
     private int textHeight;
 
-    public DisconnectedRealmsScreen(Screen p_120653_, Component p_120654_, Component p_120655_) {
-        super(p_120654_);
-        this.parent = p_120653_;
-        this.reason = p_120655_;
+    public DisconnectedRealmsScreen(Screen pParent, Component pTitle, Component pReason) {
+        super(pTitle);
+        this.parent = pParent;
+        this.reason = pReason;
     }
 
     public void init() {
@@ -42,10 +42,10 @@ public class DisconnectedRealmsScreen extends RealmsScreen {
         Minecraft.getInstance().setScreen(this.parent);
     }
 
-    public void render(PoseStack p_120657_, int p_120658_, int p_120659_, float p_120660_) {
-        this.renderBackground(p_120657_);
-        drawCenteredString(p_120657_, this.font, this.title, this.width / 2, this.height / 2 - this.textHeight / 2 - 9 * 2, 11184810);
-        this.message.renderCentered(p_120657_, this.width / 2, this.height / 2 - this.textHeight / 2);
-        super.render(p_120657_, p_120658_, p_120659_, p_120660_);
+    public void render(PoseStack pMatrixStack, int pMouseX, int pMouseY, float pPartialTicks) {
+        this.renderBackground(pMatrixStack);
+        drawCenteredString(pMatrixStack, this.font, this.title, this.width / 2, this.height / 2 - this.textHeight / 2 - 9 * 2, 11184810);
+        this.message.renderCentered(pMatrixStack, this.width / 2, this.height / 2 - this.textHeight / 2);
+        super.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks);
     }
 }

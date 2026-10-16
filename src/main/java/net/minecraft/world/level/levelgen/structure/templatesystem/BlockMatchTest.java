@@ -16,8 +16,8 @@ public class BlockMatchTest extends RuleTest {
         this.block = p_74067_;
     }
 
-    public boolean test(BlockState p_230277_, RandomSource p_230278_) {
-        return p_230277_.is(this.block);
+    public boolean test(BlockState pState, RandomSource pRandom) {
+        return pState.is(this.block);
     }
 
     protected RuleTestType<?> getType() {

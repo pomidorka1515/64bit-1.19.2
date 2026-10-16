@@ -7,5 +7,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface ArmedModel {
-    void translateToHand(HumanoidArm p_102108_, PoseStack p_102109_);
+    void translateToHand(HumanoidArm pSide, PoseStack pPoseStack);
 }

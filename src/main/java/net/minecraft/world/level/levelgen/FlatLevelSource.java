@@ -41,27 +41,27 @@ public class FlatLevelSource extends ChunkGenerator {
         return this.settings;
     }
 
-    public void buildSurface(WorldGenRegion p_224174_, StructureManager p_224175_, RandomState p_224176_, ChunkAccess p_224177_) {
+    public void buildSurface(WorldGenRegion pLevel, StructureManager pStructureManager, RandomState pRandom, ChunkAccess pChunk) {
     }
 
-    public int getSpawnHeight(LevelHeightAccessor p_158279_) {
-        return p_158279_.getMinBuildHeight() + Math.min(p_158279_.getHeight(), this.settings.getLayers().size());
+    public int getSpawnHeight(LevelHeightAccessor pLevel) {
+        return pLevel.getMinBuildHeight() + Math.min(pLevel.getHeight(), this.settings.getLayers().size());
     }
 
-    public CompletableFuture<ChunkAccess> fillFromNoise(Executor p_224183_, Blender p_224184_, RandomState p_224185_, StructureManager p_224186_, ChunkAccess p_224187_) {
+    public CompletableFuture<ChunkAccess> fillFromNoise(Executor pExecutor, Blender pBlender, RandomState pRandom, StructureManager pStructureManager, ChunkAccess pChunk) {
         List<BlockState> list = this.settings.getLayers();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        Heightmap heightmap = p_224187_.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
-        Heightmap heightmap1 = p_224187_.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
+        Heightmap heightmap = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
+        Heightmap heightmap1 = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
 
-        for (int i = 0; i < Math.min(p_224187_.getHeight(), list.size()); ++i) {
+        for (int i = 0; i < Math.min(pChunk.getHeight(), list.size()); ++i) {
             BlockState blockstate = list.get(i);
             if (blockstate != null) {
-                int j = p_224187_.getMinBuildHeight() + i;
+                int j = pChunk.getMinBuildHeight() + i;
 
                 for (int k = 0; k < 16; ++k) {
                     for (int l = 0; l < 16; ++l) {
-                        p_224187_.setBlockState(blockpos$mutableblockpos.set(k, j, l), blockstate, false);
+                        pChunk.setBlockState(blockpos$mutableblockpos.set(k, j, l), blockstate, false);
                         heightmap.update(k, j, l, blockstate);
                         heightmap1.update(k, j, l, blockstate);
                     }
@@ -69,24 +69,24 @@ public class FlatLevelSource extends ChunkGenerator {
             }
         }
 
-        return CompletableFuture.completedFuture(p_224187_);
+        return CompletableFuture.completedFuture(pChunk);
     }
 
-    public int getBaseHeight(long p_224160_, long p_224161_, Heightmap.Types p_224162_, LevelHeightAccessor p_224163_, RandomState p_224164_) {
+    public int getBaseHeight(long pX, long pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom) {
         List<BlockState> list = this.settings.getLayers();
 
-        for (int i = Math.min(list.size(), p_224163_.getMaxBuildHeight()) - 1; i >= 0; --i) {
+        for (int i = Math.min(list.size(), pLevel.getMaxBuildHeight()) - 1; i >= 0; --i) {
             BlockState blockstate = list.get(i);
-            if (blockstate != null && p_224162_.isOpaque().test(blockstate)) {
-                return p_224163_.getMinBuildHeight() + i + 1;
+            if (blockstate != null && pType.isOpaque().test(blockstate)) {
+                return pLevel.getMinBuildHeight() + i + 1;
             }
         }
 
-        return p_224163_.getMinBuildHeight();
+        return pLevel.getMinBuildHeight();
     }
 
-    public NoiseColumn getBaseColumn(long p_224155_, long p_224156_, LevelHeightAccessor p_224157_, RandomState p_224158_) {
-        return new NoiseColumn(p_224157_.getMinBuildHeight(), this.settings.getLayers().stream().limit((long) p_224157_.getHeight()).map((p_204549_) -> {
+    public NoiseColumn getBaseColumn(long pX, long pZ, LevelHeightAccessor pHeight, RandomState pRandom) {
+        return new NoiseColumn(pHeight.getMinBuildHeight(), this.settings.getLayers().stream().limit((long) pHeight.getHeight()).map((p_204549_) -> {
                                                                                                                                         return p_204549_ == null ? Blocks.AIR.defaultBlockState() : p_204549_;
                                                                                                                                     })
                                                                       .toArray((p_204543_) -> {
@@ -94,13 +94,13 @@ public class FlatLevelSource extends ChunkGenerator {
                                                                       }));
     }
 
-    public void addDebugScreenInfo(List<String> p_224179_, RandomState p_224180_, BlockPos p_224181_) {
+    public void addDebugScreenInfo(List<String> pInfo, RandomState pRandom, BlockPos pPos) {
     }
 
-    public void applyCarvers(WorldGenRegion p_224166_, long p_224167_, RandomState p_224168_, BiomeManager p_224169_, StructureManager p_224170_, ChunkAccess p_224171_, GenerationStep.Carving p_224172_) {
+    public void applyCarvers(WorldGenRegion pLevel, long pSeed, RandomState pRandom, BiomeManager pBiomeManager, StructureManager pStructureManager, ChunkAccess pChunk, GenerationStep.Carving pStep) {
     }
 
-    public void spawnOriginalMobs(WorldGenRegion p_188545_) {
+    public void spawnOriginalMobs(WorldGenRegion pLevel) {
     }
 
     public int getMinY() {

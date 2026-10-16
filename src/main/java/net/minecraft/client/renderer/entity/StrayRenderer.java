@@ -16,7 +16,7 @@ public class StrayRenderer extends SkeletonRenderer {
         this.addLayer(new StrayClothingLayer<>(this, p_174409_.getModelSet()));
     }
 
-    public ResourceLocation getTextureLocation(AbstractSkeleton p_116049_) {
+    public ResourceLocation getTextureLocation(AbstractSkeleton pEntity) {
         return STRAY_SKELETON_LOCATION;
     }
 }

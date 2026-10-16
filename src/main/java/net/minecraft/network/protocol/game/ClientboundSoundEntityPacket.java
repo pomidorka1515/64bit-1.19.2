@@ -16,32 +16,32 @@ public class ClientboundSoundEntityPacket implements Packet<ClientGamePacketList
     private final float pitch;
     private final long seed;
 
-    public ClientboundSoundEntityPacket(SoundEvent p_237831_, SoundSource p_237832_, Entity p_237833_, float p_237834_, float p_237835_, long p_237836_) {
-        Validate.notNull(p_237831_, "sound");
-        this.sound = p_237831_;
-        this.source = p_237832_;
-        this.id = p_237833_.getId();
-        this.volume = p_237834_;
-        this.pitch = p_237835_;
-        this.seed = p_237836_;
+    public ClientboundSoundEntityPacket(SoundEvent pSound, SoundSource pSource, Entity pEntity, float pVolume, float pPitch, long pSeed) {
+        Validate.notNull(pSound, "sound");
+        this.sound = pSound;
+        this.source = pSource;
+        this.id = pEntity.getId();
+        this.volume = pVolume;
+        this.pitch = pPitch;
+        this.seed = pSeed;
     }
 
-    public ClientboundSoundEntityPacket(FriendlyByteBuf p_179419_) {
-        this.sound = p_179419_.readById(Registry.SOUND_EVENT);
-        this.source = p_179419_.readEnum(SoundSource.class);
-        this.id = p_179419_.readVarInt();
-        this.volume = p_179419_.readFloat();
-        this.pitch = p_179419_.readFloat();
-        this.seed = p_179419_.readLong();
+    public ClientboundSoundEntityPacket(FriendlyByteBuf pBuffer) {
+        this.sound = pBuffer.readById(Registry.SOUND_EVENT);
+        this.source = pBuffer.readEnum(SoundSource.class);
+        this.id = pBuffer.readVarInt();
+        this.volume = pBuffer.readFloat();
+        this.pitch = pBuffer.readFloat();
+        this.seed = pBuffer.readLong();
     }
 
-    public void write(FriendlyByteBuf p_133428_) {
-        p_133428_.writeId(Registry.SOUND_EVENT, this.sound);
-        p_133428_.writeEnum(this.source);
-        p_133428_.writeVarInt(this.id);
-        p_133428_.writeFloat(this.volume);
-        p_133428_.writeFloat(this.pitch);
-        p_133428_.writeLong(this.seed);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeId(Registry.SOUND_EVENT, this.sound);
+        pBuffer.writeEnum(this.source);
+        pBuffer.writeVarInt(this.id);
+        pBuffer.writeFloat(this.volume);
+        pBuffer.writeFloat(this.pitch);
+        pBuffer.writeLong(this.seed);
     }
 
     public SoundEvent getSound() {
@@ -68,7 +68,7 @@ public class ClientboundSoundEntityPacket implements Packet<ClientGamePacketList
         return this.seed;
     }
 
-    public void handle(ClientGamePacketListener p_133425_) {
-        p_133425_.handleSoundEntityEvent(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleSoundEntityEvent(this);
     }
 }

@@ -48,27 +48,27 @@ public class VillagerData {
         return this.level;
     }
 
-    public VillagerData setType(VillagerType p_35568_) {
-        return new VillagerData(p_35568_, this.profession, this.level);
+    public VillagerData setType(VillagerType pType) {
+        return new VillagerData(pType, this.profession, this.level);
     }
 
-    public VillagerData setProfession(VillagerProfession p_35566_) {
-        return new VillagerData(this.type, p_35566_, this.level);
+    public VillagerData setProfession(VillagerProfession pProfession) {
+        return new VillagerData(this.type, pProfession, this.level);
     }
 
-    public VillagerData setLevel(int p_35562_) {
-        return new VillagerData(this.type, this.profession, p_35562_);
+    public VillagerData setLevel(int pLevel) {
+        return new VillagerData(this.type, this.profession, pLevel);
     }
 
-    public static int getMinXpPerLevel(int p_35573_) {
-        return canLevelUp(p_35573_) ? NEXT_LEVEL_XP_THRESHOLDS[p_35573_ - 1] : 0;
+    public static int getMinXpPerLevel(int pLevel) {
+        return canLevelUp(pLevel) ? NEXT_LEVEL_XP_THRESHOLDS[pLevel - 1] : 0;
     }
 
-    public static int getMaxXpPerLevel(int p_35578_) {
-        return canLevelUp(p_35578_) ? NEXT_LEVEL_XP_THRESHOLDS[p_35578_] : 0;
+    public static int getMaxXpPerLevel(int pLevel) {
+        return canLevelUp(pLevel) ? NEXT_LEVEL_XP_THRESHOLDS[pLevel] : 0;
     }
 
-    public static boolean canLevelUp(int p_35583_) {
-        return p_35583_ >= 1 && p_35583_ < 5;
+    public static boolean canLevelUp(int pLevel) {
+        return pLevel >= 1 && pLevel < 5;
     }
 }

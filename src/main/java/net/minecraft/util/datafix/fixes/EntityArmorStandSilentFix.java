@@ -6,8 +6,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class EntityArmorStandSilentFix extends NamedEntityFix {
-    public EntityArmorStandSilentFix(Schema p_15324_, boolean p_15325_) {
-        super(p_15324_, p_15325_, "EntityArmorStandSilentFix", References.ENTITY, "ArmorStand");
+    public EntityArmorStandSilentFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "EntityArmorStandSilentFix", References.ENTITY, "ArmorStand");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15329_) {

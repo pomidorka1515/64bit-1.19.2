@@ -13,16 +13,16 @@ public record ReportEnvironment(String clientVersion, @Nullable ReportEnvironmen
         return create((ReportEnvironment.Server) null);
     }
 
-    public static ReportEnvironment thirdParty(String p_238999_) {
-        return create(new ReportEnvironment.Server.ThirdParty(p_238999_));
+    public static ReportEnvironment thirdParty(String pIp) {
+        return create(new ReportEnvironment.Server.ThirdParty(pIp));
     }
 
-    public static ReportEnvironment realm(RealmsServer p_239765_) {
-        return create(new ReportEnvironment.Server.Realm(p_239765_));
+    public static ReportEnvironment realm(RealmsServer pRealmsServer) {
+        return create(new ReportEnvironment.Server.Realm(pRealmsServer));
     }
 
-    public static ReportEnvironment create(@Nullable ReportEnvironment.Server p_239956_) {
-        return new ReportEnvironment(getClientVersion(), p_239956_);
+    public static ReportEnvironment create(@Nullable ReportEnvironment.Server pServer) {
+        return new ReportEnvironment(getClientVersion(), pServer);
     }
 
     public AbuseReportRequest.ClientInfo clientInfo() {
@@ -63,8 +63,8 @@ public record ReportEnvironment(String clientVersion, @Nullable ReportEnvironmen
     public interface Server {
         @OnlyIn(Dist.CLIENT)
         public static record Realm(long realmId, int slotId) implements ReportEnvironment.Server {
-            public Realm(RealmsServer p_239068_) {
-                this(p_239068_.id, p_239068_.activeSlot);
+            public Realm(RealmsServer pRealmsServer) {
+                this(pRealmsServer.id, pRealmsServer.activeSlot);
             }
         }
 

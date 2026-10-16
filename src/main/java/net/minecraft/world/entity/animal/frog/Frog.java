@@ -86,8 +86,8 @@ public class Frog extends Animal {
     public final AnimationState swimAnimationState = new AnimationState();
     public final AnimationState swimIdleAnimationState = new AnimationState();
 
-    public Frog(EntityType<? extends Animal> p_218470_, Level p_218471_) {
-        super(p_218470_, p_218471_);
+    public Frog(EntityType<? extends Animal> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.lookControl = new Frog.FrogLookControl(this);
         this.setPathfindingMalus(BlockPathTypes.WATER, 4.0F);
         this.setPathfindingMalus(BlockPathTypes.TRAPDOOR, -1.0F);
@@ -99,8 +99,8 @@ public class Frog extends Animal {
         return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
     }
 
-    protected Brain<?> makeBrain(Dynamic<?> p_218494_) {
-        return FrogAi.makeBrain(this.brainProvider().makeBrain(p_218494_));
+    protected Brain<?> makeBrain(Dynamic<?> pDynamic) {
+        return FrogAi.makeBrain(this.brainProvider().makeBrain(pDynamic));
     }
 
     public Brain<Frog> getBrain() {
@@ -121,8 +121,8 @@ public class Frog extends Animal {
         return this.entityData.get(DATA_TONGUE_TARGET_ID).stream().mapToObj(this.level::getEntity).filter(Objects::nonNull).findFirst();
     }
 
-    public void setTongueTarget(Entity p_218482_) {
-        this.entityData.set(DATA_TONGUE_TARGET_ID, OptionalInt.of(p_218482_.getId()));
+    public void setTongueTarget(Entity pTongueTarget) {
+        this.entityData.set(DATA_TONGUE_TARGET_ID, OptionalInt.of(pTongueTarget.getId()));
     }
 
     public int getHeadRotSpeed() {
@@ -137,18 +137,18 @@ public class Frog extends Animal {
         return this.entityData.get(DATA_VARIANT_ID);
     }
 
-    public void setVariant(FrogVariant p_218484_) {
-        this.entityData.set(DATA_VARIANT_ID, p_218484_);
+    public void setVariant(FrogVariant pVariant) {
+        this.entityData.set(DATA_VARIANT_ID, pVariant);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_218508_) {
-        super.addAdditionalSaveData(p_218508_);
-        p_218508_.putString("variant", Registry.FROG_VARIANT.getKey(this.getVariant()).toString());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putString("variant", Registry.FROG_VARIANT.getKey(this.getVariant()).toString());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_218496_) {
-        super.readAdditionalSaveData(p_218496_);
-        FrogVariant frogvariant = Registry.FROG_VARIANT.get(ResourceLocation.tryParse(p_218496_.getString("variant")));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        FrogVariant frogvariant = Registry.FROG_VARIANT.get(ResourceLocation.tryParse(pCompound.getString("variant")));
         if (frogvariant != null) {
             this.setVariant(frogvariant);
         }
@@ -199,8 +199,8 @@ public class Frog extends Animal {
         super.tick();
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_218498_) {
-        if (DATA_POSE.equals(p_218498_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        if (DATA_POSE.equals(pKey)) {
             Pose pose = this.getPose();
             if (pose == Pose.LONG_JUMPING) {
                 this.jumpAnimationState.start(this.tickCount);
@@ -221,14 +221,14 @@ public class Frog extends Animal {
             }
         }
 
-        super.onSyncedDataUpdated(p_218498_);
+        super.onSyncedDataUpdated(pKey);
     }
 
     @Nullable
-    public AgeableMob getBreedOffspring(ServerLevel p_218476_, AgeableMob p_218477_) {
-        Frog frog = EntityType.FROG.create(p_218476_);
+    public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        Frog frog = EntityType.FROG.create(pLevel);
         if (frog != null) {
-            FrogAi.initMemories(frog, p_218476_.getRandom());
+            FrogAi.initMemories(frog, pLevel.getRandom());
         }
 
         return frog;
@@ -238,33 +238,33 @@ public class Frog extends Animal {
         return false;
     }
 
-    public void setBaby(boolean p_218500_) {
+    public void setBaby(boolean pBaby) {
     }
 
-    public void spawnChildFromBreeding(ServerLevel p_218479_, Animal p_218480_) {
+    public void spawnChildFromBreeding(ServerLevel pLevel, Animal pMate) {
         ServerPlayer serverplayer = this.getLoveCause();
         if (serverplayer == null) {
-            serverplayer = p_218480_.getLoveCause();
+            serverplayer = pMate.getLoveCause();
         }
 
         if (serverplayer != null) {
             serverplayer.awardStat(Stats.ANIMALS_BRED);
-            CriteriaTriggers.BRED_ANIMALS.trigger(serverplayer, this, p_218480_, (AgeableMob) null);
+            CriteriaTriggers.BRED_ANIMALS.trigger(serverplayer, this, pMate, (AgeableMob) null);
         }
 
         this.setAge(6000);
-        p_218480_.setAge(6000);
+        pMate.setAge(6000);
         this.resetLove();
-        p_218480_.resetLove();
+        pMate.resetLove();
         this.getBrain().setMemory(MemoryModuleType.IS_PREGNANT, Unit.INSTANCE);
-        p_218479_.broadcastEntityEvent(this, (byte) 18);
-        if (p_218479_.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
-            p_218479_.addFreshEntity(new ExperienceOrb(p_218479_, this.getX(), this.getY(), this.getZ(), this.getRandom().nextInt(7) + 1));
+        pLevel.broadcastEntityEvent(this, (byte) 18);
+        if (pLevel.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+            pLevel.addFreshEntity(new ExperienceOrb(pLevel, this.getX(), this.getY(), this.getZ(), this.getRandom().nextInt(7) + 1));
         }
     }
 
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_218488_, DifficultyInstance p_218489_, MobSpawnType p_218490_, @Nullable SpawnGroupData p_218491_, @Nullable CompoundTag p_218492_) {
-        Holder<Biome> holder = p_218488_.getBiome(this.blockPosition());
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        Holder<Biome> holder = pLevel.getBiome(this.blockPosition());
         if (holder.is(BiomeTags.SPAWNS_COLD_VARIANT_FROGS)) {
             this.setVariant(FrogVariant.COLD);
         } else if (holder.is(BiomeTags.SPAWNS_WARM_VARIANT_FROGS)) {
@@ -273,8 +273,8 @@ public class Frog extends Animal {
             this.setVariant(FrogVariant.TEMPERATE);
         }
 
-        FrogAi.initMemories(this, p_218488_.getRandom());
-        return super.finalizeSpawn(p_218488_, p_218489_, p_218490_, p_218491_, p_218492_);
+        FrogAi.initMemories(this, pLevel.getRandom());
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -287,7 +287,7 @@ public class Frog extends Animal {
     }
 
     @Nullable
-    protected SoundEvent getHurtSound(DamageSource p_218510_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.FROG_HURT;
     }
 
@@ -296,7 +296,7 @@ public class Frog extends Animal {
         return SoundEvents.FROG_DEATH;
     }
 
-    protected void playStepSound(BlockPos p_218505_, BlockState p_218506_) {
+    protected void playStepSound(BlockPos pPos, BlockState pState) {
         this.playSound(SoundEvents.FROG_STEP, 0.15F, 1.0F);
     }
 
@@ -309,44 +309,44 @@ public class Frog extends Animal {
         DebugPackets.sendEntityBrain(this);
     }
 
-    protected int calculateFallDamage(float p_218519_, float p_218520_) {
-        return super.calculateFallDamage(p_218519_, p_218520_) - 5;
+    protected int calculateFallDamage(float pFallDistance, float pDamageMultiplier) {
+        return super.calculateFallDamage(pFallDistance, pDamageMultiplier) - 5;
     }
 
-    public void travel(Vec3 p_218530_) {
+    public void travel(Vec3 pTravelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            this.moveRelative(this.getSpeed(), p_218530_);
+            this.moveRelative(this.getSpeed(), pTravelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
         } else {
-            super.travel(p_218530_);
+            super.travel(pTravelVector);
         }
     }
 
-    public boolean canCutCorner(BlockPathTypes p_218503_) {
-        return super.canCutCorner(p_218503_) && p_218503_ != BlockPathTypes.WATER_BORDER;
+    public boolean canCutCorner(BlockPathTypes pPathType) {
+        return super.canCutCorner(pPathType) && pPathType != BlockPathTypes.WATER_BORDER;
     }
 
-    public static boolean canEat(LivingEntity p_218533_) {
-        if (p_218533_ instanceof Slime slime) {
+    public static boolean canEat(LivingEntity pEntity) {
+        if (pEntity instanceof Slime slime) {
             if (slime.getSize() != 1) {
                 return false;
             }
         }
 
-        return p_218533_.getType().is(EntityTypeTags.FROG_FOOD);
+        return pEntity.getType().is(EntityTypeTags.FROG_FOOD);
     }
 
-    protected PathNavigation createNavigation(Level p_218486_) {
-        return new Frog.FrogPathNavigation(this, p_218486_);
+    protected PathNavigation createNavigation(Level pLevel) {
+        return new Frog.FrogPathNavigation(this, pLevel);
     }
 
-    public boolean isFood(ItemStack p_218535_) {
-        return TEMPTATION_ITEM.test(p_218535_);
+    public boolean isFood(ItemStack pStack) {
+        return TEMPTATION_ITEM.test(pStack);
     }
 
-    public static boolean checkFrogSpawnRules(EntityType<? extends Animal> p_218512_, LevelAccessor p_218513_, MobSpawnType p_218514_, BlockPos p_218515_, RandomSource p_218516_) {
-        return p_218513_.getBlockState(p_218515_.below()).is(BlockTags.FROGS_SPAWNABLE_ON) && isBrightEnoughToSpawn(p_218513_, p_218515_);
+    public static boolean checkFrogSpawnRules(EntityType<? extends Animal> pAnimal, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getBlockState(pPos.below()).is(BlockTags.FROGS_SPAWNABLE_ON) && isBrightEnoughToSpawn(pLevel, pPos);
     }
 
     class FrogLookControl extends LookControl {
@@ -380,14 +380,14 @@ public class Frog extends Animal {
     }
 
     static class FrogPathNavigation extends AmphibiousPathNavigation {
-        FrogPathNavigation(Frog p_218556_, Level p_218557_) {
-            super(p_218556_, p_218557_);
+        FrogPathNavigation(Frog pMob, Level pLevel) {
+            super(pMob, pLevel);
         }
 
-        protected PathFinder createPathFinder(int p_218559_) {
+        protected PathFinder createPathFinder(int pMaxVisitedNodes) {
             this.nodeEvaluator = new Frog.FrogNodeEvaluator(true);
             this.nodeEvaluator.setCanPassDoors(true);
-            return new PathFinder(this.nodeEvaluator, p_218559_);
+            return new PathFinder(this.nodeEvaluator, pMaxVisitedNodes);
         }
     }
 }

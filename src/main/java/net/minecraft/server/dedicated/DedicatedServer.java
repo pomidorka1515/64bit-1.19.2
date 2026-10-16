@@ -72,11 +72,11 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
     @Nullable
     private final TextFilterClient textFilterClient;
 
-    public DedicatedServer(Thread p_214789_, LevelStorageSource.LevelStorageAccess p_214790_, PackRepository p_214791_, WorldStem p_214792_, DedicatedServerSettings p_214793_, DataFixer p_214794_, Services p_214795_, ChunkProgressListenerFactory p_214796_) {
-        super(p_214789_, p_214790_, p_214791_, p_214792_, Proxy.NO_PROXY, p_214794_, p_214795_, p_214796_);
-        this.settings = p_214793_;
+    public DedicatedServer(Thread pServerThread, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, DedicatedServerSettings pSettings, DataFixer pFixerUpper, Services pServices, ChunkProgressListenerFactory pProgressListenerFactory) {
+        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, Proxy.NO_PROXY, pFixerUpper, pServices, pProgressListenerFactory);
+        this.settings = pSettings;
         this.rconConsoleSource = new RconConsoleSource(this);
-        this.textFilterClient = TextFilterClient.createFromConfig(p_214793_.getProperties().textFilteringConfig);
+        this.textFilterClient = TextFilterClient.createFromConfig(pSettings.getProperties().textFilteringConfig);
     }
 
     public boolean initServer() throws IOException {
@@ -219,19 +219,19 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         return this.getProperties().hardcore;
     }
 
-    public SystemReport fillServerSystemReport(SystemReport p_142870_) {
-        p_142870_.setDetail("Is Modded", () -> {
+    public SystemReport fillServerSystemReport(SystemReport pReport) {
+        pReport.setDetail("Is Modded", () -> {
             return this.getModdedStatus().fullDescription();
         });
-        p_142870_.setDetail("Type", () -> {
+        pReport.setDetail("Type", () -> {
             return "Dedicated Server (map_server.txt)";
         });
-        return p_142870_;
+        return pReport;
     }
 
-    public void dumpServerProperties(Path p_142872_) throws IOException {
+    public void dumpServerProperties(Path pPath) throws IOException {
         DedicatedServerProperties dedicatedserverproperties = this.getProperties();
-        Writer writer = Files.newBufferedWriter(p_142872_);
+        Writer writer = Files.newBufferedWriter(pPath);
 
         try {
             writer.write(String.format(Locale.ROOT, "sync-chunk-writes=%s%n", dedicatedserverproperties.syncChunkWrites));
@@ -281,8 +281,8 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         }
     }
 
-    public void tickChildren(BooleanSupplier p_139661_) {
-        super.tickChildren(p_139661_);
+    public void tickChildren(BooleanSupplier pHasTimeLeft) {
+        super.tickChildren(pHasTimeLeft);
         this.handleConsoleInputs();
     }
 
@@ -290,8 +290,8 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         return this.getProperties().allowNether;
     }
 
-    public void handleConsoleInput(String p_139646_, CommandSourceStack p_139647_) {
-        this.consoleInput.add(new ConsoleInput(p_139646_, p_139647_));
+    public void handleConsoleInput(String pMsg, CommandSourceStack pSource) {
+        this.consoleInput.add(new ConsoleInput(pMsg, pSource));
     }
 
     public void handleConsoleInputs() {
@@ -355,19 +355,19 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         return this.getProperties().spawnProtection;
     }
 
-    public boolean isUnderSpawnProtection(ServerLevel p_139630_, BlockPos p_139631_, Player p_139632_) {
-        if (p_139630_.dimension() != Level.OVERWORLD) {
+    public boolean isUnderSpawnProtection(ServerLevel pLevel, BlockPos pPos, Player pPlayer) {
+        if (pLevel.dimension() != Level.OVERWORLD) {
             return false;
         } else if (this.getPlayerList().getOps().isEmpty()) {
             return false;
-        } else if (this.getPlayerList().isOp(p_139632_.getGameProfile())) {
+        } else if (this.getPlayerList().isOp(pPlayer.getGameProfile())) {
             return false;
         } else if (this.getSpawnProtectionRadius() <= 0) {
             return false;
         } else {
-            BlockPos blockpos = p_139630_.getSharedSpawnPos();
-            long i = Math.abs(p_139631_.getX() - blockpos.getX());
-            long j = Math.abs(p_139631_.getZ() - blockpos.getZ());
+            BlockPos blockpos = pLevel.getSharedSpawnPos();
+            long i = Math.abs(pPos.getX() - blockpos.getX());
+            long j = Math.abs(pPos.getZ() - blockpos.getZ());
             long k = Math.max(i, j);
             return k <= this.getSpawnProtectionRadius();
         }
@@ -389,10 +389,10 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         return this.getProperties().functionPermissionLevel;
     }
 
-    public void setPlayerIdleTimeout(int p_139676_) {
-        super.setPlayerIdleTimeout(p_139676_);
+    public void setPlayerIdleTimeout(int pIdleTimeout) {
+        super.setPlayerIdleTimeout(pIdleTimeout);
         this.settings.update((p_139628_) -> {
-            return p_139628_.playerIdleTimeout.update(this.registryAccess(), p_139676_);
+            return p_139628_.playerIdleTimeout.update(this.registryAccess(), pIdleTimeout);
         });
     }
 
@@ -494,10 +494,10 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         return "";
     }
 
-    public String runCommand(String p_139644_) {
+    public String runCommand(String pCommand) {
         this.rconConsoleSource.prepareForCommand();
         this.executeBlocking(() -> {
-            this.getCommands().performPrefixedCommand(this.rconConsoleSource.createCommandSourceStack(), p_139644_);
+            this.getCommands().performPrefixedCommand(this.rconConsoleSource.createCommandSourceStack(), pCommand);
         });
         return this.rconConsoleSource.getCommandResponse();
     }
@@ -514,7 +514,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         SkullBlockEntity.clear();
     }
 
-    public boolean isSingleplayerOwner(GameProfile p_139642_) {
+    public boolean isSingleplayerOwner(GameProfile pProfile) {
         return false;
     }
 
@@ -530,8 +530,8 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         return this.settings.getProperties().syncChunkWrites;
     }
 
-    public TextFilter createTextFilterForPlayer(ServerPlayer p_139634_) {
-        return this.textFilterClient != null ? this.textFilterClient.createContext(p_139634_.getGameProfile()) : TextFilter.DUMMY;
+    public TextFilter createTextFilterForPlayer(ServerPlayer pPlayer) {
+        return this.textFilterClient != null ? this.textFilterClient.createContext(pPlayer.getGameProfile()) : TextFilter.DUMMY;
     }
 
     @Nullable

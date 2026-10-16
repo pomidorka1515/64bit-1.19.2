@@ -17,8 +17,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class EntityEquipmentToArmorAndHandFix extends DataFix {
-    public EntityEquipmentToArmorAndHandFix(Schema p_15417_, boolean p_15418_) {
-        super(p_15417_, p_15418_);
+    public EntityEquipmentToArmorAndHandFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

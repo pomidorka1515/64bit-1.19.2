@@ -25,8 +25,8 @@ public class GameTestRegistry {
     private static final Map<String, Consumer<ServerLevel>> AFTER_BATCH_FUNCTIONS = Maps.newHashMap();
     private static final Collection<TestFunction> LAST_FAILED_TESTS = Sets.newHashSet();
 
-    public static void register(Class<?> p_177502_) {
-        Arrays.stream(p_177502_.getDeclaredMethods()).forEach(GameTestRegistry::register);
+    public static void register(Class<?> pTestClass) {
+        Arrays.stream(pTestClass.getDeclaredMethods()).forEach(GameTestRegistry::register);
     }
 
     public static void register(Method p_177504_) {
@@ -58,9 +58,9 @@ public class GameTestRegistry {
         }
     }
 
-    public static Collection<TestFunction> getTestFunctionsForClassName(String p_127660_) {
+    public static Collection<TestFunction> getTestFunctionsForClassName(String pClassName) {
         return TEST_FUNCTIONS.stream().filter((p_127674_) -> {
-                                          return isTestFunctionPartOfClass(p_127674_, p_127660_);
+                                          return isTestFunctionPartOfClass(p_127674_, pClassName);
                                       })
                 .collect(Collectors.toList());
     }
@@ -73,61 +73,61 @@ public class GameTestRegistry {
         return TEST_CLASS_NAMES;
     }
 
-    public static boolean isTestClass(String p_127671_) {
-        return TEST_CLASS_NAMES.contains(p_127671_);
+    public static boolean isTestClass(String pClassName) {
+        return TEST_CLASS_NAMES.contains(pClassName);
     }
 
     @Nullable
-    public static Consumer<ServerLevel> getBeforeBatchFunction(String p_127677_) {
-        return BEFORE_BATCH_FUNCTIONS.get(p_127677_);
+    public static Consumer<ServerLevel> getBeforeBatchFunction(String pFunctionName) {
+        return BEFORE_BATCH_FUNCTIONS.get(pFunctionName);
     }
 
     @Nullable
-    public static Consumer<ServerLevel> getAfterBatchFunction(String p_177518_) {
-        return AFTER_BATCH_FUNCTIONS.get(p_177518_);
+    public static Consumer<ServerLevel> getAfterBatchFunction(String pFunctionName) {
+        return AFTER_BATCH_FUNCTIONS.get(pFunctionName);
     }
 
-    public static Optional<TestFunction> findTestFunction(String p_127680_) {
+    public static Optional<TestFunction> findTestFunction(String pTestName) {
         return getAllTestFunctions().stream().filter((p_127663_) -> {
-                                                 return p_127663_.getTestName().equalsIgnoreCase(p_127680_);
+                                                 return p_127663_.getTestName().equalsIgnoreCase(pTestName);
                                              })
                 .findFirst();
     }
 
-    public static TestFunction getTestFunction(String p_127682_) {
-        Optional<TestFunction> optional = findTestFunction(p_127682_);
+    public static TestFunction getTestFunction(String pTestName) {
+        Optional<TestFunction> optional = findTestFunction(pTestName);
         if (!optional.isPresent()) {
-            throw new IllegalArgumentException("Can't find the test function for " + p_127682_);
+            throw new IllegalArgumentException("Can't find the test function for " + pTestName);
         } else {
             return optional.get();
         }
     }
 
-    private static Collection<TestFunction> useTestGeneratorMethod(Method p_177514_) {
+    private static Collection<TestFunction> useTestGeneratorMethod(Method pTestMethod) {
         try {
-            Object object = p_177514_.getDeclaringClass().newInstance();
-            return (Collection) p_177514_.invoke(object);
+            Object object = pTestMethod.getDeclaringClass().newInstance();
+            return (Collection) pTestMethod.invoke(object);
         } catch (ReflectiveOperationException reflectiveoperationexception) {
             throw new RuntimeException(reflectiveoperationexception);
         }
     }
 
-    private static TestFunction turnMethodIntoTestFunction(Method p_177516_) {
-        GameTest gametest = p_177516_.getAnnotation(GameTest.class);
-        String s = p_177516_.getDeclaringClass().getSimpleName();
+    private static TestFunction turnMethodIntoTestFunction(Method pTestMethod) {
+        GameTest gametest = pTestMethod.getAnnotation(GameTest.class);
+        String s = pTestMethod.getDeclaringClass().getSimpleName();
         String s1 = s.toLowerCase();
-        String s2 = s1 + "." + p_177516_.getName().toLowerCase();
+        String s2 = s1 + "." + pTestMethod.getName().toLowerCase();
         String s3 = gametest.template().isEmpty() ? s2 : s1 + "." + gametest.template();
         String s4 = gametest.batch();
         Rotation rotation = StructureUtils.getRotationForRotationSteps(gametest.rotationSteps());
-        return new TestFunction(s4, s2, s3, rotation, gametest.timeoutTicks(), gametest.setupTicks(), gametest.required(), gametest.requiredSuccesses(), gametest.attempts(), (Consumer<net.minecraft.gametest.framework.GameTestHelper>) turnMethodIntoConsumer(p_177516_));
+        return new TestFunction(s4, s2, s3, rotation, gametest.timeoutTicks(), gametest.setupTicks(), gametest.required(), gametest.requiredSuccesses(), gametest.attempts(), (Consumer<net.minecraft.gametest.framework.GameTestHelper>) turnMethodIntoConsumer(pTestMethod));
     }
 
-    private static Consumer<?> turnMethodIntoConsumer(Method p_177520_) {
+    private static Consumer<?> turnMethodIntoConsumer(Method pTestMethod) {
         return (p_177512_) -> {
             try {
-                Object object = p_177520_.getDeclaringClass().newInstance();
-                p_177520_.invoke(object, p_177512_);
+                Object object = pTestMethod.getDeclaringClass().newInstance();
+                pTestMethod.invoke(object, p_177512_);
             } catch (InvocationTargetException invocationtargetexception) {
                 if (invocationtargetexception.getCause() instanceof RuntimeException) {
                     throw (RuntimeException) invocationtargetexception.getCause();
@@ -140,16 +140,16 @@ public class GameTestRegistry {
         };
     }
 
-    private static boolean isTestFunctionPartOfClass(TestFunction p_127667_, String p_127668_) {
-        return p_127667_.getTestName().toLowerCase().startsWith(p_127668_.toLowerCase() + ".");
+    private static boolean isTestFunctionPartOfClass(TestFunction pTestFunction, String pClassName) {
+        return pTestFunction.getTestName().toLowerCase().startsWith(pClassName.toLowerCase() + ".");
     }
 
     public static Collection<TestFunction> getLastFailedTests() {
         return LAST_FAILED_TESTS;
     }
 
-    public static void rememberFailedTest(TestFunction p_127665_) {
-        LAST_FAILED_TESTS.add(p_127665_);
+    public static void rememberFailedTest(TestFunction pTestFunction) {
+        LAST_FAILED_TESTS.add(pTestFunction);
     }
 
     public static void forgetFailedTests() {

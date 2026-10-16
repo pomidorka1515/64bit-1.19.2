@@ -29,41 +29,41 @@ public class SocialInteractionsPlayerList extends ContainerObjectSelectionList<P
     @Nullable
     private String filter;
 
-    public SocialInteractionsPlayerList(SocialInteractionsScreen p_100697_, Minecraft p_100698_, int p_100699_, int p_100700_, int p_100701_, int p_100702_, int p_100703_) {
-        super(p_100698_, p_100699_, p_100700_, p_100701_, p_100702_, p_100703_);
-        this.socialInteractionsScreen = p_100697_;
+    public SocialInteractionsPlayerList(SocialInteractionsScreen pSocialInteractionsScreen, Minecraft pMinecraft, int pWidth, int pHeight, int pY0, int pY1, int pItemHeight) {
+        super(pMinecraft, pWidth, pHeight, pY0, pY1, pItemHeight);
+        this.socialInteractionsScreen = pSocialInteractionsScreen;
         this.setRenderBackground(false);
         this.setRenderTopAndBottom(false);
     }
 
-    public void render(PoseStack p_100705_, int p_100706_, int p_100707_, float p_100708_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         double d0 = this.minecraft.getWindow().getGuiScale();
         RenderSystem.enableScissor((int) ((double) this.getRowLeft() * d0), (int) ((double) (this.height - this.y1) * d0), (int) ((double) (this.getScrollbarPosition() + 6) * d0), (int) ((double) (this.height - (this.height - this.y1) - this.y0 - 4) * d0));
-        super.render(p_100705_, p_100706_, p_100707_, p_100708_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         RenderSystem.disableScissor();
     }
 
-    public void updatePlayerList(Collection<UUID> p_240798_, double p_240792_, boolean p_240829_) {
+    public void updatePlayerList(Collection<UUID> pIds, double pScrollAmount, boolean pAddChatLogPlayers) {
         Map<UUID, PlayerEntry> map = new HashMap<>();
-        this.addOnlinePlayers(p_240798_, map);
-        this.updatePlayersFromChatLog(map, p_240829_);
-        this.updateFiltersAndScroll(map.values(), p_240792_);
+        this.addOnlinePlayers(pIds, map);
+        this.updatePlayersFromChatLog(map, pAddChatLogPlayers);
+        this.updateFiltersAndScroll(map.values(), pScrollAmount);
     }
 
-    private void addOnlinePlayers(Collection<UUID> p_240813_, Map<UUID, PlayerEntry> p_240796_) {
+    private void addOnlinePlayers(Collection<UUID> pIds, Map<UUID, PlayerEntry> pPlayerMap) {
         ClientPacketListener clientpacketlistener = this.minecraft.player.connection;
 
-        for (UUID uuid : p_240813_) {
+        for (UUID uuid : pIds) {
             PlayerInfo playerinfo = clientpacketlistener.getPlayerInfo(uuid);
             if (playerinfo != null) {
                 UUID uuid1 = playerinfo.getProfile().getId();
                 boolean flag = playerinfo.getProfilePublicKey() != null;
-                p_240796_.put(uuid1, new PlayerEntry(this.minecraft, this.socialInteractionsScreen, uuid1, playerinfo.getProfile().getName(), playerinfo::getSkinLocation, flag));
+                pPlayerMap.put(uuid1, new PlayerEntry(this.minecraft, this.socialInteractionsScreen, uuid1, playerinfo.getProfile().getName(), playerinfo::getSkinLocation, flag));
             }
         }
     }
 
-    private void updatePlayersFromChatLog(Map<UUID, PlayerEntry> p_240780_, boolean p_240827_) {
+    private void updatePlayersFromChatLog(Map<UUID, PlayerEntry> pPlayerMap, boolean pAddPlayers) {
         Collection<GameProfile> collection = this.minecraft.getReportingContext().chatLog().selectAllDescending().reportableGameProfiles();
         Iterator iterator = collection.iterator();
 
@@ -75,8 +75,8 @@ public class SocialInteractionsPlayerList extends ContainerObjectSelectionList<P
                 }
 
                 GameProfile gameprofile = (GameProfile) iterator.next();
-                if (p_240827_) {
-                    playerentry = p_240780_.computeIfAbsent(gameprofile.getId(), (p_243147_) -> {
+                if (pAddPlayers) {
+                    playerentry = pPlayerMap.computeIfAbsent(gameprofile.getId(), (p_243147_) -> {
                         PlayerEntry playerentry1 = new PlayerEntry(this.minecraft, this.socialInteractionsScreen, gameprofile.getId(), gameprofile.getName(), Suppliers.memoize(() -> {
                             return this.minecraft.getSkinManager().getInsecureSkinLocation(gameprofile);
                         }),
@@ -87,7 +87,7 @@ public class SocialInteractionsPlayerList extends ContainerObjectSelectionList<P
                     break;
                 }
 
-                playerentry = p_240780_.get(gameprofile.getId());
+                playerentry = pPlayerMap.get(gameprofile.getId());
             } while (playerentry == null);
 
             playerentry.setHasRecentMessages(true);
@@ -117,13 +117,13 @@ public class SocialInteractionsPlayerList extends ContainerObjectSelectionList<P
                         .thenComparing(PlayerEntry::getPlayerName, String::compareToIgnoreCase));
     }
 
-    private void updateFiltersAndScroll(Collection<PlayerEntry> p_240809_, double p_240830_) {
+    private void updateFiltersAndScroll(Collection<PlayerEntry> pPlayers, double pScrollAmount) {
         this.players.clear();
-        this.players.addAll(p_240809_);
+        this.players.addAll(pPlayers);
         this.sortPlayerEntries();
         this.updateFilteredPlayers();
         this.replaceEntries(this.players);
-        this.setScrollAmount(p_240830_);
+        this.setScrollAmount(pScrollAmount);
     }
 
     private void updateFilteredPlayers() {
@@ -135,16 +135,16 @@ public class SocialInteractionsPlayerList extends ContainerObjectSelectionList<P
         }
     }
 
-    public void setFilter(String p_100718_) {
-        this.filter = p_100718_;
+    public void setFilter(String pFilter) {
+        this.filter = pFilter;
     }
 
     public boolean isEmpty() {
         return this.players.isEmpty();
     }
 
-    public void addPlayer(PlayerInfo p_100715_, SocialInteractionsScreen.Page p_100716_) {
-        UUID uuid = p_100715_.getProfile().getId();
+    public void addPlayer(PlayerInfo pPlayerInfo, SocialInteractionsScreen.Page pPage) {
+        UUID uuid = pPlayerInfo.getProfile().getId();
 
         for (PlayerEntry playerentry : this.players) {
             if (playerentry.getPlayerId().equals(uuid)) {
@@ -153,17 +153,17 @@ public class SocialInteractionsPlayerList extends ContainerObjectSelectionList<P
             }
         }
 
-        if ((p_100716_ == SocialInteractionsScreen.Page.ALL || this.minecraft.getPlayerSocialManager().shouldHideMessageFrom(uuid)) && (Strings.isNullOrEmpty(this.filter) || p_100715_.getProfile().getName().toLowerCase(Locale.ROOT).contains(this.filter))) {
-            boolean flag = p_100715_.getProfilePublicKey() != null;
-            PlayerEntry playerentry1 = new PlayerEntry(this.minecraft, this.socialInteractionsScreen, p_100715_.getProfile().getId(), p_100715_.getProfile().getName(), p_100715_::getSkinLocation, flag);
+        if ((pPage == SocialInteractionsScreen.Page.ALL || this.minecraft.getPlayerSocialManager().shouldHideMessageFrom(uuid)) && (Strings.isNullOrEmpty(this.filter) || pPlayerInfo.getProfile().getName().toLowerCase(Locale.ROOT).contains(this.filter))) {
+            boolean flag = pPlayerInfo.getProfilePublicKey() != null;
+            PlayerEntry playerentry1 = new PlayerEntry(this.minecraft, this.socialInteractionsScreen, pPlayerInfo.getProfile().getId(), pPlayerInfo.getProfile().getName(), pPlayerInfo::getSkinLocation, flag);
             this.addEntry(playerentry1);
             this.players.add(playerentry1);
         }
     }
 
-    public void removePlayer(UUID p_100723_) {
+    public void removePlayer(UUID pId) {
         for (PlayerEntry playerentry : this.players) {
-            if (playerentry.getPlayerId().equals(p_100723_)) {
+            if (playerentry.getPlayerId().equals(pId)) {
                 playerentry.setRemoved(true);
                 return;
             }

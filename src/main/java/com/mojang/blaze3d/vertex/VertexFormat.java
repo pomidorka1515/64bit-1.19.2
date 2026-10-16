@@ -20,12 +20,12 @@ public class VertexFormat {
     @Nullable
     private VertexBuffer immediateDrawVertexBuffer;
 
-    public VertexFormat(ImmutableMap<String, VertexFormatElement> p_166910_) {
-        this.elementMapping = p_166910_;
-        this.elements = p_166910_.values().asList();
+    public VertexFormat(ImmutableMap<String, VertexFormatElement> pElementMapping) {
+        this.elementMapping = pElementMapping;
+        this.elements = pElementMapping.values().asList();
         int i = 0;
 
-        for (VertexFormatElement vertexformatelement : p_166910_.values()) {
+        for (VertexFormatElement vertexformatelement : pElementMapping.values()) {
             this.offsets.add(i);
             i += vertexformatelement.getByteSize();
         }
@@ -53,11 +53,11 @@ public class VertexFormat {
         return this.elementMapping.keySet().asList();
     }
 
-    public boolean equals(Object p_86026_) {
-        if (this == p_86026_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_86026_ != null && this.getClass() == p_86026_.getClass()) {
-            VertexFormat vertexformat = (VertexFormat) p_86026_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            VertexFormat vertexformat = (VertexFormat) pOther;
             return this.vertexSize != vertexformat.vertexSize ? false : this.elementMapping.equals(vertexformat.elementMapping);
         } else {
             return false;
@@ -125,11 +125,11 @@ public class VertexFormat {
             this.bytes = p_166931_;
         }
 
-        public static VertexFormat.IndexType least(int p_166934_) {
-            if ((p_166934_ & -65536) != 0) {
+        public static VertexFormat.IndexType least(int pIndexCount) {
+            if ((pIndexCount & -65536) != 0) {
                 return INT;
             } else {
-                return (p_166934_ & '\uff00') != 0 ? SHORT : BYTE;
+                return (pIndexCount & '\uff00') != 0 ? SHORT : BYTE;
             }
         }
     }
@@ -157,7 +157,7 @@ public class VertexFormat {
             this.connectedPrimitives = p_231241_;
         }
 
-        public int indexCount(int p_166959_) {
+        public int indexCount(int pVertices) {
             int i;
             switch (this) {
                 case LINE_STRIP:
@@ -166,11 +166,11 @@ public class VertexFormat {
                 case TRIANGLES:
                 case TRIANGLE_STRIP:
                 case TRIANGLE_FAN:
-                    i = p_166959_;
+                    i = pVertices;
                     break;
                 case LINES:
                 case QUADS:
-                    i = p_166959_ / 4 * 6;
+                    i = pVertices / 4 * 6;
                     break;
                 default:
                     i = 0;

@@ -6,24 +6,24 @@ public interface BitRandomSource extends RandomSource {
     float FLOAT_MULTIPLIER = 5.9604645E-8F;
     double DOUBLE_MULTIPLIER = (double) 1.110223E-16F;
 
-    int next(int p_188498_);
+    int next(int pSize);
 
     default int nextInt() {
         return this.next(32);
     }
 
-    default int nextInt(int p_188504_) {
-        if (p_188504_ <= 0) {
+    default int nextInt(int pBound) {
+        if (pBound <= 0) {
             throw new IllegalArgumentException("Bound must be positive");
-        } else if ((p_188504_ & p_188504_ - 1) == 0) {
-            return (int) ((long) p_188504_ * (long) this.next(31) >> 31);
+        } else if ((pBound & pBound - 1) == 0) {
+            return (int) ((long) pBound * (long) this.next(31) >> 31);
         } else {
             int i;
             int j;
             do {
                 i = this.next(31);
-                j = i % p_188504_;
-            } while (i - j + (p_188504_ - 1) < 0);
+                j = i % pBound;
+            } while (i - j + (pBound - 1) < 0);
 
             return j;
         }

@@ -238,8 +238,8 @@ public class BlendingData {
         return objectarraylist;
     }
 
-    private static boolean isGround(ChunkAccess p_190315_, BlockPos p_190316_) {
-        BlockState blockstate = p_190315_.getBlockState(p_190316_);
+    private static boolean isGround(ChunkAccess pChunk, BlockPos pPos) {
+        BlockState blockstate = pChunk.getBlockState(pPos);
         if (blockstate.isAir()) {
             return false;
         } else if (blockstate.is(BlockTags.LEAVES)) {
@@ -247,7 +247,7 @@ public class BlendingData {
         } else if (blockstate.is(BlockTags.LOGS)) {
             return false;
         } else if (!blockstate.is(Blocks.BROWN_MUSHROOM_BLOCK) && !blockstate.is(Blocks.RED_MUSHROOM_BLOCK)) {
-            return !blockstate.getCollisionShape(p_190315_, p_190316_).isEmpty();
+            return !blockstate.getCollisionShape(pChunk, pPos).isEmpty();
         } else {
             return false;
         }

@@ -29,13 +29,13 @@ public class MegaPineFoliagePlacer extends FoliagePlacer {
         return FoliagePlacerType.MEGA_PINE_FOLIAGE_PLACER;
     }
 
-    protected void createFoliage(LevelSimulatedReader p_225678_, BiConsumer<BlockPos, BlockState> p_225679_, RandomSource p_225680_, TreeConfiguration p_225681_, int p_225682_, FoliagePlacer.FoliageAttachment p_225683_, int p_225684_, int p_225685_, int p_225686_) {
-        BlockPos blockpos = p_225683_.pos();
+    protected void createFoliage(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, TreeConfiguration pConfig, int pMaxFreeTreeHeight, FoliagePlacer.FoliageAttachment pAttachment, int pFoliageHeight, int pFoliageRadius, int pOffset) {
+        BlockPos blockpos = pAttachment.pos();
         int i = 0;
 
-        for (int j = blockpos.getY() - p_225684_ + p_225686_; j <= blockpos.getY() + p_225686_; ++j) {
+        for (int j = blockpos.getY() - pFoliageHeight + pOffset; j <= blockpos.getY() + pOffset; ++j) {
             int k = blockpos.getY() - j;
-            int l = p_225685_ + p_225683_.radiusOffset() + Mth.floor((float) k / (float) p_225684_ * 3.5F);
+            int l = pFoliageRadius + pAttachment.radiusOffset() + Mth.floor((float) k / (float) pFoliageHeight * 3.5F);
             int i1;
             if (k > 0 && l == i && (j & 1) == 0) {
                 i1 = l + 1;
@@ -43,20 +43,20 @@ public class MegaPineFoliagePlacer extends FoliagePlacer {
                 i1 = l;
             }
 
-            this.placeLeavesRow(p_225678_, p_225679_, p_225680_, p_225681_, new BlockPos(blockpos.getX(), j, blockpos.getZ()), i1, 0, p_225683_.doubleTrunk());
+            this.placeLeavesRow(pLevel, pBlockSetter, pRandom, pConfig, new BlockPos(blockpos.getX(), j, blockpos.getZ()), i1, 0, pAttachment.doubleTrunk());
             i = l;
         }
     }
 
-    public int foliageHeight(RandomSource p_225674_, int p_225675_, TreeConfiguration p_225676_) {
-        return this.crownHeight.sample(p_225674_);
+    public int foliageHeight(RandomSource pRandom, int pHeight, TreeConfiguration pConfig) {
+        return this.crownHeight.sample(pRandom);
     }
 
-    protected boolean shouldSkipLocation(RandomSource p_225667_, int p_225668_, int p_225669_, int p_225670_, int p_225671_, boolean p_225672_) {
-        if (p_225668_ + p_225670_ >= 7) {
+    protected boolean shouldSkipLocation(RandomSource pRandom, int pLocalX, int pLocalY, int pLocalZ, int pRange, boolean pLarge) {
+        if (pLocalX + pLocalZ >= 7) {
             return true;
         } else {
-            return p_225668_ * p_225668_ + p_225670_ * p_225670_ > p_225671_ * p_225671_;
+            return pLocalX * pLocalX + pLocalZ * pLocalZ > pRange * pRange;
         }
     }
 }

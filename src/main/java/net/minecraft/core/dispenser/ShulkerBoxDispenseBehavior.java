@@ -14,21 +14,21 @@ import org.slf4j.Logger;
 public class ShulkerBoxDispenseBehavior extends OptionalDispenseItemBehavior {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    protected ItemStack execute(BlockSource p_123587_, ItemStack p_123588_) {
+    protected ItemStack execute(BlockSource pSource, ItemStack pStack) {
         this.setSuccess(false);
-        Item item = p_123588_.getItem();
+        Item item = pStack.getItem();
         if (item instanceof BlockItem) {
-            Direction direction = p_123587_.getBlockState().getValue(DispenserBlock.FACING);
-            BlockPos blockpos = p_123587_.getPos().relative(direction);
-            Direction direction1 = p_123587_.getLevel().isEmptyBlock(blockpos.below()) ? direction : Direction.UP;
+            Direction direction = pSource.getBlockState().getValue(DispenserBlock.FACING);
+            BlockPos blockpos = pSource.getPos().relative(direction);
+            Direction direction1 = pSource.getLevel().isEmptyBlock(blockpos.below()) ? direction : Direction.UP;
 
             try {
-                this.setSuccess(((BlockItem) item).place(new DirectionalPlaceContext(p_123587_.getLevel(), blockpos, direction, p_123588_, direction1)).consumesAction());
+                this.setSuccess(((BlockItem) item).place(new DirectionalPlaceContext(pSource.getLevel(), blockpos, direction, pStack, direction1)).consumesAction());
             } catch (Exception exception) {
                 LOGGER.error("Error trying to place shulker box at {}", blockpos, exception);
             }
         }
 
-        return p_123588_;
+        return pStack;
     }
 }

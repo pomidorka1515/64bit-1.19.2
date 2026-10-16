@@ -30,10 +30,10 @@ public class SetEnchantmentsFunction extends LootItemConditionalFunction {
     final Map<Enchantment, NumberProvider> enchantments;
     final boolean add;
 
-    SetEnchantmentsFunction(LootItemCondition[] p_165337_, Map<Enchantment, NumberProvider> p_165338_, boolean p_165339_) {
-        super(p_165337_);
-        this.enchantments = ImmutableMap.copyOf(p_165338_);
-        this.add = p_165339_;
+    SetEnchantmentsFunction(LootItemCondition[] pConditions, Map<Enchantment, NumberProvider> pEnchantmentLevels, boolean pAdd) {
+        super(pConditions);
+        this.enchantments = ImmutableMap.copyOf(pEnchantmentLevels);
+        this.add = pAdd;
     }
 
     public LootItemFunctionType getType() {
@@ -47,19 +47,19 @@ public class SetEnchantmentsFunction extends LootItemConditionalFunction {
                 .collect(ImmutableSet.toImmutableSet());
     }
 
-    public ItemStack run(ItemStack p_165346_, LootContext p_165347_) {
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
         Object2IntMap<Enchantment> object2intmap = new Object2IntOpenHashMap<>();
         this.enchantments.forEach((p_165353_, p_165354_) -> {
-            object2intmap.put(p_165353_, p_165354_.getInt(p_165347_));
+            object2intmap.put(p_165353_, p_165354_.getInt(pContext));
         });
-        if (p_165346_.getItem() == Items.BOOK) {
+        if (pStack.getItem() == Items.BOOK) {
             ItemStack itemstack = new ItemStack(Items.ENCHANTED_BOOK);
             object2intmap.forEach((p_165343_, p_165344_) -> {
                 EnchantedBookItem.addEnchantment(itemstack, new EnchantmentInstance(p_165343_, p_165344_));
             });
             return itemstack;
         } else {
-            Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(p_165346_);
+            Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(pStack);
             if (this.add) {
                 object2intmap.forEach((p_165366_, p_165367_) -> {
                     updateEnchantment(map, p_165366_, Math.max(map.getOrDefault(p_165366_, 0) + p_165367_, 0));
@@ -70,16 +70,16 @@ public class SetEnchantmentsFunction extends LootItemConditionalFunction {
                 });
             }
 
-            EnchantmentHelper.setEnchantments(map, p_165346_);
-            return p_165346_;
+            EnchantmentHelper.setEnchantments(map, pStack);
+            return pStack;
         }
     }
 
-    private static void updateEnchantment(Map<Enchantment, Integer> p_165356_, Enchantment p_165357_, int p_165358_) {
-        if (p_165358_ == 0) {
-            p_165356_.remove(p_165357_);
+    private static void updateEnchantment(Map<Enchantment, Integer> pExistingEnchantments, Enchantment pEnchantment, int pLevel) {
+        if (pLevel == 0) {
+            pExistingEnchantments.remove(pEnchantment);
         } else {
-            p_165356_.put(p_165357_, p_165358_);
+            pExistingEnchantments.put(pEnchantment, pLevel);
         }
     }
 
@@ -91,16 +91,16 @@ public class SetEnchantmentsFunction extends LootItemConditionalFunction {
             this(false);
         }
 
-        public Builder(boolean p_165372_) {
-            this.add = p_165372_;
+        public Builder(boolean pAdd) {
+            this.add = pAdd;
         }
 
         protected SetEnchantmentsFunction.Builder getThis() {
             return this;
         }
 
-        public SetEnchantmentsFunction.Builder withEnchantment(Enchantment p_165375_, NumberProvider p_165376_) {
-            this.enchantments.put(p_165375_, p_165376_);
+        public SetEnchantmentsFunction.Builder withEnchantment(Enchantment pEnchantment, NumberProvider pLevelProvider) {
+            this.enchantments.put(pEnchantment, pLevelProvider);
             return this;
         }
 

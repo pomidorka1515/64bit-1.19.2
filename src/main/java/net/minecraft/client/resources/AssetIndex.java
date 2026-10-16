@@ -32,9 +32,9 @@ public class AssetIndex {
     protected AssetIndex() {
     }
 
-    public AssetIndex(File p_118530_, String p_118531_) {
-        File file1 = new File(p_118530_, "objects");
-        File file2 = new File(p_118530_, "indexes/" + p_118531_ + ".json");
+    public AssetIndex(File pAssetDirectory, String pIndex) {
+        File file1 = new File(pAssetDirectory, "objects");
+        File file2 = new File(pAssetDirectory, "indexes/" + pIndex + ".json");
         BufferedReader bufferedreader = null;
 
         try {
@@ -65,19 +65,19 @@ public class AssetIndex {
     }
 
     @Nullable
-    public File getFile(ResourceLocation p_118542_) {
-        return this.namespacedFiles.get(p_118542_);
+    public File getFile(ResourceLocation pLocation) {
+        return this.namespacedFiles.get(pLocation);
     }
 
     @Nullable
-    public File getRootFile(String p_118532_) {
-        return this.rootFiles.get(p_118532_);
+    public File getRootFile(String pPath) {
+        return this.rootFiles.get(pPath);
     }
 
-    public Collection<ResourceLocation> getFiles(String p_235000_, String p_235001_, Predicate<ResourceLocation> p_235002_) {
+    public Collection<ResourceLocation> getFiles(String pPath, String pNamespace, Predicate<ResourceLocation> pFilter) {
         return this.namespacedFiles.keySet().stream().filter((p_118541_) -> {
                                                          String s = p_118541_.getPath();
-                                                         return p_118541_.getNamespace().equals(p_235001_) && !s.endsWith(".mcmeta") && s.startsWith(p_235000_ + "/") && p_235002_.test(p_118541_);
+                                                         return p_118541_.getNamespace().equals(pNamespace) && !s.endsWith(".mcmeta") && s.startsWith(pPath + "/") && pFilter.test(p_118541_);
                                                      })
                 .collect(Collectors.toList());
     }

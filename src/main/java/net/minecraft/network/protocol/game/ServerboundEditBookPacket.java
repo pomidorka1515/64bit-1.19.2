@@ -16,34 +16,34 @@ public class ServerboundEditBookPacket implements Packet<ServerGamePacketListene
     private final List<String> pages;
     private final Optional<String> title;
 
-    public ServerboundEditBookPacket(int p_182749_, List<String> p_182750_, Optional<String> p_182751_) {
-        this.slot = p_182749_;
-        this.pages = ImmutableList.copyOf(p_182750_);
-        this.title = p_182751_;
+    public ServerboundEditBookPacket(int pSlot, List<String> pPages, Optional<String> pTitle) {
+        this.slot = pSlot;
+        this.pages = ImmutableList.copyOf(pPages);
+        this.title = pTitle;
     }
 
-    public ServerboundEditBookPacket(FriendlyByteBuf p_179592_) {
-        this.slot = p_179592_.readVarInt();
-        this.pages = p_179592_.readCollection(FriendlyByteBuf.limitValue(Lists::newArrayListWithCapacity, 200), (p_182763_) -> {
+    public ServerboundEditBookPacket(FriendlyByteBuf pBuffer) {
+        this.slot = pBuffer.readVarInt();
+        this.pages = pBuffer.readCollection(FriendlyByteBuf.limitValue(Lists::newArrayListWithCapacity, 200), (p_182763_) -> {
             return p_182763_.readUtf(8192);
         });
-        this.title = p_179592_.readOptional((p_182757_) -> {
+        this.title = pBuffer.readOptional((p_182757_) -> {
             return p_182757_.readUtf(128);
         });
     }
 
-    public void write(FriendlyByteBuf p_134011_) {
-        p_134011_.writeVarInt(this.slot);
-        p_134011_.writeCollection(this.pages, (p_182759_, p_182760_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.slot);
+        pBuffer.writeCollection(this.pages, (p_182759_, p_182760_) -> {
             p_182759_.writeUtf(p_182760_, 8192);
         });
-        p_134011_.writeOptional(this.title, (p_182753_, p_182754_) -> {
+        pBuffer.writeOptional(this.title, (p_182753_, p_182754_) -> {
             p_182753_.writeUtf(p_182754_, 128);
         });
     }
 
-    public void handle(ServerGamePacketListener p_134008_) {
-        p_134008_.handleEditBook(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleEditBook(this);
     }
 
     public List<String> getPages() {

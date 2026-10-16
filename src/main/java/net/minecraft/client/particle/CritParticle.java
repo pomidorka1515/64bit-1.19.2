@@ -8,16 +8,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class CritParticle extends TextureSheetParticle {
-    CritParticle(ClientLevel p_105919_, double p_105920_, double p_105921_, double p_105922_, double p_105923_, double p_105924_, double p_105925_) {
-        super(p_105919_, p_105920_, p_105921_, p_105922_, 0.0D, 0.0D, 0.0D);
+    CritParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+        super(pLevel, pX, pY, pZ, 0.0D, 0.0D, 0.0D);
         this.friction = 0.7F;
         this.gravity = 0.5F;
         this.xd *= (double) 0.1F;
         this.yd *= (double) 0.1F;
         this.zd *= (double) 0.1F;
-        this.xd += p_105923_ * 0.4D;
-        this.yd += p_105924_ * 0.4D;
-        this.zd += p_105925_ * 0.4D;
+        this.xd += pXSpeed * 0.4D;
+        this.yd += pYSpeed * 0.4D;
+        this.zd += pZSpeed * 0.4D;
         float f = (float) (Math.random() * (double) 0.3F + (double) 0.6F);
         this.rCol = f;
         this.gCol = f;
@@ -28,8 +28,8 @@ public class CritParticle extends TextureSheetParticle {
         this.tick();
     }
 
-    public float getQuadSize(float p_105938_) {
-        return this.quadSize * Mth.clamp(((float) this.age + p_105938_) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
+    public float getQuadSize(float pScaleFactor) {
+        return this.quadSize * Mth.clamp(((float) this.age + pScaleFactor) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
     }
 
     public void tick() {
@@ -46,12 +46,12 @@ public class CritParticle extends TextureSheetParticle {
     public static class DamageIndicatorProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public DamageIndicatorProvider(SpriteSet p_105941_) {
-            this.sprite = p_105941_;
+        public DamageIndicatorProvider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_105952_, ClientLevel p_105953_, double p_105954_, double p_105955_, double p_105956_, double p_105957_, double p_105958_, double p_105959_) {
-            CritParticle critparticle = new CritParticle(p_105953_, p_105954_, p_105955_, p_105956_, p_105957_, p_105958_ + 1.0D, p_105959_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            CritParticle critparticle = new CritParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed + 1.0D, pZSpeed);
             critparticle.setLifetime(20);
             critparticle.pickSprite(this.sprite);
             return critparticle;
@@ -62,12 +62,12 @@ public class CritParticle extends TextureSheetParticle {
     public static class MagicProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public MagicProvider(SpriteSet p_105962_) {
-            this.sprite = p_105962_;
+        public MagicProvider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_105973_, ClientLevel p_105974_, double p_105975_, double p_105976_, double p_105977_, double p_105978_, double p_105979_, double p_105980_) {
-            CritParticle critparticle = new CritParticle(p_105974_, p_105975_, p_105976_, p_105977_, p_105978_, p_105979_, p_105980_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            CritParticle critparticle = new CritParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
             critparticle.rCol *= 0.3F;
             critparticle.gCol *= 0.8F;
             critparticle.pickSprite(this.sprite);
@@ -79,12 +79,12 @@ public class CritParticle extends TextureSheetParticle {
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public Provider(SpriteSet p_105983_) {
-            this.sprite = p_105983_;
+        public Provider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_105994_, ClientLevel p_105995_, double p_105996_, double p_105997_, double p_105998_, double p_105999_, double p_106000_, double p_106001_) {
-            CritParticle critparticle = new CritParticle(p_105995_, p_105996_, p_105997_, p_105998_, p_105999_, p_106000_, p_106001_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            CritParticle critparticle = new CritParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
             critparticle.pickSprite(this.sprite);
             return critparticle;
         }

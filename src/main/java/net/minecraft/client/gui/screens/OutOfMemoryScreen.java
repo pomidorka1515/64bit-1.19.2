@@ -29,10 +29,10 @@ public class OutOfMemoryScreen extends Screen {
         return false;
     }
 
-    public void render(PoseStack p_96295_, int p_96296_, int p_96297_, float p_96298_) {
-        this.renderBackground(p_96295_);
-        drawCenteredString(p_96295_, this.font, this.title, this.width / 2, this.height / 4 - 60 + 20, 16777215);
-        this.message.renderLeftAligned(p_96295_, this.width / 2 - 145, this.height / 4, 9, 10526880);
-        super.render(p_96295_, p_96296_, p_96297_, p_96298_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, this.height / 4 - 60 + 20, 16777215);
+        this.message.renderLeftAligned(pPoseStack, this.width / 2 - 145, this.height / 4, 9, 10526880);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

@@ -13,17 +13,17 @@ public class StatType<T> implements Iterable<Stat<T>> {
     @Nullable
     private Component displayName;
 
-    public StatType(Registry<T> p_12892_) {
-        this.registry = p_12892_;
+    public StatType(Registry<T> pRegistry) {
+        this.registry = pRegistry;
     }
 
-    public boolean contains(T p_12898_) {
-        return this.map.containsKey(p_12898_);
+    public boolean contains(T pValue) {
+        return this.map.containsKey(pValue);
     }
 
-    public Stat<T> get(T p_12900_, StatFormatter p_12901_) {
-        return this.map.computeIfAbsent(p_12900_, (p_12896_) -> {
-            return new Stat<>(this, p_12896_, p_12901_);
+    public Stat<T> get(T pValue, StatFormatter pFormatter) {
+        return this.map.computeIfAbsent(pValue, (p_12896_) -> {
+            return new Stat<>(this, p_12896_, pFormatter);
         });
     }
 
@@ -35,8 +35,8 @@ public class StatType<T> implements Iterable<Stat<T>> {
         return this.map.values().iterator();
     }
 
-    public Stat<T> get(T p_12903_) {
-        return this.get(p_12903_, StatFormatter.DEFAULT);
+    public Stat<T> get(T pValue) {
+        return this.get(pValue, StatFormatter.DEFAULT);
     }
 
     public String getTranslationKey() {

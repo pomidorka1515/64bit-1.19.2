@@ -62,30 +62,30 @@ public class WorldGenSettingsComponent implements Widget {
     private Optional<Holder<WorldPreset>> preset;
     private OptionalLong seed;
 
-    public WorldGenSettingsComponent(WorldCreationContext p_233011_, Optional<ResourceKey<WorldPreset>> p_233012_, OptionalLong p_233013_) {
-        this.settings = p_233011_;
-        this.preset = findPreset(p_233011_, p_233012_);
-        this.seed = p_233013_;
+    public WorldGenSettingsComponent(WorldCreationContext pSettings, Optional<ResourceKey<WorldPreset>> pPreset, OptionalLong pSeed) {
+        this.settings = pSettings;
+        this.preset = findPreset(pSettings, pPreset);
+        this.seed = pSeed;
     }
 
-    private static Optional<Holder<WorldPreset>> findPreset(WorldCreationContext p_233048_, Optional<ResourceKey<WorldPreset>> p_233049_) {
-        return p_233049_.flatMap((p_233046_) -> {
-            return p_233048_.registryAccess().<WorldPreset>registryOrThrow(Registry.WORLD_PRESET_REGISTRY).getHolder(p_233046_);
+    private static Optional<Holder<WorldPreset>> findPreset(WorldCreationContext pSettings, Optional<ResourceKey<WorldPreset>> pPreset) {
+        return pPreset.flatMap((p_233046_) -> {
+            return pSettings.registryAccess().<WorldPreset>registryOrThrow(Registry.WORLD_PRESET_REGISTRY).getHolder(p_233046_);
         });
     }
 
-    public void init(CreateWorldScreen p_101430_, Minecraft p_101431_, Font p_101432_) {
-        this.font = p_101432_;
-        this.width = p_101430_.width;
+    public void init(CreateWorldScreen pCreateWorldScreen, Minecraft pMinecraft, Font pFont) {
+        this.font = pFont;
+        this.width = pCreateWorldScreen.width;
         this.seedEdit = new EditBox(this.font, this.width / 2 - 100, 60, 200, 20, Component.translatable("selectWorld.enterSeed"));
         this.seedEdit.setValue(toString(this.seed));
         this.seedEdit.setResponder((p_233063_) -> {
             this.seed = WorldGenSettings.parseSeed(this.seedEdit.getValue());
         });
-        p_101430_.addWidget(this.seedEdit);
+        pCreateWorldScreen.addWidget(this.seedEdit);
         int i = this.width / 2 - 155;
         int j = this.width / 2 + 5;
-        this.featuresButton = p_101430_.addRenderableWidget(CycleButton.onOffBuilder(this.settings.worldGenSettings().generateStructures()).withCustomNarration((p_233081_) -> {
+        this.featuresButton = pCreateWorldScreen.addRenderableWidget(CycleButton.onOffBuilder(this.settings.worldGenSettings().generateStructures()).withCustomNarration((p_233081_) -> {
                                                                                                                                                return CommonComponents.joinForNarration(p_233081_.createDefaultNarrationMessage(), Component.translatable("selectWorld.mapFeatures.info"));
                                                                                                                                            })
                         .create(i, 100, 150, 20, Component.translatable("selectWorld.mapFeatures"), (p_233083_, p_233084_) -> {
@@ -97,7 +97,7 @@ public class WorldGenSettingsComponent implements Widget {
             return registry.holders().collect(Collectors.toUnmodifiableList());
         });
         List<Holder<WorldPreset>> list1 = getNonEmptyList(registry, WorldPresetTags.EXTENDED).orElse(list);
-        this.typeButton = p_101430_.addRenderableWidget(CycleButton.builder(WorldGenSettingsComponent::describePreset).withValues(list, list1).withCustomNarration((p_233030_) -> {
+        this.typeButton = pCreateWorldScreen.addRenderableWidget(CycleButton.builder(WorldGenSettingsComponent::describePreset).withValues(list, list1).withCustomNarration((p_233030_) -> {
                                                                                                                                                   return isAmplified(p_233030_.getValue()) ? CommonComponents.joinForNarration(p_233030_.createDefaultNarrationMessage(), AMPLIFIED_HELP_TEXT) : p_233030_.createDefaultNarrationMessage();
                                                                                                                                               })
                         .create(j, 100, 150, 20, Component.translatable("selectWorld.mapType"), (p_233036_, p_233037_) -> {
@@ -105,25 +105,25 @@ public class WorldGenSettingsComponent implements Widget {
                             this.updateSettings((p_233054_) -> {
                                 return ((WorldPreset) p_233037_.value()).recreateWorldGenSettings(p_233054_);
                             });
-                            p_101430_.refreshWorldGenSettingsVisibility();
+                            pCreateWorldScreen.refreshWorldGenSettingsVisibility();
                         }));
         this.preset.ifPresent(this.typeButton::setValue);
         this.typeButton.visible = false;
-        this.customWorldDummyButton = p_101430_.addRenderableWidget(new Button(j, 100, 150, 20, CommonComponents.optionNameValue(Component.translatable("selectWorld.mapType"), CUSTOM_WORLD_DESCRIPTION), (p_233028_) -> {}));
+        this.customWorldDummyButton = pCreateWorldScreen.addRenderableWidget(new Button(j, 100, 150, 20, CommonComponents.optionNameValue(Component.translatable("selectWorld.mapType"), CUSTOM_WORLD_DESCRIPTION), (p_233028_) -> {}));
         this.customWorldDummyButton.active = false;
         this.customWorldDummyButton.visible = false;
-        this.customizeTypeButton = p_101430_.addRenderableWidget(new Button(j, 120, 150, 20, Component.translatable("selectWorld.customizeType"), (p_233079_) -> {
+        this.customizeTypeButton = pCreateWorldScreen.addRenderableWidget(new Button(j, 120, 150, 20, Component.translatable("selectWorld.customizeType"), (p_233079_) -> {
             PresetEditor preseteditor = PresetEditor.EDITORS.get(this.preset.flatMap(Holder::unwrapKey));
             if (preseteditor != null) {
-                p_101431_.setScreen(preseteditor.createEditScreen(p_101430_, this.settings));
+                pMinecraft.setScreen(preseteditor.createEditScreen(pCreateWorldScreen, this.settings));
             }
         }));
         this.customizeTypeButton.visible = false;
-        this.bonusItemsButton = p_101430_.addRenderableWidget(CycleButton.onOffBuilder(this.settings.worldGenSettings().generateBonusChest() && !p_101430_.hardCore).create(i, 151, 150, 20, Component.translatable("selectWorld.bonusItems"), (p_233032_, p_233033_) -> {
+        this.bonusItemsButton = pCreateWorldScreen.addRenderableWidget(CycleButton.onOffBuilder(this.settings.worldGenSettings().generateBonusChest() && !pCreateWorldScreen.hardCore).create(i, 151, 150, 20, Component.translatable("selectWorld.bonusItems"), (p_233032_, p_233033_) -> {
             this.updateSettings(WorldGenSettings::withBonusChestToggled);
         }));
         this.bonusItemsButton.visible = false;
-        this.importSettingsButton = p_101430_.addRenderableWidget(new Button(i, 185, 150, 20, Component.translatable("selectWorld.import_worldgen_settings"), (p_233026_) -> {
+        this.importSettingsButton = pCreateWorldScreen.addRenderableWidget(new Button(i, 185, 150, 20, Component.translatable("selectWorld.import_worldgen_settings"), (p_233026_) -> {
             String s = TinyFileDialogs.tinyfd_openFileDialog(SELECT_FILE_PROMPT.getString(), (CharSequence) null, (PointerBuffer) null, (CharSequence) null, false);
             if (s != null) {
                 DynamicOps<JsonElement> dynamicops = RegistryOps.create(JsonOps.INSTANCE, this.settings.registryAccess());
@@ -159,11 +159,11 @@ public class WorldGenSettingsComponent implements Widget {
                     String s1 = dataresult.error().get().message();
                     LOGGER.error("Error parsing world settings: {}", (Object) s1);
                     Component component = Component.literal(s1);
-                    p_101431_.getToasts().addToast(SystemToast.multiline(p_101431_, SystemToast.SystemToastIds.WORLD_GEN_SETTINGS_TRANSFER, component1, component));
+                    pMinecraft.getToasts().addToast(SystemToast.multiline(pMinecraft, SystemToast.SystemToastIds.WORLD_GEN_SETTINGS_TRANSFER, component1, component));
                 } else {
                     Lifecycle lifecycle = dataresult.lifecycle();
                     dataresult.resultOrPartial(LOGGER::error).ifPresent((p_233022_) -> {
-                        WorldOpenFlows.confirmWorldCreation(p_101431_, p_101430_, lifecycle, () -> {
+                        WorldOpenFlows.confirmWorldCreation(pMinecraft, pCreateWorldScreen, lifecycle, () -> {
                             this.importSettings(p_233022_);
                         });
                     });
@@ -171,7 +171,7 @@ public class WorldGenSettingsComponent implements Widget {
             }
         }));
         this.importSettingsButton.visible = false;
-        this.amplifiedWorldInfo = MultiLineLabel.create(p_101432_, AMPLIFIED_HELP_TEXT, this.typeButton.getWidth());
+        this.amplifiedWorldInfo = MultiLineLabel.create(pFont, AMPLIFIED_HELP_TEXT, this.typeButton.getWidth());
     }
 
     private static Optional<List<Holder<WorldPreset>>> getNonEmptyList(Registry<WorldPreset> p_233060_, TagKey<WorldPreset> p_233061_) {
@@ -209,14 +209,14 @@ public class WorldGenSettingsComponent implements Widget {
         this.seedEdit.tick();
     }
 
-    public void render(PoseStack p_101407_, int p_101408_, int p_101409_, float p_101410_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.featuresButton.visible) {
-            this.font.drawShadow(p_101407_, MAP_FEATURES_INFO, (float) (this.width / 2 - 150), 122.0F, -6250336);
+            this.font.drawShadow(pPoseStack, MAP_FEATURES_INFO, (float) (this.width / 2 - 150), 122.0F, -6250336);
         }
 
-        this.seedEdit.render(p_101407_, p_101408_, p_101409_, p_101410_);
+        this.seedEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (this.preset.filter(WorldGenSettingsComponent::isAmplified).isPresent()) {
-            this.amplifiedWorldInfo.renderLeftAligned(p_101407_, this.typeButton.x + 2, this.typeButton.y + 22, 9, 10526880);
+            this.amplifiedWorldInfo.renderLeftAligned(pPoseStack, this.typeButton.x + 2, this.typeButton.y + 22, 9, 10526880);
         }
     }
 
@@ -228,12 +228,12 @@ public class WorldGenSettingsComponent implements Widget {
         this.settings = this.settings.withSettings(p_233041_);
     }
 
-    void updateSettings(WorldCreationContext p_233043_) {
-        this.settings = p_233043_;
+    void updateSettings(WorldCreationContext pSettings) {
+        this.settings = pSettings;
     }
 
-    private static String toString(OptionalLong p_101448_) {
-        return p_101448_.isPresent() ? Long.toString(p_101448_.getAsLong()) : "";
+    private static String toString(OptionalLong pSeed) {
+        return pSeed.isPresent() ? Long.toString(pSeed.getAsLong()) : "";
     }
 
     public WorldCreationContext createFinalSettings(boolean p_233067_) {
@@ -247,30 +247,30 @@ public class WorldGenSettingsComponent implements Widget {
         return this.settings.worldGenSettings().isDebug();
     }
 
-    public void setVisibility(boolean p_170288_) {
-        this.selectWorldTypeButton(p_170288_);
+    public void setVisibility(boolean pVisible) {
+        this.selectWorldTypeButton(pVisible);
         if (this.isDebug()) {
             this.featuresButton.visible = false;
             this.bonusItemsButton.visible = false;
             this.customizeTypeButton.visible = false;
             this.importSettingsButton.visible = false;
         } else {
-            this.featuresButton.visible = p_170288_;
-            this.bonusItemsButton.visible = p_170288_;
-            this.customizeTypeButton.visible = p_170288_ && PresetEditor.EDITORS.containsKey(this.preset.flatMap(Holder::unwrapKey));
-            this.importSettingsButton.visible = p_170288_;
+            this.featuresButton.visible = pVisible;
+            this.bonusItemsButton.visible = pVisible;
+            this.customizeTypeButton.visible = pVisible && PresetEditor.EDITORS.containsKey(this.preset.flatMap(Holder::unwrapKey));
+            this.importSettingsButton.visible = pVisible;
         }
 
-        this.seedEdit.setVisible(p_170288_);
+        this.seedEdit.setVisible(pVisible);
     }
 
-    private void selectWorldTypeButton(boolean p_170290_) {
+    private void selectWorldTypeButton(boolean pVisible) {
         if (this.preset.isPresent()) {
-            this.typeButton.visible = p_170290_;
+            this.typeButton.visible = pVisible;
             this.customWorldDummyButton.visible = false;
         } else {
             this.typeButton.visible = false;
-            this.customWorldDummyButton.visible = p_170290_;
+            this.customWorldDummyButton.visible = pVisible;
         }
     }
 

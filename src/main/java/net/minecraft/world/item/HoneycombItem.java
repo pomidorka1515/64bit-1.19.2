@@ -25,17 +25,17 @@ public class HoneycombItem extends Item {
         return WAXABLES.get().inverse();
     });
 
-    public HoneycombItem(Item.Properties p_150867_) {
-        super(p_150867_);
+    public HoneycombItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResult useOn(UseOnContext p_150869_) {
-        Level level = p_150869_.getLevel();
-        BlockPos blockpos = p_150869_.getClickedPos();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
         return getWaxed(blockstate).map((p_238251_) -> {
-                                       Player player = p_150869_.getPlayer();
-                                       ItemStack itemstack = p_150869_.getItemInHand();
+                                       Player player = pContext.getPlayer();
+                                       ItemStack itemstack = pContext.getItemInHand();
                                        if (player instanceof ServerPlayer) {
                                            CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer) player, blockpos, itemstack);
                                        }
@@ -49,9 +49,9 @@ public class HoneycombItem extends Item {
                 .orElse(InteractionResult.PASS);
     }
 
-    public static Optional<BlockState> getWaxed(BlockState p_150879_) {
-        return Optional.ofNullable(WAXABLES.get().get(p_150879_.getBlock())).map((p_150877_) -> {
-            return p_150877_.withPropertiesOf(p_150879_);
+    public static Optional<BlockState> getWaxed(BlockState pState) {
+        return Optional.ofNullable(WAXABLES.get().get(pState.getBlock())).map((p_150877_) -> {
+            return p_150877_.withPropertiesOf(pState);
         });
     }
 }

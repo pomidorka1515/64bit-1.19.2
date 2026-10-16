@@ -22,15 +22,15 @@ public class PackRepository {
     private List<Pack> selected = ImmutableList.of();
     private final Pack.PackConstructor constructor;
 
-    public PackRepository(Pack.PackConstructor p_10502_, RepositorySource... p_10503_) {
-        this.constructor = p_10502_;
-        this.sources = ImmutableSet.copyOf(p_10503_);
+    public PackRepository(Pack.PackConstructor pConstructor, RepositorySource... pSources) {
+        this.constructor = pConstructor;
+        this.sources = ImmutableSet.copyOf(pSources);
     }
 
-    public PackRepository(PackType p_143890_, RepositorySource... p_143891_) {
+    public PackRepository(PackType pType, RepositorySource... pSources) {
         this((p_143894_, p_143895_, p_143896_, p_143897_, p_143898_, p_143899_, p_143900_) -> {
-            return new Pack(p_143894_, p_143895_, p_143896_, p_143897_, p_143898_, p_143890_, p_143899_, p_143900_);
-        }, p_143891_);
+            return new Pack(p_143894_, p_143895_, p_143896_, p_143897_, p_143898_, pType, p_143899_, p_143900_);
+        }, pSources);
     }
 
     public void reload() {
@@ -51,12 +51,12 @@ public class PackRepository {
         return ImmutableMap.copyOf(map);
     }
 
-    public void setSelected(Collection<String> p_10510_) {
-        this.selected = this.rebuildSelected(p_10510_);
+    public void setSelected(Collection<String> pIds) {
+        this.selected = this.rebuildSelected(pIds);
     }
 
-    private List<Pack> rebuildSelected(Collection<String> p_10518_) {
-        List<Pack> list = this.getAvailablePacks(p_10518_).collect(Collectors.toList());
+    private List<Pack> rebuildSelected(Collection<String> pIds) {
+        List<Pack> list = this.getAvailablePacks(pIds).collect(Collectors.toList());
 
         for (Pack pack : this.available.values()) {
             if (pack.isRequired() && !list.contains(pack)) {
@@ -67,8 +67,8 @@ public class PackRepository {
         return ImmutableList.copyOf(list);
     }
 
-    private Stream<Pack> getAvailablePacks(Collection<String> p_10521_) {
-        return p_10521_.stream().map(this.available::get).filter(Objects::nonNull);
+    private Stream<Pack> getAvailablePacks(Collection<String> pIds) {
+        return pIds.stream().map(this.available::get).filter(Objects::nonNull);
     }
 
     public Collection<String> getAvailableIds() {
@@ -88,12 +88,12 @@ public class PackRepository {
     }
 
     @Nullable
-    public Pack getPack(String p_10508_) {
-        return this.available.get(p_10508_);
+    public Pack getPack(String pId) {
+        return this.available.get(pId);
     }
 
-    public boolean isAvailable(String p_10516_) {
-        return this.available.containsKey(p_10516_);
+    public boolean isAvailable(String pId) {
+        return this.available.containsKey(pId);
     }
 
     public List<PackResources> openAllSelected() {

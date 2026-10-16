@@ -11,9 +11,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class VolumeSlider extends AbstractOptionSliderButton {
     private final SoundSource source;
 
-    public VolumeSlider(Minecraft p_94662_, int p_94663_, int p_94664_, SoundSource p_94665_, int p_94666_) {
-        super(p_94662_.options, p_94663_, p_94664_, p_94666_, 20, (double) p_94662_.options.getSoundSourceVolume(p_94665_));
-        this.source = p_94665_;
+    public VolumeSlider(Minecraft pMinecraft, int pX, int pY, SoundSource pSource, int pWidth) {
+        super(pMinecraft.options, pX, pY, pWidth, 20, (double) pMinecraft.options.getSoundSourceVolume(pSource));
+        this.source = pSource;
         this.updateMessage();
     }
 

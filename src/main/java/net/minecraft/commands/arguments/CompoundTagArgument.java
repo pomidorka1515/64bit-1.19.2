@@ -19,12 +19,12 @@ public class CompoundTagArgument implements ArgumentType<CompoundTag> {
         return new CompoundTagArgument();
     }
 
-    public static <S> CompoundTag getCompoundTag(CommandContext<S> p_87661_, String p_87662_) {
-        return p_87661_.getArgument(p_87662_, CompoundTag.class);
+    public static <S> CompoundTag getCompoundTag(CommandContext<S> pContext, String pName) {
+        return pContext.getArgument(pName, CompoundTag.class);
     }
 
-    public CompoundTag parse(StringReader p_87659_) throws CommandSyntaxException {
-        return (new TagParser(p_87659_)).readStruct();
+    public CompoundTag parse(StringReader pReader) throws CommandSyntaxException {
+        return (new TagParser(pReader)).readStruct();
     }
 
     public Collection<String> getExamples() {

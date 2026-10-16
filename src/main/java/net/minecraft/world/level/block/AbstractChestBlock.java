@@ -12,10 +12,10 @@ import net.minecraft.world.level.block.state.BlockState;
 public abstract class AbstractChestBlock<E extends BlockEntity> extends BaseEntityBlock {
     protected final Supplier<BlockEntityType<? extends E>> blockEntityType;
 
-    protected AbstractChestBlock(BlockBehaviour.Properties p_48677_, Supplier<BlockEntityType<? extends E>> p_48678_) {
-        super(p_48677_);
-        this.blockEntityType = p_48678_;
+    protected AbstractChestBlock(BlockBehaviour.Properties pProperties, Supplier<BlockEntityType<? extends E>> pBlockEntityType) {
+        super(pProperties);
+        this.blockEntityType = pBlockEntityType;
     }
 
-    public abstract DoubleBlockCombiner.NeighborCombineResult<? extends ChestBlockEntity> combine(BlockState p_48679_, Level p_48680_, BlockPos p_48681_, boolean p_48682_);
+    public abstract DoubleBlockCombiner.NeighborCombineResult<? extends ChestBlockEntity> combine(BlockState pState, Level pLevel, BlockPos pPos, boolean pOverride);
 }

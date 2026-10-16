@@ -11,24 +11,24 @@ public class ServerboundPlayerInputPacket implements Packet<ServerGamePacketList
     private final boolean isJumping;
     private final boolean isShiftKeyDown;
 
-    public ServerboundPlayerInputPacket(float p_134345_, float p_134346_, boolean p_134347_, boolean p_134348_) {
-        this.xxa = p_134345_;
-        this.zza = p_134346_;
-        this.isJumping = p_134347_;
-        this.isShiftKeyDown = p_134348_;
+    public ServerboundPlayerInputPacket(float pXxa, float pZza, boolean pIsJumping, boolean pIsShiftKeyDown) {
+        this.xxa = pXxa;
+        this.zza = pZza;
+        this.isJumping = pIsJumping;
+        this.isShiftKeyDown = pIsShiftKeyDown;
     }
 
-    public ServerboundPlayerInputPacket(FriendlyByteBuf p_179720_) {
-        this.xxa = p_179720_.readFloat();
-        this.zza = p_179720_.readFloat();
-        byte b0 = p_179720_.readByte();
+    public ServerboundPlayerInputPacket(FriendlyByteBuf pBuffer) {
+        this.xxa = pBuffer.readFloat();
+        this.zza = pBuffer.readFloat();
+        byte b0 = pBuffer.readByte();
         this.isJumping = (b0 & 1) > 0;
         this.isShiftKeyDown = (b0 & 2) > 0;
     }
 
-    public void write(FriendlyByteBuf p_134357_) {
-        p_134357_.writeFloat(this.xxa);
-        p_134357_.writeFloat(this.zza);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeFloat(this.xxa);
+        pBuffer.writeFloat(this.zza);
         byte b0 = 0;
         if (this.isJumping) {
             b0 = (byte) (b0 | 1);
@@ -38,11 +38,11 @@ public class ServerboundPlayerInputPacket implements Packet<ServerGamePacketList
             b0 = (byte) (b0 | 2);
         }
 
-        p_134357_.writeByte(b0);
+        pBuffer.writeByte(b0);
     }
 
-    public void handle(ServerGamePacketListener p_134354_) {
-        p_134354_.handlePlayerInput(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handlePlayerInput(this);
     }
 
     public float getXxa() {

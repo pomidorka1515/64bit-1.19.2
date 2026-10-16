@@ -52,9 +52,9 @@ public class VibrationParticleOption implements ParticleOptions {
         this.arrivalInTicks = p_235976_;
     }
 
-    public void writeToNetwork(FriendlyByteBuf p_175854_) {
-        PositionSourceType.toNetwork(this.destination, p_175854_);
-        p_175854_.writeVarInt(this.arrivalInTicks);
+    public void writeToNetwork(FriendlyByteBuf pBuffer) {
+        PositionSourceType.toNetwork(this.destination, pBuffer);
+        pBuffer.writeVarInt(this.arrivalInTicks);
     }
 
     public String writeToString() {

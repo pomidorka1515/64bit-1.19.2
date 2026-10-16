@@ -9,8 +9,8 @@ import java.util.Optional;
 import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 
 public class ObjectiveRenderTypeFix extends DataFix {
-    public ObjectiveRenderTypeFix(Schema p_16536_, boolean p_16537_) {
-        super(p_16536_, p_16537_);
+    public ObjectiveRenderTypeFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     private static ObjectiveCriteria.RenderType getRenderType(String p_16545_) {

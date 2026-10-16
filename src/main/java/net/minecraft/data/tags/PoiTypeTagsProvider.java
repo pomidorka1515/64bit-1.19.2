@@ -7,8 +7,8 @@ import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 
 public class PoiTypeTagsProvider extends TagsProvider<PoiType> {
-    public PoiTypeTagsProvider(DataGenerator p_236434_) {
-        super(p_236434_, Registry.POINT_OF_INTEREST_TYPE);
+    public PoiTypeTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, Registry.POINT_OF_INTEREST_TYPE);
     }
 
     protected void addTags() {

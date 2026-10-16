@@ -15,8 +15,8 @@ public abstract class AbstractContainerEventHandler extends GuiComponent impleme
         return this.isDragging;
     }
 
-    public final void setDragging(boolean p_94681_) {
-        this.isDragging = p_94681_;
+    public final void setDragging(boolean pDragging) {
+        this.isDragging = pDragging;
     }
 
     @Nullable
@@ -24,7 +24,7 @@ public abstract class AbstractContainerEventHandler extends GuiComponent impleme
         return this.focused;
     }
 
-    public void setFocused(@Nullable GuiEventListener p_94677_) {
-        this.focused = p_94677_;
+    public void setFocused(@Nullable GuiEventListener pListener) {
+        this.focused = pListener;
     }
 }

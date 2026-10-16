@@ -10,8 +10,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.Objects;
 
 public class ForcePoiRebuild extends DataFix {
-    public ForcePoiRebuild(Schema p_15821_, boolean p_15822_) {
-        super(p_15821_, p_15822_);
+    public ForcePoiRebuild(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

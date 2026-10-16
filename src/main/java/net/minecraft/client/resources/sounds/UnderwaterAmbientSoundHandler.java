@@ -16,9 +16,9 @@ public class UnderwaterAmbientSoundHandler implements AmbientSoundHandler {
     private final SoundManager soundManager;
     private int tickDelay = 0;
 
-    public UnderwaterAmbientSoundHandler(LocalPlayer p_119856_, SoundManager p_119857_) {
-        this.player = p_119856_;
-        this.soundManager = p_119857_;
+    public UnderwaterAmbientSoundHandler(LocalPlayer pPlayer, SoundManager pSoundManager) {
+        this.player = pPlayer;
+        this.soundManager = pSoundManager;
     }
 
     public void tick() {

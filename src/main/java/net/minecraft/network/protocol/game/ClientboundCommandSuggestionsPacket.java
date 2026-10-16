@@ -13,17 +13,17 @@ public class ClientboundCommandSuggestionsPacket implements Packet<ClientGamePac
     private final int id;
     private final Suggestions suggestions;
 
-    public ClientboundCommandSuggestionsPacket(int p_131846_, Suggestions p_131847_) {
-        this.id = p_131846_;
-        this.suggestions = p_131847_;
+    public ClientboundCommandSuggestionsPacket(int pId, Suggestions pSuggestions) {
+        this.id = pId;
+        this.suggestions = pSuggestions;
     }
 
-    public ClientboundCommandSuggestionsPacket(FriendlyByteBuf p_178790_) {
-        this.id = p_178790_.readVarInt();
-        int i = p_178790_.readVarInt();
-        int j = p_178790_.readVarInt();
+    public ClientboundCommandSuggestionsPacket(FriendlyByteBuf pBuffer) {
+        this.id = pBuffer.readVarInt();
+        int i = pBuffer.readVarInt();
+        int j = pBuffer.readVarInt();
         StringRange stringrange = StringRange.between(i, i + j);
-        List<Suggestion> list = p_178790_.readList((p_178793_) -> {
+        List<Suggestion> list = pBuffer.readList((p_178793_) -> {
             String s = p_178793_.readUtf();
             Component component = p_178793_.readNullable(FriendlyByteBuf::readComponent);
             return new Suggestion(stringrange, s, component);
@@ -31,11 +31,11 @@ public class ClientboundCommandSuggestionsPacket implements Packet<ClientGamePac
         this.suggestions = new Suggestions(stringrange, list);
     }
 
-    public void write(FriendlyByteBuf p_131856_) {
-        p_131856_.writeVarInt(this.id);
-        p_131856_.writeVarInt(this.suggestions.getRange().getStart());
-        p_131856_.writeVarInt(this.suggestions.getRange().getLength());
-        p_131856_.writeCollection(this.suggestions.getList(), (p_237617_, p_237618_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.id);
+        pBuffer.writeVarInt(this.suggestions.getRange().getStart());
+        pBuffer.writeVarInt(this.suggestions.getRange().getLength());
+        pBuffer.writeCollection(this.suggestions.getList(), (p_237617_, p_237618_) -> {
             p_237617_.writeUtf(p_237618_.getText());
             p_237617_.writeNullable(p_237618_.getTooltip(), (p_237614_, p_237615_) -> {
                 p_237614_.writeComponent(ComponentUtils.fromMessage(p_237615_));
@@ -43,8 +43,8 @@ public class ClientboundCommandSuggestionsPacket implements Packet<ClientGamePac
         });
     }
 
-    public void handle(ClientGamePacketListener p_131853_) {
-        p_131853_.handleCommandSuggestions(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleCommandSuggestions(this);
     }
 
     public int getId() {

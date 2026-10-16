@@ -11,8 +11,8 @@ public class NumberProviders {
     public static final LootNumberProviderType BINOMIAL = register("binomial", new BinomialDistributionGenerator.Serializer());
     public static final LootNumberProviderType SCORE = register("score", new ScoreboardValue.Serializer());
 
-    private static LootNumberProviderType register(String p_165739_, Serializer<? extends NumberProvider> p_165740_) {
-        return Registry.register(Registry.LOOT_NUMBER_PROVIDER_TYPE, new ResourceLocation(p_165739_), new LootNumberProviderType(p_165740_));
+    private static LootNumberProviderType register(String pName, Serializer<? extends NumberProvider> pSerializer) {
+        return Registry.register(Registry.LOOT_NUMBER_PROVIDER_TYPE, new ResourceLocation(pName), new LootNumberProviderType(pSerializer));
     }
 
     public static Object createGsonAdapter() {

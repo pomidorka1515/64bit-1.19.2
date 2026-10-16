@@ -35,29 +35,29 @@ public class SetClosestHomeAsWalkTarget extends Behavior<LivingEntity> {
     private int triedCount;
     private long lastUpdate;
 
-    public SetClosestHomeAsWalkTarget(float p_23877_) {
+    public SetClosestHomeAsWalkTarget(float pSpeedModifier) {
         super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT, MemoryModuleType.HOME, MemoryStatus.VALUE_ABSENT));
-        this.speedModifier = p_23877_;
+        this.speedModifier = pSpeedModifier;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_23879_, LivingEntity p_23880_) {
-        if (p_23879_.getGameTime() - this.lastUpdate < 20L) {
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, LivingEntity pOwner) {
+        if (pLevel.getGameTime() - this.lastUpdate < 20L) {
             return false;
         } else {
-            PathfinderMob pathfindermob = (PathfinderMob) p_23880_;
-            PoiManager poimanager = p_23879_.getPoiManager();
+            PathfinderMob pathfindermob = (PathfinderMob) pOwner;
+            PoiManager poimanager = pLevel.getPoiManager();
             Optional<BlockPos> optional = poimanager.findClosest((p_217376_) -> {
                 return p_217376_.is(PoiTypes.HOME);
-            }, p_23880_.blockPosition(), 48, PoiManager.Occupancy.ANY);
+            }, pOwner.blockPosition(), 48, PoiManager.Occupancy.ANY);
             return optional.isPresent() && !(optional.get().distSqr(pathfindermob.blockPosition()) <= 4.0D);
         }
     }
 
-    protected void start(ServerLevel p_23882_, LivingEntity p_23883_, long p_23884_) {
+    protected void start(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
         this.triedCount = 0;
-        this.lastUpdate = p_23882_.getGameTime() + (long) p_23882_.getRandom().nextInt(20);
-        PathfinderMob pathfindermob = (PathfinderMob) p_23883_;
-        PoiManager poimanager = p_23882_.getPoiManager();
+        this.lastUpdate = pLevel.getGameTime() + (long) pLevel.getRandom().nextInt(20);
+        PathfinderMob pathfindermob = (PathfinderMob) pEntity;
+        PoiManager poimanager = pLevel.getPoiManager();
         Predicate<BlockPos> predicate = (p_217370_) -> {
             if (this.batchCache.containsKey(p_217370_)) {
                 return false;
@@ -70,14 +70,14 @@ public class SetClosestHomeAsWalkTarget extends Behavior<LivingEntity> {
         };
         Set<Pair<Holder<PoiType>, BlockPos>> set = poimanager.findAllWithType((p_217372_) -> {
                                                                  return p_217372_.is(PoiTypes.HOME);
-                                                             }, predicate, p_23883_.blockPosition(), 48, PoiManager.Occupancy.ANY).collect(Collectors.toSet());
+                                                             }, predicate, pEntity.blockPosition(), 48, PoiManager.Occupancy.ANY).collect(Collectors.toSet());
         Path path = AcquirePoi.findPathToPois(pathfindermob, set);
         if (path != null && path.canReach()) {
             BlockPos blockpos = path.getTarget();
             Optional<Holder<PoiType>> optional = poimanager.getType(blockpos);
             if (optional.isPresent()) {
-                p_23883_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(blockpos, this.speedModifier, 1));
-                DebugPackets.sendPoiTicketCountPacket(p_23882_, blockpos);
+                pEntity.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(blockpos, this.speedModifier, 1));
+                DebugPackets.sendPoiTicketCountPacket(pLevel, blockpos);
             }
         } else if (this.triedCount < 5) {
             this.batchCache.object2LongEntrySet().removeIf((p_217374_) -> {

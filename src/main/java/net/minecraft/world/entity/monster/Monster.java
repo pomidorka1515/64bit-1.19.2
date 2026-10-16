@@ -27,8 +27,8 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.dimension.DimensionType;
 
 public abstract class Monster extends PathfinderMob implements Enemy {
-    protected Monster(EntityType<? extends Monster> p_33002_, Level p_33003_) {
-        super(p_33002_, p_33003_);
+    protected Monster(EntityType<? extends Monster> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.xpReward = 5;
     }
 
@@ -61,7 +61,7 @@ public abstract class Monster extends PathfinderMob implements Enemy {
         return SoundEvents.HOSTILE_SPLASH;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_33034_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.HOSTILE_HURT;
     }
 
@@ -73,31 +73,31 @@ public abstract class Monster extends PathfinderMob implements Enemy {
         return new LivingEntity.Fallsounds(SoundEvents.HOSTILE_SMALL_FALL, SoundEvents.HOSTILE_BIG_FALL);
     }
 
-    public float getWalkTargetValue(BlockPos p_33013_, LevelReader p_33014_) {
-        return -p_33014_.getPathfindingCostFromLightLevels(p_33013_);
+    public float getWalkTargetValue(BlockPos pPos, LevelReader pLevel) {
+        return -pLevel.getPathfindingCostFromLightLevels(pPos);
     }
 
-    public static boolean isDarkEnoughToSpawn(ServerLevelAccessor p_219010_, BlockPos p_219011_, RandomSource p_219012_) {
-        if (p_219010_.getBrightness(LightLayer.SKY, p_219011_) > p_219012_.nextInt(32)) {
+    public static boolean isDarkEnoughToSpawn(ServerLevelAccessor pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.getBrightness(LightLayer.SKY, pPos) > pRandom.nextInt(32)) {
             return false;
         } else {
-            DimensionType dimensiontype = p_219010_.dimensionType();
+            DimensionType dimensiontype = pLevel.dimensionType();
             int i = dimensiontype.monsterSpawnBlockLightLimit();
-            if (i < 15 && p_219010_.getBrightness(LightLayer.BLOCK, p_219011_) > i) {
+            if (i < 15 && pLevel.getBrightness(LightLayer.BLOCK, pPos) > i) {
                 return false;
             } else {
-                int j = p_219010_.getLevel().isThundering() ? p_219010_.getMaxLocalRawBrightness(p_219011_, 10) : p_219010_.getMaxLocalRawBrightness(p_219011_);
-                return j <= dimensiontype.monsterSpawnLightTest().sample(p_219012_);
+                int j = pLevel.getLevel().isThundering() ? pLevel.getMaxLocalRawBrightness(pPos, 10) : pLevel.getMaxLocalRawBrightness(pPos);
+                return j <= dimensiontype.monsterSpawnLightTest().sample(pRandom);
             }
         }
     }
 
-    public static boolean checkMonsterSpawnRules(EntityType<? extends Monster> p_219014_, ServerLevelAccessor p_219015_, MobSpawnType p_219016_, BlockPos p_219017_, RandomSource p_219018_) {
-        return p_219015_.getDifficulty() != Difficulty.PEACEFUL && isDarkEnoughToSpawn(p_219015_, p_219017_, p_219018_) && checkMobSpawnRules(p_219014_, p_219015_, p_219016_, p_219017_, p_219018_);
+    public static boolean checkMonsterSpawnRules(EntityType<? extends Monster> pType, ServerLevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getDifficulty() != Difficulty.PEACEFUL && isDarkEnoughToSpawn(pLevel, pPos, pRandom) && checkMobSpawnRules(pType, pLevel, pSpawnType, pPos, pRandom);
     }
 
-    public static boolean checkAnyLightMonsterSpawnRules(EntityType<? extends Monster> p_219020_, LevelAccessor p_219021_, MobSpawnType p_219022_, BlockPos p_219023_, RandomSource p_219024_) {
-        return p_219021_.getDifficulty() != Difficulty.PEACEFUL && checkMobSpawnRules(p_219020_, p_219021_, p_219022_, p_219023_, p_219024_);
+    public static boolean checkAnyLightMonsterSpawnRules(EntityType<? extends Monster> pType, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getDifficulty() != Difficulty.PEACEFUL && checkMobSpawnRules(pType, pLevel, pSpawnType, pPos, pRandom);
     }
 
     public static AttributeSupplier.Builder createMonsterAttributes() {
@@ -112,13 +112,13 @@ public abstract class Monster extends PathfinderMob implements Enemy {
         return true;
     }
 
-    public boolean isPreventingPlayerRest(Player p_33036_) {
+    public boolean isPreventingPlayerRest(Player pPlayer) {
         return true;
     }
 
-    public ItemStack getProjectile(ItemStack p_33038_) {
-        if (p_33038_.getItem() instanceof ProjectileWeaponItem) {
-            Predicate<ItemStack> predicate = ((ProjectileWeaponItem) p_33038_.getItem()).getSupportedHeldProjectiles();
+    public ItemStack getProjectile(ItemStack pShootable) {
+        if (pShootable.getItem() instanceof ProjectileWeaponItem) {
+            Predicate<ItemStack> predicate = ((ProjectileWeaponItem) pShootable.getItem()).getSupportedHeldProjectiles();
             ItemStack itemstack = ProjectileWeaponItem.getHeldProjectile(this, predicate);
             return itemstack.isEmpty() ? new ItemStack(Items.ARROW) : itemstack;
         } else {

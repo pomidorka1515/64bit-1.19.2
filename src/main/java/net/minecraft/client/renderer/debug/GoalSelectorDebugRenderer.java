@@ -22,19 +22,19 @@ public class GoalSelectorDebugRenderer implements DebugRenderer.SimpleDebugRende
         this.goalSelectors.clear();
     }
 
-    public void addGoalSelector(int p_113549_, List<GoalSelectorDebugRenderer.DebugGoal> p_113550_) {
-        this.goalSelectors.put(p_113549_, p_113550_);
+    public void addGoalSelector(int pMobId, List<GoalSelectorDebugRenderer.DebugGoal> pGoals) {
+        this.goalSelectors.put(pMobId, pGoals);
     }
 
-    public void removeGoalSelector(int p_173889_) {
-        this.goalSelectors.remove(p_173889_);
+    public void removeGoalSelector(int pMobId) {
+        this.goalSelectors.remove(pMobId);
     }
 
-    public GoalSelectorDebugRenderer(Minecraft p_113546_) {
-        this.minecraft = p_113546_;
+    public GoalSelectorDebugRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_113552_, MultiBufferSource p_113553_, double p_113554_, double p_113555_, double p_113556_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         Camera camera = this.minecraft.gameRenderer.getMainCamera();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -63,11 +63,11 @@ public class GoalSelectorDebugRenderer implements DebugRenderer.SimpleDebugRende
         public final String name;
         public final boolean isRunning;
 
-        public DebugGoal(BlockPos p_113566_, int p_113567_, String p_113568_, boolean p_113569_) {
-            this.pos = p_113566_;
-            this.priority = p_113567_;
-            this.name = p_113568_;
-            this.isRunning = p_113569_;
+        public DebugGoal(BlockPos pPos, int pPriority, String pName, boolean pIsRunning) {
+            this.pos = pPos;
+            this.priority = pPriority;
+            this.name = pName;
+            this.isRunning = pIsRunning;
         }
     }
 }

@@ -85,8 +85,8 @@ public class Rabbit extends Animal {
     private int jumpDelayTicks;
     int moreCarrotTicks;
 
-    public Rabbit(EntityType<? extends Rabbit> p_29656_, Level p_29657_) {
-        super(p_29656_, p_29657_);
+    public Rabbit(EntityType<? extends Rabbit> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.jumpControl = new Rabbit.RabbitJumpControl(this);
         this.moveControl = new Rabbit.RabbitMoveControl(this);
         this.setSpeedModifier(0.0D);
@@ -137,18 +137,18 @@ public class Rabbit extends Animal {
         }
     }
 
-    public float getJumpCompletion(float p_29736_) {
-        return this.jumpDuration == 0 ? 0.0F : ((float) this.jumpTicks + p_29736_) / (float) this.jumpDuration;
+    public float getJumpCompletion(float pPartialTick) {
+        return this.jumpDuration == 0 ? 0.0F : ((float) this.jumpTicks + pPartialTick) / (float) this.jumpDuration;
     }
 
-    public void setSpeedModifier(double p_29726_) {
-        this.getNavigation().setSpeedModifier(p_29726_);
-        this.moveControl.setWantedPosition(this.moveControl.getExactWantedPosition(), p_29726_);
+    public void setSpeedModifier(double pSpeedModifier) {
+        this.getNavigation().setSpeedModifier(pSpeedModifier);
+        this.moveControl.setWantedPosition(this.moveControl.getExactWantedPosition(), pSpeedModifier);
     }
 
-    public void setJumping(boolean p_29732_) {
-        super.setJumping(p_29732_);
-        if (p_29732_) {
+    public void setJumping(boolean pJumping) {
+        super.setJumping(pJumping);
+        if (pJumping) {
             this.playSound(this.getJumpSound(), this.getSoundVolume(), ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) * 0.8F);
         }
     }
@@ -256,16 +256,16 @@ public class Rabbit extends Animal {
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 3.0D).add(Attributes.MOVEMENT_SPEED, (double) 0.3F);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_29697_) {
-        super.addAdditionalSaveData(p_29697_);
-        p_29697_.putInt("RabbitType", this.getRabbitType());
-        p_29697_.putInt("MoreCarrotTicks", this.moreCarrotTicks);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("RabbitType", this.getRabbitType());
+        pCompound.putInt("MoreCarrotTicks", this.moreCarrotTicks);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_29684_) {
-        super.readAdditionalSaveData(p_29684_);
-        this.setRabbitType(p_29684_.getInt("RabbitType"));
-        this.moreCarrotTicks = p_29684_.getInt("MoreCarrotTicks");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setRabbitType(pCompound.getInt("RabbitType"));
+        this.moreCarrotTicks = pCompound.getInt("MoreCarrotTicks");
     }
 
     protected SoundEvent getJumpSound() {
@@ -276,7 +276,7 @@ public class Rabbit extends Animal {
         return SoundEvents.RABBIT_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_29715_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.RABBIT_HURT;
     }
 
@@ -284,12 +284,12 @@ public class Rabbit extends Animal {
         return SoundEvents.RABBIT_DEATH;
     }
 
-    public boolean doHurtTarget(Entity p_29659_) {
+    public boolean doHurtTarget(Entity pEntity) {
         if (this.getRabbitType() == 99) {
             this.playSound(SoundEvents.RABBIT_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
-            return p_29659_.hurt(DamageSource.mobAttack(this), 8.0F);
+            return pEntity.hurt(DamageSource.mobAttack(this), 8.0F);
         } else {
-            return p_29659_.hurt(DamageSource.mobAttack(this), 3.0F);
+            return pEntity.hurt(DamageSource.mobAttack(this), 3.0F);
         }
     }
 
@@ -297,16 +297,16 @@ public class Rabbit extends Animal {
         return this.getRabbitType() == 99 ? SoundSource.HOSTILE : SoundSource.NEUTRAL;
     }
 
-    private static boolean isTemptingItem(ItemStack p_149038_) {
-        return p_149038_.is(Items.CARROT) || p_149038_.is(Items.GOLDEN_CARROT) || p_149038_.is(Blocks.DANDELION.asItem());
+    private static boolean isTemptingItem(ItemStack pStack) {
+        return pStack.is(Items.CARROT) || pStack.is(Items.GOLDEN_CARROT) || pStack.is(Blocks.DANDELION.asItem());
     }
 
-    public Rabbit getBreedOffspring(ServerLevel p_149035_, AgeableMob p_149036_) {
-        Rabbit rabbit = EntityType.RABBIT.create(p_149035_);
-        int i = this.getRandomRabbitType(p_149035_);
+    public Rabbit getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        Rabbit rabbit = EntityType.RABBIT.create(pLevel);
+        int i = this.getRandomRabbitType(pLevel);
         if (this.random.nextInt(20) != 0) {
-            if (p_149036_ instanceof Rabbit && this.random.nextBoolean()) {
-                i = ((Rabbit) p_149036_).getRabbitType();
+            if (pOtherParent instanceof Rabbit && this.random.nextBoolean()) {
+                i = ((Rabbit) pOtherParent).getRabbitType();
             } else {
                 i = this.getRabbitType();
             }
@@ -316,16 +316,16 @@ public class Rabbit extends Animal {
         return rabbit;
     }
 
-    public boolean isFood(ItemStack p_29729_) {
-        return isTemptingItem(p_29729_);
+    public boolean isFood(ItemStack pStack) {
+        return isTemptingItem(pStack);
     }
 
     public int getRabbitType() {
         return this.entityData.get(DATA_TYPE_ID);
     }
 
-    public void setRabbitType(int p_29734_) {
-        if (p_29734_ == 99) {
+    public void setRabbitType(int pRabbitTypeId) {
+        if (pRabbitTypeId == 99) {
             this.getAttribute(Attributes.ARMOR).setBaseValue(8.0D);
             this.goalSelector.addGoal(4, new Rabbit.EvilRabbitAttackGoal(this));
             this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
@@ -336,25 +336,25 @@ public class Rabbit extends Animal {
             }
         }
 
-        this.entityData.set(DATA_TYPE_ID, p_29734_);
+        this.entityData.set(DATA_TYPE_ID, pRabbitTypeId);
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_29678_, DifficultyInstance p_29679_, MobSpawnType p_29680_, @Nullable SpawnGroupData p_29681_, @Nullable CompoundTag p_29682_) {
-        int i = this.getRandomRabbitType(p_29678_);
-        if (p_29681_ instanceof Rabbit.RabbitGroupData) {
-            i = ((Rabbit.RabbitGroupData) p_29681_).rabbitType;
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        int i = this.getRandomRabbitType(pLevel);
+        if (pSpawnData instanceof Rabbit.RabbitGroupData) {
+            i = ((Rabbit.RabbitGroupData) pSpawnData).rabbitType;
         } else {
-            p_29681_ = new Rabbit.RabbitGroupData(i);
+            pSpawnData = new Rabbit.RabbitGroupData(i);
         }
 
         this.setRabbitType(i);
-        return super.finalizeSpawn(p_29678_, p_29679_, p_29680_, p_29681_, p_29682_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
-    private int getRandomRabbitType(LevelAccessor p_29676_) {
-        Holder<Biome> holder = p_29676_.getBiome(this.blockPosition());
-        int i = p_29676_.getRandom().nextInt(100);
+    private int getRandomRabbitType(LevelAccessor pLevel) {
+        Holder<Biome> holder = pLevel.getBiome(this.blockPosition());
+        int i = pLevel.getRandom().nextInt(100);
         if (holder.value().getPrecipitation() == Biome.Precipitation.SNOW) {
             return i < 80 ? 1 : 3;
         } else if (holder.is(BiomeTags.ONLY_ALLOWS_SNOW_AND_GOLD_RABBITS)) {
@@ -364,21 +364,21 @@ public class Rabbit extends Animal {
         }
     }
 
-    public static boolean checkRabbitSpawnRules(EntityType<Rabbit> p_218256_, LevelAccessor p_218257_, MobSpawnType p_218258_, BlockPos p_218259_, RandomSource p_218260_) {
-        return p_218257_.getBlockState(p_218259_.below()).is(BlockTags.RABBITS_SPAWNABLE_ON) && isBrightEnoughToSpawn(p_218257_, p_218259_);
+    public static boolean checkRabbitSpawnRules(EntityType<Rabbit> pRabbit, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getBlockState(pPos.below()).is(BlockTags.RABBITS_SPAWNABLE_ON) && isBrightEnoughToSpawn(pLevel, pPos);
     }
 
     boolean wantsMoreFood() {
         return this.moreCarrotTicks == 0;
     }
 
-    public void handleEntityEvent(byte p_29663_) {
-        if (p_29663_ == 1) {
+    public void handleEntityEvent(byte pId) {
+        if (pId == 1) {
             this.spawnSprintParticle();
             this.jumpDuration = 10;
             this.jumpTicks = 0;
         } else {
-            super.handleEntityEvent(p_29663_);
+            super.handleEntityEvent(pId);
         }
     }
 
@@ -387,21 +387,21 @@ public class Rabbit extends Animal {
     }
 
     static class EvilRabbitAttackGoal extends MeleeAttackGoal {
-        public EvilRabbitAttackGoal(Rabbit p_29738_) {
-            super(p_29738_, 1.4D, true);
+        public EvilRabbitAttackGoal(Rabbit pRabbit) {
+            super(pRabbit, 1.4D, true);
         }
 
-        protected double getAttackReachSqr(LivingEntity p_29740_) {
-            return (double) (4.0F + p_29740_.getBbWidth());
+        protected double getAttackReachSqr(LivingEntity pAttackTarget) {
+            return (double) (4.0F + pAttackTarget.getBbWidth());
         }
     }
 
     static class RabbitAvoidEntityGoal<T extends LivingEntity> extends AvoidEntityGoal<T> {
         private final Rabbit rabbit;
 
-        public RabbitAvoidEntityGoal(Rabbit p_29743_, Class<T> p_29744_, float p_29745_, double p_29746_, double p_29747_) {
-            super(p_29743_, p_29744_, p_29745_, p_29746_, p_29747_);
-            this.rabbit = p_29743_;
+        public RabbitAvoidEntityGoal(Rabbit pRabbit, Class<T> pEntityClassToAvoid, float pMaxDist, double pWalkSpeedModifier, double pSprintSpeedModifier) {
+            super(pRabbit, pEntityClassToAvoid, pMaxDist, pWalkSpeedModifier, pSprintSpeedModifier);
+            this.rabbit = pRabbit;
         }
 
         public boolean canUse() {
@@ -412,9 +412,9 @@ public class Rabbit extends Animal {
     public static class RabbitGroupData extends AgeableMob.AgeableMobGroupData {
         public final int rabbitType;
 
-        public RabbitGroupData(int p_29751_) {
+        public RabbitGroupData(int pRabbitType) {
             super(1.0F);
-            this.rabbitType = p_29751_;
+            this.rabbitType = pRabbitType;
         }
     }
 
@@ -422,9 +422,9 @@ public class Rabbit extends Animal {
         private final Rabbit rabbit;
         private boolean canJump;
 
-        public RabbitJumpControl(Rabbit p_186229_) {
-            super(p_186229_);
-            this.rabbit = p_186229_;
+        public RabbitJumpControl(Rabbit pRabbit) {
+            super(pRabbit);
+            this.rabbit = pRabbit;
         }
 
         public boolean wantJump() {
@@ -435,8 +435,8 @@ public class Rabbit extends Animal {
             return this.canJump;
         }
 
-        public void setCanJump(boolean p_29759_) {
-            this.canJump = p_29759_;
+        public void setCanJump(boolean pCanJump) {
+            this.canJump = pCanJump;
         }
 
         public void tick() {
@@ -451,9 +451,9 @@ public class Rabbit extends Animal {
         private final Rabbit rabbit;
         private double nextJumpSpeed;
 
-        public RabbitMoveControl(Rabbit p_29766_) {
-            super(p_29766_);
-            this.rabbit = p_29766_;
+        public RabbitMoveControl(Rabbit pRabbit) {
+            super(pRabbit);
+            this.rabbit = pRabbit;
         }
 
         public void tick() {
@@ -466,18 +466,18 @@ public class Rabbit extends Animal {
             super.tick();
         }
 
-        public void setWantedPosition(double p_29769_, double p_29770_, double p_29771_, double p_29772_) {
-            this.setWantedPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(p_29769_, p_29770_, p_29771_), p_29772_);
+        public void setWantedPosition(double pX, double pY, double pZ, double pSpeed) {
+            this.setWantedPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ), pSpeed);
         }
 
-        public void setWantedPosition(net.minecraft.world.phys.SectorVec3 position, double p_29772_) {
+        public void setWantedPosition(net.minecraft.world.phys.SectorVec3 position, double pSpeed) {
             if (this.rabbit.isInWater()) {
-                p_29772_ = 1.5D;
+                pSpeed = 1.5D;
             }
 
-            super.setWantedPosition(position, p_29772_);
-            if (p_29772_ > 0.0D) {
-                this.nextJumpSpeed = p_29772_;
+            super.setWantedPosition(position, pSpeed);
+            if (pSpeed > 0.0D) {
+                this.nextJumpSpeed = pSpeed;
             }
         }
     }
@@ -485,9 +485,9 @@ public class Rabbit extends Animal {
     static class RabbitPanicGoal extends PanicGoal {
         private final Rabbit rabbit;
 
-        public RabbitPanicGoal(Rabbit p_29775_, double p_29776_) {
-            super(p_29775_, p_29776_);
-            this.rabbit = p_29775_;
+        public RabbitPanicGoal(Rabbit pRabbit, double pSpeedModifier) {
+            super(pRabbit, pSpeedModifier);
+            this.rabbit = pRabbit;
         }
 
         public void tick() {
@@ -501,9 +501,9 @@ public class Rabbit extends Animal {
         private boolean wantsToRaid;
         private boolean canRaid;
 
-        public RaidGardenGoal(Rabbit p_29782_) {
-            super(p_29782_, (double) 0.7F, 16);
-            this.rabbit = p_29782_;
+        public RaidGardenGoal(Rabbit pRabbit) {
+            super(pRabbit, (double) 0.7F, 16);
+            this.rabbit = pRabbit;
         }
 
         public boolean canUse() {
@@ -552,10 +552,10 @@ public class Rabbit extends Animal {
             }
         }
 
-        protected boolean isValidTarget(LevelReader p_29785_, BlockPos p_29786_) {
-            BlockState blockstate = p_29785_.getBlockState(p_29786_);
+        protected boolean isValidTarget(LevelReader pLevel, BlockPos pPos) {
+            BlockState blockstate = pLevel.getBlockState(pPos);
             if (blockstate.is(Blocks.FARMLAND) && this.wantsToRaid && !this.canRaid) {
-                blockstate = p_29785_.getBlockState(p_29786_.above());
+                blockstate = pLevel.getBlockState(pPos.above());
                 if (blockstate.getBlock() instanceof CarrotBlock && ((CarrotBlock) blockstate.getBlock()).isMaxAge(blockstate)) {
                     this.canRaid = true;
                     return true;

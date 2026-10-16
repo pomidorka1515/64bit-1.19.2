@@ -67,8 +67,8 @@ public class Goat extends Animal {
     private boolean isLoweringHead;
     private int lowerHeadTick;
 
-    public Goat(EntityType<? extends Goat> p_149352_, Level p_149353_) {
-        super(p_149352_, p_149353_);
+    public Goat(EntityType<? extends Goat> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.getNavigation().setCanFloat(true);
         this.setPathfindingMalus(BlockPathTypes.POWDER_SNOW, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
@@ -85,8 +85,8 @@ public class Goat extends Animal {
         return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
     }
 
-    protected Brain<?> makeBrain(Dynamic<?> p_149371_) {
-        return GoatAi.makeBrain(this.brainProvider().makeBrain(p_149371_));
+    protected Brain<?> makeBrain(Dynamic<?> pDynamic) {
+        return GoatAi.makeBrain(this.brainProvider().makeBrain(pDynamic));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -103,15 +103,15 @@ public class Goat extends Animal {
         }
     }
 
-    protected int calculateFallDamage(float p_149389_, float p_149390_) {
-        return super.calculateFallDamage(p_149389_, p_149390_) - 10;
+    protected int calculateFallDamage(float pFallDistance, float pDamageMultiplier) {
+        return super.calculateFallDamage(pFallDistance, pDamageMultiplier) - 10;
     }
 
     protected SoundEvent getAmbientSound() {
         return this.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_AMBIENT : SoundEvents.GOAT_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_149387_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return this.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_HURT : SoundEvents.GOAT_HURT;
     }
 
@@ -119,7 +119,7 @@ public class Goat extends Animal {
         return this.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_DEATH : SoundEvents.GOAT_DEATH;
     }
 
-    protected void playStepSound(BlockPos p_149382_, BlockState p_149383_) {
+    protected void playStepSound(BlockPos pPos, BlockState pState) {
         this.playSound(SoundEvents.GOAT_STEP, 0.15F, 1.0F);
     }
 
@@ -127,12 +127,12 @@ public class Goat extends Animal {
         return this.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_MILK : SoundEvents.GOAT_MILK;
     }
 
-    public Goat getBreedOffspring(ServerLevel p_149376_, AgeableMob p_149377_) {
-        Goat goat = EntityType.GOAT.create(p_149376_);
+    public Goat getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        Goat goat = EntityType.GOAT.create(pLevel);
         if (goat != null) {
-            GoatAi.initMemories(goat, p_149376_.getRandom());
-            boolean flag = p_149377_ instanceof Goat && ((Goat) p_149377_).isScreamingGoat();
-            goat.setScreamingGoat(flag || p_149376_.getRandom().nextDouble() < 0.02D);
+            GoatAi.initMemories(goat, pLevel.getRandom());
+            boolean flag = pOtherParent instanceof Goat && ((Goat) pOtherParent).isScreamingGoat();
+            goat.setScreamingGoat(flag || pLevel.getRandom().nextDouble() < 0.02D);
         }
 
         return goat;
@@ -156,26 +156,26 @@ public class Goat extends Animal {
         return 15;
     }
 
-    public void setYHeadRot(float p_149400_) {
+    public void setYHeadRot(float pRotation) {
         int i = this.getMaxHeadYRot();
-        float f = Mth.degreesDifference(this.yBodyRot, p_149400_);
+        float f = Mth.degreesDifference(this.yBodyRot, pRotation);
         float f1 = Mth.clamp(f, (float) (-i), (float) i);
         super.setYHeadRot(this.yBodyRot + f1);
     }
 
-    public SoundEvent getEatingSound(ItemStack p_149394_) {
+    public SoundEvent getEatingSound(ItemStack pStack) {
         return this.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_EAT : SoundEvents.GOAT_EAT;
     }
 
-    public InteractionResult mobInteract(Player p_149379_, InteractionHand p_149380_) {
-        ItemStack itemstack = p_149379_.getItemInHand(p_149380_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (itemstack.is(Items.BUCKET) && !this.isBaby()) {
-            p_149379_.playSound(this.getMilkingSound(), 1.0F, 1.0F);
-            ItemStack itemstack1 = ItemUtils.createFilledResult(itemstack, p_149379_, Items.MILK_BUCKET.getDefaultInstance());
-            p_149379_.setItemInHand(p_149380_, itemstack1);
+            pPlayer.playSound(this.getMilkingSound(), 1.0F, 1.0F);
+            ItemStack itemstack1 = ItemUtils.createFilledResult(itemstack, pPlayer, Items.MILK_BUCKET.getDefaultInstance());
+            pPlayer.setItemInHand(pHand, itemstack1);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         } else {
-            InteractionResult interactionresult = super.mobInteract(p_149379_, p_149380_);
+            InteractionResult interactionresult = super.mobInteract(pPlayer, pHand);
             if (interactionresult.consumesAction() && this.isFood(itemstack)) {
                 this.level.playSound((Player) null, this, this.getEatingSound(itemstack), SoundSource.NEUTRAL, 1.0F, Mth.randomBetween(this.level.random, 0.8F, 1.2F));
             }
@@ -184,8 +184,8 @@ public class Goat extends Animal {
         }
     }
 
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_149365_, DifficultyInstance p_149366_, MobSpawnType p_149367_, @Nullable SpawnGroupData p_149368_, @Nullable CompoundTag p_149369_) {
-        RandomSource randomsource = p_149365_.getRandom();
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        RandomSource randomsource = pLevel.getRandom();
         GoatAi.initMemories(this, randomsource);
         this.setScreamingGoat(randomsource.nextDouble() < 0.02D);
         this.ageBoundaryReached();
@@ -194,7 +194,7 @@ public class Goat extends Animal {
             this.entityData.set(entitydataaccessor, false);
         }
 
-        return super.finalizeSpawn(p_149365_, p_149366_, p_149367_, p_149368_, p_149369_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
     protected void sendDebugPackets() {
@@ -202,31 +202,31 @@ public class Goat extends Animal {
         DebugPackets.sendEntityBrain(this);
     }
 
-    public EntityDimensions getDimensions(Pose p_149361_) {
-        return p_149361_ == Pose.LONG_JUMPING ? LONG_JUMPING_DIMENSIONS.scale(this.getScale()) : super.getDimensions(p_149361_);
+    public EntityDimensions getDimensions(Pose pPose) {
+        return pPose == Pose.LONG_JUMPING ? LONG_JUMPING_DIMENSIONS.scale(this.getScale()) : super.getDimensions(pPose);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_149385_) {
-        super.addAdditionalSaveData(p_149385_);
-        p_149385_.putBoolean("IsScreamingGoat", this.isScreamingGoat());
-        p_149385_.putBoolean("HasLeftHorn", this.hasLeftHorn());
-        p_149385_.putBoolean("HasRightHorn", this.hasRightHorn());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putBoolean("IsScreamingGoat", this.isScreamingGoat());
+        pCompound.putBoolean("HasLeftHorn", this.hasLeftHorn());
+        pCompound.putBoolean("HasRightHorn", this.hasRightHorn());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_149373_) {
-        super.readAdditionalSaveData(p_149373_);
-        this.setScreamingGoat(p_149373_.getBoolean("IsScreamingGoat"));
-        this.entityData.set(DATA_HAS_LEFT_HORN, p_149373_.getBoolean("HasLeftHorn"));
-        this.entityData.set(DATA_HAS_RIGHT_HORN, p_149373_.getBoolean("HasRightHorn"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setScreamingGoat(pCompound.getBoolean("IsScreamingGoat"));
+        this.entityData.set(DATA_HAS_LEFT_HORN, pCompound.getBoolean("HasLeftHorn"));
+        this.entityData.set(DATA_HAS_RIGHT_HORN, pCompound.getBoolean("HasRightHorn"));
     }
 
-    public void handleEntityEvent(byte p_149356_) {
-        if (p_149356_ == 58) {
+    public void handleEntityEvent(byte pId) {
+        if (pId == 58) {
             this.isLoweringHead = true;
-        } else if (p_149356_ == 59) {
+        } else if (pId == 59) {
             this.isLoweringHead = false;
         } else {
-            super.handleEntityEvent(p_149356_);
+            super.handleEntityEvent(pId);
         }
     }
 
@@ -296,15 +296,15 @@ public class Goat extends Animal {
         return this.entityData.get(DATA_IS_SCREAMING_GOAT);
     }
 
-    public void setScreamingGoat(boolean p_149406_) {
-        this.entityData.set(DATA_IS_SCREAMING_GOAT, p_149406_);
+    public void setScreamingGoat(boolean pIsScreamingGoat) {
+        this.entityData.set(DATA_IS_SCREAMING_GOAT, pIsScreamingGoat);
     }
 
     public float getRammingXHeadRot() {
         return (float) this.lowerHeadTick / 20.0F * 30.0F * ((float) Math.PI / 180F);
     }
 
-    public static boolean checkGoatSpawnRules(EntityType<? extends Animal> p_218753_, LevelAccessor p_218754_, MobSpawnType p_218755_, BlockPos p_218756_, RandomSource p_218757_) {
-        return p_218754_.getBlockState(p_218756_.below()).is(BlockTags.GOATS_SPAWNABLE_ON) && isBrightEnoughToSpawn(p_218754_, p_218756_);
+    public static boolean checkGoatSpawnRules(EntityType<? extends Animal> pGoat, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getBlockState(pPos.below()).is(BlockTags.GOATS_SPAWNABLE_ON) && isBrightEnoughToSpawn(pLevel, pPos);
     }
 }

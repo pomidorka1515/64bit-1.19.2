@@ -24,38 +24,38 @@ public class AttachedStemBlock extends BushBlock {
     private final StemGrownBlock fruit;
     private final Supplier<Item> seedSupplier;
 
-    protected AttachedStemBlock(StemGrownBlock p_152060_, Supplier<Item> p_152061_, BlockBehaviour.Properties p_152062_) {
-        super(p_152062_);
+    protected AttachedStemBlock(StemGrownBlock pFruit, Supplier<Item> pSeedSupplier, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-        this.fruit = p_152060_;
-        this.seedSupplier = p_152061_;
+        this.fruit = pFruit;
+        this.seedSupplier = pSeedSupplier;
     }
 
-    public VoxelShape getShape(BlockState p_48858_, BlockGetter p_48859_, BlockPos p_48860_, CollisionContext p_48861_) {
-        return AABBS.get(p_48858_.getValue(FACING));
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return AABBS.get(pState.getValue(FACING));
     }
 
-    public BlockState updateShape(BlockState p_48848_, Direction p_48849_, BlockState p_48850_, LevelAccessor p_48851_, BlockPos p_48852_, BlockPos p_48853_) {
-        return !p_48850_.is(this.fruit) && p_48849_ == p_48848_.getValue(FACING) ? this.fruit.getStem().defaultBlockState().setValue(StemBlock.AGE, Integer.valueOf(7)) : super.updateShape(p_48848_, p_48849_, p_48850_, p_48851_, p_48852_, p_48853_);
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        return !pFacingState.is(this.fruit) && pFacing == pState.getValue(FACING) ? this.fruit.getStem().defaultBlockState().setValue(StemBlock.AGE, Integer.valueOf(7)) : super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    protected boolean mayPlaceOn(BlockState p_48863_, BlockGetter p_48864_, BlockPos p_48865_) {
-        return p_48863_.is(Blocks.FARMLAND);
+    protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+        return pState.is(Blocks.FARMLAND);
     }
 
-    public ItemStack getCloneItemStack(BlockGetter p_48838_, BlockPos p_48839_, BlockState p_48840_) {
+    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
         return new ItemStack(this.seedSupplier.get());
     }
 
-    public BlockState rotate(BlockState p_48845_, Rotation p_48846_) {
-        return p_48845_.setValue(FACING, p_48846_.rotate(p_48845_.getValue(FACING)));
+    public BlockState rotate(BlockState pState, Rotation pRot) {
+        return pState.setValue(FACING, pRot.rotate(pState.getValue(FACING)));
     }
 
-    public BlockState mirror(BlockState p_48842_, Mirror p_48843_) {
-        return p_48842_.rotate(p_48843_.getRotation(p_48842_.getValue(FACING)));
+    public BlockState mirror(BlockState pState, Mirror pMirror) {
+        return pState.rotate(pMirror.getRotation(pState.getValue(FACING)));
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_48855_) {
-        p_48855_.add(FACING);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(FACING);
     }
 }

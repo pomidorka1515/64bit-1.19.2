@@ -28,8 +28,8 @@ public class ChunkProtoTickListFix extends DataFix {
     private static final int SECTION_WIDTH = 16;
     private static final ImmutableSet<String> ALWAYS_WATERLOGGED = ImmutableSet.of("minecraft:bubble_column", "minecraft:kelp", "minecraft:kelp_plant", "minecraft:seagrass", "minecraft:tall_seagrass");
 
-    public ChunkProtoTickListFix(Schema p_184988_) {
-        super(p_184988_, false);
+    public ChunkProtoTickListFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     protected TypeRewriteRule makeRule() {

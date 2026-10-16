@@ -35,13 +35,13 @@ public class GrindstoneMenu extends AbstractContainerMenu {
     };
     private final ContainerLevelAccess access;
 
-    public GrindstoneMenu(int p_39563_, Inventory p_39564_) {
-        this(p_39563_, p_39564_, ContainerLevelAccess.NULL);
+    public GrindstoneMenu(int pContainerId, Inventory pPlayerInventory) {
+        this(pContainerId, pPlayerInventory, ContainerLevelAccess.NULL);
     }
 
-    public GrindstoneMenu(int p_39566_, Inventory p_39567_, final ContainerLevelAccess p_39568_) {
-        super(MenuType.GRINDSTONE, p_39566_);
-        this.access = p_39568_;
+    public GrindstoneMenu(int pContainerId, Inventory pPlayerInventory, final ContainerLevelAccess pAccess) {
+        super(MenuType.GRINDSTONE, pContainerId);
+        this.access = pAccess;
         this.addSlot(new Slot(this.repairSlots, 0, 49, 19) {
             public boolean mayPlace(ItemStack p_39607_) {
                 return p_39607_.isDamageableItem() || p_39607_.is(Items.ENCHANTED_BOOK) || p_39607_.isEnchanted();
@@ -58,7 +58,7 @@ public class GrindstoneMenu extends AbstractContainerMenu {
             }
 
             public void onTake(Player p_150574_, ItemStack p_150575_) {
-                p_39568_.execute((p_39634_, p_39635_) -> {
+                pAccess.execute((p_39634_, p_39635_) -> {
                     if (p_39634_ instanceof ServerLevel) {
                         ExperienceOrb.award((ServerLevel) p_39634_, Vec3.atCenterOf(p_39635_), this.getExperienceAmount(p_39634_));
                     }
@@ -99,18 +99,18 @@ public class GrindstoneMenu extends AbstractContainerMenu {
 
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(p_39567_, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
+                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
 
         for (int k = 0; k < 9; ++k) {
-            this.addSlot(new Slot(p_39567_, k, 8 + k * 18, 142));
+            this.addSlot(new Slot(pPlayerInventory, k, 8 + k * 18, 142));
         }
     }
 
-    public void slotsChanged(Container p_39570_) {
-        super.slotsChanged(p_39570_);
-        if (p_39570_ == this.repairSlots) {
+    public void slotsChanged(Container pInventory) {
+        super.slotsChanged(pInventory);
+        if (pInventory == this.repairSlots) {
             this.createResult();
         }
     }
@@ -167,9 +167,9 @@ public class GrindstoneMenu extends AbstractContainerMenu {
         this.broadcastChanges();
     }
 
-    private ItemStack mergeEnchants(ItemStack p_39591_, ItemStack p_39592_) {
-        ItemStack itemstack = p_39591_.copy();
-        Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(p_39592_);
+    private ItemStack mergeEnchants(ItemStack pCopyTo, ItemStack pCopyFrom) {
+        ItemStack itemstack = pCopyTo.copy();
+        Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(pCopyFrom);
 
         for (Map.Entry<Enchantment, Integer> entry : map.entrySet()) {
             Enchantment enchantment = entry.getKey();
@@ -181,18 +181,18 @@ public class GrindstoneMenu extends AbstractContainerMenu {
         return itemstack;
     }
 
-    private ItemStack removeNonCurses(ItemStack p_39580_, int p_39581_, int p_39582_) {
-        ItemStack itemstack = p_39580_.copy();
+    private ItemStack removeNonCurses(ItemStack pStack, int pDamage, int pCount) {
+        ItemStack itemstack = pStack.copy();
         itemstack.removeTagKey("Enchantments");
         itemstack.removeTagKey("StoredEnchantments");
-        if (p_39581_ > 0) {
-            itemstack.setDamageValue(p_39581_);
+        if (pDamage > 0) {
+            itemstack.setDamageValue(pDamage);
         } else {
             itemstack.removeTagKey("Damage");
         }
 
-        itemstack.setCount(p_39582_);
-        Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(p_39580_).entrySet().stream().filter((p_39584_) -> {
+        itemstack.setCount(pCount);
+        Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(pStack).entrySet().stream().filter((p_39584_) -> {
                                                                                                            return p_39584_.getKey().isCurse();
                                                                                                        })
                                                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -200,8 +200,8 @@ public class GrindstoneMenu extends AbstractContainerMenu {
         itemstack.setRepairCost(0);
         if (itemstack.is(Items.ENCHANTED_BOOK) && map.size() == 0) {
             itemstack = new ItemStack(Items.BOOK);
-            if (p_39580_.hasCustomHoverName()) {
-                itemstack.setHoverName(p_39580_.getHoverName());
+            if (pStack.hasCustomHoverName()) {
+                itemstack.setHoverName(pStack.getHoverName());
             }
         }
 
@@ -212,38 +212,38 @@ public class GrindstoneMenu extends AbstractContainerMenu {
         return itemstack;
     }
 
-    public void removed(Player p_39586_) {
-        super.removed(p_39586_);
+    public void removed(Player pPlayer) {
+        super.removed(pPlayer);
         this.access.execute((p_39575_, p_39576_) -> {
-            this.clearContainer(p_39586_, this.repairSlots);
+            this.clearContainer(pPlayer, this.repairSlots);
         });
     }
 
-    public boolean stillValid(Player p_39572_) {
-        return stillValid(this.access, p_39572_, Blocks.GRINDSTONE);
+    public boolean stillValid(Player pPlayer) {
+        return stillValid(this.access, pPlayer, Blocks.GRINDSTONE);
     }
 
-    public ItemStack quickMoveStack(Player p_39588_, int p_39589_) {
+    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(p_39589_);
+        Slot slot = this.slots.get(pIndex);
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             ItemStack itemstack2 = this.repairSlots.getItem(0);
             ItemStack itemstack3 = this.repairSlots.getItem(1);
-            if (p_39589_ == 2) {
+            if (pIndex == 2) {
                 if (!this.moveItemStackTo(itemstack1, 3, 39, true)) {
                     return ItemStack.EMPTY;
                 }
 
                 slot.onQuickCraft(itemstack1, itemstack);
-            } else if (p_39589_ != 0 && p_39589_ != 1) {
+            } else if (pIndex != 0 && pIndex != 1) {
                 if (!itemstack2.isEmpty() && !itemstack3.isEmpty()) {
-                    if (p_39589_ >= 3 && p_39589_ < 30) {
+                    if (pIndex >= 3 && pIndex < 30) {
                         if (!this.moveItemStackTo(itemstack1, 30, 39, false)) {
                             return ItemStack.EMPTY;
                         }
-                    } else if (p_39589_ >= 30 && p_39589_ < 39 && !this.moveItemStackTo(itemstack1, 3, 30, false)) {
+                    } else if (pIndex >= 30 && pIndex < 39 && !this.moveItemStackTo(itemstack1, 3, 30, false)) {
                         return ItemStack.EMPTY;
                     }
                 } else if (!this.moveItemStackTo(itemstack1, 0, 2, false)) {
@@ -263,7 +263,7 @@ public class GrindstoneMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(p_39588_, itemstack1);
+            slot.onTake(pPlayer, itemstack1);
         }
 
         return itemstack;

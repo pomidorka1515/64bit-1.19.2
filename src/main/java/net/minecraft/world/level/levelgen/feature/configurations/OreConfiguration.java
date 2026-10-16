@@ -30,20 +30,20 @@ public class OreConfiguration implements FeatureConfiguration {
         this.discardChanceOnAirExposure = p_161018_;
     }
 
-    public OreConfiguration(List<OreConfiguration.TargetBlockState> p_161013_, int p_161014_) {
-        this(p_161013_, p_161014_, 0.0F);
+    public OreConfiguration(List<OreConfiguration.TargetBlockState> pTargetStates, int pSize) {
+        this(pTargetStates, pSize, 0.0F);
     }
 
-    public OreConfiguration(RuleTest p_161008_, BlockState p_161009_, int p_161010_, float p_161011_) {
-        this(ImmutableList.of(new OreConfiguration.TargetBlockState(p_161008_, p_161009_)), p_161010_, p_161011_);
+    public OreConfiguration(RuleTest pTarget, BlockState pState, int pSize, float pDiscardChanceOnAirExposure) {
+        this(ImmutableList.of(new OreConfiguration.TargetBlockState(pTarget, pState)), pSize, pDiscardChanceOnAirExposure);
     }
 
-    public OreConfiguration(RuleTest p_67843_, BlockState p_67844_, int p_67845_) {
-        this(ImmutableList.of(new OreConfiguration.TargetBlockState(p_67843_, p_67844_)), p_67845_, 0.0F);
+    public OreConfiguration(RuleTest pTarget, BlockState pState, int pSize) {
+        this(ImmutableList.of(new OreConfiguration.TargetBlockState(pTarget, pState)), pSize, 0.0F);
     }
 
-    public static OreConfiguration.TargetBlockState target(RuleTest p_161022_, BlockState p_161023_) {
-        return new OreConfiguration.TargetBlockState(p_161022_, p_161023_);
+    public static OreConfiguration.TargetBlockState target(RuleTest pTarget, BlockState pState) {
+        return new OreConfiguration.TargetBlockState(pTarget, pState);
     }
 
     public static class TargetBlockState {

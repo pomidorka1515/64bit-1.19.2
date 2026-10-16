@@ -4,24 +4,24 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 
 public class PistonMath {
-    public static AABB getMovementArea(AABB p_60329_, Direction p_60330_, double p_60331_) {
-        double d0 = p_60331_ * (double) p_60330_.getAxisDirection().getStep();
+    public static AABB getMovementArea(AABB pBounds, Direction pDir, double pDelta) {
+        double d0 = pDelta * (double) pDir.getAxisDirection().getStep();
         double d1 = Math.min(d0, 0.0D);
         double d2 = Math.max(d0, 0.0D);
-        switch (p_60330_) {
+        switch (pDir) {
             case WEST:
-                return new AABB(p_60329_.minX + d1, p_60329_.minY, p_60329_.minZ, p_60329_.minX + d2, p_60329_.maxY, p_60329_.maxZ);
+                return new AABB(pBounds.minX + d1, pBounds.minY, pBounds.minZ, pBounds.minX + d2, pBounds.maxY, pBounds.maxZ);
             case EAST:
-                return new AABB(p_60329_.maxX + d1, p_60329_.minY, p_60329_.minZ, p_60329_.maxX + d2, p_60329_.maxY, p_60329_.maxZ);
+                return new AABB(pBounds.maxX + d1, pBounds.minY, pBounds.minZ, pBounds.maxX + d2, pBounds.maxY, pBounds.maxZ);
             case DOWN:
-                return new AABB(p_60329_.minX, p_60329_.minY + d1, p_60329_.minZ, p_60329_.maxX, p_60329_.minY + d2, p_60329_.maxZ);
+                return new AABB(pBounds.minX, pBounds.minY + d1, pBounds.minZ, pBounds.maxX, pBounds.minY + d2, pBounds.maxZ);
             case UP:
             default:
-                return new AABB(p_60329_.minX, p_60329_.maxY + d1, p_60329_.minZ, p_60329_.maxX, p_60329_.maxY + d2, p_60329_.maxZ);
+                return new AABB(pBounds.minX, pBounds.maxY + d1, pBounds.minZ, pBounds.maxX, pBounds.maxY + d2, pBounds.maxZ);
             case NORTH:
-                return new AABB(p_60329_.minX, p_60329_.minY, p_60329_.minZ + d1, p_60329_.maxX, p_60329_.maxY, p_60329_.minZ + d2);
+                return new AABB(pBounds.minX, pBounds.minY, pBounds.minZ + d1, pBounds.maxX, pBounds.maxY, pBounds.minZ + d2);
             case SOUTH:
-                return new AABB(p_60329_.minX, p_60329_.minY, p_60329_.maxZ + d1, p_60329_.maxX, p_60329_.maxY, p_60329_.maxZ + d2);
+                return new AABB(pBounds.minX, pBounds.minY, pBounds.maxZ + d1, pBounds.maxX, pBounds.maxY, pBounds.maxZ + d2);
         }
     }
 }

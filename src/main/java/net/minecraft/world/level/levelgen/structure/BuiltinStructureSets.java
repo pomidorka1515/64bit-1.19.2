@@ -24,7 +24,7 @@ public interface BuiltinStructureSets {
     ResourceKey<StructureSet> ANCIENT_CITIES = register("ancient_cities");
     ResourceKey<StructureSet> STRONGHOLDS = register("strongholds");
 
-    private static ResourceKey<StructureSet> register(String p_209839_) {
-        return ResourceKey.create(Registry.STRUCTURE_SET_REGISTRY, new ResourceLocation(p_209839_));
+    private static ResourceKey<StructureSet> register(String pName) {
+        return ResourceKey.create(Registry.STRUCTURE_SET_REGISTRY, new ResourceLocation(pName));
     }
 }

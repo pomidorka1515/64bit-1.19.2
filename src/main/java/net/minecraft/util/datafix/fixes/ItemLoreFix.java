@@ -12,8 +12,8 @@ import java.util.stream.Stream;
 import net.minecraft.network.chat.Component;
 
 public class ItemLoreFix extends DataFix {
-    public ItemLoreFix(Schema p_15958_, boolean p_15959_) {
-        super(p_15958_, p_15959_);
+    public ItemLoreFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

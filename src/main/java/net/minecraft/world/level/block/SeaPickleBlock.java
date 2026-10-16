@@ -33,54 +33,54 @@ public class SeaPickleBlock extends BushBlock implements BonemealableBlock, Simp
     protected static final VoxelShape THREE_AABB = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 6.0D, 14.0D);
     protected static final VoxelShape FOUR_AABB = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 7.0D, 14.0D);
 
-    protected SeaPickleBlock(BlockBehaviour.Properties p_56082_) {
-        super(p_56082_);
+    protected SeaPickleBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(PICKLES, Integer.valueOf(1)).setValue(WATERLOGGED, Boolean.valueOf(true)));
     }
 
     @Nullable
-    public BlockState getStateForPlacement(BlockPlaceContext p_56089_) {
-        BlockState blockstate = p_56089_.getLevel().getBlockState(p_56089_.getClickedPos());
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        BlockState blockstate = pContext.getLevel().getBlockState(pContext.getClickedPos());
         if (blockstate.is(this)) {
             return blockstate.setValue(PICKLES, Integer.valueOf(Math.min(4, blockstate.getValue(PICKLES) + 1)));
         } else {
-            FluidState fluidstate = p_56089_.getLevel().getFluidState(p_56089_.getClickedPos());
+            FluidState fluidstate = pContext.getLevel().getFluidState(pContext.getClickedPos());
             boolean flag = fluidstate.getType() == Fluids.WATER;
-            return super.getStateForPlacement(p_56089_).setValue(WATERLOGGED, Boolean.valueOf(flag));
+            return super.getStateForPlacement(pContext).setValue(WATERLOGGED, Boolean.valueOf(flag));
         }
     }
 
-    public static boolean isDead(BlockState p_56133_) {
-        return !p_56133_.getValue(WATERLOGGED);
+    public static boolean isDead(BlockState pState) {
+        return !pState.getValue(WATERLOGGED);
     }
 
-    protected boolean mayPlaceOn(BlockState p_56127_, BlockGetter p_56128_, BlockPos p_56129_) {
-        return !p_56127_.getCollisionShape(p_56128_, p_56129_).getFaceShape(Direction.UP).isEmpty() || p_56127_.isFaceSturdy(p_56128_, p_56129_, Direction.UP);
+    protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+        return !pState.getCollisionShape(pLevel, pPos).getFaceShape(Direction.UP).isEmpty() || pState.isFaceSturdy(pLevel, pPos, Direction.UP);
     }
 
-    public boolean canSurvive(BlockState p_56109_, LevelReader p_56110_, BlockPos p_56111_) {
-        BlockPos blockpos = p_56111_.below();
-        return this.mayPlaceOn(p_56110_.getBlockState(blockpos), p_56110_, blockpos);
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        BlockPos blockpos = pPos.below();
+        return this.mayPlaceOn(pLevel.getBlockState(blockpos), pLevel, blockpos);
     }
 
-    public BlockState updateShape(BlockState p_56113_, Direction p_56114_, BlockState p_56115_, LevelAccessor p_56116_, BlockPos p_56117_, BlockPos p_56118_) {
-        if (!p_56113_.canSurvive(p_56116_, p_56117_)) {
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (!pState.canSurvive(pLevel, pCurrentPos)) {
             return Blocks.AIR.defaultBlockState();
         } else {
-            if (p_56113_.getValue(WATERLOGGED)) {
-                p_56116_.scheduleTick(p_56117_, Fluids.WATER, Fluids.WATER.getTickDelay(p_56116_));
+            if (pState.getValue(WATERLOGGED)) {
+                pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
             }
 
-            return super.updateShape(p_56113_, p_56114_, p_56115_, p_56116_, p_56117_, p_56118_);
+            return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
         }
     }
 
-    public boolean canBeReplaced(BlockState p_56101_, BlockPlaceContext p_56102_) {
-        return !p_56102_.isSecondaryUseActive() && p_56102_.getItemInHand().is(this.asItem()) && p_56101_.getValue(PICKLES) < 4 ? true : super.canBeReplaced(p_56101_, p_56102_);
+    public boolean canBeReplaced(BlockState pState, BlockPlaceContext pUseContext) {
+        return !pUseContext.isSecondaryUseActive() && pUseContext.getItemInHand().is(this.asItem()) && pState.getValue(PICKLES) < 4 ? true : super.canBeReplaced(pState, pUseContext);
     }
 
-    public VoxelShape getShape(BlockState p_56122_, BlockGetter p_56123_, BlockPos p_56124_, CollisionContext p_56125_) {
-        switch (p_56122_.getValue(PICKLES)) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        switch (pState.getValue(PICKLES)) {
             case 1:
             default:
                 return ONE_AABB;
@@ -93,41 +93,41 @@ public class SeaPickleBlock extends BushBlock implements BonemealableBlock, Simp
         }
     }
 
-    public FluidState getFluidState(BlockState p_56131_) {
-        return p_56131_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_56131_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_56120_) {
-        p_56120_.add(PICKLES, WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(PICKLES, WATERLOGGED);
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_56091_, BlockPos p_56092_, BlockState p_56093_, boolean p_56094_) {
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
         return true;
     }
 
-    public boolean isBonemealSuccess(Level p_222418_, RandomSource p_222419_, BlockPos p_222420_, BlockState p_222421_) {
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
 
-    public void performBonemeal(ServerLevel p_222413_, RandomSource p_222414_, BlockPos p_222415_, BlockState p_222416_) {
-        if (!isDead(p_222416_) && p_222413_.getBlockState(p_222415_.below()).is(BlockTags.CORAL_BLOCKS)) {
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        if (!isDead(pState) && pLevel.getBlockState(pPos.below()).is(BlockTags.CORAL_BLOCKS)) {
             int i = 5;
             int j = 1;
             int k = 2;
             int l = 0;
-            long i1 = WorldBounds.subtractBlockOffset(p_222415_.getX(), 2);
+            long i1 = WorldBounds.subtractBlockOffset(pPos.getX(), 2);
             int j1 = 0;
 
             for (int k1 = 0; k1 < 5; ++k1) {
                 for (int l1 = 0; l1 < j; ++l1) {
-                    int i2 = 2 + p_222415_.getY() - 1;
+                    int i2 = 2 + pPos.getY() - 1;
 
                     for (int j2 = i2 - 2; j2 < i2; ++j2) {
-                        BlockPos blockpos = new BlockPos(i1 + k1, j2, p_222415_.getZ() - j1 + l1);
-                        if (blockpos != p_222415_ && p_222414_.nextInt(6) == 0 && p_222413_.getBlockState(blockpos).is(Blocks.WATER)) {
-                            BlockState blockstate = p_222413_.getBlockState(blockpos.below());
+                        BlockPos blockpos = new BlockPos(i1 + k1, j2, pPos.getZ() - j1 + l1);
+                        if (blockpos != pPos && pRandom.nextInt(6) == 0 && pLevel.getBlockState(blockpos).is(Blocks.WATER)) {
+                            BlockState blockstate = pLevel.getBlockState(blockpos.below());
                             if (blockstate.is(BlockTags.CORAL_BLOCKS)) {
-                                p_222413_.setBlock(blockpos, Blocks.SEA_PICKLE.defaultBlockState().setValue(PICKLES, Integer.valueOf(p_222414_.nextInt(4) + 1)), 3);
+                                pLevel.setBlock(blockpos, Blocks.SEA_PICKLE.defaultBlockState().setValue(PICKLES, Integer.valueOf(pRandom.nextInt(4) + 1)), 3);
                             }
                         }
                     }
@@ -144,11 +144,11 @@ public class SeaPickleBlock extends BushBlock implements BonemealableBlock, Simp
                 ++l;
             }
 
-            p_222413_.setBlock(p_222415_, p_222416_.setValue(PICKLES, Integer.valueOf(4)), 2);
+            pLevel.setBlock(pPos, pState.setValue(PICKLES, Integer.valueOf(4)), 2);
         }
     }
 
-    public boolean isPathfindable(BlockState p_56104_, BlockGetter p_56105_, BlockPos p_56106_, PathComputationType p_56107_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 }

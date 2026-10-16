@@ -17,18 +17,18 @@ public class Session implements GameSession {
     private final String gameMode;
     private final UUID id;
 
-    public Session(ClientLevel p_92325_, LocalPlayer p_92326_, ClientPacketListener p_92327_) {
-        this.players = p_92327_.getOnlinePlayers().size();
-        this.isRemoteServer = !p_92327_.getConnection().isMemoryConnection();
-        this.difficulty = p_92325_.getDifficulty().getKey();
-        PlayerInfo playerinfo = p_92327_.getPlayerInfo(p_92326_.getUUID());
+    public Session(ClientLevel pLevel, LocalPlayer pPlayer, ClientPacketListener pListener) {
+        this.players = pListener.getOnlinePlayers().size();
+        this.isRemoteServer = !pListener.getConnection().isMemoryConnection();
+        this.difficulty = pLevel.getDifficulty().getKey();
+        PlayerInfo playerinfo = pListener.getPlayerInfo(pPlayer.getUUID());
         if (playerinfo != null) {
             this.gameMode = playerinfo.getGameMode().getName();
         } else {
             this.gameMode = "unknown";
         }
 
-        this.id = p_92327_.getId();
+        this.id = pListener.getId();
     }
 
     public int getPlayerCount() {

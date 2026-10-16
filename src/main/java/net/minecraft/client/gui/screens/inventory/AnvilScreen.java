@@ -23,9 +23,9 @@ public class AnvilScreen extends ItemCombinerScreen<AnvilMenu> {
     private EditBox name;
     private final Player player;
 
-    public AnvilScreen(AnvilMenu p_97874_, Inventory p_97875_, Component p_97876_) {
-        super(p_97874_, p_97875_, p_97876_, ANVIL_LOCATION);
-        this.player = p_97875_.player;
+    public AnvilScreen(AnvilMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle, ANVIL_LOCATION);
+        this.player = pPlayerInventory.player;
         this.titleLabelX = 60;
     }
 
@@ -51,9 +51,9 @@ public class AnvilScreen extends ItemCombinerScreen<AnvilMenu> {
         this.name.setEditable(false);
     }
 
-    public void resize(Minecraft p_97886_, int p_97887_, int p_97888_) {
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
         String s = this.name.getValue();
-        this.init(p_97886_, p_97887_, p_97888_);
+        this.init(pMinecraft, pWidth, pHeight);
         this.name.setValue(s);
     }
 
@@ -62,12 +62,12 @@ public class AnvilScreen extends ItemCombinerScreen<AnvilMenu> {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_97878_, int p_97879_, int p_97880_) {
-        if (p_97878_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.player.closeContainer();
         }
 
-        return !this.name.keyPressed(p_97878_, p_97879_, p_97880_) && !this.name.canConsumeInput() ? super.keyPressed(p_97878_, p_97879_, p_97880_) : true;
+        return !this.name.keyPressed(pKeyCode, pScanCode, pModifiers) && !this.name.canConsumeInput() ? super.keyPressed(pKeyCode, pScanCode, pModifiers) : true;
     }
 
     private void onNameChanged(String p_97899_) {
@@ -83,9 +83,9 @@ public class AnvilScreen extends ItemCombinerScreen<AnvilMenu> {
         }
     }
 
-    protected void renderLabels(PoseStack p_97890_, int p_97891_, int p_97892_) {
+    protected void renderLabels(PoseStack pPoseStack, int pX, int pY) {
         RenderSystem.disableBlend();
-        super.renderLabels(p_97890_, p_97891_, p_97892_);
+        super.renderLabels(pPoseStack, pX, pY);
         int i = this.menu.getCost();
         if (i > 0) {
             int j = 8453920;
@@ -105,20 +105,20 @@ public class AnvilScreen extends ItemCombinerScreen<AnvilMenu> {
             if (component != null) {
                 int k = this.imageWidth - 8 - this.font.width(component) - 2;
                 int l = 69;
-                fill(p_97890_, k - 2, 67, this.imageWidth - 8, 79, 1325400064);
-                this.font.drawShadow(p_97890_, component, (float) k, 69.0F, j);
+                fill(pPoseStack, k - 2, 67, this.imageWidth - 8, 79, 1325400064);
+                this.font.drawShadow(pPoseStack, component, (float) k, 69.0F, j);
             }
         }
     }
 
-    public void renderFg(PoseStack p_97894_, int p_97895_, int p_97896_, float p_97897_) {
-        this.name.render(p_97894_, p_97895_, p_97896_, p_97897_);
+    public void renderFg(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.name.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    public void slotChanged(AbstractContainerMenu p_97882_, int p_97883_, ItemStack p_97884_) {
-        if (p_97883_ == 0) {
-            this.name.setValue(p_97884_.isEmpty() ? "" : p_97884_.getHoverName().getString());
-            this.name.setEditable(!p_97884_.isEmpty());
+    public void slotChanged(AbstractContainerMenu pContainerToSend, int pSlotInd, ItemStack pStack) {
+        if (pSlotInd == 0) {
+            this.name.setValue(pStack.isEmpty() ? "" : pStack.getHoverName().getString());
+            this.name.setEditable(!pStack.isEmpty());
             this.setFocused(this.name);
         }
     }

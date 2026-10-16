@@ -14,9 +14,9 @@ public class AlternativeLootItemCondition implements LootItemCondition {
     final LootItemCondition[] terms;
     private final Predicate<LootContext> composedPredicate;
 
-    AlternativeLootItemCondition(LootItemCondition[] p_81471_) {
-        this.terms = p_81471_;
-        this.composedPredicate = LootItemConditions.orConditions(p_81471_);
+    AlternativeLootItemCondition(LootItemCondition[] pTerms) {
+        this.terms = pTerms;
+        this.composedPredicate = LootItemConditions.orConditions(pTerms);
     }
 
     public LootItemConditionType getType() {
@@ -27,16 +27,16 @@ public class AlternativeLootItemCondition implements LootItemCondition {
         return this.composedPredicate.test(p_81476_);
     }
 
-    public void validate(ValidationContext p_81478_) {
-        LootItemCondition.super.validate(p_81478_);
+    public void validate(ValidationContext pContext) {
+        LootItemCondition.super.validate(pContext);
 
         for (int i = 0; i < this.terms.length; ++i) {
-            this.terms[i].validate(p_81478_.forChild(".term[" + i + "]"));
+            this.terms[i].validate(pContext.forChild(".term[" + i + "]"));
         }
     }
 
-    public static AlternativeLootItemCondition.Builder alternative(LootItemCondition.Builder... p_81482_) {
-        return new AlternativeLootItemCondition.Builder(p_81482_);
+    public static AlternativeLootItemCondition.Builder alternative(LootItemCondition.Builder... pBuilders) {
+        return new AlternativeLootItemCondition.Builder(pBuilders);
     }
 
     public static class Builder implements LootItemCondition.Builder {
@@ -48,8 +48,8 @@ public class AlternativeLootItemCondition implements LootItemCondition {
             }
         }
 
-        public AlternativeLootItemCondition.Builder or(LootItemCondition.Builder p_81490_) {
-            this.terms.add(p_81490_.build());
+        public AlternativeLootItemCondition.Builder or(LootItemCondition.Builder pBuilder) {
+            this.terms.add(pBuilder.build());
             return this;
         }
 

@@ -13,8 +13,8 @@ public class ThreadSafeLegacyRandomSource implements BitRandomSource {
     private final AtomicLong seed = new AtomicLong();
     private final MarsagliaPolarGaussian gaussianSource = new MarsagliaPolarGaussian(this);
 
-    public ThreadSafeLegacyRandomSource(long p_224664_) {
-        this.setSeed(p_224664_);
+    public ThreadSafeLegacyRandomSource(long pSeed) {
+        this.setSeed(pSeed);
     }
 
     public RandomSource fork() {
@@ -25,11 +25,11 @@ public class ThreadSafeLegacyRandomSource implements BitRandomSource {
         return new LegacyRandomSource.LegacyPositionalRandomFactory(this.nextLong());
     }
 
-    public void setSeed(long p_224666_) {
-        this.seed.set((p_224666_ ^ 25214903917L) & 281474976710655L);
+    public void setSeed(long pSeed) {
+        this.seed.set((pSeed ^ 25214903917L) & 281474976710655L);
     }
 
-    public int next(int p_224668_) {
+    public int next(int pSize) {
         long i;
         long j;
         do {
@@ -37,7 +37,7 @@ public class ThreadSafeLegacyRandomSource implements BitRandomSource {
             j = i * 25214903917L + 11L & 281474976710655L;
         } while (!this.seed.compareAndSet(i, j));
 
-        return (int) (j >>> 48 - p_224668_);
+        return (int) (j >>> 48 - pSize);
     }
 
     public double nextGaussian() {

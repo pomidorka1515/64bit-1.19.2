@@ -22,18 +22,18 @@ public abstract class AbstractScrollWidget extends AbstractWidget implements Wid
     private double scrollAmount;
     private boolean scrolling;
 
-    public AbstractScrollWidget(int p_240025_, int p_240026_, int p_240027_, int p_240028_, Component p_240029_) {
-        super(p_240025_, p_240026_, p_240027_, p_240028_, p_240029_);
+    public AbstractScrollWidget(int pX, int pY, int pWidth, int pHeight, Component pMessage) {
+        super(pX, pY, pWidth, pHeight, pMessage);
     }
 
-    public boolean mouseClicked(double p_240170_, double p_240171_, int p_240172_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (!this.visible) {
             return false;
         } else {
-            boolean flag = this.withinContentAreaPoint(p_240170_, p_240171_);
-            boolean flag1 = this.scrollbarVisible() && p_240170_ >= (double) (this.x + this.width) && p_240170_ <= (double) (this.x + this.width + 8) && p_240171_ >= (double) this.y && p_240171_ < (double) (this.y + this.height);
+            boolean flag = this.withinContentAreaPoint(pMouseX, pMouseY);
+            boolean flag1 = this.scrollbarVisible() && pMouseX >= (double) (this.x + this.width) && pMouseX <= (double) (this.x + this.width + 8) && pMouseY >= (double) this.y && pMouseY < (double) (this.y + this.height);
             this.setFocused(flag || flag1);
-            if (flag1 && p_240172_ == 0) {
+            if (flag1 && pButton == 0) {
                 this.scrolling = true;
                 return true;
             } else {
@@ -42,24 +42,24 @@ public abstract class AbstractScrollWidget extends AbstractWidget implements Wid
         }
     }
 
-    public boolean mouseReleased(double p_239063_, double p_239064_, int p_239065_) {
-        if (p_239065_ == 0) {
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+        if (pButton == 0) {
             this.scrolling = false;
         }
 
-        return super.mouseReleased(p_239063_, p_239064_, p_239065_);
+        return super.mouseReleased(pMouseX, pMouseY, pButton);
     }
 
-    public boolean mouseDragged(double p_239639_, double p_239640_, int p_239641_, double p_239642_, double p_239643_) {
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
         if (this.visible && this.isFocused() && this.scrolling) {
-            if (p_239640_ < (double) this.y) {
+            if (pMouseY < (double) this.y) {
                 this.setScrollAmount(0.0D);
-            } else if (p_239640_ > (double) (this.y + this.height)) {
+            } else if (pMouseY > (double) (this.y + this.height)) {
                 this.setScrollAmount((double) this.getMaxScrollAmount());
             } else {
                 int i = this.getScrollBarHeight();
                 double d0 = (double) Math.max(1, this.getMaxScrollAmount() / (this.height - i));
-                this.setScrollAmount(this.scrollAmount + p_239643_ * d0);
+                this.setScrollAmount(this.scrollAmount + pDragY * d0);
             }
 
             return true;
@@ -68,25 +68,25 @@ public abstract class AbstractScrollWidget extends AbstractWidget implements Wid
         }
     }
 
-    public boolean mouseScrolled(double p_239308_, double p_239309_, double p_239310_) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
         if (this.visible && this.isFocused()) {
-            this.setScrollAmount(this.scrollAmount - p_239310_ * this.scrollRate());
+            this.setScrollAmount(this.scrollAmount - pDelta * this.scrollRate());
             return true;
         } else {
             return false;
         }
     }
 
-    public void renderButton(PoseStack p_239793_, int p_239794_, int p_239795_, float p_239796_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.visible) {
-            this.renderBackground(p_239793_);
+            this.renderBackground(pPoseStack);
             enableScissor(this.x + 1, this.y + 1, this.x + this.width - 1, this.y + this.height - 1);
-            p_239793_.pushPose();
-            p_239793_.translate(0.0D, -this.scrollAmount, 0.0D);
-            this.renderContents(p_239793_, p_239794_, p_239795_, p_239796_);
-            p_239793_.popPose();
+            pPoseStack.pushPose();
+            pPoseStack.translate(0.0D, -this.scrollAmount, 0.0D);
+            this.renderContents(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            pPoseStack.popPose();
             disableScissor();
-            this.renderDecorations(p_239793_);
+            this.renderDecorations(pPoseStack);
         }
     }
 
@@ -94,7 +94,7 @@ public abstract class AbstractScrollWidget extends AbstractWidget implements Wid
         return Mth.clamp((int) ((float) (this.height * this.height) / (float) this.getContentHeight()), 32, this.height);
     }
 
-    protected void renderDecorations(PoseStack p_239981_) {
+    protected void renderDecorations(PoseStack pPoseStack) {
         if (this.scrollbarVisible()) {
             this.renderScrollBar();
         }
@@ -112,8 +112,8 @@ public abstract class AbstractScrollWidget extends AbstractWidget implements Wid
         return this.scrollAmount;
     }
 
-    protected void setScrollAmount(double p_240207_) {
-        this.scrollAmount = Mth.clamp(p_240207_, 0.0D, (double) this.getMaxScrollAmount());
+    protected void setScrollAmount(double pScrollAmount) {
+        this.scrollAmount = Mth.clamp(pScrollAmount, 0.0D, (double) this.getMaxScrollAmount());
     }
 
     protected int getMaxScrollAmount() {
@@ -124,10 +124,10 @@ public abstract class AbstractScrollWidget extends AbstractWidget implements Wid
         return this.getInnerHeight() + 4;
     }
 
-    private void renderBackground(PoseStack p_240049_) {
+    private void renderBackground(PoseStack pPoseStack) {
         int i = this.isFocused() ? -1 : -6250336;
-        fill(p_240049_, this.x, this.y, this.x + this.width, this.y + this.height, i);
-        fill(p_240049_, this.x + 1, this.y + 1, this.x + this.width - 1, this.y + this.height - 1, -16777216);
+        fill(pPoseStack, this.x, this.y, this.x + this.width, this.y + this.height, i);
+        fill(pPoseStack, this.x + 1, this.y + 1, this.x + this.width - 1, this.y + this.height - 1, -16777216);
     }
 
     private void renderScrollBar() {
@@ -151,12 +151,12 @@ public abstract class AbstractScrollWidget extends AbstractWidget implements Wid
         tesselator.end();
     }
 
-    protected boolean withinContentAreaTopBottom(int p_239943_, int p_239944_) {
-        return (double) p_239944_ - this.scrollAmount >= (double) this.y && (double) p_239943_ - this.scrollAmount <= (double) (this.y + this.height);
+    protected boolean withinContentAreaTopBottom(int pTop, int pBottom) {
+        return (double) pBottom - this.scrollAmount >= (double) this.y && (double) pTop - this.scrollAmount <= (double) (this.y + this.height);
     }
 
-    protected boolean withinContentAreaPoint(double p_239607_, double p_239608_) {
-        return p_239607_ >= (double) this.x && p_239607_ < (double) (this.x + this.width) && p_239608_ >= (double) this.y && p_239608_ < (double) (this.y + this.height);
+    protected boolean withinContentAreaPoint(double pX, double pY) {
+        return pX >= (double) this.x && pX < (double) (this.x + this.width) && pY >= (double) this.y && pY < (double) (this.y + this.height);
     }
 
     protected abstract int getInnerHeight();
@@ -165,5 +165,5 @@ public abstract class AbstractScrollWidget extends AbstractWidget implements Wid
 
     protected abstract double scrollRate();
 
-    protected abstract void renderContents(PoseStack p_239198_, int p_239199_, int p_239200_, float p_239201_);
+    protected abstract void renderContents(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick);
 }

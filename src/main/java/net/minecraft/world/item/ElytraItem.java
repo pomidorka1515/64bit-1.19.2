@@ -13,31 +13,31 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DispenserBlock;
 
 public class ElytraItem extends Item implements Wearable {
-    public ElytraItem(Item.Properties p_41132_) {
-        super(p_41132_);
+    public ElytraItem(Item.Properties pProperties) {
+        super(pProperties);
         DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
     }
 
-    public static boolean isFlyEnabled(ItemStack p_41141_) {
-        return p_41141_.getDamageValue() < p_41141_.getMaxDamage() - 1;
+    public static boolean isFlyEnabled(ItemStack pElytraStack) {
+        return pElytraStack.getDamageValue() < pElytraStack.getMaxDamage() - 1;
     }
 
-    public boolean isValidRepairItem(ItemStack p_41134_, ItemStack p_41135_) {
-        return p_41135_.is(Items.PHANTOM_MEMBRANE);
+    public boolean isValidRepairItem(ItemStack pToRepair, ItemStack pRepair) {
+        return pRepair.is(Items.PHANTOM_MEMBRANE);
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_41137_, Player p_41138_, InteractionHand p_41139_) {
-        ItemStack itemstack = p_41138_.getItemInHand(p_41139_);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         EquipmentSlot equipmentslot = Mob.getEquipmentSlotForItem(itemstack);
-        ItemStack itemstack1 = p_41138_.getItemBySlot(equipmentslot);
+        ItemStack itemstack1 = pPlayer.getItemBySlot(equipmentslot);
         if (itemstack1.isEmpty()) {
-            p_41138_.setItemSlot(equipmentslot, itemstack.copy());
-            if (!p_41137_.isClientSide()) {
-                p_41138_.awardStat(Stats.ITEM_USED.get(this));
+            pPlayer.setItemSlot(equipmentslot, itemstack.copy());
+            if (!pLevel.isClientSide()) {
+                pPlayer.awardStat(Stats.ITEM_USED.get(this));
             }
 
             itemstack.setCount(0);
-            return InteractionResultHolder.sidedSuccess(itemstack, p_41137_.isClientSide());
+            return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());
         } else {
             return InteractionResultHolder.fail(itemstack);
         }

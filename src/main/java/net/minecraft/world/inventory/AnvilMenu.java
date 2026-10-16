@@ -31,21 +31,21 @@ public class AnvilMenu extends ItemCombinerMenu {
     private static final int COST_INCOMPATIBLE_PENALTY = 1;
     private static final int COST_RENAME = 1;
 
-    public AnvilMenu(int p_39005_, Inventory p_39006_) {
-        this(p_39005_, p_39006_, ContainerLevelAccess.NULL);
+    public AnvilMenu(int pContainerId, Inventory pPlayerInventory) {
+        this(pContainerId, pPlayerInventory, ContainerLevelAccess.NULL);
     }
 
-    public AnvilMenu(int p_39008_, Inventory p_39009_, ContainerLevelAccess p_39010_) {
-        super(MenuType.ANVIL, p_39008_, p_39009_, p_39010_);
+    public AnvilMenu(int pContainerId, Inventory pPlayerInventory, ContainerLevelAccess pAccess) {
+        super(MenuType.ANVIL, pContainerId, pPlayerInventory, pAccess);
         this.addDataSlot(this.cost);
     }
 
-    protected boolean isValidBlock(BlockState p_39019_) {
-        return p_39019_.is(BlockTags.ANVIL);
+    protected boolean isValidBlock(BlockState pState) {
+        return pState.is(BlockTags.ANVIL);
     }
 
-    protected boolean mayPickup(Player p_39023_, boolean p_39024_) {
-        return (p_39023_.getAbilities().instabuild || p_39023_.experienceLevel >= this.cost.get()) && this.cost.get() > 0;
+    protected boolean mayPickup(Player pPlayer, boolean pHasStack) {
+        return (pPlayer.getAbilities().instabuild || pPlayer.experienceLevel >= this.cost.get()) && this.cost.get() > 0;
     }
 
     protected void onTake(Player p_150474_, ItemStack p_150475_) {
@@ -250,15 +250,15 @@ public class AnvilMenu extends ItemCombinerMenu {
         }
     }
 
-    public static int calculateIncreasedRepairCost(int p_39026_) {
-        return p_39026_ * 2 + 1;
+    public static int calculateIncreasedRepairCost(int pOldRepairCost) {
+        return pOldRepairCost * 2 + 1;
     }
 
-    public void setItemName(String p_39021_) {
-        this.itemName = p_39021_;
+    public void setItemName(String pNewName) {
+        this.itemName = pNewName;
         if (this.getSlot(2).hasItem()) {
             ItemStack itemstack = this.getSlot(2).getItem();
-            if (StringUtils.isBlank(p_39021_)) {
+            if (StringUtils.isBlank(pNewName)) {
                 itemstack.resetHoverName();
             } else {
                 itemstack.setHoverName(Component.literal(this.itemName));

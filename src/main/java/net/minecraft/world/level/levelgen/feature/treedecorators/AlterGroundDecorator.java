@@ -21,10 +21,10 @@ public class AlterGroundDecorator extends TreeDecorator {
         return TreeDecoratorType.ALTER_GROUND;
     }
 
-    public void place(TreeDecorator.Context p_225969_) {
+    public void place(TreeDecorator.Context pContext) {
         List<BlockPos> list = Lists.newArrayList();
-        List<BlockPos> list1 = p_225969_.roots();
-        List<BlockPos> list2 = p_225969_.logs();
+        List<BlockPos> list1 = pContext.roots();
+        List<BlockPos> list2 = pContext.logs();
         if (list1.isEmpty()) {
             list.addAll(list2);
         } else if (!list2.isEmpty() && list1.get(0).getY() == list2.get(0).getY()) {
@@ -40,42 +40,42 @@ public class AlterGroundDecorator extends TreeDecorator {
                              return p_69310_.getY() == i;
                          })
                     .forEach((p_225978_) -> {
-                        this.placeCircle(p_225969_, p_225978_.west().north());
-                        this.placeCircle(p_225969_, p_225978_.east(2).north());
-                        this.placeCircle(p_225969_, p_225978_.west().south(2));
-                        this.placeCircle(p_225969_, p_225978_.east(2).south(2));
+                        this.placeCircle(pContext, p_225978_.west().north());
+                        this.placeCircle(pContext, p_225978_.east(2).north());
+                        this.placeCircle(pContext, p_225978_.west().south(2));
+                        this.placeCircle(pContext, p_225978_.east(2).south(2));
 
                         for (int j = 0; j < 5; ++j) {
-                            int k = p_225969_.random().nextInt(64);
+                            int k = pContext.random().nextInt(64);
                             int l = k % 8;
                             int i1 = k / 8;
                             if (l == 0 || l == 7 || i1 == 0 || i1 == 7) {
-                                this.placeCircle(p_225969_, p_225978_.offset(-3 + l, 0, -3 + i1));
+                                this.placeCircle(pContext, p_225978_.offset(-3 + l, 0, -3 + i1));
                             }
                         }
                     });
         }
     }
 
-    private void placeCircle(TreeDecorator.Context p_225971_, BlockPos p_225972_) {
+    private void placeCircle(TreeDecorator.Context pContext, BlockPos pPos) {
         for (int i = -2; i <= 2; ++i) {
             for (int j = -2; j <= 2; ++j) {
                 if (Math.abs(i) != 2 || Math.abs(j) != 2) {
-                    this.placeBlockAt(p_225971_, p_225972_.offset(i, 0, j));
+                    this.placeBlockAt(pContext, pPos.offset(i, 0, j));
                 }
             }
         }
     }
 
-    private void placeBlockAt(TreeDecorator.Context p_225974_, BlockPos p_225975_) {
+    private void placeBlockAt(TreeDecorator.Context pContext, BlockPos pPos) {
         for (int i = 2; i >= -3; --i) {
-            BlockPos blockpos = p_225975_.above(i);
-            if (Feature.isGrassOrDirt(p_225974_.level(), blockpos)) {
-                p_225974_.setBlock(blockpos, this.provider.getState(p_225974_.random(), p_225975_));
+            BlockPos blockpos = pPos.above(i);
+            if (Feature.isGrassOrDirt(pContext.level(), blockpos)) {
+                pContext.setBlock(blockpos, this.provider.getState(pContext.random(), pPos));
                 break;
             }
 
-            if (!p_225974_.isAir(blockpos) && i < 0) {
+            if (!pContext.isAir(blockpos) && i < 0) {
                 break;
             }
         }

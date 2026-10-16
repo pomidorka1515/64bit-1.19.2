@@ -19,8 +19,8 @@ public class Skeleton extends AbstractSkeleton {
     private int inPowderSnowTime;
     private int conversionTime;
 
-    public Skeleton(EntityType<? extends Skeleton> p_33570_, Level p_33571_) {
-        super(p_33570_, p_33571_);
+    public Skeleton(EntityType<? extends Skeleton> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void defineSynchedData() {
@@ -32,8 +32,8 @@ public class Skeleton extends AbstractSkeleton {
         return this.getEntityData().get(DATA_STRAY_CONVERSION_ID);
     }
 
-    public void setFreezeConverting(boolean p_149843_) {
-        this.entityData.set(DATA_STRAY_CONVERSION_ID, p_149843_);
+    public void setFreezeConverting(boolean pIsFrozen) {
+        this.entityData.set(DATA_STRAY_CONVERSION_ID, pIsFrozen);
     }
 
     public boolean isShaking() {
@@ -60,20 +60,20 @@ public class Skeleton extends AbstractSkeleton {
         super.tick();
     }
 
-    public void addAdditionalSaveData(CompoundTag p_149836_) {
-        super.addAdditionalSaveData(p_149836_);
-        p_149836_.putInt("StrayConversionTime", this.isFreezeConverting() ? this.conversionTime : -1);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("StrayConversionTime", this.isFreezeConverting() ? this.conversionTime : -1);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_149833_) {
-        super.readAdditionalSaveData(p_149833_);
-        if (p_149833_.contains("StrayConversionTime", 99) && p_149833_.getInt("StrayConversionTime") > -1) {
-            this.startFreezeConversion(p_149833_.getInt("StrayConversionTime"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("StrayConversionTime", 99) && pCompound.getInt("StrayConversionTime") > -1) {
+            this.startFreezeConversion(pCompound.getInt("StrayConversionTime"));
         }
     }
 
-    private void startFreezeConversion(int p_149831_) {
-        this.conversionTime = p_149831_;
+    private void startFreezeConversion(int pConversionTime) {
+        this.conversionTime = pConversionTime;
         this.entityData.set(DATA_STRAY_CONVERSION_ID, true);
     }
 
@@ -92,7 +92,7 @@ public class Skeleton extends AbstractSkeleton {
         return SoundEvents.SKELETON_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_33579_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.SKELETON_HURT;
     }
 
@@ -104,9 +104,9 @@ public class Skeleton extends AbstractSkeleton {
         return SoundEvents.SKELETON_STEP;
     }
 
-    protected void dropCustomDeathLoot(DamageSource p_33574_, int p_33575_, boolean p_33576_) {
-        super.dropCustomDeathLoot(p_33574_, p_33575_, p_33576_);
-        Entity entity = p_33574_.getEntity();
+    protected void dropCustomDeathLoot(DamageSource pSource, int pLooting, boolean pRecentlyHit) {
+        super.dropCustomDeathLoot(pSource, pLooting, pRecentlyHit);
+        Entity entity = pSource.getEntity();
         if (entity instanceof Creeper creeper) {
             if (creeper.canDropMobsSkull()) {
                 creeper.increaseDroppedSkulls();

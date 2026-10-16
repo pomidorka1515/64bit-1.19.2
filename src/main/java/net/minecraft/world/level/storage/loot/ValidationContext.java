@@ -22,20 +22,20 @@ public class ValidationContext {
     private final Set<ResourceLocation> visitedTables;
     private String contextCache;
 
-    public ValidationContext(LootContextParamSet p_79349_, Function<ResourceLocation, LootItemCondition> p_79350_, Function<ResourceLocation, LootTable> p_79351_) {
+    public ValidationContext(LootContextParamSet pParams, Function<ResourceLocation, LootItemCondition> pConditionResolver, Function<ResourceLocation, LootTable> pTableResolver) {
         this(HashMultimap.create(), () -> {
             return "";
-        }, p_79349_, p_79350_, ImmutableSet.of(), p_79351_, ImmutableSet.of());
+        }, pParams, pConditionResolver, ImmutableSet.of(), pTableResolver, ImmutableSet.of());
     }
 
-    public ValidationContext(Multimap<String, String> p_79341_, Supplier<String> p_79342_, LootContextParamSet p_79343_, Function<ResourceLocation, LootItemCondition> p_79344_, Set<ResourceLocation> p_79345_, Function<ResourceLocation, LootTable> p_79346_, Set<ResourceLocation> p_79347_) {
-        this.problems = p_79341_;
-        this.context = p_79342_;
-        this.params = p_79343_;
-        this.conditionResolver = p_79344_;
-        this.visitedConditions = p_79345_;
-        this.tableResolver = p_79346_;
-        this.visitedTables = p_79347_;
+    public ValidationContext(Multimap<String, String> pProblems, Supplier<String> pContext, LootContextParamSet pParams, Function<ResourceLocation, LootItemCondition> pConditionResolver, Set<ResourceLocation> pVisitedConditions, Function<ResourceLocation, LootTable> pTableResolver, Set<ResourceLocation> pVisitedTables) {
+        this.problems = pProblems;
+        this.context = pContext;
+        this.params = pParams;
+        this.conditionResolver = pConditionResolver;
+        this.visitedConditions = pVisitedConditions;
+        this.tableResolver = pTableResolver;
+        this.visitedTables = pVisitedTables;
     }
 
     private String getContext() {
@@ -46,57 +46,57 @@ public class ValidationContext {
         return this.contextCache;
     }
 
-    public void reportProblem(String p_79358_) {
-        this.problems.put(this.getContext(), p_79358_);
+    public void reportProblem(String pProblem) {
+        this.problems.put(this.getContext(), pProblem);
     }
 
-    public ValidationContext forChild(String p_79366_) {
+    public ValidationContext forChild(String pChildName) {
         return new ValidationContext(this.problems, () -> {
-            return this.getContext() + p_79366_;
+            return this.getContext() + pChildName;
         }, this.params, this.conditionResolver, this.visitedConditions, this.tableResolver, this.visitedTables);
     }
 
-    public ValidationContext enterTable(String p_79360_, ResourceLocation p_79361_) {
-        ImmutableSet<ResourceLocation> immutableset = ImmutableSet.<ResourceLocation>builder().addAll(this.visitedTables).add(p_79361_).build();
+    public ValidationContext enterTable(String pContextName, ResourceLocation pLootTableId) {
+        ImmutableSet<ResourceLocation> immutableset = ImmutableSet.<ResourceLocation>builder().addAll(this.visitedTables).add(pLootTableId).build();
         return new ValidationContext(this.problems, () -> {
-            return this.getContext() + p_79360_;
+            return this.getContext() + pContextName;
         }, this.params, this.conditionResolver, this.visitedConditions, this.tableResolver, immutableset);
     }
 
-    public ValidationContext enterCondition(String p_79368_, ResourceLocation p_79369_) {
-        ImmutableSet<ResourceLocation> immutableset = ImmutableSet.<ResourceLocation>builder().addAll(this.visitedConditions).add(p_79369_).build();
+    public ValidationContext enterCondition(String pContextName, ResourceLocation pConditionId) {
+        ImmutableSet<ResourceLocation> immutableset = ImmutableSet.<ResourceLocation>builder().addAll(this.visitedConditions).add(pConditionId).build();
         return new ValidationContext(this.problems, () -> {
-            return this.getContext() + p_79368_;
+            return this.getContext() + pContextName;
         }, this.params, this.conditionResolver, immutableset, this.tableResolver, this.visitedTables);
     }
 
-    public boolean hasVisitedTable(ResourceLocation p_79363_) {
-        return this.visitedTables.contains(p_79363_);
+    public boolean hasVisitedTable(ResourceLocation pLootTableId) {
+        return this.visitedTables.contains(pLootTableId);
     }
 
-    public boolean hasVisitedCondition(ResourceLocation p_79371_) {
-        return this.visitedConditions.contains(p_79371_);
+    public boolean hasVisitedCondition(ResourceLocation pConditionId) {
+        return this.visitedConditions.contains(pConditionId);
     }
 
     public Multimap<String, String> getProblems() {
         return ImmutableMultimap.copyOf(this.problems);
     }
 
-    public void validateUser(LootContextUser p_79354_) {
-        this.params.validateUser(this, p_79354_);
+    public void validateUser(LootContextUser pLootContextUser) {
+        this.params.validateUser(this, pLootContextUser);
     }
 
     @Nullable
-    public LootTable resolveLootTable(ResourceLocation p_79376_) {
-        return this.tableResolver.apply(p_79376_);
+    public LootTable resolveLootTable(ResourceLocation pLootTableId) {
+        return this.tableResolver.apply(pLootTableId);
     }
 
     @Nullable
-    public LootItemCondition resolveCondition(ResourceLocation p_79380_) {
-        return this.conditionResolver.apply(p_79380_);
+    public LootItemCondition resolveCondition(ResourceLocation pConditionId) {
+        return this.conditionResolver.apply(pConditionId);
     }
 
-    public ValidationContext setParams(LootContextParamSet p_79356_) {
-        return new ValidationContext(this.problems, this.context, p_79356_, this.conditionResolver, this.visitedConditions, this.tableResolver, this.visitedTables);
+    public ValidationContext setParams(LootContextParamSet pParams) {
+        return new ValidationContext(this.problems, this.context, pParams, this.conditionResolver, this.visitedConditions, this.tableResolver, this.visitedTables);
     }
 }

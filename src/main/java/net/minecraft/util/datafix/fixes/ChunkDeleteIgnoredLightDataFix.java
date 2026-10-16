@@ -8,8 +8,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.datafixers.types.Type;
 
 public class ChunkDeleteIgnoredLightDataFix extends DataFix {
-    public ChunkDeleteIgnoredLightDataFix(Schema p_216572_) {
-        super(p_216572_, true);
+    public ChunkDeleteIgnoredLightDataFix(Schema pOutputSchema) {
+        super(pOutputSchema, true);
     }
 
     protected TypeRewriteRule makeRule() {

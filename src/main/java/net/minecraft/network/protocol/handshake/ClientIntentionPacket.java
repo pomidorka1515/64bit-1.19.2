@@ -12,29 +12,29 @@ public class ClientIntentionPacket implements Packet<ServerHandshakePacketListen
     private final int port;
     private final ConnectionProtocol intention;
 
-    public ClientIntentionPacket(String p_134726_, int p_134727_, ConnectionProtocol p_134728_) {
+    public ClientIntentionPacket(String pHostName, int pPort, ConnectionProtocol pIntention) {
         this.protocolVersion = SharedConstants.getCurrentVersion().getProtocolVersion();
-        this.hostName = p_134726_;
-        this.port = p_134727_;
-        this.intention = p_134728_;
+        this.hostName = pHostName;
+        this.port = pPort;
+        this.intention = pIntention;
     }
 
-    public ClientIntentionPacket(FriendlyByteBuf p_179801_) {
-        this.protocolVersion = p_179801_.readVarInt();
-        this.hostName = p_179801_.readUtf(255);
-        this.port = p_179801_.readUnsignedShort();
-        this.intention = ConnectionProtocol.getById(p_179801_.readVarInt());
+    public ClientIntentionPacket(FriendlyByteBuf pBuffer) {
+        this.protocolVersion = pBuffer.readVarInt();
+        this.hostName = pBuffer.readUtf(255);
+        this.port = pBuffer.readUnsignedShort();
+        this.intention = ConnectionProtocol.getById(pBuffer.readVarInt());
     }
 
-    public void write(FriendlyByteBuf p_134737_) {
-        p_134737_.writeVarInt(this.protocolVersion);
-        p_134737_.writeUtf(this.hostName);
-        p_134737_.writeShort(this.port);
-        p_134737_.writeVarInt(this.intention.getId());
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.protocolVersion);
+        pBuffer.writeUtf(this.hostName);
+        pBuffer.writeShort(this.port);
+        pBuffer.writeVarInt(this.intention.getId());
     }
 
-    public void handle(ServerHandshakePacketListener p_134734_) {
-        p_134734_.handleIntention(this);
+    public void handle(ServerHandshakePacketListener pHandler) {
+        pHandler.handleIntention(this);
     }
 
     public ConnectionProtocol getIntention() {

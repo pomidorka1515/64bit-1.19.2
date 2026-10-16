@@ -35,8 +35,8 @@ public abstract class Animal extends AgeableMob {
     @Nullable
     private UUID loveCause;
 
-    protected Animal(EntityType<? extends Animal> p_27557_, Level p_27558_) {
-        super(p_27557_, p_27558_);
+    protected Animal(EntityType<? extends Animal> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
         this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
     }
@@ -66,24 +66,24 @@ public abstract class Animal extends AgeableMob {
         }
     }
 
-    public boolean hurt(DamageSource p_27567_, float p_27568_) {
-        if (this.isInvulnerableTo(p_27567_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else {
             this.inLove = 0;
-            return super.hurt(p_27567_, p_27568_);
+            return super.hurt(pSource, pAmount);
         }
     }
 
-    public float getWalkTargetValue(BlockPos p_27573_, LevelReader p_27574_) {
-        return p_27574_.getBlockState(p_27573_.below()).is(Blocks.GRASS_BLOCK) ? 10.0F : p_27574_.getPathfindingCostFromLightLevels(p_27573_);
+    public float getWalkTargetValue(BlockPos pPos, LevelReader pLevel) {
+        return pLevel.getBlockState(pPos.below()).is(Blocks.GRASS_BLOCK) ? 10.0F : pLevel.getPathfindingCostFromLightLevels(pPos);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_27587_) {
-        super.addAdditionalSaveData(p_27587_);
-        p_27587_.putInt("InLove", this.inLove);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("InLove", this.inLove);
         if (this.loveCause != null) {
-            p_27587_.putUUID("LoveCause", this.loveCause);
+            pCompound.putUUID("LoveCause", this.loveCause);
         }
     }
 
@@ -91,25 +91,25 @@ public abstract class Animal extends AgeableMob {
         return 0.14D;
     }
 
-    public void readAdditionalSaveData(CompoundTag p_27576_) {
-        super.readAdditionalSaveData(p_27576_);
-        this.inLove = p_27576_.getInt("InLove");
-        this.loveCause = p_27576_.hasUUID("LoveCause") ? p_27576_.getUUID("LoveCause") : null;
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.inLove = pCompound.getInt("InLove");
+        this.loveCause = pCompound.hasUUID("LoveCause") ? pCompound.getUUID("LoveCause") : null;
     }
 
-    public static boolean checkAnimalSpawnRules(EntityType<? extends Animal> p_218105_, LevelAccessor p_218106_, MobSpawnType p_218107_, BlockPos p_218108_, RandomSource p_218109_) {
-        return p_218106_.getBlockState(p_218108_.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON) && isBrightEnoughToSpawn(p_218106_, p_218108_);
+    public static boolean checkAnimalSpawnRules(EntityType<? extends Animal> pAnimal, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getBlockState(pPos.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON) && isBrightEnoughToSpawn(pLevel, pPos);
     }
 
-    protected static boolean isBrightEnoughToSpawn(BlockAndTintGetter p_186210_, BlockPos p_186211_) {
-        return p_186210_.getRawBrightness(p_186211_, 0) > 8;
+    protected static boolean isBrightEnoughToSpawn(BlockAndTintGetter pLevel, BlockPos pPos) {
+        return pLevel.getRawBrightness(pPos, 0) > 8;
     }
 
     public int getAmbientSoundInterval() {
         return 120;
     }
 
-    public boolean removeWhenFarAway(double p_27598_) {
+    public boolean removeWhenFarAway(double pDistanceToClosestPlayer) {
         return false;
     }
 
@@ -117,22 +117,22 @@ public abstract class Animal extends AgeableMob {
         return 1 + this.level.random.nextInt(3);
     }
 
-    public boolean isFood(ItemStack p_27600_) {
-        return p_27600_.is(Items.WHEAT);
+    public boolean isFood(ItemStack pStack) {
+        return pStack.is(Items.WHEAT);
     }
 
-    public InteractionResult mobInteract(Player p_27584_, InteractionHand p_27585_) {
-        ItemStack itemstack = p_27584_.getItemInHand(p_27585_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (this.isFood(itemstack)) {
             int i = this.getAge();
             if (!this.level.isClientSide && i == 0 && this.canFallInLove()) {
-                this.usePlayerItem(p_27584_, p_27585_, itemstack);
-                this.setInLove(p_27584_);
+                this.usePlayerItem(pPlayer, pHand, itemstack);
+                this.setInLove(pPlayer);
                 return InteractionResult.SUCCESS;
             }
 
             if (this.isBaby()) {
-                this.usePlayerItem(p_27584_, p_27585_, itemstack);
+                this.usePlayerItem(pPlayer, pHand, itemstack);
                 this.ageUp(getSpeedUpSecondsWhenFeeding(-i), true);
                 return InteractionResult.sidedSuccess(this.level.isClientSide);
             }
@@ -142,12 +142,12 @@ public abstract class Animal extends AgeableMob {
             }
         }
 
-        return super.mobInteract(p_27584_, p_27585_);
+        return super.mobInteract(pPlayer, pHand);
     }
 
-    protected void usePlayerItem(Player p_148715_, InteractionHand p_148716_, ItemStack p_148717_) {
-        if (!p_148715_.getAbilities().instabuild) {
-            p_148717_.shrink(1);
+    protected void usePlayerItem(Player pPlayer, InteractionHand pHand, ItemStack pStack) {
+        if (!pPlayer.getAbilities().instabuild) {
+            pStack.shrink(1);
         }
     }
 
@@ -155,17 +155,17 @@ public abstract class Animal extends AgeableMob {
         return this.inLove <= 0;
     }
 
-    public void setInLove(@Nullable Player p_27596_) {
+    public void setInLove(@Nullable Player pPlayer) {
         this.inLove = 600;
-        if (p_27596_ != null) {
-            this.loveCause = p_27596_.getUUID();
+        if (pPlayer != null) {
+            this.loveCause = pPlayer.getUUID();
         }
 
         this.level.broadcastEntityEvent(this, (byte) 18);
     }
 
-    public void setInLoveTime(int p_27602_) {
-        this.inLove = p_27602_;
+    public void setInLoveTime(int pInLove) {
+        this.inLove = pInLove;
     }
 
     public int getInLoveTime() {
@@ -190,45 +190,45 @@ public abstract class Animal extends AgeableMob {
         this.inLove = 0;
     }
 
-    public boolean canMate(Animal p_27569_) {
-        if (p_27569_ == this) {
+    public boolean canMate(Animal pOtherAnimal) {
+        if (pOtherAnimal == this) {
             return false;
-        } else if (p_27569_.getClass() != this.getClass()) {
+        } else if (pOtherAnimal.getClass() != this.getClass()) {
             return false;
         } else {
-            return this.isInLove() && p_27569_.isInLove();
+            return this.isInLove() && pOtherAnimal.isInLove();
         }
     }
 
-    public void spawnChildFromBreeding(ServerLevel p_27564_, Animal p_27565_) {
-        AgeableMob ageablemob = this.getBreedOffspring(p_27564_, p_27565_);
+    public void spawnChildFromBreeding(ServerLevel pLevel, Animal pMate) {
+        AgeableMob ageablemob = this.getBreedOffspring(pLevel, pMate);
         if (ageablemob != null) {
             ServerPlayer serverplayer = this.getLoveCause();
-            if (serverplayer == null && p_27565_.getLoveCause() != null) {
-                serverplayer = p_27565_.getLoveCause();
+            if (serverplayer == null && pMate.getLoveCause() != null) {
+                serverplayer = pMate.getLoveCause();
             }
 
             if (serverplayer != null) {
                 serverplayer.awardStat(Stats.ANIMALS_BRED);
-                CriteriaTriggers.BRED_ANIMALS.trigger(serverplayer, this, p_27565_, ageablemob);
+                CriteriaTriggers.BRED_ANIMALS.trigger(serverplayer, this, pMate, ageablemob);
             }
 
             this.setAge(6000);
-            p_27565_.setAge(6000);
+            pMate.setAge(6000);
             this.resetLove();
-            p_27565_.resetLove();
+            pMate.resetLove();
             ageablemob.setBaby(true);
             ageablemob.moveTo(this.sectorPosition(), 0.0F, 0.0F);
-            p_27564_.addFreshEntityWithPassengers(ageablemob);
-            p_27564_.broadcastEntityEvent(this, (byte) 18);
-            if (p_27564_.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
-                p_27564_.addFreshEntity(new ExperienceOrb(p_27564_, this.getX(), this.getY(), this.getZ(), this.getRandom().nextInt(7) + 1));
+            pLevel.addFreshEntityWithPassengers(ageablemob);
+            pLevel.broadcastEntityEvent(this, (byte) 18);
+            if (pLevel.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+                pLevel.addFreshEntity(new ExperienceOrb(pLevel, this.getX(), this.getY(), this.getZ(), this.getRandom().nextInt(7) + 1));
             }
         }
     }
 
-    public void handleEntityEvent(byte p_27562_) {
-        if (p_27562_ == 18) {
+    public void handleEntityEvent(byte pId) {
+        if (pId == 18) {
             for (int i = 0; i < 7; ++i) {
                 double d0 = this.random.nextGaussian() * 0.02D;
                 double d1 = this.random.nextGaussian() * 0.02D;
@@ -236,7 +236,7 @@ public abstract class Animal extends AgeableMob {
                 this.level.addParticle(ParticleTypes.HEART, this.particlePosition((2.0D * this.random.nextDouble() - 1.0D) * (double) this.getBbWidth(), this.random.nextDouble() * (double) this.getBbHeight() + 0.5D, (2.0D * this.random.nextDouble() - 1.0D) * (double) this.getBbWidth()), d0, d1, d2);
             }
         } else {
-            super.handleEntityEvent(p_27562_);
+            super.handleEntityEvent(pId);
         }
     }
 }

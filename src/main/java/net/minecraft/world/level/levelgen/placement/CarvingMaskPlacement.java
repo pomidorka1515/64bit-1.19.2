@@ -17,13 +17,13 @@ public class CarvingMaskPlacement extends PlacementModifier {
         this.step = p_191589_;
     }
 
-    public static CarvingMaskPlacement forStep(GenerationStep.Carving p_191591_) {
-        return new CarvingMaskPlacement(p_191591_);
+    public static CarvingMaskPlacement forStep(GenerationStep.Carving pStep) {
+        return new CarvingMaskPlacement(pStep);
     }
 
-    public Stream<BlockPos> getPositions(PlacementContext p_226325_, RandomSource p_226326_, BlockPos p_226327_) {
-        ChunkPos chunkpos = new ChunkPos(p_226327_);
-        return p_226325_.getCarvingMask(chunkpos, this.step).stream(chunkpos);
+    public Stream<BlockPos> getPositions(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
+        ChunkPos chunkpos = new ChunkPos(pPos);
+        return pContext.getCarvingMask(chunkpos, this.step).stream(chunkpos);
     }
 
     public PlacementModifierType<?> type() {

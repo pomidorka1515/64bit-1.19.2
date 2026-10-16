@@ -40,39 +40,39 @@ public class ItemProperties {
     };
     private static final Map<Item, Map<ResourceLocation, ItemPropertyFunction>> PROPERTIES = Maps.newHashMap();
 
-    private static ClampedItemPropertyFunction registerGeneric(ResourceLocation p_174582_, ClampedItemPropertyFunction p_174583_) {
-        GENERIC_PROPERTIES.put(p_174582_, p_174583_);
-        return p_174583_;
+    private static ClampedItemPropertyFunction registerGeneric(ResourceLocation pName, ClampedItemPropertyFunction pProperty) {
+        GENERIC_PROPERTIES.put(pName, pProperty);
+        return pProperty;
     }
 
-    private static void registerCustomModelData(ItemPropertyFunction p_174580_) {
-        GENERIC_PROPERTIES.put(new ResourceLocation("custom_model_data"), p_174580_);
+    private static void registerCustomModelData(ItemPropertyFunction pProperty) {
+        GENERIC_PROPERTIES.put(new ResourceLocation("custom_model_data"), pProperty);
     }
 
-    private static void register(Item p_174571_, ResourceLocation p_174572_, ClampedItemPropertyFunction p_174573_) {
-        PROPERTIES.computeIfAbsent(p_174571_, (p_117828_) -> {
+    private static void register(Item pItem, ResourceLocation pName, ClampedItemPropertyFunction pProperty) {
+        PROPERTIES.computeIfAbsent(pItem, (p_117828_) -> {
                       return Maps.newHashMap();
-                  }).put(p_174572_, p_174573_);
+                  }).put(pName, pProperty);
     }
 
     @Nullable
-    public static ItemPropertyFunction getProperty(Item p_117830_, ResourceLocation p_117831_) {
-        if (p_117830_.getMaxDamage() > 0) {
-            if (DAMAGE.equals(p_117831_)) {
+    public static ItemPropertyFunction getProperty(Item pItem, ResourceLocation pName) {
+        if (pItem.getMaxDamage() > 0) {
+            if (DAMAGE.equals(pName)) {
                 return PROPERTY_DAMAGE;
             }
 
-            if (DAMAGED.equals(p_117831_)) {
+            if (DAMAGED.equals(pName)) {
                 return PROPERTY_DAMAGED;
             }
         }
 
-        ItemPropertyFunction itempropertyfunction = GENERIC_PROPERTIES.get(p_117831_);
+        ItemPropertyFunction itempropertyfunction = GENERIC_PROPERTIES.get(pName);
         if (itempropertyfunction != null) {
             return itempropertyfunction;
         } else {
-            Map<ResourceLocation, ItemPropertyFunction> map = PROPERTIES.get(p_117830_);
-            return map == null ? null : map.get(p_117831_);
+            Map<ResourceLocation, ItemPropertyFunction> map = PROPERTIES.get(pItem);
+            return map == null ? null : map.get(pName);
         }
     }
 

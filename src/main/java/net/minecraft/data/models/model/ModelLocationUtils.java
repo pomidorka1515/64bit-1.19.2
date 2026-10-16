@@ -8,31 +8,31 @@ import net.minecraft.world.level.block.Block;
 public class ModelLocationUtils {
     /** @deprecated */
     @Deprecated
-    public static ResourceLocation decorateBlockModelLocation(String p_125582_) {
-        return new ResourceLocation("minecraft", "block/" + p_125582_);
+    public static ResourceLocation decorateBlockModelLocation(String pBlockModelLocation) {
+        return new ResourceLocation("minecraft", "block/" + pBlockModelLocation);
     }
 
-    public static ResourceLocation decorateItemModelLocation(String p_125584_) {
-        return new ResourceLocation("minecraft", "item/" + p_125584_);
+    public static ResourceLocation decorateItemModelLocation(String pItemModelLocation) {
+        return new ResourceLocation("minecraft", "item/" + pItemModelLocation);
     }
 
-    public static ResourceLocation getModelLocation(Block p_125579_, String p_125580_) {
-        ResourceLocation resourcelocation = Registry.BLOCK.getKey(p_125579_);
-        return new ResourceLocation(resourcelocation.getNamespace(), "block/" + resourcelocation.getPath() + p_125580_);
+    public static ResourceLocation getModelLocation(Block pBlock, String pModelLocationSuffix) {
+        ResourceLocation resourcelocation = Registry.BLOCK.getKey(pBlock);
+        return new ResourceLocation(resourcelocation.getNamespace(), "block/" + resourcelocation.getPath() + pModelLocationSuffix);
     }
 
-    public static ResourceLocation getModelLocation(Block p_125577_) {
-        ResourceLocation resourcelocation = Registry.BLOCK.getKey(p_125577_);
+    public static ResourceLocation getModelLocation(Block pBlock) {
+        ResourceLocation resourcelocation = Registry.BLOCK.getKey(pBlock);
         return new ResourceLocation(resourcelocation.getNamespace(), "block/" + resourcelocation.getPath());
     }
 
-    public static ResourceLocation getModelLocation(Item p_125572_) {
-        ResourceLocation resourcelocation = Registry.ITEM.getKey(p_125572_);
+    public static ResourceLocation getModelLocation(Item pItem) {
+        ResourceLocation resourcelocation = Registry.ITEM.getKey(pItem);
         return new ResourceLocation(resourcelocation.getNamespace(), "item/" + resourcelocation.getPath());
     }
 
-    public static ResourceLocation getModelLocation(Item p_125574_, String p_125575_) {
-        ResourceLocation resourcelocation = Registry.ITEM.getKey(p_125574_);
-        return new ResourceLocation(resourcelocation.getNamespace(), "item/" + resourcelocation.getPath() + p_125575_);
+    public static ResourceLocation getModelLocation(Item pItem, String pModelLocationSuffix) {
+        ResourceLocation resourcelocation = Registry.ITEM.getKey(pItem);
+        return new ResourceLocation(resourcelocation.getNamespace(), "item/" + resourcelocation.getPath() + pModelLocationSuffix);
     }
 }

@@ -74,29 +74,29 @@ public enum DyeColor implements StringRepresentable {
         return this.textColor;
     }
 
-    public static DyeColor byId(int p_41054_) {
-        if (p_41054_ < 0 || p_41054_ >= BY_ID.length) {
-            p_41054_ = 0;
+    public static DyeColor byId(int pColorId) {
+        if (pColorId < 0 || pColorId >= BY_ID.length) {
+            pColorId = 0;
         }
 
-        return BY_ID[p_41054_];
+        return BY_ID[pColorId];
     }
 
     @Nullable
     @Contract("_,!null->!null;_,null->_")
-    public static DyeColor byName(String p_41058_, @Nullable DyeColor p_41059_) {
+    public static DyeColor byName(String pTranslationKey, @Nullable DyeColor pFallback) {
         for (DyeColor dyecolor : values()) {
-            if (dyecolor.name.equals(p_41058_)) {
+            if (dyecolor.name.equals(pTranslationKey)) {
                 return dyecolor;
             }
         }
 
-        return p_41059_;
+        return pFallback;
     }
 
     @Nullable
-    public static DyeColor byFireworkColor(int p_41062_) {
-        return BY_FIREWORK_COLOR.get(p_41062_);
+    public static DyeColor byFireworkColor(int pFireworkColor) {
+        return BY_FIREWORK_COLOR.get(pFireworkColor);
     }
 
     public String toString() {

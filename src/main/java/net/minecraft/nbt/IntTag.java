@@ -34,16 +34,16 @@ public class IntTag extends NumericTag {
     };
     private final int data;
 
-    IntTag(int p_128674_) {
-        this.data = p_128674_;
+    IntTag(int pData) {
+        this.data = pData;
     }
 
-    public static IntTag valueOf(int p_128680_) {
-        return p_128680_ >= -128 && p_128680_ <= 1024 ? IntTag.Cache.cache[p_128680_ - -128] : new IntTag(p_128680_);
+    public static IntTag valueOf(int pData) {
+        return pData >= -128 && pData <= 1024 ? IntTag.Cache.cache[pData - -128] : new IntTag(pData);
     }
 
-    public void write(DataOutput p_128682_) throws IOException {
-        p_128682_.writeInt(this.data);
+    public void write(DataOutput pOutput) throws IOException {
+        pOutput.writeInt(this.data);
     }
 
     public byte getId() {
@@ -58,11 +58,11 @@ public class IntTag extends NumericTag {
         return this;
     }
 
-    public boolean equals(Object p_128691_) {
-        if (this == p_128691_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_128691_ instanceof IntTag && this.data == ((IntTag) p_128691_).data;
+            return pOther instanceof IntTag && this.data == ((IntTag) pOther).data;
         }
     }
 
@@ -70,8 +70,8 @@ public class IntTag extends NumericTag {
         return this.data;
     }
 
-    public void accept(TagVisitor p_177984_) {
-        p_177984_.visitInt(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitInt(this);
     }
 
     public long getAsLong() {
@@ -102,8 +102,8 @@ public class IntTag extends NumericTag {
         return this.data;
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197481_) {
-        return p_197481_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 
     static class Cache {

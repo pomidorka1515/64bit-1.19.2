@@ -32,7 +32,7 @@ public enum AttackIndicatorStatus implements OptionEnum {
         return this.key;
     }
 
-    public static AttackIndicatorStatus byId(int p_90510_) {
-        return BY_ID[Mth.positiveModulo(p_90510_, BY_ID.length)];
+    public static AttackIndicatorStatus byId(int pId) {
+        return BY_ID[Mth.positiveModulo(pId, BY_ID.length)];
     }
 }

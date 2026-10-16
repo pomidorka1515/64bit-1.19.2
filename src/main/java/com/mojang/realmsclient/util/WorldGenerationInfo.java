@@ -9,10 +9,10 @@ public class WorldGenerationInfo {
     private final LevelType levelType;
     private final boolean generateStructures;
 
-    public WorldGenerationInfo(String p_167631_, LevelType p_167632_, boolean p_167633_) {
-        this.seed = p_167631_;
-        this.levelType = p_167632_;
-        this.generateStructures = p_167633_;
+    public WorldGenerationInfo(String pSeed, LevelType pLevelType, boolean pGenerateStructures) {
+        this.seed = pSeed;
+        this.levelType = pLevelType;
+        this.generateStructures = pGenerateStructures;
     }
 
     public String getSeed() {

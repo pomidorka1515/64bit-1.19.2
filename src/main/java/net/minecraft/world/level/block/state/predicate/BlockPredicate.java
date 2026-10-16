@@ -8,15 +8,15 @@ import net.minecraft.world.level.block.state.BlockState;
 public class BlockPredicate implements Predicate<BlockState> {
     private final Block block;
 
-    public BlockPredicate(Block p_61274_) {
-        this.block = p_61274_;
+    public BlockPredicate(Block pBlock) {
+        this.block = pBlock;
     }
 
-    public static BlockPredicate forBlock(Block p_61276_) {
-        return new BlockPredicate(p_61276_);
+    public static BlockPredicate forBlock(Block pBlock) {
+        return new BlockPredicate(pBlock);
     }
 
-    public boolean test(@Nullable BlockState p_61278_) {
-        return p_61278_ != null && p_61278_.is(this.block);
+    public boolean test(@Nullable BlockState pState) {
+        return pState != null && pState.is(this.block);
     }
 }

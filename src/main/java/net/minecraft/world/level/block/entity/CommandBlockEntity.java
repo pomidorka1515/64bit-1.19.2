@@ -41,24 +41,24 @@ public class CommandBlockEntity extends BlockEntity {
         }
     };
 
-    public CommandBlockEntity(BlockPos p_155380_, BlockState p_155381_) {
-        super(BlockEntityType.COMMAND_BLOCK, p_155380_, p_155381_);
+    public CommandBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.COMMAND_BLOCK, pPos, pBlockState);
     }
 
-    protected void saveAdditional(CompoundTag p_187491_) {
-        super.saveAdditional(p_187491_);
-        this.commandBlock.save(p_187491_);
-        p_187491_.putBoolean("powered", this.isPowered());
-        p_187491_.putBoolean("conditionMet", this.wasConditionMet());
-        p_187491_.putBoolean("auto", this.isAutomatic());
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
+        this.commandBlock.save(pTag);
+        pTag.putBoolean("powered", this.isPowered());
+        pTag.putBoolean("conditionMet", this.wasConditionMet());
+        pTag.putBoolean("auto", this.isAutomatic());
     }
 
-    public void load(CompoundTag p_155383_) {
-        super.load(p_155383_);
-        this.commandBlock.load(p_155383_);
-        this.powered = p_155383_.getBoolean("powered");
-        this.conditionMet = p_155383_.getBoolean("conditionMet");
-        this.setAutomatic(p_155383_.getBoolean("auto"));
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
+        this.commandBlock.load(pTag);
+        this.powered = pTag.getBoolean("powered");
+        this.conditionMet = pTag.getBoolean("conditionMet");
+        this.setAutomatic(pTag.getBoolean("auto"));
     }
 
     public boolean onlyOpCanSetNbt() {
@@ -69,8 +69,8 @@ public class CommandBlockEntity extends BlockEntity {
         return this.commandBlock;
     }
 
-    public void setPowered(boolean p_59136_) {
-        this.powered = p_59136_;
+    public void setPowered(boolean pPowered) {
+        this.powered = pPowered;
     }
 
     public boolean isPowered() {
@@ -81,10 +81,10 @@ public class CommandBlockEntity extends BlockEntity {
         return this.auto;
     }
 
-    public void setAutomatic(boolean p_59138_) {
+    public void setAutomatic(boolean pAuto) {
         boolean flag = this.auto;
-        this.auto = p_59138_;
-        if (!flag && p_59138_ && !this.powered && this.level != null && this.getMode() != CommandBlockEntity.Mode.SEQUENCE) {
+        this.auto = pAuto;
+        if (!flag && pAuto && !this.powered && this.level != null && this.getMode() != CommandBlockEntity.Mode.SEQUENCE) {
             this.scheduleTick();
         }
     }

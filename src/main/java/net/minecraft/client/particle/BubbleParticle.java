@@ -9,13 +9,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class BubbleParticle extends TextureSheetParticle {
-    BubbleParticle(ClientLevel p_105773_, double p_105774_, double p_105775_, double p_105776_, double p_105777_, double p_105778_, double p_105779_) {
-        super(p_105773_, p_105774_, p_105775_, p_105776_);
+    BubbleParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+        super(pLevel, pX, pY, pZ);
         this.setSize(0.02F, 0.02F);
         this.quadSize *= this.random.nextFloat() * 0.6F + 0.2F;
-        this.xd = p_105777_ * (double) 0.2F + (Math.random() * 2.0D - 1.0D) * (double) 0.02F;
-        this.yd = p_105778_ * (double) 0.2F + (Math.random() * 2.0D - 1.0D) * (double) 0.02F;
-        this.zd = p_105779_ * (double) 0.2F + (Math.random() * 2.0D - 1.0D) * (double) 0.02F;
+        this.xd = pXSpeed * (double) 0.2F + (Math.random() * 2.0D - 1.0D) * (double) 0.02F;
+        this.yd = pYSpeed * (double) 0.2F + (Math.random() * 2.0D - 1.0D) * (double) 0.02F;
+        this.zd = pZSpeed * (double) 0.2F + (Math.random() * 2.0D - 1.0D) * (double) 0.02F;
         this.lifetime = (int) (8.0D / (Math.random() * 0.8D + 0.2D));
     }
 
@@ -45,12 +45,12 @@ public class BubbleParticle extends TextureSheetParticle {
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public Provider(SpriteSet p_105793_) {
-            this.sprite = p_105793_;
+        public Provider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_105804_, ClientLevel p_105805_, double p_105806_, double p_105807_, double p_105808_, double p_105809_, double p_105810_, double p_105811_) {
-            BubbleParticle bubbleparticle = new BubbleParticle(p_105805_, p_105806_, p_105807_, p_105808_, p_105809_, p_105810_, p_105811_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            BubbleParticle bubbleparticle = new BubbleParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
             bubbleparticle.pickSprite(this.sprite);
             return bubbleparticle;
         }

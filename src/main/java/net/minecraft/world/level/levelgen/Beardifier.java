@@ -31,18 +31,18 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
     private final ObjectListIterator<Beardifier.Rigid> pieceIterator;
     private final ObjectListIterator<JigsawJunction> junctionIterator;
 
-    public static Beardifier forStructuresInChunk(StructureManager p_223938_, ChunkPos p_223939_) {
-        long i = p_223939_.getMinBlockX();
-        long j = p_223939_.getMinBlockZ();
+    public static Beardifier forStructuresInChunk(StructureManager pStructureManager, ChunkPos pChunkPos) {
+        long i = pChunkPos.getMinBlockX();
+        long j = pChunkPos.getMinBlockZ();
         ObjectList<Beardifier.Rigid> objectlist = new ObjectArrayList<>(10);
         ObjectList<JigsawJunction> objectlist1 = new ObjectArrayList<>(32);
-        p_223938_.startsForStructure(p_223939_, (p_223941_) -> {
+        pStructureManager.startsForStructure(pChunkPos, (p_223941_) -> {
                      return p_223941_.terrainAdaptation() != TerrainAdjustment.NONE;
                  }).forEach((p_223936_) -> {
             TerrainAdjustment terrainadjustment = p_223936_.getStructure().terrainAdaptation();
 
             for (StructurePiece structurepiece : p_223936_.getPieces()) {
-                if (structurepiece.isCloseToChunk(p_223939_, 12)) {
+                if (structurepiece.isCloseToChunk(pChunkPos, 12)) {
                     if (structurepiece instanceof PoolElementStructurePiece) {
                         PoolElementStructurePiece poolelementstructurepiece = (PoolElementStructurePiece) structurepiece;
                         StructureTemplatePool.Projection structuretemplatepool$projection = poolelementstructurepiece.getElement().getProjection();
@@ -67,15 +67,15 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
     }
 
     @VisibleForTesting
-    public Beardifier(ObjectListIterator<Beardifier.Rigid> p_223917_, ObjectListIterator<JigsawJunction> p_223918_) {
-        this.pieceIterator = p_223917_;
-        this.junctionIterator = p_223918_;
+    public Beardifier(ObjectListIterator<Beardifier.Rigid> pPieceIterator, ObjectListIterator<JigsawJunction> pJunctionIterator) {
+        this.pieceIterator = pPieceIterator;
+        this.junctionIterator = pJunctionIterator;
     }
 
-    public double compute(DensityFunction.FunctionContext p_208200_) {
-        long i = p_208200_.blockX();
-        int j = p_208200_.blockY();
-        long k = p_208200_.blockZ();
+    public double compute(DensityFunction.FunctionContext pContext) {
+        long i = pContext.blockX();
+        int j = pContext.blockY();
+        long k = pContext.blockZ();
 
         double d0;
         double d1;
@@ -142,8 +142,8 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
         return Double.POSITIVE_INFINITY;
     }
 
-    private static double getBuryContribution(double p_158084_, int p_158085_, double p_158086_) {
-        double d0 = Mth.length(p_158084_, (double) p_158085_ / 2.0D, p_158086_);
+    private static double getBuryContribution(double pX, int pY, double pZ) {
+        double d0 = Mth.length(pX, (double) pY / 2.0D, pZ);
         return Mth.clampedMap(d0, 0.0D, 6.0D, 1.0D, 0.0D);
     }
 
@@ -165,8 +165,8 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
         return p_223920_ >= 0 && p_223920_ < 24;
     }
 
-    private static double computeBeardContribution(int p_158092_, int p_158093_, int p_158094_) {
-        return computeBeardContribution(p_158092_, (double) p_158093_ + 0.5D, p_158094_);
+    private static double computeBeardContribution(int pX, int pY, int pZ) {
+        return computeBeardContribution(pX, (double) pY + 0.5D, pZ);
     }
 
     private static double computeBeardContribution(int p_223922_, double p_223923_, int p_223924_) {

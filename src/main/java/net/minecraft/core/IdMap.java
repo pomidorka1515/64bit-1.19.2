@@ -5,15 +5,15 @@ import javax.annotation.Nullable;
 public interface IdMap<T> extends Iterable<T> {
     int DEFAULT = -1;
 
-    int getId(T p_122652_);
+    int getId(T pValue);
 
     @Nullable
-    T byId(int p_122651_);
+    T byId(int pId);
 
-    default T byIdOrThrow(int p_200958_) {
-        T t = this.byId(p_200958_);
+    default T byIdOrThrow(int pId) {
+        T t = this.byId(pId);
         if (t == null) {
-            throw new IllegalArgumentException("No value with id " + p_200958_);
+            throw new IllegalArgumentException("No value with id " + pId);
         } else {
             return t;
         }

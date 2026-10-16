@@ -92,16 +92,16 @@ public class LandRandomPos {
     }
 
     @Nullable
-    public static BlockPos movePosUpOutOfSolid(PathfinderMob p_148519_, BlockPos p_148520_) {
-        p_148520_ = RandomPos.moveUpOutOfSolid(p_148520_, p_148519_.level.getMaxBuildHeight(), (p_148534_) -> {
-            return GoalUtils.isSolid(p_148519_, p_148534_);
+    public static BlockPos movePosUpOutOfSolid(PathfinderMob pMob, BlockPos pPos) {
+        pPos = RandomPos.moveUpOutOfSolid(pPos, pMob.level.getMaxBuildHeight(), (p_148534_) -> {
+            return GoalUtils.isSolid(pMob, p_148534_);
         });
-        return !GoalUtils.isWater(p_148519_, p_148520_) && !GoalUtils.hasMalus(p_148519_, p_148520_) ? p_148520_ : null;
+        return !GoalUtils.isWater(pMob, pPos) && !GoalUtils.hasMalus(pMob, pPos) ? pPos : null;
     }
 
     @Nullable
-    public static BlockPos generateRandomPosTowardDirection(PathfinderMob p_148514_, int p_148515_, boolean p_148516_, BlockPos p_148517_) {
-        BlockPos blockpos = RandomPos.generateRandomPosTowardDirection(p_148514_, p_148515_, p_148514_.getRandom(), p_148517_);
-        return !GoalUtils.isOutsideLimits(blockpos, p_148514_) && !GoalUtils.isRestricted(p_148516_, p_148514_, blockpos) && !GoalUtils.isNotStable(p_148514_.getNavigation(), blockpos) ? blockpos : null;
+    public static BlockPos generateRandomPosTowardDirection(PathfinderMob pMob, int pRadius, boolean pShortCircuit, BlockPos pPos) {
+        BlockPos blockpos = RandomPos.generateRandomPosTowardDirection(pMob, pRadius, pMob.getRandom(), pPos);
+        return !GoalUtils.isOutsideLimits(blockpos, pMob) && !GoalUtils.isRestricted(pShortCircuit, pMob, blockpos) && !GoalUtils.isNotStable(pMob.getNavigation(), blockpos) ? blockpos : null;
     }
 }

@@ -7,42 +7,42 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public interface GuiEventListener {
     long DOUBLE_CLICK_THRESHOLD_MS = 250L;
 
-    default void mouseMoved(double p_94758_, double p_94759_) {
+    default void mouseMoved(double pMouseX, double pMouseY) {
     }
 
-    default boolean mouseClicked(double p_94737_, double p_94738_, int p_94739_) {
+    default boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         return false;
     }
 
-    default boolean mouseReleased(double p_94753_, double p_94754_, int p_94755_) {
+    default boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
         return false;
     }
 
-    default boolean mouseDragged(double p_94740_, double p_94741_, int p_94742_, double p_94743_, double p_94744_) {
+    default boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
         return false;
     }
 
-    default boolean mouseScrolled(double p_94734_, double p_94735_, double p_94736_) {
+    default boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
         return false;
     }
 
-    default boolean keyPressed(int p_94745_, int p_94746_, int p_94747_) {
+    default boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         return false;
     }
 
-    default boolean keyReleased(int p_94750_, int p_94751_, int p_94752_) {
+    default boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
         return false;
     }
 
-    default boolean charTyped(char p_94732_, int p_94733_) {
+    default boolean charTyped(char pCodePoint, int pModifiers) {
         return false;
     }
 
-    default boolean changeFocus(boolean p_94756_) {
+    default boolean changeFocus(boolean pFocus) {
         return false;
     }
 
-    default boolean isMouseOver(double p_94748_, double p_94749_) {
+    default boolean isMouseOver(double pMouseX, double pMouseY) {
         return false;
     }
 }

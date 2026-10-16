@@ -49,24 +49,24 @@ public class TextRenderingUtils {
         return list;
     }
 
-    public static List<String> split(String p_90251_, String p_90252_) {
-        if (p_90252_.isEmpty()) {
+    public static List<String> split(String pToSplit, String pDelimiter) {
+        if (pDelimiter.isEmpty()) {
             throw new IllegalArgumentException("Delimiter cannot be the empty string");
         } else {
             List<String> list = Lists.newArrayList();
 
             int i;
             int j;
-            for (i = 0; (j = p_90251_.indexOf(p_90252_, i)) != -1; i = j + p_90252_.length()) {
+            for (i = 0; (j = pToSplit.indexOf(pDelimiter, i)) != -1; i = j + pDelimiter.length()) {
                 if (j > i) {
-                    list.add(p_90251_.substring(i, j));
+                    list.add(pToSplit.substring(i, j));
                 }
 
-                list.add(p_90252_);
+                list.add(pDelimiter);
             }
 
-            if (i < p_90251_.length()) {
-                list.add(p_90251_.substring(i));
+            if (i < pToSplit.length()) {
+                list.add(pToSplit.substring(i));
             }
 
             return list;
@@ -77,23 +77,23 @@ public class TextRenderingUtils {
     public static class Line {
         public final List<TextRenderingUtils.LineSegment> segments;
 
-        Line(TextRenderingUtils.LineSegment... p_167625_) {
-            this(Arrays.asList(p_167625_));
+        Line(TextRenderingUtils.LineSegment... pSegments) {
+            this(Arrays.asList(pSegments));
         }
 
-        Line(List<TextRenderingUtils.LineSegment> p_90264_) {
-            this.segments = p_90264_;
+        Line(List<TextRenderingUtils.LineSegment> pSegments) {
+            this.segments = pSegments;
         }
 
         public String toString() {
             return "Line{segments=" + this.segments + "}";
         }
 
-        public boolean equals(Object p_90266_) {
-            if (this == p_90266_) {
+        public boolean equals(Object pOther) {
+            if (this == pOther) {
                 return true;
-            } else if (p_90266_ != null && this.getClass() == p_90266_.getClass()) {
-                TextRenderingUtils.Line textrenderingutils$line = (TextRenderingUtils.Line) p_90266_;
+            } else if (pOther != null && this.getClass() == pOther.getClass()) {
+                TextRenderingUtils.Line textrenderingutils$line = (TextRenderingUtils.Line) pOther;
                 return Objects.equals(this.segments, textrenderingutils$line.segments);
             } else {
                 return false;
@@ -113,23 +113,23 @@ public class TextRenderingUtils {
         @Nullable
         private final String linkUrl;
 
-        private LineSegment(String p_90273_) {
-            this.fullText = p_90273_;
+        private LineSegment(String pFullText) {
+            this.fullText = pFullText;
             this.linkTitle = null;
             this.linkUrl = null;
         }
 
-        private LineSegment(String p_90275_, @Nullable String p_90276_, @Nullable String p_90277_) {
-            this.fullText = p_90275_;
-            this.linkTitle = p_90276_;
-            this.linkUrl = p_90277_;
+        private LineSegment(String pFullText, @Nullable String pLinkTitle, @Nullable String pLinkUrl) {
+            this.fullText = pFullText;
+            this.linkTitle = pLinkTitle;
+            this.linkUrl = pLinkUrl;
         }
 
-        public boolean equals(Object p_90287_) {
-            if (this == p_90287_) {
+        public boolean equals(Object pOther) {
+            if (this == pOther) {
                 return true;
-            } else if (p_90287_ != null && this.getClass() == p_90287_.getClass()) {
-                TextRenderingUtils.LineSegment textrenderingutils$linesegment = (TextRenderingUtils.LineSegment) p_90287_;
+            } else if (pOther != null && this.getClass() == pOther.getClass()) {
+                TextRenderingUtils.LineSegment textrenderingutils$linesegment = (TextRenderingUtils.LineSegment) pOther;
                 return Objects.equals(this.fullText, textrenderingutils$linesegment.fullText) && Objects.equals(this.linkTitle, textrenderingutils$linesegment.linkTitle) && Objects.equals(this.linkUrl, textrenderingutils$linesegment.linkUrl);
             } else {
                 return false;
@@ -160,13 +160,13 @@ public class TextRenderingUtils {
             }
         }
 
-        public static TextRenderingUtils.LineSegment link(String p_90282_, String p_90283_) {
-            return new TextRenderingUtils.LineSegment((String) null, p_90282_, p_90283_);
+        public static TextRenderingUtils.LineSegment link(String pLinkTitle, String pLinkUrl) {
+            return new TextRenderingUtils.LineSegment((String) null, pLinkTitle, pLinkUrl);
         }
 
         @VisibleForTesting
-        protected static TextRenderingUtils.LineSegment text(String p_90280_) {
-            return new TextRenderingUtils.LineSegment(p_90280_);
+        protected static TextRenderingUtils.LineSegment text(String pFullText) {
+            return new TextRenderingUtils.LineSegment(pFullText);
         }
     }
 }

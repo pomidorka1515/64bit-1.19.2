@@ -56,15 +56,15 @@ public class LootCommand {
         return Component.translatable("commands.drop.no_loot_table", p_137977_);
     });
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_214516_, CommandBuildContext p_214517_) {
-        p_214516_.register(addTargets(Commands.literal("loot").requires((p_137937_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher, CommandBuildContext pContext) {
+        pDispatcher.register(addTargets(Commands.literal("loot").requires((p_137937_) -> {
             return p_137937_.hasPermission(2);
         }),
                 (p_214520_, p_214521_) -> {
                     return p_214520_.then(Commands.literal("fish").then(Commands.argument("loot_table", ResourceLocationArgument.id()).suggests(SUGGEST_LOOT_TABLE).then(Commands.argument("pos", BlockPosArgument.blockPos()).executes((p_180421_) -> {
                                                                                                                                                                                                                                   return dropFishingLoot(p_180421_, ResourceLocationArgument.getId(p_180421_, "loot_table"), BlockPosArgument.getLoadedBlockPos(p_180421_, "pos"), ItemStack.EMPTY, p_214521_);
                                                                                                                                                                                                                               })
-                                                          .then(Commands.argument("tool", ItemArgument.item(p_214517_)).executes((p_180418_) -> {
+                                                          .then(Commands.argument("tool", ItemArgument.item(pContext)).executes((p_180418_) -> {
                                                               return dropFishingLoot(p_180418_, ResourceLocationArgument.getId(p_180418_, "loot_table"), BlockPosArgument.getLoadedBlockPos(p_180418_, "pos"), ItemArgument.getItem(p_180418_, "tool").createItemStack(1, false), p_214521_);
                                                           }))
                                                           .then(Commands.literal("mainhand").executes((p_180415_) -> {
@@ -82,7 +82,7 @@ public class LootCommand {
                             .then(Commands.literal("mine").then(Commands.argument("pos", BlockPosArgument.blockPos()).executes((p_180403_) -> {
                                                                                                                          return dropBlockLoot(p_180403_, BlockPosArgument.getLoadedBlockPos(p_180403_, "pos"), ItemStack.EMPTY, p_214521_);
                                                                                                                      })
-                                            .then(Commands.argument("tool", ItemArgument.item(p_214517_)).executes((p_180400_) -> {
+                                            .then(Commands.argument("tool", ItemArgument.item(pContext)).executes((p_180400_) -> {
                                                 return dropBlockLoot(p_180400_, BlockPosArgument.getLoadedBlockPos(p_180400_, "pos"), ItemArgument.getItem(p_180400_, "tool").createItemStack(1, false), p_214521_);
                                             }))
                                             .then(Commands.literal("mainhand").executes((p_180397_) -> {
@@ -112,10 +112,10 @@ public class LootCommand {
         })));
     }
 
-    private static Container getContainer(CommandSourceStack p_137951_, BlockPos p_137952_) throws CommandSyntaxException {
-        BlockEntity blockentity = p_137951_.getLevel().getBlockEntity(p_137952_);
+    private static Container getContainer(CommandSourceStack pSource, BlockPos pPos) throws CommandSyntaxException {
+        BlockEntity blockentity = pSource.getLevel().getBlockEntity(pPos);
         if (!(blockentity instanceof Container)) {
-            throw ItemCommands.ERROR_TARGET_NOT_A_CONTAINER.create(p_137952_.getX(), p_137952_.getY(), p_137952_.getZ());
+            throw ItemCommands.ERROR_TARGET_NOT_A_CONTAINER.create(pPos.getX(), pPos.getY(), pPos.getZ());
         } else {
             return (Container) blockentity;
         }
@@ -136,22 +136,22 @@ public class LootCommand {
         return list.size();
     }
 
-    private static boolean distributeToContainer(Container p_137886_, ItemStack p_137887_) {
+    private static boolean distributeToContainer(Container pContainer, ItemStack pItem) {
         boolean flag = false;
 
-        for (int i = 0; i < p_137886_.getContainerSize() && !p_137887_.isEmpty(); ++i) {
-            ItemStack itemstack = p_137886_.getItem(i);
-            if (p_137886_.canPlaceItem(i, p_137887_)) {
+        for (int i = 0; i < pContainer.getContainerSize() && !pItem.isEmpty(); ++i) {
+            ItemStack itemstack = pContainer.getItem(i);
+            if (pContainer.canPlaceItem(i, pItem)) {
                 if (itemstack.isEmpty()) {
-                    p_137886_.setItem(i, p_137887_);
+                    pContainer.setItem(i, pItem);
                     flag = true;
                     break;
                 }
 
-                if (canMergeItems(itemstack, p_137887_)) {
-                    int j = p_137887_.getMaxStackSize() - itemstack.getCount();
-                    int k = Math.min(p_137887_.getCount(), j);
-                    p_137887_.shrink(k);
+                if (canMergeItems(itemstack, pItem)) {
+                    int j = pItem.getMaxStackSize() - itemstack.getCount();
+                    int k = Math.min(pItem.getCount(), j);
+                    pItem.shrink(k);
                     itemstack.grow(k);
                     flag = true;
                 }
@@ -183,22 +183,22 @@ public class LootCommand {
         }
     }
 
-    private static boolean canMergeItems(ItemStack p_137895_, ItemStack p_137896_) {
-        return p_137895_.is(p_137896_.getItem()) && p_137895_.getDamageValue() == p_137896_.getDamageValue() && p_137895_.getCount() <= p_137895_.getMaxStackSize() && Objects.equals(p_137895_.getTag(), p_137896_.getTag());
+    private static boolean canMergeItems(ItemStack pFirst, ItemStack pSecond) {
+        return pFirst.is(pSecond.getItem()) && pFirst.getDamageValue() == pSecond.getDamageValue() && pFirst.getCount() <= pFirst.getMaxStackSize() && Objects.equals(pFirst.getTag(), pSecond.getTag());
     }
 
-    private static int playerGive(Collection<ServerPlayer> p_137985_, List<ItemStack> p_137986_, LootCommand.Callback p_137987_) throws CommandSyntaxException {
-        List<ItemStack> list = Lists.newArrayListWithCapacity(p_137986_.size());
+    private static int playerGive(Collection<ServerPlayer> pTargets, List<ItemStack> pItems, LootCommand.Callback pCallback) throws CommandSyntaxException {
+        List<ItemStack> list = Lists.newArrayListWithCapacity(pItems.size());
 
-        for (ItemStack itemstack : p_137986_) {
-            for (ServerPlayer serverplayer : p_137985_) {
+        for (ItemStack itemstack : pItems) {
+            for (ServerPlayer serverplayer : pTargets) {
                 if (serverplayer.getInventory().add(itemstack.copy())) {
                     list.add(itemstack);
                 }
             }
         }
 
-        p_137987_.accept(list);
+        pCallback.accept(list);
         return list.size();
     }
 
@@ -228,39 +228,39 @@ public class LootCommand {
         return list.size();
     }
 
-    private static int dropInWorld(CommandSourceStack p_137946_, Vec3 p_137947_, List<ItemStack> p_137948_, LootCommand.Callback p_137949_) throws CommandSyntaxException {
-        ServerLevel serverlevel = p_137946_.getLevel();
-        p_137948_.forEach((p_137884_) -> {
-            ItemEntity itementity = new ItemEntity(serverlevel, p_137947_.x, p_137947_.y, p_137947_.z, p_137884_.copy());
+    private static int dropInWorld(CommandSourceStack pSource, Vec3 pPos, List<ItemStack> pItems, LootCommand.Callback pCallback) throws CommandSyntaxException {
+        ServerLevel serverlevel = pSource.getLevel();
+        pItems.forEach((p_137884_) -> {
+            ItemEntity itementity = new ItemEntity(serverlevel, pPos.x, pPos.y, pPos.z, p_137884_.copy());
             itementity.setDefaultPickUpDelay();
             serverlevel.addFreshEntity(itementity);
         });
-        p_137949_.accept(p_137948_);
-        return p_137948_.size();
+        pCallback.accept(pItems);
+        return pItems.size();
     }
 
-    private static void callback(CommandSourceStack p_137966_, List<ItemStack> p_137967_) {
-        if (p_137967_.size() == 1) {
-            ItemStack itemstack = p_137967_.get(0);
-            p_137966_.sendSuccess(Component.translatable("commands.drop.success.single", itemstack.getCount(), itemstack.getDisplayName()), false);
+    private static void callback(CommandSourceStack pSource, List<ItemStack> pItems) {
+        if (pItems.size() == 1) {
+            ItemStack itemstack = pItems.get(0);
+            pSource.sendSuccess(Component.translatable("commands.drop.success.single", itemstack.getCount(), itemstack.getDisplayName()), false);
         } else {
-            p_137966_.sendSuccess(Component.translatable("commands.drop.success.multiple", p_137967_.size()), false);
+            pSource.sendSuccess(Component.translatable("commands.drop.success.multiple", pItems.size()), false);
         }
     }
 
-    private static void callback(CommandSourceStack p_137969_, List<ItemStack> p_137970_, ResourceLocation p_137971_) {
-        if (p_137970_.size() == 1) {
-            ItemStack itemstack = p_137970_.get(0);
-            p_137969_.sendSuccess(Component.translatable("commands.drop.success.single_with_table", itemstack.getCount(), itemstack.getDisplayName(), p_137971_), false);
+    private static void callback(CommandSourceStack pSource, List<ItemStack> pItems, ResourceLocation pLootTable) {
+        if (pItems.size() == 1) {
+            ItemStack itemstack = pItems.get(0);
+            pSource.sendSuccess(Component.translatable("commands.drop.success.single_with_table", itemstack.getCount(), itemstack.getDisplayName(), pLootTable), false);
         } else {
-            p_137969_.sendSuccess(Component.translatable("commands.drop.success.multiple_with_table", p_137970_.size(), p_137971_), false);
+            pSource.sendSuccess(Component.translatable("commands.drop.success.multiple_with_table", pItems.size(), pLootTable), false);
         }
     }
 
-    private static ItemStack getSourceHandItem(CommandSourceStack p_137939_, EquipmentSlot p_137940_) throws CommandSyntaxException {
-        Entity entity = p_137939_.getEntityOrException();
+    private static ItemStack getSourceHandItem(CommandSourceStack pSource, EquipmentSlot pSlot) throws CommandSyntaxException {
+        Entity entity = pSource.getEntityOrException();
         if (entity instanceof LivingEntity) {
-            return ((LivingEntity) entity).getItemBySlot(p_137940_);
+            return ((LivingEntity) entity).getItemBySlot(pSlot);
         } else {
             throw ERROR_NO_HELD_ITEMS.create(entity.getDisplayName());
         }
@@ -278,12 +278,12 @@ public class LootCommand {
         });
     }
 
-    private static int dropKillLoot(CommandContext<CommandSourceStack> p_137906_, Entity p_137907_, LootCommand.DropConsumer p_137908_) throws CommandSyntaxException {
-        if (!(p_137907_ instanceof LivingEntity)) {
-            throw ERROR_NO_LOOT_TABLE.create(p_137907_.getDisplayName());
+    private static int dropKillLoot(CommandContext<CommandSourceStack> pContext, Entity pEntity, LootCommand.DropConsumer pDropConsumer) throws CommandSyntaxException {
+        if (!(pEntity instanceof LivingEntity)) {
+            throw ERROR_NO_LOOT_TABLE.create(pEntity.getDisplayName());
         } else {
-            ResourceLocation resourcelocation = ((LivingEntity) p_137907_).getLootTable();
-            CommandSourceStack commandsourcestack = p_137906_.getSource();
+            ResourceLocation resourcelocation = ((LivingEntity) pEntity).getLootTable();
+            CommandSourceStack commandsourcestack = pContext.getSource();
             LootContext.Builder lootcontext$builder = new LootContext.Builder(commandsourcestack.getLevel());
             Entity entity = commandsourcestack.getEntity();
             if (entity instanceof Player) {
@@ -293,20 +293,20 @@ public class LootCommand {
             lootcontext$builder.withParameter(LootContextParams.DAMAGE_SOURCE, DamageSource.MAGIC);
             lootcontext$builder.withOptionalParameter(LootContextParams.DIRECT_KILLER_ENTITY, entity);
             lootcontext$builder.withOptionalParameter(LootContextParams.KILLER_ENTITY, entity);
-            lootcontext$builder.withParameter(LootContextParams.THIS_ENTITY, p_137907_);
+            lootcontext$builder.withParameter(LootContextParams.THIS_ENTITY, pEntity);
             lootcontext$builder.withParameter(LootContextParams.ORIGIN, commandsourcestack.getExactPosition().toApproximateVec3());
             LootTable loottable = commandsourcestack.getServer().getLootTables().get(resourcelocation);
             List<ItemStack> list = loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.ENTITY));
-            return p_137908_.accept(p_137906_, list, (p_137975_) -> {
+            return pDropConsumer.accept(pContext, list, (p_137975_) -> {
                 callback(commandsourcestack, p_137975_, resourcelocation);
             });
         }
     }
 
-    private static int dropChestLoot(CommandContext<CommandSourceStack> p_137933_, ResourceLocation p_137934_, LootCommand.DropConsumer p_137935_) throws CommandSyntaxException {
-        CommandSourceStack commandsourcestack = p_137933_.getSource();
+    private static int dropChestLoot(CommandContext<CommandSourceStack> pContext, ResourceLocation pLootTable, LootCommand.DropConsumer pDropConsumer) throws CommandSyntaxException {
+        CommandSourceStack commandsourcestack = pContext.getSource();
         LootContext.Builder lootcontext$builder = (new LootContext.Builder(commandsourcestack.getLevel())).withOptionalParameter(LootContextParams.THIS_ENTITY, commandsourcestack.getEntity()).withParameter(LootContextParams.ORIGIN, commandsourcestack.getExactPosition().toApproximateVec3());
-        return drop(p_137933_, p_137934_, lootcontext$builder.create(LootContextParamSets.CHEST), p_137935_);
+        return drop(pContext, pLootTable, lootcontext$builder.create(LootContextParamSets.CHEST), pDropConsumer);
     }
 
     private static int dropFishingLoot(CommandContext<CommandSourceStack> p_137927_, ResourceLocation p_137928_, BlockPos p_137929_, ItemStack p_137930_, LootCommand.DropConsumer p_137931_) throws CommandSyntaxException {
@@ -315,11 +315,11 @@ public class LootCommand {
         return drop(p_137927_, p_137928_, lootcontext, p_137931_);
     }
 
-    private static int drop(CommandContext<CommandSourceStack> p_137922_, ResourceLocation p_137923_, LootContext p_137924_, LootCommand.DropConsumer p_137925_) throws CommandSyntaxException {
-        CommandSourceStack commandsourcestack = p_137922_.getSource();
-        LootTable loottable = commandsourcestack.getServer().getLootTables().get(p_137923_);
-        List<ItemStack> list = loottable.getRandomItems(p_137924_);
-        return p_137925_.accept(p_137922_, list, (p_137997_) -> {
+    private static int drop(CommandContext<CommandSourceStack> pContext, ResourceLocation pLootTable, LootContext pLootContext, LootCommand.DropConsumer pDropConsumer) throws CommandSyntaxException {
+        CommandSourceStack commandsourcestack = pContext.getSource();
+        LootTable loottable = commandsourcestack.getServer().getLootTables().get(pLootTable);
+        List<ItemStack> list = loottable.getRandomItems(pLootContext);
+        return pDropConsumer.accept(pContext, list, (p_137997_) -> {
             callback(commandsourcestack, p_137997_);
         });
     }
@@ -331,7 +331,7 @@ public class LootCommand {
 
     @FunctionalInterface
     interface DropConsumer {
-        int accept(CommandContext<CommandSourceStack> p_138050_, List<ItemStack> p_138051_, LootCommand.Callback p_138052_) throws CommandSyntaxException;
+        int accept(CommandContext<CommandSourceStack> pContext, List<ItemStack> pItems, LootCommand.Callback pCallback) throws CommandSyntaxException;
     }
 
     @FunctionalInterface

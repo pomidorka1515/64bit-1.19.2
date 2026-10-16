@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 public class LevelUUIDFix extends AbstractUUIDFix {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public LevelUUIDFix(Schema p_16360_) {
-        super(p_16360_, References.LEVEL);
+    public LevelUUIDFix(Schema pOutputSchema) {
+        super(pOutputSchema, References.LEVEL);
     }
 
     protected TypeRewriteRule makeRule() {

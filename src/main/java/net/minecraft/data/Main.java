@@ -40,7 +40,7 @@ import net.minecraft.obfuscate.DontObfuscate;
 
 public class Main {
     @DontObfuscate
-    public static void main(String[] p_129669_) throws IOException {
+    public static void main(String[] pArgs) throws IOException {
         SharedConstants.tryDetectVersion();
         OptionParser optionparser = new OptionParser();
         OptionSpec<Void> optionspec = optionparser.accepts("help", "Show the help menu").forHelp();
@@ -52,7 +52,7 @@ public class Main {
         OptionSpec<Void> optionspec6 = optionparser.accepts("all", "Include all generators");
         OptionSpec<String> optionspec7 = optionparser.accepts("output", "Output folder").withRequiredArg().defaultsTo("generated");
         OptionSpec<String> optionspec8 = optionparser.accepts("input", "Input folder").withRequiredArg();
-        OptionSet optionset = optionparser.parse(p_129669_);
+        OptionSet optionset = optionparser.parse(pArgs);
         if (!optionset.has(optionspec) && optionset.hasOptions()) {
             Path path = Paths.get(optionspec7.value(optionset));
             boolean flag = optionset.has(optionspec6);
@@ -72,34 +72,34 @@ public class Main {
         }
     }
 
-    public static DataGenerator createStandardGenerator(Path p_236680_, Collection<Path> p_236681_, boolean p_236682_, boolean p_236683_, boolean p_236684_, boolean p_236685_, boolean p_236686_, WorldVersion p_236687_, boolean p_236688_) {
-        DataGenerator datagenerator = new DataGenerator(p_236680_, p_236681_, p_236687_, p_236688_);
-        datagenerator.addProvider(p_236682_ || p_236683_, (new SnbtToNbt(datagenerator)).addFilter(new StructureUpdater()));
-        datagenerator.addProvider(p_236682_, new ModelProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new AdvancementProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new LootTableProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new RecipeProvider(datagenerator));
+    public static DataGenerator createStandardGenerator(Path pOutputFolder, Collection<Path> pInputFolders, boolean pClient, boolean pServer, boolean pDev, boolean pReports, boolean pValidate, WorldVersion pVersion, boolean pAlwaysGenerate) {
+        DataGenerator datagenerator = new DataGenerator(pOutputFolder, pInputFolders, pVersion, pAlwaysGenerate);
+        datagenerator.addProvider(pClient || pServer, (new SnbtToNbt(datagenerator)).addFilter(new StructureUpdater()));
+        datagenerator.addProvider(pClient, new ModelProvider(datagenerator));
+        datagenerator.addProvider(pServer, new AdvancementProvider(datagenerator));
+        datagenerator.addProvider(pServer, new LootTableProvider(datagenerator));
+        datagenerator.addProvider(pServer, new RecipeProvider(datagenerator));
         BlockTagsProvider blocktagsprovider = new BlockTagsProvider(datagenerator);
-        datagenerator.addProvider(p_236683_, blocktagsprovider);
-        datagenerator.addProvider(p_236683_, new ItemTagsProvider(datagenerator, blocktagsprovider));
-        datagenerator.addProvider(p_236683_, new BannerPatternTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new BiomeTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new CatVariantTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new EntityTypeTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new FlatLevelGeneratorPresetTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new FluidTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new GameEventTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new InstrumentTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new PaintingVariantTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new PoiTypeTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new StructureTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236683_, new WorldPresetTagsProvider(datagenerator));
-        datagenerator.addProvider(p_236684_, new NbtToSnbt(datagenerator));
-        datagenerator.addProvider(p_236685_, new BiomeParametersDumpReport(datagenerator));
-        datagenerator.addProvider(p_236685_, new BlockListReport(datagenerator));
-        datagenerator.addProvider(p_236685_, new CommandsReport(datagenerator));
-        datagenerator.addProvider(p_236685_, new RegistryDumpReport(datagenerator));
-        datagenerator.addProvider(p_236685_, new WorldgenRegistryDumpReport(datagenerator));
+        datagenerator.addProvider(pServer, blocktagsprovider);
+        datagenerator.addProvider(pServer, new ItemTagsProvider(datagenerator, blocktagsprovider));
+        datagenerator.addProvider(pServer, new BannerPatternTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new BiomeTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new CatVariantTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new EntityTypeTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new FlatLevelGeneratorPresetTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new FluidTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new GameEventTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new InstrumentTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new PaintingVariantTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new PoiTypeTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new StructureTagsProvider(datagenerator));
+        datagenerator.addProvider(pServer, new WorldPresetTagsProvider(datagenerator));
+        datagenerator.addProvider(pDev, new NbtToSnbt(datagenerator));
+        datagenerator.addProvider(pReports, new BiomeParametersDumpReport(datagenerator));
+        datagenerator.addProvider(pReports, new BlockListReport(datagenerator));
+        datagenerator.addProvider(pReports, new CommandsReport(datagenerator));
+        datagenerator.addProvider(pReports, new RegistryDumpReport(datagenerator));
+        datagenerator.addProvider(pReports, new WorldgenRegistryDumpReport(datagenerator));
         return datagenerator;
     }
 }

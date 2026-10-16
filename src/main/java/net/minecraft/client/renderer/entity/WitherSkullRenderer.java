@@ -24,9 +24,9 @@ public class WitherSkullRenderer extends EntityRenderer<WitherSkull> {
     private static final ResourceLocation WITHER_LOCATION = new ResourceLocation("textures/entity/wither/wither.png");
     private final SkullModel model;
 
-    public WitherSkullRenderer(EntityRendererProvider.Context p_174449_) {
-        super(p_174449_);
-        this.model = new SkullModel(p_174449_.bakeLayer(ModelLayers.WITHER_SKULL));
+    public WitherSkullRenderer(EntityRendererProvider.Context pContext) {
+        super(pContext);
+        this.model = new SkullModel(pContext.bakeLayer(ModelLayers.WITHER_SKULL));
     }
 
     public static LayerDefinition createSkullLayer() {
@@ -36,23 +36,23 @@ public class WitherSkullRenderer extends EntityRenderer<WitherSkull> {
         return LayerDefinition.create(meshdefinition, 64, 64);
     }
 
-    protected int getBlockLightLevel(WitherSkull p_116491_, BlockPos p_116492_) {
+    protected int getBlockLightLevel(WitherSkull pEntity, BlockPos pPos) {
         return 15;
     }
 
-    public void render(WitherSkull p_116484_, float p_116485_, float p_116486_, PoseStack p_116487_, MultiBufferSource p_116488_, int p_116489_) {
-        p_116487_.pushPose();
-        p_116487_.scale(-1.0F, -1.0F, 1.0F);
-        float f = Mth.rotlerp(p_116484_.yRotO, p_116484_.getYRot(), p_116486_);
-        float f1 = Mth.lerp(p_116486_, p_116484_.xRotO, p_116484_.getXRot());
-        VertexConsumer vertexconsumer = p_116488_.getBuffer(this.model.renderType(this.getTextureLocation(p_116484_)));
+    public void render(WitherSkull pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        pMatrixStack.pushPose();
+        pMatrixStack.scale(-1.0F, -1.0F, 1.0F);
+        float f = Mth.rotlerp(pEntity.yRotO, pEntity.getYRot(), pPartialTicks);
+        float f1 = Mth.lerp(pPartialTicks, pEntity.xRotO, pEntity.getXRot());
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(this.model.renderType(this.getTextureLocation(pEntity)));
         this.model.setupAnim(0.0F, f, f1);
-        this.model.renderToBuffer(p_116487_, vertexconsumer, p_116489_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-        p_116487_.popPose();
-        super.render(p_116484_, p_116485_, p_116486_, p_116487_, p_116488_, p_116489_);
+        this.model.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        pMatrixStack.popPose();
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
     }
 
-    public ResourceLocation getTextureLocation(WitherSkull p_116482_) {
-        return p_116482_.isDangerous() ? WITHER_INVULNERABLE_LOCATION : WITHER_LOCATION;
+    public ResourceLocation getTextureLocation(WitherSkull pEntity) {
+        return pEntity.isDangerous() ? WITHER_INVULNERABLE_LOCATION : WITHER_LOCATION;
     }
 }

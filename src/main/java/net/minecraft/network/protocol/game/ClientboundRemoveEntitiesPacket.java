@@ -8,24 +8,24 @@ import net.minecraft.network.protocol.Packet;
 public class ClientboundRemoveEntitiesPacket implements Packet<ClientGamePacketListener> {
     private final IntList entityIds;
 
-    public ClientboundRemoveEntitiesPacket(IntList p_182719_) {
-        this.entityIds = new IntArrayList(p_182719_);
+    public ClientboundRemoveEntitiesPacket(IntList pEntityIds) {
+        this.entityIds = new IntArrayList(pEntityIds);
     }
 
-    public ClientboundRemoveEntitiesPacket(int... p_182723_) {
-        this.entityIds = new IntArrayList(p_182723_);
+    public ClientboundRemoveEntitiesPacket(int... pEntityIds) {
+        this.entityIds = new IntArrayList(pEntityIds);
     }
 
-    public ClientboundRemoveEntitiesPacket(FriendlyByteBuf p_182721_) {
-        this.entityIds = p_182721_.readIntIdList();
+    public ClientboundRemoveEntitiesPacket(FriendlyByteBuf pBuffer) {
+        this.entityIds = pBuffer.readIntIdList();
     }
 
-    public void write(FriendlyByteBuf p_182725_) {
-        p_182725_.writeIntIdList(this.entityIds);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeIntIdList(this.entityIds);
     }
 
-    public void handle(ClientGamePacketListener p_182729_) {
-        p_182729_.handleRemoveEntities(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleRemoveEntities(this);
     }
 
     public IntList getEntityIds() {

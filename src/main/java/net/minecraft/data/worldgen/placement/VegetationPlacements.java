@@ -101,8 +101,8 @@ public class VegetationPlacements {
     public static final Holder<PlacedFeature> MUSHROOM_ISLAND_VEGETATION = PlacementUtils.register("mushroom_island_vegetation", VegetationFeatures.MUSHROOM_ISLAND_VEGETATION, InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP, BiomeFilter.biome());
     public static final Holder<PlacedFeature> TREES_MANGROVE = PlacementUtils.register("trees_mangrove", VegetationFeatures.MANGROVE_VEGETATION, CountPlacement.of(25), InSquarePlacement.spread(), SurfaceWaterDepthFilter.forMaxDepth(5), PlacementUtils.HEIGHTMAP_OCEAN_FLOOR, BiomeFilter.biome(), BlockPredicateFilter.forPredicate(BlockPredicate.wouldSurvive(Blocks.MANGROVE_PROPAGULE.defaultBlockState(), BlockPos.ZERO)));
 
-    public static List<PlacementModifier> worldSurfaceSquaredWithCount(int p_195475_) {
-        return List.of(CountPlacement.of(p_195475_), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_WORLD_SURFACE, BiomeFilter.biome());
+    public static List<PlacementModifier> worldSurfaceSquaredWithCount(int pCount) {
+        return List.of(CountPlacement.of(pCount), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_WORLD_SURFACE, BiomeFilter.biome());
     }
 
     private static List<PlacementModifier> getMushroomPlacement(int p_195477_, @Nullable PlacementModifier p_195478_) {
@@ -121,12 +121,12 @@ public class VegetationPlacements {
         return builder.build();
     }
 
-    private static ImmutableList.Builder<PlacementModifier> treePlacementBase(PlacementModifier p_195485_) {
-        return ImmutableList.<PlacementModifier>builder().add(p_195485_).add(InSquarePlacement.spread()).add(TREE_THRESHOLD).add(PlacementUtils.HEIGHTMAP_OCEAN_FLOOR).add(BiomeFilter.biome());
+    private static ImmutableList.Builder<PlacementModifier> treePlacementBase(PlacementModifier pPlacement) {
+        return ImmutableList.<PlacementModifier>builder().add(pPlacement).add(InSquarePlacement.spread()).add(TREE_THRESHOLD).add(PlacementUtils.HEIGHTMAP_OCEAN_FLOOR).add(BiomeFilter.biome());
     }
 
-    public static List<PlacementModifier> treePlacement(PlacementModifier p_195480_) {
-        return treePlacementBase(p_195480_).build();
+    public static List<PlacementModifier> treePlacement(PlacementModifier pPlacement) {
+        return treePlacementBase(pPlacement).build();
     }
 
     public static List<PlacementModifier> treePlacement(PlacementModifier p_195482_, Block p_195483_) {

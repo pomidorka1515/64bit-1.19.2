@@ -32,9 +32,9 @@ import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 public class SetAttributesFunction extends LootItemConditionalFunction {
     final List<SetAttributesFunction.Modifier> modifiers;
 
-    SetAttributesFunction(LootItemCondition[] p_80833_, List<SetAttributesFunction.Modifier> p_80834_) {
-        super(p_80833_);
-        this.modifiers = ImmutableList.copyOf(p_80834_);
+    SetAttributesFunction(LootItemCondition[] pConditions, List<SetAttributesFunction.Modifier> pModifiers) {
+        super(pConditions);
+        this.modifiers = ImmutableList.copyOf(pModifiers);
     }
 
     public LootItemFunctionType getType() {
@@ -48,8 +48,8 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
                 .collect(ImmutableSet.toImmutableSet());
     }
 
-    public ItemStack run(ItemStack p_80840_, LootContext p_80841_) {
-        RandomSource randomsource = p_80841_.getRandom();
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        RandomSource randomsource = pContext.getRandom();
 
         for (SetAttributesFunction.Modifier setattributesfunction$modifier : this.modifiers) {
             UUID uuid = setattributesfunction$modifier.id;
@@ -58,14 +58,14 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
             }
 
             EquipmentSlot equipmentslot = Util.getRandom(setattributesfunction$modifier.slots, randomsource);
-            p_80840_.addAttributeModifier(setattributesfunction$modifier.attribute, new AttributeModifier(uuid, setattributesfunction$modifier.name, (double) setattributesfunction$modifier.amount.getFloat(p_80841_), setattributesfunction$modifier.operation), equipmentslot);
+            pStack.addAttributeModifier(setattributesfunction$modifier.attribute, new AttributeModifier(uuid, setattributesfunction$modifier.name, (double) setattributesfunction$modifier.amount.getFloat(pContext), setattributesfunction$modifier.operation), equipmentslot);
         }
 
-        return p_80840_;
+        return pStack;
     }
 
-    public static SetAttributesFunction.ModifierBuilder modifier(String p_165236_, Attribute p_165237_, AttributeModifier.Operation p_165238_, NumberProvider p_165239_) {
-        return new SetAttributesFunction.ModifierBuilder(p_165236_, p_165237_, p_165238_, p_165239_);
+    public static SetAttributesFunction.ModifierBuilder modifier(String pName, Attribute pAttribute, AttributeModifier.Operation pOperation, NumberProvider pValue) {
+        return new SetAttributesFunction.ModifierBuilder(pName, pAttribute, pOperation, pValue);
     }
 
     public static SetAttributesFunction.Builder setAttributes() {
@@ -79,8 +79,8 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
             return this;
         }
 
-        public SetAttributesFunction.Builder withModifier(SetAttributesFunction.ModifierBuilder p_165246_) {
-            this.modifiers.add(p_165246_.build());
+        public SetAttributesFunction.Builder withModifier(SetAttributesFunction.ModifierBuilder pModifierBuilder) {
+            this.modifiers.add(pModifierBuilder.build());
             return this;
         }
 
@@ -98,21 +98,21 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
         final UUID id;
         final EquipmentSlot[] slots;
 
-        Modifier(String p_165250_, Attribute p_165251_, AttributeModifier.Operation p_165252_, NumberProvider p_165253_, EquipmentSlot[] p_165254_, @Nullable UUID p_165255_) {
-            this.name = p_165250_;
-            this.attribute = p_165251_;
-            this.operation = p_165252_;
-            this.amount = p_165253_;
-            this.id = p_165255_;
-            this.slots = p_165254_;
+        Modifier(String pName, Attribute pAttribute, AttributeModifier.Operation pOperation, NumberProvider pAmount, EquipmentSlot[] pSlots, @Nullable UUID pId) {
+            this.name = pName;
+            this.attribute = pAttribute;
+            this.operation = pOperation;
+            this.amount = pAmount;
+            this.id = pId;
+            this.slots = pSlots;
         }
 
-        public JsonObject serialize(JsonSerializationContext p_80866_) {
+        public JsonObject serialize(JsonSerializationContext pContext) {
             JsonObject jsonobject = new JsonObject();
             jsonobject.addProperty("name", this.name);
             jsonobject.addProperty("attribute", Registry.ATTRIBUTE.getKey(this.attribute).toString());
             jsonobject.addProperty("operation", operationToString(this.operation));
-            jsonobject.add("amount", p_80866_.serialize(this.amount));
+            jsonobject.add("amount", pContext.serialize(this.amount));
             if (this.id != null) {
                 jsonobject.addProperty("id", this.id.toString());
             }
@@ -132,25 +132,25 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
             return jsonobject;
         }
 
-        public static SetAttributesFunction.Modifier deserialize(JsonObject p_80863_, JsonDeserializationContext p_80864_) {
-            String s = GsonHelper.getAsString(p_80863_, "name");
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_80863_, "attribute"));
+        public static SetAttributesFunction.Modifier deserialize(JsonObject pJsonObj, JsonDeserializationContext pContext) {
+            String s = GsonHelper.getAsString(pJsonObj, "name");
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pJsonObj, "attribute"));
             Attribute attribute = Registry.ATTRIBUTE.get(resourcelocation);
             if (attribute == null) {
                 throw new JsonSyntaxException("Unknown attribute: " + resourcelocation);
             } else {
-                AttributeModifier.Operation attributemodifier$operation = operationFromString(GsonHelper.getAsString(p_80863_, "operation"));
-                NumberProvider numberprovider = GsonHelper.getAsObject(p_80863_, "amount", p_80864_, NumberProvider.class);
+                AttributeModifier.Operation attributemodifier$operation = operationFromString(GsonHelper.getAsString(pJsonObj, "operation"));
+                NumberProvider numberprovider = GsonHelper.getAsObject(pJsonObj, "amount", pContext, NumberProvider.class);
                 UUID uuid = null;
                 EquipmentSlot[] aequipmentslot;
-                if (GsonHelper.isStringValue(p_80863_, "slot")) {
-                    aequipmentslot = new EquipmentSlot[] {EquipmentSlot.byName(GsonHelper.getAsString(p_80863_, "slot"))};
+                if (GsonHelper.isStringValue(pJsonObj, "slot")) {
+                    aequipmentslot = new EquipmentSlot[] {EquipmentSlot.byName(GsonHelper.getAsString(pJsonObj, "slot"))};
                 } else {
-                    if (!GsonHelper.isArrayNode(p_80863_, "slot")) {
+                    if (!GsonHelper.isArrayNode(pJsonObj, "slot")) {
                         throw new JsonSyntaxException("Invalid or missing attribute modifier slot; must be either string or array of strings.");
                     }
 
-                    JsonArray jsonarray = GsonHelper.getAsJsonArray(p_80863_, "slot");
+                    JsonArray jsonarray = GsonHelper.getAsJsonArray(pJsonObj, "slot");
                     aequipmentslot = new EquipmentSlot[jsonarray.size()];
                     int i = 0;
 
@@ -163,8 +163,8 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
                     }
                 }
 
-                if (p_80863_.has("id")) {
-                    String s1 = GsonHelper.getAsString(p_80863_, "id");
+                if (pJsonObj.has("id")) {
+                    String s1 = GsonHelper.getAsString(pJsonObj, "id");
 
                     try {
                         uuid = UUID.fromString(s1);
@@ -177,8 +177,8 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
             }
         }
 
-        private static String operationToString(AttributeModifier.Operation p_80861_) {
-            switch (p_80861_) {
+        private static String operationToString(AttributeModifier.Operation pOperation) {
+            switch (pOperation) {
                 case ADDITION:
                     return "addition";
                 case MULTIPLY_BASE:
@@ -186,12 +186,12 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
                 case MULTIPLY_TOTAL:
                     return "multiply_total";
                 default:
-                    throw new IllegalArgumentException("Unknown operation " + p_80861_);
+                    throw new IllegalArgumentException("Unknown operation " + pOperation);
             }
         }
 
-        private static AttributeModifier.Operation operationFromString(String p_80870_) {
-            switch (p_80870_) {
+        private static AttributeModifier.Operation operationFromString(String pName) {
+            switch (pName) {
                 case "addition":
                     return AttributeModifier.Operation.ADDITION;
                 case "multiply_base":
@@ -199,7 +199,7 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
                 case "multiply_total":
                     return AttributeModifier.Operation.MULTIPLY_TOTAL;
                 default:
-                    throw new JsonSyntaxException("Unknown attribute modifier operation " + p_80870_);
+                    throw new JsonSyntaxException("Unknown attribute modifier operation " + pName);
             }
         }
     }
@@ -213,20 +213,20 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
         private UUID id;
         private final Set<EquipmentSlot> slots = EnumSet.noneOf(EquipmentSlot.class);
 
-        public ModifierBuilder(String p_165263_, Attribute p_165264_, AttributeModifier.Operation p_165265_, NumberProvider p_165266_) {
-            this.name = p_165263_;
-            this.attribute = p_165264_;
-            this.operation = p_165265_;
-            this.amount = p_165266_;
+        public ModifierBuilder(String pName, Attribute pAttribute, AttributeModifier.Operation pOperation, NumberProvider pAmount) {
+            this.name = pName;
+            this.attribute = pAttribute;
+            this.operation = pOperation;
+            this.amount = pAmount;
         }
 
-        public SetAttributesFunction.ModifierBuilder forSlot(EquipmentSlot p_165269_) {
-            this.slots.add(p_165269_);
+        public SetAttributesFunction.ModifierBuilder forSlot(EquipmentSlot pSlot) {
+            this.slots.add(pSlot);
             return this;
         }
 
-        public SetAttributesFunction.ModifierBuilder withUuid(UUID p_165271_) {
-            this.id = p_165271_;
+        public SetAttributesFunction.ModifierBuilder withUuid(UUID pId) {
+            this.id = pId;
             return this;
         }
 
@@ -236,29 +236,29 @@ public class SetAttributesFunction extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<SetAttributesFunction> {
-        public void serialize(JsonObject p_80891_, SetAttributesFunction p_80892_, JsonSerializationContext p_80893_) {
-            super.serialize(p_80891_, p_80892_, p_80893_);
+        public void serialize(JsonObject pJson, SetAttributesFunction pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
             JsonArray jsonarray = new JsonArray();
 
-            for (SetAttributesFunction.Modifier setattributesfunction$modifier : p_80892_.modifiers) {
-                jsonarray.add(setattributesfunction$modifier.serialize(p_80893_));
+            for (SetAttributesFunction.Modifier setattributesfunction$modifier : pValue.modifiers) {
+                jsonarray.add(setattributesfunction$modifier.serialize(pSerializationContext));
             }
 
-            p_80891_.add("modifiers", jsonarray);
+            pJson.add("modifiers", jsonarray);
         }
 
-        public SetAttributesFunction deserialize(JsonObject p_80883_, JsonDeserializationContext p_80884_, LootItemCondition[] p_80885_) {
-            JsonArray jsonarray = GsonHelper.getAsJsonArray(p_80883_, "modifiers");
+        public SetAttributesFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            JsonArray jsonarray = GsonHelper.getAsJsonArray(pObject, "modifiers");
             List<SetAttributesFunction.Modifier> list = Lists.newArrayListWithExpectedSize(jsonarray.size());
 
             for (JsonElement jsonelement : jsonarray) {
-                list.add(SetAttributesFunction.Modifier.deserialize(GsonHelper.convertToJsonObject(jsonelement, "modifier"), p_80884_));
+                list.add(SetAttributesFunction.Modifier.deserialize(GsonHelper.convertToJsonObject(jsonelement, "modifier"), pDeserializationContext));
             }
 
             if (list.isEmpty()) {
                 throw new JsonSyntaxException("Invalid attribute modifiers array; cannot be empty");
             } else {
-                return new SetAttributesFunction(p_80885_, list);
+                return new SetAttributesFunction(pConditions, list);
             }
         }
     }

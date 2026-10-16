@@ -11,7 +11,7 @@ public final class FluidTags {
     private FluidTags() {
     }
 
-    private static TagKey<Fluid> create(String p_203851_) {
-        return TagKey.create(Registry.FLUID_REGISTRY, new ResourceLocation(p_203851_));
+    private static TagKey<Fluid> create(String pName) {
+        return TagKey.create(Registry.FLUID_REGISTRY, new ResourceLocation(pName));
     }
 }

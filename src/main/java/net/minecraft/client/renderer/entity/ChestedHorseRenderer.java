@@ -19,7 +19,7 @@ public class ChestedHorseRenderer<T extends AbstractChestedHorse> extends Abstra
         super(p_173948_, new ChestedHorseModel<>(p_173948_.bakeLayer(p_173950_)), p_173949_);
     }
 
-    public ResourceLocation getTextureLocation(T p_113987_) {
-        return MAP.get(p_113987_.getType());
+    public ResourceLocation getTextureLocation(T pEntity) {
+        return MAP.get(pEntity.getType());
     }
 }

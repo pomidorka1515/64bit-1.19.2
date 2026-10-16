@@ -10,31 +10,31 @@ import net.minecraft.network.FriendlyByteBuf;
 public class SingletonArgumentInfo<A extends ArgumentType<?>> implements ArgumentTypeInfo<A, SingletonArgumentInfo<A>.Template> {
     private final SingletonArgumentInfo<A>.Template template;
 
-    private SingletonArgumentInfo(Function<CommandBuildContext, A> p_235434_) {
-        this.template = new SingletonArgumentInfo.Template(p_235434_);
+    private SingletonArgumentInfo(Function<CommandBuildContext, A> pConstructor) {
+        this.template = new SingletonArgumentInfo.Template(pConstructor);
     }
 
-    public static <T extends ArgumentType<?>> SingletonArgumentInfo<T> contextFree(Supplier<T> p_235452_) {
+    public static <T extends ArgumentType<?>> SingletonArgumentInfo<T> contextFree(Supplier<T> pArgumentTypeSupplier) {
         return new SingletonArgumentInfo<>((p_235455_) -> {
-            return p_235452_.get();
+            return pArgumentTypeSupplier.get();
         });
     }
 
-    public static <T extends ArgumentType<?>> SingletonArgumentInfo<T> contextAware(Function<CommandBuildContext, T> p_235450_) {
-        return new SingletonArgumentInfo<>(p_235450_);
+    public static <T extends ArgumentType<?>> SingletonArgumentInfo<T> contextAware(Function<CommandBuildContext, T> pArgumentType) {
+        return new SingletonArgumentInfo<>(pArgumentType);
     }
 
-    public void serializeToNetwork(SingletonArgumentInfo<A>.Template p_235447_, FriendlyByteBuf p_235448_) {
+    public void serializeToNetwork(SingletonArgumentInfo<A>.Template pTemplate, FriendlyByteBuf pBuffer) {
     }
 
-    public void serializeToJson(SingletonArgumentInfo<A>.Template p_235444_, JsonObject p_235445_) {
+    public void serializeToJson(SingletonArgumentInfo<A>.Template pTemplate, JsonObject pJson) {
     }
 
-    public SingletonArgumentInfo<A>.Template deserializeFromNetwork(FriendlyByteBuf p_235457_) {
+    public SingletonArgumentInfo<A>.Template deserializeFromNetwork(FriendlyByteBuf pBuffer) {
         return this.template;
     }
 
-    public SingletonArgumentInfo<A>.Template unpack(A p_235459_) {
+    public SingletonArgumentInfo<A>.Template unpack(A pArgument) {
         return this.template;
     }
 
@@ -45,8 +45,8 @@ public class SingletonArgumentInfo<A extends ArgumentType<?>> implements Argumen
             this.constructor = p_235466_;
         }
 
-        public A instantiate(CommandBuildContext p_235469_) {
-            return this.constructor.apply(p_235469_);
+        public A instantiate(CommandBuildContext pContext) {
+            return this.constructor.apply(pContext);
         }
 
         public ArgumentTypeInfo<A, ?> type() {

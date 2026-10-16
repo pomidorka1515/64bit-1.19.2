@@ -17,12 +17,12 @@ public class ApplyExplosionDecay extends LootItemConditionalFunction {
         return LootItemFunctions.EXPLOSION_DECAY;
     }
 
-    public ItemStack run(ItemStack p_80034_, LootContext p_80035_) {
-        Float f = p_80035_.getParamOrNull(LootContextParams.EXPLOSION_RADIUS);
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        Float f = pContext.getParamOrNull(LootContextParams.EXPLOSION_RADIUS);
         if (f != null) {
-            RandomSource randomsource = p_80035_.getRandom();
+            RandomSource randomsource = pContext.getRandom();
             float f1 = 1.0F / f;
-            int i = p_80034_.getCount();
+            int i = pStack.getCount();
             int j = 0;
 
             for (int k = 0; k < i; ++k) {
@@ -31,10 +31,10 @@ public class ApplyExplosionDecay extends LootItemConditionalFunction {
                 }
             }
 
-            p_80034_.setCount(j);
+            pStack.setCount(j);
         }
 
-        return p_80034_;
+        return pStack;
     }
 
     public static LootItemConditionalFunction.Builder<?> explosionDecay() {
@@ -42,8 +42,8 @@ public class ApplyExplosionDecay extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<ApplyExplosionDecay> {
-        public ApplyExplosionDecay deserialize(JsonObject p_80040_, JsonDeserializationContext p_80041_, LootItemCondition[] p_80042_) {
-            return new ApplyExplosionDecay(p_80042_);
+        public ApplyExplosionDecay deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            return new ApplyExplosionDecay(pConditions);
         }
     }
 }

@@ -88,15 +88,15 @@ public class BuiltInLootTables {
     public static final ResourceLocation WEAPONSMITH_GIFT = register("gameplay/hero_of_the_village/weaponsmith_gift");
     public static final ResourceLocation PIGLIN_BARTERING = register("gameplay/piglin_bartering");
 
-    private static ResourceLocation register(String p_78768_) {
-        return register(new ResourceLocation(p_78768_));
+    private static ResourceLocation register(String pId) {
+        return register(new ResourceLocation(pId));
     }
 
-    private static ResourceLocation register(ResourceLocation p_78770_) {
-        if (LOCATIONS.add(p_78770_)) {
-            return p_78770_;
+    private static ResourceLocation register(ResourceLocation pId) {
+        if (LOCATIONS.add(pId)) {
+            return pId;
         } else {
-            throw new IllegalArgumentException(p_78770_ + " is already a registered built-in loot table");
+            throw new IllegalArgumentException(pId + " is already a registered built-in loot table");
         }
     }
 

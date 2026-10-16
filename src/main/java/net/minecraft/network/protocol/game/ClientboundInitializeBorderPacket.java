@@ -14,41 +14,41 @@ public class ClientboundInitializeBorderPacket implements Packet<ClientGamePacke
     private final int warningBlocks;
     private final int warningTime;
 
-    public ClientboundInitializeBorderPacket(FriendlyByteBuf p_178879_) {
-        this.newCenterX = p_178879_.readDouble();
-        this.newCenterZ = p_178879_.readDouble();
-        this.oldSize = p_178879_.readDouble();
-        this.newSize = p_178879_.readDouble();
-        this.lerpTime = p_178879_.readVarLong();
-        this.newAbsoluteMaxSize = p_178879_.readVarInt();
-        this.warningBlocks = p_178879_.readVarInt();
-        this.warningTime = p_178879_.readVarInt();
+    public ClientboundInitializeBorderPacket(FriendlyByteBuf pBuffer) {
+        this.newCenterX = pBuffer.readDouble();
+        this.newCenterZ = pBuffer.readDouble();
+        this.oldSize = pBuffer.readDouble();
+        this.newSize = pBuffer.readDouble();
+        this.lerpTime = pBuffer.readVarLong();
+        this.newAbsoluteMaxSize = pBuffer.readVarInt();
+        this.warningBlocks = pBuffer.readVarInt();
+        this.warningTime = pBuffer.readVarInt();
     }
 
-    public ClientboundInitializeBorderPacket(WorldBorder p_178877_) {
-        this.newCenterX = p_178877_.getCenterX();
-        this.newCenterZ = p_178877_.getCenterZ();
-        this.oldSize = p_178877_.getSize();
-        this.newSize = p_178877_.getLerpTarget();
-        this.lerpTime = p_178877_.getLerpRemainingTime();
-        this.newAbsoluteMaxSize = p_178877_.getAbsoluteMaxSize();
-        this.warningBlocks = p_178877_.getWarningBlocks();
-        this.warningTime = p_178877_.getWarningTime();
+    public ClientboundInitializeBorderPacket(WorldBorder pWorldBorder) {
+        this.newCenterX = pWorldBorder.getCenterX();
+        this.newCenterZ = pWorldBorder.getCenterZ();
+        this.oldSize = pWorldBorder.getSize();
+        this.newSize = pWorldBorder.getLerpTarget();
+        this.lerpTime = pWorldBorder.getLerpRemainingTime();
+        this.newAbsoluteMaxSize = pWorldBorder.getAbsoluteMaxSize();
+        this.warningBlocks = pWorldBorder.getWarningBlocks();
+        this.warningTime = pWorldBorder.getWarningTime();
     }
 
-    public void write(FriendlyByteBuf p_178881_) {
-        p_178881_.writeDouble(this.newCenterX);
-        p_178881_.writeDouble(this.newCenterZ);
-        p_178881_.writeDouble(this.oldSize);
-        p_178881_.writeDouble(this.newSize);
-        p_178881_.writeVarLong(this.lerpTime);
-        p_178881_.writeVarInt(this.newAbsoluteMaxSize);
-        p_178881_.writeVarInt(this.warningBlocks);
-        p_178881_.writeVarInt(this.warningTime);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeDouble(this.newCenterX);
+        pBuffer.writeDouble(this.newCenterZ);
+        pBuffer.writeDouble(this.oldSize);
+        pBuffer.writeDouble(this.newSize);
+        pBuffer.writeVarLong(this.lerpTime);
+        pBuffer.writeVarInt(this.newAbsoluteMaxSize);
+        pBuffer.writeVarInt(this.warningBlocks);
+        pBuffer.writeVarInt(this.warningTime);
     }
 
-    public void handle(ClientGamePacketListener p_178885_) {
-        p_178885_.handleInitializeBorder(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleInitializeBorder(this);
     }
 
     public double getNewCenterX() {

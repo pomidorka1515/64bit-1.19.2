@@ -15,7 +15,7 @@ public class DifficultyCommand {
         return Component.translatable("commands.difficulty.failure", p_136948_);
     });
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_136939_) {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> literalargumentbuilder = Commands.literal("difficulty");
 
         for (Difficulty difficulty : Difficulty.values()) {
@@ -24,7 +24,7 @@ public class DifficultyCommand {
             }));
         }
 
-        p_136939_.register(literalargumentbuilder.requires((p_136943_) -> {
+        pDispatcher.register(literalargumentbuilder.requires((p_136943_) -> {
                                                      return p_136943_.hasPermission(2);
                                                  })
                         .executes((p_136941_) -> {
@@ -34,13 +34,13 @@ public class DifficultyCommand {
                         }));
     }
 
-    public static int setDifficulty(CommandSourceStack p_136945_, Difficulty p_136946_) throws CommandSyntaxException {
-        MinecraftServer minecraftserver = p_136945_.getServer();
-        if (minecraftserver.getWorldData().getDifficulty() == p_136946_) {
-            throw ERROR_ALREADY_DIFFICULT.create(p_136946_.getKey());
+    public static int setDifficulty(CommandSourceStack pSource, Difficulty pDifficulty) throws CommandSyntaxException {
+        MinecraftServer minecraftserver = pSource.getServer();
+        if (minecraftserver.getWorldData().getDifficulty() == pDifficulty) {
+            throw ERROR_ALREADY_DIFFICULT.create(pDifficulty.getKey());
         } else {
-            minecraftserver.setDifficulty(p_136946_, true);
-            p_136945_.sendSuccess(Component.translatable("commands.difficulty.success", p_136946_.getDisplayName()), true);
+            minecraftserver.setDifficulty(pDifficulty, true);
+            pSource.sendSuccess(Component.translatable("commands.difficulty.success", pDifficulty.getDisplayName()), true);
             return 0;
         }
     }

@@ -27,17 +27,17 @@ public class CompassItem extends Item implements Vanishable {
     public static final String TAG_LODESTONE_DIMENSION = "LodestoneDimension";
     public static final String TAG_LODESTONE_TRACKED = "LodestoneTracked";
 
-    public CompassItem(Item.Properties p_40718_) {
-        super(p_40718_);
+    public CompassItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public static boolean isLodestoneCompass(ItemStack p_40737_) {
-        CompoundTag compoundtag = p_40737_.getTag();
+    public static boolean isLodestoneCompass(ItemStack pStack) {
+        CompoundTag compoundtag = pStack.getTag();
         return compoundtag != null && (compoundtag.contains("LodestoneDimension") || compoundtag.contains("LodestonePos"));
     }
 
-    private static Optional<ResourceKey<Level>> getLodestoneDimension(CompoundTag p_40728_) {
-        return Level.RESOURCE_KEY_CODEC.parse(NbtOps.INSTANCE, p_40728_.get("LodestoneDimension")).result();
+    private static Optional<ResourceKey<Level>> getLodestoneDimension(CompoundTag pCompoundTag) {
+        return Level.RESOURCE_KEY_CODEC.parse(NbtOps.INSTANCE, pCompoundTag.get("LodestoneDimension")).result();
     }
 
     @Nullable
@@ -60,22 +60,22 @@ public class CompassItem extends Item implements Vanishable {
         return p_220020_.dimensionType().natural() ? GlobalPos.of(p_220020_.dimension(), p_220020_.getSharedSpawnPos()) : null;
     }
 
-    public boolean isFoil(ItemStack p_40739_) {
-        return isLodestoneCompass(p_40739_) || super.isFoil(p_40739_);
+    public boolean isFoil(ItemStack pStack) {
+        return isLodestoneCompass(pStack) || super.isFoil(pStack);
     }
 
-    public void inventoryTick(ItemStack p_40720_, Level p_40721_, Entity p_40722_, int p_40723_, boolean p_40724_) {
-        if (!p_40721_.isClientSide) {
-            if (isLodestoneCompass(p_40720_)) {
-                CompoundTag compoundtag = p_40720_.getOrCreateTag();
+    public void inventoryTick(ItemStack pStack, Level pLevel, Entity pEntity, int pItemSlot, boolean pIsSelected) {
+        if (!pLevel.isClientSide) {
+            if (isLodestoneCompass(pStack)) {
+                CompoundTag compoundtag = pStack.getOrCreateTag();
                 if (compoundtag.contains("LodestoneTracked") && !compoundtag.getBoolean("LodestoneTracked")) {
                     return;
                 }
 
                 Optional<ResourceKey<Level>> optional = getLodestoneDimension(compoundtag);
-                if (optional.isPresent() && optional.get() == p_40721_.dimension() && compoundtag.contains("LodestonePos")) {
+                if (optional.isPresent() && optional.get() == pLevel.dimension() && compoundtag.contains("LodestonePos")) {
                     BlockPos blockpos = NbtUtils.readBlockPos(compoundtag.getCompound("LodestonePos"));
-                    if (!p_40721_.isInWorldBounds(blockpos) || !((ServerLevel) p_40721_).getPoiManager().existsAtPosition(PoiTypes.LODESTONE, blockpos)) {
+                    if (!pLevel.isInWorldBounds(blockpos) || !((ServerLevel) pLevel).getPoiManager().existsAtPosition(PoiTypes.LODESTONE, blockpos)) {
                         compoundtag.remove("LodestonePos");
                     }
                 }
@@ -83,15 +83,15 @@ public class CompassItem extends Item implements Vanishable {
         }
     }
 
-    public InteractionResult useOn(UseOnContext p_40726_) {
-        BlockPos blockpos = p_40726_.getClickedPos();
-        Level level = p_40726_.getLevel();
+    public InteractionResult useOn(UseOnContext pContext) {
+        BlockPos blockpos = pContext.getClickedPos();
+        Level level = pContext.getLevel();
         if (!level.getBlockState(blockpos).is(Blocks.LODESTONE)) {
-            return super.useOn(p_40726_);
+            return super.useOn(pContext);
         } else {
             level.playSound((Player) null, blockpos, SoundEvents.LODESTONE_COMPASS_LOCK, SoundSource.PLAYERS, 1.0F, 1.0F);
-            Player player = p_40726_.getPlayer();
-            ItemStack itemstack = p_40726_.getItemInHand();
+            Player player = pContext.getPlayer();
+            ItemStack itemstack = pContext.getItemInHand();
             boolean flag = !player.getAbilities().instabuild && itemstack.getCount() == 1;
             if (flag) {
                 this.addLodestoneTags(level.dimension(), blockpos, itemstack.getOrCreateTag());
@@ -113,15 +113,15 @@ public class CompassItem extends Item implements Vanishable {
         }
     }
 
-    private void addLodestoneTags(ResourceKey<Level> p_40733_, BlockPos p_40734_, CompoundTag p_40735_) {
-        p_40735_.put("LodestonePos", NbtUtils.writeBlockPos(p_40734_));
-        Level.RESOURCE_KEY_CODEC.encodeStart(NbtOps.INSTANCE, p_40733_).resultOrPartial(LOGGER::error).ifPresent((p_40731_) -> {
-            p_40735_.put("LodestoneDimension", p_40731_);
+    private void addLodestoneTags(ResourceKey<Level> pLodestoneDimension, BlockPos pLodestonePos, CompoundTag pCompoundTag) {
+        pCompoundTag.put("LodestonePos", NbtUtils.writeBlockPos(pLodestonePos));
+        Level.RESOURCE_KEY_CODEC.encodeStart(NbtOps.INSTANCE, pLodestoneDimension).resultOrPartial(LOGGER::error).ifPresent((p_40731_) -> {
+            pCompoundTag.put("LodestoneDimension", p_40731_);
         });
-        p_40735_.putBoolean("LodestoneTracked", true);
+        pCompoundTag.putBoolean("LodestoneTracked", true);
     }
 
-    public String getDescriptionId(ItemStack p_40741_) {
-        return isLodestoneCompass(p_40741_) ? "item.minecraft.lodestone_compass" : super.getDescriptionId(p_40741_);
+    public String getDescriptionId(ItemStack pStack) {
+        return isLodestoneCompass(pStack) ? "item.minecraft.lodestone_compass" : super.getDescriptionId(pStack);
     }
 }

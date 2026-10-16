@@ -4,8 +4,8 @@ public class BinaryHeap {
     private Node[] heap = new Node[128];
     private int size;
 
-    public Node insert(Node p_77085_) {
-        if (p_77085_.heapIdx >= 0) {
+    public Node insert(Node pPoint) {
+        if (pPoint.heapIdx >= 0) {
             throw new IllegalStateException("OW KNOWS!");
         } else {
             if (this.size == this.heap.length) {
@@ -14,10 +14,10 @@ public class BinaryHeap {
                 this.heap = anode;
             }
 
-            this.heap[this.size] = p_77085_;
-            p_77085_.heapIdx = this.size;
+            this.heap[this.size] = pPoint;
+            pPoint.heapIdx = this.size;
             this.upHeap(this.size++);
-            return p_77085_;
+            return pPoint;
         }
     }
 
@@ -41,27 +41,27 @@ public class BinaryHeap {
         return node;
     }
 
-    public void remove(Node p_164682_) {
-        this.heap[p_164682_.heapIdx] = this.heap[--this.size];
+    public void remove(Node pNode) {
+        this.heap[pNode.heapIdx] = this.heap[--this.size];
         this.heap[this.size] = null;
-        if (this.size > p_164682_.heapIdx) {
-            if (this.heap[p_164682_.heapIdx].f < p_164682_.f) {
-                this.upHeap(p_164682_.heapIdx);
+        if (this.size > pNode.heapIdx) {
+            if (this.heap[pNode.heapIdx].f < pNode.f) {
+                this.upHeap(pNode.heapIdx);
             } else {
-                this.downHeap(p_164682_.heapIdx);
+                this.downHeap(pNode.heapIdx);
             }
         }
 
-        p_164682_.heapIdx = -1;
+        pNode.heapIdx = -1;
     }
 
-    public void changeCost(Node p_77087_, float p_77088_) {
-        float f = p_77087_.f;
-        p_77087_.f = p_77088_;
-        if (p_77088_ < f) {
-            this.upHeap(p_77087_.heapIdx);
+    public void changeCost(Node pPoint, float pCost) {
+        float f = pPoint.f;
+        pPoint.f = pCost;
+        if (pCost < f) {
+            this.upHeap(pPoint.heapIdx);
         } else {
-            this.downHeap(p_77087_.heapIdx);
+            this.downHeap(pPoint.heapIdx);
         }
     }
 
@@ -69,31 +69,31 @@ public class BinaryHeap {
         return this.size;
     }
 
-    private void upHeap(int p_77083_) {
-        Node node = this.heap[p_77083_];
+    private void upHeap(int pIndex) {
+        Node node = this.heap[pIndex];
 
         int i;
-        for (float f = node.f; p_77083_ > 0; p_77083_ = i) {
-            i = p_77083_ - 1 >> 1;
+        for (float f = node.f; pIndex > 0; pIndex = i) {
+            i = pIndex - 1 >> 1;
             Node node1 = this.heap[i];
             if (!(f < node1.f)) {
                 break;
             }
 
-            this.heap[p_77083_] = node1;
-            node1.heapIdx = p_77083_;
+            this.heap[pIndex] = node1;
+            node1.heapIdx = pIndex;
         }
 
-        this.heap[p_77083_] = node;
-        node.heapIdx = p_77083_;
+        this.heap[pIndex] = node;
+        node.heapIdx = pIndex;
     }
 
-    private void downHeap(int p_77090_) {
-        Node node = this.heap[p_77090_];
+    private void downHeap(int pIndex) {
+        Node node = this.heap[pIndex];
         float f = node.f;
 
         while (true) {
-            int i = 1 + (p_77090_ << 1);
+            int i = 1 + (pIndex << 1);
             int j = i + 1;
             if (i >= this.size) {
                 break;
@@ -116,22 +116,22 @@ public class BinaryHeap {
                     break;
                 }
 
-                this.heap[p_77090_] = node1;
-                node1.heapIdx = p_77090_;
-                p_77090_ = i;
+                this.heap[pIndex] = node1;
+                node1.heapIdx = pIndex;
+                pIndex = i;
             } else {
                 if (!(f2 < f)) {
                     break;
                 }
 
-                this.heap[p_77090_] = node2;
-                node2.heapIdx = p_77090_;
-                p_77090_ = j;
+                this.heap[pIndex] = node2;
+                node2.heapIdx = pIndex;
+                pIndex = j;
             }
         }
 
-        this.heap[p_77090_] = node;
-        node.heapIdx = p_77090_;
+        this.heap[pIndex] = node;
+        node.heapIdx = pIndex;
     }
 
     public boolean isEmpty() {

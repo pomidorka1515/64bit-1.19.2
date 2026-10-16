@@ -21,36 +21,36 @@ public class EntityFlagsPredicate {
     @Nullable
     private final Boolean isBaby;
 
-    public EntityFlagsPredicate(@Nullable Boolean p_33690_, @Nullable Boolean p_33691_, @Nullable Boolean p_33692_, @Nullable Boolean p_33693_, @Nullable Boolean p_33694_) {
-        this.isOnFire = p_33690_;
-        this.isCrouching = p_33691_;
-        this.isSprinting = p_33692_;
-        this.isSwimming = p_33693_;
-        this.isBaby = p_33694_;
+    public EntityFlagsPredicate(@Nullable Boolean pIsOnFire, @Nullable Boolean pIsCouching, @Nullable Boolean pIsSprinting, @Nullable Boolean pIsSwimming, @Nullable Boolean pIsBaby) {
+        this.isOnFire = pIsOnFire;
+        this.isCrouching = pIsCouching;
+        this.isSprinting = pIsSprinting;
+        this.isSwimming = pIsSwimming;
+        this.isBaby = pIsBaby;
     }
 
-    public boolean matches(Entity p_33697_) {
-        if (this.isOnFire != null && p_33697_.isOnFire() != this.isOnFire) {
+    public boolean matches(Entity pEntity) {
+        if (this.isOnFire != null && pEntity.isOnFire() != this.isOnFire) {
             return false;
-        } else if (this.isCrouching != null && p_33697_.isCrouching() != this.isCrouching) {
+        } else if (this.isCrouching != null && pEntity.isCrouching() != this.isCrouching) {
             return false;
-        } else if (this.isSprinting != null && p_33697_.isSprinting() != this.isSprinting) {
+        } else if (this.isSprinting != null && pEntity.isSprinting() != this.isSprinting) {
             return false;
-        } else if (this.isSwimming != null && p_33697_.isSwimming() != this.isSwimming) {
+        } else if (this.isSwimming != null && pEntity.isSwimming() != this.isSwimming) {
             return false;
         } else {
-            return this.isBaby == null || !(p_33697_ instanceof LivingEntity) || ((LivingEntity) p_33697_).isBaby() == this.isBaby;
+            return this.isBaby == null || !(pEntity instanceof LivingEntity) || ((LivingEntity) pEntity).isBaby() == this.isBaby;
         }
     }
 
     @Nullable
-    private static Boolean getOptionalBoolean(JsonObject p_33701_, String p_33702_) {
-        return p_33701_.has(p_33702_) ? GsonHelper.getAsBoolean(p_33701_, p_33702_) : null;
+    private static Boolean getOptionalBoolean(JsonObject pJson, String pName) {
+        return pJson.has(pName) ? GsonHelper.getAsBoolean(pJson, pName) : null;
     }
 
-    public static EntityFlagsPredicate fromJson(@Nullable JsonElement p_33699_) {
-        if (p_33699_ != null && !p_33699_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_33699_, "entity flags");
+    public static EntityFlagsPredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "entity flags");
             Boolean obool = getOptionalBoolean(jsonobject, "is_on_fire");
             Boolean obool1 = getOptionalBoolean(jsonobject, "is_sneaking");
             Boolean obool2 = getOptionalBoolean(jsonobject, "is_sprinting");
@@ -62,9 +62,9 @@ public class EntityFlagsPredicate {
         }
     }
 
-    private void addOptionalBoolean(JsonObject p_33704_, String p_33705_, @Nullable Boolean p_33706_) {
-        if (p_33706_ != null) {
-            p_33704_.addProperty(p_33705_, p_33706_);
+    private void addOptionalBoolean(JsonObject pJson, String pName, @Nullable Boolean pValue) {
+        if (pValue != null) {
+            pJson.addProperty(pName, pValue);
         }
     }
 
@@ -98,28 +98,28 @@ public class EntityFlagsPredicate {
             return new EntityFlagsPredicate.Builder();
         }
 
-        public EntityFlagsPredicate.Builder setOnFire(@Nullable Boolean p_33715_) {
-            this.isOnFire = p_33715_;
+        public EntityFlagsPredicate.Builder setOnFire(@Nullable Boolean pOnFire) {
+            this.isOnFire = pOnFire;
             return this;
         }
 
-        public EntityFlagsPredicate.Builder setCrouching(@Nullable Boolean p_150058_) {
-            this.isCrouching = p_150058_;
+        public EntityFlagsPredicate.Builder setCrouching(@Nullable Boolean pIsCrouching) {
+            this.isCrouching = pIsCrouching;
             return this;
         }
 
-        public EntityFlagsPredicate.Builder setSprinting(@Nullable Boolean p_150060_) {
-            this.isSprinting = p_150060_;
+        public EntityFlagsPredicate.Builder setSprinting(@Nullable Boolean pIsSprinting) {
+            this.isSprinting = pIsSprinting;
             return this;
         }
 
-        public EntityFlagsPredicate.Builder setSwimming(@Nullable Boolean p_150062_) {
-            this.isSwimming = p_150062_;
+        public EntityFlagsPredicate.Builder setSwimming(@Nullable Boolean pIsSwimming) {
+            this.isSwimming = pIsSwimming;
             return this;
         }
 
-        public EntityFlagsPredicate.Builder setIsBaby(@Nullable Boolean p_33718_) {
-            this.isBaby = p_33718_;
+        public EntityFlagsPredicate.Builder setIsBaby(@Nullable Boolean pIsBaby) {
+            this.isBaby = pIsBaby;
             return this;
         }
 

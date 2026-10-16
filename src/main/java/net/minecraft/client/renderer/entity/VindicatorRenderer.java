@@ -25,7 +25,7 @@ public class VindicatorRenderer extends IllagerRenderer<Vindicator> {
         });
     }
 
-    public ResourceLocation getTextureLocation(Vindicator p_116324_) {
+    public ResourceLocation getTextureLocation(Vindicator pEntity) {
         return VINDICATOR;
     }
 }

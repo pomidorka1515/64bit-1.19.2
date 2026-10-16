@@ -73,7 +73,7 @@ public class BiomeTags {
     private BiomeTags() {
     }
 
-    private static TagKey<Biome> create(String p_207631_) {
-        return TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(p_207631_));
+    private static TagKey<Biome> create(String pName) {
+        return TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(pName));
     }
 }

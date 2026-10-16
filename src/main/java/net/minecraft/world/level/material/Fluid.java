@@ -33,15 +33,15 @@ public abstract class Fluid {
         this.registerDefaultState(this.stateDefinition.any());
     }
 
-    protected void createFluidStateDefinition(StateDefinition.Builder<Fluid, FluidState> p_76121_) {
+    protected void createFluidStateDefinition(StateDefinition.Builder<Fluid, FluidState> pBuilder) {
     }
 
     public StateDefinition<Fluid, FluidState> getStateDefinition() {
         return this.stateDefinition;
     }
 
-    protected final void registerDefaultState(FluidState p_76143_) {
-        this.defaultFluidState = p_76143_;
+    protected final void registerDefaultState(FluidState pState) {
+        this.defaultFluidState = pState;
     }
 
     public final FluidState defaultFluidState() {
@@ -50,13 +50,13 @@ public abstract class Fluid {
 
     public abstract Item getBucket();
 
-    protected void animateTick(Level p_230550_, BlockPos p_230551_, FluidState p_230552_, RandomSource p_230553_) {
+    protected void animateTick(Level pLevel, BlockPos pPos, FluidState pState, RandomSource pRandom) {
     }
 
-    protected void tick(Level p_76113_, BlockPos p_76114_, FluidState p_76115_) {
+    protected void tick(Level pLevel, BlockPos pPos, FluidState pState) {
     }
 
-    protected void randomTick(Level p_230554_, BlockPos p_230555_, FluidState p_230556_, RandomSource p_230557_) {
+    protected void randomTick(Level pLevel, BlockPos pPos, FluidState pState, RandomSource pRandom) {
     }
 
     @Nullable
@@ -64,11 +64,11 @@ public abstract class Fluid {
         return null;
     }
 
-    protected abstract boolean canBeReplacedWith(FluidState p_76127_, BlockGetter p_76128_, BlockPos p_76129_, Fluid p_76130_, Direction p_76131_);
+    protected abstract boolean canBeReplacedWith(FluidState pState, BlockGetter pLevel, BlockPos pPos, Fluid pFluid, Direction pDirection);
 
-    protected abstract Vec3 getFlow(BlockGetter p_76110_, BlockPos p_76111_, FluidState p_76112_);
+    protected abstract Vec3 getFlow(BlockGetter pBlockReader, BlockPos pPos, FluidState pFluidState);
 
-    public abstract int getTickDelay(LevelReader p_76120_);
+    public abstract int getTickDelay(LevelReader pLevel);
 
     protected boolean isRandomlyTicking() {
         return false;
@@ -80,27 +80,27 @@ public abstract class Fluid {
 
     protected abstract float getExplosionResistance();
 
-    public abstract float getHeight(FluidState p_76124_, BlockGetter p_76125_, BlockPos p_76126_);
+    public abstract float getHeight(FluidState pState, BlockGetter pLevel, BlockPos pPos);
 
-    public abstract float getOwnHeight(FluidState p_76123_);
+    public abstract float getOwnHeight(FluidState pState);
 
-    protected abstract BlockState createLegacyBlock(FluidState p_76136_);
+    protected abstract BlockState createLegacyBlock(FluidState pState);
 
-    public abstract boolean isSource(FluidState p_76140_);
+    public abstract boolean isSource(FluidState pState);
 
-    public abstract int getAmount(FluidState p_76141_);
+    public abstract int getAmount(FluidState pState);
 
-    public boolean isSame(Fluid p_76122_) {
-        return p_76122_ == this;
+    public boolean isSame(Fluid pFluid) {
+        return pFluid == this;
     }
 
     /** @deprecated */
     @Deprecated
-    public boolean is(TagKey<Fluid> p_205068_) {
-        return this.builtInRegistryHolder.is(p_205068_);
+    public boolean is(TagKey<Fluid> pTag) {
+        return this.builtInRegistryHolder.is(pTag);
     }
 
-    public abstract VoxelShape getShape(FluidState p_76137_, BlockGetter p_76138_, BlockPos p_76139_);
+    public abstract VoxelShape getShape(FluidState pState, BlockGetter pLevel, BlockPos pPos);
 
     public Optional<SoundEvent> getPickupSound() {
         return Optional.empty();

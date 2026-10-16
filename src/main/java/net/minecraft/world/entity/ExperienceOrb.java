@@ -31,16 +31,16 @@ public class ExperienceOrb extends Entity {
     private int count = 1;
     private Player followingPlayer;
 
-    public ExperienceOrb(Level p_20776_, double p_20777_, double p_20778_, double p_20779_, int p_20780_) {
-        this(EntityType.EXPERIENCE_ORB, p_20776_);
-        this.setPos(p_20777_, p_20778_, p_20779_);
+    public ExperienceOrb(Level pLevel, double pX, double pY, double pZ, int pValue) {
+        this(EntityType.EXPERIENCE_ORB, pLevel);
+        this.setPos(pX, pY, pZ);
         this.setYRot((float) (this.random.nextDouble() * 360.0D));
         this.setDeltaMovement((this.random.nextDouble() * (double) 0.2F - (double) 0.1F) * 2.0D, this.random.nextDouble() * 0.2D * 2.0D, (this.random.nextDouble() * (double) 0.2F - (double) 0.1F) * 2.0D);
-        this.value = p_20780_;
+        this.value = pValue;
     }
 
-    public ExperienceOrb(EntityType<? extends ExperienceOrb> p_20773_, Level p_20774_) {
-        super(p_20773_, p_20774_);
+    public ExperienceOrb(EntityType<? extends ExperienceOrb> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected Entity.MovementEmission getMovementEmission() {
@@ -115,8 +115,8 @@ public class ExperienceOrb extends Entity {
         }
     }
 
-    public static void award(ServerLevel p_147083_, Vec3 p_147084_, int p_147085_) {
-        award(p_147083_, net.minecraft.world.phys.SectorVec3.fromApproximate(p_147084_.x(), p_147084_.y(), p_147084_.z()), p_147085_);
+    public static void award(ServerLevel pLevel, Vec3 pPos, int pAmount) {
+        award(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pPos.x(), pPos.y(), pPos.z()), pAmount);
     }
 
     /** Spawns and merges experience at an exact split-coordinate location. */
@@ -133,15 +133,15 @@ public class ExperienceOrb extends Entity {
         }
     }
 
-    private static boolean tryMergeToExisting(ServerLevel p_147097_, net.minecraft.world.phys.SectorVec3 position, int p_147099_) {
+    private static boolean tryMergeToExisting(ServerLevel pLevel, net.minecraft.world.phys.SectorVec3 position, int pAmount) {
         net.minecraft.world.phys.SectorAABB query = net.minecraft.world.phys.SectorAABB.around(position, 1.0D, 1.0D);
         net.minecraft.world.phys.SectorPhysicsOrigin origin = net.minecraft.world.phys.SectorPhysicsOrigin.from(position);
         AABB localQuery = query.toLocalAABB(origin);
-        int i = p_147097_.getRandom().nextInt(40);
-        for (Entity candidate : p_147097_.getSectorEntities(null, query, localQuery, origin,
+        int i = pLevel.getRandom().nextInt(40);
+        for (Entity candidate : pLevel.getSectorEntities(null, query, localQuery, origin,
                      entity -> entity instanceof ExperienceOrb)) {
             ExperienceOrb experienceorb = (ExperienceOrb) candidate;
-            if (canMerge(experienceorb, i, p_147099_)) {
+            if (canMerge(experienceorb, i, pAmount)) {
                 ++experienceorb.count;
                 experienceorb.age = 0;
                 return true;
@@ -150,11 +150,11 @@ public class ExperienceOrb extends Entity {
         return false;
     }
 
-    private static boolean tryMergeToExisting(ServerLevel p_147097_, Vec3 p_147098_, int p_147099_) {
-        AABB aabb = AABB.ofSize(p_147098_, 1.0D, 1.0D, 1.0D);
-        int i = p_147097_.getRandom().nextInt(40);
-        List<ExperienceOrb> list = p_147097_.getEntities(EntityTypeTest.forClass(ExperienceOrb.class), aabb, (p_147081_) -> {
-            return canMerge(p_147081_, i, p_147099_);
+    private static boolean tryMergeToExisting(ServerLevel pLevel, Vec3 pPos, int pAmount) {
+        AABB aabb = AABB.ofSize(pPos, 1.0D, 1.0D, 1.0D);
+        int i = pLevel.getRandom().nextInt(40);
+        List<ExperienceOrb> list = pLevel.getEntities(EntityTypeTest.forClass(ExperienceOrb.class), aabb, (p_147081_) -> {
+            return canMerge(p_147081_, i, pAmount);
         });
         if (!list.isEmpty()) {
             ExperienceOrb experienceorb = list.get(0);
@@ -170,14 +170,14 @@ public class ExperienceOrb extends Entity {
         return p_147087_ != this && canMerge(p_147087_, this.getId(), this.value);
     }
 
-    private static boolean canMerge(ExperienceOrb p_147089_, int p_147090_, int p_147091_) {
-        return !p_147089_.isRemoved() && (p_147089_.getId() - p_147090_) % 40 == 0 && p_147089_.value == p_147091_;
+    private static boolean canMerge(ExperienceOrb pOrb, int pAmount, int pOther) {
+        return !pOrb.isRemoved() && (pOrb.getId() - pAmount) % 40 == 0 && pOrb.value == pOther;
     }
 
-    private void merge(ExperienceOrb p_147101_) {
-        this.count += p_147101_.count;
-        this.age = Math.min(this.age, p_147101_.age);
-        p_147101_.discard();
+    private void merge(ExperienceOrb pOrb) {
+        this.count += pOrb.count;
+        this.age = Math.min(this.age, pOrb.age);
+        pOrb.discard();
     }
 
     private void setUnderwaterMovement() {
@@ -188,14 +188,14 @@ public class ExperienceOrb extends Entity {
     protected void doWaterSplashEffect() {
     }
 
-    public boolean hurt(DamageSource p_20785_, float p_20786_) {
-        if (this.isInvulnerableTo(p_20785_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else if (this.level.isClientSide) {
             return true;
         } else {
             this.markHurt();
-            this.health = (int) ((float) this.health - p_20786_);
+            this.health = (int) ((float) this.health - pAmount);
             if (this.health <= 0) {
                 this.discard();
             }
@@ -204,28 +204,28 @@ public class ExperienceOrb extends Entity {
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_20796_) {
-        p_20796_.putShort("Health", (short) this.health);
-        p_20796_.putShort("Age", (short) this.age);
-        p_20796_.putShort("Value", (short) this.value);
-        p_20796_.putInt("Count", this.count);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        pCompound.putShort("Health", (short) this.health);
+        pCompound.putShort("Age", (short) this.age);
+        pCompound.putShort("Value", (short) this.value);
+        pCompound.putInt("Count", this.count);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_20788_) {
-        this.health = p_20788_.getShort("Health");
-        this.age = p_20788_.getShort("Age");
-        this.value = p_20788_.getShort("Value");
-        this.count = Math.max(p_20788_.getInt("Count"), 1);
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        this.health = pCompound.getShort("Health");
+        this.age = pCompound.getShort("Age");
+        this.value = pCompound.getShort("Value");
+        this.count = Math.max(pCompound.getInt("Count"), 1);
     }
 
-    public void playerTouch(Player p_20792_) {
+    public void playerTouch(Player pEntity) {
         if (!this.level.isClientSide) {
-            if (p_20792_.takeXpDelay == 0) {
-                p_20792_.takeXpDelay = 2;
-                p_20792_.take(this, 1);
-                int i = this.repairPlayerItems(p_20792_, this.value);
+            if (pEntity.takeXpDelay == 0) {
+                pEntity.takeXpDelay = 2;
+                pEntity.take(this, 1);
+                int i = this.repairPlayerItems(pEntity, this.value);
                 if (i > 0) {
-                    p_20792_.giveExperiencePoints(i);
+                    pEntity.giveExperiencePoints(i);
                 }
 
                 --this.count;
@@ -236,25 +236,25 @@ public class ExperienceOrb extends Entity {
         }
     }
 
-    private int repairPlayerItems(Player p_147093_, int p_147094_) {
-        Map.Entry<EquipmentSlot, ItemStack> entry = EnchantmentHelper.getRandomItemWith(Enchantments.MENDING, p_147093_, ItemStack::isDamaged);
+    private int repairPlayerItems(Player pPlayer, int pRepairAmount) {
+        Map.Entry<EquipmentSlot, ItemStack> entry = EnchantmentHelper.getRandomItemWith(Enchantments.MENDING, pPlayer, ItemStack::isDamaged);
         if (entry != null) {
             ItemStack itemstack = entry.getValue();
             int i = Math.min(this.xpToDurability(this.value), itemstack.getDamageValue());
             itemstack.setDamageValue(itemstack.getDamageValue() - i);
-            int j = p_147094_ - this.durabilityToXp(i);
-            return j > 0 ? this.repairPlayerItems(p_147093_, j) : 0;
+            int j = pRepairAmount - this.durabilityToXp(i);
+            return j > 0 ? this.repairPlayerItems(pPlayer, j) : 0;
         } else {
-            return p_147094_;
+            return pRepairAmount;
         }
     }
 
-    private int durabilityToXp(int p_20794_) {
-        return p_20794_ / 2;
+    private int durabilityToXp(int pDurability) {
+        return pDurability / 2;
     }
 
-    private int xpToDurability(int p_20799_) {
-        return p_20799_ * 2;
+    private int xpToDurability(int pXp) {
+        return pXp * 2;
     }
 
     public int getValue() {
@@ -285,27 +285,27 @@ public class ExperienceOrb extends Entity {
         }
     }
 
-    public static int getExperienceValue(int p_20783_) {
-        if (p_20783_ >= 2477) {
+    public static int getExperienceValue(int pExpValue) {
+        if (pExpValue >= 2477) {
             return 2477;
-        } else if (p_20783_ >= 1237) {
+        } else if (pExpValue >= 1237) {
             return 1237;
-        } else if (p_20783_ >= 617) {
+        } else if (pExpValue >= 617) {
             return 617;
-        } else if (p_20783_ >= 307) {
+        } else if (pExpValue >= 307) {
             return 307;
-        } else if (p_20783_ >= 149) {
+        } else if (pExpValue >= 149) {
             return 149;
-        } else if (p_20783_ >= 73) {
+        } else if (pExpValue >= 73) {
             return 73;
-        } else if (p_20783_ >= 37) {
+        } else if (pExpValue >= 37) {
             return 37;
-        } else if (p_20783_ >= 17) {
+        } else if (pExpValue >= 17) {
             return 17;
-        } else if (p_20783_ >= 7) {
+        } else if (pExpValue >= 7) {
             return 7;
         } else {
-            return p_20783_ >= 3 ? 3 : 1;
+            return pExpValue >= 3 ? 3 : 1;
         }
     }
 

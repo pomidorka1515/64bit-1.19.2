@@ -17,10 +17,10 @@ public class PufferfishMidModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart leftBlueFin;
     private final ModelPart rightBlueFin;
 
-    public PufferfishMidModel(ModelPart p_170842_) {
-        this.root = p_170842_;
-        this.leftBlueFin = p_170842_.getChild("left_blue_fin");
-        this.rightBlueFin = p_170842_.getChild("right_blue_fin");
+    public PufferfishMidModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.leftBlueFin = pRoot.getChild("left_blue_fin");
+        this.rightBlueFin = pRoot.getChild("right_blue_fin");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -45,8 +45,8 @@ public class PufferfishMidModel<T extends Entity> extends HierarchicalModel<T> {
         return this.root;
     }
 
-    public void setupAnim(T p_103471_, float p_103472_, float p_103473_, float p_103474_, float p_103475_, float p_103476_) {
-        this.rightBlueFin.zRot = -0.2F + 0.4F * Mth.sin(p_103474_ * 0.2F);
-        this.leftBlueFin.zRot = 0.2F - 0.4F * Mth.sin(p_103474_ * 0.2F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.rightBlueFin.zRot = -0.2F + 0.4F * Mth.sin(pAgeInTicks * 0.2F);
+        this.leftBlueFin.zRot = 0.2F - 0.4F * Mth.sin(pAgeInTicks * 0.2F);
     }
 }

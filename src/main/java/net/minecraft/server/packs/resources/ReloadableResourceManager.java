@@ -23,46 +23,46 @@ public class ReloadableResourceManager implements ResourceManager, AutoCloseable
     private final List<PreparableReloadListener> listeners = Lists.newArrayList();
     private final PackType type;
 
-    public ReloadableResourceManager(PackType p_203820_) {
-        this.type = p_203820_;
-        this.resources = new MultiPackResourceManager(p_203820_, List.of());
+    public ReloadableResourceManager(PackType pType) {
+        this.type = pType;
+        this.resources = new MultiPackResourceManager(pType, List.of());
     }
 
     public void close() {
         this.resources.close();
     }
 
-    public void registerReloadListener(PreparableReloadListener p_10714_) {
-        this.listeners.add(p_10714_);
+    public void registerReloadListener(PreparableReloadListener pListener) {
+        this.listeners.add(pListener);
     }
 
-    public ReloadInstance createReload(Executor p_143930_, Executor p_143931_, CompletableFuture<Unit> p_143932_, List<PackResources> p_143933_) {
+    public ReloadInstance createReload(Executor pBackgroundExecutor, Executor pGameExecutor, CompletableFuture<Unit> pWaitingFor, List<PackResources> pResourcePacks) {
         LOGGER.info("Reloading ResourceManager: {}", LogUtils.defer(() -> {
-            return p_143933_.stream().map(PackResources::getName).collect(Collectors.joining(", "));
+            return pResourcePacks.stream().map(PackResources::getName).collect(Collectors.joining(", "));
         }));
         this.resources.close();
-        this.resources = new MultiPackResourceManager(this.type, p_143933_);
-        return SimpleReloadInstance.create(this.resources, this.listeners, p_143930_, p_143931_, p_143932_, LOGGER.isDebugEnabled());
+        this.resources = new MultiPackResourceManager(this.type, pResourcePacks);
+        return SimpleReloadInstance.create(this.resources, this.listeners, pBackgroundExecutor, pGameExecutor, pWaitingFor, LOGGER.isDebugEnabled());
     }
 
-    public Optional<Resource> getResource(ResourceLocation p_215494_) {
-        return this.resources.getResource(p_215494_);
+    public Optional<Resource> getResource(ResourceLocation pLocation) {
+        return this.resources.getResource(pLocation);
     }
 
     public Set<String> getNamespaces() {
         return this.resources.getNamespaces();
     }
 
-    public List<Resource> getResourceStack(ResourceLocation p_215486_) {
-        return this.resources.getResourceStack(p_215486_);
+    public List<Resource> getResourceStack(ResourceLocation pLocation) {
+        return this.resources.getResourceStack(pLocation);
     }
 
-    public Map<ResourceLocation, Resource> listResources(String p_215488_, Predicate<ResourceLocation> p_215489_) {
-        return this.resources.listResources(p_215488_, p_215489_);
+    public Map<ResourceLocation, Resource> listResources(String pPath, Predicate<ResourceLocation> pFilter) {
+        return this.resources.listResources(pPath, pFilter);
     }
 
-    public Map<ResourceLocation, List<Resource>> listResourceStacks(String p_215491_, Predicate<ResourceLocation> p_215492_) {
-        return this.resources.listResourceStacks(p_215491_, p_215492_);
+    public Map<ResourceLocation, List<Resource>> listResourceStacks(String pPath, Predicate<ResourceLocation> pFilter) {
+        return this.resources.listResourceStacks(pPath, pFilter);
     }
 
     public Stream<PackResources> listPacks() {

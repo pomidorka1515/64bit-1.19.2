@@ -24,28 +24,28 @@ public class NormalNoise {
 
     /** @deprecated */
     @Deprecated
-    public static NormalNoise createLegacyNetherBiome(RandomSource p_230509_, NormalNoise.NoiseParameters p_230510_) {
-        return new NormalNoise(p_230509_, p_230510_, false);
+    public static NormalNoise createLegacyNetherBiome(RandomSource pRandom, NormalNoise.NoiseParameters pParameters) {
+        return new NormalNoise(pRandom, pParameters, false);
     }
 
-    public static NormalNoise create(RandomSource p_230505_, int p_230506_, double... p_230507_) {
-        return create(p_230505_, new NormalNoise.NoiseParameters(p_230506_, new DoubleArrayList(p_230507_)));
+    public static NormalNoise create(RandomSource pRandom, int pFirstOctave, double... pAmplitudes) {
+        return create(pRandom, new NormalNoise.NoiseParameters(pFirstOctave, new DoubleArrayList(pAmplitudes)));
     }
 
-    public static NormalNoise create(RandomSource p_230512_, NormalNoise.NoiseParameters p_230513_) {
-        return new NormalNoise(p_230512_, p_230513_, true);
+    public static NormalNoise create(RandomSource pRandom, NormalNoise.NoiseParameters pParameters) {
+        return new NormalNoise(pRandom, pParameters, true);
     }
 
-    private NormalNoise(RandomSource p_230501_, NormalNoise.NoiseParameters p_230502_, boolean p_230503_) {
-        int i = p_230502_.firstOctave;
-        DoubleList doublelist = p_230502_.amplitudes;
-        this.parameters = p_230502_;
-        if (p_230503_) {
-            this.first = PerlinNoise.create(p_230501_, i, doublelist);
-            this.second = PerlinNoise.create(p_230501_, i, doublelist);
+    private NormalNoise(RandomSource pRandom, NormalNoise.NoiseParameters pParameters, boolean pUseLegacyNetherBiome) {
+        int i = pParameters.firstOctave;
+        DoubleList doublelist = pParameters.amplitudes;
+        this.parameters = pParameters;
+        if (pUseLegacyNetherBiome) {
+            this.first = PerlinNoise.create(pRandom, i, doublelist);
+            this.second = PerlinNoise.create(pRandom, i, doublelist);
         } else {
-            this.first = PerlinNoise.createLegacyForLegacyNetherBiome(p_230501_, i, doublelist);
-            this.second = PerlinNoise.createLegacyForLegacyNetherBiome(p_230501_, i, doublelist);
+            this.first = PerlinNoise.createLegacyForLegacyNetherBiome(pRandom, i, doublelist);
+            this.second = PerlinNoise.createLegacyForLegacyNetherBiome(pRandom, i, doublelist);
         }
 
         int j = Integer.MAX_VALUE;
@@ -69,15 +69,15 @@ public class NormalNoise {
         return this.maxValue;
     }
 
-    private static double expectedDeviation(int p_75385_) {
-        return 0.1D * (1.0D + 1.0D / (double) (p_75385_ + 1));
+    private static double expectedDeviation(int pOctaves) {
+        return 0.1D * (1.0D + 1.0D / (double) (pOctaves + 1));
     }
 
-    public double getValue(double p_75381_, double p_75382_, double p_75383_) {
-        double d0 = p_75381_ * 1.0181268882175227D;
-        double d1 = p_75382_ * 1.0181268882175227D;
-        double d2 = p_75383_ * 1.0181268882175227D;
-        return (this.first.getValue(p_75381_, p_75382_, p_75383_) + this.second.getValue(d0, d1, d2)) * this.valueFactor;
+    public double getValue(double pX, double pY, double pZ) {
+        double d0 = pX * 1.0181268882175227D;
+        double d1 = pY * 1.0181268882175227D;
+        double d2 = pZ * 1.0181268882175227D;
+        return (this.first.getValue(pX, pY, pZ) + this.second.getValue(d0, d1, d2)) * this.valueFactor;
     }
 
     public double getValue(long cellX, double fracX, double y, long cellZ, double fracZ) {

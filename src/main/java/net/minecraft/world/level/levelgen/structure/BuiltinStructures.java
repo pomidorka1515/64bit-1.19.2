@@ -38,7 +38,7 @@ public interface BuiltinStructures {
     ResourceKey<Structure> RUINED_PORTAL_NETHER = createKey("ruined_portal_nether");
     ResourceKey<Structure> ANCIENT_CITY = createKey("ancient_city");
 
-    private static ResourceKey<Structure> createKey(String p_209873_) {
-        return ResourceKey.create(Registry.STRUCTURE_REGISTRY, new ResourceLocation(p_209873_));
+    private static ResourceKey<Structure> createKey(String pName) {
+        return ResourceKey.create(Registry.STRUCTURE_REGISTRY, new ResourceLocation(pName));
     }
 }

@@ -52,130 +52,130 @@ public class StairBlock extends Block implements SimpleWaterloggedBlock {
     private final Block base;
     private final BlockState baseState;
 
-    private static VoxelShape[] makeShapes(VoxelShape p_56934_, VoxelShape p_56935_, VoxelShape p_56936_, VoxelShape p_56937_, VoxelShape p_56938_) {
+    private static VoxelShape[] makeShapes(VoxelShape pSlabShape, VoxelShape pNwCorner, VoxelShape pNeCorner, VoxelShape pSwCorner, VoxelShape pSeCorner) {
         return IntStream.range(0, 16).mapToObj((p_56945_) -> {
-                                         return makeStairShape(p_56945_, p_56934_, p_56935_, p_56936_, p_56937_, p_56938_);
+                                         return makeStairShape(p_56945_, pSlabShape, pNwCorner, pNeCorner, pSwCorner, pSeCorner);
                                      })
                 .toArray((p_56949_) -> {
                     return new VoxelShape[p_56949_];
                 });
     }
 
-    private static VoxelShape makeStairShape(int p_56865_, VoxelShape p_56866_, VoxelShape p_56867_, VoxelShape p_56868_, VoxelShape p_56869_, VoxelShape p_56870_) {
-        VoxelShape voxelshape = p_56866_;
-        if ((p_56865_ & 1) != 0) {
-            voxelshape = Shapes.or(p_56866_, p_56867_);
+    private static VoxelShape makeStairShape(int pBitfield, VoxelShape pSlabShape, VoxelShape pNwCorner, VoxelShape pNeCorner, VoxelShape pSwCorner, VoxelShape pSeCorner) {
+        VoxelShape voxelshape = pSlabShape;
+        if ((pBitfield & 1) != 0) {
+            voxelshape = Shapes.or(pSlabShape, pNwCorner);
         }
 
-        if ((p_56865_ & 2) != 0) {
-            voxelshape = Shapes.or(voxelshape, p_56868_);
+        if ((pBitfield & 2) != 0) {
+            voxelshape = Shapes.or(voxelshape, pNeCorner);
         }
 
-        if ((p_56865_ & 4) != 0) {
-            voxelshape = Shapes.or(voxelshape, p_56869_);
+        if ((pBitfield & 4) != 0) {
+            voxelshape = Shapes.or(voxelshape, pSwCorner);
         }
 
-        if ((p_56865_ & 8) != 0) {
-            voxelshape = Shapes.or(voxelshape, p_56870_);
+        if ((pBitfield & 8) != 0) {
+            voxelshape = Shapes.or(voxelshape, pSeCorner);
         }
 
         return voxelshape;
     }
 
-    protected StairBlock(BlockState p_56862_, BlockBehaviour.Properties p_56863_) {
-        super(p_56863_);
+    protected StairBlock(BlockState pBaseState, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(HALF, Half.BOTTOM).setValue(SHAPE, StairsShape.STRAIGHT).setValue(WATERLOGGED, Boolean.valueOf(false)));
-        this.base = p_56862_.getBlock();
-        this.baseState = p_56862_;
+        this.base = pBaseState.getBlock();
+        this.baseState = pBaseState;
     }
 
-    public boolean useShapeForLightOcclusion(BlockState p_56967_) {
+    public boolean useShapeForLightOcclusion(BlockState pState) {
         return true;
     }
 
-    public VoxelShape getShape(BlockState p_56956_, BlockGetter p_56957_, BlockPos p_56958_, CollisionContext p_56959_) {
-        return (p_56956_.getValue(HALF) == Half.TOP ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[this.getShapeIndex(p_56956_)]];
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return (pState.getValue(HALF) == Half.TOP ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[this.getShapeIndex(pState)]];
     }
 
-    private int getShapeIndex(BlockState p_56983_) {
-        return p_56983_.getValue(SHAPE).ordinal() * 4 + p_56983_.getValue(FACING).get2DDataValue();
+    private int getShapeIndex(BlockState pState) {
+        return pState.getValue(SHAPE).ordinal() * 4 + pState.getValue(FACING).get2DDataValue();
     }
 
-    public void animateTick(BlockState p_222518_, Level p_222519_, BlockPos p_222520_, RandomSource p_222521_) {
-        this.base.animateTick(p_222518_, p_222519_, p_222520_, p_222521_);
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
+        this.base.animateTick(pState, pLevel, pPos, pRandom);
     }
 
-    public void attack(BlockState p_56896_, Level p_56897_, BlockPos p_56898_, Player p_56899_) {
-        this.baseState.attack(p_56897_, p_56898_, p_56899_);
+    public void attack(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer) {
+        this.baseState.attack(pLevel, pPos, pPlayer);
     }
 
-    public void destroy(LevelAccessor p_56882_, BlockPos p_56883_, BlockState p_56884_) {
-        this.base.destroy(p_56882_, p_56883_, p_56884_);
+    public void destroy(LevelAccessor pLevel, BlockPos pPos, BlockState pState) {
+        this.base.destroy(pLevel, pPos, pState);
     }
 
     public float getExplosionResistance() {
         return this.base.getExplosionResistance();
     }
 
-    public void onPlace(BlockState p_56961_, Level p_56962_, BlockPos p_56963_, BlockState p_56964_, boolean p_56965_) {
-        if (!p_56961_.is(p_56961_.getBlock())) {
-            p_56962_.neighborChanged(this.baseState, p_56963_, Blocks.AIR, p_56963_, false);
-            this.base.onPlace(this.baseState, p_56962_, p_56963_, p_56964_, false);
+    public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
+        if (!pState.is(pState.getBlock())) {
+            pLevel.neighborChanged(this.baseState, pPos, Blocks.AIR, pPos, false);
+            this.base.onPlace(this.baseState, pLevel, pPos, pOldState, false);
         }
     }
 
-    public void onRemove(BlockState p_56908_, Level p_56909_, BlockPos p_56910_, BlockState p_56911_, boolean p_56912_) {
-        if (!p_56908_.is(p_56911_.getBlock())) {
-            this.baseState.onRemove(p_56909_, p_56910_, p_56911_, p_56912_);
+    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+        if (!pState.is(pNewState.getBlock())) {
+            this.baseState.onRemove(pLevel, pPos, pNewState, pIsMoving);
         }
     }
 
-    public void stepOn(Level p_154720_, BlockPos p_154721_, BlockState p_154722_, Entity p_154723_) {
-        this.base.stepOn(p_154720_, p_154721_, p_154722_, p_154723_);
+    public void stepOn(Level pLevel, BlockPos pPos, BlockState pState, Entity pEntity) {
+        this.base.stepOn(pLevel, pPos, pState, pEntity);
     }
 
-    public boolean isRandomlyTicking(BlockState p_56947_) {
-        return this.base.isRandomlyTicking(p_56947_);
+    public boolean isRandomlyTicking(BlockState pState) {
+        return this.base.isRandomlyTicking(pState);
     }
 
-    public void randomTick(BlockState p_222523_, ServerLevel p_222524_, BlockPos p_222525_, RandomSource p_222526_) {
-        this.base.randomTick(p_222523_, p_222524_, p_222525_, p_222526_);
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        this.base.randomTick(pState, pLevel, pPos, pRandom);
     }
 
-    public void tick(BlockState p_222513_, ServerLevel p_222514_, BlockPos p_222515_, RandomSource p_222516_) {
-        this.base.tick(p_222513_, p_222514_, p_222515_, p_222516_);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        this.base.tick(pState, pLevel, pPos, pRandom);
     }
 
-    public InteractionResult use(BlockState p_56901_, Level p_56902_, BlockPos p_56903_, Player p_56904_, InteractionHand p_56905_, BlockHitResult p_56906_) {
-        return this.baseState.use(p_56902_, p_56904_, p_56905_, p_56906_);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        return this.baseState.use(pLevel, pPlayer, pHand, pHit);
     }
 
-    public void wasExploded(Level p_56878_, BlockPos p_56879_, Explosion p_56880_) {
-        this.base.wasExploded(p_56878_, p_56879_, p_56880_);
+    public void wasExploded(Level pLevel, BlockPos pPos, Explosion pExplosion) {
+        this.base.wasExploded(pLevel, pPos, pExplosion);
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_56872_) {
-        Direction direction = p_56872_.getClickedFace();
-        BlockPos blockpos = p_56872_.getClickedPos();
-        FluidState fluidstate = p_56872_.getLevel().getFluidState(blockpos);
-        BlockState blockstate = this.defaultBlockState().setValue(FACING, p_56872_.getHorizontalDirection()).setValue(HALF, direction != Direction.DOWN && (direction == Direction.UP || !(p_56872_.getClickLocation().y - (double) blockpos.getY() > 0.5D)) ? Half.BOTTOM : Half.TOP).setValue(WATERLOGGED, Boolean.valueOf(fluidstate.getType() == Fluids.WATER));
-        return blockstate.setValue(SHAPE, getStairsShape(blockstate, p_56872_.getLevel(), blockpos));
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        Direction direction = pContext.getClickedFace();
+        BlockPos blockpos = pContext.getClickedPos();
+        FluidState fluidstate = pContext.getLevel().getFluidState(blockpos);
+        BlockState blockstate = this.defaultBlockState().setValue(FACING, pContext.getHorizontalDirection()).setValue(HALF, direction != Direction.DOWN && (direction == Direction.UP || !(pContext.getClickLocation().y - (double) blockpos.getY() > 0.5D)) ? Half.BOTTOM : Half.TOP).setValue(WATERLOGGED, Boolean.valueOf(fluidstate.getType() == Fluids.WATER));
+        return blockstate.setValue(SHAPE, getStairsShape(blockstate, pContext.getLevel(), blockpos));
     }
 
-    public BlockState updateShape(BlockState p_56925_, Direction p_56926_, BlockState p_56927_, LevelAccessor p_56928_, BlockPos p_56929_, BlockPos p_56930_) {
-        if (p_56925_.getValue(WATERLOGGED)) {
-            p_56928_.scheduleTick(p_56929_, Fluids.WATER, Fluids.WATER.getTickDelay(p_56928_));
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return p_56926_.getAxis().isHorizontal() ? p_56925_.setValue(SHAPE, getStairsShape(p_56925_, p_56928_, p_56929_)) : super.updateShape(p_56925_, p_56926_, p_56927_, p_56928_, p_56929_, p_56930_);
+        return pFacing.getAxis().isHorizontal() ? pState.setValue(SHAPE, getStairsShape(pState, pLevel, pCurrentPos)) : super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    private static StairsShape getStairsShape(BlockState p_56977_, BlockGetter p_56978_, BlockPos p_56979_) {
-        Direction direction = p_56977_.getValue(FACING);
-        BlockState blockstate = p_56978_.getBlockState(p_56979_.relative(direction));
-        if (isStairs(blockstate) && p_56977_.getValue(HALF) == blockstate.getValue(HALF)) {
+    private static StairsShape getStairsShape(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+        Direction direction = pState.getValue(FACING);
+        BlockState blockstate = pLevel.getBlockState(pPos.relative(direction));
+        if (isStairs(blockstate) && pState.getValue(HALF) == blockstate.getValue(HALF)) {
             Direction direction1 = blockstate.getValue(FACING);
-            if (direction1.getAxis() != p_56977_.getValue(FACING).getAxis() && canTakeShape(p_56977_, p_56978_, p_56979_, direction1.getOpposite())) {
+            if (direction1.getAxis() != pState.getValue(FACING).getAxis() && canTakeShape(pState, pLevel, pPos, direction1.getOpposite())) {
                 if (direction1 == direction.getCounterClockWise()) {
                     return StairsShape.OUTER_LEFT;
                 }
@@ -184,10 +184,10 @@ public class StairBlock extends Block implements SimpleWaterloggedBlock {
             }
         }
 
-        BlockState blockstate1 = p_56978_.getBlockState(p_56979_.relative(direction.getOpposite()));
-        if (isStairs(blockstate1) && p_56977_.getValue(HALF) == blockstate1.getValue(HALF)) {
+        BlockState blockstate1 = pLevel.getBlockState(pPos.relative(direction.getOpposite()));
+        if (isStairs(blockstate1) && pState.getValue(HALF) == blockstate1.getValue(HALF)) {
             Direction direction2 = blockstate1.getValue(FACING);
-            if (direction2.getAxis() != p_56977_.getValue(FACING).getAxis() && canTakeShape(p_56977_, p_56978_, p_56979_, direction2)) {
+            if (direction2.getAxis() != pState.getValue(FACING).getAxis() && canTakeShape(pState, pLevel, pPos, direction2)) {
                 if (direction2 == direction.getCounterClockWise()) {
                     return StairsShape.INNER_LEFT;
                 }
@@ -199,36 +199,36 @@ public class StairBlock extends Block implements SimpleWaterloggedBlock {
         return StairsShape.STRAIGHT;
     }
 
-    private static boolean canTakeShape(BlockState p_56971_, BlockGetter p_56972_, BlockPos p_56973_, Direction p_56974_) {
-        BlockState blockstate = p_56972_.getBlockState(p_56973_.relative(p_56974_));
-        return !isStairs(blockstate) || blockstate.getValue(FACING) != p_56971_.getValue(FACING) || blockstate.getValue(HALF) != p_56971_.getValue(HALF);
+    private static boolean canTakeShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, Direction pFace) {
+        BlockState blockstate = pLevel.getBlockState(pPos.relative(pFace));
+        return !isStairs(blockstate) || blockstate.getValue(FACING) != pState.getValue(FACING) || blockstate.getValue(HALF) != pState.getValue(HALF);
     }
 
-    public static boolean isStairs(BlockState p_56981_) {
-        return p_56981_.getBlock() instanceof StairBlock;
+    public static boolean isStairs(BlockState pState) {
+        return pState.getBlock() instanceof StairBlock;
     }
 
-    public BlockState rotate(BlockState p_56922_, Rotation p_56923_) {
-        return p_56922_.setValue(FACING, p_56923_.rotate(p_56922_.getValue(FACING)));
+    public BlockState rotate(BlockState pState, Rotation pRot) {
+        return pState.setValue(FACING, pRot.rotate(pState.getValue(FACING)));
     }
 
-    public BlockState mirror(BlockState p_56919_, Mirror p_56920_) {
-        Direction direction = p_56919_.getValue(FACING);
-        StairsShape stairsshape = p_56919_.getValue(SHAPE);
-        switch (p_56920_) {
+    public BlockState mirror(BlockState pState, Mirror pMirror) {
+        Direction direction = pState.getValue(FACING);
+        StairsShape stairsshape = pState.getValue(SHAPE);
+        switch (pMirror) {
             case LEFT_RIGHT:
                 if (direction.getAxis() == Direction.Axis.Z) {
                     switch (stairsshape) {
                         case INNER_LEFT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.INNER_RIGHT);
+                            return pState.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.INNER_RIGHT);
                         case INNER_RIGHT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.INNER_LEFT);
+                            return pState.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.INNER_LEFT);
                         case OUTER_LEFT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.OUTER_RIGHT);
+                            return pState.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.OUTER_RIGHT);
                         case OUTER_RIGHT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.OUTER_LEFT);
+                            return pState.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.OUTER_LEFT);
                         default:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180);
+                            return pState.rotate(Rotation.CLOCKWISE_180);
                     }
                 }
                 break;
@@ -236,31 +236,31 @@ public class StairBlock extends Block implements SimpleWaterloggedBlock {
                 if (direction.getAxis() == Direction.Axis.X) {
                     switch (stairsshape) {
                         case INNER_LEFT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.INNER_LEFT);
+                            return pState.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.INNER_LEFT);
                         case INNER_RIGHT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.INNER_RIGHT);
+                            return pState.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.INNER_RIGHT);
                         case OUTER_LEFT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.OUTER_RIGHT);
+                            return pState.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.OUTER_RIGHT);
                         case OUTER_RIGHT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.OUTER_LEFT);
+                            return pState.rotate(Rotation.CLOCKWISE_180).setValue(SHAPE, StairsShape.OUTER_LEFT);
                         case STRAIGHT:
-                            return p_56919_.rotate(Rotation.CLOCKWISE_180);
+                            return pState.rotate(Rotation.CLOCKWISE_180);
                     }
                 }
         }
 
-        return super.mirror(p_56919_, p_56920_);
+        return super.mirror(pState, pMirror);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_56932_) {
-        p_56932_.add(FACING, HALF, SHAPE, WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(FACING, HALF, SHAPE, WATERLOGGED);
     }
 
-    public FluidState getFluidState(BlockState p_56969_) {
-        return p_56969_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_56969_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public boolean isPathfindable(BlockState p_56891_, BlockGetter p_56892_, BlockPos p_56893_, PathComputationType p_56894_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 }

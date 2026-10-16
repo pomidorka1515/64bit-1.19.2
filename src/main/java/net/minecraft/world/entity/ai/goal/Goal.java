@@ -29,9 +29,9 @@ public abstract class Goal {
     public void tick() {
     }
 
-    public void setFlags(EnumSet<Goal.Flag> p_25328_) {
+    public void setFlags(EnumSet<Goal.Flag> pFlagSet) {
         this.flags.clear();
-        this.flags.addAll(p_25328_);
+        this.flags.addAll(pFlagSet);
     }
 
     public String toString() {
@@ -42,12 +42,12 @@ public abstract class Goal {
         return this.flags;
     }
 
-    protected int adjustedTickDelay(int p_186072_) {
-        return this.requiresUpdateEveryTick() ? p_186072_ : reducedTickDelay(p_186072_);
+    protected int adjustedTickDelay(int pAdjustment) {
+        return this.requiresUpdateEveryTick() ? pAdjustment : reducedTickDelay(pAdjustment);
     }
 
-    protected static int reducedTickDelay(int p_186074_) {
-        return Mth.positiveCeilDiv(p_186074_, 2);
+    protected static int reducedTickDelay(int pReduction) {
+        return Mth.positiveCeilDiv(pReduction, 2);
     }
 
     public static enum Flag {

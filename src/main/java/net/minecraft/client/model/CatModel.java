@@ -11,14 +11,14 @@ public class CatModel<T extends Cat> extends OcelotModel<T> {
     private float lieDownAmountTail;
     private float relaxStateOneAmount;
 
-    public CatModel(ModelPart p_170478_) {
-        super(p_170478_);
+    public CatModel(ModelPart pRoot) {
+        super(pRoot);
     }
 
-    public void prepareMobModel(T p_102343_, float p_102344_, float p_102345_, float p_102346_) {
-        this.lieDownAmount = p_102343_.getLieDownAmount(p_102346_);
-        this.lieDownAmountTail = p_102343_.getLieDownAmountTail(p_102346_);
-        this.relaxStateOneAmount = p_102343_.getRelaxStateOneAmount(p_102346_);
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        this.lieDownAmount = pEntity.getLieDownAmount(pPartialTick);
+        this.lieDownAmountTail = pEntity.getLieDownAmountTail(pPartialTick);
+        this.relaxStateOneAmount = pEntity.getRelaxStateOneAmount(pPartialTick);
         if (this.lieDownAmount <= 0.0F) {
             this.head.xRot = 0.0F;
             this.head.zRot = 0.0F;
@@ -34,8 +34,8 @@ public class CatModel<T extends Cat> extends OcelotModel<T> {
             this.rightHindLeg.y = 18.0F;
         }
 
-        super.prepareMobModel(p_102343_, p_102344_, p_102345_, p_102346_);
-        if (p_102343_.isInSittingPose()) {
+        super.prepareMobModel(pEntity, pLimbSwing, pLimbSwingAmount, pPartialTick);
+        if (pEntity.isInSittingPose()) {
             this.body.xRot = ((float) Math.PI / 4F);
             this.body.y += -4.0F;
             this.body.z += 5.0F;
@@ -63,8 +63,8 @@ public class CatModel<T extends Cat> extends OcelotModel<T> {
         }
     }
 
-    public void setupAnim(T p_102348_, float p_102349_, float p_102350_, float p_102351_, float p_102352_, float p_102353_) {
-        super.setupAnim(p_102348_, p_102349_, p_102350_, p_102351_, p_102352_, p_102353_);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
         if (this.lieDownAmount > 0.0F) {
             this.head.zRot = ModelUtils.rotlerpRad(this.head.zRot, -1.2707963F, this.lieDownAmount);
             this.head.yRot = ModelUtils.rotlerpRad(this.head.yRot, 1.2707963F, this.lieDownAmount);

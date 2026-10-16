@@ -7,11 +7,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface SpectatorMenuItem {
-    void selectItem(SpectatorMenu p_101842_);
+    void selectItem(SpectatorMenu pMenu);
 
     Component getName();
 
-    void renderIcon(PoseStack p_101839_, float p_101840_, int p_101841_);
+    void renderIcon(PoseStack pPoseStack, float pShadeColor, int pAlpha);
 
     boolean isEnabled();
 }

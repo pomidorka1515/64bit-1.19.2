@@ -20,42 +20,42 @@ public class VibrationSignalParticle extends TextureSheetParticle {
     private float yRot;
     private float yRotO;
 
-    VibrationSignalParticle(ClientLevel p_234105_, double p_234106_, double p_234107_, double p_234108_, PositionSource p_234109_, int p_234110_) {
-        super(p_234105_, p_234106_, p_234107_, p_234108_, 0.0D, 0.0D, 0.0D);
+    VibrationSignalParticle(ClientLevel pLevel, double pX, double pY, double pZ, PositionSource pTarget, int pLifetime) {
+        super(pLevel, pX, pY, pZ, 0.0D, 0.0D, 0.0D);
         this.quadSize = 0.3F;
-        this.target = p_234109_;
-        this.lifetime = p_234110_;
+        this.target = pTarget;
+        this.lifetime = pLifetime;
     }
 
-    public void render(VertexConsumer p_172475_, Camera p_172476_, float p_172477_) {
-        float f = Mth.sin(((float) this.age + p_172477_ - ((float) Math.PI * 2F)) * 0.05F) * 2.0F;
-        float f1 = Mth.lerp(p_172477_, this.yRotO, this.yRot);
+    public void render(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+        float f = Mth.sin(((float) this.age + pPartialTicks - ((float) Math.PI * 2F)) * 0.05F) * 2.0F;
+        float f1 = Mth.lerp(pPartialTicks, this.yRotO, this.yRot);
         float f2 = 1.0472F;
-        this.renderSignal(p_172475_, p_172476_, p_172477_, (p_172487_) -> {
+        this.renderSignal(pBuffer, pRenderInfo, pPartialTicks, (p_172487_) -> {
             p_172487_.mul(Vector3f.YP.rotation(f1));
             p_172487_.mul(Vector3f.XP.rotation(-1.0472F));
             p_172487_.mul(Vector3f.YP.rotation(f));
         });
-        this.renderSignal(p_172475_, p_172476_, p_172477_, (p_172473_) -> {
+        this.renderSignal(pBuffer, pRenderInfo, pPartialTicks, (p_172473_) -> {
             p_172473_.mul(Vector3f.YP.rotation(-(float) Math.PI + f1));
             p_172473_.mul(Vector3f.XP.rotation(1.0472F));
             p_172473_.mul(Vector3f.YP.rotation(f));
         });
     }
 
-    private void renderSignal(VertexConsumer p_172479_, Camera p_172480_, float p_172481_, Consumer<Quaternion> p_172482_) {
-        net.minecraft.world.phys.Vec3 relative = this.cameraRelativePosition(p_172480_, p_172481_);
+    private void renderSignal(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks, Consumer<Quaternion> pQuaternionConsumer) {
+        net.minecraft.world.phys.Vec3 relative = this.cameraRelativePosition(pRenderInfo, pPartialTicks);
         float f = (float) relative.x;
         float f1 = (float) relative.y;
         float f2 = (float) relative.z;
         Vector3f vector3f = new Vector3f(0.5F, 0.5F, 0.5F);
         vector3f.normalize();
         Quaternion quaternion = new Quaternion(vector3f, 0.0F, true);
-        p_172482_.accept(quaternion);
+        pQuaternionConsumer.accept(quaternion);
         Vector3f vector3f1 = new Vector3f(-1.0F, -1.0F, 0.0F);
         vector3f1.transform(quaternion);
         Vector3f[] avector3f = new Vector3f[] {new Vector3f(-1.0F, -1.0F, 0.0F), new Vector3f(-1.0F, 1.0F, 0.0F), new Vector3f(1.0F, 1.0F, 0.0F), new Vector3f(1.0F, -1.0F, 0.0F)};
-        float f3 = this.getQuadSize(p_172481_);
+        float f3 = this.getQuadSize(pPartialTicks);
 
         for (int i = 0; i < 4; ++i) {
             Vector3f vector3f2 = avector3f[i];
@@ -68,14 +68,14 @@ public class VibrationSignalParticle extends TextureSheetParticle {
         float f7 = this.getU1();
         float f4 = this.getV0();
         float f5 = this.getV1();
-        int j = this.getLightColor(p_172481_);
-        p_172479_.vertex((double) avector3f[0].x(), (double) avector3f[0].y(), (double) avector3f[0].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_172479_.vertex((double) avector3f[1].x(), (double) avector3f[1].y(), (double) avector3f[1].z()).uv(f7, f4).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_172479_.vertex((double) avector3f[2].x(), (double) avector3f[2].y(), (double) avector3f[2].z()).uv(f6, f4).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_172479_.vertex((double) avector3f[3].x(), (double) avector3f[3].y(), (double) avector3f[3].z()).uv(f6, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        int j = this.getLightColor(pPartialTicks);
+        pBuffer.vertex((double) avector3f[0].x(), (double) avector3f[0].y(), (double) avector3f[0].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex((double) avector3f[1].x(), (double) avector3f[1].y(), (double) avector3f[1].z()).uv(f7, f4).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex((double) avector3f[2].x(), (double) avector3f[2].y(), (double) avector3f[2].z()).uv(f6, f4).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex((double) avector3f[3].x(), (double) avector3f[3].y(), (double) avector3f[3].z()).uv(f6, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
     }
 
-    public int getLightColor(float p_172469_) {
+    public int getLightColor(float pPartialTick) {
         return 240;
     }
 
@@ -115,12 +115,12 @@ public class VibrationSignalParticle extends TextureSheetParticle {
     public static class Provider implements ParticleProvider<VibrationParticleOption> {
         private final SpriteSet sprite;
 
-        public Provider(SpriteSet p_172490_) {
-            this.sprite = p_172490_;
+        public Provider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(VibrationParticleOption p_172501_, ClientLevel p_172502_, double p_172503_, double p_172504_, double p_172505_, double p_172506_, double p_172507_, double p_172508_) {
-            VibrationSignalParticle vibrationsignalparticle = new VibrationSignalParticle(p_172502_, p_172503_, p_172504_, p_172505_, p_172501_.getDestination(), p_172501_.getArrivalInTicks());
+        public Particle createParticle(VibrationParticleOption pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            VibrationSignalParticle vibrationsignalparticle = new VibrationSignalParticle(pLevel, pX, pY, pZ, pType.getDestination(), pType.getArrivalInTicks());
             vibrationsignalparticle.pickSprite(this.sprite);
             vibrationsignalparticle.setAlpha(1.0F);
             return vibrationsignalparticle;

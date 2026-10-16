@@ -11,9 +11,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface AddressCheck {
-    boolean isAllowed(ResolvedServerAddress p_171829_);
+    boolean isAllowed(ResolvedServerAddress pResolvedServerAddress);
 
-    boolean isAllowed(ServerAddress p_171830_);
+    boolean isAllowed(ServerAddress pServerAddress);
 
     static AddressCheck createFromService() {
         final ImmutableList<Predicate<String>> immutablelist = Streams.stream(ServiceLoader.load(BlockListSupplier.class)).map(BlockListSupplier::createBlockList).filter(Objects::nonNull).collect(ImmutableList.toImmutableList());

@@ -20,31 +20,31 @@ public final class VideoMode {
     private final int refreshRate;
     private static final Pattern PATTERN = Pattern.compile("(\\d+)x(\\d+)(?:@(\\d+)(?::(\\d+))?)?");
 
-    public VideoMode(int p_85322_, int p_85323_, int p_85324_, int p_85325_, int p_85326_, int p_85327_) {
-        this.width = p_85322_;
-        this.height = p_85323_;
-        this.redBits = p_85324_;
-        this.greenBits = p_85325_;
-        this.blueBits = p_85326_;
-        this.refreshRate = p_85327_;
+    public VideoMode(int pWidth, int pHeight, int pRedBits, int pGreenBits, int pBlueBits, int pRefreshRate) {
+        this.width = pWidth;
+        this.height = pHeight;
+        this.redBits = pRedBits;
+        this.greenBits = pGreenBits;
+        this.blueBits = pBlueBits;
+        this.refreshRate = pRefreshRate;
     }
 
-    public VideoMode(GLFWVidMode.Buffer p_85329_) {
-        this.width = p_85329_.width();
-        this.height = p_85329_.height();
-        this.redBits = p_85329_.redBits();
-        this.greenBits = p_85329_.greenBits();
-        this.blueBits = p_85329_.blueBits();
-        this.refreshRate = p_85329_.refreshRate();
+    public VideoMode(GLFWVidMode.Buffer pBufferVideoMode) {
+        this.width = pBufferVideoMode.width();
+        this.height = pBufferVideoMode.height();
+        this.redBits = pBufferVideoMode.redBits();
+        this.greenBits = pBufferVideoMode.greenBits();
+        this.blueBits = pBufferVideoMode.blueBits();
+        this.refreshRate = pBufferVideoMode.refreshRate();
     }
 
-    public VideoMode(GLFWVidMode p_85331_) {
-        this.width = p_85331_.width();
-        this.height = p_85331_.height();
-        this.redBits = p_85331_.redBits();
-        this.greenBits = p_85331_.greenBits();
-        this.blueBits = p_85331_.blueBits();
-        this.refreshRate = p_85331_.refreshRate();
+    public VideoMode(GLFWVidMode pGlfwVideoMode) {
+        this.width = pGlfwVideoMode.width();
+        this.height = pGlfwVideoMode.height();
+        this.redBits = pGlfwVideoMode.redBits();
+        this.greenBits = pGlfwVideoMode.greenBits();
+        this.blueBits = pGlfwVideoMode.blueBits();
+        this.refreshRate = pGlfwVideoMode.refreshRate();
     }
 
     public int getWidth() {
@@ -71,11 +71,11 @@ public final class VideoMode {
         return this.refreshRate;
     }
 
-    public boolean equals(Object p_85340_) {
-        if (this == p_85340_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_85340_ != null && this.getClass() == p_85340_.getClass()) {
-            VideoMode videomode = (VideoMode) p_85340_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            VideoMode videomode = (VideoMode) pOther;
             return this.width == videomode.width && this.height == videomode.height && this.redBits == videomode.redBits && this.greenBits == videomode.greenBits && this.blueBits == videomode.blueBits && this.refreshRate == videomode.refreshRate;
         } else {
             return false;
@@ -90,12 +90,12 @@ public final class VideoMode {
         return String.format(Locale.ROOT, "%sx%s@%s (%sbit)", this.width, this.height, this.refreshRate, this.redBits + this.greenBits + this.blueBits);
     }
 
-    public static Optional<VideoMode> read(@Nullable String p_85334_) {
-        if (p_85334_ == null) {
+    public static Optional<VideoMode> read(@Nullable String pVideoMode) {
+        if (pVideoMode == null) {
             return Optional.empty();
         } else {
             try {
-                Matcher matcher = PATTERN.matcher(p_85334_);
+                Matcher matcher = PATTERN.matcher(pVideoMode);
                 if (matcher.matches()) {
                     int i = Integer.parseInt(matcher.group(1));
                     int j = Integer.parseInt(matcher.group(2));

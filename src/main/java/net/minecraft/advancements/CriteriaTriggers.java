@@ -99,18 +99,18 @@ public class CriteriaTriggers {
     public static final ItemInteractWithBlockTrigger ALLAY_DROP_ITEM_ON_BLOCK = register(new ItemInteractWithBlockTrigger(new ResourceLocation("allay_drop_item_on_block")));
     public static final PlayerTrigger AVOID_VIBRATION = register(new PlayerTrigger(new ResourceLocation("avoid_vibration")));
 
-    private static <T extends CriterionTrigger<?>> T register(T p_10596_) {
-        if (CRITERIA.containsKey(p_10596_.getId())) {
-            throw new IllegalArgumentException("Duplicate criterion id " + p_10596_.getId());
+    private static <T extends CriterionTrigger<?>> T register(T pCriterion) {
+        if (CRITERIA.containsKey(pCriterion.getId())) {
+            throw new IllegalArgumentException("Duplicate criterion id " + pCriterion.getId());
         } else {
-            CRITERIA.put(p_10596_.getId(), p_10596_);
-            return p_10596_;
+            CRITERIA.put(pCriterion.getId(), pCriterion);
+            return pCriterion;
         }
     }
 
     @Nullable
-    public static <T extends CriterionTriggerInstance> CriterionTrigger<T> getCriterion(ResourceLocation p_10598_) {
-        return (CriterionTrigger<T>) CRITERIA.get(p_10598_);
+    public static <T extends CriterionTriggerInstance> CriterionTrigger<T> getCriterion(ResourceLocation pId) {
+        return (CriterionTrigger<T>) CRITERIA.get(pId);
     }
 
     public static Iterable<? extends CriterionTrigger<?>> all() {

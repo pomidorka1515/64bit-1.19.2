@@ -22,16 +22,16 @@ public class RandomOffsetPlacement extends PlacementModifier {
     private final IntProvider xzSpread;
     private final IntProvider ySpread;
 
-    public static RandomOffsetPlacement of(IntProvider p_191880_, IntProvider p_191881_) {
-        return new RandomOffsetPlacement(p_191880_, p_191881_);
+    public static RandomOffsetPlacement of(IntProvider pXzSpread, IntProvider pYSpread) {
+        return new RandomOffsetPlacement(pXzSpread, pYSpread);
     }
 
-    public static RandomOffsetPlacement vertical(IntProvider p_191878_) {
-        return new RandomOffsetPlacement(ConstantInt.of(0), p_191878_);
+    public static RandomOffsetPlacement vertical(IntProvider pYSpread) {
+        return new RandomOffsetPlacement(ConstantInt.of(0), pYSpread);
     }
 
-    public static RandomOffsetPlacement horizontal(IntProvider p_191892_) {
-        return new RandomOffsetPlacement(p_191892_, ConstantInt.of(0));
+    public static RandomOffsetPlacement horizontal(IntProvider pXzSpread) {
+        return new RandomOffsetPlacement(pXzSpread, ConstantInt.of(0));
     }
 
     private RandomOffsetPlacement(IntProvider p_191875_, IntProvider p_191876_) {
@@ -39,10 +39,10 @@ public class RandomOffsetPlacement extends PlacementModifier {
         this.ySpread = p_191876_;
     }
 
-    public Stream<BlockPos> getPositions(PlacementContext p_226393_, RandomSource p_226394_, BlockPos p_226395_) {
-        long i = WorldBounds.addBlockOffset(p_226395_.getX(), this.xzSpread.sample(p_226394_));
-        int j = p_226395_.getY() + this.ySpread.sample(p_226394_);
-        long k = WorldBounds.addBlockOffset(p_226395_.getZ(), this.xzSpread.sample(p_226394_));
+    public Stream<BlockPos> getPositions(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
+        long i = WorldBounds.addBlockOffset(pPos.getX(), this.xzSpread.sample(pRandom));
+        int j = pPos.getY() + this.ySpread.sample(pRandom);
+        long k = WorldBounds.addBlockOffset(pPos.getZ(), this.xzSpread.sample(pRandom));
         return Stream.of(new BlockPos(i, j, k));
     }
 

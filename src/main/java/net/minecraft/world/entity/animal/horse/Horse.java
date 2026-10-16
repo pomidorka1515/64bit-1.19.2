@@ -36,8 +36,8 @@ public class Horse extends AbstractHorse {
     private static final UUID ARMOR_MODIFIER_UUID = UUID.fromString("556E1665-8B10-40C8-8F9D-CF9B1667F295");
     private static final EntityDataAccessor<Integer> DATA_ID_TYPE_VARIANT = SynchedEntityData.defineId(Horse.class, EntityDataSerializers.INT);
 
-    public Horse(EntityType<? extends Horse> p_30689_, Level p_30690_) {
-        super(p_30689_, p_30690_);
+    public Horse(EntityType<? extends Horse> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void randomizeAttributes(RandomSource p_218815_) {
@@ -51,11 +51,11 @@ public class Horse extends AbstractHorse {
         this.entityData.define(DATA_ID_TYPE_VARIANT, 0);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_30716_) {
-        super.addAdditionalSaveData(p_30716_);
-        p_30716_.putInt("Variant", this.getTypeVariant());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("Variant", this.getTypeVariant());
         if (!this.inventory.getItem(1).isEmpty()) {
-            p_30716_.put("ArmorItem", this.inventory.getItem(1).save(new CompoundTag()));
+            pCompound.put("ArmorItem", this.inventory.getItem(1).save(new CompoundTag()));
         }
     }
 
@@ -63,16 +63,16 @@ public class Horse extends AbstractHorse {
         return this.getItemBySlot(EquipmentSlot.CHEST);
     }
 
-    private void setArmor(ItemStack p_30733_) {
-        this.setItemSlot(EquipmentSlot.CHEST, p_30733_);
+    private void setArmor(ItemStack pStack) {
+        this.setItemSlot(EquipmentSlot.CHEST, pStack);
         this.setDropChance(EquipmentSlot.CHEST, 0.0F);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_30711_) {
-        super.readAdditionalSaveData(p_30711_);
-        this.setTypeVariant(p_30711_.getInt("Variant"));
-        if (p_30711_.contains("ArmorItem", 10)) {
-            ItemStack itemstack = ItemStack.of(p_30711_.getCompound("ArmorItem"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setTypeVariant(pCompound.getInt("Variant"));
+        if (pCompound.contains("ArmorItem", 10)) {
+            ItemStack itemstack = ItemStack.of(pCompound.getCompound("ArmorItem"));
             if (!itemstack.isEmpty() && this.isArmor(itemstack)) {
                 this.inventory.setItem(1, itemstack);
             }
@@ -81,16 +81,16 @@ public class Horse extends AbstractHorse {
         this.updateContainerEquipment();
     }
 
-    private void setTypeVariant(int p_30737_) {
-        this.entityData.set(DATA_ID_TYPE_VARIANT, p_30737_);
+    private void setTypeVariant(int pTypeVariant) {
+        this.entityData.set(DATA_ID_TYPE_VARIANT, pTypeVariant);
     }
 
     private int getTypeVariant() {
         return this.entityData.get(DATA_ID_TYPE_VARIANT);
     }
 
-    private void setVariantAndMarkings(Variant p_30700_, Markings p_30701_) {
-        this.setTypeVariant(p_30700_.getId() & 255 | p_30701_.getId() << 8 & '\uff00');
+    private void setVariantAndMarkings(Variant pVariant, Markings pMarking) {
+        this.setTypeVariant(pVariant.getId() & 255 | pMarking.getId() << 8 & '\uff00');
     }
 
     public Variant getVariant() {
@@ -109,12 +109,12 @@ public class Horse extends AbstractHorse {
         }
     }
 
-    private void setArmorEquipment(ItemStack p_30735_) {
-        this.setArmor(p_30735_);
+    private void setArmorEquipment(ItemStack pStack) {
+        this.setArmor(pStack);
         if (!this.level.isClientSide) {
             this.getAttribute(Attributes.ARMOR).removeModifier(ARMOR_MODIFIER_UUID);
-            if (this.isArmor(p_30735_)) {
-                int i = ((HorseArmorItem) p_30735_.getItem()).getProtection();
+            if (this.isArmor(pStack)) {
+                int i = ((HorseArmorItem) pStack.getItem()).getProtection();
                 if (i != 0) {
                     this.getAttribute(Attributes.ARMOR).addTransientModifier(new AttributeModifier(ARMOR_MODIFIER_UUID, "Horse armor bonus", (double) i, AttributeModifier.Operation.ADDITION));
                 }
@@ -122,19 +122,19 @@ public class Horse extends AbstractHorse {
         }
     }
 
-    public void containerChanged(Container p_30696_) {
+    public void containerChanged(Container pInvBasic) {
         ItemStack itemstack = this.getArmor();
-        super.containerChanged(p_30696_);
+        super.containerChanged(pInvBasic);
         ItemStack itemstack1 = this.getArmor();
         if (this.tickCount > 20 && this.isArmor(itemstack1) && itemstack != itemstack1) {
             this.playSound(SoundEvents.HORSE_ARMOR, 0.5F, 1.0F);
         }
     }
 
-    protected void playGallopSound(SoundType p_30709_) {
-        super.playGallopSound(p_30709_);
+    protected void playGallopSound(SoundType pSoundType) {
+        super.playGallopSound(pSoundType);
         if (this.random.nextInt(10) == 0) {
-            this.playSound(SoundEvents.HORSE_BREATHE, p_30709_.getVolume() * 0.6F, p_30709_.getPitch());
+            this.playSound(SoundEvents.HORSE_BREATHE, pSoundType.getVolume() * 0.6F, pSoundType.getPitch());
         }
     }
 
@@ -153,8 +153,8 @@ public class Horse extends AbstractHorse {
         return SoundEvents.HORSE_EAT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_30720_) {
-        super.getHurtSound(p_30720_);
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
+        super.getHurtSound(pDamageSource);
         return SoundEvents.HORSE_HURT;
     }
 
@@ -163,25 +163,25 @@ public class Horse extends AbstractHorse {
         return SoundEvents.HORSE_ANGRY;
     }
 
-    public InteractionResult mobInteract(Player p_30713_, InteractionHand p_30714_) {
-        ItemStack itemstack = p_30713_.getItemInHand(p_30714_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (!this.isBaby()) {
-            if (this.isTamed() && p_30713_.isSecondaryUseActive()) {
-                this.openCustomInventoryScreen(p_30713_);
+            if (this.isTamed() && pPlayer.isSecondaryUseActive()) {
+                this.openCustomInventoryScreen(pPlayer);
                 return InteractionResult.sidedSuccess(this.level.isClientSide);
             }
 
             if (this.isVehicle()) {
-                return super.mobInteract(p_30713_, p_30714_);
+                return super.mobInteract(pPlayer, pHand);
             }
         }
 
         if (!itemstack.isEmpty()) {
             if (this.isFood(itemstack)) {
-                return this.fedFood(p_30713_, itemstack);
+                return this.fedFood(pPlayer, itemstack);
             }
 
-            InteractionResult interactionresult = itemstack.interactLivingEntity(p_30713_, this, p_30714_);
+            InteractionResult interactionresult = itemstack.interactLivingEntity(pPlayer, this, pHand);
             if (interactionresult.consumesAction()) {
                 return interactionresult;
             }
@@ -193,36 +193,36 @@ public class Horse extends AbstractHorse {
 
             boolean flag = !this.isBaby() && !this.isSaddled() && itemstack.is(Items.SADDLE);
             if (this.isArmor(itemstack) || flag) {
-                this.openCustomInventoryScreen(p_30713_);
+                this.openCustomInventoryScreen(pPlayer);
                 return InteractionResult.sidedSuccess(this.level.isClientSide);
             }
         }
 
         if (this.isBaby()) {
-            return super.mobInteract(p_30713_, p_30714_);
+            return super.mobInteract(pPlayer, pHand);
         } else {
-            this.doPlayerRide(p_30713_);
+            this.doPlayerRide(pPlayer);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         }
     }
 
-    public boolean canMate(Animal p_30698_) {
-        if (p_30698_ == this) {
+    public boolean canMate(Animal pOtherAnimal) {
+        if (pOtherAnimal == this) {
             return false;
-        } else if (!(p_30698_ instanceof Donkey) && !(p_30698_ instanceof Horse)) {
+        } else if (!(pOtherAnimal instanceof Donkey) && !(pOtherAnimal instanceof Horse)) {
             return false;
         } else {
-            return this.canParent() && ((AbstractHorse) p_30698_).canParent();
+            return this.canParent() && ((AbstractHorse) pOtherAnimal).canParent();
         }
     }
 
-    public AgeableMob getBreedOffspring(ServerLevel p_149533_, AgeableMob p_149534_) {
+    public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
         AbstractHorse abstracthorse;
-        if (p_149534_ instanceof Donkey) {
-            abstracthorse = EntityType.MULE.create(p_149533_);
+        if (pOtherParent instanceof Donkey) {
+            abstracthorse = EntityType.MULE.create(pLevel);
         } else {
-            Horse horse = (Horse) p_149534_;
-            abstracthorse = EntityType.HORSE.create(p_149533_);
+            Horse horse = (Horse) pOtherParent;
+            abstracthorse = EntityType.HORSE.create(pLevel);
             int i = this.random.nextInt(9);
             Variant variant;
             if (i < 4) {
@@ -246,7 +246,7 @@ public class Horse extends AbstractHorse {
             ((Horse) abstracthorse).setVariantAndMarkings(variant, markings);
         }
 
-        this.setOffspringAttributes(p_149534_, abstracthorse);
+        this.setOffspringAttributes(pOtherParent, abstracthorse);
         return abstracthorse;
     }
 
@@ -254,31 +254,31 @@ public class Horse extends AbstractHorse {
         return true;
     }
 
-    public boolean isArmor(ItemStack p_30731_) {
-        return p_30731_.getItem() instanceof HorseArmorItem;
+    public boolean isArmor(ItemStack pStack) {
+        return pStack.getItem() instanceof HorseArmorItem;
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_30703_, DifficultyInstance p_30704_, MobSpawnType p_30705_, @Nullable SpawnGroupData p_30706_, @Nullable CompoundTag p_30707_) {
-        RandomSource randomsource = p_30703_.getRandom();
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        RandomSource randomsource = pLevel.getRandom();
         Variant variant;
-        if (p_30706_ instanceof Horse.HorseGroupData) {
-            variant = ((Horse.HorseGroupData) p_30706_).variant;
+        if (pSpawnData instanceof Horse.HorseGroupData) {
+            variant = ((Horse.HorseGroupData) pSpawnData).variant;
         } else {
             variant = Util.getRandom(Variant.values(), randomsource);
-            p_30706_ = new Horse.HorseGroupData(variant);
+            pSpawnData = new Horse.HorseGroupData(variant);
         }
 
         this.setVariantAndMarkings(variant, Util.getRandom(Markings.values(), randomsource));
-        return super.finalizeSpawn(p_30703_, p_30704_, p_30705_, p_30706_, p_30707_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
     public static class HorseGroupData extends AgeableMob.AgeableMobGroupData {
         public final Variant variant;
 
-        public HorseGroupData(Variant p_30740_) {
+        public HorseGroupData(Variant pVariant) {
             super(true);
-            this.variant = p_30740_;
+            this.variant = pVariant;
         }
     }
 }

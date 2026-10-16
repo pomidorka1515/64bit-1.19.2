@@ -17,13 +17,13 @@ public class WoodType {
     public static final WoodType MANGROVE = register(new WoodType("mangrove"));
     private final String name;
 
-    protected WoodType(String p_61842_) {
-        this.name = p_61842_;
+    protected WoodType(String pName) {
+        this.name = pName;
     }
 
-    private static WoodType register(WoodType p_61845_) {
-        VALUES.add(p_61845_);
-        return p_61845_;
+    private static WoodType register(WoodType pWoodType) {
+        VALUES.add(pWoodType);
+        return pWoodType;
     }
 
     public static Stream<WoodType> values() {

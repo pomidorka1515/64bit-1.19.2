@@ -49,8 +49,8 @@ public class Phantom extends FlyingMob implements Enemy {
     BlockPos anchorPoint = BlockPos.ZERO;
     Phantom.AttackPhase attackPhase = Phantom.AttackPhase.CIRCLE;
 
-    public Phantom(EntityType<? extends Phantom> p_33101_, Level p_33102_) {
-        super(p_33101_, p_33102_);
+    public Phantom(EntityType<? extends Phantom> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.xpReward = 5;
         this.moveControl = new Phantom.PhantomMoveControl(this);
         this.lookControl = new Phantom.PhantomLookControl(this);
@@ -76,8 +76,8 @@ public class Phantom extends FlyingMob implements Enemy {
         this.entityData.define(ID_SIZE, 0);
     }
 
-    public void setPhantomSize(int p_33109_) {
-        this.entityData.set(ID_SIZE, Mth.clamp(p_33109_, 0, 64));
+    public void setPhantomSize(int pPhantomSize) {
+        this.entityData.set(ID_SIZE, Mth.clamp(pPhantomSize, 0, 64));
     }
 
     private void updatePhantomSizeInfo() {
@@ -89,16 +89,16 @@ public class Phantom extends FlyingMob implements Enemy {
         return this.entityData.get(ID_SIZE);
     }
 
-    protected float getStandingEyeHeight(Pose p_33136_, EntityDimensions p_33137_) {
-        return p_33137_.height * 0.35F;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return pSize.height * 0.35F;
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_33134_) {
-        if (ID_SIZE.equals(p_33134_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        if (ID_SIZE.equals(pKey)) {
             this.updatePhantomSizeInfo();
         }
 
-        super.onSyncedDataUpdated(p_33134_);
+        super.onSyncedDataUpdated(pKey);
     }
 
     public int getUniqueFlapTickOffset() {
@@ -139,30 +139,30 @@ public class Phantom extends FlyingMob implements Enemy {
         super.customServerAiStep();
     }
 
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_33126_, DifficultyInstance p_33127_, MobSpawnType p_33128_, @Nullable SpawnGroupData p_33129_, @Nullable CompoundTag p_33130_) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
         this.anchorPoint = this.blockPosition().above(5);
         this.setPhantomSize(0);
-        return super.finalizeSpawn(p_33126_, p_33127_, p_33128_, p_33129_, p_33130_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_33132_) {
-        super.readAdditionalSaveData(p_33132_);
-        if (p_33132_.contains("AX")) {
-            this.anchorPoint = new BlockPos(p_33132_.getInt("AX"), p_33132_.getInt("AY"), p_33132_.getInt("AZ"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("AX")) {
+            this.anchorPoint = new BlockPos(pCompound.getInt("AX"), pCompound.getInt("AY"), pCompound.getInt("AZ"));
         }
 
-        this.setPhantomSize(p_33132_.getInt("Size"));
+        this.setPhantomSize(pCompound.getInt("Size"));
     }
 
-    public void addAdditionalSaveData(CompoundTag p_33141_) {
-        super.addAdditionalSaveData(p_33141_);
-        p_33141_.putInt("AX", this.anchorPoint.getX());
-        p_33141_.putInt("AY", this.anchorPoint.getY());
-        p_33141_.putInt("AZ", this.anchorPoint.getZ());
-        p_33141_.putInt("Size", this.getPhantomSize());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("AX", this.anchorPoint.getX());
+        pCompound.putInt("AY", this.anchorPoint.getY());
+        pCompound.putInt("AZ", this.anchorPoint.getZ());
+        pCompound.putInt("Size", this.getPhantomSize());
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_33107_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         return true;
     }
 
@@ -174,7 +174,7 @@ public class Phantom extends FlyingMob implements Enemy {
         return SoundEvents.PHANTOM_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_33152_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.PHANTOM_HURT;
     }
 
@@ -190,13 +190,13 @@ public class Phantom extends FlyingMob implements Enemy {
         return 1.0F;
     }
 
-    public boolean canAttackType(EntityType<?> p_33111_) {
+    public boolean canAttackType(EntityType<?> pType) {
         return true;
     }
 
-    public EntityDimensions getDimensions(Pose p_33113_) {
+    public EntityDimensions getDimensions(Pose pPose) {
         int i = this.getPhantomSize();
-        EntityDimensions entitydimensions = super.getDimensions(p_33113_);
+        EntityDimensions entitydimensions = super.getDimensions(pPose);
         float f = (entitydimensions.width + 0.2F * (float) i) / entitydimensions.width;
         return entitydimensions.scale(f);
     }

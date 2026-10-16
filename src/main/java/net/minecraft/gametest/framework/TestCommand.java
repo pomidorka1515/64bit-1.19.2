@@ -58,8 +58,8 @@ public class TestCommand {
     private static final int DEFAULT_Y_SIZE = 5;
     private static final int DEFAULT_Z_SIZE = 5;
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_127947_) {
-        p_127947_.register(Commands.literal("test").then(Commands.literal("runthis").executes((p_128057_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("test").then(Commands.literal("runthis").executes((p_128057_) -> {
                                                        return runNearbyTest(p_128057_.getSource());
                                                    }))
                         .then(Commands.literal("runthese").executes((p_128055_) -> {
@@ -133,15 +133,15 @@ public class TestCommand {
                                         }))));
     }
 
-    private static int createNewStructure(CommandSourceStack p_127968_, String p_127969_, int p_127970_, int p_127971_, int p_127972_) {
-        if (p_127970_ <= 48 && p_127971_ <= 48 && p_127972_ <= 48) {
-            ServerLevel serverlevel = p_127968_.getLevel();
-            BlockPos blockpos = new BlockPos(p_127968_.getPosition());
-            BlockPos blockpos1 = new BlockPos(blockpos.getX(), p_127968_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY(), WorldBounds.addBlockOffset(blockpos.getZ(), 3));
-            StructureUtils.createNewEmptyStructureBlock(p_127969_.toLowerCase(), blockpos1, new Vec3i(p_127970_, p_127971_, p_127972_), Rotation.NONE, serverlevel);
+    private static int createNewStructure(CommandSourceStack pSource, String pStructureName, int pX, int pY, int pZ) {
+        if (pX <= 48 && pY <= 48 && pZ <= 48) {
+            ServerLevel serverlevel = pSource.getLevel();
+            BlockPos blockpos = new BlockPos(pSource.getPosition());
+            BlockPos blockpos1 = new BlockPos(blockpos.getX(), pSource.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY(), WorldBounds.addBlockOffset(blockpos.getZ(), 3));
+            StructureUtils.createNewEmptyStructureBlock(pStructureName.toLowerCase(), blockpos1, new Vec3i(pX, pY, pZ), Rotation.NONE, serverlevel);
 
-            for (int i = 0; i < p_127970_; ++i) {
-                for (int j = 0; j < p_127972_; ++j) {
+            for (int i = 0; i < pX; ++i) {
+                for (int j = 0; j < pZ; ++j) {
                     BlockPos blockpos2 = new BlockPos(WorldBounds.addBlockOffset(blockpos1.getX(), i), blockpos1.getY() + 1, WorldBounds.addBlockOffset(blockpos1.getZ(), j));
                     Block block = Blocks.POLISHED_ANDESITE;
                     BlockInput blockinput = new BlockInput(block.defaultBlockState(), Collections.emptySet(), (CompoundTag) null);
@@ -180,9 +180,9 @@ public class TestCommand {
         }
     }
 
-    private static int runNearbyTest(CommandSourceStack p_127951_) {
-        BlockPos blockpos = new BlockPos(p_127951_.getPosition());
-        ServerLevel serverlevel = p_127951_.getLevel();
+    private static int runNearbyTest(CommandSourceStack pSource) {
+        BlockPos blockpos = new BlockPos(pSource.getPosition());
+        ServerLevel serverlevel = pSource.getLevel();
         BlockPos blockpos1 = StructureUtils.findNearestStructureBlock(blockpos, 15, serverlevel);
         if (blockpos1 == null) {
             say(serverlevel, "Couldn't find any structure block within 15 radius", ChatFormatting.RED);
@@ -194,16 +194,16 @@ public class TestCommand {
         }
     }
 
-    private static int runAllNearbyTests(CommandSourceStack p_128002_) {
-        BlockPos blockpos = new BlockPos(p_128002_.getPosition());
-        ServerLevel serverlevel = p_128002_.getLevel();
+    private static int runAllNearbyTests(CommandSourceStack pSource) {
+        BlockPos blockpos = new BlockPos(pSource.getPosition());
+        ServerLevel serverlevel = pSource.getLevel();
         Collection<BlockPos> collection = StructureUtils.findStructureBlocks(blockpos, 200, serverlevel);
         if (collection.isEmpty()) {
             say(serverlevel, "Couldn't find any structure blocks within 200 block radius", ChatFormatting.RED);
             return 1;
         } else {
             GameTestRunner.clearMarkers(serverlevel);
-            say(p_128002_, "Running " + collection.size() + " tests...");
+            say(pSource, "Running " + collection.size() + " tests...");
             MultipleTestTracker multipletesttracker = new MultipleTestTracker();
             collection.forEach((p_127943_) -> {
                 runTest(serverlevel, p_127943_, multipletesttracker);
@@ -212,98 +212,98 @@ public class TestCommand {
         }
     }
 
-    private static void runTest(ServerLevel p_127930_, BlockPos p_127931_, @Nullable MultipleTestTracker p_127932_) {
-        StructureBlockEntity structureblockentity = (StructureBlockEntity) p_127930_.getBlockEntity(p_127931_);
+    private static void runTest(ServerLevel pServerLevel, BlockPos pPos, @Nullable MultipleTestTracker pTracker) {
+        StructureBlockEntity structureblockentity = (StructureBlockEntity) pServerLevel.getBlockEntity(pPos);
         String s = structureblockentity.getStructurePath();
         TestFunction testfunction = GameTestRegistry.getTestFunction(s);
-        GameTestInfo gametestinfo = new GameTestInfo(testfunction, structureblockentity.getRotation(), p_127930_);
-        if (p_127932_ != null) {
-            p_127932_.addTestToTrack(gametestinfo);
-            gametestinfo.addListener(new TestCommand.TestSummaryDisplayer(p_127930_, p_127932_));
+        GameTestInfo gametestinfo = new GameTestInfo(testfunction, structureblockentity.getRotation(), pServerLevel);
+        if (pTracker != null) {
+            pTracker.addTestToTrack(gametestinfo);
+            gametestinfo.addListener(new TestCommand.TestSummaryDisplayer(pServerLevel, pTracker));
         }
 
-        runTestPreparation(testfunction, p_127930_);
+        runTestPreparation(testfunction, pServerLevel);
         AABB aabb = StructureUtils.getStructureBounds(structureblockentity);
         BlockPos blockpos = new BlockPos(aabb.minX, aabb.minY, aabb.minZ);
         GameTestRunner.runTest(gametestinfo, blockpos, GameTestTicker.SINGLETON);
     }
 
-    static void showTestSummaryIfAllDone(ServerLevel p_127997_, MultipleTestTracker p_127998_) {
-        if (p_127998_.isDone()) {
-            say(p_127997_, "GameTest done! " + p_127998_.getTotalCount() + " tests were run", ChatFormatting.WHITE);
-            if (p_127998_.hasFailedRequired()) {
-                say(p_127997_, p_127998_.getFailedRequiredCount() + " required tests failed :(", ChatFormatting.RED);
+    static void showTestSummaryIfAllDone(ServerLevel pServerLevel, MultipleTestTracker pTracker) {
+        if (pTracker.isDone()) {
+            say(pServerLevel, "GameTest done! " + pTracker.getTotalCount() + " tests were run", ChatFormatting.WHITE);
+            if (pTracker.hasFailedRequired()) {
+                say(pServerLevel, pTracker.getFailedRequiredCount() + " required tests failed :(", ChatFormatting.RED);
             } else {
-                say(p_127997_, "All required tests passed :)", ChatFormatting.GREEN);
+                say(pServerLevel, "All required tests passed :)", ChatFormatting.GREEN);
             }
 
-            if (p_127998_.hasFailedOptional()) {
-                say(p_127997_, p_127998_.getFailedOptionalCount() + " optional tests failed", ChatFormatting.GRAY);
+            if (pTracker.hasFailedOptional()) {
+                say(pServerLevel, pTracker.getFailedOptionalCount() + " optional tests failed", ChatFormatting.GRAY);
             }
         }
     }
 
-    private static int clearAllTests(CommandSourceStack p_127953_, int p_127954_) {
-        ServerLevel serverlevel = p_127953_.getLevel();
+    private static int clearAllTests(CommandSourceStack pSource, int pRadius) {
+        ServerLevel serverlevel = pSource.getLevel();
         GameTestRunner.clearMarkers(serverlevel);
-        BlockPos blockpos = new BlockPos(p_127953_.getPosition().x, (double) p_127953_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(p_127953_.getPosition())).getY(), p_127953_.getPosition().z);
-        GameTestRunner.clearAllTests(serverlevel, blockpos, GameTestTicker.SINGLETON, Mth.clamp(p_127954_, 0, 1024));
+        BlockPos blockpos = new BlockPos(pSource.getPosition().x, (double) pSource.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pSource.getPosition())).getY(), pSource.getPosition().z);
+        GameTestRunner.clearAllTests(serverlevel, blockpos, GameTestTicker.SINGLETON, Mth.clamp(pRadius, 0, 1024));
         return 1;
     }
 
-    private static int runTest(CommandSourceStack p_127979_, TestFunction p_127980_, int p_127981_) {
-        ServerLevel serverlevel = p_127979_.getLevel();
-        BlockPos blockpos = new BlockPos(p_127979_.getPosition());
-        int i = p_127979_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY();
+    private static int runTest(CommandSourceStack pSource, TestFunction pFunction, int pRotationSteps) {
+        ServerLevel serverlevel = pSource.getLevel();
+        BlockPos blockpos = new BlockPos(pSource.getPosition());
+        int i = pSource.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY();
         BlockPos blockpos1 = new BlockPos(blockpos.getX(), i, WorldBounds.addBlockOffset(blockpos.getZ(), 3));
         GameTestRunner.clearMarkers(serverlevel);
-        runTestPreparation(p_127980_, serverlevel);
-        Rotation rotation = StructureUtils.getRotationForRotationSteps(p_127981_);
-        GameTestInfo gametestinfo = new GameTestInfo(p_127980_, rotation, serverlevel);
+        runTestPreparation(pFunction, serverlevel);
+        Rotation rotation = StructureUtils.getRotationForRotationSteps(pRotationSteps);
+        GameTestInfo gametestinfo = new GameTestInfo(pFunction, rotation, serverlevel);
         GameTestRunner.runTest(gametestinfo, blockpos1, GameTestTicker.SINGLETON);
         return 1;
     }
 
-    private static void runTestPreparation(TestFunction p_127994_, ServerLevel p_127995_) {
-        Consumer<ServerLevel> consumer = GameTestRegistry.getBeforeBatchFunction(p_127994_.getBatchName());
+    private static void runTestPreparation(TestFunction pFunction, ServerLevel pServerLevel) {
+        Consumer<ServerLevel> consumer = GameTestRegistry.getBeforeBatchFunction(pFunction.getBatchName());
         if (consumer != null) {
-            consumer.accept(p_127995_);
+            consumer.accept(pServerLevel);
         }
     }
 
-    private static int runAllTests(CommandSourceStack p_127956_, int p_127957_, int p_127958_) {
-        GameTestRunner.clearMarkers(p_127956_.getLevel());
+    private static int runAllTests(CommandSourceStack pSource, int pRotationSteps, int pTestsPerRow) {
+        GameTestRunner.clearMarkers(pSource.getLevel());
         Collection<TestFunction> collection = GameTestRegistry.getAllTestFunctions();
-        say(p_127956_, "Running all " + collection.size() + " tests...");
+        say(pSource, "Running all " + collection.size() + " tests...");
         GameTestRegistry.forgetFailedTests();
-        runTests(p_127956_, collection, p_127957_, p_127958_);
+        runTests(pSource, collection, pRotationSteps, pTestsPerRow);
         return 1;
     }
 
-    private static int runAllTestsInClass(CommandSourceStack p_127963_, String p_127964_, int p_127965_, int p_127966_) {
-        Collection<TestFunction> collection = GameTestRegistry.getTestFunctionsForClassName(p_127964_);
-        GameTestRunner.clearMarkers(p_127963_.getLevel());
-        say(p_127963_, "Running " + collection.size() + " tests from " + p_127964_ + "...");
+    private static int runAllTestsInClass(CommandSourceStack pSource, String pTestClassName, int pRotationSteps, int pTestsPerRow) {
+        Collection<TestFunction> collection = GameTestRegistry.getTestFunctionsForClassName(pTestClassName);
+        GameTestRunner.clearMarkers(pSource.getLevel());
+        say(pSource, "Running " + collection.size() + " tests from " + pTestClassName + "...");
         GameTestRegistry.forgetFailedTests();
-        runTests(p_127963_, collection, p_127965_, p_127966_);
+        runTests(pSource, collection, pRotationSteps, pTestsPerRow);
         return 1;
     }
 
-    private static int runLastFailedTests(CommandSourceStack p_127983_, boolean p_127984_, int p_127985_, int p_127986_) {
+    private static int runLastFailedTests(CommandSourceStack pSource, boolean pRunOnlyRequired, int pRotationSteps, int pTestsPerRow) {
         Collection<TestFunction> collection;
-        if (p_127984_) {
+        if (pRunOnlyRequired) {
             collection = GameTestRegistry.getLastFailedTests().stream().filter(TestFunction::isRequired).collect(Collectors.toList());
         } else {
             collection = GameTestRegistry.getLastFailedTests();
         }
 
         if (collection.isEmpty()) {
-            say(p_127983_, "No failed tests to rerun");
+            say(pSource, "No failed tests to rerun");
             return 0;
         } else {
-            GameTestRunner.clearMarkers(p_127983_.getLevel());
-            say(p_127983_, "Rerunning " + collection.size() + " failed tests (" + (p_127984_ ? "only required tests" : "including optional tests") + ")");
-            runTests(p_127983_, collection, p_127985_, p_127986_);
+            GameTestRunner.clearMarkers(pSource.getLevel());
+            say(pSource, "Rerunning " + collection.size() + " failed tests (" + (pRunOnlyRequired ? "only required tests" : "including optional tests") + ")");
+            runTests(pSource, collection, pRotationSteps, pTestsPerRow);
             return 1;
         }
     }
@@ -321,13 +321,13 @@ public class TestCommand {
         });
     }
 
-    private static void say(CommandSourceStack p_128004_, String p_128005_) {
-        p_128004_.sendSuccess(Component.literal(p_128005_), false);
+    private static void say(CommandSourceStack pSource, String pMessage) {
+        pSource.sendSuccess(Component.literal(pMessage), false);
     }
 
-    private static int exportNearestTestStructure(CommandSourceStack p_128009_) {
-        BlockPos blockpos = new BlockPos(p_128009_.getPosition());
-        ServerLevel serverlevel = p_128009_.getLevel();
+    private static int exportNearestTestStructure(CommandSourceStack pSource) {
+        BlockPos blockpos = new BlockPos(pSource.getPosition());
+        ServerLevel serverlevel = pSource.getLevel();
         BlockPos blockpos1 = StructureUtils.findNearestStructureBlock(blockpos, 15, serverlevel);
         if (blockpos1 == null) {
             say(serverlevel, "Couldn't find any structure block within 15 radius", ChatFormatting.RED);
@@ -335,36 +335,36 @@ public class TestCommand {
         } else {
             StructureBlockEntity structureblockentity = (StructureBlockEntity) serverlevel.getBlockEntity(blockpos1);
             String s = structureblockentity.getStructurePath();
-            return exportTestStructure(p_128009_, s);
+            return exportTestStructure(pSource, s);
         }
     }
 
-    private static int exportTestStructure(CommandSourceStack p_128011_, String p_128012_) {
+    private static int exportTestStructure(CommandSourceStack pSource, String pStructurePath) {
         Path path = Paths.get(StructureUtils.testStructuresDir);
-        ResourceLocation resourcelocation = new ResourceLocation("minecraft", p_128012_);
-        Path path1 = p_128011_.getLevel().getStructureManager().getPathToGeneratedStructure(resourcelocation, ".nbt");
-        Path path2 = NbtToSnbt.convertStructure(CachedOutput.NO_CACHE, path1, p_128012_, path);
+        ResourceLocation resourcelocation = new ResourceLocation("minecraft", pStructurePath);
+        Path path1 = pSource.getLevel().getStructureManager().getPathToGeneratedStructure(resourcelocation, ".nbt");
+        Path path2 = NbtToSnbt.convertStructure(CachedOutput.NO_CACHE, path1, pStructurePath, path);
         if (path2 == null) {
-            say(p_128011_, "Failed to export " + path1);
+            say(pSource, "Failed to export " + path1);
             return 1;
         } else {
             try {
                 Files.createDirectories(path2.getParent());
             } catch (IOException ioexception) {
-                say(p_128011_, "Could not create folder " + path2.getParent());
+                say(pSource, "Could not create folder " + path2.getParent());
                 ioexception.printStackTrace();
                 return 1;
             }
 
-            say(p_128011_, "Exported " + p_128012_ + " to " + path2.toAbsolutePath());
+            say(pSource, "Exported " + pStructurePath + " to " + path2.toAbsolutePath());
             return 0;
         }
     }
 
-    private static int importTestStructure(CommandSourceStack p_128016_, String p_128017_) {
-        Path path = Paths.get(StructureUtils.testStructuresDir, p_128017_ + ".snbt");
-        ResourceLocation resourcelocation = new ResourceLocation("minecraft", p_128017_);
-        Path path1 = p_128016_.getLevel().getStructureManager().getPathToGeneratedStructure(resourcelocation, ".nbt");
+    private static int importTestStructure(CommandSourceStack pSource, String pStructurePath) {
+        Path path = Paths.get(StructureUtils.testStructuresDir, pStructurePath + ".snbt");
+        ResourceLocation resourcelocation = new ResourceLocation("minecraft", pStructurePath);
+        Path path1 = pSource.getLevel().getStructureManager().getPathToGeneratedStructure(resourcelocation, ".nbt");
 
         try {
             BufferedReader bufferedreader = Files.newBufferedReader(path);
@@ -390,21 +390,21 @@ public class TestCommand {
                 outputstream.close();
             }
 
-            say(p_128016_, "Imported to " + path1.toAbsolutePath());
+            say(pSource, "Imported to " + path1.toAbsolutePath());
             return 0;
         } catch (CommandSyntaxException | IOException ioexception) {
-            System.err.println("Failed to load structure " + p_128017_);
+            System.err.println("Failed to load structure " + pStructurePath);
             ioexception.printStackTrace();
             return 1;
         }
     }
 
-    private static void say(ServerLevel p_127934_, String p_127935_, ChatFormatting p_127936_) {
-        p_127934_.getPlayers((p_127945_) -> {
+    private static void say(ServerLevel pServerLevel, String pMessage, ChatFormatting pFormatting) {
+        pServerLevel.getPlayers((p_127945_) -> {
                      return true;
                  })
                 .forEach((p_127990_) -> {
-                    p_127990_.sendSystemMessage(Component.literal(p_127936_ + p_127935_));
+                    p_127990_.sendSystemMessage(Component.literal(pFormatting + pMessage));
                 });
     }
 
@@ -412,19 +412,19 @@ public class TestCommand {
         private final ServerLevel level;
         private final MultipleTestTracker tracker;
 
-        public TestSummaryDisplayer(ServerLevel p_128061_, MultipleTestTracker p_128062_) {
-            this.level = p_128061_;
-            this.tracker = p_128062_;
+        public TestSummaryDisplayer(ServerLevel pServerLevel, MultipleTestTracker pTracker) {
+            this.level = pServerLevel;
+            this.tracker = pTracker;
         }
 
-        public void testStructureLoaded(GameTestInfo p_128064_) {
+        public void testStructureLoaded(GameTestInfo pTestInfo) {
         }
 
-        public void testPassed(GameTestInfo p_177797_) {
+        public void testPassed(GameTestInfo pTestInfo) {
             TestCommand.showTestSummaryIfAllDone(this.level, this.tracker);
         }
 
-        public void testFailed(GameTestInfo p_128066_) {
+        public void testFailed(GameTestInfo pTestInfo) {
             TestCommand.showTestSummaryIfAllDone(this.level, this.tracker);
         }
     }

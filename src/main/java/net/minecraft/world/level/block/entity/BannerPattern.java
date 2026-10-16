@@ -15,13 +15,13 @@ import net.minecraft.world.item.DyeColor;
 public class BannerPattern {
     final String hashname;
 
-    public BannerPattern(String p_222696_) {
-        this.hashname = p_222696_;
+    public BannerPattern(String pHashname) {
+        this.hashname = pHashname;
     }
 
-    public static ResourceLocation location(ResourceKey<BannerPattern> p_222698_, boolean p_222699_) {
-        String s = p_222699_ ? "banner" : "shield";
-        ResourceLocation resourcelocation = p_222698_.location();
+    public static ResourceLocation location(ResourceKey<BannerPattern> pBannerPatternKey, boolean pBanner) {
+        String s = pBanner ? "banner" : "shield";
+        ResourceLocation resourcelocation = pBannerPatternKey.location();
         return new ResourceLocation(resourcelocation.getNamespace(), "entity/" + s + "/" + resourcelocation.getPath());
     }
 
@@ -30,9 +30,9 @@ public class BannerPattern {
     }
 
     @Nullable
-    public static Holder<BannerPattern> byHash(String p_222701_) {
+    public static Holder<BannerPattern> byHash(String pHashname) {
         return Registry.BANNER_PATTERN.holders().filter((p_222704_) -> {
-                                                    return (p_222704_.value()).hashname.equals(p_222701_);
+                                                    return (p_222704_.value()).hashname.equals(pHashname);
                                                 })
                 .findAny()
                 .orElse((Holder.Reference<BannerPattern>) null);
@@ -41,16 +41,16 @@ public class BannerPattern {
     public static class Builder {
         private final List<Pair<Holder<BannerPattern>, DyeColor>> patterns = Lists.newArrayList();
 
-        public BannerPattern.Builder addPattern(ResourceKey<BannerPattern> p_222706_, DyeColor p_222707_) {
-            return this.addPattern(Registry.BANNER_PATTERN.getHolderOrThrow(p_222706_), p_222707_);
+        public BannerPattern.Builder addPattern(ResourceKey<BannerPattern> pBannerPattern, DyeColor pColor) {
+            return this.addPattern(Registry.BANNER_PATTERN.getHolderOrThrow(pBannerPattern), pColor);
         }
 
-        public BannerPattern.Builder addPattern(Holder<BannerPattern> p_222709_, DyeColor p_222710_) {
-            return this.addPattern(Pair.of(p_222709_, p_222710_));
+        public BannerPattern.Builder addPattern(Holder<BannerPattern> pBannerPattern, DyeColor pColor) {
+            return this.addPattern(Pair.of(pBannerPattern, pColor));
         }
 
-        public BannerPattern.Builder addPattern(Pair<Holder<BannerPattern>, DyeColor> p_155049_) {
-            this.patterns.add(p_155049_);
+        public BannerPattern.Builder addPattern(Pair<Holder<BannerPattern>, DyeColor> pPattern) {
+            this.patterns.add(pPattern);
             return this;
         }
 

@@ -31,9 +31,9 @@ public abstract class TagsProvider<T> implements DataProvider {
     protected final Registry<T> registry;
     private final Map<ResourceLocation, TagBuilder> builders = Maps.newLinkedHashMap();
 
-    protected TagsProvider(DataGenerator p_126546_, Registry<T> p_126547_) {
-        this.pathProvider = p_126546_.createPathProvider(DataGenerator.Target.DATA_PACK, TagManager.getTagDir(p_126547_.key()));
-        this.registry = p_126547_;
+    protected TagsProvider(DataGenerator pGenerator, Registry<T> pRegistry) {
+        this.pathProvider = pGenerator.createPathProvider(DataGenerator.Target.DATA_PACK, TagManager.getTagDir(pRegistry.key()));
+        this.registry = pRegistry;
     }
 
     public final String getName() {
@@ -42,7 +42,7 @@ public abstract class TagsProvider<T> implements DataProvider {
 
     protected abstract void addTags();
 
-    public void run(CachedOutput p_236446_) {
+    public void run(CachedOutput pOutput) {
         this.builders.clear();
         this.addTags();
         this.builders.forEach((p_236449_, p_236450_) -> {
@@ -58,7 +58,7 @@ public abstract class TagsProvider<T> implements DataProvider {
                 Path path = this.pathProvider.json(p_236449_);
 
                 try {
-                    DataProvider.saveStable(p_236446_, jsonelement, path);
+                    DataProvider.saveStable(pOutput, jsonelement, path);
                 } catch (IOException ioexception) {
                     LOGGER.error("Couldn't save tags to {}", path, ioexception);
                 }
@@ -66,13 +66,13 @@ public abstract class TagsProvider<T> implements DataProvider {
         });
     }
 
-    protected TagsProvider.TagAppender<T> tag(TagKey<T> p_206425_) {
-        TagBuilder tagbuilder = this.getOrCreateRawBuilder(p_206425_);
+    protected TagsProvider.TagAppender<T> tag(TagKey<T> pTag) {
+        TagBuilder tagbuilder = this.getOrCreateRawBuilder(pTag);
         return new TagsProvider.TagAppender<>(tagbuilder, this.registry);
     }
 
-    protected TagBuilder getOrCreateRawBuilder(TagKey<T> p_236452_) {
-        return this.builders.computeIfAbsent(p_236452_.location(), (p_236442_) -> {
+    protected TagBuilder getOrCreateRawBuilder(TagKey<T> pTag) {
+        return this.builders.computeIfAbsent(pTag.location(), (p_236442_) -> {
             return TagBuilder.create();
         });
     }
@@ -81,43 +81,43 @@ public abstract class TagsProvider<T> implements DataProvider {
         private final TagBuilder builder;
         private final Registry<T> registry;
 
-        TagAppender(TagBuilder p_236454_, Registry<T> p_236455_) {
-            this.builder = p_236454_;
-            this.registry = p_236455_;
+        TagAppender(TagBuilder pBuilder, Registry<T> pRegistry) {
+            this.builder = pBuilder;
+            this.registry = pRegistry;
         }
 
-        public TagsProvider.TagAppender<T> add(T p_126583_) {
-            this.builder.addElement(this.registry.getKey(p_126583_));
+        public TagsProvider.TagAppender<T> add(T pItem) {
+            this.builder.addElement(this.registry.getKey(pItem));
             return this;
         }
 
         @SafeVarargs
-        public final TagsProvider.TagAppender<T> add(ResourceKey<T>... p_211102_) {
-            for (ResourceKey<T> resourcekey : p_211102_) {
+        public final TagsProvider.TagAppender<T> add(ResourceKey<T>... pToAdd) {
+            for (ResourceKey<T> resourcekey : pToAdd) {
                 this.builder.addElement(resourcekey.location());
             }
 
             return this;
         }
 
-        public TagsProvider.TagAppender<T> addOptional(ResourceLocation p_176840_) {
-            this.builder.addOptionalElement(p_176840_);
+        public TagsProvider.TagAppender<T> addOptional(ResourceLocation pLocation) {
+            this.builder.addOptionalElement(pLocation);
             return this;
         }
 
-        public TagsProvider.TagAppender<T> addTag(TagKey<T> p_206429_) {
-            this.builder.addTag(p_206429_.location());
+        public TagsProvider.TagAppender<T> addTag(TagKey<T> pTag) {
+            this.builder.addTag(pTag.location());
             return this;
         }
 
-        public TagsProvider.TagAppender<T> addOptionalTag(ResourceLocation p_176842_) {
-            this.builder.addOptionalTag(p_176842_);
+        public TagsProvider.TagAppender<T> addOptionalTag(ResourceLocation pLocation) {
+            this.builder.addOptionalTag(pLocation);
             return this;
         }
 
         @SafeVarargs
-        public final TagsProvider.TagAppender<T> add(T... p_126585_) {
-            Stream.<T>of(p_126585_).map(this.registry::getKey).forEach((p_126587_) -> {
+        public final TagsProvider.TagAppender<T> add(T... pToAdd) {
+            Stream.<T>of(pToAdd).map(this.registry::getKey).forEach((p_126587_) -> {
                 this.builder.addElement(p_126587_);
             });
             return this;

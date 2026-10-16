@@ -21,7 +21,7 @@ public class LootContextParams {
     public static final LootContextParam<ItemStack> TOOL = create("tool");
     public static final LootContextParam<Float> EXPLOSION_RADIUS = create("explosion_radius");
 
-    private static <T> LootContextParam<T> create(String p_81467_) {
-        return new LootContextParam<>(new ResourceLocation(p_81467_));
+    private static <T> LootContextParam<T> create(String pId) {
+        return new LootContextParam<>(new ResourceLocation(pId));
     }
 }

@@ -19,16 +19,16 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import org.apache.commons.lang3.mutable.MutableInt;
 
 public class FossilFeature extends Feature<FossilFeatureConfiguration> {
-    public FossilFeature(Codec<FossilFeatureConfiguration> p_65851_) {
-        super(p_65851_);
+    public FossilFeature(Codec<FossilFeatureConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<FossilFeatureConfiguration> p_159789_) {
-        RandomSource randomsource = p_159789_.random();
-        WorldGenLevel worldgenlevel = p_159789_.level();
-        BlockPos blockpos = p_159789_.origin();
+    public boolean place(FeaturePlaceContext<FossilFeatureConfiguration> pContext) {
+        RandomSource randomsource = pContext.random();
+        WorldGenLevel worldgenlevel = pContext.level();
+        BlockPos blockpos = pContext.origin();
         Rotation rotation = Rotation.getRandom(randomsource);
-        FossilFeatureConfiguration fossilfeatureconfiguration = p_159789_.config();
+        FossilFeatureConfiguration fossilfeatureconfiguration = pContext.config();
         int i = randomsource.nextInt(fossilfeatureconfiguration.fossilStructures.size());
         StructureTemplateManager structuretemplatemanager = worldgenlevel.getLevel().getServer().getStructureManager();
         StructureTemplate structuretemplate = structuretemplatemanager.getOrCreate(fossilfeatureconfiguration.fossilStructures.get(i));
@@ -61,10 +61,10 @@ public class FossilFeature extends Feature<FossilFeatureConfiguration> {
         }
     }
 
-    private static int countEmptyCorners(WorldGenLevel p_159782_, BoundingBox p_159783_) {
+    private static int countEmptyCorners(WorldGenLevel pLevel, BoundingBox pBoundingBox) {
         MutableInt mutableint = new MutableInt(0);
-        p_159783_.forAllCorners((p_204749_) -> {
-            BlockState blockstate = p_159782_.getBlockState(p_204749_);
+        pBoundingBox.forAllCorners((p_204749_) -> {
+            BlockState blockstate = pLevel.getBlockState(p_204749_);
             if (blockstate.isAir() || blockstate.is(Blocks.LAVA) || blockstate.is(Blocks.WATER)) {
                 mutableint.add(1);
             }

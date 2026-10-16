@@ -87,25 +87,25 @@ public class WorldGenRegion implements WorldGenLevel {
     private final AtomicLong subTickCount = new AtomicLong();
     private static final ResourceLocation WORLDGEN_REGION_RANDOM = new ResourceLocation("worldgen_region_random");
 
-    public WorldGenRegion(ServerLevel p_143484_, List<ChunkAccess> p_143485_, ChunkStatus p_143486_, int p_143487_) {
-        this.generatingStatus = p_143486_;
-        this.writeRadiusCutoff = p_143487_;
-        int i = Mth.floor(Math.sqrt((double) p_143485_.size()));
-        if (i * i != p_143485_.size()) {
+    public WorldGenRegion(ServerLevel pLevel, List<ChunkAccess> pCache, ChunkStatus pGeneratingStatus, int pWriteRadiusCutoff) {
+        this.generatingStatus = pGeneratingStatus;
+        this.writeRadiusCutoff = pWriteRadiusCutoff;
+        int i = Mth.floor(Math.sqrt((double) pCache.size()));
+        if (i * i != pCache.size()) {
             throw (IllegalStateException) Util.pauseInIde(new IllegalStateException("Cache size is not a square."));
         } else {
-            this.cache = p_143485_;
-            this.center = p_143485_.get(p_143485_.size() / 2);
+            this.cache = pCache;
+            this.center = pCache.get(pCache.size() / 2);
             this.size = i;
-            this.level = p_143484_;
-            this.seed = p_143484_.getSeed();
-            this.levelData = p_143484_.getLevelData();
-            this.random = p_143484_.getChunkSource().randomState().getOrCreateRandomFactory(WORLDGEN_REGION_RANDOM).at(this.center.getPos().getWorldPosition());
-            this.dimensionType = p_143484_.dimensionType();
+            this.level = pLevel;
+            this.seed = pLevel.getSeed();
+            this.levelData = pLevel.getLevelData();
+            this.random = pLevel.getChunkSource().randomState().getOrCreateRandomFactory(WORLDGEN_REGION_RANDOM).at(this.center.getPos().getWorldPosition());
+            this.dimensionType = pLevel.dimensionType();
             this.biomeManager = new BiomeManager(this, BiomeManager.obfuscateSeed(this.seed));
-            this.firstPos = p_143485_.get(0).getPos();
-            this.lastPos = p_143485_.get(p_143485_.size() - 1).getPos();
-            this.structureManager = p_143484_.structureManager().forWorldGenRegion(this);
+            this.firstPos = pCache.get(0).getPos();
+            this.lastPos = pCache.get(pCache.size() - 1).getPos();
+            this.structureManager = pLevel.structureManager().forWorldGenRegion(this);
         }
     }
 
@@ -117,61 +117,61 @@ public class WorldGenRegion implements WorldGenLevel {
         return this.center.getPos();
     }
 
-    public void setCurrentlyGenerating(@Nullable Supplier<String> p_143498_) {
-        this.currentlyGenerating = p_143498_;
+    public void setCurrentlyGenerating(@Nullable Supplier<String> pCurrentlyGenerating) {
+        this.currentlyGenerating = pCurrentlyGenerating;
     }
 
-    public ChunkAccess getChunk(long p_9507_, long p_9508_) {
-        return this.getChunk(p_9507_, p_9508_, ChunkStatus.EMPTY);
+    public ChunkAccess getChunk(long pChunkX, long pChunkZ) {
+        return this.getChunk(pChunkX, pChunkZ, ChunkStatus.EMPTY);
     }
 
     @Nullable
-    public ChunkAccess getChunk(long p_9514_, long p_9515_, ChunkStatus p_9516_, boolean p_9517_) {
+    public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
         ChunkAccess chunkaccess;
-        if (this.hasChunk(p_9514_, p_9515_)) {
-            long i = WorldBounds.signedDifferenceAsLong(p_9514_, this.firstPos.x);
-            long j = WorldBounds.signedDifferenceAsLong(p_9515_, this.firstPos.z);
+        if (this.hasChunk(pX, pZ)) {
+            long i = WorldBounds.signedDifferenceAsLong(pX, this.firstPos.x);
+            long j = WorldBounds.signedDifferenceAsLong(pZ, this.firstPos.z);
             chunkaccess = this.cache.get((int) (i + j * this.size));
-            if (chunkaccess.getStatus().isOrAfter(p_9516_)) {
+            if (chunkaccess.getStatus().isOrAfter(pRequiredStatus)) {
                 return chunkaccess;
             }
         } else {
             chunkaccess = null;
         }
 
-        if (!p_9517_) {
+        if (!pNonnull) {
             return null;
-        } else if (!this.hasChunk(p_9514_, p_9515_) || !WorldBounds.isValidChunk(p_9514_, p_9515_)) {
-            return new EmptyLevelChunk(this.level, new ChunkPos(WorldBounds.clampChunk(p_9514_), WorldBounds.clampChunk(p_9515_)), this.level.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.PLAINS));
+        } else if (!this.hasChunk(pX, pZ) || !WorldBounds.isValidChunk(pX, pZ)) {
+            return new EmptyLevelChunk(this.level, new ChunkPos(WorldBounds.clampChunk(pX), WorldBounds.clampChunk(pZ)), this.level.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.PLAINS));
         } else {
-            LOGGER.error("Requested chunk : {} {}", p_9514_, p_9515_);
+            LOGGER.error("Requested chunk : {} {}", pX, pZ);
             LOGGER.error("Region bounds : {} {} | {} {}", this.firstPos.x, this.firstPos.z, this.lastPos.x, this.lastPos.z);
             if (chunkaccess != null) {
-                throw (RuntimeException) Util.pauseInIde(new RuntimeException(String.format(Locale.ROOT, "Chunk is not of correct status. Expecting %s, got %s | %s %s", p_9516_, chunkaccess.getStatus(), p_9514_, p_9515_)));
+                throw (RuntimeException) Util.pauseInIde(new RuntimeException(String.format(Locale.ROOT, "Chunk is not of correct status. Expecting %s, got %s | %s %s", pRequiredStatus, chunkaccess.getStatus(), pX, pZ)));
             } else {
-                throw (RuntimeException) Util.pauseInIde(new RuntimeException(String.format(Locale.ROOT, "We are asking a region for a chunk out of bound | %s %s", p_9514_, p_9515_)));
+                throw (RuntimeException) Util.pauseInIde(new RuntimeException(String.format(Locale.ROOT, "We are asking a region for a chunk out of bound | %s %s", pX, pZ)));
             }
         }
     }
 
-    public boolean hasChunk(long p_9574_, long p_9575_) {
-        return p_9574_ >= this.firstPos.x && p_9574_ <= this.lastPos.x && p_9575_ >= this.firstPos.z && p_9575_ <= this.lastPos.z;
+    public boolean hasChunk(long pChunkX, long pChunkZ) {
+        return pChunkX >= this.firstPos.x && pChunkX <= this.lastPos.x && pChunkZ >= this.firstPos.z && pChunkZ <= this.lastPos.z;
     }
 
-    public BlockState getBlockState(BlockPos p_9587_) {
-        long i = SectionPos.blockToSectionCoord(p_9587_.getX());
-        long j = SectionPos.blockToSectionCoord(p_9587_.getZ());
-        return this.hasChunk(i, j) ? this.getChunk(i, j).getBlockState(p_9587_) : Blocks.VOID_AIR.defaultBlockState();
+    public BlockState getBlockState(BlockPos pPos) {
+        long i = SectionPos.blockToSectionCoord(pPos.getX());
+        long j = SectionPos.blockToSectionCoord(pPos.getZ());
+        return this.hasChunk(i, j) ? this.getChunk(i, j).getBlockState(pPos) : Blocks.VOID_AIR.defaultBlockState();
     }
 
-    public FluidState getFluidState(BlockPos p_9577_) {
-        long i = SectionPos.blockToSectionCoord(p_9577_.getX());
-        long j = SectionPos.blockToSectionCoord(p_9577_.getZ());
-        return this.hasChunk(i, j) ? this.getChunk(i, j).getFluidState(p_9577_) : Fluids.EMPTY.defaultFluidState();
+    public FluidState getFluidState(BlockPos pPos) {
+        long i = SectionPos.blockToSectionCoord(pPos.getX());
+        long j = SectionPos.blockToSectionCoord(pPos.getZ());
+        return this.hasChunk(i, j) ? this.getChunk(i, j).getFluidState(pPos) : Fluids.EMPTY.defaultFluidState();
     }
 
     @Nullable
-    public Player getNearestPlayer(double p_9501_, double p_9502_, double p_9503_, double p_9504_, Predicate<Entity> p_9505_) {
+    public Player getNearestPlayer(double pX, double pY, double pZ, double pDistance, Predicate<Entity> pPredicate) {
         return null;
     }
 
@@ -183,11 +183,11 @@ public class WorldGenRegion implements WorldGenLevel {
         return this.biomeManager;
     }
 
-    public Holder<Biome> getUncachedNoiseBiome(long p_203787_, int p_203788_, long p_203789_) {
-        return this.level.getUncachedNoiseBiome(p_203787_, p_203788_, p_203789_);
+    public Holder<Biome> getUncachedNoiseBiome(long pX, int pY, long pZ) {
+        return this.level.getUncachedNoiseBiome(pX, pY, pZ);
     }
 
-    public float getShade(Direction p_9555_, boolean p_9556_) {
+    public float getShade(Direction pDirection, boolean pShade) {
         return 1.0F;
     }
 
@@ -195,38 +195,38 @@ public class WorldGenRegion implements WorldGenLevel {
         return this.level.getLightEngine();
     }
 
-    public boolean destroyBlock(BlockPos p_9550_, boolean p_9551_, @Nullable Entity p_9552_, int p_9553_) {
-        BlockState blockstate = this.getBlockState(p_9550_);
+    public boolean destroyBlock(BlockPos pPos, boolean pDropBlock, @Nullable Entity pEntity, int pRecursionLeft) {
+        BlockState blockstate = this.getBlockState(pPos);
         if (blockstate.isAir()) {
             return false;
         } else {
-            if (p_9551_) {
-                BlockEntity blockentity = blockstate.hasBlockEntity() ? this.getBlockEntity(p_9550_) : null;
-                Block.dropResources(blockstate, this.level, p_9550_, blockentity, p_9552_, ItemStack.EMPTY);
+            if (pDropBlock) {
+                BlockEntity blockentity = blockstate.hasBlockEntity() ? this.getBlockEntity(pPos) : null;
+                Block.dropResources(blockstate, this.level, pPos, blockentity, pEntity, ItemStack.EMPTY);
             }
 
-            return this.setBlock(p_9550_, Blocks.AIR.defaultBlockState(), 3, p_9553_);
+            return this.setBlock(pPos, Blocks.AIR.defaultBlockState(), 3, pRecursionLeft);
         }
     }
 
     @Nullable
-    public BlockEntity getBlockEntity(BlockPos p_9582_) {
-        ChunkAccess chunkaccess = this.getChunk(p_9582_);
-        BlockEntity blockentity = chunkaccess.getBlockEntity(p_9582_);
+    public BlockEntity getBlockEntity(BlockPos pPos) {
+        ChunkAccess chunkaccess = this.getChunk(pPos);
+        BlockEntity blockentity = chunkaccess.getBlockEntity(pPos);
         if (blockentity != null) {
             return blockentity;
         } else {
-            CompoundTag compoundtag = chunkaccess.getBlockEntityNbt(p_9582_);
-            BlockState blockstate = chunkaccess.getBlockState(p_9582_);
+            CompoundTag compoundtag = chunkaccess.getBlockEntityNbt(pPos);
+            BlockState blockstate = chunkaccess.getBlockState(pPos);
             if (compoundtag != null) {
                 if ("DUMMY".equals(compoundtag.getString("id"))) {
                     if (!blockstate.hasBlockEntity()) {
                         return null;
                     }
 
-                    blockentity = ((EntityBlock) blockstate.getBlock()).newBlockEntity(p_9582_, blockstate);
+                    blockentity = ((EntityBlock) blockstate.getBlock()).newBlockEntity(pPos, blockstate);
                 } else {
-                    blockentity = BlockEntity.loadStatic(p_9582_, blockstate, compoundtag);
+                    blockentity = BlockEntity.loadStatic(pPos, blockstate, compoundtag);
                 }
 
                 if (blockentity != null) {
@@ -236,23 +236,23 @@ public class WorldGenRegion implements WorldGenLevel {
             }
 
             if (blockstate.hasBlockEntity()) {
-                LOGGER.warn("Tried to access a block entity before it was created. {}", (Object) p_9582_);
+                LOGGER.warn("Tried to access a block entity before it was created. {}", (Object) pPos);
             }
 
             return null;
         }
     }
 
-    public boolean ensureCanWrite(BlockPos p_181031_) {
-        long i = SectionPos.blockToSectionCoord(p_181031_.getX());
-        long j = SectionPos.blockToSectionCoord(p_181031_.getZ());
+    public boolean ensureCanWrite(BlockPos pPos) {
+        long i = SectionPos.blockToSectionCoord(pPos.getX());
+        long j = SectionPos.blockToSectionCoord(pPos.getZ());
         ChunkPos chunkpos = this.getCenter();
         double k = WorldBounds.distance(chunkpos.x, i);
         double l = WorldBounds.distance(chunkpos.z, j);
         if (k <= this.writeRadiusCutoff && l <= this.writeRadiusCutoff) {
             if (this.center.isUpgrading()) {
                 LevelHeightAccessor levelheightaccessor = this.center.getHeightAccessorForGeneration();
-                if (p_181031_.getY() < levelheightaccessor.getMinBuildHeight() || p_181031_.getY() >= levelheightaccessor.getMaxBuildHeight()) {
+                if (pPos.getY() < levelheightaccessor.getMinBuildHeight() || pPos.getY() >= levelheightaccessor.getMaxBuildHeight()) {
                     return false;
                 }
             }
@@ -264,57 +264,57 @@ public class WorldGenRegion implements WorldGenLevel {
         }
     }
 
-    public boolean setBlock(BlockPos p_9539_, BlockState p_9540_, int p_9541_, int p_9542_) {
-        if (!this.ensureCanWrite(p_9539_)) {
+    public boolean setBlock(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft) {
+        if (!this.ensureCanWrite(pPos)) {
             return false;
         } else {
-            ChunkAccess chunkaccess = this.getChunk(p_9539_);
-            BlockState blockstate = chunkaccess.setBlockState(p_9539_, p_9540_, false);
+            ChunkAccess chunkaccess = this.getChunk(pPos);
+            BlockState blockstate = chunkaccess.setBlockState(pPos, pState, false);
             if (blockstate != null) {
-                this.level.onBlockStateChange(p_9539_, blockstate, p_9540_);
+                this.level.onBlockStateChange(pPos, blockstate, pState);
             }
 
-            if (p_9540_.hasBlockEntity()) {
+            if (pState.hasBlockEntity()) {
                 if (chunkaccess.getStatus().getChunkType() == ChunkStatus.ChunkType.LEVELCHUNK) {
-                    BlockEntity blockentity = ((EntityBlock) p_9540_.getBlock()).newBlockEntity(p_9539_, p_9540_);
+                    BlockEntity blockentity = ((EntityBlock) pState.getBlock()).newBlockEntity(pPos, pState);
                     if (blockentity != null) {
                         chunkaccess.setBlockEntity(blockentity);
                     } else {
-                        chunkaccess.removeBlockEntity(p_9539_);
+                        chunkaccess.removeBlockEntity(pPos);
                     }
                 } else {
                     CompoundTag compoundtag = new CompoundTag();
-                    compoundtag.putLong("x", p_9539_.getX());
-                    compoundtag.putLong("y", p_9539_.getY());
-                    compoundtag.putLong("z", p_9539_.getZ());
+                    compoundtag.putLong("x", pPos.getX());
+                    compoundtag.putLong("y", pPos.getY());
+                    compoundtag.putLong("z", pPos.getZ());
                     compoundtag.putString("id", "DUMMY");
                     chunkaccess.setBlockEntityNbt(compoundtag);
                 }
             } else if (blockstate != null && blockstate.hasBlockEntity()) {
-                chunkaccess.removeBlockEntity(p_9539_);
+                chunkaccess.removeBlockEntity(pPos);
             }
 
-            if (p_9540_.hasPostProcess(this, p_9539_)) {
-                this.markPosForPostprocessing(p_9539_);
+            if (pState.hasPostProcess(this, pPos)) {
+                this.markPosForPostprocessing(pPos);
             }
 
             return true;
         }
     }
 
-    private void markPosForPostprocessing(BlockPos p_9592_) {
-        this.getChunk(p_9592_).markPosForPostprocessing(p_9592_);
+    private void markPosForPostprocessing(BlockPos pPos) {
+        this.getChunk(pPos).markPosForPostprocessing(pPos);
     }
 
-    public boolean addFreshEntity(Entity p_9580_) {
-        long i = SectionPos.blockToSectionCoord(p_9580_.getBlockX());
-        long j = SectionPos.blockToSectionCoord(p_9580_.getBlockZ());
-        this.getChunk(i, j).addEntity(p_9580_);
+    public boolean addFreshEntity(Entity pEntity) {
+        long i = SectionPos.blockToSectionCoord(pEntity.getBlockX());
+        long j = SectionPos.blockToSectionCoord(pEntity.getBlockZ());
+        this.getChunk(i, j).addEntity(pEntity);
         return true;
     }
 
-    public boolean removeBlock(BlockPos p_9547_, boolean p_9548_) {
-        return this.setBlock(p_9547_, Blocks.AIR.defaultBlockState(), 3);
+    public boolean removeBlock(BlockPos pPos, boolean pIsMoving) {
+        return this.setBlock(pPos, Blocks.AIR.defaultBlockState(), 3);
     }
 
     public WorldBorder getWorldBorder() {
@@ -339,9 +339,9 @@ public class WorldGenRegion implements WorldGenLevel {
         return this.levelData;
     }
 
-    public DifficultyInstance getCurrentDifficultyAt(BlockPos p_9585_) {
-        long i = SectionPos.blockToSectionCoord(p_9585_.getX());
-        long j = SectionPos.blockToSectionCoord(p_9585_.getZ());
+    public DifficultyInstance getCurrentDifficultyAt(BlockPos pPos) {
+        long i = SectionPos.blockToSectionCoord(pPos.getX());
+        long j = SectionPos.blockToSectionCoord(pPos.getZ());
         long k = 0L;
         if (this.hasChunk(i, j)) {
             ChunkAccess chunkaccess = this.getChunk(i, j, ChunkStatus.EMPTY, false);
@@ -382,39 +382,39 @@ public class WorldGenRegion implements WorldGenLevel {
         return this.random;
     }
 
-    public int getHeight(Heightmap.Types p_9535_, long p_9536_, long p_9537_) {
-        return this.getChunk(SectionPos.blockToSectionCoord(p_9536_), SectionPos.blockToSectionCoord(p_9537_)).getHeight(p_9535_, p_9536_ & 15, p_9537_ & 15) + 1;
+    public int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ) {
+        return this.getChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ)).getHeight(pHeightmapType, pX & 15, pZ & 15) + 1;
     }
 
-    public void playSound(@Nullable Player p_9528_, BlockPos p_9529_, SoundEvent p_9530_, SoundSource p_9531_, float p_9532_, float p_9533_) {
+    public void playSound(@Nullable Player pPlayer, BlockPos pPos, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch) {
     }
 
-    public void addParticle(ParticleOptions p_9561_, double p_9562_, double p_9563_, double p_9564_, double p_9565_, double p_9566_, double p_9567_) {
+    public void addParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
-    public void levelEvent(@Nullable Player p_9523_, int p_9524_, BlockPos p_9525_, int p_9526_) {
+    public void levelEvent(@Nullable Player pPlayer, int pType, BlockPos pPos, int pData) {
     }
 
-    public void gameEvent(GameEvent p_215163_, Vec3 p_215164_, GameEvent.Context p_215165_) {
+    public void gameEvent(GameEvent pEvent, Vec3 pPosition, GameEvent.Context pContext) {
     }
 
     public DimensionType dimensionType() {
         return this.dimensionType;
     }
 
-    public boolean isStateAtPosition(BlockPos p_9544_, Predicate<BlockState> p_9545_) {
-        return p_9545_.test(this.getBlockState(p_9544_));
+    public boolean isStateAtPosition(BlockPos pPos, Predicate<BlockState> pState) {
+        return pState.test(this.getBlockState(pPos));
     }
 
-    public boolean isFluidAtPosition(BlockPos p_143500_, Predicate<FluidState> p_143501_) {
-        return p_143501_.test(this.getFluidState(p_143500_));
+    public boolean isFluidAtPosition(BlockPos pPos, Predicate<FluidState> pPredicate) {
+        return pPredicate.test(this.getFluidState(pPos));
     }
 
-    public <T extends Entity> List<T> getEntities(EntityTypeTest<Entity, T> p_143494_, AABB p_143495_, Predicate<? super T> p_143496_) {
+    public <T extends Entity> List<T> getEntities(EntityTypeTest<Entity, T> pEntityTypeTest, AABB pArea, Predicate<? super T> pPredicate) {
         return Collections.emptyList();
     }
 
-    public List<Entity> getEntities(@Nullable Entity p_9519_, AABB p_9520_, @Nullable Predicate<? super Entity> p_9521_) {
+    public List<Entity> getEntities(@Nullable Entity pEntity, AABB pBoundingBox, @Nullable Predicate<? super Entity> pPredicate) {
         return Collections.emptyList();
     }
 

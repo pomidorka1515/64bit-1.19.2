@@ -23,11 +23,11 @@ public class TemptGoal extends Goal {
     private final Ingredient items;
     private final boolean canScare;
 
-    public TemptGoal(PathfinderMob p_25939_, double p_25940_, Ingredient p_25941_, boolean p_25942_) {
-        this.mob = p_25939_;
-        this.speedModifier = p_25940_;
-        this.items = p_25941_;
-        this.canScare = p_25942_;
+    public TemptGoal(PathfinderMob pMob, double pSpeedModifier, Ingredient pItems, boolean pCanScare) {
+        this.mob = pMob;
+        this.speedModifier = pSpeedModifier;
+        this.items = pItems;
+        this.canScare = pCanScare;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         this.targetingConditions = TEMP_TARGETING.copy().selector(this::shouldFollow);
     }

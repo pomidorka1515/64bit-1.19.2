@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 public interface FinishedRecipe {
-    void serializeRecipeData(JsonObject p_125967_);
+    void serializeRecipeData(JsonObject pJson);
 
     default JsonObject serializeRecipe() {
         JsonObject jsonobject = new JsonObject();

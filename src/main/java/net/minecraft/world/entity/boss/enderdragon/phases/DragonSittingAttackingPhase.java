@@ -7,8 +7,8 @@ public class DragonSittingAttackingPhase extends AbstractDragonSittingPhase {
     private static final int ROAR_DURATION = 40;
     private int attackingTicks;
 
-    public DragonSittingAttackingPhase(EnderDragon p_31321_) {
-        super(p_31321_);
+    public DragonSittingAttackingPhase(EnderDragon pDragon) {
+        super(pDragon);
     }
 
     public void doClientTick() {

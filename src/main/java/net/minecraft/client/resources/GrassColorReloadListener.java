@@ -13,15 +13,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class GrassColorReloadListener extends SimplePreparableReloadListener<int[]> {
     private static final ResourceLocation LOCATION = new ResourceLocation("textures/colormap/grass.png");
 
-    protected int[] prepare(ResourceManager p_118677_, ProfilerFiller p_118678_) {
+    protected int[] prepare(ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         try {
-            return LegacyStuffWrapper.getPixels(p_118677_, LOCATION);
+            return LegacyStuffWrapper.getPixels(pResourceManager, LOCATION);
         } catch (IOException ioexception) {
             throw new IllegalStateException("Failed to load grass color texture", ioexception);
         }
     }
 
-    protected void apply(int[] p_118684_, ResourceManager p_118685_, ProfilerFiller p_118686_) {
-        GrassColor.init(p_118684_);
+    protected void apply(int[] pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+        GrassColor.init(pObject);
     }
 }

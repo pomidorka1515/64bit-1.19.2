@@ -34,25 +34,25 @@ public class RealmsUtil {
     private static final int HOURS = 3600;
     private static final int DAYS = 86400;
 
-    public static String uuidToName(String p_90222_) throws Exception {
-        GameProfile gameprofile = gameProfileCache.get(p_90222_);
+    public static String uuidToName(String pProfileUuid) throws Exception {
+        GameProfile gameprofile = gameProfileCache.get(pProfileUuid);
         return gameprofile.getName();
     }
 
-    public static Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> getTextures(String p_90226_) {
+    public static Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> getTextures(String pProfileUuid) {
         try {
-            GameProfile gameprofile = gameProfileCache.get(p_90226_);
+            GameProfile gameprofile = gameProfileCache.get(pProfileUuid);
             return SESSION_SERVICE.getTextures(gameprofile, false);
         } catch (Exception exception) {
             return Maps.newHashMap();
         }
     }
 
-    public static String convertToAgePresentation(long p_90220_) {
-        if (p_90220_ < 0L) {
+    public static String convertToAgePresentation(long pTime) {
+        if (pTime < 0L) {
             return "right now";
         } else {
-            long i = p_90220_ / 1000L;
+            long i = pTime / 1000L;
             if (i < 60L) {
                 return (i == 1L ? "1 second" : i + " seconds") + " ago";
             } else if (i < 3600L) {
@@ -68,7 +68,7 @@ public class RealmsUtil {
         }
     }
 
-    public static String convertToAgePresentationFromInstant(Date p_90224_) {
-        return convertToAgePresentation(System.currentTimeMillis() - p_90224_.getTime());
+    public static String convertToAgePresentationFromInstant(Date pDate) {
+        return convertToAgePresentation(System.currentTimeMillis() - pDate.getTime());
     }
 }

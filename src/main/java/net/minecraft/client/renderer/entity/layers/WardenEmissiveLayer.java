@@ -21,18 +21,18 @@ public class WardenEmissiveLayer<T extends Warden, M extends WardenModel<T>> ext
     private final WardenEmissiveLayer.AlphaFunction<T> alphaFunction;
     private final WardenEmissiveLayer.DrawSelector<T, M> drawSelector;
 
-    public WardenEmissiveLayer(RenderLayerParent<T, M> p_234885_, ResourceLocation p_234886_, WardenEmissiveLayer.AlphaFunction<T> p_234887_, WardenEmissiveLayer.DrawSelector<T, M> p_234888_) {
-        super(p_234885_);
-        this.texture = p_234886_;
-        this.alphaFunction = p_234887_;
-        this.drawSelector = p_234888_;
+    public WardenEmissiveLayer(RenderLayerParent<T, M> pRenderer, ResourceLocation pTexture, WardenEmissiveLayer.AlphaFunction<T> pAlphaFunction, WardenEmissiveLayer.DrawSelector<T, M> pDrawSelector) {
+        super(pRenderer);
+        this.texture = pTexture;
+        this.alphaFunction = pAlphaFunction;
+        this.drawSelector = pDrawSelector;
     }
 
-    public void render(PoseStack p_234902_, MultiBufferSource p_234903_, int p_234904_, T p_234905_, float p_234906_, float p_234907_, float p_234908_, float p_234909_, float p_234910_, float p_234911_) {
-        if (!p_234905_.isInvisible()) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, T pLivingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        if (!pLivingEntity.isInvisible()) {
             this.onlyDrawSelectedParts();
-            VertexConsumer vertexconsumer = p_234903_.getBuffer(RenderType.entityTranslucentEmissive(this.texture));
-            this.getParentModel().renderToBuffer(p_234902_, vertexconsumer, p_234904_, LivingEntityRenderer.getOverlayCoords(p_234905_, 0.0F), 1.0F, 1.0F, 1.0F, this.alphaFunction.apply(p_234905_, p_234908_, p_234909_));
+            VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.entityTranslucentEmissive(this.texture));
+            this.getParentModel().renderToBuffer(pPoseStack, vertexconsumer, pPackedLight, LivingEntityRenderer.getOverlayCoords(pLivingEntity, 0.0F), 1.0F, 1.0F, 1.0F, this.alphaFunction.apply(pLivingEntity, pPartialTick, pAgeInTicks));
             this.resetDrawForAllParts();
         }
     }

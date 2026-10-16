@@ -16,12 +16,12 @@ public class FoliagePlacerType<P extends FoliagePlacer> {
     public static final FoliagePlacerType<RandomSpreadFoliagePlacer> RANDOM_SPREAD_FOLIAGE_PLACER = register("random_spread_foliage_placer", RandomSpreadFoliagePlacer.CODEC);
     private final Codec<P> codec;
 
-    private static <P extends FoliagePlacer> FoliagePlacerType<P> register(String p_68606_, Codec<P> p_68607_) {
-        return Registry.register(Registry.FOLIAGE_PLACER_TYPES, p_68606_, new FoliagePlacerType<>(p_68607_));
+    private static <P extends FoliagePlacer> FoliagePlacerType<P> register(String pKey, Codec<P> pCodec) {
+        return Registry.register(Registry.FOLIAGE_PLACER_TYPES, pKey, new FoliagePlacerType<>(pCodec));
     }
 
-    private FoliagePlacerType(Codec<P> p_68603_) {
-        this.codec = p_68603_;
+    private FoliagePlacerType(Codec<P> pCodec) {
+        this.codec = pCodec;
     }
 
     public Codec<P> codec() {

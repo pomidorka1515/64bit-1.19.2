@@ -47,10 +47,10 @@ public class EditWorldScreen extends Screen {
     private EditBox nameEdit;
     private final LevelStorageSource.LevelStorageAccess levelAccess;
 
-    public EditWorldScreen(BooleanConsumer p_101252_, LevelStorageSource.LevelStorageAccess p_101253_) {
+    public EditWorldScreen(BooleanConsumer pCallback, LevelStorageSource.LevelStorageAccess pLevelAccess) {
         super(Component.translatable("selectWorld.edit.title"));
-        this.callback = p_101252_;
-        this.levelAccess = p_101253_;
+        this.callback = pCallback;
+        this.levelAccess = pLevelAccess;
     }
 
     public void tick() {
@@ -178,9 +178,9 @@ public class EditWorldScreen extends Screen {
         this.setInitialFocus(this.nameEdit);
     }
 
-    public void resize(Minecraft p_101269_, int p_101270_, int p_101271_) {
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
         String s = this.nameEdit.getValue();
-        this.init(p_101269_, p_101270_, p_101271_);
+        this.init(pMinecraft, pWidth, pHeight);
         this.nameEdit.setValue(s);
     }
 
@@ -203,11 +203,11 @@ public class EditWorldScreen extends Screen {
         }
     }
 
-    public static void makeBackupAndShowToast(LevelStorageSource p_101261_, String p_101262_) {
+    public static void makeBackupAndShowToast(LevelStorageSource pLevelSource, String pLevelName) {
         boolean flag = false;
 
         try {
-            LevelStorageSource.LevelStorageAccess levelstoragesource$levelstorageaccess = p_101261_.createAccess(p_101262_);
+            LevelStorageSource.LevelStorageAccess levelstoragesource$levelstorageaccess = pLevelSource.createAccess(pLevelName);
 
             try {
                 flag = true;
@@ -229,19 +229,19 @@ public class EditWorldScreen extends Screen {
             }
         } catch (IOException ioexception) {
             if (!flag) {
-                SystemToast.onWorldAccessFailure(Minecraft.getInstance(), p_101262_);
+                SystemToast.onWorldAccessFailure(Minecraft.getInstance(), pLevelName);
             }
 
-            LOGGER.warn("Failed to create backup of level {}", p_101262_, ioexception);
+            LOGGER.warn("Failed to create backup of level {}", pLevelName, ioexception);
         }
     }
 
-    public static boolean makeBackupAndShowToast(LevelStorageSource.LevelStorageAccess p_101259_) {
+    public static boolean makeBackupAndShowToast(LevelStorageSource.LevelStorageAccess pLevelAccess) {
         long i = 0L;
         IOException ioexception = null;
 
         try {
-            i = p_101259_.makeWorldBackup();
+            i = pLevelAccess.makeWorldBackup();
         } catch (IOException ioexception1) {
             ioexception = ioexception1;
         }
@@ -252,18 +252,18 @@ public class EditWorldScreen extends Screen {
             Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP, component2, component3));
             return false;
         } else {
-            Component component = Component.translatable("selectWorld.edit.backupCreated", p_101259_.getLevelId());
+            Component component = Component.translatable("selectWorld.edit.backupCreated", pLevelAccess.getLevelId());
             Component component1 = Component.translatable("selectWorld.edit.backupSize", Mth.ceil((double) i / 1048576.0D));
             Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP, component, component1));
             return true;
         }
     }
 
-    public void render(PoseStack p_101264_, int p_101265_, int p_101266_, float p_101267_) {
-        this.renderBackground(p_101264_);
-        drawCenteredString(p_101264_, this.font, this.title, this.width / 2, 15, 16777215);
-        drawString(p_101264_, this.font, NAME_LABEL, this.width / 2 - 100, 24, 10526880);
-        this.nameEdit.render(p_101264_, p_101265_, p_101266_, p_101267_);
-        super.render(p_101264_, p_101265_, p_101266_, p_101267_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 15, 16777215);
+        drawString(pPoseStack, this.font, NAME_LABEL, this.width / 2 - 100, 24, 10526880);
+        this.nameEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

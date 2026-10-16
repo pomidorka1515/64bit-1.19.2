@@ -43,8 +43,8 @@ public enum RecipeBookCategories {
         this.itemIcons = ImmutableList.copyOf(p_92267_);
     }
 
-    public static List<RecipeBookCategories> getCategories(RecipeBookType p_92270_) {
-        switch (p_92270_) {
+    public static List<RecipeBookCategories> getCategories(RecipeBookType pRecipeBookType) {
+        switch (pRecipeBookType) {
             case CRAFTING:
                 return CRAFTING_CATEGORIES;
             case FURNACE:

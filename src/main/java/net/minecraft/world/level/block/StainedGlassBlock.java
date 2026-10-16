@@ -6,9 +6,9 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 public class StainedGlassBlock extends AbstractGlassBlock implements BeaconBeamBlock {
     private final DyeColor color;
 
-    public StainedGlassBlock(DyeColor p_56833_, BlockBehaviour.Properties p_56834_) {
-        super(p_56834_);
-        this.color = p_56833_;
+    public StainedGlassBlock(DyeColor pDyeColor, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
+        this.color = pDyeColor;
     }
 
     public DyeColor getColor() {

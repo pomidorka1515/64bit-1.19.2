@@ -10,8 +10,8 @@ import net.minecraft.network.chat.Component;
 
 public interface PreviewedArgument<T> extends ArgumentType<T> {
     @Nullable
-    default CompletableFuture<Component> resolvePreview(CommandSourceStack p_242896_, ParsedArgument<CommandSourceStack, ?> p_242879_) throws CommandSyntaxException {
-        return this.getValueType().isInstance(p_242879_.getResult()) ? this.resolvePreview(p_242896_, this.getValueType().cast(p_242879_.getResult())) : null;
+    default CompletableFuture<Component> resolvePreview(CommandSourceStack pSource, ParsedArgument<CommandSourceStack, ?> pParsedArgument) throws CommandSyntaxException {
+        return this.getValueType().isInstance(pParsedArgument.getResult()) ? this.resolvePreview(pSource, this.getValueType().cast(pParsedArgument.getResult())) : null;
     }
 
     CompletableFuture<Component> resolvePreview(CommandSourceStack p_232864_, T p_232865_) throws CommandSyntaxException;

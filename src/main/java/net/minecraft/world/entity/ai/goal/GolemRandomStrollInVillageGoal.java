@@ -20,8 +20,8 @@ public class GolemRandomStrollInVillageGoal extends RandomStrollGoal {
     private static final int RANDOM_POS_XY_DISTANCE = 10;
     private static final int RANDOM_POS_Y_DISTANCE = 7;
 
-    public GolemRandomStrollInVillageGoal(PathfinderMob p_25398_, double p_25399_) {
-        super(p_25398_, p_25399_, 240, false);
+    public GolemRandomStrollInVillageGoal(PathfinderMob pMob, double pSpeedModifier) {
+        super(pMob, pSpeedModifier, 240, false);
     }
 
     @Nullable
@@ -87,12 +87,12 @@ public class GolemRandomStrollInVillageGoal extends RandomStrollGoal {
     }
 
     @Nullable
-    private BlockPos getRandomPoiWithinSection(SectionPos p_25408_) {
+    private BlockPos getRandomPoiWithinSection(SectionPos pSectionPos) {
         ServerLevel serverlevel = (ServerLevel) this.mob.level;
         PoiManager poimanager = serverlevel.getPoiManager();
         List<BlockPos> list = poimanager.getInRange((p_217747_) -> {
                                             return true;
-                                        }, p_25408_.center(), 8, PoiManager.Occupancy.IS_OCCUPIED).map(PoiRecord::getPos).collect(Collectors.toList());
+                                        }, pSectionPos.center(), 8, PoiManager.Occupancy.IS_OCCUPIED).map(PoiRecord::getPos).collect(Collectors.toList());
         return list.isEmpty() ? null : list.get(serverlevel.random.nextInt(list.size()));
     }
 

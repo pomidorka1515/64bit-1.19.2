@@ -28,16 +28,16 @@ public class LevelChunkTicks<T> implements SerializableTickContainer<T>, TickCon
     public LevelChunkTicks() {
     }
 
-    public LevelChunkTicks(List<SavedTick<T>> p_193169_) {
-        this.pendingTicks = p_193169_;
+    public LevelChunkTicks(List<SavedTick<T>> pPendingTicks) {
+        this.pendingTicks = pPendingTicks;
 
-        for (SavedTick<T> savedtick : p_193169_) {
+        for (SavedTick<T> savedtick : pPendingTicks) {
             this.ticksPerPosition.add(ScheduledTick.probe(savedtick.type(), savedtick.pos()));
         }
     }
 
-    public void setOnTickAdded(@Nullable BiConsumer<LevelChunkTicks<T>, ScheduledTick<T>> p_193182_) {
-        this.onTickAdded = p_193182_;
+    public void setOnTickAdded(@Nullable BiConsumer<LevelChunkTicks<T>, ScheduledTick<T>> pOnTickAdded) {
+        this.onTickAdded = pOnTickAdded;
     }
 
     @Nullable
@@ -55,9 +55,9 @@ public class LevelChunkTicks<T> implements SerializableTickContainer<T>, TickCon
         return scheduledtick;
     }
 
-    public void schedule(ScheduledTick<T> p_193177_) {
-        if (this.ticksPerPosition.add(p_193177_)) {
-            this.scheduleUnchecked(p_193177_);
+    public void schedule(ScheduledTick<T> pTick) {
+        if (this.ticksPerPosition.add(pTick)) {
+            this.scheduleUnchecked(pTick);
         }
     }
 

@@ -6,8 +6,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class RemoveGolemGossipFix extends NamedEntityFix {
-    public RemoveGolemGossipFix(Schema p_16823_, boolean p_16824_) {
-        super(p_16823_, p_16824_, "Remove Golem Gossip Fix", References.ENTITY, "minecraft:villager");
+    public RemoveGolemGossipFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "Remove Golem Gossip Fix", References.ENTITY, "minecraft:villager");
     }
 
     protected Typed<?> fix(Typed<?> p_16826_) {

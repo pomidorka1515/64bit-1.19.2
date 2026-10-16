@@ -138,12 +138,12 @@ public class SharedConstants {
     @Nullable
     private static WorldVersion CURRENT_VERSION;
 
-    public static boolean isAllowedChatCharacter(char p_136189_) {
-        return p_136189_ != 167 && p_136189_ >= ' ' && p_136189_ != 127;
+    public static boolean isAllowedChatCharacter(char pCharacter) {
+        return pCharacter != 167 && pCharacter >= ' ' && pCharacter != 127;
     }
 
-    public static String filterText(String p_136191_) {
-        return filterText(p_136191_, false);
+    public static String filterText(String pInput) {
+        return filterText(pInput, false);
     }
 
     public static String filterText(String p_239658_, boolean p_239659_) {
@@ -160,10 +160,10 @@ public class SharedConstants {
         return stringbuilder.toString();
     }
 
-    public static void setVersion(WorldVersion p_183706_) {
+    public static void setVersion(WorldVersion pVersion) {
         if (CURRENT_VERSION == null) {
-            CURRENT_VERSION = p_183706_;
-        } else if (p_183706_ != CURRENT_VERSION) {
+            CURRENT_VERSION = pVersion;
+        } else if (pVersion != CURRENT_VERSION) {
             throw new IllegalStateException("Cannot override the current game version!");
         }
     }
@@ -186,9 +186,9 @@ public class SharedConstants {
         return 760;
     }
 
-    public static boolean debugVoidTerrain(ChunkPos p_183708_) {
-        long i = p_183708_.getMinBlockX();
-        long j = p_183708_.getMinBlockZ();
+    public static boolean debugVoidTerrain(ChunkPos pChunkPos) {
+        long i = pChunkPos.getMinBlockX();
+        long j = pChunkPos.getMinBlockZ();
         if (!debugGenerateSquareTerrainWithoutNoise) {
             return false;
         } else {

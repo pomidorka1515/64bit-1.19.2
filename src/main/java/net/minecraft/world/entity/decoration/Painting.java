@@ -36,36 +36,36 @@ public class Painting extends HangingEntity {
         return Registry.PAINTING_VARIANT.getHolderOrThrow(DEFAULT_VARIANT);
     }
 
-    public Painting(EntityType<? extends Painting> p_31904_, Level p_31905_) {
-        super(p_31904_, p_31905_);
+    public Painting(EntityType<? extends Painting> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void defineSynchedData() {
         this.entityData.define(DATA_PAINTING_VARIANT_ID, getDefaultVariant());
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_218896_) {
-        if (DATA_PAINTING_VARIANT_ID.equals(p_218896_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        if (DATA_PAINTING_VARIANT_ID.equals(pKey)) {
             this.recalculateBoundingBox();
         }
     }
 
-    private void setVariant(Holder<PaintingVariant> p_218892_) {
-        this.entityData.set(DATA_PAINTING_VARIANT_ID, p_218892_);
+    private void setVariant(Holder<PaintingVariant> pVariant) {
+        this.entityData.set(DATA_PAINTING_VARIANT_ID, pVariant);
     }
 
     public Holder<PaintingVariant> getVariant() {
         return this.entityData.get(DATA_PAINTING_VARIANT_ID);
     }
 
-    public static Optional<Painting> create(Level p_218888_, BlockPos p_218889_, Direction p_218890_) {
-        Painting painting = new Painting(p_218888_, p_218889_);
+    public static Optional<Painting> create(Level pLevel, BlockPos pPos, Direction pDirection) {
+        Painting painting = new Painting(pLevel, pPos);
         List<Holder<PaintingVariant>> list = new ArrayList<>();
         Registry.PAINTING_VARIANT.getTagOrEmpty(PaintingVariantTags.PLACEABLE).forEach(list::add);
         if (list.isEmpty()) {
             return Optional.empty();
         } else {
-            painting.setDirection(p_218890_);
+            painting.setDirection(pDirection);
             list.removeIf((p_218886_) -> {
                 painting.setVariant(p_218886_);
                 return !painting.survives();
@@ -82,7 +82,7 @@ public class Painting extends HangingEntity {
                     return Optional.empty();
                 } else {
                     painting.setVariant(optional.get());
-                    painting.setDirection(p_218890_);
+                    painting.setDirection(pDirection);
                     return Optional.of(painting);
                 }
             }
@@ -93,27 +93,27 @@ public class Painting extends HangingEntity {
         return p_218899_.value().getWidth() * p_218899_.value().getHeight();
     }
 
-    private Painting(Level p_218874_, BlockPos p_218875_) {
-        super(EntityType.PAINTING, p_218874_, p_218875_);
+    private Painting(Level pLevel, BlockPos pPos) {
+        super(EntityType.PAINTING, pLevel, pPos);
     }
 
-    public Painting(Level p_218877_, BlockPos p_218878_, Direction p_218879_, Holder<PaintingVariant> p_218880_) {
-        this(p_218877_, p_218878_);
-        this.setVariant(p_218880_);
-        this.setDirection(p_218879_);
+    public Painting(Level pLevel, BlockPos pPos, Direction pDirection, Holder<PaintingVariant> pVariant) {
+        this(pLevel, pPos);
+        this.setVariant(pVariant);
+        this.setDirection(pDirection);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_31935_) {
-        p_31935_.putString("variant", this.getVariant().unwrapKey().orElse(DEFAULT_VARIANT).location().toString());
-        p_31935_.putByte("facing", (byte) this.direction.get2DDataValue());
-        super.addAdditionalSaveData(p_31935_);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        pCompound.putString("variant", this.getVariant().unwrapKey().orElse(DEFAULT_VARIANT).location().toString());
+        pCompound.putByte("facing", (byte) this.direction.get2DDataValue());
+        super.addAdditionalSaveData(pCompound);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_31927_) {
-        ResourceKey<PaintingVariant> resourcekey = ResourceKey.create(Registry.PAINTING_VARIANT_REGISTRY, ResourceLocation.tryParse(p_31927_.getString("variant")));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        ResourceKey<PaintingVariant> resourcekey = ResourceKey.create(Registry.PAINTING_VARIANT_REGISTRY, ResourceLocation.tryParse(pCompound.getString("variant")));
         this.setVariant(Registry.PAINTING_VARIANT.getHolder(resourcekey).orElseGet(Painting::getDefaultVariant));
-        this.direction = Direction.from2DDataValue(p_31927_.getByte("facing"));
-        super.readAdditionalSaveData(p_31927_);
+        this.direction = Direction.from2DDataValue(pCompound.getByte("facing"));
+        super.readAdditionalSaveData(pCompound);
         this.setDirection(this.direction);
     }
 
@@ -125,11 +125,11 @@ public class Painting extends HangingEntity {
         return this.getVariant().value().getHeight();
     }
 
-    public void dropItem(@Nullable Entity p_31925_) {
+    public void dropItem(@Nullable Entity pBrokenEntity) {
         if (this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
             this.playSound(SoundEvents.PAINTING_BREAK, 1.0F, 1.0F);
-            if (p_31925_ instanceof Player) {
-                Player player = (Player) p_31925_;
+            if (pBrokenEntity instanceof Player) {
+                Player player = (Player) pBrokenEntity;
                 if (player.getAbilities().instabuild) {
                     return;
                 }
@@ -143,12 +143,12 @@ public class Painting extends HangingEntity {
         this.playSound(SoundEvents.PAINTING_PLACE, 1.0F, 1.0F);
     }
 
-    public void moveTo(double p_31929_, double p_31930_, double p_31931_, float p_31932_, float p_31933_) {
-        this.setPos(p_31929_, p_31930_, p_31931_);
+    public void moveTo(double pX, double pY, double pZ, float pYaw, float pPitch) {
+        this.setPos(pX, pY, pZ);
     }
 
-    public void lerpTo(double p_31917_, double p_31918_, double p_31919_, float p_31920_, float p_31921_, int p_31922_, boolean p_31923_) {
-        this.setPos(p_31917_, p_31918_, p_31919_);
+    public void lerpTo(double pX, double pY, double pZ, float pYaw, float pPitch, int pPosRotationIncrements, boolean pTeleport) {
+        this.setPos(pX, pY, pZ);
     }
 
     public Vec3 trackingPosition() {
@@ -159,9 +159,9 @@ public class Painting extends HangingEntity {
         return new ClientboundAddEntityPacket(this, this.direction.get3DDataValue(), this.getPos());
     }
 
-    public void recreateFromPacket(ClientboundAddEntityPacket p_218894_) {
-        super.recreateFromPacket(p_218894_);
-        this.setDirection(Direction.from3DDataValue(p_218894_.getData()));
+    public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
+        super.recreateFromPacket(pPacket);
+        this.setDirection(Direction.from3DDataValue(pPacket.getData()));
     }
 
     public ItemStack getPickResult() {

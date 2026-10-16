@@ -10,31 +10,31 @@ public class ClientboundCustomQueryPacket implements Packet<ClientLoginPacketLis
     private final ResourceLocation identifier;
     private final FriendlyByteBuf data;
 
-    public ClientboundCustomQueryPacket(int p_179806_, ResourceLocation p_179807_, FriendlyByteBuf p_179808_) {
-        this.transactionId = p_179806_;
-        this.identifier = p_179807_;
-        this.data = p_179808_;
+    public ClientboundCustomQueryPacket(int pTransactionId, ResourceLocation pIdentifier, FriendlyByteBuf pData) {
+        this.transactionId = pTransactionId;
+        this.identifier = pIdentifier;
+        this.data = pData;
     }
 
-    public ClientboundCustomQueryPacket(FriendlyByteBuf p_179810_) {
-        this.transactionId = p_179810_.readVarInt();
-        this.identifier = p_179810_.readResourceLocation();
-        int i = p_179810_.readableBytes();
+    public ClientboundCustomQueryPacket(FriendlyByteBuf pBuffer) {
+        this.transactionId = pBuffer.readVarInt();
+        this.identifier = pBuffer.readResourceLocation();
+        int i = pBuffer.readableBytes();
         if (i >= 0 && i <= 1048576) {
-            this.data = new FriendlyByteBuf(p_179810_.readBytes(i));
+            this.data = new FriendlyByteBuf(pBuffer.readBytes(i));
         } else {
             throw new IllegalArgumentException("Payload may not be larger than 1048576 bytes");
         }
     }
 
-    public void write(FriendlyByteBuf p_134757_) {
-        p_134757_.writeVarInt(this.transactionId);
-        p_134757_.writeResourceLocation(this.identifier);
-        p_134757_.writeBytes(this.data.copy());
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.transactionId);
+        pBuffer.writeResourceLocation(this.identifier);
+        pBuffer.writeBytes(this.data.copy());
     }
 
-    public void handle(ClientLoginPacketListener p_134754_) {
-        p_134754_.handleCustomQuery(this);
+    public void handle(ClientLoginPacketListener pHandler) {
+        pHandler.handleCustomQuery(this);
     }
 
     public int getTransactionId() {

@@ -28,18 +28,18 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
     private int life;
     private boolean surviveAfterDeath;
 
-    public EyeOfEnder(EntityType<? extends EyeOfEnder> p_36957_, Level p_36958_) {
-        super(p_36957_, p_36958_);
+    public EyeOfEnder(EntityType<? extends EyeOfEnder> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public EyeOfEnder(Level p_36960_, double p_36961_, double p_36962_, double p_36963_) {
-        this(EntityType.EYE_OF_ENDER, p_36960_);
-        this.setPos(p_36961_, p_36962_, p_36963_);
+    public EyeOfEnder(Level pLevel, double pX, double pY, double pZ) {
+        this(EntityType.EYE_OF_ENDER, pLevel);
+        this.setPos(pX, pY, pZ);
     }
 
-    public void setItem(ItemStack p_36973_) {
-        if (!p_36973_.is(Items.ENDER_EYE) || p_36973_.hasTag()) {
-            this.getEntityData().set(DATA_ITEM_STACK, Util.make(p_36973_.copy(), (p_36978_) -> {
+    public void setItem(ItemStack pStack) {
+        if (!pStack.is(Items.ENDER_EYE) || pStack.hasTag()) {
+            this.getEntityData().set(DATA_ITEM_STACK, Util.make(pStack.copy(), (p_36978_) -> {
                 p_36978_.setCount(1);
             }));
         }
@@ -58,19 +58,19 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
         this.getEntityData().define(DATA_ITEM_STACK, ItemStack.EMPTY);
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_36966_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         double d0 = this.getBoundingBox().getSize() * 4.0D;
         if (Double.isNaN(d0)) {
             d0 = 4.0D;
         }
 
         d0 *= 64.0D;
-        return p_36966_ < d0 * d0;
+        return pDistance < d0 * d0;
     }
 
-    public void signalTo(BlockPos p_36968_) {
-        SectorVec3 target = SectorVec3.fromBlockAndFraction(p_36968_.getX(), 0.0D, (double) p_36968_.getY(),
-                p_36968_.getZ(), 0.0D);
+    public void signalTo(BlockPos pPos) {
+        SectorVec3 target = SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, (double) pPos.getY(),
+                pPos.getZ(), 0.0D);
         Vec3 delta = target.relativeTo(this.sectorPosition());
         double horizontalDistance = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
         if (horizontalDistance > 12.0D) {
@@ -85,12 +85,12 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
         this.surviveAfterDeath = this.random.nextInt(5) > 0;
     }
 
-    public void lerpMotion(double p_36984_, double p_36985_, double p_36986_) {
-        this.setDeltaMovement(p_36984_, p_36985_, p_36986_);
+    public void lerpMotion(double pX, double pY, double pZ) {
+        this.setDeltaMovement(pX, pY, pZ);
         if (this.xRotO == 0.0F && this.yRotO == 0.0F) {
-            double d0 = Math.sqrt(p_36984_ * p_36984_ + p_36986_ * p_36986_);
-            this.setYRot((float) (Mth.atan2(p_36984_, p_36986_) * (double) (180F / (float) Math.PI)));
-            this.setXRot((float) (Mth.atan2(p_36985_, d0) * (double) (180F / (float) Math.PI)));
+            double d0 = Math.sqrt(pX * pX + pZ * pZ);
+            this.setYRot((float) (Mth.atan2(pX, pZ) * (double) (180F / (float) Math.PI)));
+            this.setXRot((float) (Mth.atan2(pY, d0) * (double) (180F / (float) Math.PI)));
             this.yRotO = this.getYRot();
             this.xRotO = this.getXRot();
         }
@@ -147,15 +147,15 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_36975_) {
+    public void addAdditionalSaveData(CompoundTag pCompound) {
         ItemStack itemstack = this.getItemRaw();
         if (!itemstack.isEmpty()) {
-            p_36975_.put("Item", itemstack.save(new CompoundTag()));
+            pCompound.put("Item", itemstack.save(new CompoundTag()));
         }
     }
 
-    public void readAdditionalSaveData(CompoundTag p_36970_) {
-        ItemStack itemstack = ItemStack.of(p_36970_.getCompound("Item"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        ItemStack itemstack = ItemStack.of(pCompound.getCompound("Item"));
         this.setItem(itemstack);
     }
 

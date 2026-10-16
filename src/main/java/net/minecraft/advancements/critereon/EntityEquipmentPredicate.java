@@ -21,22 +21,22 @@ public class EntityEquipmentPredicate {
     private final ItemPredicate mainhand;
     private final ItemPredicate offhand;
 
-    public EntityEquipmentPredicate(ItemPredicate p_32186_, ItemPredicate p_32187_, ItemPredicate p_32188_, ItemPredicate p_32189_, ItemPredicate p_32190_, ItemPredicate p_32191_) {
-        this.head = p_32186_;
-        this.chest = p_32187_;
-        this.legs = p_32188_;
-        this.feet = p_32189_;
-        this.mainhand = p_32190_;
-        this.offhand = p_32191_;
+    public EntityEquipmentPredicate(ItemPredicate pHead, ItemPredicate pChest, ItemPredicate pLegs, ItemPredicate pFeet, ItemPredicate pMainhand, ItemPredicate pOffhand) {
+        this.head = pHead;
+        this.chest = pChest;
+        this.legs = pLegs;
+        this.feet = pFeet;
+        this.mainhand = pMainhand;
+        this.offhand = pOffhand;
     }
 
-    public boolean matches(@Nullable Entity p_32194_) {
+    public boolean matches(@Nullable Entity pEntity) {
         if (this == ANY) {
             return true;
-        } else if (!(p_32194_ instanceof LivingEntity)) {
+        } else if (!(pEntity instanceof LivingEntity)) {
             return false;
         } else {
-            LivingEntity livingentity = (LivingEntity) p_32194_;
+            LivingEntity livingentity = (LivingEntity) pEntity;
             if (!this.head.matches(livingentity.getItemBySlot(EquipmentSlot.HEAD))) {
                 return false;
             } else if (!this.chest.matches(livingentity.getItemBySlot(EquipmentSlot.CHEST))) {
@@ -53,9 +53,9 @@ public class EntityEquipmentPredicate {
         }
     }
 
-    public static EntityEquipmentPredicate fromJson(@Nullable JsonElement p_32196_) {
-        if (p_32196_ != null && !p_32196_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_32196_, "equipment");
+    public static EntityEquipmentPredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "equipment");
             ItemPredicate itempredicate = ItemPredicate.fromJson(jsonobject.get("head"));
             ItemPredicate itempredicate1 = ItemPredicate.fromJson(jsonobject.get("chest"));
             ItemPredicate itempredicate2 = ItemPredicate.fromJson(jsonobject.get("legs"));
@@ -95,33 +95,33 @@ public class EntityEquipmentPredicate {
             return new EntityEquipmentPredicate.Builder();
         }
 
-        public EntityEquipmentPredicate.Builder head(ItemPredicate p_32206_) {
-            this.head = p_32206_;
+        public EntityEquipmentPredicate.Builder head(ItemPredicate pHead) {
+            this.head = pHead;
             return this;
         }
 
-        public EntityEquipmentPredicate.Builder chest(ItemPredicate p_32209_) {
-            this.chest = p_32209_;
+        public EntityEquipmentPredicate.Builder chest(ItemPredicate pChest) {
+            this.chest = pChest;
             return this;
         }
 
-        public EntityEquipmentPredicate.Builder legs(ItemPredicate p_32211_) {
-            this.legs = p_32211_;
+        public EntityEquipmentPredicate.Builder legs(ItemPredicate pLegs) {
+            this.legs = pLegs;
             return this;
         }
 
-        public EntityEquipmentPredicate.Builder feet(ItemPredicate p_32213_) {
-            this.feet = p_32213_;
+        public EntityEquipmentPredicate.Builder feet(ItemPredicate pFeet) {
+            this.feet = pFeet;
             return this;
         }
 
-        public EntityEquipmentPredicate.Builder mainhand(ItemPredicate p_149929_) {
-            this.mainhand = p_149929_;
+        public EntityEquipmentPredicate.Builder mainhand(ItemPredicate pMainhand) {
+            this.mainhand = pMainhand;
             return this;
         }
 
-        public EntityEquipmentPredicate.Builder offhand(ItemPredicate p_149931_) {
-            this.offhand = p_149931_;
+        public EntityEquipmentPredicate.Builder offhand(ItemPredicate pOffhand) {
+            this.offhand = pOffhand;
             return this;
         }
 

@@ -77,66 +77,66 @@ public class BlockStateParser {
     private HolderSet<Block> tag;
     private Function<SuggestionsBuilder, CompletableFuture<Suggestions>> suggestions = SUGGEST_NOTHING;
 
-    private BlockStateParser(HolderLookup<Block> p_234673_, StringReader p_234674_, boolean p_234675_, boolean p_234676_) {
-        this.blocks = p_234673_;
-        this.reader = p_234674_;
-        this.forTesting = p_234675_;
-        this.allowNbt = p_234676_;
+    private BlockStateParser(HolderLookup<Block> pBlocks, StringReader pReader, boolean pForTesting, boolean pAllowNbt) {
+        this.blocks = pBlocks;
+        this.reader = pReader;
+        this.forTesting = pForTesting;
+        this.allowNbt = pAllowNbt;
     }
 
-    public static BlockStateParser.BlockResult parseForBlock(Registry<Block> p_234705_, String p_234706_, boolean p_234707_) throws CommandSyntaxException {
-        return parseForBlock(p_234705_, new StringReader(p_234706_), p_234707_);
+    public static BlockStateParser.BlockResult parseForBlock(Registry<Block> pRegistry, String pInput, boolean pAllowNbt) throws CommandSyntaxException {
+        return parseForBlock(pRegistry, new StringReader(pInput), pAllowNbt);
     }
 
-    public static BlockStateParser.BlockResult parseForBlock(Registry<Block> p_234701_, StringReader p_234702_, boolean p_234703_) throws CommandSyntaxException {
-        return parseForBlock(HolderLookup.forRegistry(p_234701_), p_234702_, p_234703_);
+    public static BlockStateParser.BlockResult parseForBlock(Registry<Block> pRegistry, StringReader pReader, boolean pAllowNbt) throws CommandSyntaxException {
+        return parseForBlock(HolderLookup.forRegistry(pRegistry), pReader, pAllowNbt);
     }
 
-    public static BlockStateParser.BlockResult parseForBlock(HolderLookup<Block> p_234692_, StringReader p_234693_, boolean p_234694_) throws CommandSyntaxException {
-        int i = p_234693_.getCursor();
+    public static BlockStateParser.BlockResult parseForBlock(HolderLookup<Block> pLookup, StringReader pReader, boolean pAllowNbt) throws CommandSyntaxException {
+        int i = pReader.getCursor();
 
         try {
-            BlockStateParser blockstateparser = new BlockStateParser(p_234692_, p_234693_, false, p_234694_);
+            BlockStateParser blockstateparser = new BlockStateParser(pLookup, pReader, false, pAllowNbt);
             blockstateparser.parse();
             return new BlockStateParser.BlockResult(blockstateparser.state, blockstateparser.properties, blockstateparser.nbt);
         } catch (CommandSyntaxException commandsyntaxexception) {
-            p_234693_.setCursor(i);
+            pReader.setCursor(i);
             throw commandsyntaxexception;
         }
     }
 
-    public static Either<BlockStateParser.BlockResult, BlockStateParser.TagResult> parseForTesting(Registry<Block> p_234725_, String p_234726_, boolean p_234727_) throws CommandSyntaxException {
-        return parseForTesting(p_234725_, new StringReader(p_234726_), p_234727_);
+    public static Either<BlockStateParser.BlockResult, BlockStateParser.TagResult> parseForTesting(Registry<Block> pRegistry, String pInput, boolean pAllowNbt) throws CommandSyntaxException {
+        return parseForTesting(pRegistry, new StringReader(pInput), pAllowNbt);
     }
 
-    public static Either<BlockStateParser.BlockResult, BlockStateParser.TagResult> parseForTesting(Registry<Block> p_234721_, StringReader p_234722_, boolean p_234723_) throws CommandSyntaxException {
-        return parseForTesting(HolderLookup.forRegistry(p_234721_), new StringReader(p_234722_), p_234723_);
+    public static Either<BlockStateParser.BlockResult, BlockStateParser.TagResult> parseForTesting(Registry<Block> pRegistry, StringReader pReader, boolean pAllowNbt) throws CommandSyntaxException {
+        return parseForTesting(HolderLookup.forRegistry(pRegistry), new StringReader(pReader), pAllowNbt);
     }
 
-    public static Either<BlockStateParser.BlockResult, BlockStateParser.TagResult> parseForTesting(HolderLookup<Block> p_234717_, StringReader p_234718_, boolean p_234719_) throws CommandSyntaxException {
-        int i = p_234718_.getCursor();
+    public static Either<BlockStateParser.BlockResult, BlockStateParser.TagResult> parseForTesting(HolderLookup<Block> pLookup, StringReader pReader, boolean pAllowNbt) throws CommandSyntaxException {
+        int i = pReader.getCursor();
 
         try {
-            BlockStateParser blockstateparser = new BlockStateParser(p_234717_, p_234718_, true, p_234719_);
+            BlockStateParser blockstateparser = new BlockStateParser(pLookup, pReader, true, pAllowNbt);
             blockstateparser.parse();
             return blockstateparser.tag != null ? Either.right(new BlockStateParser.TagResult(blockstateparser.tag, blockstateparser.vagueProperties, blockstateparser.nbt)) : Either.left(new BlockStateParser.BlockResult(blockstateparser.state, blockstateparser.properties, blockstateparser.nbt));
         } catch (CommandSyntaxException commandsyntaxexception) {
-            p_234718_.setCursor(i);
+            pReader.setCursor(i);
             throw commandsyntaxexception;
         }
     }
 
-    public static CompletableFuture<Suggestions> fillSuggestions(HolderLookup<Block> p_234696_, SuggestionsBuilder p_234697_, boolean p_234698_, boolean p_234699_) {
-        StringReader stringreader = new StringReader(p_234697_.getInput());
-        stringreader.setCursor(p_234697_.getStart());
-        BlockStateParser blockstateparser = new BlockStateParser(p_234696_, stringreader, p_234698_, p_234699_);
+    public static CompletableFuture<Suggestions> fillSuggestions(HolderLookup<Block> pLookup, SuggestionsBuilder pBuilder, boolean pForTesting, boolean pAllowNbt) {
+        StringReader stringreader = new StringReader(pBuilder.getInput());
+        stringreader.setCursor(pBuilder.getStart());
+        BlockStateParser blockstateparser = new BlockStateParser(pLookup, stringreader, pForTesting, pAllowNbt);
 
         try {
             blockstateparser.parse();
         } catch (CommandSyntaxException commandsyntaxexception) {
         }
 
-        return blockstateparser.suggestions.apply(p_234697_.createOffset(stringreader.getCursor()));
+        return blockstateparser.suggestions.apply(pBuilder.createOffset(stringreader.getCursor()));
     }
 
     private void parse() throws CommandSyntaxException {
@@ -255,26 +255,26 @@ public class BlockStateParser {
         return p_234737_.buildFuture();
     }
 
-    private static <T extends Comparable<T>> SuggestionsBuilder addSuggestions(SuggestionsBuilder p_116787_, Property<T> p_116788_) {
-        for (T t : p_116788_.getPossibleValues()) {
+    private static <T extends Comparable<T>> SuggestionsBuilder addSuggestions(SuggestionsBuilder pBuilder, Property<T> pProperty) {
+        for (T t : pProperty.getPossibleValues()) {
             if (t instanceof Integer integer) {
-                p_116787_.suggest(integer);
+                pBuilder.suggest(integer);
             } else {
-                p_116787_.suggest(p_116788_.getName(t));
+                pBuilder.suggest(pProperty.getName(t));
             }
         }
 
-        return p_116787_;
+        return pBuilder;
     }
 
-    private CompletableFuture<Suggestions> suggestVaguePropertyValue(SuggestionsBuilder p_234686_, String p_234687_) {
+    private CompletableFuture<Suggestions> suggestVaguePropertyValue(SuggestionsBuilder pBuilder, String pPropertyName) {
         boolean flag = false;
         if (this.tag != null) {
             for (Holder<Block> holder : this.tag) {
                 Block block = holder.value();
-                Property<?> property = block.getStateDefinition().getProperty(p_234687_);
+                Property<?> property = block.getStateDefinition().getProperty(pPropertyName);
                 if (property != null) {
-                    addSuggestions(p_234686_, property);
+                    addSuggestions(pBuilder, property);
                 }
 
                 if (!flag) {
@@ -289,11 +289,11 @@ public class BlockStateParser {
         }
 
         if (flag) {
-            p_234686_.suggest(String.valueOf(','));
+            pBuilder.suggest(String.valueOf(','));
         }
 
-        p_234686_.suggest(String.valueOf(']'));
-        return p_234686_.buildFuture();
+        pBuilder.suggest(String.valueOf(']'));
+        return pBuilder.buildFuture();
     }
 
     private CompletableFuture<Suggestions> suggestOpenVaguePropertiesOrNbt(SuggestionsBuilder p_234739_) {
@@ -501,27 +501,27 @@ public class BlockStateParser {
         this.nbt = (new TagParser(this.reader)).readStruct();
     }
 
-    private <T extends Comparable<T>> void setValue(Property<T> p_116776_, String p_116777_, int p_116778_) throws CommandSyntaxException {
-        Optional<T> optional = p_116776_.getValue(p_116777_);
+    private <T extends Comparable<T>> void setValue(Property<T> pProperty, String pValue, int pValuePosition) throws CommandSyntaxException {
+        Optional<T> optional = pProperty.getValue(pValue);
         if (optional.isPresent()) {
-            this.state = this.state.setValue(p_116776_, optional.get());
-            this.properties.put(p_116776_, optional.get());
+            this.state = this.state.setValue(pProperty, optional.get());
+            this.properties.put(pProperty, optional.get());
         } else {
-            this.reader.setCursor(p_116778_);
-            throw ERROR_INVALID_VALUE.createWithContext(this.reader, this.id.toString(), p_116776_.getName(), p_116777_);
+            this.reader.setCursor(pValuePosition);
+            throw ERROR_INVALID_VALUE.createWithContext(this.reader, this.id.toString(), pProperty.getName(), pValue);
         }
     }
 
-    public static String serialize(BlockState p_116770_) {
-        StringBuilder stringbuilder = new StringBuilder(p_116770_.getBlockHolder().unwrapKey().map((p_234682_) -> {
+    public static String serialize(BlockState pState) {
+        StringBuilder stringbuilder = new StringBuilder(pState.getBlockHolder().unwrapKey().map((p_234682_) -> {
                                                                                                   return p_234682_.location().toString();
                                                                                               })
                         .orElse("air"));
-        if (!p_116770_.getProperties().isEmpty()) {
+        if (!pState.getProperties().isEmpty()) {
             stringbuilder.append('[');
             boolean flag = false;
 
-            for (Map.Entry<Property<?>, Comparable<?>> entry : p_116770_.getValues().entrySet()) {
+            for (Map.Entry<Property<?>, Comparable<?>> entry : pState.getValues().entrySet()) {
                 if (flag) {
                     stringbuilder.append(',');
                 }
@@ -536,10 +536,10 @@ public class BlockStateParser {
         return stringbuilder.toString();
     }
 
-    private static <T extends Comparable<T>> void appendProperty(StringBuilder p_116803_, Property<T> p_116804_, Comparable<?> p_116805_) {
-        p_116803_.append(p_116804_.getName());
-        p_116803_.append('=');
-        p_116803_.append(p_116804_.getName((T) p_116805_));
+    private static <T extends Comparable<T>> void appendProperty(StringBuilder pBuilder, Property<T> pProperty, Comparable<?> pValue) {
+        pBuilder.append(pProperty.getName());
+        pBuilder.append('=');
+        pBuilder.append(pProperty.getName((T) pValue));
     }
 
     public static record BlockResult(BlockState blockState, Map<Property<?>, Comparable<?>> properties, @Nullable CompoundTag nbt) {

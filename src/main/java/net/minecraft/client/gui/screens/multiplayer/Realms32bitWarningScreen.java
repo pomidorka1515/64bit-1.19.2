@@ -16,13 +16,13 @@ public class Realms32bitWarningScreen extends WarningScreen {
     private static final Component NARRATION = TITLE.copy().append("\n").append(CONTENT);
     private final Screen previous;
 
-    public Realms32bitWarningScreen(Screen p_210898_) {
+    public Realms32bitWarningScreen(Screen pLastScreen) {
         super(TITLE, CONTENT, CHECK, NARRATION);
-        this.previous = p_210898_;
+        this.previous = pLastScreen;
     }
 
-    protected void initButtons(int p_210900_) {
-        this.addRenderableWidget(new Button(this.width / 2 - 75, 100 + p_210900_, 150, 20, CommonComponents.GUI_DONE, (p_210902_) -> {
+    protected void initButtons(int pYOffset) {
+        this.addRenderableWidget(new Button(this.width / 2 - 75, 100 + pYOffset, 150, 20, CommonComponents.GUI_DONE, (p_210902_) -> {
             if (this.stopShowing.selected()) {
                 this.minecraft.options.skipRealms32bitWarning = true;
                 this.minecraft.options.save();

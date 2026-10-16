@@ -12,26 +12,26 @@ public class ClientboundLightUpdatePacket implements Packet<ClientGamePacketList
     private final long z;
     private final ClientboundLightUpdatePacketData lightData;
 
-    public ClientboundLightUpdatePacket(ChunkPos p_178912_, LevelLightEngine p_178913_, @Nullable BitSet p_178914_, @Nullable BitSet p_178915_, boolean p_178916_) {
-        this.x = p_178912_.x;
-        this.z = p_178912_.z;
-        this.lightData = new ClientboundLightUpdatePacketData(p_178912_, p_178913_, p_178914_, p_178915_, p_178916_);
+    public ClientboundLightUpdatePacket(ChunkPos pChunkPos, LevelLightEngine pLightEngine, @Nullable BitSet pChangedSkySections, @Nullable BitSet pChangedBlockSections, boolean pTrustEdges) {
+        this.x = pChunkPos.x;
+        this.z = pChunkPos.z;
+        this.lightData = new ClientboundLightUpdatePacketData(pChunkPos, pLightEngine, pChangedSkySections, pChangedBlockSections, pTrustEdges);
     }
 
-    public ClientboundLightUpdatePacket(FriendlyByteBuf p_178918_) {
-        this.x = p_178918_.readVarLong();
-        this.z = p_178918_.readVarLong();
-        this.lightData = new ClientboundLightUpdatePacketData(p_178918_, this.x, this.z);
+    public ClientboundLightUpdatePacket(FriendlyByteBuf pBuffer) {
+        this.x = pBuffer.readVarLong();
+        this.z = pBuffer.readVarLong();
+        this.lightData = new ClientboundLightUpdatePacketData(pBuffer, this.x, this.z);
     }
 
-    public void write(FriendlyByteBuf p_132351_) {
-        p_132351_.writeVarLong(this.x);
-        p_132351_.writeVarLong(this.z);
-        this.lightData.write(p_132351_);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarLong(this.x);
+        pBuffer.writeVarLong(this.z);
+        this.lightData.write(pBuffer);
     }
 
-    public void handle(ClientGamePacketListener p_132348_) {
-        p_132348_.handleLightUpdatePacket(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleLightUpdatePacket(this);
     }
 
     public long getX() {

@@ -36,8 +36,8 @@ public class CollectToTag implements StreamTagVisitor {
         return this.consumerStack.size();
     }
 
-    private void appendEntry(Tag p_197683_) {
-        this.consumerStack.getLast().accept(p_197683_);
+    private void appendEntry(Tag pTag) {
+        this.consumerStack.getLast().accept(pTag);
     }
 
     public StreamTagVisitor.ValueResult visitEnd() {
@@ -45,53 +45,53 @@ public class CollectToTag implements StreamTagVisitor {
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(String p_197678_) {
-        this.appendEntry(StringTag.valueOf(p_197678_));
+    public StreamTagVisitor.ValueResult visit(String pEntry) {
+        this.appendEntry(StringTag.valueOf(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(byte p_197668_) {
-        this.appendEntry(ByteTag.valueOf(p_197668_));
+    public StreamTagVisitor.ValueResult visit(byte pEntry) {
+        this.appendEntry(ByteTag.valueOf(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(short p_197693_) {
-        this.appendEntry(ShortTag.valueOf(p_197693_));
+    public StreamTagVisitor.ValueResult visit(short pEntry) {
+        this.appendEntry(ShortTag.valueOf(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(int p_197674_) {
-        this.appendEntry(IntTag.valueOf(p_197674_));
+    public StreamTagVisitor.ValueResult visit(int pEntry) {
+        this.appendEntry(IntTag.valueOf(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(long p_197676_) {
-        this.appendEntry(LongTag.valueOf(p_197676_));
+    public StreamTagVisitor.ValueResult visit(long pEntry) {
+        this.appendEntry(LongTag.valueOf(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(float p_197672_) {
-        this.appendEntry(FloatTag.valueOf(p_197672_));
+    public StreamTagVisitor.ValueResult visit(float pEntry) {
+        this.appendEntry(FloatTag.valueOf(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(double p_197670_) {
-        this.appendEntry(DoubleTag.valueOf(p_197670_));
+    public StreamTagVisitor.ValueResult visit(double pEntry) {
+        this.appendEntry(DoubleTag.valueOf(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(byte[] p_197695_) {
-        this.appendEntry(new ByteArrayTag(p_197695_));
+    public StreamTagVisitor.ValueResult visit(byte[] pEntry) {
+        this.appendEntry(new ByteArrayTag(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(int[] p_197697_) {
-        this.appendEntry(new IntArrayTag(p_197697_));
+    public StreamTagVisitor.ValueResult visit(int[] pEntry) {
+        this.appendEntry(new IntArrayTag(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visit(long[] p_197699_) {
-        this.appendEntry(new LongArrayTag(p_197699_));
+    public StreamTagVisitor.ValueResult visit(long[] pEntry) {
+        this.appendEntry(new LongArrayTag(pEntry));
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
@@ -104,22 +104,22 @@ public class CollectToTag implements StreamTagVisitor {
         return StreamTagVisitor.EntryResult.ENTER;
     }
 
-    public StreamTagVisitor.EntryResult visitEntry(TagType<?> p_197685_) {
+    public StreamTagVisitor.EntryResult visitEntry(TagType<?> pType) {
         return StreamTagVisitor.EntryResult.ENTER;
     }
 
-    public StreamTagVisitor.EntryResult visitEntry(TagType<?> p_197690_, String p_197691_) {
-        this.lastId = p_197691_;
-        this.enterContainerIfNeeded(p_197690_);
+    public StreamTagVisitor.EntryResult visitEntry(TagType<?> pType, String pId) {
+        this.lastId = pId;
+        this.enterContainerIfNeeded(pType);
         return StreamTagVisitor.EntryResult.ENTER;
     }
 
-    private void enterContainerIfNeeded(TagType<?> p_197712_) {
-        if (p_197712_ == ListTag.TYPE) {
+    private void enterContainerIfNeeded(TagType<?> pType) {
+        if (pType == ListTag.TYPE) {
             ListTag listtag = new ListTag();
             this.appendEntry(listtag);
             this.consumerStack.addLast(listtag::add);
-        } else if (p_197712_ == CompoundTag.TYPE) {
+        } else if (pType == CompoundTag.TYPE) {
             CompoundTag compoundtag = new CompoundTag();
             this.appendEntry(compoundtag);
             this.consumerStack.addLast((p_197703_) -> {
@@ -133,12 +133,12 @@ public class CollectToTag implements StreamTagVisitor {
         return StreamTagVisitor.ValueResult.CONTINUE;
     }
 
-    public StreamTagVisitor.ValueResult visitRootEntry(TagType<?> p_197707_) {
-        if (p_197707_ == ListTag.TYPE) {
+    public StreamTagVisitor.ValueResult visitRootEntry(TagType<?> pType) {
+        if (pType == ListTag.TYPE) {
             ListTag listtag = new ListTag();
             this.rootTag = listtag;
             this.consumerStack.addLast(listtag::add);
-        } else if (p_197707_ == CompoundTag.TYPE) {
+        } else if (pType == CompoundTag.TYPE) {
             CompoundTag compoundtag = new CompoundTag();
             this.rootTag = compoundtag;
             this.consumerStack.addLast((p_197681_) -> {

@@ -19,16 +19,16 @@ public class RangedBowAttackGoal<T extends Monster & RangedAttackMob> extends Go
     private boolean strafingBackwards;
     private int strafingTime = -1;
 
-    public RangedBowAttackGoal(T p_25792_, double p_25793_, int p_25794_, float p_25795_) {
-        this.mob = p_25792_;
-        this.speedModifier = p_25793_;
-        this.attackIntervalMin = p_25794_;
-        this.attackRadiusSqr = p_25795_ * p_25795_;
+    public RangedBowAttackGoal(T pMob, double pSpeedModifier, int pAttackIntervalMin, float pAttackRadius) {
+        this.mob = pMob;
+        this.speedModifier = pSpeedModifier;
+        this.attackIntervalMin = pAttackIntervalMin;
+        this.attackRadiusSqr = pAttackRadius * pAttackRadius;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
-    public void setMinAttackInterval(int p_25798_) {
-        this.attackIntervalMin = p_25798_;
+    public void setMinAttackInterval(int pAttackCooldown) {
+        this.attackIntervalMin = pAttackCooldown;
     }
 
     public boolean canUse() {

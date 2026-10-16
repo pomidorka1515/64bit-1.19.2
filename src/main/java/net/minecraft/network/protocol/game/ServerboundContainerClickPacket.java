@@ -19,41 +19,41 @@ public class ServerboundContainerClickPacket implements Packet<ServerGamePacketL
     private final ItemStack carriedItem;
     private final Int2ObjectMap<ItemStack> changedSlots;
 
-    public ServerboundContainerClickPacket(int p_182734_, int p_182735_, int p_182736_, int p_182737_, ClickType p_182738_, ItemStack p_182739_, Int2ObjectMap<ItemStack> p_182740_) {
-        this.containerId = p_182734_;
-        this.stateId = p_182735_;
-        this.slotNum = p_182736_;
-        this.buttonNum = p_182737_;
-        this.clickType = p_182738_;
-        this.carriedItem = p_182739_;
-        this.changedSlots = Int2ObjectMaps.unmodifiable(p_182740_);
+    public ServerboundContainerClickPacket(int pContainerId, int pStateId, int pSlotNum, int pButtonNum, ClickType pClickType, ItemStack pCarriedItem, Int2ObjectMap<ItemStack> pChangedSlots) {
+        this.containerId = pContainerId;
+        this.stateId = pStateId;
+        this.slotNum = pSlotNum;
+        this.buttonNum = pButtonNum;
+        this.clickType = pClickType;
+        this.carriedItem = pCarriedItem;
+        this.changedSlots = Int2ObjectMaps.unmodifiable(pChangedSlots);
     }
 
-    public ServerboundContainerClickPacket(FriendlyByteBuf p_179578_) {
-        this.containerId = p_179578_.readByte();
-        this.stateId = p_179578_.readVarInt();
-        this.slotNum = p_179578_.readShort();
-        this.buttonNum = p_179578_.readByte();
-        this.clickType = p_179578_.readEnum(ClickType.class);
+    public ServerboundContainerClickPacket(FriendlyByteBuf pBuffer) {
+        this.containerId = pBuffer.readByte();
+        this.stateId = pBuffer.readVarInt();
+        this.slotNum = pBuffer.readShort();
+        this.buttonNum = pBuffer.readByte();
+        this.clickType = pBuffer.readEnum(ClickType.class);
         IntFunction<Int2ObjectOpenHashMap<ItemStack>> intfunction = FriendlyByteBuf.limitValue(Int2ObjectOpenHashMap::new, 128);
-        this.changedSlots = Int2ObjectMaps.unmodifiable(p_179578_.readMap(intfunction, (p_179580_) -> {
+        this.changedSlots = Int2ObjectMaps.unmodifiable(pBuffer.readMap(intfunction, (p_179580_) -> {
             return Integer.valueOf(p_179580_.readShort());
         }, FriendlyByteBuf::readItem));
-        this.carriedItem = p_179578_.readItem();
+        this.carriedItem = pBuffer.readItem();
     }
 
-    public void write(FriendlyByteBuf p_133961_) {
-        p_133961_.writeByte(this.containerId);
-        p_133961_.writeVarInt(this.stateId);
-        p_133961_.writeShort(this.slotNum);
-        p_133961_.writeByte(this.buttonNum);
-        p_133961_.writeEnum(this.clickType);
-        p_133961_.writeMap(this.changedSlots, FriendlyByteBuf::writeShort, FriendlyByteBuf::writeItem);
-        p_133961_.writeItem(this.carriedItem);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeByte(this.containerId);
+        pBuffer.writeVarInt(this.stateId);
+        pBuffer.writeShort(this.slotNum);
+        pBuffer.writeByte(this.buttonNum);
+        pBuffer.writeEnum(this.clickType);
+        pBuffer.writeMap(this.changedSlots, FriendlyByteBuf::writeShort, FriendlyByteBuf::writeItem);
+        pBuffer.writeItem(this.carriedItem);
     }
 
-    public void handle(ServerGamePacketListener p_133958_) {
-        p_133958_.handleContainerClick(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleContainerClick(this);
     }
 
     public int getContainerId() {

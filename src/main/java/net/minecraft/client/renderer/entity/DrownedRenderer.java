@@ -21,15 +21,15 @@ public class DrownedRenderer extends AbstractZombieRenderer<Drowned, DrownedMode
         this.addLayer(new DrownedOuterLayer<>(this, p_173964_.getModelSet()));
     }
 
-    public ResourceLocation getTextureLocation(Zombie p_114115_) {
+    public ResourceLocation getTextureLocation(Zombie pEntity) {
         return DROWNED_LOCATION;
     }
 
-    protected void setupRotations(Drowned p_114109_, PoseStack p_114110_, float p_114111_, float p_114112_, float p_114113_) {
-        super.setupRotations(p_114109_, p_114110_, p_114111_, p_114112_, p_114113_);
-        float f = p_114109_.getSwimAmount(p_114113_);
+    protected void setupRotations(Drowned pEntityLiving, PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks) {
+        super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks);
+        float f = pEntityLiving.getSwimAmount(pPartialTicks);
         if (f > 0.0F) {
-            p_114110_.mulPose(Vector3f.XP.rotationDegrees(Mth.lerp(f, p_114109_.getXRot(), -10.0F - p_114109_.getXRot())));
+            pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(Mth.lerp(f, pEntityLiving.getXRot(), -10.0F - pEntityLiving.getXRot())));
         }
     }
 }

@@ -9,8 +9,8 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.OptionalDynamic;
 
 public class BlendingDataRemoveFromNetherEndFix extends DataFix {
-    public BlendingDataRemoveFromNetherEndFix(Schema p_240321_) {
-        super(p_240321_, false);
+    public BlendingDataRemoveFromNetherEndFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     protected TypeRewriteRule makeRule() {

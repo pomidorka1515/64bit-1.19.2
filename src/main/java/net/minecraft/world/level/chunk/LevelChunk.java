@@ -78,13 +78,13 @@ public class LevelChunk extends ChunkAccess {
     private final LevelChunkTicks<Block> blockTicks;
     private final LevelChunkTicks<Fluid> fluidTicks;
 
-    public LevelChunk(Level p_187945_, ChunkPos p_187946_) {
-        this(p_187945_, p_187946_, UpgradeData.EMPTY, new LevelChunkTicks<>(), new LevelChunkTicks<>(), 0L, (LevelChunkSection[]) null, (LevelChunk.PostLoadProcessor) null, (BlendingData) null);
+    public LevelChunk(Level pLevel, ChunkPos pPos) {
+        this(pLevel, pPos, UpgradeData.EMPTY, new LevelChunkTicks<>(), new LevelChunkTicks<>(), 0L, (LevelChunkSection[]) null, (LevelChunk.PostLoadProcessor) null, (BlendingData) null);
     }
 
-    public LevelChunk(Level p_196854_, ChunkPos p_196855_, UpgradeData p_196856_, LevelChunkTicks<Block> p_196857_, LevelChunkTicks<Fluid> p_196858_, long p_196859_, @Nullable LevelChunkSection[] p_196860_, @Nullable LevelChunk.PostLoadProcessor p_196861_, @Nullable BlendingData p_196862_) {
-        super(p_196855_, p_196856_, p_196854_, p_196854_.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), p_196859_, p_196860_, p_196862_);
-        this.level = p_196854_;
+    public LevelChunk(Level pLevel, ChunkPos pPos, UpgradeData pData, LevelChunkTicks<Block> pBlockTicks, LevelChunkTicks<Fluid> pFluidTicks, long pInhabitedTime, @Nullable LevelChunkSection[] pSections, @Nullable LevelChunk.PostLoadProcessor pPostLoad, @Nullable BlendingData pBlendingData) {
+        super(pPos, pData, pLevel, pLevel.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), pInhabitedTime, pSections, pBlendingData);
+        this.level = pLevel;
         this.gameEventDispatcherSections = new Int2ObjectOpenHashMap<>();
 
         for (Heightmap.Types heightmap$types : Heightmap.Types.values()) {
@@ -93,34 +93,34 @@ public class LevelChunk extends ChunkAccess {
             }
         }
 
-        this.postLoad = p_196861_;
-        this.blockTicks = p_196857_;
-        this.fluidTicks = p_196858_;
+        this.postLoad = pPostLoad;
+        this.blockTicks = pBlockTicks;
+        this.fluidTicks = pFluidTicks;
     }
 
-    public LevelChunk(ServerLevel p_196850_, ProtoChunk p_196851_, @Nullable LevelChunk.PostLoadProcessor p_196852_) {
-        this(p_196850_, p_196851_.getPos(), p_196851_.getUpgradeData(), p_196851_.unpackBlockTicks(), p_196851_.unpackFluidTicks(), p_196851_.getInhabitedTime(), p_196851_.getSections(), p_196852_, p_196851_.getBlendingData());
+    public LevelChunk(ServerLevel pLevel, ProtoChunk pChunk, @Nullable LevelChunk.PostLoadProcessor pPostLoad) {
+        this(pLevel, pChunk.getPos(), pChunk.getUpgradeData(), pChunk.unpackBlockTicks(), pChunk.unpackFluidTicks(), pChunk.getInhabitedTime(), pChunk.getSections(), pPostLoad, pChunk.getBlendingData());
 
-        for (BlockEntity blockentity : p_196851_.getBlockEntities().values()) {
+        for (BlockEntity blockentity : pChunk.getBlockEntities().values()) {
             this.setBlockEntity(blockentity);
         }
 
-        this.pendingBlockEntities.putAll(p_196851_.getBlockEntityNbts());
+        this.pendingBlockEntities.putAll(pChunk.getBlockEntityNbts());
 
-        for (int i = 0; i < p_196851_.getPostProcessing().length; ++i) {
-            this.postProcessing[i] = p_196851_.getPostProcessing()[i];
+        for (int i = 0; i < pChunk.getPostProcessing().length; ++i) {
+            this.postProcessing[i] = pChunk.getPostProcessing()[i];
         }
 
-        this.setAllStarts(p_196851_.getAllStarts());
-        this.setAllReferences(p_196851_.getAllReferences());
+        this.setAllStarts(pChunk.getAllStarts());
+        this.setAllReferences(pChunk.getAllReferences());
 
-        for (Map.Entry<Heightmap.Types, Heightmap> entry : p_196851_.getHeightmaps()) {
+        for (Map.Entry<Heightmap.Types, Heightmap> entry : pChunk.getHeightmaps()) {
             if (ChunkStatus.FULL.heightmapsAfter().contains(entry.getKey())) {
                 this.setHeightmap(entry.getKey(), entry.getValue().getRawData());
             }
         }
 
-        this.setLightCorrect(p_196851_.isLightCorrect());
+        this.setLightCorrect(pChunk.isLightCorrect());
         this.unsaved = true;
     }
 
@@ -136,21 +136,21 @@ public class LevelChunk extends ChunkAccess {
         return new ChunkAccess.TicksToSave(this.blockTicks, this.fluidTicks);
     }
 
-    public GameEventDispatcher getEventDispatcher(int p_156372_) {
+    public GameEventDispatcher getEventDispatcher(int pSectionY) {
         Level level = this.level;
         if (level instanceof ServerLevel serverlevel) {
-            return this.gameEventDispatcherSections.computeIfAbsent(p_156372_, (p_223411_) -> {
+            return this.gameEventDispatcherSections.computeIfAbsent(pSectionY, (p_223411_) -> {
                 return new EuclideanGameEventDispatcher(serverlevel);
             });
         } else {
-            return super.getEventDispatcher(p_156372_);
+            return super.getEventDispatcher(pSectionY);
         }
     }
 
-    public BlockState getBlockState(BlockPos p_62923_) {
-        long i = p_62923_.getX();
-        int j = p_62923_.getY();
-        long k = p_62923_.getZ();
+    public BlockState getBlockState(BlockPos pPos) {
+        long i = pPos.getX();
+        int j = pPos.getY();
+        long k = pPos.getZ();
         if (this.level.isDebug()) {
             BlockState blockstate = null;
             if (j == 60) {
@@ -184,17 +184,17 @@ public class LevelChunk extends ChunkAccess {
         }
     }
 
-    public FluidState getFluidState(BlockPos p_62895_) {
-        return this.getFluidState(p_62895_.getX(), p_62895_.getY(), p_62895_.getZ());
+    public FluidState getFluidState(BlockPos pPos) {
+        return this.getFluidState(pPos.getX(), pPos.getY(), pPos.getZ());
     }
 
-    public FluidState getFluidState(long p_62815_, int p_62816_, long p_62817_) {
+    public FluidState getFluidState(long pX, int pY, long pZ) {
         try {
-            int i = this.getSectionIndex(p_62816_);
+            int i = this.getSectionIndex(pY);
             if (i >= 0 && i < this.sections.length) {
                 LevelChunkSection levelchunksection = this.sections[i];
                 if (!levelchunksection.hasOnlyAir()) {
-                    return levelchunksection.getFluidState((int) p_62815_ & 15, p_62816_ & 15, (int) p_62817_ & 15);
+                    return levelchunksection.getFluidState((int) pX & 15, pY & 15, (int) pZ & 15);
                 }
             }
 
@@ -203,60 +203,60 @@ public class LevelChunk extends ChunkAccess {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Getting fluid state");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Block being got");
             crashreportcategory.setDetail("Location", () -> {
-                return CrashReportCategory.formatLocation(this, p_62815_, p_62816_, p_62817_);
+                return CrashReportCategory.formatLocation(this, pX, pY, pZ);
             });
             throw new ReportedException(crashreport);
         }
     }
 
     @Nullable
-    public BlockState setBlockState(BlockPos p_62865_, BlockState p_62866_, boolean p_62867_) {
-        int i = p_62865_.getY();
+    public BlockState setBlockState(BlockPos pPos, BlockState pState, boolean pIsMoving) {
+        int i = pPos.getY();
         LevelChunkSection levelchunksection = this.getSection(this.getSectionIndex(i));
         boolean flag = levelchunksection.hasOnlyAir();
-        if (flag && p_62866_.isAir()) {
+        if (flag && pState.isAir()) {
             return null;
         } else {
-            int j = (int) (p_62865_.getX() & 15);
+            int j = (int) (pPos.getX() & 15);
             int k = i & 15;
-            int l = (int) (p_62865_.getZ() & 15);
-            BlockState blockstate = levelchunksection.setBlockState(j, k, l, p_62866_);
-            if (blockstate == p_62866_) {
+            int l = (int) (pPos.getZ() & 15);
+            BlockState blockstate = levelchunksection.setBlockState(j, k, l, pState);
+            if (blockstate == pState) {
                 return null;
             } else {
-                Block block = p_62866_.getBlock();
-                this.heightmaps.get(Heightmap.Types.MOTION_BLOCKING).update(j, i, l, p_62866_);
-                this.heightmaps.get(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES).update(j, i, l, p_62866_);
-                this.heightmaps.get(Heightmap.Types.OCEAN_FLOOR).update(j, i, l, p_62866_);
-                this.heightmaps.get(Heightmap.Types.WORLD_SURFACE).update(j, i, l, p_62866_);
+                Block block = pState.getBlock();
+                this.heightmaps.get(Heightmap.Types.MOTION_BLOCKING).update(j, i, l, pState);
+                this.heightmaps.get(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES).update(j, i, l, pState);
+                this.heightmaps.get(Heightmap.Types.OCEAN_FLOOR).update(j, i, l, pState);
+                this.heightmaps.get(Heightmap.Types.WORLD_SURFACE).update(j, i, l, pState);
                 boolean flag1 = levelchunksection.hasOnlyAir();
                 if (flag != flag1) {
-                    this.level.getChunkSource().getLightEngine().updateSectionStatus(SectionPos.of(p_62865_), flag1);
+                    this.level.getChunkSource().getLightEngine().updateSectionStatus(SectionPos.of(pPos), flag1);
                 }
 
                 boolean flag2 = blockstate.hasBlockEntity();
                 if (!this.level.isClientSide) {
-                    blockstate.onRemove(this.level, p_62865_, p_62866_, p_62867_);
+                    blockstate.onRemove(this.level, pPos, pState, pIsMoving);
                 } else if (!blockstate.is(block) && flag2) {
-                    this.removeBlockEntity(p_62865_);
+                    this.removeBlockEntity(pPos);
                 }
 
                 if (!levelchunksection.getBlockState(j, k, l).is(block)) {
                     return null;
                 } else {
                     if (!this.level.isClientSide) {
-                        p_62866_.onPlace(this.level, p_62865_, blockstate, p_62867_);
+                        pState.onPlace(this.level, pPos, blockstate, pIsMoving);
                     }
 
-                    if (p_62866_.hasBlockEntity()) {
-                        BlockEntity blockentity = this.getBlockEntity(p_62865_, LevelChunk.EntityCreationType.CHECK);
+                    if (pState.hasBlockEntity()) {
+                        BlockEntity blockentity = this.getBlockEntity(pPos, LevelChunk.EntityCreationType.CHECK);
                         if (blockentity == null) {
-                            blockentity = ((EntityBlock) block).newBlockEntity(p_62865_, p_62866_);
+                            blockentity = ((EntityBlock) block).newBlockEntity(pPos, pState);
                             if (blockentity != null) {
                                 this.addAndRegisterBlockEntity(blockentity);
                             }
                         } else {
-                            blockentity.setBlockState(p_62866_);
+                            blockentity.setBlockState(pState);
                             this.updateBlockEntityTicker(blockentity);
                         }
                     }
@@ -270,27 +270,27 @@ public class LevelChunk extends ChunkAccess {
 
     /** @deprecated */
     @Deprecated
-    public void addEntity(Entity p_62826_) {
+    public void addEntity(Entity pEntity) {
     }
 
     @Nullable
-    private BlockEntity createBlockEntity(BlockPos p_62935_) {
-        BlockState blockstate = this.getBlockState(p_62935_);
-        return !blockstate.hasBlockEntity() ? null : ((EntityBlock) blockstate.getBlock()).newBlockEntity(p_62935_, blockstate);
+    private BlockEntity createBlockEntity(BlockPos pPos) {
+        BlockState blockstate = this.getBlockState(pPos);
+        return !blockstate.hasBlockEntity() ? null : ((EntityBlock) blockstate.getBlock()).newBlockEntity(pPos, blockstate);
     }
 
     @Nullable
-    public BlockEntity getBlockEntity(BlockPos p_62912_) {
-        return this.getBlockEntity(p_62912_, LevelChunk.EntityCreationType.CHECK);
+    public BlockEntity getBlockEntity(BlockPos pPos) {
+        return this.getBlockEntity(pPos, LevelChunk.EntityCreationType.CHECK);
     }
 
     @Nullable
-    public BlockEntity getBlockEntity(BlockPos p_62868_, LevelChunk.EntityCreationType p_62869_) {
-        BlockEntity blockentity = this.blockEntities.get(p_62868_);
+    public BlockEntity getBlockEntity(BlockPos pPos, LevelChunk.EntityCreationType pCreationType) {
+        BlockEntity blockentity = this.blockEntities.get(pPos);
         if (blockentity == null) {
-            CompoundTag compoundtag = this.pendingBlockEntities.remove(p_62868_);
+            CompoundTag compoundtag = this.pendingBlockEntities.remove(pPos);
             if (compoundtag != null) {
-                BlockEntity blockentity1 = this.promotePendingBlockEntity(p_62868_, compoundtag);
+                BlockEntity blockentity1 = this.promotePendingBlockEntity(pPos, compoundtag);
                 if (blockentity1 != null) {
                     return blockentity1;
                 }
@@ -298,30 +298,30 @@ public class LevelChunk extends ChunkAccess {
         }
 
         if (blockentity == null) {
-            if (p_62869_ == LevelChunk.EntityCreationType.IMMEDIATE) {
-                blockentity = this.createBlockEntity(p_62868_);
+            if (pCreationType == LevelChunk.EntityCreationType.IMMEDIATE) {
+                blockentity = this.createBlockEntity(pPos);
                 if (blockentity != null) {
                     this.addAndRegisterBlockEntity(blockentity);
                 }
             }
         } else if (blockentity.isRemoved()) {
-            this.blockEntities.remove(p_62868_);
+            this.blockEntities.remove(pPos);
             return null;
         }
 
         return blockentity;
     }
 
-    public void addAndRegisterBlockEntity(BlockEntity p_156391_) {
-        this.setBlockEntity(p_156391_);
+    public void addAndRegisterBlockEntity(BlockEntity pBlockEntity) {
+        this.setBlockEntity(pBlockEntity);
         if (this.isInLevel()) {
             Level level = this.level;
             if (level instanceof ServerLevel) {
                 ServerLevel serverlevel = (ServerLevel) level;
-                this.addGameEventListener(p_156391_, serverlevel);
+                this.addGameEventListener(pBlockEntity, serverlevel);
             }
 
-            this.updateBlockEntityTicker(p_156391_);
+            this.updateBlockEntityTicker(pBlockEntity);
         }
     }
 
@@ -329,8 +329,8 @@ public class LevelChunk extends ChunkAccess {
         return this.loaded || this.level.isClientSide();
     }
 
-    boolean isTicking(ChunkPos p_156411_) {
-        if (!this.level.getWorldBorder().isWithinBounds(p_156411_)) {
+    boolean isTicking(ChunkPos pPos) {
+        if (!this.level.getWorldBorder().isWithinBounds(pPos)) {
             return false;
         } else {
             Level level = this.level;
@@ -338,32 +338,32 @@ public class LevelChunk extends ChunkAccess {
                 return true;
             } else {
                 ServerLevel serverlevel = (ServerLevel) level;
-                return this.getFullStatus().isOrAfter(ChunkHolder.FullChunkStatus.TICKING) && serverlevel.areEntitiesLoaded(p_156411_);
+                return this.getFullStatus().isOrAfter(ChunkHolder.FullChunkStatus.TICKING) && serverlevel.areEntitiesLoaded(pPos);
             }
         }
     }
 
-    public void setBlockEntity(BlockEntity p_156374_) {
-        BlockPos blockpos = p_156374_.getBlockPos();
+    public void setBlockEntity(BlockEntity pBlockEntity) {
+        BlockPos blockpos = pBlockEntity.getBlockPos();
         if (this.getBlockState(blockpos).hasBlockEntity()) {
-            p_156374_.setLevel(this.level);
-            p_156374_.clearRemoved();
-            BlockEntity blockentity = this.blockEntities.put(blockpos.immutable(), p_156374_);
-            if (blockentity != null && blockentity != p_156374_) {
+            pBlockEntity.setLevel(this.level);
+            pBlockEntity.clearRemoved();
+            BlockEntity blockentity = this.blockEntities.put(blockpos.immutable(), pBlockEntity);
+            if (blockentity != null && blockentity != pBlockEntity) {
                 blockentity.setRemoved();
             }
         }
     }
 
     @Nullable
-    public CompoundTag getBlockEntityNbtForSaving(BlockPos p_62932_) {
-        BlockEntity blockentity = this.getBlockEntity(p_62932_);
+    public CompoundTag getBlockEntityNbtForSaving(BlockPos pPos) {
+        BlockEntity blockentity = this.getBlockEntity(pPos);
         if (blockentity != null && !blockentity.isRemoved()) {
             CompoundTag compoundtag1 = blockentity.saveWithFullMetadata();
             compoundtag1.putBoolean("keepPacked", false);
             return compoundtag1;
         } else {
-            CompoundTag compoundtag = this.pendingBlockEntities.get(p_62932_);
+            CompoundTag compoundtag = this.pendingBlockEntities.get(pPos);
             if (compoundtag != null) {
                 compoundtag = compoundtag.copy();
                 compoundtag.putBoolean("keepPacked", true);
@@ -373,9 +373,9 @@ public class LevelChunk extends ChunkAccess {
         }
     }
 
-    public void removeBlockEntity(BlockPos p_62919_) {
+    public void removeBlockEntity(BlockPos pPos) {
         if (this.isInLevel()) {
-            BlockEntity blockentity = this.blockEntities.remove(p_62919_);
+            BlockEntity blockentity = this.blockEntities.remove(pPos);
             if (blockentity != null) {
                 Level level = this.level;
                 if (level instanceof ServerLevel) {
@@ -387,15 +387,15 @@ public class LevelChunk extends ChunkAccess {
             }
         }
 
-        this.removeBlockEntityTicker(p_62919_);
+        this.removeBlockEntityTicker(pPos);
     }
 
-    private <T extends BlockEntity> void removeGameEventListener(T p_223413_, ServerLevel p_223414_) {
-        Block block = p_223413_.getBlockState().getBlock();
+    private <T extends BlockEntity> void removeGameEventListener(T pBlockEntity, ServerLevel pLevel) {
+        Block block = pBlockEntity.getBlockState().getBlock();
         if (block instanceof EntityBlock) {
-            GameEventListener gameeventlistener = ((EntityBlock) block).getListener(p_223414_, p_223413_);
+            GameEventListener gameeventlistener = ((EntityBlock) block).getListener(pLevel, pBlockEntity);
             if (gameeventlistener != null) {
-                int i = SectionPos.blockToSectionCoord(p_223413_.getBlockPos().getY());
+                int i = SectionPos.blockToSectionCoord(pBlockEntity.getBlockPos().getY());
                 GameEventDispatcher gameeventdispatcher = this.getEventDispatcher(i);
                 gameeventdispatcher.unregister(gameeventlistener);
                 if (gameeventdispatcher.isEmpty()) {
@@ -405,8 +405,8 @@ public class LevelChunk extends ChunkAccess {
         }
     }
 
-    private void removeBlockEntityTicker(BlockPos p_156413_) {
-        LevelChunk.RebindableTickingBlockEntityWrapper levelchunk$rebindabletickingblockentitywrapper = this.tickersInLevel.remove(p_156413_);
+    private void removeBlockEntityTicker(BlockPos pPos) {
+        LevelChunk.RebindableTickingBlockEntityWrapper levelchunk$rebindabletickingblockentitywrapper = this.tickersInLevel.remove(pPos);
         if (levelchunk$rebindabletickingblockentitywrapper != null) {
             levelchunk$rebindabletickingblockentitywrapper.rebind(NULL_TICKER);
         }
@@ -423,21 +423,21 @@ public class LevelChunk extends ChunkAccess {
         return false;
     }
 
-    public void replaceWithPacketData(FriendlyByteBuf p_187972_, CompoundTag p_187973_, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> p_187974_) {
+    public void replaceWithPacketData(FriendlyByteBuf pBuffer, CompoundTag pTag, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> pOutputTagConsumer) {
         this.clearAllBlockEntities();
 
         for (LevelChunkSection levelchunksection : this.sections) {
-            levelchunksection.read(p_187972_);
+            levelchunksection.read(pBuffer);
         }
 
         for (Heightmap.Types heightmap$types : Heightmap.Types.values()) {
             String s = heightmap$types.getSerializationKey();
-            if (p_187973_.contains(s, 12)) {
-                this.setHeightmap(heightmap$types, p_187973_.getLongArray(s));
+            if (pTag.contains(s, 12)) {
+                this.setHeightmap(heightmap$types, pTag.getLongArray(s));
             }
         }
 
-        p_187974_.accept((p_187968_, p_187969_, p_187970_) -> {
+        pOutputTagConsumer.accept((p_187968_, p_187969_, p_187970_) -> {
             BlockEntity blockentity = this.getBlockEntity(p_187968_, LevelChunk.EntityCreationType.IMMEDIATE);
             if (blockentity != null && p_187970_ != null && blockentity.getType() == p_187969_) {
                 blockentity.load(p_187970_);
@@ -445,8 +445,8 @@ public class LevelChunk extends ChunkAccess {
         });
     }
 
-    public void setLoaded(boolean p_62914_) {
-        this.loaded = p_62914_;
+    public void setLoaded(boolean pLoaded) {
+        this.loaded = pLoaded;
     }
 
     public Level getLevel() {
@@ -495,43 +495,43 @@ public class LevelChunk extends ChunkAccess {
     }
 
     @Nullable
-    private BlockEntity promotePendingBlockEntity(BlockPos p_62871_, CompoundTag p_62872_) {
-        BlockState blockstate = this.getBlockState(p_62871_);
+    private BlockEntity promotePendingBlockEntity(BlockPos pPos, CompoundTag pTag) {
+        BlockState blockstate = this.getBlockState(pPos);
         BlockEntity blockentity;
-        if ("DUMMY".equals(p_62872_.getString("id"))) {
+        if ("DUMMY".equals(pTag.getString("id"))) {
             if (blockstate.hasBlockEntity()) {
-                blockentity = ((EntityBlock) blockstate.getBlock()).newBlockEntity(p_62871_, blockstate);
+                blockentity = ((EntityBlock) blockstate.getBlock()).newBlockEntity(pPos, blockstate);
             } else {
                 blockentity = null;
-                LOGGER.warn("Tried to load a DUMMY block entity @ {} but found not block entity block {} at location", p_62871_, blockstate);
+                LOGGER.warn("Tried to load a DUMMY block entity @ {} but found not block entity block {} at location", pPos, blockstate);
             }
         } else {
-            blockentity = BlockEntity.loadStatic(p_62871_, blockstate, p_62872_);
+            blockentity = BlockEntity.loadStatic(pPos, blockstate, pTag);
         }
 
         if (blockentity != null) {
             blockentity.setLevel(this.level);
             this.addAndRegisterBlockEntity(blockentity);
         } else {
-            LOGGER.warn("Tried to load a block entity for block {} but failed at location {}", blockstate, p_62871_);
+            LOGGER.warn("Tried to load a block entity for block {} but failed at location {}", blockstate, pPos);
         }
 
         return blockentity;
     }
 
-    public void unpackTicks(long p_187986_) {
-        this.blockTicks.unpack(p_187986_);
-        this.fluidTicks.unpack(p_187986_);
+    public void unpackTicks(long pPos) {
+        this.blockTicks.unpack(pPos);
+        this.fluidTicks.unpack(pPos);
     }
 
-    public void registerTickContainerInLevel(ServerLevel p_187959_) {
-        p_187959_.getBlockTicks().addContainer(this.chunkPos, this.blockTicks);
-        p_187959_.getFluidTicks().addContainer(this.chunkPos, this.fluidTicks);
+    public void registerTickContainerInLevel(ServerLevel pLevel) {
+        pLevel.getBlockTicks().addContainer(this.chunkPos, this.blockTicks);
+        pLevel.getFluidTicks().addContainer(this.chunkPos, this.fluidTicks);
     }
 
-    public void unregisterTickContainerFromLevel(ServerLevel p_187980_) {
-        p_187980_.getBlockTicks().removeContainer(this.chunkPos);
-        p_187980_.getFluidTicks().removeContainer(this.chunkPos);
+    public void unregisterTickContainerFromLevel(ServerLevel pLevel) {
+        pLevel.getBlockTicks().removeContainer(this.chunkPos);
+        pLevel.getFluidTicks().removeContainer(this.chunkPos);
     }
 
     public ChunkStatus getStatus() {
@@ -542,8 +542,8 @@ public class LevelChunk extends ChunkAccess {
         return this.fullStatus == null ? ChunkHolder.FullChunkStatus.BORDER : this.fullStatus.get();
     }
 
-    public void setFullStatus(Supplier<ChunkHolder.FullChunkStatus> p_62880_) {
-        this.fullStatus = p_62880_;
+    public void setFullStatus(Supplier<ChunkHolder.FullChunkStatus> pFullStatus) {
+        this.fullStatus = pFullStatus;
     }
 
     public void clearAllBlockEntities() {
@@ -566,25 +566,25 @@ public class LevelChunk extends ChunkAccess {
         });
     }
 
-    private <T extends BlockEntity> void addGameEventListener(T p_223416_, ServerLevel p_223417_) {
-        Block block = p_223416_.getBlockState().getBlock();
+    private <T extends BlockEntity> void addGameEventListener(T pBlockEntity, ServerLevel pLevel) {
+        Block block = pBlockEntity.getBlockState().getBlock();
         if (block instanceof EntityBlock) {
-            GameEventListener gameeventlistener = ((EntityBlock) block).getListener(p_223417_, p_223416_);
+            GameEventListener gameeventlistener = ((EntityBlock) block).getListener(pLevel, pBlockEntity);
             if (gameeventlistener != null) {
-                GameEventDispatcher gameeventdispatcher = this.getEventDispatcher(SectionPos.blockToSectionCoord(p_223416_.getBlockPos().getY()));
+                GameEventDispatcher gameeventdispatcher = this.getEventDispatcher(SectionPos.blockToSectionCoord(pBlockEntity.getBlockPos().getY()));
                 gameeventdispatcher.register(gameeventlistener);
             }
         }
     }
 
-    private <T extends BlockEntity> void updateBlockEntityTicker(T p_156407_) {
-        BlockState blockstate = p_156407_.getBlockState();
-        BlockEntityTicker<T> blockentityticker = blockstate.getTicker(this.level, (BlockEntityType<T>) p_156407_.getType());
+    private <T extends BlockEntity> void updateBlockEntityTicker(T pBlockEntity) {
+        BlockState blockstate = pBlockEntity.getBlockState();
+        BlockEntityTicker<T> blockentityticker = blockstate.getTicker(this.level, (BlockEntityType<T>) pBlockEntity.getType());
         if (blockentityticker == null) {
-            this.removeBlockEntityTicker(p_156407_.getBlockPos());
+            this.removeBlockEntityTicker(pBlockEntity.getBlockPos());
         } else {
-            this.tickersInLevel.compute(p_156407_.getBlockPos(), (p_187963_, p_187964_) -> {
-                TickingBlockEntity tickingblockentity = this.createTicker(p_156407_, blockentityticker);
+            this.tickersInLevel.compute(pBlockEntity.getBlockPos(), (p_187963_, p_187964_) -> {
+                TickingBlockEntity tickingblockentity = this.createTicker(pBlockEntity, blockentityticker);
                 if (p_187964_ != null) {
                     p_187964_.rebind(tickingblockentity);
                     return p_187964_;
@@ -599,16 +599,16 @@ public class LevelChunk extends ChunkAccess {
         }
     }
 
-    private <T extends BlockEntity> TickingBlockEntity createTicker(T p_156376_, BlockEntityTicker<T> p_156377_) {
-        return new LevelChunk.BoundTickingBlockEntity<>(p_156376_, p_156377_);
+    private <T extends BlockEntity> TickingBlockEntity createTicker(T pBlockEntity, BlockEntityTicker<T> pTicker) {
+        return new LevelChunk.BoundTickingBlockEntity<>(pBlockEntity, pTicker);
     }
 
     public boolean isClientLightReady() {
         return this.clientLightReady;
     }
 
-    public void setClientLightReady(boolean p_196865_) {
-        this.clientLightReady = p_196865_;
+    public void setClientLightReady(boolean pClientLightReady) {
+        this.clientLightReady = pClientLightReady;
     }
 
     class BoundTickingBlockEntity<T extends BlockEntity> implements TickingBlockEntity {
@@ -673,7 +673,7 @@ public class LevelChunk extends ChunkAccess {
 
     @FunctionalInterface
     public interface PostLoadProcessor {
-        void run(LevelChunk p_196867_);
+        void run(LevelChunk pChunk);
     }
 
     class RebindableTickingBlockEntityWrapper implements TickingBlockEntity {
@@ -683,8 +683,8 @@ public class LevelChunk extends ChunkAccess {
             this.ticker = p_156447_;
         }
 
-        void rebind(TickingBlockEntity p_156450_) {
-            this.ticker = p_156450_;
+        void rebind(TickingBlockEntity pTicker) {
+            this.ticker = pTicker;
         }
 
         public void tick() {

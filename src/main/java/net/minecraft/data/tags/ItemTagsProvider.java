@@ -14,9 +14,9 @@ import net.minecraft.world.level.block.Block;
 public class ItemTagsProvider extends TagsProvider<Item> {
     private final Function<TagKey<Block>, TagBuilder> blockTags;
 
-    public ItemTagsProvider(DataGenerator p_126530_, BlockTagsProvider p_126531_) {
-        super(p_126530_, Registry.ITEM);
-        this.blockTags = p_126531_::getOrCreateRawBuilder;
+    public ItemTagsProvider(DataGenerator pGenerator, BlockTagsProvider pBlockTagsProvider) {
+        super(pGenerator, Registry.ITEM);
+        this.blockTags = pBlockTagsProvider::getOrCreateRawBuilder;
     }
 
     protected void addTags() {
@@ -99,9 +99,9 @@ public class ItemTagsProvider extends TagsProvider<Item> {
         this.tag(ItemTags.COMPASSES).add(Items.COMPASS).add(Items.RECOVERY_COMPASS);
     }
 
-    protected void copy(TagKey<Block> p_206422_, TagKey<Item> p_206423_) {
-        TagBuilder tagbuilder = this.getOrCreateRawBuilder(p_206423_);
-        TagBuilder tagbuilder1 = this.blockTags.apply(p_206422_);
+    protected void copy(TagKey<Block> pBlockTag, TagKey<Item> pItemTag) {
+        TagBuilder tagbuilder = this.getOrCreateRawBuilder(pItemTag);
+        TagBuilder tagbuilder1 = this.blockTags.apply(pBlockTag);
         tagbuilder1.build().forEach(tagbuilder::add);
     }
 }

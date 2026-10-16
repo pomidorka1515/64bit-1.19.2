@@ -12,8 +12,8 @@ public enum Environment {
         this.description = p_185276_;
     }
 
-    public static Environment from(MinecraftServer p_185279_) {
-        return p_185279_.isDedicatedServer() ? SERVER : CLIENT;
+    public static Environment from(MinecraftServer pServer) {
+        return pServer.isDedicatedServer() ? SERVER : CLIENT;
     }
 
     public String getDescription() {

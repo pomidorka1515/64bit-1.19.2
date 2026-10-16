@@ -34,37 +34,37 @@ public class EnchantmentHelper {
     private static final String TAG_ENCH_LEVEL = "lvl";
     private static final float SWIFT_SNEAK_EXTRA_FACTOR = 0.15F;
 
-    public static CompoundTag storeEnchantment(@Nullable ResourceLocation p_182444_, int p_182445_) {
+    public static CompoundTag storeEnchantment(@Nullable ResourceLocation pId, int pLevel) {
         CompoundTag compoundtag = new CompoundTag();
-        compoundtag.putString("id", String.valueOf((Object) p_182444_));
-        compoundtag.putShort("lvl", (short) p_182445_);
+        compoundtag.putString("id", String.valueOf((Object) pId));
+        compoundtag.putShort("lvl", (short) pLevel);
         return compoundtag;
     }
 
-    public static void setEnchantmentLevel(CompoundTag p_182441_, int p_182442_) {
-        p_182441_.putShort("lvl", (short) p_182442_);
+    public static void setEnchantmentLevel(CompoundTag pCompoundTag, int pLevel) {
+        pCompoundTag.putShort("lvl", (short) pLevel);
     }
 
-    public static int getEnchantmentLevel(CompoundTag p_182439_) {
-        return Mth.clamp(p_182439_.getInt("lvl"), 0, 255);
-    }
-
-    @Nullable
-    public static ResourceLocation getEnchantmentId(CompoundTag p_182447_) {
-        return ResourceLocation.tryParse(p_182447_.getString("id"));
+    public static int getEnchantmentLevel(CompoundTag pCompoundTag) {
+        return Mth.clamp(pCompoundTag.getInt("lvl"), 0, 255);
     }
 
     @Nullable
-    public static ResourceLocation getEnchantmentId(Enchantment p_182433_) {
-        return Registry.ENCHANTMENT.getKey(p_182433_);
+    public static ResourceLocation getEnchantmentId(CompoundTag pCompoundTag) {
+        return ResourceLocation.tryParse(pCompoundTag.getString("id"));
     }
 
-    public static int getItemEnchantmentLevel(Enchantment p_44844_, ItemStack p_44845_) {
-        if (p_44845_.isEmpty()) {
+    @Nullable
+    public static ResourceLocation getEnchantmentId(Enchantment pEnchantment) {
+        return Registry.ENCHANTMENT.getKey(pEnchantment);
+    }
+
+    public static int getItemEnchantmentLevel(Enchantment pEnchantment, ItemStack pStack) {
+        if (pStack.isEmpty()) {
             return 0;
         } else {
-            ResourceLocation resourcelocation = getEnchantmentId(p_44844_);
-            ListTag listtag = p_44845_.getEnchantmentTags();
+            ResourceLocation resourcelocation = getEnchantmentId(pEnchantment);
+            ListTag listtag = pStack.getEnchantmentTags();
 
             for (int i = 0; i < listtag.size(); ++i) {
                 CompoundTag compoundtag = listtag.getCompound(i);
@@ -78,16 +78,16 @@ public class EnchantmentHelper {
         }
     }
 
-    public static Map<Enchantment, Integer> getEnchantments(ItemStack p_44832_) {
-        ListTag listtag = p_44832_.is(Items.ENCHANTED_BOOK) ? EnchantedBookItem.getEnchantments(p_44832_) : p_44832_.getEnchantmentTags();
+    public static Map<Enchantment, Integer> getEnchantments(ItemStack pStack) {
+        ListTag listtag = pStack.is(Items.ENCHANTED_BOOK) ? EnchantedBookItem.getEnchantments(pStack) : pStack.getEnchantmentTags();
         return deserializeEnchantments(listtag);
     }
 
-    public static Map<Enchantment, Integer> deserializeEnchantments(ListTag p_44883_) {
+    public static Map<Enchantment, Integer> deserializeEnchantments(ListTag pSerialized) {
         Map<Enchantment, Integer> map = Maps.newLinkedHashMap();
 
-        for (int i = 0; i < p_44883_.size(); ++i) {
-            CompoundTag compoundtag = p_44883_.getCompound(i);
+        for (int i = 0; i < pSerialized.size(); ++i) {
+            CompoundTag compoundtag = pSerialized.getCompound(i);
             Registry.ENCHANTMENT.getOptional(getEnchantmentId(compoundtag)).ifPresent((p_44871_) -> {
                 map.put(p_44871_, getEnchantmentLevel(compoundtag));
             });
@@ -96,102 +96,102 @@ public class EnchantmentHelper {
         return map;
     }
 
-    public static void setEnchantments(Map<Enchantment, Integer> p_44866_, ItemStack p_44867_) {
+    public static void setEnchantments(Map<Enchantment, Integer> pEnchantmentsMap, ItemStack pStack) {
         ListTag listtag = new ListTag();
 
-        for (Map.Entry<Enchantment, Integer> entry : p_44866_.entrySet()) {
+        for (Map.Entry<Enchantment, Integer> entry : pEnchantmentsMap.entrySet()) {
             Enchantment enchantment = entry.getKey();
             if (enchantment != null) {
                 int i = entry.getValue();
                 listtag.add(storeEnchantment(getEnchantmentId(enchantment), i));
-                if (p_44867_.is(Items.ENCHANTED_BOOK)) {
-                    EnchantedBookItem.addEnchantment(p_44867_, new EnchantmentInstance(enchantment, i));
+                if (pStack.is(Items.ENCHANTED_BOOK)) {
+                    EnchantedBookItem.addEnchantment(pStack, new EnchantmentInstance(enchantment, i));
                 }
             }
         }
 
         if (listtag.isEmpty()) {
-            p_44867_.removeTagKey("Enchantments");
-        } else if (!p_44867_.is(Items.ENCHANTED_BOOK)) {
-            p_44867_.addTagElement("Enchantments", listtag);
+            pStack.removeTagKey("Enchantments");
+        } else if (!pStack.is(Items.ENCHANTED_BOOK)) {
+            pStack.addTagElement("Enchantments", listtag);
         }
     }
 
-    private static void runIterationOnItem(EnchantmentHelper.EnchantmentVisitor p_44851_, ItemStack p_44852_) {
-        if (!p_44852_.isEmpty()) {
-            ListTag listtag = p_44852_.getEnchantmentTags();
+    private static void runIterationOnItem(EnchantmentHelper.EnchantmentVisitor pVisitor, ItemStack pStack) {
+        if (!pStack.isEmpty()) {
+            ListTag listtag = pStack.getEnchantmentTags();
 
             for (int i = 0; i < listtag.size(); ++i) {
                 CompoundTag compoundtag = listtag.getCompound(i);
                 Registry.ENCHANTMENT.getOptional(getEnchantmentId(compoundtag)).ifPresent((p_182437_) -> {
-                    p_44851_.accept(p_182437_, getEnchantmentLevel(compoundtag));
+                    pVisitor.accept(p_182437_, getEnchantmentLevel(compoundtag));
                 });
             }
         }
     }
 
-    private static void runIterationOnInventory(EnchantmentHelper.EnchantmentVisitor p_44854_, Iterable<ItemStack> p_44855_) {
-        for (ItemStack itemstack : p_44855_) {
-            runIterationOnItem(p_44854_, itemstack);
+    private static void runIterationOnInventory(EnchantmentHelper.EnchantmentVisitor pVisitor, Iterable<ItemStack> pStacks) {
+        for (ItemStack itemstack : pStacks) {
+            runIterationOnItem(pVisitor, itemstack);
         }
     }
 
-    public static int getDamageProtection(Iterable<ItemStack> p_44857_, DamageSource p_44858_) {
+    public static int getDamageProtection(Iterable<ItemStack> pStacks, DamageSource pSource) {
         MutableInt mutableint = new MutableInt();
         runIterationOnInventory((p_44892_, p_44893_) -> {
-            mutableint.add(p_44892_.getDamageProtection(p_44893_, p_44858_));
-        }, p_44857_);
+            mutableint.add(p_44892_.getDamageProtection(p_44893_, pSource));
+        }, pStacks);
         return mutableint.intValue();
     }
 
-    public static float getDamageBonus(ItemStack p_44834_, MobType p_44835_) {
+    public static float getDamageBonus(ItemStack pStack, MobType pCreatureAttribute) {
         MutableFloat mutablefloat = new MutableFloat();
         runIterationOnItem((p_44887_, p_44888_) -> {
-            mutablefloat.add(p_44887_.getDamageBonus(p_44888_, p_44835_));
-        }, p_44834_);
+            mutablefloat.add(p_44887_.getDamageBonus(p_44888_, pCreatureAttribute));
+        }, pStack);
         return mutablefloat.floatValue();
     }
 
-    public static float getSweepingDamageRatio(LivingEntity p_44822_) {
-        int i = getEnchantmentLevel(Enchantments.SWEEPING_EDGE, p_44822_);
+    public static float getSweepingDamageRatio(LivingEntity pEntity) {
+        int i = getEnchantmentLevel(Enchantments.SWEEPING_EDGE, pEntity);
         return i > 0 ? SweepingEdgeEnchantment.getSweepingDamageRatio(i) : 0.0F;
     }
 
-    public static void doPostHurtEffects(LivingEntity p_44824_, Entity p_44825_) {
+    public static void doPostHurtEffects(LivingEntity pTarget, Entity pAttacker) {
         EnchantmentHelper.EnchantmentVisitor enchantmenthelper$enchantmentvisitor = (p_44902_, p_44903_) -> {
-            p_44902_.doPostHurt(p_44824_, p_44825_, p_44903_);
+            p_44902_.doPostHurt(pTarget, pAttacker, p_44903_);
         };
-        if (p_44824_ != null) {
-            runIterationOnInventory(enchantmenthelper$enchantmentvisitor, p_44824_.getAllSlots());
+        if (pTarget != null) {
+            runIterationOnInventory(enchantmenthelper$enchantmentvisitor, pTarget.getAllSlots());
         }
 
-        if (p_44825_ instanceof Player) {
-            runIterationOnItem(enchantmenthelper$enchantmentvisitor, p_44824_.getMainHandItem());
+        if (pAttacker instanceof Player) {
+            runIterationOnItem(enchantmenthelper$enchantmentvisitor, pTarget.getMainHandItem());
         }
     }
 
-    public static void doPostDamageEffects(LivingEntity p_44897_, Entity p_44898_) {
+    public static void doPostDamageEffects(LivingEntity pAttacker, Entity pTarget) {
         EnchantmentHelper.EnchantmentVisitor enchantmenthelper$enchantmentvisitor = (p_44829_, p_44830_) -> {
-            p_44829_.doPostAttack(p_44897_, p_44898_, p_44830_);
+            p_44829_.doPostAttack(pAttacker, pTarget, p_44830_);
         };
-        if (p_44897_ != null) {
-            runIterationOnInventory(enchantmenthelper$enchantmentvisitor, p_44897_.getAllSlots());
+        if (pAttacker != null) {
+            runIterationOnInventory(enchantmenthelper$enchantmentvisitor, pAttacker.getAllSlots());
         }
 
-        if (p_44897_ instanceof Player) {
-            runIterationOnItem(enchantmenthelper$enchantmentvisitor, p_44897_.getMainHandItem());
+        if (pAttacker instanceof Player) {
+            runIterationOnItem(enchantmenthelper$enchantmentvisitor, pAttacker.getMainHandItem());
         }
     }
 
-    public static int getEnchantmentLevel(Enchantment p_44837_, LivingEntity p_44838_) {
-        Iterable<ItemStack> iterable = p_44837_.getSlotItems(p_44838_).values();
+    public static int getEnchantmentLevel(Enchantment pEnchantment, LivingEntity pEntity) {
+        Iterable<ItemStack> iterable = pEnchantment.getSlotItems(pEntity).values();
         if (iterable == null) {
             return 0;
         } else {
             int i = 0;
 
             for (ItemStack itemstack : iterable) {
-                int j = getItemEnchantmentLevel(p_44837_, itemstack);
+                int j = getItemEnchantmentLevel(pEnchantment, itemstack);
                 if (j > i) {
                     i = j;
                 }
@@ -205,80 +205,80 @@ public class EnchantmentHelper {
         return (float) getEnchantmentLevel(Enchantments.SWIFT_SNEAK, p_220303_) * 0.15F;
     }
 
-    public static int getKnockbackBonus(LivingEntity p_44895_) {
-        return getEnchantmentLevel(Enchantments.KNOCKBACK, p_44895_);
+    public static int getKnockbackBonus(LivingEntity pPlayer) {
+        return getEnchantmentLevel(Enchantments.KNOCKBACK, pPlayer);
     }
 
-    public static int getFireAspect(LivingEntity p_44915_) {
-        return getEnchantmentLevel(Enchantments.FIRE_ASPECT, p_44915_);
+    public static int getFireAspect(LivingEntity pPlayer) {
+        return getEnchantmentLevel(Enchantments.FIRE_ASPECT, pPlayer);
     }
 
-    public static int getRespiration(LivingEntity p_44919_) {
-        return getEnchantmentLevel(Enchantments.RESPIRATION, p_44919_);
+    public static int getRespiration(LivingEntity pEntity) {
+        return getEnchantmentLevel(Enchantments.RESPIRATION, pEntity);
     }
 
-    public static int getDepthStrider(LivingEntity p_44923_) {
-        return getEnchantmentLevel(Enchantments.DEPTH_STRIDER, p_44923_);
+    public static int getDepthStrider(LivingEntity pEntity) {
+        return getEnchantmentLevel(Enchantments.DEPTH_STRIDER, pEntity);
     }
 
-    public static int getBlockEfficiency(LivingEntity p_44927_) {
-        return getEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY, p_44927_);
+    public static int getBlockEfficiency(LivingEntity pEntity) {
+        return getEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY, pEntity);
     }
 
-    public static int getFishingLuckBonus(ItemStack p_44905_) {
-        return getItemEnchantmentLevel(Enchantments.FISHING_LUCK, p_44905_);
+    public static int getFishingLuckBonus(ItemStack pStack) {
+        return getItemEnchantmentLevel(Enchantments.FISHING_LUCK, pStack);
     }
 
-    public static int getFishingSpeedBonus(ItemStack p_44917_) {
-        return getItemEnchantmentLevel(Enchantments.FISHING_SPEED, p_44917_);
+    public static int getFishingSpeedBonus(ItemStack pStack) {
+        return getItemEnchantmentLevel(Enchantments.FISHING_SPEED, pStack);
     }
 
-    public static int getMobLooting(LivingEntity p_44931_) {
-        return getEnchantmentLevel(Enchantments.MOB_LOOTING, p_44931_);
+    public static int getMobLooting(LivingEntity pEntity) {
+        return getEnchantmentLevel(Enchantments.MOB_LOOTING, pEntity);
     }
 
-    public static boolean hasAquaAffinity(LivingEntity p_44935_) {
-        return getEnchantmentLevel(Enchantments.AQUA_AFFINITY, p_44935_) > 0;
+    public static boolean hasAquaAffinity(LivingEntity pEntity) {
+        return getEnchantmentLevel(Enchantments.AQUA_AFFINITY, pEntity) > 0;
     }
 
-    public static boolean hasFrostWalker(LivingEntity p_44939_) {
-        return getEnchantmentLevel(Enchantments.FROST_WALKER, p_44939_) > 0;
+    public static boolean hasFrostWalker(LivingEntity pPlayer) {
+        return getEnchantmentLevel(Enchantments.FROST_WALKER, pPlayer) > 0;
     }
 
-    public static boolean hasSoulSpeed(LivingEntity p_44943_) {
-        return getEnchantmentLevel(Enchantments.SOUL_SPEED, p_44943_) > 0;
+    public static boolean hasSoulSpeed(LivingEntity pEntity) {
+        return getEnchantmentLevel(Enchantments.SOUL_SPEED, pEntity) > 0;
     }
 
-    public static boolean hasBindingCurse(ItemStack p_44921_) {
-        return getItemEnchantmentLevel(Enchantments.BINDING_CURSE, p_44921_) > 0;
+    public static boolean hasBindingCurse(ItemStack pStack) {
+        return getItemEnchantmentLevel(Enchantments.BINDING_CURSE, pStack) > 0;
     }
 
-    public static boolean hasVanishingCurse(ItemStack p_44925_) {
-        return getItemEnchantmentLevel(Enchantments.VANISHING_CURSE, p_44925_) > 0;
+    public static boolean hasVanishingCurse(ItemStack pStack) {
+        return getItemEnchantmentLevel(Enchantments.VANISHING_CURSE, pStack) > 0;
     }
 
-    public static int getLoyalty(ItemStack p_44929_) {
-        return getItemEnchantmentLevel(Enchantments.LOYALTY, p_44929_);
+    public static int getLoyalty(ItemStack pStack) {
+        return getItemEnchantmentLevel(Enchantments.LOYALTY, pStack);
     }
 
-    public static int getRiptide(ItemStack p_44933_) {
-        return getItemEnchantmentLevel(Enchantments.RIPTIDE, p_44933_);
+    public static int getRiptide(ItemStack pStack) {
+        return getItemEnchantmentLevel(Enchantments.RIPTIDE, pStack);
     }
 
-    public static boolean hasChanneling(ItemStack p_44937_) {
-        return getItemEnchantmentLevel(Enchantments.CHANNELING, p_44937_) > 0;
+    public static boolean hasChanneling(ItemStack pStack) {
+        return getItemEnchantmentLevel(Enchantments.CHANNELING, pStack) > 0;
     }
 
     @Nullable
-    public static Map.Entry<EquipmentSlot, ItemStack> getRandomItemWith(Enchantment p_44907_, LivingEntity p_44908_) {
-        return getRandomItemWith(p_44907_, p_44908_, (p_44941_) -> {
+    public static Map.Entry<EquipmentSlot, ItemStack> getRandomItemWith(Enchantment pTargetEnchantment, LivingEntity pEntity) {
+        return getRandomItemWith(pTargetEnchantment, pEntity, (p_44941_) -> {
             return true;
         });
     }
 
     @Nullable
-    public static Map.Entry<EquipmentSlot, ItemStack> getRandomItemWith(Enchantment p_44840_, LivingEntity p_44841_, Predicate<ItemStack> p_44842_) {
-        Map<EquipmentSlot, ItemStack> map = p_44840_.getSlotItems(p_44841_);
+    public static Map.Entry<EquipmentSlot, ItemStack> getRandomItemWith(Enchantment pEnchantment, LivingEntity pLivingEntity, Predicate<ItemStack> pStackCondition) {
+        Map<EquipmentSlot, ItemStack> map = pEnchantment.getSlotItems(pLivingEntity);
         if (map.isEmpty()) {
             return null;
         } else {
@@ -286,67 +286,67 @@ public class EnchantmentHelper {
 
             for (Map.Entry<EquipmentSlot, ItemStack> entry : map.entrySet()) {
                 ItemStack itemstack = entry.getValue();
-                if (!itemstack.isEmpty() && getItemEnchantmentLevel(p_44840_, itemstack) > 0 && p_44842_.test(itemstack)) {
+                if (!itemstack.isEmpty() && getItemEnchantmentLevel(pEnchantment, itemstack) > 0 && pStackCondition.test(itemstack)) {
                     list.add(entry);
                 }
             }
 
-            return list.isEmpty() ? null : list.get(p_44841_.getRandom().nextInt(list.size()));
+            return list.isEmpty() ? null : list.get(pLivingEntity.getRandom().nextInt(list.size()));
         }
     }
 
-    public static int getEnchantmentCost(RandomSource p_220288_, int p_220289_, int p_220290_, ItemStack p_220291_) {
-        Item item = p_220291_.getItem();
+    public static int getEnchantmentCost(RandomSource pRandom, int pEnchantNum, int pPower, ItemStack pStack) {
+        Item item = pStack.getItem();
         int i = item.getEnchantmentValue();
         if (i <= 0) {
             return 0;
         } else {
-            if (p_220290_ > 15) {
-                p_220290_ = 15;
+            if (pPower > 15) {
+                pPower = 15;
             }
 
-            int j = p_220288_.nextInt(8) + 1 + (p_220290_ >> 1) + p_220288_.nextInt(p_220290_ + 1);
-            if (p_220289_ == 0) {
+            int j = pRandom.nextInt(8) + 1 + (pPower >> 1) + pRandom.nextInt(pPower + 1);
+            if (pEnchantNum == 0) {
                 return Math.max(j / 3, 1);
             } else {
-                return p_220289_ == 1 ? j * 2 / 3 + 1 : Math.max(j, p_220290_ * 2);
+                return pEnchantNum == 1 ? j * 2 / 3 + 1 : Math.max(j, pPower * 2);
             }
         }
     }
 
-    public static ItemStack enchantItem(RandomSource p_220293_, ItemStack p_220294_, int p_220295_, boolean p_220296_) {
-        List<EnchantmentInstance> list = selectEnchantment(p_220293_, p_220294_, p_220295_, p_220296_);
-        boolean flag = p_220294_.is(Items.BOOK);
+    public static ItemStack enchantItem(RandomSource pRandom, ItemStack pStack, int pLevel, boolean pAllowTreasure) {
+        List<EnchantmentInstance> list = selectEnchantment(pRandom, pStack, pLevel, pAllowTreasure);
+        boolean flag = pStack.is(Items.BOOK);
         if (flag) {
-            p_220294_ = new ItemStack(Items.ENCHANTED_BOOK);
+            pStack = new ItemStack(Items.ENCHANTED_BOOK);
         }
 
         for (EnchantmentInstance enchantmentinstance : list) {
             if (flag) {
-                EnchantedBookItem.addEnchantment(p_220294_, enchantmentinstance);
+                EnchantedBookItem.addEnchantment(pStack, enchantmentinstance);
             } else {
-                p_220294_.enchant(enchantmentinstance.enchantment, enchantmentinstance.level);
+                pStack.enchant(enchantmentinstance.enchantment, enchantmentinstance.level);
             }
         }
 
-        return p_220294_;
+        return pStack;
     }
 
-    public static List<EnchantmentInstance> selectEnchantment(RandomSource p_220298_, ItemStack p_220299_, int p_220300_, boolean p_220301_) {
+    public static List<EnchantmentInstance> selectEnchantment(RandomSource pRandom, ItemStack pItemStack, int pLevel, boolean pAllowTreasure) {
         List<EnchantmentInstance> list = Lists.newArrayList();
-        Item item = p_220299_.getItem();
+        Item item = pItemStack.getItem();
         int i = item.getEnchantmentValue();
         if (i <= 0) {
             return list;
         } else {
-            p_220300_ += 1 + p_220298_.nextInt(i / 4 + 1) + p_220298_.nextInt(i / 4 + 1);
-            float f = (p_220298_.nextFloat() + p_220298_.nextFloat() - 1.0F) * 0.15F;
-            p_220300_ = Mth.clamp(Math.round((float) p_220300_ + (float) p_220300_ * f), 1, Integer.MAX_VALUE);
-            List<EnchantmentInstance> list1 = getAvailableEnchantmentResults(p_220300_, p_220299_, p_220301_);
+            pLevel += 1 + pRandom.nextInt(i / 4 + 1) + pRandom.nextInt(i / 4 + 1);
+            float f = (pRandom.nextFloat() + pRandom.nextFloat() - 1.0F) * 0.15F;
+            pLevel = Mth.clamp(Math.round((float) pLevel + (float) pLevel * f), 1, Integer.MAX_VALUE);
+            List<EnchantmentInstance> list1 = getAvailableEnchantmentResults(pLevel, pItemStack, pAllowTreasure);
             if (!list1.isEmpty()) {
-                WeightedRandom.getRandomItem(p_220298_, list1).ifPresent(list::add);
+                WeightedRandom.getRandomItem(pRandom, list1).ifPresent(list::add);
 
-                while (p_220298_.nextInt(50) <= p_220300_) {
+                while (pRandom.nextInt(50) <= pLevel) {
                     if (!list.isEmpty()) {
                         filterCompatibleEnchantments(list1, Util.lastOf(list));
                     }
@@ -355,8 +355,8 @@ public class EnchantmentHelper {
                         break;
                     }
 
-                    WeightedRandom.getRandomItem(p_220298_, list1).ifPresent(list::add);
-                    p_220300_ /= 2;
+                    WeightedRandom.getRandomItem(pRandom, list1).ifPresent(list::add);
+                    pLevel /= 2;
                 }
             }
 
@@ -364,19 +364,19 @@ public class EnchantmentHelper {
         }
     }
 
-    public static void filterCompatibleEnchantments(List<EnchantmentInstance> p_44863_, EnchantmentInstance p_44864_) {
-        Iterator<EnchantmentInstance> iterator = p_44863_.iterator();
+    public static void filterCompatibleEnchantments(List<EnchantmentInstance> pDataList, EnchantmentInstance pData) {
+        Iterator<EnchantmentInstance> iterator = pDataList.iterator();
 
         while (iterator.hasNext()) {
-            if (!p_44864_.enchantment.isCompatibleWith((iterator.next()).enchantment)) {
+            if (!pData.enchantment.isCompatibleWith((iterator.next()).enchantment)) {
                 iterator.remove();
             }
         }
     }
 
-    public static boolean isEnchantmentCompatible(Collection<Enchantment> p_44860_, Enchantment p_44861_) {
-        for (Enchantment enchantment : p_44860_) {
-            if (!enchantment.isCompatibleWith(p_44861_)) {
+    public static boolean isEnchantmentCompatible(Collection<Enchantment> pEnchantments, Enchantment pEnchantment) {
+        for (Enchantment enchantment : pEnchantments) {
+            if (!enchantment.isCompatibleWith(pEnchantment)) {
                 return false;
             }
         }
@@ -384,15 +384,15 @@ public class EnchantmentHelper {
         return true;
     }
 
-    public static List<EnchantmentInstance> getAvailableEnchantmentResults(int p_44818_, ItemStack p_44819_, boolean p_44820_) {
+    public static List<EnchantmentInstance> getAvailableEnchantmentResults(int pLevel, ItemStack pStack, boolean pAllowTreasure) {
         List<EnchantmentInstance> list = Lists.newArrayList();
-        Item item = p_44819_.getItem();
-        boolean flag = p_44819_.is(Items.BOOK);
+        Item item = pStack.getItem();
+        boolean flag = pStack.is(Items.BOOK);
 
         for (Enchantment enchantment : Registry.ENCHANTMENT) {
-            if ((!enchantment.isTreasureOnly() || p_44820_) && enchantment.isDiscoverable() && (enchantment.category.canEnchant(item) || flag)) {
+            if ((!enchantment.isTreasureOnly() || pAllowTreasure) && enchantment.isDiscoverable() && (enchantment.category.canEnchant(item) || flag)) {
                 for (int i = enchantment.getMaxLevel(); i > enchantment.getMinLevel() - 1; --i) {
-                    if (p_44818_ >= enchantment.getMinCost(i) && p_44818_ <= enchantment.getMaxCost(i)) {
+                    if (pLevel >= enchantment.getMinCost(i) && pLevel <= enchantment.getMaxCost(i)) {
                         list.add(new EnchantmentInstance(enchantment, i));
                         break;
                     }
@@ -405,6 +405,6 @@ public class EnchantmentHelper {
 
     @FunctionalInterface
     interface EnchantmentVisitor {
-        void accept(Enchantment p_44945_, int p_44946_);
+        void accept(Enchantment pEnchantment, int pLevel);
     }
 }

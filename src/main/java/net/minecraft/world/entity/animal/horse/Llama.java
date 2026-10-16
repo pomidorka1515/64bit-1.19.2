@@ -67,16 +67,16 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
     @Nullable
     private Llama caravanTail;
 
-    public Llama(EntityType<? extends Llama> p_30750_, Level p_30751_) {
-        super(p_30750_, p_30751_);
+    public Llama(EntityType<? extends Llama> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     public boolean isTraderLlama() {
         return false;
     }
 
-    private void setStrength(int p_30841_) {
-        this.entityData.set(DATA_STRENGTH_ID, Math.max(1, Math.min(5, p_30841_)));
+    private void setStrength(int pStrength) {
+        this.entityData.set(DATA_STRENGTH_ID, Math.max(1, Math.min(5, pStrength)));
     }
 
     private void setRandomStrength(RandomSource p_218818_) {
@@ -88,21 +88,21 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return this.entityData.get(DATA_STRENGTH_ID);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_30793_) {
-        super.addAdditionalSaveData(p_30793_);
-        p_30793_.putInt("Variant", this.getVariant());
-        p_30793_.putInt("Strength", this.getStrength());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("Variant", this.getVariant());
+        pCompound.putInt("Strength", this.getStrength());
         if (!this.inventory.getItem(1).isEmpty()) {
-            p_30793_.put("DecorItem", this.inventory.getItem(1).save(new CompoundTag()));
+            pCompound.put("DecorItem", this.inventory.getItem(1).save(new CompoundTag()));
         }
     }
 
-    public void readAdditionalSaveData(CompoundTag p_30780_) {
-        this.setStrength(p_30780_.getInt("Strength"));
-        super.readAdditionalSaveData(p_30780_);
-        this.setVariant(p_30780_.getInt("Variant"));
-        if (p_30780_.contains("DecorItem", 10)) {
-            this.inventory.setItem(1, ItemStack.of(p_30780_.getCompound("DecorItem")));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        this.setStrength(pCompound.getInt("Strength"));
+        super.readAdditionalSaveData(pCompound);
+        this.setVariant(pCompound.getInt("Variant"));
+        if (pCompound.contains("DecorItem", 10)) {
+            this.inventory.setItem(1, ItemStack.of(pCompound.getCompound("DecorItem")));
         }
 
         this.updateContainerEquipment();
@@ -139,21 +139,21 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return Mth.clamp(this.entityData.get(DATA_VARIANT_ID), 0, 3);
     }
 
-    public void setVariant(int p_30839_) {
-        this.entityData.set(DATA_VARIANT_ID, p_30839_);
+    public void setVariant(int pVariant) {
+        this.entityData.set(DATA_VARIANT_ID, pVariant);
     }
 
     protected int getInventorySize() {
         return this.hasChest() ? 2 + 3 * this.getInventoryColumns() : super.getInventorySize();
     }
 
-    public void positionRider(Entity p_30830_) {
-        if (this.hasPassenger(p_30830_)) {
+    public void positionRider(Entity pPassenger) {
+        if (this.hasPassenger(pPassenger)) {
             float f = Mth.cos(this.yBodyRot * ((float) Math.PI / 180F));
             float f1 = Mth.sin(this.yBodyRot * ((float) Math.PI / 180F));
             float f2 = 0.3F;
-            p_30830_.applyExactPosition(this.sectorPosition().add((double) (0.3F * f1),
-                    this.getPassengersRidingOffset() + p_30830_.getMyRidingOffset(), (double) (-0.3F * f)));
+            pPassenger.applyExactPosition(this.sectorPosition().add((double) (0.3F * f1),
+                    this.getPassengersRidingOffset() + pPassenger.getMyRidingOffset(), (double) (-0.3F * f)));
         }
     }
 
@@ -166,26 +166,26 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return null;
     }
 
-    public boolean isFood(ItemStack p_30832_) {
-        return FOOD_ITEMS.test(p_30832_);
+    public boolean isFood(ItemStack pStack) {
+        return FOOD_ITEMS.test(pStack);
     }
 
-    protected boolean handleEating(Player p_30796_, ItemStack p_30797_) {
+    protected boolean handleEating(Player pPlayer, ItemStack pStack) {
         int i = 0;
         int j = 0;
         float f = 0.0F;
         boolean flag = false;
-        if (p_30797_.is(Items.WHEAT)) {
+        if (pStack.is(Items.WHEAT)) {
             i = 10;
             j = 3;
             f = 2.0F;
-        } else if (p_30797_.is(Blocks.HAY_BLOCK.asItem())) {
+        } else if (pStack.is(Blocks.HAY_BLOCK.asItem())) {
             i = 90;
             j = 6;
             f = 10.0F;
             if (this.isTamed() && this.getAge() == 0 && this.canFallInLove()) {
                 flag = true;
-                this.setInLove(p_30796_);
+                this.setInLove(pPlayer);
             }
         }
 
@@ -226,19 +226,19 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_30774_, DifficultyInstance p_30775_, MobSpawnType p_30776_, @Nullable SpawnGroupData p_30777_, @Nullable CompoundTag p_30778_) {
-        RandomSource randomsource = p_30774_.getRandom();
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        RandomSource randomsource = pLevel.getRandom();
         this.setRandomStrength(randomsource);
         int i;
-        if (p_30777_ instanceof Llama.LlamaGroupData) {
-            i = ((Llama.LlamaGroupData) p_30777_).variant;
+        if (pSpawnData instanceof Llama.LlamaGroupData) {
+            i = ((Llama.LlamaGroupData) pSpawnData).variant;
         } else {
             i = randomsource.nextInt(4);
-            p_30777_ = new Llama.LlamaGroupData(i);
+            pSpawnData = new Llama.LlamaGroupData(i);
         }
 
         this.setVariant(i);
-        return super.finalizeSpawn(p_30774_, p_30775_, p_30776_, p_30777_, p_30778_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
     protected SoundEvent getAngrySound() {
@@ -249,7 +249,7 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return SoundEvents.LLAMA_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_30803_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.LLAMA_HURT;
     }
 
@@ -262,7 +262,7 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return SoundEvents.LLAMA_EAT;
     }
 
-    protected void playStepSound(BlockPos p_30790_, BlockState p_30791_) {
+    protected void playStepSound(BlockPos pPos, BlockState pBlock) {
         this.playSound(SoundEvents.LLAMA_STEP, 0.15F, 1.0F);
     }
 
@@ -289,17 +289,17 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return !this.inventory.getItem(1).isEmpty();
     }
 
-    public boolean isArmor(ItemStack p_30834_) {
-        return p_30834_.is(ItemTags.WOOL_CARPETS);
+    public boolean isArmor(ItemStack pStack) {
+        return pStack.is(ItemTags.WOOL_CARPETS);
     }
 
     public boolean isSaddleable() {
         return false;
     }
 
-    public void containerChanged(Container p_30760_) {
+    public void containerChanged(Container pInvBasic) {
         DyeColor dyecolor = this.getSwag();
-        super.containerChanged(p_30760_);
+        super.containerChanged(pInvBasic);
         DyeColor dyecolor1 = this.getSwag();
         if (this.tickCount > 20 && dyecolor1 != null && dyecolor1 != dyecolor) {
             this.playSound(SoundEvents.LLAMA_SWAG, 0.5F, 1.0F);
@@ -313,13 +313,13 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         }
     }
 
-    private void setSwag(@Nullable DyeColor p_30772_) {
-        this.entityData.set(DATA_SWAG_ID, p_30772_ == null ? -1 : p_30772_.getId());
+    private void setSwag(@Nullable DyeColor pColor) {
+        this.entityData.set(DATA_SWAG_ID, pColor == null ? -1 : pColor.getId());
     }
 
     @Nullable
-    private static DyeColor getDyeColor(ItemStack p_30836_) {
-        Block block = Block.byItem(p_30836_.getItem());
+    private static DyeColor getDyeColor(ItemStack pStack) {
+        Block block = Block.byItem(pStack.getItem());
         return block instanceof WoolCarpetBlock ? ((WoolCarpetBlock) block).getColor() : null;
     }
 
@@ -333,14 +333,14 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return 30;
     }
 
-    public boolean canMate(Animal p_30765_) {
-        return p_30765_ != this && p_30765_ instanceof Llama && this.canParent() && ((Llama) p_30765_).canParent();
+    public boolean canMate(Animal pOtherAnimal) {
+        return pOtherAnimal != this && pOtherAnimal instanceof Llama && this.canParent() && ((Llama) pOtherAnimal).canParent();
     }
 
-    public Llama getBreedOffspring(ServerLevel p_149545_, AgeableMob p_149546_) {
+    public Llama getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
         Llama llama = this.makeBabyLlama();
-        this.setOffspringAttributes(p_149546_, llama);
-        Llama llama1 = (Llama) p_149546_;
+        this.setOffspringAttributes(pOtherParent, llama);
+        Llama llama1 = (Llama) pOtherParent;
         int i = this.random.nextInt(Math.max(this.getStrength(), llama1.getStrength())) + 1;
         if (this.random.nextFloat() < 0.03F) {
             ++i;
@@ -355,11 +355,11 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return EntityType.LLAMA.create(this.level);
     }
 
-    private void spit(LivingEntity p_30828_) {
+    private void spit(LivingEntity pTarget) {
         LlamaSpit llamaspit = new LlamaSpit(this.level, this);
-        Vec3 targetDelta = p_30828_.sectorPosition().relativeTo(this.sectorPosition());
+        Vec3 targetDelta = pTarget.sectorPosition().relativeTo(this.sectorPosition());
         double d0 = targetDelta.x;
-        double d1 = p_30828_.getY(0.3333333333333333D) - llamaspit.getY();
+        double d1 = pTarget.getY(0.3333333333333333D) - llamaspit.getY();
         double d2 = targetDelta.z;
         double d3 = Math.sqrt(d0 * d0 + d2 * d2) * (double) 0.2F;
         llamaspit.shoot(d0, d1 + d3, d2, 1.5F, 10.0F);
@@ -371,20 +371,20 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         this.didSpit = true;
     }
 
-    void setDidSpit(boolean p_30753_) {
-        this.didSpit = p_30753_;
+    void setDidSpit(boolean pDidSpit) {
+        this.didSpit = pDidSpit;
     }
 
-    public boolean causeFallDamage(float p_149538_, float p_149539_, DamageSource p_149540_) {
-        int i = this.calculateFallDamage(p_149538_, p_149539_);
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
+        int i = this.calculateFallDamage(pFallDistance, pMultiplier);
         if (i <= 0) {
             return false;
         } else {
-            if (p_149538_ >= 6.0F) {
-                this.hurt(p_149540_, (float) i);
+            if (pFallDistance >= 6.0F) {
+                this.hurt(pSource, (float) i);
                 if (this.isVehicle()) {
                     for (Entity entity : this.getIndirectPassengers()) {
-                        entity.hurt(p_149540_, (float) i);
+                        entity.hurt(pSource, (float) i);
                     }
                 }
             }
@@ -402,8 +402,8 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         this.caravanHead = null;
     }
 
-    public void joinCaravan(Llama p_30767_) {
-        this.caravanHead = p_30767_;
+    public void joinCaravan(Llama pCaravanHead) {
+        this.caravanHead = pCaravanHead;
         this.caravanHead.caravanTail = this;
     }
 
@@ -434,8 +434,8 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         return false;
     }
 
-    public void performRangedAttack(LivingEntity p_30762_, float p_30763_) {
-        this.spit(p_30762_);
+    public void performRangedAttack(LivingEntity pTarget, float pDistanceFactor) {
+        this.spit(pTarget);
     }
 
     public Vec3 getLeashOffset() {
@@ -443,8 +443,8 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
     }
 
     static class LlamaAttackWolfGoal extends NearestAttackableTargetGoal<Wolf> {
-        public LlamaAttackWolfGoal(Llama p_30843_) {
-            super(p_30843_, Wolf.class, 16, false, true, (p_30845_) -> {
+        public LlamaAttackWolfGoal(Llama pLlama) {
+            super(pLlama, Wolf.class, 16, false, true, (p_30845_) -> {
                 return !((Wolf) p_30845_).isTame();
             });
         }
@@ -457,15 +457,15 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
     static class LlamaGroupData extends AgeableMob.AgeableMobGroupData {
         public final int variant;
 
-        LlamaGroupData(int p_30849_) {
+        LlamaGroupData(int pVariant) {
             super(true);
-            this.variant = p_30849_;
+            this.variant = pVariant;
         }
     }
 
     static class LlamaHurtByTargetGoal extends HurtByTargetGoal {
-        public LlamaHurtByTargetGoal(Llama p_30854_) {
-            super(p_30854_);
+        public LlamaHurtByTargetGoal(Llama pLlama) {
+            super(pLlama);
         }
 
         public boolean canContinueToUse() {

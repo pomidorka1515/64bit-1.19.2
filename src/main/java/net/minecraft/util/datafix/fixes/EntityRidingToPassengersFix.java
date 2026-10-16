@@ -17,8 +17,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class EntityRidingToPassengersFix extends DataFix {
-    public EntityRidingToPassengersFix(Schema p_15638_, boolean p_15639_) {
-        super(p_15638_, p_15639_);
+    public EntityRidingToPassengersFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

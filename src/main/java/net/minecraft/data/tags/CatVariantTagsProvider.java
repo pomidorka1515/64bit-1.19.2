@@ -6,8 +6,8 @@ import net.minecraft.tags.CatVariantTags;
 import net.minecraft.world.entity.animal.CatVariant;
 
 public class CatVariantTagsProvider extends TagsProvider<CatVariant> {
-    public CatVariantTagsProvider(DataGenerator p_236420_) {
-        super(p_236420_, Registry.CAT_VARIANT);
+    public CatVariantTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, Registry.CAT_VARIANT);
     }
 
     protected void addTags() {

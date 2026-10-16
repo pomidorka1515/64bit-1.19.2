@@ -13,8 +13,8 @@ public class MoveBackToVillageGoal extends RandomStrollGoal {
     private static final int MAX_XZ_DIST = 10;
     private static final int MAX_Y_DIST = 7;
 
-    public MoveBackToVillageGoal(PathfinderMob p_25568_, double p_25569_, boolean p_25570_) {
-        super(p_25568_, p_25569_, 10, p_25570_);
+    public MoveBackToVillageGoal(PathfinderMob pMob, double pSpeedModifier, boolean pCheckNoActionTime) {
+        super(pMob, pSpeedModifier, 10, pCheckNoActionTime);
     }
 
     public boolean canUse() {

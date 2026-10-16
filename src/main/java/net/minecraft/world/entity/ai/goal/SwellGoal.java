@@ -10,8 +10,8 @@ public class SwellGoal extends Goal {
     @Nullable
     private LivingEntity target;
 
-    public SwellGoal(Creeper p_25919_) {
-        this.creeper = p_25919_;
+    public SwellGoal(Creeper pCreeper) {
+        this.creeper = pCreeper;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 

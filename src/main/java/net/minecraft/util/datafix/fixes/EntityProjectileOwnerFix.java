@@ -12,8 +12,8 @@ import java.util.Arrays;
 import java.util.function.Function;
 
 public class EntityProjectileOwnerFix extends DataFix {
-    public EntityProjectileOwnerFix(Schema p_15558_) {
-        super(p_15558_, false);
+    public EntityProjectileOwnerFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     protected TypeRewriteRule makeRule() {

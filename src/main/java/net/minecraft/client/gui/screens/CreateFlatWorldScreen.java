@@ -38,19 +38,19 @@ public class CreateFlatWorldScreen extends Screen {
     private CreateFlatWorldScreen.DetailsList list;
     private Button deleteLayerButton;
 
-    public CreateFlatWorldScreen(CreateWorldScreen p_95822_, Consumer<FlatLevelGeneratorSettings> p_95823_, FlatLevelGeneratorSettings p_95824_) {
+    public CreateFlatWorldScreen(CreateWorldScreen pParent, Consumer<FlatLevelGeneratorSettings> pApplySettings, FlatLevelGeneratorSettings pGenerator) {
         super(Component.translatable("createWorld.customize.flat.title"));
-        this.parent = p_95822_;
-        this.applySettings = p_95823_;
-        this.generator = p_95824_;
+        this.parent = pParent;
+        this.applySettings = pApplySettings;
+        this.generator = pGenerator;
     }
 
     public FlatLevelGeneratorSettings settings() {
         return this.generator;
     }
 
-    public void setConfig(FlatLevelGeneratorSettings p_95826_) {
-        this.generator = p_95826_;
+    public void setConfig(FlatLevelGeneratorSettings pGenerator) {
+        this.generator = pGenerator;
     }
 
     protected void init() {
@@ -100,14 +100,14 @@ public class CreateFlatWorldScreen extends Screen {
         this.minecraft.setScreen(this.parent);
     }
 
-    public void render(PoseStack p_95828_, int p_95829_, int p_95830_, float p_95831_) {
-        this.renderBackground(p_95828_);
-        this.list.render(p_95828_, p_95829_, p_95830_, p_95831_);
-        drawCenteredString(p_95828_, this.font, this.title, this.width / 2, 8, 16777215);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.list.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 8, 16777215);
         int i = this.width / 2 - 92 - 16;
-        drawString(p_95828_, this.font, this.columnType, i, 32, 16777215);
-        drawString(p_95828_, this.font, this.columnHeight, i + 2 + 213 - this.font.width(this.columnHeight), 32, 16777215);
-        super.render(p_95828_, p_95829_, p_95830_, p_95831_);
+        drawString(pPoseStack, this.font, this.columnType, i, 32, 16777215);
+        drawString(pPoseStack, this.font, this.columnHeight, i + 2 + 213 - this.font.width(this.columnHeight), 32, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -120,8 +120,8 @@ public class CreateFlatWorldScreen extends Screen {
             }
         }
 
-        public void setSelected(@Nullable CreateFlatWorldScreen.DetailsList.Entry p_95855_) {
-            super.setSelected(p_95855_);
+        public void setSelected(@Nullable CreateFlatWorldScreen.DetailsList.Entry pEntry) {
+            super.setSelected(pEntry);
             CreateFlatWorldScreen.this.updateButtonValidity();
         }
 
@@ -149,30 +149,30 @@ public class CreateFlatWorldScreen extends Screen {
 
         @OnlyIn(Dist.CLIENT)
         class Entry extends ObjectSelectionList.Entry<CreateFlatWorldScreen.DetailsList.Entry> {
-            public void render(PoseStack p_95876_, int p_95877_, int p_95878_, int p_95879_, int p_95880_, int p_95881_, int p_95882_, int p_95883_, boolean p_95884_, float p_95885_) {
-                FlatLayerInfo flatlayerinfo = CreateFlatWorldScreen.this.generator.getLayersInfo().get(CreateFlatWorldScreen.this.generator.getLayersInfo().size() - p_95877_ - 1);
+            public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+                FlatLayerInfo flatlayerinfo = CreateFlatWorldScreen.this.generator.getLayersInfo().get(CreateFlatWorldScreen.this.generator.getLayersInfo().size() - pIndex - 1);
                 BlockState blockstate = flatlayerinfo.getBlockState();
                 ItemStack itemstack = this.getDisplayItem(blockstate);
-                this.blitSlot(p_95876_, p_95879_, p_95878_, itemstack);
-                CreateFlatWorldScreen.this.font.draw(p_95876_, itemstack.getHoverName(), (float) (p_95879_ + 18 + 5), (float) (p_95878_ + 3), 16777215);
+                this.blitSlot(pPoseStack, pLeft, pTop, itemstack);
+                CreateFlatWorldScreen.this.font.draw(pPoseStack, itemstack.getHoverName(), (float) (pLeft + 18 + 5), (float) (pTop + 3), 16777215);
                 Component component;
-                if (p_95877_ == 0) {
+                if (pIndex == 0) {
                     component = Component.translatable("createWorld.customize.flat.layer.top", flatlayerinfo.getHeight());
-                } else if (p_95877_ == CreateFlatWorldScreen.this.generator.getLayersInfo().size() - 1) {
+                } else if (pIndex == CreateFlatWorldScreen.this.generator.getLayersInfo().size() - 1) {
                     component = Component.translatable("createWorld.customize.flat.layer.bottom", flatlayerinfo.getHeight());
                 } else {
                     component = Component.translatable("createWorld.customize.flat.layer", flatlayerinfo.getHeight());
                 }
 
-                CreateFlatWorldScreen.this.font.draw(p_95876_, component, (float) (p_95879_ + 2 + 213 - CreateFlatWorldScreen.this.font.width(component)), (float) (p_95878_ + 3), 16777215);
+                CreateFlatWorldScreen.this.font.draw(pPoseStack, component, (float) (pLeft + 2 + 213 - CreateFlatWorldScreen.this.font.width(component)), (float) (pTop + 3), 16777215);
             }
 
-            private ItemStack getDisplayItem(BlockState p_169294_) {
-                Item item = p_169294_.getBlock().asItem();
+            private ItemStack getDisplayItem(BlockState pState) {
+                Item item = pState.getBlock().asItem();
                 if (item == Items.AIR) {
-                    if (p_169294_.is(Blocks.WATER)) {
+                    if (pState.is(Blocks.WATER)) {
                         item = Items.WATER_BUCKET;
-                    } else if (p_169294_.is(Blocks.LAVA)) {
+                    } else if (pState.is(Blocks.LAVA)) {
                         item = Items.LAVA_BUCKET;
                     }
                 }
@@ -186,8 +186,8 @@ public class CreateFlatWorldScreen extends Screen {
                 return (Component) (!itemstack.isEmpty() ? Component.translatable("narrator.select", itemstack.getHoverName()) : CommonComponents.EMPTY);
             }
 
-            public boolean mouseClicked(double p_95868_, double p_95869_, int p_95870_) {
-                if (p_95870_ == 0) {
+            public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+                if (pButton == 0) {
                     DetailsList.this.setSelected(this);
                     return true;
                 } else {
@@ -195,17 +195,17 @@ public class CreateFlatWorldScreen extends Screen {
                 }
             }
 
-            private void blitSlot(PoseStack p_95887_, int p_95888_, int p_95889_, ItemStack p_95890_) {
-                this.blitSlotBg(p_95887_, p_95888_ + 1, p_95889_ + 1);
-                if (!p_95890_.isEmpty()) {
-                    CreateFlatWorldScreen.this.itemRenderer.renderGuiItem(p_95890_, p_95888_ + 2, p_95889_ + 2);
+            private void blitSlot(PoseStack pPoseStack, int pX, int pY, ItemStack pStack) {
+                this.blitSlotBg(pPoseStack, pX + 1, pY + 1);
+                if (!pStack.isEmpty()) {
+                    CreateFlatWorldScreen.this.itemRenderer.renderGuiItem(pStack, pX + 2, pY + 2);
                 }
             }
 
-            private void blitSlotBg(PoseStack p_95872_, int p_95873_, int p_95874_) {
+            private void blitSlotBg(PoseStack pPoseStack, int pX, int pY) {
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 RenderSystem.setShaderTexture(0, GuiComponent.STATS_ICON_LOCATION);
-                GuiComponent.blit(p_95872_, p_95873_, p_95874_, CreateFlatWorldScreen.this.getBlitOffset(), 0.0F, 0.0F, 18, 18, 128, 128);
+                GuiComponent.blit(pPoseStack, pX, pY, CreateFlatWorldScreen.this.getBlitOffset(), 0.0F, 0.0F, 18, 18, 128, 128);
             }
         }
     }

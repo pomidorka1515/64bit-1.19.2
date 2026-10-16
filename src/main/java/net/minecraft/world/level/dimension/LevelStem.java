@@ -51,24 +51,24 @@ public final class LevelStem {
         }));
     }
 
-    public static Registry<LevelStem> sortMap(Registry<LevelStem> p_204526_) {
+    public static Registry<LevelStem> sortMap(Registry<LevelStem> pRegistry) {
         WritableRegistry<LevelStem> writableregistry = new MappedRegistry<>(Registry.LEVEL_STEM_REGISTRY, Lifecycle.experimental(), (Function<LevelStem, Holder.Reference<LevelStem>>) null);
-        keysInOrder(p_204526_.registryKeySet().stream()).forEach((p_223604_) -> {
-            LevelStem levelstem = p_204526_.get(p_223604_);
+        keysInOrder(pRegistry.registryKeySet().stream()).forEach((p_223604_) -> {
+            LevelStem levelstem = pRegistry.get(p_223604_);
             if (levelstem != null) {
-                writableregistry.register(p_223604_, levelstem, p_204526_.lifecycle(levelstem));
+                writableregistry.register(p_223604_, levelstem, pRegistry.lifecycle(levelstem));
             }
         });
         return writableregistry;
     }
 
-    public static boolean stable(Registry<LevelStem> p_223608_) {
-        if (p_223608_.size() != BUILTIN_ORDER.size()) {
+    public static boolean stable(Registry<LevelStem> pRegistry) {
+        if (pRegistry.size() != BUILTIN_ORDER.size()) {
             return false;
         } else {
-            Optional<LevelStem> optional = p_223608_.getOptional(OVERWORLD);
-            Optional<LevelStem> optional1 = p_223608_.getOptional(NETHER);
-            Optional<LevelStem> optional2 = p_223608_.getOptional(END);
+            Optional<LevelStem> optional = pRegistry.getOptional(OVERWORLD);
+            Optional<LevelStem> optional1 = pRegistry.getOptional(NETHER);
+            Optional<LevelStem> optional2 = pRegistry.getOptional(END);
             if (!optional.isEmpty() && !optional1.isEmpty() && !optional2.isEmpty()) {
                 if (!optional.get().typeHolder().is(BuiltinDimensionTypes.OVERWORLD) && !optional.get().typeHolder().is(BuiltinDimensionTypes.OVERWORLD_CAVES)) {
                     return false;

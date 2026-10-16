@@ -28,64 +28,64 @@ public class GoAndGiveItemsToTarget<E extends LivingEntity & InventoryCarrier> e
     private final Function<LivingEntity, Optional<PositionTracker>> targetPositionGetter;
     private final float speedModifier;
 
-    public GoAndGiveItemsToTarget(Function<LivingEntity, Optional<PositionTracker>> p_217193_, float p_217194_) {
+    public GoAndGiveItemsToTarget(Function<LivingEntity, Optional<PositionTracker>> pTargetPositionGetter, float pSpeedModifier) {
         super(Map.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, MemoryStatus.REGISTERED));
-        this.targetPositionGetter = p_217193_;
-        this.speedModifier = p_217194_;
+        this.targetPositionGetter = pTargetPositionGetter;
+        this.speedModifier = pSpeedModifier;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_217196_, E p_217197_) {
-        return this.canThrowItemToTarget(p_217197_);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, E pOwner) {
+        return this.canThrowItemToTarget(pOwner);
     }
 
-    protected boolean canStillUse(ServerLevel p_217218_, E p_217219_, long p_217220_) {
-        return this.canThrowItemToTarget(p_217219_);
+    protected boolean canStillUse(ServerLevel pLevel, E pEntity, long pGameTime) {
+        return this.canThrowItemToTarget(pEntity);
     }
 
-    protected void start(ServerLevel p_217199_, E p_217200_, long p_217201_) {
-        this.targetPositionGetter.apply(p_217200_).ifPresent((p_217206_) -> {
-            BehaviorUtils.setWalkAndLookTargetMemories(p_217200_, p_217206_, this.speedModifier, 3);
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
+        this.targetPositionGetter.apply(pEntity).ifPresent((p_217206_) -> {
+            BehaviorUtils.setWalkAndLookTargetMemories(pEntity, p_217206_, this.speedModifier, 3);
         });
     }
 
-    protected void tick(ServerLevel p_217226_, E p_217227_, long p_217228_) {
-        Optional<PositionTracker> optional = this.targetPositionGetter.apply(p_217227_);
+    protected void tick(ServerLevel pLevel, E pOwner, long pGameTime) {
+        Optional<PositionTracker> optional = this.targetPositionGetter.apply(pOwner);
         if (!optional.isEmpty()) {
             PositionTracker positiontracker = optional.get();
-            double d0 = p_217227_.exactEyePosition().relativeTo(positiontracker.currentExactPosition()).length();
+            double d0 = pOwner.exactEyePosition().relativeTo(positiontracker.currentExactPosition()).length();
             if (d0 < 3.0D) {
-                ItemStack itemstack = p_217227_.getInventory().removeItem(0, 1);
+                ItemStack itemstack = pOwner.getInventory().removeItem(0, 1);
                 if (!itemstack.isEmpty()) {
-                    throwItem(p_217227_, itemstack, getThrowPosition(positiontracker));
-                    if (p_217227_ instanceof Allay) {
-                        Allay allay = (Allay) p_217227_;
+                    throwItem(pOwner, itemstack, getThrowPosition(positiontracker));
+                    if (pOwner instanceof Allay) {
+                        Allay allay = (Allay) pOwner;
                         AllayAi.getLikedPlayer(allay).ifPresent((p_217224_) -> {
                             this.triggerDropItemOnBlock(positiontracker, itemstack, p_217224_);
                         });
                     }
 
-                    p_217227_.getBrain().setMemory(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, 60);
+                    pOwner.getBrain().setMemory(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, 60);
                 }
             }
         }
     }
 
-    private void triggerDropItemOnBlock(PositionTracker p_217214_, ItemStack p_217215_, ServerPlayer p_217216_) {
-        BlockPos blockpos = p_217214_.currentBlockPosition().below();
-        CriteriaTriggers.ALLAY_DROP_ITEM_ON_BLOCK.trigger(p_217216_, blockpos, p_217215_);
+    private void triggerDropItemOnBlock(PositionTracker pPositionTracker, ItemStack pStack, ServerPlayer pPlayer) {
+        BlockPos blockpos = pPositionTracker.currentBlockPosition().below();
+        CriteriaTriggers.ALLAY_DROP_ITEM_ON_BLOCK.trigger(pPlayer, blockpos, pStack);
     }
 
-    private boolean canThrowItemToTarget(E p_217203_) {
-        if (p_217203_.getInventory().isEmpty()) {
+    private boolean canThrowItemToTarget(E pTarget) {
+        if (pTarget.getInventory().isEmpty()) {
             return false;
         } else {
-            Optional<PositionTracker> optional = this.targetPositionGetter.apply(p_217203_);
+            Optional<PositionTracker> optional = this.targetPositionGetter.apply(pTarget);
             return optional.isPresent();
         }
     }
 
-    private static Vec3 getThrowPosition(PositionTracker p_217212_) {
-        SectorVec3 exact = p_217212_.currentExactPosition().add(0.0D, 1.0D, 0.0D);
+    private static Vec3 getThrowPosition(PositionTracker pPositionTracker) {
+        SectorVec3 exact = pPositionTracker.currentExactPosition().add(0.0D, 1.0D, 0.0D);
         return exact.toApproximateVec3();
     }
 

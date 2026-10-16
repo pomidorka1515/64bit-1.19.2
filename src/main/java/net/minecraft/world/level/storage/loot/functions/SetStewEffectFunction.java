@@ -29,9 +29,9 @@ import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 public class SetStewEffectFunction extends LootItemConditionalFunction {
     final Map<MobEffect, NumberProvider> effectDurationMap;
 
-    SetStewEffectFunction(LootItemCondition[] p_81216_, Map<MobEffect, NumberProvider> p_81217_) {
-        super(p_81216_);
-        this.effectDurationMap = ImmutableMap.copyOf(p_81217_);
+    SetStewEffectFunction(LootItemCondition[] pConditions, Map<MobEffect, NumberProvider> pEffectDurationMap) {
+        super(pConditions);
+        this.effectDurationMap = ImmutableMap.copyOf(pEffectDurationMap);
     }
 
     public LootItemFunctionType getType() {
@@ -45,21 +45,21 @@ public class SetStewEffectFunction extends LootItemConditionalFunction {
                 .collect(ImmutableSet.toImmutableSet());
     }
 
-    public ItemStack run(ItemStack p_81223_, LootContext p_81224_) {
-        if (p_81223_.is(Items.SUSPICIOUS_STEW) && !this.effectDurationMap.isEmpty()) {
-            RandomSource randomsource = p_81224_.getRandom();
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        if (pStack.is(Items.SUSPICIOUS_STEW) && !this.effectDurationMap.isEmpty()) {
+            RandomSource randomsource = pContext.getRandom();
             int i = randomsource.nextInt(this.effectDurationMap.size());
             Map.Entry<MobEffect, NumberProvider> entry = Iterables.get(this.effectDurationMap.entrySet(), i);
             MobEffect mobeffect = entry.getKey();
-            int j = entry.getValue().getInt(p_81224_);
+            int j = entry.getValue().getInt(pContext);
             if (!mobeffect.isInstantenous()) {
                 j *= 20;
             }
 
-            SuspiciousStewItem.saveMobEffect(p_81223_, mobeffect, j);
-            return p_81223_;
+            SuspiciousStewItem.saveMobEffect(pStack, mobeffect, j);
+            return pStack;
         } else {
-            return p_81223_;
+            return pStack;
         }
     }
 
@@ -74,8 +74,8 @@ public class SetStewEffectFunction extends LootItemConditionalFunction {
             return this;
         }
 
-        public SetStewEffectFunction.Builder withEffect(MobEffect p_165473_, NumberProvider p_165474_) {
-            this.effectDurationMap.put(p_165473_, p_165474_);
+        public SetStewEffectFunction.Builder withEffect(MobEffect pEffect, NumberProvider pDurationValue) {
+            this.effectDurationMap.put(pEffect, pDurationValue);
             return this;
         }
 
@@ -85,12 +85,12 @@ public class SetStewEffectFunction extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<SetStewEffectFunction> {
-        public void serialize(JsonObject p_81247_, SetStewEffectFunction p_81248_, JsonSerializationContext p_81249_) {
-            super.serialize(p_81247_, p_81248_, p_81249_);
-            if (!p_81248_.effectDurationMap.isEmpty()) {
+        public void serialize(JsonObject pJson, SetStewEffectFunction pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            if (!pValue.effectDurationMap.isEmpty()) {
                 JsonArray jsonarray = new JsonArray();
 
-                for (MobEffect mobeffect : p_81248_.effectDurationMap.keySet()) {
+                for (MobEffect mobeffect : pValue.effectDurationMap.keySet()) {
                     JsonObject jsonobject = new JsonObject();
                     ResourceLocation resourcelocation = Registry.MOB_EFFECT.getKey(mobeffect);
                     if (resourcelocation == null) {
@@ -98,28 +98,28 @@ public class SetStewEffectFunction extends LootItemConditionalFunction {
                     }
 
                     jsonobject.add("type", new JsonPrimitive(resourcelocation.toString()));
-                    jsonobject.add("duration", p_81249_.serialize(p_81248_.effectDurationMap.get(mobeffect)));
+                    jsonobject.add("duration", pSerializationContext.serialize(pValue.effectDurationMap.get(mobeffect)));
                     jsonarray.add(jsonobject);
                 }
 
-                p_81247_.add("effects", jsonarray);
+                pJson.add("effects", jsonarray);
             }
         }
 
-        public SetStewEffectFunction deserialize(JsonObject p_81239_, JsonDeserializationContext p_81240_, LootItemCondition[] p_81241_) {
+        public SetStewEffectFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
             Map<MobEffect, NumberProvider> map = Maps.newLinkedHashMap();
-            if (p_81239_.has("effects")) {
-                for (JsonElement jsonelement : GsonHelper.getAsJsonArray(p_81239_, "effects")) {
+            if (pObject.has("effects")) {
+                for (JsonElement jsonelement : GsonHelper.getAsJsonArray(pObject, "effects")) {
                     String s = GsonHelper.getAsString(jsonelement.getAsJsonObject(), "type");
                     MobEffect mobeffect = Registry.MOB_EFFECT.getOptional(new ResourceLocation(s)).orElseThrow(() -> {
                         return new JsonSyntaxException("Unknown mob effect '" + s + "'");
                     });
-                    NumberProvider numberprovider = GsonHelper.getAsObject(jsonelement.getAsJsonObject(), "duration", p_81240_, NumberProvider.class);
+                    NumberProvider numberprovider = GsonHelper.getAsObject(jsonelement.getAsJsonObject(), "duration", pDeserializationContext, NumberProvider.class);
                     map.put(mobeffect, numberprovider);
                 }
             }
 
-            return new SetStewEffectFunction(p_81241_, map);
+            return new SetStewEffectFunction(pConditions, map);
         }
     }
 }

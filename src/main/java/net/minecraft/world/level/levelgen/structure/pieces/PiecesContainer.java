@@ -39,21 +39,21 @@ public record PiecesContainer(List<StructurePiece> pieces) {
         return false;
     }
 
-    public Tag save(StructurePieceSerializationContext p_192750_) {
+    public Tag save(StructurePieceSerializationContext pContext) {
         ListTag listtag = new ListTag();
 
         for (StructurePiece structurepiece : this.pieces) {
-            listtag.add(structurepiece.createTag(p_192750_));
+            listtag.add(structurepiece.createTag(pContext));
         }
 
         return listtag;
     }
 
-    public static PiecesContainer load(ListTag p_192754_, StructurePieceSerializationContext p_192755_) {
+    public static PiecesContainer load(ListTag pTag, StructurePieceSerializationContext pContext) {
         List<StructurePiece> list = Lists.newArrayList();
 
-        for (int i = 0; i < p_192754_.size(); ++i) {
-            CompoundTag compoundtag = p_192754_.getCompound(i);
+        for (int i = 0; i < pTag.size(); ++i) {
+            CompoundTag compoundtag = pTag.getCompound(i);
             String s = compoundtag.getString("id").toLowerCase(Locale.ROOT);
             ResourceLocation resourcelocation = new ResourceLocation(s);
             ResourceLocation resourcelocation1 = RENAMES.getOrDefault(resourcelocation, resourcelocation);
@@ -62,7 +62,7 @@ public record PiecesContainer(List<StructurePiece> pieces) {
                 LOGGER.error("Unknown structure piece id: {}", (Object) resourcelocation1);
             } else {
                 try {
-                    StructurePiece structurepiece = structurepiecetype.load(p_192755_, compoundtag);
+                    StructurePiece structurepiece = structurepiecetype.load(pContext, compoundtag);
                     list.add(structurepiece);
                 } catch (Exception exception) {
                     LOGGER.error("Exception loading structure piece with id {}", resourcelocation1, exception);

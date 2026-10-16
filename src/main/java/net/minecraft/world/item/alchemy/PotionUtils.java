@@ -28,64 +28,64 @@ public class PotionUtils {
     private static final int EMPTY_COLOR = 16253176;
     private static final Component NO_EFFECT = Component.translatable("effect.none").withStyle(ChatFormatting.GRAY);
 
-    public static List<MobEffectInstance> getMobEffects(ItemStack p_43548_) {
-        return getAllEffects(p_43548_.getTag());
+    public static List<MobEffectInstance> getMobEffects(ItemStack pStack) {
+        return getAllEffects(pStack.getTag());
     }
 
-    public static List<MobEffectInstance> getAllEffects(Potion p_43562_, Collection<MobEffectInstance> p_43563_) {
+    public static List<MobEffectInstance> getAllEffects(Potion pPotion, Collection<MobEffectInstance> pEffects) {
         List<MobEffectInstance> list = Lists.newArrayList();
-        list.addAll(p_43562_.getEffects());
-        list.addAll(p_43563_);
+        list.addAll(pPotion.getEffects());
+        list.addAll(pEffects);
         return list;
     }
 
-    public static List<MobEffectInstance> getAllEffects(@Nullable CompoundTag p_43567_) {
+    public static List<MobEffectInstance> getAllEffects(@Nullable CompoundTag pCompoundTag) {
         List<MobEffectInstance> list = Lists.newArrayList();
-        list.addAll(getPotion(p_43567_).getEffects());
-        getCustomEffects(p_43567_, list);
+        list.addAll(getPotion(pCompoundTag).getEffects());
+        getCustomEffects(pCompoundTag, list);
         return list;
     }
 
-    public static List<MobEffectInstance> getCustomEffects(ItemStack p_43572_) {
-        return getCustomEffects(p_43572_.getTag());
+    public static List<MobEffectInstance> getCustomEffects(ItemStack pStack) {
+        return getCustomEffects(pStack.getTag());
     }
 
-    public static List<MobEffectInstance> getCustomEffects(@Nullable CompoundTag p_43574_) {
+    public static List<MobEffectInstance> getCustomEffects(@Nullable CompoundTag pCompoundTag) {
         List<MobEffectInstance> list = Lists.newArrayList();
-        getCustomEffects(p_43574_, list);
+        getCustomEffects(pCompoundTag, list);
         return list;
     }
 
-    public static void getCustomEffects(@Nullable CompoundTag p_43569_, List<MobEffectInstance> p_43570_) {
-        if (p_43569_ != null && p_43569_.contains("CustomPotionEffects", 9)) {
-            ListTag listtag = p_43569_.getList("CustomPotionEffects", 10);
+    public static void getCustomEffects(@Nullable CompoundTag pCompoundTag, List<MobEffectInstance> pEffectList) {
+        if (pCompoundTag != null && pCompoundTag.contains("CustomPotionEffects", 9)) {
+            ListTag listtag = pCompoundTag.getList("CustomPotionEffects", 10);
 
             for (int i = 0; i < listtag.size(); ++i) {
                 CompoundTag compoundtag = listtag.getCompound(i);
                 MobEffectInstance mobeffectinstance = MobEffectInstance.load(compoundtag);
                 if (mobeffectinstance != null) {
-                    p_43570_.add(mobeffectinstance);
+                    pEffectList.add(mobeffectinstance);
                 }
             }
         }
     }
 
-    public static int getColor(ItemStack p_43576_) {
-        CompoundTag compoundtag = p_43576_.getTag();
+    public static int getColor(ItemStack pStack) {
+        CompoundTag compoundtag = pStack.getTag();
         if (compoundtag != null && compoundtag.contains("CustomPotionColor", 99)) {
             return compoundtag.getInt("CustomPotionColor");
         } else {
-            return getPotion(p_43576_) == Potions.EMPTY ? 16253176 : getColor(getMobEffects(p_43576_));
+            return getPotion(pStack) == Potions.EMPTY ? 16253176 : getColor(getMobEffects(pStack));
         }
     }
 
-    public static int getColor(Potion p_43560_) {
-        return p_43560_ == Potions.EMPTY ? 16253176 : getColor(p_43560_.getEffects());
+    public static int getColor(Potion pPotion) {
+        return pPotion == Potions.EMPTY ? 16253176 : getColor(pPotion.getEffects());
     }
 
-    public static int getColor(Collection<MobEffectInstance> p_43565_) {
+    public static int getColor(Collection<MobEffectInstance> pEffects) {
         int i = 3694022;
-        if (p_43565_.isEmpty()) {
+        if (pEffects.isEmpty()) {
             return 3694022;
         } else {
             float f = 0.0F;
@@ -93,7 +93,7 @@ public class PotionUtils {
             float f2 = 0.0F;
             int j = 0;
 
-            for (MobEffectInstance mobeffectinstance : p_43565_) {
+            for (MobEffectInstance mobeffectinstance : pEffects) {
                 if (mobeffectinstance.isVisible()) {
                     int k = mobeffectinstance.getEffect().getColor();
                     int l = mobeffectinstance.getAmplifier() + 1;
@@ -115,46 +115,46 @@ public class PotionUtils {
         }
     }
 
-    public static Potion getPotion(ItemStack p_43580_) {
-        return getPotion(p_43580_.getTag());
+    public static Potion getPotion(ItemStack pStack) {
+        return getPotion(pStack.getTag());
     }
 
-    public static Potion getPotion(@Nullable CompoundTag p_43578_) {
-        return p_43578_ == null ? Potions.EMPTY : Potion.byName(p_43578_.getString("Potion"));
+    public static Potion getPotion(@Nullable CompoundTag pCompoundTag) {
+        return pCompoundTag == null ? Potions.EMPTY : Potion.byName(pCompoundTag.getString("Potion"));
     }
 
-    public static ItemStack setPotion(ItemStack p_43550_, Potion p_43551_) {
-        ResourceLocation resourcelocation = Registry.POTION.getKey(p_43551_);
-        if (p_43551_ == Potions.EMPTY) {
-            p_43550_.removeTagKey("Potion");
+    public static ItemStack setPotion(ItemStack pStack, Potion pPotion) {
+        ResourceLocation resourcelocation = Registry.POTION.getKey(pPotion);
+        if (pPotion == Potions.EMPTY) {
+            pStack.removeTagKey("Potion");
         } else {
-            p_43550_.getOrCreateTag().putString("Potion", resourcelocation.toString());
+            pStack.getOrCreateTag().putString("Potion", resourcelocation.toString());
         }
 
-        return p_43550_;
+        return pStack;
     }
 
-    public static ItemStack setCustomEffects(ItemStack p_43553_, Collection<MobEffectInstance> p_43554_) {
-        if (p_43554_.isEmpty()) {
-            return p_43553_;
+    public static ItemStack setCustomEffects(ItemStack pStack, Collection<MobEffectInstance> pEffects) {
+        if (pEffects.isEmpty()) {
+            return pStack;
         } else {
-            CompoundTag compoundtag = p_43553_.getOrCreateTag();
+            CompoundTag compoundtag = pStack.getOrCreateTag();
             ListTag listtag = compoundtag.getList("CustomPotionEffects", 9);
 
-            for (MobEffectInstance mobeffectinstance : p_43554_) {
+            for (MobEffectInstance mobeffectinstance : pEffects) {
                 listtag.add(mobeffectinstance.save(new CompoundTag()));
             }
 
             compoundtag.put("CustomPotionEffects", listtag);
-            return p_43553_;
+            return pStack;
         }
     }
 
-    public static void addPotionTooltip(ItemStack p_43556_, List<Component> p_43557_, float p_43558_) {
-        List<MobEffectInstance> list = getMobEffects(p_43556_);
+    public static void addPotionTooltip(ItemStack pStack, List<Component> pTooltips, float pDurationFactor) {
+        List<MobEffectInstance> list = getMobEffects(pStack);
         List<Pair<Attribute, AttributeModifier>> list1 = Lists.newArrayList();
         if (list.isEmpty()) {
-            p_43557_.add(NO_EFFECT);
+            pTooltips.add(NO_EFFECT);
         } else {
             for (MobEffectInstance mobeffectinstance : list) {
                 MutableComponent mutablecomponent = Component.translatable(mobeffectinstance.getDescriptionId());
@@ -173,16 +173,16 @@ public class PotionUtils {
                 }
 
                 if (mobeffectinstance.getDuration() > 20) {
-                    mutablecomponent = Component.translatable("potion.withDuration", mutablecomponent, MobEffectUtil.formatDuration(mobeffectinstance, p_43558_));
+                    mutablecomponent = Component.translatable("potion.withDuration", mutablecomponent, MobEffectUtil.formatDuration(mobeffectinstance, pDurationFactor));
                 }
 
-                p_43557_.add(mutablecomponent.withStyle(mobeffect.getCategory().getTooltipFormatting()));
+                pTooltips.add(mutablecomponent.withStyle(mobeffect.getCategory().getTooltipFormatting()));
             }
         }
 
         if (!list1.isEmpty()) {
-            p_43557_.add(CommonComponents.EMPTY);
-            p_43557_.add(Component.translatable("potion.whenDrank").withStyle(ChatFormatting.DARK_PURPLE));
+            pTooltips.add(CommonComponents.EMPTY);
+            pTooltips.add(Component.translatable("potion.whenDrank").withStyle(ChatFormatting.DARK_PURPLE));
 
             for (Pair<Attribute, AttributeModifier> pair : list1) {
                 AttributeModifier attributemodifier2 = pair.getSecond();
@@ -195,10 +195,10 @@ public class PotionUtils {
                 }
 
                 if (d0 > 0.0D) {
-                    p_43557_.add(Component.translatable("attribute.modifier.plus." + attributemodifier2.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), Component.translatable(pair.getFirst().getDescriptionId())).withStyle(ChatFormatting.BLUE));
+                    pTooltips.add(Component.translatable("attribute.modifier.plus." + attributemodifier2.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), Component.translatable(pair.getFirst().getDescriptionId())).withStyle(ChatFormatting.BLUE));
                 } else if (d0 < 0.0D) {
                     d1 *= -1.0D;
-                    p_43557_.add(Component.translatable("attribute.modifier.take." + attributemodifier2.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), Component.translatable(pair.getFirst().getDescriptionId())).withStyle(ChatFormatting.RED));
+                    pTooltips.add(Component.translatable("attribute.modifier.take." + attributemodifier2.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), Component.translatable(pair.getFirst().getDescriptionId())).withStyle(ChatFormatting.RED));
                 }
             }
         }

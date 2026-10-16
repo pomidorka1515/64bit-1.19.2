@@ -13,33 +13,33 @@ public class ClientboundResourcePackPacket implements Packet<ClientGamePacketLis
     @Nullable
     private final Component prompt;
 
-    public ClientboundResourcePackPacket(String p_179182_, String p_179183_, boolean p_179184_, @Nullable Component p_179185_) {
-        if (p_179183_.length() > 40) {
-            throw new IllegalArgumentException("Hash is too long (max 40, was " + p_179183_.length() + ")");
+    public ClientboundResourcePackPacket(String pUrl, String pHash, boolean pRequired, @Nullable Component pPrompt) {
+        if (pHash.length() > 40) {
+            throw new IllegalArgumentException("Hash is too long (max 40, was " + pHash.length() + ")");
         } else {
-            this.url = p_179182_;
-            this.hash = p_179183_;
-            this.required = p_179184_;
-            this.prompt = p_179185_;
+            this.url = pUrl;
+            this.hash = pHash;
+            this.required = pRequired;
+            this.prompt = pPrompt;
         }
     }
 
-    public ClientboundResourcePackPacket(FriendlyByteBuf p_179187_) {
-        this.url = p_179187_.readUtf();
-        this.hash = p_179187_.readUtf(40);
-        this.required = p_179187_.readBoolean();
-        this.prompt = p_179187_.readNullable(FriendlyByteBuf::readComponent);
+    public ClientboundResourcePackPacket(FriendlyByteBuf pBuffer) {
+        this.url = pBuffer.readUtf();
+        this.hash = pBuffer.readUtf(40);
+        this.required = pBuffer.readBoolean();
+        this.prompt = pBuffer.readNullable(FriendlyByteBuf::readComponent);
     }
 
-    public void write(FriendlyByteBuf p_132926_) {
-        p_132926_.writeUtf(this.url);
-        p_132926_.writeUtf(this.hash);
-        p_132926_.writeBoolean(this.required);
-        p_132926_.writeNullable(this.prompt, FriendlyByteBuf::writeComponent);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeUtf(this.url);
+        pBuffer.writeUtf(this.hash);
+        pBuffer.writeBoolean(this.required);
+        pBuffer.writeNullable(this.prompt, FriendlyByteBuf::writeComponent);
     }
 
-    public void handle(ClientGamePacketListener p_132923_) {
-        p_132923_.handleResourcePack(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleResourcePack(this);
     }
 
     public String getUrl() {

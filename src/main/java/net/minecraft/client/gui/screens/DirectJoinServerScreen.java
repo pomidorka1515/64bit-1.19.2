@@ -21,20 +21,20 @@ public class DirectJoinServerScreen extends Screen {
     private final BooleanConsumer callback;
     private final Screen lastScreen;
 
-    public DirectJoinServerScreen(Screen p_95960_, BooleanConsumer p_95961_, ServerData p_95962_) {
+    public DirectJoinServerScreen(Screen pLastScreen, BooleanConsumer pCallback, ServerData pServerData) {
         super(Component.translatable("selectServer.direct"));
-        this.lastScreen = p_95960_;
-        this.serverData = p_95962_;
-        this.callback = p_95961_;
+        this.lastScreen = pLastScreen;
+        this.serverData = pServerData;
+        this.callback = pCallback;
     }
 
     public void tick() {
         this.ipEdit.tick();
     }
 
-    public boolean keyPressed(int p_95964_, int p_95965_, int p_95966_) {
-        if (!this.selectButton.active || this.getFocused() != this.ipEdit || p_95964_ != 257 && p_95964_ != 335) {
-            return super.keyPressed(p_95964_, p_95965_, p_95966_);
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (!this.selectButton.active || this.getFocused() != this.ipEdit || pKeyCode != 257 && pKeyCode != 335) {
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         } else {
             this.onSelect();
             return true;
@@ -61,9 +61,9 @@ public class DirectJoinServerScreen extends Screen {
         this.updateSelectButtonStatus();
     }
 
-    public void resize(Minecraft p_95973_, int p_95974_, int p_95975_) {
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
         String s = this.ipEdit.getValue();
-        this.init(p_95973_, p_95974_, p_95975_);
+        this.init(pMinecraft, pWidth, pHeight);
         this.ipEdit.setValue(s);
     }
 
@@ -86,11 +86,11 @@ public class DirectJoinServerScreen extends Screen {
         this.selectButton.active = ServerAddress.isValidAddress(this.ipEdit.getValue());
     }
 
-    public void render(PoseStack p_95968_, int p_95969_, int p_95970_, float p_95971_) {
-        this.renderBackground(p_95968_);
-        drawCenteredString(p_95968_, this.font, this.title, this.width / 2, 20, 16777215);
-        drawString(p_95968_, this.font, ENTER_IP_LABEL, this.width / 2 - 100, 100, 10526880);
-        this.ipEdit.render(p_95968_, p_95969_, p_95970_, p_95971_);
-        super.render(p_95968_, p_95969_, p_95970_, p_95971_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 20, 16777215);
+        drawString(pPoseStack, this.font, ENTER_IP_LABEL, this.width / 2 - 100, 100, 10526880);
+        this.ipEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

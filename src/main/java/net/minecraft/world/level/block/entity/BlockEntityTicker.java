@@ -6,5 +6,5 @@ import net.minecraft.world.level.block.state.BlockState;
 
 @FunctionalInterface
 public interface BlockEntityTicker<T extends BlockEntity> {
-    void tick(Level p_155253_, BlockPos p_155254_, BlockState p_155255_, T p_155256_);
+    void tick(Level pLevel, BlockPos pPos, BlockState pState, T pBlockEntity);
 }

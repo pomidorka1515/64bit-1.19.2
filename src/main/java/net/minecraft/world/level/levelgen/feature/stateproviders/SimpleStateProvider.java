@@ -19,7 +19,7 @@ public class SimpleStateProvider extends BlockStateProvider {
         return BlockStateProviderType.SIMPLE_STATE_PROVIDER;
     }
 
-    public BlockState getState(RandomSource p_225963_, BlockPos p_225964_) {
+    public BlockState getState(RandomSource pRandom, BlockPos pState) {
         return this.state;
     }
 }

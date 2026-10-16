@@ -12,15 +12,15 @@ public class LevitationTrigger extends SimpleCriterionTrigger<LevitationTrigger.
         return ID;
     }
 
-    public LevitationTrigger.TriggerInstance createInstance(JsonObject p_49126_, EntityPredicate.Composite p_49127_, DeserializationContext p_49128_) {
-        DistancePredicate distancepredicate = DistancePredicate.fromJson(p_49126_.get("distance"));
-        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(p_49126_.get("duration"));
-        return new LevitationTrigger.TriggerInstance(p_49127_, distancepredicate, minmaxbounds$ints);
+    public LevitationTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        DistancePredicate distancepredicate = DistancePredicate.fromJson(pJson.get("distance"));
+        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(pJson.get("duration"));
+        return new LevitationTrigger.TriggerInstance(pEntityPredicate, distancepredicate, minmaxbounds$ints);
     }
 
-    public void trigger(ServerPlayer p_49117_, Vec3 p_49118_, int p_49119_) {
-        this.trigger(p_49117_, (p_49124_) -> {
-            return p_49124_.matches(p_49117_, p_49118_, p_49119_);
+    public void trigger(ServerPlayer pPlayer, Vec3 pStartPos, int pDuration) {
+        this.trigger(pPlayer, (p_49124_) -> {
+            return p_49124_.matches(pPlayer, pStartPos, pDuration);
         });
     }
 
@@ -28,26 +28,26 @@ public class LevitationTrigger extends SimpleCriterionTrigger<LevitationTrigger.
         private final DistancePredicate distance;
         private final MinMaxBounds.Ints duration;
 
-        public TriggerInstance(EntityPredicate.Composite p_49137_, DistancePredicate p_49138_, MinMaxBounds.Ints p_49139_) {
-            super(LevitationTrigger.ID, p_49137_);
-            this.distance = p_49138_;
-            this.duration = p_49139_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, DistancePredicate pDistance, MinMaxBounds.Ints pDuration) {
+            super(LevitationTrigger.ID, pPlayer);
+            this.distance = pDistance;
+            this.duration = pDuration;
         }
 
-        public static LevitationTrigger.TriggerInstance levitated(DistancePredicate p_49145_) {
-            return new LevitationTrigger.TriggerInstance(EntityPredicate.Composite.ANY, p_49145_, MinMaxBounds.Ints.ANY);
+        public static LevitationTrigger.TriggerInstance levitated(DistancePredicate pDistance) {
+            return new LevitationTrigger.TriggerInstance(EntityPredicate.Composite.ANY, pDistance, MinMaxBounds.Ints.ANY);
         }
 
-        public boolean matches(ServerPlayer p_49141_, Vec3 p_49142_, int p_49143_) {
-            if (!this.distance.matches(p_49142_.x, p_49142_.y, p_49142_.z, p_49141_.getX(), p_49141_.getY(), p_49141_.getZ())) {
+        public boolean matches(ServerPlayer pPlayer, Vec3 pStartPos, int pDuration) {
+            if (!this.distance.matches(pStartPos.x, pStartPos.y, pStartPos.z, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ())) {
                 return false;
             } else {
-                return this.duration.matches(p_49143_);
+                return this.duration.matches(pDuration);
             }
         }
 
-        public JsonObject serializeToJson(SerializationContext p_49147_) {
-            JsonObject jsonobject = super.serializeToJson(p_49147_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             jsonobject.add("distance", this.distance.serializeToJson());
             jsonobject.add("duration", this.duration.serializeToJson());
             return jsonobject;

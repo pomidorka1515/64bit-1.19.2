@@ -5,8 +5,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.Optional;
 
 public class OminousBannerRenameFix extends ItemStackTagFix {
-    public OminousBannerRenameFix(Schema p_216694_) {
-        super(p_216694_, "OminousBannerRenameFix", (p_216698_) -> {
+    public OminousBannerRenameFix(Schema pSchema) {
+        super(pSchema, "OminousBannerRenameFix", (p_216698_) -> {
             return p_216698_.equals("minecraft:white_banner");
         });
     }

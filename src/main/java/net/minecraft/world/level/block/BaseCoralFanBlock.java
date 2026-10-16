@@ -10,11 +10,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class BaseCoralFanBlock extends BaseCoralPlantTypeBlock {
     private static final VoxelShape AABB = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
 
-    protected BaseCoralFanBlock(BlockBehaviour.Properties p_49106_) {
-        super(p_49106_);
+    protected BaseCoralFanBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    public VoxelShape getShape(BlockState p_49108_, BlockGetter p_49109_, BlockPos p_49110_, CollisionContext p_49111_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return AABB;
     }
 }

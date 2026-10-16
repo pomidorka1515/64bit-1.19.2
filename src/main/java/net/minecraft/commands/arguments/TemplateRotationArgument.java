@@ -13,7 +13,7 @@ public class TemplateRotationArgument extends StringRepresentableArgument<Rotati
         return new TemplateRotationArgument();
     }
 
-    public static Rotation getRotation(CommandContext<CommandSourceStack> p_234416_, String p_234417_) {
-        return p_234416_.getArgument(p_234417_, Rotation.class);
+    public static Rotation getRotation(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, Rotation.class);
     }
 }

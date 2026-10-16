@@ -17,12 +17,12 @@ public class FolderRepositorySource implements RepositorySource {
     private final File folder;
     private final PackSource packSource;
 
-    public FolderRepositorySource(File p_10386_, PackSource p_10387_) {
-        this.folder = p_10386_;
-        this.packSource = p_10387_;
+    public FolderRepositorySource(File pFolder, PackSource pPackSource) {
+        this.folder = pFolder;
+        this.packSource = pPackSource;
     }
 
-    public void loadPacks(Consumer<Pack> p_10391_, Pack.PackConstructor p_10392_) {
+    public void loadPacks(Consumer<Pack> pInfoConsumer, Pack.PackConstructor pInfoFactory) {
         if (!this.folder.isDirectory()) {
             this.folder.mkdirs();
         }
@@ -31,19 +31,19 @@ public class FolderRepositorySource implements RepositorySource {
         if (afile != null) {
             for (File file1 : afile) {
                 String s = "file/" + file1.getName();
-                Pack pack = Pack.create(s, false, this.createSupplier(file1), p_10392_, Pack.Position.TOP, this.packSource);
+                Pack pack = Pack.create(s, false, this.createSupplier(file1), pInfoFactory, Pack.Position.TOP, this.packSource);
                 if (pack != null) {
-                    p_10391_.accept(pack);
+                    pInfoConsumer.accept(pack);
                 }
             }
         }
     }
 
-    private Supplier<PackResources> createSupplier(File p_10389_) {
-        return p_10389_.isDirectory() ? () -> {
-            return new FolderPackResources(p_10389_);
+    private Supplier<PackResources> createSupplier(File pFile) {
+        return pFile.isDirectory() ? () -> {
+            return new FolderPackResources(pFile);
         } : () -> {
-            return new FilePackResources(p_10389_);
+            return new FilePackResources(pFile);
         };
     }
 }

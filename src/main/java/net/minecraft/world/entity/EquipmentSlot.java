@@ -28,8 +28,8 @@ public enum EquipmentSlot {
         return this.index;
     }
 
-    public int getIndex(int p_147069_) {
-        return p_147069_ + this.index;
+    public int getIndex(int pBaseIndex) {
+        return pBaseIndex + this.index;
     }
 
     public int getFilterFlag() {
@@ -40,24 +40,24 @@ public enum EquipmentSlot {
         return this.name;
     }
 
-    public static EquipmentSlot byName(String p_20748_) {
+    public static EquipmentSlot byName(String pTargetName) {
         for (EquipmentSlot equipmentslot : values()) {
-            if (equipmentslot.getName().equals(p_20748_)) {
+            if (equipmentslot.getName().equals(pTargetName)) {
                 return equipmentslot;
             }
         }
 
-        throw new IllegalArgumentException("Invalid slot '" + p_20748_ + "'");
+        throw new IllegalArgumentException("Invalid slot '" + pTargetName + "'");
     }
 
-    public static EquipmentSlot byTypeAndIndex(EquipmentSlot.Type p_20745_, int p_20746_) {
+    public static EquipmentSlot byTypeAndIndex(EquipmentSlot.Type pSlotType, int pSlotIndex) {
         for (EquipmentSlot equipmentslot : values()) {
-            if (equipmentslot.getType() == p_20745_ && equipmentslot.getIndex() == p_20746_) {
+            if (equipmentslot.getType() == pSlotType && equipmentslot.getIndex() == pSlotIndex) {
                 return equipmentslot;
             }
         }
 
-        throw new IllegalArgumentException("Invalid slot '" + p_20745_ + "': " + p_20746_);
+        throw new IllegalArgumentException("Invalid slot '" + pSlotType + "': " + pSlotIndex);
     }
 
     public static enum Type {

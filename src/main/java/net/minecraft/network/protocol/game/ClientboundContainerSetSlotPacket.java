@@ -12,29 +12,29 @@ public class ClientboundContainerSetSlotPacket implements Packet<ClientGamePacke
     private final int slot;
     private final ItemStack itemStack;
 
-    public ClientboundContainerSetSlotPacket(int p_131982_, int p_182713_, int p_131983_, ItemStack p_131984_) {
-        this.containerId = p_131982_;
-        this.stateId = p_182713_;
-        this.slot = p_131983_;
-        this.itemStack = p_131984_.copy();
+    public ClientboundContainerSetSlotPacket(int pContainerId, int pStateId, int pSlot, ItemStack pItemStack) {
+        this.containerId = pContainerId;
+        this.stateId = pStateId;
+        this.slot = pSlot;
+        this.itemStack = pItemStack.copy();
     }
 
-    public ClientboundContainerSetSlotPacket(FriendlyByteBuf p_178829_) {
-        this.containerId = p_178829_.readByte();
-        this.stateId = p_178829_.readVarInt();
-        this.slot = p_178829_.readShort();
-        this.itemStack = p_178829_.readItem();
+    public ClientboundContainerSetSlotPacket(FriendlyByteBuf pBuffer) {
+        this.containerId = pBuffer.readByte();
+        this.stateId = pBuffer.readVarInt();
+        this.slot = pBuffer.readShort();
+        this.itemStack = pBuffer.readItem();
     }
 
-    public void write(FriendlyByteBuf p_131993_) {
-        p_131993_.writeByte(this.containerId);
-        p_131993_.writeVarInt(this.stateId);
-        p_131993_.writeShort(this.slot);
-        p_131993_.writeItem(this.itemStack);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeByte(this.containerId);
+        pBuffer.writeVarInt(this.stateId);
+        pBuffer.writeShort(this.slot);
+        pBuffer.writeItem(this.itemStack);
     }
 
-    public void handle(ClientGamePacketListener p_131990_) {
-        p_131990_.handleContainerSetSlot(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleContainerSetSlot(this);
     }
 
     public int getContainerId() {

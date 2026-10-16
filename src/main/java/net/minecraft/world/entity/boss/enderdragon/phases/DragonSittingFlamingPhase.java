@@ -19,8 +19,8 @@ public class DragonSittingFlamingPhase extends AbstractDragonSittingPhase {
     @Nullable
     private AreaEffectCloud flame;
 
-    public DragonSittingFlamingPhase(EnderDragon p_31330_) {
-        super(p_31330_);
+    public DragonSittingFlamingPhase(EnderDragon pDragon) {
+        super(pDragon);
     }
 
     public void doClientTick() {

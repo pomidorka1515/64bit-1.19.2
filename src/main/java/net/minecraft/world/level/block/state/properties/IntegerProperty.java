@@ -11,18 +11,18 @@ public class IntegerProperty extends Property<Integer> {
     private final int min;
     private final int max;
 
-    protected IntegerProperty(String p_61623_, int p_61624_, int p_61625_) {
-        super(p_61623_, Integer.class);
-        if (p_61624_ < 0) {
-            throw new IllegalArgumentException("Min value of " + p_61623_ + " must be 0 or greater");
-        } else if (p_61625_ <= p_61624_) {
-            throw new IllegalArgumentException("Max value of " + p_61623_ + " must be greater than min (" + p_61624_ + ")");
+    protected IntegerProperty(String pName, int pMin, int pMax) {
+        super(pName, Integer.class);
+        if (pMin < 0) {
+            throw new IllegalArgumentException("Min value of " + pName + " must be 0 or greater");
+        } else if (pMax <= pMin) {
+            throw new IllegalArgumentException("Max value of " + pName + " must be greater than min (" + pMin + ")");
         } else {
-            this.min = p_61624_;
-            this.max = p_61625_;
+            this.min = pMin;
+            this.max = pMax;
             Set<Integer> set = Sets.newHashSet();
 
-            for (int i = p_61624_; i <= p_61625_; ++i) {
+            for (int i = pMin; i <= pMax; ++i) {
                 set.add(i);
             }
 
@@ -34,11 +34,11 @@ public class IntegerProperty extends Property<Integer> {
         return this.values;
     }
 
-    public boolean equals(Object p_61639_) {
-        if (this == p_61639_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_61639_ instanceof IntegerProperty && super.equals(p_61639_)) {
-            IntegerProperty integerproperty = (IntegerProperty) p_61639_;
+        } else if (pOther instanceof IntegerProperty && super.equals(pOther)) {
+            IntegerProperty integerproperty = (IntegerProperty) pOther;
             return this.values.equals(integerproperty.values);
         } else {
             return false;
@@ -49,20 +49,20 @@ public class IntegerProperty extends Property<Integer> {
         return 31 * super.generateHashCode() + this.values.hashCode();
     }
 
-    public static IntegerProperty create(String p_61632_, int p_61633_, int p_61634_) {
-        return new IntegerProperty(p_61632_, p_61633_, p_61634_);
+    public static IntegerProperty create(String pName, int pMin, int pMax) {
+        return new IntegerProperty(pName, pMin, pMax);
     }
 
-    public Optional<Integer> getValue(String p_61637_) {
+    public Optional<Integer> getValue(String pValue) {
         try {
-            Integer integer = Integer.valueOf(p_61637_);
+            Integer integer = Integer.valueOf(pValue);
             return integer >= this.min && integer <= this.max ? Optional.of(integer) : Optional.empty();
         } catch (NumberFormatException numberformatexception) {
             return Optional.empty();
         }
     }
 
-    public String getName(Integer p_61630_) {
-        return p_61630_.toString();
+    public String getName(Integer pValue) {
+        return pValue.toString();
     }
 }

@@ -8,26 +8,26 @@ public class ClientboundTakeItemEntityPacket implements Packet<ClientGamePacketL
     private final int playerId;
     private final int amount;
 
-    public ClientboundTakeItemEntityPacket(int p_133515_, int p_133516_, int p_133517_) {
-        this.itemId = p_133515_;
-        this.playerId = p_133516_;
-        this.amount = p_133517_;
+    public ClientboundTakeItemEntityPacket(int pItemId, int pPlayerId, int pAmount) {
+        this.itemId = pItemId;
+        this.playerId = pPlayerId;
+        this.amount = pAmount;
     }
 
-    public ClientboundTakeItemEntityPacket(FriendlyByteBuf p_179435_) {
-        this.itemId = p_179435_.readVarInt();
-        this.playerId = p_179435_.readVarInt();
-        this.amount = p_179435_.readVarInt();
+    public ClientboundTakeItemEntityPacket(FriendlyByteBuf pBuffer) {
+        this.itemId = pBuffer.readVarInt();
+        this.playerId = pBuffer.readVarInt();
+        this.amount = pBuffer.readVarInt();
     }
 
-    public void write(FriendlyByteBuf p_133526_) {
-        p_133526_.writeVarInt(this.itemId);
-        p_133526_.writeVarInt(this.playerId);
-        p_133526_.writeVarInt(this.amount);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.itemId);
+        pBuffer.writeVarInt(this.playerId);
+        pBuffer.writeVarInt(this.amount);
     }
 
-    public void handle(ClientGamePacketListener p_133523_) {
-        p_133523_.handleTakeItemEntity(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleTakeItemEntity(this);
     }
 
     public int getItemId() {

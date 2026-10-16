@@ -23,11 +23,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class SolidFaceRenderer implements DebugRenderer.SimpleDebugRenderer {
     private final Minecraft minecraft;
 
-    public SolidFaceRenderer(Minecraft p_113668_) {
-        this.minecraft = p_113668_;
+    public SolidFaceRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_113670_, MultiBufferSource p_113671_, double p_113672_, double p_113673_, double p_113674_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         BlockGetter blockgetter = this.minecraft.player.level;
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -35,7 +35,7 @@ public class SolidFaceRenderer implements DebugRenderer.SimpleDebugRenderer {
         RenderSystem.disableTexture();
         RenderSystem.depthMask(false);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BlockPos blockpos = new BlockPos(p_113672_, p_113673_, p_113674_);
+        BlockPos blockpos = new BlockPos(pCamX, pCamY, pCamZ);
 
         for (BlockPos blockpos1 : BlockPos.betweenClosed(blockpos.offset(-6, -6, -6), blockpos.offset(6, 6, 6))) {
             BlockState blockstate = blockgetter.getBlockState(blockpos1);
@@ -43,7 +43,7 @@ public class SolidFaceRenderer implements DebugRenderer.SimpleDebugRenderer {
                 VoxelShape voxelshape = blockstate.getShape(blockgetter, blockpos1);
 
                 for (AABB aabb : voxelshape.toAabbs()) {
-                    AABB aabb1 = aabb.move(blockpos1).inflate(0.002D).move(-p_113672_, -p_113673_, -p_113674_);
+                    AABB aabb1 = aabb.move(blockpos1).inflate(0.002D).move(-pCamX, -pCamY, -pCamZ);
                     double d0 = aabb1.minX;
                     double d1 = aabb1.minY;
                     double d2 = aabb1.minZ;

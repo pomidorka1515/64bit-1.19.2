@@ -13,13 +13,13 @@ public interface Container extends Clearable {
 
     boolean isEmpty();
 
-    ItemStack getItem(int p_18941_);
+    ItemStack getItem(int pSlot);
 
-    ItemStack removeItem(int p_18942_, int p_18943_);
+    ItemStack removeItem(int pSlot, int pAmount);
 
-    ItemStack removeItemNoUpdate(int p_18951_);
+    ItemStack removeItemNoUpdate(int pSlot);
 
-    void setItem(int p_18944_, ItemStack p_18945_);
+    void setItem(int pSlot, ItemStack pStack);
 
     default int getMaxStackSize() {
         return 64;
@@ -27,24 +27,24 @@ public interface Container extends Clearable {
 
     void setChanged();
 
-    boolean stillValid(Player p_18946_);
+    boolean stillValid(Player pPlayer);
 
-    default void startOpen(Player p_18955_) {
+    default void startOpen(Player pPlayer) {
     }
 
-    default void stopOpen(Player p_18954_) {
+    default void stopOpen(Player pPlayer) {
     }
 
-    default boolean canPlaceItem(int p_18952_, ItemStack p_18953_) {
+    default boolean canPlaceItem(int pIndex, ItemStack pStack) {
         return true;
     }
 
-    default int countItem(Item p_18948_) {
+    default int countItem(Item pItem) {
         int i = 0;
 
         for (int j = 0; j < this.getContainerSize(); ++j) {
             ItemStack itemstack = this.getItem(j);
-            if (itemstack.getItem().equals(p_18948_)) {
+            if (itemstack.getItem().equals(pItem)) {
                 i += itemstack.getCount();
             }
         }
@@ -52,9 +52,9 @@ public interface Container extends Clearable {
         return i;
     }
 
-    default boolean hasAnyOf(Set<Item> p_18950_) {
+    default boolean hasAnyOf(Set<Item> pSet) {
         return this.hasAnyMatching((p_216873_) -> {
-            return !p_216873_.isEmpty() && p_18950_.contains(p_216873_.getItem());
+            return !p_216873_.isEmpty() && pSet.contains(p_216873_.getItem());
         });
     }
 

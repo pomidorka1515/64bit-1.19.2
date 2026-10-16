@@ -24,24 +24,24 @@ public class ClientLanguage extends Language {
     private final Map<String, String> storage;
     private final boolean defaultRightToLeft;
 
-    private ClientLanguage(Map<String, String> p_118914_, boolean p_118915_) {
-        this.storage = p_118914_;
-        this.defaultRightToLeft = p_118915_;
+    private ClientLanguage(Map<String, String> pStorage, boolean pDefaultRightToLeft) {
+        this.storage = pStorage;
+        this.defaultRightToLeft = pDefaultRightToLeft;
     }
 
-    public static ClientLanguage loadFrom(ResourceManager p_118917_, List<LanguageInfo> p_118918_) {
+    public static ClientLanguage loadFrom(ResourceManager pResourceManager, List<LanguageInfo> pLanguageInfo) {
         Map<String, String> map = Maps.newHashMap();
         boolean flag = false;
 
-        for (LanguageInfo languageinfo : p_118918_) {
+        for (LanguageInfo languageinfo : pLanguageInfo) {
             flag |= languageinfo.isBidirectional();
             String s = languageinfo.getCode();
             String s1 = String.format(Locale.ROOT, "lang/%s.json", s);
 
-            for (String s2 : p_118917_.getNamespaces()) {
+            for (String s2 : pResourceManager.getNamespaces()) {
                 try {
                     ResourceLocation resourcelocation = new ResourceLocation(s2, s1);
-                    appendFrom(s, p_118917_.getResourceStack(resourcelocation), map);
+                    appendFrom(s, pResourceManager.getResourceStack(resourcelocation), map);
                 } catch (Exception exception) {
                     LOGGER.warn("Skipped language file: {}:{} ({})", s2, s1, exception.toString());
                 }
@@ -51,13 +51,13 @@ public class ClientLanguage extends Language {
         return new ClientLanguage(ImmutableMap.copyOf(map), flag);
     }
 
-    private static void appendFrom(String p_235036_, List<Resource> p_235037_, Map<String, String> p_235038_) {
-        for (Resource resource : p_235037_) {
+    private static void appendFrom(String pLanguageName, List<Resource> pResources, Map<String, String> pDestinationMap) {
+        for (Resource resource : pResources) {
             try {
                 InputStream inputstream = resource.open();
 
                 try {
-                    Language.loadFromJson(inputstream, p_235038_::put);
+                    Language.loadFromJson(inputstream, pDestinationMap::put);
                 } catch (Throwable throwable1) {
                     if (inputstream != null) {
                         try {
@@ -74,24 +74,24 @@ public class ClientLanguage extends Language {
                     inputstream.close();
                 }
             } catch (IOException ioexception) {
-                LOGGER.warn("Failed to load translations for {} from pack {}", p_235036_, resource.sourcePackId(), ioexception);
+                LOGGER.warn("Failed to load translations for {} from pack {}", pLanguageName, resource.sourcePackId(), ioexception);
             }
         }
     }
 
-    public String getOrDefault(String p_118920_) {
-        return this.storage.getOrDefault(p_118920_, p_118920_);
+    public String getOrDefault(String pId) {
+        return this.storage.getOrDefault(pId, pId);
     }
 
-    public boolean has(String p_118928_) {
-        return this.storage.containsKey(p_118928_);
+    public boolean has(String pId) {
+        return this.storage.containsKey(pId);
     }
 
     public boolean isDefaultRightToLeft() {
         return this.defaultRightToLeft;
     }
 
-    public FormattedCharSequence getVisualOrder(FormattedText p_118925_) {
-        return FormattedBidiReorder.reorder(p_118925_, this.defaultRightToLeft);
+    public FormattedCharSequence getVisualOrder(FormattedText pText) {
+        return FormattedBidiReorder.reorder(pText, this.defaultRightToLeft);
     }
 }

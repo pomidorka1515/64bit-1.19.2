@@ -14,15 +14,15 @@ import net.minecraft.network.FriendlyByteBuf;
 public record SignedMessageBody(ChatMessageContent content, Instant timeStamp, long salt, LastSeenMessages lastSeen) {
     public static final byte HASH_SEPARATOR_BYTE = 70;
 
-    public SignedMessageBody(FriendlyByteBuf p_241548_) {
-        this(ChatMessageContent.read(p_241548_), p_241548_.readInstant(), p_241548_.readLong(), new LastSeenMessages(p_241548_));
+    public SignedMessageBody(FriendlyByteBuf pBuffer) {
+        this(ChatMessageContent.read(pBuffer), pBuffer.readInstant(), pBuffer.readLong(), new LastSeenMessages(pBuffer));
     }
 
-    public void write(FriendlyByteBuf p_241357_) {
-        ChatMessageContent.write(p_241357_, this.content);
-        p_241357_.writeInstant(this.timeStamp);
-        p_241357_.writeLong(this.salt);
-        this.lastSeen.write(p_241357_);
+    public void write(FriendlyByteBuf pBuffer) {
+        ChatMessageContent.write(pBuffer, this.content);
+        pBuffer.writeInstant(this.timeStamp);
+        pBuffer.writeLong(this.salt);
+        this.lastSeen.write(pBuffer);
     }
 
     public HashCode hash() {
@@ -48,7 +48,7 @@ public record SignedMessageBody(ChatMessageContent content, Instant timeStamp, l
         return hashingoutputstream.hash();
     }
 
-    public SignedMessageBody withContent(ChatMessageContent p_242907_) {
-        return new SignedMessageBody(p_242907_, this.timeStamp, this.salt, this.lastSeen);
+    public SignedMessageBody withContent(ChatMessageContent pContent) {
+        return new SignedMessageBody(pContent, this.timeStamp, this.salt, this.lastSeen);
     }
 }

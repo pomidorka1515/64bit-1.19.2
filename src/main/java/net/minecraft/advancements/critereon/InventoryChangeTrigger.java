@@ -22,22 +22,22 @@ public class InventoryChangeTrigger extends SimpleCriterionTrigger<InventoryChan
         return ID;
     }
 
-    public InventoryChangeTrigger.TriggerInstance createInstance(JsonObject p_43168_, EntityPredicate.Composite p_43169_, DeserializationContext p_43170_) {
-        JsonObject jsonobject = GsonHelper.getAsJsonObject(p_43168_, "slots", new JsonObject());
+    public InventoryChangeTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        JsonObject jsonobject = GsonHelper.getAsJsonObject(pJson, "slots", new JsonObject());
         MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(jsonobject.get("occupied"));
         MinMaxBounds.Ints minmaxbounds$ints1 = MinMaxBounds.Ints.fromJson(jsonobject.get("full"));
         MinMaxBounds.Ints minmaxbounds$ints2 = MinMaxBounds.Ints.fromJson(jsonobject.get("empty"));
-        ItemPredicate[] aitempredicate = ItemPredicate.fromJsonArray(p_43168_.get("items"));
-        return new InventoryChangeTrigger.TriggerInstance(p_43169_, minmaxbounds$ints, minmaxbounds$ints1, minmaxbounds$ints2, aitempredicate);
+        ItemPredicate[] aitempredicate = ItemPredicate.fromJsonArray(pJson.get("items"));
+        return new InventoryChangeTrigger.TriggerInstance(pEntityPredicate, minmaxbounds$ints, minmaxbounds$ints1, minmaxbounds$ints2, aitempredicate);
     }
 
-    public void trigger(ServerPlayer p_43150_, Inventory p_43151_, ItemStack p_43152_) {
+    public void trigger(ServerPlayer pPlayer, Inventory pInventory, ItemStack pStack) {
         int i = 0;
         int j = 0;
         int k = 0;
 
-        for (int l = 0; l < p_43151_.getContainerSize(); ++l) {
-            ItemStack itemstack = p_43151_.getItem(l);
+        for (int l = 0; l < pInventory.getContainerSize(); ++l) {
+            ItemStack itemstack = pInventory.getItem(l);
             if (itemstack.isEmpty()) {
                 ++j;
             } else {
@@ -48,12 +48,12 @@ public class InventoryChangeTrigger extends SimpleCriterionTrigger<InventoryChan
             }
         }
 
-        this.trigger(p_43150_, p_43151_, p_43152_, i, j, k);
+        this.trigger(pPlayer, pInventory, pStack, i, j, k);
     }
 
-    private void trigger(ServerPlayer p_43154_, Inventory p_43155_, ItemStack p_43156_, int p_43157_, int p_43158_, int p_43159_) {
-        this.trigger(p_43154_, (p_43166_) -> {
-            return p_43166_.matches(p_43155_, p_43156_, p_43157_, p_43158_, p_43159_);
+    private void trigger(ServerPlayer pPlayer, Inventory pInventory, ItemStack pStack, int pFull, int pEmpty, int pOccupied) {
+        this.trigger(pPlayer, (p_43166_) -> {
+            return p_43166_.matches(pInventory, pStack, pFull, pEmpty, pOccupied);
         });
     }
 
@@ -63,30 +63,30 @@ public class InventoryChangeTrigger extends SimpleCriterionTrigger<InventoryChan
         private final MinMaxBounds.Ints slotsEmpty;
         private final ItemPredicate[] predicates;
 
-        public TriggerInstance(EntityPredicate.Composite p_43181_, MinMaxBounds.Ints p_43182_, MinMaxBounds.Ints p_43183_, MinMaxBounds.Ints p_43184_, ItemPredicate[] p_43185_) {
-            super(InventoryChangeTrigger.ID, p_43181_);
-            this.slotsOccupied = p_43182_;
-            this.slotsFull = p_43183_;
-            this.slotsEmpty = p_43184_;
-            this.predicates = p_43185_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, MinMaxBounds.Ints pSlotsOccupied, MinMaxBounds.Ints pSlotsFull, MinMaxBounds.Ints pSlotsEmpty, ItemPredicate[] pPredicates) {
+            super(InventoryChangeTrigger.ID, pPlayer);
+            this.slotsOccupied = pSlotsOccupied;
+            this.slotsFull = pSlotsFull;
+            this.slotsEmpty = pSlotsEmpty;
+            this.predicates = pPredicates;
         }
 
-        public static InventoryChangeTrigger.TriggerInstance hasItems(ItemPredicate... p_43198_) {
-            return new InventoryChangeTrigger.TriggerInstance(EntityPredicate.Composite.ANY, MinMaxBounds.Ints.ANY, MinMaxBounds.Ints.ANY, MinMaxBounds.Ints.ANY, p_43198_);
+        public static InventoryChangeTrigger.TriggerInstance hasItems(ItemPredicate... pItems) {
+            return new InventoryChangeTrigger.TriggerInstance(EntityPredicate.Composite.ANY, MinMaxBounds.Ints.ANY, MinMaxBounds.Ints.ANY, MinMaxBounds.Ints.ANY, pItems);
         }
 
-        public static InventoryChangeTrigger.TriggerInstance hasItems(ItemLike... p_43200_) {
-            ItemPredicate[] aitempredicate = new ItemPredicate[p_43200_.length];
+        public static InventoryChangeTrigger.TriggerInstance hasItems(ItemLike... pItems) {
+            ItemPredicate[] aitempredicate = new ItemPredicate[pItems.length];
 
-            for (int i = 0; i < p_43200_.length; ++i) {
-                aitempredicate[i] = new ItemPredicate((TagKey<Item>) null, ImmutableSet.of(p_43200_[i].asItem()), MinMaxBounds.Ints.ANY, MinMaxBounds.Ints.ANY, EnchantmentPredicate.NONE, EnchantmentPredicate.NONE, (Potion) null, NbtPredicate.ANY);
+            for (int i = 0; i < pItems.length; ++i) {
+                aitempredicate[i] = new ItemPredicate((TagKey<Item>) null, ImmutableSet.of(pItems[i].asItem()), MinMaxBounds.Ints.ANY, MinMaxBounds.Ints.ANY, EnchantmentPredicate.NONE, EnchantmentPredicate.NONE, (Potion) null, NbtPredicate.ANY);
             }
 
             return hasItems(aitempredicate);
         }
 
-        public JsonObject serializeToJson(SerializationContext p_43196_) {
-            JsonObject jsonobject = super.serializeToJson(p_43196_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             if (!this.slotsOccupied.isAny() || !this.slotsFull.isAny() || !this.slotsEmpty.isAny()) {
                 JsonObject jsonobject1 = new JsonObject();
                 jsonobject1.add("occupied", this.slotsOccupied.serializeToJson());
@@ -108,12 +108,12 @@ public class InventoryChangeTrigger extends SimpleCriterionTrigger<InventoryChan
             return jsonobject;
         }
 
-        public boolean matches(Inventory p_43187_, ItemStack p_43188_, int p_43189_, int p_43190_, int p_43191_) {
-            if (!this.slotsFull.matches(p_43189_)) {
+        public boolean matches(Inventory pInventory, ItemStack pStack, int pFull, int pEmpty, int pOccupied) {
+            if (!this.slotsFull.matches(pFull)) {
                 return false;
-            } else if (!this.slotsEmpty.matches(p_43190_)) {
+            } else if (!this.slotsEmpty.matches(pEmpty)) {
                 return false;
-            } else if (!this.slotsOccupied.matches(p_43191_)) {
+            } else if (!this.slotsOccupied.matches(pOccupied)) {
                 return false;
             } else {
                 int i = this.predicates.length;
@@ -121,14 +121,14 @@ public class InventoryChangeTrigger extends SimpleCriterionTrigger<InventoryChan
                     return true;
                 } else if (i != 1) {
                     List<ItemPredicate> list = new ObjectArrayList<>(this.predicates);
-                    int j = p_43187_.getContainerSize();
+                    int j = pInventory.getContainerSize();
 
                     for (int k = 0; k < j; ++k) {
                         if (list.isEmpty()) {
                             return true;
                         }
 
-                        ItemStack itemstack = p_43187_.getItem(k);
+                        ItemStack itemstack = pInventory.getItem(k);
                         if (!itemstack.isEmpty()) {
                             list.removeIf((p_43194_) -> {
                                 return p_43194_.matches(itemstack);
@@ -138,7 +138,7 @@ public class InventoryChangeTrigger extends SimpleCriterionTrigger<InventoryChan
 
                     return list.isEmpty();
                 } else {
-                    return !p_43188_.isEmpty() && this.predicates[0].matches(p_43188_);
+                    return !pStack.isEmpty() && this.predicates[0].matches(pStack);
                 }
             }
         }

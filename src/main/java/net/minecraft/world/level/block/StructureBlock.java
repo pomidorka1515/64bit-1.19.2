@@ -22,53 +22,53 @@ import net.minecraft.world.phys.BlockHitResult;
 public class StructureBlock extends BaseEntityBlock implements GameMasterBlock {
     public static final EnumProperty<StructureMode> MODE = BlockStateProperties.STRUCTUREBLOCK_MODE;
 
-    protected StructureBlock(BlockBehaviour.Properties p_57113_) {
-        super(p_57113_);
+    protected StructureBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(MODE, StructureMode.LOAD));
     }
 
-    public BlockEntity newBlockEntity(BlockPos p_154732_, BlockState p_154733_) {
-        return new StructureBlockEntity(p_154732_, p_154733_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new StructureBlockEntity(pPos, pState);
     }
 
-    public InteractionResult use(BlockState p_57128_, Level p_57129_, BlockPos p_57130_, Player p_57131_, InteractionHand p_57132_, BlockHitResult p_57133_) {
-        BlockEntity blockentity = p_57129_.getBlockEntity(p_57130_);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof StructureBlockEntity) {
-            return ((StructureBlockEntity) blockentity).usedBy(p_57131_) ? InteractionResult.sidedSuccess(p_57129_.isClientSide) : InteractionResult.PASS;
+            return ((StructureBlockEntity) blockentity).usedBy(pPlayer) ? InteractionResult.sidedSuccess(pLevel.isClientSide) : InteractionResult.PASS;
         } else {
             return InteractionResult.PASS;
         }
     }
 
-    public void setPlacedBy(Level p_57122_, BlockPos p_57123_, BlockState p_57124_, @Nullable LivingEntity p_57125_, ItemStack p_57126_) {
-        if (!p_57122_.isClientSide) {
-            if (p_57125_ != null) {
-                BlockEntity blockentity = p_57122_.getBlockEntity(p_57123_);
+    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
+        if (!pLevel.isClientSide) {
+            if (pPlacer != null) {
+                BlockEntity blockentity = pLevel.getBlockEntity(pPos);
                 if (blockentity instanceof StructureBlockEntity) {
-                    ((StructureBlockEntity) blockentity).createdBy(p_57125_);
+                    ((StructureBlockEntity) blockentity).createdBy(pPlacer);
                 }
             }
         }
     }
 
-    public RenderShape getRenderShape(BlockState p_57144_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_57142_) {
-        p_57142_.add(MODE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(MODE);
     }
 
-    public void neighborChanged(BlockState p_57135_, Level p_57136_, BlockPos p_57137_, Block p_57138_, BlockPos p_57139_, boolean p_57140_) {
-        if (p_57136_ instanceof ServerLevel) {
-            BlockEntity blockentity = p_57136_.getBlockEntity(p_57137_);
+    public void neighborChanged(BlockState pState, Level pLevel, BlockPos pPos, Block pBlock, BlockPos pFromPos, boolean pIsMoving) {
+        if (pLevel instanceof ServerLevel) {
+            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
             if (blockentity instanceof StructureBlockEntity) {
                 StructureBlockEntity structureblockentity = (StructureBlockEntity) blockentity;
-                boolean flag = p_57136_.hasNeighborSignal(p_57137_);
+                boolean flag = pLevel.hasNeighborSignal(pPos);
                 boolean flag1 = structureblockentity.isPowered();
                 if (flag && !flag1) {
                     structureblockentity.setPowered(true);
-                    this.trigger((ServerLevel) p_57136_, structureblockentity);
+                    this.trigger((ServerLevel) pLevel, structureblockentity);
                 } else if (!flag && flag1) {
                     structureblockentity.setPowered(false);
                 }
@@ -76,16 +76,16 @@ public class StructureBlock extends BaseEntityBlock implements GameMasterBlock {
         }
     }
 
-    private void trigger(ServerLevel p_57115_, StructureBlockEntity p_57116_) {
-        switch (p_57116_.getMode()) {
+    private void trigger(ServerLevel pLevel, StructureBlockEntity pBlockEntity) {
+        switch (pBlockEntity.getMode()) {
             case SAVE:
-                p_57116_.saveStructure(false);
+                pBlockEntity.saveStructure(false);
                 break;
             case LOAD:
-                p_57116_.loadStructure(p_57115_, false);
+                pBlockEntity.loadStructure(pLevel, false);
                 break;
             case CORNER:
-                p_57116_.unloadStructure();
+                pBlockEntity.unloadStructure();
             case DATA:
         }
     }

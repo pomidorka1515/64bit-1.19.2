@@ -46,20 +46,20 @@ public class ItemFrame extends HangingEntity {
     private float dropChance = 1.0F;
     private boolean fixed;
 
-    public ItemFrame(EntityType<? extends ItemFrame> p_31761_, Level p_31762_) {
-        super(p_31761_, p_31762_);
+    public ItemFrame(EntityType<? extends ItemFrame> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public ItemFrame(Level p_31764_, BlockPos p_31765_, Direction p_31766_) {
-        this(EntityType.ITEM_FRAME, p_31764_, p_31765_, p_31766_);
+    public ItemFrame(Level pLevel, BlockPos pPos, Direction pFacingDirection) {
+        this(EntityType.ITEM_FRAME, pLevel, pPos, pFacingDirection);
     }
 
-    public ItemFrame(EntityType<? extends ItemFrame> p_149621_, Level p_149622_, BlockPos p_149623_, Direction p_149624_) {
-        super(p_149621_, p_149622_, p_149623_);
-        this.setDirection(p_149624_);
+    public ItemFrame(EntityType<? extends ItemFrame> pEntityType, Level pLevel, BlockPos pPos, Direction pDirection) {
+        super(pEntityType, pLevel, pPos);
+        this.setDirection(pDirection);
     }
 
-    protected float getEyeHeight(Pose p_31784_, EntityDimensions p_31785_) {
+    protected float getEyeHeight(Pose pPose, EntityDimensions pSize) {
         return 0.0F;
     }
 
@@ -68,14 +68,14 @@ public class ItemFrame extends HangingEntity {
         this.getEntityData().define(DATA_ROTATION, 0);
     }
 
-    protected void setDirection(Direction p_31793_) {
-        Validate.notNull(p_31793_);
-        this.direction = p_31793_;
-        if (p_31793_.getAxis().isHorizontal()) {
+    protected void setDirection(Direction pFacingDirection) {
+        Validate.notNull(pFacingDirection);
+        this.direction = pFacingDirection;
+        if (pFacingDirection.getAxis().isHorizontal()) {
             this.setXRot(0.0F);
             this.setYRot((float) (this.direction.get2DDataValue() * 90));
         } else {
-            this.setXRot((float) (-90 * p_31793_.getAxisDirection().getStep()));
+            this.setXRot((float) (-90 * pFacingDirection.getAxisDirection().getStep()));
             this.setYRot(0.0F);
         }
 
@@ -127,15 +127,15 @@ public class ItemFrame extends HangingEntity {
         }
     }
 
-    public void move(MoverType p_31781_, Vec3 p_31782_) {
+    public void move(MoverType pType, Vec3 pPos) {
         if (!this.fixed) {
-            super.move(p_31781_, p_31782_);
+            super.move(pType, pPos);
         }
     }
 
-    public void push(double p_31817_, double p_31818_, double p_31819_) {
+    public void push(double pX, double pY, double pZ) {
         if (!this.fixed) {
-            super.push(p_31817_, p_31818_, p_31819_);
+            super.push(pX, pY, pZ);
         }
     }
 
@@ -148,20 +148,20 @@ public class ItemFrame extends HangingEntity {
         super.kill();
     }
 
-    public boolean hurt(DamageSource p_31776_, float p_31777_) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
         if (this.fixed) {
-            return p_31776_ != DamageSource.OUT_OF_WORLD && !p_31776_.isCreativePlayer() ? false : super.hurt(p_31776_, p_31777_);
-        } else if (this.isInvulnerableTo(p_31776_)) {
+            return pSource != DamageSource.OUT_OF_WORLD && !pSource.isCreativePlayer() ? false : super.hurt(pSource, pAmount);
+        } else if (this.isInvulnerableTo(pSource)) {
             return false;
-        } else if (!p_31776_.isExplosion() && !this.getItem().isEmpty()) {
+        } else if (!pSource.isExplosion() && !this.getItem().isEmpty()) {
             if (!this.level.isClientSide) {
-                this.dropItem(p_31776_.getEntity(), false);
+                this.dropItem(pSource.getEntity(), false);
                 this.playSound(this.getRemoveItemSound(), 1.0F, 1.0F);
             }
 
             return true;
         } else {
-            return super.hurt(p_31776_, p_31777_);
+            return super.hurt(pSource, pAmount);
         }
     }
 
@@ -177,15 +177,15 @@ public class ItemFrame extends HangingEntity {
         return 12;
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_31769_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         double d0 = 16.0D;
         d0 *= 64.0D * getViewScale();
-        return p_31769_ < d0 * d0;
+        return pDistance < d0 * d0;
     }
 
-    public void dropItem(@Nullable Entity p_31779_) {
+    public void dropItem(@Nullable Entity pBrokenEntity) {
         this.playSound(this.getBreakSound(), 1.0F, 1.0F);
-        this.dropItem(p_31779_, true);
+        this.dropItem(pBrokenEntity, true);
     }
 
     public SoundEvent getBreakSound() {
@@ -200,25 +200,25 @@ public class ItemFrame extends HangingEntity {
         return SoundEvents.ITEM_FRAME_PLACE;
     }
 
-    private void dropItem(@Nullable Entity p_31803_, boolean p_31804_) {
+    private void dropItem(@Nullable Entity pEntity, boolean pDropSelf) {
         if (!this.fixed) {
             ItemStack itemstack = this.getItem();
             this.setItem(ItemStack.EMPTY);
             if (!this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-                if (p_31803_ == null) {
+                if (pEntity == null) {
                     this.removeFramedMap(itemstack);
                 }
 
             } else {
-                if (p_31803_ instanceof Player) {
-                    Player player = (Player) p_31803_;
+                if (pEntity instanceof Player) {
+                    Player player = (Player) pEntity;
                     if (player.getAbilities().instabuild) {
                         this.removeFramedMap(itemstack);
                         return;
                     }
                 }
 
-                if (p_31804_) {
+                if (pDropSelf) {
                     this.spawnAtLocation(this.getFrameItemStack());
                 }
 
@@ -233,7 +233,7 @@ public class ItemFrame extends HangingEntity {
         }
     }
 
-    private void removeFramedMap(ItemStack p_31811_) {
+    private void removeFramedMap(ItemStack pStack) {
         this.getFramedMapId().ifPresent((p_218864_) -> {
             MapItemSavedData mapitemsaveddata = MapItem.getSavedData(p_218864_, this.level);
             if (mapitemsaveddata != null) {
@@ -241,7 +241,7 @@ public class ItemFrame extends HangingEntity {
                 mapitemsaveddata.setDirty(true);
             }
         });
-        p_31811_.setEntityRepresentation((Entity) null);
+        pStack.setEntityRepresentation((Entity) null);
     }
 
     public ItemStack getItem() {
@@ -264,23 +264,23 @@ public class ItemFrame extends HangingEntity {
         return this.getFramedMapId().isPresent();
     }
 
-    public void setItem(ItemStack p_31806_) {
-        this.setItem(p_31806_, true);
+    public void setItem(ItemStack pStack) {
+        this.setItem(pStack, true);
     }
 
-    public void setItem(ItemStack p_31790_, boolean p_31791_) {
-        if (!p_31790_.isEmpty()) {
-            p_31790_ = p_31790_.copy();
-            p_31790_.setCount(1);
+    public void setItem(ItemStack pStack, boolean pUpdateNeighbours) {
+        if (!pStack.isEmpty()) {
+            pStack = pStack.copy();
+            pStack.setCount(1);
         }
 
-        this.onItemChanged(p_31790_);
-        this.getEntityData().set(DATA_ITEM, p_31790_);
-        if (!p_31790_.isEmpty()) {
+        this.onItemChanged(pStack);
+        this.getEntityData().set(DATA_ITEM, pStack);
+        if (!pStack.isEmpty()) {
             this.playSound(this.getAddItemSound(), 1.0F, 1.0F);
         }
 
-        if (p_31791_ && this.pos != null) {
+        if (pUpdateNeighbours && this.pos != null) {
             this.level.updateNeighbourForOutputSignal(this.pos, Blocks.AIR);
         }
     }
@@ -289,8 +289,8 @@ public class ItemFrame extends HangingEntity {
         return SoundEvents.ITEM_FRAME_ADD_ITEM;
     }
 
-    public SlotAccess getSlot(int p_149629_) {
-        return p_149629_ == 0 ? new SlotAccess() {
+    public SlotAccess getSlot(int pSlot) {
+        return pSlot == 0 ? new SlotAccess() {
             public ItemStack get() {
                 return ItemFrame.this.getItem();
             }
@@ -299,18 +299,18 @@ public class ItemFrame extends HangingEntity {
                 ItemFrame.this.setItem(p_149635_);
                 return true;
             }
-        } : super.getSlot(p_149629_);
+        } : super.getSlot(pSlot);
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_31797_) {
-        if (p_31797_.equals(DATA_ITEM)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        if (pKey.equals(DATA_ITEM)) {
             this.onItemChanged(this.getItem());
         }
     }
 
-    private void onItemChanged(ItemStack p_218866_) {
-        if (!p_218866_.isEmpty() && p_218866_.getFrame() != this) {
-            p_218866_.setEntityRepresentation(this);
+    private void onItemChanged(ItemStack pItem) {
+        if (!pItem.isEmpty() && pItem.getFrame() != this) {
+            pItem.setEntityRepresentation(this);
         }
 
         this.recalculateBoundingBox();
@@ -320,33 +320,33 @@ public class ItemFrame extends HangingEntity {
         return this.getEntityData().get(DATA_ROTATION);
     }
 
-    public void setRotation(int p_31771_) {
-        this.setRotation(p_31771_, true);
+    public void setRotation(int pRotation) {
+        this.setRotation(pRotation, true);
     }
 
-    private void setRotation(int p_31773_, boolean p_31774_) {
-        this.getEntityData().set(DATA_ROTATION, p_31773_ % 8);
-        if (p_31774_ && this.pos != null) {
+    private void setRotation(int pRotation, boolean pUpdateNeighbours) {
+        this.getEntityData().set(DATA_ROTATION, pRotation % 8);
+        if (pUpdateNeighbours && this.pos != null) {
             this.level.updateNeighbourForOutputSignal(this.pos, Blocks.AIR);
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_31808_) {
-        super.addAdditionalSaveData(p_31808_);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
         if (!this.getItem().isEmpty()) {
-            p_31808_.put("Item", this.getItem().save(new CompoundTag()));
-            p_31808_.putByte("ItemRotation", (byte) this.getRotation());
-            p_31808_.putFloat("ItemDropChance", this.dropChance);
+            pCompound.put("Item", this.getItem().save(new CompoundTag()));
+            pCompound.putByte("ItemRotation", (byte) this.getRotation());
+            pCompound.putFloat("ItemDropChance", this.dropChance);
         }
 
-        p_31808_.putByte("Facing", (byte) this.direction.get3DDataValue());
-        p_31808_.putBoolean("Invisible", this.isInvisible());
-        p_31808_.putBoolean("Fixed", this.fixed);
+        pCompound.putByte("Facing", (byte) this.direction.get3DDataValue());
+        pCompound.putBoolean("Invisible", this.isInvisible());
+        pCompound.putBoolean("Fixed", this.fixed);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_31795_) {
-        super.readAdditionalSaveData(p_31795_);
-        CompoundTag compoundtag = p_31795_.getCompound("Item");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        CompoundTag compoundtag = pCompound.getCompound("Item");
         if (compoundtag != null && !compoundtag.isEmpty()) {
             ItemStack itemstack = ItemStack.of(compoundtag);
             if (itemstack.isEmpty()) {
@@ -359,19 +359,19 @@ public class ItemFrame extends HangingEntity {
             }
 
             this.setItem(itemstack, false);
-            this.setRotation(p_31795_.getByte("ItemRotation"), false);
-            if (p_31795_.contains("ItemDropChance", 99)) {
-                this.dropChance = p_31795_.getFloat("ItemDropChance");
+            this.setRotation(pCompound.getByte("ItemRotation"), false);
+            if (pCompound.contains("ItemDropChance", 99)) {
+                this.dropChance = pCompound.getFloat("ItemDropChance");
             }
         }
 
-        this.setDirection(Direction.from3DDataValue(p_31795_.getByte("Facing")));
-        this.setInvisible(p_31795_.getBoolean("Invisible"));
-        this.fixed = p_31795_.getBoolean("Fixed");
+        this.setDirection(Direction.from3DDataValue(pCompound.getByte("Facing")));
+        this.setInvisible(pCompound.getBoolean("Invisible"));
+        this.fixed = pCompound.getBoolean("Fixed");
     }
 
-    public InteractionResult interact(Player p_31787_, InteractionHand p_31788_) {
-        ItemStack itemstack = p_31787_.getItemInHand(p_31788_);
+    public InteractionResult interact(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         boolean flag = !this.getItem().isEmpty();
         boolean flag1 = !itemstack.isEmpty();
         if (this.fixed) {
@@ -387,7 +387,7 @@ public class ItemFrame extends HangingEntity {
                     }
 
                     this.setItem(itemstack);
-                    if (!p_31787_.getAbilities().instabuild) {
+                    if (!pPlayer.getAbilities().instabuild) {
                         itemstack.shrink(1);
                     }
                 }
@@ -414,9 +414,9 @@ public class ItemFrame extends HangingEntity {
         return new ClientboundAddEntityPacket(this, this.direction.get3DDataValue(), this.getPos());
     }
 
-    public void recreateFromPacket(ClientboundAddEntityPacket p_149626_) {
-        super.recreateFromPacket(p_149626_);
-        this.setDirection(Direction.from3DDataValue(p_149626_.getData()));
+    public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
+        super.recreateFromPacket(pPacket);
+        this.setDirection(Direction.from3DDataValue(pPacket.getData()));
     }
 
     public ItemStack getPickResult() {

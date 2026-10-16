@@ -97,9 +97,9 @@ public class Blender {
         }
     }
 
-    Blender(Object2ObjectOpenHashMap<ChunkPos, BlendingData> p_202197_, Object2ObjectOpenHashMap<ChunkPos, BlendingData> p_202198_) {
-        this.heightAndBiomeBlendingData = p_202197_;
-        this.densityBlendingData = p_202198_;
+    Blender(Object2ObjectOpenHashMap<ChunkPos, BlendingData> pBlendingData, Object2ObjectOpenHashMap<ChunkPos, BlendingData> pBlendingDataForDensityBlending) {
+        this.heightAndBiomeBlendingData = pBlendingData;
+        this.densityBlendingData = pBlendingDataForDensityBlending;
     }
 
     public Blender.BlendingOutput blendOffsetAndFactor(long p_209719_, long p_209720_) {
@@ -137,9 +137,9 @@ public class Blender {
         }
     }
 
-    private static double heightToOffset(double p_190155_) {
+    private static double heightToOffset(double pHeight) {
         double d0 = 1.0D;
-        double d1 = p_190155_ + 0.5D;
+        double d1 = pHeight + 0.5D;
         double d2 = Mth.positiveModulo(d1, 8.0D);
         return 1.0D * (32.0D * (d1 - 128.0D) - 3.0D * (d1 - 120.0D) * d2 + 3.0D * d2 * d2) / (128.0D * (32.0D - 3.0D * d2));
     }

@@ -82,7 +82,7 @@ public interface DispenseItemBehavior {
         return p_123401_;
     };
 
-    ItemStack dispense(BlockSource p_123403_, ItemStack p_123404_);
+    ItemStack dispense(BlockSource pSource, ItemStack pStack);
 
     static void bootStrap() {
         DispenserBlock.registerBehavior(Items.ARROW, new AbstractProjectileDispenseBehavior() {
@@ -609,7 +609,7 @@ public interface DispenseItemBehavior {
         });
     }
 
-    static void setEntityPokingOutOfBlock(BlockSource p_123396_, Entity p_123397_, Direction p_123398_) {
-        p_123397_.setPos(p_123396_.x() + (double) p_123398_.getStepX() * (0.5000099999997474D - (double) p_123397_.getBbWidth() / 2.0D), p_123396_.y() + (double) p_123398_.getStepY() * (0.5000099999997474D - (double) p_123397_.getBbHeight() / 2.0D) - (double) p_123397_.getBbHeight() / 2.0D, p_123396_.z() + (double) p_123398_.getStepZ() * (0.5000099999997474D - (double) p_123397_.getBbWidth() / 2.0D));
+    static void setEntityPokingOutOfBlock(BlockSource pSource, Entity pEntity, Direction pDirection) {
+        pEntity.setPos(pSource.x() + (double) pDirection.getStepX() * (0.5000099999997474D - (double) pEntity.getBbWidth() / 2.0D), pSource.y() + (double) pDirection.getStepY() * (0.5000099999997474D - (double) pEntity.getBbHeight() / 2.0D) - (double) pEntity.getBbHeight() / 2.0D, pSource.z() + (double) pDirection.getStepZ() * (0.5000099999997474D - (double) pEntity.getBbWidth() / 2.0D));
     }
 }

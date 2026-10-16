@@ -694,10 +694,10 @@ public class Options {
         return this.soundDevice;
     }
 
-    public Options(Minecraft p_92138_, File p_92139_) {
-        this.minecraft = p_92138_;
-        this.optionsFile = new File(p_92139_, "options.txt");
-        boolean flag = p_92138_.is64Bit();
+    public Options(Minecraft pMinecraft, File pGameDirectory) {
+        this.minecraft = pMinecraft;
+        this.optionsFile = new File(pGameDirectory, "options.txt");
+        boolean flag = pMinecraft.is64Bit();
         boolean flag1 = flag && Runtime.getRuntime().maxMemory() >= 1000000000L;
         this.renderDistance = new OptionInstance<>("options.renderDistance", OptionInstance.noTooltip(), (p_231962_, p_231963_) -> { return genericValueLabel(p_231962_, Component.translatable("options.chunks", p_231963_)); }, new OptionInstance.IntRange(2, flag1 ? 32 : 16), flag ? 12 : 8, (p_231951_) -> { Minecraft.getInstance().levelRenderer.needsUpdate(); });
         this.simulationDistance = new OptionInstance<>("options.simulationDistance", OptionInstance.noTooltip(), (p_231916_, p_231917_) -> {
@@ -707,106 +707,106 @@ public class Options {
         this.load();
     }
 
-    public float getBackgroundOpacity(float p_92142_) {
-        return this.backgroundForChatOnly.get() ? p_92142_ : this.textBackgroundOpacity().get().floatValue();
+    public float getBackgroundOpacity(float pOpacity) {
+        return this.backgroundForChatOnly.get() ? pOpacity : this.textBackgroundOpacity().get().floatValue();
     }
 
-    public int getBackgroundColor(float p_92171_) {
-        return (int) (this.getBackgroundOpacity(p_92171_) * 255.0F) << 24 & -16777216;
+    public int getBackgroundColor(float pOpacity) {
+        return (int) (this.getBackgroundOpacity(pOpacity) * 255.0F) << 24 & -16777216;
     }
 
-    public int getBackgroundColor(int p_92144_) {
-        return this.backgroundForChatOnly.get() ? p_92144_ : (int) (this.textBackgroundOpacity.get() * 255.0D) << 24 & -16777216;
+    public int getBackgroundColor(int pChatColor) {
+        return this.backgroundForChatOnly.get() ? pChatColor : (int) (this.textBackgroundOpacity.get() * 255.0D) << 24 & -16777216;
     }
 
-    public void setKey(KeyMapping p_92160_, InputConstants.Key p_92161_) {
-        p_92160_.setKey(p_92161_);
+    public void setKey(KeyMapping pKeyBinding, InputConstants.Key pInput) {
+        pKeyBinding.setKey(pInput);
         this.save();
     }
 
-    private void processOptions(Options.FieldAccess p_168428_) {
-        p_168428_.process("autoJump", this.autoJump);
-        p_168428_.process("autoSuggestions", this.autoSuggestions);
-        p_168428_.process("chatColors", this.chatColors);
-        p_168428_.process("chatLinks", this.chatLinks);
-        p_168428_.process("chatLinksPrompt", this.chatLinksPrompt);
-        p_168428_.process("enableVsync", this.enableVsync);
-        p_168428_.process("entityShadows", this.entityShadows);
-        p_168428_.process("forceUnicodeFont", this.forceUnicodeFont);
-        p_168428_.process("discrete_mouse_scroll", this.discreteMouseScroll);
-        p_168428_.process("invertYMouse", this.invertYMouse);
-        p_168428_.process("realmsNotifications", this.realmsNotifications);
-        p_168428_.process("reducedDebugInfo", this.reducedDebugInfo);
-        p_168428_.process("showSubtitles", this.showSubtitles);
-        p_168428_.process("directionalAudio", this.directionalAudio);
-        p_168428_.process("touchscreen", this.touchscreen);
-        p_168428_.process("fullscreen", this.fullscreen);
-        p_168428_.process("bobView", this.bobView);
-        p_168428_.process("toggleCrouch", this.toggleCrouch);
-        p_168428_.process("toggleSprint", this.toggleSprint);
-        p_168428_.process("darkMojangStudiosBackground", this.darkMojangStudiosBackground);
-        p_168428_.process("hideLightningFlashes", this.hideLightningFlash);
-        p_168428_.process("mouseSensitivity", this.sensitivity);
-        p_168428_.process("fov", this.fov);
-        p_168428_.process("screenEffectScale", this.screenEffectScale);
-        p_168428_.process("fovEffectScale", this.fovEffectScale);
-        p_168428_.process("darknessEffectScale", this.darknessEffectScale);
-        p_168428_.process("gamma", this.gamma);
-        p_168428_.process("renderDistance", this.renderDistance);
-        p_168428_.process("simulationDistance", this.simulationDistance);
-        p_168428_.process("entityDistanceScaling", this.entityDistanceScaling);
-        p_168428_.process("guiScale", this.guiScale);
-        p_168428_.process("particles", this.particles);
-        p_168428_.process("maxFps", this.framerateLimit);
-        p_168428_.process("graphicsMode", this.graphicsMode);
-        p_168428_.process("ao", this.ambientOcclusion);
-        p_168428_.process("prioritizeChunkUpdates", this.prioritizeChunkUpdates);
-        p_168428_.process("biomeBlendRadius", this.biomeBlendRadius);
-        p_168428_.process("renderClouds", this.cloudStatus);
-        this.resourcePacks = p_168428_.process("resourcePacks", this.resourcePacks, Options::readPackList, GSON::toJson);
-        this.incompatibleResourcePacks = p_168428_.process("incompatibleResourcePacks", this.incompatibleResourcePacks, Options::readPackList, GSON::toJson);
-        this.lastMpIp = p_168428_.process("lastServer", this.lastMpIp);
-        this.languageCode = p_168428_.process("lang", this.languageCode);
-        p_168428_.process("soundDevice", this.soundDevice);
-        p_168428_.process("chatVisibility", this.chatVisibility);
-        p_168428_.process("chatOpacity", this.chatOpacity);
-        p_168428_.process("chatLineSpacing", this.chatLineSpacing);
-        p_168428_.process("textBackgroundOpacity", this.textBackgroundOpacity);
-        p_168428_.process("backgroundForChatOnly", this.backgroundForChatOnly);
-        this.hideServerAddress = p_168428_.process("hideServerAddress", this.hideServerAddress);
-        this.advancedItemTooltips = p_168428_.process("advancedItemTooltips", this.advancedItemTooltips);
-        this.pauseOnLostFocus = p_168428_.process("pauseOnLostFocus", this.pauseOnLostFocus);
-        this.overrideWidth = p_168428_.process("overrideWidth", this.overrideWidth);
-        this.overrideHeight = p_168428_.process("overrideHeight", this.overrideHeight);
-        this.heldItemTooltips = p_168428_.process("heldItemTooltips", this.heldItemTooltips);
-        p_168428_.process("chatHeightFocused", this.chatHeightFocused);
-        p_168428_.process("chatDelay", this.chatDelay);
-        p_168428_.process("chatHeightUnfocused", this.chatHeightUnfocused);
-        p_168428_.process("chatScale", this.chatScale);
-        p_168428_.process("chatWidth", this.chatWidth);
-        p_168428_.process("mipmapLevels", this.mipmapLevels);
-        this.useNativeTransport = p_168428_.process("useNativeTransport", this.useNativeTransport);
-        p_168428_.process("mainHand", this.mainHand);
-        p_168428_.process("attackIndicator", this.attackIndicator);
-        p_168428_.process("narrator", this.narrator);
-        this.tutorialStep = p_168428_.process("tutorialStep", this.tutorialStep, TutorialSteps::getByName, TutorialSteps::getName);
-        p_168428_.process("mouseWheelSensitivity", this.mouseWheelSensitivity);
-        p_168428_.process("rawMouseInput", this.rawMouseInput);
-        this.glDebugVerbosity = p_168428_.process("glDebugVerbosity", this.glDebugVerbosity);
-        this.skipMultiplayerWarning = p_168428_.process("skipMultiplayerWarning", this.skipMultiplayerWarning);
-        this.skipRealms32bitWarning = p_168428_.process("skipRealms32bitWarning", this.skipRealms32bitWarning);
-        p_168428_.process("hideMatchedNames", this.hideMatchedNames);
-        this.joinedFirstServer = p_168428_.process("joinedFirstServer", this.joinedFirstServer);
-        this.hideBundleTutorial = p_168428_.process("hideBundleTutorial", this.hideBundleTutorial);
-        this.syncWrites = p_168428_.process("syncChunkWrites", this.syncWrites);
-        p_168428_.process("showAutosaveIndicator", this.showAutosaveIndicator);
-        p_168428_.process("allowServerListing", this.allowServerListing);
-        p_168428_.process("chatPreview", this.chatPreview);
-        p_168428_.process("onlyShowSecureChat", this.onlyShowSecureChat);
+    private void processOptions(Options.FieldAccess pAccessor) {
+        pAccessor.process("autoJump", this.autoJump);
+        pAccessor.process("autoSuggestions", this.autoSuggestions);
+        pAccessor.process("chatColors", this.chatColors);
+        pAccessor.process("chatLinks", this.chatLinks);
+        pAccessor.process("chatLinksPrompt", this.chatLinksPrompt);
+        pAccessor.process("enableVsync", this.enableVsync);
+        pAccessor.process("entityShadows", this.entityShadows);
+        pAccessor.process("forceUnicodeFont", this.forceUnicodeFont);
+        pAccessor.process("discrete_mouse_scroll", this.discreteMouseScroll);
+        pAccessor.process("invertYMouse", this.invertYMouse);
+        pAccessor.process("realmsNotifications", this.realmsNotifications);
+        pAccessor.process("reducedDebugInfo", this.reducedDebugInfo);
+        pAccessor.process("showSubtitles", this.showSubtitles);
+        pAccessor.process("directionalAudio", this.directionalAudio);
+        pAccessor.process("touchscreen", this.touchscreen);
+        pAccessor.process("fullscreen", this.fullscreen);
+        pAccessor.process("bobView", this.bobView);
+        pAccessor.process("toggleCrouch", this.toggleCrouch);
+        pAccessor.process("toggleSprint", this.toggleSprint);
+        pAccessor.process("darkMojangStudiosBackground", this.darkMojangStudiosBackground);
+        pAccessor.process("hideLightningFlashes", this.hideLightningFlash);
+        pAccessor.process("mouseSensitivity", this.sensitivity);
+        pAccessor.process("fov", this.fov);
+        pAccessor.process("screenEffectScale", this.screenEffectScale);
+        pAccessor.process("fovEffectScale", this.fovEffectScale);
+        pAccessor.process("darknessEffectScale", this.darknessEffectScale);
+        pAccessor.process("gamma", this.gamma);
+        pAccessor.process("renderDistance", this.renderDistance);
+        pAccessor.process("simulationDistance", this.simulationDistance);
+        pAccessor.process("entityDistanceScaling", this.entityDistanceScaling);
+        pAccessor.process("guiScale", this.guiScale);
+        pAccessor.process("particles", this.particles);
+        pAccessor.process("maxFps", this.framerateLimit);
+        pAccessor.process("graphicsMode", this.graphicsMode);
+        pAccessor.process("ao", this.ambientOcclusion);
+        pAccessor.process("prioritizeChunkUpdates", this.prioritizeChunkUpdates);
+        pAccessor.process("biomeBlendRadius", this.biomeBlendRadius);
+        pAccessor.process("renderClouds", this.cloudStatus);
+        this.resourcePacks = pAccessor.process("resourcePacks", this.resourcePacks, Options::readPackList, GSON::toJson);
+        this.incompatibleResourcePacks = pAccessor.process("incompatibleResourcePacks", this.incompatibleResourcePacks, Options::readPackList, GSON::toJson);
+        this.lastMpIp = pAccessor.process("lastServer", this.lastMpIp);
+        this.languageCode = pAccessor.process("lang", this.languageCode);
+        pAccessor.process("soundDevice", this.soundDevice);
+        pAccessor.process("chatVisibility", this.chatVisibility);
+        pAccessor.process("chatOpacity", this.chatOpacity);
+        pAccessor.process("chatLineSpacing", this.chatLineSpacing);
+        pAccessor.process("textBackgroundOpacity", this.textBackgroundOpacity);
+        pAccessor.process("backgroundForChatOnly", this.backgroundForChatOnly);
+        this.hideServerAddress = pAccessor.process("hideServerAddress", this.hideServerAddress);
+        this.advancedItemTooltips = pAccessor.process("advancedItemTooltips", this.advancedItemTooltips);
+        this.pauseOnLostFocus = pAccessor.process("pauseOnLostFocus", this.pauseOnLostFocus);
+        this.overrideWidth = pAccessor.process("overrideWidth", this.overrideWidth);
+        this.overrideHeight = pAccessor.process("overrideHeight", this.overrideHeight);
+        this.heldItemTooltips = pAccessor.process("heldItemTooltips", this.heldItemTooltips);
+        pAccessor.process("chatHeightFocused", this.chatHeightFocused);
+        pAccessor.process("chatDelay", this.chatDelay);
+        pAccessor.process("chatHeightUnfocused", this.chatHeightUnfocused);
+        pAccessor.process("chatScale", this.chatScale);
+        pAccessor.process("chatWidth", this.chatWidth);
+        pAccessor.process("mipmapLevels", this.mipmapLevels);
+        this.useNativeTransport = pAccessor.process("useNativeTransport", this.useNativeTransport);
+        pAccessor.process("mainHand", this.mainHand);
+        pAccessor.process("attackIndicator", this.attackIndicator);
+        pAccessor.process("narrator", this.narrator);
+        this.tutorialStep = pAccessor.process("tutorialStep", this.tutorialStep, TutorialSteps::getByName, TutorialSteps::getName);
+        pAccessor.process("mouseWheelSensitivity", this.mouseWheelSensitivity);
+        pAccessor.process("rawMouseInput", this.rawMouseInput);
+        this.glDebugVerbosity = pAccessor.process("glDebugVerbosity", this.glDebugVerbosity);
+        this.skipMultiplayerWarning = pAccessor.process("skipMultiplayerWarning", this.skipMultiplayerWarning);
+        this.skipRealms32bitWarning = pAccessor.process("skipRealms32bitWarning", this.skipRealms32bitWarning);
+        pAccessor.process("hideMatchedNames", this.hideMatchedNames);
+        this.joinedFirstServer = pAccessor.process("joinedFirstServer", this.joinedFirstServer);
+        this.hideBundleTutorial = pAccessor.process("hideBundleTutorial", this.hideBundleTutorial);
+        this.syncWrites = pAccessor.process("syncChunkWrites", this.syncWrites);
+        pAccessor.process("showAutosaveIndicator", this.showAutosaveIndicator);
+        pAccessor.process("allowServerListing", this.allowServerListing);
+        pAccessor.process("chatPreview", this.chatPreview);
+        pAccessor.process("onlyShowSecureChat", this.onlyShowSecureChat);
 
         for (KeyMapping keymapping : this.keyMappings) {
             String s = keymapping.saveString();
-            String s1 = p_168428_.process("key_" + keymapping.getName(), s);
+            String s1 = pAccessor.process("key_" + keymapping.getName(), s);
             if (!s.equals(s1)) {
                 keymapping.setKey(InputConstants.getKey(s1));
             }
@@ -814,13 +814,13 @@ public class Options {
 
         for (SoundSource soundsource : SoundSource.values()) {
             this.sourceVolumes.computeFloat(soundsource, (p_231866_, p_231867_) -> {
-                return p_168428_.process("soundCategory_" + p_231866_.getName(), p_231867_ != null ? p_231867_ : 1.0F);
+                return pAccessor.process("soundCategory_" + p_231866_.getName(), p_231867_ != null ? p_231867_ : 1.0F);
             });
         }
 
         for (PlayerModelPart playermodelpart : PlayerModelPart.values()) {
             boolean flag = this.modelParts.contains(playermodelpart);
-            boolean flag1 = p_168428_.process("modelPart_" + playermodelpart.getId(), flag);
+            boolean flag1 = pAccessor.process("modelPart_" + playermodelpart.getId(), flag);
             if (flag1 != flag) {
                 this.setModelPart(playermodelpart, flag1);
             }
@@ -952,23 +952,23 @@ public class Options {
         }
     }
 
-    static boolean isTrue(String p_168436_) {
-        return "true".equals(p_168436_);
+    static boolean isTrue(String pValue) {
+        return "true".equals(pValue);
     }
 
-    static boolean isFalse(String p_168441_) {
-        return "false".equals(p_168441_);
+    static boolean isFalse(String pValue) {
+        return "false".equals(pValue);
     }
 
-    private CompoundTag dataFix(CompoundTag p_92165_) {
+    private CompoundTag dataFix(CompoundTag pNbt) {
         int i = 0;
 
         try {
-            i = Integer.parseInt(p_92165_.getString("version"));
+            i = Integer.parseInt(pNbt.getString("version"));
         } catch (RuntimeException runtimeexception) {
         }
 
-        return NbtUtils.update(this.minecraft.getFixerUpper(), DataFixTypes.OPTIONS, p_92165_, i);
+        return NbtUtils.update(this.minecraft.getFixerUpper(), DataFixTypes.OPTIONS, pNbt, i);
     }
 
     public void save() {
@@ -1045,13 +1045,13 @@ public class Options {
         this.broadcastOptions();
     }
 
-    public float getSoundSourceVolume(SoundSource p_92148_) {
-        return this.sourceVolumes.getFloat(p_92148_);
+    public float getSoundSourceVolume(SoundSource pCategory) {
+        return this.sourceVolumes.getFloat(pCategory);
     }
 
-    public void setSoundCategoryVolume(SoundSource p_92150_, float p_92151_) {
-        this.sourceVolumes.put(p_92150_, p_92151_);
-        this.minecraft.getSoundManager().updateSourceVolume(p_92150_, p_92151_);
+    public void setSoundCategoryVolume(SoundSource pCategory, float pVolume) {
+        this.sourceVolumes.put(pCategory, pVolume);
+        this.minecraft.getSoundManager().updateSourceVolume(pCategory, pVolume);
     }
 
     public void broadcastOptions() {
@@ -1066,20 +1066,20 @@ public class Options {
         }
     }
 
-    private void setModelPart(PlayerModelPart p_92155_, boolean p_92156_) {
-        if (p_92156_) {
-            this.modelParts.add(p_92155_);
+    private void setModelPart(PlayerModelPart pModelPart, boolean pEnable) {
+        if (pEnable) {
+            this.modelParts.add(pModelPart);
         } else {
-            this.modelParts.remove(p_92155_);
+            this.modelParts.remove(pModelPart);
         }
     }
 
-    public boolean isModelPartEnabled(PlayerModelPart p_168417_) {
-        return this.modelParts.contains(p_168417_);
+    public boolean isModelPartEnabled(PlayerModelPart pPlayerModelPart) {
+        return this.modelParts.contains(pPlayerModelPart);
     }
 
-    public void toggleModelPart(PlayerModelPart p_168419_, boolean p_168420_) {
-        this.setModelPart(p_168419_, p_168420_);
+    public void toggleModelPart(PlayerModelPart pPlayerModelPart, boolean pEnable) {
+        this.setModelPart(pPlayerModelPart, pEnable);
         this.broadcastOptions();
     }
 
@@ -1091,15 +1091,15 @@ public class Options {
         return this.useNativeTransport;
     }
 
-    public void loadSelectedResourcePacks(PackRepository p_92146_) {
+    public void loadSelectedResourcePacks(PackRepository pResourcePackList) {
         Set<String> set = Sets.newLinkedHashSet();
         Iterator<String> iterator = this.resourcePacks.iterator();
 
         while (iterator.hasNext()) {
             String s = iterator.next();
-            Pack pack = p_92146_.getPack(s);
+            Pack pack = pResourcePackList.getPack(s);
             if (pack == null && !s.startsWith("file/")) {
-                pack = p_92146_.getPack("file/" + s);
+                pack = pResourcePackList.getPack("file/" + s);
             }
 
             if (pack == null) {
@@ -1116,15 +1116,15 @@ public class Options {
             }
         }
 
-        p_92146_.setSelected(set);
+        pResourcePackList.setSelected(set);
     }
 
     public CameraType getCameraType() {
         return this.cameraType;
     }
 
-    public void setCameraType(CameraType p_92158_) {
-        this.cameraType = p_92158_;
+    public void setCameraType(CameraType pPointOfView) {
+        this.cameraType = pPointOfView;
     }
 
     private static List<String> readPackList(String p_168443_) {
@@ -1144,8 +1144,8 @@ public class Options {
                 .collect(Collectors.joining(System.lineSeparator()));
     }
 
-    public void setServerRenderDistance(int p_193771_) {
-        this.serverRenderDistance = p_193771_;
+    public void setServerRenderDistance(int pServerRenderDistance) {
+        this.serverRenderDistance = pServerRenderDistance;
     }
 
     public int getEffectiveRenderDistance() {
@@ -1170,16 +1170,16 @@ public class Options {
 
     @OnlyIn(Dist.CLIENT)
     interface FieldAccess {
-        <T> void process(String p_232143_, OptionInstance<T> p_232144_);
+        <T> void process(String pName, OptionInstance<T> pOptionInstance);
 
-        int process(String p_168523_, int p_168524_);
+        int process(String pName, int pValue);
 
-        boolean process(String p_168535_, boolean p_168536_);
+        boolean process(String pName, boolean pValue);
 
-        String process(String p_168533_, String p_168534_);
+        String process(String pName, String pValue);
 
-        float process(String p_168521_, float p_168522_);
+        float process(String pName, float pValue);
 
-        <T> T process(String p_168525_, T p_168526_, Function<String, T> p_168527_, Function<T, String> p_168528_);
+        <T> T process(String pName, T pValue, Function<String, T> pStringValuefier, Function<T, String> pValueStringifier);
     }
 }

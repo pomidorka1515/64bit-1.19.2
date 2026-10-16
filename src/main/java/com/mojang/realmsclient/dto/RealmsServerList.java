@@ -17,13 +17,13 @@ public class RealmsServerList extends ValueObject {
     private static final Logger LOGGER = LogUtils.getLogger();
     public List<RealmsServer> servers;
 
-    public static RealmsServerList parse(String p_87578_) {
+    public static RealmsServerList parse(String pJson) {
         RealmsServerList realmsserverlist = new RealmsServerList();
         realmsserverlist.servers = Lists.newArrayList();
 
         try {
             JsonParser jsonparser = new JsonParser();
-            JsonObject jsonobject = jsonparser.parse(p_87578_).getAsJsonObject();
+            JsonObject jsonobject = jsonparser.parse(pJson).getAsJsonObject();
             if (jsonobject.get("servers").isJsonArray()) {
                 JsonArray jsonarray = jsonobject.get("servers").getAsJsonArray();
                 Iterator<JsonElement> iterator = jsonarray.iterator();

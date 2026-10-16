@@ -16,8 +16,8 @@ import com.mojang.serialization.DynamicOps;
 import java.util.function.Function;
 
 public class ChunkRenamesFix extends DataFix {
-    public ChunkRenamesFix(Schema p_185100_) {
-        super(p_185100_, true);
+    public ChunkRenamesFix(Schema pOutputSchema) {
+        super(pOutputSchema, true);
     }
 
     protected TypeRewriteRule makeRule() {

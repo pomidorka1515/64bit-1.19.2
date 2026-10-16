@@ -9,9 +9,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class BlockMarker extends TextureSheetParticle {
-    BlockMarker(ClientLevel p_194267_, double p_194268_, double p_194269_, double p_194270_, BlockState p_194271_) {
-        super(p_194267_, p_194268_, p_194269_, p_194270_);
-        this.setSprite(Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getParticleIcon(p_194271_));
+    BlockMarker(ClientLevel pLevel, double pX, double pY, double pZ, BlockState pState) {
+        super(pLevel, pX, pY, pZ);
+        this.setSprite(Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getParticleIcon(pState));
         this.gravity = 0.0F;
         this.lifetime = 80;
         this.hasPhysics = false;
@@ -21,7 +21,7 @@ public class BlockMarker extends TextureSheetParticle {
         return ParticleRenderType.TERRAIN_SHEET;
     }
 
-    public float getQuadSize(float p_194274_) {
+    public float getQuadSize(float pScaleFactor) {
         return 0.5F;
     }
 

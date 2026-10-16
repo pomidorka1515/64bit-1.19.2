@@ -23,35 +23,35 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class ArmorStandItem extends Item {
-    public ArmorStandItem(Item.Properties p_40503_) {
-        super(p_40503_);
+    public ArmorStandItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResult useOn(UseOnContext p_40510_) {
-        Direction direction = p_40510_.getClickedFace();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Direction direction = pContext.getClickedFace();
         if (direction == Direction.DOWN) {
             return InteractionResult.FAIL;
         } else {
-            Level level = p_40510_.getLevel();
-            BlockPlaceContext blockplacecontext = new BlockPlaceContext(p_40510_);
+            Level level = pContext.getLevel();
+            BlockPlaceContext blockplacecontext = new BlockPlaceContext(pContext);
             BlockPos blockpos = blockplacecontext.getClickedPos();
-            ItemStack itemstack = p_40510_.getItemInHand();
+            ItemStack itemstack = pContext.getItemInHand();
             Vec3 vec3 = Vec3.atBottomCenterOf(blockpos);
             AABB aabb = EntityType.ARMOR_STAND.getDimensions().makeBoundingBox(vec3.x(), vec3.y(), vec3.z());
             if (level.noCollision((Entity) null, aabb) && level.getEntities((Entity) null, aabb).isEmpty()) {
                 if (level instanceof ServerLevel) {
                     ServerLevel serverlevel = (ServerLevel) level;
-                    ArmorStand armorstand = EntityType.ARMOR_STAND.create(serverlevel, itemstack.getTag(), (Component) null, p_40510_.getPlayer(), blockpos, MobSpawnType.SPAWN_EGG, true, true);
+                    ArmorStand armorstand = EntityType.ARMOR_STAND.create(serverlevel, itemstack.getTag(), (Component) null, pContext.getPlayer(), blockpos, MobSpawnType.SPAWN_EGG, true, true);
                     if (armorstand == null) {
                         return InteractionResult.FAIL;
                     }
 
-                    float f = (float) Mth.floor((Mth.wrapDegrees(p_40510_.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;
+                    float f = (float) Mth.floor((Mth.wrapDegrees(pContext.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;
                     armorstand.moveTo(armorstand.getX(), armorstand.getY(), armorstand.getZ(), f, 0.0F);
                     this.randomizePose(armorstand, level.random);
                     serverlevel.addFreshEntityWithPassengers(armorstand);
                     level.playSound((Player) null, armorstand.getX(), armorstand.getY(), armorstand.getZ(), SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 0.75F, 0.8F);
-                    armorstand.gameEvent(GameEvent.ENTITY_PLACE, p_40510_.getPlayer());
+                    armorstand.gameEvent(GameEvent.ENTITY_PLACE, pContext.getPlayer());
                 }
 
                 itemstack.shrink(1);
@@ -62,15 +62,15 @@ public class ArmorStandItem extends Item {
         }
     }
 
-    private void randomizePose(ArmorStand p_219999_, RandomSource p_220000_) {
-        Rotations rotations = p_219999_.getHeadPose();
-        float f = p_220000_.nextFloat() * 5.0F;
-        float f1 = p_220000_.nextFloat() * 20.0F - 10.0F;
+    private void randomizePose(ArmorStand pArmorStand, RandomSource pRandom) {
+        Rotations rotations = pArmorStand.getHeadPose();
+        float f = pRandom.nextFloat() * 5.0F;
+        float f1 = pRandom.nextFloat() * 20.0F - 10.0F;
         Rotations rotations1 = new Rotations(rotations.getX() + f, rotations.getY() + f1, rotations.getZ());
-        p_219999_.setHeadPose(rotations1);
-        rotations = p_219999_.getBodyPose();
-        f = p_220000_.nextFloat() * 10.0F - 5.0F;
+        pArmorStand.setHeadPose(rotations1);
+        rotations = pArmorStand.getBodyPose();
+        f = pRandom.nextFloat() * 10.0F - 5.0F;
         rotations1 = new Rotations(rotations.getX(), rotations.getY() + f, rotations.getZ());
-        p_219999_.setBodyPose(rotations1);
+        pArmorStand.setBodyPose(rotations1);
     }
 }

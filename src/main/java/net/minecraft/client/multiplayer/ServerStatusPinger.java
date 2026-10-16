@@ -158,10 +158,10 @@ public class ServerStatusPinger {
         }
     }
 
-    void onPingFailed(Component p_171815_, ServerData p_171816_) {
-        LOGGER.error("Can't ping {}: {}", p_171816_.ip, p_171815_.getString());
-        p_171816_.motd = CANT_CONNECT_MESSAGE;
-        p_171816_.status = CommonComponents.EMPTY;
+    void onPingFailed(Component pReason, ServerData pServerData) {
+        LOGGER.error("Can't ping {}: {}", pServerData.ip, pReason.getString());
+        pServerData.motd = CANT_CONNECT_MESSAGE;
+        pServerData.status = CommonComponents.EMPTY;
     }
 
     void pingLegacyServer(final InetSocketAddress p_171812_, final ServerData p_171813_) {
@@ -235,8 +235,8 @@ public class ServerStatusPinger {
                 .connect(p_171812_.getAddress(), p_171812_.getPort());
     }
 
-    static Component formatPlayerCount(int p_105467_, int p_105468_) {
-        return Component.literal(Integer.toString(p_105467_)).append(Component.literal("/").withStyle(ChatFormatting.DARK_GRAY)).append(Integer.toString(p_105468_)).withStyle(ChatFormatting.GRAY);
+    static Component formatPlayerCount(int pPlayers, int pCapacity) {
+        return Component.literal(Integer.toString(pPlayers)).append(Component.literal("/").withStyle(ChatFormatting.DARK_GRAY)).append(Integer.toString(pCapacity)).withStyle(ChatFormatting.GRAY);
     }
 
     public void tick() {

@@ -15,12 +15,12 @@ public record AnimationDefinition(float lengthInSeconds, boolean looping, Map<St
         private final Map<String, List<AnimationChannel>> animationByBone = Maps.newHashMap();
         private boolean looping;
 
-        public static AnimationDefinition.Builder withLength(float p_232276_) {
-            return new AnimationDefinition.Builder(p_232276_);
+        public static AnimationDefinition.Builder withLength(float pLengthInSeconds) {
+            return new AnimationDefinition.Builder(pLengthInSeconds);
         }
 
-        private Builder(float p_232273_) {
-            this.length = p_232273_;
+        private Builder(float pLengthInSeconds) {
+            this.length = pLengthInSeconds;
         }
 
         public AnimationDefinition.Builder looping() {
@@ -28,10 +28,10 @@ public record AnimationDefinition(float lengthInSeconds, boolean looping, Map<St
             return this;
         }
 
-        public AnimationDefinition.Builder addAnimation(String p_232280_, AnimationChannel p_232281_) {
-            this.animationByBone.computeIfAbsent(p_232280_, (p_232278_) -> {
+        public AnimationDefinition.Builder addAnimation(String pBone, AnimationChannel pAnimationChannel) {
+            this.animationByBone.computeIfAbsent(pBone, (p_232278_) -> {
                                     return Lists.newArrayList();
-                                }).add(p_232281_);
+                                }).add(pAnimationChannel);
             return this;
         }
 

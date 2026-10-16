@@ -24,8 +24,8 @@ public class RealmsPersistence {
         return readFile();
     }
 
-    public void save(RealmsPersistence.RealmsPersistenceData p_167617_) {
-        writeFile(p_167617_);
+    public void save(RealmsPersistence.RealmsPersistenceData pPersistenceData) {
+        writeFile(pPersistenceData);
     }
 
     public static RealmsPersistence.RealmsPersistenceData readFile() {
@@ -45,11 +45,11 @@ public class RealmsPersistence {
         return new RealmsPersistence.RealmsPersistenceData();
     }
 
-    public static void writeFile(RealmsPersistence.RealmsPersistenceData p_90173_) {
+    public static void writeFile(RealmsPersistence.RealmsPersistenceData pPersistenceData) {
         File file1 = getPathToData();
 
         try {
-            FileUtils.writeStringToFile(file1, GSON.toJson(p_90173_), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(file1, GSON.toJson(pPersistenceData), StandardCharsets.UTF_8);
         } catch (IOException ioexception) {
         }
     }

@@ -31,12 +31,12 @@ public class ElytraLayer<T extends LivingEntity, M extends EntityModel<T>> exten
         this.elytraModel = new ElytraModel<>(p_174494_.bakeLayer(ModelLayers.ELYTRA));
     }
 
-    public void render(PoseStack p_116951_, MultiBufferSource p_116952_, int p_116953_, T p_116954_, float p_116955_, float p_116956_, float p_116957_, float p_116958_, float p_116959_, float p_116960_) {
-        ItemStack itemstack = p_116954_.getItemBySlot(EquipmentSlot.CHEST);
+    public void render(PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight, T pLivingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        ItemStack itemstack = pLivingEntity.getItemBySlot(EquipmentSlot.CHEST);
         if (itemstack.is(Items.ELYTRA)) {
             ResourceLocation resourcelocation;
-            if (p_116954_ instanceof AbstractClientPlayer) {
-                AbstractClientPlayer abstractclientplayer = (AbstractClientPlayer) p_116954_;
+            if (pLivingEntity instanceof AbstractClientPlayer) {
+                AbstractClientPlayer abstractclientplayer = (AbstractClientPlayer) pLivingEntity;
                 if (abstractclientplayer.isElytraLoaded() && abstractclientplayer.getElytraTextureLocation() != null) {
                     resourcelocation = abstractclientplayer.getElytraTextureLocation();
                 } else if (abstractclientplayer.isCapeLoaded() && abstractclientplayer.getCloakTextureLocation() != null && abstractclientplayer.isModelPartShown(PlayerModelPart.CAPE)) {
@@ -48,13 +48,13 @@ public class ElytraLayer<T extends LivingEntity, M extends EntityModel<T>> exten
                 resourcelocation = WINGS_LOCATION;
             }
 
-            p_116951_.pushPose();
-            p_116951_.translate(0.0D, 0.0D, 0.125D);
+            pMatrixStack.pushPose();
+            pMatrixStack.translate(0.0D, 0.0D, 0.125D);
             this.getParentModel().copyPropertiesTo(this.elytraModel);
-            this.elytraModel.setupAnim(p_116954_, p_116955_, p_116956_, p_116958_, p_116959_, p_116960_);
-            VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(p_116952_, RenderType.armorCutoutNoCull(resourcelocation), false, itemstack.hasFoil());
-            this.elytraModel.renderToBuffer(p_116951_, vertexconsumer, p_116953_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-            p_116951_.popPose();
+            this.elytraModel.setupAnim(pLivingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
+            VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(pBuffer, RenderType.armorCutoutNoCull(resourcelocation), false, itemstack.hasFoil());
+            this.elytraModel.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+            pMatrixStack.popPose();
         }
     }
 }

@@ -13,7 +13,7 @@ public interface CommandSigningContext {
     };
 
     @Nullable
-    PlayerChatMessage getArgument(String p_230580_);
+    PlayerChatMessage getArgument(String pName);
 
     public static record SignedArguments(Map<String, PlayerChatMessage> arguments) implements CommandSigningContext {
         @Nullable

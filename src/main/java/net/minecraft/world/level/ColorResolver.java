@@ -4,5 +4,5 @@ import net.minecraft.world.level.biome.Biome;
 
 @FunctionalInterface
 public interface ColorResolver {
-    int getColor(Biome p_130046_, double p_130047_, double p_130048_);
+    int getColor(Biome pBiome, double pX, double pZ);
 }

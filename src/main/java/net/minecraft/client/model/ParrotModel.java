@@ -26,16 +26,16 @@ public class ParrotModel extends HierarchicalModel<Parrot> {
     private final ModelPart leftLeg;
     private final ModelPart rightLeg;
 
-    public ParrotModel(ModelPart p_170780_) {
-        this.root = p_170780_;
-        this.body = p_170780_.getChild("body");
-        this.tail = p_170780_.getChild("tail");
-        this.leftWing = p_170780_.getChild("left_wing");
-        this.rightWing = p_170780_.getChild("right_wing");
-        this.head = p_170780_.getChild("head");
+    public ParrotModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.body = pRoot.getChild("body");
+        this.tail = pRoot.getChild("tail");
+        this.leftWing = pRoot.getChild("left_wing");
+        this.rightWing = pRoot.getChild("right_wing");
+        this.head = pRoot.getChild("head");
         this.feather = this.head.getChild("feather");
-        this.leftLeg = p_170780_.getChild("left_leg");
-        this.rightLeg = p_170780_.getChild("right_leg");
+        this.leftLeg = pRoot.getChild("left_leg");
+        this.rightLeg = pRoot.getChild("right_leg");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -60,72 +60,72 @@ public class ParrotModel extends HierarchicalModel<Parrot> {
         return this.root;
     }
 
-    public void setupAnim(Parrot p_103217_, float p_103218_, float p_103219_, float p_103220_, float p_103221_, float p_103222_) {
-        this.setupAnim(getState(p_103217_), p_103217_.tickCount, p_103218_, p_103219_, p_103220_, p_103221_, p_103222_);
+    public void setupAnim(Parrot pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.setupAnim(getState(pEntity), pEntity.tickCount, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
     }
 
-    public void prepareMobModel(Parrot p_103212_, float p_103213_, float p_103214_, float p_103215_) {
-        this.prepare(getState(p_103212_));
+    public void prepareMobModel(Parrot pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        this.prepare(getState(pEntity));
     }
 
-    public void renderOnShoulder(PoseStack p_103224_, VertexConsumer p_103225_, int p_103226_, int p_103227_, float p_103228_, float p_103229_, float p_103230_, float p_103231_, int p_103232_) {
+    public void renderOnShoulder(PoseStack pPoseStack, VertexConsumer pBuffer, int pPackedLight, int pPackedOverlay, float pLimbSwing, float pLimbSwingAmount, float pNetHeadYaw, float pHeadPitch, int pTickCount) {
         this.prepare(ParrotModel.State.ON_SHOULDER);
-        this.setupAnim(ParrotModel.State.ON_SHOULDER, p_103232_, p_103228_, p_103229_, 0.0F, p_103230_, p_103231_);
-        this.root.render(p_103224_, p_103225_, p_103226_, p_103227_);
+        this.setupAnim(ParrotModel.State.ON_SHOULDER, pTickCount, pLimbSwing, pLimbSwingAmount, 0.0F, pNetHeadYaw, pHeadPitch);
+        this.root.render(pPoseStack, pBuffer, pPackedLight, pPackedOverlay);
     }
 
-    private void setupAnim(ParrotModel.State p_103242_, int p_103243_, float p_103244_, float p_103245_, float p_103246_, float p_103247_, float p_103248_) {
-        this.head.xRot = p_103248_ * ((float) Math.PI / 180F);
-        this.head.yRot = p_103247_ * ((float) Math.PI / 180F);
+    private void setupAnim(ParrotModel.State pState, int pTickCount, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
         this.head.zRot = 0.0F;
         this.head.x = 0.0F;
         this.body.x = 0.0F;
         this.tail.x = 0.0F;
         this.rightWing.x = -1.5F;
         this.leftWing.x = 1.5F;
-        switch (p_103242_) {
+        switch (pState) {
             case SITTING:
                 break;
             case PARTY:
-                float f = Mth.cos((float) p_103243_);
-                float f1 = Mth.sin((float) p_103243_);
+                float f = Mth.cos((float) pTickCount);
+                float f1 = Mth.sin((float) pTickCount);
                 this.head.x = f;
                 this.head.y = 15.69F + f1;
                 this.head.xRot = 0.0F;
                 this.head.yRot = 0.0F;
-                this.head.zRot = Mth.sin((float) p_103243_) * 0.4F;
+                this.head.zRot = Mth.sin((float) pTickCount) * 0.4F;
                 this.body.x = f;
                 this.body.y = 16.5F + f1;
-                this.leftWing.zRot = -0.0873F - p_103246_;
+                this.leftWing.zRot = -0.0873F - pAgeInTicks;
                 this.leftWing.x = 1.5F + f;
                 this.leftWing.y = 16.94F + f1;
-                this.rightWing.zRot = 0.0873F + p_103246_;
+                this.rightWing.zRot = 0.0873F + pAgeInTicks;
                 this.rightWing.x = -1.5F + f;
                 this.rightWing.y = 16.94F + f1;
                 this.tail.x = f;
                 this.tail.y = 21.07F + f1;
                 break;
             case STANDING:
-                this.leftLeg.xRot += Mth.cos(p_103244_ * 0.6662F) * 1.4F * p_103245_;
-                this.rightLeg.xRot += Mth.cos(p_103244_ * 0.6662F + (float) Math.PI) * 1.4F * p_103245_;
+                this.leftLeg.xRot += Mth.cos(pLimbSwing * 0.6662F) * 1.4F * pLimbSwingAmount;
+                this.rightLeg.xRot += Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * 1.4F * pLimbSwingAmount;
             case FLYING:
             case ON_SHOULDER:
             default:
-                float f2 = p_103246_ * 0.3F;
+                float f2 = pAgeInTicks * 0.3F;
                 this.head.y = 15.69F + f2;
-                this.tail.xRot = 1.015F + Mth.cos(p_103244_ * 0.6662F) * 0.3F * p_103245_;
+                this.tail.xRot = 1.015F + Mth.cos(pLimbSwing * 0.6662F) * 0.3F * pLimbSwingAmount;
                 this.tail.y = 21.07F + f2;
                 this.body.y = 16.5F + f2;
-                this.leftWing.zRot = -0.0873F - p_103246_;
+                this.leftWing.zRot = -0.0873F - pAgeInTicks;
                 this.leftWing.y = 16.94F + f2;
-                this.rightWing.zRot = 0.0873F + p_103246_;
+                this.rightWing.zRot = 0.0873F + pAgeInTicks;
                 this.rightWing.y = 16.94F + f2;
                 this.leftLeg.y = 22.0F + f2;
                 this.rightLeg.y = 22.0F + f2;
         }
     }
 
-    private void prepare(ParrotModel.State p_103240_) {
+    private void prepare(ParrotModel.State pState) {
         this.feather.xRot = -0.2214F;
         this.body.xRot = 0.4937F;
         this.leftWing.xRot = -0.6981F;
@@ -138,7 +138,7 @@ public class ParrotModel extends HierarchicalModel<Parrot> {
         this.rightLeg.y = 22.0F;
         this.leftLeg.zRot = 0.0F;
         this.rightLeg.zRot = 0.0F;
-        switch (p_103240_) {
+        switch (pState) {
             case SITTING:
                 float f = 1.9F;
                 this.head.y = 17.59F;
@@ -167,13 +167,13 @@ public class ParrotModel extends HierarchicalModel<Parrot> {
         }
     }
 
-    private static ParrotModel.State getState(Parrot p_103210_) {
-        if (p_103210_.isPartyParrot()) {
+    private static ParrotModel.State getState(Parrot pParrot) {
+        if (pParrot.isPartyParrot()) {
             return ParrotModel.State.PARTY;
-        } else if (p_103210_.isInSittingPose()) {
+        } else if (pParrot.isInSittingPose()) {
             return ParrotModel.State.SITTING;
         } else {
-            return p_103210_.isFlying() ? ParrotModel.State.FLYING : ParrotModel.State.STANDING;
+            return pParrot.isFlying() ? ParrotModel.State.FLYING : ParrotModel.State.STANDING;
         }
     }
 

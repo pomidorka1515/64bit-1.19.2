@@ -20,26 +20,26 @@ public class ItemInput implements Predicate<ItemStack> {
     @Nullable
     private final CompoundTag tag;
 
-    public ItemInput(Holder<Item> p_235282_, @Nullable CompoundTag p_235283_) {
-        this.item = p_235282_;
-        this.tag = p_235283_;
+    public ItemInput(Holder<Item> pItem, @Nullable CompoundTag pTag) {
+        this.item = pItem;
+        this.tag = pTag;
     }
 
     public Item getItem() {
         return this.item.value();
     }
 
-    public boolean test(ItemStack p_120984_) {
-        return p_120984_.is(this.item) && NbtUtils.compareNbt(this.tag, p_120984_.getTag(), true);
+    public boolean test(ItemStack pStack) {
+        return pStack.is(this.item) && NbtUtils.compareNbt(this.tag, pStack.getTag(), true);
     }
 
-    public ItemStack createItemStack(int p_120981_, boolean p_120982_) throws CommandSyntaxException {
-        ItemStack itemstack = new ItemStack(this.item, p_120981_);
+    public ItemStack createItemStack(int pCount, boolean pAllowOversizedStacks) throws CommandSyntaxException {
+        ItemStack itemstack = new ItemStack(this.item, pCount);
         if (this.tag != null) {
             itemstack.setTag(this.tag);
         }
 
-        if (p_120982_ && p_120981_ > itemstack.getMaxStackSize()) {
+        if (pAllowOversizedStacks && pCount > itemstack.getMaxStackSize()) {
             throw ERROR_STACK_TOO_BIG.create(this.getItemName(), itemstack.getMaxStackSize());
         } else {
             return itemstack;

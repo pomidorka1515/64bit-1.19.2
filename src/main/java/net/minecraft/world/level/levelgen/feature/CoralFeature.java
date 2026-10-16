@@ -18,14 +18,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 public abstract class CoralFeature extends Feature<NoneFeatureConfiguration> {
-    public CoralFeature(Codec<NoneFeatureConfiguration> p_65429_) {
-        super(p_65429_);
+    public CoralFeature(Codec<NoneFeatureConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> p_159536_) {
-        RandomSource randomsource = p_159536_.random();
-        WorldGenLevel worldgenlevel = p_159536_.level();
-        BlockPos blockpos = p_159536_.origin();
+    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> pContext) {
+        RandomSource randomsource = pContext.random();
+        WorldGenLevel worldgenlevel = pContext.level();
+        BlockPos blockpos = pContext.origin();
         Optional<Block> optional = Registry.BLOCK.getTag(BlockTags.CORAL_BLOCKS).flatMap((p_224980_) -> {
                                                                                     return p_224980_.getRandomElement(randomsource);
                                                                                 })
@@ -33,31 +33,31 @@ public abstract class CoralFeature extends Feature<NoneFeatureConfiguration> {
         return optional.isEmpty() ? false : this.placeFeature(worldgenlevel, randomsource, blockpos, optional.get().defaultBlockState());
     }
 
-    protected abstract boolean placeFeature(LevelAccessor p_224966_, RandomSource p_224967_, BlockPos p_224968_, BlockState p_224969_);
+    protected abstract boolean placeFeature(LevelAccessor pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState);
 
-    protected boolean placeCoralBlock(LevelAccessor p_224974_, RandomSource p_224975_, BlockPos p_224976_, BlockState p_224977_) {
-        BlockPos blockpos = p_224976_.above();
-        BlockState blockstate = p_224974_.getBlockState(p_224976_);
-        if ((blockstate.is(Blocks.WATER) || blockstate.is(BlockTags.CORALS)) && p_224974_.getBlockState(blockpos).is(Blocks.WATER)) {
-            p_224974_.setBlock(p_224976_, p_224977_, 3);
-            if (p_224975_.nextFloat() < 0.25F) {
+    protected boolean placeCoralBlock(LevelAccessor pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        BlockPos blockpos = pPos.above();
+        BlockState blockstate = pLevel.getBlockState(pPos);
+        if ((blockstate.is(Blocks.WATER) || blockstate.is(BlockTags.CORALS)) && pLevel.getBlockState(blockpos).is(Blocks.WATER)) {
+            pLevel.setBlock(pPos, pState, 3);
+            if (pRandom.nextFloat() < 0.25F) {
                 Registry.BLOCK.getTag(BlockTags.CORALS).flatMap((p_224972_) -> {
-                                                           return p_224972_.getRandomElement(p_224975_);
+                                                           return p_224972_.getRandomElement(pRandom);
                                                        })
                         .map(Holder::value)
                         .ifPresent((p_204720_) -> {
-                            p_224974_.setBlock(blockpos, p_204720_.defaultBlockState(), 2);
+                            pLevel.setBlock(blockpos, p_204720_.defaultBlockState(), 2);
                         });
-            } else if (p_224975_.nextFloat() < 0.05F) {
-                p_224974_.setBlock(blockpos, Blocks.SEA_PICKLE.defaultBlockState().setValue(SeaPickleBlock.PICKLES, Integer.valueOf(p_224975_.nextInt(4) + 1)), 2);
+            } else if (pRandom.nextFloat() < 0.05F) {
+                pLevel.setBlock(blockpos, Blocks.SEA_PICKLE.defaultBlockState().setValue(SeaPickleBlock.PICKLES, Integer.valueOf(pRandom.nextInt(4) + 1)), 2);
             }
 
             for (Direction direction : Direction.Plane.HORIZONTAL) {
-                if (p_224975_.nextFloat() < 0.2F) {
-                    BlockPos blockpos1 = p_224976_.relative(direction);
-                    if (p_224974_.getBlockState(blockpos1).is(Blocks.WATER)) {
+                if (pRandom.nextFloat() < 0.2F) {
+                    BlockPos blockpos1 = pPos.relative(direction);
+                    if (pLevel.getBlockState(blockpos1).is(Blocks.WATER)) {
                         Registry.BLOCK.getTag(BlockTags.WALL_CORALS).flatMap((p_224965_) -> {
-                                                                        return p_224965_.getRandomElement(p_224975_);
+                                                                        return p_224965_.getRandomElement(pRandom);
                                                                     })
                                 .map(Holder::value)
                                 .ifPresent((p_204725_) -> {
@@ -66,7 +66,7 @@ public abstract class CoralFeature extends Feature<NoneFeatureConfiguration> {
                                         blockstate1 = blockstate1.setValue(BaseCoralWallFanBlock.FACING, direction);
                                     }
 
-                                    p_224974_.setBlock(blockpos1, blockstate1, 2);
+                                    pLevel.setBlock(blockpos1, blockstate1, 2);
                                 });
                     }
                 }

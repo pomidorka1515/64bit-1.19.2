@@ -87,8 +87,8 @@ public class Cat extends TamableAnimal {
     private float relaxStateOneAmount;
     private float relaxStateOneAmountO;
 
-    public Cat(EntityType<? extends Cat> p_28114_, Level p_28115_) {
-        super(p_28114_, p_28115_);
+    public Cat(EntityType<? extends Cat> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     public ResourceLocation getResourceLocation() {
@@ -117,20 +117,20 @@ public class Cat extends TamableAnimal {
         return this.entityData.get(DATA_VARIANT_ID);
     }
 
-    public void setCatVariant(CatVariant p_218133_) {
-        this.entityData.set(DATA_VARIANT_ID, p_218133_);
+    public void setCatVariant(CatVariant pVariant) {
+        this.entityData.set(DATA_VARIANT_ID, pVariant);
     }
 
-    public void setLying(boolean p_28182_) {
-        this.entityData.set(IS_LYING, p_28182_);
+    public void setLying(boolean pLying) {
+        this.entityData.set(IS_LYING, pLying);
     }
 
     public boolean isLying() {
         return this.entityData.get(IS_LYING);
     }
 
-    public void setRelaxStateOne(boolean p_28186_) {
-        this.entityData.set(RELAX_STATE_ONE, p_28186_);
+    public void setRelaxStateOne(boolean pRelaxStateOne) {
+        this.entityData.set(RELAX_STATE_ONE, pRelaxStateOne);
     }
 
     public boolean isRelaxStateOne() {
@@ -141,8 +141,8 @@ public class Cat extends TamableAnimal {
         return DyeColor.byId(this.entityData.get(DATA_COLLAR_COLOR));
     }
 
-    public void setCollarColor(DyeColor p_28132_) {
-        this.entityData.set(DATA_COLLAR_COLOR, p_28132_.getId());
+    public void setCollarColor(DyeColor pColor) {
+        this.entityData.set(DATA_COLLAR_COLOR, pColor.getId());
     }
 
     protected void defineSynchedData() {
@@ -153,21 +153,21 @@ public class Cat extends TamableAnimal {
         this.entityData.define(DATA_COLLAR_COLOR, DyeColor.RED.getId());
     }
 
-    public void addAdditionalSaveData(CompoundTag p_28156_) {
-        super.addAdditionalSaveData(p_28156_);
-        p_28156_.putString("variant", Registry.CAT_VARIANT.getKey(this.getCatVariant()).toString());
-        p_28156_.putByte("CollarColor", (byte) this.getCollarColor().getId());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putString("variant", Registry.CAT_VARIANT.getKey(this.getCatVariant()).toString());
+        pCompound.putByte("CollarColor", (byte) this.getCollarColor().getId());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_28142_) {
-        super.readAdditionalSaveData(p_28142_);
-        CatVariant catvariant = Registry.CAT_VARIANT.get(ResourceLocation.tryParse(p_28142_.getString("variant")));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        CatVariant catvariant = Registry.CAT_VARIANT.get(ResourceLocation.tryParse(pCompound.getString("variant")));
         if (catvariant != null) {
             this.setCatVariant(catvariant);
         }
 
-        if (p_28142_.contains("CollarColor", 99)) {
-            this.setCollarColor(DyeColor.byId(p_28142_.getInt("CollarColor")));
+        if (pCompound.contains("CollarColor", 99)) {
+            this.setCollarColor(DyeColor.byId(pCompound.getInt("CollarColor")));
         }
     }
 
@@ -211,7 +211,7 @@ public class Cat extends TamableAnimal {
         this.playSound(SoundEvents.CAT_HISS, this.getSoundVolume(), this.getVoicePitch());
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_28160_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.CAT_HURT;
     }
 
@@ -223,24 +223,24 @@ public class Cat extends TamableAnimal {
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 10.0D).add(Attributes.MOVEMENT_SPEED, (double) 0.3F).add(Attributes.ATTACK_DAMAGE, 3.0D);
     }
 
-    public boolean causeFallDamage(float p_148859_, float p_148860_, DamageSource p_148861_) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return false;
     }
 
-    protected void usePlayerItem(Player p_148866_, InteractionHand p_148867_, ItemStack p_148868_) {
-        if (this.isFood(p_148868_)) {
+    protected void usePlayerItem(Player pPlayer, InteractionHand pHand, ItemStack pStack) {
+        if (this.isFood(pStack)) {
             this.playSound(SoundEvents.CAT_EAT, 1.0F, 1.0F);
         }
 
-        super.usePlayerItem(p_148866_, p_148867_, p_148868_);
+        super.usePlayerItem(pPlayer, pHand, pStack);
     }
 
     private float getAttackDamage() {
         return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
     }
 
-    public boolean doHurtTarget(Entity p_28119_) {
-        return p_28119_.hurt(DamageSource.mobAttack(this), this.getAttackDamage());
+    public boolean doHurtTarget(Entity pEntity) {
+        return pEntity.hurt(DamageSource.mobAttack(this), this.getAttackDamage());
     }
 
     public void tick() {
@@ -282,25 +282,25 @@ public class Cat extends TamableAnimal {
         }
     }
 
-    public float getLieDownAmount(float p_28184_) {
-        return Mth.lerp(p_28184_, this.lieDownAmountO, this.lieDownAmount);
+    public float getLieDownAmount(float pPartialTicks) {
+        return Mth.lerp(pPartialTicks, this.lieDownAmountO, this.lieDownAmount);
     }
 
-    public float getLieDownAmountTail(float p_28188_) {
-        return Mth.lerp(p_28188_, this.lieDownAmountOTail, this.lieDownAmountTail);
+    public float getLieDownAmountTail(float pPartialTicks) {
+        return Mth.lerp(pPartialTicks, this.lieDownAmountOTail, this.lieDownAmountTail);
     }
 
-    public float getRelaxStateOneAmount(float p_28117_) {
-        return Mth.lerp(p_28117_, this.relaxStateOneAmountO, this.relaxStateOneAmount);
+    public float getRelaxStateOneAmount(float pPartialTicks) {
+        return Mth.lerp(pPartialTicks, this.relaxStateOneAmountO, this.relaxStateOneAmount);
     }
 
-    public Cat getBreedOffspring(ServerLevel p_148870_, AgeableMob p_148871_) {
-        Cat cat = EntityType.CAT.create(p_148870_);
-        if (p_148871_ instanceof Cat) {
+    public Cat getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        Cat cat = EntityType.CAT.create(pLevel);
+        if (pOtherParent instanceof Cat) {
             if (this.random.nextBoolean()) {
                 cat.setCatVariant(this.getCatVariant());
             } else {
-                cat.setCatVariant(((Cat) p_148871_).getCatVariant());
+                cat.setCatVariant(((Cat) pOtherParent).getCatVariant());
             }
 
             if (this.isTame()) {
@@ -309,7 +309,7 @@ public class Cat extends TamableAnimal {
                 if (this.random.nextBoolean()) {
                     cat.setCollarColor(this.getCollarColor());
                 } else {
-                    cat.setCollarColor(((Cat) p_148871_).getCollarColor());
+                    cat.setCollarColor(((Cat) pOtherParent).getCollarColor());
                 }
             }
         }
@@ -317,57 +317,57 @@ public class Cat extends TamableAnimal {
         return cat;
     }
 
-    public boolean canMate(Animal p_28127_) {
+    public boolean canMate(Animal pOtherAnimal) {
         if (!this.isTame()) {
             return false;
-        } else if (!(p_28127_ instanceof Cat)) {
+        } else if (!(pOtherAnimal instanceof Cat)) {
             return false;
         } else {
-            Cat cat = (Cat) p_28127_;
-            return cat.isTame() && super.canMate(p_28127_);
+            Cat cat = (Cat) pOtherAnimal;
+            return cat.isTame() && super.canMate(pOtherAnimal);
         }
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_28134_, DifficultyInstance p_28135_, MobSpawnType p_28136_, @Nullable SpawnGroupData p_28137_, @Nullable CompoundTag p_28138_) {
-        p_28137_ = super.finalizeSpawn(p_28134_, p_28135_, p_28136_, p_28137_, p_28138_);
-        boolean flag = p_28134_.getMoonBrightness() > 0.9F;
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        pSpawnData = super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
+        boolean flag = pLevel.getMoonBrightness() > 0.9F;
         TagKey<CatVariant> tagkey = flag ? CatVariantTags.FULL_MOON_SPAWNS : CatVariantTags.DEFAULT_SPAWNS;
         Registry.CAT_VARIANT.getTag(tagkey).flatMap((p_218136_) -> {
-                                               return p_218136_.getRandomElement(p_28134_.getRandom());
+                                               return p_218136_.getRandomElement(pLevel.getRandom());
                                            })
                 .ifPresent((p_218138_) -> {
                     this.setCatVariant(p_218138_.value());
                 });
-        ServerLevel serverlevel = p_28134_.getLevel();
+        ServerLevel serverlevel = pLevel.getLevel();
         if (serverlevel.structureManager().getStructureWithPieceAt(this.blockPosition(), StructureTags.CATS_SPAWN_AS_BLACK).isValid()) {
             this.setCatVariant(CatVariant.ALL_BLACK);
             this.setPersistenceRequired();
         }
 
-        return p_28137_;
+        return pSpawnData;
     }
 
-    public InteractionResult mobInteract(Player p_28153_, InteractionHand p_28154_) {
-        ItemStack itemstack = p_28153_.getItemInHand(p_28154_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         Item item = itemstack.getItem();
         if (this.level.isClientSide) {
-            if (this.isTame() && this.isOwnedBy(p_28153_)) {
+            if (this.isTame() && this.isOwnedBy(pPlayer)) {
                 return InteractionResult.SUCCESS;
             } else {
                 return !this.isFood(itemstack) || !(this.getHealth() < this.getMaxHealth()) && this.isTame() ? InteractionResult.PASS : InteractionResult.SUCCESS;
             }
         } else {
             if (this.isTame()) {
-                if (this.isOwnedBy(p_28153_)) {
+                if (this.isOwnedBy(pPlayer)) {
                     if (!(item instanceof DyeItem)) {
                         if (item.isEdible() && this.isFood(itemstack) && this.getHealth() < this.getMaxHealth()) {
-                            this.usePlayerItem(p_28153_, p_28154_, itemstack);
+                            this.usePlayerItem(pPlayer, pHand, itemstack);
                             this.heal((float) item.getFoodProperties().getNutrition());
                             return InteractionResult.CONSUME;
                         }
 
-                        InteractionResult interactionresult = super.mobInteract(p_28153_, p_28154_);
+                        InteractionResult interactionresult = super.mobInteract(pPlayer, pHand);
                         if (!interactionresult.consumesAction() || this.isBaby()) {
                             this.setOrderedToSit(!this.isOrderedToSit());
                         }
@@ -378,7 +378,7 @@ public class Cat extends TamableAnimal {
                     DyeColor dyecolor = ((DyeItem) item).getDyeColor();
                     if (dyecolor != this.getCollarColor()) {
                         this.setCollarColor(dyecolor);
-                        if (!p_28153_.getAbilities().instabuild) {
+                        if (!pPlayer.getAbilities().instabuild) {
                             itemstack.shrink(1);
                         }
 
@@ -387,9 +387,9 @@ public class Cat extends TamableAnimal {
                     }
                 }
             } else if (this.isFood(itemstack)) {
-                this.usePlayerItem(p_28153_, p_28154_, itemstack);
+                this.usePlayerItem(pPlayer, pHand, itemstack);
                 if (this.random.nextInt(3) == 0) {
-                    this.tame(p_28153_);
+                    this.tame(pPlayer);
                     this.setOrderedToSit(true);
                     this.level.broadcastEntityEvent(this, (byte) 7);
                 } else {
@@ -400,7 +400,7 @@ public class Cat extends TamableAnimal {
                 return InteractionResult.CONSUME;
             }
 
-            InteractionResult interactionresult1 = super.mobInteract(p_28153_, p_28154_);
+            InteractionResult interactionresult1 = super.mobInteract(pPlayer, pHand);
             if (interactionresult1.consumesAction()) {
                 this.setPersistenceRequired();
             }
@@ -409,15 +409,15 @@ public class Cat extends TamableAnimal {
         }
     }
 
-    public boolean isFood(ItemStack p_28177_) {
-        return TEMPT_INGREDIENT.test(p_28177_);
+    public boolean isFood(ItemStack pStack) {
+        return TEMPT_INGREDIENT.test(pStack);
     }
 
-    protected float getStandingEyeHeight(Pose p_28150_, EntityDimensions p_28151_) {
-        return p_28151_.height * 0.5F;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return pSize.height * 0.5F;
     }
 
-    public boolean removeWhenFarAway(double p_28174_) {
+    public boolean removeWhenFarAway(double pDistanceToClosestPlayer) {
         return !this.isTame() && this.tickCount > 2400;
     }
 
@@ -439,9 +439,9 @@ public class Cat extends TamableAnimal {
     static class CatAvoidEntityGoal<T extends LivingEntity> extends AvoidEntityGoal<T> {
         private final Cat cat;
 
-        public CatAvoidEntityGoal(Cat p_28191_, Class<T> p_28192_, float p_28193_, double p_28194_, double p_28195_) {
-            super(p_28191_, p_28192_, p_28193_, p_28194_, p_28195_, EntitySelector.NO_CREATIVE_OR_SPECTATOR::test);
-            this.cat = p_28191_;
+        public CatAvoidEntityGoal(Cat pCat, Class<T> pEntityClassToAvoid, float pMaxDist, double pWalkSpeedModifier, double pSprintSpeedModifier) {
+            super(pCat, pEntityClassToAvoid, pMaxDist, pWalkSpeedModifier, pSprintSpeedModifier, EntitySelector.NO_CREATIVE_OR_SPECTATOR::test);
+            this.cat = pCat;
         }
 
         public boolean canUse() {
@@ -461,8 +461,8 @@ public class Cat extends TamableAnimal {
         private BlockPos goalPos;
         private int onBedTicks;
 
-        public CatRelaxOnOwnerGoal(Cat p_28203_) {
-            this.cat = p_28203_;
+        public CatRelaxOnOwnerGoal(Cat pCat) {
+            this.cat = pCat;
         }
 
         public boolean canUse() {
@@ -579,9 +579,9 @@ public class Cat extends TamableAnimal {
         private Player selectedPlayer;
         private final Cat cat;
 
-        public CatTemptGoal(Cat p_28219_, double p_28220_, Ingredient p_28221_, boolean p_28222_) {
-            super(p_28219_, p_28220_, p_28221_, p_28222_);
-            this.cat = p_28219_;
+        public CatTemptGoal(Cat pCat, double pSpeedModifier, Ingredient pItems, boolean pCanScare) {
+            super(pCat, pSpeedModifier, pItems, pCanScare);
+            this.cat = pCat;
         }
 
         public void tick() {

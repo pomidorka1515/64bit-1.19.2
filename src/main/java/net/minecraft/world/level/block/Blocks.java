@@ -1120,9 +1120,9 @@ public class Blocks {
     public static final Block FROGSPAWN = register("frogspawn", new FrogspawnBlock(BlockBehaviour.Properties.of(Material.FROGSPAWN).instabreak().noOcclusion().noCollission().sound(SoundType.FROGSPAWN)));
     public static final Block REINFORCED_DEEPSLATE = register("reinforced_deepslate", new Block(BlockBehaviour.Properties.of(Material.STONE, MaterialColor.DEEPSLATE).sound(SoundType.DEEPSLATE).strength(55.0F, 1200.0F)));
 
-    private static ToIntFunction<BlockState> litBlockEmission(int p_50760_) {
+    private static ToIntFunction<BlockState> litBlockEmission(int pLightValue) {
         return (p_50763_) -> {
-            return p_50763_.getValue(BlockStateProperties.LIT) ? p_50760_ : 0;
+            return p_50763_.getValue(BlockStateProperties.LIT) ? pLightValue : 0;
         };
     }
 
@@ -1138,21 +1138,21 @@ public class Blocks {
         return (boolean) (p_50825_ == EntityType.OCELOT || p_50825_ == EntityType.PARROT);
     }
 
-    private static BedBlock bed(DyeColor p_50765_) {
-        return new BedBlock(p_50765_, BlockBehaviour.Properties.of(Material.WOOL, (p_152613_) -> {
-                                                                   return p_152613_.getValue(BedBlock.PART) == BedPart.FOOT ? p_50765_.getMaterialColor() : MaterialColor.WOOL;
+    private static BedBlock bed(DyeColor pColor) {
+        return new BedBlock(pColor, BlockBehaviour.Properties.of(Material.WOOL, (p_152613_) -> {
+                                                                   return p_152613_.getValue(BedBlock.PART) == BedPart.FOOT ? pColor.getMaterialColor() : MaterialColor.WOOL;
                                                                }).sound(SoundType.WOOD).strength(0.2F).noOcclusion());
     }
 
-    private static RotatedPillarBlock log(MaterialColor p_50789_, MaterialColor p_50790_) {
+    private static RotatedPillarBlock log(MaterialColor pTopColor, MaterialColor pBarkColor) {
         return new RotatedPillarBlock(BlockBehaviour.Properties.of(Material.WOOD, (p_152624_) -> {
-                                                                   return p_152624_.getValue(RotatedPillarBlock.AXIS) == Direction.Axis.Y ? p_50789_ : p_50790_;
+                                                                   return p_152624_.getValue(RotatedPillarBlock.AXIS) == Direction.Axis.Y ? pTopColor : pBarkColor;
                                                                }).strength(2.0F).sound(SoundType.WOOD));
     }
 
-    private static Block netherStem(MaterialColor p_50784_) {
+    private static Block netherStem(MaterialColor pMaterialColor) {
         return new RotatedPillarBlock(BlockBehaviour.Properties.of(Material.NETHER_WOOD, (p_152620_) -> {
-                                                                   return p_50784_;
+                                                                   return pMaterialColor;
                                                                }).strength(2.0F).sound(SoundType.STEM));
     }
 
@@ -1164,15 +1164,15 @@ public class Blocks {
         return false;
     }
 
-    private static StainedGlassBlock stainedGlass(DyeColor p_50802_) {
-        return new StainedGlassBlock(p_50802_, BlockBehaviour.Properties.of(Material.GLASS, p_50802_).strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn(Blocks::never).isRedstoneConductor(Blocks::never).isSuffocating(Blocks::never).isViewBlocking(Blocks::never));
+    private static StainedGlassBlock stainedGlass(DyeColor pColor) {
+        return new StainedGlassBlock(pColor, BlockBehaviour.Properties.of(Material.GLASS, pColor).strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn(Blocks::never).isRedstoneConductor(Blocks::never).isSuffocating(Blocks::never).isViewBlocking(Blocks::never));
     }
 
-    private static LeavesBlock leaves(SoundType p_152615_) {
-        return new LeavesBlock(BlockBehaviour.Properties.of(Material.LEAVES).strength(0.2F).randomTicks().sound(p_152615_).noOcclusion().isValidSpawn(Blocks::ocelotOrParrot).isSuffocating(Blocks::never).isViewBlocking(Blocks::never));
+    private static LeavesBlock leaves(SoundType pType) {
+        return new LeavesBlock(BlockBehaviour.Properties.of(Material.LEAVES).strength(0.2F).randomTicks().sound(pType).noOcclusion().isValidSpawn(Blocks::ocelotOrParrot).isSuffocating(Blocks::never).isViewBlocking(Blocks::never));
     }
 
-    private static ShulkerBoxBlock shulkerBox(DyeColor p_50767_, BlockBehaviour.Properties p_50768_) {
+    private static ShulkerBoxBlock shulkerBox(DyeColor pColor, BlockBehaviour.Properties pProperties) {
         BlockBehaviour.StatePredicate blockbehaviour$statepredicate = (p_152653_, p_152654_, p_152655_) -> {
             BlockEntity blockentity = p_152654_.getBlockEntity(p_152655_);
             if (!(blockentity instanceof ShulkerBoxBlockEntity shulkerboxblockentity)) {
@@ -1181,18 +1181,18 @@ public class Blocks {
                 return shulkerboxblockentity.isClosed();
             }
         };
-        return new ShulkerBoxBlock(p_50767_, p_50768_.strength(2.0F).dynamicShape().noOcclusion().isSuffocating(blockbehaviour$statepredicate).isViewBlocking(blockbehaviour$statepredicate));
+        return new ShulkerBoxBlock(pColor, pProperties.strength(2.0F).dynamicShape().noOcclusion().isSuffocating(blockbehaviour$statepredicate).isViewBlocking(blockbehaviour$statepredicate));
     }
 
-    private static PistonBaseBlock pistonBase(boolean p_50799_) {
+    private static PistonBaseBlock pistonBase(boolean pSticky) {
         BlockBehaviour.StatePredicate blockbehaviour$statepredicate = (p_152641_, p_152642_, p_152643_) -> {
             return !p_152641_.getValue(PistonBaseBlock.EXTENDED);
         };
-        return new PistonBaseBlock(p_50799_, BlockBehaviour.Properties.of(Material.PISTON).strength(1.5F).isRedstoneConductor(Blocks::never).isSuffocating(blockbehaviour$statepredicate).isViewBlocking(blockbehaviour$statepredicate));
+        return new PistonBaseBlock(pSticky, BlockBehaviour.Properties.of(Material.PISTON).strength(1.5F).isRedstoneConductor(Blocks::never).isSuffocating(blockbehaviour$statepredicate).isViewBlocking(blockbehaviour$statepredicate));
     }
 
-    private static Block register(String p_50796_, Block p_50797_) {
-        return Registry.register(Registry.BLOCK, p_50796_, p_50797_);
+    private static Block register(String pKey, Block pBlock) {
+        return Registry.register(Registry.BLOCK, pKey, pBlock);
     }
 
     public static void rebuildCache() {

@@ -48,8 +48,8 @@ public enum ChatFormatting implements StringRepresentable {
     @Nullable
     private final Integer color;
 
-    private static String cleanName(String p_126663_) {
-        return p_126663_.toLowerCase(Locale.ROOT).replaceAll("[^a-z]", "");
+    private static String cleanName(String pString) {
+        return pString.toLowerCase(Locale.ROOT).replaceAll("[^a-z]", "");
     }
 
     private ChatFormatting(String p_126627_, @Nullable char p_126628_, int p_126629_, Integer p_126630_) {
@@ -99,22 +99,22 @@ public enum ChatFormatting implements StringRepresentable {
     }
 
     @Nullable
-    public static String stripFormatting(@Nullable String p_126650_) {
-        return p_126650_ == null ? null : STRIP_FORMATTING_PATTERN.matcher(p_126650_).replaceAll("");
+    public static String stripFormatting(@Nullable String pText) {
+        return pText == null ? null : STRIP_FORMATTING_PATTERN.matcher(pText).replaceAll("");
     }
 
     @Nullable
-    public static ChatFormatting getByName(@Nullable String p_126658_) {
-        return p_126658_ == null ? null : FORMATTING_BY_NAME.get(cleanName(p_126658_));
+    public static ChatFormatting getByName(@Nullable String pFriendlyName) {
+        return pFriendlyName == null ? null : FORMATTING_BY_NAME.get(cleanName(pFriendlyName));
     }
 
     @Nullable
-    public static ChatFormatting getById(int p_126648_) {
-        if (p_126648_ < 0) {
+    public static ChatFormatting getById(int pIndex) {
+        if (pIndex < 0) {
             return RESET;
         } else {
             for (ChatFormatting chatformatting : values()) {
-                if (chatformatting.getId() == p_126648_) {
+                if (chatformatting.getId() == pIndex) {
                     return chatformatting;
                 }
             }
@@ -124,8 +124,8 @@ public enum ChatFormatting implements StringRepresentable {
     }
 
     @Nullable
-    public static ChatFormatting getByCode(char p_126646_) {
-        char c0 = Character.toString(p_126646_).toLowerCase(Locale.ROOT).charAt(0);
+    public static ChatFormatting getByCode(char pFormattingCode) {
+        char c0 = Character.toString(pFormattingCode).toLowerCase(Locale.ROOT).charAt(0);
 
         for (ChatFormatting chatformatting : values()) {
             if (chatformatting.code == c0) {
@@ -136,11 +136,11 @@ public enum ChatFormatting implements StringRepresentable {
         return null;
     }
 
-    public static Collection<String> getNames(boolean p_126654_, boolean p_126655_) {
+    public static Collection<String> getNames(boolean pGetColor, boolean pGetFancyStyling) {
         List<String> list = Lists.newArrayList();
 
         for (ChatFormatting chatformatting : values()) {
-            if ((!chatformatting.isColor() || p_126654_) && (!chatformatting.isFormat() || p_126655_)) {
+            if ((!chatformatting.isColor() || pGetColor) && (!chatformatting.isFormat() || pGetFancyStyling)) {
                 list.add(chatformatting.getName());
             }
         }

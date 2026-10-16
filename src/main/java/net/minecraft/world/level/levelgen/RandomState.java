@@ -27,30 +27,30 @@ public final class RandomState {
     private final Map<ResourceKey<NormalNoise.NoiseParameters>, NormalNoise> noiseIntances;
     private final Map<ResourceLocation, PositionalRandomFactory> positionalRandoms;
 
-    public static RandomState create(RegistryAccess p_224575_, ResourceKey<NoiseGeneratorSettings> p_224576_, long p_224577_) {
-        return create(p_224575_.registryOrThrow(Registry.NOISE_GENERATOR_SETTINGS_REGISTRY).getOrThrow(p_224576_), p_224575_.registryOrThrow(Registry.NOISE_REGISTRY), p_224577_);
+    public static RandomState create(RegistryAccess pRegistryAccess, ResourceKey<NoiseGeneratorSettings> pResourceKey, long pLegacyLevelSeed) {
+        return create(pRegistryAccess.registryOrThrow(Registry.NOISE_GENERATOR_SETTINGS_REGISTRY).getOrThrow(pResourceKey), pRegistryAccess.registryOrThrow(Registry.NOISE_REGISTRY), pLegacyLevelSeed);
     }
 
-    public static RandomState create(NoiseGeneratorSettings p_224571_, Registry<NormalNoise.NoiseParameters> p_224572_, long p_224573_) {
-        return new RandomState(p_224571_, p_224572_, p_224573_);
+    public static RandomState create(NoiseGeneratorSettings pNoiseGeneratorSettings, Registry<NormalNoise.NoiseParameters> pNoises, long pLegacyLevelSeed) {
+        return new RandomState(pNoiseGeneratorSettings, pNoises, pLegacyLevelSeed);
     }
 
-    private RandomState(NoiseGeneratorSettings p_224556_, Registry<NormalNoise.NoiseParameters> p_224557_, final long p_224558_) {
-        this.random = p_224556_.getRandomSource().newInstance(p_224558_).forkPositional();
-        this.legacyLevelSeed = p_224558_;
-        this.noises = p_224557_;
+    private RandomState(NoiseGeneratorSettings pNoiseGeneratorSettings, Registry<NormalNoise.NoiseParameters> pNoises, final long pLegacyLevelSeed) {
+        this.random = pNoiseGeneratorSettings.getRandomSource().newInstance(pLegacyLevelSeed).forkPositional();
+        this.legacyLevelSeed = pLegacyLevelSeed;
+        this.noises = pNoises;
         this.aquiferRandom = this.random.fromHashOf(new ResourceLocation("aquifer")).forkPositional();
         this.oreRandom = this.random.fromHashOf(new ResourceLocation("ore")).forkPositional();
         this.noiseIntances = new ConcurrentHashMap<>();
         this.positionalRandoms = new ConcurrentHashMap<>();
-        this.surfaceSystem = new SurfaceSystem(this, p_224556_.defaultBlock(), p_224556_.seaLevel(), this.random);
-        final boolean flag = p_224556_.useLegacyRandomSource();
+        this.surfaceSystem = new SurfaceSystem(this, pNoiseGeneratorSettings.defaultBlock(), pNoiseGeneratorSettings.seaLevel(), this.random);
+        final boolean flag = pNoiseGeneratorSettings.useLegacyRandomSource();
 
         class NoiseWiringHelper implements DensityFunction.Visitor {
             private final Map<DensityFunction, DensityFunction> wrapped = new HashMap<>();
 
             private RandomSource newLegacyInstance(long p_224592_) {
-                return new LegacyRandomSource(p_224558_ + p_224592_);
+                return new LegacyRandomSource(pLegacyLevelSeed + p_224592_);
             }
 
             public DensityFunction.NoiseHolder visitNoise(DensityFunction.NoiseHolder p_224594_) {
@@ -81,7 +81,7 @@ public final class RandomState {
                     RandomSource randomsource = flag ? this.newLegacyInstance(0L) : RandomState.this.random.fromHashOf(new ResourceLocation("terrain"));
                     return blendednoise.withNewRandom(randomsource);
                 } else {
-                    return (DensityFunction) (p_224596_ instanceof DensityFunctions.EndIslandDensityFunction ? new DensityFunctions.EndIslandDensityFunction(p_224558_) : p_224596_);
+                    return (DensityFunction) (p_224596_ instanceof DensityFunctions.EndIslandDensityFunction ? new DensityFunctions.EndIslandDensityFunction(pLegacyLevelSeed) : p_224596_);
                 }
             }
 
@@ -90,19 +90,19 @@ public final class RandomState {
             }
         }
 
-        this.router = p_224556_.noiseRouter().mapAll(new NoiseWiringHelper());
-        this.sampler = new Climate.Sampler(this.router.temperature(), this.router.vegetation(), this.router.continents(), this.router.erosion(), this.router.depth(), this.router.ridges(), p_224556_.spawnTarget());
+        this.router = pNoiseGeneratorSettings.noiseRouter().mapAll(new NoiseWiringHelper());
+        this.sampler = new Climate.Sampler(this.router.temperature(), this.router.vegetation(), this.router.continents(), this.router.erosion(), this.router.depth(), this.router.ridges(), pNoiseGeneratorSettings.spawnTarget());
     }
 
-    public NormalNoise getOrCreateNoise(ResourceKey<NormalNoise.NoiseParameters> p_224561_) {
-        return this.noiseIntances.computeIfAbsent(p_224561_, (p_224564_) -> {
-            return Noises.instantiate(this.noises, this.random, p_224561_);
+    public NormalNoise getOrCreateNoise(ResourceKey<NormalNoise.NoiseParameters> pResourceKey) {
+        return this.noiseIntances.computeIfAbsent(pResourceKey, (p_224564_) -> {
+            return Noises.instantiate(this.noises, this.random, pResourceKey);
         });
     }
 
-    public PositionalRandomFactory getOrCreateRandomFactory(ResourceLocation p_224566_) {
-        return this.positionalRandoms.computeIfAbsent(p_224566_, (p_224569_) -> {
-            return this.random.fromHashOf(p_224566_).forkPositional();
+    public PositionalRandomFactory getOrCreateRandomFactory(ResourceLocation pLocation) {
+        return this.positionalRandoms.computeIfAbsent(pLocation, (p_224569_) -> {
+            return this.random.fromHashOf(pLocation).forkPositional();
         });
     }
 

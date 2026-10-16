@@ -15,8 +15,8 @@ public class BubbleColumnAmbientSoundHandler implements AmbientSoundHandler {
     private boolean wasInBubbleColumn;
     private boolean firstTick = true;
 
-    public BubbleColumnAmbientSoundHandler(LocalPlayer p_119666_) {
-        this.player = p_119666_;
+    public BubbleColumnAmbientSoundHandler(LocalPlayer pPlayer) {
+        this.player = pPlayer;
     }
 
     public void tick() {

@@ -17,17 +17,17 @@ import net.minecraft.world.phys.HitResult;
 public class DragonFireball extends AbstractHurtingProjectile {
     public static final float SPLASH_RANGE = 4.0F;
 
-    public DragonFireball(EntityType<? extends DragonFireball> p_36892_, Level p_36893_) {
-        super(p_36892_, p_36893_);
+    public DragonFireball(EntityType<? extends DragonFireball> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public DragonFireball(Level p_36903_, LivingEntity p_36904_, double p_36905_, double p_36906_, double p_36907_) {
-        super(EntityType.DRAGON_FIREBALL, p_36904_, p_36905_, p_36906_, p_36907_, p_36903_);
+    public DragonFireball(Level pLevel, LivingEntity pShooter, double pOffsetX, double pOffsetY, double pOffsetZ) {
+        super(EntityType.DRAGON_FIREBALL, pShooter, pOffsetX, pOffsetY, pOffsetZ, pLevel);
     }
 
-    protected void onHit(HitResult p_36913_) {
-        super.onHit(p_36913_);
-        if (p_36913_.getType() != HitResult.Type.ENTITY || !this.ownedBy(((EntityHitResult) p_36913_).getEntity())) {
+    protected void onHit(HitResult pResult) {
+        super.onHit(pResult);
+        if (pResult.getType() != HitResult.Type.ENTITY || !this.ownedBy(((EntityHitResult) pResult).getEntity())) {
             if (!this.level.isClientSide) {
                 List<LivingEntity> list = this.getEntitiesInExactRange(LivingEntity.class,
                         this.getSectorBoundingBox().inflate(4.0D, 2.0D, 4.0D), livingentity -> true);
@@ -64,7 +64,7 @@ public class DragonFireball extends AbstractHurtingProjectile {
         return false;
     }
 
-    public boolean hurt(DamageSource p_36910_, float p_36911_) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
         return false;
     }
 

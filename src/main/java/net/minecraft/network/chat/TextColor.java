@@ -27,13 +27,13 @@ public final class TextColor {
     @Nullable
     private final String name;
 
-    private TextColor(int p_131263_, String p_131264_) {
-        this.value = p_131263_;
-        this.name = p_131264_;
+    private TextColor(int pValue, String pName) {
+        this.value = pValue;
+        this.name = pName;
     }
 
-    private TextColor(int p_131261_) {
-        this.value = p_131261_;
+    private TextColor(int pValue) {
+        this.value = pValue;
         this.name = null;
     }
 
@@ -49,11 +49,11 @@ public final class TextColor {
         return String.format(Locale.ROOT, "#%06X", this.value);
     }
 
-    public boolean equals(Object p_131279_) {
-        if (this == p_131279_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_131279_ != null && this.getClass() == p_131279_.getClass()) {
-            TextColor textcolor = (TextColor) p_131279_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            TextColor textcolor = (TextColor) pOther;
             return this.value == textcolor.value;
         } else {
             return false;
@@ -69,25 +69,25 @@ public final class TextColor {
     }
 
     @Nullable
-    public static TextColor fromLegacyFormat(ChatFormatting p_131271_) {
-        return LEGACY_FORMAT_TO_COLOR.get(p_131271_);
+    public static TextColor fromLegacyFormat(ChatFormatting pFormatting) {
+        return LEGACY_FORMAT_TO_COLOR.get(pFormatting);
     }
 
-    public static TextColor fromRgb(int p_131267_) {
-        return new TextColor(p_131267_);
+    public static TextColor fromRgb(int pColor) {
+        return new TextColor(pColor);
     }
 
     @Nullable
-    public static TextColor parseColor(String p_131269_) {
-        if (p_131269_.startsWith("#")) {
+    public static TextColor parseColor(String pHexString) {
+        if (pHexString.startsWith("#")) {
             try {
-                int i = Integer.parseInt(p_131269_.substring(1), 16);
+                int i = Integer.parseInt(pHexString.substring(1), 16);
                 return fromRgb(i);
             } catch (NumberFormatException numberformatexception) {
                 return null;
             }
         } else {
-            return NAMED_COLORS.get(p_131269_);
+            return NAMED_COLORS.get(pHexString);
         }
     }
 }

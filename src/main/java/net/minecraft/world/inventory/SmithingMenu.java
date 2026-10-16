@@ -17,21 +17,21 @@ public class SmithingMenu extends ItemCombinerMenu {
     private UpgradeRecipe selectedRecipe;
     private final List<UpgradeRecipe> recipes;
 
-    public SmithingMenu(int p_40245_, Inventory p_40246_) {
-        this(p_40245_, p_40246_, ContainerLevelAccess.NULL);
+    public SmithingMenu(int pContainerId, Inventory pPlayerInventory) {
+        this(pContainerId, pPlayerInventory, ContainerLevelAccess.NULL);
     }
 
-    public SmithingMenu(int p_40248_, Inventory p_40249_, ContainerLevelAccess p_40250_) {
-        super(MenuType.SMITHING, p_40248_, p_40249_, p_40250_);
-        this.level = p_40249_.player.level;
+    public SmithingMenu(int pContainerId, Inventory pPlayerInventory, ContainerLevelAccess pAccess) {
+        super(MenuType.SMITHING, pContainerId, pPlayerInventory, pAccess);
+        this.level = pPlayerInventory.player.level;
         this.recipes = this.level.getRecipeManager().getAllRecipesFor(RecipeType.SMITHING);
     }
 
-    protected boolean isValidBlock(BlockState p_40266_) {
-        return p_40266_.is(Blocks.SMITHING_TABLE);
+    protected boolean isValidBlock(BlockState pState) {
+        return pState.is(Blocks.SMITHING_TABLE);
     }
 
-    protected boolean mayPickup(Player p_40268_, boolean p_40269_) {
+    protected boolean mayPickup(Player pPlayer, boolean pHasStack) {
         return this.selectedRecipe != null && this.selectedRecipe.matches(this.inputSlots, this.level);
     }
 
@@ -45,10 +45,10 @@ public class SmithingMenu extends ItemCombinerMenu {
         });
     }
 
-    private void shrinkStackInSlot(int p_40271_) {
-        ItemStack itemstack = this.inputSlots.getItem(p_40271_);
+    private void shrinkStackInSlot(int pIndex) {
+        ItemStack itemstack = this.inputSlots.getItem(pIndex);
         itemstack.shrink(1);
-        this.inputSlots.setItem(p_40271_, itemstack);
+        this.inputSlots.setItem(pIndex, itemstack);
     }
 
     public void createResult() {
@@ -63,13 +63,13 @@ public class SmithingMenu extends ItemCombinerMenu {
         }
     }
 
-    protected boolean shouldQuickMoveToAdditionalSlot(ItemStack p_40255_) {
+    protected boolean shouldQuickMoveToAdditionalSlot(ItemStack pStack) {
         return this.recipes.stream().anyMatch((p_40261_) -> {
-            return p_40261_.isAdditionIngredient(p_40255_);
+            return p_40261_.isAdditionIngredient(pStack);
         });
     }
 
-    public boolean canTakeItemForPickAll(ItemStack p_40257_, Slot p_40258_) {
-        return p_40258_.container != this.resultSlots && super.canTakeItemForPickAll(p_40257_, p_40258_);
+    public boolean canTakeItemForPickAll(ItemStack pStack, Slot pSlot) {
+        return pSlot.container != this.resultSlots && super.canTakeItemForPickAll(pStack, pSlot);
     }
 }

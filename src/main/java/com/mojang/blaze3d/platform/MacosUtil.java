@@ -15,12 +15,12 @@ import org.lwjgl.glfw.GLFWNativeCocoa;
 public class MacosUtil {
     private static final int NS_FULL_SCREEN_WINDOW_MASK = 16384;
 
-    public static void toggleFullscreen(long p_182518_) {
-        getNsWindow(p_182518_).filter(MacosUtil::isInKioskMode).ifPresent(MacosUtil::toggleFullscreen);
+    public static void toggleFullscreen(long pWindowId) {
+        getNsWindow(pWindowId).filter(MacosUtil::isInKioskMode).ifPresent(MacosUtil::toggleFullscreen);
     }
 
-    private static Optional<NSObject> getNsWindow(long p_182522_) {
-        long i = GLFWNativeCocoa.glfwGetCocoaWindow(p_182522_);
+    private static Optional<NSObject> getNsWindow(long pWindowId) {
+        long i = GLFWNativeCocoa.glfwGetCocoaWindow(pWindowId);
         return i != 0L ? Optional.of(new NSObject(new Pointer(i))) : Optional.empty();
     }
 

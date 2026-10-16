@@ -21,12 +21,12 @@ public class SplashParticle extends WaterDropParticle {
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public Provider(SpriteSet p_107947_) {
-            this.sprite = p_107947_;
+        public Provider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_107958_, ClientLevel p_107959_, double p_107960_, double p_107961_, double p_107962_, double p_107963_, double p_107964_, double p_107965_) {
-            SplashParticle splashparticle = new SplashParticle(p_107959_, p_107960_, p_107961_, p_107962_, p_107963_, p_107964_, p_107965_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            SplashParticle splashparticle = new SplashParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
             splashparticle.pickSprite(this.sprite);
             return splashparticle;
         }

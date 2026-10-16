@@ -7,8 +7,8 @@ import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorPreset;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorPresets;
 
 public class FlatLevelGeneratorPresetTagsProvider extends TagsProvider<FlatLevelGeneratorPreset> {
-    public FlatLevelGeneratorPresetTagsProvider(DataGenerator p_236423_) {
-        super(p_236423_, BuiltinRegistries.FLAT_LEVEL_GENERATOR_PRESET);
+    public FlatLevelGeneratorPresetTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, BuiltinRegistries.FLAT_LEVEL_GENERATOR_PRESET);
     }
 
     protected void addTags() {

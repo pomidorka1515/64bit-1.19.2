@@ -15,11 +15,11 @@ public class WitherSkeletonRenderer extends SkeletonRenderer {
         super(p_174447_, ModelLayers.WITHER_SKELETON, ModelLayers.WITHER_SKELETON_INNER_ARMOR, ModelLayers.WITHER_SKELETON_OUTER_ARMOR);
     }
 
-    public ResourceLocation getTextureLocation(AbstractSkeleton p_116458_) {
+    public ResourceLocation getTextureLocation(AbstractSkeleton pEntity) {
         return WITHER_SKELETON_LOCATION;
     }
 
-    protected void scale(AbstractSkeleton p_116460_, PoseStack p_116461_, float p_116462_) {
-        p_116461_.scale(1.2F, 1.2F, 1.2F);
+    protected void scale(AbstractSkeleton pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
+        pMatrixStack.scale(1.2F, 1.2F, 1.2F);
     }
 }

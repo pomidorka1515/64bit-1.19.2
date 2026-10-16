@@ -12,8 +12,8 @@ public class VillagerMetaDataSection {
     public static final String SECTION_NAME = "villager";
     private final VillagerMetaDataSection.Hat hat;
 
-    public VillagerMetaDataSection(VillagerMetaDataSection.Hat p_119069_) {
-        this.hat = p_119069_;
+    public VillagerMetaDataSection(VillagerMetaDataSection.Hat pHat) {
+        this.hat = pHat;
     }
 
     public VillagerMetaDataSection.Hat getHat() {
@@ -39,8 +39,8 @@ public class VillagerMetaDataSection {
             return this.name;
         }
 
-        public static VillagerMetaDataSection.Hat getByName(String p_119086_) {
-            return BY_NAME.getOrDefault(p_119086_, NONE);
+        public static VillagerMetaDataSection.Hat getByName(String pName) {
+            return BY_NAME.getOrDefault(pName, NONE);
         }
     }
 }

@@ -49,31 +49,31 @@ public class AxolotlAi {
     private static final float SPEED_MULTIPLIER_WHEN_CHASING_IN_WATER = 0.6F;
     private static final float SPEED_MULTIPLIER_WHEN_FOLLOWING_ADULT_IN_WATER = 0.6F;
 
-    protected static Brain<?> makeBrain(Brain<Axolotl> p_149291_) {
-        initCoreActivity(p_149291_);
-        initIdleActivity(p_149291_);
-        initFightActivity(p_149291_);
-        initPlayDeadActivity(p_149291_);
-        p_149291_.setCoreActivities(ImmutableSet.of(Activity.CORE));
-        p_149291_.setDefaultActivity(Activity.IDLE);
-        p_149291_.useDefaultActivity();
-        return p_149291_;
+    protected static Brain<?> makeBrain(Brain<Axolotl> pBrain) {
+        initCoreActivity(pBrain);
+        initIdleActivity(pBrain);
+        initFightActivity(pBrain);
+        initPlayDeadActivity(pBrain);
+        pBrain.setCoreActivities(ImmutableSet.of(Activity.CORE));
+        pBrain.setDefaultActivity(Activity.IDLE);
+        pBrain.useDefaultActivity();
+        return pBrain;
     }
 
-    private static void initPlayDeadActivity(Brain<Axolotl> p_149297_) {
-        p_149297_.addActivityAndRemoveMemoriesWhenStopped(Activity.PLAY_DEAD, ImmutableList.of(Pair.of(0, new PlayDead()), Pair.of(1, new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.PLAY_DEAD_TICKS))), ImmutableSet.of(Pair.of(MemoryModuleType.PLAY_DEAD_TICKS, MemoryStatus.VALUE_PRESENT)), ImmutableSet.of(MemoryModuleType.PLAY_DEAD_TICKS));
+    private static void initPlayDeadActivity(Brain<Axolotl> pBrain) {
+        pBrain.addActivityAndRemoveMemoriesWhenStopped(Activity.PLAY_DEAD, ImmutableList.of(Pair.of(0, new PlayDead()), Pair.of(1, new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.PLAY_DEAD_TICKS))), ImmutableSet.of(Pair.of(MemoryModuleType.PLAY_DEAD_TICKS, MemoryStatus.VALUE_PRESENT)), ImmutableSet.of(MemoryModuleType.PLAY_DEAD_TICKS));
     }
 
-    private static void initFightActivity(Brain<Axolotl> p_149303_) {
-        p_149303_.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 0, ImmutableList.of(new StopAttackingIfTargetInvalid<>(Axolotl::onStopAttacking), new SetWalkTargetFromAttackTargetIfTargetOutOfReach(AxolotlAi::getSpeedModifierChasing), new MeleeAttack(20), new EraseMemoryIf<Axolotl>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)), MemoryModuleType.ATTACK_TARGET);
+    private static void initFightActivity(Brain<Axolotl> pBrain) {
+        pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 0, ImmutableList.of(new StopAttackingIfTargetInvalid<>(Axolotl::onStopAttacking), new SetWalkTargetFromAttackTargetIfTargetOutOfReach(AxolotlAi::getSpeedModifierChasing), new MeleeAttack(20), new EraseMemoryIf<Axolotl>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)), MemoryModuleType.ATTACK_TARGET);
     }
 
-    private static void initCoreActivity(Brain<Axolotl> p_149307_) {
-        p_149307_.addActivity(Activity.CORE, 0, ImmutableList.of(new LookAtTargetSink(45, 90), new MoveToTargetSink(), new ValidatePlayDead(), new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS)));
+    private static void initCoreActivity(Brain<Axolotl> pBrain) {
+        pBrain.addActivity(Activity.CORE, 0, ImmutableList.of(new LookAtTargetSink(45, 90), new MoveToTargetSink(), new ValidatePlayDead(), new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS)));
     }
 
-    private static void initIdleActivity(Brain<Axolotl> p_149309_) {
-        p_149309_.addActivity(Activity.IDLE, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(1, new AnimalMakeLove(EntityType.AXOLOTL, 0.2F)), Pair.of(2, new RunOne<>(ImmutableList.of(Pair.of(new FollowTemptation(AxolotlAi::getSpeedModifier), 1), Pair.of(new BabyFollowAdult<>(ADULT_FOLLOW_RANGE, AxolotlAi::getSpeedModifierFollowingAdult), 1)))), Pair.of(3, new StartAttacking<>(AxolotlAi::findNearestValidAttackTarget)), Pair.of(3, new TryFindWater(6, 0.15F)), Pair.of(4, new GateBehavior<>(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT), ImmutableSet.of(), GateBehavior.OrderPolicy.ORDERED, GateBehavior.RunningPolicy.TRY_ALL, ImmutableList.of(Pair.of(new RandomSwim(0.5F), 2), Pair.of(new RandomStroll(0.15F, false), 2), Pair.of(new SetWalkTargetFromLookTarget(AxolotlAi::canSetWalkTargetFromLookTarget, AxolotlAi::getSpeedModifier, 3), 3), Pair.of(new RunIf<>(Entity::isInWaterOrBubble, new DoNothing(30, 60)), 5), Pair.of(new RunIf<>(Entity::isOnGround, new DoNothing(200, 400)), 5))))));
+    private static void initIdleActivity(Brain<Axolotl> pBrain) {
+        pBrain.addActivity(Activity.IDLE, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(1, new AnimalMakeLove(EntityType.AXOLOTL, 0.2F)), Pair.of(2, new RunOne<>(ImmutableList.of(Pair.of(new FollowTemptation(AxolotlAi::getSpeedModifier), 1), Pair.of(new BabyFollowAdult<>(ADULT_FOLLOW_RANGE, AxolotlAi::getSpeedModifierFollowingAdult), 1)))), Pair.of(3, new StartAttacking<>(AxolotlAi::findNearestValidAttackTarget)), Pair.of(3, new TryFindWater(6, 0.15F)), Pair.of(4, new GateBehavior<>(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT), ImmutableSet.of(), GateBehavior.OrderPolicy.ORDERED, GateBehavior.RunningPolicy.TRY_ALL, ImmutableList.of(Pair.of(new RandomSwim(0.5F), 2), Pair.of(new RandomStroll(0.15F, false), 2), Pair.of(new SetWalkTargetFromLookTarget(AxolotlAi::canSetWalkTargetFromLookTarget, AxolotlAi::getSpeedModifier, 3), 3), Pair.of(new RunIf<>(Entity::isInWaterOrBubble, new DoNothing(30, 60)), 5), Pair.of(new RunIf<>(Entity::isOnGround, new DoNothing(200, 400)), 5))))));
     }
 
     private static boolean canSetWalkTargetFromLookTarget(LivingEntity p_182381_) {
@@ -87,8 +87,8 @@ public class AxolotlAi {
         }
     }
 
-    public static void updateActivity(Axolotl p_149293_) {
-        Brain<Axolotl> brain = p_149293_.getBrain();
+    public static void updateActivity(Axolotl pAxolotl) {
+        Brain<Axolotl> brain = pAxolotl.getBrain();
         Activity activity = brain.getActiveNonCoreActivity().orElse((Activity) null);
         if (activity != Activity.PLAY_DEAD) {
             brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.PLAY_DEAD, Activity.FIGHT, Activity.IDLE));

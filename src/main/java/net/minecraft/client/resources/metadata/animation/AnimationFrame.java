@@ -9,13 +9,13 @@ public class AnimationFrame {
     private final int index;
     private final int time;
 
-    public AnimationFrame(int p_119004_) {
-        this(p_119004_, -1);
+    public AnimationFrame(int pIndex) {
+        this(pIndex, -1);
     }
 
-    public AnimationFrame(int p_119006_, int p_119007_) {
-        this.index = p_119006_;
-        this.time = p_119007_;
+    public AnimationFrame(int pIndex, int pTime) {
+        this.index = pIndex;
+        this.time = pTime;
     }
 
     public int getTime(int p_174857_) {

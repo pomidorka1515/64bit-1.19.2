@@ -26,18 +26,18 @@ public class EntityPositionSource implements PositionSource {
     private Either<Entity, Either<UUID, Integer>> entityOrUuidOrId;
     final float yOffset;
 
-    public EntityPositionSource(Entity p_223648_, float p_223649_) {
-        this(Either.left(p_223648_), p_223649_);
+    public EntityPositionSource(Entity pEntity, float pYOffset) {
+        this(Either.left(pEntity), pYOffset);
     }
 
-    EntityPositionSource(Either<Entity, Either<UUID, Integer>> p_223651_, float p_223652_) {
-        this.entityOrUuidOrId = p_223651_;
-        this.yOffset = p_223652_;
+    EntityPositionSource(Either<Entity, Either<UUID, Integer>> pEntityOrUuidOrId, float pYOffset) {
+        this.entityOrUuidOrId = pEntityOrUuidOrId;
+        this.yOffset = pYOffset;
     }
 
-    public Optional<Vec3> getPosition(Level p_157733_) {
+    public Optional<Vec3> getPosition(Level pLevel) {
         if (this.entityOrUuidOrId.left().isEmpty()) {
-            this.resolveEntity(p_157733_);
+            this.resolveEntity(pLevel);
         }
 
         return this.entityOrUuidOrId.left().map((p_223676_) -> {
@@ -57,18 +57,18 @@ public class EntityPositionSource implements PositionSource {
         });
     }
 
-    private void resolveEntity(Level p_223678_) {
+    private void resolveEntity(Level pLevel) {
         this.entityOrUuidOrId.map(Optional::of, (p_223657_) -> {
                                  return Optional.ofNullable(p_223657_.map((p_223660_) -> {
                                      Entity entity;
-                                     if (p_223678_ instanceof ServerLevel serverlevel) {
+                                     if (pLevel instanceof ServerLevel serverlevel) {
                                          entity = serverlevel.getEntity(p_223660_);
                                      } else {
                                          entity = null;
                                      }
 
                                      return entity;
-                                 }, p_223678_::getEntity));
+                                 }, pLevel::getEntity));
                              }).ifPresent((p_223654_) -> {
             this.entityOrUuidOrId = Either.left(p_223654_);
         });

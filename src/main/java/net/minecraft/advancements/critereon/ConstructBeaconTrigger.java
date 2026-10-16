@@ -11,39 +11,39 @@ public class ConstructBeaconTrigger extends SimpleCriterionTrigger<ConstructBeac
         return ID;
     }
 
-    public ConstructBeaconTrigger.TriggerInstance createInstance(JsonObject p_22753_, EntityPredicate.Composite p_22754_, DeserializationContext p_22755_) {
-        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(p_22753_.get("level"));
-        return new ConstructBeaconTrigger.TriggerInstance(p_22754_, minmaxbounds$ints);
+    public ConstructBeaconTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(pJson.get("level"));
+        return new ConstructBeaconTrigger.TriggerInstance(pEntityPredicate, minmaxbounds$ints);
     }
 
-    public void trigger(ServerPlayer p_148030_, int p_148031_) {
-        this.trigger(p_148030_, (p_148028_) -> {
-            return p_148028_.matches(p_148031_);
+    public void trigger(ServerPlayer pPlayer, int pLevel) {
+        this.trigger(pPlayer, (p_148028_) -> {
+            return p_148028_.matches(pLevel);
         });
     }
 
     public static class TriggerInstance extends AbstractCriterionTriggerInstance {
         private final MinMaxBounds.Ints level;
 
-        public TriggerInstance(EntityPredicate.Composite p_22763_, MinMaxBounds.Ints p_22764_) {
-            super(ConstructBeaconTrigger.ID, p_22763_);
-            this.level = p_22764_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, MinMaxBounds.Ints pLevel) {
+            super(ConstructBeaconTrigger.ID, pPlayer);
+            this.level = pLevel;
         }
 
         public static ConstructBeaconTrigger.TriggerInstance constructedBeacon() {
             return new ConstructBeaconTrigger.TriggerInstance(EntityPredicate.Composite.ANY, MinMaxBounds.Ints.ANY);
         }
 
-        public static ConstructBeaconTrigger.TriggerInstance constructedBeacon(MinMaxBounds.Ints p_22766_) {
-            return new ConstructBeaconTrigger.TriggerInstance(EntityPredicate.Composite.ANY, p_22766_);
+        public static ConstructBeaconTrigger.TriggerInstance constructedBeacon(MinMaxBounds.Ints pLevel) {
+            return new ConstructBeaconTrigger.TriggerInstance(EntityPredicate.Composite.ANY, pLevel);
         }
 
-        public boolean matches(int p_148033_) {
-            return this.level.matches(p_148033_);
+        public boolean matches(int pLevel) {
+            return this.level.matches(pLevel);
         }
 
-        public JsonObject serializeToJson(SerializationContext p_22770_) {
-            JsonObject jsonobject = super.serializeToJson(p_22770_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             jsonobject.add("level", this.level.serializeToJson());
             return jsonobject;
         }

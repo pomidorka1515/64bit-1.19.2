@@ -14,8 +14,8 @@ import java.util.Optional;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class ItemStackMapIdFix extends DataFix {
-    public ItemStackMapIdFix(Schema p_16088_, boolean p_16089_) {
-        super(p_16088_, p_16089_);
+    public ItemStackMapIdFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

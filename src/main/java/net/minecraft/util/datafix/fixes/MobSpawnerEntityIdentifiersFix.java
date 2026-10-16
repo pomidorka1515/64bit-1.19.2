@@ -14,8 +14,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class MobSpawnerEntityIdentifiersFix extends DataFix {
-    public MobSpawnerEntityIdentifiersFix(Schema p_16451_, boolean p_16452_) {
-        super(p_16451_, p_16452_);
+    public MobSpawnerEntityIdentifiersFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     private Dynamic<?> fix(Dynamic<?> p_16457_) {

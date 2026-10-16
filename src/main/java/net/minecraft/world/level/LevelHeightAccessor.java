@@ -24,34 +24,34 @@ public interface LevelHeightAccessor {
         return SectionPos.blockToSectionCoord(this.getMaxBuildHeight() - 1) + 1;
     }
 
-    default boolean isOutsideBuildHeight(BlockPos p_151571_) {
-        return this.isOutsideBuildHeight(p_151571_.getY());
+    default boolean isOutsideBuildHeight(BlockPos pPos) {
+        return this.isOutsideBuildHeight(pPos.getY());
     }
 
-    default boolean isOutsideBuildHeight(int p_151563_) {
-        return p_151563_ < this.getMinBuildHeight() || p_151563_ >= this.getMaxBuildHeight();
+    default boolean isOutsideBuildHeight(int pY) {
+        return pY < this.getMinBuildHeight() || pY >= this.getMaxBuildHeight();
     }
 
-    default int getSectionIndex(int p_151565_) {
-        return this.getSectionIndexFromSectionY(SectionPos.blockToSectionCoord(p_151565_));
+    default int getSectionIndex(int pY) {
+        return this.getSectionIndexFromSectionY(SectionPos.blockToSectionCoord(pY));
     }
 
-    default int getSectionIndexFromSectionY(int p_151567_) {
-        return p_151567_ - this.getMinSection();
+    default int getSectionIndexFromSectionY(int pSectionIndex) {
+        return pSectionIndex - this.getMinSection();
     }
 
-    default int getSectionYFromSectionIndex(int p_151569_) {
-        return p_151569_ + this.getMinSection();
+    default int getSectionYFromSectionIndex(int pSectionIndex) {
+        return pSectionIndex + this.getMinSection();
     }
 
-    static LevelHeightAccessor create(final int p_186488_, final int p_186489_) {
+    static LevelHeightAccessor create(final int pMinBuildHeight, final int pHeight) {
         return new LevelHeightAccessor() {
             public int getHeight() {
-                return p_186489_;
+                return pHeight;
             }
 
             public int getMinBuildHeight() {
-                return p_186488_;
+                return pMinBuildHeight;
             }
         };
     }

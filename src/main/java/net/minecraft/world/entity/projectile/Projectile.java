@@ -32,14 +32,14 @@ public abstract class Projectile extends Entity {
     private boolean leftOwner;
     private boolean hasBeenShot;
 
-    Projectile(EntityType<? extends Projectile> p_37248_, Level p_37249_) {
-        super(p_37248_, p_37249_);
+    Projectile(EntityType<? extends Projectile> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public void setOwner(@Nullable Entity p_37263_) {
-        if (p_37263_ != null) {
-            this.ownerUUID = p_37263_.getUUID();
-            this.cachedOwner = p_37263_;
+    public void setOwner(@Nullable Entity pOwner) {
+        if (pOwner != null) {
+            this.ownerUUID = pOwner.getUUID();
+            this.cachedOwner = pOwner;
         }
     }
 
@@ -59,29 +59,29 @@ public abstract class Projectile extends Entity {
         return MoreObjects.firstNonNull(this.getOwner(), this);
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_37265_) {
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
         if (this.ownerUUID != null) {
-            p_37265_.putUUID("Owner", this.ownerUUID);
+            pCompound.putUUID("Owner", this.ownerUUID);
         }
 
         if (this.leftOwner) {
-            p_37265_.putBoolean("LeftOwner", true);
+            pCompound.putBoolean("LeftOwner", true);
         }
 
-        p_37265_.putBoolean("HasBeenShot", this.hasBeenShot);
+        pCompound.putBoolean("HasBeenShot", this.hasBeenShot);
     }
 
-    protected boolean ownedBy(Entity p_150172_) {
-        return p_150172_.getUUID().equals(this.ownerUUID);
+    protected boolean ownedBy(Entity pEntity) {
+        return pEntity.getUUID().equals(this.ownerUUID);
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_37262_) {
-        if (p_37262_.hasUUID("Owner")) {
-            this.ownerUUID = p_37262_.getUUID("Owner");
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        if (pCompound.hasUUID("Owner")) {
+            this.ownerUUID = pCompound.getUUID("Owner");
         }
 
-        this.leftOwner = p_37262_.getBoolean("LeftOwner");
-        this.hasBeenShot = p_37262_.getBoolean("HasBeenShot");
+        this.leftOwner = pCompound.getBoolean("LeftOwner");
+        this.hasBeenShot = pCompound.getBoolean("HasBeenShot");
     }
 
     public void tick() {
@@ -114,8 +114,8 @@ public abstract class Projectile extends Entity {
         return true;
     }
 
-    public void shoot(double p_37266_, double p_37267_, double p_37268_, float p_37269_, float p_37270_) {
-        Vec3 vec3 = (new Vec3(p_37266_, p_37267_, p_37268_)).normalize().add(this.random.triangle(0.0D, 0.0172275D * (double) p_37270_), this.random.triangle(0.0D, 0.0172275D * (double) p_37270_), this.random.triangle(0.0D, 0.0172275D * (double) p_37270_)).scale((double) p_37269_);
+    public void shoot(double pX, double pY, double pZ, float pVelocity, float pInaccuracy) {
+        Vec3 vec3 = (new Vec3(pX, pY, pZ)).normalize().add(this.random.triangle(0.0D, 0.0172275D * (double) pInaccuracy), this.random.triangle(0.0D, 0.0172275D * (double) pInaccuracy), this.random.triangle(0.0D, 0.0172275D * (double) pInaccuracy)).scale((double) pVelocity);
         this.setDeltaMovement(vec3);
         double d0 = vec3.horizontalDistance();
         this.setYRot((float) (Mth.atan2(vec3.x, vec3.z) * (double) (180F / (float) Math.PI)));
@@ -124,52 +124,52 @@ public abstract class Projectile extends Entity {
         this.xRotO = this.getXRot();
     }
 
-    public void shootFromRotation(Entity p_37252_, float p_37253_, float p_37254_, float p_37255_, float p_37256_, float p_37257_) {
-        float f = -Mth.sin(p_37254_ * ((float) Math.PI / 180F)) * Mth.cos(p_37253_ * ((float) Math.PI / 180F));
-        float f1 = -Mth.sin((p_37253_ + p_37255_) * ((float) Math.PI / 180F));
-        float f2 = Mth.cos(p_37254_ * ((float) Math.PI / 180F)) * Mth.cos(p_37253_ * ((float) Math.PI / 180F));
-        this.shoot((double) f, (double) f1, (double) f2, p_37256_, p_37257_);
-        Vec3 vec3 = p_37252_.getDeltaMovement();
-        this.setDeltaMovement(this.getDeltaMovement().add(vec3.x, p_37252_.isOnGround() ? 0.0D : vec3.y, vec3.z));
+    public void shootFromRotation(Entity pShooter, float pX, float pY, float pZ, float pVelocity, float pInaccuracy) {
+        float f = -Mth.sin(pY * ((float) Math.PI / 180F)) * Mth.cos(pX * ((float) Math.PI / 180F));
+        float f1 = -Mth.sin((pX + pZ) * ((float) Math.PI / 180F));
+        float f2 = Mth.cos(pY * ((float) Math.PI / 180F)) * Mth.cos(pX * ((float) Math.PI / 180F));
+        this.shoot((double) f, (double) f1, (double) f2, pVelocity, pInaccuracy);
+        Vec3 vec3 = pShooter.getDeltaMovement();
+        this.setDeltaMovement(this.getDeltaMovement().add(vec3.x, pShooter.isOnGround() ? 0.0D : vec3.y, vec3.z));
     }
 
-    protected void onHit(HitResult p_37260_) {
-        HitResult.Type hitresult$type = p_37260_.getType();
+    protected void onHit(HitResult pResult) {
+        HitResult.Type hitresult$type = pResult.getType();
         if (hitresult$type == HitResult.Type.ENTITY) {
-            this.onHitEntity((EntityHitResult) p_37260_);
-            this.level.gameEvent(GameEvent.PROJECTILE_LAND, p_37260_.getLocation(), GameEvent.Context.of(this, (BlockState) null));
+            this.onHitEntity((EntityHitResult) pResult);
+            this.level.gameEvent(GameEvent.PROJECTILE_LAND, pResult.getLocation(), GameEvent.Context.of(this, (BlockState) null));
         } else if (hitresult$type == HitResult.Type.BLOCK) {
-            BlockHitResult blockhitresult = (BlockHitResult) p_37260_;
+            BlockHitResult blockhitresult = (BlockHitResult) pResult;
             this.onHitBlock(blockhitresult);
             BlockPos blockpos = blockhitresult.getBlockPos();
             this.level.gameEvent(GameEvent.PROJECTILE_LAND, blockpos, GameEvent.Context.of(this, this.level.getBlockState(blockpos)));
         }
     }
 
-    protected void onHitEntity(EntityHitResult p_37259_) {
+    protected void onHitEntity(EntityHitResult pResult) {
     }
 
-    protected void onHitBlock(BlockHitResult p_37258_) {
-        BlockState blockstate = this.level.getBlockState(p_37258_.getBlockPos());
-        blockstate.onProjectileHit(this.level, blockstate, p_37258_, this);
+    protected void onHitBlock(BlockHitResult pResult) {
+        BlockState blockstate = this.level.getBlockState(pResult.getBlockPos());
+        blockstate.onProjectileHit(this.level, blockstate, pResult, this);
     }
 
-    public void lerpMotion(double p_37279_, double p_37280_, double p_37281_) {
-        this.setDeltaMovement(p_37279_, p_37280_, p_37281_);
+    public void lerpMotion(double pX, double pY, double pZ) {
+        this.setDeltaMovement(pX, pY, pZ);
         if (this.xRotO == 0.0F && this.yRotO == 0.0F) {
-            double d0 = Math.sqrt(p_37279_ * p_37279_ + p_37281_ * p_37281_);
-            this.setXRot((float) (Mth.atan2(p_37280_, d0) * (double) (180F / (float) Math.PI)));
-            this.setYRot((float) (Mth.atan2(p_37279_, p_37281_) * (double) (180F / (float) Math.PI)));
+            double d0 = Math.sqrt(pX * pX + pZ * pZ);
+            this.setXRot((float) (Mth.atan2(pY, d0) * (double) (180F / (float) Math.PI)));
+            this.setYRot((float) (Mth.atan2(pX, pZ) * (double) (180F / (float) Math.PI)));
             this.xRotO = this.getXRot();
             this.yRotO = this.getYRot();
             this.moveTo(this.sectorPosition(), this.getYRot(), this.getXRot());
         }
     }
 
-    protected boolean canHitEntity(Entity p_37250_) {
-        if (!p_37250_.isSpectator() && p_37250_.isAlive() && p_37250_.isPickable()) {
+    protected boolean canHitEntity(Entity pTarget) {
+        if (!pTarget.isSpectator() && pTarget.isAlive() && pTarget.isPickable()) {
             Entity entity = this.getOwner();
-            return entity == null || this.leftOwner || !entity.isPassengerOfSameVehicle(p_37250_);
+            return entity == null || this.leftOwner || !entity.isPassengerOfSameVehicle(pTarget);
         } else {
             return false;
         }
@@ -182,16 +182,16 @@ public abstract class Projectile extends Entity {
         this.setYRot(lerpRotation(this.yRotO, (float) (Mth.atan2(vec3.x, vec3.z) * (double) (180F / (float) Math.PI))));
     }
 
-    protected static float lerpRotation(float p_37274_, float p_37275_) {
-        while (p_37275_ - p_37274_ < -180.0F) {
-            p_37274_ -= 360.0F;
+    protected static float lerpRotation(float pCurrentRotation, float pTargetRotation) {
+        while (pTargetRotation - pCurrentRotation < -180.0F) {
+            pCurrentRotation -= 360.0F;
         }
 
-        while (p_37275_ - p_37274_ >= 180.0F) {
-            p_37274_ += 360.0F;
+        while (pTargetRotation - pCurrentRotation >= 180.0F) {
+            pCurrentRotation += 360.0F;
         }
 
-        return Mth.lerp(0.2F, p_37274_, p_37275_);
+        return Mth.lerp(0.2F, pCurrentRotation, pTargetRotation);
     }
 
     public Packet<?> getAddEntityPacket() {
@@ -199,20 +199,20 @@ public abstract class Projectile extends Entity {
         return new ClientboundAddEntityPacket(this, entity == null ? 0 : entity.getId());
     }
 
-    public void recreateFromPacket(ClientboundAddEntityPacket p_150170_) {
-        super.recreateFromPacket(p_150170_);
-        Entity entity = this.level.getEntity(p_150170_.getData());
+    public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
+        super.recreateFromPacket(pPacket);
+        Entity entity = this.level.getEntity(pPacket.getData());
         if (entity != null) {
             this.setOwner(entity);
         }
     }
 
-    public boolean mayInteract(Level p_150167_, BlockPos p_150168_) {
+    public boolean mayInteract(Level pLevel, BlockPos pPos) {
         Entity entity = this.getOwner();
         if (entity instanceof Player) {
-            return entity.mayInteract(p_150167_, p_150168_);
+            return entity.mayInteract(pLevel, pPos);
         } else {
-            return entity == null || p_150167_.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING);
+            return entity == null || pLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING);
         }
     }
 }

@@ -150,12 +150,12 @@ public class ProfileKeyPairManager {
         }
     }
 
-    private static ProfilePublicKey.Data parsePublicKey(KeyPairResponse p_233783_) throws CryptException {
-        if (!Strings.isNullOrEmpty(p_233783_.getPublicKey()) && p_233783_.getPublicKeySignature() != null && p_233783_.getPublicKeySignature().array().length != 0) {
+    private static ProfilePublicKey.Data parsePublicKey(KeyPairResponse pResponse) throws CryptException {
+        if (!Strings.isNullOrEmpty(pResponse.getPublicKey()) && pResponse.getPublicKeySignature() != null && pResponse.getPublicKeySignature().array().length != 0) {
             try {
-                Instant instant = Instant.parse(p_233783_.getExpiresAt());
-                PublicKey publickey = Crypt.stringToRsaPublicKey(p_233783_.getPublicKey());
-                ByteBuffer bytebuffer = p_233783_.getPublicKeySignature();
+                Instant instant = Instant.parse(pResponse.getExpiresAt());
+                PublicKey publickey = Crypt.stringToRsaPublicKey(pResponse.getPublicKey());
+                ByteBuffer bytebuffer = pResponse.getPublicKeySignature();
                 return new ProfilePublicKey.Data(instant, publickey, bytebuffer.array());
             } catch (IllegalArgumentException | DateTimeException datetimeexception) {
                 throw new CryptException(datetimeexception);
@@ -178,8 +178,8 @@ public class ProfileKeyPairManager {
 
     @OnlyIn(Dist.CLIENT)
     static record Result(ProfileKeyPair keyPair, Signer signer) {
-        public Result(ProfileKeyPair p_243382_) {
-            this(p_243382_, Signer.from(p_243382_.privateKey(), "SHA256withRSA"));
+        public Result(ProfileKeyPair pKeyPair) {
+            this(pKeyPair, Signer.from(pKeyPair.privateKey(), "SHA256withRSA"));
         }
     }
 }

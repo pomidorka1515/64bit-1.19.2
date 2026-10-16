@@ -39,7 +39,7 @@ public class EndTag implements Tag {
     private EndTag() {
     }
 
-    public void write(DataOutput p_128539_) throws IOException {
+    public void write(DataOutput pOutput) throws IOException {
     }
 
     public byte getId() {
@@ -58,11 +58,11 @@ public class EndTag implements Tag {
         return this;
     }
 
-    public void accept(TagVisitor p_177863_) {
-        p_177863_.visitEnd(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitEnd(this);
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197458_) {
-        return p_197458_.visitEnd();
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visitEnd();
     }
 }

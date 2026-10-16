@@ -17,9 +17,9 @@ public class DefendVillageTargetGoal extends TargetGoal {
     private LivingEntity potentialTarget;
     private final TargetingConditions attackTargeting = TargetingConditions.forCombat().range(64.0D);
 
-    public DefendVillageTargetGoal(IronGolem p_26029_) {
-        super(p_26029_, false, true);
-        this.golem = p_26029_;
+    public DefendVillageTargetGoal(IronGolem pGolem) {
+        super(pGolem, false, true);
+        this.golem = pGolem;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
     }
 

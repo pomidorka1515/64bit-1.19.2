@@ -15,14 +15,14 @@ public enum TickPriority {
         this.value = p_193444_;
     }
 
-    public static TickPriority byValue(int p_193447_) {
+    public static TickPriority byValue(int pPriority) {
         for (TickPriority tickpriority : values()) {
-            if (tickpriority.value == p_193447_) {
+            if (tickpriority.value == pPriority) {
                 return tickpriority;
             }
         }
 
-        return p_193447_ < EXTREMELY_HIGH.value ? EXTREMELY_HIGH : EXTREMELY_LOW;
+        return pPriority < EXTREMELY_HIGH.value ? EXTREMELY_HIGH : EXTREMELY_LOW;
     }
 
     public int getValue() {

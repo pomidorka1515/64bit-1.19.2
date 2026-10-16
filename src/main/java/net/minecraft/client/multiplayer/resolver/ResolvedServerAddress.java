@@ -14,22 +14,22 @@ public interface ResolvedServerAddress {
 
     InetSocketAddress asInetSocketAddress();
 
-    static ResolvedServerAddress from(final InetSocketAddress p_171846_) {
+    static ResolvedServerAddress from(final InetSocketAddress pInetSocketAddress) {
         return new ResolvedServerAddress() {
             public String getHostName() {
-                return p_171846_.getAddress().getHostName();
+                return pInetSocketAddress.getAddress().getHostName();
             }
 
             public String getHostIp() {
-                return p_171846_.getAddress().getHostAddress();
+                return pInetSocketAddress.getAddress().getHostAddress();
             }
 
             public int getPort() {
-                return p_171846_.getPort();
+                return pInetSocketAddress.getPort();
             }
 
             public InetSocketAddress asInetSocketAddress() {
-                return p_171846_;
+                return pInetSocketAddress;
             }
         };
     }

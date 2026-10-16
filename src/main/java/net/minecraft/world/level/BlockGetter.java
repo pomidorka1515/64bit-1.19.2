@@ -22,31 +22,31 @@ public interface BlockGetter extends LevelHeightAccessor {
     /** Prevents an unbounded DDA from monopolizing the server tick thread. */
     int MAX_RAYCAST_STEPS = 4096;
     @Nullable
-    BlockEntity getBlockEntity(BlockPos p_45570_);
+    BlockEntity getBlockEntity(BlockPos pPos);
 
-    default<T extends BlockEntity> Optional<T> getBlockEntity(BlockPos p_151367_, BlockEntityType<T> p_151368_) {
-        BlockEntity blockentity = this.getBlockEntity(p_151367_);
-        return blockentity != null && blockentity.getType() == p_151368_ ? Optional.of((T) blockentity) : Optional.empty();
+    default<T extends BlockEntity> Optional<T> getBlockEntity(BlockPos pPos, BlockEntityType<T> pBlockEntityType) {
+        BlockEntity blockentity = this.getBlockEntity(pPos);
+        return blockentity != null && blockentity.getType() == pBlockEntityType ? Optional.of((T) blockentity) : Optional.empty();
     }
 
     BlockState getBlockState(BlockPos p_45571_);
 
-    FluidState getFluidState(BlockPos p_45569_);
+    FluidState getFluidState(BlockPos pPos);
 
-    default int getLightEmission(BlockPos p_45572_) {
-        return this.getBlockState(p_45572_).getLightEmission();
+    default int getLightEmission(BlockPos pPos) {
+        return this.getBlockState(pPos).getLightEmission();
     }
 
     default int getMaxLightLevel() {
         return 15;
     }
 
-    default Stream<BlockState> getBlockStates(AABB p_45557_) {
-        return BlockPos.betweenClosedStream(p_45557_).map(this::getBlockState);
+    default Stream<BlockState> getBlockStates(AABB pArea) {
+        return BlockPos.betweenClosedStream(pArea).map(this::getBlockState);
     }
 
-    default BlockHitResult isBlockInLine(ClipBlockStateContext p_151354_) {
-        return traverseBlocks(p_151354_.getFrom(), p_151354_.getTo(), p_151354_, (p_151356_, p_151357_) -> {
+    default BlockHitResult isBlockInLine(ClipBlockStateContext pContext) {
+        return traverseBlocks(pContext.getFrom(), pContext.getTo(), pContext, (p_151356_, p_151357_) -> {
          BlockState blockstate = this.getBlockState(p_151357_);
          Vec3 vec3 = p_151356_.getFrom().subtract(p_151356_.getTo());
          return p_151356_.isTargetBlock().test(blockstate) ? new BlockHitResult(p_151356_.getTo(), Direction.getNearest(vec3.x, vec3.y, vec3.z), new BlockPos(p_151356_.getTo()), false) : null; }, (p_151370_) -> {
@@ -54,8 +54,8 @@ public interface BlockGetter extends LevelHeightAccessor {
          return BlockHitResult.miss(p_151370_.getTo(), Direction.getNearest(vec3.x, vec3.y, vec3.z), new BlockPos(p_151370_.getTo())); });
     }
 
-    default BlockHitResult clip(ClipContext p_45548_) {
-        return traverseBlocks(p_45548_.getFrom(), p_45548_.getTo(), p_45548_, (p_151359_, p_151360_) -> {
+    default BlockHitResult clip(ClipContext pContext) {
+        return traverseBlocks(pContext.getFrom(), pContext.getTo(), pContext, (p_151359_, p_151360_) -> {
          BlockState blockstate = this.getBlockState(p_151360_);
          FluidState fluidstate = this.getFluidState(p_151360_);
          Vec3 vec3 = p_151359_.getFrom();
@@ -72,11 +72,11 @@ public interface BlockGetter extends LevelHeightAccessor {
     }
 
     @Nullable
-    default BlockHitResult clipWithInteractionOverride(Vec3 p_45559_, Vec3 p_45560_, BlockPos p_45561_, VoxelShape p_45562_, BlockState p_45563_) {
-        BlockHitResult blockhitresult = p_45562_.clip(p_45559_, p_45560_, p_45561_);
+    default BlockHitResult clipWithInteractionOverride(Vec3 pStartVec, Vec3 pEndVec, BlockPos pPos, VoxelShape pShape, BlockState pState) {
+        BlockHitResult blockhitresult = pShape.clip(pStartVec, pEndVec, pPos);
         if (blockhitresult != null) {
-            BlockHitResult blockhitresult1 = p_45563_.getInteractionShape(this, p_45561_).clip(p_45559_, p_45560_, p_45561_);
-            if (blockhitresult1 != null && blockhitresult1.getLocation().subtract(p_45559_).lengthSqr() < blockhitresult.getLocation().subtract(p_45559_).lengthSqr()) {
+            BlockHitResult blockhitresult1 = pState.getInteractionShape(this, pPos).clip(pStartVec, pEndVec, pPos);
+            if (blockhitresult1 != null && blockhitresult1.getLocation().subtract(pStartVec).lengthSqr() < blockhitresult.getLocation().subtract(pStartVec).lengthSqr()) {
                 return blockhitresult.withDirection(blockhitresult1.getDirection());
             }
         }
@@ -84,37 +84,37 @@ public interface BlockGetter extends LevelHeightAccessor {
         return blockhitresult;
     }
 
-    default double getBlockFloorHeight(VoxelShape p_45565_, Supplier<VoxelShape> p_45566_) {
-        if (!p_45565_.isEmpty()) {
-            return p_45565_.max(Direction.Axis.Y);
+    default double getBlockFloorHeight(VoxelShape pShape, Supplier<VoxelShape> pBelowShapeSupplier) {
+        if (!pShape.isEmpty()) {
+            return pShape.max(Direction.Axis.Y);
         } else {
-            double d0 = p_45566_.get().max(Direction.Axis.Y);
+            double d0 = pBelowShapeSupplier.get().max(Direction.Axis.Y);
             return d0 >= 1.0D ? d0 - 1.0D : Double.NEGATIVE_INFINITY;
         }
     }
 
-    default double getBlockFloorHeight(BlockPos p_45574_) {
-        return this.getBlockFloorHeight(this.getBlockState(p_45574_).getCollisionShape(this, p_45574_), () -> {
-            BlockPos blockpos = p_45574_.below();
+    default double getBlockFloorHeight(BlockPos pPos) {
+        return this.getBlockFloorHeight(this.getBlockState(pPos).getCollisionShape(this, pPos), () -> {
+            BlockPos blockpos = pPos.below();
             return this.getBlockState(blockpos).getCollisionShape(this, blockpos);
         });
     }
 
-    static <T, C> T traverseBlocks(Vec3 p_151362_, Vec3 p_151363_, C p_151364_, BiFunction<C, BlockPos, T> p_151365_, Function<C, T> p_151366_) {
-        if (p_151362_.equals(p_151363_)) {
-            return p_151366_.apply(p_151364_);
+    static <T, C> T traverseBlocks(Vec3 pFrom, Vec3 pTo, C pContext, BiFunction<C, BlockPos, T> pTester, Function<C, T> pOnFail) {
+        if (pFrom.equals(pTo)) {
+            return pOnFail.apply(pContext);
         } else {
-            double d0 = Mth.lerp(-1.0E-7D, p_151363_.x, p_151362_.x);
-            double d1 = Mth.lerp(-1.0E-7D, p_151363_.y, p_151362_.y);
-            double d2 = Mth.lerp(-1.0E-7D, p_151363_.z, p_151362_.z);
-            double d3 = Mth.lerp(-1.0E-7D, p_151362_.x, p_151363_.x);
-            double d4 = Mth.lerp(-1.0E-7D, p_151362_.y, p_151363_.y);
-            double d5 = Mth.lerp(-1.0E-7D, p_151362_.z, p_151363_.z);
+            double d0 = Mth.lerp(-1.0E-7D, pTo.x, pFrom.x);
+            double d1 = Mth.lerp(-1.0E-7D, pTo.y, pFrom.y);
+            double d2 = Mth.lerp(-1.0E-7D, pTo.z, pFrom.z);
+            double d3 = Mth.lerp(-1.0E-7D, pFrom.x, pTo.x);
+            double d4 = Mth.lerp(-1.0E-7D, pFrom.y, pTo.y);
+            double d5 = Mth.lerp(-1.0E-7D, pFrom.z, pTo.z);
             long i = Mth.lfloor(d3);
             int j = Mth.floor(d4);
             long k = Mth.lfloor(d5);
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(i, j, k);
-            T t = p_151365_.apply(p_151364_, blockpos$mutableblockpos);
+            T t = pTester.apply(pContext, blockpos$mutableblockpos);
             if (t != null) {
                 return t;
             } else {
@@ -149,13 +149,13 @@ public interface BlockGetter extends LevelHeightAccessor {
                         d14 += d11;
                     }
 
-                    T t1 = p_151365_.apply(p_151364_, blockpos$mutableblockpos.set(i, j, k));
+                    T t1 = pTester.apply(pContext, blockpos$mutableblockpos.set(i, j, k));
                     if (t1 != null) {
                         return t1;
                     }
                 }
 
-                return p_151366_.apply(p_151364_);
+                return pOnFail.apply(pContext);
             }
         }
     }

@@ -55,22 +55,22 @@ public final class BelowZeroRetrogen {
     }
 
     @Nullable
-    public static BelowZeroRetrogen read(CompoundTag p_188486_) {
-        ChunkStatus chunkstatus = ChunkStatus.byName(p_188486_.getString("target_status"));
-        return chunkstatus == ChunkStatus.EMPTY ? null : new BelowZeroRetrogen(chunkstatus, Optional.of(BitSet.valueOf(p_188486_.getLongArray("missing_bedrock"))));
+    public static BelowZeroRetrogen read(CompoundTag pTag) {
+        ChunkStatus chunkstatus = ChunkStatus.byName(pTag.getString("target_status"));
+        return chunkstatus == ChunkStatus.EMPTY ? null : new BelowZeroRetrogen(chunkstatus, Optional.of(BitSet.valueOf(pTag.getLongArray("missing_bedrock"))));
     }
 
-    public static void replaceOldBedrock(ProtoChunk p_188475_) {
+    public static void replaceOldBedrock(ProtoChunk pChunk) {
         int i = 4;
         BlockPos.betweenClosed(0, 0, 0, 15, 4, 15).forEach((p_188492_) -> {
-            if (p_188475_.getBlockState(p_188492_).is(Blocks.BEDROCK)) {
-                p_188475_.setBlockState(p_188492_, Blocks.DEEPSLATE.defaultBlockState(), false);
+            if (pChunk.getBlockState(p_188492_).is(Blocks.BEDROCK)) {
+                pChunk.setBlockState(p_188492_, Blocks.DEEPSLATE.defaultBlockState(), false);
             }
         });
     }
 
-    public void applyBedrockMask(ProtoChunk p_198222_) {
-        LevelHeightAccessor levelheightaccessor = p_198222_.getHeightAccessorForGeneration();
+    public void applyBedrockMask(ProtoChunk pChunk) {
+        LevelHeightAccessor levelheightaccessor = pChunk.getHeightAccessorForGeneration();
         int i = levelheightaccessor.getMinBuildHeight();
         int j = levelheightaccessor.getMaxBuildHeight() - 1;
 
@@ -78,7 +78,7 @@ public final class BelowZeroRetrogen {
             for (int l = 0; l < 16; ++l) {
                 if (this.hasBedrockHole(k, l)) {
                     BlockPos.betweenClosed(k, i, l, k, j, l).forEach((p_198219_) -> {
-                        p_198222_.setBlockState(p_198219_, Blocks.AIR.defaultBlockState(), false);
+                        pChunk.setBlockState(p_198219_, Blocks.AIR.defaultBlockState(), false);
                     });
                 }
             }
@@ -93,18 +93,18 @@ public final class BelowZeroRetrogen {
         return !this.missingBedrock.isEmpty();
     }
 
-    public boolean hasBedrockHole(int p_198215_, int p_198216_) {
-        return this.missingBedrock.get((p_198216_ & 15) * 16 + (p_198215_ & 15));
+    public boolean hasBedrockHole(int pX, int pZ) {
+        return this.missingBedrock.get((pZ & 15) * 16 + (pX & 15));
     }
 
-    public static BiomeResolver getBiomeResolver(BiomeResolver p_204532_, ChunkAccess p_204533_) {
-        if (!p_204533_.isUpgrading()) {
-            return p_204532_;
+    public static BiomeResolver getBiomeResolver(BiomeResolver pResolver, ChunkAccess pAccess) {
+        if (!pAccess.isUpgrading()) {
+            return pResolver;
         } else {
             Predicate<ResourceKey<Biome>> predicate = RETAINED_RETROGEN_BIOMES::contains;
             return (p_204538_, p_204539_, p_204540_, p_204541_) -> {
-                Holder<Biome> holder = p_204532_.getNoiseBiome(p_204538_, p_204539_, p_204540_, p_204541_);
-                return holder.is(predicate) ? holder : p_204533_.getNoiseBiome(p_204538_, 0, p_204540_);
+                Holder<Biome> holder = pResolver.getNoiseBiome(p_204538_, p_204539_, p_204540_, p_204541_);
+                return holder.is(predicate) ? holder : pAccess.getNoiseBiome(p_204538_, 0, p_204540_);
             };
         }
     }

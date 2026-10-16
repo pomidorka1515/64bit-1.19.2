@@ -32,24 +32,24 @@ public class MultiLineEditBox extends AbstractScrollWidget {
     private final MultilineTextField textField;
     private int frame;
 
-    public MultiLineEditBox(Font p_239008_, int p_239009_, int p_239010_, int p_239011_, int p_239012_, Component p_239013_, Component p_239014_) {
-        super(p_239009_, p_239010_, p_239011_, p_239012_, p_239014_);
-        this.font = p_239008_;
-        this.placeholder = p_239013_;
-        this.textField = new MultilineTextField(p_239008_, p_239011_ - this.totalInnerPadding());
+    public MultiLineEditBox(Font pFont, int pX, int pY, int pWidth, int pHeight, Component pPlaceholder, Component pMessage) {
+        super(pX, pY, pWidth, pHeight, pMessage);
+        this.font = pFont;
+        this.placeholder = pPlaceholder;
+        this.textField = new MultilineTextField(pFont, pWidth - this.totalInnerPadding());
         this.textField.setCursorListener(this::scrollToCursor);
     }
 
-    public void setCharacterLimit(int p_239314_) {
-        this.textField.setCharacterLimit(p_239314_);
+    public void setCharacterLimit(int pCharacterLimit) {
+        this.textField.setCharacterLimit(pCharacterLimit);
     }
 
-    public void setValueListener(Consumer<String> p_239274_) {
-        this.textField.setValueListener(p_239274_);
+    public void setValueListener(Consumer<String> pValueListener) {
+        this.textField.setValueListener(pValueListener);
     }
 
-    public void setValue(String p_240160_) {
-        this.textField.setValue(p_240160_);
+    public void setValue(String pFullText) {
+        this.textField.setValue(pFullText);
     }
 
     public String getValue() {
@@ -60,28 +60,28 @@ public class MultiLineEditBox extends AbstractScrollWidget {
         ++this.frame;
     }
 
-    public void updateNarration(NarrationElementOutput p_240122_) {
-        p_240122_.add(NarratedElementType.TITLE, Component.translatable("narration.edit_box", this.getValue()));
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+        pNarrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("narration.edit_box", this.getValue()));
     }
 
-    public boolean mouseClicked(double p_239101_, double p_239102_, int p_239103_) {
-        if (super.mouseClicked(p_239101_, p_239102_, p_239103_)) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (super.mouseClicked(pMouseX, pMouseY, pButton)) {
             return true;
-        } else if (this.withinContentAreaPoint(p_239101_, p_239102_) && p_239103_ == 0) {
+        } else if (this.withinContentAreaPoint(pMouseX, pMouseY) && pButton == 0) {
             this.textField.setSelecting(Screen.hasShiftDown());
-            this.seekCursorScreen(p_239101_, p_239102_);
+            this.seekCursorScreen(pMouseX, pMouseY);
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean mouseDragged(double p_238978_, double p_238979_, int p_238980_, double p_238981_, double p_238982_) {
-        if (super.mouseDragged(p_238978_, p_238979_, p_238980_, p_238981_, p_238982_)) {
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        if (super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY)) {
             return true;
-        } else if (this.withinContentAreaPoint(p_238978_, p_238979_) && p_238980_ == 0) {
+        } else if (this.withinContentAreaPoint(pMouseX, pMouseY) && pButton == 0) {
             this.textField.setSelecting(true);
-            this.seekCursorScreen(p_238978_, p_238979_);
+            this.seekCursorScreen(pMouseX, pMouseY);
             this.textField.setSelecting(Screen.hasShiftDown());
             return true;
         } else {
@@ -89,20 +89,20 @@ public class MultiLineEditBox extends AbstractScrollWidget {
         }
     }
 
-    public boolean keyPressed(int p_239433_, int p_239434_, int p_239435_) {
-        return this.textField.keyPressed(p_239433_);
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        return this.textField.keyPressed(pKeyCode);
     }
 
-    public boolean charTyped(char p_239387_, int p_239388_) {
-        if (this.visible && this.isFocused() && SharedConstants.isAllowedChatCharacter(p_239387_)) {
-            this.textField.insertText(Character.toString(p_239387_));
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        if (this.visible && this.isFocused() && SharedConstants.isAllowedChatCharacter(pCodePoint)) {
+            this.textField.insertText(Character.toString(pCodePoint));
             return true;
         } else {
             return false;
         }
     }
 
-    protected void renderContents(PoseStack p_239001_, int p_239002_, int p_239003_, float p_239004_) {
+    protected void renderContents(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         String s = this.textField.value();
         if (s.isEmpty() && !this.isFocused()) {
             this.font.drawWordWrap(this.placeholder, this.x + this.innerPadding(), this.y + this.innerPadding(), this.width - this.totalInnerPadding(), -857677600);
@@ -118,13 +118,13 @@ public class MultiLineEditBox extends AbstractScrollWidget {
                 boolean flag2 = this.withinContentAreaTopBottom(l, l + 9);
                 if (flag && flag1 && i >= multilinetextfield$stringview.beginIndex() && i <= multilinetextfield$stringview.endIndex()) {
                     if (flag2) {
-                        j = this.font.drawShadow(p_239001_, s.substring(multilinetextfield$stringview.beginIndex(), i), (float) (this.x + this.innerPadding()), (float) l, -2039584) - 1;
-                        GuiComponent.fill(p_239001_, j, l - 1, j + 1, l + 1 + 9, -3092272);
-                        this.font.drawShadow(p_239001_, s.substring(i, multilinetextfield$stringview.endIndex()), (float) j, (float) l, -2039584);
+                        j = this.font.drawShadow(pPoseStack, s.substring(multilinetextfield$stringview.beginIndex(), i), (float) (this.x + this.innerPadding()), (float) l, -2039584) - 1;
+                        GuiComponent.fill(pPoseStack, j, l - 1, j + 1, l + 1 + 9, -3092272);
+                        this.font.drawShadow(pPoseStack, s.substring(i, multilinetextfield$stringview.endIndex()), (float) j, (float) l, -2039584);
                     }
                 } else {
                     if (flag2) {
-                        j = this.font.drawShadow(p_239001_, s.substring(multilinetextfield$stringview.beginIndex(), multilinetextfield$stringview.endIndex()), (float) (this.x + this.innerPadding()), (float) l, -2039584) - 1;
+                        j = this.font.drawShadow(pPoseStack, s.substring(multilinetextfield$stringview.beginIndex(), multilinetextfield$stringview.endIndex()), (float) (this.x + this.innerPadding()), (float) l, -2039584) - 1;
                     }
 
                     k = l;
@@ -134,7 +134,7 @@ public class MultiLineEditBox extends AbstractScrollWidget {
             }
 
             if (flag && !flag1 && this.withinContentAreaTopBottom(k, k + 9)) {
-                this.font.drawShadow(p_239001_, "_", (float) j, (float) k, -3092272);
+                this.font.drawShadow(pPoseStack, "_", (float) j, (float) k, -3092272);
             }
 
             if (this.textField.hasSelection()) {
@@ -159,7 +159,7 @@ public class MultiLineEditBox extends AbstractScrollWidget {
                                 j1 = this.font.width(s.substring(multilinetextfield$stringview1.beginIndex(), multilinetextfield$stringview2.endIndex()));
                             }
 
-                            this.renderHighlight(p_239001_, k1 + i1, l, k1 + j1, l + 9);
+                            this.renderHighlight(pPoseStack, k1 + i1, l, k1 + j1, l + 9);
                         }
 
                         l += 9;
@@ -169,12 +169,12 @@ public class MultiLineEditBox extends AbstractScrollWidget {
         }
     }
 
-    protected void renderDecorations(PoseStack p_239517_) {
-        super.renderDecorations(p_239517_);
+    protected void renderDecorations(PoseStack pPoseStack) {
+        super.renderDecorations(pPoseStack);
         if (this.textField.hasCharacterLimit()) {
             int i = this.textField.characterLimit();
             Component component = Component.translatable("gui.multiLineEditBox.character_limit", this.textField.value().length(), i);
-            drawString(p_239517_, this.font, component, this.x + this.width - this.font.width(component), this.y + this.height + 4, 10526880);
+            drawString(pPoseStack, this.font, component, this.x + this.width - this.font.width(component), this.y + this.height + 4, 10526880);
         }
     }
 
@@ -190,8 +190,8 @@ public class MultiLineEditBox extends AbstractScrollWidget {
         return 9.0D / 2.0D;
     }
 
-    private void renderHighlight(PoseStack p_239487_, int p_239488_, int p_239489_, int p_239490_, int p_239491_) {
-        Matrix4f matrix4f = p_239487_.last().pose();
+    private void renderHighlight(PoseStack pPoseStack, int pStartX, int pStartY, int pEndX, int pEndY) {
+        Matrix4f matrix4f = pPoseStack.last().pose();
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionShader);
@@ -200,10 +200,10 @@ public class MultiLineEditBox extends AbstractScrollWidget {
         RenderSystem.enableColorLogicOp();
         RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-        bufferbuilder.vertex(matrix4f, (float) p_239488_, (float) p_239491_, 0.0F).endVertex();
-        bufferbuilder.vertex(matrix4f, (float) p_239490_, (float) p_239491_, 0.0F).endVertex();
-        bufferbuilder.vertex(matrix4f, (float) p_239490_, (float) p_239489_, 0.0F).endVertex();
-        bufferbuilder.vertex(matrix4f, (float) p_239488_, (float) p_239489_, 0.0F).endVertex();
+        bufferbuilder.vertex(matrix4f, (float) pStartX, (float) pEndY, 0.0F).endVertex();
+        bufferbuilder.vertex(matrix4f, (float) pEndX, (float) pEndY, 0.0F).endVertex();
+        bufferbuilder.vertex(matrix4f, (float) pEndX, (float) pStartY, 0.0F).endVertex();
+        bufferbuilder.vertex(matrix4f, (float) pStartX, (float) pStartY, 0.0F).endVertex();
         tesselator.end();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.disableColorLogicOp();
@@ -229,9 +229,9 @@ public class MultiLineEditBox extends AbstractScrollWidget {
         return (double) (this.height - this.totalInnerPadding()) / 9.0D;
     }
 
-    private void seekCursorScreen(double p_239276_, double p_239277_) {
-        double d0 = p_239276_ - (double) this.x - (double) this.innerPadding();
-        double d1 = p_239277_ - (double) this.y - (double) this.innerPadding() + this.scrollAmount();
+    private void seekCursorScreen(double pMouseX, double pMouseY) {
+        double d0 = pMouseX - (double) this.x - (double) this.innerPadding();
+        double d1 = pMouseY - (double) this.y - (double) this.innerPadding() + this.scrollAmount();
         this.textField.seekCursorToPoint(d0, d1);
     }
 }

@@ -54,49 +54,49 @@ public class CandleBlock extends AbstractCandleBlock implements SimpleWaterlogge
     private static final VoxelShape THREE_AABB = Block.box(5.0D, 0.0D, 6.0D, 10.0D, 6.0D, 11.0D);
     private static final VoxelShape FOUR_AABB = Block.box(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 10.0D);
 
-    public CandleBlock(BlockBehaviour.Properties p_152801_) {
-        super(p_152801_);
+    public CandleBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(CANDLES, Integer.valueOf(1)).setValue(LIT, Boolean.valueOf(false)).setValue(WATERLOGGED, Boolean.valueOf(false)));
     }
 
-    public InteractionResult use(BlockState p_152822_, Level p_152823_, BlockPos p_152824_, Player p_152825_, InteractionHand p_152826_, BlockHitResult p_152827_) {
-        if (p_152825_.getAbilities().mayBuild && p_152825_.getItemInHand(p_152826_).isEmpty() && p_152822_.getValue(LIT)) {
-            extinguish(p_152825_, p_152822_, p_152823_, p_152824_);
-            return InteractionResult.sidedSuccess(p_152823_.isClientSide);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pPlayer.getAbilities().mayBuild && pPlayer.getItemInHand(pHand).isEmpty() && pState.getValue(LIT)) {
+            extinguish(pPlayer, pState, pLevel, pPos);
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         } else {
             return InteractionResult.PASS;
         }
     }
 
-    public boolean canBeReplaced(BlockState p_152814_, BlockPlaceContext p_152815_) {
-        return !p_152815_.isSecondaryUseActive() && p_152815_.getItemInHand().getItem() == this.asItem() && p_152814_.getValue(CANDLES) < 4 ? true : super.canBeReplaced(p_152814_, p_152815_);
+    public boolean canBeReplaced(BlockState pState, BlockPlaceContext pUseContext) {
+        return !pUseContext.isSecondaryUseActive() && pUseContext.getItemInHand().getItem() == this.asItem() && pState.getValue(CANDLES) < 4 ? true : super.canBeReplaced(pState, pUseContext);
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_152803_) {
-        BlockState blockstate = p_152803_.getLevel().getBlockState(p_152803_.getClickedPos());
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        BlockState blockstate = pContext.getLevel().getBlockState(pContext.getClickedPos());
         if (blockstate.is(this)) {
             return blockstate.cycle(CANDLES);
         } else {
-            FluidState fluidstate = p_152803_.getLevel().getFluidState(p_152803_.getClickedPos());
+            FluidState fluidstate = pContext.getLevel().getFluidState(pContext.getClickedPos());
             boolean flag = fluidstate.getType() == Fluids.WATER;
-            return super.getStateForPlacement(p_152803_).setValue(WATERLOGGED, Boolean.valueOf(flag));
+            return super.getStateForPlacement(pContext).setValue(WATERLOGGED, Boolean.valueOf(flag));
         }
     }
 
-    public BlockState updateShape(BlockState p_152833_, Direction p_152834_, BlockState p_152835_, LevelAccessor p_152836_, BlockPos p_152837_, BlockPos p_152838_) {
-        if (p_152833_.getValue(WATERLOGGED)) {
-            p_152836_.scheduleTick(p_152837_, Fluids.WATER, Fluids.WATER.getTickDelay(p_152836_));
+    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return super.updateShape(p_152833_, p_152834_, p_152835_, p_152836_, p_152837_, p_152838_);
+        return super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
     }
 
-    public FluidState getFluidState(BlockState p_152844_) {
-        return p_152844_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_152844_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public VoxelShape getShape(BlockState p_152817_, BlockGetter p_152818_, BlockPos p_152819_, CollisionContext p_152820_) {
-        switch (p_152817_.getValue(CANDLES)) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        switch (pState.getValue(CANDLES)) {
             case 1:
             default:
                 return ONE_AABB;
@@ -109,41 +109,41 @@ public class CandleBlock extends AbstractCandleBlock implements SimpleWaterlogge
         }
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_152840_) {
-        p_152840_.add(CANDLES, LIT, WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(CANDLES, LIT, WATERLOGGED);
     }
 
-    public boolean placeLiquid(LevelAccessor p_152805_, BlockPos p_152806_, BlockState p_152807_, FluidState p_152808_) {
-        if (!p_152807_.getValue(WATERLOGGED) && p_152808_.getType() == Fluids.WATER) {
-            BlockState blockstate = p_152807_.setValue(WATERLOGGED, Boolean.valueOf(true));
-            if (p_152807_.getValue(LIT)) {
-                extinguish((Player) null, blockstate, p_152805_, p_152806_);
+    public boolean placeLiquid(LevelAccessor pLevel, BlockPos pPos, BlockState pState, FluidState pFluidState) {
+        if (!pState.getValue(WATERLOGGED) && pFluidState.getType() == Fluids.WATER) {
+            BlockState blockstate = pState.setValue(WATERLOGGED, Boolean.valueOf(true));
+            if (pState.getValue(LIT)) {
+                extinguish((Player) null, blockstate, pLevel, pPos);
             } else {
-                p_152805_.setBlock(p_152806_, blockstate, 3);
+                pLevel.setBlock(pPos, blockstate, 3);
             }
 
-            p_152805_.scheduleTick(p_152806_, p_152808_.getType(), p_152808_.getType().getTickDelay(p_152805_));
+            pLevel.scheduleTick(pPos, pFluidState.getType(), pFluidState.getType().getTickDelay(pLevel));
             return true;
         } else {
             return false;
         }
     }
 
-    public static boolean canLight(BlockState p_152846_) {
-        return p_152846_.is(BlockTags.CANDLES, (p_152810_) -> {
+    public static boolean canLight(BlockState pState) {
+        return pState.is(BlockTags.CANDLES, (p_152810_) -> {
             return p_152810_.hasProperty(LIT) && p_152810_.hasProperty(WATERLOGGED);
-        }) && !p_152846_.getValue(LIT) && !p_152846_.getValue(WATERLOGGED);
+        }) && !pState.getValue(LIT) && !pState.getValue(WATERLOGGED);
     }
 
-    protected Iterable<Vec3> getParticleOffsets(BlockState p_152812_) {
-        return PARTICLE_OFFSETS.get(p_152812_.getValue(CANDLES).intValue());
+    protected Iterable<Vec3> getParticleOffsets(BlockState pState) {
+        return PARTICLE_OFFSETS.get(pState.getValue(CANDLES).intValue());
     }
 
-    protected boolean canBeLit(BlockState p_152842_) {
-        return !p_152842_.getValue(WATERLOGGED) && super.canBeLit(p_152842_);
+    protected boolean canBeLit(BlockState pState) {
+        return !pState.getValue(WATERLOGGED) && super.canBeLit(pState);
     }
 
-    public boolean canSurvive(BlockState p_152829_, LevelReader p_152830_, BlockPos p_152831_) {
-        return Block.canSupportCenter(p_152830_, p_152831_.below(), Direction.UP);
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        return Block.canSupportCenter(pLevel, pPos.below(), Direction.UP);
     }
 }

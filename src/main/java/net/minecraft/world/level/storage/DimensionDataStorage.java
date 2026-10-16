@@ -26,58 +26,58 @@ public class DimensionDataStorage {
     private final DataFixer fixerUpper;
     private final File dataFolder;
 
-    public DimensionDataStorage(File p_78149_, DataFixer p_78150_) {
-        this.fixerUpper = p_78150_;
-        this.dataFolder = p_78149_;
+    public DimensionDataStorage(File pDataFolder, DataFixer pFixerUpper) {
+        this.fixerUpper = pFixerUpper;
+        this.dataFolder = pDataFolder;
     }
 
-    private File getDataFile(String p_78157_) {
-        return new File(this.dataFolder, p_78157_ + ".dat");
+    private File getDataFile(String pName) {
+        return new File(this.dataFolder, pName + ".dat");
     }
 
-    public <T extends SavedData> T computeIfAbsent(Function<CompoundTag, T> p_164862_, Supplier<T> p_164863_, String p_164864_) {
-        T t = this.get(p_164862_, p_164864_);
+    public <T extends SavedData> T computeIfAbsent(Function<CompoundTag, T> pLoadFunction, Supplier<T> pCreateFunction, String pName) {
+        T t = this.get(pLoadFunction, pName);
         if (t != null) {
             return t;
         } else {
-            T t1 = p_164863_.get();
-            this.set(p_164864_, t1);
+            T t1 = pCreateFunction.get();
+            this.set(pName, t1);
             return t1;
         }
     }
 
     @Nullable
-    public <T extends SavedData> T get(Function<CompoundTag, T> p_164859_, String p_164860_) {
-        SavedData saveddata = this.cache.get(p_164860_);
-        if (saveddata == null && !this.cache.containsKey(p_164860_)) {
-            saveddata = this.readSavedData(p_164859_, p_164860_);
-            this.cache.put(p_164860_, saveddata);
+    public <T extends SavedData> T get(Function<CompoundTag, T> pLoadFunction, String pName) {
+        SavedData saveddata = this.cache.get(pName);
+        if (saveddata == null && !this.cache.containsKey(pName)) {
+            saveddata = this.readSavedData(pLoadFunction, pName);
+            this.cache.put(pName, saveddata);
         }
 
         return (T) saveddata;
     }
 
     @Nullable
-    private <T extends SavedData> T readSavedData(Function<CompoundTag, T> p_164869_, String p_164870_) {
+    private <T extends SavedData> T readSavedData(Function<CompoundTag, T> pLoadFunction, String pName) {
         try {
-            File file1 = this.getDataFile(p_164870_);
+            File file1 = this.getDataFile(pName);
             if (file1.exists()) {
-                CompoundTag compoundtag = this.readTagFromDisk(p_164870_, SharedConstants.getCurrentVersion().getWorldVersion());
-                return p_164869_.apply(compoundtag.getCompound("data"));
+                CompoundTag compoundtag = this.readTagFromDisk(pName, SharedConstants.getCurrentVersion().getWorldVersion());
+                return pLoadFunction.apply(compoundtag.getCompound("data"));
             }
         } catch (Exception exception) {
-            LOGGER.error("Error loading saved data: {}", p_164870_, exception);
+            LOGGER.error("Error loading saved data: {}", pName, exception);
         }
 
         return (T) null;
     }
 
-    public void set(String p_164856_, SavedData p_164857_) {
-        this.cache.put(p_164856_, p_164857_);
+    public void set(String pName, SavedData pSavedData) {
+        this.cache.put(pName, pSavedData);
     }
 
-    public CompoundTag readTagFromDisk(String p_78159_, int p_78160_) throws IOException {
-        File file1 = this.getDataFile(p_78159_);
+    public CompoundTag readTagFromDisk(String pName, int pLevelVersion) throws IOException {
+        File file1 = this.getDataFile(pName);
         FileInputStream fileinputstream = new FileInputStream(file1);
 
         CompoundTag compoundtag1;
@@ -107,7 +107,7 @@ public class DimensionDataStorage {
                 }
 
                 int i = compoundtag.contains("DataVersion", 99) ? compoundtag.getInt("DataVersion") : 1343;
-                compoundtag1 = NbtUtils.update(this.fixerUpper, DataFixTypes.SAVED_DATA, compoundtag, i, p_78160_);
+                compoundtag1 = NbtUtils.update(this.fixerUpper, DataFixTypes.SAVED_DATA, compoundtag, i, pLevelVersion);
             } catch (Throwable throwable4) {
                 try {
                     pushbackinputstream.close();
@@ -133,10 +133,10 @@ public class DimensionDataStorage {
         return compoundtag1;
     }
 
-    private boolean isGzip(PushbackInputStream p_78155_) throws IOException {
+    private boolean isGzip(PushbackInputStream pInputStream) throws IOException {
         byte[] abyte = new byte[2];
         boolean flag = false;
-        int i = p_78155_.read(abyte, 0, 2);
+        int i = pInputStream.read(abyte, 0, 2);
         if (i == 2) {
             int j = (abyte[1] & 255) << 8 | abyte[0] & 255;
             if (j == 35615) {
@@ -145,7 +145,7 @@ public class DimensionDataStorage {
         }
 
         if (i != 0) {
-            p_78155_.unread(abyte, 0, i);
+            pInputStream.unread(abyte, 0, i);
         }
 
         return flag;

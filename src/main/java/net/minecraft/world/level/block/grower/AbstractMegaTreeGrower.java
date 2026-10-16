@@ -13,46 +13,46 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
 public abstract class AbstractMegaTreeGrower extends AbstractTreeGrower {
-    public boolean growTree(ServerLevel p_222891_, ChunkGenerator p_222892_, BlockPos p_222893_, BlockState p_222894_, RandomSource p_222895_) {
+    public boolean growTree(ServerLevel pLevel, ChunkGenerator pGenerator, BlockPos pPos, BlockState pState, RandomSource pRandom) {
         for (int i = 0; i >= -1; --i) {
             for (int j = 0; j >= -1; --j) {
-                if (isTwoByTwoSapling(p_222894_, p_222891_, p_222893_, i, j)) {
-                    return this.placeMega(p_222891_, p_222892_, p_222893_, p_222894_, p_222895_, i, j);
+                if (isTwoByTwoSapling(pState, pLevel, pPos, i, j)) {
+                    return this.placeMega(pLevel, pGenerator, pPos, pState, pRandom, i, j);
                 }
             }
         }
 
-        return super.growTree(p_222891_, p_222892_, p_222893_, p_222894_, p_222895_);
+        return super.growTree(pLevel, pGenerator, pPos, pState, pRandom);
     }
 
     @Nullable
-    protected abstract Holder<? extends ConfiguredFeature<?, ?>> getConfiguredMegaFeature(RandomSource p_222904_);
+    protected abstract Holder<? extends ConfiguredFeature<?, ?>> getConfiguredMegaFeature(RandomSource pRandom);
 
-    public boolean placeMega(ServerLevel p_222897_, ChunkGenerator p_222898_, BlockPos p_222899_, BlockState p_222900_, RandomSource p_222901_, int p_222902_, int p_222903_) {
-        Holder<? extends ConfiguredFeature<?, ?>> holder = this.getConfiguredMegaFeature(p_222901_);
+    public boolean placeMega(ServerLevel pLevel, ChunkGenerator pGenerator, BlockPos pPos, BlockState pState, RandomSource pRandom, int pBranchX, int pBranchY) {
+        Holder<? extends ConfiguredFeature<?, ?>> holder = this.getConfiguredMegaFeature(pRandom);
         if (holder == null) {
             return false;
         } else {
             ConfiguredFeature<?, ?> configuredfeature = holder.value();
             BlockState blockstate = Blocks.AIR.defaultBlockState();
-            p_222897_.setBlock(p_222899_.offset(p_222902_, 0, p_222903_), blockstate, 4);
-            p_222897_.setBlock(p_222899_.offset(p_222902_ + 1, 0, p_222903_), blockstate, 4);
-            p_222897_.setBlock(p_222899_.offset(p_222902_, 0, p_222903_ + 1), blockstate, 4);
-            p_222897_.setBlock(p_222899_.offset(p_222902_ + 1, 0, p_222903_ + 1), blockstate, 4);
-            if (configuredfeature.place(p_222897_, p_222898_, p_222901_, p_222899_.offset(p_222902_, 0, p_222903_))) {
+            pLevel.setBlock(pPos.offset(pBranchX, 0, pBranchY), blockstate, 4);
+            pLevel.setBlock(pPos.offset(pBranchX + 1, 0, pBranchY), blockstate, 4);
+            pLevel.setBlock(pPos.offset(pBranchX, 0, pBranchY + 1), blockstate, 4);
+            pLevel.setBlock(pPos.offset(pBranchX + 1, 0, pBranchY + 1), blockstate, 4);
+            if (configuredfeature.place(pLevel, pGenerator, pRandom, pPos.offset(pBranchX, 0, pBranchY))) {
                 return true;
             } else {
-                p_222897_.setBlock(p_222899_.offset(p_222902_, 0, p_222903_), p_222900_, 4);
-                p_222897_.setBlock(p_222899_.offset(p_222902_ + 1, 0, p_222903_), p_222900_, 4);
-                p_222897_.setBlock(p_222899_.offset(p_222902_, 0, p_222903_ + 1), p_222900_, 4);
-                p_222897_.setBlock(p_222899_.offset(p_222902_ + 1, 0, p_222903_ + 1), p_222900_, 4);
+                pLevel.setBlock(pPos.offset(pBranchX, 0, pBranchY), pState, 4);
+                pLevel.setBlock(pPos.offset(pBranchX + 1, 0, pBranchY), pState, 4);
+                pLevel.setBlock(pPos.offset(pBranchX, 0, pBranchY + 1), pState, 4);
+                pLevel.setBlock(pPos.offset(pBranchX + 1, 0, pBranchY + 1), pState, 4);
                 return false;
             }
         }
     }
 
-    public static boolean isTwoByTwoSapling(BlockState p_59999_, BlockGetter p_60000_, BlockPos p_60001_, int p_60002_, int p_60003_) {
-        Block block = p_59999_.getBlock();
-        return p_60000_.getBlockState(p_60001_.offset(p_60002_, 0, p_60003_)).is(block) && p_60000_.getBlockState(p_60001_.offset(p_60002_ + 1, 0, p_60003_)).is(block) && p_60000_.getBlockState(p_60001_.offset(p_60002_, 0, p_60003_ + 1)).is(block) && p_60000_.getBlockState(p_60001_.offset(p_60002_ + 1, 0, p_60003_ + 1)).is(block);
+    public static boolean isTwoByTwoSapling(BlockState pBlockUnder, BlockGetter pLevel, BlockPos pPos, int pXOffset, int pZOffset) {
+        Block block = pBlockUnder.getBlock();
+        return pLevel.getBlockState(pPos.offset(pXOffset, 0, pZOffset)).is(block) && pLevel.getBlockState(pPos.offset(pXOffset + 1, 0, pZOffset)).is(block) && pLevel.getBlockState(pPos.offset(pXOffset, 0, pZOffset + 1)).is(block) && pLevel.getBlockState(pPos.offset(pXOffset + 1, 0, pZOffset + 1)).is(block);
     }
 }

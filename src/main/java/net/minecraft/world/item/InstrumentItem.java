@@ -28,73 +28,73 @@ public class InstrumentItem extends Item {
     private static final String TAG_INSTRUMENT = "instrument";
     private TagKey<Instrument> instruments;
 
-    public InstrumentItem(Item.Properties p_220099_, TagKey<Instrument> p_220100_) {
-        super(p_220099_);
-        this.instruments = p_220100_;
+    public InstrumentItem(Item.Properties pProperties, TagKey<Instrument> pInstruments) {
+        super(pProperties);
+        this.instruments = pInstruments;
     }
 
-    public void appendHoverText(ItemStack p_220115_, @Nullable Level p_220116_, List<Component> p_220117_, TooltipFlag p_220118_) {
-        super.appendHoverText(p_220115_, p_220116_, p_220117_, p_220118_);
-        Optional<ResourceKey<Instrument>> optional = this.getInstrument(p_220115_).flatMap(Holder::unwrapKey);
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, TooltipFlag pIsAdvanced) {
+        super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+        Optional<ResourceKey<Instrument>> optional = this.getInstrument(pStack).flatMap(Holder::unwrapKey);
         if (optional.isPresent()) {
             MutableComponent mutablecomponent = Component.translatable(Util.makeDescriptionId("instrument", optional.get().location()));
-            p_220117_.add(mutablecomponent.withStyle(ChatFormatting.GRAY));
+            pTooltipComponents.add(mutablecomponent.withStyle(ChatFormatting.GRAY));
         }
     }
 
-    public static ItemStack create(Item p_220108_, Holder<Instrument> p_220109_) {
-        ItemStack itemstack = new ItemStack(p_220108_);
-        setSoundVariantId(itemstack, p_220109_);
+    public static ItemStack create(Item pItem, Holder<Instrument> pInstrument) {
+        ItemStack itemstack = new ItemStack(pItem);
+        setSoundVariantId(itemstack, pInstrument);
         return itemstack;
     }
 
-    public static void setRandom(ItemStack p_220111_, TagKey<Instrument> p_220112_, RandomSource p_220113_) {
-        Optional<Holder<Instrument>> optional = Registry.INSTRUMENT.getTag(p_220112_).flatMap((p_220103_) -> {
-            return p_220103_.getRandomElement(p_220113_);
+    public static void setRandom(ItemStack pStack, TagKey<Instrument> pInstrumentTag, RandomSource pRandom) {
+        Optional<Holder<Instrument>> optional = Registry.INSTRUMENT.getTag(pInstrumentTag).flatMap((p_220103_) -> {
+            return p_220103_.getRandomElement(pRandom);
         });
         if (optional.isPresent()) {
-            setSoundVariantId(p_220111_, optional.get());
+            setSoundVariantId(pStack, optional.get());
         }
     }
 
-    private static void setSoundVariantId(ItemStack p_220120_, Holder<Instrument> p_220121_) {
-        CompoundTag compoundtag = p_220120_.getOrCreateTag();
-        compoundtag.putString("instrument", p_220121_.unwrapKey().orElseThrow(() -> {
+    private static void setSoundVariantId(ItemStack pStack, Holder<Instrument> pSoundVariantId) {
+        CompoundTag compoundtag = pStack.getOrCreateTag();
+        compoundtag.putString("instrument", pSoundVariantId.unwrapKey().orElseThrow(() -> {
                                                                      return new IllegalStateException("Invalid instrument");
                                                                  })
                                                     .location()
                                                     .toString());
     }
 
-    public void fillItemCategory(CreativeModeTab p_220105_, NonNullList<ItemStack> p_220106_) {
-        if (this.allowedIn(p_220105_)) {
+    public void fillItemCategory(CreativeModeTab pCategory, NonNullList<ItemStack> pItems) {
+        if (this.allowedIn(pCategory)) {
             for (Holder<Instrument> holder : Registry.INSTRUMENT.getTagOrEmpty(this.instruments)) {
-                p_220106_.add(create(Items.GOAT_HORN, holder));
+                pItems.add(create(Items.GOAT_HORN, holder));
             }
         }
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_220123_, Player p_220124_, InteractionHand p_220125_) {
-        ItemStack itemstack = p_220124_.getItemInHand(p_220125_);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pUsedHand);
         Optional<Holder<Instrument>> optional = this.getInstrument(itemstack);
         if (optional.isPresent()) {
             Instrument instrument = optional.get().value();
-            p_220124_.startUsingItem(p_220125_);
-            play(p_220123_, p_220124_, instrument);
-            p_220124_.getCooldowns().addCooldown(this, instrument.useDuration());
+            pPlayer.startUsingItem(pUsedHand);
+            play(pLevel, pPlayer, instrument);
+            pPlayer.getCooldowns().addCooldown(this, instrument.useDuration());
             return InteractionResultHolder.consume(itemstack);
         } else {
             return InteractionResultHolder.fail(itemstack);
         }
     }
 
-    public int getUseDuration(ItemStack p_220131_) {
-        Optional<Holder<Instrument>> optional = this.getInstrument(p_220131_);
+    public int getUseDuration(ItemStack pStack) {
+        Optional<Holder<Instrument>> optional = this.getInstrument(pStack);
         return optional.isPresent() ? optional.get().value().useDuration() : 0;
     }
 
-    private Optional<Holder<Instrument>> getInstrument(ItemStack p_220135_) {
-        CompoundTag compoundtag = p_220135_.getTag();
+    private Optional<Holder<Instrument>> getInstrument(ItemStack pStack) {
+        CompoundTag compoundtag = pStack.getTag();
         if (compoundtag != null) {
             ResourceLocation resourcelocation = ResourceLocation.tryParse(compoundtag.getString("instrument"));
             if (resourcelocation != null) {
@@ -106,14 +106,14 @@ public class InstrumentItem extends Item {
         return iterator.hasNext() ? Optional.of(iterator.next()) : Optional.empty();
     }
 
-    public UseAnim getUseAnimation(ItemStack p_220133_) {
+    public UseAnim getUseAnimation(ItemStack pStack) {
         return UseAnim.TOOT_HORN;
     }
 
-    private static void play(Level p_220127_, Player p_220128_, Instrument p_220129_) {
-        SoundEvent soundevent = p_220129_.soundEvent();
-        float f = p_220129_.range() / 16.0F;
-        p_220127_.playSound(p_220128_, p_220128_, soundevent, SoundSource.RECORDS, f, 1.0F);
-        p_220127_.gameEvent(GameEvent.INSTRUMENT_PLAY, p_220128_.position(), GameEvent.Context.of(p_220128_));
+    private static void play(Level pLevel, Player pPlayer, Instrument pInstrument) {
+        SoundEvent soundevent = pInstrument.soundEvent();
+        float f = pInstrument.range() / 16.0F;
+        pLevel.playSound(pPlayer, pPlayer, soundevent, SoundSource.RECORDS, f, 1.0F);
+        pLevel.gameEvent(GameEvent.INSTRUMENT_PLAY, pPlayer.position(), GameEvent.Context.of(pPlayer));
     }
 }

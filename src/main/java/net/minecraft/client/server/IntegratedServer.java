@@ -44,12 +44,12 @@ public class IntegratedServer extends MinecraftServer {
     private UUID uuid;
     private int previousSimulationDistance = 0;
 
-    public IntegratedServer(Thread p_235248_, Minecraft p_235249_, LevelStorageSource.LevelStorageAccess p_235250_, PackRepository p_235251_, WorldStem p_235252_, Services p_235253_, ChunkProgressListenerFactory p_235254_) {
-        super(p_235248_, p_235250_, p_235251_, p_235252_, p_235249_.getProxy(), p_235249_.getFixerUpper(), p_235253_, p_235254_);
-        this.setSingleplayerProfile(p_235249_.getUser().getGameProfile());
-        this.setDemo(p_235249_.isDemo());
+    public IntegratedServer(Thread pServerThread, Minecraft pMinecraft, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, Services pServices, ChunkProgressListenerFactory pProgressListenerFactory) {
+        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, pMinecraft.getProxy(), pMinecraft.getFixerUpper(), pServices, pProgressListenerFactory);
+        this.setSingleplayerProfile(pMinecraft.getUser().getGameProfile());
+        this.setDemo(pMinecraft.isDemo());
         this.setPlayerList(new IntegratedPlayerList(this, this.registryAccess(), this.playerDataStorage));
-        this.minecraft = p_235249_;
+        this.minecraft = pMinecraft;
     }
 
     public boolean initServer() {
@@ -65,7 +65,7 @@ public class IntegratedServer extends MinecraftServer {
         return true;
     }
 
-    public void tickServer(BooleanSupplier p_120049_) {
+    public void tickServer(BooleanSupplier pHasTimeLeft) {
         boolean flag = this.paused;
         this.paused = Minecraft.getInstance().isPaused();
         ProfilerFiller profilerfiller = this.getProfiler();
@@ -80,7 +80,7 @@ public class IntegratedServer extends MinecraftServer {
         if (flag1 && this.paused) {
             this.tickPaused();
         } else {
-            super.tickServer(p_120049_);
+            super.tickServer(pHasTimeLeft);
             int i = Math.max(2, this.minecraft.options.renderDistance().get());
             if (i != this.getPlayerList().getViewDistance()) {
                 LOGGER.info("Changing view distance to {}, from {}", i, this.getPlayerList().getViewDistance());
@@ -126,33 +126,33 @@ public class IntegratedServer extends MinecraftServer {
         return false;
     }
 
-    public void onServerCrash(CrashReport p_120051_) {
-        this.minecraft.delayCrashRaw(p_120051_);
+    public void onServerCrash(CrashReport pReport) {
+        this.minecraft.delayCrashRaw(pReport);
     }
 
-    public SystemReport fillServerSystemReport(SystemReport p_174970_) {
-        p_174970_.setDetail("Type", "Integrated Server (map_client.txt)");
-        p_174970_.setDetail("Is Modded", () -> {
+    public SystemReport fillServerSystemReport(SystemReport pReport) {
+        pReport.setDetail("Type", "Integrated Server (map_client.txt)");
+        pReport.setDetail("Is Modded", () -> {
             return this.getModdedStatus().fullDescription();
         });
-        p_174970_.setDetail("Launched Version", this.minecraft::getLaunchedVersion);
-        return p_174970_;
+        pReport.setDetail("Launched Version", this.minecraft::getLaunchedVersion);
+        return pReport;
     }
 
     public ModCheck getModdedStatus() {
         return Minecraft.checkModStatus().merge(super.getModdedStatus());
     }
 
-    public boolean publishServer(@Nullable GameType p_120041_, boolean p_120042_, int p_120043_) {
+    public boolean publishServer(@Nullable GameType pGameMode, boolean pCheats, int pPort) {
         try {
             this.minecraft.prepareForMultiplayer();
-            this.getConnection().startTcpServerListener((InetAddress) null, p_120043_);
-            LOGGER.info("Started serving on {}", (int) p_120043_);
-            this.publishedPort = p_120043_;
-            this.lanPinger = new LanServerPinger(this.getMotd(), "" + p_120043_);
+            this.getConnection().startTcpServerListener((InetAddress) null, pPort);
+            LOGGER.info("Started serving on {}", (int) pPort);
+            this.publishedPort = pPort;
+            this.lanPinger = new LanServerPinger(this.getMotd(), "" + pPort);
             this.lanPinger.start();
-            this.publishedGameType = p_120041_;
-            this.getPlayerList().setAllowCheatsForAllPlayers(p_120042_);
+            this.publishedGameType = pGameMode;
+            this.getPlayerList().setAllowCheatsForAllPlayers(pCheats);
             int i = this.getProfilePermissions(this.minecraft.player.getGameProfile());
             this.minecraft.player.setPermissionLevel(i);
 
@@ -174,7 +174,7 @@ public class IntegratedServer extends MinecraftServer {
         }
     }
 
-    public void halt(boolean p_120053_) {
+    public void halt(boolean pWaitForServer) {
         this.executeBlocking(() -> {
             for (ServerPlayer serverplayer : Lists.newArrayList(this.getPlayerList().getPlayers())) {
                 if (!serverplayer.getUUID().equals(this.uuid)) {
@@ -182,7 +182,7 @@ public class IntegratedServer extends MinecraftServer {
                 }
             }
         });
-        super.halt(p_120053_);
+        super.halt(pWaitForServer);
         if (this.lanPinger != null) {
             this.lanPinger.interrupt();
             this.lanPinger = null;
@@ -197,8 +197,8 @@ public class IntegratedServer extends MinecraftServer {
         return this.publishedPort;
     }
 
-    public void setDefaultGameType(GameType p_120039_) {
-        super.setDefaultGameType(p_120039_);
+    public void setDefaultGameType(GameType pGameMode) {
+        super.setDefaultGameType(pGameMode);
         this.publishedGameType = null;
     }
 
@@ -214,12 +214,12 @@ public class IntegratedServer extends MinecraftServer {
         return 2;
     }
 
-    public void setUUID(UUID p_120047_) {
-        this.uuid = p_120047_;
+    public void setUUID(UUID pUuid) {
+        this.uuid = pUuid;
     }
 
-    public boolean isSingleplayerOwner(GameProfile p_120045_) {
-        return this.getSingleplayerProfile() != null && p_120045_.getName().equalsIgnoreCase(this.getSingleplayerProfile().getName());
+    public boolean isSingleplayerOwner(GameProfile pProfile) {
+        return this.getSingleplayerProfile() != null && pProfile.getName().equalsIgnoreCase(this.getSingleplayerProfile().getName());
     }
 
     public int getScaledTrackingDistance(int p_120056_) {

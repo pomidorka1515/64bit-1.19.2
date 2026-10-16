@@ -25,11 +25,11 @@ public class PngInfo {
     public final int width;
     public final int height;
 
-    public PngInfo(Supplier<String> p_231136_, InputStream p_231137_) throws IOException {
+    public PngInfo(Supplier<String> pSourceName, InputStream pTextureStream) throws IOException {
         MemoryStack memorystack = MemoryStack.stackPush();
 
         try {
-            PngInfo.StbReader pnginfo$stbreader = createCallbacks(p_231137_);
+            PngInfo.StbReader pnginfo$stbreader = createCallbacks(pTextureStream);
 
             try {
                 STBIReadCallback stbireadcallback = STBIReadCallback.create(pnginfo$stbreader::read);
@@ -49,7 +49,7 @@ public class PngInfo {
                             IntBuffer intbuffer1 = memorystack.mallocInt(1);
                             IntBuffer intbuffer2 = memorystack.mallocInt(1);
                             if (!STBImage.stbi_info_from_callbacks(stbiiocallbacks, 0L, intbuffer, intbuffer1, intbuffer2)) {
-                                throw new IOException("Could not read info from the PNG file " + (String) p_231136_.get() + " " + STBImage.stbi_failure_reason());
+                                throw new IOException("Could not read info from the PNG file " + (String) pSourceName.get() + " " + STBImage.stbi_failure_reason());
                             }
 
                             this.width = intbuffer.get(0);
@@ -131,38 +131,38 @@ public class PngInfo {
         }
     }
 
-    private static PngInfo.StbReader createCallbacks(InputStream p_85213_) {
-        return (PngInfo.StbReader) (p_85213_ instanceof FileInputStream ? new PngInfo.StbReaderSeekableByteChannel(((FileInputStream) p_85213_).getChannel()) : new PngInfo.StbReaderBufferedChannel(Channels.newChannel(p_85213_)));
+    private static PngInfo.StbReader createCallbacks(InputStream pTextureStream) {
+        return (PngInfo.StbReader) (pTextureStream instanceof FileInputStream ? new PngInfo.StbReaderSeekableByteChannel(((FileInputStream) pTextureStream).getChannel()) : new PngInfo.StbReaderBufferedChannel(Channels.newChannel(pTextureStream)));
     }
 
     @OnlyIn(Dist.CLIENT)
     abstract static class StbReader implements AutoCloseable {
         protected boolean closed;
 
-        int read(long p_85224_, long p_85225_, int p_85226_) {
+        int read(long pFunctionPointer, long pAddress, int pCapacity) {
             try {
-                return this.read(p_85225_, p_85226_);
+                return this.read(pAddress, pCapacity);
             } catch (IOException ioexception) {
                 this.closed = true;
                 return 0;
             }
         }
 
-        void skip(long p_85221_, int p_85222_) {
+        void skip(long pFunctionPointer, int pOffset) {
             try {
-                this.skip(p_85222_);
+                this.skip(pOffset);
             } catch (IOException ioexception) {
                 this.closed = true;
             }
         }
 
-        int eof(long p_85219_) {
+        int eof(long pFunctionPointer) {
             return this.closed ? 1 : 0;
         }
 
-        protected abstract int read(long p_85227_, int p_85228_) throws IOException;
+        protected abstract int read(long pAddress, int pCapacity) throws IOException;
 
-        protected abstract void skip(int p_85218_) throws IOException;
+        protected abstract void skip(int pOffset) throws IOException;
 
         public abstract void close() throws IOException;
     }
@@ -176,21 +176,21 @@ public class PngInfo {
         private int read;
         private int consumed;
 
-        StbReaderBufferedChannel(ReadableByteChannel p_85236_) {
-            this.channel = p_85236_;
+        StbReaderBufferedChannel(ReadableByteChannel pChannel) {
+            this.channel = pChannel;
         }
 
-        private void fillReadBuffer(int p_85243_) throws IOException {
+        private void fillReadBuffer(int pLength) throws IOException {
             ByteBuffer bytebuffer = MemoryUtil.memByteBuffer(this.readBufferAddress, this.bufferSize);
-            if (p_85243_ + this.consumed > this.bufferSize) {
-                this.bufferSize = p_85243_ + this.consumed;
+            if (pLength + this.consumed > this.bufferSize) {
+                this.bufferSize = pLength + this.consumed;
                 bytebuffer = MemoryUtil.memRealloc(bytebuffer, this.bufferSize);
                 this.readBufferAddress = MemoryUtil.memAddress(bytebuffer);
             }
 
             bytebuffer.position(this.read);
 
-            while (p_85243_ + this.consumed > this.read) {
+            while (pLength + this.consumed > this.read) {
                 try {
                     int i = this.channel.read(bytebuffer);
                     if (i == -1) {
@@ -202,29 +202,29 @@ public class PngInfo {
             }
         }
 
-        public int read(long p_85245_, int p_85246_) throws IOException {
-            this.fillReadBuffer(p_85246_);
-            if (p_85246_ + this.consumed > this.read) {
-                p_85246_ = this.read - this.consumed;
+        public int read(long pAddress, int pCapacity) throws IOException {
+            this.fillReadBuffer(pCapacity);
+            if (pCapacity + this.consumed > this.read) {
+                pCapacity = this.read - this.consumed;
             }
 
-            MemoryUtil.memCopy(this.readBufferAddress + (long) this.consumed, p_85245_, (long) p_85246_);
-            this.consumed += p_85246_;
-            return p_85246_;
+            MemoryUtil.memCopy(this.readBufferAddress + (long) this.consumed, pAddress, (long) pCapacity);
+            this.consumed += pCapacity;
+            return pCapacity;
         }
 
-        public void skip(int p_85241_) throws IOException {
-            if (p_85241_ > 0) {
-                this.fillReadBuffer(p_85241_);
-                if (p_85241_ + this.consumed > this.read) {
+        public void skip(int pOffset) throws IOException {
+            if (pOffset > 0) {
+                this.fillReadBuffer(pOffset);
+                if (pOffset + this.consumed > this.read) {
                     throw new EOFException("Can't skip past the EOF.");
                 }
             }
 
-            if (this.consumed + p_85241_ < 0) {
-                throw new IOException("Can't seek before the beginning: " + (this.consumed + p_85241_));
+            if (this.consumed + pOffset < 0) {
+                throw new IOException("Can't seek before the beginning: " + (this.consumed + pOffset));
             } else {
-                this.consumed += p_85241_;
+                this.consumed += pOffset;
             }
         }
 
@@ -238,21 +238,21 @@ public class PngInfo {
     static class StbReaderSeekableByteChannel extends PngInfo.StbReader {
         private final SeekableByteChannel channel;
 
-        StbReaderSeekableByteChannel(SeekableByteChannel p_85250_) {
-            this.channel = p_85250_;
+        StbReaderSeekableByteChannel(SeekableByteChannel pChannel) {
+            this.channel = pChannel;
         }
 
-        public int read(long p_85259_, int p_85260_) throws IOException {
-            ByteBuffer bytebuffer = MemoryUtil.memByteBuffer(p_85259_, p_85260_);
+        public int read(long pAddress, int pCapacity) throws IOException {
+            ByteBuffer bytebuffer = MemoryUtil.memByteBuffer(pAddress, pCapacity);
             return this.channel.read(bytebuffer);
         }
 
-        public void skip(int p_85255_) throws IOException {
-            this.channel.position(this.channel.position() + (long) p_85255_);
+        public void skip(int pOffset) throws IOException {
+            this.channel.position(this.channel.position() + (long) pOffset);
         }
 
-        public int eof(long p_85257_) {
-            return super.eof(p_85257_) != 0 && this.channel.isOpen() ? 1 : 0;
+        public int eof(long pFunctionPointer) {
+            return super.eof(pFunctionPointer) != 0 && this.channel.isOpen() ? 1 : 0;
         }
 
         public void close() throws IOException {

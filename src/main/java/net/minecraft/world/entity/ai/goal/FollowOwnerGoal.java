@@ -31,16 +31,16 @@ public class FollowOwnerGoal extends Goal {
     private float oldWaterCost;
     private final boolean canFly;
 
-    public FollowOwnerGoal(TamableAnimal p_25294_, double p_25295_, float p_25296_, float p_25297_, boolean p_25298_) {
-        this.tamable = p_25294_;
-        this.level = p_25294_.level;
-        this.speedModifier = p_25295_;
-        this.navigation = p_25294_.getNavigation();
-        this.startDistance = p_25296_;
-        this.stopDistance = p_25297_;
-        this.canFly = p_25298_;
+    public FollowOwnerGoal(TamableAnimal pTamable, double pSpeedModifier, float pStartDistance, float pStopDistance, boolean pCanFly) {
+        this.tamable = pTamable;
+        this.level = pTamable.level;
+        this.speedModifier = pSpeedModifier;
+        this.navigation = pTamable.getNavigation();
+        this.startDistance = pStartDistance;
+        this.stopDistance = pStopDistance;
+        this.canFly = pCanFly;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
-        if (!(p_25294_.getNavigation() instanceof GroundPathNavigation) && !(p_25294_.getNavigation() instanceof FlyingPathNavigation)) {
+        if (!(pTamable.getNavigation() instanceof GroundPathNavigation) && !(pTamable.getNavigation() instanceof FlyingPathNavigation)) {
             throw new IllegalArgumentException("Unsupported mob type for FollowOwnerGoal");
         }
     }
@@ -111,38 +111,38 @@ public class FollowOwnerGoal extends Goal {
         }
     }
 
-    private boolean maybeTeleportTo(long p_25304_, int p_25305_, long p_25306_) {
+    private boolean maybeTeleportTo(long pX, int pY, long pZ) {
         SectorVec3 ownerPosition = this.owner.sectorPosition();
-        double xDistance = WorldBounds.signedDifference(p_25304_, ownerPosition.blockX()) - ownerPosition.subX();
-        double zDistance = WorldBounds.signedDifference(p_25306_, ownerPosition.blockZ()) - ownerPosition.subZ();
+        double xDistance = WorldBounds.signedDifference(pX, ownerPosition.blockX()) - ownerPosition.subX();
+        double zDistance = WorldBounds.signedDifference(pZ, ownerPosition.blockZ()) - ownerPosition.subZ();
         if (Math.abs(xDistance) < 2.0D && Math.abs(zDistance) < 2.0D) {
             return false;
-        } else if (!this.canTeleportTo(new BlockPos(p_25304_, p_25305_, p_25306_))) {
+        } else if (!this.canTeleportTo(new BlockPos(pX, pY, pZ))) {
             return false;
         } else {
-            this.tamable.moveTo(SectorVec3.fromBlockAndFraction(p_25304_, 0.5D, (double) p_25305_, p_25306_, 0.5D),
+            this.tamable.moveTo(SectorVec3.fromBlockAndFraction(pX, 0.5D, (double) pY, pZ, 0.5D),
                     this.tamable.getYRot(), this.tamable.getXRot());
             this.navigation.stop();
             return true;
         }
     }
 
-    private boolean canTeleportTo(BlockPos p_25308_) {
-        BlockPathTypes blockpathtypes = WalkNodeEvaluator.getBlockPathTypeStatic(this.level, p_25308_.mutable());
+    private boolean canTeleportTo(BlockPos pPos) {
+        BlockPathTypes blockpathtypes = WalkNodeEvaluator.getBlockPathTypeStatic(this.level, pPos.mutable());
         if (blockpathtypes != BlockPathTypes.WALKABLE) {
             return false;
         } else {
-            BlockState blockstate = this.level.getBlockState(p_25308_.below());
+            BlockState blockstate = this.level.getBlockState(pPos.below());
             if (!this.canFly && blockstate.getBlock() instanceof LeavesBlock) {
                 return false;
             } else {
-                BlockPos blockpos = p_25308_.subtract(this.tamable.blockPosition());
+                BlockPos blockpos = pPos.subtract(this.tamable.blockPosition());
                 return this.level.noCollision(this.tamable, this.tamable.getBoundingBox().move(blockpos));
             }
         }
     }
 
-    private int randomIntInclusive(int p_25301_, int p_25302_) {
-        return this.tamable.getRandom().nextInt(p_25302_ - p_25301_ + 1) + p_25301_;
+    private int randomIntInclusive(int pMin, int pMax) {
+        return this.tamable.getRandom().nextInt(pMax - pMin + 1) + pMin;
     }
 }

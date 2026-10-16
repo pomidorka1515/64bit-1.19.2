@@ -6,15 +6,15 @@ import net.minecraft.core.IdMap;
 import net.minecraft.network.FriendlyByteBuf;
 
 public interface Palette<T> {
-    int idFor(T p_63061_);
+    int idFor(T pState);
 
-    boolean maybeHas(Predicate<T> p_63062_);
+    boolean maybeHas(Predicate<T> pFilter);
 
-    T valueFor(int p_63060_);
+    T valueFor(int pId);
 
-    void read(FriendlyByteBuf p_63064_);
+    void read(FriendlyByteBuf pBuffer);
 
-    void write(FriendlyByteBuf p_63065_);
+    void write(FriendlyByteBuf pBuffer);
 
     int getSerializedSize();
 
@@ -23,6 +23,6 @@ public interface Palette<T> {
     Palette<T> copy();
 
     public interface Factory {
-        <A> Palette<A> create(int p_188027_, IdMap<A> p_188028_, PaletteResize<A> p_188029_, List<A> p_188030_);
+        <A> Palette<A> create(int pBits, IdMap<A> pRegistry, PaletteResize<A> pResizeHandler, List<A> pValues);
     }
 }

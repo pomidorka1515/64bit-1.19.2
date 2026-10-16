@@ -39,10 +39,10 @@ public class ChaseClient {
     @Nullable
     private Thread thread;
 
-    public ChaseClient(String p_195990_, int p_195991_, MinecraftServer p_195992_) {
-        this.serverHost = p_195990_;
-        this.serverPort = p_195991_;
-        this.server = p_195992_;
+    public ChaseClient(String pServerHost, int pServerPort, MinecraftServer pServer) {
+        this.serverHost = pServerHost;
+        this.serverPort = pServerPort;
+        this.server = pServer;
     }
 
     public void start() {
@@ -112,9 +112,9 @@ public class ChaseClient {
         }
     }
 
-    private void handleMessage(String p_195995_) {
+    private void handleMessage(String pMessage) {
         try {
-            Scanner scanner = new Scanner(new StringReader(p_195995_));
+            Scanner scanner = new Scanner(new StringReader(pMessage));
 
             try {
                 scanner.useLocale(Locale.ROOT);
@@ -136,7 +136,7 @@ public class ChaseClient {
 
             scanner.close();
         } catch (NoSuchElementException nosuchelementexception) {
-            LOGGER.warn("Could not parse message '{}', ignoring", (Object) p_195995_);
+            LOGGER.warn("Could not parse message '{}', ignoring", (Object) pMessage);
         }
     }
 

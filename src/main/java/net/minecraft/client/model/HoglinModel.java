@@ -28,17 +28,17 @@ public class HoglinModel<T extends Mob & HoglinBase> extends AgeableListModel<T>
     private final ModelPart leftHindLeg;
     private final ModelPart mane;
 
-    public HoglinModel(ModelPart p_170640_) {
+    public HoglinModel(ModelPart pRoot) {
         super(true, 8.0F, 6.0F, 1.9F, 2.0F, 24.0F);
-        this.body = p_170640_.getChild("body");
+        this.body = pRoot.getChild("body");
         this.mane = this.body.getChild("mane");
-        this.head = p_170640_.getChild("head");
+        this.head = pRoot.getChild("head");
         this.rightEar = this.head.getChild("right_ear");
         this.leftEar = this.head.getChild("left_ear");
-        this.rightFrontLeg = p_170640_.getChild("right_front_leg");
-        this.leftFrontLeg = p_170640_.getChild("left_front_leg");
-        this.rightHindLeg = p_170640_.getChild("right_hind_leg");
-        this.leftHindLeg = p_170640_.getChild("left_hind_leg");
+        this.rightFrontLeg = pRoot.getChild("right_front_leg");
+        this.leftFrontLeg = pRoot.getChild("left_front_leg");
+        this.rightHindLeg = pRoot.getChild("right_hind_leg");
+        this.leftHindLeg = pRoot.getChild("left_hind_leg");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -68,14 +68,14 @@ public class HoglinModel<T extends Mob & HoglinBase> extends AgeableListModel<T>
         return ImmutableList.of(this.body, this.rightFrontLeg, this.leftFrontLeg, this.rightHindLeg, this.leftHindLeg);
     }
 
-    public void setupAnim(T p_102744_, float p_102745_, float p_102746_, float p_102747_, float p_102748_, float p_102749_) {
-        this.rightEar.zRot = -0.6981317F - p_102746_ * Mth.sin(p_102745_);
-        this.leftEar.zRot = 0.6981317F + p_102746_ * Mth.sin(p_102745_);
-        this.head.yRot = p_102748_ * ((float) Math.PI / 180F);
-        int i = p_102744_.getAttackAnimationRemainingTicks();
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.rightEar.zRot = -0.6981317F - pLimbSwingAmount * Mth.sin(pLimbSwing);
+        this.leftEar.zRot = 0.6981317F + pLimbSwingAmount * Mth.sin(pLimbSwing);
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        int i = pEntity.getAttackAnimationRemainingTicks();
         float f = 1.0F - (float) Mth.abs(10 - 2 * i) / 10.0F;
         this.head.xRot = Mth.lerp(f, 0.87266463F, -0.34906584F);
-        if (p_102744_.isBaby()) {
+        if (pEntity.isBaby()) {
             this.head.y = Mth.lerp(f, 2.0F, 5.0F);
             this.mane.z = -3.0F;
         } else {
@@ -84,8 +84,8 @@ public class HoglinModel<T extends Mob & HoglinBase> extends AgeableListModel<T>
         }
 
         float f1 = 1.2F;
-        this.rightFrontLeg.xRot = Mth.cos(p_102745_) * 1.2F * p_102746_;
-        this.leftFrontLeg.xRot = Mth.cos(p_102745_ + (float) Math.PI) * 1.2F * p_102746_;
+        this.rightFrontLeg.xRot = Mth.cos(pLimbSwing) * 1.2F * pLimbSwingAmount;
+        this.leftFrontLeg.xRot = Mth.cos(pLimbSwing + (float) Math.PI) * 1.2F * pLimbSwingAmount;
         this.rightHindLeg.xRot = this.leftFrontLeg.xRot;
         this.leftHindLeg.xRot = this.rightFrontLeg.xRot;
     }

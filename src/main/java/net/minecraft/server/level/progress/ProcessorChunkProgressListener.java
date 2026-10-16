@@ -10,26 +10,26 @@ public class ProcessorChunkProgressListener implements ChunkProgressListener {
     private final ChunkProgressListener delegate;
     private final ProcessorMailbox<Runnable> mailbox;
 
-    private ProcessorChunkProgressListener(ChunkProgressListener p_9640_, Executor p_9641_) {
-        this.delegate = p_9640_;
-        this.mailbox = ProcessorMailbox.create(p_9641_, "progressListener");
+    private ProcessorChunkProgressListener(ChunkProgressListener pDelegate, Executor pDispatcher) {
+        this.delegate = pDelegate;
+        this.mailbox = ProcessorMailbox.create(pDispatcher, "progressListener");
     }
 
-    public static ProcessorChunkProgressListener createStarted(ChunkProgressListener p_143584_, Executor p_143585_) {
-        ProcessorChunkProgressListener processorchunkprogresslistener = new ProcessorChunkProgressListener(p_143584_, p_143585_);
+    public static ProcessorChunkProgressListener createStarted(ChunkProgressListener pDelegate, Executor pDispatcher) {
+        ProcessorChunkProgressListener processorchunkprogresslistener = new ProcessorChunkProgressListener(pDelegate, pDispatcher);
         processorchunkprogresslistener.start();
         return processorchunkprogresslistener;
     }
 
-    public void updateSpawnPos(ChunkPos p_9643_) {
+    public void updateSpawnPos(ChunkPos pCenter) {
         this.mailbox.tell(() -> {
-            this.delegate.updateSpawnPos(p_9643_);
+            this.delegate.updateSpawnPos(pCenter);
         });
     }
 
-    public void onStatusChange(ChunkPos p_9645_, @Nullable ChunkStatus p_9646_) {
+    public void onStatusChange(ChunkPos pChunkPosition, @Nullable ChunkStatus pNewStatus) {
         this.mailbox.tell(() -> {
-            this.delegate.onStatusChange(p_9645_, p_9646_);
+            this.delegate.onStatusChange(pChunkPosition, pNewStatus);
         });
     }
 

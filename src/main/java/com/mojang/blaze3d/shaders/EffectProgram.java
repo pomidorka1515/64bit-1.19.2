@@ -16,14 +16,14 @@ public class EffectProgram extends Program {
     };
     private int references;
 
-    private EffectProgram(Program.Type p_166582_, int p_166583_, String p_166584_) {
-        super(p_166582_, p_166583_, p_166584_);
+    private EffectProgram(Program.Type pType, int pId, String pName) {
+        super(pType, pId, pName);
     }
 
-    public void attachToEffect(Effect p_166587_) {
+    public void attachToEffect(Effect pEffect) {
         RenderSystem.assertOnRenderThread();
         ++this.references;
-        this.attachToShader(p_166587_);
+        this.attachToShader(pEffect);
     }
 
     public void close() {
@@ -34,11 +34,11 @@ public class EffectProgram extends Program {
         }
     }
 
-    public static EffectProgram compileShader(Program.Type p_166589_, String p_166590_, InputStream p_166591_, String p_166592_) throws IOException {
+    public static EffectProgram compileShader(Program.Type pType, String pName, InputStream pShaderData, String pSourceName) throws IOException {
         RenderSystem.assertOnRenderThread();
-        int i = compileShaderInternal(p_166589_, p_166590_, p_166591_, p_166592_, PREPROCESSOR);
-        EffectProgram effectprogram = new EffectProgram(p_166589_, i, p_166590_);
-        p_166589_.getPrograms().put(p_166590_, effectprogram);
+        int i = compileShaderInternal(pType, pName, pShaderData, pSourceName, PREPROCESSOR);
+        EffectProgram effectprogram = new EffectProgram(pType, i, pName);
+        pType.getPrograms().put(pName, effectprogram);
         return effectprogram;
     }
 }

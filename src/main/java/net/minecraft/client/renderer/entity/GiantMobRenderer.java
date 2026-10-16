@@ -16,18 +16,18 @@ public class GiantMobRenderer extends MobRenderer<Giant, HumanoidModel<Giant>> {
     private static final ResourceLocation ZOMBIE_LOCATION = new ResourceLocation("textures/entity/zombie/zombie.png");
     private final float scale;
 
-    public GiantMobRenderer(EntityRendererProvider.Context p_174131_, float p_174132_) {
-        super(p_174131_, new GiantZombieModel(p_174131_.bakeLayer(ModelLayers.GIANT)), 0.5F * p_174132_);
-        this.scale = p_174132_;
-        this.addLayer(new ItemInHandLayer<>(this, p_174131_.getItemInHandRenderer()));
-        this.addLayer(new HumanoidArmorLayer<>(this, new GiantZombieModel(p_174131_.bakeLayer(ModelLayers.GIANT_INNER_ARMOR)), new GiantZombieModel(p_174131_.bakeLayer(ModelLayers.GIANT_OUTER_ARMOR))));
+    public GiantMobRenderer(EntityRendererProvider.Context pContext, float pScale) {
+        super(pContext, new GiantZombieModel(pContext.bakeLayer(ModelLayers.GIANT)), 0.5F * pScale);
+        this.scale = pScale;
+        this.addLayer(new ItemInHandLayer<>(this, pContext.getItemInHandRenderer()));
+        this.addLayer(new HumanoidArmorLayer<>(this, new GiantZombieModel(pContext.bakeLayer(ModelLayers.GIANT_INNER_ARMOR)), new GiantZombieModel(pContext.bakeLayer(ModelLayers.GIANT_OUTER_ARMOR))));
     }
 
-    protected void scale(Giant p_114775_, PoseStack p_114776_, float p_114777_) {
-        p_114776_.scale(this.scale, this.scale, this.scale);
+    protected void scale(Giant pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
+        pMatrixStack.scale(this.scale, this.scale, this.scale);
     }
 
-    public ResourceLocation getTextureLocation(Giant p_114773_) {
+    public ResourceLocation getTextureLocation(Giant pEntity) {
         return ZOMBIE_LOCATION;
     }
 }

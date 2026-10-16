@@ -8,8 +8,8 @@ import com.mojang.datafixers.util.Pair;
 import java.util.stream.Collectors;
 
 public class OptionsKeyTranslationFix extends DataFix {
-    public OptionsKeyTranslationFix(Schema p_16645_, boolean p_16646_) {
-        super(p_16645_, p_16646_);
+    public OptionsKeyTranslationFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

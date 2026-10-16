@@ -13,27 +13,27 @@ public class ClientboundSetEquipmentPacket implements Packet<ClientGamePacketLis
     private final int entity;
     private final List<Pair<EquipmentSlot, ItemStack>> slots;
 
-    public ClientboundSetEquipmentPacket(int p_133202_, List<Pair<EquipmentSlot, ItemStack>> p_133203_) {
-        this.entity = p_133202_;
-        this.slots = p_133203_;
+    public ClientboundSetEquipmentPacket(int pEntity, List<Pair<EquipmentSlot, ItemStack>> pSlots) {
+        this.entity = pEntity;
+        this.slots = pSlots;
     }
 
-    public ClientboundSetEquipmentPacket(FriendlyByteBuf p_179297_) {
-        this.entity = p_179297_.readVarInt();
+    public ClientboundSetEquipmentPacket(FriendlyByteBuf pBuffer) {
+        this.entity = pBuffer.readVarInt();
         EquipmentSlot[] aequipmentslot = EquipmentSlot.values();
         this.slots = Lists.newArrayList();
 
         int i;
         do {
-            i = p_179297_.readByte();
+            i = pBuffer.readByte();
             EquipmentSlot equipmentslot = aequipmentslot[i & 127];
-            ItemStack itemstack = p_179297_.readItem();
+            ItemStack itemstack = pBuffer.readItem();
             this.slots.add(Pair.of(equipmentslot, itemstack));
         } while ((i & -128) != 0);
     }
 
-    public void write(FriendlyByteBuf p_133212_) {
-        p_133212_.writeVarInt(this.entity);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.entity);
         int i = this.slots.size();
 
         for (int j = 0; j < i; ++j) {
@@ -41,13 +41,13 @@ public class ClientboundSetEquipmentPacket implements Packet<ClientGamePacketLis
             EquipmentSlot equipmentslot = pair.getFirst();
             boolean flag = j != i - 1;
             int k = equipmentslot.ordinal();
-            p_133212_.writeByte(flag ? k | -128 : k);
-            p_133212_.writeItem(pair.getSecond());
+            pBuffer.writeByte(flag ? k | -128 : k);
+            pBuffer.writeItem(pair.getSecond());
         }
     }
 
-    public void handle(ClientGamePacketListener p_133209_) {
-        p_133209_.handleSetEquipment(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleSetEquipment(this);
     }
 
     public int getEntity() {

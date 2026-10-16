@@ -74,15 +74,15 @@ public abstract class AbstractCommandBlockEditScreen extends Screen {
         this.updatePreviousOutput(flag);
     }
 
-    public void resize(Minecraft p_97677_, int p_97678_, int p_97679_) {
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
         String s = this.commandEdit.getValue();
-        this.init(p_97677_, p_97678_, p_97679_);
+        this.init(pMinecraft, pWidth, pHeight);
         this.commandEdit.setValue(s);
         this.commandSuggestions.updateCommandInfo();
     }
 
-    protected void updatePreviousOutput(boolean p_169599_) {
-        this.previousEdit.setValue(p_169599_ ? this.getCommandBlock().getLastOutput().getString() : "-");
+    protected void updatePreviousOutput(boolean pTrackOutput) {
+        this.previousEdit.setValue(pTrackOutput ? this.getCommandBlock().getLastOutput().getString() : "-");
     }
 
     protected void onDone() {
@@ -99,18 +99,18 @@ public abstract class AbstractCommandBlockEditScreen extends Screen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    protected abstract void populateAndSendPacket(BaseCommandBlock p_97670_);
+    protected abstract void populateAndSendPacket(BaseCommandBlock pCommandBlock);
 
     private void onEdited(String p_97689_) {
         this.commandSuggestions.updateCommandInfo();
     }
 
-    public boolean keyPressed(int p_97667_, int p_97668_, int p_97669_) {
-        if (this.commandSuggestions.keyPressed(p_97667_, p_97668_, p_97669_)) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (this.commandSuggestions.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (super.keyPressed(p_97667_, p_97668_, p_97669_)) {
+        } else if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (p_97667_ != 257 && p_97667_ != 335) {
+        } else if (pKeyCode != 257 && pKeyCode != 335) {
             return false;
         } else {
             this.onDone();
@@ -118,27 +118,27 @@ public abstract class AbstractCommandBlockEditScreen extends Screen {
         }
     }
 
-    public boolean mouseScrolled(double p_97659_, double p_97660_, double p_97661_) {
-        return this.commandSuggestions.mouseScrolled(p_97661_) ? true : super.mouseScrolled(p_97659_, p_97660_, p_97661_);
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+        return this.commandSuggestions.mouseScrolled(pDelta) ? true : super.mouseScrolled(pMouseX, pMouseY, pDelta);
     }
 
-    public boolean mouseClicked(double p_97663_, double p_97664_, int p_97665_) {
-        return this.commandSuggestions.mouseClicked(p_97663_, p_97664_, p_97665_) ? true : super.mouseClicked(p_97663_, p_97664_, p_97665_);
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        return this.commandSuggestions.mouseClicked(pMouseX, pMouseY, pButton) ? true : super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 
-    public void render(PoseStack p_97672_, int p_97673_, int p_97674_, float p_97675_) {
-        this.renderBackground(p_97672_);
-        drawCenteredString(p_97672_, this.font, SET_COMMAND_LABEL, this.width / 2, 20, 16777215);
-        drawString(p_97672_, this.font, COMMAND_LABEL, this.width / 2 - 150, 40, 10526880);
-        this.commandEdit.render(p_97672_, p_97673_, p_97674_, p_97675_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, SET_COMMAND_LABEL, this.width / 2, 20, 16777215);
+        drawString(pPoseStack, this.font, COMMAND_LABEL, this.width / 2 - 150, 40, 10526880);
+        this.commandEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         int i = 75;
         if (!this.previousEdit.getValue().isEmpty()) {
             i += 5 * 9 + 1 + this.getPreviousY() - 135;
-            drawString(p_97672_, this.font, PREVIOUS_OUTPUT_LABEL, this.width / 2 - 150, i + 4, 10526880);
-            this.previousEdit.render(p_97672_, p_97673_, p_97674_, p_97675_);
+            drawString(pPoseStack, this.font, PREVIOUS_OUTPUT_LABEL, this.width / 2 - 150, i + 4, 10526880);
+            this.previousEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
-        super.render(p_97672_, p_97673_, p_97674_, p_97675_);
-        this.commandSuggestions.render(p_97672_, p_97673_, p_97674_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.commandSuggestions.render(pPoseStack, pMouseX, pMouseY);
     }
 }

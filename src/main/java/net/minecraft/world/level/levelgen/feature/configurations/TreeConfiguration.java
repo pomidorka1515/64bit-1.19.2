@@ -83,27 +83,27 @@ public class TreeConfiguration implements FeatureConfiguration {
         private boolean ignoreVines;
         private boolean forceDirt;
 
-        public TreeConfigurationBuilder(BlockStateProvider p_225481_, TrunkPlacer p_225482_, BlockStateProvider p_225483_, FoliagePlacer p_225484_, Optional<RootPlacer> p_225485_, FeatureSize p_225486_) {
-            this.trunkProvider = p_225481_;
-            this.trunkPlacer = p_225482_;
-            this.foliageProvider = p_225483_;
+        public TreeConfigurationBuilder(BlockStateProvider pTrunkProvider, TrunkPlacer pTrunkPlacer, BlockStateProvider pFoliageProvider, FoliagePlacer pFoliagePlacer, Optional<RootPlacer> pRootPlacer, FeatureSize pMinimumSize) {
+            this.trunkProvider = pTrunkProvider;
+            this.trunkPlacer = pTrunkPlacer;
+            this.foliageProvider = pFoliageProvider;
             this.dirtProvider = BlockStateProvider.simple(Blocks.DIRT);
-            this.foliagePlacer = p_225484_;
-            this.rootPlacer = p_225485_;
-            this.minimumSize = p_225486_;
+            this.foliagePlacer = pFoliagePlacer;
+            this.rootPlacer = pRootPlacer;
+            this.minimumSize = pMinimumSize;
         }
 
-        public TreeConfigurationBuilder(BlockStateProvider p_191359_, TrunkPlacer p_191360_, BlockStateProvider p_191361_, FoliagePlacer p_191362_, FeatureSize p_191363_) {
-            this(p_191359_, p_191360_, p_191361_, p_191362_, Optional.empty(), p_191363_);
+        public TreeConfigurationBuilder(BlockStateProvider pTrunkProvider, TrunkPlacer pTrunkPlacer, BlockStateProvider pFoliageProvider, FoliagePlacer pFoliagePlacer, FeatureSize pMinimumSize) {
+            this(pTrunkProvider, pTrunkPlacer, pFoliageProvider, pFoliagePlacer, Optional.empty(), pMinimumSize);
         }
 
-        public TreeConfiguration.TreeConfigurationBuilder dirt(BlockStateProvider p_161261_) {
-            this.dirtProvider = p_161261_;
+        public TreeConfiguration.TreeConfigurationBuilder dirt(BlockStateProvider pDirtProvider) {
+            this.dirtProvider = pDirtProvider;
             return this;
         }
 
-        public TreeConfiguration.TreeConfigurationBuilder decorators(List<TreeDecorator> p_68250_) {
-            this.decorators = p_68250_;
+        public TreeConfiguration.TreeConfigurationBuilder decorators(List<TreeDecorator> pDecorators) {
+            this.decorators = pDecorators;
             return this;
         }
 

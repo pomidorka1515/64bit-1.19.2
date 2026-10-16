@@ -22,11 +22,11 @@ public class SoundEngineExecutor extends BlockableEventLoop<Runnable> {
         return thread;
     }
 
-    protected Runnable wrapRunnable(Runnable p_120341_) {
-        return p_120341_;
+    protected Runnable wrapRunnable(Runnable pRunnable) {
+        return pRunnable;
     }
 
-    protected boolean shouldRun(Runnable p_120339_) {
+    protected boolean shouldRun(Runnable pRunnable) {
         return !this.shutdown;
     }
 

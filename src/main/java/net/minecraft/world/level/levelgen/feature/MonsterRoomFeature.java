@@ -27,15 +27,15 @@ public class MonsterRoomFeature extends Feature<NoneFeatureConfiguration> {
     private static final EntityType<?>[] MOBS = new EntityType[] {EntityType.SKELETON, EntityType.ZOMBIE, EntityType.ZOMBIE, EntityType.SPIDER};
     private static final BlockState AIR = Blocks.CAVE_AIR.defaultBlockState();
 
-    public MonsterRoomFeature(Codec<NoneFeatureConfiguration> p_66345_) {
-        super(p_66345_);
+    public MonsterRoomFeature(Codec<NoneFeatureConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> p_160066_) {
+    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> pContext) {
         Predicate<BlockState> predicate = Feature.isReplaceable(BlockTags.FEATURES_CANNOT_REPLACE);
-        BlockPos blockpos = p_160066_.origin();
-        RandomSource randomsource = p_160066_.random();
-        WorldGenLevel worldgenlevel = p_160066_.level();
+        BlockPos blockpos = pContext.origin();
+        RandomSource randomsource = pContext.random();
+        WorldGenLevel worldgenlevel = pContext.level();
         int i = 3;
         int j = randomsource.nextInt(2) + 2;
         int k = -j - 1;
@@ -129,7 +129,7 @@ public class MonsterRoomFeature extends Feature<NoneFeatureConfiguration> {
         }
     }
 
-    private EntityType<?> randomEntityId(RandomSource p_225154_) {
-        return Util.getRandom(MOBS, p_225154_);
+    private EntityType<?> randomEntityId(RandomSource pRandom) {
+        return Util.getRandom(MOBS, pRandom);
     }
 }

@@ -14,8 +14,8 @@ public class PacketEncoder extends MessageToByteEncoder<Packet<?>> {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final PacketFlow flow;
 
-    public PacketEncoder(PacketFlow p_130543_) {
-        this.flow = p_130543_;
+    public PacketEncoder(PacketFlow pFlow) {
+        this.flow = pFlow;
     }
 
     protected void encode(ChannelHandlerContext p_130545_, Packet<?> p_130546_, ByteBuf p_130547_) throws Exception {

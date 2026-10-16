@@ -10,8 +10,8 @@ public class EntityZombieVillagerTypeFix extends NamedEntityFix {
     private static final int PROFESSION_MAX = 6;
     private static final RandomSource RANDOM = RandomSource.create();
 
-    public EntityZombieVillagerTypeFix(Schema p_15806_, boolean p_15807_) {
-        super(p_15806_, p_15807_, "EntityZombieVillagerTypeFix", References.ENTITY, "Zombie");
+    public EntityZombieVillagerTypeFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "EntityZombieVillagerTypeFix", References.ENTITY, "Zombie");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15813_) {

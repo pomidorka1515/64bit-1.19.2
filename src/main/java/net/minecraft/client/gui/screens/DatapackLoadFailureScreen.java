@@ -12,9 +12,9 @@ public class DatapackLoadFailureScreen extends Screen {
     private MultiLineLabel message = MultiLineLabel.EMPTY;
     private final Runnable callback;
 
-    public DatapackLoadFailureScreen(Runnable p_95894_) {
+    public DatapackLoadFailureScreen(Runnable pCallback) {
         super(Component.translatable("datapackFailure.title"));
-        this.callback = p_95894_;
+        this.callback = pCallback;
     }
 
     protected void init() {
@@ -28,10 +28,10 @@ public class DatapackLoadFailureScreen extends Screen {
         }));
     }
 
-    public void render(PoseStack p_95896_, int p_95897_, int p_95898_, float p_95899_) {
-        this.renderBackground(p_95896_);
-        this.message.renderCentered(p_95896_, this.width / 2, 70);
-        super.render(p_95896_, p_95897_, p_95898_, p_95899_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.message.renderCentered(pPoseStack, this.width / 2, 70);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public boolean shouldCloseOnEsc() {

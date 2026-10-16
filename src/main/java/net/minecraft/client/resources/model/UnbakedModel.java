@@ -14,8 +14,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public interface UnbakedModel {
     Collection<ResourceLocation> getDependencies();
 
-    Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> p_119538_, Set<Pair<String, String>> p_119539_);
+    Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> pModelGetter, Set<Pair<String, String>> pMissingTextureErrors);
 
     @Nullable
-    BakedModel bake(ModelBakery p_119534_, Function<Material, TextureAtlasSprite> p_119535_, ModelState p_119536_, ResourceLocation p_119537_);
+    BakedModel bake(ModelBakery pModelBakery, Function<Material, TextureAtlasSprite> pSpriteGetter, ModelState pTransform, ResourceLocation pLocation);
 }

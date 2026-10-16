@@ -42,12 +42,12 @@ public class RecipeManager extends SimpleJsonResourceReloadListener {
         super(GSON, "recipes");
     }
 
-    protected void apply(Map<ResourceLocation, JsonElement> p_44037_, ResourceManager p_44038_, ProfilerFiller p_44039_) {
+    protected void apply(Map<ResourceLocation, JsonElement> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         this.hasErrors = false;
         Map<RecipeType<?>, ImmutableMap.Builder<ResourceLocation, Recipe<?>>> map = Maps.newHashMap();
         ImmutableMap.Builder<ResourceLocation, Recipe<?>> builder = ImmutableMap.builder();
 
-        for (Map.Entry<ResourceLocation, JsonElement> entry : p_44037_.entrySet()) {
+        for (Map.Entry<ResourceLocation, JsonElement> entry : pObject.entrySet()) {
             ResourceLocation resourcelocation = entry.getKey();
 
             try {
@@ -72,9 +72,9 @@ public class RecipeManager extends SimpleJsonResourceReloadListener {
         return this.hasErrors;
     }
 
-    public <C extends Container, T extends Recipe<C>> Optional<T> getRecipeFor(RecipeType<T> p_44016_, C p_44017_, Level p_44018_) {
-        return this.byType(p_44016_).values().stream().filter((p_220266_) -> {
-                                                          return p_220266_.matches(p_44017_, p_44018_);
+    public <C extends Container, T extends Recipe<C>> Optional<T> getRecipeFor(RecipeType<T> pRecipeType, C pInventory, Level pLevel) {
+        return this.byType(pRecipeType).values().stream().filter((p_220266_) -> {
+                                                          return p_220266_.matches(pInventory, pLevel);
                                                       })
                 .findFirst();
     }
@@ -97,13 +97,13 @@ public class RecipeManager extends SimpleJsonResourceReloadListener {
                 });
     }
 
-    public <C extends Container, T extends Recipe<C>> List<T> getAllRecipesFor(RecipeType<T> p_44014_) {
-        return List.copyOf(this.byType(p_44014_).values());
+    public <C extends Container, T extends Recipe<C>> List<T> getAllRecipesFor(RecipeType<T> pRecipeType) {
+        return List.copyOf(this.byType(pRecipeType).values());
     }
 
-    public <C extends Container, T extends Recipe<C>> List<T> getRecipesFor(RecipeType<T> p_44057_, C p_44058_, Level p_44059_) {
-        return this.byType(p_44057_).values().stream().filter((p_220241_) -> {
-                                                          return p_220241_.matches(p_44058_, p_44059_);
+    public <C extends Container, T extends Recipe<C>> List<T> getRecipesFor(RecipeType<T> pRecipeType, C pInventory, Level pLevel) {
+        return this.byType(pRecipeType).values().stream().filter((p_220241_) -> {
+                                                          return p_220241_.matches(pInventory, pLevel);
                                                       })
                 .sorted(Comparator.comparing((p_220247_) -> {
                     return p_220247_.getResultItem().getDescriptionId();
@@ -111,27 +111,27 @@ public class RecipeManager extends SimpleJsonResourceReloadListener {
                 .collect(Collectors.toList());
     }
 
-    private <C extends Container, T extends Recipe<C>> Map<ResourceLocation, T> byType(RecipeType<T> p_44055_) {
-        return (Map<ResourceLocation, T>) this.recipes.getOrDefault(p_44055_, Collections.emptyMap());
+    private <C extends Container, T extends Recipe<C>> Map<ResourceLocation, T> byType(RecipeType<T> pRecipeType) {
+        return (Map<ResourceLocation, T>) this.recipes.getOrDefault(pRecipeType, Collections.emptyMap());
     }
 
-    public <C extends Container, T extends Recipe<C>> NonNullList<ItemStack> getRemainingItemsFor(RecipeType<T> p_44070_, C p_44071_, Level p_44072_) {
-        Optional<T> optional = this.getRecipeFor(p_44070_, p_44071_, p_44072_);
+    public <C extends Container, T extends Recipe<C>> NonNullList<ItemStack> getRemainingItemsFor(RecipeType<T> pRecipeType, C pInventory, Level pLevel) {
+        Optional<T> optional = this.getRecipeFor(pRecipeType, pInventory, pLevel);
         if (optional.isPresent()) {
-            return optional.get().getRemainingItems(p_44071_);
+            return optional.get().getRemainingItems(pInventory);
         } else {
-            NonNullList<ItemStack> nonnulllist = NonNullList.withSize(p_44071_.getContainerSize(), ItemStack.EMPTY);
+            NonNullList<ItemStack> nonnulllist = NonNullList.withSize(pInventory.getContainerSize(), ItemStack.EMPTY);
 
             for (int i = 0; i < nonnulllist.size(); ++i) {
-                nonnulllist.set(i, p_44071_.getItem(i));
+                nonnulllist.set(i, pInventory.getItem(i));
             }
 
             return nonnulllist;
         }
     }
 
-    public Optional<? extends Recipe<?>> byKey(ResourceLocation p_44044_) {
-        return Optional.ofNullable(this.byName.get(p_44044_));
+    public Optional<? extends Recipe<?>> byKey(ResourceLocation pRecipeId) {
+        return Optional.ofNullable(this.byName.get(pRecipeId));
     }
 
     public Collection<Recipe<?>> getRecipes() {
@@ -147,19 +147,19 @@ public class RecipeManager extends SimpleJsonResourceReloadListener {
         });
     }
 
-    public static Recipe<?> fromJson(ResourceLocation p_44046_, JsonObject p_44047_) {
-        String s = GsonHelper.getAsString(p_44047_, "type");
+    public static Recipe<?> fromJson(ResourceLocation pRecipeId, JsonObject pJson) {
+        String s = GsonHelper.getAsString(pJson, "type");
         return Registry.RECIPE_SERIALIZER.getOptional(new ResourceLocation(s)).orElseThrow(() -> {
                                                                                   return new JsonSyntaxException("Invalid or unsupported recipe type '" + s + "'");
                                                                               })
-                .fromJson(p_44046_, p_44047_);
+                .fromJson(pRecipeId, pJson);
     }
 
-    public void replaceRecipes(Iterable<Recipe<?>> p_44025_) {
+    public void replaceRecipes(Iterable<Recipe<?>> pRecipes) {
         this.hasErrors = false;
         Map<RecipeType<?>, Map<ResourceLocation, Recipe<?>>> map = Maps.newHashMap();
         ImmutableMap.Builder<ResourceLocation, Recipe<?>> builder = ImmutableMap.builder();
-        p_44025_.forEach((p_220262_) -> {
+        pRecipes.forEach((p_220262_) -> {
             Map<ResourceLocation, Recipe<?>> map1 = map.computeIfAbsent(p_220262_.getType(), (p_220272_) -> {
                 return Maps.newHashMap();
             });

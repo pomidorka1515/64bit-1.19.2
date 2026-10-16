@@ -8,11 +8,11 @@ import javax.annotation.Nullable;
 import net.minecraft.util.profiling.jfr.Percentiles;
 
 public record TimedStatSummary<T extends TimedStat>(T fastest, T slowest, @Nullable T secondSlowest, int count, Map<Integer, Double> percentilesNanos, Duration totalDuration) {
-    public static <T extends TimedStat> TimedStatSummary<T> summary(List<T> p_185850_) {
-        if (p_185850_.isEmpty()) {
+    public static <T extends TimedStat> TimedStatSummary<T> summary(List<T> pStats) {
+        if (pStats.isEmpty()) {
             throw new IllegalArgumentException("No values");
         } else {
-            List<T> list = p_185850_.stream().sorted(Comparator.comparing(TimedStat::duration)).toList();
+            List<T> list = pStats.stream().sorted(Comparator.comparing(TimedStat::duration)).toList();
             Duration duration = list.stream().map(TimedStat::duration).reduce(Duration::plus).orElse(Duration.ZERO);
             T t = list.get(0);
             T t1 = list.get(list.size() - 1);

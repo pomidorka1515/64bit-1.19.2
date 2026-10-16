@@ -76,15 +76,15 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
     };
     private static final TargetingConditions TARGETING_CONDITIONS = TargetingConditions.forCombat().range(20.0D).selector(LIVING_ENTITY_SELECTOR);
 
-    public WitherBoss(EntityType<? extends WitherBoss> p_31437_, Level p_31438_) {
-        super(p_31437_, p_31438_);
+    public WitherBoss(EntityType<? extends WitherBoss> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.moveControl = new FlyingMoveControl(this, 10, false);
         this.setHealth(this.getMaxHealth());
         this.xpReward = 50;
     }
 
-    protected PathNavigation createNavigation(Level p_186262_) {
-        FlyingPathNavigation flyingpathnavigation = new FlyingPathNavigation(this, p_186262_);
+    protected PathNavigation createNavigation(Level pLevel) {
+        FlyingPathNavigation flyingpathnavigation = new FlyingPathNavigation(this, pLevel);
         flyingpathnavigation.setCanOpenDoors(false);
         flyingpathnavigation.setCanFloat(true);
         flyingpathnavigation.setCanPassDoors(true);
@@ -109,21 +109,21 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         this.entityData.define(DATA_ID_INV, 0);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_31485_) {
-        super.addAdditionalSaveData(p_31485_);
-        p_31485_.putInt("Invul", this.getInvulnerableTicks());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("Invul", this.getInvulnerableTicks());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_31474_) {
-        super.readAdditionalSaveData(p_31474_);
-        this.setInvulnerableTicks(p_31474_.getInt("Invul"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setInvulnerableTicks(pCompound.getInt("Invul"));
         if (this.hasCustomName()) {
             this.bossEvent.setName(this.getDisplayName());
         }
     }
 
-    public void setCustomName(@Nullable Component p_31476_) {
-        super.setCustomName(p_31476_);
+    public void setCustomName(@Nullable Component pName) {
+        super.setCustomName(pName);
         this.bossEvent.setName(this.getDisplayName());
     }
 
@@ -131,7 +131,7 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         return SoundEvents.WITHER_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_31500_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.WITHER_HURT;
     }
 
@@ -317,8 +317,8 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         }
     }
 
-    public static boolean canDestroy(BlockState p_31492_) {
-        return !p_31492_.isAir() && !p_31492_.is(BlockTags.WITHER_IMMUNE);
+    public static boolean canDestroy(BlockState pState) {
+        return !pState.isAir() && !pState.is(BlockTags.WITHER_IMMUNE);
     }
 
     public void makeInvulnerable() {
@@ -327,38 +327,38 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         this.setHealth(this.getMaxHealth() / 3.0F);
     }
 
-    public void makeStuckInBlock(BlockState p_31471_, Vec3 p_31472_) {
+    public void makeStuckInBlock(BlockState pState, Vec3 pMotionMultiplier) {
     }
 
-    public void startSeenByPlayer(ServerPlayer p_31483_) {
-        super.startSeenByPlayer(p_31483_);
-        this.bossEvent.addPlayer(p_31483_);
+    public void startSeenByPlayer(ServerPlayer pPlayer) {
+        super.startSeenByPlayer(pPlayer);
+        this.bossEvent.addPlayer(pPlayer);
     }
 
-    public void stopSeenByPlayer(ServerPlayer p_31488_) {
-        super.stopSeenByPlayer(p_31488_);
-        this.bossEvent.removePlayer(p_31488_);
+    public void stopSeenByPlayer(ServerPlayer pPlayer) {
+        super.stopSeenByPlayer(pPlayer);
+        this.bossEvent.removePlayer(pPlayer);
     }
 
-    private double getHeadX(int p_31515_) {
-        if (p_31515_ <= 0) {
+    private double getHeadX(int pHead) {
+        if (pHead <= 0) {
             return this.getX();
         } else {
-            float f = (this.yBodyRot + (float) (180 * (p_31515_ - 1))) * ((float) Math.PI / 180F);
+            float f = (this.yBodyRot + (float) (180 * (pHead - 1))) * ((float) Math.PI / 180F);
             float f1 = Mth.cos(f);
             return this.getX() + (double) f1 * 1.3D;
         }
     }
 
-    private double getHeadY(int p_31517_) {
-        return p_31517_ <= 0 ? this.getY() + 3.0D : this.getY() + 2.2D;
+    private double getHeadY(int pHead) {
+        return pHead <= 0 ? this.getY() + 3.0D : this.getY() + 2.2D;
     }
 
-    private double getHeadZ(int p_31519_) {
-        if (p_31519_ <= 0) {
+    private double getHeadZ(int pHead) {
+        if (pHead <= 0) {
             return this.getZ();
         } else {
-            float f = (this.yBodyRot + (float) (180 * (p_31519_ - 1))) * ((float) Math.PI / 180F);
+            float f = (this.yBodyRot + (float) (180 * (pHead - 1))) * ((float) Math.PI / 180F);
             float f1 = Mth.sin(f);
             return this.getZ() + (double) f1 * 1.3D;
         }
@@ -377,27 +377,27 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         return p_31443_ + f;
     }
 
-    private void performRangedAttack(int p_31458_, LivingEntity p_31459_) {
-        this.performRangedAttack(p_31458_, p_31459_.sectorPosition().add(0.0D, (double) p_31459_.getEyeHeight() * 0.5D, 0.0D), p_31458_ == 0 && this.random.nextFloat() < 0.001F);
+    private void performRangedAttack(int pHead, LivingEntity pTarget) {
+        this.performRangedAttack(pHead, pTarget.sectorPosition().add(0.0D, (double) pTarget.getEyeHeight() * 0.5D, 0.0D), pHead == 0 && this.random.nextFloat() < 0.001F);
     }
 
-    private void performRangedAttack(int p_31449_, double p_31450_, double p_31451_, double p_31452_, boolean p_31453_) {
-        this.performRangedAttack(p_31449_, SectorVec3.fromApproximate(p_31450_, p_31451_, p_31452_), p_31453_);
+    private void performRangedAttack(int pHead, double pX, double pY, double pZ, boolean pIsDangerous) {
+        this.performRangedAttack(pHead, SectorVec3.fromApproximate(pX, pY, pZ), pIsDangerous);
     }
 
-    private void performRangedAttack(int p_31449_, SectorVec3 target, boolean p_31453_) {
+    private void performRangedAttack(int pHead, SectorVec3 target, boolean pIsDangerous) {
         if (!this.isSilent()) {
             this.level.levelEvent((Player) null, 1024, this.blockPosition(), 0);
         }
 
-        SectorVec3 headPos = this.getExactHeadPos(p_31449_);
+        SectorVec3 headPos = this.getExactHeadPos(pHead);
         Vec3 delta = target.relativeTo(headPos);
         double d3 = delta.x;
         double d4 = delta.y;
         double d5 = delta.z;
         WitherSkull witherskull = new WitherSkull(this.level, this, d3, d4, d5);
         witherskull.setOwner(this);
-        if (p_31453_) {
+        if (pIsDangerous) {
             witherskull.setDangerous(true);
         }
 
@@ -415,25 +415,25 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         }
     }
 
-    public void performRangedAttack(LivingEntity p_31468_, float p_31469_) {
-        this.performRangedAttack(0, p_31468_);
+    public void performRangedAttack(LivingEntity pTarget, float pDistanceFactor) {
+        this.performRangedAttack(0, pTarget);
     }
 
-    public boolean hurt(DamageSource p_31461_, float p_31462_) {
-        if (this.isInvulnerableTo(p_31461_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
-        } else if (p_31461_ != DamageSource.DROWN && !(p_31461_.getEntity() instanceof WitherBoss)) {
-            if (this.getInvulnerableTicks() > 0 && p_31461_ != DamageSource.OUT_OF_WORLD) {
+        } else if (pSource != DamageSource.DROWN && !(pSource.getEntity() instanceof WitherBoss)) {
+            if (this.getInvulnerableTicks() > 0 && pSource != DamageSource.OUT_OF_WORLD) {
                 return false;
             } else {
                 if (this.isPowered()) {
-                    Entity entity = p_31461_.getDirectEntity();
+                    Entity entity = pSource.getDirectEntity();
                     if (entity instanceof AbstractArrow) {
                         return false;
                     }
                 }
 
-                Entity entity1 = p_31461_.getEntity();
+                Entity entity1 = pSource.getEntity();
                 if (entity1 != null && !(entity1 instanceof Player) && entity1 instanceof LivingEntity && ((LivingEntity) entity1).getMobType() == this.getMobType()) {
                     return false;
                 } else {
@@ -445,7 +445,7 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
                         this.idleHeadUpdates[i] += 3;
                     }
 
-                    return super.hurt(p_31461_, p_31462_);
+                    return super.hurt(pSource, pAmount);
                 }
             }
         } else {
@@ -453,8 +453,8 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         }
     }
 
-    protected void dropCustomDeathLoot(DamageSource p_31464_, int p_31465_, boolean p_31466_) {
-        super.dropCustomDeathLoot(p_31464_, p_31465_, p_31466_);
+    protected void dropCustomDeathLoot(DamageSource pSource, int pLooting, boolean pRecentlyHit) {
+        super.dropCustomDeathLoot(pSource, pLooting, pRecentlyHit);
         ItemEntity itementity = this.spawnAtLocation(Items.NETHER_STAR);
         if (itementity != null) {
             itementity.setExtendedLifetime();
@@ -469,11 +469,11 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         }
     }
 
-    public boolean causeFallDamage(float p_149589_, float p_149590_, DamageSource p_149591_) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return false;
     }
 
-    public boolean addEffect(MobEffectInstance p_182397_, @Nullable Entity p_182398_) {
+    public boolean addEffect(MobEffectInstance pEffectInstance, @Nullable Entity pEntity) {
         return false;
     }
 
@@ -481,28 +481,28 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 300.0D).add(Attributes.MOVEMENT_SPEED, (double) 0.6F).add(Attributes.FLYING_SPEED, (double) 0.6F).add(Attributes.FOLLOW_RANGE, 40.0D).add(Attributes.ARMOR, 4.0D);
     }
 
-    public float getHeadYRot(int p_31447_) {
-        return this.yRotHeads[p_31447_];
+    public float getHeadYRot(int pHead) {
+        return this.yRotHeads[pHead];
     }
 
-    public float getHeadXRot(int p_31481_) {
-        return this.xRotHeads[p_31481_];
+    public float getHeadXRot(int pHead) {
+        return this.xRotHeads[pHead];
     }
 
     public int getInvulnerableTicks() {
         return this.entityData.get(DATA_ID_INV);
     }
 
-    public void setInvulnerableTicks(int p_31511_) {
-        this.entityData.set(DATA_ID_INV, p_31511_);
+    public void setInvulnerableTicks(int pInvulnerableTicks) {
+        this.entityData.set(DATA_ID_INV, pInvulnerableTicks);
     }
 
-    public int getAlternativeTarget(int p_31513_) {
-        return this.entityData.get(DATA_TARGETS.get(p_31513_));
+    public int getAlternativeTarget(int pHead) {
+        return this.entityData.get(DATA_TARGETS.get(pHead));
     }
 
-    public void setAlternativeTarget(int p_31455_, int p_31456_) {
-        this.entityData.set(DATA_TARGETS.get(p_31455_), p_31456_);
+    public void setAlternativeTarget(int pTargetOffset, int pNewId) {
+        this.entityData.set(DATA_TARGETS.get(pTargetOffset), pNewId);
     }
 
     public boolean isPowered() {
@@ -513,7 +513,7 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         return MobType.UNDEAD;
     }
 
-    protected boolean canRide(Entity p_31508_) {
+    protected boolean canRide(Entity pEntity) {
         return false;
     }
 
@@ -521,8 +521,8 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         return false;
     }
 
-    public boolean canBeAffected(MobEffectInstance p_31495_) {
-        return p_31495_.getEffect() == MobEffects.WITHER ? false : super.canBeAffected(p_31495_);
+    public boolean canBeAffected(MobEffectInstance pPotioneffect) {
+        return pPotioneffect.getEffect() == MobEffects.WITHER ? false : super.canBeAffected(pPotioneffect);
     }
 
     class WitherDoNothingGoal extends Goal {

@@ -15,13 +15,13 @@ public class HuskRenderer extends ZombieRenderer {
         super(p_174180_, ModelLayers.HUSK, ModelLayers.HUSK_INNER_ARMOR, ModelLayers.HUSK_OUTER_ARMOR);
     }
 
-    protected void scale(Zombie p_114907_, PoseStack p_114908_, float p_114909_) {
+    protected void scale(Zombie pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
         float f = 1.0625F;
-        p_114908_.scale(1.0625F, 1.0625F, 1.0625F);
-        super.scale(p_114907_, p_114908_, p_114909_);
+        pMatrixStack.scale(1.0625F, 1.0625F, 1.0625F);
+        super.scale(pLivingEntity, pMatrixStack, pPartialTickTime);
     }
 
-    public ResourceLocation getTextureLocation(Zombie p_114905_) {
+    public ResourceLocation getTextureLocation(Zombie pEntity) {
         return HUSK_LOCATION;
     }
 }

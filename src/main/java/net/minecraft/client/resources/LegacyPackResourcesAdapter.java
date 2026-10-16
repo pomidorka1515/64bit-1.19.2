@@ -887,42 +887,42 @@ public class LegacyPackResourcesAdapter implements PackResources {
         return builder.build();
     });
 
-    private static ResourceLocation toMetaLocation(ResourceLocation p_118716_) {
-        return new ResourceLocation(p_118716_.getNamespace(), p_118716_.getPath() + ".mcmeta");
+    private static ResourceLocation toMetaLocation(ResourceLocation pLocation) {
+        return new ResourceLocation(pLocation.getNamespace(), pLocation.getPath() + ".mcmeta");
     }
 
-    public LegacyPackResourcesAdapter(PackResources p_118695_, Map<ResourceLocation, ResourceLocation> p_118696_) {
-        this.source = p_118695_;
-        this.patches = p_118696_;
+    public LegacyPackResourcesAdapter(PackResources pSource, Map<ResourceLocation, ResourceLocation> pPatches) {
+        this.source = pSource;
+        this.patches = pPatches;
     }
 
-    private ResourceLocation map(ResourceLocation p_118724_) {
-        return this.patches.getOrDefault(p_118724_, p_118724_);
+    private ResourceLocation map(ResourceLocation pLocation) {
+        return this.patches.getOrDefault(pLocation, pLocation);
     }
 
-    public InputStream getRootResource(String p_118722_) throws IOException {
-        return this.source.getRootResource(p_118722_);
+    public InputStream getRootResource(String pFileName) throws IOException {
+        return this.source.getRootResource(pFileName);
     }
 
-    public InputStream getResource(PackType p_118707_, ResourceLocation p_118708_) throws IOException {
-        return this.source.getResource(p_118707_, this.map(p_118708_));
+    public InputStream getResource(PackType pType, ResourceLocation pLocation) throws IOException {
+        return this.source.getResource(pType, this.map(pLocation));
     }
 
-    public Collection<ResourceLocation> getResources(PackType p_235024_, String p_235025_, String p_235026_, Predicate<ResourceLocation> p_235027_) {
+    public Collection<ResourceLocation> getResources(PackType pType, String pNamespace, String pPath, Predicate<ResourceLocation> pFilter) {
         return Collections.emptyList();
     }
 
-    public boolean hasResource(PackType p_118719_, ResourceLocation p_118720_) {
-        return this.source.hasResource(p_118719_, this.map(p_118720_));
+    public boolean hasResource(PackType pType, ResourceLocation pLocation) {
+        return this.source.hasResource(pType, this.map(pLocation));
     }
 
-    public Set<String> getNamespaces(PackType p_118699_) {
-        return this.source.getNamespaces(p_118699_);
+    public Set<String> getNamespaces(PackType pType) {
+        return this.source.getNamespaces(pType);
     }
 
     @Nullable
-    public <T> T getMetadataSection(MetadataSectionSerializer<T> p_118710_) throws IOException {
-        return this.source.getMetadataSection(p_118710_);
+    public <T> T getMetadataSection(MetadataSectionSerializer<T> pDeserializer) throws IOException {
+        return this.source.getMetadataSection(pDeserializer);
     }
 
     public String getName() {

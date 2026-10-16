@@ -18,15 +18,15 @@ public class VexRenderer extends HumanoidMobRenderer<Vex, VexModel> {
         super(p_174435_, new VexModel(p_174435_.bakeLayer(ModelLayers.VEX)), 0.3F);
     }
 
-    protected int getBlockLightLevel(Vex p_116298_, BlockPos p_116299_) {
+    protected int getBlockLightLevel(Vex pEntity, BlockPos pPos) {
         return 15;
     }
 
-    public ResourceLocation getTextureLocation(Vex p_116292_) {
-        return p_116292_.isCharging() ? VEX_CHARGING_LOCATION : VEX_LOCATION;
+    public ResourceLocation getTextureLocation(Vex pEntity) {
+        return pEntity.isCharging() ? VEX_CHARGING_LOCATION : VEX_LOCATION;
     }
 
-    protected void scale(Vex p_116294_, PoseStack p_116295_, float p_116296_) {
-        p_116295_.scale(0.4F, 0.4F, 0.4F);
+    protected void scale(Vex pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
+        pMatrixStack.scale(0.4F, 0.4F, 0.4F);
     }
 }

@@ -21,16 +21,16 @@ public class LightDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     private final Minecraft minecraft;
     private static final int MAX_RENDER_DIST = 10;
 
-    public LightDebugRenderer(Minecraft p_113585_) {
-        this.minecraft = p_113585_;
+    public LightDebugRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_113587_, MultiBufferSource p_113588_, double p_113589_, double p_113590_, double p_113591_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         Level level = this.minecraft.level;
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableTexture();
-        BlockPos blockpos = new BlockPos(p_113589_, p_113590_, p_113591_);
+        BlockPos blockpos = new BlockPos(pCamX, pCamY, pCamZ);
         ObjectSet<SectionPos> longset = new ObjectOpenHashSet<>();
 
         for (BlockPos blockpos1 : BlockPos.betweenClosed(blockpos.offset(-10, -10, -10), blockpos.offset(10, 10, 10))) {

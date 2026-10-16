@@ -18,11 +18,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface AbuseReportSender {
-    static AbuseReportSender create(ReportEnvironment p_239536_, UserApiService p_239537_) {
-        return new AbuseReportSender.Services(p_239536_, p_239537_);
+    static AbuseReportSender create(ReportEnvironment pEnvironment, UserApiService pUserApiService) {
+        return new AbuseReportSender.Services(pEnvironment, pUserApiService);
     }
 
-    CompletableFuture<Unit> send(UUID p_239838_, AbuseReport p_239839_);
+    CompletableFuture<Unit> send(UUID pId, AbuseReport pReport);
 
     boolean isEnabled();
 
@@ -43,9 +43,9 @@ public interface AbuseReportSender {
         private static final Component HTTP_ERROR_TEXT = Component.translatable("gui.abuseReport.send.http_error");
         private static final Component JSON_ERROR_TEXT = Component.translatable("gui.abuseReport.send.json_error");
 
-        public CompletableFuture<Unit> send(UUID p_239470_, AbuseReport p_239471_) {
+        public CompletableFuture<Unit> send(UUID pId, AbuseReport pReport) {
             return CompletableFuture.supplyAsync(() -> {
-                AbuseReportRequest abusereportrequest = new AbuseReportRequest(p_239470_, p_239471_, this.environment.clientInfo(), this.environment.thirdPartyServerInfo(), this.environment.realmInfo());
+                AbuseReportRequest abusereportrequest = new AbuseReportRequest(pId, pReport, this.environment.clientInfo(), this.environment.thirdPartyServerInfo(), this.environment.realmInfo());
 
                 try {
                     this.userApiService.reportAbuse(abusereportrequest);
@@ -64,13 +64,13 @@ public interface AbuseReportSender {
             return this.userApiService.canSendReports();
         }
 
-        private Component getHttpErrorDescription(MinecraftClientHttpException p_239705_) {
-            return Component.translatable("gui.abuseReport.send.error_message", p_239705_.getMessage());
+        private Component getHttpErrorDescription(MinecraftClientHttpException pHttpException) {
+            return Component.translatable("gui.abuseReport.send.error_message", pHttpException.getMessage());
         }
 
-        private Component getErrorDescription(MinecraftClientException p_240068_) {
+        private Component getErrorDescription(MinecraftClientException pException) {
             Component component;
-            switch (p_240068_.getType()) {
+            switch (pException.getType()) {
                 case SERVICE_UNAVAILABLE:
                     component = SERVICE_UNAVAILABLE_TEXT;
                     break;

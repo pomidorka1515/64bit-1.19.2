@@ -30,7 +30,7 @@ public class CheckerboardColumnBiomeSource extends BiomeSource {
         return CODEC;
     }
 
-    public Holder<Biome> getNoiseBiome(long p_204248_, int p_204249_, long p_204250_, Climate.Sampler p_204251_) {
-        return this.allowedBiomes.get(Math.floorMod((p_204248_ >> this.bitShift) + (p_204250_ >> this.bitShift), this.allowedBiomes.size()));
+    public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ, Climate.Sampler pSampler) {
+        return this.allowedBiomes.get(Math.floorMod((pX >> this.bitShift) + (pZ >> this.bitShift), this.allowedBiomes.size()));
     }
 }

@@ -57,46 +57,46 @@ public class GoatAi {
     public static final float ADULT_RAM_KNOCKBACK_FORCE = 2.5F;
     public static final float BABY_RAM_KNOCKBACK_FORCE = 1.0F;
 
-    protected static void initMemories(Goat p_218765_, RandomSource p_218766_) {
-        p_218765_.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, TIME_BETWEEN_LONG_JUMPS.sample(p_218766_));
-        p_218765_.getBrain().setMemory(MemoryModuleType.RAM_COOLDOWN_TICKS, TIME_BETWEEN_RAMS.sample(p_218766_));
+    protected static void initMemories(Goat pGoat, RandomSource pRandom) {
+        pGoat.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, TIME_BETWEEN_LONG_JUMPS.sample(pRandom));
+        pGoat.getBrain().setMemory(MemoryModuleType.RAM_COOLDOWN_TICKS, TIME_BETWEEN_RAMS.sample(pRandom));
     }
 
-    protected static Brain<?> makeBrain(Brain<Goat> p_149448_) {
-        initCoreActivity(p_149448_);
-        initIdleActivity(p_149448_);
-        initLongJumpActivity(p_149448_);
-        initRamActivity(p_149448_);
-        p_149448_.setCoreActivities(ImmutableSet.of(Activity.CORE));
-        p_149448_.setDefaultActivity(Activity.IDLE);
-        p_149448_.useDefaultActivity();
-        return p_149448_;
+    protected static Brain<?> makeBrain(Brain<Goat> pBrain) {
+        initCoreActivity(pBrain);
+        initIdleActivity(pBrain);
+        initLongJumpActivity(pBrain);
+        initRamActivity(pBrain);
+        pBrain.setCoreActivities(ImmutableSet.of(Activity.CORE));
+        pBrain.setDefaultActivity(Activity.IDLE);
+        pBrain.useDefaultActivity();
+        return pBrain;
     }
 
-    private static void initCoreActivity(Brain<Goat> p_149454_) {
-        p_149454_.addActivity(Activity.CORE, 0, ImmutableList.of(new Swim(0.8F), new AnimalPanic(2.0F), new LookAtTargetSink(45, 90), new MoveToTargetSink(), new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS), new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS), new CountDownCooldownTicks(MemoryModuleType.RAM_COOLDOWN_TICKS)));
+    private static void initCoreActivity(Brain<Goat> pBrain) {
+        pBrain.addActivity(Activity.CORE, 0, ImmutableList.of(new Swim(0.8F), new AnimalPanic(2.0F), new LookAtTargetSink(45, 90), new MoveToTargetSink(), new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS), new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS), new CountDownCooldownTicks(MemoryModuleType.RAM_COOLDOWN_TICKS)));
     }
 
-    private static void initIdleActivity(Brain<Goat> p_149458_) {
-        p_149458_.addActivityWithConditions(Activity.IDLE, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(0, new AnimalMakeLove(EntityType.GOAT, 1.0F)), Pair.of(1, new FollowTemptation((p_149446_) -> {
+    private static void initIdleActivity(Brain<Goat> pBrain) {
+        pBrain.addActivityWithConditions(Activity.IDLE, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(0, new AnimalMakeLove(EntityType.GOAT, 1.0F)), Pair.of(1, new FollowTemptation((p_149446_) -> {
             return 1.25F;
         })),
                                                                    Pair.of(2, new BabyFollowAdult<>(ADULT_FOLLOW_RANGE, 1.25F)), Pair.of(3, new RunOne<>(ImmutableList.of(Pair.of(new RandomStroll(1.0F), 2), Pair.of(new SetWalkTargetFromLookTarget(1.0F, 3), 2), Pair.of(new DoNothing(30, 60), 1))))),
                 ImmutableSet.of(Pair.of(MemoryModuleType.RAM_TARGET, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)));
     }
 
-    private static void initLongJumpActivity(Brain<Goat> p_149462_) {
-        p_149462_.addActivityWithConditions(Activity.LONG_JUMP, ImmutableList.of(Pair.of(0, new LongJumpMidJump(TIME_BETWEEN_LONG_JUMPS, SoundEvents.GOAT_STEP)), Pair.of(1, new LongJumpToRandomPos<>(TIME_BETWEEN_LONG_JUMPS, 5, 5, 1.5F, (p_149476_) -> {
+    private static void initLongJumpActivity(Brain<Goat> pBrain) {
+        pBrain.addActivityWithConditions(Activity.LONG_JUMP, ImmutableList.of(Pair.of(0, new LongJumpMidJump(TIME_BETWEEN_LONG_JUMPS, SoundEvents.GOAT_STEP)), Pair.of(1, new LongJumpToRandomPos<>(TIME_BETWEEN_LONG_JUMPS, 5, 5, 1.5F, (p_149476_) -> {
             return p_149476_.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_LONG_JUMP : SoundEvents.GOAT_LONG_JUMP;
         }))), ImmutableSet.of(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT)));
     }
 
-    private static void initRamActivity(Brain<Goat> p_149466_) {
-        p_149466_.addActivityWithConditions(Activity.RAM, ImmutableList.of(Pair.of(0, new RamTarget((p_149474_) -> { return p_149474_.isScreamingGoat() ? TIME_BETWEEN_RAMS_SCREAMER : TIME_BETWEEN_RAMS; }, RAM_TARGET_CONDITIONS, 3.0F, (p_149470_) -> { return p_149470_.isBaby() ? 1.0D : 2.5D; }, (p_149468_) -> { return p_149468_.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_RAM_IMPACT : SoundEvents.GOAT_RAM_IMPACT; }, (p_218772_) -> { return p_218772_.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_HORN_BREAK : SoundEvents.GOAT_HORN_BREAK; })), Pair.of(1, new PrepareRamNearestTarget<>((p_218770_) -> { return p_218770_.isScreamingGoat() ? TIME_BETWEEN_RAMS_SCREAMER.getMinValue() : TIME_BETWEEN_RAMS.getMinValue(); }, 4, 7, 1.25F, RAM_TARGET_CONDITIONS, 20, (p_218768_) -> { return p_218768_.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_PREPARE_RAM : SoundEvents.GOAT_PREPARE_RAM; }))), ImmutableSet.of(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.RAM_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT)));
+    private static void initRamActivity(Brain<Goat> pBrain) {
+        pBrain.addActivityWithConditions(Activity.RAM, ImmutableList.of(Pair.of(0, new RamTarget((p_149474_) -> { return p_149474_.isScreamingGoat() ? TIME_BETWEEN_RAMS_SCREAMER : TIME_BETWEEN_RAMS; }, RAM_TARGET_CONDITIONS, 3.0F, (p_149470_) -> { return p_149470_.isBaby() ? 1.0D : 2.5D; }, (p_149468_) -> { return p_149468_.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_RAM_IMPACT : SoundEvents.GOAT_RAM_IMPACT; }, (p_218772_) -> { return p_218772_.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_HORN_BREAK : SoundEvents.GOAT_HORN_BREAK; })), Pair.of(1, new PrepareRamNearestTarget<>((p_218770_) -> { return p_218770_.isScreamingGoat() ? TIME_BETWEEN_RAMS_SCREAMER.getMinValue() : TIME_BETWEEN_RAMS.getMinValue(); }, 4, 7, 1.25F, RAM_TARGET_CONDITIONS, 20, (p_218768_) -> { return p_218768_.isScreamingGoat() ? SoundEvents.GOAT_SCREAMING_PREPARE_RAM : SoundEvents.GOAT_PREPARE_RAM; }))), ImmutableSet.of(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.RAM_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT)));
     }
 
-    public static void updateActivity(Goat p_149456_) {
-        p_149456_.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.RAM, Activity.LONG_JUMP, Activity.IDLE));
+    public static void updateActivity(Goat pBrain) {
+        pBrain.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.RAM, Activity.LONG_JUMP, Activity.IDLE));
     }
 
     public static Ingredient getTemptations() {

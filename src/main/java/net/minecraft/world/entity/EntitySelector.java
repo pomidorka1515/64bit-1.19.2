@@ -30,20 +30,20 @@ public final class EntitySelector {
     private EntitySelector() {
     }
 
-    public static Predicate<Entity> withinDistance(double p_20411_, double p_20412_, double p_20413_, double p_20414_) {
-        double d0 = p_20414_ * p_20414_;
+    public static Predicate<Entity> withinDistance(double pX, double pY, double pZ, double pRange) {
+        double d0 = pRange * pRange;
         return (p_20420_) -> {
-            return p_20420_ != null && p_20420_.distanceToSqr(p_20411_, p_20412_, p_20413_) <= d0;
+            return p_20420_ != null && p_20420_.distanceToSqr(pX, pY, pZ) <= d0;
         };
     }
 
-    public static Predicate<Entity> pushableBy(Entity p_20422_) {
-        Team team = p_20422_.getTeam();
+    public static Predicate<Entity> pushableBy(Entity pEntity) {
+        Team team = pEntity.getTeam();
         Team.CollisionRule team$collisionrule = team == null ? Team.CollisionRule.ALWAYS : team.getCollisionRule();
         return (Predicate<Entity>) (team$collisionrule == Team.CollisionRule.NEVER ? Predicates.alwaysFalse() : NO_SPECTATORS.and((p_20430_) -> {
             if (!p_20430_.isPushable()) {
                 return false;
-            } else if (!p_20422_.level.isClientSide || p_20430_ instanceof Player && ((Player) p_20430_).isLocalPlayer()) {
+            } else if (!pEntity.level.isClientSide || p_20430_ instanceof Player && ((Player) p_20430_).isLocalPlayer()) {
                 Team team1 = p_20430_.getTeam();
                 Team.CollisionRule team$collisionrule1 = team1 == null ? Team.CollisionRule.ALWAYS : team1.getCollisionRule();
                 if (team$collisionrule1 == Team.CollisionRule.NEVER) {
@@ -62,12 +62,12 @@ public final class EntitySelector {
         }));
     }
 
-    public static Predicate<Entity> notRiding(Entity p_20432_) {
+    public static Predicate<Entity> notRiding(Entity pEntity) {
         return (p_20425_) -> {
             while (true) {
                 if (p_20425_.isPassenger()) {
                     p_20425_ = p_20425_.getVehicle();
-                    if (p_20425_ != p_20432_) {
+                    if (p_20425_ != pEntity) {
                         continue;
                     }
 
@@ -82,17 +82,17 @@ public final class EntitySelector {
     public static class MobCanWearArmorEntitySelector implements Predicate<Entity> {
         private final ItemStack itemStack;
 
-        public MobCanWearArmorEntitySelector(ItemStack p_20445_) {
-            this.itemStack = p_20445_;
+        public MobCanWearArmorEntitySelector(ItemStack pStack) {
+            this.itemStack = pStack;
         }
 
-        public boolean test(@Nullable Entity p_20447_) {
-            if (!p_20447_.isAlive()) {
+        public boolean test(@Nullable Entity pEntity) {
+            if (!pEntity.isAlive()) {
                 return false;
-            } else if (!(p_20447_ instanceof LivingEntity)) {
+            } else if (!(pEntity instanceof LivingEntity)) {
                 return false;
             } else {
-                LivingEntity livingentity = (LivingEntity) p_20447_;
+                LivingEntity livingentity = (LivingEntity) pEntity;
                 return livingentity.canTakeItem(this.itemStack);
             }
         }

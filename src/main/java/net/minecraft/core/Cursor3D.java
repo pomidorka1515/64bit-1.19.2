@@ -19,11 +19,11 @@ public class Cursor3D {
     private int y;
     private long z;
 
-    public Cursor3D(long p_122298_, int p_122299_, long p_122300_, long p_122301_, int p_122302_, long p_122303_) {
-        this.originX = p_122298_;
-        this.originY = p_122299_;
-        this.originZ = p_122300_;
-        if (p_122301_ < p_122298_ || p_122302_ < p_122299_ || p_122303_ < p_122300_) {
+    public Cursor3D(long pOriginX, int pOriginY, long pOriginZ, long pEndX, int pEndY, long pEndZ) {
+        this.originX = pOriginX;
+        this.originY = pOriginY;
+        this.originZ = pOriginZ;
+        if (pEndX < pOriginX || pEndY < pOriginY || pEndZ < pOriginZ) {
             this.width = 0L;
             this.height = 0;
             this.depth = 0L;
@@ -31,9 +31,9 @@ public class Cursor3D {
             return;
         }
 
-        this.width = Math.addExact(Math.subtractExact(p_122301_, p_122298_), 1L);
-        this.height = Math.addExact(Math.subtractExact(p_122302_, p_122299_), 1);
-        this.depth = Math.addExact(Math.subtractExact(p_122303_, p_122300_), 1L);
+        this.width = Math.addExact(Math.subtractExact(pEndX, pOriginX), 1L);
+        this.height = Math.addExact(Math.subtractExact(pEndY, pOriginY), 1);
+        this.depth = Math.addExact(Math.subtractExact(pEndZ, pOriginZ), 1L);
         this.end = Math.multiplyExact(Math.multiplyExact(this.width, this.height), this.depth);
     }
 

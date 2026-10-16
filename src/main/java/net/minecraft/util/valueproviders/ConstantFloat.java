@@ -29,7 +29,7 @@ public class ConstantFloat extends FloatProvider {
         return this.value;
     }
 
-    public float sample(RandomSource p_216852_) {
+    public float sample(RandomSource pRandom) {
         return this.value;
     }
 

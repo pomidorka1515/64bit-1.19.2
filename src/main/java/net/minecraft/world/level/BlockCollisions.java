@@ -27,30 +27,30 @@ public class BlockCollisions extends AbstractIterator<VoxelShape> {
     private BlockGetter cachedBlockGetter;
     private ChunkPos cachedBlockGetterPos;
 
-    public BlockCollisions(CollisionGetter p_186402_, @Nullable Entity p_186403_, AABB p_186404_) {
-        this(p_186402_, p_186403_, p_186404_, false);
+    public BlockCollisions(CollisionGetter pCollisionGetter, @Nullable Entity pEntity, AABB pBox) {
+        this(pCollisionGetter, pEntity, pBox, false);
     }
 
-    public BlockCollisions(CollisionGetter p_186406_, @Nullable Entity p_186407_, AABB p_186408_, boolean p_186409_) {
-        this.context = p_186407_ == null ? CollisionContext.empty() : CollisionContext.of(p_186407_);
+    public BlockCollisions(CollisionGetter pCollisionGetter, @Nullable Entity pEntity, AABB pBox, boolean pOnlySuffocatingBlocks) {
+        this.context = pEntity == null ? CollisionContext.empty() : CollisionContext.of(pEntity);
         this.pos = new BlockPos.MutableBlockPos();
-        this.entityShape = Shapes.create(p_186408_);
-        this.collisionGetter = p_186406_;
-        this.box = p_186408_;
-        this.onlySuffocatingBlocks = p_186409_;
-        long i = WorldBounds.addBlockOffset(Mth.lfloor(p_186408_.minX - 1.0E-7D), -1L);
-        long j = WorldBounds.addBlockOffset(Mth.lfloor(p_186408_.maxX + 1.0E-7D), 1L);
-        int k = Mth.floor(p_186408_.minY - 1.0E-7D) - 1;
-        int l = Mth.floor(p_186408_.maxY + 1.0E-7D) + 1;
-        long i1 = WorldBounds.addBlockOffset(Mth.lfloor(p_186408_.minZ - 1.0E-7D), -1L);
-        long j1 = WorldBounds.addBlockOffset(Mth.lfloor(p_186408_.maxZ + 1.0E-7D), 1L);
+        this.entityShape = Shapes.create(pBox);
+        this.collisionGetter = pCollisionGetter;
+        this.box = pBox;
+        this.onlySuffocatingBlocks = pOnlySuffocatingBlocks;
+        long i = WorldBounds.addBlockOffset(Mth.lfloor(pBox.minX - 1.0E-7D), -1L);
+        long j = WorldBounds.addBlockOffset(Mth.lfloor(pBox.maxX + 1.0E-7D), 1L);
+        int k = Mth.floor(pBox.minY - 1.0E-7D) - 1;
+        int l = Mth.floor(pBox.maxY + 1.0E-7D) + 1;
+        long i1 = WorldBounds.addBlockOffset(Mth.lfloor(pBox.minZ - 1.0E-7D), -1L);
+        long j1 = WorldBounds.addBlockOffset(Mth.lfloor(pBox.maxZ + 1.0E-7D), 1L);
         this.cursor = new Cursor3D(i, k, i1, j, l, j1);
     }
 
     @Nullable
-    private BlockGetter getChunk(long p_186412_, long p_186413_) {
-        long i = SectionPos.blockToSectionCoord(p_186412_);
-        long j = SectionPos.blockToSectionCoord(p_186413_);
+    private BlockGetter getChunk(long pX, long pZ) {
+        long i = SectionPos.blockToSectionCoord(pX);
+        long j = SectionPos.blockToSectionCoord(pZ);
         ChunkPos k = new ChunkPos(i, j);
         if (this.cachedBlockGetter != null && k.equals(cachedBlockGetterPos)) {
             return this.cachedBlockGetter;

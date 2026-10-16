@@ -10,29 +10,29 @@ public class ClientboundLevelEventPacket implements Packet<ClientGamePacketListe
     private final int data;
     private final boolean globalEvent;
 
-    public ClientboundLevelEventPacket(int p_132264_, BlockPos p_132265_, int p_132266_, boolean p_132267_) {
-        this.type = p_132264_;
-        this.pos = p_132265_.immutable();
-        this.data = p_132266_;
-        this.globalEvent = p_132267_;
+    public ClientboundLevelEventPacket(int pType, BlockPos pPos, int pData, boolean pGlobalEvent) {
+        this.type = pType;
+        this.pos = pPos.immutable();
+        this.data = pData;
+        this.globalEvent = pGlobalEvent;
     }
 
-    public ClientboundLevelEventPacket(FriendlyByteBuf p_178908_) {
-        this.type = p_178908_.readInt();
-        this.pos = p_178908_.readBlockPos();
-        this.data = p_178908_.readInt();
-        this.globalEvent = p_178908_.readBoolean();
+    public ClientboundLevelEventPacket(FriendlyByteBuf pBuffer) {
+        this.type = pBuffer.readInt();
+        this.pos = pBuffer.readBlockPos();
+        this.data = pBuffer.readInt();
+        this.globalEvent = pBuffer.readBoolean();
     }
 
-    public void write(FriendlyByteBuf p_132276_) {
-        p_132276_.writeInt(this.type);
-        p_132276_.writeBlockPos(this.pos);
-        p_132276_.writeInt(this.data);
-        p_132276_.writeBoolean(this.globalEvent);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeInt(this.type);
+        pBuffer.writeBlockPos(this.pos);
+        pBuffer.writeInt(this.data);
+        pBuffer.writeBoolean(this.globalEvent);
     }
 
-    public void handle(ClientGamePacketListener p_132273_) {
-        p_132273_.handleLevelEvent(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleLevelEvent(this);
     }
 
     public boolean isGlobalEvent() {

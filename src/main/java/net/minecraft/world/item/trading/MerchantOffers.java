@@ -15,8 +15,8 @@ public class MerchantOffers extends ArrayList<MerchantOffer> {
         super(p_220323_);
     }
 
-    public MerchantOffers(CompoundTag p_45387_) {
-        ListTag listtag = p_45387_.getList("Recipes", 10);
+    public MerchantOffers(CompoundTag pCompoundTag) {
+        ListTag listtag = pCompoundTag.getList("Recipes", 10);
 
         for (int i = 0; i < listtag.size(); ++i) {
             this.add(new MerchantOffer(listtag.getCompound(i)));
@@ -24,14 +24,14 @@ public class MerchantOffers extends ArrayList<MerchantOffer> {
     }
 
     @Nullable
-    public MerchantOffer getRecipeFor(ItemStack p_45390_, ItemStack p_45391_, int p_45392_) {
-        if (p_45392_ > 0 && p_45392_ < this.size()) {
-            MerchantOffer merchantoffer1 = this.get(p_45392_);
-            return merchantoffer1.satisfiedBy(p_45390_, p_45391_) ? merchantoffer1 : null;
+    public MerchantOffer getRecipeFor(ItemStack pStackA, ItemStack pStackB, int pIndex) {
+        if (pIndex > 0 && pIndex < this.size()) {
+            MerchantOffer merchantoffer1 = this.get(pIndex);
+            return merchantoffer1.satisfiedBy(pStackA, pStackB) ? merchantoffer1 : null;
         } else {
             for (int i = 0; i < this.size(); ++i) {
                 MerchantOffer merchantoffer = this.get(i);
-                if (merchantoffer.satisfiedBy(p_45390_, p_45391_)) {
+                if (merchantoffer.satisfiedBy(pStackA, pStackB)) {
                     return merchantoffer;
                 }
             }
@@ -40,8 +40,8 @@ public class MerchantOffers extends ArrayList<MerchantOffer> {
         }
     }
 
-    public void writeToStream(FriendlyByteBuf p_45394_) {
-        p_45394_.writeCollection(this, (p_220325_, p_220326_) -> {
+    public void writeToStream(FriendlyByteBuf pBuffer) {
+        pBuffer.writeCollection(this, (p_220325_, p_220326_) -> {
             p_220325_.writeItem(p_220326_.getBaseCostA());
             p_220325_.writeItem(p_220326_.getResult());
             p_220325_.writeItem(p_220326_.getCostB());
@@ -55,8 +55,8 @@ public class MerchantOffers extends ArrayList<MerchantOffer> {
         });
     }
 
-    public static MerchantOffers createFromStream(FriendlyByteBuf p_45396_) {
-        return p_45396_.readCollection(MerchantOffers::new, (p_220328_) -> {
+    public static MerchantOffers createFromStream(FriendlyByteBuf pBuffer) {
+        return pBuffer.readCollection(MerchantOffers::new, (p_220328_) -> {
             ItemStack itemstack = p_220328_.readItem();
             ItemStack itemstack1 = p_220328_.readItem();
             ItemStack itemstack2 = p_220328_.readItem();

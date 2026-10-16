@@ -109,11 +109,11 @@ public final class Biome {
         return this.getDownfall() > 0.85F;
     }
 
-    private float getHeightAdjustedTemperature(BlockPos p_47529_) {
-        float f = this.climateSettings.temperatureModifier.modifyTemperature(p_47529_, this.getBaseTemperature());
-        if (p_47529_.getY() > 80) {
-            float f1 = (float) (TEMPERATURE_NOISE.getValue((double) ((float) p_47529_.getX() / 8.0F), (double) ((float) p_47529_.getZ() / 8.0F), false) * 8.0D);
-            return f - (f1 + (float) p_47529_.getY() - 80.0F) * 0.05F / 40.0F;
+    private float getHeightAdjustedTemperature(BlockPos pPos) {
+        float f = this.climateSettings.temperatureModifier.modifyTemperature(pPos, this.getBaseTemperature());
+        if (pPos.getY() > 80) {
+            float f1 = (float) (TEMPERATURE_NOISE.getValue((double) ((float) pPos.getX() / 8.0F), (double) ((float) pPos.getZ() / 8.0F), false) * 8.0D);
+            return f - (f1 + (float) pPos.getY() - 80.0F) * 0.05F / 40.0F;
         } else {
             return f;
         }
@@ -121,39 +121,39 @@ public final class Biome {
 
     /** @deprecated */
     @Deprecated
-    private float getTemperature(BlockPos p_47506_) {
+    private float getTemperature(BlockPos pPos) {
         Object2FloatLinkedOpenHashMap<BlockPos> long2floatlinkedopenhashmap = this.temperatureCache.get();
-        float f = long2floatlinkedopenhashmap.get(p_47506_);
+        float f = long2floatlinkedopenhashmap.get(pPos);
         if (!Float.isNaN(f)) {
             return f;
         } else {
-            float f1 = this.getHeightAdjustedTemperature(p_47506_);
+            float f1 = this.getHeightAdjustedTemperature(pPos);
             if (long2floatlinkedopenhashmap.size() == 1024) {
                 long2floatlinkedopenhashmap.removeFirstFloat();
             }
 
-            long2floatlinkedopenhashmap.put(p_47506_, f1);
+            long2floatlinkedopenhashmap.put(pPos, f1);
             return f1;
         }
     }
 
-    public boolean shouldFreeze(LevelReader p_47478_, BlockPos p_47479_) {
-        return this.shouldFreeze(p_47478_, p_47479_, true);
+    public boolean shouldFreeze(LevelReader pLevel, BlockPos pPos) {
+        return this.shouldFreeze(pLevel, pPos, true);
     }
 
-    public boolean shouldFreeze(LevelReader p_47481_, BlockPos p_47482_, boolean p_47483_) {
-        if (this.warmEnoughToRain(p_47482_)) {
+    public boolean shouldFreeze(LevelReader pLevel, BlockPos pWater, boolean pMustBeAtEdge) {
+        if (this.warmEnoughToRain(pWater)) {
             return false;
         } else {
-            if (p_47482_.getY() >= p_47481_.getMinBuildHeight() && p_47482_.getY() < p_47481_.getMaxBuildHeight() && p_47481_.getBrightness(LightLayer.BLOCK, p_47482_) < 10) {
-                BlockState blockstate = p_47481_.getBlockState(p_47482_);
-                FluidState fluidstate = p_47481_.getFluidState(p_47482_);
+            if (pWater.getY() >= pLevel.getMinBuildHeight() && pWater.getY() < pLevel.getMaxBuildHeight() && pLevel.getBrightness(LightLayer.BLOCK, pWater) < 10) {
+                BlockState blockstate = pLevel.getBlockState(pWater);
+                FluidState fluidstate = pLevel.getFluidState(pWater);
                 if (fluidstate.getType() == Fluids.WATER && blockstate.getBlock() instanceof LiquidBlock) {
-                    if (!p_47483_) {
+                    if (!pMustBeAtEdge) {
                         return true;
                     }
 
-                    boolean flag = p_47481_.isWaterAt(p_47482_.west()) && p_47481_.isWaterAt(p_47482_.east()) && p_47481_.isWaterAt(p_47482_.north()) && p_47481_.isWaterAt(p_47482_.south());
+                    boolean flag = pLevel.isWaterAt(pWater.west()) && pLevel.isWaterAt(pWater.east()) && pLevel.isWaterAt(pWater.north()) && pLevel.isWaterAt(pWater.south());
                     if (!flag) {
                         return true;
                     }
@@ -164,29 +164,29 @@ public final class Biome {
         }
     }
 
-    public boolean coldEnoughToSnow(BlockPos p_198905_) {
-        return !this.warmEnoughToRain(p_198905_);
+    public boolean coldEnoughToSnow(BlockPos pPos) {
+        return !this.warmEnoughToRain(pPos);
     }
 
-    public boolean warmEnoughToRain(BlockPos p_198907_) {
-        return this.getTemperature(p_198907_) >= 0.15F;
+    public boolean warmEnoughToRain(BlockPos pPos) {
+        return this.getTemperature(pPos) >= 0.15F;
     }
 
-    public boolean shouldMeltFrozenOceanIcebergSlightly(BlockPos p_198909_) {
-        return this.getTemperature(p_198909_) > 0.1F;
+    public boolean shouldMeltFrozenOceanIcebergSlightly(BlockPos pPos) {
+        return this.getTemperature(pPos) > 0.1F;
     }
 
-    public boolean shouldSnowGolemBurn(BlockPos p_198911_) {
-        return this.getTemperature(p_198911_) > 1.0F;
+    public boolean shouldSnowGolemBurn(BlockPos pPos) {
+        return this.getTemperature(pPos) > 1.0F;
     }
 
-    public boolean shouldSnow(LevelReader p_47520_, BlockPos p_47521_) {
-        if (this.warmEnoughToRain(p_47521_)) {
+    public boolean shouldSnow(LevelReader pLevel, BlockPos pPos) {
+        if (this.warmEnoughToRain(pPos)) {
             return false;
         } else {
-            if (p_47521_.getY() >= p_47520_.getMinBuildHeight() && p_47521_.getY() < p_47520_.getMaxBuildHeight() && p_47520_.getBrightness(LightLayer.BLOCK, p_47521_) < 10) {
-                BlockState blockstate = p_47520_.getBlockState(p_47521_);
-                if (blockstate.isAir() && Blocks.SNOW.defaultBlockState().canSurvive(p_47520_, p_47521_)) {
+            if (pPos.getY() >= pLevel.getMinBuildHeight() && pPos.getY() < pLevel.getMaxBuildHeight() && pLevel.getBrightness(LightLayer.BLOCK, pPos) < 10) {
+                BlockState blockstate = pLevel.getBlockState(pPos);
+                if (blockstate.isAir() && Blocks.SNOW.defaultBlockState().canSurvive(pLevel, pPos)) {
                     return true;
                 }
             }
@@ -203,9 +203,9 @@ public final class Biome {
         return this.specialEffects.getFogColor();
     }
 
-    public int getGrassColor(double p_47465_, double p_47466_) {
+    public int getGrassColor(double pPosX, double pPosZ) {
         int i = this.specialEffects.getGrassColorOverride().orElseGet(this::getGrassColorFromTexture);
-        return this.specialEffects.getGrassColorModifier().modifyColor(p_47465_, p_47466_, i);
+        return this.specialEffects.getGrassColorModifier().modifyColor(pPosX, pPosZ, i);
     }
 
     private int getGrassColorFromTexture() {
@@ -279,38 +279,38 @@ public final class Biome {
         @Nullable
         private BiomeGenerationSettings generationSettings;
 
-        public Biome.BiomeBuilder precipitation(Biome.Precipitation p_47598_) {
-            this.precipitation = p_47598_;
+        public Biome.BiomeBuilder precipitation(Biome.Precipitation pPrecipitation) {
+            this.precipitation = pPrecipitation;
             return this;
         }
 
-        public Biome.BiomeBuilder temperature(float p_47610_) {
-            this.temperature = p_47610_;
+        public Biome.BiomeBuilder temperature(float pTemperature) {
+            this.temperature = pTemperature;
             return this;
         }
 
-        public Biome.BiomeBuilder downfall(float p_47612_) {
-            this.downfall = p_47612_;
+        public Biome.BiomeBuilder downfall(float pDownfall) {
+            this.downfall = pDownfall;
             return this;
         }
 
-        public Biome.BiomeBuilder specialEffects(BiomeSpecialEffects p_47604_) {
-            this.specialEffects = p_47604_;
+        public Biome.BiomeBuilder specialEffects(BiomeSpecialEffects pEffects) {
+            this.specialEffects = pEffects;
             return this;
         }
 
-        public Biome.BiomeBuilder mobSpawnSettings(MobSpawnSettings p_47606_) {
-            this.mobSpawnSettings = p_47606_;
+        public Biome.BiomeBuilder mobSpawnSettings(MobSpawnSettings pMobSpawnSettings) {
+            this.mobSpawnSettings = pMobSpawnSettings;
             return this;
         }
 
-        public Biome.BiomeBuilder generationSettings(BiomeGenerationSettings p_47602_) {
-            this.generationSettings = p_47602_;
+        public Biome.BiomeBuilder generationSettings(BiomeGenerationSettings pGenerationSettings) {
+            this.generationSettings = pGenerationSettings;
             return this;
         }
 
-        public Biome.BiomeBuilder temperatureAdjustment(Biome.TemperatureModifier p_47600_) {
-            this.temperatureModifier = p_47600_;
+        public Biome.BiomeBuilder temperatureAdjustment(Biome.TemperatureModifier pTemperatureSettings) {
+            this.temperatureModifier = pTemperatureSettings;
             return this;
         }
 
@@ -391,7 +391,7 @@ public final class Biome {
         private final String name;
         public static final Codec<Biome.TemperatureModifier> CODEC = StringRepresentable.fromEnum(Biome.TemperatureModifier::values);
 
-        public abstract float modifyTemperature(BlockPos p_47754_, float p_47755_);
+        public abstract float modifyTemperature(BlockPos pPos, float pTemperature);
 
         TemperatureModifier(String p_47745_) {
             this.name = p_47745_;

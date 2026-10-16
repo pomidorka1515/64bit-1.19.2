@@ -20,15 +20,15 @@ public class HeightmapPlacement extends PlacementModifier {
         this.heightmap = p_191699_;
     }
 
-    public static HeightmapPlacement onHeightmap(Heightmap.Types p_191703_) {
-        return new HeightmapPlacement(p_191703_);
+    public static HeightmapPlacement onHeightmap(Heightmap.Types pHeightmap) {
+        return new HeightmapPlacement(pHeightmap);
     }
 
-    public Stream<BlockPos> getPositions(PlacementContext p_226344_, RandomSource p_226345_, BlockPos p_226346_) {
-        long i = p_226346_.getX();
-        long j = p_226346_.getZ();
-        int k = p_226344_.getHeight(this.heightmap, i, j);
-        return k > p_226344_.getMinBuildHeight() ? Stream.of(new BlockPos(i, k, j)) : Stream.of();
+    public Stream<BlockPos> getPositions(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
+        long i = pPos.getX();
+        long j = pPos.getZ();
+        int k = pContext.getHeight(this.heightmap, i, j);
+        return k > pContext.getMinBuildHeight() ? Stream.of(new BlockPos(i, k, j)) : Stream.of();
     }
 
     public PlacementModifierType<?> type() {

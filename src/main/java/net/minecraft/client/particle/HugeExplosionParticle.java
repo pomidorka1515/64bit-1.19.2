@@ -9,19 +9,19 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class HugeExplosionParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
 
-    protected HugeExplosionParticle(ClientLevel p_106905_, double p_106906_, double p_106907_, double p_106908_, double p_106909_, SpriteSet p_106910_) {
-        super(p_106905_, p_106906_, p_106907_, p_106908_, 0.0D, 0.0D, 0.0D);
+    protected HugeExplosionParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pQuadSizeMultiplier, SpriteSet pSprites) {
+        super(pLevel, pX, pY, pZ, 0.0D, 0.0D, 0.0D);
         this.lifetime = 6 + this.random.nextInt(4);
         float f = this.random.nextFloat() * 0.6F + 0.4F;
         this.rCol = f;
         this.gCol = f;
         this.bCol = f;
-        this.quadSize = 2.0F * (1.0F - (float) p_106909_ * 0.5F);
-        this.sprites = p_106910_;
-        this.setSpriteFromAge(p_106910_);
+        this.quadSize = 2.0F * (1.0F - (float) pQuadSizeMultiplier * 0.5F);
+        this.sprites = pSprites;
+        this.setSpriteFromAge(pSprites);
     }
 
-    public int getLightColor(float p_106921_) {
+    public int getLightColor(float pPartialTick) {
         return 15728880;
     }
 
@@ -48,8 +48,8 @@ public class HugeExplosionParticle extends TextureSheetParticle {
             this.sprites = p_106925_;
         }
 
-        public Particle createParticle(SimpleParticleType p_106936_, ClientLevel p_106937_, double p_106938_, double p_106939_, double p_106940_, double p_106941_, double p_106942_, double p_106943_) {
-            return new HugeExplosionParticle(p_106937_, p_106938_, p_106939_, p_106940_, p_106941_, this.sprites);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            return new HugeExplosionParticle(pLevel, pX, pY, pZ, pXSpeed, this.sprites);
         }
     }
 }

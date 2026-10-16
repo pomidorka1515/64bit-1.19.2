@@ -29,12 +29,12 @@ public class GhostRecipe {
         this.time = 0.0F;
     }
 
-    public void addIngredient(Ingredient p_100144_, int p_100145_, int p_100146_) {
-        this.ingredients.add(new GhostRecipe.GhostIngredient(p_100144_, p_100145_, p_100146_));
+    public void addIngredient(Ingredient pIngredient, int pX, int pY) {
+        this.ingredients.add(new GhostRecipe.GhostIngredient(pIngredient, pX, pY));
     }
 
-    public GhostRecipe.GhostIngredient get(int p_100142_) {
-        return this.ingredients.get(p_100142_);
+    public GhostRecipe.GhostIngredient get(int pIndex) {
+        return this.ingredients.get(pIndex);
     }
 
     public int size() {
@@ -46,8 +46,8 @@ public class GhostRecipe {
         return this.recipe;
     }
 
-    public void setRecipe(Recipe<?> p_100148_) {
-        this.recipe = p_100148_;
+    public void setRecipe(Recipe<?> pRecipe) {
+        this.recipe = pRecipe;
     }
 
     public void render(PoseStack p_100150_, Minecraft p_100151_, int p_100152_, int p_100153_, boolean p_100154_, float p_100155_) {

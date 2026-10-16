@@ -29,8 +29,8 @@ public class SculkVeinBlock extends MultifaceBlock implements SculkBehaviour, Si
     private final MultifaceSpreader veinSpreader = new MultifaceSpreader(new SculkVeinBlock.SculkVeinSpreaderConfig(MultifaceSpreader.DEFAULT_SPREAD_ORDER));
     private final MultifaceSpreader sameSpaceSpreader = new MultifaceSpreader(new SculkVeinBlock.SculkVeinSpreaderConfig(MultifaceSpreader.SpreadType.SAME_POSITION));
 
-    public SculkVeinBlock(BlockBehaviour.Properties p_222353_) {
-        super(p_222353_);
+    public SculkVeinBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(false)));
     }
 
@@ -42,13 +42,13 @@ public class SculkVeinBlock extends MultifaceBlock implements SculkBehaviour, Si
         return this.sameSpaceSpreader;
     }
 
-    public static boolean regrow(LevelAccessor p_222364_, BlockPos p_222365_, BlockState p_222366_, Collection<Direction> p_222367_) {
+    public static boolean regrow(LevelAccessor pLevel, BlockPos pPos, BlockState pState, Collection<Direction> pDirections) {
         boolean flag = false;
         BlockState blockstate = Blocks.SCULK_VEIN.defaultBlockState();
 
-        for (Direction direction : p_222367_) {
-            BlockPos blockpos = p_222365_.relative(direction);
-            if (canAttachTo(p_222364_, direction, blockpos, p_222364_.getBlockState(blockpos))) {
+        for (Direction direction : pDirections) {
+            BlockPos blockpos = pPos.relative(direction);
+            if (canAttachTo(pLevel, direction, blockpos, pLevel.getBlockState(blockpos))) {
                 blockstate = blockstate.setValue(getFaceProperty(direction), Boolean.valueOf(true));
                 flag = true;
             }
@@ -57,31 +57,31 @@ public class SculkVeinBlock extends MultifaceBlock implements SculkBehaviour, Si
         if (!flag) {
             return false;
         } else {
-            if (!p_222366_.getFluidState().isEmpty()) {
+            if (!pState.getFluidState().isEmpty()) {
                 blockstate = blockstate.setValue(WATERLOGGED, Boolean.valueOf(true));
             }
 
-            p_222364_.setBlock(p_222365_, blockstate, 3);
+            pLevel.setBlock(pPos, blockstate, 3);
             return true;
         }
     }
 
-    public void onDischarged(LevelAccessor p_222359_, BlockState p_222360_, BlockPos p_222361_, RandomSource p_222362_) {
-        if (p_222360_.is(this)) {
+    public void onDischarged(LevelAccessor pLevel, BlockState pState, BlockPos pPos, RandomSource pRandom) {
+        if (pState.is(this)) {
             for (Direction direction : DIRECTIONS) {
                 BooleanProperty booleanproperty = getFaceProperty(direction);
-                if (p_222360_.getValue(booleanproperty) && p_222359_.getBlockState(p_222361_.relative(direction)).is(Blocks.SCULK)) {
-                    p_222360_ = p_222360_.setValue(booleanproperty, Boolean.valueOf(false));
+                if (pState.getValue(booleanproperty) && pLevel.getBlockState(pPos.relative(direction)).is(Blocks.SCULK)) {
+                    pState = pState.setValue(booleanproperty, Boolean.valueOf(false));
                 }
             }
 
-            if (!hasAnyFace(p_222360_)) {
-                FluidState fluidstate = p_222359_.getFluidState(p_222361_);
-                p_222360_ = (fluidstate.isEmpty() ? Blocks.AIR : Blocks.WATER).defaultBlockState();
+            if (!hasAnyFace(pState)) {
+                FluidState fluidstate = pLevel.getFluidState(pPos);
+                pState = (fluidstate.isEmpty() ? Blocks.AIR : Blocks.WATER).defaultBlockState();
             }
 
-            p_222359_.setBlock(p_222361_, p_222360_, 3);
-            SculkBehaviour.super.onDischarged(p_222359_, p_222360_, p_222361_, p_222362_);
+            pLevel.setBlock(pPos, pState, 3);
+            SculkBehaviour.super.onDischarged(pLevel, pState, pPos, pRandom);
         }
     }
 
@@ -93,28 +93,28 @@ public class SculkVeinBlock extends MultifaceBlock implements SculkBehaviour, Si
         }
     }
 
-    private boolean attemptPlaceSculk(SculkSpreader p_222376_, LevelAccessor p_222377_, BlockPos p_222378_, RandomSource p_222379_) {
-        BlockState blockstate = p_222377_.getBlockState(p_222378_);
-        TagKey<Block> tagkey = p_222376_.replaceableBlocks();
+    private boolean attemptPlaceSculk(SculkSpreader pSpreader, LevelAccessor pLevel, BlockPos pPos, RandomSource pRandom) {
+        BlockState blockstate = pLevel.getBlockState(pPos);
+        TagKey<Block> tagkey = pSpreader.replaceableBlocks();
 
-        for (Direction direction : Direction.allShuffled(p_222379_)) {
+        for (Direction direction : Direction.allShuffled(pRandom)) {
             if (hasFace(blockstate, direction)) {
-                BlockPos blockpos = p_222378_.relative(direction);
-                BlockState blockstate1 = p_222377_.getBlockState(blockpos);
+                BlockPos blockpos = pPos.relative(direction);
+                BlockState blockstate1 = pLevel.getBlockState(blockpos);
                 if (blockstate1.is(tagkey)) {
                     BlockState blockstate2 = Blocks.SCULK.defaultBlockState();
-                    p_222377_.setBlock(blockpos, blockstate2, 3);
-                    Block.pushEntitiesUp(blockstate1, blockstate2, p_222377_, blockpos);
-                    p_222377_.playSound((Player) null, blockpos, SoundEvents.SCULK_BLOCK_SPREAD, SoundSource.BLOCKS, 1.0F, 1.0F);
-                    this.veinSpreader.spreadAll(blockstate2, p_222377_, blockpos, p_222376_.isWorldGeneration());
+                    pLevel.setBlock(blockpos, blockstate2, 3);
+                    Block.pushEntitiesUp(blockstate1, blockstate2, pLevel, blockpos);
+                    pLevel.playSound((Player) null, blockpos, SoundEvents.SCULK_BLOCK_SPREAD, SoundSource.BLOCKS, 1.0F, 1.0F);
+                    this.veinSpreader.spreadAll(blockstate2, pLevel, blockpos, pSpreader.isWorldGeneration());
                     Direction direction1 = direction.getOpposite();
 
                     for (Direction direction2 : DIRECTIONS) {
                         if (direction2 != direction1) {
                             BlockPos blockpos1 = blockpos.relative(direction2);
-                            BlockState blockstate3 = p_222377_.getBlockState(blockpos1);
+                            BlockState blockstate3 = pLevel.getBlockState(blockpos1);
                             if (blockstate3.is(this)) {
-                                this.onDischarged(p_222377_, blockstate3, blockpos1, p_222379_);
+                                this.onDischarged(pLevel, blockstate3, blockpos1, pRandom);
                             }
                         }
                     }
@@ -127,12 +127,12 @@ public class SculkVeinBlock extends MultifaceBlock implements SculkBehaviour, Si
         return false;
     }
 
-    public static boolean hasSubstrateAccess(LevelAccessor p_222355_, BlockState p_222356_, BlockPos p_222357_) {
-        if (!p_222356_.is(Blocks.SCULK_VEIN)) {
+    public static boolean hasSubstrateAccess(LevelAccessor pLevel, BlockState pState, BlockPos pPos) {
+        if (!pState.is(Blocks.SCULK_VEIN)) {
             return false;
         } else {
             for (Direction direction : DIRECTIONS) {
-                if (hasFace(p_222356_, direction) && p_222355_.getBlockState(p_222357_.relative(direction)).is(BlockTags.SCULK_REPLACEABLE)) {
+                if (hasFace(pState, direction) && pLevel.getBlockState(pPos.relative(direction)).is(BlockTags.SCULK_REPLACEABLE)) {
                     return true;
                 }
             }
@@ -141,28 +141,28 @@ public class SculkVeinBlock extends MultifaceBlock implements SculkBehaviour, Si
         }
     }
 
-    public BlockState updateShape(BlockState p_222384_, Direction p_222385_, BlockState p_222386_, LevelAccessor p_222387_, BlockPos p_222388_, BlockPos p_222389_) {
-        if (p_222384_.getValue(WATERLOGGED)) {
-            p_222387_.scheduleTick(p_222388_, Fluids.WATER, Fluids.WATER.getTickDelay(p_222387_));
+    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return super.updateShape(p_222384_, p_222385_, p_222386_, p_222387_, p_222388_, p_222389_);
+        return super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_222391_) {
-        super.createBlockStateDefinition(p_222391_);
-        p_222391_.add(WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        super.createBlockStateDefinition(pBuilder);
+        pBuilder.add(WATERLOGGED);
     }
 
-    public boolean canBeReplaced(BlockState p_222381_, BlockPlaceContext p_222382_) {
-        return !p_222382_.getItemInHand().is(Items.SCULK_VEIN) || super.canBeReplaced(p_222381_, p_222382_);
+    public boolean canBeReplaced(BlockState pState, BlockPlaceContext pUseContext) {
+        return !pUseContext.getItemInHand().is(Items.SCULK_VEIN) || super.canBeReplaced(pState, pUseContext);
     }
 
-    public FluidState getFluidState(BlockState p_222394_) {
-        return p_222394_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_222394_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public PushReaction getPistonPushReaction(BlockState p_222397_) {
+    public PushReaction getPistonPushReaction(BlockState pState) {
         return PushReaction.DESTROY;
     }
 
@@ -204,8 +204,8 @@ public class SculkVeinBlock extends MultifaceBlock implements SculkBehaviour, Si
             return this.spreadTypes;
         }
 
-        public boolean isOtherBlockValidAsSource(BlockState p_222411_) {
-            return !p_222411_.is(Blocks.SCULK_VEIN);
+        public boolean isOtherBlockValidAsSource(BlockState pOtherBlock) {
+            return !pOtherBlock.is(Blocks.SCULK_VEIN);
         }
     }
 }

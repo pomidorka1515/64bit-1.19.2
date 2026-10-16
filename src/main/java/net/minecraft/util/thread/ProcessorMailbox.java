@@ -24,14 +24,14 @@ public class ProcessorMailbox<T> implements ProfilerMeasured, ProcessorHandle<T>
     private final Executor dispatcher;
     private final String name;
 
-    public static ProcessorMailbox<Runnable> create(Executor p_18752_, String p_18753_) {
-        return new ProcessorMailbox<>(new StrictQueue.QueueStrictQueue<>(new ConcurrentLinkedQueue<>()), p_18752_, p_18753_);
+    public static ProcessorMailbox<Runnable> create(Executor pDispatcher, String pName) {
+        return new ProcessorMailbox<>(new StrictQueue.QueueStrictQueue<>(new ConcurrentLinkedQueue<>()), pDispatcher, pName);
     }
 
-    public ProcessorMailbox(StrictQueue<? super T, ? extends Runnable> p_18741_, Executor p_18742_, String p_18743_) {
-        this.dispatcher = p_18742_;
-        this.queue = p_18741_;
-        this.name = p_18743_;
+    public ProcessorMailbox(StrictQueue<? super T, ? extends Runnable> pQueue, Executor pDispatcher, String pName) {
+        this.dispatcher = pDispatcher;
+        this.queue = pQueue;
+        this.name = pName;
         MetricsRegistry.INSTANCE.add(this);
     }
 
@@ -109,8 +109,8 @@ public class ProcessorMailbox<T> implements ProfilerMeasured, ProcessorHandle<T>
         }
     }
 
-    public void tell(T p_18750_) {
-        this.queue.push(p_18750_);
+    public void tell(T pTask) {
+        this.queue.push(pTask);
         this.registerForExecution();
     }
 

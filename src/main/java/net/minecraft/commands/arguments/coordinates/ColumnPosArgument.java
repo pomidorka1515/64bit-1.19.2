@@ -26,8 +26,8 @@ public class ColumnPosArgument implements ArgumentType<Coordinates> {
         return new ColumnPosArgument();
     }
 
-    public static ColumnPos getColumnPos(CommandContext<CommandSourceStack> p_118993_, String p_118994_) {
-        BlockPos blockpos = p_118993_.getArgument(p_118994_, Coordinates.class).getBlockPos(p_118993_.getSource());
+    public static ColumnPos getColumnPos(CommandContext<CommandSourceStack> pContext, String pName) {
+        BlockPos blockpos = pContext.getArgument(pName, Coordinates.class).getBlockPos(pContext.getSource());
         return new ColumnPos(blockpos.getX(), blockpos.getZ());
     }
 
@@ -48,19 +48,19 @@ public class ColumnPosArgument implements ArgumentType<Coordinates> {
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_118997_, SuggestionsBuilder p_118998_) {
-        if (!(p_118997_.getSource() instanceof SharedSuggestionProvider)) {
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        if (!(pContext.getSource() instanceof SharedSuggestionProvider)) {
             return Suggestions.empty();
         } else {
-            String s = p_118998_.getRemaining();
+            String s = pBuilder.getRemaining();
             Collection<SharedSuggestionProvider.TextCoordinates> collection;
             if (!s.isEmpty() && s.charAt(0) == '^') {
                 collection = Collections.singleton(SharedSuggestionProvider.TextCoordinates.DEFAULT_LOCAL);
             } else {
-                collection = ((SharedSuggestionProvider) p_118997_.getSource()).getRelevantCoordinates();
+                collection = ((SharedSuggestionProvider) pContext.getSource()).getRelevantCoordinates();
             }
 
-            return SharedSuggestionProvider.suggest2DCoordinates(s, collection, p_118998_, Commands.createValidator(this::parse));
+            return SharedSuggestionProvider.suggest2DCoordinates(s, collection, pBuilder, Commands.createValidator(this::parse));
         }
     }
 

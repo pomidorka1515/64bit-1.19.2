@@ -54,8 +54,8 @@ public class Vindicator extends AbstractIllager {
     };
     boolean isJohnny;
 
-    public Vindicator(EntityType<? extends Vindicator> p_34074_, Level p_34075_) {
-        super(p_34074_, p_34075_);
+    public Vindicator(EntityType<? extends Vindicator> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -88,10 +88,10 @@ public class Vindicator extends AbstractIllager {
         return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, (double) 0.35F).add(Attributes.FOLLOW_RANGE, 12.0D).add(Attributes.MAX_HEALTH, 24.0D).add(Attributes.ATTACK_DAMAGE, 5.0D);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_34100_) {
-        super.addAdditionalSaveData(p_34100_);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
         if (this.isJohnny) {
-            p_34100_.putBoolean("Johnny", true);
+            pCompound.putBoolean("Johnny", true);
         }
     }
 
@@ -103,10 +103,10 @@ public class Vindicator extends AbstractIllager {
         }
     }
 
-    public void readAdditionalSaveData(CompoundTag p_34094_) {
-        super.readAdditionalSaveData(p_34094_);
-        if (p_34094_.contains("Johnny", 99)) {
-            this.isJohnny = p_34094_.getBoolean("Johnny");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("Johnny", 99)) {
+            this.isJohnny = pCompound.getBoolean("Johnny");
         }
     }
 
@@ -115,34 +115,34 @@ public class Vindicator extends AbstractIllager {
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_34088_, DifficultyInstance p_34089_, MobSpawnType p_34090_, @Nullable SpawnGroupData p_34091_, @Nullable CompoundTag p_34092_) {
-        SpawnGroupData spawngroupdata = super.finalizeSpawn(p_34088_, p_34089_, p_34090_, p_34091_, p_34092_);
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        SpawnGroupData spawngroupdata = super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
         ((GroundPathNavigation) this.getNavigation()).setCanOpenDoors(true);
-        RandomSource randomsource = p_34088_.getRandom();
-        this.populateDefaultEquipmentSlots(randomsource, p_34089_);
-        this.populateDefaultEquipmentEnchantments(randomsource, p_34089_);
+        RandomSource randomsource = pLevel.getRandom();
+        this.populateDefaultEquipmentSlots(randomsource, pDifficulty);
+        this.populateDefaultEquipmentEnchantments(randomsource, pDifficulty);
         return spawngroupdata;
     }
 
-    protected void populateDefaultEquipmentSlots(RandomSource p_219149_, DifficultyInstance p_219150_) {
+    protected void populateDefaultEquipmentSlots(RandomSource pRandom, DifficultyInstance pDifficulty) {
         if (this.getCurrentRaid() == null) {
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
         }
     }
 
-    public boolean isAlliedTo(Entity p_34110_) {
-        if (super.isAlliedTo(p_34110_)) {
+    public boolean isAlliedTo(Entity pEntity) {
+        if (super.isAlliedTo(pEntity)) {
             return true;
-        } else if (p_34110_ instanceof LivingEntity && ((LivingEntity) p_34110_).getMobType() == MobType.ILLAGER) {
-            return this.getTeam() == null && p_34110_.getTeam() == null;
+        } else if (pEntity instanceof LivingEntity && ((LivingEntity) pEntity).getMobType() == MobType.ILLAGER) {
+            return this.getTeam() == null && pEntity.getTeam() == null;
         } else {
             return false;
         }
     }
 
-    public void setCustomName(@Nullable Component p_34096_) {
-        super.setCustomName(p_34096_);
-        if (!this.isJohnny && p_34096_ != null && p_34096_.getString().equals("Johnny")) {
+    public void setCustomName(@Nullable Component pName) {
+        super.setCustomName(pName);
+        if (!this.isJohnny && pName != null && pName.getString().equals("Johnny")) {
             this.isJohnny = true;
         }
     }
@@ -155,15 +155,15 @@ public class Vindicator extends AbstractIllager {
         return SoundEvents.VINDICATOR_DEATH;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_34103_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.VINDICATOR_HURT;
     }
 
-    public void applyRaidBuffs(int p_34079_, boolean p_34080_) {
+    public void applyRaidBuffs(int pWave, boolean pUnusedFalse) {
         ItemStack itemstack = new ItemStack(Items.IRON_AXE);
         Raid raid = this.getCurrentRaid();
         int i = 1;
-        if (p_34079_ > raid.getNumGroups(Difficulty.NORMAL)) {
+        if (pWave > raid.getNumGroups(Difficulty.NORMAL)) {
             i = 2;
         }
 
@@ -200,8 +200,8 @@ public class Vindicator extends AbstractIllager {
     }
 
     static class VindicatorJohnnyAttackGoal extends NearestAttackableTargetGoal<LivingEntity> {
-        public VindicatorJohnnyAttackGoal(Vindicator p_34117_) {
-            super(p_34117_, LivingEntity.class, 0, true, true, LivingEntity::attackable);
+        public VindicatorJohnnyAttackGoal(Vindicator pVindicator) {
+            super(pVindicator, LivingEntity.class, 0, true, true, LivingEntity::attackable);
         }
 
         public boolean canUse() {
@@ -219,12 +219,12 @@ public class Vindicator extends AbstractIllager {
             super(p_34123_, 1.0D, false);
         }
 
-        protected double getAttackReachSqr(LivingEntity p_34125_) {
+        protected double getAttackReachSqr(LivingEntity pAttackTarget) {
             if (this.mob.getVehicle() instanceof Ravager) {
                 float f = this.mob.getVehicle().getBbWidth() - 0.1F;
-                return (double) (f * 2.0F * f * 2.0F + p_34125_.getBbWidth());
+                return (double) (f * 2.0F * f * 2.0F + pAttackTarget.getBbWidth());
             } else {
-                return super.getAttackReachSqr(p_34125_);
+                return super.getAttackReachSqr(pAttackTarget);
             }
         }
     }

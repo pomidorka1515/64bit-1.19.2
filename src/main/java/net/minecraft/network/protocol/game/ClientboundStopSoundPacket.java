@@ -14,41 +14,41 @@ public class ClientboundStopSoundPacket implements Packet<ClientGamePacketListen
     @Nullable
     private final SoundSource source;
 
-    public ClientboundStopSoundPacket(@Nullable ResourceLocation p_133468_, @Nullable SoundSource p_133469_) {
-        this.name = p_133468_;
-        this.source = p_133469_;
+    public ClientboundStopSoundPacket(@Nullable ResourceLocation pName, @Nullable SoundSource pSource) {
+        this.name = pName;
+        this.source = pSource;
     }
 
-    public ClientboundStopSoundPacket(FriendlyByteBuf p_179426_) {
-        int i = p_179426_.readByte();
+    public ClientboundStopSoundPacket(FriendlyByteBuf pBuffer) {
+        int i = pBuffer.readByte();
         if ((i & 1) > 0) {
-            this.source = p_179426_.readEnum(SoundSource.class);
+            this.source = pBuffer.readEnum(SoundSource.class);
         } else {
             this.source = null;
         }
 
         if ((i & 2) > 0) {
-            this.name = p_179426_.readResourceLocation();
+            this.name = pBuffer.readResourceLocation();
         } else {
             this.name = null;
         }
     }
 
-    public void write(FriendlyByteBuf p_133478_) {
+    public void write(FriendlyByteBuf pBuffer) {
         if (this.source != null) {
             if (this.name != null) {
-                p_133478_.writeByte(3);
-                p_133478_.writeEnum(this.source);
-                p_133478_.writeResourceLocation(this.name);
+                pBuffer.writeByte(3);
+                pBuffer.writeEnum(this.source);
+                pBuffer.writeResourceLocation(this.name);
             } else {
-                p_133478_.writeByte(1);
-                p_133478_.writeEnum(this.source);
+                pBuffer.writeByte(1);
+                pBuffer.writeEnum(this.source);
             }
         } else if (this.name != null) {
-            p_133478_.writeByte(2);
-            p_133478_.writeResourceLocation(this.name);
+            pBuffer.writeByte(2);
+            pBuffer.writeResourceLocation(this.name);
         } else {
-            p_133478_.writeByte(0);
+            pBuffer.writeByte(0);
         }
     }
 
@@ -62,7 +62,7 @@ public class ClientboundStopSoundPacket implements Packet<ClientGamePacketListen
         return this.source;
     }
 
-    public void handle(ClientGamePacketListener p_133475_) {
-        p_133475_.handleStopSoundEvent(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleStopSoundEvent(this);
     }
 }

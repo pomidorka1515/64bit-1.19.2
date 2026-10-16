@@ -50,5 +50,5 @@ public interface BooleanOp {
         return true;
     };
 
-    boolean apply(boolean p_82702_, boolean p_82703_);
+    boolean apply(boolean pPrimaryBool, boolean pSecondaryBool);
 }

@@ -25,7 +25,7 @@ public class EnchantmentNames {
         return INSTANCE;
     }
 
-    public FormattedText getRandomName(Font p_98738_, int p_98739_) {
+    public FormattedText getRandomName(Font pFontRenderer, int pMaxWidth) {
         StringBuilder stringbuilder = new StringBuilder();
         int i = this.random.nextInt(2) + 3;
 
@@ -37,10 +37,10 @@ public class EnchantmentNames {
             stringbuilder.append(Util.getRandom(this.words, this.random));
         }
 
-        return p_98738_.getSplitter().headByWidth(Component.literal(stringbuilder.toString()).withStyle(ROOT_STYLE), p_98739_, Style.EMPTY);
+        return pFontRenderer.getSplitter().headByWidth(Component.literal(stringbuilder.toString()).withStyle(ROOT_STYLE), pMaxWidth, Style.EMPTY);
     }
 
-    public void initSeed(long p_98736_) {
-        this.random.setSeed(p_98736_);
+    public void initSeed(long pSeed) {
+        this.random.setSeed(pSeed);
     }
 }

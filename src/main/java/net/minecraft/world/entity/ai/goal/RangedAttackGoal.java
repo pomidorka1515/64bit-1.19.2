@@ -20,21 +20,21 @@ public class RangedAttackGoal extends Goal {
     private final float attackRadius;
     private final float attackRadiusSqr;
 
-    public RangedAttackGoal(RangedAttackMob p_25768_, double p_25769_, int p_25770_, float p_25771_) {
-        this(p_25768_, p_25769_, p_25770_, p_25770_, p_25771_);
+    public RangedAttackGoal(RangedAttackMob pRangedAttackMob, double pSpeedModifier, int pAttackInterval, float pAttackRadius) {
+        this(pRangedAttackMob, pSpeedModifier, pAttackInterval, pAttackInterval, pAttackRadius);
     }
 
-    public RangedAttackGoal(RangedAttackMob p_25773_, double p_25774_, int p_25775_, int p_25776_, float p_25777_) {
-        if (!(p_25773_ instanceof LivingEntity)) {
+    public RangedAttackGoal(RangedAttackMob pRangedAttackMob, double pSpeedModifier, int pAttackIntervalMin, int pAttackIntervalMax, float pAttackRadius) {
+        if (!(pRangedAttackMob instanceof LivingEntity)) {
             throw new IllegalArgumentException("ArrowAttackGoal requires Mob implements RangedAttackMob");
         } else {
-            this.rangedAttackMob = p_25773_;
-            this.mob = (Mob) p_25773_;
-            this.speedModifier = p_25774_;
-            this.attackIntervalMin = p_25775_;
-            this.attackIntervalMax = p_25776_;
-            this.attackRadius = p_25777_;
-            this.attackRadiusSqr = p_25777_ * p_25777_;
+            this.rangedAttackMob = pRangedAttackMob;
+            this.mob = (Mob) pRangedAttackMob;
+            this.speedModifier = pSpeedModifier;
+            this.attackIntervalMin = pAttackIntervalMin;
+            this.attackIntervalMax = pAttackIntervalMax;
+            this.attackRadius = pAttackRadius;
+            this.attackRadiusSqr = pAttackRadius * pAttackRadius;
             this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
     }

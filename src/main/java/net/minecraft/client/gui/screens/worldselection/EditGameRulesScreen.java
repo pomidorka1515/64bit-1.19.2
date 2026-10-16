@@ -43,10 +43,10 @@ public class EditGameRulesScreen extends Screen {
     private List<FormattedCharSequence> tooltip;
     private final GameRules gameRules;
 
-    public EditGameRulesScreen(GameRules p_101051_, Consumer<Optional<GameRules>> p_101052_) {
+    public EditGameRulesScreen(GameRules pGameRules, Consumer<Optional<GameRules>> pExitCallback) {
         super(Component.translatable("editGamerule.title"));
-        this.gameRules = p_101051_;
-        this.exitCallback = p_101052_;
+        this.gameRules = pGameRules;
+        this.exitCallback = pExitCallback;
     }
 
     protected void init() {
@@ -70,31 +70,31 @@ public class EditGameRulesScreen extends Screen {
         this.exitCallback.accept(Optional.empty());
     }
 
-    public void render(PoseStack p_101054_, int p_101055_, int p_101056_, float p_101057_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.tooltip = null;
-        this.rules.render(p_101054_, p_101055_, p_101056_, p_101057_);
-        drawCenteredString(p_101054_, this.font, this.title, this.width / 2, 20, 16777215);
-        super.render(p_101054_, p_101055_, p_101056_, p_101057_);
+        this.rules.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 20, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (this.tooltip != null) {
-            this.renderTooltip(p_101054_, this.tooltip, p_101055_, p_101056_);
+            this.renderTooltip(pPoseStack, this.tooltip, pMouseX, pMouseY);
         }
     }
 
-    void setTooltip(@Nullable List<FormattedCharSequence> p_101082_) {
-        this.tooltip = p_101082_;
+    void setTooltip(@Nullable List<FormattedCharSequence> pTooltip) {
+        this.tooltip = pTooltip;
     }
 
     private void updateDoneButton() {
         this.doneButton.active = this.invalidEntries.isEmpty();
     }
 
-    void markInvalid(EditGameRulesScreen.RuleEntry p_101061_) {
-        this.invalidEntries.add(p_101061_);
+    void markInvalid(EditGameRulesScreen.RuleEntry pRuleEntry) {
+        this.invalidEntries.add(pRuleEntry);
         this.updateDoneButton();
     }
 
-    void clearInvalid(EditGameRulesScreen.RuleEntry p_101075_) {
-        this.invalidEntries.remove(p_101075_);
+    void clearInvalid(EditGameRulesScreen.RuleEntry pRuleEntry) {
+        this.invalidEntries.remove(pRuleEntry);
         this.updateDoneButton();
     }
 
@@ -113,11 +113,11 @@ public class EditGameRulesScreen extends Screen {
             this.children.add(this.checkbox);
         }
 
-        public void render(PoseStack p_101109_, int p_101110_, int p_101111_, int p_101112_, int p_101113_, int p_101114_, int p_101115_, int p_101116_, boolean p_101117_, float p_101118_) {
-            this.renderLabel(p_101109_, p_101111_, p_101112_);
-            this.checkbox.x = p_101112_ + p_101113_ - 45;
-            this.checkbox.y = p_101111_;
-            this.checkbox.render(p_101109_, p_101115_, p_101116_, p_101118_);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            this.renderLabel(pPoseStack, pTop, pLeft);
+            this.checkbox.x = pLeft + pWidth - 45;
+            this.checkbox.y = pTop;
+            this.checkbox.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
     }
 
@@ -130,8 +130,8 @@ public class EditGameRulesScreen extends Screen {
             this.label = p_101141_;
         }
 
-        public void render(PoseStack p_101143_, int p_101144_, int p_101145_, int p_101146_, int p_101147_, int p_101148_, int p_101149_, int p_101150_, boolean p_101151_, float p_101152_) {
-            GuiComponent.drawCenteredString(p_101143_, EditGameRulesScreen.this.minecraft.font, this.label, p_101146_ + p_101147_ / 2, p_101145_ + 5, 16777215);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            GuiComponent.drawCenteredString(pPoseStack, EditGameRulesScreen.this.minecraft.font, this.label, pLeft + pWidth / 2, pTop + 5, 16777215);
         }
 
         public List<? extends GuiEventListener> children() {
@@ -175,12 +175,12 @@ public class EditGameRulesScreen extends Screen {
             return this.children;
         }
 
-        protected void renderLabel(PoseStack p_101167_, int p_101168_, int p_101169_) {
+        protected void renderLabel(PoseStack pPoseStack, int pX, int pY) {
             if (this.label.size() == 1) {
-                EditGameRulesScreen.this.minecraft.font.draw(p_101167_, this.label.get(0), (float) p_101169_, (float) (p_101168_ + 5), 16777215);
+                EditGameRulesScreen.this.minecraft.font.draw(pPoseStack, this.label.get(0), (float) pY, (float) (pX + 5), 16777215);
             } else if (this.label.size() >= 2) {
-                EditGameRulesScreen.this.minecraft.font.draw(p_101167_, this.label.get(0), (float) p_101169_, (float) p_101168_, 16777215);
-                EditGameRulesScreen.this.minecraft.font.draw(p_101167_, this.label.get(1), (float) p_101169_, (float) (p_101168_ + 10), 16777215);
+                EditGameRulesScreen.this.minecraft.font.draw(pPoseStack, this.label.get(0), (float) pY, (float) pX, 16777215);
+                EditGameRulesScreen.this.minecraft.font.draw(pPoseStack, this.label.get(1), (float) pY, (float) (pX + 10), 16777215);
             }
         }
     }
@@ -205,11 +205,11 @@ public class EditGameRulesScreen extends Screen {
             this.children.add(this.input);
         }
 
-        public void render(PoseStack p_101183_, int p_101184_, int p_101185_, int p_101186_, int p_101187_, int p_101188_, int p_101189_, int p_101190_, boolean p_101191_, float p_101192_) {
-            this.renderLabel(p_101183_, p_101185_, p_101186_);
-            this.input.x = p_101186_ + p_101187_ - 44;
-            this.input.y = p_101185_;
-            this.input.render(p_101183_, p_101189_, p_101190_, p_101192_);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            this.renderLabel(pPoseStack, pTop, pLeft);
+            this.input.x = pLeft + pWidth - 44;
+            this.input.y = pTop;
+            this.input.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
     }
 
@@ -218,8 +218,8 @@ public class EditGameRulesScreen extends Screen {
         @Nullable
         final List<FormattedCharSequence> tooltip;
 
-        public RuleEntry(@Nullable List<FormattedCharSequence> p_194062_) {
-            this.tooltip = p_194062_;
+        public RuleEntry(@Nullable List<FormattedCharSequence> pTooltip) {
+            this.tooltip = pTooltip;
         }
     }
 
@@ -274,8 +274,8 @@ public class EditGameRulesScreen extends Screen {
             });
         }
 
-        public void render(PoseStack p_101205_, int p_101206_, int p_101207_, float p_101208_) {
-            super.render(p_101205_, p_101206_, p_101207_, p_101208_);
+        public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+            super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             EditGameRulesScreen.RuleEntry editgamerulesscreen$ruleentry = this.getHovered();
             if (editgamerulesscreen$ruleentry != null) {
                 EditGameRulesScreen.this.setTooltip(editgamerulesscreen$ruleentry.tooltip);

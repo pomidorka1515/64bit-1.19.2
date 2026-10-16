@@ -5,8 +5,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class BlockEntityUUIDFix extends AbstractUUIDFix {
-    public BlockEntityUUIDFix(Schema p_14883_) {
-        super(p_14883_, References.BLOCK_ENTITY);
+    public BlockEntityUUIDFix(Schema pOutputSchema) {
+        super(pOutputSchema, References.BLOCK_ENTITY);
     }
 
     protected TypeRewriteRule makeRule() {

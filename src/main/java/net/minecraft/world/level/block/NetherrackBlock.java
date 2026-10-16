@@ -10,16 +10,16 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class NetherrackBlock extends Block implements BonemealableBlock {
-    public NetherrackBlock(BlockBehaviour.Properties p_54995_) {
-        super(p_54995_);
+    public NetherrackBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_55002_, BlockPos p_55003_, BlockState p_55004_, boolean p_55005_) {
-        if (!p_55002_.getBlockState(p_55003_.above()).propagatesSkylightDown(p_55002_, p_55003_)) {
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
+        if (!pLevel.getBlockState(pPos.above()).propagatesSkylightDown(pLevel, pPos)) {
             return false;
         } else {
-            for (BlockPos blockpos : BlockPos.betweenClosed(p_55003_.offset(-1, -1, -1), p_55003_.offset(1, 1, 1))) {
-                if (p_55002_.getBlockState(blockpos).is(BlockTags.NYLIUM)) {
+            for (BlockPos blockpos : BlockPos.betweenClosed(pPos.offset(-1, -1, -1), pPos.offset(1, 1, 1))) {
+                if (pLevel.getBlockState(blockpos).is(BlockTags.NYLIUM)) {
                     return true;
                 }
             }
@@ -28,16 +28,16 @@ public class NetherrackBlock extends Block implements BonemealableBlock {
         }
     }
 
-    public boolean isBonemealSuccess(Level p_221816_, RandomSource p_221817_, BlockPos p_221818_, BlockState p_221819_) {
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
 
-    public void performBonemeal(ServerLevel p_221811_, RandomSource p_221812_, BlockPos p_221813_, BlockState p_221814_) {
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         boolean flag = false;
         boolean flag1 = false;
 
-        for (BlockPos blockpos : BlockPos.betweenClosed(p_221813_.offset(-1, -1, -1), p_221813_.offset(1, 1, 1))) {
-            BlockState blockstate = p_221811_.getBlockState(blockpos);
+        for (BlockPos blockpos : BlockPos.betweenClosed(pPos.offset(-1, -1, -1), pPos.offset(1, 1, 1))) {
+            BlockState blockstate = pLevel.getBlockState(blockpos);
             if (blockstate.is(Blocks.WARPED_NYLIUM)) {
                 flag1 = true;
             }
@@ -52,11 +52,11 @@ public class NetherrackBlock extends Block implements BonemealableBlock {
         }
 
         if (flag1 && flag) {
-            p_221811_.setBlock(p_221813_, p_221812_.nextBoolean() ? Blocks.WARPED_NYLIUM.defaultBlockState() : Blocks.CRIMSON_NYLIUM.defaultBlockState(), 3);
+            pLevel.setBlock(pPos, pRandom.nextBoolean() ? Blocks.WARPED_NYLIUM.defaultBlockState() : Blocks.CRIMSON_NYLIUM.defaultBlockState(), 3);
         } else if (flag1) {
-            p_221811_.setBlock(p_221813_, Blocks.WARPED_NYLIUM.defaultBlockState(), 3);
+            pLevel.setBlock(pPos, Blocks.WARPED_NYLIUM.defaultBlockState(), 3);
         } else if (flag) {
-            p_221811_.setBlock(p_221813_, Blocks.CRIMSON_NYLIUM.defaultBlockState(), 3);
+            pLevel.setBlock(pPos, Blocks.CRIMSON_NYLIUM.defaultBlockState(), 3);
         }
     }
 }

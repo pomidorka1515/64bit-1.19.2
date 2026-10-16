@@ -35,13 +35,13 @@ public class TestFunctionArgument implements ArgumentType<TestFunction> {
         return new TestFunctionArgument();
     }
 
-    public static TestFunction getTestFunction(CommandContext<CommandSourceStack> p_128092_, String p_128093_) {
-        return p_128092_.getArgument(p_128093_, TestFunction.class);
+    public static TestFunction getTestFunction(CommandContext<CommandSourceStack> pContext, String pArgument) {
+        return pContext.getArgument(pArgument, TestFunction.class);
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_128096_, SuggestionsBuilder p_128097_) {
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
         Stream<String> stream = GameTestRegistry.getAllTestFunctions().stream().map(TestFunction::getTestName);
-        return SharedSuggestionProvider.suggest(stream, p_128097_);
+        return SharedSuggestionProvider.suggest(stream, pBuilder);
     }
 
     public Collection<String> getExamples() {

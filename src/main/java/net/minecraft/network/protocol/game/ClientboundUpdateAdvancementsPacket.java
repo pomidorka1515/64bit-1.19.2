@@ -18,39 +18,39 @@ public class ClientboundUpdateAdvancementsPacket implements Packet<ClientGamePac
     private final Set<ResourceLocation> removed;
     private final Map<ResourceLocation, AdvancementProgress> progress;
 
-    public ClientboundUpdateAdvancementsPacket(boolean p_133560_, Collection<Advancement> p_133561_, Set<ResourceLocation> p_133562_, Map<ResourceLocation, AdvancementProgress> p_133563_) {
-        this.reset = p_133560_;
+    public ClientboundUpdateAdvancementsPacket(boolean pReset, Collection<Advancement> pAdded, Set<ResourceLocation> pRemoved, Map<ResourceLocation, AdvancementProgress> pProgress) {
+        this.reset = pReset;
         ImmutableMap.Builder<ResourceLocation, Advancement.Builder> builder = ImmutableMap.builder();
 
-        for (Advancement advancement : p_133561_) {
+        for (Advancement advancement : pAdded) {
             builder.put(advancement.getId(), advancement.deconstruct());
         }
 
         this.added = builder.build();
-        this.removed = ImmutableSet.copyOf(p_133562_);
-        this.progress = ImmutableMap.copyOf(p_133563_);
+        this.removed = ImmutableSet.copyOf(pRemoved);
+        this.progress = ImmutableMap.copyOf(pProgress);
     }
 
-    public ClientboundUpdateAdvancementsPacket(FriendlyByteBuf p_179439_) {
-        this.reset = p_179439_.readBoolean();
-        this.added = p_179439_.readMap(FriendlyByteBuf::readResourceLocation, Advancement.Builder::fromNetwork);
-        this.removed = p_179439_.readCollection(Sets::newLinkedHashSetWithExpectedSize, FriendlyByteBuf::readResourceLocation);
-        this.progress = p_179439_.readMap(FriendlyByteBuf::readResourceLocation, AdvancementProgress::fromNetwork);
+    public ClientboundUpdateAdvancementsPacket(FriendlyByteBuf pBuffer) {
+        this.reset = pBuffer.readBoolean();
+        this.added = pBuffer.readMap(FriendlyByteBuf::readResourceLocation, Advancement.Builder::fromNetwork);
+        this.removed = pBuffer.readCollection(Sets::newLinkedHashSetWithExpectedSize, FriendlyByteBuf::readResourceLocation);
+        this.progress = pBuffer.readMap(FriendlyByteBuf::readResourceLocation, AdvancementProgress::fromNetwork);
     }
 
-    public void write(FriendlyByteBuf p_133572_) {
-        p_133572_.writeBoolean(this.reset);
-        p_133572_.writeMap(this.added, FriendlyByteBuf::writeResourceLocation, (p_179441_, p_179442_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBoolean(this.reset);
+        pBuffer.writeMap(this.added, FriendlyByteBuf::writeResourceLocation, (p_179441_, p_179442_) -> {
             p_179442_.serializeToNetwork(p_179441_);
         });
-        p_133572_.writeCollection(this.removed, FriendlyByteBuf::writeResourceLocation);
-        p_133572_.writeMap(this.progress, FriendlyByteBuf::writeResourceLocation, (p_179444_, p_179445_) -> {
+        pBuffer.writeCollection(this.removed, FriendlyByteBuf::writeResourceLocation);
+        pBuffer.writeMap(this.progress, FriendlyByteBuf::writeResourceLocation, (p_179444_, p_179445_) -> {
             p_179445_.serializeToNetwork(p_179444_);
         });
     }
 
-    public void handle(ClientGamePacketListener p_133569_) {
-        p_133569_.handleUpdateAdvancementsPacket(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleUpdateAdvancementsPacket(this);
     }
 
     public Map<ResourceLocation, Advancement.Builder> getAdded() {

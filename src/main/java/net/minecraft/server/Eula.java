@@ -14,8 +14,8 @@ public class Eula {
     private final Path file;
     private final boolean agreed;
 
-    public Eula(Path p_135943_) {
-        this.file = p_135943_;
+    public Eula(Path pFile) {
+        this.file = pFile;
         this.agreed = SharedConstants.IS_RUNNING_IN_IDE || this.readFile();
     }
 

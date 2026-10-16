@@ -17,20 +17,20 @@ public class UpgradeRecipe implements Recipe<Container> {
     final ItemStack result;
     private final ResourceLocation id;
 
-    public UpgradeRecipe(ResourceLocation p_44523_, Ingredient p_44524_, Ingredient p_44525_, ItemStack p_44526_) {
-        this.id = p_44523_;
-        this.base = p_44524_;
-        this.addition = p_44525_;
-        this.result = p_44526_;
+    public UpgradeRecipe(ResourceLocation pId, Ingredient pBase, Ingredient pAddition, ItemStack pResult) {
+        this.id = pId;
+        this.base = pBase;
+        this.addition = pAddition;
+        this.result = pResult;
     }
 
-    public boolean matches(Container p_44533_, Level p_44534_) {
-        return this.base.test(p_44533_.getItem(0)) && this.addition.test(p_44533_.getItem(1));
+    public boolean matches(Container pInv, Level pLevel) {
+        return this.base.test(pInv.getItem(0)) && this.addition.test(pInv.getItem(1));
     }
 
-    public ItemStack assemble(Container p_44531_) {
+    public ItemStack assemble(Container pInv) {
         ItemStack itemstack = this.result.copy();
-        CompoundTag compoundtag = p_44531_.getItem(0).getTag();
+        CompoundTag compoundtag = pInv.getItem(0).getTag();
         if (compoundtag != null) {
             itemstack.setTag(compoundtag.copy());
         }
@@ -38,16 +38,16 @@ public class UpgradeRecipe implements Recipe<Container> {
         return itemstack;
     }
 
-    public boolean canCraftInDimensions(int p_44528_, int p_44529_) {
-        return p_44528_ * p_44529_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= 2;
     }
 
     public ItemStack getResultItem() {
         return this.result;
     }
 
-    public boolean isAdditionIngredient(ItemStack p_44536_) {
-        return this.addition.test(p_44536_);
+    public boolean isAdditionIngredient(ItemStack pAddition) {
+        return this.addition.test(pAddition);
     }
 
     public ItemStack getToastSymbol() {
@@ -73,24 +73,24 @@ public class UpgradeRecipe implements Recipe<Container> {
     }
 
     public static class Serializer implements RecipeSerializer<UpgradeRecipe> {
-        public UpgradeRecipe fromJson(ResourceLocation p_44562_, JsonObject p_44563_) {
-            Ingredient ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(p_44563_, "base"));
-            Ingredient ingredient1 = Ingredient.fromJson(GsonHelper.getAsJsonObject(p_44563_, "addition"));
-            ItemStack itemstack = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(p_44563_, "result"));
-            return new UpgradeRecipe(p_44562_, ingredient, ingredient1, itemstack);
+        public UpgradeRecipe fromJson(ResourceLocation pRecipeId, JsonObject pJson) {
+            Ingredient ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(pJson, "base"));
+            Ingredient ingredient1 = Ingredient.fromJson(GsonHelper.getAsJsonObject(pJson, "addition"));
+            ItemStack itemstack = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(pJson, "result"));
+            return new UpgradeRecipe(pRecipeId, ingredient, ingredient1, itemstack);
         }
 
-        public UpgradeRecipe fromNetwork(ResourceLocation p_44565_, FriendlyByteBuf p_44566_) {
-            Ingredient ingredient = Ingredient.fromNetwork(p_44566_);
-            Ingredient ingredient1 = Ingredient.fromNetwork(p_44566_);
-            ItemStack itemstack = p_44566_.readItem();
-            return new UpgradeRecipe(p_44565_, ingredient, ingredient1, itemstack);
+        public UpgradeRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf pBuffer) {
+            Ingredient ingredient = Ingredient.fromNetwork(pBuffer);
+            Ingredient ingredient1 = Ingredient.fromNetwork(pBuffer);
+            ItemStack itemstack = pBuffer.readItem();
+            return new UpgradeRecipe(pRecipeId, ingredient, ingredient1, itemstack);
         }
 
-        public void toNetwork(FriendlyByteBuf p_44553_, UpgradeRecipe p_44554_) {
-            p_44554_.base.toNetwork(p_44553_);
-            p_44554_.addition.toNetwork(p_44553_);
-            p_44553_.writeItem(p_44554_.result);
+        public void toNetwork(FriendlyByteBuf pBuffer, UpgradeRecipe pRecipe) {
+            pRecipe.base.toNetwork(pBuffer);
+            pRecipe.addition.toNetwork(pBuffer);
+            pBuffer.writeItem(pRecipe.result);
         }
     }
 }

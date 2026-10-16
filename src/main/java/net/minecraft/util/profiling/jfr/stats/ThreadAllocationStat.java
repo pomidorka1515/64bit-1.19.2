@@ -13,15 +13,15 @@ import jdk.jfr.consumer.RecordedThread;
 public record ThreadAllocationStat(Instant timestamp, String threadName, long totalBytes) {
     private static final String UNKNOWN_THREAD = "unknown";
 
-    public static ThreadAllocationStat from(RecordedEvent p_185804_) {
-        RecordedThread recordedthread = p_185804_.getThread("thread");
+    public static ThreadAllocationStat from(RecordedEvent pEvent) {
+        RecordedThread recordedthread = pEvent.getThread("thread");
         String s = recordedthread == null ? "unknown" : MoreObjects.firstNonNull(recordedthread.getJavaName(), "unknown");
-        return new ThreadAllocationStat(p_185804_.getStartTime(), s, p_185804_.getLong("allocated"));
+        return new ThreadAllocationStat(pEvent.getStartTime(), s, pEvent.getLong("allocated"));
     }
 
-    public static ThreadAllocationStat.Summary summary(List<ThreadAllocationStat> p_185798_) {
+    public static ThreadAllocationStat.Summary summary(List<ThreadAllocationStat> pStats) {
         Map<String, Double> map = new TreeMap<>();
-        Map<String, List<ThreadAllocationStat>> map1 = p_185798_.stream().collect(Collectors.groupingBy((p_185796_) -> {
+        Map<String, List<ThreadAllocationStat>> map1 = pStats.stream().collect(Collectors.groupingBy((p_185796_) -> {
             return p_185796_.threadName;
         }));
         map1.forEach((p_185801_, p_185802_) -> {

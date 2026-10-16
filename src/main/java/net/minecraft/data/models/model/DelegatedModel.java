@@ -8,8 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 public class DelegatedModel implements Supplier<JsonElement> {
     private final ResourceLocation parent;
 
-    public DelegatedModel(ResourceLocation p_125568_) {
-        this.parent = p_125568_;
+    public DelegatedModel(ResourceLocation pParent) {
+        this.parent = pParent;
     }
 
     public JsonElement get() {

@@ -7,8 +7,8 @@ public abstract class StoredUserEntry<T> {
     @Nullable
     private final T user;
 
-    public StoredUserEntry(@Nullable T p_11371_) {
-        this.user = p_11371_;
+    public StoredUserEntry(@Nullable T pUser) {
+        this.user = pUser;
     }
 
     @Nullable
@@ -20,5 +20,5 @@ public abstract class StoredUserEntry<T> {
         return false;
     }
 
-    protected abstract void serialize(JsonObject p_11372_);
+    protected abstract void serialize(JsonObject pData);
 }

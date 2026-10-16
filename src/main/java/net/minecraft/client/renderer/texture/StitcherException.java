@@ -9,9 +9,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class StitcherException extends RuntimeException {
     private final Collection<TextureAtlasSprite.Info> allSprites;
 
-    public StitcherException(TextureAtlasSprite.Info p_118256_, Collection<TextureAtlasSprite.Info> p_118257_) {
-        super(String.format(Locale.ROOT, "Unable to fit: %s - size: %dx%d - Maybe try a lower resolution resourcepack?", p_118256_.name(), p_118256_.width(), p_118256_.height()));
-        this.allSprites = p_118257_;
+    public StitcherException(TextureAtlasSprite.Info pSpriteInfo, Collection<TextureAtlasSprite.Info> pAllSprites) {
+        super(String.format(Locale.ROOT, "Unable to fit: %s - size: %dx%d - Maybe try a lower resolution resourcepack?", pSpriteInfo.name(), pSpriteInfo.width(), pSpriteInfo.height()));
+        this.allSprites = pAllSprites;
     }
 
     public Collection<TextureAtlasSprite.Info> getAllSprites() {

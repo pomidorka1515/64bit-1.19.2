@@ -30,66 +30,66 @@ public class NoteBlock extends Block {
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final IntegerProperty NOTE = BlockStateProperties.NOTE;
 
-    public NoteBlock(BlockBehaviour.Properties p_55016_) {
-        super(p_55016_);
+    public NoteBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(INSTRUMENT, NoteBlockInstrument.HARP).setValue(NOTE, Integer.valueOf(0)).setValue(POWERED, Boolean.valueOf(false)));
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_55018_) {
-        return this.defaultBlockState().setValue(INSTRUMENT, NoteBlockInstrument.byState(p_55018_.getLevel().getBlockState(p_55018_.getClickedPos().below())));
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        return this.defaultBlockState().setValue(INSTRUMENT, NoteBlockInstrument.byState(pContext.getLevel().getBlockState(pContext.getClickedPos().below())));
     }
 
-    public BlockState updateShape(BlockState p_55048_, Direction p_55049_, BlockState p_55050_, LevelAccessor p_55051_, BlockPos p_55052_, BlockPos p_55053_) {
-        return p_55049_ == Direction.DOWN ? p_55048_.setValue(INSTRUMENT, NoteBlockInstrument.byState(p_55050_)) : super.updateShape(p_55048_, p_55049_, p_55050_, p_55051_, p_55052_, p_55053_);
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        return pFacing == Direction.DOWN ? pState.setValue(INSTRUMENT, NoteBlockInstrument.byState(pFacingState)) : super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    public void neighborChanged(BlockState p_55041_, Level p_55042_, BlockPos p_55043_, Block p_55044_, BlockPos p_55045_, boolean p_55046_) {
-        boolean flag = p_55042_.hasNeighborSignal(p_55043_);
-        if (flag != p_55041_.getValue(POWERED)) {
+    public void neighborChanged(BlockState pState, Level pLevel, BlockPos pPos, Block pBlock, BlockPos pFromPos, boolean pIsMoving) {
+        boolean flag = pLevel.hasNeighborSignal(pPos);
+        if (flag != pState.getValue(POWERED)) {
             if (flag) {
-                this.playNote((Entity) null, p_55042_, p_55043_);
+                this.playNote((Entity) null, pLevel, pPos);
             }
 
-            p_55042_.setBlock(p_55043_, p_55041_.setValue(POWERED, Boolean.valueOf(flag)), 3);
+            pLevel.setBlock(pPos, pState.setValue(POWERED, Boolean.valueOf(flag)), 3);
         }
     }
 
-    private void playNote(@Nullable Entity p_221821_, Level p_221822_, BlockPos p_221823_) {
-        if (p_221822_.getBlockState(p_221823_.above()).isAir()) {
-            p_221822_.blockEvent(p_221823_, this, 0, 0);
-            p_221822_.gameEvent(p_221821_, GameEvent.NOTE_BLOCK_PLAY, p_221823_);
+    private void playNote(@Nullable Entity pEntity, Level pLevel, BlockPos pPos) {
+        if (pLevel.getBlockState(pPos.above()).isAir()) {
+            pLevel.blockEvent(pPos, this, 0, 0);
+            pLevel.gameEvent(pEntity, GameEvent.NOTE_BLOCK_PLAY, pPos);
         }
     }
 
-    public InteractionResult use(BlockState p_55034_, Level p_55035_, BlockPos p_55036_, Player p_55037_, InteractionHand p_55038_, BlockHitResult p_55039_) {
-        if (p_55035_.isClientSide) {
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pLevel.isClientSide) {
             return InteractionResult.SUCCESS;
         } else {
-            p_55034_ = p_55034_.cycle(NOTE);
-            p_55035_.setBlock(p_55036_, p_55034_, 3);
-            this.playNote(p_55037_, p_55035_, p_55036_);
-            p_55037_.awardStat(Stats.TUNE_NOTEBLOCK);
+            pState = pState.cycle(NOTE);
+            pLevel.setBlock(pPos, pState, 3);
+            this.playNote(pPlayer, pLevel, pPos);
+            pPlayer.awardStat(Stats.TUNE_NOTEBLOCK);
             return InteractionResult.CONSUME;
         }
     }
 
-    public void attack(BlockState p_55029_, Level p_55030_, BlockPos p_55031_, Player p_55032_) {
-        if (!p_55030_.isClientSide) {
-            this.playNote(p_55032_, p_55030_, p_55031_);
-            p_55032_.awardStat(Stats.PLAY_NOTEBLOCK);
+    public void attack(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer) {
+        if (!pLevel.isClientSide) {
+            this.playNote(pPlayer, pLevel, pPos);
+            pPlayer.awardStat(Stats.PLAY_NOTEBLOCK);
         }
     }
 
-    public boolean triggerEvent(BlockState p_55023_, Level p_55024_, BlockPos p_55025_, int p_55026_, int p_55027_) {
-        int i = p_55023_.getValue(NOTE);
+    public boolean triggerEvent(BlockState pState, Level pLevel, BlockPos pPos, int pId, int pParam) {
+        int i = pState.getValue(NOTE);
         float f = (float) Math.pow(2.0D, (double) (i - 12) / 12.0D);
-        p_55024_.playSound((Player) null, p_55025_, p_55023_.getValue(INSTRUMENT).getSoundEvent(), SoundSource.RECORDS, 3.0F, f);
-        p_55024_.addParticle(ParticleTypes.NOTE, SectorVec3.fromBlockAndFraction(p_55025_.getX(), 0.5D, (double) p_55025_.getY() + 1.2D, p_55025_.getZ(), 0.5D),
+        pLevel.playSound((Player) null, pPos, pState.getValue(INSTRUMENT).getSoundEvent(), SoundSource.RECORDS, 3.0F, f);
+        pLevel.addParticle(ParticleTypes.NOTE, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 1.2D, pPos.getZ(), 0.5D),
                 (double) i / 24.0D, 0.0D, 0.0D);
         return true;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_55055_) {
-        p_55055_.add(INSTRUMENT, POWERED, NOTE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(INSTRUMENT, POWERED, NOTE);
     }
 }

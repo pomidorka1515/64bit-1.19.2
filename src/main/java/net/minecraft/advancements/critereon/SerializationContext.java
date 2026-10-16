@@ -9,7 +9,7 @@ public class SerializationContext {
     public static final SerializationContext INSTANCE = new SerializationContext();
     private final Gson predicateGson = Deserializers.createConditionSerializer().create();
 
-    public final JsonElement serializeConditions(LootItemCondition[] p_64773_) {
-        return this.predicateGson.toJsonTree(p_64773_);
+    public final JsonElement serializeConditions(LootItemCondition[] pConditions) {
+        return this.predicateGson.toJsonTree(pConditions);
     }
 }

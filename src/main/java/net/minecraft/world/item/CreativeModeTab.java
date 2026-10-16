@@ -92,12 +92,12 @@ public abstract class CreativeModeTab {
     private EnchantmentCategory[] enchantmentCategories = new EnchantmentCategory[0];
     private ItemStack iconItemStack;
 
-    public CreativeModeTab(int p_40773_, String p_40774_) {
-        this.id = p_40773_;
-        this.langId = p_40774_;
-        this.displayName = Component.translatable("itemGroup." + p_40774_);
+    public CreativeModeTab(int pId, String pLangId) {
+        this.id = pId;
+        this.langId = pLangId;
+        this.displayName = Component.translatable("itemGroup." + pLangId);
         this.iconItemStack = ItemStack.EMPTY;
-        TABS[p_40773_] = this;
+        TABS[pId] = this;
     }
 
     public int getId() {
@@ -126,13 +126,13 @@ public abstract class CreativeModeTab {
         return this.backgroundSuffix;
     }
 
-    public CreativeModeTab setBackgroundSuffix(String p_40780_) {
-        this.backgroundSuffix = p_40780_;
+    public CreativeModeTab setBackgroundSuffix(String pBackgroundSuffix) {
+        this.backgroundSuffix = pBackgroundSuffix;
         return this;
     }
 
-    public CreativeModeTab setRecipeFolderName(String p_40785_) {
-        this.recipeFolderName = p_40785_;
+    public CreativeModeTab setRecipeFolderName(String pRecipeFolderName) {
+        this.recipeFolderName = pRecipeFolderName;
         return this;
     }
 
@@ -170,15 +170,15 @@ public abstract class CreativeModeTab {
         return this.enchantmentCategories;
     }
 
-    public CreativeModeTab setEnchantmentCategories(EnchantmentCategory... p_40782_) {
-        this.enchantmentCategories = p_40782_;
+    public CreativeModeTab setEnchantmentCategories(EnchantmentCategory... pEnchantmentCategories) {
+        this.enchantmentCategories = pEnchantmentCategories;
         return this;
     }
 
-    public boolean hasEnchantmentCategory(@Nullable EnchantmentCategory p_40777_) {
-        if (p_40777_ != null) {
+    public boolean hasEnchantmentCategory(@Nullable EnchantmentCategory pCategory) {
+        if (pCategory != null) {
             for (EnchantmentCategory enchantmentcategory : this.enchantmentCategories) {
-                if (enchantmentcategory == p_40777_) {
+                if (enchantmentcategory == pCategory) {
                     return true;
                 }
             }
@@ -187,9 +187,9 @@ public abstract class CreativeModeTab {
         return false;
     }
 
-    public void fillItemList(NonNullList<ItemStack> p_40778_) {
+    public void fillItemList(NonNullList<ItemStack> pItems) {
         for (Item item : Registry.ITEM) {
-            item.fillItemCategory(this, p_40778_);
+            item.fillItemCategory(this, pItems);
         }
     }
 }

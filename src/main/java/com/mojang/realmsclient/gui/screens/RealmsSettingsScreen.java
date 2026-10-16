@@ -21,10 +21,10 @@ public class RealmsSettingsScreen extends RealmsScreen {
     private EditBox descEdit;
     private EditBox nameEdit;
 
-    public RealmsSettingsScreen(RealmsConfigureWorldScreen p_89829_, RealmsServer p_89830_) {
+    public RealmsSettingsScreen(RealmsConfigureWorldScreen pConfigureWorldScreen, RealmsServer pServerData) {
         super(Component.translatable("mco.configure.world.settings.title"));
-        this.configureWorldScreen = p_89829_;
-        this.serverData = p_89830_;
+        this.configureWorldScreen = pConfigureWorldScreen;
+        this.serverData = pServerData;
     }
 
     public void tick() {
@@ -74,23 +74,23 @@ public class RealmsSettingsScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_89833_, int p_89834_, int p_89835_) {
-        if (p_89833_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.configureWorldScreen);
             return true;
         } else {
-            return super.keyPressed(p_89833_, p_89834_, p_89835_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    public void render(PoseStack p_89837_, int p_89838_, int p_89839_, float p_89840_) {
-        this.renderBackground(p_89837_);
-        drawCenteredString(p_89837_, this.font, this.title, this.width / 2, 17, 16777215);
-        this.font.draw(p_89837_, NAME_LABEL, (float) (this.width / 2 - 106), (float) row(3), 10526880);
-        this.font.draw(p_89837_, DESCRIPTION_LABEL, (float) (this.width / 2 - 106), (float) row(7), 10526880);
-        this.nameEdit.render(p_89837_, p_89838_, p_89839_, p_89840_);
-        this.descEdit.render(p_89837_, p_89838_, p_89839_, p_89840_);
-        super.render(p_89837_, p_89838_, p_89839_, p_89840_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 17, 16777215);
+        this.font.draw(pPoseStack, NAME_LABEL, (float) (this.width / 2 - 106), (float) row(3), 10526880);
+        this.font.draw(pPoseStack, DESCRIPTION_LABEL, (float) (this.width / 2 - 106), (float) row(7), 10526880);
+        this.nameEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.descEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public void save() {

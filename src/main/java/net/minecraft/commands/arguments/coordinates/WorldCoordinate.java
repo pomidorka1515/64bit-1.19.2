@@ -24,8 +24,8 @@ public class WorldCoordinate {
         this.literal = literal;
     }
 
-    public double get(double p_120868_) {
-        return this.relative ? this.value + p_120868_ : this.value;
+    public double get(double pCoord) {
+        return this.relative ? this.value + pCoord : this.value;
     }
 
     public double getValue() {
@@ -35,15 +35,15 @@ public class WorldCoordinate {
         return this.literal;
     }
 
-    public static WorldCoordinate parseDouble(StringReader p_120872_, boolean p_120873_) throws CommandSyntaxException {
-        if (p_120872_.canRead() && p_120872_.peek() == '^') {
-            throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(p_120872_);
-        } else if (!p_120872_.canRead()) {
-            throw ERROR_EXPECTED_DOUBLE.createWithContext(p_120872_);
+    public static WorldCoordinate parseDouble(StringReader pReader, boolean pCenterCorrect) throws CommandSyntaxException {
+        if (pReader.canRead() && pReader.peek() == '^') {
+            throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(pReader);
+        } else if (!pReader.canRead()) {
+            throw ERROR_EXPECTED_DOUBLE.createWithContext(pReader);
         } else {
-            boolean flag = isRelative(p_120872_);
-            int i = p_120872_.getCursor();
-            String s = p_120872_.canRead() && p_120872_.peek() != ' ' ? readCoordinateToken(p_120872_) : "";
+            boolean flag = isRelative(pReader);
+            int i = pReader.getCursor();
+            String s = pReader.canRead() && pReader.peek() != ' ' ? readCoordinateToken(pReader) : "";
             if (flag && s.isEmpty()) {
                 return new WorldCoordinate(true, 0.0D, "0");
             } else {
@@ -52,35 +52,35 @@ public class WorldCoordinate {
                     if (!isDecimal(literal))
                         throw new NumberFormatException(literal);
                     double d0 = Double.parseDouble(literal);
-                    if (!s.contains(".") && !flag && p_120873_) {
+                    if (!s.contains(".") && !flag && pCenterCorrect) {
                         d0 += 0.5D;
                         literal = new BigDecimal(literal).add(BigDecimal.valueOf(0.5D)).toPlainString();
                     }
                     return new WorldCoordinate(flag, d0, literal);
                 } catch (NumberFormatException exception) {
-                    p_120872_.setCursor(i);
-                    throw ERROR_EXPECTED_DOUBLE.createWithContext(p_120872_);
+                    pReader.setCursor(i);
+                    throw ERROR_EXPECTED_DOUBLE.createWithContext(pReader);
                 }
             }
         }
     }
 
-    public static WorldCoordinate parseInt(StringReader p_120870_) throws CommandSyntaxException {
-        if (p_120870_.canRead() && p_120870_.peek() == '^') {
-            throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(p_120870_);
-        } else if (!p_120870_.canRead()) {
-            throw ERROR_EXPECTED_INT.createWithContext(p_120870_);
+    public static WorldCoordinate parseInt(StringReader pReader) throws CommandSyntaxException {
+        if (pReader.canRead() && pReader.peek() == '^') {
+            throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(pReader);
+        } else if (!pReader.canRead()) {
+            throw ERROR_EXPECTED_INT.createWithContext(pReader);
         } else {
-            boolean flag = isRelative(p_120870_);
-            int valueStart = p_120870_.getCursor();
-            String token = p_120870_.canRead() && p_120870_.peek() != ' ' ? readCoordinateToken(p_120870_) : "";
+            boolean flag = isRelative(pReader);
+            int valueStart = pReader.getCursor();
+            String token = pReader.canRead() && pReader.peek() != ' ' ? readCoordinateToken(pReader) : "";
             try {
                 String literal = token.isEmpty() ? "0" : token;
                 double d0 = token.isEmpty() ? 0.0D : (flag ? Double.parseDouble(token) : Long.parseLong(token));
                 return new WorldCoordinate(flag, d0, literal);
             } catch (NumberFormatException exception) {
-                p_120870_.setCursor(valueStart);
-                throw ERROR_EXPECTED_INT.createWithContext(p_120870_);
+                pReader.setCursor(valueStart);
+                throw ERROR_EXPECTED_INT.createWithContext(pReader);
             }
         }
     }
@@ -100,11 +100,11 @@ public class WorldCoordinate {
         }
     }
 
-    public static boolean isRelative(StringReader p_120875_) {
+    public static boolean isRelative(StringReader pReader) {
         boolean flag;
-        if (p_120875_.peek() == '~') {
+        if (pReader.peek() == '~') {
             flag = true;
-            p_120875_.skip();
+            pReader.skip();
         } else {
             flag = false;
         }
@@ -112,13 +112,13 @@ public class WorldCoordinate {
         return flag;
     }
 
-    public boolean equals(Object p_120877_) {
-        if (this == p_120877_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_120877_ instanceof WorldCoordinate)) {
+        } else if (!(pOther instanceof WorldCoordinate)) {
             return false;
         } else {
-            WorldCoordinate worldcoordinate = (WorldCoordinate) p_120877_;
+            WorldCoordinate worldcoordinate = (WorldCoordinate) pOther;
             if (this.relative != worldcoordinate.relative) {
                 return false;
             } else {

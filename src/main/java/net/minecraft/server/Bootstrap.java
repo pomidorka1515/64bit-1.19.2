@@ -59,22 +59,22 @@ public class Bootstrap {
         }
     }
 
-    private static <T> void checkTranslations(Iterable<T> p_135872_, Function<T, String> p_135873_, Set<String> p_135874_) {
+    private static <T> void checkTranslations(Iterable<T> pObjects, Function<T, String> pObjectToKeyFunction, Set<String> pTranslationSet) {
         Language language = Language.getInstance();
-        p_135872_.forEach((p_135883_) -> {
-            String s = p_135873_.apply(p_135883_);
+        pObjects.forEach((p_135883_) -> {
+            String s = pObjectToKeyFunction.apply(p_135883_);
             if (!language.has(s)) {
-                p_135874_.add(s);
+                pTranslationSet.add(s);
             }
         });
     }
 
-    private static void checkGameruleTranslations(final Set<String> p_135878_) {
+    private static void checkGameruleTranslations(final Set<String> pTranslations) {
         final Language language = Language.getInstance();
         GameRules.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor() {
             public <T extends GameRules.Value<T>> void visit(GameRules.Key<T> p_135897_, GameRules.Type<T> p_135898_) {
                 if (!language.has(p_135897_.getDescriptionId())) {
-                    p_135878_.add(p_135897_.getId());
+                    pTranslations.add(p_135897_.getId());
                 }
             }
         });
@@ -148,7 +148,7 @@ public class Bootstrap {
         }
     }
 
-    public static void realStdoutPrintln(String p_135876_) {
-        STDOUT.println(p_135876_);
+    public static void realStdoutPrintln(String pMessage) {
+        STDOUT.println(pMessage);
     }
 }

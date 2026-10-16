@@ -23,16 +23,16 @@ public class Vec2Argument implements ArgumentType<Coordinates> {
     public static final SimpleCommandExceptionType ERROR_NOT_COMPLETE = new SimpleCommandExceptionType(Component.translatable("argument.pos2d.incomplete"));
     private final boolean centerCorrect;
 
-    public Vec2Argument(boolean p_120821_) {
-        this.centerCorrect = p_120821_;
+    public Vec2Argument(boolean pCenterCorrect) {
+        this.centerCorrect = pCenterCorrect;
     }
 
     public static Vec2Argument vec2() {
         return new Vec2Argument(true);
     }
 
-    public static Vec2Argument vec2(boolean p_174955_) {
-        return new Vec2Argument(p_174955_);
+    public static Vec2Argument vec2(boolean pCenterCorrect) {
+        return new Vec2Argument(pCenterCorrect);
     }
 
     public static Vec2 getVec2(CommandContext<CommandSourceStack> context, String name) {
@@ -61,19 +61,19 @@ public class Vec2Argument implements ArgumentType<Coordinates> {
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_120830_, SuggestionsBuilder p_120831_) {
-        if (!(p_120830_.getSource() instanceof SharedSuggestionProvider)) {
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        if (!(pContext.getSource() instanceof SharedSuggestionProvider)) {
             return Suggestions.empty();
         } else {
-            String s = p_120831_.getRemaining();
+            String s = pBuilder.getRemaining();
             Collection<SharedSuggestionProvider.TextCoordinates> collection;
             if (!s.isEmpty() && s.charAt(0) == '^') {
                 collection = Collections.singleton(SharedSuggestionProvider.TextCoordinates.DEFAULT_LOCAL);
             } else {
-                collection = ((SharedSuggestionProvider) p_120830_.getSource()).getAbsoluteCoordinates();
+                collection = ((SharedSuggestionProvider) pContext.getSource()).getAbsoluteCoordinates();
             }
 
-            return SharedSuggestionProvider.suggest2DCoordinates(s, collection, p_120831_, Commands.createValidator(this::parse));
+            return SharedSuggestionProvider.suggest2DCoordinates(s, collection, pBuilder, Commands.createValidator(this::parse));
         }
     }
 

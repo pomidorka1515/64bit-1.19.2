@@ -49,34 +49,34 @@ public class LongArrayTag extends CollectionTag<LongTag> {
     };
     private long[] data;
 
-    public LongArrayTag(long[] p_128808_) {
-        this.data = p_128808_;
+    public LongArrayTag(long[] pData) {
+        this.data = pData;
     }
 
-    public LongArrayTag(LongSet p_128804_) {
-        this.data = p_128804_.toLongArray();
+    public LongArrayTag(LongSet pDataSet) {
+        this.data = pDataSet.toLongArray();
     }
 
-    public LongArrayTag(List<Long> p_128806_) {
-        this(toArray(p_128806_));
+    public LongArrayTag(List<Long> pDataList) {
+        this(toArray(pDataList));
     }
 
-    private static long[] toArray(List<Long> p_128824_) {
-        long[] along = new long[p_128824_.size()];
+    private static long[] toArray(List<Long> pDataList) {
+        long[] along = new long[pDataList.size()];
 
-        for (int i = 0; i < p_128824_.size(); ++i) {
-            Long olong = p_128824_.get(i);
+        for (int i = 0; i < pDataList.size(); ++i) {
+            Long olong = pDataList.get(i);
             along[i] = olong == null ? 0L : olong;
         }
 
         return along;
     }
 
-    public void write(DataOutput p_128819_) throws IOException {
-        p_128819_.writeInt(this.data.length);
+    public void write(DataOutput pOutput) throws IOException {
+        pOutput.writeInt(this.data.length);
 
         for (long i : this.data) {
-            p_128819_.writeLong(i);
+            pOutput.writeLong(i);
         }
     }
 
@@ -98,11 +98,11 @@ public class LongArrayTag extends CollectionTag<LongTag> {
         return new LongArrayTag(along);
     }
 
-    public boolean equals(Object p_128850_) {
-        if (this == p_128850_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_128850_ instanceof LongArrayTag && Arrays.equals(this.data, ((LongArrayTag) p_128850_).data);
+            return pOther instanceof LongArrayTag && Arrays.equals(this.data, ((LongArrayTag) pOther).data);
         }
     }
 
@@ -110,8 +110,8 @@ public class LongArrayTag extends CollectionTag<LongTag> {
         return Arrays.hashCode(this.data);
     }
 
-    public void accept(TagVisitor p_177995_) {
-        p_177995_.visitLongArray(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitLongArray(this);
     }
 
     public long[] getAsLongArray() {
@@ -136,18 +136,18 @@ public class LongArrayTag extends CollectionTag<LongTag> {
         this.data = ArrayUtils.add(this.data, p_128832_, p_128833_.getAsLong());
     }
 
-    public boolean setTag(int p_128816_, Tag p_128817_) {
-        if (p_128817_ instanceof NumericTag) {
-            this.data[p_128816_] = ((NumericTag) p_128817_).getAsLong();
+    public boolean setTag(int pIndex, Tag pNbt) {
+        if (pNbt instanceof NumericTag) {
+            this.data[pIndex] = ((NumericTag) pNbt).getAsLong();
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean addTag(int p_128835_, Tag p_128836_) {
-        if (p_128836_ instanceof NumericTag) {
-            this.data = ArrayUtils.add(this.data, p_128835_, ((NumericTag) p_128836_).getAsLong());
+    public boolean addTag(int pIndex, Tag pNbt) {
+        if (pNbt instanceof NumericTag) {
+            this.data = ArrayUtils.add(this.data, pIndex, ((NumericTag) pNbt).getAsLong());
             return true;
         } else {
             return false;
@@ -168,7 +168,7 @@ public class LongArrayTag extends CollectionTag<LongTag> {
         this.data = new long[0];
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197497_) {
-        return p_197497_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 }

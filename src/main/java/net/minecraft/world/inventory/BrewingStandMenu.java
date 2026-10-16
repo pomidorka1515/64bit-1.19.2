@@ -27,45 +27,45 @@ public class BrewingStandMenu extends AbstractContainerMenu {
     private final ContainerData brewingStandData;
     private final Slot ingredientSlot;
 
-    public BrewingStandMenu(int p_39090_, Inventory p_39091_) {
-        this(p_39090_, p_39091_, new SimpleContainer(5), new SimpleContainerData(2));
+    public BrewingStandMenu(int pContainerId, Inventory pPlayerInventory) {
+        this(pContainerId, pPlayerInventory, new SimpleContainer(5), new SimpleContainerData(2));
     }
 
-    public BrewingStandMenu(int p_39093_, Inventory p_39094_, Container p_39095_, ContainerData p_39096_) {
-        super(MenuType.BREWING_STAND, p_39093_);
-        checkContainerSize(p_39095_, 5);
-        checkContainerDataCount(p_39096_, 2);
-        this.brewingStand = p_39095_;
-        this.brewingStandData = p_39096_;
-        this.addSlot(new BrewingStandMenu.PotionSlot(p_39095_, 0, 56, 51));
-        this.addSlot(new BrewingStandMenu.PotionSlot(p_39095_, 1, 79, 58));
-        this.addSlot(new BrewingStandMenu.PotionSlot(p_39095_, 2, 102, 51));
-        this.ingredientSlot = this.addSlot(new BrewingStandMenu.IngredientsSlot(p_39095_, 3, 79, 17));
-        this.addSlot(new BrewingStandMenu.FuelSlot(p_39095_, 4, 17, 17));
-        this.addDataSlots(p_39096_);
+    public BrewingStandMenu(int pContainerId, Inventory pPlayerInventory, Container pBrewingStandContainer, ContainerData pBrewingStandData) {
+        super(MenuType.BREWING_STAND, pContainerId);
+        checkContainerSize(pBrewingStandContainer, 5);
+        checkContainerDataCount(pBrewingStandData, 2);
+        this.brewingStand = pBrewingStandContainer;
+        this.brewingStandData = pBrewingStandData;
+        this.addSlot(new BrewingStandMenu.PotionSlot(pBrewingStandContainer, 0, 56, 51));
+        this.addSlot(new BrewingStandMenu.PotionSlot(pBrewingStandContainer, 1, 79, 58));
+        this.addSlot(new BrewingStandMenu.PotionSlot(pBrewingStandContainer, 2, 102, 51));
+        this.ingredientSlot = this.addSlot(new BrewingStandMenu.IngredientsSlot(pBrewingStandContainer, 3, 79, 17));
+        this.addSlot(new BrewingStandMenu.FuelSlot(pBrewingStandContainer, 4, 17, 17));
+        this.addDataSlots(pBrewingStandData);
 
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(p_39094_, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
+                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
 
         for (int k = 0; k < 9; ++k) {
-            this.addSlot(new Slot(p_39094_, k, 8 + k * 18, 142));
+            this.addSlot(new Slot(pPlayerInventory, k, 8 + k * 18, 142));
         }
     }
 
-    public boolean stillValid(Player p_39098_) {
-        return this.brewingStand.stillValid(p_39098_);
+    public boolean stillValid(Player pPlayer) {
+        return this.brewingStand.stillValid(pPlayer);
     }
 
-    public ItemStack quickMoveStack(Player p_39100_, int p_39101_) {
+    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(p_39101_);
+        Slot slot = this.slots.get(pIndex);
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            if ((p_39101_ < 0 || p_39101_ > 2) && p_39101_ != 3 && p_39101_ != 4) {
+            if ((pIndex < 0 || pIndex > 2) && pIndex != 3 && pIndex != 4) {
                 if (BrewingStandMenu.FuelSlot.mayPlaceItem(itemstack)) {
                     if (this.moveItemStackTo(itemstack1, 4, 5, false) || this.ingredientSlot.mayPlace(itemstack1) && !this.moveItemStackTo(itemstack1, 3, 4, false)) {
                         return ItemStack.EMPTY;
@@ -78,11 +78,11 @@ public class BrewingStandMenu extends AbstractContainerMenu {
                     if (!this.moveItemStackTo(itemstack1, 0, 3, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (p_39101_ >= 5 && p_39101_ < 32) {
+                } else if (pIndex >= 5 && pIndex < 32) {
                     if (!this.moveItemStackTo(itemstack1, 32, 41, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (p_39101_ >= 32 && p_39101_ < 41) {
+                } else if (pIndex >= 32 && pIndex < 41) {
                     if (!this.moveItemStackTo(itemstack1, 5, 32, false)) {
                         return ItemStack.EMPTY;
                     }
@@ -107,7 +107,7 @@ public class BrewingStandMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(p_39100_, itemstack1);
+            slot.onTake(pPlayer, itemstack1);
         }
 
         return itemstack;
@@ -122,16 +122,16 @@ public class BrewingStandMenu extends AbstractContainerMenu {
     }
 
     static class FuelSlot extends Slot {
-        public FuelSlot(Container p_39105_, int p_39106_, int p_39107_, int p_39108_) {
-            super(p_39105_, p_39106_, p_39107_, p_39108_);
+        public FuelSlot(Container pContainer, int pSlot, int pX, int pY) {
+            super(pContainer, pSlot, pX, pY);
         }
 
-        public boolean mayPlace(ItemStack p_39111_) {
-            return mayPlaceItem(p_39111_);
+        public boolean mayPlace(ItemStack pStack) {
+            return mayPlaceItem(pStack);
         }
 
-        public static boolean mayPlaceItem(ItemStack p_39113_) {
-            return p_39113_.is(Items.BLAZE_POWDER);
+        public static boolean mayPlaceItem(ItemStack pItemStack) {
+            return pItemStack.is(Items.BLAZE_POWDER);
         }
 
         public int getMaxStackSize() {
@@ -140,12 +140,12 @@ public class BrewingStandMenu extends AbstractContainerMenu {
     }
 
     static class IngredientsSlot extends Slot {
-        public IngredientsSlot(Container p_39115_, int p_39116_, int p_39117_, int p_39118_) {
-            super(p_39115_, p_39116_, p_39117_, p_39118_);
+        public IngredientsSlot(Container pContainer, int pSlot, int pX, int pY) {
+            super(pContainer, pSlot, pX, pY);
         }
 
-        public boolean mayPlace(ItemStack p_39121_) {
-            return PotionBrewing.isIngredient(p_39121_);
+        public boolean mayPlace(ItemStack pStack) {
+            return PotionBrewing.isIngredient(pStack);
         }
 
         public int getMaxStackSize() {
@@ -154,29 +154,29 @@ public class BrewingStandMenu extends AbstractContainerMenu {
     }
 
     static class PotionSlot extends Slot {
-        public PotionSlot(Container p_39123_, int p_39124_, int p_39125_, int p_39126_) {
-            super(p_39123_, p_39124_, p_39125_, p_39126_);
+        public PotionSlot(Container pContainer, int pSlot, int pX, int pY) {
+            super(pContainer, pSlot, pX, pY);
         }
 
-        public boolean mayPlace(ItemStack p_39132_) {
-            return mayPlaceItem(p_39132_);
+        public boolean mayPlace(ItemStack pStack) {
+            return mayPlaceItem(pStack);
         }
 
         public int getMaxStackSize() {
             return 1;
         }
 
-        public void onTake(Player p_150499_, ItemStack p_150500_) {
-            Potion potion = PotionUtils.getPotion(p_150500_);
-            if (p_150499_ instanceof ServerPlayer) {
-                CriteriaTriggers.BREWED_POTION.trigger((ServerPlayer) p_150499_, potion);
+        public void onTake(Player pPlayer, ItemStack pStack) {
+            Potion potion = PotionUtils.getPotion(pStack);
+            if (pPlayer instanceof ServerPlayer) {
+                CriteriaTriggers.BREWED_POTION.trigger((ServerPlayer) pPlayer, potion);
             }
 
-            super.onTake(p_150499_, p_150500_);
+            super.onTake(pPlayer, pStack);
         }
 
-        public static boolean mayPlaceItem(ItemStack p_39134_) {
-            return p_39134_.is(Items.POTION) || p_39134_.is(Items.SPLASH_POTION) || p_39134_.is(Items.LINGERING_POTION) || p_39134_.is(Items.GLASS_BOTTLE);
+        public static boolean mayPlaceItem(ItemStack pStack) {
+            return pStack.is(Items.POTION) || pStack.is(Items.SPLASH_POTION) || pStack.is(Items.LINGERING_POTION) || pStack.is(Items.GLASS_BOTTLE);
         }
     }
 }

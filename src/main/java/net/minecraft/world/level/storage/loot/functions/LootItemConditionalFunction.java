@@ -20,27 +20,27 @@ public abstract class LootItemConditionalFunction implements LootItemFunction {
     protected final LootItemCondition[] predicates;
     private final Predicate<LootContext> compositePredicates;
 
-    protected LootItemConditionalFunction(LootItemCondition[] p_80678_) {
-        this.predicates = p_80678_;
-        this.compositePredicates = LootItemConditions.andConditions(p_80678_);
+    protected LootItemConditionalFunction(LootItemCondition[] pPredicates) {
+        this.predicates = pPredicates;
+        this.compositePredicates = LootItemConditions.andConditions(pPredicates);
     }
 
-    public final ItemStack apply(ItemStack p_80689_, LootContext p_80690_) {
-        return this.compositePredicates.test(p_80690_) ? this.run(p_80689_, p_80690_) : p_80689_;
+    public final ItemStack apply(ItemStack pStack, LootContext pContext) {
+        return this.compositePredicates.test(pContext) ? this.run(pStack, pContext) : pStack;
     }
 
-    protected abstract ItemStack run(ItemStack p_80679_, LootContext p_80680_);
+    protected abstract ItemStack run(ItemStack pStack, LootContext pContext);
 
-    public void validate(ValidationContext p_80682_) {
-        LootItemFunction.super.validate(p_80682_);
+    public void validate(ValidationContext pContext) {
+        LootItemFunction.super.validate(pContext);
 
         for (int i = 0; i < this.predicates.length; ++i) {
-            this.predicates[i].validate(p_80682_.forChild(".conditions[" + i + "]"));
+            this.predicates[i].validate(pContext.forChild(".conditions[" + i + "]"));
         }
     }
 
-    protected static LootItemConditionalFunction.Builder<?> simpleBuilder(Function<LootItemCondition[], LootItemFunction> p_80684_) {
-        return new LootItemConditionalFunction.DummyBuilder(p_80684_);
+    protected static LootItemConditionalFunction.Builder<?> simpleBuilder(Function<LootItemCondition[], LootItemFunction> pConstructor) {
+        return new LootItemConditionalFunction.DummyBuilder(pConstructor);
     }
 
     public abstract static class Builder<T extends LootItemConditionalFunction.Builder<T>> implements LootItemFunction.Builder, ConditionUserBuilder<T> {
@@ -65,8 +65,8 @@ public abstract class LootItemConditionalFunction implements LootItemFunction {
     static final class DummyBuilder extends LootItemConditionalFunction.Builder<LootItemConditionalFunction.DummyBuilder> {
         private final Function<LootItemCondition[], LootItemFunction> constructor;
 
-        public DummyBuilder(Function<LootItemCondition[], LootItemFunction> p_80702_) {
-            this.constructor = p_80702_;
+        public DummyBuilder(Function<LootItemCondition[], LootItemFunction> pConstructor) {
+            this.constructor = pConstructor;
         }
 
         protected LootItemConditionalFunction.DummyBuilder getThis() {
@@ -79,17 +79,17 @@ public abstract class LootItemConditionalFunction implements LootItemFunction {
     }
 
     public abstract static class Serializer<T extends LootItemConditionalFunction> implements net.minecraft.world.level.storage.loot.Serializer<T> {
-        public void serialize(JsonObject p_80711_, T p_80712_, JsonSerializationContext p_80713_) {
-            if (!ArrayUtils.isEmpty((Object[]) p_80712_.predicates)) {
-                p_80711_.add("conditions", p_80713_.serialize(p_80712_.predicates));
+        public void serialize(JsonObject pJson, T pValue, JsonSerializationContext pSerializationContext) {
+            if (!ArrayUtils.isEmpty((Object[]) pValue.predicates)) {
+                pJson.add("conditions", pSerializationContext.serialize(pValue.predicates));
             }
         }
 
-        public final T deserialize(JsonObject p_80719_, JsonDeserializationContext p_80720_) {
-            LootItemCondition[] alootitemcondition = GsonHelper.getAsObject(p_80719_, "conditions", new LootItemCondition[0], p_80720_, LootItemCondition[].class);
-            return this.deserialize(p_80719_, p_80720_, alootitemcondition);
+        public final T deserialize(JsonObject pJson, JsonDeserializationContext pSerializationContext) {
+            LootItemCondition[] alootitemcondition = GsonHelper.getAsObject(pJson, "conditions", new LootItemCondition[0], pSerializationContext, LootItemCondition[].class);
+            return this.deserialize(pJson, pSerializationContext, alootitemcondition);
         }
 
-        public abstract T deserialize(JsonObject p_80721_, JsonDeserializationContext p_80722_, LootItemCondition[] p_80723_);
+        public abstract T deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions);
     }
 }

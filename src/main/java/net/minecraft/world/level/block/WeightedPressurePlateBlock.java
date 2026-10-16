@@ -18,14 +18,14 @@ public class WeightedPressurePlateBlock extends BasePressurePlateBlock {
     public static final IntegerProperty POWER = BlockStateProperties.POWER;
     private final int maxWeight;
 
-    protected WeightedPressurePlateBlock(int p_58202_, BlockBehaviour.Properties p_58203_) {
-        super(p_58203_);
+    protected WeightedPressurePlateBlock(int pMaxWeight, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(POWER, Integer.valueOf(0)));
-        this.maxWeight = p_58202_;
+        this.maxWeight = pMaxWeight;
     }
 
-    protected int getSignalStrength(Level p_58213_, BlockPos p_58214_) {
-        int i = Math.min(p_58213_.getEntitiesOfClass(Entity.class, TOUCH_AABB.move(p_58214_)).size(), this.maxWeight);
+    protected int getSignalStrength(Level pLevel, BlockPos pPos) {
+        int i = Math.min(pLevel.getEntitiesOfClass(Entity.class, TOUCH_AABB.move(pPos)).size(), this.maxWeight);
         if (i > 0) {
             float f = (float) Math.min(this.maxWeight, i) / (float) this.maxWeight;
             return Mth.ceil(f * 15.0F);
@@ -34,27 +34,27 @@ public class WeightedPressurePlateBlock extends BasePressurePlateBlock {
         }
     }
 
-    protected void playOnSound(LevelAccessor p_58205_, BlockPos p_58206_) {
-        p_58205_.playSound((Player) null, p_58206_, SoundEvents.METAL_PRESSURE_PLATE_CLICK_ON, SoundSource.BLOCKS, 0.3F, 0.90000004F);
+    protected void playOnSound(LevelAccessor pLevel, BlockPos pPos) {
+        pLevel.playSound((Player) null, pPos, SoundEvents.METAL_PRESSURE_PLATE_CLICK_ON, SoundSource.BLOCKS, 0.3F, 0.90000004F);
     }
 
-    protected void playOffSound(LevelAccessor p_58216_, BlockPos p_58217_) {
-        p_58216_.playSound((Player) null, p_58217_, SoundEvents.METAL_PRESSURE_PLATE_CLICK_OFF, SoundSource.BLOCKS, 0.3F, 0.75F);
+    protected void playOffSound(LevelAccessor pLevel, BlockPos pPos) {
+        pLevel.playSound((Player) null, pPos, SoundEvents.METAL_PRESSURE_PLATE_CLICK_OFF, SoundSource.BLOCKS, 0.3F, 0.75F);
     }
 
-    protected int getSignalForState(BlockState p_58220_) {
-        return p_58220_.getValue(POWER);
+    protected int getSignalForState(BlockState pState) {
+        return pState.getValue(POWER);
     }
 
-    protected BlockState setSignalForState(BlockState p_58208_, int p_58209_) {
-        return p_58208_.setValue(POWER, Integer.valueOf(p_58209_));
+    protected BlockState setSignalForState(BlockState pState, int pStrength) {
+        return pState.setValue(POWER, Integer.valueOf(pStrength));
     }
 
     protected int getPressedTime() {
         return 10;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_58211_) {
-        p_58211_.add(POWER);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(POWER);
     }
 }

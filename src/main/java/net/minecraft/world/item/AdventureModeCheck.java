@@ -19,18 +19,18 @@ public class AdventureModeCheck {
     private boolean lastResult;
     private boolean checksBlockEntity;
 
-    public AdventureModeCheck(String p_186327_) {
-        this.tagName = p_186327_;
+    public AdventureModeCheck(String pTagName) {
+        this.tagName = pTagName;
     }
 
-    private static boolean areSameBlocks(BlockInWorld p_186333_, @Nullable BlockInWorld p_186334_, boolean p_186335_) {
-        if (p_186334_ != null && p_186333_.getState() == p_186334_.getState()) {
-            if (!p_186335_) {
+    private static boolean areSameBlocks(BlockInWorld pBlock, @Nullable BlockInWorld pOther, boolean pOverride) {
+        if (pOther != null && pBlock.getState() == pOther.getState()) {
+            if (!pOverride) {
                 return true;
-            } else if (p_186333_.getEntity() == null && p_186334_.getEntity() == null) {
+            } else if (pBlock.getEntity() == null && pOther.getEntity() == null) {
                 return true;
             } else {
-                return p_186333_.getEntity() != null && p_186334_.getEntity() != null ? Objects.equals(p_186333_.getEntity().saveWithId(), p_186334_.getEntity().saveWithId()) : false;
+                return pBlock.getEntity() != null && pOther.getEntity() != null ? Objects.equals(pBlock.getEntity().saveWithId(), pOther.getEntity().saveWithId()) : false;
             }
         } else {
             return false;

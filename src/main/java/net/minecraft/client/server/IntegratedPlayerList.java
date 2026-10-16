@@ -15,21 +15,21 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class IntegratedPlayerList extends PlayerList {
     private CompoundTag playerData;
 
-    public IntegratedPlayerList(IntegratedServer p_205649_, RegistryAccess.Frozen p_205650_, PlayerDataStorage p_205651_) {
-        super(p_205649_, p_205650_, p_205651_, 8);
+    public IntegratedPlayerList(IntegratedServer pServer, RegistryAccess.Frozen pFrozen, PlayerDataStorage pPlayerIo) {
+        super(pServer, pFrozen, pPlayerIo, 8);
         this.setViewDistance(10);
     }
 
-    protected void save(ServerPlayer p_120011_) {
-        if (this.getServer().isSingleplayerOwner(p_120011_.getGameProfile())) {
-            this.playerData = p_120011_.saveWithoutId(new CompoundTag());
+    protected void save(ServerPlayer pPlayer) {
+        if (this.getServer().isSingleplayerOwner(pPlayer.getGameProfile())) {
+            this.playerData = pPlayer.saveWithoutId(new CompoundTag());
         }
 
-        super.save(p_120011_);
+        super.save(pPlayer);
     }
 
-    public Component canPlayerLogin(SocketAddress p_120007_, GameProfile p_120008_) {
-        return (Component) (this.getServer().isSingleplayerOwner(p_120008_) && this.getPlayerByName(p_120008_.getName()) != null ? Component.translatable("multiplayer.disconnect.name_taken") : super.canPlayerLogin(p_120007_, p_120008_));
+    public Component canPlayerLogin(SocketAddress pSocketAddress, GameProfile pGameProfile) {
+        return (Component) (this.getServer().isSingleplayerOwner(pGameProfile) && this.getPlayerByName(pGameProfile.getName()) != null ? Component.translatable("multiplayer.disconnect.name_taken") : super.canPlayerLogin(pSocketAddress, pGameProfile));
     }
 
     public IntegratedServer getServer() {

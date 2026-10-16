@@ -33,23 +33,23 @@ public abstract class TemplateStructurePiece extends StructurePiece {
     protected StructurePlaceSettings placeSettings;
     protected BlockPos templatePosition;
 
-    public TemplateStructurePiece(StructurePieceType p_226886_, int p_226887_, StructureTemplateManager p_226888_, ResourceLocation p_226889_, String p_226890_, StructurePlaceSettings p_226891_, BlockPos p_226892_) {
-        super(p_226886_, p_226887_, p_226888_.getOrCreate(p_226889_).getBoundingBox(p_226891_, p_226892_));
+    public TemplateStructurePiece(StructurePieceType pType, int pGenDepth, StructureTemplateManager pStructureTemplateManager, ResourceLocation pLocation, String pTemplateName, StructurePlaceSettings pPlaceSettings, BlockPos pTemplatePosition) {
+        super(pType, pGenDepth, pStructureTemplateManager.getOrCreate(pLocation).getBoundingBox(pPlaceSettings, pTemplatePosition));
         this.setOrientation(Direction.NORTH);
-        this.templateName = p_226890_;
-        this.templatePosition = p_226892_;
-        this.template = p_226888_.getOrCreate(p_226889_);
-        this.placeSettings = p_226891_;
+        this.templateName = pTemplateName;
+        this.templatePosition = pTemplatePosition;
+        this.template = pStructureTemplateManager.getOrCreate(pLocation);
+        this.placeSettings = pPlaceSettings;
     }
 
-    public TemplateStructurePiece(StructurePieceType p_226894_, CompoundTag p_226895_, StructureTemplateManager p_226896_, Function<ResourceLocation, StructurePlaceSettings> p_226897_) {
-        super(p_226894_, p_226895_);
+    public TemplateStructurePiece(StructurePieceType pType, CompoundTag pTag, StructureTemplateManager pStructureTemplateManager, Function<ResourceLocation, StructurePlaceSettings> pPlaceSettingsFactory) {
+        super(pType, pTag);
         this.setOrientation(Direction.NORTH);
-        this.templateName = p_226895_.getString("Template");
-        this.templatePosition = new BlockPos(p_226895_.getInt("TPX"), p_226895_.getInt("TPY"), p_226895_.getInt("TPZ"));
+        this.templateName = pTag.getString("Template");
+        this.templatePosition = new BlockPos(pTag.getInt("TPX"), pTag.getInt("TPY"), pTag.getInt("TPZ"));
         ResourceLocation resourcelocation = this.makeTemplateLocation();
-        this.template = p_226896_.getOrCreate(resourcelocation);
-        this.placeSettings = p_226897_.apply(resourcelocation);
+        this.template = pStructureTemplateManager.getOrCreate(resourcelocation);
+        this.placeSettings = pPlaceSettingsFactory.apply(resourcelocation);
         this.boundingBox = this.template.getBoundingBox(this.placeSettings, this.templatePosition);
     }
 
@@ -57,22 +57,22 @@ public abstract class TemplateStructurePiece extends StructurePiece {
         return new ResourceLocation(this.templateName);
     }
 
-    protected void addAdditionalSaveData(StructurePieceSerializationContext p_192690_, CompoundTag p_192691_) {
-        p_192691_.putInt("TPX", this.templatePosition.getX());
-        p_192691_.putInt("TPY", this.templatePosition.getY());
-        p_192691_.putInt("TPZ", this.templatePosition.getZ());
-        p_192691_.putString("Template", this.templateName);
+    protected void addAdditionalSaveData(StructurePieceSerializationContext pContext, CompoundTag pTag) {
+        pTag.putInt("TPX", this.templatePosition.getX());
+        pTag.putInt("TPY", this.templatePosition.getY());
+        pTag.putInt("TPZ", this.templatePosition.getZ());
+        pTag.putString("Template", this.templateName);
     }
 
-    public void postProcess(WorldGenLevel p_226899_, StructureManager p_226900_, ChunkGenerator p_226901_, RandomSource p_226902_, BoundingBox p_226903_, ChunkPos p_226904_, BlockPos p_226905_) {
-        this.placeSettings.setBoundingBox(p_226903_);
+    public void postProcess(WorldGenLevel pLevel, StructureManager pStructureManager, ChunkGenerator pGenerator, RandomSource pRandom, BoundingBox pBox, ChunkPos pChunkPos, BlockPos pPos) {
+        this.placeSettings.setBoundingBox(pBox);
         this.boundingBox = this.template.getBoundingBox(this.placeSettings, this.templatePosition);
-        if (this.template.placeInWorld(p_226899_, this.templatePosition, p_226905_, this.placeSettings, p_226902_, 2)) {
+        if (this.template.placeInWorld(pLevel, this.templatePosition, pPos, this.placeSettings, pRandom, 2)) {
             for (StructureTemplate.StructureBlockInfo structuretemplate$structureblockinfo : this.template.filterBlocks(this.templatePosition, this.placeSettings, Blocks.STRUCTURE_BLOCK)) {
                 if (structuretemplate$structureblockinfo.nbt != null) {
                     StructureMode structuremode = StructureMode.valueOf(structuretemplate$structureblockinfo.nbt.getString("mode"));
                     if (structuremode == StructureMode.DATA) {
-                        this.handleDataMarker(structuretemplate$structureblockinfo.nbt.getString("metadata"), structuretemplate$structureblockinfo.pos, p_226899_, p_226902_, p_226903_);
+                        this.handleDataMarker(structuretemplate$structureblockinfo.nbt.getString("metadata"), structuretemplate$structureblockinfo.pos, pLevel, pRandom, pBox);
                     }
                 }
             }
@@ -88,19 +88,19 @@ public abstract class TemplateStructurePiece extends StructurePiece {
                         LOGGER.error("Error while parsing blockstate {} in jigsaw block @ {}", s, structuretemplate$structureblockinfo1.pos);
                     }
 
-                    p_226899_.setBlock(structuretemplate$structureblockinfo1.pos, blockstate, 3);
+                    pLevel.setBlock(structuretemplate$structureblockinfo1.pos, blockstate, 3);
                 }
             }
         }
     }
 
-    protected abstract void handleDataMarker(String p_226906_, BlockPos p_226907_, ServerLevelAccessor p_226908_, RandomSource p_226909_, BoundingBox p_226910_);
+    protected abstract void handleDataMarker(String pName, BlockPos pPos, ServerLevelAccessor pLevel, RandomSource pRandom, BoundingBox pBox);
 
     /** @deprecated */
     @Deprecated
-    public void move(long p_73668_, int p_73669_, long p_73670_) {
-        super.move(p_73668_, p_73669_, p_73670_);
-        this.templatePosition = this.templatePosition.offset(p_73668_, p_73669_, p_73670_);
+    public void move(long pX, int pY, long pZ) {
+        super.move(pX, pY, pZ);
+        this.templatePosition = this.templatePosition.offset(pX, pY, pZ);
     }
 
     public Rotation getRotation() {

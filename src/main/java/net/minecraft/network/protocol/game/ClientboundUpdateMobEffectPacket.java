@@ -20,46 +20,46 @@ public class ClientboundUpdateMobEffectPacket implements Packet<ClientGamePacket
     @Nullable
     private final MobEffectInstance.FactorData factorData;
 
-    public ClientboundUpdateMobEffectPacket(int p_133611_, MobEffectInstance p_133612_) {
-        this.entityId = p_133611_;
-        this.effect = p_133612_.getEffect();
-        this.effectAmplifier = (byte) (p_133612_.getAmplifier() & 255);
-        this.effectDurationTicks = p_133612_.getDuration();
+    public ClientboundUpdateMobEffectPacket(int pEntityId, MobEffectInstance pEffectInstance) {
+        this.entityId = pEntityId;
+        this.effect = pEffectInstance.getEffect();
+        this.effectAmplifier = (byte) (pEffectInstance.getAmplifier() & 255);
+        this.effectDurationTicks = pEffectInstance.getDuration();
         byte b0 = 0;
-        if (p_133612_.isAmbient()) {
+        if (pEffectInstance.isAmbient()) {
             b0 = (byte) (b0 | 1);
         }
 
-        if (p_133612_.isVisible()) {
+        if (pEffectInstance.isVisible()) {
             b0 = (byte) (b0 | 2);
         }
 
-        if (p_133612_.showIcon()) {
+        if (pEffectInstance.showIcon()) {
             b0 = (byte) (b0 | 4);
         }
 
         this.flags = b0;
-        this.factorData = p_133612_.getFactorData().orElse((MobEffectInstance.FactorData) null);
+        this.factorData = pEffectInstance.getFactorData().orElse((MobEffectInstance.FactorData) null);
     }
 
-    public ClientboundUpdateMobEffectPacket(FriendlyByteBuf p_179466_) {
-        this.entityId = p_179466_.readVarInt();
-        this.effect = p_179466_.readById(Registry.MOB_EFFECT);
-        this.effectAmplifier = p_179466_.readByte();
-        this.effectDurationTicks = p_179466_.readVarInt();
-        this.flags = p_179466_.readByte();
-        this.factorData = p_179466_.readNullable((p_237877_) -> {
+    public ClientboundUpdateMobEffectPacket(FriendlyByteBuf pBuffer) {
+        this.entityId = pBuffer.readVarInt();
+        this.effect = pBuffer.readById(Registry.MOB_EFFECT);
+        this.effectAmplifier = pBuffer.readByte();
+        this.effectDurationTicks = pBuffer.readVarInt();
+        this.flags = pBuffer.readByte();
+        this.factorData = pBuffer.readNullable((p_237877_) -> {
             return p_237877_.readWithCodec(MobEffectInstance.FactorData.CODEC);
         });
     }
 
-    public void write(FriendlyByteBuf p_133621_) {
-        p_133621_.writeVarInt(this.entityId);
-        p_133621_.writeId(Registry.MOB_EFFECT, this.effect);
-        p_133621_.writeByte(this.effectAmplifier);
-        p_133621_.writeVarInt(this.effectDurationTicks);
-        p_133621_.writeByte(this.flags);
-        p_133621_.writeNullable(this.factorData, (p_237874_, p_237875_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.entityId);
+        pBuffer.writeId(Registry.MOB_EFFECT, this.effect);
+        pBuffer.writeByte(this.effectAmplifier);
+        pBuffer.writeVarInt(this.effectDurationTicks);
+        pBuffer.writeByte(this.flags);
+        pBuffer.writeNullable(this.factorData, (p_237874_, p_237875_) -> {
             p_237874_.writeWithCodec(MobEffectInstance.FactorData.CODEC, p_237875_);
         });
     }
@@ -68,8 +68,8 @@ public class ClientboundUpdateMobEffectPacket implements Packet<ClientGamePacket
         return this.effectDurationTicks >= 32767;
     }
 
-    public void handle(ClientGamePacketListener p_133618_) {
-        p_133618_.handleUpdateMobEffect(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleUpdateMobEffect(this);
     }
 
     public int getEntityId() {

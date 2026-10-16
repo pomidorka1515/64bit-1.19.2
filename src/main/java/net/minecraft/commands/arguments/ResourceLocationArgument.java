@@ -37,9 +37,9 @@ public class ResourceLocationArgument implements ArgumentType<ResourceLocation> 
         return new ResourceLocationArgument();
     }
 
-    public static Advancement getAdvancement(CommandContext<CommandSourceStack> p_106988_, String p_106989_) throws CommandSyntaxException {
-        ResourceLocation resourcelocation = getId(p_106988_, p_106989_);
-        Advancement advancement = p_106988_.getSource().getServer().getAdvancements().getAdvancement(resourcelocation);
+    public static Advancement getAdvancement(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        ResourceLocation resourcelocation = getId(pContext, pName);
+        Advancement advancement = pContext.getSource().getServer().getAdvancements().getAdvancement(resourcelocation);
         if (advancement == null) {
             throw ERROR_UNKNOWN_ADVANCEMENT.create(resourcelocation);
         } else {
@@ -47,17 +47,17 @@ public class ResourceLocationArgument implements ArgumentType<ResourceLocation> 
         }
     }
 
-    public static Recipe<?> getRecipe(CommandContext<CommandSourceStack> p_106995_, String p_106996_) throws CommandSyntaxException {
-        RecipeManager recipemanager = p_106995_.getSource().getServer().getRecipeManager();
-        ResourceLocation resourcelocation = getId(p_106995_, p_106996_);
+    public static Recipe<?> getRecipe(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        RecipeManager recipemanager = pContext.getSource().getServer().getRecipeManager();
+        ResourceLocation resourcelocation = getId(pContext, pName);
         return recipemanager.byKey(resourcelocation).orElseThrow(() -> {
             return ERROR_UNKNOWN_RECIPE.create(resourcelocation);
         });
     }
 
-    public static LootItemCondition getPredicate(CommandContext<CommandSourceStack> p_107002_, String p_107003_) throws CommandSyntaxException {
-        ResourceLocation resourcelocation = getId(p_107002_, p_107003_);
-        PredicateManager predicatemanager = p_107002_.getSource().getServer().getPredicateManager();
+    public static LootItemCondition getPredicate(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        ResourceLocation resourcelocation = getId(pContext, pName);
+        PredicateManager predicatemanager = pContext.getSource().getServer().getPredicateManager();
         LootItemCondition lootitemcondition = predicatemanager.get(resourcelocation);
         if (lootitemcondition == null) {
             throw ERROR_UNKNOWN_PREDICATE.create(resourcelocation);
@@ -66,9 +66,9 @@ public class ResourceLocationArgument implements ArgumentType<ResourceLocation> 
         }
     }
 
-    public static LootItemFunction getItemModifier(CommandContext<CommandSourceStack> p_171032_, String p_171033_) throws CommandSyntaxException {
-        ResourceLocation resourcelocation = getId(p_171032_, p_171033_);
-        ItemModifierManager itemmodifiermanager = p_171032_.getSource().getServer().getItemModifierManager();
+    public static LootItemFunction getItemModifier(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        ResourceLocation resourcelocation = getId(pContext, pName);
+        ItemModifierManager itemmodifiermanager = pContext.getSource().getServer().getItemModifierManager();
         LootItemFunction lootitemfunction = itemmodifiermanager.get(resourcelocation);
         if (lootitemfunction == null) {
             throw ERROR_UNKNOWN_ITEM_MODIFIER.create(resourcelocation);
@@ -77,12 +77,12 @@ public class ResourceLocationArgument implements ArgumentType<ResourceLocation> 
         }
     }
 
-    public static ResourceLocation getId(CommandContext<CommandSourceStack> p_107012_, String p_107013_) {
-        return p_107012_.getArgument(p_107013_, ResourceLocation.class);
+    public static ResourceLocation getId(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, ResourceLocation.class);
     }
 
-    public ResourceLocation parse(StringReader p_106986_) throws CommandSyntaxException {
-        return ResourceLocation.read(p_106986_);
+    public ResourceLocation parse(StringReader pReader) throws CommandSyntaxException {
+        return ResourceLocation.read(pReader);
     }
 
     public Collection<String> getExamples() {

@@ -156,33 +156,33 @@ public class LocalPlayer extends AbstractClientPlayer {
     private int waterVisionTime;
     private boolean showDeathScreen = true;
 
-    public LocalPlayer(Minecraft p_108621_, ClientLevel p_108622_, ClientPacketListener p_108623_, StatsCounter p_108624_, ClientRecipeBook p_108625_, boolean p_108626_, boolean p_108627_) {
-        super(p_108622_, p_108623_.getLocalGameProfile(), p_108621_.getProfileKeyPairManager().profilePublicKey().orElse((ProfilePublicKey) null));
-        this.minecraft = p_108621_;
-        this.connection = p_108623_;
-        this.stats = p_108624_;
-        this.recipeBook = p_108625_;
-        this.wasShiftKeyDown = p_108626_;
-        this.wasSprinting = p_108627_;
-        this.ambientSoundHandlers.add(new UnderwaterAmbientSoundHandler(this, p_108621_.getSoundManager()));
+    public LocalPlayer(Minecraft pMinecraft, ClientLevel pClientLevel, ClientPacketListener pConnection, StatsCounter pStats, ClientRecipeBook pRecipeBook, boolean pWasShiftKeyDown, boolean pWasSprinting) {
+        super(pClientLevel, pConnection.getLocalGameProfile(), pMinecraft.getProfileKeyPairManager().profilePublicKey().orElse((ProfilePublicKey) null));
+        this.minecraft = pMinecraft;
+        this.connection = pConnection;
+        this.stats = pStats;
+        this.recipeBook = pRecipeBook;
+        this.wasShiftKeyDown = pWasShiftKeyDown;
+        this.wasSprinting = pWasSprinting;
+        this.ambientSoundHandlers.add(new UnderwaterAmbientSoundHandler(this, pMinecraft.getSoundManager()));
         this.ambientSoundHandlers.add(new BubbleColumnAmbientSoundHandler(this));
-        this.ambientSoundHandlers.add(new BiomeAmbientSoundsHandler(this, p_108621_.getSoundManager(), p_108622_.getBiomeManager()));
+        this.ambientSoundHandlers.add(new BiomeAmbientSoundsHandler(this, pMinecraft.getSoundManager(), pClientLevel.getBiomeManager()));
     }
 
-    public boolean hurt(DamageSource p_108662_, float p_108663_) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
         return false;
     }
 
-    public void heal(float p_108708_) {
+    public void heal(float pHealAmount) {
     }
 
-    public boolean startRiding(Entity p_108667_, boolean p_108668_) {
-        if (!super.startRiding(p_108667_, p_108668_)) {
+    public boolean startRiding(Entity pEntity, boolean pForce) {
+        if (!super.startRiding(pEntity, pForce)) {
             return false;
         } else {
-            if (p_108667_ instanceof AbstractMinecart) {
-                this.minecraft.getSoundManager().play(new RidingMinecartSoundInstance(this, (AbstractMinecart) p_108667_, true));
-                this.minecraft.getSoundManager().play(new RidingMinecartSoundInstance(this, (AbstractMinecart) p_108667_, false));
+            if (pEntity instanceof AbstractMinecart) {
+                this.minecraft.getSoundManager().play(new RidingMinecartSoundInstance(this, (AbstractMinecart) pEntity, true));
+                this.minecraft.getSoundManager().play(new RidingMinecartSoundInstance(this, (AbstractMinecart) pEntity, false));
             }
 
             return true;
@@ -194,12 +194,12 @@ public class LocalPlayer extends AbstractClientPlayer {
         this.handsBusy = false;
     }
 
-    public float getViewXRot(float p_108742_) {
+    public float getViewXRot(float pPartialTick) {
         return this.getXRot();
     }
 
-    public float getViewYRot(float p_108753_) {
-        return this.isPassenger() ? super.getViewYRot(p_108753_) : this.getYRot();
+    public float getViewYRot(float pPartialTick) {
+        return this.isPassenger() ? super.getViewYRot(pPartialTick) : this.getYRot();
     }
 
     public void tick() {
@@ -303,63 +303,63 @@ public class LocalPlayer extends AbstractClientPlayer {
         }
     }
 
-    public boolean drop(boolean p_108701_) {
-        ServerboundPlayerActionPacket.Action serverboundplayeractionpacket$action = p_108701_ ? ServerboundPlayerActionPacket.Action.DROP_ALL_ITEMS : ServerboundPlayerActionPacket.Action.DROP_ITEM;
-        ItemStack itemstack = this.getInventory().removeFromSelected(p_108701_);
+    public boolean drop(boolean pFullStack) {
+        ServerboundPlayerActionPacket.Action serverboundplayeractionpacket$action = pFullStack ? ServerboundPlayerActionPacket.Action.DROP_ALL_ITEMS : ServerboundPlayerActionPacket.Action.DROP_ITEM;
+        ItemStack itemstack = this.getInventory().removeFromSelected(pFullStack);
         this.connection.send(new ServerboundPlayerActionPacket(serverboundplayeractionpacket$action, BlockPos.ZERO, Direction.DOWN));
         return !itemstack.isEmpty();
     }
 
-    public void chatSigned(String p_240288_, @Nullable Component p_240289_) {
-        this.sendChat(p_240288_, p_240289_);
+    public void chatSigned(String pPlain, @Nullable Component pDecorated) {
+        this.sendChat(pPlain, pDecorated);
     }
 
-    public boolean commandHasSignableArguments(String p_242398_) {
-        ParseResults<SharedSuggestionProvider> parseresults = this.connection.getCommands().parse(p_242398_, this.connection.getSuggestionsProvider());
+    public boolean commandHasSignableArguments(String pCommand) {
+        ParseResults<SharedSuggestionProvider> parseresults = this.connection.getCommands().parse(pCommand, this.connection.getSuggestionsProvider());
         return ArgumentSignatures.hasSignableArguments(PreviewableCommand.of(parseresults));
     }
 
-    public boolean commandUnsigned(String p_242856_) {
-        if (!this.commandHasSignableArguments(p_242856_)) {
+    public boolean commandUnsigned(String pCommand) {
+        if (!this.commandHasSignableArguments(pCommand)) {
             LastSeenMessages.Update lastseenmessages$update = this.connection.generateMessageAcknowledgements();
-            this.connection.send(new ServerboundChatCommandPacket(p_242856_, Instant.now(), 0L, ArgumentSignatures.EMPTY, false, lastseenmessages$update));
+            this.connection.send(new ServerboundChatCommandPacket(pCommand, Instant.now(), 0L, ArgumentSignatures.EMPTY, false, lastseenmessages$update));
             return true;
         } else {
             return false;
         }
     }
 
-    public void commandSigned(String p_234149_, @Nullable Component p_234150_) {
-        this.sendCommand(p_234149_, p_234150_);
+    public void commandSigned(String pPlain, @Nullable Component pDecorated) {
+        this.sendCommand(pPlain, pDecorated);
     }
 
-    private void sendChat(String p_241300_, @Nullable Component p_241533_) {
-        ChatMessageContent chatmessagecontent = this.buildSignedContent(p_241300_, p_241533_);
+    private void sendChat(String pPlain, @Nullable Component pDecorated) {
+        ChatMessageContent chatmessagecontent = this.buildSignedContent(pPlain, pDecorated);
         MessageSigner messagesigner = this.createMessageSigner();
         LastSeenMessages.Update lastseenmessages$update = this.connection.generateMessageAcknowledgements();
         MessageSignature messagesignature = this.signMessage(messagesigner, chatmessagecontent, lastseenmessages$update.lastSeen());
         this.connection.send(new ServerboundChatPacket(chatmessagecontent.plain(), messagesigner.timeStamp(), messagesigner.salt(), messagesignature, chatmessagecontent.isDecorated(), lastseenmessages$update));
     }
 
-    private MessageSignature signMessage(MessageSigner p_242224_, ChatMessageContent p_242260_, LastSeenMessages p_242299_) {
+    private MessageSignature signMessage(MessageSigner pSigner, ChatMessageContent pMessageContent, LastSeenMessages pLastSeenMessages) {
         try {
             Signer signer = this.minecraft.getProfileKeyPairManager().signer();
             if (signer != null) {
-                return this.connection.signedMessageEncoder().pack(signer, p_242224_, p_242260_, p_242299_).signature();
+                return this.connection.signedMessageEncoder().pack(signer, pSigner, pMessageContent, pLastSeenMessages).signature();
             }
         } catch (Exception exception) {
-            LOGGER.error("Failed to sign chat message: '{}'", p_242260_.plain(), exception);
+            LOGGER.error("Failed to sign chat message: '{}'", pMessageContent.plain(), exception);
         }
 
         return MessageSignature.EMPTY;
     }
 
-    private void sendCommand(String p_241331_, @Nullable Component p_241563_) {
-        ParseResults<SharedSuggestionProvider> parseresults = this.connection.getCommands().parse(p_241331_, this.connection.getSuggestionsProvider());
+    private void sendCommand(String pPlain, @Nullable Component pDecorated) {
+        ParseResults<SharedSuggestionProvider> parseresults = this.connection.getCommands().parse(pPlain, this.connection.getSuggestionsProvider());
         MessageSigner messagesigner = this.createMessageSigner();
         LastSeenMessages.Update lastseenmessages$update = this.connection.generateMessageAcknowledgements();
-        ArgumentSignatures argumentsignatures = this.signCommandArguments(messagesigner, parseresults, p_241563_, lastseenmessages$update.lastSeen());
-        this.connection.send(new ServerboundChatCommandPacket(p_241331_, messagesigner.timeStamp(), messagesigner.salt(), argumentsignatures, p_241563_ != null, lastseenmessages$update));
+        ArgumentSignatures argumentsignatures = this.signCommandArguments(messagesigner, parseresults, pDecorated, lastseenmessages$update.lastSeen());
+        this.connection.send(new ServerboundChatCommandPacket(pPlain, messagesigner.timeStamp(), messagesigner.salt(), argumentsignatures, pDecorated != null, lastseenmessages$update));
     }
 
     private ArgumentSignatures signCommandArguments(MessageSigner p_242336_, ParseResults<SharedSuggestionProvider> p_242251_, @Nullable Component p_242373_, LastSeenMessages p_242435_) {
@@ -379,27 +379,27 @@ public class LocalPlayer extends AbstractClientPlayer {
         }
     }
 
-    private ChatMessageContent buildSignedContent(String p_243326_, @Nullable Component p_243275_) {
-        String s = StringUtil.trimChatMessage(p_243326_);
-        return p_243275_ != null ? new ChatMessageContent(s, p_243275_) : new ChatMessageContent(s);
+    private ChatMessageContent buildSignedContent(String pPlain, @Nullable Component pDecorated) {
+        String s = StringUtil.trimChatMessage(pPlain);
+        return pDecorated != null ? new ChatMessageContent(s, pDecorated) : new ChatMessageContent(s);
     }
 
     private MessageSigner createMessageSigner() {
         return MessageSigner.create(this.getUUID());
     }
 
-    public void swing(InteractionHand p_108660_) {
-        super.swing(p_108660_);
-        this.connection.send(new ServerboundSwingPacket(p_108660_));
+    public void swing(InteractionHand pHand) {
+        super.swing(pHand);
+        this.connection.send(new ServerboundSwingPacket(pHand));
     }
 
     public void respawn() {
         this.connection.send(new ServerboundClientCommandPacket(ServerboundClientCommandPacket.Action.PERFORM_RESPAWN));
     }
 
-    protected void actuallyHurt(DamageSource p_108729_, float p_108730_) {
-        if (!this.isInvulnerableTo(p_108729_)) {
-            this.setHealth(this.getHealth() - p_108730_);
+    protected void actuallyHurt(DamageSource pDamageSrc, float pDamageAmount) {
+        if (!this.isInvulnerableTo(pDamageSrc)) {
+            this.setHealth(this.getHealth() - pDamageAmount);
         }
     }
 
@@ -413,23 +413,23 @@ public class LocalPlayer extends AbstractClientPlayer {
         this.minecraft.setScreen((Screen) null);
     }
 
-    public void hurtTo(float p_108761_) {
+    public void hurtTo(float pHealth) {
         if (this.flashOnSetHealth) {
-            float f = this.getHealth() - p_108761_;
+            float f = this.getHealth() - pHealth;
             if (f <= 0.0F) {
-                this.setHealth(p_108761_);
+                this.setHealth(pHealth);
                 if (f < 0.0F) {
                     this.invulnerableTime = 10;
                 }
             } else {
                 this.lastHurt = f;
                 this.invulnerableTime = 20;
-                this.setHealth(p_108761_);
+                this.setHealth(pHealth);
                 this.hurtDuration = 10;
                 this.hurtTime = this.hurtDuration;
             }
         } else {
-            this.setHealth(p_108761_);
+            this.setHealth(pHealth);
             this.flashOnSetHealth = true;
         }
     }
@@ -462,8 +462,8 @@ public class LocalPlayer extends AbstractClientPlayer {
         this.connection.send(new ServerboundPlayerCommandPacket(this, ServerboundPlayerCommandPacket.Action.OPEN_INVENTORY));
     }
 
-    public void setServerBrand(@Nullable String p_108749_) {
-        this.serverBrand = p_108749_;
+    public void setServerBrand(@Nullable String pServerBrand) {
+        this.serverBrand = pServerBrand;
     }
 
     @Nullable
@@ -479,10 +479,10 @@ public class LocalPlayer extends AbstractClientPlayer {
         return this.recipeBook;
     }
 
-    public void removeRecipeHighlight(Recipe<?> p_108676_) {
-        if (this.recipeBook.willHighlight(p_108676_)) {
-            this.recipeBook.removeHighlight(p_108676_);
-            this.connection.send(new ServerboundRecipeBookSeenRecipePacket(p_108676_));
+    public void removeRecipeHighlight(Recipe<?> pRecipe) {
+        if (this.recipeBook.willHighlight(pRecipe)) {
+            this.recipeBook.removeHighlight(pRecipe);
+            this.connection.send(new ServerboundRecipeBookSeenRecipePacket(pRecipe));
         }
     }
 
@@ -490,19 +490,19 @@ public class LocalPlayer extends AbstractClientPlayer {
         return this.permissionLevel;
     }
 
-    public void setPermissionLevel(int p_108649_) {
-        this.permissionLevel = p_108649_;
+    public void setPermissionLevel(int pPermissionLevel) {
+        this.permissionLevel = pPermissionLevel;
     }
 
-    public void displayClientMessage(Component p_108696_, boolean p_108697_) {
-        this.minecraft.getChatListener().handleSystemMessage(p_108696_, p_108697_);
+    public void displayClientMessage(Component pChatComponent, boolean pActionBar) {
+        this.minecraft.getChatListener().handleSystemMessage(pChatComponent, pActionBar);
     }
 
-    private void moveTowardsClosestSpace(double p_108705_, double p_108706_) {
-        BlockPos blockpos = new BlockPos(p_108705_, this.getY(), p_108706_);
+    private void moveTowardsClosestSpace(double pX, double pZ) {
+        BlockPos blockpos = new BlockPos(pX, this.getY(), pZ);
         if (this.suffocatesAt(blockpos)) {
-            double d0 = p_108705_ - (double) blockpos.getX();
-            double d1 = p_108706_ - (double) blockpos.getZ();
+            double d0 = pX - (double) blockpos.getX();
+            double d1 = pZ - (double) blockpos.getZ();
             Direction direction = null;
             double d2 = Double.MAX_VALUE;
             Direction[] adirection = new Direction[] {Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH};
@@ -562,61 +562,61 @@ public class LocalPlayer extends AbstractClientPlayer {
         return this.sectorCollidesWithSuffocatingBlock(column);
     }
 
-    private boolean suffocatesAt(BlockPos p_108747_) {
+    private boolean suffocatesAt(BlockPos pPos) {
         AABB aabb = this.getBoundingBox();
-        AABB aabb1 = (new AABB((double) p_108747_.getX(), aabb.minY, (double) p_108747_.getZ(), (double) p_108747_.getX() + 1.0D, aabb.maxY, (double) p_108747_.getZ() + 1.0D)).deflate(1.0E-7D);
+        AABB aabb1 = (new AABB((double) pPos.getX(), aabb.minY, (double) pPos.getZ(), (double) pPos.getX() + 1.0D, aabb.maxY, (double) pPos.getZ() + 1.0D)).deflate(1.0E-7D);
         return this.level.collidesWithSuffocatingBlock(this, aabb1);
     }
 
-    public void setSprinting(boolean p_108751_) {
-        super.setSprinting(p_108751_);
+    public void setSprinting(boolean pSprinting) {
+        super.setSprinting(pSprinting);
         this.sprintTime = 0;
     }
 
-    public void setExperienceValues(float p_108645_, int p_108646_, int p_108647_) {
-        this.experienceProgress = p_108645_;
-        this.totalExperience = p_108646_;
-        this.experienceLevel = p_108647_;
+    public void setExperienceValues(float pCurrentXP, int pMaxXP, int pLevel) {
+        this.experienceProgress = pCurrentXP;
+        this.totalExperience = pMaxXP;
+        this.experienceLevel = pLevel;
     }
 
-    public void sendSystemMessage(Component p_234129_) {
-        this.minecraft.gui.getChat().addMessage(p_234129_);
+    public void sendSystemMessage(Component pComponent) {
+        this.minecraft.gui.getChat().addMessage(pComponent);
     }
 
-    public void handleEntityEvent(byte p_108643_) {
-        if (p_108643_ >= 24 && p_108643_ <= 28) {
-            this.setPermissionLevel(p_108643_ - 24);
+    public void handleEntityEvent(byte pId) {
+        if (pId >= 24 && pId <= 28) {
+            this.setPermissionLevel(pId - 24);
         } else {
-            super.handleEntityEvent(p_108643_);
+            super.handleEntityEvent(pId);
         }
     }
 
-    public void setShowDeathScreen(boolean p_108712_) {
-        this.showDeathScreen = p_108712_;
+    public void setShowDeathScreen(boolean pShow) {
+        this.showDeathScreen = pShow;
     }
 
     public boolean shouldShowDeathScreen() {
         return this.showDeathScreen;
     }
 
-    public void playSound(SoundEvent p_108651_, float p_108652_, float p_108653_) {
-        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), p_108651_, this.getSoundSource(), p_108652_, p_108653_, false);
+    public void playSound(SoundEvent pSound, float pVolume, float pPitch) {
+        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch, false);
     }
 
-    public void playNotifySound(SoundEvent p_108655_, SoundSource p_108656_, float p_108657_, float p_108658_) {
-        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), p_108655_, p_108656_, p_108657_, p_108658_, false);
+    public void playNotifySound(SoundEvent pSound, SoundSource pSource, float pVolume, float pPitch) {
+        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, pSource, pVolume, pPitch, false);
     }
 
     public boolean isEffectiveAi() {
         return true;
     }
 
-    public void startUsingItem(InteractionHand p_108718_) {
-        ItemStack itemstack = this.getItemInHand(p_108718_);
+    public void startUsingItem(InteractionHand pHand) {
+        ItemStack itemstack = this.getItemInHand(pHand);
         if (!itemstack.isEmpty() && !this.isUsingItem()) {
-            super.startUsingItem(p_108718_);
+            super.startUsingItem(pHand);
             this.startedUsingItem = true;
-            this.usingItemHand = p_108718_;
+            this.usingItemHand = pHand;
         }
     }
 
@@ -633,9 +633,9 @@ public class LocalPlayer extends AbstractClientPlayer {
         return Objects.requireNonNullElse(this.usingItemHand, InteractionHand.MAIN_HAND);
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_108699_) {
-        super.onSyncedDataUpdated(p_108699_);
-        if (DATA_LIVING_ENTITY_FLAGS.equals(p_108699_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        super.onSyncedDataUpdated(pKey);
+        if (DATA_LIVING_ENTITY_FLAGS.equals(pKey)) {
             boolean flag = (this.entityData.get(DATA_LIVING_ENTITY_FLAGS) & 1) > 0;
             InteractionHand interactionhand = (this.entityData.get(DATA_LIVING_ENTITY_FLAGS) & 2) > 0 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
             if (flag && !this.startedUsingItem) {
@@ -645,7 +645,7 @@ public class LocalPlayer extends AbstractClientPlayer {
             }
         }
 
-        if (DATA_SHARED_FLAGS_ID.equals(p_108699_) && this.isFallFlying() && !this.wasFallFlying) {
+        if (DATA_SHARED_FLAGS_ID.equals(pKey) && this.isFallFlying() && !this.wasFallFlying) {
             this.minecraft.getSoundManager().play(new ElytraOnPlayerSoundInstance(this));
         }
     }
@@ -659,38 +659,38 @@ public class LocalPlayer extends AbstractClientPlayer {
         return this.jumpRidingScale;
     }
 
-    public void openTextEdit(SignBlockEntity p_108684_) {
-        this.minecraft.setScreen(new SignEditScreen(p_108684_, this.minecraft.isTextFilteringEnabled()));
+    public void openTextEdit(SignBlockEntity pSignBlockEntity) {
+        this.minecraft.setScreen(new SignEditScreen(pSignBlockEntity, this.minecraft.isTextFilteringEnabled()));
     }
 
-    public void openMinecartCommandBlock(BaseCommandBlock p_108678_) {
-        this.minecraft.setScreen(new MinecartCommandBlockEditScreen(p_108678_));
+    public void openMinecartCommandBlock(BaseCommandBlock pCommandBlock) {
+        this.minecraft.setScreen(new MinecartCommandBlockEditScreen(pCommandBlock));
     }
 
-    public void openCommandBlock(CommandBlockEntity p_108680_) {
-        this.minecraft.setScreen(new CommandBlockEditScreen(p_108680_));
+    public void openCommandBlock(CommandBlockEntity pCommandBlock) {
+        this.minecraft.setScreen(new CommandBlockEditScreen(pCommandBlock));
     }
 
-    public void openStructureBlock(StructureBlockEntity p_108686_) {
-        this.minecraft.setScreen(new StructureBlockEditScreen(p_108686_));
+    public void openStructureBlock(StructureBlockEntity pStructure) {
+        this.minecraft.setScreen(new StructureBlockEditScreen(pStructure));
     }
 
-    public void openJigsawBlock(JigsawBlockEntity p_108682_) {
-        this.minecraft.setScreen(new JigsawBlockEditScreen(p_108682_));
+    public void openJigsawBlock(JigsawBlockEntity pJigsawBlockEntity) {
+        this.minecraft.setScreen(new JigsawBlockEditScreen(pJigsawBlockEntity));
     }
 
-    public void openItemGui(ItemStack p_108673_, InteractionHand p_108674_) {
-        if (p_108673_.is(Items.WRITABLE_BOOK)) {
-            this.minecraft.setScreen(new BookEditScreen(this, p_108673_, p_108674_));
+    public void openItemGui(ItemStack pStack, InteractionHand pHand) {
+        if (pStack.is(Items.WRITABLE_BOOK)) {
+            this.minecraft.setScreen(new BookEditScreen(this, pStack, pHand));
         }
     }
 
-    public void crit(Entity p_108665_) {
-        this.minecraft.particleEngine.createTrackingEmitter(p_108665_, ParticleTypes.CRIT);
+    public void crit(Entity pEntityHit) {
+        this.minecraft.particleEngine.createTrackingEmitter(pEntityHit, ParticleTypes.CRIT);
     }
 
-    public void magicCrit(Entity p_108710_) {
-        this.minecraft.particleEngine.createTrackingEmitter(p_108710_, ParticleTypes.ENCHANTED_HIT);
+    public void magicCrit(Entity pEntityHit) {
+        this.minecraft.particleEngine.createTrackingEmitter(pEntityHit, ParticleTypes.ENCHANTED_HIT);
     }
 
     public boolean isShiftKeyDown() {
@@ -962,13 +962,13 @@ public class LocalPlayer extends AbstractClientPlayer {
     }
 
     @Nullable
-    public MobEffectInstance removeEffectNoUpdate(@Nullable MobEffect p_108720_) {
-        if (p_108720_ == MobEffects.CONFUSION) {
+    public MobEffectInstance removeEffectNoUpdate(@Nullable MobEffect pMobEffect) {
+        if (pMobEffect == MobEffects.CONFUSION) {
             this.oPortalTime = 0.0F;
             this.portalTime = 0.0F;
         }
 
-        return super.removeEffectNoUpdate(p_108720_);
+        return super.removeEffectNoUpdate(pMobEffect);
     }
 
     @Override
@@ -976,11 +976,11 @@ public class LocalPlayer extends AbstractClientPlayer {
         super.travel(input);
     }
 
-    public void move(MoverType p_108670_, Vec3 p_108671_) {
+    public void move(MoverType pType, Vec3 pPos) {
         SectorVec3 old = this.hasSectorPosition() ? this.sectorPosition() : null;
         double d0 = this.getX();
         double d1 = this.getZ();
-        super.move(p_108670_, p_108671_);
+        super.move(pType, pPos);
         if (old != null) {
             Vec3 displacement = this.sectorPosition().relativeTo(old);
             this.updateAutoJump((float) displacement.x, (float) displacement.z);
@@ -993,7 +993,7 @@ public class LocalPlayer extends AbstractClientPlayer {
         return this.autoJumpEnabled;
     }
 
-    protected void updateAutoJump(float p_108744_, float p_108745_) {
+    protected void updateAutoJump(float pMovementX, float pMovementZ) {
         if (this.canAutoJump()) {
             // Auto-jump geometry is local physics geometry for sector players. The legacy
             // position() value is intentionally not used as a collision coordinate here.
@@ -1001,8 +1001,8 @@ public class LocalPlayer extends AbstractClientPlayer {
             Vec3 vec3 = autoJumpOrigin != null ? this.sectorPosition().toLocal(autoJumpOrigin.originBlockX(),
                                                          autoJumpOrigin.originBlockY(), autoJumpOrigin.originBlockZ())
                                                : this.position();
-            Vec3 vec31 = vec3.add((double) p_108744_, 0.0D, (double) p_108745_);
-            Vec3 vec32 = new Vec3((double) p_108744_, 0.0D, (double) p_108745_);
+            Vec3 vec31 = vec3.add((double) pMovementX, 0.0D, (double) pMovementZ);
+            Vec3 vec32 = new Vec3((double) pMovementX, 0.0D, (double) pMovementZ);
             float f = this.getSpeed();
             float f1 = (float) vec32.lengthSqr();
             if (f1 <= 0.001F) {
@@ -1054,7 +1054,7 @@ public class LocalPlayer extends AbstractClientPlayer {
                         Iterable<VoxelShape> iterable;
                         if (autoJumpOrigin != null) {
                             SectorVec3 start = this.sectorPosition();
-                            SectorVec3 end = start.add((double) p_108744_, 0.0D, (double) p_108745_)
+                            SectorVec3 end = start.add((double) pMovementX, 0.0D, (double) pMovementZ)
                                                      .add(vec312.x * (double) f8, 0.0D, vec312.z * (double) f8);
                             SectorAABB exactSweep = new SectorAABB(start.blockX(), start.subX(), start.y(), start.blockZ(), start.subZ(),
                                     end.blockX(), end.subX(), end.y() + (double) f10, end.blockZ(), end.subZ())
@@ -1111,16 +1111,16 @@ public class LocalPlayer extends AbstractClientPlayer {
         }
     }
 
-    protected boolean isHorizontalCollisionMinor(Vec3 p_197411_) {
+    protected boolean isHorizontalCollisionMinor(Vec3 pDeltaMovement) {
         float f = this.getYRot() * ((float) Math.PI / 180F);
         double d0 = (double) Mth.sin(f);
         double d1 = (double) Mth.cos(f);
         double d2 = (double) this.xxa * d1 - (double) this.zza * d0;
         double d3 = (double) this.zza * d1 + (double) this.xxa * d0;
         double d4 = Mth.square(d2) + Mth.square(d3);
-        double d5 = Mth.square(p_197411_.x) + Mth.square(p_197411_.z);
+        double d5 = Mth.square(pDeltaMovement.x) + Mth.square(pDeltaMovement.z);
         if (!(d4 < (double) 1.0E-5F) && !(d5 < (double) 1.0E-5F)) {
-            double d6 = d2 * p_197411_.x + d3 * p_197411_.z;
+            double d6 = d2 * pDeltaMovement.x + d3 * pDeltaMovement.z;
             double d7 = Math.acos(d6 / Math.sqrt(d4 * d5));
             return d7 < (double) 0.13962634F;
         } else {
@@ -1181,20 +1181,20 @@ public class LocalPlayer extends AbstractClientPlayer {
         }
     }
 
-    public Vec3 getRopeHoldPosition(float p_108758_) {
+    public Vec3 getRopeHoldPosition(float pPartialTick) {
         if (this.minecraft.options.getCameraType().isFirstPerson()) {
-            float f = Mth.lerp(p_108758_ * 0.5F, this.getYRot(), this.yRotO) * ((float) Math.PI / 180F);
-            float f1 = Mth.lerp(p_108758_ * 0.5F, this.getXRot(), this.xRotO) * ((float) Math.PI / 180F);
+            float f = Mth.lerp(pPartialTick * 0.5F, this.getYRot(), this.yRotO) * ((float) Math.PI / 180F);
+            float f1 = Mth.lerp(pPartialTick * 0.5F, this.getXRot(), this.xRotO) * ((float) Math.PI / 180F);
             double d0 = this.getMainArm() == HumanoidArm.RIGHT ? -1.0D : 1.0D;
             Vec3 vec3 = new Vec3(0.39D * d0, -0.6D, 0.3D);
-            return vec3.xRot(-f1).yRot(-f).add(this.getEyePosition(p_108758_));
+            return vec3.xRot(-f1).yRot(-f).add(this.getEyePosition(pPartialTick));
         } else {
-            return super.getRopeHoldPosition(p_108758_);
+            return super.getRopeHoldPosition(pPartialTick);
         }
     }
 
-    public void updateTutorialInventoryAction(ItemStack p_172532_, ItemStack p_172533_, ClickAction p_172534_) {
-        this.minecraft.getTutorial().onInventoryAction(p_172532_, p_172533_, p_172534_);
+    public void updateTutorialInventoryAction(ItemStack pCarried, ItemStack pClicked, ClickAction pAction) {
+        this.minecraft.getTutorial().onInventoryAction(pCarried, pClicked, pAction);
     }
 
     public float getVisualRotationYInDegrees() {

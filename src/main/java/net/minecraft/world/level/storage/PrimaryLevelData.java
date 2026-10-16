@@ -80,129 +80,129 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
     private boolean wasModded;
     private final TimerQueue<MinecraftServer> scheduledEvents;
 
-    private PrimaryLevelData(@Nullable DataFixer p_164942_, int p_164943_, @Nullable CompoundTag p_164944_, boolean p_164945_, int p_164946_, int p_164947_, int p_164948_, float p_164949_, long p_164950_, long p_164951_, int p_164952_, int p_164953_, int p_164954_, boolean p_164955_, int p_164956_, boolean p_164957_, boolean p_164958_, boolean p_164959_, WorldBorder.Settings p_164960_, int p_164961_, int p_164962_, @Nullable UUID p_164963_, Set<String> p_164964_, TimerQueue<MinecraftServer> p_164965_, @Nullable CompoundTag p_164966_, CompoundTag p_164967_, LevelSettings p_164968_, WorldGenSettings p_164969_, Lifecycle p_164970_) {
-        if (!p_164969_.dimensions().containsKey(LevelStem.OVERWORLD)) {
+    private PrimaryLevelData(@Nullable DataFixer pFixerUpper, int pPlayerDataVersion, @Nullable CompoundTag pLoadedPlayerTag, boolean pWasModded, int pXSpawn, int pYSpawn, int pZSpawn, float pSpawnAngle, long pGameTime, long pDayTime, int pVersion, int pClearWeatherTime, int pRainTime, boolean pRaining, int pThunderTime, boolean pThundering, boolean pInitialized, boolean pDifficultyLocked, WorldBorder.Settings pWorldBorder, int pWanderingTraderSpawnDelay, int pWanderingTraderSpawnChance, @Nullable UUID pWanderingTraderId, Set<String> pKnownServerBrands, TimerQueue<MinecraftServer> pScheduledEvents, @Nullable CompoundTag pCustomBossEvents, CompoundTag pEndDragonFightData, LevelSettings pSettings, WorldGenSettings pWorldGenSettings, Lifecycle pWorldGenSettingsLifecycle) {
+        if (!pWorldGenSettings.dimensions().containsKey(LevelStem.OVERWORLD)) {
             throw new IllegalStateException("Missing Overworld dimension data");
         } else {
-            this.fixerUpper = p_164942_;
-            this.wasModded = p_164945_;
-            this.xSpawn = p_164946_;
-            this.ySpawn = p_164947_;
-            this.zSpawn = p_164948_;
-            this.spawnAngle = p_164949_;
-            this.gameTime = p_164950_;
-            this.dayTime = p_164951_;
-            this.version = p_164952_;
-            this.clearWeatherTime = p_164953_;
-            this.rainTime = p_164954_;
-            this.raining = p_164955_;
-            this.thunderTime = p_164956_;
-            this.thundering = p_164957_;
-            this.initialized = p_164958_;
-            this.difficultyLocked = p_164959_;
-            this.worldBorder = p_164960_;
-            this.wanderingTraderSpawnDelay = p_164961_;
-            this.wanderingTraderSpawnChance = p_164962_;
-            this.wanderingTraderId = p_164963_;
-            this.knownServerBrands = p_164964_;
-            this.loadedPlayerTag = p_164944_;
-            this.playerDataVersion = p_164943_;
-            this.scheduledEvents = p_164965_;
-            this.customBossEvents = p_164966_;
-            this.endDragonFightData = p_164967_;
-            this.settings = p_164968_;
-            this.worldGenSettings = p_164969_;
-            this.worldGenSettingsLifecycle = p_164970_;
+            this.fixerUpper = pFixerUpper;
+            this.wasModded = pWasModded;
+            this.xSpawn = pXSpawn;
+            this.ySpawn = pYSpawn;
+            this.zSpawn = pZSpawn;
+            this.spawnAngle = pSpawnAngle;
+            this.gameTime = pGameTime;
+            this.dayTime = pDayTime;
+            this.version = pVersion;
+            this.clearWeatherTime = pClearWeatherTime;
+            this.rainTime = pRainTime;
+            this.raining = pRaining;
+            this.thunderTime = pThunderTime;
+            this.thundering = pThundering;
+            this.initialized = pInitialized;
+            this.difficultyLocked = pDifficultyLocked;
+            this.worldBorder = pWorldBorder;
+            this.wanderingTraderSpawnDelay = pWanderingTraderSpawnDelay;
+            this.wanderingTraderSpawnChance = pWanderingTraderSpawnChance;
+            this.wanderingTraderId = pWanderingTraderId;
+            this.knownServerBrands = pKnownServerBrands;
+            this.loadedPlayerTag = pLoadedPlayerTag;
+            this.playerDataVersion = pPlayerDataVersion;
+            this.scheduledEvents = pScheduledEvents;
+            this.customBossEvents = pCustomBossEvents;
+            this.endDragonFightData = pEndDragonFightData;
+            this.settings = pSettings;
+            this.worldGenSettings = pWorldGenSettings;
+            this.worldGenSettingsLifecycle = pWorldGenSettingsLifecycle;
         }
     }
 
-    public PrimaryLevelData(LevelSettings p_78470_, WorldGenSettings p_78471_, Lifecycle p_78472_) {
-        this((DataFixer) null, SharedConstants.getCurrentVersion().getWorldVersion(), (CompoundTag) null, false, 0, 0, 0, 0.0F, 0L, 0L, 19133, 0, 0, false, 0, false, false, false, WorldBorder.DEFAULT_SETTINGS, 0, 0, (UUID) null, Sets.newLinkedHashSet(), new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS), (CompoundTag) null, new CompoundTag(), p_78470_.copy(), p_78471_, p_78472_);
+    public PrimaryLevelData(LevelSettings pLevelSettings, WorldGenSettings pWorldGenSettings, Lifecycle pWorldGenSettingsLifecycle) {
+        this((DataFixer) null, SharedConstants.getCurrentVersion().getWorldVersion(), (CompoundTag) null, false, 0, 0, 0, 0.0F, 0L, 0L, 19133, 0, 0, false, 0, false, false, false, WorldBorder.DEFAULT_SETTINGS, 0, 0, (UUID) null, Sets.newLinkedHashSet(), new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS), (CompoundTag) null, new CompoundTag(), pLevelSettings.copy(), pWorldGenSettings, pWorldGenSettingsLifecycle);
     }
 
-    public static PrimaryLevelData parse(Dynamic<Tag> p_78531_, DataFixer p_78532_, int p_78533_, @Nullable CompoundTag p_78534_, LevelSettings p_78535_, LevelVersion p_78536_, WorldGenSettings p_78537_, Lifecycle p_78538_) {
-        long i = p_78531_.get("Time").asLong(0L);
-        CompoundTag compoundtag = (CompoundTag) p_78531_.get("DragonFight").result().map(Dynamic::getValue).orElseGet(() -> {
-            return p_78531_.get("DimensionData").get("1").get("DragonFight").orElseEmptyMap().getValue();
+    public static PrimaryLevelData parse(Dynamic<Tag> pDynamic, DataFixer pDataFixer, int pVersion, @Nullable CompoundTag pPlayerNBT, LevelSettings pLevelSettings, LevelVersion pVersionData, WorldGenSettings pGeneratorSettings, Lifecycle pLifecycle) {
+        long i = pDynamic.get("Time").asLong(0L);
+        CompoundTag compoundtag = (CompoundTag) pDynamic.get("DragonFight").result().map(Dynamic::getValue).orElseGet(() -> {
+            return pDynamic.get("DimensionData").get("1").get("DragonFight").orElseEmptyMap().getValue();
         });
-        String s = p_78531_.get(FarlandsMode.LEVEL_DATA_KEY).asString("");
-        FarlandsMode.setMode(s.isEmpty() ? (p_78531_.get(FarlandsMode.LEVEL_DATA_KEY).asBoolean(true) ? FarlandsMode.Mode.BIT_32 : FarlandsMode.Mode.BIT_64) : FarlandsMode.fromSerializedName(s));
-        EndRingsMode.setEnabled(p_78531_.get(EndRingsMode.LEVEL_DATA_KEY).asBoolean(true));
-        return new PrimaryLevelData(p_78532_, p_78533_, p_78534_, p_78531_.get("WasModded").asBoolean(false), p_78531_.get("SpawnX").asInt(0), p_78531_.get("SpawnY").asInt(0), p_78531_.get("SpawnZ").asInt(0), p_78531_.get("SpawnAngle").asFloat(0.0F), i, p_78531_.get("DayTime").asLong(i), p_78536_.levelDataVersion(), p_78531_.get("clearWeatherTime").asInt(0), p_78531_.get("rainTime").asInt(0), p_78531_.get("raining").asBoolean(false), p_78531_.get("thunderTime").asInt(0), p_78531_.get("thundering").asBoolean(false), p_78531_.get("initialized").asBoolean(true), p_78531_.get("DifficultyLocked").asBoolean(false), WorldBorder.Settings.read(p_78531_, WorldBorder.DEFAULT_SETTINGS), p_78531_.get("WanderingTraderSpawnDelay").asInt(0), p_78531_.get("WanderingTraderSpawnChance").asInt(0), p_78531_.get("WanderingTraderId").read(UUIDUtil.CODEC).result().orElse((UUID) null), p_78531_.get("ServerBrands").asStream().flatMap((p_78529_) -> {
+        String s = pDynamic.get(FarlandsMode.LEVEL_DATA_KEY).asString("");
+        FarlandsMode.setMode(s.isEmpty() ? (pDynamic.get(FarlandsMode.LEVEL_DATA_KEY).asBoolean(true) ? FarlandsMode.Mode.BIT_32 : FarlandsMode.Mode.BIT_64) : FarlandsMode.fromSerializedName(s));
+        EndRingsMode.setEnabled(pDynamic.get(EndRingsMode.LEVEL_DATA_KEY).asBoolean(true));
+        return new PrimaryLevelData(pDataFixer, pVersion, pPlayerNBT, pDynamic.get("WasModded").asBoolean(false), pDynamic.get("SpawnX").asInt(0), pDynamic.get("SpawnY").asInt(0), pDynamic.get("SpawnZ").asInt(0), pDynamic.get("SpawnAngle").asFloat(0.0F), i, pDynamic.get("DayTime").asLong(i), pVersionData.levelDataVersion(), pDynamic.get("clearWeatherTime").asInt(0), pDynamic.get("rainTime").asInt(0), pDynamic.get("raining").asBoolean(false), pDynamic.get("thunderTime").asInt(0), pDynamic.get("thundering").asBoolean(false), pDynamic.get("initialized").asBoolean(true), pDynamic.get("DifficultyLocked").asBoolean(false), WorldBorder.Settings.read(pDynamic, WorldBorder.DEFAULT_SETTINGS), pDynamic.get("WanderingTraderSpawnDelay").asInt(0), pDynamic.get("WanderingTraderSpawnChance").asInt(0), pDynamic.get("WanderingTraderId").read(UUIDUtil.CODEC).result().orElse((UUID) null), pDynamic.get("ServerBrands").asStream().flatMap((p_78529_) -> {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      return p_78529_.asString().result().stream();
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  })
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   .collect(Collectors.toCollection(Sets::newLinkedHashSet)),
-                new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS, p_78531_.get("ScheduledEvents").asStream()), (CompoundTag) p_78531_.get("CustomBossEvents").orElseEmptyMap().getValue(), compoundtag, p_78535_, p_78537_, p_78538_);
+                new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS, pDynamic.get("ScheduledEvents").asStream()), (CompoundTag) pDynamic.get("CustomBossEvents").orElseEmptyMap().getValue(), compoundtag, pLevelSettings, pGeneratorSettings, pLifecycle);
     }
 
-    public CompoundTag createTag(RegistryAccess p_78543_, @Nullable CompoundTag p_78544_) {
+    public CompoundTag createTag(RegistryAccess pRegistries, @Nullable CompoundTag pHostPlayerNBT) {
         this.updatePlayerTag();
-        if (p_78544_ == null) {
-            p_78544_ = this.loadedPlayerTag;
+        if (pHostPlayerNBT == null) {
+            pHostPlayerNBT = this.loadedPlayerTag;
         }
 
         CompoundTag compoundtag = new CompoundTag();
-        this.setTagData(p_78543_, compoundtag, p_78544_);
+        this.setTagData(pRegistries, compoundtag, pHostPlayerNBT);
         return compoundtag;
     }
 
-    private void setTagData(RegistryAccess p_78546_, CompoundTag p_78547_, @Nullable CompoundTag p_78548_) {
+    private void setTagData(RegistryAccess pRegistry, CompoundTag pNbt, @Nullable CompoundTag pPlayerNBT) {
         ListTag listtag = new ListTag();
         this.knownServerBrands.stream().map(StringTag::valueOf).forEach(listtag::add);
-        p_78547_.put("ServerBrands", listtag);
-        p_78547_.putBoolean("WasModded", this.wasModded);
-        p_78547_.putString(FarlandsMode.LEVEL_DATA_KEY, FarlandsMode.getMode().serializedName());
-        p_78547_.putBoolean(EndRingsMode.LEVEL_DATA_KEY, EndRingsMode.isEnabled());
+        pNbt.put("ServerBrands", listtag);
+        pNbt.putBoolean("WasModded", this.wasModded);
+        pNbt.putString(FarlandsMode.LEVEL_DATA_KEY, FarlandsMode.getMode().serializedName());
+        pNbt.putBoolean(EndRingsMode.LEVEL_DATA_KEY, EndRingsMode.isEnabled());
         CompoundTag compoundtag = new CompoundTag();
         compoundtag.putString("Name", SharedConstants.getCurrentVersion().getName());
         compoundtag.putInt("Id", SharedConstants.getCurrentVersion().getDataVersion().getVersion());
         compoundtag.putBoolean("Snapshot", !SharedConstants.getCurrentVersion().isStable());
         compoundtag.putString("Series", SharedConstants.getCurrentVersion().getDataVersion().getSeries());
-        p_78547_.put("Version", compoundtag);
-        p_78547_.putInt("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
-        DynamicOps<Tag> dynamicops = RegistryOps.create(NbtOps.INSTANCE, p_78546_);
+        pNbt.put("Version", compoundtag);
+        pNbt.putInt("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
+        DynamicOps<Tag> dynamicops = RegistryOps.create(NbtOps.INSTANCE, pRegistry);
         WorldGenSettings.CODEC.encodeStart(dynamicops, this.worldGenSettings).resultOrPartial(Util.prefix("WorldGenSettings: ", LOGGER::error)).ifPresent((p_78574_) -> {
-            p_78547_.put("WorldGenSettings", p_78574_);
+            pNbt.put("WorldGenSettings", p_78574_);
         });
-        p_78547_.putInt("GameType", this.settings.gameType().getId());
-        p_78547_.putInt("SpawnX", this.xSpawn);
-        p_78547_.putInt("SpawnY", this.ySpawn);
-        p_78547_.putInt("SpawnZ", this.zSpawn);
-        p_78547_.putFloat("SpawnAngle", this.spawnAngle);
-        p_78547_.putLong("Time", this.gameTime);
-        p_78547_.putLong("DayTime", this.dayTime);
-        p_78547_.putLong("LastPlayed", Util.getEpochMillis());
-        p_78547_.putString("LevelName", this.settings.levelName());
-        p_78547_.putInt("version", 19133);
-        p_78547_.putInt("clearWeatherTime", this.clearWeatherTime);
-        p_78547_.putInt("rainTime", this.rainTime);
-        p_78547_.putBoolean("raining", this.raining);
-        p_78547_.putInt("thunderTime", this.thunderTime);
-        p_78547_.putBoolean("thundering", this.thundering);
-        p_78547_.putBoolean("hardcore", this.settings.hardcore());
-        p_78547_.putBoolean("allowCommands", this.settings.allowCommands());
-        p_78547_.putBoolean("initialized", this.initialized);
-        this.worldBorder.write(p_78547_);
-        p_78547_.putByte("Difficulty", (byte) this.settings.difficulty().getId());
-        p_78547_.putBoolean("DifficultyLocked", this.difficultyLocked);
-        p_78547_.put("GameRules", this.settings.gameRules().createTag());
-        p_78547_.put("DragonFight", this.endDragonFightData);
-        if (p_78548_ != null) {
-            p_78547_.put("Player", p_78548_);
+        pNbt.putInt("GameType", this.settings.gameType().getId());
+        pNbt.putInt("SpawnX", this.xSpawn);
+        pNbt.putInt("SpawnY", this.ySpawn);
+        pNbt.putInt("SpawnZ", this.zSpawn);
+        pNbt.putFloat("SpawnAngle", this.spawnAngle);
+        pNbt.putLong("Time", this.gameTime);
+        pNbt.putLong("DayTime", this.dayTime);
+        pNbt.putLong("LastPlayed", Util.getEpochMillis());
+        pNbt.putString("LevelName", this.settings.levelName());
+        pNbt.putInt("version", 19133);
+        pNbt.putInt("clearWeatherTime", this.clearWeatherTime);
+        pNbt.putInt("rainTime", this.rainTime);
+        pNbt.putBoolean("raining", this.raining);
+        pNbt.putInt("thunderTime", this.thunderTime);
+        pNbt.putBoolean("thundering", this.thundering);
+        pNbt.putBoolean("hardcore", this.settings.hardcore());
+        pNbt.putBoolean("allowCommands", this.settings.allowCommands());
+        pNbt.putBoolean("initialized", this.initialized);
+        this.worldBorder.write(pNbt);
+        pNbt.putByte("Difficulty", (byte) this.settings.difficulty().getId());
+        pNbt.putBoolean("DifficultyLocked", this.difficultyLocked);
+        pNbt.put("GameRules", this.settings.gameRules().createTag());
+        pNbt.put("DragonFight", this.endDragonFightData);
+        if (pPlayerNBT != null) {
+            pNbt.put("Player", pPlayerNBT);
         }
 
         DataPackConfig.CODEC.encodeStart(NbtOps.INSTANCE, this.settings.getDataPackConfig()).result().ifPresent((p_78560_) -> {
-            p_78547_.put("DataPacks", p_78560_);
+            pNbt.put("DataPacks", p_78560_);
         });
         if (this.customBossEvents != null) {
-            p_78547_.put("CustomBossEvents", this.customBossEvents);
+            pNbt.put("CustomBossEvents", this.customBossEvents);
         }
 
-        p_78547_.put("ScheduledEvents", this.scheduledEvents.store());
-        p_78547_.putInt("WanderingTraderSpawnDelay", this.wanderingTraderSpawnDelay);
-        p_78547_.putInt("WanderingTraderSpawnChance", this.wanderingTraderSpawnChance);
+        pNbt.put("ScheduledEvents", this.scheduledEvents.store());
+        pNbt.putInt("WanderingTraderSpawnDelay", this.wanderingTraderSpawnDelay);
+        pNbt.putInt("WanderingTraderSpawnChance", this.wanderingTraderSpawnChance);
         if (this.wanderingTraderId != null) {
-            p_78547_.putUUID("WanderingTraderId", this.wanderingTraderId);
+            pNbt.putUUID("WanderingTraderId", this.wanderingTraderId);
         }
     }
 
@@ -249,35 +249,35 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         return this.loadedPlayerTag;
     }
 
-    public void setXSpawn(long p_78565_) {
-        this.xSpawn = p_78565_;
+    public void setXSpawn(long pX) {
+        this.xSpawn = pX;
     }
 
-    public void setYSpawn(int p_78579_) {
-        this.ySpawn = p_78579_;
+    public void setYSpawn(int pY) {
+        this.ySpawn = pY;
     }
 
-    public void setZSpawn(long p_78584_) {
-        this.zSpawn = p_78584_;
+    public void setZSpawn(long pZ) {
+        this.zSpawn = pZ;
     }
 
-    public void setSpawnAngle(float p_78515_) {
-        this.spawnAngle = p_78515_;
+    public void setSpawnAngle(float pAngle) {
+        this.spawnAngle = pAngle;
     }
 
-    public void setGameTime(long p_78519_) {
-        this.gameTime = p_78519_;
+    public void setGameTime(long pTime) {
+        this.gameTime = pTime;
     }
 
-    public void setDayTime(long p_78567_) {
-        this.dayTime = p_78567_;
+    public void setDayTime(long pTime) {
+        this.dayTime = pTime;
     }
 
-    public void setSpawn(BlockPos p_78540_, float p_78541_) {
-        this.xSpawn = p_78540_.getX();
-        this.ySpawn = p_78540_.getY();
-        this.zSpawn = p_78540_.getZ();
-        this.spawnAngle = p_78541_;
+    public void setSpawn(BlockPos pSpawnPoint, float pAngle) {
+        this.xSpawn = pSpawnPoint.getX();
+        this.ySpawn = pSpawnPoint.getY();
+        this.zSpawn = pSpawnPoint.getZ();
+        this.spawnAngle = pAngle;
     }
 
     public String getLevelName() {
@@ -292,48 +292,48 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         return this.clearWeatherTime;
     }
 
-    public void setClearWeatherTime(int p_78517_) {
-        this.clearWeatherTime = p_78517_;
+    public void setClearWeatherTime(int pTime) {
+        this.clearWeatherTime = pTime;
     }
 
     public boolean isThundering() {
         return this.thundering;
     }
 
-    public void setThundering(boolean p_78562_) {
-        this.thundering = p_78562_;
+    public void setThundering(boolean pThundering) {
+        this.thundering = pThundering;
     }
 
     public int getThunderTime() {
         return this.thunderTime;
     }
 
-    public void setThunderTime(int p_78589_) {
-        this.thunderTime = p_78589_;
+    public void setThunderTime(int pTime) {
+        this.thunderTime = pTime;
     }
 
     public boolean isRaining() {
         return this.raining;
     }
 
-    public void setRaining(boolean p_78576_) {
-        this.raining = p_78576_;
+    public void setRaining(boolean pIsRaining) {
+        this.raining = pIsRaining;
     }
 
     public int getRainTime() {
         return this.rainTime;
     }
 
-    public void setRainTime(int p_78592_) {
-        this.rainTime = p_78592_;
+    public void setRainTime(int pTime) {
+        this.rainTime = pTime;
     }
 
     public GameType getGameType() {
         return this.settings.gameType();
     }
 
-    public void setGameType(GameType p_78525_) {
-        this.settings = this.settings.withGameType(p_78525_);
+    public void setGameType(GameType pType) {
+        this.settings = this.settings.withGameType(pType);
     }
 
     public boolean isHardcore() {
@@ -348,8 +348,8 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         return this.initialized;
     }
 
-    public void setInitialized(boolean p_78581_) {
-        this.initialized = p_78581_;
+    public void setInitialized(boolean pInitialized) {
+        this.initialized = pInitialized;
     }
 
     public GameRules getGameRules() {
@@ -360,33 +360,33 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         return this.worldBorder;
     }
 
-    public void setWorldBorder(WorldBorder.Settings p_78527_) {
-        this.worldBorder = p_78527_;
+    public void setWorldBorder(WorldBorder.Settings pSerializer) {
+        this.worldBorder = pSerializer;
     }
 
     public Difficulty getDifficulty() {
         return this.settings.difficulty();
     }
 
-    public void setDifficulty(Difficulty p_78521_) {
-        this.settings = this.settings.withDifficulty(p_78521_);
+    public void setDifficulty(Difficulty pDifficulty) {
+        this.settings = this.settings.withDifficulty(pDifficulty);
     }
 
     public boolean isDifficultyLocked() {
         return this.difficultyLocked;
     }
 
-    public void setDifficultyLocked(boolean p_78586_) {
-        this.difficultyLocked = p_78586_;
+    public void setDifficultyLocked(boolean pLocked) {
+        this.difficultyLocked = pLocked;
     }
 
     public TimerQueue<MinecraftServer> getScheduledEvents() {
         return this.scheduledEvents;
     }
 
-    public void fillCrashReportCategory(CrashReportCategory p_164972_, LevelHeightAccessor p_164973_) {
-        ServerLevelData.super.fillCrashReportCategory(p_164972_, p_164973_);
-        WorldData.super.fillCrashReportCategory(p_164972_);
+    public void fillCrashReportCategory(CrashReportCategory pCrashReportCategory, LevelHeightAccessor pLevel) {
+        ServerLevelData.super.fillCrashReportCategory(pCrashReportCategory, pLevel);
+        WorldData.super.fillCrashReportCategory(pCrashReportCategory);
     }
 
     public WorldGenSettings worldGenSettings() {
@@ -401,16 +401,16 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         return this.endDragonFightData;
     }
 
-    public void setEndDragonFightData(CompoundTag p_78557_) {
-        this.endDragonFightData = p_78557_;
+    public void setEndDragonFightData(CompoundTag pNbt) {
+        this.endDragonFightData = pNbt;
     }
 
     public DataPackConfig getDataPackConfig() {
         return this.settings.getDataPackConfig();
     }
 
-    public void setDataPackConfig(DataPackConfig p_78523_) {
-        this.settings = this.settings.withDataPackConfig(p_78523_);
+    public void setDataPackConfig(DataPackConfig pCodec) {
+        this.settings = this.settings.withDataPackConfig(pCodec);
     }
 
     @Nullable
@@ -418,24 +418,24 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         return this.customBossEvents;
     }
 
-    public void setCustomBossEvents(@Nullable CompoundTag p_78571_) {
-        this.customBossEvents = p_78571_;
+    public void setCustomBossEvents(@Nullable CompoundTag pNbt) {
+        this.customBossEvents = pNbt;
     }
 
     public int getWanderingTraderSpawnDelay() {
         return this.wanderingTraderSpawnDelay;
     }
 
-    public void setWanderingTraderSpawnDelay(int p_78595_) {
-        this.wanderingTraderSpawnDelay = p_78595_;
+    public void setWanderingTraderSpawnDelay(int pDelay) {
+        this.wanderingTraderSpawnDelay = pDelay;
     }
 
     public int getWanderingTraderSpawnChance() {
         return this.wanderingTraderSpawnChance;
     }
 
-    public void setWanderingTraderSpawnChance(int p_78598_) {
-        this.wanderingTraderSpawnChance = p_78598_;
+    public void setWanderingTraderSpawnChance(int pChance) {
+        this.wanderingTraderSpawnChance = pChance;
     }
 
     @Nullable
@@ -443,13 +443,13 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         return this.wanderingTraderId;
     }
 
-    public void setWanderingTraderId(UUID p_78553_) {
-        this.wanderingTraderId = p_78553_;
+    public void setWanderingTraderId(UUID pId) {
+        this.wanderingTraderId = pId;
     }
 
-    public void setModdedInfo(String p_78550_, boolean p_78551_) {
-        this.knownServerBrands.add(p_78550_);
-        this.wasModded |= p_78551_;
+    public void setModdedInfo(String pName, boolean pIsModded) {
+        this.knownServerBrands.add(pName);
+        this.wasModded |= pIsModded;
     }
 
     public boolean wasModded() {

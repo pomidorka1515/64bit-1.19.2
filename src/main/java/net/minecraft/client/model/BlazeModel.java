@@ -18,17 +18,17 @@ public class BlazeModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart[] upperBodyParts;
     private final ModelPart head;
 
-    public BlazeModel(ModelPart p_170443_) {
-        this.root = p_170443_;
-        this.head = p_170443_.getChild("head");
+    public BlazeModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.head = pRoot.getChild("head");
         this.upperBodyParts = new ModelPart[12];
         Arrays.setAll(this.upperBodyParts, (p_170449_) -> {
-            return p_170443_.getChild(getPartName(p_170449_));
+            return pRoot.getChild(getPartName(p_170449_));
         });
     }
 
-    private static String getPartName(int p_170446_) {
-        return "part" + p_170446_;
+    private static String getPartName(int pIndex) {
+        return "part" + pIndex;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -73,35 +73,35 @@ public class BlazeModel<T extends Entity> extends HierarchicalModel<T> {
         return this.root;
     }
 
-    public void setupAnim(T p_102250_, float p_102251_, float p_102252_, float p_102253_, float p_102254_, float p_102255_) {
-        float f = p_102253_ * (float) Math.PI * -0.1F;
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        float f = pAgeInTicks * (float) Math.PI * -0.1F;
 
         for (int i = 0; i < 4; ++i) {
-            this.upperBodyParts[i].y = -2.0F + Mth.cos(((float) (i * 2) + p_102253_) * 0.25F);
+            this.upperBodyParts[i].y = -2.0F + Mth.cos(((float) (i * 2) + pAgeInTicks) * 0.25F);
             this.upperBodyParts[i].x = Mth.cos(f) * 9.0F;
             this.upperBodyParts[i].z = Mth.sin(f) * 9.0F;
             ++f;
         }
 
-        f = ((float) Math.PI / 4F) + p_102253_ * (float) Math.PI * 0.03F;
+        f = ((float) Math.PI / 4F) + pAgeInTicks * (float) Math.PI * 0.03F;
 
         for (int j = 4; j < 8; ++j) {
-            this.upperBodyParts[j].y = 2.0F + Mth.cos(((float) (j * 2) + p_102253_) * 0.25F);
+            this.upperBodyParts[j].y = 2.0F + Mth.cos(((float) (j * 2) + pAgeInTicks) * 0.25F);
             this.upperBodyParts[j].x = Mth.cos(f) * 7.0F;
             this.upperBodyParts[j].z = Mth.sin(f) * 7.0F;
             ++f;
         }
 
-        f = 0.47123894F + p_102253_ * (float) Math.PI * -0.05F;
+        f = 0.47123894F + pAgeInTicks * (float) Math.PI * -0.05F;
 
         for (int k = 8; k < 12; ++k) {
-            this.upperBodyParts[k].y = 11.0F + Mth.cos(((float) k * 1.5F + p_102253_) * 0.5F);
+            this.upperBodyParts[k].y = 11.0F + Mth.cos(((float) k * 1.5F + pAgeInTicks) * 0.5F);
             this.upperBodyParts[k].x = Mth.cos(f) * 5.0F;
             this.upperBodyParts[k].z = Mth.sin(f) * 5.0F;
             ++f;
         }
 
-        this.head.yRot = p_102254_ * ((float) Math.PI / 180F);
-        this.head.xRot = p_102255_ * ((float) Math.PI / 180F);
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
     }
 }

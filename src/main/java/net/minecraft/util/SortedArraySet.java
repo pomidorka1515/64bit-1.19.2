@@ -14,12 +14,12 @@ public class SortedArraySet<T> extends AbstractSet<T> {
     T[] contents;
     int size;
 
-    private SortedArraySet(int p_14244_, Comparator<T> p_14245_) {
-        this.comparator = p_14245_;
-        if (p_14244_ < 0) {
-            throw new IllegalArgumentException("Initial capacity (" + p_14244_ + ") is negative");
+    private SortedArraySet(int pInitialCapacity, Comparator<T> pComparator) {
+        this.comparator = pComparator;
+        if (pInitialCapacity < 0) {
+            throw new IllegalArgumentException("Initial capacity (" + pInitialCapacity + ") is negative");
         } else {
-            this.contents = (T[]) castRawArray(new Object[p_14244_]);
+            this.contents = (T[]) castRawArray(new Object[pInitialCapacity]);
         }
     }
 
@@ -27,37 +27,37 @@ public class SortedArraySet<T> extends AbstractSet<T> {
         return create(10);
     }
 
-    public static <T extends Comparable<T>> SortedArraySet<T> create(int p_14247_) {
-        return new SortedArraySet<>(p_14247_, Comparator.<T>naturalOrder());
+    public static <T extends Comparable<T>> SortedArraySet<T> create(int pInitialCapacity) {
+        return new SortedArraySet<>(pInitialCapacity, Comparator.<T>naturalOrder());
     }
 
-    public static <T> SortedArraySet<T> create(Comparator<T> p_144977_) {
-        return create(p_144977_, 10);
+    public static <T> SortedArraySet<T> create(Comparator<T> pComparator) {
+        return create(pComparator, 10);
     }
 
-    public static <T> SortedArraySet<T> create(Comparator<T> p_144979_, int p_144980_) {
-        return new SortedArraySet<>(p_144980_, p_144979_);
+    public static <T> SortedArraySet<T> create(Comparator<T> pComparator, int pInitialCapacity) {
+        return new SortedArraySet<>(pInitialCapacity, pComparator);
     }
 
-    private static <T> T[] castRawArray(Object[] p_14259_) {
-        return (T[]) p_14259_;
+    private static <T> T[] castRawArray(Object[] pArray) {
+        return (T[]) pArray;
     }
 
-    private int findIndex(T p_14270_) {
-        return Arrays.binarySearch(this.contents, 0, this.size, p_14270_, this.comparator);
+    private int findIndex(T pObject) {
+        return Arrays.binarySearch(this.contents, 0, this.size, pObject, this.comparator);
     }
 
     private static int getInsertionPosition(int p_14264_) {
         return -p_14264_ - 1;
     }
 
-    public boolean add(T p_14261_) {
-        int i = this.findIndex(p_14261_);
+    public boolean add(T pElement) {
+        int i = this.findIndex(pElement);
         if (i >= 0) {
             return false;
         } else {
             int j = getInsertionPosition(i);
-            this.addInternal(p_14261_, j);
+            this.addInternal(pElement, j);
             return true;
         }
     }
@@ -76,41 +76,41 @@ public class SortedArraySet<T> extends AbstractSet<T> {
         }
     }
 
-    private void addInternal(T p_14256_, int p_14257_) {
+    private void addInternal(T pElement, int pIndex) {
         this.grow(this.size + 1);
-        if (p_14257_ != this.size) {
-            System.arraycopy(this.contents, p_14257_, this.contents, p_14257_ + 1, this.size - p_14257_);
+        if (pIndex != this.size) {
+            System.arraycopy(this.contents, pIndex, this.contents, pIndex + 1, this.size - pIndex);
         }
 
-        this.contents[p_14257_] = p_14256_;
+        this.contents[pIndex] = pElement;
         ++this.size;
     }
 
-    void removeInternal(int p_14275_) {
+    void removeInternal(int pIndex) {
         --this.size;
-        if (p_14275_ != this.size) {
-            System.arraycopy(this.contents, p_14275_ + 1, this.contents, p_14275_, this.size - p_14275_);
+        if (pIndex != this.size) {
+            System.arraycopy(this.contents, pIndex + 1, this.contents, pIndex, this.size - pIndex);
         }
 
         this.contents[this.size] = null;
     }
 
-    private T getInternal(int p_14277_) {
-        return this.contents[p_14277_];
+    private T getInternal(int pIndex) {
+        return this.contents[pIndex];
     }
 
-    public T addOrGet(T p_14254_) {
-        int i = this.findIndex(p_14254_);
+    public T addOrGet(T pElement) {
+        int i = this.findIndex(pElement);
         if (i >= 0) {
             return this.getInternal(i);
         } else {
-            this.addInternal(p_14254_, getInsertionPosition(i));
-            return p_14254_;
+            this.addInternal(pElement, getInsertionPosition(i));
+            return pElement;
         }
     }
 
-    public boolean remove(Object p_14282_) {
-        int i = this.findIndex((T) p_14282_);
+    public boolean remove(Object pElement) {
+        int i = this.findIndex((T) pElement);
         if (i >= 0) {
             this.removeInternal(i);
             return true;
@@ -120,8 +120,8 @@ public class SortedArraySet<T> extends AbstractSet<T> {
     }
 
     @Nullable
-    public T get(T p_144982_) {
-        int i = this.findIndex(p_144982_);
+    public T get(T pElement) {
+        int i = this.findIndex(pElement);
         return (T) (i >= 0 ? this.getInternal(i) : null);
     }
 
@@ -168,18 +168,18 @@ public class SortedArraySet<T> extends AbstractSet<T> {
         this.size = 0;
     }
 
-    public boolean equals(Object p_14279_) {
-        if (this == p_14279_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            if (p_14279_ instanceof SortedArraySet) {
-                SortedArraySet<?> sortedarrayset = (SortedArraySet) p_14279_;
+            if (pOther instanceof SortedArraySet) {
+                SortedArraySet<?> sortedarrayset = (SortedArraySet) pOther;
                 if (this.comparator.equals(sortedarrayset.comparator)) {
                     return this.size == sortedarrayset.size && Arrays.equals(this.contents, sortedarrayset.contents);
                 }
             }
 
-            return super.equals(p_14279_);
+            return super.equals(pOther);
         }
     }
 

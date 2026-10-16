@@ -27,19 +27,19 @@ public class SimpleBakedModel implements BakedModel {
     protected final ItemTransforms transforms;
     protected final ItemOverrides overrides;
 
-    public SimpleBakedModel(List<BakedQuad> p_119489_, Map<Direction, List<BakedQuad>> p_119490_, boolean p_119491_, boolean p_119492_, boolean p_119493_, TextureAtlasSprite p_119494_, ItemTransforms p_119495_, ItemOverrides p_119496_) {
-        this.unculledFaces = p_119489_;
-        this.culledFaces = p_119490_;
-        this.hasAmbientOcclusion = p_119491_;
-        this.isGui3d = p_119493_;
-        this.usesBlockLight = p_119492_;
-        this.particleIcon = p_119494_;
-        this.transforms = p_119495_;
-        this.overrides = p_119496_;
+    public SimpleBakedModel(List<BakedQuad> pUnculledFaces, Map<Direction, List<BakedQuad>> pCulledFaces, boolean pHasAmbientOcclusion, boolean pUsesBlockLight, boolean pIsGui3d, TextureAtlasSprite pParticleIcon, ItemTransforms pTransforms, ItemOverrides pOverrides) {
+        this.unculledFaces = pUnculledFaces;
+        this.culledFaces = pCulledFaces;
+        this.hasAmbientOcclusion = pHasAmbientOcclusion;
+        this.isGui3d = pIsGui3d;
+        this.usesBlockLight = pUsesBlockLight;
+        this.particleIcon = pParticleIcon;
+        this.transforms = pTransforms;
+        this.overrides = pOverrides;
     }
 
-    public List<BakedQuad> getQuads(@Nullable BlockState p_235054_, @Nullable Direction p_235055_, RandomSource p_235056_) {
-        return p_235055_ == null ? this.unculledFaces : this.culledFaces.get(p_235055_);
+    public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pDirection, RandomSource pRandom) {
+        return pDirection == null ? this.unculledFaces : this.culledFaces.get(pDirection);
     }
 
     public boolean useAmbientOcclusion() {
@@ -81,34 +81,34 @@ public class SimpleBakedModel implements BakedModel {
         private final boolean isGui3d;
         private final ItemTransforms transforms;
 
-        public Builder(BlockModel p_119517_, ItemOverrides p_119518_, boolean p_119519_) {
-            this(p_119517_.hasAmbientOcclusion(), p_119517_.getGuiLight().lightLikeBlock(), p_119519_, p_119517_.getTransforms(), p_119518_);
+        public Builder(BlockModel pBlockModel, ItemOverrides pOverrides, boolean pIsGui3d) {
+            this(pBlockModel.hasAmbientOcclusion(), pBlockModel.getGuiLight().lightLikeBlock(), pIsGui3d, pBlockModel.getTransforms(), pOverrides);
         }
 
-        private Builder(boolean p_119521_, boolean p_119522_, boolean p_119523_, ItemTransforms p_119524_, ItemOverrides p_119525_) {
+        private Builder(boolean pHasAmbientOcclusion, boolean pUsesBlockLight, boolean pIsGui3d, ItemTransforms pTransforms, ItemOverrides pOverrides) {
             for (Direction direction : Direction.values()) {
                 this.culledFaces.put(direction, Lists.newArrayList());
             }
 
-            this.overrides = p_119525_;
-            this.hasAmbientOcclusion = p_119521_;
-            this.usesBlockLight = p_119522_;
-            this.isGui3d = p_119523_;
-            this.transforms = p_119524_;
+            this.overrides = pOverrides;
+            this.hasAmbientOcclusion = pHasAmbientOcclusion;
+            this.usesBlockLight = pUsesBlockLight;
+            this.isGui3d = pIsGui3d;
+            this.transforms = pTransforms;
         }
 
-        public SimpleBakedModel.Builder addCulledFace(Direction p_119531_, BakedQuad p_119532_) {
-            this.culledFaces.get(p_119531_).add(p_119532_);
+        public SimpleBakedModel.Builder addCulledFace(Direction pFacing, BakedQuad pQuad) {
+            this.culledFaces.get(pFacing).add(pQuad);
             return this;
         }
 
-        public SimpleBakedModel.Builder addUnculledFace(BakedQuad p_119527_) {
-            this.unculledFaces.add(p_119527_);
+        public SimpleBakedModel.Builder addUnculledFace(BakedQuad pQuad) {
+            this.unculledFaces.add(pQuad);
             return this;
         }
 
-        public SimpleBakedModel.Builder particle(TextureAtlasSprite p_119529_) {
-            this.particleIcon = p_119529_;
+        public SimpleBakedModel.Builder particle(TextureAtlasSprite pParticleIcon) {
+            this.particleIcon = pParticleIcon;
             return this;
         }
 

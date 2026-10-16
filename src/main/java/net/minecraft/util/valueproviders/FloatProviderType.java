@@ -11,9 +11,9 @@ public interface FloatProviderType<P extends FloatProvider> {
 
     Codec<P> codec();
 
-    static <P extends FloatProvider> FloatProviderType<P> register(String p_146527_, Codec<P> p_146528_) {
-        return Registry.register(Registry.FLOAT_PROVIDER_TYPES, p_146527_, () -> {
-            return p_146528_;
+    static <P extends FloatProvider> FloatProviderType<P> register(String pName, Codec<P> pCodec) {
+        return Registry.register(Registry.FLOAT_PROVIDER_TYPES, pName, () -> {
+            return pCodec;
         });
     }
 }

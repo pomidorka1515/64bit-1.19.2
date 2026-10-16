@@ -6,31 +6,31 @@ import java.net.SocketAddress;
 import javax.annotation.Nullable;
 
 public class IpBanList extends StoredUserList<String, IpBanListEntry> {
-    public IpBanList(File p_11036_) {
-        super(p_11036_);
+    public IpBanList(File pFile) {
+        super(pFile);
     }
 
-    protected StoredUserEntry<String> createEntry(JsonObject p_11038_) {
-        return new IpBanListEntry(p_11038_);
+    protected StoredUserEntry<String> createEntry(JsonObject pEntryData) {
+        return new IpBanListEntry(pEntryData);
     }
 
-    public boolean isBanned(SocketAddress p_11042_) {
-        String s = this.getIpFromAddress(p_11042_);
+    public boolean isBanned(SocketAddress pAddress) {
+        String s = this.getIpFromAddress(pAddress);
         return this.contains(s);
     }
 
-    public boolean isBanned(String p_11040_) {
-        return this.contains(p_11040_);
+    public boolean isBanned(String pAddress) {
+        return this.contains(pAddress);
     }
 
     @Nullable
-    public IpBanListEntry get(SocketAddress p_11044_) {
-        String s = this.getIpFromAddress(p_11044_);
+    public IpBanListEntry get(SocketAddress pAddress) {
+        String s = this.getIpFromAddress(pAddress);
         return this.get(s);
     }
 
-    private String getIpFromAddress(SocketAddress p_11046_) {
-        String s = p_11046_.toString();
+    private String getIpFromAddress(SocketAddress pAddress) {
+        String s = pAddress.toString();
         if (s.contains("/")) {
             s = s.substring(s.indexOf(47) + 1);
         }

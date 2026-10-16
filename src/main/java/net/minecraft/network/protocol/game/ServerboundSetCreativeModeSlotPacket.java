@@ -8,23 +8,23 @@ public class ServerboundSetCreativeModeSlotPacket implements Packet<ServerGamePa
     private final int slotNum;
     private final ItemStack itemStack;
 
-    public ServerboundSetCreativeModeSlotPacket(int p_134553_, ItemStack p_134554_) {
-        this.slotNum = p_134553_;
-        this.itemStack = p_134554_.copy();
+    public ServerboundSetCreativeModeSlotPacket(int pSlotNum, ItemStack pItemStack) {
+        this.slotNum = pSlotNum;
+        this.itemStack = pItemStack.copy();
     }
 
-    public void handle(ServerGamePacketListener p_134560_) {
-        p_134560_.handleSetCreativeModeSlot(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleSetCreativeModeSlot(this);
     }
 
-    public ServerboundSetCreativeModeSlotPacket(FriendlyByteBuf p_179760_) {
-        this.slotNum = p_179760_.readShort();
-        this.itemStack = p_179760_.readItem();
+    public ServerboundSetCreativeModeSlotPacket(FriendlyByteBuf pBuffer) {
+        this.slotNum = pBuffer.readShort();
+        this.itemStack = pBuffer.readItem();
     }
 
-    public void write(FriendlyByteBuf p_134563_) {
-        p_134563_.writeShort(this.slotNum);
-        p_134563_.writeItem(this.itemStack);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeShort(this.slotNum);
+        pBuffer.writeItem(this.itemStack);
     }
 
     public int getSlotNum() {

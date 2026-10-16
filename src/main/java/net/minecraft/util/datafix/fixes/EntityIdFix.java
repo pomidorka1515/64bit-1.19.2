@@ -88,8 +88,8 @@ public class EntityIdFix extends DataFix {
         p_15465_.put("ZombieVillager", "minecraft:zombie_villager");
     });
 
-    public EntityIdFix(Schema p_15456_, boolean p_15457_) {
-        super(p_15456_, p_15457_);
+    public EntityIdFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

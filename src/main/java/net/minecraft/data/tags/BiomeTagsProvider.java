@@ -8,8 +8,8 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 
 public class BiomeTagsProvider extends TagsProvider<Biome> {
-    public BiomeTagsProvider(DataGenerator p_211094_) {
-        super(p_211094_, BuiltinRegistries.BIOME);
+    public BiomeTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, BuiltinRegistries.BIOME);
     }
 
     protected void addTags() {

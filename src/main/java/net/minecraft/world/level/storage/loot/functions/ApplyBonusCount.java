@@ -25,10 +25,10 @@ public class ApplyBonusCount extends LootItemConditionalFunction {
     final Enchantment enchantment;
     final ApplyBonusCount.Formula formula;
 
-    ApplyBonusCount(LootItemCondition[] p_79903_, Enchantment p_79904_, ApplyBonusCount.Formula p_79905_) {
-        super(p_79903_);
-        this.enchantment = p_79904_;
-        this.formula = p_79905_;
+    ApplyBonusCount(LootItemCondition[] pConditions, Enchantment pEnchantment, ApplyBonusCount.Formula pFormula) {
+        super(pConditions);
+        this.enchantment = pEnchantment;
+        this.formula = pFormula;
     }
 
     public LootItemFunctionType getType() {
@@ -39,20 +39,20 @@ public class ApplyBonusCount extends LootItemConditionalFunction {
         return ImmutableSet.of(LootContextParams.TOOL);
     }
 
-    public ItemStack run(ItemStack p_79913_, LootContext p_79914_) {
-        ItemStack itemstack = p_79914_.getParamOrNull(LootContextParams.TOOL);
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        ItemStack itemstack = pContext.getParamOrNull(LootContextParams.TOOL);
         if (itemstack != null) {
             int i = EnchantmentHelper.getItemEnchantmentLevel(this.enchantment, itemstack);
-            int j = this.formula.calculateNewCount(p_79914_.getRandom(), p_79913_.getCount(), i);
-            p_79913_.setCount(j);
+            int j = this.formula.calculateNewCount(pContext.getRandom(), pStack.getCount(), i);
+            pStack.setCount(j);
         }
 
-        return p_79913_;
+        return pStack;
     }
 
-    public static LootItemConditionalFunction.Builder<?> addBonusBinomialDistributionCount(Enchantment p_79918_, float p_79919_, int p_79920_) {
+    public static LootItemConditionalFunction.Builder<?> addBonusBinomialDistributionCount(Enchantment pEnchantment, float pProbability, int pExtraRounds) {
         return simpleBuilder((p_79928_) -> {
-            return new ApplyBonusCount(p_79928_, p_79918_, new ApplyBonusCount.BinomialWithBonusCount(p_79920_, p_79919_));
+            return new ApplyBonusCount(p_79928_, pEnchantment, new ApplyBonusCount.BinomialWithBonusCount(pExtraRounds, pProbability));
         });
     }
 
@@ -62,15 +62,15 @@ public class ApplyBonusCount extends LootItemConditionalFunction {
         });
     }
 
-    public static LootItemConditionalFunction.Builder<?> addUniformBonusCount(Enchantment p_79940_) {
+    public static LootItemConditionalFunction.Builder<?> addUniformBonusCount(Enchantment pEnchantment) {
         return simpleBuilder((p_79935_) -> {
-            return new ApplyBonusCount(p_79935_, p_79940_, new ApplyBonusCount.UniformBonusCount(1));
+            return new ApplyBonusCount(p_79935_, pEnchantment, new ApplyBonusCount.UniformBonusCount(1));
         });
     }
 
-    public static LootItemConditionalFunction.Builder<?> addUniformBonusCount(Enchantment p_79922_, int p_79923_) {
+    public static LootItemConditionalFunction.Builder<?> addUniformBonusCount(Enchantment pEnchantment, int pBonusMultiplier) {
         return simpleBuilder((p_79932_) -> {
-            return new ApplyBonusCount(p_79932_, p_79922_, new ApplyBonusCount.UniformBonusCount(p_79923_));
+            return new ApplyBonusCount(p_79932_, pEnchantment, new ApplyBonusCount.UniformBonusCount(pBonusMultiplier));
         });
     }
 
@@ -85,29 +85,29 @@ public class ApplyBonusCount extends LootItemConditionalFunction {
         private final int extraRounds;
         private final float probability;
 
-        public BinomialWithBonusCount(int p_79952_, float p_79953_) {
-            this.extraRounds = p_79952_;
-            this.probability = p_79953_;
+        public BinomialWithBonusCount(int pExtraRounds, float pProbability) {
+            this.extraRounds = pExtraRounds;
+            this.probability = pProbability;
         }
 
-        public int calculateNewCount(RandomSource p_230965_, int p_230966_, int p_230967_) {
-            for (int i = 0; i < p_230967_ + this.extraRounds; ++i) {
-                if (p_230965_.nextFloat() < this.probability) {
-                    ++p_230966_;
+        public int calculateNewCount(RandomSource pRandom, int pOriginalCount, int pEnchantmentLevel) {
+            for (int i = 0; i < pEnchantmentLevel + this.extraRounds; ++i) {
+                if (pRandom.nextFloat() < this.probability) {
+                    ++pOriginalCount;
                 }
             }
 
-            return p_230966_;
+            return pOriginalCount;
         }
 
-        public void serializeParams(JsonObject p_79959_, JsonSerializationContext p_79960_) {
-            p_79959_.addProperty("extra", this.extraRounds);
-            p_79959_.addProperty("probability", this.probability);
+        public void serializeParams(JsonObject pJson, JsonSerializationContext pSerializationContext) {
+            pJson.addProperty("extra", this.extraRounds);
+            pJson.addProperty("probability", this.probability);
         }
 
-        public static ApplyBonusCount.Formula deserialize(JsonObject p_79956_, JsonDeserializationContext p_79957_) {
-            int i = GsonHelper.getAsInt(p_79956_, "extra");
-            float f = GsonHelper.getAsFloat(p_79956_, "probability");
+        public static ApplyBonusCount.Formula deserialize(JsonObject pJson, JsonDeserializationContext pDeserializationContext) {
+            int i = GsonHelper.getAsInt(pJson, "extra");
+            float f = GsonHelper.getAsFloat(pJson, "probability");
             return new ApplyBonusCount.BinomialWithBonusCount(i, f);
         }
 
@@ -117,37 +117,37 @@ public class ApplyBonusCount extends LootItemConditionalFunction {
     }
 
     interface Formula {
-        int calculateNewCount(RandomSource p_230968_, int p_230969_, int p_230970_);
+        int calculateNewCount(RandomSource pRandom, int pOriginalCount, int pEnchantmentLevel);
 
-        void serializeParams(JsonObject p_79965_, JsonSerializationContext p_79966_);
+        void serializeParams(JsonObject pJson, JsonSerializationContext pSerializationContext);
 
         ResourceLocation getType();
     }
 
     interface FormulaDeserializer {
-        ApplyBonusCount.Formula deserialize(JsonObject p_79971_, JsonDeserializationContext p_79972_);
+        ApplyBonusCount.Formula deserialize(JsonObject pJson, JsonDeserializationContext pDeserializationContext);
     }
 
     static final class OreDrops implements ApplyBonusCount.Formula {
         public static final ResourceLocation TYPE = new ResourceLocation("ore_drops");
 
-        public int calculateNewCount(RandomSource p_230972_, int p_230973_, int p_230974_) {
-            if (p_230974_ > 0) {
-                int i = p_230972_.nextInt(p_230974_ + 2) - 1;
+        public int calculateNewCount(RandomSource pRandom, int pOriginalCount, int pEnchantmentLevel) {
+            if (pEnchantmentLevel > 0) {
+                int i = pRandom.nextInt(pEnchantmentLevel + 2) - 1;
                 if (i < 0) {
                     i = 0;
                 }
 
-                return p_230973_ * (i + 1);
+                return pOriginalCount * (i + 1);
             } else {
-                return p_230973_;
+                return pOriginalCount;
             }
         }
 
-        public void serializeParams(JsonObject p_79983_, JsonSerializationContext p_79984_) {
+        public void serializeParams(JsonObject pJson, JsonSerializationContext pSerializationContext) {
         }
 
-        public static ApplyBonusCount.Formula deserialize(JsonObject p_79980_, JsonDeserializationContext p_79981_) {
+        public static ApplyBonusCount.Formula deserialize(JsonObject pJson, JsonDeserializationContext pDeserializationContext) {
             return new ApplyBonusCount.OreDrops();
         }
 
@@ -157,35 +157,35 @@ public class ApplyBonusCount extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<ApplyBonusCount> {
-        public void serialize(JsonObject p_79995_, ApplyBonusCount p_79996_, JsonSerializationContext p_79997_) {
-            super.serialize(p_79995_, p_79996_, p_79997_);
-            p_79995_.addProperty("enchantment", Registry.ENCHANTMENT.getKey(p_79996_.enchantment).toString());
-            p_79995_.addProperty("formula", p_79996_.formula.getType().toString());
+        public void serialize(JsonObject pJson, ApplyBonusCount pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            pJson.addProperty("enchantment", Registry.ENCHANTMENT.getKey(pValue.enchantment).toString());
+            pJson.addProperty("formula", pValue.formula.getType().toString());
             JsonObject jsonobject = new JsonObject();
-            p_79996_.formula.serializeParams(jsonobject, p_79997_);
+            pValue.formula.serializeParams(jsonobject, pSerializationContext);
             if (jsonobject.size() > 0) {
-                p_79995_.add("parameters", jsonobject);
+                pJson.add("parameters", jsonobject);
             }
         }
 
-        public ApplyBonusCount deserialize(JsonObject p_79991_, JsonDeserializationContext p_79992_, LootItemCondition[] p_79993_) {
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_79991_, "enchantment"));
+        public ApplyBonusCount deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pObject, "enchantment"));
             Enchantment enchantment = Registry.ENCHANTMENT.getOptional(resourcelocation).orElseThrow(() -> {
                 return new JsonParseException("Invalid enchantment id: " + resourcelocation);
             });
-            ResourceLocation resourcelocation1 = new ResourceLocation(GsonHelper.getAsString(p_79991_, "formula"));
+            ResourceLocation resourcelocation1 = new ResourceLocation(GsonHelper.getAsString(pObject, "formula"));
             ApplyBonusCount.FormulaDeserializer applybonuscount$formuladeserializer = ApplyBonusCount.FORMULAS.get(resourcelocation1);
             if (applybonuscount$formuladeserializer == null) {
                 throw new JsonParseException("Invalid formula id: " + resourcelocation1);
             } else {
                 ApplyBonusCount.Formula applybonuscount$formula;
-                if (p_79991_.has("parameters")) {
-                    applybonuscount$formula = applybonuscount$formuladeserializer.deserialize(GsonHelper.getAsJsonObject(p_79991_, "parameters"), p_79992_);
+                if (pObject.has("parameters")) {
+                    applybonuscount$formula = applybonuscount$formuladeserializer.deserialize(GsonHelper.getAsJsonObject(pObject, "parameters"), pDeserializationContext);
                 } else {
-                    applybonuscount$formula = applybonuscount$formuladeserializer.deserialize(new JsonObject(), p_79992_);
+                    applybonuscount$formula = applybonuscount$formuladeserializer.deserialize(new JsonObject(), pDeserializationContext);
                 }
 
-                return new ApplyBonusCount(p_79993_, enchantment, applybonuscount$formula);
+                return new ApplyBonusCount(pConditions, enchantment, applybonuscount$formula);
             }
         }
     }
@@ -194,20 +194,20 @@ public class ApplyBonusCount extends LootItemConditionalFunction {
         public static final ResourceLocation TYPE = new ResourceLocation("uniform_bonus_count");
         private final int bonusMultiplier;
 
-        public UniformBonusCount(int p_80016_) {
-            this.bonusMultiplier = p_80016_;
+        public UniformBonusCount(int pBonusMultiplier) {
+            this.bonusMultiplier = pBonusMultiplier;
         }
 
-        public int calculateNewCount(RandomSource p_230976_, int p_230977_, int p_230978_) {
-            return p_230977_ + p_230976_.nextInt(this.bonusMultiplier * p_230978_ + 1);
+        public int calculateNewCount(RandomSource pRandom, int pOriginalCount, int pEnchantmentLevel) {
+            return pOriginalCount + pRandom.nextInt(this.bonusMultiplier * pEnchantmentLevel + 1);
         }
 
-        public void serializeParams(JsonObject p_80022_, JsonSerializationContext p_80023_) {
-            p_80022_.addProperty("bonusMultiplier", this.bonusMultiplier);
+        public void serializeParams(JsonObject pJson, JsonSerializationContext pSerializationContext) {
+            pJson.addProperty("bonusMultiplier", this.bonusMultiplier);
         }
 
-        public static ApplyBonusCount.Formula deserialize(JsonObject p_80019_, JsonDeserializationContext p_80020_) {
-            int i = GsonHelper.getAsInt(p_80019_, "bonusMultiplier");
+        public static ApplyBonusCount.Formula deserialize(JsonObject pJson, JsonDeserializationContext pDeserializationContext) {
+            int i = GsonHelper.getAsInt(pJson, "bonusMultiplier");
             return new ApplyBonusCount.UniformBonusCount(i);
         }
 

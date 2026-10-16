@@ -20,8 +20,8 @@ public class CommandBlockEditScreen extends AbstractCommandBlockEditScreen {
     private boolean conditional;
     private boolean autoexec;
 
-    public CommandBlockEditScreen(CommandBlockEntity p_98382_) {
-        this.autoCommandBlock = p_98382_;
+    public CommandBlockEditScreen(CommandBlockEntity pAutoCommandBlock) {
+        this.autoCommandBlock = pAutoCommandBlock;
     }
 
     BaseCommandBlock getCommandBlock() {
@@ -60,12 +60,12 @@ public class CommandBlockEditScreen extends AbstractCommandBlockEditScreen {
         this.enableControls(false);
     }
 
-    private void enableControls(boolean p_169730_) {
-        this.doneButton.active = p_169730_;
-        this.outputButton.active = p_169730_;
-        this.modeButton.active = p_169730_;
-        this.conditionalButton.active = p_169730_;
-        this.autoexecButton.active = p_169730_;
+    private void enableControls(boolean pActive) {
+        this.doneButton.active = pActive;
+        this.outputButton.active = pActive;
+        this.modeButton.active = pActive;
+        this.conditionalButton.active = pActive;
+        this.autoexecButton.active = pActive;
     }
 
     public void updateGui() {
@@ -83,12 +83,12 @@ public class CommandBlockEditScreen extends AbstractCommandBlockEditScreen {
         this.enableControls(true);
     }
 
-    public void resize(Minecraft p_98386_, int p_98387_, int p_98388_) {
-        super.resize(p_98386_, p_98387_, p_98388_);
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
+        super.resize(pMinecraft, pWidth, pHeight);
         this.enableControls(true);
     }
 
-    protected void populateAndSendPacket(BaseCommandBlock p_98384_) {
-        this.minecraft.getConnection().send(new ServerboundSetCommandBlockPacket(new BlockPos(p_98384_.getPosition()), this.commandEdit.getValue(), this.mode, p_98384_.isTrackOutput(), this.conditional, this.autoexec));
+    protected void populateAndSendPacket(BaseCommandBlock pCommandBlock) {
+        this.minecraft.getConnection().send(new ServerboundSetCommandBlockPacket(new BlockPos(pCommandBlock.getPosition()), this.commandEdit.getValue(), this.mode, pCommandBlock.isTrackOutput(), this.conditional, this.autoexec));
     }
 }

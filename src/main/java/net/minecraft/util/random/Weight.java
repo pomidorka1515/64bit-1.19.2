@@ -12,8 +12,8 @@ public class Weight {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final int value;
 
-    private Weight(int p_146280_) {
-        this.value = p_146280_;
+    private Weight(int pWeight) {
+        this.value = pWeight;
     }
 
     public static Weight of(int p_146283_) {
@@ -29,11 +29,11 @@ public class Weight {
         return this.value;
     }
 
-    private static void validateWeight(int p_146285_) {
-        if (p_146285_ < 0) {
+    private static void validateWeight(int pWeight) {
+        if (pWeight < 0) {
             throw (IllegalArgumentException) Util.pauseInIde(new IllegalArgumentException("Weight should be >= 0"));
         } else {
-            if (p_146285_ == 0 && SharedConstants.IS_RUNNING_IN_IDE) {
+            if (pWeight == 0 && SharedConstants.IS_RUNNING_IN_IDE) {
                 LOGGER.warn("Found 0 weight, make sure this is intentional!");
             }
         }
@@ -47,11 +47,11 @@ public class Weight {
         return Integer.hashCode(this.value);
     }
 
-    public boolean equals(Object p_146287_) {
-        if (this == p_146287_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_146287_ instanceof Weight && this.value == ((Weight) p_146287_).value;
+            return pOther instanceof Weight && this.value == ((Weight) pOther).value;
         }
     }
 }

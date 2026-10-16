@@ -29,11 +29,11 @@ public class PlayerTeam extends Team {
     private Team.CollisionRule collisionRule = Team.CollisionRule.ALWAYS;
     private final Style displayNameStyle;
 
-    public PlayerTeam(Scoreboard p_83340_, String p_83341_) {
-        this.scoreboard = p_83340_;
-        this.name = p_83341_;
-        this.displayName = Component.literal(p_83341_);
-        this.displayNameStyle = Style.EMPTY.withInsertion(p_83341_).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(p_83341_)));
+    public PlayerTeam(Scoreboard pScoreboard, String pName) {
+        this.scoreboard = pScoreboard;
+        this.name = pName;
+        this.displayName = Component.literal(pName);
+        this.displayNameStyle = Style.EMPTY.withInsertion(pName).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(pName)));
     }
 
     public Scoreboard getScoreboard() {
@@ -58,17 +58,17 @@ public class PlayerTeam extends Team {
         return mutablecomponent;
     }
 
-    public void setDisplayName(Component p_83354_) {
-        if (p_83354_ == null) {
+    public void setDisplayName(Component pName) {
+        if (pName == null) {
             throw new IllegalArgumentException("Name cannot be null");
         } else {
-            this.displayName = p_83354_;
+            this.displayName = pName;
             this.scoreboard.onTeamChanged(this);
         }
     }
 
-    public void setPlayerPrefix(@Nullable Component p_83361_) {
-        this.playerPrefix = p_83361_ == null ? CommonComponents.EMPTY : p_83361_;
+    public void setPlayerPrefix(@Nullable Component pPlayerPrefix) {
+        this.playerPrefix = pPlayerPrefix == null ? CommonComponents.EMPTY : pPlayerPrefix;
         this.scoreboard.onTeamChanged(this);
     }
 
@@ -76,8 +76,8 @@ public class PlayerTeam extends Team {
         return this.playerPrefix;
     }
 
-    public void setPlayerSuffix(@Nullable Component p_83366_) {
-        this.playerSuffix = p_83366_ == null ? CommonComponents.EMPTY : p_83366_;
+    public void setPlayerSuffix(@Nullable Component pPlayerSuffix) {
+        this.playerSuffix = pPlayerSuffix == null ? CommonComponents.EMPTY : pPlayerSuffix;
         this.scoreboard.onTeamChanged(this);
     }
 
@@ -89,8 +89,8 @@ public class PlayerTeam extends Team {
         return this.players;
     }
 
-    public MutableComponent getFormattedName(Component p_83369_) {
-        MutableComponent mutablecomponent = Component.empty().append(this.playerPrefix).append(p_83369_).append(this.playerSuffix);
+    public MutableComponent getFormattedName(Component pFormattedName) {
+        MutableComponent mutablecomponent = Component.empty().append(this.playerPrefix).append(pFormattedName).append(this.playerSuffix);
         ChatFormatting chatformatting = this.getColor();
         if (chatformatting != ChatFormatting.RESET) {
             mutablecomponent.withStyle(chatformatting);
@@ -99,16 +99,16 @@ public class PlayerTeam extends Team {
         return mutablecomponent;
     }
 
-    public static MutableComponent formatNameForTeam(@Nullable Team p_83349_, Component p_83350_) {
-        return p_83349_ == null ? p_83350_.copy() : p_83349_.getFormattedName(p_83350_);
+    public static MutableComponent formatNameForTeam(@Nullable Team pPlayerTeam, Component pPlayerName) {
+        return pPlayerTeam == null ? pPlayerName.copy() : pPlayerTeam.getFormattedName(pPlayerName);
     }
 
     public boolean isAllowFriendlyFire() {
         return this.allowFriendlyFire;
     }
 
-    public void setAllowFriendlyFire(boolean p_83356_) {
-        this.allowFriendlyFire = p_83356_;
+    public void setAllowFriendlyFire(boolean pFriendlyFire) {
+        this.allowFriendlyFire = pFriendlyFire;
         this.scoreboard.onTeamChanged(this);
     }
 
@@ -116,8 +116,8 @@ public class PlayerTeam extends Team {
         return this.seeFriendlyInvisibles;
     }
 
-    public void setSeeFriendlyInvisibles(boolean p_83363_) {
-        this.seeFriendlyInvisibles = p_83363_;
+    public void setSeeFriendlyInvisibles(boolean pFriendlyInvisibles) {
+        this.seeFriendlyInvisibles = pFriendlyInvisibles;
         this.scoreboard.onTeamChanged(this);
     }
 
@@ -129,13 +129,13 @@ public class PlayerTeam extends Team {
         return this.deathMessageVisibility;
     }
 
-    public void setNameTagVisibility(Team.Visibility p_83347_) {
-        this.nameTagVisibility = p_83347_;
+    public void setNameTagVisibility(Team.Visibility pVisibility) {
+        this.nameTagVisibility = pVisibility;
         this.scoreboard.onTeamChanged(this);
     }
 
-    public void setDeathMessageVisibility(Team.Visibility p_83359_) {
-        this.deathMessageVisibility = p_83359_;
+    public void setDeathMessageVisibility(Team.Visibility pVisibility) {
+        this.deathMessageVisibility = pVisibility;
         this.scoreboard.onTeamChanged(this);
     }
 
@@ -143,8 +143,8 @@ public class PlayerTeam extends Team {
         return this.collisionRule;
     }
 
-    public void setCollisionRule(Team.CollisionRule p_83345_) {
-        this.collisionRule = p_83345_;
+    public void setCollisionRule(Team.CollisionRule pRule) {
+        this.collisionRule = pRule;
         this.scoreboard.onTeamChanged(this);
     }
 
@@ -161,13 +161,13 @@ public class PlayerTeam extends Team {
         return i;
     }
 
-    public void unpackOptions(int p_83343_) {
-        this.setAllowFriendlyFire((p_83343_ & 1) > 0);
-        this.setSeeFriendlyInvisibles((p_83343_ & 2) > 0);
+    public void unpackOptions(int pFlags) {
+        this.setAllowFriendlyFire((pFlags & 1) > 0);
+        this.setSeeFriendlyInvisibles((pFlags & 2) > 0);
     }
 
-    public void setColor(ChatFormatting p_83352_) {
-        this.color = p_83352_;
+    public void setColor(ChatFormatting pColor) {
+        this.color = pColor;
         this.scoreboard.onTeamChanged(this);
     }
 

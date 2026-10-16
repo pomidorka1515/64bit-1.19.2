@@ -42,43 +42,43 @@ public class StructurePlaceSettings {
         return structureplacesettings;
     }
 
-    public StructurePlaceSettings setMirror(Mirror p_74378_) {
-        this.mirror = p_74378_;
+    public StructurePlaceSettings setMirror(Mirror pMirror) {
+        this.mirror = pMirror;
         return this;
     }
 
-    public StructurePlaceSettings setRotation(Rotation p_74380_) {
-        this.rotation = p_74380_;
+    public StructurePlaceSettings setRotation(Rotation pRotation) {
+        this.rotation = pRotation;
         return this;
     }
 
-    public StructurePlaceSettings setRotationPivot(BlockPos p_74386_) {
-        this.rotationPivot = p_74386_;
+    public StructurePlaceSettings setRotationPivot(BlockPos pRotationPivot) {
+        this.rotationPivot = pRotationPivot;
         return this;
     }
 
-    public StructurePlaceSettings setIgnoreEntities(boolean p_74393_) {
-        this.ignoreEntities = p_74393_;
+    public StructurePlaceSettings setIgnoreEntities(boolean pIgnoreEntities) {
+        this.ignoreEntities = pIgnoreEntities;
         return this;
     }
 
-    public StructurePlaceSettings setBoundingBox(BoundingBox p_74382_) {
-        this.boundingBox = p_74382_;
+    public StructurePlaceSettings setBoundingBox(BoundingBox pBoundingBox) {
+        this.boundingBox = pBoundingBox;
         return this;
     }
 
-    public StructurePlaceSettings setRandom(@Nullable RandomSource p_230325_) {
-        this.random = p_230325_;
+    public StructurePlaceSettings setRandom(@Nullable RandomSource pRandom) {
+        this.random = pRandom;
         return this;
     }
 
-    public StructurePlaceSettings setKeepLiquids(boolean p_163783_) {
-        this.keepLiquids = p_163783_;
+    public StructurePlaceSettings setKeepLiquids(boolean pKeepLiquids) {
+        this.keepLiquids = pKeepLiquids;
         return this;
     }
 
-    public StructurePlaceSettings setKnownShape(boolean p_74403_) {
-        this.knownShape = p_74403_;
+    public StructurePlaceSettings setKnownShape(boolean pKnownShape) {
+        this.knownShape = pKnownShape;
         return this;
     }
 
@@ -87,13 +87,13 @@ public class StructurePlaceSettings {
         return this;
     }
 
-    public StructurePlaceSettings addProcessor(StructureProcessor p_74384_) {
-        this.processors.add(p_74384_);
+    public StructurePlaceSettings addProcessor(StructureProcessor pProcessor) {
+        this.processors.add(pProcessor);
         return this;
     }
 
-    public StructurePlaceSettings popProcessor(StructureProcessor p_74398_) {
-        this.processors.remove(p_74398_);
+    public StructurePlaceSettings popProcessor(StructureProcessor pProcessor) {
+        this.processors.remove(pProcessor);
         return this;
     }
 
@@ -109,11 +109,11 @@ public class StructurePlaceSettings {
         return this.rotationPivot;
     }
 
-    public RandomSource getRandom(@Nullable BlockPos p_230327_) {
+    public RandomSource getRandom(@Nullable BlockPos pSeedPos) {
         if (this.random != null) {
             return this.random;
         } else {
-            return p_230327_ == null ? RandomSource.create(Util.getMillis()) : RandomSource.create(Mth.getSeed(p_230327_));
+            return pSeedPos == null ? RandomSource.create(Util.getMillis()) : RandomSource.create(Mth.getSeed(pSeedPos));
         }
     }
 
@@ -138,17 +138,17 @@ public class StructurePlaceSettings {
         return this.keepLiquids;
     }
 
-    public StructureTemplate.Palette getRandomPalette(List<StructureTemplate.Palette> p_74388_, @Nullable BlockPos p_74389_) {
-        int i = p_74388_.size();
+    public StructureTemplate.Palette getRandomPalette(List<StructureTemplate.Palette> pPalettes, @Nullable BlockPos pPos) {
+        int i = pPalettes.size();
         if (i == 0) {
             throw new IllegalStateException("No palettes");
         } else {
-            return p_74388_.get(this.getRandom(p_74389_).nextInt(i));
+            return pPalettes.get(this.getRandom(pPos).nextInt(i));
         }
     }
 
-    public StructurePlaceSettings setFinalizeEntities(boolean p_74406_) {
-        this.finalizeEntities = p_74406_;
+    public StructurePlaceSettings setFinalizeEntities(boolean pFinalizeEntities) {
+        this.finalizeEntities = pFinalizeEntities;
         return this;
     }
 

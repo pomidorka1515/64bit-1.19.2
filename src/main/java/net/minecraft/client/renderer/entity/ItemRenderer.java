@@ -75,10 +75,10 @@ public class ItemRenderer implements ResourceManagerReloadListener {
     private final ItemColors itemColors;
     private final BlockEntityWithoutLevelRenderer blockEntityRenderer;
 
-    public ItemRenderer(TextureManager p_174225_, ModelManager p_174226_, ItemColors p_174227_, BlockEntityWithoutLevelRenderer p_174228_) {
-        this.textureManager = p_174225_;
-        this.itemModelShaper = new ItemModelShaper(p_174226_);
-        this.blockEntityRenderer = p_174228_;
+    public ItemRenderer(TextureManager pTextureManager, ModelManager pModelManager, ItemColors pItemColors, BlockEntityWithoutLevelRenderer pBlockEntityRenderer) {
+        this.textureManager = pTextureManager;
+        this.itemModelShaper = new ItemModelShaper(pModelManager);
+        this.blockEntityRenderer = pBlockEntityRenderer;
 
         for (Item item : Registry.ITEM) {
             if (!IGNORED.contains(item)) {
@@ -86,120 +86,120 @@ public class ItemRenderer implements ResourceManagerReloadListener {
             }
         }
 
-        this.itemColors = p_174227_;
+        this.itemColors = pItemColors;
     }
 
     public ItemModelShaper getItemModelShaper() {
         return this.itemModelShaper;
     }
 
-    private void renderModelLists(BakedModel p_115190_, ItemStack p_115191_, int p_115192_, int p_115193_, PoseStack p_115194_, VertexConsumer p_115195_) {
+    private void renderModelLists(BakedModel pModel, ItemStack pStack, int pCombinedLight, int pCombinedOverlay, PoseStack pMatrixStack, VertexConsumer pBuffer) {
         RandomSource randomsource = RandomSource.create();
         long i = 42L;
 
         for (Direction direction : Direction.values()) {
             randomsource.setSeed(42L);
-            this.renderQuadList(p_115194_, p_115195_, p_115190_.getQuads((BlockState) null, direction, randomsource), p_115191_, p_115192_, p_115193_);
+            this.renderQuadList(pMatrixStack, pBuffer, pModel.getQuads((BlockState) null, direction, randomsource), pStack, pCombinedLight, pCombinedOverlay);
         }
 
         randomsource.setSeed(42L);
-        this.renderQuadList(p_115194_, p_115195_, p_115190_.getQuads((BlockState) null, (Direction) null, randomsource), p_115191_, p_115192_, p_115193_);
+        this.renderQuadList(pMatrixStack, pBuffer, pModel.getQuads((BlockState) null, (Direction) null, randomsource), pStack, pCombinedLight, pCombinedOverlay);
     }
 
-    public void render(ItemStack p_115144_, ItemTransforms.TransformType p_115145_, boolean p_115146_, PoseStack p_115147_, MultiBufferSource p_115148_, int p_115149_, int p_115150_, BakedModel p_115151_) {
-        if (!p_115144_.isEmpty()) {
-            p_115147_.pushPose();
-            boolean flag = p_115145_ == ItemTransforms.TransformType.GUI || p_115145_ == ItemTransforms.TransformType.GROUND || p_115145_ == ItemTransforms.TransformType.FIXED;
+    public void render(ItemStack pItemStack, ItemTransforms.TransformType pTransformType, boolean pLeftHand, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, int pCombinedOverlay, BakedModel pModel) {
+        if (!pItemStack.isEmpty()) {
+            pPoseStack.pushPose();
+            boolean flag = pTransformType == ItemTransforms.TransformType.GUI || pTransformType == ItemTransforms.TransformType.GROUND || pTransformType == ItemTransforms.TransformType.FIXED;
             if (flag) {
-                if (p_115144_.is(Items.TRIDENT)) {
-                    p_115151_ = this.itemModelShaper.getModelManager().getModel(new ModelResourceLocation("minecraft:trident#inventory"));
-                } else if (p_115144_.is(Items.SPYGLASS)) {
-                    p_115151_ = this.itemModelShaper.getModelManager().getModel(new ModelResourceLocation("minecraft:spyglass#inventory"));
+                if (pItemStack.is(Items.TRIDENT)) {
+                    pModel = this.itemModelShaper.getModelManager().getModel(new ModelResourceLocation("minecraft:trident#inventory"));
+                } else if (pItemStack.is(Items.SPYGLASS)) {
+                    pModel = this.itemModelShaper.getModelManager().getModel(new ModelResourceLocation("minecraft:spyglass#inventory"));
                 }
             }
 
-            p_115151_.getTransforms().getTransform(p_115145_).apply(p_115146_, p_115147_);
-            p_115147_.translate(-0.5D, -0.5D, -0.5D);
-            if (!p_115151_.isCustomRenderer() && (!p_115144_.is(Items.TRIDENT) || flag)) {
+            pModel.getTransforms().getTransform(pTransformType).apply(pLeftHand, pPoseStack);
+            pPoseStack.translate(-0.5D, -0.5D, -0.5D);
+            if (!pModel.isCustomRenderer() && (!pItemStack.is(Items.TRIDENT) || flag)) {
                 boolean flag1;
-                if (p_115145_ != ItemTransforms.TransformType.GUI && !p_115145_.firstPerson() && p_115144_.getItem() instanceof BlockItem) {
-                    Block block = ((BlockItem) p_115144_.getItem()).getBlock();
+                if (pTransformType != ItemTransforms.TransformType.GUI && !pTransformType.firstPerson() && pItemStack.getItem() instanceof BlockItem) {
+                    Block block = ((BlockItem) pItemStack.getItem()).getBlock();
                     flag1 = !(block instanceof HalfTransparentBlock) && !(block instanceof StainedGlassPaneBlock);
                 } else {
                     flag1 = true;
                 }
 
-                RenderType rendertype = ItemBlockRenderTypes.getRenderType(p_115144_, flag1);
+                RenderType rendertype = ItemBlockRenderTypes.getRenderType(pItemStack, flag1);
                 VertexConsumer vertexconsumer;
-                if (p_115144_.is(ItemTags.COMPASSES) && p_115144_.hasFoil()) {
-                    p_115147_.pushPose();
-                    PoseStack.Pose posestack$pose = p_115147_.last();
-                    if (p_115145_ == ItemTransforms.TransformType.GUI) {
+                if (pItemStack.is(ItemTags.COMPASSES) && pItemStack.hasFoil()) {
+                    pPoseStack.pushPose();
+                    PoseStack.Pose posestack$pose = pPoseStack.last();
+                    if (pTransformType == ItemTransforms.TransformType.GUI) {
                         posestack$pose.pose().multiply(0.5F);
-                    } else if (p_115145_.firstPerson()) {
+                    } else if (pTransformType.firstPerson()) {
                         posestack$pose.pose().multiply(0.75F);
                     }
 
                     if (flag1) {
-                        vertexconsumer = getCompassFoilBufferDirect(p_115148_, rendertype, posestack$pose);
+                        vertexconsumer = getCompassFoilBufferDirect(pBuffer, rendertype, posestack$pose);
                     } else {
-                        vertexconsumer = getCompassFoilBuffer(p_115148_, rendertype, posestack$pose);
+                        vertexconsumer = getCompassFoilBuffer(pBuffer, rendertype, posestack$pose);
                     }
 
-                    p_115147_.popPose();
+                    pPoseStack.popPose();
                 } else if (flag1) {
-                    vertexconsumer = getFoilBufferDirect(p_115148_, rendertype, true, p_115144_.hasFoil());
+                    vertexconsumer = getFoilBufferDirect(pBuffer, rendertype, true, pItemStack.hasFoil());
                 } else {
-                    vertexconsumer = getFoilBuffer(p_115148_, rendertype, true, p_115144_.hasFoil());
+                    vertexconsumer = getFoilBuffer(pBuffer, rendertype, true, pItemStack.hasFoil());
                 }
 
-                this.renderModelLists(p_115151_, p_115144_, p_115149_, p_115150_, p_115147_, vertexconsumer);
+                this.renderModelLists(pModel, pItemStack, pCombinedLight, pCombinedOverlay, pPoseStack, vertexconsumer);
             } else {
-                this.blockEntityRenderer.renderByItem(p_115144_, p_115145_, p_115147_, p_115148_, p_115149_, p_115150_);
+                this.blockEntityRenderer.renderByItem(pItemStack, pTransformType, pPoseStack, pBuffer, pCombinedLight, pCombinedOverlay);
             }
 
-            p_115147_.popPose();
+            pPoseStack.popPose();
         }
     }
 
-    public static VertexConsumer getArmorFoilBuffer(MultiBufferSource p_115185_, RenderType p_115186_, boolean p_115187_, boolean p_115188_) {
-        return p_115188_ ? VertexMultiConsumer.create(p_115185_.getBuffer(p_115187_ ? RenderType.armorGlint() : RenderType.armorEntityGlint()), p_115185_.getBuffer(p_115186_)) : p_115185_.getBuffer(p_115186_);
+    public static VertexConsumer getArmorFoilBuffer(MultiBufferSource pBuffer, RenderType pRenderType, boolean pNoEntity, boolean pWithGlint) {
+        return pWithGlint ? VertexMultiConsumer.create(pBuffer.getBuffer(pNoEntity ? RenderType.armorGlint() : RenderType.armorEntityGlint()), pBuffer.getBuffer(pRenderType)) : pBuffer.getBuffer(pRenderType);
     }
 
-    public static VertexConsumer getCompassFoilBuffer(MultiBufferSource p_115181_, RenderType p_115182_, PoseStack.Pose p_115183_) {
-        return VertexMultiConsumer.create(new SheetedDecalTextureGenerator(p_115181_.getBuffer(RenderType.glint()), p_115183_.pose(), p_115183_.normal()), p_115181_.getBuffer(p_115182_));
+    public static VertexConsumer getCompassFoilBuffer(MultiBufferSource pBuffer, RenderType pRenderType, PoseStack.Pose pMatrixEntry) {
+        return VertexMultiConsumer.create(new SheetedDecalTextureGenerator(pBuffer.getBuffer(RenderType.glint()), pMatrixEntry.pose(), pMatrixEntry.normal()), pBuffer.getBuffer(pRenderType));
     }
 
-    public static VertexConsumer getCompassFoilBufferDirect(MultiBufferSource p_115208_, RenderType p_115209_, PoseStack.Pose p_115210_) {
-        return VertexMultiConsumer.create(new SheetedDecalTextureGenerator(p_115208_.getBuffer(RenderType.glintDirect()), p_115210_.pose(), p_115210_.normal()), p_115208_.getBuffer(p_115209_));
+    public static VertexConsumer getCompassFoilBufferDirect(MultiBufferSource pBuffer, RenderType pRenderType, PoseStack.Pose pMatrixEntry) {
+        return VertexMultiConsumer.create(new SheetedDecalTextureGenerator(pBuffer.getBuffer(RenderType.glintDirect()), pMatrixEntry.pose(), pMatrixEntry.normal()), pBuffer.getBuffer(pRenderType));
     }
 
-    public static VertexConsumer getFoilBuffer(MultiBufferSource p_115212_, RenderType p_115213_, boolean p_115214_, boolean p_115215_) {
-        if (p_115215_) {
-            return Minecraft.useShaderTransparency() && p_115213_ == Sheets.translucentItemSheet() ? VertexMultiConsumer.create(p_115212_.getBuffer(RenderType.glintTranslucent()), p_115212_.getBuffer(p_115213_)) : VertexMultiConsumer.create(p_115212_.getBuffer(p_115214_ ? RenderType.glint() : RenderType.entityGlint()), p_115212_.getBuffer(p_115213_));
+    public static VertexConsumer getFoilBuffer(MultiBufferSource pBuffer, RenderType pRenderType, boolean pIsItem, boolean pGlint) {
+        if (pGlint) {
+            return Minecraft.useShaderTransparency() && pRenderType == Sheets.translucentItemSheet() ? VertexMultiConsumer.create(pBuffer.getBuffer(RenderType.glintTranslucent()), pBuffer.getBuffer(pRenderType)) : VertexMultiConsumer.create(pBuffer.getBuffer(pIsItem ? RenderType.glint() : RenderType.entityGlint()), pBuffer.getBuffer(pRenderType));
         } else {
-            return p_115212_.getBuffer(p_115213_);
+            return pBuffer.getBuffer(pRenderType);
         }
     }
 
-    public static VertexConsumer getFoilBufferDirect(MultiBufferSource p_115223_, RenderType p_115224_, boolean p_115225_, boolean p_115226_) {
-        return p_115226_ ? VertexMultiConsumer.create(p_115223_.getBuffer(p_115225_ ? RenderType.glintDirect() : RenderType.entityGlintDirect()), p_115223_.getBuffer(p_115224_)) : p_115223_.getBuffer(p_115224_);
+    public static VertexConsumer getFoilBufferDirect(MultiBufferSource pBuffer, RenderType pRenderType, boolean pNoEntity, boolean pWithGlint) {
+        return pWithGlint ? VertexMultiConsumer.create(pBuffer.getBuffer(pNoEntity ? RenderType.glintDirect() : RenderType.entityGlintDirect()), pBuffer.getBuffer(pRenderType)) : pBuffer.getBuffer(pRenderType);
     }
 
-    private void renderQuadList(PoseStack p_115163_, VertexConsumer p_115164_, List<BakedQuad> p_115165_, ItemStack p_115166_, int p_115167_, int p_115168_) {
-        boolean flag = !p_115166_.isEmpty();
-        PoseStack.Pose posestack$pose = p_115163_.last();
+    private void renderQuadList(PoseStack pPoseStack, VertexConsumer pBuffer, List<BakedQuad> pQuads, ItemStack pItemStack, int pCombinedLight, int pCombinedOverlay) {
+        boolean flag = !pItemStack.isEmpty();
+        PoseStack.Pose posestack$pose = pPoseStack.last();
 
-        for (BakedQuad bakedquad : p_115165_) {
+        for (BakedQuad bakedquad : pQuads) {
             int i = -1;
             if (flag && bakedquad.isTinted()) {
-                i = this.itemColors.getColor(p_115166_, bakedquad.getTintIndex());
+                i = this.itemColors.getColor(pItemStack, bakedquad.getTintIndex());
             }
 
             float f = (float) (i >> 16 & 255) / 255.0F;
             float f1 = (float) (i >> 8 & 255) / 255.0F;
             float f2 = (float) (i & 255) / 255.0F;
-            p_115164_.putBulkData(posestack$pose, bakedquad, f, f1, f2, p_115167_, p_115168_);
+            pBuffer.putBulkData(posestack$pose, bakedquad, f, f1, f2, pCombinedLight, pCombinedOverlay);
         }
     }
 
@@ -229,11 +229,11 @@ public class ItemRenderer implements ResourceManagerReloadListener {
         }
     }
 
-    public void renderGuiItem(ItemStack p_115124_, int p_115125_, int p_115126_) {
-        this.renderGuiItem(p_115124_, p_115125_, p_115126_, this.getModel(p_115124_, (Level) null, (LivingEntity) null, 0));
+    public void renderGuiItem(ItemStack pStack, int pX, int pY) {
+        this.renderGuiItem(pStack, pX, pY, this.getModel(pStack, (Level) null, (LivingEntity) null, 0));
     }
 
-    protected void renderGuiItem(ItemStack p_115128_, int p_115129_, int p_115130_, BakedModel p_115131_) {
+    protected void renderGuiItem(ItemStack pStack, int pX, int pY, BakedModel pBakedModel) {
         this.textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).setFilter(false, false);
         RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
         RenderSystem.enableBlend();
@@ -241,19 +241,19 @@ public class ItemRenderer implements ResourceManagerReloadListener {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         PoseStack posestack = RenderSystem.getModelViewStack();
         posestack.pushPose();
-        posestack.translate((double) p_115129_, (double) p_115130_, (double) (100.0F + this.blitOffset));
+        posestack.translate((double) pX, (double) pY, (double) (100.0F + this.blitOffset));
         posestack.translate(8.0D, 8.0D, 0.0D);
         posestack.scale(1.0F, -1.0F, 1.0F);
         posestack.scale(16.0F, 16.0F, 16.0F);
         RenderSystem.applyModelViewMatrix();
         PoseStack posestack1 = new PoseStack();
         MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
-        boolean flag = !p_115131_.usesBlockLight();
+        boolean flag = !pBakedModel.usesBlockLight();
         if (flag) {
             Lighting.setupForFlatItems();
         }
 
-        this.render(p_115128_, ItemTransforms.TransformType.GUI, false, posestack1, multibuffersource$buffersource, 15728880, OverlayTexture.NO_OVERLAY, p_115131_);
+        this.render(pStack, ItemTransforms.TransformType.GUI, false, posestack1, multibuffersource$buffersource, 15728880, OverlayTexture.NO_OVERLAY, pBakedModel);
         multibuffersource$buffersource.endBatch();
         RenderSystem.enableDepthTest();
         if (flag) {
@@ -264,8 +264,8 @@ public class ItemRenderer implements ResourceManagerReloadListener {
         RenderSystem.applyModelViewMatrix();
     }
 
-    public void renderAndDecorateItem(ItemStack p_115204_, int p_115205_, int p_115206_) {
-        this.tryRenderGuiItem(Minecraft.getInstance().player, p_115204_, p_115205_, p_115206_, 0);
+    public void renderAndDecorateItem(ItemStack pStack, int pXPosition, int pYPosition) {
+        this.tryRenderGuiItem(Minecraft.getInstance().player, pStack, pXPosition, pYPosition, 0);
     }
 
     public void renderAndDecorateItem(ItemStack p_174254_, int p_174255_, int p_174256_, int p_174257_) {
@@ -276,8 +276,8 @@ public class ItemRenderer implements ResourceManagerReloadListener {
         this.tryRenderGuiItem(Minecraft.getInstance().player, p_174259_, p_174260_, p_174261_, p_174262_, p_174263_);
     }
 
-    public void renderAndDecorateFakeItem(ItemStack p_115219_, int p_115220_, int p_115221_) {
-        this.tryRenderGuiItem((LivingEntity) null, p_115219_, p_115220_, p_115221_, 0);
+    public void renderAndDecorateFakeItem(ItemStack pStack, int pX, int pY) {
+        this.tryRenderGuiItem((LivingEntity) null, pStack, pX, pY, 0);
     }
 
     public void renderAndDecorateItem(LivingEntity p_174230_, ItemStack p_174231_, int p_174232_, int p_174233_, int p_174234_) {
@@ -317,38 +317,38 @@ public class ItemRenderer implements ResourceManagerReloadListener {
         }
     }
 
-    public void renderGuiItemDecorations(Font p_115170_, ItemStack p_115171_, int p_115172_, int p_115173_) {
-        this.renderGuiItemDecorations(p_115170_, p_115171_, p_115172_, p_115173_, (String) null);
+    public void renderGuiItemDecorations(Font pFont, ItemStack pStack, int pXPosition, int pYPosition) {
+        this.renderGuiItemDecorations(pFont, pStack, pXPosition, pYPosition, (String) null);
     }
 
-    public void renderGuiItemDecorations(Font p_115175_, ItemStack p_115176_, int p_115177_, int p_115178_, @Nullable String p_115179_) {
-        if (!p_115176_.isEmpty()) {
+    public void renderGuiItemDecorations(Font pFont, ItemStack pStack, int pXPosition, int pYPosition, @Nullable String pText) {
+        if (!pStack.isEmpty()) {
             PoseStack posestack = new PoseStack();
-            if (p_115176_.getCount() != 1 || p_115179_ != null) {
-                String s = p_115179_ == null ? String.valueOf(p_115176_.getCount()) : p_115179_;
+            if (pStack.getCount() != 1 || pText != null) {
+                String s = pText == null ? String.valueOf(pStack.getCount()) : pText;
                 posestack.translate(0.0D, 0.0D, (double) (this.blitOffset + 200.0F));
                 MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-                p_115175_.drawInBatch(s, (float) (p_115177_ + 19 - 2 - p_115175_.width(s)), (float) (p_115178_ + 6 + 3), 16777215, true, posestack.last().pose(), multibuffersource$buffersource, false, 0, 15728880);
+                pFont.drawInBatch(s, (float) (pXPosition + 19 - 2 - pFont.width(s)), (float) (pYPosition + 6 + 3), 16777215, true, posestack.last().pose(), multibuffersource$buffersource, false, 0, 15728880);
                 multibuffersource$buffersource.endBatch();
             }
 
-            if (p_115176_.isBarVisible()) {
+            if (pStack.isBarVisible()) {
                 RenderSystem.disableDepthTest();
                 RenderSystem.disableTexture();
                 RenderSystem.disableBlend();
                 Tesselator tesselator = Tesselator.getInstance();
                 BufferBuilder bufferbuilder = tesselator.getBuilder();
-                int i = p_115176_.getBarWidth();
-                int j = p_115176_.getBarColor();
-                this.fillRect(bufferbuilder, p_115177_ + 2, p_115178_ + 13, 13, 2, 0, 0, 0, 255);
-                this.fillRect(bufferbuilder, p_115177_ + 2, p_115178_ + 13, i, 1, j >> 16 & 255, j >> 8 & 255, j & 255, 255);
+                int i = pStack.getBarWidth();
+                int j = pStack.getBarColor();
+                this.fillRect(bufferbuilder, pXPosition + 2, pYPosition + 13, 13, 2, 0, 0, 0, 255);
+                this.fillRect(bufferbuilder, pXPosition + 2, pYPosition + 13, i, 1, j >> 16 & 255, j >> 8 & 255, j & 255, 255);
                 RenderSystem.enableBlend();
                 RenderSystem.enableTexture();
                 RenderSystem.enableDepthTest();
             }
 
             LocalPlayer localplayer = Minecraft.getInstance().player;
-            float f = localplayer == null ? 0.0F : localplayer.getCooldowns().getCooldownPercent(p_115176_.getItem(), Minecraft.getInstance().getFrameTime());
+            float f = localplayer == null ? 0.0F : localplayer.getCooldowns().getCooldownPercent(pStack.getItem(), Minecraft.getInstance().getFrameTime());
             if (f > 0.0F) {
                 RenderSystem.disableDepthTest();
                 RenderSystem.disableTexture();
@@ -356,24 +356,24 @@ public class ItemRenderer implements ResourceManagerReloadListener {
                 RenderSystem.defaultBlendFunc();
                 Tesselator tesselator1 = Tesselator.getInstance();
                 BufferBuilder bufferbuilder1 = tesselator1.getBuilder();
-                this.fillRect(bufferbuilder1, p_115177_, p_115178_ + Mth.floor(16.0F * (1.0F - f)), 16, Mth.ceil(16.0F * f), 255, 255, 255, 127);
+                this.fillRect(bufferbuilder1, pXPosition, pYPosition + Mth.floor(16.0F * (1.0F - f)), 16, Mth.ceil(16.0F * f), 255, 255, 255, 127);
                 RenderSystem.enableTexture();
                 RenderSystem.enableDepthTest();
             }
         }
     }
 
-    private void fillRect(BufferBuilder p_115153_, int p_115154_, int p_115155_, int p_115156_, int p_115157_, int p_115158_, int p_115159_, int p_115160_, int p_115161_) {
+    private void fillRect(BufferBuilder pRenderer, int pX, int pY, int pWidth, int pHeight, int pRed, int pGreen, int pBlue, int pAlpha) {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        p_115153_.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        p_115153_.vertex((double) (p_115154_ + 0), (double) (p_115155_ + 0), 0.0D).color(p_115158_, p_115159_, p_115160_, p_115161_).endVertex();
-        p_115153_.vertex((double) (p_115154_ + 0), (double) (p_115155_ + p_115157_), 0.0D).color(p_115158_, p_115159_, p_115160_, p_115161_).endVertex();
-        p_115153_.vertex((double) (p_115154_ + p_115156_), (double) (p_115155_ + p_115157_), 0.0D).color(p_115158_, p_115159_, p_115160_, p_115161_).endVertex();
-        p_115153_.vertex((double) (p_115154_ + p_115156_), (double) (p_115155_ + 0), 0.0D).color(p_115158_, p_115159_, p_115160_, p_115161_).endVertex();
-        BufferUploader.drawWithShader(p_115153_.end());
+        pRenderer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        pRenderer.vertex((double) (pX + 0), (double) (pY + 0), 0.0D).color(pRed, pGreen, pBlue, pAlpha).endVertex();
+        pRenderer.vertex((double) (pX + 0), (double) (pY + pHeight), 0.0D).color(pRed, pGreen, pBlue, pAlpha).endVertex();
+        pRenderer.vertex((double) (pX + pWidth), (double) (pY + pHeight), 0.0D).color(pRed, pGreen, pBlue, pAlpha).endVertex();
+        pRenderer.vertex((double) (pX + pWidth), (double) (pY + 0), 0.0D).color(pRed, pGreen, pBlue, pAlpha).endVertex();
+        BufferUploader.drawWithShader(pRenderer.end());
     }
 
-    public void onResourceManagerReload(ResourceManager p_115105_) {
+    public void onResourceManagerReload(ResourceManager pResourceManager) {
         this.itemModelShaper.rebuildCache();
     }
 }

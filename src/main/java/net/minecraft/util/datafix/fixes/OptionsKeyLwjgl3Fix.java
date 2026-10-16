@@ -127,8 +127,8 @@ public class OptionsKeyLwjgl3Fix extends DataFix {
         p_16640_.put(44, "key.z");
     });
 
-    public OptionsKeyLwjgl3Fix(Schema p_16630_, boolean p_16631_) {
-        super(p_16630_, p_16631_);
+    public OptionsKeyLwjgl3Fix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

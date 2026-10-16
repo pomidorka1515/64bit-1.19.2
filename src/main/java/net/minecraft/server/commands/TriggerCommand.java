@@ -25,8 +25,8 @@ public class TriggerCommand {
     private static final SimpleCommandExceptionType ERROR_NOT_PRIMED = new SimpleCommandExceptionType(Component.translatable("commands.trigger.failed.unprimed"));
     private static final SimpleCommandExceptionType ERROR_INVALID_OBJECTIVE = new SimpleCommandExceptionType(Component.translatable("commands.trigger.failed.invalid"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_139142_) {
-        p_139142_.register(Commands.literal("trigger").then(Commands.argument("objective", ObjectiveArgument.objective()).suggests((p_139146_, p_139147_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("trigger").then(Commands.argument("objective", ObjectiveArgument.objective()).suggests((p_139146_, p_139147_) -> {
                                                                                                                              return suggestObjectives(p_139146_.getSource(), p_139147_);
                                                                                                                          })
                         .executes((p_139165_) -> {
@@ -40,11 +40,11 @@ public class TriggerCommand {
                         })))));
     }
 
-    public static CompletableFuture<Suggestions> suggestObjectives(CommandSourceStack p_139149_, SuggestionsBuilder p_139150_) {
-        Entity entity = p_139149_.getEntity();
+    public static CompletableFuture<Suggestions> suggestObjectives(CommandSourceStack pSource, SuggestionsBuilder pBuilder) {
+        Entity entity = pSource.getEntity();
         List<String> list = Lists.newArrayList();
         if (entity != null) {
-            Scoreboard scoreboard = p_139149_.getServer().getScoreboard();
+            Scoreboard scoreboard = pSource.getServer().getScoreboard();
             String s = entity.getScoreboardName();
 
             for (Objective objective : scoreboard.getObjectives()) {
@@ -57,37 +57,37 @@ public class TriggerCommand {
             }
         }
 
-        return SharedSuggestionProvider.suggest(list, p_139150_);
+        return SharedSuggestionProvider.suggest(list, pBuilder);
     }
 
-    private static int addValue(CommandSourceStack p_139155_, Score p_139156_, int p_139157_) {
-        p_139156_.add(p_139157_);
-        p_139155_.sendSuccess(Component.translatable("commands.trigger.add.success", p_139156_.getObjective().getFormattedDisplayName(), p_139157_), true);
-        return p_139156_.getScore();
+    private static int addValue(CommandSourceStack pSource, Score pObjective, int pAmount) {
+        pObjective.add(pAmount);
+        pSource.sendSuccess(Component.translatable("commands.trigger.add.success", pObjective.getObjective().getFormattedDisplayName(), pAmount), true);
+        return pObjective.getScore();
     }
 
-    private static int setValue(CommandSourceStack p_139161_, Score p_139162_, int p_139163_) {
-        p_139162_.setScore(p_139163_);
-        p_139161_.sendSuccess(Component.translatable("commands.trigger.set.success", p_139162_.getObjective().getFormattedDisplayName(), p_139163_), true);
-        return p_139163_;
+    private static int setValue(CommandSourceStack pSource, Score pObjective, int pValue) {
+        pObjective.setScore(pValue);
+        pSource.sendSuccess(Component.translatable("commands.trigger.set.success", pObjective.getObjective().getFormattedDisplayName(), pValue), true);
+        return pValue;
     }
 
-    private static int simpleTrigger(CommandSourceStack p_139152_, Score p_139153_) {
-        p_139153_.add(1);
-        p_139152_.sendSuccess(Component.translatable("commands.trigger.simple.success", p_139153_.getObjective().getFormattedDisplayName()), true);
-        return p_139153_.getScore();
+    private static int simpleTrigger(CommandSourceStack pSource, Score pObjectives) {
+        pObjectives.add(1);
+        pSource.sendSuccess(Component.translatable("commands.trigger.simple.success", pObjectives.getObjective().getFormattedDisplayName()), true);
+        return pObjectives.getScore();
     }
 
-    private static Score getScore(ServerPlayer p_139139_, Objective p_139140_) throws CommandSyntaxException {
-        if (p_139140_.getCriteria() != ObjectiveCriteria.TRIGGER) {
+    private static Score getScore(ServerPlayer pPlayer, Objective pObjective) throws CommandSyntaxException {
+        if (pObjective.getCriteria() != ObjectiveCriteria.TRIGGER) {
             throw ERROR_INVALID_OBJECTIVE.create();
         } else {
-            Scoreboard scoreboard = p_139139_.getScoreboard();
-            String s = p_139139_.getScoreboardName();
-            if (!scoreboard.hasPlayerScore(s, p_139140_)) {
+            Scoreboard scoreboard = pPlayer.getScoreboard();
+            String s = pPlayer.getScoreboardName();
+            if (!scoreboard.hasPlayerScore(s, pObjective)) {
                 throw ERROR_NOT_PRIMED.create();
             } else {
-                Score score = scoreboard.getOrCreatePlayerScore(s, p_139140_);
+                Score score = scoreboard.getOrCreatePlayerScore(s, pObjective);
                 if (score.isLocked()) {
                     throw ERROR_NOT_PRIMED.create();
                 } else {

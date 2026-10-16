@@ -12,20 +12,20 @@ import net.minecraft.world.item.crafting.Recipe;
 public class ClientboundUpdateRecipesPacket implements Packet<ClientGamePacketListener> {
     private final List<Recipe<?>> recipes;
 
-    public ClientboundUpdateRecipesPacket(Collection<Recipe<?>> p_133632_) {
-        this.recipes = Lists.newArrayList(p_133632_);
+    public ClientboundUpdateRecipesPacket(Collection<Recipe<?>> pRecipes) {
+        this.recipes = Lists.newArrayList(pRecipes);
     }
 
-    public ClientboundUpdateRecipesPacket(FriendlyByteBuf p_179468_) {
-        this.recipes = p_179468_.readList(ClientboundUpdateRecipesPacket::fromNetwork);
+    public ClientboundUpdateRecipesPacket(FriendlyByteBuf pBuffer) {
+        this.recipes = pBuffer.readList(ClientboundUpdateRecipesPacket::fromNetwork);
     }
 
-    public void write(FriendlyByteBuf p_133646_) {
-        p_133646_.writeCollection(this.recipes, ClientboundUpdateRecipesPacket::toNetwork);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeCollection(this.recipes, ClientboundUpdateRecipesPacket::toNetwork);
     }
 
-    public void handle(ClientGamePacketListener p_133641_) {
-        p_133641_.handleUpdateRecipes(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleUpdateRecipes(this);
     }
 
     public List<Recipe<?>> getRecipes() {

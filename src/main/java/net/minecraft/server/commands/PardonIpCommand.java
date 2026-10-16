@@ -15,8 +15,8 @@ public class PardonIpCommand {
     private static final SimpleCommandExceptionType ERROR_INVALID = new SimpleCommandExceptionType(Component.translatable("commands.pardonip.invalid"));
     private static final SimpleCommandExceptionType ERROR_NOT_BANNED = new SimpleCommandExceptionType(Component.translatable("commands.pardonip.failed"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138109_) {
-        p_138109_.register(Commands.literal("pardon-ip").requires((p_138116_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("pardon-ip").requires((p_138116_) -> {
                                                             return p_138116_.hasPermission(3);
                                                         })
                         .then(Commands.argument("target", StringArgumentType.word()).suggests((p_138113_, p_138114_) -> {
@@ -27,17 +27,17 @@ public class PardonIpCommand {
                                         })));
     }
 
-    private static int unban(CommandSourceStack p_138118_, String p_138119_) throws CommandSyntaxException {
-        Matcher matcher = BanIpCommands.IP_ADDRESS_PATTERN.matcher(p_138119_);
+    private static int unban(CommandSourceStack pSource, String pIpAddress) throws CommandSyntaxException {
+        Matcher matcher = BanIpCommands.IP_ADDRESS_PATTERN.matcher(pIpAddress);
         if (!matcher.matches()) {
             throw ERROR_INVALID.create();
         } else {
-            IpBanList ipbanlist = p_138118_.getServer().getPlayerList().getIpBans();
-            if (!ipbanlist.isBanned(p_138119_)) {
+            IpBanList ipbanlist = pSource.getServer().getPlayerList().getIpBans();
+            if (!ipbanlist.isBanned(pIpAddress)) {
                 throw ERROR_NOT_BANNED.create();
             } else {
-                ipbanlist.remove(p_138119_);
-                p_138118_.sendSuccess(Component.translatable("commands.pardonip.success", p_138119_), true);
+                ipbanlist.remove(pIpAddress);
+                pSource.sendSuccess(Component.translatable("commands.pardonip.success", pIpAddress), true);
                 return 1;
             }
         }

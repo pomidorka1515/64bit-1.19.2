@@ -51,76 +51,76 @@ public class StructureBlockEntity extends BlockEntity {
     private float integrity = 1.0F;
     private long seed;
 
-    public StructureBlockEntity(BlockPos p_155779_, BlockState p_155780_) {
-        super(BlockEntityType.STRUCTURE_BLOCK, p_155779_, p_155780_);
-        this.mode = p_155780_.getValue(StructureBlock.MODE);
+    public StructureBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.STRUCTURE_BLOCK, pPos, pBlockState);
+        this.mode = pBlockState.getValue(StructureBlock.MODE);
     }
 
-    protected void saveAdditional(CompoundTag p_187524_) {
-        super.saveAdditional(p_187524_);
-        p_187524_.putString("name", this.getStructureName());
-        p_187524_.putString("author", this.author);
-        p_187524_.putString("metadata", this.metaData);
-        p_187524_.putInt("posX", this.structurePos.getX());
-        p_187524_.putInt("posY", this.structurePos.getY());
-        p_187524_.putInt("posZ", this.structurePos.getZ());
-        p_187524_.putInt("sizeX", this.structureSize.getX());
-        p_187524_.putInt("sizeY", this.structureSize.getY());
-        p_187524_.putInt("sizeZ", this.structureSize.getZ());
-        p_187524_.putString("rotation", this.rotation.toString());
-        p_187524_.putString("mirror", this.mirror.toString());
-        p_187524_.putString("mode", this.mode.toString());
-        p_187524_.putBoolean("ignoreEntities", this.ignoreEntities);
-        p_187524_.putBoolean("powered", this.powered);
-        p_187524_.putBoolean("showair", this.showAir);
-        p_187524_.putBoolean("showboundingbox", this.showBoundingBox);
-        p_187524_.putFloat("integrity", this.integrity);
-        p_187524_.putLong("seed", this.seed);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
+        pTag.putString("name", this.getStructureName());
+        pTag.putString("author", this.author);
+        pTag.putString("metadata", this.metaData);
+        pTag.putInt("posX", this.structurePos.getX());
+        pTag.putInt("posY", this.structurePos.getY());
+        pTag.putInt("posZ", this.structurePos.getZ());
+        pTag.putInt("sizeX", this.structureSize.getX());
+        pTag.putInt("sizeY", this.structureSize.getY());
+        pTag.putInt("sizeZ", this.structureSize.getZ());
+        pTag.putString("rotation", this.rotation.toString());
+        pTag.putString("mirror", this.mirror.toString());
+        pTag.putString("mode", this.mode.toString());
+        pTag.putBoolean("ignoreEntities", this.ignoreEntities);
+        pTag.putBoolean("powered", this.powered);
+        pTag.putBoolean("showair", this.showAir);
+        pTag.putBoolean("showboundingbox", this.showBoundingBox);
+        pTag.putFloat("integrity", this.integrity);
+        pTag.putLong("seed", this.seed);
     }
 
-    public void load(CompoundTag p_155800_) {
-        super.load(p_155800_);
-        this.setStructureName(p_155800_.getString("name"));
-        this.author = p_155800_.getString("author");
-        this.metaData = p_155800_.getString("metadata");
-        int i = Mth.clamp(p_155800_.getInt("posX"), -48, 48);
-        int j = Mth.clamp(p_155800_.getInt("posY"), -48, 48);
-        int k = Mth.clamp(p_155800_.getInt("posZ"), -48, 48);
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
+        this.setStructureName(pTag.getString("name"));
+        this.author = pTag.getString("author");
+        this.metaData = pTag.getString("metadata");
+        int i = Mth.clamp(pTag.getInt("posX"), -48, 48);
+        int j = Mth.clamp(pTag.getInt("posY"), -48, 48);
+        int k = Mth.clamp(pTag.getInt("posZ"), -48, 48);
         this.structurePos = new BlockPos(i, j, k);
-        int l = Mth.clamp(p_155800_.getInt("sizeX"), 0, 48);
-        int i1 = Mth.clamp(p_155800_.getInt("sizeY"), 0, 48);
-        int j1 = Mth.clamp(p_155800_.getInt("sizeZ"), 0, 48);
+        int l = Mth.clamp(pTag.getInt("sizeX"), 0, 48);
+        int i1 = Mth.clamp(pTag.getInt("sizeY"), 0, 48);
+        int j1 = Mth.clamp(pTag.getInt("sizeZ"), 0, 48);
         this.structureSize = new Vec3i(l, i1, j1);
 
         try {
-            this.rotation = Rotation.valueOf(p_155800_.getString("rotation"));
+            this.rotation = Rotation.valueOf(pTag.getString("rotation"));
         } catch (IllegalArgumentException illegalargumentexception2) {
             this.rotation = Rotation.NONE;
         }
 
         try {
-            this.mirror = Mirror.valueOf(p_155800_.getString("mirror"));
+            this.mirror = Mirror.valueOf(pTag.getString("mirror"));
         } catch (IllegalArgumentException illegalargumentexception1) {
             this.mirror = Mirror.NONE;
         }
 
         try {
-            this.mode = StructureMode.valueOf(p_155800_.getString("mode"));
+            this.mode = StructureMode.valueOf(pTag.getString("mode"));
         } catch (IllegalArgumentException illegalargumentexception) {
             this.mode = StructureMode.DATA;
         }
 
-        this.ignoreEntities = p_155800_.getBoolean("ignoreEntities");
-        this.powered = p_155800_.getBoolean("powered");
-        this.showAir = p_155800_.getBoolean("showair");
-        this.showBoundingBox = p_155800_.getBoolean("showboundingbox");
-        if (p_155800_.contains("integrity")) {
-            this.integrity = p_155800_.getFloat("integrity");
+        this.ignoreEntities = pTag.getBoolean("ignoreEntities");
+        this.powered = pTag.getBoolean("powered");
+        this.showAir = pTag.getBoolean("showair");
+        this.showBoundingBox = pTag.getBoolean("showboundingbox");
+        if (pTag.contains("integrity")) {
+            this.integrity = pTag.getFloat("integrity");
         } else {
             this.integrity = 1.0F;
         }
 
-        this.seed = p_155800_.getLong("seed");
+        this.seed = pTag.getLong("seed");
         this.updateBlockState();
     }
 
@@ -142,12 +142,12 @@ public class StructureBlockEntity extends BlockEntity {
         return this.saveWithoutMetadata();
     }
 
-    public boolean usedBy(Player p_59854_) {
-        if (!p_59854_.canUseGameMasterBlocks()) {
+    public boolean usedBy(Player pPlayer) {
+        if (!pPlayer.canUseGameMasterBlocks()) {
             return false;
         } else {
-            if (p_59854_.getCommandSenderWorld().isClientSide) {
-                p_59854_.openStructureBlock(this);
+            if (pPlayer.getCommandSenderWorld().isClientSide) {
+                pPlayer.openStructureBlock(this);
             }
 
             return true;
@@ -166,67 +166,67 @@ public class StructureBlockEntity extends BlockEntity {
         return this.structureName != null;
     }
 
-    public void setStructureName(@Nullable String p_59869_) {
-        this.setStructureName(StringUtil.isNullOrEmpty(p_59869_) ? null : ResourceLocation.tryParse(p_59869_));
+    public void setStructureName(@Nullable String pStructureName) {
+        this.setStructureName(StringUtil.isNullOrEmpty(pStructureName) ? null : ResourceLocation.tryParse(pStructureName));
     }
 
-    public void setStructureName(@Nullable ResourceLocation p_59875_) {
-        this.structureName = p_59875_;
+    public void setStructureName(@Nullable ResourceLocation pStructureName) {
+        this.structureName = pStructureName;
     }
 
-    public void createdBy(LivingEntity p_59852_) {
-        this.author = p_59852_.getName().getString();
+    public void createdBy(LivingEntity pAuthor) {
+        this.author = pAuthor.getName().getString();
     }
 
     public BlockPos getStructurePos() {
         return this.structurePos;
     }
 
-    public void setStructurePos(BlockPos p_59886_) {
-        this.structurePos = p_59886_;
+    public void setStructurePos(BlockPos pStructurePos) {
+        this.structurePos = pStructurePos;
     }
 
     public Vec3i getStructureSize() {
         return this.structureSize;
     }
 
-    public void setStructureSize(Vec3i p_155798_) {
-        this.structureSize = p_155798_;
+    public void setStructureSize(Vec3i pStructureSize) {
+        this.structureSize = pStructureSize;
     }
 
     public Mirror getMirror() {
         return this.mirror;
     }
 
-    public void setMirror(Mirror p_59882_) {
-        this.mirror = p_59882_;
+    public void setMirror(Mirror pMirror) {
+        this.mirror = pMirror;
     }
 
     public Rotation getRotation() {
         return this.rotation;
     }
 
-    public void setRotation(Rotation p_59884_) {
-        this.rotation = p_59884_;
+    public void setRotation(Rotation pRotation) {
+        this.rotation = pRotation;
     }
 
     public String getMetaData() {
         return this.metaData;
     }
 
-    public void setMetaData(String p_59888_) {
-        this.metaData = p_59888_;
+    public void setMetaData(String pMetaData) {
+        this.metaData = pMetaData;
     }
 
     public StructureMode getMode() {
         return this.mode;
     }
 
-    public void setMode(StructureMode p_59861_) {
-        this.mode = p_59861_;
+    public void setMode(StructureMode pMode) {
+        this.mode = pMode;
         BlockState blockstate = this.level.getBlockState(this.getBlockPos());
         if (blockstate.is(Blocks.STRUCTURE_BLOCK)) {
-            this.level.setBlock(this.getBlockPos(), blockstate.setValue(StructureBlock.MODE, p_59861_), 2);
+            this.level.setBlock(this.getBlockPos(), blockstate.setValue(StructureBlock.MODE, pMode), 2);
         }
     }
 
@@ -234,24 +234,24 @@ public class StructureBlockEntity extends BlockEntity {
         return this.ignoreEntities;
     }
 
-    public void setIgnoreEntities(boolean p_59877_) {
-        this.ignoreEntities = p_59877_;
+    public void setIgnoreEntities(boolean pIgnoreEntities) {
+        this.ignoreEntities = pIgnoreEntities;
     }
 
     public float getIntegrity() {
         return this.integrity;
     }
 
-    public void setIntegrity(float p_59839_) {
-        this.integrity = p_59839_;
+    public void setIntegrity(float pIntegrity) {
+        this.integrity = pIntegrity;
     }
 
     public long getSeed() {
         return this.seed;
     }
 
-    public void setSeed(long p_59841_) {
-        this.seed = p_59841_;
+    public void setSeed(long pSeed) {
+        this.seed = pSeed;
     }
 
     public boolean detectSize() {
@@ -282,8 +282,8 @@ public class StructureBlockEntity extends BlockEntity {
         }
     }
 
-    private Stream<BlockPos> getRelatedCorners(BlockPos p_155792_, BlockPos p_155793_) {
-        return BlockPos.betweenClosedStream(p_155792_, p_155793_).filter((p_155804_) -> {
+    private Stream<BlockPos> getRelatedCorners(BlockPos pMinPos, BlockPos pMaxPos) {
+        return BlockPos.betweenClosedStream(pMinPos, pMaxPos).filter((p_155804_) -> {
                                                                      return this.level.getBlockState(p_155804_).is(Blocks.STRUCTURE_BLOCK);
                                                                  })
                 .map(this.level::getBlockEntity)
@@ -299,8 +299,8 @@ public class StructureBlockEntity extends BlockEntity {
                 .map(BlockEntity::getBlockPos);
     }
 
-    private static Optional<BoundingBox> calculateEnclosingBoundingBox(BlockPos p_155795_, Stream<BlockPos> p_155796_) {
-        Iterator<BlockPos> iterator = p_155796_.iterator();
+    private static Optional<BoundingBox> calculateEnclosingBoundingBox(BlockPos pPos, Stream<BlockPos> pRelatedCorners) {
+        Iterator<BlockPos> iterator = pRelatedCorners.iterator();
         if (!iterator.hasNext()) {
             return Optional.empty();
         } else {
@@ -309,7 +309,7 @@ public class StructureBlockEntity extends BlockEntity {
             if (iterator.hasNext()) {
                 iterator.forEachRemaining(boundingbox::encapsulate);
             } else {
-                boundingbox.encapsulate(p_155795_);
+                boundingbox.encapsulate(pPos);
             }
 
             return Optional.of(boundingbox);
@@ -320,7 +320,7 @@ public class StructureBlockEntity extends BlockEntity {
         return this.saveStructure(true);
     }
 
-    public boolean saveStructure(boolean p_59890_) {
+    public boolean saveStructure(boolean pWriteToDisk) {
         if (this.mode == StructureMode.SAVE && !this.level.isClientSide && this.structureName != null) {
             BlockPos blockpos = this.getBlockPos().offset(this.structurePos);
             ServerLevel serverlevel = (ServerLevel) this.level;
@@ -335,7 +335,7 @@ public class StructureBlockEntity extends BlockEntity {
 
             structuretemplate.fillFromWorld(this.level, blockpos, this.structureSize, !this.ignoreEntities, Blocks.STRUCTURE_VOID);
             structuretemplate.setAuthor(this.author);
-            if (p_59890_) {
+            if (pWriteToDisk) {
                 try {
                     return structuretemplatemanager.save(this.structureName);
                 } catch (ResourceLocationException resourcelocationexception) {
@@ -349,12 +349,12 @@ public class StructureBlockEntity extends BlockEntity {
         }
     }
 
-    public boolean loadStructure(ServerLevel p_59843_) {
-        return this.loadStructure(p_59843_, true);
+    public boolean loadStructure(ServerLevel pLevel) {
+        return this.loadStructure(pLevel, true);
     }
 
-    public static RandomSource createRandom(long p_222889_) {
-        return p_222889_ == 0L ? RandomSource.create(Util.getMillis()) : RandomSource.create(p_222889_);
+    public static RandomSource createRandom(long pSeed) {
+        return pSeed == 0L ? RandomSource.create(Util.getMillis()) : RandomSource.create(pSeed);
     }
 
     public boolean loadStructure(ServerLevel p_59845_, boolean p_59846_) {
@@ -430,24 +430,24 @@ public class StructureBlockEntity extends BlockEntity {
         return this.powered;
     }
 
-    public void setPowered(boolean p_59894_) {
-        this.powered = p_59894_;
+    public void setPowered(boolean pPowered) {
+        this.powered = pPowered;
     }
 
     public boolean getShowAir() {
         return this.showAir;
     }
 
-    public void setShowAir(boolean p_59897_) {
-        this.showAir = p_59897_;
+    public void setShowAir(boolean pShowAir) {
+        this.showAir = pShowAir;
     }
 
     public boolean getShowBoundingBox() {
         return this.showBoundingBox;
     }
 
-    public void setShowBoundingBox(boolean p_59899_) {
-        this.showBoundingBox = p_59899_;
+    public void setShowBoundingBox(boolean pShowBoundingBox) {
+        this.showBoundingBox = pShowBoundingBox;
     }
 
     public static enum UpdateType {

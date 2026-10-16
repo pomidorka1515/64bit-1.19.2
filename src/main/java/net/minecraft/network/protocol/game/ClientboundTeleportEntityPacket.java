@@ -16,46 +16,46 @@ public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketL
     private final byte xRot;
     private final boolean onGround;
 
-    public ClientboundTeleportEntityPacket(Entity p_133538_) {
-        this.id = p_133538_.getId();
-        this.exactPosition = p_133538_.sectorPosition();
+    public ClientboundTeleportEntityPacket(Entity pEntity) {
+        this.id = pEntity.getId();
+        this.exactPosition = pEntity.sectorPosition();
         Vec3 vec3 = this.exactPosition.toApproximateVec3();
         this.x = vec3.x;
         this.y = vec3.y;
         this.z = vec3.z;
-        this.yRot = (byte) ((int) (p_133538_.getYRot() * 256.0F / 360.0F));
-        this.xRot = (byte) ((int) (p_133538_.getXRot() * 256.0F / 360.0F));
-        this.onGround = p_133538_.isOnGround();
+        this.yRot = (byte) ((int) (pEntity.getYRot() * 256.0F / 360.0F));
+        this.xRot = (byte) ((int) (pEntity.getXRot() * 256.0F / 360.0F));
+        this.onGround = pEntity.isOnGround();
     }
 
-    public ClientboundTeleportEntityPacket(FriendlyByteBuf p_179437_) {
-        this.id = p_179437_.readVarInt();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(p_179437_.readLong(), p_179437_.readDouble(),
-                p_179437_.readDouble(), p_179437_.readLong(), p_179437_.readDouble());
+    public ClientboundTeleportEntityPacket(FriendlyByteBuf pBuffer) {
+        this.id = pBuffer.readVarInt();
+        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
         Vec3 approximate = this.exactPosition.toApproximateVec3();
         this.x = approximate.x;
         this.y = approximate.y;
         this.z = approximate.z;
-        this.yRot = p_179437_.readByte();
-        this.xRot = p_179437_.readByte();
-        this.onGround = p_179437_.readBoolean();
+        this.yRot = pBuffer.readByte();
+        this.xRot = pBuffer.readByte();
+        this.onGround = pBuffer.readBoolean();
     }
 
-    public void write(FriendlyByteBuf p_133547_) {
-        p_133547_.writeVarInt(this.id);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.id);
         SectorVec3 position = this.exactPosition;
-        p_133547_.writeLong(position.blockX());
-        p_133547_.writeDouble(position.subX());
-        p_133547_.writeDouble(position.y());
-        p_133547_.writeLong(position.blockZ());
-        p_133547_.writeDouble(position.subZ());
-        p_133547_.writeByte(this.yRot);
-        p_133547_.writeByte(this.xRot);
-        p_133547_.writeBoolean(this.onGround);
+        pBuffer.writeLong(position.blockX());
+        pBuffer.writeDouble(position.subX());
+        pBuffer.writeDouble(position.y());
+        pBuffer.writeLong(position.blockZ());
+        pBuffer.writeDouble(position.subZ());
+        pBuffer.writeByte(this.yRot);
+        pBuffer.writeByte(this.xRot);
+        pBuffer.writeBoolean(this.onGround);
     }
 
-    public void handle(ClientGamePacketListener p_133544_) {
-        p_133544_.handleTeleportEntity(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleTeleportEntity(this);
     }
 
     public int getId() {

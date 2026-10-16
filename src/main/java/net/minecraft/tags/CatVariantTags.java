@@ -11,7 +11,7 @@ public class CatVariantTags {
     private CatVariantTags() {
     }
 
-    private static TagKey<CatVariant> create(String p_215846_) {
-        return TagKey.create(Registry.CAT_VARIANT_REGISTRY, new ResourceLocation(p_215846_));
+    private static TagKey<CatVariant> create(String pName) {
+        return TagKey.create(Registry.CAT_VARIANT_REGISTRY, new ResourceLocation(pName));
     }
 }

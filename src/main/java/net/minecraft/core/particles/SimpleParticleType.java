@@ -17,8 +17,8 @@ public class SimpleParticleType extends ParticleType<SimpleParticleType> impleme
     };
     private final Codec<SimpleParticleType> codec = Codec.unit(this::getType);
 
-    protected SimpleParticleType(boolean p_123837_) {
-        super(p_123837_, DESERIALIZER);
+    protected SimpleParticleType(boolean pOverrideLimiter) {
+        super(pOverrideLimiter, DESERIALIZER);
     }
 
     public SimpleParticleType getType() {
@@ -29,7 +29,7 @@ public class SimpleParticleType extends ParticleType<SimpleParticleType> impleme
         return this.codec;
     }
 
-    public void writeToNetwork(FriendlyByteBuf p_123840_) {
+    public void writeToNetwork(FriendlyByteBuf pBuffer) {
     }
 
     public String writeToString() {

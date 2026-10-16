@@ -7,8 +7,8 @@ import net.minecraft.world.item.Instrument;
 import net.minecraft.world.item.Instruments;
 
 public class InstrumentTagsProvider extends TagsProvider<Instrument> {
-    public InstrumentTagsProvider(DataGenerator p_236428_) {
-        super(p_236428_, Registry.INSTRUMENT);
+    public InstrumentTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, Registry.INSTRUMENT);
     }
 
     protected void addTags() {

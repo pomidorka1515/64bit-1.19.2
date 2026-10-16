@@ -8,38 +8,38 @@ import net.minecraft.commands.synchronization.ArgumentUtils;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class IntegerArgumentInfo implements ArgumentTypeInfo<IntegerArgumentType, IntegerArgumentInfo.Template> {
-    public void serializeToNetwork(IntegerArgumentInfo.Template p_235551_, FriendlyByteBuf p_235552_) {
-        boolean flag = p_235551_.min != Integer.MIN_VALUE;
-        boolean flag1 = p_235551_.max != Integer.MAX_VALUE;
-        p_235552_.writeByte(ArgumentUtils.createNumberFlags(flag, flag1));
+    public void serializeToNetwork(IntegerArgumentInfo.Template pTemplate, FriendlyByteBuf pBuffer) {
+        boolean flag = pTemplate.min != Integer.MIN_VALUE;
+        boolean flag1 = pTemplate.max != Integer.MAX_VALUE;
+        pBuffer.writeByte(ArgumentUtils.createNumberFlags(flag, flag1));
         if (flag) {
-            p_235552_.writeInt(p_235551_.min);
+            pBuffer.writeInt(pTemplate.min);
         }
 
         if (flag1) {
-            p_235552_.writeInt(p_235551_.max);
+            pBuffer.writeInt(pTemplate.max);
         }
     }
 
-    public IntegerArgumentInfo.Template deserializeFromNetwork(FriendlyByteBuf p_235554_) {
-        byte b0 = p_235554_.readByte();
-        int i = ArgumentUtils.numberHasMin(b0) ? p_235554_.readInt() : Integer.MIN_VALUE;
-        int j = ArgumentUtils.numberHasMax(b0) ? p_235554_.readInt() : Integer.MAX_VALUE;
+    public IntegerArgumentInfo.Template deserializeFromNetwork(FriendlyByteBuf pBuffer) {
+        byte b0 = pBuffer.readByte();
+        int i = ArgumentUtils.numberHasMin(b0) ? pBuffer.readInt() : Integer.MIN_VALUE;
+        int j = ArgumentUtils.numberHasMax(b0) ? pBuffer.readInt() : Integer.MAX_VALUE;
         return new IntegerArgumentInfo.Template(i, j);
     }
 
-    public void serializeToJson(IntegerArgumentInfo.Template p_235548_, JsonObject p_235549_) {
-        if (p_235548_.min != Integer.MIN_VALUE) {
-            p_235549_.addProperty("min", p_235548_.min);
+    public void serializeToJson(IntegerArgumentInfo.Template pTemplate, JsonObject pJson) {
+        if (pTemplate.min != Integer.MIN_VALUE) {
+            pJson.addProperty("min", pTemplate.min);
         }
 
-        if (p_235548_.max != Integer.MAX_VALUE) {
-            p_235549_.addProperty("max", p_235548_.max);
+        if (pTemplate.max != Integer.MAX_VALUE) {
+            pJson.addProperty("max", pTemplate.max);
         }
     }
 
-    public IntegerArgumentInfo.Template unpack(IntegerArgumentType p_235540_) {
-        return new IntegerArgumentInfo.Template(p_235540_.getMinimum(), p_235540_.getMaximum());
+    public IntegerArgumentInfo.Template unpack(IntegerArgumentType pArgument) {
+        return new IntegerArgumentInfo.Template(pArgument.getMinimum(), pArgument.getMaximum());
     }
 
     public final class Template implements ArgumentTypeInfo.Template<IntegerArgumentType> {
@@ -51,7 +51,7 @@ public class IntegerArgumentInfo implements ArgumentTypeInfo<IntegerArgumentType
             this.max = p_235563_;
         }
 
-        public IntegerArgumentType instantiate(CommandBuildContext p_235566_) {
+        public IntegerArgumentType instantiate(CommandBuildContext pContext) {
             return IntegerArgumentType.integer(this.min, this.max);
         }
 

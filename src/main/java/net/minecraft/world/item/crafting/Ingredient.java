@@ -36,8 +36,8 @@ public final class Ingredient implements Predicate<ItemStack> {
     @Nullable
     private IntList stackingIds;
 
-    private Ingredient(Stream<? extends Ingredient.Value> p_43907_) {
-        this.values = p_43907_.toArray((p_43933_) -> {
+    private Ingredient(Stream<? extends Ingredient.Value> pValues) {
+        this.values = pValues.toArray((p_43933_) -> {
             return new Ingredient.Value[p_43933_];
         });
     }
@@ -59,16 +59,16 @@ public final class Ingredient implements Predicate<ItemStack> {
         }
     }
 
-    public boolean test(@Nullable ItemStack p_43914_) {
-        if (p_43914_ == null) {
+    public boolean test(@Nullable ItemStack pStack) {
+        if (pStack == null) {
             return false;
         } else {
             this.dissolve();
             if (this.itemStacks.length == 0) {
-                return p_43914_.isEmpty();
+                return pStack.isEmpty();
             } else {
                 for (ItemStack itemstack : this.itemStacks) {
-                    if (itemstack.is(p_43914_.getItem())) {
+                    if (itemstack.is(pStack.getItem())) {
                         return true;
                     }
                 }
@@ -93,9 +93,9 @@ public final class Ingredient implements Predicate<ItemStack> {
         return this.stackingIds;
     }
 
-    public void toNetwork(FriendlyByteBuf p_43924_) {
+    public void toNetwork(FriendlyByteBuf pBuffer) {
         this.dissolve();
-        p_43924_.writeCollection(Arrays.asList(this.itemStacks), FriendlyByteBuf::writeItem);
+        pBuffer.writeCollection(Arrays.asList(this.itemStacks), FriendlyByteBuf::writeItem);
     }
 
     public JsonElement toJson() {
@@ -116,8 +116,8 @@ public final class Ingredient implements Predicate<ItemStack> {
         return this.values.length == 0 && (this.itemStacks == null || this.itemStacks.length == 0) && (this.stackingIds == null || this.stackingIds.isEmpty());
     }
 
-    private static Ingredient fromValues(Stream<? extends Ingredient.Value> p_43939_) {
-        Ingredient ingredient = new Ingredient(p_43939_);
+    private static Ingredient fromValues(Stream<? extends Ingredient.Value> pStream) {
+        Ingredient ingredient = new Ingredient(pStream);
         return ingredient.values.length == 0 ? EMPTY : ingredient;
     }
 
@@ -125,35 +125,35 @@ public final class Ingredient implements Predicate<ItemStack> {
         return EMPTY;
     }
 
-    public static Ingredient of(ItemLike... p_43930_) {
-        return of(Arrays.stream(p_43930_).map(ItemStack::new));
+    public static Ingredient of(ItemLike... pItems) {
+        return of(Arrays.stream(pItems).map(ItemStack::new));
     }
 
-    public static Ingredient of(ItemStack... p_43928_) {
-        return of(Arrays.stream(p_43928_));
+    public static Ingredient of(ItemStack... pStacks) {
+        return of(Arrays.stream(pStacks));
     }
 
-    public static Ingredient of(Stream<ItemStack> p_43922_) {
-        return fromValues(p_43922_.filter((p_43944_) -> {
+    public static Ingredient of(Stream<ItemStack> pStacks) {
+        return fromValues(pStacks.filter((p_43944_) -> {
                                       return !p_43944_.isEmpty();
                                   })
                         .map(Ingredient.ItemValue::new));
     }
 
-    public static Ingredient of(TagKey<Item> p_204133_) {
-        return fromValues(Stream.of(new Ingredient.TagValue(p_204133_)));
+    public static Ingredient of(TagKey<Item> pTag) {
+        return fromValues(Stream.of(new Ingredient.TagValue(pTag)));
     }
 
-    public static Ingredient fromNetwork(FriendlyByteBuf p_43941_) {
-        return fromValues(p_43941_.<ItemStack>readList(FriendlyByteBuf::readItem).stream().map(Ingredient.ItemValue::new));
+    public static Ingredient fromNetwork(FriendlyByteBuf pBuffer) {
+        return fromValues(pBuffer.<ItemStack>readList(FriendlyByteBuf::readItem).stream().map(Ingredient.ItemValue::new));
     }
 
-    public static Ingredient fromJson(@Nullable JsonElement p_43918_) {
-        if (p_43918_ != null && !p_43918_.isJsonNull()) {
-            if (p_43918_.isJsonObject()) {
-                return fromValues(Stream.of(valueFromJson(p_43918_.getAsJsonObject())));
-            } else if (p_43918_.isJsonArray()) {
-                JsonArray jsonarray = p_43918_.getAsJsonArray();
+    public static Ingredient fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            if (pJson.isJsonObject()) {
+                return fromValues(Stream.of(valueFromJson(pJson.getAsJsonObject())));
+            } else if (pJson.isJsonArray()) {
+                JsonArray jsonarray = pJson.getAsJsonArray();
                 if (jsonarray.size() == 0) {
                     throw new JsonSyntaxException("Item array cannot be empty, at least one item must be defined");
                 } else {
@@ -169,14 +169,14 @@ public final class Ingredient implements Predicate<ItemStack> {
         }
     }
 
-    private static Ingredient.Value valueFromJson(JsonObject p_43920_) {
-        if (p_43920_.has("item") && p_43920_.has("tag")) {
+    private static Ingredient.Value valueFromJson(JsonObject pJson) {
+        if (pJson.has("item") && pJson.has("tag")) {
             throw new JsonParseException("An ingredient entry is either a tag or an item, not both");
-        } else if (p_43920_.has("item")) {
-            Item item = ShapedRecipe.itemFromJson(p_43920_);
+        } else if (pJson.has("item")) {
+            Item item = ShapedRecipe.itemFromJson(pJson);
             return new Ingredient.ItemValue(new ItemStack(item));
-        } else if (p_43920_.has("tag")) {
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_43920_, "tag"));
+        } else if (pJson.has("tag")) {
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pJson, "tag"));
             TagKey<Item> tagkey = TagKey.create(Registry.ITEM_REGISTRY, resourcelocation);
             return new Ingredient.TagValue(tagkey);
         } else {
@@ -187,8 +187,8 @@ public final class Ingredient implements Predicate<ItemStack> {
     static class ItemValue implements Ingredient.Value {
         private final ItemStack item;
 
-        ItemValue(ItemStack p_43953_) {
-            this.item = p_43953_;
+        ItemValue(ItemStack pItem) {
+            this.item = pItem;
         }
 
         public Collection<ItemStack> getItems() {
@@ -205,8 +205,8 @@ public final class Ingredient implements Predicate<ItemStack> {
     static class TagValue implements Ingredient.Value {
         private final TagKey<Item> tag;
 
-        TagValue(TagKey<Item> p_204135_) {
-            this.tag = p_204135_;
+        TagValue(TagKey<Item> pTag) {
+            this.tag = pTag;
         }
 
         public Collection<ItemStack> getItems() {

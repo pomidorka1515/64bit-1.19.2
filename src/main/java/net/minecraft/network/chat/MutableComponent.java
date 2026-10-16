@@ -17,14 +17,14 @@ public class MutableComponent implements Component {
     @Nullable
     private Language decomposedWith;
 
-    MutableComponent(ComponentContents p_237200_, List<Component> p_237201_, Style p_237202_) {
-        this.contents = p_237200_;
-        this.siblings = p_237201_;
-        this.style = p_237202_;
+    MutableComponent(ComponentContents pContents, List<Component> pSiblings, Style pStyle) {
+        this.contents = pContents;
+        this.siblings = pSiblings;
+        this.style = pStyle;
     }
 
-    public static MutableComponent create(ComponentContents p_237205_) {
-        return new MutableComponent(p_237205_, Lists.newArrayList(), Style.EMPTY);
+    public static MutableComponent create(ComponentContents pContents) {
+        return new MutableComponent(pContents, Lists.newArrayList(), Style.EMPTY);
     }
 
     public ComponentContents getContents() {
@@ -35,8 +35,8 @@ public class MutableComponent implements Component {
         return this.siblings;
     }
 
-    public MutableComponent setStyle(Style p_130943_) {
-        this.style = p_130943_;
+    public MutableComponent setStyle(Style pStyle) {
+        this.style = pStyle;
         return this;
     }
 
@@ -44,32 +44,32 @@ public class MutableComponent implements Component {
         return this.style;
     }
 
-    public MutableComponent append(String p_130947_) {
-        return this.append(Component.literal(p_130947_));
+    public MutableComponent append(String pString) {
+        return this.append(Component.literal(pString));
     }
 
-    public MutableComponent append(Component p_130942_) {
-        this.siblings.add(p_130942_);
+    public MutableComponent append(Component pSibling) {
+        this.siblings.add(pSibling);
         return this;
     }
 
-    public MutableComponent withStyle(UnaryOperator<Style> p_130939_) {
-        this.setStyle(p_130939_.apply(this.getStyle()));
+    public MutableComponent withStyle(UnaryOperator<Style> pModifyFunc) {
+        this.setStyle(pModifyFunc.apply(this.getStyle()));
         return this;
     }
 
-    public MutableComponent withStyle(Style p_130949_) {
-        this.setStyle(p_130949_.applyTo(this.getStyle()));
+    public MutableComponent withStyle(Style pStyle) {
+        this.setStyle(pStyle.applyTo(this.getStyle()));
         return this;
     }
 
-    public MutableComponent withStyle(ChatFormatting... p_130945_) {
-        this.setStyle(this.getStyle().applyFormats(p_130945_));
+    public MutableComponent withStyle(ChatFormatting... pFormats) {
+        this.setStyle(this.getStyle().applyFormats(pFormats));
         return this;
     }
 
-    public MutableComponent withStyle(ChatFormatting p_130941_) {
-        this.setStyle(this.getStyle().applyFormat(p_130941_));
+    public MutableComponent withStyle(ChatFormatting pFormat) {
+        this.setStyle(this.getStyle().applyFormat(pFormat));
         return this;
     }
 
@@ -83,13 +83,13 @@ public class MutableComponent implements Component {
         return this.visualOrderText;
     }
 
-    public boolean equals(Object p_237209_) {
-        if (this == p_237209_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_237209_ instanceof MutableComponent)) {
+        } else if (!(pOther instanceof MutableComponent)) {
             return false;
         } else {
-            MutableComponent mutablecomponent = (MutableComponent) p_237209_;
+            MutableComponent mutablecomponent = (MutableComponent) pOther;
             return this.contents.equals(mutablecomponent.contents) && this.style.equals(mutablecomponent.style) && this.siblings.equals(mutablecomponent.siblings);
         }
     }

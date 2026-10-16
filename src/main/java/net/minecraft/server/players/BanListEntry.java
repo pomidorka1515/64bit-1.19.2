@@ -17,36 +17,36 @@ public abstract class BanListEntry<T> extends StoredUserEntry<T> {
     protected final Date expires;
     protected final String reason;
 
-    public BanListEntry(T p_10953_, @Nullable Date p_10954_, @Nullable String p_10955_, @Nullable Date p_10956_, @Nullable String p_10957_) {
-        super(p_10953_);
-        this.created = p_10954_ == null ? new Date() : p_10954_;
-        this.source = p_10955_ == null ? "(Unknown)" : p_10955_;
-        this.expires = p_10956_;
-        this.reason = p_10957_ == null ? "Banned by an operator." : p_10957_;
+    public BanListEntry(T pUser, @Nullable Date pCreated, @Nullable String pSource, @Nullable Date pExpires, @Nullable String pReason) {
+        super(pUser);
+        this.created = pCreated == null ? new Date() : pCreated;
+        this.source = pSource == null ? "(Unknown)" : pSource;
+        this.expires = pExpires;
+        this.reason = pReason == null ? "Banned by an operator." : pReason;
     }
 
-    protected BanListEntry(T p_10950_, JsonObject p_10951_) {
-        super(p_10950_);
+    protected BanListEntry(T pUser, JsonObject pEntryData) {
+        super(pUser);
 
         Date date;
         try {
-            date = p_10951_.has("created") ? DATE_FORMAT.parse(p_10951_.get("created").getAsString()) : new Date();
+            date = pEntryData.has("created") ? DATE_FORMAT.parse(pEntryData.get("created").getAsString()) : new Date();
         } catch (ParseException parseexception1) {
             date = new Date();
         }
 
         this.created = date;
-        this.source = p_10951_.has("source") ? p_10951_.get("source").getAsString() : "(Unknown)";
+        this.source = pEntryData.has("source") ? pEntryData.get("source").getAsString() : "(Unknown)";
 
         Date date1;
         try {
-            date1 = p_10951_.has("expires") ? DATE_FORMAT.parse(p_10951_.get("expires").getAsString()) : null;
+            date1 = pEntryData.has("expires") ? DATE_FORMAT.parse(pEntryData.get("expires").getAsString()) : null;
         } catch (ParseException parseexception) {
             date1 = null;
         }
 
         this.expires = date1;
-        this.reason = p_10951_.has("reason") ? p_10951_.get("reason").getAsString() : "Banned by an operator.";
+        this.reason = pEntryData.has("reason") ? pEntryData.get("reason").getAsString() : "Banned by an operator.";
     }
 
     public Date getCreated() {
@@ -72,10 +72,10 @@ public abstract class BanListEntry<T> extends StoredUserEntry<T> {
         return this.expires == null ? false : this.expires.before(new Date());
     }
 
-    protected void serialize(JsonObject p_10959_) {
-        p_10959_.addProperty("created", DATE_FORMAT.format(this.created));
-        p_10959_.addProperty("source", this.source);
-        p_10959_.addProperty("expires", this.expires == null ? "forever" : DATE_FORMAT.format(this.expires));
-        p_10959_.addProperty("reason", this.reason);
+    protected void serialize(JsonObject pData) {
+        pData.addProperty("created", DATE_FORMAT.format(this.created));
+        pData.addProperty("source", this.source);
+        pData.addProperty("expires", this.expires == null ? "forever" : DATE_FORMAT.format(this.expires));
+        pData.addProperty("reason", this.reason);
     }
 }

@@ -31,8 +31,8 @@ public class ConstantHeight extends HeightProvider {
         return this.value;
     }
 
-    public int sample(RandomSource p_226300_, WorldGenerationContext p_226301_) {
-        return this.value.resolveY(p_226301_);
+    public int sample(RandomSource pRandom, WorldGenerationContext pContext) {
+        return this.value.resolveY(pContext);
     }
 
     public HeightProviderType<?> getType() {

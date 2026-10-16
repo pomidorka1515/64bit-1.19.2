@@ -95,13 +95,13 @@ public class ShaderInstance implements Shader, AutoCloseable {
     @Nullable
     public final Uniform CHUNK_OFFSET;
 
-    public ShaderInstance(ResourceProvider p_173336_, String p_173337_, VertexFormat p_173338_) throws IOException {
-        this.name = p_173337_;
-        this.vertexFormat = p_173338_;
-        ResourceLocation resourcelocation = new ResourceLocation("shaders/core/" + p_173337_ + ".json");
+    public ShaderInstance(ResourceProvider pResourceProvider, String pName, VertexFormat pVertexFormat) throws IOException {
+        this.name = pName;
+        this.vertexFormat = pVertexFormat;
+        ResourceLocation resourcelocation = new ResourceLocation("shaders/core/" + pName + ".json");
 
         try {
-            Reader reader = p_173336_.openAsReader(resourcelocation);
+            Reader reader = pResourceProvider.openAsReader(resourcelocation);
 
             try {
                 JsonObject jsonobject = GsonHelper.parse(reader);
@@ -164,13 +164,13 @@ public class ShaderInstance implements Shader, AutoCloseable {
                 }
 
                 this.blend = parseBlendNode(GsonHelper.getAsJsonObject(jsonobject, "blend", (JsonObject) null));
-                this.vertexProgram = getOrCreate(p_173336_, Program.Type.VERTEX, s1);
-                this.fragmentProgram = getOrCreate(p_173336_, Program.Type.FRAGMENT, s);
+                this.vertexProgram = getOrCreate(pResourceProvider, Program.Type.VERTEX, s1);
+                this.fragmentProgram = getOrCreate(pResourceProvider, Program.Type.FRAGMENT, s);
                 this.programId = ProgramManager.createProgram();
                 if (this.attributeNames != null) {
                     int l = 0;
 
-                    for (String s2 : p_173338_.getElementAttributeNames()) {
+                    for (String s2 : pVertexFormat.getElementAttributeNames()) {
                         Uniform.glBindAttribLocation(this.programId, l, s2);
                         this.attributes.add(l);
                         ++l;
@@ -218,17 +218,17 @@ public class ShaderInstance implements Shader, AutoCloseable {
         this.CHUNK_OFFSET = this.getUniform("ChunkOffset");
     }
 
-    private static Program getOrCreate(final ResourceProvider p_173341_, Program.Type p_173342_, String p_173343_) throws IOException {
-        Program program1 = p_173342_.getPrograms().get(p_173343_);
+    private static Program getOrCreate(final ResourceProvider pResourceProvider, Program.Type pProgramType, String pName) throws IOException {
+        Program program1 = pProgramType.getPrograms().get(pName);
         Program program;
         if (program1 == null) {
-            String s = "shaders/core/" + p_173343_ + p_173342_.getExtension();
-            Resource resource = p_173341_.getResourceOrThrow(new ResourceLocation(s));
+            String s = "shaders/core/" + pName + pProgramType.getExtension();
+            Resource resource = pResourceProvider.getResourceOrThrow(new ResourceLocation(s));
             InputStream inputstream = resource.open();
 
             try {
                 final String s1 = FileUtil.getFullResourcePath(s);
-                program = Program.compileShader(p_173342_, p_173343_, inputstream, resource.sourcePackId(), new GlslPreprocessor() {
+                program = Program.compileShader(pProgramType, pName, inputstream, resource.sourcePackId(), new GlslPreprocessor() {
                     private final Set<String> importedPaths = Sets.newHashSet();
 
                     public String applyImport(boolean p_173374_, String p_173375_) {
@@ -239,7 +239,7 @@ public class ShaderInstance implements Shader, AutoCloseable {
                             ResourceLocation resourcelocation = new ResourceLocation(p_173375_);
 
                             try {
-                                Reader reader = p_173341_.openAsReader(resourcelocation);
+                                Reader reader = pResourceProvider.openAsReader(resourcelocation);
 
                                 String s2;
                                 try {
@@ -290,8 +290,8 @@ public class ShaderInstance implements Shader, AutoCloseable {
         return program;
     }
 
-    public static BlendMode parseBlendNode(JsonObject p_173347_) {
-        if (p_173347_ == null) {
+    public static BlendMode parseBlendNode(JsonObject pJson) {
+        if (pJson == null) {
             return new BlendMode();
         } else {
             int i = 32774;
@@ -301,29 +301,29 @@ public class ShaderInstance implements Shader, AutoCloseable {
             int i1 = 0;
             boolean flag = true;
             boolean flag1 = false;
-            if (GsonHelper.isStringValue(p_173347_, "func")) {
-                i = BlendMode.stringToBlendFunc(p_173347_.get("func").getAsString());
+            if (GsonHelper.isStringValue(pJson, "func")) {
+                i = BlendMode.stringToBlendFunc(pJson.get("func").getAsString());
                 if (i != 32774) {
                     flag = false;
                 }
             }
 
-            if (GsonHelper.isStringValue(p_173347_, "srcrgb")) {
-                j = BlendMode.stringToBlendFactor(p_173347_.get("srcrgb").getAsString());
+            if (GsonHelper.isStringValue(pJson, "srcrgb")) {
+                j = BlendMode.stringToBlendFactor(pJson.get("srcrgb").getAsString());
                 if (j != 1) {
                     flag = false;
                 }
             }
 
-            if (GsonHelper.isStringValue(p_173347_, "dstrgb")) {
-                k = BlendMode.stringToBlendFactor(p_173347_.get("dstrgb").getAsString());
+            if (GsonHelper.isStringValue(pJson, "dstrgb")) {
+                k = BlendMode.stringToBlendFactor(pJson.get("dstrgb").getAsString());
                 if (k != 0) {
                     flag = false;
                 }
             }
 
-            if (GsonHelper.isStringValue(p_173347_, "srcalpha")) {
-                l = BlendMode.stringToBlendFactor(p_173347_.get("srcalpha").getAsString());
+            if (GsonHelper.isStringValue(pJson, "srcalpha")) {
+                l = BlendMode.stringToBlendFactor(pJson.get("srcalpha").getAsString());
                 if (l != 1) {
                     flag = false;
                 }
@@ -331,8 +331,8 @@ public class ShaderInstance implements Shader, AutoCloseable {
                 flag1 = true;
             }
 
-            if (GsonHelper.isStringValue(p_173347_, "dstalpha")) {
-                i1 = BlendMode.stringToBlendFactor(p_173347_.get("dstalpha").getAsString());
+            if (GsonHelper.isStringValue(pJson, "dstalpha")) {
+                i1 = BlendMode.stringToBlendFactor(pJson.get("dstalpha").getAsString());
                 if (i1 != 0) {
                     flag = false;
                 }
@@ -420,14 +420,14 @@ public class ShaderInstance implements Shader, AutoCloseable {
     }
 
     @Nullable
-    public Uniform getUniform(String p_173349_) {
+    public Uniform getUniform(String pName) {
         RenderSystem.assertOnRenderThread();
-        return this.uniformMap.get(p_173349_);
+        return this.uniformMap.get(pName);
     }
 
-    public AbstractUniform safeGetUniform(String p_173357_) {
+    public AbstractUniform safeGetUniform(String pName) {
         RenderSystem.assertOnGameThread();
-        Uniform uniform = this.getUniform(p_173357_);
+        Uniform uniform = this.getUniform(pName);
         return (AbstractUniform) (uniform == null ? DUMMY_UNIFORM : uniform);
     }
 
@@ -465,8 +465,8 @@ public class ShaderInstance implements Shader, AutoCloseable {
         }
     }
 
-    private void parseSamplerNode(JsonElement p_173345_) {
-        JsonObject jsonobject = GsonHelper.convertToJsonObject(p_173345_, "sampler");
+    private void parseSamplerNode(JsonElement pJson) {
+        JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "sampler");
         String s = GsonHelper.getAsString(jsonobject, "name");
         if (!GsonHelper.isStringValue(jsonobject, "file")) {
             this.samplerMap.put(s, (Object) null);
@@ -476,13 +476,13 @@ public class ShaderInstance implements Shader, AutoCloseable {
         }
     }
 
-    public void setSampler(String p_173351_, Object p_173352_) {
-        this.samplerMap.put(p_173351_, p_173352_);
+    public void setSampler(String pName, Object pTextureId) {
+        this.samplerMap.put(pName, pTextureId);
         this.markDirty();
     }
 
-    private void parseUniformNode(JsonElement p_173355_) throws ChainedJsonException {
-        JsonObject jsonobject = GsonHelper.convertToJsonObject(p_173355_, "uniform");
+    private void parseUniformNode(JsonElement pJson) throws ChainedJsonException {
+        JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "uniform");
         String s = GsonHelper.getAsString(jsonobject, "name");
         int i = Uniform.getTypeFromString(GsonHelper.getAsString(jsonobject, "type"));
         int j = GsonHelper.getAsInt(jsonobject, "count");

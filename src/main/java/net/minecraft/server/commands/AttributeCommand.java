@@ -36,8 +36,8 @@ public class AttributeCommand {
         return Component.translatable("commands.attribute.failed.modifier_already_present", p_136499_, p_136498_, p_136497_);
     });
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_136445_) {
-        p_136445_.register(Commands.literal("attribute").requires((p_212441_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("attribute").requires((p_212441_) -> {
                                                             return p_212441_.hasPermission(2);
                                                         })
                         .then(Commands.argument("target", EntityArgument.entity()).then(Commands.argument("attribute", ResourceKeyArgument.key(Registry.ATTRIBUTE_REGISTRY)).then(Commands.literal("get").executes((p_212452_) -> {
@@ -75,83 +75,83 @@ public class AttributeCommand {
                                                                         })))))))));
     }
 
-    private static AttributeInstance getAttributeInstance(Entity p_136442_, Attribute p_136443_) throws CommandSyntaxException {
-        AttributeInstance attributeinstance = getLivingEntity(p_136442_).getAttributes().getInstance(p_136443_);
+    private static AttributeInstance getAttributeInstance(Entity pTarget, Attribute pAttribute) throws CommandSyntaxException {
+        AttributeInstance attributeinstance = getLivingEntity(pTarget).getAttributes().getInstance(pAttribute);
         if (attributeinstance == null) {
-            throw ERROR_NO_SUCH_ATTRIBUTE.create(p_136442_.getName(), Component.translatable(p_136443_.getDescriptionId()));
+            throw ERROR_NO_SUCH_ATTRIBUTE.create(pTarget.getName(), Component.translatable(pAttribute.getDescriptionId()));
         } else {
             return attributeinstance;
         }
     }
 
-    private static LivingEntity getLivingEntity(Entity p_136440_) throws CommandSyntaxException {
-        if (!(p_136440_ instanceof LivingEntity)) {
-            throw ERROR_NOT_LIVING_ENTITY.create(p_136440_.getName());
+    private static LivingEntity getLivingEntity(Entity pTarget) throws CommandSyntaxException {
+        if (!(pTarget instanceof LivingEntity)) {
+            throw ERROR_NOT_LIVING_ENTITY.create(pTarget.getName());
         } else {
-            return (LivingEntity) p_136440_;
+            return (LivingEntity) pTarget;
         }
     }
 
-    private static LivingEntity getEntityWithAttribute(Entity p_136487_, Attribute p_136488_) throws CommandSyntaxException {
-        LivingEntity livingentity = getLivingEntity(p_136487_);
-        if (!livingentity.getAttributes().hasAttribute(p_136488_)) {
-            throw ERROR_NO_SUCH_ATTRIBUTE.create(p_136487_.getName(), Component.translatable(p_136488_.getDescriptionId()));
+    private static LivingEntity getEntityWithAttribute(Entity pTarget, Attribute pAttribute) throws CommandSyntaxException {
+        LivingEntity livingentity = getLivingEntity(pTarget);
+        if (!livingentity.getAttributes().hasAttribute(pAttribute)) {
+            throw ERROR_NO_SUCH_ATTRIBUTE.create(pTarget.getName(), Component.translatable(pAttribute.getDescriptionId()));
         } else {
             return livingentity;
         }
     }
 
-    private static int getAttributeValue(CommandSourceStack p_136454_, Entity p_136455_, Attribute p_136456_, double p_136457_) throws CommandSyntaxException {
-        LivingEntity livingentity = getEntityWithAttribute(p_136455_, p_136456_);
-        double d0 = livingentity.getAttributeValue(p_136456_);
-        p_136454_.sendSuccess(Component.translatable("commands.attribute.value.get.success", Component.translatable(p_136456_.getDescriptionId()), p_136455_.getName(), d0), false);
-        return (int) (d0 * p_136457_);
+    private static int getAttributeValue(CommandSourceStack pSource, Entity pTarget, Attribute pAttribute, double pScale) throws CommandSyntaxException {
+        LivingEntity livingentity = getEntityWithAttribute(pTarget, pAttribute);
+        double d0 = livingentity.getAttributeValue(pAttribute);
+        pSource.sendSuccess(Component.translatable("commands.attribute.value.get.success", Component.translatable(pAttribute.getDescriptionId()), pTarget.getName(), d0), false);
+        return (int) (d0 * pScale);
     }
 
-    private static int getAttributeBase(CommandSourceStack p_136492_, Entity p_136493_, Attribute p_136494_, double p_136495_) throws CommandSyntaxException {
-        LivingEntity livingentity = getEntityWithAttribute(p_136493_, p_136494_);
-        double d0 = livingentity.getAttributeBaseValue(p_136494_);
-        p_136492_.sendSuccess(Component.translatable("commands.attribute.base_value.get.success", Component.translatable(p_136494_.getDescriptionId()), p_136493_.getName(), d0), false);
-        return (int) (d0 * p_136495_);
+    private static int getAttributeBase(CommandSourceStack pSource, Entity pTarget, Attribute pAttribute, double pScale) throws CommandSyntaxException {
+        LivingEntity livingentity = getEntityWithAttribute(pTarget, pAttribute);
+        double d0 = livingentity.getAttributeBaseValue(pAttribute);
+        pSource.sendSuccess(Component.translatable("commands.attribute.base_value.get.success", Component.translatable(pAttribute.getDescriptionId()), pTarget.getName(), d0), false);
+        return (int) (d0 * pScale);
     }
 
-    private static int getAttributeModifier(CommandSourceStack p_136464_, Entity p_136465_, Attribute p_136466_, UUID p_136467_, double p_136468_) throws CommandSyntaxException {
-        LivingEntity livingentity = getEntityWithAttribute(p_136465_, p_136466_);
+    private static int getAttributeModifier(CommandSourceStack pSource, Entity pTarget, Attribute pAttribute, UUID pUuid, double pScale) throws CommandSyntaxException {
+        LivingEntity livingentity = getEntityWithAttribute(pTarget, pAttribute);
         AttributeMap attributemap = livingentity.getAttributes();
-        if (!attributemap.hasModifier(p_136466_, p_136467_)) {
-            throw ERROR_NO_SUCH_MODIFIER.create(p_136465_.getName(), Component.translatable(p_136466_.getDescriptionId()), p_136467_);
+        if (!attributemap.hasModifier(pAttribute, pUuid)) {
+            throw ERROR_NO_SUCH_MODIFIER.create(pTarget.getName(), Component.translatable(pAttribute.getDescriptionId()), pUuid);
         } else {
-            double d0 = attributemap.getModifierValue(p_136466_, p_136467_);
-            p_136464_.sendSuccess(Component.translatable("commands.attribute.modifier.value.get.success", p_136467_, Component.translatable(p_136466_.getDescriptionId()), p_136465_.getName(), d0), false);
-            return (int) (d0 * p_136468_);
+            double d0 = attributemap.getModifierValue(pAttribute, pUuid);
+            pSource.sendSuccess(Component.translatable("commands.attribute.modifier.value.get.success", pUuid, Component.translatable(pAttribute.getDescriptionId()), pTarget.getName(), d0), false);
+            return (int) (d0 * pScale);
         }
     }
 
-    private static int setAttributeBase(CommandSourceStack p_136503_, Entity p_136504_, Attribute p_136505_, double p_136506_) throws CommandSyntaxException {
-        getAttributeInstance(p_136504_, p_136505_).setBaseValue(p_136506_);
-        p_136503_.sendSuccess(Component.translatable("commands.attribute.base_value.set.success", Component.translatable(p_136505_.getDescriptionId()), p_136504_.getName(), p_136506_), false);
+    private static int setAttributeBase(CommandSourceStack pSource, Entity pTarget, Attribute pAttribute, double pValue) throws CommandSyntaxException {
+        getAttributeInstance(pTarget, pAttribute).setBaseValue(pValue);
+        pSource.sendSuccess(Component.translatable("commands.attribute.base_value.set.success", Component.translatable(pAttribute.getDescriptionId()), pTarget.getName(), pValue), false);
         return 1;
     }
 
-    private static int addModifier(CommandSourceStack p_136470_, Entity p_136471_, Attribute p_136472_, UUID p_136473_, String p_136474_, double p_136475_, AttributeModifier.Operation p_136476_) throws CommandSyntaxException {
-        AttributeInstance attributeinstance = getAttributeInstance(p_136471_, p_136472_);
-        AttributeModifier attributemodifier = new AttributeModifier(p_136473_, p_136474_, p_136475_, p_136476_);
+    private static int addModifier(CommandSourceStack pSource, Entity pTarget, Attribute pAttribute, UUID pUuid, String pName, double pValue, AttributeModifier.Operation pOperation) throws CommandSyntaxException {
+        AttributeInstance attributeinstance = getAttributeInstance(pTarget, pAttribute);
+        AttributeModifier attributemodifier = new AttributeModifier(pUuid, pName, pValue, pOperation);
         if (attributeinstance.hasModifier(attributemodifier)) {
-            throw ERROR_MODIFIER_ALREADY_PRESENT.create(p_136471_.getName(), Component.translatable(p_136472_.getDescriptionId()), p_136473_);
+            throw ERROR_MODIFIER_ALREADY_PRESENT.create(pTarget.getName(), Component.translatable(pAttribute.getDescriptionId()), pUuid);
         } else {
             attributeinstance.addPermanentModifier(attributemodifier);
-            p_136470_.sendSuccess(Component.translatable("commands.attribute.modifier.add.success", p_136473_, Component.translatable(p_136472_.getDescriptionId()), p_136471_.getName()), false);
+            pSource.sendSuccess(Component.translatable("commands.attribute.modifier.add.success", pUuid, Component.translatable(pAttribute.getDescriptionId()), pTarget.getName()), false);
             return 1;
         }
     }
 
-    private static int removeModifier(CommandSourceStack p_136459_, Entity p_136460_, Attribute p_136461_, UUID p_136462_) throws CommandSyntaxException {
-        AttributeInstance attributeinstance = getAttributeInstance(p_136460_, p_136461_);
-        if (attributeinstance.removePermanentModifier(p_136462_)) {
-            p_136459_.sendSuccess(Component.translatable("commands.attribute.modifier.remove.success", p_136462_, Component.translatable(p_136461_.getDescriptionId()), p_136460_.getName()), false);
+    private static int removeModifier(CommandSourceStack pSource, Entity pTarget, Attribute pAttribute, UUID pUuid) throws CommandSyntaxException {
+        AttributeInstance attributeinstance = getAttributeInstance(pTarget, pAttribute);
+        if (attributeinstance.removePermanentModifier(pUuid)) {
+            pSource.sendSuccess(Component.translatable("commands.attribute.modifier.remove.success", pUuid, Component.translatable(pAttribute.getDescriptionId()), pTarget.getName()), false);
             return 1;
         } else {
-            throw ERROR_NO_SUCH_MODIFIER.create(p_136460_.getName(), Component.translatable(p_136461_.getDescriptionId()), p_136462_);
+            throw ERROR_NO_SUCH_MODIFIER.create(pTarget.getName(), Component.translatable(pAttribute.getDescriptionId()), pUuid);
         }
     }
 }

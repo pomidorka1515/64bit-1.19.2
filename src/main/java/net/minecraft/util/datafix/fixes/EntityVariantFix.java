@@ -13,10 +13,10 @@ public class EntityVariantFix extends NamedEntityFix {
     private final String fieldName;
     private final IntFunction<String> idConversions;
 
-    public EntityVariantFix(Schema p_216623_, String p_216624_, DSL.TypeReference p_216625_, String p_216626_, String p_216627_, IntFunction<String> p_216628_) {
-        super(p_216623_, false, p_216624_, p_216625_, p_216626_);
-        this.fieldName = p_216627_;
-        this.idConversions = p_216628_;
+    public EntityVariantFix(Schema pOutputSchema, String pName, DSL.TypeReference pType, String pEntityName, String pFieldName, IntFunction<String> pIdConversions) {
+        super(pOutputSchema, false, pName, pType, pEntityName);
+        this.fieldName = pFieldName;
+        this.idConversions = pIdConversions;
     }
 
     private static <T> Dynamic<T> updateAndRename(Dynamic<T> p_216637_, String p_216638_, String p_216639_, Function<Dynamic<T>, Dynamic<T>> p_216640_) {

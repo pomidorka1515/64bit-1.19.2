@@ -12,12 +12,12 @@ public class ServerPacksSource implements RepositorySource {
     public static final String VANILLA_ID = "vanilla";
     private final VanillaPackResources vanillaPack = new VanillaPackResources(BUILT_IN_METADATA, "minecraft");
 
-    public void loadPacks(Consumer<Pack> p_10548_, Pack.PackConstructor p_10549_) {
+    public void loadPacks(Consumer<Pack> pInfoConsumer, Pack.PackConstructor pInfoFactory) {
         Pack pack = Pack.create("vanilla", false, () -> {
             return this.vanillaPack;
-        }, p_10549_, Pack.Position.BOTTOM, PackSource.BUILT_IN);
+        }, pInfoFactory, Pack.Position.BOTTOM, PackSource.BUILT_IN);
         if (pack != null) {
-            p_10548_.accept(pack);
+            pInfoConsumer.accept(pack);
         }
     }
 }

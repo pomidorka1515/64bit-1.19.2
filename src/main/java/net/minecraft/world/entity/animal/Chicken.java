@@ -45,8 +45,8 @@ public class Chicken extends Animal {
     public int eggTime = this.random.nextInt(6000) + 6000;
     public boolean isChickenJockey;
 
-    public Chicken(EntityType<? extends Chicken> p_28236_, Level p_28237_) {
-        super(p_28236_, p_28237_);
+    public Chicken(EntityType<? extends Chicken> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
     }
 
@@ -61,8 +61,8 @@ public class Chicken extends Animal {
         this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
     }
 
-    protected float getStandingEyeHeight(Pose p_28251_, EntityDimensions p_28252_) {
-        return this.isBaby() ? p_28252_.height * 0.85F : p_28252_.height * 0.92F;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return this.isBaby() ? pSize.height * 0.85F : pSize.height * 0.92F;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -102,7 +102,7 @@ public class Chicken extends Animal {
         this.nextFlap = this.flyDist + this.flapSpeed / 2.0F;
     }
 
-    public boolean causeFallDamage(float p_148875_, float p_148876_, DamageSource p_148877_) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return false;
     }
 
@@ -110,7 +110,7 @@ public class Chicken extends Animal {
         return SoundEvents.CHICKEN_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_28262_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.CHICKEN_HURT;
     }
 
@@ -118,50 +118,50 @@ public class Chicken extends Animal {
         return SoundEvents.CHICKEN_DEATH;
     }
 
-    protected void playStepSound(BlockPos p_28254_, BlockState p_28255_) {
+    protected void playStepSound(BlockPos pPos, BlockState pBlock) {
         this.playSound(SoundEvents.CHICKEN_STEP, 0.15F, 1.0F);
     }
 
-    public Chicken getBreedOffspring(ServerLevel p_148884_, AgeableMob p_148885_) {
-        return EntityType.CHICKEN.create(p_148884_);
+    public Chicken getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        return EntityType.CHICKEN.create(pLevel);
     }
 
-    public boolean isFood(ItemStack p_28271_) {
-        return FOOD_ITEMS.test(p_28271_);
+    public boolean isFood(ItemStack pStack) {
+        return FOOD_ITEMS.test(pStack);
     }
 
     public int getExperienceReward() {
         return this.isChickenJockey() ? 10 : super.getExperienceReward();
     }
 
-    public void readAdditionalSaveData(CompoundTag p_28243_) {
-        super.readAdditionalSaveData(p_28243_);
-        this.isChickenJockey = p_28243_.getBoolean("IsChickenJockey");
-        if (p_28243_.contains("EggLayTime")) {
-            this.eggTime = p_28243_.getInt("EggLayTime");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.isChickenJockey = pCompound.getBoolean("IsChickenJockey");
+        if (pCompound.contains("EggLayTime")) {
+            this.eggTime = pCompound.getInt("EggLayTime");
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_28257_) {
-        super.addAdditionalSaveData(p_28257_);
-        p_28257_.putBoolean("IsChickenJockey", this.isChickenJockey);
-        p_28257_.putInt("EggLayTime", this.eggTime);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putBoolean("IsChickenJockey", this.isChickenJockey);
+        pCompound.putInt("EggLayTime", this.eggTime);
     }
 
-    public boolean removeWhenFarAway(double p_28266_) {
+    public boolean removeWhenFarAway(double pDistanceToClosestPlayer) {
         return this.isChickenJockey();
     }
 
-    public void positionRider(Entity p_28269_) {
-        super.positionRider(p_28269_);
+    public void positionRider(Entity pPassenger) {
+        super.positionRider(pPassenger);
         float f = Mth.sin(this.yBodyRot * ((float) Math.PI / 180F));
         float f1 = Mth.cos(this.yBodyRot * ((float) Math.PI / 180F));
         float f2 = 0.1F;
         float f3 = 0.0F;
-        p_28269_.applyExactPosition(this.sectorPosition().add((double) (0.1F * f),
-                (double) this.getBbHeight() * 0.5D + p_28269_.getMyRidingOffset(), (double) (-0.1F * f1)));
-        if (p_28269_ instanceof LivingEntity) {
-            ((LivingEntity) p_28269_).yBodyRot = this.yBodyRot;
+        pPassenger.applyExactPosition(this.sectorPosition().add((double) (0.1F * f),
+                (double) this.getBbHeight() * 0.5D + pPassenger.getMyRidingOffset(), (double) (-0.1F * f1)));
+        if (pPassenger instanceof LivingEntity) {
+            ((LivingEntity) pPassenger).yBodyRot = this.yBodyRot;
         }
     }
 
@@ -169,7 +169,7 @@ public class Chicken extends Animal {
         return this.isChickenJockey;
     }
 
-    public void setChickenJockey(boolean p_28274_) {
-        this.isChickenJockey = p_28274_;
+    public void setChickenJockey(boolean pIsChickenJockey) {
+        this.isChickenJockey = pIsChickenJockey;
     }
 }

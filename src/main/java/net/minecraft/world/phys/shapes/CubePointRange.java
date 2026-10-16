@@ -5,16 +5,16 @@ import it.unimi.dsi.fastutil.doubles.AbstractDoubleList;
 public class CubePointRange extends AbstractDoubleList {
     private final int parts;
 
-    CubePointRange(int p_82760_) {
-        if (p_82760_ <= 0) {
+    CubePointRange(int pParts) {
+        if (pParts <= 0) {
             throw new IllegalArgumentException("Need at least 1 part");
         } else {
-            this.parts = p_82760_;
+            this.parts = pParts;
         }
     }
 
-    public double getDouble(int p_82762_) {
-        return (double) p_82762_ / (double) this.parts;
+    public double getDouble(int pValue) {
+        return (double) pValue / (double) this.parts;
     }
 
     public int size() {

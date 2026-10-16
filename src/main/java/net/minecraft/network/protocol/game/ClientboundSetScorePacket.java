@@ -13,40 +13,40 @@ public class ClientboundSetScorePacket implements Packet<ClientGamePacketListene
     private final int score;
     private final ServerScoreboard.Method method;
 
-    public ClientboundSetScorePacket(ServerScoreboard.Method p_133329_, @Nullable String p_133330_, String p_133331_, int p_133332_) {
-        if (p_133329_ != ServerScoreboard.Method.REMOVE && p_133330_ == null) {
+    public ClientboundSetScorePacket(ServerScoreboard.Method pMethod, @Nullable String pObjectiveName, String pOwner, int pScore) {
+        if (pMethod != ServerScoreboard.Method.REMOVE && pObjectiveName == null) {
             throw new IllegalArgumentException("Need an objective name");
         } else {
-            this.owner = p_133331_;
-            this.objectiveName = p_133330_;
-            this.score = p_133332_;
-            this.method = p_133329_;
+            this.owner = pOwner;
+            this.objectiveName = pObjectiveName;
+            this.score = pScore;
+            this.method = pMethod;
         }
     }
 
-    public ClientboundSetScorePacket(FriendlyByteBuf p_179373_) {
-        this.owner = p_179373_.readUtf();
-        this.method = p_179373_.readEnum(ServerScoreboard.Method.class);
-        String s = p_179373_.readUtf();
+    public ClientboundSetScorePacket(FriendlyByteBuf pBuffer) {
+        this.owner = pBuffer.readUtf();
+        this.method = pBuffer.readEnum(ServerScoreboard.Method.class);
+        String s = pBuffer.readUtf();
         this.objectiveName = Objects.equals(s, "") ? null : s;
         if (this.method != ServerScoreboard.Method.REMOVE) {
-            this.score = p_179373_.readVarInt();
+            this.score = pBuffer.readVarInt();
         } else {
             this.score = 0;
         }
     }
 
-    public void write(FriendlyByteBuf p_133341_) {
-        p_133341_.writeUtf(this.owner);
-        p_133341_.writeEnum(this.method);
-        p_133341_.writeUtf(this.objectiveName == null ? "" : this.objectiveName);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeUtf(this.owner);
+        pBuffer.writeEnum(this.method);
+        pBuffer.writeUtf(this.objectiveName == null ? "" : this.objectiveName);
         if (this.method != ServerScoreboard.Method.REMOVE) {
-            p_133341_.writeVarInt(this.score);
+            pBuffer.writeVarInt(this.score);
         }
     }
 
-    public void handle(ClientGamePacketListener p_133338_) {
-        p_133338_.handleSetScore(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleSetScore(this);
     }
 
     public String getOwner() {

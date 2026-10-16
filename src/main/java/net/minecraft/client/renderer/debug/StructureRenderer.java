@@ -25,20 +25,20 @@ public class StructureRenderer implements DebugRenderer.SimpleDebugRenderer {
     private final Map<DimensionType, Map<String, Boolean>> startPiecesMap = Maps.newIdentityHashMap();
     private static final int MAX_RENDER_DIST = 500;
 
-    public StructureRenderer(Minecraft p_113680_) {
-        this.minecraft = p_113680_;
+    public StructureRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_113688_, MultiBufferSource p_113689_, double p_113690_, double p_113691_, double p_113692_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         Camera camera = this.minecraft.gameRenderer.getMainCamera();
         LevelAccessor levelaccessor = this.minecraft.level;
         DimensionType dimensiontype = levelaccessor.dimensionType();
         BlockPos blockpos = new BlockPos(camera.getPosition().x, 0.0D, camera.getPosition().z);
-        VertexConsumer vertexconsumer = p_113689_.getBuffer(RenderType.lines());
+        VertexConsumer vertexconsumer = pBufferSource.getBuffer(RenderType.lines());
         if (this.postMainBoxes.containsKey(dimensiontype)) {
             for (BoundingBox boundingbox : this.postMainBoxes.get(dimensiontype).values()) {
                 if (blockpos.closerThan(boundingbox.getCenter(), 500.0D)) {
-                    LevelRenderer.renderLineBox(p_113688_, vertexconsumer, (double) boundingbox.minX() - p_113690_, (double) boundingbox.minY() - p_113691_, (double) boundingbox.minZ() - p_113692_, (double) (boundingbox.maxX() + 1) - p_113690_, (double) (boundingbox.maxY() + 1) - p_113691_, (double) (boundingbox.maxZ() + 1) - p_113692_, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F);
+                    LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, (double) boundingbox.minX() - pCamX, (double) boundingbox.minY() - pCamY, (double) boundingbox.minZ() - pCamZ, (double) (boundingbox.maxX() + 1) - pCamX, (double) (boundingbox.maxY() + 1) - pCamY, (double) (boundingbox.maxZ() + 1) - pCamZ, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F);
                 }
             }
         }
@@ -50,32 +50,32 @@ public class StructureRenderer implements DebugRenderer.SimpleDebugRenderer {
                 Boolean obool = this.startPiecesMap.get(dimensiontype).get(s);
                 if (blockpos.closerThan(boundingbox1.getCenter(), 500.0D)) {
                     if (obool) {
-                        LevelRenderer.renderLineBox(p_113688_, vertexconsumer, (double) boundingbox1.minX() - p_113690_, (double) boundingbox1.minY() - p_113691_, (double) boundingbox1.minZ() - p_113692_, (double) (boundingbox1.maxX() + 1) - p_113690_, (double) (boundingbox1.maxY() + 1) - p_113691_, (double) (boundingbox1.maxZ() + 1) - p_113692_, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F);
+                        LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, (double) boundingbox1.minX() - pCamX, (double) boundingbox1.minY() - pCamY, (double) boundingbox1.minZ() - pCamZ, (double) (boundingbox1.maxX() + 1) - pCamX, (double) (boundingbox1.maxY() + 1) - pCamY, (double) (boundingbox1.maxZ() + 1) - pCamZ, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F);
                     } else {
-                        LevelRenderer.renderLineBox(p_113688_, vertexconsumer, (double) boundingbox1.minX() - p_113690_, (double) boundingbox1.minY() - p_113691_, (double) boundingbox1.minZ() - p_113692_, (double) (boundingbox1.maxX() + 1) - p_113690_, (double) (boundingbox1.maxY() + 1) - p_113691_, (double) (boundingbox1.maxZ() + 1) - p_113692_, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F);
+                        LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, (double) boundingbox1.minX() - pCamX, (double) boundingbox1.minY() - pCamY, (double) boundingbox1.minZ() - pCamZ, (double) (boundingbox1.maxX() + 1) - pCamX, (double) (boundingbox1.maxY() + 1) - pCamY, (double) (boundingbox1.maxZ() + 1) - pCamZ, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F);
                     }
                 }
             }
         }
     }
 
-    public void addBoundingBox(BoundingBox p_113683_, List<BoundingBox> p_113684_, List<Boolean> p_113685_, DimensionType p_113686_) {
-        if (!this.postMainBoxes.containsKey(p_113686_)) {
-            this.postMainBoxes.put(p_113686_, Maps.newHashMap());
+    public void addBoundingBox(BoundingBox pPostMainBox, List<BoundingBox> pPieceBoxes, List<Boolean> pStartPieceFlags, DimensionType pDimensionType) {
+        if (!this.postMainBoxes.containsKey(pDimensionType)) {
+            this.postMainBoxes.put(pDimensionType, Maps.newHashMap());
         }
 
-        if (!this.postPiecesBoxes.containsKey(p_113686_)) {
-            this.postPiecesBoxes.put(p_113686_, Maps.newHashMap());
-            this.startPiecesMap.put(p_113686_, Maps.newHashMap());
+        if (!this.postPiecesBoxes.containsKey(pDimensionType)) {
+            this.postPiecesBoxes.put(pDimensionType, Maps.newHashMap());
+            this.startPiecesMap.put(pDimensionType, Maps.newHashMap());
         }
 
-        this.postMainBoxes.get(p_113686_).put(p_113683_.toString(), p_113683_);
+        this.postMainBoxes.get(pDimensionType).put(pPostMainBox.toString(), pPostMainBox);
 
-        for (int i = 0; i < p_113684_.size(); ++i) {
-            BoundingBox boundingbox = p_113684_.get(i);
-            Boolean obool = p_113685_.get(i);
-            this.postPiecesBoxes.get(p_113686_).put(boundingbox.toString(), boundingbox);
-            this.startPiecesMap.get(p_113686_).put(boundingbox.toString(), obool);
+        for (int i = 0; i < pPieceBoxes.size(); ++i) {
+            BoundingBox boundingbox = pPieceBoxes.get(i);
+            Boolean obool = pStartPieceFlags.get(i);
+            this.postPiecesBoxes.get(pDimensionType).put(boundingbox.toString(), boundingbox);
+            this.startPiecesMap.get(pDimensionType).put(boundingbox.toString(), obool);
         }
     }
 

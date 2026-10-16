@@ -6,19 +6,19 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 public interface WeightedEntry {
     Weight getWeight();
 
-    static <T> WeightedEntry.Wrapper<T> wrap(T p_146291_, int p_146292_) {
-        return new WeightedEntry.Wrapper<>(p_146291_, Weight.of(p_146292_));
+    static <T> WeightedEntry.Wrapper<T> wrap(T pData, int pWeight) {
+        return new WeightedEntry.Wrapper<>(pData, Weight.of(pWeight));
     }
 
     public static class IntrusiveBase implements WeightedEntry {
         private final Weight weight;
 
-        public IntrusiveBase(int p_146295_) {
-            this.weight = Weight.of(p_146295_);
+        public IntrusiveBase(int pWeight) {
+            this.weight = Weight.of(pWeight);
         }
 
-        public IntrusiveBase(Weight p_146297_) {
-            this.weight = p_146297_;
+        public IntrusiveBase(Weight pWeight) {
+            this.weight = pWeight;
         }
 
         public Weight getWeight() {
@@ -43,9 +43,9 @@ public interface WeightedEntry {
             return this.weight;
         }
 
-        public static <E> Codec<WeightedEntry.Wrapper<E>> codec(Codec<E> p_146306_) {
+        public static <E> Codec<WeightedEntry.Wrapper<E>> codec(Codec<E> pElementCodec) {
             return RecordCodecBuilder.create((p_146309_) -> {
-                return p_146309_.group(p_146306_.fieldOf("data").forGetter(WeightedEntry.Wrapper::getData), Weight.CODEC.fieldOf("weight").forGetter(WeightedEntry.Wrapper::getWeight)).apply(p_146309_, WeightedEntry.Wrapper::new);
+                return p_146309_.group(pElementCodec.fieldOf("data").forGetter(WeightedEntry.Wrapper::getData), Weight.CODEC.fieldOf("weight").forGetter(WeightedEntry.Wrapper::getWeight)).apply(p_146309_, WeightedEntry.Wrapper::new);
             });
         }
     }

@@ -30,12 +30,12 @@ public class NoiseThresholdCountPlacement extends RepeatingPlacement {
         this.aboveNoise = p_191755_;
     }
 
-    public static NoiseThresholdCountPlacement of(double p_191757_, int p_191758_, int p_191759_) {
-        return new NoiseThresholdCountPlacement(p_191757_, p_191758_, p_191759_);
+    public static NoiseThresholdCountPlacement of(double pNoiseLevel, int pBelowNoise, int pAboveNoise) {
+        return new NoiseThresholdCountPlacement(pNoiseLevel, pBelowNoise, pAboveNoise);
     }
 
-    protected int count(RandomSource p_226355_, BlockPos p_226356_) {
-        double d0 = Biome.BIOME_INFO_NOISE.getValue(FarlandsMode.scaledNoiseCoordinate(p_226356_.getX(), 1.0D / 200.0D), FarlandsMode.scaledNoiseCoordinate(p_226356_.getZ(), 1.0D / 200.0D), false);
+    protected int count(RandomSource pRandom, BlockPos pPos) {
+        double d0 = Biome.BIOME_INFO_NOISE.getValue(FarlandsMode.scaledNoiseCoordinate(pPos.getX(), 1.0D / 200.0D), FarlandsMode.scaledNoiseCoordinate(pPos.getZ(), 1.0D / 200.0D), false);
         return d0 < this.noiseLevel ? this.belowNoise : this.aboveNoise;
     }
 

@@ -13,30 +13,30 @@ public record PlayerChatMessage(SignedMessageHeader signedHeader, MessageSignatu
     public static final Duration MESSAGE_EXPIRES_AFTER_SERVER = Duration.ofMinutes(5L);
     public static final Duration MESSAGE_EXPIRES_AFTER_CLIENT = MESSAGE_EXPIRES_AFTER_SERVER.plus(Duration.ofMinutes(2L));
 
-    public PlayerChatMessage(FriendlyByteBuf p_241419_) {
-        this(new SignedMessageHeader(p_241419_), new MessageSignature(p_241419_), new SignedMessageBody(p_241419_), p_241419_.readOptional(FriendlyByteBuf::readComponent), FilterMask.read(p_241419_));
+    public PlayerChatMessage(FriendlyByteBuf pBuffer) {
+        this(new SignedMessageHeader(pBuffer), new MessageSignature(pBuffer), new SignedMessageBody(pBuffer), pBuffer.readOptional(FriendlyByteBuf::readComponent), FilterMask.read(pBuffer));
     }
 
-    public static PlayerChatMessage system(ChatMessageContent p_242910_) {
-        return unsigned(MessageSigner.system(), p_242910_);
+    public static PlayerChatMessage system(ChatMessageContent pContent) {
+        return unsigned(MessageSigner.system(), pContent);
     }
 
-    public static PlayerChatMessage unsigned(MessageSigner p_243247_, ChatMessageContent p_243279_) {
-        SignedMessageBody signedmessagebody = new SignedMessageBody(p_243279_, p_243247_.timeStamp(), p_243247_.salt(), LastSeenMessages.EMPTY);
-        SignedMessageHeader signedmessageheader = new SignedMessageHeader((MessageSignature) null, p_243247_.profileId());
+    public static PlayerChatMessage unsigned(MessageSigner pSigner, ChatMessageContent pContent) {
+        SignedMessageBody signedmessagebody = new SignedMessageBody(pContent, pSigner.timeStamp(), pSigner.salt(), LastSeenMessages.EMPTY);
+        SignedMessageHeader signedmessageheader = new SignedMessageHeader((MessageSignature) null, pSigner.profileId());
         return new PlayerChatMessage(signedmessageheader, MessageSignature.EMPTY, signedmessagebody, Optional.empty(), FilterMask.PASS_THROUGH);
     }
 
-    public void write(FriendlyByteBuf p_241490_) {
-        this.signedHeader.write(p_241490_);
-        this.headerSignature.write(p_241490_);
-        this.signedBody.write(p_241490_);
-        p_241490_.writeOptional(this.unsignedContent, FriendlyByteBuf::writeComponent);
-        FilterMask.write(p_241490_, this.filterMask);
+    public void write(FriendlyByteBuf pBuffer) {
+        this.signedHeader.write(pBuffer);
+        this.headerSignature.write(pBuffer);
+        this.signedBody.write(pBuffer);
+        pBuffer.writeOptional(this.unsignedContent, FriendlyByteBuf::writeComponent);
+        FilterMask.write(pBuffer, this.filterMask);
     }
 
-    public PlayerChatMessage withUnsignedContent(Component p_242164_) {
-        Optional<Component> optional = !this.signedContent().decorated().equals(p_242164_) ? Optional.of(p_242164_) : Optional.empty();
+    public PlayerChatMessage withUnsignedContent(Component pMessage) {
+        Optional<Component> optional = !this.signedContent().decorated().equals(pMessage) ? Optional.of(pMessage) : Optional.empty();
         return new PlayerChatMessage(this.signedHeader, this.headerSignature, this.signedBody, optional, this.filterMask);
     }
 
@@ -44,25 +44,25 @@ public record PlayerChatMessage(SignedMessageHeader signedHeader, MessageSignatu
         return this.unsignedContent.isPresent() ? new PlayerChatMessage(this.signedHeader, this.headerSignature, this.signedBody, Optional.empty(), this.filterMask) : this;
     }
 
-    public PlayerChatMessage filter(FilterMask p_243320_) {
-        return this.filterMask.equals(p_243320_) ? this : new PlayerChatMessage(this.signedHeader, this.headerSignature, this.signedBody, this.unsignedContent, p_243320_);
+    public PlayerChatMessage filter(FilterMask pMask) {
+        return this.filterMask.equals(pMask) ? this : new PlayerChatMessage(this.signedHeader, this.headerSignature, this.signedBody, this.unsignedContent, pMask);
     }
 
-    public PlayerChatMessage filter(boolean p_243223_) {
-        return this.filter(p_243223_ ? this.filterMask : FilterMask.PASS_THROUGH);
+    public PlayerChatMessage filter(boolean pShouldFilter) {
+        return this.filter(pShouldFilter ? this.filterMask : FilterMask.PASS_THROUGH);
     }
 
-    public boolean verify(SignatureValidator p_241442_) {
-        return this.headerSignature.verify(p_241442_, this.signedHeader, this.signedBody);
+    public boolean verify(SignatureValidator pValidator) {
+        return this.headerSignature.verify(pValidator, this.signedHeader, this.signedBody);
     }
 
-    public boolean verify(ProfilePublicKey p_237229_) {
-        SignatureValidator signaturevalidator = p_237229_.createSignatureValidator();
+    public boolean verify(ProfilePublicKey pPublicKey) {
+        SignatureValidator signaturevalidator = pPublicKey.createSignatureValidator();
         return this.verify(signaturevalidator);
     }
 
-    public boolean verify(ChatSender p_241394_) {
-        ProfilePublicKey profilepublickey = p_241394_.profilePublicKey();
+    public boolean verify(ChatSender pSender) {
+        ProfilePublicKey profilepublickey = pSender.profilePublicKey();
         return profilepublickey != null && this.verify(profilepublickey);
     }
 
@@ -82,12 +82,12 @@ public record PlayerChatMessage(SignedMessageHeader signedHeader, MessageSignatu
         return this.signedBody.salt();
     }
 
-    public boolean hasExpiredServer(Instant p_240573_) {
-        return p_240573_.isAfter(this.timeStamp().plus(MESSAGE_EXPIRES_AFTER_SERVER));
+    public boolean hasExpiredServer(Instant pTimestamp) {
+        return pTimestamp.isAfter(this.timeStamp().plus(MESSAGE_EXPIRES_AFTER_SERVER));
     }
 
-    public boolean hasExpiredClient(Instant p_240629_) {
-        return p_240629_.isAfter(this.timeStamp().plus(MESSAGE_EXPIRES_AFTER_CLIENT));
+    public boolean hasExpiredClient(Instant pTimestamp) {
+        return pTimestamp.isAfter(this.timeStamp().plus(MESSAGE_EXPIRES_AFTER_CLIENT));
     }
 
     public MessageSigner signer() {
@@ -100,8 +100,8 @@ public record PlayerChatMessage(SignedMessageHeader signedHeader, MessageSignatu
         return !this.headerSignature.isEmpty() && !messagesigner.isSystem() ? new LastSeenMessages.Entry(messagesigner.profileId(), this.headerSignature) : null;
     }
 
-    public boolean hasSignatureFrom(UUID p_243236_) {
-        return !this.headerSignature.isEmpty() && this.signedHeader.sender().equals(p_243236_);
+    public boolean hasSignatureFrom(UUID pUuid) {
+        return !this.headerSignature.isEmpty() && this.signedHeader.sender().equals(pUuid);
     }
 
     public boolean isFullyFiltered() {

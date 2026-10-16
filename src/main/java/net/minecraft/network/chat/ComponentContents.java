@@ -13,15 +13,15 @@ public interface ComponentContents {
         }
     };
 
-    default<T> Optional<T> visit(FormattedText.StyledContentConsumer<T> p_237130_, Style p_237131_) {
+    default<T> Optional<T> visit(FormattedText.StyledContentConsumer<T> pStyledContentConsumer, Style pStyle) {
         return Optional.empty();
     }
 
-    default<T> Optional<T> visit(FormattedText.ContentConsumer<T> p_237129_) {
+    default<T> Optional<T> visit(FormattedText.ContentConsumer<T> pContentConsumer) {
         return Optional.empty();
     }
 
-    default MutableComponent resolve(@Nullable CommandSourceStack p_237126_, @Nullable Entity p_237127_, int p_237128_) throws CommandSyntaxException {
+    default MutableComponent resolve(@Nullable CommandSourceStack pNbtPathPattern, @Nullable Entity pEntity, int pRecursionDepth) throws CommandSyntaxException {
         return MutableComponent.create(this);
     }
 }

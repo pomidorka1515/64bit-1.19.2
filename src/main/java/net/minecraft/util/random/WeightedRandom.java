@@ -9,10 +9,10 @@ public class WeightedRandom {
     private WeightedRandom() {
     }
 
-    public static int getTotalWeight(List<? extends WeightedEntry> p_146313_) {
+    public static int getTotalWeight(List<? extends WeightedEntry> pEntries) {
         long i = 0L;
 
-        for (WeightedEntry weightedentry : p_146313_) {
+        for (WeightedEntry weightedentry : pEntries) {
             i += (long) weightedentry.getWeight().asInt();
         }
 
@@ -23,21 +23,21 @@ public class WeightedRandom {
         }
     }
 
-    public static <T extends WeightedEntry> Optional<T> getRandomItem(RandomSource p_216826_, List<T> p_216827_, int p_216828_) {
-        if (p_216828_ < 0) {
+    public static <T extends WeightedEntry> Optional<T> getRandomItem(RandomSource pRandom, List<T> pEntries, int pTotalWeight) {
+        if (pTotalWeight < 0) {
             throw (IllegalArgumentException) Util.pauseInIde(new IllegalArgumentException("Negative total weight in getRandomItem"));
-        } else if (p_216828_ == 0) {
+        } else if (pTotalWeight == 0) {
             return Optional.empty();
         } else {
-            int i = p_216826_.nextInt(p_216828_);
-            return getWeightedItem(p_216827_, i);
+            int i = pRandom.nextInt(pTotalWeight);
+            return getWeightedItem(pEntries, i);
         }
     }
 
-    public static <T extends WeightedEntry> Optional<T> getWeightedItem(List<T> p_146315_, int p_146316_) {
-        for (T t : p_146315_) {
-            p_146316_ -= t.getWeight().asInt();
-            if (p_146316_ < 0) {
+    public static <T extends WeightedEntry> Optional<T> getWeightedItem(List<T> pEntries, int pWeightedIndex) {
+        for (T t : pEntries) {
+            pWeightedIndex -= t.getWeight().asInt();
+            if (pWeightedIndex < 0) {
                 return Optional.of(t);
             }
         }
@@ -45,7 +45,7 @@ public class WeightedRandom {
         return Optional.empty();
     }
 
-    public static <T extends WeightedEntry> Optional<T> getRandomItem(RandomSource p_216823_, List<T> p_216824_) {
-        return getRandomItem(p_216823_, p_216824_, getTotalWeight(p_216824_));
+    public static <T extends WeightedEntry> Optional<T> getRandomItem(RandomSource pRandom, List<T> pEntries) {
+        return getRandomItem(pRandom, pEntries, getTotalWeight(pEntries));
     }
 }

@@ -14,7 +14,7 @@ public interface DragonPhaseInstance {
 
     void doServerTick();
 
-    void onCrystalDestroyed(EndCrystal p_31315_, BlockPos p_31316_, DamageSource p_31317_, @Nullable Player p_31318_);
+    void onCrystalDestroyed(EndCrystal pCrystal, BlockPos pPos, DamageSource pDamageSource, @Nullable Player pPlayer);
 
     void begin();
 
@@ -35,5 +35,5 @@ public interface DragonPhaseInstance {
         return target == null ? null : net.minecraft.world.phys.SectorVec3.fromApproximate(target.x, target.y, target.z);
     }
 
-    float onHurt(DamageSource p_31313_, float p_31314_);
+    float onHurt(DamageSource pDamageSource, float pAmount);
 }

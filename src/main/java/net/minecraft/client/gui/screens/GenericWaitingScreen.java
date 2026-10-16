@@ -24,20 +24,20 @@ public class GenericWaitingScreen extends Screen {
     private Button button;
     private int disableButtonTicks;
 
-    public static GenericWaitingScreen createWaiting(Component p_240310_, Component p_240311_, Runnable p_240312_) {
-        return new GenericWaitingScreen(p_240310_, (Component) null, p_240311_, p_240312_, 0);
+    public static GenericWaitingScreen createWaiting(Component pTitle, Component pButtonLabel, Runnable pButtonCallback) {
+        return new GenericWaitingScreen(pTitle, (Component) null, pButtonLabel, pButtonCallback, 0);
     }
 
-    public static GenericWaitingScreen createCompleted(Component p_240291_, Component p_240292_, Component p_240293_, Runnable p_240294_) {
-        return new GenericWaitingScreen(p_240291_, p_240292_, p_240293_, p_240294_, 20);
+    public static GenericWaitingScreen createCompleted(Component pTitle, Component pMessageText, Component pButtonLabel, Runnable pButtonCallback) {
+        return new GenericWaitingScreen(pTitle, pMessageText, pButtonLabel, pButtonCallback, 20);
     }
 
-    protected GenericWaitingScreen(Component p_240300_, @Nullable Component p_240301_, Component p_240302_, Runnable p_240303_, int p_240304_) {
-        super(p_240300_);
-        this.messageText = p_240301_;
-        this.buttonLabel = p_240302_;
-        this.buttonCallback = p_240303_;
-        this.disableButtonTicks = p_240304_;
+    protected GenericWaitingScreen(Component pTitle, @Nullable Component pMessageText, Component pButtonLabel, Runnable pButtonCallback, int pDisableButtonTicks) {
+        super(pTitle);
+        this.messageText = pMessageText;
+        this.buttonLabel = pButtonLabel;
+        this.buttonCallback = pButtonCallback;
+        this.disableButtonTicks = pDisableButtonTicks;
     }
 
     protected void init() {
@@ -64,17 +64,17 @@ public class GenericWaitingScreen extends Screen {
         this.button.active = this.disableButtonTicks == 0;
     }
 
-    public void render(PoseStack p_239718_, int p_239719_, int p_239720_, float p_239721_) {
-        this.renderBackground(p_239718_);
-        drawCenteredString(p_239718_, this.font, this.title, this.width / 2, 80, 16777215);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 80, 16777215);
         if (this.message == null) {
             String s = LoadingDotsText.get(Util.getMillis());
-            drawCenteredString(p_239718_, this.font, s, this.width / 2, 120, 10526880);
+            drawCenteredString(pPoseStack, this.font, s, this.width / 2, 120, 10526880);
         } else {
-            this.message.renderCentered(p_239718_, this.width / 2, 120);
+            this.message.renderCentered(pPoseStack, this.width / 2, 120);
         }
 
-        super.render(p_239718_, p_239719_, p_239720_, p_239721_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public boolean shouldCloseOnEsc() {

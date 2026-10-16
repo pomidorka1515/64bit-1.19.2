@@ -117,12 +117,12 @@ public abstract class Feature<FC extends FeatureConfiguration> {
     public static final Feature<SculkPatchConfiguration> SCULK_PATCH = register("sculk_patch", new SculkPatchFeature(SculkPatchConfiguration.CODEC));
     private final Codec<ConfiguredFeature<FC, Feature<FC>>> configuredCodec;
 
-    private static <C extends FeatureConfiguration, F extends Feature<C>> F register(String p_65808_, F p_65809_) {
-        return Registry.register(Registry.FEATURE, p_65808_, p_65809_);
+    private static <C extends FeatureConfiguration, F extends Feature<C>> F register(String pKey, F pValue) {
+        return Registry.register(Registry.FEATURE, pKey, pValue);
     }
 
-    public Feature(Codec<FC> p_65786_) {
-        this.configuredCodec = p_65786_.fieldOf("config").xmap((p_65806_) -> {
+    public Feature(Codec<FC> pCodec) {
+        this.configuredCodec = pCodec.fieldOf("config").xmap((p_65806_) -> {
                                                              return new ConfiguredFeature<>(this, p_65806_);
                                                          }, ConfiguredFeature::config).codec();
     }
@@ -131,46 +131,46 @@ public abstract class Feature<FC extends FeatureConfiguration> {
         return this.configuredCodec;
     }
 
-    protected void setBlock(LevelWriter p_65791_, BlockPos p_65792_, BlockState p_65793_) {
-        p_65791_.setBlock(p_65792_, p_65793_, 3);
+    protected void setBlock(LevelWriter pLevel, BlockPos pPos, BlockState pState) {
+        pLevel.setBlock(pPos, pState, 3);
     }
 
-    public static Predicate<BlockState> isReplaceable(TagKey<Block> p_204736_) {
+    public static Predicate<BlockState> isReplaceable(TagKey<Block> pBlockTag) {
         return (p_204739_) -> {
-            return !p_204739_.is(p_204736_);
+            return !p_204739_.is(pBlockTag);
         };
     }
 
-    protected void safeSetBlock(WorldGenLevel p_159743_, BlockPos p_159744_, BlockState p_159745_, Predicate<BlockState> p_159746_) {
-        if (p_159746_.test(p_159743_.getBlockState(p_159744_))) {
-            p_159743_.setBlock(p_159744_, p_159745_, 2);
+    protected void safeSetBlock(WorldGenLevel pLevel, BlockPos pPos, BlockState pState, Predicate<BlockState> pOldState) {
+        if (pOldState.test(pLevel.getBlockState(pPos))) {
+            pLevel.setBlock(pPos, pState, 2);
         }
     }
 
-    public abstract boolean place(FeaturePlaceContext<FC> p_159749_);
+    public abstract boolean place(FeaturePlaceContext<FC> pContext);
 
-    public boolean place(FC p_225029_, WorldGenLevel p_225030_, ChunkGenerator p_225031_, RandomSource p_225032_, BlockPos p_225033_) {
-        return p_225030_.ensureCanWrite(p_225033_) ? this.place(new FeaturePlaceContext<>(Optional.empty(), p_225030_, p_225031_, p_225032_, p_225033_, p_225029_)) : false;
+    public boolean place(FC pConfig, WorldGenLevel pLevel, ChunkGenerator pChunkGenerator, RandomSource pRandom, BlockPos pOrigin) {
+        return pLevel.ensureCanWrite(pOrigin) ? this.place(new FeaturePlaceContext<>(Optional.empty(), pLevel, pChunkGenerator, pRandom, pOrigin, pConfig)) : false;
     }
 
-    protected static boolean isStone(BlockState p_159748_) {
-        return p_159748_.is(BlockTags.BASE_STONE_OVERWORLD);
+    protected static boolean isStone(BlockState pState) {
+        return pState.is(BlockTags.BASE_STONE_OVERWORLD);
     }
 
     public static boolean isDirt(BlockState p_159760_) {
         return p_159760_.is(BlockTags.DIRT);
     }
 
-    public static boolean isGrassOrDirt(LevelSimulatedReader p_65789_, BlockPos p_65790_) {
-        return p_65789_.isStateAtPosition(p_65790_, Feature::isDirt);
+    public static boolean isGrassOrDirt(LevelSimulatedReader pLevel, BlockPos pPos) {
+        return pLevel.isStateAtPosition(pPos, Feature::isDirt);
     }
 
-    public static boolean checkNeighbors(Function<BlockPos, BlockState> p_159754_, BlockPos p_159755_, Predicate<BlockState> p_159756_) {
+    public static boolean checkNeighbors(Function<BlockPos, BlockState> pAdjacentStateAccessor, BlockPos pPos, Predicate<BlockState> pFilter) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (Direction direction : Direction.values()) {
-            blockpos$mutableblockpos.setWithOffset(p_159755_, direction);
-            if (p_159756_.test(p_159754_.apply(blockpos$mutableblockpos))) {
+            blockpos$mutableblockpos.setWithOffset(pPos, direction);
+            if (pFilter.test(pAdjacentStateAccessor.apply(blockpos$mutableblockpos))) {
                 return true;
             }
         }
@@ -178,20 +178,20 @@ public abstract class Feature<FC extends FeatureConfiguration> {
         return false;
     }
 
-    public static boolean isAdjacentToAir(Function<BlockPos, BlockState> p_159751_, BlockPos p_159752_) {
-        return checkNeighbors(p_159751_, p_159752_, BlockBehaviour.BlockStateBase::isAir);
+    public static boolean isAdjacentToAir(Function<BlockPos, BlockState> pAdjacentStateAccessor, BlockPos pPos) {
+        return checkNeighbors(pAdjacentStateAccessor, pPos, BlockBehaviour.BlockStateBase::isAir);
     }
 
-    protected void markAboveForPostProcessing(WorldGenLevel p_159740_, BlockPos p_159741_) {
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_159741_.mutable();
+    protected void markAboveForPostProcessing(WorldGenLevel pLevel, BlockPos pBasePos) {
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = pBasePos.mutable();
 
         for (int i = 0; i < 2; ++i) {
             blockpos$mutableblockpos.move(Direction.UP);
-            if (p_159740_.getBlockState(blockpos$mutableblockpos).isAir()) {
+            if (pLevel.getBlockState(blockpos$mutableblockpos).isAir()) {
                 return;
             }
 
-            p_159740_.getChunk(blockpos$mutableblockpos).markPosForPostprocessing(blockpos$mutableblockpos);
+            pLevel.getChunk(blockpos$mutableblockpos).markPosForPostprocessing(blockpos$mutableblockpos);
         }
     }
 }

@@ -28,8 +28,8 @@ public class OggAudioStream implements AudioStream {
     private final InputStream input;
     private ByteBuffer buffer = MemoryUtil.memAlloc(8192);
 
-    public OggAudioStream(InputStream p_83751_) throws IOException {
-        this.input = p_83751_;
+    public OggAudioStream(InputStream pInput) throws IOException {
+        this.input = pInput;
         this.buffer.limit(0);
         MemoryStack memorystack = MemoryStack.stackPush();
 
@@ -111,7 +111,7 @@ public class OggAudioStream implements AudioStream {
         }
     }
 
-    private boolean readFrame(OggAudioStream.OutputConcat p_83756_) throws IOException {
+    private boolean readFrame(OggAudioStream.OutputConcat pOutput) throws IOException {
         if (this.handle == 0L) {
             return false;
         } else {
@@ -146,7 +146,7 @@ public class OggAudioStream implements AudioStream {
                             int k = intbuffer.get(0);
                             PointerBuffer pointerbuffer1 = pointerbuffer.getPointerBuffer(k);
                             if (k == 1) {
-                                this.convertMono(pointerbuffer1.getFloatBuffer(0, j), p_83756_);
+                                this.convertMono(pointerbuffer1.getFloatBuffer(0, j), pOutput);
                                 flag = true;
                                 break label80;
                             }
@@ -155,7 +155,7 @@ public class OggAudioStream implements AudioStream {
                                 throw new IllegalStateException("Invalid number of channels: " + k);
                             }
 
-                            this.convertStereo(pointerbuffer1.getFloatBuffer(0, j), pointerbuffer1.getFloatBuffer(1, j), p_83756_);
+                            this.convertStereo(pointerbuffer1.getFloatBuffer(0, j), pointerbuffer1.getFloatBuffer(1, j), pOutput);
                             flag = true;
                             break;
                         }
@@ -195,16 +195,16 @@ public class OggAudioStream implements AudioStream {
         }
     }
 
-    private void convertMono(FloatBuffer p_83758_, OggAudioStream.OutputConcat p_83759_) {
-        while (p_83758_.hasRemaining()) {
-            p_83759_.put(p_83758_.get());
+    private void convertMono(FloatBuffer pChannel, OggAudioStream.OutputConcat pOutput) {
+        while (pChannel.hasRemaining()) {
+            pOutput.put(pChannel.get());
         }
     }
 
-    private void convertStereo(FloatBuffer p_83761_, FloatBuffer p_83762_, OggAudioStream.OutputConcat p_83763_) {
-        while (p_83761_.hasRemaining() && p_83762_.hasRemaining()) {
-            p_83763_.put(p_83761_.get());
-            p_83763_.put(p_83762_.get());
+    private void convertStereo(FloatBuffer pLeftChannel, FloatBuffer pRightChannel, OggAudioStream.OutputConcat pOutput) {
+        while (pLeftChannel.hasRemaining() && pRightChannel.hasRemaining()) {
+            pOutput.put(pLeftChannel.get());
+            pOutput.put(pRightChannel.get());
         }
     }
 
@@ -222,10 +222,10 @@ public class OggAudioStream implements AudioStream {
         return this.audioFormat;
     }
 
-    public ByteBuffer read(int p_83754_) throws IOException {
-        OggAudioStream.OutputConcat oggaudiostream$outputconcat = new OggAudioStream.OutputConcat(p_83754_ + 8192);
+    public ByteBuffer read(int pSize) throws IOException {
+        OggAudioStream.OutputConcat oggaudiostream$outputconcat = new OggAudioStream.OutputConcat(pSize + 8192);
 
-        while (this.readFrame(oggaudiostream$outputconcat) && oggaudiostream$outputconcat.byteCount < p_83754_) {
+        while (this.readFrame(oggaudiostream$outputconcat) && oggaudiostream$outputconcat.byteCount < pSize) {
         }
 
         return oggaudiostream$outputconcat.get();
@@ -247,8 +247,8 @@ public class OggAudioStream implements AudioStream {
         int byteCount;
         private ByteBuffer currentBuffer;
 
-        public OutputConcat(int p_83773_) {
-            this.bufferSize = p_83773_ + 1 & -2;
+        public OutputConcat(int pSize) {
+            this.bufferSize = pSize + 1 & -2;
             this.createNewBuffer();
         }
 
@@ -256,14 +256,14 @@ public class OggAudioStream implements AudioStream {
             this.currentBuffer = BufferUtils.createByteBuffer(this.bufferSize);
         }
 
-        public void put(float p_83776_) {
+        public void put(float pSample) {
             if (this.currentBuffer.remaining() == 0) {
                 this.currentBuffer.flip();
                 this.buffers.add(this.currentBuffer);
                 this.createNewBuffer();
             }
 
-            int i = Mth.clamp((int) (p_83776_ * 32767.5F - 0.5F), -32768, 32767);
+            int i = Mth.clamp((int) (pSample * 32767.5F - 0.5F), -32768, 32767);
             this.currentBuffer.putShort((short) i);
             this.byteCount += 2;
         }

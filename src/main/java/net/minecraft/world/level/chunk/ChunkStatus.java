@@ -160,25 +160,25 @@ public class ChunkStatus {
     private final ChunkStatus.ChunkType chunkType;
     private final EnumSet<Heightmap.Types> heightmapsAfter;
 
-    private static CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> lightChunk(ChunkStatus p_62389_, ThreadedLevelLightEngine p_62390_, ChunkAccess p_62391_) {
-        boolean flag = isLighted(p_62389_, p_62391_);
-        if (!p_62391_.getStatus().isOrAfter(p_62389_)) {
-            ((ProtoChunk) p_62391_).setStatus(p_62389_);
+    private static CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> lightChunk(ChunkStatus pStatus, ThreadedLevelLightEngine pLightEngine, ChunkAccess pChunk) {
+        boolean flag = isLighted(pStatus, pChunk);
+        if (!pChunk.getStatus().isOrAfter(pStatus)) {
+            ((ProtoChunk) pChunk).setStatus(pStatus);
         }
 
-        return p_62390_.lightChunk(p_62391_, flag).thenApply(Either::left);
+        return pLightEngine.lightChunk(pChunk, flag).thenApply(Either::left);
     }
 
-    private static ChunkStatus registerSimple(String p_62415_, @Nullable ChunkStatus p_62416_, int p_62417_, EnumSet<Heightmap.Types> p_62418_, ChunkStatus.ChunkType p_62419_, ChunkStatus.SimpleGenerationTask p_62420_) {
-        return register(p_62415_, p_62416_, p_62417_, p_62418_, p_62419_, p_62420_);
+    private static ChunkStatus registerSimple(String pKey, @Nullable ChunkStatus pParent, int pTaskRange, EnumSet<Heightmap.Types> pHeightmaps, ChunkStatus.ChunkType pType, ChunkStatus.SimpleGenerationTask pGenerationTask) {
+        return register(pKey, pParent, pTaskRange, pHeightmaps, pType, pGenerationTask);
     }
 
-    private static ChunkStatus register(String p_62400_, @Nullable ChunkStatus p_62401_, int p_62402_, EnumSet<Heightmap.Types> p_62403_, ChunkStatus.ChunkType p_62404_, ChunkStatus.GenerationTask p_62405_) {
-        return register(p_62400_, p_62401_, p_62402_, p_62403_, p_62404_, p_62405_, PASSTHROUGH_LOAD_TASK);
+    private static ChunkStatus register(String pKey, @Nullable ChunkStatus pParent, int pTaskRange, EnumSet<Heightmap.Types> pHeightmaps, ChunkStatus.ChunkType pType, ChunkStatus.GenerationTask pGenerationTask) {
+        return register(pKey, pParent, pTaskRange, pHeightmaps, pType, pGenerationTask, PASSTHROUGH_LOAD_TASK);
     }
 
-    private static ChunkStatus register(String p_62407_, @Nullable ChunkStatus p_62408_, int p_62409_, EnumSet<Heightmap.Types> p_62410_, ChunkStatus.ChunkType p_62411_, ChunkStatus.GenerationTask p_62412_, ChunkStatus.LoadingTask p_62413_) {
-        return Registry.register(Registry.CHUNK_STATUS, p_62407_, new ChunkStatus(p_62407_, p_62408_, p_62409_, p_62410_, p_62411_, p_62412_, p_62413_));
+    private static ChunkStatus register(String pKey, @Nullable ChunkStatus pParent, int pTaskRange, EnumSet<Heightmap.Types> pHeightmaps, ChunkStatus.ChunkType pType, ChunkStatus.GenerationTask pGenerationTask, ChunkStatus.LoadingTask pLoadingTask) {
+        return Registry.register(Registry.CHUNK_STATUS, pKey, new ChunkStatus(pKey, pParent, pTaskRange, pHeightmaps, pType, pGenerationTask, pLoadingTask));
     }
 
     public static List<ChunkStatus> getStatusList() {
@@ -194,15 +194,15 @@ public class ChunkStatus {
         return list;
     }
 
-    private static boolean isLighted(ChunkStatus p_62393_, ChunkAccess p_62394_) {
-        return p_62394_.getStatus().isOrAfter(p_62393_) && p_62394_.isLightCorrect();
+    private static boolean isLighted(ChunkStatus pStatus, ChunkAccess pChunk) {
+        return pChunk.getStatus().isOrAfter(pStatus) && pChunk.isLightCorrect();
     }
 
-    public static ChunkStatus getStatusAroundFullChunk(int p_156186_) {
-        if (p_156186_ >= STATUS_BY_RANGE.size()) {
+    public static ChunkStatus getStatusAroundFullChunk(int pRadius) {
+        if (pRadius >= STATUS_BY_RANGE.size()) {
             return EMPTY;
         } else {
-            return p_156186_ < 0 ? FULL : STATUS_BY_RANGE.get(p_156186_);
+            return pRadius < 0 ? FULL : STATUS_BY_RANGE.get(pRadius);
         }
     }
 
@@ -210,19 +210,19 @@ public class ChunkStatus {
         return STATUS_BY_RANGE.size();
     }
 
-    public static int getDistance(ChunkStatus p_62371_) {
-        return RANGE_BY_STATUS.getInt(p_62371_.getIndex());
+    public static int getDistance(ChunkStatus pStatus) {
+        return RANGE_BY_STATUS.getInt(pStatus.getIndex());
     }
 
-    ChunkStatus(String p_62342_, @Nullable ChunkStatus p_62343_, int p_62344_, EnumSet<Heightmap.Types> p_62345_, ChunkStatus.ChunkType p_62346_, ChunkStatus.GenerationTask p_62347_, ChunkStatus.LoadingTask p_62348_) {
-        this.name = p_62342_;
-        this.parent = p_62343_ == null ? this : p_62343_;
-        this.generationTask = p_62347_;
-        this.loadingTask = p_62348_;
-        this.range = p_62344_;
-        this.chunkType = p_62346_;
-        this.heightmapsAfter = p_62345_;
-        this.index = p_62343_ == null ? 0 : p_62343_.getIndex() + 1;
+    ChunkStatus(String pName, @Nullable ChunkStatus pParent, int pRange, EnumSet<Heightmap.Types> pHeightmapsAfter, ChunkStatus.ChunkType pChunkType, ChunkStatus.GenerationTask pGenerationTask, ChunkStatus.LoadingTask pLoadingTask) {
+        this.name = pName;
+        this.parent = pParent == null ? this : pParent;
+        this.generationTask = pGenerationTask;
+        this.loadingTask = pLoadingTask;
+        this.range = pRange;
+        this.chunkType = pChunkType;
+        this.heightmapsAfter = pHeightmapsAfter;
+        this.index = pParent == null ? 0 : pParent.getIndex() + 1;
     }
 
     public int getIndex() {
@@ -248,8 +248,8 @@ public class ChunkStatus {
                                         : completablefuture;
     }
 
-    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> load(ServerLevel p_223245_, StructureTemplateManager p_223246_, ThreadedLevelLightEngine p_223247_, Function<ChunkAccess, CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> p_223248_, ChunkAccess p_223249_) {
-        return this.loadingTask.doWork(this, p_223245_, p_223246_, p_223247_, p_223248_, p_223249_);
+    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> load(ServerLevel pLevel, StructureTemplateManager pStructureTemplateManager, ThreadedLevelLightEngine pLightEngine, Function<ChunkAccess, CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> pTask, ChunkAccess pLoadingChunk) {
+        return this.loadingTask.doWork(this, pLevel, pStructureTemplateManager, pLightEngine, pTask, pLoadingChunk);
     }
 
     public int getRange() {
@@ -260,16 +260,16 @@ public class ChunkStatus {
         return this.chunkType;
     }
 
-    public static ChunkStatus byName(String p_62398_) {
-        return Registry.CHUNK_STATUS.get(ResourceLocation.tryParse(p_62398_));
+    public static ChunkStatus byName(String pKey) {
+        return Registry.CHUNK_STATUS.get(ResourceLocation.tryParse(pKey));
     }
 
     public EnumSet<Heightmap.Types> heightmapsAfter() {
         return this.heightmapsAfter;
     }
 
-    public boolean isOrAfter(ChunkStatus p_62428_) {
-        return this.getIndex() >= p_62428_.getIndex();
+    public boolean isOrAfter(ChunkStatus pStatus) {
+        return this.getIndex() >= pStatus.getIndex();
     }
 
     public String toString() {
@@ -286,7 +286,7 @@ public class ChunkStatus {
     }
 
     interface LoadingTask {
-        CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> doWork(ChunkStatus p_223382_, ServerLevel p_223383_, StructureTemplateManager p_223384_, ThreadedLevelLightEngine p_223385_, Function<ChunkAccess, CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> p_223386_, ChunkAccess p_223387_);
+        CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> doWork(ChunkStatus pStatus, ServerLevel pLevel, StructureTemplateManager pStructureTemplateManager, ThreadedLevelLightEngine pLightEngine, Function<ChunkAccess, CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> pTask, ChunkAccess pChunk);
     }
 
     interface SimpleGenerationTask extends ChunkStatus.GenerationTask {
@@ -302,6 +302,6 @@ public class ChunkStatus {
             return CompletableFuture.completedFuture(Either.left(p_223397_));
         }
 
-        void doWork(ChunkStatus p_156323_, ServerLevel p_156324_, ChunkGenerator p_156325_, List<ChunkAccess> p_156326_, ChunkAccess p_156327_);
+        void doWork(ChunkStatus pStatus, ServerLevel pLevel, ChunkGenerator pGenerator, List<ChunkAccess> pCache, ChunkAccess pLoadingChunk);
     }
 }

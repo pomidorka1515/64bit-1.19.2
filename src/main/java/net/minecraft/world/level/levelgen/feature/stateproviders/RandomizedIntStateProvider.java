@@ -31,16 +31,16 @@ public class RandomizedIntStateProvider extends BlockStateProvider {
     private IntegerProperty property;
     private final IntProvider values;
 
-    public RandomizedIntStateProvider(BlockStateProvider p_161562_, IntegerProperty p_161563_, IntProvider p_161564_) {
-        this.source = p_161562_;
-        this.property = p_161563_;
-        this.propertyName = p_161563_.getName();
-        this.values = p_161564_;
-        Collection<Integer> collection = p_161563_.getPossibleValues();
+    public RandomizedIntStateProvider(BlockStateProvider pSource, IntegerProperty pProperty, IntProvider pValues) {
+        this.source = pSource;
+        this.property = pProperty;
+        this.propertyName = pProperty.getName();
+        this.values = pValues;
+        Collection<Integer> collection = pProperty.getPossibleValues();
 
-        for (int i = p_161564_.getMinValue(); i <= p_161564_.getMaxValue(); ++i) {
+        for (int i = pValues.getMinValue(); i <= pValues.getMaxValue(); ++i) {
             if (!collection.contains(i)) {
-                throw new IllegalArgumentException("Property value out of range: " + p_161563_.getName() + ": " + i);
+                throw new IllegalArgumentException("Property value out of range: " + pProperty.getName() + ": " + i);
             }
         }
     }
@@ -55,19 +55,19 @@ public class RandomizedIntStateProvider extends BlockStateProvider {
         return BlockStateProviderType.RANDOMIZED_INT_STATE_PROVIDER;
     }
 
-    public BlockState getState(RandomSource p_225919_, BlockPos p_225920_) {
-        BlockState blockstate = this.source.getState(p_225919_, p_225920_);
+    public BlockState getState(RandomSource pRandom, BlockPos pState) {
+        BlockState blockstate = this.source.getState(pRandom, pState);
         if (this.property == null || !blockstate.hasProperty(this.property)) {
             this.property = findProperty(blockstate, this.propertyName);
         }
 
-        return blockstate.setValue(this.property, Integer.valueOf(this.values.sample(p_225919_)));
+        return blockstate.setValue(this.property, Integer.valueOf(this.values.sample(pRandom)));
     }
 
-    private static IntegerProperty findProperty(BlockState p_161571_, String p_161572_) {
-        Collection<Property<?>> collection = p_161571_.getProperties();
+    private static IntegerProperty findProperty(BlockState pState, String pPropertyName) {
+        Collection<Property<?>> collection = pState.getProperties();
         Optional<IntegerProperty> optional = collection.stream().filter((p_161583_) -> {
-                                                                    return p_161583_.getName().equals(p_161572_);
+                                                                    return p_161583_.getName().equals(pPropertyName);
                                                                 })
                                                      .filter((p_161588_) -> {
                                                          return p_161588_ instanceof IntegerProperty;
@@ -77,7 +77,7 @@ public class RandomizedIntStateProvider extends BlockStateProvider {
                                                      })
                                                      .findAny();
         return optional.orElseThrow(() -> {
-            return new IllegalArgumentException("Illegal property: " + p_161572_);
+            return new IllegalArgumentException("Illegal property: " + pPropertyName);
         });
     }
 }

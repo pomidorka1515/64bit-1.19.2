@@ -19,8 +19,8 @@ public class FollowBoatGoal extends Goal {
     private Player following;
     private BoatGoals currentGoal;
 
-    public FollowBoatGoal(PathfinderMob p_25238_) {
-        this.mob = p_25238_;
+    public FollowBoatGoal(PathfinderMob pMob) {
+        this.mob = pMob;
     }
 
     public boolean canUse() {

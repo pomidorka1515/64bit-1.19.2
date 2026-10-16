@@ -33,8 +33,8 @@ public class TeleportToPlayerMenuCategory implements SpectatorMenuCategory, Spec
         this(PROFILE_ORDER.sortedCopy(Minecraft.getInstance().getConnection().getOnlinePlayers()));
     }
 
-    public TeleportToPlayerMenuCategory(Collection<PlayerInfo> p_101861_) {
-        for (PlayerInfo playerinfo : PROFILE_ORDER.sortedCopy(p_101861_)) {
+    public TeleportToPlayerMenuCategory(Collection<PlayerInfo> pPlayers) {
+        for (PlayerInfo playerinfo : PROFILE_ORDER.sortedCopy(pPlayers)) {
             if (playerinfo.getGameMode() != GameType.SPECTATOR) {
                 this.items.add(new PlayerMenuItem(playerinfo.getProfile()));
             }
@@ -49,17 +49,17 @@ public class TeleportToPlayerMenuCategory implements SpectatorMenuCategory, Spec
         return TELEPORT_PROMPT;
     }
 
-    public void selectItem(SpectatorMenu p_101868_) {
-        p_101868_.selectCategory(this);
+    public void selectItem(SpectatorMenu pMenu) {
+        pMenu.selectCategory(this);
     }
 
     public Component getName() {
         return TELEPORT_TEXT;
     }
 
-    public void renderIcon(PoseStack p_101864_, float p_101865_, int p_101866_) {
+    public void renderIcon(PoseStack pPoseStack, float pShadeColor, int pAlpha) {
         RenderSystem.setShaderTexture(0, SpectatorGui.SPECTATOR_LOCATION);
-        GuiComponent.blit(p_101864_, 0, 0, 0.0F, 0.0F, 16, 16, 256, 256);
+        GuiComponent.blit(pPoseStack, 0, 0, 0.0F, 0.0F, 16, 16, 256, 256);
     }
 
     public boolean isEnabled() {

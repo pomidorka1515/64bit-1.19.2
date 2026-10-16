@@ -6,10 +6,10 @@ public class OpenDoorGoal extends DoorInteractGoal {
     private final boolean closeDoor;
     private int forgetTime;
 
-    public OpenDoorGoal(Mob p_25678_, boolean p_25679_) {
-        super(p_25678_);
-        this.mob = p_25678_;
-        this.closeDoor = p_25679_;
+    public OpenDoorGoal(Mob pMob, boolean pCloseDoor) {
+        super(pMob);
+        this.mob = pMob;
+        this.closeDoor = pCloseDoor;
     }
 
     public boolean canContinueToUse() {

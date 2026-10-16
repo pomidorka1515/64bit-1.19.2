@@ -27,23 +27,23 @@ public class TheEndBiomeSource extends BiomeSource {
         this(p_220684_.getOrCreateHolderOrThrow(Biomes.THE_END), p_220684_.getOrCreateHolderOrThrow(Biomes.END_HIGHLANDS), p_220684_.getOrCreateHolderOrThrow(Biomes.END_MIDLANDS), p_220684_.getOrCreateHolderOrThrow(Biomes.SMALL_END_ISLANDS), p_220684_.getOrCreateHolderOrThrow(Biomes.END_BARRENS));
     }
 
-    private TheEndBiomeSource(Holder<Biome> p_220678_, Holder<Biome> p_220679_, Holder<Biome> p_220680_, Holder<Biome> p_220681_, Holder<Biome> p_220682_) {
-        super(ImmutableList.of(p_220678_, p_220679_, p_220680_, p_220681_, p_220682_));
-        this.end = p_220678_;
-        this.highlands = p_220679_;
-        this.midlands = p_220680_;
-        this.islands = p_220681_;
-        this.barrens = p_220682_;
+    private TheEndBiomeSource(Holder<Biome> pEnd, Holder<Biome> pHighlands, Holder<Biome> pMidlands, Holder<Biome> pIslands, Holder<Biome> pBarrens) {
+        super(ImmutableList.of(pEnd, pHighlands, pMidlands, pIslands, pBarrens));
+        this.end = pEnd;
+        this.highlands = pHighlands;
+        this.midlands = pMidlands;
+        this.islands = pIslands;
+        this.barrens = pBarrens;
     }
 
     protected Codec<? extends BiomeSource> codec() {
         return CODEC;
     }
 
-    public Holder<Biome> getNoiseBiome(long p_204292_, int p_204293_, long p_204294_, Climate.Sampler p_204295_) {
-        long i = QuartPos.toBlock(p_204292_);
-        int j = QuartPos.toBlock(p_204293_);
-        long k = QuartPos.toBlock(p_204294_);
+    public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ, Climate.Sampler pSampler) {
+        long i = QuartPos.toBlock(pX);
+        int j = QuartPos.toBlock(pY);
+        long k = QuartPos.toBlock(pZ);
         long l = SectionPos.blockToSectionCoord(i);
         long i1 = SectionPos.blockToSectionCoord(k);
         if ((long) l * (long) l + (long) i1 * (long) i1 <= 4096L) {
@@ -51,7 +51,7 @@ public class TheEndBiomeSource extends BiomeSource {
         } else {
             long j1 = (SectionPos.blockToSectionCoord(i) * 2 + 1) * 8;
             long k1 = (SectionPos.blockToSectionCoord(k) * 2 + 1) * 8;
-            double d0 = p_204295_.erosion().compute(new DensityFunction.SinglePointContext(j1, j, k1));
+            double d0 = pSampler.erosion().compute(new DensityFunction.SinglePointContext(j1, j, k1));
             if (d0 > 0.25D) {
                 return this.highlands;
             } else if (d0 >= -0.0625D) {

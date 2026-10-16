@@ -22,19 +22,19 @@ public class ChunkBorderRenderer implements DebugRenderer.SimpleDebugRenderer {
     private static final int CELL_BORDER = FastColor.ARGB32.color(255, 0, 155, 155);
     private static final int YELLOW = FastColor.ARGB32.color(255, 255, 255, 0);
 
-    public ChunkBorderRenderer(Minecraft p_113356_) {
-        this.minecraft = p_113356_;
+    public ChunkBorderRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_113358_, MultiBufferSource p_113359_, double p_113360_, double p_113361_, double p_113362_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         RenderSystem.enableDepthTest();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         Entity entity = this.minecraft.gameRenderer.getMainCamera().getEntity();
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         SectorVec3 camera = this.minecraft.gameRenderer.getMainCamera().getExactPosition();
-        double d0 = (double) this.minecraft.level.getMinBuildHeight() - p_113361_;
-        double d1 = (double) this.minecraft.level.getMaxBuildHeight() - p_113361_;
+        double d0 = (double) this.minecraft.level.getMinBuildHeight() - pCamY;
+        double d1 = (double) this.minecraft.level.getMaxBuildHeight() - pCamY;
         RenderSystem.disableTexture();
         RenderSystem.disableBlend();
         ChunkPos chunkpos = entity.chunkPosition();
@@ -47,8 +47,8 @@ public class ChunkBorderRenderer implements DebugRenderer.SimpleDebugRenderer {
             d2 = chunkOrigin.relativeX(camera);
             d3 = chunkOrigin.relativeZ(camera);
         } else {
-            d2 = (double) chunkpos.getMinBlockX() - p_113360_;
-            d3 = (double) chunkpos.getMinBlockZ() - p_113362_;
+            d2 = (double) chunkpos.getMinBlockX() - pCamX;
+            d3 = (double) chunkpos.getMinBlockZ() - pCamZ;
         }
         RenderSystem.lineWidth(1.0F);
         bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
@@ -87,7 +87,7 @@ public class ChunkBorderRenderer implements DebugRenderer.SimpleDebugRenderer {
         }
 
         for (int j1 = this.minecraft.level.getMinBuildHeight(); j1 <= this.minecraft.level.getMaxBuildHeight(); j1 += 2) {
-            double d4 = (double) j1 - p_113361_;
+            double d4 = (double) j1 - pCamY;
             int k = j1 % 8 == 0 ? CELL_BORDER : YELLOW;
             bufferbuilder.vertex(d2, d4, d3).color(1.0F, 1.0F, 0.0F, 0.0F).endVertex();
             bufferbuilder.vertex(d2, d4, d3).color(k).endVertex();
@@ -112,7 +112,7 @@ public class ChunkBorderRenderer implements DebugRenderer.SimpleDebugRenderer {
         }
 
         for (int l1 = this.minecraft.level.getMinBuildHeight(); l1 <= this.minecraft.level.getMaxBuildHeight(); l1 += 16) {
-            double d5 = (double) l1 - p_113361_;
+            double d5 = (double) l1 - pCamY;
             bufferbuilder.vertex(d2, d5, d3).color(0.25F, 0.25F, 1.0F, 0.0F).endVertex();
             bufferbuilder.vertex(d2, d5, d3).color(0.25F, 0.25F, 1.0F, 1.0F).endVertex();
             bufferbuilder.vertex(d2, d5, d3 + 16.0D).color(0.25F, 0.25F, 1.0F, 1.0F).endVertex();

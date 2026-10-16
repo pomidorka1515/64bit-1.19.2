@@ -53,36 +53,36 @@ public class FilledProfileResults implements ProfileResults {
     private final int endTimeTicks;
     private final int tickDuration;
 
-    public FilledProfileResults(Map<String, ? extends ProfilerPathEntry> p_18464_, long p_18465_, int p_18466_, long p_18467_, int p_18468_) {
-        this.entries = p_18464_;
-        this.startTimeNano = p_18465_;
-        this.startTimeTicks = p_18466_;
-        this.endTimeNano = p_18467_;
-        this.endTimeTicks = p_18468_;
-        this.tickDuration = p_18468_ - p_18466_;
+    public FilledProfileResults(Map<String, ? extends ProfilerPathEntry> pEntries, long pStartTimeNano, int pStartTimeTicks, long pEndTimeNano, int pEndTimeTicks) {
+        this.entries = pEntries;
+        this.startTimeNano = pStartTimeNano;
+        this.startTimeTicks = pStartTimeTicks;
+        this.endTimeNano = pEndTimeNano;
+        this.endTimeTicks = pEndTimeTicks;
+        this.tickDuration = pEndTimeTicks - pStartTimeTicks;
     }
 
-    private ProfilerPathEntry getEntry(String p_18526_) {
-        ProfilerPathEntry profilerpathentry = this.entries.get(p_18526_);
+    private ProfilerPathEntry getEntry(String pKey) {
+        ProfilerPathEntry profilerpathentry = this.entries.get(pKey);
         return profilerpathentry != null ? profilerpathentry : EMPTY;
     }
 
-    public List<ResultField> getTimes(String p_18493_) {
-        String s = p_18493_;
+    public List<ResultField> getTimes(String pSectionPath) {
+        String s = pSectionPath;
         ProfilerPathEntry profilerpathentry = this.getEntry("root");
         long i = profilerpathentry.getDuration();
-        ProfilerPathEntry profilerpathentry1 = this.getEntry(p_18493_);
+        ProfilerPathEntry profilerpathentry1 = this.getEntry(pSectionPath);
         long j = profilerpathentry1.getDuration();
         long k = profilerpathentry1.getCount();
         List<ResultField> list = Lists.newArrayList();
-        if (!p_18493_.isEmpty()) {
-            p_18493_ = p_18493_ + "\u001e";
+        if (!pSectionPath.isEmpty()) {
+            pSectionPath = pSectionPath + "\u001e";
         }
 
         long l = 0L;
 
         for (String s1 : this.entries.keySet()) {
-            if (isDirectChild(p_18493_, s1)) {
+            if (isDirectChild(pSectionPath, s1)) {
                 l += this.getEntry(s1).getDuration();
             }
         }
@@ -97,12 +97,12 @@ public class FilledProfileResults implements ProfileResults {
         }
 
         for (String s2 : this.entries.keySet()) {
-            if (isDirectChild(p_18493_, s2)) {
+            if (isDirectChild(pSectionPath, s2)) {
                 ProfilerPathEntry profilerpathentry2 = this.getEntry(s2);
                 long i1 = profilerpathentry2.getDuration();
                 double d0 = (double) i1 * 100.0D / (double) l;
                 double d1 = (double) i1 * 100.0D / (double) i;
-                String s3 = s2.substring(p_18493_.length());
+                String s3 = s2.substring(pSectionPath.length());
                 list.add(new ResultField(s3, d0, d1, profilerpathentry2.getCount()));
             }
         }
@@ -152,17 +152,17 @@ public class FilledProfileResults implements ProfileResults {
         return this.endTimeTicks;
     }
 
-    public boolean saveResults(Path p_145940_) {
+    public boolean saveResults(Path pPath) {
         Writer writer = null;
 
         boolean flag;
         try {
-            Files.createDirectories(p_145940_.getParent());
-            writer = Files.newBufferedWriter(p_145940_, StandardCharsets.UTF_8);
+            Files.createDirectories(pPath.getParent());
+            writer = Files.newBufferedWriter(pPath, StandardCharsets.UTF_8);
             writer.write(this.getProfilerResults(this.getNanoDuration(), this.getTickDuration()));
             return true;
         } catch (Throwable throwable) {
-            LOGGER.error("Could not save profiler results to {}", p_145940_, throwable);
+            LOGGER.error("Could not save profiler results to {}", pPath, throwable);
             flag = false;
         } finally {
             IOUtils.closeQuietly(writer);
@@ -171,23 +171,23 @@ public class FilledProfileResults implements ProfileResults {
         return flag;
     }
 
-    protected String getProfilerResults(long p_18486_, int p_18487_) {
+    protected String getProfilerResults(long pTimeSpan, int pTickSpan) {
         StringBuilder stringbuilder = new StringBuilder();
         stringbuilder.append("---- Minecraft Profiler Results ----\n");
         stringbuilder.append("// ");
         stringbuilder.append(getComment());
         stringbuilder.append("\n\n");
         stringbuilder.append("Version: ").append(SharedConstants.getCurrentVersion().getId()).append('\n');
-        stringbuilder.append("Time span: ").append(p_18486_ / 1000000L).append(" ms\n");
-        stringbuilder.append("Tick span: ").append(p_18487_).append(" ticks\n");
-        stringbuilder.append("// This is approximately ").append(String.format(Locale.ROOT, "%.2f", (float) p_18487_ / ((float) p_18486_ / 1.0E9F))).append(" ticks per second. It should be ").append((int) 20).append(" ticks per second\n\n");
+        stringbuilder.append("Time span: ").append(pTimeSpan / 1000000L).append(" ms\n");
+        stringbuilder.append("Tick span: ").append(pTickSpan).append(" ticks\n");
+        stringbuilder.append("// This is approximately ").append(String.format(Locale.ROOT, "%.2f", (float) pTickSpan / ((float) pTimeSpan / 1.0E9F))).append(" ticks per second. It should be ").append((int) 20).append(" ticks per second\n\n");
         stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
         this.appendProfilerResults(0, "root", stringbuilder);
         stringbuilder.append("--- END PROFILE DUMP ---\n\n");
         Map<String, FilledProfileResults.CounterCollector> map = this.getCounterValues();
         if (!map.isEmpty()) {
             stringbuilder.append("--- BEGIN COUNTER DUMP ---\n\n");
-            this.appendCounters(map, stringbuilder, p_18487_);
+            this.appendCounters(map, stringbuilder, pTickSpan);
             stringbuilder.append("--- END COUNTER DUMP ---\n\n");
         }
 
@@ -200,31 +200,31 @@ public class FilledProfileResults implements ProfileResults {
         return stringbuilder.toString();
     }
 
-    private static StringBuilder indentLine(StringBuilder p_18498_, int p_18499_) {
-        p_18498_.append(String.format(Locale.ROOT, "[%02d] ", p_18499_));
+    private static StringBuilder indentLine(StringBuilder pBuilder, int pIndents) {
+        pBuilder.append(String.format(Locale.ROOT, "[%02d] ", pIndents));
 
-        for (int i = 0; i < p_18499_; ++i) {
-            p_18498_.append("|   ");
+        for (int i = 0; i < pIndents; ++i) {
+            pBuilder.append("|   ");
         }
 
-        return p_18498_;
+        return pBuilder;
     }
 
-    private void appendProfilerResults(int p_18482_, String p_18483_, StringBuilder p_18484_) {
-        List<ResultField> list = this.getTimes(p_18483_);
-        Object2LongMap<String> object2longmap = ObjectUtils.firstNonNull(this.entries.get(p_18483_), EMPTY).getCounters();
+    private void appendProfilerResults(int pDepth, String pSectionPath, StringBuilder pBuilder) {
+        List<ResultField> list = this.getTimes(pSectionPath);
+        Object2LongMap<String> object2longmap = ObjectUtils.firstNonNull(this.entries.get(pSectionPath), EMPTY).getCounters();
         object2longmap.forEach((p_18508_, p_18509_) -> {
-            indentLine(p_18484_, p_18482_).append('#').append(p_18508_).append(' ').append((Object) p_18509_).append('/').append(p_18509_ / (long) this.tickDuration).append('\n');
+            indentLine(pBuilder, pDepth).append('#').append(p_18508_).append(' ').append((Object) p_18509_).append('/').append(p_18509_ / (long) this.tickDuration).append('\n');
         });
         if (list.size() >= 3) {
             for (int i = 1; i < list.size(); ++i) {
                 ResultField resultfield = list.get(i);
-                indentLine(p_18484_, p_18482_).append(resultfield.name).append('(').append(resultfield.count).append('/').append(String.format(Locale.ROOT, "%.0f", (float) resultfield.count / (float) this.tickDuration)).append(')').append(" - ").append(String.format(Locale.ROOT, "%.2f", resultfield.percentage)).append("%/").append(String.format(Locale.ROOT, "%.2f", resultfield.globalPercentage)).append("%\n");
+                indentLine(pBuilder, pDepth).append(resultfield.name).append('(').append(resultfield.count).append('/').append(String.format(Locale.ROOT, "%.0f", (float) resultfield.count / (float) this.tickDuration)).append(')').append(" - ").append(String.format(Locale.ROOT, "%.2f", resultfield.percentage)).append("%/").append(String.format(Locale.ROOT, "%.2f", resultfield.globalPercentage)).append("%\n");
                 if (!"unspecified".equals(resultfield.name)) {
                     try {
-                        this.appendProfilerResults(p_18482_ + 1, p_18483_ + "\u001e" + resultfield.name, p_18484_);
+                        this.appendProfilerResults(pDepth + 1, pSectionPath + "\u001e" + resultfield.name, pBuilder);
                     } catch (Exception exception) {
-                        p_18484_.append("[[ EXCEPTION ").append((Object) exception).append(" ]]");
+                        pBuilder.append("[[ EXCEPTION ").append((Object) exception).append(" ]]");
                     }
                 }
             }

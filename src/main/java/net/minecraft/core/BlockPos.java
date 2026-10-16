@@ -38,67 +38,67 @@ public class BlockPos extends Vec3i {
     private static final int Z_OFFSET = PACKED_Y_LENGTH;
     private static final int X_OFFSET = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
-    public BlockPos(long p_121869_, int p_121870_, long p_121871_) {
-        super(p_121869_, p_121870_, p_121871_);
+    public BlockPos(long pX, int pY, long pZ) {
+        super(pX, pY, pZ);
     }
 
-    public BlockPos(double p_121865_, double p_121866_, double p_121867_) {
-        super(p_121865_, p_121866_, p_121867_);
+    public BlockPos(double pX, double pY, double pZ) {
+        super(pX, pY, pZ);
     }
 
-    public BlockPos(Vec3 p_121873_) {
-        this(p_121873_.x, p_121873_.y, p_121873_.z);
+    public BlockPos(Vec3 pVector) {
+        this(pVector.x, pVector.y, pVector.z);
     }
 
-    public BlockPos(Position p_121875_) {
-        this(p_121875_.x(), p_121875_.y(), p_121875_.z());
+    public BlockPos(Position pPos) {
+        this(pPos.x(), pPos.y(), pPos.z());
     }
 
-    public BlockPos(Vec3i p_121877_) {
-        this(p_121877_.getX(), p_121877_.getY(), p_121877_.getZ());
+    public BlockPos(Vec3i pVector) {
+        this(pVector.getX(), pVector.getY(), pVector.getZ());
     }
 
-    public static int getX(long p_121984_) {
-        return (int) (p_121984_ << 64 - X_OFFSET - PACKED_X_LENGTH >> 64 - PACKED_X_LENGTH);
+    public static int getX(long pPackedPos) {
+        return (int) (pPackedPos << 64 - X_OFFSET - PACKED_X_LENGTH >> 64 - PACKED_X_LENGTH);
     }
 
-    public static int getY(long p_122009_) {
-        return (int) (p_122009_ << 64 - PACKED_Y_LENGTH >> 64 - PACKED_Y_LENGTH);
+    public static int getY(long pPackedPos) {
+        return (int) (pPackedPos << 64 - PACKED_Y_LENGTH >> 64 - PACKED_Y_LENGTH);
     }
 
-    public static int getZ(long p_122016_) {
-        return (int) (p_122016_ << 64 - Z_OFFSET - PACKED_Z_LENGTH >> 64 - PACKED_Z_LENGTH);
+    public static int getZ(long pPackedPos) {
+        return (int) (pPackedPos << 64 - Z_OFFSET - PACKED_Z_LENGTH >> 64 - PACKED_Z_LENGTH);
     }
 
-    public static BlockPos of(long p_122023_) {
-        return new BlockPos(getX(p_122023_), getY(p_122023_), getZ(p_122023_));
+    public static BlockPos of(long pPackedPos) {
+        return new BlockPos(getX(pPackedPos), getY(pPackedPos), getZ(pPackedPos));
     }
 
-    public static long getFlatIndex(long p_122028_) {
-        return p_122028_ & -16L;
+    public static long getFlatIndex(long pPackedPos) {
+        return pPackedPos & -16L;
     }
 
-    public BlockPos offset(double p_121879_, double p_121880_, double p_121881_) {
-        return p_121879_ == 0.0D && p_121880_ == 0.0D && p_121881_ == 0.0D ? this : new BlockPos((double) this.getX() + p_121879_, (double) this.getY() + p_121880_, (double) this.getZ() + p_121881_);
+    public BlockPos offset(double pDx, double pDy, double pDz) {
+        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new BlockPos((double) this.getX() + pDx, (double) this.getY() + pDy, (double) this.getZ() + pDz);
     }
 
-    public BlockPos offset(long p_121973_, int p_121974_, long p_121975_) {
-        return p_121973_ == 0 && p_121974_ == 0 && p_121975_ == 0 ? this : new BlockPos(WorldBounds.addBlockOffset(this.getX(), p_121973_), this.getY() + p_121974_, WorldBounds.addBlockOffset(this.getZ(), p_121975_));
+    public BlockPos offset(long pDx, int pDy, long pDz) {
+        return pDx == 0 && pDy == 0 && pDz == 0 ? this : new BlockPos(WorldBounds.addBlockOffset(this.getX(), pDx), this.getY() + pDy, WorldBounds.addBlockOffset(this.getZ(), pDz));
     }
 
-    public BlockPos offset(Vec3i p_121956_) {
-        return this.offset(p_121956_.getX(), p_121956_.getY(), p_121956_.getZ());
+    public BlockPos offset(Vec3i pVector) {
+        return this.offset(pVector.getX(), pVector.getY(), pVector.getZ());
     }
 
-    public BlockPos subtract(Vec3i p_121997_) {
-        return this.offset(-p_121997_.getX(), -p_121997_.getY(), -p_121997_.getZ());
+    public BlockPos subtract(Vec3i pVector) {
+        return this.offset(-pVector.getX(), -pVector.getY(), -pVector.getZ());
     }
 
-    public BlockPos multiply(int p_175263_) {
-        if (p_175263_ == 1) {
+    public BlockPos multiply(int pScalar) {
+        if (pScalar == 1) {
             return this;
         } else {
-            return p_175263_ == 0 ? ZERO : new BlockPos(this.getX() * p_175263_, this.getY() * p_175263_, this.getZ() * p_175263_);
+            return pScalar == 0 ? ZERO : new BlockPos(this.getX() * pScalar, this.getY() * pScalar, this.getZ() * pScalar);
         }
     }
 
@@ -106,73 +106,73 @@ public class BlockPos extends Vec3i {
         return this.relative(Direction.UP);
     }
 
-    public BlockPos above(int p_121972_) {
-        return this.relative(Direction.UP, p_121972_);
+    public BlockPos above(int pDistance) {
+        return this.relative(Direction.UP, pDistance);
     }
 
     public BlockPos below() {
         return this.relative(Direction.DOWN);
     }
 
-    public BlockPos below(int p_122000_) {
-        return this.relative(Direction.DOWN, p_122000_);
+    public BlockPos below(int pDistance) {
+        return this.relative(Direction.DOWN, pDistance);
     }
 
     public BlockPos north() {
         return this.relative(Direction.NORTH);
     }
 
-    public BlockPos north(int p_122014_) {
-        return this.relative(Direction.NORTH, p_122014_);
+    public BlockPos north(int pDistance) {
+        return this.relative(Direction.NORTH, pDistance);
     }
 
     public BlockPos south() {
         return this.relative(Direction.SOUTH);
     }
 
-    public BlockPos south(int p_122021_) {
-        return this.relative(Direction.SOUTH, p_122021_);
+    public BlockPos south(int pDistance) {
+        return this.relative(Direction.SOUTH, pDistance);
     }
 
     public BlockPos west() {
         return this.relative(Direction.WEST);
     }
 
-    public BlockPos west(int p_122026_) {
-        return this.relative(Direction.WEST, p_122026_);
+    public BlockPos west(int pDistance) {
+        return this.relative(Direction.WEST, pDistance);
     }
 
     public BlockPos east() {
         return this.relative(Direction.EAST);
     }
 
-    public BlockPos east(int p_122031_) {
-        return this.relative(Direction.EAST, p_122031_);
+    public BlockPos east(int pDistance) {
+        return this.relative(Direction.EAST, pDistance);
     }
 
-    public BlockPos relative(Direction p_121946_) {
-        return new BlockPos(WorldBounds.addBlockOffset(this.getX(), p_121946_.getStepX()),
-                this.getY() + p_121946_.getStepY(), WorldBounds.addBlockOffset(this.getZ(), p_121946_.getStepZ()));
+    public BlockPos relative(Direction pDirection) {
+        return new BlockPos(WorldBounds.addBlockOffset(this.getX(), pDirection.getStepX()),
+                this.getY() + pDirection.getStepY(), WorldBounds.addBlockOffset(this.getZ(), pDirection.getStepZ()));
     }
 
-    public BlockPos relative(Direction p_121948_, int p_121949_) {
-        return p_121949_ == 0 ? this : new BlockPos(WorldBounds.addBlockOffset(this.getX(), (long) p_121948_.getStepX() * p_121949_), this.getY() + p_121948_.getStepY() * p_121949_, WorldBounds.addBlockOffset(this.getZ(), (long) p_121948_.getStepZ() * p_121949_));
+    public BlockPos relative(Direction pDirection, int pDistance) {
+        return pDistance == 0 ? this : new BlockPos(WorldBounds.addBlockOffset(this.getX(), (long) pDirection.getStepX() * pDistance), this.getY() + pDirection.getStepY() * pDistance, WorldBounds.addBlockOffset(this.getZ(), (long) pDirection.getStepZ() * pDistance));
     }
 
-    public BlockPos relative(Direction.Axis p_121943_, int p_121944_) {
-        if (p_121944_ == 0) {
+    public BlockPos relative(Direction.Axis pAxis, int pAmount) {
+        if (pAmount == 0) {
             return this;
         } else {
-            int i = p_121943_ == Direction.Axis.X ? p_121944_ : 0;
-            int j = p_121943_ == Direction.Axis.Y ? p_121944_ : 0;
-            int k = p_121943_ == Direction.Axis.Z ? p_121944_ : 0;
+            int i = pAxis == Direction.Axis.X ? pAmount : 0;
+            int j = pAxis == Direction.Axis.Y ? pAmount : 0;
+            int k = pAxis == Direction.Axis.Z ? pAmount : 0;
             return new BlockPos(WorldBounds.addBlockOffset(this.getX(), i), this.getY() + j,
                     WorldBounds.addBlockOffset(this.getZ(), k));
         }
     }
 
-    public BlockPos rotate(Rotation p_121918_) {
-        switch (p_121918_) {
+    public BlockPos rotate(Rotation pRotation) {
+        switch (pRotation) {
             case NONE:
             default:
                 return this;
@@ -185,12 +185,12 @@ public class BlockPos extends Vec3i {
         }
     }
 
-    public BlockPos cross(Vec3i p_122011_) {
-        return new BlockPos(this.getY() * p_122011_.getZ() - this.getZ() * p_122011_.getY(), this.getZ() * p_122011_.getX() - this.getX() * p_122011_.getZ(), this.getX() * p_122011_.getY() - this.getY() * p_122011_.getX());
+    public BlockPos cross(Vec3i pVector) {
+        return new BlockPos(this.getY() * pVector.getZ() - this.getZ() * pVector.getY(), this.getZ() * pVector.getX() - this.getX() * pVector.getZ(), this.getX() * pVector.getY() - this.getY() * pVector.getX());
     }
 
-    public BlockPos atY(int p_175289_) {
-        return new BlockPos(this.getX(), p_175289_, this.getZ());
+    public BlockPos atY(int pY) {
+        return new BlockPos(this.getX(), pY, this.getZ());
     }
 
     public BlockPos immutable() {
@@ -201,24 +201,24 @@ public class BlockPos extends Vec3i {
         return new BlockPos.MutableBlockPos(this.getX(), this.getY(), this.getZ());
     }
 
-    public static Iterable<BlockPos> randomInCube(RandomSource p_235651_, int p_235652_, BlockPos p_235653_, int p_235654_) {
-        return randomBetweenClosed(p_235651_, p_235652_, WorldBounds.subtractBlockOffset(p_235653_.getX(), p_235654_), p_235653_.getY() - p_235654_, WorldBounds.subtractBlockOffset(p_235653_.getZ(), p_235654_), WorldBounds.addBlockOffset(p_235653_.getX(), p_235654_), p_235653_.getY() + p_235654_, WorldBounds.addBlockOffset(p_235653_.getZ(), p_235654_));
+    public static Iterable<BlockPos> randomInCube(RandomSource pRandom, int pAmount, BlockPos pCenter, int pRadius) {
+        return randomBetweenClosed(pRandom, pAmount, WorldBounds.subtractBlockOffset(pCenter.getX(), pRadius), pCenter.getY() - pRadius, WorldBounds.subtractBlockOffset(pCenter.getZ(), pRadius), WorldBounds.addBlockOffset(pCenter.getX(), pRadius), pCenter.getY() + pRadius, WorldBounds.addBlockOffset(pCenter.getZ(), pRadius));
     }
 
-    public static Iterable<BlockPos> randomBetweenClosed(RandomSource p_235642_, int p_235643_, long p_235644_, int p_235645_, long p_235646_, long p_235647_, int p_235648_, long o) {
-        long i = p_235647_ - p_235644_ + 1;
-        int j = p_235648_ - p_235645_ + 1;
-        long k = o - p_235646_ + 1;
+    public static Iterable<BlockPos> randomBetweenClosed(RandomSource pRandom, int pAmount, long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long o) {
+        long i = pMaxX - pMinX + 1;
+        int j = pMaxY - pMinY + 1;
+        long k = o - pMinZ + 1;
         return () -> {
             return new AbstractIterator<BlockPos>() {
                 final BlockPos.MutableBlockPos nextPos = new BlockPos.MutableBlockPos();
-                int counter = p_235643_;
+                int counter = pAmount;
 
                 protected BlockPos computeNext() {
                     if (this.counter <= 0) {
                         return this.endOfData();
                     } else {
-                        BlockPos blockpos = this.nextPos.set(p_235644_ + p_235642_.nextLong() % i, p_235645_ + p_235642_.nextInt(j), p_235646_ + p_235642_.nextLong() % k);
+                        BlockPos blockpos = this.nextPos.set(pMinX + pRandom.nextLong() % i, pMinY + pRandom.nextInt(j), pMinZ + pRandom.nextLong() % k);
                         --this.counter;
                         return blockpos;
                     }
@@ -227,11 +227,11 @@ public class BlockPos extends Vec3i {
         };
     }
 
-    public static Iterable<BlockPos> withinManhattan(BlockPos p_121926_, int p_121927_, int p_121928_, int p_121929_) {
-        int i = p_121927_ + p_121928_ + p_121929_;
-        long j = p_121926_.getX();
-        int k = p_121926_.getY();
-        long l = p_121926_.getZ();
+    public static Iterable<BlockPos> withinManhattan(BlockPos pPos, int pXSize, int pYSize, int pZSize) {
+        int i = pXSize + pYSize + pZSize;
+        long j = pPos.getX();
+        int k = pPos.getY();
+        long l = pPos.getZ();
         return () -> {
             return new AbstractIterator<BlockPos>() {
                 private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
@@ -258,18 +258,18 @@ public class BlockPos extends Vec3i {
                                         return this.endOfData();
                                     }
 
-                                    this.maxX = Math.min(p_121927_, this.currentDepth);
+                                    this.maxX = Math.min(pXSize, this.currentDepth);
                                     this.x = -this.maxX;
                                 }
 
-                                this.maxY = Math.min(p_121928_, this.currentDepth - Math.abs(this.x));
+                                this.maxY = Math.min(pYSize, this.currentDepth - Math.abs(this.x));
                                 this.y = -this.maxY;
                             }
 
                             int i1 = this.x;
                             int j1 = this.y;
                             int k1 = this.currentDepth - Math.abs(i1) - Math.abs(j1);
-                            if (k1 <= p_121929_) {
+                            if (k1 <= pZSize) {
                                 this.zMirror = k1 != 0;
                                 blockpos = this.cursor.set(j + i1, k + j1, l + k1);
                             }
@@ -282,9 +282,9 @@ public class BlockPos extends Vec3i {
         };
     }
 
-    public static Optional<BlockPos> findClosestMatch(BlockPos p_121931_, int p_121932_, int p_121933_, Predicate<BlockPos> p_121934_) {
-        for (BlockPos blockpos : withinManhattan(p_121931_, p_121932_, p_121933_, p_121932_)) {
-            if (p_121934_.test(blockpos)) {
+    public static Optional<BlockPos> findClosestMatch(BlockPos pPos, int pWidth, int pHeight, Predicate<BlockPos> pPosFilter) {
+        for (BlockPos blockpos : withinManhattan(pPos, pWidth, pHeight, pWidth)) {
+            if (pPosFilter.test(blockpos)) {
                 return Optional.of(blockpos);
             }
         }
@@ -292,32 +292,32 @@ public class BlockPos extends Vec3i {
         return Optional.empty();
     }
 
-    public static Stream<BlockPos> withinManhattanStream(BlockPos p_121986_, int p_121987_, int p_121988_, int p_121989_) {
-        return StreamSupport.stream(withinManhattan(p_121986_, p_121987_, p_121988_, p_121989_).spliterator(), false);
+    public static Stream<BlockPos> withinManhattanStream(BlockPos pPos, int pXSize, int pYSize, int pZSize) {
+        return StreamSupport.stream(withinManhattan(pPos, pXSize, pYSize, pZSize).spliterator(), false);
     }
 
-    public static Iterable<BlockPos> betweenClosed(BlockPos p_121941_, BlockPos p_121942_) {
-        return betweenClosed(Math.min(p_121941_.getX(), p_121942_.getX()), Math.min(p_121941_.getY(), p_121942_.getY()), Math.min(p_121941_.getZ(), p_121942_.getZ()), Math.max(p_121941_.getX(), p_121942_.getX()), Math.max(p_121941_.getY(), p_121942_.getY()), Math.max(p_121941_.getZ(), p_121942_.getZ()));
+    public static Iterable<BlockPos> betweenClosed(BlockPos pFirstPos, BlockPos pSecondPos) {
+        return betweenClosed(Math.min(pFirstPos.getX(), pSecondPos.getX()), Math.min(pFirstPos.getY(), pSecondPos.getY()), Math.min(pFirstPos.getZ(), pSecondPos.getZ()), Math.max(pFirstPos.getX(), pSecondPos.getX()), Math.max(pFirstPos.getY(), pSecondPos.getY()), Math.max(pFirstPos.getZ(), pSecondPos.getZ()));
     }
 
-    public static Stream<BlockPos> betweenClosedStream(BlockPos p_121991_, BlockPos p_121992_) {
-        return StreamSupport.stream(betweenClosed(p_121991_, p_121992_).spliterator(), false);
+    public static Stream<BlockPos> betweenClosedStream(BlockPos pFirstPos, BlockPos pSecondPos) {
+        return StreamSupport.stream(betweenClosed(pFirstPos, pSecondPos).spliterator(), false);
     }
 
-    public static Stream<BlockPos> betweenClosedStream(BoundingBox p_121920_) {
-        return betweenClosedStream(Math.min(p_121920_.minX(), p_121920_.maxX()), Math.min(p_121920_.minY(), p_121920_.maxY()), Math.min(p_121920_.minZ(), p_121920_.maxZ()), Math.max(p_121920_.minX(), p_121920_.maxX()), Math.max(p_121920_.minY(), p_121920_.maxY()), Math.max(p_121920_.minZ(), p_121920_.maxZ()));
+    public static Stream<BlockPos> betweenClosedStream(BoundingBox pBox) {
+        return betweenClosedStream(Math.min(pBox.minX(), pBox.maxX()), Math.min(pBox.minY(), pBox.maxY()), Math.min(pBox.minZ(), pBox.maxZ()), Math.max(pBox.minX(), pBox.maxX()), Math.max(pBox.minY(), pBox.maxY()), Math.max(pBox.minZ(), pBox.maxZ()));
     }
 
-    public static Stream<BlockPos> betweenClosedStream(AABB p_121922_) {
-        return betweenClosedStream(Mth.lfloor(p_121922_.minX), Mth.floor(p_121922_.minY), Mth.lfloor(p_121922_.minZ), Mth.lfloor(p_121922_.maxX), Mth.floor(p_121922_.maxY), Mth.lfloor(p_121922_.maxZ));
+    public static Stream<BlockPos> betweenClosedStream(AABB pAabb) {
+        return betweenClosedStream(Mth.lfloor(pAabb.minX), Mth.floor(pAabb.minY), Mth.lfloor(pAabb.minZ), Mth.lfloor(pAabb.maxX), Mth.floor(pAabb.maxY), Mth.lfloor(pAabb.maxZ));
     }
 
-    public static Stream<BlockPos> betweenClosedStream(long p_121887_, int p_121888_, long p_121889_, long p_121890_, int p_121891_, long p_121892_) {
-        return StreamSupport.stream(betweenClosed(p_121887_, p_121888_, p_121889_, p_121890_, p_121891_, p_121892_).spliterator(), false);
+    public static Stream<BlockPos> betweenClosedStream(long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long pMaxZ) {
+        return StreamSupport.stream(betweenClosed(pMinX, pMinY, pMinZ, pMaxX, pMaxY, pMaxZ).spliterator(), false);
     }
 
-    public static Iterable<BlockPos> betweenClosed(long p_121977_, int p_121978_, long p_121979_, long p_121980_, int p_121981_, long p_121982_) {
-        if (p_121977_ > p_121980_ || p_121978_ > p_121981_ || p_121979_ > p_121982_) {
+    public static Iterable<BlockPos> betweenClosed(long pX1, int pY1, long pZ1, long pX2, int pY2, long pZ2) {
+        if (pX1 > pX2 || pY1 > pY2 || pZ1 > pZ2) {
             return java.util.Collections::emptyIterator;
         }
 
@@ -326,9 +326,9 @@ public class BlockPos extends Vec3i {
         // an edge range could wrap into an effectively endless generator loop.
         return () -> new AbstractIterator<BlockPos>() {
             private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-            private long x = p_121977_;
-            private int y = p_121978_;
-            private long z = p_121979_;
+            private long x = pX1;
+            private int y = pY1;
+            private long z = pZ1;
             private boolean done;
 
             protected BlockPos computeNext() {
@@ -337,14 +337,14 @@ public class BlockPos extends Vec3i {
                 }
 
                 this.cursor.set(this.x, this.y, this.z);
-                if (this.x != p_121980_) {
+                if (this.x != pX2) {
                     this.x = WorldBounds.addBlockOffset(this.x, 1L);
-                } else if (this.y != p_121981_) {
-                    this.x = p_121977_;
+                } else if (this.y != pY2) {
+                    this.x = pX1;
                     ++this.y;
-                } else if (this.z != p_121982_) {
-                    this.x = p_121977_;
-                    this.y = p_121978_;
+                } else if (this.z != pZ2) {
+                    this.x = pX1;
+                    this.y = pY1;
                     this.z = WorldBounds.addBlockOffset(this.z, 1L);
                 } else {
                     this.done = true;
@@ -396,121 +396,121 @@ public class BlockPos extends Vec3i {
             this(0, 0, 0);
         }
 
-        public MutableBlockPos(long p_122130_, int p_122131_, long p_122132_) {
-            super(p_122130_, p_122131_, p_122132_);
+        public MutableBlockPos(long pX, int pY, long pZ) {
+            super(pX, pY, pZ);
         }
 
-        public MutableBlockPos(double p_122126_, double p_122127_, double p_122128_) {
-            this(Mth.floor(p_122126_), Mth.floor(p_122127_), Mth.floor(p_122128_));
+        public MutableBlockPos(double pX, double pY, double pZ) {
+            this(Mth.floor(pX), Mth.floor(pY), Mth.floor(pZ));
         }
 
-        public BlockPos offset(double p_122134_, double p_122135_, double p_122136_) {
-            return super.offset(p_122134_, p_122135_, p_122136_).immutable();
+        public BlockPos offset(double pDx, double pDy, double pDz) {
+            return super.offset(pDx, pDy, pDz).immutable();
         }
 
-        public BlockPos offset(int p_122163_, int p_122164_, int p_122165_) {
-            return super.offset(p_122163_, p_122164_, p_122165_).immutable();
+        public BlockPos offset(int pDx, int pDy, int pDz) {
+            return super.offset(pDx, pDy, pDz).immutable();
         }
 
-        public BlockPos multiply(int p_175305_) {
-            return super.multiply(p_175305_).immutable();
+        public BlockPos multiply(int pScalar) {
+            return super.multiply(pScalar).immutable();
         }
 
-        public BlockPos relative(Direction p_122152_, int p_122153_) {
-            return super.relative(p_122152_, p_122153_).immutable();
+        public BlockPos relative(Direction pDirection, int pDistance) {
+            return super.relative(pDirection, pDistance).immutable();
         }
 
-        public BlockPos relative(Direction.Axis p_122145_, int p_122146_) {
-            return super.relative(p_122145_, p_122146_).immutable();
+        public BlockPos relative(Direction.Axis pAxis, int pAmount) {
+            return super.relative(pAxis, pAmount).immutable();
         }
 
-        public BlockPos rotate(Rotation p_122138_) {
-            return super.rotate(p_122138_).immutable();
+        public BlockPos rotate(Rotation pRotation) {
+            return super.rotate(pRotation).immutable();
         }
 
-        public BlockPos.MutableBlockPos set(long p_122179_, int p_122180_, long p_122181_) {
-            this.setX(p_122179_);
-            this.setY(p_122180_);
-            this.setZ(p_122181_);
+        public BlockPos.MutableBlockPos set(long pX, int pY, long pZ) {
+            this.setX(pX);
+            this.setY(pY);
+            this.setZ(pZ);
             return this;
         }
 
-        public BlockPos.MutableBlockPos set(double p_122170_, double p_122171_, double p_122172_) {
-            return this.set(Mth.lfloor(p_122170_), Mth.floor(p_122171_), Mth.lfloor(p_122172_));
+        public BlockPos.MutableBlockPos set(double pX, double pY, double pZ) {
+            return this.set(Mth.lfloor(pX), Mth.floor(pY), Mth.lfloor(pZ));
         }
 
-        public BlockPos.MutableBlockPos set(Vec3i p_122191_) {
-            return this.set(p_122191_.getX(), p_122191_.getY(), p_122191_.getZ());
+        public BlockPos.MutableBlockPos set(Vec3i pVector) {
+            return this.set(pVector.getX(), pVector.getY(), pVector.getZ());
         }
 
-        public BlockPos.MutableBlockPos set(long p_122189_) {
-            return this.set(getX(p_122189_), getY(p_122189_), getZ(p_122189_));
+        public BlockPos.MutableBlockPos set(long pPackedPos) {
+            return this.set(getX(pPackedPos), getY(pPackedPos), getZ(pPackedPos));
         }
 
-        public BlockPos.MutableBlockPos set(AxisCycle p_122140_, int p_122141_, int p_122142_, int p_122143_) {
-            return this.set(p_122140_.cycle(p_122141_, p_122142_, p_122143_, Direction.Axis.X), p_122140_.cycle(p_122141_, p_122142_, p_122143_, Direction.Axis.Y), p_122140_.cycle(p_122141_, p_122142_, p_122143_, Direction.Axis.Z));
+        public BlockPos.MutableBlockPos set(AxisCycle pCycle, int pX, int pY, int pZ) {
+            return this.set(pCycle.cycle(pX, pY, pZ, Direction.Axis.X), pCycle.cycle(pX, pY, pZ, Direction.Axis.Y), pCycle.cycle(pX, pY, pZ, Direction.Axis.Z));
         }
 
-        public BlockPos.MutableBlockPos setWithOffset(Vec3i p_122160_, Direction p_122161_) {
-            return this.set(WorldBounds.addBlockOffset(p_122160_.getX(), p_122161_.getStepX()),
-                    p_122160_.getY() + p_122161_.getStepY(), WorldBounds.addBlockOffset(p_122160_.getZ(), p_122161_.getStepZ()));
+        public BlockPos.MutableBlockPos setWithOffset(Vec3i pPos, Direction pDirection) {
+            return this.set(WorldBounds.addBlockOffset(pPos.getX(), pDirection.getStepX()),
+                    pPos.getY() + pDirection.getStepY(), WorldBounds.addBlockOffset(pPos.getZ(), pDirection.getStepZ()));
         }
 
-        public BlockPos.MutableBlockPos setWithOffset(Vec3i p_122155_, long p_122156_, int p_122157_, long p_122158_) {
-            return this.set(WorldBounds.addBlockOffset(p_122155_.getX(), p_122156_), p_122155_.getY() + p_122157_,
-                    WorldBounds.addBlockOffset(p_122155_.getZ(), p_122158_));
+        public BlockPos.MutableBlockPos setWithOffset(Vec3i pVector, long pOffsetX, int pOffsetY, long pOffsetZ) {
+            return this.set(WorldBounds.addBlockOffset(pVector.getX(), pOffsetX), pVector.getY() + pOffsetY,
+                    WorldBounds.addBlockOffset(pVector.getZ(), pOffsetZ));
         }
 
-        public BlockPos.MutableBlockPos setWithOffset(Vec3i p_175307_, Vec3i p_175308_) {
-            return this.set(WorldBounds.addBlockOffset(p_175307_.getX(), p_175308_.getX()),
-                    p_175307_.getY() + p_175308_.getY(), WorldBounds.addBlockOffset(p_175307_.getZ(), p_175308_.getZ()));
+        public BlockPos.MutableBlockPos setWithOffset(Vec3i pPos, Vec3i pOffset) {
+            return this.set(WorldBounds.addBlockOffset(pPos.getX(), pOffset.getX()),
+                    pPos.getY() + pOffset.getY(), WorldBounds.addBlockOffset(pPos.getZ(), pOffset.getZ()));
         }
 
-        public BlockPos.MutableBlockPos move(Direction p_122174_) {
-            return this.move(p_122174_, 1);
+        public BlockPos.MutableBlockPos move(Direction pDirection) {
+            return this.move(pDirection, 1);
         }
 
-        public BlockPos.MutableBlockPos move(Direction p_122176_, int p_122177_) {
-            return this.set(WorldBounds.addBlockOffset(this.getX(), (long) p_122176_.getStepX() * p_122177_),
-                    this.getY() + p_122176_.getStepY() * p_122177_,
-                    WorldBounds.addBlockOffset(this.getZ(), (long) p_122176_.getStepZ() * p_122177_));
+        public BlockPos.MutableBlockPos move(Direction pDirection, int pN) {
+            return this.set(WorldBounds.addBlockOffset(this.getX(), (long) pDirection.getStepX() * pN),
+                    this.getY() + pDirection.getStepY() * pN,
+                    WorldBounds.addBlockOffset(this.getZ(), (long) pDirection.getStepZ() * pN));
         }
 
-        public BlockPos.MutableBlockPos move(int p_122185_, int p_122186_, int p_122187_) {
-            return this.set(WorldBounds.addBlockOffset(this.getX(), p_122185_), this.getY() + p_122186_,
-                    WorldBounds.addBlockOffset(this.getZ(), p_122187_));
+        public BlockPos.MutableBlockPos move(int pX, int pY, int pZ) {
+            return this.set(WorldBounds.addBlockOffset(this.getX(), pX), this.getY() + pY,
+                    WorldBounds.addBlockOffset(this.getZ(), pZ));
         }
 
-        public BlockPos.MutableBlockPos move(Vec3i p_122194_) {
-            return this.set(WorldBounds.addBlockOffset(this.getX(), p_122194_.getX()),
-                    this.getY() + p_122194_.getY(), WorldBounds.addBlockOffset(this.getZ(), p_122194_.getZ()));
+        public BlockPos.MutableBlockPos move(Vec3i pOffset) {
+            return this.set(WorldBounds.addBlockOffset(this.getX(), pOffset.getX()),
+                    this.getY() + pOffset.getY(), WorldBounds.addBlockOffset(this.getZ(), pOffset.getZ()));
         }
 
-        public BlockPos.MutableBlockPos clamp(Direction.Axis p_122148_, int p_122149_, int p_122150_) {
-            switch (p_122148_) {
+        public BlockPos.MutableBlockPos clamp(Direction.Axis pAxis, int pMin, int pMax) {
+            switch (pAxis) {
                 case X:
-                    return this.set(Mth.clamp(this.getX(), p_122149_, p_122150_), this.getY(), this.getZ());
+                    return this.set(Mth.clamp(this.getX(), pMin, pMax), this.getY(), this.getZ());
                 case Y:
-                    return this.set(this.getX(), Mth.clamp(this.getY(), p_122149_, p_122150_), this.getZ());
+                    return this.set(this.getX(), Mth.clamp(this.getY(), pMin, pMax), this.getZ());
                 case Z:
-                    return this.set(this.getX(), this.getY(), Mth.clamp(this.getZ(), p_122149_, p_122150_));
+                    return this.set(this.getX(), this.getY(), Mth.clamp(this.getZ(), pMin, pMax));
                 default:
-                    throw new IllegalStateException("Unable to clamp axis " + p_122148_);
+                    throw new IllegalStateException("Unable to clamp axis " + pAxis);
             }
         }
 
-        public BlockPos.MutableBlockPos setX(long p_175341_) {
-            super.setX(p_175341_);
+        public BlockPos.MutableBlockPos setX(long pX) {
+            super.setX(pX);
             return this;
         }
 
-        public BlockPos.MutableBlockPos setY(int p_175343_) {
-            super.setY(p_175343_);
+        public BlockPos.MutableBlockPos setY(int pY) {
+            super.setY(pY);
             return this;
         }
 
-        public BlockPos.MutableBlockPos setZ(long p_175345_) {
-            super.setZ(p_175345_);
+        public BlockPos.MutableBlockPos setZ(long pZ) {
+            super.setZ(pZ);
             return this;
         }
 

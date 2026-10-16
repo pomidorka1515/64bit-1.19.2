@@ -25,7 +25,7 @@ public class EvokerRenderer<T extends SpellcasterIllager> extends IllagerRendere
         });
     }
 
-    public ResourceLocation getTextureLocation(T p_114541_) {
+    public ResourceLocation getTextureLocation(T pEntity) {
         return EVOKER_ILLAGER;
     }
 }

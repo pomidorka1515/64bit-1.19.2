@@ -29,21 +29,21 @@ public class TrueTypeGlyphProvider implements GlyphProvider {
     final float pointScale;
     final float ascent;
 
-    public TrueTypeGlyphProvider(ByteBuffer p_83846_, STBTTFontinfo p_83847_, float p_83848_, float p_83849_, float p_83850_, float p_83851_, String p_83852_) {
-        this.fontMemory = p_83846_;
-        this.font = p_83847_;
-        this.oversample = p_83849_;
-        p_83852_.codePoints().forEach(this.skip::add);
-        this.shiftX = p_83850_ * p_83849_;
-        this.shiftY = p_83851_ * p_83849_;
-        this.pointScale = STBTruetype.stbtt_ScaleForPixelHeight(p_83847_, p_83848_ * p_83849_);
+    public TrueTypeGlyphProvider(ByteBuffer pFontMemory, STBTTFontinfo pFont, float pHeight, float pOversample, float pShiftX, float pShiftY, String pSkip) {
+        this.fontMemory = pFontMemory;
+        this.font = pFont;
+        this.oversample = pOversample;
+        pSkip.codePoints().forEach(this.skip::add);
+        this.shiftX = pShiftX * pOversample;
+        this.shiftY = pShiftY * pOversample;
+        this.pointScale = STBTruetype.stbtt_ScaleForPixelHeight(pFont, pHeight * pOversample);
         MemoryStack memorystack = MemoryStack.stackPush();
 
         try {
             IntBuffer intbuffer = memorystack.mallocInt(1);
             IntBuffer intbuffer1 = memorystack.mallocInt(1);
             IntBuffer intbuffer2 = memorystack.mallocInt(1);
-            STBTruetype.stbtt_GetFontVMetrics(p_83847_, intbuffer, intbuffer1, intbuffer2);
+            STBTruetype.stbtt_GetFontVMetrics(pFont, intbuffer, intbuffer1, intbuffer2);
             this.ascent = (float) intbuffer.get(0) * this.pointScale;
         } catch (Throwable throwable1) {
             if (memorystack != null) {
@@ -63,8 +63,8 @@ public class TrueTypeGlyphProvider implements GlyphProvider {
     }
 
     @Nullable
-    public GlyphInfo getGlyph(int p_231116_) {
-        if (this.skip.contains(p_231116_)) {
+    public GlyphInfo getGlyph(int pCharacter) {
+        if (this.skip.contains(pCharacter)) {
             return null;
         } else {
             MemoryStack memorystack = MemoryStack.stackPush();
@@ -74,7 +74,7 @@ public class TrueTypeGlyphProvider implements GlyphProvider {
             GlyphInfo glyphinfo;
         label62: {
             try {
-                int i = STBTruetype.stbtt_FindGlyphIndex(this.font, p_231116_);
+                int i = STBTruetype.stbtt_FindGlyphIndex(this.font, pCharacter);
                 if (i == 0) {
                     object = null;
                     break label61;

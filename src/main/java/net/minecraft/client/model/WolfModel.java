@@ -29,16 +29,16 @@ public class WolfModel<T extends Wolf> extends ColorableAgeableListModel<T> {
     private final ModelPart upperBody;
     private static final int LEG_SIZE = 8;
 
-    public WolfModel(ModelPart p_171087_) {
-        this.head = p_171087_.getChild("head");
+    public WolfModel(ModelPart pRoot) {
+        this.head = pRoot.getChild("head");
         this.realHead = this.head.getChild("real_head");
-        this.body = p_171087_.getChild("body");
-        this.upperBody = p_171087_.getChild("upper_body");
-        this.rightHindLeg = p_171087_.getChild("right_hind_leg");
-        this.leftHindLeg = p_171087_.getChild("left_hind_leg");
-        this.rightFrontLeg = p_171087_.getChild("right_front_leg");
-        this.leftFrontLeg = p_171087_.getChild("left_front_leg");
-        this.tail = p_171087_.getChild("tail");
+        this.body = pRoot.getChild("body");
+        this.upperBody = pRoot.getChild("upper_body");
+        this.rightHindLeg = pRoot.getChild("right_hind_leg");
+        this.leftHindLeg = pRoot.getChild("left_hind_leg");
+        this.rightFrontLeg = pRoot.getChild("right_front_leg");
+        this.leftFrontLeg = pRoot.getChild("left_front_leg");
+        this.tail = pRoot.getChild("tail");
         this.realTail = this.tail.getChild("real_tail");
     }
 
@@ -68,14 +68,14 @@ public class WolfModel<T extends Wolf> extends ColorableAgeableListModel<T> {
         return ImmutableList.of(this.body, this.rightHindLeg, this.leftHindLeg, this.rightFrontLeg, this.leftFrontLeg, this.tail, this.upperBody);
     }
 
-    public void prepareMobModel(T p_104132_, float p_104133_, float p_104134_, float p_104135_) {
-        if (p_104132_.isAngry()) {
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        if (pEntity.isAngry()) {
             this.tail.yRot = 0.0F;
         } else {
-            this.tail.yRot = Mth.cos(p_104133_ * 0.6662F) * 1.4F * p_104134_;
+            this.tail.yRot = Mth.cos(pLimbSwing * 0.6662F) * 1.4F * pLimbSwingAmount;
         }
 
-        if (p_104132_.isInSittingPose()) {
+        if (pEntity.isInSittingPose()) {
             this.upperBody.setPos(-1.0F, 16.0F, -3.0F);
             this.upperBody.xRot = 1.2566371F;
             this.upperBody.yRot = 0.0F;
@@ -100,21 +100,21 @@ public class WolfModel<T extends Wolf> extends ColorableAgeableListModel<T> {
             this.leftHindLeg.setPos(0.5F, 16.0F, 7.0F);
             this.rightFrontLeg.setPos(-2.5F, 16.0F, -4.0F);
             this.leftFrontLeg.setPos(0.5F, 16.0F, -4.0F);
-            this.rightHindLeg.xRot = Mth.cos(p_104133_ * 0.6662F) * 1.4F * p_104134_;
-            this.leftHindLeg.xRot = Mth.cos(p_104133_ * 0.6662F + (float) Math.PI) * 1.4F * p_104134_;
-            this.rightFrontLeg.xRot = Mth.cos(p_104133_ * 0.6662F + (float) Math.PI) * 1.4F * p_104134_;
-            this.leftFrontLeg.xRot = Mth.cos(p_104133_ * 0.6662F) * 1.4F * p_104134_;
+            this.rightHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * 1.4F * pLimbSwingAmount;
+            this.leftHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * 1.4F * pLimbSwingAmount;
+            this.rightFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * 1.4F * pLimbSwingAmount;
+            this.leftFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * 1.4F * pLimbSwingAmount;
         }
 
-        this.realHead.zRot = p_104132_.getHeadRollAngle(p_104135_) + p_104132_.getBodyRollAngle(p_104135_, 0.0F);
-        this.upperBody.zRot = p_104132_.getBodyRollAngle(p_104135_, -0.08F);
-        this.body.zRot = p_104132_.getBodyRollAngle(p_104135_, -0.16F);
-        this.realTail.zRot = p_104132_.getBodyRollAngle(p_104135_, -0.2F);
+        this.realHead.zRot = pEntity.getHeadRollAngle(pPartialTick) + pEntity.getBodyRollAngle(pPartialTick, 0.0F);
+        this.upperBody.zRot = pEntity.getBodyRollAngle(pPartialTick, -0.08F);
+        this.body.zRot = pEntity.getBodyRollAngle(pPartialTick, -0.16F);
+        this.realTail.zRot = pEntity.getBodyRollAngle(pPartialTick, -0.2F);
     }
 
-    public void setupAnim(T p_104137_, float p_104138_, float p_104139_, float p_104140_, float p_104141_, float p_104142_) {
-        this.head.xRot = p_104142_ * ((float) Math.PI / 180F);
-        this.head.yRot = p_104141_ * ((float) Math.PI / 180F);
-        this.tail.xRot = p_104140_;
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.tail.xRot = pAgeInTicks;
     }
 }

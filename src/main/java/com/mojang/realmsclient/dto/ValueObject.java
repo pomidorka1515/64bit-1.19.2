@@ -25,12 +25,12 @@ public abstract class ValueObject {
         return stringbuilder.toString();
     }
 
-    private static String getName(Field p_87714_) {
-        SerializedName serializedname = p_87714_.getAnnotation(SerializedName.class);
-        return serializedname != null ? serializedname.value() : p_87714_.getName();
+    private static String getName(Field pField) {
+        SerializedName serializedname = pField.getAnnotation(SerializedName.class);
+        return serializedname != null ? serializedname.value() : pField.getName();
     }
 
-    private static boolean isStatic(Field p_87716_) {
-        return Modifier.isStatic(p_87716_.getModifiers());
+    private static boolean isStatic(Field pField) {
+        return Modifier.isStatic(pField.getModifiers());
     }
 }

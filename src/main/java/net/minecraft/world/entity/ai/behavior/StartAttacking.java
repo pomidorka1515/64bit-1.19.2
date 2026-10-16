@@ -14,8 +14,8 @@ public class StartAttacking<E extends Mob> extends Behavior<E> {
     private final Predicate<E> canAttackPredicate;
     private final Function<E, Optional<? extends LivingEntity>> targetFinderFunction;
 
-    public StartAttacking(Predicate<E> p_24195_, Function<E, Optional<? extends LivingEntity>> p_24196_) {
-        this(p_24195_, p_24196_, 60);
+    public StartAttacking(Predicate<E> pCanAttackPredicate, Function<E, Optional<? extends LivingEntity>> pTargetFinderFunction) {
+        this(pCanAttackPredicate, pTargetFinderFunction, 60);
     }
 
     public StartAttacking(Predicate<E> p_217378_, Function<E, Optional<? extends LivingEntity>> p_217379_, int p_217380_) {
@@ -24,24 +24,24 @@ public class StartAttacking<E extends Mob> extends Behavior<E> {
         this.targetFinderFunction = p_217379_;
     }
 
-    public StartAttacking(Function<E, Optional<? extends LivingEntity>> p_24193_) {
+    public StartAttacking(Function<E, Optional<? extends LivingEntity>> pTargetFinderFunction) {
         this((p_24212_) -> {
             return true;
-        }, p_24193_);
+        }, pTargetFinderFunction);
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_24205_, E p_24206_) {
-        if (!this.canAttackPredicate.test(p_24206_)) {
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, E pOwner) {
+        if (!this.canAttackPredicate.test(pOwner)) {
             return false;
         } else {
-            Optional<? extends LivingEntity> optional = this.targetFinderFunction.apply(p_24206_);
-            return optional.isPresent() ? p_24206_.canAttack(optional.get()) : false;
+            Optional<? extends LivingEntity> optional = this.targetFinderFunction.apply(pOwner);
+            return optional.isPresent() ? pOwner.canAttack(optional.get()) : false;
         }
     }
 
-    protected void start(ServerLevel p_24208_, E p_24209_, long p_24210_) {
-        this.targetFinderFunction.apply(p_24209_).ifPresent((p_24218_) -> {
-            setAttackTarget(p_24209_, p_24218_);
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
+        this.targetFinderFunction.apply(pEntity).ifPresent((p_24218_) -> {
+            setAttackTarget(pEntity, p_24218_);
         });
     }
 

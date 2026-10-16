@@ -13,13 +13,13 @@ public class FoodProperties {
     private final boolean fastFood;
     private final List<Pair<MobEffectInstance, Float>> effects;
 
-    FoodProperties(int p_38730_, float p_38731_, boolean p_38732_, boolean p_38733_, boolean p_38734_, List<Pair<MobEffectInstance, Float>> p_38735_) {
-        this.nutrition = p_38730_;
-        this.saturationModifier = p_38731_;
-        this.isMeat = p_38732_;
-        this.canAlwaysEat = p_38733_;
-        this.fastFood = p_38734_;
-        this.effects = p_38735_;
+    FoodProperties(int pNutrition, float pSaturationModifier, boolean pIsMeat, boolean pCanAlwaysEat, boolean pFastFood, List<Pair<MobEffectInstance, Float>> pEffects) {
+        this.nutrition = pNutrition;
+        this.saturationModifier = pSaturationModifier;
+        this.isMeat = pIsMeat;
+        this.canAlwaysEat = pCanAlwaysEat;
+        this.fastFood = pFastFood;
+        this.effects = pEffects;
     }
 
     public int getNutrition() {
@@ -54,13 +54,13 @@ public class FoodProperties {
         private boolean fastFood;
         private final List<Pair<MobEffectInstance, Float>> effects = Lists.newArrayList();
 
-        public FoodProperties.Builder nutrition(int p_38761_) {
-            this.nutrition = p_38761_;
+        public FoodProperties.Builder nutrition(int pNutrition) {
+            this.nutrition = pNutrition;
             return this;
         }
 
-        public FoodProperties.Builder saturationMod(float p_38759_) {
-            this.saturationModifier = p_38759_;
+        public FoodProperties.Builder saturationMod(float pSaturationModifier) {
+            this.saturationModifier = pSaturationModifier;
             return this;
         }
 
@@ -79,8 +79,8 @@ public class FoodProperties {
             return this;
         }
 
-        public FoodProperties.Builder effect(MobEffectInstance p_38763_, float p_38764_) {
-            this.effects.add(Pair.of(p_38763_, p_38764_));
+        public FoodProperties.Builder effect(MobEffectInstance pEffect, float pProbability) {
+            this.effects.add(Pair.of(pEffect, pProbability));
             return this;
         }
 

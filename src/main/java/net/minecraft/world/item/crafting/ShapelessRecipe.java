@@ -19,11 +19,11 @@ public class ShapelessRecipe implements CraftingRecipe {
     final ItemStack result;
     final NonNullList<Ingredient> ingredients;
 
-    public ShapelessRecipe(ResourceLocation p_44246_, String p_44247_, ItemStack p_44248_, NonNullList<Ingredient> p_44249_) {
-        this.id = p_44246_;
-        this.group = p_44247_;
-        this.result = p_44248_;
-        this.ingredients = p_44249_;
+    public ShapelessRecipe(ResourceLocation pId, String pGroup, ItemStack pResult, NonNullList<Ingredient> pIngredients) {
+        this.id = pId;
+        this.group = pGroup;
+        this.result = pResult;
+        this.ingredients = pIngredients;
     }
 
     public ResourceLocation getId() {
@@ -46,12 +46,12 @@ public class ShapelessRecipe implements CraftingRecipe {
         return this.ingredients;
     }
 
-    public boolean matches(CraftingContainer p_44262_, Level p_44263_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         StackedContents stackedcontents = new StackedContents();
         int i = 0;
 
-        for (int j = 0; j < p_44262_.getContainerSize(); ++j) {
-            ItemStack itemstack = p_44262_.getItem(j);
+        for (int j = 0; j < pInv.getContainerSize(); ++j) {
+            ItemStack itemstack = pInv.getItem(j);
             if (!itemstack.isEmpty()) {
                 ++i;
                 stackedcontents.accountStack(itemstack, 1);
@@ -61,33 +61,33 @@ public class ShapelessRecipe implements CraftingRecipe {
         return i == this.ingredients.size() && stackedcontents.canCraft(this, (IntList) null);
     }
 
-    public ItemStack assemble(CraftingContainer p_44260_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         return this.result.copy();
     }
 
-    public boolean canCraftInDimensions(int p_44252_, int p_44253_) {
-        return p_44252_ * p_44253_ >= this.ingredients.size();
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= this.ingredients.size();
     }
 
     public static class Serializer implements RecipeSerializer<ShapelessRecipe> {
-        public ShapelessRecipe fromJson(ResourceLocation p_44290_, JsonObject p_44291_) {
-            String s = GsonHelper.getAsString(p_44291_, "group", "");
-            NonNullList<Ingredient> nonnulllist = itemsFromJson(GsonHelper.getAsJsonArray(p_44291_, "ingredients"));
+        public ShapelessRecipe fromJson(ResourceLocation pRecipeId, JsonObject pJson) {
+            String s = GsonHelper.getAsString(pJson, "group", "");
+            NonNullList<Ingredient> nonnulllist = itemsFromJson(GsonHelper.getAsJsonArray(pJson, "ingredients"));
             if (nonnulllist.isEmpty()) {
                 throw new JsonParseException("No ingredients for shapeless recipe");
             } else if (nonnulllist.size() > 9) {
                 throw new JsonParseException("Too many ingredients for shapeless recipe");
             } else {
-                ItemStack itemstack = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(p_44291_, "result"));
-                return new ShapelessRecipe(p_44290_, s, itemstack, nonnulllist);
+                ItemStack itemstack = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(pJson, "result"));
+                return new ShapelessRecipe(pRecipeId, s, itemstack, nonnulllist);
             }
         }
 
-        private static NonNullList<Ingredient> itemsFromJson(JsonArray p_44276_) {
+        private static NonNullList<Ingredient> itemsFromJson(JsonArray pIngredientArray) {
             NonNullList<Ingredient> nonnulllist = NonNullList.create();
 
-            for (int i = 0; i < p_44276_.size(); ++i) {
-                Ingredient ingredient = Ingredient.fromJson(p_44276_.get(i));
+            for (int i = 0; i < pIngredientArray.size(); ++i) {
+                Ingredient ingredient = Ingredient.fromJson(pIngredientArray.get(i));
                 if (!ingredient.isEmpty()) {
                     nonnulllist.add(ingredient);
                 }
@@ -96,28 +96,28 @@ public class ShapelessRecipe implements CraftingRecipe {
             return nonnulllist;
         }
 
-        public ShapelessRecipe fromNetwork(ResourceLocation p_44293_, FriendlyByteBuf p_44294_) {
-            String s = p_44294_.readUtf();
-            int i = p_44294_.readVarInt();
+        public ShapelessRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf pBuffer) {
+            String s = pBuffer.readUtf();
+            int i = pBuffer.readVarInt();
             NonNullList<Ingredient> nonnulllist = NonNullList.withSize(i, Ingredient.EMPTY);
 
             for (int j = 0; j < nonnulllist.size(); ++j) {
-                nonnulllist.set(j, Ingredient.fromNetwork(p_44294_));
+                nonnulllist.set(j, Ingredient.fromNetwork(pBuffer));
             }
 
-            ItemStack itemstack = p_44294_.readItem();
-            return new ShapelessRecipe(p_44293_, s, itemstack, nonnulllist);
+            ItemStack itemstack = pBuffer.readItem();
+            return new ShapelessRecipe(pRecipeId, s, itemstack, nonnulllist);
         }
 
-        public void toNetwork(FriendlyByteBuf p_44281_, ShapelessRecipe p_44282_) {
-            p_44281_.writeUtf(p_44282_.group);
-            p_44281_.writeVarInt(p_44282_.ingredients.size());
+        public void toNetwork(FriendlyByteBuf pBuffer, ShapelessRecipe pRecipe) {
+            pBuffer.writeUtf(pRecipe.group);
+            pBuffer.writeVarInt(pRecipe.ingredients.size());
 
-            for (Ingredient ingredient : p_44282_.ingredients) {
-                ingredient.toNetwork(p_44281_);
+            for (Ingredient ingredient : pRecipe.ingredients) {
+                ingredient.toNetwork(pBuffer);
             }
 
-            p_44281_.writeItem(p_44282_.result);
+            pBuffer.writeItem(pRecipe.result);
         }
     }
 }

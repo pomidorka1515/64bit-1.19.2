@@ -22,9 +22,9 @@ public interface GameEventDispatcher {
 
     boolean isEmpty();
 
-    void register(GameEventListener p_157834_);
+    void register(GameEventListener pListener);
 
-    void unregister(GameEventListener p_157835_);
+    void unregister(GameEventListener pListener);
 
     boolean walkListeners(GameEvent p_223748_, Vec3 p_223749_, GameEvent.Context p_223750_, BiConsumer<GameEventListener, Vec3> p_223751_);
 }

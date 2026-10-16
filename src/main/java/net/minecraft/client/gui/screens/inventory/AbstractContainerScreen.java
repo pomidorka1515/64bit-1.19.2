@@ -69,10 +69,10 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
     private boolean doubleclick;
     private ItemStack lastQuickMoved = ItemStack.EMPTY;
 
-    public AbstractContainerScreen(T p_97741_, Inventory p_97742_, Component p_97743_) {
-        super(p_97743_);
-        this.menu = p_97741_;
-        this.playerInventoryTitle = p_97742_.getDisplayName();
+    public AbstractContainerScreen(T pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pTitle);
+        this.menu = pMenu;
+        this.playerInventoryTitle = pPlayerInventory.getDisplayName();
         this.skipNextRelease = true;
         this.titleLabelX = 8;
         this.titleLabelY = 6;
@@ -86,12 +86,12 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
         this.topPos = (this.height - this.imageHeight) / 2;
     }
 
-    public void render(PoseStack p_97795_, int p_97796_, int p_97797_, float p_97798_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         int i = this.leftPos;
         int j = this.topPos;
-        this.renderBg(p_97795_, p_97798_, p_97796_, p_97797_);
+        this.renderBg(pPoseStack, pPartialTick, pMouseX, pMouseY);
         RenderSystem.disableDepthTest();
-        super.render(p_97795_, p_97796_, p_97797_, p_97798_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         PoseStack posestack = RenderSystem.getModelViewStack();
         posestack.pushPose();
         posestack.translate((double) i, (double) j, 0.0D);
@@ -104,18 +104,18 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
             Slot slot = this.menu.slots.get(k);
             if (slot.isActive()) {
                 RenderSystem.setShader(GameRenderer::getPositionTexShader);
-                this.renderSlot(p_97795_, slot);
+                this.renderSlot(pPoseStack, slot);
             }
 
-            if (this.isHovering(slot, (double) p_97796_, (double) p_97797_) && slot.isActive()) {
+            if (this.isHovering(slot, (double) pMouseX, (double) pMouseY) && slot.isActive()) {
                 this.hoveredSlot = slot;
                 int l = slot.x;
                 int i1 = slot.y;
-                renderSlotHighlight(p_97795_, l, i1, this.getBlitOffset());
+                renderSlotHighlight(pPoseStack, l, i1, this.getBlitOffset());
             }
         }
 
-        this.renderLabels(p_97795_, p_97796_, p_97797_);
+        this.renderLabels(pPoseStack, pMouseX, pMouseY);
         ItemStack itemstack = this.draggingItem.isEmpty() ? this.menu.getCarried() : this.draggingItem;
         if (!itemstack.isEmpty()) {
             int l1 = 8;
@@ -132,7 +132,7 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
                 }
             }
 
-            this.renderFloatingItem(itemstack, p_97796_ - i - 8, p_97797_ - j - i2, s);
+            this.renderFloatingItem(itemstack, pMouseX - i - 8, pMouseY - j - i2, s);
         }
 
         if (!this.snapbackItem.isEmpty()) {
@@ -154,89 +154,89 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
         RenderSystem.enableDepthTest();
     }
 
-    public static void renderSlotHighlight(PoseStack p_169607_, int p_169608_, int p_169609_, int p_169610_) {
+    public static void renderSlotHighlight(PoseStack pPoseStack, int pX, int pY, int pBlitOffset) {
         RenderSystem.disableDepthTest();
         RenderSystem.colorMask(true, true, true, false);
-        fillGradient(p_169607_, p_169608_, p_169609_, p_169608_ + 16, p_169609_ + 16, -2130706433, -2130706433, p_169610_);
+        fillGradient(pPoseStack, pX, pY, pX + 16, pY + 16, -2130706433, -2130706433, pBlitOffset);
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.enableDepthTest();
     }
 
-    protected void renderTooltip(PoseStack p_97791_, int p_97792_, int p_97793_) {
+    protected void renderTooltip(PoseStack pPoseStack, int pX, int pY) {
         if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
-            this.renderTooltip(p_97791_, this.hoveredSlot.getItem(), p_97792_, p_97793_);
+            this.renderTooltip(pPoseStack, this.hoveredSlot.getItem(), pX, pY);
         }
     }
 
-    private void renderFloatingItem(ItemStack p_97783_, int p_97784_, int p_97785_, String p_97786_) {
+    private void renderFloatingItem(ItemStack pStack, int pX, int pY, String pAltText) {
         PoseStack posestack = RenderSystem.getModelViewStack();
         posestack.translate(0.0D, 0.0D, 32.0D);
         RenderSystem.applyModelViewMatrix();
         this.setBlitOffset(200);
         this.itemRenderer.blitOffset = 200.0F;
-        this.itemRenderer.renderAndDecorateItem(p_97783_, p_97784_, p_97785_);
-        this.itemRenderer.renderGuiItemDecorations(this.font, p_97783_, p_97784_, p_97785_ - (this.draggingItem.isEmpty() ? 0 : 8), p_97786_);
+        this.itemRenderer.renderAndDecorateItem(pStack, pX, pY);
+        this.itemRenderer.renderGuiItemDecorations(this.font, pStack, pX, pY - (this.draggingItem.isEmpty() ? 0 : 8), pAltText);
         this.setBlitOffset(0);
         this.itemRenderer.blitOffset = 0.0F;
     }
 
-    protected void renderLabels(PoseStack p_97808_, int p_97809_, int p_97810_) {
-        this.font.draw(p_97808_, this.title, (float) this.titleLabelX, (float) this.titleLabelY, 4210752);
-        this.font.draw(p_97808_, this.playerInventoryTitle, (float) this.inventoryLabelX, (float) this.inventoryLabelY, 4210752);
+    protected void renderLabels(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+        this.font.draw(pPoseStack, this.title, (float) this.titleLabelX, (float) this.titleLabelY, 4210752);
+        this.font.draw(pPoseStack, this.playerInventoryTitle, (float) this.inventoryLabelX, (float) this.inventoryLabelY, 4210752);
     }
 
-    protected abstract void renderBg(PoseStack p_97787_, float p_97788_, int p_97789_, int p_97790_);
+    protected abstract void renderBg(PoseStack pPoseStack, float pPartialTick, int pMouseX, int pMouseY);
 
-    private void renderSlot(PoseStack p_97800_, Slot p_97801_) {
-        int i = p_97801_.x;
-        int j = p_97801_.y;
-        ItemStack itemstack = p_97801_.getItem();
+    private void renderSlot(PoseStack pPoseStack, Slot pSlot) {
+        int i = pSlot.x;
+        int j = pSlot.y;
+        ItemStack itemstack = pSlot.getItem();
         boolean flag = false;
-        boolean flag1 = p_97801_ == this.clickedSlot && !this.draggingItem.isEmpty() && !this.isSplittingStack;
+        boolean flag1 = pSlot == this.clickedSlot && !this.draggingItem.isEmpty() && !this.isSplittingStack;
         ItemStack itemstack1 = this.menu.getCarried();
         String s = null;
-        if (p_97801_ == this.clickedSlot && !this.draggingItem.isEmpty() && this.isSplittingStack && !itemstack.isEmpty()) {
+        if (pSlot == this.clickedSlot && !this.draggingItem.isEmpty() && this.isSplittingStack && !itemstack.isEmpty()) {
             itemstack = itemstack.copy();
             itemstack.setCount(itemstack.getCount() / 2);
-        } else if (this.isQuickCrafting && this.quickCraftSlots.contains(p_97801_) && !itemstack1.isEmpty()) {
+        } else if (this.isQuickCrafting && this.quickCraftSlots.contains(pSlot) && !itemstack1.isEmpty()) {
             if (this.quickCraftSlots.size() == 1) {
                 return;
             }
 
-            if (AbstractContainerMenu.canItemQuickReplace(p_97801_, itemstack1, true) && this.menu.canDragTo(p_97801_)) {
+            if (AbstractContainerMenu.canItemQuickReplace(pSlot, itemstack1, true) && this.menu.canDragTo(pSlot)) {
                 itemstack = itemstack1.copy();
                 flag = true;
-                AbstractContainerMenu.getQuickCraftSlotCount(this.quickCraftSlots, this.quickCraftingType, itemstack, p_97801_.getItem().isEmpty() ? 0 : p_97801_.getItem().getCount());
-                int k = Math.min(itemstack.getMaxStackSize(), p_97801_.getMaxStackSize(itemstack));
+                AbstractContainerMenu.getQuickCraftSlotCount(this.quickCraftSlots, this.quickCraftingType, itemstack, pSlot.getItem().isEmpty() ? 0 : pSlot.getItem().getCount());
+                int k = Math.min(itemstack.getMaxStackSize(), pSlot.getMaxStackSize(itemstack));
                 if (itemstack.getCount() > k) {
                     s = ChatFormatting.YELLOW.toString() + k;
                     itemstack.setCount(k);
                 }
             } else {
-                this.quickCraftSlots.remove(p_97801_);
+                this.quickCraftSlots.remove(pSlot);
                 this.recalculateQuickCraftRemaining();
             }
         }
 
         this.setBlitOffset(100);
         this.itemRenderer.blitOffset = 100.0F;
-        if (itemstack.isEmpty() && p_97801_.isActive()) {
-            Pair<ResourceLocation, ResourceLocation> pair = p_97801_.getNoItemIcon();
+        if (itemstack.isEmpty() && pSlot.isActive()) {
+            Pair<ResourceLocation, ResourceLocation> pair = pSlot.getNoItemIcon();
             if (pair != null) {
                 TextureAtlasSprite textureatlassprite = this.minecraft.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
                 RenderSystem.setShaderTexture(0, textureatlassprite.atlas().location());
-                blit(p_97800_, i, j, this.getBlitOffset(), 16, 16, textureatlassprite);
+                blit(pPoseStack, i, j, this.getBlitOffset(), 16, 16, textureatlassprite);
                 flag1 = true;
             }
         }
 
         if (!flag1) {
             if (flag) {
-                fill(p_97800_, i, j, i + 16, j + 16, -2130706433);
+                fill(pPoseStack, i, j, i + 16, j + 16, -2130706433);
             }
 
             RenderSystem.enableDepthTest();
-            this.itemRenderer.renderAndDecorateItem(this.minecraft.player, itemstack, i, j, p_97801_.x + p_97801_.y * this.imageWidth);
+            this.itemRenderer.renderAndDecorateItem(this.minecraft.player, itemstack, i, j, pSlot.x + pSlot.y * this.imageWidth);
             this.itemRenderer.renderGuiItemDecorations(this.font, itemstack, i, j, s);
         }
 
@@ -269,10 +269,10 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
     }
 
     @Nullable
-    private Slot findSlot(double p_97745_, double p_97746_) {
+    private Slot findSlot(double pMouseX, double pMouseY) {
         for (int i = 0; i < this.menu.slots.size(); ++i) {
             Slot slot = this.menu.slots.get(i);
-            if (this.isHovering(slot, p_97745_, p_97746_) && slot.isActive()) {
+            if (this.isHovering(slot, pMouseX, pMouseY) && slot.isActive()) {
                 return slot;
             }
         }
@@ -280,21 +280,21 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
         return null;
     }
 
-    public boolean mouseClicked(double p_97748_, double p_97749_, int p_97750_) {
-        if (super.mouseClicked(p_97748_, p_97749_, p_97750_)) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (super.mouseClicked(pMouseX, pMouseY, pButton)) {
             return true;
         } else {
-            boolean flag = this.minecraft.options.keyPickItem.matchesMouse(p_97750_) && this.minecraft.gameMode.hasInfiniteItems();
-            Slot slot = this.findSlot(p_97748_, p_97749_);
+            boolean flag = this.minecraft.options.keyPickItem.matchesMouse(pButton) && this.minecraft.gameMode.hasInfiniteItems();
+            Slot slot = this.findSlot(pMouseX, pMouseY);
             long i = Util.getMillis();
-            this.doubleclick = this.lastClickSlot == slot && i - this.lastClickTime < 250L && this.lastClickButton == p_97750_;
+            this.doubleclick = this.lastClickSlot == slot && i - this.lastClickTime < 250L && this.lastClickButton == pButton;
             this.skipNextRelease = false;
-            if (p_97750_ != 0 && p_97750_ != 1 && !flag) {
-                this.checkHotbarMouseClicked(p_97750_);
+            if (pButton != 0 && pButton != 1 && !flag) {
+                this.checkHotbarMouseClicked(pButton);
             } else {
                 int j = this.leftPos;
                 int k = this.topPos;
-                boolean flag1 = this.hasClickedOutside(p_97748_, p_97749_, j, k, p_97750_);
+                boolean flag1 = this.hasClickedOutside(pMouseX, pMouseY, j, k, pButton);
                 int l = -1;
                 if (slot != null) {
                     l = slot.index;
@@ -314,14 +314,14 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
                         if (slot != null && slot.hasItem()) {
                             this.clickedSlot = slot;
                             this.draggingItem = ItemStack.EMPTY;
-                            this.isSplittingStack = p_97750_ == 1;
+                            this.isSplittingStack = pButton == 1;
                         } else {
                             this.clickedSlot = null;
                         }
                     } else if (!this.isQuickCrafting) {
                         if (this.menu.getCarried().isEmpty()) {
                             if (flag) {
-                                this.slotClicked(slot, l, p_97750_, ClickType.CLONE);
+                                this.slotClicked(slot, l, pButton, ClickType.CLONE);
                             } else {
                                 boolean flag2 = l != -999 && (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 340) || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 344));
                                 ClickType clicktype = ClickType.PICKUP;
@@ -332,17 +332,17 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
                                     clicktype = ClickType.THROW;
                                 }
 
-                                this.slotClicked(slot, l, p_97750_, clicktype);
+                                this.slotClicked(slot, l, pButton, clicktype);
                             }
 
                             this.skipNextRelease = true;
                         } else {
                             this.isQuickCrafting = true;
-                            this.quickCraftingButton = p_97750_;
+                            this.quickCraftingButton = pButton;
                             this.quickCraftSlots.clear();
-                            if (p_97750_ == 0) {
+                            if (pButton == 0) {
                                 this.quickCraftingType = 0;
-                            } else if (p_97750_ == 1) {
+                            } else if (pButton == 1) {
                                 this.quickCraftingType = 1;
                             } else if (flag) {
                                 this.quickCraftingType = 2;
@@ -354,35 +354,35 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
 
             this.lastClickSlot = slot;
             this.lastClickTime = i;
-            this.lastClickButton = p_97750_;
+            this.lastClickButton = pButton;
             return true;
         }
     }
 
-    private void checkHotbarMouseClicked(int p_97763_) {
+    private void checkHotbarMouseClicked(int pKeyCode) {
         if (this.hoveredSlot != null && this.menu.getCarried().isEmpty()) {
-            if (this.minecraft.options.keySwapOffhand.matchesMouse(p_97763_)) {
+            if (this.minecraft.options.keySwapOffhand.matchesMouse(pKeyCode)) {
                 this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, 40, ClickType.SWAP);
                 return;
             }
 
             for (int i = 0; i < 9; ++i) {
-                if (this.minecraft.options.keyHotbarSlots[i].matchesMouse(p_97763_)) {
+                if (this.minecraft.options.keyHotbarSlots[i].matchesMouse(pKeyCode)) {
                     this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, i, ClickType.SWAP);
                 }
             }
         }
     }
 
-    protected boolean hasClickedOutside(double p_97757_, double p_97758_, int p_97759_, int p_97760_, int p_97761_) {
-        return p_97757_ < (double) p_97759_ || p_97758_ < (double) p_97760_ || p_97757_ >= (double) (p_97759_ + this.imageWidth) || p_97758_ >= (double) (p_97760_ + this.imageHeight);
+    protected boolean hasClickedOutside(double pMouseX, double pMouseY, int pGuiLeft, int pGuiTop, int pMouseButton) {
+        return pMouseX < (double) pGuiLeft || pMouseY < (double) pGuiTop || pMouseX >= (double) (pGuiLeft + this.imageWidth) || pMouseY >= (double) (pGuiTop + this.imageHeight);
     }
 
-    public boolean mouseDragged(double p_97752_, double p_97753_, int p_97754_, double p_97755_, double p_97756_) {
-        Slot slot = this.findSlot(p_97752_, p_97753_);
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        Slot slot = this.findSlot(pMouseX, pMouseY);
         ItemStack itemstack = this.menu.getCarried();
         if (this.clickedSlot != null && this.minecraft.options.touchscreen().get()) {
-            if (p_97754_ == 0 || p_97754_ == 1) {
+            if (pButton == 0 || pButton == 1) {
                 if (this.draggingItem.isEmpty()) {
                     if (slot != this.clickedSlot && !this.clickedSlot.getItem().isEmpty()) {
                         this.draggingItem = this.clickedSlot.getItem().copy();
@@ -411,11 +411,11 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
         return true;
     }
 
-    public boolean mouseReleased(double p_97812_, double p_97813_, int p_97814_) {
-        Slot slot = this.findSlot(p_97812_, p_97813_);
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+        Slot slot = this.findSlot(pMouseX, pMouseY);
         int i = this.leftPos;
         int j = this.topPos;
-        boolean flag = this.hasClickedOutside(p_97812_, p_97813_, i, j, p_97814_);
+        boolean flag = this.hasClickedOutside(pMouseX, pMouseY, i, j, pButton);
         int k = -1;
         if (slot != null) {
             k = slot.index;
@@ -425,23 +425,23 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
             k = -999;
         }
 
-        if (this.doubleclick && slot != null && p_97814_ == 0 && this.menu.canTakeItemForPickAll(ItemStack.EMPTY, slot)) {
+        if (this.doubleclick && slot != null && pButton == 0 && this.menu.canTakeItemForPickAll(ItemStack.EMPTY, slot)) {
             if (hasShiftDown()) {
                 if (!this.lastQuickMoved.isEmpty()) {
                     for (Slot slot2 : this.menu.slots) {
                         if (slot2 != null && slot2.mayPickup(this.minecraft.player) && slot2.hasItem() && slot2.container == slot.container && AbstractContainerMenu.canItemQuickReplace(slot2, this.lastQuickMoved, true)) {
-                            this.slotClicked(slot2, slot2.index, p_97814_, ClickType.QUICK_MOVE);
+                            this.slotClicked(slot2, slot2.index, pButton, ClickType.QUICK_MOVE);
                         }
                     }
                 }
             } else {
-                this.slotClicked(slot, k, p_97814_, ClickType.PICKUP_ALL);
+                this.slotClicked(slot, k, pButton, ClickType.PICKUP_ALL);
             }
 
             this.doubleclick = false;
             this.lastClickTime = 0L;
         } else {
-            if (this.isQuickCrafting && this.quickCraftingButton != p_97814_) {
+            if (this.isQuickCrafting && this.quickCraftingButton != pButton) {
                 this.isQuickCrafting = false;
                 this.quickCraftSlots.clear();
                 this.skipNextRelease = true;
@@ -454,28 +454,28 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
             }
 
             if (this.clickedSlot != null && this.minecraft.options.touchscreen().get()) {
-                if (p_97814_ == 0 || p_97814_ == 1) {
+                if (pButton == 0 || pButton == 1) {
                     if (this.draggingItem.isEmpty() && slot != this.clickedSlot) {
                         this.draggingItem = this.clickedSlot.getItem();
                     }
 
                     boolean flag2 = AbstractContainerMenu.canItemQuickReplace(slot, this.draggingItem, false);
                     if (k != -1 && !this.draggingItem.isEmpty() && flag2) {
-                        this.slotClicked(this.clickedSlot, this.clickedSlot.index, p_97814_, ClickType.PICKUP);
+                        this.slotClicked(this.clickedSlot, this.clickedSlot.index, pButton, ClickType.PICKUP);
                         this.slotClicked(slot, k, 0, ClickType.PICKUP);
                         if (this.menu.getCarried().isEmpty()) {
                             this.snapbackItem = ItemStack.EMPTY;
                         } else {
-                            this.slotClicked(this.clickedSlot, this.clickedSlot.index, p_97814_, ClickType.PICKUP);
-                            this.snapbackStartX = Mth.floor(p_97812_ - (double) i);
-                            this.snapbackStartY = Mth.floor(p_97813_ - (double) j);
+                            this.slotClicked(this.clickedSlot, this.clickedSlot.index, pButton, ClickType.PICKUP);
+                            this.snapbackStartX = Mth.floor(pMouseX - (double) i);
+                            this.snapbackStartY = Mth.floor(pMouseY - (double) j);
                             this.snapbackEnd = this.clickedSlot;
                             this.snapbackItem = this.draggingItem;
                             this.snapbackTime = Util.getMillis();
                         }
                     } else if (!this.draggingItem.isEmpty()) {
-                        this.snapbackStartX = Mth.floor(p_97812_ - (double) i);
-                        this.snapbackStartY = Mth.floor(p_97813_ - (double) j);
+                        this.snapbackStartX = Mth.floor(pMouseX - (double) i);
+                        this.snapbackStartY = Mth.floor(pMouseY - (double) j);
                         this.snapbackEnd = this.clickedSlot;
                         this.snapbackItem = this.draggingItem;
                         this.snapbackTime = Util.getMillis();
@@ -492,15 +492,15 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
 
                 this.slotClicked((Slot) null, -999, AbstractContainerMenu.getQuickcraftMask(2, this.quickCraftingType), ClickType.QUICK_CRAFT);
             } else if (!this.menu.getCarried().isEmpty()) {
-                if (this.minecraft.options.keyPickItem.matchesMouse(p_97814_)) {
-                    this.slotClicked(slot, k, p_97814_, ClickType.CLONE);
+                if (this.minecraft.options.keyPickItem.matchesMouse(pButton)) {
+                    this.slotClicked(slot, k, pButton, ClickType.CLONE);
                 } else {
                     boolean flag1 = k != -999 && (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 340) || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 344));
                     if (flag1) {
                         this.lastQuickMoved = slot != null && slot.hasItem() ? slot.getItem().copy() : ItemStack.EMPTY;
                     }
 
-                    this.slotClicked(slot, k, p_97814_, flag1 ? ClickType.QUICK_MOVE : ClickType.PICKUP);
+                    this.slotClicked(slot, k, pButton, flag1 ? ClickType.QUICK_MOVE : ClickType.PICKUP);
                 }
             }
         }
@@ -518,38 +518,38 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
         this.clickedSlot = null;
     }
 
-    private boolean isHovering(Slot p_97775_, double p_97776_, double p_97777_) {
-        return this.isHovering(p_97775_.x, p_97775_.y, 16, 16, p_97776_, p_97777_);
+    private boolean isHovering(Slot pSlot, double pMouseX, double pMouseY) {
+        return this.isHovering(pSlot.x, pSlot.y, 16, 16, pMouseX, pMouseY);
     }
 
-    protected boolean isHovering(int p_97768_, int p_97769_, int p_97770_, int p_97771_, double p_97772_, double p_97773_) {
+    protected boolean isHovering(int pX, int pY, int pWidth, int pHeight, double pMouseX, double pMouseY) {
         int i = this.leftPos;
         int j = this.topPos;
-        p_97772_ -= (double) i;
-        p_97773_ -= (double) j;
-        return p_97772_ >= (double) (p_97768_ - 1) && p_97772_ < (double) (p_97768_ + p_97770_ + 1) && p_97773_ >= (double) (p_97769_ - 1) && p_97773_ < (double) (p_97769_ + p_97771_ + 1);
+        pMouseX -= (double) i;
+        pMouseY -= (double) j;
+        return pMouseX >= (double) (pX - 1) && pMouseX < (double) (pX + pWidth + 1) && pMouseY >= (double) (pY - 1) && pMouseY < (double) (pY + pHeight + 1);
     }
 
-    protected void slotClicked(Slot p_97778_, int p_97779_, int p_97780_, ClickType p_97781_) {
-        if (p_97778_ != null) {
-            p_97779_ = p_97778_.index;
+    protected void slotClicked(Slot pSlot, int pSlotId, int pMouseButton, ClickType pType) {
+        if (pSlot != null) {
+            pSlotId = pSlot.index;
         }
 
-        this.minecraft.gameMode.handleInventoryMouseClick(this.menu.containerId, p_97779_, p_97780_, p_97781_, this.minecraft.player);
+        this.minecraft.gameMode.handleInventoryMouseClick(this.menu.containerId, pSlotId, pMouseButton, pType, this.minecraft.player);
     }
 
-    public boolean keyPressed(int p_97765_, int p_97766_, int p_97767_) {
-        if (super.keyPressed(p_97765_, p_97766_, p_97767_)) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (this.minecraft.options.keyInventory.matches(p_97765_, p_97766_)) {
+        } else if (this.minecraft.options.keyInventory.matches(pKeyCode, pScanCode)) {
             this.onClose();
             return true;
         } else {
-            this.checkHotbarKeyPressed(p_97765_, p_97766_);
+            this.checkHotbarKeyPressed(pKeyCode, pScanCode);
             if (this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
-                if (this.minecraft.options.keyPickItem.matches(p_97765_, p_97766_)) {
+                if (this.minecraft.options.keyPickItem.matches(pKeyCode, pScanCode)) {
                     this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, 0, ClickType.CLONE);
-                } else if (this.minecraft.options.keyDrop.matches(p_97765_, p_97766_)) {
+                } else if (this.minecraft.options.keyDrop.matches(pKeyCode, pScanCode)) {
                     this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, hasControlDown() ? 1 : 0, ClickType.THROW);
                 }
             }
@@ -558,15 +558,15 @@ public abstract class AbstractContainerScreen<T extends AbstractContainerMenu> e
         }
     }
 
-    protected boolean checkHotbarKeyPressed(int p_97806_, int p_97807_) {
+    protected boolean checkHotbarKeyPressed(int pKeyCode, int pScanCode) {
         if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null) {
-            if (this.minecraft.options.keySwapOffhand.matches(p_97806_, p_97807_)) {
+            if (this.minecraft.options.keySwapOffhand.matches(pKeyCode, pScanCode)) {
                 this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, 40, ClickType.SWAP);
                 return true;
             }
 
             for (int i = 0; i < 9; ++i) {
-                if (this.minecraft.options.keyHotbarSlots[i].matches(p_97806_, p_97807_)) {
+                if (this.minecraft.options.keyHotbarSlots[i].matches(pKeyCode, pScanCode)) {
                     this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, i, ClickType.SWAP);
                     return true;
                 }

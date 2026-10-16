@@ -13,23 +13,23 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RemotePlayer extends AbstractClientPlayer {
-    public RemotePlayer(ClientLevel p_234159_, GameProfile p_234160_, @Nullable ProfilePublicKey p_234161_) {
-        super(p_234159_, p_234160_, p_234161_);
+    public RemotePlayer(ClientLevel pClientLevel, GameProfile pGameProfile, @Nullable ProfilePublicKey pProfilePublicKey) {
+        super(pClientLevel, pGameProfile, pProfilePublicKey);
         this.maxUpStep = 1.0F;
         this.noPhysics = true;
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_108770_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         double d0 = this.getBoundingBox().getSize() * 10.0D;
         if (Double.isNaN(d0)) {
             d0 = 1.0D;
         }
 
         d0 *= 64.0D * getViewScale();
-        return p_108770_ < d0 * d0;
+        return pDistance < d0 * d0;
     }
 
-    public boolean hurt(DamageSource p_108772_, float p_108773_) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
         return true;
     }
 
@@ -73,8 +73,8 @@ public class RemotePlayer extends AbstractClientPlayer {
     protected void updatePlayerPose() {
     }
 
-    public void sendSystemMessage(Component p_234163_) {
+    public void sendSystemMessage(Component pComponent) {
         Minecraft minecraft = Minecraft.getInstance();
-        minecraft.gui.getChat().addMessage(p_234163_);
+        minecraft.gui.getChat().addMessage(pComponent);
     }
 }

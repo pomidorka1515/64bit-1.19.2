@@ -31,21 +31,21 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
     private static final int SPIKE_DISTANCE = 42;
     private static final LoadingCache<Long, List<SpikeFeature.EndSpike>> SPIKE_CACHE = CacheBuilder.newBuilder().expireAfterWrite(5L, TimeUnit.MINUTES).build(new SpikeFeature.SpikeCacheLoader());
 
-    public SpikeFeature(Codec<SpikeConfiguration> p_66852_) {
-        super(p_66852_);
+    public SpikeFeature(Codec<SpikeConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public static List<SpikeFeature.EndSpike> getSpikesForLevel(WorldGenLevel p_66859_) {
-        RandomSource randomsource = RandomSource.create(p_66859_.getSeed());
+    public static List<SpikeFeature.EndSpike> getSpikesForLevel(WorldGenLevel pLevel) {
+        RandomSource randomsource = RandomSource.create(pLevel.getSeed());
         long i = randomsource.nextLong() & 65535L;
         return SPIKE_CACHE.getUnchecked(i);
     }
 
-    public boolean place(FeaturePlaceContext<SpikeConfiguration> p_160372_) {
-        SpikeConfiguration spikeconfiguration = p_160372_.config();
-        WorldGenLevel worldgenlevel = p_160372_.level();
-        RandomSource randomsource = p_160372_.random();
-        BlockPos blockpos = p_160372_.origin();
+    public boolean place(FeaturePlaceContext<SpikeConfiguration> pContext) {
+        SpikeConfiguration spikeconfiguration = pContext.config();
+        WorldGenLevel worldgenlevel = pContext.level();
+        RandomSource randomsource = pContext.random();
+        BlockPos blockpos = pContext.origin();
         List<SpikeFeature.EndSpike> list = spikeconfiguration.getSpikes();
         if (list.isEmpty()) {
             list = getSpikesForLevel(worldgenlevel);
@@ -60,18 +60,18 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
         return true;
     }
 
-    private void placeSpike(ServerLevelAccessor p_225247_, RandomSource p_225248_, SpikeConfiguration p_225249_, SpikeFeature.EndSpike p_225250_) {
-        int i = p_225250_.getRadius();
+    private void placeSpike(ServerLevelAccessor pLevel, RandomSource pRandom, SpikeConfiguration pConfig, SpikeFeature.EndSpike pSpike) {
+        int i = pSpike.getRadius();
 
-        for (BlockPos blockpos : BlockPos.betweenClosed(new BlockPos(p_225250_.getCenterX() - i, p_225247_.getMinBuildHeight(), p_225250_.getCenterZ() - i), new BlockPos(p_225250_.getCenterX() + i, p_225250_.getHeight() + 10, p_225250_.getCenterZ() + i))) {
-            if (blockpos.distToLowCornerSqr((double) p_225250_.getCenterX(), (double) blockpos.getY(), (double) p_225250_.getCenterZ()) <= (double) (i * i + 1) && blockpos.getY() < p_225250_.getHeight()) {
-                this.setBlock(p_225247_, blockpos, Blocks.OBSIDIAN.defaultBlockState());
+        for (BlockPos blockpos : BlockPos.betweenClosed(new BlockPos(pSpike.getCenterX() - i, pLevel.getMinBuildHeight(), pSpike.getCenterZ() - i), new BlockPos(pSpike.getCenterX() + i, pSpike.getHeight() + 10, pSpike.getCenterZ() + i))) {
+            if (blockpos.distToLowCornerSqr((double) pSpike.getCenterX(), (double) blockpos.getY(), (double) pSpike.getCenterZ()) <= (double) (i * i + 1) && blockpos.getY() < pSpike.getHeight()) {
+                this.setBlock(pLevel, blockpos, Blocks.OBSIDIAN.defaultBlockState());
             } else if (blockpos.getY() > 65) {
-                this.setBlock(p_225247_, blockpos, Blocks.AIR.defaultBlockState());
+                this.setBlock(pLevel, blockpos, Blocks.AIR.defaultBlockState());
             }
         }
 
-        if (p_225250_.isGuarded()) {
+        if (pSpike.isGuarded()) {
             int j1 = -2;
             int k1 = 2;
             int j = 3;
@@ -87,19 +87,19 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
                             boolean flag3 = k == -2 || k == 2 || flag2;
                             boolean flag4 = l == -2 || l == 2 || flag2;
                             BlockState blockstate = Blocks.IRON_BARS.defaultBlockState().setValue(IronBarsBlock.NORTH, Boolean.valueOf(flag3 && l != -2)).setValue(IronBarsBlock.SOUTH, Boolean.valueOf(flag3 && l != 2)).setValue(IronBarsBlock.WEST, Boolean.valueOf(flag4 && k != -2)).setValue(IronBarsBlock.EAST, Boolean.valueOf(flag4 && k != 2));
-                            this.setBlock(p_225247_, blockpos$mutableblockpos.set(p_225250_.getCenterX() + k, p_225250_.getHeight() + i1, p_225250_.getCenterZ() + l), blockstate);
+                            this.setBlock(pLevel, blockpos$mutableblockpos.set(pSpike.getCenterX() + k, pSpike.getHeight() + i1, pSpike.getCenterZ() + l), blockstate);
                         }
                     }
                 }
             }
         }
 
-        EndCrystal endcrystal = EntityType.END_CRYSTAL.create(p_225247_.getLevel());
-        endcrystal.setBeamTarget(p_225249_.getCrystalBeamTarget());
-        endcrystal.setInvulnerable(p_225249_.isCrystalInvulnerable());
-        endcrystal.moveTo((double) p_225250_.getCenterX() + 0.5D, (double) (p_225250_.getHeight() + 1), (double) p_225250_.getCenterZ() + 0.5D, p_225248_.nextFloat() * 360.0F, 0.0F);
-        p_225247_.addFreshEntity(endcrystal);
-        this.setBlock(p_225247_, new BlockPos(p_225250_.getCenterX(), p_225250_.getHeight(), p_225250_.getCenterZ()), Blocks.BEDROCK.defaultBlockState());
+        EndCrystal endcrystal = EntityType.END_CRYSTAL.create(pLevel.getLevel());
+        endcrystal.setBeamTarget(pConfig.getCrystalBeamTarget());
+        endcrystal.setInvulnerable(pConfig.isCrystalInvulnerable());
+        endcrystal.moveTo((double) pSpike.getCenterX() + 0.5D, (double) (pSpike.getHeight() + 1), (double) pSpike.getCenterZ() + 0.5D, pRandom.nextFloat() * 360.0F, 0.0F);
+        pLevel.addFreshEntity(endcrystal);
+        this.setBlock(pLevel, new BlockPos(pSpike.getCenterX(), pSpike.getHeight(), pSpike.getCenterZ()), Blocks.BEDROCK.defaultBlockState());
     }
 
     public static class EndSpike {
@@ -137,8 +137,8 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
             this.topBoundingBox = new AABB((double) (p_66881_ - p_66883_), (double) DimensionType.MIN_Y, (double) (p_66882_ - p_66883_), (double) (p_66881_ + p_66883_), (double) DimensionType.MAX_Y, (double) (p_66882_ + p_66883_));
         }
 
-        public boolean isCenterWithinChunk(BlockPos p_66892_) {
-            return SectionPos.blockToSectionCoord(p_66892_.getX()) == SectionPos.blockToSectionCoord(this.centerX) && SectionPos.blockToSectionCoord(p_66892_.getZ()) == SectionPos.blockToSectionCoord(this.centerZ);
+        public boolean isCenterWithinChunk(BlockPos pPos) {
+            return SectionPos.blockToSectionCoord(pPos.getX()) == SectionPos.blockToSectionCoord(this.centerX) && SectionPos.blockToSectionCoord(pPos.getZ()) == SectionPos.blockToSectionCoord(this.centerZ);
         }
 
         public int getCenterX() {

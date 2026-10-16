@@ -19,19 +19,19 @@ public class Score {
     private boolean locked;
     private boolean forceUpdate;
 
-    public Score(Scoreboard p_83389_, Objective p_83390_, String p_83391_) {
-        this.scoreboard = p_83389_;
-        this.objective = p_83390_;
-        this.owner = p_83391_;
+    public Score(Scoreboard pScoreboard, Objective pObjective, String pOwner) {
+        this.scoreboard = pScoreboard;
+        this.objective = pObjective;
+        this.owner = pOwner;
         this.locked = true;
         this.forceUpdate = true;
     }
 
-    public void add(int p_83394_) {
+    public void add(int pAmount) {
         if (this.objective.getCriteria().isReadOnly()) {
             throw new IllegalStateException("Cannot modify read-only score");
         } else {
-            this.setScore(this.getScore() + p_83394_);
+            this.setScore(this.getScore() + pAmount);
         }
     }
 
@@ -47,10 +47,10 @@ public class Score {
         this.setScore(0);
     }
 
-    public void setScore(int p_83403_) {
+    public void setScore(int pPoints) {
         int i = this.count;
-        this.count = p_83403_;
-        if (i != p_83403_ || this.forceUpdate) {
+        this.count = pPoints;
+        if (i != pPoints || this.forceUpdate) {
             this.forceUpdate = false;
             this.getScoreboard().onScoreChanged(this);
         }
@@ -73,7 +73,7 @@ public class Score {
         return this.locked;
     }
 
-    public void setLocked(boolean p_83399_) {
-        this.locked = p_83399_;
+    public void setLocked(boolean pLocked) {
+        this.locked = pLocked;
     }
 }

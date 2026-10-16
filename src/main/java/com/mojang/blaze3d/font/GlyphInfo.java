@@ -10,8 +10,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public interface GlyphInfo {
     float getAdvance();
 
-    default float getAdvance(boolean p_83828_) {
-        return this.getAdvance() + (p_83828_ ? this.getBoldOffset() : 0.0F);
+    default float getAdvance(boolean pBold) {
+        return this.getAdvance() + (pBold ? this.getBoldOffset() : 0.0F);
     }
 
     default float getBoldOffset() {

@@ -5,5 +5,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface MonitorCreator {
-    Monitor createMonitor(long p_84957_);
+    Monitor createMonitor(long pMonitor);
 }

@@ -10,9 +10,9 @@ public interface PosRuleTestType<P extends PosRuleTest> {
 
     Codec<P> codec();
 
-    static <P extends PosRuleTest> PosRuleTestType<P> register(String p_74212_, Codec<P> p_74213_) {
-        return Registry.register(Registry.POS_RULE_TEST, p_74212_, () -> {
-            return p_74213_;
+    static <P extends PosRuleTest> PosRuleTestType<P> register(String pName, Codec<P> pCodec) {
+        return Registry.register(Registry.POS_RULE_TEST, pName, () -> {
+            return pCodec;
         });
     }
 }

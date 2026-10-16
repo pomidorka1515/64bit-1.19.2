@@ -64,8 +64,8 @@ public class ItemStackSpawnEggFix extends DataFix {
         p_16107_.put("minecraft:zombie_villager", "minecraft:zombie_villager_spawn_egg");
     });
 
-    public ItemStackSpawnEggFix(Schema p_16098_, boolean p_16099_) {
-        super(p_16098_, p_16099_);
+    public ItemStackSpawnEggFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

@@ -45,7 +45,7 @@ public class Foods {
     public static final FoodProperties GLOW_BERRIES = (new FoodProperties.Builder()).nutrition(2).saturationMod(0.1F).build();
     public static final FoodProperties TROPICAL_FISH = (new FoodProperties.Builder()).nutrition(1).saturationMod(0.1F).build();
 
-    private static FoodProperties.Builder stew(int p_150384_) {
-        return (new FoodProperties.Builder()).nutrition(p_150384_).saturationMod(0.6F);
+    private static FoodProperties.Builder stew(int pNutrition) {
+        return (new FoodProperties.Builder()).nutrition(pNutrition).saturationMod(0.6F);
     }
 }

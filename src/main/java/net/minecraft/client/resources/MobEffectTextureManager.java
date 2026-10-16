@@ -11,15 +11,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class MobEffectTextureManager extends TextureAtlasHolder {
-    public MobEffectTextureManager(TextureManager p_118730_) {
-        super(p_118730_, new ResourceLocation("textures/atlas/mob_effects.png"), "mob_effect");
+    public MobEffectTextureManager(TextureManager pTextureManager) {
+        super(pTextureManager, new ResourceLocation("textures/atlas/mob_effects.png"), "mob_effect");
     }
 
     protected Stream<ResourceLocation> getResourcesToLoad() {
         return Registry.MOB_EFFECT.keySet().stream();
     }
 
-    public TextureAtlasSprite get(MobEffect p_118733_) {
-        return this.getSprite(Registry.MOB_EFFECT.getKey(p_118733_));
+    public TextureAtlasSprite get(MobEffect pEffect) {
+        return this.getSprite(Registry.MOB_EFFECT.getKey(pEffect));
     }
 }

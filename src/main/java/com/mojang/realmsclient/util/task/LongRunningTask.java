@@ -16,32 +16,32 @@ public abstract class LongRunningTask implements ErrorCallback, Runnable {
     private static final Logger LOGGER = LogUtils.getLogger();
     protected RealmsLongRunningMcoTaskScreen longRunningMcoTaskScreen;
 
-    protected static void pause(long p_167656_) {
+    protected static void pause(long pSeconds) {
         try {
-            Thread.sleep(p_167656_ * 1000L);
+            Thread.sleep(pSeconds * 1000L);
         } catch (InterruptedException interruptedexception) {
             Thread.currentThread().interrupt();
             LOGGER.error("", (Throwable) interruptedexception);
         }
     }
 
-    public static void setScreen(Screen p_90406_) {
+    public static void setScreen(Screen pScreen) {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.execute(() -> {
-            minecraft.setScreen(p_90406_);
+            minecraft.setScreen(pScreen);
         });
     }
 
-    public void setScreen(RealmsLongRunningMcoTaskScreen p_90401_) {
-        this.longRunningMcoTaskScreen = p_90401_;
+    public void setScreen(RealmsLongRunningMcoTaskScreen pLongRunningMcoTaskScreen) {
+        this.longRunningMcoTaskScreen = pLongRunningMcoTaskScreen;
     }
 
-    public void error(Component p_90408_) {
-        this.longRunningMcoTaskScreen.error(p_90408_);
+    public void error(Component pError) {
+        this.longRunningMcoTaskScreen.error(pError);
     }
 
-    public void setTitle(Component p_90410_) {
-        this.longRunningMcoTaskScreen.setTitle(p_90410_);
+    public void setTitle(Component pTitle) {
+        this.longRunningMcoTaskScreen.setTitle(pTitle);
     }
 
     public boolean aborted() {

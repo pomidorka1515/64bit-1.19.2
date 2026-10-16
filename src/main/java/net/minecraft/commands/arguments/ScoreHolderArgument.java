@@ -42,24 +42,24 @@ public class ScoreHolderArgument implements ArgumentType<ScoreHolderArgument.Res
     private static final SimpleCommandExceptionType ERROR_NO_RESULTS = new SimpleCommandExceptionType(Component.translatable("argument.scoreHolder.empty"));
     final boolean multiple;
 
-    public ScoreHolderArgument(boolean p_108216_) {
-        this.multiple = p_108216_;
+    public ScoreHolderArgument(boolean pMultiple) {
+        this.multiple = pMultiple;
     }
 
-    public static String getName(CommandContext<CommandSourceStack> p_108224_, String p_108225_) throws CommandSyntaxException {
-        return getNames(p_108224_, p_108225_).iterator().next();
+    public static String getName(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        return getNames(pContext, pName).iterator().next();
     }
 
-    public static Collection<String> getNames(CommandContext<CommandSourceStack> p_108244_, String p_108245_) throws CommandSyntaxException {
-        return getNames(p_108244_, p_108245_, Collections::emptyList);
+    public static Collection<String> getNames(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        return getNames(pContext, pName, Collections::emptyList);
     }
 
-    public static Collection<String> getNamesWithDefaultWildcard(CommandContext<CommandSourceStack> p_108247_, String p_108248_) throws CommandSyntaxException {
-        return getNames(p_108247_, p_108248_, p_108247_.getSource().getServer().getScoreboard()::getTrackedPlayers);
+    public static Collection<String> getNamesWithDefaultWildcard(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        return getNames(pContext, pName, pContext.getSource().getServer().getScoreboard()::getTrackedPlayers);
     }
 
-    public static Collection<String> getNames(CommandContext<CommandSourceStack> p_108227_, String p_108228_, Supplier<Collection<String>> p_108229_) throws CommandSyntaxException {
-        Collection<String> collection = p_108227_.getArgument(p_108228_, ScoreHolderArgument.Result.class).getNames(p_108227_.getSource(), p_108229_);
+    public static Collection<String> getNames(CommandContext<CommandSourceStack> pContext, String pName, Supplier<Collection<String>> pObjectives) throws CommandSyntaxException {
+        Collection<String> collection = pContext.getArgument(pName, ScoreHolderArgument.Result.class).getNames(pContext.getSource(), pObjectives);
         if (collection.isEmpty()) {
             throw EntityArgument.NO_ENTITIES_FOUND.create();
         } else {
@@ -75,9 +75,9 @@ public class ScoreHolderArgument implements ArgumentType<ScoreHolderArgument.Res
         return new ScoreHolderArgument(true);
     }
 
-    public ScoreHolderArgument.Result parse(StringReader p_108219_) throws CommandSyntaxException {
-        if (p_108219_.canRead() && p_108219_.peek() == '@') {
-            EntitySelectorParser entityselectorparser = new EntitySelectorParser(p_108219_);
+    public ScoreHolderArgument.Result parse(StringReader pReader) throws CommandSyntaxException {
+        if (pReader.canRead() && pReader.peek() == '@') {
+            EntitySelectorParser entityselectorparser = new EntitySelectorParser(pReader);
             EntitySelector entityselector = entityselectorparser.parse();
             if (!this.multiple && entityselector.getMaxResults() > 1) {
                 throw EntityArgument.ERROR_NOT_SINGLE_ENTITY.create();
@@ -85,13 +85,13 @@ public class ScoreHolderArgument implements ArgumentType<ScoreHolderArgument.Res
                 return new ScoreHolderArgument.SelectorResult(entityselector);
             }
         } else {
-            int i = p_108219_.getCursor();
+            int i = pReader.getCursor();
 
-            while (p_108219_.canRead() && p_108219_.peek() != ' ') {
-                p_108219_.skip();
+            while (pReader.canRead() && pReader.peek() != ' ') {
+                pReader.skip();
             }
 
-            String s = p_108219_.getString().substring(i, p_108219_.getCursor());
+            String s = pReader.getString().substring(i, pReader.getCursor());
             if (s.equals("*")) {
                 return (p_108231_, p_108232_) -> {
                     Collection<String> collection1 = p_108232_.get();
@@ -117,27 +117,27 @@ public class ScoreHolderArgument implements ArgumentType<ScoreHolderArgument.Res
     public static class Info implements ArgumentTypeInfo<ScoreHolderArgument, ScoreHolderArgument.Info.Template> {
         private static final byte FLAG_MULTIPLE = 1;
 
-        public void serializeToNetwork(ScoreHolderArgument.Info.Template p_233469_, FriendlyByteBuf p_233470_) {
+        public void serializeToNetwork(ScoreHolderArgument.Info.Template pTemplate, FriendlyByteBuf pBuffer) {
             int i = 0;
-            if (p_233469_.multiple) {
+            if (pTemplate.multiple) {
                 i |= 1;
             }
 
-            p_233470_.writeByte(i);
+            pBuffer.writeByte(i);
         }
 
-        public ScoreHolderArgument.Info.Template deserializeFromNetwork(FriendlyByteBuf p_233480_) {
-            byte b0 = p_233480_.readByte();
+        public ScoreHolderArgument.Info.Template deserializeFromNetwork(FriendlyByteBuf pBuffer) {
+            byte b0 = pBuffer.readByte();
             boolean flag = (b0 & 1) != 0;
             return new ScoreHolderArgument.Info.Template(flag);
         }
 
-        public void serializeToJson(ScoreHolderArgument.Info.Template p_233466_, JsonObject p_233467_) {
-            p_233467_.addProperty("amount", p_233466_.multiple ? "multiple" : "single");
+        public void serializeToJson(ScoreHolderArgument.Info.Template pTemplate, JsonObject pJson) {
+            pJson.addProperty("amount", pTemplate.multiple ? "multiple" : "single");
         }
 
-        public ScoreHolderArgument.Info.Template unpack(ScoreHolderArgument p_233472_) {
-            return new ScoreHolderArgument.Info.Template(p_233472_.multiple);
+        public ScoreHolderArgument.Info.Template unpack(ScoreHolderArgument pArgument) {
+            return new ScoreHolderArgument.Info.Template(pArgument.multiple);
         }
 
         public final class Template implements ArgumentTypeInfo.Template<ScoreHolderArgument> {
@@ -147,7 +147,7 @@ public class ScoreHolderArgument implements ArgumentType<ScoreHolderArgument.Res
                 this.multiple = p_233487_;
             }
 
-            public ScoreHolderArgument instantiate(CommandBuildContext p_233490_) {
+            public ScoreHolderArgument instantiate(CommandBuildContext pContext) {
                 return new ScoreHolderArgument(this.multiple);
             }
 
@@ -159,18 +159,18 @@ public class ScoreHolderArgument implements ArgumentType<ScoreHolderArgument.Res
 
     @FunctionalInterface
     public interface Result {
-        Collection<String> getNames(CommandSourceStack p_108252_, Supplier<Collection<String>> p_108253_) throws CommandSyntaxException;
+        Collection<String> getNames(CommandSourceStack pSource, Supplier<Collection<String>> pObjectives) throws CommandSyntaxException;
     }
 
     public static class SelectorResult implements ScoreHolderArgument.Result {
         private final EntitySelector selector;
 
-        public SelectorResult(EntitySelector p_108256_) {
-            this.selector = p_108256_;
+        public SelectorResult(EntitySelector pSelector) {
+            this.selector = pSelector;
         }
 
-        public Collection<String> getNames(CommandSourceStack p_108258_, Supplier<Collection<String>> p_108259_) throws CommandSyntaxException {
-            List<? extends Entity> list = this.selector.findEntities(p_108258_);
+        public Collection<String> getNames(CommandSourceStack pSource, Supplier<Collection<String>> pObjectives) throws CommandSyntaxException {
+            List<? extends Entity> list = this.selector.findEntities(pSource);
             if (list.isEmpty()) {
                 throw EntityArgument.NO_ENTITIES_FOUND.create();
             } else {

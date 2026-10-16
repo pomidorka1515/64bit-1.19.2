@@ -8,28 +8,28 @@ import io.netty.handler.codec.CorruptedFrameException;
 import java.util.List;
 
 public class Varint21FrameDecoder extends ByteToMessageDecoder {
-    protected void decode(ChannelHandlerContext p_130566_, ByteBuf p_130567_, List<Object> p_130568_) {
-        p_130567_.markReaderIndex();
+    protected void decode(ChannelHandlerContext pContext, ByteBuf pIn, List<Object> pOut) {
+        pIn.markReaderIndex();
         byte[] abyte = new byte[3];
 
         for (int i = 0; i < abyte.length; ++i) {
-            if (!p_130567_.isReadable()) {
-                p_130567_.resetReaderIndex();
+            if (!pIn.isReadable()) {
+                pIn.resetReaderIndex();
                 return;
             }
 
-            abyte[i] = p_130567_.readByte();
+            abyte[i] = pIn.readByte();
             if (abyte[i] >= 0) {
                 FriendlyByteBuf friendlybytebuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(abyte));
 
                 try {
                     int j = friendlybytebuf.readVarInt();
-                    if (p_130567_.readableBytes() >= j) {
-                        p_130568_.add(p_130567_.readBytes(j));
+                    if (pIn.readableBytes() >= j) {
+                        pOut.add(pIn.readBytes(j));
                         return;
                     }
 
-                    p_130567_.resetReaderIndex();
+                    pIn.resetReaderIndex();
                 } finally {
                     friendlybytebuf.release();
                 }

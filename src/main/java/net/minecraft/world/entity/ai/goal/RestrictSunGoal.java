@@ -8,8 +8,8 @@ import net.minecraft.world.entity.ai.util.GoalUtils;
 public class RestrictSunGoal extends Goal {
     private final PathfinderMob mob;
 
-    public RestrictSunGoal(PathfinderMob p_25861_) {
-        this.mob = p_25861_;
+    public RestrictSunGoal(PathfinderMob pMob) {
+        this.mob = pMob;
     }
 
     public boolean canUse() {

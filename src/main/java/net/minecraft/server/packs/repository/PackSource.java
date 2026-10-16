@@ -17,8 +17,8 @@ public interface PackSource {
         };
     }
 
-    static PackSource decorating(String p_10534_) {
-        Component component = Component.translatable(p_10534_);
+    static PackSource decorating(String pSource) {
+        Component component = Component.translatable(pSource);
         return (p_10539_) -> {
             return Component.translatable("pack.nameAndSource", p_10539_, component).withStyle(ChatFormatting.GRAY);
         };

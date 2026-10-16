@@ -8,8 +8,8 @@ import com.mojang.datafixers.types.Type;
 import com.mojang.serialization.Dynamic;
 
 public class BlockEntityJukeboxFix extends NamedEntityFix {
-    public BlockEntityJukeboxFix(Schema p_14842_, boolean p_14843_) {
-        super(p_14842_, p_14843_, "BlockEntityJukeboxFix", References.BLOCK_ENTITY, "minecraft:jukebox");
+    public BlockEntityJukeboxFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "BlockEntityJukeboxFix", References.BLOCK_ENTITY, "minecraft:jukebox");
     }
 
     protected Typed<?> fix(Typed<?> p_14846_) {

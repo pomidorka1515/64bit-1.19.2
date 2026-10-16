@@ -38,32 +38,32 @@ public class WrittenBookItem extends Item {
     public static final String TAG_GENERATION = "generation";
     public static final String TAG_RESOLVED = "resolved";
 
-    public WrittenBookItem(Item.Properties p_43455_) {
-        super(p_43455_);
+    public WrittenBookItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public static boolean makeSureTagIsValid(@Nullable CompoundTag p_43472_) {
-        if (!WritableBookItem.makeSureTagIsValid(p_43472_)) {
+    public static boolean makeSureTagIsValid(@Nullable CompoundTag pCompoundTag) {
+        if (!WritableBookItem.makeSureTagIsValid(pCompoundTag)) {
             return false;
-        } else if (!p_43472_.contains("title", 8)) {
+        } else if (!pCompoundTag.contains("title", 8)) {
             return false;
         } else {
-            String s = p_43472_.getString("title");
-            return s.length() > 32 ? false : p_43472_.contains("author", 8);
+            String s = pCompoundTag.getString("title");
+            return s.length() > 32 ? false : pCompoundTag.contains("author", 8);
         }
     }
 
-    public static int getGeneration(ItemStack p_43474_) {
-        return p_43474_.getTag().getInt("generation");
+    public static int getGeneration(ItemStack pBookStack) {
+        return pBookStack.getTag().getInt("generation");
     }
 
-    public static int getPageCount(ItemStack p_43478_) {
-        CompoundTag compoundtag = p_43478_.getTag();
+    public static int getPageCount(ItemStack pBookSTack) {
+        CompoundTag compoundtag = pBookSTack.getTag();
         return compoundtag != null ? compoundtag.getList("pages", 8).size() : 0;
     }
 
-    public Component getName(ItemStack p_43480_) {
-        CompoundTag compoundtag = p_43480_.getTag();
+    public Component getName(ItemStack pStack) {
+        CompoundTag compoundtag = pStack.getTag();
         if (compoundtag != null) {
             String s = compoundtag.getString("title");
             if (!StringUtil.isNullOrEmpty(s)) {
@@ -71,41 +71,41 @@ public class WrittenBookItem extends Item {
             }
         }
 
-        return super.getName(p_43480_);
+        return super.getName(pStack);
     }
 
-    public void appendHoverText(ItemStack p_43457_, @Nullable Level p_43458_, List<Component> p_43459_, TooltipFlag p_43460_) {
-        if (p_43457_.hasTag()) {
-            CompoundTag compoundtag = p_43457_.getTag();
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        if (pStack.hasTag()) {
+            CompoundTag compoundtag = pStack.getTag();
             String s = compoundtag.getString("author");
             if (!StringUtil.isNullOrEmpty(s)) {
-                p_43459_.add(Component.translatable("book.byAuthor", s).withStyle(ChatFormatting.GRAY));
+                pTooltip.add(Component.translatable("book.byAuthor", s).withStyle(ChatFormatting.GRAY));
             }
 
-            p_43459_.add(Component.translatable("book.generation." + compoundtag.getInt("generation")).withStyle(ChatFormatting.GRAY));
+            pTooltip.add(Component.translatable("book.generation." + compoundtag.getInt("generation")).withStyle(ChatFormatting.GRAY));
         }
     }
 
-    public InteractionResult useOn(UseOnContext p_43466_) {
-        Level level = p_43466_.getLevel();
-        BlockPos blockpos = p_43466_.getClickedPos();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
         if (blockstate.is(Blocks.LECTERN)) {
-            return LecternBlock.tryPlaceBook(p_43466_.getPlayer(), level, blockpos, blockstate, p_43466_.getItemInHand()) ? InteractionResult.sidedSuccess(level.isClientSide) : InteractionResult.PASS;
+            return LecternBlock.tryPlaceBook(pContext.getPlayer(), level, blockpos, blockstate, pContext.getItemInHand()) ? InteractionResult.sidedSuccess(level.isClientSide) : InteractionResult.PASS;
         } else {
             return InteractionResult.PASS;
         }
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_43468_, Player p_43469_, InteractionHand p_43470_) {
-        ItemStack itemstack = p_43469_.getItemInHand(p_43470_);
-        p_43469_.openItemGui(itemstack, p_43470_);
-        p_43469_.awardStat(Stats.ITEM_USED.get(this));
-        return InteractionResultHolder.sidedSuccess(itemstack, p_43468_.isClientSide());
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
+        pPlayer.openItemGui(itemstack, pHand);
+        pPlayer.awardStat(Stats.ITEM_USED.get(this));
+        return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());
     }
 
-    public static boolean resolveBookComponents(ItemStack p_43462_, @Nullable CommandSourceStack p_43463_, @Nullable Player p_43464_) {
-        CompoundTag compoundtag = p_43462_.getTag();
+    public static boolean resolveBookComponents(ItemStack pBookStack, @Nullable CommandSourceStack pResolvingSource, @Nullable Player pResolvingPlayer) {
+        CompoundTag compoundtag = pBookStack.getTag();
         if (compoundtag != null && !compoundtag.getBoolean("resolved")) {
             compoundtag.putBoolean("resolved", true);
             if (!makeSureTagIsValid(compoundtag)) {
@@ -115,7 +115,7 @@ public class WrittenBookItem extends Item {
                 ListTag listtag1 = new ListTag();
 
                 for (int i = 0; i < listtag.size(); ++i) {
-                    String s = resolvePage(p_43463_, p_43464_, listtag.getString(i));
+                    String s = resolvePage(pResolvingSource, pResolvingPlayer, listtag.getString(i));
                     if (s.length() > 32767) {
                         return false;
                     }
@@ -128,7 +128,7 @@ public class WrittenBookItem extends Item {
                     CompoundTag compoundtag2 = new CompoundTag();
 
                     for (String s1 : compoundtag1.getAllKeys()) {
-                        String s2 = resolvePage(p_43463_, p_43464_, compoundtag1.getString(s1));
+                        String s2 = resolvePage(pResolvingSource, pResolvingPlayer, compoundtag1.getString(s1));
                         if (s2.length() > 32767) {
                             return false;
                         }
@@ -147,19 +147,19 @@ public class WrittenBookItem extends Item {
         }
     }
 
-    private static String resolvePage(@Nullable CommandSourceStack p_151249_, @Nullable Player p_151250_, String p_151251_) {
+    private static String resolvePage(@Nullable CommandSourceStack pResolvingSource, @Nullable Player pResolvingPlayer, String pResolvingPageContents) {
         Component component;
         try {
-            component = Component.Serializer.fromJsonLenient(p_151251_);
-            component = ComponentUtils.updateForEntity(p_151249_, component, p_151250_, 0);
+            component = Component.Serializer.fromJsonLenient(pResolvingPageContents);
+            component = ComponentUtils.updateForEntity(pResolvingSource, component, pResolvingPlayer, 0);
         } catch (Exception exception) {
-            component = Component.literal(p_151251_);
+            component = Component.literal(pResolvingPageContents);
         }
 
         return Component.Serializer.toJson(component);
     }
 
-    public boolean isFoil(ItemStack p_43476_) {
+    public boolean isFoil(ItemStack pStack) {
         return true;
     }
 }

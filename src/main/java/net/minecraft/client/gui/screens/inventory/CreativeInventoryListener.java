@@ -11,14 +11,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class CreativeInventoryListener implements ContainerListener {
     private final Minecraft minecraft;
 
-    public CreativeInventoryListener(Minecraft p_98492_) {
-        this.minecraft = p_98492_;
+    public CreativeInventoryListener(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void slotChanged(AbstractContainerMenu p_98498_, int p_98499_, ItemStack p_98500_) {
-        this.minecraft.gameMode.handleCreativeModeItemAdd(p_98500_, p_98499_);
+    public void slotChanged(AbstractContainerMenu pContainerToSend, int pSlotInd, ItemStack pStack) {
+        this.minecraft.gameMode.handleCreativeModeItemAdd(pStack, pSlotInd);
     }
 
-    public void dataChanged(AbstractContainerMenu p_169732_, int p_169733_, int p_169734_) {
+    public void dataChanged(AbstractContainerMenu pContainerMenu, int pDataSlotIndex, int pValue) {
     }
 }

@@ -16,12 +16,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class AbstractSliderButton extends AbstractWidget {
     protected double value;
 
-    public AbstractSliderButton(int p_93579_, int p_93580_, int p_93581_, int p_93582_, Component p_93583_, double p_93584_) {
-        super(p_93579_, p_93580_, p_93581_, p_93582_, p_93583_);
-        this.value = p_93584_;
+    public AbstractSliderButton(int pX, int pY, int pWidth, int pHeight, Component pMessage, double pValue) {
+        super(pX, pY, pWidth, pHeight, pMessage);
+        this.value = pValue;
     }
 
-    protected int getYImage(boolean p_93607_) {
+    protected int getYImage(boolean pIsHovered) {
         return 0;
     }
 
@@ -29,32 +29,32 @@ public abstract class AbstractSliderButton extends AbstractWidget {
         return Component.translatable("gui.narrate.slider", this.getMessage());
     }
 
-    public void updateNarration(NarrationElementOutput p_168798_) {
-        p_168798_.add(NarratedElementType.TITLE, this.createNarrationMessage());
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+        pNarrationElementOutput.add(NarratedElementType.TITLE, this.createNarrationMessage());
         if (this.active) {
             if (this.isFocused()) {
-                p_168798_.add(NarratedElementType.USAGE, Component.translatable("narration.slider.usage.focused"));
+                pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.slider.usage.focused"));
             } else {
-                p_168798_.add(NarratedElementType.USAGE, Component.translatable("narration.slider.usage.hovered"));
+                pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.slider.usage.hovered"));
             }
         }
     }
 
-    protected void renderBg(PoseStack p_93600_, Minecraft p_93601_, int p_93602_, int p_93603_) {
+    protected void renderBg(PoseStack pPoseStack, Minecraft pMinecraft, int pMouseX, int pMouseY) {
         RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = (this.isHoveredOrFocused() ? 2 : 1) * 20;
-        this.blit(p_93600_, this.x + (int) (this.value * (double) (this.width - 8)), this.y, 0, 46 + i, 4, 20);
-        this.blit(p_93600_, this.x + (int) (this.value * (double) (this.width - 8)) + 4, this.y, 196, 46 + i, 4, 20);
+        this.blit(pPoseStack, this.x + (int) (this.value * (double) (this.width - 8)), this.y, 0, 46 + i, 4, 20);
+        this.blit(pPoseStack, this.x + (int) (this.value * (double) (this.width - 8)) + 4, this.y, 196, 46 + i, 4, 20);
     }
 
-    public void onClick(double p_93588_, double p_93589_) {
-        this.setValueFromMouse(p_93588_);
+    public void onClick(double pMouseX, double pMouseY) {
+        this.setValueFromMouse(pMouseX);
     }
 
-    public boolean keyPressed(int p_93596_, int p_93597_, int p_93598_) {
-        boolean flag = p_93596_ == 263;
-        if (flag || p_93596_ == 262) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        boolean flag = pKeyCode == 263;
+        if (flag || pKeyCode == 262) {
             float f = flag ? -1.0F : 1.0F;
             this.setValue(this.value + (double) (f / (float) (this.width - 8)));
         }
@@ -62,13 +62,13 @@ public abstract class AbstractSliderButton extends AbstractWidget {
         return false;
     }
 
-    private void setValueFromMouse(double p_93586_) {
-        this.setValue((p_93586_ - (double) (this.x + 4)) / (double) (this.width - 8));
+    private void setValueFromMouse(double pMouseX) {
+        this.setValue((pMouseX - (double) (this.x + 4)) / (double) (this.width - 8));
     }
 
-    private void setValue(double p_93612_) {
+    private void setValue(double pValue) {
         double d0 = this.value;
-        this.value = Mth.clamp(p_93612_, 0.0D, 1.0D);
+        this.value = Mth.clamp(pValue, 0.0D, 1.0D);
         if (d0 != this.value) {
             this.applyValue();
         }
@@ -76,15 +76,15 @@ public abstract class AbstractSliderButton extends AbstractWidget {
         this.updateMessage();
     }
 
-    protected void onDrag(double p_93591_, double p_93592_, double p_93593_, double p_93594_) {
-        this.setValueFromMouse(p_93591_);
-        super.onDrag(p_93591_, p_93592_, p_93593_, p_93594_);
+    protected void onDrag(double pMouseX, double pMouseY, double pDragX, double pDragY) {
+        this.setValueFromMouse(pMouseX);
+        super.onDrag(pMouseX, pMouseY, pDragX, pDragY);
     }
 
-    public void playDownSound(SoundManager p_93605_) {
+    public void playDownSound(SoundManager pHandler) {
     }
 
-    public void onRelease(double p_93609_, double p_93610_) {
+    public void onRelease(double pMouseX, double pMouseY) {
         super.playDownSound(Minecraft.getInstance().getSoundManager());
     }
 

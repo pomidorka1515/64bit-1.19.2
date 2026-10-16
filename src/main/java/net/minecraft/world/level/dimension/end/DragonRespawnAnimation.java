@@ -95,5 +95,5 @@ public enum DragonRespawnAnimation {
         }
     };
 
-    public abstract void tick(ServerLevel p_64005_, EndDragonFight p_64006_, List<EndCrystal> p_64007_, int p_64008_, BlockPos p_64009_);
+    public abstract void tick(ServerLevel pLevel, EndDragonFight pManager, List<EndCrystal> pCrystals, int pTicks, BlockPos pPos);
 }

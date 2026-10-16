@@ -28,14 +28,14 @@ public enum FrameType {
         return this.texture;
     }
 
-    public static FrameType byName(String p_15550_) {
+    public static FrameType byName(String pName) {
         for (FrameType frametype : values()) {
-            if (frametype.name.equals(p_15550_)) {
+            if (frametype.name.equals(pName)) {
                 return frametype;
             }
         }
 
-        throw new IllegalArgumentException("Unknown frame type '" + p_15550_ + "'");
+        throw new IllegalArgumentException("Unknown frame type '" + pName + "'");
     }
 
     public ChatFormatting getChatColor() {

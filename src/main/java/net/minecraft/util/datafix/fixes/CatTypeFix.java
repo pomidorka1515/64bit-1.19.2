@@ -6,8 +6,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class CatTypeFix extends NamedEntityFix {
-    public CatTypeFix(Schema p_15007_, boolean p_15008_) {
-        super(p_15007_, p_15008_, "CatTypeFix", References.ENTITY, "minecraft:cat");
+    public CatTypeFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "CatTypeFix", References.ENTITY, "minecraft:cat");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15012_) {

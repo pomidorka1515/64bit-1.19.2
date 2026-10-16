@@ -8,11 +8,11 @@ import org.slf4j.Logger;
 public class RealmsDefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
     private final Logger logger;
 
-    public RealmsDefaultUncaughtExceptionHandler(Logger p_202332_) {
-        this.logger = p_202332_;
+    public RealmsDefaultUncaughtExceptionHandler(Logger pLogger) {
+        this.logger = pLogger;
     }
 
-    public void uncaughtException(Thread p_87768_, Throwable p_87769_) {
-        this.logger.error("Caught previously unhandled exception", p_87769_);
+    public void uncaughtException(Thread pThread, Throwable pThrowable) {
+        this.logger.error("Caught previously unhandled exception", pThrowable);
     }
 }

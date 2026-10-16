@@ -14,16 +14,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class LightningBoltRenderer extends EntityRenderer<LightningBolt> {
-    public LightningBoltRenderer(EntityRendererProvider.Context p_174286_) {
-        super(p_174286_);
+    public LightningBoltRenderer(EntityRendererProvider.Context pContext) {
+        super(pContext);
     }
 
-    public void render(LightningBolt p_115266_, float p_115267_, float p_115268_, PoseStack p_115269_, MultiBufferSource p_115270_, int p_115271_) {
+    public void render(LightningBolt pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
         float[] afloat = new float[8];
         float[] afloat1 = new float[8];
         float f = 0.0F;
         float f1 = 0.0F;
-        RandomSource randomsource = RandomSource.create(p_115266_.seed);
+        RandomSource randomsource = RandomSource.create(pEntity.seed);
 
         for (int i = 7; i >= 0; --i) {
             afloat[i] = f;
@@ -32,11 +32,11 @@ public class LightningBoltRenderer extends EntityRenderer<LightningBolt> {
             f1 += (float) (randomsource.nextInt(11) - 5);
         }
 
-        VertexConsumer vertexconsumer = p_115270_.getBuffer(RenderType.lightning());
-        Matrix4f matrix4f = p_115269_.last().pose();
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.lightning());
+        Matrix4f matrix4f = pMatrixStack.last().pose();
 
         for (int j = 0; j < 4; ++j) {
-            RandomSource randomsource1 = RandomSource.create(p_115266_.seed);
+            RandomSource randomsource1 = RandomSource.create(pEntity.seed);
 
             for (int k = 0; k < 3; ++k) {
                 int l = 7;
@@ -93,7 +93,7 @@ public class LightningBoltRenderer extends EntityRenderer<LightningBolt> {
         p_115274_.vertex(p_115273_, p_115275_ + (p_115287_ ? p_115284_ : -p_115284_), (float) (p_115277_ * 16), p_115276_ + (p_115288_ ? p_115284_ : -p_115284_)).color(p_115280_, p_115281_, p_115282_, 0.3F).endVertex();
     }
 
-    public ResourceLocation getTextureLocation(LightningBolt p_115264_) {
+    public ResourceLocation getTextureLocation(LightningBolt pEntity) {
         return TextureAtlas.LOCATION_BLOCKS;
     }
 }

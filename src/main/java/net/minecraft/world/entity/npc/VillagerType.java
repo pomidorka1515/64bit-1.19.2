@@ -51,16 +51,16 @@ public final class VillagerType {
         p_35834_.put(Biomes.WINDSWEPT_FOREST, TAIGA);
     });
 
-    private VillagerType(String p_35830_) {
-        this.name = p_35830_;
+    private VillagerType(String pName) {
+        this.name = pName;
     }
 
     public String toString() {
         return this.name;
     }
 
-    private static VillagerType register(String p_35832_) {
-        return Registry.register(Registry.VILLAGER_TYPE, new ResourceLocation(p_35832_), new VillagerType(p_35832_));
+    private static VillagerType register(String pKey) {
+        return Registry.register(Registry.VILLAGER_TYPE, new ResourceLocation(pKey), new VillagerType(pKey));
     }
 
     public static VillagerType byBiome(Holder<Biome> p_204074_) {

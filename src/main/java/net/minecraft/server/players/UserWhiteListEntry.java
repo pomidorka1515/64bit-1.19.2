@@ -5,24 +5,24 @@ import com.mojang.authlib.GameProfile;
 import java.util.UUID;
 
 public class UserWhiteListEntry extends StoredUserEntry<GameProfile> {
-    public UserWhiteListEntry(GameProfile p_11462_) {
-        super(p_11462_);
+    public UserWhiteListEntry(GameProfile pUser) {
+        super(pUser);
     }
 
-    public UserWhiteListEntry(JsonObject p_11460_) {
-        super(createGameProfile(p_11460_));
+    public UserWhiteListEntry(JsonObject pEntryData) {
+        super(createGameProfile(pEntryData));
     }
 
-    protected void serialize(JsonObject p_11464_) {
+    protected void serialize(JsonObject pData) {
         if (this.getUser() != null) {
-            p_11464_.addProperty("uuid", this.getUser().getId() == null ? "" : this.getUser().getId().toString());
-            p_11464_.addProperty("name", this.getUser().getName());
+            pData.addProperty("uuid", this.getUser().getId() == null ? "" : this.getUser().getId().toString());
+            pData.addProperty("name", this.getUser().getName());
         }
     }
 
-    private static GameProfile createGameProfile(JsonObject p_11466_) {
-        if (p_11466_.has("uuid") && p_11466_.has("name")) {
-            String s = p_11466_.get("uuid").getAsString();
+    private static GameProfile createGameProfile(JsonObject pJson) {
+        if (pJson.has("uuid") && pJson.has("name")) {
+            String s = pJson.get("uuid").getAsString();
 
             UUID uuid;
             try {
@@ -31,7 +31,7 @@ public class UserWhiteListEntry extends StoredUserEntry<GameProfile> {
                 return null;
             }
 
-            return new GameProfile(uuid, p_11466_.get("name").getAsString());
+            return new GameProfile(uuid, pJson.get("name").getAsString());
         } else {
             return null;
         }

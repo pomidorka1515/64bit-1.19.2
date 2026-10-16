@@ -43,18 +43,18 @@ public class SpectatorMenu {
     private int selectedSlot = -1;
     int page;
 
-    public SpectatorMenu(SpectatorMenuListener p_101785_) {
+    public SpectatorMenu(SpectatorMenuListener pListener) {
         this.category = new RootSpectatorMenuCategory();
-        this.listener = p_101785_;
+        this.listener = pListener;
     }
 
-    public SpectatorMenuItem getItem(int p_101788_) {
-        int i = p_101788_ + this.page * 6;
-        if (this.page > 0 && p_101788_ == 0) {
+    public SpectatorMenuItem getItem(int pIndex) {
+        int i = pIndex + this.page * 6;
+        if (this.page > 0 && pIndex == 0) {
             return SCROLL_LEFT;
-        } else if (p_101788_ == 7) {
+        } else if (pIndex == 7) {
             return i < this.category.getItems().size() ? SCROLL_RIGHT_ENABLED : SCROLL_RIGHT_DISABLED;
-        } else if (p_101788_ == 8) {
+        } else if (pIndex == 8) {
             return CLOSE_ITEM;
         } else {
             return i >= 0 && i < this.category.getItems().size() ? MoreObjects.firstNonNull(this.category.getItems().get(i), EMPTY_SLOT) : EMPTY_SLOT;
@@ -79,13 +79,13 @@ public class SpectatorMenu {
         return this.category;
     }
 
-    public void selectSlot(int p_101798_) {
-        SpectatorMenuItem spectatormenuitem = this.getItem(p_101798_);
+    public void selectSlot(int pSlot) {
+        SpectatorMenuItem spectatormenuitem = this.getItem(pSlot);
         if (spectatormenuitem != EMPTY_SLOT) {
-            if (this.selectedSlot == p_101798_ && spectatormenuitem.isEnabled()) {
+            if (this.selectedSlot == pSlot && spectatormenuitem.isEnabled()) {
                 spectatormenuitem.selectItem(this);
             } else {
-                this.selectedSlot = p_101798_;
+                this.selectedSlot = pSlot;
             }
         }
     }
@@ -98,8 +98,8 @@ public class SpectatorMenu {
         return this.selectedSlot;
     }
 
-    public void selectCategory(SpectatorMenuCategory p_101795_) {
-        this.category = p_101795_;
+    public void selectCategory(SpectatorMenuCategory pCategory) {
+        this.category = pCategory;
         this.selectedSlot = -1;
         this.page = 0;
     }
@@ -110,17 +110,17 @@ public class SpectatorMenu {
 
     @OnlyIn(Dist.CLIENT)
     static class CloseSpectatorItem implements SpectatorMenuItem {
-        public void selectItem(SpectatorMenu p_101823_) {
-            p_101823_.exit();
+        public void selectItem(SpectatorMenu pMenu) {
+            pMenu.exit();
         }
 
         public Component getName() {
             return SpectatorMenu.CLOSE_MENU_TEXT;
         }
 
-        public void renderIcon(PoseStack p_101819_, float p_101820_, int p_101821_) {
+        public void renderIcon(PoseStack pPoseStack, float pShadeColor, int pAlpha) {
             RenderSystem.setShaderTexture(0, SpectatorGui.SPECTATOR_LOCATION);
-            GuiComponent.blit(p_101819_, 0, 0, 128.0F, 0.0F, 16, 16, 256, 256);
+            GuiComponent.blit(pPoseStack, 0, 0, 128.0F, 0.0F, 16, 16, 256, 256);
         }
 
         public boolean isEnabled() {
@@ -133,25 +133,25 @@ public class SpectatorMenu {
         private final int direction;
         private final boolean enabled;
 
-        public ScrollMenuItem(int p_101829_, boolean p_101830_) {
-            this.direction = p_101829_;
-            this.enabled = p_101830_;
+        public ScrollMenuItem(int pDirection, boolean pEnabled) {
+            this.direction = pDirection;
+            this.enabled = pEnabled;
         }
 
-        public void selectItem(SpectatorMenu p_101836_) {
-            p_101836_.page += this.direction;
+        public void selectItem(SpectatorMenu pMenu) {
+            pMenu.page += this.direction;
         }
 
         public Component getName() {
             return this.direction < 0 ? SpectatorMenu.PREVIOUS_PAGE_TEXT : SpectatorMenu.NEXT_PAGE_TEXT;
         }
 
-        public void renderIcon(PoseStack p_101832_, float p_101833_, int p_101834_) {
+        public void renderIcon(PoseStack pPoseStack, float pShadeColor, int pAlpha) {
             RenderSystem.setShaderTexture(0, SpectatorGui.SPECTATOR_LOCATION);
             if (this.direction < 0) {
-                GuiComponent.blit(p_101832_, 0, 0, 144.0F, 0.0F, 16, 16, 256, 256);
+                GuiComponent.blit(pPoseStack, 0, 0, 144.0F, 0.0F, 16, 16, 256, 256);
             } else {
-                GuiComponent.blit(p_101832_, 0, 0, 160.0F, 0.0F, 16, 16, 256, 256);
+                GuiComponent.blit(pPoseStack, 0, 0, 160.0F, 0.0F, 16, 16, 256, 256);
             }
         }
 

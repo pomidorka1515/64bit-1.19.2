@@ -36,22 +36,22 @@ public class DemoIntroScreen extends Screen {
         this.durationMessage = MultiLineLabel.create(this.font, Component.translatable("demo.help.fullWrapped"), 218);
     }
 
-    public void renderBackground(PoseStack p_95941_) {
-        super.renderBackground(p_95941_);
+    public void renderBackground(PoseStack pPoseStack) {
+        super.renderBackground(pPoseStack);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, DEMO_BACKGROUND_LOCATION);
         int i = (this.width - 248) / 2;
         int j = (this.height - 166) / 2;
-        this.blit(p_95941_, i, j, 0, 0, 248, 166);
+        this.blit(pPoseStack, i, j, 0, 0, 248, 166);
     }
 
-    public void render(PoseStack p_95943_, int p_95944_, int p_95945_, float p_95946_) {
-        this.renderBackground(p_95943_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
         int i = (this.width - 248) / 2 + 10;
         int j = (this.height - 166) / 2 + 8;
-        this.font.draw(p_95943_, this.title, (float) i, (float) j, 2039583);
-        j = this.movementMessage.renderLeftAlignedNoShadow(p_95943_, i, j + 12, 12, 5197647);
-        this.durationMessage.renderLeftAlignedNoShadow(p_95943_, i, j + 20, 9, 2039583);
-        super.render(p_95943_, p_95944_, p_95945_, p_95946_);
+        this.font.draw(pPoseStack, this.title, (float) i, (float) j, 2039583);
+        j = this.movementMessage.renderLeftAlignedNoShadow(pPoseStack, i, j + 12, 12, 5197647);
+        this.durationMessage.renderLeftAlignedNoShadow(pPoseStack, i, j + 20, 9, 2039583);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

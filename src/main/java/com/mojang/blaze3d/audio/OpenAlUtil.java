@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 public class OpenAlUtil {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static String alErrorToString(int p_83783_) {
-        switch (p_83783_) {
+    private static String alErrorToString(int pErrorCode) {
+        switch (pErrorCode) {
             case 40961:
                 return "Invalid name parameter.";
             case 40962:
@@ -30,18 +30,18 @@ public class OpenAlUtil {
         }
     }
 
-    static boolean checkALError(String p_83788_) {
+    static boolean checkALError(String pOperationState) {
         int i = AL10.alGetError();
         if (i != 0) {
-            LOGGER.error("{}: {}", p_83788_, alErrorToString(i));
+            LOGGER.error("{}: {}", pOperationState, alErrorToString(i));
             return true;
         } else {
             return false;
         }
     }
 
-    private static String alcErrorToString(int p_83792_) {
-        switch (p_83792_) {
+    private static String alcErrorToString(int pErrorCode) {
+        switch (pErrorCode) {
             case 40961:
                 return "Invalid device.";
             case 40962:
@@ -57,20 +57,20 @@ public class OpenAlUtil {
         }
     }
 
-    static boolean checkALCError(long p_83785_, String p_83786_) {
-        int i = ALC10.alcGetError(p_83785_);
+    static boolean checkALCError(long pDeviceHandle, String pOperationState) {
+        int i = ALC10.alcGetError(pDeviceHandle);
         if (i != 0) {
-            LOGGER.error("{}{}: {}", p_83786_, p_83785_, alcErrorToString(i));
+            LOGGER.error("{}{}: {}", pOperationState, pDeviceHandle, alcErrorToString(i));
             return true;
         } else {
             return false;
         }
     }
 
-    static int audioFormatToOpenAl(AudioFormat p_83790_) {
-        AudioFormat.Encoding encoding = p_83790_.getEncoding();
-        int i = p_83790_.getChannels();
-        int j = p_83790_.getSampleSizeInBits();
+    static int audioFormatToOpenAl(AudioFormat pFormat) {
+        AudioFormat.Encoding encoding = pFormat.getEncoding();
+        int i = pFormat.getChannels();
+        int j = pFormat.getSampleSizeInBits();
         if (encoding.equals(Encoding.PCM_UNSIGNED) || encoding.equals(Encoding.PCM_SIGNED)) {
             if (i == 1) {
                 if (j == 8) {
@@ -91,6 +91,6 @@ public class OpenAlUtil {
             }
         }
 
-        throw new IllegalArgumentException("Invalid audio format: " + p_83790_);
+        throw new IllegalArgumentException("Invalid audio format: " + pFormat);
     }
 }

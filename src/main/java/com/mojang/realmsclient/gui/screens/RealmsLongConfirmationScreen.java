@@ -18,13 +18,13 @@ public class RealmsLongConfirmationScreen extends RealmsScreen {
     protected final BooleanConsumer callback;
     private final boolean yesNoQuestion;
 
-    public RealmsLongConfirmationScreen(BooleanConsumer p_88731_, RealmsLongConfirmationScreen.Type p_88732_, Component p_88733_, Component p_88734_, boolean p_88735_) {
+    public RealmsLongConfirmationScreen(BooleanConsumer pConsumer, RealmsLongConfirmationScreen.Type pType, Component pLine2, Component pLine3, boolean pYesNoQuestion) {
         super(GameNarrator.NO_TITLE);
-        this.callback = p_88731_;
-        this.type = p_88732_;
-        this.line2 = p_88733_;
-        this.line3 = p_88734_;
-        this.yesNoQuestion = p_88735_;
+        this.callback = pConsumer;
+        this.type = pType;
+        this.line2 = pLine2;
+        this.line3 = pLine3;
+        this.yesNoQuestion = pYesNoQuestion;
     }
 
     public void init() {
@@ -46,21 +46,21 @@ public class RealmsLongConfirmationScreen extends RealmsScreen {
         return CommonComponents.joinLines(this.type.text, this.line2, this.line3);
     }
 
-    public boolean keyPressed(int p_88737_, int p_88738_, int p_88739_) {
-        if (p_88737_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.callback.accept(false);
             return true;
         } else {
-            return super.keyPressed(p_88737_, p_88738_, p_88739_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    public void render(PoseStack p_88741_, int p_88742_, int p_88743_, float p_88744_) {
-        this.renderBackground(p_88741_);
-        drawCenteredString(p_88741_, this.font, this.type.text, this.width / 2, row(2), this.type.colorCode);
-        drawCenteredString(p_88741_, this.font, this.line2, this.width / 2, row(4), 16777215);
-        drawCenteredString(p_88741_, this.font, this.line3, this.width / 2, row(6), 16777215);
-        super.render(p_88741_, p_88742_, p_88743_, p_88744_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.type.text, this.width / 2, row(2), this.type.colorCode);
+        drawCenteredString(pPoseStack, this.font, this.line2, this.width / 2, row(4), 16777215);
+        drawCenteredString(pPoseStack, this.font, this.line3, this.width / 2, row(6), 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     @OnlyIn(Dist.CLIENT)

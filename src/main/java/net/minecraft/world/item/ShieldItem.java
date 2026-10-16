@@ -16,39 +16,39 @@ public class ShieldItem extends Item {
     public static final float MINIMUM_DURABILITY_DAMAGE = 3.0F;
     public static final String TAG_BASE_COLOR = "Base";
 
-    public ShieldItem(Item.Properties p_43089_) {
-        super(p_43089_);
+    public ShieldItem(Item.Properties pProperties) {
+        super(pProperties);
         DispenserBlock.registerBehavior(this, ArmorItem.DISPENSE_ITEM_BEHAVIOR);
     }
 
-    public String getDescriptionId(ItemStack p_43109_) {
-        return BlockItem.getBlockEntityData(p_43109_) != null ? this.getDescriptionId() + "." + getColor(p_43109_).getName() : super.getDescriptionId(p_43109_);
+    public String getDescriptionId(ItemStack pStack) {
+        return BlockItem.getBlockEntityData(pStack) != null ? this.getDescriptionId() + "." + getColor(pStack).getName() : super.getDescriptionId(pStack);
     }
 
-    public void appendHoverText(ItemStack p_43094_, @Nullable Level p_43095_, List<Component> p_43096_, TooltipFlag p_43097_) {
-        BannerItem.appendHoverTextFromBannerBlockEntityTag(p_43094_, p_43096_);
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        BannerItem.appendHoverTextFromBannerBlockEntityTag(pStack, pTooltip);
     }
 
-    public UseAnim getUseAnimation(ItemStack p_43105_) {
+    public UseAnim getUseAnimation(ItemStack pStack) {
         return UseAnim.BLOCK;
     }
 
-    public int getUseDuration(ItemStack p_43107_) {
+    public int getUseDuration(ItemStack pStack) {
         return 72000;
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_43099_, Player p_43100_, InteractionHand p_43101_) {
-        ItemStack itemstack = p_43100_.getItemInHand(p_43101_);
-        p_43100_.startUsingItem(p_43101_);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
+        pPlayer.startUsingItem(pHand);
         return InteractionResultHolder.consume(itemstack);
     }
 
-    public boolean isValidRepairItem(ItemStack p_43091_, ItemStack p_43092_) {
-        return p_43092_.is(ItemTags.PLANKS) || super.isValidRepairItem(p_43091_, p_43092_);
+    public boolean isValidRepairItem(ItemStack pToRepair, ItemStack pRepair) {
+        return pRepair.is(ItemTags.PLANKS) || super.isValidRepairItem(pToRepair, pRepair);
     }
 
-    public static DyeColor getColor(ItemStack p_43103_) {
-        CompoundTag compoundtag = BlockItem.getBlockEntityData(p_43103_);
+    public static DyeColor getColor(ItemStack pStack) {
+        CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
         return compoundtag != null ? DyeColor.byId(compoundtag.getInt("Base")) : DyeColor.WHITE;
     }
 }

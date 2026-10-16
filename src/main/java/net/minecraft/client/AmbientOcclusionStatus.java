@@ -32,7 +32,7 @@ public enum AmbientOcclusionStatus implements OptionEnum {
         return this.key;
     }
 
-    public static AmbientOcclusionStatus byId(int p_90488_) {
-        return BY_ID[Mth.positiveModulo(p_90488_, BY_ID.length)];
+    public static AmbientOcclusionStatus byId(int pValue) {
+        return BY_ID[Mth.positiveModulo(pValue, BY_ID.length)];
     }
 }

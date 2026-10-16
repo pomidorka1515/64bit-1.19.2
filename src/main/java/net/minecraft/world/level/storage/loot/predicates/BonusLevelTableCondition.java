@@ -20,9 +20,9 @@ public class BonusLevelTableCondition implements LootItemCondition {
     final Enchantment enchantment;
     final float[] values;
 
-    BonusLevelTableCondition(Enchantment p_81510_, float[] p_81511_) {
-        this.enchantment = p_81510_;
-        this.values = p_81511_;
+    BonusLevelTableCondition(Enchantment pEnchantment, float[] pChances) {
+        this.enchantment = pEnchantment;
+        this.values = pChances;
     }
 
     public LootItemConditionType getType() {
@@ -40,9 +40,9 @@ public class BonusLevelTableCondition implements LootItemCondition {
         return p_81521_.getRandom().nextFloat() < f;
     }
 
-    public static LootItemCondition.Builder bonusLevelFlatChance(Enchantment p_81518_, float... p_81519_) {
+    public static LootItemCondition.Builder bonusLevelFlatChance(Enchantment pEnchantment, float... pChances) {
         return () -> {
-            return new BonusLevelTableCondition(p_81518_, p_81519_);
+            return new BonusLevelTableCondition(pEnchantment, pChances);
         };
     }
 

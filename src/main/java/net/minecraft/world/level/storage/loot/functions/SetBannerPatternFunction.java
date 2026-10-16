@@ -28,14 +28,14 @@ public class SetBannerPatternFunction extends LootItemConditionalFunction {
     final List<Pair<Holder<BannerPattern>, DyeColor>> patterns;
     final boolean append;
 
-    SetBannerPatternFunction(LootItemCondition[] p_165275_, List<Pair<Holder<BannerPattern>, DyeColor>> p_165276_, boolean p_165277_) {
-        super(p_165275_);
-        this.patterns = p_165276_;
-        this.append = p_165277_;
+    SetBannerPatternFunction(LootItemCondition[] pConditions, List<Pair<Holder<BannerPattern>, DyeColor>> pPatterns, boolean pAppend) {
+        super(pConditions);
+        this.patterns = pPatterns;
+        this.append = pAppend;
     }
 
-    protected ItemStack run(ItemStack p_165280_, LootContext p_165281_) {
-        CompoundTag compoundtag = BlockItem.getBlockEntityData(p_165280_);
+    protected ItemStack run(ItemStack pStack, LootContext pContext) {
+        CompoundTag compoundtag = BlockItem.getBlockEntityData(pStack);
         if (compoundtag == null) {
             compoundtag = new CompoundTag();
         }
@@ -52,24 +52,24 @@ public class SetBannerPatternFunction extends LootItemConditionalFunction {
         }
 
         compoundtag.put("Patterns", listtag1);
-        BlockItem.setBlockEntityData(p_165280_, BlockEntityType.BANNER, compoundtag);
-        return p_165280_;
+        BlockItem.setBlockEntityData(pStack, BlockEntityType.BANNER, compoundtag);
+        return pStack;
     }
 
     public LootItemFunctionType getType() {
         return LootItemFunctions.SET_BANNER_PATTERN;
     }
 
-    public static SetBannerPatternFunction.Builder setBannerPattern(boolean p_165283_) {
-        return new SetBannerPatternFunction.Builder(p_165283_);
+    public static SetBannerPatternFunction.Builder setBannerPattern(boolean pAppend) {
+        return new SetBannerPatternFunction.Builder(pAppend);
     }
 
     public static class Builder extends LootItemConditionalFunction.Builder<SetBannerPatternFunction.Builder> {
         private final ImmutableList.Builder<Pair<Holder<BannerPattern>, DyeColor>> patterns = ImmutableList.builder();
         private final boolean append;
 
-        Builder(boolean p_165287_) {
-            this.append = p_165287_;
+        Builder(boolean pAppend) {
+            this.append = pAppend;
         }
 
         protected SetBannerPatternFunction.Builder getThis() {
@@ -80,12 +80,12 @@ public class SetBannerPatternFunction extends LootItemConditionalFunction {
             return new SetBannerPatternFunction(this.getConditions(), this.patterns.build(), this.append);
         }
 
-        public SetBannerPatternFunction.Builder addPattern(ResourceKey<BannerPattern> p_230996_, DyeColor p_230997_) {
-            return this.addPattern(Registry.BANNER_PATTERN.getHolderOrThrow(p_230996_), p_230997_);
+        public SetBannerPatternFunction.Builder addPattern(ResourceKey<BannerPattern> pPattern, DyeColor pColor) {
+            return this.addPattern(Registry.BANNER_PATTERN.getHolderOrThrow(pPattern), pColor);
         }
 
-        public SetBannerPatternFunction.Builder addPattern(Holder<BannerPattern> p_230999_, DyeColor p_231000_) {
-            this.patterns.add(Pair.of(p_230999_, p_231000_));
+        public SetBannerPatternFunction.Builder addPattern(Holder<BannerPattern> pPattern, DyeColor pColor) {
+            this.patterns.add(Pair.of(pPattern, pColor));
             return this;
         }
     }

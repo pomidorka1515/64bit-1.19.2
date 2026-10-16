@@ -16,7 +16,7 @@ public class BannerPatternTags {
     private BannerPatternTags() {
     }
 
-    private static TagKey<BannerPattern> create(String p_215798_) {
-        return TagKey.create(Registry.BANNER_PATTERN_REGISTRY, new ResourceLocation(p_215798_));
+    private static TagKey<BannerPattern> create(String pName) {
+        return TagKey.create(Registry.BANNER_PATTERN_REGISTRY, new ResourceLocation(pName));
     }
 }

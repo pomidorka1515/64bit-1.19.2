@@ -72,64 +72,64 @@ public class VanillaPackResources implements PackResources {
 public final PackMetadataSection packMetadata;
 public final Set<String> namespaces;
 
-private static Path safeGetPath(URI p_182298_) throws IOException {
+private static Path safeGetPath(URI pUri) throws IOException {
     try {
-        return Paths.get(p_182298_);
+        return Paths.get(pUri);
     } catch (FileSystemNotFoundException filesystemnotfoundexception) {
     } catch (Throwable throwable) {
-        LOGGER.warn("Unable to get path for: {}", p_182298_, throwable);
+        LOGGER.warn("Unable to get path for: {}", pUri, throwable);
     }
 
     try {
-        FileSystems.newFileSystem(p_182298_, Collections.emptyMap());
+        FileSystems.newFileSystem(pUri, Collections.emptyMap());
     } catch (FileSystemAlreadyExistsException filesystemalreadyexistsexception) {
     }
 
-    return Paths.get(p_182298_);
+    return Paths.get(pUri);
 }
 
-public VanillaPackResources(PackMetadataSection p_143761_, String... p_143762_) {
-    this.packMetadata = p_143761_;
-    this.namespaces = ImmutableSet.copyOf(p_143762_);
+public VanillaPackResources(PackMetadataSection pPackMetadata, String... pNamespaces) {
+    this.packMetadata = pPackMetadata;
+    this.namespaces = ImmutableSet.copyOf(pNamespaces);
 }
 
-public InputStream getRootResource(String p_10358_) throws IOException {
-    if (!p_10358_.contains("/") && !p_10358_.contains("\\")) {
+public InputStream getRootResource(String pFileName) throws IOException {
+    if (!pFileName.contains("/") && !pFileName.contains("\\")) {
         if (generatedDir != null) {
-            Path path = generatedDir.resolve(p_10358_);
+            Path path = generatedDir.resolve(pFileName);
             if (Files.exists(path)) {
                 return Files.newInputStream(path);
             }
         }
 
-        return this.getResourceAsStream(p_10358_);
+        return this.getResourceAsStream(pFileName);
     } else {
         throw new IllegalArgumentException("Root resources can only be filenames, not paths (no / allowed!)");
     }
 }
 
-public InputStream getResource(PackType p_10330_, ResourceLocation p_10331_) throws IOException {
-    InputStream inputstream = this.getResourceAsStream(p_10330_, p_10331_);
+public InputStream getResource(PackType pType, ResourceLocation pLocation) throws IOException {
+    InputStream inputstream = this.getResourceAsStream(pType, pLocation);
     if (inputstream != null) {
         return inputstream;
     } else {
-        throw new FileNotFoundException(p_10331_.getPath());
+        throw new FileNotFoundException(pLocation.getPath());
     }
 }
 
-public Collection<ResourceLocation> getResources(PackType p_215346_, String p_215347_, String p_215348_, Predicate<ResourceLocation> p_215349_) {
+public Collection<ResourceLocation> getResources(PackType pType, String pNamespace, String pPath, Predicate<ResourceLocation> pFilter) {
     Set<ResourceLocation> set = Sets.newHashSet();
     if (generatedDir != null) {
         try {
-            getResources(set, p_215347_, generatedDir.resolve(p_215346_.getDirectory()), p_215348_, p_215349_);
+            getResources(set, pNamespace, generatedDir.resolve(pType.getDirectory()), pPath, pFilter);
         } catch (IOException ioexception2) {
         }
 
-        if (p_215346_ == PackType.CLIENT_RESOURCES) {
+        if (pType == PackType.CLIENT_RESOURCES) {
             Enumeration<URL> enumeration = null;
 
             try {
-                enumeration = clientObject.getClassLoader().getResources(p_215346_.getDirectory() + "/");
+                enumeration = clientObject.getClassLoader().getResources(pType.getDirectory() + "/");
             } catch (IOException ioexception1) {
             }
 
@@ -137,7 +137,7 @@ public Collection<ResourceLocation> getResources(PackType p_215346_, String p_21
                 try {
                     URI uri = enumeration.nextElement().toURI();
                     if ("file".equals(uri.getScheme())) {
-                        getResources(set, p_215347_, Paths.get(uri), p_215348_, p_215349_);
+                        getResources(set, pNamespace, Paths.get(uri), pPath, pFilter);
                     }
                 } catch (IOException | URISyntaxException urisyntaxexception) {
                 }
@@ -146,11 +146,11 @@ public Collection<ResourceLocation> getResources(PackType p_215346_, String p_21
     }
 
     try {
-        Path path = ROOT_DIR_BY_TYPE.get(p_215346_);
+        Path path = ROOT_DIR_BY_TYPE.get(pType);
         if (path != null) {
-            getResources(set, p_215347_, path, p_215348_, p_215349_);
+            getResources(set, pNamespace, path, pPath, pFilter);
         } else {
-            LOGGER.error("Can't access assets root for type: {}", (Object) p_215346_);
+            LOGGER.error("Can't access assets root for type: {}", (Object) pType);
         }
     } catch (NoSuchFileException | FileNotFoundException filenotfoundexception) {
     } catch (IOException ioexception) {
@@ -196,10 +196,10 @@ private static void getResources(Collection<ResourceLocation> p_215358_, String 
 }
 
 @Nullable
-protected InputStream getResourceAsStream(PackType p_10359_, ResourceLocation p_10360_) {
-    String s = createPath(p_10359_, p_10360_);
+protected InputStream getResourceAsStream(PackType pType, ResourceLocation pLocation) {
+    String s = createPath(pType, pLocation);
     if (generatedDir != null) {
-        Path path = generatedDir.resolve(p_10359_.getDirectory() + "/" + p_10360_.getNamespace() + "/" + p_10360_.getPath());
+        Path path = generatedDir.resolve(pType.getDirectory() + "/" + pLocation.getNamespace() + "/" + pLocation.getPath());
         if (Files.exists(path)) {
             try {
                 return Files.newInputStream(path);
@@ -216,23 +216,23 @@ protected InputStream getResourceAsStream(PackType p_10359_, ResourceLocation p_
     }
 }
 
-private static String createPath(PackType p_10363_, ResourceLocation p_10364_) {
-    return "/" + p_10363_.getDirectory() + "/" + p_10364_.getNamespace() + "/" + p_10364_.getPath();
+private static String createPath(PackType pPackType, ResourceLocation pLocation) {
+    return "/" + pPackType.getDirectory() + "/" + pLocation.getNamespace() + "/" + pLocation.getPath();
 }
 
-private static boolean isResourceUrlValid(String p_10336_, @Nullable URL p_10337_) throws IOException {
-    return p_10337_ != null && (p_10337_.getProtocol().equals("jar") || FolderPackResources.validatePath(new File(p_10337_.getFile()), p_10336_));
+private static boolean isResourceUrlValid(String pPath, @Nullable URL pUrl) throws IOException {
+    return pUrl != null && (pUrl.getProtocol().equals("jar") || FolderPackResources.validatePath(new File(pUrl.getFile()), pPath));
 }
 
 @Nullable
-protected InputStream getResourceAsStream(String p_10334_) {
-    return VanillaPackResources.class.getResourceAsStream("/" + p_10334_);
+protected InputStream getResourceAsStream(String pPath) {
+    return VanillaPackResources.class.getResourceAsStream("/" + pPath);
 }
 
-public boolean hasResource(PackType p_10355_, ResourceLocation p_10356_) {
-    String s = createPath(p_10355_, p_10356_);
+public boolean hasResource(PackType pType, ResourceLocation pLocation) {
+    String s = createPath(pType, pLocation);
     if (generatedDir != null) {
-        Path path = generatedDir.resolve(p_10355_.getDirectory() + "/" + p_10356_.getNamespace() + "/" + p_10356_.getPath());
+        Path path = generatedDir.resolve(pType.getDirectory() + "/" + pLocation.getNamespace() + "/" + pLocation.getPath());
         if (Files.exists(path)) {
             return true;
         }
@@ -246,12 +246,12 @@ public boolean hasResource(PackType p_10355_, ResourceLocation p_10356_) {
     }
 }
 
-public Set<String> getNamespaces(PackType p_10322_) {
+public Set<String> getNamespaces(PackType pType) {
     return this.namespaces;
 }
 
 @Nullable
-public <T> T getMetadataSection(MetadataSectionSerializer<T> p_10333_) throws IOException {
+public <T> T getMetadataSection(MetadataSectionSerializer<T> pDeserializer) throws IOException {
     try {
         InputStream inputstream = this.getRootResource("pack.mcmeta");
 
@@ -259,7 +259,7 @@ public <T> T getMetadataSection(MetadataSectionSerializer<T> p_10333_) throws IO
     label59: {
         try {
             if (inputstream != null) {
-                T t = AbstractPackResources.getMetadataFromStream(p_10333_, inputstream);
+                T t = AbstractPackResources.getMetadataFromStream(pDeserializer, inputstream);
                 if (t != null) {
                     object = t;
                     break label59;
@@ -281,7 +281,7 @@ public <T> T getMetadataSection(MetadataSectionSerializer<T> p_10333_) throws IO
             inputstream.close();
         }
 
-        return (T) (p_10333_ == PackMetadataSection.SERIALIZER ? this.packMetadata : null);
+        return (T) (pDeserializer == PackMetadataSection.SERIALIZER ? this.packMetadata : null);
     }
 
         if (inputstream != null) {
@@ -290,7 +290,7 @@ public <T> T getMetadataSection(MetadataSectionSerializer<T> p_10333_) throws IO
 
         return (T) object;
     } catch (FileNotFoundException | RuntimeException runtimeexception) {
-        return (T) (p_10333_ == PackMetadataSection.SERIALIZER ? this.packMetadata : null);
+        return (T) (pDeserializer == PackMetadataSection.SERIALIZER ? this.packMetadata : null);
     }
 }
 

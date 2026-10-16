@@ -73,13 +73,13 @@ public class StructureTemplatePool {
         this.fallback = p_210570_;
     }
 
-    public int getMaxSize(StructureTemplateManager p_227358_) {
+    public int getMaxSize(StructureTemplateManager pStructureTemplateManager) {
         if (this.maxSize == Integer.MIN_VALUE) {
             this.maxSize = this.templates.stream().filter((p_210577_) -> {
                                                       return p_210577_ != EmptyPoolElement.INSTANCE;
                                                   })
                                    .mapToInt((p_227361_) -> {
-                                       return p_227361_.getBoundingBox(p_227358_, BlockPos.ZERO, Rotation.NONE).getYSpan();
+                                       return p_227361_.getBoundingBox(pStructureTemplateManager, BlockPos.ZERO, Rotation.NONE).getYSpan();
                                    })
                                    .max()
                                    .orElse(0);
@@ -92,12 +92,12 @@ public class StructureTemplatePool {
         return this.fallback;
     }
 
-    public StructurePoolElement getRandomTemplate(RandomSource p_227356_) {
-        return this.templates.get(p_227356_.nextInt(this.templates.size()));
+    public StructurePoolElement getRandomTemplate(RandomSource pRandom) {
+        return this.templates.get(pRandom.nextInt(this.templates.size()));
     }
 
-    public List<StructurePoolElement> getShuffledTemplates(RandomSource p_227363_) {
-        return Util.shuffledCopy(this.templates, p_227363_);
+    public List<StructurePoolElement> getShuffledTemplates(RandomSource pRandom) {
+        return Util.shuffledCopy(this.templates, pRandom);
     }
 
     public ResourceLocation getName() {
@@ -125,8 +125,8 @@ public class StructureTemplatePool {
             return this.name;
         }
 
-        public static StructureTemplatePool.Projection byName(String p_210608_) {
-            return CODEC.byName(p_210608_);
+        public static StructureTemplatePool.Projection byName(String pName) {
+            return CODEC.byName(pName);
         }
 
         public ImmutableList<StructureProcessor> getProcessors() {

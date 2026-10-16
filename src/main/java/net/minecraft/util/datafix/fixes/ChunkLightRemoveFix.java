@@ -8,8 +8,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.datafixers.types.Type;
 
 public class ChunkLightRemoveFix extends DataFix {
-    public ChunkLightRemoveFix(Schema p_15025_, boolean p_15026_) {
-        super(p_15025_, p_15026_);
+    public ChunkLightRemoveFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

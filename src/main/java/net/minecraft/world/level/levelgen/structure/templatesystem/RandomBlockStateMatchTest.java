@@ -23,8 +23,8 @@ public class RandomBlockStateMatchTest extends RuleTest {
         this.probability = p_74281_;
     }
 
-    public boolean test(BlockState p_230320_, RandomSource p_230321_) {
-        return p_230320_ == this.blockState && p_230321_.nextFloat() < this.probability;
+    public boolean test(BlockState pState, RandomSource pRandom) {
+        return pState == this.blockState && pRandom.nextFloat() < this.probability;
     }
 
     protected RuleTestType<?> getType() {

@@ -32,17 +32,17 @@ public class FireworkRocketItem extends Item {
     public static final String TAG_EXPLOSION_FADECOLORS = "FadeColors";
     public static final double ROCKET_PLACEMENT_OFFSET = 0.15D;
 
-    public FireworkRocketItem(Item.Properties p_41209_) {
-        super(p_41209_);
+    public FireworkRocketItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResult useOn(UseOnContext p_41216_) {
-        Level level = p_41216_.getLevel();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
         if (!level.isClientSide) {
-            ItemStack itemstack = p_41216_.getItemInHand();
-            Vec3 vec3 = p_41216_.getClickLocation();
-            Direction direction = p_41216_.getClickedFace();
-            FireworkRocketEntity fireworkrocketentity = new FireworkRocketEntity(level, p_41216_.getPlayer(), vec3.x + (double) direction.getStepX() * 0.15D, vec3.y + (double) direction.getStepY() * 0.15D, vec3.z + (double) direction.getStepZ() * 0.15D, itemstack);
+            ItemStack itemstack = pContext.getItemInHand();
+            Vec3 vec3 = pContext.getClickLocation();
+            Direction direction = pContext.getClickedFace();
+            FireworkRocketEntity fireworkrocketentity = new FireworkRocketEntity(level, pContext.getPlayer(), vec3.x + (double) direction.getStepX() * 0.15D, vec3.y + (double) direction.getStepY() * 0.15D, vec3.z + (double) direction.getStepZ() * 0.15D, itemstack);
             level.addFreshEntity(fireworkrocketentity);
             itemstack.shrink(1);
         }
@@ -50,30 +50,30 @@ public class FireworkRocketItem extends Item {
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_41218_, Player p_41219_, InteractionHand p_41220_) {
-        if (p_41219_.isFallFlying()) {
-            ItemStack itemstack = p_41219_.getItemInHand(p_41220_);
-            if (!p_41218_.isClientSide) {
-                FireworkRocketEntity fireworkrocketentity = new FireworkRocketEntity(p_41218_, itemstack, p_41219_);
-                p_41218_.addFreshEntity(fireworkrocketentity);
-                if (!p_41219_.getAbilities().instabuild) {
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        if (pPlayer.isFallFlying()) {
+            ItemStack itemstack = pPlayer.getItemInHand(pHand);
+            if (!pLevel.isClientSide) {
+                FireworkRocketEntity fireworkrocketentity = new FireworkRocketEntity(pLevel, itemstack, pPlayer);
+                pLevel.addFreshEntity(fireworkrocketentity);
+                if (!pPlayer.getAbilities().instabuild) {
                     itemstack.shrink(1);
                 }
 
-                p_41219_.awardStat(Stats.ITEM_USED.get(this));
+                pPlayer.awardStat(Stats.ITEM_USED.get(this));
             }
 
-            return InteractionResultHolder.sidedSuccess(p_41219_.getItemInHand(p_41220_), p_41218_.isClientSide());
+            return InteractionResultHolder.sidedSuccess(pPlayer.getItemInHand(pHand), pLevel.isClientSide());
         } else {
-            return InteractionResultHolder.pass(p_41219_.getItemInHand(p_41220_));
+            return InteractionResultHolder.pass(pPlayer.getItemInHand(pHand));
         }
     }
 
-    public void appendHoverText(ItemStack p_41211_, @Nullable Level p_41212_, List<Component> p_41213_, TooltipFlag p_41214_) {
-        CompoundTag compoundtag = p_41211_.getTagElement("Fireworks");
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        CompoundTag compoundtag = pStack.getTagElement("Fireworks");
         if (compoundtag != null) {
             if (compoundtag.contains("Flight", 99)) {
-                p_41213_.add(Component.translatable("item.minecraft.firework_rocket.flight").append(" ").append(String.valueOf((int) compoundtag.getByte("Flight"))).withStyle(ChatFormatting.GRAY));
+                pTooltip.add(Component.translatable("item.minecraft.firework_rocket.flight").append(" ").append(String.valueOf((int) compoundtag.getByte("Flight"))).withStyle(ChatFormatting.GRAY));
             }
 
             ListTag listtag = compoundtag.getList("Explosions", 10);
@@ -87,7 +87,7 @@ public class FireworkRocketItem extends Item {
                             list.set(j, Component.literal("  ").append(list.get(j)).withStyle(ChatFormatting.GRAY));
                         }
 
-                        p_41213_.addAll(list);
+                        pTooltip.addAll(list);
                     }
                 }
             }
@@ -129,8 +129,8 @@ public class FireworkRocketItem extends Item {
             return this.name;
         }
 
-        public static FireworkRocketItem.Shape byId(int p_41238_) {
-            return p_41238_ >= 0 && p_41238_ < BY_ID.length ? BY_ID[p_41238_] : SMALL_BALL;
+        public static FireworkRocketItem.Shape byId(int pIndex) {
+            return pIndex >= 0 && pIndex < BY_ID.length ? BY_ID[pIndex] : SMALL_BALL;
         }
     }
 }

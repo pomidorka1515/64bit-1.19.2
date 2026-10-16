@@ -33,10 +33,10 @@ public class BlockRenderDispatcher implements ResourceManagerReloadListener {
     private final RandomSource random = RandomSource.create();
     private final BlockColors blockColors;
 
-    public BlockRenderDispatcher(BlockModelShaper p_173399_, BlockEntityWithoutLevelRenderer p_173400_, BlockColors p_173401_) {
-        this.blockModelShaper = p_173399_;
-        this.blockEntityRenderer = p_173400_;
-        this.blockColors = p_173401_;
+    public BlockRenderDispatcher(BlockModelShaper pBlockModelShaper, BlockEntityWithoutLevelRenderer pBlockEntityRenderer, BlockColors pBlockColors) {
+        this.blockModelShaper = pBlockModelShaper;
+        this.blockEntityRenderer = pBlockEntityRenderer;
+        this.blockColors = pBlockColors;
         this.modelRenderer = new ModelBlockRenderer(this.blockColors);
         this.liquidBlockRenderer = new LiquidBlockRenderer();
     }
@@ -45,36 +45,36 @@ public class BlockRenderDispatcher implements ResourceManagerReloadListener {
         return this.blockModelShaper;
     }
 
-    public void renderBreakingTexture(BlockState p_110919_, BlockPos p_110920_, BlockAndTintGetter p_110921_, PoseStack p_110922_, VertexConsumer p_110923_) {
-        if (p_110919_.getRenderShape() == RenderShape.MODEL) {
-            BakedModel bakedmodel = this.blockModelShaper.getBlockModel(p_110919_);
-            long i = p_110919_.getSeed(p_110920_);
-            this.modelRenderer.tesselateBlock(p_110921_, bakedmodel, p_110919_, p_110920_, p_110922_, p_110923_, true, this.random, i, OverlayTexture.NO_OVERLAY);
+    public void renderBreakingTexture(BlockState pState, BlockPos pPos, BlockAndTintGetter pLevel, PoseStack pPoseStack, VertexConsumer pConsumer) {
+        if (pState.getRenderShape() == RenderShape.MODEL) {
+            BakedModel bakedmodel = this.blockModelShaper.getBlockModel(pState);
+            long i = pState.getSeed(pPos);
+            this.modelRenderer.tesselateBlock(pLevel, bakedmodel, pState, pPos, pPoseStack, pConsumer, true, this.random, i, OverlayTexture.NO_OVERLAY);
         }
     }
 
-    public void renderBatched(BlockState p_234356_, BlockPos p_234357_, BlockAndTintGetter p_234358_, PoseStack p_234359_, VertexConsumer p_234360_, boolean p_234361_, RandomSource p_234362_) {
+    public void renderBatched(BlockState pState, BlockPos pPos, BlockAndTintGetter pLevel, PoseStack pPoseStack, VertexConsumer pConsumer, boolean pCheckSides, RandomSource pRandom) {
         try {
-            RenderShape rendershape = p_234356_.getRenderShape();
+            RenderShape rendershape = pState.getRenderShape();
             if (rendershape == RenderShape.MODEL) {
-                this.modelRenderer.tesselateBlock(p_234358_, this.getBlockModel(p_234356_), p_234356_, p_234357_, p_234359_, p_234360_, p_234361_, p_234362_, p_234356_.getSeed(p_234357_), OverlayTexture.NO_OVERLAY);
+                this.modelRenderer.tesselateBlock(pLevel, this.getBlockModel(pState), pState, pPos, pPoseStack, pConsumer, pCheckSides, pRandom, pState.getSeed(pPos), OverlayTexture.NO_OVERLAY);
             }
 
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Tesselating block in world");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Block being tesselated");
-            CrashReportCategory.populateBlockDetails(crashreportcategory, p_234358_, p_234357_, p_234356_);
+            CrashReportCategory.populateBlockDetails(crashreportcategory, pLevel, pPos, pState);
             throw new ReportedException(crashreport);
         }
     }
 
-    public void renderLiquid(BlockPos p_234364_, BlockAndTintGetter p_234365_, VertexConsumer p_234366_, BlockState p_234367_, FluidState p_234368_) {
+    public void renderLiquid(BlockPos pPos, BlockAndTintGetter pLevel, VertexConsumer pConsumer, BlockState pBlockState, FluidState pFluidState) {
         try {
-            this.liquidBlockRenderer.tesselate(p_234365_, p_234364_, p_234366_, p_234367_, p_234368_);
+            this.liquidBlockRenderer.tesselate(pLevel, pPos, pConsumer, pBlockState, pFluidState);
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Tesselating liquid in world");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Block being tesselated");
-            CrashReportCategory.populateBlockDetails(crashreportcategory, p_234365_, p_234364_, (BlockState) null);
+            CrashReportCategory.populateBlockDetails(crashreportcategory, pLevel, pPos, (BlockState) null);
             throw new ReportedException(crashreport);
         }
     }
@@ -83,29 +83,29 @@ public class BlockRenderDispatcher implements ResourceManagerReloadListener {
         return this.modelRenderer;
     }
 
-    public BakedModel getBlockModel(BlockState p_110911_) {
-        return this.blockModelShaper.getBlockModel(p_110911_);
+    public BakedModel getBlockModel(BlockState pState) {
+        return this.blockModelShaper.getBlockModel(pState);
     }
 
-    public void renderSingleBlock(BlockState p_110913_, PoseStack p_110914_, MultiBufferSource p_110915_, int p_110916_, int p_110917_) {
-        RenderShape rendershape = p_110913_.getRenderShape();
+    public void renderSingleBlock(BlockState pState, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        RenderShape rendershape = pState.getRenderShape();
         if (rendershape != RenderShape.INVISIBLE) {
             switch (rendershape) {
                 case MODEL:
-                    BakedModel bakedmodel = this.getBlockModel(p_110913_);
-                    int i = this.blockColors.getColor(p_110913_, (BlockAndTintGetter) null, (BlockPos) null, 0);
+                    BakedModel bakedmodel = this.getBlockModel(pState);
+                    int i = this.blockColors.getColor(pState, (BlockAndTintGetter) null, (BlockPos) null, 0);
                     float f = (float) (i >> 16 & 255) / 255.0F;
                     float f1 = (float) (i >> 8 & 255) / 255.0F;
                     float f2 = (float) (i & 255) / 255.0F;
-                    this.modelRenderer.renderModel(p_110914_.last(), p_110915_.getBuffer(ItemBlockRenderTypes.getRenderType(p_110913_, false)), p_110913_, bakedmodel, f, f1, f2, p_110916_, p_110917_);
+                    this.modelRenderer.renderModel(pPoseStack.last(), pBufferSource.getBuffer(ItemBlockRenderTypes.getRenderType(pState, false)), pState, bakedmodel, f, f1, f2, pPackedLight, pPackedOverlay);
                     break;
                 case ENTITYBLOCK_ANIMATED:
-                    this.blockEntityRenderer.renderByItem(new ItemStack(p_110913_.getBlock()), ItemTransforms.TransformType.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
+                    this.blockEntityRenderer.renderByItem(new ItemStack(pState.getBlock()), ItemTransforms.TransformType.NONE, pPoseStack, pBufferSource, pPackedLight, pPackedOverlay);
             }
         }
     }
 
-    public void onResourceManagerReload(ResourceManager p_110909_) {
+    public void onResourceManagerReload(ResourceManager pResourceManager) {
         this.liquidBlockRenderer.setupSprites();
     }
 }

@@ -32,48 +32,48 @@ public class BubbleColumnBlock extends Block implements BucketPickup {
     public static final BooleanProperty DRAG_DOWN = BlockStateProperties.DRAG;
     private static final int CHECK_PERIOD = 5;
 
-    public BubbleColumnBlock(BlockBehaviour.Properties p_50959_) {
-        super(p_50959_);
+    public BubbleColumnBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(DRAG_DOWN, Boolean.valueOf(true)));
     }
 
-    public void entityInside(BlockState p_50976_, Level p_50977_, BlockPos p_50978_, Entity p_50979_) {
-        BlockState blockstate = p_50977_.getBlockState(p_50978_.above());
+    public void entityInside(BlockState pState, Level pLevel, BlockPos pPos, Entity pEntity) {
+        BlockState blockstate = pLevel.getBlockState(pPos.above());
         if (blockstate.isAir()) {
-            p_50979_.onAboveBubbleCol(p_50976_.getValue(DRAG_DOWN));
-            if (!p_50977_.isClientSide) {
-                ServerLevel serverlevel = (ServerLevel) p_50977_;
+            pEntity.onAboveBubbleCol(pState.getValue(DRAG_DOWN));
+            if (!pLevel.isClientSide) {
+                ServerLevel serverlevel = (ServerLevel) pLevel;
 
                 for (int i = 0; i < 2; ++i) {
-                    serverlevel.sendParticles(ParticleTypes.SPLASH, (double) p_50978_.getX() + p_50977_.random.nextDouble(), (double) (p_50978_.getY() + 1), (double) p_50978_.getZ() + p_50977_.random.nextDouble(), 1, 0.0D, 0.0D, 0.0D, 1.0D);
-                    serverlevel.sendParticles(ParticleTypes.BUBBLE, (double) p_50978_.getX() + p_50977_.random.nextDouble(), (double) (p_50978_.getY() + 1), (double) p_50978_.getZ() + p_50977_.random.nextDouble(), 1, 0.0D, 0.01D, 0.0D, 0.2D);
+                    serverlevel.sendParticles(ParticleTypes.SPLASH, (double) pPos.getX() + pLevel.random.nextDouble(), (double) (pPos.getY() + 1), (double) pPos.getZ() + pLevel.random.nextDouble(), 1, 0.0D, 0.0D, 0.0D, 1.0D);
+                    serverlevel.sendParticles(ParticleTypes.BUBBLE, (double) pPos.getX() + pLevel.random.nextDouble(), (double) (pPos.getY() + 1), (double) pPos.getZ() + pLevel.random.nextDouble(), 1, 0.0D, 0.01D, 0.0D, 0.2D);
                 }
             }
         } else {
-            p_50979_.onInsideBubbleColumn(p_50976_.getValue(DRAG_DOWN));
+            pEntity.onInsideBubbleColumn(pState.getValue(DRAG_DOWN));
         }
     }
 
-    public void tick(BlockState p_220888_, ServerLevel p_220889_, BlockPos p_220890_, RandomSource p_220891_) {
-        updateColumn(p_220889_, p_220890_, p_220888_, p_220889_.getBlockState(p_220890_.below()));
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        updateColumn(pLevel, pPos, pState, pLevel.getBlockState(pPos.below()));
     }
 
-    public FluidState getFluidState(BlockState p_51016_) {
+    public FluidState getFluidState(BlockState pState) {
         return Fluids.WATER.getSource(false);
     }
 
-    public static void updateColumn(LevelAccessor p_152708_, BlockPos p_152709_, BlockState p_152710_) {
-        updateColumn(p_152708_, p_152709_, p_152708_.getBlockState(p_152709_), p_152710_);
+    public static void updateColumn(LevelAccessor pLevel, BlockPos pPos, BlockState pState) {
+        updateColumn(pLevel, pPos, pLevel.getBlockState(pPos), pState);
     }
 
-    public static void updateColumn(LevelAccessor p_152703_, BlockPos p_152704_, BlockState p_152705_, BlockState p_152706_) {
-        if (canExistIn(p_152705_)) {
-            BlockState blockstate = getColumnState(p_152706_);
-            p_152703_.setBlock(p_152704_, blockstate, 2);
-            BlockPos.MutableBlockPos blockpos$mutableblockpos = p_152704_.mutable().move(Direction.UP);
+    public static void updateColumn(LevelAccessor pLevel, BlockPos pPos, BlockState pFluid, BlockState pState) {
+        if (canExistIn(pFluid)) {
+            BlockState blockstate = getColumnState(pState);
+            pLevel.setBlock(pPos, blockstate, 2);
+            BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable().move(Direction.UP);
 
-            while (canExistIn(p_152703_.getBlockState(blockpos$mutableblockpos))) {
-                if (!p_152703_.setBlock(blockpos$mutableblockpos, blockstate, 2)) {
+            while (canExistIn(pLevel.getBlockState(blockpos$mutableblockpos))) {
+                if (!pLevel.setBlock(blockpos$mutableblockpos, blockstate, 2)) {
                     return;
                 }
 
@@ -82,66 +82,66 @@ public class BubbleColumnBlock extends Block implements BucketPickup {
         }
     }
 
-    private static boolean canExistIn(BlockState p_152716_) {
-        return p_152716_.is(Blocks.BUBBLE_COLUMN) || p_152716_.is(Blocks.WATER) && p_152716_.getFluidState().getAmount() >= 8 && p_152716_.getFluidState().isSource();
+    private static boolean canExistIn(BlockState pBlockState) {
+        return pBlockState.is(Blocks.BUBBLE_COLUMN) || pBlockState.is(Blocks.WATER) && pBlockState.getFluidState().getAmount() >= 8 && pBlockState.getFluidState().isSource();
     }
 
-    private static BlockState getColumnState(BlockState p_152718_) {
-        if (p_152718_.is(Blocks.BUBBLE_COLUMN)) {
-            return p_152718_;
-        } else if (p_152718_.is(Blocks.SOUL_SAND)) {
+    private static BlockState getColumnState(BlockState pBlockState) {
+        if (pBlockState.is(Blocks.BUBBLE_COLUMN)) {
+            return pBlockState;
+        } else if (pBlockState.is(Blocks.SOUL_SAND)) {
             return Blocks.BUBBLE_COLUMN.defaultBlockState().setValue(DRAG_DOWN, Boolean.valueOf(false));
         } else {
-            return p_152718_.is(Blocks.MAGMA_BLOCK) ? Blocks.BUBBLE_COLUMN.defaultBlockState().setValue(DRAG_DOWN, Boolean.valueOf(true)) : Blocks.WATER.defaultBlockState();
+            return pBlockState.is(Blocks.MAGMA_BLOCK) ? Blocks.BUBBLE_COLUMN.defaultBlockState().setValue(DRAG_DOWN, Boolean.valueOf(true)) : Blocks.WATER.defaultBlockState();
         }
     }
 
-    public void animateTick(BlockState p_220893_, Level p_220894_, BlockPos p_220895_, RandomSource p_220896_) {
-        double d0 = (double) p_220895_.getX();
-        double d1 = (double) p_220895_.getY();
-        double d2 = (double) p_220895_.getZ();
-        if (p_220893_.getValue(DRAG_DOWN)) {
-            p_220894_.addAlwaysVisibleParticle(ParticleTypes.CURRENT_DOWN, SectorVec3.fromBlockAndFraction(p_220895_.getX(), 0.5D, d1 + 0.8D, p_220895_.getZ(), 0.0D), 0.0D, 0.0D, 0.0D);
-            if (p_220896_.nextInt(200) == 0) {
-                p_220894_.playLocalSound(d0, d1, d2, SoundEvents.BUBBLE_COLUMN_WHIRLPOOL_AMBIENT, SoundSource.BLOCKS, 0.2F + p_220896_.nextFloat() * 0.2F, 0.9F + p_220896_.nextFloat() * 0.15F, false);
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
+        double d0 = (double) pPos.getX();
+        double d1 = (double) pPos.getY();
+        double d2 = (double) pPos.getZ();
+        if (pState.getValue(DRAG_DOWN)) {
+            pLevel.addAlwaysVisibleParticle(ParticleTypes.CURRENT_DOWN, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, d1 + 0.8D, pPos.getZ(), 0.0D), 0.0D, 0.0D, 0.0D);
+            if (pRandom.nextInt(200) == 0) {
+                pLevel.playLocalSound(d0, d1, d2, SoundEvents.BUBBLE_COLUMN_WHIRLPOOL_AMBIENT, SoundSource.BLOCKS, 0.2F + pRandom.nextFloat() * 0.2F, 0.9F + pRandom.nextFloat() * 0.15F, false);
             }
         } else {
-            p_220894_.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, SectorVec3.fromBlockAndFraction(p_220895_.getX(), 0.5D, d1, p_220895_.getZ(), 0.5D), 0.0D, 0.04D, 0.0D);
-            p_220894_.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, SectorVec3.fromBlockAndFraction(p_220895_.getX(), (double) p_220896_.nextFloat(), d1 + (double) p_220896_.nextFloat(), p_220895_.getZ(), (double) p_220896_.nextFloat()), 0.0D, 0.04D, 0.0D);
-            if (p_220896_.nextInt(200) == 0) {
-                p_220894_.playLocalSound(d0, d1, d2, SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT, SoundSource.BLOCKS, 0.2F + p_220896_.nextFloat() * 0.2F, 0.9F + p_220896_.nextFloat() * 0.15F, false);
+            pLevel.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, d1, pPos.getZ(), 0.5D), 0.0D, 0.04D, 0.0D);
+            pLevel.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, SectorVec3.fromBlockAndFraction(pPos.getX(), (double) pRandom.nextFloat(), d1 + (double) pRandom.nextFloat(), pPos.getZ(), (double) pRandom.nextFloat()), 0.0D, 0.04D, 0.0D);
+            if (pRandom.nextInt(200) == 0) {
+                pLevel.playLocalSound(d0, d1, d2, SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT, SoundSource.BLOCKS, 0.2F + pRandom.nextFloat() * 0.2F, 0.9F + pRandom.nextFloat() * 0.15F, false);
             }
         }
     }
 
-    public BlockState updateShape(BlockState p_50990_, Direction p_50991_, BlockState p_50992_, LevelAccessor p_50993_, BlockPos p_50994_, BlockPos p_50995_) {
-        p_50993_.scheduleTick(p_50994_, Fluids.WATER, Fluids.WATER.getTickDelay(p_50993_));
-        if (!p_50990_.canSurvive(p_50993_, p_50994_) || p_50991_ == Direction.DOWN || p_50991_ == Direction.UP && !p_50992_.is(Blocks.BUBBLE_COLUMN) && canExistIn(p_50992_)) {
-            p_50993_.scheduleTick(p_50994_, this, 5);
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
+        if (!pState.canSurvive(pLevel, pCurrentPos) || pFacing == Direction.DOWN || pFacing == Direction.UP && !pFacingState.is(Blocks.BUBBLE_COLUMN) && canExistIn(pFacingState)) {
+            pLevel.scheduleTick(pCurrentPos, this, 5);
         }
 
-        return super.updateShape(p_50990_, p_50991_, p_50992_, p_50993_, p_50994_, p_50995_);
+        return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    public boolean canSurvive(BlockState p_50986_, LevelReader p_50987_, BlockPos p_50988_) {
-        BlockState blockstate = p_50987_.getBlockState(p_50988_.below());
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        BlockState blockstate = pLevel.getBlockState(pPos.below());
         return blockstate.is(Blocks.BUBBLE_COLUMN) || blockstate.is(Blocks.MAGMA_BLOCK) || blockstate.is(Blocks.SOUL_SAND);
     }
 
-    public VoxelShape getShape(BlockState p_51005_, BlockGetter p_51006_, BlockPos p_51007_, CollisionContext p_51008_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return Shapes.empty();
     }
 
-    public RenderShape getRenderShape(BlockState p_51003_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.INVISIBLE;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_50997_) {
-        p_50997_.add(DRAG_DOWN);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(DRAG_DOWN);
     }
 
-    public ItemStack pickupBlock(LevelAccessor p_152712_, BlockPos p_152713_, BlockState p_152714_) {
-        p_152712_.setBlock(p_152713_, Blocks.AIR.defaultBlockState(), 11);
+    public ItemStack pickupBlock(LevelAccessor pLevel, BlockPos pPos, BlockState pState) {
+        pLevel.setBlock(pPos, Blocks.AIR.defaultBlockState(), 11);
         return new ItemStack(Items.WATER_BUCKET);
     }
 

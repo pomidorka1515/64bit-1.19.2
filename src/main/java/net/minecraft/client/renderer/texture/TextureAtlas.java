@@ -54,22 +54,22 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
     private final ResourceLocation location;
     private final int maxSupportedTextureSize;
 
-    public TextureAtlas(ResourceLocation p_118269_) {
-        this.location = p_118269_;
+    public TextureAtlas(ResourceLocation pLocation) {
+        this.location = pLocation;
         this.maxSupportedTextureSize = RenderSystem.maxSupportedTextureSize();
     }
 
-    public void load(ResourceManager p_118282_) {
+    public void load(ResourceManager pResourceManager) {
     }
 
-    public void reload(TextureAtlas.Preparations p_118313_) {
+    public void reload(TextureAtlas.Preparations pPreparations) {
         this.sprites.clear();
-        this.sprites.addAll(p_118313_.sprites);
-        LOGGER.info("Created: {}x{}x{} {}-atlas", p_118313_.width, p_118313_.height, p_118313_.mipLevel, this.location);
-        TextureUtil.prepareImage(this.getId(), p_118313_.mipLevel, p_118313_.width, p_118313_.height);
+        this.sprites.addAll(pPreparations.sprites);
+        LOGGER.info("Created: {}x{}x{} {}-atlas", pPreparations.width, pPreparations.height, pPreparations.mipLevel, this.location);
+        TextureUtil.prepareImage(this.getId(), pPreparations.mipLevel, pPreparations.width, pPreparations.height);
         this.clearTextureData();
 
-        for (TextureAtlasSprite textureatlassprite : p_118313_.regions) {
+        for (TextureAtlasSprite textureatlassprite : pPreparations.regions) {
             this.texturesByName.put(textureatlassprite.getName(), textureatlassprite);
 
             try {
@@ -89,21 +89,21 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
         }
     }
 
-    public TextureAtlas.Preparations prepareToStitch(ResourceManager p_118308_, Stream<ResourceLocation> p_118309_, ProfilerFiller p_118310_, int p_118311_) {
-        p_118310_.push("preparing");
-        Set<ResourceLocation> set = p_118309_.peek((p_118327_) -> {
+    public TextureAtlas.Preparations prepareToStitch(ResourceManager pResourceManager, Stream<ResourceLocation> pSpriteNames, ProfilerFiller pProfiler, int pMipLevel) {
+        pProfiler.push("preparing");
+        Set<ResourceLocation> set = pSpriteNames.peek((p_118327_) -> {
                                                  if (p_118327_ == null) {
                                                      throw new IllegalArgumentException("Location cannot be null!");
                                                  }
                                              })
                                             .collect(Collectors.toSet());
         int i = this.maxSupportedTextureSize;
-        Stitcher stitcher = new Stitcher(i, i, p_118311_);
+        Stitcher stitcher = new Stitcher(i, i, pMipLevel);
         int j = Integer.MAX_VALUE;
-        int k = 1 << p_118311_;
-        p_118310_.popPush("extracting_frames");
+        int k = 1 << pMipLevel;
+        pProfiler.popPush("extracting_frames");
 
-        for (TextureAtlasSprite.Info textureatlassprite$info : this.getBasicSpriteInfos(p_118308_, set)) {
+        for (TextureAtlasSprite.Info textureatlassprite$info : this.getBasicSpriteInfos(pResourceManager, set)) {
             j = Math.min(j, Math.min(textureatlassprite$info.width(), textureatlassprite$info.height()));
             int l = Math.min(Integer.lowestOneBit(textureatlassprite$info.width()), Integer.lowestOneBit(textureatlassprite$info.height()));
             if (l < k) {
@@ -117,16 +117,16 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
         int i1 = Math.min(j, k);
         int j1 = Mth.log2(i1);
         int k1;
-        if (j1 < p_118311_) {
-            LOGGER.warn("{}: dropping miplevel from {} to {}, because of minimum power of two: {}", this.location, p_118311_, j1, i1);
+        if (j1 < pMipLevel) {
+            LOGGER.warn("{}: dropping miplevel from {} to {}, because of minimum power of two: {}", this.location, pMipLevel, j1, i1);
             k1 = j1;
         } else {
-            k1 = p_118311_;
+            k1 = pMipLevel;
         }
 
-        p_118310_.popPush("register");
+        pProfiler.popPush("register");
         stitcher.registerSprite(MissingTextureAtlasSprite.info());
-        p_118310_.popPush("stitching");
+        pProfiler.popPush("stitching");
 
         try {
             stitcher.stitch();
@@ -141,21 +141,21 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
             throw new ReportedException(crashreport);
         }
 
-        p_118310_.popPush("loading");
-        List<TextureAtlasSprite> list = this.getLoadedSprites(p_118308_, stitcher, k1);
-        p_118310_.pop();
+        pProfiler.popPush("loading");
+        List<TextureAtlasSprite> list = this.getLoadedSprites(pResourceManager, stitcher, k1);
+        pProfiler.pop();
         return new TextureAtlas.Preparations(set, stitcher.getWidth(), stitcher.getHeight(), k1, list);
     }
 
-    private Collection<TextureAtlasSprite.Info> getBasicSpriteInfos(ResourceManager p_118305_, Set<ResourceLocation> p_118306_) {
+    private Collection<TextureAtlasSprite.Info> getBasicSpriteInfos(ResourceManager pResourceManager, Set<ResourceLocation> pSpriteNames) {
         List<CompletableFuture<?>> list = Lists.newArrayList();
         Queue<TextureAtlasSprite.Info> queue = new ConcurrentLinkedQueue<>();
 
-        for (ResourceLocation resourcelocation : p_118306_) {
+        for (ResourceLocation resourcelocation : pSpriteNames) {
             if (!MissingTextureAtlasSprite.getLocation().equals(resourcelocation)) {
                 list.add(CompletableFuture.runAsync(() -> {
                     ResourceLocation resourcelocation1 = this.getResourceLocation(resourcelocation);
-                    Optional<Resource> optional = p_118305_.getResource(resourcelocation1);
+                    Optional<Resource> optional = pResourceManager.getResource(resourcelocation1);
                     if (optional.isEmpty()) {
                         LOGGER.error("Using missing texture, file {} not found", (Object) resourcelocation1);
                     } else {
@@ -207,16 +207,16 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
         return queue;
     }
 
-    private List<TextureAtlasSprite> getLoadedSprites(ResourceManager p_118284_, Stitcher p_118285_, int p_118286_) {
+    private List<TextureAtlasSprite> getLoadedSprites(ResourceManager pResourceManager, Stitcher pStitcher, int pMipLevel) {
         Queue<TextureAtlasSprite> queue = new ConcurrentLinkedQueue<>();
         List<CompletableFuture<?>> list = Lists.newArrayList();
-        p_118285_.gatherSprites((p_174703_, p_174704_, p_174705_, p_174706_, p_174707_) -> {
+        pStitcher.gatherSprites((p_174703_, p_174704_, p_174705_, p_174706_, p_174707_) -> {
             if (p_174703_ == MissingTextureAtlasSprite.info()) {
-                MissingTextureAtlasSprite missingtextureatlassprite = MissingTextureAtlasSprite.newInstance(this, p_118286_, p_174704_, p_174705_, p_174706_, p_174707_);
+                MissingTextureAtlasSprite missingtextureatlassprite = MissingTextureAtlasSprite.newInstance(this, pMipLevel, p_174704_, p_174705_, p_174706_, p_174707_);
                 queue.add(missingtextureatlassprite);
             } else {
                 list.add(CompletableFuture.runAsync(() -> {
-                    TextureAtlasSprite textureatlassprite = this.load(p_118284_, p_174703_, p_174704_, p_174705_, p_118286_, p_174706_, p_174707_);
+                    TextureAtlasSprite textureatlassprite = this.load(pResourceManager, p_174703_, p_174704_, p_174705_, pMipLevel, p_174706_, p_174707_);
                     if (textureatlassprite != null) {
                         queue.add(textureatlassprite);
                     }
@@ -228,16 +228,16 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
     }
 
     @Nullable
-    private TextureAtlasSprite load(ResourceManager p_118288_, TextureAtlasSprite.Info p_118289_, int p_118290_, int p_118291_, int p_118292_, int p_118293_, int p_118294_) {
-        ResourceLocation resourcelocation = this.getResourceLocation(p_118289_.name());
+    private TextureAtlasSprite load(ResourceManager pResourceManager, TextureAtlasSprite.Info pSpriteInfo, int pStorageX, int pStorageY, int pMipLevel, int pX, int pY) {
+        ResourceLocation resourcelocation = this.getResourceLocation(pSpriteInfo.name());
 
         try {
-            InputStream inputstream = p_118288_.open(resourcelocation);
+            InputStream inputstream = pResourceManager.open(resourcelocation);
 
             TextureAtlasSprite textureatlassprite;
             try {
                 NativeImage nativeimage = NativeImage.read(inputstream);
-                textureatlassprite = new TextureAtlasSprite(this, p_118289_, p_118292_, p_118290_, p_118291_, p_118293_, p_118294_, nativeimage);
+                textureatlassprite = new TextureAtlasSprite(this, pSpriteInfo, pMipLevel, pStorageX, pStorageY, pX, pY, nativeimage);
             } catch (Throwable throwable1) {
                 if (inputstream != null) {
                     try {
@@ -264,8 +264,8 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
         }
     }
 
-    private ResourceLocation getResourceLocation(ResourceLocation p_118325_) {
-        return new ResourceLocation(p_118325_.getNamespace(), String.format(Locale.ROOT, "textures/%s%s", p_118325_.getPath(), ".png"));
+    private ResourceLocation getResourceLocation(ResourceLocation pSpriteName) {
+        return new ResourceLocation(pSpriteName.getNamespace(), String.format(Locale.ROOT, "textures/%s%s", pSpriteName.getPath(), ".png"));
     }
 
     public void cycleAnimationFrames() {
@@ -284,8 +284,8 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
         }
     }
 
-    public TextureAtlasSprite getSprite(ResourceLocation p_118317_) {
-        TextureAtlasSprite textureatlassprite = this.texturesByName.get(p_118317_);
+    public TextureAtlasSprite getSprite(ResourceLocation pName) {
+        TextureAtlasSprite textureatlassprite = this.texturesByName.get(pName);
         return textureatlassprite == null ? this.texturesByName.get(MissingTextureAtlasSprite.getLocation()) : textureatlassprite;
     }
 
@@ -302,8 +302,8 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
         return this.location;
     }
 
-    public void updateFilter(TextureAtlas.Preparations p_118323_) {
-        this.setFilter(false, p_118323_.mipLevel > 0);
+    public void updateFilter(TextureAtlas.Preparations pPreparations) {
+        this.setFilter(false, pPreparations.mipLevel > 0);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -314,12 +314,12 @@ public class TextureAtlas extends AbstractTexture implements Tickable {
         final int mipLevel;
         final List<TextureAtlasSprite> regions;
 
-        public Preparations(Set<ResourceLocation> p_118337_, int p_118338_, int p_118339_, int p_118340_, List<TextureAtlasSprite> p_118341_) {
-            this.sprites = p_118337_;
-            this.width = p_118338_;
-            this.height = p_118339_;
-            this.mipLevel = p_118340_;
-            this.regions = p_118341_;
+        public Preparations(Set<ResourceLocation> pSprites, int pWidth, int pHeight, int pMipLevel, List<TextureAtlasSprite> pRegions) {
+            this.sprites = pSprites;
+            this.width = pWidth;
+            this.height = pHeight;
+            this.mipLevel = pMipLevel;
+            this.regions = pRegions;
         }
     }
 }

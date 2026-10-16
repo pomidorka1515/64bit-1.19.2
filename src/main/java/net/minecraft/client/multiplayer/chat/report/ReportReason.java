@@ -51,9 +51,9 @@ public enum ReportReason {
     }
 
     @Nullable
-    public static Component getTranslationById(int p_239750_) {
+    public static Component getTranslationById(int pId) {
         for (ReportReason reportreason : values()) {
-            if (reportreason.id == p_239750_) {
+            if (reportreason.id == pId) {
                 return reportreason.title;
             }
         }

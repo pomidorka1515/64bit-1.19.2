@@ -29,9 +29,9 @@ public class ObjectiveArgument implements ArgumentType<String> {
         return new ObjectiveArgument();
     }
 
-    public static Objective getObjective(CommandContext<CommandSourceStack> p_101961_, String p_101962_) throws CommandSyntaxException {
-        String s = p_101961_.getArgument(p_101962_, String.class);
-        Scoreboard scoreboard = p_101961_.getSource().getServer().getScoreboard();
+    public static Objective getObjective(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        String s = pContext.getArgument(pName, String.class);
+        Scoreboard scoreboard = pContext.getSource().getServer().getScoreboard();
         Objective objective = scoreboard.getObjective(s);
         if (objective == null) {
             throw ERROR_OBJECTIVE_NOT_FOUND.create(s);
@@ -40,8 +40,8 @@ public class ObjectiveArgument implements ArgumentType<String> {
         }
     }
 
-    public static Objective getWritableObjective(CommandContext<CommandSourceStack> p_101966_, String p_101967_) throws CommandSyntaxException {
-        Objective objective = getObjective(p_101966_, p_101967_);
+    public static Objective getWritableObjective(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        Objective objective = getObjective(pContext, pName);
         if (objective.getCriteria().isReadOnly()) {
             throw ERROR_OBJECTIVE_READ_ONLY.create(objective.getName());
         } else {
@@ -53,12 +53,12 @@ public class ObjectiveArgument implements ArgumentType<String> {
         return p_101959_.readUnquotedString();
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_101974_, SuggestionsBuilder p_101975_) {
-        S s = p_101974_.getSource();
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        S s = pContext.getSource();
         if (s instanceof CommandSourceStack commandsourcestack) {
-            return SharedSuggestionProvider.suggest(commandsourcestack.getServer().getScoreboard().getObjectiveNames(), p_101975_);
+            return SharedSuggestionProvider.suggest(commandsourcestack.getServer().getScoreboard().getObjectiveNames(), pBuilder);
         } else if (s instanceof SharedSuggestionProvider sharedsuggestionprovider) {
-            return sharedsuggestionprovider.customSuggestion(p_101974_);
+            return sharedsuggestionprovider.customSuggestion(pContext);
         } else {
             return Suggestions.empty();
         }

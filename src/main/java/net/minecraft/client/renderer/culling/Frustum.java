@@ -25,8 +25,8 @@ public class Frustum {
     // Keep the integral camera block separate from the lossy Vec3 mirror.  X/Z
     // deltas must be formed as long arithmetic before they are narrowed to float.
 
-    public Frustum(Matrix4f p_113000_, Matrix4f p_113001_) {
-        this.calculateFrustum(p_113000_, p_113001_);
+    public Frustum(Matrix4f pProjection, Matrix4f pFrustum) {
+        this.calculateFrustum(pProjection, pFrustum);
     }
 
     public static boolean isEnabled() {
@@ -37,13 +37,13 @@ public class Frustum {
         Frustum.enabled = enabled;
     }
 
-    public Frustum(Frustum p_194440_) {
-        System.arraycopy(p_194440_.frustumData, 0, this.frustumData, 0, p_194440_.frustumData.length);
-        this.camX = p_194440_.camX;
-        this.camY = p_194440_.camY;
-        this.camZ = p_194440_.camZ;
-        this.cameraRelativePosition = p_194440_.cameraRelativePosition;
-        this.viewVector = p_194440_.viewVector;
+    public Frustum(Frustum pOther) {
+        System.arraycopy(pOther.frustumData, 0, this.frustumData, 0, pOther.frustumData.length);
+        this.camX = pOther.camX;
+        this.camY = pOther.camY;
+        this.camZ = pOther.camZ;
+        this.cameraRelativePosition = pOther.cameraRelativePosition;
+        this.viewVector = pOther.viewVector;
     }
 
     public Frustum offsetToFullyIncludeCameraCube(int p_194442_) {
@@ -63,11 +63,11 @@ public class Frustum {
         return this;
     }
 
-    public void prepare(double p_113003_, double p_113004_, double p_113005_) {
-        this.camX = p_113003_;
-        this.camY = p_113004_;
-        this.camZ = p_113005_;
-        this.cameraRelativePosition = CameraRelativePosition.of(SectorVec3.fromApproximate(p_113003_, p_113004_, p_113005_));
+    public void prepare(double pCamX, double pCamY, double pCamZ) {
+        this.camX = pCamX;
+        this.camY = pCamY;
+        this.camZ = pCamZ;
+        this.cameraRelativePosition = CameraRelativePosition.of(SectorVec3.fromApproximate(pCamX, pCamY, pCamZ));
     }
 
     /**
@@ -88,9 +88,9 @@ public class Frustum {
         }
     }
 
-    private void calculateFrustum(Matrix4f p_113027_, Matrix4f p_113028_) {
-        Matrix4f matrix4f = p_113028_.copy();
-        matrix4f.multiply(p_113027_);
+    private void calculateFrustum(Matrix4f pProjection, Matrix4f pFrustumMatrix) {
+        Matrix4f matrix4f = pFrustumMatrix.copy();
+        matrix4f.multiply(pProjection);
         matrix4f.transpose();
         this.viewVector = new Vector4f(0.0F, 0.0F, 1.0F, 0.0F);
         this.viewVector.transform(matrix4f);
@@ -102,29 +102,29 @@ public class Frustum {
         this.getPlane(matrix4f, 0, 0, 1, 5);
     }
 
-    private void getPlane(Matrix4f p_113021_, int p_113022_, int p_113023_, int p_113024_, int p_113025_) {
-        Vector4f vector4f = new Vector4f((float) p_113022_, (float) p_113023_, (float) p_113024_, 1.0F);
-        vector4f.transform(p_113021_);
+    private void getPlane(Matrix4f pFrustrumMatrix, int pX, int pY, int pZ, int pId) {
+        Vector4f vector4f = new Vector4f((float) pX, (float) pY, (float) pZ, 1.0F);
+        vector4f.transform(pFrustrumMatrix);
         vector4f.normalize();
-        this.frustumData[p_113025_] = vector4f;
+        this.frustumData[pId] = vector4f;
     }
 
-    public boolean isVisible(AABB p_113030_) {
+    public boolean isVisible(AABB pAabb) {
         if (!enabled)
             return true;
-        long minBlockX = Mth.lfloor(p_113030_.minX);
-        int minBlockY = Mth.floor(p_113030_.minY);
-        long minBlockZ = Mth.lfloor(p_113030_.minZ);
-        long maxBlockX = Mth.lfloor(p_113030_.maxX);
-        int maxBlockY = Mth.floor(p_113030_.maxY);
-        long maxBlockZ = Mth.lfloor(p_113030_.maxZ);
+        long minBlockX = Mth.lfloor(pAabb.minX);
+        int minBlockY = Mth.floor(pAabb.minY);
+        long minBlockZ = Mth.lfloor(pAabb.minZ);
+        long maxBlockX = Mth.lfloor(pAabb.maxX);
+        int maxBlockY = Mth.floor(pAabb.maxY);
+        long maxBlockZ = Mth.lfloor(pAabb.maxZ);
         return this.cubeInFrustumLocal(
-                this.cameraRelativePosition.relativeX(minBlockX) + p_113030_.minX - (double) minBlockX,
-                this.cameraRelativePosition.relativeY(minBlockY) + p_113030_.minY - (double) minBlockY,
-                this.cameraRelativePosition.relativeZ(minBlockZ) + p_113030_.minZ - (double) minBlockZ,
-                this.cameraRelativePosition.relativeX(maxBlockX) + p_113030_.maxX - (double) maxBlockX,
-                this.cameraRelativePosition.relativeY(maxBlockY) + p_113030_.maxY - (double) maxBlockY,
-                this.cameraRelativePosition.relativeZ(maxBlockZ) + p_113030_.maxZ - (double) maxBlockZ);
+                this.cameraRelativePosition.relativeX(minBlockX) + pAabb.minX - (double) minBlockX,
+                this.cameraRelativePosition.relativeY(minBlockY) + pAabb.minY - (double) minBlockY,
+                this.cameraRelativePosition.relativeZ(minBlockZ) + pAabb.minZ - (double) minBlockZ,
+                this.cameraRelativePosition.relativeX(maxBlockX) + pAabb.maxX - (double) maxBlockX,
+                this.cameraRelativePosition.relativeY(maxBlockY) + pAabb.maxY - (double) maxBlockY,
+                this.cameraRelativePosition.relativeZ(maxBlockZ) + pAabb.maxZ - (double) maxBlockZ);
     }
 
     /** Tests an exact X/Z box without reconstructing its endpoints as doubles. */
@@ -182,24 +182,24 @@ public class Frustum {
         return this.cameraRelativePosition.relativeY(block);
     }
 
-    private boolean cubeInFrustum(double p_113007_, double p_113008_, double p_113009_, double p_113010_, double p_113011_, double p_113012_) {
+    private boolean cubeInFrustum(double pMinX, double pMinY, double pMinZ, double pMaxX, double pMaxY, double pMaxZ) {
         return this.cubeInFrustumLocal(
-                this.cameraRelativePosition.relativeX(Mth.lfloor(p_113007_)) + p_113007_ - (double) Mth.lfloor(p_113007_),
-                this.cameraRelativePosition.relativeY(Mth.floor(p_113008_)) + p_113008_ - (double) Mth.floor(p_113008_),
-                this.cameraRelativePosition.relativeZ(Mth.lfloor(p_113009_)) + p_113009_ - (double) Mth.lfloor(p_113009_),
-                this.cameraRelativePosition.relativeX(Mth.lfloor(p_113010_)) + p_113010_ - (double) Mth.lfloor(p_113010_),
-                this.cameraRelativePosition.relativeY(Mth.floor(p_113011_)) + p_113011_ - (double) Mth.floor(p_113011_),
-                this.cameraRelativePosition.relativeZ(Mth.lfloor(p_113012_)) + p_113012_ - (double) Mth.lfloor(p_113012_));
+                this.cameraRelativePosition.relativeX(Mth.lfloor(pMinX)) + pMinX - (double) Mth.lfloor(pMinX),
+                this.cameraRelativePosition.relativeY(Mth.floor(pMinY)) + pMinY - (double) Mth.floor(pMinY),
+                this.cameraRelativePosition.relativeZ(Mth.lfloor(pMinZ)) + pMinZ - (double) Mth.lfloor(pMinZ),
+                this.cameraRelativePosition.relativeX(Mth.lfloor(pMaxX)) + pMaxX - (double) Mth.lfloor(pMaxX),
+                this.cameraRelativePosition.relativeY(Mth.floor(pMaxY)) + pMaxY - (double) Mth.floor(pMaxY),
+                this.cameraRelativePosition.relativeZ(Mth.lfloor(pMaxZ)) + pMaxZ - (double) Mth.lfloor(pMaxZ));
     }
 
     private boolean cubeInFrustumLocal(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         return this.cubeInFrustum((float) minX, (float) minY, (float) minZ, (float) maxX, (float) maxY, (float) maxZ);
     }
 
-    private boolean cubeInFrustum(float p_113014_, float p_113015_, float p_113016_, float p_113017_, float p_113018_, float p_113019_) {
+    private boolean cubeInFrustum(float pMinX, float pMinY, float pMinZ, float pMaxX, float pMaxY, float pMaxZ) {
         for (int i = 0; i < 6; ++i) {
             Vector4f vector4f = this.frustumData[i];
-            if (!(vector4f.dot(new Vector4f(p_113014_, p_113015_, p_113016_, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(p_113017_, p_113015_, p_113016_, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(p_113014_, p_113018_, p_113016_, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(p_113017_, p_113018_, p_113016_, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(p_113014_, p_113015_, p_113019_, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(p_113017_, p_113015_, p_113019_, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(p_113014_, p_113018_, p_113019_, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(p_113017_, p_113018_, p_113019_, 1.0F)) > 0.0F)) {
+            if (!(vector4f.dot(new Vector4f(pMinX, pMinY, pMinZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMaxX, pMinY, pMinZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMinX, pMaxY, pMinZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMaxX, pMaxY, pMinZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMinX, pMinY, pMaxZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMaxX, pMinY, pMaxZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMinX, pMaxY, pMaxZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMaxX, pMaxY, pMaxZ, 1.0F)) > 0.0F)) {
                 return false;
             }
         }

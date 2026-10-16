@@ -11,13 +11,13 @@ public class ServerActivity extends ValueObject {
     public long joinTime;
     public long leaveTime;
 
-    public static ServerActivity parse(JsonObject p_167317_) {
+    public static ServerActivity parse(JsonObject pJson) {
         ServerActivity serveractivity = new ServerActivity();
 
         try {
-            serveractivity.profileUuid = JsonUtils.getStringOr("profileUuid", p_167317_, (String) null);
-            serveractivity.joinTime = JsonUtils.getLongOr("joinTime", p_167317_, Long.MIN_VALUE);
-            serveractivity.leaveTime = JsonUtils.getLongOr("leaveTime", p_167317_, Long.MIN_VALUE);
+            serveractivity.profileUuid = JsonUtils.getStringOr("profileUuid", pJson, (String) null);
+            serveractivity.joinTime = JsonUtils.getLongOr("joinTime", pJson, Long.MIN_VALUE);
+            serveractivity.leaveTime = JsonUtils.getLongOr("leaveTime", pJson, Long.MIN_VALUE);
         } catch (Exception exception) {
         }
 

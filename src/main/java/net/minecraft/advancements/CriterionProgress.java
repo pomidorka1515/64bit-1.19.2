@@ -37,28 +37,28 @@ public class CriterionProgress {
         return "CriterionProgress{obtained=" + (this.obtained == null ? "false" : this.obtained) + "}";
     }
 
-    public void serializeToNetwork(FriendlyByteBuf p_12915_) {
-        p_12915_.writeNullable(this.obtained, FriendlyByteBuf::writeDate);
+    public void serializeToNetwork(FriendlyByteBuf pBuffer) {
+        pBuffer.writeNullable(this.obtained, FriendlyByteBuf::writeDate);
     }
 
     public JsonElement serializeToJson() {
         return (JsonElement) (this.obtained != null ? new JsonPrimitive(DATE_FORMAT.format(this.obtained)) : JsonNull.INSTANCE);
     }
 
-    public static CriterionProgress fromNetwork(FriendlyByteBuf p_12918_) {
+    public static CriterionProgress fromNetwork(FriendlyByteBuf pBuffer) {
         CriterionProgress criterionprogress = new CriterionProgress();
-        criterionprogress.obtained = p_12918_.readNullable(FriendlyByteBuf::readDate);
+        criterionprogress.obtained = pBuffer.readNullable(FriendlyByteBuf::readDate);
         return criterionprogress;
     }
 
-    public static CriterionProgress fromJson(String p_12913_) {
+    public static CriterionProgress fromJson(String pDateTime) {
         CriterionProgress criterionprogress = new CriterionProgress();
 
         try {
-            criterionprogress.obtained = DATE_FORMAT.parse(p_12913_);
+            criterionprogress.obtained = DATE_FORMAT.parse(pDateTime);
             return criterionprogress;
         } catch (ParseException parseexception) {
-            throw new JsonSyntaxException("Invalid datetime: " + p_12913_, parseexception);
+            throw new JsonSyntaxException("Invalid datetime: " + pDateTime, parseexception);
         }
     }
 }

@@ -12,8 +12,8 @@ import java.util.function.Function;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class VillagerTradeFix extends NamedEntityFix {
-    public VillagerTradeFix(Schema p_17116_, boolean p_17117_) {
-        super(p_17116_, p_17117_, "Villager trade fix", References.ENTITY, "minecraft:villager");
+    public VillagerTradeFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "Villager trade fix", References.ENTITY, "minecraft:villager");
     }
 
     protected Typed<?> fix(Typed<?> p_17143_) {

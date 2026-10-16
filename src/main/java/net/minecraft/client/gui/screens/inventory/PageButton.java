@@ -16,13 +16,13 @@ public class PageButton extends Button {
     private final boolean isForward;
     private final boolean playTurnSound;
 
-    public PageButton(int p_99225_, int p_99226_, boolean p_99227_, Button.OnPress p_99228_, boolean p_99229_) {
-        super(p_99225_, p_99226_, 23, 13, CommonComponents.EMPTY, p_99228_);
-        this.isForward = p_99227_;
-        this.playTurnSound = p_99229_;
+    public PageButton(int pX, int pY, boolean pIsForward, Button.OnPress pOnPress, boolean pPlayTurnSound) {
+        super(pX, pY, 23, 13, CommonComponents.EMPTY, pOnPress);
+        this.isForward = pIsForward;
+        this.playTurnSound = pPlayTurnSound;
     }
 
-    public void renderButton(PoseStack p_99233_, int p_99234_, int p_99235_, float p_99236_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, BookViewScreen.BOOK_LOCATION);
@@ -36,12 +36,12 @@ public class PageButton extends Button {
             j += 13;
         }
 
-        this.blit(p_99233_, this.x, this.y, i, j, 23, 13);
+        this.blit(pPoseStack, this.x, this.y, i, j, 23, 13);
     }
 
-    public void playDownSound(SoundManager p_99231_) {
+    public void playDownSound(SoundManager pHandler) {
         if (this.playTurnSound) {
-            p_99231_.play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
+            pHandler.play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
         }
     }
 }

@@ -59,11 +59,11 @@ public class ChatReportScreen extends Screen {
     @Nullable
     ChatReportBuilder.CannotBuildReason cannotBuildReason;
 
-    public ChatReportScreen(Screen p_239116_, ReportingContext p_239117_, UUID p_239118_) {
+    public ChatReportScreen(Screen pLastScreen, ReportingContext pReportingContext, UUID pReportId) {
         super(Component.translatable("gui.chatReport.title"));
-        this.lastScreen = p_239116_;
-        this.reportingContext = p_239117_;
-        this.report = new ChatReportBuilder(p_239118_, p_239117_.sender().reportLimits());
+        this.lastScreen = pLastScreen;
+        this.reportingContext = pReportingContext;
+        this.report = new ChatReportBuilder(pReportId, pReportingContext.sender().reportLimits());
     }
 
     protected void init() {
@@ -151,9 +151,9 @@ public class ChatReportScreen extends Screen {
         }));
     }
 
-    private void onReportSendError(Throwable p_240314_) {
-        LOGGER.error("Encountered error while sending abuse report", p_240314_);
-        Throwable throwable = p_240314_.getCause();
+    private void onReportSendError(Throwable pThrowable) {
+        LOGGER.error("Encountered error while sending abuse report", pThrowable);
+        Throwable throwable = pThrowable.getCause();
         Component component;
         if (throwable instanceof ThrowingComponent throwingcomponent) {
             component = throwingcomponent.getComponent();
@@ -164,25 +164,25 @@ public class ChatReportScreen extends Screen {
         this.displayReportSendError(component);
     }
 
-    private void displayReportSendError(Component p_242978_) {
-        Component component = p_242978_.copy().withStyle(ChatFormatting.RED);
+    private void displayReportSendError(Component pMessage) {
+        Component component = pMessage.copy().withStyle(ChatFormatting.RED);
         this.minecraft.setScreen(GenericWaitingScreen.createCompleted(REPORT_ERROR_TITLE, component, CommonComponents.GUI_BACK, () -> {
             this.minecraft.setScreen(this);
         }));
     }
 
-    public void render(PoseStack p_239922_, int p_239923_, int p_239924_, float p_239925_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         int i = this.width / 2;
         RenderSystem.disableDepthTest();
-        this.renderBackground(p_239922_);
-        drawCenteredString(p_239922_, this.font, this.title, i, 10, 16777215);
-        drawCenteredString(p_239922_, this.font, OBSERVED_WHAT_LABEL, i, this.selectChatTop() - 9 - 6, 16777215);
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, i, 10, 16777215);
+        drawCenteredString(pPoseStack, this.font, OBSERVED_WHAT_LABEL, i, this.selectChatTop() - 9 - 6, 16777215);
         if (this.reasonDescriptionLabel != null) {
-            this.reasonDescriptionLabel.renderLeftAligned(p_239922_, this.contentLeft(), this.selectInfoTop() + 20 + 5, 9, 16777215);
+            this.reasonDescriptionLabel.renderLeftAligned(pPoseStack, this.contentLeft(), this.selectInfoTop() + 20 + 5, 9, 16777215);
         }
 
-        drawString(p_239922_, this.font, MORE_COMMENTS_LABEL, this.contentLeft(), this.commentBoxTop() - 9 - 6, 16777215);
-        super.render(p_239922_, p_239923_, p_239924_, p_239925_);
+        drawString(pPoseStack, this.font, MORE_COMMENTS_LABEL, this.contentLeft(), this.commentBoxTop() - 9 - 6, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         RenderSystem.enableDepthTest();
     }
 
@@ -199,8 +199,8 @@ public class ChatReportScreen extends Screen {
         }
     }
 
-    public boolean mouseReleased(double p_239350_, double p_239351_, int p_239352_) {
-        return super.mouseReleased(p_239350_, p_239351_, p_239352_) ? true : this.commentBox.mouseReleased(p_239350_, p_239351_, p_239352_);
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+        return super.mouseReleased(pMouseX, pMouseY, pButton) ? true : this.commentBox.mouseReleased(pMouseX, pMouseY, pButton);
     }
 
     private int contentLeft() {

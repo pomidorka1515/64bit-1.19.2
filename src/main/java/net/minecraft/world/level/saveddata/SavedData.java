@@ -12,28 +12,28 @@ public abstract class SavedData {
     private static final Logger LOGGER = LogUtils.getLogger();
     private boolean dirty;
 
-    public abstract CompoundTag save(CompoundTag p_77763_);
+    public abstract CompoundTag save(CompoundTag pCompoundTag);
 
     public void setDirty() {
         this.setDirty(true);
     }
 
-    public void setDirty(boolean p_77761_) {
-        this.dirty = p_77761_;
+    public void setDirty(boolean pDirty) {
+        this.dirty = pDirty;
     }
 
     public boolean isDirty() {
         return this.dirty;
     }
 
-    public void save(File p_77758_) {
+    public void save(File pFile) {
         if (this.isDirty()) {
             CompoundTag compoundtag = new CompoundTag();
             compoundtag.put("data", this.save(new CompoundTag()));
             compoundtag.putInt("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
 
             try {
-                NbtIo.writeCompressed(compoundtag, p_77758_);
+                NbtIo.writeCompressed(compoundtag, pFile);
             } catch (IOException ioexception) {
                 LOGGER.error("Could not save data {}", this, ioexception);
             }

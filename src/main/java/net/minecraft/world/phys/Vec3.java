@@ -19,41 +19,41 @@ public class Vec3 implements Position {
     public final double y;
     public final double z;
 
-    public static Vec3 fromRGB24(int p_82502_) {
-        double d0 = (double) (p_82502_ >> 16 & 255) / 255.0D;
-        double d1 = (double) (p_82502_ >> 8 & 255) / 255.0D;
-        double d2 = (double) (p_82502_ & 255) / 255.0D;
+    public static Vec3 fromRGB24(int pPacked) {
+        double d0 = (double) (pPacked >> 16 & 255) / 255.0D;
+        double d1 = (double) (pPacked >> 8 & 255) / 255.0D;
+        double d2 = (double) (pPacked & 255) / 255.0D;
         return new Vec3(d0, d1, d2);
     }
 
-    public static Vec3 atCenterOf(Vec3i p_82513_) {
-        return new Vec3((double) p_82513_.getX() + 0.5D, (double) p_82513_.getY() + 0.5D, (double) p_82513_.getZ() + 0.5D);
+    public static Vec3 atCenterOf(Vec3i pToCopy) {
+        return new Vec3((double) pToCopy.getX() + 0.5D, (double) pToCopy.getY() + 0.5D, (double) pToCopy.getZ() + 0.5D);
     }
 
-    public static Vec3 atLowerCornerOf(Vec3i p_82529_) {
-        return new Vec3((double) p_82529_.getX(), (double) p_82529_.getY(), (double) p_82529_.getZ());
+    public static Vec3 atLowerCornerOf(Vec3i pToCopy) {
+        return new Vec3((double) pToCopy.getX(), (double) pToCopy.getY(), (double) pToCopy.getZ());
     }
 
-    public static Vec3 atBottomCenterOf(Vec3i p_82540_) {
-        return new Vec3((double) p_82540_.getX() + 0.5D, (double) p_82540_.getY(), (double) p_82540_.getZ() + 0.5D);
+    public static Vec3 atBottomCenterOf(Vec3i pToCopy) {
+        return new Vec3((double) pToCopy.getX() + 0.5D, (double) pToCopy.getY(), (double) pToCopy.getZ() + 0.5D);
     }
 
-    public static Vec3 upFromBottomCenterOf(Vec3i p_82515_, double p_82516_) {
-        return new Vec3((double) p_82515_.getX() + 0.5D, (double) p_82515_.getY() + p_82516_, (double) p_82515_.getZ() + 0.5D);
+    public static Vec3 upFromBottomCenterOf(Vec3i pToCopy, double pVerticalOffset) {
+        return new Vec3((double) pToCopy.getX() + 0.5D, (double) pToCopy.getY() + pVerticalOffset, (double) pToCopy.getZ() + 0.5D);
     }
 
-    public Vec3(double p_82484_, double p_82485_, double p_82486_) {
-        this.x = p_82484_;
-        this.y = p_82485_;
-        this.z = p_82486_;
+    public Vec3(double pX, double pY, double pZ) {
+        this.x = pX;
+        this.y = pY;
+        this.z = pZ;
     }
 
-    public Vec3(Vector3f p_82488_) {
-        this((double) p_82488_.x(), (double) p_82488_.y(), (double) p_82488_.z());
+    public Vec3(Vector3f pFloatVector) {
+        this((double) pFloatVector.x(), (double) pFloatVector.y(), (double) pFloatVector.z());
     }
 
-    public Vec3 vectorTo(Vec3 p_82506_) {
-        return new Vec3(p_82506_.x - this.x, p_82506_.y - this.y, p_82506_.z - this.z);
+    public Vec3 vectorTo(Vec3 pVec) {
+        return new Vec3(pVec.x - this.x, pVec.y - this.y, pVec.z - this.z);
     }
 
     public Vec3 normalize() {
@@ -61,69 +61,69 @@ public class Vec3 implements Position {
         return d0 < 1.0E-4D ? ZERO : new Vec3(this.x / d0, this.y / d0, this.z / d0);
     }
 
-    public double dot(Vec3 p_82527_) {
-        return this.x * p_82527_.x + this.y * p_82527_.y + this.z * p_82527_.z;
+    public double dot(Vec3 pVec) {
+        return this.x * pVec.x + this.y * pVec.y + this.z * pVec.z;
     }
 
-    public Vec3 cross(Vec3 p_82538_) {
-        return new Vec3(this.y * p_82538_.z - this.z * p_82538_.y, this.z * p_82538_.x - this.x * p_82538_.z, this.x * p_82538_.y - this.y * p_82538_.x);
+    public Vec3 cross(Vec3 pVec) {
+        return new Vec3(this.y * pVec.z - this.z * pVec.y, this.z * pVec.x - this.x * pVec.z, this.x * pVec.y - this.y * pVec.x);
     }
 
-    public Vec3 subtract(Vec3 p_82547_) {
-        return this.subtract(p_82547_.x, p_82547_.y, p_82547_.z);
+    public Vec3 subtract(Vec3 pVec) {
+        return this.subtract(pVec.x, pVec.y, pVec.z);
     }
 
-    public Vec3 subtract(double p_82493_, double p_82494_, double p_82495_) {
-        return this.add(-p_82493_, -p_82494_, -p_82495_);
+    public Vec3 subtract(double pX, double pY, double pZ) {
+        return this.add(-pX, -pY, -pZ);
     }
 
-    public Vec3 add(Vec3 p_82550_) {
-        return this.add(p_82550_.x, p_82550_.y, p_82550_.z);
+    public Vec3 add(Vec3 pVec) {
+        return this.add(pVec.x, pVec.y, pVec.z);
     }
 
-    public Vec3 add(double p_82521_, double p_82522_, double p_82523_) {
-        return new Vec3(this.x + p_82521_, this.y + p_82522_, this.z + p_82523_);
+    public Vec3 add(double pX, double pY, double pZ) {
+        return new Vec3(this.x + pX, this.y + pY, this.z + pZ);
     }
 
-    public boolean closerThan(Position p_82510_, double p_82511_) {
-        return this.distanceToSqr(p_82510_.x(), p_82510_.y(), p_82510_.z()) < p_82511_ * p_82511_;
+    public boolean closerThan(Position pPos, double pDistance) {
+        return this.distanceToSqr(pPos.x(), pPos.y(), pPos.z()) < pDistance * pDistance;
     }
 
-    public double distanceTo(Vec3 p_82555_) {
-        double d0 = p_82555_.x - this.x;
-        double d1 = p_82555_.y - this.y;
-        double d2 = p_82555_.z - this.z;
+    public double distanceTo(Vec3 pVec) {
+        double d0 = pVec.x - this.x;
+        double d1 = pVec.y - this.y;
+        double d2 = pVec.z - this.z;
         return Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
     }
 
-    public double distanceToSqr(Vec3 p_82558_) {
-        double d0 = p_82558_.x - this.x;
-        double d1 = p_82558_.y - this.y;
-        double d2 = p_82558_.z - this.z;
+    public double distanceToSqr(Vec3 pVec) {
+        double d0 = pVec.x - this.x;
+        double d1 = pVec.y - this.y;
+        double d2 = pVec.z - this.z;
         return d0 * d0 + d1 * d1 + d2 * d2;
     }
 
-    public double distanceToSqr(double p_82532_, double p_82533_, double p_82534_) {
-        double d0 = p_82532_ - this.x;
-        double d1 = p_82533_ - this.y;
-        double d2 = p_82534_ - this.z;
+    public double distanceToSqr(double pX, double pY, double pZ) {
+        double d0 = pX - this.x;
+        double d1 = pY - this.y;
+        double d2 = pZ - this.z;
         return d0 * d0 + d1 * d1 + d2 * d2;
     }
 
-    public Vec3 scale(double p_82491_) {
-        return this.multiply(p_82491_, p_82491_, p_82491_);
+    public Vec3 scale(double pFactor) {
+        return this.multiply(pFactor, pFactor, pFactor);
     }
 
     public Vec3 reverse() {
         return this.scale(-1.0D);
     }
 
-    public Vec3 multiply(Vec3 p_82560_) {
-        return this.multiply(p_82560_.x, p_82560_.y, p_82560_.z);
+    public Vec3 multiply(Vec3 pVec) {
+        return this.multiply(pVec.x, pVec.y, pVec.z);
     }
 
-    public Vec3 multiply(double p_82543_, double p_82544_, double p_82545_) {
-        return new Vec3(this.x * p_82543_, this.y * p_82544_, this.z * p_82545_);
+    public Vec3 multiply(double pFactorX, double pFactorY, double pFactorZ) {
+        return new Vec3(this.x * pFactorX, this.y * pFactorY, this.z * pFactorZ);
     }
 
     public double length() {
@@ -142,13 +142,13 @@ public class Vec3 implements Position {
         return this.x * this.x + this.z * this.z;
     }
 
-    public boolean equals(Object p_82552_) {
-        if (this == p_82552_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_82552_ instanceof Vec3)) {
+        } else if (!(pOther instanceof Vec3)) {
             return false;
         } else {
-            Vec3 vec3 = (Vec3) p_82552_;
+            Vec3 vec3 = (Vec3) pOther;
             if (Double.compare(vec3.x, this.x) != 0) {
                 return false;
             } else if (Double.compare(vec3.y, this.y) != 0) {
@@ -172,64 +172,64 @@ public class Vec3 implements Position {
         return "(" + this.x + ", " + this.y + ", " + this.z + ")";
     }
 
-    public Vec3 lerp(Vec3 p_165922_, double p_165923_) {
-        return new Vec3(Mth.lerp(p_165923_, this.x, p_165922_.x), Mth.lerp(p_165923_, this.y, p_165922_.y), Mth.lerp(p_165923_, this.z, p_165922_.z));
+    public Vec3 lerp(Vec3 pTo, double pDelta) {
+        return new Vec3(Mth.lerp(pDelta, this.x, pTo.x), Mth.lerp(pDelta, this.y, pTo.y), Mth.lerp(pDelta, this.z, pTo.z));
     }
 
-    public Vec3 xRot(float p_82497_) {
-        float f = Mth.cos(p_82497_);
-        float f1 = Mth.sin(p_82497_);
+    public Vec3 xRot(float pPitch) {
+        float f = Mth.cos(pPitch);
+        float f1 = Mth.sin(pPitch);
         double d0 = this.x;
         double d1 = this.y * (double) f + this.z * (double) f1;
         double d2 = this.z * (double) f - this.y * (double) f1;
         return new Vec3(d0, d1, d2);
     }
 
-    public Vec3 yRot(float p_82525_) {
-        float f = Mth.cos(p_82525_);
-        float f1 = Mth.sin(p_82525_);
+    public Vec3 yRot(float pYaw) {
+        float f = Mth.cos(pYaw);
+        float f1 = Mth.sin(pYaw);
         double d0 = this.x * (double) f + this.z * (double) f1;
         double d1 = this.y;
         double d2 = this.z * (double) f - this.x * (double) f1;
         return new Vec3(d0, d1, d2);
     }
 
-    public Vec3 zRot(float p_82536_) {
-        float f = Mth.cos(p_82536_);
-        float f1 = Mth.sin(p_82536_);
+    public Vec3 zRot(float pRoll) {
+        float f = Mth.cos(pRoll);
+        float f1 = Mth.sin(pRoll);
         double d0 = this.x * (double) f + this.y * (double) f1;
         double d1 = this.y * (double) f - this.x * (double) f1;
         double d2 = this.z;
         return new Vec3(d0, d1, d2);
     }
 
-    public static Vec3 directionFromRotation(Vec2 p_82504_) {
-        return directionFromRotation(p_82504_.x, p_82504_.y);
+    public static Vec3 directionFromRotation(Vec2 pVec) {
+        return directionFromRotation(pVec.x, pVec.y);
     }
 
-    public static Vec3 directionFromRotation(float p_82499_, float p_82500_) {
-        float f = Mth.cos(-p_82500_ * ((float) Math.PI / 180F) - (float) Math.PI);
-        float f1 = Mth.sin(-p_82500_ * ((float) Math.PI / 180F) - (float) Math.PI);
-        float f2 = -Mth.cos(-p_82499_ * ((float) Math.PI / 180F));
-        float f3 = Mth.sin(-p_82499_ * ((float) Math.PI / 180F));
+    public static Vec3 directionFromRotation(float pPitch, float pYaw) {
+        float f = Mth.cos(-pYaw * ((float) Math.PI / 180F) - (float) Math.PI);
+        float f1 = Mth.sin(-pYaw * ((float) Math.PI / 180F) - (float) Math.PI);
+        float f2 = -Mth.cos(-pPitch * ((float) Math.PI / 180F));
+        float f3 = Mth.sin(-pPitch * ((float) Math.PI / 180F));
         return new Vec3((double) (f1 * f2), (double) f3, (double) (f * f2));
     }
 
-    public Vec3 align(EnumSet<Direction.Axis> p_82518_) {
-        double d0 = p_82518_.contains(Direction.Axis.X) ? (double) Mth.floor(this.x) : this.x;
-        double d1 = p_82518_.contains(Direction.Axis.Y) ? (double) Mth.floor(this.y) : this.y;
-        double d2 = p_82518_.contains(Direction.Axis.Z) ? (double) Mth.floor(this.z) : this.z;
+    public Vec3 align(EnumSet<Direction.Axis> pAxes) {
+        double d0 = pAxes.contains(Direction.Axis.X) ? (double) Mth.floor(this.x) : this.x;
+        double d1 = pAxes.contains(Direction.Axis.Y) ? (double) Mth.floor(this.y) : this.y;
+        double d2 = pAxes.contains(Direction.Axis.Z) ? (double) Mth.floor(this.z) : this.z;
         return new Vec3(d0, d1, d2);
     }
 
-    public double get(Direction.Axis p_82508_) {
-        return p_82508_.choose(this.x, this.y, this.z);
+    public double get(Direction.Axis pAxis) {
+        return pAxis.choose(this.x, this.y, this.z);
     }
 
-    public Vec3 with(Direction.Axis p_193104_, double p_193105_) {
-        double d0 = p_193104_ == Direction.Axis.X ? p_193105_ : this.x;
-        double d1 = p_193104_ == Direction.Axis.Y ? p_193105_ : this.y;
-        double d2 = p_193104_ == Direction.Axis.Z ? p_193105_ : this.z;
+    public Vec3 with(Direction.Axis pAxis, double pLength) {
+        double d0 = pAxis == Direction.Axis.X ? pLength : this.x;
+        double d1 = pAxis == Direction.Axis.Y ? pLength : this.y;
+        double d2 = pAxis == Direction.Axis.Z ? pLength : this.z;
         return new Vec3(d0, d1, d2);
     }
 

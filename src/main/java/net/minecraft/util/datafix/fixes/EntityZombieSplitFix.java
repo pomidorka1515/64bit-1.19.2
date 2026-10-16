@@ -6,14 +6,14 @@ import com.mojang.serialization.Dynamic;
 import java.util.Objects;
 
 public class EntityZombieSplitFix extends SimpleEntityRenameFix {
-    public EntityZombieSplitFix(Schema p_15798_, boolean p_15799_) {
-        super("EntityZombieSplitFix", p_15798_, p_15799_);
+    public EntityZombieSplitFix(Schema pOutputSchema, boolean pChangesType) {
+        super("EntityZombieSplitFix", pOutputSchema, pChangesType);
     }
 
-    protected Pair<String, Dynamic<?>> getNewNameAndTag(String p_15801_, Dynamic<?> p_15802_) {
-        if (Objects.equals("Zombie", p_15801_)) {
+    protected Pair<String, Dynamic<?>> getNewNameAndTag(String pName, Dynamic<?> pTag) {
+        if (Objects.equals("Zombie", pName)) {
             String s = "Zombie";
-            int i = p_15802_.get("ZombieType").asInt(0);
+            int i = pTag.get("ZombieType").asInt(0);
             switch (i) {
                 case 0:
                 default:
@@ -24,16 +24,16 @@ public class EntityZombieSplitFix extends SimpleEntityRenameFix {
                 case 4:
                 case 5:
                     s = "ZombieVillager";
-                    p_15802_ = p_15802_.set("Profession", p_15802_.createInt(i - 1));
+                    pTag = pTag.set("Profession", pTag.createInt(i - 1));
                     break;
                 case 6:
                     s = "Husk";
             }
 
-            p_15802_ = p_15802_.remove("ZombieType");
-            return Pair.of(s, p_15802_);
+            pTag = pTag.remove("ZombieType");
+            return Pair.of(s, pTag);
         } else {
-            return Pair.of(p_15801_, p_15802_);
+            return Pair.of(pName, pTag);
         }
     }
 }

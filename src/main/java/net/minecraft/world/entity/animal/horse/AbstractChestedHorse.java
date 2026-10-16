@@ -23,8 +23,8 @@ public abstract class AbstractChestedHorse extends AbstractHorse {
     private static final EntityDataAccessor<Boolean> DATA_ID_CHEST = SynchedEntityData.defineId(AbstractChestedHorse.class, EntityDataSerializers.BOOLEAN);
     public static final int INV_CHEST_COUNT = 15;
 
-    protected AbstractChestedHorse(EntityType<? extends AbstractChestedHorse> p_30485_, Level p_30486_) {
-        super(p_30485_, p_30486_);
+    protected AbstractChestedHorse(EntityType<? extends AbstractChestedHorse> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.canGallop = false;
     }
 
@@ -45,8 +45,8 @@ public abstract class AbstractChestedHorse extends AbstractHorse {
         return this.entityData.get(DATA_ID_CHEST);
     }
 
-    public void setChest(boolean p_30505_) {
-        this.entityData.set(DATA_ID_CHEST, p_30505_);
+    public void setChest(boolean pChested) {
+        this.entityData.set(DATA_ID_CHEST, pChested);
     }
 
     protected int getInventorySize() {
@@ -68,9 +68,9 @@ public abstract class AbstractChestedHorse extends AbstractHorse {
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_30496_) {
-        super.addAdditionalSaveData(p_30496_);
-        p_30496_.putBoolean("ChestedHorse", this.hasChest());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putBoolean("ChestedHorse", this.hasChest());
         if (this.hasChest()) {
             ListTag listtag = new ListTag();
 
@@ -84,16 +84,16 @@ public abstract class AbstractChestedHorse extends AbstractHorse {
                 }
             }
 
-            p_30496_.put("Items", listtag);
+            pCompound.put("Items", listtag);
         }
     }
 
-    public void readAdditionalSaveData(CompoundTag p_30488_) {
-        super.readAdditionalSaveData(p_30488_);
-        this.setChest(p_30488_.getBoolean("ChestedHorse"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setChest(pCompound.getBoolean("ChestedHorse"));
         this.createInventory();
         if (this.hasChest()) {
-            ListTag listtag = p_30488_.getList("Items", 10);
+            ListTag listtag = pCompound.getList("Items", 10);
 
             for (int i = 0; i < listtag.size(); ++i) {
                 CompoundTag compoundtag = listtag.getCompound(i);
@@ -107,8 +107,8 @@ public abstract class AbstractChestedHorse extends AbstractHorse {
         this.updateContainerEquipment();
     }
 
-    public SlotAccess getSlot(int p_149479_) {
-        return p_149479_ == 499 ? new SlotAccess() {
+    public SlotAccess getSlot(int pSlot) {
+        return pSlot == 499 ? new SlotAccess() {
             public ItemStack get() {
                 return AbstractChestedHorse.this.hasChest() ? new ItemStack(Items.CHEST) : ItemStack.EMPTY;
             }
@@ -132,25 +132,25 @@ public abstract class AbstractChestedHorse extends AbstractHorse {
                     return false;
                 }
             }
-        } : super.getSlot(p_149479_);
+        } : super.getSlot(pSlot);
     }
 
-    public InteractionResult mobInteract(Player p_30493_, InteractionHand p_30494_) {
-        ItemStack itemstack = p_30493_.getItemInHand(p_30494_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (!this.isBaby()) {
-            if (this.isTamed() && p_30493_.isSecondaryUseActive()) {
-                this.openCustomInventoryScreen(p_30493_);
+            if (this.isTamed() && pPlayer.isSecondaryUseActive()) {
+                this.openCustomInventoryScreen(pPlayer);
                 return InteractionResult.sidedSuccess(this.level.isClientSide);
             }
 
             if (this.isVehicle()) {
-                return super.mobInteract(p_30493_, p_30494_);
+                return super.mobInteract(pPlayer, pHand);
             }
         }
 
         if (!itemstack.isEmpty()) {
             if (this.isFood(itemstack)) {
-                return this.fedFood(p_30493_, itemstack);
+                return this.fedFood(pPlayer, itemstack);
             }
 
             if (!this.isTamed()) {
@@ -161,7 +161,7 @@ public abstract class AbstractChestedHorse extends AbstractHorse {
             if (!this.hasChest() && itemstack.is(Blocks.CHEST.asItem())) {
                 this.setChest(true);
                 this.playChestEquipsSound();
-                if (!p_30493_.getAbilities().instabuild) {
+                if (!pPlayer.getAbilities().instabuild) {
                     itemstack.shrink(1);
                 }
 
@@ -170,15 +170,15 @@ public abstract class AbstractChestedHorse extends AbstractHorse {
             }
 
             if (!this.isBaby() && !this.isSaddled() && itemstack.is(Items.SADDLE)) {
-                this.openCustomInventoryScreen(p_30493_);
+                this.openCustomInventoryScreen(pPlayer);
                 return InteractionResult.sidedSuccess(this.level.isClientSide);
             }
         }
 
         if (this.isBaby()) {
-            return super.mobInteract(p_30493_, p_30494_);
+            return super.mobInteract(pPlayer, pHand);
         } else {
-            this.doPlayerRide(p_30493_);
+            this.doPlayerRide(pPlayer);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         }
     }

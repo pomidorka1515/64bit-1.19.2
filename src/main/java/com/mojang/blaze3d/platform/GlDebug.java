@@ -30,12 +30,12 @@ public class GlDebug {
     private static final List<Integer> DEBUG_LEVELS_ARB = ImmutableList.of(37190, 37191, 37192);
     private static boolean debugEnabled;
 
-    private static String printUnknownToken(int p_84037_) {
-        return "Unknown (0x" + Integer.toHexString(p_84037_).toUpperCase() + ")";
+    private static String printUnknownToken(int pToken) {
+        return "Unknown (0x" + Integer.toHexString(pToken).toUpperCase() + ")";
     }
 
-    public static String sourceToString(int p_84056_) {
-        switch (p_84056_) {
+    public static String sourceToString(int pSource) {
+        switch (pSource) {
             case 33350:
                 return "API";
             case 33351:
@@ -49,12 +49,12 @@ public class GlDebug {
             case 33355:
                 return "OTHER";
             default:
-                return printUnknownToken(p_84056_);
+                return printUnknownToken(pSource);
         }
     }
 
-    public static String typeToString(int p_84058_) {
-        switch (p_84058_) {
+    public static String typeToString(int pType) {
+        switch (pType) {
             case 33356:
                 return "ERROR";
             case 33357:
@@ -70,12 +70,12 @@ public class GlDebug {
             case 33384:
                 return "MARKER";
             default:
-                return printUnknownToken(p_84058_);
+                return printUnknownToken(pType);
         }
     }
 
-    public static String severityToString(int p_84060_) {
-        switch (p_84060_) {
+    public static String severityToString(int pSeverity) {
+        switch (pSeverity) {
             case 33387:
                 return "NOTIFICATION";
             case 37190:
@@ -85,7 +85,7 @@ public class GlDebug {
             case 37192:
                 return "LOW";
             default:
-                return printUnknownToken(p_84060_);
+                return printUnknownToken(pSeverity);
         }
     }
 
@@ -122,31 +122,31 @@ public class GlDebug {
         return debugEnabled;
     }
 
-    public static void enableDebugCallback(int p_84050_, boolean p_84051_) {
+    public static void enableDebugCallback(int pDebugVerbosity, boolean pSynchronous) {
         RenderSystem.assertInInitPhase();
-        if (p_84050_ > 0) {
+        if (pDebugVerbosity > 0) {
             GLCapabilities glcapabilities = GL.getCapabilities();
             if (glcapabilities.GL_KHR_debug) {
                 debugEnabled = true;
                 GL11.glEnable(37600);
-                if (p_84051_) {
+                if (pSynchronous) {
                     GL11.glEnable(33346);
                 }
 
                 for (int i = 0; i < DEBUG_LEVELS.size(); ++i) {
-                    boolean flag = i < p_84050_;
+                    boolean flag = i < pDebugVerbosity;
                     KHRDebug.glDebugMessageControl(4352, 4352, DEBUG_LEVELS.get(i), (int[]) null, flag);
                 }
 
                 KHRDebug.glDebugMessageCallback(GLX.make(GLDebugMessageCallback.create(GlDebug::printDebugLog), DebugMemoryUntracker::untrack), 0L);
             } else if (glcapabilities.GL_ARB_debug_output) {
                 debugEnabled = true;
-                if (p_84051_) {
+                if (pSynchronous) {
                     GL11.glEnable(33346);
                 }
 
                 for (int j = 0; j < DEBUG_LEVELS_ARB.size(); ++j) {
-                    boolean flag1 = j < p_84050_;
+                    boolean flag1 = j < pDebugVerbosity;
                     ARBDebugOutput.glDebugMessageControlARB(4352, 4352, DEBUG_LEVELS_ARB.get(j), (int[]) null, flag1);
                 }
 
@@ -164,16 +164,16 @@ public class GlDebug {
         private final String message;
         int count = 1;
 
-        LogEntry(int p_166234_, int p_166235_, int p_166236_, int p_166237_, String p_166238_) {
-            this.id = p_166236_;
-            this.source = p_166234_;
-            this.type = p_166235_;
-            this.severity = p_166237_;
-            this.message = p_166238_;
+        LogEntry(int pSource, int pType, int pId, int pSeverity, String pMessage) {
+            this.id = pId;
+            this.source = pSource;
+            this.type = pType;
+            this.severity = pSeverity;
+            this.message = pMessage;
         }
 
-        boolean isSame(int p_166240_, int p_166241_, int p_166242_, int p_166243_, String p_166244_) {
-            return p_166241_ == this.type && p_166240_ == this.source && p_166242_ == this.id && p_166243_ == this.severity && p_166244_.equals(this.message);
+        boolean isSame(int pSource, int pType, int pId, int pSeverity, String pMessage) {
+            return pType == this.type && pSource == this.source && pId == this.id && pSeverity == this.severity && pMessage.equals(this.message);
         }
 
         public String toString() {

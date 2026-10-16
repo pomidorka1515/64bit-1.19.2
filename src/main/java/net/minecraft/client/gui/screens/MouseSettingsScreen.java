@@ -17,12 +17,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class MouseSettingsScreen extends OptionsSubScreen {
     private OptionsList list;
 
-    private static OptionInstance<?>[] options(Options p_232749_) {
-        return new OptionInstance[] {p_232749_.sensitivity(), p_232749_.invertYMouse(), p_232749_.mouseWheelSensitivity(), p_232749_.discreteMouseScroll(), p_232749_.touchscreen()};
+    private static OptionInstance<?>[] options(Options pOptions) {
+        return new OptionInstance[] {pOptions.sensitivity(), pOptions.invertYMouse(), pOptions.mouseWheelSensitivity(), pOptions.discreteMouseScroll(), pOptions.touchscreen()};
     }
 
-    public MouseSettingsScreen(Screen p_96222_, Options p_96223_) {
-        super(p_96222_, p_96223_, Component.translatable("options.mouse_settings.title"));
+    public MouseSettingsScreen(Screen pLastScreen, Options pOptions) {
+        super(pLastScreen, pOptions, Component.translatable("options.mouse_settings.title"));
     }
 
     protected void init() {
@@ -42,10 +42,10 @@ public class MouseSettingsScreen extends OptionsSubScreen {
         }));
     }
 
-    public void render(PoseStack p_96227_, int p_96228_, int p_96229_, float p_96230_) {
-        this.renderBackground(p_96227_);
-        this.list.render(p_96227_, p_96228_, p_96229_, p_96230_);
-        drawCenteredString(p_96227_, this.font, this.title, this.width / 2, 5, 16777215);
-        super.render(p_96227_, p_96228_, p_96229_, p_96230_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.list.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 5, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

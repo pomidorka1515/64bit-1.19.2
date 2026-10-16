@@ -23,8 +23,8 @@ public class BanIpCommands {
     private static final SimpleCommandExceptionType ERROR_INVALID_IP = new SimpleCommandExceptionType(Component.translatable("commands.banip.invalid"));
     private static final SimpleCommandExceptionType ERROR_ALREADY_BANNED = new SimpleCommandExceptionType(Component.translatable("commands.banip.failed"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_136528_) {
-        p_136528_.register(Commands.literal("ban-ip").requires((p_136532_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("ban-ip").requires((p_136532_) -> {
                                                          return p_136532_.hasPermission(3);
                                                      })
                         .then(Commands.argument("target", StringArgumentType.word()).executes((p_136538_) -> {
@@ -35,31 +35,31 @@ public class BanIpCommands {
                                         }))));
     }
 
-    private static int banIpOrName(CommandSourceStack p_136534_, String p_136535_, @Nullable Component p_136536_) throws CommandSyntaxException {
-        Matcher matcher = IP_ADDRESS_PATTERN.matcher(p_136535_);
+    private static int banIpOrName(CommandSourceStack pSource, String pUsername, @Nullable Component pReason) throws CommandSyntaxException {
+        Matcher matcher = IP_ADDRESS_PATTERN.matcher(pUsername);
         if (matcher.matches()) {
-            return banIp(p_136534_, p_136535_, p_136536_);
+            return banIp(pSource, pUsername, pReason);
         } else {
-            ServerPlayer serverplayer = p_136534_.getServer().getPlayerList().getPlayerByName(p_136535_);
+            ServerPlayer serverplayer = pSource.getServer().getPlayerList().getPlayerByName(pUsername);
             if (serverplayer != null) {
-                return banIp(p_136534_, serverplayer.getIpAddress(), p_136536_);
+                return banIp(pSource, serverplayer.getIpAddress(), pReason);
             } else {
                 throw ERROR_INVALID_IP.create();
             }
         }
     }
 
-    private static int banIp(CommandSourceStack p_136540_, String p_136541_, @Nullable Component p_136542_) throws CommandSyntaxException {
-        IpBanList ipbanlist = p_136540_.getServer().getPlayerList().getIpBans();
-        if (ipbanlist.isBanned(p_136541_)) {
+    private static int banIp(CommandSourceStack pSource, String pIp, @Nullable Component pReason) throws CommandSyntaxException {
+        IpBanList ipbanlist = pSource.getServer().getPlayerList().getIpBans();
+        if (ipbanlist.isBanned(pIp)) {
             throw ERROR_ALREADY_BANNED.create();
         } else {
-            List<ServerPlayer> list = p_136540_.getServer().getPlayerList().getPlayersWithAddress(p_136541_);
-            IpBanListEntry ipbanlistentry = new IpBanListEntry(p_136541_, (Date) null, p_136540_.getTextName(), (Date) null, p_136542_ == null ? null : p_136542_.getString());
+            List<ServerPlayer> list = pSource.getServer().getPlayerList().getPlayersWithAddress(pIp);
+            IpBanListEntry ipbanlistentry = new IpBanListEntry(pIp, (Date) null, pSource.getTextName(), (Date) null, pReason == null ? null : pReason.getString());
             ipbanlist.add(ipbanlistentry);
-            p_136540_.sendSuccess(Component.translatable("commands.banip.success", p_136541_, ipbanlistentry.getReason()), true);
+            pSource.sendSuccess(Component.translatable("commands.banip.success", pIp, ipbanlistentry.getReason()), true);
             if (!list.isEmpty()) {
-                p_136540_.sendSuccess(Component.translatable("commands.banip.info", list.size(), EntitySelector.joinNames(list)), true);
+                pSource.sendSuccess(Component.translatable("commands.banip.info", list.size(), EntitySelector.joinNames(list)), true);
             }
 
             for (ServerPlayer serverplayer : list) {

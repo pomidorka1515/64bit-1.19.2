@@ -25,7 +25,7 @@ public enum Variant {
         return this.id;
     }
 
-    public static Variant byId(int p_30987_) {
-        return BY_ID[p_30987_ % BY_ID.length];
+    public static Variant byId(int pId) {
+        return BY_ID[pId % BY_ID.length];
     }
 }

@@ -17,8 +17,8 @@ public class BlockFamily {
     @Nullable
     String recipeUnlockedBy;
 
-    BlockFamily(Block p_175950_) {
-        this.baseBlock = p_175950_;
+    BlockFamily(Block pBaseBlock) {
+        this.baseBlock = pBaseBlock;
     }
 
     public Block getBaseBlock() {
@@ -29,8 +29,8 @@ public class BlockFamily {
         return this.variants;
     }
 
-    public Block get(BlockFamily.Variant p_175953_) {
-        return this.variants.get(p_175953_);
+    public Block get(BlockFamily.Variant pVariant) {
+        return this.variants.get(pVariant);
     }
 
     public boolean shouldGenerateModel() {
@@ -52,82 +52,82 @@ public class BlockFamily {
     public static class Builder {
         private final BlockFamily family;
 
-        public Builder(Block p_175961_) {
-            this.family = new BlockFamily(p_175961_);
+        public Builder(Block pBaseBlock) {
+            this.family = new BlockFamily(pBaseBlock);
         }
 
         public BlockFamily getFamily() {
             return this.family;
         }
 
-        public BlockFamily.Builder button(Block p_175964_) {
-            this.family.variants.put(BlockFamily.Variant.BUTTON, p_175964_);
+        public BlockFamily.Builder button(Block pButtonBlock) {
+            this.family.variants.put(BlockFamily.Variant.BUTTON, pButtonBlock);
             return this;
         }
 
-        public BlockFamily.Builder chiseled(Block p_175972_) {
-            this.family.variants.put(BlockFamily.Variant.CHISELED, p_175972_);
+        public BlockFamily.Builder chiseled(Block pChiseledBlock) {
+            this.family.variants.put(BlockFamily.Variant.CHISELED, pChiseledBlock);
             return this;
         }
 
-        public BlockFamily.Builder cracked(Block p_175977_) {
-            this.family.variants.put(BlockFamily.Variant.CRACKED, p_175977_);
+        public BlockFamily.Builder cracked(Block pCrackedBlock) {
+            this.family.variants.put(BlockFamily.Variant.CRACKED, pCrackedBlock);
             return this;
         }
 
-        public BlockFamily.Builder cut(Block p_175979_) {
-            this.family.variants.put(BlockFamily.Variant.CUT, p_175979_);
+        public BlockFamily.Builder cut(Block pCutBlock) {
+            this.family.variants.put(BlockFamily.Variant.CUT, pCutBlock);
             return this;
         }
 
-        public BlockFamily.Builder door(Block p_175981_) {
-            this.family.variants.put(BlockFamily.Variant.DOOR, p_175981_);
+        public BlockFamily.Builder door(Block pDoorBlock) {
+            this.family.variants.put(BlockFamily.Variant.DOOR, pDoorBlock);
             return this;
         }
 
-        public BlockFamily.Builder fence(Block p_175983_) {
-            this.family.variants.put(BlockFamily.Variant.FENCE, p_175983_);
+        public BlockFamily.Builder fence(Block pFenceBlock) {
+            this.family.variants.put(BlockFamily.Variant.FENCE, pFenceBlock);
             return this;
         }
 
-        public BlockFamily.Builder fenceGate(Block p_175985_) {
-            this.family.variants.put(BlockFamily.Variant.FENCE_GATE, p_175985_);
+        public BlockFamily.Builder fenceGate(Block pFenceGateBlock) {
+            this.family.variants.put(BlockFamily.Variant.FENCE_GATE, pFenceGateBlock);
             return this;
         }
 
-        public BlockFamily.Builder sign(Block p_175966_, Block p_175967_) {
-            this.family.variants.put(BlockFamily.Variant.SIGN, p_175966_);
-            this.family.variants.put(BlockFamily.Variant.WALL_SIGN, p_175967_);
+        public BlockFamily.Builder sign(Block pSignBlock, Block pWallSignBlock) {
+            this.family.variants.put(BlockFamily.Variant.SIGN, pSignBlock);
+            this.family.variants.put(BlockFamily.Variant.WALL_SIGN, pWallSignBlock);
             return this;
         }
 
-        public BlockFamily.Builder slab(Block p_175987_) {
-            this.family.variants.put(BlockFamily.Variant.SLAB, p_175987_);
+        public BlockFamily.Builder slab(Block pSlabBlock) {
+            this.family.variants.put(BlockFamily.Variant.SLAB, pSlabBlock);
             return this;
         }
 
-        public BlockFamily.Builder stairs(Block p_175989_) {
-            this.family.variants.put(BlockFamily.Variant.STAIRS, p_175989_);
+        public BlockFamily.Builder stairs(Block pStairsBlock) {
+            this.family.variants.put(BlockFamily.Variant.STAIRS, pStairsBlock);
             return this;
         }
 
-        public BlockFamily.Builder pressurePlate(Block p_175991_) {
-            this.family.variants.put(BlockFamily.Variant.PRESSURE_PLATE, p_175991_);
+        public BlockFamily.Builder pressurePlate(Block pPressurePlateBlock) {
+            this.family.variants.put(BlockFamily.Variant.PRESSURE_PLATE, pPressurePlateBlock);
             return this;
         }
 
-        public BlockFamily.Builder polished(Block p_175993_) {
-            this.family.variants.put(BlockFamily.Variant.POLISHED, p_175993_);
+        public BlockFamily.Builder polished(Block pPolishedBlock) {
+            this.family.variants.put(BlockFamily.Variant.POLISHED, pPolishedBlock);
             return this;
         }
 
-        public BlockFamily.Builder trapdoor(Block p_175995_) {
-            this.family.variants.put(BlockFamily.Variant.TRAPDOOR, p_175995_);
+        public BlockFamily.Builder trapdoor(Block pTrapdoorBlock) {
+            this.family.variants.put(BlockFamily.Variant.TRAPDOOR, pTrapdoorBlock);
             return this;
         }
 
-        public BlockFamily.Builder wall(Block p_175997_) {
-            this.family.variants.put(BlockFamily.Variant.WALL, p_175997_);
+        public BlockFamily.Builder wall(Block pWallBlock) {
+            this.family.variants.put(BlockFamily.Variant.WALL, pWallBlock);
             return this;
         }
 
@@ -141,13 +141,13 @@ public class BlockFamily {
             return this;
         }
 
-        public BlockFamily.Builder recipeGroupPrefix(String p_175969_) {
-            this.family.recipeGroupPrefix = p_175969_;
+        public BlockFamily.Builder recipeGroupPrefix(String pRecipeGroupPrefix) {
+            this.family.recipeGroupPrefix = pRecipeGroupPrefix;
             return this;
         }
 
-        public BlockFamily.Builder recipeUnlockedBy(String p_175974_) {
-            this.family.recipeUnlockedBy = p_175974_;
+        public BlockFamily.Builder recipeUnlockedBy(String pRecipeUnlockedBy) {
+            this.family.recipeUnlockedBy = pRecipeUnlockedBy;
             return this;
         }
     }

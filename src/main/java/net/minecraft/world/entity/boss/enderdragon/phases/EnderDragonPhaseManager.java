@@ -12,23 +12,23 @@ public class EnderDragonPhaseManager {
     @Nullable
     private DragonPhaseInstance currentPhase;
 
-    public EnderDragonPhaseManager(EnderDragon p_31414_) {
-        this.dragon = p_31414_;
+    public EnderDragonPhaseManager(EnderDragon pDragon) {
+        this.dragon = pDragon;
         this.setPhase(EnderDragonPhase.HOVERING);
     }
 
-    public void setPhase(EnderDragonPhase<?> p_31417_) {
-        if (this.currentPhase == null || p_31417_ != this.currentPhase.getPhase()) {
+    public void setPhase(EnderDragonPhase<?> pPhase) {
+        if (this.currentPhase == null || pPhase != this.currentPhase.getPhase()) {
             if (this.currentPhase != null) {
                 this.currentPhase.end();
             }
 
-            this.currentPhase = this.getPhase(p_31417_);
+            this.currentPhase = this.getPhase(pPhase);
             if (!this.dragon.level.isClientSide) {
-                this.dragon.getEntityData().set(EnderDragon.DATA_PHASE, p_31417_.getId());
+                this.dragon.getEntityData().set(EnderDragon.DATA_PHASE, pPhase.getId());
             }
 
-            LOGGER.debug("Dragon is now in phase {} on the {}", p_31417_, this.dragon.level.isClientSide ? "client" : "server");
+            LOGGER.debug("Dragon is now in phase {} on the {}", pPhase, this.dragon.level.isClientSide ? "client" : "server");
             this.currentPhase.begin();
         }
     }
@@ -37,10 +37,10 @@ public class EnderDragonPhaseManager {
         return this.currentPhase;
     }
 
-    public <T extends DragonPhaseInstance> T getPhase(EnderDragonPhase<T> p_31419_) {
-        int i = p_31419_.getId();
+    public <T extends DragonPhaseInstance> T getPhase(EnderDragonPhase<T> pPhase) {
+        int i = pPhase.getId();
         if (this.phases[i] == null) {
-            this.phases[i] = p_31419_.createInstance(this.dragon);
+            this.phases[i] = pPhase.createInstance(this.dragon);
         }
 
         return (T) this.phases[i];

@@ -14,21 +14,21 @@ import net.minecraft.world.level.Level;
 public abstract class Fireball extends AbstractHurtingProjectile implements ItemSupplier {
     private static final EntityDataAccessor<ItemStack> DATA_ITEM_STACK = SynchedEntityData.defineId(Fireball.class, EntityDataSerializers.ITEM_STACK);
 
-    public Fireball(EntityType<? extends Fireball> p_37006_, Level p_37007_) {
-        super(p_37006_, p_37007_);
+    public Fireball(EntityType<? extends Fireball> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public Fireball(EntityType<? extends Fireball> p_36990_, double p_36991_, double p_36992_, double p_36993_, double p_36994_, double p_36995_, double p_36996_, Level p_36997_) {
-        super(p_36990_, p_36991_, p_36992_, p_36993_, p_36994_, p_36995_, p_36996_, p_36997_);
+    public Fireball(EntityType<? extends Fireball> pEntityType, double pX, double pY, double pZ, double pOffsetX, double pOffsetY, double pOffsetZ, Level pLevel) {
+        super(pEntityType, pX, pY, pZ, pOffsetX, pOffsetY, pOffsetZ, pLevel);
     }
 
-    public Fireball(EntityType<? extends Fireball> p_36999_, LivingEntity p_37000_, double p_37001_, double p_37002_, double p_37003_, Level p_37004_) {
-        super(p_36999_, p_37000_, p_37001_, p_37002_, p_37003_, p_37004_);
+    public Fireball(EntityType<? extends Fireball> pEntityType, LivingEntity pShooter, double pOffsetX, double pOffsetY, double pOffsetZ, Level pLevel) {
+        super(pEntityType, pShooter, pOffsetX, pOffsetY, pOffsetZ, pLevel);
     }
 
-    public void setItem(ItemStack p_37011_) {
-        if (!p_37011_.is(Items.FIRE_CHARGE) || p_37011_.hasTag()) {
-            this.getEntityData().set(DATA_ITEM_STACK, Util.make(p_37011_.copy(), (p_37015_) -> {
+    public void setItem(ItemStack pStack) {
+        if (!pStack.is(Items.FIRE_CHARGE) || pStack.hasTag()) {
+            this.getEntityData().set(DATA_ITEM_STACK, Util.make(pStack.copy(), (p_37015_) -> {
                 p_37015_.setCount(1);
             }));
         }
@@ -47,17 +47,17 @@ public abstract class Fireball extends AbstractHurtingProjectile implements Item
         this.getEntityData().define(DATA_ITEM_STACK, ItemStack.EMPTY);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_37013_) {
-        super.addAdditionalSaveData(p_37013_);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
         ItemStack itemstack = this.getItemRaw();
         if (!itemstack.isEmpty()) {
-            p_37013_.put("Item", itemstack.save(new CompoundTag()));
+            pCompound.put("Item", itemstack.save(new CompoundTag()));
         }
     }
 
-    public void readAdditionalSaveData(CompoundTag p_37009_) {
-        super.readAdditionalSaveData(p_37009_);
-        ItemStack itemstack = ItemStack.of(p_37009_.getCompound("Item"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        ItemStack itemstack = ItemStack.of(pCompound.getCompound("Item"));
         this.setItem(itemstack);
     }
 }

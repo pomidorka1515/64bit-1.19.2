@@ -48,34 +48,34 @@ public class AllayAi {
     private static final int TIME_TO_FORGET_NOTEBLOCK = 600;
     private static final int DISTANCE_TO_WANTED_ITEM = 32;
 
-    protected static Brain<?> makeBrain(Brain<Allay> p_218420_) {
-        initCoreActivity(p_218420_);
-        initIdleActivity(p_218420_);
-        p_218420_.setCoreActivities(ImmutableSet.of(Activity.CORE));
-        p_218420_.setDefaultActivity(Activity.IDLE);
-        p_218420_.useDefaultActivity();
-        return p_218420_;
+    protected static Brain<?> makeBrain(Brain<Allay> pBrain) {
+        initCoreActivity(pBrain);
+        initIdleActivity(pBrain);
+        pBrain.setCoreActivities(ImmutableSet.of(Activity.CORE));
+        pBrain.setDefaultActivity(Activity.IDLE);
+        pBrain.useDefaultActivity();
+        return pBrain;
     }
 
-    private static void initCoreActivity(Brain<Allay> p_218426_) {
-        p_218426_.addActivity(Activity.CORE, 0, ImmutableList.of(new Swim(0.8F), new AnimalPanic(2.5F), new LookAtTargetSink(45, 90), new MoveToTargetSink(), new CountDownCooldownTicks(MemoryModuleType.LIKED_NOTEBLOCK_COOLDOWN_TICKS), new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS)));
+    private static void initCoreActivity(Brain<Allay> pBrain) {
+        pBrain.addActivity(Activity.CORE, 0, ImmutableList.of(new Swim(0.8F), new AnimalPanic(2.5F), new LookAtTargetSink(45, 90), new MoveToTargetSink(), new CountDownCooldownTicks(MemoryModuleType.LIKED_NOTEBLOCK_COOLDOWN_TICKS), new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS)));
     }
 
-    private static void initIdleActivity(Brain<Allay> p_218432_) {
-        p_218432_.addActivityWithConditions(Activity.IDLE, ImmutableList.of(Pair.of(0, new GoToWantedItem<>((p_218428_) -> {
+    private static void initIdleActivity(Brain<Allay> pBrain) {
+        pBrain.addActivityWithConditions(Activity.IDLE, ImmutableList.of(Pair.of(0, new GoToWantedItem<>((p_218428_) -> {
             return true;
         }, 1.75F, true, 32)), Pair.of(1, new GoAndGiveItemsToTarget<>(AllayAi::getItemDepositPosition, 2.25F)), Pair.of(2, new StayCloseToTarget<>(AllayAi::getItemDepositPosition, 4, 16, 2.25F)), Pair.of(3, new RunSometimes<>(new SetEntityLookTarget((p_218434_) -> {
             return true;
         }, 6.0F), UniformInt.of(30, 60))), Pair.of(4, new RunOne<>(ImmutableList.of(Pair.of(new FlyingRandomStroll(1.0F), 2), Pair.of(new SetWalkTargetFromLookTarget(1.0F, 3), 2), Pair.of(new DoNothing(30, 60), 1))))), ImmutableSet.of());
     }
 
-    public static void updateActivity(Allay p_218422_) {
-        p_218422_.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.IDLE));
+    public static void updateActivity(Allay pAllay) {
+        pAllay.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.IDLE));
     }
 
-    public static void hearNoteblock(LivingEntity p_218417_, BlockPos p_218418_) {
-        Brain<?> brain = p_218417_.getBrain();
-        GlobalPos globalpos = GlobalPos.of(p_218417_.getLevel().dimension(), p_218418_);
+    public static void hearNoteblock(LivingEntity pEntity, BlockPos pPos) {
+        Brain<?> brain = pEntity.getBrain();
+        GlobalPos globalpos = GlobalPos.of(pEntity.getLevel().dimension(), pPos);
         Optional<GlobalPos> optional = brain.getMemory(MemoryModuleType.LIKED_NOTEBLOCK_POSITION);
         if (optional.isEmpty()) {
             brain.setMemory(MemoryModuleType.LIKED_NOTEBLOCK_POSITION, globalpos);
@@ -100,27 +100,27 @@ public class AllayAi {
         return getLikedPlayerPositionTracker(p_218424_);
     }
 
-    private static boolean shouldDepositItemsAtLikedNoteblock(LivingEntity p_218413_, Brain<?> p_218414_, GlobalPos p_218415_) {
-        Optional<Integer> optional = p_218414_.getMemory(MemoryModuleType.LIKED_NOTEBLOCK_COOLDOWN_TICKS);
-        Level level = p_218413_.getLevel();
-        return level.dimension() == p_218415_.dimension() && level.getBlockState(p_218415_.pos()).is(Blocks.NOTE_BLOCK) && optional.isPresent();
+    private static boolean shouldDepositItemsAtLikedNoteblock(LivingEntity pEntity, Brain<?> pBrain, GlobalPos pPos) {
+        Optional<Integer> optional = pBrain.getMemory(MemoryModuleType.LIKED_NOTEBLOCK_COOLDOWN_TICKS);
+        Level level = pEntity.getLevel();
+        return level.dimension() == pPos.dimension() && level.getBlockState(pPos.pos()).is(Blocks.NOTE_BLOCK) && optional.isPresent();
     }
 
-    private static Optional<PositionTracker> getLikedPlayerPositionTracker(LivingEntity p_218430_) {
-        return getLikedPlayer(p_218430_).map((p_218409_) -> {
+    private static Optional<PositionTracker> getLikedPlayerPositionTracker(LivingEntity pEntity) {
+        return getLikedPlayer(pEntity).map((p_218409_) -> {
             return new EntityTracker(p_218409_, true);
         });
     }
 
-    public static Optional<ServerPlayer> getLikedPlayer(LivingEntity p_218411_) {
-        Level level = p_218411_.getLevel();
+    public static Optional<ServerPlayer> getLikedPlayer(LivingEntity pEntity) {
+        Level level = pEntity.getLevel();
         if (!level.isClientSide() && level instanceof ServerLevel serverlevel) {
-            Optional<UUID> optional = p_218411_.getBrain().getMemory(MemoryModuleType.LIKED_PLAYER);
+            Optional<UUID> optional = pEntity.getBrain().getMemory(MemoryModuleType.LIKED_PLAYER);
             if (optional.isPresent()) {
                 Entity entity = serverlevel.getEntity(optional.get());
                 if (entity instanceof ServerPlayer) {
                     ServerPlayer serverplayer = (ServerPlayer) entity;
-                    if ((serverplayer.gameMode.isSurvival() || serverplayer.gameMode.isCreative()) && serverplayer.closerThan(p_218411_, 64.0D)) {
+                    if ((serverplayer.gameMode.isSurvival() || serverplayer.gameMode.isCreative()) && serverplayer.closerThan(pEntity, 64.0D)) {
                         return Optional.of(serverplayer);
                     }
                 }

@@ -20,12 +20,12 @@ public class WanderingTraderRenderer extends MobRenderer<WanderingTrader, Villag
         this.addLayer(new CrossedArmsItemLayer<>(this, p_174441_.getItemInHandRenderer()));
     }
 
-    public ResourceLocation getTextureLocation(WanderingTrader p_116373_) {
+    public ResourceLocation getTextureLocation(WanderingTrader pEntity) {
         return VILLAGER_BASE_SKIN;
     }
 
-    protected void scale(WanderingTrader p_116375_, PoseStack p_116376_, float p_116377_) {
+    protected void scale(WanderingTrader pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
         float f = 0.9375F;
-        p_116376_.scale(0.9375F, 0.9375F, 0.9375F);
+        pMatrixStack.scale(0.9375F, 0.9375F, 0.9375F);
     }
 }

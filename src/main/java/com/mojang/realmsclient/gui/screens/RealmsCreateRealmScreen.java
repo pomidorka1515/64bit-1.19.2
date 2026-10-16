@@ -22,10 +22,10 @@ public class RealmsCreateRealmScreen extends RealmsScreen {
     private EditBox descriptionBox;
     private Button createButton;
 
-    public RealmsCreateRealmScreen(RealmsServer p_88574_, RealmsMainScreen p_88575_) {
+    public RealmsCreateRealmScreen(RealmsServer pServer, RealmsMainScreen pLastScreen) {
         super(Component.translatable("mco.selectServer.create"));
-        this.server = p_88574_;
-        this.lastScreen = p_88575_;
+        this.server = pServer;
+        this.lastScreen = pLastScreen;
     }
 
     public void tick() {
@@ -58,18 +58,18 @@ public class RealmsCreateRealmScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean charTyped(char p_88577_, int p_88578_) {
-        boolean flag = super.charTyped(p_88577_, p_88578_);
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        boolean flag = super.charTyped(pCodePoint, pModifiers);
         this.createButton.active = this.valid();
         return flag;
     }
 
-    public boolean keyPressed(int p_88580_, int p_88581_, int p_88582_) {
-        if (p_88580_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.lastScreen);
             return true;
         } else {
-            boolean flag = super.keyPressed(p_88580_, p_88581_, p_88582_);
+            boolean flag = super.keyPressed(pKeyCode, pScanCode, pModifiers);
             this.createButton.active = this.valid();
             return flag;
         }
@@ -89,19 +89,19 @@ public class RealmsCreateRealmScreen extends RealmsScreen {
         return !this.nameBox.getValue().trim().isEmpty();
     }
 
-    public void render(PoseStack p_88584_, int p_88585_, int p_88586_, float p_88587_) {
-        this.renderBackground(p_88584_);
-        drawCenteredString(p_88584_, this.font, this.title, this.width / 2, 11, 16777215);
-        this.font.draw(p_88584_, NAME_LABEL, (float) (this.width / 2 - 100), 52.0F, 10526880);
-        this.font.draw(p_88584_, DESCRIPTION_LABEL, (float) (this.width / 2 - 100), 102.0F, 10526880);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 11, 16777215);
+        this.font.draw(pPoseStack, NAME_LABEL, (float) (this.width / 2 - 100), 52.0F, 10526880);
+        this.font.draw(pPoseStack, DESCRIPTION_LABEL, (float) (this.width / 2 - 100), 102.0F, 10526880);
         if (this.nameBox != null) {
-            this.nameBox.render(p_88584_, p_88585_, p_88586_, p_88587_);
+            this.nameBox.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
         if (this.descriptionBox != null) {
-            this.descriptionBox.render(p_88584_, p_88585_, p_88586_, p_88587_);
+            this.descriptionBox.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
-        super.render(p_88584_, p_88585_, p_88586_, p_88587_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

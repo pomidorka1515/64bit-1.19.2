@@ -12,8 +12,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class CowModel<T extends Entity> extends QuadrupedModel<T> {
-    public CowModel(ModelPart p_170515_) {
-        super(p_170515_, false, 10.0F, 4.0F, 2.0F, 2.0F, 24);
+    public CowModel(ModelPart pRoot) {
+        super(pRoot, false, 10.0F, 4.0F, 2.0F, 2.0F, 24);
     }
 
     public static LayerDefinition createBodyLayer() {

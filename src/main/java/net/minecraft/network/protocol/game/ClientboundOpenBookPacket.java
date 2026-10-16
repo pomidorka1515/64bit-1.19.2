@@ -7,20 +7,20 @@ import net.minecraft.world.InteractionHand;
 public class ClientboundOpenBookPacket implements Packet<ClientGamePacketListener> {
     private final InteractionHand hand;
 
-    public ClientboundOpenBookPacket(InteractionHand p_132601_) {
-        this.hand = p_132601_;
+    public ClientboundOpenBookPacket(InteractionHand pHand) {
+        this.hand = pHand;
     }
 
-    public ClientboundOpenBookPacket(FriendlyByteBuf p_179009_) {
-        this.hand = p_179009_.readEnum(InteractionHand.class);
+    public ClientboundOpenBookPacket(FriendlyByteBuf pBuffer) {
+        this.hand = pBuffer.readEnum(InteractionHand.class);
     }
 
-    public void write(FriendlyByteBuf p_132610_) {
-        p_132610_.writeEnum(this.hand);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeEnum(this.hand);
     }
 
-    public void handle(ClientGamePacketListener p_132607_) {
-        p_132607_.handleOpenBook(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleOpenBook(this);
     }
 
     public InteractionHand getHand() {

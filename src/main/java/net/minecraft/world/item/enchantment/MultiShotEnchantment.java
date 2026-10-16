@@ -3,15 +3,15 @@ package net.minecraft.world.item.enchantment;
 import net.minecraft.world.entity.EquipmentSlot;
 
 public class MultiShotEnchantment extends Enchantment {
-    public MultiShotEnchantment(Enchantment.Rarity p_45107_, EquipmentSlot... p_45108_) {
-        super(p_45107_, EnchantmentCategory.CROSSBOW, p_45108_);
+    public MultiShotEnchantment(Enchantment.Rarity pRarity, EquipmentSlot... pApplicableSlots) {
+        super(pRarity, EnchantmentCategory.CROSSBOW, pApplicableSlots);
     }
 
-    public int getMinCost(int p_45111_) {
+    public int getMinCost(int pEnchantmentLevel) {
         return 20;
     }
 
-    public int getMaxCost(int p_45115_) {
+    public int getMaxCost(int pEnchantmentLevel) {
         return 50;
     }
 
@@ -19,7 +19,7 @@ public class MultiShotEnchantment extends Enchantment {
         return 1;
     }
 
-    public boolean checkCompatibility(Enchantment p_45113_) {
-        return super.checkCompatibility(p_45113_) && p_45113_ != Enchantments.PIERCING;
+    public boolean checkCompatibility(Enchantment pEnch) {
+        return super.checkCompatibility(pEnch) && pEnch != Enchantments.PIERCING;
     }
 }

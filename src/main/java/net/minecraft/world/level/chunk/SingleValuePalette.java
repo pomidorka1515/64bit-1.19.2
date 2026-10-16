@@ -13,53 +13,53 @@ public class SingleValuePalette<T> implements Palette<T> {
     private T value;
     private final PaletteResize<T> resizeHandler;
 
-    public SingleValuePalette(IdMap<T> p_188207_, PaletteResize<T> p_188208_, List<T> p_188209_) {
-        this.registry = p_188207_;
-        this.resizeHandler = p_188208_;
-        if (p_188209_.size() > 0) {
-            Validate.isTrue(p_188209_.size() <= 1, "Can't initialize SingleValuePalette with %d values.", (long) p_188209_.size());
-            this.value = p_188209_.get(0);
+    public SingleValuePalette(IdMap<T> pRegistry, PaletteResize<T> pResizeHandler, List<T> pValue) {
+        this.registry = pRegistry;
+        this.resizeHandler = pResizeHandler;
+        if (pValue.size() > 0) {
+            Validate.isTrue(pValue.size() <= 1, "Can't initialize SingleValuePalette with %d values.", (long) pValue.size());
+            this.value = pValue.get(0);
         }
     }
 
-    public static <A> Palette<A> create(int p_188214_, IdMap<A> p_188215_, PaletteResize<A> p_188216_, List<A> p_188217_) {
-        return new SingleValuePalette<>(p_188215_, p_188216_, p_188217_);
+    public static <A> Palette<A> create(int pBits, IdMap<A> pRegistry, PaletteResize<A> pResizeHandler, List<A> pValue) {
+        return new SingleValuePalette<>(pRegistry, pResizeHandler, pValue);
     }
 
-    public int idFor(T p_188219_) {
-        if (this.value != null && this.value != p_188219_) {
-            return this.resizeHandler.onResize(1, p_188219_);
+    public int idFor(T pState) {
+        if (this.value != null && this.value != pState) {
+            return this.resizeHandler.onResize(1, pState);
         } else {
-            this.value = p_188219_;
+            this.value = pState;
             return 0;
         }
     }
 
-    public boolean maybeHas(Predicate<T> p_188221_) {
+    public boolean maybeHas(Predicate<T> pFilter) {
         if (this.value == null) {
             throw new IllegalStateException("Use of an uninitialized palette");
         } else {
-            return p_188221_.test(this.value);
+            return pFilter.test(this.value);
         }
     }
 
-    public T valueFor(int p_188212_) {
-        if (this.value != null && p_188212_ == 0) {
+    public T valueFor(int pId) {
+        if (this.value != null && pId == 0) {
             return this.value;
         } else {
-            throw new IllegalStateException("Missing Palette entry for id " + p_188212_ + ".");
+            throw new IllegalStateException("Missing Palette entry for id " + pId + ".");
         }
     }
 
-    public void read(FriendlyByteBuf p_188223_) {
-        this.value = this.registry.byIdOrThrow(p_188223_.readVarInt());
+    public void read(FriendlyByteBuf pBuffer) {
+        this.value = this.registry.byIdOrThrow(pBuffer.readVarInt());
     }
 
-    public void write(FriendlyByteBuf p_188226_) {
+    public void write(FriendlyByteBuf pBuffer) {
         if (this.value == null) {
             throw new IllegalStateException("Use of an uninitialized palette");
         } else {
-            p_188226_.writeVarInt(this.registry.getId(this.value));
+            pBuffer.writeVarInt(this.registry.getId(this.value));
         }
     }
 

@@ -9,8 +9,8 @@ import net.minecraft.network.chat.Component;
 public class WeatherCommand {
     private static final int DEFAULT_TIME = 6000;
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_139167_) {
-        p_139167_.register(Commands.literal("weather").requires((p_139171_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("weather").requires((p_139171_) -> {
                                                           return p_139171_.hasPermission(2);
                                                       })
                         .then(Commands.literal("clear").executes((p_139190_) -> {
@@ -33,21 +33,21 @@ public class WeatherCommand {
                                         }))));
     }
 
-    private static int setClear(CommandSourceStack p_139173_, int p_139174_) {
-        p_139173_.getLevel().setWeatherParameters(p_139174_, 0, false, false);
-        p_139173_.sendSuccess(Component.translatable("commands.weather.set.clear"), true);
-        return p_139174_;
+    private static int setClear(CommandSourceStack pSource, int pTime) {
+        pSource.getLevel().setWeatherParameters(pTime, 0, false, false);
+        pSource.sendSuccess(Component.translatable("commands.weather.set.clear"), true);
+        return pTime;
     }
 
-    private static int setRain(CommandSourceStack p_139178_, int p_139179_) {
-        p_139178_.getLevel().setWeatherParameters(0, p_139179_, true, false);
-        p_139178_.sendSuccess(Component.translatable("commands.weather.set.rain"), true);
-        return p_139179_;
+    private static int setRain(CommandSourceStack pSource, int pTime) {
+        pSource.getLevel().setWeatherParameters(0, pTime, true, false);
+        pSource.sendSuccess(Component.translatable("commands.weather.set.rain"), true);
+        return pTime;
     }
 
-    private static int setThunder(CommandSourceStack p_139183_, int p_139184_) {
-        p_139183_.getLevel().setWeatherParameters(0, p_139184_, true, true);
-        p_139183_.sendSuccess(Component.translatable("commands.weather.set.thunder"), true);
-        return p_139184_;
+    private static int setThunder(CommandSourceStack pSource, int pTime) {
+        pSource.getLevel().setWeatherParameters(0, pTime, true, true);
+        pSource.sendSuccess(Component.translatable("commands.weather.set.thunder"), true);
+        return pTime;
     }
 }

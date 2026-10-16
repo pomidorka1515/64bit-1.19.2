@@ -6,13 +6,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class V3076 extends NamespacedSchema {
-    public V3076(int p_216764_, Schema p_216765_) {
-        super(p_216764_, p_216765_);
+    public V3076(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerBlockEntities(Schema p_216767_) {
-        Map<String, Supplier<TypeTemplate>> map = super.registerBlockEntities(p_216767_);
-        p_216767_.registerSimple(map, "minecraft:sculk_catalyst");
+    public Map<String, Supplier<TypeTemplate>> registerBlockEntities(Schema pSchema) {
+        Map<String, Supplier<TypeTemplate>> map = super.registerBlockEntities(pSchema);
+        pSchema.registerSimple(map, "minecraft:sculk_catalyst");
         return map;
     }
 }

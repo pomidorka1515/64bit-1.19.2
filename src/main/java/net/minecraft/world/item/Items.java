@@ -1169,54 +1169,54 @@ public class Items {
     public static final Item FROGSPAWN = registerBlock(new PlaceOnWaterBlockItem(Blocks.FROGSPAWN, (new Item.Properties()).tab(CreativeModeTab.TAB_MISC)));
     public static final Item ECHO_SHARD = registerItem("echo_shard", new Item((new Item.Properties()).tab(CreativeModeTab.TAB_MATERIALS)));
 
-    private static <T> Optional<T> ifPart2(T p_151097_) {
+    private static <T> Optional<T> ifPart2(T pSecondaryPart) {
         return Optional.empty();
     }
 
-    private static Item registerBlock(Block p_42806_) {
-        return registerBlock(new BlockItem(p_42806_, new Item.Properties()));
+    private static Item registerBlock(Block pBlock) {
+        return registerBlock(new BlockItem(pBlock, new Item.Properties()));
     }
 
-    private static Item registerBlock(Block p_42808_, CreativeModeTab p_42809_) {
-        return registerBlock(new BlockItem(p_42808_, (new Item.Properties()).tab(p_42809_)));
+    private static Item registerBlock(Block pBlock, CreativeModeTab pItemGroup) {
+        return registerBlock(new BlockItem(pBlock, (new Item.Properties()).tab(pItemGroup)));
     }
 
-    private static Item registerBlock(Block p_151094_, Optional<CreativeModeTab> p_151095_) {
-        return p_151095_.map((p_151102_) -> {
-                            return registerBlock(p_151094_, p_151102_);
+    private static Item registerBlock(Block pBlock, Optional<CreativeModeTab> pOptionalCategory) {
+        return pOptionalCategory.map((p_151102_) -> {
+                            return registerBlock(pBlock, p_151102_);
                         })
                 .orElseGet(() -> {
-                    return registerBlock(p_151094_);
+                    return registerBlock(pBlock);
                 });
     }
 
-    private static Item registerBlock(Block p_151090_, CreativeModeTab p_151091_, Block... p_151092_) {
-        BlockItem blockitem = new BlockItem(p_151090_, (new Item.Properties()).tab(p_151091_));
+    private static Item registerBlock(Block pBlock, CreativeModeTab pCategory, Block... pVariants) {
+        BlockItem blockitem = new BlockItem(pBlock, (new Item.Properties()).tab(pCategory));
 
-        for (Block block : p_151092_) {
+        for (Block block : pVariants) {
             Item.BY_BLOCK.put(block, blockitem);
         }
 
         return registerBlock(blockitem);
     }
 
-    private static Item registerBlock(BlockItem p_42804_) {
-        return registerBlock(p_42804_.getBlock(), p_42804_);
+    private static Item registerBlock(BlockItem pItem) {
+        return registerBlock(pItem.getBlock(), pItem);
     }
 
-    protected static Item registerBlock(Block p_42811_, Item p_42812_) {
-        return registerItem(Registry.BLOCK.getKey(p_42811_), p_42812_);
+    protected static Item registerBlock(Block pBlock, Item pItem) {
+        return registerItem(Registry.BLOCK.getKey(pBlock), pItem);
     }
 
-    private static Item registerItem(String p_42814_, Item p_42815_) {
-        return registerItem(new ResourceLocation(p_42814_), p_42815_);
+    private static Item registerItem(String pKey, Item pItem) {
+        return registerItem(new ResourceLocation(pKey), pItem);
     }
 
-    private static Item registerItem(ResourceLocation p_42817_, Item p_42818_) {
-        if (p_42818_ instanceof BlockItem) {
-            ((BlockItem) p_42818_).registerBlocks(Item.BY_BLOCK, p_42818_);
+    private static Item registerItem(ResourceLocation pKey, Item pItem) {
+        if (pItem instanceof BlockItem) {
+            ((BlockItem) pItem).registerBlocks(Item.BY_BLOCK, pItem);
         }
 
-        return Registry.register(Registry.ITEM, p_42817_, p_42818_);
+        return Registry.register(Registry.ITEM, pKey, pItem);
     }
 }

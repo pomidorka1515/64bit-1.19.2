@@ -12,8 +12,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SkinCustomizationScreen extends OptionsSubScreen {
-    public SkinCustomizationScreen(Screen p_96684_, Options p_96685_) {
-        super(p_96684_, p_96685_, Component.translatable("options.skinCustomisation.title"));
+    public SkinCustomizationScreen(Screen pLastScreen, Options pOptions) {
+        super(pLastScreen, pOptions, Component.translatable("options.skinCustomisation.title"));
     }
 
     protected void init() {
@@ -37,9 +37,9 @@ public class SkinCustomizationScreen extends OptionsSubScreen {
         }));
     }
 
-    public void render(PoseStack p_96692_, int p_96693_, int p_96694_, float p_96695_) {
-        this.renderBackground(p_96692_);
-        drawCenteredString(p_96692_, this.font, this.title, this.width / 2, 20, 16777215);
-        super.render(p_96692_, p_96693_, p_96694_, p_96695_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 20, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

@@ -15,24 +15,24 @@ public class SetWalkTargetFromLookTarget extends Behavior<LivingEntity> {
     private final int closeEnoughDistance;
     private final Predicate<LivingEntity> canSetWalkTargetPredicate;
 
-    public SetWalkTargetFromLookTarget(float p_24084_, int p_24085_) {
-        this((p_182369_) -> { return true; }, (p_182364_) -> { return p_24084_; }, p_24085_);
+    public SetWalkTargetFromLookTarget(float pSpeedModifier, int pCloseEnoughDistance) {
+        this((p_182369_) -> { return true; }, (p_182364_) -> { return pSpeedModifier; }, pCloseEnoughDistance);
     }
 
-    public SetWalkTargetFromLookTarget(Predicate<LivingEntity> p_182359_, Function<LivingEntity, Float> p_182360_, int p_182361_) {
+    public SetWalkTargetFromLookTarget(Predicate<LivingEntity> pCanSetWalkTargetPredicate, Function<LivingEntity, Float> pSpeedModifier, int pCloseEnoughDistance) {
         super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT, MemoryModuleType.LOOK_TARGET, MemoryStatus.VALUE_PRESENT));
-        this.speedModifier = p_182360_;
-        this.closeEnoughDistance = p_182361_;
-        this.canSetWalkTargetPredicate = p_182359_;
+        this.speedModifier = pSpeedModifier;
+        this.closeEnoughDistance = pCloseEnoughDistance;
+        this.canSetWalkTargetPredicate = pCanSetWalkTargetPredicate;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_182366_, LivingEntity p_182367_) {
-        return this.canSetWalkTargetPredicate.test(p_182367_);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, LivingEntity pOwner) {
+        return this.canSetWalkTargetPredicate.test(pOwner);
     }
 
-    protected void start(ServerLevel p_24087_, LivingEntity p_24088_, long p_24089_) {
-        Brain<?> brain = p_24088_.getBrain();
+    protected void start(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
+        Brain<?> brain = pEntity.getBrain();
         PositionTracker positiontracker = brain.getMemory(MemoryModuleType.LOOK_TARGET).get();
-        brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(positiontracker, this.speedModifier.apply(p_24088_), this.closeEnoughDistance));
+        brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(positiontracker, this.speedModifier.apply(pEntity), this.closeEnoughDistance));
     }
 }

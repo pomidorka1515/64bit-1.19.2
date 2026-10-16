@@ -18,9 +18,9 @@ public class DolphinModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart tail;
     private final ModelPart tailFin;
 
-    public DolphinModel(ModelPart p_170530_) {
-        this.root = p_170530_;
-        this.body = p_170530_.getChild("body");
+    public DolphinModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.body = pRoot.getChild("body");
         this.tail = this.body.getChild("tail");
         this.tailFin = this.tail.getChild("tail_fin");
     }
@@ -45,13 +45,13 @@ public class DolphinModel<T extends Entity> extends HierarchicalModel<T> {
         return this.root;
     }
 
-    public void setupAnim(T p_102475_, float p_102476_, float p_102477_, float p_102478_, float p_102479_, float p_102480_) {
-        this.body.xRot = p_102480_ * ((float) Math.PI / 180F);
-        this.body.yRot = p_102479_ * ((float) Math.PI / 180F);
-        if (p_102475_.getDeltaMovement().horizontalDistanceSqr() > 1.0E-7D) {
-            this.body.xRot += -0.05F - 0.05F * Mth.cos(p_102478_ * 0.3F);
-            this.tail.xRot = -0.1F * Mth.cos(p_102478_ * 0.3F);
-            this.tailFin.xRot = -0.2F * Mth.cos(p_102478_ * 0.3F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.body.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.body.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        if (pEntity.getDeltaMovement().horizontalDistanceSqr() > 1.0E-7D) {
+            this.body.xRot += -0.05F - 0.05F * Mth.cos(pAgeInTicks * 0.3F);
+            this.tail.xRot = -0.1F * Mth.cos(pAgeInTicks * 0.3F);
+            this.tailFin.xRot = -0.2F * Mth.cos(pAgeInTicks * 0.3F);
         }
     }
 }

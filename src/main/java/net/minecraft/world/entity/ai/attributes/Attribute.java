@@ -6,9 +6,9 @@ public class Attribute {
     private boolean syncable;
     private final String descriptionId;
 
-    protected Attribute(String p_22080_, double p_22081_) {
-        this.defaultValue = p_22081_;
-        this.descriptionId = p_22080_;
+    protected Attribute(String pDescriptionId, double pDefaultValue) {
+        this.defaultValue = pDefaultValue;
+        this.descriptionId = pDescriptionId;
     }
 
     public double getDefaultValue() {
@@ -19,13 +19,13 @@ public class Attribute {
         return this.syncable;
     }
 
-    public Attribute setSyncable(boolean p_22085_) {
-        this.syncable = p_22085_;
+    public Attribute setSyncable(boolean pWatch) {
+        this.syncable = pWatch;
         return this;
     }
 
-    public double sanitizeValue(double p_22083_) {
-        return p_22083_;
+    public double sanitizeValue(double pValue) {
+        return pValue;
     }
 
     public String getDescriptionId() {

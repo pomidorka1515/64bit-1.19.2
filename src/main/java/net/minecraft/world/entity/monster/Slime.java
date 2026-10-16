@@ -51,8 +51,8 @@ public class Slime extends Mob implements Enemy {
     public float oSquish;
     private boolean wasOnGround;
 
-    public Slime(EntityType<? extends Slime> p_33588_, Level p_33589_) {
-        super(p_33588_, p_33589_);
+    public Slime(EntityType<? extends Slime> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.moveControl = new Slime.SlimeMoveControl(this);
     }
 
@@ -73,15 +73,15 @@ public class Slime extends Mob implements Enemy {
     }
 
     @VisibleForTesting
-    public void setSize(int p_33594_, boolean p_33595_) {
-        int i = Mth.clamp(p_33594_, 1, 127);
+    public void setSize(int pSize, boolean pResetHealth) {
+        int i = Mth.clamp(pSize, 1, 127);
         this.entityData.set(ID_SIZE, i);
         this.reapplyPosition();
         this.refreshDimensions();
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue((double) (i * i));
         this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue((double) (0.2F + 0.1F * (float) i));
         this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue((double) i);
-        if (p_33595_) {
+        if (pResetHealth) {
             this.setHealth(this.getMaxHealth());
         }
 
@@ -92,16 +92,16 @@ public class Slime extends Mob implements Enemy {
         return this.entityData.get(ID_SIZE);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_33619_) {
-        super.addAdditionalSaveData(p_33619_);
-        p_33619_.putInt("Size", this.getSize() - 1);
-        p_33619_.putBoolean("wasOnGround", this.wasOnGround);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("Size", this.getSize() - 1);
+        pCompound.putBoolean("wasOnGround", this.wasOnGround);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_33607_) {
-        this.setSize(p_33607_.getInt("Size") + 1, false);
-        super.readAdditionalSaveData(p_33607_);
-        this.wasOnGround = p_33607_.getBoolean("wasOnGround");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        this.setSize(pCompound.getInt("Size") + 1, false);
+        super.readAdditionalSaveData(pCompound);
+        this.wasOnGround = pCompound.getBoolean("wasOnGround");
     }
 
     public boolean isTiny() {
@@ -156,8 +156,8 @@ public class Slime extends Mob implements Enemy {
         this.reapplyPosition();
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_33609_) {
-        if (ID_SIZE.equals(p_33609_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        if (ID_SIZE.equals(pKey)) {
             this.refreshDimensions();
             this.setYRot(this.yHeadRot);
             this.yBodyRot = this.yHeadRot;
@@ -166,14 +166,14 @@ public class Slime extends Mob implements Enemy {
             }
         }
 
-        super.onSyncedDataUpdated(p_33609_);
+        super.onSyncedDataUpdated(pKey);
     }
 
     public EntityType<? extends Slime> getType() {
       return (EntityType<? extends Slime>)super.getType();
     }
 
-    public void remove(Entity.RemovalReason p_149847_) {
+    public void remove(Entity.RemovalReason pReason) {
         int i = this.getSize();
         if (!this.level.isClientSide && i > 1 && this.isDeadOrDying()) {
             Component component = this.getCustomName();
@@ -199,34 +199,34 @@ public class Slime extends Mob implements Enemy {
             }
         }
 
-        super.remove(p_149847_);
+        super.remove(pReason);
     }
 
-    public void push(Entity p_33636_) {
-        super.push(p_33636_);
-        if (p_33636_ instanceof IronGolem && this.isDealsDamage()) {
-            this.dealDamage((LivingEntity) p_33636_);
+    public void push(Entity pEntity) {
+        super.push(pEntity);
+        if (pEntity instanceof IronGolem && this.isDealsDamage()) {
+            this.dealDamage((LivingEntity) pEntity);
         }
     }
 
-    public void playerTouch(Player p_33611_) {
+    public void playerTouch(Player pEntity) {
         if (this.isDealsDamage()) {
-            this.dealDamage(p_33611_);
+            this.dealDamage(pEntity);
         }
     }
 
-    protected void dealDamage(LivingEntity p_33638_) {
+    protected void dealDamage(LivingEntity pLivingEntity) {
         if (this.isAlive()) {
             int i = this.getSize();
-            if (this.distanceToSqr(p_33638_) < 0.6D * (double) i * 0.6D * (double) i && this.hasLineOfSight(p_33638_) && p_33638_.hurt(DamageSource.mobAttack(this), this.getAttackDamage())) {
+            if (this.distanceToSqr(pLivingEntity) < 0.6D * (double) i * 0.6D * (double) i && this.hasLineOfSight(pLivingEntity) && pLivingEntity.hurt(DamageSource.mobAttack(this), this.getAttackDamage())) {
                 this.playSound(SoundEvents.SLIME_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
-                this.doEnchantDamageEffects(this, p_33638_);
+                this.doEnchantDamageEffects(this, pLivingEntity);
             }
         }
     }
 
-    protected float getStandingEyeHeight(Pose p_33614_, EntityDimensions p_33615_) {
-        return 0.625F * p_33615_.height;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return 0.625F * pSize.height;
     }
 
     protected boolean isDealsDamage() {
@@ -237,7 +237,7 @@ public class Slime extends Mob implements Enemy {
         return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_33631_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return this.isTiny() ? SoundEvents.SLIME_HURT_SMALL : SoundEvents.SLIME_HURT;
     }
 
@@ -249,20 +249,20 @@ public class Slime extends Mob implements Enemy {
         return this.isTiny() ? SoundEvents.SLIME_SQUISH_SMALL : SoundEvents.SLIME_SQUISH;
     }
 
-    public static boolean checkSlimeSpawnRules(EntityType<Slime> p_219113_, LevelAccessor p_219114_, MobSpawnType p_219115_, BlockPos p_219116_, RandomSource p_219117_) {
-        if (p_219114_.getDifficulty() != Difficulty.PEACEFUL) {
-            if (p_219114_.getBiome(p_219116_).is(BiomeTags.ALLOWS_SURFACE_SLIME_SPAWNS) && p_219116_.getY() > 50 && p_219116_.getY() < 70 && p_219117_.nextFloat() < 0.5F && p_219117_.nextFloat() < p_219114_.getMoonBrightness() && p_219114_.getMaxLocalRawBrightness(p_219116_) <= p_219117_.nextInt(8)) {
-                return checkMobSpawnRules(p_219113_, p_219114_, p_219115_, p_219116_, p_219117_);
+    public static boolean checkSlimeSpawnRules(EntityType<Slime> pSlime, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.getDifficulty() != Difficulty.PEACEFUL) {
+            if (pLevel.getBiome(pPos).is(BiomeTags.ALLOWS_SURFACE_SLIME_SPAWNS) && pPos.getY() > 50 && pPos.getY() < 70 && pRandom.nextFloat() < 0.5F && pRandom.nextFloat() < pLevel.getMoonBrightness() && pLevel.getMaxLocalRawBrightness(pPos) <= pRandom.nextInt(8)) {
+                return checkMobSpawnRules(pSlime, pLevel, pSpawnType, pPos, pRandom);
             }
 
-            if (!(p_219114_ instanceof WorldGenLevel)) {
+            if (!(pLevel instanceof WorldGenLevel)) {
                 return false;
             }
 
-            ChunkPos chunkpos = new ChunkPos(p_219116_);
-            boolean flag = WorldgenRandom.seedSlimeChunk(chunkpos.x, chunkpos.z, ((WorldGenLevel) p_219114_).getSeed(), 987234911L).nextInt(10) == 0;
-            if (p_219117_.nextInt(10) == 0 && flag && p_219116_.getY() < 40) {
-                return checkMobSpawnRules(p_219113_, p_219114_, p_219115_, p_219116_, p_219117_);
+            ChunkPos chunkpos = new ChunkPos(pPos);
+            boolean flag = WorldgenRandom.seedSlimeChunk(chunkpos.x, chunkpos.z, ((WorldGenLevel) pLevel).getSeed(), 987234911L).nextInt(10) == 0;
+            if (pRandom.nextInt(10) == 0 && flag && pPos.getY() < 40) {
+                return checkMobSpawnRules(pSlime, pLevel, pSpawnType, pPos, pRandom);
             }
         }
 
@@ -288,16 +288,16 @@ public class Slime extends Mob implements Enemy {
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_33601_, DifficultyInstance p_33602_, MobSpawnType p_33603_, @Nullable SpawnGroupData p_33604_, @Nullable CompoundTag p_33605_) {
-        RandomSource randomsource = p_33601_.getRandom();
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        RandomSource randomsource = pLevel.getRandom();
         int i = randomsource.nextInt(3);
-        if (i < 2 && randomsource.nextFloat() < 0.5F * p_33602_.getSpecialMultiplier()) {
+        if (i < 2 && randomsource.nextFloat() < 0.5F * pDifficulty.getSpecialMultiplier()) {
             ++i;
         }
 
         int j = 1 << i;
         this.setSize(j, true);
-        return super.finalizeSpawn(p_33601_, p_33602_, p_33603_, p_33604_, p_33605_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
     float getSoundPitch() {
@@ -309,16 +309,16 @@ public class Slime extends Mob implements Enemy {
         return this.isTiny() ? SoundEvents.SLIME_JUMP_SMALL : SoundEvents.SLIME_JUMP;
     }
 
-    public EntityDimensions getDimensions(Pose p_33597_) {
-        return super.getDimensions(p_33597_).scale(0.255F * (float) this.getSize());
+    public EntityDimensions getDimensions(Pose pPose) {
+        return super.getDimensions(pPose).scale(0.255F * (float) this.getSize());
     }
 
     static class SlimeAttackGoal extends Goal {
         private final Slime slime;
         private int growTiredTimer;
 
-        public SlimeAttackGoal(Slime p_33648_) {
-            this.slime = p_33648_;
+        public SlimeAttackGoal(Slime pSlime) {
+            this.slime = pSlime;
             this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         }
 
@@ -364,10 +364,10 @@ public class Slime extends Mob implements Enemy {
     static class SlimeFloatGoal extends Goal {
         private final Slime slime;
 
-        public SlimeFloatGoal(Slime p_33655_) {
-            this.slime = p_33655_;
+        public SlimeFloatGoal(Slime pSlime) {
+            this.slime = pSlime;
             this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
-            p_33655_.getNavigation().setCanFloat(true);
+            pSlime.getNavigation().setCanFloat(true);
         }
 
         public boolean canUse() {
@@ -390,8 +390,8 @@ public class Slime extends Mob implements Enemy {
     static class SlimeKeepOnJumpingGoal extends Goal {
         private final Slime slime;
 
-        public SlimeKeepOnJumpingGoal(Slime p_33660_) {
-            this.slime = p_33660_;
+        public SlimeKeepOnJumpingGoal(Slime pSlime) {
+            this.slime = pSlime;
             this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
         }
 
@@ -410,19 +410,19 @@ public class Slime extends Mob implements Enemy {
         private final Slime slime;
         private boolean isAggressive;
 
-        public SlimeMoveControl(Slime p_33668_) {
-            super(p_33668_);
-            this.slime = p_33668_;
-            this.yRot = 180.0F * p_33668_.getYRot() / (float) Math.PI;
+        public SlimeMoveControl(Slime pSlime) {
+            super(pSlime);
+            this.slime = pSlime;
+            this.yRot = 180.0F * pSlime.getYRot() / (float) Math.PI;
         }
 
-        public void setDirection(float p_33673_, boolean p_33674_) {
-            this.yRot = p_33673_;
-            this.isAggressive = p_33674_;
+        public void setDirection(float pYRot, boolean pAggressive) {
+            this.yRot = pYRot;
+            this.isAggressive = pAggressive;
         }
 
-        public void setWantedMovement(double p_33671_) {
-            this.speedModifier = p_33671_;
+        public void setWantedMovement(double pSpeed) {
+            this.speedModifier = pSpeed;
             this.operation = MoveControl.Operation.MOVE_TO;
         }
 
@@ -463,8 +463,8 @@ public class Slime extends Mob implements Enemy {
         private float chosenDegrees;
         private int nextRandomizeTime;
 
-        public SlimeRandomDirectionGoal(Slime p_33679_) {
-            this.slime = p_33679_;
+        public SlimeRandomDirectionGoal(Slime pSlime) {
+            this.slime = pSlime;
             this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         }
 

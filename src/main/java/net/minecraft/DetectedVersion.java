@@ -39,17 +39,17 @@ public class DetectedVersion implements WorldVersion {
         this.releaseTarget = "1.19.2";
     }
 
-    private DetectedVersion(JsonObject p_132489_) {
-        this.id = GsonHelper.getAsString(p_132489_, "id");
-        this.name = GsonHelper.getAsString(p_132489_, "name");
-        this.releaseTarget = GsonHelper.getAsString(p_132489_, "release_target");
-        this.stable = GsonHelper.getAsBoolean(p_132489_, "stable");
-        this.worldVersion = new DataVersion(GsonHelper.getAsInt(p_132489_, "world_version"), GsonHelper.getAsString(p_132489_, "series_id", DataVersion.MAIN_SERIES));
-        this.protocolVersion = GsonHelper.getAsInt(p_132489_, "protocol_version");
-        JsonObject jsonobject = GsonHelper.getAsJsonObject(p_132489_, "pack_version");
+    private DetectedVersion(JsonObject pJson) {
+        this.id = GsonHelper.getAsString(pJson, "id");
+        this.name = GsonHelper.getAsString(pJson, "name");
+        this.releaseTarget = GsonHelper.getAsString(pJson, "release_target");
+        this.stable = GsonHelper.getAsBoolean(pJson, "stable");
+        this.worldVersion = new DataVersion(GsonHelper.getAsInt(pJson, "world_version"), GsonHelper.getAsString(pJson, "series_id", DataVersion.MAIN_SERIES));
+        this.protocolVersion = GsonHelper.getAsInt(pJson, "protocol_version");
+        JsonObject jsonobject = GsonHelper.getAsJsonObject(pJson, "pack_version");
         this.resourcePackVersion = GsonHelper.getAsInt(jsonobject, "resource");
         this.dataPackVersion = GsonHelper.getAsInt(jsonobject, "data");
-        this.buildTime = Date.from(ZonedDateTime.parse(GsonHelper.getAsString(p_132489_, "build_time")).toInstant());
+        this.buildTime = Date.from(ZonedDateTime.parse(GsonHelper.getAsString(pJson, "build_time")).toInstant());
     }
 
     public static WorldVersion tryDetectVersion() {
@@ -130,8 +130,8 @@ public class DetectedVersion implements WorldVersion {
         return this.protocolVersion;
     }
 
-    public int getPackVersion(PackType p_179764_) {
-        return p_179764_ == PackType.DATA ? this.dataPackVersion : this.resourcePackVersion;
+    public int getPackVersion(PackType pType) {
+        return pType == PackType.DATA ? this.dataPackVersion : this.resourcePackVersion;
     }
 
     public Date getBuildTime() {

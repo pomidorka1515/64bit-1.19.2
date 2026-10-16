@@ -8,40 +8,40 @@ import net.minecraft.world.level.chunk.DataLayer;
 
 public interface LayerLightEventListener extends LightEventListener {
     @Nullable
-    DataLayer getDataLayerData(SectionPos p_75709_);
+    DataLayer getDataLayerData(SectionPos pSectionPos);
 
-    int getLightValue(BlockPos p_75710_);
+    int getLightValue(BlockPos pLevelPos);
 
     enum DummyLightLayerEventListener implements LayerLightEventListener {
         INSTANCE;
 
         @Nullable
-        public DataLayer getDataLayerData(SectionPos p_75718_) {
+        public DataLayer getDataLayerData(SectionPos pSectionPos) {
             return null;
         }
 
-        public int getLightValue(BlockPos p_75723_) {
+        public int getLightValue(BlockPos pLevelPos) {
             return 0;
         }
 
-        public void checkBlock(BlockPos p_164434_) {
+        public void checkBlock(BlockPos pPos) {
         }
 
-        public void onBlockEmissionIncrease(BlockPos p_164436_, int p_164437_) {
+        public void onBlockEmissionIncrease(BlockPos pPos, int pEmissionLevel) {
         }
 
         public boolean hasLightWork() {
             return false;
         }
 
-        public int runUpdates(int p_164427_, boolean p_164428_, boolean p_164429_) {
-            return p_164427_;
+        public int runUpdates(int pPos, boolean pIsQueueEmpty, boolean pUpdateBlockLight) {
+            return pPos;
         }
 
-        public void updateSectionStatus(SectionPos p_75720_, boolean p_75721_) {
+        public void updateSectionStatus(SectionPos pPos, boolean pIsEmpty) {
         }
 
-        public void enableLightSources(ChunkPos p_164431_, boolean p_164432_) {
+        public void enableLightSources(ChunkPos pChunkPos, boolean pIsQueueEmpty) {
         }
     }
 }

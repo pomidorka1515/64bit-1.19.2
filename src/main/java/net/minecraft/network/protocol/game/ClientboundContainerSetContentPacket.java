@@ -12,34 +12,34 @@ public class ClientboundContainerSetContentPacket implements Packet<ClientGamePa
     private final List<ItemStack> items;
     private final ItemStack carriedItem;
 
-    public ClientboundContainerSetContentPacket(int p_182704_, int p_182705_, NonNullList<ItemStack> p_182706_, ItemStack p_182707_) {
-        this.containerId = p_182704_;
-        this.stateId = p_182705_;
-        this.items = NonNullList.withSize(p_182706_.size(), ItemStack.EMPTY);
+    public ClientboundContainerSetContentPacket(int pContainerId, int pStateId, NonNullList<ItemStack> pItems, ItemStack pCarriedItem) {
+        this.containerId = pContainerId;
+        this.stateId = pStateId;
+        this.items = NonNullList.withSize(pItems.size(), ItemStack.EMPTY);
 
-        for (int i = 0; i < p_182706_.size(); ++i) {
-            this.items.set(i, p_182706_.get(i).copy());
+        for (int i = 0; i < pItems.size(); ++i) {
+            this.items.set(i, pItems.get(i).copy());
         }
 
-        this.carriedItem = p_182707_.copy();
+        this.carriedItem = pCarriedItem.copy();
     }
 
-    public ClientboundContainerSetContentPacket(FriendlyByteBuf p_178823_) {
-        this.containerId = p_178823_.readUnsignedByte();
-        this.stateId = p_178823_.readVarInt();
-        this.items = p_178823_.readCollection(NonNullList::createWithCapacity, FriendlyByteBuf::readItem);
-        this.carriedItem = p_178823_.readItem();
+    public ClientboundContainerSetContentPacket(FriendlyByteBuf pBuffer) {
+        this.containerId = pBuffer.readUnsignedByte();
+        this.stateId = pBuffer.readVarInt();
+        this.items = pBuffer.readCollection(NonNullList::createWithCapacity, FriendlyByteBuf::readItem);
+        this.carriedItem = pBuffer.readItem();
     }
 
-    public void write(FriendlyByteBuf p_131956_) {
-        p_131956_.writeByte(this.containerId);
-        p_131956_.writeVarInt(this.stateId);
-        p_131956_.writeCollection(this.items, FriendlyByteBuf::writeItem);
-        p_131956_.writeItem(this.carriedItem);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeByte(this.containerId);
+        pBuffer.writeVarInt(this.stateId);
+        pBuffer.writeCollection(this.items, FriendlyByteBuf::writeItem);
+        pBuffer.writeItem(this.carriedItem);
     }
 
-    public void handle(ClientGamePacketListener p_131953_) {
-        p_131953_.handleContainerContent(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleContainerContent(this);
     }
 
     public int getContainerId() {

@@ -12,34 +12,34 @@ public class SpyglassItem extends Item {
     public static final int USE_DURATION = 1200;
     public static final float ZOOM_FOV_MODIFIER = 0.1F;
 
-    public SpyglassItem(Item.Properties p_151205_) {
-        super(p_151205_);
+    public SpyglassItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public int getUseDuration(ItemStack p_151222_) {
+    public int getUseDuration(ItemStack pStack) {
         return 1200;
     }
 
-    public UseAnim getUseAnimation(ItemStack p_151224_) {
+    public UseAnim getUseAnimation(ItemStack pStack) {
         return UseAnim.SPYGLASS;
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_151218_, Player p_151219_, InteractionHand p_151220_) {
-        p_151219_.playSound(SoundEvents.SPYGLASS_USE, 1.0F, 1.0F);
-        p_151219_.awardStat(Stats.ITEM_USED.get(this));
-        return ItemUtils.startUsingInstantly(p_151218_, p_151219_, p_151220_);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand) {
+        pPlayer.playSound(SoundEvents.SPYGLASS_USE, 1.0F, 1.0F);
+        pPlayer.awardStat(Stats.ITEM_USED.get(this));
+        return ItemUtils.startUsingInstantly(pLevel, pPlayer, pUsedHand);
     }
 
-    public ItemStack finishUsingItem(ItemStack p_151209_, Level p_151210_, LivingEntity p_151211_) {
-        this.stopUsing(p_151211_);
-        return p_151209_;
+    public ItemStack finishUsingItem(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity) {
+        this.stopUsing(pLivingEntity);
+        return pStack;
     }
 
-    public void releaseUsing(ItemStack p_151213_, Level p_151214_, LivingEntity p_151215_, int p_151216_) {
-        this.stopUsing(p_151215_);
+    public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pLivingEntity, int pTimeCharged) {
+        this.stopUsing(pLivingEntity);
     }
 
-    private void stopUsing(LivingEntity p_151207_) {
-        p_151207_.playSound(SoundEvents.SPYGLASS_STOP_USING, 1.0F, 1.0F);
+    private void stopUsing(LivingEntity pUser) {
+        pUser.playSound(SoundEvents.SPYGLASS_STOP_USING, 1.0F, 1.0F);
     }
 }

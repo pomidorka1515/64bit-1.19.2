@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class V1483 extends NamespacedSchema {
-    public V1483(int p_17717_, Schema p_17718_) {
-        super(p_17717_, p_17718_);
+    public V1483(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema p_17720_) {
-        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(p_17720_);
+    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema pSchema) {
+        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(pSchema);
         map.put("minecraft:pufferfish", map.remove("minecraft:puffer_fish"));
         return map;
     }

@@ -24,26 +24,26 @@ public class SystemToast implements Toast {
     private boolean changed;
     private final int width;
 
-    public SystemToast(SystemToast.SystemToastIds p_94832_, Component p_94833_, @Nullable Component p_94834_) {
-        this(p_94832_, p_94833_, nullToEmpty(p_94834_), Math.max(160, 30 + Math.max(Minecraft.getInstance().font.width(p_94833_), p_94834_ == null ? 0 : Minecraft.getInstance().font.width(p_94834_))));
+    public SystemToast(SystemToast.SystemToastIds pId, Component pTitle, @Nullable Component pMessage) {
+        this(pId, pTitle, nullToEmpty(pMessage), Math.max(160, 30 + Math.max(Minecraft.getInstance().font.width(pTitle), pMessage == null ? 0 : Minecraft.getInstance().font.width(pMessage))));
     }
 
-    public static SystemToast multiline(Minecraft p_94848_, SystemToast.SystemToastIds p_94849_, Component p_94850_, Component p_94851_) {
-        Font font = p_94848_.font;
-        List<FormattedCharSequence> list = font.split(p_94851_, 200);
+    public static SystemToast multiline(Minecraft pMinecraft, SystemToast.SystemToastIds pId, Component pTitle, Component pMessage) {
+        Font font = pMinecraft.font;
+        List<FormattedCharSequence> list = font.split(pMessage, 200);
         int i = Math.max(200, list.stream().mapToInt(font::width).max().orElse(200));
-        return new SystemToast(p_94849_, p_94850_, list, i + 30);
+        return new SystemToast(pId, pTitle, list, i + 30);
     }
 
-    private SystemToast(SystemToast.SystemToastIds p_94827_, Component p_94828_, List<FormattedCharSequence> p_94829_, int p_94830_) {
-        this.id = p_94827_;
-        this.title = p_94828_;
-        this.messageLines = p_94829_;
-        this.width = p_94830_;
+    private SystemToast(SystemToast.SystemToastIds pId, Component pTitle, List<FormattedCharSequence> pMessageLines, int pWidth) {
+        this.id = pId;
+        this.title = pTitle;
+        this.messageLines = pMessageLines;
+        this.width = pWidth;
     }
 
-    private static ImmutableList<FormattedCharSequence> nullToEmpty(@Nullable Component p_94861_) {
-        return p_94861_ == null ? ImmutableList.of() : ImmutableList.of(p_94861_.getVisualOrderText());
+    private static ImmutableList<FormattedCharSequence> nullToEmpty(@Nullable Component pMessage) {
+        return pMessage == null ? ImmutableList.of() : ImmutableList.of(pMessage.getVisualOrderText());
     }
 
     public int width() {
@@ -54,9 +54,9 @@ public class SystemToast implements Toast {
         return 20 + this.messageLines.size() * 12;
     }
 
-    public Toast.Visibility render(PoseStack p_94844_, ToastComponent p_94845_, long p_94846_) {
+    public Toast.Visibility render(PoseStack pPoseStack, ToastComponent pToastComponent, long pTimeSinceLastVisible) {
         if (this.changed) {
-            this.lastChanged = p_94846_;
+            this.lastChanged = pTimeSinceLastVisible;
             this.changed = false;
         }
 
@@ -64,31 +64,31 @@ public class SystemToast implements Toast {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = this.width();
         if (i == 160 && this.messageLines.size() <= 1) {
-            p_94845_.blit(p_94844_, 0, 0, 0, 64, i, this.height());
+            pToastComponent.blit(pPoseStack, 0, 0, 0, 64, i, this.height());
         } else {
             int j = this.height();
             int k = 28;
             int l = Math.min(4, j - 28);
-            this.renderBackgroundRow(p_94844_, p_94845_, i, 0, 0, 28);
+            this.renderBackgroundRow(pPoseStack, pToastComponent, i, 0, 0, 28);
 
             for (int i1 = 28; i1 < j - l; i1 += 10) {
-                this.renderBackgroundRow(p_94844_, p_94845_, i, 16, i1, Math.min(16, j - i1 - l));
+                this.renderBackgroundRow(pPoseStack, pToastComponent, i, 16, i1, Math.min(16, j - i1 - l));
             }
 
-            this.renderBackgroundRow(p_94844_, p_94845_, i, 32 - l, j - l, l);
+            this.renderBackgroundRow(pPoseStack, pToastComponent, i, 32 - l, j - l, l);
         }
 
         if (this.messageLines == null) {
-            p_94845_.getMinecraft().font.draw(p_94844_, this.title, 18.0F, 12.0F, -256);
+            pToastComponent.getMinecraft().font.draw(pPoseStack, this.title, 18.0F, 12.0F, -256);
         } else {
-            p_94845_.getMinecraft().font.draw(p_94844_, this.title, 18.0F, 7.0F, -256);
+            pToastComponent.getMinecraft().font.draw(pPoseStack, this.title, 18.0F, 7.0F, -256);
 
             for (int j1 = 0; j1 < this.messageLines.size(); ++j1) {
-                p_94845_.getMinecraft().font.draw(p_94844_, this.messageLines.get(j1), 18.0F, (float) (18 + j1 * 12), -1);
+                pToastComponent.getMinecraft().font.draw(pPoseStack, this.messageLines.get(j1), 18.0F, (float) (18 + j1 * 12), -1);
             }
         }
 
-        return p_94846_ - this.lastChanged < this.id.displayTime ? Toast.Visibility.SHOW : Toast.Visibility.HIDE;
+        return pTimeSinceLastVisible - this.lastChanged < this.id.displayTime ? Toast.Visibility.SHOW : Toast.Visibility.HIDE;
     }
 
     private void renderBackgroundRow(PoseStack p_94837_, ToastComponent p_94838_, int p_94839_, int p_94840_, int p_94841_, int p_94842_) {
@@ -103,9 +103,9 @@ public class SystemToast implements Toast {
         p_94838_.blit(p_94837_, p_94839_ - j, p_94841_, 160 - j, 64 + p_94840_, j, p_94842_);
     }
 
-    public void reset(Component p_94863_, @Nullable Component p_94864_) {
-        this.title = p_94863_;
-        this.messageLines = nullToEmpty(p_94864_);
+    public void reset(Component pTitle, @Nullable Component pMessage) {
+        this.title = pTitle;
+        this.messageLines = nullToEmpty(pMessage);
         this.changed = true;
     }
 
@@ -113,29 +113,29 @@ public class SystemToast implements Toast {
         return this.id;
     }
 
-    public static void add(ToastComponent p_94856_, SystemToast.SystemToastIds p_94857_, Component p_94858_, @Nullable Component p_94859_) {
-        p_94856_.addToast(new SystemToast(p_94857_, p_94858_, p_94859_));
+    public static void add(ToastComponent pToastComponent, SystemToast.SystemToastIds pId, Component pTitle, @Nullable Component pMessage) {
+        pToastComponent.addToast(new SystemToast(pId, pTitle, pMessage));
     }
 
-    public static void addOrUpdate(ToastComponent p_94870_, SystemToast.SystemToastIds p_94871_, Component p_94872_, @Nullable Component p_94873_) {
-        SystemToast systemtoast = p_94870_.getToast(SystemToast.class, p_94871_);
+    public static void addOrUpdate(ToastComponent pToastComponent, SystemToast.SystemToastIds pId, Component pTitle, @Nullable Component pMessage) {
+        SystemToast systemtoast = pToastComponent.getToast(SystemToast.class, pId);
         if (systemtoast == null) {
-            add(p_94870_, p_94871_, p_94872_, p_94873_);
+            add(pToastComponent, pId, pTitle, pMessage);
         } else {
-            systemtoast.reset(p_94872_, p_94873_);
+            systemtoast.reset(pTitle, pMessage);
         }
     }
 
-    public static void onWorldAccessFailure(Minecraft p_94853_, String p_94854_) {
-        add(p_94853_.getToasts(), SystemToast.SystemToastIds.WORLD_ACCESS_FAILURE, Component.translatable("selectWorld.access_failure"), Component.literal(p_94854_));
+    public static void onWorldAccessFailure(Minecraft pMinecraft, String pMessage) {
+        add(pMinecraft.getToasts(), SystemToast.SystemToastIds.WORLD_ACCESS_FAILURE, Component.translatable("selectWorld.access_failure"), Component.literal(pMessage));
     }
 
-    public static void onWorldDeleteFailure(Minecraft p_94867_, String p_94868_) {
-        add(p_94867_.getToasts(), SystemToast.SystemToastIds.WORLD_ACCESS_FAILURE, Component.translatable("selectWorld.delete_failure"), Component.literal(p_94868_));
+    public static void onWorldDeleteFailure(Minecraft pMinecraft, String pMessage) {
+        add(pMinecraft.getToasts(), SystemToast.SystemToastIds.WORLD_ACCESS_FAILURE, Component.translatable("selectWorld.delete_failure"), Component.literal(pMessage));
     }
 
-    public static void onPackCopyFailure(Minecraft p_94876_, String p_94877_) {
-        add(p_94876_.getToasts(), SystemToast.SystemToastIds.PACK_COPY_FAILURE, Component.translatable("pack.copyFailure"), Component.literal(p_94877_));
+    public static void onPackCopyFailure(Minecraft pMinecraft, String pMessage) {
+        add(pMinecraft.getToasts(), SystemToast.SystemToastIds.PACK_COPY_FAILURE, Component.translatable("pack.copyFailure"), Component.literal(pMessage));
     }
 
     @OnlyIn(Dist.CLIENT)

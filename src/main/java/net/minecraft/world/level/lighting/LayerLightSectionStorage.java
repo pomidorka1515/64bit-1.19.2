@@ -37,12 +37,12 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     private final Set<SectionPos> toRemove = new HashSet<>();
     protected volatile boolean hasToRemove;
 
-    protected LayerLightSectionStorage(LightLayer p_75745_, LightChunkGetter p_75746_, M p_75747_) {
+    protected LayerLightSectionStorage(LightLayer pLayer, LightChunkGetter pChunkSource, M pUpdatingSectionData) {
         super(3, 16, 256);
-        this.layer = p_75745_;
-        this.chunkSource = p_75746_;
-        this.updatingSectionData = p_75747_;
-        this.visibleSectionData = p_75747_.copy();
+        this.layer = pLayer;
+        this.chunkSource = pChunkSource;
+        this.updatingSectionData = pUpdatingSectionData;
+        this.visibleSectionData = pUpdatingSectionData.copy();
         this.visibleSectionData.disableCache();
     }
 
@@ -50,95 +50,95 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         return WorldBounds.isValidChunk(sectionPos.x(), sectionPos.z());
     }
 
-    protected boolean storingLightForSection(SectionPos p_75792_) {
-        return isValidSection(p_75792_) && this.getDataLayer(p_75792_, true) != null;
+    protected boolean storingLightForSection(SectionPos pSectionPos) {
+        return isValidSection(pSectionPos) && this.getDataLayer(pSectionPos, true) != null;
     }
 
     @Nullable
-    protected DataLayer getDataLayer(SectionPos p_75759_, boolean p_75760_) {
-        return isValidSection(p_75759_) ? this.getDataLayer((M) (p_75760_ ? this.updatingSectionData : this.visibleSectionData), p_75759_) : null;
+    protected DataLayer getDataLayer(SectionPos pSectionPos, boolean pCached) {
+        return isValidSection(pSectionPos) ? this.getDataLayer((M) (pCached ? this.updatingSectionData : this.visibleSectionData), pSectionPos) : null;
     }
 
     @Nullable
-    protected DataLayer getDataLayer(M p_75762_, SectionPos p_75763_) {
-        return isValidSection(p_75763_) ? p_75762_.getLayer(p_75763_) : null;
+    protected DataLayer getDataLayer(M pMap, SectionPos pSectionPos) {
+        return isValidSection(pSectionPos) ? pMap.getLayer(pSectionPos) : null;
     }
 
     @Nullable
-    public DataLayer getDataLayerData(SectionPos p_75794_) {
-        if (!isValidSection(p_75794_))
+    public DataLayer getDataLayerData(SectionPos pSectionPos) {
+        if (!isValidSection(pSectionPos))
             return null;
 
-        DataLayer datalayer = this.queuedSections.get(p_75794_);
-        return datalayer != null ? datalayer : this.getDataLayer(p_75794_, false);
+        DataLayer datalayer = this.queuedSections.get(pSectionPos);
+        return datalayer != null ? datalayer : this.getDataLayer(pSectionPos, false);
     }
 
-    protected abstract int getLightValue(BlockPos p_75786_);
+    protected abstract int getLightValue(BlockPos pLevelPos);
 
-    protected int getStoredLevel(BlockPos p_75796_) {
-        SectionPos i = SectionPos.of(p_75796_);
+    protected int getStoredLevel(BlockPos pLevelPos) {
+        SectionPos i = SectionPos.of(pLevelPos);
         DataLayer datalayer = this.getDataLayer(i, true);
         // Unloaded edge sections legitimately have no data layer.  Treat them as
         // unlit rather than allowing a render/light query to throw an NPE.
-        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(p_75796_.getX()), SectionPos.sectionRelative(p_75796_.getY()), SectionPos.sectionRelative(p_75796_.getZ()));
+        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.getX()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZ()));
     }
 
-    protected void setStoredLevel(BlockPos p_75773_, int p_75774_) {
-        SectionPos i = SectionPos.of(p_75773_);
+    protected void setStoredLevel(BlockPos pLevelPos, int pLightLevel) {
+        SectionPos i = SectionPos.of(pLevelPos);
         if (this.changedSections.add(i)) {
             this.updatingSectionData.copyDataLayer(i);
         }
 
         DataLayer datalayer = this.getDataLayer(i, true);
-        datalayer.set(SectionPos.sectionRelative(p_75773_.getX()), SectionPos.sectionRelative(p_75773_.getY()), SectionPos.sectionRelative(p_75773_.getZ()), p_75774_);
-        SectionPos.aroundAndAtBlockPos(p_75773_, this.sectionsAffectedByLightUpdates::add);
+        datalayer.set(SectionPos.sectionRelative(pLevelPos.getX()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZ()), pLightLevel);
+        SectionPos.aroundAndAtBlockPos(pLevelPos, this.sectionsAffectedByLightUpdates::add);
     }
 
-    protected int getLevel(SectionPos p_75781_) {
-        if (p_75781_ == null || !isValidSection(p_75781_)) {
+    protected int getLevel(SectionPos pSectionPos) {
+        if (pSectionPos == null || !isValidSection(pSectionPos)) {
             return 2;
-        } else if (this.dataSectionSet.contains(p_75781_)) {
+        } else if (this.dataSectionSet.contains(pSectionPos)) {
             return 0;
         } else {
-            return !this.toRemove.contains(p_75781_) && this.updatingSectionData.hasLayer(p_75781_) ? 1 : 2;
+            return !this.toRemove.contains(pSectionPos) && this.updatingSectionData.hasLayer(pSectionPos) ? 1 : 2;
         }
     }
 
-    protected int getLevelFromSource(SectionPos p_75771_) {
-        if (!isValidSection(p_75771_)) {
+    protected int getLevelFromSource(SectionPos pPos) {
+        if (!isValidSection(pPos)) {
             return 2;
-        } else if (this.toMarkNoData.contains(p_75771_)) {
+        } else if (this.toMarkNoData.contains(pPos)) {
             return 2;
         } else {
-            return !this.dataSectionSet.contains(p_75771_) && !this.toMarkData.contains(p_75771_) ? 2 : 0;
+            return !this.dataSectionSet.contains(pPos) && !this.toMarkData.contains(pPos) ? 2 : 0;
         }
     }
 
-    protected void setLevel(SectionPos p_75749_, int p_75750_) {
-        if (!isValidSection(p_75749_))
+    protected void setLevel(SectionPos pSectionPos, int pLevel) {
+        if (!isValidSection(pSectionPos))
             return;
 
-        int i = this.getLevel(p_75749_);
-        if (i != 0 && p_75750_ == 0) {
-            this.dataSectionSet.add(p_75749_);
-            this.toMarkData.remove(p_75749_);
+        int i = this.getLevel(pSectionPos);
+        if (i != 0 && pLevel == 0) {
+            this.dataSectionSet.add(pSectionPos);
+            this.toMarkData.remove(pSectionPos);
         }
 
-        if (i == 0 && p_75750_ != 0) {
-            this.dataSectionSet.remove(p_75749_);
-            this.toMarkNoData.remove(p_75749_);
+        if (i == 0 && pLevel != 0) {
+            this.dataSectionSet.remove(pSectionPos);
+            this.toMarkNoData.remove(pSectionPos);
         }
 
-        if (i >= 2 && p_75750_ != 2) {
-            if (this.toRemove.contains(p_75749_)) {
-                this.toRemove.remove(p_75749_);
+        if (i >= 2 && pLevel != 2) {
+            if (this.toRemove.contains(pSectionPos)) {
+                this.toRemove.remove(pSectionPos);
             } else {
-                this.updatingSectionData.setLayer(p_75749_, this.createDataLayer(p_75749_));
-                this.changedSections.add(p_75749_);
-                this.onNodeAdded(p_75749_);
-                long j = p_75749_.x();
-                int k = p_75749_.y();
-                long l = p_75749_.z();
+                this.updatingSectionData.setLayer(pSectionPos, this.createDataLayer(pSectionPos));
+                this.changedSections.add(pSectionPos);
+                this.onNodeAdded(pSectionPos);
+                long j = pSectionPos.x();
+                int k = pSectionPos.y();
+                long l = pSectionPos.z();
 
                 for (int i1 = -1; i1 <= 1; ++i1) {
                     Long affectedZ = WorldBounds.tryAddChunkOffset(l, i1);
@@ -158,34 +158,34 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
             }
         }
 
-        if (i != 2 && p_75750_ >= 2) {
-            this.toRemove.add(p_75749_);
+        if (i != 2 && pLevel >= 2) {
+            this.toRemove.add(pSectionPos);
         }
 
         this.hasToRemove = !this.toRemove.isEmpty();
     }
 
-    protected DataLayer createDataLayer(SectionPos p_75797_) {
-        DataLayer datalayer = this.queuedSections.get(p_75797_);
+    protected DataLayer createDataLayer(SectionPos pSectionPos) {
+        DataLayer datalayer = this.queuedSections.get(pSectionPos);
         return datalayer != null ? datalayer : new DataLayer();
     }
 
-    protected void clearQueuedSectionBlocks(LayerLightEngine<?, ?> p_75765_, SectionPos p_75766_) {
-        if (p_75765_.getQueueSize() != 0) {
-            if (p_75765_.getQueueSize() < 8192) {
-                p_75765_.removeIf((p_75753_) -> {
-                    return SectionPos.of(p_75753_).equals(p_75766_);
+    protected void clearQueuedSectionBlocks(LayerLightEngine<?, ?> pEngine, SectionPos pSectionPos) {
+        if (pEngine.getQueueSize() != 0) {
+            if (pEngine.getQueueSize() < 8192) {
+                pEngine.removeIf((p_75753_) -> {
+                    return SectionPos.of(p_75753_).equals(pSectionPos);
                 });
             } else {
-                long i = SectionPos.sectionToBlockCoord(p_75766_.x());
-                int j = SectionPos.sectionToBlockCoord(p_75766_.y());
-                long k = SectionPos.sectionToBlockCoord(p_75766_.z());
+                long i = SectionPos.sectionToBlockCoord(pSectionPos.x());
+                int j = SectionPos.sectionToBlockCoord(pSectionPos.y());
+                long k = SectionPos.sectionToBlockCoord(pSectionPos.z());
 
                 for (int l = 0; l < 16; ++l) {
                     for (int i1 = 0; i1 < 16; ++i1) {
                         for (int j1 = 0; j1 < 16; ++j1) {
                             BlockPos k1 = new BlockPos(i + l, j + i1, k + j1);
-                            p_75765_.removeFromQueue(k1);
+                            pEngine.removeFromQueue(k1);
                         }
                     }
                 }
@@ -301,53 +301,53 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         }
     }
 
-    protected void onNodeAdded(SectionPos p_75798_) {
+    protected void onNodeAdded(SectionPos pSectionPos) {
     }
 
-    protected void onNodeRemoved(SectionPos p_75799_) {
+    protected void onNodeRemoved(SectionPos pSectionPos) {
     }
 
-    protected void enableLightSources(SectionPos p_75775_, boolean p_75776_) {
+    protected void enableLightSources(SectionPos pSectionPos, boolean pIsQueueEmpty) {
     }
 
-    public void retainData(SectionPos p_75783_, boolean p_75784_) {
-        if (!isValidSection(p_75783_))
+    public void retainData(SectionPos pSectionColumnPos, boolean pRetain) {
+        if (!isValidSection(pSectionColumnPos))
             return;
 
-        if (p_75784_) {
-            this.columnsToRetainQueuedDataFor.add(p_75783_);
+        if (pRetain) {
+            this.columnsToRetainQueuedDataFor.add(pSectionColumnPos);
         } else {
-            this.columnsToRetainQueuedDataFor.remove(p_75783_);
+            this.columnsToRetainQueuedDataFor.remove(pSectionColumnPos);
         }
     }
 
-    protected void queueSectionData(SectionPos p_75755_, @Nullable DataLayer p_75756_, boolean p_75757_) {
-        if (!isValidSection(p_75755_))
+    protected void queueSectionData(SectionPos pSectionPos, @Nullable DataLayer pArray, boolean pIsTrusted) {
+        if (!isValidSection(pSectionPos))
             return;
 
-        if (p_75756_ != null) {
-            this.queuedSections.put(p_75755_, p_75756_);
-            if (!p_75757_) {
-                this.untrustedSections.add(p_75755_);
+        if (pArray != null) {
+            this.queuedSections.put(pSectionPos, pArray);
+            if (!pIsTrusted) {
+                this.untrustedSections.add(pSectionPos);
             }
         } else {
-            this.queuedSections.remove(p_75755_);
+            this.queuedSections.remove(pSectionPos);
         }
     }
 
-    protected void updateSectionStatus(SectionPos p_75788_, boolean p_75789_) {
-        if (!isValidSection(p_75788_))
+    protected void updateSectionStatus(SectionPos pSectionPos, boolean pIsEmpty) {
+        if (!isValidSection(pSectionPos))
             return;
 
-        boolean flag = this.dataSectionSet.contains(p_75788_);
-        if (!flag && !p_75789_) {
-            this.toMarkData.add(p_75788_);
-            this.checkEdge(null, p_75788_, 0, true);
+        boolean flag = this.dataSectionSet.contains(pSectionPos);
+        if (!flag && !pIsEmpty) {
+            this.toMarkData.add(pSectionPos);
+            this.checkEdge(null, pSectionPos, 0, true);
         }
 
-        if (flag && p_75789_) {
-            this.toMarkNoData.add(p_75788_);
-            this.checkEdge(null, p_75788_, 2, false);
+        if (flag && pIsEmpty) {
+            this.toMarkNoData.add(pSectionPos);
+            this.checkEdge(null, pSectionPos, 2, false);
         }
     }
 

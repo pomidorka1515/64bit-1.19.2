@@ -14,8 +14,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class ReorganizePoi extends DataFix {
-    public ReorganizePoi(Schema p_16853_, boolean p_16854_) {
-        super(p_16853_, p_16854_);
+    public ReorganizePoi(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

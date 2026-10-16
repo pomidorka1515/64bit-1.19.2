@@ -64,12 +64,12 @@ public class SlotArgument implements ArgumentType<Integer> {
         return new SlotArgument();
     }
 
-    public static int getSlot(CommandContext<CommandSourceStack> p_111280_, String p_111281_) {
-        return p_111280_.getArgument(p_111281_, Integer.class);
+    public static int getSlot(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, Integer.class);
     }
 
-    public Integer parse(StringReader p_111278_) throws CommandSyntaxException {
-        String s = p_111278_.readUnquotedString();
+    public Integer parse(StringReader pReader) throws CommandSyntaxException {
+        String s = pReader.readUnquotedString();
         if (!SLOTS.containsKey(s)) {
             throw ERROR_UNKNOWN_SLOT.create(s);
         } else {
@@ -77,8 +77,8 @@ public class SlotArgument implements ArgumentType<Integer> {
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_111288_, SuggestionsBuilder p_111289_) {
-        return SharedSuggestionProvider.suggest(SLOTS.keySet(), p_111289_);
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return SharedSuggestionProvider.suggest(SLOTS.keySet(), pBuilder);
     }
 
     public Collection<String> getExamples() {

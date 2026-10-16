@@ -36,40 +36,40 @@ public class PaintingVariants {
     public static final ResourceKey<PaintingVariant> WATER = create("water");
     public static final ResourceKey<PaintingVariant> FIRE = create("fire");
 
-    public static PaintingVariant bootstrap(Registry<PaintingVariant> p_218943_) {
-        Registry.register(p_218943_, KEBAB, new PaintingVariant(16, 16));
-        Registry.register(p_218943_, AZTEC, new PaintingVariant(16, 16));
-        Registry.register(p_218943_, ALBAN, new PaintingVariant(16, 16));
-        Registry.register(p_218943_, AZTEC2, new PaintingVariant(16, 16));
-        Registry.register(p_218943_, BOMB, new PaintingVariant(16, 16));
-        Registry.register(p_218943_, PLANT, new PaintingVariant(16, 16));
-        Registry.register(p_218943_, WASTELAND, new PaintingVariant(16, 16));
-        Registry.register(p_218943_, POOL, new PaintingVariant(32, 16));
-        Registry.register(p_218943_, COURBET, new PaintingVariant(32, 16));
-        Registry.register(p_218943_, SEA, new PaintingVariant(32, 16));
-        Registry.register(p_218943_, SUNSET, new PaintingVariant(32, 16));
-        Registry.register(p_218943_, CREEBET, new PaintingVariant(32, 16));
-        Registry.register(p_218943_, WANDERER, new PaintingVariant(16, 32));
-        Registry.register(p_218943_, GRAHAM, new PaintingVariant(16, 32));
-        Registry.register(p_218943_, MATCH, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, BUST, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, STAGE, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, VOID, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, SKULL_AND_ROSES, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, WITHER, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, FIGHTERS, new PaintingVariant(64, 32));
-        Registry.register(p_218943_, POINTER, new PaintingVariant(64, 64));
-        Registry.register(p_218943_, PIGSCENE, new PaintingVariant(64, 64));
-        Registry.register(p_218943_, BURNING_SKULL, new PaintingVariant(64, 64));
-        Registry.register(p_218943_, SKELETON, new PaintingVariant(64, 48));
-        Registry.register(p_218943_, EARTH, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, WIND, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, WATER, new PaintingVariant(32, 32));
-        Registry.register(p_218943_, FIRE, new PaintingVariant(32, 32));
-        return Registry.register(p_218943_, DONKEY_KONG, new PaintingVariant(64, 48));
+    public static PaintingVariant bootstrap(Registry<PaintingVariant> pRegistry) {
+        Registry.register(pRegistry, KEBAB, new PaintingVariant(16, 16));
+        Registry.register(pRegistry, AZTEC, new PaintingVariant(16, 16));
+        Registry.register(pRegistry, ALBAN, new PaintingVariant(16, 16));
+        Registry.register(pRegistry, AZTEC2, new PaintingVariant(16, 16));
+        Registry.register(pRegistry, BOMB, new PaintingVariant(16, 16));
+        Registry.register(pRegistry, PLANT, new PaintingVariant(16, 16));
+        Registry.register(pRegistry, WASTELAND, new PaintingVariant(16, 16));
+        Registry.register(pRegistry, POOL, new PaintingVariant(32, 16));
+        Registry.register(pRegistry, COURBET, new PaintingVariant(32, 16));
+        Registry.register(pRegistry, SEA, new PaintingVariant(32, 16));
+        Registry.register(pRegistry, SUNSET, new PaintingVariant(32, 16));
+        Registry.register(pRegistry, CREEBET, new PaintingVariant(32, 16));
+        Registry.register(pRegistry, WANDERER, new PaintingVariant(16, 32));
+        Registry.register(pRegistry, GRAHAM, new PaintingVariant(16, 32));
+        Registry.register(pRegistry, MATCH, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, BUST, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, STAGE, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, VOID, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, SKULL_AND_ROSES, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, WITHER, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, FIGHTERS, new PaintingVariant(64, 32));
+        Registry.register(pRegistry, POINTER, new PaintingVariant(64, 64));
+        Registry.register(pRegistry, PIGSCENE, new PaintingVariant(64, 64));
+        Registry.register(pRegistry, BURNING_SKULL, new PaintingVariant(64, 64));
+        Registry.register(pRegistry, SKELETON, new PaintingVariant(64, 48));
+        Registry.register(pRegistry, EARTH, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, WIND, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, WATER, new PaintingVariant(32, 32));
+        Registry.register(pRegistry, FIRE, new PaintingVariant(32, 32));
+        return Registry.register(pRegistry, DONKEY_KONG, new PaintingVariant(64, 48));
     }
 
-    private static ResourceKey<PaintingVariant> create(String p_218945_) {
-        return ResourceKey.create(Registry.PAINTING_VARIANT_REGISTRY, new ResourceLocation(p_218945_));
+    private static ResourceKey<PaintingVariant> create(String pName) {
+        return ResourceKey.create(Registry.PAINTING_VARIANT_REGISTRY, new ResourceLocation(pName));
     }
 }

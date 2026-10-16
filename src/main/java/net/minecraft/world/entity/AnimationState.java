@@ -8,14 +8,14 @@ public class AnimationState {
     private long lastTime = Long.MAX_VALUE;
     private long accumulatedTime;
 
-    public void start(int p_216978_) {
-        this.lastTime = (long) p_216978_ * 1000L / 20L;
+    public void start(int pTickCount) {
+        this.lastTime = (long) pTickCount * 1000L / 20L;
         this.accumulatedTime = 0L;
     }
 
-    public void startIfStopped(int p_216983_) {
+    public void startIfStopped(int pTickCount) {
         if (!this.isStarted()) {
-            this.start(p_216983_);
+            this.start(pTickCount);
         }
     }
 
@@ -23,16 +23,16 @@ public class AnimationState {
         this.lastTime = Long.MAX_VALUE;
     }
 
-    public void ifStarted(Consumer<AnimationState> p_216980_) {
+    public void ifStarted(Consumer<AnimationState> pAction) {
         if (this.isStarted()) {
-            p_216980_.accept(this);
+            pAction.accept(this);
         }
     }
 
-    public void updateTime(float p_216975_, float p_216976_) {
+    public void updateTime(float pAgeInTicks, float pSpeed) {
         if (this.isStarted()) {
-            long i = Mth.lfloor((double) (p_216975_ * 1000.0F / 20.0F));
-            this.accumulatedTime += (long) ((float) (i - this.lastTime) * p_216976_);
+            long i = Mth.lfloor((double) (pAgeInTicks * 1000.0F / 20.0F));
+            this.accumulatedTime += (long) ((float) (i - this.lastTime) * pSpeed);
             this.lastTime = i;
         }
     }

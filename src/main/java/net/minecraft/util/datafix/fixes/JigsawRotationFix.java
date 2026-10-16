@@ -12,8 +12,8 @@ import java.util.Optional;
 public class JigsawRotationFix extends DataFix {
     private static final Map<String, String> RENAMES = ImmutableMap.<String, String>builder().put("down", "down_south").put("up", "up_north").put("north", "north_up").put("south", "south_up").put("west", "west_up").put("east", "east_up").build();
 
-    public JigsawRotationFix(Schema p_16191_, boolean p_16192_) {
-        super(p_16191_, p_16192_);
+    public JigsawRotationFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     private static Dynamic<?> fix(Dynamic<?> p_16196_) {

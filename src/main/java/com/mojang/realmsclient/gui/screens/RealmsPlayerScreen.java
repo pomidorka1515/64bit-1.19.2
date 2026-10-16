@@ -55,10 +55,10 @@ public class RealmsPlayerScreen extends RealmsScreen {
     private boolean stateChanged;
     RealmsPlayerScreen.UserAction hoveredUserAction = RealmsPlayerScreen.UserAction.NONE;
 
-    public RealmsPlayerScreen(RealmsConfigureWorldScreen p_89089_, RealmsServer p_89090_) {
+    public RealmsPlayerScreen(RealmsConfigureWorldScreen pLastScreen, RealmsServer pServerData) {
         super(Component.translatable("mco.configure.world.players.title"));
-        this.lastScreen = p_89089_;
-        this.serverData = p_89090_;
+        this.lastScreen = pLastScreen;
+        this.serverData = pServerData;
     }
 
     public void init() {
@@ -106,12 +106,12 @@ public class RealmsPlayerScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_89094_, int p_89095_, int p_89096_) {
-        if (p_89094_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.backButtonClicked();
             return true;
         } else {
-            return super.keyPressed(p_89094_, p_89095_, p_89096_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -123,10 +123,10 @@ public class RealmsPlayerScreen extends RealmsScreen {
         }
     }
 
-    void op(int p_89193_) {
+    void op(int pIndex) {
         this.updateButtonStates();
         RealmsClient realmsclient = RealmsClient.create();
-        String s = this.serverData.players.get(p_89193_).getUuid();
+        String s = this.serverData.players.get(pIndex).getUuid();
 
         try {
             this.updateOps(realmsclient.op(this.serverData.id, s));
@@ -135,10 +135,10 @@ public class RealmsPlayerScreen extends RealmsScreen {
         }
     }
 
-    void deop(int p_89195_) {
+    void deop(int pIndex) {
         this.updateButtonStates();
         RealmsClient realmsclient = RealmsClient.create();
-        String s = this.serverData.players.get(p_89195_).getUuid();
+        String s = this.serverData.players.get(pIndex).getUuid();
 
         try {
             this.updateOps(realmsclient.deop(this.serverData.id, s));
@@ -147,18 +147,18 @@ public class RealmsPlayerScreen extends RealmsScreen {
         }
     }
 
-    private void updateOps(Ops p_89108_) {
+    private void updateOps(Ops pOps) {
         for (PlayerInfo playerinfo : this.serverData.players) {
-            playerinfo.setOperator(p_89108_.ops.contains(playerinfo.getName()));
+            playerinfo.setOperator(pOps.ops.contains(playerinfo.getName()));
         }
     }
 
-    void uninvite(int p_89197_) {
+    void uninvite(int pIndex) {
         this.updateButtonStates();
-        if (p_89197_ >= 0 && p_89197_ < this.serverData.players.size()) {
-            PlayerInfo playerinfo = this.serverData.players.get(p_89197_);
+        if (pIndex >= 0 && pIndex < this.serverData.players.size()) {
+            PlayerInfo playerinfo = this.serverData.players.get(pIndex);
             this.selectedInvited = playerinfo.getUuid();
-            this.selectedInvitedIndex = p_89197_;
+            this.selectedInvitedIndex = pIndex;
             RealmsConfirmScreen realmsconfirmscreen = new RealmsConfirmScreen((p_89163_) -> {
                 if (p_89163_) {
                     RealmsClient realmsclient = RealmsClient.create();
@@ -181,19 +181,19 @@ public class RealmsPlayerScreen extends RealmsScreen {
         }
     }
 
-    private void deleteFromInvitedList(int p_89199_) {
-        this.serverData.players.remove(p_89199_);
+    private void deleteFromInvitedList(int pIndex) {
+        this.serverData.players.remove(pIndex);
     }
 
-    public void render(PoseStack p_89098_, int p_89099_, int p_89100_, float p_89101_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.toolTip = null;
         this.hoveredUserAction = RealmsPlayerScreen.UserAction.NONE;
-        this.renderBackground(p_89098_);
+        this.renderBackground(pPoseStack);
         if (this.invitedObjectSelectionList != null) {
-            this.invitedObjectSelectionList.render(p_89098_, p_89099_, p_89100_, p_89101_);
+            this.invitedObjectSelectionList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
-        drawCenteredString(p_89098_, this.font, this.title, this.width / 2, 17, 16777215);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 17, 16777215);
         int i = row(12) + 20;
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
@@ -208,24 +208,24 @@ public class RealmsPlayerScreen extends RealmsScreen {
         bufferbuilder.vertex(0.0D, (double) i, 0.0D).uv(0.0F, 0.0F).color(64, 64, 64, 255).endVertex();
         tesselator.end();
         if (this.serverData != null && this.serverData.players != null) {
-            this.font.draw(p_89098_, Component.empty().append(INVITED_LABEL).append(" (").append(Integer.toString(this.serverData.players.size())).append(")"), (float) this.column1X, (float) row(0), 10526880);
+            this.font.draw(pPoseStack, Component.empty().append(INVITED_LABEL).append(" (").append(Integer.toString(this.serverData.players.size())).append(")"), (float) this.column1X, (float) row(0), 10526880);
         } else {
-            this.font.draw(p_89098_, INVITED_LABEL, (float) this.column1X, (float) row(0), 10526880);
+            this.font.draw(pPoseStack, INVITED_LABEL, (float) this.column1X, (float) row(0), 10526880);
         }
 
-        super.render(p_89098_, p_89099_, p_89100_, p_89101_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (this.serverData != null) {
-            this.renderMousehoverTooltip(p_89098_, this.toolTip, p_89099_, p_89100_);
+            this.renderMousehoverTooltip(pPoseStack, this.toolTip, pMouseX, pMouseY);
         }
     }
 
-    protected void renderMousehoverTooltip(PoseStack p_89103_, @Nullable Component p_89104_, int p_89105_, int p_89106_) {
-        if (p_89104_ != null) {
-            int i = p_89105_ + 12;
-            int j = p_89106_ - 12;
-            int k = this.font.width(p_89104_);
-            this.fillGradient(p_89103_, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
-            this.font.drawShadow(p_89103_, p_89104_, (float) i, (float) j, 16777215);
+    protected void renderMousehoverTooltip(PoseStack pPoseStack, @Nullable Component pTooltip, int pMouseX, int pMouseY) {
+        if (pTooltip != null) {
+            int i = pMouseX + 12;
+            int j = pMouseY - 12;
+            int k = this.font.width(pTooltip);
+            this.fillGradient(pPoseStack, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
+            this.font.drawShadow(pPoseStack, pTooltip, (float) i, (float) j, 16777215);
         }
     }
 
@@ -273,31 +273,31 @@ public class RealmsPlayerScreen extends RealmsScreen {
             this.playerInfo = p_89204_;
         }
 
-        public void render(PoseStack p_89209_, int p_89210_, int p_89211_, int p_89212_, int p_89213_, int p_89214_, int p_89215_, int p_89216_, boolean p_89217_, float p_89218_) {
-            this.renderInvitedItem(p_89209_, this.playerInfo, p_89212_, p_89211_, p_89215_, p_89216_);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            this.renderInvitedItem(pPoseStack, this.playerInfo, pLeft, pTop, pMouseX, pMouseY);
         }
 
-        private void renderInvitedItem(PoseStack p_89220_, PlayerInfo p_89221_, int p_89222_, int p_89223_, int p_89224_, int p_89225_) {
+        private void renderInvitedItem(PoseStack pPoseStack, PlayerInfo pPlayerInfo, int pLeft, int pTop, int pMouseX, int pMouseY) {
             int i;
-            if (!p_89221_.getAccepted()) {
+            if (!pPlayerInfo.getAccepted()) {
                 i = 10526880;
-            } else if (p_89221_.getOnline()) {
+            } else if (pPlayerInfo.getOnline()) {
                 i = 8388479;
             } else {
                 i = 16777215;
             }
 
-            RealmsPlayerScreen.this.font.draw(p_89220_, p_89221_.getName(), (float) (RealmsPlayerScreen.this.column1X + 3 + 12), (float) (p_89223_ + 1), i);
-            if (p_89221_.isOperator()) {
-                RealmsPlayerScreen.this.drawOpped(p_89220_, RealmsPlayerScreen.this.column1X + RealmsPlayerScreen.this.columnWidth - 10, p_89223_ + 1, p_89224_, p_89225_);
+            RealmsPlayerScreen.this.font.draw(pPoseStack, pPlayerInfo.getName(), (float) (RealmsPlayerScreen.this.column1X + 3 + 12), (float) (pTop + 1), i);
+            if (pPlayerInfo.isOperator()) {
+                RealmsPlayerScreen.this.drawOpped(pPoseStack, RealmsPlayerScreen.this.column1X + RealmsPlayerScreen.this.columnWidth - 10, pTop + 1, pMouseX, pMouseY);
             } else {
-                RealmsPlayerScreen.this.drawNormal(p_89220_, RealmsPlayerScreen.this.column1X + RealmsPlayerScreen.this.columnWidth - 10, p_89223_ + 1, p_89224_, p_89225_);
+                RealmsPlayerScreen.this.drawNormal(pPoseStack, RealmsPlayerScreen.this.column1X + RealmsPlayerScreen.this.columnWidth - 10, pTop + 1, pMouseX, pMouseY);
             }
 
-            RealmsPlayerScreen.this.drawRemoveIcon(p_89220_, RealmsPlayerScreen.this.column1X + RealmsPlayerScreen.this.columnWidth - 22, p_89223_ + 2, p_89224_, p_89225_);
-            RealmsTextureManager.withBoundFace(p_89221_.getUuid(), () -> {
+            RealmsPlayerScreen.this.drawRemoveIcon(pPoseStack, RealmsPlayerScreen.this.column1X + RealmsPlayerScreen.this.columnWidth - 22, pTop + 2, pMouseX, pMouseY);
+            RealmsTextureManager.withBoundFace(pPlayerInfo.getUuid(), () -> {
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                PlayerFaceRenderer.draw(p_89220_, RealmsPlayerScreen.this.column1X + 2 + 2, p_89223_ + 1, 8);
+                PlayerFaceRenderer.draw(pPoseStack, RealmsPlayerScreen.this.column1X + 2 + 2, pTop + 1, 8);
             });
         }
 
@@ -312,8 +312,8 @@ public class RealmsPlayerScreen extends RealmsScreen {
             super(RealmsPlayerScreen.this.columnWidth + 10, RealmsPlayerScreen.row(12) + 20, RealmsPlayerScreen.row(1), RealmsPlayerScreen.row(12) + 20, 13);
         }
 
-        public void addEntry(PlayerInfo p_89244_) {
-            this.addEntry(RealmsPlayerScreen.this.new Entry(p_89244_));
+        public void addEntry(PlayerInfo pPlayerInfo) {
+            this.addEntry(RealmsPlayerScreen.this.new Entry(pPlayerInfo));
         }
 
         public int getRowWidth() {
@@ -324,20 +324,20 @@ public class RealmsPlayerScreen extends RealmsScreen {
             return RealmsPlayerScreen.this.getFocused() == this;
         }
 
-        public boolean mouseClicked(double p_89230_, double p_89231_, int p_89232_) {
-            if (p_89232_ == 0 && p_89230_ < (double) this.getScrollbarPosition() && p_89231_ >= (double) this.y0 && p_89231_ <= (double) this.y1) {
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+            if (pButton == 0 && pMouseX < (double) this.getScrollbarPosition() && pMouseY >= (double) this.y0 && pMouseY <= (double) this.y1) {
                 int i = RealmsPlayerScreen.this.column1X;
                 int j = RealmsPlayerScreen.this.column1X + RealmsPlayerScreen.this.columnWidth;
-                int k = (int) Math.floor(p_89231_ - (double) this.y0) - this.headerHeight + (int) this.getScrollAmount() - 4;
+                int k = (int) Math.floor(pMouseY - (double) this.y0) - this.headerHeight + (int) this.getScrollAmount() - 4;
                 int l = k / this.itemHeight;
-                if (p_89230_ >= (double) i && p_89230_ <= (double) j && l >= 0 && k >= 0 && l < this.getItemCount()) {
+                if (pMouseX >= (double) i && pMouseX <= (double) j && l >= 0 && k >= 0 && l < this.getItemCount()) {
                     this.selectItem(l);
-                    this.itemClicked(k, l, p_89230_, p_89231_, this.width);
+                    this.itemClicked(k, l, pMouseX, pMouseY, this.width);
                 }
 
                 return true;
             } else {
-                return super.mouseClicked(p_89230_, p_89231_, p_89232_);
+                return super.mouseClicked(pMouseX, pMouseY, pButton);
             }
         }
 
@@ -355,24 +355,24 @@ public class RealmsPlayerScreen extends RealmsScreen {
             }
         }
 
-        public void selectItem(int p_89234_) {
-            super.selectItem(p_89234_);
-            this.selectInviteListItem(p_89234_);
+        public void selectItem(int pIndex) {
+            super.selectItem(pIndex);
+            this.selectInviteListItem(pIndex);
         }
 
-        public void selectInviteListItem(int p_89251_) {
-            RealmsPlayerScreen.this.player = p_89251_;
+        public void selectInviteListItem(int pIndex) {
+            RealmsPlayerScreen.this.player = pIndex;
             RealmsPlayerScreen.this.updateButtonStates();
         }
 
-        public void setSelected(@Nullable RealmsPlayerScreen.Entry p_89246_) {
-            super.setSelected(p_89246_);
-            RealmsPlayerScreen.this.player = this.children().indexOf(p_89246_);
+        public void setSelected(@Nullable RealmsPlayerScreen.Entry pSelected) {
+            super.setSelected(pSelected);
+            RealmsPlayerScreen.this.player = this.children().indexOf(pSelected);
             RealmsPlayerScreen.this.updateButtonStates();
         }
 
-        public void renderBackground(PoseStack p_89242_) {
-            RealmsPlayerScreen.this.renderBackground(p_89242_);
+        public void renderBackground(PoseStack pPoseStack) {
+            RealmsPlayerScreen.this.renderBackground(pPoseStack);
         }
 
         public int getScrollbarPosition() {

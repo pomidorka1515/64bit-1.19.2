@@ -8,9 +8,9 @@ public class ClickEvent {
     private final ClickEvent.Action action;
     private final String value;
 
-    public ClickEvent(ClickEvent.Action p_130620_, String p_130621_) {
-        this.action = p_130620_;
-        this.value = p_130621_;
+    public ClickEvent(ClickEvent.Action pAction, String pValue) {
+        this.action = pAction;
+        this.value = pValue;
     }
 
     public ClickEvent.Action getAction() {
@@ -21,11 +21,11 @@ public class ClickEvent {
         return this.value;
     }
 
-    public boolean equals(Object p_130625_) {
-        if (this == p_130625_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_130625_ != null && this.getClass() == p_130625_.getClass()) {
-            ClickEvent clickevent = (ClickEvent) p_130625_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            ClickEvent clickevent = (ClickEvent) pOther;
             if (this.action != clickevent.action) {
                 return false;
             } else {
@@ -80,8 +80,8 @@ public class ClickEvent {
             return this.name;
         }
 
-        public static ClickEvent.Action getByName(String p_130646_) {
-            return LOOKUP.get(p_130646_);
+        public static ClickEvent.Action getByName(String pCanonicalName) {
+            return LOOKUP.get(pCanonicalName);
         }
     }
 }

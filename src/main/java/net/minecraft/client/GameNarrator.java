@@ -19,28 +19,28 @@ public class GameNarrator {
     private final Minecraft minecraft;
     private final Narrator narrator = Narrator.getNarrator();
 
-    public GameNarrator(Minecraft p_240577_) {
-        this.minecraft = p_240577_;
+    public GameNarrator(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void sayChatNow(Supplier<Component> p_240600_) {
+    public void sayChatNow(Supplier<Component> pMessageSupplier) {
         if (this.getStatus().shouldNarrateChat()) {
-            String s = p_240600_.get().getString();
+            String s = pMessageSupplier.get().getString();
             this.logNarratedMessage(s);
             this.narrator.say(s, false);
         }
     }
 
-    public void sayNow(Component p_168786_) {
-        this.sayNow(p_168786_.getString());
+    public void sayNow(Component pMessage) {
+        this.sayNow(pMessage.getString());
     }
 
-    public void sayNow(String p_93320_) {
-        if (this.getStatus().shouldNarrateSystem() && !p_93320_.isEmpty()) {
-            this.logNarratedMessage(p_93320_);
+    public void sayNow(String pMessage) {
+        if (this.getStatus().shouldNarrateSystem() && !pMessage.isEmpty()) {
+            this.logNarratedMessage(pMessage);
             if (this.narrator.active()) {
                 this.narrator.clear();
-                this.narrator.say(p_93320_, true);
+                this.narrator.say(pMessage, true);
             }
         }
     }
@@ -49,21 +49,21 @@ public class GameNarrator {
         return this.minecraft.options.narrator().get();
     }
 
-    private void logNarratedMessage(String p_168788_) {
+    private void logNarratedMessage(String pMessage) {
         if (SharedConstants.IS_RUNNING_IN_IDE) {
-            LOGGER.debug("Narrating: {}", (Object) p_168788_.replaceAll("\n", "\\\\n"));
+            LOGGER.debug("Narrating: {}", (Object) pMessage.replaceAll("\n", "\\\\n"));
         }
     }
 
-    public void updateNarratorStatus(NarratorStatus p_93318_) {
+    public void updateNarratorStatus(NarratorStatus pStatus) {
         this.clear();
-        this.narrator.say(Component.translatable("options.narrator").append(" : ").append(p_93318_.getName()).getString(), true);
+        this.narrator.say(Component.translatable("options.narrator").append(" : ").append(pStatus.getName()).getString(), true);
         ToastComponent toastcomponent = Minecraft.getInstance().getToasts();
         if (this.narrator.active()) {
-            if (p_93318_ == NarratorStatus.OFF) {
+            if (pStatus == NarratorStatus.OFF) {
                 SystemToast.addOrUpdate(toastcomponent, SystemToast.SystemToastIds.NARRATOR_TOGGLE, Component.translatable("narrator.toast.disabled"), (Component) null);
             } else {
-                SystemToast.addOrUpdate(toastcomponent, SystemToast.SystemToastIds.NARRATOR_TOGGLE, Component.translatable("narrator.toast.enabled"), p_93318_.getName());
+                SystemToast.addOrUpdate(toastcomponent, SystemToast.SystemToastIds.NARRATOR_TOGGLE, Component.translatable("narrator.toast.enabled"), pStatus.getName());
             }
         } else {
             SystemToast.addOrUpdate(toastcomponent, SystemToast.SystemToastIds.NARRATOR_TOGGLE, Component.translatable("narrator.toast.disabled"), Component.translatable("options.narrator.notavailable"));

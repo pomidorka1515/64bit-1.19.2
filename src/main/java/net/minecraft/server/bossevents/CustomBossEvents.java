@@ -13,18 +13,18 @@ public class CustomBossEvents {
     private final Map<ResourceLocation, CustomBossEvent> events = Maps.newHashMap();
 
     @Nullable
-    public CustomBossEvent get(ResourceLocation p_136298_) {
-        return this.events.get(p_136298_);
+    public CustomBossEvent get(ResourceLocation pId) {
+        return this.events.get(pId);
     }
 
-    public CustomBossEvent create(ResourceLocation p_136300_, Component p_136301_) {
-        CustomBossEvent custombossevent = new CustomBossEvent(p_136300_, p_136301_);
-        this.events.put(p_136300_, custombossevent);
+    public CustomBossEvent create(ResourceLocation pId, Component pName) {
+        CustomBossEvent custombossevent = new CustomBossEvent(pId, pName);
+        this.events.put(pId, custombossevent);
         return custombossevent;
     }
 
-    public void remove(CustomBossEvent p_136303_) {
-        this.events.remove(p_136303_.getTextId());
+    public void remove(CustomBossEvent pBossbar) {
+        this.events.remove(pBossbar.getTextId());
     }
 
     public Collection<ResourceLocation> getIds() {
@@ -52,15 +52,15 @@ public class CustomBossEvents {
         }
     }
 
-    public void onPlayerConnect(ServerPlayer p_136294_) {
+    public void onPlayerConnect(ServerPlayer pPlayer) {
         for (CustomBossEvent custombossevent : this.events.values()) {
-            custombossevent.onPlayerConnect(p_136294_);
+            custombossevent.onPlayerConnect(pPlayer);
         }
     }
 
-    public void onPlayerDisconnect(ServerPlayer p_136306_) {
+    public void onPlayerDisconnect(ServerPlayer pPlayer) {
         for (CustomBossEvent custombossevent : this.events.values()) {
-            custombossevent.onPlayerDisconnect(p_136306_);
+            custombossevent.onPlayerDisconnect(pPlayer);
         }
     }
 }

@@ -59,170 +59,170 @@ public class V99 extends Schema {
         }
     };
 
-    public V99(int p_18185_, Schema p_18186_) {
-        super(p_18185_, p_18186_);
+    public V99(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    protected static TypeTemplate equipment(Schema p_18189_) {
-        return DSL.optionalFields("Equipment", DSL.list(References.ITEM_STACK.in(p_18189_)));
+    protected static TypeTemplate equipment(Schema pSchema) {
+        return DSL.optionalFields("Equipment", DSL.list(References.ITEM_STACK.in(pSchema)));
     }
 
-    protected static void registerMob(Schema p_18194_, Map<String, Supplier<TypeTemplate>> p_18195_, String p_18196_) {
-        p_18194_.register(p_18195_, p_18196_, () -> {
-            return equipment(p_18194_);
+    protected static void registerMob(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return equipment(pSchema);
         });
     }
 
-    protected static void registerThrowableProjectile(Schema p_18225_, Map<String, Supplier<TypeTemplate>> p_18226_, String p_18227_) {
-        p_18225_.register(p_18226_, p_18227_, () -> {
-            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(p_18225_));
+    protected static void registerThrowableProjectile(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(pSchema));
         });
     }
 
-    protected static void registerMinecart(Schema p_18237_, Map<String, Supplier<TypeTemplate>> p_18238_, String p_18239_) {
-        p_18237_.register(p_18238_, p_18239_, () -> {
-            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(p_18237_));
+    protected static void registerMinecart(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(pSchema));
         });
     }
 
-    protected static void registerInventory(Schema p_18247_, Map<String, Supplier<TypeTemplate>> p_18248_, String p_18249_) {
-        p_18247_.register(p_18248_, p_18249_, () -> {
-            return DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(p_18247_)));
+    protected static void registerInventory(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(pSchema)));
         });
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema p_18305_) {
+    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema pSchema) {
         Map<String, Supplier<TypeTemplate>> map = Maps.newHashMap();
-        p_18305_.register(map, "Item", (p_18301_) -> {
-            return DSL.optionalFields("Item", References.ITEM_STACK.in(p_18305_));
+        pSchema.register(map, "Item", (p_18301_) -> {
+            return DSL.optionalFields("Item", References.ITEM_STACK.in(pSchema));
         });
-        p_18305_.registerSimple(map, "XPOrb");
-        registerThrowableProjectile(p_18305_, map, "ThrownEgg");
-        p_18305_.registerSimple(map, "LeashKnot");
-        p_18305_.registerSimple(map, "Painting");
-        p_18305_.register(map, "Arrow", (p_18298_) -> {
-            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(p_18305_));
+        pSchema.registerSimple(map, "XPOrb");
+        registerThrowableProjectile(pSchema, map, "ThrownEgg");
+        pSchema.registerSimple(map, "LeashKnot");
+        pSchema.registerSimple(map, "Painting");
+        pSchema.register(map, "Arrow", (p_18298_) -> {
+            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(pSchema));
         });
-        p_18305_.register(map, "TippedArrow", (p_18295_) -> {
-            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(p_18305_));
+        pSchema.register(map, "TippedArrow", (p_18295_) -> {
+            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(pSchema));
         });
-        p_18305_.register(map, "SpectralArrow", (p_18292_) -> {
-            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(p_18305_));
+        pSchema.register(map, "SpectralArrow", (p_18292_) -> {
+            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(pSchema));
         });
-        registerThrowableProjectile(p_18305_, map, "Snowball");
-        registerThrowableProjectile(p_18305_, map, "Fireball");
-        registerThrowableProjectile(p_18305_, map, "SmallFireball");
-        registerThrowableProjectile(p_18305_, map, "ThrownEnderpearl");
-        p_18305_.registerSimple(map, "EyeOfEnderSignal");
-        p_18305_.register(map, "ThrownPotion", (p_18289_) -> {
-            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(p_18305_), "Potion", References.ITEM_STACK.in(p_18305_));
+        registerThrowableProjectile(pSchema, map, "Snowball");
+        registerThrowableProjectile(pSchema, map, "Fireball");
+        registerThrowableProjectile(pSchema, map, "SmallFireball");
+        registerThrowableProjectile(pSchema, map, "ThrownEnderpearl");
+        pSchema.registerSimple(map, "EyeOfEnderSignal");
+        pSchema.register(map, "ThrownPotion", (p_18289_) -> {
+            return DSL.optionalFields("inTile", References.BLOCK_NAME.in(pSchema), "Potion", References.ITEM_STACK.in(pSchema));
         });
-        registerThrowableProjectile(p_18305_, map, "ThrownExpBottle");
-        p_18305_.register(map, "ItemFrame", (p_18284_) -> {
-            return DSL.optionalFields("Item", References.ITEM_STACK.in(p_18305_));
+        registerThrowableProjectile(pSchema, map, "ThrownExpBottle");
+        pSchema.register(map, "ItemFrame", (p_18284_) -> {
+            return DSL.optionalFields("Item", References.ITEM_STACK.in(pSchema));
         });
-        registerThrowableProjectile(p_18305_, map, "WitherSkull");
-        p_18305_.registerSimple(map, "PrimedTnt");
-        p_18305_.register(map, "FallingSand", (p_18279_) -> {
-            return DSL.optionalFields("Block", References.BLOCK_NAME.in(p_18305_), "TileEntityData", References.BLOCK_ENTITY.in(p_18305_));
+        registerThrowableProjectile(pSchema, map, "WitherSkull");
+        pSchema.registerSimple(map, "PrimedTnt");
+        pSchema.register(map, "FallingSand", (p_18279_) -> {
+            return DSL.optionalFields("Block", References.BLOCK_NAME.in(pSchema), "TileEntityData", References.BLOCK_ENTITY.in(pSchema));
         });
-        p_18305_.register(map, "FireworksRocketEntity", (p_18274_) -> {
-            return DSL.optionalFields("FireworksItem", References.ITEM_STACK.in(p_18305_));
+        pSchema.register(map, "FireworksRocketEntity", (p_18274_) -> {
+            return DSL.optionalFields("FireworksItem", References.ITEM_STACK.in(pSchema));
         });
-        p_18305_.registerSimple(map, "Boat");
-        p_18305_.register(map, "Minecart", () -> {
-            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(p_18305_), "Items", DSL.list(References.ITEM_STACK.in(p_18305_)));
+        pSchema.registerSimple(map, "Boat");
+        pSchema.register(map, "Minecart", () -> {
+            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(pSchema), "Items", DSL.list(References.ITEM_STACK.in(pSchema)));
         });
-        registerMinecart(p_18305_, map, "MinecartRideable");
-        p_18305_.register(map, "MinecartChest", (p_18269_) -> {
-            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(p_18305_), "Items", DSL.list(References.ITEM_STACK.in(p_18305_)));
+        registerMinecart(pSchema, map, "MinecartRideable");
+        pSchema.register(map, "MinecartChest", (p_18269_) -> {
+            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(pSchema), "Items", DSL.list(References.ITEM_STACK.in(pSchema)));
         });
-        registerMinecart(p_18305_, map, "MinecartFurnace");
-        registerMinecart(p_18305_, map, "MinecartTNT");
-        p_18305_.register(map, "MinecartSpawner", () -> {
-            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(p_18305_), References.UNTAGGED_SPAWNER.in(p_18305_));
+        registerMinecart(pSchema, map, "MinecartFurnace");
+        registerMinecart(pSchema, map, "MinecartTNT");
+        pSchema.register(map, "MinecartSpawner", () -> {
+            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(pSchema), References.UNTAGGED_SPAWNER.in(pSchema));
         });
-        p_18305_.register(map, "MinecartHopper", (p_18264_) -> {
-            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(p_18305_), "Items", DSL.list(References.ITEM_STACK.in(p_18305_)));
+        pSchema.register(map, "MinecartHopper", (p_18264_) -> {
+            return DSL.optionalFields("DisplayTile", References.BLOCK_NAME.in(pSchema), "Items", DSL.list(References.ITEM_STACK.in(pSchema)));
         });
-        registerMinecart(p_18305_, map, "MinecartCommandBlock");
-        registerMob(p_18305_, map, "ArmorStand");
-        registerMob(p_18305_, map, "Creeper");
-        registerMob(p_18305_, map, "Skeleton");
-        registerMob(p_18305_, map, "Spider");
-        registerMob(p_18305_, map, "Giant");
-        registerMob(p_18305_, map, "Zombie");
-        registerMob(p_18305_, map, "Slime");
-        registerMob(p_18305_, map, "Ghast");
-        registerMob(p_18305_, map, "PigZombie");
-        p_18305_.register(map, "Enderman", (p_18259_) -> {
-            return DSL.optionalFields("carried", References.BLOCK_NAME.in(p_18305_), equipment(p_18305_));
+        registerMinecart(pSchema, map, "MinecartCommandBlock");
+        registerMob(pSchema, map, "ArmorStand");
+        registerMob(pSchema, map, "Creeper");
+        registerMob(pSchema, map, "Skeleton");
+        registerMob(pSchema, map, "Spider");
+        registerMob(pSchema, map, "Giant");
+        registerMob(pSchema, map, "Zombie");
+        registerMob(pSchema, map, "Slime");
+        registerMob(pSchema, map, "Ghast");
+        registerMob(pSchema, map, "PigZombie");
+        pSchema.register(map, "Enderman", (p_18259_) -> {
+            return DSL.optionalFields("carried", References.BLOCK_NAME.in(pSchema), equipment(pSchema));
         });
-        registerMob(p_18305_, map, "CaveSpider");
-        registerMob(p_18305_, map, "Silverfish");
-        registerMob(p_18305_, map, "Blaze");
-        registerMob(p_18305_, map, "LavaSlime");
-        registerMob(p_18305_, map, "EnderDragon");
-        registerMob(p_18305_, map, "WitherBoss");
-        registerMob(p_18305_, map, "Bat");
-        registerMob(p_18305_, map, "Witch");
-        registerMob(p_18305_, map, "Endermite");
-        registerMob(p_18305_, map, "Guardian");
-        registerMob(p_18305_, map, "Pig");
-        registerMob(p_18305_, map, "Sheep");
-        registerMob(p_18305_, map, "Cow");
-        registerMob(p_18305_, map, "Chicken");
-        registerMob(p_18305_, map, "Squid");
-        registerMob(p_18305_, map, "Wolf");
-        registerMob(p_18305_, map, "MushroomCow");
-        registerMob(p_18305_, map, "SnowMan");
-        registerMob(p_18305_, map, "Ozelot");
-        registerMob(p_18305_, map, "VillagerGolem");
-        p_18305_.register(map, "EntityHorse", (p_18254_) -> {
-            return DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(p_18305_)), "ArmorItem", References.ITEM_STACK.in(p_18305_), "SaddleItem", References.ITEM_STACK.in(p_18305_), equipment(p_18305_));
+        registerMob(pSchema, map, "CaveSpider");
+        registerMob(pSchema, map, "Silverfish");
+        registerMob(pSchema, map, "Blaze");
+        registerMob(pSchema, map, "LavaSlime");
+        registerMob(pSchema, map, "EnderDragon");
+        registerMob(pSchema, map, "WitherBoss");
+        registerMob(pSchema, map, "Bat");
+        registerMob(pSchema, map, "Witch");
+        registerMob(pSchema, map, "Endermite");
+        registerMob(pSchema, map, "Guardian");
+        registerMob(pSchema, map, "Pig");
+        registerMob(pSchema, map, "Sheep");
+        registerMob(pSchema, map, "Cow");
+        registerMob(pSchema, map, "Chicken");
+        registerMob(pSchema, map, "Squid");
+        registerMob(pSchema, map, "Wolf");
+        registerMob(pSchema, map, "MushroomCow");
+        registerMob(pSchema, map, "SnowMan");
+        registerMob(pSchema, map, "Ozelot");
+        registerMob(pSchema, map, "VillagerGolem");
+        pSchema.register(map, "EntityHorse", (p_18254_) -> {
+            return DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(pSchema)), "ArmorItem", References.ITEM_STACK.in(pSchema), "SaddleItem", References.ITEM_STACK.in(pSchema), equipment(pSchema));
         });
-        registerMob(p_18305_, map, "Rabbit");
-        p_18305_.register(map, "Villager", (p_18245_) -> {
-            return DSL.optionalFields("Inventory", DSL.list(References.ITEM_STACK.in(p_18305_)), "Offers", DSL.optionalFields("Recipes", DSL.list(DSL.optionalFields("buy", References.ITEM_STACK.in(p_18305_), "buyB", References.ITEM_STACK.in(p_18305_), "sell", References.ITEM_STACK.in(p_18305_)))), equipment(p_18305_));
+        registerMob(pSchema, map, "Rabbit");
+        pSchema.register(map, "Villager", (p_18245_) -> {
+            return DSL.optionalFields("Inventory", DSL.list(References.ITEM_STACK.in(pSchema)), "Offers", DSL.optionalFields("Recipes", DSL.list(DSL.optionalFields("buy", References.ITEM_STACK.in(pSchema), "buyB", References.ITEM_STACK.in(pSchema), "sell", References.ITEM_STACK.in(pSchema)))), equipment(pSchema));
         });
-        p_18305_.registerSimple(map, "EnderCrystal");
-        p_18305_.registerSimple(map, "AreaEffectCloud");
-        p_18305_.registerSimple(map, "ShulkerBullet");
-        registerMob(p_18305_, map, "Shulker");
+        pSchema.registerSimple(map, "EnderCrystal");
+        pSchema.registerSimple(map, "AreaEffectCloud");
+        pSchema.registerSimple(map, "ShulkerBullet");
+        registerMob(pSchema, map, "Shulker");
         return map;
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerBlockEntities(Schema p_18303_) {
+    public Map<String, Supplier<TypeTemplate>> registerBlockEntities(Schema pSchema) {
         Map<String, Supplier<TypeTemplate>> map = Maps.newHashMap();
-        registerInventory(p_18303_, map, "Furnace");
-        registerInventory(p_18303_, map, "Chest");
-        p_18303_.registerSimple(map, "EnderChest");
-        p_18303_.register(map, "RecordPlayer", (p_18235_) -> {
-            return DSL.optionalFields("RecordItem", References.ITEM_STACK.in(p_18303_));
+        registerInventory(pSchema, map, "Furnace");
+        registerInventory(pSchema, map, "Chest");
+        pSchema.registerSimple(map, "EnderChest");
+        pSchema.register(map, "RecordPlayer", (p_18235_) -> {
+            return DSL.optionalFields("RecordItem", References.ITEM_STACK.in(pSchema));
         });
-        registerInventory(p_18303_, map, "Trap");
-        registerInventory(p_18303_, map, "Dropper");
-        p_18303_.registerSimple(map, "Sign");
-        p_18303_.register(map, "MobSpawner", (p_18223_) -> {
-            return References.UNTAGGED_SPAWNER.in(p_18303_);
+        registerInventory(pSchema, map, "Trap");
+        registerInventory(pSchema, map, "Dropper");
+        pSchema.registerSimple(map, "Sign");
+        pSchema.register(map, "MobSpawner", (p_18223_) -> {
+            return References.UNTAGGED_SPAWNER.in(pSchema);
         });
-        p_18303_.registerSimple(map, "Music");
-        p_18303_.registerSimple(map, "Piston");
-        registerInventory(p_18303_, map, "Cauldron");
-        p_18303_.registerSimple(map, "EnchantTable");
-        p_18303_.registerSimple(map, "Airportal");
-        p_18303_.registerSimple(map, "Control");
-        p_18303_.registerSimple(map, "Beacon");
-        p_18303_.registerSimple(map, "Skull");
-        p_18303_.registerSimple(map, "DLDetector");
-        registerInventory(p_18303_, map, "Hopper");
-        p_18303_.registerSimple(map, "Comparator");
-        p_18303_.register(map, "FlowerPot", (p_18192_) -> {
-            return DSL.optionalFields("Item", DSL.or(DSL.constType(DSL.intType()), References.ITEM_NAME.in(p_18303_)));
+        pSchema.registerSimple(map, "Music");
+        pSchema.registerSimple(map, "Piston");
+        registerInventory(pSchema, map, "Cauldron");
+        pSchema.registerSimple(map, "EnchantTable");
+        pSchema.registerSimple(map, "Airportal");
+        pSchema.registerSimple(map, "Control");
+        pSchema.registerSimple(map, "Beacon");
+        pSchema.registerSimple(map, "Skull");
+        pSchema.registerSimple(map, "DLDetector");
+        registerInventory(pSchema, map, "Hopper");
+        pSchema.registerSimple(map, "Comparator");
+        pSchema.register(map, "FlowerPot", (p_18192_) -> {
+            return DSL.optionalFields("Item", DSL.or(DSL.constType(DSL.intType()), References.ITEM_NAME.in(pSchema)));
         });
-        p_18303_.registerSimple(map, "Banner");
-        p_18303_.registerSimple(map, "Structure");
-        p_18303_.registerSimple(map, "EndGateway");
+        pSchema.registerSimple(map, "Banner");
+        pSchema.registerSimple(map, "Structure");
+        pSchema.registerSimple(map, "EndGateway");
         return map;
     }
 

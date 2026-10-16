@@ -36,8 +36,8 @@ public class BlockEntityIdFix extends DataFix {
         p_14839_.put("Trap", "minecraft:dispenser");
     });
 
-    public BlockEntityIdFix(Schema p_14830_, boolean p_14831_) {
-        super(p_14830_, p_14831_);
+    public BlockEntityIdFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

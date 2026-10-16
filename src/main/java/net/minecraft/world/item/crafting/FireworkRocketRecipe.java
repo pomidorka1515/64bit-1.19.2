@@ -13,16 +13,16 @@ public class FireworkRocketRecipe extends CustomRecipe {
     private static final Ingredient GUNPOWDER_INGREDIENT = Ingredient.of(Items.GUNPOWDER);
     private static final Ingredient STAR_INGREDIENT = Ingredient.of(Items.FIREWORK_STAR);
 
-    public FireworkRocketRecipe(ResourceLocation p_43842_) {
-        super(p_43842_);
+    public FireworkRocketRecipe(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_43854_, Level p_43855_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         boolean flag = false;
         int i = 0;
 
-        for (int j = 0; j < p_43854_.getContainerSize(); ++j) {
-            ItemStack itemstack = p_43854_.getItem(j);
+        for (int j = 0; j < pInv.getContainerSize(); ++j) {
+            ItemStack itemstack = pInv.getItem(j);
             if (!itemstack.isEmpty()) {
                 if (PAPER_INGREDIENT.test(itemstack)) {
                     if (flag) {
@@ -44,14 +44,14 @@ public class FireworkRocketRecipe extends CustomRecipe {
         return flag && i >= 1;
     }
 
-    public ItemStack assemble(CraftingContainer p_43852_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         ItemStack itemstack = new ItemStack(Items.FIREWORK_ROCKET, 3);
         CompoundTag compoundtag = itemstack.getOrCreateTagElement("Fireworks");
         ListTag listtag = new ListTag();
         int i = 0;
 
-        for (int j = 0; j < p_43852_.getContainerSize(); ++j) {
-            ItemStack itemstack1 = p_43852_.getItem(j);
+        for (int j = 0; j < pInv.getContainerSize(); ++j) {
+            ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (GUNPOWDER_INGREDIENT.test(itemstack1)) {
                     ++i;
@@ -72,8 +72,8 @@ public class FireworkRocketRecipe extends CustomRecipe {
         return itemstack;
     }
 
-    public boolean canCraftInDimensions(int p_43844_, int p_43845_) {
-        return p_43844_ * p_43845_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= 2;
     }
 
     public ItemStack getResultItem() {

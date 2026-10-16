@@ -23,16 +23,16 @@ public class ConfirmScreen extends Screen {
     protected final BooleanConsumer callback;
     private final List<Button> exitButtons = Lists.newArrayList();
 
-    public ConfirmScreen(BooleanConsumer p_95654_, Component p_95655_, Component p_95656_) {
-        this(p_95654_, p_95655_, p_95656_, CommonComponents.GUI_YES, CommonComponents.GUI_NO);
+    public ConfirmScreen(BooleanConsumer pCallback, Component pTitle, Component pMessage) {
+        this(pCallback, pTitle, pMessage, CommonComponents.GUI_YES, CommonComponents.GUI_NO);
     }
 
-    public ConfirmScreen(BooleanConsumer p_95658_, Component p_95659_, Component p_95660_, Component p_95661_, Component p_95662_) {
-        super(p_95659_);
-        this.callback = p_95658_;
-        this.message = p_95660_;
-        this.yesButton = p_95661_;
-        this.noButton = p_95662_;
+    public ConfirmScreen(BooleanConsumer pCallback, Component pTitle, Component pMessage, Component pYesButton, Component pNoButton) {
+        super(pTitle);
+        this.callback = pCallback;
+        this.message = pMessage;
+        this.yesButton = pYesButton;
+        this.noButton = pNoButton;
     }
 
     public Component getNarrationMessage() {
@@ -47,24 +47,24 @@ public class ConfirmScreen extends Screen {
         this.addButtons(i);
     }
 
-    protected void addButtons(int p_169252_) {
-        this.addExitButton(new Button(this.width / 2 - 155, p_169252_, 150, 20, this.yesButton, (p_169259_) -> {
+    protected void addButtons(int pY) {
+        this.addExitButton(new Button(this.width / 2 - 155, pY, 150, 20, this.yesButton, (p_169259_) -> {
             this.callback.accept(true);
         }));
-        this.addExitButton(new Button(this.width / 2 - 155 + 160, p_169252_, 150, 20, this.noButton, (p_169257_) -> {
+        this.addExitButton(new Button(this.width / 2 - 155 + 160, pY, 150, 20, this.noButton, (p_169257_) -> {
             this.callback.accept(false);
         }));
     }
 
-    protected void addExitButton(Button p_169254_) {
-        this.exitButtons.add(this.addRenderableWidget(p_169254_));
+    protected void addExitButton(Button pExitButton) {
+        this.exitButtons.add(this.addRenderableWidget(pExitButton));
     }
 
-    public void render(PoseStack p_95670_, int p_95671_, int p_95672_, float p_95673_) {
-        this.renderBackground(p_95670_);
-        drawCenteredString(p_95670_, this.font, this.title, this.width / 2, this.titleTop(), 16777215);
-        this.multilineMessage.renderCentered(p_95670_, this.width / 2, this.messageTop());
-        super.render(p_95670_, p_95671_, p_95672_, p_95673_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, this.titleTop(), 16777215);
+        this.multilineMessage.renderCentered(pPoseStack, this.width / 2, this.messageTop());
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     private int titleTop() {
@@ -80,8 +80,8 @@ public class ConfirmScreen extends Screen {
         return this.multilineMessage.getLineCount() * 9;
     }
 
-    public void setDelay(int p_95664_) {
-        this.delayTicker = p_95664_;
+    public void setDelay(int pTicksUntilEnable) {
+        this.delayTicker = pTicksUntilEnable;
 
         for (Button button : this.exitButtons) {
             button.active = false;
@@ -101,12 +101,12 @@ public class ConfirmScreen extends Screen {
         return false;
     }
 
-    public boolean keyPressed(int p_95666_, int p_95667_, int p_95668_) {
-        if (p_95666_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.callback.accept(false);
             return true;
         } else {
-            return super.keyPressed(p_95666_, p_95667_, p_95668_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 }

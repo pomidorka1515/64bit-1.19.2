@@ -22,15 +22,15 @@ public class WorldgenRegistryDumpReport implements DataProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final DataGenerator generator;
 
-    public WorldgenRegistryDumpReport(DataGenerator p_194679_) {
-        this.generator = p_194679_;
+    public WorldgenRegistryDumpReport(DataGenerator pGenerator) {
+        this.generator = pGenerator;
     }
 
-    public void run(CachedOutput p_236203_) {
+    public void run(CachedOutput pOutput) {
         RegistryAccess registryaccess = RegistryAccess.BUILTIN.get();
         DynamicOps<JsonElement> dynamicops = RegistryOps.create(JsonOps.INSTANCE, registryaccess);
         RegistryAccess.knownRegistries().forEach((p_236219_) -> {
-            this.dumpRegistryCap(p_236203_, registryaccess, dynamicops, p_236219_);
+            this.dumpRegistryCap(pOutput, registryaccess, dynamicops, p_236219_);
         });
     }
 

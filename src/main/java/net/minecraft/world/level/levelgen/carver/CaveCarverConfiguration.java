@@ -28,15 +28,15 @@ public class CaveCarverConfiguration extends CarverConfiguration {
     public final FloatProvider verticalRadiusMultiplier;
     final FloatProvider floorLevel;
 
-    public CaveCarverConfiguration(float p_224853_, HeightProvider p_224854_, FloatProvider p_224855_, VerticalAnchor p_224856_, CarverDebugSettings p_224857_, HolderSet<Block> p_224858_, FloatProvider p_224859_, FloatProvider p_224860_, FloatProvider p_224861_) {
-        super(p_224853_, p_224854_, p_224855_, p_224856_, p_224857_, p_224858_);
-        this.horizontalRadiusMultiplier = p_224859_;
-        this.verticalRadiusMultiplier = p_224860_;
-        this.floorLevel = p_224861_;
+    public CaveCarverConfiguration(float pProbability, HeightProvider pY, FloatProvider pYScale, VerticalAnchor pLavaLevel, CarverDebugSettings pDebugSettings, HolderSet<Block> pReplaceable, FloatProvider pHorizontalRadiusMultiplier, FloatProvider pVerticalRadiusMultiplier, FloatProvider pFloorLevel) {
+        super(pProbability, pY, pYScale, pLavaLevel, pDebugSettings, pReplaceable);
+        this.horizontalRadiusMultiplier = pHorizontalRadiusMultiplier;
+        this.verticalRadiusMultiplier = pVerticalRadiusMultiplier;
+        this.floorLevel = pFloorLevel;
     }
 
-    public CaveCarverConfiguration(float p_224863_, HeightProvider p_224864_, FloatProvider p_224865_, VerticalAnchor p_224866_, HolderSet<Block> p_224867_, FloatProvider p_224868_, FloatProvider p_224869_, FloatProvider p_224870_) {
-        this(p_224863_, p_224864_, p_224865_, p_224866_, CarverDebugSettings.DEFAULT, p_224867_, p_224868_, p_224869_, p_224870_);
+    public CaveCarverConfiguration(float pProbability, HeightProvider pY, FloatProvider pYScale, VerticalAnchor pLavaLevel, HolderSet<Block> pReplaceable, FloatProvider pHorizontalRadiusMultiplier, FloatProvider pVerticalRadiusMultiplier, FloatProvider pFloorLevel) {
+        this(pProbability, pY, pYScale, pLavaLevel, CarverDebugSettings.DEFAULT, pReplaceable, pHorizontalRadiusMultiplier, pVerticalRadiusMultiplier, pFloorLevel);
     }
 
     public CaveCarverConfiguration(CarverConfiguration p_159179_, FloatProvider p_159180_, FloatProvider p_159181_, FloatProvider p_159182_) {

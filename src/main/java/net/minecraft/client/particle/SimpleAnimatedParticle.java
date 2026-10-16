@@ -12,25 +12,25 @@ public class SimpleAnimatedParticle extends TextureSheetParticle {
     private float fadeB;
     private boolean hasFade;
 
-    protected SimpleAnimatedParticle(ClientLevel p_107647_, double p_107648_, double p_107649_, double p_107650_, SpriteSet p_107651_, float p_107652_) {
-        super(p_107647_, p_107648_, p_107649_, p_107650_);
+    protected SimpleAnimatedParticle(ClientLevel pLevel, double pX, double pY, double pZ, SpriteSet pSprites, float pGravity) {
+        super(pLevel, pX, pY, pZ);
         this.friction = 0.91F;
-        this.gravity = p_107652_;
-        this.sprites = p_107651_;
+        this.gravity = pGravity;
+        this.sprites = pSprites;
     }
 
-    public void setColor(int p_107658_) {
-        float f = (float) ((p_107658_ & 16711680) >> 16) / 255.0F;
-        float f1 = (float) ((p_107658_ & '\uff00') >> 8) / 255.0F;
-        float f2 = (float) ((p_107658_ & 255) >> 0) / 255.0F;
+    public void setColor(int pColor) {
+        float f = (float) ((pColor & 16711680) >> 16) / 255.0F;
+        float f1 = (float) ((pColor & '\uff00') >> 8) / 255.0F;
+        float f2 = (float) ((pColor & 255) >> 0) / 255.0F;
         float f3 = 1.0F;
         this.setColor(f * 1.0F, f1 * 1.0F, f2 * 1.0F);
     }
 
-    public void setFadeColor(int p_107660_) {
-        this.fadeR = (float) ((p_107660_ & 16711680) >> 16) / 255.0F;
-        this.fadeG = (float) ((p_107660_ & '\uff00') >> 8) / 255.0F;
-        this.fadeB = (float) ((p_107660_ & 255) >> 0) / 255.0F;
+    public void setFadeColor(int pRgb) {
+        this.fadeR = (float) ((pRgb & 16711680) >> 16) / 255.0F;
+        this.fadeG = (float) ((pRgb & '\uff00') >> 8) / 255.0F;
+        this.fadeB = (float) ((pRgb & 255) >> 0) / 255.0F;
         this.hasFade = true;
     }
 
@@ -51,7 +51,7 @@ public class SimpleAnimatedParticle extends TextureSheetParticle {
         }
     }
 
-    public int getLightColor(float p_107655_) {
+    public int getLightColor(float pPartialTick) {
         return 15728880;
     }
 }

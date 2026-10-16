@@ -25,18 +25,18 @@ public class ScoreContents implements ComponentContents {
     private final String objective;
 
     @Nullable
-    private static EntitySelector parseSelector(String p_237448_) {
+    private static EntitySelector parseSelector(String pSelector) {
         try {
-            return (new EntitySelectorParser(new StringReader(p_237448_))).parse();
+            return (new EntitySelectorParser(new StringReader(pSelector))).parse();
         } catch (CommandSyntaxException commandsyntaxexception) {
             return null;
         }
     }
 
-    public ScoreContents(String p_237438_, String p_237439_) {
-        this.name = p_237438_;
-        this.selector = parseSelector(p_237438_);
-        this.objective = p_237439_;
+    public ScoreContents(String pName, String pObjective) {
+        this.name = pName;
+        this.selector = parseSelector(pName);
+        this.objective = pObjective;
     }
 
     public String getName() {
@@ -52,9 +52,9 @@ public class ScoreContents implements ComponentContents {
         return this.objective;
     }
 
-    private String findTargetName(CommandSourceStack p_237442_) throws CommandSyntaxException {
+    private String findTargetName(CommandSourceStack pSource) throws CommandSyntaxException {
         if (this.selector != null) {
-            List<? extends Entity> list = this.selector.findEntities(p_237442_);
+            List<? extends Entity> list = this.selector.findEntities(pSource);
             if (!list.isEmpty()) {
                 if (list.size() != 1) {
                     throw EntityArgument.ERROR_NOT_SINGLE_ENTITY.create();
@@ -67,13 +67,13 @@ public class ScoreContents implements ComponentContents {
         return this.name;
     }
 
-    private String getScore(String p_237450_, CommandSourceStack p_237451_) {
-        MinecraftServer minecraftserver = p_237451_.getServer();
+    private String getScore(String pName, CommandSourceStack pSource) {
+        MinecraftServer minecraftserver = pSource.getServer();
         if (minecraftserver != null) {
             Scoreboard scoreboard = minecraftserver.getScoreboard();
             Objective objective = scoreboard.getObjective(this.objective);
-            if (scoreboard.hasPlayerScore(p_237450_, objective)) {
-                Score score = scoreboard.getOrCreatePlayerScore(p_237450_, objective);
+            if (scoreboard.hasPlayerScore(pName, objective)) {
+                Score score = scoreboard.getOrCreatePlayerScore(pName, objective);
                 return Integer.toString(score.getScore());
             }
         }
@@ -81,22 +81,22 @@ public class ScoreContents implements ComponentContents {
         return "";
     }
 
-    public MutableComponent resolve(@Nullable CommandSourceStack p_237444_, @Nullable Entity p_237445_, int p_237446_) throws CommandSyntaxException {
-        if (p_237444_ == null) {
+    public MutableComponent resolve(@Nullable CommandSourceStack pNbtPathPattern, @Nullable Entity pEntity, int pRecursionDepth) throws CommandSyntaxException {
+        if (pNbtPathPattern == null) {
             return Component.empty();
         } else {
-            String s = this.findTargetName(p_237444_);
-            String s1 = p_237445_ != null && s.equals("*") ? p_237445_.getScoreboardName() : s;
-            return Component.literal(this.getScore(s1, p_237444_));
+            String s = this.findTargetName(pNbtPathPattern);
+            String s1 = pEntity != null && s.equals("*") ? pEntity.getScoreboardName() : s;
+            return Component.literal(this.getScore(s1, pNbtPathPattern));
         }
     }
 
-    public boolean equals(Object p_237455_) {
-        if (this == p_237455_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            if (p_237455_ instanceof ScoreContents) {
-                ScoreContents scorecontents = (ScoreContents) p_237455_;
+            if (pOther instanceof ScoreContents) {
+                ScoreContents scorecontents = (ScoreContents) pOther;
                 if (this.name.equals(scorecontents.name) && this.objective.equals(scorecontents.objective)) {
                     return true;
                 }

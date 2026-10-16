@@ -11,7 +11,7 @@ public class KeybindResolver {
         };
     };
 
-    public static void setKeyResolver(Function<String, Supplier<Component>> p_237365_) {
-        keyResolver = p_237365_;
+    public static void setKeyResolver(Function<String, Supplier<Component>> pKeyResolver) {
+        keyResolver = pKeyResolver;
     }
 }

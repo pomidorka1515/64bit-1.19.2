@@ -19,8 +19,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 public class ZombieHorse extends AbstractHorse {
-    public ZombieHorse(EntityType<? extends ZombieHorse> p_30994_, Level p_30995_) {
-        super(p_30994_, p_30995_);
+    public ZombieHorse(EntityType<? extends ZombieHorse> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -45,41 +45,41 @@ public class ZombieHorse extends AbstractHorse {
         return SoundEvents.ZOMBIE_HORSE_DEATH;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_31006_) {
-        super.getHurtSound(p_31006_);
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
+        super.getHurtSound(pDamageSource);
         return SoundEvents.ZOMBIE_HORSE_HURT;
     }
 
     @Nullable
-    public AgeableMob getBreedOffspring(ServerLevel p_149561_, AgeableMob p_149562_) {
-        return EntityType.ZOMBIE_HORSE.create(p_149561_);
+    public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        return EntityType.ZOMBIE_HORSE.create(pLevel);
     }
 
-    public InteractionResult mobInteract(Player p_31001_, InteractionHand p_31002_) {
-        ItemStack itemstack = p_31001_.getItemInHand(p_31002_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (!this.isTamed()) {
             return InteractionResult.PASS;
         } else if (this.isBaby()) {
-            return super.mobInteract(p_31001_, p_31002_);
-        } else if (p_31001_.isSecondaryUseActive()) {
-            this.openCustomInventoryScreen(p_31001_);
+            return super.mobInteract(pPlayer, pHand);
+        } else if (pPlayer.isSecondaryUseActive()) {
+            this.openCustomInventoryScreen(pPlayer);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         } else if (this.isVehicle()) {
-            return super.mobInteract(p_31001_, p_31002_);
+            return super.mobInteract(pPlayer, pHand);
         } else {
             if (!itemstack.isEmpty()) {
                 if (itemstack.is(Items.SADDLE) && !this.isSaddled()) {
-                    this.openCustomInventoryScreen(p_31001_);
+                    this.openCustomInventoryScreen(pPlayer);
                     return InteractionResult.sidedSuccess(this.level.isClientSide);
                 }
 
-                InteractionResult interactionresult = itemstack.interactLivingEntity(p_31001_, this, p_31002_);
+                InteractionResult interactionresult = itemstack.interactLivingEntity(pPlayer, this, pHand);
                 if (interactionresult.consumesAction()) {
                     return interactionresult;
                 }
             }
 
-            this.doPlayerRide(p_31001_);
+            this.doPlayerRide(pPlayer);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         }
     }

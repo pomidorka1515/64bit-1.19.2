@@ -24,25 +24,25 @@ public class GameTestRunner {
     public static final int SPACE_BETWEEN_ROWS = 6;
     public static final int DEFAULT_TESTS_PER_ROW = 8;
 
-    public static void runTest(GameTestInfo p_127743_, BlockPos p_127744_, GameTestTicker p_127745_) {
-        p_127743_.startExecution();
-        p_127745_.add(p_127743_);
-        p_127743_.addListener(new ReportGameListener(p_127743_, p_127745_, p_127744_));
-        p_127743_.spawnStructure(p_127744_, 2);
+    public static void runTest(GameTestInfo pTestInfo, BlockPos pPos, GameTestTicker pTestTicker) {
+        pTestInfo.startExecution();
+        pTestTicker.add(pTestInfo);
+        pTestInfo.addListener(new ReportGameListener(pTestInfo, pTestTicker, pPos));
+        pTestInfo.spawnStructure(pPos, 2);
     }
 
-    public static Collection<GameTestInfo> runTestBatches(Collection<GameTestBatch> p_127727_, BlockPos p_127728_, Rotation p_127729_, ServerLevel p_127730_, GameTestTicker p_127731_, int p_127732_) {
-        GameTestBatchRunner gametestbatchrunner = new GameTestBatchRunner(p_127727_, p_127728_, p_127729_, p_127730_, p_127731_, p_127732_);
+    public static Collection<GameTestInfo> runTestBatches(Collection<GameTestBatch> pTestBatches, BlockPos pPos, Rotation pRotation, ServerLevel pServerLevel, GameTestTicker pTestTicker, int pTestsPerRow) {
+        GameTestBatchRunner gametestbatchrunner = new GameTestBatchRunner(pTestBatches, pPos, pRotation, pServerLevel, pTestTicker, pTestsPerRow);
         gametestbatchrunner.start();
         return gametestbatchrunner.getTestInfos();
     }
 
-    public static Collection<GameTestInfo> runTests(Collection<TestFunction> p_127753_, BlockPos p_127754_, Rotation p_127755_, ServerLevel p_127756_, GameTestTicker p_127757_, int p_127758_) {
-        return runTestBatches(groupTestsIntoBatches(p_127753_), p_127754_, p_127755_, p_127756_, p_127757_, p_127758_);
+    public static Collection<GameTestInfo> runTests(Collection<TestFunction> pTestFunctions, BlockPos pPos, Rotation pRotation, ServerLevel pServerLevel, GameTestTicker pTestTicker, int pTestsPerRow) {
+        return runTestBatches(groupTestsIntoBatches(pTestFunctions), pPos, pRotation, pServerLevel, pTestTicker, pTestsPerRow);
     }
 
-    public static Collection<GameTestBatch> groupTestsIntoBatches(Collection<TestFunction> p_127725_) {
-        Map<String, List<TestFunction>> map = p_127725_.stream().collect(Collectors.groupingBy(TestFunction::getBatchName));
+    public static Collection<GameTestBatch> groupTestsIntoBatches(Collection<TestFunction> pTestFunctions) {
+        Map<String, List<TestFunction>> map = pTestFunctions.stream().collect(Collectors.groupingBy(TestFunction::getBatchName));
         return map.entrySet().stream().flatMap((p_177537_) -> {
                                           String s = p_177537_.getKey();
                                           Consumer<ServerLevel> consumer = GameTestRegistry.getBeforeBatchFunction(s);
@@ -56,22 +56,22 @@ public class GameTestRunner {
                 .collect(ImmutableList.toImmutableList());
     }
 
-    public static void clearAllTests(ServerLevel p_127695_, BlockPos p_127696_, GameTestTicker p_127697_, int p_127698_) {
-        p_127697_.clear();
-        BlockPos blockpos = p_127696_.offset(-p_127698_, 0, -p_127698_);
-        BlockPos blockpos1 = p_127696_.offset(p_127698_, 0, p_127698_);
+    public static void clearAllTests(ServerLevel pServerLevel, BlockPos pPos, GameTestTicker pTestTicker, int pRadius) {
+        pTestTicker.clear();
+        BlockPos blockpos = pPos.offset(-pRadius, 0, -pRadius);
+        BlockPos blockpos1 = pPos.offset(pRadius, 0, pRadius);
         BlockPos.betweenClosedStream(blockpos, blockpos1).filter((p_177540_) -> {
-                                                             return p_127695_.getBlockState(p_177540_).is(Blocks.STRUCTURE_BLOCK);
+                                                             return pServerLevel.getBlockState(p_177540_).is(Blocks.STRUCTURE_BLOCK);
                                                          })
                 .forEach((p_177529_) -> {
-                    StructureBlockEntity structureblockentity = (StructureBlockEntity) p_127695_.getBlockEntity(p_177529_);
+                    StructureBlockEntity structureblockentity = (StructureBlockEntity) pServerLevel.getBlockEntity(p_177529_);
                     BlockPos blockpos2 = structureblockentity.getBlockPos();
                     BoundingBox boundingbox = StructureUtils.getStructureBoundingBox(structureblockentity);
-                    StructureUtils.clearSpaceForStructure(boundingbox, blockpos2.getY(), p_127695_);
+                    StructureUtils.clearSpaceForStructure(boundingbox, blockpos2.getY(), pServerLevel);
                 });
     }
 
-    public static void clearMarkers(ServerLevel p_127686_) {
-        DebugPackets.sendGameTestClearPacket(p_127686_);
+    public static void clearMarkers(ServerLevel pServerLevel) {
+        DebugPackets.sendGameTestClearPacket(pServerLevel);
     }
 }

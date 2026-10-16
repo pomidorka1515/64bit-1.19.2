@@ -11,8 +11,8 @@ import java.util.Objects;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class BlockNameFlatteningFix extends DataFix {
-    public BlockNameFlatteningFix(Schema p_14897_, boolean p_14898_) {
-        super(p_14897_, p_14898_);
+    public BlockNameFlatteningFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

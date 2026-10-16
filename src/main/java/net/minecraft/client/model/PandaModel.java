@@ -17,8 +17,8 @@ public class PandaModel<T extends Panda> extends QuadrupedModel<T> {
     private float lieOnBackAmount;
     private float rollAmount;
 
-    public PandaModel(ModelPart p_170771_) {
-        super(p_170771_, true, 23.0F, 4.8F, 2.7F, 3.0F, 49);
+    public PandaModel(ModelPart pRoot) {
+        super(pRoot, true, 23.0F, 4.8F, 2.7F, 3.0F, 49);
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -36,25 +36,25 @@ public class PandaModel<T extends Panda> extends QuadrupedModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 64);
     }
 
-    public void prepareMobModel(T p_103173_, float p_103174_, float p_103175_, float p_103176_) {
-        super.prepareMobModel(p_103173_, p_103174_, p_103175_, p_103176_);
-        this.sitAmount = p_103173_.getSitAmount(p_103176_);
-        this.lieOnBackAmount = p_103173_.getLieOnBackAmount(p_103176_);
-        this.rollAmount = p_103173_.isBaby() ? 0.0F : p_103173_.getRollAmount(p_103176_);
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        super.prepareMobModel(pEntity, pLimbSwing, pLimbSwingAmount, pPartialTick);
+        this.sitAmount = pEntity.getSitAmount(pPartialTick);
+        this.lieOnBackAmount = pEntity.getLieOnBackAmount(pPartialTick);
+        this.rollAmount = pEntity.isBaby() ? 0.0F : pEntity.getRollAmount(pPartialTick);
     }
 
-    public void setupAnim(T p_103178_, float p_103179_, float p_103180_, float p_103181_, float p_103182_, float p_103183_) {
-        super.setupAnim(p_103178_, p_103179_, p_103180_, p_103181_, p_103182_, p_103183_);
-        boolean flag = p_103178_.getUnhappyCounter() > 0;
-        boolean flag1 = p_103178_.isSneezing();
-        int i = p_103178_.getSneezeCounter();
-        boolean flag2 = p_103178_.isEating();
-        boolean flag3 = p_103178_.isScared();
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
+        boolean flag = pEntity.getUnhappyCounter() > 0;
+        boolean flag1 = pEntity.isSneezing();
+        int i = pEntity.getSneezeCounter();
+        boolean flag2 = pEntity.isEating();
+        boolean flag3 = pEntity.isScared();
         if (flag) {
-            this.head.yRot = 0.35F * Mth.sin(0.6F * p_103181_);
-            this.head.zRot = 0.35F * Mth.sin(0.6F * p_103181_);
-            this.rightFrontLeg.xRot = -0.75F * Mth.sin(0.3F * p_103181_);
-            this.leftFrontLeg.xRot = 0.75F * Mth.sin(0.3F * p_103181_);
+            this.head.yRot = 0.35F * Mth.sin(0.6F * pAgeInTicks);
+            this.head.zRot = 0.35F * Mth.sin(0.6F * pAgeInTicks);
+            this.rightFrontLeg.xRot = -0.75F * Mth.sin(0.3F * pAgeInTicks);
+            this.leftFrontLeg.xRot = 0.75F * Mth.sin(0.3F * pAgeInTicks);
         } else {
             this.head.zRot = 0.0F;
         }
@@ -76,9 +76,9 @@ public class PandaModel<T extends Panda> extends QuadrupedModel<T> {
             this.rightHindLeg.zRot = 0.5707964F;
             this.leftHindLeg.zRot = -0.5707964F;
             if (flag2) {
-                this.head.xRot = ((float) Math.PI / 2F) + 0.2F * Mth.sin(p_103181_ * 0.6F);
-                this.rightFrontLeg.xRot = -0.4F - 0.2F * Mth.sin(p_103181_ * 0.6F);
-                this.leftFrontLeg.xRot = -0.4F - 0.2F * Mth.sin(p_103181_ * 0.6F);
+                this.head.xRot = ((float) Math.PI / 2F) + 0.2F * Mth.sin(pAgeInTicks * 0.6F);
+                this.rightFrontLeg.xRot = -0.4F - 0.2F * Mth.sin(pAgeInTicks * 0.6F);
+                this.leftFrontLeg.xRot = -0.4F - 0.2F * Mth.sin(pAgeInTicks * 0.6F);
             }
 
             if (flag3) {
@@ -94,19 +94,19 @@ public class PandaModel<T extends Panda> extends QuadrupedModel<T> {
         }
 
         if (this.lieOnBackAmount > 0.0F) {
-            this.rightHindLeg.xRot = -0.6F * Mth.sin(p_103181_ * 0.15F);
-            this.leftHindLeg.xRot = 0.6F * Mth.sin(p_103181_ * 0.15F);
-            this.rightFrontLeg.xRot = 0.3F * Mth.sin(p_103181_ * 0.25F);
-            this.leftFrontLeg.xRot = -0.3F * Mth.sin(p_103181_ * 0.25F);
+            this.rightHindLeg.xRot = -0.6F * Mth.sin(pAgeInTicks * 0.15F);
+            this.leftHindLeg.xRot = 0.6F * Mth.sin(pAgeInTicks * 0.15F);
+            this.rightFrontLeg.xRot = 0.3F * Mth.sin(pAgeInTicks * 0.25F);
+            this.leftFrontLeg.xRot = -0.3F * Mth.sin(pAgeInTicks * 0.25F);
             this.head.xRot = ModelUtils.rotlerpRad(this.head.xRot, ((float) Math.PI / 2F), this.lieOnBackAmount);
         }
 
         if (this.rollAmount > 0.0F) {
             this.head.xRot = ModelUtils.rotlerpRad(this.head.xRot, 2.0561945F, this.rollAmount);
-            this.rightHindLeg.xRot = -0.5F * Mth.sin(p_103181_ * 0.5F);
-            this.leftHindLeg.xRot = 0.5F * Mth.sin(p_103181_ * 0.5F);
-            this.rightFrontLeg.xRot = 0.5F * Mth.sin(p_103181_ * 0.5F);
-            this.leftFrontLeg.xRot = -0.5F * Mth.sin(p_103181_ * 0.5F);
+            this.rightHindLeg.xRot = -0.5F * Mth.sin(pAgeInTicks * 0.5F);
+            this.leftHindLeg.xRot = 0.5F * Mth.sin(pAgeInTicks * 0.5F);
+            this.rightFrontLeg.xRot = 0.5F * Mth.sin(pAgeInTicks * 0.5F);
+            this.leftFrontLeg.xRot = -0.5F * Mth.sin(pAgeInTicks * 0.5F);
         }
     }
 }

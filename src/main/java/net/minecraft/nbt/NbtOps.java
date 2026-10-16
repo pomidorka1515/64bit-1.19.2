@@ -109,39 +109,39 @@ public class NbtOps implements DynamicOps<Tag> {
         return StringTag.valueOf(p_128985_);
     }
 
-    private static CollectionTag<?> createGenericList(byte p_128965_, byte p_128966_) {
-        if (typesMatch(p_128965_, p_128966_, (byte) 4)) {
+    private static CollectionTag<?> createGenericList(byte pCollectionElementId, byte pNewElementId) {
+        if (typesMatch(pCollectionElementId, pNewElementId, (byte) 4)) {
             return new LongArrayTag(new long[0]);
-        } else if (typesMatch(p_128965_, p_128966_, (byte) 1)) {
+        } else if (typesMatch(pCollectionElementId, pNewElementId, (byte) 1)) {
             return new ByteArrayTag(new byte[0]);
         } else {
-            return (CollectionTag<?>) (typesMatch(p_128965_, p_128966_, (byte) 3) ? new IntArrayTag(new int[0]) : new ListTag());
+            return (CollectionTag<?>) (typesMatch(pCollectionElementId, pNewElementId, (byte) 3) ? new IntArrayTag(new int[0]) : new ListTag());
         }
     }
 
-    private static boolean typesMatch(byte p_128968_, byte p_128969_, byte p_128970_) {
-        return p_128968_ == p_128970_ && (p_128969_ == p_128970_ || p_128969_ == 0);
+    private static boolean typesMatch(byte pCollectionElementId, byte pNewElementId, byte pNewCollectionElementId) {
+        return pCollectionElementId == pNewCollectionElementId && (pNewElementId == pNewCollectionElementId || pNewElementId == 0);
     }
 
-    private static <T extends Tag> void fillOne(CollectionTag<T> p_129013_, Tag p_129014_, Tag p_129015_) {
-        if (p_129014_ instanceof CollectionTag<?> collectiontag) {
+    private static <T extends Tag> void fillOne(CollectionTag<T> pCollectionTag, Tag pMergingCollectionTag, Tag pElementTag) {
+        if (pMergingCollectionTag instanceof CollectionTag<?> collectiontag) {
             collectiontag.forEach((p_129064_) -> {
-                p_129013_.add((T) p_129064_);
+                pCollectionTag.add((T) p_129064_);
             });
         }
 
-        p_129013_.add((T) p_129015_);
+        pCollectionTag.add((T) pElementTag);
     }
 
-    private static <T extends Tag> void fillMany(CollectionTag<T> p_129009_, Tag p_129010_, List<Tag> p_129011_) {
-        if (p_129010_ instanceof CollectionTag<?> collectiontag) {
+    private static <T extends Tag> void fillMany(CollectionTag<T> pCollectionTag, Tag pMergingCollectionTag, List<Tag> pElementTags) {
+        if (pMergingCollectionTag instanceof CollectionTag<?> collectiontag) {
             collectiontag.forEach((p_129055_) -> {
-                p_129009_.add((T) p_129055_);
+                pCollectionTag.add((T) p_129055_);
             });
         }
 
-        p_129011_.forEach((p_129007_) -> {
-            p_129009_.add((T) p_129007_);
+        pElementTags.forEach((p_129007_) -> {
+            pCollectionTag.add((T) p_129007_);
         });
     }
 

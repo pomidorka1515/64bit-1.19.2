@@ -59,9 +59,9 @@ public class ChatScreen extends Screen {
     private boolean previewNotRequired;
     private final ChatPreviewAnimator chatPreviewAnimator = new ChatPreviewAnimator();
 
-    public ChatScreen(String p_95579_) {
+    public ChatScreen(String pInitial) {
         super(Component.translatable("chat_screen.title"));
-        this.initial = p_95579_;
+        this.initial = pInitial;
     }
 
     protected void init() {
@@ -99,9 +99,9 @@ public class ChatScreen extends Screen {
         }
     }
 
-    public void resize(Minecraft p_95600_, int p_95601_, int p_95602_) {
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
         String s = this.input.getValue();
-        this.init(p_95600_, p_95601_, p_95602_);
+        this.init(pMinecraft, pWidth, pHeight);
         this.setChatLine(s);
         this.commandSuggestions.updateCommandInfo();
     }
@@ -128,8 +128,8 @@ public class ChatScreen extends Screen {
         }
     }
 
-    private void updateChatPreview(String p_232719_) {
-        String s = this.normalizeChatMessage(p_232719_);
+    private void updateChatPreview(String pMessage) {
+        String s = this.normalizeChatMessage(pMessage);
         if (this.sendsChatPreviewRequests()) {
             this.requestPreview(s);
         } else {
@@ -137,23 +137,23 @@ public class ChatScreen extends Screen {
         }
     }
 
-    private void requestPreview(String p_232721_) {
-        if (p_232721_.startsWith("/")) {
-            this.requestCommandArgumentPreview(p_232721_);
+    private void requestPreview(String pPreview) {
+        if (pPreview.startsWith("/")) {
+            this.requestCommandArgumentPreview(pPreview);
         } else {
-            this.requestChatMessagePreview(p_232721_);
+            this.requestChatMessagePreview(pPreview);
         }
     }
 
-    private void requestChatMessagePreview(String p_232723_) {
-        this.chatPreview.update(p_232723_);
+    private void requestChatMessagePreview(String pMessage) {
+        this.chatPreview.update(pMessage);
     }
 
-    private void requestCommandArgumentPreview(String p_232725_) {
+    private void requestCommandArgumentPreview(String pMessage) {
         ParseResults<SharedSuggestionProvider> parseresults = this.commandSuggestions.getCurrentContext();
         CommandNode<SharedSuggestionProvider> commandnode = this.commandSuggestions.getNodeAt(this.input.getCursorPosition());
         if (parseresults != null && commandnode != null && PreviewableCommand.of(parseresults).isPreviewed(commandnode)) {
-            this.chatPreview.update(p_232725_);
+            this.chatPreview.update(pMessage);
         } else {
             this.chatPreview.disable();
         }
@@ -172,25 +172,25 @@ public class ChatScreen extends Screen {
         }
     }
 
-    public boolean keyPressed(int p_95591_, int p_95592_, int p_95593_) {
-        if (this.commandSuggestions.keyPressed(p_95591_, p_95592_, p_95593_)) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (this.commandSuggestions.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (super.keyPressed(p_95591_, p_95592_, p_95593_)) {
+        } else if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (p_95591_ == 256) {
+        } else if (pKeyCode == 256) {
             this.minecraft.setScreen((Screen) null);
             return true;
-        } else if (p_95591_ != 257 && p_95591_ != 335) {
-            if (p_95591_ == 265) {
+        } else if (pKeyCode != 257 && pKeyCode != 335) {
+            if (pKeyCode == 265) {
                 this.moveInHistory(-1);
                 return true;
-            } else if (p_95591_ == 264) {
+            } else if (pKeyCode == 264) {
                 this.moveInHistory(1);
                 return true;
-            } else if (p_95591_ == 266) {
+            } else if (pKeyCode == 266) {
                 this.minecraft.gui.getChat().scrollChat(this.minecraft.gui.getChat().getLinesPerPage() - 1);
                 return true;
-            } else if (p_95591_ == 267) {
+            } else if (pKeyCode == 267) {
                 this.minecraft.gui.getChat().scrollChat(-this.minecraft.gui.getChat().getLinesPerPage() + 1);
                 return true;
             } else {
@@ -205,51 +205,51 @@ public class ChatScreen extends Screen {
         }
     }
 
-    public boolean mouseScrolled(double p_95581_, double p_95582_, double p_95583_) {
-        p_95583_ = Mth.clamp(p_95583_, -1.0D, 1.0D);
-        if (this.commandSuggestions.mouseScrolled(p_95583_)) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+        pDelta = Mth.clamp(pDelta, -1.0D, 1.0D);
+        if (this.commandSuggestions.mouseScrolled(pDelta)) {
             return true;
         } else {
             if (!hasShiftDown()) {
-                p_95583_ *= 7.0D;
+                pDelta *= 7.0D;
             }
 
-            this.minecraft.gui.getChat().scrollChat((int) p_95583_);
+            this.minecraft.gui.getChat().scrollChat((int) pDelta);
             return true;
         }
     }
 
-    public boolean mouseClicked(double p_95585_, double p_95586_, int p_95587_) {
-        if (this.commandSuggestions.mouseClicked((double) ((int) p_95585_), (double) ((int) p_95586_), p_95587_)) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (this.commandSuggestions.mouseClicked((double) ((int) pMouseX), (double) ((int) pMouseY), pButton)) {
             return true;
         } else {
-            if (p_95587_ == 0) {
+            if (pButton == 0) {
                 ChatComponent chatcomponent = this.minecraft.gui.getChat();
-                if (chatcomponent.handleChatQueueClicked(p_95585_, p_95586_)) {
+                if (chatcomponent.handleChatQueueClicked(pMouseX, pMouseY)) {
                     return true;
                 }
 
-                Style style = this.getComponentStyleAt(p_95585_, p_95586_);
+                Style style = this.getComponentStyleAt(pMouseX, pMouseY);
                 if (style != null && this.handleComponentClicked(style)) {
                     this.initial = this.input.getValue();
                     return true;
                 }
             }
 
-            return this.input.mouseClicked(p_95585_, p_95586_, p_95587_) ? true : super.mouseClicked(p_95585_, p_95586_, p_95587_);
+            return this.input.mouseClicked(pMouseX, pMouseY, pButton) ? true : super.mouseClicked(pMouseX, pMouseY, pButton);
         }
     }
 
-    protected void insertText(String p_95606_, boolean p_95607_) {
-        if (p_95607_) {
-            this.input.setValue(p_95606_);
+    protected void insertText(String pText, boolean pOverwrite) {
+        if (pOverwrite) {
+            this.input.setValue(pText);
         } else {
-            this.input.insertText(p_95606_);
+            this.input.insertText(pText);
         }
     }
 
-    public void moveInHistory(int p_95589_) {
-        int i = this.historyPos + p_95589_;
+    public void moveInHistory(int pMsgPos) {
+        int i = this.historyPos + pMsgPos;
         int j = this.minecraft.gui.getChat().getRecentChat().size();
         i = Mth.clamp(i, 0, j);
         if (i != this.historyPos) {
@@ -268,33 +268,33 @@ public class ChatScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_95595_, int p_95596_, int p_95597_, float p_95598_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.setFocused(this.input);
         this.input.setFocus(true);
-        fill(p_95595_, 2, this.height - 14, this.width - 2, this.height - 2, this.minecraft.options.getBackgroundColor(Integer.MIN_VALUE));
-        this.input.render(p_95595_, p_95596_, p_95597_, p_95598_);
-        super.render(p_95595_, p_95596_, p_95597_, p_95598_);
+        fill(pPoseStack, 2, this.height - 14, this.width - 2, this.height - 2, this.minecraft.options.getBackgroundColor(Integer.MIN_VALUE));
+        this.input.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         boolean flag = this.minecraft.getProfileKeyPairManager().signer() != null;
         ChatPreviewAnimator.State chatpreviewanimator$state = this.chatPreviewAnimator.get(Util.getMillis(), this.getDisplayedPreviewText());
         if (chatpreviewanimator$state.preview() != null) {
-            this.renderChatPreview(p_95595_, chatpreviewanimator$state.preview(), chatpreviewanimator$state.alpha(), flag);
-            this.commandSuggestions.renderSuggestions(p_95595_, p_95596_, p_95597_);
+            this.renderChatPreview(pPoseStack, chatpreviewanimator$state.preview(), chatpreviewanimator$state.alpha(), flag);
+            this.commandSuggestions.renderSuggestions(pPoseStack, pMouseX, pMouseY);
         } else {
-            this.commandSuggestions.render(p_95595_, p_95596_, p_95597_);
+            this.commandSuggestions.render(pPoseStack, pMouseX, pMouseY);
             if (flag) {
-                p_95595_.pushPose();
-                fill(p_95595_, 0, this.height - 14, 2, this.height - 2, -8932375);
-                p_95595_.popPose();
+                pPoseStack.pushPose();
+                fill(pPoseStack, 0, this.height - 14, 2, this.height - 2, -8932375);
+                pPoseStack.popPose();
             }
         }
 
-        Style style = this.getComponentStyleAt((double) p_95596_, (double) p_95597_);
+        Style style = this.getComponentStyleAt((double) pMouseX, (double) pMouseY);
         if (style != null && style.getHoverEvent() != null) {
-            this.renderComponentHoverEffect(p_95595_, style, p_95596_, p_95597_);
+            this.renderComponentHoverEffect(pPoseStack, style, pMouseX, pMouseY);
         } else {
-            GuiMessageTag guimessagetag = this.minecraft.gui.getChat().getMessageTagAt((double) p_95596_, (double) p_95597_);
+            GuiMessageTag guimessagetag = this.minecraft.gui.getChat().getMessageTagAt((double) pMouseX, (double) pMouseY);
             if (guimessagetag != null && guimessagetag.text() != null) {
-                this.renderTooltip(p_95595_, this.font.split(guimessagetag.text(), 260), p_95596_, p_95597_);
+                this.renderTooltip(pPoseStack, this.font.split(guimessagetag.text(), 260), pMouseX, pMouseY);
             }
         }
     }
@@ -314,63 +314,63 @@ public class ChatScreen extends Screen {
         return false;
     }
 
-    private void setChatLine(String p_95613_) {
-        this.input.setValue(p_95613_);
+    private void setChatLine(String pChatLine) {
+        this.input.setValue(pChatLine);
     }
 
-    protected void updateNarrationState(NarrationElementOutput p_169238_) {
-        p_169238_.add(NarratedElementType.TITLE, this.getTitle());
-        p_169238_.add(NarratedElementType.USAGE, USAGE_TEXT);
+    protected void updateNarrationState(NarrationElementOutput pOutput) {
+        pOutput.add(NarratedElementType.TITLE, this.getTitle());
+        pOutput.add(NarratedElementType.USAGE, USAGE_TEXT);
         String s = this.input.getValue();
         if (!s.isEmpty()) {
-            p_169238_.nest().add(NarratedElementType.TITLE, Component.translatable("chat_screen.message", s));
+            pOutput.nest().add(NarratedElementType.TITLE, Component.translatable("chat_screen.message", s));
         }
     }
 
-    public void renderChatPreview(PoseStack p_242432_, Component p_242318_, float p_242443_, boolean p_242189_) {
-        int i = (int) (255.0D * (this.minecraft.options.chatOpacity().get() * (double) 0.9F + (double) 0.1F) * (double) p_242443_);
-        int j = (int) ((double) (this.chatPreview.hasScheduledRequest() ? 127 : 255) * this.minecraft.options.textBackgroundOpacity().get() * (double) p_242443_);
+    public void renderChatPreview(PoseStack pPoseStack, Component pPreview, float pAlpha, boolean pCanSign) {
+        int i = (int) (255.0D * (this.minecraft.options.chatOpacity().get() * (double) 0.9F + (double) 0.1F) * (double) pAlpha);
+        int j = (int) ((double) (this.chatPreview.hasScheduledRequest() ? 127 : 255) * this.minecraft.options.textBackgroundOpacity().get() * (double) pAlpha);
         int k = this.chatPreviewWidth();
-        List<FormattedCharSequence> list = this.splitChatPreview(p_242318_);
+        List<FormattedCharSequence> list = this.splitChatPreview(pPreview);
         int l = this.chatPreviewHeight(list);
         int i1 = this.chatPreviewTop(l);
         RenderSystem.enableBlend();
-        p_242432_.pushPose();
-        p_242432_.translate((double) this.chatPreviewLeft(), (double) i1, 0.0D);
-        fill(p_242432_, 0, 0, k, l, j << 24);
+        pPoseStack.pushPose();
+        pPoseStack.translate((double) this.chatPreviewLeft(), (double) i1, 0.0D);
+        fill(pPoseStack, 0, 0, k, l, j << 24);
         if (i > 0) {
-            p_242432_.translate(2.0D, 2.0D, 0.0D);
+            pPoseStack.translate(2.0D, 2.0D, 0.0D);
 
             for (int j1 = 0; j1 < list.size(); ++j1) {
                 FormattedCharSequence formattedcharsequence = list.get(j1);
                 int k1 = j1 * 9;
-                this.renderChatPreviewHighlights(p_242432_, formattedcharsequence, k1, i);
-                this.font.drawShadow(p_242432_, formattedcharsequence, 0.0F, (float) k1, i << 24 | 16777215);
+                this.renderChatPreviewHighlights(pPoseStack, formattedcharsequence, k1, i);
+                this.font.drawShadow(pPoseStack, formattedcharsequence, 0.0F, (float) k1, i << 24 | 16777215);
             }
         }
 
-        p_242432_.popPose();
+        pPoseStack.popPose();
         RenderSystem.disableBlend();
-        if (p_242189_ && this.chatPreview.peek() != null) {
+        if (pCanSign && this.chatPreview.peek() != null) {
             int l1 = this.chatPreview.hasScheduledRequest() ? 15118153 : 7844841;
-            int i2 = (int) (255.0F * p_242443_);
-            p_242432_.pushPose();
-            fill(p_242432_, 0, i1, 2, this.chatPreviewBottom(), i2 << 24 | l1);
-            p_242432_.popPose();
+            int i2 = (int) (255.0F * pAlpha);
+            pPoseStack.pushPose();
+            fill(pPoseStack, 0, i1, 2, this.chatPreviewBottom(), i2 << 24 | l1);
+            pPoseStack.popPose();
         }
     }
 
-    private void renderChatPreviewHighlights(PoseStack p_242454_, FormattedCharSequence p_242367_, int p_242163_, int p_242358_) {
-        int i = p_242163_ + 9;
-        int j = p_242358_ << 24 | 10533887;
+    private void renderChatPreviewHighlights(PoseStack pPoseStack, FormattedCharSequence pSequence, int pMinY, int pChatOpacity) {
+        int i = pMinY + 9;
+        int j = pChatOpacity << 24 | 10533887;
         Predicate<Style> predicate = (p_242204_) -> {
             return p_242204_.getHoverEvent() != null || p_242204_.getClickEvent() != null;
         };
 
-        for (StringSplitter.Span stringsplitter$span : this.font.getSplitter().findSpans(p_242367_, predicate)) {
+        for (StringSplitter.Span stringsplitter$span : this.font.getSplitter().findSpans(pSequence, predicate)) {
             int k = Mth.floor(stringsplitter$span.left());
             int l = Mth.ceil(stringsplitter$span.right());
-            fill(p_242454_, k, p_242163_, l, i, j);
+            fill(pPoseStack, k, pMinY, l, i, j);
         }
     }
 
@@ -417,8 +417,8 @@ public class ChatScreen extends Screen {
         return Util.mapNullable(this.chatPreview.peek(), ClientChatPreview.Preview::response);
     }
 
-    private List<FormattedCharSequence> splitChatPreview(Component p_242266_) {
-        return this.font.split(p_242266_, this.chatPreviewWidth());
+    private List<FormattedCharSequence> splitChatPreview(Component pPreview) {
+        return this.font.split(pPreview, this.chatPreviewWidth());
     }
 
     private int chatPreviewWidth() {
@@ -433,8 +433,8 @@ public class ChatScreen extends Screen {
         return this.minecraft.screen.height - 15;
     }
 
-    private int chatPreviewTop(int p_232709_) {
-        return this.chatPreviewBottom() - p_232709_;
+    private int chatPreviewTop(int pHeight) {
+        return this.chatPreviewBottom() - pHeight;
     }
 
     private int chatPreviewLeft() {
@@ -445,36 +445,36 @@ public class ChatScreen extends Screen {
         return this.minecraft.screen.width - 2;
     }
 
-    public boolean handleChatInput(String p_242400_, boolean p_242161_) {
-        p_242400_ = this.normalizeChatMessage(p_242400_);
-        if (p_242400_.isEmpty()) {
+    public boolean handleChatInput(String pInput, boolean pAddToRecentChat) {
+        pInput = this.normalizeChatMessage(pInput);
+        if (pInput.isEmpty()) {
             return true;
         } else {
             if (this.chatPreviewStatus == ChatPreviewStatus.CONFIRM && !this.previewNotRequired) {
                 this.commandSuggestions.hide();
-                if (!this.chatPreview.queryEquals(p_242400_)) {
-                    this.updateChatPreview(p_242400_);
+                if (!this.chatPreview.queryEquals(pInput)) {
+                    this.updateChatPreview(pInput);
                     return false;
                 }
             }
 
-            if (p_242161_) {
-                this.minecraft.gui.getChat().addRecentChat(p_242400_);
+            if (pAddToRecentChat) {
+                this.minecraft.gui.getChat().addRecentChat(pInput);
             }
 
-            Component component = Util.mapNullable(this.chatPreview.pull(p_242400_), ClientChatPreview.Preview::response);
-            if (p_242400_.startsWith("/")) {
-                this.minecraft.player.commandSigned(p_242400_.substring(1), component);
+            Component component = Util.mapNullable(this.chatPreview.pull(pInput), ClientChatPreview.Preview::response);
+            if (pInput.startsWith("/")) {
+                this.minecraft.player.commandSigned(pInput.substring(1), component);
             } else {
-                this.minecraft.player.chatSigned(p_242400_, component);
+                this.minecraft.player.chatSigned(pInput, component);
             }
 
             return true;
         }
     }
 
-    public String normalizeChatMessage(String p_232707_) {
-        return StringUtils.normalizeSpace(p_232707_.trim());
+    public String normalizeChatMessage(String pMessage) {
+        return StringUtils.normalizeSpace(pMessage.trim());
     }
 
     public ClientChatPreview getChatPreview() {

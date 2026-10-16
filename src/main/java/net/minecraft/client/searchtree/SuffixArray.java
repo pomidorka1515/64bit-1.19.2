@@ -163,16 +163,16 @@ public class SuffixArray<T> {
         return 0;
     }
 
-    public List<T> search(String p_119974_) {
+    public List<T> search(String pQuery) {
         int i = this.suffixToT.size();
         int j = 0;
         int k = i;
 
         while (j < k) {
             int l = j + (k - j) / 2;
-            int i1 = this.compare(p_119974_, l);
+            int i1 = this.compare(pQuery, l);
             if (DEBUG_COMPARISONS) {
-                LOGGER.debug("comparing lower \"{}\" with {} \"{}\": {}", p_119974_, l, this.getString(l), i1);
+                LOGGER.debug("comparing lower \"{}\" with {} \"{}\": {}", pQuery, l, this.getString(l), i1);
             }
 
             if (i1 > 0) {
@@ -188,9 +188,9 @@ public class SuffixArray<T> {
 
             while (j < k) {
                 int j2 = j + (k - j) / 2;
-                int j1 = this.compare(p_119974_, j2);
+                int j1 = this.compare(pQuery, j2);
                 if (DEBUG_COMPARISONS) {
-                    LOGGER.debug("comparing upper \"{}\" with {} \"{}\": {}", p_119974_, j2, this.getString(j2), j1);
+                    LOGGER.debug("comparing upper \"{}\" with {} \"{}\": {}", pQuery, j2, this.getString(j2), j1);
                 }
 
                 if (j1 >= 0) {

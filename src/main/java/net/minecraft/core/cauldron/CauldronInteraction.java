@@ -114,7 +114,7 @@ public interface CauldronInteraction {
         });
     }
 
-    InteractionResult interact(BlockState p_175711_, Level p_175712_, BlockPos p_175713_, Player p_175714_, InteractionHand p_175715_, ItemStack p_175716_);
+    InteractionResult interact(BlockState pBlockState, Level pLevel, BlockPos pBlockPos, Player pPlayer, InteractionHand pHand, ItemStack pStack);
 
     static void bootStrap() {
         addDefaultInteractions(EMPTY);
@@ -221,41 +221,41 @@ public interface CauldronInteraction {
         addDefaultInteractions(POWDER_SNOW);
     }
 
-    static void addDefaultInteractions(Map<Item, CauldronInteraction> p_175648_) {
-        p_175648_.put(Items.LAVA_BUCKET, FILL_LAVA);
-        p_175648_.put(Items.WATER_BUCKET, FILL_WATER);
-        p_175648_.put(Items.POWDER_SNOW_BUCKET, FILL_POWDER_SNOW);
+    static void addDefaultInteractions(Map<Item, CauldronInteraction> pInteractionsMap) {
+        pInteractionsMap.put(Items.LAVA_BUCKET, FILL_LAVA);
+        pInteractionsMap.put(Items.WATER_BUCKET, FILL_WATER);
+        pInteractionsMap.put(Items.POWDER_SNOW_BUCKET, FILL_POWDER_SNOW);
     }
 
-    static InteractionResult fillBucket(BlockState p_175636_, Level p_175637_, BlockPos p_175638_, Player p_175639_, InteractionHand p_175640_, ItemStack p_175641_, ItemStack p_175642_, Predicate<BlockState> p_175643_, SoundEvent p_175644_) {
-        if (!p_175643_.test(p_175636_)) {
+    static InteractionResult fillBucket(BlockState pBlockState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, ItemStack pEmptyStack, ItemStack pFilledStack, Predicate<BlockState> pStatePredicate, SoundEvent pFillSound) {
+        if (!pStatePredicate.test(pBlockState)) {
             return InteractionResult.PASS;
         } else {
-            if (!p_175637_.isClientSide) {
-                Item item = p_175641_.getItem();
-                p_175639_.setItemInHand(p_175640_, ItemUtils.createFilledResult(p_175641_, p_175639_, p_175642_));
-                p_175639_.awardStat(Stats.USE_CAULDRON);
-                p_175639_.awardStat(Stats.ITEM_USED.get(item));
-                p_175637_.setBlockAndUpdate(p_175638_, Blocks.CAULDRON.defaultBlockState());
-                p_175637_.playSound((Player) null, p_175638_, p_175644_, SoundSource.BLOCKS, 1.0F, 1.0F);
-                p_175637_.gameEvent((Entity) null, GameEvent.FLUID_PICKUP, p_175638_);
+            if (!pLevel.isClientSide) {
+                Item item = pEmptyStack.getItem();
+                pPlayer.setItemInHand(pHand, ItemUtils.createFilledResult(pEmptyStack, pPlayer, pFilledStack));
+                pPlayer.awardStat(Stats.USE_CAULDRON);
+                pPlayer.awardStat(Stats.ITEM_USED.get(item));
+                pLevel.setBlockAndUpdate(pPos, Blocks.CAULDRON.defaultBlockState());
+                pLevel.playSound((Player) null, pPos, pFillSound, SoundSource.BLOCKS, 1.0F, 1.0F);
+                pLevel.gameEvent((Entity) null, GameEvent.FLUID_PICKUP, pPos);
             }
 
-            return InteractionResult.sidedSuccess(p_175637_.isClientSide);
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         }
     }
 
-    static InteractionResult emptyBucket(Level p_175619_, BlockPos p_175620_, Player p_175621_, InteractionHand p_175622_, ItemStack p_175623_, BlockState p_175624_, SoundEvent p_175625_) {
-        if (!p_175619_.isClientSide) {
-            Item item = p_175623_.getItem();
-            p_175621_.setItemInHand(p_175622_, ItemUtils.createFilledResult(p_175623_, p_175621_, new ItemStack(Items.BUCKET)));
-            p_175621_.awardStat(Stats.FILL_CAULDRON);
-            p_175621_.awardStat(Stats.ITEM_USED.get(item));
-            p_175619_.setBlockAndUpdate(p_175620_, p_175624_);
-            p_175619_.playSound((Player) null, p_175620_, p_175625_, SoundSource.BLOCKS, 1.0F, 1.0F);
-            p_175619_.gameEvent((Entity) null, GameEvent.FLUID_PLACE, p_175620_);
+    static InteractionResult emptyBucket(Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, ItemStack pFilledStack, BlockState pState, SoundEvent pEmptySound) {
+        if (!pLevel.isClientSide) {
+            Item item = pFilledStack.getItem();
+            pPlayer.setItemInHand(pHand, ItemUtils.createFilledResult(pFilledStack, pPlayer, new ItemStack(Items.BUCKET)));
+            pPlayer.awardStat(Stats.FILL_CAULDRON);
+            pPlayer.awardStat(Stats.ITEM_USED.get(item));
+            pLevel.setBlockAndUpdate(pPos, pState);
+            pLevel.playSound((Player) null, pPos, pEmptySound, SoundSource.BLOCKS, 1.0F, 1.0F);
+            pLevel.gameEvent((Entity) null, GameEvent.FLUID_PLACE, pPos);
         }
 
-        return InteractionResult.sidedSuccess(p_175619_.isClientSide);
+        return InteractionResult.sidedSuccess(pLevel.isClientSide);
     }
 }

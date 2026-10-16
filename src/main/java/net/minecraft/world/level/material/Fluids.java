@@ -9,8 +9,8 @@ public class Fluids {
     public static final FlowingFluid FLOWING_LAVA = register("flowing_lava", new LavaFluid.Flowing());
     public static final FlowingFluid LAVA = register("lava", new LavaFluid.Source());
 
-    private static <T extends Fluid> T register(String p_76198_, T p_76199_) {
-        return Registry.register(Registry.FLUID, p_76198_, p_76199_);
+    private static <T extends Fluid> T register(String pKey, T pFluid) {
+        return Registry.register(Registry.FLUID, pKey, pFluid);
     }
 
     static {

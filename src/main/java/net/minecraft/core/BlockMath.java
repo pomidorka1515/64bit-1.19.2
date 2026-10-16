@@ -27,28 +27,28 @@ public class BlockMath {
         }
     });
 
-    public static Transformation blockCenterToCorner(Transformation p_121843_) {
+    public static Transformation blockCenterToCorner(Transformation pTransformation) {
         Matrix4f matrix4f = Matrix4f.createTranslateMatrix(0.5F, 0.5F, 0.5F);
-        matrix4f.multiply(p_121843_.getMatrix());
+        matrix4f.multiply(pTransformation.getMatrix());
         matrix4f.multiply(Matrix4f.createTranslateMatrix(-0.5F, -0.5F, -0.5F));
         return new Transformation(matrix4f);
     }
 
-    public static Transformation blockCornerToCenter(Transformation p_175260_) {
+    public static Transformation blockCornerToCenter(Transformation pTransformation) {
         Matrix4f matrix4f = Matrix4f.createTranslateMatrix(-0.5F, -0.5F, -0.5F);
-        matrix4f.multiply(p_175260_.getMatrix());
+        matrix4f.multiply(pTransformation.getMatrix());
         matrix4f.multiply(Matrix4f.createTranslateMatrix(0.5F, 0.5F, 0.5F));
         return new Transformation(matrix4f);
     }
 
-    public static Transformation getUVLockTransform(Transformation p_121845_, Direction p_121846_, Supplier<String> p_121847_) {
-        Direction direction = Direction.rotate(p_121845_.getMatrix(), p_121846_);
-        Transformation transformation = p_121845_.inverse();
+    public static Transformation getUVLockTransform(Transformation pTransformation, Direction pDirection, Supplier<String> pWarningMessage) {
+        Direction direction = Direction.rotate(pTransformation.getMatrix(), pDirection);
+        Transformation transformation = pTransformation.inverse();
         if (transformation == null) {
-            LOGGER.warn(p_121847_.get());
+            LOGGER.warn(pWarningMessage.get());
             return new Transformation((Vector3f) null, (Quaternion) null, new Vector3f(0.0F, 0.0F, 0.0F), (Quaternion) null);
         } else {
-            Transformation transformation1 = VANILLA_UV_TRANSFORM_GLOBAL_TO_LOCAL.get(p_121846_).compose(transformation).compose(VANILLA_UV_TRANSFORM_LOCAL_TO_GLOBAL.get(direction));
+            Transformation transformation1 = VANILLA_UV_TRANSFORM_GLOBAL_TO_LOCAL.get(pDirection).compose(transformation).compose(VANILLA_UV_TRANSFORM_LOCAL_TO_GLOBAL.get(direction));
             return blockCenterToCorner(transformation1);
         }
     }

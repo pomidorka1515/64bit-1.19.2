@@ -20,22 +20,22 @@ public class KnowledgeBookItem extends Item {
     private static final String RECIPE_TAG = "Recipes";
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public KnowledgeBookItem(Item.Properties p_42822_) {
-        super(p_42822_);
+    public KnowledgeBookItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_42824_, Player p_42825_, InteractionHand p_42826_) {
-        ItemStack itemstack = p_42825_.getItemInHand(p_42826_);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         CompoundTag compoundtag = itemstack.getTag();
-        if (!p_42825_.getAbilities().instabuild) {
-            p_42825_.setItemInHand(p_42826_, ItemStack.EMPTY);
+        if (!pPlayer.getAbilities().instabuild) {
+            pPlayer.setItemInHand(pHand, ItemStack.EMPTY);
         }
 
         if (compoundtag != null && compoundtag.contains("Recipes", 9)) {
-            if (!p_42824_.isClientSide) {
+            if (!pLevel.isClientSide) {
                 ListTag listtag = compoundtag.getList("Recipes", 8);
                 List<Recipe<?>> list = Lists.newArrayList();
-                RecipeManager recipemanager = p_42824_.getServer().getRecipeManager();
+                RecipeManager recipemanager = pLevel.getServer().getRecipeManager();
 
                 for (int i = 0; i < listtag.size(); ++i) {
                     String s = listtag.getString(i);
@@ -48,11 +48,11 @@ public class KnowledgeBookItem extends Item {
                     list.add(optional.get());
                 }
 
-                p_42825_.awardRecipes(list);
-                p_42825_.awardStat(Stats.ITEM_USED.get(this));
+                pPlayer.awardRecipes(list);
+                pPlayer.awardStat(Stats.ITEM_USED.get(this));
             }
 
-            return InteractionResultHolder.sidedSuccess(itemstack, p_42824_.isClientSide());
+            return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());
         } else {
             LOGGER.error("Tag not valid: {}", (Object) compoundtag);
             return InteractionResultHolder.fail(itemstack);

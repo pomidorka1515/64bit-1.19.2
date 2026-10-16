@@ -28,9 +28,9 @@ public class TimeArgument implements ArgumentType<Integer> {
         return new TimeArgument();
     }
 
-    public Integer parse(StringReader p_113039_) throws CommandSyntaxException {
-        float f = p_113039_.readFloat();
-        String s = p_113039_.readUnquotedString();
+    public Integer parse(StringReader pReader) throws CommandSyntaxException {
+        float f = pReader.readFloat();
+        String s = pReader.readUnquotedString();
         int i = UNITS.getOrDefault(s, 0);
         if (i == 0) {
             throw ERROR_INVALID_UNIT.create();
@@ -44,16 +44,16 @@ public class TimeArgument implements ArgumentType<Integer> {
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_113044_, SuggestionsBuilder p_113045_) {
-        StringReader stringreader = new StringReader(p_113045_.getRemaining());
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        StringReader stringreader = new StringReader(pBuilder.getRemaining());
 
         try {
             stringreader.readFloat();
         } catch (CommandSyntaxException commandsyntaxexception) {
-            return p_113045_.buildFuture();
+            return pBuilder.buildFuture();
         }
 
-        return SharedSuggestionProvider.suggest(UNITS.keySet(), p_113045_.createOffset(p_113045_.getStart() + stringreader.getCursor()));
+        return SharedSuggestionProvider.suggest(UNITS.keySet(), pBuilder.createOffset(pBuilder.getStart() + stringreader.getCursor()));
     }
 
     public Collection<String> getExamples() {

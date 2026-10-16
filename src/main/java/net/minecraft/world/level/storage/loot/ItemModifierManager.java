@@ -27,24 +27,24 @@ public class ItemModifierManager extends SimpleJsonResourceReloadListener {
     private final LootTables lootTables;
     private Map<ResourceLocation, LootItemFunction> functions = ImmutableMap.of();
 
-    public ItemModifierManager(PredicateManager p_165086_, LootTables p_165087_) {
+    public ItemModifierManager(PredicateManager pPredicateManager, LootTables pLootTables) {
         super(GSON, "item_modifiers");
-        this.predicateManager = p_165086_;
-        this.lootTables = p_165087_;
+        this.predicateManager = pPredicateManager;
+        this.lootTables = pLootTables;
     }
 
     @Nullable
-    public LootItemFunction get(ResourceLocation p_165109_) {
-        return this.functions.get(p_165109_);
+    public LootItemFunction get(ResourceLocation pFunctionId) {
+        return this.functions.get(pFunctionId);
     }
 
-    public LootItemFunction get(ResourceLocation p_165111_, LootItemFunction p_165112_) {
-        return this.functions.getOrDefault(p_165111_, p_165112_);
+    public LootItemFunction get(ResourceLocation pFunctionId, LootItemFunction pDefaultFunction) {
+        return this.functions.getOrDefault(pFunctionId, pDefaultFunction);
     }
 
-    protected void apply(Map<ResourceLocation, JsonElement> p_165105_, ResourceManager p_165106_, ProfilerFiller p_165107_) {
+    protected void apply(Map<ResourceLocation, JsonElement> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         ImmutableMap.Builder<ResourceLocation, LootItemFunction> builder = ImmutableMap.builder();
-        p_165105_.forEach((p_165091_, p_165092_) -> {
+        pObject.forEach((p_165091_, p_165092_) -> {
             try {
                 if (p_165092_.isJsonArray()) {
                     LootItemFunction[] alootitemfunction = GSON.fromJson(p_165092_, LootItemFunction[].class);
@@ -76,9 +76,9 @@ public class ItemModifierManager extends SimpleJsonResourceReloadListener {
         protected final LootItemFunction[] functions;
         private final BiFunction<ItemStack, LootContext, ItemStack> compositeFunction;
 
-        public FunctionSequence(LootItemFunction[] p_165116_) {
-            this.functions = p_165116_;
-            this.compositeFunction = LootItemFunctions.compose(p_165116_);
+        public FunctionSequence(LootItemFunction[] pFunctions) {
+            this.functions = pFunctions;
+            this.compositeFunction = LootItemFunctions.compose(pFunctions);
         }
 
         public ItemStack apply(ItemStack p_165119_, LootContext p_165120_) {

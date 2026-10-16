@@ -14,10 +14,10 @@ public class RecipesRenameFix extends DataFix {
     private final String name;
     private final Function<String, String> renamer;
 
-    public RecipesRenameFix(Schema p_16732_, boolean p_16733_, String p_16734_, Function<String, String> p_16735_) {
-        super(p_16732_, p_16733_);
-        this.name = p_16734_;
-        this.renamer = p_16735_;
+    public RecipesRenameFix(Schema pOutputSchema, boolean pChangesType, String pName, Function<String, String> pRenamer) {
+        super(pOutputSchema, pChangesType);
+        this.name = pName;
+        this.renamer = pRenamer;
     }
 
     protected TypeRewriteRule makeRule() {

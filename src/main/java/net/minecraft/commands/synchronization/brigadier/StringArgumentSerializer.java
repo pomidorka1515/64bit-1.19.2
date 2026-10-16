@@ -7,18 +7,18 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class StringArgumentSerializer implements ArgumentTypeInfo<StringArgumentType, StringArgumentSerializer.Template> {
-    public void serializeToNetwork(StringArgumentSerializer.Template p_235616_, FriendlyByteBuf p_235617_) {
-        p_235617_.writeEnum(p_235616_.type);
+    public void serializeToNetwork(StringArgumentSerializer.Template pTemplate, FriendlyByteBuf pBuffer) {
+        pBuffer.writeEnum(pTemplate.type);
     }
 
-    public StringArgumentSerializer.Template deserializeFromNetwork(FriendlyByteBuf p_235619_) {
-        StringArgumentType.StringType stringtype = p_235619_.readEnum(StringArgumentType.StringType.class);
+    public StringArgumentSerializer.Template deserializeFromNetwork(FriendlyByteBuf pBuffer) {
+        StringArgumentType.StringType stringtype = pBuffer.readEnum(StringArgumentType.StringType.class);
         return new StringArgumentSerializer.Template(stringtype);
     }
 
-    public void serializeToJson(StringArgumentSerializer.Template p_235613_, JsonObject p_235614_) {
+    public void serializeToJson(StringArgumentSerializer.Template pTemplate, JsonObject pJson) {
         String s;
-        switch (p_235613_.type) {
+        switch (pTemplate.type) {
             case SINGLE_WORD:
                 s = "word";
                 break;
@@ -32,11 +32,11 @@ public class StringArgumentSerializer implements ArgumentTypeInfo<StringArgument
                 throw new IncompatibleClassChangeError();
         }
 
-        p_235614_.addProperty("type", s);
+        pJson.addProperty("type", s);
     }
 
-    public StringArgumentSerializer.Template unpack(StringArgumentType p_235605_) {
-        return new StringArgumentSerializer.Template(p_235605_.getType());
+    public StringArgumentSerializer.Template unpack(StringArgumentType pArgument) {
+        return new StringArgumentSerializer.Template(pArgument.getType());
     }
 
     public final class Template implements ArgumentTypeInfo.Template<StringArgumentType> {
@@ -46,7 +46,7 @@ public class StringArgumentSerializer implements ArgumentTypeInfo<StringArgument
             this.type = p_235626_;
         }
 
-        public StringArgumentType instantiate(CommandBuildContext p_235629_) {
+        public StringArgumentType instantiate(CommandBuildContext pContext) {
             StringArgumentType stringargumenttype;
             switch (this.type) {
                 case SINGLE_WORD:

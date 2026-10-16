@@ -16,8 +16,8 @@ public class Tesselator {
         return INSTANCE;
     }
 
-    public Tesselator(int p_85912_) {
-        this.builder = new BufferBuilder(p_85912_);
+    public Tesselator(int pCapacity) {
+        this.builder = new BufferBuilder(pCapacity);
     }
 
     public Tesselator() {

@@ -15,24 +15,24 @@ public class LoopingAudioStream implements AudioStream {
     private AudioStream stream;
     private final BufferedInputStream bufferedInputStream;
 
-    public LoopingAudioStream(LoopingAudioStream.AudioStreamProvider p_120163_, InputStream p_120164_) throws IOException {
-        this.provider = p_120163_;
-        this.bufferedInputStream = new BufferedInputStream(p_120164_);
+    public LoopingAudioStream(LoopingAudioStream.AudioStreamProvider pProvider, InputStream pInputStream) throws IOException {
+        this.provider = pProvider;
+        this.bufferedInputStream = new BufferedInputStream(pInputStream);
         this.bufferedInputStream.mark(Integer.MAX_VALUE);
-        this.stream = p_120163_.create(new LoopingAudioStream.NoCloseBuffer(this.bufferedInputStream));
+        this.stream = pProvider.create(new LoopingAudioStream.NoCloseBuffer(this.bufferedInputStream));
     }
 
     public AudioFormat getFormat() {
         return this.stream.getFormat();
     }
 
-    public ByteBuffer read(int p_120167_) throws IOException {
-        ByteBuffer bytebuffer = this.stream.read(p_120167_);
+    public ByteBuffer read(int pSize) throws IOException {
+        ByteBuffer bytebuffer = this.stream.read(pSize);
         if (!bytebuffer.hasRemaining()) {
             this.stream.close();
             this.bufferedInputStream.reset();
             this.stream = this.provider.create(new LoopingAudioStream.NoCloseBuffer(this.bufferedInputStream));
-            bytebuffer = this.stream.read(p_120167_);
+            bytebuffer = this.stream.read(pSize);
         }
 
         return bytebuffer;
@@ -46,13 +46,13 @@ public class LoopingAudioStream implements AudioStream {
     @FunctionalInterface
     @OnlyIn(Dist.CLIENT)
     public interface AudioStreamProvider {
-        AudioStream create(InputStream p_120170_) throws IOException;
+        AudioStream create(InputStream pInputStream) throws IOException;
     }
 
     @OnlyIn(Dist.CLIENT)
     static class NoCloseBuffer extends FilterInputStream {
-        NoCloseBuffer(InputStream p_120172_) {
-            super(p_120172_);
+        NoCloseBuffer(InputStream pInputStream) {
+            super(pInputStream);
         }
 
         public void close() {

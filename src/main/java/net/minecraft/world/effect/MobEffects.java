@@ -63,7 +63,7 @@ public class MobEffects {
         return new MobEffectInstance.FactorData(22);
     }));
 
-    private static MobEffect register(int p_19624_, String p_19625_, MobEffect p_19626_) {
-        return Registry.registerMapping(Registry.MOB_EFFECT, p_19624_, p_19625_, p_19626_);
+    private static MobEffect register(int pId, String pKey, MobEffect pEffect) {
+        return Registry.registerMapping(Registry.MOB_EFFECT, pId, pKey, pEffect);
     }
 }

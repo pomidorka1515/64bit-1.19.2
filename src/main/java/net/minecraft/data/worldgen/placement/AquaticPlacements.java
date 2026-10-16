@@ -33,7 +33,7 @@ public class AquaticPlacements {
     public static final Holder<PlacedFeature> KELP_WARM = PlacementUtils.register("kelp_warm", AquaticFeatures.KELP, NoiseBasedCountPlacement.of(80, 80.0D, 0.0D), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_TOP_SOLID, BiomeFilter.biome());
     public static final Holder<PlacedFeature> WARM_OCEAN_VEGETATION = PlacementUtils.register("warm_ocean_vegetation", AquaticFeatures.WARM_OCEAN_VEGETATION, NoiseBasedCountPlacement.of(20, 400.0D, 0.0D), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_TOP_SOLID, BiomeFilter.biome());
 
-    public static List<PlacementModifier> seagrassPlacement(int p_195234_) {
-        return List.of(InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_TOP_SOLID, CountPlacement.of(p_195234_), BiomeFilter.biome());
+    public static List<PlacementModifier> seagrassPlacement(int pCount) {
+        return List.of(InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_TOP_SOLID, CountPlacement.of(pCount), BiomeFilter.biome());
     }
 }

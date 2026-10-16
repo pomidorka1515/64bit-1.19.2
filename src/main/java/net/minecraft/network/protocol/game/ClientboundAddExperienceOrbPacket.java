@@ -13,39 +13,39 @@ public class ClientboundAddExperienceOrbPacket implements Packet<ClientGamePacke
     private final SectorVec3 exactPosition;
     private final int value;
 
-    public ClientboundAddExperienceOrbPacket(ExperienceOrb p_131517_) {
-        this.id = p_131517_.getId();
-        this.exactPosition = p_131517_.sectorPosition();
+    public ClientboundAddExperienceOrbPacket(ExperienceOrb pOrbEntity) {
+        this.id = pOrbEntity.getId();
+        this.exactPosition = pOrbEntity.sectorPosition();
         net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
         this.x = approximate.x;
         this.y = approximate.y;
         this.z = approximate.z;
-        this.value = p_131517_.getValue();
+        this.value = pOrbEntity.getValue();
     }
 
-    public ClientboundAddExperienceOrbPacket(FriendlyByteBuf p_178564_) {
-        this.id = p_178564_.readVarInt();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(p_178564_.readLong(), p_178564_.readDouble(),
-                p_178564_.readDouble(), p_178564_.readLong(), p_178564_.readDouble());
+    public ClientboundAddExperienceOrbPacket(FriendlyByteBuf pBuffer) {
+        this.id = pBuffer.readVarInt();
+        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
         net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
         this.x = approximate.x;
         this.y = approximate.y;
         this.z = approximate.z;
-        this.value = p_178564_.readShort();
+        this.value = pBuffer.readShort();
     }
 
-    public void write(FriendlyByteBuf p_131526_) {
-        p_131526_.writeVarInt(this.id);
-        p_131526_.writeLong(this.exactPosition.blockX());
-        p_131526_.writeDouble(this.exactPosition.subX());
-        p_131526_.writeDouble(this.exactPosition.y());
-        p_131526_.writeLong(this.exactPosition.blockZ());
-        p_131526_.writeDouble(this.exactPosition.subZ());
-        p_131526_.writeShort(this.value);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.id);
+        pBuffer.writeLong(this.exactPosition.blockX());
+        pBuffer.writeDouble(this.exactPosition.subX());
+        pBuffer.writeDouble(this.exactPosition.y());
+        pBuffer.writeLong(this.exactPosition.blockZ());
+        pBuffer.writeDouble(this.exactPosition.subZ());
+        pBuffer.writeShort(this.value);
     }
 
-    public void handle(ClientGamePacketListener p_131523_) {
-        p_131523_.handleAddExperienceOrb(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleAddExperienceOrb(this);
     }
 
     public int getId() {

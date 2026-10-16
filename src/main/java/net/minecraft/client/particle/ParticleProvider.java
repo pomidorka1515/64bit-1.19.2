@@ -9,5 +9,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public interface ParticleProvider<T extends ParticleOptions> {
     @Nullable
-    Particle createParticle(T p_107421_, ClientLevel p_107422_, double p_107423_, double p_107424_, double p_107425_, double p_107426_, double p_107427_, double p_107428_);
+    Particle createParticle(T pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed);
 }

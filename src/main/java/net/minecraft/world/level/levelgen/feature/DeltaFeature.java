@@ -17,16 +17,16 @@ public class DeltaFeature extends Feature<DeltaFeatureConfiguration> {
     private static final Direction[] DIRECTIONS = Direction.values();
     private static final double RIM_SPAWN_CHANCE = 0.9D;
 
-    public DeltaFeature(Codec<DeltaFeatureConfiguration> p_65550_) {
-        super(p_65550_);
+    public DeltaFeature(Codec<DeltaFeatureConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<DeltaFeatureConfiguration> p_159548_) {
+    public boolean place(FeaturePlaceContext<DeltaFeatureConfiguration> pContext) {
         boolean flag = false;
-        RandomSource randomsource = p_159548_.random();
-        WorldGenLevel worldgenlevel = p_159548_.level();
-        DeltaFeatureConfiguration deltafeatureconfiguration = p_159548_.config();
-        BlockPos blockpos = p_159548_.origin();
+        RandomSource randomsource = pContext.random();
+        WorldGenLevel worldgenlevel = pContext.level();
+        DeltaFeatureConfiguration deltafeatureconfiguration = pContext.config();
+        BlockPos blockpos = pContext.origin();
         boolean flag1 = randomsource.nextDouble() < 0.9D;
         int i = flag1 ? deltafeatureconfiguration.rimSize().sample(randomsource) : 0;
         int j = flag1 ? deltafeatureconfiguration.rimSize().sample(randomsource) : 0;
@@ -57,15 +57,15 @@ public class DeltaFeature extends Feature<DeltaFeatureConfiguration> {
         return flag;
     }
 
-    private static boolean isClear(LevelAccessor p_65552_, BlockPos p_65553_, DeltaFeatureConfiguration p_65554_) {
-        BlockState blockstate = p_65552_.getBlockState(p_65553_);
-        if (blockstate.is(p_65554_.contents().getBlock())) {
+    private static boolean isClear(LevelAccessor pLevel, BlockPos pPos, DeltaFeatureConfiguration pConfig) {
+        BlockState blockstate = pLevel.getBlockState(pPos);
+        if (blockstate.is(pConfig.contents().getBlock())) {
             return false;
         } else if (CANNOT_REPLACE.contains(blockstate.getBlock())) {
             return false;
         } else {
             for (Direction direction : DIRECTIONS) {
-                boolean flag = p_65552_.getBlockState(p_65553_.relative(direction)).isAir();
+                boolean flag = pLevel.getBlockState(pPos.relative(direction)).isAir();
                 if (flag && direction != Direction.UP || !flag && direction == Direction.UP) {
                     return false;
                 }

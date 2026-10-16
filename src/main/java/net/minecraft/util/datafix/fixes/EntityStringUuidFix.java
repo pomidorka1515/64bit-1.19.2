@@ -8,8 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class EntityStringUuidFix extends DataFix {
-    public EntityStringUuidFix(Schema p_15694_, boolean p_15695_) {
-        super(p_15694_, p_15695_);
+    public EntityStringUuidFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

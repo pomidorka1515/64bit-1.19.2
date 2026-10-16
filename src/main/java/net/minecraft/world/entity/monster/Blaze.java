@@ -30,8 +30,8 @@ public class Blaze extends Monster {
     private int nextHeightOffsetChangeTick;
     private static final EntityDataAccessor<Byte> DATA_FLAGS_ID = SynchedEntityData.defineId(Blaze.class, EntityDataSerializers.BYTE);
 
-    public Blaze(EntityType<? extends Blaze> p_32219_, Level p_32220_) {
-        super(p_32219_, p_32220_);
+    public Blaze(EntityType<? extends Blaze> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.WATER, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.LAVA, 8.0F);
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 0.0F);
@@ -62,7 +62,7 @@ public class Blaze extends Monster {
         return SoundEvents.BLAZE_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_32235_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.BLAZE_HURT;
     }
 
@@ -113,7 +113,7 @@ public class Blaze extends Monster {
         super.customServerAiStep();
     }
 
-    public boolean causeFallDamage(float p_149683_, float p_149684_, DamageSource p_149685_) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return false;
     }
 
@@ -125,9 +125,9 @@ public class Blaze extends Monster {
         return (this.entityData.get(DATA_FLAGS_ID) & 1) != 0;
     }
 
-    void setCharged(boolean p_32241_) {
+    void setCharged(boolean pCharged) {
         byte b0 = this.entityData.get(DATA_FLAGS_ID);
-        if (p_32241_) {
+        if (pCharged) {
             b0 = (byte) (b0 | 1);
         } else {
             b0 = (byte) (b0 & -2);
@@ -142,8 +142,8 @@ public class Blaze extends Monster {
         private int attackTime;
         private int lastSeen;
 
-        public BlazeAttackGoal(Blaze p_32247_) {
-            this.blaze = p_32247_;
+        public BlazeAttackGoal(Blaze pBlaze) {
+            this.blaze = pBlaze;
             this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 

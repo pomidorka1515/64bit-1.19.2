@@ -19,16 +19,16 @@ public class LocateHidingPlace extends Behavior<LivingEntity> {
     private final int closeEnoughDist;
     private Optional<BlockPos> currentPos = Optional.empty();
 
-    public LocateHidingPlace(int p_23408_, float p_23409_, int p_23410_) {
+    public LocateHidingPlace(int pRadius, float pSpeedModifier, int pCloseEnoughDist) {
         super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT, MemoryModuleType.HOME, MemoryStatus.REGISTERED, MemoryModuleType.HIDING_PLACE, MemoryStatus.REGISTERED));
-        this.radius = p_23408_;
-        this.speedModifier = p_23409_;
-        this.closeEnoughDist = p_23410_;
+        this.radius = pRadius;
+        this.speedModifier = pSpeedModifier;
+        this.closeEnoughDist = pCloseEnoughDist;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_23412_, LivingEntity p_23413_) {
-        Optional<BlockPos> optional = p_23412_.getPoiManager().find((p_217258_) -> { return p_217258_.is(PoiTypes.HOME); }, (p_23425_) -> { return true; }, p_23413_.blockPosition(), this.closeEnoughDist + 1, PoiManager.Occupancy.ANY);
-        if (optional.isPresent() && optional.get().closerToCenterThan(p_23413_.sectorPosition(), (double) this.closeEnoughDist)) {
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, LivingEntity pOwner) {
+        Optional<BlockPos> optional = pLevel.getPoiManager().find((p_217258_) -> { return p_217258_.is(PoiTypes.HOME); }, (p_23425_) -> { return true; }, pOwner.blockPosition(), this.closeEnoughDist + 1, PoiManager.Occupancy.ANY);
+        if (optional.isPresent() && optional.get().closerToCenterThan(pOwner.sectorPosition(), (double) this.closeEnoughDist)) {
             this.currentPos = optional;
         } else {
             this.currentPos = Optional.empty();
@@ -37,11 +37,11 @@ public class LocateHidingPlace extends Behavior<LivingEntity> {
         return true;
     }
 
-    protected void start(ServerLevel p_23415_, LivingEntity p_23416_, long p_23417_) {
-        Brain<?> brain = p_23416_.getBrain();
+    protected void start(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
+        Brain<?> brain = pEntity.getBrain();
         Optional<BlockPos> optional = this.currentPos;
         if (optional.isEmpty()) {
-            optional = p_23415_.getPoiManager().getRandom((p_217256_) -> { return p_217256_.is(PoiTypes.HOME); }, (p_23421_) -> { return true; }, PoiManager.Occupancy.ANY, p_23416_.blockPosition(), this.radius, p_23416_.getRandom());
+            optional = pLevel.getPoiManager().getRandom((p_217256_) -> { return p_217256_.is(PoiTypes.HOME); }, (p_23421_) -> { return true; }, PoiManager.Occupancy.ANY, pEntity.blockPosition(), this.radius, pEntity.getRandom());
             if (optional.isEmpty()) {
                 Optional<GlobalPos> optional1 = brain.getMemory(MemoryModuleType.HOME);
                 if (optional1.isPresent()) {
@@ -55,8 +55,8 @@ public class LocateHidingPlace extends Behavior<LivingEntity> {
             brain.eraseMemory(MemoryModuleType.LOOK_TARGET);
             brain.eraseMemory(MemoryModuleType.BREED_TARGET);
             brain.eraseMemory(MemoryModuleType.INTERACTION_TARGET);
-            brain.setMemory(MemoryModuleType.HIDING_PLACE, GlobalPos.of(p_23415_.dimension(), optional.get()));
-            if (!optional.get().closerToCenterThan(p_23416_.sectorPosition(), (double) this.closeEnoughDist)) {
+            brain.setMemory(MemoryModuleType.HIDING_PLACE, GlobalPos.of(pLevel.dimension(), optional.get()));
+            if (!optional.get().closerToCenterThan(pEntity.sectorPosition(), (double) this.closeEnoughDist)) {
                 brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(optional.get(), this.speedModifier, this.closeEnoughDist));
             }
         }

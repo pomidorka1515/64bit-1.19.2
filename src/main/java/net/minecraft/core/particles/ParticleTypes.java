@@ -110,14 +110,14 @@ public class ParticleTypes {
     });
     public static final Codec<ParticleOptions> CODEC = Registry.PARTICLE_TYPE.byNameCodec().dispatch("type", ParticleOptions::getType, ParticleType::codec);
 
-    private static SimpleParticleType register(String p_123825_, boolean p_123826_) {
-        return Registry.register(Registry.PARTICLE_TYPE, p_123825_, new SimpleParticleType(p_123826_));
+    private static SimpleParticleType register(String pKey, boolean pOverrideLimiter) {
+        return Registry.register(Registry.PARTICLE_TYPE, pKey, new SimpleParticleType(pOverrideLimiter));
     }
 
-    private static <T extends ParticleOptions> ParticleType<T> register(String p_235906_, boolean p_235907_, ParticleOptions.Deserializer<T> p_235908_, final Function<ParticleType<T>, Codec<T>> p_235909_) {
-        return Registry.register(Registry.PARTICLE_TYPE, p_235906_, new ParticleType<T>(p_235907_, p_235908_) {
+    private static <T extends ParticleOptions> ParticleType<T> register(String pKey, boolean pOverrideLimiter, ParticleOptions.Deserializer<T> pDeserializer, final Function<ParticleType<T>, Codec<T>> pCodecFactory) {
+        return Registry.register(Registry.PARTICLE_TYPE, pKey, new ParticleType<T>(pOverrideLimiter, pDeserializer) {
             public Codec<T> codec() {
-                return p_235909_.apply(this);
+                return pCodecFactory.apply(this);
             }
         });
     }

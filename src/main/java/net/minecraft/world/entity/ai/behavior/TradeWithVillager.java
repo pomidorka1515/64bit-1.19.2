@@ -25,54 +25,54 @@ public class TradeWithVillager extends Behavior<Villager> {
         super(ImmutableMap.of(MemoryModuleType.INTERACTION_TARGET, MemoryStatus.VALUE_PRESENT, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT));
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_24416_, Villager p_24417_) {
-        return BehaviorUtils.targetIsValid(p_24417_.getBrain(), MemoryModuleType.INTERACTION_TARGET, EntityType.VILLAGER);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, Villager pOwner) {
+        return BehaviorUtils.targetIsValid(pOwner.getBrain(), MemoryModuleType.INTERACTION_TARGET, EntityType.VILLAGER);
     }
 
-    protected boolean canStillUse(ServerLevel p_24419_, Villager p_24420_, long p_24421_) {
-        return this.checkExtraStartConditions(p_24419_, p_24420_);
+    protected boolean canStillUse(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        return this.checkExtraStartConditions(pLevel, pEntity);
     }
 
-    protected void start(ServerLevel p_24437_, Villager p_24438_, long p_24439_) {
-        Villager villager = (Villager) p_24438_.getBrain().getMemory(MemoryModuleType.INTERACTION_TARGET).get();
-        BehaviorUtils.lockGazeAndWalkToEachOther(p_24438_, villager, 0.5F);
-        this.trades = figureOutWhatIAmWillingToTrade(p_24438_, villager);
+    protected void start(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        Villager villager = (Villager) pEntity.getBrain().getMemory(MemoryModuleType.INTERACTION_TARGET).get();
+        BehaviorUtils.lockGazeAndWalkToEachOther(pEntity, villager, 0.5F);
+        this.trades = figureOutWhatIAmWillingToTrade(pEntity, villager);
     }
 
-    protected void tick(ServerLevel p_24445_, Villager p_24446_, long p_24447_) {
-        Villager villager = (Villager) p_24446_.getBrain().getMemory(MemoryModuleType.INTERACTION_TARGET).get();
-        if (!(p_24446_.distanceToSqr(villager) > 5.0D)) {
-            BehaviorUtils.lockGazeAndWalkToEachOther(p_24446_, villager, 0.5F);
-            p_24446_.gossip(p_24445_, villager, p_24447_);
-            if (p_24446_.hasExcessFood() && (p_24446_.getVillagerData().getProfession() == VillagerProfession.FARMER || villager.wantsMoreFood())) {
-                throwHalfStack(p_24446_, Villager.FOOD_POINTS.keySet(), villager);
+    protected void tick(ServerLevel pLevel, Villager pOwner, long pGameTime) {
+        Villager villager = (Villager) pOwner.getBrain().getMemory(MemoryModuleType.INTERACTION_TARGET).get();
+        if (!(pOwner.distanceToSqr(villager) > 5.0D)) {
+            BehaviorUtils.lockGazeAndWalkToEachOther(pOwner, villager, 0.5F);
+            pOwner.gossip(pLevel, villager, pGameTime);
+            if (pOwner.hasExcessFood() && (pOwner.getVillagerData().getProfession() == VillagerProfession.FARMER || villager.wantsMoreFood())) {
+                throwHalfStack(pOwner, Villager.FOOD_POINTS.keySet(), villager);
             }
 
-            if (villager.getVillagerData().getProfession() == VillagerProfession.FARMER && p_24446_.getInventory().countItem(Items.WHEAT) > Items.WHEAT.getMaxStackSize() / 2) {
-                throwHalfStack(p_24446_, ImmutableSet.of(Items.WHEAT), villager);
+            if (villager.getVillagerData().getProfession() == VillagerProfession.FARMER && pOwner.getInventory().countItem(Items.WHEAT) > Items.WHEAT.getMaxStackSize() / 2) {
+                throwHalfStack(pOwner, ImmutableSet.of(Items.WHEAT), villager);
             }
 
-            if (!this.trades.isEmpty() && p_24446_.getInventory().hasAnyOf(this.trades)) {
-                throwHalfStack(p_24446_, this.trades, villager);
+            if (!this.trades.isEmpty() && pOwner.getInventory().hasAnyOf(this.trades)) {
+                throwHalfStack(pOwner, this.trades, villager);
             }
         }
     }
 
-    protected void stop(ServerLevel p_24453_, Villager p_24454_, long p_24455_) {
-        p_24454_.getBrain().eraseMemory(MemoryModuleType.INTERACTION_TARGET);
+    protected void stop(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        pEntity.getBrain().eraseMemory(MemoryModuleType.INTERACTION_TARGET);
     }
 
-    private static Set<Item> figureOutWhatIAmWillingToTrade(Villager p_24423_, Villager p_24424_) {
-        ImmutableSet<Item> immutableset = p_24424_.getVillagerData().getProfession().requestedItems();
-        ImmutableSet<Item> immutableset1 = p_24423_.getVillagerData().getProfession().requestedItems();
+    private static Set<Item> figureOutWhatIAmWillingToTrade(Villager pVillager, Villager pOther) {
+        ImmutableSet<Item> immutableset = pOther.getVillagerData().getProfession().requestedItems();
+        ImmutableSet<Item> immutableset1 = pVillager.getVillagerData().getProfession().requestedItems();
         return immutableset.stream().filter((p_24431_) -> {
                                         return !immutableset1.contains(p_24431_);
                                     })
                 .collect(Collectors.toSet());
     }
 
-    private static void throwHalfStack(Villager p_24426_, Set<Item> p_24427_, LivingEntity p_24428_) {
-        SimpleContainer simplecontainer = p_24426_.getInventory();
+    private static void throwHalfStack(Villager pVillager, Set<Item> pStack, LivingEntity pEntity) {
+        SimpleContainer simplecontainer = pVillager.getInventory();
         ItemStack itemstack = ItemStack.EMPTY;
         int i = 0;
 
@@ -84,7 +84,7 @@ public class TradeWithVillager extends Behavior<Villager> {
             itemstack1 = simplecontainer.getItem(i);
             if (!itemstack1.isEmpty()) {
                 item = itemstack1.getItem();
-                if (p_24427_.contains(item)) {
+                if (pStack.contains(item)) {
                     if (itemstack1.getCount() > itemstack1.getMaxStackSize() / 2) {
                         j = itemstack1.getCount() / 2;
                         break label28;
@@ -107,7 +107,7 @@ public class TradeWithVillager extends Behavior<Villager> {
         }
 
         if (!itemstack.isEmpty()) {
-            BehaviorUtils.throwItem(p_24426_, itemstack, p_24428_.sectorPosition());
+            BehaviorUtils.throwItem(pVillager, itemstack, pEntity.sectorPosition());
         }
     }
 }

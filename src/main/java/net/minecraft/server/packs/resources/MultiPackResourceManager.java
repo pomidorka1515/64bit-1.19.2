@@ -21,18 +21,18 @@ public class MultiPackResourceManager implements CloseableResourceManager {
     private final Map<String, FallbackResourceManager> namespacedManagers;
     private final List<PackResources> packs;
 
-    public MultiPackResourceManager(PackType p_203797_, List<PackResources> p_203798_) {
-        this.packs = List.copyOf(p_203798_);
+    public MultiPackResourceManager(PackType pType, List<PackResources> pPacks) {
+        this.packs = List.copyOf(pPacks);
         Map<String, FallbackResourceManager> map = new HashMap<>();
-        List<String> list = p_203798_.stream().flatMap((p_215471_) -> {
-                                                  return p_215471_.getNamespaces(p_203797_).stream();
+        List<String> list = pPacks.stream().flatMap((p_215471_) -> {
+                                                  return p_215471_.getNamespaces(pType).stream();
                                               })
                                     .distinct()
                                     .toList();
 
-        for (PackResources packresources : p_203798_) {
+        for (PackResources packresources : pPacks) {
             ResourceFilterSection resourcefiltersection = this.getPackFilterSection(packresources);
-            Set<String> set = packresources.getNamespaces(p_203797_);
+            Set<String> set = packresources.getNamespaces(pType);
             Predicate<ResourceLocation> predicate = resourcefiltersection != null ? (p_215474_) -> {
                 return resourcefiltersection.isPathFiltered(p_215474_.getPath());
             } : null;
@@ -43,7 +43,7 @@ public class MultiPackResourceManager implements CloseableResourceManager {
                 if (flag || flag1) {
                     FallbackResourceManager fallbackresourcemanager = map.get(s);
                     if (fallbackresourcemanager == null) {
-                        fallbackresourcemanager = new FallbackResourceManager(p_203797_, s);
+                        fallbackresourcemanager = new FallbackResourceManager(pType, s);
                         map.put(s, fallbackresourcemanager);
                     }
 
@@ -62,11 +62,11 @@ public class MultiPackResourceManager implements CloseableResourceManager {
     }
 
     @Nullable
-    private ResourceFilterSection getPackFilterSection(PackResources p_215468_) {
+    private ResourceFilterSection getPackFilterSection(PackResources pPackResources) {
         try {
-            return p_215468_.getMetadataSection(ResourceFilterSection.SERIALIZER);
+            return pPackResources.getMetadataSection(ResourceFilterSection.SERIALIZER);
         } catch (IOException ioexception) {
-            LOGGER.error("Failed to get filter section from pack {}", (Object) p_215468_.getName());
+            LOGGER.error("Failed to get filter section from pack {}", (Object) pPackResources.getName());
             return null;
         }
     }
@@ -75,31 +75,31 @@ public class MultiPackResourceManager implements CloseableResourceManager {
         return this.namespacedManagers.keySet();
     }
 
-    public Optional<Resource> getResource(ResourceLocation p_215482_) {
-        ResourceManager resourcemanager = this.namespacedManagers.get(p_215482_.getNamespace());
-        return resourcemanager != null ? resourcemanager.getResource(p_215482_) : Optional.empty();
+    public Optional<Resource> getResource(ResourceLocation pLocation) {
+        ResourceManager resourcemanager = this.namespacedManagers.get(pLocation.getNamespace());
+        return resourcemanager != null ? resourcemanager.getResource(pLocation) : Optional.empty();
     }
 
-    public List<Resource> getResourceStack(ResourceLocation p_215466_) {
-        ResourceManager resourcemanager = this.namespacedManagers.get(p_215466_.getNamespace());
-        return resourcemanager != null ? resourcemanager.getResourceStack(p_215466_) : List.of();
+    public List<Resource> getResourceStack(ResourceLocation pLocation) {
+        ResourceManager resourcemanager = this.namespacedManagers.get(pLocation.getNamespace());
+        return resourcemanager != null ? resourcemanager.getResourceStack(pLocation) : List.of();
     }
 
-    public Map<ResourceLocation, Resource> listResources(String p_215476_, Predicate<ResourceLocation> p_215477_) {
+    public Map<ResourceLocation, Resource> listResources(String pPath, Predicate<ResourceLocation> pFilter) {
         Map<ResourceLocation, Resource> map = new TreeMap<>();
 
         for (FallbackResourceManager fallbackresourcemanager : this.namespacedManagers.values()) {
-            map.putAll(fallbackresourcemanager.listResources(p_215476_, p_215477_));
+            map.putAll(fallbackresourcemanager.listResources(pPath, pFilter));
         }
 
         return map;
     }
 
-    public Map<ResourceLocation, List<Resource>> listResourceStacks(String p_215479_, Predicate<ResourceLocation> p_215480_) {
+    public Map<ResourceLocation, List<Resource>> listResourceStacks(String pPath, Predicate<ResourceLocation> pFilter) {
         Map<ResourceLocation, List<Resource>> map = new TreeMap<>();
 
         for (FallbackResourceManager fallbackresourcemanager : this.namespacedManagers.values()) {
-            map.putAll(fallbackresourcemanager.listResourceStacks(p_215479_, p_215480_));
+            map.putAll(fallbackresourcemanager.listResourceStacks(pPath, pFilter));
         }
 
         return map;

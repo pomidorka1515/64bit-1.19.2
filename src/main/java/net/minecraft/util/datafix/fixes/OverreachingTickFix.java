@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class OverreachingTickFix extends DataFix {
-    public OverreachingTickFix(Schema p_207654_) {
-        super(p_207654_, false);
+    public OverreachingTickFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     protected TypeRewriteRule makeRule() {

@@ -21,57 +21,57 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class MobRenderer<T extends Mob, M extends EntityModel<T>> extends LivingEntityRenderer<T, M> {
     public static final int LEASH_RENDER_STEPS = 24;
 
-    public MobRenderer(EntityRendererProvider.Context p_174304_, M p_174305_, float p_174306_) {
-        super(p_174304_, p_174305_, p_174306_);
+    public MobRenderer(EntityRendererProvider.Context pContext, M pModel, float pShadowRadius) {
+        super(pContext, pModel, pShadowRadius);
     }
 
-    protected boolean shouldShowName(T p_115506_) {
-        return super.shouldShowName(p_115506_) && (p_115506_.shouldShowName() || p_115506_.hasCustomName() && p_115506_ == this.entityRenderDispatcher.crosshairPickEntity);
+    protected boolean shouldShowName(T pEntity) {
+        return super.shouldShowName(pEntity) && (pEntity.shouldShowName() || pEntity.hasCustomName() && pEntity == this.entityRenderDispatcher.crosshairPickEntity);
     }
 
-    public boolean shouldRender(T p_115468_, Frustum p_115469_, double p_115470_, double p_115471_, double p_115472_) {
-        if (super.shouldRender(p_115468_, p_115469_, p_115470_, p_115471_, p_115472_)) {
+    public boolean shouldRender(T pLivingEntity, Frustum pCamera, double pCamX, double pCamY, double pCamZ) {
+        if (super.shouldRender(pLivingEntity, pCamera, pCamX, pCamY, pCamZ)) {
             return true;
         } else {
-            Entity entity = p_115468_.getLeashHolder();
-            return entity != null ? p_115469_.isVisible(entity.getBoundingBoxForCulling()) : false;
+            Entity entity = pLivingEntity.getLeashHolder();
+            return entity != null ? pCamera.isVisible(entity.getBoundingBoxForCulling()) : false;
         }
     }
 
-    public void render(T p_115455_, float p_115456_, float p_115457_, PoseStack p_115458_, MultiBufferSource p_115459_, int p_115460_) {
-        super.render(p_115455_, p_115456_, p_115457_, p_115458_, p_115459_, p_115460_);
-        Entity entity = p_115455_.getLeashHolder();
+    public void render(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
+        Entity entity = pEntity.getLeashHolder();
         if (entity != null) {
-            this.renderLeash(p_115455_, p_115457_, p_115458_, p_115459_, entity);
+            this.renderLeash(pEntity, pPartialTicks, pMatrixStack, pBuffer, entity);
         }
     }
 
-    private <E extends Entity> void renderLeash(T p_115462_, float p_115463_, PoseStack p_115464_, MultiBufferSource p_115465_, E p_115466_) {
-        p_115464_.pushPose();
-        Vec3 vec3 = p_115466_.getRopeHoldPosition(p_115463_);
-        double d0 = (double) (Mth.lerp(p_115463_, p_115462_.yBodyRotO, p_115462_.yBodyRot) * ((float) Math.PI / 180F)) + (Math.PI / 2D);
-        Vec3 vec31 = p_115462_.getLeashOffset();
+    private <E extends Entity> void renderLeash(T pEntityLiving, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, E pLeashHolder) {
+        pMatrixStack.pushPose();
+        Vec3 vec3 = pLeashHolder.getRopeHoldPosition(pPartialTicks);
+        double d0 = (double) (Mth.lerp(pPartialTicks, pEntityLiving.yBodyRotO, pEntityLiving.yBodyRot) * ((float) Math.PI / 180F)) + (Math.PI / 2D);
+        Vec3 vec31 = pEntityLiving.getLeashOffset();
         double d1 = Math.cos(d0) * vec31.z + Math.sin(d0) * vec31.x;
         double d2 = Math.sin(d0) * vec31.z - Math.cos(d0) * vec31.x;
-        double d3 = Mth.lerp((double) p_115463_, p_115462_.xo, p_115462_.getX()) + d1;
-        double d4 = Mth.lerp((double) p_115463_, p_115462_.yo, p_115462_.getY()) + vec31.y;
-        double d5 = Mth.lerp((double) p_115463_, p_115462_.zo, p_115462_.getZ()) + d2;
-        p_115464_.translate(d1, vec31.y, d2);
+        double d3 = Mth.lerp((double) pPartialTicks, pEntityLiving.xo, pEntityLiving.getX()) + d1;
+        double d4 = Mth.lerp((double) pPartialTicks, pEntityLiving.yo, pEntityLiving.getY()) + vec31.y;
+        double d5 = Mth.lerp((double) pPartialTicks, pEntityLiving.zo, pEntityLiving.getZ()) + d2;
+        pMatrixStack.translate(d1, vec31.y, d2);
         float f = (float) (vec3.x - d3);
         float f1 = (float) (vec3.y - d4);
         float f2 = (float) (vec3.z - d5);
         float f3 = 0.025F;
-        VertexConsumer vertexconsumer = p_115465_.getBuffer(RenderType.leash());
-        Matrix4f matrix4f = p_115464_.last().pose();
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.leash());
+        Matrix4f matrix4f = pMatrixStack.last().pose();
         float f4 = Mth.fastInvSqrt(f * f + f2 * f2) * 0.025F / 2.0F;
         float f5 = f2 * f4;
         float f6 = f * f4;
-        BlockPos blockpos = new BlockPos(p_115462_.getEyePosition(p_115463_));
-        BlockPos blockpos1 = new BlockPos(p_115466_.getEyePosition(p_115463_));
-        int i = this.getBlockLightLevel(p_115462_, blockpos);
-        int j = this.entityRenderDispatcher.getRenderer(p_115466_).getBlockLightLevel(p_115466_, blockpos1);
-        int k = p_115462_.level.getBrightness(LightLayer.SKY, blockpos);
-        int l = p_115462_.level.getBrightness(LightLayer.SKY, blockpos1);
+        BlockPos blockpos = new BlockPos(pEntityLiving.getEyePosition(pPartialTicks));
+        BlockPos blockpos1 = new BlockPos(pLeashHolder.getEyePosition(pPartialTicks));
+        int i = this.getBlockLightLevel(pEntityLiving, blockpos);
+        int j = this.entityRenderDispatcher.getRenderer(pLeashHolder).getBlockLightLevel(pLeashHolder, blockpos1);
+        int k = pEntityLiving.level.getBrightness(LightLayer.SKY, blockpos);
+        int l = pEntityLiving.level.getBrightness(LightLayer.SKY, blockpos1);
 
         for (int i1 = 0; i1 <= 24; ++i1) {
             addVertexPair(vertexconsumer, matrix4f, f, f1, f2, i, j, k, l, 0.025F, 0.025F, f5, f6, i1, false);
@@ -81,7 +81,7 @@ public abstract class MobRenderer<T extends Mob, M extends EntityModel<T>> exten
             addVertexPair(vertexconsumer, matrix4f, f, f1, f2, i, j, k, l, 0.025F, 0.0F, f5, f6, j1, true);
         }
 
-        p_115464_.popPose();
+        pMatrixStack.popPose();
     }
 
     private static void addVertexPair(VertexConsumer p_174308_, Matrix4f p_174309_, float p_174310_, float p_174311_, float p_174312_, int p_174313_, int p_174314_, int p_174315_, int p_174316_, float p_174317_, float p_174318_, float p_174319_, float p_174320_, int p_174321_, boolean p_174322_) {

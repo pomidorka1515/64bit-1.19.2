@@ -57,8 +57,8 @@ public class ChunkHeightAndBiomeFix extends DataFix {
     public static final String DEFAULT_BIOME = "minecraft:plains";
     private static final Int2ObjectMap<String> BIOMES_BY_ID = new Int2ObjectOpenHashMap<>();
 
-    public ChunkHeightAndBiomeFix(Schema p_184863_) {
-        super(p_184863_, true);
+    public ChunkHeightAndBiomeFix(Schema pOutputSchema) {
+        super(pOutputSchema, true);
     }
 
     protected TypeRewriteRule makeRule() {

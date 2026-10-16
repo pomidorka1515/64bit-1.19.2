@@ -12,27 +12,27 @@ import net.minecraft.world.level.storage.loot.LootContext;
 public final class ConstantValue implements NumberProvider {
     final float value;
 
-    ConstantValue(float p_165690_) {
-        this.value = p_165690_;
+    ConstantValue(float pValue) {
+        this.value = pValue;
     }
 
     public LootNumberProviderType getType() {
         return NumberProviders.CONSTANT;
     }
 
-    public float getFloat(LootContext p_165695_) {
+    public float getFloat(LootContext pLootContext) {
         return this.value;
     }
 
-    public static ConstantValue exactly(float p_165693_) {
-        return new ConstantValue(p_165693_);
+    public static ConstantValue exactly(float pValue) {
+        return new ConstantValue(pValue);
     }
 
-    public boolean equals(Object p_165697_) {
-        if (this == p_165697_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_165697_ != null && this.getClass() == p_165697_.getClass()) {
-            return Float.compare(((ConstantValue) p_165697_).value, this.value) == 0;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            return Float.compare(((ConstantValue) pOther).value, this.value) == 0;
         } else {
             return false;
         }

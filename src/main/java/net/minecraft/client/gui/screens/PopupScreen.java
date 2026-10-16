@@ -24,11 +24,11 @@ public class PopupScreen extends Screen {
     private int contentTop;
     private int buttonWidth;
 
-    protected PopupScreen(Component p_96345_, List<Component> p_96346_, ImmutableList<PopupScreen.ButtonOption> p_96347_) {
-        super(p_96345_);
-        this.message = FormattedText.composite(p_96346_);
-        this.narrationMessage = CommonComponents.joinForNarration(p_96345_, ComponentUtils.formatList(p_96346_, CommonComponents.EMPTY));
-        this.buttonOptions = p_96347_;
+    protected PopupScreen(Component pTitle, List<Component> pMessage, ImmutableList<PopupScreen.ButtonOption> pButtonOptions) {
+        super(pTitle);
+        this.message = FormattedText.composite(pMessage);
+        this.narrationMessage = CommonComponents.joinForNarration(pTitle, ComponentUtils.formatList(pMessage, CommonComponents.EMPTY));
+        this.buttonOptions = pButtonOptions;
     }
 
     public Component getNarrationMessage() {
@@ -54,11 +54,11 @@ public class PopupScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_96349_, int p_96350_, int p_96351_, float p_96352_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.renderDirtBackground(0);
-        drawCenteredString(p_96349_, this.font, this.title, this.width / 2, this.contentTop - 9 * 2, -1);
-        this.messageLines.renderCentered(p_96349_, this.width / 2, this.contentTop);
-        super.render(p_96349_, p_96350_, p_96351_, p_96352_);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, this.contentTop - 9 * 2, -1);
+        this.messageLines.renderCentered(pPoseStack, this.width / 2, this.contentTop);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public boolean shouldCloseOnEsc() {
@@ -70,9 +70,9 @@ public class PopupScreen extends Screen {
         final Component message;
         final Button.OnPress onPress;
 
-        public ButtonOption(Component p_96362_, Button.OnPress p_96363_) {
-            this.message = p_96362_;
-            this.onPress = p_96363_;
+        public ButtonOption(Component pMessage, Button.OnPress pOnPress) {
+            this.message = pMessage;
+            this.onPress = pOnPress;
         }
     }
 }

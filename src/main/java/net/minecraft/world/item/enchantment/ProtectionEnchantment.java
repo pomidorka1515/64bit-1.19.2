@@ -8,67 +8,67 @@ import net.minecraft.world.entity.LivingEntity;
 public class ProtectionEnchantment extends Enchantment {
     public final ProtectionEnchantment.Type type;
 
-    public ProtectionEnchantment(Enchantment.Rarity p_45126_, ProtectionEnchantment.Type p_45127_, EquipmentSlot... p_45128_) {
-        super(p_45126_, p_45127_ == ProtectionEnchantment.Type.FALL ? EnchantmentCategory.ARMOR_FEET : EnchantmentCategory.ARMOR, p_45128_);
-        this.type = p_45127_;
+    public ProtectionEnchantment(Enchantment.Rarity pRarity, ProtectionEnchantment.Type pType, EquipmentSlot... pApplicableSlots) {
+        super(pRarity, pType == ProtectionEnchantment.Type.FALL ? EnchantmentCategory.ARMOR_FEET : EnchantmentCategory.ARMOR, pApplicableSlots);
+        this.type = pType;
     }
 
-    public int getMinCost(int p_45131_) {
-        return this.type.getMinCost() + (p_45131_ - 1) * this.type.getLevelCost();
+    public int getMinCost(int pEnchantmentLevel) {
+        return this.type.getMinCost() + (pEnchantmentLevel - 1) * this.type.getLevelCost();
     }
 
-    public int getMaxCost(int p_45144_) {
-        return this.getMinCost(p_45144_) + this.type.getLevelCost();
+    public int getMaxCost(int pEnchantmentLevel) {
+        return this.getMinCost(pEnchantmentLevel) + this.type.getLevelCost();
     }
 
     public int getMaxLevel() {
         return 4;
     }
 
-    public int getDamageProtection(int p_45133_, DamageSource p_45134_) {
-        if (p_45134_.isBypassInvul()) {
+    public int getDamageProtection(int pLevel, DamageSource pSource) {
+        if (pSource.isBypassInvul()) {
             return 0;
         } else if (this.type == ProtectionEnchantment.Type.ALL) {
-            return p_45133_;
-        } else if (this.type == ProtectionEnchantment.Type.FIRE && p_45134_.isFire()) {
-            return p_45133_ * 2;
-        } else if (this.type == ProtectionEnchantment.Type.FALL && p_45134_.isFall()) {
-            return p_45133_ * 3;
-        } else if (this.type == ProtectionEnchantment.Type.EXPLOSION && p_45134_.isExplosion()) {
-            return p_45133_ * 2;
+            return pLevel;
+        } else if (this.type == ProtectionEnchantment.Type.FIRE && pSource.isFire()) {
+            return pLevel * 2;
+        } else if (this.type == ProtectionEnchantment.Type.FALL && pSource.isFall()) {
+            return pLevel * 3;
+        } else if (this.type == ProtectionEnchantment.Type.EXPLOSION && pSource.isExplosion()) {
+            return pLevel * 2;
         } else {
-            return this.type == ProtectionEnchantment.Type.PROJECTILE && p_45134_.isProjectile() ? p_45133_ * 2 : 0;
+            return this.type == ProtectionEnchantment.Type.PROJECTILE && pSource.isProjectile() ? pLevel * 2 : 0;
         }
     }
 
-    public boolean checkCompatibility(Enchantment p_45142_) {
-        if (p_45142_ instanceof ProtectionEnchantment protectionenchantment) {
+    public boolean checkCompatibility(Enchantment pEnch) {
+        if (pEnch instanceof ProtectionEnchantment protectionenchantment) {
             if (this.type == protectionenchantment.type) {
                 return false;
             } else {
                 return this.type == ProtectionEnchantment.Type.FALL || protectionenchantment.type == ProtectionEnchantment.Type.FALL;
             }
         } else {
-            return super.checkCompatibility(p_45142_);
+            return super.checkCompatibility(pEnch);
         }
     }
 
-    public static int getFireAfterDampener(LivingEntity p_45139_, int p_45140_) {
-        int i = EnchantmentHelper.getEnchantmentLevel(Enchantments.FIRE_PROTECTION, p_45139_);
+    public static int getFireAfterDampener(LivingEntity pLivingEntity, int pLevel) {
+        int i = EnchantmentHelper.getEnchantmentLevel(Enchantments.FIRE_PROTECTION, pLivingEntity);
         if (i > 0) {
-            p_45140_ -= Mth.floor((float) p_45140_ * (float) i * 0.15F);
+            pLevel -= Mth.floor((float) pLevel * (float) i * 0.15F);
         }
 
-        return p_45140_;
+        return pLevel;
     }
 
-    public static double getExplosionKnockbackAfterDampener(LivingEntity p_45136_, double p_45137_) {
-        int i = EnchantmentHelper.getEnchantmentLevel(Enchantments.BLAST_PROTECTION, p_45136_);
+    public static double getExplosionKnockbackAfterDampener(LivingEntity pLivingEntity, double pDamage) {
+        int i = EnchantmentHelper.getEnchantmentLevel(Enchantments.BLAST_PROTECTION, pLivingEntity);
         if (i > 0) {
-            p_45137_ -= (double) Mth.floor(p_45137_ * (double) ((float) i * 0.15F));
+            pDamage -= (double) Mth.floor(pDamage * (double) ((float) i * 0.15F));
         }
 
-        return p_45137_;
+        return pDamage;
     }
 
     public static enum Type {

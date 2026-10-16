@@ -23,19 +23,19 @@ public class InBedChatScreen extends ChatScreen {
         }));
     }
 
-    public void render(PoseStack p_242941_, int p_242857_, int p_242871_, float p_242925_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.leaveBedButton.visible = this.getDisplayedPreviewText() == null;
-        super.render(p_242941_, p_242857_, p_242871_, p_242925_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public void onClose() {
         this.sendWakeUp();
     }
 
-    public boolean keyPressed(int p_96070_, int p_96071_, int p_96072_) {
-        if (p_96070_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.sendWakeUp();
-        } else if (p_96070_ == 257 || p_96070_ == 335) {
+        } else if (pKeyCode == 257 || pKeyCode == 335) {
             if (this.handleChatInput(this.input.getValue(), true)) {
                 this.minecraft.setScreen((Screen) null);
                 this.input.setValue("");
@@ -45,7 +45,7 @@ public class InBedChatScreen extends ChatScreen {
             return true;
         }
 
-        return super.keyPressed(p_96070_, p_96071_, p_96072_);
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
     }
 
     private void sendWakeUp() {

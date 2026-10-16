@@ -17,15 +17,15 @@ import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguratio
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 
 public class OreFeature extends Feature<OreConfiguration> {
-    public OreFeature(Codec<OreConfiguration> p_66531_) {
-        super(p_66531_);
+    public OreFeature(Codec<OreConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<OreConfiguration> p_160177_) {
-        RandomSource randomsource = p_160177_.random();
-        BlockPos blockpos = p_160177_.origin();
-        WorldGenLevel worldgenlevel = p_160177_.level();
-        OreConfiguration oreconfiguration = p_160177_.config();
+    public boolean place(FeaturePlaceContext<OreConfiguration> pContext) {
+        RandomSource randomsource = pContext.random();
+        BlockPos blockpos = pContext.origin();
+        WorldGenLevel worldgenlevel = pContext.level();
+        OreConfiguration oreconfiguration = pContext.config();
         float f = randomsource.nextFloat() * (float) Math.PI;
         float f1 = (float) oreconfiguration.size / 8.0F;
         int i = Mth.ceil(((float) oreconfiguration.size / 16.0F * 2.0F + 1.0F) / 2.0F);
@@ -77,19 +77,19 @@ public class OreFeature extends Feature<OreConfiguration> {
         return false;
     }
 
-    protected boolean doPlace(WorldGenLevel p_225172_, RandomSource p_225173_, OreConfiguration p_225174_, double p_225175_, double p_225176_, double p_225177_, double p_225178_, double p_225179_, double p_225180_, long centerX, long centerZ, boolean preciseEllipsoid, long p_225181_, int p_225182_, long p_225183_, int p_225184_, int p_225185_) {
+    protected boolean doPlace(WorldGenLevel pLevel, RandomSource pRandom, OreConfiguration pConfig, double pMinX, double pMaxX, double pMinZ, double pMaxZ, double pMinY, double pMaxY, long centerX, long centerZ, boolean preciseEllipsoid, long pX, int pY, long pZ, int pWidth, int pHeight) {
         int i = 0;
-        BitSet bitset = new BitSet(p_225184_ * p_225185_ * p_225184_);
+        BitSet bitset = new BitSet(pWidth * pHeight * pWidth);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        int j = p_225174_.size;
+        int j = pConfig.size;
         double[] adouble = new double[j * 4];
 
         for (int k = 0; k < j; ++k) {
             float f = (float) k / (float) j;
-            double d0 = Mth.lerp((double) f, p_225175_, p_225176_);
-            double d1 = Mth.lerp((double) f, p_225179_, p_225180_);
-            double d2 = Mth.lerp((double) f, p_225177_, p_225178_);
-            double d3 = p_225173_.nextDouble() * (double) j / 16.0D;
+            double d0 = Mth.lerp((double) f, pMinX, pMaxX);
+            double d1 = Mth.lerp((double) f, pMinY, pMaxY);
+            double d2 = Mth.lerp((double) f, pMinZ, pMaxZ);
+            double d3 = pRandom.nextDouble() * (double) j / 16.0D;
             double d4 = ((double) (Mth.sin((float) Math.PI * f) + 1.0F) * d3 + 1.0D) / 2.0D;
             adouble[k * 4 + 0] = d0;
             adouble[k * 4 + 1] = d1;
@@ -117,7 +117,7 @@ public class OreFeature extends Feature<OreConfiguration> {
             }
         }
 
-        BulkSectionAccess bulksectionaccess = new BulkSectionAccess(p_225172_);
+        BulkSectionAccess bulksectionaccess = new BulkSectionAccess(pLevel);
 
         try {
             for (int j4 = 0; j4 < j; ++j4) {
@@ -135,16 +135,16 @@ public class OreFeature extends Feature<OreConfiguration> {
                     if (preciseEllipsoid) {
                         // d11/d15 are origin-relative offsets; expand them from the exact long center
                         // so the X/Z spans cannot be crushed together by absolute-double rounding.
-                        k4 = Math.max(WorldBounds.addBlockOffset(centerX, safeFloor(d11 - d9)), p_225181_);
-                        l = Math.max(Mth.floor(d13 - d9), p_225182_);
-                        i1 = Math.max(WorldBounds.addBlockOffset(centerZ, safeFloor(d15 - d9)), p_225183_);
+                        k4 = Math.max(WorldBounds.addBlockOffset(centerX, safeFloor(d11 - d9)), pX);
+                        l = Math.max(Mth.floor(d13 - d9), pY);
+                        i1 = Math.max(WorldBounds.addBlockOffset(centerZ, safeFloor(d15 - d9)), pZ);
                         j1 = Math.max(WorldBounds.addBlockOffset(centerX, safeFloor(d11 + d9)), k4);
                         k1 = Math.max(Mth.floor(d13 + d9), l);
                         l1 = Math.max(WorldBounds.addBlockOffset(centerZ, safeFloor(d15 + d9)), i1);
                     } else {
-                        k4 = Math.max(safeFloor(d11 - d9), p_225181_);
-                        l = Math.max(Mth.floor(d13 - d9), p_225182_);
-                        i1 = Math.max(safeFloor(d15 - d9), p_225183_);
+                        k4 = Math.max(safeFloor(d11 - d9), pX);
+                        l = Math.max(Mth.floor(d13 - d9), pY);
+                        i1 = Math.max(safeFloor(d15 - d9), pZ);
                         j1 = Math.max(safeFloor(d11 + d9), k4);
                         k1 = Math.max(Mth.floor(d13 + d9), l);
                         l1 = Math.max(safeFloor(d15 + d9), i1);
@@ -158,12 +158,12 @@ public class OreFeature extends Feature<OreConfiguration> {
                                 if (d5 * d5 + d6 * d6 < 1.0D) {
                                     for (long k2 = i1;; k2 = WorldBounds.addBlockOffset(k2, 1L)) {
                                         double d7 = ((preciseEllipsoid ? WorldBounds.signedDifference(k2, centerZ) : (double) k2) + 0.5D - d15) / d9;
-                                        if (d5 * d5 + d6 * d6 + d7 * d7 < 1.0D && !p_225172_.isOutsideBuildHeight(j2)) {
-                                            long l2 = (long) WorldBounds.signedDifference(i2, p_225181_) + (j2 - p_225182_) * p_225184_ + (long) WorldBounds.signedDifference(k2, p_225183_) * p_225184_ * p_225185_;
+                                        if (d5 * d5 + d6 * d6 + d7 * d7 < 1.0D && !pLevel.isOutsideBuildHeight(j2)) {
+                                            long l2 = (long) WorldBounds.signedDifference(i2, pX) + (j2 - pY) * pWidth + (long) WorldBounds.signedDifference(k2, pZ) * pWidth * pHeight;
                                             if (!bitset.get((int) l2)) {
                                                 bitset.set((int) l2);
                                                 blockpos$mutableblockpos.set(i2, j2, k2);
-                                                if (p_225172_.ensureCanWrite(blockpos$mutableblockpos)) {
+                                                if (pLevel.ensureCanWrite(blockpos$mutableblockpos)) {
                                                     LevelChunkSection levelchunksection = bulksectionaccess.getSection(blockpos$mutableblockpos);
                                                     if (levelchunksection != null) {
                                                         int i3 = SectionPos.sectionRelative(i2);
@@ -171,8 +171,8 @@ public class OreFeature extends Feature<OreConfiguration> {
                                                         int k3 = SectionPos.sectionRelative(k2);
                                                         BlockState blockstate = levelchunksection.getBlockState(i3, j3, k3);
 
-                                                        for (OreConfiguration.TargetBlockState oreconfiguration$targetblockstate : p_225174_.targetStates) {
-                                                            if (canPlaceOre(blockstate, bulksectionaccess::getBlockState, p_225173_, p_225174_, oreconfiguration$targetblockstate, blockpos$mutableblockpos)) {
+                                                        for (OreConfiguration.TargetBlockState oreconfiguration$targetblockstate : pConfig.targetStates) {
+                                                            if (canPlaceOre(blockstate, bulksectionaccess::getBlockState, pRandom, pConfig, oreconfiguration$targetblockstate, blockpos$mutableblockpos)) {
                                                                 levelchunksection.setBlockState(i3, j3, k3, oreconfiguration$targetblockstate.state, false);
                                                                 ++i;
                                                                 break;
@@ -213,23 +213,23 @@ public class OreFeature extends Feature<OreConfiguration> {
         return Mth.lfloor(WorldBounds.clampAbsoluteDouble(coordinate));
     }
 
-    public static boolean canPlaceOre(BlockState p_225187_, Function<BlockPos, BlockState> p_225188_, RandomSource p_225189_, OreConfiguration p_225190_, OreConfiguration.TargetBlockState p_225191_, BlockPos.MutableBlockPos p_225192_) {
-        if (!p_225191_.target.test(p_225187_, p_225189_)) {
+    public static boolean canPlaceOre(BlockState pState, Function<BlockPos, BlockState> pAdjacentStateAccessor, RandomSource pRandom, OreConfiguration pConfig, OreConfiguration.TargetBlockState pTargetState, BlockPos.MutableBlockPos pMutablePos) {
+        if (!pTargetState.target.test(pState, pRandom)) {
             return false;
-        } else if (shouldSkipAirCheck(p_225189_, p_225190_.discardChanceOnAirExposure)) {
+        } else if (shouldSkipAirCheck(pRandom, pConfig.discardChanceOnAirExposure)) {
             return true;
         } else {
-            return !isAdjacentToAir(p_225188_, p_225192_);
+            return !isAdjacentToAir(pAdjacentStateAccessor, pMutablePos);
         }
     }
 
-    protected static boolean shouldSkipAirCheck(RandomSource p_225169_, float p_225170_) {
-        if (p_225170_ <= 0.0F) {
+    protected static boolean shouldSkipAirCheck(RandomSource pRandom, float pChance) {
+        if (pChance <= 0.0F) {
             return true;
-        } else if (p_225170_ >= 1.0F) {
+        } else if (pChance >= 1.0F) {
             return false;
         } else {
-            return p_225169_.nextFloat() >= p_225170_;
+            return pRandom.nextFloat() >= pChance;
         }
     }
 }

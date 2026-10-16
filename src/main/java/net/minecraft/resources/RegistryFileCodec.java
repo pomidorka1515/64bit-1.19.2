@@ -14,45 +14,45 @@ public final class RegistryFileCodec<E> implements Codec<Holder<E>> {
     private final Codec<E> elementCodec;
     private final boolean allowInline;
 
-    public static <E> RegistryFileCodec<E> create(ResourceKey<? extends Registry<E>> p_135590_, Codec<E> p_135591_) {
-        return create(p_135590_, p_135591_, true);
+    public static <E> RegistryFileCodec<E> create(ResourceKey<? extends Registry<E>> pRegistryKey, Codec<E> pElementCodec) {
+        return create(pRegistryKey, pElementCodec, true);
     }
 
-    public static <E> RegistryFileCodec<E> create(ResourceKey<? extends Registry<E>> p_135593_, Codec<E> p_135594_, boolean p_135595_) {
-        return new RegistryFileCodec<>(p_135593_, p_135594_, p_135595_);
+    public static <E> RegistryFileCodec<E> create(ResourceKey<? extends Registry<E>> pRegistryKey, Codec<E> pElementCodec, boolean pAllowInline) {
+        return new RegistryFileCodec<>(pRegistryKey, pElementCodec, pAllowInline);
     }
 
-    private RegistryFileCodec(ResourceKey<? extends Registry<E>> p_135574_, Codec<E> p_135575_, boolean p_135576_) {
-        this.registryKey = p_135574_;
-        this.elementCodec = p_135575_;
-        this.allowInline = p_135576_;
+    private RegistryFileCodec(ResourceKey<? extends Registry<E>> pRegistryKey, Codec<E> pElementCodec, boolean pAllowInline) {
+        this.registryKey = pRegistryKey;
+        this.elementCodec = pElementCodec;
+        this.allowInline = pAllowInline;
     }
 
-    public <T> DataResult<T> encode(Holder<E> p_206716_, DynamicOps<T> p_206717_, T p_206718_) {
-        if (p_206717_ instanceof RegistryOps<?> registryops) {
+    public <T> DataResult<T> encode(Holder<E> pInput, DynamicOps<T> pOps, T pPrefix) {
+        if (pOps instanceof RegistryOps<?> registryops) {
             Optional<? extends Registry<E>> optional = registryops.registry(this.registryKey);
             if (optional.isPresent()) {
-                if (!p_206716_.isValidInRegistry(optional.get())) {
-                    return DataResult.error("Element " + p_206716_ + " is not valid in current registry set");
+                if (!pInput.isValidInRegistry(optional.get())) {
+                    return DataResult.error("Element " + pInput + " is not valid in current registry set");
                 }
 
-                return p_206716_.unwrap().map((p_206714_) -> { return ResourceLocation.CODEC.encode(p_206714_.location(), p_206717_, p_206718_); }, (p_206710_) -> { return this.elementCodec.encode(p_206710_, p_206717_, p_206718_); });
+                return pInput.unwrap().map((p_206714_) -> { return ResourceLocation.CODEC.encode(p_206714_.location(), pOps, pPrefix); }, (p_206710_) -> { return this.elementCodec.encode(p_206710_, pOps, pPrefix); });
             }
         }
 
-        return this.elementCodec.encode(p_206716_.value(), p_206717_, p_206718_);
+        return this.elementCodec.encode(pInput.value(), pOps, pPrefix);
     }
 
-    public <T> DataResult<Pair<Holder<E>, T>> decode(DynamicOps<T> p_135608_, T p_135609_) {
-        if (p_135608_ instanceof RegistryOps<?> registryops) {
+    public <T> DataResult<Pair<Holder<E>, T>> decode(DynamicOps<T> pOps, T pInput) {
+        if (pOps instanceof RegistryOps<?> registryops) {
             Optional<? extends Registry<E>> optional = registryops.registry(this.registryKey);
             if (optional.isEmpty()) {
                 return DataResult.error("Registry does not exist: " + this.registryKey);
             } else {
                 Registry<E> registry = optional.get();
-                DataResult<Pair<ResourceLocation, T>> dataresult = ResourceLocation.CODEC.decode(p_135608_, p_135609_);
+                DataResult<Pair<ResourceLocation, T>> dataresult = ResourceLocation.CODEC.decode(pOps, pInput);
                 if (dataresult.result().isEmpty()) {
-                    return !this.allowInline ? DataResult.error("Inline definitions not allowed here") : this.elementCodec.decode(p_135608_, p_135609_).map((p_206720_) -> {
+                    return !this.allowInline ? DataResult.error("Inline definitions not allowed here") : this.elementCodec.decode(pOps, pInput).map((p_206720_) -> {
                         return p_206720_.mapFirst(Holder::direct);
                     });
                 } else {
@@ -73,7 +73,7 @@ public final class RegistryFileCodec<E> implements Codec<Holder<E>> {
                 }
             }
         } else {
-            return this.elementCodec.decode(p_135608_, p_135609_).map((p_214212_) -> {
+            return this.elementCodec.decode(pOps, pInput).map((p_214212_) -> {
                 return p_214212_.mapFirst(Holder::direct);
             });
         }

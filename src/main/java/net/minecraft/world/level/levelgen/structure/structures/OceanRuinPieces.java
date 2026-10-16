@@ -52,12 +52,12 @@ public class OceanRuinPieces {
     private static final ResourceLocation[] BIG_RUINS_CRACKED = new ResourceLocation[] {new ResourceLocation("underwater_ruin/big_cracked_1"), new ResourceLocation("underwater_ruin/big_cracked_2"), new ResourceLocation("underwater_ruin/big_cracked_3"), new ResourceLocation("underwater_ruin/big_cracked_8")};
     private static final ResourceLocation[] BIG_WARM_RUINS = new ResourceLocation[] {new ResourceLocation("underwater_ruin/big_warm_4"), new ResourceLocation("underwater_ruin/big_warm_5"), new ResourceLocation("underwater_ruin/big_warm_6"), new ResourceLocation("underwater_ruin/big_warm_7")};
 
-    private static ResourceLocation getSmallWarmRuin(RandomSource p_228983_) {
-        return Util.getRandom(WARM_RUINS, p_228983_);
+    private static ResourceLocation getSmallWarmRuin(RandomSource pRandom) {
+        return Util.getRandom(WARM_RUINS, pRandom);
     }
 
-    private static ResourceLocation getBigWarmRuin(RandomSource p_229011_) {
-        return Util.getRandom(BIG_WARM_RUINS, p_229011_);
+    private static ResourceLocation getBigWarmRuin(RandomSource pRandom) {
+        return Util.getRandom(BIG_WARM_RUINS, pRandom);
     }
 
     public static void addPieces(StructureTemplateManager p_228995_, BlockPos p_228996_, Rotation p_228997_, StructurePieceAccessor p_228998_, RandomSource p_228999_, OceanRuinStructure p_229000_) {
@@ -91,16 +91,16 @@ public class OceanRuinPieces {
         }
     }
 
-    private static List<BlockPos> allPositions(RandomSource p_228985_, BlockPos p_228986_) {
+    private static List<BlockPos> allPositions(RandomSource pRandom, BlockPos pPos) {
         List<BlockPos> list = Lists.newArrayList();
-        list.add(p_228986_.offset(-16 + Mth.nextInt(p_228985_, 1, 8), 0, 16 + Mth.nextInt(p_228985_, 1, 7)));
-        list.add(p_228986_.offset(-16 + Mth.nextInt(p_228985_, 1, 8), 0, Mth.nextInt(p_228985_, 1, 7)));
-        list.add(p_228986_.offset(-16 + Mth.nextInt(p_228985_, 1, 8), 0, -16 + Mth.nextInt(p_228985_, 4, 8)));
-        list.add(p_228986_.offset(Mth.nextInt(p_228985_, 1, 7), 0, 16 + Mth.nextInt(p_228985_, 1, 7)));
-        list.add(p_228986_.offset(Mth.nextInt(p_228985_, 1, 7), 0, -16 + Mth.nextInt(p_228985_, 4, 6)));
-        list.add(p_228986_.offset(16 + Mth.nextInt(p_228985_, 1, 7), 0, 16 + Mth.nextInt(p_228985_, 3, 8)));
-        list.add(p_228986_.offset(16 + Mth.nextInt(p_228985_, 1, 7), 0, Mth.nextInt(p_228985_, 1, 7)));
-        list.add(p_228986_.offset(16 + Mth.nextInt(p_228985_, 1, 7), 0, -16 + Mth.nextInt(p_228985_, 4, 8)));
+        list.add(pPos.offset(-16 + Mth.nextInt(pRandom, 1, 8), 0, 16 + Mth.nextInt(pRandom, 1, 7)));
+        list.add(pPos.offset(-16 + Mth.nextInt(pRandom, 1, 8), 0, Mth.nextInt(pRandom, 1, 7)));
+        list.add(pPos.offset(-16 + Mth.nextInt(pRandom, 1, 8), 0, -16 + Mth.nextInt(pRandom, 4, 8)));
+        list.add(pPos.offset(Mth.nextInt(pRandom, 1, 7), 0, 16 + Mth.nextInt(pRandom, 1, 7)));
+        list.add(pPos.offset(Mth.nextInt(pRandom, 1, 7), 0, -16 + Mth.nextInt(pRandom, 4, 6)));
+        list.add(pPos.offset(16 + Mth.nextInt(pRandom, 1, 7), 0, 16 + Mth.nextInt(pRandom, 3, 8)));
+        list.add(pPos.offset(16 + Mth.nextInt(pRandom, 1, 7), 0, Mth.nextInt(pRandom, 1, 7)));
+        list.add(pPos.offset(16 + Mth.nextInt(pRandom, 1, 7), 0, -16 + Mth.nextInt(pRandom, 4, 8)));
         return list;
     }
 
@@ -127,11 +127,11 @@ public class OceanRuinPieces {
         private final float integrity;
         private final boolean isLarge;
 
-        public OceanRuinPiece(StructureTemplateManager p_229018_, ResourceLocation p_229019_, BlockPos p_229020_, Rotation p_229021_, float p_229022_, OceanRuinStructure.Type p_229023_, boolean p_229024_) {
-            super(StructurePieceType.OCEAN_RUIN, 0, p_229018_, p_229019_, p_229019_.toString(), makeSettings(p_229021_), p_229020_);
-            this.integrity = p_229022_;
-            this.biomeType = p_229023_;
-            this.isLarge = p_229024_;
+        public OceanRuinPiece(StructureTemplateManager pStructureTemplateManager, ResourceLocation pLocation, BlockPos pPos, Rotation pRotation, float pIntegrity, OceanRuinStructure.Type pBiomeType, boolean pIsLarge) {
+            super(StructurePieceType.OCEAN_RUIN, 0, pStructureTemplateManager, pLocation, pLocation.toString(), makeSettings(pRotation), pPos);
+            this.integrity = pIntegrity;
+            this.biomeType = pBiomeType;
+            this.isLarge = pIsLarge;
         }
 
         public OceanRuinPiece(StructureTemplateManager p_229026_, CompoundTag p_229027_) {
@@ -143,65 +143,65 @@ public class OceanRuinPieces {
             this.isLarge = p_229027_.getBoolean("IsLarge");
         }
 
-        private static StructurePlaceSettings makeSettings(Rotation p_229037_) {
-            return (new StructurePlaceSettings()).setRotation(p_229037_).setMirror(Mirror.NONE).addProcessor(BlockIgnoreProcessor.STRUCTURE_AND_AIR);
+        private static StructurePlaceSettings makeSettings(Rotation pRotation) {
+            return (new StructurePlaceSettings()).setRotation(pRotation).setMirror(Mirror.NONE).addProcessor(BlockIgnoreProcessor.STRUCTURE_AND_AIR);
         }
 
-        protected void addAdditionalSaveData(StructurePieceSerializationContext p_229039_, CompoundTag p_229040_) {
-            super.addAdditionalSaveData(p_229039_, p_229040_);
-            p_229040_.putString("Rot", this.placeSettings.getRotation().name());
-            p_229040_.putFloat("Integrity", this.integrity);
-            p_229040_.putString("BiomeType", this.biomeType.toString());
-            p_229040_.putBoolean("IsLarge", this.isLarge);
+        protected void addAdditionalSaveData(StructurePieceSerializationContext pContext, CompoundTag pTag) {
+            super.addAdditionalSaveData(pContext, pTag);
+            pTag.putString("Rot", this.placeSettings.getRotation().name());
+            pTag.putFloat("Integrity", this.integrity);
+            pTag.putString("BiomeType", this.biomeType.toString());
+            pTag.putBoolean("IsLarge", this.isLarge);
         }
 
-        protected void handleDataMarker(String p_229046_, BlockPos p_229047_, ServerLevelAccessor p_229048_, RandomSource p_229049_, BoundingBox p_229050_) {
-            if ("chest".equals(p_229046_)) {
-                p_229048_.setBlock(p_229047_, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.WATERLOGGED, Boolean.valueOf(p_229048_.getFluidState(p_229047_).is(FluidTags.WATER))), 2);
-                BlockEntity blockentity = p_229048_.getBlockEntity(p_229047_);
+        protected void handleDataMarker(String pName, BlockPos pPos, ServerLevelAccessor pLevel, RandomSource pRandom, BoundingBox pBox) {
+            if ("chest".equals(pName)) {
+                pLevel.setBlock(pPos, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.WATERLOGGED, Boolean.valueOf(pLevel.getFluidState(pPos).is(FluidTags.WATER))), 2);
+                BlockEntity blockentity = pLevel.getBlockEntity(pPos);
                 if (blockentity instanceof ChestBlockEntity) {
-                    ((ChestBlockEntity) blockentity).setLootTable(this.isLarge ? BuiltInLootTables.UNDERWATER_RUIN_BIG : BuiltInLootTables.UNDERWATER_RUIN_SMALL, p_229049_.nextLong());
+                    ((ChestBlockEntity) blockentity).setLootTable(this.isLarge ? BuiltInLootTables.UNDERWATER_RUIN_BIG : BuiltInLootTables.UNDERWATER_RUIN_SMALL, pRandom.nextLong());
                 }
-            } else if ("drowned".equals(p_229046_)) {
-                Drowned drowned = EntityType.DROWNED.create(p_229048_.getLevel());
+            } else if ("drowned".equals(pName)) {
+                Drowned drowned = EntityType.DROWNED.create(pLevel.getLevel());
                 drowned.setPersistenceRequired();
-                drowned.moveTo(p_229047_, 0.0F, 0.0F);
-                drowned.finalizeSpawn(p_229048_, p_229048_.getCurrentDifficultyAt(p_229047_), MobSpawnType.STRUCTURE, (SpawnGroupData) null, (CompoundTag) null);
-                p_229048_.addFreshEntityWithPassengers(drowned);
-                if (p_229047_.getY() > p_229048_.getSeaLevel()) {
-                    p_229048_.setBlock(p_229047_, Blocks.AIR.defaultBlockState(), 2);
+                drowned.moveTo(pPos, 0.0F, 0.0F);
+                drowned.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(pPos), MobSpawnType.STRUCTURE, (SpawnGroupData) null, (CompoundTag) null);
+                pLevel.addFreshEntityWithPassengers(drowned);
+                if (pPos.getY() > pLevel.getSeaLevel()) {
+                    pLevel.setBlock(pPos, Blocks.AIR.defaultBlockState(), 2);
                 } else {
-                    p_229048_.setBlock(p_229047_, Blocks.WATER.defaultBlockState(), 2);
+                    pLevel.setBlock(pPos, Blocks.WATER.defaultBlockState(), 2);
                 }
             }
         }
 
-        public void postProcess(WorldGenLevel p_229029_, StructureManager p_229030_, ChunkGenerator p_229031_, RandomSource p_229032_, BoundingBox p_229033_, ChunkPos p_229034_, BlockPos p_229035_) {
+        public void postProcess(WorldGenLevel pLevel, StructureManager pStructureManager, ChunkGenerator pGenerator, RandomSource pRandom, BoundingBox pBox, ChunkPos pChunkPos, BlockPos pPos) {
             this.placeSettings.clearProcessors().addProcessor(new BlockRotProcessor(this.integrity)).addProcessor(BlockIgnoreProcessor.STRUCTURE_AND_AIR);
-            int i = p_229029_.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, this.templatePosition.getX(), this.templatePosition.getZ());
+            int i = pLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, this.templatePosition.getX(), this.templatePosition.getZ());
             this.templatePosition = new BlockPos(this.templatePosition.getX(), i, this.templatePosition.getZ());
             BlockPos blockpos = StructureTemplate.transform(new BlockPos(this.template.getSize().getX() - 1, 0, this.template.getSize().getZ() - 1), Mirror.NONE, this.placeSettings.getRotation(), BlockPos.ZERO).offset(this.templatePosition);
-            this.templatePosition = new BlockPos(this.templatePosition.getX(), this.getHeight(this.templatePosition, p_229029_, blockpos), this.templatePosition.getZ());
-            super.postProcess(p_229029_, p_229030_, p_229031_, p_229032_, p_229033_, p_229034_, p_229035_);
+            this.templatePosition = new BlockPos(this.templatePosition.getX(), this.getHeight(this.templatePosition, pLevel, blockpos), this.templatePosition.getZ());
+            super.postProcess(pLevel, pStructureManager, pGenerator, pRandom, pBox, pChunkPos, pPos);
         }
 
-        private int getHeight(BlockPos p_229042_, BlockGetter p_229043_, BlockPos p_229044_) {
-            int i = p_229042_.getY();
+        private int getHeight(BlockPos pTemplatePos, BlockGetter pLevel, BlockPos pPos) {
+            int i = pTemplatePos.getY();
             int j = 512;
             int k = i - 1;
             int l = 0;
 
-            for (BlockPos blockpos : BlockPos.betweenClosed(p_229042_, p_229044_)) {
+            for (BlockPos blockpos : BlockPos.betweenClosed(pTemplatePos, pPos)) {
                 long i1 = blockpos.getX();
                 long j1 = blockpos.getZ();
-                int k1 = p_229042_.getY() - 1;
+                int k1 = pTemplatePos.getY() - 1;
                 BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(i1, k1, j1);
-                BlockState blockstate = p_229043_.getBlockState(blockpos$mutableblockpos);
+                BlockState blockstate = pLevel.getBlockState(blockpos$mutableblockpos);
 
-                for (FluidState fluidstate = p_229043_.getFluidState(blockpos$mutableblockpos); (blockstate.isAir() || fluidstate.is(FluidTags.WATER) || blockstate.is(BlockTags.ICE)) && k1 > p_229043_.getMinBuildHeight() + 1; fluidstate = p_229043_.getFluidState(blockpos$mutableblockpos)) {
+                for (FluidState fluidstate = pLevel.getFluidState(blockpos$mutableblockpos); (blockstate.isAir() || fluidstate.is(FluidTags.WATER) || blockstate.is(BlockTags.ICE)) && k1 > pLevel.getMinBuildHeight() + 1; fluidstate = pLevel.getFluidState(blockpos$mutableblockpos)) {
                     --k1;
                     blockpos$mutableblockpos.set(i1, k1, j1);
-                    blockstate = p_229043_.getBlockState(blockpos$mutableblockpos);
+                    blockstate = pLevel.getBlockState(blockpos$mutableblockpos);
                 }
 
                 j = Math.min(j, k1);
@@ -210,7 +210,7 @@ public class OceanRuinPieces {
                 }
             }
 
-            double l1 = WorldBounds.distance(p_229042_.getX(), p_229044_.getX());
+            double l1 = WorldBounds.distance(pTemplatePos.getX(), pPos.getX());
             if (k - j > 2 && l > l1 - 2.0D) {
                 i = j + 1;
             }

@@ -29,75 +29,75 @@ public class FarmBlock extends Block {
     protected static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
     public static final int MAX_MOISTURE = 7;
 
-    protected FarmBlock(BlockBehaviour.Properties p_53247_) {
-        super(p_53247_);
+    protected FarmBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(MOISTURE, Integer.valueOf(0)));
     }
 
-    public BlockState updateShape(BlockState p_53276_, Direction p_53277_, BlockState p_53278_, LevelAccessor p_53279_, BlockPos p_53280_, BlockPos p_53281_) {
-        if (p_53277_ == Direction.UP && !p_53276_.canSurvive(p_53279_, p_53280_)) {
-            p_53279_.scheduleTick(p_53280_, this, 1);
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pFacing == Direction.UP && !pState.canSurvive(pLevel, pCurrentPos)) {
+            pLevel.scheduleTick(pCurrentPos, this, 1);
         }
 
-        return super.updateShape(p_53276_, p_53277_, p_53278_, p_53279_, p_53280_, p_53281_);
+        return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    public boolean canSurvive(BlockState p_53272_, LevelReader p_53273_, BlockPos p_53274_) {
-        BlockState blockstate = p_53273_.getBlockState(p_53274_.above());
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        BlockState blockstate = pLevel.getBlockState(pPos.above());
         return !blockstate.getMaterial().isSolid() || blockstate.getBlock() instanceof FenceGateBlock || blockstate.getBlock() instanceof MovingPistonBlock;
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_53249_) {
-        return !this.defaultBlockState().canSurvive(p_53249_.getLevel(), p_53249_.getClickedPos()) ? Blocks.DIRT.defaultBlockState() : super.getStateForPlacement(p_53249_);
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        return !this.defaultBlockState().canSurvive(pContext.getLevel(), pContext.getClickedPos()) ? Blocks.DIRT.defaultBlockState() : super.getStateForPlacement(pContext);
     }
 
-    public boolean useShapeForLightOcclusion(BlockState p_53295_) {
+    public boolean useShapeForLightOcclusion(BlockState pState) {
         return true;
     }
 
-    public VoxelShape getShape(BlockState p_53290_, BlockGetter p_53291_, BlockPos p_53292_, CollisionContext p_53293_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
-    public void tick(BlockState p_221134_, ServerLevel p_221135_, BlockPos p_221136_, RandomSource p_221137_) {
-        if (!p_221134_.canSurvive(p_221135_, p_221136_)) {
-            turnToDirt(p_221134_, p_221135_, p_221136_);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (!pState.canSurvive(pLevel, pPos)) {
+            turnToDirt(pState, pLevel, pPos);
         }
     }
 
-    public void randomTick(BlockState p_221139_, ServerLevel p_221140_, BlockPos p_221141_, RandomSource p_221142_) {
-        int i = p_221139_.getValue(MOISTURE);
-        if (!isNearWater(p_221140_, p_221141_) && !p_221140_.isRainingAt(p_221141_.above())) {
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        int i = pState.getValue(MOISTURE);
+        if (!isNearWater(pLevel, pPos) && !pLevel.isRainingAt(pPos.above())) {
             if (i > 0) {
-                p_221140_.setBlock(p_221141_, p_221139_.setValue(MOISTURE, Integer.valueOf(i - 1)), 2);
-            } else if (!isUnderCrops(p_221140_, p_221141_)) {
-                turnToDirt(p_221139_, p_221140_, p_221141_);
+                pLevel.setBlock(pPos, pState.setValue(MOISTURE, Integer.valueOf(i - 1)), 2);
+            } else if (!isUnderCrops(pLevel, pPos)) {
+                turnToDirt(pState, pLevel, pPos);
             }
         } else if (i < 7) {
-            p_221140_.setBlock(p_221141_, p_221139_.setValue(MOISTURE, Integer.valueOf(7)), 2);
+            pLevel.setBlock(pPos, pState.setValue(MOISTURE, Integer.valueOf(7)), 2);
         }
     }
 
-    public void fallOn(Level p_153227_, BlockState p_153228_, BlockPos p_153229_, Entity p_153230_, float p_153231_) {
-        if (!p_153227_.isClientSide && p_153227_.random.nextFloat() < p_153231_ - 0.5F && p_153230_ instanceof LivingEntity && (p_153230_ instanceof Player || p_153227_.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) && p_153230_.getBbWidth() * p_153230_.getBbWidth() * p_153230_.getBbHeight() > 0.512F) {
-            turnToDirt(p_153228_, p_153227_, p_153229_);
+    public void fallOn(Level pLevel, BlockState pState, BlockPos pPos, Entity pEntity, float pFallDistance) {
+        if (!pLevel.isClientSide && pLevel.random.nextFloat() < pFallDistance - 0.5F && pEntity instanceof LivingEntity && (pEntity instanceof Player || pLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) && pEntity.getBbWidth() * pEntity.getBbWidth() * pEntity.getBbHeight() > 0.512F) {
+            turnToDirt(pState, pLevel, pPos);
         }
 
-        super.fallOn(p_153227_, p_153228_, p_153229_, p_153230_, p_153231_);
+        super.fallOn(pLevel, pState, pPos, pEntity, pFallDistance);
     }
 
-    public static void turnToDirt(BlockState p_53297_, Level p_53298_, BlockPos p_53299_) {
-        p_53298_.setBlockAndUpdate(p_53299_, pushEntitiesUp(p_53297_, Blocks.DIRT.defaultBlockState(), p_53298_, p_53299_));
+    public static void turnToDirt(BlockState pState, Level pLevel, BlockPos pPos) {
+        pLevel.setBlockAndUpdate(pPos, pushEntitiesUp(pState, Blocks.DIRT.defaultBlockState(), pLevel, pPos));
     }
 
-    private static boolean isUnderCrops(BlockGetter p_53251_, BlockPos p_53252_) {
-        Block block = p_53251_.getBlockState(p_53252_.above()).getBlock();
+    private static boolean isUnderCrops(BlockGetter pLevel, BlockPos pPos) {
+        Block block = pLevel.getBlockState(pPos.above()).getBlock();
         return block instanceof CropBlock || block instanceof StemBlock || block instanceof AttachedStemBlock;
     }
 
-    private static boolean isNearWater(LevelReader p_53259_, BlockPos p_53260_) {
-        for (BlockPos blockpos : BlockPos.betweenClosed(p_53260_.offset(-4, 0, -4), p_53260_.offset(4, 1, 4))) {
-            if (p_53259_.getFluidState(blockpos).is(FluidTags.WATER)) {
+    private static boolean isNearWater(LevelReader pLevel, BlockPos pPos) {
+        for (BlockPos blockpos : BlockPos.betweenClosed(pPos.offset(-4, 0, -4), pPos.offset(4, 1, 4))) {
+            if (pLevel.getFluidState(blockpos).is(FluidTags.WATER)) {
                 return true;
             }
         }
@@ -105,11 +105,11 @@ public class FarmBlock extends Block {
         return false;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_53283_) {
-        p_53283_.add(MOISTURE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(MOISTURE);
     }
 
-    public boolean isPathfindable(BlockState p_53267_, BlockGetter p_53268_, BlockPos p_53269_, PathComputationType p_53270_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 }

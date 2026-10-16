@@ -13,18 +13,18 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FlowerBlock;
 
 public class SuspiciousStewRecipe extends CustomRecipe {
-    public SuspiciousStewRecipe(ResourceLocation p_44487_) {
-        super(p_44487_);
+    public SuspiciousStewRecipe(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_44499_, Level p_44500_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         boolean flag = false;
         boolean flag1 = false;
         boolean flag2 = false;
         boolean flag3 = false;
 
-        for (int i = 0; i < p_44499_.getContainerSize(); ++i) {
-            ItemStack itemstack = p_44499_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack = pInv.getItem(i);
             if (!itemstack.isEmpty()) {
                 if (itemstack.is(Blocks.BROWN_MUSHROOM.asItem()) && !flag2) {
                     flag2 = true;
@@ -45,11 +45,11 @@ public class SuspiciousStewRecipe extends CustomRecipe {
         return flag && flag2 && flag1 && flag3;
     }
 
-    public ItemStack assemble(CraftingContainer p_44497_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         ItemStack itemstack = ItemStack.EMPTY;
 
-        for (int i = 0; i < p_44497_.getContainerSize(); ++i) {
-            ItemStack itemstack1 = p_44497_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack1 = pInv.getItem(i);
             if (!itemstack1.isEmpty() && itemstack1.is(ItemTags.SMALL_FLOWERS)) {
                 itemstack = itemstack1;
                 break;
@@ -66,8 +66,8 @@ public class SuspiciousStewRecipe extends CustomRecipe {
         return itemstack2;
     }
 
-    public boolean canCraftInDimensions(int p_44489_, int p_44490_) {
-        return p_44489_ >= 2 && p_44490_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth >= 2 && pHeight >= 2;
     }
 
     public RecipeSerializer<?> getSerializer() {

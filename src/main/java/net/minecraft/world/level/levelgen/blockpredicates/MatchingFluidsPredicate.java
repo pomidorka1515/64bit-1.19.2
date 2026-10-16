@@ -23,8 +23,8 @@ class MatchingFluidsPredicate extends StateTestingPredicate {
         this.fluids = p_204696_;
     }
 
-    protected boolean test(BlockState p_190500_) {
-        return p_190500_.getFluidState().is(this.fluids);
+    protected boolean test(BlockState pState) {
+        return pState.getFluidState().is(this.fluids);
     }
 
     public BlockPredicateType<?> type() {

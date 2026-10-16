@@ -25,13 +25,13 @@ public class HorseArmorLayer extends RenderLayer<Horse, HorseModel<Horse>> {
         this.model = new HorseModel<>(p_174497_.bakeLayer(ModelLayers.HORSE_ARMOR));
     }
 
-    public void render(PoseStack p_117032_, MultiBufferSource p_117033_, int p_117034_, Horse p_117035_, float p_117036_, float p_117037_, float p_117038_, float p_117039_, float p_117040_, float p_117041_) {
-        ItemStack itemstack = p_117035_.getArmor();
+    public void render(PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight, Horse pLivingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        ItemStack itemstack = pLivingEntity.getArmor();
         if (itemstack.getItem() instanceof HorseArmorItem) {
             HorseArmorItem horsearmoritem = (HorseArmorItem) itemstack.getItem();
             this.getParentModel().copyPropertiesTo(this.model);
-            this.model.prepareMobModel(p_117035_, p_117036_, p_117037_, p_117038_);
-            this.model.setupAnim(p_117035_, p_117036_, p_117037_, p_117039_, p_117040_, p_117041_);
+            this.model.prepareMobModel(pLivingEntity, pLimbSwing, pLimbSwingAmount, pPartialTicks);
+            this.model.setupAnim(pLivingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
             float f;
             float f1;
             float f2;
@@ -46,8 +46,8 @@ public class HorseArmorLayer extends RenderLayer<Horse, HorseModel<Horse>> {
                 f2 = 1.0F;
             }
 
-            VertexConsumer vertexconsumer = p_117033_.getBuffer(RenderType.entityCutoutNoCull(horsearmoritem.getTexture()));
-            this.model.renderToBuffer(p_117032_, vertexconsumer, p_117034_, OverlayTexture.NO_OVERLAY, f, f1, f2, 1.0F);
+            VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.entityCutoutNoCull(horsearmoritem.getTexture()));
+            this.model.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, f, f1, f2, 1.0F);
         }
     }
 }

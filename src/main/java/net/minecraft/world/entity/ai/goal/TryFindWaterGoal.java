@@ -8,8 +8,8 @@ import net.minecraft.world.entity.PathfinderMob;
 public class TryFindWaterGoal extends Goal {
     private final PathfinderMob mob;
 
-    public TryFindWaterGoal(PathfinderMob p_25964_) {
-        this.mob = p_25964_;
+    public TryFindWaterGoal(PathfinderMob pMob) {
+        this.mob = pMob;
     }
 
     public boolean canUse() {

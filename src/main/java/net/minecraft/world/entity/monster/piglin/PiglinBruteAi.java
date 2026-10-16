@@ -41,32 +41,32 @@ public class PiglinBruteAi {
     private static final int HOME_TOO_FAR_DISTANCE = 100;
     private static final int HOME_STROLL_AROUND_DISTANCE = 5;
 
-    protected static Brain<?> makeBrain(PiglinBrute p_35100_, Brain<PiglinBrute> p_35101_) {
-        initCoreActivity(p_35100_, p_35101_);
-        initIdleActivity(p_35100_, p_35101_);
-        initFightActivity(p_35100_, p_35101_);
-        p_35101_.setCoreActivities(ImmutableSet.of(Activity.CORE));
-        p_35101_.setDefaultActivity(Activity.IDLE);
-        p_35101_.useDefaultActivity();
-        return p_35101_;
+    protected static Brain<?> makeBrain(PiglinBrute pPiglinBrute, Brain<PiglinBrute> pBrain) {
+        initCoreActivity(pPiglinBrute, pBrain);
+        initIdleActivity(pPiglinBrute, pBrain);
+        initFightActivity(pPiglinBrute, pBrain);
+        pBrain.setCoreActivities(ImmutableSet.of(Activity.CORE));
+        pBrain.setDefaultActivity(Activity.IDLE);
+        pBrain.useDefaultActivity();
+        return pBrain;
     }
 
-    protected static void initMemories(PiglinBrute p_35095_) {
-        GlobalPos globalpos = GlobalPos.of(p_35095_.level.dimension(), p_35095_.blockPosition());
-        p_35095_.getBrain().setMemory(MemoryModuleType.HOME, globalpos);
+    protected static void initMemories(PiglinBrute pPiglinBrute) {
+        GlobalPos globalpos = GlobalPos.of(pPiglinBrute.level.dimension(), pPiglinBrute.blockPosition());
+        pPiglinBrute.getBrain().setMemory(MemoryModuleType.HOME, globalpos);
     }
 
-    private static void initCoreActivity(PiglinBrute p_35112_, Brain<PiglinBrute> p_35113_) {
-        p_35113_.addActivity(Activity.CORE, 0, ImmutableList.of(new LookAtTargetSink(45, 90), new MoveToTargetSink(), new InteractWithDoor(), new StopBeingAngryIfTargetDead<>()));
+    private static void initCoreActivity(PiglinBrute pPiglinBrute, Brain<PiglinBrute> pBrain) {
+        pBrain.addActivity(Activity.CORE, 0, ImmutableList.of(new LookAtTargetSink(45, 90), new MoveToTargetSink(), new InteractWithDoor(), new StopBeingAngryIfTargetDead<>()));
     }
 
-    private static void initIdleActivity(PiglinBrute p_35120_, Brain<PiglinBrute> p_35121_) {
-        p_35121_.addActivity(Activity.IDLE, 10, ImmutableList.of(new StartAttacking<>(PiglinBruteAi::findNearestValidAttackTarget), createIdleLookBehaviors(), createIdleMovementBehaviors(), new SetLookAndInteract(EntityType.PLAYER, 4)));
+    private static void initIdleActivity(PiglinBrute pPiglinBrute, Brain<PiglinBrute> pBrain) {
+        pBrain.addActivity(Activity.IDLE, 10, ImmutableList.of(new StartAttacking<>(PiglinBruteAi::findNearestValidAttackTarget), createIdleLookBehaviors(), createIdleMovementBehaviors(), new SetLookAndInteract(EntityType.PLAYER, 4)));
     }
 
-    private static void initFightActivity(PiglinBrute p_35125_, Brain<PiglinBrute> p_35126_) {
-        p_35126_.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 10, ImmutableList.of(new StopAttackingIfTargetInvalid<>((p_35118_) -> {
-            return !isNearestValidAttackTarget(p_35125_, p_35118_);
+    private static void initFightActivity(PiglinBrute pPiglinBrute, Brain<PiglinBrute> pBrain) {
+        pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 10, ImmutableList.of(new StopAttackingIfTargetInvalid<>((p_35118_) -> {
+            return !isNearestValidAttackTarget(pPiglinBrute, p_35118_);
         }),
                                                                                    new SetWalkTargetFromAttackTargetIfTargetOutOfReach(1.0F), new MeleeAttack(20)),
                 MemoryModuleType.ATTACK_TARGET);
@@ -80,21 +80,21 @@ public class PiglinBruteAi {
         return new RunOne<>(ImmutableList.of(Pair.of(new RandomStroll(0.6F), 2), Pair.of(InteractWith.of(EntityType.PIGLIN, 8, MemoryModuleType.INTERACTION_TARGET, 0.6F, 2), 2), Pair.of(InteractWith.of(EntityType.PIGLIN_BRUTE, 8, MemoryModuleType.INTERACTION_TARGET, 0.6F, 2), 2), Pair.of(new StrollToPoi(MemoryModuleType.HOME, 0.6F, 2, 100), 2), Pair.of(new StrollAroundPoi(MemoryModuleType.HOME, 0.6F, 5), 2), Pair.of(new DoNothing(30, 60), 1)));
     }
 
-    protected static void updateActivity(PiglinBrute p_35110_) {
-        Brain<PiglinBrute> brain = p_35110_.getBrain();
+    protected static void updateActivity(PiglinBrute pPiglinBrute) {
+        Brain<PiglinBrute> brain = pPiglinBrute.getBrain();
         Activity activity = brain.getActiveNonCoreActivity().orElse((Activity) null);
         brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.IDLE));
         Activity activity1 = brain.getActiveNonCoreActivity().orElse((Activity) null);
         if (activity != activity1) {
-            playActivitySound(p_35110_);
+            playActivitySound(pPiglinBrute);
         }
 
-        p_35110_.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
+        pPiglinBrute.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
     }
 
-    private static boolean isNearestValidAttackTarget(AbstractPiglin p_35089_, LivingEntity p_35090_) {
-        return findNearestValidAttackTarget(p_35089_).filter((p_35085_) -> {
-                                                         return p_35085_ == p_35090_;
+    private static boolean isNearestValidAttackTarget(AbstractPiglin pPiglinBrute, LivingEntity pTarget) {
+        return findNearestValidAttackTarget(pPiglinBrute).filter((p_35085_) -> {
+                                                         return p_35085_ == pTarget;
                                                      })
                 .isPresent();
     }
@@ -109,33 +109,33 @@ public class PiglinBruteAi {
         }
     }
 
-    private static Optional<? extends LivingEntity> getTargetIfWithinRange(AbstractPiglin p_35092_, MemoryModuleType<? extends LivingEntity> p_35093_) {
-        return p_35092_.getBrain().getMemory(p_35093_).filter((p_35108_) -> {
-            return p_35108_.closerThan(p_35092_, 12.0D);
+    private static Optional<? extends LivingEntity> getTargetIfWithinRange(AbstractPiglin pPiglinBrute, MemoryModuleType<? extends LivingEntity> pMemoryType) {
+        return pPiglinBrute.getBrain().getMemory(pMemoryType).filter((p_35108_) -> {
+            return p_35108_.closerThan(pPiglinBrute, 12.0D);
         });
     }
 
-    protected static void wasHurtBy(PiglinBrute p_35097_, LivingEntity p_35098_) {
-        if (!(p_35098_ instanceof AbstractPiglin)) {
-            PiglinAi.maybeRetaliate(p_35097_, p_35098_);
+    protected static void wasHurtBy(PiglinBrute pPiglinBrute, LivingEntity pTarget) {
+        if (!(pTarget instanceof AbstractPiglin)) {
+            PiglinAi.maybeRetaliate(pPiglinBrute, pTarget);
         }
     }
 
-    protected static void setAngerTarget(PiglinBrute p_149989_, LivingEntity p_149990_) {
-        p_149989_.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
-        p_149989_.getBrain().setMemoryWithExpiry(MemoryModuleType.ANGRY_AT, p_149990_.getUUID(), 600L);
+    protected static void setAngerTarget(PiglinBrute pPiglinBrute, LivingEntity pAngerTarget) {
+        pPiglinBrute.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+        pPiglinBrute.getBrain().setMemoryWithExpiry(MemoryModuleType.ANGRY_AT, pAngerTarget.getUUID(), 600L);
     }
 
-    protected static void maybePlayActivitySound(PiglinBrute p_35115_) {
-        if ((double) p_35115_.level.random.nextFloat() < 0.0125D) {
-            playActivitySound(p_35115_);
+    protected static void maybePlayActivitySound(PiglinBrute pPiglinBrute) {
+        if ((double) pPiglinBrute.level.random.nextFloat() < 0.0125D) {
+            playActivitySound(pPiglinBrute);
         }
     }
 
-    private static void playActivitySound(PiglinBrute p_35123_) {
-        p_35123_.getBrain().getActiveNonCoreActivity().ifPresent((p_35104_) -> {
+    private static void playActivitySound(PiglinBrute pPiglinBrute) {
+        pPiglinBrute.getBrain().getActiveNonCoreActivity().ifPresent((p_35104_) -> {
             if (p_35104_ == Activity.FIGHT) {
-                p_35123_.playAngrySound();
+                pPiglinBrute.playAngrySound();
             }
         });
     }

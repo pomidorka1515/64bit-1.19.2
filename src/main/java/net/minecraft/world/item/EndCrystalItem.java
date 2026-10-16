@@ -15,13 +15,13 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 
 public class EndCrystalItem extends Item {
-    public EndCrystalItem(Item.Properties p_41174_) {
-        super(p_41174_);
+    public EndCrystalItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResult useOn(UseOnContext p_41176_) {
-        Level level = p_41176_.getLevel();
-        BlockPos blockpos = p_41176_.getClickedPos();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
         if (!blockstate.is(Blocks.OBSIDIAN) && !blockstate.is(Blocks.BEDROCK)) {
             return InteractionResult.FAIL;
@@ -41,21 +41,21 @@ public class EndCrystalItem extends Item {
                         EndCrystal endcrystal = new EndCrystal(level, d0 + 0.5D, d1, d2 + 0.5D);
                         endcrystal.setShowBottom(false);
                         level.addFreshEntity(endcrystal);
-                        level.gameEvent(p_41176_.getPlayer(), GameEvent.ENTITY_PLACE, blockpos1);
+                        level.gameEvent(pContext.getPlayer(), GameEvent.ENTITY_PLACE, blockpos1);
                         EndDragonFight enddragonfight = ((ServerLevel) level).dragonFight();
                         if (enddragonfight != null) {
                             enddragonfight.tryRespawn();
                         }
                     }
 
-                    p_41176_.getItemInHand().shrink(1);
+                    pContext.getItemInHand().shrink(1);
                     return InteractionResult.sidedSuccess(level.isClientSide);
                 }
             }
         }
     }
 
-    public boolean isFoil(ItemStack p_41178_) {
+    public boolean isFoil(ItemStack pStack) {
         return true;
     }
 }

@@ -22,12 +22,12 @@ public class OpenServerTask extends LongRunningTask {
     private final RealmsMainScreen mainScreen;
     private final Minecraft minecraft;
 
-    public OpenServerTask(RealmsServer p_181344_, Screen p_181345_, RealmsMainScreen p_181346_, boolean p_181347_, Minecraft p_181348_) {
-        this.serverData = p_181344_;
-        this.returnScreen = p_181345_;
-        this.join = p_181347_;
-        this.mainScreen = p_181346_;
-        this.minecraft = p_181348_;
+    public OpenServerTask(RealmsServer pServerData, Screen pReturnScreen, RealmsMainScreen pMainScreen, boolean pJoin, Minecraft pMinecraft) {
+        this.serverData = pServerData;
+        this.returnScreen = pReturnScreen;
+        this.join = pJoin;
+        this.mainScreen = pMainScreen;
+        this.minecraft = pMinecraft;
     }
 
     public void run() {

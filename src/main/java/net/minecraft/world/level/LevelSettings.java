@@ -12,24 +12,24 @@ public final class LevelSettings {
     private final GameRules gameRules;
     private final DataPackConfig dataPackConfig;
 
-    public LevelSettings(String p_46910_, GameType p_46911_, boolean p_46912_, Difficulty p_46913_, boolean p_46914_, GameRules p_46915_, DataPackConfig p_46916_) {
-        this.levelName = p_46910_;
-        this.gameType = p_46911_;
-        this.hardcore = p_46912_;
-        this.difficulty = p_46913_;
-        this.allowCommands = p_46914_;
-        this.gameRules = p_46915_;
-        this.dataPackConfig = p_46916_;
+    public LevelSettings(String pLevelName, GameType pGameType, boolean pHardcore, Difficulty pDifficulty, boolean pAllowCommands, GameRules pGameRules, DataPackConfig pDataPackConfig) {
+        this.levelName = pLevelName;
+        this.gameType = pGameType;
+        this.hardcore = pHardcore;
+        this.difficulty = pDifficulty;
+        this.allowCommands = pAllowCommands;
+        this.gameRules = pGameRules;
+        this.dataPackConfig = pDataPackConfig;
     }
 
-    public static LevelSettings parse(Dynamic<?> p_46925_, DataPackConfig p_46926_) {
-        GameType gametype = GameType.byId(p_46925_.get("GameType").asInt(0));
-        return new LevelSettings(p_46925_.get("LevelName").asString(""), gametype, p_46925_.get("hardcore").asBoolean(false), p_46925_.get("Difficulty").asNumber().map((p_46928_) -> {
+    public static LevelSettings parse(Dynamic<?> pDynamic, DataPackConfig pCodec) {
+        GameType gametype = GameType.byId(pDynamic.get("GameType").asInt(0));
+        return new LevelSettings(pDynamic.get("LevelName").asString(""), gametype, pDynamic.get("hardcore").asBoolean(false), pDynamic.get("Difficulty").asNumber().map((p_46928_) -> {
                                                                                                                                                                        return Difficulty.byId(p_46928_.byteValue());
                                                                                                                                                                    })
                                                                                                                                       .result()
                                                                                                                                       .orElse(Difficulty.NORMAL),
-                p_46925_.get("allowCommands").asBoolean(gametype == GameType.CREATIVE), new GameRules(p_46925_.get("GameRules")), p_46926_);
+                pDynamic.get("allowCommands").asBoolean(gametype == GameType.CREATIVE), new GameRules(pDynamic.get("GameRules")), pCodec);
     }
 
     public String levelName() {
@@ -60,16 +60,16 @@ public final class LevelSettings {
         return this.dataPackConfig;
     }
 
-    public LevelSettings withGameType(GameType p_46923_) {
-        return new LevelSettings(this.levelName, p_46923_, this.hardcore, this.difficulty, this.allowCommands, this.gameRules, this.dataPackConfig);
+    public LevelSettings withGameType(GameType pGameType) {
+        return new LevelSettings(this.levelName, pGameType, this.hardcore, this.difficulty, this.allowCommands, this.gameRules, this.dataPackConfig);
     }
 
-    public LevelSettings withDifficulty(Difficulty p_46919_) {
-        return new LevelSettings(this.levelName, this.gameType, this.hardcore, p_46919_, this.allowCommands, this.gameRules, this.dataPackConfig);
+    public LevelSettings withDifficulty(Difficulty pDifficulty) {
+        return new LevelSettings(this.levelName, this.gameType, this.hardcore, pDifficulty, this.allowCommands, this.gameRules, this.dataPackConfig);
     }
 
-    public LevelSettings withDataPackConfig(DataPackConfig p_46921_) {
-        return new LevelSettings(this.levelName, this.gameType, this.hardcore, this.difficulty, this.allowCommands, this.gameRules, p_46921_);
+    public LevelSettings withDataPackConfig(DataPackConfig pDatapackCodec) {
+        return new LevelSettings(this.levelName, this.gameType, this.hardcore, this.difficulty, this.allowCommands, this.gameRules, pDatapackCodec);
     }
 
     public LevelSettings copy() {

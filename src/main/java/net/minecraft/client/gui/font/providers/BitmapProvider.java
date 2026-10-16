@@ -32,9 +32,9 @@ public class BitmapProvider implements GlyphProvider {
     private final NativeImage image;
     private final Int2ObjectMap<BitmapProvider.Glyph> glyphs;
 
-    BitmapProvider(NativeImage p_95333_, Int2ObjectMap<BitmapProvider.Glyph> p_95334_) {
-        this.image = p_95333_;
-        this.glyphs = p_95334_;
+    BitmapProvider(NativeImage pImage, Int2ObjectMap<BitmapProvider.Glyph> pGlyphs) {
+        this.image = pImage;
+        this.glyphs = pGlyphs;
     }
 
     public void close() {
@@ -42,8 +42,8 @@ public class BitmapProvider implements GlyphProvider {
     }
 
     @Nullable
-    public GlyphInfo getGlyph(int p_232638_) {
-        return this.glyphs.get(p_232638_);
+    public GlyphInfo getGlyph(int pCharacter) {
+        return this.glyphs.get(pCharacter);
     }
 
     public IntSet getSupportedGlyphs() {
@@ -57,21 +57,21 @@ public class BitmapProvider implements GlyphProvider {
         private final int height;
         private final int ascent;
 
-        public Builder(ResourceLocation p_95349_, int p_95350_, int p_95351_, List<int[]> p_95352_) {
-            this.texture = new ResourceLocation(p_95349_.getNamespace(), "textures/" + p_95349_.getPath());
-            this.chars = p_95352_;
-            this.height = p_95350_;
-            this.ascent = p_95351_;
+        public Builder(ResourceLocation pTexture, int pHeight, int pAscent, List<int[]> pChars) {
+            this.texture = new ResourceLocation(pTexture.getNamespace(), "textures/" + pTexture.getPath());
+            this.chars = pChars;
+            this.height = pHeight;
+            this.ascent = pAscent;
         }
 
-        public static BitmapProvider.Builder fromJson(JsonObject p_95356_) {
-            int i = GsonHelper.getAsInt(p_95356_, "height", 8);
-            int j = GsonHelper.getAsInt(p_95356_, "ascent");
+        public static BitmapProvider.Builder fromJson(JsonObject pJson) {
+            int i = GsonHelper.getAsInt(pJson, "height", 8);
+            int j = GsonHelper.getAsInt(pJson, "ascent");
             if (j > i) {
                 throw new JsonParseException("Ascent " + j + " higher than height " + i);
             } else {
                 List<int[]> list = Lists.newArrayList();
-                JsonArray jsonarray = GsonHelper.getAsJsonArray(p_95356_, "chars");
+                JsonArray jsonarray = GsonHelper.getAsJsonArray(pJson, "chars");
 
                 for (int k = 0; k < jsonarray.size(); ++k) {
                     String s = GsonHelper.convertToString(jsonarray.get(k), "chars[" + k + "]");
@@ -87,7 +87,7 @@ public class BitmapProvider implements GlyphProvider {
                 }
 
                 if (!list.isEmpty() && ((int[]) list.get(0)).length != 0) {
-                    return new BitmapProvider.Builder(new ResourceLocation(GsonHelper.getAsString(p_95356_, "file")), i, j, list);
+                    return new BitmapProvider.Builder(new ResourceLocation(GsonHelper.getAsString(pJson, "file")), i, j, list);
                 } else {
                     throw new JsonParseException("Expected to find data in chars, found none.");
                 }
@@ -95,9 +95,9 @@ public class BitmapProvider implements GlyphProvider {
         }
 
         @Nullable
-        public GlyphProvider create(ResourceManager p_95354_) {
+        public GlyphProvider create(ResourceManager pResourceManager) {
             try {
-                InputStream inputstream = p_95354_.open(this.texture);
+                InputStream inputstream = pResourceManager.open(this.texture);
 
                 BitmapProvider bitmapprovider;
                 try {
@@ -147,14 +147,14 @@ public class BitmapProvider implements GlyphProvider {
             }
         }
 
-        private int getActualGlyphWidth(NativeImage p_95358_, int p_95359_, int p_95360_, int p_95361_, int p_95362_) {
+        private int getActualGlyphWidth(NativeImage pNativeImage, int pCharWidth, int pCharHeightInsp, int pColumn, int pRow) {
             int i;
-            for (i = p_95359_ - 1; i >= 0; --i) {
-                int j = p_95361_ * p_95359_ + i;
+            for (i = pCharWidth - 1; i >= 0; --i) {
+                int j = pColumn * pCharWidth + i;
 
-                for (int k = 0; k < p_95360_; ++k) {
-                    int l = p_95362_ * p_95360_ + k;
-                    if (p_95358_.getLuminanceOrAlpha(j, l) != 0) {
+                for (int k = 0; k < pCharHeightInsp; ++k) {
+                    int l = pRow * pCharHeightInsp + k;
+                    if (pNativeImage.getLuminanceOrAlpha(j, l) != 0) {
                         return i + 1;
                     }
                 }

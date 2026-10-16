@@ -17,22 +17,22 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry> {
-    public OptionsList(Minecraft p_94465_, int p_94466_, int p_94467_, int p_94468_, int p_94469_, int p_94470_) {
-        super(p_94465_, p_94466_, p_94467_, p_94468_, p_94469_, p_94470_);
+    public OptionsList(Minecraft pMinecraft, int pWidth, int pHeight, int pY0, int pY1, int pItemHeight) {
+        super(pMinecraft, pWidth, pHeight, pY0, pY1, pItemHeight);
         this.centerListVertically = false;
     }
 
-    public int addBig(OptionInstance<?> p_232529_) {
-        return this.addEntry(OptionsList.Entry.big(this.minecraft.options, this.width, p_232529_));
+    public int addBig(OptionInstance<?> pOption) {
+        return this.addEntry(OptionsList.Entry.big(this.minecraft.options, this.width, pOption));
     }
 
-    public void addSmall(OptionInstance<?> p_232531_, @Nullable OptionInstance<?> p_232532_) {
-        this.addEntry(OptionsList.Entry.small(this.minecraft.options, this.width, p_232531_, p_232532_));
+    public void addSmall(OptionInstance<?> pLeftOption, @Nullable OptionInstance<?> pRightOption) {
+        this.addEntry(OptionsList.Entry.small(this.minecraft.options, this.width, pLeftOption, pRightOption));
     }
 
-    public void addSmall(OptionInstance<?>[] p_232534_) {
-        for (int i = 0; i < p_232534_.length; i += 2) {
-            this.addSmall(p_232534_[i], i < p_232534_.length - 1 ? p_232534_[i + 1] : null);
+    public void addSmall(OptionInstance<?>[] pOptions) {
+        for (int i = 0; i < pOptions.length; i += 2) {
+            this.addSmall(pOptions[i], i < pOptions.length - 1 ? pOptions[i + 1] : null);
         }
     }
 
@@ -45,9 +45,9 @@ public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry>
     }
 
     @Nullable
-    public AbstractWidget findOption(OptionInstance<?> p_232536_) {
+    public AbstractWidget findOption(OptionInstance<?> pOption) {
         for (OptionsList.Entry optionslist$entry : this.children()) {
-            AbstractWidget abstractwidget = optionslist$entry.options.get(p_232536_);
+            AbstractWidget abstractwidget = optionslist$entry.options.get(pOption);
             if (abstractwidget != null) {
                 return abstractwidget;
             }
@@ -56,10 +56,10 @@ public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry>
         return null;
     }
 
-    public Optional<AbstractWidget> getMouseOver(double p_94481_, double p_94482_) {
+    public Optional<AbstractWidget> getMouseOver(double pMouseX, double pMouseY) {
         for (OptionsList.Entry optionslist$entry : this.children()) {
             for (AbstractWidget abstractwidget : optionslist$entry.children) {
-                if (abstractwidget.isMouseOver(p_94481_, p_94482_)) {
+                if (abstractwidget.isMouseOver(pMouseX, pMouseY)) {
                     return Optional.of(abstractwidget);
                 }
             }
@@ -73,24 +73,24 @@ public class OptionsList extends ContainerObjectSelectionList<OptionsList.Entry>
         final Map<OptionInstance<?>, AbstractWidget> options;
         final List<AbstractWidget> children;
 
-        private Entry(Map<OptionInstance<?>, AbstractWidget> p_169047_) {
-            this.options = p_169047_;
-            this.children = ImmutableList.copyOf(p_169047_.values());
+        private Entry(Map<OptionInstance<?>, AbstractWidget> pOptions) {
+            this.options = pOptions;
+            this.children = ImmutableList.copyOf(pOptions.values());
         }
 
-        public static OptionsList.Entry big(Options p_232538_, int p_232539_, OptionInstance<?> p_232540_) {
-            return new OptionsList.Entry(ImmutableMap.of(p_232540_, p_232540_.createButton(p_232538_, p_232539_ / 2 - 155, 0, 310)));
+        public static OptionsList.Entry big(Options pOptions, int pGuiWidth, OptionInstance<?> pOption) {
+            return new OptionsList.Entry(ImmutableMap.of(pOption, pOption.createButton(pOptions, pGuiWidth / 2 - 155, 0, 310)));
         }
 
-        public static OptionsList.Entry small(Options p_232542_, int p_232543_, OptionInstance<?> p_232544_, @Nullable OptionInstance<?> p_232545_) {
-            AbstractWidget abstractwidget = p_232544_.createButton(p_232542_, p_232543_ / 2 - 155, 0, 150);
-            return p_232545_ == null ? new OptionsList.Entry(ImmutableMap.of(p_232544_, abstractwidget)) : new OptionsList.Entry(ImmutableMap.of(p_232544_, abstractwidget, p_232545_, p_232545_.createButton(p_232542_, p_232543_ / 2 - 155 + 160, 0, 150)));
+        public static OptionsList.Entry small(Options pOptions, int pGuiWidth, OptionInstance<?> pLeftOption, @Nullable OptionInstance<?> pRightOption) {
+            AbstractWidget abstractwidget = pLeftOption.createButton(pOptions, pGuiWidth / 2 - 155, 0, 150);
+            return pRightOption == null ? new OptionsList.Entry(ImmutableMap.of(pLeftOption, abstractwidget)) : new OptionsList.Entry(ImmutableMap.of(pLeftOption, abstractwidget, pRightOption, pRightOption.createButton(pOptions, pGuiWidth / 2 - 155 + 160, 0, 150)));
         }
 
-        public void render(PoseStack p_94496_, int p_94497_, int p_94498_, int p_94499_, int p_94500_, int p_94501_, int p_94502_, int p_94503_, boolean p_94504_, float p_94505_) {
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
             this.children.forEach((p_94494_) -> {
-                p_94494_.y = p_94498_;
-                p_94494_.render(p_94496_, p_94502_, p_94503_, p_94505_);
+                p_94494_.y = pTop;
+                p_94494_.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             });
         }
 

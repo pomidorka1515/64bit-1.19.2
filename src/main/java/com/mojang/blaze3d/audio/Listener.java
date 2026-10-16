@@ -19,13 +19,13 @@ public class Listener {
         AL10.alListener3f(4100, 0.0F, 0.0F, 0.0F);
     }
 
-    public void setListenerOrientation(Vector3f p_83742_, Vector3f p_83743_) {
-        AL10.alListenerfv(4111, new float[] {p_83742_.x(), p_83742_.y(), p_83742_.z(), p_83743_.x(), p_83743_.y(), p_83743_.z()});
+    public void setListenerOrientation(Vector3f pClientViewVector, Vector3f pViewVectorRaised) {
+        AL10.alListenerfv(4111, new float[] {pClientViewVector.x(), pClientViewVector.y(), pClientViewVector.z(), pViewVectorRaised.x(), pViewVectorRaised.y(), pViewVectorRaised.z()});
     }
 
-    public void setGain(float p_83738_) {
-        AL10.alListenerf(4106, p_83738_);
-        this.gain = p_83738_;
+    public void setGain(float pGain) {
+        AL10.alListenerf(4106, pGain);
+        this.gain = pGain;
     }
 
     public float getGain() {

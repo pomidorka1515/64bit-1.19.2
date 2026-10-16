@@ -16,10 +16,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class LanguageMetadataSectionSerializer implements MetadataSectionSerializer<LanguageMetadataSection> {
     private static final int MAX_LANGUAGE_LENGTH = 16;
 
-    public LanguageMetadataSection fromJson(JsonObject p_119107_) {
+    public LanguageMetadataSection fromJson(JsonObject pJson) {
         Set<LanguageInfo> set = Sets.newHashSet();
 
-        for (Map.Entry<String, JsonElement> entry : p_119107_.entrySet()) {
+        for (Map.Entry<String, JsonElement> entry : pJson.entrySet()) {
             String s = entry.getKey();
             if (s.length() > 16) {
                 throw new JsonParseException("Invalid language->'" + s + "': language code must not be more than 16 characters long");

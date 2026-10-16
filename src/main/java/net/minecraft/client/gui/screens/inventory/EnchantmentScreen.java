@@ -44,8 +44,8 @@ public class EnchantmentScreen extends AbstractContainerScreen<EnchantmentMenu> 
     public float oOpen;
     private ItemStack last = ItemStack.EMPTY;
 
-    public EnchantmentScreen(EnchantmentMenu p_98754_, Inventory p_98755_, Component p_98756_) {
-        super(p_98754_, p_98755_, p_98756_);
+    public EnchantmentScreen(EnchantmentMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle);
     }
 
     protected void init() {
@@ -58,52 +58,52 @@ public class EnchantmentScreen extends AbstractContainerScreen<EnchantmentMenu> 
         this.tickBook();
     }
 
-    public boolean mouseClicked(double p_98758_, double p_98759_, int p_98760_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
         for (int k = 0; k < 3; ++k) {
-            double d0 = p_98758_ - (double) (i + 60);
-            double d1 = p_98759_ - (double) (j + 14 + 19 * k);
+            double d0 = pMouseX - (double) (i + 60);
+            double d1 = pMouseY - (double) (j + 14 + 19 * k);
             if (d0 >= 0.0D && d1 >= 0.0D && d0 < 108.0D && d1 < 19.0D && this.menu.clickMenuButton(this.minecraft.player, k)) {
                 this.minecraft.gameMode.handleInventoryButtonClick((this.menu).containerId, k);
                 return true;
             }
         }
 
-        return super.mouseClicked(p_98758_, p_98759_, p_98760_);
+        return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 
-    protected void renderBg(PoseStack p_98762_, float p_98763_, int p_98764_, int p_98765_) {
+    protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
         Lighting.setupForFlatItems();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, ENCHANTING_TABLE_LOCATION);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        this.blit(p_98762_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        this.blit(pPoseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
         int k = (int) this.minecraft.getWindow().getGuiScale();
         RenderSystem.viewport((this.width - 320) / 2 * k, (this.height - 240) / 2 * k, 320 * k, 240 * k);
         Matrix4f matrix4f = Matrix4f.createTranslateMatrix(-0.34F, 0.23F, 0.0F);
         matrix4f.multiply(Matrix4f.perspective(90.0D, 1.3333334F, 9.0F, 80.0F));
         RenderSystem.backupProjectionMatrix();
         RenderSystem.setProjectionMatrix(matrix4f);
-        p_98762_.pushPose();
-        PoseStack.Pose posestack$pose = p_98762_.last();
+        pPoseStack.pushPose();
+        PoseStack.Pose posestack$pose = pPoseStack.last();
         posestack$pose.pose().setIdentity();
         posestack$pose.normal().setIdentity();
-        p_98762_.translate(0.0D, (double) 3.3F, 1984.0D);
+        pPoseStack.translate(0.0D, (double) 3.3F, 1984.0D);
         float f = 5.0F;
-        p_98762_.scale(5.0F, 5.0F, 5.0F);
-        p_98762_.mulPose(Vector3f.ZP.rotationDegrees(180.0F));
-        p_98762_.mulPose(Vector3f.XP.rotationDegrees(20.0F));
-        float f1 = Mth.lerp(p_98763_, this.oOpen, this.open);
-        p_98762_.translate((double) ((1.0F - f1) * 0.2F), (double) ((1.0F - f1) * 0.1F), (double) ((1.0F - f1) * 0.25F));
+        pPoseStack.scale(5.0F, 5.0F, 5.0F);
+        pPoseStack.mulPose(Vector3f.ZP.rotationDegrees(180.0F));
+        pPoseStack.mulPose(Vector3f.XP.rotationDegrees(20.0F));
+        float f1 = Mth.lerp(pPartialTick, this.oOpen, this.open);
+        pPoseStack.translate((double) ((1.0F - f1) * 0.2F), (double) ((1.0F - f1) * 0.1F), (double) ((1.0F - f1) * 0.25F));
         float f2 = -(1.0F - f1) * 90.0F - 90.0F;
-        p_98762_.mulPose(Vector3f.YP.rotationDegrees(f2));
-        p_98762_.mulPose(Vector3f.XP.rotationDegrees(180.0F));
-        float f3 = Mth.lerp(p_98763_, this.oFlip, this.flip) + 0.25F;
-        float f4 = Mth.lerp(p_98763_, this.oFlip, this.flip) + 0.75F;
+        pPoseStack.mulPose(Vector3f.YP.rotationDegrees(f2));
+        pPoseStack.mulPose(Vector3f.XP.rotationDegrees(180.0F));
+        float f3 = Mth.lerp(pPartialTick, this.oFlip, this.flip) + 0.25F;
+        float f4 = Mth.lerp(pPartialTick, this.oFlip, this.flip) + 0.75F;
         f3 = (f3 - (float) Mth.fastFloor((double) f3)) * 1.6F - 0.3F;
         f4 = (f4 - (float) Mth.fastFloor((double) f4)) * 1.6F - 0.3F;
         if (f3 < 0.0F) {
@@ -125,9 +125,9 @@ public class EnchantmentScreen extends AbstractContainerScreen<EnchantmentMenu> 
         this.bookModel.setupAnim(0.0F, f3, f4, f1);
         MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
         VertexConsumer vertexconsumer = multibuffersource$buffersource.getBuffer(this.bookModel.renderType(ENCHANTING_BOOK_LOCATION));
-        this.bookModel.renderToBuffer(p_98762_, vertexconsumer, 15728880, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        this.bookModel.renderToBuffer(pPoseStack, vertexconsumer, 15728880, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
         multibuffersource$buffersource.endBatch();
-        p_98762_.popPose();
+        pPoseStack.popPose();
         RenderSystem.viewport(0, 0, this.minecraft.getWindow().getWidth(), this.minecraft.getWindow().getHeight());
         RenderSystem.restoreProjectionMatrix();
         Lighting.setupFor3DItems();
@@ -144,42 +144,42 @@ public class EnchantmentScreen extends AbstractContainerScreen<EnchantmentMenu> 
             int l1 = (this.menu).costs[i1];
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             if (l1 == 0) {
-                this.blit(p_98762_, j1, j + 14 + 19 * i1, 0, 185, 108, 19);
+                this.blit(pPoseStack, j1, j + 14 + 19 * i1, 0, 185, 108, 19);
             } else {
                 String s = "" + l1;
                 int i2 = 86 - this.font.width(s);
                 FormattedText formattedtext = EnchantmentNames.getInstance().getRandomName(this.font, i2);
                 int j2 = 6839882;
                 if ((l < i1 + 1 || this.minecraft.player.experienceLevel < l1) && !this.minecraft.player.getAbilities().instabuild) {
-                    this.blit(p_98762_, j1, j + 14 + 19 * i1, 0, 185, 108, 19);
-                    this.blit(p_98762_, j1 + 1, j + 15 + 19 * i1, 16 * i1, 239, 16, 16);
+                    this.blit(pPoseStack, j1, j + 14 + 19 * i1, 0, 185, 108, 19);
+                    this.blit(pPoseStack, j1 + 1, j + 15 + 19 * i1, 16 * i1, 239, 16, 16);
                     this.font.drawWordWrap(formattedtext, k1, j + 16 + 19 * i1, i2, (j2 & 16711422) >> 1);
                     j2 = 4226832;
                 } else {
-                    int k2 = p_98764_ - (i + 60);
-                    int l2 = p_98765_ - (j + 14 + 19 * i1);
+                    int k2 = pX - (i + 60);
+                    int l2 = pY - (j + 14 + 19 * i1);
                     if (k2 >= 0 && l2 >= 0 && k2 < 108 && l2 < 19) {
-                        this.blit(p_98762_, j1, j + 14 + 19 * i1, 0, 204, 108, 19);
+                        this.blit(pPoseStack, j1, j + 14 + 19 * i1, 0, 204, 108, 19);
                         j2 = 16777088;
                     } else {
-                        this.blit(p_98762_, j1, j + 14 + 19 * i1, 0, 166, 108, 19);
+                        this.blit(pPoseStack, j1, j + 14 + 19 * i1, 0, 166, 108, 19);
                     }
 
-                    this.blit(p_98762_, j1 + 1, j + 15 + 19 * i1, 16 * i1, 223, 16, 16);
+                    this.blit(pPoseStack, j1 + 1, j + 15 + 19 * i1, 16 * i1, 223, 16, 16);
                     this.font.drawWordWrap(formattedtext, k1, j + 16 + 19 * i1, i2, j2);
                     j2 = 8453920;
                 }
 
-                this.font.drawShadow(p_98762_, s, (float) (k1 + 86 - this.font.width(s)), (float) (j + 16 + 19 * i1 + 7), j2);
+                this.font.drawShadow(pPoseStack, s, (float) (k1 + 86 - this.font.width(s)), (float) (j + 16 + 19 * i1 + 7), j2);
             }
         }
     }
 
-    public void render(PoseStack p_98767_, int p_98768_, int p_98769_, float p_98770_) {
-        p_98770_ = this.minecraft.getFrameTime();
-        this.renderBackground(p_98767_);
-        super.render(p_98767_, p_98768_, p_98769_, p_98770_);
-        this.renderTooltip(p_98767_, p_98768_, p_98769_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        pPartialTick = this.minecraft.getFrameTime();
+        this.renderBackground(pPoseStack);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderTooltip(pPoseStack, pMouseX, pMouseY);
         boolean flag = this.minecraft.player.getAbilities().instabuild;
         int i = this.menu.getGoldCount();
 
@@ -188,7 +188,7 @@ public class EnchantmentScreen extends AbstractContainerScreen<EnchantmentMenu> 
             Enchantment enchantment = Enchantment.byId((this.menu).enchantClue[j]);
             int l = (this.menu).levelClue[j];
             int i1 = j + 1;
-            if (this.isHovering(60, 14 + 19 * j, 108, 17, (double) p_98768_, (double) p_98769_) && k > 0 && l >= 0 && enchantment != null) {
+            if (this.isHovering(60, 14 + 19 * j, 108, 17, (double) pMouseX, (double) pMouseY) && k > 0 && l >= 0 && enchantment != null) {
                 List<Component> list = Lists.newArrayList();
                 list.add(Component.translatable("container.enchant.clue", enchantment.getFullname(l)).withStyle(ChatFormatting.WHITE));
                 if (!flag) {
@@ -215,7 +215,7 @@ public class EnchantmentScreen extends AbstractContainerScreen<EnchantmentMenu> 
                     }
                 }
 
-                this.renderComponentTooltip(p_98767_, list, p_98768_, p_98769_);
+                this.renderComponentTooltip(pPoseStack, list, pMouseX, pMouseY);
                 break;
             }
         }

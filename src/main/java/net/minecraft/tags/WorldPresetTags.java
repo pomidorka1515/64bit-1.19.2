@@ -11,7 +11,7 @@ public class WorldPresetTags {
     private WorldPresetTags() {
     }
 
-    private static TagKey<WorldPreset> create(String p_216058_) {
-        return TagKey.create(Registry.WORLD_PRESET_REGISTRY, new ResourceLocation(p_216058_));
+    private static TagKey<WorldPreset> create(String pName) {
+        return TagKey.create(Registry.WORLD_PRESET_REGISTRY, new ResourceLocation(pName));
     }
 }

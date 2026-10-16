@@ -19,28 +19,28 @@ public class AdvancementList {
     @Nullable
     private AdvancementList.Listener listener;
 
-    private void remove(Advancement p_139340_) {
-        for (Advancement advancement : p_139340_.getChildren()) {
+    private void remove(Advancement pAdvancement) {
+        for (Advancement advancement : pAdvancement.getChildren()) {
             this.remove(advancement);
         }
 
-        LOGGER.info("Forgot about advancement {}", (Object) p_139340_.getId());
-        this.advancements.remove(p_139340_.getId());
-        if (p_139340_.getParent() == null) {
-            this.roots.remove(p_139340_);
+        LOGGER.info("Forgot about advancement {}", (Object) pAdvancement.getId());
+        this.advancements.remove(pAdvancement.getId());
+        if (pAdvancement.getParent() == null) {
+            this.roots.remove(pAdvancement);
             if (this.listener != null) {
-                this.listener.onRemoveAdvancementRoot(p_139340_);
+                this.listener.onRemoveAdvancementRoot(pAdvancement);
             }
         } else {
-            this.tasks.remove(p_139340_);
+            this.tasks.remove(pAdvancement);
             if (this.listener != null) {
-                this.listener.onRemoveAdvancementTask(p_139340_);
+                this.listener.onRemoveAdvancementTask(pAdvancement);
             }
         }
     }
 
-    public void remove(Set<ResourceLocation> p_139336_) {
-        for (ResourceLocation resourcelocation : p_139336_) {
+    public void remove(Set<ResourceLocation> pIds) {
+        for (ResourceLocation resourcelocation : pIds) {
             Advancement advancement = this.advancements.get(resourcelocation);
             if (advancement == null) {
                 LOGGER.warn("Told to remove advancement {} but I don't know what that is", (Object) resourcelocation);
@@ -50,8 +50,8 @@ public class AdvancementList {
         }
     }
 
-    public void add(Map<ResourceLocation, Advancement.Builder> p_139334_) {
-        Map<ResourceLocation, Advancement.Builder> map = Maps.newHashMap(p_139334_);
+    public void add(Map<ResourceLocation, Advancement.Builder> pAdvancements) {
+        Map<ResourceLocation, Advancement.Builder> map = Maps.newHashMap(pAdvancements);
 
         while (!map.isEmpty()) {
             boolean flag = false;
@@ -109,31 +109,31 @@ public class AdvancementList {
     }
 
     @Nullable
-    public Advancement get(ResourceLocation p_139338_) {
-        return this.advancements.get(p_139338_);
+    public Advancement get(ResourceLocation pId) {
+        return this.advancements.get(pId);
     }
 
-    public void setListener(@Nullable AdvancementList.Listener p_139342_) {
-        this.listener = p_139342_;
-        if (p_139342_ != null) {
+    public void setListener(@Nullable AdvancementList.Listener pListener) {
+        this.listener = pListener;
+        if (pListener != null) {
             for (Advancement advancement : this.roots) {
-                p_139342_.onAddAdvancementRoot(advancement);
+                pListener.onAddAdvancementRoot(advancement);
             }
 
             for (Advancement advancement1 : this.tasks) {
-                p_139342_.onAddAdvancementTask(advancement1);
+                pListener.onAddAdvancementTask(advancement1);
             }
         }
     }
 
     public interface Listener {
-        void onAddAdvancementRoot(Advancement p_139345_);
+        void onAddAdvancementRoot(Advancement pAdvancement);
 
-        void onRemoveAdvancementRoot(Advancement p_139346_);
+        void onRemoveAdvancementRoot(Advancement pAdvancement);
 
-        void onAddAdvancementTask(Advancement p_139347_);
+        void onAddAdvancementTask(Advancement pAdvancement);
 
-        void onRemoveAdvancementTask(Advancement p_139348_);
+        void onRemoveAdvancementTask(Advancement pAdvancement);
 
         void onAdvancementsCleared();
     }

@@ -12,15 +12,15 @@ public enum EmptyBlockGetter implements BlockGetter {
     INSTANCE;
 
     @Nullable
-    public BlockEntity getBlockEntity(BlockPos p_45867_) {
+    public BlockEntity getBlockEntity(BlockPos pPos) {
         return null;
     }
 
-    public BlockState getBlockState(BlockPos p_45869_) {
+    public BlockState getBlockState(BlockPos pPos) {
         return Blocks.AIR.defaultBlockState();
     }
 
-    public FluidState getFluidState(BlockPos p_45865_) {
+    public FluidState getFluidState(BlockPos pPos) {
         return Fluids.EMPTY.defaultFluidState();
     }
 

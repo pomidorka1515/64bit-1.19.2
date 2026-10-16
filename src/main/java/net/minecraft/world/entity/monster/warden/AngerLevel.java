@@ -37,9 +37,9 @@ public enum AngerLevel {
         return this.listeningSound;
     }
 
-    public static AngerLevel byAnger(int p_219228_) {
+    public static AngerLevel byAnger(int pAnger) {
         for (AngerLevel angerlevel : SORTED_LEVELS) {
-            if (p_219228_ >= angerlevel.minimumAnger) {
+            if (pAnger >= angerlevel.minimumAnger) {
                 return angerlevel;
             }
         }

@@ -10,27 +10,27 @@ public class ClientboundSetDisplayObjectivePacket implements Packet<ClientGamePa
     private final int slot;
     private final String objectiveName;
 
-    public ClientboundSetDisplayObjectivePacket(int p_133131_, @Nullable Objective p_133132_) {
-        this.slot = p_133131_;
-        if (p_133132_ == null) {
+    public ClientboundSetDisplayObjectivePacket(int pSlot, @Nullable Objective pObjective) {
+        this.slot = pSlot;
+        if (pObjective == null) {
             this.objectiveName = "";
         } else {
-            this.objectiveName = p_133132_.getName();
+            this.objectiveName = pObjective.getName();
         }
     }
 
-    public ClientboundSetDisplayObjectivePacket(FriendlyByteBuf p_179288_) {
-        this.slot = p_179288_.readByte();
-        this.objectiveName = p_179288_.readUtf();
+    public ClientboundSetDisplayObjectivePacket(FriendlyByteBuf pBuffer) {
+        this.slot = pBuffer.readByte();
+        this.objectiveName = pBuffer.readUtf();
     }
 
-    public void write(FriendlyByteBuf p_133141_) {
-        p_133141_.writeByte(this.slot);
-        p_133141_.writeUtf(this.objectiveName);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeByte(this.slot);
+        pBuffer.writeUtf(this.objectiveName);
     }
 
-    public void handle(ClientGamePacketListener p_133138_) {
-        p_133138_.handleSetDisplayObjective(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleSetDisplayObjective(this);
     }
 
     public int getSlot() {

@@ -102,9 +102,9 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
     private final Object2IntOpenHashMap<ResourceLocation> recipesUsed = new Object2IntOpenHashMap<>();
     private final RecipeManager.CachedCheck<Container, ? extends AbstractCookingRecipe> quickCheck;
 
-    protected AbstractFurnaceBlockEntity(BlockEntityType<?> p_154991_, BlockPos p_154992_, BlockState p_154993_, RecipeType<? extends AbstractCookingRecipe> p_154994_) {
-        super(p_154991_, p_154992_, p_154993_);
-        this.quickCheck = RecipeManager.createCheck((RecipeType) p_154994_);
+    protected AbstractFurnaceBlockEntity(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState, RecipeType<? extends AbstractCookingRecipe> pRecipeType) {
+        super(pType, pPos, pBlockState);
+        this.quickCheck = RecipeManager.createCheck((RecipeType) pRecipeType);
     }
 
     public static Map<Item, Integer> getFuel() {
@@ -177,26 +177,26 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
         return map;
     }
 
-    private static boolean isNeverAFurnaceFuel(Item p_58398_) {
-        return p_58398_.builtInRegistryHolder().is(ItemTags.NON_FLAMMABLE_WOOD);
+    private static boolean isNeverAFurnaceFuel(Item pItem) {
+        return pItem.builtInRegistryHolder().is(ItemTags.NON_FLAMMABLE_WOOD);
     }
 
-    private static void add(Map<Item, Integer> p_204303_, TagKey<Item> p_204304_, int p_204305_) {
-        for (Holder<Item> holder : Registry.ITEM.getTagOrEmpty(p_204304_)) {
+    private static void add(Map<Item, Integer> pMap, TagKey<Item> pItemTag, int pBurnTime) {
+        for (Holder<Item> holder : Registry.ITEM.getTagOrEmpty(pItemTag)) {
             if (!isNeverAFurnaceFuel(holder.value())) {
-                p_204303_.put(holder.value(), p_204305_);
+                pMap.put(holder.value(), pBurnTime);
             }
         }
     }
 
-    private static void add(Map<Item, Integer> p_58375_, ItemLike p_58376_, int p_58377_) {
-        Item item = p_58376_.asItem();
+    private static void add(Map<Item, Integer> pMap, ItemLike pItem, int pBurnTime) {
+        Item item = pItem.asItem();
         if (isNeverAFurnaceFuel(item)) {
             if (SharedConstants.IS_RUNNING_IN_IDE) {
                 throw (IllegalStateException) Util.pauseInIde(new IllegalStateException("A developer tried to explicitly make fire resistant item " + item.getName((ItemStack) null).getString() + " a furnace fuel. That will not work!"));
             }
         } else {
-            p_58375_.put(item, p_58377_);
+            pMap.put(item, pBurnTime);
         }
     }
 
@@ -204,110 +204,110 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
         return this.litTime > 0;
     }
 
-    public void load(CompoundTag p_155025_) {
-        super.load(p_155025_);
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(p_155025_, this.items);
-        this.litTime = p_155025_.getShort("BurnTime");
-        this.cookingProgress = p_155025_.getShort("CookTime");
-        this.cookingTotalTime = p_155025_.getShort("CookTimeTotal");
+        ContainerHelper.loadAllItems(pTag, this.items);
+        this.litTime = pTag.getShort("BurnTime");
+        this.cookingProgress = pTag.getShort("CookTime");
+        this.cookingTotalTime = pTag.getShort("CookTimeTotal");
         this.litDuration = this.getBurnDuration(this.items.get(1));
-        CompoundTag compoundtag = p_155025_.getCompound("RecipesUsed");
+        CompoundTag compoundtag = pTag.getCompound("RecipesUsed");
 
         for (String s : compoundtag.getAllKeys()) {
             this.recipesUsed.put(new ResourceLocation(s), compoundtag.getInt(s));
         }
     }
 
-    protected void saveAdditional(CompoundTag p_187452_) {
-        super.saveAdditional(p_187452_);
-        p_187452_.putShort("BurnTime", (short) this.litTime);
-        p_187452_.putShort("CookTime", (short) this.cookingProgress);
-        p_187452_.putShort("CookTimeTotal", (short) this.cookingTotalTime);
-        ContainerHelper.saveAllItems(p_187452_, this.items);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
+        pTag.putShort("BurnTime", (short) this.litTime);
+        pTag.putShort("CookTime", (short) this.cookingProgress);
+        pTag.putShort("CookTimeTotal", (short) this.cookingTotalTime);
+        ContainerHelper.saveAllItems(pTag, this.items);
         CompoundTag compoundtag = new CompoundTag();
         this.recipesUsed.forEach((p_187449_, p_187450_) -> {
             compoundtag.putInt(p_187449_.toString(), p_187450_);
         });
-        p_187452_.put("RecipesUsed", compoundtag);
+        pTag.put("RecipesUsed", compoundtag);
     }
 
-    public static void serverTick(Level p_155014_, BlockPos p_155015_, BlockState p_155016_, AbstractFurnaceBlockEntity p_155017_) {
-        boolean flag = p_155017_.isLit();
+    public static void serverTick(Level pLevel, BlockPos pPos, BlockState pState, AbstractFurnaceBlockEntity pBlockEntity) {
+        boolean flag = pBlockEntity.isLit();
         boolean flag1 = false;
-        if (p_155017_.isLit()) {
-            --p_155017_.litTime;
+        if (pBlockEntity.isLit()) {
+            --pBlockEntity.litTime;
         }
 
-        ItemStack itemstack = p_155017_.items.get(1);
-        boolean flag2 = !p_155017_.items.get(0).isEmpty();
+        ItemStack itemstack = pBlockEntity.items.get(1);
+        boolean flag2 = !pBlockEntity.items.get(0).isEmpty();
         boolean flag3 = !itemstack.isEmpty();
-        if (p_155017_.isLit() || flag3 && flag2) {
+        if (pBlockEntity.isLit() || flag3 && flag2) {
             Recipe<?> recipe;
             if (flag2) {
-                recipe = p_155017_.quickCheck.getRecipeFor(p_155017_, p_155014_).orElse(null);
+                recipe = pBlockEntity.quickCheck.getRecipeFor(pBlockEntity, pLevel).orElse(null);
             } else {
                 recipe = null;
             }
 
-            int i = p_155017_.getMaxStackSize();
-            if (!p_155017_.isLit() && canBurn(recipe, p_155017_.items, i)) {
-                p_155017_.litTime = p_155017_.getBurnDuration(itemstack);
-                p_155017_.litDuration = p_155017_.litTime;
-                if (p_155017_.isLit()) {
+            int i = pBlockEntity.getMaxStackSize();
+            if (!pBlockEntity.isLit() && canBurn(recipe, pBlockEntity.items, i)) {
+                pBlockEntity.litTime = pBlockEntity.getBurnDuration(itemstack);
+                pBlockEntity.litDuration = pBlockEntity.litTime;
+                if (pBlockEntity.isLit()) {
                     flag1 = true;
                     if (flag3) {
                         Item item = itemstack.getItem();
                         itemstack.shrink(1);
                         if (itemstack.isEmpty()) {
                             Item item1 = item.getCraftingRemainingItem();
-                            p_155017_.items.set(1, item1 == null ? ItemStack.EMPTY : new ItemStack(item1));
+                            pBlockEntity.items.set(1, item1 == null ? ItemStack.EMPTY : new ItemStack(item1));
                         }
                     }
                 }
             }
 
-            if (p_155017_.isLit() && canBurn(recipe, p_155017_.items, i)) {
-                ++p_155017_.cookingProgress;
-                if (p_155017_.cookingProgress == p_155017_.cookingTotalTime) {
-                    p_155017_.cookingProgress = 0;
-                    p_155017_.cookingTotalTime = getTotalCookTime(p_155014_, p_155017_);
-                    if (burn(recipe, p_155017_.items, i)) {
-                        p_155017_.setRecipeUsed(recipe);
+            if (pBlockEntity.isLit() && canBurn(recipe, pBlockEntity.items, i)) {
+                ++pBlockEntity.cookingProgress;
+                if (pBlockEntity.cookingProgress == pBlockEntity.cookingTotalTime) {
+                    pBlockEntity.cookingProgress = 0;
+                    pBlockEntity.cookingTotalTime = getTotalCookTime(pLevel, pBlockEntity);
+                    if (burn(recipe, pBlockEntity.items, i)) {
+                        pBlockEntity.setRecipeUsed(recipe);
                     }
 
                     flag1 = true;
                 }
             } else {
-                p_155017_.cookingProgress = 0;
+                pBlockEntity.cookingProgress = 0;
             }
-        } else if (!p_155017_.isLit() && p_155017_.cookingProgress > 0) {
-            p_155017_.cookingProgress = Mth.clamp(p_155017_.cookingProgress - 2, 0, p_155017_.cookingTotalTime);
+        } else if (!pBlockEntity.isLit() && pBlockEntity.cookingProgress > 0) {
+            pBlockEntity.cookingProgress = Mth.clamp(pBlockEntity.cookingProgress - 2, 0, pBlockEntity.cookingTotalTime);
         }
 
-        if (flag != p_155017_.isLit()) {
+        if (flag != pBlockEntity.isLit()) {
             flag1 = true;
-            p_155016_ = p_155016_.setValue(AbstractFurnaceBlock.LIT, Boolean.valueOf(p_155017_.isLit()));
-            p_155014_.setBlock(p_155015_, p_155016_, 3);
+            pState = pState.setValue(AbstractFurnaceBlock.LIT, Boolean.valueOf(pBlockEntity.isLit()));
+            pLevel.setBlock(pPos, pState, 3);
         }
 
         if (flag1) {
-            setChanged(p_155014_, p_155015_, p_155016_);
+            setChanged(pLevel, pPos, pState);
         }
     }
 
-    private static boolean canBurn(@Nullable Recipe<?> p_155006_, NonNullList<ItemStack> p_155007_, int p_155008_) {
-        if (!p_155007_.get(0).isEmpty() && p_155006_ != null) {
-            ItemStack itemstack = p_155006_.getResultItem();
+    private static boolean canBurn(@Nullable Recipe<?> pRecipe, NonNullList<ItemStack> pStacks, int pStackSize) {
+        if (!pStacks.get(0).isEmpty() && pRecipe != null) {
+            ItemStack itemstack = pRecipe.getResultItem();
             if (itemstack.isEmpty()) {
                 return false;
             } else {
-                ItemStack itemstack1 = p_155007_.get(2);
+                ItemStack itemstack1 = pStacks.get(2);
                 if (itemstack1.isEmpty()) {
                     return true;
                 } else if (!itemstack1.sameItem(itemstack)) {
                     return false;
-                } else if (itemstack1.getCount() < p_155008_ && itemstack1.getCount() < itemstack1.getMaxStackSize()) {
+                } else if (itemstack1.getCount() < pStackSize && itemstack1.getCount() < itemstack1.getMaxStackSize()) {
                     return true;
                 } else {
                     return itemstack1.getCount() < itemstack.getMaxStackSize();
@@ -318,19 +318,19 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
         }
     }
 
-    private static boolean burn(@Nullable Recipe<?> p_155027_, NonNullList<ItemStack> p_155028_, int p_155029_) {
-        if (p_155027_ != null && canBurn(p_155027_, p_155028_, p_155029_)) {
-            ItemStack itemstack = p_155028_.get(0);
-            ItemStack itemstack1 = p_155027_.getResultItem();
-            ItemStack itemstack2 = p_155028_.get(2);
+    private static boolean burn(@Nullable Recipe<?> pRecipe, NonNullList<ItemStack> pStacks, int pStackSize) {
+        if (pRecipe != null && canBurn(pRecipe, pStacks, pStackSize)) {
+            ItemStack itemstack = pStacks.get(0);
+            ItemStack itemstack1 = pRecipe.getResultItem();
+            ItemStack itemstack2 = pStacks.get(2);
             if (itemstack2.isEmpty()) {
-                p_155028_.set(2, itemstack1.copy());
+                pStacks.set(2, itemstack1.copy());
             } else if (itemstack2.is(itemstack1.getItem())) {
                 itemstack2.grow(1);
             }
 
-            if (itemstack.is(Blocks.WET_SPONGE.asItem()) && !p_155028_.get(1).isEmpty() && p_155028_.get(1).is(Items.BUCKET)) {
-                p_155028_.set(1, new ItemStack(Items.WATER_BUCKET));
+            if (itemstack.is(Blocks.WET_SPONGE.asItem()) && !pStacks.get(1).isEmpty() && pStacks.get(1).is(Items.BUCKET)) {
+                pStacks.set(1, new ItemStack(Items.WATER_BUCKET));
             }
 
             itemstack.shrink(1);
@@ -340,38 +340,38 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
         }
     }
 
-    protected int getBurnDuration(ItemStack p_58343_) {
-        if (p_58343_.isEmpty()) {
+    protected int getBurnDuration(ItemStack pFuel) {
+        if (pFuel.isEmpty()) {
             return 0;
         } else {
-            Item item = p_58343_.getItem();
+            Item item = pFuel.getItem();
             return getFuel().getOrDefault(item, 0);
         }
     }
 
-    private static int getTotalCookTime(Level p_222693_, AbstractFurnaceBlockEntity p_222694_) {
-        return p_222694_.quickCheck.getRecipeFor(p_222694_, p_222693_).map(AbstractCookingRecipe::getCookingTime).orElse(200);
+    private static int getTotalCookTime(Level pLevel, AbstractFurnaceBlockEntity pBlockEntity) {
+        return pBlockEntity.quickCheck.getRecipeFor(pBlockEntity, pLevel).map(AbstractCookingRecipe::getCookingTime).orElse(200);
     }
 
-    public static boolean isFuel(ItemStack p_58400_) {
-        return getFuel().containsKey(p_58400_.getItem());
+    public static boolean isFuel(ItemStack pStack) {
+        return getFuel().containsKey(pStack.getItem());
     }
 
-    public int[] getSlotsForFace(Direction p_58363_) {
-        if (p_58363_ == Direction.DOWN) {
+    public int[] getSlotsForFace(Direction pSide) {
+        if (pSide == Direction.DOWN) {
             return SLOTS_FOR_DOWN;
         } else {
-            return p_58363_ == Direction.UP ? SLOTS_FOR_UP : SLOTS_FOR_SIDES;
+            return pSide == Direction.UP ? SLOTS_FOR_UP : SLOTS_FOR_SIDES;
         }
     }
 
-    public boolean canPlaceItemThroughFace(int p_58336_, ItemStack p_58337_, @Nullable Direction p_58338_) {
-        return this.canPlaceItem(p_58336_, p_58337_);
+    public boolean canPlaceItemThroughFace(int pIndex, ItemStack pItemStack, @Nullable Direction pDirection) {
+        return this.canPlaceItem(pIndex, pItemStack);
     }
 
-    public boolean canTakeItemThroughFace(int p_58392_, ItemStack p_58393_, Direction p_58394_) {
-        if (p_58394_ == Direction.DOWN && p_58392_ == 1) {
-            return p_58393_.is(Items.WATER_BUCKET) || p_58393_.is(Items.BUCKET);
+    public boolean canTakeItemThroughFace(int pIndex, ItemStack pStack, Direction pDirection) {
+        if (pDirection == Direction.DOWN && pIndex == 1) {
+            return pStack.is(Items.WATER_BUCKET) || pStack.is(Items.BUCKET);
         } else {
             return true;
         }
@@ -391,45 +391,45 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
         return true;
     }
 
-    public ItemStack getItem(int p_58328_) {
-        return this.items.get(p_58328_);
+    public ItemStack getItem(int pIndex) {
+        return this.items.get(pIndex);
     }
 
-    public ItemStack removeItem(int p_58330_, int p_58331_) {
-        return ContainerHelper.removeItem(this.items, p_58330_, p_58331_);
+    public ItemStack removeItem(int pIndex, int pCount) {
+        return ContainerHelper.removeItem(this.items, pIndex, pCount);
     }
 
-    public ItemStack removeItemNoUpdate(int p_58387_) {
-        return ContainerHelper.takeItem(this.items, p_58387_);
+    public ItemStack removeItemNoUpdate(int pIndex) {
+        return ContainerHelper.takeItem(this.items, pIndex);
     }
 
-    public void setItem(int p_58333_, ItemStack p_58334_) {
-        ItemStack itemstack = this.items.get(p_58333_);
-        boolean flag = !p_58334_.isEmpty() && p_58334_.sameItem(itemstack) && ItemStack.tagMatches(p_58334_, itemstack);
-        this.items.set(p_58333_, p_58334_);
-        if (p_58334_.getCount() > this.getMaxStackSize()) {
-            p_58334_.setCount(this.getMaxStackSize());
+    public void setItem(int pIndex, ItemStack pStack) {
+        ItemStack itemstack = this.items.get(pIndex);
+        boolean flag = !pStack.isEmpty() && pStack.sameItem(itemstack) && ItemStack.tagMatches(pStack, itemstack);
+        this.items.set(pIndex, pStack);
+        if (pStack.getCount() > this.getMaxStackSize()) {
+            pStack.setCount(this.getMaxStackSize());
         }
 
-        if (p_58333_ == 0 && !flag) {
+        if (pIndex == 0 && !flag) {
             this.cookingTotalTime = getTotalCookTime(this.level, this);
             this.cookingProgress = 0;
             this.setChanged();
         }
     }
 
-    public boolean stillValid(Player p_58340_) {
-        return this.level.getBlockEntity(this.worldPosition) == this && this.isWithinUsableDistance(p_58340_, 8.0D);
+    public boolean stillValid(Player pPlayer) {
+        return this.level.getBlockEntity(this.worldPosition) == this && this.isWithinUsableDistance(pPlayer, 8.0D);
     }
 
-    public boolean canPlaceItem(int p_58389_, ItemStack p_58390_) {
-        if (p_58389_ == 2) {
+    public boolean canPlaceItem(int pIndex, ItemStack pStack) {
+        if (pIndex == 2) {
             return false;
-        } else if (p_58389_ != 1) {
+        } else if (pIndex != 1) {
             return true;
         } else {
             ItemStack itemstack = this.items.get(1);
-            return isFuel(p_58390_) || p_58390_.is(Items.BUCKET) && !itemstack.is(Items.BUCKET);
+            return isFuel(pStack) || pStack.is(Items.BUCKET) && !itemstack.is(Items.BUCKET);
         }
     }
 
@@ -437,9 +437,9 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
         this.items.clear();
     }
 
-    public void setRecipeUsed(@Nullable Recipe<?> p_58345_) {
-        if (p_58345_ != null) {
-            ResourceLocation resourcelocation = p_58345_.getId();
+    public void setRecipeUsed(@Nullable Recipe<?> pRecipe) {
+        if (pRecipe != null) {
+            ResourceLocation resourcelocation = pRecipe.getId();
             this.recipesUsed.addTo(resourcelocation, 1);
         }
     }
@@ -449,41 +449,41 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
         return null;
     }
 
-    public void awardUsedRecipes(Player p_58396_) {
+    public void awardUsedRecipes(Player pPlayer) {
     }
 
-    public void awardUsedRecipesAndPopExperience(ServerPlayer p_155004_) {
-        List<Recipe<?>> list = this.getRecipesToAwardAndPopExperience(p_155004_.getLevel(), p_155004_.position());
-        p_155004_.awardRecipes(list);
+    public void awardUsedRecipesAndPopExperience(ServerPlayer pPlayer) {
+        List<Recipe<?>> list = this.getRecipesToAwardAndPopExperience(pPlayer.getLevel(), pPlayer.position());
+        pPlayer.awardRecipes(list);
         this.recipesUsed.clear();
     }
 
-    public List<Recipe<?>> getRecipesToAwardAndPopExperience(ServerLevel p_154996_, Vec3 p_154997_) {
+    public List<Recipe<?>> getRecipesToAwardAndPopExperience(ServerLevel pLevel, Vec3 pPopVec) {
         List<Recipe<?>> list = Lists.newArrayList();
 
         for (Object2IntMap.Entry<ResourceLocation> entry : this.recipesUsed.object2IntEntrySet()) {
-            p_154996_.getRecipeManager().byKey(entry.getKey()).ifPresent((p_155023_) -> {
+            pLevel.getRecipeManager().byKey(entry.getKey()).ifPresent((p_155023_) -> {
                 list.add(p_155023_);
-                createExperience(p_154996_, p_154997_, entry.getIntValue(), ((AbstractCookingRecipe) p_155023_).getExperience());
+                createExperience(pLevel, pPopVec, entry.getIntValue(), ((AbstractCookingRecipe) p_155023_).getExperience());
             });
         }
 
         return list;
     }
 
-    private static void createExperience(ServerLevel p_154999_, Vec3 p_155000_, int p_155001_, float p_155002_) {
-        int i = Mth.floor((float) p_155001_ * p_155002_);
-        float f = Mth.frac((float) p_155001_ * p_155002_);
+    private static void createExperience(ServerLevel pLevel, Vec3 pPopVec, int pRecipeIndex, float pExperience) {
+        int i = Mth.floor((float) pRecipeIndex * pExperience);
+        float f = Mth.frac((float) pRecipeIndex * pExperience);
         if (f != 0.0F && Math.random() < (double) f) {
             ++i;
         }
 
-        ExperienceOrb.award(p_154999_, p_155000_, i);
+        ExperienceOrb.award(pLevel, pPopVec, i);
     }
 
-    public void fillStackedContents(StackedContents p_58342_) {
+    public void fillStackedContents(StackedContents pHelper) {
         for (ItemStack itemstack : this.items) {
-            p_58342_.accountStack(itemstack);
+            pHelper.accountStack(itemstack);
         }
     }
 }

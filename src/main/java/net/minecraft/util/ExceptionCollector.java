@@ -6,11 +6,11 @@ public class ExceptionCollector<T extends Throwable> {
     @Nullable
     private T result;
 
-    public void add(T p_13654_) {
+    public void add(T pException) {
         if (this.result == null) {
-            this.result = p_13654_;
+            this.result = pException;
         } else {
-            this.result.addSuppressed(p_13654_);
+            this.result.addSuppressed(pException);
         }
     }
 

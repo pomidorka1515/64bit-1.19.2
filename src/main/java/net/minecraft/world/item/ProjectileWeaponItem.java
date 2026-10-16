@@ -13,8 +13,8 @@ public abstract class ProjectileWeaponItem extends Item {
         return p_43015_.is(Items.FIREWORK_ROCKET);
     });
 
-    public ProjectileWeaponItem(Item.Properties p_43009_) {
-        super(p_43009_);
+    public ProjectileWeaponItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
     public Predicate<ItemStack> getSupportedHeldProjectiles() {
@@ -23,11 +23,11 @@ public abstract class ProjectileWeaponItem extends Item {
 
     public abstract Predicate<ItemStack> getAllSupportedProjectiles();
 
-    public static ItemStack getHeldProjectile(LivingEntity p_43011_, Predicate<ItemStack> p_43012_) {
-        if (p_43012_.test(p_43011_.getItemInHand(InteractionHand.OFF_HAND))) {
-            return p_43011_.getItemInHand(InteractionHand.OFF_HAND);
+    public static ItemStack getHeldProjectile(LivingEntity pShooter, Predicate<ItemStack> pIsAmmo) {
+        if (pIsAmmo.test(pShooter.getItemInHand(InteractionHand.OFF_HAND))) {
+            return pShooter.getItemInHand(InteractionHand.OFF_HAND);
         } else {
-            return p_43012_.test(p_43011_.getItemInHand(InteractionHand.MAIN_HAND)) ? p_43011_.getItemInHand(InteractionHand.MAIN_HAND) : ItemStack.EMPTY;
+            return pIsAmmo.test(pShooter.getItemInHand(InteractionHand.MAIN_HAND)) ? pShooter.getItemInHand(InteractionHand.MAIN_HAND) : ItemStack.EMPTY;
         }
     }
 

@@ -74,29 +74,29 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
     public static final int PLAYERNAME_COLOR = FastColor.ARGB32.color(255, 255, 255, 255);
     public static final int PLAYER_STATUS_COLOR = FastColor.ARGB32.color(140, 255, 255, 255);
 
-    public PlayerEntry(final Minecraft p_243293_, final SocialInteractionsScreen p_243214_, UUID p_243288_, String p_243311_, Supplier<ResourceLocation> p_243309_, boolean p_243297_) {
-        this.minecraft = p_243293_;
-        this.id = p_243288_;
-        this.playerName = p_243311_;
-        this.skinGetter = p_243309_;
-        ReportingContext reportingcontext = p_243293_.getReportingContext();
+    public PlayerEntry(final Minecraft pMinecraft, final SocialInteractionsScreen pSocialInteractionsScreen, UUID pId, String pPlayerName, Supplier<ResourceLocation> pSkinGetter, boolean pPlayerReportable) {
+        this.minecraft = pMinecraft;
+        this.id = pId;
+        this.playerName = pPlayerName;
+        this.skinGetter = pSkinGetter;
+        ReportingContext reportingcontext = pMinecraft.getReportingContext();
         this.reportingEnabled = reportingcontext.sender().isEnabled();
-        this.playerReportable = p_243297_;
-        final Component component = Component.translatable("gui.socialInteractions.narration.hide", p_243311_);
-        final Component component1 = Component.translatable("gui.socialInteractions.narration.show", p_243311_);
-        this.hideTooltip = p_243293_.font.split(HIDE_TEXT_TOOLTIP, 150);
-        this.showTooltip = p_243293_.font.split(SHOW_TEXT_TOOLTIP, 150);
-        this.reportTooltip = p_243293_.font.split(this.getReportButtonText(false), 150);
-        PlayerSocialManager playersocialmanager = p_243293_.getPlayerSocialManager();
-        boolean flag = p_243293_.getChatStatus().isChatAllowed(p_243293_.isLocalServer());
-        boolean flag1 = !p_243293_.player.getUUID().equals(p_243288_);
-        if (flag1 && flag && !playersocialmanager.isBlocked(p_243288_)) {
-            this.reportButton = new ImageButton(0, 0, 20, 20, 0, 0, 20, REPORT_BUTTON_LOCATION, 64, 64, (p_238875_) -> { p_243293_.setScreen(new ChatReportScreen(p_243293_.screen, reportingcontext, p_243288_)); }, new Button.OnTooltip() {
+        this.playerReportable = pPlayerReportable;
+        final Component component = Component.translatable("gui.socialInteractions.narration.hide", pPlayerName);
+        final Component component1 = Component.translatable("gui.socialInteractions.narration.show", pPlayerName);
+        this.hideTooltip = pMinecraft.font.split(HIDE_TEXT_TOOLTIP, 150);
+        this.showTooltip = pMinecraft.font.split(SHOW_TEXT_TOOLTIP, 150);
+        this.reportTooltip = pMinecraft.font.split(this.getReportButtonText(false), 150);
+        PlayerSocialManager playersocialmanager = pMinecraft.getPlayerSocialManager();
+        boolean flag = pMinecraft.getChatStatus().isChatAllowed(pMinecraft.isLocalServer());
+        boolean flag1 = !pMinecraft.player.getUUID().equals(pId);
+        if (flag1 && flag && !playersocialmanager.isBlocked(pId)) {
+            this.reportButton = new ImageButton(0, 0, 20, 20, 0, 0, 20, REPORT_BUTTON_LOCATION, 64, 64, (p_238875_) -> { pMinecraft.setScreen(new ChatReportScreen(pMinecraft.screen, reportingcontext, pId)); }, new Button.OnTooltip() {
             public void onTooltip(Button p_170090_, PoseStack p_170091_, int p_170092_, int p_170093_) {
-               PlayerEntry.this.tooltipHoverTime += p_243293_.getDeltaFrameTime();
+               PlayerEntry.this.tooltipHoverTime += pMinecraft.getDeltaFrameTime();
                if (PlayerEntry.this.tooltipHoverTime >= 10.0F) {
-                  p_243214_.setPostRenderRunnable(() -> {
-                     PlayerEntry.postRenderTooltip(p_243214_, p_170091_, PlayerEntry.this.reportTooltip, p_170092_, p_170093_);
+                  pSocialInteractionsScreen.setPostRenderRunnable(() -> {
+                     PlayerEntry.postRenderTooltip(pSocialInteractionsScreen, p_170091_, PlayerEntry.this.reportTooltip, p_170092_, p_170093_);
                   });
                }
 
@@ -110,13 +110,13 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
                 }
             };
             this.hideButton = new ImageButton(0, 0, 20, 20, 0, 38, 20, SocialInteractionsScreen.SOCIAL_INTERACTIONS_LOCATION, 256, 256, (p_100612_) -> {
-            playersocialmanager.hidePlayer(p_243288_);
-            this.onHiddenOrShown(true, Component.translatable("gui.socialInteractions.hidden_in_chat", p_243311_)); }, new Button.OnTooltip() {
+            playersocialmanager.hidePlayer(pId);
+            this.onHiddenOrShown(true, Component.translatable("gui.socialInteractions.hidden_in_chat", pPlayerName)); }, new Button.OnTooltip() {
             public void onTooltip(Button p_170109_, PoseStack p_170110_, int p_170111_, int p_170112_) {
-               PlayerEntry.this.tooltipHoverTime += p_243293_.getDeltaFrameTime();
+               PlayerEntry.this.tooltipHoverTime += pMinecraft.getDeltaFrameTime();
                if (PlayerEntry.this.tooltipHoverTime >= 10.0F) {
-                  p_243214_.setPostRenderRunnable(() -> {
-                     PlayerEntry.postRenderTooltip(p_243214_, p_170110_, PlayerEntry.this.hideTooltip, p_170111_, p_170112_);
+                  pSocialInteractionsScreen.setPostRenderRunnable(() -> {
+                     PlayerEntry.postRenderTooltip(pSocialInteractionsScreen, p_170110_, PlayerEntry.this.hideTooltip, p_170111_, p_170112_);
                   });
                }
 
@@ -130,13 +130,13 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
                 }
             };
             this.showButton = new ImageButton(0, 0, 20, 20, 20, 38, 20, SocialInteractionsScreen.SOCIAL_INTERACTIONS_LOCATION, 256, 256, (p_170074_) -> {
-            playersocialmanager.showPlayer(p_243288_);
-            this.onHiddenOrShown(false, Component.translatable("gui.socialInteractions.shown_in_chat", p_243311_)); }, new Button.OnTooltip() {
+            playersocialmanager.showPlayer(pId);
+            this.onHiddenOrShown(false, Component.translatable("gui.socialInteractions.shown_in_chat", pPlayerName)); }, new Button.OnTooltip() {
             public void onTooltip(Button p_239193_, PoseStack p_239194_, int p_239195_, int p_239196_) {
-               PlayerEntry.this.tooltipHoverTime += p_243293_.getDeltaFrameTime();
+               PlayerEntry.this.tooltipHoverTime += pMinecraft.getDeltaFrameTime();
                if (PlayerEntry.this.tooltipHoverTime >= 10.0F) {
-                  p_243214_.setPostRenderRunnable(() -> {
-                     PlayerEntry.postRenderTooltip(p_243214_, p_239194_, PlayerEntry.this.showTooltip, p_239195_, p_239196_);
+                  pSocialInteractionsScreen.setPostRenderRunnable(() -> {
+                     PlayerEntry.postRenderTooltip(pSocialInteractionsScreen, p_239194_, PlayerEntry.this.showTooltip, p_239195_, p_239196_);
                   });
                }
 
@@ -149,7 +149,7 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
                     return PlayerEntry.this.getEntryNarationMessage(super.createNarrationMessage());
                 }
             };
-            this.showButton.visible = playersocialmanager.isHidden(p_243288_);
+            this.showButton.visible = playersocialmanager.isHidden(pId);
             this.hideButton.visible = !this.showButton.visible;
             this.reportButton.active = false;
             this.children = ImmutableList.of(this.hideButton, this.showButton, this.reportButton);
@@ -158,7 +158,7 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
         }
     }
 
-    Component getReportButtonText(boolean p_240816_) {
+    Component getReportButtonText(boolean pNarration) {
         if (!this.playerReportable) {
             return NOT_REPORTABLE_TOOLTIP;
         } else if (!this.reportingEnabled) {
@@ -166,43 +166,43 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
         } else if (!this.hasRecentMessages) {
             return Component.translatable("gui.socialInteractions.tooltip.report.no_messages", this.playerName);
         } else {
-            return (Component) (p_240816_ ? Component.translatable("gui.socialInteractions.narration.report", this.playerName) : REPORT_PLAYER_TOOLTIP);
+            return (Component) (pNarration ? Component.translatable("gui.socialInteractions.narration.report", this.playerName) : REPORT_PLAYER_TOOLTIP);
         }
     }
 
-    public void render(PoseStack p_100558_, int p_100559_, int p_100560_, int p_100561_, int p_100562_, int p_100563_, int p_100564_, int p_100565_, boolean p_100566_, float p_100567_) {
-        int i = p_100561_ + 4;
-        int j = p_100560_ + (p_100563_ - 24) / 2;
+    public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+        int i = pLeft + 4;
+        int j = pTop + (pHeight - 24) / 2;
         int k = i + 24 + 4;
         Component component = this.getStatusComponent();
         int l;
         if (component == CommonComponents.EMPTY) {
-            GuiComponent.fill(p_100558_, p_100561_, p_100560_, p_100561_ + p_100562_, p_100560_ + p_100563_, BG_FILL);
-            l = p_100560_ + (p_100563_ - 9) / 2;
+            GuiComponent.fill(pPoseStack, pLeft, pTop, pLeft + pWidth, pTop + pHeight, BG_FILL);
+            l = pTop + (pHeight - 9) / 2;
         } else {
-            GuiComponent.fill(p_100558_, p_100561_, p_100560_, p_100561_ + p_100562_, p_100560_ + p_100563_, BG_FILL_REMOVED);
-            l = p_100560_ + (p_100563_ - (9 + 9)) / 2;
-            this.minecraft.font.draw(p_100558_, component, (float) k, (float) (l + 12), PLAYER_STATUS_COLOR);
+            GuiComponent.fill(pPoseStack, pLeft, pTop, pLeft + pWidth, pTop + pHeight, BG_FILL_REMOVED);
+            l = pTop + (pHeight - (9 + 9)) / 2;
+            this.minecraft.font.draw(pPoseStack, component, (float) k, (float) (l + 12), PLAYER_STATUS_COLOR);
         }
 
         RenderSystem.setShaderTexture(0, this.skinGetter.get());
-        PlayerFaceRenderer.draw(p_100558_, i, j, 24);
-        this.minecraft.font.draw(p_100558_, this.playerName, (float) k, (float) l, PLAYERNAME_COLOR);
+        PlayerFaceRenderer.draw(pPoseStack, i, j, 24);
+        this.minecraft.font.draw(pPoseStack, this.playerName, (float) k, (float) l, PLAYERNAME_COLOR);
         if (this.isRemoved) {
-            GuiComponent.fill(p_100558_, i, j, i + 24, j + 24, SKIN_SHADE);
+            GuiComponent.fill(pPoseStack, i, j, i + 24, j + 24, SKIN_SHADE);
         }
 
         if (this.hideButton != null && this.showButton != null && this.reportButton != null) {
             float f = this.tooltipHoverTime;
-            this.hideButton.x = p_100561_ + (p_100562_ - this.hideButton.getWidth() - 4) - 20 - 4;
-            this.hideButton.y = p_100560_ + (p_100563_ - this.hideButton.getHeight()) / 2;
-            this.hideButton.render(p_100558_, p_100564_, p_100565_, p_100567_);
-            this.showButton.x = p_100561_ + (p_100562_ - this.showButton.getWidth() - 4) - 20 - 4;
-            this.showButton.y = p_100560_ + (p_100563_ - this.showButton.getHeight()) / 2;
-            this.showButton.render(p_100558_, p_100564_, p_100565_, p_100567_);
-            this.reportButton.x = p_100561_ + (p_100562_ - this.showButton.getWidth() - 4);
-            this.reportButton.y = p_100560_ + (p_100563_ - this.showButton.getHeight()) / 2;
-            this.reportButton.render(p_100558_, p_100564_, p_100565_, p_100567_);
+            this.hideButton.x = pLeft + (pWidth - this.hideButton.getWidth() - 4) - 20 - 4;
+            this.hideButton.y = pTop + (pHeight - this.hideButton.getHeight()) / 2;
+            this.hideButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.showButton.x = pLeft + (pWidth - this.showButton.getWidth() - 4) - 20 - 4;
+            this.showButton.y = pTop + (pHeight - this.showButton.getHeight()) / 2;
+            this.showButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.reportButton.x = pLeft + (pWidth - this.showButton.getWidth() - 4);
+            this.reportButton.y = pTop + (pHeight - this.showButton.getHeight()) / 2;
+            this.reportButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             if (f == this.tooltipHoverTime) {
                 this.tooltipHoverTime = 0.0F;
             }
@@ -225,18 +225,18 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
         return this.id;
     }
 
-    public void setRemoved(boolean p_100620_) {
-        this.isRemoved = p_100620_;
+    public void setRemoved(boolean pIsRemoved) {
+        this.isRemoved = pIsRemoved;
     }
 
     public boolean isRemoved() {
         return this.isRemoved;
     }
 
-    public void setHasRecentMessages(boolean p_240771_) {
-        this.hasRecentMessages = p_240771_;
+    public void setHasRecentMessages(boolean pHasRecentMessages) {
+        this.hasRecentMessages = pHasRecentMessages;
         if (this.reportButton != null) {
-            this.reportButton.active = this.reportingEnabled && this.playerReportable && p_240771_;
+            this.reportButton.active = this.reportingEnabled && this.playerReportable && pHasRecentMessages;
         }
 
         this.reportTooltip = this.minecraft.font.split(this.getReportButtonText(false), 150);
@@ -246,16 +246,16 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
         return this.hasRecentMessages;
     }
 
-    private void onHiddenOrShown(boolean p_100597_, Component p_100598_) {
-        this.showButton.visible = p_100597_;
-        this.hideButton.visible = !p_100597_;
-        this.minecraft.gui.getChat().addMessage(p_100598_);
-        this.minecraft.getNarrator().sayNow(p_100598_);
+    private void onHiddenOrShown(boolean pVisible, Component pMessage) {
+        this.showButton.visible = pVisible;
+        this.hideButton.visible = !pVisible;
+        this.minecraft.gui.getChat().addMessage(pMessage);
+        this.minecraft.getNarrator().sayNow(pMessage);
     }
 
-    MutableComponent getEntryNarationMessage(MutableComponent p_100595_) {
+    MutableComponent getEntryNarationMessage(MutableComponent pComponent) {
         Component component = this.getStatusComponent();
-        return component == CommonComponents.EMPTY ? Component.literal(this.playerName).append(", ").append(p_100595_) : Component.literal(this.playerName).append(", ").append(component).append(", ").append(p_100595_);
+        return component == CommonComponents.EMPTY ? Component.literal(this.playerName).append(", ").append(pComponent) : Component.literal(this.playerName).append(", ").append(component).append(", ").append(pComponent);
     }
 
     private Component getStatusComponent() {
@@ -274,8 +274,8 @@ public class PlayerEntry extends ContainerObjectSelectionList.Entry<PlayerEntry>
         }
     }
 
-    static void postRenderTooltip(SocialInteractionsScreen p_100589_, PoseStack p_100590_, List<FormattedCharSequence> p_100591_, int p_100592_, int p_100593_) {
-        p_100589_.renderTooltip(p_100590_, p_100591_, p_100592_, p_100593_);
-        p_100589_.setPostRenderRunnable((Runnable) null);
+    static void postRenderTooltip(SocialInteractionsScreen pSocialInteractionsScreen, PoseStack pPoseStack, List<FormattedCharSequence> pTooltips, int pMouseX, int pMouseY) {
+        pSocialInteractionsScreen.renderTooltip(pPoseStack, pTooltips, pMouseX, pMouseY);
+        pSocialInteractionsScreen.setPostRenderRunnable((Runnable) null);
     }
 }

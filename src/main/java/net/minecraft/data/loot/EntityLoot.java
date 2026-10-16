@@ -51,8 +51,8 @@ public class EntityLoot implements Consumer<BiConsumer<ResourceLocation, LootTab
     private static final Set<EntityType<?>> SPECIAL_LOOT_TABLE_TYPES = ImmutableSet.of(EntityType.PLAYER, EntityType.ARMOR_STAND, EntityType.IRON_GOLEM, EntityType.SNOW_GOLEM, EntityType.VILLAGER);
     private final Map<ResourceLocation, LootTable.Builder> map = Maps.newHashMap();
 
-    private static LootTable.Builder createSheepTable(ItemLike p_124375_) {
-        return LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(p_124375_))).withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootTableReference.lootTableReference(EntityType.SHEEP.getDefaultLootTable())));
+    private static LootTable.Builder createSheepTable(ItemLike pWool) {
+        return LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(pWool))).withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootTableReference.lootTableReference(EntityType.SHEEP.getDefaultLootTable())));
     }
 
     public void accept(BiConsumer<ResourceLocation, LootTable.Builder> p_124377_) {
@@ -180,11 +180,11 @@ public class EntityLoot implements Consumer<BiConsumer<ResourceLocation, LootTab
         return DamageSourceCondition.hasDamageSource(DamageSourcePredicate.Builder.damageType().source(EntityPredicate.Builder.entity().of(EntityType.FROG).subPredicate(EntitySubPredicate.variant(p_236266_))));
     }
 
-    private void add(EntityType<?> p_124372_, LootTable.Builder p_124373_) {
-        this.add(p_124372_.getDefaultLootTable(), p_124373_);
+    private void add(EntityType<?> pEntityType, LootTable.Builder pLootTableBuilder) {
+        this.add(pEntityType.getDefaultLootTable(), pLootTableBuilder);
     }
 
-    private void add(ResourceLocation p_124381_, LootTable.Builder p_124382_) {
-        this.map.put(p_124381_, p_124382_);
+    private void add(ResourceLocation pLootTableId, LootTable.Builder pLootTableBuilder) {
+        this.map.put(pLootTableId, pLootTableBuilder);
     }
 }

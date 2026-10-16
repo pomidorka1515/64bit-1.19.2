@@ -39,19 +39,19 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
     public boolean crouching;
     public float swimAmount;
 
-    public HumanoidModel(ModelPart p_170677_) {
-        this(p_170677_, RenderType::entityCutoutNoCull);
+    public HumanoidModel(ModelPart pRoot) {
+        this(pRoot, RenderType::entityCutoutNoCull);
     }
 
-    public HumanoidModel(ModelPart p_170679_, Function<ResourceLocation, RenderType> p_170680_) {
-        super(p_170680_, true, 16.0F, 0.0F, 2.0F, 2.0F, 24.0F);
-        this.head = p_170679_.getChild("head");
-        this.hat = p_170679_.getChild("hat");
-        this.body = p_170679_.getChild("body");
-        this.rightArm = p_170679_.getChild("right_arm");
-        this.leftArm = p_170679_.getChild("left_arm");
-        this.rightLeg = p_170679_.getChild("right_leg");
-        this.leftLeg = p_170679_.getChild("left_leg");
+    public HumanoidModel(ModelPart pRoot, Function<ResourceLocation, RenderType> pRenderType) {
+        super(pRenderType, true, 16.0F, 0.0F, 2.0F, 2.0F, 24.0F);
+        this.head = pRoot.getChild("head");
+        this.hat = pRoot.getChild("hat");
+        this.body = pRoot.getChild("body");
+        this.rightArm = pRoot.getChild("right_arm");
+        this.leftArm = pRoot.getChild("left_arm");
+        this.rightLeg = pRoot.getChild("right_leg");
+        this.leftLeg = pRoot.getChild("left_leg");
     }
 
     public static MeshDefinition createMesh(CubeDeformation p_170682_, float p_170683_) {
@@ -75,25 +75,25 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
         return ImmutableList.of(this.body, this.rightArm, this.leftArm, this.rightLeg, this.leftLeg, this.hat);
     }
 
-    public void prepareMobModel(T p_102861_, float p_102862_, float p_102863_, float p_102864_) {
-        this.swimAmount = p_102861_.getSwimAmount(p_102864_);
-        super.prepareMobModel(p_102861_, p_102862_, p_102863_, p_102864_);
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        this.swimAmount = pEntity.getSwimAmount(pPartialTick);
+        super.prepareMobModel(pEntity, pLimbSwing, pLimbSwingAmount, pPartialTick);
     }
 
-    public void setupAnim(T p_102866_, float p_102867_, float p_102868_, float p_102869_, float p_102870_, float p_102871_) {
-        boolean flag = p_102866_.getFallFlyingTicks() > 4;
-        boolean flag1 = p_102866_.isVisuallySwimming();
-        this.head.yRot = p_102870_ * ((float) Math.PI / 180F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        boolean flag = pEntity.getFallFlyingTicks() > 4;
+        boolean flag1 = pEntity.isVisuallySwimming();
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
         if (flag) {
             this.head.xRot = (-(float) Math.PI / 4F);
         } else if (this.swimAmount > 0.0F) {
             if (flag1) {
                 this.head.xRot = this.rotlerpRad(this.swimAmount, this.head.xRot, (-(float) Math.PI / 4F));
             } else {
-                this.head.xRot = this.rotlerpRad(this.swimAmount, this.head.xRot, p_102871_ * ((float) Math.PI / 180F));
+                this.head.xRot = this.rotlerpRad(this.swimAmount, this.head.xRot, pHeadPitch * ((float) Math.PI / 180F));
             }
         } else {
-            this.head.xRot = p_102871_ * ((float) Math.PI / 180F);
+            this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
         }
 
         this.body.yRot = 0.0F;
@@ -103,7 +103,7 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
         this.leftArm.x = 5.0F;
         float f = 1.0F;
         if (flag) {
-            f = (float) p_102866_.getDeltaMovement().lengthSqr();
+            f = (float) pEntity.getDeltaMovement().lengthSqr();
             f /= 0.2F;
             f *= f * f;
         }
@@ -112,12 +112,12 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
             f = 1.0F;
         }
 
-        this.rightArm.xRot = Mth.cos(p_102867_ * 0.6662F + (float) Math.PI) * 2.0F * p_102868_ * 0.5F / f;
-        this.leftArm.xRot = Mth.cos(p_102867_ * 0.6662F) * 2.0F * p_102868_ * 0.5F / f;
+        this.rightArm.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * 2.0F * pLimbSwingAmount * 0.5F / f;
+        this.leftArm.xRot = Mth.cos(pLimbSwing * 0.6662F) * 2.0F * pLimbSwingAmount * 0.5F / f;
         this.rightArm.zRot = 0.0F;
         this.leftArm.zRot = 0.0F;
-        this.rightLeg.xRot = Mth.cos(p_102867_ * 0.6662F) * 1.4F * p_102868_ / f;
-        this.leftLeg.xRot = Mth.cos(p_102867_ * 0.6662F + (float) Math.PI) * 1.4F * p_102868_ / f;
+        this.rightLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * 1.4F * pLimbSwingAmount / f;
+        this.leftLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * 1.4F * pLimbSwingAmount / f;
         this.rightLeg.yRot = 0.0F;
         this.leftLeg.yRot = 0.0F;
         this.rightLeg.zRot = 0.0F;
@@ -135,26 +135,26 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
 
         this.rightArm.yRot = 0.0F;
         this.leftArm.yRot = 0.0F;
-        boolean flag2 = p_102866_.getMainArm() == HumanoidArm.RIGHT;
-        if (p_102866_.isUsingItem()) {
-            boolean flag3 = p_102866_.getUsedItemHand() == InteractionHand.MAIN_HAND;
+        boolean flag2 = pEntity.getMainArm() == HumanoidArm.RIGHT;
+        if (pEntity.isUsingItem()) {
+            boolean flag3 = pEntity.getUsedItemHand() == InteractionHand.MAIN_HAND;
             if (flag3 == flag2) {
-                this.poseRightArm(p_102866_);
+                this.poseRightArm(pEntity);
             } else {
-                this.poseLeftArm(p_102866_);
+                this.poseLeftArm(pEntity);
             }
         } else {
             boolean flag4 = flag2 ? this.leftArmPose.isTwoHanded() : this.rightArmPose.isTwoHanded();
             if (flag2 != flag4) {
-                this.poseLeftArm(p_102866_);
-                this.poseRightArm(p_102866_);
+                this.poseLeftArm(pEntity);
+                this.poseRightArm(pEntity);
             } else {
-                this.poseRightArm(p_102866_);
-                this.poseLeftArm(p_102866_);
+                this.poseRightArm(pEntity);
+                this.poseLeftArm(pEntity);
             }
         }
 
-        this.setupAttackAnimation(p_102866_, p_102869_);
+        this.setupAttackAnimation(pEntity, pAgeInTicks);
         if (this.crouching) {
             this.body.xRot = 0.5F;
             this.rightArm.xRot += 0.4F;
@@ -180,19 +180,19 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
         }
 
         if (this.rightArmPose != HumanoidModel.ArmPose.SPYGLASS) {
-            AnimationUtils.bobModelPart(this.rightArm, p_102869_, 1.0F);
+            AnimationUtils.bobModelPart(this.rightArm, pAgeInTicks, 1.0F);
         }
 
         if (this.leftArmPose != HumanoidModel.ArmPose.SPYGLASS) {
-            AnimationUtils.bobModelPart(this.leftArm, p_102869_, -1.0F);
+            AnimationUtils.bobModelPart(this.leftArm, pAgeInTicks, -1.0F);
         }
 
         if (this.swimAmount > 0.0F) {
-            float f5 = p_102867_ % 26.0F;
-            HumanoidArm humanoidarm = this.getAttackArm(p_102866_);
+            float f5 = pLimbSwing % 26.0F;
+            HumanoidArm humanoidarm = this.getAttackArm(pEntity);
             float f1 = humanoidarm == HumanoidArm.RIGHT && this.attackTime > 0.0F ? 0.0F : this.swimAmount;
             float f2 = humanoidarm == HumanoidArm.LEFT && this.attackTime > 0.0F ? 0.0F : this.swimAmount;
-            if (!p_102866_.isUsingItem()) {
+            if (!pEntity.isUsingItem()) {
                 if (f5 < 14.0F) {
                     this.leftArm.xRot = this.rotlerpRad(f2, this.leftArm.xRot, 0.0F);
                     this.rightArm.xRot = Mth.lerp(f1, this.rightArm.xRot, 0.0F);
@@ -221,14 +221,14 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
 
             float f7 = 0.3F;
             float f4 = 0.33333334F;
-            this.leftLeg.xRot = Mth.lerp(this.swimAmount, this.leftLeg.xRot, 0.3F * Mth.cos(p_102867_ * 0.33333334F + (float) Math.PI));
-            this.rightLeg.xRot = Mth.lerp(this.swimAmount, this.rightLeg.xRot, 0.3F * Mth.cos(p_102867_ * 0.33333334F));
+            this.leftLeg.xRot = Mth.lerp(this.swimAmount, this.leftLeg.xRot, 0.3F * Mth.cos(pLimbSwing * 0.33333334F + (float) Math.PI));
+            this.rightLeg.xRot = Mth.lerp(this.swimAmount, this.rightLeg.xRot, 0.3F * Mth.cos(pLimbSwing * 0.33333334F));
         }
 
         this.hat.copyFrom(this.head);
     }
 
-    private void poseRightArm(T p_102876_) {
+    private void poseRightArm(T pLivingEntity) {
         switch (this.rightArmPose) {
             case EMPTY:
                 this.rightArm.yRot = 0.0F;
@@ -252,13 +252,13 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
                 this.leftArm.xRot = (-(float) Math.PI / 2F) + this.head.xRot;
                 break;
             case CROSSBOW_CHARGE:
-                AnimationUtils.animateCrossbowCharge(this.rightArm, this.leftArm, p_102876_, true);
+                AnimationUtils.animateCrossbowCharge(this.rightArm, this.leftArm, pLivingEntity, true);
                 break;
             case CROSSBOW_HOLD:
                 AnimationUtils.animateCrossbowHold(this.rightArm, this.leftArm, this.head, true);
                 break;
             case SPYGLASS:
-                this.rightArm.xRot = Mth.clamp(this.head.xRot - 1.9198622F - (p_102876_.isCrouching() ? 0.2617994F : 0.0F), -2.4F, 3.3F);
+                this.rightArm.xRot = Mth.clamp(this.head.xRot - 1.9198622F - (pLivingEntity.isCrouching() ? 0.2617994F : 0.0F), -2.4F, 3.3F);
                 this.rightArm.yRot = this.head.yRot - 0.2617994F;
                 break;
             case TOOT_HORN:
@@ -267,7 +267,7 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
         }
     }
 
-    private void poseLeftArm(T p_102879_) {
+    private void poseLeftArm(T pLivingEntity) {
         switch (this.leftArmPose) {
             case EMPTY:
                 this.leftArm.yRot = 0.0F;
@@ -291,13 +291,13 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
                 this.leftArm.xRot = (-(float) Math.PI / 2F) + this.head.xRot;
                 break;
             case CROSSBOW_CHARGE:
-                AnimationUtils.animateCrossbowCharge(this.rightArm, this.leftArm, p_102879_, false);
+                AnimationUtils.animateCrossbowCharge(this.rightArm, this.leftArm, pLivingEntity, false);
                 break;
             case CROSSBOW_HOLD:
                 AnimationUtils.animateCrossbowHold(this.rightArm, this.leftArm, this.head, false);
                 break;
             case SPYGLASS:
-                this.leftArm.xRot = Mth.clamp(this.head.xRot - 1.9198622F - (p_102879_.isCrouching() ? 0.2617994F : 0.0F), -2.4F, 3.3F);
+                this.leftArm.xRot = Mth.clamp(this.head.xRot - 1.9198622F - (pLivingEntity.isCrouching() ? 0.2617994F : 0.0F), -2.4F, 3.3F);
                 this.leftArm.yRot = this.head.yRot + 0.2617994F;
                 break;
             case TOOT_HORN:
@@ -306,9 +306,9 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
         }
     }
 
-    protected void setupAttackAnimation(T p_102858_, float p_102859_) {
+    protected void setupAttackAnimation(T pLivingEntity, float pAgeInTicks) {
         if (!(this.attackTime <= 0.0F)) {
-            HumanoidArm humanoidarm = this.getAttackArm(p_102858_);
+            HumanoidArm humanoidarm = this.getAttackArm(pLivingEntity);
             ModelPart modelpart = this.getArm(humanoidarm);
             float f = this.attackTime;
             this.body.yRot = Mth.sin(Mth.sqrt(f) * ((float) Math.PI * 2F)) * 0.2F;
@@ -335,8 +335,8 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
         }
     }
 
-    protected float rotlerpRad(float p_102836_, float p_102837_, float p_102838_) {
-        float f = (p_102838_ - p_102837_) % ((float) Math.PI * 2F);
+    protected float rotlerpRad(float pAngle, float pMaxAngle, float pMul) {
+        float f = (pMul - pMaxAngle) % ((float) Math.PI * 2F);
         if (f < -(float) Math.PI) {
             f += ((float) Math.PI * 2F);
         }
@@ -345,52 +345,52 @@ public class HumanoidModel<T extends LivingEntity> extends AgeableListModel<T> i
             f -= ((float) Math.PI * 2F);
         }
 
-        return p_102837_ + p_102836_ * f;
+        return pMaxAngle + pAngle * f;
     }
 
-    private float quadraticArmUpdate(float p_102834_) {
-        return -65.0F * p_102834_ + p_102834_ * p_102834_;
+    private float quadraticArmUpdate(float pLimbSwing) {
+        return -65.0F * pLimbSwing + pLimbSwing * pLimbSwing;
     }
 
-    public void copyPropertiesTo(HumanoidModel<T> p_102873_) {
-        super.copyPropertiesTo(p_102873_);
-        p_102873_.leftArmPose = this.leftArmPose;
-        p_102873_.rightArmPose = this.rightArmPose;
-        p_102873_.crouching = this.crouching;
-        p_102873_.head.copyFrom(this.head);
-        p_102873_.hat.copyFrom(this.hat);
-        p_102873_.body.copyFrom(this.body);
-        p_102873_.rightArm.copyFrom(this.rightArm);
-        p_102873_.leftArm.copyFrom(this.leftArm);
-        p_102873_.rightLeg.copyFrom(this.rightLeg);
-        p_102873_.leftLeg.copyFrom(this.leftLeg);
+    public void copyPropertiesTo(HumanoidModel<T> pModel) {
+        super.copyPropertiesTo(pModel);
+        pModel.leftArmPose = this.leftArmPose;
+        pModel.rightArmPose = this.rightArmPose;
+        pModel.crouching = this.crouching;
+        pModel.head.copyFrom(this.head);
+        pModel.hat.copyFrom(this.hat);
+        pModel.body.copyFrom(this.body);
+        pModel.rightArm.copyFrom(this.rightArm);
+        pModel.leftArm.copyFrom(this.leftArm);
+        pModel.rightLeg.copyFrom(this.rightLeg);
+        pModel.leftLeg.copyFrom(this.leftLeg);
     }
 
-    public void setAllVisible(boolean p_102880_) {
-        this.head.visible = p_102880_;
-        this.hat.visible = p_102880_;
-        this.body.visible = p_102880_;
-        this.rightArm.visible = p_102880_;
-        this.leftArm.visible = p_102880_;
-        this.rightLeg.visible = p_102880_;
-        this.leftLeg.visible = p_102880_;
+    public void setAllVisible(boolean pVisible) {
+        this.head.visible = pVisible;
+        this.hat.visible = pVisible;
+        this.body.visible = pVisible;
+        this.rightArm.visible = pVisible;
+        this.leftArm.visible = pVisible;
+        this.rightLeg.visible = pVisible;
+        this.leftLeg.visible = pVisible;
     }
 
-    public void translateToHand(HumanoidArm p_102854_, PoseStack p_102855_) {
-        this.getArm(p_102854_).translateAndRotate(p_102855_);
+    public void translateToHand(HumanoidArm pSide, PoseStack pPoseStack) {
+        this.getArm(pSide).translateAndRotate(pPoseStack);
     }
 
-    protected ModelPart getArm(HumanoidArm p_102852_) {
-        return p_102852_ == HumanoidArm.LEFT ? this.leftArm : this.rightArm;
+    protected ModelPart getArm(HumanoidArm pSide) {
+        return pSide == HumanoidArm.LEFT ? this.leftArm : this.rightArm;
     }
 
     public ModelPart getHead() {
         return this.head;
     }
 
-    private HumanoidArm getAttackArm(T p_102857_) {
-        HumanoidArm humanoidarm = p_102857_.getMainArm();
-        return p_102857_.swingingArm == InteractionHand.MAIN_HAND ? humanoidarm : humanoidarm.getOpposite();
+    private HumanoidArm getAttackArm(T pEntity) {
+        HumanoidArm humanoidarm = pEntity.getMainArm();
+        return pEntity.swingingArm == InteractionHand.MAIN_HAND ? humanoidarm : humanoidarm.getOpposite();
     }
 
     @OnlyIn(Dist.CLIENT)

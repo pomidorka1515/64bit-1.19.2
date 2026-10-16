@@ -25,10 +25,10 @@ public class CanyonCarverConfiguration extends CarverConfiguration {
     public final FloatProvider verticalRotation;
     public final CanyonCarverConfiguration.CanyonShapeConfiguration shape;
 
-    public CanyonCarverConfiguration(float p_224788_, HeightProvider p_224789_, FloatProvider p_224790_, VerticalAnchor p_224791_, CarverDebugSettings p_224792_, HolderSet<Block> p_224793_, FloatProvider p_224794_, CanyonCarverConfiguration.CanyonShapeConfiguration p_224795_) {
-        super(p_224788_, p_224789_, p_224790_, p_224791_, p_224792_, p_224793_);
-        this.verticalRotation = p_224794_;
-        this.shape = p_224795_;
+    public CanyonCarverConfiguration(float pProbability, HeightProvider pY, FloatProvider pYScale, VerticalAnchor pLavaLevel, CarverDebugSettings pDebugSettings, HolderSet<Block> pReplaceable, FloatProvider pVerticalRotation, CanyonCarverConfiguration.CanyonShapeConfiguration pShape) {
+        super(pProbability, pY, pYScale, pLavaLevel, pDebugSettings, pReplaceable);
+        this.verticalRotation = pVerticalRotation;
+        this.shape = pShape;
     }
 
     public CanyonCarverConfiguration(CarverConfiguration p_158980_, FloatProvider p_158981_, CanyonCarverConfiguration.CanyonShapeConfiguration p_158982_) {

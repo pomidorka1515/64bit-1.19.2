@@ -8,9 +8,9 @@ public abstract class AbstractCriterionTriggerInstance implements CriterionTrigg
     private final ResourceLocation criterion;
     private final EntityPredicate.Composite player;
 
-    public AbstractCriterionTriggerInstance(ResourceLocation p_16975_, EntityPredicate.Composite p_16976_) {
-        this.criterion = p_16975_;
-        this.player = p_16976_;
+    public AbstractCriterionTriggerInstance(ResourceLocation pCriterion, EntityPredicate.Composite pPlayer) {
+        this.criterion = pCriterion;
+        this.player = pPlayer;
     }
 
     public ResourceLocation getCriterion() {
@@ -21,9 +21,9 @@ public abstract class AbstractCriterionTriggerInstance implements CriterionTrigg
         return this.player;
     }
 
-    public JsonObject serializeToJson(SerializationContext p_16979_) {
+    public JsonObject serializeToJson(SerializationContext pConditions) {
         JsonObject jsonobject = new JsonObject();
-        jsonobject.add("player", this.player.toJson(p_16979_));
+        jsonobject.add("player", this.player.toJson(pConditions));
         return jsonobject;
     }
 

@@ -50,20 +50,20 @@ public class SurfaceSystem {
     private final NormalNoise surfaceNoise;
     private final NormalNoise surfaceSecondaryNoise;
 
-    public SurfaceSystem(RandomState p_224637_, BlockState p_224638_, int p_224639_, PositionalRandomFactory p_224640_) {
-        this.defaultBlock = p_224638_;
-        this.seaLevel = p_224639_;
-        this.noiseRandom = p_224640_;
-        this.clayBandsOffsetNoise = p_224637_.getOrCreateNoise(Noises.CLAY_BANDS_OFFSET);
-        this.clayBands = generateBands(p_224640_.fromHashOf(new ResourceLocation("clay_bands")));
-        this.surfaceNoise = p_224637_.getOrCreateNoise(Noises.SURFACE);
-        this.surfaceSecondaryNoise = p_224637_.getOrCreateNoise(Noises.SURFACE_SECONDARY);
-        this.badlandsPillarNoise = p_224637_.getOrCreateNoise(Noises.BADLANDS_PILLAR);
-        this.badlandsPillarRoofNoise = p_224637_.getOrCreateNoise(Noises.BADLANDS_PILLAR_ROOF);
-        this.badlandsSurfaceNoise = p_224637_.getOrCreateNoise(Noises.BADLANDS_SURFACE);
-        this.icebergPillarNoise = p_224637_.getOrCreateNoise(Noises.ICEBERG_PILLAR);
-        this.icebergPillarRoofNoise = p_224637_.getOrCreateNoise(Noises.ICEBERG_PILLAR_ROOF);
-        this.icebergSurfaceNoise = p_224637_.getOrCreateNoise(Noises.ICEBERG_SURFACE);
+    public SurfaceSystem(RandomState pRandomState, BlockState pDefaultBlock, int pSeaLevel, PositionalRandomFactory pNoiseRandom) {
+        this.defaultBlock = pDefaultBlock;
+        this.seaLevel = pSeaLevel;
+        this.noiseRandom = pNoiseRandom;
+        this.clayBandsOffsetNoise = pRandomState.getOrCreateNoise(Noises.CLAY_BANDS_OFFSET);
+        this.clayBands = generateBands(pNoiseRandom.fromHashOf(new ResourceLocation("clay_bands")));
+        this.surfaceNoise = pRandomState.getOrCreateNoise(Noises.SURFACE);
+        this.surfaceSecondaryNoise = pRandomState.getOrCreateNoise(Noises.SURFACE_SECONDARY);
+        this.badlandsPillarNoise = pRandomState.getOrCreateNoise(Noises.BADLANDS_PILLAR);
+        this.badlandsPillarRoofNoise = pRandomState.getOrCreateNoise(Noises.BADLANDS_PILLAR_ROOF);
+        this.badlandsSurfaceNoise = pRandomState.getOrCreateNoise(Noises.BADLANDS_SURFACE);
+        this.icebergPillarNoise = pRandomState.getOrCreateNoise(Noises.ICEBERG_PILLAR);
+        this.icebergPillarRoofNoise = pRandomState.getOrCreateNoise(Noises.ICEBERG_PILLAR_ROOF);
+        this.icebergSurfaceNoise = pRandomState.getOrCreateNoise(Noises.ICEBERG_SURFACE);
     }
 
     public void buildSurface(RandomState p_224649_, BiomeManager p_224650_, Registry<Biome> p_224651_, boolean p_224652_, WorldGenerationContext p_224653_, final ChunkAccess p_224654_, NoiseChunk p_224655_, SurfaceRules.RuleSource p_224656_) {
@@ -184,8 +184,8 @@ public class SurfaceSystem {
         return WorldBounds.clampBuildHeight(height, minBuildHeight, maxBuildHeight);
     }
 
-    private boolean isStone(BlockState p_189953_) {
-        return !p_189953_.isAir() && p_189953_.getFluidState().isEmpty();
+    private boolean isStone(BlockState pState) {
+        return !pState.isAir() && pState.getFluidState().isEmpty();
     }
 
     /** @deprecated */

@@ -32,8 +32,8 @@ import org.slf4j.Logger;
 public class ResetChunksCommand {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_183667_) {
-        p_183667_.register(Commands.literal("resetchunks").requires((p_183683_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("resetchunks").requires((p_183683_) -> {
                                                               return p_183683_.hasPermission(2);
                                                           })
                         .executes((p_183693_) -> {
@@ -47,16 +47,16 @@ public class ResetChunksCommand {
                                         }))));
     }
 
-    private static int resetChunks(CommandSourceStack p_183685_, int p_183686_, boolean p_183687_) {
-        ServerLevel serverlevel = p_183685_.getLevel();
+    private static int resetChunks(CommandSourceStack pSource, int pRange, boolean pSkipOldChunks) {
+        ServerLevel serverlevel = pSource.getLevel();
         ServerChunkCache serverchunkcache = serverlevel.getChunkSource();
         serverchunkcache.chunkMap.debugReloadGenerator();
-        net.minecraft.world.phys.SectorVec3 exact = p_183685_.getExactPosition();
+        net.minecraft.world.phys.SectorVec3 exact = pSource.getExactPosition();
         ChunkPos chunkpos = new ChunkPos(net.minecraft.core.SectionPos.blockToSectionCoord(exact.blockX()), net.minecraft.core.SectionPos.blockToSectionCoord(exact.blockZ()));
-        long i = WorldBounds.addChunkOffset(chunkpos.z, -(long) p_183686_);
-        long j = WorldBounds.addChunkOffset(chunkpos.z, p_183686_);
-        long k = WorldBounds.addChunkOffset(chunkpos.x, -(long) p_183686_);
-        long l = WorldBounds.addChunkOffset(chunkpos.x, p_183686_);
+        long i = WorldBounds.addChunkOffset(chunkpos.z, -(long) pRange);
+        long j = WorldBounds.addChunkOffset(chunkpos.z, pRange);
+        long k = WorldBounds.addChunkOffset(chunkpos.x, -(long) pRange);
+        long l = WorldBounds.addChunkOffset(chunkpos.x, pRange);
 
         boolean moreZ = i <= j;
         for (long i1 = i; moreZ; moreZ = i1 < j, i1 = WorldBounds.addChunkOffset(i1, 1L)) {
@@ -64,7 +64,7 @@ public class ResetChunksCommand {
             for (long j1 = k; moreX; moreX = j1 < l, j1 = WorldBounds.addChunkOffset(j1, 1L)) {
                 ChunkPos chunkpos1 = new ChunkPos(j1, i1);
                 LevelChunk levelchunk = serverchunkcache.getChunk(j1, i1, false);
-                if (levelchunk != null && (!p_183687_ || !levelchunk.isOldNoiseGeneration())) {
+                if (levelchunk != null && (!pSkipOldChunks || !levelchunk.isOldNoiseGeneration())) {
                     for (BlockPos blockpos : BlockPos.betweenClosed(chunkpos1.getMinBlockX(), serverlevel.getMinBuildHeight(), chunkpos1.getMinBlockZ(), chunkpos1.getMaxBlockX(), serverlevel.getMaxBuildHeight() - 1, chunkpos1.getMaxBlockZ())) {
                         serverlevel.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 16);
                     }
@@ -74,7 +74,7 @@ public class ResetChunksCommand {
 
         ProcessorMailbox<Runnable> processormailbox = ProcessorMailbox.create(Util.backgroundExecutor(), "worldgen-resetchunks");
         long j3 = System.currentTimeMillis();
-        int k3 = (p_183686_ * 2 + 1) * (p_183686_ * 2 + 1);
+        int k3 = (pRange * 2 + 1) * (pRange * 2 + 1);
 
         for (ChunkStatus chunkstatus : ImmutableList.of(ChunkStatus.BIOMES, ChunkStatus.NOISE, ChunkStatus.SURFACE, ChunkStatus.CARVERS, ChunkStatus.LIQUID_CARVERS, ChunkStatus.FEATURES)) {
             long k1 = System.currentTimeMillis();
@@ -88,7 +88,7 @@ public class ResetChunksCommand {
                 for (long j2 = k; moreStageX; moreStageX = j2 < l, j2 = WorldBounds.addChunkOffset(j2, 1L)) {
                     ChunkPos chunkpos2 = new ChunkPos(j2, i2);
                     LevelChunk levelchunk1 = serverchunkcache.getChunk(j2, i2, false);
-                    if (levelchunk1 != null && (!p_183687_ || !levelchunk1.isOldNoiseGeneration())) {
+                    if (levelchunk1 != null && (!pSkipOldChunks || !levelchunk1.isOldNoiseGeneration())) {
                         List<ChunkAccess> list = Lists.newArrayList();
                         int k2 = Math.max(1, chunkstatus.getRange());
 
@@ -128,7 +128,7 @@ public class ResetChunksCommand {
                 }
             }
 
-            p_183685_.getServer().managedBlock(completablefuture::isDone);
+            pSource.getServer().managedBlock(completablefuture::isDone);
             LOGGER.debug(chunkstatus.getName() + " took " + (System.currentTimeMillis() - k1) + " ms");
         }
 
@@ -140,7 +140,7 @@ public class ResetChunksCommand {
             for (long l1 = k; moreX; moreX = l1 < l, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
                 ChunkPos chunkpos3 = new ChunkPos(l1, i4);
                 LevelChunk levelchunk2 = serverchunkcache.getChunk(l1, i4, false);
-                if (levelchunk2 != null && (!p_183687_ || !levelchunk2.isOldNoiseGeneration())) {
+                if (levelchunk2 != null && (!pSkipOldChunks || !levelchunk2.isOldNoiseGeneration())) {
                     for (BlockPos blockpos1 : BlockPos.betweenClosed(chunkpos3.getMinBlockX(), serverlevel.getMinBuildHeight(), chunkpos3.getMinBlockZ(), chunkpos3.getMaxBlockX(), serverlevel.getMaxBuildHeight() - 1, chunkpos3.getMaxBlockZ())) {
                         serverchunkcache.blockChanged(blockpos1);
                     }
@@ -150,7 +150,7 @@ public class ResetChunksCommand {
 
         LOGGER.debug("blockChanged took " + (System.currentTimeMillis() - l3) + " ms");
         long j4 = System.currentTimeMillis() - j3;
-        p_183685_.sendSuccess(Component.literal(String.format(Locale.ROOT, "%d chunks have been reset. This took %d ms for %d chunks, or %02f ms per chunk", k3, j4, k3, (float) j4 / (float) k3)), true);
+        pSource.sendSuccess(Component.literal(String.format(Locale.ROOT, "%d chunks have been reset. This took %d ms for %d chunks, or %02f ms per chunk", k3, j4, k3, (float) j4 / (float) k3)), true);
         return 1;
     }
 }

@@ -37,13 +37,13 @@ public class EnchantmentMenu extends AbstractContainerMenu {
     public final int[] enchantClue = new int[] {-1, -1, -1};
     public final int[] levelClue = new int[] {-1, -1, -1};
 
-    public EnchantmentMenu(int p_39454_, Inventory p_39455_) {
-        this(p_39454_, p_39455_, ContainerLevelAccess.NULL);
+    public EnchantmentMenu(int pContainerId, Inventory pPlayerInventory) {
+        this(pContainerId, pPlayerInventory, ContainerLevelAccess.NULL);
     }
 
-    public EnchantmentMenu(int p_39457_, Inventory p_39458_, ContainerLevelAccess p_39459_) {
-        super(MenuType.ENCHANTMENT, p_39457_);
-        this.access = p_39459_;
+    public EnchantmentMenu(int pContainerId, Inventory pPlayerInventory, ContainerLevelAccess pAccess) {
+        super(MenuType.ENCHANTMENT, pContainerId);
+        this.access = pAccess;
         this.addSlot(new Slot(this.enchantSlots, 0, 15, 47) {
             public boolean mayPlace(ItemStack p_39508_) {
                 return true;
@@ -61,18 +61,18 @@ public class EnchantmentMenu extends AbstractContainerMenu {
 
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(p_39458_, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
+                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
 
         for (int k = 0; k < 9; ++k) {
-            this.addSlot(new Slot(p_39458_, k, 8 + k * 18, 142));
+            this.addSlot(new Slot(pPlayerInventory, k, 8 + k * 18, 142));
         }
 
         this.addDataSlot(DataSlot.shared(this.costs, 0));
         this.addDataSlot(DataSlot.shared(this.costs, 1));
         this.addDataSlot(DataSlot.shared(this.costs, 2));
-        this.addDataSlot(this.enchantmentSeed).set(p_39458_.player.getEnchantmentSeed());
+        this.addDataSlot(this.enchantmentSeed).set(pPlayerInventory.player.getEnchantmentSeed());
         this.addDataSlot(DataSlot.shared(this.enchantClue, 0));
         this.addDataSlot(DataSlot.shared(this.enchantClue, 1));
         this.addDataSlot(DataSlot.shared(this.enchantClue, 2));
@@ -81,9 +81,9 @@ public class EnchantmentMenu extends AbstractContainerMenu {
         this.addDataSlot(DataSlot.shared(this.levelClue, 2));
     }
 
-    public void slotsChanged(Container p_39461_) {
-        if (p_39461_ == this.enchantSlots) {
-            ItemStack itemstack = p_39461_.getItem(0);
+    public void slotsChanged(Container pInventory) {
+        if (pInventory == this.enchantSlots) {
+            ItemStack itemstack = pInventory.getItem(0);
             if (!itemstack.isEmpty() && itemstack.isEnchantable()) {
                 this.access.execute((p_39485_, p_39486_) -> {
                     int j = 0;
@@ -128,21 +128,21 @@ public class EnchantmentMenu extends AbstractContainerMenu {
         }
     }
 
-    public boolean clickMenuButton(Player p_39465_, int p_39466_) {
-        if (p_39466_ >= 0 && p_39466_ < this.costs.length) {
+    public boolean clickMenuButton(Player pPlayer, int pId) {
+        if (pId >= 0 && pId < this.costs.length) {
             ItemStack itemstack = this.enchantSlots.getItem(0);
             ItemStack itemstack1 = this.enchantSlots.getItem(1);
-            int i = p_39466_ + 1;
-            if ((itemstack1.isEmpty() || itemstack1.getCount() < i) && !p_39465_.getAbilities().instabuild) {
+            int i = pId + 1;
+            if ((itemstack1.isEmpty() || itemstack1.getCount() < i) && !pPlayer.getAbilities().instabuild) {
                 return false;
-            } else if (this.costs[p_39466_] <= 0 || itemstack.isEmpty() || (p_39465_.experienceLevel < i || p_39465_.experienceLevel < this.costs[p_39466_]) && !p_39465_.getAbilities().instabuild) {
+            } else if (this.costs[pId] <= 0 || itemstack.isEmpty() || (pPlayer.experienceLevel < i || pPlayer.experienceLevel < this.costs[pId]) && !pPlayer.getAbilities().instabuild) {
                 return false;
             } else {
                 this.access.execute((p_39481_, p_39482_) -> {
                     ItemStack itemstack2 = itemstack;
-                    List<EnchantmentInstance> list = this.getEnchantmentList(itemstack, p_39466_, this.costs[p_39466_]);
+                    List<EnchantmentInstance> list = this.getEnchantmentList(itemstack, pId, this.costs[pId]);
                     if (!list.isEmpty()) {
-                        p_39465_.onEnchantmentPerformed(itemstack, i);
+                        pPlayer.onEnchantmentPerformed(itemstack, i);
                         boolean flag = itemstack.is(Items.BOOK);
                         if (flag) {
                             itemstack2 = new ItemStack(Items.ENCHANTED_BOOK);
@@ -163,20 +163,20 @@ public class EnchantmentMenu extends AbstractContainerMenu {
                             }
                         }
 
-                        if (!p_39465_.getAbilities().instabuild) {
+                        if (!pPlayer.getAbilities().instabuild) {
                             itemstack1.shrink(i);
                             if (itemstack1.isEmpty()) {
                                 this.enchantSlots.setItem(1, ItemStack.EMPTY);
                             }
                         }
 
-                        p_39465_.awardStat(Stats.ENCHANT_ITEM);
-                        if (p_39465_ instanceof ServerPlayer) {
-                            CriteriaTriggers.ENCHANTED_ITEM.trigger((ServerPlayer) p_39465_, itemstack2, i);
+                        pPlayer.awardStat(Stats.ENCHANT_ITEM);
+                        if (pPlayer instanceof ServerPlayer) {
+                            CriteriaTriggers.ENCHANTED_ITEM.trigger((ServerPlayer) pPlayer, itemstack2, i);
                         }
 
                         this.enchantSlots.setChanged();
-                        this.enchantmentSeed.set(p_39465_.getEnchantmentSeed());
+                        this.enchantmentSeed.set(pPlayer.getEnchantmentSeed());
                         this.slotsChanged(this.enchantSlots);
                         p_39481_.playSound((Player) null, p_39482_, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.BLOCKS, 1.0F, p_39481_.random.nextFloat() * 0.1F + 0.9F);
                     }
@@ -184,15 +184,15 @@ public class EnchantmentMenu extends AbstractContainerMenu {
                 return true;
             }
         } else {
-            Util.logAndPauseIfInIde(p_39465_.getName() + " pressed invalid button id: " + p_39466_);
+            Util.logAndPauseIfInIde(pPlayer.getName() + " pressed invalid button id: " + pId);
             return false;
         }
     }
 
-    private List<EnchantmentInstance> getEnchantmentList(ItemStack p_39472_, int p_39473_, int p_39474_) {
-        this.random.setSeed((long) (this.enchantmentSeed.get() + p_39473_));
-        List<EnchantmentInstance> list = EnchantmentHelper.selectEnchantment(this.random, p_39472_, p_39474_, false);
-        if (p_39472_.is(Items.BOOK) && list.size() > 1) {
+    private List<EnchantmentInstance> getEnchantmentList(ItemStack pStack, int pEnchantSlot, int pLevel) {
+        this.random.setSeed((long) (this.enchantmentSeed.get() + pEnchantSlot));
+        List<EnchantmentInstance> list = EnchantmentHelper.selectEnchantment(this.random, pStack, pLevel, false);
+        if (pStack.is(Items.BOOK) && list.size() > 1) {
             list.remove(this.random.nextInt(list.size()));
         }
 
@@ -208,28 +208,28 @@ public class EnchantmentMenu extends AbstractContainerMenu {
         return this.enchantmentSeed.get();
     }
 
-    public void removed(Player p_39488_) {
-        super.removed(p_39488_);
+    public void removed(Player pPlayer) {
+        super.removed(pPlayer);
         this.access.execute((p_39469_, p_39470_) -> {
-            this.clearContainer(p_39488_, this.enchantSlots);
+            this.clearContainer(pPlayer, this.enchantSlots);
         });
     }
 
-    public boolean stillValid(Player p_39463_) {
-        return stillValid(this.access, p_39463_, Blocks.ENCHANTING_TABLE);
+    public boolean stillValid(Player pPlayer) {
+        return stillValid(this.access, pPlayer, Blocks.ENCHANTING_TABLE);
     }
 
-    public ItemStack quickMoveStack(Player p_39490_, int p_39491_) {
+    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(p_39491_);
+        Slot slot = this.slots.get(pIndex);
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            if (p_39491_ == 0) {
+            if (pIndex == 0) {
                 if (!this.moveItemStackTo(itemstack1, 2, 38, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (p_39491_ == 1) {
+            } else if (pIndex == 1) {
                 if (!this.moveItemStackTo(itemstack1, 2, 38, true)) {
                     return ItemStack.EMPTY;
                 }
@@ -258,7 +258,7 @@ public class EnchantmentMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(p_39490_, itemstack1);
+            slot.onTake(pPlayer, itemstack1);
         }
 
         return itemstack;

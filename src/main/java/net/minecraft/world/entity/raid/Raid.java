@@ -106,34 +106,34 @@ public class Raid {
     private int celebrationTicks;
     private Optional<BlockPos> waveSpawnPos = Optional.empty();
 
-    public Raid(int p_37692_, ServerLevel p_37693_, BlockPos p_37694_) {
-        this.id = p_37692_;
-        this.level = p_37693_;
+    public Raid(int pId, ServerLevel pLevel, BlockPos pCenter) {
+        this.id = pId;
+        this.level = pLevel;
         this.active = true;
         this.raidCooldownTicks = 300;
         this.raidEvent.setProgress(0.0F);
-        this.center = p_37694_;
-        this.numGroups = this.getNumGroups(p_37693_.getDifficulty());
+        this.center = pCenter;
+        this.numGroups = this.getNumGroups(pLevel.getDifficulty());
         this.status = Raid.RaidStatus.ONGOING;
     }
 
-    public Raid(ServerLevel p_37696_, CompoundTag p_37697_) {
-        this.level = p_37696_;
-        this.id = p_37697_.getInt("Id");
-        this.started = p_37697_.getBoolean("Started");
-        this.active = p_37697_.getBoolean("Active");
-        this.ticksActive = p_37697_.getLong("TicksActive");
-        this.badOmenLevel = p_37697_.getInt("BadOmenLevel");
-        this.groupsSpawned = p_37697_.getInt("GroupsSpawned");
-        this.raidCooldownTicks = p_37697_.getInt("PreRaidTicks");
-        this.postRaidTicks = p_37697_.getInt("PostRaidTicks");
-        this.totalHealth = p_37697_.getFloat("TotalHealth");
-        this.center = new BlockPos(p_37697_.getInt("CX"), p_37697_.getInt("CY"), p_37697_.getInt("CZ"));
-        this.numGroups = p_37697_.getInt("NumGroups");
-        this.status = Raid.RaidStatus.getByName(p_37697_.getString("Status"));
+    public Raid(ServerLevel pLevel, CompoundTag pCompound) {
+        this.level = pLevel;
+        this.id = pCompound.getInt("Id");
+        this.started = pCompound.getBoolean("Started");
+        this.active = pCompound.getBoolean("Active");
+        this.ticksActive = pCompound.getLong("TicksActive");
+        this.badOmenLevel = pCompound.getInt("BadOmenLevel");
+        this.groupsSpawned = pCompound.getInt("GroupsSpawned");
+        this.raidCooldownTicks = pCompound.getInt("PreRaidTicks");
+        this.postRaidTicks = pCompound.getInt("PostRaidTicks");
+        this.totalHealth = pCompound.getFloat("TotalHealth");
+        this.center = new BlockPos(pCompound.getInt("CX"), pCompound.getInt("CY"), pCompound.getInt("CZ"));
+        this.numGroups = pCompound.getInt("NumGroups");
+        this.status = Raid.RaidStatus.getByName(pCompound.getString("Status"));
         this.heroesOfTheVillage.clear();
-        if (p_37697_.contains("HeroesOfTheVillage", 9)) {
-            ListTag listtag = p_37697_.getList("HeroesOfTheVillage", 11);
+        if (pCompound.contains("HeroesOfTheVillage", 9)) {
+            ListTag listtag = pCompound.getList("HeroesOfTheVillage", 11);
 
             for (int i = 0; i < listtag.size(); ++i) {
                 this.heroesOfTheVillage.add(NbtUtils.loadUUID(listtag.get(i)));
@@ -223,17 +223,17 @@ public class Raid {
         return this.badOmenLevel;
     }
 
-    public void setBadOmenLevel(int p_150219_) {
-        this.badOmenLevel = p_150219_;
+    public void setBadOmenLevel(int pBadOmenLevel) {
+        this.badOmenLevel = pBadOmenLevel;
     }
 
-    public void absorbBadOmen(Player p_37729_) {
-        if (p_37729_.hasEffect(MobEffects.BAD_OMEN)) {
-            this.badOmenLevel += p_37729_.getEffect(MobEffects.BAD_OMEN).getAmplifier() + 1;
+    public void absorbBadOmen(Player pPlayer) {
+        if (pPlayer.hasEffect(MobEffects.BAD_OMEN)) {
+            this.badOmenLevel += pPlayer.getEffect(MobEffects.BAD_OMEN).getAmplifier() + 1;
             this.badOmenLevel = Mth.clamp(this.badOmenLevel, 0, this.getMaxBadOmenLevel());
         }
 
-        p_37729_.removeEffect(MobEffects.BAD_OMEN);
+        pPlayer.removeEffect(MobEffects.BAD_OMEN);
     }
 
     public void stop() {
@@ -400,9 +400,9 @@ public class Raid {
                 .ifPresent(this::setCenter);
     }
 
-    private Optional<BlockPos> getValidSpawnPos(int p_37764_) {
+    private Optional<BlockPos> getValidSpawnPos(int pOffsetMultiplier) {
         for (int i = 0; i < 3; ++i) {
-            BlockPos blockpos = this.findRandomSpawnPos(p_37764_, 1);
+            BlockPos blockpos = this.findRandomSpawnPos(pOffsetMultiplier, 1);
             if (blockpos != null) {
                 return Optional.of(blockpos);
             }
@@ -469,14 +469,14 @@ public class Raid {
         }
     }
 
-    private void playSound(BlockPos p_37744_) {
+    private void playSound(BlockPos pPos) {
         float f = 13.0F;
         int i = 64;
         Collection<ServerPlayer> collection = this.raidEvent.getPlayers();
         long j = this.random.nextLong();
 
-        SectorVec3 hornPosition = SectorVec3.fromBlockAndFraction(p_37744_.getX(), 0.5D, (double) p_37744_.getY() + 0.5D,
-                p_37744_.getZ(), 0.5D);
+        SectorVec3 hornPosition = SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 0.5D,
+                pPos.getZ(), 0.5D);
         for (ServerPlayer serverplayer : this.level.players()) {
             SectorVec3 playerPosition = serverplayer.sectorPosition();
             double dx = hornPosition.relativeX(playerPosition);
@@ -491,11 +491,11 @@ public class Raid {
         }
     }
 
-    private void spawnGroup(BlockPos p_37756_) {
+    private void spawnGroup(BlockPos pPos) {
         boolean flag = false;
         int i = this.groupsSpawned + 1;
         this.totalHealth = 0.0F;
-        DifficultyInstance difficultyinstance = this.level.getCurrentDifficultyAt(p_37756_);
+        DifficultyInstance difficultyinstance = this.level.getCurrentDifficultyAt(pPos);
         boolean flag1 = this.shouldSpawnBonusGroup();
 
         for (Raid.RaiderType raid$raidertype : Raid.RaiderType.VALUES) {
@@ -510,7 +510,7 @@ public class Raid {
                     flag = true;
                 }
 
-                this.joinRaid(i, raider, p_37756_, false);
+                this.joinRaid(i, raider, pPos, false);
                 if (raid$raidertype.entityType == EntityType.RAVAGER) {
                     Raider raider1 = null;
                     if (i == this.getNumGroups(Difficulty.NORMAL)) {
@@ -525,8 +525,8 @@ public class Raid {
 
                     ++k;
                     if (raider1 != null) {
-                        this.joinRaid(i, raider1, p_37756_, false);
-                        raider1.moveTo(p_37756_, 0.0F, 0.0F);
+                        this.joinRaid(i, raider1, pPos, false);
+                        raider1.moveTo(pPos, 0.0F, 0.0F);
                         raider1.startRiding(raider);
                     }
                 }
@@ -539,19 +539,19 @@ public class Raid {
         this.setDirty();
     }
 
-    public void joinRaid(int p_37714_, Raider p_37715_, @Nullable BlockPos p_37716_, boolean p_37717_) {
-        boolean flag = this.addWaveMob(p_37714_, p_37715_);
+    public void joinRaid(int pWave, Raider pRaider, @Nullable BlockPos pPos, boolean pIsRecruited) {
+        boolean flag = this.addWaveMob(pWave, pRaider);
         if (flag) {
-            p_37715_.setCurrentRaid(this);
-            p_37715_.setWave(p_37714_);
-            p_37715_.setCanJoinRaid(true);
-            p_37715_.setTicksOutsideRaid(0);
-            if (!p_37717_ && p_37716_ != null) {
-                p_37715_.applyExactPosition(SectorVec3.fromBlockAndFraction(p_37716_.getX(), 0.5D, (double) p_37716_.getY() + 1.0D, p_37716_.getZ(), 0.5D));
-                p_37715_.finalizeSpawn(this.level, this.level.getCurrentDifficultyAt(p_37716_), MobSpawnType.EVENT, (SpawnGroupData) null, (CompoundTag) null);
-                p_37715_.applyRaidBuffs(p_37714_, false);
-                p_37715_.setOnGround(true);
-                this.level.addFreshEntityWithPassengers(p_37715_);
+            pRaider.setCurrentRaid(this);
+            pRaider.setWave(pWave);
+            pRaider.setCanJoinRaid(true);
+            pRaider.setTicksOutsideRaid(0);
+            if (!pIsRecruited && pPos != null) {
+                pRaider.applyExactPosition(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 1.0D, pPos.getZ(), 0.5D));
+                pRaider.finalizeSpawn(this.level, this.level.getCurrentDifficultyAt(pPos), MobSpawnType.EVENT, (SpawnGroupData) null, (CompoundTag) null);
+                pRaider.applyRaidBuffs(pWave, false);
+                pRaider.setOnGround(true);
+                this.level.addFreshEntityWithPassengers(pRaider);
             }
         }
     }
@@ -580,16 +580,16 @@ public class Raid {
         return this.groupRaiderMap.values().stream().mapToInt(Set::size).sum();
     }
 
-    public void removeFromRaid(Raider p_37741_, boolean p_37742_) {
-        Set<Raider> set = this.groupRaiderMap.get(p_37741_.getWave());
+    public void removeFromRaid(Raider pRaider, boolean pWanderedOutOfRaid) {
+        Set<Raider> set = this.groupRaiderMap.get(pRaider.getWave());
         if (set != null) {
-            boolean flag = set.remove(p_37741_);
+            boolean flag = set.remove(pRaider);
             if (flag) {
-                if (p_37742_) {
-                    this.totalHealth -= p_37741_.getHealth();
+                if (pWanderedOutOfRaid) {
+                    this.totalHealth -= pRaider.getHealth();
                 }
 
-                p_37741_.setCurrentRaid((Raid) null);
+                pRaider.setCurrentRaid((Raid) null);
                 this.updateBossbar();
                 this.setDirty();
             }
@@ -612,22 +612,22 @@ public class Raid {
     }
 
     @Nullable
-    public Raider getLeader(int p_37751_) {
-        return this.groupToLeaderMap.get(p_37751_);
+    public Raider getLeader(int pWave) {
+        return this.groupToLeaderMap.get(pWave);
     }
 
     @Nullable
-    private BlockPos findRandomSpawnPos(int p_37708_, int p_37709_) {
-        int i = p_37708_ == 0 ? 2 : 2 - p_37708_;
+    private BlockPos findRandomSpawnPos(int pOffsetMultiplier, int pMaxTry) {
+        int i = pOffsetMultiplier == 0 ? 2 : 2 - pOffsetMultiplier;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-        for (int i1 = 0; i1 < p_37709_; ++i1) {
+        for (int i1 = 0; i1 < pMaxTry; ++i1) {
             float f = this.level.random.nextFloat() * ((float) Math.PI * 2F);
             long j = this.center.getX() + Mth.floor(Mth.cos(f) * 32.0F * (float) i) + this.level.random.nextInt(5);
             long l = this.center.getZ() + Mth.floor(Mth.sin(f) * 32.0F * (float) i) + this.level.random.nextInt(5);
             int k = this.level.getHeight(Heightmap.Types.WORLD_SURFACE, j, l);
             blockpos$mutableblockpos.set(j, k, l);
-            if (!this.level.isVillage(blockpos$mutableblockpos) || p_37708_ >= 2) {
+            if (!this.level.isVillage(blockpos$mutableblockpos) || pOffsetMultiplier >= 2) {
                 int j1 = 10;
                 if (this.level.hasChunksAt(WorldBounds.subtractBlockOffset(blockpos$mutableblockpos.getX(), 10), WorldBounds.subtractBlockOffset(blockpos$mutableblockpos.getZ(), 10), WorldBounds.addBlockOffset(blockpos$mutableblockpos.getX(), 10), WorldBounds.addBlockOffset(blockpos$mutableblockpos.getZ(), 10)) && this.level.isPositionEntityTicking(blockpos$mutableblockpos) && (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, this.level, blockpos$mutableblockpos, EntityType.RAVAGER) || this.level.getBlockState(blockpos$mutableblockpos.below()).is(Blocks.SNOW) && this.level.getBlockState(blockpos$mutableblockpos).isAir())) {
                     return blockpos$mutableblockpos;
@@ -638,19 +638,19 @@ public class Raid {
         return null;
     }
 
-    private boolean addWaveMob(int p_37753_, Raider p_37754_) {
-        return this.addWaveMob(p_37753_, p_37754_, true);
+    private boolean addWaveMob(int pWave, Raider pRaider) {
+        return this.addWaveMob(pWave, pRaider, true);
     }
 
-    public boolean addWaveMob(int p_37719_, Raider p_37720_, boolean p_37721_) {
-        this.groupRaiderMap.computeIfAbsent(p_37719_, (p_37746_) -> {
+    public boolean addWaveMob(int pWave, Raider pRaider, boolean pIsRecruited) {
+        this.groupRaiderMap.computeIfAbsent(pWave, (p_37746_) -> {
             return Sets.newHashSet();
         });
-        Set<Raider> set = this.groupRaiderMap.get(p_37719_);
+        Set<Raider> set = this.groupRaiderMap.get(pWave);
         Raider raider = null;
 
         for (Raider raider1 : set) {
-            if (raider1.getUUID().equals(p_37720_.getUUID())) {
+            if (raider1.getUUID().equals(pRaider.getUUID())) {
                 raider = raider1;
                 break;
             }
@@ -658,12 +658,12 @@ public class Raid {
 
         if (raider != null) {
             set.remove(raider);
-            set.add(p_37720_);
+            set.add(pRaider);
         }
 
-        set.add(p_37720_);
-        if (p_37721_) {
-            this.totalHealth += p_37720_.getHealth();
+        set.add(pRaider);
+        if (pIsRecruited) {
+            this.totalHealth += pRaider.getHealth();
         }
 
         this.updateBossbar();
@@ -671,14 +671,14 @@ public class Raid {
         return true;
     }
 
-    public void setLeader(int p_37711_, Raider p_37712_) {
-        this.groupToLeaderMap.put(p_37711_, p_37712_);
-        p_37712_.setItemSlot(EquipmentSlot.HEAD, getLeaderBannerInstance());
-        p_37712_.setDropChance(EquipmentSlot.HEAD, 2.0F);
+    public void setLeader(int pWave, Raider pRaider) {
+        this.groupToLeaderMap.put(pWave, pRaider);
+        pRaider.setItemSlot(EquipmentSlot.HEAD, getLeaderBannerInstance());
+        pRaider.setDropChance(EquipmentSlot.HEAD, 2.0F);
     }
 
-    public void removeLeader(int p_37759_) {
-        this.groupToLeaderMap.remove(p_37759_);
+    public void removeLeader(int pWave) {
+        this.groupToLeaderMap.remove(pWave);
     }
 
     public BlockPos getCenter() {
@@ -693,18 +693,18 @@ public class Raid {
         return this.id;
     }
 
-    private int getDefaultNumSpawns(Raid.RaiderType p_37731_, int p_37732_, boolean p_37733_) {
-        return p_37733_ ? p_37731_.spawnsPerWaveBeforeBonus[this.numGroups] : p_37731_.spawnsPerWaveBeforeBonus[p_37732_];
+    private int getDefaultNumSpawns(Raid.RaiderType pRaiderType, int pWave, boolean pShouldSpawnBonusGroup) {
+        return pShouldSpawnBonusGroup ? pRaiderType.spawnsPerWaveBeforeBonus[this.numGroups] : pRaiderType.spawnsPerWaveBeforeBonus[pWave];
     }
 
-    private int getPotentialBonusSpawns(Raid.RaiderType p_219829_, RandomSource p_219830_, int p_219831_, DifficultyInstance p_219832_, boolean p_219833_) {
-        Difficulty difficulty = p_219832_.getDifficulty();
+    private int getPotentialBonusSpawns(Raid.RaiderType pRaiderType, RandomSource pRandom, int pWave, DifficultyInstance pDifficulty, boolean pShouldSpawnBonusGroup) {
+        Difficulty difficulty = pDifficulty.getDifficulty();
         boolean flag = difficulty == Difficulty.EASY;
         boolean flag1 = difficulty == Difficulty.NORMAL;
         int i;
-        switch (p_219829_) {
+        switch (pRaiderType) {
             case WITCH:
-                if (flag || p_219831_ <= 2 || p_219831_ == 4) {
+                if (flag || pWave <= 2 || pWave == 4) {
                     return 0;
                 }
 
@@ -713,7 +713,7 @@ public class Raid {
             case PILLAGER:
             case VINDICATOR:
                 if (flag) {
-                    i = p_219830_.nextInt(2);
+                    i = pRandom.nextInt(2);
                 } else if (flag1) {
                     i = 1;
                 } else {
@@ -721,46 +721,46 @@ public class Raid {
                 }
                 break;
             case RAVAGER:
-                i = !flag && p_219833_ ? 1 : 0;
+                i = !flag && pShouldSpawnBonusGroup ? 1 : 0;
                 break;
             default:
                 return 0;
         }
 
-        return i > 0 ? p_219830_.nextInt(i + 1) : 0;
+        return i > 0 ? pRandom.nextInt(i + 1) : 0;
     }
 
     public boolean isActive() {
         return this.active;
     }
 
-    public CompoundTag save(CompoundTag p_37748_) {
-        p_37748_.putInt("Id", this.id);
-        p_37748_.putBoolean("Started", this.started);
-        p_37748_.putBoolean("Active", this.active);
-        p_37748_.putLong("TicksActive", this.ticksActive);
-        p_37748_.putInt("BadOmenLevel", this.badOmenLevel);
-        p_37748_.putInt("GroupsSpawned", this.groupsSpawned);
-        p_37748_.putInt("PreRaidTicks", this.raidCooldownTicks);
-        p_37748_.putInt("PostRaidTicks", this.postRaidTicks);
-        p_37748_.putFloat("TotalHealth", this.totalHealth);
-        p_37748_.putInt("NumGroups", this.numGroups);
-        p_37748_.putString("Status", this.status.getName());
-        p_37748_.putInt("CX", this.center.getX());
-        p_37748_.putInt("CY", this.center.getY());
-        p_37748_.putInt("CZ", this.center.getZ());
+    public CompoundTag save(CompoundTag pCompound) {
+        pCompound.putInt("Id", this.id);
+        pCompound.putBoolean("Started", this.started);
+        pCompound.putBoolean("Active", this.active);
+        pCompound.putLong("TicksActive", this.ticksActive);
+        pCompound.putInt("BadOmenLevel", this.badOmenLevel);
+        pCompound.putInt("GroupsSpawned", this.groupsSpawned);
+        pCompound.putInt("PreRaidTicks", this.raidCooldownTicks);
+        pCompound.putInt("PostRaidTicks", this.postRaidTicks);
+        pCompound.putFloat("TotalHealth", this.totalHealth);
+        pCompound.putInt("NumGroups", this.numGroups);
+        pCompound.putString("Status", this.status.getName());
+        pCompound.putInt("CX", this.center.getX());
+        pCompound.putInt("CY", this.center.getY());
+        pCompound.putInt("CZ", this.center.getZ());
         ListTag listtag = new ListTag();
 
         for (UUID uuid : this.heroesOfTheVillage) {
             listtag.add(NbtUtils.createUUID(uuid));
         }
 
-        p_37748_.put("HeroesOfTheVillage", listtag);
-        return p_37748_;
+        pCompound.put("HeroesOfTheVillage", listtag);
+        return pCompound;
     }
 
-    public int getNumGroups(Difficulty p_37725_) {
-        switch (p_37725_) {
+    public int getNumGroups(Difficulty pDifficulty) {
+        switch (pDifficulty) {
             case EASY:
                 return 3;
             case NORMAL:
@@ -785,8 +785,8 @@ public class Raid {
         }
     }
 
-    public void addHeroOfTheVillage(Entity p_37727_) {
-        this.heroesOfTheVillage.add(p_37727_.getUUID());
+    public void addHeroOfTheVillage(Entity pPlayer) {
+        this.heroesOfTheVillage.add(pPlayer.getUUID());
     }
 
     static enum RaidStatus {
@@ -797,9 +797,9 @@ public class Raid {
 
         private static final Raid.RaidStatus[] VALUES = values();
 
-        static Raid.RaidStatus getByName(String p_37804_) {
+        static Raid.RaidStatus getByName(String pName) {
             for (Raid.RaidStatus raid$raidstatus : VALUES) {
-                if (p_37804_.equalsIgnoreCase(raid$raidstatus.name())) {
+                if (pName.equalsIgnoreCase(raid$raidstatus.name())) {
                     return raid$raidstatus;
                 }
             }

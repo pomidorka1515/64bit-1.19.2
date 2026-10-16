@@ -15,9 +15,9 @@ public class RealmsClientConfig {
         return proxy;
     }
 
-    public static void setProxy(Proxy p_87294_) {
+    public static void setProxy(Proxy pProxy) {
         if (proxy == null) {
-            proxy = p_87294_;
+            proxy = pProxy;
         }
     }
 }

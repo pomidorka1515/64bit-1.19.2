@@ -42,14 +42,14 @@ public class MinecraftServerGui extends JComponent {
     private final Collection<Runnable> finalizers = Lists.newArrayList();
     final AtomicBoolean isClosing = new AtomicBoolean();
 
-    public static MinecraftServerGui showFrameFor(final DedicatedServer p_139922_) {
+    public static MinecraftServerGui showFrameFor(final DedicatedServer pServer) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception exception) {
         }
 
         final JFrame jframe = new JFrame("Minecraft server");
-        final MinecraftServerGui minecraftservergui = new MinecraftServerGui(p_139922_);
+        final MinecraftServerGui minecraftservergui = new MinecraftServerGui(pServer);
         jframe.setDefaultCloseOperation(2);
         jframe.add(minecraftservergui);
         jframe.pack();
@@ -59,7 +59,7 @@ public class MinecraftServerGui extends JComponent {
             public void windowClosing(WindowEvent p_139944_) {
                 if (!minecraftservergui.isClosing.getAndSet(true)) {
                     jframe.setTitle("Minecraft server - shutting down!");
-                    p_139922_.halt(true);
+                    pServer.halt(true);
                     minecraftservergui.runFinalizers();
                 }
             }
@@ -69,8 +69,8 @@ public class MinecraftServerGui extends JComponent {
         return minecraftservergui;
     }
 
-    private MinecraftServerGui(DedicatedServer p_139907_) {
-        this.server = p_139907_;
+    private MinecraftServerGui(DedicatedServer pServer) {
+        this.server = pServer;
         this.setPreferredSize(new Dimension(854, 480));
         this.setLayout(new BorderLayout());
 
@@ -82,8 +82,8 @@ public class MinecraftServerGui extends JComponent {
         }
     }
 
-    public void addFinalizer(Runnable p_139910_) {
-        this.finalizers.add(p_139910_);
+    public void addFinalizer(Runnable pFinalizer) {
+        this.finalizers.add(pFinalizer);
     }
 
     private JComponent buildInfoPanel() {
@@ -150,21 +150,21 @@ public class MinecraftServerGui extends JComponent {
         this.finalizers.forEach(Runnable::run);
     }
 
-    public void print(JTextArea p_139915_, JScrollPane p_139916_, String p_139917_) {
+    public void print(JTextArea pTextArea, JScrollPane pScrollPane, String pLine) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> {
-                this.print(p_139915_, p_139916_, p_139917_);
+                this.print(pTextArea, pScrollPane, pLine);
             });
         } else {
-            Document document = p_139915_.getDocument();
-            JScrollBar jscrollbar = p_139916_.getVerticalScrollBar();
+            Document document = pTextArea.getDocument();
+            JScrollBar jscrollbar = pScrollPane.getVerticalScrollBar();
             boolean flag = false;
-            if (p_139916_.getViewport().getView() == p_139915_) {
+            if (pScrollPane.getViewport().getView() == pTextArea) {
                 flag = (double) jscrollbar.getValue() + jscrollbar.getSize().getHeight() + (double) (MONOSPACED.getSize() * 4) > (double) jscrollbar.getMaximum();
             }
 
             try {
-                document.insertString(document.getLength(), p_139917_, (AttributeSet) null);
+                document.insertString(document.getLength(), pLine, (AttributeSet) null);
             } catch (BadLocationException badlocationexception) {
             }
 

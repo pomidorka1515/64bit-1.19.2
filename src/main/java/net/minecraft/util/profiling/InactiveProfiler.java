@@ -19,28 +19,28 @@ public class InactiveProfiler implements ProfileCollector {
     public void endTick() {
     }
 
-    public void push(String p_18559_) {
+    public void push(String pName) {
     }
 
-    public void push(Supplier<String> p_18561_) {
+    public void push(Supplier<String> pNameSupplier) {
     }
 
-    public void markForCharting(MetricCategory p_145951_) {
+    public void markForCharting(MetricCategory pCategory) {
     }
 
     public void pop() {
     }
 
-    public void popPush(String p_18564_) {
+    public void popPush(String pName) {
     }
 
-    public void popPush(Supplier<String> p_18566_) {
+    public void popPush(Supplier<String> pNameSupplier) {
     }
 
-    public void incrementCounter(String p_185253_, int p_185254_) {
+    public void incrementCounter(String pCounterName, int pIncrement) {
     }
 
-    public void incrementCounter(Supplier<String> p_185256_, int p_185257_) {
+    public void incrementCounter(Supplier<String> pCounterNameSupplier, int pIncrement) {
     }
 
     public ProfileResults getResults() {
@@ -48,7 +48,7 @@ public class InactiveProfiler implements ProfileCollector {
     }
 
     @Nullable
-    public ActiveProfiler.PathEntry getEntry(String p_145953_) {
+    public ActiveProfiler.PathEntry getEntry(String pEntryId) {
         return null;
     }
 

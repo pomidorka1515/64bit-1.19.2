@@ -17,10 +17,10 @@ public class EnchantWithLevelsFunction extends LootItemConditionalFunction {
     final NumberProvider levels;
     final boolean treasure;
 
-    EnchantWithLevelsFunction(LootItemCondition[] p_165193_, NumberProvider p_165194_, boolean p_165195_) {
-        super(p_165193_);
-        this.levels = p_165194_;
-        this.treasure = p_165195_;
+    EnchantWithLevelsFunction(LootItemCondition[] pConditions, NumberProvider pLevels, boolean pTreasure) {
+        super(pConditions);
+        this.levels = pLevels;
+        this.treasure = pTreasure;
     }
 
     public LootItemFunctionType getType() {
@@ -31,21 +31,21 @@ public class EnchantWithLevelsFunction extends LootItemConditionalFunction {
         return this.levels.getReferencedContextParams();
     }
 
-    public ItemStack run(ItemStack p_80483_, LootContext p_80484_) {
-        RandomSource randomsource = p_80484_.getRandom();
-        return EnchantmentHelper.enchantItem(randomsource, p_80483_, this.levels.getInt(p_80484_), this.treasure);
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        RandomSource randomsource = pContext.getRandom();
+        return EnchantmentHelper.enchantItem(randomsource, pStack, this.levels.getInt(pContext), this.treasure);
     }
 
-    public static EnchantWithLevelsFunction.Builder enchantWithLevels(NumberProvider p_165197_) {
-        return new EnchantWithLevelsFunction.Builder(p_165197_);
+    public static EnchantWithLevelsFunction.Builder enchantWithLevels(NumberProvider pLevels) {
+        return new EnchantWithLevelsFunction.Builder(pLevels);
     }
 
     public static class Builder extends LootItemConditionalFunction.Builder<EnchantWithLevelsFunction.Builder> {
         private final NumberProvider levels;
         private boolean treasure;
 
-        public Builder(NumberProvider p_165200_) {
-            this.levels = p_165200_;
+        public Builder(NumberProvider pLevels) {
+            this.levels = pLevels;
         }
 
         protected EnchantWithLevelsFunction.Builder getThis() {
@@ -63,16 +63,16 @@ public class EnchantWithLevelsFunction extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<EnchantWithLevelsFunction> {
-        public void serialize(JsonObject p_80506_, EnchantWithLevelsFunction p_80507_, JsonSerializationContext p_80508_) {
-            super.serialize(p_80506_, p_80507_, p_80508_);
-            p_80506_.add("levels", p_80508_.serialize(p_80507_.levels));
-            p_80506_.addProperty("treasure", p_80507_.treasure);
+        public void serialize(JsonObject pJson, EnchantWithLevelsFunction pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            pJson.add("levels", pSerializationContext.serialize(pValue.levels));
+            pJson.addProperty("treasure", pValue.treasure);
         }
 
-        public EnchantWithLevelsFunction deserialize(JsonObject p_80502_, JsonDeserializationContext p_80503_, LootItemCondition[] p_80504_) {
-            NumberProvider numberprovider = GsonHelper.getAsObject(p_80502_, "levels", p_80503_, NumberProvider.class);
-            boolean flag = GsonHelper.getAsBoolean(p_80502_, "treasure", false);
-            return new EnchantWithLevelsFunction(p_80504_, numberprovider, flag);
+        public EnchantWithLevelsFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            NumberProvider numberprovider = GsonHelper.getAsObject(pObject, "levels", pDeserializationContext, NumberProvider.class);
+            boolean flag = GsonHelper.getAsBoolean(pObject, "treasure", false);
+            return new EnchantWithLevelsFunction(pConditions, numberprovider, flag);
         }
     }
 }

@@ -35,14 +35,14 @@ public class ClientTelemetryManager {
     @Nullable
     private String serverBrand;
 
-    public ClientTelemetryManager(Minecraft p_193539_, UserApiService p_193540_, Optional<String> p_193541_, Optional<String> p_193542_, UUID p_193543_) {
-        this.minecraft = p_193539_;
+    public ClientTelemetryManager(Minecraft pMinecraft, UserApiService pService, Optional<String> pUserId, Optional<String> pClientId, UUID pDeviceSessionId) {
+        this.minecraft = pMinecraft;
         if (!SharedConstants.IS_RUNNING_IN_IDE) {
-            this.telemetrySession = p_193540_.newTelemetrySession(EXECUTOR);
+            this.telemetrySession = pService.newTelemetrySession(EXECUTOR);
             TelemetryPropertyContainer telemetrypropertycontainer = this.telemetrySession.globalProperties();
-            addOptionalProperty("UserId", p_193541_, telemetrypropertycontainer);
-            addOptionalProperty("ClientId", p_193542_, telemetrypropertycontainer);
-            telemetrypropertycontainer.addProperty("deviceSessionId", p_193543_.toString());
+            addOptionalProperty("UserId", pUserId, telemetrypropertycontainer);
+            addOptionalProperty("ClientId", pClientId, telemetrypropertycontainer);
+            telemetrypropertycontainer.addProperty("deviceSessionId", pDeviceSessionId.toString());
             telemetrypropertycontainer.addProperty("WorldSessionId", UUID.randomUUID().toString());
             this.telemetrySession.eventSetupFunction((p_193549_) -> {
                 p_193549_.addProperty("eventTimestampUtc", TelemetryConstants.TIMESTAMP_FORMATTER.format(Instant.now()));
@@ -52,25 +52,25 @@ public class ClientTelemetryManager {
         }
     }
 
-    private static void addOptionalProperty(String p_193564_, Optional<String> p_193565_, TelemetryPropertyContainer p_193566_) {
-        p_193565_.ifPresentOrElse((p_193556_) -> { p_193566_.addProperty(p_193564_, p_193556_); }, () -> { p_193566_.addNullProperty(p_193564_); });
+    private static void addOptionalProperty(String pId, Optional<String> pValueOpt, TelemetryPropertyContainer pContainer) {
+        pValueOpt.ifPresentOrElse((p_193556_) -> { pContainer.addProperty(pId, p_193556_); }, () -> { pContainer.addNullProperty(pId); });
     }
 
-    public void onPlayerInfoReceived(GameType p_193546_, boolean p_193547_) {
-        this.playerInfo = new ClientTelemetryManager.PlayerInfo(p_193546_, p_193547_);
+    public void onPlayerInfoReceived(GameType pGameType, boolean pHardcore) {
+        this.playerInfo = new ClientTelemetryManager.PlayerInfo(pGameType, pHardcore);
         if (this.serverBrand != null) {
             this.sendWorldLoadEvent(this.playerInfo);
         }
     }
 
-    public void onServerBrandReceived(String p_193562_) {
-        this.serverBrand = p_193562_;
+    public void onServerBrandReceived(String pServerBrand) {
+        this.serverBrand = pServerBrand;
         if (this.playerInfo != null) {
             this.sendWorldLoadEvent(this.playerInfo);
         }
     }
 
-    private void sendWorldLoadEvent(ClientTelemetryManager.PlayerInfo p_193558_) {
+    private void sendWorldLoadEvent(ClientTelemetryManager.PlayerInfo pInfo) {
         if (!this.worldLoadEventSent) {
             this.worldLoadEventSent = true;
             if (this.telemetrySession.isEnabled()) {
@@ -88,7 +88,7 @@ public class ClientTelemetryManager {
                 telemetryevent.addProperty("BuildPlat", Util.getPlatform().telemetryName());
                 telemetryevent.addProperty("Plat", System.getProperty("os.name"));
                 telemetryevent.addProperty("javaVersion", System.getProperty("java.version"));
-                telemetryevent.addProperty("PlayerGameMode", p_193558_.getGameModeId());
+                telemetryevent.addProperty("PlayerGameMode", pInfo.getGameModeId());
                 telemetryevent.send();
             }
         }

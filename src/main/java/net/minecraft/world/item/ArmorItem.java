@@ -39,15 +39,15 @@ public class ArmorItem extends Item implements Wearable {
     protected final ArmorMaterial material;
     private final Multimap<Attribute, AttributeModifier> defaultModifiers;
 
-    public static boolean dispenseArmor(BlockSource p_40399_, ItemStack p_40400_) {
-        BlockPos blockpos = p_40399_.getPos().relative(p_40399_.getBlockState().getValue(DispenserBlock.FACING));
-        List<LivingEntity> list = p_40399_.getLevel().getEntitiesOfClass(LivingEntity.class, new AABB(blockpos), EntitySelector.NO_SPECTATORS.and(new EntitySelector.MobCanWearArmorEntitySelector(p_40400_)));
+    public static boolean dispenseArmor(BlockSource pSource, ItemStack pStack) {
+        BlockPos blockpos = pSource.getPos().relative(pSource.getBlockState().getValue(DispenserBlock.FACING));
+        List<LivingEntity> list = pSource.getLevel().getEntitiesOfClass(LivingEntity.class, new AABB(blockpos), EntitySelector.NO_SPECTATORS.and(new EntitySelector.MobCanWearArmorEntitySelector(pStack)));
         if (list.isEmpty()) {
             return false;
         } else {
             LivingEntity livingentity = list.get(0);
-            EquipmentSlot equipmentslot = Mob.getEquipmentSlotForItem(p_40400_);
-            ItemStack itemstack = p_40400_.split(1);
+            EquipmentSlot equipmentslot = Mob.getEquipmentSlotForItem(pStack);
+            ItemStack itemstack = pStack.split(1);
             livingentity.setItemSlot(equipmentslot, itemstack);
             if (livingentity instanceof Mob) {
                 ((Mob) livingentity).setDropChance(equipmentslot, 2.0F);
@@ -58,19 +58,19 @@ public class ArmorItem extends Item implements Wearable {
         }
     }
 
-    public ArmorItem(ArmorMaterial p_40386_, EquipmentSlot p_40387_, Item.Properties p_40388_) {
-        super(p_40388_.defaultDurability(p_40386_.getDurabilityForSlot(p_40387_)));
-        this.material = p_40386_;
-        this.slot = p_40387_;
-        this.defense = p_40386_.getDefenseForSlot(p_40387_);
-        this.toughness = p_40386_.getToughness();
-        this.knockbackResistance = p_40386_.getKnockbackResistance();
+    public ArmorItem(ArmorMaterial pMaterial, EquipmentSlot pSlot, Item.Properties pProperties) {
+        super(pProperties.defaultDurability(pMaterial.getDurabilityForSlot(pSlot)));
+        this.material = pMaterial;
+        this.slot = pSlot;
+        this.defense = pMaterial.getDefenseForSlot(pSlot);
+        this.toughness = pMaterial.getToughness();
+        this.knockbackResistance = pMaterial.getKnockbackResistance();
         DispenserBlock.registerBehavior(this, DISPENSE_ITEM_BEHAVIOR);
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        UUID uuid = ARMOR_MODIFIER_UUID_PER_SLOT[p_40387_.getIndex()];
+        UUID uuid = ARMOR_MODIFIER_UUID_PER_SLOT[pSlot.getIndex()];
         builder.put(Attributes.ARMOR, new AttributeModifier(uuid, "Armor modifier", (double) this.defense, AttributeModifier.Operation.ADDITION));
         builder.put(Attributes.ARMOR_TOUGHNESS, new AttributeModifier(uuid, "Armor toughness", (double) this.toughness, AttributeModifier.Operation.ADDITION));
-        if (p_40386_ == ArmorMaterials.NETHERITE) {
+        if (pMaterial == ArmorMaterials.NETHERITE) {
             builder.put(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier(uuid, "Armor knockback resistance", (double) this.knockbackResistance, AttributeModifier.Operation.ADDITION));
         }
 
@@ -89,29 +89,29 @@ public class ArmorItem extends Item implements Wearable {
         return this.material;
     }
 
-    public boolean isValidRepairItem(ItemStack p_40392_, ItemStack p_40393_) {
-        return this.material.getRepairIngredient().test(p_40393_) || super.isValidRepairItem(p_40392_, p_40393_);
+    public boolean isValidRepairItem(ItemStack pToRepair, ItemStack pRepair) {
+        return this.material.getRepairIngredient().test(pRepair) || super.isValidRepairItem(pToRepair, pRepair);
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_40395_, Player p_40396_, InteractionHand p_40397_) {
-        ItemStack itemstack = p_40396_.getItemInHand(p_40397_);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         EquipmentSlot equipmentslot = Mob.getEquipmentSlotForItem(itemstack);
-        ItemStack itemstack1 = p_40396_.getItemBySlot(equipmentslot);
+        ItemStack itemstack1 = pPlayer.getItemBySlot(equipmentslot);
         if (itemstack1.isEmpty()) {
-            p_40396_.setItemSlot(equipmentslot, itemstack.copy());
-            if (!p_40395_.isClientSide()) {
-                p_40396_.awardStat(Stats.ITEM_USED.get(this));
+            pPlayer.setItemSlot(equipmentslot, itemstack.copy());
+            if (!pLevel.isClientSide()) {
+                pPlayer.awardStat(Stats.ITEM_USED.get(this));
             }
 
             itemstack.setCount(0);
-            return InteractionResultHolder.sidedSuccess(itemstack, p_40395_.isClientSide());
+            return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());
         } else {
             return InteractionResultHolder.fail(itemstack);
         }
     }
 
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot p_40390_) {
-        return p_40390_ == this.slot ? this.defaultModifiers : super.getDefaultAttributeModifiers(p_40390_);
+    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot pEquipmentSlot) {
+        return pEquipmentSlot == this.slot ? this.defaultModifiers : super.getDefaultAttributeModifiers(pEquipmentSlot);
     }
 
     public int getDefense() {

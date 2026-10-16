@@ -40,28 +40,28 @@ public class ByteArrayTag extends CollectionTag<ByteTag> {
     };
     private byte[] data;
 
-    public ByteArrayTag(byte[] p_128191_) {
-        this.data = p_128191_;
+    public ByteArrayTag(byte[] pData) {
+        this.data = pData;
     }
 
-    public ByteArrayTag(List<Byte> p_128189_) {
-        this(toArray(p_128189_));
+    public ByteArrayTag(List<Byte> pDataList) {
+        this(toArray(pDataList));
     }
 
-    private static byte[] toArray(List<Byte> p_128207_) {
-        byte[] abyte = new byte[p_128207_.size()];
+    private static byte[] toArray(List<Byte> pDataList) {
+        byte[] abyte = new byte[pDataList.size()];
 
-        for (int i = 0; i < p_128207_.size(); ++i) {
-            Byte obyte = p_128207_.get(i);
+        for (int i = 0; i < pDataList.size(); ++i) {
+            Byte obyte = pDataList.get(i);
             abyte[i] = obyte == null ? 0 : obyte;
         }
 
         return abyte;
     }
 
-    public void write(DataOutput p_128202_) throws IOException {
-        p_128202_.writeInt(this.data.length);
-        p_128202_.write(this.data);
+    public void write(DataOutput pOutput) throws IOException {
+        pOutput.writeInt(this.data.length);
+        pOutput.write(this.data);
     }
 
     public byte getId() {
@@ -82,11 +82,11 @@ public class ByteArrayTag extends CollectionTag<ByteTag> {
         return new ByteArrayTag(abyte);
     }
 
-    public boolean equals(Object p_128233_) {
-        if (this == p_128233_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_128233_ instanceof ByteArrayTag && Arrays.equals(this.data, ((ByteArrayTag) p_128233_).data);
+            return pOther instanceof ByteArrayTag && Arrays.equals(this.data, ((ByteArrayTag) pOther).data);
         }
     }
 
@@ -94,8 +94,8 @@ public class ByteArrayTag extends CollectionTag<ByteTag> {
         return Arrays.hashCode(this.data);
     }
 
-    public void accept(TagVisitor p_177839_) {
-        p_177839_.visitByteArray(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitByteArray(this);
     }
 
     public byte[] getAsByteArray() {
@@ -120,18 +120,18 @@ public class ByteArrayTag extends CollectionTag<ByteTag> {
         this.data = ArrayUtils.add(this.data, p_128215_, p_128216_.getAsByte());
     }
 
-    public boolean setTag(int p_128199_, Tag p_128200_) {
-        if (p_128200_ instanceof NumericTag) {
-            this.data[p_128199_] = ((NumericTag) p_128200_).getAsByte();
+    public boolean setTag(int pIndex, Tag pNbt) {
+        if (pNbt instanceof NumericTag) {
+            this.data[pIndex] = ((NumericTag) pNbt).getAsByte();
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean addTag(int p_128218_, Tag p_128219_) {
-        if (p_128219_ instanceof NumericTag) {
-            this.data = ArrayUtils.add(this.data, p_128218_, ((NumericTag) p_128219_).getAsByte());
+    public boolean addTag(int pIndex, Tag pNbt) {
+        if (pNbt instanceof NumericTag) {
+            this.data = ArrayUtils.add(this.data, pIndex, ((NumericTag) pNbt).getAsByte());
             return true;
         } else {
             return false;
@@ -152,7 +152,7 @@ public class ByteArrayTag extends CollectionTag<ByteTag> {
         this.data = new byte[0];
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197429_) {
-        return p_197429_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 }

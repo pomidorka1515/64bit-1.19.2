@@ -10,30 +10,30 @@ public class ClientboundPlayerCombatKillPacket implements Packet<ClientGamePacke
     private final int killerId;
     private final Component message;
 
-    public ClientboundPlayerCombatKillPacket(CombatTracker p_179066_, Component p_179067_) {
-        this(p_179066_.getMob().getId(), p_179066_.getKillerId(), p_179067_);
+    public ClientboundPlayerCombatKillPacket(CombatTracker pCombatTracker, Component pMessage) {
+        this(pCombatTracker.getMob().getId(), pCombatTracker.getKillerId(), pMessage);
     }
 
-    public ClientboundPlayerCombatKillPacket(int p_179062_, int p_179063_, Component p_179064_) {
-        this.playerId = p_179062_;
-        this.killerId = p_179063_;
-        this.message = p_179064_;
+    public ClientboundPlayerCombatKillPacket(int pPlayerId, int pKillerId, Component pMessage) {
+        this.playerId = pPlayerId;
+        this.killerId = pKillerId;
+        this.message = pMessage;
     }
 
-    public ClientboundPlayerCombatKillPacket(FriendlyByteBuf p_179069_) {
-        this.playerId = p_179069_.readVarInt();
-        this.killerId = p_179069_.readInt();
-        this.message = p_179069_.readComponent();
+    public ClientboundPlayerCombatKillPacket(FriendlyByteBuf pBuffer) {
+        this.playerId = pBuffer.readVarInt();
+        this.killerId = pBuffer.readInt();
+        this.message = pBuffer.readComponent();
     }
 
-    public void write(FriendlyByteBuf p_179072_) {
-        p_179072_.writeVarInt(this.playerId);
-        p_179072_.writeInt(this.killerId);
-        p_179072_.writeComponent(this.message);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.playerId);
+        pBuffer.writeInt(this.killerId);
+        pBuffer.writeComponent(this.message);
     }
 
-    public void handle(ClientGamePacketListener p_179076_) {
-        p_179076_.handlePlayerCombatKill(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handlePlayerCombatKill(this);
     }
 
     public boolean isSkippable() {

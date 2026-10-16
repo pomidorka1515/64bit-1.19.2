@@ -11,43 +11,43 @@ import net.minecraft.core.Registry;
 public class AttributeSupplier {
     private final Map<Attribute, AttributeInstance> instances;
 
-    public AttributeSupplier(Map<Attribute, AttributeInstance> p_22243_) {
-        this.instances = ImmutableMap.copyOf(p_22243_);
+    public AttributeSupplier(Map<Attribute, AttributeInstance> pInstances) {
+        this.instances = ImmutableMap.copyOf(pInstances);
     }
 
-    private AttributeInstance getAttributeInstance(Attribute p_22261_) {
-        AttributeInstance attributeinstance = this.instances.get(p_22261_);
+    private AttributeInstance getAttributeInstance(Attribute pAttribute) {
+        AttributeInstance attributeinstance = this.instances.get(pAttribute);
         if (attributeinstance == null) {
-            throw new IllegalArgumentException("Can't find attribute " + Registry.ATTRIBUTE.getKey(p_22261_));
+            throw new IllegalArgumentException("Can't find attribute " + Registry.ATTRIBUTE.getKey(pAttribute));
         } else {
             return attributeinstance;
         }
     }
 
-    public double getValue(Attribute p_22246_) {
-        return this.getAttributeInstance(p_22246_).getValue();
+    public double getValue(Attribute pAttribute) {
+        return this.getAttributeInstance(pAttribute).getValue();
     }
 
-    public double getBaseValue(Attribute p_22254_) {
-        return this.getAttributeInstance(p_22254_).getBaseValue();
+    public double getBaseValue(Attribute pAttribute) {
+        return this.getAttributeInstance(pAttribute).getBaseValue();
     }
 
-    public double getModifierValue(Attribute p_22248_, UUID p_22249_) {
-        AttributeModifier attributemodifier = this.getAttributeInstance(p_22248_).getModifier(p_22249_);
+    public double getModifierValue(Attribute pAttribute, UUID pId) {
+        AttributeModifier attributemodifier = this.getAttributeInstance(pAttribute).getModifier(pId);
         if (attributemodifier == null) {
-            throw new IllegalArgumentException("Can't find modifier " + p_22249_ + " on attribute " + Registry.ATTRIBUTE.getKey(p_22248_));
+            throw new IllegalArgumentException("Can't find modifier " + pId + " on attribute " + Registry.ATTRIBUTE.getKey(pAttribute));
         } else {
             return attributemodifier.getAmount();
         }
     }
 
     @Nullable
-    public AttributeInstance createInstance(Consumer<AttributeInstance> p_22251_, Attribute p_22252_) {
-        AttributeInstance attributeinstance = this.instances.get(p_22252_);
+    public AttributeInstance createInstance(Consumer<AttributeInstance> pOnChangedCallback, Attribute pAttribute) {
+        AttributeInstance attributeinstance = this.instances.get(pAttribute);
         if (attributeinstance == null) {
             return null;
         } else {
-            AttributeInstance attributeinstance1 = new AttributeInstance(p_22252_, p_22251_);
+            AttributeInstance attributeinstance1 = new AttributeInstance(pAttribute, pOnChangedCallback);
             attributeinstance1.replaceFrom(attributeinstance);
             return attributeinstance1;
         }
@@ -57,37 +57,37 @@ public class AttributeSupplier {
         return new AttributeSupplier.Builder();
     }
 
-    public boolean hasAttribute(Attribute p_22259_) {
-        return this.instances.containsKey(p_22259_);
+    public boolean hasAttribute(Attribute pAttribute) {
+        return this.instances.containsKey(pAttribute);
     }
 
-    public boolean hasModifier(Attribute p_22256_, UUID p_22257_) {
-        AttributeInstance attributeinstance = this.instances.get(p_22256_);
-        return attributeinstance != null && attributeinstance.getModifier(p_22257_) != null;
+    public boolean hasModifier(Attribute pAttribute, UUID pId) {
+        AttributeInstance attributeinstance = this.instances.get(pAttribute);
+        return attributeinstance != null && attributeinstance.getModifier(pId) != null;
     }
 
     public static class Builder {
         private final Map<Attribute, AttributeInstance> builder = Maps.newHashMap();
         private boolean instanceFrozen;
 
-        private AttributeInstance create(Attribute p_22275_) {
-            AttributeInstance attributeinstance = new AttributeInstance(p_22275_, (p_22273_) -> {
+        private AttributeInstance create(Attribute pAttribute) {
+            AttributeInstance attributeinstance = new AttributeInstance(pAttribute, (p_22273_) -> {
                 if (this.instanceFrozen) {
-                    throw new UnsupportedOperationException("Tried to change value for default attribute instance: " + Registry.ATTRIBUTE.getKey(p_22275_));
+                    throw new UnsupportedOperationException("Tried to change value for default attribute instance: " + Registry.ATTRIBUTE.getKey(pAttribute));
                 }
             });
-            this.builder.put(p_22275_, attributeinstance);
+            this.builder.put(pAttribute, attributeinstance);
             return attributeinstance;
         }
 
-        public AttributeSupplier.Builder add(Attribute p_22267_) {
-            this.create(p_22267_);
+        public AttributeSupplier.Builder add(Attribute pAttribute) {
+            this.create(pAttribute);
             return this;
         }
 
-        public AttributeSupplier.Builder add(Attribute p_22269_, double p_22270_) {
-            AttributeInstance attributeinstance = this.create(p_22269_);
-            attributeinstance.setBaseValue(p_22270_);
+        public AttributeSupplier.Builder add(Attribute pAttribute, double pValue) {
+            AttributeInstance attributeinstance = this.create(pAttribute);
+            attributeinstance.setBaseValue(pValue);
             return this;
         }
 

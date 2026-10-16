@@ -7,8 +7,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface LoggedChatMessageLink extends LoggedChatEvent {
-    static LoggedChatMessageLink.Header header(SignedMessageHeader p_242461_, MessageSignature p_242167_, byte[] p_242320_) {
-        return new LoggedChatMessageLink.Header(p_242461_, p_242167_, p_242320_);
+    static LoggedChatMessageLink.Header header(SignedMessageHeader pHeader, MessageSignature pHeaderSignature, byte[] pBodyDigest) {
+        return new LoggedChatMessageLink.Header(pHeader, pHeaderSignature, pBodyDigest);
     }
 
     SignedMessageHeader header();

@@ -38,11 +38,11 @@ public class MultilineTextField {
         return this.characterLimit;
     }
 
-    public void setCharacterLimit(int p_240163_) {
-        if (p_240163_ < 0) {
+    public void setCharacterLimit(int pCharacterLimit) {
+        if (pCharacterLimit < 0) {
             throw new IllegalArgumentException("Character limit cannot be negative");
         } else {
-            this.characterLimit = p_240163_;
+            this.characterLimit = pCharacterLimit;
         }
     }
 
@@ -50,16 +50,16 @@ public class MultilineTextField {
         return this.characterLimit != Integer.MAX_VALUE;
     }
 
-    public void setValueListener(Consumer<String> p_239920_) {
-        this.valueListener = p_239920_;
+    public void setValueListener(Consumer<String> pValueListener) {
+        this.valueListener = pValueListener;
     }
 
     public void setCursorListener(Runnable p_239258_) {
         this.cursorListener = p_239258_;
     }
 
-    public void setValue(String p_239678_) {
-        this.value = this.truncateFullText(p_239678_);
+    public void setValue(String pFullText) {
+        this.value = this.truncateFullText(pFullText);
         this.cursor = this.value.length();
         this.selectCursor = this.cursor;
         this.onValueChange();
@@ -342,8 +342,8 @@ public class MultilineTextField {
         }
     }
 
-    private String truncateFullText(String p_239843_) {
-        return this.hasCharacterLimit() ? StringUtil.truncateStringIfNecessary(p_239843_, this.characterLimit, false) : p_239843_;
+    private String truncateFullText(String pFullText) {
+        return this.hasCharacterLimit() ? StringUtil.truncateStringIfNecessary(pFullText, this.characterLimit, false) : pFullText;
     }
 
     private String truncateInsertionText(String p_239418_) {

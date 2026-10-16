@@ -15,38 +15,38 @@ public class MultiPartGenerator implements BlockStateGenerator {
     private final Block block;
     private final List<MultiPartGenerator.Entry> parts = Lists.newArrayList();
 
-    private MultiPartGenerator(Block p_125202_) {
-        this.block = p_125202_;
+    private MultiPartGenerator(Block pBlock) {
+        this.block = pBlock;
     }
 
     public Block getBlock() {
         return this.block;
     }
 
-    public static MultiPartGenerator multiPart(Block p_125205_) {
-        return new MultiPartGenerator(p_125205_);
+    public static MultiPartGenerator multiPart(Block pBlock) {
+        return new MultiPartGenerator(pBlock);
     }
 
-    public MultiPartGenerator with(List<Variant> p_125221_) {
-        this.parts.add(new MultiPartGenerator.Entry(p_125221_));
+    public MultiPartGenerator with(List<Variant> pVariants) {
+        this.parts.add(new MultiPartGenerator.Entry(pVariants));
         return this;
     }
 
-    public MultiPartGenerator with(Variant p_125219_) {
-        return this.with(ImmutableList.of(p_125219_));
+    public MultiPartGenerator with(Variant pVariant) {
+        return this.with(ImmutableList.of(pVariant));
     }
 
-    public MultiPartGenerator with(Condition p_125213_, List<Variant> p_125214_) {
-        this.parts.add(new MultiPartGenerator.ConditionalEntry(p_125213_, p_125214_));
+    public MultiPartGenerator with(Condition pCondition, List<Variant> pVariants) {
+        this.parts.add(new MultiPartGenerator.ConditionalEntry(pCondition, pVariants));
         return this;
     }
 
-    public MultiPartGenerator with(Condition p_125216_, Variant... p_125217_) {
-        return this.with(p_125216_, ImmutableList.copyOf(p_125217_));
+    public MultiPartGenerator with(Condition pCondition, Variant... pVariants) {
+        return this.with(pCondition, ImmutableList.copyOf(pVariants));
     }
 
-    public MultiPartGenerator with(Condition p_125210_, Variant p_125211_) {
-        return this.with(p_125210_, ImmutableList.of(p_125211_));
+    public MultiPartGenerator with(Condition pCondition, Variant pVariant) {
+        return this.with(pCondition, ImmutableList.of(pVariant));
     }
 
     public JsonElement get() {
@@ -64,31 +64,31 @@ public class MultiPartGenerator implements BlockStateGenerator {
     static class ConditionalEntry extends MultiPartGenerator.Entry {
         private final Condition condition;
 
-        ConditionalEntry(Condition p_125226_, List<Variant> p_125227_) {
-            super(p_125227_);
-            this.condition = p_125226_;
+        ConditionalEntry(Condition pCondition, List<Variant> pVariants) {
+            super(pVariants);
+            this.condition = pCondition;
         }
 
-        public void validate(StateDefinition<?, ?> p_125233_) {
-            this.condition.validate(p_125233_);
+        public void validate(StateDefinition<?, ?> pStateDefinition) {
+            this.condition.validate(pStateDefinition);
         }
 
-        public void decorate(JsonObject p_125235_) {
-            p_125235_.add("when", this.condition.get());
+        public void decorate(JsonObject pJsonObject) {
+            pJsonObject.add("when", this.condition.get());
         }
     }
 
     static class Entry implements Supplier<JsonElement> {
         private final List<Variant> variants;
 
-        Entry(List<Variant> p_125238_) {
-            this.variants = p_125238_;
+        Entry(List<Variant> pVariants) {
+            this.variants = pVariants;
         }
 
-        public void validate(StateDefinition<?, ?> p_125243_) {
+        public void validate(StateDefinition<?, ?> pStateDefinition) {
         }
 
-        public void decorate(JsonObject p_125244_) {
+        public void decorate(JsonObject pJsonObject) {
         }
 
         public JsonElement get() {

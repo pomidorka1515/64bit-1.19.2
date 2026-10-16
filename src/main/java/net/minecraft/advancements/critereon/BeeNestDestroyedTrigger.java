@@ -18,17 +18,17 @@ public class BeeNestDestroyedTrigger extends SimpleCriterionTrigger<BeeNestDestr
         return ID;
     }
 
-    public BeeNestDestroyedTrigger.TriggerInstance createInstance(JsonObject p_17490_, EntityPredicate.Composite p_17491_, DeserializationContext p_17492_) {
-        Block block = deserializeBlock(p_17490_);
-        ItemPredicate itempredicate = ItemPredicate.fromJson(p_17490_.get("item"));
-        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(p_17490_.get("num_bees_inside"));
-        return new BeeNestDestroyedTrigger.TriggerInstance(p_17491_, block, itempredicate, minmaxbounds$ints);
+    public BeeNestDestroyedTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        Block block = deserializeBlock(pJson);
+        ItemPredicate itempredicate = ItemPredicate.fromJson(pJson.get("item"));
+        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(pJson.get("num_bees_inside"));
+        return new BeeNestDestroyedTrigger.TriggerInstance(pEntityPredicate, block, itempredicate, minmaxbounds$ints);
     }
 
     @Nullable
-    private static Block deserializeBlock(JsonObject p_17488_) {
-        if (p_17488_.has("block")) {
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_17488_, "block"));
+    private static Block deserializeBlock(JsonObject pJson) {
+        if (pJson.has("block")) {
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pJson, "block"));
             return Registry.BLOCK.getOptional(resourcelocation).orElseThrow(() -> {
                 return new JsonSyntaxException("Unknown block type '" + resourcelocation + "'");
             });
@@ -37,9 +37,9 @@ public class BeeNestDestroyedTrigger extends SimpleCriterionTrigger<BeeNestDestr
         }
     }
 
-    public void trigger(ServerPlayer p_146652_, BlockState p_146653_, ItemStack p_146654_, int p_146655_) {
-        this.trigger(p_146652_, (p_146660_) -> {
-            return p_146660_.matches(p_146653_, p_146654_, p_146655_);
+    public void trigger(ServerPlayer pPlayer, BlockState pState, ItemStack pStack, int pNumBees) {
+        this.trigger(pPlayer, (p_146660_) -> {
+            return p_146660_.matches(pState, pStack, pNumBees);
         });
     }
 
@@ -49,27 +49,27 @@ public class BeeNestDestroyedTrigger extends SimpleCriterionTrigger<BeeNestDestr
         private final ItemPredicate item;
         private final MinMaxBounds.Ints numBees;
 
-        public TriggerInstance(EntityPredicate.Composite p_17504_, @Nullable Block p_17505_, ItemPredicate p_17506_, MinMaxBounds.Ints p_17507_) {
-            super(BeeNestDestroyedTrigger.ID, p_17504_);
-            this.block = p_17505_;
-            this.item = p_17506_;
-            this.numBees = p_17507_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, @Nullable Block pBlock, ItemPredicate pItem, MinMaxBounds.Ints pNumBees) {
+            super(BeeNestDestroyedTrigger.ID, pPlayer);
+            this.block = pBlock;
+            this.item = pItem;
+            this.numBees = pNumBees;
         }
 
-        public static BeeNestDestroyedTrigger.TriggerInstance destroyedBeeNest(Block p_17513_, ItemPredicate.Builder p_17514_, MinMaxBounds.Ints p_17515_) {
-            return new BeeNestDestroyedTrigger.TriggerInstance(EntityPredicate.Composite.ANY, p_17513_, p_17514_.build(), p_17515_);
+        public static BeeNestDestroyedTrigger.TriggerInstance destroyedBeeNest(Block pBlock, ItemPredicate.Builder pItemPredicateBuilder, MinMaxBounds.Ints pBeesContained) {
+            return new BeeNestDestroyedTrigger.TriggerInstance(EntityPredicate.Composite.ANY, pBlock, pItemPredicateBuilder.build(), pBeesContained);
         }
 
-        public boolean matches(BlockState p_146662_, ItemStack p_146663_, int p_146664_) {
-            if (this.block != null && !p_146662_.is(this.block)) {
+        public boolean matches(BlockState pState, ItemStack pStack, int pNumBees) {
+            if (this.block != null && !pState.is(this.block)) {
                 return false;
             } else {
-                return !this.item.matches(p_146663_) ? false : this.numBees.matches(p_146664_);
+                return !this.item.matches(pStack) ? false : this.numBees.matches(pNumBees);
             }
         }
 
-        public JsonObject serializeToJson(SerializationContext p_17517_) {
-            JsonObject jsonobject = super.serializeToJson(p_17517_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             if (this.block != null) {
                 jsonobject.addProperty("block", Registry.BLOCK.getKey(this.block).toString());
             }

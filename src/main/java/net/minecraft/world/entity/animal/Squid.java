@@ -44,8 +44,8 @@ public class Squid extends WaterAnimal {
     private float ty;
     private float tz;
 
-    public Squid(EntityType<? extends Squid> p_29953_, Level p_29954_) {
-        super(p_29953_, p_29954_);
+    public Squid(EntityType<? extends Squid> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.random.setSeed((long) this.getId());
         this.tentacleSpeed = 1.0F / (this.random.nextFloat() + 1.0F) * 0.2F;
     }
@@ -59,15 +59,15 @@ public class Squid extends WaterAnimal {
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 10.0D);
     }
 
-    protected float getStandingEyeHeight(Pose p_29975_, EntityDimensions p_29976_) {
-        return p_29976_.height * 0.5F;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return pSize.height * 0.5F;
     }
 
     protected SoundEvent getAmbientSound() {
         return SoundEvents.SQUID_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_29980_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.SQUID_HURT;
     }
 
@@ -79,7 +79,7 @@ public class Squid extends WaterAnimal {
         return SoundEvents.SQUID_SQUIRT;
     }
 
-    public boolean canBeLeashed(Player p_149052_) {
+    public boolean canBeLeashed(Player pPlayer) {
         return !this.isLeashed();
     }
 
@@ -154,8 +154,8 @@ public class Squid extends WaterAnimal {
         }
     }
 
-    public boolean hurt(DamageSource p_29963_, float p_29964_) {
-        if (super.hurt(p_29963_, p_29964_) && this.getLastHurtByMob() != null) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (super.hurt(pSource, pAmount) && this.getLastHurtByMob() != null) {
             if (!this.level.isClientSide) {
                 this.spawnInk();
             }
@@ -166,8 +166,8 @@ public class Squid extends WaterAnimal {
         }
     }
 
-    private Vec3 rotateVector(Vec3 p_29986_) {
-        Vec3 vec3 = p_29986_.xRot(this.xBodyRotO * ((float) Math.PI / 180F));
+    private Vec3 rotateVector(Vec3 pVector) {
+        Vec3 vec3 = pVector.xRot(this.xBodyRotO * ((float) Math.PI / 180F));
         return vec3.yRot(-this.yBodyRotO * ((float) Math.PI / 180F));
     }
 
@@ -186,22 +186,22 @@ public class Squid extends WaterAnimal {
         return ParticleTypes.SQUID_INK;
     }
 
-    public void travel(Vec3 p_29984_) {
+    public void travel(Vec3 pTravelVector) {
         this.move(MoverType.SELF, this.getDeltaMovement());
     }
 
-    public void handleEntityEvent(byte p_29957_) {
-        if (p_29957_ == 19) {
+    public void handleEntityEvent(byte pId) {
+        if (pId == 19) {
             this.tentacleMovement = 0.0F;
         } else {
-            super.handleEntityEvent(p_29957_);
+            super.handleEntityEvent(pId);
         }
     }
 
-    public void setMovementVector(float p_29959_, float p_29960_, float p_29961_) {
-        this.tx = p_29959_;
-        this.ty = p_29960_;
-        this.tz = p_29961_;
+    public void setMovementVector(float pTx, float pTy, float pTz) {
+        this.tx = pTx;
+        this.ty = pTy;
+        this.tz = pTz;
     }
 
     public boolean hasMovementVector() {

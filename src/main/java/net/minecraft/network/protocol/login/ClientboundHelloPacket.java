@@ -11,26 +11,26 @@ public class ClientboundHelloPacket implements Packet<ClientLoginPacketListener>
     private final byte[] publicKey;
     private final byte[] nonce;
 
-    public ClientboundHelloPacket(String p_134782_, byte[] p_134783_, byte[] p_134784_) {
-        this.serverId = p_134782_;
-        this.publicKey = p_134783_;
-        this.nonce = p_134784_;
+    public ClientboundHelloPacket(String pServerId, byte[] pPublicKey, byte[] pNonce) {
+        this.serverId = pServerId;
+        this.publicKey = pPublicKey;
+        this.nonce = pNonce;
     }
 
-    public ClientboundHelloPacket(FriendlyByteBuf p_179816_) {
-        this.serverId = p_179816_.readUtf(20);
-        this.publicKey = p_179816_.readByteArray();
-        this.nonce = p_179816_.readByteArray();
+    public ClientboundHelloPacket(FriendlyByteBuf pBuffer) {
+        this.serverId = pBuffer.readUtf(20);
+        this.publicKey = pBuffer.readByteArray();
+        this.nonce = pBuffer.readByteArray();
     }
 
-    public void write(FriendlyByteBuf p_134793_) {
-        p_134793_.writeUtf(this.serverId);
-        p_134793_.writeByteArray(this.publicKey);
-        p_134793_.writeByteArray(this.nonce);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeUtf(this.serverId);
+        pBuffer.writeByteArray(this.publicKey);
+        pBuffer.writeByteArray(this.nonce);
     }
 
-    public void handle(ClientLoginPacketListener p_134790_) {
-        p_134790_.handleHello(this);
+    public void handle(ClientLoginPacketListener pHandler) {
+        pHandler.handleHello(this);
     }
 
     public String getServerId() {

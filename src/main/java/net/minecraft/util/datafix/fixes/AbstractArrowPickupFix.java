@@ -10,8 +10,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.function.Function;
 
 public class AbstractArrowPickupFix extends DataFix {
-    public AbstractArrowPickupFix(Schema p_145046_) {
-        super(p_145046_, false);
+    public AbstractArrowPickupFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     protected TypeRewriteRule makeRule() {

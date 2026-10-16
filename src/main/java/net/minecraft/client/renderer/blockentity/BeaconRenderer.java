@@ -22,83 +22,83 @@ public class BeaconRenderer implements BlockEntityRenderer<BeaconBlockEntity> {
     public static final ResourceLocation BEAM_LOCATION = new ResourceLocation("textures/entity/beacon_beam.png");
     public static final int MAX_RENDER_Y = 1024;
 
-    public BeaconRenderer(BlockEntityRendererProvider.Context p_173529_) {
+    public BeaconRenderer(BlockEntityRendererProvider.Context pContext) {
     }
 
-    public void render(BeaconBlockEntity p_112140_, float p_112141_, PoseStack p_112142_, MultiBufferSource p_112143_, int p_112144_, int p_112145_) {
-        long i = p_112140_.getLevel().getGameTime();
-        List<BeaconBlockEntity.BeaconBeamSection> list = p_112140_.getBeamSections();
+    public void render(BeaconBlockEntity pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        long i = pBlockEntity.getLevel().getGameTime();
+        List<BeaconBlockEntity.BeaconBeamSection> list = pBlockEntity.getBeamSections();
         int j = 0;
 
         for (int k = 0; k < list.size(); ++k) {
             BeaconBlockEntity.BeaconBeamSection beaconblockentity$beaconbeamsection = list.get(k);
-            renderBeaconBeam(p_112142_, p_112143_, p_112141_, i, j, k == list.size() - 1 ? 1024 : beaconblockentity$beaconbeamsection.getHeight(), beaconblockentity$beaconbeamsection.getColor());
+            renderBeaconBeam(pPoseStack, pBufferSource, pPartialTick, i, j, k == list.size() - 1 ? 1024 : beaconblockentity$beaconbeamsection.getHeight(), beaconblockentity$beaconbeamsection.getColor());
             j += beaconblockentity$beaconbeamsection.getHeight();
         }
     }
 
-    private static void renderBeaconBeam(PoseStack p_112177_, MultiBufferSource p_112178_, float p_112179_, long p_112180_, int p_112181_, int p_112182_, float[] p_112183_) {
-        renderBeaconBeam(p_112177_, p_112178_, BEAM_LOCATION, p_112179_, 1.0F, p_112180_, p_112181_, p_112182_, p_112183_, 0.2F, 0.25F);
+    private static void renderBeaconBeam(PoseStack pPoseStack, MultiBufferSource pBufferSource, float pPartialTick, long pGameTime, int pYOffset, int pHeight, float[] pColors) {
+        renderBeaconBeam(pPoseStack, pBufferSource, BEAM_LOCATION, pPartialTick, 1.0F, pGameTime, pYOffset, pHeight, pColors, 0.2F, 0.25F);
     }
 
-    public static void renderBeaconBeam(PoseStack p_112185_, MultiBufferSource p_112186_, ResourceLocation p_112187_, float p_112188_, float p_112189_, long p_112190_, int p_112191_, int p_112192_, float[] p_112193_, float p_112194_, float p_112195_) {
-        int i = p_112191_ + p_112192_;
-        p_112185_.pushPose();
-        p_112185_.translate(0.5D, 0.0D, 0.5D);
-        float f = (float) Math.floorMod(p_112190_, 40) + p_112188_;
-        float f1 = p_112192_ < 0 ? f : -f;
+    public static void renderBeaconBeam(PoseStack pPoseStack, MultiBufferSource pBufferSource, ResourceLocation pBeamLocation, float pPartialTick, float pTextureScale, long pGameTime, int pYOffset, int pHeight, float[] pColors, float pBeamRadius, float pGlowRadius) {
+        int i = pYOffset + pHeight;
+        pPoseStack.pushPose();
+        pPoseStack.translate(0.5D, 0.0D, 0.5D);
+        float f = (float) Math.floorMod(pGameTime, 40) + pPartialTick;
+        float f1 = pHeight < 0 ? f : -f;
         float f2 = Mth.frac(f1 * 0.2F - (float) Mth.floor(f1 * 0.1F));
-        float f3 = p_112193_[0];
-        float f4 = p_112193_[1];
-        float f5 = p_112193_[2];
-        p_112185_.pushPose();
-        p_112185_.mulPose(Vector3f.YP.rotationDegrees(f * 2.25F - 45.0F));
+        float f3 = pColors[0];
+        float f4 = pColors[1];
+        float f5 = pColors[2];
+        pPoseStack.pushPose();
+        pPoseStack.mulPose(Vector3f.YP.rotationDegrees(f * 2.25F - 45.0F));
         float f6 = 0.0F;
         float f8 = 0.0F;
-        float f9 = -p_112194_;
+        float f9 = -pBeamRadius;
         float f10 = 0.0F;
         float f11 = 0.0F;
-        float f12 = -p_112194_;
+        float f12 = -pBeamRadius;
         float f13 = 0.0F;
         float f14 = 1.0F;
         float f15 = -1.0F + f2;
-        float f16 = (float) p_112192_ * p_112189_ * (0.5F / p_112194_) + f15;
-        renderPart(p_112185_, p_112186_.getBuffer(RenderType.beaconBeam(p_112187_, false)), f3, f4, f5, 1.0F, p_112191_, i, 0.0F, p_112194_, p_112194_, 0.0F, f9, 0.0F, 0.0F, f12, 0.0F, 1.0F, f16, f15);
-        p_112185_.popPose();
-        f6 = -p_112195_;
-        float f7 = -p_112195_;
-        f8 = -p_112195_;
-        f9 = -p_112195_;
+        float f16 = (float) pHeight * pTextureScale * (0.5F / pBeamRadius) + f15;
+        renderPart(pPoseStack, pBufferSource.getBuffer(RenderType.beaconBeam(pBeamLocation, false)), f3, f4, f5, 1.0F, pYOffset, i, 0.0F, pBeamRadius, pBeamRadius, 0.0F, f9, 0.0F, 0.0F, f12, 0.0F, 1.0F, f16, f15);
+        pPoseStack.popPose();
+        f6 = -pGlowRadius;
+        float f7 = -pGlowRadius;
+        f8 = -pGlowRadius;
+        f9 = -pGlowRadius;
         f13 = 0.0F;
         f14 = 1.0F;
         f15 = -1.0F + f2;
-        f16 = (float) p_112192_ * p_112189_ + f15;
-        renderPart(p_112185_, p_112186_.getBuffer(RenderType.beaconBeam(p_112187_, true)), f3, f4, f5, 0.125F, p_112191_, i, f6, f7, p_112195_, f8, f9, p_112195_, p_112195_, p_112195_, 0.0F, 1.0F, f16, f15);
-        p_112185_.popPose();
+        f16 = (float) pHeight * pTextureScale + f15;
+        renderPart(pPoseStack, pBufferSource.getBuffer(RenderType.beaconBeam(pBeamLocation, true)), f3, f4, f5, 0.125F, pYOffset, i, f6, f7, pGlowRadius, f8, f9, pGlowRadius, pGlowRadius, pGlowRadius, 0.0F, 1.0F, f16, f15);
+        pPoseStack.popPose();
     }
 
-    private static void renderPart(PoseStack p_112156_, VertexConsumer p_112157_, float p_112158_, float p_112159_, float p_112160_, float p_112161_, int p_112162_, int p_112163_, float p_112164_, float p_112165_, float p_112166_, float p_112167_, float p_112168_, float p_112169_, float p_112170_, float p_112171_, float p_112172_, float p_112173_, float p_112174_, float p_112175_) {
-        PoseStack.Pose posestack$pose = p_112156_.last();
+    private static void renderPart(PoseStack pPoseStack, VertexConsumer pConsumer, float pRed, float pGreen, float pBlue, float pAlpha, int pMinY, int pMaxY, float pX0, float pZ0, float pX1, float pZ1, float pX2, float pZ2, float pX3, float pZ3, float pMinU, float pMaxU, float pMinV, float pMaxV) {
+        PoseStack.Pose posestack$pose = pPoseStack.last();
         Matrix4f matrix4f = posestack$pose.pose();
         Matrix3f matrix3f = posestack$pose.normal();
-        renderQuad(matrix4f, matrix3f, p_112157_, p_112158_, p_112159_, p_112160_, p_112161_, p_112162_, p_112163_, p_112164_, p_112165_, p_112166_, p_112167_, p_112172_, p_112173_, p_112174_, p_112175_);
-        renderQuad(matrix4f, matrix3f, p_112157_, p_112158_, p_112159_, p_112160_, p_112161_, p_112162_, p_112163_, p_112170_, p_112171_, p_112168_, p_112169_, p_112172_, p_112173_, p_112174_, p_112175_);
-        renderQuad(matrix4f, matrix3f, p_112157_, p_112158_, p_112159_, p_112160_, p_112161_, p_112162_, p_112163_, p_112166_, p_112167_, p_112170_, p_112171_, p_112172_, p_112173_, p_112174_, p_112175_);
-        renderQuad(matrix4f, matrix3f, p_112157_, p_112158_, p_112159_, p_112160_, p_112161_, p_112162_, p_112163_, p_112168_, p_112169_, p_112164_, p_112165_, p_112172_, p_112173_, p_112174_, p_112175_);
+        renderQuad(matrix4f, matrix3f, pConsumer, pRed, pGreen, pBlue, pAlpha, pMinY, pMaxY, pX0, pZ0, pX1, pZ1, pMinU, pMaxU, pMinV, pMaxV);
+        renderQuad(matrix4f, matrix3f, pConsumer, pRed, pGreen, pBlue, pAlpha, pMinY, pMaxY, pX3, pZ3, pX2, pZ2, pMinU, pMaxU, pMinV, pMaxV);
+        renderQuad(matrix4f, matrix3f, pConsumer, pRed, pGreen, pBlue, pAlpha, pMinY, pMaxY, pX1, pZ1, pX3, pZ3, pMinU, pMaxU, pMinV, pMaxV);
+        renderQuad(matrix4f, matrix3f, pConsumer, pRed, pGreen, pBlue, pAlpha, pMinY, pMaxY, pX2, pZ2, pX0, pZ0, pMinU, pMaxU, pMinV, pMaxV);
     }
 
-    private static void renderQuad(Matrix4f p_112120_, Matrix3f p_112121_, VertexConsumer p_112122_, float p_112123_, float p_112124_, float p_112125_, float p_112126_, int p_112127_, int p_112128_, float p_112129_, float p_112130_, float p_112131_, float p_112132_, float p_112133_, float p_112134_, float p_112135_, float p_112136_) {
-        addVertex(p_112120_, p_112121_, p_112122_, p_112123_, p_112124_, p_112125_, p_112126_, p_112128_, p_112129_, p_112130_, p_112134_, p_112135_);
-        addVertex(p_112120_, p_112121_, p_112122_, p_112123_, p_112124_, p_112125_, p_112126_, p_112127_, p_112129_, p_112130_, p_112134_, p_112136_);
-        addVertex(p_112120_, p_112121_, p_112122_, p_112123_, p_112124_, p_112125_, p_112126_, p_112127_, p_112131_, p_112132_, p_112133_, p_112136_);
-        addVertex(p_112120_, p_112121_, p_112122_, p_112123_, p_112124_, p_112125_, p_112126_, p_112128_, p_112131_, p_112132_, p_112133_, p_112135_);
+    private static void renderQuad(Matrix4f pPose, Matrix3f pNormal, VertexConsumer pConsumer, float pRed, float pGreen, float pBlue, float pAlpha, int pMinY, int pMaxY, float pMinX, float pMinZ, float pMaxX, float pMaxZ, float pMinU, float pMaxU, float pMinV, float pMaxV) {
+        addVertex(pPose, pNormal, pConsumer, pRed, pGreen, pBlue, pAlpha, pMaxY, pMinX, pMinZ, pMaxU, pMinV);
+        addVertex(pPose, pNormal, pConsumer, pRed, pGreen, pBlue, pAlpha, pMinY, pMinX, pMinZ, pMaxU, pMaxV);
+        addVertex(pPose, pNormal, pConsumer, pRed, pGreen, pBlue, pAlpha, pMinY, pMaxX, pMaxZ, pMinU, pMaxV);
+        addVertex(pPose, pNormal, pConsumer, pRed, pGreen, pBlue, pAlpha, pMaxY, pMaxX, pMaxZ, pMinU, pMinV);
     }
 
-    private static void addVertex(Matrix4f p_112107_, Matrix3f p_112108_, VertexConsumer p_112109_, float p_112110_, float p_112111_, float p_112112_, float p_112113_, int p_112114_, float p_112115_, float p_112116_, float p_112117_, float p_112118_) {
-        p_112109_.vertex(p_112107_, p_112115_, (float) p_112114_, p_112116_).color(p_112110_, p_112111_, p_112112_, p_112113_).uv(p_112117_, p_112118_).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(p_112108_, 0.0F, 1.0F, 0.0F).endVertex();
+    private static void addVertex(Matrix4f pPose, Matrix3f pNormal, VertexConsumer pConsumer, float pRed, float pGreen, float pBlue, float pAlpha, int pY, float pX, float pZ, float pU, float pV) {
+        pConsumer.vertex(pPose, pX, (float) pY, pZ).color(pRed, pGreen, pBlue, pAlpha).uv(pU, pV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(pNormal, 0.0F, 1.0F, 0.0F).endVertex();
     }
 
-    public boolean shouldRenderOffScreen(BeaconBlockEntity p_112138_) {
+    public boolean shouldRenderOffScreen(BeaconBlockEntity pBlockEntity) {
         return true;
     }
 
@@ -106,11 +106,11 @@ public class BeaconRenderer implements BlockEntityRenderer<BeaconBlockEntity> {
         return 256;
     }
 
-    public boolean shouldRender(BeaconBlockEntity p_173531_, SectorVec3 p_173532_) {
-        BlockPos blockpos = p_173531_.getBlockPos();
-        double d0 = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, p_173532_.y(),
+    public boolean shouldRender(BeaconBlockEntity pBlockEntity, SectorVec3 pCameraPos) {
+        BlockPos blockpos = pBlockEntity.getBlockPos();
+        double d0 = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, pCameraPos.y(),
                                       blockpos.getZ(), 0.5D)
-                            .relativeTo(p_173532_)
+                            .relativeTo(pCameraPos)
                             .lengthSqr();
         return d0 < (double) this.getViewDistance() * (double) this.getViewDistance();
     }

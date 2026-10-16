@@ -30,11 +30,11 @@ public class StriderModel<T extends Strider> extends HierarchicalModel<T> {
     private final ModelPart leftMiddleBristle;
     private final ModelPart leftBottomBristle;
 
-    public StriderModel(ModelPart p_171011_) {
-        this.root = p_171011_;
-        this.rightLeg = p_171011_.getChild("right_leg");
-        this.leftLeg = p_171011_.getChild("left_leg");
-        this.body = p_171011_.getChild("body");
+    public StriderModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.rightLeg = pRoot.getChild("right_leg");
+        this.leftLeg = pRoot.getChild("left_leg");
+        this.body = pRoot.getChild("body");
         this.rightBottomBristle = this.body.getChild("right_bottom_bristle");
         this.rightMiddleBristle = this.body.getChild("right_middle_bristle");
         this.rightTopBristle = this.body.getChild("right_top_bristle");
@@ -58,33 +58,33 @@ public class StriderModel<T extends Strider> extends HierarchicalModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 128);
     }
 
-    public void setupAnim(Strider p_103903_, float p_103904_, float p_103905_, float p_103906_, float p_103907_, float p_103908_) {
-        p_103905_ = Math.min(0.25F, p_103905_);
-        if (!p_103903_.isVehicle()) {
-            this.body.xRot = p_103908_ * ((float) Math.PI / 180F);
-            this.body.yRot = p_103907_ * ((float) Math.PI / 180F);
+    public void setupAnim(Strider pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        pLimbSwingAmount = Math.min(0.25F, pLimbSwingAmount);
+        if (!pEntity.isVehicle()) {
+            this.body.xRot = pHeadPitch * ((float) Math.PI / 180F);
+            this.body.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
         } else {
             this.body.xRot = 0.0F;
             this.body.yRot = 0.0F;
         }
 
         float f = 1.5F;
-        this.body.zRot = 0.1F * Mth.sin(p_103904_ * 1.5F) * 4.0F * p_103905_;
+        this.body.zRot = 0.1F * Mth.sin(pLimbSwing * 1.5F) * 4.0F * pLimbSwingAmount;
         this.body.y = 2.0F;
-        this.body.y -= 2.0F * Mth.cos(p_103904_ * 1.5F) * 2.0F * p_103905_;
-        this.leftLeg.xRot = Mth.sin(p_103904_ * 1.5F * 0.5F) * 2.0F * p_103905_;
-        this.rightLeg.xRot = Mth.sin(p_103904_ * 1.5F * 0.5F + (float) Math.PI) * 2.0F * p_103905_;
-        this.leftLeg.zRot = 0.17453292F * Mth.cos(p_103904_ * 1.5F * 0.5F) * p_103905_;
-        this.rightLeg.zRot = 0.17453292F * Mth.cos(p_103904_ * 1.5F * 0.5F + (float) Math.PI) * p_103905_;
-        this.leftLeg.y = 8.0F + 2.0F * Mth.sin(p_103904_ * 1.5F * 0.5F + (float) Math.PI) * 2.0F * p_103905_;
-        this.rightLeg.y = 8.0F + 2.0F * Mth.sin(p_103904_ * 1.5F * 0.5F) * 2.0F * p_103905_;
+        this.body.y -= 2.0F * Mth.cos(pLimbSwing * 1.5F) * 2.0F * pLimbSwingAmount;
+        this.leftLeg.xRot = Mth.sin(pLimbSwing * 1.5F * 0.5F) * 2.0F * pLimbSwingAmount;
+        this.rightLeg.xRot = Mth.sin(pLimbSwing * 1.5F * 0.5F + (float) Math.PI) * 2.0F * pLimbSwingAmount;
+        this.leftLeg.zRot = 0.17453292F * Mth.cos(pLimbSwing * 1.5F * 0.5F) * pLimbSwingAmount;
+        this.rightLeg.zRot = 0.17453292F * Mth.cos(pLimbSwing * 1.5F * 0.5F + (float) Math.PI) * pLimbSwingAmount;
+        this.leftLeg.y = 8.0F + 2.0F * Mth.sin(pLimbSwing * 1.5F * 0.5F + (float) Math.PI) * 2.0F * pLimbSwingAmount;
+        this.rightLeg.y = 8.0F + 2.0F * Mth.sin(pLimbSwing * 1.5F * 0.5F) * 2.0F * pLimbSwingAmount;
         this.rightBottomBristle.zRot = -1.2217305F;
         this.rightMiddleBristle.zRot = -1.134464F;
         this.rightTopBristle.zRot = -0.87266463F;
         this.leftTopBristle.zRot = 0.87266463F;
         this.leftMiddleBristle.zRot = 1.134464F;
         this.leftBottomBristle.zRot = 1.2217305F;
-        float f1 = Mth.cos(p_103904_ * 1.5F + (float) Math.PI) * p_103905_;
+        float f1 = Mth.cos(pLimbSwing * 1.5F + (float) Math.PI) * pLimbSwingAmount;
         this.rightBottomBristle.zRot += f1 * 1.3F;
         this.rightMiddleBristle.zRot += f1 * 1.2F;
         this.rightTopBristle.zRot += f1 * 0.6F;
@@ -93,12 +93,12 @@ public class StriderModel<T extends Strider> extends HierarchicalModel<T> {
         this.leftBottomBristle.zRot += f1 * 1.3F;
         float f2 = 1.0F;
         float f3 = 1.0F;
-        this.rightBottomBristle.zRot += 0.05F * Mth.sin(p_103906_ * 1.0F * -0.4F);
-        this.rightMiddleBristle.zRot += 0.1F * Mth.sin(p_103906_ * 1.0F * 0.2F);
-        this.rightTopBristle.zRot += 0.1F * Mth.sin(p_103906_ * 1.0F * 0.4F);
-        this.leftTopBristle.zRot += 0.1F * Mth.sin(p_103906_ * 1.0F * 0.4F);
-        this.leftMiddleBristle.zRot += 0.1F * Mth.sin(p_103906_ * 1.0F * 0.2F);
-        this.leftBottomBristle.zRot += 0.05F * Mth.sin(p_103906_ * 1.0F * -0.4F);
+        this.rightBottomBristle.zRot += 0.05F * Mth.sin(pAgeInTicks * 1.0F * -0.4F);
+        this.rightMiddleBristle.zRot += 0.1F * Mth.sin(pAgeInTicks * 1.0F * 0.2F);
+        this.rightTopBristle.zRot += 0.1F * Mth.sin(pAgeInTicks * 1.0F * 0.4F);
+        this.leftTopBristle.zRot += 0.1F * Mth.sin(pAgeInTicks * 1.0F * 0.4F);
+        this.leftMiddleBristle.zRot += 0.1F * Mth.sin(pAgeInTicks * 1.0F * 0.2F);
+        this.leftBottomBristle.zRot += 0.05F * Mth.sin(pAgeInTicks * 1.0F * -0.4F);
     }
 
     public ModelPart root() {

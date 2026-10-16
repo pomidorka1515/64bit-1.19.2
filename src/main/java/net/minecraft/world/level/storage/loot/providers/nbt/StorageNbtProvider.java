@@ -15,8 +15,8 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
 public class StorageNbtProvider implements NbtProvider {
     final ResourceLocation id;
 
-    StorageNbtProvider(ResourceLocation p_165633_) {
-        this.id = p_165633_;
+    StorageNbtProvider(ResourceLocation pResourceLocation) {
+        this.id = pResourceLocation;
     }
 
     public LootNbtProviderType getType() {
@@ -24,8 +24,8 @@ public class StorageNbtProvider implements NbtProvider {
     }
 
     @Nullable
-    public Tag get(LootContext p_165636_) {
-        return p_165636_.getLevel().getServer().getCommandStorage().get(this.id);
+    public Tag get(LootContext pLootContext) {
+        return pLootContext.getLevel().getServer().getCommandStorage().get(this.id);
     }
 
     public Set<LootContextParam<?>> getReferencedContextParams() {

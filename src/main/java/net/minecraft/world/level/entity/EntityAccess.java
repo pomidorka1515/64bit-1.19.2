@@ -15,13 +15,13 @@ public interface EntityAccess {
 
     AABB getBoundingBox();
 
-    void setLevelCallback(EntityInLevelCallback p_156797_);
+    void setLevelCallback(EntityInLevelCallback pLevelCallback);
 
     Stream<? extends EntityAccess> getSelfAndPassengers();
 
     Stream<? extends EntityAccess> getPassengersAndSelf();
 
-    void setRemoved(Entity.RemovalReason p_156798_);
+    void setRemoved(Entity.RemovalReason pRemovalReason);
 
     boolean shouldBeSaved();
 

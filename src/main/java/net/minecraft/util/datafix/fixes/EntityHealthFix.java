@@ -12,8 +12,8 @@ import java.util.Set;
 public class EntityHealthFix extends DataFix {
     private static final Set<String> ENTITIES = Sets.newHashSet("ArmorStand", "Bat", "Blaze", "CaveSpider", "Chicken", "Cow", "Creeper", "EnderDragon", "Enderman", "Endermite", "EntityHorse", "Ghast", "Giant", "Guardian", "LavaSlime", "MushroomCow", "Ozelot", "Pig", "PigZombie", "Rabbit", "Sheep", "Shulker", "Silverfish", "Skeleton", "Slime", "SnowMan", "Spider", "Squid", "Villager", "VillagerGolem", "Witch", "WitherBoss", "Wolf", "Zombie");
 
-    public EntityHealthFix(Schema p_15434_, boolean p_15435_) {
-        super(p_15434_, p_15435_);
+    public EntityHealthFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15439_) {

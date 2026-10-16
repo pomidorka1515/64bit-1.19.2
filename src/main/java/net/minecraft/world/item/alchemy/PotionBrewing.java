@@ -25,15 +25,15 @@ public class PotionBrewing {
         return false;
     };
 
-    public static boolean isIngredient(ItemStack p_43507_) {
-        return isContainerIngredient(p_43507_) || isPotionIngredient(p_43507_);
+    public static boolean isIngredient(ItemStack pInput) {
+        return isContainerIngredient(pInput) || isPotionIngredient(pInput);
     }
 
-    protected static boolean isContainerIngredient(ItemStack p_43518_) {
+    protected static boolean isContainerIngredient(ItemStack pInput) {
         int i = 0;
 
         for (int j = CONTAINER_MIXES.size(); i < j; ++i) {
-            if ((CONTAINER_MIXES.get(i)).ingredient.test(p_43518_)) {
+            if ((CONTAINER_MIXES.get(i)).ingredient.test(pInput)) {
                 return true;
             }
         }
@@ -41,11 +41,11 @@ public class PotionBrewing {
         return false;
     }
 
-    protected static boolean isPotionIngredient(ItemStack p_43523_) {
+    protected static boolean isPotionIngredient(ItemStack pInput) {
         int i = 0;
 
         for (int j = POTION_MIXES.size(); i < j; ++i) {
-            if ((POTION_MIXES.get(i)).ingredient.test(p_43523_)) {
+            if ((POTION_MIXES.get(i)).ingredient.test(pInput)) {
                 return true;
             }
         }
@@ -53,11 +53,11 @@ public class PotionBrewing {
         return false;
     }
 
-    public static boolean isBrewablePotion(Potion p_43512_) {
+    public static boolean isBrewablePotion(Potion pPotion) {
         int i = 0;
 
         for (int j = POTION_MIXES.size(); i < j; ++i) {
-            if ((POTION_MIXES.get(i)).to == p_43512_) {
+            if ((POTION_MIXES.get(i)).to == pPotion) {
                 return true;
             }
         }
@@ -65,21 +65,21 @@ public class PotionBrewing {
         return false;
     }
 
-    public static boolean hasMix(ItemStack p_43509_, ItemStack p_43510_) {
-        if (!ALLOWED_CONTAINER.test(p_43509_)) {
+    public static boolean hasMix(ItemStack pInput, ItemStack pReagent) {
+        if (!ALLOWED_CONTAINER.test(pInput)) {
             return false;
         } else {
-            return hasContainerMix(p_43509_, p_43510_) || hasPotionMix(p_43509_, p_43510_);
+            return hasContainerMix(pInput, pReagent) || hasPotionMix(pInput, pReagent);
         }
     }
 
-    protected static boolean hasContainerMix(ItemStack p_43520_, ItemStack p_43521_) {
-        Item item = p_43520_.getItem();
+    protected static boolean hasContainerMix(ItemStack pInput, ItemStack pReagent) {
+        Item item = pInput.getItem();
         int i = 0;
 
         for (int j = CONTAINER_MIXES.size(); i < j; ++i) {
             PotionBrewing.Mix<Item> mix = CONTAINER_MIXES.get(i);
-            if (mix.from == item && mix.ingredient.test(p_43521_)) {
+            if (mix.from == item && mix.ingredient.test(pReagent)) {
                 return true;
             }
         }
@@ -87,13 +87,13 @@ public class PotionBrewing {
         return false;
     }
 
-    protected static boolean hasPotionMix(ItemStack p_43525_, ItemStack p_43526_) {
-        Potion potion = PotionUtils.getPotion(p_43525_);
+    protected static boolean hasPotionMix(ItemStack pInput, ItemStack pReagent) {
+        Potion potion = PotionUtils.getPotion(pInput);
         int i = 0;
 
         for (int j = POTION_MIXES.size(); i < j; ++i) {
             PotionBrewing.Mix<Potion> mix = POTION_MIXES.get(i);
-            if (mix.from == potion && mix.ingredient.test(p_43526_)) {
+            if (mix.from == potion && mix.ingredient.test(pReagent)) {
                 return true;
             }
         }
@@ -101,15 +101,15 @@ public class PotionBrewing {
         return false;
     }
 
-    public static ItemStack mix(ItemStack p_43530_, ItemStack p_43531_) {
-        if (!p_43531_.isEmpty()) {
-            Potion potion = PotionUtils.getPotion(p_43531_);
-            Item item = p_43531_.getItem();
+    public static ItemStack mix(ItemStack pReagent, ItemStack pPotion) {
+        if (!pPotion.isEmpty()) {
+            Potion potion = PotionUtils.getPotion(pPotion);
+            Item item = pPotion.getItem();
             int i = 0;
 
             for (int j = CONTAINER_MIXES.size(); i < j; ++i) {
                 PotionBrewing.Mix<Item> mix = CONTAINER_MIXES.get(i);
-                if (mix.from == item && mix.ingredient.test(p_43530_)) {
+                if (mix.from == item && mix.ingredient.test(pReagent)) {
                     return PotionUtils.setPotion(new ItemStack(mix.to), potion);
                 }
             }
@@ -118,13 +118,13 @@ public class PotionBrewing {
 
             for (int k = POTION_MIXES.size(); i < k; ++i) {
                 PotionBrewing.Mix<Potion> mix1 = POTION_MIXES.get(i);
-                if (mix1.from == potion && mix1.ingredient.test(p_43530_)) {
+                if (mix1.from == potion && mix1.ingredient.test(pReagent)) {
                     return PotionUtils.setPotion(new ItemStack(item), mix1.to);
                 }
             }
         }
 
-        return p_43531_;
+        return pPotion;
     }
 
     public static void bootStrap() {
@@ -190,26 +190,26 @@ public class PotionBrewing {
         addMix(Potions.SLOW_FALLING, Items.REDSTONE, Potions.LONG_SLOW_FALLING);
     }
 
-    private static void addContainerRecipe(Item p_43503_, Item p_43504_, Item p_43505_) {
-        if (!(p_43503_ instanceof PotionItem)) {
-            throw new IllegalArgumentException("Expected a potion, got: " + Registry.ITEM.getKey(p_43503_));
-        } else if (!(p_43505_ instanceof PotionItem)) {
-            throw new IllegalArgumentException("Expected a potion, got: " + Registry.ITEM.getKey(p_43505_));
+    private static void addContainerRecipe(Item pFrom, Item pIngredient, Item pTo) {
+        if (!(pFrom instanceof PotionItem)) {
+            throw new IllegalArgumentException("Expected a potion, got: " + Registry.ITEM.getKey(pFrom));
+        } else if (!(pTo instanceof PotionItem)) {
+            throw new IllegalArgumentException("Expected a potion, got: " + Registry.ITEM.getKey(pTo));
         } else {
-            CONTAINER_MIXES.add(new PotionBrewing.Mix<>(p_43503_, Ingredient.of(p_43504_), p_43505_));
+            CONTAINER_MIXES.add(new PotionBrewing.Mix<>(pFrom, Ingredient.of(pIngredient), pTo));
         }
     }
 
-    private static void addContainer(Item p_43501_) {
-        if (!(p_43501_ instanceof PotionItem)) {
-            throw new IllegalArgumentException("Expected a potion, got: " + Registry.ITEM.getKey(p_43501_));
+    private static void addContainer(Item pContainer) {
+        if (!(pContainer instanceof PotionItem)) {
+            throw new IllegalArgumentException("Expected a potion, got: " + Registry.ITEM.getKey(pContainer));
         } else {
-            ALLOWED_CONTAINERS.add(Ingredient.of(p_43501_));
+            ALLOWED_CONTAINERS.add(Ingredient.of(pContainer));
         }
     }
 
-    private static void addMix(Potion p_43514_, Item p_43515_, Potion p_43516_) {
-        POTION_MIXES.add(new PotionBrewing.Mix<>(p_43514_, Ingredient.of(p_43515_), p_43516_));
+    private static void addMix(Potion pPotionEntry, Item pPotionIngredient, Potion pPotionResult) {
+        POTION_MIXES.add(new PotionBrewing.Mix<>(pPotionEntry, Ingredient.of(pPotionIngredient), pPotionResult));
     }
 
     static class Mix<T> {
@@ -217,10 +217,10 @@ public class PotionBrewing {
         final Ingredient ingredient;
         final T to;
 
-        public Mix(T p_43536_, Ingredient p_43537_, T p_43538_) {
-            this.from = p_43536_;
-            this.ingredient = p_43537_;
-            this.to = p_43538_;
+        public Mix(T pFrom, Ingredient pIngredient, T pTo) {
+            this.from = pFrom;
+            this.ingredient = pIngredient;
+            this.to = pTo;
         }
     }
 }

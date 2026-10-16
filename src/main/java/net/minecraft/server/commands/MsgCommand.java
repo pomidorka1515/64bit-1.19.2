@@ -14,8 +14,8 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.Entity;
 
 public class MsgCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> p_138061_) {
-        LiteralCommandNode<CommandSourceStack> literalcommandnode = p_138061_.register(Commands.literal("msg").then(Commands.argument("targets", EntityArgument.players()).then(Commands.argument("message", MessageArgument.message()).executes((p_138063_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        LiteralCommandNode<CommandSourceStack> literalcommandnode = pDispatcher.register(Commands.literal("msg").then(Commands.argument("targets", EntityArgument.players()).then(Commands.argument("message", MessageArgument.message()).executes((p_138063_) -> {
             MessageArgument.ChatMessage messageargument$chatmessage = MessageArgument.getChatMessage(p_138063_, "message");
 
             try {
@@ -25,32 +25,32 @@ public class MsgCommand {
                 throw exception;
             }
         }))));
-        p_138061_.register(Commands.literal("tell").redirect(literalcommandnode));
-        p_138061_.register(Commands.literal("w").redirect(literalcommandnode));
+        pDispatcher.register(Commands.literal("tell").redirect(literalcommandnode));
+        pDispatcher.register(Commands.literal("w").redirect(literalcommandnode));
     }
 
-    private static int sendMessage(CommandSourceStack p_214523_, Collection<ServerPlayer> p_214524_, MessageArgument.ChatMessage p_214525_) {
-        ChatType.Bound chattype$bound = ChatType.bind(ChatType.MSG_COMMAND_INCOMING, p_214523_);
-        p_214525_.resolve(p_214523_, (p_243178_) -> {
+    private static int sendMessage(CommandSourceStack pSource, Collection<ServerPlayer> pRecipients, MessageArgument.ChatMessage pChatMessage) {
+        ChatType.Bound chattype$bound = ChatType.bind(ChatType.MSG_COMMAND_INCOMING, pSource);
+        pChatMessage.resolve(pSource, (p_243178_) -> {
             OutgoingPlayerChatMessage outgoingplayerchatmessage = OutgoingPlayerChatMessage.create(p_243178_);
             boolean flag = p_243178_.isFullyFiltered();
-            Entity entity = p_214523_.getEntity();
+            Entity entity = pSource.getEntity();
             boolean flag1 = false;
 
-            for (ServerPlayer serverplayer : p_214524_) {
-                ChatType.Bound chattype$bound1 = ChatType.bind(ChatType.MSG_COMMAND_OUTGOING, p_214523_).withTargetName(serverplayer.getDisplayName());
-                p_214523_.sendChatMessage(outgoingplayerchatmessage, false, chattype$bound1);
-                boolean flag2 = p_214523_.shouldFilterMessageTo(serverplayer);
+            for (ServerPlayer serverplayer : pRecipients) {
+                ChatType.Bound chattype$bound1 = ChatType.bind(ChatType.MSG_COMMAND_OUTGOING, pSource).withTargetName(serverplayer.getDisplayName());
+                pSource.sendChatMessage(outgoingplayerchatmessage, false, chattype$bound1);
+                boolean flag2 = pSource.shouldFilterMessageTo(serverplayer);
                 serverplayer.sendChatMessage(outgoingplayerchatmessage, flag2, chattype$bound);
                 flag1 |= flag && flag2 && serverplayer != entity;
             }
 
             if (flag1) {
-                p_214523_.sendSystemMessage(PlayerList.CHAT_FILTERED_FULL);
+                pSource.sendSystemMessage(PlayerList.CHAT_FILTERED_FULL);
             }
 
-            outgoingplayerchatmessage.sendHeadersToRemainingPlayers(p_214523_.getServer().getPlayerList());
+            outgoingplayerchatmessage.sendHeadersToRemainingPlayers(pSource.getServer().getPlayerList());
         });
-        return p_214524_.size();
+        return pRecipients.size();
     }
 }

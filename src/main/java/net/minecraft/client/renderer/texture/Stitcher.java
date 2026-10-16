@@ -30,10 +30,10 @@ public class Stitcher {
     private final int maxWidth;
     private final int maxHeight;
 
-    public Stitcher(int p_118171_, int p_118172_, int p_118173_) {
-        this.mipLevel = p_118173_;
-        this.maxWidth = p_118171_;
-        this.maxHeight = p_118172_;
+    public Stitcher(int pMaxWidth, int pMaxHeight, int pMipLevel) {
+        this.mipLevel = pMipLevel;
+        this.maxWidth = pMaxWidth;
+        this.maxHeight = pMaxHeight;
     }
 
     public int getWidth() {
@@ -44,8 +44,8 @@ public class Stitcher {
         return this.storageY;
     }
 
-    public void registerSprite(TextureAtlasSprite.Info p_118186_) {
-        Stitcher.Holder stitcher$holder = new Stitcher.Holder(p_118186_, this.mipLevel);
+    public void registerSprite(TextureAtlasSprite.Info pSpriteInfo) {
+        Stitcher.Holder stitcher$holder = new Stitcher.Holder(pSpriteInfo, this.mipLevel);
         this.texturesToBeStitched.add(stitcher$holder);
     }
 
@@ -66,35 +66,35 @@ public class Stitcher {
         this.storageY = Mth.smallestEncompassingPowerOfTwo(this.storageY);
     }
 
-    public void gatherSprites(Stitcher.SpriteLoader p_118181_) {
+    public void gatherSprites(Stitcher.SpriteLoader pLoader) {
         for (Stitcher.Region stitcher$region : this.storage) {
             stitcher$region.walk((p_118184_) -> {
                 Stitcher.Holder stitcher$holder = p_118184_.getHolder();
                 TextureAtlasSprite.Info textureatlassprite$info = stitcher$holder.spriteInfo;
-                p_118181_.load(textureatlassprite$info, this.storageX, this.storageY, p_118184_.getX(), p_118184_.getY());
+                pLoader.load(textureatlassprite$info, this.storageX, this.storageY, p_118184_.getX(), p_118184_.getY());
             });
         }
     }
 
-    static int smallestFittingMinTexel(int p_118189_, int p_118190_) {
-        return (p_118189_ >> p_118190_) + ((p_118189_ & (1 << p_118190_) - 1) == 0 ? 0 : 1) << p_118190_;
+    static int smallestFittingMinTexel(int pDimension, int pMipLevel) {
+        return (pDimension >> pMipLevel) + ((pDimension & (1 << pMipLevel) - 1) == 0 ? 0 : 1) << pMipLevel;
     }
 
-    private boolean addToStorage(Stitcher.Holder p_118179_) {
+    private boolean addToStorage(Stitcher.Holder pHolder) {
         for (Stitcher.Region stitcher$region : this.storage) {
-            if (stitcher$region.add(p_118179_)) {
+            if (stitcher$region.add(pHolder)) {
                 return true;
             }
         }
 
-        return this.expand(p_118179_);
+        return this.expand(pHolder);
     }
 
-    private boolean expand(Stitcher.Holder p_118192_) {
+    private boolean expand(Stitcher.Holder pHolder) {
         int i = Mth.smallestEncompassingPowerOfTwo(this.storageX);
         int j = Mth.smallestEncompassingPowerOfTwo(this.storageY);
-        int k = Mth.smallestEncompassingPowerOfTwo(this.storageX + p_118192_.width);
-        int l = Mth.smallestEncompassingPowerOfTwo(this.storageY + p_118192_.height);
+        int k = Mth.smallestEncompassingPowerOfTwo(this.storageX + pHolder.width);
+        int l = Mth.smallestEncompassingPowerOfTwo(this.storageY + pHolder.height);
         boolean flag1 = k <= this.maxWidth;
         boolean flag2 = l <= this.maxHeight;
         if (!flag1 && !flag2) {
@@ -112,17 +112,17 @@ public class Stitcher {
             Stitcher.Region stitcher$region;
             if (flag) {
                 if (this.storageY == 0) {
-                    this.storageY = p_118192_.height;
+                    this.storageY = pHolder.height;
                 }
 
-                stitcher$region = new Stitcher.Region(this.storageX, 0, p_118192_.width, this.storageY);
-                this.storageX += p_118192_.width;
+                stitcher$region = new Stitcher.Region(this.storageX, 0, pHolder.width, this.storageY);
+                this.storageX += pHolder.width;
             } else {
-                stitcher$region = new Stitcher.Region(0, this.storageY, this.storageX, p_118192_.height);
-                this.storageY += p_118192_.height;
+                stitcher$region = new Stitcher.Region(0, this.storageY, this.storageX, pHolder.height);
+                this.storageY += pHolder.height;
             }
 
-            stitcher$region.add(p_118192_);
+            stitcher$region.add(pHolder);
             this.storage.add(stitcher$region);
             return true;
         }
@@ -134,10 +134,10 @@ public class Stitcher {
         public final int width;
         public final int height;
 
-        public Holder(TextureAtlasSprite.Info p_118206_, int p_118207_) {
-            this.spriteInfo = p_118206_;
-            this.width = Stitcher.smallestFittingMinTexel(p_118206_.width(), p_118207_);
-            this.height = Stitcher.smallestFittingMinTexel(p_118206_.height(), p_118207_);
+        public Holder(TextureAtlasSprite.Info pSpriteInfo, int pMipLevel) {
+            this.spriteInfo = pSpriteInfo;
+            this.width = Stitcher.smallestFittingMinTexel(pSpriteInfo.width(), pMipLevel);
+            this.height = Stitcher.smallestFittingMinTexel(pSpriteInfo.height(), pMipLevel);
         }
 
         public String toString() {
@@ -154,11 +154,11 @@ public class Stitcher {
         private List<Stitcher.Region> subSlots;
         private Stitcher.Holder holder;
 
-        public Region(int p_118216_, int p_118217_, int p_118218_, int p_118219_) {
-            this.originX = p_118216_;
-            this.originY = p_118217_;
-            this.width = p_118218_;
-            this.height = p_118219_;
+        public Region(int pOriginX, int pOriginY, int pWidth, int pHeight) {
+            this.originX = pOriginX;
+            this.originY = pOriginY;
+            this.width = pWidth;
+            this.height = pHeight;
         }
 
         public Stitcher.Holder getHolder() {
@@ -173,15 +173,15 @@ public class Stitcher {
             return this.originY;
         }
 
-        public boolean add(Stitcher.Holder p_118222_) {
+        public boolean add(Stitcher.Holder pHolder) {
             if (this.holder != null) {
                 return false;
             } else {
-                int i = p_118222_.width;
-                int j = p_118222_.height;
+                int i = pHolder.width;
+                int j = pHolder.height;
                 if (i <= this.width && j <= this.height) {
                     if (i == this.width && j == this.height) {
-                        this.holder = p_118222_;
+                        this.holder = pHolder;
                         return true;
                     } else {
                         if (this.subSlots == null) {
@@ -207,7 +207,7 @@ public class Stitcher {
                         }
 
                         for (Stitcher.Region stitcher$region : this.subSlots) {
-                            if (stitcher$region.add(p_118222_)) {
+                            if (stitcher$region.add(pHolder)) {
                                 return true;
                             }
                         }
@@ -220,12 +220,12 @@ public class Stitcher {
             }
         }
 
-        public void walk(Consumer<Stitcher.Region> p_118224_) {
+        public void walk(Consumer<Stitcher.Region> pConsumer) {
             if (this.holder != null) {
-                p_118224_.accept(this);
+                pConsumer.accept(this);
             } else if (this.subSlots != null) {
                 for (Stitcher.Region stitcher$region : this.subSlots) {
-                    stitcher$region.walk(p_118224_);
+                    stitcher$region.walk(pConsumer);
                 }
             }
         }
@@ -237,6 +237,6 @@ public class Stitcher {
 
     @OnlyIn(Dist.CLIENT)
     public interface SpriteLoader {
-        void load(TextureAtlasSprite.Info p_118229_, int p_118230_, int p_118231_, int p_118232_, int p_118233_);
+        void load(TextureAtlasSprite.Info pSpriteInfo, int pStorageX, int pStorageY, int pX, int pY);
     }
 }

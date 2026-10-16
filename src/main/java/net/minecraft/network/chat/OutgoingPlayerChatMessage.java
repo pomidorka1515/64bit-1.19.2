@@ -12,36 +12,36 @@ import net.minecraft.server.players.PlayerList;
 public interface OutgoingPlayerChatMessage {
     Component serverContent();
 
-    void sendToPlayer(ServerPlayer p_241554_, boolean p_243298_, ChatType.Bound p_241444_);
+    void sendToPlayer(ServerPlayer pPlayer, boolean pShouldFilter, ChatType.Bound pBoundChatType);
 
-    void sendHeadersToRemainingPlayers(PlayerList p_241453_);
+    void sendHeadersToRemainingPlayers(PlayerList pPlayerList);
 
-    static OutgoingPlayerChatMessage create(PlayerChatMessage p_242935_) {
-        return (OutgoingPlayerChatMessage) (p_242935_.signer().isSystem() ? new OutgoingPlayerChatMessage.NotTracked(p_242935_) : new OutgoingPlayerChatMessage.Tracked(p_242935_));
+    static OutgoingPlayerChatMessage create(PlayerChatMessage pMessage) {
+        return (OutgoingPlayerChatMessage) (pMessage.signer().isSystem() ? new OutgoingPlayerChatMessage.NotTracked(pMessage) : new OutgoingPlayerChatMessage.Tracked(pMessage));
     }
 
     public static class NotTracked implements OutgoingPlayerChatMessage {
         private final PlayerChatMessage message;
 
-        public NotTracked(PlayerChatMessage p_241413_) {
-            this.message = p_241413_;
+        public NotTracked(PlayerChatMessage pMessage) {
+            this.message = pMessage;
         }
 
         public Component serverContent() {
             return this.message.serverContent();
         }
 
-        public void sendToPlayer(ServerPlayer p_243208_, boolean p_243217_, ChatType.Bound p_243207_) {
-            PlayerChatMessage playerchatmessage = this.message.filter(p_243217_);
+        public void sendToPlayer(ServerPlayer pPlayer, boolean pShouldFilter, ChatType.Bound pBoundChatType) {
+            PlayerChatMessage playerchatmessage = this.message.filter(pShouldFilter);
             if (!playerchatmessage.isFullyFiltered()) {
-                RegistryAccess registryaccess = p_243208_.level.registryAccess();
-                ChatType.BoundNetwork chattype$boundnetwork = p_243207_.toNetwork(registryaccess);
-                p_243208_.connection.send(new ClientboundPlayerChatPacket(playerchatmessage, chattype$boundnetwork));
-                p_243208_.connection.addPendingMessage(playerchatmessage);
+                RegistryAccess registryaccess = pPlayer.level.registryAccess();
+                ChatType.BoundNetwork chattype$boundnetwork = pBoundChatType.toNetwork(registryaccess);
+                pPlayer.connection.send(new ClientboundPlayerChatPacket(playerchatmessage, chattype$boundnetwork));
+                pPlayer.connection.addPendingMessage(playerchatmessage);
             }
         }
 
-        public void sendHeadersToRemainingPlayers(PlayerList p_241443_) {
+        public void sendHeadersToRemainingPlayers(PlayerList pPlayerList) {
         }
     }
 
@@ -49,29 +49,29 @@ public interface OutgoingPlayerChatMessage {
         private final PlayerChatMessage message;
         private final Set<ServerPlayer> playersWithFullMessage = Sets.newIdentityHashSet();
 
-        public Tracked(PlayerChatMessage p_241558_) {
-            this.message = p_241558_;
+        public Tracked(PlayerChatMessage pMessage) {
+            this.message = pMessage;
         }
 
         public Component serverContent() {
             return this.message.serverContent();
         }
 
-        public void sendToPlayer(ServerPlayer p_243241_, boolean p_243304_, ChatType.Bound p_243225_) {
-            PlayerChatMessage playerchatmessage = this.message.filter(p_243304_);
+        public void sendToPlayer(ServerPlayer pPlayer, boolean pShouldFilter, ChatType.Bound pBoundChatType) {
+            PlayerChatMessage playerchatmessage = this.message.filter(pShouldFilter);
             if (!playerchatmessage.isFullyFiltered()) {
-                this.playersWithFullMessage.add(p_243241_);
-                RegistryAccess registryaccess = p_243241_.level.registryAccess();
-                ChatType.BoundNetwork chattype$boundnetwork = p_243225_.toNetwork(registryaccess);
-                p_243241_.connection.send(new ClientboundPlayerChatPacket(playerchatmessage, chattype$boundnetwork), PacketSendListener.exceptionallySend(() -> {
+                this.playersWithFullMessage.add(pPlayer);
+                RegistryAccess registryaccess = pPlayer.level.registryAccess();
+                ChatType.BoundNetwork chattype$boundnetwork = pBoundChatType.toNetwork(registryaccess);
+                pPlayer.connection.send(new ClientboundPlayerChatPacket(playerchatmessage, chattype$boundnetwork), PacketSendListener.exceptionallySend(() -> {
                     return new ClientboundPlayerChatHeaderPacket(this.message);
                 }));
-                p_243241_.connection.addPendingMessage(playerchatmessage);
+                pPlayer.connection.addPendingMessage(playerchatmessage);
             }
         }
 
-        public void sendHeadersToRemainingPlayers(PlayerList p_241386_) {
-            p_241386_.broadcastMessageHeader(this.message, this.playersWithFullMessage);
+        public void sendHeadersToRemainingPlayers(PlayerList pPlayerList) {
+            pPlayerList.broadcastMessageHeader(this.message, this.playersWithFullMessage);
         }
     }
 }

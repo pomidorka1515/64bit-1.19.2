@@ -16,23 +16,23 @@ public class BiomeManager {
     private final BiomeManager.NoiseBiomeSource noiseBiomeSource;
     private final long biomeZoomSeed;
 
-    public BiomeManager(BiomeManager.NoiseBiomeSource p_186677_, long p_186678_) {
-        this.noiseBiomeSource = p_186677_;
-        this.biomeZoomSeed = p_186678_;
+    public BiomeManager(BiomeManager.NoiseBiomeSource pNoiseBiomeSource, long pBiomeZoomSeed) {
+        this.noiseBiomeSource = pNoiseBiomeSource;
+        this.biomeZoomSeed = pBiomeZoomSeed;
     }
 
-    public static long obfuscateSeed(long p_47878_) {
-        return Hashing.sha256().hashLong(p_47878_).asLong();
+    public static long obfuscateSeed(long pSeed) {
+        return Hashing.sha256().hashLong(pSeed).asLong();
     }
 
-    public BiomeManager withDifferentSource(BiomeManager.NoiseBiomeSource p_186688_) {
-        return new BiomeManager(p_186688_, this.biomeZoomSeed);
+    public BiomeManager withDifferentSource(BiomeManager.NoiseBiomeSource pNewSource) {
+        return new BiomeManager(pNewSource, this.biomeZoomSeed);
     }
 
-    public Holder<Biome> getBiome(BlockPos p_204215_) {
-        long i = WorldBounds.subtractBlockOffset(p_204215_.getX(), 2);
-        int j = p_204215_.getY() - 2;
-        long k = WorldBounds.subtractBlockOffset(p_204215_.getZ(), 2);
+    public Holder<Biome> getBiome(BlockPos pPos) {
+        long i = WorldBounds.subtractBlockOffset(pPos.getX(), 2);
+        int j = pPos.getY() - 2;
+        long k = WorldBounds.subtractBlockOffset(pPos.getZ(), 2);
         long l = i >> 2;
         int i1 = j >> 2;
         long j1 = k >> 2;
@@ -65,45 +65,45 @@ public class BiomeManager {
         return this.noiseBiomeSource.getNoiseBiome(l2, i3, j3);
     }
 
-    public Holder<Biome> getNoiseBiomeAtPosition(double p_204207_, double p_204208_, double p_204209_) {
-        long i = QuartPos.fromBlock(Mth.lfloor(p_204207_));
-        int j = QuartPos.fromBlock(Mth.floor(p_204208_));
-        long k = QuartPos.fromBlock(Mth.lfloor(p_204209_));
+    public Holder<Biome> getNoiseBiomeAtPosition(double pX, double pY, double pZ) {
+        long i = QuartPos.fromBlock(Mth.lfloor(pX));
+        int j = QuartPos.fromBlock(Mth.floor(pY));
+        long k = QuartPos.fromBlock(Mth.lfloor(pZ));
         return this.getNoiseBiomeAtQuart(i, j, k);
     }
 
-    public Holder<Biome> getNoiseBiomeAtPosition(BlockPos p_204217_) {
-        long i = QuartPos.fromBlock(p_204217_.getX());
-        int j = QuartPos.fromBlock(p_204217_.getY());
-        long k = QuartPos.fromBlock(p_204217_.getZ());
+    public Holder<Biome> getNoiseBiomeAtPosition(BlockPos pPos) {
+        long i = QuartPos.fromBlock(pPos.getX());
+        int j = QuartPos.fromBlock(pPos.getY());
+        long k = QuartPos.fromBlock(pPos.getZ());
         return this.getNoiseBiomeAtQuart(i, j, k);
     }
 
-    public Holder<Biome> getNoiseBiomeAtQuart(long p_204211_, int p_204212_, long p_204213_) {
-        return this.noiseBiomeSource.getNoiseBiome(p_204211_, p_204212_, p_204213_);
+    public Holder<Biome> getNoiseBiomeAtQuart(long pX, int pY, long pZ) {
+        return this.noiseBiomeSource.getNoiseBiome(pX, pY, pZ);
     }
 
-    private static double getFiddledDistance(long p_186680_, long p_186681_, int p_186682_, long p_186683_, double p_186684_, double p_186685_, double p_186686_) {
-        long $$7 = LinearCongruentialGenerator.next(p_186680_, (long) p_186681_);
-        $$7 = LinearCongruentialGenerator.next($$7, (long) p_186682_);
-        $$7 = LinearCongruentialGenerator.next($$7, (long) p_186683_);
-        $$7 = LinearCongruentialGenerator.next($$7, (long) p_186681_);
-        $$7 = LinearCongruentialGenerator.next($$7, (long) p_186682_);
-        $$7 = LinearCongruentialGenerator.next($$7, (long) p_186683_);
+    private static double getFiddledDistance(long pSeed, long pX, int pY, long pZ, double pXNoise, double pYNoise, double pZNoise) {
+        long $$7 = LinearCongruentialGenerator.next(pSeed, (long) pX);
+        $$7 = LinearCongruentialGenerator.next($$7, (long) pY);
+        $$7 = LinearCongruentialGenerator.next($$7, (long) pZ);
+        $$7 = LinearCongruentialGenerator.next($$7, (long) pX);
+        $$7 = LinearCongruentialGenerator.next($$7, (long) pY);
+        $$7 = LinearCongruentialGenerator.next($$7, (long) pZ);
         double d0 = getFiddle($$7);
-        $$7 = LinearCongruentialGenerator.next($$7, p_186680_);
+        $$7 = LinearCongruentialGenerator.next($$7, pSeed);
         double d1 = getFiddle($$7);
-        $$7 = LinearCongruentialGenerator.next($$7, p_186680_);
+        $$7 = LinearCongruentialGenerator.next($$7, pSeed);
         double d2 = getFiddle($$7);
-        return Mth.square(p_186686_ + d2) + Mth.square(p_186685_ + d1) + Mth.square(p_186684_ + d0);
+        return Mth.square(pZNoise + d2) + Mth.square(pYNoise + d1) + Mth.square(pXNoise + d0);
     }
 
-    private static double getFiddle(long p_186690_) {
-        double d0 = (double) Math.floorMod(p_186690_ >> 24, 1024) / 1024.0D;
+    private static double getFiddle(long pSeed) {
+        double d0 = (double) Math.floorMod(pSeed >> 24, 1024) / 1024.0D;
         return (d0 - 0.5D) * 0.9D;
     }
 
     public interface NoiseBiomeSource {
-        Holder<Biome> getNoiseBiome(long p_204218_, int p_204219_, long p_204220_);
+        Holder<Biome> getNoiseBiome(long pX, int pY, long pZ);
     }
 }

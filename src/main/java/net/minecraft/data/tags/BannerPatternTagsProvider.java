@@ -7,8 +7,8 @@ import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatterns;
 
 public class BannerPatternTagsProvider extends TagsProvider<BannerPattern> {
-    public BannerPatternTagsProvider(DataGenerator p_236411_) {
-        super(p_236411_, Registry.BANNER_PATTERN);
+    public BannerPatternTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, Registry.BANNER_PATTERN);
     }
 
     protected void addTags() {

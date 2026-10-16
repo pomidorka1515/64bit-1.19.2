@@ -15,14 +15,14 @@ import net.minecraft.data.DataProvider;
 public class CommandsReport implements DataProvider {
     private final DataGenerator generator;
 
-    public CommandsReport(DataGenerator p_124045_) {
-        this.generator = p_124045_;
+    public CommandsReport(DataGenerator pGenerator) {
+        this.generator = pGenerator;
     }
 
-    public void run(CachedOutput p_236199_) throws IOException {
+    public void run(CachedOutput pOutput) throws IOException {
         Path path = this.generator.getOutputFolder(DataGenerator.Target.REPORTS).resolve("commands.json");
         CommandDispatcher<CommandSourceStack> commanddispatcher = (new Commands(Commands.CommandSelection.ALL, new CommandBuildContext(RegistryAccess.BUILTIN.get()))).getDispatcher();
-        DataProvider.saveStable(p_236199_, ArgumentUtils.serializeNodeToJson(commanddispatcher, commanddispatcher.getRoot()), path);
+        DataProvider.saveStable(pOutput, ArgumentUtils.serializeNodeToJson(commanddispatcher, commanddispatcher.getRoot()), path);
     }
 
     public String getName() {

@@ -13,12 +13,12 @@ public class CollectFields extends CollectToTag {
     private final Set<TagType<?>> wantedTypes;
     private final Deque<FieldTree> stack = new ArrayDeque<>();
 
-    public CollectFields(FieldSelector... p_202496_) {
-        this.fieldsToGetCount = p_202496_.length;
+    public CollectFields(FieldSelector... pSelectors) {
+        this.fieldsToGetCount = pSelectors.length;
         ImmutableSet.Builder<TagType<?>> builder = ImmutableSet.builder();
         FieldTree fieldtree = FieldTree.createRoot();
 
-        for (FieldSelector fieldselector : p_202496_) {
+        for (FieldSelector fieldselector : pSelectors) {
             fieldtree.addEntry(fieldselector);
             builder.add(fieldselector.type());
         }
@@ -28,34 +28,34 @@ public class CollectFields extends CollectToTag {
         this.wantedTypes = builder.build();
     }
 
-    public StreamTagVisitor.ValueResult visitRootEntry(TagType<?> p_197614_) {
-        return p_197614_ != CompoundTag.TYPE ? StreamTagVisitor.ValueResult.HALT : super.visitRootEntry(p_197614_);
+    public StreamTagVisitor.ValueResult visitRootEntry(TagType<?> pType) {
+        return pType != CompoundTag.TYPE ? StreamTagVisitor.ValueResult.HALT : super.visitRootEntry(pType);
     }
 
-    public StreamTagVisitor.EntryResult visitEntry(TagType<?> p_197608_) {
+    public StreamTagVisitor.EntryResult visitEntry(TagType<?> pType) {
         FieldTree fieldtree = this.stack.element();
         if (this.depth() > fieldtree.depth()) {
-            return super.visitEntry(p_197608_);
+            return super.visitEntry(pType);
         } else if (this.fieldsToGetCount <= 0) {
             return StreamTagVisitor.EntryResult.HALT;
         } else {
-            return !this.wantedTypes.contains(p_197608_) ? StreamTagVisitor.EntryResult.SKIP : super.visitEntry(p_197608_);
+            return !this.wantedTypes.contains(pType) ? StreamTagVisitor.EntryResult.SKIP : super.visitEntry(pType);
         }
     }
 
-    public StreamTagVisitor.EntryResult visitEntry(TagType<?> p_197610_, String p_197611_) {
+    public StreamTagVisitor.EntryResult visitEntry(TagType<?> pType, String pId) {
         FieldTree fieldtree = this.stack.element();
         if (this.depth() > fieldtree.depth()) {
-            return super.visitEntry(p_197610_, p_197611_);
-        } else if (fieldtree.selectedFields().remove(p_197611_, p_197610_)) {
+            return super.visitEntry(pType, pId);
+        } else if (fieldtree.selectedFields().remove(pId, pType)) {
             --this.fieldsToGetCount;
-            return super.visitEntry(p_197610_, p_197611_);
+            return super.visitEntry(pType, pId);
         } else {
-            if (p_197610_ == CompoundTag.TYPE) {
-                FieldTree fieldtree1 = fieldtree.fieldsToRecurse().get(p_197611_);
+            if (pType == CompoundTag.TYPE) {
+                FieldTree fieldtree1 = fieldtree.fieldsToRecurse().get(pId);
                 if (fieldtree1 != null) {
                     this.stack.push(fieldtree1);
-                    return super.visitEntry(p_197610_, p_197611_);
+                    return super.visitEntry(pType, pId);
                 }
             }
 

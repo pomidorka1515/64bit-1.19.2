@@ -16,21 +16,21 @@ public class BlockStatePredicate implements Predicate<BlockState> {
     private final StateDefinition<Block, BlockState> definition;
     private final Map<Property<?>, Predicate<Object>> properties = Maps.newHashMap();
 
-    private BlockStatePredicate(StateDefinition<Block, BlockState> p_61286_) {
-        this.definition = p_61286_;
+    private BlockStatePredicate(StateDefinition<Block, BlockState> pDefinition) {
+        this.definition = pDefinition;
     }
 
-    public static BlockStatePredicate forBlock(Block p_61288_) {
-        return new BlockStatePredicate(p_61288_.getStateDefinition());
+    public static BlockStatePredicate forBlock(Block pBlock) {
+        return new BlockStatePredicate(pBlock.getStateDefinition());
     }
 
-    public boolean test(@Nullable BlockState p_61290_) {
-        if (p_61290_ != null && p_61290_.getBlock().equals(this.definition.getOwner())) {
+    public boolean test(@Nullable BlockState pState) {
+        if (pState != null && pState.getBlock().equals(this.definition.getOwner())) {
             if (this.properties.isEmpty()) {
                 return true;
             } else {
                 for (Map.Entry<Property<?>, Predicate<Object>> entry : this.properties.entrySet()) {
-                    if (!this.applies(p_61290_, entry.getKey(), entry.getValue())) {
+                    if (!this.applies(pState, entry.getKey(), entry.getValue())) {
                         return false;
                     }
                 }
@@ -42,16 +42,16 @@ public class BlockStatePredicate implements Predicate<BlockState> {
         }
     }
 
-    protected <T extends Comparable<T>> boolean applies(BlockState p_61292_, Property<T> p_61293_, Predicate<Object> p_61294_) {
-        T t = p_61292_.getValue(p_61293_);
-        return p_61294_.test(t);
+    protected <T extends Comparable<T>> boolean applies(BlockState pState, Property<T> pProperty, Predicate<Object> pValuePredicate) {
+        T t = pState.getValue(pProperty);
+        return pValuePredicate.test(t);
     }
 
-    public <V extends Comparable<V>> BlockStatePredicate where(Property<V> p_61296_, Predicate<Object> p_61297_) {
-        if (!this.definition.getProperties().contains(p_61296_)) {
-            throw new IllegalArgumentException(this.definition + " cannot support property " + p_61296_);
+    public <V extends Comparable<V>> BlockStatePredicate where(Property<V> pProperty, Predicate<Object> pValuePredicate) {
+        if (!this.definition.getProperties().contains(pProperty)) {
+            throw new IllegalArgumentException(this.definition + " cannot support property " + pProperty);
         } else {
-            this.properties.put(p_61296_, p_61297_);
+            this.properties.put(pProperty, pValuePredicate);
             return this;
         }
     }

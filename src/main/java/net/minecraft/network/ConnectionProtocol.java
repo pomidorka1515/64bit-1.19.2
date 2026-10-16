@@ -209,14 +209,14 @@ public enum ConnectionProtocol {
     }
 
     @Nullable
-    public Integer getPacketId(PacketFlow p_129598_, Packet<?> p_129599_) {
-        return this.flows.get(p_129598_).getId(p_129599_.getClass());
+    public Integer getPacketId(PacketFlow pDirection, Packet<?> pPacket) {
+        return this.flows.get(pDirection).getId(pPacket.getClass());
     }
 
     @VisibleForDebug
-    public Int2ObjectMap<Class<? extends Packet<?>>> getPacketsByIds(PacketFlow p_195621_) {
+    public Int2ObjectMap<Class<? extends Packet<?>>> getPacketsByIds(PacketFlow pPacketFlow) {
         Int2ObjectMap<Class<? extends Packet<?>>> int2objectmap = new Int2ObjectOpenHashMap<>();
-        ConnectionProtocol.PacketSet<?> packetset = this.flows.get(p_195621_);
+        ConnectionProtocol.PacketSet<?> packetset = this.flows.get(pPacketFlow);
         if (packetset == null) {
             return Int2ObjectMaps.emptyMap();
         } else {
@@ -228,8 +228,8 @@ public enum ConnectionProtocol {
     }
 
     @Nullable
-    public Packet<?> createPacket(PacketFlow p_178322_, int p_178323_, FriendlyByteBuf p_178324_) {
-        return this.flows.get(p_178322_).createPacket(p_178323_, p_178324_);
+    public Packet<?> createPacket(PacketFlow pDirection, int pPacketId, FriendlyByteBuf pBuffer) {
+        return this.flows.get(pDirection).createPacket(pPacketId, pBuffer);
     }
 
     public int getId() {
@@ -237,12 +237,12 @@ public enum ConnectionProtocol {
     }
 
     @Nullable
-    public static ConnectionProtocol getById(int p_129584_) {
-        return p_129584_ >= -1 && p_129584_ <= 2 ? LOOKUP[p_129584_ - -1] : null;
+    public static ConnectionProtocol getById(int pStateId) {
+        return pStateId >= -1 && pStateId <= 2 ? LOOKUP[pStateId - -1] : null;
     }
 
-    public static ConnectionProtocol getProtocolForPacket(Packet<?> p_129593_) {
-        return PROTOCOL_BY_PACKET.get(p_129593_.getClass());
+    public static ConnectionProtocol getProtocolForPacket(Packet<?> pPacket) {
+        return PROTOCOL_BY_PACKET.get(pPacket.getClass());
     }
 
     static {
@@ -272,29 +272,29 @@ public enum ConnectionProtocol {
         });
         private final List<Function<FriendlyByteBuf, ? extends Packet<T>>> idToDeserializer = Lists.newArrayList();
 
-        public <P extends Packet<T>> ConnectionProtocol.PacketSet<T> addPacket(Class<P> p_178331_, Function<FriendlyByteBuf, P> p_178332_) {
+        public <P extends Packet<T>> ConnectionProtocol.PacketSet<T> addPacket(Class<P> pPacketClass, Function<FriendlyByteBuf, P> pDeserializer) {
             int i = this.idToDeserializer.size();
-            int j = this.classToId.put(p_178331_, i);
+            int j = this.classToId.put(pPacketClass, i);
             if (j != -1) {
-                String s = "Packet " + p_178331_ + " is already registered to ID " + j;
+                String s = "Packet " + pPacketClass + " is already registered to ID " + j;
                 LOGGER.error(LogUtils.FATAL_MARKER, s);
                 throw new IllegalArgumentException(s);
             } else {
-                this.idToDeserializer.add(p_178332_);
+                this.idToDeserializer.add(pDeserializer);
                 return this;
             }
         }
 
         @Nullable
-        public Integer getId(Class<?> p_129615_) {
-            int i = this.classToId.getInt(p_129615_);
+        public Integer getId(Class<?> pPacketClass) {
+            int i = this.classToId.getInt(pPacketClass);
             return i == -1 ? null : i;
         }
 
         @Nullable
-        public Packet<?> createPacket(int p_178328_, FriendlyByteBuf p_178329_) {
-            Function<FriendlyByteBuf, ? extends Packet<T>> function = this.idToDeserializer.get(p_178328_);
-            return function != null ? function.apply(p_178329_) : null;
+        public Packet<?> createPacket(int pPacketId, FriendlyByteBuf pBuffer) {
+            Function<FriendlyByteBuf, ? extends Packet<T>> function = this.idToDeserializer.get(pPacketId);
+            return function != null ? function.apply(pBuffer) : null;
         }
 
         public Iterable<Class<? extends Packet<?>>> getAllPackets() {
@@ -305,8 +305,8 @@ public enum ConnectionProtocol {
     static class ProtocolBuilder {
         final Map<PacketFlow, ConnectionProtocol.PacketSet<?>> flows = Maps.newEnumMap(PacketFlow.class);
 
-        public <T extends PacketListener> ConnectionProtocol.ProtocolBuilder addFlow(PacketFlow p_129626_, ConnectionProtocol.PacketSet<T> p_129627_) {
-            this.flows.put(p_129626_, p_129627_);
+        public <T extends PacketListener> ConnectionProtocol.ProtocolBuilder addFlow(PacketFlow pPacketFlow, ConnectionProtocol.PacketSet<T> pPacketSet) {
+            this.flows.put(pPacketFlow, pPacketSet);
             return this;
         }
     }

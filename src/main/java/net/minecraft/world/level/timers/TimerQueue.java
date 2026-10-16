@@ -50,8 +50,8 @@ public class TimerQueue<T> {
         });
     }
 
-    public TimerQueue(TimerCallbacks<T> p_82247_) {
-        this.callbacksRegistry = p_82247_;
+    public TimerQueue(TimerCallbacks<T> pCallbacksRegistry) {
+        this.callbacksRegistry = pCallbacksRegistry;
     }
 
     public void tick(T p_82257_, long p_82258_) {
@@ -67,11 +67,11 @@ public class TimerQueue<T> {
         }
     }
 
-    public void schedule(String p_82262_, long p_82263_, TimerCallback<T> p_82264_) {
-        if (!this.events.contains(p_82262_, p_82263_)) {
+    public void schedule(String pId, long pTriggerTime, TimerCallback<T> pCallback) {
+        if (!this.events.contains(pId, pTriggerTime)) {
             this.sequentialId = this.sequentialId.plus(UnsignedLong.ONE);
-            TimerQueue.Event<T> event = new TimerQueue.Event<>(p_82263_, this.sequentialId, p_82262_, p_82264_);
-            this.events.put(p_82262_, p_82263_, event);
+            TimerQueue.Event<T> event = new TimerQueue.Event<>(pTriggerTime, this.sequentialId, pId, pCallback);
+            this.events.put(pId, pTriggerTime, event);
             this.queue.add(event);
         }
     }
@@ -88,12 +88,12 @@ public class TimerQueue<T> {
         return Collections.unmodifiableSet(this.events.rowKeySet());
     }
 
-    private void loadEvent(CompoundTag p_82266_) {
-        CompoundTag compoundtag = p_82266_.getCompound("Callback");
+    private void loadEvent(CompoundTag pTag) {
+        CompoundTag compoundtag = pTag.getCompound("Callback");
         TimerCallback<T> timercallback = this.callbacksRegistry.deserialize(compoundtag);
         if (timercallback != null) {
-            String s = p_82266_.getString("Name");
-            long i = p_82266_.getLong("TriggerTime");
+            String s = pTag.getString("Name");
+            long i = pTag.getLong("TriggerTime");
             this.schedule(s, i, timercallback);
         }
     }
@@ -118,11 +118,11 @@ public class TimerQueue<T> {
         public final String id;
         public final TimerCallback<T> callback;
 
-        Event(long p_82278_, UnsignedLong p_82279_, String p_82280_, TimerCallback<T> p_82281_) {
-            this.triggerTime = p_82278_;
-            this.sequentialId = p_82279_;
-            this.id = p_82280_;
-            this.callback = p_82281_;
+        Event(long pTriggerTime, UnsignedLong pSequentialId, String pId, TimerCallback<T> pCallback) {
+            this.triggerTime = pTriggerTime;
+            this.sequentialId = pSequentialId;
+            this.id = pId;
+            this.callback = pCallback;
         }
     }
 }

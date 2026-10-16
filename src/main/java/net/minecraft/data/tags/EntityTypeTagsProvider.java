@@ -6,8 +6,8 @@ import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.EntityType;
 
 public class EntityTypeTagsProvider extends TagsProvider<EntityType<?>> {
-    public EntityTypeTagsProvider(DataGenerator p_126517_) {
-        super(p_126517_, Registry.ENTITY_TYPE);
+    public EntityTypeTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, Registry.ENTITY_TYPE);
     }
 
     protected void addTags() {

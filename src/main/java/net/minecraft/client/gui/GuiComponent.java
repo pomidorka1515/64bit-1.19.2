@@ -27,24 +27,24 @@ public abstract class GuiComponent {
     public static final ResourceLocation GUI_ICONS_LOCATION = new ResourceLocation("textures/gui/icons.png");
     private int blitOffset;
 
-    protected void hLine(PoseStack p_93155_, int p_93156_, int p_93157_, int p_93158_, int p_93159_) {
-        if (p_93157_ < p_93156_) {
-            int i = p_93156_;
-            p_93156_ = p_93157_;
-            p_93157_ = i;
+    protected void hLine(PoseStack pPoseStack, int pMinX, int pMaxX, int pY, int pColor) {
+        if (pMaxX < pMinX) {
+            int i = pMinX;
+            pMinX = pMaxX;
+            pMaxX = i;
         }
 
-        fill(p_93155_, p_93156_, p_93158_, p_93157_ + 1, p_93158_ + 1, p_93159_);
+        fill(pPoseStack, pMinX, pY, pMaxX + 1, pY + 1, pColor);
     }
 
-    protected void vLine(PoseStack p_93223_, int p_93224_, int p_93225_, int p_93226_, int p_93227_) {
-        if (p_93226_ < p_93225_) {
-            int i = p_93225_;
-            p_93225_ = p_93226_;
-            p_93226_ = i;
+    protected void vLine(PoseStack pPoseStack, int pX, int pMinY, int pMaxY, int pColor) {
+        if (pMaxY < pMinY) {
+            int i = pMinY;
+            pMinY = pMaxY;
+            pMaxY = i;
         }
 
-        fill(p_93223_, p_93224_, p_93225_ + 1, p_93224_ + 1, p_93226_, p_93227_);
+        fill(pPoseStack, pX, pMinY + 1, pX + 1, pMaxY, pColor);
     }
 
     public static void enableScissor(int p_239261_, int p_239262_, int p_239263_, int p_239264_) {
@@ -62,47 +62,47 @@ public abstract class GuiComponent {
         RenderSystem.disableScissor();
     }
 
-    public static void fill(PoseStack p_93173_, int p_93174_, int p_93175_, int p_93176_, int p_93177_, int p_93178_) {
-        innerFill(p_93173_.last().pose(), p_93174_, p_93175_, p_93176_, p_93177_, p_93178_);
+    public static void fill(PoseStack pPoseStack, int pMinX, int pMinY, int pMaxX, int pMaxY, int pColor) {
+        innerFill(pPoseStack.last().pose(), pMinX, pMinY, pMaxX, pMaxY, pColor);
     }
 
-    private static void innerFill(Matrix4f p_93106_, int p_93107_, int p_93108_, int p_93109_, int p_93110_, int p_93111_) {
-        if (p_93107_ < p_93109_) {
-            int i = p_93107_;
-            p_93107_ = p_93109_;
-            p_93109_ = i;
+    private static void innerFill(Matrix4f pMatrix, int pMinX, int pMinY, int pMaxX, int pMaxY, int pColor) {
+        if (pMinX < pMaxX) {
+            int i = pMinX;
+            pMinX = pMaxX;
+            pMaxX = i;
         }
 
-        if (p_93108_ < p_93110_) {
-            int j = p_93108_;
-            p_93108_ = p_93110_;
-            p_93110_ = j;
+        if (pMinY < pMaxY) {
+            int j = pMinY;
+            pMinY = pMaxY;
+            pMaxY = j;
         }
 
-        float f3 = (float) (p_93111_ >> 24 & 255) / 255.0F;
-        float f = (float) (p_93111_ >> 16 & 255) / 255.0F;
-        float f1 = (float) (p_93111_ >> 8 & 255) / 255.0F;
-        float f2 = (float) (p_93111_ & 255) / 255.0F;
+        float f3 = (float) (pColor >> 24 & 255) / 255.0F;
+        float f = (float) (pColor >> 16 & 255) / 255.0F;
+        float f1 = (float) (pColor >> 8 & 255) / 255.0F;
+        float f2 = (float) (pColor & 255) / 255.0F;
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         RenderSystem.enableBlend();
         RenderSystem.disableTexture();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferbuilder.vertex(p_93106_, (float) p_93107_, (float) p_93110_, 0.0F).color(f, f1, f2, f3).endVertex();
-        bufferbuilder.vertex(p_93106_, (float) p_93109_, (float) p_93110_, 0.0F).color(f, f1, f2, f3).endVertex();
-        bufferbuilder.vertex(p_93106_, (float) p_93109_, (float) p_93108_, 0.0F).color(f, f1, f2, f3).endVertex();
-        bufferbuilder.vertex(p_93106_, (float) p_93107_, (float) p_93108_, 0.0F).color(f, f1, f2, f3).endVertex();
+        bufferbuilder.vertex(pMatrix, (float) pMinX, (float) pMaxY, 0.0F).color(f, f1, f2, f3).endVertex();
+        bufferbuilder.vertex(pMatrix, (float) pMaxX, (float) pMaxY, 0.0F).color(f, f1, f2, f3).endVertex();
+        bufferbuilder.vertex(pMatrix, (float) pMaxX, (float) pMinY, 0.0F).color(f, f1, f2, f3).endVertex();
+        bufferbuilder.vertex(pMatrix, (float) pMinX, (float) pMinY, 0.0F).color(f, f1, f2, f3).endVertex();
         BufferUploader.drawWithShader(bufferbuilder.end());
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
     }
 
-    protected void fillGradient(PoseStack p_93180_, int p_93181_, int p_93182_, int p_93183_, int p_93184_, int p_93185_, int p_93186_) {
-        fillGradient(p_93180_, p_93181_, p_93182_, p_93183_, p_93184_, p_93185_, p_93186_, this.blitOffset);
+    protected void fillGradient(PoseStack pPoseStack, int pX1, int pY1, int pX2, int pY2, int pColorFrom, int pColorTo) {
+        fillGradient(pPoseStack, pX1, pY1, pX2, pY2, pColorFrom, pColorTo, this.blitOffset);
     }
 
-    protected static void fillGradient(PoseStack p_168741_, int p_168742_, int p_168743_, int p_168744_, int p_168745_, int p_168746_, int p_168747_, int p_168748_) {
+    protected static void fillGradient(PoseStack pPoseStack, int pX1, int pY1, int pX2, int pY2, int pColorFrom, int pColorTo, int pBlitOffset) {
         RenderSystem.disableTexture();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -110,94 +110,94 @@ public abstract class GuiComponent {
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        fillGradient(p_168741_.last().pose(), bufferbuilder, p_168742_, p_168743_, p_168744_, p_168745_, p_168748_, p_168746_, p_168747_);
+        fillGradient(pPoseStack.last().pose(), bufferbuilder, pX1, pY1, pX2, pY2, pBlitOffset, pColorFrom, pColorTo);
         tesselator.end();
         RenderSystem.disableBlend();
         RenderSystem.enableTexture();
     }
 
-    protected static void fillGradient(Matrix4f p_93124_, BufferBuilder p_93125_, int p_93126_, int p_93127_, int p_93128_, int p_93129_, int p_93130_, int p_93131_, int p_93132_) {
-        float f = (float) (p_93131_ >> 24 & 255) / 255.0F;
-        float f1 = (float) (p_93131_ >> 16 & 255) / 255.0F;
-        float f2 = (float) (p_93131_ >> 8 & 255) / 255.0F;
-        float f3 = (float) (p_93131_ & 255) / 255.0F;
-        float f4 = (float) (p_93132_ >> 24 & 255) / 255.0F;
-        float f5 = (float) (p_93132_ >> 16 & 255) / 255.0F;
-        float f6 = (float) (p_93132_ >> 8 & 255) / 255.0F;
-        float f7 = (float) (p_93132_ & 255) / 255.0F;
-        p_93125_.vertex(p_93124_, (float) p_93128_, (float) p_93127_, (float) p_93130_).color(f1, f2, f3, f).endVertex();
-        p_93125_.vertex(p_93124_, (float) p_93126_, (float) p_93127_, (float) p_93130_).color(f1, f2, f3, f).endVertex();
-        p_93125_.vertex(p_93124_, (float) p_93126_, (float) p_93129_, (float) p_93130_).color(f5, f6, f7, f4).endVertex();
-        p_93125_.vertex(p_93124_, (float) p_93128_, (float) p_93129_, (float) p_93130_).color(f5, f6, f7, f4).endVertex();
+    protected static void fillGradient(Matrix4f pMatrix, BufferBuilder pBuilder, int pX1, int pY1, int pX2, int pY2, int pBlitOffset, int pColorA, int pColorB) {
+        float f = (float) (pColorA >> 24 & 255) / 255.0F;
+        float f1 = (float) (pColorA >> 16 & 255) / 255.0F;
+        float f2 = (float) (pColorA >> 8 & 255) / 255.0F;
+        float f3 = (float) (pColorA & 255) / 255.0F;
+        float f4 = (float) (pColorB >> 24 & 255) / 255.0F;
+        float f5 = (float) (pColorB >> 16 & 255) / 255.0F;
+        float f6 = (float) (pColorB >> 8 & 255) / 255.0F;
+        float f7 = (float) (pColorB & 255) / 255.0F;
+        pBuilder.vertex(pMatrix, (float) pX2, (float) pY1, (float) pBlitOffset).color(f1, f2, f3, f).endVertex();
+        pBuilder.vertex(pMatrix, (float) pX1, (float) pY1, (float) pBlitOffset).color(f1, f2, f3, f).endVertex();
+        pBuilder.vertex(pMatrix, (float) pX1, (float) pY2, (float) pBlitOffset).color(f5, f6, f7, f4).endVertex();
+        pBuilder.vertex(pMatrix, (float) pX2, (float) pY2, (float) pBlitOffset).color(f5, f6, f7, f4).endVertex();
     }
 
-    public static void drawCenteredString(PoseStack p_93209_, Font p_93210_, String p_93211_, int p_93212_, int p_93213_, int p_93214_) {
-        p_93210_.drawShadow(p_93209_, p_93211_, (float) (p_93212_ - p_93210_.width(p_93211_) / 2), (float) p_93213_, p_93214_);
+    public static void drawCenteredString(PoseStack pPoseStack, Font pFont, String pText, int pX, int pY, int pColor) {
+        pFont.drawShadow(pPoseStack, pText, (float) (pX - pFont.width(pText) / 2), (float) pY, pColor);
     }
 
-    public static void drawCenteredString(PoseStack p_93216_, Font p_93217_, Component p_93218_, int p_93219_, int p_93220_, int p_93221_) {
-        FormattedCharSequence formattedcharsequence = p_93218_.getVisualOrderText();
-        p_93217_.drawShadow(p_93216_, formattedcharsequence, (float) (p_93219_ - p_93217_.width(formattedcharsequence) / 2), (float) p_93220_, p_93221_);
+    public static void drawCenteredString(PoseStack pPoseStack, Font pFont, Component pText, int pX, int pY, int pColor) {
+        FormattedCharSequence formattedcharsequence = pText.getVisualOrderText();
+        pFont.drawShadow(pPoseStack, formattedcharsequence, (float) (pX - pFont.width(formattedcharsequence) / 2), (float) pY, pColor);
     }
 
-    public static void drawCenteredString(PoseStack p_168750_, Font p_168751_, FormattedCharSequence p_168752_, int p_168753_, int p_168754_, int p_168755_) {
-        p_168751_.drawShadow(p_168750_, p_168752_, (float) (p_168753_ - p_168751_.width(p_168752_) / 2), (float) p_168754_, p_168755_);
+    public static void drawCenteredString(PoseStack pPoseStack, Font pFont, FormattedCharSequence pText, int pX, int pY, int pColor) {
+        pFont.drawShadow(pPoseStack, pText, (float) (pX - pFont.width(pText) / 2), (float) pY, pColor);
     }
 
-    public static void drawString(PoseStack p_93237_, Font p_93238_, String p_93239_, int p_93240_, int p_93241_, int p_93242_) {
-        p_93238_.drawShadow(p_93237_, p_93239_, (float) p_93240_, (float) p_93241_, p_93242_);
+    public static void drawString(PoseStack pPoseStack, Font pFont, String pText, int pX, int pY, int pColor) {
+        pFont.drawShadow(pPoseStack, pText, (float) pX, (float) pY, pColor);
     }
 
-    public static void drawString(PoseStack p_168757_, Font p_168758_, FormattedCharSequence p_168759_, int p_168760_, int p_168761_, int p_168762_) {
-        p_168758_.drawShadow(p_168757_, p_168759_, (float) p_168760_, (float) p_168761_, p_168762_);
+    public static void drawString(PoseStack pPoseStack, Font pFont, FormattedCharSequence pText, int pX, int pY, int pColor) {
+        pFont.drawShadow(pPoseStack, pText, (float) pX, (float) pY, pColor);
     }
 
-    public static void drawString(PoseStack p_93244_, Font p_93245_, Component p_93246_, int p_93247_, int p_93248_, int p_93249_) {
-        p_93245_.drawShadow(p_93244_, p_93246_, (float) p_93247_, (float) p_93248_, p_93249_);
+    public static void drawString(PoseStack pPoseStack, Font pFont, Component pText, int pX, int pY, int pColor) {
+        pFont.drawShadow(pPoseStack, pText, (float) pX, (float) pY, pColor);
     }
 
-    public void blitOutlineBlack(int p_93102_, int p_93103_, BiConsumer<Integer, Integer> p_93104_) {
+    public void blitOutlineBlack(int pWidth, int pHeight, BiConsumer<Integer, Integer> pBoxXYConsumer) {
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        p_93104_.accept(p_93102_ + 1, p_93103_);
-        p_93104_.accept(p_93102_ - 1, p_93103_);
-        p_93104_.accept(p_93102_, p_93103_ + 1);
-        p_93104_.accept(p_93102_, p_93103_ - 1);
+        pBoxXYConsumer.accept(pWidth + 1, pHeight);
+        pBoxXYConsumer.accept(pWidth - 1, pHeight);
+        pBoxXYConsumer.accept(pWidth, pHeight + 1);
+        pBoxXYConsumer.accept(pWidth, pHeight - 1);
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        p_93104_.accept(p_93102_, p_93103_);
+        pBoxXYConsumer.accept(pWidth, pHeight);
     }
 
-    public static void blit(PoseStack p_93201_, int p_93202_, int p_93203_, int p_93204_, int p_93205_, int p_93206_, TextureAtlasSprite p_93207_) {
-        innerBlit(p_93201_.last().pose(), p_93202_, p_93202_ + p_93205_, p_93203_, p_93203_ + p_93206_, p_93204_, p_93207_.getU0(), p_93207_.getU1(), p_93207_.getV0(), p_93207_.getV1());
+    public static void blit(PoseStack pPoseStack, int pX, int pY, int pBlitOffset, int pWidth, int pHeight, TextureAtlasSprite pSprite) {
+        innerBlit(pPoseStack.last().pose(), pX, pX + pWidth, pY, pY + pHeight, pBlitOffset, pSprite.getU0(), pSprite.getU1(), pSprite.getV0(), pSprite.getV1());
     }
 
-    public void blit(PoseStack p_93229_, int p_93230_, int p_93231_, int p_93232_, int p_93233_, int p_93234_, int p_93235_) {
-        blit(p_93229_, p_93230_, p_93231_, this.blitOffset, (float) p_93232_, (float) p_93233_, p_93234_, p_93235_, 256, 256);
+    public void blit(PoseStack pPoseStack, int pX, int pY, int pUOffset, int pVOffset, int pUWidth, int pVHeight) {
+        blit(pPoseStack, pX, pY, this.blitOffset, (float) pUOffset, (float) pVOffset, pUWidth, pVHeight, 256, 256);
     }
 
-    public static void blit(PoseStack p_93144_, int p_93145_, int p_93146_, int p_93147_, float p_93148_, float p_93149_, int p_93150_, int p_93151_, int p_93152_, int p_93153_) {
-        innerBlit(p_93144_, p_93145_, p_93145_ + p_93150_, p_93146_, p_93146_ + p_93151_, p_93147_, p_93150_, p_93151_, p_93148_, p_93149_, p_93152_, p_93153_);
+    public static void blit(PoseStack pPoseStack, int pX, int pY, int pBlitOffset, float pUOffset, float pVOffset, int pUWidth, int pVHeight, int pTextureHeight, int pTextureWidth) {
+        innerBlit(pPoseStack, pX, pX + pUWidth, pY, pY + pVHeight, pBlitOffset, pUWidth, pVHeight, pUOffset, pVOffset, pTextureHeight, pTextureWidth);
     }
 
-    public static void blit(PoseStack p_93161_, int p_93162_, int p_93163_, int p_93164_, int p_93165_, float p_93166_, float p_93167_, int p_93168_, int p_93169_, int p_93170_, int p_93171_) {
-        innerBlit(p_93161_, p_93162_, p_93162_ + p_93164_, p_93163_, p_93163_ + p_93165_, 0, p_93168_, p_93169_, p_93166_, p_93167_, p_93170_, p_93171_);
+    public static void blit(PoseStack pPoseStack, int pX, int pY, int pWidth, int pHeight, float pUOffset, float pVOffset, int pUWidth, int pVHeight, int pTextureWidth, int pTextureHeight) {
+        innerBlit(pPoseStack, pX, pX + pWidth, pY, pY + pHeight, 0, pUWidth, pVHeight, pUOffset, pVOffset, pTextureWidth, pTextureHeight);
     }
 
-    public static void blit(PoseStack p_93134_, int p_93135_, int p_93136_, float p_93137_, float p_93138_, int p_93139_, int p_93140_, int p_93141_, int p_93142_) {
-        blit(p_93134_, p_93135_, p_93136_, p_93139_, p_93140_, p_93137_, p_93138_, p_93139_, p_93140_, p_93141_, p_93142_);
+    public static void blit(PoseStack pPoseStack, int pX, int pY, float pUOffset, float pVOffset, int pWidth, int pHeight, int pTextureWidth, int pTextureHeight) {
+        blit(pPoseStack, pX, pY, pWidth, pHeight, pUOffset, pVOffset, pWidth, pHeight, pTextureWidth, pTextureHeight);
     }
 
-    private static void innerBlit(PoseStack p_93188_, int p_93189_, int p_93190_, int p_93191_, int p_93192_, int p_93193_, int p_93194_, int p_93195_, float p_93196_, float p_93197_, int p_93198_, int p_93199_) {
-        innerBlit(p_93188_.last().pose(), p_93189_, p_93190_, p_93191_, p_93192_, p_93193_, (p_93196_ + 0.0F) / (float) p_93198_, (p_93196_ + (float) p_93194_) / (float) p_93198_, (p_93197_ + 0.0F) / (float) p_93199_, (p_93197_ + (float) p_93195_) / (float) p_93199_);
+    private static void innerBlit(PoseStack pPoseStack, int pX1, int pX2, int pY1, int pY2, int pBlitOffset, int pUWidth, int pVHeight, float pUOffset, float pVOffset, int pTextureWidth, int pTextureHeight) {
+        innerBlit(pPoseStack.last().pose(), pX1, pX2, pY1, pY2, pBlitOffset, (pUOffset + 0.0F) / (float) pTextureWidth, (pUOffset + (float) pUWidth) / (float) pTextureWidth, (pVOffset + 0.0F) / (float) pTextureHeight, (pVOffset + (float) pVHeight) / (float) pTextureHeight);
     }
 
-    private static void innerBlit(Matrix4f p_93113_, int p_93114_, int p_93115_, int p_93116_, int p_93117_, int p_93118_, float p_93119_, float p_93120_, float p_93121_, float p_93122_) {
+    private static void innerBlit(Matrix4f pMatrix, int pX1, int pX2, int pY1, int pY2, int pBlitOffset, float pMinU, float pMaxU, float pMinV, float pMaxV) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferbuilder.vertex(p_93113_, (float) p_93114_, (float) p_93117_, (float) p_93118_).uv(p_93119_, p_93122_).endVertex();
-        bufferbuilder.vertex(p_93113_, (float) p_93115_, (float) p_93117_, (float) p_93118_).uv(p_93120_, p_93122_).endVertex();
-        bufferbuilder.vertex(p_93113_, (float) p_93115_, (float) p_93116_, (float) p_93118_).uv(p_93120_, p_93121_).endVertex();
-        bufferbuilder.vertex(p_93113_, (float) p_93114_, (float) p_93116_, (float) p_93118_).uv(p_93119_, p_93121_).endVertex();
+        bufferbuilder.vertex(pMatrix, (float) pX1, (float) pY2, (float) pBlitOffset).uv(pMinU, pMaxV).endVertex();
+        bufferbuilder.vertex(pMatrix, (float) pX2, (float) pY2, (float) pBlitOffset).uv(pMaxU, pMaxV).endVertex();
+        bufferbuilder.vertex(pMatrix, (float) pX2, (float) pY1, (float) pBlitOffset).uv(pMaxU, pMinV).endVertex();
+        bufferbuilder.vertex(pMatrix, (float) pX1, (float) pY1, (float) pBlitOffset).uv(pMinU, pMinV).endVertex();
         BufferUploader.drawWithShader(bufferbuilder.end());
     }
 
@@ -205,7 +205,7 @@ public abstract class GuiComponent {
         return this.blitOffset;
     }
 
-    public void setBlitOffset(int p_93251_) {
-        this.blitOffset = p_93251_;
+    public void setBlitOffset(int pBlitOffset) {
+        this.blitOffset = pBlitOffset;
     }
 }

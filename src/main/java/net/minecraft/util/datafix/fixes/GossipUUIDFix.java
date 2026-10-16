@@ -6,8 +6,8 @@ import com.mojang.datafixers.Typed;
 import com.mojang.datafixers.schemas.Schema;
 
 public class GossipUUIDFix extends NamedEntityFix {
-    public GossipUUIDFix(Schema p_15878_, String p_15879_) {
-        super(p_15878_, false, "Gossip for for " + p_15879_, References.ENTITY, p_15879_);
+    public GossipUUIDFix(Schema pOutputSchema, String pEntityName) {
+        super(pOutputSchema, false, "Gossip for for " + pEntityName, References.ENTITY, pEntityName);
     }
 
     protected Typed<?> fix(Typed<?> p_15881_) {

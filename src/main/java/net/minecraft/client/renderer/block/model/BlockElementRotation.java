@@ -12,10 +12,10 @@ public class BlockElementRotation {
     public final float angle;
     public final boolean rescale;
 
-    public BlockElementRotation(Vector3f p_111383_, Direction.Axis p_111384_, float p_111385_, boolean p_111386_) {
-        this.origin = p_111383_;
-        this.axis = p_111384_;
-        this.angle = p_111385_;
-        this.rescale = p_111386_;
+    public BlockElementRotation(Vector3f pOrigin, Direction.Axis pAxis, float pAngle, boolean pRescale) {
+        this.origin = pOrigin;
+        this.axis = pAxis;
+        this.angle = pAngle;
+        this.rescale = pRescale;
     }
 }

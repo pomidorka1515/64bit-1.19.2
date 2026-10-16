@@ -32,8 +32,8 @@ public class ScheduleCommand {
         return SharedSuggestionProvider.suggest(p_138424_.getSource().getServer().getWorldData().overworldData().getScheduledEvents().getEventsIds(), p_138425_);
     };
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138420_) {
-        p_138420_.register(Commands.literal("schedule").requires((p_138427_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("schedule").requires((p_138427_) -> {
                                                            return p_138427_.hasPermission(2);
                                                        })
                         .then(Commands.literal("function").then(Commands.argument("function", FunctionArgument.functions()).suggests(FunctionCommand.SUGGEST_FUNCTION).then(Commands.argument("time", TimeArgument.time()).executes((p_138459_) -> {
@@ -50,41 +50,41 @@ public class ScheduleCommand {
                         }))));
     }
 
-    private static int schedule(CommandSourceStack p_138429_, Pair<ResourceLocation, Either<CommandFunction, Collection<CommandFunction>>> p_138430_, int p_138431_, boolean p_138432_) throws CommandSyntaxException {
-        if (p_138431_ == 0) {
+    private static int schedule(CommandSourceStack pSource, Pair<ResourceLocation, Either<CommandFunction, Collection<CommandFunction>>> pFunction, int pTime, boolean pAppend) throws CommandSyntaxException {
+        if (pTime == 0) {
             throw ERROR_SAME_TICK.create();
         } else {
-            long i = p_138429_.getLevel().getGameTime() + (long) p_138431_;
-            ResourceLocation resourcelocation = p_138430_.getFirst();
-            TimerQueue<MinecraftServer> timerqueue = p_138429_.getServer().getWorldData().overworldData().getScheduledEvents();
-            p_138430_.getSecond().ifLeft((p_138453_) -> {
+            long i = pSource.getLevel().getGameTime() + (long) pTime;
+            ResourceLocation resourcelocation = pFunction.getFirst();
+            TimerQueue<MinecraftServer> timerqueue = pSource.getServer().getWorldData().overworldData().getScheduledEvents();
+            pFunction.getSecond().ifLeft((p_138453_) -> {
                                      String s = resourcelocation.toString();
-                                     if (p_138432_) {
+                                     if (pAppend) {
                                          timerqueue.remove(s);
                                      }
 
                                      timerqueue.schedule(s, i, new FunctionCallback(resourcelocation));
-                                     p_138429_.sendSuccess(Component.translatable("commands.schedule.created.function", resourcelocation, p_138431_, i), true);
+                                     pSource.sendSuccess(Component.translatable("commands.schedule.created.function", resourcelocation, pTime, i), true);
                                  })
                     .ifRight((p_214729_) -> {
                         String s = "#" + resourcelocation;
-                        if (p_138432_) {
+                        if (pAppend) {
                             timerqueue.remove(s);
                         }
 
                         timerqueue.schedule(s, i, new FunctionTagCallback(resourcelocation));
-                        p_138429_.sendSuccess(Component.translatable("commands.schedule.created.tag", resourcelocation, p_138431_, i), true);
+                        pSource.sendSuccess(Component.translatable("commands.schedule.created.tag", resourcelocation, pTime, i), true);
                     });
             return Math.floorMod(i, Integer.MAX_VALUE);
         }
     }
 
-    private static int remove(CommandSourceStack p_138434_, String p_138435_) throws CommandSyntaxException {
-        int i = p_138434_.getServer().getWorldData().overworldData().getScheduledEvents().remove(p_138435_);
+    private static int remove(CommandSourceStack pSource, String pFunction) throws CommandSyntaxException {
+        int i = pSource.getServer().getWorldData().overworldData().getScheduledEvents().remove(pFunction);
         if (i == 0) {
-            throw ERROR_CANT_REMOVE.create(p_138435_);
+            throw ERROR_CANT_REMOVE.create(pFunction);
         } else {
-            p_138434_.sendSuccess(Component.translatable("commands.schedule.cleared.success", i, p_138435_), true);
+            pSource.sendSuccess(Component.translatable("commands.schedule.cleared.success", i, pFunction), true);
             return i;
         }
     }

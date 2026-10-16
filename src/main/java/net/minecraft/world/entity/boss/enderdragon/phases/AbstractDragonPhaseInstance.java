@@ -11,8 +11,8 @@ import net.minecraft.world.phys.Vec3;
 public abstract class AbstractDragonPhaseInstance implements DragonPhaseInstance {
     protected final EnderDragon dragon;
 
-    public AbstractDragonPhaseInstance(EnderDragon p_31178_) {
-        this.dragon = p_31178_;
+    public AbstractDragonPhaseInstance(EnderDragon pDragon) {
+        this.dragon = pDragon;
     }
 
     public boolean isSitting() {
@@ -25,7 +25,7 @@ public abstract class AbstractDragonPhaseInstance implements DragonPhaseInstance
     public void doServerTick() {
     }
 
-    public void onCrystalDestroyed(EndCrystal p_31184_, BlockPos p_31185_, DamageSource p_31186_, @Nullable Player p_31187_) {
+    public void onCrystalDestroyed(EndCrystal pCrystal, BlockPos pPos, DamageSource pDmgSrc, @Nullable Player pPlyr) {
     }
 
     public void begin() {
@@ -43,8 +43,8 @@ public abstract class AbstractDragonPhaseInstance implements DragonPhaseInstance
         return null;
     }
 
-    public float onHurt(DamageSource p_31181_, float p_31182_) {
-        return p_31182_;
+    public float onHurt(DamageSource pDamageSource, float pAmount) {
+        return pAmount;
     }
 
     public float getTurnSpeed() {

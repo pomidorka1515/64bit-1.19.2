@@ -15,20 +15,20 @@ import org.slf4j.Logger;
 public class ReloadCommand {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static void reloadPacks(Collection<String> p_138236_, CommandSourceStack p_138237_) {
-        p_138237_.getServer().reloadResources(p_138236_).exceptionally((p_138234_) -> {
+    public static void reloadPacks(Collection<String> pSelectedIds, CommandSourceStack pSource) {
+        pSource.getServer().reloadResources(pSelectedIds).exceptionally((p_138234_) -> {
             LOGGER.warn("Failed to execute reload", p_138234_);
-            p_138237_.sendFailure(Component.translatable("commands.reload.failure"));
+            pSource.sendFailure(Component.translatable("commands.reload.failure"));
             return null;
         });
     }
 
-    private static Collection<String> discoverNewPacks(PackRepository p_138223_, WorldData p_138224_, Collection<String> p_138225_) {
-        p_138223_.reload();
-        Collection<String> collection = Lists.newArrayList(p_138225_);
-        Collection<String> collection1 = p_138224_.getDataPackConfig().getDisabled();
+    private static Collection<String> discoverNewPacks(PackRepository pPackRepository, WorldData pWorldData, Collection<String> pSelectedIds) {
+        pPackRepository.reload();
+        Collection<String> collection = Lists.newArrayList(pSelectedIds);
+        Collection<String> collection1 = pWorldData.getDataPackConfig().getDisabled();
 
-        for (String s : p_138223_.getAvailableIds()) {
+        for (String s : pPackRepository.getAvailableIds()) {
             if (!collection1.contains(s) && !collection.contains(s)) {
                 collection.add(s);
             }
@@ -37,8 +37,8 @@ public class ReloadCommand {
         return collection;
     }
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138227_) {
-        p_138227_.register(Commands.literal("reload").requires((p_138231_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("reload").requires((p_138231_) -> {
                                                          return p_138231_.hasPermission(2);
                                                      })
                         .executes((p_138229_) -> {

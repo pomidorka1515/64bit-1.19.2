@@ -11,16 +11,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class AbstractZombieRenderer<T extends Zombie, M extends ZombieModel<T>> extends HumanoidMobRenderer<T, M> {
     private static final ResourceLocation ZOMBIE_LOCATION = new ResourceLocation("textures/entity/zombie/zombie.png");
 
-    protected AbstractZombieRenderer(EntityRendererProvider.Context p_173910_, M p_173911_, M p_173912_, M p_173913_) {
-        super(p_173910_, p_173911_, 0.5F);
-        this.addLayer(new HumanoidArmorLayer<>(this, p_173912_, p_173913_));
+    protected AbstractZombieRenderer(EntityRendererProvider.Context pContext, M pModel, M pInnerModel, M pOuterModel) {
+        super(pContext, pModel, 0.5F);
+        this.addLayer(new HumanoidArmorLayer<>(this, pInnerModel, pOuterModel));
     }
 
-    public ResourceLocation getTextureLocation(Zombie p_113771_) {
+    public ResourceLocation getTextureLocation(Zombie pEntity) {
         return ZOMBIE_LOCATION;
     }
 
-    protected boolean isShaking(T p_113773_) {
-        return super.isShaking(p_113773_) || p_113773_.isUnderWaterConverting();
+    protected boolean isShaking(T pEntity) {
+        return super.isShaking(pEntity) || pEntity.isUnderWaterConverting();
     }
 }

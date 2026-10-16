@@ -57,10 +57,10 @@ public class EffectInstance implements Effect, AutoCloseable {
     private final EffectProgram vertexProgram;
     private final EffectProgram fragmentProgram;
 
-    public EffectInstance(ResourceManager p_108941_, String p_108942_) throws IOException {
-        ResourceLocation resourcelocation = new ResourceLocation("shaders/program/" + p_108942_ + ".json");
-        this.name = p_108942_;
-        Resource resource = p_108941_.getResourceOrThrow(resourcelocation);
+    public EffectInstance(ResourceManager pResourceManager, String pName) throws IOException {
+        ResourceLocation resourcelocation = new ResourceLocation("shaders/program/" + pName + ".json");
+        this.name = pName;
+        Resource resource = pResourceManager.getResourceOrThrow(resourcelocation);
 
         try {
             Reader reader = resource.openAsReader();
@@ -126,8 +126,8 @@ public class EffectInstance implements Effect, AutoCloseable {
                 }
 
                 this.blend = parseBlendNode(GsonHelper.getAsJsonObject(jsonobject, "blend", (JsonObject) null));
-                this.vertexProgram = getOrCreate(p_108941_, Program.Type.VERTEX, s);
-                this.fragmentProgram = getOrCreate(p_108941_, Program.Type.FRAGMENT, s1);
+                this.vertexProgram = getOrCreate(pResourceManager, Program.Type.VERTEX, s);
+                this.fragmentProgram = getOrCreate(pResourceManager, Program.Type.FRAGMENT, s1);
                 this.programId = ProgramManager.createProgram();
                 ProgramManager.linkShader(this);
                 this.updateLocations();
@@ -161,19 +161,19 @@ public class EffectInstance implements Effect, AutoCloseable {
         this.markDirty();
     }
 
-    public static EffectProgram getOrCreate(ResourceManager p_172567_, Program.Type p_172568_, String p_172569_) throws IOException {
-        Program program = p_172568_.getPrograms().get(p_172569_);
+    public static EffectProgram getOrCreate(ResourceManager pResourceManager, Program.Type pProgramType, String pName) throws IOException {
+        Program program = pProgramType.getPrograms().get(pName);
         if (program != null && !(program instanceof EffectProgram)) {
             throw new InvalidClassException("Program is not of type EffectProgram");
         } else {
             EffectProgram effectprogram;
             if (program == null) {
-                ResourceLocation resourcelocation = new ResourceLocation("shaders/program/" + p_172569_ + p_172568_.getExtension());
-                Resource resource = p_172567_.getResourceOrThrow(resourcelocation);
+                ResourceLocation resourcelocation = new ResourceLocation("shaders/program/" + pName + pProgramType.getExtension());
+                Resource resource = pResourceManager.getResourceOrThrow(resourcelocation);
                 InputStream inputstream = resource.open();
 
                 try {
-                    effectprogram = EffectProgram.compileShader(p_172568_, p_172569_, inputstream, resource.sourcePackId());
+                    effectprogram = EffectProgram.compileShader(pProgramType, pName, inputstream, resource.sourcePackId());
                 } catch (Throwable throwable1) {
                     if (inputstream != null) {
                         try {
@@ -197,8 +197,8 @@ public class EffectInstance implements Effect, AutoCloseable {
         }
     }
 
-    public static BlendMode parseBlendNode(@Nullable JsonObject p_108951_) {
-        if (p_108951_ == null) {
+    public static BlendMode parseBlendNode(@Nullable JsonObject pJson) {
+        if (pJson == null) {
             return new BlendMode();
         } else {
             int i = 32774;
@@ -208,29 +208,29 @@ public class EffectInstance implements Effect, AutoCloseable {
             int i1 = 0;
             boolean flag = true;
             boolean flag1 = false;
-            if (GsonHelper.isStringValue(p_108951_, "func")) {
-                i = BlendMode.stringToBlendFunc(p_108951_.get("func").getAsString());
+            if (GsonHelper.isStringValue(pJson, "func")) {
+                i = BlendMode.stringToBlendFunc(pJson.get("func").getAsString());
                 if (i != 32774) {
                     flag = false;
                 }
             }
 
-            if (GsonHelper.isStringValue(p_108951_, "srcrgb")) {
-                j = BlendMode.stringToBlendFactor(p_108951_.get("srcrgb").getAsString());
+            if (GsonHelper.isStringValue(pJson, "srcrgb")) {
+                j = BlendMode.stringToBlendFactor(pJson.get("srcrgb").getAsString());
                 if (j != 1) {
                     flag = false;
                 }
             }
 
-            if (GsonHelper.isStringValue(p_108951_, "dstrgb")) {
-                k = BlendMode.stringToBlendFactor(p_108951_.get("dstrgb").getAsString());
+            if (GsonHelper.isStringValue(pJson, "dstrgb")) {
+                k = BlendMode.stringToBlendFactor(pJson.get("dstrgb").getAsString());
                 if (k != 0) {
                     flag = false;
                 }
             }
 
-            if (GsonHelper.isStringValue(p_108951_, "srcalpha")) {
-                l = BlendMode.stringToBlendFactor(p_108951_.get("srcalpha").getAsString());
+            if (GsonHelper.isStringValue(pJson, "srcalpha")) {
+                l = BlendMode.stringToBlendFactor(pJson.get("srcalpha").getAsString());
                 if (l != 1) {
                     flag = false;
                 }
@@ -238,8 +238,8 @@ public class EffectInstance implements Effect, AutoCloseable {
                 flag1 = true;
             }
 
-            if (GsonHelper.isStringValue(p_108951_, "dstalpha")) {
-                i1 = BlendMode.stringToBlendFactor(p_108951_.get("dstalpha").getAsString());
+            if (GsonHelper.isStringValue(pJson, "dstalpha")) {
+                i1 = BlendMode.stringToBlendFactor(pJson.get("dstalpha").getAsString());
                 if (i1 != 0) {
                     flag = false;
                 }
@@ -312,14 +312,14 @@ public class EffectInstance implements Effect, AutoCloseable {
     }
 
     @Nullable
-    public Uniform getUniform(String p_108953_) {
+    public Uniform getUniform(String pName) {
         RenderSystem.assertOnRenderThread();
-        return this.uniformMap.get(p_108953_);
+        return this.uniformMap.get(pName);
     }
 
-    public AbstractUniform safeGetUniform(String p_108961_) {
+    public AbstractUniform safeGetUniform(String pName) {
         RenderSystem.assertOnGameThread();
-        Uniform uniform = this.getUniform(p_108961_);
+        Uniform uniform = this.getUniform(pName);
         return (AbstractUniform) (uniform == null ? DUMMY_UNIFORM : uniform);
     }
 
@@ -356,8 +356,8 @@ public class EffectInstance implements Effect, AutoCloseable {
         }
     }
 
-    private void parseSamplerNode(JsonElement p_108949_) {
-        JsonObject jsonobject = GsonHelper.convertToJsonObject(p_108949_, "sampler");
+    private void parseSamplerNode(JsonElement pJson) {
+        JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "sampler");
         String s = GsonHelper.getAsString(jsonobject, "name");
         if (!GsonHelper.isStringValue(jsonobject, "file")) {
             this.samplerMap.put(s, (IntSupplier) null);
@@ -367,17 +367,17 @@ public class EffectInstance implements Effect, AutoCloseable {
         }
     }
 
-    public void setSampler(String p_108955_, IntSupplier p_108956_) {
-        if (this.samplerMap.containsKey(p_108955_)) {
-            this.samplerMap.remove(p_108955_);
+    public void setSampler(String pName, IntSupplier pTextureId) {
+        if (this.samplerMap.containsKey(pName)) {
+            this.samplerMap.remove(pName);
         }
 
-        this.samplerMap.put(p_108955_, p_108956_);
+        this.samplerMap.put(pName, pTextureId);
         this.markDirty();
     }
 
-    private void parseUniformNode(JsonElement p_108959_) throws ChainedJsonException {
-        JsonObject jsonobject = GsonHelper.convertToJsonObject(p_108959_, "uniform");
+    private void parseUniformNode(JsonElement pJson) throws ChainedJsonException {
+        JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "uniform");
         String s = GsonHelper.getAsString(jsonobject, "name");
         int i = Uniform.getTypeFromString(GsonHelper.getAsString(jsonobject, "type"));
         int j = GsonHelper.getAsInt(jsonobject, "count");

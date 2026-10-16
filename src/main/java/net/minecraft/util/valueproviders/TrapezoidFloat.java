@@ -30,8 +30,8 @@ public class TrapezoidFloat extends FloatProvider {
     private final float max;
     private final float plateau;
 
-    public static TrapezoidFloat of(float p_146572_, float p_146573_, float p_146574_) {
-        return new TrapezoidFloat(p_146572_, p_146573_, p_146574_);
+    public static TrapezoidFloat of(float pMin, float pMax, float pPlateau) {
+        return new TrapezoidFloat(pMin, pMax, pPlateau);
     }
 
     private TrapezoidFloat(float p_146567_, float p_146568_, float p_146569_) {
@@ -40,11 +40,11 @@ public class TrapezoidFloat extends FloatProvider {
         this.plateau = p_146569_;
     }
 
-    public float sample(RandomSource p_216864_) {
+    public float sample(RandomSource pRandom) {
         float f = this.max - this.min;
         float f1 = (f - this.plateau) / 2.0F;
         float f2 = f - f1;
-        return this.min + p_216864_.nextFloat() * f2 + p_216864_.nextFloat() * f1;
+        return this.min + pRandom.nextFloat() * f2 + pRandom.nextFloat() * f1;
     }
 
     public float getMinValue() {

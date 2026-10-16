@@ -18,21 +18,21 @@ import net.minecraft.world.level.gameevent.GameEvent;
 public class HangingEntityItem extends Item {
     private final EntityType<? extends HangingEntity> type;
 
-    public HangingEntityItem(EntityType<? extends HangingEntity> p_41324_, Item.Properties p_41325_) {
-        super(p_41325_);
-        this.type = p_41324_;
+    public HangingEntityItem(EntityType<? extends HangingEntity> pType, Item.Properties pProperties) {
+        super(pProperties);
+        this.type = pType;
     }
 
-    public InteractionResult useOn(UseOnContext p_41331_) {
-        BlockPos blockpos = p_41331_.getClickedPos();
-        Direction direction = p_41331_.getClickedFace();
+    public InteractionResult useOn(UseOnContext pContext) {
+        BlockPos blockpos = pContext.getClickedPos();
+        Direction direction = pContext.getClickedFace();
         BlockPos blockpos1 = blockpos.relative(direction);
-        Player player = p_41331_.getPlayer();
-        ItemStack itemstack = p_41331_.getItemInHand();
+        Player player = pContext.getPlayer();
+        ItemStack itemstack = pContext.getItemInHand();
         if (player != null && !this.mayPlace(player, direction, itemstack, blockpos1)) {
             return InteractionResult.FAIL;
         } else {
-            Level level = p_41331_.getLevel();
+            Level level = pContext.getLevel();
             HangingEntity hangingentity;
             if (this.type == EntityType.PAINTING) {
                 Optional<Painting> optional = Painting.create(level, blockpos1, direction);
@@ -71,7 +71,7 @@ public class HangingEntityItem extends Item {
         }
     }
 
-    protected boolean mayPlace(Player p_41326_, Direction p_41327_, ItemStack p_41328_, BlockPos p_41329_) {
-        return !p_41327_.getAxis().isVertical() && p_41326_.mayUseItemAt(p_41329_, p_41327_, p_41328_);
+    protected boolean mayPlace(Player pPlayer, Direction pDirection, ItemStack pHangingEntityStack, BlockPos pPos) {
+        return !pDirection.getAxis().isVertical() && pPlayer.mayUseItemAt(pPos, pDirection, pHangingEntityStack);
     }
 }

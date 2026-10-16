@@ -15,7 +15,7 @@ public class CowRenderer extends MobRenderer<Cow, CowModel<Cow>> {
         super(p_173956_, new CowModel<>(p_173956_.bakeLayer(ModelLayers.COW)), 0.7F);
     }
 
-    public ResourceLocation getTextureLocation(Cow p_114029_) {
+    public ResourceLocation getTextureLocation(Cow pEntity) {
         return COW_LOCATION;
     }
 }

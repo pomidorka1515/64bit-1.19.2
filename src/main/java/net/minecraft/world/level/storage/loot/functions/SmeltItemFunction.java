@@ -23,22 +23,22 @@ public class SmeltItemFunction extends LootItemConditionalFunction {
         return LootItemFunctions.FURNACE_SMELT;
     }
 
-    public ItemStack run(ItemStack p_81268_, LootContext p_81269_) {
-        if (p_81268_.isEmpty()) {
-            return p_81268_;
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        if (pStack.isEmpty()) {
+            return pStack;
         } else {
-            Optional<SmeltingRecipe> optional = p_81269_.getLevel().getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SimpleContainer(p_81268_), p_81269_.getLevel());
+            Optional<SmeltingRecipe> optional = pContext.getLevel().getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SimpleContainer(pStack), pContext.getLevel());
             if (optional.isPresent()) {
                 ItemStack itemstack = optional.get().getResultItem();
                 if (!itemstack.isEmpty()) {
                     ItemStack itemstack1 = itemstack.copy();
-                    itemstack1.setCount(p_81268_.getCount());
+                    itemstack1.setCount(pStack.getCount());
                     return itemstack1;
                 }
             }
 
-            LOGGER.warn("Couldn't smelt {} because there is no smelting recipe", (Object) p_81268_);
-            return p_81268_;
+            LOGGER.warn("Couldn't smelt {} because there is no smelting recipe", (Object) pStack);
+            return pStack;
         }
     }
 
@@ -47,8 +47,8 @@ public class SmeltItemFunction extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<SmeltItemFunction> {
-        public SmeltItemFunction deserialize(JsonObject p_81274_, JsonDeserializationContext p_81275_, LootItemCondition[] p_81276_) {
-            return new SmeltItemFunction(p_81276_);
+        public SmeltItemFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            return new SmeltItemFunction(pConditions);
         }
     }
 }

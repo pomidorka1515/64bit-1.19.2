@@ -23,16 +23,16 @@ public class AdvancementProgress implements Comparable<AdvancementProgress> {
     final Map<String, CriterionProgress> criteria;
     private String[][] requirements = new String[0][];
 
-    private AdvancementProgress(Map<String, CriterionProgress> p_144358_) {
-        this.criteria = p_144358_;
+    private AdvancementProgress(Map<String, CriterionProgress> pCriteria) {
+        this.criteria = pCriteria;
     }
 
     public AdvancementProgress() {
         this.criteria = Maps.newHashMap();
     }
 
-    public void update(Map<String, Criterion> p_8199_, String[][] p_8200_) {
-        Set<String> set = p_8199_.keySet();
+    public void update(Map<String, Criterion> pCriteria, String[][] pRequirements) {
+        Set<String> set = pCriteria.keySet();
         this.criteria.entrySet().removeIf((p_8203_) -> {
             return !set.contains(p_8203_.getKey());
         });
@@ -43,7 +43,7 @@ public class AdvancementProgress implements Comparable<AdvancementProgress> {
             }
         }
 
-        this.requirements = p_8200_;
+        this.requirements = pRequirements;
     }
 
     public boolean isDone() {
@@ -80,8 +80,8 @@ public class AdvancementProgress implements Comparable<AdvancementProgress> {
         return false;
     }
 
-    public boolean grantProgress(String p_8197_) {
-        CriterionProgress criterionprogress = this.criteria.get(p_8197_);
+    public boolean grantProgress(String pCriterionName) {
+        CriterionProgress criterionprogress = this.criteria.get(pCriterionName);
         if (criterionprogress != null && !criterionprogress.isDone()) {
             criterionprogress.grant();
             return true;
@@ -90,8 +90,8 @@ public class AdvancementProgress implements Comparable<AdvancementProgress> {
         }
     }
 
-    public boolean revokeProgress(String p_8210_) {
-        CriterionProgress criterionprogress = this.criteria.get(p_8210_);
+    public boolean revokeProgress(String pCriterionName) {
+        CriterionProgress criterionprogress = this.criteria.get(pCriterionName);
         if (criterionprogress != null && criterionprogress.isDone()) {
             criterionprogress.revoke();
             return true;
@@ -104,20 +104,20 @@ public class AdvancementProgress implements Comparable<AdvancementProgress> {
         return "AdvancementProgress{criteria=" + this.criteria + ", requirements=" + Arrays.deepToString(this.requirements) + "}";
     }
 
-    public void serializeToNetwork(FriendlyByteBuf p_8205_) {
-        p_8205_.writeMap(this.criteria, FriendlyByteBuf::writeUtf, (p_144360_, p_144361_) -> {
+    public void serializeToNetwork(FriendlyByteBuf pBuffer) {
+        pBuffer.writeMap(this.criteria, FriendlyByteBuf::writeUtf, (p_144360_, p_144361_) -> {
             p_144361_.serializeToNetwork(p_144360_);
         });
     }
 
-    public static AdvancementProgress fromNetwork(FriendlyByteBuf p_8212_) {
-        Map<String, CriterionProgress> map = p_8212_.readMap(FriendlyByteBuf::readUtf, CriterionProgress::fromNetwork);
+    public static AdvancementProgress fromNetwork(FriendlyByteBuf pBuffer) {
+        Map<String, CriterionProgress> map = pBuffer.readMap(FriendlyByteBuf::readUtf, CriterionProgress::fromNetwork);
         return new AdvancementProgress(map);
     }
 
     @Nullable
-    public CriterionProgress getCriterion(String p_8215_) {
-        return this.criteria.get(p_8215_);
+    public CriterionProgress getCriterion(String pCriterionName) {
+        return this.criteria.get(pCriterionName);
     }
 
     public float getPercent() {
@@ -217,11 +217,11 @@ public class AdvancementProgress implements Comparable<AdvancementProgress> {
     }
 
     public static class Serializer implements JsonDeserializer<AdvancementProgress>, JsonSerializer<AdvancementProgress> {
-        public JsonElement serialize(AdvancementProgress p_8226_, Type p_8227_, JsonSerializationContext p_8228_) {
+        public JsonElement serialize(AdvancementProgress pSrc, Type pTypeOfSrc, JsonSerializationContext pContext) {
             JsonObject jsonobject = new JsonObject();
             JsonObject jsonobject1 = new JsonObject();
 
-            for (Map.Entry<String, CriterionProgress> entry : p_8226_.criteria.entrySet()) {
+            for (Map.Entry<String, CriterionProgress> entry : pSrc.criteria.entrySet()) {
                 CriterionProgress criterionprogress = entry.getValue();
                 if (criterionprogress.isDone()) {
                     jsonobject1.add(entry.getKey(), criterionprogress.serializeToJson());
@@ -232,12 +232,12 @@ public class AdvancementProgress implements Comparable<AdvancementProgress> {
                 jsonobject.add("criteria", jsonobject1);
             }
 
-            jsonobject.addProperty("done", p_8226_.isDone());
+            jsonobject.addProperty("done", pSrc.isDone());
             return jsonobject;
         }
 
-        public AdvancementProgress deserialize(JsonElement p_8230_, Type p_8231_, JsonDeserializationContext p_8232_) throws JsonParseException {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_8230_, "advancement");
+        public AdvancementProgress deserialize(JsonElement pJson, Type pTypeOfT, JsonDeserializationContext pContext) throws JsonParseException {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "advancement");
             JsonObject jsonobject1 = GsonHelper.getAsJsonObject(jsonobject, "criteria", new JsonObject());
             AdvancementProgress advancementprogress = new AdvancementProgress();
 

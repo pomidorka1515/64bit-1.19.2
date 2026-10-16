@@ -16,28 +16,28 @@ import net.minecraft.world.level.material.FluidState;
 public class CoralBlock extends Block {
     private final Block deadBlock;
 
-    public CoralBlock(Block p_52130_, BlockBehaviour.Properties p_52131_) {
-        super(p_52131_);
-        this.deadBlock = p_52130_;
+    public CoralBlock(Block pDeadBlock, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
+        this.deadBlock = pDeadBlock;
     }
 
-    public void tick(BlockState p_221020_, ServerLevel p_221021_, BlockPos p_221022_, RandomSource p_221023_) {
-        if (!this.scanForWater(p_221021_, p_221022_)) {
-            p_221021_.setBlock(p_221022_, this.deadBlock.defaultBlockState(), 2);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (!this.scanForWater(pLevel, pPos)) {
+            pLevel.setBlock(pPos, this.deadBlock.defaultBlockState(), 2);
         }
     }
 
-    public BlockState updateShape(BlockState p_52143_, Direction p_52144_, BlockState p_52145_, LevelAccessor p_52146_, BlockPos p_52147_, BlockPos p_52148_) {
-        if (!this.scanForWater(p_52146_, p_52147_)) {
-            p_52146_.scheduleTick(p_52147_, this, 60 + p_52146_.getRandom().nextInt(40));
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (!this.scanForWater(pLevel, pCurrentPos)) {
+            pLevel.scheduleTick(pCurrentPos, this, 60 + pLevel.getRandom().nextInt(40));
         }
 
-        return super.updateShape(p_52143_, p_52144_, p_52145_, p_52146_, p_52147_, p_52148_);
+        return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    protected boolean scanForWater(BlockGetter p_52135_, BlockPos p_52136_) {
+    protected boolean scanForWater(BlockGetter pLevel, BlockPos pPos) {
         for (Direction direction : Direction.values()) {
-            FluidState fluidstate = p_52135_.getFluidState(p_52136_.relative(direction));
+            FluidState fluidstate = pLevel.getFluidState(pPos.relative(direction));
             if (fluidstate.is(FluidTags.WATER)) {
                 return true;
             }
@@ -47,9 +47,9 @@ public class CoralBlock extends Block {
     }
 
     @Nullable
-    public BlockState getStateForPlacement(BlockPlaceContext p_52133_) {
-        if (!this.scanForWater(p_52133_.getLevel(), p_52133_.getClickedPos())) {
-            p_52133_.getLevel().scheduleTick(p_52133_.getClickedPos(), this, 60 + p_52133_.getLevel().getRandom().nextInt(40));
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        if (!this.scanForWater(pContext.getLevel(), pContext.getClickedPos())) {
+            pContext.getLevel().scheduleTick(pContext.getClickedPos(), this, 60 + pContext.getLevel().getRandom().nextInt(40));
         }
 
         return this.defaultBlockState();

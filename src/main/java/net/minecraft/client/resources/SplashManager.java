@@ -27,11 +27,11 @@ public class SplashManager extends SimplePreparableReloadListener<List<String>> 
     private final List<String> splashes = Lists.newArrayList();
     private final User user;
 
-    public SplashManager(User p_118866_) {
-        this.user = p_118866_;
+    public SplashManager(User pUser) {
+        this.user = pUser;
     }
 
-    protected List<String> prepare(ResourceManager p_118869_, ProfilerFiller p_118870_) {
+    protected List<String> prepare(ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         try {
             BufferedReader bufferedreader = Minecraft.getInstance().getResourceManager().openAsReader(SPLASHES_LOCATION);
 
@@ -63,9 +63,9 @@ public class SplashManager extends SimplePreparableReloadListener<List<String>> 
         }
     }
 
-    protected void apply(List<String> p_118878_, ResourceManager p_118879_, ProfilerFiller p_118880_) {
+    protected void apply(List<String> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         this.splashes.clear();
-        this.splashes.addAll(p_118878_);
+        this.splashes.addAll(pObject);
     }
 
     @Nullable

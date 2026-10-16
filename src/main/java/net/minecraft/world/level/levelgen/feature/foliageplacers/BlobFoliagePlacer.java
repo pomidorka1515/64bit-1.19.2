@@ -32,18 +32,18 @@ public class BlobFoliagePlacer extends FoliagePlacer {
         return FoliagePlacerType.BLOB_FOLIAGE_PLACER;
     }
 
-    protected void createFoliage(LevelSimulatedReader p_225520_, BiConsumer<BlockPos, BlockState> p_225521_, RandomSource p_225522_, TreeConfiguration p_225523_, int p_225524_, FoliagePlacer.FoliageAttachment p_225525_, int p_225526_, int p_225527_, int p_225528_) {
-        for (int i = p_225528_; i >= p_225528_ - p_225526_; --i) {
-            int j = Math.max(p_225527_ + p_225525_.radiusOffset() - 1 - i / 2, 0);
-            this.placeLeavesRow(p_225520_, p_225521_, p_225522_, p_225523_, p_225525_.pos(), j, i, p_225525_.doubleTrunk());
+    protected void createFoliage(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, TreeConfiguration pConfig, int pMaxFreeTreeHeight, FoliagePlacer.FoliageAttachment pAttachment, int pFoliageHeight, int pFoliageRadius, int pOffset) {
+        for (int i = pOffset; i >= pOffset - pFoliageHeight; --i) {
+            int j = Math.max(pFoliageRadius + pAttachment.radiusOffset() - 1 - i / 2, 0);
+            this.placeLeavesRow(pLevel, pBlockSetter, pRandom, pConfig, pAttachment.pos(), j, i, pAttachment.doubleTrunk());
         }
     }
 
-    public int foliageHeight(RandomSource p_225516_, int p_225517_, TreeConfiguration p_225518_) {
+    public int foliageHeight(RandomSource pRandom, int pHeight, TreeConfiguration pConfig) {
         return this.height;
     }
 
-    protected boolean shouldSkipLocation(RandomSource p_225509_, int p_225510_, int p_225511_, int p_225512_, int p_225513_, boolean p_225514_) {
-        return p_225510_ == p_225513_ && p_225512_ == p_225513_ && (p_225509_.nextInt(2) == 0 || p_225511_ == 0);
+    protected boolean shouldSkipLocation(RandomSource pRandom, int pLocalX, int pLocalY, int pLocalZ, int pRange, boolean pLarge) {
+        return pLocalX == pRange && pLocalZ == pRange && (pRandom.nextInt(2) == 0 || pLocalY == 0);
     }
 }

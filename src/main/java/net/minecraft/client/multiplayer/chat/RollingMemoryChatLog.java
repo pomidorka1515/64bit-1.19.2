@@ -10,13 +10,13 @@ public class RollingMemoryChatLog implements ChatLog {
     private int newestId = -1;
     private int oldestId = -1;
 
-    public RollingMemoryChatLog(int p_239903_) {
-        this.buffer = new LoggedChatEvent[p_239903_];
+    public RollingMemoryChatLog(int pSize) {
+        this.buffer = new LoggedChatEvent[pSize];
     }
 
-    public void push(LoggedChatEvent p_242377_) {
+    public void push(LoggedChatEvent pEvent) {
         int i = this.nextId();
-        this.buffer[this.index(i)] = p_242377_;
+        this.buffer[this.index(i)] = pEvent;
     }
 
     private int nextId() {
@@ -31,20 +31,20 @@ public class RollingMemoryChatLog implements ChatLog {
     }
 
     @Nullable
-    public LoggedChatEvent lookup(int p_242175_) {
-        return this.contains(p_242175_) ? this.buffer[this.index(p_242175_)] : null;
+    public LoggedChatEvent lookup(int pId) {
+        return this.contains(pId) ? this.buffer[this.index(pId)] : null;
     }
 
-    private int index(int p_239511_) {
-        return p_239511_ % this.buffer.length;
+    private int index(int pId) {
+        return pId % this.buffer.length;
     }
 
-    public boolean contains(int p_239977_) {
-        return p_239977_ >= this.oldestId && p_239977_ <= this.newestId;
+    public boolean contains(int pId) {
+        return pId >= this.oldestId && pId <= this.newestId;
     }
 
-    public int offset(int p_240086_, int p_240087_) {
-        int i = p_240086_ + p_240087_;
+    public int offset(int pId, int pOffset) {
+        int i = pId + pOffset;
         return this.contains(i) ? i : -1;
     }
 

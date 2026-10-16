@@ -57,17 +57,17 @@ public class ServerEntity {
     private boolean wasRiding;
     private boolean wasOnGround;
 
-    public ServerEntity(ServerLevel p_8528_, Entity p_8529_, int p_8530_, boolean p_8531_, Consumer<Packet<?>> p_8532_) {
-        this.level = p_8528_;
-        this.broadcast = p_8532_;
-        this.entity = p_8529_;
-        this.updateInterval = p_8530_;
-        this.trackDelta = p_8531_;
+    public ServerEntity(ServerLevel pLevel, Entity pEntity, int pUpdateInterval, boolean pTrackDelta, Consumer<Packet<?>> pBroadcast) {
+        this.level = pLevel;
+        this.broadcast = pBroadcast;
+        this.entity = pEntity;
+        this.updateInterval = pUpdateInterval;
+        this.trackDelta = pTrackDelta;
         this.setPositionCodecBase();
-        this.yRotp = Mth.floor(p_8529_.getYRot() * 256.0F / 360.0F);
-        this.xRotp = Mth.floor(p_8529_.getXRot() * 256.0F / 360.0F);
-        this.yHeadRotp = Mth.floor(p_8529_.getYHeadRot() * 256.0F / 360.0F);
-        this.wasOnGround = p_8529_.isOnGround();
+        this.yRotp = Mth.floor(pEntity.getYRot() * 256.0F / 360.0F);
+        this.xRotp = Mth.floor(pEntity.getXRot() * 256.0F / 360.0F);
+        this.yHeadRotp = Mth.floor(pEntity.getYHeadRot() * 256.0F / 360.0F);
+        this.wasOnGround = pEntity.isOnGround();
     }
 
     public void sendChanges() {
@@ -199,33 +199,33 @@ public class ServerEntity {
         }
     }
 
-    public void removePairing(ServerPlayer p_8535_) {
-        this.entity.stopSeenByPlayer(p_8535_);
-        p_8535_.connection.send(new ClientboundRemoveEntitiesPacket(this.entity.getId()));
+    public void removePairing(ServerPlayer pPlayer) {
+        this.entity.stopSeenByPlayer(pPlayer);
+        pPlayer.connection.send(new ClientboundRemoveEntitiesPacket(this.entity.getId()));
     }
 
-    public void addPairing(ServerPlayer p_8542_) {
-        this.sendPairingData(p_8542_.connection::send);
-        this.entity.startSeenByPlayer(p_8542_);
+    public void addPairing(ServerPlayer pPlayer) {
+        this.sendPairingData(pPlayer.connection::send);
+        this.entity.startSeenByPlayer(pPlayer);
     }
 
-    public void sendPairingData(Consumer<Packet<?>> p_8537_) {
+    public void sendPairingData(Consumer<Packet<?>> pPacketConsumer) {
         if (this.entity.isRemoved()) {
             LOGGER.warn("Fetching packet for removed entity {}", (Object) this.entity);
         }
 
         Packet<?> packet = this.entity.getAddEntityPacket();
         this.yHeadRotp = Mth.floor(this.entity.getYHeadRot() * 256.0F / 360.0F);
-        p_8537_.accept(packet);
+        pPacketConsumer.accept(packet);
         if (!this.entity.getEntityData().isEmpty()) {
-            p_8537_.accept(new ClientboundSetEntityDataPacket(this.entity.getId(), this.entity.getEntityData(), true));
+            pPacketConsumer.accept(new ClientboundSetEntityDataPacket(this.entity.getId(), this.entity.getEntityData(), true));
         }
 
         boolean flag = this.trackDelta;
         if (this.entity instanceof LivingEntity) {
             Collection<AttributeInstance> collection = ((LivingEntity) this.entity).getAttributes().getSyncableAttributes();
             if (!collection.isEmpty()) {
-                p_8537_.accept(new ClientboundUpdateAttributesPacket(this.entity.getId(), collection));
+                pPacketConsumer.accept(new ClientboundUpdateAttributesPacket(this.entity.getId(), collection));
             }
 
             if (((LivingEntity) this.entity).isFallFlying()) {
@@ -235,7 +235,7 @@ public class ServerEntity {
 
         this.ap = this.entity.getDeltaMovement();
         if (flag && !(this.entity instanceof LivingEntity)) {
-            p_8537_.accept(new ClientboundSetEntityMotionPacket(this.entity.getId(), this.ap));
+            pPacketConsumer.accept(new ClientboundSetEntityMotionPacket(this.entity.getId(), this.ap));
         }
 
         if (this.entity instanceof LivingEntity) {
@@ -249,7 +249,7 @@ public class ServerEntity {
             }
 
             if (!list.isEmpty()) {
-                p_8537_.accept(new ClientboundSetEquipmentPacket(this.entity.getId(), list));
+                pPacketConsumer.accept(new ClientboundSetEquipmentPacket(this.entity.getId(), list));
             }
         }
 
@@ -257,22 +257,22 @@ public class ServerEntity {
             LivingEntity livingentity = (LivingEntity) this.entity;
 
             for (MobEffectInstance mobeffectinstance : livingentity.getActiveEffects()) {
-                p_8537_.accept(new ClientboundUpdateMobEffectPacket(this.entity.getId(), mobeffectinstance));
+                pPacketConsumer.accept(new ClientboundUpdateMobEffectPacket(this.entity.getId(), mobeffectinstance));
             }
         }
 
         if (!this.entity.getPassengers().isEmpty()) {
-            p_8537_.accept(new ClientboundSetPassengersPacket(this.entity));
+            pPacketConsumer.accept(new ClientboundSetPassengersPacket(this.entity));
         }
 
         if (this.entity.isPassenger()) {
-            p_8537_.accept(new ClientboundSetPassengersPacket(this.entity.getVehicle()));
+            pPacketConsumer.accept(new ClientboundSetPassengersPacket(this.entity.getVehicle()));
         }
 
         if (this.entity instanceof Mob) {
             Mob mob = (Mob) this.entity;
             if (mob.isLeashed()) {
-                p_8537_.accept(new ClientboundSetEntityLinkPacket(mob, mob.getLeashHolder()));
+                pPacketConsumer.accept(new ClientboundSetEntityLinkPacket(mob, mob.getLeashHolder()));
             }
         }
     }
@@ -293,10 +293,10 @@ public class ServerEntity {
         }
     }
 
-    private void broadcastAndSend(Packet<?> p_8539_) {
-        this.broadcast.accept(p_8539_);
+    private void broadcastAndSend(Packet<?> pPacket) {
+        this.broadcast.accept(pPacket);
         if (this.entity instanceof ServerPlayer) {
-            ((ServerPlayer) this.entity).connection.send(p_8539_);
+            ((ServerPlayer) this.entity).connection.send(pPacket);
         }
     }
 }

@@ -10,26 +10,26 @@ public class ServerboundUseItemOnPacket implements Packet<ServerGamePacketListen
     private final InteractionHand hand;
     private final int sequence;
 
-    public ServerboundUseItemOnPacket(InteractionHand p_238005_, BlockHitResult p_238006_, int p_238007_) {
-        this.hand = p_238005_;
-        this.blockHit = p_238006_;
-        this.sequence = p_238007_;
+    public ServerboundUseItemOnPacket(InteractionHand pHand, BlockHitResult pBlockHit, int pSequence) {
+        this.hand = pHand;
+        this.blockHit = pBlockHit;
+        this.sequence = pSequence;
     }
 
-    public ServerboundUseItemOnPacket(FriendlyByteBuf p_179796_) {
-        this.hand = p_179796_.readEnum(InteractionHand.class);
-        this.blockHit = p_179796_.readBlockHitResult();
-        this.sequence = p_179796_.readVarInt();
+    public ServerboundUseItemOnPacket(FriendlyByteBuf pBuffer) {
+        this.hand = pBuffer.readEnum(InteractionHand.class);
+        this.blockHit = pBuffer.readBlockHitResult();
+        this.sequence = pBuffer.readVarInt();
     }
 
-    public void write(FriendlyByteBuf p_134705_) {
-        p_134705_.writeEnum(this.hand);
-        p_134705_.writeBlockHitResult(this.blockHit);
-        p_134705_.writeVarInt(this.sequence);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeEnum(this.hand);
+        pBuffer.writeBlockHitResult(this.blockHit);
+        pBuffer.writeVarInt(this.sequence);
     }
 
-    public void handle(ServerGamePacketListener p_134702_) {
-        p_134702_.handleUseItemOn(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleUseItemOn(this);
     }
 
     public InteractionHand getHand() {

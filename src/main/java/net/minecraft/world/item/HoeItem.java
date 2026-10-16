@@ -26,27 +26,27 @@ public class HoeItem extends DiggerItem {
         return true;
     }, changeIntoStateAndDropItem(Blocks.DIRT.defaultBlockState(), Items.HANGING_ROOTS))));
 
-    protected HoeItem(Tier p_41336_, int p_41337_, float p_41338_, Item.Properties p_41339_) {
-        super((float) p_41337_, p_41338_, p_41336_, BlockTags.MINEABLE_WITH_HOE, p_41339_);
+    protected HoeItem(Tier pTier, int pAttackDamageModifier, float pAttackSpeedModifier, Item.Properties pProperties) {
+        super((float) pAttackDamageModifier, pAttackSpeedModifier, pTier, BlockTags.MINEABLE_WITH_HOE, pProperties);
     }
 
-    public InteractionResult useOn(UseOnContext p_41341_) {
-        Level level = p_41341_.getLevel();
-        BlockPos blockpos = p_41341_.getClickedPos();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
         Pair<Predicate<UseOnContext>, Consumer<UseOnContext>> pair = TILLABLES.get(level.getBlockState(blockpos).getBlock());
         if (pair == null) {
             return InteractionResult.PASS;
         } else {
             Predicate<UseOnContext> predicate = pair.getFirst();
             Consumer<UseOnContext> consumer = pair.getSecond();
-            if (predicate.test(p_41341_)) {
-                Player player = p_41341_.getPlayer();
+            if (predicate.test(pContext)) {
+                Player player = pContext.getPlayer();
                 level.playSound(player, blockpos, SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
                 if (!level.isClientSide) {
-                    consumer.accept(p_41341_);
+                    consumer.accept(pContext);
                     if (player != null) {
-                        p_41341_.getItemInHand().hurtAndBreak(1, player, (p_150845_) -> {
-                            p_150845_.broadcastBreakEvent(p_41341_.getHand());
+                        pContext.getItemInHand().hurtAndBreak(1, player, (p_150845_) -> {
+                            p_150845_.broadcastBreakEvent(pContext.getHand());
                         });
                     }
                 }
@@ -58,18 +58,18 @@ public class HoeItem extends DiggerItem {
         }
     }
 
-    public static Consumer<UseOnContext> changeIntoState(BlockState p_150859_) {
+    public static Consumer<UseOnContext> changeIntoState(BlockState pState) {
         return (p_238241_) -> {
-            p_238241_.getLevel().setBlock(p_238241_.getClickedPos(), p_150859_, 11);
-            p_238241_.getLevel().gameEvent(GameEvent.BLOCK_CHANGE, p_238241_.getClickedPos(), GameEvent.Context.of(p_238241_.getPlayer(), p_150859_));
+            p_238241_.getLevel().setBlock(p_238241_.getClickedPos(), pState, 11);
+            p_238241_.getLevel().gameEvent(GameEvent.BLOCK_CHANGE, p_238241_.getClickedPos(), GameEvent.Context.of(p_238241_.getPlayer(), pState));
         };
     }
 
-    public static Consumer<UseOnContext> changeIntoStateAndDropItem(BlockState p_150850_, ItemLike p_150851_) {
+    public static Consumer<UseOnContext> changeIntoStateAndDropItem(BlockState pState, ItemLike pItemToDrop) {
         return (p_238246_) -> {
-            p_238246_.getLevel().setBlock(p_238246_.getClickedPos(), p_150850_, 11);
-            p_238246_.getLevel().gameEvent(GameEvent.BLOCK_CHANGE, p_238246_.getClickedPos(), GameEvent.Context.of(p_238246_.getPlayer(), p_150850_));
-            Block.popResourceFromFace(p_238246_.getLevel(), p_238246_.getClickedPos(), p_238246_.getClickedFace(), new ItemStack(p_150851_));
+            p_238246_.getLevel().setBlock(p_238246_.getClickedPos(), pState, 11);
+            p_238246_.getLevel().gameEvent(GameEvent.BLOCK_CHANGE, p_238246_.getClickedPos(), GameEvent.Context.of(p_238246_.getPlayer(), pState));
+            Block.popResourceFromFace(p_238246_.getLevel(), p_238246_.getClickedPos(), p_238246_.getClickedFace(), new ItemStack(pItemToDrop));
         };
     }
 

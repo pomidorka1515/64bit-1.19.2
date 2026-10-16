@@ -10,16 +10,16 @@ import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
 public class SpecialRecipeBuilder {
     final SimpleRecipeSerializer<?> serializer;
 
-    public SpecialRecipeBuilder(SimpleRecipeSerializer<?> p_126356_) {
-        this.serializer = p_126356_;
+    public SpecialRecipeBuilder(SimpleRecipeSerializer<?> pSerializer) {
+        this.serializer = pSerializer;
     }
 
-    public static SpecialRecipeBuilder special(SimpleRecipeSerializer<?> p_126358_) {
-        return new SpecialRecipeBuilder(p_126358_);
+    public static SpecialRecipeBuilder special(SimpleRecipeSerializer<?> pSerializer) {
+        return new SpecialRecipeBuilder(pSerializer);
     }
 
-    public void save(Consumer<FinishedRecipe> p_126360_, final String p_126361_) {
-        p_126360_.accept(new FinishedRecipe() {
+    public void save(Consumer<FinishedRecipe> pFinishedRecipeConsumer, final String pId) {
+        pFinishedRecipeConsumer.accept(new FinishedRecipe() {
             public void serializeRecipeData(JsonObject p_126370_) {
             }
 
@@ -28,7 +28,7 @@ public class SpecialRecipeBuilder {
             }
 
             public ResourceLocation getId() {
-                return new ResourceLocation(p_126361_);
+                return new ResourceLocation(pId);
             }
 
             @Nullable

@@ -151,15 +151,15 @@ public class FontManager implements AutoCloseable {
         }
     };
 
-    public FontManager(TextureManager p_95005_) {
-        this.textureManager = p_95005_;
-        this.missingFontSet = Util.make(new FontSet(p_95005_, MISSING_FONT), (p_95010_) -> {
+    public FontManager(TextureManager pTextureManager) {
+        this.textureManager = pTextureManager;
+        this.missingFontSet = Util.make(new FontSet(pTextureManager, MISSING_FONT), (p_95010_) -> {
             p_95010_.reload(Lists.newArrayList(new AllMissingGlyphProvider()));
         });
     }
 
-    public void setRenames(Map<ResourceLocation, ResourceLocation> p_95012_) {
-        this.renames = p_95012_;
+    public void setRenames(Map<ResourceLocation, ResourceLocation> pUnicodeForcedMap) {
+        this.renames = pUnicodeForcedMap;
     }
 
     public Font createFont() {

@@ -10,14 +10,14 @@ public class Timer {
     private long lastMs;
     private final float msPerTick;
 
-    public Timer(float p_92523_, long p_92524_) {
-        this.msPerTick = 1000.0F / p_92523_;
-        this.lastMs = p_92524_;
+    public Timer(float pTicksPerSecond, long pLastMs) {
+        this.msPerTick = 1000.0F / pTicksPerSecond;
+        this.lastMs = pLastMs;
     }
 
-    public int advanceTime(long p_92526_) {
-        this.tickDelta = (float) (p_92526_ - this.lastMs) / this.msPerTick;
-        this.lastMs = p_92526_;
+    public int advanceTime(long pGameTime) {
+        this.tickDelta = (float) (pGameTime - this.lastMs) / this.msPerTick;
+        this.lastMs = pGameTime;
         this.partialTick += this.tickDelta;
         int i = (int) this.partialTick;
         this.partialTick -= (float) i;

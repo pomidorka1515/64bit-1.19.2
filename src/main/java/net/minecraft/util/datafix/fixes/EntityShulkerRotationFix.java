@@ -7,8 +7,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.List;
 
 public class EntityShulkerRotationFix extends NamedEntityFix {
-    public EntityShulkerRotationFix(Schema p_15680_) {
-        super(p_15680_, false, "EntityShulkerRotationFix", References.ENTITY, "minecraft:shulker");
+    public EntityShulkerRotationFix(Schema pOutputSchema) {
+        super(pOutputSchema, false, "EntityShulkerRotationFix", References.ENTITY, "minecraft:shulker");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15684_) {

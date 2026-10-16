@@ -9,9 +9,9 @@ import net.minecraft.world.level.storage.loot.LootContextUser;
 public interface LootItemFunction extends LootContextUser, BiFunction<ItemStack, LootContext, ItemStack> {
     LootItemFunctionType getType();
 
-    static Consumer<ItemStack> decorate(BiFunction<ItemStack, LootContext, ItemStack> p_80725_, Consumer<ItemStack> p_80726_, LootContext p_80727_) {
+    static Consumer<ItemStack> decorate(BiFunction<ItemStack, LootContext, ItemStack> pStackModification, Consumer<ItemStack> pOriginalConsumer, LootContext pLootContext) {
         return (p_80732_) -> {
-            p_80726_.accept(p_80725_.apply(p_80732_, p_80727_));
+            pOriginalConsumer.accept(pStackModification.apply(p_80732_, pLootContext));
         };
     }
 

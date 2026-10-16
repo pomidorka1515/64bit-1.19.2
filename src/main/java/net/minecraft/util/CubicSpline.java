@@ -65,16 +65,16 @@ public interface CubicSpline<C, I extends ToFloatFunction<C>> extends ToFloatFun
         return mutableobject.getValue();
     }
 
-    static <C, I extends ToFloatFunction<C>> CubicSpline<C, I> constant(float p_184240_) {
-        return new CubicSpline.Constant<>(p_184240_);
+    static <C, I extends ToFloatFunction<C>> CubicSpline<C, I> constant(float pValue) {
+        return new CubicSpline.Constant<>(pValue);
     }
 
-    static <C, I extends ToFloatFunction<C>> CubicSpline.Builder<C, I> builder(I p_184253_) {
-        return new CubicSpline.Builder<>(p_184253_);
+    static <C, I extends ToFloatFunction<C>> CubicSpline.Builder<C, I> builder(I pCoordinate) {
+        return new CubicSpline.Builder<>(pCoordinate);
     }
 
-    static <C, I extends ToFloatFunction<C>> CubicSpline.Builder<C, I> builder(I p_184255_, ToFloatFunction<Float> p_184256_) {
-        return new CubicSpline.Builder<>(p_184255_, p_184256_);
+    static <C, I extends ToFloatFunction<C>> CubicSpline.Builder<C, I> builder(I pCoordinate, ToFloatFunction<Float> pValueTransformer) {
+        return new CubicSpline.Builder<>(pCoordinate, pValueTransformer);
     }
 
     public static final class Builder<C, I extends ToFloatFunction<C>> {
@@ -84,34 +84,34 @@ public interface CubicSpline<C, I extends ToFloatFunction<C>> extends ToFloatFun
         private final List<CubicSpline<C, I>> values = Lists.newArrayList();
         private final FloatList derivatives = new FloatArrayList();
 
-        protected Builder(I p_184293_) {
-            this(p_184293_, ToFloatFunction.IDENTITY);
+        protected Builder(I pCoordinate) {
+            this(pCoordinate, ToFloatFunction.IDENTITY);
         }
 
-        protected Builder(I p_184295_, ToFloatFunction<Float> p_184296_) {
-            this.coordinate = p_184295_;
-            this.valueTransformer = p_184296_;
+        protected Builder(I pCoordinate, ToFloatFunction<Float> pValueTransformer) {
+            this.coordinate = pCoordinate;
+            this.valueTransformer = pValueTransformer;
         }
 
         public CubicSpline.Builder<C, I> addPoint(float p_216115_, float p_216116_) {
             return this.addPoint(p_216115_, new CubicSpline.Constant<>(this.valueTransformer.apply(p_216116_)), 0.0F);
         }
 
-        public CubicSpline.Builder<C, I> addPoint(float p_184299_, float p_184300_, float p_184301_) {
-            return this.addPoint(p_184299_, new CubicSpline.Constant<>(this.valueTransformer.apply(p_184300_)), p_184301_);
+        public CubicSpline.Builder<C, I> addPoint(float pLocation, float pValue, float pDerivative) {
+            return this.addPoint(pLocation, new CubicSpline.Constant<>(this.valueTransformer.apply(pValue)), pDerivative);
         }
 
         public CubicSpline.Builder<C, I> addPoint(float p_216118_, CubicSpline<C, I> p_216119_) {
             return this.addPoint(p_216118_, p_216119_, 0.0F);
         }
 
-        private CubicSpline.Builder<C, I> addPoint(float p_184303_, CubicSpline<C, I> p_184304_, float p_184305_) {
-            if (!this.locations.isEmpty() && p_184303_ <= this.locations.getFloat(this.locations.size() - 1)) {
+        private CubicSpline.Builder<C, I> addPoint(float pLocation, CubicSpline<C, I> pValue, float pDerivative) {
+            if (!this.locations.isEmpty() && pLocation <= this.locations.getFloat(this.locations.size() - 1)) {
                 throw new IllegalArgumentException("Please register points in ascending order");
             } else {
-                this.locations.add(p_184303_);
-                this.values.add(p_184304_);
-                this.derivatives.add(p_184305_);
+                this.locations.add(pLocation);
+                this.values.add(pValue);
+                this.derivatives.add(pDerivative);
                 return this;
             }
         }

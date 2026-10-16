@@ -5,11 +5,11 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.world.level.ChunkPos;
 
 public interface EntityPersistentStorage<T> extends AutoCloseable {
-    CompletableFuture<ChunkEntities<T>> loadEntities(ChunkPos p_156824_);
+    CompletableFuture<ChunkEntities<T>> loadEntities(ChunkPos pPos);
 
-    void storeEntities(ChunkEntities<T> p_156825_);
+    void storeEntities(ChunkEntities<T> pEntities);
 
-    void flush(boolean p_182503_);
+    void flush(boolean pSynchronize);
 
     default void close() throws IOException {
     }

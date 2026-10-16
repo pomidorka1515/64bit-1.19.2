@@ -33,25 +33,25 @@ public class ObjectiveCriteriaArgument implements ArgumentType<ObjectiveCriteria
         return new ObjectiveCriteriaArgument();
     }
 
-    public static ObjectiveCriteria getCriteria(CommandContext<CommandSourceStack> p_102566_, String p_102567_) {
-        return p_102566_.getArgument(p_102567_, ObjectiveCriteria.class);
+    public static ObjectiveCriteria getCriteria(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, ObjectiveCriteria.class);
     }
 
-    public ObjectiveCriteria parse(StringReader p_102560_) throws CommandSyntaxException {
-        int i = p_102560_.getCursor();
+    public ObjectiveCriteria parse(StringReader pReader) throws CommandSyntaxException {
+        int i = pReader.getCursor();
 
-        while (p_102560_.canRead() && p_102560_.peek() != ' ') {
-            p_102560_.skip();
+        while (pReader.canRead() && pReader.peek() != ' ') {
+            pReader.skip();
         }
 
-        String s = p_102560_.getString().substring(i, p_102560_.getCursor());
+        String s = pReader.getString().substring(i, pReader.getCursor());
         return ObjectiveCriteria.byName(s).orElseThrow(() -> {
-            p_102560_.setCursor(i);
+            pReader.setCursor(i);
             return ERROR_INVALID_VALUE.create(s);
         });
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_102572_, SuggestionsBuilder p_102573_) {
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
         List<String> list = Lists.newArrayList(ObjectiveCriteria.getCustomCriteriaNames());
 
         for (StatType<?> stattype : Registry.STAT_TYPE) {
@@ -61,11 +61,11 @@ public class ObjectiveCriteriaArgument implements ArgumentType<ObjectiveCriteria
             }
         }
 
-        return SharedSuggestionProvider.suggest(list, p_102573_);
+        return SharedSuggestionProvider.suggest(list, pBuilder);
     }
 
-    public <T> String getName(StatType<T> p_102557_, Object p_102558_) {
-        return Stat.buildName(p_102557_, (T) p_102558_);
+    public <T> String getName(StatType<T> pType, Object pValue) {
+        return Stat.buildName(pType, (T) pValue);
     }
 
     public Collection<String> getExamples() {

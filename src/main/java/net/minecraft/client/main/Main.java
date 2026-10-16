@@ -47,13 +47,13 @@ public class Main {
     static final Logger LOGGER = LogUtils.getLogger();
 
     @DontObfuscate
-    public static void main(String[] p_129642_) {
-        run(p_129642_, true);
+    public static void main(String[] pArgs) {
+        run(pArgs, true);
     }
 
-    public static void run(String[] p_239873_, boolean p_239874_) {
+    public static void run(String[] pArgs, boolean pEnableDataFixerOptimizations) {
         SharedConstants.tryDetectVersion();
-        if (p_239874_) {
+        if (pEnableDataFixerOptimizations) {
             SharedConstants.enableDataFixerOptimizations();
         }
 
@@ -90,7 +90,7 @@ public class Main {
         OptionSpec<String> optionspec23 = optionparser.accepts("userType").withRequiredArg().defaultsTo(User.Type.LEGACY.getName());
         OptionSpec<String> optionspec24 = optionparser.accepts("versionType").withRequiredArg().defaultsTo("release");
         OptionSpec<String> optionspec25 = optionparser.nonOptions();
-        OptionSet optionset = optionparser.parse(p_239873_);
+        OptionSet optionset = optionparser.parse(pArgs);
         List<String> list = optionset.valuesOf(optionspec25);
         if (!list.isEmpty()) {
             System.out.println("Completely ignored arguments: " + list);
@@ -227,20 +227,20 @@ public class Main {
         }
     }
 
-    private static Optional<String> emptyStringToEmptyOptional(String p_195487_) {
-        return p_195487_.isEmpty() ? Optional.empty() : Optional.of(p_195487_);
+    private static Optional<String> emptyStringToEmptyOptional(String pInput) {
+        return pInput.isEmpty() ? Optional.empty() : Optional.of(pInput);
     }
 
-    private static OptionalInt ofNullable(@Nullable Integer p_129635_) {
-        return p_129635_ != null ? OptionalInt.of(p_129635_) : OptionalInt.empty();
+    private static OptionalInt ofNullable(@Nullable Integer pValue) {
+        return pValue != null ? OptionalInt.of(pValue) : OptionalInt.empty();
     }
 
     @Nullable
-    private static <T> T parseArgument(OptionSet p_129639_, OptionSpec<T> p_129640_) {
+    private static <T> T parseArgument(OptionSet pSet, OptionSpec<T> pOption) {
         try {
-            return p_129639_.valueOf(p_129640_);
+            return pSet.valueOf(pOption);
         } catch (Throwable throwable) {
-            if (p_129640_ instanceof ArgumentAcceptingOptionSpec<T> argumentacceptingoptionspec) {
+            if (pOption instanceof ArgumentAcceptingOptionSpec<T> argumentacceptingoptionspec) {
                 List<T> list = argumentacceptingoptionspec.defaultValues();
                 if (!list.isEmpty()) {
                     return list.get(0);
@@ -251,8 +251,8 @@ public class Main {
         }
     }
 
-    private static boolean stringHasValue(@Nullable String p_129637_) {
-        return p_129637_ != null && !p_129637_.isEmpty();
+    private static boolean stringHasValue(@Nullable String pStr) {
+        return pStr != null && !pStr.isEmpty();
     }
 
     static {

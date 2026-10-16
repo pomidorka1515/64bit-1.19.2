@@ -25,10 +25,10 @@ public class RconClient extends GenericThread {
     private final String rconPassword;
     private final ServerInterface serverInterface;
 
-    RconClient(ServerInterface p_11587_, String p_11588_, Socket p_11589_) {
-        super("RCON Client " + p_11589_.getInetAddress());
-        this.serverInterface = p_11587_;
-        this.client = p_11589_;
+    RconClient(ServerInterface pServerInterface, String pRconPassword, Socket pClient) {
+        super("RCON Client " + pClient.getInetAddress());
+        this.serverInterface = pServerInterface;
+        this.client = pClient;
 
         try {
             this.client.setSoTimeout(0);
@@ -36,7 +36,7 @@ public class RconClient extends GenericThread {
             this.running = false;
         }
 
-        this.rconPassword = p_11588_;
+        this.rconPassword = pRconPassword;
     }
 
     public void run() {
@@ -125,14 +125,14 @@ public class RconClient extends GenericThread {
         this.send(-1, 2, "");
     }
 
-    private void sendCmdResponse(int p_11595_, String p_11596_) throws IOException {
-        int i = p_11596_.length();
+    private void sendCmdResponse(int pId, String pMessage) throws IOException {
+        int i = pMessage.length();
 
         do {
             int j = 4096 <= i ? 4096 : i;
-            this.send(p_11595_, 0, p_11596_.substring(0, j));
-            p_11596_ = p_11596_.substring(j);
-            i = p_11596_.length();
+            this.send(pId, 0, pMessage.substring(0, j));
+            pMessage = pMessage.substring(j);
+            i = pMessage.length();
         } while (0 != i);
     }
 

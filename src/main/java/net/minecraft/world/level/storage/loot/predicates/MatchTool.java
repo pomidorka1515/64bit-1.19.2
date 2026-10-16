@@ -14,8 +14,8 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 public class MatchTool implements LootItemCondition {
     final ItemPredicate predicate;
 
-    public MatchTool(ItemPredicate p_81995_) {
-        this.predicate = p_81995_;
+    public MatchTool(ItemPredicate pToolPredicate) {
+        this.predicate = pToolPredicate;
     }
 
     public LootItemConditionType getType() {
@@ -31,9 +31,9 @@ public class MatchTool implements LootItemCondition {
         return itemstack != null && this.predicate.matches(itemstack);
     }
 
-    public static LootItemCondition.Builder toolMatches(ItemPredicate.Builder p_81998_) {
+    public static LootItemCondition.Builder toolMatches(ItemPredicate.Builder pToolPredicateBuilder) {
         return () -> {
-            return new MatchTool(p_81998_.build());
+            return new MatchTool(pToolPredicateBuilder.build());
         };
     }
 

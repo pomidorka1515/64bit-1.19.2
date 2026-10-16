@@ -57,9 +57,9 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
     private final ServerSelectionList.Entry lanHeader = new ServerSelectionList.LANHeader();
     private final List<ServerSelectionList.NetworkServerEntry> networkServers = Lists.newArrayList();
 
-    public ServerSelectionList(JoinMultiplayerScreen p_99771_, Minecraft p_99772_, int p_99773_, int p_99774_, int p_99775_, int p_99776_, int p_99777_) {
-        super(p_99772_, p_99773_, p_99774_, p_99775_, p_99776_, p_99777_);
-        this.screen = p_99771_;
+    public ServerSelectionList(JoinMultiplayerScreen pScreen, Minecraft pMinecraft, int pWidth, int pHeight, int pY0, int pY1, int pItemHeight) {
+        super(pMinecraft, pWidth, pHeight, pY0, pY1, pItemHeight);
+        this.screen = pScreen;
     }
 
     private void refreshEntries() {
@@ -73,36 +73,36 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
         });
     }
 
-    public void setSelected(@Nullable ServerSelectionList.Entry p_99790_) {
-        super.setSelected(p_99790_);
+    public void setSelected(@Nullable ServerSelectionList.Entry pEntry) {
+        super.setSelected(pEntry);
         this.screen.onSelectedChange();
     }
 
-    public boolean keyPressed(int p_99782_, int p_99783_, int p_99784_) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         ServerSelectionList.Entry serverselectionlist$entry = this.getSelected();
-        return serverselectionlist$entry != null && serverselectionlist$entry.keyPressed(p_99782_, p_99783_, p_99784_) || super.keyPressed(p_99782_, p_99783_, p_99784_);
+        return serverselectionlist$entry != null && serverselectionlist$entry.keyPressed(pKeyCode, pScanCode, pModifiers) || super.keyPressed(pKeyCode, pScanCode, pModifiers);
     }
 
-    protected void moveSelection(AbstractSelectionList.SelectionDirection p_99788_) {
-        this.moveSelection(p_99788_, (p_169973_) -> {
+    protected void moveSelection(AbstractSelectionList.SelectionDirection pOrdering) {
+        this.moveSelection(pOrdering, (p_169973_) -> {
             return !(p_169973_ instanceof ServerSelectionList.LANHeader);
         });
     }
 
-    public void updateOnlineServers(ServerList p_99798_) {
+    public void updateOnlineServers(ServerList pServers) {
         this.onlineServers.clear();
 
-        for (int i = 0; i < p_99798_.size(); ++i) {
-            this.onlineServers.add(new ServerSelectionList.OnlineServerEntry(this.screen, p_99798_.get(i)));
+        for (int i = 0; i < pServers.size(); ++i) {
+            this.onlineServers.add(new ServerSelectionList.OnlineServerEntry(this.screen, pServers.get(i)));
         }
 
         this.refreshEntries();
     }
 
-    public void updateNetworkServers(List<LanServer> p_99800_) {
+    public void updateNetworkServers(List<LanServer> pLanServers) {
         this.networkServers.clear();
 
-        for (LanServer lanserver : p_99800_) {
+        for (LanServer lanserver : pLanServers) {
             this.networkServers.add(new ServerSelectionList.NetworkServerEntry(this.screen, lanserver));
         }
 
@@ -129,11 +129,11 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
     public static class LANHeader extends ServerSelectionList.Entry {
         private final Minecraft minecraft = Minecraft.getInstance();
 
-        public void render(PoseStack p_99818_, int p_99819_, int p_99820_, int p_99821_, int p_99822_, int p_99823_, int p_99824_, int p_99825_, boolean p_99826_, float p_99827_) {
-            int i = p_99820_ + p_99823_ / 2 - 9 / 2;
-            this.minecraft.font.draw(p_99818_, ServerSelectionList.SCANNING_LABEL, (float) (this.minecraft.screen.width / 2 - this.minecraft.font.width(ServerSelectionList.SCANNING_LABEL) / 2), (float) i, 16777215);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            int i = pTop + pHeight / 2 - 9 / 2;
+            this.minecraft.font.draw(pPoseStack, ServerSelectionList.SCANNING_LABEL, (float) (this.minecraft.screen.width / 2 - this.minecraft.font.width(ServerSelectionList.SCANNING_LABEL) / 2), (float) i, 16777215);
             String s = LoadingDotsText.get(Util.getMillis());
-            this.minecraft.font.draw(p_99818_, s, (float) (this.minecraft.screen.width / 2 - this.minecraft.font.width(s) / 2), (float) (i + 9), 8421504);
+            this.minecraft.font.draw(pPoseStack, s, (float) (this.minecraft.screen.width / 2 - this.minecraft.font.width(s) / 2), (float) (i + 9), 8421504);
         }
 
         public Component getNarration() {
@@ -151,23 +151,23 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
         protected final LanServer serverData;
         private long lastClickTime;
 
-        protected NetworkServerEntry(JoinMultiplayerScreen p_99836_, LanServer p_99837_) {
-            this.screen = p_99836_;
-            this.serverData = p_99837_;
+        protected NetworkServerEntry(JoinMultiplayerScreen pScreen, LanServer pServerData) {
+            this.screen = pScreen;
+            this.serverData = pServerData;
             this.minecraft = Minecraft.getInstance();
         }
 
-        public void render(PoseStack p_99844_, int p_99845_, int p_99846_, int p_99847_, int p_99848_, int p_99849_, int p_99850_, int p_99851_, boolean p_99852_, float p_99853_) {
-            this.minecraft.font.draw(p_99844_, LAN_SERVER_HEADER, (float) (p_99847_ + 32 + 3), (float) (p_99846_ + 1), 16777215);
-            this.minecraft.font.draw(p_99844_, this.serverData.getMotd(), (float) (p_99847_ + 32 + 3), (float) (p_99846_ + 12), 8421504);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            this.minecraft.font.draw(pPoseStack, LAN_SERVER_HEADER, (float) (pLeft + 32 + 3), (float) (pTop + 1), 16777215);
+            this.minecraft.font.draw(pPoseStack, this.serverData.getMotd(), (float) (pLeft + 32 + 3), (float) (pTop + 12), 8421504);
             if (this.minecraft.options.hideServerAddress) {
-                this.minecraft.font.draw(p_99844_, HIDDEN_ADDRESS_TEXT, (float) (p_99847_ + 32 + 3), (float) (p_99846_ + 12 + 11), 3158064);
+                this.minecraft.font.draw(pPoseStack, HIDDEN_ADDRESS_TEXT, (float) (pLeft + 32 + 3), (float) (pTop + 12 + 11), 3158064);
             } else {
-                this.minecraft.font.draw(p_99844_, this.serverData.getAddress(), (float) (p_99847_ + 32 + 3), (float) (p_99846_ + 12 + 11), 3158064);
+                this.minecraft.font.draw(pPoseStack, this.serverData.getAddress(), (float) (pLeft + 32 + 3), (float) (pTop + 12 + 11), 3158064);
             }
         }
 
-        public boolean mouseClicked(double p_99840_, double p_99841_, int p_99842_) {
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
             this.screen.setSelected(this);
             if (Util.getMillis() - this.lastClickTime < 250L) {
                 this.screen.joinSelectedServer();
@@ -217,7 +217,7 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
             }
         }
 
-        public void render(PoseStack p_99879_, int p_99880_, int p_99881_, int p_99882_, int p_99883_, int p_99884_, int p_99885_, int p_99886_, boolean p_99887_, float p_99888_) {
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
             if (!this.serverData.pinged) {
                 this.serverData.pinged = true;
                 this.serverData.ping = -2L;
@@ -239,16 +239,16 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
             }
 
             boolean flag = this.serverData.protocol != SharedConstants.getCurrentVersion().getProtocolVersion();
-            this.minecraft.font.draw(p_99879_, this.serverData.name, (float) (p_99882_ + 32 + 3), (float) (p_99881_ + 1), 16777215);
-            List<FormattedCharSequence> list = this.minecraft.font.split(this.serverData.motd, p_99883_ - 32 - 2);
+            this.minecraft.font.draw(pPoseStack, this.serverData.name, (float) (pLeft + 32 + 3), (float) (pTop + 1), 16777215);
+            List<FormattedCharSequence> list = this.minecraft.font.split(this.serverData.motd, pWidth - 32 - 2);
 
             for (int i = 0; i < Math.min(list.size(), 2); ++i) {
-                this.minecraft.font.draw(p_99879_, list.get(i), (float) (p_99882_ + 32 + 3), (float) (p_99881_ + 12 + 9 * i), 8421504);
+                this.minecraft.font.draw(pPoseStack, list.get(i), (float) (pLeft + 32 + 3), (float) (pTop + 12 + 9 * i), 8421504);
             }
 
             Component component1 = (Component) (flag ? this.serverData.version.copy().withStyle(ChatFormatting.RED) : this.serverData.status);
             int j = this.minecraft.font.width(component1);
-            this.minecraft.font.draw(p_99879_, component1, (float) (p_99882_ + p_99883_ - j - 15 - 2), (float) (p_99881_ + 1), 8421504);
+            this.minecraft.font.draw(pPoseStack, component1, (float) (pLeft + pWidth - j - 15 - 2), (float) (pTop + 1), 8421504);
             int k = 0;
             int l;
             List<Component> list1;
@@ -281,7 +281,7 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
                 }
             } else {
                 k = 1;
-                l = (int) (Util.getMillis() / 100L + (long) (p_99880_ * 2) & 7L);
+                l = (int) (Util.getMillis() / 100L + (long) (pIndex * 2) & 7L);
                 if (l > 4) {
                     l = 8 - l;
                 }
@@ -293,7 +293,7 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, GuiComponent.GUI_ICONS_LOCATION);
-            GuiComponent.blit(p_99879_, p_99882_ + p_99883_ - 15, p_99881_, (float) (k * 10), (float) (176 + l * 8), 10, 8, 256, 256);
+            GuiComponent.blit(pPoseStack, pLeft + pWidth - 15, pTop, (float) (k * 10), (float) (176 + l * 8), 10, 8, 256, 256);
             String s = this.serverData.getIconB64();
             if (!Objects.equals(s, this.lastIconB64)) {
                 if (this.uploadServerIcon(s)) {
@@ -305,47 +305,47 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
             }
 
             if (this.icon == null) {
-                this.drawIcon(p_99879_, p_99882_, p_99881_, ServerSelectionList.ICON_MISSING);
+                this.drawIcon(pPoseStack, pLeft, pTop, ServerSelectionList.ICON_MISSING);
             } else {
-                this.drawIcon(p_99879_, p_99882_, p_99881_, this.iconLocation);
+                this.drawIcon(pPoseStack, pLeft, pTop, this.iconLocation);
             }
 
-            int i1 = p_99885_ - p_99882_;
-            int j1 = p_99886_ - p_99881_;
-            if (i1 >= p_99883_ - 15 && i1 <= p_99883_ - 5 && j1 >= 0 && j1 <= 8) {
+            int i1 = pMouseX - pLeft;
+            int j1 = pMouseY - pTop;
+            if (i1 >= pWidth - 15 && i1 <= pWidth - 5 && j1 >= 0 && j1 <= 8) {
                 this.screen.setToolTip(Collections.singletonList(component));
-            } else if (i1 >= p_99883_ - j - 15 - 2 && i1 <= p_99883_ - 15 - 2 && j1 >= 0 && j1 <= 8) {
+            } else if (i1 >= pWidth - j - 15 - 2 && i1 <= pWidth - 15 - 2 && j1 >= 0 && j1 <= 8) {
                 this.screen.setToolTip(list1);
             }
 
-            if (this.minecraft.options.touchscreen().get() || p_99887_) {
+            if (this.minecraft.options.touchscreen().get() || pIsMouseOver) {
                 RenderSystem.setShaderTexture(0, ServerSelectionList.ICON_OVERLAY_LOCATION);
-                GuiComponent.fill(p_99879_, p_99882_, p_99881_, p_99882_ + 32, p_99881_ + 32, -1601138544);
+                GuiComponent.fill(pPoseStack, pLeft, pTop, pLeft + 32, pTop + 32, -1601138544);
                 RenderSystem.setShader(GameRenderer::getPositionTexShader);
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                int k1 = p_99885_ - p_99882_;
-                int l1 = p_99886_ - p_99881_;
+                int k1 = pMouseX - pLeft;
+                int l1 = pMouseY - pTop;
                 if (this.canJoin()) {
                     if (k1 < 32 && k1 > 16) {
-                        GuiComponent.blit(p_99879_, p_99882_, p_99881_, 0.0F, 32.0F, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 0.0F, 32.0F, 32, 32, 256, 256);
                     } else {
-                        GuiComponent.blit(p_99879_, p_99882_, p_99881_, 0.0F, 0.0F, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 0.0F, 0.0F, 32, 32, 256, 256);
                     }
                 }
 
-                if (p_99880_ > 0) {
+                if (pIndex > 0) {
                     if (k1 < 16 && l1 < 16) {
-                        GuiComponent.blit(p_99879_, p_99882_, p_99881_, 96.0F, 32.0F, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 96.0F, 32.0F, 32, 32, 256, 256);
                     } else {
-                        GuiComponent.blit(p_99879_, p_99882_, p_99881_, 96.0F, 0.0F, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 96.0F, 0.0F, 32, 32, 256, 256);
                     }
                 }
 
-                if (p_99880_ < this.screen.getServers().size() - 1) {
+                if (pIndex < this.screen.getServers().size() - 1) {
                     if (k1 < 16 && l1 > 16) {
-                        GuiComponent.blit(p_99879_, p_99882_, p_99881_, 64.0F, 32.0F, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 64.0F, 32.0F, 32, 32, 256, 256);
                     } else {
-                        GuiComponent.blit(p_99879_, p_99882_, p_99881_, 64.0F, 0.0F, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 64.0F, 0.0F, 32, 32, 256, 256);
                     }
                 }
             }
@@ -355,10 +355,10 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
             this.screen.getServers().save();
         }
 
-        protected void drawIcon(PoseStack p_99890_, int p_99891_, int p_99892_, ResourceLocation p_99893_) {
-            RenderSystem.setShaderTexture(0, p_99893_);
+        protected void drawIcon(PoseStack pPoseStack, int pX, int pY, ResourceLocation pTextureLocation) {
+            RenderSystem.setShaderTexture(0, pTextureLocation);
             RenderSystem.enableBlend();
-            GuiComponent.blit(p_99890_, p_99891_, p_99892_, 0.0F, 0.0F, 32, 32, 32, 32);
+            GuiComponent.blit(pPoseStack, pX, pY, 0.0F, 0.0F, 32, 32, 32, 32);
             RenderSystem.disableBlend();
         }
 
@@ -366,8 +366,8 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
             return true;
         }
 
-        private boolean uploadServerIcon(@Nullable String p_99897_) {
-            if (p_99897_ == null) {
+        private boolean uploadServerIcon(@Nullable String pIcon) {
+            if (pIcon == null) {
                 this.minecraft.getTextureManager().release(this.iconLocation);
                 if (this.icon != null && this.icon.getPixels() != null) {
                     this.icon.getPixels().close();
@@ -376,7 +376,7 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
                 this.icon = null;
             } else {
                 try {
-                    NativeImage nativeimage = NativeImage.fromBase64(p_99897_);
+                    NativeImage nativeimage = NativeImage.fromBase64(pIcon);
                     Validate.validState(nativeimage.getWidth() == 64, "Must be 64 pixels wide");
                     Validate.validState(nativeimage.getHeight() == 64, "Must be 64 pixels high");
                     if (this.icon == null) {
@@ -396,7 +396,7 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
             return true;
         }
 
-        public boolean keyPressed(int p_99875_, int p_99876_, int p_99877_) {
+        public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
             if (Screen.hasShiftDown()) {
                 ServerSelectionList serverselectionlist = this.screen.serverSelectionList;
                 int i = serverselectionlist.children().indexOf(this);
@@ -404,13 +404,13 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
                     return true;
                 }
 
-                if (p_99875_ == 264 && i < this.screen.getServers().size() - 1 || p_99875_ == 265 && i > 0) {
-                    this.swap(i, p_99875_ == 264 ? i + 1 : i - 1);
+                if (pKeyCode == 264 && i < this.screen.getServers().size() - 1 || pKeyCode == 265 && i > 0) {
+                    this.swap(i, pKeyCode == 264 ? i + 1 : i - 1);
                     return true;
                 }
             }
 
-            return super.keyPressed(p_99875_, p_99876_, p_99877_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
 
         private void swap(int p_99872_, int p_99873_) {
@@ -421,9 +421,9 @@ public class ServerSelectionList extends ObjectSelectionList<ServerSelectionList
             ServerSelectionList.this.ensureVisible(serverselectionlist$entry);
         }
 
-        public boolean mouseClicked(double p_99868_, double p_99869_, int p_99870_) {
-            double d0 = p_99868_ - (double) ServerSelectionList.this.getRowLeft();
-            double d1 = p_99869_ - (double) ServerSelectionList.this.getRowTop(ServerSelectionList.this.children().indexOf(this));
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+            double d0 = pMouseX - (double) ServerSelectionList.this.getRowLeft();
+            double d1 = pMouseY - (double) ServerSelectionList.this.getRowTop(ServerSelectionList.this.children().indexOf(this));
             if (d0 <= 32.0D) {
                 if (d0 < 32.0D && d0 > 16.0D && this.canJoin()) {
                     this.screen.setSelected(this);

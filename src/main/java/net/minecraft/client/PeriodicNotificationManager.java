@@ -42,14 +42,14 @@ public class PeriodicNotificationManager extends SimplePreparableReloadListener<
     @Nullable
     private PeriodicNotificationManager.NotificationTask notificationTask;
 
-    public PeriodicNotificationManager(ResourceLocation p_205293_, Object2BooleanFunction<String> p_205294_) {
-        this.notifications = p_205293_;
-        this.selector = p_205294_;
+    public PeriodicNotificationManager(ResourceLocation pNotifications, Object2BooleanFunction<String> pSelector) {
+        this.notifications = pNotifications;
+        this.selector = pSelector;
     }
 
-    protected Map<String, List<PeriodicNotificationManager.Notification>> prepare(ResourceManager p_205300_, ProfilerFiller p_205301_) {
+    protected Map<String, List<PeriodicNotificationManager.Notification>> prepare(ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         try {
-            Reader reader = p_205300_.openAsReader(this.notifications);
+            Reader reader = pResourceManager.openAsReader(this.notifications);
 
             Map map;
             try {
@@ -77,8 +77,8 @@ public class PeriodicNotificationManager extends SimplePreparableReloadListener<
         }
     }
 
-    protected void apply(Map<String, List<PeriodicNotificationManager.Notification>> p_205318_, ResourceManager p_205319_, ProfilerFiller p_205320_) {
-        List<PeriodicNotificationManager.Notification> list = p_205318_.entrySet().stream().filter((p_205316_) -> {
+    protected void apply(Map<String, List<PeriodicNotificationManager.Notification>> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+        List<PeriodicNotificationManager.Notification> list = pObject.entrySet().stream().filter((p_205316_) -> {
                                                                                                return this.selector.apply(p_205316_.getKey());
                                                                                            })
                                                                       .map(Map.Entry::getValue)
@@ -118,9 +118,9 @@ public class PeriodicNotificationManager extends SimplePreparableReloadListener<
         }
     }
 
-    private long calculateOptimalPeriod(List<PeriodicNotificationManager.Notification> p_205313_, long p_205314_) {
-        return p_205313_.stream().mapToLong((p_205298_) -> {
-                                     long i = p_205298_.delay - p_205314_;
+    private long calculateOptimalPeriod(List<PeriodicNotificationManager.Notification> pNotifications, long pDelay) {
+        return pNotifications.stream().mapToLong((p_205298_) -> {
+                                     long i = p_205298_.delay - pDelay;
                                      return LongMath.gcd(i, p_205298_.period);
                                  })
                 .reduce(LongMath::gcd)
@@ -129,8 +129,8 @@ public class PeriodicNotificationManager extends SimplePreparableReloadListener<
                 });
     }
 
-    private long calculateInitialDelay(List<PeriodicNotificationManager.Notification> p_205311_) {
-        return p_205311_.stream().mapToLong((p_205305_) -> {
+    private long calculateInitialDelay(List<PeriodicNotificationManager.Notification> pNotifications) {
+        return pNotifications.stream().mapToLong((p_205305_) -> {
                                      return p_205305_.delay;
                                  })
                 .min()
@@ -154,10 +154,10 @@ public class PeriodicNotificationManager extends SimplePreparableReloadListener<
         private final long period;
         private final AtomicLong elapsed;
 
-        public NotificationTask(List<PeriodicNotificationManager.Notification> p_205350_, long p_205351_, long p_205352_) {
-            this.notifications = p_205350_;
-            this.period = p_205352_;
-            this.elapsed = new AtomicLong(p_205351_);
+        public NotificationTask(List<PeriodicNotificationManager.Notification> pNotifications, long pElapsed, long pPeriod) {
+            this.notifications = pNotifications;
+            this.period = pPeriod;
+            this.elapsed = new AtomicLong(pElapsed);
         }
 
         public PeriodicNotificationManager.NotificationTask reset(List<PeriodicNotificationManager.Notification> p_205357_, long p_205358_) {

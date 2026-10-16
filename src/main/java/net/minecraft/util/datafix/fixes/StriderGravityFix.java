@@ -6,8 +6,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class StriderGravityFix extends NamedEntityFix {
-    public StriderGravityFix(Schema p_16954_, boolean p_16955_) {
-        super(p_16954_, p_16955_, "StriderGravityFix", References.ENTITY, "minecraft:strider");
+    public StriderGravityFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "StriderGravityFix", References.ENTITY, "minecraft:strider");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_16959_) {

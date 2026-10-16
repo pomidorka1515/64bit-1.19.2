@@ -17,9 +17,9 @@ public class BlendingDataFix extends DataFix {
     private final String name;
     private static final Set<String> STATUSES_TO_SKIP_BLENDING = Set.of("minecraft:empty", "minecraft:structure_starts", "minecraft:structure_references", "minecraft:biomes");
 
-    public BlendingDataFix(Schema p_216561_) {
-        super(p_216561_, false);
-        this.name = "Blending Data Fix v" + p_216561_.getVersionKey();
+    public BlendingDataFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
+        this.name = "Blending Data Fix v" + pOutputSchema.getVersionKey();
     }
 
     protected TypeRewriteRule makeRule() {

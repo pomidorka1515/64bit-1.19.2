@@ -34,75 +34,75 @@ public class CampfireBlockEntity extends BlockEntity implements Clearable {
     private final int[] cookingTime = new int[4];
     private final RecipeManager.CachedCheck<Container, CampfireCookingRecipe> quickCheck = RecipeManager.createCheck(RecipeType.CAMPFIRE_COOKING);
 
-    public CampfireBlockEntity(BlockPos p_155301_, BlockState p_155302_) {
-        super(BlockEntityType.CAMPFIRE, p_155301_, p_155302_);
+    public CampfireBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.CAMPFIRE, pPos, pBlockState);
     }
 
-    public static void cookTick(Level p_155307_, BlockPos p_155308_, BlockState p_155309_, CampfireBlockEntity p_155310_) {
+    public static void cookTick(Level pLevel, BlockPos pPos, BlockState pState, CampfireBlockEntity pBlockEntity) {
         boolean flag = false;
 
-        for (int i = 0; i < p_155310_.items.size(); ++i) {
-            ItemStack itemstack = p_155310_.items.get(i);
+        for (int i = 0; i < pBlockEntity.items.size(); ++i) {
+            ItemStack itemstack = pBlockEntity.items.get(i);
             if (!itemstack.isEmpty()) {
                 flag = true;
-                int j = p_155310_.cookingProgress[i]++;
-                if (p_155310_.cookingProgress[i] >= p_155310_.cookingTime[i]) {
+                int j = pBlockEntity.cookingProgress[i]++;
+                if (pBlockEntity.cookingProgress[i] >= pBlockEntity.cookingTime[i]) {
                     Container container = new SimpleContainer(itemstack);
-                    ItemStack itemstack1 = p_155310_.quickCheck.getRecipeFor(container, p_155307_).map((p_155305_) -> {
+                    ItemStack itemstack1 = pBlockEntity.quickCheck.getRecipeFor(container, pLevel).map((p_155305_) -> {
                                                                                                       return p_155305_.assemble(container);
                                                                                                   })
                                                    .orElse(itemstack);
-                    Containers.dropItemStack(p_155307_, (double) p_155308_.getX(), (double) p_155308_.getY(), (double) p_155308_.getZ(), itemstack1);
-                    p_155310_.items.set(i, ItemStack.EMPTY);
-                    p_155307_.sendBlockUpdated(p_155308_, p_155309_, p_155309_, 3);
-                    p_155307_.gameEvent(GameEvent.BLOCK_CHANGE, p_155308_, GameEvent.Context.of(p_155309_));
+                    Containers.dropItemStack(pLevel, (double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), itemstack1);
+                    pBlockEntity.items.set(i, ItemStack.EMPTY);
+                    pLevel.sendBlockUpdated(pPos, pState, pState, 3);
+                    pLevel.gameEvent(GameEvent.BLOCK_CHANGE, pPos, GameEvent.Context.of(pState));
                 }
             }
         }
 
         if (flag) {
-            setChanged(p_155307_, p_155308_, p_155309_);
+            setChanged(pLevel, pPos, pState);
         }
     }
 
-    public static void cooldownTick(Level p_155314_, BlockPos p_155315_, BlockState p_155316_, CampfireBlockEntity p_155317_) {
+    public static void cooldownTick(Level pLevel, BlockPos pPos, BlockState pState, CampfireBlockEntity pBlockEntity) {
         boolean flag = false;
 
-        for (int i = 0; i < p_155317_.items.size(); ++i) {
-            if (p_155317_.cookingProgress[i] > 0) {
+        for (int i = 0; i < pBlockEntity.items.size(); ++i) {
+            if (pBlockEntity.cookingProgress[i] > 0) {
                 flag = true;
-                p_155317_.cookingProgress[i] = Mth.clamp(p_155317_.cookingProgress[i] - 2, 0, p_155317_.cookingTime[i]);
+                pBlockEntity.cookingProgress[i] = Mth.clamp(pBlockEntity.cookingProgress[i] - 2, 0, pBlockEntity.cookingTime[i]);
             }
         }
 
         if (flag) {
-            setChanged(p_155314_, p_155315_, p_155316_);
+            setChanged(pLevel, pPos, pState);
         }
     }
 
-    public static void particleTick(Level p_155319_, BlockPos p_155320_, BlockState p_155321_, CampfireBlockEntity p_155322_) {
-        RandomSource randomsource = p_155319_.random;
+    public static void particleTick(Level pLevel, BlockPos pPos, BlockState pState, CampfireBlockEntity pBlockEntity) {
+        RandomSource randomsource = pLevel.random;
         if (randomsource.nextFloat() < 0.11F) {
             for (int i = 0; i < randomsource.nextInt(2) + 2; ++i) {
-                CampfireBlock.makeParticles(p_155319_, p_155320_, p_155321_.getValue(CampfireBlock.SIGNAL_FIRE), false);
+                CampfireBlock.makeParticles(pLevel, pPos, pState.getValue(CampfireBlock.SIGNAL_FIRE), false);
             }
         }
 
-        int l = p_155321_.getValue(CampfireBlock.FACING).get2DDataValue();
+        int l = pState.getValue(CampfireBlock.FACING).get2DDataValue();
 
-        for (int j = 0; j < p_155322_.items.size(); ++j) {
-            if (!p_155322_.items.get(j).isEmpty() && randomsource.nextFloat() < 0.2F) {
+        for (int j = 0; j < pBlockEntity.items.size(); ++j) {
+            if (!pBlockEntity.items.get(j).isEmpty() && randomsource.nextFloat() < 0.2F) {
                 Direction direction = Direction.from2DDataValue(Math.floorMod(j + l, 4));
                 float f = 0.3125F;
-                SectorVec3 particlePosition = SectorVec3.fromBlockAndFraction(p_155320_.getX(),
+                SectorVec3 particlePosition = SectorVec3.fromBlockAndFraction(pPos.getX(),
                         0.5D - (double) ((float) direction.getStepX() * 0.3125F)
                                 + (double) ((float) direction.getClockWise().getStepX() * 0.3125F),
-                        (double) p_155320_.getY() + 0.5D, p_155320_.getZ(),
+                        (double) pPos.getY() + 0.5D, pPos.getZ(),
                         0.5D - (double) ((float) direction.getStepZ() * 0.3125F)
                                 + (double) ((float) direction.getClockWise().getStepZ() * 0.3125F));
 
                 for (int k = 0; k < 4; ++k) {
-                    p_155319_.addParticle(ParticleTypes.SMOKE, particlePosition, 0.0D, 5.0E-4D, 0.0D);
+                    pLevel.addParticle(ParticleTypes.SMOKE, particlePosition, 0.0D, 5.0E-4D, 0.0D);
                 }
             }
         }
@@ -112,26 +112,26 @@ public class CampfireBlockEntity extends BlockEntity implements Clearable {
         return this.items;
     }
 
-    public void load(CompoundTag p_155312_) {
-        super.load(p_155312_);
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
         this.items.clear();
-        ContainerHelper.loadAllItems(p_155312_, this.items);
-        if (p_155312_.contains("CookingTimes", 11)) {
-            int[] aint = p_155312_.getIntArray("CookingTimes");
+        ContainerHelper.loadAllItems(pTag, this.items);
+        if (pTag.contains("CookingTimes", 11)) {
+            int[] aint = pTag.getIntArray("CookingTimes");
             System.arraycopy(aint, 0, this.cookingProgress, 0, Math.min(this.cookingTime.length, aint.length));
         }
 
-        if (p_155312_.contains("CookingTotalTimes", 11)) {
-            int[] aint1 = p_155312_.getIntArray("CookingTotalTimes");
+        if (pTag.contains("CookingTotalTimes", 11)) {
+            int[] aint1 = pTag.getIntArray("CookingTotalTimes");
             System.arraycopy(aint1, 0, this.cookingTime, 0, Math.min(this.cookingTime.length, aint1.length));
         }
     }
 
-    protected void saveAdditional(CompoundTag p_187486_) {
-        super.saveAdditional(p_187486_);
-        ContainerHelper.saveAllItems(p_187486_, this.items, true);
-        p_187486_.putIntArray("CookingTimes", this.cookingProgress);
-        p_187486_.putIntArray("CookingTotalTimes", this.cookingTime);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
+        ContainerHelper.saveAllItems(pTag, this.items, true);
+        pTag.putIntArray("CookingTimes", this.cookingProgress);
+        pTag.putIntArray("CookingTotalTimes", this.cookingTime);
     }
 
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -144,18 +144,18 @@ public class CampfireBlockEntity extends BlockEntity implements Clearable {
         return compoundtag;
     }
 
-    public Optional<CampfireCookingRecipe> getCookableRecipe(ItemStack p_59052_) {
-        return this.items.stream().noneMatch(ItemStack::isEmpty) ? Optional.empty() : this.quickCheck.getRecipeFor(new SimpleContainer(p_59052_), this.level);
+    public Optional<CampfireCookingRecipe> getCookableRecipe(ItemStack pStack) {
+        return this.items.stream().noneMatch(ItemStack::isEmpty) ? Optional.empty() : this.quickCheck.getRecipeFor(new SimpleContainer(pStack), this.level);
     }
 
-    public boolean placeFood(@Nullable Entity p_238285_, ItemStack p_238286_, int p_238287_) {
+    public boolean placeFood(@Nullable Entity pEntity, ItemStack pStack, int pCookTime) {
         for (int i = 0; i < this.items.size(); ++i) {
             ItemStack itemstack = this.items.get(i);
             if (itemstack.isEmpty()) {
-                this.cookingTime[i] = p_238287_;
+                this.cookingTime[i] = pCookTime;
                 this.cookingProgress[i] = 0;
-                this.items.set(i, p_238286_.split(1));
-                this.level.gameEvent(GameEvent.BLOCK_CHANGE, this.getBlockPos(), GameEvent.Context.of(p_238285_, this.getBlockState()));
+                this.items.set(i, pStack.split(1));
+                this.level.gameEvent(GameEvent.BLOCK_CHANGE, this.getBlockPos(), GameEvent.Context.of(pEntity, this.getBlockState()));
                 this.markUpdated();
                 return true;
             }

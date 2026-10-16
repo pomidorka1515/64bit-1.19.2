@@ -52,60 +52,60 @@ public class DamageSource {
     private boolean noAggro;
     public final String msgId;
 
-    public static DamageSource sting(LivingEntity p_19365_) {
-        return new EntityDamageSource("sting", p_19365_);
+    public static DamageSource sting(LivingEntity pBee) {
+        return new EntityDamageSource("sting", pBee);
     }
 
-    public static DamageSource mobAttack(LivingEntity p_19371_) {
-        return new EntityDamageSource("mob", p_19371_);
+    public static DamageSource mobAttack(LivingEntity pMob) {
+        return new EntityDamageSource("mob", pMob);
     }
 
-    public static DamageSource indirectMobAttack(Entity p_19341_, @Nullable LivingEntity p_19342_) {
-        return new IndirectEntityDamageSource("mob", p_19341_, p_19342_);
+    public static DamageSource indirectMobAttack(Entity pSource, @Nullable LivingEntity pIndirectEntity) {
+        return new IndirectEntityDamageSource("mob", pSource, pIndirectEntity);
     }
 
-    public static DamageSource playerAttack(Player p_19345_) {
-        return new EntityDamageSource("player", p_19345_);
+    public static DamageSource playerAttack(Player pPlayer) {
+        return new EntityDamageSource("player", pPlayer);
     }
 
-    public static DamageSource arrow(AbstractArrow p_19347_, @Nullable Entity p_19348_) {
-        return (new IndirectEntityDamageSource("arrow", p_19347_, p_19348_)).setProjectile();
+    public static DamageSource arrow(AbstractArrow pArrow, @Nullable Entity pIndirectEntity) {
+        return (new IndirectEntityDamageSource("arrow", pArrow, pIndirectEntity)).setProjectile();
     }
 
-    public static DamageSource trident(Entity p_19338_, @Nullable Entity p_19339_) {
-        return (new IndirectEntityDamageSource("trident", p_19338_, p_19339_)).setProjectile();
+    public static DamageSource trident(Entity pSource, @Nullable Entity pIndirectEntity) {
+        return (new IndirectEntityDamageSource("trident", pSource, pIndirectEntity)).setProjectile();
     }
 
-    public static DamageSource fireworks(FireworkRocketEntity p_19353_, @Nullable Entity p_19354_) {
-        return (new IndirectEntityDamageSource("fireworks", p_19353_, p_19354_)).setExplosion();
+    public static DamageSource fireworks(FireworkRocketEntity pFirework, @Nullable Entity pIndirectEntity) {
+        return (new IndirectEntityDamageSource("fireworks", pFirework, pIndirectEntity)).setExplosion();
     }
 
-    public static DamageSource fireball(Fireball p_19350_, @Nullable Entity p_19351_) {
-        return p_19351_ == null ? (new IndirectEntityDamageSource("onFire", p_19350_, p_19350_)).setIsFire().setProjectile() : (new IndirectEntityDamageSource("fireball", p_19350_, p_19351_)).setIsFire().setProjectile();
+    public static DamageSource fireball(Fireball pFireball, @Nullable Entity pIndirectEntity) {
+        return pIndirectEntity == null ? (new IndirectEntityDamageSource("onFire", pFireball, pFireball)).setIsFire().setProjectile() : (new IndirectEntityDamageSource("fireball", pFireball, pIndirectEntity)).setIsFire().setProjectile();
     }
 
-    public static DamageSource witherSkull(WitherSkull p_19356_, Entity p_19357_) {
-        return (new IndirectEntityDamageSource("witherSkull", p_19356_, p_19357_)).setProjectile();
+    public static DamageSource witherSkull(WitherSkull pWitherSkull, Entity pIndirectEntity) {
+        return (new IndirectEntityDamageSource("witherSkull", pWitherSkull, pIndirectEntity)).setProjectile();
     }
 
-    public static DamageSource thrown(Entity p_19362_, @Nullable Entity p_19363_) {
-        return (new IndirectEntityDamageSource("thrown", p_19362_, p_19363_)).setProjectile();
+    public static DamageSource thrown(Entity pSource, @Nullable Entity pIndirectEntity) {
+        return (new IndirectEntityDamageSource("thrown", pSource, pIndirectEntity)).setProjectile();
     }
 
-    public static DamageSource indirectMagic(Entity p_19368_, @Nullable Entity p_19369_) {
-        return (new IndirectEntityDamageSource("indirectMagic", p_19368_, p_19369_)).bypassArmor().setMagic();
+    public static DamageSource indirectMagic(Entity pSource, @Nullable Entity pIndirectEntity) {
+        return (new IndirectEntityDamageSource("indirectMagic", pSource, pIndirectEntity)).bypassArmor().setMagic();
     }
 
-    public static DamageSource thorns(Entity p_19336_) {
-        return (new EntityDamageSource("thorns", p_19336_)).setThorns().setMagic();
+    public static DamageSource thorns(Entity pSource) {
+        return (new EntityDamageSource("thorns", pSource)).setThorns().setMagic();
     }
 
-    public static DamageSource explosion(@Nullable Explosion p_19359_) {
-        return explosion(p_19359_ != null ? p_19359_.getSourceMob() : null);
+    public static DamageSource explosion(@Nullable Explosion pExplosion) {
+        return explosion(pExplosion != null ? pExplosion.getSourceMob() : null);
     }
 
-    public static DamageSource explosion(@Nullable LivingEntity p_19374_) {
-        return p_19374_ != null ? (new EntityDamageSource("explosion.player", p_19374_)).setScalesWithDifficulty().setExplosion() : (new DamageSource("explosion")).setScalesWithDifficulty().setExplosion();
+    public static DamageSource explosion(@Nullable LivingEntity pLivingEntity) {
+        return pLivingEntity != null ? (new EntityDamageSource("explosion.player", pLivingEntity)).setScalesWithDifficulty().setExplosion() : (new DamageSource("explosion")).setScalesWithDifficulty().setExplosion();
     }
 
     public static DamageSource sonicBoom(Entity p_216877_) {
@@ -162,8 +162,8 @@ public class DamageSource {
         return this.bypassEnchantments;
     }
 
-    protected DamageSource(String p_19333_) {
-        this.msgId = p_19333_;
+    protected DamageSource(String pMessageId) {
+        this.msgId = pMessageId;
     }
 
     @Nullable
@@ -213,11 +213,11 @@ public class DamageSource {
         return this;
     }
 
-    public Component getLocalizedDeathMessage(LivingEntity p_19343_) {
-        LivingEntity livingentity = p_19343_.getKillCredit();
+    public Component getLocalizedDeathMessage(LivingEntity pLivingEntity) {
+        LivingEntity livingentity = pLivingEntity.getKillCredit();
         String s = "death.attack." + this.msgId;
         String s1 = s + ".player";
-        return livingentity != null ? Component.translatable(s1, p_19343_.getDisplayName(), livingentity.getDisplayName()) : Component.translatable(s, p_19343_.getDisplayName());
+        return livingentity != null ? Component.translatable(s1, pLivingEntity.getDisplayName(), livingentity.getDisplayName()) : Component.translatable(s, pLivingEntity.getDisplayName());
     }
 
     public boolean isFire() {

@@ -7,13 +7,13 @@ public class OffsetDoubleList extends AbstractDoubleList {
     private final DoubleList delegate;
     private final double offset;
 
-    public OffsetDoubleList(DoubleList p_83031_, double p_83032_) {
-        this.delegate = p_83031_;
-        this.offset = p_83032_;
+    public OffsetDoubleList(DoubleList pDelegate, double pOffset) {
+        this.delegate = pDelegate;
+        this.offset = pOffset;
     }
 
-    public double getDouble(int p_83034_) {
-        return this.delegate.getDouble(p_83034_) + this.offset;
+    public double getDouble(int pValue) {
+        return this.delegate.getDouble(pValue) + this.offset;
     }
 
     public int size() {

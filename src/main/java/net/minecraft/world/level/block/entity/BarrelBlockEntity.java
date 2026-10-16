@@ -45,22 +45,22 @@ public class BarrelBlockEntity extends RandomizableContainerBlockEntity {
         }
     };
 
-    public BarrelBlockEntity(BlockPos p_155052_, BlockState p_155053_) {
-        super(BlockEntityType.BARREL, p_155052_, p_155053_);
+    public BarrelBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.BARREL, pPos, pBlockState);
     }
 
-    protected void saveAdditional(CompoundTag p_187459_) {
-        super.saveAdditional(p_187459_);
-        if (!this.trySaveLootTable(p_187459_)) {
-            ContainerHelper.saveAllItems(p_187459_, this.items);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
+        if (!this.trySaveLootTable(pTag)) {
+            ContainerHelper.saveAllItems(pTag, this.items);
         }
     }
 
-    public void load(CompoundTag p_155055_) {
-        super.load(p_155055_);
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        if (!this.tryLoadLootTable(p_155055_)) {
-            ContainerHelper.loadAllItems(p_155055_, this.items);
+        if (!this.tryLoadLootTable(pTag)) {
+            ContainerHelper.loadAllItems(pTag, this.items);
         }
     }
 
@@ -72,27 +72,27 @@ public class BarrelBlockEntity extends RandomizableContainerBlockEntity {
         return this.items;
     }
 
-    protected void setItems(NonNullList<ItemStack> p_58610_) {
-        this.items = p_58610_;
+    protected void setItems(NonNullList<ItemStack> pItems) {
+        this.items = pItems;
     }
 
     protected Component getDefaultName() {
         return Component.translatable("container.barrel");
     }
 
-    protected AbstractContainerMenu createMenu(int p_58598_, Inventory p_58599_) {
-        return ChestMenu.threeRows(p_58598_, p_58599_, this);
+    protected AbstractContainerMenu createMenu(int pId, Inventory pPlayer) {
+        return ChestMenu.threeRows(pId, pPlayer, this);
     }
 
-    public void startOpen(Player p_58616_) {
-        if (!this.remove && !p_58616_.isSpectator()) {
-            this.openersCounter.incrementOpeners(p_58616_, this.getLevel(), this.getBlockPos(), this.getBlockState());
+    public void startOpen(Player pPlayer) {
+        if (!this.remove && !pPlayer.isSpectator()) {
+            this.openersCounter.incrementOpeners(pPlayer, this.getLevel(), this.getBlockPos(), this.getBlockState());
         }
     }
 
-    public void stopOpen(Player p_58614_) {
-        if (!this.remove && !p_58614_.isSpectator()) {
-            this.openersCounter.decrementOpeners(p_58614_, this.getLevel(), this.getBlockPos(), this.getBlockState());
+    public void stopOpen(Player pPlayer) {
+        if (!this.remove && !pPlayer.isSpectator()) {
+            this.openersCounter.decrementOpeners(pPlayer, this.getLevel(), this.getBlockPos(), this.getBlockState());
         }
     }
 
@@ -102,15 +102,15 @@ public class BarrelBlockEntity extends RandomizableContainerBlockEntity {
         }
     }
 
-    void updateBlockState(BlockState p_58607_, boolean p_58608_) {
-        this.level.setBlock(this.getBlockPos(), p_58607_.setValue(BarrelBlock.OPEN, Boolean.valueOf(p_58608_)), 3);
+    void updateBlockState(BlockState pState, boolean pOpen) {
+        this.level.setBlock(this.getBlockPos(), pState.setValue(BarrelBlock.OPEN, Boolean.valueOf(pOpen)), 3);
     }
 
-    void playSound(BlockState p_58601_, SoundEvent p_58602_) {
-        Vec3i vec3i = p_58601_.getValue(BarrelBlock.FACING).getNormal();
+    void playSound(BlockState pState, SoundEvent pSound) {
+        Vec3i vec3i = pState.getValue(BarrelBlock.FACING).getNormal();
         double d0 = (double) this.worldPosition.getX() + 0.5D + (double) vec3i.getX() / 2.0D;
         double d1 = (double) this.worldPosition.getY() + 0.5D + (double) vec3i.getY() / 2.0D;
         double d2 = (double) this.worldPosition.getZ() + 0.5D + (double) vec3i.getZ() / 2.0D;
-        this.level.playSound((Player) null, d0, d1, d2, p_58602_, SoundSource.BLOCKS, 0.5F, this.level.random.nextFloat() * 0.1F + 0.9F);
+        this.level.playSound((Player) null, d0, d1, d2, pSound, SoundSource.BLOCKS, 0.5F, this.level.random.nextFloat() * 0.1F + 0.9F);
     }
 }

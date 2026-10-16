@@ -16,9 +16,9 @@ public class LeashKnotModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart root;
     private final ModelPart knot;
 
-    public LeashKnotModel(ModelPart p_170714_) {
-        this.root = p_170714_;
-        this.knot = p_170714_.getChild("knot");
+    public LeashKnotModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.knot = pRoot.getChild("knot");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -32,8 +32,8 @@ public class LeashKnotModel<T extends Entity> extends HierarchicalModel<T> {
         return this.root;
     }
 
-    public void setupAnim(T p_103003_, float p_103004_, float p_103005_, float p_103006_, float p_103007_, float p_103008_) {
-        this.knot.yRot = p_103007_ * ((float) Math.PI / 180F);
-        this.knot.xRot = p_103008_ * ((float) Math.PI / 180F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.knot.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.knot.xRot = pHeadPitch * ((float) Math.PI / 180F);
     }
 }

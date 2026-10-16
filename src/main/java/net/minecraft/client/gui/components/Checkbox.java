@@ -20,14 +20,14 @@ public class Checkbox extends AbstractButton {
     private boolean selected;
     private final boolean showLabel;
 
-    public Checkbox(int p_93826_, int p_93827_, int p_93828_, int p_93829_, Component p_93830_, boolean p_93831_) {
-        this(p_93826_, p_93827_, p_93828_, p_93829_, p_93830_, p_93831_, true);
+    public Checkbox(int pX, int pY, int pWidth, int pHeight, Component pMessage, boolean pSelected) {
+        this(pX, pY, pWidth, pHeight, pMessage, pSelected, true);
     }
 
-    public Checkbox(int p_93833_, int p_93834_, int p_93835_, int p_93836_, Component p_93837_, boolean p_93838_, boolean p_93839_) {
-        super(p_93833_, p_93834_, p_93835_, p_93836_, p_93837_);
-        this.selected = p_93838_;
-        this.showLabel = p_93839_;
+    public Checkbox(int pX, int pY, int pWidth, int pHeight, Component pMessage, boolean pSelected, boolean pShowLabel) {
+        super(pX, pY, pWidth, pHeight, pMessage);
+        this.selected = pSelected;
+        this.showLabel = pShowLabel;
     }
 
     public void onPress() {
@@ -38,18 +38,18 @@ public class Checkbox extends AbstractButton {
         return this.selected;
     }
 
-    public void updateNarration(NarrationElementOutput p_168846_) {
-        p_168846_.add(NarratedElementType.TITLE, this.createNarrationMessage());
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+        pNarrationElementOutput.add(NarratedElementType.TITLE, this.createNarrationMessage());
         if (this.active) {
             if (this.isFocused()) {
-                p_168846_.add(NarratedElementType.USAGE, Component.translatable("narration.checkbox.usage.focused"));
+                pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.checkbox.usage.focused"));
             } else {
-                p_168846_.add(NarratedElementType.USAGE, Component.translatable("narration.checkbox.usage.hovered"));
+                pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.checkbox.usage.hovered"));
             }
         }
     }
 
-    public void renderButton(PoseStack p_93843_, int p_93844_, int p_93845_, float p_93846_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         Minecraft minecraft = Minecraft.getInstance();
         RenderSystem.setShaderTexture(0, TEXTURE);
         RenderSystem.enableDepthTest();
@@ -58,10 +58,10 @@ public class Checkbox extends AbstractButton {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        blit(p_93843_, this.x, this.y, this.isFocused() ? 20.0F : 0.0F, this.selected ? 20.0F : 0.0F, 20, this.height, 64, 64);
-        this.renderBg(p_93843_, minecraft, p_93844_, p_93845_);
+        blit(pPoseStack, this.x, this.y, this.isFocused() ? 20.0F : 0.0F, this.selected ? 20.0F : 0.0F, 20, this.height, 64, 64);
+        this.renderBg(pPoseStack, minecraft, pMouseX, pMouseY);
         if (this.showLabel) {
-            drawString(p_93843_, font, this.getMessage(), this.x + 24, this.y + (this.height - 8) / 2, 14737632 | Mth.ceil(this.alpha * 255.0F) << 24);
+            drawString(pPoseStack, font, this.getMessage(), this.x + 24, this.y + (this.height - 8) / 2, 14737632 | Mth.ceil(this.alpha * 255.0F) << 24);
         }
     }
 }

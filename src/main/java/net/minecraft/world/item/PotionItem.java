@@ -34,26 +34,26 @@ import net.minecraft.world.level.gameevent.GameEvent;
 public class PotionItem extends Item {
     private static final int DRINK_DURATION = 32;
 
-    public PotionItem(Item.Properties p_42979_) {
-        super(p_42979_);
+    public PotionItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
     public ItemStack getDefaultInstance() {
         return PotionUtils.setPotion(super.getDefaultInstance(), Potions.WATER);
     }
 
-    public ItemStack finishUsingItem(ItemStack p_42984_, Level p_42985_, LivingEntity p_42986_) {
-        Player player = p_42986_ instanceof Player ? (Player) p_42986_ : null;
+    public ItemStack finishUsingItem(ItemStack pStack, Level pLevel, LivingEntity pEntityLiving) {
+        Player player = pEntityLiving instanceof Player ? (Player) pEntityLiving : null;
         if (player instanceof ServerPlayer) {
-            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer) player, p_42984_);
+            CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer) player, pStack);
         }
 
-        if (!p_42985_.isClientSide) {
-            for (MobEffectInstance mobeffectinstance : PotionUtils.getMobEffects(p_42984_)) {
+        if (!pLevel.isClientSide) {
+            for (MobEffectInstance mobeffectinstance : PotionUtils.getMobEffects(pStack)) {
                 if (mobeffectinstance.getEffect().isInstantenous()) {
-                    mobeffectinstance.getEffect().applyInstantenousEffect(player, player, p_42986_, mobeffectinstance.getAmplifier(), 1.0D);
+                    mobeffectinstance.getEffect().applyInstantenousEffect(player, player, pEntityLiving, mobeffectinstance.getAmplifier(), 1.0D);
                 } else {
-                    p_42986_.addEffect(new MobEffectInstance(mobeffectinstance));
+                    pEntityLiving.addEffect(new MobEffectInstance(mobeffectinstance));
                 }
             }
         }
@@ -61,12 +61,12 @@ public class PotionItem extends Item {
         if (player != null) {
             player.awardStat(Stats.ITEM_USED.get(this));
             if (!player.getAbilities().instabuild) {
-                p_42984_.shrink(1);
+                pStack.shrink(1);
             }
         }
 
         if (player == null || !player.getAbilities().instabuild) {
-            if (p_42984_.isEmpty()) {
+            if (pStack.isEmpty()) {
                 return new ItemStack(Items.GLASS_BOTTLE);
             }
 
@@ -75,19 +75,19 @@ public class PotionItem extends Item {
             }
         }
 
-        p_42986_.gameEvent(GameEvent.DRINK);
-        return p_42984_;
+        pEntityLiving.gameEvent(GameEvent.DRINK);
+        return pStack;
     }
 
-    public InteractionResult useOn(UseOnContext p_220235_) {
-        Level level = p_220235_.getLevel();
-        BlockPos blockpos = p_220235_.getClickedPos();
-        Player player = p_220235_.getPlayer();
-        ItemStack itemstack = p_220235_.getItemInHand();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
+        Player player = pContext.getPlayer();
+        ItemStack itemstack = pContext.getItemInHand();
         BlockState blockstate = level.getBlockState(blockpos);
-        if (p_220235_.getClickedFace() != Direction.DOWN && blockstate.is(BlockTags.CONVERTABLE_TO_MUD) && PotionUtils.getPotion(itemstack) == Potions.WATER) {
+        if (pContext.getClickedFace() != Direction.DOWN && blockstate.is(BlockTags.CONVERTABLE_TO_MUD) && PotionUtils.getPotion(itemstack) == Potions.WATER) {
             level.playSound((Player) null, blockpos, SoundEvents.GENERIC_SPLASH, SoundSource.PLAYERS, 1.0F, 1.0F);
-            player.setItemInHand(p_220235_.getHand(), ItemUtils.createFilledResult(itemstack, player, new ItemStack(Items.GLASS_BOTTLE)));
+            player.setItemInHand(pContext.getHand(), ItemUtils.createFilledResult(itemstack, player, new ItemStack(Items.GLASS_BOTTLE)));
             player.awardStat(Stats.ITEM_USED.get(itemstack.getItem()));
             if (!level.isClientSide) {
                 ServerLevel serverlevel = (ServerLevel) level;
@@ -106,35 +106,35 @@ public class PotionItem extends Item {
         }
     }
 
-    public int getUseDuration(ItemStack p_43001_) {
+    public int getUseDuration(ItemStack pStack) {
         return 32;
     }
 
-    public UseAnim getUseAnimation(ItemStack p_42997_) {
+    public UseAnim getUseAnimation(ItemStack pStack) {
         return UseAnim.DRINK;
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_42993_, Player p_42994_, InteractionHand p_42995_) {
-        return ItemUtils.startUsingInstantly(p_42993_, p_42994_, p_42995_);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        return ItemUtils.startUsingInstantly(pLevel, pPlayer, pHand);
     }
 
-    public String getDescriptionId(ItemStack p_43003_) {
-        return PotionUtils.getPotion(p_43003_).getName(this.getDescriptionId() + ".effect.");
+    public String getDescriptionId(ItemStack pStack) {
+        return PotionUtils.getPotion(pStack).getName(this.getDescriptionId() + ".effect.");
     }
 
-    public void appendHoverText(ItemStack p_42988_, @Nullable Level p_42989_, List<Component> p_42990_, TooltipFlag p_42991_) {
-        PotionUtils.addPotionTooltip(p_42988_, p_42990_, 1.0F);
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        PotionUtils.addPotionTooltip(pStack, pTooltip, 1.0F);
     }
 
-    public boolean isFoil(ItemStack p_42999_) {
-        return super.isFoil(p_42999_) || !PotionUtils.getMobEffects(p_42999_).isEmpty();
+    public boolean isFoil(ItemStack pStack) {
+        return super.isFoil(pStack) || !PotionUtils.getMobEffects(pStack).isEmpty();
     }
 
-    public void fillItemCategory(CreativeModeTab p_42981_, NonNullList<ItemStack> p_42982_) {
-        if (this.allowedIn(p_42981_)) {
+    public void fillItemCategory(CreativeModeTab pGroup, NonNullList<ItemStack> pItems) {
+        if (this.allowedIn(pGroup)) {
             for (Potion potion : Registry.POTION) {
                 if (potion != Potions.EMPTY) {
-                    p_42982_.add(PotionUtils.setPotion(new ItemStack(this), potion));
+                    pItems.add(PotionUtils.setPotion(new ItemStack(this), potion));
                 }
             }
         }

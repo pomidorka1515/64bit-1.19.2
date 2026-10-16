@@ -17,9 +17,9 @@ public class LootItemEntityPropertyCondition implements LootItemCondition {
     final EntityPredicate predicate;
     final LootContext.EntityTarget entityTarget;
 
-    LootItemEntityPropertyCondition(EntityPredicate p_81849_, LootContext.EntityTarget p_81850_) {
-        this.predicate = p_81849_;
-        this.entityTarget = p_81850_;
+    LootItemEntityPropertyCondition(EntityPredicate pEntityPredicate, LootContext.EntityTarget pEntityTarget) {
+        this.predicate = pEntityPredicate;
+        this.entityTarget = pEntityTarget;
     }
 
     public LootItemConditionType getType() {
@@ -36,19 +36,19 @@ public class LootItemEntityPropertyCondition implements LootItemCondition {
         return this.predicate.matches(p_81871_.getLevel(), vec3, entity);
     }
 
-    public static LootItemCondition.Builder entityPresent(LootContext.EntityTarget p_81863_) {
-        return hasProperties(p_81863_, EntityPredicate.Builder.entity());
+    public static LootItemCondition.Builder entityPresent(LootContext.EntityTarget pTarget) {
+        return hasProperties(pTarget, EntityPredicate.Builder.entity());
     }
 
-    public static LootItemCondition.Builder hasProperties(LootContext.EntityTarget p_81865_, EntityPredicate.Builder p_81866_) {
+    public static LootItemCondition.Builder hasProperties(LootContext.EntityTarget pTarget, EntityPredicate.Builder pPredicateBuilder) {
         return () -> {
-            return new LootItemEntityPropertyCondition(p_81866_.build(), p_81865_);
+            return new LootItemEntityPropertyCondition(pPredicateBuilder.build(), pTarget);
         };
     }
 
-    public static LootItemCondition.Builder hasProperties(LootContext.EntityTarget p_81868_, EntityPredicate p_81869_) {
+    public static LootItemCondition.Builder hasProperties(LootContext.EntityTarget pTarget, EntityPredicate pEntityPredicate) {
         return () -> {
-            return new LootItemEntityPropertyCondition(p_81869_, p_81868_);
+            return new LootItemEntityPropertyCondition(pEntityPredicate, pTarget);
         };
     }
 

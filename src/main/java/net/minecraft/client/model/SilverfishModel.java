@@ -21,22 +21,22 @@ public class SilverfishModel<T extends Entity> extends HierarchicalModel<T> {
     private static final int[][] BODY_SIZES = new int[][] {{3, 2, 2}, {4, 3, 2}, {6, 4, 3}, {3, 3, 3}, {2, 2, 3}, {2, 1, 2}, {1, 1, 2}};
     private static final int[][] BODY_TEXS = new int[][] {{0, 0}, {0, 4}, {0, 9}, {0, 16}, {0, 22}, {11, 0}, {13, 4}};
 
-    public SilverfishModel(ModelPart p_170927_) {
-        this.root = p_170927_;
+    public SilverfishModel(ModelPart pRoot) {
+        this.root = pRoot;
         Arrays.setAll(this.bodyParts, (p_170939_) -> {
-            return p_170927_.getChild(getSegmentName(p_170939_));
+            return pRoot.getChild(getSegmentName(p_170939_));
         });
         Arrays.setAll(this.bodyLayers, (p_170933_) -> {
-            return p_170927_.getChild(getLayerName(p_170933_));
+            return pRoot.getChild(getLayerName(p_170933_));
         });
     }
 
-    private static String getLayerName(int p_170930_) {
-        return "layer" + p_170930_;
+    private static String getLayerName(int pIndex) {
+        return "layer" + pIndex;
     }
 
-    private static String getSegmentName(int p_170936_) {
-        return "segment" + p_170936_;
+    private static String getSegmentName(int pIndex) {
+        return "segment" + pIndex;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -63,10 +63,10 @@ public class SilverfishModel<T extends Entity> extends HierarchicalModel<T> {
         return this.root;
     }
 
-    public void setupAnim(T p_103754_, float p_103755_, float p_103756_, float p_103757_, float p_103758_, float p_103759_) {
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
         for (int i = 0; i < this.bodyParts.length; ++i) {
-            this.bodyParts[i].yRot = Mth.cos(p_103757_ * 0.9F + (float) i * 0.15F * (float) Math.PI) * (float) Math.PI * 0.05F * (float) (1 + Math.abs(i - 2));
-            this.bodyParts[i].x = Mth.sin(p_103757_ * 0.9F + (float) i * 0.15F * (float) Math.PI) * (float) Math.PI * 0.2F * (float) Math.abs(i - 2);
+            this.bodyParts[i].yRot = Mth.cos(pAgeInTicks * 0.9F + (float) i * 0.15F * (float) Math.PI) * (float) Math.PI * 0.05F * (float) (1 + Math.abs(i - 2));
+            this.bodyParts[i].x = Mth.sin(pAgeInTicks * 0.9F + (float) i * 0.15F * (float) Math.PI) * (float) Math.PI * 0.2F * (float) Math.abs(i - 2);
         }
 
         this.bodyLayers[0].yRot = this.bodyParts[2].yRot;

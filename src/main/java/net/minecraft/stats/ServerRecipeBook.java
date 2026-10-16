@@ -23,30 +23,30 @@ public class ServerRecipeBook extends RecipeBook {
     public static final String RECIPE_BOOK_TAG = "recipeBook";
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public int addRecipes(Collection<Recipe<?>> p_12792_, ServerPlayer p_12793_) {
+    public int addRecipes(Collection<Recipe<?>> pRecipes, ServerPlayer pPlayer) {
         List<ResourceLocation> list = Lists.newArrayList();
         int i = 0;
 
-        for (Recipe<?> recipe : p_12792_) {
+        for (Recipe<?> recipe : pRecipes) {
             ResourceLocation resourcelocation = recipe.getId();
             if (!this.known.contains(resourcelocation) && !recipe.isSpecial()) {
                 this.add(resourcelocation);
                 this.addHighlight(resourcelocation);
                 list.add(resourcelocation);
-                CriteriaTriggers.RECIPE_UNLOCKED.trigger(p_12793_, recipe);
+                CriteriaTriggers.RECIPE_UNLOCKED.trigger(pPlayer, recipe);
                 ++i;
             }
         }
 
-        this.sendRecipes(ClientboundRecipePacket.State.ADD, p_12793_, list);
+        this.sendRecipes(ClientboundRecipePacket.State.ADD, pPlayer, list);
         return i;
     }
 
-    public int removeRecipes(Collection<Recipe<?>> p_12807_, ServerPlayer p_12808_) {
+    public int removeRecipes(Collection<Recipe<?>> pRecipes, ServerPlayer pPlayer) {
         List<ResourceLocation> list = Lists.newArrayList();
         int i = 0;
 
-        for (Recipe<?> recipe : p_12807_) {
+        for (Recipe<?> recipe : pRecipes) {
             ResourceLocation resourcelocation = recipe.getId();
             if (this.known.contains(resourcelocation)) {
                 this.remove(resourcelocation);
@@ -55,12 +55,12 @@ public class ServerRecipeBook extends RecipeBook {
             }
         }
 
-        this.sendRecipes(ClientboundRecipePacket.State.REMOVE, p_12808_, list);
+        this.sendRecipes(ClientboundRecipePacket.State.REMOVE, pPlayer, list);
         return i;
     }
 
-    private void sendRecipes(ClientboundRecipePacket.State p_12802_, ServerPlayer p_12803_, List<ResourceLocation> p_12804_) {
-        p_12803_.connection.send(new ClientboundRecipePacket(p_12802_, p_12804_, Collections.emptyList(), this.getBookSettings()));
+    private void sendRecipes(ClientboundRecipePacket.State pState, ServerPlayer pPlayer, List<ResourceLocation> pRecipes) {
+        pPlayer.connection.send(new ClientboundRecipePacket(pState, pRecipes, Collections.emptyList(), this.getBookSettings()));
     }
 
     public CompoundTag toNbt() {
@@ -83,25 +83,25 @@ public class ServerRecipeBook extends RecipeBook {
         return compoundtag;
     }
 
-    public void fromNbt(CompoundTag p_12795_, RecipeManager p_12796_) {
-        this.setBookSettings(RecipeBookSettings.read(p_12795_));
-        ListTag listtag = p_12795_.getList("recipes", 8);
-        this.loadRecipes(listtag, this::add, p_12796_);
-        ListTag listtag1 = p_12795_.getList("toBeDisplayed", 8);
-        this.loadRecipes(listtag1, this::addHighlight, p_12796_);
+    public void fromNbt(CompoundTag pTag, RecipeManager pRecipeManager) {
+        this.setBookSettings(RecipeBookSettings.read(pTag));
+        ListTag listtag = pTag.getList("recipes", 8);
+        this.loadRecipes(listtag, this::add, pRecipeManager);
+        ListTag listtag1 = pTag.getList("toBeDisplayed", 8);
+        this.loadRecipes(listtag1, this::addHighlight, pRecipeManager);
     }
 
-    private void loadRecipes(ListTag p_12798_, Consumer<Recipe<?>> p_12799_, RecipeManager p_12800_) {
-        for (int i = 0; i < p_12798_.size(); ++i) {
-            String s = p_12798_.getString(i);
+    private void loadRecipes(ListTag pTags, Consumer<Recipe<?>> pRecipeConsumer, RecipeManager pRecipeManager) {
+        for (int i = 0; i < pTags.size(); ++i) {
+            String s = pTags.getString(i);
 
             try {
                 ResourceLocation resourcelocation = new ResourceLocation(s);
-                Optional<? extends Recipe<?>> optional = p_12800_.byKey(resourcelocation);
+                Optional<? extends Recipe<?>> optional = pRecipeManager.byKey(resourcelocation);
                 if (!optional.isPresent()) {
                     LOGGER.error("Tried to load unrecognized recipe: {} removed now.", (Object) resourcelocation);
                 } else {
-                    p_12799_.accept(optional.get());
+                    pRecipeConsumer.accept(optional.get());
                 }
             } catch (ResourceLocationException resourcelocationexception) {
                 LOGGER.error("Tried to load improperly formatted recipe: {} removed now.", (Object) s);
@@ -109,7 +109,7 @@ public class ServerRecipeBook extends RecipeBook {
         }
     }
 
-    public void sendInitialRecipeBook(ServerPlayer p_12790_) {
-        p_12790_.connection.send(new ClientboundRecipePacket(ClientboundRecipePacket.State.INIT, this.known, this.highlight, this.getBookSettings()));
+    public void sendInitialRecipeBook(ServerPlayer pPlayer) {
+        pPlayer.connection.send(new ClientboundRecipePacket(ClientboundRecipePacket.State.INIT, this.known, this.highlight, this.getBookSettings()));
     }
 }

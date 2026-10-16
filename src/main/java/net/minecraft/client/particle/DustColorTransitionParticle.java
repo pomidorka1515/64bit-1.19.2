@@ -13,15 +13,15 @@ public class DustColorTransitionParticle extends DustParticleBase<DustColorTrans
     private final Vector3f fromColor;
     private final Vector3f toColor;
 
-    protected DustColorTransitionParticle(ClientLevel p_172053_, double p_172054_, double p_172055_, double p_172056_, double p_172057_, double p_172058_, double p_172059_, DustColorTransitionOptions p_172060_, SpriteSet p_172061_) {
-        super(p_172053_, p_172054_, p_172055_, p_172056_, p_172057_, p_172058_, p_172059_, p_172060_, p_172061_);
+    protected DustColorTransitionParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, DustColorTransitionOptions pOptions, SpriteSet pSprites) {
+        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, pOptions, pSprites);
         float f = this.random.nextFloat() * 0.4F + 0.6F;
-        this.fromColor = this.randomizeColor(p_172060_.getFromColor(), f);
-        this.toColor = this.randomizeColor(p_172060_.getToColor(), f);
+        this.fromColor = this.randomizeColor(pOptions.getFromColor(), f);
+        this.toColor = this.randomizeColor(pOptions.getToColor(), f);
     }
 
-    private Vector3f randomizeColor(Vector3f p_172067_, float p_172068_) {
-        return new Vector3f(this.randomizeColor(p_172067_.x(), p_172068_), this.randomizeColor(p_172067_.y(), p_172068_), this.randomizeColor(p_172067_.z(), p_172068_));
+    private Vector3f randomizeColor(Vector3f pVector, float pMultiplier) {
+        return new Vector3f(this.randomizeColor(pVector.x(), pMultiplier), this.randomizeColor(pVector.y(), pMultiplier), this.randomizeColor(pVector.z(), pMultiplier));
     }
 
     private void lerpColors(float p_172070_) {
@@ -33,21 +33,21 @@ public class DustColorTransitionParticle extends DustParticleBase<DustColorTrans
         this.bCol = vector3f.z();
     }
 
-    public void render(VertexConsumer p_172063_, Camera p_172064_, float p_172065_) {
-        this.lerpColors(p_172065_);
-        super.render(p_172063_, p_172064_, p_172065_);
+    public void render(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+        this.lerpColors(pPartialTicks);
+        super.render(pBuffer, pRenderInfo, pPartialTicks);
     }
 
     @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<DustColorTransitionOptions> {
         private final SpriteSet sprites;
 
-        public Provider(SpriteSet p_172073_) {
-            this.sprites = p_172073_;
+        public Provider(SpriteSet pSprites) {
+            this.sprites = pSprites;
         }
 
-        public Particle createParticle(DustColorTransitionOptions p_172075_, ClientLevel p_172076_, double p_172077_, double p_172078_, double p_172079_, double p_172080_, double p_172081_, double p_172082_) {
-            return new DustColorTransitionParticle(p_172076_, p_172077_, p_172078_, p_172079_, p_172080_, p_172081_, p_172082_, p_172075_, this.sprites);
+        public Particle createParticle(DustColorTransitionOptions pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            return new DustColorTransitionParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, pType, this.sprites);
         }
     }
 }

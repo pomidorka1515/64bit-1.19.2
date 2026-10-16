@@ -34,38 +34,38 @@ public class SuggestionProviders {
         });
     });
 
-    public static <S extends SharedSuggestionProvider> SuggestionProvider<S> register(ResourceLocation p_121659_, SuggestionProvider<SharedSuggestionProvider> p_121660_) {
-        if (PROVIDERS_BY_NAME.containsKey(p_121659_)) {
-            throw new IllegalArgumentException("A command suggestion provider is already registered with the name " + p_121659_);
+    public static <S extends SharedSuggestionProvider> SuggestionProvider<S> register(ResourceLocation pName, SuggestionProvider<SharedSuggestionProvider> pProvider) {
+        if (PROVIDERS_BY_NAME.containsKey(pName)) {
+            throw new IllegalArgumentException("A command suggestion provider is already registered with the name " + pName);
         } else {
-            PROVIDERS_BY_NAME.put(p_121659_, p_121660_);
-            return (SuggestionProvider<S>) new SuggestionProviders.Wrapper(p_121659_, p_121660_);
+            PROVIDERS_BY_NAME.put(pName, pProvider);
+            return (SuggestionProvider<S>) new SuggestionProviders.Wrapper(pName, pProvider);
         }
     }
 
-    public static SuggestionProvider<SharedSuggestionProvider> getProvider(ResourceLocation p_121657_) {
-        return PROVIDERS_BY_NAME.getOrDefault(p_121657_, ASK_SERVER);
+    public static SuggestionProvider<SharedSuggestionProvider> getProvider(ResourceLocation pName) {
+        return PROVIDERS_BY_NAME.getOrDefault(pName, ASK_SERVER);
     }
 
-    public static ResourceLocation getName(SuggestionProvider<SharedSuggestionProvider> p_121655_) {
-        return p_121655_ instanceof SuggestionProviders.Wrapper ? ((SuggestionProviders.Wrapper) p_121655_).name : DEFAULT_NAME;
+    public static ResourceLocation getName(SuggestionProvider<SharedSuggestionProvider> pProvider) {
+        return pProvider instanceof SuggestionProviders.Wrapper ? ((SuggestionProviders.Wrapper) pProvider).name : DEFAULT_NAME;
     }
 
-    public static SuggestionProvider<SharedSuggestionProvider> safelySwap(SuggestionProvider<SharedSuggestionProvider> p_121665_) {
-        return p_121665_ instanceof SuggestionProviders.Wrapper ? p_121665_ : ASK_SERVER;
+    public static SuggestionProvider<SharedSuggestionProvider> safelySwap(SuggestionProvider<SharedSuggestionProvider> pProvider) {
+        return pProvider instanceof SuggestionProviders.Wrapper ? pProvider : ASK_SERVER;
     }
 
     protected static class Wrapper implements SuggestionProvider<SharedSuggestionProvider> {
         private final SuggestionProvider<SharedSuggestionProvider> delegate;
         final ResourceLocation name;
 
-        public Wrapper(ResourceLocation p_121678_, SuggestionProvider<SharedSuggestionProvider> p_121679_) {
-            this.delegate = p_121679_;
-            this.name = p_121678_;
+        public Wrapper(ResourceLocation pName, SuggestionProvider<SharedSuggestionProvider> pDelegate) {
+            this.delegate = pDelegate;
+            this.name = pName;
         }
 
-        public CompletableFuture<Suggestions> getSuggestions(CommandContext<SharedSuggestionProvider> p_121683_, SuggestionsBuilder p_121684_) throws CommandSyntaxException {
-            return this.delegate.getSuggestions(p_121683_, p_121684_);
+        public CompletableFuture<Suggestions> getSuggestions(CommandContext<SharedSuggestionProvider> pContext, SuggestionsBuilder pBuilder) throws CommandSyntaxException {
+            return this.delegate.getSuggestions(pContext, pBuilder);
         }
     }
 }

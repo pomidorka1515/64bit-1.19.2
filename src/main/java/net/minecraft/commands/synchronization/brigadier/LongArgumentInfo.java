@@ -8,38 +8,38 @@ import net.minecraft.commands.synchronization.ArgumentUtils;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class LongArgumentInfo implements ArgumentTypeInfo<LongArgumentType, LongArgumentInfo.Template> {
-    public void serializeToNetwork(LongArgumentInfo.Template p_235584_, FriendlyByteBuf p_235585_) {
-        boolean flag = p_235584_.min != Long.MIN_VALUE;
-        boolean flag1 = p_235584_.max != Long.MAX_VALUE;
-        p_235585_.writeByte(ArgumentUtils.createNumberFlags(flag, flag1));
+    public void serializeToNetwork(LongArgumentInfo.Template pTemplate, FriendlyByteBuf pBuffer) {
+        boolean flag = pTemplate.min != Long.MIN_VALUE;
+        boolean flag1 = pTemplate.max != Long.MAX_VALUE;
+        pBuffer.writeByte(ArgumentUtils.createNumberFlags(flag, flag1));
         if (flag) {
-            p_235585_.writeLong(p_235584_.min);
+            pBuffer.writeLong(pTemplate.min);
         }
 
         if (flag1) {
-            p_235585_.writeLong(p_235584_.max);
+            pBuffer.writeLong(pTemplate.max);
         }
     }
 
-    public LongArgumentInfo.Template deserializeFromNetwork(FriendlyByteBuf p_235587_) {
-        byte b0 = p_235587_.readByte();
-        long i = ArgumentUtils.numberHasMin(b0) ? p_235587_.readLong() : Long.MIN_VALUE;
-        long j = ArgumentUtils.numberHasMax(b0) ? p_235587_.readLong() : Long.MAX_VALUE;
+    public LongArgumentInfo.Template deserializeFromNetwork(FriendlyByteBuf pBuffer) {
+        byte b0 = pBuffer.readByte();
+        long i = ArgumentUtils.numberHasMin(b0) ? pBuffer.readLong() : Long.MIN_VALUE;
+        long j = ArgumentUtils.numberHasMax(b0) ? pBuffer.readLong() : Long.MAX_VALUE;
         return new LongArgumentInfo.Template(i, j);
     }
 
-    public void serializeToJson(LongArgumentInfo.Template p_235581_, JsonObject p_235582_) {
-        if (p_235581_.min != Long.MIN_VALUE) {
-            p_235582_.addProperty("min", p_235581_.min);
+    public void serializeToJson(LongArgumentInfo.Template pTemplate, JsonObject pJson) {
+        if (pTemplate.min != Long.MIN_VALUE) {
+            pJson.addProperty("min", pTemplate.min);
         }
 
-        if (p_235581_.max != Long.MAX_VALUE) {
-            p_235582_.addProperty("max", p_235581_.max);
+        if (pTemplate.max != Long.MAX_VALUE) {
+            pJson.addProperty("max", pTemplate.max);
         }
     }
 
-    public LongArgumentInfo.Template unpack(LongArgumentType p_235573_) {
-        return new LongArgumentInfo.Template(p_235573_.getMinimum(), p_235573_.getMaximum());
+    public LongArgumentInfo.Template unpack(LongArgumentType pArgument) {
+        return new LongArgumentInfo.Template(pArgument.getMinimum(), pArgument.getMaximum());
     }
 
     public final class Template implements ArgumentTypeInfo.Template<LongArgumentType> {
@@ -51,7 +51,7 @@ public class LongArgumentInfo implements ArgumentTypeInfo<LongArgumentType, Long
             this.max = p_235596_;
         }
 
-        public LongArgumentType instantiate(CommandBuildContext p_235599_) {
+        public LongArgumentType instantiate(CommandBuildContext pContext) {
             return LongArgumentType.longArg(this.min, this.max);
         }
 

@@ -9,41 +9,41 @@ import net.minecraft.world.level.LevelSimulatedReader;
 import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class Column {
-    public static Column.Range around(int p_158165_, int p_158166_) {
-        return new Column.Range(p_158165_ - 1, p_158166_ + 1);
+    public static Column.Range around(int pFloor, int pCeiling) {
+        return new Column.Range(pFloor - 1, pCeiling + 1);
     }
 
-    public static Column.Range inside(int p_158189_, int p_158190_) {
-        return new Column.Range(p_158189_, p_158190_);
+    public static Column.Range inside(int pFloor, int pCeiling) {
+        return new Column.Range(pFloor, pCeiling);
     }
 
-    public static Column below(int p_158163_) {
-        return new Column.Ray(p_158163_, false);
+    public static Column below(int pCeiling) {
+        return new Column.Ray(pCeiling, false);
     }
 
-    public static Column fromHighest(int p_158187_) {
-        return new Column.Ray(p_158187_ + 1, false);
+    public static Column fromHighest(int pCeiling) {
+        return new Column.Ray(pCeiling + 1, false);
     }
 
-    public static Column above(int p_158194_) {
-        return new Column.Ray(p_158194_, true);
+    public static Column above(int pFloor) {
+        return new Column.Ray(pFloor, true);
     }
 
-    public static Column fromLowest(int p_158196_) {
-        return new Column.Ray(p_158196_ - 1, true);
+    public static Column fromLowest(int pFloor) {
+        return new Column.Ray(pFloor - 1, true);
     }
 
     public static Column line() {
         return Column.Line.INSTANCE;
     }
 
-    public static Column create(OptionalInt p_158184_, OptionalInt p_158185_) {
-        if (p_158184_.isPresent() && p_158185_.isPresent()) {
-            return inside(p_158184_.getAsInt(), p_158185_.getAsInt());
-        } else if (p_158184_.isPresent()) {
-            return above(p_158184_.getAsInt());
+    public static Column create(OptionalInt pFloor, OptionalInt pCeiling) {
+        if (pFloor.isPresent() && pCeiling.isPresent()) {
+            return inside(pFloor.getAsInt(), pCeiling.getAsInt());
+        } else if (pFloor.isPresent()) {
+            return above(pFloor.getAsInt());
         } else {
-            return p_158185_.isPresent() ? below(p_158185_.getAsInt()) : line();
+            return pCeiling.isPresent() ? below(pCeiling.getAsInt()) : line();
         }
     }
 
@@ -53,34 +53,34 @@ public abstract class Column {
 
     public abstract OptionalInt getHeight();
 
-    public Column withFloor(OptionalInt p_158182_) {
-        return create(p_158182_, this.getCeiling());
+    public Column withFloor(OptionalInt pFloor) {
+        return create(pFloor, this.getCeiling());
     }
 
-    public Column withCeiling(OptionalInt p_158192_) {
-        return create(this.getFloor(), p_158192_);
+    public Column withCeiling(OptionalInt pCeiling) {
+        return create(this.getFloor(), pCeiling);
     }
 
-    public static Optional<Column> scan(LevelSimulatedReader p_158176_, BlockPos p_158177_, int p_158178_, Predicate<BlockState> p_158179_, Predicate<BlockState> p_158180_) {
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_158177_.mutable();
-        if (!p_158176_.isStateAtPosition(p_158177_, p_158179_)) {
+    public static Optional<Column> scan(LevelSimulatedReader pLevel, BlockPos pPos, int pMaxDistance, Predicate<BlockState> pColumnPredicate, Predicate<BlockState> pTipPredicate) {
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable();
+        if (!pLevel.isStateAtPosition(pPos, pColumnPredicate)) {
             return Optional.empty();
         } else {
-            int i = p_158177_.getY();
-            OptionalInt optionalint = scanDirection(p_158176_, p_158178_, p_158179_, p_158180_, blockpos$mutableblockpos, i, Direction.UP);
-            OptionalInt optionalint1 = scanDirection(p_158176_, p_158178_, p_158179_, p_158180_, blockpos$mutableblockpos, i, Direction.DOWN);
+            int i = pPos.getY();
+            OptionalInt optionalint = scanDirection(pLevel, pMaxDistance, pColumnPredicate, pTipPredicate, blockpos$mutableblockpos, i, Direction.UP);
+            OptionalInt optionalint1 = scanDirection(pLevel, pMaxDistance, pColumnPredicate, pTipPredicate, blockpos$mutableblockpos, i, Direction.DOWN);
             return Optional.of(create(optionalint1, optionalint));
         }
     }
 
-    private static OptionalInt scanDirection(LevelSimulatedReader p_158168_, int p_158169_, Predicate<BlockState> p_158170_, Predicate<BlockState> p_158171_, BlockPos.MutableBlockPos p_158172_, int p_158173_, Direction p_158174_) {
-        p_158172_.setY(p_158173_);
+    private static OptionalInt scanDirection(LevelSimulatedReader pLevel, int pMaxDistance, Predicate<BlockState> pColumnPredicate, Predicate<BlockState> pTipPredicate, BlockPos.MutableBlockPos pMutablePos, int pStartY, Direction pDirection) {
+        pMutablePos.setY(pStartY);
 
-        for (int i = 1; i < p_158169_ && p_158168_.isStateAtPosition(p_158172_, p_158170_); ++i) {
-            p_158172_.move(p_158174_);
+        for (int i = 1; i < pMaxDistance && pLevel.isStateAtPosition(pMutablePos, pColumnPredicate); ++i) {
+            pMutablePos.move(pDirection);
         }
 
-        return p_158168_.isStateAtPosition(p_158172_, p_158171_) ? OptionalInt.of(p_158172_.getY()) : OptionalInt.empty();
+        return pLevel.isStateAtPosition(pMutablePos, pTipPredicate) ? OptionalInt.of(pMutablePos.getY()) : OptionalInt.empty();
     }
 
     public static final class Line extends Column {
@@ -110,9 +110,9 @@ public abstract class Column {
         private final int floor;
         private final int ceiling;
 
-        protected Range(int p_158207_, int p_158208_) {
-            this.floor = p_158207_;
-            this.ceiling = p_158208_;
+        protected Range(int pFloor, int pCeiling) {
+            this.floor = pFloor;
+            this.ceiling = pCeiling;
             if (this.height() < 0) {
                 throw new IllegalArgumentException("Column of negative height: " + this);
             }
@@ -151,9 +151,9 @@ public abstract class Column {
         private final int edge;
         private final boolean pointingUp;
 
-        public Ray(int p_158219_, boolean p_158220_) {
-            this.edge = p_158219_;
-            this.pointingUp = p_158220_;
+        public Ray(int pEdge, boolean pPointingUp) {
+            this.edge = pEdge;
+            this.pointingUp = pPointingUp;
         }
 
         public OptionalInt getCeiling() {

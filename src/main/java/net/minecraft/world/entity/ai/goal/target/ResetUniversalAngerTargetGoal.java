@@ -16,9 +16,9 @@ public class ResetUniversalAngerTargetGoal<T extends Mob & NeutralMob> extends G
     private final boolean alertOthersOfSameType;
     private int lastHurtByPlayerTimestamp;
 
-    public ResetUniversalAngerTargetGoal(T p_26121_, boolean p_26122_) {
-        this.mob = p_26121_;
-        this.alertOthersOfSameType = p_26122_;
+    public ResetUniversalAngerTargetGoal(T pMob, boolean pAlertOthersOfSameType) {
+        this.mob = pMob;
+        this.alertOthersOfSameType = pAlertOthersOfSameType;
     }
 
     public boolean canUse() {

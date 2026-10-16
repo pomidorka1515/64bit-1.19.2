@@ -21,13 +21,13 @@ public class IronGolemModel<T extends IronGolem> extends HierarchicalModel<T> {
     private final ModelPart rightLeg;
     private final ModelPart leftLeg;
 
-    public IronGolemModel(ModelPart p_170697_) {
-        this.root = p_170697_;
-        this.head = p_170697_.getChild("head");
-        this.rightArm = p_170697_.getChild("right_arm");
-        this.leftArm = p_170697_.getChild("left_arm");
-        this.rightLeg = p_170697_.getChild("right_leg");
-        this.leftLeg = p_170697_.getChild("left_leg");
+    public IronGolemModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.head = pRoot.getChild("head");
+        this.rightArm = pRoot.getChild("right_arm");
+        this.leftArm = pRoot.getChild("left_arm");
+        this.rightLeg = pRoot.getChild("right_leg");
+        this.leftLeg = pRoot.getChild("left_leg");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -46,28 +46,28 @@ public class IronGolemModel<T extends IronGolem> extends HierarchicalModel<T> {
         return this.root;
     }
 
-    public void setupAnim(T p_102962_, float p_102963_, float p_102964_, float p_102965_, float p_102966_, float p_102967_) {
-        this.head.yRot = p_102966_ * ((float) Math.PI / 180F);
-        this.head.xRot = p_102967_ * ((float) Math.PI / 180F);
-        this.rightLeg.xRot = -1.5F * Mth.triangleWave(p_102963_, 13.0F) * p_102964_;
-        this.leftLeg.xRot = 1.5F * Mth.triangleWave(p_102963_, 13.0F) * p_102964_;
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.rightLeg.xRot = -1.5F * Mth.triangleWave(pLimbSwing, 13.0F) * pLimbSwingAmount;
+        this.leftLeg.xRot = 1.5F * Mth.triangleWave(pLimbSwing, 13.0F) * pLimbSwingAmount;
         this.rightLeg.yRot = 0.0F;
         this.leftLeg.yRot = 0.0F;
     }
 
-    public void prepareMobModel(T p_102957_, float p_102958_, float p_102959_, float p_102960_) {
-        int i = p_102957_.getAttackAnimationTick();
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        int i = pEntity.getAttackAnimationTick();
         if (i > 0) {
-            this.rightArm.xRot = -2.0F + 1.5F * Mth.triangleWave((float) i - p_102960_, 10.0F);
-            this.leftArm.xRot = -2.0F + 1.5F * Mth.triangleWave((float) i - p_102960_, 10.0F);
+            this.rightArm.xRot = -2.0F + 1.5F * Mth.triangleWave((float) i - pPartialTick, 10.0F);
+            this.leftArm.xRot = -2.0F + 1.5F * Mth.triangleWave((float) i - pPartialTick, 10.0F);
         } else {
-            int j = p_102957_.getOfferFlowerTick();
+            int j = pEntity.getOfferFlowerTick();
             if (j > 0) {
                 this.rightArm.xRot = -0.8F + 0.025F * Mth.triangleWave((float) j, 70.0F);
                 this.leftArm.xRot = 0.0F;
             } else {
-                this.rightArm.xRot = (-0.2F + 1.5F * Mth.triangleWave(p_102958_, 13.0F)) * p_102959_;
-                this.leftArm.xRot = (-0.2F - 1.5F * Mth.triangleWave(p_102958_, 13.0F)) * p_102959_;
+                this.rightArm.xRot = (-0.2F + 1.5F * Mth.triangleWave(pLimbSwing, 13.0F)) * pLimbSwingAmount;
+                this.leftArm.xRot = (-0.2F - 1.5F * Mth.triangleWave(pLimbSwing, 13.0F)) * pLimbSwingAmount;
             }
         }
     }

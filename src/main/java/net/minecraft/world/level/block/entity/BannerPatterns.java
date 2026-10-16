@@ -47,51 +47,51 @@ public class BannerPatterns {
     public static final ResourceKey<BannerPattern> MOJANG = create("mojang");
     public static final ResourceKey<BannerPattern> PIGLIN = create("piglin");
 
-    private static ResourceKey<BannerPattern> create(String p_222757_) {
-        return ResourceKey.create(Registry.BANNER_PATTERN_REGISTRY, new ResourceLocation(p_222757_));
+    private static ResourceKey<BannerPattern> create(String pName) {
+        return ResourceKey.create(Registry.BANNER_PATTERN_REGISTRY, new ResourceLocation(pName));
     }
 
-    public static BannerPattern bootstrap(Registry<BannerPattern> p_222755_) {
-        Registry.register(p_222755_, BASE, new BannerPattern("b"));
-        Registry.register(p_222755_, SQUARE_BOTTOM_LEFT, new BannerPattern("bl"));
-        Registry.register(p_222755_, SQUARE_BOTTOM_RIGHT, new BannerPattern("br"));
-        Registry.register(p_222755_, SQUARE_TOP_LEFT, new BannerPattern("tl"));
-        Registry.register(p_222755_, SQUARE_TOP_RIGHT, new BannerPattern("tr"));
-        Registry.register(p_222755_, STRIPE_BOTTOM, new BannerPattern("bs"));
-        Registry.register(p_222755_, STRIPE_TOP, new BannerPattern("ts"));
-        Registry.register(p_222755_, STRIPE_LEFT, new BannerPattern("ls"));
-        Registry.register(p_222755_, STRIPE_RIGHT, new BannerPattern("rs"));
-        Registry.register(p_222755_, STRIPE_CENTER, new BannerPattern("cs"));
-        Registry.register(p_222755_, STRIPE_MIDDLE, new BannerPattern("ms"));
-        Registry.register(p_222755_, STRIPE_DOWNRIGHT, new BannerPattern("drs"));
-        Registry.register(p_222755_, STRIPE_DOWNLEFT, new BannerPattern("dls"));
-        Registry.register(p_222755_, STRIPE_SMALL, new BannerPattern("ss"));
-        Registry.register(p_222755_, CROSS, new BannerPattern("cr"));
-        Registry.register(p_222755_, STRAIGHT_CROSS, new BannerPattern("sc"));
-        Registry.register(p_222755_, TRIANGLE_BOTTOM, new BannerPattern("bt"));
-        Registry.register(p_222755_, TRIANGLE_TOP, new BannerPattern("tt"));
-        Registry.register(p_222755_, TRIANGLES_BOTTOM, new BannerPattern("bts"));
-        Registry.register(p_222755_, TRIANGLES_TOP, new BannerPattern("tts"));
-        Registry.register(p_222755_, DIAGONAL_LEFT, new BannerPattern("ld"));
-        Registry.register(p_222755_, DIAGONAL_RIGHT, new BannerPattern("rd"));
-        Registry.register(p_222755_, DIAGONAL_LEFT_MIRROR, new BannerPattern("lud"));
-        Registry.register(p_222755_, DIAGONAL_RIGHT_MIRROR, new BannerPattern("rud"));
-        Registry.register(p_222755_, CIRCLE_MIDDLE, new BannerPattern("mc"));
-        Registry.register(p_222755_, RHOMBUS_MIDDLE, new BannerPattern("mr"));
-        Registry.register(p_222755_, HALF_VERTICAL, new BannerPattern("vh"));
-        Registry.register(p_222755_, HALF_HORIZONTAL, new BannerPattern("hh"));
-        Registry.register(p_222755_, HALF_VERTICAL_MIRROR, new BannerPattern("vhr"));
-        Registry.register(p_222755_, HALF_HORIZONTAL_MIRROR, new BannerPattern("hhb"));
-        Registry.register(p_222755_, BORDER, new BannerPattern("bo"));
-        Registry.register(p_222755_, CURLY_BORDER, new BannerPattern("cbo"));
-        Registry.register(p_222755_, GRADIENT, new BannerPattern("gra"));
-        Registry.register(p_222755_, GRADIENT_UP, new BannerPattern("gru"));
-        Registry.register(p_222755_, BRICKS, new BannerPattern("bri"));
-        Registry.register(p_222755_, GLOBE, new BannerPattern("glb"));
-        Registry.register(p_222755_, CREEPER, new BannerPattern("cre"));
-        Registry.register(p_222755_, SKULL, new BannerPattern("sku"));
-        Registry.register(p_222755_, FLOWER, new BannerPattern("flo"));
-        Registry.register(p_222755_, MOJANG, new BannerPattern("moj"));
-        return Registry.register(p_222755_, PIGLIN, new BannerPattern("pig"));
+    public static BannerPattern bootstrap(Registry<BannerPattern> pRegistry) {
+        Registry.register(pRegistry, BASE, new BannerPattern("b"));
+        Registry.register(pRegistry, SQUARE_BOTTOM_LEFT, new BannerPattern("bl"));
+        Registry.register(pRegistry, SQUARE_BOTTOM_RIGHT, new BannerPattern("br"));
+        Registry.register(pRegistry, SQUARE_TOP_LEFT, new BannerPattern("tl"));
+        Registry.register(pRegistry, SQUARE_TOP_RIGHT, new BannerPattern("tr"));
+        Registry.register(pRegistry, STRIPE_BOTTOM, new BannerPattern("bs"));
+        Registry.register(pRegistry, STRIPE_TOP, new BannerPattern("ts"));
+        Registry.register(pRegistry, STRIPE_LEFT, new BannerPattern("ls"));
+        Registry.register(pRegistry, STRIPE_RIGHT, new BannerPattern("rs"));
+        Registry.register(pRegistry, STRIPE_CENTER, new BannerPattern("cs"));
+        Registry.register(pRegistry, STRIPE_MIDDLE, new BannerPattern("ms"));
+        Registry.register(pRegistry, STRIPE_DOWNRIGHT, new BannerPattern("drs"));
+        Registry.register(pRegistry, STRIPE_DOWNLEFT, new BannerPattern("dls"));
+        Registry.register(pRegistry, STRIPE_SMALL, new BannerPattern("ss"));
+        Registry.register(pRegistry, CROSS, new BannerPattern("cr"));
+        Registry.register(pRegistry, STRAIGHT_CROSS, new BannerPattern("sc"));
+        Registry.register(pRegistry, TRIANGLE_BOTTOM, new BannerPattern("bt"));
+        Registry.register(pRegistry, TRIANGLE_TOP, new BannerPattern("tt"));
+        Registry.register(pRegistry, TRIANGLES_BOTTOM, new BannerPattern("bts"));
+        Registry.register(pRegistry, TRIANGLES_TOP, new BannerPattern("tts"));
+        Registry.register(pRegistry, DIAGONAL_LEFT, new BannerPattern("ld"));
+        Registry.register(pRegistry, DIAGONAL_RIGHT, new BannerPattern("rd"));
+        Registry.register(pRegistry, DIAGONAL_LEFT_MIRROR, new BannerPattern("lud"));
+        Registry.register(pRegistry, DIAGONAL_RIGHT_MIRROR, new BannerPattern("rud"));
+        Registry.register(pRegistry, CIRCLE_MIDDLE, new BannerPattern("mc"));
+        Registry.register(pRegistry, RHOMBUS_MIDDLE, new BannerPattern("mr"));
+        Registry.register(pRegistry, HALF_VERTICAL, new BannerPattern("vh"));
+        Registry.register(pRegistry, HALF_HORIZONTAL, new BannerPattern("hh"));
+        Registry.register(pRegistry, HALF_VERTICAL_MIRROR, new BannerPattern("vhr"));
+        Registry.register(pRegistry, HALF_HORIZONTAL_MIRROR, new BannerPattern("hhb"));
+        Registry.register(pRegistry, BORDER, new BannerPattern("bo"));
+        Registry.register(pRegistry, CURLY_BORDER, new BannerPattern("cbo"));
+        Registry.register(pRegistry, GRADIENT, new BannerPattern("gra"));
+        Registry.register(pRegistry, GRADIENT_UP, new BannerPattern("gru"));
+        Registry.register(pRegistry, BRICKS, new BannerPattern("bri"));
+        Registry.register(pRegistry, GLOBE, new BannerPattern("glb"));
+        Registry.register(pRegistry, CREEPER, new BannerPattern("cre"));
+        Registry.register(pRegistry, SKULL, new BannerPattern("sku"));
+        Registry.register(pRegistry, FLOWER, new BannerPattern("flo"));
+        Registry.register(pRegistry, MOJANG, new BannerPattern("moj"));
+        return Registry.register(pRegistry, PIGLIN, new BannerPattern("pig"));
     }
 }

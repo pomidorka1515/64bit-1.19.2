@@ -30,14 +30,14 @@ public enum Difficulty {
         return Component.translatable("options.difficulty." + this.key);
     }
 
-    public static Difficulty byId(int p_19030_) {
-        return BY_ID[p_19030_ % BY_ID.length];
+    public static Difficulty byId(int pId) {
+        return BY_ID[pId % BY_ID.length];
     }
 
     @Nullable
-    public static Difficulty byName(String p_19032_) {
+    public static Difficulty byName(String pName) {
         for (Difficulty difficulty : values()) {
-            if (difficulty.key.equals(p_19032_)) {
+            if (difficulty.key.equals(pName)) {
                 return difficulty;
             }
         }

@@ -17,56 +17,56 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
     private final EntityAnchorArgument.Anchor toAnchor;
     private final boolean atEntity;
 
-    public ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor p_132777_, double p_132778_, double p_132779_, double p_132780_) {
-        this.fromAnchor = p_132777_;
-        this.x = p_132778_;
-        this.y = p_132779_;
-        this.z = p_132780_;
+    public ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor pFromAnchor, double pX, double pY, double pZ) {
+        this.fromAnchor = pFromAnchor;
+        this.x = pX;
+        this.y = pY;
+        this.z = pZ;
         this.entity = 0;
         this.atEntity = false;
         this.toAnchor = null;
     }
 
-    public ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor p_132782_, Entity p_132783_, EntityAnchorArgument.Anchor p_132784_) {
-        this.fromAnchor = p_132782_;
-        this.entity = p_132783_.getId();
-        this.toAnchor = p_132784_;
-        Vec3 vec3 = p_132784_.apply(p_132783_);
+    public ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor pFromAnchor, Entity pEntity, EntityAnchorArgument.Anchor pToAnchor) {
+        this.fromAnchor = pFromAnchor;
+        this.entity = pEntity.getId();
+        this.toAnchor = pToAnchor;
+        Vec3 vec3 = pToAnchor.apply(pEntity);
         this.x = vec3.x;
         this.y = vec3.y;
         this.z = vec3.z;
         this.atEntity = true;
     }
 
-    public ClientboundPlayerLookAtPacket(FriendlyByteBuf p_179146_) {
-        this.fromAnchor = p_179146_.readEnum(EntityAnchorArgument.Anchor.class);
-        this.x = p_179146_.readDouble();
-        this.y = p_179146_.readDouble();
-        this.z = p_179146_.readDouble();
-        this.atEntity = p_179146_.readBoolean();
+    public ClientboundPlayerLookAtPacket(FriendlyByteBuf pBuffer) {
+        this.fromAnchor = pBuffer.readEnum(EntityAnchorArgument.Anchor.class);
+        this.x = pBuffer.readDouble();
+        this.y = pBuffer.readDouble();
+        this.z = pBuffer.readDouble();
+        this.atEntity = pBuffer.readBoolean();
         if (this.atEntity) {
-            this.entity = p_179146_.readVarInt();
-            this.toAnchor = p_179146_.readEnum(EntityAnchorArgument.Anchor.class);
+            this.entity = pBuffer.readVarInt();
+            this.toAnchor = pBuffer.readEnum(EntityAnchorArgument.Anchor.class);
         } else {
             this.entity = 0;
             this.toAnchor = null;
         }
     }
 
-    public void write(FriendlyByteBuf p_132795_) {
-        p_132795_.writeEnum(this.fromAnchor);
-        p_132795_.writeDouble(this.x);
-        p_132795_.writeDouble(this.y);
-        p_132795_.writeDouble(this.z);
-        p_132795_.writeBoolean(this.atEntity);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeEnum(this.fromAnchor);
+        pBuffer.writeDouble(this.x);
+        pBuffer.writeDouble(this.y);
+        pBuffer.writeDouble(this.z);
+        pBuffer.writeBoolean(this.atEntity);
         if (this.atEntity) {
-            p_132795_.writeVarInt(this.entity);
-            p_132795_.writeEnum(this.toAnchor);
+            pBuffer.writeVarInt(this.entity);
+            pBuffer.writeEnum(this.toAnchor);
         }
     }
 
-    public void handle(ClientGamePacketListener p_132792_) {
-        p_132792_.handleLookAt(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleLookAt(this);
     }
 
     public EntityAnchorArgument.Anchor getFromAnchor() {
@@ -74,9 +74,9 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
     }
 
     @Nullable
-    public Vec3 getPosition(Level p_132786_) {
+    public Vec3 getPosition(Level pLevel) {
         if (this.atEntity) {
-            Entity entity = p_132786_.getEntity(this.entity);
+            Entity entity = pLevel.getEntity(this.entity);
             return entity == null ? new Vec3(this.x, this.y, this.z) : this.toAnchor.apply(entity);
         } else {
             return new Vec3(this.x, this.y, this.z);

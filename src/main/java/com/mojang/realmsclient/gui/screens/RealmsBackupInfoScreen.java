@@ -22,10 +22,10 @@ public class RealmsBackupInfoScreen extends RealmsScreen {
     final Backup backup;
     private RealmsBackupInfoScreen.BackupInfoList backupInfoList;
 
-    public RealmsBackupInfoScreen(Screen p_88048_, Backup p_88049_) {
+    public RealmsBackupInfoScreen(Screen pLastScreen, Backup pBackup) {
         super(Component.literal("Changes from last backup"));
-        this.lastScreen = p_88048_;
-        this.backup = p_88049_;
+        this.lastScreen = pLastScreen;
+        this.backup = pBackup;
     }
 
     public void tick() {
@@ -45,42 +45,42 @@ public class RealmsBackupInfoScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_88051_, int p_88052_, int p_88053_) {
-        if (p_88051_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.lastScreen);
             return true;
         } else {
-            return super.keyPressed(p_88051_, p_88052_, p_88053_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    public void render(PoseStack p_88055_, int p_88056_, int p_88057_, float p_88058_) {
-        this.renderBackground(p_88055_);
-        this.backupInfoList.render(p_88055_, p_88056_, p_88057_, p_88058_);
-        drawCenteredString(p_88055_, this.font, this.title, this.width / 2, 10, 16777215);
-        super.render(p_88055_, p_88056_, p_88057_, p_88058_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.backupInfoList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 10, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    Component checkForSpecificMetadata(String p_88068_, String p_88069_) {
-        String s = p_88068_.toLowerCase(Locale.ROOT);
+    Component checkForSpecificMetadata(String pKey, String pValue) {
+        String s = pKey.toLowerCase(Locale.ROOT);
         if (s.contains("game") && s.contains("mode")) {
-            return this.gameModeMetadata(p_88069_);
+            return this.gameModeMetadata(pValue);
         } else {
-            return (Component) (s.contains("game") && s.contains("difficulty") ? this.gameDifficultyMetadata(p_88069_) : Component.literal(p_88069_));
+            return (Component) (s.contains("game") && s.contains("difficulty") ? this.gameDifficultyMetadata(pValue) : Component.literal(pValue));
         }
     }
 
-    private Component gameDifficultyMetadata(String p_88074_) {
+    private Component gameDifficultyMetadata(String pValue) {
         try {
-            return RealmsSlotOptionsScreen.DIFFICULTIES.get(Integer.parseInt(p_88074_)).getDisplayName();
+            return RealmsSlotOptionsScreen.DIFFICULTIES.get(Integer.parseInt(pValue)).getDisplayName();
         } catch (Exception exception) {
             return TEXT_UNKNOWN;
         }
     }
 
-    private Component gameModeMetadata(String p_88076_) {
+    private Component gameModeMetadata(String pValue) {
         try {
-            return RealmsSlotOptionsScreen.GAME_MODES.get(Integer.parseInt(p_88076_)).getShortDisplayName();
+            return RealmsSlotOptionsScreen.GAME_MODES.get(Integer.parseInt(pValue)).getShortDisplayName();
         } catch (Exception exception) {
             return TEXT_UNKNOWN;
         }
@@ -109,10 +109,10 @@ public class RealmsBackupInfoScreen extends RealmsScreen {
             this.value = p_88092_;
         }
 
-        public void render(PoseStack p_88094_, int p_88095_, int p_88096_, int p_88097_, int p_88098_, int p_88099_, int p_88100_, int p_88101_, boolean p_88102_, float p_88103_) {
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
             Font font = RealmsBackupInfoScreen.this.minecraft.font;
-            GuiComponent.drawString(p_88094_, font, this.key, p_88097_, p_88096_, 10526880);
-            GuiComponent.drawString(p_88094_, font, RealmsBackupInfoScreen.this.checkForSpecificMetadata(this.key, this.value), p_88097_, p_88096_ + 12, 16777215);
+            GuiComponent.drawString(pPoseStack, font, this.key, pLeft, pTop, 10526880);
+            GuiComponent.drawString(pPoseStack, font, RealmsBackupInfoScreen.this.checkForSpecificMetadata(this.key, this.value), pLeft, pTop + 12, 16777215);
         }
 
         public Component getNarration() {

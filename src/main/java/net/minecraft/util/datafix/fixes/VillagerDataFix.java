@@ -8,8 +8,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class VillagerDataFix extends NamedEntityFix {
-    public VillagerDataFix(Schema p_17056_, String p_17057_) {
-        super(p_17056_, false, "Villager profession data fix (" + p_17057_ + ")", References.ENTITY, p_17057_);
+    public VillagerDataFix(Schema pOutputSchema, String pEntityName) {
+        super(pOutputSchema, false, "Villager profession data fix (" + pEntityName + ")", References.ENTITY, pEntityName);
     }
 
     protected Typed<?> fix(Typed<?> p_17062_) {

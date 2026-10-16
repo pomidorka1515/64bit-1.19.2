@@ -18,11 +18,11 @@ import net.minecraft.world.level.block.state.properties.Property;
 public class BlockListReport implements DataProvider {
     private final DataGenerator generator;
 
-    public BlockListReport(DataGenerator p_124037_) {
-        this.generator = p_124037_;
+    public BlockListReport(DataGenerator pGenerator) {
+        this.generator = pGenerator;
     }
 
-    public void run(CachedOutput p_236197_) throws IOException {
+    public void run(CachedOutput pOutput) throws IOException {
         JsonObject jsonobject = new JsonObject();
 
         for (Block block : Registry.BLOCK) {
@@ -72,7 +72,7 @@ public class BlockListReport implements DataProvider {
         }
 
         Path path = this.generator.getOutputFolder(DataGenerator.Target.REPORTS).resolve("blocks.json");
-        DataProvider.saveStable(p_236197_, jsonobject, path);
+        DataProvider.saveStable(pOutput, jsonobject, path);
     }
 
     public String getName() {

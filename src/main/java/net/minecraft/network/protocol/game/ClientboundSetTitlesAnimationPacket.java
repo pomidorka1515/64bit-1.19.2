@@ -8,26 +8,26 @@ public class ClientboundSetTitlesAnimationPacket implements Packet<ClientGamePac
     private final int stay;
     private final int fadeOut;
 
-    public ClientboundSetTitlesAnimationPacket(int p_179404_, int p_179405_, int p_179406_) {
-        this.fadeIn = p_179404_;
-        this.stay = p_179405_;
-        this.fadeOut = p_179406_;
+    public ClientboundSetTitlesAnimationPacket(int pFadeIn, int pStay, int pFadeOut) {
+        this.fadeIn = pFadeIn;
+        this.stay = pStay;
+        this.fadeOut = pFadeOut;
     }
 
-    public ClientboundSetTitlesAnimationPacket(FriendlyByteBuf p_179408_) {
-        this.fadeIn = p_179408_.readInt();
-        this.stay = p_179408_.readInt();
-        this.fadeOut = p_179408_.readInt();
+    public ClientboundSetTitlesAnimationPacket(FriendlyByteBuf pBuffer) {
+        this.fadeIn = pBuffer.readInt();
+        this.stay = pBuffer.readInt();
+        this.fadeOut = pBuffer.readInt();
     }
 
-    public void write(FriendlyByteBuf p_179410_) {
-        p_179410_.writeInt(this.fadeIn);
-        p_179410_.writeInt(this.stay);
-        p_179410_.writeInt(this.fadeOut);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeInt(this.fadeIn);
+        pBuffer.writeInt(this.stay);
+        pBuffer.writeInt(this.fadeOut);
     }
 
-    public void handle(ClientGamePacketListener p_179414_) {
-        p_179414_.setTitlesAnimation(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.setTitlesAnimation(this);
     }
 
     public int getFadeIn() {

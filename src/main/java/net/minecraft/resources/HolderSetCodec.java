@@ -21,16 +21,16 @@ public class HolderSetCodec<E> implements Codec<HolderSet<E>> {
     private final Codec<List<Holder<E>>> homogenousListCodec;
     private final Codec<Either<TagKey<E>, List<Holder<E>>>> registryAwareCodec;
 
-    private static <E> Codec<List<Holder<E>>> homogenousList(Codec<Holder<E>> p_206668_, boolean p_206669_) {
+    private static <E> Codec<List<Holder<E>>> homogenousList(Codec<Holder<E>> pHolderCodec, boolean pDisallowInline) {
         Function<List<Holder<E>>, DataResult<List<Holder<E>>>> function = ExtraCodecs.ensureHomogenous(Holder::kind);
-        Codec<List<Holder<E>>> codec = p_206668_.listOf().flatXmap(function, function);
-        return p_206669_ ? codec : Codec.either(codec, p_206668_).xmap((p_206664_) -> { return p_206664_.map((p_206694_) -> {
+        Codec<List<Holder<E>>> codec = pHolderCodec.listOf().flatXmap(function, function);
+        return pDisallowInline ? codec : Codec.either(codec, pHolderCodec).xmap((p_206664_) -> { return p_206664_.map((p_206694_) -> {
                                                                                             return p_206694_;
                                                                                         }, List::of); }, (p_206684_) -> { return p_206684_.size() == 1 ? Either.right(p_206684_.get(0)) : Either.left(p_206684_); });
     }
 
-    public static <E> Codec<HolderSet<E>> create(ResourceKey<? extends Registry<E>> p_206686_, Codec<Holder<E>> p_206687_, boolean p_206688_) {
-        return new HolderSetCodec<>(p_206686_, p_206687_, p_206688_);
+    public static <E> Codec<HolderSet<E>> create(ResourceKey<? extends Registry<E>> pRegistryKey, Codec<Holder<E>> pHolderCodec, boolean pDisallowInline) {
+        return new HolderSetCodec<>(pRegistryKey, pHolderCodec, pDisallowInline);
     }
 
     private HolderSetCodec(ResourceKey<? extends Registry<E>> p_206660_, Codec<Holder<E>> p_206661_, boolean p_206662_) {

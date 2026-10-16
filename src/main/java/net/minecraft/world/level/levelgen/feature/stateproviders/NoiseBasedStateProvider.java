@@ -29,20 +29,20 @@ public abstract class NoiseBasedStateProvider extends BlockStateProvider {
                 }));
     }
 
-    protected NoiseBasedStateProvider(long p_191422_, NormalNoise.NoiseParameters p_191423_, float p_191424_) {
-        this.seed = p_191422_;
-        this.parameters = p_191423_;
-        this.scale = p_191424_;
-        this.noise = NormalNoise.create(new WorldgenRandom(new LegacyRandomSource(p_191422_)), p_191423_);
+    protected NoiseBasedStateProvider(long pSeed, NormalNoise.NoiseParameters pParameters, float pScale) {
+        this.seed = pSeed;
+        this.parameters = pParameters;
+        this.scale = pScale;
+        this.noise = NormalNoise.create(new WorldgenRandom(new LegacyRandomSource(pSeed)), pParameters);
     }
 
-    protected double getNoiseValue(BlockPos p_191430_, double p_191431_) {
-        long blockX = p_191430_.getX();
-        long blockZ = p_191430_.getZ();
+    protected double getNoiseValue(BlockPos pPos, double pDelta) {
+        long blockX = pPos.getX();
+        long blockZ = pPos.getZ();
         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
-            return this.noise.getValueScaled(blockX, p_191431_, p_191430_.getY(), p_191431_, blockZ);
+            return this.noise.getValueScaled(blockX, pDelta, pPos.getY(), pDelta, blockZ);
         }
 
-        return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, p_191431_), (double) p_191430_.getY() * p_191431_, FarlandsMode.scaledNoiseCoordinate(blockZ, p_191431_));
+        return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, pDelta), (double) pPos.getY() * pDelta, FarlandsMode.scaledNoiseCoordinate(blockZ, pDelta));
     }
 }

@@ -39,12 +39,12 @@ public class ActiveProfiler implements ProfileCollector {
     private final boolean warn;
     private final Set<Pair<String, MetricCategory>> chartedPaths = new ObjectArraySet<>();
 
-    public ActiveProfiler(LongSupplier p_18383_, IntSupplier p_18384_, boolean p_18385_) {
-        this.startTimeNano = p_18383_.getAsLong();
-        this.getRealTime = p_18383_;
-        this.startTimeTicks = p_18384_.getAsInt();
-        this.getTickTime = p_18384_;
-        this.warn = p_18385_;
+    public ActiveProfiler(LongSupplier pStartTimeNano, IntSupplier pStartTimeTicks, boolean pWarn) {
+        this.startTimeNano = pStartTimeNano.getAsLong();
+        this.getRealTime = pStartTimeNano;
+        this.startTimeTicks = pStartTimeTicks.getAsInt();
+        this.getTickTime = pStartTimeTicks;
+        this.warn = pWarn;
     }
 
     public void startTick() {
@@ -72,27 +72,27 @@ public class ActiveProfiler implements ProfileCollector {
         }
     }
 
-    public void push(String p_18390_) {
+    public void push(String pName) {
         if (!this.started) {
-            LOGGER.error("Cannot push '{}' to profiler if profiler tick hasn't started - missing startTick()?", (Object) p_18390_);
+            LOGGER.error("Cannot push '{}' to profiler if profiler tick hasn't started - missing startTick()?", (Object) pName);
         } else {
             if (!this.path.isEmpty()) {
                 this.path = this.path + "\u001e";
             }
 
-            this.path = this.path + p_18390_;
+            this.path = this.path + pName;
             this.paths.add(this.path);
             this.startTimes.add(Util.getNanos());
             this.currentEntry = null;
         }
     }
 
-    public void push(Supplier<String> p_18392_) {
-        this.push(p_18392_.get());
+    public void push(Supplier<String> pNameSupplier) {
+        this.push(pNameSupplier.get());
     }
 
-    public void markForCharting(MetricCategory p_145928_) {
-        this.chartedPaths.add(Pair.of(this.path, p_145928_));
+    public void markForCharting(MetricCategory pCategory) {
+        this.chartedPaths.add(Pair.of(this.path, pCategory));
     }
 
     public void pop() {
@@ -124,14 +124,14 @@ public class ActiveProfiler implements ProfileCollector {
         }
     }
 
-    public void popPush(String p_18395_) {
+    public void popPush(String pName) {
         this.pop();
-        this.push(p_18395_);
+        this.push(pName);
     }
 
-    public void popPush(Supplier<String> p_18397_) {
+    public void popPush(Supplier<String> pNameSupplier) {
         this.pop();
-        this.push(p_18397_);
+        this.push(pNameSupplier);
     }
 
     private ActiveProfiler.PathEntry getCurrentEntry() {
@@ -144,12 +144,12 @@ public class ActiveProfiler implements ProfileCollector {
         return this.currentEntry;
     }
 
-    public void incrementCounter(String p_185247_, int p_185248_) {
-        this.getCurrentEntry().counters.addTo(p_185247_, (long) p_185248_);
+    public void incrementCounter(String pCounterName, int pIncrement) {
+        this.getCurrentEntry().counters.addTo(pCounterName, (long) pIncrement);
     }
 
-    public void incrementCounter(Supplier<String> p_185250_, int p_185251_) {
-        this.getCurrentEntry().counters.addTo(p_185250_.get(), (long) p_185251_);
+    public void incrementCounter(Supplier<String> pCounterNameSupplier, int pIncrement) {
+        this.getCurrentEntry().counters.addTo(pCounterNameSupplier.get(), (long) pIncrement);
     }
 
     public ProfileResults getResults() {
@@ -157,8 +157,8 @@ public class ActiveProfiler implements ProfileCollector {
     }
 
     @Nullable
-    public ActiveProfiler.PathEntry getEntry(String p_145930_) {
-        return this.entries.get(p_145930_);
+    public ActiveProfiler.PathEntry getEntry(String pEntryId) {
+        return this.entries.get(pEntryId);
     }
 
     public Set<Pair<String, MetricCategory>> getChartedPaths() {

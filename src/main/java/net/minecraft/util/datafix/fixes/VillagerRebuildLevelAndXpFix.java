@@ -20,8 +20,8 @@ public class VillagerRebuildLevelAndXpFix extends DataFix {
         return LEVEL_XP_THRESHOLDS[Mth.clamp(p_17080_ - 1, 0, LEVEL_XP_THRESHOLDS.length - 1)];
     }
 
-    public VillagerRebuildLevelAndXpFix(Schema p_17077_, boolean p_17078_) {
-        super(p_17077_, p_17078_);
+    public VillagerRebuildLevelAndXpFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

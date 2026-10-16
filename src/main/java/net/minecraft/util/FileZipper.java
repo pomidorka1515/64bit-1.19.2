@@ -21,9 +21,9 @@ public class FileZipper implements Closeable {
     private final Path tempFile;
     private final FileSystem fs;
 
-    public FileZipper(Path p_144697_) {
-        this.outputFile = p_144697_;
-        this.tempFile = p_144697_.resolveSibling(p_144697_.getFileName().toString() + "_tmp");
+    public FileZipper(Path pOutputFile) {
+        this.outputFile = pOutputFile;
+        this.tempFile = pOutputFile.resolveSibling(pOutputFile.getFileName().toString() + "_tmp");
 
         try {
             this.fs = Util.ZIP_FILE_SYSTEM_PROVIDER.newFileSystem(this.tempFile, ImmutableMap.of("create", "true"));
@@ -32,42 +32,42 @@ public class FileZipper implements Closeable {
         }
     }
 
-    public void add(Path p_144704_, String p_144705_) {
+    public void add(Path pPath, String pFilename) {
         try {
             Path path = this.fs.getPath(File.separator);
-            Path path1 = path.resolve(p_144704_.toString());
+            Path path1 = path.resolve(pPath.toString());
             Files.createDirectories(path1.getParent());
-            Files.write(path1, p_144705_.getBytes(StandardCharsets.UTF_8));
+            Files.write(path1, pFilename.getBytes(StandardCharsets.UTF_8));
         } catch (IOException ioexception) {
             throw new UncheckedIOException(ioexception);
         }
     }
 
-    public void add(Path p_144701_, File p_144702_) {
+    public void add(Path pPath, File pFilename) {
         try {
             Path path = this.fs.getPath(File.separator);
-            Path path1 = path.resolve(p_144701_.toString());
+            Path path1 = path.resolve(pPath.toString());
             Files.createDirectories(path1.getParent());
-            Files.copy(p_144702_.toPath(), path1);
+            Files.copy(pFilename.toPath(), path1);
         } catch (IOException ioexception) {
             throw new UncheckedIOException(ioexception);
         }
     }
 
-    public void add(Path p_144699_) {
+    public void add(Path pPath) {
         try {
             Path path = this.fs.getPath(File.separator);
-            if (Files.isRegularFile(p_144699_)) {
-                Path path3 = path.resolve(p_144699_.getParent().relativize(p_144699_).toString());
-                Files.copy(path3, p_144699_);
+            if (Files.isRegularFile(pPath)) {
+                Path path3 = path.resolve(pPath.getParent().relativize(pPath).toString());
+                Files.copy(path3, pPath);
             } else {
-                Stream<Path> stream = Files.find(p_144699_, Integer.MAX_VALUE, (p_144707_, p_144708_) -> {
+                Stream<Path> stream = Files.find(pPath, Integer.MAX_VALUE, (p_144707_, p_144708_) -> {
                     return p_144708_.isRegularFile();
                 });
 
                 try {
                     for (Path path1 : stream.collect(Collectors.toList())) {
-                        Path path2 = path.resolve(p_144699_.relativize(path1).toString());
+                        Path path2 = path.resolve(pPath.relativize(path1).toString());
                         Files.createDirectories(path2.getParent());
                         Files.copy(path1, path2);
                     }

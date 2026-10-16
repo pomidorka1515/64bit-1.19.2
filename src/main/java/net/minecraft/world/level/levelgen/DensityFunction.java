@@ -20,11 +20,11 @@ public interface DensityFunction {
         }
     });
 
-    double compute(DensityFunction.FunctionContext p_208223_);
+    double compute(DensityFunction.FunctionContext pContext);
 
-    void fillArray(double[] p_208227_, DensityFunction.ContextProvider p_208228_);
+    void fillArray(double[] pArray, DensityFunction.ContextProvider pContextProvider);
 
-    DensityFunction mapAll(DensityFunction.Visitor p_208224_);
+    DensityFunction mapAll(DensityFunction.Visitor pVisitor);
 
     double minValue();
 
@@ -32,8 +32,8 @@ public interface DensityFunction {
 
     KeyDispatchDataCodec<? extends DensityFunction> codec();
 
-    default DensityFunction clamp(double p_208221_, double p_208222_) {
-        return new DensityFunctions.Clamp(this, p_208221_, p_208222_);
+    default DensityFunction clamp(double pMinValue, double pMaxValue) {
+        return new DensityFunctions.Clamp(this, pMinValue, pMaxValue);
     }
 
     default DensityFunction abs() {
@@ -61,9 +61,9 @@ public interface DensityFunction {
     }
 
     public interface ContextProvider {
-        DensityFunction.FunctionContext forIndex(int p_208235_);
+        DensityFunction.FunctionContext forIndex(int pArrayIndex);
 
-        void fillAllDirectly(double[] p_208236_, DensityFunction p_208237_);
+        void fillAllDirectly(double[] pValues, DensityFunction pFunction);
     }
 
     public interface FunctionContext {

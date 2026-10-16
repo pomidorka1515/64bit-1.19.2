@@ -63,12 +63,12 @@ public class DebugLevelSource extends ChunkGenerator {
         return CODEC;
     }
 
-    public void buildSurface(WorldGenRegion p_223978_, StructureManager p_223979_, RandomState p_223980_, ChunkAccess p_223981_) {
+    public void buildSurface(WorldGenRegion pLevel, StructureManager pStructureManager, RandomState pRandom, ChunkAccess pChunk) {
     }
 
-    public void applyBiomeDecoration(WorldGenLevel p_223983_, ChunkAccess p_223984_, StructureManager p_223985_) {
+    public void applyBiomeDecoration(WorldGenLevel pLevel, ChunkAccess pChunk, StructureManager pStructureManager) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        ChunkPos chunkpos = p_223984_.getPos();
+        ChunkPos chunkpos = pChunk.getPos();
         long i = chunkpos.x;
         long j = chunkpos.z;
 
@@ -76,35 +76,35 @@ public class DebugLevelSource extends ChunkGenerator {
             for (int l = 0; l < 16; ++l) {
                 long i1 = SectionPos.sectionToBlockCoord(i, k);
                 long j1 = SectionPos.sectionToBlockCoord(j, l);
-                p_223983_.setBlock(blockpos$mutableblockpos.set(i1, 60, j1), BARRIER, 2);
+                pLevel.setBlock(blockpos$mutableblockpos.set(i1, 60, j1), BARRIER, 2);
                 BlockState blockstate = getBlockStateFor(i1, j1);
-                p_223983_.setBlock(blockpos$mutableblockpos.set(i1, 70, j1), blockstate, 2);
+                pLevel.setBlock(blockpos$mutableblockpos.set(i1, 70, j1), blockstate, 2);
             }
         }
     }
 
-    public CompletableFuture<ChunkAccess> fillFromNoise(Executor p_223991_, Blender p_223992_, RandomState p_223993_, StructureManager p_223994_, ChunkAccess p_223995_) {
-        return CompletableFuture.completedFuture(p_223995_);
+    public CompletableFuture<ChunkAccess> fillFromNoise(Executor pExecutor, Blender pBlender, RandomState pRandom, StructureManager pStructureManager, ChunkAccess pChunk) {
+        return CompletableFuture.completedFuture(pChunk);
     }
 
-    public int getBaseHeight(long p_223964_, long p_223965_, Heightmap.Types p_223966_, LevelHeightAccessor p_223967_, RandomState p_223968_) {
+    public int getBaseHeight(long pX, long pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom) {
         return 0;
     }
 
-    public NoiseColumn getBaseColumn(long p_223959_, long p_223960_, LevelHeightAccessor p_223961_, RandomState p_223962_) {
+    public NoiseColumn getBaseColumn(long pX, long pZ, LevelHeightAccessor pHeight, RandomState pRandom) {
         return new NoiseColumn(0, new BlockState[0]);
     }
 
-    public void addDebugScreenInfo(List<String> p_223987_, RandomState p_223988_, BlockPos p_223989_) {
+    public void addDebugScreenInfo(List<String> pInfo, RandomState pRandom, BlockPos pPos) {
     }
 
-    public static BlockState getBlockStateFor(long p_64149_, long p_64150_) {
+    public static BlockState getBlockStateFor(long pChunkX, long pChunkZ) {
         BlockState blockstate = AIR;
-        if (p_64149_ > 0 && p_64150_ > 0 && p_64149_ % 2 != 0 && p_64150_ % 2 != 0) {
-            p_64149_ /= 2;
-            p_64150_ /= 2;
-            if (p_64149_ <= GRID_WIDTH && p_64150_ <= GRID_HEIGHT) {
-                int i = (int) Math.abs(p_64149_ * GRID_WIDTH + p_64150_);
+        if (pChunkX > 0 && pChunkZ > 0 && pChunkX % 2 != 0 && pChunkZ % 2 != 0) {
+            pChunkX /= 2;
+            pChunkZ /= 2;
+            if (pChunkX <= GRID_WIDTH && pChunkZ <= GRID_HEIGHT) {
+                int i = (int) Math.abs(pChunkX * GRID_WIDTH + pChunkZ);
                 if (i < ALL_BLOCKS.size()) {
                     blockstate = ALL_BLOCKS.get(i);
                 }
@@ -114,10 +114,10 @@ public class DebugLevelSource extends ChunkGenerator {
         return blockstate;
     }
 
-    public void applyCarvers(WorldGenRegion p_223970_, long p_223971_, RandomState p_223972_, BiomeManager p_223973_, StructureManager p_223974_, ChunkAccess p_223975_, GenerationStep.Carving p_223976_) {
+    public void applyCarvers(WorldGenRegion pLevel, long pSeed, RandomState pRandom, BiomeManager pBiomeManager, StructureManager pStructureManager, ChunkAccess pChunk, GenerationStep.Carving pStep) {
     }
 
-    public void spawnOriginalMobs(WorldGenRegion p_188511_) {
+    public void spawnOriginalMobs(WorldGenRegion pLevel) {
     }
 
     public int getMinY() {

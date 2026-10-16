@@ -21,49 +21,49 @@ public class InfestedBlock extends Block {
     private static final Map<BlockState, BlockState> HOST_TO_INFESTED_STATES = Maps.newIdentityHashMap();
     private static final Map<BlockState, BlockState> INFESTED_TO_HOST_STATES = Maps.newIdentityHashMap();
 
-    public InfestedBlock(Block p_54178_, BlockBehaviour.Properties p_54179_) {
-        super(p_54179_.destroyTime(p_54178_.defaultDestroyTime() / 2.0F).explosionResistance(0.75F));
-        this.hostBlock = p_54178_;
-        BLOCK_BY_HOST_BLOCK.put(p_54178_, this);
+    public InfestedBlock(Block pHostBlock, BlockBehaviour.Properties pProperties) {
+        super(pProperties.destroyTime(pHostBlock.defaultDestroyTime() / 2.0F).explosionResistance(0.75F));
+        this.hostBlock = pHostBlock;
+        BLOCK_BY_HOST_BLOCK.put(pHostBlock, this);
     }
 
     public Block getHostBlock() {
         return this.hostBlock;
     }
 
-    public static boolean isCompatibleHostBlock(BlockState p_54196_) {
-        return BLOCK_BY_HOST_BLOCK.containsKey(p_54196_.getBlock());
+    public static boolean isCompatibleHostBlock(BlockState pState) {
+        return BLOCK_BY_HOST_BLOCK.containsKey(pState.getBlock());
     }
 
-    private void spawnInfestation(ServerLevel p_54181_, BlockPos p_54182_) {
-        Silverfish silverfish = EntityType.SILVERFISH.create(p_54181_);
-        silverfish.moveTo((double) p_54182_.getX() + 0.5D, (double) p_54182_.getY(), (double) p_54182_.getZ() + 0.5D, 0.0F, 0.0F);
-        p_54181_.addFreshEntity(silverfish);
+    private void spawnInfestation(ServerLevel pLevel, BlockPos pPos) {
+        Silverfish silverfish = EntityType.SILVERFISH.create(pLevel);
+        silverfish.moveTo((double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D, 0.0F, 0.0F);
+        pLevel.addFreshEntity(silverfish);
         silverfish.spawnAnim();
     }
 
-    public void spawnAfterBreak(BlockState p_221360_, ServerLevel p_221361_, BlockPos p_221362_, ItemStack p_221363_, boolean p_221364_) {
-        super.spawnAfterBreak(p_221360_, p_221361_, p_221362_, p_221363_, p_221364_);
-        if (p_221361_.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS) && EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, p_221363_) == 0) {
-            this.spawnInfestation(p_221361_, p_221362_);
+    public void spawnAfterBreak(BlockState pState, ServerLevel pLevel, BlockPos pPos, ItemStack pStack, boolean pDropExperience) {
+        super.spawnAfterBreak(pState, pLevel, pPos, pStack, pDropExperience);
+        if (pLevel.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS) && EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, pStack) == 0) {
+            this.spawnInfestation(pLevel, pPos);
         }
     }
 
-    public static BlockState infestedStateByHost(BlockState p_153431_) {
-        return getNewStateWithProperties(HOST_TO_INFESTED_STATES, p_153431_, () -> {
-            return BLOCK_BY_HOST_BLOCK.get(p_153431_.getBlock()).defaultBlockState();
+    public static BlockState infestedStateByHost(BlockState pHost) {
+        return getNewStateWithProperties(HOST_TO_INFESTED_STATES, pHost, () -> {
+            return BLOCK_BY_HOST_BLOCK.get(pHost.getBlock()).defaultBlockState();
         });
     }
 
-    public BlockState hostStateByInfested(BlockState p_153433_) {
-        return getNewStateWithProperties(INFESTED_TO_HOST_STATES, p_153433_, () -> {
+    public BlockState hostStateByInfested(BlockState pInfested) {
+        return getNewStateWithProperties(INFESTED_TO_HOST_STATES, pInfested, () -> {
             return this.getHostBlock().defaultBlockState();
         });
     }
 
-    private static BlockState getNewStateWithProperties(Map<BlockState, BlockState> p_153424_, BlockState p_153425_, Supplier<BlockState> p_153426_) {
-        return p_153424_.computeIfAbsent(p_153425_, (p_153429_) -> {
-            BlockState blockstate = p_153426_.get();
+    private static BlockState getNewStateWithProperties(Map<BlockState, BlockState> pStateMap, BlockState pState, Supplier<BlockState> pSupplier) {
+        return pStateMap.computeIfAbsent(pState, (p_153429_) -> {
+            BlockState blockstate = pSupplier.get();
 
             for (Property property : p_153429_.getProperties()) {
                 blockstate = blockstate.hasProperty(property) ? blockstate.setValue(property, p_153429_.getValue(property)) : blockstate;

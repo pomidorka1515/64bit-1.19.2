@@ -7,19 +7,19 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class EndRodParticle extends SimpleAnimatedParticle {
-    EndRodParticle(ClientLevel p_106531_, double p_106532_, double p_106533_, double p_106534_, double p_106535_, double p_106536_, double p_106537_, SpriteSet p_106538_) {
-        super(p_106531_, p_106532_, p_106533_, p_106534_, p_106538_, 0.0125F);
-        this.xd = p_106535_;
-        this.yd = p_106536_;
-        this.zd = p_106537_;
+    EndRodParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, SpriteSet pSprites) {
+        super(pLevel, pX, pY, pZ, pSprites, 0.0125F);
+        this.xd = pXSpeed;
+        this.yd = pYSpeed;
+        this.zd = pZSpeed;
         this.quadSize *= 0.75F;
         this.lifetime = 60 + this.random.nextInt(12);
         this.setFadeColor(15916745);
-        this.setSpriteFromAge(p_106538_);
+        this.setSpriteFromAge(pSprites);
     }
 
-    public void move(double p_106550_, double p_106551_, double p_106552_) {
-        this.setBoundingBox(this.getBoundingBox().move(p_106550_, p_106551_, p_106552_));
+    public void move(double pX, double pY, double pZ) {
+        this.setBoundingBox(this.getBoundingBox().move(pX, pY, pZ));
         this.setLocationFromBoundingbox();
     }
 
@@ -27,12 +27,12 @@ public class EndRodParticle extends SimpleAnimatedParticle {
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 
-        public Provider(SpriteSet p_106555_) {
-            this.sprites = p_106555_;
+        public Provider(SpriteSet pSprites) {
+            this.sprites = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_106566_, ClientLevel p_106567_, double p_106568_, double p_106569_, double p_106570_, double p_106571_, double p_106572_, double p_106573_) {
-            return new EndRodParticle(p_106567_, p_106568_, p_106569_, p_106570_, p_106571_, p_106572_, p_106573_, this.sprites);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            return new EndRodParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, this.sprites);
         }
     }
 }

@@ -28,11 +28,11 @@ public class Hotbar extends ForwardingList<ItemStack> {
         return listtag;
     }
 
-    public void fromTag(ListTag p_108784_) {
+    public void fromTag(ListTag pTag) {
         List<ItemStack> list = this.delegate();
 
         for (int i = 0; i < list.size(); ++i) {
-            list.set(i, ItemStack.of(p_108784_.getCompound(i)));
+            list.set(i, ItemStack.of(pTag.getCompound(i)));
         }
     }
 

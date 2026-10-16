@@ -33,8 +33,8 @@ public enum NarratorStatus {
         return this.name;
     }
 
-    public static NarratorStatus byId(int p_91620_) {
-        return BY_ID[Mth.positiveModulo(p_91620_, BY_ID.length)];
+    public static NarratorStatus byId(int pId) {
+        return BY_ID[Mth.positiveModulo(pId, BY_ID.length)];
     }
 
     public boolean shouldNarrateChat() {

@@ -20,46 +20,46 @@ public class VillageBoundRandomStroll extends Behavior<PathfinderMob> {
     private final int maxXyDist;
     private final int maxYDist;
 
-    public VillageBoundRandomStroll(float p_24546_) {
-        this(p_24546_, 10, 7);
+    public VillageBoundRandomStroll(float pSpeedModifier) {
+        this(pSpeedModifier, 10, 7);
     }
 
-    public VillageBoundRandomStroll(float p_24548_, int p_24549_, int p_24550_) {
+    public VillageBoundRandomStroll(float pSpeedModifier, int pMaxXyDist, int pMaxYDist) {
         super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
-        this.speedModifier = p_24548_;
-        this.maxXyDist = p_24549_;
-        this.maxYDist = p_24550_;
+        this.speedModifier = pSpeedModifier;
+        this.maxXyDist = pMaxXyDist;
+        this.maxYDist = pMaxYDist;
     }
 
-    protected void start(ServerLevel p_24556_, PathfinderMob p_24557_, long p_24558_) {
-        BlockPos blockpos = p_24557_.blockPosition();
-        if (p_24556_.isVillage(blockpos)) {
-            this.setRandomPos(p_24557_);
+    protected void start(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        BlockPos blockpos = pEntity.blockPosition();
+        if (pLevel.isVillage(blockpos)) {
+            this.setRandomPos(pEntity);
         } else {
             SectionPos sectionpos = SectionPos.of(blockpos);
-            SectionPos sectionpos1 = BehaviorUtils.findSectionClosestToVillage(p_24556_, sectionpos, 2);
+            SectionPos sectionpos1 = BehaviorUtils.findSectionClosestToVillage(pLevel, sectionpos, 2);
             if (sectionpos1 != sectionpos) {
-                this.setTargetedPos(p_24557_, sectionpos1);
+                this.setTargetedPos(pEntity, sectionpos1);
             } else {
-                this.setRandomPos(p_24557_);
+                this.setRandomPos(pEntity);
             }
         }
     }
 
-    private void setTargetedPos(PathfinderMob p_24562_, SectionPos p_24563_) {
-        BlockPos center = p_24563_.center();
+    private void setTargetedPos(PathfinderMob pPathfinder, SectionPos pSectionPos) {
+        BlockPos center = pSectionPos.center();
         SectorVec3 villageCenter = SectorVec3.fromBlockAndFraction(center.getX(), 0.5D,
                 center.getY(), center.getZ(), 0.5D);
-        Optional<SectorVec3> optional = Optional.ofNullable(DefaultRandomPos.getSectorPosTowards(p_24562_,
+        Optional<SectorVec3> optional = Optional.ofNullable(DefaultRandomPos.getSectorPosTowards(pPathfinder,
                 this.maxXyDist, this.maxYDist, villageCenter, (double) ((float) Math.PI / 2F)));
-        p_24562_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_24567_) -> {
+        pPathfinder.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_24567_) -> {
             return new WalkTarget(p_24567_, this.speedModifier, 0);
         }));
     }
 
-    private void setRandomPos(PathfinderMob p_24560_) {
-        Optional<SectorVec3> optional = Optional.ofNullable(LandRandomPos.getSectorPos(p_24560_, this.maxXyDist, this.maxYDist));
-        p_24560_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_24565_) -> {
+    private void setRandomPos(PathfinderMob pPathfinder) {
+        Optional<SectorVec3> optional = Optional.ofNullable(LandRandomPos.getSectorPos(pPathfinder, this.maxXyDist, this.maxYDist));
+        pPathfinder.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_24565_) -> {
             return new WalkTarget(p_24565_, this.speedModifier, 0);
         }));
     }

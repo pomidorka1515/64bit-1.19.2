@@ -5,8 +5,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
 public class BlastingRecipe extends AbstractCookingRecipe {
-    public BlastingRecipe(ResourceLocation p_43793_, String p_43794_, Ingredient p_43795_, ItemStack p_43796_, float p_43797_, int p_43798_) {
-        super(RecipeType.BLASTING, p_43793_, p_43794_, p_43795_, p_43796_, p_43797_, p_43798_);
+    public BlastingRecipe(ResourceLocation pId, String pGroup, Ingredient pIngredient, ItemStack pResult, float pExperience, int pCookingTime) {
+        super(RecipeType.BLASTING, pId, pGroup, pIngredient, pResult, pExperience, pCookingTime);
     }
 
     public ItemStack getToastSymbol() {

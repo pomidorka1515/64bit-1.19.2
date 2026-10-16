@@ -12,16 +12,16 @@ import org.slf4j.Logger;
 public class ProgramManager {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static void glUseProgram(int p_85579_) {
+    public static void glUseProgram(int pProgram) {
         RenderSystem.assertOnRenderThread();
-        GlStateManager._glUseProgram(p_85579_);
+        GlStateManager._glUseProgram(pProgram);
     }
 
-    public static void releaseProgram(Shader p_166622_) {
+    public static void releaseProgram(Shader pShader) {
         RenderSystem.assertOnRenderThread();
-        p_166622_.getFragmentProgram().close();
-        p_166622_.getVertexProgram().close();
-        GlStateManager.glDeleteProgram(p_166622_.getId());
+        pShader.getFragmentProgram().close();
+        pShader.getVertexProgram().close();
+        GlStateManager.glDeleteProgram(pShader.getId());
     }
 
     public static int createProgram() throws IOException {
@@ -34,14 +34,14 @@ public class ProgramManager {
         }
     }
 
-    public static void linkShader(Shader p_166624_) {
+    public static void linkShader(Shader pShader) {
         RenderSystem.assertOnRenderThread();
-        p_166624_.attachToProgram();
-        GlStateManager.glLinkProgram(p_166624_.getId());
-        int i = GlStateManager.glGetProgrami(p_166624_.getId(), 35714);
+        pShader.attachToProgram();
+        GlStateManager.glLinkProgram(pShader.getId());
+        int i = GlStateManager.glGetProgrami(pShader.getId(), 35714);
         if (i == 0) {
-            LOGGER.warn("Error encountered when linking program containing VS {} and FS {}. Log output:", p_166624_.getVertexProgram().getName(), p_166624_.getFragmentProgram().getName());
-            LOGGER.warn(GlStateManager.glGetProgramInfoLog(p_166624_.getId(), 32768));
+            LOGGER.warn("Error encountered when linking program containing VS {} and FS {}. Log output:", pShader.getVertexProgram().getName(), pShader.getFragmentProgram().getName());
+            LOGGER.warn(GlStateManager.glGetProgramInfoLog(pShader.getId(), 32768));
         }
     }
 }

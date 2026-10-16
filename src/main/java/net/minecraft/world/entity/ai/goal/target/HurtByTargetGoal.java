@@ -24,9 +24,9 @@ public class HurtByTargetGoal extends TargetGoal {
     @Nullable
     private Class<?>[] toIgnoreAlert;
 
-    public HurtByTargetGoal(PathfinderMob p_26039_, Class<?>... p_26040_) {
-        super(p_26039_, true);
-        this.toIgnoreDamage = p_26040_;
+    public HurtByTargetGoal(PathfinderMob pMob, Class<?>... pToIgnoreDamage) {
+        super(pMob, true);
+        this.toIgnoreDamage = pToIgnoreDamage;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
     }
 
@@ -50,9 +50,9 @@ public class HurtByTargetGoal extends TargetGoal {
         }
     }
 
-    public HurtByTargetGoal setAlertOthers(Class<?>... p_26045_) {
+    public HurtByTargetGoal setAlertOthers(Class<?>... pReinforcementTypes) {
         this.alertSameType = true;
-        this.toIgnoreAlert = p_26045_;
+        this.toIgnoreAlert = pReinforcementTypes;
         return this;
     }
 
@@ -106,7 +106,7 @@ public class HurtByTargetGoal extends TargetGoal {
         }
     }
 
-    protected void alertOther(Mob p_26042_, LivingEntity p_26043_) {
-        p_26042_.setTarget(p_26043_);
+    protected void alertOther(Mob pMob, LivingEntity pTarget) {
+        pMob.setTarget(pTarget);
     }
 }

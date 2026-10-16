@@ -17,7 +17,7 @@ public class Attributes {
     public static final Attribute SPAWN_REINFORCEMENTS_CHANCE = register("zombie.spawn_reinforcements", new RangedAttribute("attribute.name.zombie.spawn_reinforcements", 0.0D, 0.0D, 1.0D));
     public static final Attribute JUMP_STRENGTH = register("horse.jump_strength", (new RangedAttribute("attribute.name.horse.jump_strength", 0.7D, 0.0D, 2.0D)).setSyncable(true));
 
-    private static Attribute register(String p_22291_, Attribute p_22292_) {
-        return Registry.register(Registry.ATTRIBUTE, p_22291_, p_22292_);
+    private static Attribute register(String pId, Attribute pAttribute) {
+        return Registry.register(Registry.ATTRIBUTE, pId, pAttribute);
     }
 }

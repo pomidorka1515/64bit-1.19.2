@@ -21,21 +21,21 @@ public class BanNoticeScreen {
     private static final Component TEMPORARY_BAN_TITLE = Component.translatable("gui.banned.title.temporary").withStyle(ChatFormatting.BOLD);
     private static final Component PERMANENT_BAN_TITLE = Component.translatable("gui.banned.title.permanent").withStyle(ChatFormatting.BOLD);
 
-    public static ConfirmLinkScreen create(BooleanConsumer p_239968_, BanDetails p_239969_) {
-        return new ConfirmLinkScreen(p_239968_, getBannedTitle(p_239969_), getBannedScreenText(p_239969_), "https://aka.ms/mcjavamoderation", CommonComponents.GUI_ACKNOWLEDGE, true);
+    public static ConfirmLinkScreen create(BooleanConsumer pCallback, BanDetails pBanDetails) {
+        return new ConfirmLinkScreen(pCallback, getBannedTitle(pBanDetails), getBannedScreenText(pBanDetails), "https://aka.ms/mcjavamoderation", CommonComponents.GUI_ACKNOWLEDGE, true);
     }
 
-    private static Component getBannedTitle(BanDetails p_239953_) {
-        return isTemporaryBan(p_239953_) ? TEMPORARY_BAN_TITLE : PERMANENT_BAN_TITLE;
+    private static Component getBannedTitle(BanDetails pBanDetails) {
+        return isTemporaryBan(pBanDetails) ? TEMPORARY_BAN_TITLE : PERMANENT_BAN_TITLE;
     }
 
-    private static Component getBannedScreenText(BanDetails p_239138_) {
-        return Component.translatable("gui.banned.description", getBanReasonText(p_239138_), getBanStatusText(p_239138_), Component.literal("https://aka.ms/mcjavamoderation"));
+    private static Component getBannedScreenText(BanDetails pBanDetails) {
+        return Component.translatable("gui.banned.description", getBanReasonText(pBanDetails), getBanStatusText(pBanDetails), Component.literal("https://aka.ms/mcjavamoderation"));
     }
 
-    private static Component getBanReasonText(BanDetails p_239534_) {
-        String s = p_239534_.reason();
-        String s1 = p_239534_.reasonMessage();
+    private static Component getBanReasonText(BanDetails pBanDetails) {
+        String s = pBanDetails.reason();
+        String s1 = pBanDetails.reasonMessage();
         if (StringUtils.isNumeric(s)) {
             int i = Integer.parseInt(s);
             Component component = ReportReason.getTranslationById(i);
@@ -54,17 +54,17 @@ public class BanNoticeScreen {
         }
     }
 
-    private static Component getBanStatusText(BanDetails p_239319_) {
-        if (isTemporaryBan(p_239319_)) {
-            Component component = getBanDurationText(p_239319_);
+    private static Component getBanStatusText(BanDetails pBanDetails) {
+        if (isTemporaryBan(pBanDetails)) {
+            Component component = getBanDurationText(pBanDetails);
             return Component.translatable("gui.banned.description.temporary", Component.translatable("gui.banned.description.temporary.duration", component).withStyle(ChatFormatting.BOLD));
         } else {
             return Component.translatable("gui.banned.description.permanent").withStyle(ChatFormatting.BOLD);
         }
     }
 
-    private static Component getBanDurationText(BanDetails p_239880_) {
-        Duration duration = Duration.between(Instant.now(), p_239880_.expires());
+    private static Component getBanDurationText(BanDetails pBanDetails) {
+        Duration duration = Duration.between(Instant.now(), pBanDetails.expires());
         long i = duration.toHours();
         if (i > 72L) {
             return CommonComponents.days(duration.toDays());
@@ -73,7 +73,7 @@ public class BanNoticeScreen {
         }
     }
 
-    private static boolean isTemporaryBan(BanDetails p_239501_) {
-        return p_239501_.expires() != null;
+    private static boolean isTemporaryBan(BanDetails pBanDetails) {
+        return pBanDetails.expires() != null;
     }
 }

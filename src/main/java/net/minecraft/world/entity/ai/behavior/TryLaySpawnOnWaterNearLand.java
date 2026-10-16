@@ -17,27 +17,27 @@ public class TryLaySpawnOnWaterNearLand extends Behavior<Frog> {
     private final Block spawnBlock;
     private final MemoryModuleType<?> memoryModule;
 
-    public TryLaySpawnOnWaterNearLand(Block p_217473_, MemoryModuleType<?> p_217474_) {
+    public TryLaySpawnOnWaterNearLand(Block pSpawnBlock, MemoryModuleType<?> pMemoryModule) {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT, MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_PRESENT, MemoryModuleType.IS_PREGNANT, MemoryStatus.VALUE_PRESENT));
-        this.spawnBlock = p_217473_;
-        this.memoryModule = p_217474_;
+        this.spawnBlock = pSpawnBlock;
+        this.memoryModule = pMemoryModule;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_217483_, Frog p_217484_) {
-        return !p_217484_.isInWater() && p_217484_.isOnGround();
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, Frog pOwner) {
+        return !pOwner.isInWater() && pOwner.isOnGround();
     }
 
-    protected void start(ServerLevel p_217486_, Frog p_217487_, long p_217488_) {
-        BlockPos blockpos = p_217487_.blockPosition().below();
+    protected void start(ServerLevel pLevel, Frog pEntity, long pGameTime) {
+        BlockPos blockpos = pEntity.blockPosition().below();
 
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos blockpos1 = blockpos.relative(direction);
-            if (p_217486_.getBlockState(blockpos1).getCollisionShape(p_217486_, blockpos1).getFaceShape(Direction.UP).isEmpty() && p_217486_.getFluidState(blockpos1).is(Fluids.WATER)) {
+            if (pLevel.getBlockState(blockpos1).getCollisionShape(pLevel, blockpos1).getFaceShape(Direction.UP).isEmpty() && pLevel.getFluidState(blockpos1).is(Fluids.WATER)) {
                 BlockPos blockpos2 = blockpos1.above();
-                if (p_217486_.getBlockState(blockpos2).isAir()) {
-                    p_217486_.setBlock(blockpos2, this.spawnBlock.defaultBlockState(), 3);
-                    p_217486_.playSound((Player) null, p_217487_, SoundEvents.FROG_LAY_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
-                    p_217487_.getBrain().eraseMemory(this.memoryModule);
+                if (pLevel.getBlockState(blockpos2).isAir()) {
+                    pLevel.setBlock(blockpos2, this.spawnBlock.defaultBlockState(), 3);
+                    pLevel.playSound((Player) null, pEntity, SoundEvents.FROG_LAY_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
+                    pEntity.getBrain().eraseMemory(this.memoryModule);
                     return;
                 }
             }

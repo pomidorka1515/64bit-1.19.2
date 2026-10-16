@@ -5,9 +5,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.crafting.Ingredient;
 
 public interface ArmorMaterial {
-    int getDurabilityForSlot(EquipmentSlot p_40410_);
+    int getDurabilityForSlot(EquipmentSlot pSlot);
 
-    int getDefenseForSlot(EquipmentSlot p_40411_);
+    int getDefenseForSlot(EquipmentSlot pSlot);
 
     int getEnchantmentValue();
 

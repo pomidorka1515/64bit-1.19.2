@@ -15,15 +15,15 @@ public class LocalCoordinates implements Coordinates {
     private final double up;
     private final double forwards;
 
-    public LocalCoordinates(double p_119902_, double p_119903_, double p_119904_) {
-        this.left = p_119902_;
-        this.up = p_119903_;
-        this.forwards = p_119904_;
+    public LocalCoordinates(double pLeft, double pUp, double pForwards) {
+        this.left = pLeft;
+        this.up = pUp;
+        this.forwards = pForwards;
     }
 
-    public SectorVec3 getExactPosition(CommandSourceStack p_119912_) {
-        Vec2 vec2 = p_119912_.getRotation();
-        SectorVec3 anchor = p_119912_.getExactAnchor();
+    public SectorVec3 getExactPosition(CommandSourceStack pSource) {
+        Vec2 vec2 = pSource.getRotation();
+        SectorVec3 anchor = pSource.getExactAnchor();
         float f = Mth.cos((vec2.y + 90.0F) * ((float) Math.PI / 180F));
         float f1 = Mth.sin((vec2.y + 90.0F) * ((float) Math.PI / 180F));
         float f2 = Mth.cos(-vec2.x * ((float) Math.PI / 180F));
@@ -43,7 +43,7 @@ public class LocalCoordinates implements Coordinates {
         return this.getExactPosition(source).toApproximateVec3();
     }
 
-    public Vec2 getRotation(CommandSourceStack p_119915_) {
+    public Vec2 getRotation(CommandSourceStack pSource) {
         return Vec2.ZERO;
     }
 
@@ -59,45 +59,45 @@ public class LocalCoordinates implements Coordinates {
         return true;
     }
 
-    public static LocalCoordinates parse(StringReader p_119907_) throws CommandSyntaxException {
-        int i = p_119907_.getCursor();
-        double d0 = readDouble(p_119907_, i);
-        if (p_119907_.canRead() && p_119907_.peek() == ' ') {
-            p_119907_.skip();
-            double d1 = readDouble(p_119907_, i);
-            if (p_119907_.canRead() && p_119907_.peek() == ' ') {
-                p_119907_.skip();
-                double d2 = readDouble(p_119907_, i);
+    public static LocalCoordinates parse(StringReader pReader) throws CommandSyntaxException {
+        int i = pReader.getCursor();
+        double d0 = readDouble(pReader, i);
+        if (pReader.canRead() && pReader.peek() == ' ') {
+            pReader.skip();
+            double d1 = readDouble(pReader, i);
+            if (pReader.canRead() && pReader.peek() == ' ') {
+                pReader.skip();
+                double d2 = readDouble(pReader, i);
                 return new LocalCoordinates(d0, d1, d2);
             } else {
-                p_119907_.setCursor(i);
-                throw Vec3Argument.ERROR_NOT_COMPLETE.createWithContext(p_119907_);
+                pReader.setCursor(i);
+                throw Vec3Argument.ERROR_NOT_COMPLETE.createWithContext(pReader);
             }
         } else {
-            p_119907_.setCursor(i);
-            throw Vec3Argument.ERROR_NOT_COMPLETE.createWithContext(p_119907_);
+            pReader.setCursor(i);
+            throw Vec3Argument.ERROR_NOT_COMPLETE.createWithContext(pReader);
         }
     }
 
-    private static double readDouble(StringReader p_119909_, int p_119910_) throws CommandSyntaxException {
-        if (!p_119909_.canRead()) {
-            throw WorldCoordinate.ERROR_EXPECTED_DOUBLE.createWithContext(p_119909_);
-        } else if (p_119909_.peek() != '^') {
-            p_119909_.setCursor(p_119910_);
-            throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(p_119909_);
+    private static double readDouble(StringReader pReader, int pStart) throws CommandSyntaxException {
+        if (!pReader.canRead()) {
+            throw WorldCoordinate.ERROR_EXPECTED_DOUBLE.createWithContext(pReader);
+        } else if (pReader.peek() != '^') {
+            pReader.setCursor(pStart);
+            throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(pReader);
         } else {
-            p_119909_.skip();
-            return p_119909_.canRead() && p_119909_.peek() != ' ' ? p_119909_.readDouble() : 0.0D;
+            pReader.skip();
+            return pReader.canRead() && pReader.peek() != ' ' ? pReader.readDouble() : 0.0D;
         }
     }
 
-    public boolean equals(Object p_119918_) {
-        if (this == p_119918_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_119918_ instanceof LocalCoordinates)) {
+        } else if (!(pOther instanceof LocalCoordinates)) {
             return false;
         } else {
-            LocalCoordinates localcoordinates = (LocalCoordinates) p_119918_;
+            LocalCoordinates localcoordinates = (LocalCoordinates) pOther;
             return this.left == localcoordinates.left && this.up == localcoordinates.up && this.forwards == localcoordinates.forwards;
         }
     }

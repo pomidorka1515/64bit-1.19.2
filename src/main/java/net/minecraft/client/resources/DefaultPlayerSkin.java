@@ -16,15 +16,15 @@ public class DefaultPlayerSkin {
         return STEVE_SKIN_LOCATION;
     }
 
-    public static ResourceLocation getDefaultSkin(UUID p_118628_) {
-        return isAlexDefault(p_118628_) ? ALEX_SKIN_LOCATION : STEVE_SKIN_LOCATION;
+    public static ResourceLocation getDefaultSkin(UUID pPlayerUUID) {
+        return isAlexDefault(pPlayerUUID) ? ALEX_SKIN_LOCATION : STEVE_SKIN_LOCATION;
     }
 
-    public static String getSkinModelName(UUID p_118630_) {
-        return isAlexDefault(p_118630_) ? "slim" : "default";
+    public static String getSkinModelName(UUID pPlayerUUID) {
+        return isAlexDefault(pPlayerUUID) ? "slim" : "default";
     }
 
-    private static boolean isAlexDefault(UUID p_118632_) {
-        return (p_118632_.hashCode() & 1) == 1;
+    private static boolean isAlexDefault(UUID pPlayerUUID) {
+        return (pPlayerUUID.hashCode() & 1) == 1;
     }
 }

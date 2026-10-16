@@ -16,19 +16,19 @@ public class RandomStrollGoal extends Goal {
     protected boolean forceTrigger;
     private final boolean checkNoActionTime;
 
-    public RandomStrollGoal(PathfinderMob p_25734_, double p_25735_) {
-        this(p_25734_, p_25735_, 120);
+    public RandomStrollGoal(PathfinderMob pMob, double pSpeedModifier) {
+        this(pMob, pSpeedModifier, 120);
     }
 
-    public RandomStrollGoal(PathfinderMob p_25737_, double p_25738_, int p_25739_) {
-        this(p_25737_, p_25738_, p_25739_, true);
+    public RandomStrollGoal(PathfinderMob pMob, double pSpeedModifier, int pInterval) {
+        this(pMob, pSpeedModifier, pInterval, true);
     }
 
-    public RandomStrollGoal(PathfinderMob p_25741_, double p_25742_, int p_25743_, boolean p_25744_) {
-        this.mob = p_25741_;
-        this.speedModifier = p_25742_;
-        this.interval = p_25743_;
-        this.checkNoActionTime = p_25744_;
+    public RandomStrollGoal(PathfinderMob pMob, double pSpeedModifier, int pInterval, boolean pCheckNoActionTime) {
+        this.mob = pMob;
+        this.speedModifier = pSpeedModifier;
+        this.interval = pInterval;
+        this.checkNoActionTime = pCheckNoActionTime;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
@@ -78,7 +78,7 @@ public class RandomStrollGoal extends Goal {
         this.forceTrigger = true;
     }
 
-    public void setInterval(int p_25747_) {
-        this.interval = p_25747_;
+    public void setInterval(int pNewchance) {
+        this.interval = pNewchance;
     }
 }

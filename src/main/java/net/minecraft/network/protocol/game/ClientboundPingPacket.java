@@ -6,20 +6,20 @@ import net.minecraft.network.protocol.Packet;
 public class ClientboundPingPacket implements Packet<ClientGamePacketListener> {
     private final int id;
 
-    public ClientboundPingPacket(int p_179016_) {
-        this.id = p_179016_;
+    public ClientboundPingPacket(int pId) {
+        this.id = pId;
     }
 
-    public ClientboundPingPacket(FriendlyByteBuf p_179018_) {
-        this.id = p_179018_.readInt();
+    public ClientboundPingPacket(FriendlyByteBuf pBuffer) {
+        this.id = pBuffer.readInt();
     }
 
-    public void write(FriendlyByteBuf p_179020_) {
-        p_179020_.writeInt(this.id);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeInt(this.id);
     }
 
-    public void handle(ClientGamePacketListener p_179024_) {
-        p_179024_.handlePing(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handlePing(this);
     }
 
     public int getId() {

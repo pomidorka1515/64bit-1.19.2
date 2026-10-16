@@ -9,53 +9,53 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.level.Level;
 
 public class FireworkStarItem extends Item {
-    public FireworkStarItem(Item.Properties p_41248_) {
-        super(p_41248_);
+    public FireworkStarItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public void appendHoverText(ItemStack p_41252_, @Nullable Level p_41253_, List<Component> p_41254_, TooltipFlag p_41255_) {
-        CompoundTag compoundtag = p_41252_.getTagElement("Explosion");
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        CompoundTag compoundtag = pStack.getTagElement("Explosion");
         if (compoundtag != null) {
-            appendHoverText(compoundtag, p_41254_);
+            appendHoverText(compoundtag, pTooltip);
         }
     }
 
-    public static void appendHoverText(CompoundTag p_41257_, List<Component> p_41258_) {
-        FireworkRocketItem.Shape fireworkrocketitem$shape = FireworkRocketItem.Shape.byId(p_41257_.getByte("Type"));
-        p_41258_.add(Component.translatable("item.minecraft.firework_star.shape." + fireworkrocketitem$shape.getName()).withStyle(ChatFormatting.GRAY));
-        int[] aint = p_41257_.getIntArray("Colors");
+    public static void appendHoverText(CompoundTag pCompound, List<Component> pTooltipComponents) {
+        FireworkRocketItem.Shape fireworkrocketitem$shape = FireworkRocketItem.Shape.byId(pCompound.getByte("Type"));
+        pTooltipComponents.add(Component.translatable("item.minecraft.firework_star.shape." + fireworkrocketitem$shape.getName()).withStyle(ChatFormatting.GRAY));
+        int[] aint = pCompound.getIntArray("Colors");
         if (aint.length > 0) {
-            p_41258_.add(appendColors(Component.empty().withStyle(ChatFormatting.GRAY), aint));
+            pTooltipComponents.add(appendColors(Component.empty().withStyle(ChatFormatting.GRAY), aint));
         }
 
-        int[] aint1 = p_41257_.getIntArray("FadeColors");
+        int[] aint1 = pCompound.getIntArray("FadeColors");
         if (aint1.length > 0) {
-            p_41258_.add(appendColors(Component.translatable("item.minecraft.firework_star.fade_to").append(" ").withStyle(ChatFormatting.GRAY), aint1));
+            pTooltipComponents.add(appendColors(Component.translatable("item.minecraft.firework_star.fade_to").append(" ").withStyle(ChatFormatting.GRAY), aint1));
         }
 
-        if (p_41257_.getBoolean("Trail")) {
-            p_41258_.add(Component.translatable("item.minecraft.firework_star.trail").withStyle(ChatFormatting.GRAY));
+        if (pCompound.getBoolean("Trail")) {
+            pTooltipComponents.add(Component.translatable("item.minecraft.firework_star.trail").withStyle(ChatFormatting.GRAY));
         }
 
-        if (p_41257_.getBoolean("Flicker")) {
-            p_41258_.add(Component.translatable("item.minecraft.firework_star.flicker").withStyle(ChatFormatting.GRAY));
+        if (pCompound.getBoolean("Flicker")) {
+            pTooltipComponents.add(Component.translatable("item.minecraft.firework_star.flicker").withStyle(ChatFormatting.GRAY));
         }
     }
 
-    private static Component appendColors(MutableComponent p_41260_, int[] p_41261_) {
-        for (int i = 0; i < p_41261_.length; ++i) {
+    private static Component appendColors(MutableComponent pTooltipComponent, int[] pColors) {
+        for (int i = 0; i < pColors.length; ++i) {
             if (i > 0) {
-                p_41260_.append(", ");
+                pTooltipComponent.append(", ");
             }
 
-            p_41260_.append(getColorName(p_41261_[i]));
+            pTooltipComponent.append(getColorName(pColors[i]));
         }
 
-        return p_41260_;
+        return pTooltipComponent;
     }
 
-    private static Component getColorName(int p_41250_) {
-        DyeColor dyecolor = DyeColor.byFireworkColor(p_41250_);
+    private static Component getColorName(int pColor) {
+        DyeColor dyecolor = DyeColor.byFireworkColor(pColor);
         return dyecolor == null ? Component.translatable("item.minecraft.firework_star.custom_color") : Component.translatable("item.minecraft.firework_star." + dyecolor.getName());
     }
 }

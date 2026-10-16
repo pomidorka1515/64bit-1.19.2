@@ -8,22 +8,22 @@ import java.util.function.Supplier;
 import net.minecraft.util.datafix.fixes.References;
 
 public class V3081 extends NamespacedSchema {
-    public V3081(int p_216784_, Schema p_216785_) {
-        super(p_216784_, p_216785_);
+    public V3081(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    protected static void registerMob(Schema p_216789_, Map<String, Supplier<TypeTemplate>> p_216790_, String p_216791_) {
-        p_216789_.register(p_216790_, p_216791_, () -> {
-            return V100.equipment(p_216789_);
+    protected static void registerMob(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return V100.equipment(pSchema);
         });
-        p_216789_.register(p_216790_, "minecraft:warden", () -> {
-            return DSL.optionalFields("ArmorItems", DSL.list(References.ITEM_STACK.in(p_216789_)), "HandItems", DSL.list(References.ITEM_STACK.in(p_216789_)), "listener", DSL.optionalFields("event", DSL.optionalFields("game_event", References.GAME_EVENT_NAME.in(p_216789_))));
+        pSchema.register(pMap, "minecraft:warden", () -> {
+            return DSL.optionalFields("ArmorItems", DSL.list(References.ITEM_STACK.in(pSchema)), "HandItems", DSL.list(References.ITEM_STACK.in(pSchema)), "listener", DSL.optionalFields("event", DSL.optionalFields("game_event", References.GAME_EVENT_NAME.in(pSchema))));
         });
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema p_216795_) {
-        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(p_216795_);
-        registerMob(p_216795_, map, "minecraft:warden");
+    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema pSchema) {
+        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(pSchema);
+        registerMob(pSchema, map, "minecraft:warden");
         return map;
     }
 }

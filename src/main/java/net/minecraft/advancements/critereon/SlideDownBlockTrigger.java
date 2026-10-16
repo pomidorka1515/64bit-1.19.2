@@ -17,22 +17,22 @@ public class SlideDownBlockTrigger extends SimpleCriterionTrigger<SlideDownBlock
         return ID;
     }
 
-    public SlideDownBlockTrigger.TriggerInstance createInstance(JsonObject p_66990_, EntityPredicate.Composite p_66991_, DeserializationContext p_66992_) {
-        Block block = deserializeBlock(p_66990_);
-        StatePropertiesPredicate statepropertiespredicate = StatePropertiesPredicate.fromJson(p_66990_.get("state"));
+    public SlideDownBlockTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        Block block = deserializeBlock(pJson);
+        StatePropertiesPredicate statepropertiespredicate = StatePropertiesPredicate.fromJson(pJson.get("state"));
         if (block != null) {
             statepropertiespredicate.checkState(block.getStateDefinition(), (p_66983_) -> {
                 throw new JsonSyntaxException("Block " + block + " has no property " + p_66983_);
             });
         }
 
-        return new SlideDownBlockTrigger.TriggerInstance(p_66991_, block, statepropertiespredicate);
+        return new SlideDownBlockTrigger.TriggerInstance(pEntityPredicate, block, statepropertiespredicate);
     }
 
     @Nullable
-    private static Block deserializeBlock(JsonObject p_66988_) {
-        if (p_66988_.has("block")) {
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_66988_, "block"));
+    private static Block deserializeBlock(JsonObject pJson) {
+        if (pJson.has("block")) {
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pJson, "block"));
             return Registry.BLOCK.getOptional(resourcelocation).orElseThrow(() -> {
                 return new JsonSyntaxException("Unknown block type '" + resourcelocation + "'");
             });
@@ -41,9 +41,9 @@ public class SlideDownBlockTrigger extends SimpleCriterionTrigger<SlideDownBlock
         }
     }
 
-    public void trigger(ServerPlayer p_66979_, BlockState p_66980_) {
-        this.trigger(p_66979_, (p_66986_) -> {
-            return p_66986_.matches(p_66980_);
+    public void trigger(ServerPlayer pPlayer, BlockState pState) {
+        this.trigger(pPlayer, (p_66986_) -> {
+            return p_66986_.matches(pState);
         });
     }
 
@@ -52,18 +52,18 @@ public class SlideDownBlockTrigger extends SimpleCriterionTrigger<SlideDownBlock
         private final Block block;
         private final StatePropertiesPredicate state;
 
-        public TriggerInstance(EntityPredicate.Composite p_67003_, @Nullable Block p_67004_, StatePropertiesPredicate p_67005_) {
-            super(SlideDownBlockTrigger.ID, p_67003_);
-            this.block = p_67004_;
-            this.state = p_67005_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, @Nullable Block pBlock, StatePropertiesPredicate pState) {
+            super(SlideDownBlockTrigger.ID, pPlayer);
+            this.block = pBlock;
+            this.state = pState;
         }
 
-        public static SlideDownBlockTrigger.TriggerInstance slidesDownBlock(Block p_67007_) {
-            return new SlideDownBlockTrigger.TriggerInstance(EntityPredicate.Composite.ANY, p_67007_, StatePropertiesPredicate.ANY);
+        public static SlideDownBlockTrigger.TriggerInstance slidesDownBlock(Block pBlock) {
+            return new SlideDownBlockTrigger.TriggerInstance(EntityPredicate.Composite.ANY, pBlock, StatePropertiesPredicate.ANY);
         }
 
-        public JsonObject serializeToJson(SerializationContext p_67011_) {
-            JsonObject jsonobject = super.serializeToJson(p_67011_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             if (this.block != null) {
                 jsonobject.addProperty("block", Registry.BLOCK.getKey(this.block).toString());
             }
@@ -72,11 +72,11 @@ public class SlideDownBlockTrigger extends SimpleCriterionTrigger<SlideDownBlock
             return jsonobject;
         }
 
-        public boolean matches(BlockState p_67009_) {
-            if (this.block != null && !p_67009_.is(this.block)) {
+        public boolean matches(BlockState pState) {
+            if (this.block != null && !pState.is(this.block)) {
                 return false;
             } else {
-                return this.state.matches(p_67009_);
+                return this.state.matches(pState);
             }
         }
     }

@@ -40,23 +40,23 @@ public class RecipeBookPage {
         }
     }
 
-    public void init(Minecraft p_100429_, int p_100430_, int p_100431_) {
-        this.minecraft = p_100429_;
-        this.recipeBook = p_100429_.player.getRecipeBook();
+    public void init(Minecraft pMinecraft, int pX, int pY) {
+        this.minecraft = pMinecraft;
+        this.recipeBook = pMinecraft.player.getRecipeBook();
 
         for (int i = 0; i < this.buttons.size(); ++i) {
-            this.buttons.get(i).setPosition(p_100430_ + 11 + 25 * (i % 5), p_100431_ + 31 + 25 * (i / 5));
+            this.buttons.get(i).setPosition(pX + 11 + 25 * (i % 5), pY + 31 + 25 * (i / 5));
         }
 
-        this.forwardButton = new StateSwitchingButton(p_100430_ + 93, p_100431_ + 137, 12, 17, false);
+        this.forwardButton = new StateSwitchingButton(pX + 93, pY + 137, 12, 17, false);
         this.forwardButton.initTextureValues(1, 208, 13, 18, RecipeBookComponent.RECIPE_BOOK_LOCATION);
-        this.backButton = new StateSwitchingButton(p_100430_ + 38, p_100431_ + 137, 12, 17, true);
+        this.backButton = new StateSwitchingButton(pX + 38, pY + 137, 12, 17, true);
         this.backButton.initTextureValues(1, 208, 13, 18, RecipeBookComponent.RECIPE_BOOK_LOCATION);
     }
 
-    public void addListener(RecipeBookComponent p_100433_) {
-        this.showListeners.remove(p_100433_);
-        this.showListeners.add(p_100433_);
+    public void addListener(RecipeBookComponent pListener) {
+        this.showListeners.remove(pListener);
+        this.showListeners.add(pListener);
     }
 
     public void updateCollections(List<RecipeCollection> p_100437_, boolean p_100438_) {
@@ -112,9 +112,9 @@ public class RecipeBookPage {
         this.overlay.render(p_100422_, p_100425_, p_100426_, p_100427_);
     }
 
-    public void renderTooltip(PoseStack p_100418_, int p_100419_, int p_100420_) {
+    public void renderTooltip(PoseStack pPoseStack, int pX, int pY) {
         if (this.minecraft.screen != null && this.hoveredButton != null && !this.overlay.isVisible()) {
-            this.minecraft.screen.renderComponentTooltip(p_100418_, this.hoveredButton.getTooltipText(this.minecraft.screen), p_100419_, p_100420_);
+            this.minecraft.screen.renderComponentTooltip(pPoseStack, this.hoveredButton.getTooltipText(this.minecraft.screen), pX, pY);
         }
     }
 
@@ -170,9 +170,9 @@ public class RecipeBookPage {
         }
     }
 
-    public void recipesShown(List<Recipe<?>> p_100435_) {
+    public void recipesShown(List<Recipe<?>> pRecipes) {
         for (RecipeShownListener recipeshownlistener : this.showListeners) {
-            recipeshownlistener.recipesShown(p_100435_);
+            recipeshownlistener.recipesShown(pRecipes);
         }
     }
 
@@ -184,9 +184,9 @@ public class RecipeBookPage {
         return this.recipeBook;
     }
 
-    protected void listButtons(Consumer<AbstractWidget> p_170054_) {
-        p_170054_.accept(this.forwardButton);
-        p_170054_.accept(this.backButton);
-        this.buttons.forEach(p_170054_);
+    protected void listButtons(Consumer<AbstractWidget> pConsumer) {
+        pConsumer.accept(this.forwardButton);
+        pConsumer.accept(this.backButton);
+        this.buttons.forEach(pConsumer);
     }
 }

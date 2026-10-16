@@ -18,26 +18,26 @@ public class BlendMode {
     private final boolean separateBlend;
     private final boolean opaque;
 
-    private BlendMode(boolean p_85519_, boolean p_85520_, int p_85521_, int p_85522_, int p_85523_, int p_85524_, int p_85525_) {
-        this.separateBlend = p_85519_;
-        this.srcColorFactor = p_85521_;
-        this.dstColorFactor = p_85522_;
-        this.srcAlphaFactor = p_85523_;
-        this.dstAlphaFactor = p_85524_;
-        this.opaque = p_85520_;
-        this.blendFunc = p_85525_;
+    private BlendMode(boolean pSeparateBlend, boolean pOpaque, int pSrcColorFactor, int pDstColorFactor, int pSrcAlphaFactor, int pDstAlphaFactor, int pBlendFunc) {
+        this.separateBlend = pSeparateBlend;
+        this.srcColorFactor = pSrcColorFactor;
+        this.dstColorFactor = pDstColorFactor;
+        this.srcAlphaFactor = pSrcAlphaFactor;
+        this.dstAlphaFactor = pDstAlphaFactor;
+        this.opaque = pOpaque;
+        this.blendFunc = pBlendFunc;
     }
 
     public BlendMode() {
         this(false, true, 1, 0, 1, 0, 32774);
     }
 
-    public BlendMode(int p_85509_, int p_85510_, int p_85511_) {
-        this(false, false, p_85509_, p_85510_, p_85509_, p_85510_, p_85511_);
+    public BlendMode(int pSrcFactor, int pDstFactor, int pBlendFunc) {
+        this(false, false, pSrcFactor, pDstFactor, pSrcFactor, pDstFactor, pBlendFunc);
     }
 
-    public BlendMode(int p_85513_, int p_85514_, int p_85515_, int p_85516_, int p_85517_) {
-        this(true, false, p_85513_, p_85514_, p_85515_, p_85516_, p_85517_);
+    public BlendMode(int pSrcColorFactor, int pDstColorFactor, int pSrcAlphaFactor, int pDstAlphaFactor, int pBlendFunc) {
+        this(true, false, pSrcColorFactor, pDstColorFactor, pSrcAlphaFactor, pDstAlphaFactor, pBlendFunc);
     }
 
     public void apply() {
@@ -61,13 +61,13 @@ public class BlendMode {
         }
     }
 
-    public boolean equals(Object p_85533_) {
-        if (this == p_85533_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_85533_ instanceof BlendMode)) {
+        } else if (!(pOther instanceof BlendMode)) {
             return false;
         } else {
-            BlendMode blendmode = (BlendMode) p_85533_;
+            BlendMode blendmode = (BlendMode) pOther;
             if (this.blendFunc != blendmode.blendFunc) {
                 return false;
             } else if (this.dstAlphaFactor != blendmode.dstAlphaFactor) {
@@ -100,8 +100,8 @@ public class BlendMode {
         return this.opaque;
     }
 
-    public static int stringToBlendFunc(String p_85528_) {
-        String s = p_85528_.trim().toLowerCase(Locale.ROOT);
+    public static int stringToBlendFunc(String pFuncName) {
+        String s = pFuncName.trim().toLowerCase(Locale.ROOT);
         if ("add".equals(s)) {
             return 32774;
         } else if ("subtract".equals(s)) {
@@ -117,8 +117,8 @@ public class BlendMode {
         }
     }
 
-    public static int stringToBlendFactor(String p_85531_) {
-        String s = p_85531_.trim().toLowerCase(Locale.ROOT);
+    public static int stringToBlendFactor(String pFactorName) {
+        String s = pFactorName.trim().toLowerCase(Locale.ROOT);
         s = s.replaceAll("_", "");
         s = s.replaceAll("one", "1");
         s = s.replaceAll("zero", "0");

@@ -20,73 +20,73 @@ public class SetWalkTargetFromBlockMemory extends Behavior<Villager> {
     private final int tooFarDistance;
     private final int tooLongUnreachableDuration;
 
-    public SetWalkTargetFromBlockMemory(MemoryModuleType<GlobalPos> p_24046_, float p_24047_, int p_24048_, int p_24049_, int p_24050_) {
-        super(ImmutableMap.of(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT, p_24046_, MemoryStatus.VALUE_PRESENT));
-        this.memoryType = p_24046_;
-        this.speedModifier = p_24047_;
-        this.closeEnoughDist = p_24048_;
-        this.tooFarDistance = p_24049_;
-        this.tooLongUnreachableDuration = p_24050_;
+    public SetWalkTargetFromBlockMemory(MemoryModuleType<GlobalPos> pMemoryType, float pSpeedModifier, int pCloseEnoughDist, int pTooFarDistance, int pTooLongUnreachableDuration) {
+        super(ImmutableMap.of(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT, pMemoryType, MemoryStatus.VALUE_PRESENT));
+        this.memoryType = pMemoryType;
+        this.speedModifier = pSpeedModifier;
+        this.closeEnoughDist = pCloseEnoughDist;
+        this.tooFarDistance = pTooFarDistance;
+        this.tooLongUnreachableDuration = pTooLongUnreachableDuration;
     }
 
-    private void dropPOI(Villager p_24076_, long p_24077_) {
-        Brain<?> brain = p_24076_.getBrain();
-        p_24076_.releasePoi(this.memoryType);
+    private void dropPOI(Villager pVillager, long pTime) {
+        Brain<?> brain = pVillager.getBrain();
+        pVillager.releasePoi(this.memoryType);
         brain.eraseMemory(this.memoryType);
-        brain.setMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, p_24077_);
+        brain.setMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, pTime);
     }
 
-    protected void start(ServerLevel p_24059_, Villager p_24060_, long p_24061_) {
-        Brain<?> brain = p_24060_.getBrain();
+    protected void start(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        Brain<?> brain = pEntity.getBrain();
         brain.getMemory(this.memoryType).ifPresent((p_24067_) -> {
-            if (!this.wrongDimension(p_24059_, p_24067_) && !this.tiredOfTryingToFindTarget(p_24059_, p_24060_)) {
-                if (this.tooFar(p_24060_, p_24067_)) {
+            if (!this.wrongDimension(pLevel, p_24067_) && !this.tiredOfTryingToFindTarget(pLevel, pEntity)) {
+                if (this.tooFar(pEntity, p_24067_)) {
                     SectorVec3 target = null;
                     int i = 0;
                     BlockPos memoryPos = p_24067_.pos();
                     SectorVec3 memoryTarget = SectorVec3.fromBlockAndFraction(memoryPos.getX(), 0.5D,
                             memoryPos.getY(), memoryPos.getZ(), 0.5D);
 
-                    while (i < 1000 && (target == null || this.tooFar(p_24060_, GlobalPos.of(p_24059_.dimension(), target.blockPosition())))) {
-                        target = DefaultRandomPos.getSectorPosTowards(p_24060_, 15, 7, memoryTarget,
+                    while (i < 1000 && (target == null || this.tooFar(pEntity, GlobalPos.of(pLevel.dimension(), target.blockPosition())))) {
+                        target = DefaultRandomPos.getSectorPosTowards(pEntity, 15, 7, memoryTarget,
                                 (double) ((float) Math.PI / 2F));
                         ++i;
                     }
 
                     if (i == 1000) {
-                        this.dropPOI(p_24060_, p_24061_);
+                        this.dropPOI(pEntity, pGameTime);
                         return;
                     }
 
                     brain.setMemory(MemoryModuleType.WALK_TARGET,
                             new WalkTarget(target, this.speedModifier, this.closeEnoughDist));
-                } else if (!this.closeEnough(p_24059_, p_24060_, p_24067_)) {
+                } else if (!this.closeEnough(pLevel, pEntity, p_24067_)) {
                     brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(p_24067_.pos(), this.speedModifier, this.closeEnoughDist));
                 }
             } else {
-                this.dropPOI(p_24060_, p_24061_);
+                this.dropPOI(pEntity, pGameTime);
             }
         });
     }
 
-    private boolean tiredOfTryingToFindTarget(ServerLevel p_24056_, Villager p_24057_) {
-        Optional<Long> optional = p_24057_.getBrain().getMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+    private boolean tiredOfTryingToFindTarget(ServerLevel pLevel, Villager pVillager) {
+        Optional<Long> optional = pVillager.getBrain().getMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
         if (optional.isPresent()) {
-            return p_24056_.getGameTime() - optional.get() > (long) this.tooLongUnreachableDuration;
+            return pLevel.getGameTime() - optional.get() > (long) this.tooLongUnreachableDuration;
         } else {
             return false;
         }
     }
 
-    private boolean tooFar(Villager p_24079_, GlobalPos p_24080_) {
-        return p_24080_.pos().distManhattan(p_24079_.blockPosition()) > this.tooFarDistance;
+    private boolean tooFar(Villager pVillager, GlobalPos pMemoryType) {
+        return pMemoryType.pos().distManhattan(pVillager.blockPosition()) > this.tooFarDistance;
     }
 
-    private boolean wrongDimension(ServerLevel p_24073_, GlobalPos p_24074_) {
-        return p_24074_.dimension() != p_24073_.dimension();
+    private boolean wrongDimension(ServerLevel pLevel, GlobalPos pMemoryPos) {
+        return pMemoryPos.dimension() != pLevel.dimension();
     }
 
-    private boolean closeEnough(ServerLevel p_24069_, Villager p_24070_, GlobalPos p_24071_) {
-        return p_24071_.dimension() == p_24069_.dimension() && p_24071_.pos().distManhattan(p_24070_.blockPosition()) <= this.closeEnoughDist;
+    private boolean closeEnough(ServerLevel pLevel, Villager pVillager, GlobalPos pMemoryPos) {
+        return pMemoryPos.dimension() == pLevel.dimension() && pMemoryPos.pos().distManhattan(pVillager.blockPosition()) <= this.closeEnoughDist;
     }
 }

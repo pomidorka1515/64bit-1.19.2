@@ -11,16 +11,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public class ShieldDecorationRecipe extends CustomRecipe {
-    public ShieldDecorationRecipe(ResourceLocation p_44296_) {
-        super(p_44296_);
+    public ShieldDecorationRecipe(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_44308_, Level p_44309_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         ItemStack itemstack = ItemStack.EMPTY;
         ItemStack itemstack1 = ItemStack.EMPTY;
 
-        for (int i = 0; i < p_44308_.getContainerSize(); ++i) {
-            ItemStack itemstack2 = p_44308_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack2 = pInv.getItem(i);
             if (!itemstack2.isEmpty()) {
                 if (itemstack2.getItem() instanceof BannerItem) {
                     if (!itemstack1.isEmpty()) {
@@ -49,12 +49,12 @@ public class ShieldDecorationRecipe extends CustomRecipe {
         return !itemstack.isEmpty() && !itemstack1.isEmpty();
     }
 
-    public ItemStack assemble(CraftingContainer p_44306_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         ItemStack itemstack = ItemStack.EMPTY;
         ItemStack itemstack1 = ItemStack.EMPTY;
 
-        for (int i = 0; i < p_44306_.getContainerSize(); ++i) {
-            ItemStack itemstack2 = p_44306_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack2 = pInv.getItem(i);
             if (!itemstack2.isEmpty()) {
                 if (itemstack2.getItem() instanceof BannerItem) {
                     itemstack = itemstack2;
@@ -75,8 +75,8 @@ public class ShieldDecorationRecipe extends CustomRecipe {
         }
     }
 
-    public boolean canCraftInDimensions(int p_44298_, int p_44299_) {
-        return p_44298_ * p_44299_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= 2;
     }
 
     public RecipeSerializer<?> getSerializer() {

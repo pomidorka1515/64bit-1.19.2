@@ -14,8 +14,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class MinecartModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart root;
 
-    public MinecartModel(ModelPart p_170737_) {
-        this.root = p_170737_;
+    public MinecartModel(ModelPart pRoot) {
+        this.root = pRoot;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -33,7 +33,7 @@ public class MinecartModel<T extends Entity> extends HierarchicalModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
-    public void setupAnim(T p_103100_, float p_103101_, float p_103102_, float p_103103_, float p_103104_, float p_103105_) {
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
     }
 
     public ModelPart root() {

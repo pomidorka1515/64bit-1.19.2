@@ -11,23 +11,23 @@ public class StartRidingTrigger extends SimpleCriterionTrigger<StartRidingTrigge
         return ID;
     }
 
-    public StartRidingTrigger.TriggerInstance createInstance(JsonObject p_160390_, EntityPredicate.Composite p_160391_, DeserializationContext p_160392_) {
-        return new StartRidingTrigger.TriggerInstance(p_160391_);
+    public StartRidingTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pPlayer, DeserializationContext pContext) {
+        return new StartRidingTrigger.TriggerInstance(pPlayer);
     }
 
-    public void trigger(ServerPlayer p_160388_) {
-        this.trigger(p_160388_, (p_160394_) -> {
+    public void trigger(ServerPlayer pPlayer) {
+        this.trigger(pPlayer, (p_160394_) -> {
             return true;
         });
     }
 
     public static class TriggerInstance extends AbstractCriterionTriggerInstance {
-        public TriggerInstance(EntityPredicate.Composite p_160400_) {
-            super(StartRidingTrigger.ID, p_160400_);
+        public TriggerInstance(EntityPredicate.Composite pPlayer) {
+            super(StartRidingTrigger.ID, pPlayer);
         }
 
-        public static StartRidingTrigger.TriggerInstance playerStartsRiding(EntityPredicate.Builder p_160402_) {
-            return new StartRidingTrigger.TriggerInstance(EntityPredicate.Composite.wrap(p_160402_.build()));
+        public static StartRidingTrigger.TriggerInstance playerStartsRiding(EntityPredicate.Builder pPlayer) {
+            return new StartRidingTrigger.TriggerInstance(EntityPredicate.Composite.wrap(pPlayer.build()));
         }
     }
 }

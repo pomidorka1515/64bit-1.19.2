@@ -13,16 +13,16 @@ import net.minecraft.world.level.Level;
 public class FireworkStarFadeRecipe extends CustomRecipe {
     private static final Ingredient STAR_INGREDIENT = Ingredient.of(Items.FIREWORK_STAR);
 
-    public FireworkStarFadeRecipe(ResourceLocation p_43861_) {
-        super(p_43861_);
+    public FireworkStarFadeRecipe(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_43873_, Level p_43874_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         boolean flag = false;
         boolean flag1 = false;
 
-        for (int i = 0; i < p_43873_.getContainerSize(); ++i) {
-            ItemStack itemstack = p_43873_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack = pInv.getItem(i);
             if (!itemstack.isEmpty()) {
                 if (itemstack.getItem() instanceof DyeItem) {
                     flag = true;
@@ -43,12 +43,12 @@ public class FireworkStarFadeRecipe extends CustomRecipe {
         return flag1 && flag;
     }
 
-    public ItemStack assemble(CraftingContainer p_43871_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         List<Integer> list = Lists.newArrayList();
         ItemStack itemstack = null;
 
-        for (int i = 0; i < p_43871_.getContainerSize(); ++i) {
-            ItemStack itemstack1 = p_43871_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack1 = pInv.getItem(i);
             Item item = itemstack1.getItem();
             if (item instanceof DyeItem) {
                 list.add(((DyeItem) item).getDyeColor().getFireworkColor());
@@ -66,8 +66,8 @@ public class FireworkStarFadeRecipe extends CustomRecipe {
         }
     }
 
-    public boolean canCraftInDimensions(int p_43863_, int p_43864_) {
-        return p_43863_ * p_43864_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= 2;
     }
 
     public RecipeSerializer<?> getSerializer() {

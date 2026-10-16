@@ -33,9 +33,9 @@ public final class ModelPart {
     private final Map<String, ModelPart> children;
     private PartPose initialPose = PartPose.ZERO;
 
-    public ModelPart(List<ModelPart.Cube> p_171306_, Map<String, ModelPart> p_171307_) {
-        this.cubes = p_171306_;
-        this.children = p_171307_;
+    public ModelPart(List<ModelPart.Cube> pCubes, Map<String, ModelPart> pChildren) {
+        this.cubes = pCubes;
+        this.children = pChildren;
     }
 
     public PartPose storePose() {
@@ -46,87 +46,87 @@ public final class ModelPart {
         return this.initialPose;
     }
 
-    public void setInitialPose(PartPose p_233561_) {
-        this.initialPose = p_233561_;
+    public void setInitialPose(PartPose pInitialPose) {
+        this.initialPose = pInitialPose;
     }
 
     public void resetPose() {
         this.loadPose(this.initialPose);
     }
 
-    public void loadPose(PartPose p_171323_) {
-        this.x = p_171323_.x;
-        this.y = p_171323_.y;
-        this.z = p_171323_.z;
-        this.xRot = p_171323_.xRot;
-        this.yRot = p_171323_.yRot;
-        this.zRot = p_171323_.zRot;
+    public void loadPose(PartPose pPartPose) {
+        this.x = pPartPose.x;
+        this.y = pPartPose.y;
+        this.z = pPartPose.z;
+        this.xRot = pPartPose.xRot;
+        this.yRot = pPartPose.yRot;
+        this.zRot = pPartPose.zRot;
         this.xScale = 1.0F;
         this.yScale = 1.0F;
         this.zScale = 1.0F;
     }
 
-    public void copyFrom(ModelPart p_104316_) {
-        this.xScale = p_104316_.xScale;
-        this.yScale = p_104316_.yScale;
-        this.zScale = p_104316_.zScale;
-        this.xRot = p_104316_.xRot;
-        this.yRot = p_104316_.yRot;
-        this.zRot = p_104316_.zRot;
-        this.x = p_104316_.x;
-        this.y = p_104316_.y;
-        this.z = p_104316_.z;
+    public void copyFrom(ModelPart pModelPart) {
+        this.xScale = pModelPart.xScale;
+        this.yScale = pModelPart.yScale;
+        this.zScale = pModelPart.zScale;
+        this.xRot = pModelPart.xRot;
+        this.yRot = pModelPart.yRot;
+        this.zRot = pModelPart.zRot;
+        this.x = pModelPart.x;
+        this.y = pModelPart.y;
+        this.z = pModelPart.z;
     }
 
     public boolean hasChild(String p_233563_) {
         return this.children.containsKey(p_233563_);
     }
 
-    public ModelPart getChild(String p_171325_) {
-        ModelPart modelpart = this.children.get(p_171325_);
+    public ModelPart getChild(String pName) {
+        ModelPart modelpart = this.children.get(pName);
         if (modelpart == null) {
-            throw new NoSuchElementException("Can't find part " + p_171325_);
+            throw new NoSuchElementException("Can't find part " + pName);
         } else {
             return modelpart;
         }
     }
 
-    public void setPos(float p_104228_, float p_104229_, float p_104230_) {
-        this.x = p_104228_;
-        this.y = p_104229_;
-        this.z = p_104230_;
+    public void setPos(float pX, float pY, float pZ) {
+        this.x = pX;
+        this.y = pY;
+        this.z = pZ;
     }
 
-    public void setRotation(float p_171328_, float p_171329_, float p_171330_) {
-        this.xRot = p_171328_;
-        this.yRot = p_171329_;
-        this.zRot = p_171330_;
+    public void setRotation(float pXRot, float pYRot, float pZRot) {
+        this.xRot = pXRot;
+        this.yRot = pYRot;
+        this.zRot = pZRot;
     }
 
-    public void render(PoseStack p_104302_, VertexConsumer p_104303_, int p_104304_, int p_104305_) {
-        this.render(p_104302_, p_104303_, p_104304_, p_104305_, 1.0F, 1.0F, 1.0F, 1.0F);
+    public void render(PoseStack pPoseStack, VertexConsumer pVertexConsumer, int pPackedLight, int pPackedOverlay) {
+        this.render(pPoseStack, pVertexConsumer, pPackedLight, pPackedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    public void render(PoseStack p_104307_, VertexConsumer p_104308_, int p_104309_, int p_104310_, float p_104311_, float p_104312_, float p_104313_, float p_104314_) {
+    public void render(PoseStack pPoseStack, VertexConsumer pVertexConsumer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {
         if (this.visible) {
             if (!this.cubes.isEmpty() || !this.children.isEmpty()) {
-                p_104307_.pushPose();
-                this.translateAndRotate(p_104307_);
+                pPoseStack.pushPose();
+                this.translateAndRotate(pPoseStack);
                 if (!this.skipDraw) {
-                    this.compile(p_104307_.last(), p_104308_, p_104309_, p_104310_, p_104311_, p_104312_, p_104313_, p_104314_);
+                    this.compile(pPoseStack.last(), pVertexConsumer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
                 }
 
                 for (ModelPart modelpart : this.children.values()) {
-                    modelpart.render(p_104307_, p_104308_, p_104309_, p_104310_, p_104311_, p_104312_, p_104313_, p_104314_);
+                    modelpart.render(pPoseStack, pVertexConsumer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
                 }
 
-                p_104307_.popPose();
+                pPoseStack.popPose();
             }
         }
     }
 
-    public void visit(PoseStack p_171310_, ModelPart.Visitor p_171311_) {
-        this.visit(p_171310_, p_171311_, "");
+    public void visit(PoseStack pPoseStack, ModelPart.Visitor pVisitor) {
+        this.visit(pPoseStack, pVisitor, "");
     }
 
     private void visit(PoseStack p_171313_, ModelPart.Visitor p_171314_, String p_171315_) {
@@ -147,33 +147,33 @@ public final class ModelPart {
         }
     }
 
-    public void translateAndRotate(PoseStack p_104300_) {
-        p_104300_.translate((double) (this.x / 16.0F), (double) (this.y / 16.0F), (double) (this.z / 16.0F));
+    public void translateAndRotate(PoseStack pPoseStack) {
+        pPoseStack.translate((double) (this.x / 16.0F), (double) (this.y / 16.0F), (double) (this.z / 16.0F));
         if (this.zRot != 0.0F) {
-            p_104300_.mulPose(Vector3f.ZP.rotation(this.zRot));
+            pPoseStack.mulPose(Vector3f.ZP.rotation(this.zRot));
         }
 
         if (this.yRot != 0.0F) {
-            p_104300_.mulPose(Vector3f.YP.rotation(this.yRot));
+            pPoseStack.mulPose(Vector3f.YP.rotation(this.yRot));
         }
 
         if (this.xRot != 0.0F) {
-            p_104300_.mulPose(Vector3f.XP.rotation(this.xRot));
+            pPoseStack.mulPose(Vector3f.XP.rotation(this.xRot));
         }
 
         if (this.xScale != 1.0F || this.yScale != 1.0F || this.zScale != 1.0F) {
-            p_104300_.scale(this.xScale, this.yScale, this.zScale);
+            pPoseStack.scale(this.xScale, this.yScale, this.zScale);
         }
     }
 
-    private void compile(PoseStack.Pose p_104291_, VertexConsumer p_104292_, int p_104293_, int p_104294_, float p_104295_, float p_104296_, float p_104297_, float p_104298_) {
+    private void compile(PoseStack.Pose pPose, VertexConsumer pVertexConsumer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {
         for (ModelPart.Cube modelpart$cube : this.cubes) {
-            modelpart$cube.compile(p_104291_, p_104292_, p_104293_, p_104294_, p_104295_, p_104296_, p_104297_, p_104298_);
+            modelpart$cube.compile(pPose, pVertexConsumer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
         }
     }
 
-    public ModelPart.Cube getRandomCube(RandomSource p_233559_) {
-        return this.cubes.get(p_233559_.nextInt(this.cubes.size()));
+    public ModelPart.Cube getRandomCube(RandomSource pRandom) {
+        return this.cubes.get(pRandom.nextInt(this.cubes.size()));
     }
 
     public boolean isEmpty() {
@@ -212,57 +212,57 @@ public final class ModelPart {
         public final float maxY;
         public final float maxZ;
 
-        public Cube(int p_104343_, int p_104344_, float p_104345_, float p_104346_, float p_104347_, float p_104348_, float p_104349_, float p_104350_, float p_104351_, float p_104352_, float p_104353_, boolean p_104354_, float p_104355_, float p_104356_) {
-            this.minX = p_104345_;
-            this.minY = p_104346_;
-            this.minZ = p_104347_;
-            this.maxX = p_104345_ + p_104348_;
-            this.maxY = p_104346_ + p_104349_;
-            this.maxZ = p_104347_ + p_104350_;
+        public Cube(int pTexCoordU, int pTexCoordV, float pMinX, float pMinY, float pMinZ, float pDimensionX, float pDimensionY, float pDimensionZ, float pGrowX, float pGrowY, float pGrowZ, boolean pMirror, float pTexWidthScaled, float pTexHeightScaled) {
+            this.minX = pMinX;
+            this.minY = pMinY;
+            this.minZ = pMinZ;
+            this.maxX = pMinX + pDimensionX;
+            this.maxY = pMinY + pDimensionY;
+            this.maxZ = pMinZ + pDimensionZ;
             this.polygons = new ModelPart.Polygon[6];
-            float f = p_104345_ + p_104348_;
-            float f1 = p_104346_ + p_104349_;
-            float f2 = p_104347_ + p_104350_;
-            p_104345_ -= p_104351_;
-            p_104346_ -= p_104352_;
-            p_104347_ -= p_104353_;
-            f += p_104351_;
-            f1 += p_104352_;
-            f2 += p_104353_;
-            if (p_104354_) {
+            float f = pMinX + pDimensionX;
+            float f1 = pMinY + pDimensionY;
+            float f2 = pMinZ + pDimensionZ;
+            pMinX -= pGrowX;
+            pMinY -= pGrowY;
+            pMinZ -= pGrowZ;
+            f += pGrowX;
+            f1 += pGrowY;
+            f2 += pGrowZ;
+            if (pMirror) {
                 float f3 = f;
-                f = p_104345_;
-                p_104345_ = f3;
+                f = pMinX;
+                pMinX = f3;
             }
 
-            ModelPart.Vertex modelpart$vertex7 = new ModelPart.Vertex(p_104345_, p_104346_, p_104347_, 0.0F, 0.0F);
-            ModelPart.Vertex modelpart$vertex = new ModelPart.Vertex(f, p_104346_, p_104347_, 0.0F, 8.0F);
-            ModelPart.Vertex modelpart$vertex1 = new ModelPart.Vertex(f, f1, p_104347_, 8.0F, 8.0F);
-            ModelPart.Vertex modelpart$vertex2 = new ModelPart.Vertex(p_104345_, f1, p_104347_, 8.0F, 0.0F);
-            ModelPart.Vertex modelpart$vertex3 = new ModelPart.Vertex(p_104345_, p_104346_, f2, 0.0F, 0.0F);
-            ModelPart.Vertex modelpart$vertex4 = new ModelPart.Vertex(f, p_104346_, f2, 0.0F, 8.0F);
+            ModelPart.Vertex modelpart$vertex7 = new ModelPart.Vertex(pMinX, pMinY, pMinZ, 0.0F, 0.0F);
+            ModelPart.Vertex modelpart$vertex = new ModelPart.Vertex(f, pMinY, pMinZ, 0.0F, 8.0F);
+            ModelPart.Vertex modelpart$vertex1 = new ModelPart.Vertex(f, f1, pMinZ, 8.0F, 8.0F);
+            ModelPart.Vertex modelpart$vertex2 = new ModelPart.Vertex(pMinX, f1, pMinZ, 8.0F, 0.0F);
+            ModelPart.Vertex modelpart$vertex3 = new ModelPart.Vertex(pMinX, pMinY, f2, 0.0F, 0.0F);
+            ModelPart.Vertex modelpart$vertex4 = new ModelPart.Vertex(f, pMinY, f2, 0.0F, 8.0F);
             ModelPart.Vertex modelpart$vertex5 = new ModelPart.Vertex(f, f1, f2, 8.0F, 8.0F);
-            ModelPart.Vertex modelpart$vertex6 = new ModelPart.Vertex(p_104345_, f1, f2, 8.0F, 0.0F);
-            float f4 = (float) p_104343_;
-            float f5 = (float) p_104343_ + p_104350_;
-            float f6 = (float) p_104343_ + p_104350_ + p_104348_;
-            float f7 = (float) p_104343_ + p_104350_ + p_104348_ + p_104348_;
-            float f8 = (float) p_104343_ + p_104350_ + p_104348_ + p_104350_;
-            float f9 = (float) p_104343_ + p_104350_ + p_104348_ + p_104350_ + p_104348_;
-            float f10 = (float) p_104344_;
-            float f11 = (float) p_104344_ + p_104350_;
-            float f12 = (float) p_104344_ + p_104350_ + p_104349_;
-            this.polygons[2] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex4, modelpart$vertex3, modelpart$vertex7, modelpart$vertex}, f5, f10, f6, f11, p_104355_, p_104356_, p_104354_, Direction.DOWN);
-            this.polygons[3] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex1, modelpart$vertex2, modelpart$vertex6, modelpart$vertex5}, f6, f11, f7, f10, p_104355_, p_104356_, p_104354_, Direction.UP);
-            this.polygons[1] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex7, modelpart$vertex3, modelpart$vertex6, modelpart$vertex2}, f4, f11, f5, f12, p_104355_, p_104356_, p_104354_, Direction.WEST);
-            this.polygons[4] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex, modelpart$vertex7, modelpart$vertex2, modelpart$vertex1}, f5, f11, f6, f12, p_104355_, p_104356_, p_104354_, Direction.NORTH);
-            this.polygons[0] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex4, modelpart$vertex, modelpart$vertex1, modelpart$vertex5}, f6, f11, f8, f12, p_104355_, p_104356_, p_104354_, Direction.EAST);
-            this.polygons[5] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex3, modelpart$vertex4, modelpart$vertex5, modelpart$vertex6}, f8, f11, f9, f12, p_104355_, p_104356_, p_104354_, Direction.SOUTH);
+            ModelPart.Vertex modelpart$vertex6 = new ModelPart.Vertex(pMinX, f1, f2, 8.0F, 0.0F);
+            float f4 = (float) pTexCoordU;
+            float f5 = (float) pTexCoordU + pDimensionZ;
+            float f6 = (float) pTexCoordU + pDimensionZ + pDimensionX;
+            float f7 = (float) pTexCoordU + pDimensionZ + pDimensionX + pDimensionX;
+            float f8 = (float) pTexCoordU + pDimensionZ + pDimensionX + pDimensionZ;
+            float f9 = (float) pTexCoordU + pDimensionZ + pDimensionX + pDimensionZ + pDimensionX;
+            float f10 = (float) pTexCoordV;
+            float f11 = (float) pTexCoordV + pDimensionZ;
+            float f12 = (float) pTexCoordV + pDimensionZ + pDimensionY;
+            this.polygons[2] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex4, modelpart$vertex3, modelpart$vertex7, modelpart$vertex}, f5, f10, f6, f11, pTexWidthScaled, pTexHeightScaled, pMirror, Direction.DOWN);
+            this.polygons[3] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex1, modelpart$vertex2, modelpart$vertex6, modelpart$vertex5}, f6, f11, f7, f10, pTexWidthScaled, pTexHeightScaled, pMirror, Direction.UP);
+            this.polygons[1] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex7, modelpart$vertex3, modelpart$vertex6, modelpart$vertex2}, f4, f11, f5, f12, pTexWidthScaled, pTexHeightScaled, pMirror, Direction.WEST);
+            this.polygons[4] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex, modelpart$vertex7, modelpart$vertex2, modelpart$vertex1}, f5, f11, f6, f12, pTexWidthScaled, pTexHeightScaled, pMirror, Direction.NORTH);
+            this.polygons[0] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex4, modelpart$vertex, modelpart$vertex1, modelpart$vertex5}, f6, f11, f8, f12, pTexWidthScaled, pTexHeightScaled, pMirror, Direction.EAST);
+            this.polygons[5] = new ModelPart.Polygon(new ModelPart.Vertex[] {modelpart$vertex3, modelpart$vertex4, modelpart$vertex5, modelpart$vertex6}, f8, f11, f9, f12, pTexWidthScaled, pTexHeightScaled, pMirror, Direction.SOUTH);
         }
 
-        public void compile(PoseStack.Pose p_171333_, VertexConsumer p_171334_, int p_171335_, int p_171336_, float p_171337_, float p_171338_, float p_171339_, float p_171340_) {
-            Matrix4f matrix4f = p_171333_.pose();
-            Matrix3f matrix3f = p_171333_.normal();
+        public void compile(PoseStack.Pose pPose, VertexConsumer pVertexConsumer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {
+            Matrix4f matrix4f = pPose.pose();
+            Matrix3f matrix3f = pPose.normal();
 
             for (ModelPart.Polygon modelpart$polygon : this.polygons) {
                 Vector3f vector3f = modelpart$polygon.normal.copy();
@@ -277,7 +277,7 @@ public final class ModelPart {
                     float f5 = modelpart$vertex.pos.z() / 16.0F;
                     Vector4f vector4f = new Vector4f(f3, f4, f5, 1.0F);
                     vector4f.transform(matrix4f);
-                    p_171334_.vertex(vector4f.x(), vector4f.y(), vector4f.z(), p_171337_, p_171338_, p_171339_, p_171340_, modelpart$vertex.u, modelpart$vertex.v, p_171336_, p_171335_, f, f1, f2);
+                    pVertexConsumer.vertex(vector4f.x(), vector4f.y(), vector4f.z(), pRed, pGreen, pBlue, pAlpha, modelpart$vertex.u, modelpart$vertex.v, pPackedOverlay, pPackedLight, f, f1, f2);
                 }
             }
         }
@@ -319,24 +319,24 @@ public final class ModelPart {
         public final float u;
         public final float v;
 
-        public Vertex(float p_104375_, float p_104376_, float p_104377_, float p_104378_, float p_104379_) {
-            this(new Vector3f(p_104375_, p_104376_, p_104377_), p_104378_, p_104379_);
+        public Vertex(float pX, float pY, float pZ, float pU, float pV) {
+            this(new Vector3f(pX, pY, pZ), pU, pV);
         }
 
-        public ModelPart.Vertex remap(float p_104385_, float p_104386_) {
-            return new ModelPart.Vertex(this.pos, p_104385_, p_104386_);
+        public ModelPart.Vertex remap(float pU, float pV) {
+            return new ModelPart.Vertex(this.pos, pU, pV);
         }
 
-        public Vertex(Vector3f p_104381_, float p_104382_, float p_104383_) {
-            this.pos = p_104381_;
-            this.u = p_104382_;
-            this.v = p_104383_;
+        public Vertex(Vector3f pPos, float pU, float pV) {
+            this.pos = pPos;
+            this.u = pU;
+            this.v = pV;
         }
     }
 
     @FunctionalInterface
     @OnlyIn(Dist.CLIENT)
     public interface Visitor {
-        void visit(PoseStack.Pose p_171342_, String p_171343_, int p_171344_, ModelPart.Cube p_171345_);
+        void visit(PoseStack.Pose pPose, String pPath, int pIndex, ModelPart.Cube pCube);
     }
 }

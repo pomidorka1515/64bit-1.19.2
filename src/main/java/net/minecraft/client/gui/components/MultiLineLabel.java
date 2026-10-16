@@ -43,23 +43,23 @@ public interface MultiLineLabel {
         }
     };
 
-    static MultiLineLabel create(Font p_94342_, FormattedText p_94343_, int p_94344_) {
-        return createFixed(p_94342_, p_94342_.split(p_94343_, p_94344_).stream().map((p_94374_) -> {
-                                                                                    return new MultiLineLabel.TextWithWidth(p_94374_, p_94342_.width(p_94374_));
+    static MultiLineLabel create(Font pFont, FormattedText pFormattedText, int pMaxWidth) {
+        return createFixed(pFont, pFont.split(pFormattedText, pMaxWidth).stream().map((p_94374_) -> {
+                                                                                    return new MultiLineLabel.TextWithWidth(p_94374_, pFont.width(p_94374_));
                                                                                 })
                                              .collect(ImmutableList.toImmutableList()));
     }
 
-    static MultiLineLabel create(Font p_94346_, FormattedText p_94347_, int p_94348_, int p_94349_) {
-        return createFixed(p_94346_, p_94346_.split(p_94347_, p_94348_).stream().limit((long) p_94349_).map((p_94371_) -> {
-                                                                                                           return new MultiLineLabel.TextWithWidth(p_94371_, p_94346_.width(p_94371_));
+    static MultiLineLabel create(Font pFont, FormattedText pFormattedText, int pMaxWidth, int pMaxLines) {
+        return createFixed(pFont, pFont.split(pFormattedText, pMaxWidth).stream().limit((long) pMaxLines).map((p_94371_) -> {
+                                                                                                           return new MultiLineLabel.TextWithWidth(p_94371_, pFont.width(p_94371_));
                                                                                                        })
                                              .collect(ImmutableList.toImmutableList()));
     }
 
-    static MultiLineLabel create(Font p_94351_, Component... p_94352_) {
-        return createFixed(p_94351_, Arrays.stream(p_94352_).map(Component::getVisualOrderText).map((p_94360_) -> {
-                                                                                                   return new MultiLineLabel.TextWithWidth(p_94360_, p_94351_.width(p_94360_));
+    static MultiLineLabel create(Font pFont, Component... pComponents) {
+        return createFixed(pFont, Arrays.stream(pComponents).map(Component::getVisualOrderText).map((p_94360_) -> {
+                                                                                                   return new MultiLineLabel.TextWithWidth(p_94360_, pFont.width(p_94360_));
                                                                                                })
                                              .collect(ImmutableList.toImmutableList()));
     }
@@ -71,9 +71,9 @@ public interface MultiLineLabel {
                                               .collect(ImmutableList.toImmutableList()));
     }
 
-    static MultiLineLabel createFixed(final Font p_94362_, final List<MultiLineLabel.TextWithWidth> p_94363_) {
-        return p_94363_.isEmpty() ? EMPTY : new MultiLineLabel() {
-            private final int width = p_94363_.stream().mapToInt((p_232527_) -> {
+    static MultiLineLabel createFixed(final Font pFont, final List<MultiLineLabel.TextWithWidth> pTextList) {
+        return pTextList.isEmpty() ? EMPTY : new MultiLineLabel() {
+            private final int width = pTextList.stream().mapToInt((p_232527_) -> {
                                                            return p_232527_.width;
                                                        })
                                               .max()
@@ -86,8 +86,8 @@ public interface MultiLineLabel {
             public int renderCentered(PoseStack p_94410_, int p_94411_, int p_94412_, int p_94413_, int p_94414_) {
                 int i = p_94412_;
 
-                for (MultiLineLabel.TextWithWidth multilinelabel$textwithwidth : p_94363_) {
-                    p_94362_.drawShadow(p_94410_, multilinelabel$textwithwidth.text, (float) (p_94411_ - multilinelabel$textwithwidth.width / 2), (float) i, p_94414_);
+                for (MultiLineLabel.TextWithWidth multilinelabel$textwithwidth : pTextList) {
+                    pFont.drawShadow(p_94410_, multilinelabel$textwithwidth.text, (float) (p_94411_ - multilinelabel$textwithwidth.width / 2), (float) i, p_94414_);
                     i += p_94413_;
                 }
 
@@ -97,8 +97,8 @@ public interface MultiLineLabel {
             public int renderLeftAligned(PoseStack p_94416_, int p_94417_, int p_94418_, int p_94419_, int p_94420_) {
                 int i = p_94418_;
 
-                for (MultiLineLabel.TextWithWidth multilinelabel$textwithwidth : p_94363_) {
-                    p_94362_.drawShadow(p_94416_, multilinelabel$textwithwidth.text, (float) p_94417_, (float) i, p_94420_);
+                for (MultiLineLabel.TextWithWidth multilinelabel$textwithwidth : pTextList) {
+                    pFont.drawShadow(p_94416_, multilinelabel$textwithwidth.text, (float) p_94417_, (float) i, p_94420_);
                     i += p_94419_;
                 }
 
@@ -108,8 +108,8 @@ public interface MultiLineLabel {
             public int renderLeftAlignedNoShadow(PoseStack p_94422_, int p_94423_, int p_94424_, int p_94425_, int p_94426_) {
                 int i = p_94424_;
 
-                for (MultiLineLabel.TextWithWidth multilinelabel$textwithwidth : p_94363_) {
-                    p_94362_.draw(p_94422_, multilinelabel$textwithwidth.text, (float) p_94423_, (float) i, p_94426_);
+                for (MultiLineLabel.TextWithWidth multilinelabel$textwithwidth : pTextList) {
+                    pFont.draw(p_94422_, multilinelabel$textwithwidth.text, (float) p_94423_, (float) i, p_94426_);
                     i += p_94425_;
                 }
 
@@ -117,18 +117,18 @@ public interface MultiLineLabel {
             }
 
             public void renderBackgroundCentered(PoseStack p_210831_, int p_210832_, int p_210833_, int p_210834_, int p_210835_, int p_210836_) {
-                int i = p_94363_.stream().mapToInt((p_232524_) -> {
+                int i = pTextList.stream().mapToInt((p_232524_) -> {
                                              return p_232524_.width;
                                          })
                                 .max()
                                 .orElse(0);
                 if (i > 0) {
-                    GuiComponent.fill(p_210831_, p_210832_ - i / 2 - p_210835_, p_210833_ - p_210835_, p_210832_ + i / 2 + p_210835_, p_210833_ + p_94363_.size() * p_210834_ + p_210835_, p_210836_);
+                    GuiComponent.fill(p_210831_, p_210832_ - i / 2 - p_210835_, p_210833_ - p_210835_, p_210832_ + i / 2 + p_210835_, p_210833_ + pTextList.size() * p_210834_ + p_210835_, p_210836_);
                 }
             }
 
             public int getLineCount() {
-                return p_94363_.size();
+                return pTextList.size();
             }
 
             public int getWidth() {
@@ -137,13 +137,13 @@ public interface MultiLineLabel {
         };
     }
 
-    int renderCentered(PoseStack p_94333_, int p_94334_, int p_94335_);
+    int renderCentered(PoseStack pPoseStack, int pWidth, int pTextWithWidthList);
 
-    int renderCentered(PoseStack p_94336_, int p_94337_, int p_94338_, int p_94339_, int p_94340_);
+    int renderCentered(PoseStack pPoseStack, int pWidth, int pX, int pY, int pColor);
 
-    int renderLeftAligned(PoseStack p_94353_, int p_94354_, int p_94355_, int p_94356_, int p_94357_);
+    int renderLeftAligned(PoseStack pPoseStack, int pX, int pY, int pLineHeight, int pColor);
 
-    int renderLeftAlignedNoShadow(PoseStack p_94364_, int p_94365_, int p_94366_, int p_94367_, int p_94368_);
+    int renderLeftAlignedNoShadow(PoseStack pPoseStack, int pX, int pY, int pLineHeight, int pColor);
 
     void renderBackgroundCentered(PoseStack p_210817_, int p_210818_, int p_210819_, int p_210820_, int p_210821_, int p_210822_);
 
@@ -156,9 +156,9 @@ public interface MultiLineLabel {
         final FormattedCharSequence text;
         final int width;
 
-        TextWithWidth(FormattedCharSequence p_94430_, int p_94431_) {
-            this.text = p_94430_;
-            this.width = p_94431_;
+        TextWithWidth(FormattedCharSequence pText, int pWidth) {
+            this.text = pText;
+            this.width = pWidth;
         }
     }
 }

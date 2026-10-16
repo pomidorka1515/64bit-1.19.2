@@ -61,34 +61,34 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
     @Nullable
     List<TextRenderingUtils.Line> noTemplatesMessage;
 
-    public RealmsSelectWorldTemplateScreen(Component p_167481_, Consumer<WorldTemplate> p_167482_, RealmsServer.WorldType p_167483_) {
-        this(p_167481_, p_167482_, p_167483_, (WorldTemplatePaginatedList) null);
+    public RealmsSelectWorldTemplateScreen(Component pTitle, Consumer<WorldTemplate> pCallback, RealmsServer.WorldType pWorldType) {
+        this(pTitle, pCallback, pWorldType, (WorldTemplatePaginatedList) null);
     }
 
-    public RealmsSelectWorldTemplateScreen(Component p_167485_, Consumer<WorldTemplate> p_167486_, RealmsServer.WorldType p_167487_, @Nullable WorldTemplatePaginatedList p_167488_) {
-        super(p_167485_);
-        this.callback = p_167486_;
-        this.worldType = p_167487_;
-        if (p_167488_ == null) {
+    public RealmsSelectWorldTemplateScreen(Component pTitle, Consumer<WorldTemplate> pCallback, RealmsServer.WorldType pWorldType, @Nullable WorldTemplatePaginatedList pWorldTemplatePaginatedList) {
+        super(pTitle);
+        this.callback = pCallback;
+        this.worldType = pWorldType;
+        if (pWorldTemplatePaginatedList == null) {
             this.worldTemplateObjectSelectionList = new RealmsSelectWorldTemplateScreen.WorldTemplateObjectSelectionList();
             this.fetchTemplatesAsync(new WorldTemplatePaginatedList(10));
         } else {
-            this.worldTemplateObjectSelectionList = new RealmsSelectWorldTemplateScreen.WorldTemplateObjectSelectionList(Lists.newArrayList(p_167488_.templates));
-            this.fetchTemplatesAsync(p_167488_);
+            this.worldTemplateObjectSelectionList = new RealmsSelectWorldTemplateScreen.WorldTemplateObjectSelectionList(Lists.newArrayList(pWorldTemplatePaginatedList.templates));
+            this.fetchTemplatesAsync(pWorldTemplatePaginatedList);
         }
     }
 
-    public void setWarning(Component... p_89683_) {
-        this.warning = p_89683_;
+    public void setWarning(Component... pWarning) {
+        this.warning = pWarning;
         this.displayWarning = true;
     }
 
-    public boolean mouseClicked(double p_89629_, double p_89630_, int p_89631_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (this.hoverWarning && this.warningURL != null) {
             Util.getPlatform().openUri("https://www.minecraft.net/realms/adventure-maps-in-1-9");
             return true;
         } else {
-            return super.mouseClicked(p_89629_, p_89630_, p_89631_);
+            return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
     }
 
@@ -241,17 +241,17 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
         }
     }
 
-    public void render(PoseStack p_89639_, int p_89640_, int p_89641_, float p_89642_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.toolTip = null;
         this.currentLink = null;
         this.hoverWarning = false;
-        this.renderBackground(p_89639_);
-        this.worldTemplateObjectSelectionList.render(p_89639_, p_89640_, p_89641_, p_89642_);
+        this.renderBackground(pPoseStack);
+        this.worldTemplateObjectSelectionList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (this.noTemplatesMessage != null) {
-            this.renderMultilineMessage(p_89639_, p_89640_, p_89641_, this.noTemplatesMessage);
+            this.renderMultilineMessage(pPoseStack, pMouseX, pMouseY, this.noTemplatesMessage);
         }
 
-        drawCenteredString(p_89639_, this.font, this.title, this.width / 2, 13, 16777215);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 13, 16777215);
         if (this.displayWarning) {
             Component[] acomponent = this.warning;
 
@@ -259,7 +259,7 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
                 int j = this.font.width(acomponent[i]);
                 int k = this.width / 2 - j / 2;
                 int l = row(-1 + i);
-                if (p_89640_ >= k && p_89640_ <= k + j && p_89641_ >= l && p_89641_ <= l + 9) {
+                if (pMouseX >= k && pMouseX <= k + j && pMouseY >= l && pMouseY <= l + 9) {
                     this.hoverWarning = true;
                 }
             }
@@ -276,17 +276,17 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
                     }
                 }
 
-                drawCenteredString(p_89639_, this.font, component, this.width / 2, row(-1 + i1), j1);
+                drawCenteredString(pPoseStack, this.font, component, this.width / 2, row(-1 + i1), j1);
             }
         }
 
-        super.render(p_89639_, p_89640_, p_89641_, p_89642_);
-        this.renderMousehoverTooltip(p_89639_, this.toolTip, p_89640_, p_89641_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderMousehoverTooltip(pPoseStack, this.toolTip, pMouseX, pMouseY);
     }
 
-    private void renderMultilineMessage(PoseStack p_89644_, int p_89645_, int p_89646_, List<TextRenderingUtils.Line> p_89647_) {
-        for (int i = 0; i < p_89647_.size(); ++i) {
-            TextRenderingUtils.Line textrenderingutils$line = p_89647_.get(i);
+    private void renderMultilineMessage(PoseStack pPoseStack, int pX, int pY, List<TextRenderingUtils.Line> pLines) {
+        for (int i = 0; i < pLines.size(); ++i) {
+            TextRenderingUtils.Line textrenderingutils$line = pLines.get(i);
             int j = row(4 + i);
             int k = textrenderingutils$line.segments.stream().mapToInt((p_89677_) -> {
                                                                  return this.font.width(p_89677_.renderedText());
@@ -296,8 +296,8 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
 
             for (TextRenderingUtils.LineSegment textrenderingutils$linesegment : textrenderingutils$line.segments) {
                 int i1 = textrenderingutils$linesegment.isLink() ? 3368635 : 16777215;
-                int j1 = this.font.drawShadow(p_89644_, textrenderingutils$linesegment.renderedText(), (float) l, (float) j, i1);
-                if (textrenderingutils$linesegment.isLink() && p_89645_ > l && p_89645_ < j1 && p_89646_ > j - 3 && p_89646_ < j + 8) {
+                int j1 = this.font.drawShadow(pPoseStack, textrenderingutils$linesegment.renderedText(), (float) l, (float) j, i1);
+                if (textrenderingutils$linesegment.isLink() && pX > l && pX < j1 && pY > j - 3 && pY < j + 8) {
                     this.toolTip = Component.literal(textrenderingutils$linesegment.getLinkUrl());
                     this.currentLink = textrenderingutils$linesegment.getLinkUrl();
                 }
@@ -307,13 +307,13 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
         }
     }
 
-    protected void renderMousehoverTooltip(PoseStack p_89649_, @Nullable Component p_89650_, int p_89651_, int p_89652_) {
-        if (p_89650_ != null) {
-            int i = p_89651_ + 12;
-            int j = p_89652_ - 12;
-            int k = this.font.width(p_89650_);
-            this.fillGradient(p_89649_, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
-            this.font.drawShadow(p_89649_, p_89650_, (float) i, (float) j, 16777215);
+    protected void renderMousehoverTooltip(PoseStack pPoseStack, @Nullable Component pTooltip, int pMouseX, int pMouseY) {
+        if (pTooltip != null) {
+            int i = pMouseX + 12;
+            int j = pMouseY - 12;
+            int k = this.font.width(pTooltip);
+            this.fillGradient(pPoseStack, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
+            this.font.drawShadow(pPoseStack, pTooltip, (float) i, (float) j, 16777215);
         }
     }
 
@@ -325,29 +325,29 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
             this.template = p_89753_;
         }
 
-        public void render(PoseStack p_89755_, int p_89756_, int p_89757_, int p_89758_, int p_89759_, int p_89760_, int p_89761_, int p_89762_, boolean p_89763_, float p_89764_) {
-            this.renderWorldTemplateItem(p_89755_, this.template, p_89758_, p_89757_, p_89761_, p_89762_);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            this.renderWorldTemplateItem(pPoseStack, this.template, pLeft, pTop, pMouseX, pMouseY);
         }
 
-        private void renderWorldTemplateItem(PoseStack p_89782_, WorldTemplate p_89783_, int p_89784_, int p_89785_, int p_89786_, int p_89787_) {
-            int i = p_89784_ + 45 + 20;
-            RealmsSelectWorldTemplateScreen.this.font.draw(p_89782_, p_89783_.name, (float) i, (float) (p_89785_ + 2), 16777215);
-            RealmsSelectWorldTemplateScreen.this.font.draw(p_89782_, p_89783_.author, (float) i, (float) (p_89785_ + 15), 7105644);
-            RealmsSelectWorldTemplateScreen.this.font.draw(p_89782_, p_89783_.version, (float) (i + 227 - RealmsSelectWorldTemplateScreen.this.font.width(p_89783_.version)), (float) (p_89785_ + 1), 7105644);
-            if (!"".equals(p_89783_.link) || !"".equals(p_89783_.trailer) || !"".equals(p_89783_.recommendedPlayers)) {
-                this.drawIcons(p_89782_, i - 1, p_89785_ + 25, p_89786_, p_89787_, p_89783_.link, p_89783_.trailer, p_89783_.recommendedPlayers);
+        private void renderWorldTemplateItem(PoseStack pPoseStack, WorldTemplate pTemplate, int pX, int pY, int pMouseX, int pMouseY) {
+            int i = pX + 45 + 20;
+            RealmsSelectWorldTemplateScreen.this.font.draw(pPoseStack, pTemplate.name, (float) i, (float) (pY + 2), 16777215);
+            RealmsSelectWorldTemplateScreen.this.font.draw(pPoseStack, pTemplate.author, (float) i, (float) (pY + 15), 7105644);
+            RealmsSelectWorldTemplateScreen.this.font.draw(pPoseStack, pTemplate.version, (float) (i + 227 - RealmsSelectWorldTemplateScreen.this.font.width(pTemplate.version)), (float) (pY + 1), 7105644);
+            if (!"".equals(pTemplate.link) || !"".equals(pTemplate.trailer) || !"".equals(pTemplate.recommendedPlayers)) {
+                this.drawIcons(pPoseStack, i - 1, pY + 25, pMouseX, pMouseY, pTemplate.link, pTemplate.trailer, pTemplate.recommendedPlayers);
             }
 
-            this.drawImage(p_89782_, p_89784_, p_89785_ + 1, p_89786_, p_89787_, p_89783_);
+            this.drawImage(pPoseStack, pX, pY + 1, pMouseX, pMouseY, pTemplate);
         }
 
-        private void drawImage(PoseStack p_89766_, int p_89767_, int p_89768_, int p_89769_, int p_89770_, WorldTemplate p_89771_) {
-            RealmsTextureManager.bindWorldTemplate(p_89771_.id, p_89771_.image);
+        private void drawImage(PoseStack pPoseStack, int pX, int pY, int pMouseX, int pMouseY, WorldTemplate pTemplate) {
+            RealmsTextureManager.bindWorldTemplate(pTemplate.id, pTemplate.image);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            GuiComponent.blit(p_89766_, p_89767_ + 1, p_89768_ + 1, 0.0F, 0.0F, 38, 38, 38, 38);
+            GuiComponent.blit(pPoseStack, pX + 1, pY + 1, 0.0F, 0.0F, 38, 38, 38, 38);
             RenderSystem.setShaderTexture(0, RealmsSelectWorldTemplateScreen.SLOT_FRAME_LOCATION);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            GuiComponent.blit(p_89766_, p_89767_, p_89768_, 0.0F, 0.0F, 40, 40, 40, 40);
+            GuiComponent.blit(pPoseStack, pX, pY, 0.0F, 0.0F, 40, 40, 40, 40);
         }
 
         private void drawIcons(PoseStack p_89773_, int p_89774_, int p_89775_, int p_89776_, int p_89777_, String p_89778_, String p_89779_, String p_89780_) {
@@ -416,20 +416,20 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
             this.addEntry(RealmsSelectWorldTemplateScreen.this.new Entry(p_89805_));
         }
 
-        public boolean mouseClicked(double p_89797_, double p_89798_, int p_89799_) {
-            if (p_89799_ == 0 && p_89798_ >= (double) this.y0 && p_89798_ <= (double) this.y1) {
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+            if (pButton == 0 && pMouseY >= (double) this.y0 && pMouseY <= (double) this.y1) {
                 int i = this.width / 2 - 150;
                 if (RealmsSelectWorldTemplateScreen.this.currentLink != null) {
                     Util.getPlatform().openUri(RealmsSelectWorldTemplateScreen.this.currentLink);
                 }
 
-                int j = (int) Math.floor(p_89798_ - (double) this.y0) - this.headerHeight + (int) this.getScrollAmount() - 4;
+                int j = (int) Math.floor(pMouseY - (double) this.y0) - this.headerHeight + (int) this.getScrollAmount() - 4;
                 int k = j / this.itemHeight;
-                if (p_89797_ >= (double) i && p_89797_ < (double) this.getScrollbarPosition() && k >= 0 && j >= 0 && k < this.getItemCount()) {
+                if (pMouseX >= (double) i && pMouseX < (double) this.getScrollbarPosition() && k >= 0 && j >= 0 && k < this.getItemCount()) {
                     this.selectItem(k);
-                    this.itemClicked(j, k, p_89797_, p_89798_, this.width);
+                    this.itemClicked(j, k, pMouseX, pMouseY, this.width);
                     if (k >= RealmsSelectWorldTemplateScreen.this.worldTemplateObjectSelectionList.getItemCount()) {
-                        return super.mouseClicked(p_89797_, p_89798_, p_89799_);
+                        return super.mouseClicked(pMouseX, pMouseY, pButton);
                     }
 
                     RealmsSelectWorldTemplateScreen.this.clicks += 7;
@@ -441,12 +441,12 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
                 }
             }
 
-            return super.mouseClicked(p_89797_, p_89798_, p_89799_);
+            return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
 
-        public void setSelected(@Nullable RealmsSelectWorldTemplateScreen.Entry p_89807_) {
-            super.setSelected(p_89807_);
-            RealmsSelectWorldTemplateScreen.this.selectedTemplate = this.children().indexOf(p_89807_);
+        public void setSelected(@Nullable RealmsSelectWorldTemplateScreen.Entry pSelected) {
+            super.setSelected(pSelected);
+            RealmsSelectWorldTemplateScreen.this.selectedTemplate = this.children().indexOf(pSelected);
             RealmsSelectWorldTemplateScreen.this.updateButtonStates();
         }
 
@@ -458,8 +458,8 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
             return 300;
         }
 
-        public void renderBackground(PoseStack p_89803_) {
-            RealmsSelectWorldTemplateScreen.this.renderBackground(p_89803_);
+        public void renderBackground(PoseStack pPoseStack) {
+            RealmsSelectWorldTemplateScreen.this.renderBackground(pPoseStack);
         }
 
         public boolean isFocused() {
@@ -470,8 +470,8 @@ public class RealmsSelectWorldTemplateScreen extends RealmsScreen {
             return this.getItemCount() == 0;
         }
 
-        public WorldTemplate get(int p_89812_) {
-            return (this.children().get(p_89812_)).template;
+        public WorldTemplate get(int pIndex) {
+            return (this.children().get(pIndex)).template;
         }
 
         public List<WorldTemplate> getTemplates() {

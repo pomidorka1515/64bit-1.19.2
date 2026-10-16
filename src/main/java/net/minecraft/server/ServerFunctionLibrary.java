@@ -62,15 +62,15 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
         this.dispatcher = p_136054_;
     }
 
-    public CompletableFuture<Void> reload(PreparableReloadListener.PreparationBarrier p_136057_, ResourceManager p_136058_, ProfilerFiller p_136059_, ProfilerFiller p_136060_, Executor p_136061_, Executor p_136062_) {
+    public CompletableFuture<Void> reload(PreparableReloadListener.PreparationBarrier pStage, ResourceManager pResourceManager, ProfilerFiller pPreparationsProfiler, ProfilerFiller pReloadProfiler, Executor pBackgroundExecutor, Executor pGameExecutor) {
         CompletableFuture<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> completablefuture = CompletableFuture.supplyAsync(() -> {
-            return this.tagsLoader.load(p_136058_);
-        }, p_136061_);
+            return this.tagsLoader.load(pResourceManager);
+        }, pBackgroundExecutor);
         CompletableFuture<Map<ResourceLocation, CompletableFuture<CommandFunction>>> completablefuture1 = CompletableFuture.supplyAsync(() -> {
-                                                                                                                               return p_136058_.listResources("functions", (p_214330_) -> {
+                                                                                                                               return pResourceManager.listResources("functions", (p_214330_) -> {
                                                                                                                                    return p_214330_.getPath().endsWith(".mcfunction");
                                                                                                                                });
-                                                                                                                           }, p_136061_).thenCompose((p_214326_) -> {
+                                                                                                                           }, pBackgroundExecutor).thenCompose((p_214326_) -> {
             Map<ResourceLocation, CompletableFuture<CommandFunction>> map = Maps.newHashMap();
             CommandSourceStack commandsourcestack = new CommandSourceStack(CommandSource.NULL, Vec3.ZERO, Vec2.ZERO, (ServerLevel) null, this.functionCompilationLevel, "", CommonComponents.EMPTY, (MinecraftServer) null, (Entity) null);
 
@@ -81,7 +81,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
                 map.put(resourcelocation1, CompletableFuture.supplyAsync(() -> {
                     List<String> list = readLines(entry.getValue());
                     return CommandFunction.fromLines(resourcelocation1, this.dispatcher, commandsourcestack, list);
-                }, p_136061_));
+                }, pBackgroundExecutor));
             }
 
             CompletableFuture<?>[] completablefuture2 = map.values().toArray(new CompletableFuture[0]);
@@ -89,7 +89,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
                 return map;
             });
         });
-        return completablefuture.thenCombine(completablefuture1, Pair::of).thenCompose(p_136057_::wait).thenAcceptAsync((p_179944_) -> {
+        return completablefuture.thenCombine(completablefuture1, Pair::of).thenCompose(pStage::wait).thenAcceptAsync((p_179944_) -> {
             Map<ResourceLocation, CompletableFuture<CommandFunction>> map = (Map) p_179944_.getSecond();
             ImmutableMap.Builder<ResourceLocation, CommandFunction> builder = ImmutableMap.builder();
             map.forEach((p_179941_, p_179942_) -> {
@@ -106,7 +106,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
             });
             this.functions = builder.build();
             this.tags = this.tagsLoader.build((Map) p_179944_.getFirst());
-        }, p_136062_);
+        }, pGameExecutor);
     }
 
     private static List<String> readLines(Resource p_214317_) {

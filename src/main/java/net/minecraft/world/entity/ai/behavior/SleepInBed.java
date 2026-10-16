@@ -23,54 +23,54 @@ public class SleepInBed extends Behavior<LivingEntity> {
         super(ImmutableMap.of(MemoryModuleType.HOME, MemoryStatus.VALUE_PRESENT, MemoryModuleType.LAST_WOKEN, MemoryStatus.REGISTERED));
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_24154_, LivingEntity p_24155_) {
-        if (p_24155_.isPassenger()) {
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, LivingEntity pOwner) {
+        if (pOwner.isPassenger()) {
             return false;
         } else {
-            Brain<?> brain = p_24155_.getBrain();
+            Brain<?> brain = pOwner.getBrain();
             GlobalPos globalpos = brain.getMemory(MemoryModuleType.HOME).get();
-            if (p_24154_.dimension() != globalpos.dimension()) {
+            if (pLevel.dimension() != globalpos.dimension()) {
                 return false;
             } else {
                 Optional<Long> optional = brain.getMemory(MemoryModuleType.LAST_WOKEN);
                 if (optional.isPresent()) {
-                    long i = p_24154_.getGameTime() - optional.get();
+                    long i = pLevel.getGameTime() - optional.get();
                     if (i > 0L && i < 100L) {
                         return false;
                     }
                 }
 
-                BlockState blockstate = p_24154_.getBlockState(globalpos.pos());
-                return globalpos.pos().closerToCenterThan(p_24155_.sectorPosition(), 2.0D) && blockstate.is(BlockTags.BEDS) && !blockstate.getValue(BedBlock.OCCUPIED);
+                BlockState blockstate = pLevel.getBlockState(globalpos.pos());
+                return globalpos.pos().closerToCenterThan(pOwner.sectorPosition(), 2.0D) && blockstate.is(BlockTags.BEDS) && !blockstate.getValue(BedBlock.OCCUPIED);
             }
         }
     }
 
-    protected boolean canStillUse(ServerLevel p_24161_, LivingEntity p_24162_, long p_24163_) {
-        Optional<GlobalPos> optional = p_24162_.getBrain().getMemory(MemoryModuleType.HOME);
+    protected boolean canStillUse(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
+        Optional<GlobalPos> optional = pEntity.getBrain().getMemory(MemoryModuleType.HOME);
         if (!optional.isPresent()) {
             return false;
         } else {
             BlockPos blockpos = optional.get().pos();
-            return p_24162_.getBrain().isActive(Activity.REST) && p_24162_.getY() > (double) blockpos.getY() + 0.4D && blockpos.closerToCenterThan(p_24162_.sectorPosition(), 1.14D);
+            return pEntity.getBrain().isActive(Activity.REST) && pEntity.getY() > (double) blockpos.getY() + 0.4D && blockpos.closerToCenterThan(pEntity.sectorPosition(), 1.14D);
         }
     }
 
-    protected void start(ServerLevel p_24157_, LivingEntity p_24158_, long p_24159_) {
-        if (p_24159_ > this.nextOkStartTime) {
-            InteractWithDoor.closeDoorsThatIHaveOpenedOrPassedThrough(p_24157_, p_24158_, (Node) null, (Node) null);
-            p_24158_.startSleeping(p_24158_.getBrain().getMemory(MemoryModuleType.HOME).get().pos());
+    protected void start(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
+        if (pGameTime > this.nextOkStartTime) {
+            InteractWithDoor.closeDoorsThatIHaveOpenedOrPassedThrough(pLevel, pEntity, (Node) null, (Node) null);
+            pEntity.startSleeping(pEntity.getBrain().getMemory(MemoryModuleType.HOME).get().pos());
         }
     }
 
-    protected boolean timedOut(long p_24152_) {
+    protected boolean timedOut(long pGameTime) {
         return false;
     }
 
-    protected void stop(ServerLevel p_24165_, LivingEntity p_24166_, long p_24167_) {
-        if (p_24166_.isSleeping()) {
-            p_24166_.stopSleeping();
-            this.nextOkStartTime = p_24167_ + 40L;
+    protected void stop(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
+        if (pEntity.isSleeping()) {
+            pEntity.stopSleeping();
+            this.nextOkStartTime = pGameTime + 40L;
         }
     }
 }

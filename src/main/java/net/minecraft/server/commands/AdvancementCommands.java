@@ -23,8 +23,8 @@ public class AdvancementCommands {
         return SharedSuggestionProvider.suggestResource(collection.stream().map(Advancement::getId), p_136345_);
     };
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_136311_) {
-        p_136311_.register(Commands.literal("advancement").requires((p_136318_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("advancement").requires((p_136318_) -> {
                                                               return p_136318_.hasPermission(2);
                                                           })
                         .then(Commands.literal("grant").then(Commands.argument("targets", EntityArgument.players()).then(Commands.literal("only").then(Commands.argument("advancement", ResourceLocationArgument.id()).suggests(SUGGEST_ADVANCEMENTS).executes((p_136363_) -> {
@@ -71,64 +71,64 @@ public class AdvancementCommands {
                                         })))));
     }
 
-    private static int perform(CommandSourceStack p_136320_, Collection<ServerPlayer> p_136321_, AdvancementCommands.Action p_136322_, Collection<Advancement> p_136323_) {
+    private static int perform(CommandSourceStack pSource, Collection<ServerPlayer> pTargets, AdvancementCommands.Action pAction, Collection<Advancement> pAdvancements) {
         int i = 0;
 
-        for (ServerPlayer serverplayer : p_136321_) {
-            i += p_136322_.perform(serverplayer, p_136323_);
+        for (ServerPlayer serverplayer : pTargets) {
+            i += pAction.perform(serverplayer, pAdvancements);
         }
 
         if (i == 0) {
-            if (p_136323_.size() == 1) {
-                if (p_136321_.size() == 1) {
-                    throw new CommandRuntimeException(Component.translatable(p_136322_.getKey() + ".one.to.one.failure", p_136323_.iterator().next().getChatComponent(), p_136321_.iterator().next().getDisplayName()));
+            if (pAdvancements.size() == 1) {
+                if (pTargets.size() == 1) {
+                    throw new CommandRuntimeException(Component.translatable(pAction.getKey() + ".one.to.one.failure", pAdvancements.iterator().next().getChatComponent(), pTargets.iterator().next().getDisplayName()));
                 } else {
-                    throw new CommandRuntimeException(Component.translatable(p_136322_.getKey() + ".one.to.many.failure", p_136323_.iterator().next().getChatComponent(), p_136321_.size()));
+                    throw new CommandRuntimeException(Component.translatable(pAction.getKey() + ".one.to.many.failure", pAdvancements.iterator().next().getChatComponent(), pTargets.size()));
                 }
-            } else if (p_136321_.size() == 1) {
-                throw new CommandRuntimeException(Component.translatable(p_136322_.getKey() + ".many.to.one.failure", p_136323_.size(), p_136321_.iterator().next().getDisplayName()));
+            } else if (pTargets.size() == 1) {
+                throw new CommandRuntimeException(Component.translatable(pAction.getKey() + ".many.to.one.failure", pAdvancements.size(), pTargets.iterator().next().getDisplayName()));
             } else {
-                throw new CommandRuntimeException(Component.translatable(p_136322_.getKey() + ".many.to.many.failure", p_136323_.size(), p_136321_.size()));
+                throw new CommandRuntimeException(Component.translatable(pAction.getKey() + ".many.to.many.failure", pAdvancements.size(), pTargets.size()));
             }
         } else {
-            if (p_136323_.size() == 1) {
-                if (p_136321_.size() == 1) {
-                    p_136320_.sendSuccess(Component.translatable(p_136322_.getKey() + ".one.to.one.success", p_136323_.iterator().next().getChatComponent(), p_136321_.iterator().next().getDisplayName()), true);
+            if (pAdvancements.size() == 1) {
+                if (pTargets.size() == 1) {
+                    pSource.sendSuccess(Component.translatable(pAction.getKey() + ".one.to.one.success", pAdvancements.iterator().next().getChatComponent(), pTargets.iterator().next().getDisplayName()), true);
                 } else {
-                    p_136320_.sendSuccess(Component.translatable(p_136322_.getKey() + ".one.to.many.success", p_136323_.iterator().next().getChatComponent(), p_136321_.size()), true);
+                    pSource.sendSuccess(Component.translatable(pAction.getKey() + ".one.to.many.success", pAdvancements.iterator().next().getChatComponent(), pTargets.size()), true);
                 }
-            } else if (p_136321_.size() == 1) {
-                p_136320_.sendSuccess(Component.translatable(p_136322_.getKey() + ".many.to.one.success", p_136323_.size(), p_136321_.iterator().next().getDisplayName()), true);
+            } else if (pTargets.size() == 1) {
+                pSource.sendSuccess(Component.translatable(pAction.getKey() + ".many.to.one.success", pAdvancements.size(), pTargets.iterator().next().getDisplayName()), true);
             } else {
-                p_136320_.sendSuccess(Component.translatable(p_136322_.getKey() + ".many.to.many.success", p_136323_.size(), p_136321_.size()), true);
+                pSource.sendSuccess(Component.translatable(pAction.getKey() + ".many.to.many.success", pAdvancements.size(), pTargets.size()), true);
             }
 
             return i;
         }
     }
 
-    private static int performCriterion(CommandSourceStack p_136325_, Collection<ServerPlayer> p_136326_, AdvancementCommands.Action p_136327_, Advancement p_136328_, String p_136329_) {
+    private static int performCriterion(CommandSourceStack pSource, Collection<ServerPlayer> pTargets, AdvancementCommands.Action pAction, Advancement pAdvancement, String pCriterionName) {
         int i = 0;
-        if (!p_136328_.getCriteria().containsKey(p_136329_)) {
-            throw new CommandRuntimeException(Component.translatable("commands.advancement.criterionNotFound", p_136328_.getChatComponent(), p_136329_));
+        if (!pAdvancement.getCriteria().containsKey(pCriterionName)) {
+            throw new CommandRuntimeException(Component.translatable("commands.advancement.criterionNotFound", pAdvancement.getChatComponent(), pCriterionName));
         } else {
-            for (ServerPlayer serverplayer : p_136326_) {
-                if (p_136327_.performCriterion(serverplayer, p_136328_, p_136329_)) {
+            for (ServerPlayer serverplayer : pTargets) {
+                if (pAction.performCriterion(serverplayer, pAdvancement, pCriterionName)) {
                     ++i;
                 }
             }
 
             if (i == 0) {
-                if (p_136326_.size() == 1) {
-                    throw new CommandRuntimeException(Component.translatable(p_136327_.getKey() + ".criterion.to.one.failure", p_136329_, p_136328_.getChatComponent(), p_136326_.iterator().next().getDisplayName()));
+                if (pTargets.size() == 1) {
+                    throw new CommandRuntimeException(Component.translatable(pAction.getKey() + ".criterion.to.one.failure", pCriterionName, pAdvancement.getChatComponent(), pTargets.iterator().next().getDisplayName()));
                 } else {
-                    throw new CommandRuntimeException(Component.translatable(p_136327_.getKey() + ".criterion.to.many.failure", p_136329_, p_136328_.getChatComponent(), p_136326_.size()));
+                    throw new CommandRuntimeException(Component.translatable(pAction.getKey() + ".criterion.to.many.failure", pCriterionName, pAdvancement.getChatComponent(), pTargets.size()));
                 }
             } else {
-                if (p_136326_.size() == 1) {
-                    p_136325_.sendSuccess(Component.translatable(p_136327_.getKey() + ".criterion.to.one.success", p_136329_, p_136328_.getChatComponent(), p_136326_.iterator().next().getDisplayName()), true);
+                if (pTargets.size() == 1) {
+                    pSource.sendSuccess(Component.translatable(pAction.getKey() + ".criterion.to.one.success", pCriterionName, pAdvancement.getChatComponent(), pTargets.iterator().next().getDisplayName()), true);
                 } else {
-                    p_136325_.sendSuccess(Component.translatable(p_136327_.getKey() + ".criterion.to.many.success", p_136329_, p_136328_.getChatComponent(), p_136326_.size()), true);
+                    pSource.sendSuccess(Component.translatable(pAction.getKey() + ".criterion.to.many.success", pCriterionName, pAdvancement.getChatComponent(), pTargets.size()), true);
                 }
 
                 return i;
@@ -136,26 +136,26 @@ public class AdvancementCommands {
         }
     }
 
-    private static List<Advancement> getAdvancements(Advancement p_136334_, AdvancementCommands.Mode p_136335_) {
+    private static List<Advancement> getAdvancements(Advancement pAdvancement, AdvancementCommands.Mode pMode) {
         List<Advancement> list = Lists.newArrayList();
-        if (p_136335_.parents) {
-            for (Advancement advancement = p_136334_.getParent(); advancement != null; advancement = advancement.getParent()) {
+        if (pMode.parents) {
+            for (Advancement advancement = pAdvancement.getParent(); advancement != null; advancement = advancement.getParent()) {
                 list.add(advancement);
             }
         }
 
-        list.add(p_136334_);
-        if (p_136335_.children) {
-            addChildren(p_136334_, list);
+        list.add(pAdvancement);
+        if (pMode.children) {
+            addChildren(pAdvancement, list);
         }
 
         return list;
     }
 
-    private static void addChildren(Advancement p_136331_, List<Advancement> p_136332_) {
-        for (Advancement advancement : p_136331_.getChildren()) {
-            p_136332_.add(advancement);
-            addChildren(advancement, p_136332_);
+    private static void addChildren(Advancement pAdvancement, List<Advancement> pList) {
+        for (Advancement advancement : pAdvancement.getChildren()) {
+            pList.add(advancement);
+            addChildren(advancement, pList);
         }
     }
 
@@ -203,11 +203,11 @@ public class AdvancementCommands {
             this.key = "commands.advancement." + p_136372_;
         }
 
-        public int perform(ServerPlayer p_136380_, Iterable<Advancement> p_136381_) {
+        public int perform(ServerPlayer pPlayer, Iterable<Advancement> pAdvancements) {
             int i = 0;
 
-            for (Advancement advancement : p_136381_) {
-                if (this.perform(p_136380_, advancement)) {
+            for (Advancement advancement : pAdvancements) {
+                if (this.perform(pPlayer, advancement)) {
                     ++i;
                 }
             }
@@ -215,9 +215,9 @@ public class AdvancementCommands {
             return i;
         }
 
-        protected abstract boolean perform(ServerPlayer p_136382_, Advancement p_136383_);
+        protected abstract boolean perform(ServerPlayer pPlayer, Advancement pAdvancement);
 
-        protected abstract boolean performCriterion(ServerPlayer p_136384_, Advancement p_136385_, String p_136386_);
+        protected abstract boolean performCriterion(ServerPlayer pPlayer, Advancement pAdvancement, String pCriterionName);
 
         protected String getKey() {
             return this.key;

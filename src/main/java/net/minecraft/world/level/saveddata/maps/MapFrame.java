@@ -9,16 +9,16 @@ public class MapFrame {
     private final int rotation;
     private final int entityId;
 
-    public MapFrame(BlockPos p_77866_, int p_77867_, int p_77868_) {
-        this.pos = p_77866_;
-        this.rotation = p_77867_;
-        this.entityId = p_77868_;
+    public MapFrame(BlockPos pPos, int pRotation, int pEntityId) {
+        this.pos = pPos;
+        this.rotation = pRotation;
+        this.entityId = pEntityId;
     }
 
-    public static MapFrame load(CompoundTag p_77873_) {
-        BlockPos blockpos = NbtUtils.readBlockPos(p_77873_.getCompound("Pos"));
-        int i = p_77873_.getInt("Rotation");
-        int j = p_77873_.getInt("EntityId");
+    public static MapFrame load(CompoundTag pCompoundTag) {
+        BlockPos blockpos = NbtUtils.readBlockPos(pCompoundTag.getCompound("Pos"));
+        int i = pCompoundTag.getInt("Rotation");
+        int j = pCompoundTag.getInt("EntityId");
         return new MapFrame(blockpos, i, j);
     }
 
@@ -46,7 +46,7 @@ public class MapFrame {
         return frameId(this.pos);
     }
 
-    public static String frameId(BlockPos p_77871_) {
-        return "frame-" + p_77871_.getX() + "," + p_77871_.getY() + "," + p_77871_.getZ();
+    public static String frameId(BlockPos pPos) {
+        return "frame-" + pPos.getX() + "," + pPos.getY() + "," + pPos.getZ();
     }
 }

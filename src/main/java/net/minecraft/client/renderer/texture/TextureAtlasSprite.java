@@ -40,22 +40,22 @@ public class TextureAtlasSprite implements AutoCloseable {
     private final float v0;
     private final float v1;
 
-    protected TextureAtlasSprite(TextureAtlas p_118358_, TextureAtlasSprite.Info p_118359_, int p_118360_, int p_118361_, int p_118362_, int p_118363_, int p_118364_, NativeImage p_118365_) {
-        this.atlas = p_118358_;
-        this.width = p_118359_.width;
-        this.height = p_118359_.height;
-        this.name = p_118359_.name;
-        this.x = p_118363_;
-        this.y = p_118364_;
-        this.u0 = (float) p_118363_ / (float) p_118361_;
-        this.u1 = (float) (p_118363_ + this.width) / (float) p_118361_;
-        this.v0 = (float) p_118364_ / (float) p_118362_;
-        this.v1 = (float) (p_118364_ + this.height) / (float) p_118362_;
-        this.animatedTexture = this.createTicker(p_118359_, p_118365_.getWidth(), p_118365_.getHeight(), p_118360_);
+    protected TextureAtlasSprite(TextureAtlas pAtlas, TextureAtlasSprite.Info pSpriteInfo, int pMipLevel, int pStorageX, int pStorageY, int pX, int pY, NativeImage pImage) {
+        this.atlas = pAtlas;
+        this.width = pSpriteInfo.width;
+        this.height = pSpriteInfo.height;
+        this.name = pSpriteInfo.name;
+        this.x = pX;
+        this.y = pY;
+        this.u0 = (float) pX / (float) pStorageX;
+        this.u1 = (float) (pX + this.width) / (float) pStorageX;
+        this.v0 = (float) pY / (float) pStorageY;
+        this.v1 = (float) (pY + this.height) / (float) pStorageY;
+        this.animatedTexture = this.createTicker(pSpriteInfo, pImage.getWidth(), pImage.getHeight(), pMipLevel);
 
         try {
             try {
-                this.mainImage = MipmapGenerator.generateMipLevels(p_118365_, p_118360_);
+                this.mainImage = MipmapGenerator.generateMipLevels(pImage, pMipLevel);
             } catch (Throwable throwable) {
                 CrashReport crashreport1 = CrashReport.forThrowable(throwable, "Generating mipmaps for frame");
                 CrashReportCategory crashreportcategory1 = crashreport1.addCategory("Frame being iterated");
@@ -65,7 +65,7 @@ public class TextureAtlasSprite implements AutoCloseable {
                         stringbuilder.append(", ");
                     }
 
-                    stringbuilder.append(p_118365_.getWidth()).append("x").append(p_118365_.getHeight());
+                    stringbuilder.append(pImage.getWidth()).append("x").append(pImage.getHeight());
                     return stringbuilder.toString();
                 });
                 throw new ReportedException(crashreport1);
@@ -80,7 +80,7 @@ public class TextureAtlasSprite implements AutoCloseable {
             crashreportcategory.setDetail("Sprite frames", () -> {
                 return this.getFrameCount() + " frames";
             });
-            crashreportcategory.setDetail("Mipmap levels", p_118360_);
+            crashreportcategory.setDetail("Mipmap levels", pMipLevel);
             throw new ReportedException(crashreport);
         }
     }
@@ -90,10 +90,10 @@ public class TextureAtlasSprite implements AutoCloseable {
     }
 
     @Nullable
-    private TextureAtlasSprite.AnimatedTexture createTicker(TextureAtlasSprite.Info p_174730_, int p_174731_, int p_174732_, int p_174733_) {
-        AnimationMetadataSection animationmetadatasection = p_174730_.metadata;
-        int i = p_174731_ / animationmetadatasection.getFrameWidth(p_174730_.width);
-        int j = p_174732_ / animationmetadatasection.getFrameHeight(p_174730_.height);
+    private TextureAtlasSprite.AnimatedTexture createTicker(TextureAtlasSprite.Info pSpriteInfo, int pImageWidth, int pImageHeight, int pMipLevel) {
+        AnimationMetadataSection animationmetadatasection = pSpriteInfo.metadata;
+        int i = pImageWidth / animationmetadatasection.getFrameWidth(pSpriteInfo.width);
+        int j = pImageHeight / animationmetadatasection.getFrameHeight(pSpriteInfo.height);
         int k = i * j;
         List<TextureAtlasSprite.FrameInfo> list = Lists.newArrayList();
         animationmetadatasection.forEachFrame((p_174739_, p_174740_) -> {
@@ -139,14 +139,14 @@ public class TextureAtlasSprite implements AutoCloseable {
         if (list.size() <= 1) {
             return null;
         } else {
-            TextureAtlasSprite.InterpolationData textureatlassprite$interpolationdata = animationmetadatasection.isInterpolatedFrames() ? new TextureAtlasSprite.InterpolationData(p_174730_, p_174733_) : null;
+            TextureAtlasSprite.InterpolationData textureatlassprite$interpolationdata = animationmetadatasection.isInterpolatedFrames() ? new TextureAtlasSprite.InterpolationData(pSpriteInfo, pMipLevel) : null;
             return new TextureAtlasSprite.AnimatedTexture(ImmutableList.copyOf(list), i, textureatlassprite$interpolationdata);
         }
     }
 
-    void upload(int p_118376_, int p_118377_, NativeImage[] p_118378_) {
+    void upload(int pXOffset, int pYOffset, NativeImage[] pFrames) {
         for (int i = 0; i < this.mainImage.length; ++i) {
-            p_118378_[i].upload(i, this.x >> i, this.y >> i, p_118376_ >> i, p_118377_ >> i, this.width >> i, this.height >> i, this.mainImage.length > 1, false);
+            pFrames[i].upload(i, this.x >> i, this.y >> i, pXOffset >> i, pYOffset >> i, this.width >> i, this.height >> i, this.mainImage.length > 1, false);
         }
     }
 
@@ -174,14 +174,14 @@ public class TextureAtlasSprite implements AutoCloseable {
         return this.u1;
     }
 
-    public float getU(double p_118368_) {
+    public float getU(double pU) {
         float f = this.u1 - this.u0;
-        return this.u0 + f * (float) p_118368_ / 16.0F;
+        return this.u0 + f * (float) pU / 16.0F;
     }
 
-    public float getUOffset(float p_174728_) {
+    public float getUOffset(float pOffset) {
         float f = this.u1 - this.u0;
-        return (p_174728_ - this.u0) / f * 16.0F;
+        return (pOffset - this.u0) / f * 16.0F;
     }
 
     public float getV0() {
@@ -192,14 +192,14 @@ public class TextureAtlasSprite implements AutoCloseable {
         return this.v1;
     }
 
-    public float getV(double p_118394_) {
+    public float getV(double pV) {
         float f = this.v1 - this.v0;
-        return this.v0 + f * (float) p_118394_ / 16.0F;
+        return this.v0 + f * (float) pV / 16.0F;
     }
 
-    public float getVOffset(float p_174742_) {
+    public float getVOffset(float pOffset) {
         float f = this.v1 - this.v0;
-        return (p_174742_ - this.v0) / f * 16.0F;
+        return (pOffset - this.v0) / f * 16.0F;
     }
 
     public ResourceLocation getName() {
@@ -230,12 +230,12 @@ public class TextureAtlasSprite implements AutoCloseable {
         return "TextureAtlasSprite{name='" + this.name + "', frameCount=" + this.getFrameCount() + ", x=" + this.x + ", y=" + this.y + ", height=" + this.height + ", width=" + this.width + ", u0=" + this.u0 + ", u1=" + this.u1 + ", v0=" + this.v0 + ", v1=" + this.v1 + "}";
     }
 
-    public boolean isTransparent(int p_118372_, int p_118373_, int p_118374_) {
-        int i = p_118373_;
-        int j = p_118374_;
+    public boolean isTransparent(int pFrameIndex, int pPixelX, int pPixelY) {
+        int i = pPixelX;
+        int j = pPixelY;
         if (this.animatedTexture != null) {
-            i = p_118373_ + this.animatedTexture.getFrameX(p_118372_) * this.width;
-            j = p_118374_ + this.animatedTexture.getFrameY(p_118372_) * this.height;
+            i = pPixelX + this.animatedTexture.getFrameX(pFrameIndex) * this.width;
+            j = pPixelY + this.animatedTexture.getFrameY(pFrameIndex) * this.height;
         }
 
         return (this.mainImage[0].getPixelRGBA(i, j) >> 24 & 255) == 0;
@@ -264,8 +264,8 @@ public class TextureAtlasSprite implements AutoCloseable {
         return this.animatedTexture;
     }
 
-    public VertexConsumer wrap(VertexConsumer p_118382_) {
-        return new SpriteCoordinateExpander(p_118382_, this);
+    public VertexConsumer wrap(VertexConsumer pConsumer) {
+        return new SpriteCoordinateExpander(pConsumer, this);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -283,17 +283,17 @@ public class TextureAtlasSprite implements AutoCloseable {
             this.interpolationData = p_174757_;
         }
 
-        int getFrameX(int p_174760_) {
-            return p_174760_ % this.frameRowSize;
+        int getFrameX(int pFrameIndex) {
+            return pFrameIndex % this.frameRowSize;
         }
 
-        int getFrameY(int p_174765_) {
-            return p_174765_ / this.frameRowSize;
+        int getFrameY(int pFrameIndex) {
+            return pFrameIndex / this.frameRowSize;
         }
 
-        private void uploadFrame(int p_174768_) {
-            int i = this.getFrameX(p_174768_) * TextureAtlasSprite.this.width;
-            int j = this.getFrameY(p_174768_) * TextureAtlasSprite.this.height;
+        private void uploadFrame(int pFrameIndex) {
+            int i = this.getFrameX(pFrameIndex) * TextureAtlasSprite.this.width;
+            int j = this.getFrameY(pFrameIndex) * TextureAtlasSprite.this.height;
             TextureAtlasSprite.this.upload(i, j, TextureAtlasSprite.this.mainImage);
         }
 
@@ -342,9 +342,9 @@ public class TextureAtlasSprite implements AutoCloseable {
         final int index;
         final int time;
 
-        FrameInfo(int p_174774_, int p_174775_) {
-            this.index = p_174774_;
-            this.time = p_174775_;
+        FrameInfo(int pIndex, int pTime) {
+            this.index = pIndex;
+            this.time = pTime;
         }
     }
 
@@ -355,11 +355,11 @@ public class TextureAtlasSprite implements AutoCloseable {
         final int height;
         final AnimationMetadataSection metadata;
 
-        public Info(ResourceLocation p_118427_, int p_118428_, int p_118429_, AnimationMetadataSection p_118430_) {
-            this.name = p_118427_;
-            this.width = p_118428_;
-            this.height = p_118429_;
-            this.metadata = p_118430_;
+        public Info(ResourceLocation pName, int pWidth, int pHeight, AnimationMetadataSection pMetadata) {
+            this.name = pName;
+            this.width = pWidth;
+            this.height = pHeight;
+            this.metadata = pMetadata;
         }
 
         public ResourceLocation name() {
@@ -391,11 +391,11 @@ public class TextureAtlasSprite implements AutoCloseable {
             }
         }
 
-        void uploadInterpolatedFrame(TextureAtlasSprite.AnimatedTexture p_174777_) {
-            TextureAtlasSprite.FrameInfo textureatlassprite$frameinfo = p_174777_.frames.get(p_174777_.frame);
-            double d0 = 1.0D - (double) p_174777_.subFrame / (double) textureatlassprite$frameinfo.time;
+        void uploadInterpolatedFrame(TextureAtlasSprite.AnimatedTexture pTexture) {
+            TextureAtlasSprite.FrameInfo textureatlassprite$frameinfo = pTexture.frames.get(pTexture.frame);
+            double d0 = 1.0D - (double) pTexture.subFrame / (double) textureatlassprite$frameinfo.time;
             int i = textureatlassprite$frameinfo.index;
-            int j = (p_174777_.frames.get((p_174777_.frame + 1) % p_174777_.frames.size())).index;
+            int j = (pTexture.frames.get((pTexture.frame + 1) % pTexture.frames.size())).index;
             if (i != j) {
                 for (int k = 0; k < this.activeFrame.length; ++k) {
                     int l = TextureAtlasSprite.this.width >> k;
@@ -403,8 +403,8 @@ public class TextureAtlasSprite implements AutoCloseable {
 
                     for (int j1 = 0; j1 < i1; ++j1) {
                         for (int k1 = 0; k1 < l; ++k1) {
-                            int l1 = this.getPixel(p_174777_, i, k, k1, j1);
-                            int i2 = this.getPixel(p_174777_, j, k, k1, j1);
+                            int l1 = this.getPixel(pTexture, i, k, k1, j1);
+                            int i2 = this.getPixel(pTexture, j, k, k1, j1);
                             int j2 = this.mix(d0, l1 >> 16 & 255, i2 >> 16 & 255);
                             int k2 = this.mix(d0, l1 >> 8 & 255, i2 >> 8 & 255);
                             int l2 = this.mix(d0, l1 & 255, i2 & 255);
@@ -417,12 +417,12 @@ public class TextureAtlasSprite implements AutoCloseable {
             }
         }
 
-        private int getPixel(TextureAtlasSprite.AnimatedTexture p_174779_, int p_174780_, int p_174781_, int p_174782_, int p_174783_) {
-            return TextureAtlasSprite.this.mainImage[p_174781_].getPixelRGBA(p_174782_ + (p_174779_.getFrameX(p_174780_) * TextureAtlasSprite.this.width >> p_174781_), p_174783_ + (p_174779_.getFrameY(p_174780_) * TextureAtlasSprite.this.height >> p_174781_));
+        private int getPixel(TextureAtlasSprite.AnimatedTexture pTexture, int pFrameIndex, int pMipLevel, int pX, int pY) {
+            return TextureAtlasSprite.this.mainImage[pMipLevel].getPixelRGBA(pX + (pTexture.getFrameX(pFrameIndex) * TextureAtlasSprite.this.width >> pMipLevel), pY + (pTexture.getFrameY(pFrameIndex) * TextureAtlasSprite.this.height >> pMipLevel));
         }
 
-        private int mix(double p_118455_, int p_118456_, int p_118457_) {
-            return (int) (p_118455_ * (double) p_118456_ + (1.0D - p_118455_) * (double) p_118457_);
+        private int mix(double pRatio, int pFirst, int pSecond) {
+            return (int) (pRatio * (double) pFirst + (1.0D - pRatio) * (double) pSecond);
         }
 
         public void close() {

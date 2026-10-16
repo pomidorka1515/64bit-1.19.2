@@ -22,15 +22,15 @@ public class RavagerModel extends HierarchicalModel<Ravager> {
     private final ModelPart leftFrontLeg;
     private final ModelPart neck;
 
-    public RavagerModel(ModelPart p_170889_) {
-        this.root = p_170889_;
-        this.neck = p_170889_.getChild("neck");
+    public RavagerModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.neck = pRoot.getChild("neck");
         this.head = this.neck.getChild("head");
         this.mouth = this.head.getChild("mouth");
-        this.rightHindLeg = p_170889_.getChild("right_hind_leg");
-        this.leftHindLeg = p_170889_.getChild("left_hind_leg");
-        this.rightFrontLeg = p_170889_.getChild("right_front_leg");
-        this.leftFrontLeg = p_170889_.getChild("left_front_leg");
+        this.rightHindLeg = pRoot.getChild("right_hind_leg");
+        this.leftHindLeg = pRoot.getChild("left_hind_leg");
+        this.rightFrontLeg = pRoot.getChild("right_front_leg");
+        this.leftFrontLeg = pRoot.getChild("left_front_leg");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -54,36 +54,36 @@ public class RavagerModel extends HierarchicalModel<Ravager> {
         return this.root;
     }
 
-    public void setupAnim(Ravager p_103626_, float p_103627_, float p_103628_, float p_103629_, float p_103630_, float p_103631_) {
-        this.head.xRot = p_103631_ * ((float) Math.PI / 180F);
-        this.head.yRot = p_103630_ * ((float) Math.PI / 180F);
-        float f = 0.4F * p_103628_;
-        this.rightHindLeg.xRot = Mth.cos(p_103627_ * 0.6662F) * f;
-        this.leftHindLeg.xRot = Mth.cos(p_103627_ * 0.6662F + (float) Math.PI) * f;
-        this.rightFrontLeg.xRot = Mth.cos(p_103627_ * 0.6662F + (float) Math.PI) * f;
-        this.leftFrontLeg.xRot = Mth.cos(p_103627_ * 0.6662F) * f;
+    public void setupAnim(Ravager pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        float f = 0.4F * pLimbSwingAmount;
+        this.rightHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * f;
+        this.leftHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * f;
+        this.rightFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * f;
+        this.leftFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * f;
     }
 
-    public void prepareMobModel(Ravager p_103621_, float p_103622_, float p_103623_, float p_103624_) {
-        super.prepareMobModel(p_103621_, p_103622_, p_103623_, p_103624_);
-        int i = p_103621_.getStunnedTick();
-        int j = p_103621_.getRoarTick();
+    public void prepareMobModel(Ravager pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        super.prepareMobModel(pEntity, pLimbSwing, pLimbSwingAmount, pPartialTick);
+        int i = pEntity.getStunnedTick();
+        int j = pEntity.getRoarTick();
         int k = 20;
-        int l = p_103621_.getAttackTick();
+        int l = pEntity.getAttackTick();
         int i1 = 10;
         if (l > 0) {
-            float f = Mth.triangleWave((float) l - p_103624_, 10.0F);
+            float f = Mth.triangleWave((float) l - pPartialTick, 10.0F);
             float f1 = (1.0F + f) * 0.5F;
             float f2 = f1 * f1 * f1 * 12.0F;
             float f3 = f2 * Mth.sin(this.neck.xRot);
             this.neck.z = -6.5F + f2;
             this.neck.y = -7.0F - f3;
-            float f4 = Mth.sin(((float) l - p_103624_) / 10.0F * (float) Math.PI * 0.25F);
+            float f4 = Mth.sin(((float) l - pPartialTick) / 10.0F * (float) Math.PI * 0.25F);
             this.mouth.xRot = ((float) Math.PI / 2F) * f4;
             if (l > 5) {
-                this.mouth.xRot = Mth.sin(((float) (-4 + l) - p_103624_) / 4.0F) * (float) Math.PI * 0.4F;
+                this.mouth.xRot = Mth.sin(((float) (-4 + l) - pPartialTick) / 4.0F) * (float) Math.PI * 0.4F;
             } else {
-                this.mouth.xRot = 0.15707964F * Mth.sin((float) Math.PI * ((float) l - p_103624_) / 10.0F);
+                this.mouth.xRot = 0.15707964F * Mth.sin((float) Math.PI * ((float) l - pPartialTick) / 10.0F);
             }
         } else {
             float f5 = -1.0F;
@@ -98,7 +98,7 @@ public class RavagerModel extends HierarchicalModel<Ravager> {
                 double d0 = (double) i / 40.0D;
                 this.neck.x = (float) Math.sin(d0 * 10.0D) * 3.0F;
             } else if (j > 0) {
-                float f7 = Mth.sin(((float) (20 - j) - p_103624_) / 20.0F * (float) Math.PI * 0.25F);
+                float f7 = Mth.sin(((float) (20 - j) - pPartialTick) / 20.0F * (float) Math.PI * 0.25F);
                 this.mouth.xRot = ((float) Math.PI / 2F) * f7;
             }
         }

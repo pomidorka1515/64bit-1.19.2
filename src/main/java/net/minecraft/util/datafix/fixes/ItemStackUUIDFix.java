@@ -9,8 +9,8 @@ import com.mojang.serialization.Dynamic;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class ItemStackUUIDFix extends AbstractUUIDFix {
-    public ItemStackUUIDFix(Schema p_16129_) {
-        super(p_16129_, References.ITEM_STACK);
+    public ItemStackUUIDFix(Schema pOutputSchema) {
+        super(pOutputSchema, References.ITEM_STACK);
     }
 
     public TypeRewriteRule makeRule() {

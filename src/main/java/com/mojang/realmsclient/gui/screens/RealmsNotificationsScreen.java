@@ -54,17 +54,17 @@ public class RealmsNotificationsScreen extends RealmsScreen {
         }
     }
 
-    private DataFetcher.Subscription initDataFetcher(RealmsDataFetcher p_238855_) {
-        DataFetcher.Subscription datafetcher$subscription = p_238855_.dataFetcher.createSubscription();
-        datafetcher$subscription.subscribe(p_238855_.pendingInvitesTask, (p_239521_) -> {
+    private DataFetcher.Subscription initDataFetcher(RealmsDataFetcher pDataFetcher) {
+        DataFetcher.Subscription datafetcher$subscription = pDataFetcher.dataFetcher.createSubscription();
+        datafetcher$subscription.subscribe(pDataFetcher.pendingInvitesTask, (p_239521_) -> {
             this.numberOfPendingInvites = p_239521_;
         });
-        datafetcher$subscription.subscribe(p_238855_.trialAvailabilityTask, (p_239494_) -> {
+        datafetcher$subscription.subscribe(pDataFetcher.trialAvailabilityTask, (p_239494_) -> {
             trialAvailable = p_239494_;
         });
-        datafetcher$subscription.subscribe(p_238855_.newsTask, (p_238946_) -> {
-            p_238855_.newsManager.updateUnreadNews(p_238946_);
-            hasUnreadNews = p_238855_.newsManager.hasUnreadNews();
+        datafetcher$subscription.subscribe(pDataFetcher.newsTask, (p_238946_) -> {
+            pDataFetcher.newsManager.updateUnreadNews(p_238946_);
+            hasUnreadNews = pDataFetcher.newsManager.hasUnreadNews();
         });
         return datafetcher$subscription;
     }
@@ -103,12 +103,12 @@ public class RealmsNotificationsScreen extends RealmsScreen {
         }
     }
 
-    public void render(PoseStack p_88837_, int p_88838_, int p_88839_, float p_88840_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (validClient) {
-            this.drawIcons(p_88837_, p_88838_, p_88839_);
+            this.drawIcons(pPoseStack, pMouseX, pMouseY);
         }
 
-        super.render(p_88837_, p_88838_, p_88839_, p_88840_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     private void drawIcons(PoseStack p_88833_, int p_88834_, int p_88835_) {

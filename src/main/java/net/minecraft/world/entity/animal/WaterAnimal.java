@@ -16,8 +16,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 
 public abstract class WaterAnimal extends PathfinderMob {
-    protected WaterAnimal(EntityType<? extends WaterAnimal> p_30341_, Level p_30342_) {
-        super(p_30341_, p_30342_);
+    protected WaterAnimal(EntityType<? extends WaterAnimal> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
     }
 
@@ -29,8 +29,8 @@ public abstract class WaterAnimal extends PathfinderMob {
         return MobType.WATER;
     }
 
-    public boolean checkSpawnObstruction(LevelReader p_30348_) {
-        return p_30348_.isUnobstructed(this);
+    public boolean checkSpawnObstruction(LevelReader pLevel) {
+        return pLevel.isUnobstructed(this);
     }
 
     public int getAmbientSoundInterval() {
@@ -41,9 +41,9 @@ public abstract class WaterAnimal extends PathfinderMob {
         return 1 + this.level.random.nextInt(3);
     }
 
-    protected void handleAirSupply(int p_30344_) {
+    protected void handleAirSupply(int pAirSupply) {
         if (this.isAlive() && !this.isInWaterOrBubble()) {
-            this.setAirSupply(p_30344_ - 1);
+            this.setAirSupply(pAirSupply - 1);
             if (this.getAirSupply() == -20) {
                 this.setAirSupply(0);
                 this.hurt(DamageSource.DROWN, 2.0F);
@@ -63,13 +63,13 @@ public abstract class WaterAnimal extends PathfinderMob {
         return false;
     }
 
-    public boolean canBeLeashed(Player p_30346_) {
+    public boolean canBeLeashed(Player pPlayer) {
         return false;
     }
 
-    public static boolean checkSurfaceWaterAnimalSpawnRules(EntityType<? extends WaterAnimal> p_218283_, LevelAccessor p_218284_, MobSpawnType p_218285_, BlockPos p_218286_, RandomSource p_218287_) {
-        int i = p_218284_.getSeaLevel();
+    public static boolean checkSurfaceWaterAnimalSpawnRules(EntityType<? extends WaterAnimal> pWaterAnimal, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        int i = pLevel.getSeaLevel();
         int j = i - 13;
-        return p_218286_.getY() >= j && p_218286_.getY() <= i && p_218284_.getFluidState(p_218286_.below()).is(FluidTags.WATER) && p_218284_.getBlockState(p_218286_.above()).is(Blocks.WATER);
+        return pPos.getY() >= j && pPos.getY() <= i && pLevel.getFluidState(pPos.below()).is(FluidTags.WATER) && pLevel.getBlockState(pPos.above()).is(Blocks.WATER);
     }
 }

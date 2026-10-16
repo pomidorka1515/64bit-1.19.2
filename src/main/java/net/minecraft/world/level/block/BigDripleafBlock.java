@@ -59,8 +59,8 @@ public class BigDripleafBlock extends HorizontalDirectionalBlock implements Bone
     private static final Map<Direction, VoxelShape> STEM_SHAPES = ImmutableMap.of(Direction.NORTH, Shapes.joinUnoptimized(BigDripleafStemBlock.NORTH_SHAPE, STEM_SLICER, BooleanOp.ONLY_FIRST), Direction.SOUTH, Shapes.joinUnoptimized(BigDripleafStemBlock.SOUTH_SHAPE, STEM_SLICER, BooleanOp.ONLY_FIRST), Direction.EAST, Shapes.joinUnoptimized(BigDripleafStemBlock.EAST_SHAPE, STEM_SLICER, BooleanOp.ONLY_FIRST), Direction.WEST, Shapes.joinUnoptimized(BigDripleafStemBlock.WEST_SHAPE, STEM_SLICER, BooleanOp.ONLY_FIRST));
     private final Map<BlockState, VoxelShape> shapesCache;
 
-    protected BigDripleafBlock(BlockBehaviour.Properties p_152214_) {
-        super(p_152214_);
+    protected BigDripleafBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, Boolean.valueOf(false)).setValue(FACING, Direction.NORTH).setValue(TILT, Tilt.NONE));
         this.shapesCache = this.getShapeForEachState(BigDripleafBlock::calculateShape);
     }
@@ -69,166 +69,166 @@ public class BigDripleafBlock extends HorizontalDirectionalBlock implements Bone
         return Shapes.or(LEAF_SHAPES.get(p_152318_.getValue(TILT)), STEM_SHAPES.get(p_152318_.getValue(FACING)));
     }
 
-    public static void placeWithRandomHeight(LevelAccessor p_220793_, RandomSource p_220794_, BlockPos p_220795_, Direction p_220796_) {
-        int i = Mth.nextInt(p_220794_, 2, 5);
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_220795_.mutable();
+    public static void placeWithRandomHeight(LevelAccessor pLevel, RandomSource pRandom, BlockPos pPos, Direction pDirection) {
+        int i = Mth.nextInt(pRandom, 2, 5);
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable();
         int j = 0;
 
-        while (j < i && canPlaceAt(p_220793_, blockpos$mutableblockpos, p_220793_.getBlockState(blockpos$mutableblockpos))) {
+        while (j < i && canPlaceAt(pLevel, blockpos$mutableblockpos, pLevel.getBlockState(blockpos$mutableblockpos))) {
             ++j;
             blockpos$mutableblockpos.move(Direction.UP);
         }
 
-        int k = p_220795_.getY() + j - 1;
-        blockpos$mutableblockpos.setY(p_220795_.getY());
+        int k = pPos.getY() + j - 1;
+        blockpos$mutableblockpos.setY(pPos.getY());
 
         while (blockpos$mutableblockpos.getY() < k) {
-            BigDripleafStemBlock.place(p_220793_, blockpos$mutableblockpos, p_220793_.getFluidState(blockpos$mutableblockpos), p_220796_);
+            BigDripleafStemBlock.place(pLevel, blockpos$mutableblockpos, pLevel.getFluidState(blockpos$mutableblockpos), pDirection);
             blockpos$mutableblockpos.move(Direction.UP);
         }
 
-        place(p_220793_, blockpos$mutableblockpos, p_220793_.getFluidState(blockpos$mutableblockpos), p_220796_);
+        place(pLevel, blockpos$mutableblockpos, pLevel.getFluidState(blockpos$mutableblockpos), pDirection);
     }
 
-    private static boolean canReplace(BlockState p_152320_) {
-        return p_152320_.isAir() || p_152320_.is(Blocks.WATER) || p_152320_.is(Blocks.SMALL_DRIPLEAF);
+    private static boolean canReplace(BlockState pState) {
+        return pState.isAir() || pState.is(Blocks.WATER) || pState.is(Blocks.SMALL_DRIPLEAF);
     }
 
-    protected static boolean canPlaceAt(LevelHeightAccessor p_152252_, BlockPos p_152253_, BlockState p_152254_) {
-        return !p_152252_.isOutsideBuildHeight(p_152253_) && canReplace(p_152254_);
+    protected static boolean canPlaceAt(LevelHeightAccessor pLevel, BlockPos pPos, BlockState pState) {
+        return !pLevel.isOutsideBuildHeight(pPos) && canReplace(pState);
     }
 
-    protected static boolean place(LevelAccessor p_152242_, BlockPos p_152243_, FluidState p_152244_, Direction p_152245_) {
-        BlockState blockstate = Blocks.BIG_DRIPLEAF.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(p_152244_.isSourceOfType(Fluids.WATER))).setValue(FACING, p_152245_);
-        return p_152242_.setBlock(p_152243_, blockstate, 3);
+    protected static boolean place(LevelAccessor pLevel, BlockPos pPos, FluidState pFluidState, Direction pDirection) {
+        BlockState blockstate = Blocks.BIG_DRIPLEAF.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(pFluidState.isSourceOfType(Fluids.WATER))).setValue(FACING, pDirection);
+        return pLevel.setBlock(pPos, blockstate, 3);
     }
 
-    public void onProjectileHit(Level p_152228_, BlockState p_152229_, BlockHitResult p_152230_, Projectile p_152231_) {
-        this.setTiltAndScheduleTick(p_152229_, p_152228_, p_152230_.getBlockPos(), Tilt.FULL, SoundEvents.BIG_DRIPLEAF_TILT_DOWN);
+    public void onProjectileHit(Level pLevel, BlockState pState, BlockHitResult pHit, Projectile pProjectile) {
+        this.setTiltAndScheduleTick(pState, pLevel, pHit.getBlockPos(), Tilt.FULL, SoundEvents.BIG_DRIPLEAF_TILT_DOWN);
     }
 
-    public FluidState getFluidState(BlockState p_152312_) {
-        return p_152312_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_152312_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public boolean canSurvive(BlockState p_152289_, LevelReader p_152290_, BlockPos p_152291_) {
-        BlockPos blockpos = p_152291_.below();
-        BlockState blockstate = p_152290_.getBlockState(blockpos);
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        BlockPos blockpos = pPos.below();
+        BlockState blockstate = pLevel.getBlockState(blockpos);
         return blockstate.is(this) || blockstate.is(Blocks.BIG_DRIPLEAF_STEM) || blockstate.is(BlockTags.BIG_DRIPLEAF_PLACEABLE);
     }
 
-    public BlockState updateShape(BlockState p_152293_, Direction p_152294_, BlockState p_152295_, LevelAccessor p_152296_, BlockPos p_152297_, BlockPos p_152298_) {
-        if (p_152294_ == Direction.DOWN && !p_152293_.canSurvive(p_152296_, p_152297_)) {
+    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+        if (pDirection == Direction.DOWN && !pState.canSurvive(pLevel, pCurrentPos)) {
             return Blocks.AIR.defaultBlockState();
         } else {
-            if (p_152293_.getValue(WATERLOGGED)) {
-                p_152296_.scheduleTick(p_152297_, Fluids.WATER, Fluids.WATER.getTickDelay(p_152296_));
+            if (pState.getValue(WATERLOGGED)) {
+                pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
             }
 
-            return p_152294_ == Direction.UP && p_152295_.is(this) ? Blocks.BIG_DRIPLEAF_STEM.withPropertiesOf(p_152293_) : super.updateShape(p_152293_, p_152294_, p_152295_, p_152296_, p_152297_, p_152298_);
+            return pDirection == Direction.UP && pNeighborState.is(this) ? Blocks.BIG_DRIPLEAF_STEM.withPropertiesOf(pState) : super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
         }
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_152223_, BlockPos p_152224_, BlockState p_152225_, boolean p_152226_) {
-        BlockState blockstate = p_152223_.getBlockState(p_152224_.above());
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
+        BlockState blockstate = pLevel.getBlockState(pPos.above());
         return canReplace(blockstate);
     }
 
-    public boolean isBonemealSuccess(Level p_220788_, RandomSource p_220789_, BlockPos p_220790_, BlockState p_220791_) {
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
 
-    public void performBonemeal(ServerLevel p_220783_, RandomSource p_220784_, BlockPos p_220785_, BlockState p_220786_) {
-        BlockPos blockpos = p_220785_.above();
-        BlockState blockstate = p_220783_.getBlockState(blockpos);
-        if (canPlaceAt(p_220783_, blockpos, blockstate)) {
-            Direction direction = p_220786_.getValue(FACING);
-            BigDripleafStemBlock.place(p_220783_, p_220785_, p_220786_.getFluidState(), direction);
-            place(p_220783_, blockpos, blockstate.getFluidState(), direction);
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        BlockPos blockpos = pPos.above();
+        BlockState blockstate = pLevel.getBlockState(blockpos);
+        if (canPlaceAt(pLevel, blockpos, blockstate)) {
+            Direction direction = pState.getValue(FACING);
+            BigDripleafStemBlock.place(pLevel, pPos, pState.getFluidState(), direction);
+            place(pLevel, blockpos, blockstate.getFluidState(), direction);
         }
     }
 
-    public void entityInside(BlockState p_152266_, Level p_152267_, BlockPos p_152268_, Entity p_152269_) {
-        if (!p_152267_.isClientSide) {
-            if (p_152266_.getValue(TILT) == Tilt.NONE && canEntityTilt(p_152268_, p_152269_) && !p_152267_.hasNeighborSignal(p_152268_)) {
-                this.setTiltAndScheduleTick(p_152266_, p_152267_, p_152268_, Tilt.UNSTABLE, (SoundEvent) null);
+    public void entityInside(BlockState pState, Level pLevel, BlockPos pPos, Entity pEntity) {
+        if (!pLevel.isClientSide) {
+            if (pState.getValue(TILT) == Tilt.NONE && canEntityTilt(pPos, pEntity) && !pLevel.hasNeighborSignal(pPos)) {
+                this.setTiltAndScheduleTick(pState, pLevel, pPos, Tilt.UNSTABLE, (SoundEvent) null);
             }
         }
     }
 
-    public void tick(BlockState p_220798_, ServerLevel p_220799_, BlockPos p_220800_, RandomSource p_220801_) {
-        if (p_220799_.hasNeighborSignal(p_220800_)) {
-            resetTilt(p_220798_, p_220799_, p_220800_);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.hasNeighborSignal(pPos)) {
+            resetTilt(pState, pLevel, pPos);
         } else {
-            Tilt tilt = p_220798_.getValue(TILT);
+            Tilt tilt = pState.getValue(TILT);
             if (tilt == Tilt.UNSTABLE) {
-                this.setTiltAndScheduleTick(p_220798_, p_220799_, p_220800_, Tilt.PARTIAL, SoundEvents.BIG_DRIPLEAF_TILT_DOWN);
+                this.setTiltAndScheduleTick(pState, pLevel, pPos, Tilt.PARTIAL, SoundEvents.BIG_DRIPLEAF_TILT_DOWN);
             } else if (tilt == Tilt.PARTIAL) {
-                this.setTiltAndScheduleTick(p_220798_, p_220799_, p_220800_, Tilt.FULL, SoundEvents.BIG_DRIPLEAF_TILT_DOWN);
+                this.setTiltAndScheduleTick(pState, pLevel, pPos, Tilt.FULL, SoundEvents.BIG_DRIPLEAF_TILT_DOWN);
             } else if (tilt == Tilt.FULL) {
-                resetTilt(p_220798_, p_220799_, p_220800_);
+                resetTilt(pState, pLevel, pPos);
             }
         }
     }
 
-    public void neighborChanged(BlockState p_152271_, Level p_152272_, BlockPos p_152273_, Block p_152274_, BlockPos p_152275_, boolean p_152276_) {
-        if (p_152272_.hasNeighborSignal(p_152273_)) {
-            resetTilt(p_152271_, p_152272_, p_152273_);
+    public void neighborChanged(BlockState pState, Level pLevel, BlockPos pPos, Block pBlock, BlockPos pFromPos, boolean pIsMoving) {
+        if (pLevel.hasNeighborSignal(pPos)) {
+            resetTilt(pState, pLevel, pPos);
         }
     }
 
-    private static void playTiltSound(Level p_152233_, BlockPos p_152234_, SoundEvent p_152235_) {
-        float f = Mth.randomBetween(p_152233_.random, 0.8F, 1.2F);
-        p_152233_.playSound((Player) null, p_152234_, p_152235_, SoundSource.BLOCKS, 1.0F, f);
+    private static void playTiltSound(Level pLevel, BlockPos pPos, SoundEvent pSound) {
+        float f = Mth.randomBetween(pLevel.random, 0.8F, 1.2F);
+        pLevel.playSound((Player) null, pPos, pSound, SoundSource.BLOCKS, 1.0F, f);
     }
 
-    private static boolean canEntityTilt(BlockPos p_152302_, Entity p_152303_) {
-        return p_152303_.isOnGround() && p_152303_.position().y > (double) ((float) p_152302_.getY() + 0.6875F);
+    private static boolean canEntityTilt(BlockPos pPos, Entity pEntity) {
+        return pEntity.isOnGround() && pEntity.position().y > (double) ((float) pPos.getY() + 0.6875F);
     }
 
-    private void setTiltAndScheduleTick(BlockState p_152283_, Level p_152284_, BlockPos p_152285_, Tilt p_152286_, @Nullable SoundEvent p_152287_) {
-        setTilt(p_152283_, p_152284_, p_152285_, p_152286_);
-        if (p_152287_ != null) {
-            playTiltSound(p_152284_, p_152285_, p_152287_);
+    private void setTiltAndScheduleTick(BlockState pState, Level pLevel, BlockPos pPos, Tilt pTilt, @Nullable SoundEvent pSound) {
+        setTilt(pState, pLevel, pPos, pTilt);
+        if (pSound != null) {
+            playTiltSound(pLevel, pPos, pSound);
         }
 
-        int i = DELAY_UNTIL_NEXT_TILT_STATE.getInt(p_152286_);
+        int i = DELAY_UNTIL_NEXT_TILT_STATE.getInt(pTilt);
         if (i != -1) {
-            p_152284_.scheduleTick(p_152285_, this, i);
+            pLevel.scheduleTick(pPos, this, i);
         }
     }
 
-    private static void resetTilt(BlockState p_152314_, Level p_152315_, BlockPos p_152316_) {
-        setTilt(p_152314_, p_152315_, p_152316_, Tilt.NONE);
-        if (p_152314_.getValue(TILT) != Tilt.NONE) {
-            playTiltSound(p_152315_, p_152316_, SoundEvents.BIG_DRIPLEAF_TILT_UP);
+    private static void resetTilt(BlockState pState, Level pLevel, BlockPos pPos) {
+        setTilt(pState, pLevel, pPos, Tilt.NONE);
+        if (pState.getValue(TILT) != Tilt.NONE) {
+            playTiltSound(pLevel, pPos, SoundEvents.BIG_DRIPLEAF_TILT_UP);
         }
     }
 
-    private static void setTilt(BlockState p_152278_, Level p_152279_, BlockPos p_152280_, Tilt p_152281_) {
-        Tilt tilt = p_152278_.getValue(TILT);
-        p_152279_.setBlock(p_152280_, p_152278_.setValue(TILT, p_152281_), 2);
-        if (p_152281_.causesVibration() && p_152281_ != tilt) {
-            p_152279_.gameEvent((Entity) null, GameEvent.BLOCK_CHANGE, p_152280_);
+    private static void setTilt(BlockState pState, Level pLevel, BlockPos pPos, Tilt pTilt) {
+        Tilt tilt = pState.getValue(TILT);
+        pLevel.setBlock(pPos, pState.setValue(TILT, pTilt), 2);
+        if (pTilt.causesVibration() && pTilt != tilt) {
+            pLevel.gameEvent((Entity) null, GameEvent.BLOCK_CHANGE, pPos);
         }
     }
 
-    public VoxelShape getCollisionShape(BlockState p_152307_, BlockGetter p_152308_, BlockPos p_152309_, CollisionContext p_152310_) {
-        return LEAF_SHAPES.get(p_152307_.getValue(TILT));
+    public VoxelShape getCollisionShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return LEAF_SHAPES.get(pState.getValue(TILT));
     }
 
-    public VoxelShape getShape(BlockState p_152261_, BlockGetter p_152262_, BlockPos p_152263_, CollisionContext p_152264_) {
-        return this.shapesCache.get(p_152261_);
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return this.shapesCache.get(pState);
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_152221_) {
-        BlockState blockstate = p_152221_.getLevel().getBlockState(p_152221_.getClickedPos().below());
-        FluidState fluidstate = p_152221_.getLevel().getFluidState(p_152221_.getClickedPos());
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        BlockState blockstate = pContext.getLevel().getBlockState(pContext.getClickedPos().below());
+        FluidState fluidstate = pContext.getLevel().getFluidState(pContext.getClickedPos());
         boolean flag = blockstate.is(Blocks.BIG_DRIPLEAF) || blockstate.is(Blocks.BIG_DRIPLEAF_STEM);
-        return this.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(fluidstate.isSourceOfType(Fluids.WATER))).setValue(FACING, flag ? blockstate.getValue(FACING) : p_152221_.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(fluidstate.isSourceOfType(Fluids.WATER))).setValue(FACING, flag ? blockstate.getValue(FACING) : pContext.getHorizontalDirection().getOpposite());
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_152300_) {
-        p_152300_.add(WATERLOGGED, FACING, TILT);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(WATERLOGGED, FACING, TILT);
     }
 }

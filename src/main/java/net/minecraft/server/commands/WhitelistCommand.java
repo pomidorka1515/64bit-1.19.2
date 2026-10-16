@@ -21,8 +21,8 @@ public class WhitelistCommand {
     private static final SimpleCommandExceptionType ERROR_ALREADY_WHITELISTED = new SimpleCommandExceptionType(Component.translatable("commands.whitelist.add.failed"));
     private static final SimpleCommandExceptionType ERROR_NOT_WHITELISTED = new SimpleCommandExceptionType(Component.translatable("commands.whitelist.remove.failed"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_139202_) {
-        p_139202_.register(Commands.literal("whitelist").requires((p_139234_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("whitelist").requires((p_139234_) -> {
                                                             return p_139234_.hasPermission(3);
                                                         })
                         .then(Commands.literal("on").executes((p_139236_) -> {
@@ -58,22 +58,22 @@ public class WhitelistCommand {
                         })));
     }
 
-    private static int reload(CommandSourceStack p_139209_) {
-        p_139209_.getServer().getPlayerList().reloadWhiteList();
-        p_139209_.sendSuccess(Component.translatable("commands.whitelist.reloaded"), true);
-        p_139209_.getServer().kickUnlistedPlayers(p_139209_);
+    private static int reload(CommandSourceStack pSource) {
+        pSource.getServer().getPlayerList().reloadWhiteList();
+        pSource.sendSuccess(Component.translatable("commands.whitelist.reloaded"), true);
+        pSource.getServer().kickUnlistedPlayers(pSource);
         return 1;
     }
 
-    private static int addPlayers(CommandSourceStack p_139211_, Collection<GameProfile> p_139212_) throws CommandSyntaxException {
-        UserWhiteList userwhitelist = p_139211_.getServer().getPlayerList().getWhiteList();
+    private static int addPlayers(CommandSourceStack pSource, Collection<GameProfile> pPlayers) throws CommandSyntaxException {
+        UserWhiteList userwhitelist = pSource.getServer().getPlayerList().getWhiteList();
         int i = 0;
 
-        for (GameProfile gameprofile : p_139212_) {
+        for (GameProfile gameprofile : pPlayers) {
             if (!userwhitelist.isWhiteListed(gameprofile)) {
                 UserWhiteListEntry userwhitelistentry = new UserWhiteListEntry(gameprofile);
                 userwhitelist.add(userwhitelistentry);
-                p_139211_.sendSuccess(Component.translatable("commands.whitelist.add.success", ComponentUtils.getDisplayName(gameprofile)), true);
+                pSource.sendSuccess(Component.translatable("commands.whitelist.add.success", ComponentUtils.getDisplayName(gameprofile)), true);
                 ++i;
             }
         }
@@ -85,15 +85,15 @@ public class WhitelistCommand {
         }
     }
 
-    private static int removePlayers(CommandSourceStack p_139221_, Collection<GameProfile> p_139222_) throws CommandSyntaxException {
-        UserWhiteList userwhitelist = p_139221_.getServer().getPlayerList().getWhiteList();
+    private static int removePlayers(CommandSourceStack pSource, Collection<GameProfile> pPlayers) throws CommandSyntaxException {
+        UserWhiteList userwhitelist = pSource.getServer().getPlayerList().getWhiteList();
         int i = 0;
 
-        for (GameProfile gameprofile : p_139222_) {
+        for (GameProfile gameprofile : pPlayers) {
             if (userwhitelist.isWhiteListed(gameprofile)) {
                 UserWhiteListEntry userwhitelistentry = new UserWhiteListEntry(gameprofile);
                 userwhitelist.remove(userwhitelistentry);
-                p_139221_.sendSuccess(Component.translatable("commands.whitelist.remove.success", ComponentUtils.getDisplayName(gameprofile)), true);
+                pSource.sendSuccess(Component.translatable("commands.whitelist.remove.success", ComponentUtils.getDisplayName(gameprofile)), true);
                 ++i;
             }
         }
@@ -101,40 +101,40 @@ public class WhitelistCommand {
         if (i == 0) {
             throw ERROR_NOT_WHITELISTED.create();
         } else {
-            p_139221_.getServer().kickUnlistedPlayers(p_139221_);
+            pSource.getServer().kickUnlistedPlayers(pSource);
             return i;
         }
     }
 
-    private static int enableWhitelist(CommandSourceStack p_139219_) throws CommandSyntaxException {
-        PlayerList playerlist = p_139219_.getServer().getPlayerList();
+    private static int enableWhitelist(CommandSourceStack pSource) throws CommandSyntaxException {
+        PlayerList playerlist = pSource.getServer().getPlayerList();
         if (playerlist.isUsingWhitelist()) {
             throw ERROR_ALREADY_ENABLED.create();
         } else {
             playerlist.setUsingWhiteList(true);
-            p_139219_.sendSuccess(Component.translatable("commands.whitelist.enabled"), true);
-            p_139219_.getServer().kickUnlistedPlayers(p_139219_);
+            pSource.sendSuccess(Component.translatable("commands.whitelist.enabled"), true);
+            pSource.getServer().kickUnlistedPlayers(pSource);
             return 1;
         }
     }
 
-    private static int disableWhitelist(CommandSourceStack p_139226_) throws CommandSyntaxException {
-        PlayerList playerlist = p_139226_.getServer().getPlayerList();
+    private static int disableWhitelist(CommandSourceStack pSource) throws CommandSyntaxException {
+        PlayerList playerlist = pSource.getServer().getPlayerList();
         if (!playerlist.isUsingWhitelist()) {
             throw ERROR_ALREADY_DISABLED.create();
         } else {
             playerlist.setUsingWhiteList(false);
-            p_139226_.sendSuccess(Component.translatable("commands.whitelist.disabled"), true);
+            pSource.sendSuccess(Component.translatable("commands.whitelist.disabled"), true);
             return 1;
         }
     }
 
-    private static int showList(CommandSourceStack p_139230_) {
-        String[] astring = p_139230_.getServer().getPlayerList().getWhiteListNames();
+    private static int showList(CommandSourceStack pSource) {
+        String[] astring = pSource.getServer().getPlayerList().getWhiteListNames();
         if (astring.length == 0) {
-            p_139230_.sendSuccess(Component.translatable("commands.whitelist.none"), false);
+            pSource.sendSuccess(Component.translatable("commands.whitelist.none"), false);
         } else {
-            p_139230_.sendSuccess(Component.translatable("commands.whitelist.list", astring.length, String.join(", ", astring)), false);
+            pSource.sendSuccess(Component.translatable("commands.whitelist.list", astring.length, String.join(", ", astring)), false);
         }
 
         return astring.length;

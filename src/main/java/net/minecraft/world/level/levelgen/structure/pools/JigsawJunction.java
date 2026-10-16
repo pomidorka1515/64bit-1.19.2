@@ -11,12 +11,12 @@ public class JigsawJunction {
     private final int deltaY;
     private final StructureTemplatePool.Projection destProjection;
 
-    public JigsawJunction(long p_210247_, int p_210248_, long p_210249_, int p_210250_, StructureTemplatePool.Projection p_210251_) {
-        this.sourceX = p_210247_;
-        this.sourceGroundY = p_210248_;
-        this.sourceZ = p_210249_;
-        this.deltaY = p_210250_;
-        this.destProjection = p_210251_;
+    public JigsawJunction(long pSourceX, int pSourceGroundY, long pSourceZ, int pDeltaY, StructureTemplatePool.Projection pDestProjection) {
+        this.sourceX = pSourceX;
+        this.sourceGroundY = pSourceGroundY;
+        this.sourceZ = pSourceZ;
+        this.deltaY = pDeltaY;
+        this.destProjection = pDestProjection;
     }
 
     public long getSourceX() {
@@ -39,21 +39,21 @@ public class JigsawJunction {
         return this.destProjection;
     }
 
-    public <T> Dynamic<T> serialize(DynamicOps<T> p_210256_) {
+    public <T> Dynamic<T> serialize(DynamicOps<T> pOps) {
         ImmutableMap.Builder<T, T> builder = ImmutableMap.builder();
-        builder.put(p_210256_.createString("source_x"), p_210256_.createLong(this.sourceX)).put(p_210256_.createString("source_ground_y"), p_210256_.createInt(this.sourceGroundY)).put(p_210256_.createString("source_z"), p_210256_.createLong(this.sourceZ)).put(p_210256_.createString("delta_y"), p_210256_.createInt(this.deltaY)).put(p_210256_.createString("dest_proj"), p_210256_.createString(this.destProjection.getName()));
-        return new Dynamic<>(p_210256_, p_210256_.createMap(builder.build()));
+        builder.put(pOps.createString("source_x"), pOps.createLong(this.sourceX)).put(pOps.createString("source_ground_y"), pOps.createInt(this.sourceGroundY)).put(pOps.createString("source_z"), pOps.createLong(this.sourceZ)).put(pOps.createString("delta_y"), pOps.createInt(this.deltaY)).put(pOps.createString("dest_proj"), pOps.createString(this.destProjection.getName()));
+        return new Dynamic<>(pOps, pOps.createMap(builder.build()));
     }
 
-    public static <T> JigsawJunction deserialize(Dynamic<T> p_210254_) {
-        return new JigsawJunction(p_210254_.get("source_x").asInt(0), p_210254_.get("source_ground_y").asInt(0), p_210254_.get("source_z").asInt(0), p_210254_.get("delta_y").asInt(0), StructureTemplatePool.Projection.byName(p_210254_.get("dest_proj").asString("")));
+    public static <T> JigsawJunction deserialize(Dynamic<T> pDynamic) {
+        return new JigsawJunction(pDynamic.get("source_x").asInt(0), pDynamic.get("source_ground_y").asInt(0), pDynamic.get("source_z").asInt(0), pDynamic.get("delta_y").asInt(0), StructureTemplatePool.Projection.byName(pDynamic.get("dest_proj").asString("")));
     }
 
-    public boolean equals(Object p_210262_) {
-        if (this == p_210262_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_210262_ != null && this.getClass() == p_210262_.getClass()) {
-            JigsawJunction jigsawjunction = (JigsawJunction) p_210262_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            JigsawJunction jigsawjunction = (JigsawJunction) pOther;
             if (this.sourceX != jigsawjunction.sourceX) {
                 return false;
             } else if (this.sourceZ != jigsawjunction.sourceZ) {

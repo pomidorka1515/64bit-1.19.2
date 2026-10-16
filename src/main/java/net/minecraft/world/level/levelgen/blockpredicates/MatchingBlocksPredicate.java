@@ -23,8 +23,8 @@ class MatchingBlocksPredicate extends StateTestingPredicate {
         this.blocks = p_204691_;
     }
 
-    protected boolean test(BlockState p_190487_) {
-        return p_190487_.is(this.blocks);
+    protected boolean test(BlockState pState) {
+        return pState.is(this.blocks);
     }
 
     public BlockPredicateType<?> type() {

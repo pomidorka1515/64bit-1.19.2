@@ -132,17 +132,17 @@ public class EntityDataSerializers {
     public static final EntityDataSerializer<FrogVariant> FROG_VARIANT = EntityDataSerializer.simpleId(Registry.FROG_VARIANT);
     public static final EntityDataSerializer<Holder<PaintingVariant>> PAINTING_VARIANT = EntityDataSerializer.simpleId(Registry.PAINTING_VARIANT.asHolderIdMap());
 
-    public static void registerSerializer(EntityDataSerializer<?> p_135051_) {
-        SERIALIZERS.add(p_135051_);
+    public static void registerSerializer(EntityDataSerializer<?> pSerializer) {
+        SERIALIZERS.add(pSerializer);
     }
 
     @Nullable
-    public static EntityDataSerializer<?> getSerializer(int p_135049_) {
-        return SERIALIZERS.byId(p_135049_);
+    public static EntityDataSerializer<?> getSerializer(int pId) {
+        return SERIALIZERS.byId(pId);
     }
 
-    public static int getSerializedId(EntityDataSerializer<?> p_135053_) {
-        return SERIALIZERS.getId(p_135053_);
+    public static int getSerializedId(EntityDataSerializer<?> pSerializer) {
+        return SERIALIZERS.getId(pSerializer);
     }
 
     private EntityDataSerializers() {

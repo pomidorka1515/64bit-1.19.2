@@ -19,49 +19,49 @@ public abstract class AbstractPackResources implements PackResources {
     private static final Logger LOGGER = LogUtils.getLogger();
     protected final File file;
 
-    public AbstractPackResources(File p_10207_) {
-        this.file = p_10207_;
+    public AbstractPackResources(File pFile) {
+        this.file = pFile;
     }
 
-    private static String getPathFromLocation(PackType p_10227_, ResourceLocation p_10228_) {
-        return String.format(Locale.ROOT, "%s/%s/%s", p_10227_.getDirectory(), p_10228_.getNamespace(), p_10228_.getPath());
+    private static String getPathFromLocation(PackType pType, ResourceLocation pLocation) {
+        return String.format(Locale.ROOT, "%s/%s/%s", pType.getDirectory(), pLocation.getNamespace(), pLocation.getPath());
     }
 
-    protected static String getRelativePath(File p_10218_, File p_10219_) {
-        return p_10218_.toURI().relativize(p_10219_.toURI()).getPath();
+    protected static String getRelativePath(File pFile1, File pFile2) {
+        return pFile1.toURI().relativize(pFile2.toURI()).getPath();
     }
 
-    public InputStream getResource(PackType p_10210_, ResourceLocation p_10211_) throws IOException {
-        return this.getResource(getPathFromLocation(p_10210_, p_10211_));
+    public InputStream getResource(PackType pType, ResourceLocation pLocation) throws IOException {
+        return this.getResource(getPathFromLocation(pType, pLocation));
     }
 
-    public boolean hasResource(PackType p_10222_, ResourceLocation p_10223_) {
-        return this.hasResource(getPathFromLocation(p_10222_, p_10223_));
+    public boolean hasResource(PackType pType, ResourceLocation pLocation) {
+        return this.hasResource(getPathFromLocation(pType, pLocation));
     }
 
-    protected abstract InputStream getResource(String p_10220_) throws IOException;
+    protected abstract InputStream getResource(String pResourcePath) throws IOException;
 
-    public InputStream getRootResource(String p_10225_) throws IOException {
-        if (!p_10225_.contains("/") && !p_10225_.contains("\\")) {
-            return this.getResource(p_10225_);
+    public InputStream getRootResource(String pFileName) throws IOException {
+        if (!pFileName.contains("/") && !pFileName.contains("\\")) {
+            return this.getResource(pFileName);
         } else {
             throw new IllegalArgumentException("Root resources can only be filenames, not paths (no / allowed!)");
         }
     }
 
-    protected abstract boolean hasResource(String p_10229_);
+    protected abstract boolean hasResource(String pResourcePath);
 
-    protected void logWarning(String p_10231_) {
-        LOGGER.warn("ResourcePack: ignored non-lowercase namespace: {} in {}", p_10231_, this.file);
+    protected void logWarning(String pNamespace) {
+        LOGGER.warn("ResourcePack: ignored non-lowercase namespace: {} in {}", pNamespace, this.file);
     }
 
     @Nullable
-    public <T> T getMetadataSection(MetadataSectionSerializer<T> p_10213_) throws IOException {
+    public <T> T getMetadataSection(MetadataSectionSerializer<T> pDeserializer) throws IOException {
         InputStream inputstream = this.getResource("pack.mcmeta");
 
         Object object;
         try {
-            object = getMetadataFromStream(p_10213_, inputstream);
+            object = getMetadataFromStream(pDeserializer, inputstream);
         } catch (Throwable throwable1) {
             if (inputstream != null) {
                 try {
@@ -82,10 +82,10 @@ public abstract class AbstractPackResources implements PackResources {
     }
 
     @Nullable
-    public static <T> T getMetadataFromStream(MetadataSectionSerializer<T> p_10215_, InputStream p_10216_) {
+    public static <T> T getMetadataFromStream(MetadataSectionSerializer<T> pDeserializer, InputStream pInputStream) {
         JsonObject jsonobject;
         try {
-            BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(p_10216_, StandardCharsets.UTF_8));
+            BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(pInputStream, StandardCharsets.UTF_8));
 
             try {
                 jsonobject = GsonHelper.parse(bufferedreader);
@@ -101,17 +101,17 @@ public abstract class AbstractPackResources implements PackResources {
 
             bufferedreader.close();
         } catch (Exception exception1) {
-            LOGGER.error("Couldn't load {} metadata", p_10215_.getMetadataSectionName(), exception1);
+            LOGGER.error("Couldn't load {} metadata", pDeserializer.getMetadataSectionName(), exception1);
             return (T) null;
         }
 
-        if (!jsonobject.has(p_10215_.getMetadataSectionName())) {
+        if (!jsonobject.has(pDeserializer.getMetadataSectionName())) {
             return (T) null;
         } else {
             try {
-                return p_10215_.fromJson(GsonHelper.getAsJsonObject(jsonobject, p_10215_.getMetadataSectionName()));
+                return pDeserializer.fromJson(GsonHelper.getAsJsonObject(jsonobject, pDeserializer.getMetadataSectionName()));
             } catch (Exception exception) {
-                LOGGER.error("Couldn't load {} metadata", p_10215_.getMetadataSectionName(), exception);
+                LOGGER.error("Couldn't load {} metadata", pDeserializer.getMetadataSectionName(), exception);
                 return (T) null;
             }
         }

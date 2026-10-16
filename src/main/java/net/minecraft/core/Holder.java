@@ -16,13 +16,13 @@ public interface Holder<T> {
 
     boolean isBound();
 
-    boolean is(ResourceLocation p_205713_);
+    boolean is(ResourceLocation pLocation);
 
-    boolean is(ResourceKey<T> p_205712_);
+    boolean is(ResourceKey<T> pResourceKey);
 
-    boolean is(Predicate<ResourceKey<T>> p_205711_);
+    boolean is(Predicate<ResourceKey<T>> pPredicate);
 
-    boolean is(TagKey<T> p_205705_);
+    boolean is(TagKey<T> pTagKey);
 
     Stream<TagKey<T>> tags();
 
@@ -32,10 +32,10 @@ public interface Holder<T> {
 
     Holder.Kind kind();
 
-    boolean isValidInRegistry(Registry<T> p_205708_);
+    boolean isValidInRegistry(Registry<T> pRegistry);
 
-    static <T> Holder<T> direct(T p_205710_) {
-        return new Holder.Direct<>(p_205710_);
+    static <T> Holder<T> direct(T pValue) {
+        return new Holder.Direct<>(pValue);
     }
 
     static <T> Holder<T> hackyErase(Holder<? extends T> p_205707_) {
@@ -106,21 +106,21 @@ public interface Holder<T> {
         @Nullable
         private T value;
 
-        private Reference(Holder.Reference.Type p_205754_, Registry<T> p_205755_, @Nullable ResourceKey<T> p_205756_, @Nullable T p_205757_) {
-            this.registry = p_205755_;
-            this.type = p_205754_;
-            this.key = p_205756_;
-            this.value = p_205757_;
+        private Reference(Holder.Reference.Type pType, Registry<T> pRegistry, @Nullable ResourceKey<T> pKey, @Nullable T pValue) {
+            this.registry = pRegistry;
+            this.type = pType;
+            this.key = pKey;
+            this.value = pValue;
         }
 
-        public static <T> Holder.Reference<T> createStandAlone(Registry<T> p_205767_, ResourceKey<T> p_205768_) {
-            return new Holder.Reference<>(Holder.Reference.Type.STAND_ALONE, p_205767_, p_205768_, (T) null);
+        public static <T> Holder.Reference<T> createStandAlone(Registry<T> pRegistry, ResourceKey<T> pKey) {
+            return new Holder.Reference<>(Holder.Reference.Type.STAND_ALONE, pRegistry, pKey, (T) null);
         }
 
         /** @deprecated */
         @Deprecated
-        public static <T> Holder.Reference<T> createIntrusive(Registry<T> p_205764_, @Nullable T p_205765_) {
-            return new Holder.Reference<>(Holder.Reference.Type.INTRUSIVE, p_205764_, (ResourceKey<T>) null, p_205765_);
+        public static <T> Holder.Reference<T> createIntrusive(Registry<T> pRegistry, @Nullable T pValue) {
+            return new Holder.Reference<>(Holder.Reference.Type.INTRUSIVE, pRegistry, (ResourceKey<T>) null, pValue);
         }
 
         public ResourceKey<T> key() {
@@ -139,24 +139,24 @@ public interface Holder<T> {
             }
         }
 
-        public boolean is(ResourceLocation p_205779_) {
-            return this.key().location().equals(p_205779_);
+        public boolean is(ResourceLocation pLocation) {
+            return this.key().location().equals(pLocation);
         }
 
-        public boolean is(ResourceKey<T> p_205774_) {
-            return this.key() == p_205774_;
+        public boolean is(ResourceKey<T> pResourceKey) {
+            return this.key() == pResourceKey;
         }
 
-        public boolean is(TagKey<T> p_205760_) {
-            return this.tags.contains(p_205760_);
+        public boolean is(TagKey<T> pTagKey) {
+            return this.tags.contains(pTagKey);
         }
 
-        public boolean is(Predicate<ResourceKey<T>> p_205772_) {
-            return p_205772_.test(this.key());
+        public boolean is(Predicate<ResourceKey<T>> pPredicate) {
+            return pPredicate.test(this.key());
         }
 
-        public boolean isValidInRegistry(Registry<T> p_205762_) {
-            return this.registry == p_205762_;
+        public boolean isValidInRegistry(Registry<T> pRegistry) {
+            return this.registry == pRegistry;
         }
 
         public Either<ResourceKey<T>, T> unwrap() {
@@ -175,19 +175,19 @@ public interface Holder<T> {
             return this.key != null && this.value != null;
         }
 
-        void bind(ResourceKey<T> p_205776_, T p_205777_) {
-            if (this.key != null && p_205776_ != this.key) {
-                throw new IllegalStateException("Can't change holder key: existing=" + this.key + ", new=" + p_205776_);
-            } else if (this.type == Holder.Reference.Type.INTRUSIVE && this.value != p_205777_) {
-                throw new IllegalStateException("Can't change holder " + p_205776_ + " value: existing=" + this.value + ", new=" + p_205777_);
+        void bind(ResourceKey<T> pKey, T pValue) {
+            if (this.key != null && pKey != this.key) {
+                throw new IllegalStateException("Can't change holder key: existing=" + this.key + ", new=" + pKey);
+            } else if (this.type == Holder.Reference.Type.INTRUSIVE && this.value != pValue) {
+                throw new IllegalStateException("Can't change holder " + pKey + " value: existing=" + this.value + ", new=" + pValue);
             } else {
-                this.key = p_205776_;
-                this.value = p_205777_;
+                this.key = pKey;
+                this.value = pValue;
             }
         }
 
-        void bindTags(Collection<TagKey<T>> p_205770_) {
-            this.tags = Set.copyOf(p_205770_);
+        void bindTags(Collection<TagKey<T>> pTags) {
+            this.tags = Set.copyOf(pTags);
         }
 
         public Stream<TagKey<T>> tags() {

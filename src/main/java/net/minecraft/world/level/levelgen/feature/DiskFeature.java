@@ -9,15 +9,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.DiskConfiguration;
 
 public class DiskFeature extends Feature<DiskConfiguration> {
-    public DiskFeature(Codec<DiskConfiguration> p_224992_) {
-        super(p_224992_);
+    public DiskFeature(Codec<DiskConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<DiskConfiguration> p_224994_) {
-        DiskConfiguration diskconfiguration = p_224994_.config();
-        BlockPos blockpos = p_224994_.origin();
-        WorldGenLevel worldgenlevel = p_224994_.level();
-        RandomSource randomsource = p_224994_.random();
+    public boolean place(FeaturePlaceContext<DiskConfiguration> pContext) {
+        DiskConfiguration diskconfiguration = pContext.config();
+        BlockPos blockpos = pContext.origin();
+        WorldGenLevel worldgenlevel = pContext.level();
+        RandomSource randomsource = pContext.random();
         boolean flag = false;
         int i = blockpos.getY();
         int j = i + diskconfiguration.halfHeight();
@@ -36,16 +36,16 @@ public class DiskFeature extends Feature<DiskConfiguration> {
         return flag;
     }
 
-    protected boolean placeColumn(DiskConfiguration p_224996_, WorldGenLevel p_224997_, RandomSource p_224998_, int p_224999_, int p_225000_, BlockPos.MutableBlockPos p_225001_) {
+    protected boolean placeColumn(DiskConfiguration pConfig, WorldGenLevel pLevel, RandomSource pRandom, int pMaxY, int pMinY, BlockPos.MutableBlockPos pPos) {
         boolean flag = false;
         BlockState blockstate = null;
 
-        for (int i = p_224999_; i > p_225000_; --i) {
-            p_225001_.setY(i);
-            if (p_224996_.target().test(p_224997_, p_225001_)) {
-                BlockState blockstate1 = p_224996_.stateProvider().getState(p_224997_, p_224998_, p_225001_);
-                p_224997_.setBlock(p_225001_, blockstate1, 2);
-                this.markAboveForPostProcessing(p_224997_, p_225001_);
+        for (int i = pMaxY; i > pMinY; --i) {
+            pPos.setY(i);
+            if (pConfig.target().test(pLevel, pPos)) {
+                BlockState blockstate1 = pConfig.stateProvider().getState(pLevel, pRandom, pPos);
+                pLevel.setBlock(pPos, blockstate1, 2);
+                this.markAboveForPostProcessing(pLevel, pPos);
                 flag = true;
             }
         }

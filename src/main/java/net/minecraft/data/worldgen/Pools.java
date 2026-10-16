@@ -12,8 +12,8 @@ public class Pools {
     public static final ResourceKey<StructureTemplatePool> EMPTY = ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, new ResourceLocation("empty"));
     private static final Holder<StructureTemplatePool> BUILTIN_EMPTY = register(new StructureTemplatePool(EMPTY.location(), EMPTY.location(), ImmutableList.of(), StructureTemplatePool.Projection.RIGID));
 
-    public static Holder<StructureTemplatePool> register(StructureTemplatePool p_211104_) {
-        return BuiltinRegistries.register(BuiltinRegistries.TEMPLATE_POOL, p_211104_.getName(), p_211104_);
+    public static Holder<StructureTemplatePool> register(StructureTemplatePool pPool) {
+        return BuiltinRegistries.register(BuiltinRegistries.TEMPLATE_POOL, pPool.getName(), pPool);
     }
 
     /** @deprecated */

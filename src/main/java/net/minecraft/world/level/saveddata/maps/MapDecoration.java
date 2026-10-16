@@ -13,12 +13,12 @@ public class MapDecoration {
     @Nullable
     private final Component name;
 
-    public MapDecoration(MapDecoration.Type p_77797_, byte p_77798_, byte p_77799_, byte p_77800_, @Nullable Component p_77801_) {
-        this.type = p_77797_;
-        this.x = p_77798_;
-        this.y = p_77799_;
-        this.rot = p_77800_;
-        this.name = p_77801_;
+    public MapDecoration(MapDecoration.Type pType, byte pX, byte pY, byte pRot, @Nullable Component pName) {
+        this.type = pType;
+        this.x = pX;
+        this.y = pY;
+        this.rot = pRot;
+        this.name = pName;
     }
 
     public byte getImage() {
@@ -130,8 +130,8 @@ public class MapDecoration {
             return this.mapColor;
         }
 
-        public static MapDecoration.Type byIcon(byte p_77855_) {
-            return values()[Mth.clamp(p_77855_, 0, values().length - 1)];
+        public static MapDecoration.Type byIcon(byte pIconId) {
+            return values()[Mth.clamp(pIconId, 0, values().length - 1)];
         }
 
         public boolean shouldTrackCount() {

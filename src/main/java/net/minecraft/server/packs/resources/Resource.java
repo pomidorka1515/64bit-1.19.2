@@ -14,15 +14,15 @@ public class Resource {
     @Nullable
     private ResourceMetadata cachedMetadata;
 
-    public Resource(String p_215503_, Resource.IoSupplier<InputStream> p_215504_, Resource.IoSupplier<ResourceMetadata> p_215505_) {
-        this.packId = p_215503_;
-        this.streamSupplier = p_215504_;
-        this.metadataSupplier = p_215505_;
+    public Resource(String pPackId, Resource.IoSupplier<InputStream> pStreamSupplier, Resource.IoSupplier<ResourceMetadata> pMetadataSupplier) {
+        this.packId = pPackId;
+        this.streamSupplier = pStreamSupplier;
+        this.metadataSupplier = pMetadataSupplier;
     }
 
-    public Resource(String p_215500_, Resource.IoSupplier<InputStream> p_215501_) {
-        this.packId = p_215500_;
-        this.streamSupplier = p_215501_;
+    public Resource(String pPackId, Resource.IoSupplier<InputStream> pStreamSupplier) {
+        this.packId = pPackId;
+        this.streamSupplier = pStreamSupplier;
         this.metadataSupplier = () -> {
             return ResourceMetadata.EMPTY;
         };

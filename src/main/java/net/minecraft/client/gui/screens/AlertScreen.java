@@ -18,16 +18,16 @@ public class AlertScreen extends Screen {
     private final Component okButton;
     private final boolean shouldCloseOnEsc;
 
-    public AlertScreen(Runnable p_95519_, Component p_95520_, Component p_95521_) {
-        this(p_95519_, p_95520_, p_95521_, CommonComponents.GUI_BACK, true);
+    public AlertScreen(Runnable pCallback, Component pTitle, Component pText) {
+        this(pCallback, pTitle, pText, CommonComponents.GUI_BACK, true);
     }
 
-    public AlertScreen(Runnable p_239327_, Component p_239328_, Component p_239329_, Component p_239330_, boolean p_239331_) {
-        super(p_239328_);
-        this.callback = p_239327_;
-        this.messageText = p_239329_;
-        this.okButton = p_239330_;
-        this.shouldCloseOnEsc = p_239331_;
+    public AlertScreen(Runnable pCallback, Component pTitle, Component pMessageText, Component pOkButton, boolean pShouldCloseOnEsc) {
+        super(pTitle);
+        this.callback = pCallback;
+        this.messageText = pMessageText;
+        this.okButton = pOkButton;
+        this.shouldCloseOnEsc = pShouldCloseOnEsc;
     }
 
     public Component getNarrationMessage() {
@@ -45,11 +45,11 @@ public class AlertScreen extends Screen {
         }));
     }
 
-    public void render(PoseStack p_95528_, int p_95529_, int p_95530_, float p_95531_) {
-        this.renderBackground(p_95528_);
-        drawCenteredString(p_95528_, this.font, this.title, this.width / 2, 70, 16777215);
-        this.message.renderCentered(p_95528_, this.width / 2, 90);
-        super.render(p_95528_, p_95529_, p_95530_, p_95531_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 70, 16777215);
+        this.message.renderCentered(pPoseStack, this.width / 2, 90);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public boolean shouldCloseOnEsc() {

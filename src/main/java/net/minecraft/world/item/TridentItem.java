@@ -30,47 +30,47 @@ public class TridentItem extends Item implements Vanishable {
     public static final float SHOOT_POWER = 2.5F;
     private final Multimap<Attribute, AttributeModifier> defaultModifiers;
 
-    public TridentItem(Item.Properties p_43381_) {
-        super(p_43381_);
+    public TridentItem(Item.Properties pProperties) {
+        super(pProperties);
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
         builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier", 8.0D, AttributeModifier.Operation.ADDITION));
         builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier", (double) -2.9F, AttributeModifier.Operation.ADDITION));
         this.defaultModifiers = builder.build();
     }
 
-    public boolean canAttackBlock(BlockState p_43409_, Level p_43410_, BlockPos p_43411_, Player p_43412_) {
-        return !p_43412_.isCreative();
+    public boolean canAttackBlock(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer) {
+        return !pPlayer.isCreative();
     }
 
-    public UseAnim getUseAnimation(ItemStack p_43417_) {
+    public UseAnim getUseAnimation(ItemStack pStack) {
         return UseAnim.SPEAR;
     }
 
-    public int getUseDuration(ItemStack p_43419_) {
+    public int getUseDuration(ItemStack pStack) {
         return 72000;
     }
 
-    public void releaseUsing(ItemStack p_43394_, Level p_43395_, LivingEntity p_43396_, int p_43397_) {
-        if (p_43396_ instanceof Player player) {
-            int i = this.getUseDuration(p_43394_) - p_43397_;
+    public void releaseUsing(ItemStack pStack, Level pLevel, LivingEntity pEntityLiving, int pTimeLeft) {
+        if (pEntityLiving instanceof Player player) {
+            int i = this.getUseDuration(pStack) - pTimeLeft;
             if (i >= 10) {
-                int j = EnchantmentHelper.getRiptide(p_43394_);
+                int j = EnchantmentHelper.getRiptide(pStack);
                 if (j <= 0 || player.isInWaterOrRain()) {
-                    if (!p_43395_.isClientSide) {
-                        p_43394_.hurtAndBreak(1, player, (p_43388_) -> {
-                            p_43388_.broadcastBreakEvent(p_43396_.getUsedItemHand());
+                    if (!pLevel.isClientSide) {
+                        pStack.hurtAndBreak(1, player, (p_43388_) -> {
+                            p_43388_.broadcastBreakEvent(pEntityLiving.getUsedItemHand());
                         });
                         if (j == 0) {
-                            ThrownTrident throwntrident = new ThrownTrident(p_43395_, player, p_43394_);
+                            ThrownTrident throwntrident = new ThrownTrident(pLevel, player, pStack);
                             throwntrident.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 2.5F + (float) j * 0.5F, 1.0F);
                             if (player.getAbilities().instabuild) {
                                 throwntrident.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
                             }
 
-                            p_43395_.addFreshEntity(throwntrident);
-                            p_43395_.playSound((Player) null, throwntrident, SoundEvents.TRIDENT_THROW, SoundSource.PLAYERS, 1.0F, 1.0F);
+                            pLevel.addFreshEntity(throwntrident);
+                            pLevel.playSound((Player) null, throwntrident, SoundEvents.TRIDENT_THROW, SoundSource.PLAYERS, 1.0F, 1.0F);
                             if (!player.getAbilities().instabuild) {
-                                player.getInventory().removeItem(p_43394_);
+                                player.getInventory().removeItem(pStack);
                             }
                         }
                     }
@@ -103,35 +103,35 @@ public class TridentItem extends Item implements Vanishable {
                             soundevent = SoundEvents.TRIDENT_RIPTIDE_1;
                         }
 
-                        p_43395_.playSound((Player) null, player, soundevent, SoundSource.PLAYERS, 1.0F, 1.0F);
+                        pLevel.playSound((Player) null, player, soundevent, SoundSource.PLAYERS, 1.0F, 1.0F);
                     }
                 }
             }
         }
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_43405_, Player p_43406_, InteractionHand p_43407_) {
-        ItemStack itemstack = p_43406_.getItemInHand(p_43407_);
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (itemstack.getDamageValue() >= itemstack.getMaxDamage() - 1) {
             return InteractionResultHolder.fail(itemstack);
-        } else if (EnchantmentHelper.getRiptide(itemstack) > 0 && !p_43406_.isInWaterOrRain()) {
+        } else if (EnchantmentHelper.getRiptide(itemstack) > 0 && !pPlayer.isInWaterOrRain()) {
             return InteractionResultHolder.fail(itemstack);
         } else {
-            p_43406_.startUsingItem(p_43407_);
+            pPlayer.startUsingItem(pHand);
             return InteractionResultHolder.consume(itemstack);
         }
     }
 
-    public boolean hurtEnemy(ItemStack p_43390_, LivingEntity p_43391_, LivingEntity p_43392_) {
-        p_43390_.hurtAndBreak(1, p_43392_, (p_43414_) -> {
+    public boolean hurtEnemy(ItemStack pStack, LivingEntity pTarget, LivingEntity pAttacker) {
+        pStack.hurtAndBreak(1, pAttacker, (p_43414_) -> {
             p_43414_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
         });
         return true;
     }
 
-    public boolean mineBlock(ItemStack p_43399_, Level p_43400_, BlockState p_43401_, BlockPos p_43402_, LivingEntity p_43403_) {
-        if ((double) p_43401_.getDestroySpeed(p_43400_, p_43402_) != 0.0D) {
-            p_43399_.hurtAndBreak(2, p_43403_, (p_43385_) -> {
+    public boolean mineBlock(ItemStack pStack, Level pLevel, BlockState pState, BlockPos pPos, LivingEntity pEntityLiving) {
+        if ((double) pState.getDestroySpeed(pLevel, pPos) != 0.0D) {
+            pStack.hurtAndBreak(2, pEntityLiving, (p_43385_) -> {
                 p_43385_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
             });
         }
@@ -139,8 +139,8 @@ public class TridentItem extends Item implements Vanishable {
         return true;
     }
 
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot p_43383_) {
-        return p_43383_ == EquipmentSlot.MAINHAND ? this.defaultModifiers : super.getDefaultAttributeModifiers(p_43383_);
+    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot pEquipmentSlot) {
+        return pEquipmentSlot == EquipmentSlot.MAINHAND ? this.defaultModifiers : super.getDefaultAttributeModifiers(pEquipmentSlot);
     }
 
     public int getEnchantmentValue() {

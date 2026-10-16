@@ -10,7 +10,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public record AnimationChannel(AnimationChannel.Target target, Keyframe... keyframes) {
     @OnlyIn(Dist.CLIENT)
     public interface Interpolation {
-        Vector3f apply(Vector3f p_232223_, float p_232224_, Keyframe[] p_232225_, int p_232226_, int p_232227_, float p_232228_);
+        Vector3f apply(Vector3f pAnimationVecCache, float pKeyframeDelta, Keyframe[] pKeyframes, int pCurrentKeyframeIdx, int pNextKeyframeIdx, float pScale);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -33,7 +33,7 @@ public record AnimationChannel(AnimationChannel.Target target, Keyframe... keyfr
 
     @OnlyIn(Dist.CLIENT)
     public interface Target {
-        void apply(ModelPart p_232248_, Vector3f p_232249_);
+        void apply(ModelPart pModelPart, Vector3f pAnimationVector);
     }
 
     @OnlyIn(Dist.CLIENT)

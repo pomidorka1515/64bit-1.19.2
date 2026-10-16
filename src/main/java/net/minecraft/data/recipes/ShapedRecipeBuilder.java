@@ -32,54 +32,54 @@ public class ShapedRecipeBuilder implements RecipeBuilder {
     @Nullable
     private String group;
 
-    public ShapedRecipeBuilder(ItemLike p_126114_, int p_126115_) {
-        this.result = p_126114_.asItem();
-        this.count = p_126115_;
+    public ShapedRecipeBuilder(ItemLike pResult, int pCount) {
+        this.result = pResult.asItem();
+        this.count = pCount;
     }
 
-    public static ShapedRecipeBuilder shaped(ItemLike p_126117_) {
-        return shaped(p_126117_, 1);
+    public static ShapedRecipeBuilder shaped(ItemLike pResult) {
+        return shaped(pResult, 1);
     }
 
-    public static ShapedRecipeBuilder shaped(ItemLike p_126119_, int p_126120_) {
-        return new ShapedRecipeBuilder(p_126119_, p_126120_);
+    public static ShapedRecipeBuilder shaped(ItemLike pResult, int pCount) {
+        return new ShapedRecipeBuilder(pResult, pCount);
     }
 
-    public ShapedRecipeBuilder define(Character p_206417_, TagKey<Item> p_206418_) {
-        return this.define(p_206417_, Ingredient.of(p_206418_));
+    public ShapedRecipeBuilder define(Character pSymbol, TagKey<Item> pTag) {
+        return this.define(pSymbol, Ingredient.of(pTag));
     }
 
-    public ShapedRecipeBuilder define(Character p_126128_, ItemLike p_126129_) {
-        return this.define(p_126128_, Ingredient.of(p_126129_));
+    public ShapedRecipeBuilder define(Character pSymbol, ItemLike pItem) {
+        return this.define(pSymbol, Ingredient.of(pItem));
     }
 
-    public ShapedRecipeBuilder define(Character p_126125_, Ingredient p_126126_) {
-        if (this.key.containsKey(p_126125_)) {
-            throw new IllegalArgumentException("Symbol '" + p_126125_ + "' is already defined!");
-        } else if (p_126125_ == ' ') {
+    public ShapedRecipeBuilder define(Character pSymbol, Ingredient pIngredient) {
+        if (this.key.containsKey(pSymbol)) {
+            throw new IllegalArgumentException("Symbol '" + pSymbol + "' is already defined!");
+        } else if (pSymbol == ' ') {
             throw new IllegalArgumentException("Symbol ' ' (whitespace) is reserved and cannot be defined");
         } else {
-            this.key.put(p_126125_, p_126126_);
+            this.key.put(pSymbol, pIngredient);
             return this;
         }
     }
 
-    public ShapedRecipeBuilder pattern(String p_126131_) {
-        if (!this.rows.isEmpty() && p_126131_.length() != this.rows.get(0).length()) {
+    public ShapedRecipeBuilder pattern(String pPattern) {
+        if (!this.rows.isEmpty() && pPattern.length() != this.rows.get(0).length()) {
             throw new IllegalArgumentException("Pattern must be the same width on every line!");
         } else {
-            this.rows.add(p_126131_);
+            this.rows.add(pPattern);
             return this;
         }
     }
 
-    public ShapedRecipeBuilder unlockedBy(String p_126133_, CriterionTriggerInstance p_126134_) {
-        this.advancement.addCriterion(p_126133_, p_126134_);
+    public ShapedRecipeBuilder unlockedBy(String pCriterionName, CriterionTriggerInstance pCriterionTrigger) {
+        this.advancement.addCriterion(pCriterionName, pCriterionTrigger);
         return this;
     }
 
-    public ShapedRecipeBuilder group(@Nullable String p_126146_) {
-        this.group = p_126146_;
+    public ShapedRecipeBuilder group(@Nullable String pGroupName) {
+        this.group = pGroupName;
         return this;
     }
 
@@ -87,15 +87,15 @@ public class ShapedRecipeBuilder implements RecipeBuilder {
         return this.result;
     }
 
-    public void save(Consumer<FinishedRecipe> p_126141_, ResourceLocation p_126142_) {
-        this.ensureValid(p_126142_);
-        this.advancement.parent(ROOT_RECIPE_ADVANCEMENT).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(p_126142_)).rewards(AdvancementRewards.Builder.recipe(p_126142_)).requirements(RequirementsStrategy.OR);
-        p_126141_.accept(new ShapedRecipeBuilder.Result(p_126142_, this.result, this.count, this.group == null ? "" : this.group, this.rows, this.key, this.advancement, new ResourceLocation(p_126142_.getNamespace(), "recipes/" + this.result.getItemCategory().getRecipeFolderName() + "/" + p_126142_.getPath())));
+    public void save(Consumer<FinishedRecipe> pFinishedRecipeConsumer, ResourceLocation pRecipeId) {
+        this.ensureValid(pRecipeId);
+        this.advancement.parent(ROOT_RECIPE_ADVANCEMENT).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(pRecipeId)).rewards(AdvancementRewards.Builder.recipe(pRecipeId)).requirements(RequirementsStrategy.OR);
+        pFinishedRecipeConsumer.accept(new ShapedRecipeBuilder.Result(pRecipeId, this.result, this.count, this.group == null ? "" : this.group, this.rows, this.key, this.advancement, new ResourceLocation(pRecipeId.getNamespace(), "recipes/" + this.result.getItemCategory().getRecipeFolderName() + "/" + pRecipeId.getPath())));
     }
 
-    private void ensureValid(ResourceLocation p_126144_) {
+    private void ensureValid(ResourceLocation pId) {
         if (this.rows.isEmpty()) {
-            throw new IllegalStateException("No pattern is defined for shaped recipe " + p_126144_ + "!");
+            throw new IllegalStateException("No pattern is defined for shaped recipe " + pId + "!");
         } else {
             Set<Character> set = Sets.newHashSet(this.key.keySet());
             set.remove(' ');
@@ -104,7 +104,7 @@ public class ShapedRecipeBuilder implements RecipeBuilder {
                 for (int i = 0; i < s.length(); ++i) {
                     char c0 = s.charAt(i);
                     if (!this.key.containsKey(c0) && c0 != ' ') {
-                        throw new IllegalStateException("Pattern in recipe " + p_126144_ + " uses undefined symbol '" + c0 + "'");
+                        throw new IllegalStateException("Pattern in recipe " + pId + " uses undefined symbol '" + c0 + "'");
                     }
 
                     set.remove(c0);
@@ -112,11 +112,11 @@ public class ShapedRecipeBuilder implements RecipeBuilder {
             }
 
             if (!set.isEmpty()) {
-                throw new IllegalStateException("Ingredients are defined but not used in pattern for recipe " + p_126144_);
+                throw new IllegalStateException("Ingredients are defined but not used in pattern for recipe " + pId);
             } else if (this.rows.size() == 1 && this.rows.get(0).length() == 1) {
-                throw new IllegalStateException("Shaped recipe " + p_126144_ + " only takes in a single item - should it be a shapeless recipe instead?");
+                throw new IllegalStateException("Shaped recipe " + pId + " only takes in a single item - should it be a shapeless recipe instead?");
             } else if (this.advancement.getCriteria().isEmpty()) {
-                throw new IllegalStateException("No way of obtaining recipe " + p_126144_);
+                throw new IllegalStateException("No way of obtaining recipe " + pId);
             }
         }
     }
@@ -131,20 +131,20 @@ public class ShapedRecipeBuilder implements RecipeBuilder {
         private final Advancement.Builder advancement;
         private final ResourceLocation advancementId;
 
-        public Result(ResourceLocation p_176754_, Item p_176755_, int p_176756_, String p_176757_, List<String> p_176758_, Map<Character, Ingredient> p_176759_, Advancement.Builder p_176760_, ResourceLocation p_176761_) {
-            this.id = p_176754_;
-            this.result = p_176755_;
-            this.count = p_176756_;
-            this.group = p_176757_;
-            this.pattern = p_176758_;
-            this.key = p_176759_;
-            this.advancement = p_176760_;
-            this.advancementId = p_176761_;
+        public Result(ResourceLocation pId, Item pResult, int pCount, String pGroup, List<String> pPattern, Map<Character, Ingredient> pKey, Advancement.Builder pAdvancement, ResourceLocation pAdvancementId) {
+            this.id = pId;
+            this.result = pResult;
+            this.count = pCount;
+            this.group = pGroup;
+            this.pattern = pPattern;
+            this.key = pKey;
+            this.advancement = pAdvancement;
+            this.advancementId = pAdvancementId;
         }
 
-        public void serializeRecipeData(JsonObject p_126167_) {
+        public void serializeRecipeData(JsonObject pJson) {
             if (!this.group.isEmpty()) {
-                p_126167_.addProperty("group", this.group);
+                pJson.addProperty("group", this.group);
             }
 
             JsonArray jsonarray = new JsonArray();
@@ -153,21 +153,21 @@ public class ShapedRecipeBuilder implements RecipeBuilder {
                 jsonarray.add(s);
             }
 
-            p_126167_.add("pattern", jsonarray);
+            pJson.add("pattern", jsonarray);
             JsonObject jsonobject = new JsonObject();
 
             for (Map.Entry<Character, Ingredient> entry : this.key.entrySet()) {
                 jsonobject.add(String.valueOf(entry.getKey()), entry.getValue().toJson());
             }
 
-            p_126167_.add("key", jsonobject);
+            pJson.add("key", jsonobject);
             JsonObject jsonobject1 = new JsonObject();
             jsonobject1.addProperty("item", Registry.ITEM.getKey(this.result).toString());
             if (this.count > 1) {
                 jsonobject1.addProperty("count", this.count);
             }
 
-            p_126167_.add("result", jsonobject1);
+            pJson.add("result", jsonobject1);
         }
 
         public RecipeSerializer<?> getType() {

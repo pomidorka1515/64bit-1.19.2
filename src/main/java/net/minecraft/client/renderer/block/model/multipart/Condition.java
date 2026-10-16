@@ -21,5 +21,5 @@ public interface Condition {
         };
     };
 
-    Predicate<BlockState> getPredicate(StateDefinition<Block, BlockState> p_111933_);
+    Predicate<BlockState> getPredicate(StateDefinition<Block, BlockState> pDefinition);
 }

@@ -16,8 +16,8 @@ import java.util.stream.Stream;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class ItemBannerColorFix extends DataFix {
-    public ItemBannerColorFix(Schema p_15918_, boolean p_15919_) {
-        super(p_15918_, p_15919_);
+    public ItemBannerColorFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

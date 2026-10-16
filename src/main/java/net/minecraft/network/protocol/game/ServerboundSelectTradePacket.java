@@ -6,20 +6,20 @@ import net.minecraft.network.protocol.Packet;
 public class ServerboundSelectTradePacket implements Packet<ServerGamePacketListener> {
     private final int item;
 
-    public ServerboundSelectTradePacket(int p_134462_) {
-        this.item = p_134462_;
+    public ServerboundSelectTradePacket(int pItem) {
+        this.item = pItem;
     }
 
-    public ServerboundSelectTradePacket(FriendlyByteBuf p_179747_) {
-        this.item = p_179747_.readVarInt();
+    public ServerboundSelectTradePacket(FriendlyByteBuf pBuffer) {
+        this.item = pBuffer.readVarInt();
     }
 
-    public void write(FriendlyByteBuf p_134471_) {
-        p_134471_.writeVarInt(this.item);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.item);
     }
 
-    public void handle(ServerGamePacketListener p_134468_) {
-        p_134468_.handleSelectTrade(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleSelectTrade(this);
     }
 
     public int getItem() {

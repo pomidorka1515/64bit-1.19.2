@@ -23,8 +23,8 @@ public enum Rotation implements StringRepresentable {
         this.rotation = p_221989_;
     }
 
-    public Rotation getRotated(Rotation p_55953_) {
-        switch (p_55953_) {
+    public Rotation getRotated(Rotation pRotation) {
+        switch (pRotation) {
             case CLOCKWISE_180:
                 switch (this) {
                     case NONE:
@@ -67,42 +67,42 @@ public enum Rotation implements StringRepresentable {
         return this.rotation;
     }
 
-    public Direction rotate(Direction p_55955_) {
-        if (p_55955_.getAxis() == Direction.Axis.Y) {
-            return p_55955_;
+    public Direction rotate(Direction pFacing) {
+        if (pFacing.getAxis() == Direction.Axis.Y) {
+            return pFacing;
         } else {
             switch (this) {
                 case CLOCKWISE_90:
-                    return p_55955_.getClockWise();
+                    return pFacing.getClockWise();
                 case CLOCKWISE_180:
-                    return p_55955_.getOpposite();
+                    return pFacing.getOpposite();
                 case COUNTERCLOCKWISE_90:
-                    return p_55955_.getCounterClockWise();
+                    return pFacing.getCounterClockWise();
                 default:
-                    return p_55955_;
+                    return pFacing;
             }
         }
     }
 
-    public int rotate(int p_55950_, int p_55951_) {
+    public int rotate(int pRotation, int pPositionCount) {
         switch (this) {
             case CLOCKWISE_90:
-                return (p_55950_ + p_55951_ / 4) % p_55951_;
+                return (pRotation + pPositionCount / 4) % pPositionCount;
             case CLOCKWISE_180:
-                return (p_55950_ + p_55951_ / 2) % p_55951_;
+                return (pRotation + pPositionCount / 2) % pPositionCount;
             case COUNTERCLOCKWISE_90:
-                return (p_55950_ + p_55951_ * 3 / 4) % p_55951_;
+                return (pRotation + pPositionCount * 3 / 4) % pPositionCount;
             default:
-                return p_55950_;
+                return pRotation;
         }
     }
 
-    public static Rotation getRandom(RandomSource p_221991_) {
-        return Util.getRandom(values(), p_221991_);
+    public static Rotation getRandom(RandomSource pRandom) {
+        return Util.getRandom(values(), pRandom);
     }
 
-    public static List<Rotation> getShuffled(RandomSource p_221993_) {
-        return Util.shuffledCopy(values(), p_221993_);
+    public static List<Rotation> getShuffled(RandomSource pRandom) {
+        return Util.shuffledCopy(values(), pRandom);
     }
 
     public String getSerializedName() {

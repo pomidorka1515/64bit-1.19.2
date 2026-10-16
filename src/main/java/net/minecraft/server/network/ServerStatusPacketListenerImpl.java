@@ -15,19 +15,19 @@ public class ServerStatusPacketListenerImpl implements ServerStatusPacketListene
     private final Connection connection;
     private boolean hasRequestedStatus;
 
-    public ServerStatusPacketListenerImpl(MinecraftServer p_10087_, Connection p_10088_) {
-        this.server = p_10087_;
-        this.connection = p_10088_;
+    public ServerStatusPacketListenerImpl(MinecraftServer pServer, Connection pConnection) {
+        this.server = pServer;
+        this.connection = pConnection;
     }
 
-    public void onDisconnect(Component p_10091_) {
+    public void onDisconnect(Component pReason) {
     }
 
     public Connection getConnection() {
         return this.connection;
     }
 
-    public void handleStatusRequest(ServerboundStatusRequestPacket p_10095_) {
+    public void handleStatusRequest(ServerboundStatusRequestPacket pPacket) {
         if (this.hasRequestedStatus) {
             this.connection.disconnect(DISCONNECT_REASON);
         } else {
@@ -36,8 +36,8 @@ public class ServerStatusPacketListenerImpl implements ServerStatusPacketListene
         }
     }
 
-    public void handlePingRequest(ServerboundPingRequestPacket p_10093_) {
-        this.connection.send(new ClientboundPongResponsePacket(p_10093_.getTime()));
+    public void handlePingRequest(ServerboundPingRequestPacket pPacket) {
+        this.connection.send(new ClientboundPongResponsePacket(pPacket.getTime()));
         this.connection.disconnect(DISCONNECT_REASON);
     }
 }

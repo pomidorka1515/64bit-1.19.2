@@ -27,9 +27,9 @@ public class LanServerDetection {
         private final InetAddress pingGroup;
         private final MulticastSocket socket;
 
-        public LanServerDetector(LanServerDetection.LanServerList p_120090_) throws IOException {
+        public LanServerDetector(LanServerDetection.LanServerList pServerList) throws IOException {
             super("LanServerDetector #" + LanServerDetection.UNIQUE_THREAD_ID.incrementAndGet());
-            this.serverList = p_120090_;
+            this.serverList = pServerList;
             this.setDaemon(true);
             this.setUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler(LanServerDetection.LOGGER));
             this.socket = new MulticastSocket(4445);
@@ -84,11 +84,11 @@ public class LanServerDetection {
             return Collections.unmodifiableList(this.servers);
         }
 
-        public synchronized void addServer(String p_120097_, InetAddress p_120098_) {
-            String s = LanServerPinger.parseMotd(p_120097_);
-            String s1 = LanServerPinger.parseAddress(p_120097_);
+        public synchronized void addServer(String pPingResponse, InetAddress pIpAddress) {
+            String s = LanServerPinger.parseMotd(pPingResponse);
+            String s1 = LanServerPinger.parseAddress(pPingResponse);
             if (s1 != null) {
-                s1 = p_120098_.getHostAddress() + ":" + s1;
+                s1 = pIpAddress.getHostAddress() + ":" + s1;
                 boolean flag = false;
 
                 for (LanServer lanserver : this.servers) {

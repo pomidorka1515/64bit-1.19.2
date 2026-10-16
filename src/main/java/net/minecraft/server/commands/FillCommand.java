@@ -35,17 +35,17 @@ public class FillCommand {
     static final BlockInput HOLLOW_CORE = new BlockInput(Blocks.AIR.defaultBlockState(), Collections.emptySet(), (CompoundTag) null);
     private static final SimpleCommandExceptionType ERROR_FAILED = new SimpleCommandExceptionType(Component.translatable("commands.fill.failed"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_214443_, CommandBuildContext p_214444_) {
-        p_214443_.register(Commands.literal("fill").requires((p_137384_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher, CommandBuildContext pContext) {
+        pDispatcher.register(Commands.literal("fill").requires((p_137384_) -> {
                                                        return p_137384_.hasPermission(2);
                                                    })
-                        .then(Commands.argument("from", BlockPosArgument.blockPos()).then(Commands.argument("to", BlockPosArgument.blockPos()).then(Commands.argument("block", BlockStateArgument.block(p_214444_)).executes((p_137405_) -> {
+                        .then(Commands.argument("from", BlockPosArgument.blockPos()).then(Commands.argument("to", BlockPosArgument.blockPos()).then(Commands.argument("block", BlockStateArgument.block(pContext)).executes((p_137405_) -> {
                                                                                                                                                                                                                        return fillBlocks(p_137405_.getSource(), BoundingBox.fromCorners(BlockPosArgument.getLoadedBlockPos(p_137405_, "from"), BlockPosArgument.getLoadedBlockPos(p_137405_, "to")), BlockStateArgument.getBlock(p_137405_, "block"), FillCommand.Mode.REPLACE, (Predicate<BlockInWorld>) null);
                                                                                                                                                                                                                    })
                                         .then(Commands.literal("replace").executes((p_137403_) -> {
                                                                              return fillBlocks(p_137403_.getSource(), BoundingBox.fromCorners(BlockPosArgument.getLoadedBlockPos(p_137403_, "from"), BlockPosArgument.getLoadedBlockPos(p_137403_, "to")), BlockStateArgument.getBlock(p_137403_, "block"), FillCommand.Mode.REPLACE, (Predicate<BlockInWorld>) null);
                                                                          })
-                                                        .then(Commands.argument("filter", BlockPredicateArgument.blockPredicate(p_214444_)).executes((p_137401_) -> {
+                                                        .then(Commands.argument("filter", BlockPredicateArgument.blockPredicate(pContext)).executes((p_137401_) -> {
                                                             return fillBlocks(p_137401_.getSource(), BoundingBox.fromCorners(BlockPosArgument.getLoadedBlockPos(p_137401_, "from"), BlockPosArgument.getLoadedBlockPos(p_137401_, "to")), BlockStateArgument.getBlock(p_137401_, "block"), FillCommand.Mode.REPLACE, BlockPredicateArgument.getBlockPredicate(p_137401_, "filter"));
                                                         })))
                                         .then(Commands.literal("keep").executes((p_137399_) -> {
@@ -64,18 +64,18 @@ public class FillCommand {
                                         }))))));
     }
 
-    private static int fillBlocks(CommandSourceStack p_137386_, BoundingBox p_137387_, BlockInput p_137388_, FillCommand.Mode p_137389_, @Nullable Predicate<BlockInWorld> p_137390_) throws CommandSyntaxException {
-        long i = p_137387_.getXSpan() * p_137387_.getYSpan() * p_137387_.getZSpan();
+    private static int fillBlocks(CommandSourceStack pSource, BoundingBox pArea, BlockInput pNewBlock, FillCommand.Mode pMode, @Nullable Predicate<BlockInWorld> pReplacingPredicate) throws CommandSyntaxException {
+        long i = pArea.getXSpan() * pArea.getYSpan() * pArea.getZSpan();
         if (i > 32768) {
             throw ERROR_AREA_TOO_LARGE.create(32768, i);
         } else {
             List<BlockPos> list = Lists.newArrayList();
-            ServerLevel serverlevel = p_137386_.getLevel();
+            ServerLevel serverlevel = pSource.getLevel();
             int j = 0;
 
-            for (BlockPos blockpos : BlockPos.betweenClosed(p_137387_.minX(), p_137387_.minY(), p_137387_.minZ(), p_137387_.maxX(), p_137387_.maxY(), p_137387_.maxZ())) {
-                if (p_137390_ == null || p_137390_.test(new BlockInWorld(serverlevel, blockpos, true))) {
-                    BlockInput blockinput = p_137389_.filter.filter(p_137387_, blockpos, p_137388_, serverlevel);
+            for (BlockPos blockpos : BlockPos.betweenClosed(pArea.minX(), pArea.minY(), pArea.minZ(), pArea.maxX(), pArea.maxY(), pArea.maxZ())) {
+                if (pReplacingPredicate == null || pReplacingPredicate.test(new BlockInWorld(serverlevel, blockpos, true))) {
+                    BlockInput blockinput = pMode.filter.filter(pArea, blockpos, pNewBlock, serverlevel);
                     if (blockinput != null) {
                         BlockEntity blockentity = serverlevel.getBlockEntity(blockpos);
                         Clearable.tryClear(blockentity);
@@ -95,7 +95,7 @@ public class FillCommand {
             if (j == 0) {
                 throw ERROR_FAILED.create();
             } else {
-                p_137386_.sendSuccess(Component.translatable("commands.fill.success", j), true);
+                pSource.sendSuccess(Component.translatable("commands.fill.success", j), true);
                 return j;
             }
         }

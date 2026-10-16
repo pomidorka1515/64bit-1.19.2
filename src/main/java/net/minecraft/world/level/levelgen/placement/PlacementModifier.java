@@ -9,7 +9,7 @@ import net.minecraft.util.RandomSource;
 public abstract class PlacementModifier {
     public static final Codec<PlacementModifier> CODEC = Registry.PLACEMENT_MODIFIERS.byNameCodec().dispatch(PlacementModifier::type, PlacementModifierType::codec);
 
-    public abstract Stream<BlockPos> getPositions(PlacementContext p_226389_, RandomSource p_226390_, BlockPos p_226391_);
+    public abstract Stream<BlockPos> getPositions(PlacementContext pContext, RandomSource pRandom, BlockPos pPos);
 
     public abstract PlacementModifierType<?> type();
 }

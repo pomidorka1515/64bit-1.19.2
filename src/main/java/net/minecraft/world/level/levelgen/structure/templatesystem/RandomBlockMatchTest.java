@@ -25,8 +25,8 @@ public class RandomBlockMatchTest extends RuleTest {
         this.probability = p_74264_;
     }
 
-    public boolean test(BlockState p_230317_, RandomSource p_230318_) {
-        return p_230317_.is(this.block) && p_230318_.nextFloat() < this.probability;
+    public boolean test(BlockState pState, RandomSource pRandom) {
+        return pState.is(this.block) && pRandom.nextFloat() < this.probability;
     }
 
     protected RuleTestType<?> getType() {

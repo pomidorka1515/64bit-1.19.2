@@ -39,43 +39,43 @@ public class BoatRenderer extends EntityRenderer<Boat> {
         return p_234567_ ? "textures/entity/chest_boat/" + p_234566_.getName() + ".png" : "textures/entity/boat/" + p_234566_.getName() + ".png";
     }
 
-    public void render(Boat p_113929_, float p_113930_, float p_113931_, PoseStack p_113932_, MultiBufferSource p_113933_, int p_113934_) {
-        p_113932_.pushPose();
-        p_113932_.translate(0.0D, 0.375D, 0.0D);
-        p_113932_.mulPose(Vector3f.YP.rotationDegrees(180.0F - p_113930_));
-        float f = (float) p_113929_.getHurtTime() - p_113931_;
-        float f1 = p_113929_.getDamage() - p_113931_;
+    public void render(Boat pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        pMatrixStack.pushPose();
+        pMatrixStack.translate(0.0D, 0.375D, 0.0D);
+        pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - pEntityYaw));
+        float f = (float) pEntity.getHurtTime() - pPartialTicks;
+        float f1 = pEntity.getDamage() - pPartialTicks;
         if (f1 < 0.0F) {
             f1 = 0.0F;
         }
 
         if (f > 0.0F) {
-            p_113932_.mulPose(Vector3f.XP.rotationDegrees(Mth.sin(f) * f * f1 / 10.0F * (float) p_113929_.getHurtDir()));
+            pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(Mth.sin(f) * f * f1 / 10.0F * (float) pEntity.getHurtDir()));
         }
 
-        float f2 = p_113929_.getBubbleAngle(p_113931_);
+        float f2 = pEntity.getBubbleAngle(pPartialTicks);
         if (!Mth.equal(f2, 0.0F)) {
-            p_113932_.mulPose(new Quaternion(new Vector3f(1.0F, 0.0F, 1.0F), p_113929_.getBubbleAngle(p_113931_), true));
+            pMatrixStack.mulPose(new Quaternion(new Vector3f(1.0F, 0.0F, 1.0F), pEntity.getBubbleAngle(pPartialTicks), true));
         }
 
-        Pair<ResourceLocation, BoatModel> pair = this.boatResources.get(p_113929_.getBoatType());
+        Pair<ResourceLocation, BoatModel> pair = this.boatResources.get(pEntity.getBoatType());
         ResourceLocation resourcelocation = pair.getFirst();
         BoatModel boatmodel = pair.getSecond();
-        p_113932_.scale(-1.0F, -1.0F, 1.0F);
-        p_113932_.mulPose(Vector3f.YP.rotationDegrees(90.0F));
-        boatmodel.setupAnim(p_113929_, p_113931_, 0.0F, -0.1F, 0.0F, 0.0F);
-        VertexConsumer vertexconsumer = p_113933_.getBuffer(boatmodel.renderType(resourcelocation));
-        boatmodel.renderToBuffer(p_113932_, vertexconsumer, p_113934_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-        if (!p_113929_.isUnderWater()) {
-            VertexConsumer vertexconsumer1 = p_113933_.getBuffer(RenderType.waterMask());
-            boatmodel.waterPatch().render(p_113932_, vertexconsumer1, p_113934_, OverlayTexture.NO_OVERLAY);
+        pMatrixStack.scale(-1.0F, -1.0F, 1.0F);
+        pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(90.0F));
+        boatmodel.setupAnim(pEntity, pPartialTicks, 0.0F, -0.1F, 0.0F, 0.0F);
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(boatmodel.renderType(resourcelocation));
+        boatmodel.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        if (!pEntity.isUnderWater()) {
+            VertexConsumer vertexconsumer1 = pBuffer.getBuffer(RenderType.waterMask());
+            boatmodel.waterPatch().render(pMatrixStack, vertexconsumer1, pPackedLight, OverlayTexture.NO_OVERLAY);
         }
 
-        p_113932_.popPose();
-        super.render(p_113929_, p_113930_, p_113931_, p_113932_, p_113933_, p_113934_);
+        pMatrixStack.popPose();
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
     }
 
-    public ResourceLocation getTextureLocation(Boat p_113927_) {
-        return this.boatResources.get(p_113927_.getBoatType()).getFirst();
+    public ResourceLocation getTextureLocation(Boat pEntity) {
+        return this.boatResources.get(pEntity.getBoatType()).getFirst();
     }
 }

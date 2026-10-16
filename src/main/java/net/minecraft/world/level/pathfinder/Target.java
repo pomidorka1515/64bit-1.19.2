@@ -7,18 +7,18 @@ public class Target extends Node {
     private Node bestNode;
     private boolean reached;
 
-    public Target(Node p_77502_) {
-        super(p_77502_.x, p_77502_.y, p_77502_.z);
+    public Target(Node pNode) {
+        super(pNode.x, pNode.y, pNode.z);
     }
 
-    public Target(long p_77498_, int p_77499_, long p_77500_) {
-        super(p_77498_, p_77499_, p_77500_);
+    public Target(long pX, int pY, long pZ) {
+        super(pX, pY, pZ);
     }
 
-    public void updateBest(float p_77504_, Node p_77505_) {
-        if (p_77504_ < this.bestHeuristic) {
-            this.bestHeuristic = p_77504_;
-            this.bestNode = p_77505_;
+    public void updateBest(float pHeuristic, Node pNode) {
+        if (pHeuristic < this.bestHeuristic) {
+            this.bestHeuristic = pHeuristic;
+            this.bestNode = pNode;
         }
     }
 
@@ -34,13 +34,13 @@ public class Target extends Node {
         return this.reached;
     }
 
-    public static Target createFromStream(FriendlyByteBuf p_77507_) {
-        Target target = new Target(p_77507_.readLong(), p_77507_.readInt(), p_77507_.readLong());
-        target.walkedDistance = p_77507_.readFloat();
-        target.costMalus = p_77507_.readFloat();
-        target.closed = p_77507_.readBoolean();
-        target.type = BlockPathTypes.values()[p_77507_.readInt()];
-        target.f = p_77507_.readFloat();
+    public static Target createFromStream(FriendlyByteBuf pBuffer) {
+        Target target = new Target(pBuffer.readLong(), pBuffer.readInt(), pBuffer.readLong());
+        target.walkedDistance = pBuffer.readFloat();
+        target.costMalus = pBuffer.readFloat();
+        target.closed = pBuffer.readBoolean();
+        target.type = BlockPathTypes.values()[pBuffer.readInt()];
+        target.f = pBuffer.readFloat();
         return target;
     }
 }

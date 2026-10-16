@@ -11,8 +11,8 @@ import com.mojang.serialization.Dynamic;
 public class EntityPaintingItemFrameDirectionFix extends DataFix {
     private static final int[][] DIRECTIONS = new int[][] {{0, 0, 1}, {-1, 0, 0}, {0, 0, -1}, {1, 0, 0}};
 
-    public EntityPaintingItemFrameDirectionFix(Schema p_15499_, boolean p_15500_) {
-        super(p_15499_, p_15500_);
+    public EntityPaintingItemFrameDirectionFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     private Dynamic<?> doFix(Dynamic<?> p_15510_, boolean p_15511_, boolean p_15512_) {

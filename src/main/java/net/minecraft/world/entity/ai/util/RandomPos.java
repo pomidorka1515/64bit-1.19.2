@@ -16,22 +16,22 @@ import net.minecraft.world.phys.Vec3;
 public class RandomPos {
     private static final int RANDOM_POS_ATTEMPTS = 10;
 
-    public static BlockPos generateRandomDirection(RandomSource p_217852_, int p_217853_, int p_217854_) {
-        int i = p_217852_.nextInt(2 * p_217853_ + 1) - p_217853_;
-        int j = p_217852_.nextInt(2 * p_217854_ + 1) - p_217854_;
-        int k = p_217852_.nextInt(2 * p_217853_ + 1) - p_217853_;
+    public static BlockPos generateRandomDirection(RandomSource pRandom, int pHorizontalDistance, int pVerticalDistance) {
+        int i = pRandom.nextInt(2 * pHorizontalDistance + 1) - pHorizontalDistance;
+        int j = pRandom.nextInt(2 * pVerticalDistance + 1) - pVerticalDistance;
+        int k = pRandom.nextInt(2 * pHorizontalDistance + 1) - pHorizontalDistance;
         return new BlockPos(i, j, k);
     }
 
     @Nullable
-    public static BlockPos generateRandomDirectionWithinRadians(RandomSource p_217856_, int p_217857_, int p_217858_, int p_217859_, double p_217860_, double p_217861_, double p_217862_) {
-        double d0 = Mth.atan2(p_217861_, p_217860_) - (double) ((float) Math.PI / 2F);
-        double d1 = d0 + (double) (2.0F * p_217856_.nextFloat() - 1.0F) * p_217862_;
-        double d2 = Math.sqrt(p_217856_.nextDouble()) * (double) Mth.SQRT_OF_TWO * (double) p_217857_;
+    public static BlockPos generateRandomDirectionWithinRadians(RandomSource pRandom, int pMaxHorizontalDifference, int pYRange, int pY, double pX, double pZ, double pMaxAngleDelta) {
+        double d0 = Mth.atan2(pZ, pX) - (double) ((float) Math.PI / 2F);
+        double d1 = d0 + (double) (2.0F * pRandom.nextFloat() - 1.0F) * pMaxAngleDelta;
+        double d2 = Math.sqrt(pRandom.nextDouble()) * (double) Mth.SQRT_OF_TWO * (double) pMaxHorizontalDifference;
         double d3 = -d2 * Math.sin(d1);
         double d4 = d2 * Math.cos(d1);
-        if (!(Math.abs(d3) > (double) p_217857_) && !(Math.abs(d4) > (double) p_217857_)) {
-            int i = p_217856_.nextInt(2 * p_217858_ + 1) - p_217858_ + p_217859_;
+        if (!(Math.abs(d3) > (double) pMaxHorizontalDifference) && !(Math.abs(d4) > (double) pMaxHorizontalDifference)) {
+            int i = pRandom.nextInt(2 * pYRange + 1) - pYRange + pY;
             return new BlockPos(d3, (double) i, d4);
         } else {
             return null;
@@ -39,12 +39,12 @@ public class RandomPos {
     }
 
     @VisibleForTesting
-    public static BlockPos moveUpOutOfSolid(BlockPos p_148546_, int p_148547_, Predicate<BlockPos> p_148548_) {
-        if (!p_148548_.test(p_148546_)) {
-            return p_148546_;
+    public static BlockPos moveUpOutOfSolid(BlockPos pPos, int pMaxY, Predicate<BlockPos> pPosPredicate) {
+        if (!pPosPredicate.test(pPos)) {
+            return pPos;
         } else {
             BlockPos blockpos;
-            for (blockpos = p_148546_.above(); blockpos.getY() < p_148547_ && p_148548_.test(blockpos); blockpos = blockpos.above()) {
+            for (blockpos = pPos.above(); blockpos.getY() < pMaxY && pPosPredicate.test(blockpos); blockpos = blockpos.above()) {
             }
 
             return blockpos;
@@ -52,21 +52,21 @@ public class RandomPos {
     }
 
     @VisibleForTesting
-    public static BlockPos moveUpToAboveSolid(BlockPos p_26948_, int p_26949_, int p_26950_, Predicate<BlockPos> p_26951_) {
-        if (p_26949_ < 0) {
-            throw new IllegalArgumentException("aboveSolidAmount was " + p_26949_ + ", expected >= 0");
-        } else if (!p_26951_.test(p_26948_)) {
-            return p_26948_;
+    public static BlockPos moveUpToAboveSolid(BlockPos pPos, int pAboveSolidAmount, int pMaxY, Predicate<BlockPos> pPosPredicate) {
+        if (pAboveSolidAmount < 0) {
+            throw new IllegalArgumentException("aboveSolidAmount was " + pAboveSolidAmount + ", expected >= 0");
+        } else if (!pPosPredicate.test(pPos)) {
+            return pPos;
         } else {
             BlockPos blockpos;
-            for (blockpos = p_26948_.above(); blockpos.getY() < p_26950_ && p_26951_.test(blockpos); blockpos = blockpos.above()) {
+            for (blockpos = pPos.above(); blockpos.getY() < pMaxY && pPosPredicate.test(blockpos); blockpos = blockpos.above()) {
             }
 
             BlockPos blockpos1;
             BlockPos blockpos2;
-            for (blockpos1 = blockpos; blockpos1.getY() < p_26950_ && blockpos1.getY() - blockpos.getY() < p_26949_; blockpos1 = blockpos2) {
+            for (blockpos1 = blockpos; blockpos1.getY() < pMaxY && blockpos1.getY() - blockpos.getY() < pAboveSolidAmount; blockpos1 = blockpos2) {
                 blockpos2 = blockpos1.above();
-                if (p_26951_.test(blockpos2)) {
+                if (pPosPredicate.test(blockpos2)) {
                     break;
                 }
             }

@@ -9,16 +9,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class SculkChargePopParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
 
-    SculkChargePopParticle(ClientLevel p_233932_, double p_233933_, double p_233934_, double p_233935_, double p_233936_, double p_233937_, double p_233938_, SpriteSet p_233939_) {
-        super(p_233932_, p_233933_, p_233934_, p_233935_, p_233936_, p_233937_, p_233938_);
+    SculkChargePopParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, SpriteSet pSprite) {
+        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
         this.friction = 0.96F;
-        this.sprites = p_233939_;
+        this.sprites = pSprite;
         this.scale(1.0F);
         this.hasPhysics = false;
-        this.setSpriteFromAge(p_233939_);
+        this.setSpriteFromAge(pSprite);
     }
 
-    public int getLightColor(float p_233942_) {
+    public int getLightColor(float pPartialTick) {
         return 240;
     }
 

@@ -18,38 +18,38 @@ public class JukeboxBlockEntity extends BlockEntity implements Clearable {
     private long recordStartedTick;
     private boolean isPlaying;
 
-    public JukeboxBlockEntity(BlockPos p_155613_, BlockState p_155614_) {
-        super(BlockEntityType.JUKEBOX, p_155613_, p_155614_);
+    public JukeboxBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.JUKEBOX, pPos, pBlockState);
     }
 
-    public void load(CompoundTag p_155616_) {
-        super.load(p_155616_);
-        if (p_155616_.contains("RecordItem", 10)) {
-            this.setRecord(ItemStack.of(p_155616_.getCompound("RecordItem")));
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
+        if (pTag.contains("RecordItem", 10)) {
+            this.setRecord(ItemStack.of(pTag.getCompound("RecordItem")));
         }
 
-        this.isPlaying = p_155616_.getBoolean("IsPlaying");
-        this.recordStartedTick = p_155616_.getLong("RecordStartTick");
-        this.tickCount = p_155616_.getLong("TickCount");
+        this.isPlaying = pTag.getBoolean("IsPlaying");
+        this.recordStartedTick = pTag.getLong("RecordStartTick");
+        this.tickCount = pTag.getLong("TickCount");
     }
 
-    protected void saveAdditional(CompoundTag p_187507_) {
-        super.saveAdditional(p_187507_);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
         if (!this.getRecord().isEmpty()) {
-            p_187507_.put("RecordItem", this.getRecord().save(new CompoundTag()));
+            pTag.put("RecordItem", this.getRecord().save(new CompoundTag()));
         }
 
-        p_187507_.putBoolean("IsPlaying", this.isPlaying);
-        p_187507_.putLong("RecordStartTick", this.recordStartedTick);
-        p_187507_.putLong("TickCount", this.tickCount);
+        pTag.putBoolean("IsPlaying", this.isPlaying);
+        pTag.putLong("RecordStartTick", this.recordStartedTick);
+        pTag.putLong("TickCount", this.tickCount);
     }
 
     public ItemStack getRecord() {
         return this.record;
     }
 
-    public void setRecord(ItemStack p_59518_) {
-        this.record = p_59518_;
+    public void setRecord(ItemStack pRecord) {
+        this.record = pRecord;
         this.setChanged();
     }
 
@@ -63,34 +63,34 @@ public class JukeboxBlockEntity extends BlockEntity implements Clearable {
         this.isPlaying = false;
     }
 
-    public static void playRecordTick(Level p_239938_, BlockPos p_239939_, BlockState p_239940_, JukeboxBlockEntity p_239941_) {
-        ++p_239941_.ticksSinceLastEvent;
-        if (recordIsPlaying(p_239940_, p_239941_)) {
-            Item item = p_239941_.getRecord().getItem();
+    public static void playRecordTick(Level pLevel, BlockPos pPos, BlockState pState, JukeboxBlockEntity pJukebox) {
+        ++pJukebox.ticksSinceLastEvent;
+        if (recordIsPlaying(pState, pJukebox)) {
+            Item item = pJukebox.getRecord().getItem();
             if (item instanceof RecordItem) {
                 RecordItem recorditem = (RecordItem) item;
-                if (recordShouldStopPlaying(p_239941_, recorditem)) {
-                    p_239938_.gameEvent(GameEvent.JUKEBOX_STOP_PLAY, p_239939_, GameEvent.Context.of(p_239940_));
-                    p_239941_.isPlaying = false;
-                } else if (shouldSendJukeboxPlayingEvent(p_239941_)) {
-                    p_239941_.ticksSinceLastEvent = 0;
-                    p_239938_.gameEvent(GameEvent.JUKEBOX_PLAY, p_239939_, GameEvent.Context.of(p_239940_));
+                if (recordShouldStopPlaying(pJukebox, recorditem)) {
+                    pLevel.gameEvent(GameEvent.JUKEBOX_STOP_PLAY, pPos, GameEvent.Context.of(pState));
+                    pJukebox.isPlaying = false;
+                } else if (shouldSendJukeboxPlayingEvent(pJukebox)) {
+                    pJukebox.ticksSinceLastEvent = 0;
+                    pLevel.gameEvent(GameEvent.JUKEBOX_PLAY, pPos, GameEvent.Context.of(pState));
                 }
             }
         }
 
-        ++p_239941_.tickCount;
+        ++pJukebox.tickCount;
     }
 
-    private static boolean recordIsPlaying(BlockState p_240054_, JukeboxBlockEntity p_240055_) {
-        return p_240054_.getValue(JukeboxBlock.HAS_RECORD) && p_240055_.isPlaying;
+    private static boolean recordIsPlaying(BlockState pState, JukeboxBlockEntity pJukebox) {
+        return pState.getValue(JukeboxBlock.HAS_RECORD) && pJukebox.isPlaying;
     }
 
-    private static boolean recordShouldStopPlaying(JukeboxBlockEntity p_239767_, RecordItem p_239768_) {
-        return p_239767_.tickCount >= p_239767_.recordStartedTick + (long) p_239768_.getLengthInTicks();
+    private static boolean recordShouldStopPlaying(JukeboxBlockEntity pJukebox, RecordItem pRecord) {
+        return pJukebox.tickCount >= pJukebox.recordStartedTick + (long) pRecord.getLengthInTicks();
     }
 
-    private static boolean shouldSendJukeboxPlayingEvent(JukeboxBlockEntity p_239366_) {
-        return p_239366_.ticksSinceLastEvent >= 20;
+    private static boolean shouldSendJukeboxPlayingEvent(JukeboxBlockEntity pJukebox) {
+        return pJukebox.ticksSinceLastEvent >= 20;
     }
 }

@@ -11,8 +11,8 @@ import java.util.Optional;
 import net.minecraft.network.chat.Component;
 
 public class ItemCustomNameToComponentFix extends DataFix {
-    public ItemCustomNameToComponentFix(Schema p_15927_, boolean p_15928_) {
-        super(p_15927_, p_15928_);
+    public ItemCustomNameToComponentFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     private Dynamic<?> fixTag(Dynamic<?> p_15935_) {

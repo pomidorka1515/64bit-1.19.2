@@ -23,17 +23,17 @@ public enum PackCompatibility {
         return this == COMPATIBLE;
     }
 
-    public static PackCompatibility forFormat(int p_143883_, PackType p_143884_) {
-        int i = p_143884_.getVersion(SharedConstants.getCurrentVersion());
-        if (p_143883_ < i) {
+    public static PackCompatibility forFormat(int pVersion, PackType pType) {
+        int i = pType.getVersion(SharedConstants.getCurrentVersion());
+        if (pVersion < i) {
             return TOO_OLD;
         } else {
-            return p_143883_ > i ? TOO_NEW : COMPATIBLE;
+            return pVersion > i ? TOO_NEW : COMPATIBLE;
         }
     }
 
-    public static PackCompatibility forMetadata(PackMetadataSection p_143886_, PackType p_143887_) {
-        return forFormat(p_143886_.getPackFormat(), p_143887_);
+    public static PackCompatibility forMetadata(PackMetadataSection pMetadata, PackType pType) {
+        return forFormat(pMetadata.getPackFormat(), pType);
     }
 
     public Component getDescription() {

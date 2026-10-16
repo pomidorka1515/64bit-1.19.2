@@ -19,8 +19,8 @@ import net.minecraft.world.level.block.Blocks;
 public class GlowSquid extends Squid {
     private static final EntityDataAccessor<Integer> DATA_DARK_TICKS_REMAINING = SynchedEntityData.defineId(GlowSquid.class, EntityDataSerializers.INT);
 
-    public GlowSquid(EntityType<? extends GlowSquid> p_147111_, Level p_147112_) {
-        super(p_147111_, p_147112_);
+    public GlowSquid(EntityType<? extends GlowSquid> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected ParticleOptions getInkParticle() {
@@ -40,7 +40,7 @@ public class GlowSquid extends Squid {
         return SoundEvents.GLOW_SQUID_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_147124_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.GLOW_SQUID_HURT;
     }
 
@@ -48,14 +48,14 @@ public class GlowSquid extends Squid {
         return SoundEvents.GLOW_SQUID_DEATH;
     }
 
-    public void addAdditionalSaveData(CompoundTag p_147122_) {
-        super.addAdditionalSaveData(p_147122_);
-        p_147122_.putInt("DarkTicksRemaining", this.getDarkTicksRemaining());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("DarkTicksRemaining", this.getDarkTicksRemaining());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_147117_) {
-        super.readAdditionalSaveData(p_147117_);
-        this.setDarkTicks(p_147117_.getInt("DarkTicksRemaining"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setDarkTicks(pCompound.getInt("DarkTicksRemaining"));
     }
 
     public void aiStep() {
@@ -69,8 +69,8 @@ public class GlowSquid extends Squid {
                 0.0D, 0.0D, 0.0D);
     }
 
-    public boolean hurt(DamageSource p_147114_, float p_147115_) {
-        boolean flag = super.hurt(p_147114_, p_147115_);
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        boolean flag = super.hurt(pSource, pAmount);
         if (flag) {
             this.setDarkTicks(100);
         }
@@ -78,15 +78,15 @@ public class GlowSquid extends Squid {
         return flag;
     }
 
-    private void setDarkTicks(int p_147120_) {
-        this.entityData.set(DATA_DARK_TICKS_REMAINING, p_147120_);
+    private void setDarkTicks(int pDarkTicks) {
+        this.entityData.set(DATA_DARK_TICKS_REMAINING, pDarkTicks);
     }
 
     public int getDarkTicksRemaining() {
         return this.entityData.get(DATA_DARK_TICKS_REMAINING);
     }
 
-    public static boolean checkGlowSquideSpawnRules(EntityType<? extends LivingEntity> p_217018_, ServerLevelAccessor p_217019_, MobSpawnType p_217020_, BlockPos p_217021_, RandomSource p_217022_) {
-        return p_217021_.getY() <= p_217019_.getSeaLevel() - 33 && p_217019_.getRawBrightness(p_217021_, 0) == 0 && p_217019_.getBlockState(p_217021_).is(Blocks.WATER);
+    public static boolean checkGlowSquideSpawnRules(EntityType<? extends LivingEntity> pType, ServerLevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pPos.getY() <= pLevel.getSeaLevel() - 33 && pLevel.getRawBrightness(pPos, 0) == 0 && pLevel.getBlockState(pPos).is(Blocks.WATER);
     }
 }

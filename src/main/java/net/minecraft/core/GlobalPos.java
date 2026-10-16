@@ -13,9 +13,9 @@ public final class GlobalPos {
     private final ResourceKey<Level> dimension;
     private final BlockPos pos;
 
-    private GlobalPos(ResourceKey<Level> p_122638_, BlockPos p_122639_) {
-        this.dimension = p_122638_;
-        this.pos = p_122639_;
+    private GlobalPos(ResourceKey<Level> pDimension, BlockPos pPos) {
+        this.dimension = pDimension;
+        this.pos = pPos;
     }
 
     public static GlobalPos of(ResourceKey<Level> p_122644_, BlockPos p_122645_) {
@@ -30,11 +30,11 @@ public final class GlobalPos {
         return this.pos;
     }
 
-    public boolean equals(Object p_122648_) {
-        if (this == p_122648_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_122648_ != null && this.getClass() == p_122648_.getClass()) {
-            GlobalPos globalpos = (GlobalPos) p_122648_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            GlobalPos globalpos = (GlobalPos) pOther;
             return Objects.equals(this.dimension, globalpos.dimension) && Objects.equals(this.pos, globalpos.pos);
         } else {
             return false;

@@ -28,28 +28,28 @@ public class PineFoliagePlacer extends FoliagePlacer {
         return FoliagePlacerType.PINE_FOLIAGE_PLACER;
     }
 
-    protected void createFoliage(LevelSimulatedReader p_225702_, BiConsumer<BlockPos, BlockState> p_225703_, RandomSource p_225704_, TreeConfiguration p_225705_, int p_225706_, FoliagePlacer.FoliageAttachment p_225707_, int p_225708_, int p_225709_, int p_225710_) {
+    protected void createFoliage(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, TreeConfiguration pConfig, int pMaxFreeTreeHeight, FoliagePlacer.FoliageAttachment pAttachment, int pFoliageHeight, int pFoliageRadius, int pOffset) {
         int i = 0;
 
-        for (int j = p_225710_; j >= p_225710_ - p_225708_; --j) {
-            this.placeLeavesRow(p_225702_, p_225703_, p_225704_, p_225705_, p_225707_.pos(), i, j, p_225707_.doubleTrunk());
-            if (i >= 1 && j == p_225710_ - p_225708_ + 1) {
+        for (int j = pOffset; j >= pOffset - pFoliageHeight; --j) {
+            this.placeLeavesRow(pLevel, pBlockSetter, pRandom, pConfig, pAttachment.pos(), i, j, pAttachment.doubleTrunk());
+            if (i >= 1 && j == pOffset - pFoliageHeight + 1) {
                 --i;
-            } else if (i < p_225709_ + p_225707_.radiusOffset()) {
+            } else if (i < pFoliageRadius + pAttachment.radiusOffset()) {
                 ++i;
             }
         }
     }
 
-    public int foliageRadius(RandomSource p_225688_, int p_225689_) {
-        return super.foliageRadius(p_225688_, p_225689_) + p_225688_.nextInt(Math.max(p_225689_ + 1, 1));
+    public int foliageRadius(RandomSource pRandom, int pRadius) {
+        return super.foliageRadius(pRandom, pRadius) + pRandom.nextInt(Math.max(pRadius + 1, 1));
     }
 
-    public int foliageHeight(RandomSource p_225698_, int p_225699_, TreeConfiguration p_225700_) {
-        return this.height.sample(p_225698_);
+    public int foliageHeight(RandomSource pRandom, int pHeight, TreeConfiguration pConfig) {
+        return this.height.sample(pRandom);
     }
 
-    protected boolean shouldSkipLocation(RandomSource p_225691_, int p_225692_, int p_225693_, int p_225694_, int p_225695_, boolean p_225696_) {
-        return p_225692_ == p_225695_ && p_225694_ == p_225695_ && p_225695_ > 0;
+    protected boolean shouldSkipLocation(RandomSource pRandom, int pLocalX, int pLocalY, int pLocalZ, int pRange, boolean pLarge) {
+        return pLocalX == pRange && pLocalZ == pRange && pRange > 0;
     }
 }

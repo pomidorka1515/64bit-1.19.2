@@ -36,8 +36,8 @@ public enum BlockModelRotation implements ModelState {
     private final OctahedralGroup actualRotation;
     private final int index;
 
-    private static int getIndex(int p_119160_, int p_119161_) {
-        return p_119160_ * 360 + p_119161_;
+    private static int getIndex(int pX, int pY) {
+        return pX * 360 + pY;
     }
 
     private BlockModelRotation(int p_119151_, int p_119152_) {
@@ -62,8 +62,8 @@ public enum BlockModelRotation implements ModelState {
         return this.transformation;
     }
 
-    public static BlockModelRotation by(int p_119154_, int p_119155_) {
-        return BY_INDEX.get(getIndex(Mth.positiveModulo(p_119154_, 360), Mth.positiveModulo(p_119155_, 360)));
+    public static BlockModelRotation by(int pX, int pY) {
+        return BY_INDEX.get(getIndex(Mth.positiveModulo(pX, 360), Mth.positiveModulo(pY, 360)));
     }
 
     public OctahedralGroup actualRotation() {

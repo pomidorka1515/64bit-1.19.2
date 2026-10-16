@@ -37,15 +37,15 @@ public class ResourceFilterSection {
         this.blockList = List.copyOf(p_215518_);
     }
 
-    public boolean isNamespaceFiltered(String p_215524_) {
+    public boolean isNamespaceFiltered(String pNamespace) {
         return this.blockList.stream().anyMatch((p_215532_) -> {
-            return p_215532_.namespacePredicate.test(p_215524_);
+            return p_215532_.namespacePredicate.test(pNamespace);
         });
     }
 
-    public boolean isPathFiltered(String p_215529_) {
+    public boolean isPathFiltered(String pPath) {
         return this.blockList.stream().anyMatch((p_215527_) -> {
-            return p_215527_.pathPredicate.test(p_215529_);
+            return p_215527_.pathPredicate.test(pPath);
         });
     }
 

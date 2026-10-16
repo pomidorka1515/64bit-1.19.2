@@ -25,34 +25,34 @@ public class MinecartRenderer<T extends AbstractMinecart> extends EntityRenderer
     protected final EntityModel<T> model;
     private final BlockRenderDispatcher blockRenderer;
 
-    public MinecartRenderer(EntityRendererProvider.Context p_174300_, ModelLayerLocation p_174301_) {
-        super(p_174300_);
+    public MinecartRenderer(EntityRendererProvider.Context pContext, ModelLayerLocation pLayer) {
+        super(pContext);
         this.shadowRadius = 0.7F;
-        this.model = new MinecartModel<>(p_174300_.bakeLayer(p_174301_));
-        this.blockRenderer = p_174300_.getBlockRenderDispatcher();
+        this.model = new MinecartModel<>(pContext.bakeLayer(pLayer));
+        this.blockRenderer = pContext.getBlockRenderDispatcher();
     }
 
-    public void render(T p_115418_, float p_115419_, float p_115420_, PoseStack p_115421_, MultiBufferSource p_115422_, int p_115423_) {
-        super.render(p_115418_, p_115419_, p_115420_, p_115421_, p_115422_, p_115423_);
-        p_115421_.pushPose();
-        long i = (long) p_115418_.getId() * 493286711L;
+    public void render(T pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
+        pMatrixStack.pushPose();
+        long i = (long) pEntity.getId() * 493286711L;
         i = i * i * 4392167121L + i * 98761L;
         float f = (((float) (i >> 16 & 7L) + 0.5F) / 8.0F - 0.5F) * 0.004F;
         float f1 = (((float) (i >> 20 & 7L) + 0.5F) / 8.0F - 0.5F) * 0.004F;
         float f2 = (((float) (i >> 24 & 7L) + 0.5F) / 8.0F - 0.5F) * 0.004F;
-        p_115421_.translate((double) f, (double) f1, (double) f2);
-        SectorVec3 cartPosition = p_115418_.interpolatedExactPosition(p_115420_);
-        double d1 = Mth.lerp((double) p_115420_, p_115418_.yOld, p_115418_.getY());
+        pMatrixStack.translate((double) f, (double) f1, (double) f2);
+        SectorVec3 cartPosition = pEntity.interpolatedExactPosition(pPartialTicks);
+        double d1 = Mth.lerp((double) pPartialTicks, pEntity.yOld, pEntity.getY());
         if (cartPosition == null) {
-            cartPosition = SectorVec3.fromApproximate(Mth.lerp((double) p_115420_, p_115418_.xOld, p_115418_.getX()),
-                    d1, Mth.lerp((double) p_115420_, p_115418_.zOld, p_115418_.getZ()));
+            cartPosition = SectorVec3.fromApproximate(Mth.lerp((double) pPartialTicks, pEntity.xOld, pEntity.getX()),
+                    d1, Mth.lerp((double) pPartialTicks, pEntity.zOld, pEntity.getZ()));
         }
 
-        SectorVec3 railPosition = p_115418_.getExactPos(cartPosition);
-        float f3 = Mth.lerp(p_115420_, p_115418_.xRotO, p_115418_.getXRot());
+        SectorVec3 railPosition = pEntity.getExactPos(cartPosition);
+        float f3 = Mth.lerp(pPartialTicks, pEntity.xRotO, pEntity.getXRot());
         if (railPosition != null) {
-            SectorVec3 forward = p_115418_.getExactPosOffs(cartPosition, (double) 0.3F);
-            SectorVec3 backward = p_115418_.getExactPosOffs(cartPosition, (double) -0.3F);
+            SectorVec3 forward = pEntity.getExactPosOffs(cartPosition, (double) 0.3F);
+            SectorVec3 backward = pEntity.getExactPosOffs(cartPosition, (double) -0.3F);
             if (forward == null) {
                 forward = railPosition;
             }
@@ -62,52 +62,52 @@ public class MinecartRenderer<T extends AbstractMinecart> extends EntityRenderer
             }
 
             Vec3 railOffset = railPosition.relativeTo(cartPosition);
-            p_115421_.translate(railOffset.x, (forward.y() + backward.y()) / 2.0D - cartPosition.y(), railOffset.z);
+            pMatrixStack.translate(railOffset.x, (forward.y() + backward.y()) / 2.0D - cartPosition.y(), railOffset.z);
             Vec3 railDirection = backward.relativeTo(forward);
             if (railDirection.length() != 0.0D) {
                 railDirection = railDirection.normalize();
-                p_115419_ = (float) (Math.atan2(railDirection.z, railDirection.x) * 180.0D / Math.PI);
+                pEntityYaw = (float) (Math.atan2(railDirection.z, railDirection.x) * 180.0D / Math.PI);
                 f3 = (float) (Math.atan(railDirection.y) * 73.0D);
             }
         }
 
-        p_115421_.translate(0.0D, 0.375D, 0.0D);
-        p_115421_.mulPose(Vector3f.YP.rotationDegrees(180.0F - p_115419_));
-        p_115421_.mulPose(Vector3f.ZP.rotationDegrees(-f3));
-        float f5 = (float) p_115418_.getHurtTime() - p_115420_;
-        float f6 = p_115418_.getDamage() - p_115420_;
+        pMatrixStack.translate(0.0D, 0.375D, 0.0D);
+        pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - pEntityYaw));
+        pMatrixStack.mulPose(Vector3f.ZP.rotationDegrees(-f3));
+        float f5 = (float) pEntity.getHurtTime() - pPartialTicks;
+        float f6 = pEntity.getDamage() - pPartialTicks;
         if (f6 < 0.0F) {
             f6 = 0.0F;
         }
 
         if (f5 > 0.0F) {
-            p_115421_.mulPose(Vector3f.XP.rotationDegrees(Mth.sin(f5) * f5 * f6 / 10.0F * (float) p_115418_.getHurtDir()));
+            pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(Mth.sin(f5) * f5 * f6 / 10.0F * (float) pEntity.getHurtDir()));
         }
 
-        int j = p_115418_.getDisplayOffset();
-        BlockState blockstate = p_115418_.getDisplayBlockState();
+        int j = pEntity.getDisplayOffset();
+        BlockState blockstate = pEntity.getDisplayBlockState();
         if (blockstate.getRenderShape() != RenderShape.INVISIBLE) {
-            p_115421_.pushPose();
+            pMatrixStack.pushPose();
             float f4 = 0.75F;
-            p_115421_.scale(0.75F, 0.75F, 0.75F);
-            p_115421_.translate(-0.5D, (double) ((float) (j - 8) / 16.0F), 0.5D);
-            p_115421_.mulPose(Vector3f.YP.rotationDegrees(90.0F));
-            this.renderMinecartContents(p_115418_, p_115420_, blockstate, p_115421_, p_115422_, p_115423_);
-            p_115421_.popPose();
+            pMatrixStack.scale(0.75F, 0.75F, 0.75F);
+            pMatrixStack.translate(-0.5D, (double) ((float) (j - 8) / 16.0F), 0.5D);
+            pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(90.0F));
+            this.renderMinecartContents(pEntity, pPartialTicks, blockstate, pMatrixStack, pBuffer, pPackedLight);
+            pMatrixStack.popPose();
         }
 
-        p_115421_.scale(-1.0F, -1.0F, 1.0F);
-        this.model.setupAnim(p_115418_, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-        VertexConsumer vertexconsumer = p_115422_.getBuffer(this.model.renderType(this.getTextureLocation(p_115418_)));
-        this.model.renderToBuffer(p_115421_, vertexconsumer, p_115423_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-        p_115421_.popPose();
+        pMatrixStack.scale(-1.0F, -1.0F, 1.0F);
+        this.model.setupAnim(pEntity, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(this.model.renderType(this.getTextureLocation(pEntity)));
+        this.model.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        pMatrixStack.popPose();
     }
 
-    public ResourceLocation getTextureLocation(T p_115416_) {
+    public ResourceLocation getTextureLocation(T pEntity) {
         return MINECART_LOCATION;
     }
 
-    protected void renderMinecartContents(T p_115424_, float p_115425_, BlockState p_115426_, PoseStack p_115427_, MultiBufferSource p_115428_, int p_115429_) {
-        this.blockRenderer.renderSingleBlock(p_115426_, p_115427_, p_115428_, p_115429_, OverlayTexture.NO_OVERLAY);
+    protected void renderMinecartContents(T pEntity, float pPartialTicks, BlockState pState, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        this.blockRenderer.renderSingleBlock(pState, pMatrixStack, pBuffer, pPackedLight, OverlayTexture.NO_OVERLAY);
     }
 }

@@ -9,7 +9,7 @@ public interface LootContextUser {
         return ImmutableSet.of();
     }
 
-    default void validate(ValidationContext p_79022_) {
-        p_79022_.validateUser(this);
+    default void validate(ValidationContext pContext) {
+        pContext.validateUser(this);
     }
 }

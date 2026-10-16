@@ -56,15 +56,15 @@ public enum AxisCycle {
     public static final Direction.Axis[] AXIS_VALUES = Direction.Axis.values();
     public static final AxisCycle[] VALUES = values();
 
-    public abstract int cycle(int p_121794_, int p_121795_, int p_121796_, Direction.Axis p_121797_);
+    public abstract int cycle(int pX, int pY, int pZ, Direction.Axis pAxis);
 
-    public abstract double cycle(double p_175236_, double p_175237_, double p_175238_, Direction.Axis p_175239_);
+    public abstract double cycle(double pX, double pY, double pZ, Direction.Axis pAxis);
 
-    public abstract Direction.Axis cycle(Direction.Axis p_121798_);
+    public abstract Direction.Axis cycle(Direction.Axis pAxis);
 
     public abstract AxisCycle inverse();
 
-    public static AxisCycle between(Direction.Axis p_121800_, Direction.Axis p_121801_) {
-        return VALUES[Math.floorMod(p_121801_.ordinal() - p_121800_.ordinal(), 3)];
+    public static AxisCycle between(Direction.Axis pTo, Direction.Axis pAxis2) {
+        return VALUES[Math.floorMod(pAxis2.ordinal() - pTo.ordinal(), 3)];
     }
 }

@@ -50,9 +50,9 @@ public class WorldGenSettings {
         return LevelStem.stable(this.dimensions);
     }
 
-    public WorldGenSettings(long p_204633_, boolean p_204634_, boolean p_204635_, Registry<LevelStem> p_204636_) {
-        this(p_204633_, p_204634_, p_204635_, p_204636_, Optional.empty());
-        LevelStem levelstem = p_204636_.get(LevelStem.OVERWORLD);
+    public WorldGenSettings(long pSeed, boolean pGenerateFeatures, boolean pGenerateBonusChest, Registry<LevelStem> pDimensions) {
+        this(pSeed, pGenerateFeatures, pGenerateBonusChest, pDimensions, Optional.empty());
+        LevelStem levelstem = pDimensions.get(LevelStem.OVERWORLD);
         if (levelstem == null) {
             throw new IllegalStateException("Overworld settings missing");
         }
@@ -78,26 +78,26 @@ public class WorldGenSettings {
         return this.generateBonusChest;
     }
 
-    public static WorldGenSettings replaceOverworldGenerator(RegistryAccess p_224674_, WorldGenSettings p_224675_, ChunkGenerator p_224676_) {
-        Registry<DimensionType> registry = p_224674_.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
-        Registry<LevelStem> registry1 = withOverworld(registry, p_224675_.dimensions(), p_224676_);
-        return new WorldGenSettings(p_224675_.seed(), p_224675_.generateStructures(), p_224675_.generateBonusChest(), registry1);
+    public static WorldGenSettings replaceOverworldGenerator(RegistryAccess pRegistryAccess, WorldGenSettings pWorldGenSettings, ChunkGenerator pGenerator) {
+        Registry<DimensionType> registry = pRegistryAccess.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
+        Registry<LevelStem> registry1 = withOverworld(registry, pWorldGenSettings.dimensions(), pGenerator);
+        return new WorldGenSettings(pWorldGenSettings.seed(), pWorldGenSettings.generateStructures(), pWorldGenSettings.generateBonusChest(), registry1);
     }
 
-    public static Registry<LevelStem> withOverworld(Registry<DimensionType> p_204650_, Registry<LevelStem> p_204651_, ChunkGenerator p_204652_) {
-        LevelStem levelstem = p_204651_.get(LevelStem.OVERWORLD);
-        Holder<DimensionType> holder = levelstem == null ? p_204650_.getOrCreateHolderOrThrow(BuiltinDimensionTypes.OVERWORLD) : levelstem.typeHolder();
-        return withOverworld(p_204651_, holder, p_204652_);
+    public static Registry<LevelStem> withOverworld(Registry<DimensionType> pDimensionTypes, Registry<LevelStem> pDimensions, ChunkGenerator pChunkGenerator) {
+        LevelStem levelstem = pDimensions.get(LevelStem.OVERWORLD);
+        Holder<DimensionType> holder = levelstem == null ? pDimensionTypes.getOrCreateHolderOrThrow(BuiltinDimensionTypes.OVERWORLD) : levelstem.typeHolder();
+        return withOverworld(pDimensions, holder, pChunkGenerator);
     }
 
-    public static Registry<LevelStem> withOverworld(Registry<LevelStem> p_204646_, Holder<DimensionType> p_204647_, ChunkGenerator p_204648_) {
+    public static Registry<LevelStem> withOverworld(Registry<LevelStem> pDimensions, Holder<DimensionType> pDimensionType, ChunkGenerator pChunkGenerator) {
         WritableRegistry<LevelStem> writableregistry = new MappedRegistry<>(Registry.LEVEL_STEM_REGISTRY, Lifecycle.experimental(), (Function<LevelStem, Holder.Reference<LevelStem>>) null);
-        writableregistry.register(LevelStem.OVERWORLD, new LevelStem(p_204647_, p_204648_), Lifecycle.stable());
+        writableregistry.register(LevelStem.OVERWORLD, new LevelStem(pDimensionType, pChunkGenerator), Lifecycle.stable());
 
-        for (Map.Entry<ResourceKey<LevelStem>, LevelStem> entry : p_204646_.entrySet()) {
+        for (Map.Entry<ResourceKey<LevelStem>, LevelStem> entry : pDimensions.entrySet()) {
             ResourceKey<LevelStem> resourcekey = entry.getKey();
             if (resourcekey != LevelStem.OVERWORLD) {
-                writableregistry.register(resourcekey, entry.getValue(), p_204646_.lifecycle(entry.getValue()));
+                writableregistry.register(resourcekey, entry.getValue(), pDimensions.lifecycle(entry.getValue()));
             }
         }
 
@@ -153,10 +153,10 @@ public class WorldGenSettings {
         return new WorldGenSettings(this.seed, this.generateStructures, !this.generateBonusChest, this.dimensions);
     }
 
-    public WorldGenSettings withSeed(boolean p_64655_, OptionalLong p_64656_) {
-        long i = p_64656_.orElse(this.seed);
+    public WorldGenSettings withSeed(boolean pHardcore, OptionalLong pLevelSeed) {
+        long i = pLevelSeed.orElse(this.seed);
         Registry<LevelStem> registry;
-        if (p_64656_.isPresent()) {
+        if (pLevelSeed.isPresent()) {
             WritableRegistry<LevelStem> writableregistry = new MappedRegistry<>(Registry.LEVEL_STEM_REGISTRY, Lifecycle.experimental(), (Function<LevelStem, Holder.Reference<LevelStem>>) null);
 
             for (Map.Entry<ResourceKey<LevelStem>, LevelStem> entry : this.dimensions.entrySet()) {
@@ -173,21 +173,21 @@ public class WorldGenSettings {
         if (this.isDebug()) {
             worldgensettings = new WorldGenSettings(i, false, false, registry);
         } else {
-            worldgensettings = new WorldGenSettings(i, this.generateStructures(), this.generateBonusChest() && !p_64655_, registry);
+            worldgensettings = new WorldGenSettings(i, this.generateStructures(), this.generateBonusChest() && !pHardcore, registry);
         }
 
         return worldgensettings;
     }
 
-    public static OptionalLong parseSeed(String p_202193_) {
-        p_202193_ = p_202193_.trim();
-        if (StringUtils.isEmpty(p_202193_)) {
+    public static OptionalLong parseSeed(String pSeed) {
+        pSeed = pSeed.trim();
+        if (StringUtils.isEmpty(pSeed)) {
             return OptionalLong.empty();
         } else {
             try {
-                return OptionalLong.of(Long.parseLong(p_202193_));
+                return OptionalLong.of(Long.parseLong(pSeed));
             } catch (NumberFormatException numberformatexception) {
-                return OptionalLong.of((long) p_202193_.hashCode());
+                return OptionalLong.of((long) pSeed.hashCode());
             }
         }
     }

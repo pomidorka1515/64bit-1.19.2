@@ -13,7 +13,7 @@ public class BuiltinDimensionTypes {
     public static final ResourceLocation NETHER_EFFECTS = new ResourceLocation("the_nether");
     public static final ResourceLocation END_EFFECTS = new ResourceLocation("the_end");
 
-    private static ResourceKey<DimensionType> register(String p_223548_) {
-        return ResourceKey.create(Registry.DIMENSION_TYPE_REGISTRY, new ResourceLocation(p_223548_));
+    private static ResourceKey<DimensionType> register(String pName) {
+        return ResourceKey.create(Registry.DIMENSION_TYPE_REGISTRY, new ResourceLocation(pName));
     }
 }

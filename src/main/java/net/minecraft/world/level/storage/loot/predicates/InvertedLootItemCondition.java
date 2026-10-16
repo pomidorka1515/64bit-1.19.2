@@ -12,8 +12,8 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
 public class InvertedLootItemCondition implements LootItemCondition {
     final LootItemCondition term;
 
-    InvertedLootItemCondition(LootItemCondition p_81683_) {
-        this.term = p_81683_;
+    InvertedLootItemCondition(LootItemCondition pTerm) {
+        this.term = pTerm;
     }
 
     public LootItemConditionType getType() {
@@ -28,13 +28,13 @@ public class InvertedLootItemCondition implements LootItemCondition {
         return this.term.getReferencedContextParams();
     }
 
-    public void validate(ValidationContext p_81691_) {
-        LootItemCondition.super.validate(p_81691_);
-        this.term.validate(p_81691_);
+    public void validate(ValidationContext pContext) {
+        LootItemCondition.super.validate(pContext);
+        this.term.validate(pContext);
     }
 
-    public static LootItemCondition.Builder invert(LootItemCondition.Builder p_81695_) {
-        InvertedLootItemCondition invertedlootitemcondition = new InvertedLootItemCondition(p_81695_.build());
+    public static LootItemCondition.Builder invert(LootItemCondition.Builder pToInvert) {
+        InvertedLootItemCondition invertedlootitemcondition = new InvertedLootItemCondition(pToInvert.build());
         return () -> {
             return invertedlootitemcondition;
         };

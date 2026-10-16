@@ -7,9 +7,9 @@ public class PackMetadataSection {
     private final Component description;
     private final int packFormat;
 
-    public PackMetadataSection(Component p_10371_, int p_10372_) {
-        this.description = p_10371_;
-        this.packFormat = p_10372_;
+    public PackMetadataSection(Component pDescription, int pPackFormat) {
+        this.description = pDescription;
+        this.packFormat = pPackFormat;
     }
 
     public Component getDescription() {

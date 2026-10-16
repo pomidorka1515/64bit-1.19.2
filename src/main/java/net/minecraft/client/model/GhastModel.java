@@ -17,16 +17,16 @@ public class GhastModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart root;
     private final ModelPart[] tentacles = new ModelPart[9];
 
-    public GhastModel(ModelPart p_170570_) {
-        this.root = p_170570_;
+    public GhastModel(ModelPart pRoot) {
+        this.root = pRoot;
 
         for (int i = 0; i < this.tentacles.length; ++i) {
-            this.tentacles[i] = p_170570_.getChild(createTentacleName(i));
+            this.tentacles[i] = pRoot.getChild(createTentacleName(i));
         }
     }
 
-    private static String createTentacleName(int p_170573_) {
-        return "tentacle" + p_170573_;
+    private static String createTentacleName(int pIndex) {
+        return "tentacle" + pIndex;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -45,9 +45,9 @@ public class GhastModel<T extends Entity> extends HierarchicalModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
-    public void setupAnim(T p_102681_, float p_102682_, float p_102683_, float p_102684_, float p_102685_, float p_102686_) {
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
         for (int i = 0; i < this.tentacles.length; ++i) {
-            this.tentacles[i].xRot = 0.2F * Mth.sin(p_102684_ * 0.3F + (float) i) + 0.4F;
+            this.tentacles[i].xRot = 0.2F * Mth.sin(pAgeInTicks * 0.3F + (float) i) + 0.4F;
         }
     }
 

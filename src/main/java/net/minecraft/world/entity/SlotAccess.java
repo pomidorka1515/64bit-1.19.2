@@ -15,53 +15,53 @@ public interface SlotAccess {
         }
     };
 
-    static SlotAccess forContainer(final Container p_147296_, final int p_147297_, final Predicate<ItemStack> p_147298_) {
+    static SlotAccess forContainer(final Container pInventory, final int pSlot, final Predicate<ItemStack> pStackFilter) {
         return new SlotAccess() {
             public ItemStack get() {
-                return p_147296_.getItem(p_147297_);
+                return pInventory.getItem(pSlot);
             }
 
             public boolean set(ItemStack p_147324_) {
-                if (!p_147298_.test(p_147324_)) {
+                if (!pStackFilter.test(p_147324_)) {
                     return false;
                 } else {
-                    p_147296_.setItem(p_147297_, p_147324_);
+                    pInventory.setItem(pSlot, p_147324_);
                     return true;
                 }
             }
         };
     }
 
-    static SlotAccess forContainer(Container p_147293_, int p_147294_) {
-        return forContainer(p_147293_, p_147294_, (p_147310_) -> {
+    static SlotAccess forContainer(Container pInventory, int pSlot) {
+        return forContainer(pInventory, pSlot, (p_147310_) -> {
             return true;
         });
     }
 
-    static SlotAccess forEquipmentSlot(final LivingEntity p_147303_, final EquipmentSlot p_147304_, final Predicate<ItemStack> p_147305_) {
+    static SlotAccess forEquipmentSlot(final LivingEntity pEntity, final EquipmentSlot pSlot, final Predicate<ItemStack> pStackFilter) {
         return new SlotAccess() {
             public ItemStack get() {
-                return p_147303_.getItemBySlot(p_147304_);
+                return pEntity.getItemBySlot(pSlot);
             }
 
             public boolean set(ItemStack p_147334_) {
-                if (!p_147305_.test(p_147334_)) {
+                if (!pStackFilter.test(p_147334_)) {
                     return false;
                 } else {
-                    p_147303_.setItemSlot(p_147304_, p_147334_);
+                    pEntity.setItemSlot(pSlot, p_147334_);
                     return true;
                 }
             }
         };
     }
 
-    static SlotAccess forEquipmentSlot(LivingEntity p_147300_, EquipmentSlot p_147301_) {
-        return forEquipmentSlot(p_147300_, p_147301_, (p_147308_) -> {
+    static SlotAccess forEquipmentSlot(LivingEntity pEntity, EquipmentSlot pSlot) {
+        return forEquipmentSlot(pEntity, pSlot, (p_147308_) -> {
             return true;
         });
     }
 
     ItemStack get();
 
-    boolean set(ItemStack p_147306_);
+    boolean set(ItemStack pCarried);
 }

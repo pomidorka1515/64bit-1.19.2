@@ -11,44 +11,44 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 public final class MobEffectUtil {
-    public static String formatDuration(MobEffectInstance p_19582_, float p_19583_) {
-        if (p_19582_.isNoCounter()) {
+    public static String formatDuration(MobEffectInstance pEffect, float pDurationFactor) {
+        if (pEffect.isNoCounter()) {
             return "**:**";
         } else {
-            int i = Mth.floor((float) p_19582_.getDuration() * p_19583_);
+            int i = Mth.floor((float) pEffect.getDuration() * pDurationFactor);
             return StringUtil.formatTickDuration(i);
         }
     }
 
-    public static boolean hasDigSpeed(LivingEntity p_19585_) {
-        return p_19585_.hasEffect(MobEffects.DIG_SPEED) || p_19585_.hasEffect(MobEffects.CONDUIT_POWER);
+    public static boolean hasDigSpeed(LivingEntity pEntity) {
+        return pEntity.hasEffect(MobEffects.DIG_SPEED) || pEntity.hasEffect(MobEffects.CONDUIT_POWER);
     }
 
-    public static int getDigSpeedAmplification(LivingEntity p_19587_) {
+    public static int getDigSpeedAmplification(LivingEntity pEntity) {
         int i = 0;
         int j = 0;
-        if (p_19587_.hasEffect(MobEffects.DIG_SPEED)) {
-            i = p_19587_.getEffect(MobEffects.DIG_SPEED).getAmplifier();
+        if (pEntity.hasEffect(MobEffects.DIG_SPEED)) {
+            i = pEntity.getEffect(MobEffects.DIG_SPEED).getAmplifier();
         }
 
-        if (p_19587_.hasEffect(MobEffects.CONDUIT_POWER)) {
-            j = p_19587_.getEffect(MobEffects.CONDUIT_POWER).getAmplifier();
+        if (pEntity.hasEffect(MobEffects.CONDUIT_POWER)) {
+            j = pEntity.getEffect(MobEffects.CONDUIT_POWER).getAmplifier();
         }
 
         return Math.max(i, j);
     }
 
-    public static boolean hasWaterBreathing(LivingEntity p_19589_) {
-        return p_19589_.hasEffect(MobEffects.WATER_BREATHING) || p_19589_.hasEffect(MobEffects.CONDUIT_POWER);
+    public static boolean hasWaterBreathing(LivingEntity pEntity) {
+        return pEntity.hasEffect(MobEffects.WATER_BREATHING) || pEntity.hasEffect(MobEffects.CONDUIT_POWER);
     }
 
-    public static List<ServerPlayer> addEffectToPlayersAround(ServerLevel p_216947_, @Nullable Entity p_216948_, Vec3 p_216949_, double p_216950_, MobEffectInstance p_216951_, int p_216952_) {
-        MobEffect mobeffect = p_216951_.getEffect();
-        List<ServerPlayer> list = p_216947_.getPlayers((p_238228_) -> {
-            return p_238228_.gameMode.isSurvival() && (p_216948_ == null || !p_216948_.isAlliedTo(p_238228_)) && p_216949_.closerThan(p_238228_.position(), p_216950_) && (!p_238228_.hasEffect(mobeffect) || p_238228_.getEffect(mobeffect).getAmplifier() < p_216951_.getAmplifier() || p_238228_.getEffect(mobeffect).getDuration() < p_216952_);
+    public static List<ServerPlayer> addEffectToPlayersAround(ServerLevel pLevel, @Nullable Entity pSource, Vec3 pPos, double pRadius, MobEffectInstance pEffect, int pDuration) {
+        MobEffect mobeffect = pEffect.getEffect();
+        List<ServerPlayer> list = pLevel.getPlayers((p_238228_) -> {
+            return p_238228_.gameMode.isSurvival() && (pSource == null || !pSource.isAlliedTo(p_238228_)) && pPos.closerThan(p_238228_.position(), pRadius) && (!p_238228_.hasEffect(mobeffect) || p_238228_.getEffect(mobeffect).getAmplifier() < pEffect.getAmplifier() || p_238228_.getEffect(mobeffect).getDuration() < pDuration);
         });
         list.forEach((p_238232_) -> {
-            p_238232_.addEffect(new MobEffectInstance(p_216951_), p_216948_);
+            p_238232_.addEffect(new MobEffectInstance(pEffect), pSource);
         });
         return list;
     }

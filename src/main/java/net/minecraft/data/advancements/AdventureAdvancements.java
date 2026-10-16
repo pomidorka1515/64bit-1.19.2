@@ -54,12 +54,12 @@ public class AdventureAdvancements implements Consumer<Consumer<Advancement>> {
     private static final int BEDROCK_THICKNESS = 5;
     private static final EntityType<?>[] MOBS_TO_KILL = new EntityType[] {EntityType.BLAZE, EntityType.CAVE_SPIDER, EntityType.CREEPER, EntityType.DROWNED, EntityType.ELDER_GUARDIAN, EntityType.ENDER_DRAGON, EntityType.ENDERMAN, EntityType.ENDERMITE, EntityType.EVOKER, EntityType.GHAST, EntityType.GUARDIAN, EntityType.HOGLIN, EntityType.HUSK, EntityType.MAGMA_CUBE, EntityType.PHANTOM, EntityType.PIGLIN, EntityType.PIGLIN_BRUTE, EntityType.PILLAGER, EntityType.RAVAGER, EntityType.SHULKER, EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME, EntityType.SPIDER, EntityType.STRAY, EntityType.VEX, EntityType.VINDICATOR, EntityType.WITCH, EntityType.WITHER_SKELETON, EntityType.WITHER, EntityType.ZOGLIN, EntityType.ZOMBIE_VILLAGER, EntityType.ZOMBIE, EntityType.ZOMBIFIED_PIGLIN};
 
-    private static LightningStrikeTrigger.TriggerInstance fireCountAndBystander(MinMaxBounds.Ints p_176030_, EntityPredicate p_176031_) {
-        return LightningStrikeTrigger.TriggerInstance.lighthingStrike(EntityPredicate.Builder.entity().distance(DistancePredicate.absolute(MinMaxBounds.Doubles.atMost(30.0D))).subPredicate(LighthingBoltPredicate.blockSetOnFire(p_176030_)).build(), p_176031_);
+    private static LightningStrikeTrigger.TriggerInstance fireCountAndBystander(MinMaxBounds.Ints pBlocksSetOnFire, EntityPredicate pBystander) {
+        return LightningStrikeTrigger.TriggerInstance.lighthingStrike(EntityPredicate.Builder.entity().distance(DistancePredicate.absolute(MinMaxBounds.Doubles.atMost(30.0D))).subPredicate(LighthingBoltPredicate.blockSetOnFire(pBlocksSetOnFire)).build(), pBystander);
     }
 
-    private static UsingItemTrigger.TriggerInstance lookAtThroughItem(EntityType<?> p_176027_, Item p_176028_) {
-        return UsingItemTrigger.TriggerInstance.lookingAt(EntityPredicate.Builder.entity().subPredicate(PlayerPredicate.Builder.player().setLookingAt(EntityPredicate.Builder.entity().of(p_176027_).build()).build()), ItemPredicate.Builder.item().of(p_176028_));
+    private static UsingItemTrigger.TriggerInstance lookAtThroughItem(EntityType<?> pLookedAtEntityType, Item pLookedThroughItem) {
+        return UsingItemTrigger.TriggerInstance.lookingAt(EntityPredicate.Builder.entity().subPredicate(PlayerPredicate.Builder.player().setLookingAt(EntityPredicate.Builder.entity().of(pLookedAtEntityType).build()).build()), ItemPredicate.Builder.item().of(pLookedThroughItem));
     }
 
     public void accept(Consumer<Advancement> p_123983_) {
@@ -95,19 +95,19 @@ public class AdventureAdvancements implements Consumer<Consumer<Advancement>> {
         Advancement.Builder.advancement().parent(advancement).display(Blocks.SCULK_SENSOR, Component.translatable("advancements.adventure.avoid_vibration.title"), Component.translatable("advancements.adventure.avoid_vibration.description"), (ResourceLocation) null, FrameType.TASK, true, true, false).addCriterion("avoid_vibration", PlayerTrigger.TriggerInstance.avoidVibration()).save(p_123983_, "adventure/avoid_vibration");
     }
 
-    private Advancement.Builder addMobsToKill(Advancement.Builder p_123985_) {
+    private Advancement.Builder addMobsToKill(Advancement.Builder pBuilder) {
         for (EntityType<?> entitytype : MOBS_TO_KILL) {
-            p_123985_.addCriterion(Registry.ENTITY_TYPE.getKey(entitytype).toString(), KilledTrigger.TriggerInstance.playerKilledEntity(EntityPredicate.Builder.entity().of(entitytype)));
+            pBuilder.addCriterion(Registry.ENTITY_TYPE.getKey(entitytype).toString(), KilledTrigger.TriggerInstance.playerKilledEntity(EntityPredicate.Builder.entity().of(entitytype)));
         }
 
-        return p_123985_;
+        return pBuilder;
     }
 
-    protected static Advancement.Builder addBiomes(Advancement.Builder p_123987_, List<ResourceKey<Biome>> p_123988_) {
-        for (ResourceKey<Biome> resourcekey : p_123988_) {
-            p_123987_.addCriterion(resourcekey.location().toString(), PlayerTrigger.TriggerInstance.located(LocationPredicate.inBiome(resourcekey)));
+    protected static Advancement.Builder addBiomes(Advancement.Builder pBuilder, List<ResourceKey<Biome>> pBiomes) {
+        for (ResourceKey<Biome> resourcekey : pBiomes) {
+            pBuilder.addCriterion(resourcekey.location().toString(), PlayerTrigger.TriggerInstance.located(LocationPredicate.inBiome(resourcekey)));
         }
 
-        return p_123987_;
+        return pBuilder;
     }
 }

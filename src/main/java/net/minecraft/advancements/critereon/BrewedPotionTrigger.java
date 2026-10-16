@@ -16,21 +16,21 @@ public class BrewedPotionTrigger extends SimpleCriterionTrigger<BrewedPotionTrig
         return ID;
     }
 
-    public BrewedPotionTrigger.TriggerInstance createInstance(JsonObject p_19127_, EntityPredicate.Composite p_19128_, DeserializationContext p_19129_) {
+    public BrewedPotionTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
         Potion potion = null;
-        if (p_19127_.has("potion")) {
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_19127_, "potion"));
+        if (pJson.has("potion")) {
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pJson, "potion"));
             potion = Registry.POTION.getOptional(resourcelocation).orElseThrow(() -> {
                 return new JsonSyntaxException("Unknown potion '" + resourcelocation + "'");
             });
         }
 
-        return new BrewedPotionTrigger.TriggerInstance(p_19128_, potion);
+        return new BrewedPotionTrigger.TriggerInstance(pEntityPredicate, potion);
     }
 
-    public void trigger(ServerPlayer p_19121_, Potion p_19122_) {
-        this.trigger(p_19121_, (p_19125_) -> {
-            return p_19125_.matches(p_19122_);
+    public void trigger(ServerPlayer pPlayer, Potion pPotion) {
+        this.trigger(pPlayer, (p_19125_) -> {
+            return p_19125_.matches(pPotion);
         });
     }
 
@@ -38,21 +38,21 @@ public class BrewedPotionTrigger extends SimpleCriterionTrigger<BrewedPotionTrig
         @Nullable
         private final Potion potion;
 
-        public TriggerInstance(EntityPredicate.Composite p_19139_, @Nullable Potion p_19140_) {
-            super(BrewedPotionTrigger.ID, p_19139_);
-            this.potion = p_19140_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, @Nullable Potion pPotion) {
+            super(BrewedPotionTrigger.ID, pPlayer);
+            this.potion = pPotion;
         }
 
         public static BrewedPotionTrigger.TriggerInstance brewedPotion() {
             return new BrewedPotionTrigger.TriggerInstance(EntityPredicate.Composite.ANY, (Potion) null);
         }
 
-        public boolean matches(Potion p_19142_) {
-            return this.potion == null || this.potion == p_19142_;
+        public boolean matches(Potion pPotion) {
+            return this.potion == null || this.potion == pPotion;
         }
 
-        public JsonObject serializeToJson(SerializationContext p_19144_) {
-            JsonObject jsonobject = super.serializeToJson(p_19144_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             if (this.potion != null) {
                 jsonobject.addProperty("potion", Registry.POTION.getKey(this.potion).toString());
             }

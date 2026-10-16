@@ -7,8 +7,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public class FluidTagsProvider extends TagsProvider<Fluid> {
-    public FluidTagsProvider(DataGenerator p_126523_) {
-        super(p_126523_, Registry.FLUID);
+    public FluidTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, Registry.FLUID);
     }
 
     protected void addTags() {

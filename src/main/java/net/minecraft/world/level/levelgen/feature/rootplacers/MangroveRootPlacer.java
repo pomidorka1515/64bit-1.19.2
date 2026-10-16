@@ -98,8 +98,8 @@ public class MangroveRootPlacer extends RootPlacer {
         }
     }
 
-    protected boolean canPlaceRoot(LevelSimulatedReader p_225831_, BlockPos p_225832_) {
-        return super.canPlaceRoot(p_225831_, p_225832_) || p_225831_.isStateAtPosition(p_225832_, (p_225858_) -> {
+    protected boolean canPlaceRoot(LevelSimulatedReader pLevel, BlockPos pPos) {
+        return super.canPlaceRoot(pLevel, pPos) || pLevel.isStateAtPosition(pPos, (p_225858_) -> {
             return p_225858_.is(this.mangroveRootPlacement.canGrowThrough());
         });
     }

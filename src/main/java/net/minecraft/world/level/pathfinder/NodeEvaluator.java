@@ -20,13 +20,13 @@ public abstract class NodeEvaluator {
     protected boolean canOpenDoors;
     protected boolean canFloat;
 
-    public void prepare(PathNavigationRegion p_77347_, Mob p_77348_) {
-        this.level = p_77347_;
-        this.mob = p_77348_;
+    public void prepare(PathNavigationRegion pLevel, Mob pMob) {
+        this.level = pLevel;
+        this.mob = pMob;
         this.nodes.clear();
-        this.entityWidth = Mth.floor(p_77348_.getBbWidth() + 1.0F);
-        this.entityHeight = Mth.floor(p_77348_.getBbHeight() + 1.0F);
-        this.entityDepth = Mth.floor(p_77348_.getBbWidth() + 1.0F);
+        this.entityWidth = Mth.floor(pMob.getBbWidth() + 1.0F);
+        this.entityHeight = Mth.floor(pMob.getBbHeight() + 1.0F);
+        this.entityDepth = Mth.floor(pMob.getBbWidth() + 1.0F);
     }
 
     public void done() {
@@ -35,13 +35,13 @@ public abstract class NodeEvaluator {
     }
 
     @Nullable
-    protected Node getNode(BlockPos p_77350_) {
-        return this.getNode(p_77350_.getX(), p_77350_.getY(), p_77350_.getZ());
+    protected Node getNode(BlockPos pPos) {
+        return this.getNode(pPos.getX(), pPos.getY(), pPos.getZ());
     }
 
     @Nullable
-    protected Node getNode(long p_77325_, int p_77326_, long p_77327_) {
-        return this.getNodeUnchecked(p_77325_, p_77326_, p_77327_);
+    protected Node getNode(long pX, int pY, long pZ) {
+        return this.getNodeUnchecked(pX, pY, pZ);
     }
 
     /**
@@ -57,7 +57,7 @@ public abstract class NodeEvaluator {
     public abstract Node getStart();
 
     @Nullable
-    public abstract Target getGoal(double p_77322_, double p_77323_, double p_77324_);
+    public abstract Target getGoal(double pX, double pY, double pZ);
 
     public Target getGoal(BlockPos position) {
         return new Target(this.getNodeUnchecked(position.getX(), position.getY(), position.getZ()));
@@ -70,20 +70,20 @@ public abstract class NodeEvaluator {
 
     public abstract int getNeighbors(Node[] p_77353_, Node p_77354_);
 
-    public abstract BlockPathTypes getBlockPathType(BlockGetter p_77337_, long p_77338_, int p_77339_, long p_77340_, Mob p_77341_, int p_77342_, int p_77343_, int p_77344_, boolean p_77345_, boolean p_77346_);
+    public abstract BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, long pX, int pY, long pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors);
 
-    public abstract BlockPathTypes getBlockPathType(BlockGetter p_77333_, long p_77334_, int p_77335_, long p_77336_);
+    public abstract BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ);
 
-    public void setCanPassDoors(boolean p_77352_) {
-        this.canPassDoors = p_77352_;
+    public void setCanPassDoors(boolean pCanEnterDoors) {
+        this.canPassDoors = pCanEnterDoors;
     }
 
-    public void setCanOpenDoors(boolean p_77356_) {
-        this.canOpenDoors = p_77356_;
+    public void setCanOpenDoors(boolean pCanOpenDoors) {
+        this.canOpenDoors = pCanOpenDoors;
     }
 
-    public void setCanFloat(boolean p_77359_) {
-        this.canFloat = p_77359_;
+    public void setCanFloat(boolean pCanSwim) {
+        this.canFloat = pCanSwim;
     }
 
     public boolean canPassDoors() {

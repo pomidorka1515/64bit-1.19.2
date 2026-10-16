@@ -110,16 +110,16 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     private final ResourceKey<Level> dimension;
     private long subTickCount;
 
-    protected Level(WritableLevelData p_220352_, ResourceKey<Level> p_220353_, Holder<DimensionType> p_220354_, Supplier<ProfilerFiller> p_220355_, boolean p_220356_, boolean p_220357_, long p_220358_, int p_220359_) {
-        this.profiler = p_220355_;
-        this.levelData = p_220352_;
-        this.dimensionTypeRegistration = p_220354_;
-        this.dimensionTypeId = p_220354_.unwrapKey().orElseThrow(() -> {
-            return new IllegalArgumentException("Dimension must be registered, got " + p_220354_);
+    protected Level(WritableLevelData pLevelData, ResourceKey<Level> pDimension, Holder<DimensionType> pDimensionTypeRegistration, Supplier<ProfilerFiller> pProfiler, boolean pIsClientSide, boolean pIsDebug, long pBiomeZoomSeed, int pMaxChainedNeighborUpdates) {
+        this.profiler = pProfiler;
+        this.levelData = pLevelData;
+        this.dimensionTypeRegistration = pDimensionTypeRegistration;
+        this.dimensionTypeId = pDimensionTypeRegistration.unwrapKey().orElseThrow(() -> {
+            return new IllegalArgumentException("Dimension must be registered, got " + pDimensionTypeRegistration);
         });
-        final DimensionType dimensiontype = p_220354_.value();
-        this.dimension = p_220353_;
-        this.isClientSide = p_220356_;
+        final DimensionType dimensiontype = pDimensionTypeRegistration.value();
+        this.dimension = pDimension;
+        this.isClientSide = pIsClientSide;
         if (dimensiontype.coordinateScale() != 1.0D) {
             this.worldBorder = new WorldBorder() {
                 public double getCenterX() {
@@ -135,9 +135,9 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         }
 
         this.thread = Thread.currentThread();
-        this.biomeManager = new BiomeManager(this, p_220358_);
-        this.isDebug = p_220357_;
-        this.neighborUpdater = new CollectingNeighborUpdater(this, p_220359_);
+        this.biomeManager = new BiomeManager(this, pBiomeZoomSeed);
+        this.isDebug = pIsDebug;
+        this.neighborUpdater = new CollectingNeighborUpdater(this, pMaxChainedNeighborUpdates);
     }
 
     public boolean isClientSide() {
@@ -149,94 +149,94 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return null;
     }
 
-    public boolean isInWorldBounds(BlockPos p_46740_) {
-        return !this.isOutsideBuildHeight(p_46740_) && isInWorldBoundsHorizontal(p_46740_);
+    public boolean isInWorldBounds(BlockPos pPos) {
+        return !this.isOutsideBuildHeight(pPos) && isInWorldBoundsHorizontal(pPos);
     }
 
-    public static boolean isInSpawnableBounds(BlockPos p_46742_) {
-        return !isOutsideSpawnableHeight(p_46742_.getY()) && isInWorldBoundsHorizontal(p_46742_);
+    public static boolean isInSpawnableBounds(BlockPos pPos) {
+        return !isOutsideSpawnableHeight(pPos.getY()) && isInWorldBoundsHorizontal(pPos);
     }
 
-    private static boolean isInWorldBoundsHorizontal(BlockPos p_46458_) {
-        return WorldBounds.isValidBlock(p_46458_.getX(), p_46458_.getZ());
+    private static boolean isInWorldBoundsHorizontal(BlockPos pPos) {
+        return WorldBounds.isValidBlock(pPos.getX(), pPos.getZ());
     }
 
-    private static boolean isOutsideSpawnableHeight(int p_46725_) {
-        return p_46725_ < -20000000 || p_46725_ >= 20000000;
+    private static boolean isOutsideSpawnableHeight(int pY) {
+        return pY < -20000000 || pY >= 20000000;
     }
 
-    public LevelChunk getChunkAt(BlockPos p_46746_) {
-        return this.getChunk(SectionPos.blockToSectionCoord(p_46746_.getX()), SectionPos.blockToSectionCoord(p_46746_.getZ()));
+    public LevelChunk getChunkAt(BlockPos pPos) {
+        return this.getChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()));
     }
 
-    public LevelChunk getChunk(long p_46727_, long p_46728_) {
-        return (LevelChunk) this.getChunk(p_46727_, p_46728_, ChunkStatus.FULL);
+    public LevelChunk getChunk(long pChunkX, long pChunkZ) {
+        return (LevelChunk) this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL);
     }
 
     @Nullable
-    public ChunkAccess getChunk(long p_46502_, long p_46503_, ChunkStatus p_46504_, boolean p_46505_) {
-        if (!WorldBounds.isValidChunk(p_46502_, p_46503_))
+    public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
+        if (!WorldBounds.isValidChunk(pX, pZ))
             return null;
-        if (!p_46505_ && this instanceof ServerLevel serverLevel) {
-            return serverLevel.getChunkSource().getChunkNow(p_46502_, p_46503_);
+        if (!pNonnull && this instanceof ServerLevel serverLevel) {
+            return serverLevel.getChunkSource().getChunkNow(pX, pZ);
         }
-        ChunkAccess chunkaccess = this.getChunkSource().getChunk(p_46502_, p_46503_, p_46504_, p_46505_);
-        if (chunkaccess == null && p_46505_) {
+        ChunkAccess chunkaccess = this.getChunkSource().getChunk(pX, pZ, pRequiredStatus, pNonnull);
+        if (chunkaccess == null && pNonnull) {
             throw new IllegalStateException("Should always be able to create a chunk!");
         } else {
             return chunkaccess;
         }
     }
 
-    public boolean setBlock(BlockPos p_46601_, BlockState p_46602_, int p_46603_) {
-        return this.setBlock(p_46601_, p_46602_, p_46603_, 512);
+    public boolean setBlock(BlockPos pPos, BlockState pNewState, int pFlags) {
+        return this.setBlock(pPos, pNewState, pFlags, 512);
     }
 
-    public boolean setBlock(BlockPos p_46605_, BlockState p_46606_, int p_46607_, int p_46608_) {
-        if (!WorldBounds.isValidBlock(p_46605_.getX(), p_46605_.getZ()) || this.isOutsideBuildHeight(p_46605_)) {
+    public boolean setBlock(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft) {
+        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ()) || this.isOutsideBuildHeight(pPos)) {
             return false;
         } else if (!this.isClientSide && this.isDebug()) {
             return false;
         } else {
-            LevelChunk levelchunk = this.getChunkAt(p_46605_);
+            LevelChunk levelchunk = this.getChunkAt(pPos);
             if (levelchunk == null)
                 return false;
-            Block block = p_46606_.getBlock();
-            BlockState blockstate = levelchunk.setBlockState(p_46605_, p_46606_, (p_46607_ & 64) != 0);
+            Block block = pState.getBlock();
+            BlockState blockstate = levelchunk.setBlockState(pPos, pState, (pFlags & 64) != 0);
             if (blockstate == null) {
                 return false;
             } else {
-                BlockState blockstate1 = this.getBlockState(p_46605_);
-                if ((p_46607_ & 128) == 0 && blockstate1 != blockstate && (blockstate1.getLightBlock(this, p_46605_) != blockstate.getLightBlock(this, p_46605_) || blockstate1.getLightEmission() != blockstate.getLightEmission() || blockstate1.useShapeForLightOcclusion() || blockstate.useShapeForLightOcclusion())) {
+                BlockState blockstate1 = this.getBlockState(pPos);
+                if ((pFlags & 128) == 0 && blockstate1 != blockstate && (blockstate1.getLightBlock(this, pPos) != blockstate.getLightBlock(this, pPos) || blockstate1.getLightEmission() != blockstate.getLightEmission() || blockstate1.useShapeForLightOcclusion() || blockstate.useShapeForLightOcclusion())) {
                     this.getProfiler().push("queueCheckLight");
-                    this.getChunkSource().getLightEngine().checkBlock(p_46605_);
+                    this.getChunkSource().getLightEngine().checkBlock(pPos);
                     this.getProfiler().pop();
                 }
 
-                if (blockstate1 == p_46606_) {
+                if (blockstate1 == pState) {
                     if (blockstate != blockstate1) {
-                        this.setBlocksDirty(p_46605_, blockstate, blockstate1);
+                        this.setBlocksDirty(pPos, blockstate, blockstate1);
                     }
 
-                    if ((p_46607_ & 2) != 0 && (!this.isClientSide || (p_46607_ & 4) == 0) && (this.isClientSide || levelchunk.getFullStatus() != null && levelchunk.getFullStatus().isOrAfter(ChunkHolder.FullChunkStatus.TICKING))) {
-                        this.sendBlockUpdated(p_46605_, blockstate, p_46606_, p_46607_);
+                    if ((pFlags & 2) != 0 && (!this.isClientSide || (pFlags & 4) == 0) && (this.isClientSide || levelchunk.getFullStatus() != null && levelchunk.getFullStatus().isOrAfter(ChunkHolder.FullChunkStatus.TICKING))) {
+                        this.sendBlockUpdated(pPos, blockstate, pState, pFlags);
                     }
 
-                    if ((p_46607_ & 1) != 0) {
-                        this.blockUpdated(p_46605_, blockstate.getBlock());
-                        if (!this.isClientSide && p_46606_.hasAnalogOutputSignal()) {
-                            this.updateNeighbourForOutputSignal(p_46605_, block);
+                    if ((pFlags & 1) != 0) {
+                        this.blockUpdated(pPos, blockstate.getBlock());
+                        if (!this.isClientSide && pState.hasAnalogOutputSignal()) {
+                            this.updateNeighbourForOutputSignal(pPos, block);
                         }
                     }
 
-                    if ((p_46607_ & 16) == 0 && p_46608_ > 0) {
-                        int i = p_46607_ & -34;
-                        blockstate.updateIndirectNeighbourShapes(this, p_46605_, i, p_46608_ - 1);
-                        p_46606_.updateNeighbourShapes(this, p_46605_, i, p_46608_ - 1);
-                        p_46606_.updateIndirectNeighbourShapes(this, p_46605_, i, p_46608_ - 1);
+                    if ((pFlags & 16) == 0 && pRecursionLeft > 0) {
+                        int i = pFlags & -34;
+                        blockstate.updateIndirectNeighbourShapes(this, pPos, i, pRecursionLeft - 1);
+                        pState.updateNeighbourShapes(this, pPos, i, pRecursionLeft - 1);
+                        pState.updateIndirectNeighbourShapes(this, pPos, i, pRecursionLeft - 1);
                     }
 
-                    this.onBlockStateChange(p_46605_, blockstate, blockstate1);
+                    this.onBlockStateChange(pPos, blockstate, blockstate1);
                 }
 
                 return true;
@@ -244,57 +244,57 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         }
     }
 
-    public void onBlockStateChange(BlockPos p_46609_, BlockState p_46610_, BlockState p_46611_) {
+    public void onBlockStateChange(BlockPos pPos, BlockState pBlockState, BlockState pNewState) {
     }
 
-    public boolean removeBlock(BlockPos p_46623_, boolean p_46624_) {
-        FluidState fluidstate = this.getFluidState(p_46623_);
-        return this.setBlock(p_46623_, fluidstate.createLegacyBlock(), 3 | (p_46624_ ? 64 : 0));
+    public boolean removeBlock(BlockPos pPos, boolean pIsMoving) {
+        FluidState fluidstate = this.getFluidState(pPos);
+        return this.setBlock(pPos, fluidstate.createLegacyBlock(), 3 | (pIsMoving ? 64 : 0));
     }
 
-    public boolean destroyBlock(BlockPos p_46626_, boolean p_46627_, @Nullable Entity p_46628_, int p_46629_) {
-        BlockState blockstate = this.getBlockState(p_46626_);
+    public boolean destroyBlock(BlockPos pPos, boolean pDropBlock, @Nullable Entity pEntity, int pRecursionLeft) {
+        BlockState blockstate = this.getBlockState(pPos);
         if (blockstate.isAir()) {
             return false;
         } else {
-            FluidState fluidstate = this.getFluidState(p_46626_);
+            FluidState fluidstate = this.getFluidState(pPos);
             if (!(blockstate.getBlock() instanceof BaseFireBlock)) {
-                this.levelEvent(2001, p_46626_, Block.getId(blockstate));
+                this.levelEvent(2001, pPos, Block.getId(blockstate));
             }
 
-            if (p_46627_) {
-                BlockEntity blockentity = blockstate.hasBlockEntity() ? this.getBlockEntity(p_46626_) : null;
-                Block.dropResources(blockstate, this, p_46626_, blockentity, p_46628_, ItemStack.EMPTY);
+            if (pDropBlock) {
+                BlockEntity blockentity = blockstate.hasBlockEntity() ? this.getBlockEntity(pPos) : null;
+                Block.dropResources(blockstate, this, pPos, blockentity, pEntity, ItemStack.EMPTY);
             }
 
-            boolean flag = this.setBlock(p_46626_, fluidstate.createLegacyBlock(), 3, p_46629_);
+            boolean flag = this.setBlock(pPos, fluidstate.createLegacyBlock(), 3, pRecursionLeft);
             if (flag) {
-                this.gameEvent(GameEvent.BLOCK_DESTROY, p_46626_, GameEvent.Context.of(p_46628_, blockstate));
+                this.gameEvent(GameEvent.BLOCK_DESTROY, pPos, GameEvent.Context.of(pEntity, blockstate));
             }
 
             return flag;
         }
     }
 
-    public void addDestroyBlockEffect(BlockPos p_151531_, BlockState p_151532_) {
+    public void addDestroyBlockEffect(BlockPos pPos, BlockState pState) {
     }
 
-    public boolean setBlockAndUpdate(BlockPos p_46598_, BlockState p_46599_) {
-        return this.setBlock(p_46598_, p_46599_, 3);
+    public boolean setBlockAndUpdate(BlockPos pPos, BlockState pState) {
+        return this.setBlock(pPos, pState, 3);
     }
 
-    public abstract void sendBlockUpdated(BlockPos p_46612_, BlockState p_46613_, BlockState p_46614_, int p_46615_);
+    public abstract void sendBlockUpdated(BlockPos pPos, BlockState pOldState, BlockState pNewState, int pFlags);
 
-    public void setBlocksDirty(BlockPos p_46678_, BlockState p_46679_, BlockState p_46680_) {
+    public void setBlocksDirty(BlockPos pBlockPos, BlockState pOldState, BlockState pNewState) {
     }
 
-    public void updateNeighborsAt(BlockPos p_46673_, Block p_46674_) {
+    public void updateNeighborsAt(BlockPos pPos, Block pBlock) {
     }
 
-    public void updateNeighborsAtExceptFromFacing(BlockPos p_46591_, Block p_46592_, Direction p_46593_) {
+    public void updateNeighborsAtExceptFromFacing(BlockPos pPos, Block pBlockType, Direction pSkipSide) {
     }
 
-    public void neighborChanged(BlockPos p_46587_, Block p_46588_, BlockPos p_46589_) {
+    public void neighborChanged(BlockPos pPos, Block pBlock, BlockPos pFromPos) {
     }
 
     public void neighborChanged(BlockState p_220379_, BlockPos p_220380_, Block p_220381_, BlockPos p_220382_, boolean p_220383_) {
@@ -304,13 +304,13 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         this.neighborUpdater.shapeUpdate(p_220385_, p_220386_, p_220387_, p_220388_, p_220389_, p_220390_);
     }
 
-    public int getHeight(Heightmap.Types p_46571_, long p_46572_, long p_46573_) {
+    public int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ) {
         int i;
-        if (WorldBounds.isValidBlock(p_46572_, p_46573_)
-                && this.hasChunk(SectionPos.blockToSectionCoord(p_46572_), SectionPos.blockToSectionCoord(p_46573_))) {
-            LevelChunk chunk = this.getChunk(SectionPos.blockToSectionCoord(p_46572_), SectionPos.blockToSectionCoord(p_46573_));
+        if (WorldBounds.isValidBlock(pX, pZ)
+                && this.hasChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ))) {
+            LevelChunk chunk = this.getChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ));
             i = chunk == null ? this.getMinBuildHeight()
-                              : chunk.getHeight(p_46571_, (int) (p_46572_ & 15), (int) (p_46573_ & 15)) + 1;
+                              : chunk.getHeight(pHeightmapType, (int) (pX & 15), (int) (pZ & 15)) + 1;
         } else {
             i = this.getMinBuildHeight();
         }
@@ -322,11 +322,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return this.getChunkSource().getLightEngine();
     }
 
-    public BlockState getBlockState(BlockPos p_46732_) {
-        if (!WorldBounds.isValidBlock(p_46732_.getX(), p_46732_.getZ())) {
+    public BlockState getBlockState(BlockPos pPos) {
+        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
             return Blocks.VOID_AIR.defaultBlockState();
         }
-        if (this.isOutsideBuildHeight(p_46732_)) {
+        if (this.isOutsideBuildHeight(pPos)) {
             return Blocks.VOID_AIR.defaultBlockState();
         }
 
@@ -338,32 +338,32 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
        */
         if (this instanceof ServerLevel serverLevel) {
             LevelChunk chunk = serverLevel.getChunkSource().getChunkNow(
-                    SectionPos.blockToSectionCoord(p_46732_.getX()),
-                    SectionPos.blockToSectionCoord(p_46732_.getZ()));
-            return chunk == null ? Blocks.VOID_AIR.defaultBlockState() : chunk.getBlockState(p_46732_);
+                    SectionPos.blockToSectionCoord(pPos.getX()),
+                    SectionPos.blockToSectionCoord(pPos.getZ()));
+            return chunk == null ? Blocks.VOID_AIR.defaultBlockState() : chunk.getBlockState(pPos);
         }
 
-        LevelChunk levelchunk = this.getChunk(SectionPos.blockToSectionCoord(p_46732_.getX()), SectionPos.blockToSectionCoord(p_46732_.getZ()));
-        return levelchunk.getBlockState(p_46732_);
+        LevelChunk levelchunk = this.getChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()));
+        return levelchunk.getBlockState(pPos);
     }
 
-    public FluidState getFluidState(BlockPos p_46671_) {
-        if (!WorldBounds.isValidBlock(p_46671_.getX(), p_46671_.getZ())) {
+    public FluidState getFluidState(BlockPos pPos) {
+        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
             return Fluids.EMPTY.defaultFluidState();
         }
-        if (this.isOutsideBuildHeight(p_46671_)) {
+        if (this.isOutsideBuildHeight(pPos)) {
             return Fluids.EMPTY.defaultFluidState();
         }
 
         if (this instanceof ServerLevel serverLevel) {
             LevelChunk chunk = serverLevel.getChunkSource().getChunkNow(
-                    SectionPos.blockToSectionCoord(p_46671_.getX()),
-                    SectionPos.blockToSectionCoord(p_46671_.getZ()));
-            return chunk == null ? Fluids.EMPTY.defaultFluidState() : chunk.getFluidState(p_46671_);
+                    SectionPos.blockToSectionCoord(pPos.getX()),
+                    SectionPos.blockToSectionCoord(pPos.getZ()));
+            return chunk == null ? Fluids.EMPTY.defaultFluidState() : chunk.getFluidState(pPos);
         }
 
-        LevelChunk levelchunk = this.getChunkAt(p_46671_);
-        return levelchunk.getFluidState(p_46671_);
+        LevelChunk levelchunk = this.getChunkAt(pPos);
+        return levelchunk.getFluidState(pPos);
     }
 
     public boolean isDay() {
@@ -374,12 +374,12 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return !this.dimensionType().hasFixedTime() && !this.isDay();
     }
 
-    public void playSound(@Nullable Player p_46560_, BlockPos p_46561_, SoundEvent p_46562_, SoundSource p_46563_, float p_46564_, float p_46565_) {
-        this.playSeededSound(p_46560_, SectorVec3.fromBlockAndFraction(p_46561_.getX(), 0.5D, (double) p_46561_.getY() + 0.5D, p_46561_.getZ(), 0.5D), p_46562_, p_46563_, p_46564_, p_46565_,
+    public void playSound(@Nullable Player pPlayer, BlockPos pPos, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch) {
+        this.playSeededSound(pPlayer, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 0.5D, pPos.getZ(), 0.5D), pSound, pCategory, pVolume, pPitch,
                 this.threadSafeRandom.nextLong());
     }
 
-    public abstract void playSeededSound(@Nullable Player p_220363_, double p_220364_, double p_220365_, double p_220366_, SoundEvent p_220367_, SoundSource p_220368_, float p_220369_, float p_220370_, long p_220371_);
+    public abstract void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
 
     /** Exact positional-sound entry point for long-coordinate callers. */
     public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
@@ -388,17 +388,17 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
                 (double) position.blockZ() + position.subZ(), sound, source, volume, pitch, seed);
     }
 
-    public abstract void playSeededSound(@Nullable Player p_220372_, Entity p_220373_, SoundEvent p_220374_, SoundSource p_220375_, float p_220376_, float p_220377_, long p_220378_);
+    public abstract void playSeededSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
 
-    public void playSound(@Nullable Player p_46543_, double p_46544_, double p_46545_, double p_46546_, SoundEvent p_46547_, SoundSource p_46548_, float p_46549_, float p_46550_) {
-        this.playSeededSound(p_46543_, p_46544_, p_46545_, p_46546_, p_46547_, p_46548_, p_46549_, p_46550_, this.threadSafeRandom.nextLong());
+    public void playSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch) {
+        this.playSeededSound(pPlayer, pX, pY, pZ, pSound, pCategory, pVolume, pPitch, this.threadSafeRandom.nextLong());
     }
 
-    public void playSound(@Nullable Player p_46551_, Entity p_46552_, SoundEvent p_46553_, SoundSource p_46554_, float p_46555_, float p_46556_) {
-        this.playSeededSound(p_46551_, p_46552_, p_46553_, p_46554_, p_46555_, p_46556_, this.threadSafeRandom.nextLong());
+    public void playSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pEvent, SoundSource pCategory, float pVolume, float pPitch) {
+        this.playSeededSound(pPlayer, pEntity, pEvent, pCategory, pVolume, pPitch, this.threadSafeRandom.nextLong());
     }
 
-    public void playLocalSound(double p_46482_, double p_46483_, double p_46484_, SoundEvent p_46485_, SoundSource p_46486_, float p_46487_, float p_46488_, boolean p_46489_) {
+    public void playLocalSound(double pX, double pY, double pZ, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch, boolean pDistanceDelay) {
     }
 
     /** Exact local-sound entry point for long-coordinate callers. */
@@ -409,7 +409,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     /** Legacy double particle entry point. Exact callers use the SectorVec3 overload. */
-    public void addParticle(ParticleOptions p_46631_, double p_46632_, double p_46633_, double p_46634_, double p_46635_, double p_46636_, double p_46637_) {
+    public void addParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     /** Adds a particle at an exact X/Z world coordinate. */
@@ -417,14 +417,14 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     public void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
     }
 
-    public void addParticle(ParticleOptions p_46638_, boolean p_46639_, double p_46640_, double p_46641_, double p_46642_, double p_46643_, double p_46644_, double p_46645_) {
+    public void addParticle(ParticleOptions pParticleData, boolean pForceAlwaysRender, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     /** Adds a limiter-controlled particle at an exact X/Z world coordinate. */
     public void addParticle(ParticleOptions options, boolean force, SectorVec3 position, double xd, double yd, double zd) {
     }
 
-    public void addAlwaysVisibleParticle(ParticleOptions p_46684_, double p_46685_, double p_46686_, double p_46687_, double p_46688_, double p_46689_, double p_46690_) {
+    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     /** Adds an always-visible particle at an exact X/Z world coordinate. */
@@ -436,16 +436,16 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
             double xd, double yd, double zd) {
     }
 
-    public void addAlwaysVisibleParticle(ParticleOptions p_46691_, boolean p_46692_, double p_46693_, double p_46694_, double p_46695_, double p_46696_, double p_46697_, double p_46698_) {
+    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, boolean pIgnoreRange, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
-    public float getSunAngle(float p_46491_) {
-        float f = this.getTimeOfDay(p_46491_);
+    public float getSunAngle(float pPartialTicks) {
+        float f = this.getTimeOfDay(pPartialTicks);
         return f * ((float) Math.PI * 2F);
     }
 
-    public void addBlockEntityTicker(TickingBlockEntity p_151526_) {
-        (this.tickingBlockEntities ? this.pendingBlockEntityTickers : this.blockEntityTickers).add(p_151526_);
+    public void addBlockEntityTicker(TickingBlockEntity pTicker) {
+        (this.tickingBlockEntities ? this.pendingBlockEntityTickers : this.blockEntityTickers).add(pTicker);
     }
 
     protected void tickBlockEntities() {
@@ -472,18 +472,18 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         profilerfiller.pop();
     }
 
-    public <T extends Entity> void guardEntityTick(Consumer<T> p_46654_, T p_46655_) {
+    public <T extends Entity> void guardEntityTick(Consumer<T> pConsumerEntity, T pEntity) {
         try {
-            p_46654_.accept(p_46655_);
+            pConsumerEntity.accept(pEntity);
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Ticking entity");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Entity being ticked");
-            p_46655_.fillCrashReportCategory(crashreportcategory);
+            pEntity.fillCrashReportCategory(crashreportcategory);
             throw new ReportedException(crashreport);
         }
     }
 
-    public boolean shouldTickDeath(Entity p_186458_) {
+    public boolean shouldTickDeath(Entity pEntity) {
         return true;
     }
 
@@ -495,13 +495,13 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return this.shouldTickBlocksAt(new ChunkPos(p_220394_));
     }
 
-    public Explosion explode(@Nullable Entity p_46512_, double p_46513_, double p_46514_, double p_46515_, float p_46516_, Explosion.BlockInteraction p_46517_) {
-        return this.explode(p_46512_, (DamageSource) null, (ExplosionDamageCalculator) null, p_46513_, p_46514_, p_46515_, p_46516_, false, p_46517_);
+    public Explosion explode(@Nullable Entity pEntity, double pX, double pY, double pZ, float pExplosionRadius, Explosion.BlockInteraction pMode) {
+        return this.explode(pEntity, (DamageSource) null, (ExplosionDamageCalculator) null, pX, pY, pZ, pExplosionRadius, false, pMode);
     }
 
-    public Explosion explode(@Nullable Entity p_46519_, double p_46520_, double p_46521_, double p_46522_, float p_46523_, boolean p_46524_, Explosion.BlockInteraction p_46525_) {
-        return this.explode(p_46519_, (DamageSource) null, (ExplosionDamageCalculator) null,
-                SectorVec3.fromApproximate(p_46520_, p_46521_, p_46522_), p_46523_, p_46524_, p_46525_);
+    public Explosion explode(@Nullable Entity pEntity, double pX, double pY, double pZ, float pExplosionRadius, boolean pCausesFire, Explosion.BlockInteraction pMode) {
+        return this.explode(pEntity, (DamageSource) null, (ExplosionDamageCalculator) null,
+                SectorVec3.fromApproximate(pX, pY, pZ), pExplosionRadius, pCausesFire, pMode);
     }
 
     public Explosion explode(@Nullable Entity source, SectorVec3 position, float radius,
@@ -524,55 +524,55 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     /** Legacy absolute-double explosion entry point. Exact callers use the SectorVec3 overload. */
-    public Explosion explode(@Nullable Entity p_46526_, @Nullable DamageSource p_46527_, @Nullable ExplosionDamageCalculator p_46528_, double p_46529_, double p_46530_, double p_46531_, float p_46532_, boolean p_46533_, Explosion.BlockInteraction p_46534_) {
-        return this.explode(p_46526_, p_46527_, p_46528_, SectorVec3.fromApproximate(p_46529_, p_46530_, p_46531_), p_46532_, p_46533_, p_46534_);
+    public Explosion explode(@Nullable Entity pExploder, @Nullable DamageSource pDamageSource, @Nullable ExplosionDamageCalculator pContext, double pX, double pY, double pZ, float pSize, boolean pCausesFire, Explosion.BlockInteraction pMode) {
+        return this.explode(pExploder, pDamageSource, pContext, SectorVec3.fromApproximate(pX, pY, pZ), pSize, pCausesFire, pMode);
     }
 
     public abstract String gatherChunkSourceStats();
 
     @Nullable
-    public BlockEntity getBlockEntity(BlockPos p_46716_) {
-        if (this.isOutsideBuildHeight(p_46716_) || !WorldBounds.isValidBlock(p_46716_.getX(), p_46716_.getZ())
+    public BlockEntity getBlockEntity(BlockPos pPos) {
+        if (this.isOutsideBuildHeight(pPos) || !WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())
                 || !this.isClientSide && Thread.currentThread() != this.thread) {
             return null;
         }
-        LevelChunk chunk = this.getChunkAt(p_46716_);
-        return chunk == null ? null : chunk.getBlockEntity(p_46716_, LevelChunk.EntityCreationType.IMMEDIATE);
+        LevelChunk chunk = this.getChunkAt(pPos);
+        return chunk == null ? null : chunk.getBlockEntity(pPos, LevelChunk.EntityCreationType.IMMEDIATE);
     }
 
-    public void setBlockEntity(BlockEntity p_151524_) {
-        BlockPos blockpos = p_151524_.getBlockPos();
+    public void setBlockEntity(BlockEntity pBlockEntity) {
+        BlockPos blockpos = pBlockEntity.getBlockPos();
         if (!this.isOutsideBuildHeight(blockpos) && WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ())) {
             LevelChunk chunk = this.getChunkAt(blockpos);
             if (chunk != null)
-                chunk.addAndRegisterBlockEntity(p_151524_);
+                chunk.addAndRegisterBlockEntity(pBlockEntity);
         }
     }
 
-    public void removeBlockEntity(BlockPos p_46748_) {
-        if (!this.isOutsideBuildHeight(p_46748_) && WorldBounds.isValidBlock(p_46748_.getX(), p_46748_.getZ())) {
-            LevelChunk chunk = this.getChunkAt(p_46748_);
+    public void removeBlockEntity(BlockPos pPos) {
+        if (!this.isOutsideBuildHeight(pPos) && WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
+            LevelChunk chunk = this.getChunkAt(pPos);
             if (chunk != null)
-                chunk.removeBlockEntity(p_46748_);
+                chunk.removeBlockEntity(pPos);
         }
     }
 
-    public boolean isLoaded(BlockPos p_46750_) {
-        return this.isOutsideBuildHeight(p_46750_) || !WorldBounds.isValidBlock(p_46750_.getX(), p_46750_.getZ()) ? false
-                                                                                                                  : this.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(p_46750_.getX()), SectionPos.blockToSectionCoord(p_46750_.getZ()));
+    public boolean isLoaded(BlockPos pPos) {
+        return this.isOutsideBuildHeight(pPos) || !WorldBounds.isValidBlock(pPos.getX(), pPos.getZ()) ? false
+                                                                                                                  : this.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()));
     }
 
-    public boolean loadedAndEntityCanStandOnFace(BlockPos p_46579_, Entity p_46580_, Direction p_46581_) {
-        if (this.isOutsideBuildHeight(p_46579_)) {
+    public boolean loadedAndEntityCanStandOnFace(BlockPos pPos, Entity pEntity, Direction pDirection) {
+        if (this.isOutsideBuildHeight(pPos)) {
             return false;
         } else {
-            ChunkAccess chunkaccess = this.getChunk(SectionPos.blockToSectionCoord(p_46579_.getX()), SectionPos.blockToSectionCoord(p_46579_.getZ()), ChunkStatus.FULL, false);
-            return chunkaccess == null ? false : chunkaccess.getBlockState(p_46579_).entityCanStandOnFace(this, p_46579_, p_46580_, p_46581_);
+            ChunkAccess chunkaccess = this.getChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()), ChunkStatus.FULL, false);
+            return chunkaccess == null ? false : chunkaccess.getBlockState(pPos).entityCanStandOnFace(this, pPos, pEntity, pDirection);
         }
     }
 
-    public boolean loadedAndEntityCanStandOn(BlockPos p_46576_, Entity p_46577_) {
-        return this.loadedAndEntityCanStandOnFace(p_46576_, p_46577_, Direction.UP);
+    public boolean loadedAndEntityCanStandOn(BlockPos pPos, Entity pEntity) {
+        return this.loadedAndEntityCanStandOnFace(pPos, pEntity, Direction.UP);
     }
 
     public void updateSkyBrightness() {
@@ -582,8 +582,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         this.skyDarken = (int) ((1.0D - d2 * d0 * d1) * 11.0D);
     }
 
-    public void setSpawnSettings(boolean p_46704_, boolean p_46705_) {
-        this.getChunkSource().setSpawnSettings(p_46704_, p_46705_);
+    public void setSpawnSettings(boolean pHostile, boolean pPeaceful) {
+        this.getChunkSource().setSpawnSettings(pHostile, pPeaceful);
     }
 
     public BlockPos getSharedSpawnPos() {
@@ -613,34 +613,34 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     @Nullable
-    public BlockGetter getChunkForCollisions(long p_46711_, long p_46712_) {
-        if (!WorldBounds.isValidChunk(p_46711_, p_46712_)) {
+    public BlockGetter getChunkForCollisions(long pChunkX, long pChunkZ) {
+        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ)) {
             return null;
         }
         if (this instanceof ServerLevel serverLevel) {
-            return serverLevel.getChunkSource().getChunkNow(p_46711_, p_46712_);
+            return serverLevel.getChunkSource().getChunkNow(pChunkX, pChunkZ);
         }
-        return this.getChunk(p_46711_, p_46712_, ChunkStatus.FULL, false);
+        return this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, false);
     }
 
-    public List<Entity> getEntities(@Nullable Entity p_46536_, AABB p_46537_, Predicate<? super Entity> p_46538_) {
-        SectorAABB exactBox = p_46537_.getSectorBounds();
+    public List<Entity> getEntities(@Nullable Entity pEntity, AABB pBoundingBox, Predicate<? super Entity> pPredicate) {
+        SectorAABB exactBox = pBoundingBox.getSectorBounds();
         if (exactBox != null) {
-            SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(p_46536_ != null ? p_46536_.sectorPosition()
+            SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(pEntity != null ? pEntity.sectorPosition()
                                                                                    : SectorVec3.fromBlockAndFraction(exactBox.minBlockX(), exactBox.minSubX(), exactBox.minY(),
                                                                                              exactBox.minBlockZ(), exactBox.minSubZ()));
-            return this.getSectorEntities(p_46536_, exactBox, exactBox.toLocalAABB(origin), origin, p_46538_);
+            return this.getSectorEntities(pEntity, exactBox, exactBox.toLocalAABB(origin), origin, pPredicate);
         }
         this.getProfiler().incrementCounter("getEntities");
         List<Entity> list = Lists.newArrayList();
-        this.getEntities().get(p_46537_, (p_151522_) -> {
-            if (p_151522_ != p_46536_ && p_46538_.test(p_151522_)) {
+        this.getEntities().get(pBoundingBox, (p_151522_) -> {
+            if (p_151522_ != pEntity && pPredicate.test(p_151522_)) {
                 list.add(p_151522_);
             }
 
             if (p_151522_ instanceof EnderDragon) {
                 for (EnderDragonPart enderdragonpart : ((EnderDragon) p_151522_).getSubEntities()) {
-                    if (p_151522_ != p_46536_ && p_46538_.test(enderdragonpart)) {
+                    if (p_151522_ != pEntity && pPredicate.test(enderdragonpart)) {
                         list.add(enderdragonpart);
                     }
                 }
@@ -649,21 +649,21 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return list;
     }
 
-    public <T extends Entity> List<T> getEntities(EntityTypeTest<Entity, T> p_151528_, AABB p_151529_, Predicate<? super T> p_151530_) {
-        SectorAABB exactBox = p_151529_.getSectorBounds();
+    public <T extends Entity> List<T> getEntities(EntityTypeTest<Entity, T> pEntityTypeTest, AABB pArea, Predicate<? super T> pPredicate) {
+        SectorAABB exactBox = pArea.getSectorBounds();
         if (exactBox != null)
-            return this.getSectorEntities(p_151528_, exactBox, p_151530_);
+            return this.getSectorEntities(pEntityTypeTest, exactBox, pPredicate);
         this.getProfiler().incrementCounter("getEntities");
         List<T> list = Lists.newArrayList();
-        this.getEntities().get(p_151528_, p_151529_, (p_151539_) -> {
-            if (p_151530_.test(p_151539_)) {
+        this.getEntities().get(pEntityTypeTest, pArea, (p_151539_) -> {
+            if (pPredicate.test(p_151539_)) {
                 list.add(p_151539_);
             }
 
             if (p_151539_ instanceof EnderDragon enderdragon) {
                 for (EnderDragonPart enderdragonpart : enderdragon.getSubEntities()) {
-                    T t = p_151528_.tryCast(enderdragonpart);
-                    if (t != null && p_151530_.test(t)) {
+                    T t = pEntityTypeTest.tryCast(enderdragonpart);
+                    if (t != null && pPredicate.test(t)) {
                         list.add(t);
                     }
                 }
@@ -673,11 +673,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     @Nullable
-    public abstract Entity getEntity(int p_46492_);
+    public abstract Entity getEntity(int pId);
 
-    public void blockEntityChanged(BlockPos p_151544_) {
-        if (this.hasChunkAt(p_151544_)) {
-            LevelChunk chunk = this.getChunkAt(p_151544_);
+    public void blockEntityChanged(BlockPos pPos) {
+        if (this.hasChunkAt(pPos)) {
+            LevelChunk chunk = this.getChunkAt(pPos);
             if (chunk != null)
                 chunk.setUnsaved(true);
         }
@@ -687,29 +687,29 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return 63;
     }
 
-    public int getDirectSignalTo(BlockPos p_46752_) {
+    public int getDirectSignalTo(BlockPos pPos) {
         int i = 0;
-        i = Math.max(i, this.getDirectSignal(p_46752_.below(), Direction.DOWN));
+        i = Math.max(i, this.getDirectSignal(pPos.below(), Direction.DOWN));
         if (i >= 15) {
             return i;
         } else {
-            i = Math.max(i, this.getDirectSignal(p_46752_.above(), Direction.UP));
+            i = Math.max(i, this.getDirectSignal(pPos.above(), Direction.UP));
             if (i >= 15) {
                 return i;
             } else {
-                i = Math.max(i, this.getDirectSignal(p_46752_.north(), Direction.NORTH));
+                i = Math.max(i, this.getDirectSignal(pPos.north(), Direction.NORTH));
                 if (i >= 15) {
                     return i;
                 } else {
-                    i = Math.max(i, this.getDirectSignal(p_46752_.south(), Direction.SOUTH));
+                    i = Math.max(i, this.getDirectSignal(pPos.south(), Direction.SOUTH));
                     if (i >= 15) {
                         return i;
                     } else {
-                        i = Math.max(i, this.getDirectSignal(p_46752_.west(), Direction.WEST));
+                        i = Math.max(i, this.getDirectSignal(pPos.west(), Direction.WEST));
                         if (i >= 15) {
                             return i;
                         } else {
-                            i = Math.max(i, this.getDirectSignal(p_46752_.east(), Direction.EAST));
+                            i = Math.max(i, this.getDirectSignal(pPos.east(), Direction.EAST));
                             return i >= 15 ? i : i;
                         }
                     }
@@ -718,37 +718,37 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         }
     }
 
-    public boolean hasSignal(BlockPos p_46617_, Direction p_46618_) {
-        return this.getSignal(p_46617_, p_46618_) > 0;
+    public boolean hasSignal(BlockPos pPos, Direction pSide) {
+        return this.getSignal(pPos, pSide) > 0;
     }
 
-    public int getSignal(BlockPos p_46682_, Direction p_46683_) {
-        BlockState blockstate = this.getBlockState(p_46682_);
-        int i = blockstate.getSignal(this, p_46682_, p_46683_);
-        return blockstate.isRedstoneConductor(this, p_46682_) ? Math.max(i, this.getDirectSignalTo(p_46682_)) : i;
+    public int getSignal(BlockPos pPos, Direction pFacing) {
+        BlockState blockstate = this.getBlockState(pPos);
+        int i = blockstate.getSignal(this, pPos, pFacing);
+        return blockstate.isRedstoneConductor(this, pPos) ? Math.max(i, this.getDirectSignalTo(pPos)) : i;
     }
 
-    public boolean hasNeighborSignal(BlockPos p_46754_) {
-        if (this.getSignal(p_46754_.below(), Direction.DOWN) > 0) {
+    public boolean hasNeighborSignal(BlockPos pPos) {
+        if (this.getSignal(pPos.below(), Direction.DOWN) > 0) {
             return true;
-        } else if (this.getSignal(p_46754_.above(), Direction.UP) > 0) {
+        } else if (this.getSignal(pPos.above(), Direction.UP) > 0) {
             return true;
-        } else if (this.getSignal(p_46754_.north(), Direction.NORTH) > 0) {
+        } else if (this.getSignal(pPos.north(), Direction.NORTH) > 0) {
             return true;
-        } else if (this.getSignal(p_46754_.south(), Direction.SOUTH) > 0) {
+        } else if (this.getSignal(pPos.south(), Direction.SOUTH) > 0) {
             return true;
-        } else if (this.getSignal(p_46754_.west(), Direction.WEST) > 0) {
+        } else if (this.getSignal(pPos.west(), Direction.WEST) > 0) {
             return true;
         } else {
-            return this.getSignal(p_46754_.east(), Direction.EAST) > 0;
+            return this.getSignal(pPos.east(), Direction.EAST) > 0;
         }
     }
 
-    public int getBestNeighborSignal(BlockPos p_46756_) {
+    public int getBestNeighborSignal(BlockPos pPos) {
         int i = 0;
 
         for (Direction direction : DIRECTIONS) {
-            int j = this.getSignal(p_46756_.relative(direction), direction);
+            int j = this.getSignal(pPos.relative(direction), direction);
             if (j >= 15) {
                 return 15;
             }
@@ -772,15 +772,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return this.levelData.getDayTime();
     }
 
-    public boolean mayInteract(Player p_46557_, BlockPos p_46558_) {
+    public boolean mayInteract(Player pPlayer, BlockPos pPos) {
         return true;
     }
 
-    public void broadcastEntityEvent(Entity p_46509_, byte p_46510_) {
+    public void broadcastEntityEvent(Entity pEntity, byte pState) {
     }
 
-    public void blockEvent(BlockPos p_46582_, Block p_46583_, int p_46584_, int p_46585_) {
-        this.getBlockState(p_46582_).triggerEvent(this, p_46582_, p_46584_, p_46585_);
+    public void blockEvent(BlockPos pPos, Block pBlock, int pEventID, int pEventParam) {
+        this.getBlockState(pPos).triggerEvent(this, pPos, pEventID, pEventParam);
     }
 
     public LevelData getLevelData() {
@@ -791,22 +791,22 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return this.levelData.getGameRules();
     }
 
-    public float getThunderLevel(float p_46662_) {
-        return Mth.lerp(p_46662_, this.oThunderLevel, this.thunderLevel) * this.getRainLevel(p_46662_);
+    public float getThunderLevel(float pDelta) {
+        return Mth.lerp(pDelta, this.oThunderLevel, this.thunderLevel) * this.getRainLevel(pDelta);
     }
 
-    public void setThunderLevel(float p_46708_) {
-        float f = Mth.clamp(p_46708_, 0.0F, 1.0F);
+    public void setThunderLevel(float pStrength) {
+        float f = Mth.clamp(pStrength, 0.0F, 1.0F);
         this.oThunderLevel = f;
         this.thunderLevel = f;
     }
 
-    public float getRainLevel(float p_46723_) {
-        return Mth.lerp(p_46723_, this.oRainLevel, this.rainLevel);
+    public float getRainLevel(float pDelta) {
+        return Mth.lerp(pDelta, this.oRainLevel, this.rainLevel);
     }
 
-    public void setRainLevel(float p_46735_) {
-        float f = Mth.clamp(p_46735_, 0.0F, 1.0F);
+    public void setRainLevel(float pStrength) {
+        float f = Mth.clamp(pStrength, 0.0F, 1.0F);
         this.oRainLevel = f;
         this.rainLevel = f;
     }
@@ -823,36 +823,36 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return (double) this.getRainLevel(1.0F) > 0.2D;
     }
 
-    public boolean isRainingAt(BlockPos p_46759_) {
+    public boolean isRainingAt(BlockPos pPosition) {
         if (!this.isRaining()) {
             return false;
-        } else if (!this.canSeeSky(p_46759_)) {
+        } else if (!this.canSeeSky(pPosition)) {
             return false;
-        } else if (this.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, p_46759_).getY() > p_46759_.getY()) {
+        } else if (this.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, pPosition).getY() > pPosition.getY()) {
             return false;
         } else {
-            Biome biome = this.getBiome(p_46759_).value();
-            return biome.getPrecipitation() == Biome.Precipitation.RAIN && biome.warmEnoughToRain(p_46759_);
+            Biome biome = this.getBiome(pPosition).value();
+            return biome.getPrecipitation() == Biome.Precipitation.RAIN && biome.warmEnoughToRain(pPosition);
         }
     }
 
-    public boolean isHumidAt(BlockPos p_46762_) {
-        Biome biome = this.getBiome(p_46762_).value();
+    public boolean isHumidAt(BlockPos pPos) {
+        Biome biome = this.getBiome(pPos).value();
         return biome.isHumid();
     }
 
     @Nullable
-    public abstract MapItemSavedData getMapData(String p_46650_);
+    public abstract MapItemSavedData getMapData(String pMapName);
 
-    public abstract void setMapData(String p_151533_, MapItemSavedData p_151534_);
+    public abstract void setMapData(String pMapId, MapItemSavedData pData);
 
     public abstract int getFreeMapId();
 
-    public void globalLevelEvent(int p_46665_, BlockPos p_46666_, int p_46667_) {
+    public void globalLevelEvent(int pId, BlockPos pPos, int pData) {
     }
 
-    public CrashReportCategory fillReportDetails(CrashReport p_46656_) {
-        CrashReportCategory crashreportcategory = p_46656_.addCategory("Affected level", 1);
+    public CrashReportCategory fillReportDetails(CrashReport pReport) {
+        CrashReportCategory crashreportcategory = pReport.addCategory("Affected level", 1);
         crashreportcategory.setDetail("All players", () -> {
             return this.players().size() + " total; " + this.players();
         });
@@ -870,10 +870,10 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return crashreportcategory;
     }
 
-    public abstract void destroyBlockProgress(int p_46506_, BlockPos p_46507_, int p_46508_);
+    public abstract void destroyBlockProgress(int pBreakerId, BlockPos pPos, int pProgress);
 
     /** Legacy double firework entry point. Exact callers use the SectorVec3 overload. */
-    public void createFireworks(double p_46475_, double p_46476_, double p_46477_, double p_46478_, double p_46479_, double p_46480_, @Nullable CompoundTag p_46481_) {
+    public void createFireworks(double pX, double pY, double pZ, double pMotionX, double pMotionY, double pMotionZ, @Nullable CompoundTag pCompound) {
     }
 
     /** Creates a firework particle sequence at an exact X/Z position. */
@@ -882,30 +882,30 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     public abstract Scoreboard getScoreboard();
 
-    public void updateNeighbourForOutputSignal(BlockPos p_46718_, Block p_46719_) {
+    public void updateNeighbourForOutputSignal(BlockPos pPos, Block pBlock) {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos blockpos = p_46718_.relative(direction);
+            BlockPos blockpos = pPos.relative(direction);
             if (this.hasChunkAt(blockpos)) {
                 BlockState blockstate = this.getBlockState(blockpos);
                 if (blockstate.is(Blocks.COMPARATOR)) {
-                    this.neighborChanged(blockstate, blockpos, p_46719_, p_46718_, false);
+                    this.neighborChanged(blockstate, blockpos, pBlock, pPos, false);
                 } else if (blockstate.isRedstoneConductor(this, blockpos)) {
                     blockpos = blockpos.relative(direction);
                     blockstate = this.getBlockState(blockpos);
                     if (blockstate.is(Blocks.COMPARATOR)) {
-                        this.neighborChanged(blockstate, blockpos, p_46719_, p_46718_, false);
+                        this.neighborChanged(blockstate, blockpos, pBlock, pPos, false);
                     }
                 }
             }
         }
     }
 
-    public DifficultyInstance getCurrentDifficultyAt(BlockPos p_46730_) {
+    public DifficultyInstance getCurrentDifficultyAt(BlockPos pPos) {
         long i = 0L;
         float f = 0.0F;
-        if (this.hasChunkAt(p_46730_)) {
+        if (this.hasChunkAt(pPos)) {
             f = this.getMoonBrightness();
-            LevelChunk chunk = this.getChunkAt(p_46730_);
+            LevelChunk chunk = this.getChunkAt(pPos);
             if (chunk != null)
                 i = chunk.getInhabitedTime();
         }
@@ -917,14 +917,14 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return this.skyDarken;
     }
 
-    public void setSkyFlashTime(int p_46709_) {
+    public void setSkyFlashTime(int pTimeFlash) {
     }
 
     public WorldBorder getWorldBorder() {
         return this.worldBorder;
     }
 
-    public void sendPacketToServer(Packet<?> p_46657_) {
+    public void sendPacketToServer(Packet<?> pPacket) {
         throw new UnsupportedOperationException("Can't send packets to server unless you're on the client.");
     }
 
@@ -948,20 +948,20 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return this.random;
     }
 
-    public boolean isStateAtPosition(BlockPos p_46620_, Predicate<BlockState> p_46621_) {
-        return p_46621_.test(this.getBlockState(p_46620_));
+    public boolean isStateAtPosition(BlockPos pPos, Predicate<BlockState> pState) {
+        return pState.test(this.getBlockState(pPos));
     }
 
-    public boolean isFluidAtPosition(BlockPos p_151541_, Predicate<FluidState> p_151542_) {
-        return p_151542_.test(this.getFluidState(p_151541_));
+    public boolean isFluidAtPosition(BlockPos pPos, Predicate<FluidState> pPredicate) {
+        return pPredicate.test(this.getFluidState(pPos));
     }
 
     public abstract RecipeManager getRecipeManager();
 
-    public BlockPos getBlockRandomPos(long p_46497_, int p_46498_, long p_46499_, int p_46500_) {
+    public BlockPos getBlockRandomPos(long pX, int pY, long pZ, int pYMask) {
         this.randValue = this.randValue * 3 + 1013904223;
         int i = this.randValue >> 2;
-        return new BlockPos(p_46497_ + (i & 15), p_46498_ + (i >> 16 & p_46500_), p_46499_ + (i >> 8 & 15));
+        return new BlockPos(pX + (i & 15), pY + (i >> 16 & pYMask), pZ + (i >> 8 & 15));
     }
 
     public boolean noSave() {

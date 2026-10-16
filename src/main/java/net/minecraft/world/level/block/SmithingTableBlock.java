@@ -18,22 +18,22 @@ import net.minecraft.world.phys.BlockHitResult;
 public class SmithingTableBlock extends CraftingTableBlock {
     private static final Component CONTAINER_TITLE = Component.translatable("container.upgrade");
 
-    protected SmithingTableBlock(BlockBehaviour.Properties p_56420_) {
-        super(p_56420_);
+    protected SmithingTableBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    public MenuProvider getMenuProvider(BlockState p_56435_, Level p_56436_, BlockPos p_56437_) {
+    public MenuProvider getMenuProvider(BlockState pState, Level pLevel, BlockPos pPos) {
         return new SimpleMenuProvider((p_56424_, p_56425_, p_56426_) -> {
-            return new SmithingMenu(p_56424_, p_56425_, ContainerLevelAccess.create(p_56436_, p_56437_));
+            return new SmithingMenu(p_56424_, p_56425_, ContainerLevelAccess.create(pLevel, pPos));
         }, CONTAINER_TITLE);
     }
 
-    public InteractionResult use(BlockState p_56428_, Level p_56429_, BlockPos p_56430_, Player p_56431_, InteractionHand p_56432_, BlockHitResult p_56433_) {
-        if (p_56429_.isClientSide) {
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pLevel.isClientSide) {
             return InteractionResult.SUCCESS;
         } else {
-            p_56431_.openMenu(p_56428_.getMenuProvider(p_56429_, p_56430_));
-            p_56431_.awardStat(Stats.INTERACT_WITH_SMITHING_TABLE);
+            pPlayer.openMenu(pState.getMenuProvider(pLevel, pPos));
+            pPlayer.awardStat(Stats.INTERACT_WITH_SMITHING_TABLE);
             return InteractionResult.CONSUME;
         }
     }

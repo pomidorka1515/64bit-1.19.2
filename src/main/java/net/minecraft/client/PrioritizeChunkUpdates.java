@@ -32,7 +32,7 @@ public enum PrioritizeChunkUpdates implements OptionEnum {
         return this.key;
     }
 
-    public static PrioritizeChunkUpdates byId(int p_193788_) {
-        return BY_ID[Mth.positiveModulo(p_193788_, BY_ID.length)];
+    public static PrioritizeChunkUpdates byId(int pId) {
+        return BY_ID[Mth.positiveModulo(pId, BY_ID.length)];
     }
 }

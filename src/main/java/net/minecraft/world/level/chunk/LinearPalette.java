@@ -13,52 +13,52 @@ public class LinearPalette<T> implements Palette<T> {
     private final int bits;
     private int size;
 
-    private LinearPalette(IdMap<T> p_188015_, int p_188016_, PaletteResize<T> p_188017_, List<T> p_188018_) {
-        this.registry = p_188015_;
-        this.values = (T[]) (new Object[1 << p_188016_]);
-        this.bits = p_188016_;
-        this.resizeHandler = p_188017_;
-        Validate.isTrue(p_188018_.size() <= this.values.length, "Can't initialize LinearPalette of size %d with %d entries", this.values.length, p_188018_.size());
+    private LinearPalette(IdMap<T> pRegistry, int pBits, PaletteResize<T> pResizeHandler, List<T> pValues) {
+        this.registry = pRegistry;
+        this.values = (T[]) (new Object[1 << pBits]);
+        this.bits = pBits;
+        this.resizeHandler = pResizeHandler;
+        Validate.isTrue(pValues.size() <= this.values.length, "Can't initialize LinearPalette of size %d with %d entries", this.values.length, pValues.size());
 
-        for (int i = 0; i < p_188018_.size(); ++i) {
-            this.values[i] = p_188018_.get(i);
+        for (int i = 0; i < pValues.size(); ++i) {
+            this.values[i] = pValues.get(i);
         }
 
-        this.size = p_188018_.size();
+        this.size = pValues.size();
     }
 
-    private LinearPalette(IdMap<T> p_199921_, T[] p_199922_, PaletteResize<T> p_199923_, int p_199924_, int p_199925_) {
-        this.registry = p_199921_;
-        this.values = p_199922_;
-        this.resizeHandler = p_199923_;
-        this.bits = p_199924_;
-        this.size = p_199925_;
+    private LinearPalette(IdMap<T> pRegistry, T[] pValues, PaletteResize<T> pResizeHandler, int pBits, int pSize) {
+        this.registry = pRegistry;
+        this.values = pValues;
+        this.resizeHandler = pResizeHandler;
+        this.bits = pBits;
+        this.size = pSize;
     }
 
-    public static <A> Palette<A> create(int p_188020_, IdMap<A> p_188021_, PaletteResize<A> p_188022_, List<A> p_188023_) {
-        return new LinearPalette<>(p_188021_, p_188020_, p_188022_, p_188023_);
+    public static <A> Palette<A> create(int pBits, IdMap<A> pRegistry, PaletteResize<A> pResizeHandler, List<A> pValues) {
+        return new LinearPalette<>(pRegistry, pBits, pResizeHandler, pValues);
     }
 
-    public int idFor(T p_63040_) {
+    public int idFor(T pState) {
         for (int i = 0; i < this.size; ++i) {
-            if (this.values[i] == p_63040_) {
+            if (this.values[i] == pState) {
                 return i;
             }
         }
 
         int j = this.size;
         if (j < this.values.length) {
-            this.values[j] = p_63040_;
+            this.values[j] = pState;
             ++this.size;
             return j;
         } else {
-            return this.resizeHandler.onResize(this.bits + 1, p_63040_);
+            return this.resizeHandler.onResize(this.bits + 1, pState);
         }
     }
 
-    public boolean maybeHas(Predicate<T> p_63042_) {
+    public boolean maybeHas(Predicate<T> pFilter) {
         for (int i = 0; i < this.size; ++i) {
-            if (p_63042_.test(this.values[i])) {
+            if (pFilter.test(this.values[i])) {
                 return true;
             }
         }
@@ -66,27 +66,27 @@ public class LinearPalette<T> implements Palette<T> {
         return false;
     }
 
-    public T valueFor(int p_63038_) {
-        if (p_63038_ >= 0 && p_63038_ < this.size) {
-            return this.values[p_63038_];
+    public T valueFor(int pId) {
+        if (pId >= 0 && pId < this.size) {
+            return this.values[pId];
         } else {
-            throw new MissingPaletteEntryException(p_63038_);
+            throw new MissingPaletteEntryException(pId);
         }
     }
 
-    public void read(FriendlyByteBuf p_63046_) {
-        this.size = p_63046_.readVarInt();
+    public void read(FriendlyByteBuf pBuffer) {
+        this.size = pBuffer.readVarInt();
 
         for (int i = 0; i < this.size; ++i) {
-            this.values[i] = this.registry.byIdOrThrow(p_63046_.readVarInt());
+            this.values[i] = this.registry.byIdOrThrow(pBuffer.readVarInt());
         }
     }
 
-    public void write(FriendlyByteBuf p_63049_) {
-        p_63049_.writeVarInt(this.size);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.size);
 
         for (int i = 0; i < this.size; ++i) {
-            p_63049_.writeVarInt(this.registry.getId(this.values[i]));
+            pBuffer.writeVarInt(this.registry.getId(this.values[i]));
         }
     }
 

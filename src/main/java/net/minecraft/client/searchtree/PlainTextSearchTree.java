@@ -32,5 +32,5 @@ public interface PlainTextSearchTree<T> {
         }
     }
 
-    List<T> search(String p_235201_);
+    List<T> search(String pQuery);
 }

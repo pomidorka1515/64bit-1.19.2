@@ -14,11 +14,11 @@ public class SignedMessageChain {
         return new SignedMessageChain.Link(messagesignature);
     }
 
-    private static MessageSignature pack(Signer p_242255_, MessageSigner p_242258_, @Nullable MessageSignature p_242378_, ChatMessageContent p_242185_, LastSeenMessages p_242456_) {
-        SignedMessageHeader signedmessageheader = new SignedMessageHeader(p_242378_, p_242258_.profileId());
-        SignedMessageBody signedmessagebody = new SignedMessageBody(p_242185_, p_242258_.timeStamp(), p_242258_.salt(), p_242456_);
+    private static MessageSignature pack(Signer pSigner, MessageSigner pMessageSigner, @Nullable MessageSignature pMessageSignature, ChatMessageContent pMessageContent, LastSeenMessages pLastSeenMessages) {
+        SignedMessageHeader signedmessageheader = new SignedMessageHeader(pMessageSignature, pMessageSigner.profileId());
+        SignedMessageBody signedmessagebody = new SignedMessageBody(pMessageContent, pMessageSigner.timeStamp(), pMessageSigner.salt(), pLastSeenMessages);
         byte[] abyte = signedmessagebody.hash().asBytes();
-        return new MessageSignature(p_242255_.sign((p_241520_) -> {
+        return new MessageSignature(pSigner.sign((p_241520_) -> {
             signedmessageheader.updateSignature(p_241520_, abyte);
         }));
     }
@@ -54,7 +54,7 @@ public class SignedMessageChain {
 
     @FunctionalInterface
     public interface Encoder {
-        SignedMessageChain.Link pack(Signer p_241395_, MessageSigner p_241448_, ChatMessageContent p_242460_, LastSeenMessages p_242371_);
+        SignedMessageChain.Link pack(Signer pSigner, MessageSigner pMessageSigner, ChatMessageContent pMessageContent, LastSeenMessages pLastSeenMessages);
     }
 
     public static record Link(MessageSignature signature) {

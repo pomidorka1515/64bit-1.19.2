@@ -73,11 +73,11 @@ public class BlockFamilies {
     public static final BlockFamily DEEPSLATE_BRICKS = familyBuilder(Blocks.DEEPSLATE_BRICKS).slab(Blocks.DEEPSLATE_BRICK_SLAB).stairs(Blocks.DEEPSLATE_BRICK_STAIRS).wall(Blocks.DEEPSLATE_BRICK_WALL).cracked(Blocks.CRACKED_DEEPSLATE_BRICKS).getFamily();
     public static final BlockFamily DEEPSLATE_TILES = familyBuilder(Blocks.DEEPSLATE_TILES).slab(Blocks.DEEPSLATE_TILE_SLAB).stairs(Blocks.DEEPSLATE_TILE_STAIRS).wall(Blocks.DEEPSLATE_TILE_WALL).cracked(Blocks.CRACKED_DEEPSLATE_TILES).getFamily();
 
-    private static BlockFamily.Builder familyBuilder(Block p_175936_) {
-        BlockFamily.Builder blockfamily$builder = new BlockFamily.Builder(p_175936_);
-        BlockFamily blockfamily = MAP.put(p_175936_, blockfamily$builder.getFamily());
+    private static BlockFamily.Builder familyBuilder(Block pBaseBlock) {
+        BlockFamily.Builder blockfamily$builder = new BlockFamily.Builder(pBaseBlock);
+        BlockFamily blockfamily = MAP.put(pBaseBlock, blockfamily$builder.getFamily());
         if (blockfamily != null) {
-            throw new IllegalStateException("Duplicate family definition for " + Registry.BLOCK.getKey(p_175936_));
+            throw new IllegalStateException("Duplicate family definition for " + Registry.BLOCK.getKey(pBaseBlock));
         } else {
             return blockfamily$builder;
         }

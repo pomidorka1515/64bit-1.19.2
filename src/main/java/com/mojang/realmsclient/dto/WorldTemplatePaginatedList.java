@@ -24,10 +24,10 @@ public class WorldTemplatePaginatedList extends ValueObject {
     public WorldTemplatePaginatedList() {
     }
 
-    public WorldTemplatePaginatedList(int p_87761_) {
+    public WorldTemplatePaginatedList(int pSize) {
         this.templates = Collections.emptyList();
         this.page = 0;
-        this.size = p_87761_;
+        this.size = pSize;
         this.total = -1;
     }
 
@@ -35,13 +35,13 @@ public class WorldTemplatePaginatedList extends ValueObject {
         return this.page * this.size >= this.total && this.page > 0 && this.total > 0 && this.size > 0;
     }
 
-    public static WorldTemplatePaginatedList parse(String p_87763_) {
+    public static WorldTemplatePaginatedList parse(String pJson) {
         WorldTemplatePaginatedList worldtemplatepaginatedlist = new WorldTemplatePaginatedList();
         worldtemplatepaginatedlist.templates = Lists.newArrayList();
 
         try {
             JsonParser jsonparser = new JsonParser();
-            JsonObject jsonobject = jsonparser.parse(p_87763_).getAsJsonObject();
+            JsonObject jsonobject = jsonparser.parse(pJson).getAsJsonObject();
             if (jsonobject.get("templates").isJsonArray()) {
                 Iterator<JsonElement> iterator = jsonobject.get("templates").getAsJsonArray().iterator();
 

@@ -11,8 +11,8 @@ public class BodyRotationControl implements Control {
     private int headStableTime;
     private float lastStableYHeadRot;
 
-    public BodyRotationControl(Mob p_24879_) {
-        this.mob = p_24879_;
+    public BodyRotationControl(Mob pMob) {
+        this.mob = pMob;
     }
 
     public void clientTick() {

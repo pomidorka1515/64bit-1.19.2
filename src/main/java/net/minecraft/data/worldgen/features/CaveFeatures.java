@@ -84,8 +84,8 @@ public class CaveFeatures {
     private static final MultifaceBlock SCULK_VEIN_BLOCK = (MultifaceBlock) Blocks.SCULK_VEIN;
     public static final Holder<ConfiguredFeature<MultifaceGrowthConfiguration, ?>> SCULK_VEIN = FeatureUtils.register("sculk_vein", Feature.MULTIFACE_GROWTH, new MultifaceGrowthConfiguration(SCULK_VEIN_BLOCK, 20, true, true, true, 1.0F, HolderSet.direct(Block::builtInRegistryHolder, Blocks.STONE, Blocks.ANDESITE, Blocks.DIORITE, Blocks.GRANITE, Blocks.DRIPSTONE_BLOCK, Blocks.CALCITE, Blocks.TUFF, Blocks.DEEPSLATE)));
 
-    private static Holder<PlacedFeature> makeDripleaf(Direction p_206468_) {
-        return PlacementUtils.inlinePlaced(Feature.BLOCK_COLUMN, new BlockColumnConfiguration(List.of(BlockColumnConfiguration.layer(new WeightedListInt(SimpleWeightedRandomList.<IntProvider>builder().add(UniformInt.of(0, 4), 2).add(ConstantInt.of(0), 1).build()), BlockStateProvider.simple(Blocks.BIG_DRIPLEAF_STEM.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, p_206468_))), BlockColumnConfiguration.layer(ConstantInt.of(1), BlockStateProvider.simple(Blocks.BIG_DRIPLEAF.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, p_206468_)))), Direction.UP, BlockPredicate.ONLY_IN_AIR_OR_WATER_PREDICATE, true));
+    private static Holder<PlacedFeature> makeDripleaf(Direction pFacingDirection) {
+        return PlacementUtils.inlinePlaced(Feature.BLOCK_COLUMN, new BlockColumnConfiguration(List.of(BlockColumnConfiguration.layer(new WeightedListInt(SimpleWeightedRandomList.<IntProvider>builder().add(UniformInt.of(0, 4), 2).add(ConstantInt.of(0), 1).build()), BlockStateProvider.simple(Blocks.BIG_DRIPLEAF_STEM.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, pFacingDirection))), BlockColumnConfiguration.layer(ConstantInt.of(1), BlockStateProvider.simple(Blocks.BIG_DRIPLEAF.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, pFacingDirection)))), Direction.UP, BlockPredicate.ONLY_IN_AIR_OR_WATER_PREDICATE, true));
     }
 
     private static Holder<PlacedFeature> makeSmallDripleaf() {

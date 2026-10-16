@@ -84,8 +84,8 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
         buf.writeBoolean(this.dismountVehicle);
     }
 
-    public void handle(ClientGamePacketListener p_132817_) {
-        p_132817_.handleMovePlayer(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleMovePlayer(this);
     }
 
     public double getX() {
@@ -137,15 +137,15 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
             return 1 << this.bit;
         }
 
-        private boolean isSet(int p_132845_) {
-            return (p_132845_ & this.getMask()) == this.getMask();
+        private boolean isSet(int pFlags) {
+            return (pFlags & this.getMask()) == this.getMask();
         }
 
-        public static Set<ClientboundPlayerPositionPacket.RelativeArgument> unpack(int p_132841_) {
+        public static Set<ClientboundPlayerPositionPacket.RelativeArgument> unpack(int pFlags) {
             Set<ClientboundPlayerPositionPacket.RelativeArgument> set = EnumSet.noneOf(ClientboundPlayerPositionPacket.RelativeArgument.class);
 
             for (ClientboundPlayerPositionPacket.RelativeArgument clientboundplayerpositionpacket$relativeargument : values()) {
-                if (clientboundplayerpositionpacket$relativeargument.isSet(p_132841_)) {
+                if (clientboundplayerpositionpacket$relativeargument.isSet(pFlags)) {
                     set.add(clientboundplayerpositionpacket$relativeargument);
                 }
             }
@@ -153,10 +153,10 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
             return set;
         }
 
-        public static int pack(Set<ClientboundPlayerPositionPacket.RelativeArgument> p_132843_) {
+        public static int pack(Set<ClientboundPlayerPositionPacket.RelativeArgument> pFlags) {
             int i = 0;
 
-            for (ClientboundPlayerPositionPacket.RelativeArgument clientboundplayerpositionpacket$relativeargument : p_132843_) {
+            for (ClientboundPlayerPositionPacket.RelativeArgument clientboundplayerpositionpacket$relativeargument : pFlags) {
                 i |= clientboundplayerpositionpacket$relativeargument.getMask();
             }
 

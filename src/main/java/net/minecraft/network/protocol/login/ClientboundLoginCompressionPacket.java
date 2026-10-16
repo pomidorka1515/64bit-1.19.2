@@ -6,20 +6,20 @@ import net.minecraft.network.protocol.Packet;
 public class ClientboundLoginCompressionPacket implements Packet<ClientLoginPacketListener> {
     private final int compressionThreshold;
 
-    public ClientboundLoginCompressionPacket(int p_134799_) {
-        this.compressionThreshold = p_134799_;
+    public ClientboundLoginCompressionPacket(int pCompressionThreshold) {
+        this.compressionThreshold = pCompressionThreshold;
     }
 
-    public ClientboundLoginCompressionPacket(FriendlyByteBuf p_179818_) {
-        this.compressionThreshold = p_179818_.readVarInt();
+    public ClientboundLoginCompressionPacket(FriendlyByteBuf pBuffer) {
+        this.compressionThreshold = pBuffer.readVarInt();
     }
 
-    public void write(FriendlyByteBuf p_134808_) {
-        p_134808_.writeVarInt(this.compressionThreshold);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.compressionThreshold);
     }
 
-    public void handle(ClientLoginPacketListener p_134805_) {
-        p_134805_.handleCompression(this);
+    public void handle(ClientLoginPacketListener pHandler) {
+        pHandler.handleCompression(this);
     }
 
     public int getCompressionThreshold() {

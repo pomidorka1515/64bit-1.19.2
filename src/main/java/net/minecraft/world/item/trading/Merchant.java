@@ -10,22 +10,22 @@ import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.ItemStack;
 
 public interface Merchant {
-    void setTradingPlayer(@Nullable Player p_45307_);
+    void setTradingPlayer(@Nullable Player pTradingPlayer);
 
     @Nullable
     Player getTradingPlayer();
 
     MerchantOffers getOffers();
 
-    void overrideOffers(MerchantOffers p_45306_);
+    void overrideOffers(MerchantOffers pOffers);
 
-    void notifyTrade(MerchantOffer p_45305_);
+    void notifyTrade(MerchantOffer pOffer);
 
-    void notifyTradeUpdated(ItemStack p_45308_);
+    void notifyTradeUpdated(ItemStack pStack);
 
     int getVillagerXp();
 
-    void overrideXp(int p_45309_);
+    void overrideXp(int pXp);
 
     boolean showProgressBar();
 
@@ -35,14 +35,14 @@ public interface Merchant {
         return false;
     }
 
-    default void openTradingScreen(Player p_45302_, Component p_45303_, int p_45304_) {
-        OptionalInt optionalint = p_45302_.openMenu(new SimpleMenuProvider((p_45298_, p_45299_, p_45300_) -> {
+    default void openTradingScreen(Player pPlayer, Component pDisplayName, int pLevel) {
+        OptionalInt optionalint = pPlayer.openMenu(new SimpleMenuProvider((p_45298_, p_45299_, p_45300_) -> {
             return new MerchantMenu(p_45298_, p_45299_, this);
-        }, p_45303_));
+        }, pDisplayName));
         if (optionalint.isPresent()) {
             MerchantOffers merchantoffers = this.getOffers();
             if (!merchantoffers.isEmpty()) {
-                p_45302_.sendMerchantOffers(optionalint.getAsInt(), merchantoffers, p_45304_, this.getVillagerXp(), this.showProgressBar(), this.canRestock());
+                pPlayer.sendMerchantOffers(optionalint.getAsInt(), merchantoffers, pLevel, this.getVillagerXp(), this.showProgressBar(), this.canRestock());
             }
         }
     }

@@ -11,28 +11,28 @@ public class ServerboundCustomPayloadPacket implements Packet<ServerGamePacketLi
     private final ResourceLocation identifier;
     private final FriendlyByteBuf data;
 
-    public ServerboundCustomPayloadPacket(ResourceLocation p_133985_, FriendlyByteBuf p_133986_) {
-        this.identifier = p_133985_;
-        this.data = p_133986_;
+    public ServerboundCustomPayloadPacket(ResourceLocation pIdentifier, FriendlyByteBuf pData) {
+        this.identifier = pIdentifier;
+        this.data = pData;
     }
 
-    public ServerboundCustomPayloadPacket(FriendlyByteBuf p_179588_) {
-        this.identifier = p_179588_.readResourceLocation();
-        int i = p_179588_.readableBytes();
+    public ServerboundCustomPayloadPacket(FriendlyByteBuf pBuffer) {
+        this.identifier = pBuffer.readResourceLocation();
+        int i = pBuffer.readableBytes();
         if (i >= 0 && i <= 32767) {
-            this.data = new FriendlyByteBuf(p_179588_.readBytes(i));
+            this.data = new FriendlyByteBuf(pBuffer.readBytes(i));
         } else {
             throw new IllegalArgumentException("Payload may not be larger than 32767 bytes");
         }
     }
 
-    public void write(FriendlyByteBuf p_133994_) {
-        p_133994_.writeResourceLocation(this.identifier);
-        p_133994_.writeBytes((ByteBuf) this.data);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeResourceLocation(this.identifier);
+        pBuffer.writeBytes((ByteBuf) this.data);
     }
 
-    public void handle(ServerGamePacketListener p_133992_) {
-        p_133992_.handleCustomPayload(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleCustomPayload(this);
         this.data.release();
     }
 

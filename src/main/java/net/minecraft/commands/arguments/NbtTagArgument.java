@@ -19,12 +19,12 @@ public class NbtTagArgument implements ArgumentType<Tag> {
         return new NbtTagArgument();
     }
 
-    public static <S> Tag getNbtTag(CommandContext<S> p_100663_, String p_100664_) {
-        return p_100663_.getArgument(p_100664_, Tag.class);
+    public static <S> Tag getNbtTag(CommandContext<S> pContext, String pName) {
+        return pContext.getArgument(pName, Tag.class);
     }
 
-    public Tag parse(StringReader p_100661_) throws CommandSyntaxException {
-        return (new TagParser(p_100661_)).readValue();
+    public Tag parse(StringReader pReader) throws CommandSyntaxException {
+        return (new TagParser(pReader)).readValue();
     }
 
     public Collection<String> getExamples() {

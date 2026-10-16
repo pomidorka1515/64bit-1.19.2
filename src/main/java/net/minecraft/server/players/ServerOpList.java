@@ -6,12 +6,12 @@ import java.io.File;
 import java.util.Objects;
 
 public class ServerOpList extends StoredUserList<GameProfile, ServerOpListEntry> {
-    public ServerOpList(File p_11345_) {
-        super(p_11345_);
+    public ServerOpList(File pFile) {
+        super(pFile);
     }
 
-    protected StoredUserEntry<GameProfile> createEntry(JsonObject p_11348_) {
-        return new ServerOpListEntry(p_11348_);
+    protected StoredUserEntry<GameProfile> createEntry(JsonObject pEntryData) {
+        return new ServerOpListEntry(pEntryData);
     }
 
     public String[] getUserList() {
@@ -20,12 +20,12 @@ public class ServerOpList extends StoredUserList<GameProfile, ServerOpListEntry>
         });
     }
 
-    public boolean canBypassPlayerLimit(GameProfile p_11352_) {
-        ServerOpListEntry serveroplistentry = this.get(p_11352_);
+    public boolean canBypassPlayerLimit(GameProfile pProfile) {
+        ServerOpListEntry serveroplistentry = this.get(pProfile);
         return serveroplistentry != null ? serveroplistentry.getBypassesPlayerLimit() : false;
     }
 
-    protected String getKeyForUser(GameProfile p_11354_) {
-        return p_11354_.getId().toString();
+    protected String getKeyForUser(GameProfile pObj) {
+        return pObj.getId().toString();
     }
 }

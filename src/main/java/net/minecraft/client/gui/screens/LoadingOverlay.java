@@ -48,22 +48,22 @@ public class LoadingOverlay extends Overlay {
     private long fadeOutStart = -1L;
     private long fadeInStart = -1L;
 
-    public LoadingOverlay(Minecraft p_96172_, ReloadInstance p_96173_, Consumer<Optional<Throwable>> p_96174_, boolean p_96175_) {
-        this.minecraft = p_96172_;
-        this.reload = p_96173_;
-        this.onFinish = p_96174_;
-        this.fadeIn = p_96175_;
+    public LoadingOverlay(Minecraft pMinecraft, ReloadInstance pReload, Consumer<Optional<Throwable>> pOnFinish, boolean pFadeIn) {
+        this.minecraft = pMinecraft;
+        this.reload = pReload;
+        this.onFinish = pOnFinish;
+        this.fadeIn = pFadeIn;
     }
 
-    public static void registerTextures(Minecraft p_96190_) {
-        p_96190_.getTextureManager().register(MOJANG_STUDIOS_LOGO_LOCATION, new LoadingOverlay.LogoTexture());
+    public static void registerTextures(Minecraft pMc) {
+        pMc.getTextureManager().register(MOJANG_STUDIOS_LOGO_LOCATION, new LoadingOverlay.LogoTexture());
     }
 
     private static int replaceAlpha(int p_169325_, int p_169326_) {
         return p_169325_ & 16777215 | p_169326_ << 24;
     }
 
-    public void render(PoseStack p_96178_, int p_96179_, int p_96180_, float p_96181_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         int i = this.minecraft.getWindow().getGuiScaledWidth();
         int j = this.minecraft.getWindow().getGuiScaledHeight();
         long k = Util.getMillis();
@@ -76,19 +76,19 @@ public class LoadingOverlay extends Overlay {
         float f2;
         if (f >= 1.0F) {
             if (this.minecraft.screen != null) {
-                this.minecraft.screen.render(p_96178_, 0, 0, p_96181_);
+                this.minecraft.screen.render(pPoseStack, 0, 0, pPartialTick);
             }
 
             int l = Mth.ceil((1.0F - Mth.clamp(f - 1.0F, 0.0F, 1.0F)) * 255.0F);
-            fill(p_96178_, 0, 0, i, j, replaceAlpha(BRAND_BACKGROUND.getAsInt(), l));
+            fill(pPoseStack, 0, 0, i, j, replaceAlpha(BRAND_BACKGROUND.getAsInt(), l));
             f2 = 1.0F - Mth.clamp(f - 1.0F, 0.0F, 1.0F);
         } else if (this.fadeIn) {
             if (this.minecraft.screen != null && f1 < 1.0F) {
-                this.minecraft.screen.render(p_96178_, p_96179_, p_96180_, p_96181_);
+                this.minecraft.screen.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             }
 
             int l1 = Mth.ceil(Mth.clamp((double) f1, 0.15D, 1.0D) * 255.0D);
-            fill(p_96178_, 0, 0, i, j, replaceAlpha(BRAND_BACKGROUND.getAsInt(), l1));
+            fill(pPoseStack, 0, 0, i, j, replaceAlpha(BRAND_BACKGROUND.getAsInt(), l1));
             f2 = Mth.clamp(f1, 0.0F, 1.0F);
         } else {
             int i2 = BRAND_BACKGROUND.getAsInt();
@@ -112,15 +112,15 @@ public class LoadingOverlay extends Overlay {
         RenderSystem.blendFunc(770, 1);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, f2);
-        blit(p_96178_, j2 - j1, k2 - i1, j1, (int) d1, -0.0625F, 0.0F, 120, 60, 120, 120);
-        blit(p_96178_, j2, k2 - i1, j1, (int) d1, 0.0625F, 60.0F, 120, 60, 120, 120);
+        blit(pPoseStack, j2 - j1, k2 - i1, j1, (int) d1, -0.0625F, 0.0F, 120, 60, 120, 120);
+        blit(pPoseStack, j2, k2 - i1, j1, (int) d1, 0.0625F, 60.0F, 120, 60, 120, 120);
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableBlend();
         int k1 = (int) ((double) this.minecraft.getWindow().getGuiScaledHeight() * 0.8325D);
         float f6 = this.reload.getActualProgress();
         this.currentProgress = Mth.clamp(this.currentProgress * 0.95F + f6 * 0.050000012F, 0.0F, 1.0F);
         if (f < 1.0F) {
-            this.drawProgressBar(p_96178_, i / 2 - j1, k1 - 5, i / 2 + j1, k1 + 5, 1.0F - Mth.clamp(f, 0.0F, 1.0F));
+            this.drawProgressBar(pPoseStack, i / 2 - j1, k1 - 5, i / 2 + j1, k1 + 5, 1.0F - Mth.clamp(f, 0.0F, 1.0F));
         }
 
         if (f >= 2.0F) {
@@ -142,15 +142,15 @@ public class LoadingOverlay extends Overlay {
         }
     }
 
-    private void drawProgressBar(PoseStack p_96183_, int p_96184_, int p_96185_, int p_96186_, int p_96187_, float p_96188_) {
-        int i = Mth.ceil((float) (p_96186_ - p_96184_ - 2) * this.currentProgress);
-        int j = Math.round(p_96188_ * 255.0F);
+    private void drawProgressBar(PoseStack pPoseStack, int pMinX, int pMinY, int pMaxX, int pMaxY, float pPartialTick) {
+        int i = Mth.ceil((float) (pMaxX - pMinX - 2) * this.currentProgress);
+        int j = Math.round(pPartialTick * 255.0F);
         int k = FastColor.ARGB32.color(j, 255, 255, 255);
-        fill(p_96183_, p_96184_ + 2, p_96185_ + 2, p_96184_ + i, p_96187_ - 2, k);
-        fill(p_96183_, p_96184_ + 1, p_96185_, p_96186_ - 1, p_96185_ + 1, k);
-        fill(p_96183_, p_96184_ + 1, p_96187_, p_96186_ - 1, p_96187_ - 1, k);
-        fill(p_96183_, p_96184_, p_96185_, p_96184_ + 1, p_96187_, k);
-        fill(p_96183_, p_96186_, p_96185_, p_96186_ - 1, p_96187_, k);
+        fill(pPoseStack, pMinX + 2, pMinY + 2, pMinX + i, pMaxY - 2, k);
+        fill(pPoseStack, pMinX + 1, pMinY, pMaxX - 1, pMinY + 1, k);
+        fill(pPoseStack, pMinX + 1, pMaxY, pMaxX - 1, pMaxY - 1, k);
+        fill(pPoseStack, pMinX, pMinY, pMinX + 1, pMaxY, k);
+        fill(pPoseStack, pMaxX, pMinY, pMaxX - 1, pMaxY, k);
     }
 
     public boolean isPauseScreen() {
@@ -163,7 +163,7 @@ public class LoadingOverlay extends Overlay {
             super(LoadingOverlay.MOJANG_STUDIOS_LOGO_LOCATION);
         }
 
-        protected SimpleTexture.TextureImage getTextureImage(ResourceManager p_96194_) {
+        protected SimpleTexture.TextureImage getTextureImage(ResourceManager pResourceManager) {
             Minecraft minecraft = Minecraft.getInstance();
             VanillaPackResources vanillapackresources = minecraft.getClientPackSource().getVanillaPack();
 

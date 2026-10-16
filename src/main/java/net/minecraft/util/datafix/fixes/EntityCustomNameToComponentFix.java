@@ -12,8 +12,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class EntityCustomNameToComponentFix extends DataFix {
-    public EntityCustomNameToComponentFix(Schema p_15398_, boolean p_15399_) {
-        super(p_15398_, p_15399_);
+    public EntityCustomNameToComponentFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

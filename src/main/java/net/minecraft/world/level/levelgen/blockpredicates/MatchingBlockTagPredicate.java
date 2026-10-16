@@ -22,8 +22,8 @@ public class MatchingBlockTagPredicate extends StateTestingPredicate {
         this.tag = p_204684_;
     }
 
-    protected boolean test(BlockState p_198343_) {
-        return p_198343_.is(this.tag);
+    protected boolean test(BlockState pState) {
+        return pState.is(this.tag);
     }
 
     public BlockPredicateType<?> type() {

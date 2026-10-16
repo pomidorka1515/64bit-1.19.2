@@ -45,7 +45,7 @@ public enum GraphicsStatus implements OptionEnum {
         }
     }
 
-    public static GraphicsStatus byId(int p_90775_) {
-        return BY_ID[Mth.positiveModulo(p_90775_, BY_ID.length)];
+    public static GraphicsStatus byId(int pId) {
+        return BY_ID[Mth.positiveModulo(pId, BY_ID.length)];
     }
 }

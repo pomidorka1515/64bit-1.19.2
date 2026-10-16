@@ -45,8 +45,8 @@ public class BossBarCommands {
         return SharedSuggestionProvider.suggestResource(p_136587_.getSource().getServer().getCustomBossEvents().getIds(), p_136588_);
     };
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_136583_) {
-        p_136583_.register(Commands.literal("bossbar").requires((p_136627_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("bossbar").requires((p_136627_) -> {
                                                           return p_136627_.hasPermission(2);
                                                       })
                         .then(Commands.literal("add").then(Commands.argument("id", ResourceLocationArgument.id()).then(Commands.argument("name", ComponentArgument.textComponent()).executes((p_136693_) -> {
@@ -126,154 +126,154 @@ public class BossBarCommands {
                                         })))));
     }
 
-    private static int getValue(CommandSourceStack p_136596_, CustomBossEvent p_136597_) {
-        p_136596_.sendSuccess(Component.translatable("commands.bossbar.get.value", p_136597_.getDisplayName(), p_136597_.getValue()), true);
-        return p_136597_.getValue();
+    private static int getValue(CommandSourceStack pSource, CustomBossEvent pBossbar) {
+        pSource.sendSuccess(Component.translatable("commands.bossbar.get.value", pBossbar.getDisplayName(), pBossbar.getValue()), true);
+        return pBossbar.getValue();
     }
 
-    private static int getMax(CommandSourceStack p_136629_, CustomBossEvent p_136630_) {
-        p_136629_.sendSuccess(Component.translatable("commands.bossbar.get.max", p_136630_.getDisplayName(), p_136630_.getMax()), true);
-        return p_136630_.getMax();
+    private static int getMax(CommandSourceStack pSource, CustomBossEvent pBossbar) {
+        pSource.sendSuccess(Component.translatable("commands.bossbar.get.max", pBossbar.getDisplayName(), pBossbar.getMax()), true);
+        return pBossbar.getMax();
     }
 
-    private static int getVisible(CommandSourceStack p_136640_, CustomBossEvent p_136641_) {
-        if (p_136641_.isVisible()) {
-            p_136640_.sendSuccess(Component.translatable("commands.bossbar.get.visible.visible", p_136641_.getDisplayName()), true);
+    private static int getVisible(CommandSourceStack pSource, CustomBossEvent pBossbar) {
+        if (pBossbar.isVisible()) {
+            pSource.sendSuccess(Component.translatable("commands.bossbar.get.visible.visible", pBossbar.getDisplayName()), true);
             return 1;
         } else {
-            p_136640_.sendSuccess(Component.translatable("commands.bossbar.get.visible.hidden", p_136641_.getDisplayName()), true);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.get.visible.hidden", pBossbar.getDisplayName()), true);
             return 0;
         }
     }
 
-    private static int getPlayers(CommandSourceStack p_136645_, CustomBossEvent p_136646_) {
-        if (p_136646_.getPlayers().isEmpty()) {
-            p_136645_.sendSuccess(Component.translatable("commands.bossbar.get.players.none", p_136646_.getDisplayName()), true);
+    private static int getPlayers(CommandSourceStack pSource, CustomBossEvent pBossbar) {
+        if (pBossbar.getPlayers().isEmpty()) {
+            pSource.sendSuccess(Component.translatable("commands.bossbar.get.players.none", pBossbar.getDisplayName()), true);
         } else {
-            p_136645_.sendSuccess(Component.translatable("commands.bossbar.get.players.some", p_136646_.getDisplayName(), p_136646_.getPlayers().size(), ComponentUtils.formatList(p_136646_.getPlayers(), Player::getDisplayName)), true);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.get.players.some", pBossbar.getDisplayName(), pBossbar.getPlayers().size(), ComponentUtils.formatList(pBossbar.getPlayers(), Player::getDisplayName)), true);
         }
 
-        return p_136646_.getPlayers().size();
+        return pBossbar.getPlayers().size();
     }
 
-    private static int setVisible(CommandSourceStack p_136619_, CustomBossEvent p_136620_, boolean p_136621_) throws CommandSyntaxException {
-        if (p_136620_.isVisible() == p_136621_) {
-            if (p_136621_) {
+    private static int setVisible(CommandSourceStack pSource, CustomBossEvent pBossbar, boolean pVisible) throws CommandSyntaxException {
+        if (pBossbar.isVisible() == pVisible) {
+            if (pVisible) {
                 throw ERROR_ALREADY_VISIBLE.create();
             } else {
                 throw ERROR_ALREADY_HIDDEN.create();
             }
         } else {
-            p_136620_.setVisible(p_136621_);
-            if (p_136621_) {
-                p_136619_.sendSuccess(Component.translatable("commands.bossbar.set.visible.success.visible", p_136620_.getDisplayName()), true);
+            pBossbar.setVisible(pVisible);
+            if (pVisible) {
+                pSource.sendSuccess(Component.translatable("commands.bossbar.set.visible.success.visible", pBossbar.getDisplayName()), true);
             } else {
-                p_136619_.sendSuccess(Component.translatable("commands.bossbar.set.visible.success.hidden", p_136620_.getDisplayName()), true);
+                pSource.sendSuccess(Component.translatable("commands.bossbar.set.visible.success.hidden", pBossbar.getDisplayName()), true);
             }
 
             return 0;
         }
     }
 
-    private static int setValue(CommandSourceStack p_136599_, CustomBossEvent p_136600_, int p_136601_) throws CommandSyntaxException {
-        if (p_136600_.getValue() == p_136601_) {
+    private static int setValue(CommandSourceStack pSource, CustomBossEvent pBossbar, int pValue) throws CommandSyntaxException {
+        if (pBossbar.getValue() == pValue) {
             throw ERROR_NO_VALUE_CHANGE.create();
         } else {
-            p_136600_.setValue(p_136601_);
-            p_136599_.sendSuccess(Component.translatable("commands.bossbar.set.value.success", p_136600_.getDisplayName(), p_136601_), true);
-            return p_136601_;
+            pBossbar.setValue(pValue);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.set.value.success", pBossbar.getDisplayName(), pValue), true);
+            return pValue;
         }
     }
 
-    private static int setMax(CommandSourceStack p_136632_, CustomBossEvent p_136633_, int p_136634_) throws CommandSyntaxException {
-        if (p_136633_.getMax() == p_136634_) {
+    private static int setMax(CommandSourceStack pSource, CustomBossEvent pBossbar, int pMax) throws CommandSyntaxException {
+        if (pBossbar.getMax() == pMax) {
             throw ERROR_NO_MAX_CHANGE.create();
         } else {
-            p_136633_.setMax(p_136634_);
-            p_136632_.sendSuccess(Component.translatable("commands.bossbar.set.max.success", p_136633_.getDisplayName(), p_136634_), true);
-            return p_136634_;
+            pBossbar.setMax(pMax);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.set.max.success", pBossbar.getDisplayName(), pMax), true);
+            return pMax;
         }
     }
 
-    private static int setColor(CommandSourceStack p_136603_, CustomBossEvent p_136604_, BossEvent.BossBarColor p_136605_) throws CommandSyntaxException {
-        if (p_136604_.getColor().equals(p_136605_)) {
+    private static int setColor(CommandSourceStack pSource, CustomBossEvent pBossbar, BossEvent.BossBarColor pColor) throws CommandSyntaxException {
+        if (pBossbar.getColor().equals(pColor)) {
             throw ERROR_NO_COLOR_CHANGE.create();
         } else {
-            p_136604_.setColor(p_136605_);
-            p_136603_.sendSuccess(Component.translatable("commands.bossbar.set.color.success", p_136604_.getDisplayName()), true);
+            pBossbar.setColor(pColor);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.set.color.success", pBossbar.getDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setStyle(CommandSourceStack p_136607_, CustomBossEvent p_136608_, BossEvent.BossBarOverlay p_136609_) throws CommandSyntaxException {
-        if (p_136608_.getOverlay().equals(p_136609_)) {
+    private static int setStyle(CommandSourceStack pSource, CustomBossEvent pBossbar, BossEvent.BossBarOverlay pStyle) throws CommandSyntaxException {
+        if (pBossbar.getOverlay().equals(pStyle)) {
             throw ERROR_NO_STYLE_CHANGE.create();
         } else {
-            p_136608_.setOverlay(p_136609_);
-            p_136607_.sendSuccess(Component.translatable("commands.bossbar.set.style.success", p_136608_.getDisplayName()), true);
+            pBossbar.setOverlay(pStyle);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.set.style.success", pBossbar.getDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setName(CommandSourceStack p_136615_, CustomBossEvent p_136616_, Component p_136617_) throws CommandSyntaxException {
-        Component component = ComponentUtils.updateForEntity(p_136615_, p_136617_, (Entity) null, 0);
-        if (p_136616_.getName().equals(component)) {
+    private static int setName(CommandSourceStack pSource, CustomBossEvent pBossbar, Component pName) throws CommandSyntaxException {
+        Component component = ComponentUtils.updateForEntity(pSource, pName, (Entity) null, 0);
+        if (pBossbar.getName().equals(component)) {
             throw ERROR_NO_NAME_CHANGE.create();
         } else {
-            p_136616_.setName(component);
-            p_136615_.sendSuccess(Component.translatable("commands.bossbar.set.name.success", p_136616_.getDisplayName()), true);
+            pBossbar.setName(component);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.set.name.success", pBossbar.getDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setPlayers(CommandSourceStack p_136611_, CustomBossEvent p_136612_, Collection<ServerPlayer> p_136613_) throws CommandSyntaxException {
-        boolean flag = p_136612_.setPlayers(p_136613_);
+    private static int setPlayers(CommandSourceStack pSource, CustomBossEvent pBossbar, Collection<ServerPlayer> pPlayers) throws CommandSyntaxException {
+        boolean flag = pBossbar.setPlayers(pPlayers);
         if (!flag) {
             throw ERROR_NO_PLAYER_CHANGE.create();
         } else {
-            if (p_136612_.getPlayers().isEmpty()) {
-                p_136611_.sendSuccess(Component.translatable("commands.bossbar.set.players.success.none", p_136612_.getDisplayName()), true);
+            if (pBossbar.getPlayers().isEmpty()) {
+                pSource.sendSuccess(Component.translatable("commands.bossbar.set.players.success.none", pBossbar.getDisplayName()), true);
             } else {
-                p_136611_.sendSuccess(Component.translatable("commands.bossbar.set.players.success.some", p_136612_.getDisplayName(), p_136613_.size(), ComponentUtils.formatList(p_136613_, Player::getDisplayName)), true);
+                pSource.sendSuccess(Component.translatable("commands.bossbar.set.players.success.some", pBossbar.getDisplayName(), pPlayers.size(), ComponentUtils.formatList(pPlayers, Player::getDisplayName)), true);
             }
 
-            return p_136612_.getPlayers().size();
+            return pBossbar.getPlayers().size();
         }
     }
 
-    private static int listBars(CommandSourceStack p_136590_) {
-        Collection<CustomBossEvent> collection = p_136590_.getServer().getCustomBossEvents().getEvents();
+    private static int listBars(CommandSourceStack pSource) {
+        Collection<CustomBossEvent> collection = pSource.getServer().getCustomBossEvents().getEvents();
         if (collection.isEmpty()) {
-            p_136590_.sendSuccess(Component.translatable("commands.bossbar.list.bars.none"), false);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.list.bars.none"), false);
         } else {
-            p_136590_.sendSuccess(Component.translatable("commands.bossbar.list.bars.some", collection.size(), ComponentUtils.formatList(collection, CustomBossEvent::getDisplayName)), false);
+            pSource.sendSuccess(Component.translatable("commands.bossbar.list.bars.some", collection.size(), ComponentUtils.formatList(collection, CustomBossEvent::getDisplayName)), false);
         }
 
         return collection.size();
     }
 
-    private static int createBar(CommandSourceStack p_136592_, ResourceLocation p_136593_, Component p_136594_) throws CommandSyntaxException {
-        CustomBossEvents custombossevents = p_136592_.getServer().getCustomBossEvents();
-        if (custombossevents.get(p_136593_) != null) {
-            throw ERROR_ALREADY_EXISTS.create(p_136593_.toString());
+    private static int createBar(CommandSourceStack pSource, ResourceLocation pId, Component pDisplayName) throws CommandSyntaxException {
+        CustomBossEvents custombossevents = pSource.getServer().getCustomBossEvents();
+        if (custombossevents.get(pId) != null) {
+            throw ERROR_ALREADY_EXISTS.create(pId.toString());
         } else {
-            CustomBossEvent custombossevent = custombossevents.create(p_136593_, ComponentUtils.updateForEntity(p_136592_, p_136594_, (Entity) null, 0));
-            p_136592_.sendSuccess(Component.translatable("commands.bossbar.create.success", custombossevent.getDisplayName()), true);
+            CustomBossEvent custombossevent = custombossevents.create(pId, ComponentUtils.updateForEntity(pSource, pDisplayName, (Entity) null, 0));
+            pSource.sendSuccess(Component.translatable("commands.bossbar.create.success", custombossevent.getDisplayName()), true);
             return custombossevents.getEvents().size();
         }
     }
 
-    private static int removeBar(CommandSourceStack p_136650_, CustomBossEvent p_136651_) {
-        CustomBossEvents custombossevents = p_136650_.getServer().getCustomBossEvents();
-        p_136651_.removeAllPlayers();
-        custombossevents.remove(p_136651_);
-        p_136650_.sendSuccess(Component.translatable("commands.bossbar.remove.success", p_136651_.getDisplayName()), true);
+    private static int removeBar(CommandSourceStack pSource, CustomBossEvent pBossbar) {
+        CustomBossEvents custombossevents = pSource.getServer().getCustomBossEvents();
+        pBossbar.removeAllPlayers();
+        custombossevents.remove(pBossbar);
+        pSource.sendSuccess(Component.translatable("commands.bossbar.remove.success", pBossbar.getDisplayName()), true);
         return custombossevents.getEvents().size();
     }
 
-    public static CustomBossEvent getBossBar(CommandContext<CommandSourceStack> p_136585_) throws CommandSyntaxException {
-        ResourceLocation resourcelocation = ResourceLocationArgument.getId(p_136585_, "id");
-        CustomBossEvent custombossevent = p_136585_.getSource().getServer().getCustomBossEvents().get(resourcelocation);
+    public static CustomBossEvent getBossBar(CommandContext<CommandSourceStack> pSource) throws CommandSyntaxException {
+        ResourceLocation resourcelocation = ResourceLocationArgument.getId(pSource, "id");
+        CustomBossEvent custombossevent = pSource.getSource().getServer().getCustomBossEvents().get(resourcelocation);
         if (custombossevent == null) {
             throw ERROR_DOESNT_EXIST.create(resourcelocation.toString());
         } else {

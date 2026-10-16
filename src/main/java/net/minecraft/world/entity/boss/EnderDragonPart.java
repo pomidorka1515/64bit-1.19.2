@@ -13,40 +13,40 @@ public class EnderDragonPart extends Entity {
     public final String name;
     private final EntityDimensions size;
 
-    public EnderDragonPart(EnderDragon p_31014_, String p_31015_, float p_31016_, float p_31017_) {
-        super(p_31014_.getType(), p_31014_.level);
-        this.size = EntityDimensions.scalable(p_31016_, p_31017_);
+    public EnderDragonPart(EnderDragon pParentMob, String pName, float pWidth, float pHeight) {
+        super(pParentMob.getType(), pParentMob.level);
+        this.size = EntityDimensions.scalable(pWidth, pHeight);
         this.refreshDimensions();
-        this.parentMob = p_31014_;
-        this.name = p_31015_;
+        this.parentMob = pParentMob;
+        this.name = pName;
     }
 
     protected void defineSynchedData() {
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_31025_) {
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_31028_) {
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
     }
 
     public boolean isPickable() {
         return true;
     }
 
-    public boolean hurt(DamageSource p_31020_, float p_31021_) {
-        return this.isInvulnerableTo(p_31020_) ? false : this.parentMob.hurt(this, p_31020_, p_31021_);
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        return this.isInvulnerableTo(pSource) ? false : this.parentMob.hurt(this, pSource, pAmount);
     }
 
-    public boolean is(Entity p_31031_) {
-        return this == p_31031_ || this.parentMob == p_31031_;
+    public boolean is(Entity pEntity) {
+        return this == pEntity || this.parentMob == pEntity;
     }
 
     public Packet<?> getAddEntityPacket() {
         throw new UnsupportedOperationException();
     }
 
-    public EntityDimensions getDimensions(Pose p_31023_) {
+    public EntityDimensions getDimensions(Pose pPose) {
         return this.size;
     }
 

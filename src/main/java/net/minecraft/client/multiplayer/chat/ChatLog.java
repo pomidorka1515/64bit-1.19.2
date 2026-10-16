@@ -18,22 +18,22 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public interface ChatLog {
     int NO_MESSAGE = -1;
 
-    void push(LoggedChatEvent p_242319_);
+    void push(LoggedChatEvent pEvent);
 
     @Nullable
-    LoggedChatEvent lookup(int p_239050_);
+    LoggedChatEvent lookup(int pId);
 
     @Nullable
-    default ChatLog.Entry<LoggedChatEvent> lookupEntry(int p_242449_) {
-        LoggedChatEvent loggedchatevent = this.lookup(p_242449_);
-        return loggedchatevent != null ? new ChatLog.Entry<>(p_242449_, loggedchatevent) : null;
+    default ChatLog.Entry<LoggedChatEvent> lookupEntry(int pId) {
+        LoggedChatEvent loggedchatevent = this.lookup(pId);
+        return loggedchatevent != null ? new ChatLog.Entry<>(pId, loggedchatevent) : null;
     }
 
-    default boolean contains(int p_238951_) {
-        return this.lookup(p_238951_) != null;
+    default boolean contains(int pId) {
+        return this.lookup(pId) != null;
     }
 
-    int offset(int p_239142_, int p_239143_);
+    int offset(int pId, int pOffset);
 
     default int before(int p_239680_) {
         return this.offset(p_239680_, -1);
@@ -55,27 +55,27 @@ public interface ChatLog {
         return this.selectBefore(this.newest());
     }
 
-    default ChatLog.Selection selectAfter(int p_239515_) {
-        return this.selectSequence(p_239515_, this::after);
+    default ChatLog.Selection selectAfter(int pId) {
+        return this.selectSequence(pId, this::after);
     }
 
-    default ChatLog.Selection selectBefore(int p_238954_) {
-        return this.selectSequence(p_238954_, this::before);
+    default ChatLog.Selection selectBefore(int pId) {
+        return this.selectSequence(pId, this::before);
     }
 
-    default ChatLog.Selection selectBetween(int p_239413_, int p_239414_) {
-        return this.contains(p_239413_) && this.contains(p_239414_) ? this.selectSequence(p_239413_, (p_239928_) -> {
-            return p_239928_ == p_239414_ ? -1 : this.after(p_239928_);
+    default ChatLog.Selection selectBetween(int pStartId, int pEndId) {
+        return this.contains(pStartId) && this.contains(pEndId) ? this.selectSequence(pStartId, (p_239928_) -> {
+            return p_239928_ == pEndId ? -1 : this.after(p_239928_);
         }) : this.selectNone();
     }
 
-    default ChatLog.Selection selectSequence(final int p_239757_, final IntUnaryOperator p_239758_) {
-        return !this.contains(p_239757_) ? this.selectNone() : new ChatLog.Selection(this, new PrimitiveIterator.OfInt() {
-            private int nextId = p_239757_;
+    default ChatLog.Selection selectSequence(final int pId, final IntUnaryOperator pNextIdSelector) {
+        return !this.contains(pId) ? this.selectNone() : new ChatLog.Selection(this, new PrimitiveIterator.OfInt() {
+            private int nextId = pId;
 
             public int nextInt() {
                 int i = this.nextId;
-                this.nextId = p_239758_.applyAsInt(i);
+                this.nextId = pNextIdSelector.applyAsInt(i);
                 return i;
             }
 
@@ -103,9 +103,9 @@ public interface ChatLog {
         private final ChatLog log;
         private final PrimitiveIterator.OfInt ids;
 
-        Selection(ChatLog p_239661_, PrimitiveIterator.OfInt p_239662_) {
-            this.log = p_239661_;
-            this.ids = p_239662_;
+        Selection(ChatLog pLog, PrimitiveIterator.OfInt pIds) {
+            this.log = pLog;
+            this.ids = pIds;
         }
 
         public IntStream ids() {

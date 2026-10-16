@@ -4,12 +4,12 @@ import java.util.Objects;
 
 @FunctionalInterface
 public interface CharPredicate {
-    boolean test(char p_125855_);
+    boolean test(char pValue);
 
-    default CharPredicate and(CharPredicate p_178287_) {
-        Objects.requireNonNull(p_178287_);
+    default CharPredicate and(CharPredicate pPredicate) {
+        Objects.requireNonNull(pPredicate);
         return (p_178295_) -> {
-            return this.test(p_178295_) && p_178287_.test(p_178295_);
+            return this.test(p_178295_) && pPredicate.test(p_178295_);
         };
     }
 
@@ -19,10 +19,10 @@ public interface CharPredicate {
         };
     }
 
-    default CharPredicate or(CharPredicate p_178292_) {
-        Objects.requireNonNull(p_178292_);
+    default CharPredicate or(CharPredicate pPredicate) {
+        Objects.requireNonNull(pPredicate);
         return (p_178290_) -> {
-            return this.test(p_178290_) || p_178292_.test(p_178290_);
+            return this.test(p_178290_) || pPredicate.test(p_178290_);
         };
     }
 }

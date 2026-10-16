@@ -22,8 +22,8 @@ public class Game implements RunningGame {
     private final Launcher launcher;
     private SessionEventListener listener = SessionEventListener.NONE;
 
-    public Game(Minecraft p_90738_) {
-        this.minecraft = p_90738_;
+    public Game(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
         this.launcher = Bridge.getLauncher();
         if (this.launcher != null) {
             this.launcher.registerGame(this);
@@ -59,8 +59,8 @@ public class Game implements RunningGame {
         return new Game.Metrics((int) i, (int) j, (int) (k / (long) frametimer.getLog().length), frametimer.getLog().length);
     }
 
-    public void setSessionEventListener(SessionEventListener p_90746_) {
-        this.listener = p_90746_;
+    public void setSessionEventListener(SessionEventListener pListener) {
+        this.listener = pListener;
     }
 
     public void onStartGameSession() {
@@ -78,11 +78,11 @@ public class Game implements RunningGame {
         private final int average;
         private final int samples;
 
-        public Metrics(int p_90752_, int p_90753_, int p_90754_, int p_90755_) {
-            this.min = p_90752_;
-            this.max = p_90753_;
-            this.average = p_90754_;
-            this.samples = p_90755_;
+        public Metrics(int pMin, int pMax, int pAverage, int pSamples) {
+            this.min = pMin;
+            this.max = pMax;
+            this.average = pAverage;
+            this.samples = pSamples;
         }
 
         public int getMinTime() {

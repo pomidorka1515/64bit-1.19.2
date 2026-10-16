@@ -64,28 +64,28 @@ public class FishingHook extends Projectile {
     private final int luck;
     private final int lureSpeed;
 
-    private FishingHook(EntityType<? extends FishingHook> p_150141_, Level p_150142_, int p_150143_, int p_150144_) {
-        super(p_150141_, p_150142_);
+    private FishingHook(EntityType<? extends FishingHook> pEntityType, Level pLevel, int pLuck, int pLureSpeed) {
+        super(pEntityType, pLevel);
         this.noCulling = true;
-        this.luck = Math.max(0, p_150143_);
-        this.lureSpeed = Math.max(0, p_150144_);
+        this.luck = Math.max(0, pLuck);
+        this.lureSpeed = Math.max(0, pLureSpeed);
     }
 
-    public FishingHook(EntityType<? extends FishingHook> p_150138_, Level p_150139_) {
-        this(p_150138_, p_150139_, 0, 0);
+    public FishingHook(EntityType<? extends FishingHook> pEntityType, Level pLevel) {
+        this(pEntityType, pLevel, 0, 0);
     }
 
-    public FishingHook(Player p_37106_, Level p_37107_, int p_37108_, int p_37109_) {
-        this(EntityType.FISHING_BOBBER, p_37107_, p_37108_, p_37109_);
-        this.setOwner(p_37106_);
-        float f = p_37106_.getXRot();
-        float f1 = p_37106_.getYRot();
+    public FishingHook(Player pPlayer, Level pLevel, int pLuck, int pLureSpeed) {
+        this(EntityType.FISHING_BOBBER, pLevel, pLuck, pLureSpeed);
+        this.setOwner(pPlayer);
+        float f = pPlayer.getXRot();
+        float f1 = pPlayer.getYRot();
         float f2 = Mth.cos(-f1 * ((float) Math.PI / 180F) - (float) Math.PI);
         float f3 = Mth.sin(-f1 * ((float) Math.PI / 180F) - (float) Math.PI);
         float f4 = -Mth.cos(-f * ((float) Math.PI / 180F));
         float f5 = Mth.sin(-f * ((float) Math.PI / 180F));
-        double d1 = p_37106_.getEyeY();
-        this.moveTo(p_37106_.sectorPosition().withY(d1).add(-(double) f3 * 0.3D, 0.0D, -(double) f2 * 0.3D), f1, f);
+        double d1 = pPlayer.getEyeY();
+        this.moveTo(pPlayer.sectorPosition().withY(d1).add(-(double) f3 * 0.3D, 0.0D, -(double) f2 * 0.3D), f1, f);
         Vec3 vec3 = new Vec3((double) (-f3), (double) Mth.clamp(-(f5 / f4), -5.0F, 5.0F), (double) (-f2));
         double d3 = vec3.length();
         vec3 = vec3.multiply(0.6D / d3 + this.random.triangle(0.5D, 0.0103365D), 0.6D / d3 + this.random.triangle(0.5D, 0.0103365D), 0.6D / d3 + this.random.triangle(0.5D, 0.0103365D));
@@ -101,28 +101,28 @@ public class FishingHook extends Projectile {
         this.getEntityData().define(DATA_BITING, false);
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_37153_) {
-        if (DATA_HOOKED_ENTITY.equals(p_37153_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        if (DATA_HOOKED_ENTITY.equals(pKey)) {
             int i = this.getEntityData().get(DATA_HOOKED_ENTITY);
             this.hookedIn = i > 0 ? this.level.getEntity(i - 1) : null;
         }
 
-        if (DATA_BITING.equals(p_37153_)) {
+        if (DATA_BITING.equals(pKey)) {
             this.biting = this.getEntityData().get(DATA_BITING);
             if (this.biting) {
                 this.setDeltaMovement(this.getDeltaMovement().x, (double) (-0.4F * Mth.nextFloat(this.syncronizedRandom, 0.6F, 1.0F)), this.getDeltaMovement().z);
             }
         }
 
-        super.onSyncedDataUpdated(p_37153_);
+        super.onSyncedDataUpdated(pKey);
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_37125_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         double d0 = 64.0D;
-        return p_37125_ < 4096.0D;
+        return pDistance < 4096.0D;
     }
 
-    public void lerpTo(double p_37127_, double p_37128_, double p_37129_, float p_37130_, float p_37131_, int p_37132_, boolean p_37133_) {
+    public void lerpTo(double pX, double pY, double pZ, float pYaw, float pPitch, int pPosRotationIncrements, boolean pTeleport) {
     }
 
     public void tick() {
@@ -223,12 +223,12 @@ public class FishingHook extends Projectile {
         }
     }
 
-    private boolean shouldStopFishing(Player p_37137_) {
-        ItemStack itemstack = p_37137_.getMainHandItem();
-        ItemStack itemstack1 = p_37137_.getOffhandItem();
+    private boolean shouldStopFishing(Player pPlayer) {
+        ItemStack itemstack = pPlayer.getMainHandItem();
+        ItemStack itemstack1 = pPlayer.getOffhandItem();
         boolean flag = itemstack.is(Items.FISHING_ROD);
         boolean flag1 = itemstack1.is(Items.FISHING_ROD);
-        if (!p_37137_.isRemoved() && p_37137_.isAlive() && (flag || flag1) && !(this.distanceToSqr(p_37137_) > 1024.0D)) {
+        if (!pPlayer.isRemoved() && pPlayer.isAlive() && (flag || flag1) && !(this.distanceToSqr(pPlayer) > 1024.0D)) {
             return false;
         } else {
             this.discard();
@@ -245,27 +245,27 @@ public class FishingHook extends Projectile {
         return super.canHitEntity(p_37135_) || p_37135_.isAlive() && p_37135_ instanceof ItemEntity;
     }
 
-    protected void onHitEntity(EntityHitResult p_37144_) {
-        super.onHitEntity(p_37144_);
+    protected void onHitEntity(EntityHitResult pResult) {
+        super.onHitEntity(pResult);
         if (!this.level.isClientSide) {
-            this.setHookedEntity(p_37144_.getEntity());
+            this.setHookedEntity(pResult.getEntity());
         }
     }
 
-    protected void onHitBlock(BlockHitResult p_37142_) {
-        super.onHitBlock(p_37142_);
-        this.setDeltaMovement(this.getDeltaMovement().normalize().scale(p_37142_.distanceTo(this)));
+    protected void onHitBlock(BlockHitResult pResult) {
+        super.onHitBlock(pResult);
+        this.setDeltaMovement(this.getDeltaMovement().normalize().scale(pResult.distanceTo(this)));
     }
 
-    private void setHookedEntity(@Nullable Entity p_150158_) {
-        this.hookedIn = p_150158_;
-        this.getEntityData().set(DATA_HOOKED_ENTITY, p_150158_ == null ? 0 : p_150158_.getId() + 1);
+    private void setHookedEntity(@Nullable Entity pHookedEntity) {
+        this.hookedIn = pHookedEntity;
+        this.getEntityData().set(DATA_HOOKED_ENTITY, pHookedEntity == null ? 0 : pHookedEntity.getId() + 1);
     }
 
-    private void catchingFish(BlockPos p_37146_) {
+    private void catchingFish(BlockPos pPos) {
         ServerLevel serverlevel = (ServerLevel) this.level;
         int i = 1;
-        BlockPos blockpos = p_37146_.above();
+        BlockPos blockpos = pPos.above();
         if (this.random.nextFloat() < 0.25F && this.level.isRainingAt(blockpos)) {
             ++i;
         }
@@ -343,11 +343,11 @@ public class FishingHook extends Projectile {
         }
     }
 
-    private boolean calculateOpenWater(BlockPos p_37159_) {
+    private boolean calculateOpenWater(BlockPos pPos) {
         FishingHook.OpenWaterType fishinghook$openwatertype = FishingHook.OpenWaterType.INVALID;
 
         for (int i = -1; i <= 2; ++i) {
-            FishingHook.OpenWaterType fishinghook$openwatertype1 = this.getOpenWaterTypeForArea(p_37159_.offset(-2, i, -2), p_37159_.offset(2, i, 2));
+            FishingHook.OpenWaterType fishinghook$openwatertype1 = this.getOpenWaterTypeForArea(pPos.offset(-2, i, -2), pPos.offset(2, i, 2));
             switch (fishinghook$openwatertype1) {
                 case INVALID:
                     return false;
@@ -368,8 +368,8 @@ public class FishingHook extends Projectile {
         return true;
     }
 
-    private FishingHook.OpenWaterType getOpenWaterTypeForArea(BlockPos p_37148_, BlockPos p_37149_) {
-        return BlockPos.betweenClosedStream(p_37148_, p_37149_).map(this::getOpenWaterTypeForBlock).reduce((p_37139_, p_37140_) -> {
+    private FishingHook.OpenWaterType getOpenWaterTypeForArea(BlockPos pFirstPos, BlockPos pSecondPos) {
+        return BlockPos.betweenClosedStream(pFirstPos, pSecondPos).map(this::getOpenWaterTypeForBlock).reduce((p_37139_, p_37140_) -> {
                                                                                                        return p_37139_ == p_37140_ ? p_37139_ : FishingHook.OpenWaterType.INVALID;
                                                                                                    })
                 .orElse(FishingHook.OpenWaterType.INVALID);
@@ -389,26 +389,26 @@ public class FishingHook extends Projectile {
         return this.openWater;
     }
 
-    public void addAdditionalSaveData(CompoundTag p_37161_) {
+    public void addAdditionalSaveData(CompoundTag pCompound) {
     }
 
-    public void readAdditionalSaveData(CompoundTag p_37151_) {
+    public void readAdditionalSaveData(CompoundTag pCompound) {
     }
 
-    public int retrieve(ItemStack p_37157_) {
+    public int retrieve(ItemStack pStack) {
         Player player = this.getPlayerOwner();
         if (!this.level.isClientSide && player != null && !this.shouldStopFishing(player)) {
             int i = 0;
             if (this.hookedIn != null) {
                 this.pullEntity(this.hookedIn);
-                CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayer) player, p_37157_, this, Collections.emptyList());
+                CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayer) player, pStack, this, Collections.emptyList());
                 this.level.broadcastEntityEvent(this, (byte) 31);
                 i = this.hookedIn instanceof ItemEntity ? 3 : 5;
             } else if (this.nibble > 0) {
-                LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.level)).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.TOOL, p_37157_).withParameter(LootContextParams.THIS_ENTITY, this).withRandom(this.random).withLuck((float) this.luck + player.getLuck());
+                LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.level)).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.TOOL, pStack).withParameter(LootContextParams.THIS_ENTITY, this).withRandom(this.random).withLuck((float) this.luck + player.getLuck());
                 LootTable loottable = this.level.getServer().getLootTables().get(BuiltInLootTables.FISHING);
                 List<ItemStack> list = loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.FISHING));
-                CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayer) player, p_37157_, this, list);
+                CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayer) player, pStack, this, list);
 
                 for (ItemStack itemstack : list) {
                     ItemEntity itementity = new ItemEntity(this.level, this.sectorPosition(), itemstack);
@@ -442,19 +442,19 @@ public class FishingHook extends Projectile {
         }
     }
 
-    public void handleEntityEvent(byte p_37123_) {
-        if (p_37123_ == 31 && this.level.isClientSide && this.hookedIn instanceof Player && ((Player) this.hookedIn).isLocalPlayer()) {
+    public void handleEntityEvent(byte pId) {
+        if (pId == 31 && this.level.isClientSide && this.hookedIn instanceof Player && ((Player) this.hookedIn).isLocalPlayer()) {
             this.pullEntity(this.hookedIn);
         }
 
-        super.handleEntityEvent(p_37123_);
+        super.handleEntityEvent(pId);
     }
 
-    protected void pullEntity(Entity p_150156_) {
+    protected void pullEntity(Entity pEntity) {
         Entity entity = this.getOwner();
         if (entity != null) {
             Vec3 pull = entity.sectorPosition().relativeTo(this.sectorPosition()).scale(0.1D);
-            p_150156_.setDeltaMovement(p_150156_.getDeltaMovement().add(pull));
+            pEntity.setDeltaMovement(pEntity.getDeltaMovement().add(pull));
         }
     }
 
@@ -462,24 +462,24 @@ public class FishingHook extends Projectile {
         return Entity.MovementEmission.NONE;
     }
 
-    public void remove(Entity.RemovalReason p_150146_) {
+    public void remove(Entity.RemovalReason pReason) {
         this.updateOwnerInfo((FishingHook) null);
-        super.remove(p_150146_);
+        super.remove(pReason);
     }
 
     public void onClientRemoval() {
         this.updateOwnerInfo((FishingHook) null);
     }
 
-    public void setOwner(@Nullable Entity p_150154_) {
-        super.setOwner(p_150154_);
+    public void setOwner(@Nullable Entity pOwner) {
+        super.setOwner(pOwner);
         this.updateOwnerInfo(this);
     }
 
-    private void updateOwnerInfo(@Nullable FishingHook p_150148_) {
+    private void updateOwnerInfo(@Nullable FishingHook pFishingHook) {
         Player player = this.getPlayerOwner();
         if (player != null) {
-            player.fishing = p_150148_;
+            player.fishing = pFishingHook;
         }
     }
 
@@ -503,10 +503,10 @@ public class FishingHook extends Projectile {
         return new ClientboundAddEntityPacket(this, entity == null ? this.getId() : entity.getId());
     }
 
-    public void recreateFromPacket(ClientboundAddEntityPacket p_150150_) {
-        super.recreateFromPacket(p_150150_);
+    public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
+        super.recreateFromPacket(pPacket);
         if (this.getPlayerOwner() == null) {
-            int i = p_150150_.getData();
+            int i = pPacket.getData();
             LOGGER.error("Failed to recreate fishing hook on client. {} (id: {}) is not a valid owner.", this.level.getEntity(i), i);
             this.kill();
         }

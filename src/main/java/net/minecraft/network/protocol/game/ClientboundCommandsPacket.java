@@ -42,23 +42,23 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
     private final int rootIndex;
     private final List<ClientboundCommandsPacket.Entry> entries;
 
-    public ClientboundCommandsPacket(RootCommandNode<SharedSuggestionProvider> p_131861_) {
-        Object2IntMap<CommandNode<SharedSuggestionProvider>> object2intmap = enumerateNodes(p_131861_);
+    public ClientboundCommandsPacket(RootCommandNode<SharedSuggestionProvider> pRoot) {
+        Object2IntMap<CommandNode<SharedSuggestionProvider>> object2intmap = enumerateNodes(pRoot);
         this.entries = createEntries(object2intmap);
-        this.rootIndex = object2intmap.getInt(p_131861_);
+        this.rootIndex = object2intmap.getInt(pRoot);
     }
 
-    public ClientboundCommandsPacket(FriendlyByteBuf p_178805_) {
-        this.entries = p_178805_.readList(ClientboundCommandsPacket::readNode);
-        this.rootIndex = p_178805_.readVarInt();
+    public ClientboundCommandsPacket(FriendlyByteBuf pBuffer) {
+        this.entries = pBuffer.readList(ClientboundCommandsPacket::readNode);
+        this.rootIndex = pBuffer.readVarInt();
         validateEntries(this.entries);
     }
 
-    public void write(FriendlyByteBuf p_131886_) {
-        p_131886_.writeCollection(this.entries, (p_237642_, p_237643_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeCollection(this.entries, (p_237642_, p_237643_) -> {
             p_237643_.write(p_237642_);
         });
-        p_131886_.writeVarInt(this.rootIndex);
+        pBuffer.writeVarInt(this.rootIndex);
     }
 
     private static void validateEntries(List<ClientboundCommandsPacket.Entry> p_237631_, BiPredicate<ClientboundCommandsPacket.Entry, IntSet> p_237632_) {
@@ -74,15 +74,15 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
         }
     }
 
-    private static void validateEntries(List<ClientboundCommandsPacket.Entry> p_237629_) {
-        validateEntries(p_237629_, ClientboundCommandsPacket.Entry::canBuild);
-        validateEntries(p_237629_, ClientboundCommandsPacket.Entry::canResolve);
+    private static void validateEntries(List<ClientboundCommandsPacket.Entry> pEntries) {
+        validateEntries(pEntries, ClientboundCommandsPacket.Entry::canBuild);
+        validateEntries(pEntries, ClientboundCommandsPacket.Entry::canResolve);
     }
 
-    private static Object2IntMap<CommandNode<SharedSuggestionProvider>> enumerateNodes(RootCommandNode<SharedSuggestionProvider> p_131863_) {
+    private static Object2IntMap<CommandNode<SharedSuggestionProvider>> enumerateNodes(RootCommandNode<SharedSuggestionProvider> pRootNode) {
         Object2IntMap<CommandNode<SharedSuggestionProvider>> object2intmap = new Object2IntOpenHashMap<>();
         Queue<CommandNode<SharedSuggestionProvider>> queue = Queues.newArrayDeque();
-        queue.add(p_131863_);
+        queue.add(pRootNode);
 
         CommandNode<SharedSuggestionProvider> commandnode;
         while ((commandnode = queue.poll()) != null) {
@@ -179,8 +179,8 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
         return new ClientboundCommandsPacket.Entry(clientboundcommandspacket$nodestub, i, j, aint);
     }
 
-    public void handle(ClientGamePacketListener p_131878_) {
-        p_131878_.handleCommands(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleCommands(this);
     }
 
     public RootCommandNode<SharedSuggestionProvider> getRoot(CommandBuildContext p_237625_) {
@@ -194,22 +194,22 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
         private final ResourceLocation suggestionId;
 
         @Nullable
-        private static ResourceLocation getSuggestionId(@Nullable SuggestionProvider<SharedSuggestionProvider> p_237654_) {
-            return p_237654_ != null ? SuggestionProviders.getName(p_237654_) : null;
+        private static ResourceLocation getSuggestionId(@Nullable SuggestionProvider<SharedSuggestionProvider> pProvider) {
+            return pProvider != null ? SuggestionProviders.getName(pProvider) : null;
         }
 
-        ArgumentNodeStub(String p_237650_, ArgumentTypeInfo.Template<?> p_237651_, @Nullable ResourceLocation p_237652_) {
-            this.id = p_237650_;
-            this.argumentType = p_237651_;
-            this.suggestionId = p_237652_;
+        ArgumentNodeStub(String pId, ArgumentTypeInfo.Template<?> pArgumentType, @Nullable ResourceLocation pSuggestionId) {
+            this.id = pId;
+            this.argumentType = pArgumentType;
+            this.suggestionId = pSuggestionId;
         }
 
-        public ArgumentNodeStub(ArgumentCommandNode<SharedSuggestionProvider, ?> p_237648_) {
-            this(p_237648_.getName(), ArgumentTypeInfos.unpack(p_237648_.getType()), getSuggestionId(p_237648_.getCustomSuggestions()));
+        public ArgumentNodeStub(ArgumentCommandNode<SharedSuggestionProvider, ?> pArgumentNode) {
+            this(pArgumentNode.getName(), ArgumentTypeInfos.unpack(pArgumentNode.getType()), getSuggestionId(pArgumentNode.getCustomSuggestions()));
         }
 
-        public ArgumentBuilder<SharedSuggestionProvider, ?> build(CommandBuildContext p_237656_) {
-            ArgumentType<?> argumenttype = this.argumentType.instantiate(p_237656_);
+        public ArgumentBuilder<SharedSuggestionProvider, ?> build(CommandBuildContext pContext) {
+            ArgumentType<?> argumenttype = this.argumentType.instantiate(pContext);
             RequiredArgumentBuilder<SharedSuggestionProvider, ?> requiredargumentbuilder = RequiredArgumentBuilder.argument(this.id, argumenttype);
             if (this.suggestionId != null) {
                 requiredargumentbuilder.suggests(SuggestionProviders.getProvider(this.suggestionId));
@@ -218,21 +218,21 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
             return requiredargumentbuilder;
         }
 
-        public void write(FriendlyByteBuf p_237658_) {
-            p_237658_.writeUtf(this.id);
-            serializeCap(p_237658_, this.argumentType);
+        public void write(FriendlyByteBuf pBuffer) {
+            pBuffer.writeUtf(this.id);
+            serializeCap(pBuffer, this.argumentType);
             if (this.suggestionId != null) {
-                p_237658_.writeResourceLocation(this.suggestionId);
+                pBuffer.writeResourceLocation(this.suggestionId);
             }
         }
 
-        private static <A extends ArgumentType<?>> void serializeCap(FriendlyByteBuf p_237660_, ArgumentTypeInfo.Template<A> p_237661_) {
-            serializeCap(p_237660_, p_237661_.type(), p_237661_);
+        private static <A extends ArgumentType<?>> void serializeCap(FriendlyByteBuf pBuffer, ArgumentTypeInfo.Template<A> pArgumentInfoTemplate) {
+            serializeCap(pBuffer, pArgumentInfoTemplate.type(), pArgumentInfoTemplate);
         }
 
-        private static <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>> void serializeCap(FriendlyByteBuf p_237663_, ArgumentTypeInfo<A, T> p_237664_, ArgumentTypeInfo.Template<A> p_237665_) {
-            p_237663_.writeVarInt(Registry.COMMAND_ARGUMENT_TYPE.getId(p_237664_));
-            p_237664_.serializeToNetwork((T) p_237665_, p_237663_);
+        private static <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>> void serializeCap(FriendlyByteBuf pBuffer, ArgumentTypeInfo<A, T> pArgumentInfo, ArgumentTypeInfo.Template<A> pArgumentInfoTemplate) {
+            pBuffer.writeVarInt(Registry.COMMAND_ARGUMENT_TYPE.getId(pArgumentInfo));
+            pArgumentInfo.serializeToNetwork((T) pArgumentInfoTemplate, pBuffer);
         }
     }
 
@@ -243,22 +243,22 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
         final int redirect;
         final int[] children;
 
-        Entry(@Nullable ClientboundCommandsPacket.NodeStub p_237668_, int p_237669_, int p_237670_, int[] p_237671_) {
-            this.stub = p_237668_;
-            this.flags = p_237669_;
-            this.redirect = p_237670_;
-            this.children = p_237671_;
+        Entry(@Nullable ClientboundCommandsPacket.NodeStub pStub, int pFlags, int pRedirect, int[] pChildren) {
+            this.stub = pStub;
+            this.flags = pFlags;
+            this.redirect = pRedirect;
+            this.children = pChildren;
         }
 
-        public void write(FriendlyByteBuf p_237675_) {
-            p_237675_.writeByte(this.flags);
-            p_237675_.writeVarIntArray(this.children);
+        public void write(FriendlyByteBuf pBuffer) {
+            pBuffer.writeByte(this.flags);
+            pBuffer.writeVarIntArray(this.children);
             if ((this.flags & 8) != 0) {
-                p_237675_.writeVarInt(this.redirect);
+                pBuffer.writeVarInt(this.redirect);
             }
 
             if (this.stub != null) {
-                this.stub.write(p_237675_);
+                this.stub.write(pBuffer);
             }
         }
 
@@ -284,16 +284,16 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
     static class LiteralNodeStub implements ClientboundCommandsPacket.NodeStub {
         private final String id;
 
-        LiteralNodeStub(String p_237680_) {
-            this.id = p_237680_;
+        LiteralNodeStub(String pId) {
+            this.id = pId;
         }
 
-        public ArgumentBuilder<SharedSuggestionProvider, ?> build(CommandBuildContext p_237682_) {
+        public ArgumentBuilder<SharedSuggestionProvider, ?> build(CommandBuildContext pContext) {
             return LiteralArgumentBuilder.literal(this.id);
         }
 
-        public void write(FriendlyByteBuf p_237684_) {
-            p_237684_.writeUtf(this.id);
+        public void write(FriendlyByteBuf pBuffer) {
+            pBuffer.writeUtf(this.id);
         }
     }
 
@@ -302,11 +302,11 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
         private final List<ClientboundCommandsPacket.Entry> entries;
         private final List<CommandNode<SharedSuggestionProvider>> nodes;
 
-        NodeResolver(CommandBuildContext p_237689_, List<ClientboundCommandsPacket.Entry> p_237690_) {
-            this.context = p_237689_;
-            this.entries = p_237690_;
+        NodeResolver(CommandBuildContext pContext, List<ClientboundCommandsPacket.Entry> pEntries) {
+            this.context = pContext;
+            this.entries = pEntries;
             ObjectArrayList<CommandNode<SharedSuggestionProvider>> objectarraylist = new ObjectArrayList<>();
-            objectarraylist.size(p_237690_.size());
+            objectarraylist.size(pEntries.size());
             this.nodes = objectarraylist;
         }
 
@@ -349,8 +349,8 @@ public class ClientboundCommandsPacket implements Packet<ClientGamePacketListene
     }
 
     interface NodeStub {
-        ArgumentBuilder<SharedSuggestionProvider, ?> build(CommandBuildContext p_237695_);
+        ArgumentBuilder<SharedSuggestionProvider, ?> build(CommandBuildContext pContext);
 
-        void write(FriendlyByteBuf p_237696_);
+        void write(FriendlyByteBuf pBuffer);
     }
 }

@@ -75,27 +75,27 @@ public class MultiPlayerGameMode {
     private GameType previousLocalPlayerMode;
     private int carriedIndex;
 
-    public MultiPlayerGameMode(Minecraft p_105203_, ClientPacketListener p_105204_) {
-        this.minecraft = p_105203_;
-        this.connection = p_105204_;
+    public MultiPlayerGameMode(Minecraft pMinecraft, ClientPacketListener pConnection) {
+        this.minecraft = pMinecraft;
+        this.connection = pConnection;
     }
 
-    public void adjustPlayer(Player p_105222_) {
-        this.localPlayerMode.updatePlayerAbilities(p_105222_.getAbilities());
+    public void adjustPlayer(Player pPlayer) {
+        this.localPlayerMode.updatePlayerAbilities(pPlayer.getAbilities());
     }
 
-    public void setLocalMode(GameType p_171806_, @Nullable GameType p_171807_) {
-        this.localPlayerMode = p_171806_;
-        this.previousLocalPlayerMode = p_171807_;
+    public void setLocalMode(GameType pLocalPlayerMode, @Nullable GameType pPreviousLocalPlayerMode) {
+        this.localPlayerMode = pLocalPlayerMode;
+        this.previousLocalPlayerMode = pPreviousLocalPlayerMode;
         this.localPlayerMode.updatePlayerAbilities(this.minecraft.player.getAbilities());
     }
 
-    public void setLocalMode(GameType p_105280_) {
-        if (p_105280_ != this.localPlayerMode) {
+    public void setLocalMode(GameType pType) {
+        if (pType != this.localPlayerMode) {
             this.previousLocalPlayerMode = this.localPlayerMode;
         }
 
-        this.localPlayerMode = p_105280_;
+        this.localPlayerMode = pType;
         this.localPlayerMode.updatePlayerAbilities(this.minecraft.player.getAbilities());
     }
 
@@ -103,13 +103,13 @@ public class MultiPlayerGameMode {
         return this.localPlayerMode.isSurvival();
     }
 
-    public boolean destroyBlock(BlockPos p_105268_) {
-        if (this.minecraft.player.blockActionRestricted(this.minecraft.level, p_105268_, this.localPlayerMode)) {
+    public boolean destroyBlock(BlockPos pPos) {
+        if (this.minecraft.player.blockActionRestricted(this.minecraft.level, pPos, this.localPlayerMode)) {
             return false;
         } else {
             Level level = this.minecraft.level;
-            BlockState blockstate = level.getBlockState(p_105268_);
-            if (!this.minecraft.player.getMainHandItem().getItem().canAttackBlock(blockstate, level, p_105268_, this.minecraft.player)) {
+            BlockState blockstate = level.getBlockState(pPos);
+            if (!this.minecraft.player.getMainHandItem().getItem().canAttackBlock(blockstate, level, pPos, this.minecraft.player)) {
                 return false;
             } else {
                 Block block = blockstate.getBlock();
@@ -118,11 +118,11 @@ public class MultiPlayerGameMode {
                 } else if (blockstate.isAir()) {
                     return false;
                 } else {
-                    block.playerWillDestroy(level, p_105268_, blockstate, this.minecraft.player);
-                    FluidState fluidstate = level.getFluidState(p_105268_);
-                    boolean flag = level.setBlock(p_105268_, fluidstate.createLegacyBlock(), 11);
+                    block.playerWillDestroy(level, pPos, blockstate, this.minecraft.player);
+                    FluidState fluidstate = level.getFluidState(pPos);
+                    boolean flag = level.setBlock(pPos, fluidstate.createLegacyBlock(), 11);
                     if (flag) {
-                        block.destroy(level, p_105268_, blockstate);
+                        block.destroy(level, pPos, blockstate);
                     }
 
                     return flag;
@@ -131,45 +131,45 @@ public class MultiPlayerGameMode {
         }
     }
 
-    public boolean startDestroyBlock(BlockPos p_105270_, Direction p_105271_) {
-        if (this.minecraft.player.blockActionRestricted(this.minecraft.level, p_105270_, this.localPlayerMode)) {
+    public boolean startDestroyBlock(BlockPos pLoc, Direction pFace) {
+        if (this.minecraft.player.blockActionRestricted(this.minecraft.level, pLoc, this.localPlayerMode)) {
             return false;
-        } else if (!this.minecraft.level.getWorldBorder().isWithinBounds(p_105270_)) {
+        } else if (!this.minecraft.level.getWorldBorder().isWithinBounds(pLoc)) {
             return false;
         } else {
             if (this.localPlayerMode.isCreative()) {
-                BlockState blockstate = this.minecraft.level.getBlockState(p_105270_);
-                this.minecraft.getTutorial().onDestroyBlock(this.minecraft.level, p_105270_, blockstate, 1.0F);
+                BlockState blockstate = this.minecraft.level.getBlockState(pLoc);
+                this.minecraft.getTutorial().onDestroyBlock(this.minecraft.level, pLoc, blockstate, 1.0F);
                 this.startPrediction(this.minecraft.level, (p_233757_) -> {
-                    this.destroyBlock(p_105270_);
-                    return new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, p_105270_, p_105271_, p_233757_);
+                    this.destroyBlock(pLoc);
+                    return new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pLoc, pFace, p_233757_);
                 });
                 this.destroyDelay = 5;
-            } else if (!this.isDestroying || !this.sameDestroyTarget(p_105270_)) {
+            } else if (!this.isDestroying || !this.sameDestroyTarget(pLoc)) {
                 if (this.isDestroying) {
-                    this.connection.send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, this.destroyBlockPos, p_105271_));
+                    this.connection.send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, this.destroyBlockPos, pFace));
                 }
 
-                BlockState blockstate1 = this.minecraft.level.getBlockState(p_105270_);
-                this.minecraft.getTutorial().onDestroyBlock(this.minecraft.level, p_105270_, blockstate1, 0.0F);
+                BlockState blockstate1 = this.minecraft.level.getBlockState(pLoc);
+                this.minecraft.getTutorial().onDestroyBlock(this.minecraft.level, pLoc, blockstate1, 0.0F);
                 this.startPrediction(this.minecraft.level, (p_233728_) -> {
                     boolean flag = !blockstate1.isAir();
                     if (flag && this.destroyProgress == 0.0F) {
-                        blockstate1.attack(this.minecraft.level, p_105270_, this.minecraft.player);
+                        blockstate1.attack(this.minecraft.level, pLoc, this.minecraft.player);
                     }
 
-                    if (flag && blockstate1.getDestroyProgress(this.minecraft.player, this.minecraft.player.level, p_105270_) >= 1.0F) {
-                        this.destroyBlock(p_105270_);
+                    if (flag && blockstate1.getDestroyProgress(this.minecraft.player, this.minecraft.player.level, pLoc) >= 1.0F) {
+                        this.destroyBlock(pLoc);
                     } else {
                         this.isDestroying = true;
-                        this.destroyBlockPos = p_105270_;
+                        this.destroyBlockPos = pLoc;
                         this.destroyingItem = this.minecraft.player.getMainHandItem();
                         this.destroyProgress = 0.0F;
                         this.destroyTicks = 0.0F;
                         this.minecraft.level.destroyBlockProgress(this.minecraft.player.getId(), this.destroyBlockPos, (int) (this.destroyProgress * 10.0F) - 1);
                     }
 
-                    return new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, p_105270_, p_105271_, p_233728_);
+                    return new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pLoc, pFace, p_233728_);
                 });
             }
 
@@ -189,39 +189,39 @@ public class MultiPlayerGameMode {
         }
     }
 
-    public boolean continueDestroyBlock(BlockPos p_105284_, Direction p_105285_) {
+    public boolean continueDestroyBlock(BlockPos pPosBlock, Direction pDirectionFacing) {
         this.ensureHasSentCarriedItem();
         if (this.destroyDelay > 0) {
             --this.destroyDelay;
             return true;
-        } else if (this.localPlayerMode.isCreative() && this.minecraft.level.getWorldBorder().isWithinBounds(p_105284_)) {
+        } else if (this.localPlayerMode.isCreative() && this.minecraft.level.getWorldBorder().isWithinBounds(pPosBlock)) {
             this.destroyDelay = 5;
-            BlockState blockstate1 = this.minecraft.level.getBlockState(p_105284_);
-            this.minecraft.getTutorial().onDestroyBlock(this.minecraft.level, p_105284_, blockstate1, 1.0F);
+            BlockState blockstate1 = this.minecraft.level.getBlockState(pPosBlock);
+            this.minecraft.getTutorial().onDestroyBlock(this.minecraft.level, pPosBlock, blockstate1, 1.0F);
             this.startPrediction(this.minecraft.level, (p_233753_) -> {
-                this.destroyBlock(p_105284_);
-                return new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, p_105284_, p_105285_, p_233753_);
+                this.destroyBlock(pPosBlock);
+                return new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pPosBlock, pDirectionFacing, p_233753_);
             });
             return true;
-        } else if (this.sameDestroyTarget(p_105284_)) {
-            BlockState blockstate = this.minecraft.level.getBlockState(p_105284_);
+        } else if (this.sameDestroyTarget(pPosBlock)) {
+            BlockState blockstate = this.minecraft.level.getBlockState(pPosBlock);
             if (blockstate.isAir()) {
                 this.isDestroying = false;
                 return false;
             } else {
-                this.destroyProgress += blockstate.getDestroyProgress(this.minecraft.player, this.minecraft.player.level, p_105284_);
+                this.destroyProgress += blockstate.getDestroyProgress(this.minecraft.player, this.minecraft.player.level, pPosBlock);
                 if (this.destroyTicks % 4.0F == 0.0F) {
                     SoundType soundtype = blockstate.getSoundType();
-                    this.minecraft.getSoundManager().play(new SimpleSoundInstance(soundtype.getHitSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 8.0F, soundtype.getPitch() * 0.5F, SoundInstance.createUnseededRandom(), p_105284_));
+                    this.minecraft.getSoundManager().play(new SimpleSoundInstance(soundtype.getHitSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 8.0F, soundtype.getPitch() * 0.5F, SoundInstance.createUnseededRandom(), pPosBlock));
                 }
 
                 ++this.destroyTicks;
-                this.minecraft.getTutorial().onDestroyBlock(this.minecraft.level, p_105284_, blockstate, Mth.clamp(this.destroyProgress, 0.0F, 1.0F));
+                this.minecraft.getTutorial().onDestroyBlock(this.minecraft.level, pPosBlock, blockstate, Mth.clamp(this.destroyProgress, 0.0F, 1.0F));
                 if (this.destroyProgress >= 1.0F) {
                     this.isDestroying = false;
                     this.startPrediction(this.minecraft.level, (p_233739_) -> {
-                        this.destroyBlock(p_105284_);
-                        return new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, p_105284_, p_105285_, p_233739_);
+                        this.destroyBlock(pPosBlock);
+                        return new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, pPosBlock, pDirectionFacing, p_233739_);
                     });
                     this.destroyProgress = 0.0F;
                     this.destroyTicks = 0.0F;
@@ -232,7 +232,7 @@ public class MultiPlayerGameMode {
                 return true;
             }
         } else {
-            return this.startDestroyBlock(p_105284_, p_105285_);
+            return this.startDestroyBlock(pPosBlock, pDirectionFacing);
         }
     }
 
@@ -273,14 +273,14 @@ public class MultiPlayerGameMode {
         }
     }
 
-    private boolean sameDestroyTarget(BlockPos p_105282_) {
+    private boolean sameDestroyTarget(BlockPos pPos) {
         ItemStack itemstack = this.minecraft.player.getMainHandItem();
         boolean flag = this.destroyingItem.isEmpty() && itemstack.isEmpty();
         if (!this.destroyingItem.isEmpty() && !itemstack.isEmpty()) {
             flag = itemstack.is(this.destroyingItem.getItem()) && ItemStack.tagMatches(itemstack, this.destroyingItem) && (itemstack.isDamageableItem() || itemstack.getDamageValue() == this.destroyingItem.getDamageValue());
         }
 
-        return p_105282_.equals(this.destroyBlockPos) && flag;
+        return pPos.equals(this.destroyBlockPos) && flag;
     }
 
     private void ensureHasSentCarriedItem() {
@@ -291,37 +291,37 @@ public class MultiPlayerGameMode {
         }
     }
 
-    public InteractionResult useItemOn(LocalPlayer p_233733_, InteractionHand p_233734_, BlockHitResult p_233735_) {
+    public InteractionResult useItemOn(LocalPlayer pPlayer, InteractionHand pHand, BlockHitResult pResult) {
         this.ensureHasSentCarriedItem();
-        if (!this.minecraft.level.getWorldBorder().isWithinBounds(p_233735_.getBlockPos())) {
+        if (!this.minecraft.level.getWorldBorder().isWithinBounds(pResult.getBlockPos())) {
             return InteractionResult.FAIL;
         } else {
             MutableObject<InteractionResult> mutableobject = new MutableObject<>();
             this.startPrediction(this.minecraft.level, (p_233745_) -> {
-                mutableobject.setValue(this.performUseItemOn(p_233733_, p_233734_, p_233735_));
-                return new ServerboundUseItemOnPacket(p_233734_, p_233735_, p_233745_);
+                mutableobject.setValue(this.performUseItemOn(pPlayer, pHand, pResult));
+                return new ServerboundUseItemOnPacket(pHand, pResult, p_233745_);
             });
             return mutableobject.getValue();
         }
     }
 
-    private InteractionResult performUseItemOn(LocalPlayer p_233747_, InteractionHand p_233748_, BlockHitResult p_233749_) {
-        BlockPos blockpos = p_233749_.getBlockPos();
-        ItemStack itemstack = p_233747_.getItemInHand(p_233748_);
+    private InteractionResult performUseItemOn(LocalPlayer pPlayer, InteractionHand pHand, BlockHitResult pResult) {
+        BlockPos blockpos = pResult.getBlockPos();
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (this.localPlayerMode == GameType.SPECTATOR) {
             return InteractionResult.SUCCESS;
         } else {
-            boolean flag = !p_233747_.getMainHandItem().isEmpty() || !p_233747_.getOffhandItem().isEmpty();
-            boolean flag1 = p_233747_.isSecondaryUseActive() && flag;
+            boolean flag = !pPlayer.getMainHandItem().isEmpty() || !pPlayer.getOffhandItem().isEmpty();
+            boolean flag1 = pPlayer.isSecondaryUseActive() && flag;
             if (!flag1) {
-                InteractionResult interactionresult = this.minecraft.level.getBlockState(blockpos).use(this.minecraft.level, p_233747_, p_233748_, p_233749_);
+                InteractionResult interactionresult = this.minecraft.level.getBlockState(blockpos).use(this.minecraft.level, pPlayer, pHand, pResult);
                 if (interactionresult.consumesAction()) {
                     return interactionresult;
                 }
             }
 
-            if (!itemstack.isEmpty() && !p_233747_.getCooldowns().isOnCooldown(itemstack.getItem())) {
-                UseOnContext useoncontext = new UseOnContext(p_233747_, p_233748_, p_233749_);
+            if (!itemstack.isEmpty() && !pPlayer.getCooldowns().isOnCooldown(itemstack.getItem())) {
+                UseOnContext useoncontext = new UseOnContext(pPlayer, pHand, pResult);
                 InteractionResult interactionresult1;
                 if (this.localPlayerMode.isCreative()) {
                     int i = itemstack.getCount();
@@ -338,24 +338,24 @@ public class MultiPlayerGameMode {
         }
     }
 
-    public InteractionResult useItem(Player p_233722_, InteractionHand p_233723_) {
+    public InteractionResult useItem(Player pPlayer, InteractionHand pHand) {
         if (this.localPlayerMode == GameType.SPECTATOR) {
             return InteractionResult.PASS;
         } else {
             this.ensureHasSentCarriedItem();
-            this.connection.send(new ServerboundMovePlayerPacket.PosRot(p_233722_.getX(), p_233722_.getY(), p_233722_.getZ(), p_233722_.getYRot(), p_233722_.getXRot(), p_233722_.isOnGround()));
+            this.connection.send(new ServerboundMovePlayerPacket.PosRot(pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), pPlayer.getYRot(), pPlayer.getXRot(), pPlayer.isOnGround()));
             MutableObject<InteractionResult> mutableobject = new MutableObject<>();
             this.startPrediction(this.minecraft.level, (p_233720_) -> {
-                ServerboundUseItemPacket serverbounduseitempacket = new ServerboundUseItemPacket(p_233723_, p_233720_);
-                ItemStack itemstack = p_233722_.getItemInHand(p_233723_);
-                if (p_233722_.getCooldowns().isOnCooldown(itemstack.getItem())) {
+                ServerboundUseItemPacket serverbounduseitempacket = new ServerboundUseItemPacket(pHand, p_233720_);
+                ItemStack itemstack = pPlayer.getItemInHand(pHand);
+                if (pPlayer.getCooldowns().isOnCooldown(itemstack.getItem())) {
                     mutableobject.setValue(InteractionResult.PASS);
                     return serverbounduseitempacket;
                 } else {
-                    InteractionResultHolder<ItemStack> interactionresultholder = itemstack.use(this.minecraft.level, p_233722_, p_233723_);
+                    InteractionResultHolder<ItemStack> interactionresultholder = itemstack.use(this.minecraft.level, pPlayer, pHand);
                     ItemStack itemstack1 = interactionresultholder.getObject();
                     if (itemstack1 != itemstack) {
-                        p_233722_.setItemInHand(p_233723_, itemstack1);
+                        pPlayer.setItemInHand(pHand, itemstack1);
                     }
 
                     mutableobject.setValue(interactionresultholder.getResult());
@@ -366,40 +366,40 @@ public class MultiPlayerGameMode {
         }
     }
 
-    public LocalPlayer createPlayer(ClientLevel p_105247_, StatsCounter p_105248_, ClientRecipeBook p_105249_) {
-        return this.createPlayer(p_105247_, p_105248_, p_105249_, false, false);
+    public LocalPlayer createPlayer(ClientLevel pLevel, StatsCounter pStatsManager, ClientRecipeBook pRecipes) {
+        return this.createPlayer(pLevel, pStatsManager, pRecipes, false, false);
     }
 
-    public LocalPlayer createPlayer(ClientLevel p_105251_, StatsCounter p_105252_, ClientRecipeBook p_105253_, boolean p_105254_, boolean p_105255_) {
-        return new LocalPlayer(this.minecraft, p_105251_, this.connection, p_105252_, p_105253_, p_105254_, p_105255_);
+    public LocalPlayer createPlayer(ClientLevel pLevel, StatsCounter pStatsManager, ClientRecipeBook pRecipes, boolean pWasShiftKeyDown, boolean pWasSprinting) {
+        return new LocalPlayer(this.minecraft, pLevel, this.connection, pStatsManager, pRecipes, pWasShiftKeyDown, pWasSprinting);
     }
 
-    public void attack(Player p_105224_, Entity p_105225_) {
+    public void attack(Player pPlayer, Entity pTargetEntity) {
         this.ensureHasSentCarriedItem();
-        this.connection.send(ServerboundInteractPacket.createAttackPacket(p_105225_, p_105224_.isShiftKeyDown()));
+        this.connection.send(ServerboundInteractPacket.createAttackPacket(pTargetEntity, pPlayer.isShiftKeyDown()));
         if (this.localPlayerMode != GameType.SPECTATOR) {
-            p_105224_.attack(p_105225_);
-            p_105224_.resetAttackStrengthTicker();
+            pPlayer.attack(pTargetEntity);
+            pPlayer.resetAttackStrengthTicker();
         }
     }
 
-    public InteractionResult interact(Player p_105227_, Entity p_105228_, InteractionHand p_105229_) {
+    public InteractionResult interact(Player pPlayer, Entity pTarget, InteractionHand pHand) {
         this.ensureHasSentCarriedItem();
-        this.connection.send(ServerboundInteractPacket.createInteractionPacket(p_105228_, p_105227_.isShiftKeyDown(), p_105229_));
-        return this.localPlayerMode == GameType.SPECTATOR ? InteractionResult.PASS : p_105227_.interactOn(p_105228_, p_105229_);
+        this.connection.send(ServerboundInteractPacket.createInteractionPacket(pTarget, pPlayer.isShiftKeyDown(), pHand));
+        return this.localPlayerMode == GameType.SPECTATOR ? InteractionResult.PASS : pPlayer.interactOn(pTarget, pHand);
     }
 
-    public InteractionResult interactAt(Player p_105231_, Entity p_105232_, EntityHitResult p_105233_, InteractionHand p_105234_) {
+    public InteractionResult interactAt(Player pPlayer, Entity pTarget, EntityHitResult pRay, InteractionHand pHand) {
         this.ensureHasSentCarriedItem();
-        Vec3 vec3 = p_105233_.getLocation().subtract(p_105232_.getX(), p_105232_.getY(), p_105232_.getZ());
-        this.connection.send(ServerboundInteractPacket.createInteractionPacket(p_105232_, p_105231_.isShiftKeyDown(), p_105234_, vec3));
-        return this.localPlayerMode == GameType.SPECTATOR ? InteractionResult.PASS : p_105232_.interactAt(p_105231_, vec3, p_105234_);
+        Vec3 vec3 = pRay.getLocation().subtract(pTarget.getX(), pTarget.getY(), pTarget.getZ());
+        this.connection.send(ServerboundInteractPacket.createInteractionPacket(pTarget, pPlayer.isShiftKeyDown(), pHand, vec3));
+        return this.localPlayerMode == GameType.SPECTATOR ? InteractionResult.PASS : pTarget.interactAt(pPlayer, vec3, pHand);
     }
 
-    public void handleInventoryMouseClick(int p_171800_, int p_171801_, int p_171802_, ClickType p_171803_, Player p_171804_) {
-        AbstractContainerMenu abstractcontainermenu = p_171804_.containerMenu;
-        if (p_171800_ != abstractcontainermenu.containerId) {
-            LOGGER.warn("Ignoring click in mismatching container. Click in {}, player has {}.", p_171800_, abstractcontainermenu.containerId);
+    public void handleInventoryMouseClick(int pContainerId, int pSlotId, int pMouseButton, ClickType pClickType, Player pPlayer) {
+        AbstractContainerMenu abstractcontainermenu = pPlayer.containerMenu;
+        if (pContainerId != abstractcontainermenu.containerId) {
+            LOGGER.warn("Ignoring click in mismatching container. Click in {}, player has {}.", pContainerId, abstractcontainermenu.containerId);
         } else {
             NonNullList<Slot> nonnulllist = abstractcontainermenu.slots;
             int i = nonnulllist.size();
@@ -409,7 +409,7 @@ public class MultiPlayerGameMode {
                 list.add(slot.getItem().copy());
             }
 
-            abstractcontainermenu.clicked(p_171801_, p_171802_, p_171803_, p_171804_);
+            abstractcontainermenu.clicked(pSlotId, pMouseButton, pClickType, pPlayer);
             Int2ObjectMap<ItemStack> int2objectmap = new Int2ObjectOpenHashMap<>();
 
             for (int j = 0; j < i; ++j) {
@@ -420,34 +420,34 @@ public class MultiPlayerGameMode {
                 }
             }
 
-            this.connection.send(new ServerboundContainerClickPacket(p_171800_, abstractcontainermenu.getStateId(), p_171801_, p_171802_, p_171803_, abstractcontainermenu.getCarried().copy(), int2objectmap));
+            this.connection.send(new ServerboundContainerClickPacket(pContainerId, abstractcontainermenu.getStateId(), pSlotId, pMouseButton, pClickType, abstractcontainermenu.getCarried().copy(), int2objectmap));
         }
     }
 
-    public void handlePlaceRecipe(int p_105218_, Recipe<?> p_105219_, boolean p_105220_) {
-        this.connection.send(new ServerboundPlaceRecipePacket(p_105218_, p_105219_, p_105220_));
+    public void handlePlaceRecipe(int pContainerId, Recipe<?> pRecipe, boolean pPlaceAll) {
+        this.connection.send(new ServerboundPlaceRecipePacket(pContainerId, pRecipe, pPlaceAll));
     }
 
-    public void handleInventoryButtonClick(int p_105209_, int p_105210_) {
-        this.connection.send(new ServerboundContainerButtonClickPacket(p_105209_, p_105210_));
+    public void handleInventoryButtonClick(int pContainerId, int pButtonId) {
+        this.connection.send(new ServerboundContainerButtonClickPacket(pContainerId, pButtonId));
     }
 
-    public void handleCreativeModeItemAdd(ItemStack p_105242_, int p_105243_) {
+    public void handleCreativeModeItemAdd(ItemStack pStack, int pSlotId) {
         if (this.localPlayerMode.isCreative()) {
-            this.connection.send(new ServerboundSetCreativeModeSlotPacket(p_105243_, p_105242_));
+            this.connection.send(new ServerboundSetCreativeModeSlotPacket(pSlotId, pStack));
         }
     }
 
-    public void handleCreativeModeItemDrop(ItemStack p_105240_) {
-        if (this.localPlayerMode.isCreative() && !p_105240_.isEmpty()) {
-            this.connection.send(new ServerboundSetCreativeModeSlotPacket(-1, p_105240_));
+    public void handleCreativeModeItemDrop(ItemStack pStack) {
+        if (this.localPlayerMode.isCreative() && !pStack.isEmpty()) {
+            this.connection.send(new ServerboundSetCreativeModeSlotPacket(-1, pStack));
         }
     }
 
-    public void releaseUsingItem(Player p_105278_) {
+    public void releaseUsingItem(Player pPlayer) {
         this.ensureHasSentCarriedItem();
         this.connection.send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.RELEASE_USE_ITEM, BlockPos.ZERO, Direction.DOWN));
-        p_105278_.releaseUsingItem();
+        pPlayer.releaseUsingItem();
     }
 
     public boolean hasExperience() {
@@ -487,7 +487,7 @@ public class MultiPlayerGameMode {
         return this.isDestroying;
     }
 
-    public void handlePickItem(int p_105207_) {
-        this.connection.send(new ServerboundPickItemPacket(p_105207_));
+    public void handlePickItem(int pIndex) {
+        this.connection.send(new ServerboundPickItemPacket(pIndex));
     }
 }

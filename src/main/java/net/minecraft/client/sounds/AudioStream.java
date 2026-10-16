@@ -11,5 +11,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public interface AudioStream extends Closeable {
     AudioFormat getFormat();
 
-    ByteBuffer read(int p_120120_) throws IOException;
+    ByteBuffer read(int pSize) throws IOException;
 }

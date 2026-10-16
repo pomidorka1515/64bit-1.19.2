@@ -5,10 +5,10 @@ public class PositionImpl implements Position {
     protected final double y;
     protected final double z;
 
-    public PositionImpl(double p_122802_, double p_122803_, double p_122804_) {
-        this.x = p_122802_;
-        this.y = p_122803_;
-        this.z = p_122804_;
+    public PositionImpl(double pX, double pY, double pZ) {
+        this.x = pX;
+        this.y = pY;
+        this.z = pZ;
     }
 
     public double x() {

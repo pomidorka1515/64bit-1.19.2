@@ -17,11 +17,11 @@ public class PlacementContext extends WorldGenerationContext {
     private final ChunkGenerator generator;
     private final Optional<PlacedFeature> topFeature;
 
-    public PlacementContext(WorldGenLevel p_191818_, ChunkGenerator p_191819_, Optional<PlacedFeature> p_191820_) {
-        super(p_191819_, p_191818_);
-        this.level = p_191818_;
-        this.generator = p_191819_;
-        this.topFeature = p_191820_;
+    public PlacementContext(WorldGenLevel pLevel, ChunkGenerator pGenerator, Optional<PlacedFeature> pTopFeature) {
+        super(pGenerator, pLevel);
+        this.level = pLevel;
+        this.generator = pGenerator;
+        this.topFeature = pTopFeature;
     }
 
     public int getHeight(Heightmap.Types p_191825_, long p_191826_, long p_191827_) {

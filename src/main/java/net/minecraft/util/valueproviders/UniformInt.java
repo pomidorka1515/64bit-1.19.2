@@ -28,12 +28,12 @@ public class UniformInt extends IntProvider {
         this.maxInclusive = p_146620_;
     }
 
-    public static UniformInt of(int p_146623_, int p_146624_) {
-        return new UniformInt(p_146623_, p_146624_);
+    public static UniformInt of(int pMinInclusive, int pMaxInclusive) {
+        return new UniformInt(pMinInclusive, pMaxInclusive);
     }
 
-    public int sample(RandomSource p_216868_) {
-        return Mth.randomBetweenInclusive(p_216868_, this.minInclusive, this.maxInclusive);
+    public int sample(RandomSource pRandom) {
+        return Mth.randomBetweenInclusive(pRandom, this.minInclusive, this.maxInclusive);
     }
 
     public int getMinValue() {

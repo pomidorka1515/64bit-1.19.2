@@ -30,13 +30,13 @@ public class ChestBoat extends Boat implements HasCustomInventoryScreen, Contain
     private ResourceLocation lootTable;
     private long lootTableSeed;
 
-    public ChestBoat(EntityType<? extends Boat> p_219869_, Level p_219870_) {
-        super(p_219869_, p_219870_);
+    public ChestBoat(EntityType<? extends Boat> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public ChestBoat(Level p_219872_, double p_219873_, double p_219874_, double p_219875_) {
-        this(EntityType.CHEST_BOAT, p_219872_);
-        this.setPos(p_219873_, p_219874_, p_219875_);
+    public ChestBoat(Level pLevel, double pX, double pY, double pZ) {
+        this(EntityType.CHEST_BOAT, pLevel);
+        this.setPos(pX, pY, pZ);
         this.setOldPosAndRot();
     }
 
@@ -55,38 +55,38 @@ public class ChestBoat extends Boat implements HasCustomInventoryScreen, Contain
         return 1;
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_219908_) {
-        super.addAdditionalSaveData(p_219908_);
-        this.addChestVehicleSaveData(p_219908_);
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        this.addChestVehicleSaveData(pCompound);
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_219901_) {
-        super.readAdditionalSaveData(p_219901_);
-        this.readChestVehicleSaveData(p_219901_);
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.readChestVehicleSaveData(pCompound);
     }
 
-    public void destroy(DamageSource p_219892_) {
-        super.destroy(p_219892_);
-        this.chestVehicleDestroyed(p_219892_, this.level, this);
+    public void destroy(DamageSource pDamageSource) {
+        super.destroy(pDamageSource);
+        this.chestVehicleDestroyed(pDamageSource, this.level, this);
     }
 
-    public void remove(Entity.RemovalReason p_219894_) {
-        if (!this.level.isClientSide && p_219894_.shouldDestroy()) {
+    public void remove(Entity.RemovalReason pReason) {
+        if (!this.level.isClientSide && pReason.shouldDestroy()) {
             Containers.dropContents(this.level, this, this);
         }
 
-        super.remove(p_219894_);
+        super.remove(pReason);
     }
 
-    public InteractionResult interact(Player p_219898_, InteractionHand p_219899_) {
-        return this.canAddPassenger(p_219898_) && !p_219898_.isSecondaryUseActive() ? super.interact(p_219898_, p_219899_) : this.interactWithChestVehicle(this::gameEvent, p_219898_);
+    public InteractionResult interact(Player pPlayer, InteractionHand pHand) {
+        return this.canAddPassenger(pPlayer) && !pPlayer.isSecondaryUseActive() ? super.interact(pPlayer, pHand) : this.interactWithChestVehicle(this::gameEvent, pPlayer);
     }
 
-    public void openCustomInventoryScreen(Player p_219906_) {
-        p_219906_.openMenu(this);
-        if (!p_219906_.level.isClientSide) {
-            this.gameEvent(GameEvent.CONTAINER_OPEN, p_219906_);
-            PiglinAi.angerNearbyPiglins(p_219906_, true);
+    public void openCustomInventoryScreen(Player pPlayer) {
+        pPlayer.openMenu(this);
+        if (!pPlayer.level.isClientSide) {
+            this.gameEvent(GameEvent.CONTAINER_OPEN, pPlayer);
+            PiglinAi.angerNearbyPiglins(pPlayer, true);
         }
     }
 
@@ -126,45 +126,45 @@ public class ChestBoat extends Boat implements HasCustomInventoryScreen, Contain
         return 27;
     }
 
-    public ItemStack getItem(int p_219880_) {
-        return this.getChestVehicleItem(p_219880_);
+    public ItemStack getItem(int pSlot) {
+        return this.getChestVehicleItem(pSlot);
     }
 
-    public ItemStack removeItem(int p_219882_, int p_219883_) {
-        return this.removeChestVehicleItem(p_219882_, p_219883_);
+    public ItemStack removeItem(int pSlot, int pAmount) {
+        return this.removeChestVehicleItem(pSlot, pAmount);
     }
 
-    public ItemStack removeItemNoUpdate(int p_219904_) {
-        return this.removeChestVehicleItemNoUpdate(p_219904_);
+    public ItemStack removeItemNoUpdate(int pSlot) {
+        return this.removeChestVehicleItemNoUpdate(pSlot);
     }
 
-    public void setItem(int p_219885_, ItemStack p_219886_) {
-        this.setChestVehicleItem(p_219885_, p_219886_);
+    public void setItem(int pSlot, ItemStack pStack) {
+        this.setChestVehicleItem(pSlot, pStack);
     }
 
-    public SlotAccess getSlot(int p_219918_) {
-        return this.getChestVehicleSlot(p_219918_);
+    public SlotAccess getSlot(int pSlot) {
+        return this.getChestVehicleSlot(pSlot);
     }
 
     public void setChanged() {
     }
 
-    public boolean stillValid(Player p_219896_) {
-        return this.isChestVehicleStillValid(p_219896_);
+    public boolean stillValid(Player pPlayer) {
+        return this.isChestVehicleStillValid(pPlayer);
     }
 
     @Nullable
-    public AbstractContainerMenu createMenu(int p_219910_, Inventory p_219911_, Player p_219912_) {
-        if (this.lootTable != null && p_219912_.isSpectator()) {
+    public AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
+        if (this.lootTable != null && pPlayer.isSpectator()) {
             return null;
         } else {
-            this.unpackLootTable(p_219911_.player);
-            return ChestMenu.threeRows(p_219910_, p_219911_, this);
+            this.unpackLootTable(pPlayerInventory.player);
+            return ChestMenu.threeRows(pContainerId, pPlayerInventory, this);
         }
     }
 
-    public void unpackLootTable(@Nullable Player p_219914_) {
-        this.unpackChestVehicleLootTable(p_219914_);
+    public void unpackLootTable(@Nullable Player pPlayer) {
+        this.unpackChestVehicleLootTable(pPlayer);
     }
 
     @Nullable
@@ -172,16 +172,16 @@ public class ChestBoat extends Boat implements HasCustomInventoryScreen, Contain
         return this.lootTable;
     }
 
-    public void setLootTable(@Nullable ResourceLocation p_219890_) {
-        this.lootTable = p_219890_;
+    public void setLootTable(@Nullable ResourceLocation pLootTable) {
+        this.lootTable = pLootTable;
     }
 
     public long getLootTableSeed() {
         return this.lootTableSeed;
     }
 
-    public void setLootTableSeed(long p_219888_) {
-        this.lootTableSeed = p_219888_;
+    public void setLootTableSeed(long pLootTableSeed) {
+        this.lootTableSeed = pLootTableSeed;
     }
 
     public NonNullList<ItemStack> getItemStacks() {

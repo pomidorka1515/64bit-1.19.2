@@ -28,8 +28,8 @@ public class MoveControl implements Control {
     protected float strafeRight;
     protected MoveControl.Operation operation = MoveControl.Operation.WAIT;
 
-    public MoveControl(Mob p_24983_) {
-        this.mob = p_24983_;
+    public MoveControl(Mob pMob) {
+        this.mob = pMob;
     }
 
     public boolean hasWanted() {
@@ -40,12 +40,12 @@ public class MoveControl implements Control {
         return this.speedModifier;
     }
 
-    public void setWantedPosition(double p_24984_, double p_24985_, double p_24986_, double p_24987_) {
-        this.exactWantedPosition = SectorVec3.fromApproximate(p_24984_, p_24985_, p_24986_);
-        this.wantedX = p_24984_;
-        this.wantedY = p_24985_;
-        this.wantedZ = p_24986_;
-        this.speedModifier = p_24987_;
+    public void setWantedPosition(double pX, double pY, double pZ, double pSpeed) {
+        this.exactWantedPosition = SectorVec3.fromApproximate(pX, pY, pZ);
+        this.wantedX = pX;
+        this.wantedY = pY;
+        this.wantedZ = pZ;
+        this.speedModifier = pSpeed;
         if (this.operation != MoveControl.Operation.JUMPING) {
             this.operation = MoveControl.Operation.MOVE_TO;
         }
@@ -71,10 +71,10 @@ public class MoveControl implements Control {
                                                 : SectorVec3.fromApproximate(this.wantedX, this.wantedY, this.wantedZ);
     }
 
-    public void strafe(float p_24989_, float p_24990_) {
+    public void strafe(float pForward, float pStrafe) {
         this.operation = MoveControl.Operation.STRAFE;
-        this.strafeForwards = p_24989_;
-        this.strafeRight = p_24990_;
+        this.strafeForwards = pForward;
+        this.strafeRight = pStrafe;
         this.speedModifier = 0.25D;
     }
 
@@ -137,11 +137,11 @@ public class MoveControl implements Control {
         }
     }
 
-    private boolean isWalkable(float p_24997_, float p_24998_) {
+    private boolean isWalkable(float pRelativeX, float pRelativeZ) {
         PathNavigation pathnavigation = this.mob.getNavigation();
         if (pathnavigation != null) {
             NodeEvaluator nodeevaluator = pathnavigation.getNodeEvaluator();
-            SectorVec3 probe = this.mob.sectorPosition().add((double) p_24997_, 0.0D, (double) p_24998_);
+            SectorVec3 probe = this.mob.sectorPosition().add((double) pRelativeX, 0.0D, (double) pRelativeZ);
             if (nodeevaluator != null && nodeevaluator.getBlockPathType(this.mob.level, probe.blockX(), this.mob.getBlockY(), probe.blockZ()) != BlockPathTypes.WALKABLE) {
                 return false;
             }
@@ -150,17 +150,17 @@ public class MoveControl implements Control {
         return true;
     }
 
-    protected float rotlerp(float p_24992_, float p_24993_, float p_24994_) {
-        float f = Mth.wrapDegrees(p_24993_ - p_24992_);
-        if (f > p_24994_) {
-            f = p_24994_;
+    protected float rotlerp(float pSourceAngle, float pTargetAngle, float pMaximumChange) {
+        float f = Mth.wrapDegrees(pTargetAngle - pSourceAngle);
+        if (f > pMaximumChange) {
+            f = pMaximumChange;
         }
 
-        if (f < -p_24994_) {
-            f = -p_24994_;
+        if (f < -pMaximumChange) {
+            f = -pMaximumChange;
         }
 
-        float f1 = p_24992_ + f;
+        float f1 = pSourceAngle + f;
         if (f1 < 0.0F) {
             f1 += 360.0F;
         } else if (f1 > 360.0F) {

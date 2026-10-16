@@ -54,9 +54,9 @@ public class DoubleBlockCombiner {
     }
 
     public interface Combiner<S, T> {
-        T acceptDouble(S p_52843_, S p_52844_);
+        T acceptDouble(S pFirst, S pSecond);
 
-        T acceptSingle(S p_52842_);
+        T acceptSingle(S pSingle);
 
         T acceptNone();
     }
@@ -68,9 +68,9 @@ public class DoubleBlockCombiner {
             private final S first;
             private final S second;
 
-            public Double(S p_52849_, S p_52850_) {
-                this.first = p_52849_;
-                this.second = p_52850_;
+            public Double(S pFirst, S pSecond) {
+                this.first = pFirst;
+                this.second = pSecond;
             }
 
             public <T> T apply(DoubleBlockCombiner.Combiner<? super S, T> p_52852_) {
@@ -81,8 +81,8 @@ public class DoubleBlockCombiner {
         public static final class Single<S> implements DoubleBlockCombiner.NeighborCombineResult<S> {
             private final S single;
 
-            public Single(S p_52855_) {
-                this.single = p_52855_;
+            public Single(S pSingle) {
+                this.single = pSingle;
             }
 
             public <T> T apply(DoubleBlockCombiner.Combiner<? super S, T> p_52857_) {

@@ -18,8 +18,8 @@ public class RegistryLoader {
     private final RegistryResourceAccess resources;
     private final Map<ResourceKey<? extends Registry<?>>, RegistryLoader.ReadCache<?>> readCache = new IdentityHashMap<>();
 
-    RegistryLoader(RegistryResourceAccess p_206753_) {
-        this.resources = p_206753_;
+    RegistryLoader(RegistryResourceAccess pResources) {
+        this.resources = pResources;
     }
 
     public <E> DataResult<? extends Registry<E>> overrideRegistryFromResources(WritableRegistry<E> p_206763_, ResourceKey<? extends Registry<E>> p_206764_, Codec<E> p_206765_, DynamicOps<JsonElement> p_206766_) {

@@ -22,17 +22,17 @@ public class FontTexture extends AbstractTexture {
     private final boolean colored;
     private final FontTexture.Node root;
 
-    public FontTexture(ResourceLocation p_95097_, boolean p_95098_) {
-        this.name = p_95097_;
-        this.colored = p_95098_;
+    public FontTexture(ResourceLocation pName, boolean pColored) {
+        this.name = pName;
+        this.colored = pColored;
         this.root = new FontTexture.Node(0, 0, 256, 256);
-        TextureUtil.prepareImage(p_95098_ ? NativeImage.InternalGlFormat.RGBA : NativeImage.InternalGlFormat.RED, this.getId(), 256, 256);
-        this.normalType = p_95098_ ? RenderType.text(p_95097_) : RenderType.textIntensity(p_95097_);
-        this.seeThroughType = p_95098_ ? RenderType.textSeeThrough(p_95097_) : RenderType.textIntensitySeeThrough(p_95097_);
-        this.polygonOffsetType = p_95098_ ? RenderType.textPolygonOffset(p_95097_) : RenderType.textIntensityPolygonOffset(p_95097_);
+        TextureUtil.prepareImage(pColored ? NativeImage.InternalGlFormat.RGBA : NativeImage.InternalGlFormat.RED, this.getId(), 256, 256);
+        this.normalType = pColored ? RenderType.text(pName) : RenderType.textIntensity(pName);
+        this.seeThroughType = pColored ? RenderType.textSeeThrough(pName) : RenderType.textIntensitySeeThrough(pName);
+        this.polygonOffsetType = pColored ? RenderType.textPolygonOffset(pName) : RenderType.textIntensityPolygonOffset(pName);
     }
 
-    public void load(ResourceManager p_95101_) {
+    public void load(ResourceManager pManager) {
     }
 
     public void close() {
@@ -40,18 +40,18 @@ public class FontTexture extends AbstractTexture {
     }
 
     @Nullable
-    public BakedGlyph add(SheetGlyphInfo p_232569_) {
-        if (p_232569_.isColored() != this.colored) {
+    public BakedGlyph add(SheetGlyphInfo pGlyphInfo) {
+        if (pGlyphInfo.isColored() != this.colored) {
             return null;
         } else {
-            FontTexture.Node fonttexture$node = this.root.insert(p_232569_);
+            FontTexture.Node fonttexture$node = this.root.insert(pGlyphInfo);
             if (fonttexture$node != null) {
                 this.bind();
-                p_232569_.upload(fonttexture$node.x, fonttexture$node.y);
+                pGlyphInfo.upload(fonttexture$node.x, fonttexture$node.y);
                 float f = 256.0F;
                 float f1 = 256.0F;
                 float f2 = 0.01F;
-                return new BakedGlyph(this.normalType, this.seeThroughType, this.polygonOffsetType, ((float) fonttexture$node.x + 0.01F) / 256.0F, ((float) fonttexture$node.x - 0.01F + (float) p_232569_.getPixelWidth()) / 256.0F, ((float) fonttexture$node.y + 0.01F) / 256.0F, ((float) fonttexture$node.y - 0.01F + (float) p_232569_.getPixelHeight()) / 256.0F, p_232569_.getLeft(), p_232569_.getRight(), p_232569_.getUp(), p_232569_.getDown());
+                return new BakedGlyph(this.normalType, this.seeThroughType, this.polygonOffsetType, ((float) fonttexture$node.x + 0.01F) / 256.0F, ((float) fonttexture$node.x - 0.01F + (float) pGlyphInfo.getPixelWidth()) / 256.0F, ((float) fonttexture$node.y + 0.01F) / 256.0F, ((float) fonttexture$node.y - 0.01F + (float) pGlyphInfo.getPixelHeight()) / 256.0F, pGlyphInfo.getLeft(), pGlyphInfo.getRight(), pGlyphInfo.getUp(), pGlyphInfo.getDown());
             } else {
                 return null;
             }
@@ -74,27 +74,27 @@ public class FontTexture extends AbstractTexture {
         private FontTexture.Node right;
         private boolean occupied;
 
-        Node(int p_95113_, int p_95114_, int p_95115_, int p_95116_) {
-            this.x = p_95113_;
-            this.y = p_95114_;
-            this.width = p_95115_;
-            this.height = p_95116_;
+        Node(int pX, int pY, int pWidth, int pHeight) {
+            this.x = pX;
+            this.y = pY;
+            this.width = pWidth;
+            this.height = pHeight;
         }
 
         @Nullable
-        FontTexture.Node insert(SheetGlyphInfo p_232571_) {
+        FontTexture.Node insert(SheetGlyphInfo pGlyphInfo) {
             if (this.left != null && this.right != null) {
-                FontTexture.Node fonttexture$node = this.left.insert(p_232571_);
+                FontTexture.Node fonttexture$node = this.left.insert(pGlyphInfo);
                 if (fonttexture$node == null) {
-                    fonttexture$node = this.right.insert(p_232571_);
+                    fonttexture$node = this.right.insert(pGlyphInfo);
                 }
 
                 return fonttexture$node;
             } else if (this.occupied) {
                 return null;
             } else {
-                int i = p_232571_.getPixelWidth();
-                int j = p_232571_.getPixelHeight();
+                int i = pGlyphInfo.getPixelWidth();
+                int j = pGlyphInfo.getPixelHeight();
                 if (i <= this.width && j <= this.height) {
                     if (i == this.width && j == this.height) {
                         this.occupied = true;
@@ -110,7 +110,7 @@ public class FontTexture extends AbstractTexture {
                             this.right = new FontTexture.Node(this.x, this.y + j + 1, this.width, this.height - j - 1);
                         }
 
-                        return this.left.insert(p_232571_);
+                        return this.left.insert(pGlyphInfo);
                     }
                 } else {
                     return null;

@@ -20,10 +20,10 @@ public class MeleeAttackGoal extends Goal {
     private long lastCanUseCheck;
     private static final long COOLDOWN_BETWEEN_CAN_USE_CHECKS = 20L;
 
-    public MeleeAttackGoal(PathfinderMob p_25552_, double p_25553_, boolean p_25554_) {
-        this.mob = p_25552_;
-        this.speedModifier = p_25553_;
-        this.followingTargetEvenIfNotSeen = p_25554_;
+    public MeleeAttackGoal(PathfinderMob pMob, double pSpeedModifier, boolean pFollowingTargetEvenIfNotSeen) {
+        this.mob = pMob;
+        this.speedModifier = pSpeedModifier;
+        this.followingTargetEvenIfNotSeen = pFollowingTargetEvenIfNotSeen;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
@@ -116,12 +116,12 @@ public class MeleeAttackGoal extends Goal {
         }
     }
 
-    protected void checkAndPerformAttack(LivingEntity p_25557_, double p_25558_) {
-        double d0 = this.getAttackReachSqr(p_25557_);
-        if (p_25558_ <= d0 && this.ticksUntilNextAttack <= 0) {
+    protected void checkAndPerformAttack(LivingEntity pEnemy, double pDistToEnemySqr) {
+        double d0 = this.getAttackReachSqr(pEnemy);
+        if (pDistToEnemySqr <= d0 && this.ticksUntilNextAttack <= 0) {
             this.resetAttackCooldown();
             this.mob.swing(InteractionHand.MAIN_HAND);
-            this.mob.doHurtTarget(p_25557_);
+            this.mob.doHurtTarget(pEnemy);
         }
     }
 
@@ -141,7 +141,7 @@ public class MeleeAttackGoal extends Goal {
         return this.adjustedTickDelay(20);
     }
 
-    protected double getAttackReachSqr(LivingEntity p_25556_) {
-        return (double) (this.mob.getBbWidth() * 2.0F * this.mob.getBbWidth() * 2.0F + p_25556_.getBbWidth());
+    protected double getAttackReachSqr(LivingEntity pAttackTarget) {
+        return (double) (this.mob.getBbWidth() * 2.0F * this.mob.getBbWidth() * 2.0F + pAttackTarget.getBbWidth());
     }
 }

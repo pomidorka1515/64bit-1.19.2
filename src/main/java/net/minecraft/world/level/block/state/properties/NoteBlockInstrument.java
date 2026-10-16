@@ -42,31 +42,31 @@ public enum NoteBlockInstrument implements StringRepresentable {
         return this.soundEvent;
     }
 
-    public static NoteBlockInstrument byState(BlockState p_61667_) {
-        if (p_61667_.is(Blocks.CLAY)) {
+    public static NoteBlockInstrument byState(BlockState pState) {
+        if (pState.is(Blocks.CLAY)) {
             return FLUTE;
-        } else if (p_61667_.is(Blocks.GOLD_BLOCK)) {
+        } else if (pState.is(Blocks.GOLD_BLOCK)) {
             return BELL;
-        } else if (p_61667_.is(BlockTags.WOOL)) {
+        } else if (pState.is(BlockTags.WOOL)) {
             return GUITAR;
-        } else if (p_61667_.is(Blocks.PACKED_ICE)) {
+        } else if (pState.is(Blocks.PACKED_ICE)) {
             return CHIME;
-        } else if (p_61667_.is(Blocks.BONE_BLOCK)) {
+        } else if (pState.is(Blocks.BONE_BLOCK)) {
             return XYLOPHONE;
-        } else if (p_61667_.is(Blocks.IRON_BLOCK)) {
+        } else if (pState.is(Blocks.IRON_BLOCK)) {
             return IRON_XYLOPHONE;
-        } else if (p_61667_.is(Blocks.SOUL_SAND)) {
+        } else if (pState.is(Blocks.SOUL_SAND)) {
             return COW_BELL;
-        } else if (p_61667_.is(Blocks.PUMPKIN)) {
+        } else if (pState.is(Blocks.PUMPKIN)) {
             return DIDGERIDOO;
-        } else if (p_61667_.is(Blocks.EMERALD_BLOCK)) {
+        } else if (pState.is(Blocks.EMERALD_BLOCK)) {
             return BIT;
-        } else if (p_61667_.is(Blocks.HAY_BLOCK)) {
+        } else if (pState.is(Blocks.HAY_BLOCK)) {
             return BANJO;
-        } else if (p_61667_.is(Blocks.GLOWSTONE)) {
+        } else if (pState.is(Blocks.GLOWSTONE)) {
             return PLING;
         } else {
-            Material material = p_61667_.getMaterial();
+            Material material = pState.getMaterial();
             if (material == Material.STONE) {
                 return BASEDRUM;
             } else if (material == Material.SAND) {

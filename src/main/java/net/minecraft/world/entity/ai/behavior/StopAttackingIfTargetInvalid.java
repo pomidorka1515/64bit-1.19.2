@@ -16,25 +16,25 @@ public class StopAttackingIfTargetInvalid<E extends Mob> extends Behavior<E> {
     private final BiConsumer<E, LivingEntity> onTargetErased;
     private final boolean canGrowTiredOfTryingToReachTarget;
 
-    public StopAttackingIfTargetInvalid(Predicate<LivingEntity> p_217404_, BiConsumer<E, LivingEntity> p_217405_, boolean p_217406_) {
+    public StopAttackingIfTargetInvalid(Predicate<LivingEntity> pStopAttackingWhen, BiConsumer<E, LivingEntity> pOnTargetErased, boolean pCanGrowTiredOfTryingToReachTarget) {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED));
-        this.stopAttackingWhen = p_217404_;
-        this.onTargetErased = p_217405_;
-        this.canGrowTiredOfTryingToReachTarget = p_217406_;
+        this.stopAttackingWhen = pStopAttackingWhen;
+        this.onTargetErased = pOnTargetErased;
+        this.canGrowTiredOfTryingToReachTarget = pCanGrowTiredOfTryingToReachTarget;
     }
 
-    public StopAttackingIfTargetInvalid(Predicate<LivingEntity> p_217401_, BiConsumer<E, LivingEntity> p_217402_) {
-        this(p_217401_, p_217402_, true);
+    public StopAttackingIfTargetInvalid(Predicate<LivingEntity> pStopAttackingWhen, BiConsumer<E, LivingEntity> pOnTargetErased) {
+        this(pStopAttackingWhen, pOnTargetErased, true);
     }
 
-    public StopAttackingIfTargetInvalid(Predicate<LivingEntity> p_24236_) {
-        this(p_24236_, (p_217411_, p_217412_) -> {});
+    public StopAttackingIfTargetInvalid(Predicate<LivingEntity> pStopAttackingWhen) {
+        this(pStopAttackingWhen, (p_217411_, p_217412_) -> {});
     }
 
-    public StopAttackingIfTargetInvalid(BiConsumer<E, LivingEntity> p_217399_) {
+    public StopAttackingIfTargetInvalid(BiConsumer<E, LivingEntity> pOnTargetErased) {
         this((p_147988_) -> {
             return false;
-        }, p_217399_);
+        }, pOnTargetErased);
     }
 
     public StopAttackingIfTargetInvalid() {
@@ -43,41 +43,41 @@ public class StopAttackingIfTargetInvalid<E extends Mob> extends Behavior<E> {
         }, (p_217408_, p_217409_) -> {});
     }
 
-    protected void start(ServerLevel p_24242_, E p_24243_, long p_24244_) {
-        LivingEntity livingentity = this.getAttackTarget(p_24243_);
-        if (!p_24243_.canAttack(livingentity)) {
-            this.clearAttackTarget(p_24243_);
-        } else if (this.canGrowTiredOfTryingToReachTarget && isTiredOfTryingToReachTarget(p_24243_)) {
-            this.clearAttackTarget(p_24243_);
-        } else if (this.isCurrentTargetDeadOrRemoved(p_24243_)) {
-            this.clearAttackTarget(p_24243_);
-        } else if (this.isCurrentTargetInDifferentLevel(p_24243_)) {
-            this.clearAttackTarget(p_24243_);
-        } else if (this.stopAttackingWhen.test(this.getAttackTarget(p_24243_))) {
-            this.clearAttackTarget(p_24243_);
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
+        LivingEntity livingentity = this.getAttackTarget(pEntity);
+        if (!pEntity.canAttack(livingentity)) {
+            this.clearAttackTarget(pEntity);
+        } else if (this.canGrowTiredOfTryingToReachTarget && isTiredOfTryingToReachTarget(pEntity)) {
+            this.clearAttackTarget(pEntity);
+        } else if (this.isCurrentTargetDeadOrRemoved(pEntity)) {
+            this.clearAttackTarget(pEntity);
+        } else if (this.isCurrentTargetInDifferentLevel(pEntity)) {
+            this.clearAttackTarget(pEntity);
+        } else if (this.stopAttackingWhen.test(this.getAttackTarget(pEntity))) {
+            this.clearAttackTarget(pEntity);
         }
     }
 
-    private boolean isCurrentTargetInDifferentLevel(E p_24248_) {
-        return this.getAttackTarget(p_24248_).level != p_24248_.level;
+    private boolean isCurrentTargetInDifferentLevel(E pMemoryHolder) {
+        return this.getAttackTarget(pMemoryHolder).level != pMemoryHolder.level;
     }
 
-    private LivingEntity getAttackTarget(E p_24252_) {
-        return p_24252_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).get();
+    private LivingEntity getAttackTarget(E pMemoryHolder) {
+        return pMemoryHolder.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).get();
     }
 
-    private static <E extends LivingEntity> boolean isTiredOfTryingToReachTarget(E p_24246_) {
-        Optional<Long> optional = p_24246_.getBrain().getMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
-        return optional.isPresent() && p_24246_.level.getGameTime() - optional.get() > 200L;
+    private static <E extends LivingEntity> boolean isTiredOfTryingToReachTarget(E pMemoryHolder) {
+        Optional<Long> optional = pMemoryHolder.getBrain().getMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+        return optional.isPresent() && pMemoryHolder.level.getGameTime() - optional.get() > 200L;
     }
 
-    private boolean isCurrentTargetDeadOrRemoved(E p_24254_) {
-        Optional<LivingEntity> optional = p_24254_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
+    private boolean isCurrentTargetDeadOrRemoved(E pMemoryHolder) {
+        Optional<LivingEntity> optional = pMemoryHolder.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
         return optional.isPresent() && !optional.get().isAlive();
     }
 
-    protected void clearAttackTarget(E p_24256_) {
-        this.onTargetErased.accept(p_24256_, this.getAttackTarget(p_24256_));
-        p_24256_.getBrain().eraseMemory(MemoryModuleType.ATTACK_TARGET);
+    protected void clearAttackTarget(E pMemoryHolder) {
+        this.onTargetErased.accept(pMemoryHolder, this.getAttackTarget(pMemoryHolder));
+        pMemoryHolder.getBrain().eraseMemory(MemoryModuleType.ATTACK_TARGET);
     }
 }

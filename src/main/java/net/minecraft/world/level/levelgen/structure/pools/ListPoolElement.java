@@ -36,13 +36,13 @@ public class ListPoolElement extends StructurePoolElement {
         }
     }
 
-    public Vec3i getSize(StructureTemplateManager p_227283_, Rotation p_227284_) {
+    public Vec3i getSize(StructureTemplateManager pStructureTemplateManager, Rotation pRotation) {
         long i = 0;
         int j = 0;
         long k = 0;
 
         for (StructurePoolElement structurepoolelement : this.elements) {
-            Vec3i vec3i = structurepoolelement.getSize(p_227283_, p_227284_);
+            Vec3i vec3i = structurepoolelement.getSize(pStructureTemplateManager, pRotation);
             i = Math.max(i, vec3i.getX());
             j = Math.max(j, vec3i.getY());
             k = Math.max(k, vec3i.getZ());
@@ -81,9 +81,9 @@ public class ListPoolElement extends StructurePoolElement {
         return StructurePoolElementType.LIST;
     }
 
-    public StructurePoolElement setProjection(StructureTemplatePool.Projection p_210373_) {
-        super.setProjection(p_210373_);
-        this.setProjectionOnEachElement(p_210373_);
+    public StructurePoolElement setProjection(StructureTemplatePool.Projection pProjection) {
+        super.setProjection(pProjection);
+        this.setProjectionOnEachElement(pProjection);
         return this;
     }
 
@@ -91,9 +91,9 @@ public class ListPoolElement extends StructurePoolElement {
         return "List[" + (String) this.elements.stream().map(Object::toString).collect(Collectors.joining(", ")) + "]";
     }
 
-    private void setProjectionOnEachElement(StructureTemplatePool.Projection p_210407_) {
+    private void setProjectionOnEachElement(StructureTemplatePool.Projection pProjection) {
         this.elements.forEach((p_210376_) -> {
-            p_210376_.setProjection(p_210407_);
+            p_210376_.setProjection(pProjection);
         });
     }
 }

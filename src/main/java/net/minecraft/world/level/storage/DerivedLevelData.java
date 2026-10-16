@@ -15,9 +15,9 @@ public class DerivedLevelData implements ServerLevelData {
     private final WorldData worldData;
     private final ServerLevelData wrapped;
 
-    public DerivedLevelData(WorldData p_78079_, ServerLevelData p_78080_) {
-        this.worldData = p_78079_;
-        this.wrapped = p_78080_;
+    public DerivedLevelData(WorldData pWorldData, ServerLevelData pWrapped) {
+        this.worldData = pWorldData;
+        this.wrapped = pWrapped;
     }
 
     public long getXSpawn() {
@@ -52,7 +52,7 @@ public class DerivedLevelData implements ServerLevelData {
         return this.wrapped.getClearWeatherTime();
     }
 
-    public void setClearWeatherTime(int p_78085_) {
+    public void setClearWeatherTime(int pTime) {
     }
 
     public boolean isThundering() {
@@ -75,40 +75,40 @@ public class DerivedLevelData implements ServerLevelData {
         return this.worldData.getGameType();
     }
 
-    public void setXSpawn(long p_78103_) {
+    public void setXSpawn(long pX) {
     }
 
-    public void setYSpawn(int p_78110_) {
+    public void setYSpawn(int pY) {
     }
 
-    public void setZSpawn(long p_78115_) {
+    public void setZSpawn(long pZ) {
     }
 
-    public void setSpawnAngle(float p_78083_) {
+    public void setSpawnAngle(float pAngle) {
     }
 
-    public void setGameTime(long p_78087_) {
+    public void setGameTime(long pTime) {
     }
 
-    public void setDayTime(long p_78105_) {
+    public void setDayTime(long pTime) {
     }
 
-    public void setSpawn(BlockPos p_78093_, float p_78094_) {
+    public void setSpawn(BlockPos pSpawnPoint, float pAngle) {
     }
 
-    public void setThundering(boolean p_78100_) {
+    public void setThundering(boolean pThundering) {
     }
 
-    public void setThunderTime(int p_78118_) {
+    public void setThunderTime(int pTime) {
     }
 
-    public void setRaining(boolean p_78107_) {
+    public void setRaining(boolean pIsRaining) {
     }
 
-    public void setRainTime(int p_78121_) {
+    public void setRainTime(int pTime) {
     }
 
-    public void setGameType(GameType p_78089_) {
+    public void setGameType(GameType pType) {
     }
 
     public boolean isHardcore() {
@@ -123,7 +123,7 @@ public class DerivedLevelData implements ServerLevelData {
         return this.wrapped.isInitialized();
     }
 
-    public void setInitialized(boolean p_78112_) {
+    public void setInitialized(boolean pInitialized) {
     }
 
     public GameRules getGameRules() {
@@ -134,7 +134,7 @@ public class DerivedLevelData implements ServerLevelData {
         return this.wrapped.getWorldBorder();
     }
 
-    public void setWorldBorder(WorldBorder.Settings p_78091_) {
+    public void setWorldBorder(WorldBorder.Settings pSerializer) {
     }
 
     public Difficulty getDifficulty() {
@@ -153,25 +153,25 @@ public class DerivedLevelData implements ServerLevelData {
         return 0;
     }
 
-    public void setWanderingTraderSpawnDelay(int p_78124_) {
+    public void setWanderingTraderSpawnDelay(int pDelay) {
     }
 
     public int getWanderingTraderSpawnChance() {
         return 0;
     }
 
-    public void setWanderingTraderSpawnChance(int p_78127_) {
+    public void setWanderingTraderSpawnChance(int pChance) {
     }
 
     public UUID getWanderingTraderId() {
         return null;
     }
 
-    public void setWanderingTraderId(UUID p_78096_) {
+    public void setWanderingTraderId(UUID pId) {
     }
 
-    public void fillCrashReportCategory(CrashReportCategory p_164852_, LevelHeightAccessor p_164853_) {
-        p_164852_.setDetail("Derived", true);
-        this.wrapped.fillCrashReportCategory(p_164852_, p_164853_);
+    public void fillCrashReportCategory(CrashReportCategory pCrashReportCategory, LevelHeightAccessor pLevel) {
+        pCrashReportCategory.setDetail("Derived", true);
+        this.wrapped.fillCrashReportCategory(pCrashReportCategory, pLevel);
     }
 }

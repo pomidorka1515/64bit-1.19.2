@@ -12,8 +12,8 @@ import java.util.List;
 import net.minecraft.commands.arguments.PreviewedArgument;
 
 public record PreviewableCommand<S>(List<PreviewableCommand.Argument<S>> arguments) {
-    public static <S> PreviewableCommand<S> of(ParseResults<S> p_242945_) {
-        CommandContextBuilder<S> commandcontextbuilder = p_242945_.getContext();
+    public static <S> PreviewableCommand<S> of(ParseResults<S> pParseResults) {
+        CommandContextBuilder<S> commandcontextbuilder = pParseResults.getContext();
         CommandContextBuilder<S> commandcontextbuilder1 = commandcontextbuilder;
 
         List<PreviewableCommand.Argument<S>> list;
@@ -30,15 +30,15 @@ public record PreviewableCommand<S>(List<PreviewableCommand.Argument<S>> argumen
         return new PreviewableCommand<>(list);
     }
 
-    private static <S> List<PreviewableCommand.Argument<S>> collectArguments(CommandContextBuilder<S> p_242893_) {
+    private static <S> List<PreviewableCommand.Argument<S>> collectArguments(CommandContextBuilder<S> pBuilder) {
         List<PreviewableCommand.Argument<S>> list = new ArrayList<>();
 
-        for (ParsedCommandNode<S> parsedcommandnode : p_242893_.getNodes()) {
+        for (ParsedCommandNode<S> parsedcommandnode : pBuilder.getNodes()) {
             CommandNode<S> $$5 = parsedcommandnode.getNode();
             if ($$5 instanceof ArgumentCommandNode<S, ?> argumentcommandnode) {
                 ArgumentType argumenttype = argumentcommandnode.getType();
                 if (argumenttype instanceof PreviewedArgument<?> previewedargument) {
-                    ParsedArgument<S, ?> parsedargument = p_242893_.getArguments().get(argumentcommandnode.getName());
+                    ParsedArgument<S, ?> parsedargument = pBuilder.getArguments().get(argumentcommandnode.getName());
                     if (parsedargument != null) {
                         list.add(new PreviewableCommand.Argument<>(argumentcommandnode, parsedargument, previewedargument));
                     }
@@ -49,9 +49,9 @@ public record PreviewableCommand<S>(List<PreviewableCommand.Argument<S>> argumen
         return list;
     }
 
-    public boolean isPreviewed(CommandNode<?> p_242917_) {
+    public boolean isPreviewed(CommandNode<?> pNode) {
         for (PreviewableCommand.Argument<S> argument : this.arguments) {
-            if (argument.node() == p_242917_) {
+            if (argument.node() == pNode) {
                 return true;
             }
         }

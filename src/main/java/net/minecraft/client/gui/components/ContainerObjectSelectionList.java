@@ -17,12 +17,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class ContainerObjectSelectionList<E extends ContainerObjectSelectionList.Entry<E>> extends AbstractSelectionList<E> {
     private boolean hasFocus;
 
-    public ContainerObjectSelectionList(Minecraft p_94010_, int p_94011_, int p_94012_, int p_94013_, int p_94014_, int p_94015_) {
-        super(p_94010_, p_94011_, p_94012_, p_94013_, p_94014_, p_94015_);
+    public ContainerObjectSelectionList(Minecraft pMinecraft, int pWidth, int pHeight, int pY0, int pY1, int pItemHeight) {
+        super(pMinecraft, pWidth, pHeight, pY0, pY1, pItemHeight);
     }
 
-    public boolean changeFocus(boolean p_94017_) {
-        this.hasFocus = super.changeFocus(p_94017_);
+    public boolean changeFocus(boolean pFocus) {
+        this.hasFocus = super.changeFocus(pFocus);
         if (this.hasFocus) {
             this.ensureVisible(this.getFocused());
         }
@@ -34,24 +34,24 @@ public abstract class ContainerObjectSelectionList<E extends ContainerObjectSele
         return this.hasFocus ? NarratableEntry.NarrationPriority.FOCUSED : super.narrationPriority();
     }
 
-    protected boolean isSelectedItem(int p_94019_) {
+    protected boolean isSelectedItem(int pIndex) {
         return false;
     }
 
-    public void updateNarration(NarrationElementOutput p_168851_) {
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
         E e = this.getHovered();
         if (e != null) {
-            e.updateNarration(p_168851_.nest());
-            this.narrateListElementPosition(p_168851_, e);
+            e.updateNarration(pNarrationElementOutput.nest());
+            this.narrateListElementPosition(pNarrationElementOutput, e);
         } else {
             E e1 = this.getFocused();
             if (e1 != null) {
-                e1.updateNarration(p_168851_.nest());
-                this.narrateListElementPosition(p_168851_, e1);
+                e1.updateNarration(pNarrationElementOutput.nest());
+                this.narrateListElementPosition(pNarrationElementOutput, e1);
             }
         }
 
-        p_168851_.add(NarratedElementType.USAGE, Component.translatable("narration.component_list.usage"));
+        pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.component_list.usage"));
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -66,12 +66,12 @@ public abstract class ContainerObjectSelectionList<E extends ContainerObjectSele
             return this.dragging;
         }
 
-        public void setDragging(boolean p_94028_) {
-            this.dragging = p_94028_;
+        public void setDragging(boolean pDragging) {
+            this.dragging = pDragging;
         }
 
-        public void setFocused(@Nullable GuiEventListener p_94024_) {
-            this.focused = p_94024_;
+        public void setFocused(@Nullable GuiEventListener pListener) {
+            this.focused = pListener;
         }
 
         @Nullable
@@ -81,7 +81,7 @@ public abstract class ContainerObjectSelectionList<E extends ContainerObjectSele
 
         public abstract List<? extends NarratableEntry> narratables();
 
-        void updateNarration(NarrationElementOutput p_168855_) {
+        void updateNarration(NarrationElementOutput pNarrationElementOutput) {
             List<? extends NarratableEntry> list = this.narratables();
             Screen.NarratableSearchResult screen$narratablesearchresult = Screen.findNarratableWidget(list, this.lastNarratable);
             if (screen$narratablesearchresult != null) {
@@ -90,13 +90,13 @@ public abstract class ContainerObjectSelectionList<E extends ContainerObjectSele
                 }
 
                 if (list.size() > 1) {
-                    p_168855_.add(NarratedElementType.POSITION, Component.translatable("narrator.position.object_list", screen$narratablesearchresult.index + 1, list.size()));
+                    pNarrationElementOutput.add(NarratedElementType.POSITION, Component.translatable("narrator.position.object_list", screen$narratablesearchresult.index + 1, list.size()));
                     if (screen$narratablesearchresult.priority == NarratableEntry.NarrationPriority.FOCUSED) {
-                        p_168855_.add(NarratedElementType.USAGE, Component.translatable("narration.component_list.usage"));
+                        pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.component_list.usage"));
                     }
                 }
 
-                screen$narratablesearchresult.entry.updateNarration(p_168855_.nest());
+                screen$narratablesearchresult.entry.updateNarration(pNarrationElementOutput.nest());
             }
         }
     }

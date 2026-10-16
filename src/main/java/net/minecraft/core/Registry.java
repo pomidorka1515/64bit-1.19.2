@@ -389,14 +389,14 @@ public abstract class Registry<T> implements Keyable, IdMap<T> {
     private final ResourceKey<? extends Registry<T>> key;
     private final Lifecycle lifecycle;
 
-    private static <T> ResourceKey<Registry<T>> createRegistryKey(String p_122979_) {
-        return ResourceKey.createRegistryKey(new ResourceLocation(p_122979_));
+    private static <T> ResourceKey<Registry<T>> createRegistryKey(String pRegistryName) {
+        return ResourceKey.createRegistryKey(new ResourceLocation(pRegistryName));
     }
 
-    public static <T extends Registry<?>> void checkRegistry(Registry<T> p_205993_) {
-        p_205993_.forEach((p_235790_) -> {
+    public static <T extends Registry<?>> void checkRegistry(Registry<T> pMetaRegistry) {
+        pMetaRegistry.forEach((p_235790_) -> {
             if (p_235790_.keySet().isEmpty()) {
-                Util.logAndPauseIfInIde("Registry '" + p_205993_.getKey(p_235790_) + "' was empty after loading");
+                Util.logAndPauseIfInIde("Registry '" + pMetaRegistry.getKey(p_235790_) + "' was empty after loading");
             }
 
             if (p_235790_ instanceof DefaultedRegistry) {
@@ -406,49 +406,49 @@ public abstract class Registry<T> implements Keyable, IdMap<T> {
         });
     }
 
-    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> p_206009_, Registry.RegistryBootstrap<T> p_206010_) {
-        return registerSimple(p_206009_, Lifecycle.experimental(), p_206010_);
+    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> pRegistryKey, Registry.RegistryBootstrap<T> pLoader) {
+        return registerSimple(pRegistryKey, Lifecycle.experimental(), pLoader);
     }
 
-    private static <T> DefaultedRegistry<T> registerDefaulted(ResourceKey<? extends Registry<T>> p_206028_, String p_206029_, Registry.RegistryBootstrap<T> p_206030_) {
-        return registerDefaulted(p_206028_, p_206029_, Lifecycle.experimental(), p_206030_);
+    private static <T> DefaultedRegistry<T> registerDefaulted(ResourceKey<? extends Registry<T>> pRegistryKey, String pDefaultValueName, Registry.RegistryBootstrap<T> pLoader) {
+        return registerDefaulted(pRegistryKey, pDefaultValueName, Lifecycle.experimental(), pLoader);
     }
 
-    private static <T> DefaultedRegistry<T> registerDefaulted(ResourceKey<? extends Registry<T>> p_206032_, String p_206033_, Function<T, Holder.Reference<T>> p_206034_, Registry.RegistryBootstrap<T> p_206035_) {
-        return registerDefaulted(p_206032_, p_206033_, Lifecycle.experimental(), p_206034_, p_206035_);
+    private static <T> DefaultedRegistry<T> registerDefaulted(ResourceKey<? extends Registry<T>> pRegistryKey, String pDefaultValueName, Function<T, Holder.Reference<T>> pCustomHolderProvider, Registry.RegistryBootstrap<T> pBootstrap) {
+        return registerDefaulted(pRegistryKey, pDefaultValueName, Lifecycle.experimental(), pCustomHolderProvider, pBootstrap);
     }
 
-    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> p_206000_, Lifecycle p_206001_, Registry.RegistryBootstrap<T> p_206002_) {
-        return internalRegister(p_206000_, new MappedRegistry<>(p_206000_, p_206001_, (Function<T, Holder.Reference<T>>) null), p_206002_, p_206001_);
+    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> pRegistryKey, Lifecycle pLifecycle, Registry.RegistryBootstrap<T> pLoader) {
+        return internalRegister(pRegistryKey, new MappedRegistry<>(pRegistryKey, pLifecycle, (Function<T, Holder.Reference<T>>) null), pLoader, pLifecycle);
     }
 
-    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> p_206004_, Lifecycle p_206005_, Function<T, Holder.Reference<T>> p_206006_, Registry.RegistryBootstrap<T> p_206007_) {
-        return internalRegister(p_206004_, new MappedRegistry<>(p_206004_, p_206005_, p_206006_), p_206007_, p_206005_);
+    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> pKey, Lifecycle pLifecycle, Function<T, Holder.Reference<T>> pCustomHolderProvider, Registry.RegistryBootstrap<T> pBootstrap) {
+        return internalRegister(pKey, new MappedRegistry<>(pKey, pLifecycle, pCustomHolderProvider), pBootstrap, pLifecycle);
     }
 
-    private static <T> DefaultedRegistry<T> registerDefaulted(ResourceKey<? extends Registry<T>> p_206017_, String p_206018_, Lifecycle p_206019_, Registry.RegistryBootstrap<T> p_206020_) {
-        return internalRegister(p_206017_, new DefaultedRegistry<>(p_206018_, p_206017_, p_206019_, (Function<T, Holder.Reference<T>>) null), p_206020_, p_206019_);
+    private static <T> DefaultedRegistry<T> registerDefaulted(ResourceKey<? extends Registry<T>> pRegistryKey, String pDefaultValueName, Lifecycle pLifecycle, Registry.RegistryBootstrap<T> pLoader) {
+        return internalRegister(pRegistryKey, new DefaultedRegistry<>(pDefaultValueName, pRegistryKey, pLifecycle, (Function<T, Holder.Reference<T>>) null), pLoader, pLifecycle);
     }
 
-    private static <T> DefaultedRegistry<T> registerDefaulted(ResourceKey<? extends Registry<T>> p_206022_, String p_206023_, Lifecycle p_206024_, Function<T, Holder.Reference<T>> p_206025_, Registry.RegistryBootstrap<T> p_206026_) {
-        return internalRegister(p_206022_, new DefaultedRegistry<>(p_206023_, p_206022_, p_206024_, p_206025_), p_206026_, p_206024_);
+    private static <T> DefaultedRegistry<T> registerDefaulted(ResourceKey<? extends Registry<T>> pKey, String pDefaultName, Lifecycle pElementsLifecycle, Function<T, Holder.Reference<T>> pCustomHolderProvider, Registry.RegistryBootstrap<T> pBootstrap) {
+        return internalRegister(pKey, new DefaultedRegistry<>(pDefaultName, pKey, pElementsLifecycle, pCustomHolderProvider), pBootstrap, pElementsLifecycle);
     }
 
-    private static <T, R extends WritableRegistry<T>> R internalRegister(ResourceKey<? extends Registry<T>> p_206012_, R p_206013_, Registry.RegistryBootstrap<T> p_206014_, Lifecycle p_206015_) {
-        ResourceLocation resourcelocation = p_206012_.location();
+    private static <T, R extends WritableRegistry<T>> R internalRegister(ResourceKey<? extends Registry<T>> pRegistryKey, R pRegistry, Registry.RegistryBootstrap<T> pLoader, Lifecycle pLifecycle) {
+        ResourceLocation resourcelocation = pRegistryKey.location();
         LOADERS.put(resourcelocation, () -> {
-            return p_206014_.run(p_206013_);
+            return pLoader.run(pRegistry);
         });
-        WRITABLE_REGISTRY.register((ResourceKey) p_206012_, p_206013_, p_206015_);
-        return p_206013_;
+        WRITABLE_REGISTRY.register((ResourceKey) pRegistryKey, pRegistry, pLifecycle);
+        return pRegistry;
     }
 
-    protected Registry(ResourceKey<? extends Registry<T>> p_122920_, Lifecycle p_122921_) {
+    protected Registry(ResourceKey<? extends Registry<T>> pKey, Lifecycle pLifecycle) {
         Bootstrap.checkBootstrapCalled(() -> {
-            return "registry " + p_122920_;
+            return "registry " + pKey;
         });
-        this.key = p_122920_;
-        this.lifecycle = p_122921_;
+        this.key = pKey;
+        this.lifecycle = pLifecycle;
     }
 
     public static void freezeBuiltins() {
@@ -492,41 +492,41 @@ public abstract class Registry<T> implements Keyable, IdMap<T> {
         return ExtraCodecs.overrideLifecycle(codec, (p_235792_) -> { return this.lifecycle(p_235792_.value()); }, (p_206047_) -> { return this.lifecycle; });
     }
 
-    public <U> Stream<U> keys(DynamicOps<U> p_123030_) {
+    public <U> Stream<U> keys(DynamicOps<U> pOps) {
         return this.keySet().stream().map((p_235784_) -> {
-            return p_123030_.createString(p_235784_.toString());
+            return pOps.createString(p_235784_.toString());
         });
     }
 
     @Nullable
-    public abstract ResourceLocation getKey(T p_123006_);
+    public abstract ResourceLocation getKey(T pValue);
 
-    public abstract Optional<ResourceKey<T>> getResourceKey(T p_123008_);
+    public abstract Optional<ResourceKey<T>> getResourceKey(T pValue);
 
-    public abstract int getId(@Nullable T p_122977_);
-
-    @Nullable
-    public abstract T get(@Nullable ResourceKey<T> p_122980_);
+    public abstract int getId(@Nullable T pValue);
 
     @Nullable
-    public abstract T get(@Nullable ResourceLocation p_123002_);
+    public abstract T get(@Nullable ResourceKey<T> pKey);
+
+    @Nullable
+    public abstract T get(@Nullable ResourceLocation pName);
 
     public abstract Lifecycle lifecycle(T p_123012_);
 
     public abstract Lifecycle elementsLifecycle();
 
-    public Optional<T> getOptional(@Nullable ResourceLocation p_123007_) {
-        return Optional.ofNullable(this.get(p_123007_));
+    public Optional<T> getOptional(@Nullable ResourceLocation pName) {
+        return Optional.ofNullable(this.get(pName));
     }
 
-    public Optional<T> getOptional(@Nullable ResourceKey<T> p_123010_) {
-        return Optional.ofNullable(this.get(p_123010_));
+    public Optional<T> getOptional(@Nullable ResourceKey<T> pRegistryKey) {
+        return Optional.ofNullable(this.get(pRegistryKey));
     }
 
-    public T getOrThrow(ResourceKey<T> p_123014_) {
-        T t = this.get(p_123014_);
+    public T getOrThrow(ResourceKey<T> pKey) {
+        T t = this.get(pKey);
         if (t == null) {
-            throw new IllegalStateException("Missing key in " + this.key + ": " + p_123014_);
+            throw new IllegalStateException("Missing key in " + this.key + ": " + pKey);
         } else {
             return t;
         }
@@ -538,71 +538,71 @@ public abstract class Registry<T> implements Keyable, IdMap<T> {
 
     public abstract Set<ResourceKey<T>> registryKeySet();
 
-    public abstract Optional<Holder<T>> getRandom(RandomSource p_235781_);
+    public abstract Optional<Holder<T>> getRandom(RandomSource pRandom);
 
     public Stream<T> stream() {
         return StreamSupport.stream(this.spliterator(), false);
     }
 
-    public abstract boolean containsKey(ResourceLocation p_123011_);
+    public abstract boolean containsKey(ResourceLocation pName);
 
-    public abstract boolean containsKey(ResourceKey<T> p_175475_);
+    public abstract boolean containsKey(ResourceKey<T> pKey);
 
-    public static <T> T register(Registry<? super T> p_122962_, String p_122963_, T p_122964_) {
-        return register(p_122962_, new ResourceLocation(p_122963_), p_122964_);
+    public static <T> T register(Registry<? super T> pRegistry, String pName, T pValue) {
+        return register(pRegistry, new ResourceLocation(pName), pValue);
     }
 
-    public static <V, T extends V> T register(Registry<V> p_122966_, ResourceLocation p_122967_, T p_122968_) {
-        return register(p_122966_, ResourceKey.create(p_122966_.key, p_122967_), p_122968_);
+    public static <V, T extends V> T register(Registry<V> pRegistry, ResourceLocation pName, T pValue) {
+        return register(pRegistry, ResourceKey.create(pRegistry.key, pName), pValue);
     }
 
-    public static <V, T extends V> T register(Registry<V> p_194580_, ResourceKey<V> p_194581_, T p_194582_) {
-        ((WritableRegistry) p_194580_).register(p_194581_, (V) p_194582_, Lifecycle.stable());
-        return p_194582_;
+    public static <V, T extends V> T register(Registry<V> pRegistry, ResourceKey<V> pKey, T pValue) {
+        ((WritableRegistry) pRegistry).register(pKey, (V) pValue, Lifecycle.stable());
+        return pValue;
     }
 
-    public static <V, T extends V> T registerMapping(Registry<V> p_122957_, int p_122958_, String p_122959_, T p_122960_) {
-        ((WritableRegistry) p_122957_).registerMapping(p_122958_, ResourceKey.create(p_122957_.key, new ResourceLocation(p_122959_)), (V) p_122960_, Lifecycle.stable());
-        return p_122960_;
+    public static <V, T extends V> T registerMapping(Registry<V> pRegistry, int pId, String pName, T pValue) {
+        ((WritableRegistry) pRegistry).registerMapping(pId, ResourceKey.create(pRegistry.key, new ResourceLocation(pName)), (V) pValue, Lifecycle.stable());
+        return pValue;
     }
 
     public abstract Registry<T> freeze();
 
-    public abstract Holder<T> getOrCreateHolderOrThrow(ResourceKey<T> p_235795_);
+    public abstract Holder<T> getOrCreateHolderOrThrow(ResourceKey<T> pKey);
 
-    public abstract DataResult<Holder<T>> getOrCreateHolder(ResourceKey<T> p_235798_);
+    public abstract DataResult<Holder<T>> getOrCreateHolder(ResourceKey<T> pKey);
 
-    public abstract Holder.Reference<T> createIntrusiveHolder(T p_206068_);
+    public abstract Holder.Reference<T> createIntrusiveHolder(T pValue);
 
-    public abstract Optional<Holder<T>> getHolder(int p_206051_);
+    public abstract Optional<Holder<T>> getHolder(int pId);
 
-    public abstract Optional<Holder<T>> getHolder(ResourceKey<T> p_206050_);
+    public abstract Optional<Holder<T>> getHolder(ResourceKey<T> pKey);
 
-    public Holder<T> getHolderOrThrow(ResourceKey<T> p_206082_) {
-        return this.getHolder(p_206082_).orElseThrow(() -> {
-            return new IllegalStateException("Missing key in " + this.key + ": " + p_206082_);
+    public Holder<T> getHolderOrThrow(ResourceKey<T> pKey) {
+        return this.getHolder(pKey).orElseThrow(() -> {
+            return new IllegalStateException("Missing key in " + this.key + ": " + pKey);
         });
     }
 
     public abstract Stream<Holder.Reference<T>> holders();
 
-    public abstract Optional<HolderSet.Named<T>> getTag(TagKey<T> p_206052_);
+    public abstract Optional<HolderSet.Named<T>> getTag(TagKey<T> pKey);
 
-    public Iterable<Holder<T>> getTagOrEmpty(TagKey<T> p_206059_) {
-        return DataFixUtils.orElse(this.getTag(p_206059_), List.of());
+    public Iterable<Holder<T>> getTagOrEmpty(TagKey<T> pKey) {
+        return DataFixUtils.orElse(this.getTag(pKey), List.of());
     }
 
-    public abstract HolderSet.Named<T> getOrCreateTag(TagKey<T> p_206045_);
+    public abstract HolderSet.Named<T> getOrCreateTag(TagKey<T> pKey);
 
     public abstract Stream<Pair<TagKey<T>, HolderSet.Named<T>>> getTags();
 
     public abstract Stream<TagKey<T>> getTagNames();
 
-    public abstract boolean isKnownTagName(TagKey<T> p_205983_);
+    public abstract boolean isKnownTagName(TagKey<T> pKey);
 
     public abstract void resetTags();
 
-    public abstract void bindTags(Map<TagKey<T>, List<Holder<T>>> p_205997_);
+    public abstract void bindTags(Map<TagKey<T>, List<Holder<T>>> pTagMap);
 
     public IdMap<Holder<T>> asHolderIdMap() {
         return new IdMap<Holder<T>>() {
@@ -640,6 +640,6 @@ public abstract class Registry<T> implements Keyable, IdMap<T> {
 
     @FunctionalInterface
     interface RegistryBootstrap<T> {
-        T run(Registry<T> p_206150_);
+        T run(Registry<T> pRegistry);
     }
 }

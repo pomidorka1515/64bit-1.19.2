@@ -28,10 +28,10 @@ public class OptionsScreen extends Screen {
     private CycleButton<Difficulty> difficultyButton;
     private LockIconButton lockButton;
 
-    public OptionsScreen(Screen p_96242_, Options p_96243_) {
+    public OptionsScreen(Screen pLastScreen, Options pOptions) {
         super(Component.translatable("options.title"));
-        this.lastScreen = p_96242_;
-        this.options = p_96243_;
+        this.lastScreen = pLastScreen;
+        this.options = pOptions;
     }
 
     protected void init() {
@@ -92,9 +92,9 @@ public class OptionsScreen extends Screen {
         }));
     }
 
-    public static CycleButton<Difficulty> createDifficultyButton(int p_193847_, int p_193848_, int p_193849_, String p_193850_, Minecraft p_193851_) {
-        return CycleButton.builder(Difficulty::getDisplayName).withValues(Difficulty.values()).withInitialValue(p_193851_.level.getDifficulty()).create(p_193848_ / 2 - 155 + p_193847_ % 2 * 160, p_193849_ / 6 - 12 + 24 * (p_193847_ >> 1), 150, 20, Component.translatable(p_193850_), (p_193854_, p_193855_) -> {
-            p_193851_.getConnection().send(new ServerboundChangeDifficultyPacket(p_193855_));
+    public static CycleButton<Difficulty> createDifficultyButton(int pAmount, int pWidth, int pHeight, String pTranslatableKey, Minecraft pMinecraft) {
+        return CycleButton.builder(Difficulty::getDisplayName).withValues(Difficulty.values()).withInitialValue(pMinecraft.level.getDifficulty()).create(pWidth / 2 - 155 + pAmount % 2 * 160, pHeight / 6 - 12 + 24 * (pAmount >> 1), 150, 20, Component.translatable(pTranslatableKey), (p_193854_, p_193855_) -> {
+            pMinecraft.getConnection().send(new ServerboundChangeDifficultyPacket(p_193855_));
         });
     }
 
@@ -133,9 +133,9 @@ public class OptionsScreen extends Screen {
         this.options.save();
     }
 
-    public void render(PoseStack p_96249_, int p_96250_, int p_96251_, float p_96252_) {
-        this.renderBackground(p_96249_);
-        drawCenteredString(p_96249_, this.font, this.title, this.width / 2, 15, 16777215);
-        super.render(p_96249_, p_96250_, p_96251_, p_96252_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 15, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

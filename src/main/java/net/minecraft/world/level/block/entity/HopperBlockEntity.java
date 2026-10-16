@@ -38,43 +38,43 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
     private int cooldownTime = -1;
     private long tickedGameTime;
 
-    public HopperBlockEntity(BlockPos p_155550_, BlockState p_155551_) {
-        super(BlockEntityType.HOPPER, p_155550_, p_155551_);
+    public HopperBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.HOPPER, pPos, pBlockState);
     }
 
-    public void load(CompoundTag p_155588_) {
-        super.load(p_155588_);
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        if (!this.tryLoadLootTable(p_155588_)) {
-            ContainerHelper.loadAllItems(p_155588_, this.items);
+        if (!this.tryLoadLootTable(pTag)) {
+            ContainerHelper.loadAllItems(pTag, this.items);
         }
 
-        this.cooldownTime = p_155588_.getInt("TransferCooldown");
+        this.cooldownTime = pTag.getInt("TransferCooldown");
     }
 
-    protected void saveAdditional(CompoundTag p_187502_) {
-        super.saveAdditional(p_187502_);
-        if (!this.trySaveLootTable(p_187502_)) {
-            ContainerHelper.saveAllItems(p_187502_, this.items);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
+        if (!this.trySaveLootTable(pTag)) {
+            ContainerHelper.saveAllItems(pTag, this.items);
         }
 
-        p_187502_.putInt("TransferCooldown", this.cooldownTime);
+        pTag.putInt("TransferCooldown", this.cooldownTime);
     }
 
     public int getContainerSize() {
         return this.items.size();
     }
 
-    public ItemStack removeItem(int p_59309_, int p_59310_) {
+    public ItemStack removeItem(int pIndex, int pCount) {
         this.unpackLootTable((Player) null);
-        return ContainerHelper.removeItem(this.getItems(), p_59309_, p_59310_);
+        return ContainerHelper.removeItem(this.getItems(), pIndex, pCount);
     }
 
-    public void setItem(int p_59315_, ItemStack p_59316_) {
+    public void setItem(int pIndex, ItemStack pStack) {
         this.unpackLootTable((Player) null);
-        this.getItems().set(p_59315_, p_59316_);
-        if (p_59316_.getCount() > this.getMaxStackSize()) {
-            p_59316_.setCount(this.getMaxStackSize());
+        this.getItems().set(pIndex, pStack);
+        if (pStack.getCount() > this.getMaxStackSize()) {
+            pStack.setCount(this.getMaxStackSize());
         }
     }
 
@@ -82,34 +82,34 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         return Component.translatable("container.hopper");
     }
 
-    public static void pushItemsTick(Level p_155574_, BlockPos p_155575_, BlockState p_155576_, HopperBlockEntity p_155577_) {
-        --p_155577_.cooldownTime;
-        p_155577_.tickedGameTime = p_155574_.getGameTime();
-        if (!p_155577_.isOnCooldown()) {
-            p_155577_.setCooldown(0);
-            tryMoveItems(p_155574_, p_155575_, p_155576_, p_155577_, () -> {
-                return suckInItems(p_155574_, p_155577_);
+    public static void pushItemsTick(Level pLevel, BlockPos pPos, BlockState pState, HopperBlockEntity pBlockEntity) {
+        --pBlockEntity.cooldownTime;
+        pBlockEntity.tickedGameTime = pLevel.getGameTime();
+        if (!pBlockEntity.isOnCooldown()) {
+            pBlockEntity.setCooldown(0);
+            tryMoveItems(pLevel, pPos, pState, pBlockEntity, () -> {
+                return suckInItems(pLevel, pBlockEntity);
             });
         }
     }
 
-    private static boolean tryMoveItems(Level p_155579_, BlockPos p_155580_, BlockState p_155581_, HopperBlockEntity p_155582_, BooleanSupplier p_155583_) {
-        if (p_155579_.isClientSide) {
+    private static boolean tryMoveItems(Level pLevel, BlockPos pPos, BlockState pState, HopperBlockEntity pBlockEntity, BooleanSupplier pValidator) {
+        if (pLevel.isClientSide) {
             return false;
         } else {
-            if (!p_155582_.isOnCooldown() && p_155581_.getValue(HopperBlock.ENABLED)) {
+            if (!pBlockEntity.isOnCooldown() && pState.getValue(HopperBlock.ENABLED)) {
                 boolean flag = false;
-                if (!p_155582_.isEmpty()) {
-                    flag = ejectItems(p_155579_, p_155580_, p_155581_, p_155582_);
+                if (!pBlockEntity.isEmpty()) {
+                    flag = ejectItems(pLevel, pPos, pState, pBlockEntity);
                 }
 
-                if (!p_155582_.inventoryFull()) {
-                    flag |= p_155583_.getAsBoolean();
+                if (!pBlockEntity.inventoryFull()) {
+                    flag |= pValidator.getAsBoolean();
                 }
 
                 if (flag) {
-                    p_155582_.setCooldown(8);
-                    setChanged(p_155579_, p_155580_, p_155581_);
+                    pBlockEntity.setCooldown(8);
+                    setChanged(pLevel, pPos, pState);
                     return true;
                 }
             }
@@ -128,25 +128,25 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         return true;
     }
 
-    private static boolean ejectItems(Level p_155563_, BlockPos p_155564_, BlockState p_155565_, Container p_155566_) {
-        Container container = getAttachedContainer(p_155563_, p_155564_, p_155565_);
+    private static boolean ejectItems(Level pLevel, BlockPos pPos, BlockState pState, Container pSourceContainer) {
+        Container container = getAttachedContainer(pLevel, pPos, pState);
         if (container == null) {
             return false;
         } else {
-            Direction direction = p_155565_.getValue(HopperBlock.FACING).getOpposite();
+            Direction direction = pState.getValue(HopperBlock.FACING).getOpposite();
             if (isFullContainer(container, direction)) {
                 return false;
             } else {
-                for (int i = 0; i < p_155566_.getContainerSize(); ++i) {
-                    if (!p_155566_.getItem(i).isEmpty()) {
-                        ItemStack itemstack = p_155566_.getItem(i).copy();
-                        ItemStack itemstack1 = addItem(p_155566_, container, p_155566_.removeItem(i, 1), direction);
+                for (int i = 0; i < pSourceContainer.getContainerSize(); ++i) {
+                    if (!pSourceContainer.getItem(i).isEmpty()) {
+                        ItemStack itemstack = pSourceContainer.getItem(i).copy();
+                        ItemStack itemstack1 = addItem(pSourceContainer, container, pSourceContainer.removeItem(i, 1), direction);
                         if (itemstack1.isEmpty()) {
                             container.setChanged();
                             return true;
                         }
 
-                        p_155566_.setItem(i, itemstack);
+                        pSourceContainer.setItem(i, itemstack);
                     }
                 }
 
@@ -155,33 +155,33 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         }
     }
 
-    private static IntStream getSlots(Container p_59340_, Direction p_59341_) {
-        return p_59340_ instanceof WorldlyContainer ? IntStream.of(((WorldlyContainer) p_59340_).getSlotsForFace(p_59341_)) : IntStream.range(0, p_59340_.getContainerSize());
+    private static IntStream getSlots(Container pContainer, Direction pDirection) {
+        return pContainer instanceof WorldlyContainer ? IntStream.of(((WorldlyContainer) pContainer).getSlotsForFace(pDirection)) : IntStream.range(0, pContainer.getContainerSize());
     }
 
-    private static boolean isFullContainer(Container p_59386_, Direction p_59387_) {
-        return getSlots(p_59386_, p_59387_).allMatch((p_59379_) -> {
-            ItemStack itemstack = p_59386_.getItem(p_59379_);
+    private static boolean isFullContainer(Container pContainer, Direction pDirection) {
+        return getSlots(pContainer, pDirection).allMatch((p_59379_) -> {
+            ItemStack itemstack = pContainer.getItem(p_59379_);
             return itemstack.getCount() >= itemstack.getMaxStackSize();
         });
     }
 
-    private static boolean isEmptyContainer(Container p_59398_, Direction p_59399_) {
-        return getSlots(p_59398_, p_59399_).allMatch((p_59319_) -> {
-            return p_59398_.getItem(p_59319_).isEmpty();
+    private static boolean isEmptyContainer(Container pContainer, Direction pDirection) {
+        return getSlots(pContainer, pDirection).allMatch((p_59319_) -> {
+            return pContainer.getItem(p_59319_).isEmpty();
         });
     }
 
-    public static boolean suckInItems(Level p_155553_, Hopper p_155554_) {
-        Container container = getSourceContainer(p_155553_, p_155554_);
+    public static boolean suckInItems(Level pLevel, Hopper pHopper) {
+        Container container = getSourceContainer(pLevel, pHopper);
         if (container != null) {
             Direction direction = Direction.DOWN;
             return isEmptyContainer(container, direction) ? false : getSlots(container, direction).anyMatch((p_59363_) -> {
-                return tryTakeInItemFromSlot(p_155554_, container, p_59363_, direction);
+                return tryTakeInItemFromSlot(pHopper, container, p_59363_, direction);
             });
         } else {
-            for (ItemEntity itementity : getItemsAtAndAbove(p_155553_, p_155554_)) {
-                if (addItem(p_155554_, itementity)) {
+            for (ItemEntity itementity : getItemsAtAndAbove(pLevel, pHopper)) {
+                if (addItem(pHopper, itementity)) {
                     return true;
                 }
             }
@@ -190,90 +190,90 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         }
     }
 
-    private static boolean tryTakeInItemFromSlot(Hopper p_59355_, Container p_59356_, int p_59357_, Direction p_59358_) {
-        ItemStack itemstack = p_59356_.getItem(p_59357_);
-        if (!itemstack.isEmpty() && canTakeItemFromContainer(p_59356_, itemstack, p_59357_, p_59358_)) {
+    private static boolean tryTakeInItemFromSlot(Hopper pHopper, Container pContainer, int pSlot, Direction pDirection) {
+        ItemStack itemstack = pContainer.getItem(pSlot);
+        if (!itemstack.isEmpty() && canTakeItemFromContainer(pContainer, itemstack, pSlot, pDirection)) {
             ItemStack itemstack1 = itemstack.copy();
-            ItemStack itemstack2 = addItem(p_59356_, p_59355_, p_59356_.removeItem(p_59357_, 1), (Direction) null);
+            ItemStack itemstack2 = addItem(pContainer, pHopper, pContainer.removeItem(pSlot, 1), (Direction) null);
             if (itemstack2.isEmpty()) {
-                p_59356_.setChanged();
+                pContainer.setChanged();
                 return true;
             }
 
-            p_59356_.setItem(p_59357_, itemstack1);
+            pContainer.setItem(pSlot, itemstack1);
         }
 
         return false;
     }
 
-    public static boolean addItem(Container p_59332_, ItemEntity p_59333_) {
+    public static boolean addItem(Container pContainer, ItemEntity pItem) {
         boolean flag = false;
-        ItemStack itemstack = p_59333_.getItem().copy();
-        ItemStack itemstack1 = addItem((Container) null, p_59332_, itemstack, (Direction) null);
+        ItemStack itemstack = pItem.getItem().copy();
+        ItemStack itemstack1 = addItem((Container) null, pContainer, itemstack, (Direction) null);
         if (itemstack1.isEmpty()) {
             flag = true;
-            p_59333_.discard();
+            pItem.discard();
         } else {
-            p_59333_.setItem(itemstack1);
+            pItem.setItem(itemstack1);
         }
 
         return flag;
     }
 
-    public static ItemStack addItem(@Nullable Container p_59327_, Container p_59328_, ItemStack p_59329_, @Nullable Direction p_59330_) {
-        if (p_59328_ instanceof WorldlyContainer worldlycontainer && p_59330_ != null) {
-            int[] aint = worldlycontainer.getSlotsForFace(p_59330_);
+    public static ItemStack addItem(@Nullable Container pSource, Container pDestination, ItemStack pStack, @Nullable Direction pDirection) {
+        if (pDestination instanceof WorldlyContainer worldlycontainer && pDirection != null) {
+            int[] aint = worldlycontainer.getSlotsForFace(pDirection);
 
-            for (int k = 0; k < aint.length && !p_59329_.isEmpty(); ++k) {
-                p_59329_ = tryMoveInItem(p_59327_, p_59328_, p_59329_, aint[k], p_59330_);
+            for (int k = 0; k < aint.length && !pStack.isEmpty(); ++k) {
+                pStack = tryMoveInItem(pSource, pDestination, pStack, aint[k], pDirection);
             }
         } else {
-            int i = p_59328_.getContainerSize();
+            int i = pDestination.getContainerSize();
 
-            for (int j = 0; j < i && !p_59329_.isEmpty(); ++j) {
-                p_59329_ = tryMoveInItem(p_59327_, p_59328_, p_59329_, j, p_59330_);
+            for (int j = 0; j < i && !pStack.isEmpty(); ++j) {
+                pStack = tryMoveInItem(pSource, pDestination, pStack, j, pDirection);
             }
         }
 
-        return p_59329_;
+        return pStack;
     }
 
-    private static boolean canPlaceItemInContainer(Container p_59335_, ItemStack p_59336_, int p_59337_, @Nullable Direction p_59338_) {
-        if (!p_59335_.canPlaceItem(p_59337_, p_59336_)) {
+    private static boolean canPlaceItemInContainer(Container pContainer, ItemStack pStack, int pSlot, @Nullable Direction pDirection) {
+        if (!pContainer.canPlaceItem(pSlot, pStack)) {
             return false;
         } else {
-            return !(p_59335_ instanceof WorldlyContainer) || ((WorldlyContainer) p_59335_).canPlaceItemThroughFace(p_59337_, p_59336_, p_59338_);
+            return !(pContainer instanceof WorldlyContainer) || ((WorldlyContainer) pContainer).canPlaceItemThroughFace(pSlot, pStack, pDirection);
         }
     }
 
-    private static boolean canTakeItemFromContainer(Container p_59381_, ItemStack p_59382_, int p_59383_, Direction p_59384_) {
-        return !(p_59381_ instanceof WorldlyContainer) || ((WorldlyContainer) p_59381_).canTakeItemThroughFace(p_59383_, p_59382_, p_59384_);
+    private static boolean canTakeItemFromContainer(Container pContainer, ItemStack pStack, int pSlot, Direction pDirection) {
+        return !(pContainer instanceof WorldlyContainer) || ((WorldlyContainer) pContainer).canTakeItemThroughFace(pSlot, pStack, pDirection);
     }
 
-    private static ItemStack tryMoveInItem(@Nullable Container p_59321_, Container p_59322_, ItemStack p_59323_, int p_59324_, @Nullable Direction p_59325_) {
-        ItemStack itemstack = p_59322_.getItem(p_59324_);
-        if (canPlaceItemInContainer(p_59322_, p_59323_, p_59324_, p_59325_)) {
+    private static ItemStack tryMoveInItem(@Nullable Container pSource, Container pDestination, ItemStack pStack, int pSlot, @Nullable Direction pDirection) {
+        ItemStack itemstack = pDestination.getItem(pSlot);
+        if (canPlaceItemInContainer(pDestination, pStack, pSlot, pDirection)) {
             boolean flag = false;
-            boolean flag1 = p_59322_.isEmpty();
+            boolean flag1 = pDestination.isEmpty();
             if (itemstack.isEmpty()) {
-                p_59322_.setItem(p_59324_, p_59323_);
-                p_59323_ = ItemStack.EMPTY;
+                pDestination.setItem(pSlot, pStack);
+                pStack = ItemStack.EMPTY;
                 flag = true;
-            } else if (canMergeItems(itemstack, p_59323_)) {
-                int i = p_59323_.getMaxStackSize() - itemstack.getCount();
-                int j = Math.min(p_59323_.getCount(), i);
-                p_59323_.shrink(j);
+            } else if (canMergeItems(itemstack, pStack)) {
+                int i = pStack.getMaxStackSize() - itemstack.getCount();
+                int j = Math.min(pStack.getCount(), i);
+                pStack.shrink(j);
                 itemstack.grow(j);
                 flag = j > 0;
             }
 
             if (flag) {
-                if (flag1 && p_59322_ instanceof HopperBlockEntity) {
-                    HopperBlockEntity hopperblockentity1 = (HopperBlockEntity) p_59322_;
+                if (flag1 && pDestination instanceof HopperBlockEntity) {
+                    HopperBlockEntity hopperblockentity1 = (HopperBlockEntity) pDestination;
                     if (!hopperblockentity1.isOnCustomCooldown()) {
                         int k = 0;
-                        if (p_59321_ instanceof HopperBlockEntity) {
-                            HopperBlockEntity hopperblockentity = (HopperBlockEntity) p_59321_;
+                        if (pSource instanceof HopperBlockEntity) {
+                            HopperBlockEntity hopperblockentity = (HopperBlockEntity) pSource;
                             if (hopperblockentity1.tickedGameTime >= hopperblockentity.tickedGameTime) {
                                 k = 1;
                             }
@@ -283,73 +283,73 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
                     }
                 }
 
-                p_59322_.setChanged();
+                pDestination.setChanged();
             }
         }
 
-        return p_59323_;
+        return pStack;
     }
 
     @Nullable
-    private static Container getAttachedContainer(Level p_155593_, BlockPos p_155594_, BlockState p_155595_) {
-        Direction direction = p_155595_.getValue(HopperBlock.FACING);
-        return getContainerAt(p_155593_, p_155594_.relative(direction));
+    private static Container getAttachedContainer(Level pLevel, BlockPos pPos, BlockState pState) {
+        Direction direction = pState.getValue(HopperBlock.FACING);
+        return getContainerAt(pLevel, pPos.relative(direction));
     }
 
     @Nullable
-    private static Container getSourceContainer(Level p_155597_, Hopper p_155598_) {
-        return getContainerAt(p_155597_, p_155598_.getLevelX(), p_155598_.getLevelY() + 1.0D, p_155598_.getLevelZ());
+    private static Container getSourceContainer(Level pLevel, Hopper pHopper) {
+        return getContainerAt(pLevel, pHopper.getLevelX(), pHopper.getLevelY() + 1.0D, pHopper.getLevelZ());
     }
 
-    public static List<ItemEntity> getItemsAtAndAbove(Level p_155590_, Hopper p_155591_) {
-        return p_155591_.getSuckShape().toAabbs().stream().flatMap((p_155558_) -> {
-                                                              return p_155590_.getEntitiesOfClass(ItemEntity.class, p_155558_.move(p_155591_.getLevelX() - 0.5D, p_155591_.getLevelY() - 0.5D, p_155591_.getLevelZ() - 0.5D), EntitySelector.ENTITY_STILL_ALIVE).stream();
+    public static List<ItemEntity> getItemsAtAndAbove(Level pLevel, Hopper pHopper) {
+        return pHopper.getSuckShape().toAabbs().stream().flatMap((p_155558_) -> {
+                                                              return pLevel.getEntitiesOfClass(ItemEntity.class, p_155558_.move(pHopper.getLevelX() - 0.5D, pHopper.getLevelY() - 0.5D, pHopper.getLevelZ() - 0.5D), EntitySelector.ENTITY_STILL_ALIVE).stream();
                                                           })
                 .collect(Collectors.toList());
     }
 
     @Nullable
-    public static Container getContainerAt(Level p_59391_, BlockPos p_59392_) {
-        return getContainerAt(p_59391_, (double) p_59392_.getX() + 0.5D, (double) p_59392_.getY() + 0.5D, (double) p_59392_.getZ() + 0.5D);
+    public static Container getContainerAt(Level pLevel, BlockPos pPos) {
+        return getContainerAt(pLevel, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D);
     }
 
     @Nullable
-    private static Container getContainerAt(Level p_59348_, double p_59349_, double p_59350_, double p_59351_) {
+    private static Container getContainerAt(Level pLevel, double pX, double pY, double pZ) {
         Container container = null;
-        BlockPos blockpos = new BlockPos(p_59349_, p_59350_, p_59351_);
-        BlockState blockstate = p_59348_.getBlockState(blockpos);
+        BlockPos blockpos = new BlockPos(pX, pY, pZ);
+        BlockState blockstate = pLevel.getBlockState(blockpos);
         Block block = blockstate.getBlock();
         if (block instanceof WorldlyContainerHolder) {
-            container = ((WorldlyContainerHolder) block).getContainer(blockstate, p_59348_, blockpos);
+            container = ((WorldlyContainerHolder) block).getContainer(blockstate, pLevel, blockpos);
         } else if (blockstate.hasBlockEntity()) {
-            BlockEntity blockentity = p_59348_.getBlockEntity(blockpos);
+            BlockEntity blockentity = pLevel.getBlockEntity(blockpos);
             if (blockentity instanceof Container) {
                 container = (Container) blockentity;
                 if (container instanceof ChestBlockEntity && block instanceof ChestBlock) {
-                    container = ChestBlock.getContainer((ChestBlock) block, blockstate, p_59348_, blockpos, true);
+                    container = ChestBlock.getContainer((ChestBlock) block, blockstate, pLevel, blockpos, true);
                 }
             }
         }
 
         if (container == null) {
-            List<Entity> list = p_59348_.getEntities((Entity) null, new AABB(p_59349_ - 0.5D, p_59350_ - 0.5D, p_59351_ - 0.5D, p_59349_ + 0.5D, p_59350_ + 0.5D, p_59351_ + 0.5D), EntitySelector.CONTAINER_ENTITY_SELECTOR);
+            List<Entity> list = pLevel.getEntities((Entity) null, new AABB(pX - 0.5D, pY - 0.5D, pZ - 0.5D, pX + 0.5D, pY + 0.5D, pZ + 0.5D), EntitySelector.CONTAINER_ENTITY_SELECTOR);
             if (!list.isEmpty()) {
-                container = (Container) list.get(p_59348_.random.nextInt(list.size()));
+                container = (Container) list.get(pLevel.random.nextInt(list.size()));
             }
         }
 
         return container;
     }
 
-    private static boolean canMergeItems(ItemStack p_59345_, ItemStack p_59346_) {
-        if (!p_59345_.is(p_59346_.getItem())) {
+    private static boolean canMergeItems(ItemStack pStack1, ItemStack pStack2) {
+        if (!pStack1.is(pStack2.getItem())) {
             return false;
-        } else if (p_59345_.getDamageValue() != p_59346_.getDamageValue()) {
+        } else if (pStack1.getDamageValue() != pStack2.getDamageValue()) {
             return false;
-        } else if (p_59345_.getCount() > p_59345_.getMaxStackSize()) {
+        } else if (pStack1.getCount() > pStack1.getMaxStackSize()) {
             return false;
         } else {
-            return ItemStack.tagMatches(p_59345_, p_59346_);
+            return ItemStack.tagMatches(pStack1, pStack2);
         }
     }
 
@@ -365,8 +365,8 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         return (double) this.worldPosition.getZ() + 0.5D;
     }
 
-    private void setCooldown(int p_59396_) {
-        this.cooldownTime = p_59396_;
+    private void setCooldown(int pCooldownTime) {
+        this.cooldownTime = pCooldownTime;
     }
 
     private boolean isOnCooldown() {
@@ -381,19 +381,19 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         return this.items;
     }
 
-    protected void setItems(NonNullList<ItemStack> p_59371_) {
-        this.items = p_59371_;
+    protected void setItems(NonNullList<ItemStack> pItems) {
+        this.items = pItems;
     }
 
-    public static void entityInside(Level p_155568_, BlockPos p_155569_, BlockState p_155570_, Entity p_155571_, HopperBlockEntity p_155572_) {
-        if (p_155571_ instanceof ItemEntity && Shapes.joinIsNotEmpty(Shapes.create(p_155571_.getBoundingBox().move((double) (-p_155569_.getX()), (double) (-p_155569_.getY()), (double) (-p_155569_.getZ()))), p_155572_.getSuckShape(), BooleanOp.AND)) {
-            tryMoveItems(p_155568_, p_155569_, p_155570_, p_155572_, () -> {
-                return addItem(p_155572_, (ItemEntity) p_155571_);
+    public static void entityInside(Level pLevel, BlockPos pPos, BlockState pState, Entity pEntity, HopperBlockEntity pBlockEntity) {
+        if (pEntity instanceof ItemEntity && Shapes.joinIsNotEmpty(Shapes.create(pEntity.getBoundingBox().move((double) (-pPos.getX()), (double) (-pPos.getY()), (double) (-pPos.getZ()))), pBlockEntity.getSuckShape(), BooleanOp.AND)) {
+            tryMoveItems(pLevel, pPos, pState, pBlockEntity, () -> {
+                return addItem(pBlockEntity, (ItemEntity) pEntity);
             });
         }
     }
 
-    protected AbstractContainerMenu createMenu(int p_59312_, Inventory p_59313_) {
-        return new HopperMenu(p_59312_, p_59313_, this);
+    protected AbstractContainerMenu createMenu(int pId, Inventory pPlayer) {
+        return new HopperMenu(pId, pPlayer, this);
     }
 }

@@ -46,35 +46,35 @@ public class WallBlock extends Block implements SimpleWaterloggedBlock {
     private static final VoxelShape WEST_TEST = Block.box(0.0D, 0.0D, 7.0D, 9.0D, 16.0D, 9.0D);
     private static final VoxelShape EAST_TEST = Block.box(7.0D, 0.0D, 7.0D, 16.0D, 16.0D, 9.0D);
 
-    public WallBlock(BlockBehaviour.Properties p_57964_) {
-        super(p_57964_);
+    public WallBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(UP, Boolean.valueOf(true)).setValue(NORTH_WALL, WallSide.NONE).setValue(EAST_WALL, WallSide.NONE).setValue(SOUTH_WALL, WallSide.NONE).setValue(WEST_WALL, WallSide.NONE).setValue(WATERLOGGED, Boolean.valueOf(false)));
         this.shapeByIndex = this.makeShapes(4.0F, 3.0F, 16.0F, 0.0F, 14.0F, 16.0F);
         this.collisionShapeByIndex = this.makeShapes(4.0F, 3.0F, 24.0F, 0.0F, 24.0F, 24.0F);
     }
 
-    private static VoxelShape applyWallShape(VoxelShape p_58034_, WallSide p_58035_, VoxelShape p_58036_, VoxelShape p_58037_) {
-        if (p_58035_ == WallSide.TALL) {
-            return Shapes.or(p_58034_, p_58037_);
+    private static VoxelShape applyWallShape(VoxelShape pBaseShape, WallSide pHeight, VoxelShape pLowShape, VoxelShape pTallShape) {
+        if (pHeight == WallSide.TALL) {
+            return Shapes.or(pBaseShape, pTallShape);
         } else {
-            return p_58035_ == WallSide.LOW ? Shapes.or(p_58034_, p_58036_) : p_58034_;
+            return pHeight == WallSide.LOW ? Shapes.or(pBaseShape, pLowShape) : pBaseShape;
         }
     }
 
-    private Map<BlockState, VoxelShape> makeShapes(float p_57966_, float p_57967_, float p_57968_, float p_57969_, float p_57970_, float p_57971_) {
-        float f = 8.0F - p_57966_;
-        float f1 = 8.0F + p_57966_;
-        float f2 = 8.0F - p_57967_;
-        float f3 = 8.0F + p_57967_;
-        VoxelShape voxelshape = Block.box((double) f, 0.0D, (double) f, (double) f1, (double) p_57968_, (double) f1);
-        VoxelShape voxelshape1 = Block.box((double) f2, (double) p_57969_, 0.0D, (double) f3, (double) p_57970_, (double) f3);
-        VoxelShape voxelshape2 = Block.box((double) f2, (double) p_57969_, (double) f2, (double) f3, (double) p_57970_, 16.0D);
-        VoxelShape voxelshape3 = Block.box(0.0D, (double) p_57969_, (double) f2, (double) f3, (double) p_57970_, (double) f3);
-        VoxelShape voxelshape4 = Block.box((double) f2, (double) p_57969_, (double) f2, 16.0D, (double) p_57970_, (double) f3);
-        VoxelShape voxelshape5 = Block.box((double) f2, (double) p_57969_, 0.0D, (double) f3, (double) p_57971_, (double) f3);
-        VoxelShape voxelshape6 = Block.box((double) f2, (double) p_57969_, (double) f2, (double) f3, (double) p_57971_, 16.0D);
-        VoxelShape voxelshape7 = Block.box(0.0D, (double) p_57969_, (double) f2, (double) f3, (double) p_57971_, (double) f3);
-        VoxelShape voxelshape8 = Block.box((double) f2, (double) p_57969_, (double) f2, 16.0D, (double) p_57971_, (double) f3);
+    private Map<BlockState, VoxelShape> makeShapes(float pWidth, float pDepth, float pWallPostHeight, float pWallMinY, float pWallLowHeight, float pWallTallHeight) {
+        float f = 8.0F - pWidth;
+        float f1 = 8.0F + pWidth;
+        float f2 = 8.0F - pDepth;
+        float f3 = 8.0F + pDepth;
+        VoxelShape voxelshape = Block.box((double) f, 0.0D, (double) f, (double) f1, (double) pWallPostHeight, (double) f1);
+        VoxelShape voxelshape1 = Block.box((double) f2, (double) pWallMinY, 0.0D, (double) f3, (double) pWallLowHeight, (double) f3);
+        VoxelShape voxelshape2 = Block.box((double) f2, (double) pWallMinY, (double) f2, (double) f3, (double) pWallLowHeight, 16.0D);
+        VoxelShape voxelshape3 = Block.box(0.0D, (double) pWallMinY, (double) f2, (double) f3, (double) pWallLowHeight, (double) f3);
+        VoxelShape voxelshape4 = Block.box((double) f2, (double) pWallMinY, (double) f2, 16.0D, (double) pWallLowHeight, (double) f3);
+        VoxelShape voxelshape5 = Block.box((double) f2, (double) pWallMinY, 0.0D, (double) f3, (double) pWallTallHeight, (double) f3);
+        VoxelShape voxelshape6 = Block.box((double) f2, (double) pWallMinY, (double) f2, (double) f3, (double) pWallTallHeight, 16.0D);
+        VoxelShape voxelshape7 = Block.box(0.0D, (double) pWallMinY, (double) f2, (double) f3, (double) pWallTallHeight, (double) f3);
+        VoxelShape voxelshape8 = Block.box((double) f2, (double) pWallMinY, (double) f2, 16.0D, (double) pWallTallHeight, (double) f3);
         ImmutableMap.Builder<BlockState, VoxelShape> builder = ImmutableMap.builder();
 
         for (Boolean obool : UP.getPossibleValues()) {
@@ -103,28 +103,28 @@ public class WallBlock extends Block implements SimpleWaterloggedBlock {
         return builder.build();
     }
 
-    public VoxelShape getShape(BlockState p_58050_, BlockGetter p_58051_, BlockPos p_58052_, CollisionContext p_58053_) {
-        return this.shapeByIndex.get(p_58050_);
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return this.shapeByIndex.get(pState);
     }
 
-    public VoxelShape getCollisionShape(BlockState p_58055_, BlockGetter p_58056_, BlockPos p_58057_, CollisionContext p_58058_) {
-        return this.collisionShapeByIndex.get(p_58055_);
+    public VoxelShape getCollisionShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return this.collisionShapeByIndex.get(pState);
     }
 
-    public boolean isPathfindable(BlockState p_57996_, BlockGetter p_57997_, BlockPos p_57998_, PathComputationType p_57999_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 
-    private boolean connectsTo(BlockState p_58021_, boolean p_58022_, Direction p_58023_) {
-        Block block = p_58021_.getBlock();
-        boolean flag = block instanceof FenceGateBlock && FenceGateBlock.connectsToDirection(p_58021_, p_58023_);
-        return p_58021_.is(BlockTags.WALLS) || !isExceptionForConnection(p_58021_) && p_58022_ || block instanceof IronBarsBlock || flag;
+    private boolean connectsTo(BlockState pState, boolean pSideSolid, Direction pDirection) {
+        Block block = pState.getBlock();
+        boolean flag = block instanceof FenceGateBlock && FenceGateBlock.connectsToDirection(pState, pDirection);
+        return pState.is(BlockTags.WALLS) || !isExceptionForConnection(pState) && pSideSolid || block instanceof IronBarsBlock || flag;
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_57973_) {
-        LevelReader levelreader = p_57973_.getLevel();
-        BlockPos blockpos = p_57973_.getClickedPos();
-        FluidState fluidstate = p_57973_.getLevel().getFluidState(p_57973_.getClickedPos());
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        LevelReader levelreader = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
+        FluidState fluidstate = pContext.getLevel().getFluidState(pContext.getClickedPos());
         BlockPos blockpos1 = blockpos.north();
         BlockPos blockpos2 = blockpos.east();
         BlockPos blockpos3 = blockpos.south();
@@ -143,60 +143,60 @@ public class WallBlock extends Block implements SimpleWaterloggedBlock {
         return this.updateShape(levelreader, blockstate5, blockpos5, blockstate4, flag, flag1, flag2, flag3);
     }
 
-    public BlockState updateShape(BlockState p_58014_, Direction p_58015_, BlockState p_58016_, LevelAccessor p_58017_, BlockPos p_58018_, BlockPos p_58019_) {
-        if (p_58014_.getValue(WATERLOGGED)) {
-            p_58017_.scheduleTick(p_58018_, Fluids.WATER, Fluids.WATER.getTickDelay(p_58017_));
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        if (p_58015_ == Direction.DOWN) {
-            return super.updateShape(p_58014_, p_58015_, p_58016_, p_58017_, p_58018_, p_58019_);
+        if (pFacing == Direction.DOWN) {
+            return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
         } else {
-            return p_58015_ == Direction.UP ? this.topUpdate(p_58017_, p_58014_, p_58019_, p_58016_) : this.sideUpdate(p_58017_, p_58018_, p_58014_, p_58019_, p_58016_, p_58015_);
+            return pFacing == Direction.UP ? this.topUpdate(pLevel, pState, pFacingPos, pFacingState) : this.sideUpdate(pLevel, pCurrentPos, pState, pFacingPos, pFacingState, pFacing);
         }
     }
 
-    private static boolean isConnected(BlockState p_58011_, Property<WallSide> p_58012_) {
-        return p_58011_.getValue(p_58012_) != WallSide.NONE;
+    private static boolean isConnected(BlockState pState, Property<WallSide> pHeightProperty) {
+        return pState.getValue(pHeightProperty) != WallSide.NONE;
     }
 
-    private static boolean isCovered(VoxelShape p_58039_, VoxelShape p_58040_) {
-        return !Shapes.joinIsNotEmpty(p_58040_, p_58039_, BooleanOp.ONLY_FIRST);
+    private static boolean isCovered(VoxelShape pFirstShape, VoxelShape pSecondShape) {
+        return !Shapes.joinIsNotEmpty(pSecondShape, pFirstShape, BooleanOp.ONLY_FIRST);
     }
 
-    private BlockState topUpdate(LevelReader p_57975_, BlockState p_57976_, BlockPos p_57977_, BlockState p_57978_) {
-        boolean flag = isConnected(p_57976_, NORTH_WALL);
-        boolean flag1 = isConnected(p_57976_, EAST_WALL);
-        boolean flag2 = isConnected(p_57976_, SOUTH_WALL);
-        boolean flag3 = isConnected(p_57976_, WEST_WALL);
-        return this.updateShape(p_57975_, p_57976_, p_57977_, p_57978_, flag, flag1, flag2, flag3);
+    private BlockState topUpdate(LevelReader pLevel, BlockState pState, BlockPos pPos, BlockState pSecondState) {
+        boolean flag = isConnected(pState, NORTH_WALL);
+        boolean flag1 = isConnected(pState, EAST_WALL);
+        boolean flag2 = isConnected(pState, SOUTH_WALL);
+        boolean flag3 = isConnected(pState, WEST_WALL);
+        return this.updateShape(pLevel, pState, pPos, pSecondState, flag, flag1, flag2, flag3);
     }
 
-    private BlockState sideUpdate(LevelReader p_57989_, BlockPos p_57990_, BlockState p_57991_, BlockPos p_57992_, BlockState p_57993_, Direction p_57994_) {
-        Direction direction = p_57994_.getOpposite();
-        boolean flag = p_57994_ == Direction.NORTH ? this.connectsTo(p_57993_, p_57993_.isFaceSturdy(p_57989_, p_57992_, direction), direction) : isConnected(p_57991_, NORTH_WALL);
-        boolean flag1 = p_57994_ == Direction.EAST ? this.connectsTo(p_57993_, p_57993_.isFaceSturdy(p_57989_, p_57992_, direction), direction) : isConnected(p_57991_, EAST_WALL);
-        boolean flag2 = p_57994_ == Direction.SOUTH ? this.connectsTo(p_57993_, p_57993_.isFaceSturdy(p_57989_, p_57992_, direction), direction) : isConnected(p_57991_, SOUTH_WALL);
-        boolean flag3 = p_57994_ == Direction.WEST ? this.connectsTo(p_57993_, p_57993_.isFaceSturdy(p_57989_, p_57992_, direction), direction) : isConnected(p_57991_, WEST_WALL);
-        BlockPos blockpos = p_57990_.above();
-        BlockState blockstate = p_57989_.getBlockState(blockpos);
-        return this.updateShape(p_57989_, p_57991_, blockpos, blockstate, flag, flag1, flag2, flag3);
+    private BlockState sideUpdate(LevelReader pLevel, BlockPos pFirstPos, BlockState pFirstState, BlockPos pSecondPos, BlockState pSecondState, Direction pDir) {
+        Direction direction = pDir.getOpposite();
+        boolean flag = pDir == Direction.NORTH ? this.connectsTo(pSecondState, pSecondState.isFaceSturdy(pLevel, pSecondPos, direction), direction) : isConnected(pFirstState, NORTH_WALL);
+        boolean flag1 = pDir == Direction.EAST ? this.connectsTo(pSecondState, pSecondState.isFaceSturdy(pLevel, pSecondPos, direction), direction) : isConnected(pFirstState, EAST_WALL);
+        boolean flag2 = pDir == Direction.SOUTH ? this.connectsTo(pSecondState, pSecondState.isFaceSturdy(pLevel, pSecondPos, direction), direction) : isConnected(pFirstState, SOUTH_WALL);
+        boolean flag3 = pDir == Direction.WEST ? this.connectsTo(pSecondState, pSecondState.isFaceSturdy(pLevel, pSecondPos, direction), direction) : isConnected(pFirstState, WEST_WALL);
+        BlockPos blockpos = pFirstPos.above();
+        BlockState blockstate = pLevel.getBlockState(blockpos);
+        return this.updateShape(pLevel, pFirstState, blockpos, blockstate, flag, flag1, flag2, flag3);
     }
 
-    private BlockState updateShape(LevelReader p_57980_, BlockState p_57981_, BlockPos p_57982_, BlockState p_57983_, boolean p_57984_, boolean p_57985_, boolean p_57986_, boolean p_57987_) {
-        VoxelShape voxelshape = p_57983_.getCollisionShape(p_57980_, p_57982_).getFaceShape(Direction.DOWN);
-        BlockState blockstate = this.updateSides(p_57981_, p_57984_, p_57985_, p_57986_, p_57987_, voxelshape);
-        return blockstate.setValue(UP, Boolean.valueOf(this.shouldRaisePost(blockstate, p_57983_, voxelshape)));
+    private BlockState updateShape(LevelReader pLevel, BlockState pState, BlockPos pPos, BlockState pNeighbour, boolean pNorthConnection, boolean pEastConnection, boolean pSouthConnection, boolean pWestConnection) {
+        VoxelShape voxelshape = pNeighbour.getCollisionShape(pLevel, pPos).getFaceShape(Direction.DOWN);
+        BlockState blockstate = this.updateSides(pState, pNorthConnection, pEastConnection, pSouthConnection, pWestConnection, voxelshape);
+        return blockstate.setValue(UP, Boolean.valueOf(this.shouldRaisePost(blockstate, pNeighbour, voxelshape)));
     }
 
-    private boolean shouldRaisePost(BlockState p_58007_, BlockState p_58008_, VoxelShape p_58009_) {
-        boolean flag = p_58008_.getBlock() instanceof WallBlock && p_58008_.getValue(UP);
+    private boolean shouldRaisePost(BlockState pState, BlockState pNeighbour, VoxelShape pShape) {
+        boolean flag = pNeighbour.getBlock() instanceof WallBlock && pNeighbour.getValue(UP);
         if (flag) {
             return true;
         } else {
-            WallSide wallside = p_58007_.getValue(NORTH_WALL);
-            WallSide wallside1 = p_58007_.getValue(SOUTH_WALL);
-            WallSide wallside2 = p_58007_.getValue(EAST_WALL);
-            WallSide wallside3 = p_58007_.getValue(WEST_WALL);
+            WallSide wallside = pState.getValue(NORTH_WALL);
+            WallSide wallside1 = pState.getValue(SOUTH_WALL);
+            WallSide wallside2 = pState.getValue(EAST_WALL);
+            WallSide wallside3 = pState.getValue(WEST_WALL);
             boolean flag1 = wallside1 == WallSide.NONE;
             boolean flag2 = wallside3 == WallSide.NONE;
             boolean flag3 = wallside2 == WallSide.NONE;
@@ -209,57 +209,57 @@ public class WallBlock extends Block implements SimpleWaterloggedBlock {
                 if (flag6) {
                     return false;
                 } else {
-                    return p_58008_.is(BlockTags.WALL_POST_OVERRIDE) || isCovered(p_58009_, POST_TEST);
+                    return pNeighbour.is(BlockTags.WALL_POST_OVERRIDE) || isCovered(pShape, POST_TEST);
                 }
             }
         }
     }
 
-    private BlockState updateSides(BlockState p_58025_, boolean p_58026_, boolean p_58027_, boolean p_58028_, boolean p_58029_, VoxelShape p_58030_) {
-        return p_58025_.setValue(NORTH_WALL, this.makeWallState(p_58026_, p_58030_, NORTH_TEST)).setValue(EAST_WALL, this.makeWallState(p_58027_, p_58030_, EAST_TEST)).setValue(SOUTH_WALL, this.makeWallState(p_58028_, p_58030_, SOUTH_TEST)).setValue(WEST_WALL, this.makeWallState(p_58029_, p_58030_, WEST_TEST));
+    private BlockState updateSides(BlockState pState, boolean pNorthConnection, boolean pEastConnection, boolean pSouthConnection, boolean pWestConnection, VoxelShape pWallShape) {
+        return pState.setValue(NORTH_WALL, this.makeWallState(pNorthConnection, pWallShape, NORTH_TEST)).setValue(EAST_WALL, this.makeWallState(pEastConnection, pWallShape, EAST_TEST)).setValue(SOUTH_WALL, this.makeWallState(pSouthConnection, pWallShape, SOUTH_TEST)).setValue(WEST_WALL, this.makeWallState(pWestConnection, pWallShape, WEST_TEST));
     }
 
-    private WallSide makeWallState(boolean p_58042_, VoxelShape p_58043_, VoxelShape p_58044_) {
-        if (p_58042_) {
-            return isCovered(p_58043_, p_58044_) ? WallSide.TALL : WallSide.LOW;
+    private WallSide makeWallState(boolean pAllowConnection, VoxelShape pShape, VoxelShape pNeighbourShape) {
+        if (pAllowConnection) {
+            return isCovered(pShape, pNeighbourShape) ? WallSide.TALL : WallSide.LOW;
         } else {
             return WallSide.NONE;
         }
     }
 
-    public FluidState getFluidState(BlockState p_58060_) {
-        return p_58060_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_58060_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public boolean propagatesSkylightDown(BlockState p_58046_, BlockGetter p_58047_, BlockPos p_58048_) {
-        return !p_58046_.getValue(WATERLOGGED);
+    public boolean propagatesSkylightDown(BlockState pState, BlockGetter pReader, BlockPos pPos) {
+        return !pState.getValue(WATERLOGGED);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_58032_) {
-        p_58032_.add(UP, NORTH_WALL, EAST_WALL, WEST_WALL, SOUTH_WALL, WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(UP, NORTH_WALL, EAST_WALL, WEST_WALL, SOUTH_WALL, WATERLOGGED);
     }
 
-    public BlockState rotate(BlockState p_58004_, Rotation p_58005_) {
-        switch (p_58005_) {
+    public BlockState rotate(BlockState pState, Rotation pRotation) {
+        switch (pRotation) {
             case CLOCKWISE_180:
-                return p_58004_.setValue(NORTH_WALL, p_58004_.getValue(SOUTH_WALL)).setValue(EAST_WALL, p_58004_.getValue(WEST_WALL)).setValue(SOUTH_WALL, p_58004_.getValue(NORTH_WALL)).setValue(WEST_WALL, p_58004_.getValue(EAST_WALL));
+                return pState.setValue(NORTH_WALL, pState.getValue(SOUTH_WALL)).setValue(EAST_WALL, pState.getValue(WEST_WALL)).setValue(SOUTH_WALL, pState.getValue(NORTH_WALL)).setValue(WEST_WALL, pState.getValue(EAST_WALL));
             case COUNTERCLOCKWISE_90:
-                return p_58004_.setValue(NORTH_WALL, p_58004_.getValue(EAST_WALL)).setValue(EAST_WALL, p_58004_.getValue(SOUTH_WALL)).setValue(SOUTH_WALL, p_58004_.getValue(WEST_WALL)).setValue(WEST_WALL, p_58004_.getValue(NORTH_WALL));
+                return pState.setValue(NORTH_WALL, pState.getValue(EAST_WALL)).setValue(EAST_WALL, pState.getValue(SOUTH_WALL)).setValue(SOUTH_WALL, pState.getValue(WEST_WALL)).setValue(WEST_WALL, pState.getValue(NORTH_WALL));
             case CLOCKWISE_90:
-                return p_58004_.setValue(NORTH_WALL, p_58004_.getValue(WEST_WALL)).setValue(EAST_WALL, p_58004_.getValue(NORTH_WALL)).setValue(SOUTH_WALL, p_58004_.getValue(EAST_WALL)).setValue(WEST_WALL, p_58004_.getValue(SOUTH_WALL));
+                return pState.setValue(NORTH_WALL, pState.getValue(WEST_WALL)).setValue(EAST_WALL, pState.getValue(NORTH_WALL)).setValue(SOUTH_WALL, pState.getValue(EAST_WALL)).setValue(WEST_WALL, pState.getValue(SOUTH_WALL));
             default:
-                return p_58004_;
+                return pState;
         }
     }
 
-    public BlockState mirror(BlockState p_58001_, Mirror p_58002_) {
-        switch (p_58002_) {
+    public BlockState mirror(BlockState pState, Mirror pMirror) {
+        switch (pMirror) {
             case LEFT_RIGHT:
-                return p_58001_.setValue(NORTH_WALL, p_58001_.getValue(SOUTH_WALL)).setValue(SOUTH_WALL, p_58001_.getValue(NORTH_WALL));
+                return pState.setValue(NORTH_WALL, pState.getValue(SOUTH_WALL)).setValue(SOUTH_WALL, pState.getValue(NORTH_WALL));
             case FRONT_BACK:
-                return p_58001_.setValue(EAST_WALL, p_58001_.getValue(WEST_WALL)).setValue(WEST_WALL, p_58001_.getValue(EAST_WALL));
+                return pState.setValue(EAST_WALL, pState.getValue(WEST_WALL)).setValue(WEST_WALL, pState.getValue(EAST_WALL));
             default:
-                return super.mirror(p_58001_, p_58002_);
+                return super.mirror(pState, pMirror);
         }
     }
 }

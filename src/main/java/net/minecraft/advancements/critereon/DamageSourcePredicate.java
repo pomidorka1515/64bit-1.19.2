@@ -31,52 +31,52 @@ public class DamageSourcePredicate {
     private final EntityPredicate directEntity;
     private final EntityPredicate sourceEntity;
 
-    public DamageSourcePredicate(@Nullable Boolean p_25433_, @Nullable Boolean p_25434_, @Nullable Boolean p_25435_, @Nullable Boolean p_25436_, @Nullable Boolean p_25437_, @Nullable Boolean p_25438_, @Nullable Boolean p_25439_, @Nullable Boolean p_25440_, EntityPredicate p_25441_, EntityPredicate p_25442_) {
-        this.isProjectile = p_25433_;
-        this.isExplosion = p_25434_;
-        this.bypassesArmor = p_25435_;
-        this.bypassesInvulnerability = p_25436_;
-        this.bypassesMagic = p_25437_;
-        this.isFire = p_25438_;
-        this.isMagic = p_25439_;
-        this.isLightning = p_25440_;
-        this.directEntity = p_25441_;
-        this.sourceEntity = p_25442_;
+    public DamageSourcePredicate(@Nullable Boolean pIsProjectile, @Nullable Boolean pIsExplosion, @Nullable Boolean pBypassesArmor, @Nullable Boolean pBypassesInvulnerability, @Nullable Boolean pBypassesMagic, @Nullable Boolean pIsFire, @Nullable Boolean pIsMagic, @Nullable Boolean pIsLightning, EntityPredicate pDirectEntity, EntityPredicate pSourceEntity) {
+        this.isProjectile = pIsProjectile;
+        this.isExplosion = pIsExplosion;
+        this.bypassesArmor = pBypassesArmor;
+        this.bypassesInvulnerability = pBypassesInvulnerability;
+        this.bypassesMagic = pBypassesMagic;
+        this.isFire = pIsFire;
+        this.isMagic = pIsMagic;
+        this.isLightning = pIsLightning;
+        this.directEntity = pDirectEntity;
+        this.sourceEntity = pSourceEntity;
     }
 
-    public boolean matches(ServerPlayer p_25449_, DamageSource p_25450_) {
-        return this.matches(p_25449_.getLevel(), p_25449_.position(), p_25450_);
+    public boolean matches(ServerPlayer pPlayer, DamageSource pSource) {
+        return this.matches(pPlayer.getLevel(), pPlayer.position(), pSource);
     }
 
-    public boolean matches(ServerLevel p_25445_, Vec3 p_25446_, DamageSource p_25447_) {
+    public boolean matches(ServerLevel pLevel, Vec3 pPosition, DamageSource pSource) {
         if (this == ANY) {
             return true;
-        } else if (this.isProjectile != null && this.isProjectile != p_25447_.isProjectile()) {
+        } else if (this.isProjectile != null && this.isProjectile != pSource.isProjectile()) {
             return false;
-        } else if (this.isExplosion != null && this.isExplosion != p_25447_.isExplosion()) {
+        } else if (this.isExplosion != null && this.isExplosion != pSource.isExplosion()) {
             return false;
-        } else if (this.bypassesArmor != null && this.bypassesArmor != p_25447_.isBypassArmor()) {
+        } else if (this.bypassesArmor != null && this.bypassesArmor != pSource.isBypassArmor()) {
             return false;
-        } else if (this.bypassesInvulnerability != null && this.bypassesInvulnerability != p_25447_.isBypassInvul()) {
+        } else if (this.bypassesInvulnerability != null && this.bypassesInvulnerability != pSource.isBypassInvul()) {
             return false;
-        } else if (this.bypassesMagic != null && this.bypassesMagic != p_25447_.isBypassMagic()) {
+        } else if (this.bypassesMagic != null && this.bypassesMagic != pSource.isBypassMagic()) {
             return false;
-        } else if (this.isFire != null && this.isFire != p_25447_.isFire()) {
+        } else if (this.isFire != null && this.isFire != pSource.isFire()) {
             return false;
-        } else if (this.isMagic != null && this.isMagic != p_25447_.isMagic()) {
+        } else if (this.isMagic != null && this.isMagic != pSource.isMagic()) {
             return false;
-        } else if (this.isLightning != null && this.isLightning != (p_25447_ == DamageSource.LIGHTNING_BOLT)) {
+        } else if (this.isLightning != null && this.isLightning != (pSource == DamageSource.LIGHTNING_BOLT)) {
             return false;
-        } else if (!this.directEntity.matches(p_25445_, p_25446_, p_25447_.getDirectEntity())) {
+        } else if (!this.directEntity.matches(pLevel, pPosition, pSource.getDirectEntity())) {
             return false;
         } else {
-            return this.sourceEntity.matches(p_25445_, p_25446_, p_25447_.getEntity());
+            return this.sourceEntity.matches(pLevel, pPosition, pSource.getEntity());
         }
     }
 
-    public static DamageSourcePredicate fromJson(@Nullable JsonElement p_25452_) {
-        if (p_25452_ != null && !p_25452_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_25452_, "damage type");
+    public static DamageSourcePredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "damage type");
             Boolean obool = getOptionalBoolean(jsonobject, "is_projectile");
             Boolean obool1 = getOptionalBoolean(jsonobject, "is_explosion");
             Boolean obool2 = getOptionalBoolean(jsonobject, "bypasses_armor");
@@ -94,8 +94,8 @@ public class DamageSourcePredicate {
     }
 
     @Nullable
-    private static Boolean getOptionalBoolean(JsonObject p_25454_, String p_25455_) {
-        return p_25454_.has(p_25455_) ? GsonHelper.getAsBoolean(p_25454_, p_25455_) : null;
+    private static Boolean getOptionalBoolean(JsonObject pJson, String pProperty) {
+        return pJson.has(pProperty) ? GsonHelper.getAsBoolean(pJson, pProperty) : null;
     }
 
     public JsonElement serializeToJson() {
@@ -117,9 +117,9 @@ public class DamageSourcePredicate {
         }
     }
 
-    private void addOptionally(JsonObject p_25457_, String p_25458_, @Nullable Boolean p_25459_) {
-        if (p_25459_ != null) {
-            p_25457_.addProperty(p_25458_, p_25459_);
+    private void addOptionally(JsonObject pJson, String pProperty, @Nullable Boolean pValue) {
+        if (pValue != null) {
+            pJson.addProperty(pProperty, pValue);
         }
     }
 
@@ -147,63 +147,63 @@ public class DamageSourcePredicate {
             return new DamageSourcePredicate.Builder();
         }
 
-        public DamageSourcePredicate.Builder isProjectile(Boolean p_25475_) {
-            this.isProjectile = p_25475_;
+        public DamageSourcePredicate.Builder isProjectile(Boolean pIsProjectile) {
+            this.isProjectile = pIsProjectile;
             return this;
         }
 
-        public DamageSourcePredicate.Builder isExplosion(Boolean p_148236_) {
-            this.isExplosion = p_148236_;
+        public DamageSourcePredicate.Builder isExplosion(Boolean pIsExplosion) {
+            this.isExplosion = pIsExplosion;
             return this;
         }
 
-        public DamageSourcePredicate.Builder bypassesArmor(Boolean p_148238_) {
-            this.bypassesArmor = p_148238_;
+        public DamageSourcePredicate.Builder bypassesArmor(Boolean pBypassesArmor) {
+            this.bypassesArmor = pBypassesArmor;
             return this;
         }
 
-        public DamageSourcePredicate.Builder bypassesInvulnerability(Boolean p_148240_) {
-            this.bypassesInvulnerability = p_148240_;
+        public DamageSourcePredicate.Builder bypassesInvulnerability(Boolean pBypassesInvulnerability) {
+            this.bypassesInvulnerability = pBypassesInvulnerability;
             return this;
         }
 
-        public DamageSourcePredicate.Builder bypassesMagic(Boolean p_148242_) {
-            this.bypassesMagic = p_148242_;
+        public DamageSourcePredicate.Builder bypassesMagic(Boolean pBypassesMagic) {
+            this.bypassesMagic = pBypassesMagic;
             return this;
         }
 
-        public DamageSourcePredicate.Builder isFire(Boolean p_148244_) {
-            this.isFire = p_148244_;
+        public DamageSourcePredicate.Builder isFire(Boolean pIsFire) {
+            this.isFire = pIsFire;
             return this;
         }
 
-        public DamageSourcePredicate.Builder isMagic(Boolean p_148246_) {
-            this.isMagic = p_148246_;
+        public DamageSourcePredicate.Builder isMagic(Boolean pIsMagic) {
+            this.isMagic = pIsMagic;
             return this;
         }
 
-        public DamageSourcePredicate.Builder isLightning(Boolean p_25478_) {
-            this.isLightning = p_25478_;
+        public DamageSourcePredicate.Builder isLightning(Boolean pIsLightning) {
+            this.isLightning = pIsLightning;
             return this;
         }
 
-        public DamageSourcePredicate.Builder direct(EntityPredicate p_148230_) {
-            this.directEntity = p_148230_;
+        public DamageSourcePredicate.Builder direct(EntityPredicate pDirectEntity) {
+            this.directEntity = pDirectEntity;
             return this;
         }
 
-        public DamageSourcePredicate.Builder direct(EntityPredicate.Builder p_25473_) {
-            this.directEntity = p_25473_.build();
+        public DamageSourcePredicate.Builder direct(EntityPredicate.Builder pDirectEntity) {
+            this.directEntity = pDirectEntity.build();
             return this;
         }
 
-        public DamageSourcePredicate.Builder source(EntityPredicate p_148234_) {
-            this.sourceEntity = p_148234_;
+        public DamageSourcePredicate.Builder source(EntityPredicate pSourceEntity) {
+            this.sourceEntity = pSourceEntity;
             return this;
         }
 
-        public DamageSourcePredicate.Builder source(EntityPredicate.Builder p_148232_) {
-            this.sourceEntity = p_148232_.build();
+        public DamageSourcePredicate.Builder source(EntityPredicate.Builder pSourceEntity) {
+            this.sourceEntity = pSourceEntity.build();
             return this;
         }
 

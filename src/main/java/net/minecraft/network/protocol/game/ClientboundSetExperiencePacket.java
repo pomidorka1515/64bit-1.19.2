@@ -8,26 +8,26 @@ public class ClientboundSetExperiencePacket implements Packet<ClientGamePacketLi
     private final int totalExperience;
     private final int experienceLevel;
 
-    public ClientboundSetExperiencePacket(float p_133219_, int p_133220_, int p_133221_) {
-        this.experienceProgress = p_133219_;
-        this.totalExperience = p_133220_;
-        this.experienceLevel = p_133221_;
+    public ClientboundSetExperiencePacket(float pExperienceProgress, int pTotalExperience, int pExperienceLevel) {
+        this.experienceProgress = pExperienceProgress;
+        this.totalExperience = pTotalExperience;
+        this.experienceLevel = pExperienceLevel;
     }
 
-    public ClientboundSetExperiencePacket(FriendlyByteBuf p_179299_) {
-        this.experienceProgress = p_179299_.readFloat();
-        this.experienceLevel = p_179299_.readVarInt();
-        this.totalExperience = p_179299_.readVarInt();
+    public ClientboundSetExperiencePacket(FriendlyByteBuf pBuffer) {
+        this.experienceProgress = pBuffer.readFloat();
+        this.experienceLevel = pBuffer.readVarInt();
+        this.totalExperience = pBuffer.readVarInt();
     }
 
-    public void write(FriendlyByteBuf p_133230_) {
-        p_133230_.writeFloat(this.experienceProgress);
-        p_133230_.writeVarInt(this.experienceLevel);
-        p_133230_.writeVarInt(this.totalExperience);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeFloat(this.experienceProgress);
+        pBuffer.writeVarInt(this.experienceLevel);
+        pBuffer.writeVarInt(this.totalExperience);
     }
 
-    public void handle(ClientGamePacketListener p_133227_) {
-        p_133227_.handleSetExperience(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleSetExperience(this);
     }
 
     public float getExperienceProgress() {

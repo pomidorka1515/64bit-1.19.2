@@ -16,8 +16,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class ChunkBedBlockEntityInjecterFix extends DataFix {
-    public ChunkBedBlockEntityInjecterFix(Schema p_184825_, boolean p_184826_) {
-        super(p_184825_, p_184826_);
+    public ChunkBedBlockEntityInjecterFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

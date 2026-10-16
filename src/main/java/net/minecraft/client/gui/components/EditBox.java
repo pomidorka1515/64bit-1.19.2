@@ -63,8 +63,8 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         return FormattedCharSequence.forward(p_94147_, Style.EMPTY);
     };
 
-    public EditBox(Font p_94114_, int p_94115_, int p_94116_, int p_94117_, int p_94118_, Component p_94119_) {
-        this(p_94114_, p_94115_, p_94116_, p_94117_, p_94118_, (EditBox) null, p_94119_);
+    public EditBox(Font pFont, int pX, int pY, int pWidth, int pHeight, Component pMessage) {
+        this(pFont, pX, pY, pWidth, pHeight, (EditBox) null, pMessage);
     }
 
     public EditBox(Font p_94106_, int p_94107_, int p_94108_, int p_94109_, int p_94110_, @Nullable EditBox p_94111_, Component p_94112_) {
@@ -75,12 +75,12 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         }
     }
 
-    public void setResponder(Consumer<String> p_94152_) {
-        this.responder = p_94152_;
+    public void setResponder(Consumer<String> pResponder) {
+        this.responder = pResponder;
     }
 
-    public void setFormatter(BiFunction<String, Integer, FormattedCharSequence> p_94150_) {
-        this.formatter = p_94150_;
+    public void setFormatter(BiFunction<String, Integer, FormattedCharSequence> pTextFormatter) {
+        this.formatter = pTextFormatter;
     }
 
     public void tick() {
@@ -92,17 +92,17 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         return Component.translatable("gui.narrate.editBox", component, this.value);
     }
 
-    public void setValue(String p_94145_) {
-        if (this.filter.test(p_94145_)) {
-            if (p_94145_.length() > this.maxLength) {
-                this.value = p_94145_.substring(0, this.maxLength);
+    public void setValue(String pText) {
+        if (this.filter.test(pText)) {
+            if (pText.length() > this.maxLength) {
+                this.value = pText.substring(0, this.maxLength);
             } else {
-                this.value = p_94145_;
+                this.value = pText;
             }
 
             this.moveCursorToEnd();
             this.setHighlightPos(this.cursorPos);
-            this.onValueChange(p_94145_);
+            this.onValueChange(pText);
         }
     }
 
@@ -116,15 +116,15 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         return this.value.substring(i, j);
     }
 
-    public void setFilter(Predicate<String> p_94154_) {
-        this.filter = p_94154_;
+    public void setFilter(Predicate<String> pValidator) {
+        this.filter = pValidator;
     }
 
-    public void insertText(String p_94165_) {
+    public void insertText(String pTextToWrite) {
         int i = Math.min(this.cursorPos, this.highlightPos);
         int j = Math.max(this.cursorPos, this.highlightPos);
         int k = this.maxLength - this.value.length() - (i - j);
-        String s = SharedConstants.filterText(p_94165_);
+        String s = SharedConstants.filterText(pTextToWrite);
         int l = s.length();
         if (k < l) {
             s = s.substring(0, k);
@@ -140,36 +140,36 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         }
     }
 
-    private void onValueChange(String p_94175_) {
+    private void onValueChange(String pNewText) {
         if (this.responder != null) {
-            this.responder.accept(p_94175_);
+            this.responder.accept(pNewText);
         }
     }
 
-    private void deleteText(int p_94218_) {
+    private void deleteText(int pCount) {
         if (Screen.hasControlDown()) {
-            this.deleteWords(p_94218_);
+            this.deleteWords(pCount);
         } else {
-            this.deleteChars(p_94218_);
+            this.deleteChars(pCount);
         }
     }
 
-    public void deleteWords(int p_94177_) {
+    public void deleteWords(int pNum) {
         if (!this.value.isEmpty()) {
             if (this.highlightPos != this.cursorPos) {
                 this.insertText("");
             } else {
-                this.deleteChars(this.getWordPosition(p_94177_) - this.cursorPos);
+                this.deleteChars(this.getWordPosition(pNum) - this.cursorPos);
             }
         }
     }
 
-    public void deleteChars(int p_94181_) {
+    public void deleteChars(int pNum) {
         if (!this.value.isEmpty()) {
             if (this.highlightPos != this.cursorPos) {
                 this.insertText("");
             } else {
-                int i = this.getCursorPos(p_94181_);
+                int i = this.getCursorPos(pNum);
                 int j = Math.min(i, this.cursorPos);
                 int k = Math.max(i, this.cursorPos);
                 if (j != k) {
@@ -183,18 +183,18 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         }
     }
 
-    public int getWordPosition(int p_94185_) {
-        return this.getWordPosition(p_94185_, this.getCursorPosition());
+    public int getWordPosition(int pNumWords) {
+        return this.getWordPosition(pNumWords, this.getCursorPosition());
     }
 
-    private int getWordPosition(int p_94129_, int p_94130_) {
-        return this.getWordPosition(p_94129_, p_94130_, true);
+    private int getWordPosition(int pN, int pPos) {
+        return this.getWordPosition(pN, pPos, true);
     }
 
-    private int getWordPosition(int p_94141_, int p_94142_, boolean p_94143_) {
-        int i = p_94142_;
-        boolean flag = p_94141_ < 0;
-        int j = Math.abs(p_94141_);
+    private int getWordPosition(int pN, int pPos, boolean pSkipWs) {
+        int i = pPos;
+        boolean flag = pN < 0;
+        int j = Math.abs(pN);
 
         for (int k = 0; k < j; ++k) {
             if (!flag) {
@@ -203,12 +203,12 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
                 if (i == -1) {
                     i = l;
                 } else {
-                    while (p_94143_ && i < l && this.value.charAt(i) == ' ') {
+                    while (pSkipWs && i < l && this.value.charAt(i) == ' ') {
                         ++i;
                     }
                 }
             } else {
-                while (p_94143_ && i > 0 && this.value.charAt(i - 1) == ' ') {
+                while (pSkipWs && i > 0 && this.value.charAt(i - 1) == ' ') {
                     --i;
                 }
 
@@ -221,16 +221,16 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         return i;
     }
 
-    public void moveCursor(int p_94189_) {
-        this.moveCursorTo(this.getCursorPos(p_94189_));
+    public void moveCursor(int pDelta) {
+        this.moveCursorTo(this.getCursorPos(pDelta));
     }
 
-    private int getCursorPos(int p_94221_) {
-        return Util.offsetByCodepoints(this.value, this.cursorPos, p_94221_);
+    private int getCursorPos(int pDelta) {
+        return Util.offsetByCodepoints(this.value, this.cursorPos, pDelta);
     }
 
-    public void moveCursorTo(int p_94193_) {
-        this.setCursorPosition(p_94193_);
+    public void moveCursorTo(int pPos) {
+        this.setCursorPosition(pPos);
         if (!this.shiftPressed) {
             this.setHighlightPos(this.cursorPos);
         }
@@ -238,8 +238,8 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         this.onValueChange(this.value);
     }
 
-    public void setCursorPosition(int p_94197_) {
-        this.cursorPos = Mth.clamp(p_94197_, 0, this.value.length());
+    public void setCursorPosition(int pPos) {
+        this.cursorPos = Mth.clamp(pPos, 0, this.value.length());
     }
 
     public void moveCursorToStart() {
@@ -250,25 +250,25 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         this.moveCursorTo(this.value.length());
     }
 
-    public boolean keyPressed(int p_94132_, int p_94133_, int p_94134_) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (!this.canConsumeInput()) {
             return false;
         } else {
             this.shiftPressed = Screen.hasShiftDown();
-            if (Screen.isSelectAll(p_94132_)) {
+            if (Screen.isSelectAll(pKeyCode)) {
                 this.moveCursorToEnd();
                 this.setHighlightPos(0);
                 return true;
-            } else if (Screen.isCopy(p_94132_)) {
+            } else if (Screen.isCopy(pKeyCode)) {
                 Minecraft.getInstance().keyboardHandler.setClipboard(this.getHighlighted());
                 return true;
-            } else if (Screen.isPaste(p_94132_)) {
+            } else if (Screen.isPaste(pKeyCode)) {
                 if (this.isEditable) {
                     this.insertText(Minecraft.getInstance().keyboardHandler.getClipboard());
                 }
 
                 return true;
-            } else if (Screen.isCut(p_94132_)) {
+            } else if (Screen.isCut(pKeyCode)) {
                 Minecraft.getInstance().keyboardHandler.setClipboard(this.getHighlighted());
                 if (this.isEditable) {
                     this.insertText("");
@@ -276,7 +276,7 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
 
                 return true;
             } else {
-                switch (p_94132_) {
+                switch (pKeyCode) {
                     case 259:
                         if (this.isEditable) {
                             this.shiftPressed = false;
@@ -331,12 +331,12 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         return this.isVisible() && this.isFocused() && this.isEditable();
     }
 
-    public boolean charTyped(char p_94122_, int p_94123_) {
+    public boolean charTyped(char pCodePoint, int pModifiers) {
         if (!this.canConsumeInput()) {
             return false;
-        } else if (SharedConstants.isAllowedChatCharacter(p_94122_)) {
+        } else if (SharedConstants.isAllowedChatCharacter(pCodePoint)) {
             if (this.isEditable) {
-                this.insertText(Character.toString(p_94122_));
+                this.insertText(Character.toString(pCodePoint));
             }
 
             return true;
@@ -345,17 +345,17 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         }
     }
 
-    public boolean mouseClicked(double p_94125_, double p_94126_, int p_94127_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (!this.isVisible()) {
             return false;
         } else {
-            boolean flag = p_94125_ >= (double) this.x && p_94125_ < (double) (this.x + this.width) && p_94126_ >= (double) this.y && p_94126_ < (double) (this.y + this.height);
+            boolean flag = pMouseX >= (double) this.x && pMouseX < (double) (this.x + this.width) && pMouseY >= (double) this.y && pMouseY < (double) (this.y + this.height);
             if (this.canLoseFocus) {
                 this.setFocus(flag);
             }
 
-            if (this.isFocused() && flag && p_94127_ == 0) {
-                int i = Mth.floor(p_94125_) - this.x;
+            if (this.isFocused() && flag && pButton == 0) {
+                int i = Mth.floor(pMouseX) - this.x;
                 if (this.bordered) {
                     i -= 4;
                 }
@@ -369,16 +369,16 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         }
     }
 
-    public void setFocus(boolean p_94179_) {
-        this.setFocused(p_94179_);
+    public void setFocus(boolean pIsFocused) {
+        this.setFocused(pIsFocused);
     }
 
-    public void renderButton(PoseStack p_94160_, int p_94161_, int p_94162_, float p_94163_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.isVisible()) {
             if (this.isBordered()) {
                 int i = this.isFocused() ? -1 : -6250336;
-                fill(p_94160_, this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, i);
-                fill(p_94160_, this.x, this.y, this.x + this.width, this.y + this.height, -16777216);
+                fill(pPoseStack, this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, i);
+                fill(pPoseStack, this.x, this.y, this.x + this.width, this.y + this.height, -16777216);
             }
 
             int i2 = this.isEditable ? this.textColor : this.textColorUneditable;
@@ -396,7 +396,7 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
 
             if (!s.isEmpty()) {
                 String s1 = flag ? s.substring(0, j) : s;
-                j1 = this.font.drawShadow(p_94160_, this.formatter.apply(s1, this.displayPos), (float) l, (float) i1, i2);
+                j1 = this.font.drawShadow(pPoseStack, this.formatter.apply(s1, this.displayPos), (float) l, (float) i1, i2);
             }
 
             boolean flag2 = this.cursorPos < this.value.length() || this.value.length() >= this.getMaxLength();
@@ -409,18 +409,18 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
             }
 
             if (!s.isEmpty() && flag && j < s.length()) {
-                this.font.drawShadow(p_94160_, this.formatter.apply(s.substring(j), this.cursorPos), (float) j1, (float) i1, i2);
+                this.font.drawShadow(pPoseStack, this.formatter.apply(s.substring(j), this.cursorPos), (float) j1, (float) i1, i2);
             }
 
             if (!flag2 && this.suggestion != null) {
-                this.font.drawShadow(p_94160_, this.suggestion, (float) (k1 - 1), (float) i1, -8355712);
+                this.font.drawShadow(pPoseStack, this.suggestion, (float) (k1 - 1), (float) i1, -8355712);
             }
 
             if (flag1) {
                 if (flag2) {
-                    GuiComponent.fill(p_94160_, k1, i1 - 1, k1 + 1, i1 + 1 + 9, -3092272);
+                    GuiComponent.fill(pPoseStack, k1, i1 - 1, k1 + 1, i1 + 1 + 9, -3092272);
                 } else {
-                    this.font.drawShadow(p_94160_, "_", (float) k1, (float) i1, i2);
+                    this.font.drawShadow(pPoseStack, "_", (float) k1, (float) i1, i2);
                 }
             }
 
@@ -431,25 +431,25 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         }
     }
 
-    private void renderHighlight(int p_94136_, int p_94137_, int p_94138_, int p_94139_) {
-        if (p_94136_ < p_94138_) {
-            int i = p_94136_;
-            p_94136_ = p_94138_;
-            p_94138_ = i;
+    private void renderHighlight(int pStartX, int pStartY, int pEndX, int pEndY) {
+        if (pStartX < pEndX) {
+            int i = pStartX;
+            pStartX = pEndX;
+            pEndX = i;
         }
 
-        if (p_94137_ < p_94139_) {
-            int j = p_94137_;
-            p_94137_ = p_94139_;
-            p_94139_ = j;
+        if (pStartY < pEndY) {
+            int j = pStartY;
+            pStartY = pEndY;
+            pEndY = j;
         }
 
-        if (p_94138_ > this.x + this.width) {
-            p_94138_ = this.x + this.width;
+        if (pEndX > this.x + this.width) {
+            pEndX = this.x + this.width;
         }
 
-        if (p_94136_ > this.x + this.width) {
-            p_94136_ = this.x + this.width;
+        if (pStartX > this.x + this.width) {
+            pStartX = this.x + this.width;
         }
 
         Tesselator tesselator = Tesselator.getInstance();
@@ -460,20 +460,20 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         RenderSystem.enableColorLogicOp();
         RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-        bufferbuilder.vertex((double) p_94136_, (double) p_94139_, 0.0D).endVertex();
-        bufferbuilder.vertex((double) p_94138_, (double) p_94139_, 0.0D).endVertex();
-        bufferbuilder.vertex((double) p_94138_, (double) p_94137_, 0.0D).endVertex();
-        bufferbuilder.vertex((double) p_94136_, (double) p_94137_, 0.0D).endVertex();
+        bufferbuilder.vertex((double) pStartX, (double) pEndY, 0.0D).endVertex();
+        bufferbuilder.vertex((double) pEndX, (double) pEndY, 0.0D).endVertex();
+        bufferbuilder.vertex((double) pEndX, (double) pStartY, 0.0D).endVertex();
+        bufferbuilder.vertex((double) pStartX, (double) pStartY, 0.0D).endVertex();
         tesselator.end();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.disableColorLogicOp();
         RenderSystem.enableTexture();
     }
 
-    public void setMaxLength(int p_94200_) {
-        this.maxLength = p_94200_;
-        if (this.value.length() > p_94200_) {
-            this.value = this.value.substring(0, p_94200_);
+    public void setMaxLength(int pLength) {
+        this.maxLength = pLength;
+        if (this.value.length() > pLength) {
+            this.value = this.value.substring(0, pLength);
             this.onValueChange(this.value);
         }
     }
@@ -490,28 +490,28 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         return this.bordered;
     }
 
-    public void setBordered(boolean p_94183_) {
-        this.bordered = p_94183_;
+    public void setBordered(boolean pEnableBackgroundDrawing) {
+        this.bordered = pEnableBackgroundDrawing;
     }
 
-    public void setTextColor(int p_94203_) {
-        this.textColor = p_94203_;
+    public void setTextColor(int pColor) {
+        this.textColor = pColor;
     }
 
-    public void setTextColorUneditable(int p_94206_) {
-        this.textColorUneditable = p_94206_;
+    public void setTextColorUneditable(int pColor) {
+        this.textColorUneditable = pColor;
     }
 
-    public boolean changeFocus(boolean p_94172_) {
-        return this.visible && this.isEditable ? super.changeFocus(p_94172_) : false;
+    public boolean changeFocus(boolean pFocus) {
+        return this.visible && this.isEditable ? super.changeFocus(pFocus) : false;
     }
 
-    public boolean isMouseOver(double p_94157_, double p_94158_) {
-        return this.visible && p_94157_ >= (double) this.x && p_94157_ < (double) (this.x + this.width) && p_94158_ >= (double) this.y && p_94158_ < (double) (this.y + this.height);
+    public boolean isMouseOver(double pMouseX, double pMouseY) {
+        return this.visible && pMouseX >= (double) this.x && pMouseX < (double) (this.x + this.width) && pMouseY >= (double) this.y && pMouseY < (double) (this.y + this.height);
     }
 
-    protected void onFocusedChanged(boolean p_94170_) {
-        if (p_94170_) {
+    protected void onFocusedChanged(boolean pFocused) {
+        if (pFocused) {
             this.frame = 0;
         }
     }
@@ -520,17 +520,17 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         return this.isEditable;
     }
 
-    public void setEditable(boolean p_94187_) {
-        this.isEditable = p_94187_;
+    public void setEditable(boolean pEnabled) {
+        this.isEditable = pEnabled;
     }
 
     public int getInnerWidth() {
         return this.isBordered() ? this.width - 8 : this.width;
     }
 
-    public void setHighlightPos(int p_94209_) {
+    public void setHighlightPos(int pPosition) {
         int i = this.value.length();
-        this.highlightPos = Mth.clamp(p_94209_, 0, i);
+        this.highlightPos = Mth.clamp(pPosition, 0, i);
         if (this.font != null) {
             if (this.displayPos > i) {
                 this.displayPos = i;
@@ -553,31 +553,31 @@ public class EditBox extends AbstractWidget implements Widget, GuiEventListener 
         }
     }
 
-    public void setCanLoseFocus(boolean p_94191_) {
-        this.canLoseFocus = p_94191_;
+    public void setCanLoseFocus(boolean pCanLoseFocus) {
+        this.canLoseFocus = pCanLoseFocus;
     }
 
     public boolean isVisible() {
         return this.visible;
     }
 
-    public void setVisible(boolean p_94195_) {
-        this.visible = p_94195_;
+    public void setVisible(boolean pIsVisible) {
+        this.visible = pIsVisible;
     }
 
-    public void setSuggestion(@Nullable String p_94168_) {
-        this.suggestion = p_94168_;
+    public void setSuggestion(@Nullable String pSuggestion) {
+        this.suggestion = pSuggestion;
     }
 
-    public int getScreenX(int p_94212_) {
-        return p_94212_ > this.value.length() ? this.x : this.x + this.font.width(this.value.substring(0, p_94212_));
+    public int getScreenX(int pCharNum) {
+        return pCharNum > this.value.length() ? this.x : this.x + this.font.width(this.value.substring(0, pCharNum));
     }
 
-    public void setX(int p_94215_) {
-        this.x = p_94215_;
+    public void setX(int pX) {
+        this.x = pX;
     }
 
-    public void updateNarration(NarrationElementOutput p_169009_) {
-        p_169009_.add(NarratedElementType.TITLE, Component.translatable("narration.edit_box", this.getValue()));
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+        pNarrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("narration.edit_box", this.getValue()));
     }
 }

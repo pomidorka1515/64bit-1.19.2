@@ -7,8 +7,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.stream.Stream;
 
 public class SavedDataVillageCropFix extends DataFix {
-    public SavedDataVillageCropFix(Schema p_16882_, boolean p_16883_) {
-        super(p_16882_, p_16883_);
+    public SavedDataVillageCropFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

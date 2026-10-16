@@ -4,9 +4,9 @@ public class PaintingVariant {
     private final int width;
     private final int height;
 
-    public PaintingVariant(int p_218906_, int p_218907_) {
-        this.width = p_218906_;
-        this.height = p_218907_;
+    public PaintingVariant(int pWidth, int pHeight) {
+        this.width = pWidth;
+        this.height = pHeight;
     }
 
     public int getWidth() {

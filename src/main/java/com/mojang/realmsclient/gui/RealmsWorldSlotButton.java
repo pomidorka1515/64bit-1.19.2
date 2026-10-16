@@ -34,11 +34,11 @@ public class RealmsWorldSlotButton extends Button {
     @Nullable
     private RealmsWorldSlotButton.State state;
 
-    public RealmsWorldSlotButton(int p_87929_, int p_87930_, int p_87931_, int p_87932_, Supplier<RealmsServer> p_87933_, Consumer<Component> p_87934_, int p_87935_, Button.OnPress p_87936_) {
-        super(p_87929_, p_87930_, p_87931_, p_87932_, CommonComponents.EMPTY, p_87936_);
-        this.serverDataProvider = p_87933_;
-        this.slotIndex = p_87935_;
-        this.toolTipSetter = p_87934_;
+    public RealmsWorldSlotButton(int pX, int pY, int pWidth, int pHeight, Supplier<RealmsServer> pServerDataProvider, Consumer<Component> pToolTipSetter, int pSlotIndex, Button.OnPress pOnPress) {
+        super(pX, pY, pWidth, pHeight, CommonComponents.EMPTY, pOnPress);
+        this.serverDataProvider = pServerDataProvider;
+        this.slotIndex = pSlotIndex;
+        this.toolTipSetter = pToolTipSetter;
     }
 
     @Nullable
@@ -122,9 +122,9 @@ public class RealmsWorldSlotButton extends Button {
         }
     }
 
-    public void renderButton(PoseStack p_87964_, int p_87965_, int p_87966_, float p_87967_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.state != null) {
-            this.drawSlotFrame(p_87964_, this.x, this.y, p_87965_, p_87966_, this.state.isCurrentlyActiveSlot, this.state.slotName, this.slotIndex, this.state.imageId, this.state.image, this.state.empty, this.state.minigame, this.state.action, this.state.actionPrompt);
+            this.drawSlotFrame(pPoseStack, this.x, this.y, pMouseX, pMouseY, this.state.isCurrentlyActiveSlot, this.state.slotName, this.slotIndex, this.state.imageId, this.state.image, this.state.empty, this.state.minigame, this.state.action, this.state.actionPrompt);
         }
     }
 
@@ -203,15 +203,15 @@ public class RealmsWorldSlotButton extends Button {
         @Nullable
         final Component actionPrompt;
 
-        State(boolean p_87989_, String p_87990_, long p_87991_, @Nullable String p_87992_, boolean p_87993_, boolean p_87994_, RealmsWorldSlotButton.Action p_87995_, @Nullable Component p_87996_) {
-            this.isCurrentlyActiveSlot = p_87989_;
-            this.slotName = p_87990_;
-            this.imageId = p_87991_;
-            this.image = p_87992_;
-            this.empty = p_87993_;
-            this.minigame = p_87994_;
-            this.action = p_87995_;
-            this.actionPrompt = p_87996_;
+        State(boolean pIsCurrentlyActiveSlot, String pSlotName, long pImageId, @Nullable String pImage, boolean pEmpty, boolean pMinigame, RealmsWorldSlotButton.Action pAction, @Nullable Component pActionPrompt) {
+            this.isCurrentlyActiveSlot = pIsCurrentlyActiveSlot;
+            this.slotName = pSlotName;
+            this.imageId = pImageId;
+            this.image = pImage;
+            this.empty = pEmpty;
+            this.minigame = pMinigame;
+            this.action = pAction;
+            this.actionPrompt = pActionPrompt;
         }
     }
 }

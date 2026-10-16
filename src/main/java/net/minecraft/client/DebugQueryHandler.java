@@ -17,13 +17,13 @@ public class DebugQueryHandler {
     @Nullable
     private Consumer<CompoundTag> callback;
 
-    public DebugQueryHandler(ClientPacketListener p_90701_) {
-        this.connection = p_90701_;
+    public DebugQueryHandler(ClientPacketListener pConnection) {
+        this.connection = pConnection;
     }
 
-    public boolean handleResponse(int p_90706_, @Nullable CompoundTag p_90707_) {
-        if (this.transactionId == p_90706_ && this.callback != null) {
-            this.callback.accept(p_90707_);
+    public boolean handleResponse(int pTransactionId, @Nullable CompoundTag pTag) {
+        if (this.transactionId == pTransactionId && this.callback != null) {
+            this.callback.accept(pTag);
             this.callback = null;
             return true;
         } else {
@@ -31,18 +31,18 @@ public class DebugQueryHandler {
         }
     }
 
-    private int startTransaction(Consumer<CompoundTag> p_90712_) {
-        this.callback = p_90712_;
+    private int startTransaction(Consumer<CompoundTag> pCallback) {
+        this.callback = pCallback;
         return ++this.transactionId;
     }
 
-    public void queryEntityTag(int p_90703_, Consumer<CompoundTag> p_90704_) {
-        int i = this.startTransaction(p_90704_);
-        this.connection.send(new ServerboundEntityTagQuery(i, p_90703_));
+    public void queryEntityTag(int pEntId, Consumer<CompoundTag> pTag) {
+        int i = this.startTransaction(pTag);
+        this.connection.send(new ServerboundEntityTagQuery(i, pEntId));
     }
 
-    public void queryBlockEntityTag(BlockPos p_90709_, Consumer<CompoundTag> p_90710_) {
-        int i = this.startTransaction(p_90710_);
-        this.connection.send(new ServerboundBlockEntityTagQuery(i, p_90709_));
+    public void queryBlockEntityTag(BlockPos pPos, Consumer<CompoundTag> pTag) {
+        int i = this.startTransaction(pTag);
+        this.connection.send(new ServerboundBlockEntityTagQuery(i, pPos));
     }
 }

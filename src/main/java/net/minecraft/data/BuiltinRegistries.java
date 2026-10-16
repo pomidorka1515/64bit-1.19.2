@@ -69,37 +69,37 @@ public class BuiltinRegistries {
     public static final Registry<ChatType> CHAT_TYPE = registerSimple(Registry.CHAT_TYPE_REGISTRY, ChatType::bootstrap);
     public static final RegistryAccess ACCESS;
 
-    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> p_236002_, BuiltinRegistries.RegistryBootstrap<T> p_236003_) {
-        return registerSimple(p_236002_, Lifecycle.stable(), p_236003_);
+    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> pRegistryKey, BuiltinRegistries.RegistryBootstrap<T> pBootstrap) {
+        return registerSimple(pRegistryKey, Lifecycle.stable(), pBootstrap);
     }
 
-    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> p_235993_, Lifecycle p_235994_, BuiltinRegistries.RegistryBootstrap<T> p_235995_) {
-        return internalRegister(p_235993_, new MappedRegistry<>(p_235993_, p_235994_, (Function<T, Holder.Reference<T>>) null), p_235995_, p_235994_);
+    private static <T> Registry<T> registerSimple(ResourceKey<? extends Registry<T>> pRegistryKey, Lifecycle pLifecycle, BuiltinRegistries.RegistryBootstrap<T> pBootstrap) {
+        return internalRegister(pRegistryKey, new MappedRegistry<>(pRegistryKey, pLifecycle, (Function<T, Holder.Reference<T>>) null), pBootstrap, pLifecycle);
     }
 
-    private static <T, R extends WritableRegistry<T>> R internalRegister(ResourceKey<? extends Registry<T>> p_235997_, R p_235998_, BuiltinRegistries.RegistryBootstrap<T> p_235999_, Lifecycle p_236000_) {
-        ResourceLocation resourcelocation = p_235997_.location();
+    private static <T, R extends WritableRegistry<T>> R internalRegister(ResourceKey<? extends Registry<T>> pRegistryKey, R pRegistry, BuiltinRegistries.RegistryBootstrap<T> pBootstrap, Lifecycle pLifecycle) {
+        ResourceLocation resourcelocation = pRegistryKey.location();
         LOADERS.put(resourcelocation, () -> {
-            return p_235999_.run(p_235998_);
+            return pBootstrap.run(pRegistry);
         });
-        WRITABLE_REGISTRY.register((ResourceKey) p_235997_, p_235998_, p_236000_);
-        return p_235998_;
+        WRITABLE_REGISTRY.register((ResourceKey) pRegistryKey, pRegistry, pLifecycle);
+        return pRegistry;
     }
 
-    public static <V extends T, T> Holder<V> registerExact(Registry<T> p_206381_, String p_206382_, V p_206383_) {
-        return register((Registry<V>) p_206381_, new ResourceLocation(p_206382_), p_206383_);
+    public static <V extends T, T> Holder<V> registerExact(Registry<T> pRegistry, String pLocation, V pValue) {
+        return register((Registry<V>) pRegistry, new ResourceLocation(pLocation), pValue);
     }
 
-    public static <T> Holder<T> register(Registry<T> p_206397_, String p_206398_, T p_206399_) {
-        return register(p_206397_, new ResourceLocation(p_206398_), p_206399_);
+    public static <T> Holder<T> register(Registry<T> pRegistry, String pLocation, T pValue) {
+        return register(pRegistry, new ResourceLocation(pLocation), pValue);
     }
 
-    public static <T> Holder<T> register(Registry<T> p_206389_, ResourceLocation p_206390_, T p_206391_) {
-        return register(p_206389_, ResourceKey.create(p_206389_.key(), p_206390_), p_206391_);
+    public static <T> Holder<T> register(Registry<T> pRegistry, ResourceLocation pLocation, T pValue) {
+        return register(pRegistry, ResourceKey.create(pRegistry.key(), pLocation), pValue);
     }
 
-    public static <T> Holder<T> register(Registry<T> p_206385_, ResourceKey<T> p_206386_, T p_206387_) {
-        return ((WritableRegistry) p_206385_).register(p_206386_, p_206387_, Lifecycle.stable());
+    public static <T> Holder<T> register(Registry<T> pRegistry, ResourceKey<T> pResourceKey, T pValue) {
+        return ((WritableRegistry) pRegistry).register(pResourceKey, pValue, Lifecycle.stable());
     }
 
     public static void bootstrap() {
@@ -117,6 +117,6 @@ public class BuiltinRegistries {
 
     @FunctionalInterface
     interface RegistryBootstrap<T> {
-        Holder<? extends T> run(Registry<T> p_236015_);
+        Holder<? extends T> run(Registry<T> pRegistry);
     }
 }

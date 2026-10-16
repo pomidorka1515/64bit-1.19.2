@@ -24,12 +24,12 @@ public class MinecartTNT extends AbstractMinecart {
     private static final byte EVENT_PRIME = 10;
     private int fuse = -1;
 
-    public MinecartTNT(EntityType<? extends MinecartTNT> p_38649_, Level p_38650_) {
-        super(p_38649_, p_38650_);
+    public MinecartTNT(EntityType<? extends MinecartTNT> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public MinecartTNT(Level p_38652_, double p_38653_, double p_38654_, double p_38655_) {
-        super(EntityType.TNT_MINECART, p_38652_, p_38653_, p_38654_, p_38655_);
+    public MinecartTNT(Level pLevel, double pX, double pY, double pZ) {
+        super(EntityType.TNT_MINECART, pLevel, pX, pY, pZ);
     }
 
     public AbstractMinecart.Type getMinecartType() {
@@ -58,21 +58,21 @@ public class MinecartTNT extends AbstractMinecart {
         }
     }
 
-    public boolean hurt(DamageSource p_38666_, float p_38667_) {
-        Entity entity = p_38666_.getDirectEntity();
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        Entity entity = pSource.getDirectEntity();
         if (entity instanceof AbstractArrow abstractarrow) {
             if (abstractarrow.isOnFire()) {
                 this.explode(abstractarrow.getDeltaMovement().lengthSqr());
             }
         }
 
-        return super.hurt(p_38666_, p_38667_);
+        return super.hurt(pSource, pAmount);
     }
 
-    public void destroy(DamageSource p_38664_) {
+    public void destroy(DamageSource pSource) {
         double d0 = this.getDeltaMovement().horizontalDistanceSqr();
-        if (!p_38664_.isFire() && !p_38664_.isExplosion() && !(d0 >= (double) 0.01F)) {
-            super.destroy(p_38664_);
+        if (!pSource.isFire() && !pSource.isExplosion() && !(d0 >= (double) 0.01F)) {
+            super.destroy(pSource);
         } else {
             if (this.fuse < 0) {
                 this.primeFuse();
@@ -85,9 +85,9 @@ public class MinecartTNT extends AbstractMinecart {
         return Items.TNT_MINECART;
     }
 
-    protected void explode(double p_38689_) {
+    protected void explode(double pRadiusModifier) {
         if (!this.level.isClientSide) {
-            double d0 = Math.sqrt(p_38689_);
+            double d0 = Math.sqrt(pRadiusModifier);
             if (d0 > 5.0D) {
                 d0 = 5.0D;
             }
@@ -98,13 +98,13 @@ public class MinecartTNT extends AbstractMinecart {
         }
     }
 
-    public boolean causeFallDamage(float p_150347_, float p_150348_, DamageSource p_150349_) {
-        if (p_150347_ >= 3.0F) {
-            float f = p_150347_ / 10.0F;
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
+        if (pFallDistance >= 3.0F) {
+            float f = pFallDistance / 10.0F;
             this.explode((double) (f * f));
         }
 
-        return super.causeFallDamage(p_150347_, p_150348_, p_150349_);
+        return super.causeFallDamage(pFallDistance, pMultiplier, pSource);
     }
 
     public void activateMinecart(BlockPos position, boolean powered) {
@@ -113,11 +113,11 @@ public class MinecartTNT extends AbstractMinecart {
         }
     }
 
-    public void handleEntityEvent(byte p_38657_) {
-        if (p_38657_ == 10) {
+    public void handleEntityEvent(byte pId) {
+        if (pId == 10) {
             this.primeFuse();
         } else {
-            super.handleEntityEvent(p_38657_);
+            super.handleEntityEvent(pId);
         }
     }
 
@@ -139,23 +139,23 @@ public class MinecartTNT extends AbstractMinecart {
         return this.fuse > -1;
     }
 
-    public float getBlockExplosionResistance(Explosion p_38675_, BlockGetter p_38676_, BlockPos p_38677_, BlockState p_38678_, FluidState p_38679_, float p_38680_) {
-        return !this.isPrimed() || !p_38678_.is(BlockTags.RAILS) && !p_38676_.getBlockState(p_38677_.above()).is(BlockTags.RAILS) ? super.getBlockExplosionResistance(p_38675_, p_38676_, p_38677_, p_38678_, p_38679_, p_38680_) : 0.0F;
+    public float getBlockExplosionResistance(Explosion pExplosion, BlockGetter pLevel, BlockPos pPos, BlockState pBlockState, FluidState pFluidState, float pExplosionPower) {
+        return !this.isPrimed() || !pBlockState.is(BlockTags.RAILS) && !pLevel.getBlockState(pPos.above()).is(BlockTags.RAILS) ? super.getBlockExplosionResistance(pExplosion, pLevel, pPos, pBlockState, pFluidState, pExplosionPower) : 0.0F;
     }
 
-    public boolean shouldBlockExplode(Explosion p_38669_, BlockGetter p_38670_, BlockPos p_38671_, BlockState p_38672_, float p_38673_) {
-        return !this.isPrimed() || !p_38672_.is(BlockTags.RAILS) && !p_38670_.getBlockState(p_38671_.above()).is(BlockTags.RAILS) ? super.shouldBlockExplode(p_38669_, p_38670_, p_38671_, p_38672_, p_38673_) : false;
+    public boolean shouldBlockExplode(Explosion pExplosion, BlockGetter pLevel, BlockPos pPos, BlockState pBlockState, float pExplosionPower) {
+        return !this.isPrimed() || !pBlockState.is(BlockTags.RAILS) && !pLevel.getBlockState(pPos.above()).is(BlockTags.RAILS) ? super.shouldBlockExplode(pExplosion, pLevel, pPos, pBlockState, pExplosionPower) : false;
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_38682_) {
-        super.readAdditionalSaveData(p_38682_);
-        if (p_38682_.contains("TNTFuse", 99)) {
-            this.fuse = p_38682_.getInt("TNTFuse");
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("TNTFuse", 99)) {
+            this.fuse = pCompound.getInt("TNTFuse");
         }
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_38687_) {
-        super.addAdditionalSaveData(p_38687_);
-        p_38687_.putInt("TNTFuse", this.fuse);
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("TNTFuse", this.fuse);
     }
 }

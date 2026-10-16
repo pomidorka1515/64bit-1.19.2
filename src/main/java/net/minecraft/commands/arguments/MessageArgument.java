@@ -35,16 +35,16 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
         return new MessageArgument();
     }
 
-    public static Component getMessage(CommandContext<CommandSourceStack> p_96836_, String p_96837_) throws CommandSyntaxException {
-        MessageArgument.Message messageargument$message = p_96836_.getArgument(p_96837_, MessageArgument.Message.class);
-        return messageargument$message.resolveComponent(p_96836_.getSource());
+    public static Component getMessage(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        MessageArgument.Message messageargument$message = pContext.getArgument(pName, MessageArgument.Message.class);
+        return messageargument$message.resolveComponent(pContext.getSource());
     }
 
-    public static MessageArgument.ChatMessage getChatMessage(CommandContext<CommandSourceStack> p_232164_, String p_232165_) throws CommandSyntaxException {
-        MessageArgument.Message messageargument$message = p_232164_.getArgument(p_232165_, MessageArgument.Message.class);
-        Component component = messageargument$message.resolveComponent(p_232164_.getSource());
-        CommandSigningContext commandsigningcontext = p_232164_.getSource().getSigningContext();
-        PlayerChatMessage playerchatmessage = commandsigningcontext.getArgument(p_232165_);
+    public static MessageArgument.ChatMessage getChatMessage(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        MessageArgument.Message messageargument$message = pContext.getArgument(pName, MessageArgument.Message.class);
+        Component component = messageargument$message.resolveComponent(pContext.getSource());
+        CommandSigningContext commandsigningcontext = pContext.getSource().getSigningContext();
+        PlayerChatMessage playerchatmessage = commandsigningcontext.getArgument(pName);
         if (playerchatmessage == null) {
             ChatMessageContent chatmessagecontent = new ChatMessageContent(messageargument$message.text, component);
             return new MessageArgument.ChatMessage(PlayerChatMessage.system(chatmessagecontent));
@@ -53,16 +53,16 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
         }
     }
 
-    public MessageArgument.Message parse(StringReader p_96834_) throws CommandSyntaxException {
-        return MessageArgument.Message.parseText(p_96834_, true);
+    public MessageArgument.Message parse(StringReader pReader) throws CommandSyntaxException {
+        return MessageArgument.Message.parseText(pReader, true);
     }
 
     public Collection<String> getExamples() {
         return EXAMPLES;
     }
 
-    public String getSignableText(MessageArgument.Message p_242423_) {
-        return p_242423_.getText();
+    public String getSignableText(MessageArgument.Message pArgument) {
+        return pArgument.getText();
     }
 
     public CompletableFuture<Component> resolvePreview(CommandSourceStack p_232147_, MessageArgument.Message p_232148_) throws CommandSyntaxException {
@@ -81,27 +81,27 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
     }
 
     public static record ChatMessage(PlayerChatMessage signedArgument) {
-        public void resolve(CommandSourceStack p_242313_, Consumer<PlayerChatMessage> p_242409_) {
-            MinecraftServer minecraftserver = p_242313_.getServer();
-            p_242313_.getChatMessageChainer().append(() -> {
-                CompletableFuture<FilteredText> completablefuture = this.filterPlainText(p_242313_, this.signedArgument.signedContent().plain());
-                CompletableFuture<PlayerChatMessage> completablefuture1 = minecraftserver.getChatDecorator().decorate(p_242313_.getPlayer(), this.signedArgument);
+        public void resolve(CommandSourceStack pSource, Consumer<PlayerChatMessage> pMessageConsumer) {
+            MinecraftServer minecraftserver = pSource.getServer();
+            pSource.getChatMessageChainer().append(() -> {
+                CompletableFuture<FilteredText> completablefuture = this.filterPlainText(pSource, this.signedArgument.signedContent().plain());
+                CompletableFuture<PlayerChatMessage> completablefuture1 = minecraftserver.getChatDecorator().decorate(pSource.getPlayer(), this.signedArgument);
                 return CompletableFuture.allOf(completablefuture, completablefuture1).thenAcceptAsync((p_243162_) -> {
                     PlayerChatMessage playerchatmessage = completablefuture1.join().filter(completablefuture.join().mask());
-                    p_242409_.accept(playerchatmessage);
+                    pMessageConsumer.accept(playerchatmessage);
                 }, minecraftserver);
             });
         }
 
-        private CompletableFuture<FilteredText> filterPlainText(CommandSourceStack p_241399_, String p_241465_) {
-            ServerPlayer serverplayer = p_241399_.getPlayer();
-            return serverplayer != null && this.signedArgument.hasSignatureFrom(serverplayer.getUUID()) ? serverplayer.getTextFilter().processStreamMessage(p_241465_) : CompletableFuture.completedFuture(FilteredText.passThrough(p_241465_));
+        private CompletableFuture<FilteredText> filterPlainText(CommandSourceStack pSource, String pMessage) {
+            ServerPlayer serverplayer = pSource.getPlayer();
+            return serverplayer != null && this.signedArgument.hasSignatureFrom(serverplayer.getUUID()) ? serverplayer.getTextFilter().processStreamMessage(pMessage) : CompletableFuture.completedFuture(FilteredText.passThrough(pMessage));
         }
 
-        public void consume(CommandSourceStack p_241491_) {
+        public void consume(CommandSourceStack pSource) {
             if (!this.signedArgument.signer().isSystem()) {
-                this.resolve(p_241491_, (p_243158_) -> {
-                    PlayerList playerlist = p_241491_.getServer().getPlayerList();
+                this.resolve(pSource, (p_243158_) -> {
+                    PlayerList playerlist = pSource.getServer().getPlayerList();
                     playerlist.broadcastMessageHeader(p_243158_, Set.of());
                 });
             }
@@ -112,9 +112,9 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
         final String text;
         private final MessageArgument.Part[] parts;
 
-        public Message(String p_96844_, MessageArgument.Part[] p_96845_) {
-            this.text = p_96844_;
-            this.parts = p_96845_;
+        public Message(String pText, MessageArgument.Part[] pParts) {
+            this.text = pText;
+            this.parts = pParts;
         }
 
         public String getText() {
@@ -125,24 +125,24 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
             return this.parts;
         }
 
-        CompletableFuture<Component> resolveDecoratedComponent(CommandSourceStack p_232195_) throws CommandSyntaxException {
-            Component component = this.resolveComponent(p_232195_);
-            CompletableFuture<Component> completablefuture = p_232195_.getServer().getChatDecorator().decorate(p_232195_.getPlayer(), component);
-            MessageArgument.logResolutionFailure(p_232195_, completablefuture);
+        CompletableFuture<Component> resolveDecoratedComponent(CommandSourceStack pSource) throws CommandSyntaxException {
+            Component component = this.resolveComponent(pSource);
+            CompletableFuture<Component> completablefuture = pSource.getServer().getChatDecorator().decorate(pSource.getPlayer(), component);
+            MessageArgument.logResolutionFailure(pSource, completablefuture);
             return completablefuture;
         }
 
-        Component resolveComponent(CommandSourceStack p_232197_) throws CommandSyntaxException {
-            return this.toComponent(p_232197_, p_232197_.hasPermission(2));
+        Component resolveComponent(CommandSourceStack pSource) throws CommandSyntaxException {
+            return this.toComponent(pSource, pSource.hasPermission(2));
         }
 
-        public Component toComponent(CommandSourceStack p_96850_, boolean p_96851_) throws CommandSyntaxException {
-            if (this.parts.length != 0 && p_96851_) {
+        public Component toComponent(CommandSourceStack pSource, boolean pAllowSelectors) throws CommandSyntaxException {
+            if (this.parts.length != 0 && pAllowSelectors) {
                 MutableComponent mutablecomponent = Component.literal(this.text.substring(0, this.parts[0].getStart()));
                 int i = this.parts[0].getStart();
 
                 for (MessageArgument.Part messageargument$part : this.parts) {
-                    Component component = messageargument$part.toComponent(p_96850_);
+                    Component component = messageargument$part.toComponent(pSource);
                     if (i < messageargument$part.getStart()) {
                         mutablecomponent.append(this.text.substring(i, messageargument$part.getStart()));
                     }
@@ -164,28 +164,28 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
             }
         }
 
-        public static MessageArgument.Message parseText(StringReader p_96847_, boolean p_96848_) throws CommandSyntaxException {
-            String s = p_96847_.getString().substring(p_96847_.getCursor(), p_96847_.getTotalLength());
-            if (!p_96848_) {
-                p_96847_.setCursor(p_96847_.getTotalLength());
+        public static MessageArgument.Message parseText(StringReader pReader, boolean pAllowSelectors) throws CommandSyntaxException {
+            String s = pReader.getString().substring(pReader.getCursor(), pReader.getTotalLength());
+            if (!pAllowSelectors) {
+                pReader.setCursor(pReader.getTotalLength());
                 return new MessageArgument.Message(s, new MessageArgument.Part[0]);
             } else {
                 List<MessageArgument.Part> list = Lists.newArrayList();
-                int i = p_96847_.getCursor();
+                int i = pReader.getCursor();
 
                 while (true) {
                     int j;
                     EntitySelector entityselector;
                     while (true) {
-                        if (!p_96847_.canRead()) {
+                        if (!pReader.canRead()) {
                             return new MessageArgument.Message(s, list.toArray(new MessageArgument.Part[0]));
                         }
 
-                        if (p_96847_.peek() == '@') {
-                            j = p_96847_.getCursor();
+                        if (pReader.peek() == '@') {
+                            j = pReader.getCursor();
 
                             try {
-                                EntitySelectorParser entityselectorparser = new EntitySelectorParser(p_96847_);
+                                EntitySelectorParser entityselectorparser = new EntitySelectorParser(pReader);
                                 entityselector = entityselectorparser.parse();
                                 break;
                             } catch (CommandSyntaxException commandsyntaxexception) {
@@ -193,14 +193,14 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
                                     throw commandsyntaxexception;
                                 }
 
-                                p_96847_.setCursor(j + 1);
+                                pReader.setCursor(j + 1);
                             }
                         } else {
-                            p_96847_.skip();
+                            pReader.skip();
                         }
                     }
 
-                    list.add(new MessageArgument.Part(j - i, p_96847_.getCursor() - i, entityselector));
+                    list.add(new MessageArgument.Part(j - i, pReader.getCursor() - i, entityselector));
                 }
             }
         }
@@ -211,10 +211,10 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
         private final int end;
         private final EntitySelector selector;
 
-        public Part(int p_96856_, int p_96857_, EntitySelector p_96858_) {
-            this.start = p_96856_;
-            this.end = p_96857_;
-            this.selector = p_96858_;
+        public Part(int pStart, int pEnd, EntitySelector pSelector) {
+            this.start = pStart;
+            this.end = pEnd;
+            this.selector = pSelector;
         }
 
         public int getStart() {
@@ -230,8 +230,8 @@ public class MessageArgument implements SignedArgument<MessageArgument.Message> 
         }
 
         @Nullable
-        public Component toComponent(CommandSourceStack p_96861_) throws CommandSyntaxException {
-            return EntitySelector.joinNames(this.selector.findEntities(p_96861_));
+        public Component toComponent(CommandSourceStack pSource) throws CommandSyntaxException {
+            return EntitySelector.joinNames(this.selector.findEntities(pSource));
         }
     }
 }

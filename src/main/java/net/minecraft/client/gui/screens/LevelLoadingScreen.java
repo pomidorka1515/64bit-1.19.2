@@ -37,9 +37,9 @@ public class LevelLoadingScreen extends Screen {
         p_96157_.put(ChunkStatus.FULL, 16777215);
     });
 
-    public LevelLoadingScreen(StoringChunkProgressListener p_96143_) {
+    public LevelLoadingScreen(StoringChunkProgressListener pProgressListener) {
         super(GameNarrator.NO_TITLE);
-        this.progressListener = p_96143_;
+        this.progressListener = pProgressListener;
     }
 
     public boolean shouldCloseOnEsc() {
@@ -51,12 +51,12 @@ public class LevelLoadingScreen extends Screen {
         this.triggerImmediateNarration(true);
     }
 
-    protected void updateNarratedWidget(NarrationElementOutput p_169312_) {
+    protected void updateNarratedWidget(NarrationElementOutput pNarrationElementOutput) {
         if (this.done) {
-            p_169312_.add(NarratedElementType.TITLE, Component.translatable("narrator.loading.done"));
+            pNarrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("narrator.loading.done"));
         } else {
             String s = this.getFormattedProgress();
-            p_169312_.add(NarratedElementType.TITLE, s);
+            pNarrationElementOutput.add(NarratedElementType.TITLE, s);
         }
     }
 
@@ -64,8 +64,8 @@ public class LevelLoadingScreen extends Screen {
         return Mth.clamp(this.progressListener.getProgress(), 0, 100) + "%";
     }
 
-    public void render(PoseStack p_96145_, int p_96146_, int p_96147_, float p_96148_) {
-        this.renderBackground(p_96145_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
         long i = Util.getMillis();
         if (i - this.lastNarration > 2000L) {
             this.lastNarration = i;
@@ -75,8 +75,8 @@ public class LevelLoadingScreen extends Screen {
         int j = this.width / 2;
         int k = this.height / 2;
         int l = 30;
-        renderChunks(p_96145_, this.progressListener, j, k + 30, 2, 0);
-        drawCenteredString(p_96145_, this.font, this.getFormattedProgress(), j, k - 9 / 2 - 30, 16777215);
+        renderChunks(pPoseStack, this.progressListener, j, k + 30, 2, 0);
+        drawCenteredString(pPoseStack, this.font, this.getFormattedProgress(), j, k - 9 / 2 - 30, 16777215);
     }
 
     public static void renderChunks(PoseStack p_96150_, StoringChunkProgressListener p_96151_, int p_96152_, int p_96153_, int p_96154_, int p_96155_) {

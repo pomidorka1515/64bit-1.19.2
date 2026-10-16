@@ -29,19 +29,19 @@ public class MoveToTargetSink extends Behavior<Mob> {
         this(150, 250);
     }
 
-    public MoveToTargetSink(int p_23573_, int p_23574_) {
-        super(ImmutableMap.of(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED, MemoryModuleType.PATH, MemoryStatus.VALUE_ABSENT, MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_PRESENT), p_23573_, p_23574_);
+    public MoveToTargetSink(int pMinDuration, int pMaxDuration) {
+        super(ImmutableMap.of(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED, MemoryModuleType.PATH, MemoryStatus.VALUE_ABSENT, MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_PRESENT), pMinDuration, pMaxDuration);
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_23583_, Mob p_23584_) {
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, Mob pOwner) {
         if (this.remainingCooldown > 0) {
             --this.remainingCooldown;
             return false;
         } else {
-            Brain<?> brain = p_23584_.getBrain();
+            Brain<?> brain = pOwner.getBrain();
             WalkTarget walktarget = brain.getMemory(MemoryModuleType.WALK_TARGET).get();
-            boolean flag = this.reachedTarget(p_23584_, walktarget);
-            if (!flag && this.tryComputePath(p_23584_, walktarget, p_23583_.getGameTime())) {
+            boolean flag = this.reachedTarget(pOwner, walktarget);
+            if (!flag && this.tryComputePath(pOwner, walktarget, pLevel.getGameTime())) {
                 this.lastTargetPos = walktarget.getTarget().currentBlockPosition();
                 return true;
             } else {
@@ -55,35 +55,35 @@ public class MoveToTargetSink extends Behavior<Mob> {
         }
     }
 
-    protected boolean canStillUse(ServerLevel p_23586_, Mob p_23587_, long p_23588_) {
+    protected boolean canStillUse(ServerLevel pLevel, Mob pEntity, long pGameTime) {
         if (this.path != null && this.lastTargetPos != null) {
-            Optional<WalkTarget> optional = p_23587_.getBrain().getMemory(MemoryModuleType.WALK_TARGET);
-            PathNavigation pathnavigation = p_23587_.getNavigation();
-            return !pathnavigation.isDone() && optional.isPresent() && !this.reachedTarget(p_23587_, optional.get());
+            Optional<WalkTarget> optional = pEntity.getBrain().getMemory(MemoryModuleType.WALK_TARGET);
+            PathNavigation pathnavigation = pEntity.getNavigation();
+            return !pathnavigation.isDone() && optional.isPresent() && !this.reachedTarget(pEntity, optional.get());
         } else {
             return false;
         }
     }
 
-    protected void stop(ServerLevel p_23601_, Mob p_23602_, long p_23603_) {
-        if (p_23602_.getBrain().hasMemoryValue(MemoryModuleType.WALK_TARGET) && !this.reachedTarget(p_23602_, p_23602_.getBrain().getMemory(MemoryModuleType.WALK_TARGET).get()) && p_23602_.getNavigation().isStuck()) {
-            this.remainingCooldown = p_23601_.getRandom().nextInt(40);
+    protected void stop(ServerLevel pLevel, Mob pEntity, long pGameTime) {
+        if (pEntity.getBrain().hasMemoryValue(MemoryModuleType.WALK_TARGET) && !this.reachedTarget(pEntity, pEntity.getBrain().getMemory(MemoryModuleType.WALK_TARGET).get()) && pEntity.getNavigation().isStuck()) {
+            this.remainingCooldown = pLevel.getRandom().nextInt(40);
         }
 
-        p_23602_.getNavigation().stop();
-        p_23602_.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-        p_23602_.getBrain().eraseMemory(MemoryModuleType.PATH);
+        pEntity.getNavigation().stop();
+        pEntity.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+        pEntity.getBrain().eraseMemory(MemoryModuleType.PATH);
         this.path = null;
     }
 
-    protected void start(ServerLevel p_23609_, Mob p_23610_, long p_23611_) {
-        p_23610_.getBrain().setMemory(MemoryModuleType.PATH, this.path);
-        p_23610_.getNavigation().moveTo(this.path, (double) this.speedModifier);
+    protected void start(ServerLevel pLevel, Mob pEntity, long pGameTime) {
+        pEntity.getBrain().setMemory(MemoryModuleType.PATH, this.path);
+        pEntity.getNavigation().moveTo(this.path, (double) this.speedModifier);
     }
 
-    protected void tick(ServerLevel p_23617_, Mob p_23618_, long p_23619_) {
-        Path path = p_23618_.getNavigation().getPath();
-        Brain<?> brain = p_23618_.getBrain();
+    protected void tick(ServerLevel pLevel, Mob pOwner, long pGameTime) {
+        Path path = pOwner.getNavigation().getPath();
+        Brain<?> brain = pOwner.getBrain();
         if (this.path != path) {
             this.path = path;
             brain.setMemory(MemoryModuleType.PATH, path);
@@ -91,36 +91,36 @@ public class MoveToTargetSink extends Behavior<Mob> {
 
         if (path != null && this.lastTargetPos != null) {
             WalkTarget walktarget = brain.getMemory(MemoryModuleType.WALK_TARGET).get();
-            if (walktarget.getTarget().currentBlockPosition().distSqr(this.lastTargetPos) > 4.0D && this.tryComputePath(p_23618_, walktarget, p_23617_.getGameTime())) {
+            if (walktarget.getTarget().currentBlockPosition().distSqr(this.lastTargetPos) > 4.0D && this.tryComputePath(pOwner, walktarget, pLevel.getGameTime())) {
                 this.lastTargetPos = walktarget.getTarget().currentBlockPosition();
-                this.start(p_23617_, p_23618_, p_23619_);
+                this.start(pLevel, pOwner, pGameTime);
             }
         }
     }
 
-    private boolean tryComputePath(Mob p_23593_, WalkTarget p_23594_, long p_23595_) {
-        BlockPos blockpos = p_23594_.getTarget().currentBlockPosition();
-        this.path = p_23593_.getNavigation().createPath(blockpos, 0);
-        this.speedModifier = p_23594_.getSpeedModifier();
-        Brain<?> brain = p_23593_.getBrain();
-        if (this.reachedTarget(p_23593_, p_23594_)) {
+    private boolean tryComputePath(Mob pMob, WalkTarget pTarget, long pTime) {
+        BlockPos blockpos = pTarget.getTarget().currentBlockPosition();
+        this.path = pMob.getNavigation().createPath(blockpos, 0);
+        this.speedModifier = pTarget.getSpeedModifier();
+        Brain<?> brain = pMob.getBrain();
+        if (this.reachedTarget(pMob, pTarget)) {
             brain.eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
         } else {
             boolean flag = this.path != null && this.path.canReach();
             if (flag) {
                 brain.eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
             } else if (!brain.hasMemoryValue(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE)) {
-                brain.setMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, p_23595_);
+                brain.setMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, pTime);
             }
 
             if (this.path != null) {
                 return true;
             }
 
-            SectorVec3 target = DefaultRandomPos.getSectorPosTowards((PathfinderMob) p_23593_, 10, 7,
-                    p_23594_.getTarget().currentExactPosition(), (double) ((float) Math.PI / 2F));
+            SectorVec3 target = DefaultRandomPos.getSectorPosTowards((PathfinderMob) pMob, 10, 7,
+                    pTarget.getTarget().currentExactPosition(), (double) ((float) Math.PI / 2F));
             if (target != null) {
-                this.path = p_23593_.getNavigation().createPath(target.blockPosition(), 0);
+                this.path = pMob.getNavigation().createPath(target.blockPosition(), 0);
                 return this.path != null;
             }
         }
@@ -128,7 +128,7 @@ public class MoveToTargetSink extends Behavior<Mob> {
         return false;
     }
 
-    private boolean reachedTarget(Mob p_23590_, WalkTarget p_23591_) {
-        return p_23591_.getTarget().currentBlockPosition().distManhattan(p_23590_.blockPosition()) <= p_23591_.getCloseEnoughDist();
+    private boolean reachedTarget(Mob pMob, WalkTarget pTarget) {
+        return pTarget.getTarget().currentBlockPosition().distManhattan(pMob.blockPosition()) <= pTarget.getCloseEnoughDist();
     }
 }

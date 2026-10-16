@@ -17,46 +17,46 @@ public class SetEntityLookTarget extends Behavior<LivingEntity> {
     private final float maxDistSqr;
     private Optional<LivingEntity> nearestEntityMatchingTest = Optional.empty();
 
-    public SetEntityLookTarget(TagKey<EntityType<?>> p_204047_, float p_204048_) {
+    public SetEntityLookTarget(TagKey<EntityType<?>> pPredicateTag, float pMaxDist) {
         this((p_204051_) -> {
-            return p_204051_.getType().is(p_204047_);
-        }, p_204048_);
+            return p_204051_.getType().is(pPredicateTag);
+        }, pMaxDist);
     }
 
-    public SetEntityLookTarget(MobCategory p_23897_, float p_23898_) {
+    public SetEntityLookTarget(MobCategory pPredicateCategory, float pMaxDist) {
         this((p_23923_) -> {
-            return p_23897_.equals(p_23923_.getType().getCategory());
-        }, p_23898_);
+            return pPredicateCategory.equals(p_23923_.getType().getCategory());
+        }, pMaxDist);
     }
 
-    public SetEntityLookTarget(EntityType<?> p_23894_, float p_23895_) {
+    public SetEntityLookTarget(EntityType<?> pPredicateType, float pMaxDist) {
         this((p_23911_) -> {
-            return p_23894_.equals(p_23911_.getType());
-        }, p_23895_);
+            return pPredicateType.equals(p_23911_.getType());
+        }, pMaxDist);
     }
 
-    public SetEntityLookTarget(float p_23892_) {
+    public SetEntityLookTarget(float pMaxDist) {
         this((p_23913_) -> {
             return true;
-        }, p_23892_);
+        }, pMaxDist);
     }
 
-    public SetEntityLookTarget(Predicate<LivingEntity> p_23900_, float p_23901_) {
+    public SetEntityLookTarget(Predicate<LivingEntity> pPredicate, float pMaxDist) {
         super(ImmutableMap.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.VALUE_ABSENT, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT));
-        this.predicate = p_23900_;
-        this.maxDistSqr = p_23901_ * p_23901_;
+        this.predicate = pPredicate;
+        this.maxDistSqr = pMaxDist * pMaxDist;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_23903_, LivingEntity p_23904_) {
-        NearestVisibleLivingEntities nearestvisiblelivingentities = p_23904_.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get();
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, LivingEntity pOwner) {
+        NearestVisibleLivingEntities nearestvisiblelivingentities = pOwner.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).get();
         this.nearestEntityMatchingTest = nearestvisiblelivingentities.findClosest(this.predicate.and((p_186053_) -> {
-            return p_186053_.distanceToSqr(p_23904_) <= (double) this.maxDistSqr;
+            return p_186053_.distanceToSqr(pOwner) <= (double) this.maxDistSqr;
         }));
         return this.nearestEntityMatchingTest.isPresent();
     }
 
-    protected void start(ServerLevel p_23906_, LivingEntity p_23907_, long p_23908_) {
-        p_23907_.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(this.nearestEntityMatchingTest.get(), true));
+    protected void start(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
+        pEntity.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(this.nearestEntityMatchingTest.get(), true));
         this.nearestEntityMatchingTest = Optional.empty();
     }
 }

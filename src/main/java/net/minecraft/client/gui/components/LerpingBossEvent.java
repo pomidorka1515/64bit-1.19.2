@@ -14,19 +14,19 @@ public class LerpingBossEvent extends BossEvent {
     protected float targetPercent;
     protected long setTime;
 
-    public LerpingBossEvent(UUID p_169021_, Component p_169022_, float p_169023_, BossEvent.BossBarColor p_169024_, BossEvent.BossBarOverlay p_169025_, boolean p_169026_, boolean p_169027_, boolean p_169028_) {
-        super(p_169021_, p_169022_, p_169024_, p_169025_);
-        this.targetPercent = p_169023_;
-        this.progress = p_169023_;
+    public LerpingBossEvent(UUID pId, Component pName, float pProgress, BossEvent.BossBarColor pColor, BossEvent.BossBarOverlay pOverlay, boolean pDarkenScreen, boolean pBossMusic, boolean pWorldFog) {
+        super(pId, pName, pColor, pOverlay);
+        this.targetPercent = pProgress;
+        this.progress = pProgress;
         this.setTime = Util.getMillis();
-        this.setDarkenScreen(p_169026_);
-        this.setPlayBossMusic(p_169027_);
-        this.setCreateWorldFog(p_169028_);
+        this.setDarkenScreen(pDarkenScreen);
+        this.setPlayBossMusic(pBossMusic);
+        this.setCreateWorldFog(pWorldFog);
     }
 
-    public void setProgress(float p_169030_) {
+    public void setProgress(float pProgress) {
         this.progress = this.getProgress();
-        this.targetPercent = p_169030_;
+        this.targetPercent = pProgress;
         this.setTime = Util.getMillis();
     }
 

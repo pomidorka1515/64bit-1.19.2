@@ -12,8 +12,8 @@ public class OfferFlowerGoal extends Goal {
     private Villager villager;
     private int tick;
 
-    public OfferFlowerGoal(IronGolem p_25669_) {
-        this.golem = p_25669_;
+    public OfferFlowerGoal(IronGolem pGolem) {
+        this.golem = pGolem;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 

@@ -20,8 +20,8 @@ public class TagManager implements PreparableReloadListener {
     private final RegistryAccess registryAccess;
     private List<TagManager.LoadResult<?>> results = List.of();
 
-    public TagManager(RegistryAccess p_144572_) {
-        this.registryAccess = p_144572_;
+    public TagManager(RegistryAccess pRegistryAccess) {
+        this.registryAccess = pRegistryAccess;
     }
 
     public List<TagManager.LoadResult<?>> getResult() {
@@ -33,18 +33,18 @@ public class TagManager implements PreparableReloadListener {
         return s != null ? s : "tags/" + p_203919_.location().getPath();
     }
 
-    public CompletableFuture<Void> reload(PreparableReloadListener.PreparationBarrier p_13482_, ResourceManager p_13483_, ProfilerFiller p_13484_, ProfilerFiller p_13485_, Executor p_13486_, Executor p_13487_) {
+    public CompletableFuture<Void> reload(PreparableReloadListener.PreparationBarrier pStage, ResourceManager pResourceManager, ProfilerFiller pPreparationsProfiler, ProfilerFiller pReloadProfiler, Executor pBackgroundExecutor, Executor pGameExecutor) {
         List<? extends CompletableFuture<? extends TagManager.LoadResult<?>>> list = this.registryAccess.registries().map((p_203927_) -> {
-                                                                                                                         return this.createLoader(p_13483_, p_13486_, p_203927_);
+                                                                                                                         return this.createLoader(pResourceManager, pBackgroundExecutor, p_203927_);
                                                                                                                      })
                                                                                              .toList();
         return CompletableFuture.allOf(list.toArray((p_203906_) -> {
                                     return new CompletableFuture[p_203906_];
                                 }))
-                .thenCompose(p_13482_::wait)
+                .thenCompose(pStage::wait)
                 .thenAcceptAsync((p_203917_) -> {
                     this.results = list.stream().map(CompletableFuture::join).collect(Collectors.toUnmodifiableList());
-                }, p_13487_);
+                }, pGameExecutor);
     }
 
     private <T> CompletableFuture<TagManager.LoadResult<T>> createLoader(ResourceManager p_203908_, Executor p_203909_, RegistryAccess.RegistryEntry<T> p_203910_) {

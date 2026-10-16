@@ -15,8 +15,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ControlsScreen extends OptionsSubScreen {
     private static final int ROW_SPACING = 24;
 
-    public ControlsScreen(Screen p_97519_, Options p_97520_) {
-        super(p_97519_, p_97520_, Component.translatable("controls.title"));
+    public ControlsScreen(Screen pLastScreen, Options pOptions) {
+        super(pLastScreen, pOptions, Component.translatable("controls.title"));
     }
 
     protected void init() {
@@ -41,9 +41,9 @@ public class ControlsScreen extends OptionsSubScreen {
         }));
     }
 
-    public void render(PoseStack p_97530_, int p_97531_, int p_97532_, float p_97533_) {
-        this.renderBackground(p_97530_);
-        drawCenteredString(p_97530_, this.font, this.title, this.width / 2, 15, 16777215);
-        super.render(p_97530_, p_97531_, p_97532_, p_97533_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 15, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

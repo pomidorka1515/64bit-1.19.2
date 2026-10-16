@@ -6,7 +6,7 @@ import net.minecraft.world.entity.Entity;
 public interface ServerLevelAccessor extends LevelAccessor {
     ServerLevel getLevel();
 
-    default void addFreshEntityWithPassengers(Entity p_47206_) {
-        p_47206_.getSelfAndPassengers().forEach(this::addFreshEntity);
+    default void addFreshEntityWithPassengers(Entity pEntity) {
+        pEntity.getSelfAndPassengers().forEach(this::addFreshEntity);
     }
 }

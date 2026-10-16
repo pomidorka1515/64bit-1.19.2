@@ -12,16 +12,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.ReplaceSphereConfiguration;
 
 public class ReplaceBlobsFeature extends Feature<ReplaceSphereConfiguration> {
-    public ReplaceBlobsFeature(Codec<ReplaceSphereConfiguration> p_66633_) {
-        super(p_66633_);
+    public ReplaceBlobsFeature(Codec<ReplaceSphereConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<ReplaceSphereConfiguration> p_160214_) {
-        ReplaceSphereConfiguration replacesphereconfiguration = p_160214_.config();
-        WorldGenLevel worldgenlevel = p_160214_.level();
-        RandomSource randomsource = p_160214_.random();
+    public boolean place(FeaturePlaceContext<ReplaceSphereConfiguration> pContext) {
+        ReplaceSphereConfiguration replacesphereconfiguration = pContext.config();
+        WorldGenLevel worldgenlevel = pContext.level();
+        RandomSource randomsource = pContext.random();
         Block block = replacesphereconfiguration.targetState.getBlock();
-        BlockPos blockpos = findTarget(worldgenlevel, p_160214_.origin().mutable().clamp(Direction.Axis.Y, worldgenlevel.getMinBuildHeight() + 1, worldgenlevel.getMaxBuildHeight() - 1), block);
+        BlockPos blockpos = findTarget(worldgenlevel, pContext.origin().mutable().clamp(Direction.Axis.Y, worldgenlevel.getMinBuildHeight() + 1, worldgenlevel.getMaxBuildHeight() - 1), block);
         if (blockpos == null) {
             return false;
         } else {
@@ -48,14 +48,14 @@ public class ReplaceBlobsFeature extends Feature<ReplaceSphereConfiguration> {
     }
 
     @Nullable
-    private static BlockPos findTarget(LevelAccessor p_66635_, BlockPos.MutableBlockPos p_66636_, Block p_66637_) {
-        while (p_66636_.getY() > p_66635_.getMinBuildHeight() + 1) {
-            BlockState blockstate = p_66635_.getBlockState(p_66636_);
-            if (blockstate.is(p_66637_)) {
-                return p_66636_;
+    private static BlockPos findTarget(LevelAccessor pLevel, BlockPos.MutableBlockPos pTopPos, Block pBlock) {
+        while (pTopPos.getY() > pLevel.getMinBuildHeight() + 1) {
+            BlockState blockstate = pLevel.getBlockState(pTopPos);
+            if (blockstate.is(pBlock)) {
+                return pTopPos;
             }
 
-            p_66636_.move(Direction.DOWN);
+            pTopPos.move(Direction.DOWN);
         }
 
         return null;

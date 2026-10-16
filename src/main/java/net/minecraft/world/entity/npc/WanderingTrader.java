@@ -50,8 +50,8 @@ public class WanderingTrader extends AbstractVillager {
     private BlockPos wanderTarget;
     private int despawnDelay;
 
-    public WanderingTrader(EntityType<? extends WanderingTrader> p_35843_, Level p_35844_) {
-        super(p_35843_, p_35844_);
+    public WanderingTrader(EntityType<? extends WanderingTrader> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -80,7 +80,7 @@ public class WanderingTrader extends AbstractVillager {
     }
 
     @Nullable
-    public AgeableMob getBreedOffspring(ServerLevel p_150046_, AgeableMob p_150047_) {
+    public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
         return null;
     }
 
@@ -88,25 +88,25 @@ public class WanderingTrader extends AbstractVillager {
         return false;
     }
 
-    public InteractionResult mobInteract(Player p_35856_, InteractionHand p_35857_) {
-        ItemStack itemstack = p_35856_.getItemInHand(p_35857_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (!itemstack.is(Items.VILLAGER_SPAWN_EGG) && this.isAlive() && !this.isTrading() && !this.isBaby()) {
-            if (p_35857_ == InteractionHand.MAIN_HAND) {
-                p_35856_.awardStat(Stats.TALKED_TO_VILLAGER);
+            if (pHand == InteractionHand.MAIN_HAND) {
+                pPlayer.awardStat(Stats.TALKED_TO_VILLAGER);
             }
 
             if (this.getOffers().isEmpty()) {
                 return InteractionResult.sidedSuccess(this.level.isClientSide);
             } else {
                 if (!this.level.isClientSide) {
-                    this.setTradingPlayer(p_35856_);
-                    this.openTradingScreen(p_35856_, this.getDisplayName(), 1);
+                    this.setTradingPlayer(pPlayer);
+                    this.openTradingScreen(pPlayer, this.getDisplayName(), 1);
                 }
 
                 return InteractionResult.sidedSuccess(this.level.isClientSide);
             }
         } else {
-            return super.mobInteract(p_35856_, p_35857_);
+            return super.mobInteract(pPlayer, pHand);
         }
     }
 
@@ -125,33 +125,33 @@ public class WanderingTrader extends AbstractVillager {
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_35861_) {
-        super.addAdditionalSaveData(p_35861_);
-        p_35861_.putInt("DespawnDelay", this.despawnDelay);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("DespawnDelay", this.despawnDelay);
         if (this.wanderTarget != null) {
-            p_35861_.put("WanderTarget", NbtUtils.writeBlockPos(this.wanderTarget));
+            pCompound.put("WanderTarget", NbtUtils.writeBlockPos(this.wanderTarget));
         }
     }
 
-    public void readAdditionalSaveData(CompoundTag p_35852_) {
-        super.readAdditionalSaveData(p_35852_);
-        if (p_35852_.contains("DespawnDelay", 99)) {
-            this.despawnDelay = p_35852_.getInt("DespawnDelay");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("DespawnDelay", 99)) {
+            this.despawnDelay = pCompound.getInt("DespawnDelay");
         }
 
-        if (p_35852_.contains("WanderTarget")) {
-            this.wanderTarget = NbtUtils.readBlockPos(p_35852_.getCompound("WanderTarget"));
+        if (pCompound.contains("WanderTarget")) {
+            this.wanderTarget = NbtUtils.readBlockPos(pCompound.getCompound("WanderTarget"));
         }
 
         this.setAge(Math.max(0, this.getAge()));
     }
 
-    public boolean removeWhenFarAway(double p_35886_) {
+    public boolean removeWhenFarAway(double pDistanceToClosestPlayer) {
         return false;
     }
 
-    protected void rewardTradeXp(MerchantOffer p_35859_) {
-        if (p_35859_.shouldRewardExp()) {
+    protected void rewardTradeXp(MerchantOffer pOffer) {
+        if (pOffer.shouldRewardExp()) {
             int i = 3 + this.random.nextInt(4);
             this.level.addFreshEntity(new ExperienceOrb(this.level, this.getX(), this.getY() + 0.5D, this.getZ(), i));
         }
@@ -161,7 +161,7 @@ public class WanderingTrader extends AbstractVillager {
         return this.isTrading() ? SoundEvents.WANDERING_TRADER_TRADE : SoundEvents.WANDERING_TRADER_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_35870_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.WANDERING_TRADER_HURT;
     }
 
@@ -169,20 +169,20 @@ public class WanderingTrader extends AbstractVillager {
         return SoundEvents.WANDERING_TRADER_DEATH;
     }
 
-    protected SoundEvent getDrinkingSound(ItemStack p_35865_) {
-        return p_35865_.is(Items.MILK_BUCKET) ? SoundEvents.WANDERING_TRADER_DRINK_MILK : SoundEvents.WANDERING_TRADER_DRINK_POTION;
+    protected SoundEvent getDrinkingSound(ItemStack pStack) {
+        return pStack.is(Items.MILK_BUCKET) ? SoundEvents.WANDERING_TRADER_DRINK_MILK : SoundEvents.WANDERING_TRADER_DRINK_POTION;
     }
 
-    protected SoundEvent getTradeUpdatedSound(boolean p_35890_) {
-        return p_35890_ ? SoundEvents.WANDERING_TRADER_YES : SoundEvents.WANDERING_TRADER_NO;
+    protected SoundEvent getTradeUpdatedSound(boolean pGetYesSound) {
+        return pGetYesSound ? SoundEvents.WANDERING_TRADER_YES : SoundEvents.WANDERING_TRADER_NO;
     }
 
     public SoundEvent getNotifyTradeSound() {
         return SoundEvents.WANDERING_TRADER_YES;
     }
 
-    public void setDespawnDelay(int p_35892_) {
-        this.despawnDelay = p_35892_;
+    public void setDespawnDelay(int pDespawnDelay) {
+        this.despawnDelay = pDespawnDelay;
     }
 
     public int getDespawnDelay() {
@@ -202,8 +202,8 @@ public class WanderingTrader extends AbstractVillager {
         }
     }
 
-    public void setWanderTarget(@Nullable BlockPos p_35884_) {
-        this.wanderTarget = p_35884_;
+    public void setWanderTarget(@Nullable BlockPos pWanderTarget) {
+        this.wanderTarget = pWanderTarget;
     }
 
     @Nullable
@@ -249,8 +249,8 @@ public class WanderingTrader extends AbstractVillager {
             }
         }
 
-        private boolean isTooFarAway(BlockPos p_35904_, double p_35905_) {
-            return !p_35904_.closerToCenterThan(this.trader.sectorPosition(), p_35905_);
+        private boolean isTooFarAway(BlockPos pPos, double pDistance) {
+            return !pPos.closerToCenterThan(this.trader.sectorPosition(), pDistance);
         }
     }
 }

@@ -16,36 +16,36 @@ public class ClientboundSetObjectivePacket implements Packet<ClientGamePacketLis
     private final ObjectiveCriteria.RenderType renderType;
     private final int method;
 
-    public ClientboundSetObjectivePacket(Objective p_133258_, int p_133259_) {
-        this.objectiveName = p_133258_.getName();
-        this.displayName = p_133258_.getDisplayName();
-        this.renderType = p_133258_.getRenderType();
-        this.method = p_133259_;
+    public ClientboundSetObjectivePacket(Objective pObjective, int pMethod) {
+        this.objectiveName = pObjective.getName();
+        this.displayName = pObjective.getDisplayName();
+        this.renderType = pObjective.getRenderType();
+        this.method = pMethod;
     }
 
-    public ClientboundSetObjectivePacket(FriendlyByteBuf p_179306_) {
-        this.objectiveName = p_179306_.readUtf();
-        this.method = p_179306_.readByte();
+    public ClientboundSetObjectivePacket(FriendlyByteBuf pBuffer) {
+        this.objectiveName = pBuffer.readUtf();
+        this.method = pBuffer.readByte();
         if (this.method != 0 && this.method != 2) {
             this.displayName = CommonComponents.EMPTY;
             this.renderType = ObjectiveCriteria.RenderType.INTEGER;
         } else {
-            this.displayName = p_179306_.readComponent();
-            this.renderType = p_179306_.readEnum(ObjectiveCriteria.RenderType.class);
+            this.displayName = pBuffer.readComponent();
+            this.renderType = pBuffer.readEnum(ObjectiveCriteria.RenderType.class);
         }
     }
 
-    public void write(FriendlyByteBuf p_133268_) {
-        p_133268_.writeUtf(this.objectiveName);
-        p_133268_.writeByte(this.method);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeUtf(this.objectiveName);
+        pBuffer.writeByte(this.method);
         if (this.method == 0 || this.method == 2) {
-            p_133268_.writeComponent(this.displayName);
-            p_133268_.writeEnum(this.renderType);
+            pBuffer.writeComponent(this.displayName);
+            pBuffer.writeEnum(this.renderType);
         }
     }
 
-    public void handle(ClientGamePacketListener p_133265_) {
-        p_133265_.handleAddObjective(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleAddObjective(this);
     }
 
     public String getObjectiveName() {

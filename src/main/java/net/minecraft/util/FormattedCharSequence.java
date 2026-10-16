@@ -11,41 +11,41 @@ public interface FormattedCharSequence {
         return true;
     };
 
-    boolean accept(FormattedCharSink p_13732_);
+    boolean accept(FormattedCharSink pSink);
 
-    static FormattedCharSequence codepoint(int p_13694_, Style p_13695_) {
+    static FormattedCharSequence codepoint(int pCodePoint, Style pStyle) {
         return (p_13730_) -> {
-            return p_13730_.accept(0, p_13695_, p_13694_);
+            return p_13730_.accept(0, pStyle, pCodePoint);
         };
     }
 
-    static FormattedCharSequence forward(String p_13715_, Style p_13716_) {
-        return p_13715_.isEmpty() ? EMPTY : (p_13739_) -> {
-            return StringDecomposer.iterate(p_13715_, p_13716_, p_13739_);
+    static FormattedCharSequence forward(String pText, Style pStyle) {
+        return pText.isEmpty() ? EMPTY : (p_13739_) -> {
+            return StringDecomposer.iterate(pText, pStyle, p_13739_);
         };
     }
 
-    static FormattedCharSequence forward(String p_144718_, Style p_144719_, Int2IntFunction p_144720_) {
-        return p_144718_.isEmpty() ? EMPTY : (p_144730_) -> {
-            return StringDecomposer.iterate(p_144718_, p_144719_, decorateOutput(p_144730_, p_144720_));
+    static FormattedCharSequence forward(String pText, Style pStyle, Int2IntFunction pCodePointMapper) {
+        return pText.isEmpty() ? EMPTY : (p_144730_) -> {
+            return StringDecomposer.iterate(pText, pStyle, decorateOutput(p_144730_, pCodePointMapper));
         };
     }
 
-    static FormattedCharSequence backward(String p_144724_, Style p_144725_) {
-        return p_144724_.isEmpty() ? EMPTY : (p_144716_) -> {
-            return StringDecomposer.iterateBackwards(p_144724_, p_144725_, p_144716_);
+    static FormattedCharSequence backward(String pText, Style pStyle) {
+        return pText.isEmpty() ? EMPTY : (p_144716_) -> {
+            return StringDecomposer.iterateBackwards(pText, pStyle, p_144716_);
         };
     }
 
-    static FormattedCharSequence backward(String p_13741_, Style p_13742_, Int2IntFunction p_13743_) {
-        return p_13741_.isEmpty() ? EMPTY : (p_13721_) -> {
-            return StringDecomposer.iterateBackwards(p_13741_, p_13742_, decorateOutput(p_13721_, p_13743_));
+    static FormattedCharSequence backward(String pText, Style pStyle, Int2IntFunction pCodePointMapper) {
+        return pText.isEmpty() ? EMPTY : (p_13721_) -> {
+            return StringDecomposer.iterateBackwards(pText, pStyle, decorateOutput(p_13721_, pCodePointMapper));
         };
     }
 
-    static FormattedCharSink decorateOutput(FormattedCharSink p_13706_, Int2IntFunction p_13707_) {
+    static FormattedCharSink decorateOutput(FormattedCharSink pSink, Int2IntFunction pCodePointMapper) {
         return (p_13711_, p_13712_, p_13713_) -> {
-            return p_13706_.accept(p_13711_, p_13712_, p_13707_.apply(Integer.valueOf(p_13713_)));
+            return pSink.accept(p_13711_, p_13712_, pCodePointMapper.apply(Integer.valueOf(p_13713_)));
         };
     }
 
@@ -53,41 +53,41 @@ public interface FormattedCharSequence {
         return EMPTY;
     }
 
-    static FormattedCharSequence composite(FormattedCharSequence p_144712_) {
-        return p_144712_;
+    static FormattedCharSequence composite(FormattedCharSequence pSequence) {
+        return pSequence;
     }
 
-    static FormattedCharSequence composite(FormattedCharSequence p_13697_, FormattedCharSequence p_13698_) {
-        return fromPair(p_13697_, p_13698_);
+    static FormattedCharSequence composite(FormattedCharSequence pFirst, FormattedCharSequence pSecond) {
+        return fromPair(pFirst, pSecond);
     }
 
-    static FormattedCharSequence composite(FormattedCharSequence... p_144722_) {
-        return fromList(ImmutableList.copyOf(p_144722_));
+    static FormattedCharSequence composite(FormattedCharSequence... pParts) {
+        return fromList(ImmutableList.copyOf(pParts));
     }
 
-    static FormattedCharSequence composite(List<FormattedCharSequence> p_13723_) {
-        int i = p_13723_.size();
+    static FormattedCharSequence composite(List<FormattedCharSequence> pParts) {
+        int i = pParts.size();
         switch (i) {
             case 0:
                 return EMPTY;
             case 1:
-                return p_13723_.get(0);
+                return pParts.get(0);
             case 2:
-                return fromPair(p_13723_.get(0), p_13723_.get(1));
+                return fromPair(pParts.get(0), pParts.get(1));
             default:
-                return fromList(ImmutableList.copyOf(p_13723_));
+                return fromList(ImmutableList.copyOf(pParts));
         }
     }
 
-    static FormattedCharSequence fromPair(FormattedCharSequence p_13734_, FormattedCharSequence p_13735_) {
+    static FormattedCharSequence fromPair(FormattedCharSequence pFirst, FormattedCharSequence pSecond) {
         return (p_13702_) -> {
-            return p_13734_.accept(p_13702_) && p_13735_.accept(p_13702_);
+            return pFirst.accept(p_13702_) && pSecond.accept(p_13702_);
         };
     }
 
-    static FormattedCharSequence fromList(List<FormattedCharSequence> p_13745_) {
+    static FormattedCharSequence fromList(List<FormattedCharSequence> pParts) {
         return (p_13726_) -> {
-            for (FormattedCharSequence formattedcharsequence : p_13745_) {
+            for (FormattedCharSequence formattedcharsequence : pParts) {
                 if (!formattedcharsequence.accept(p_13726_)) {
                     return false;
                 }

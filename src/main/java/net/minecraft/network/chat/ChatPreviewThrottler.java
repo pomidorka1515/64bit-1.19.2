@@ -26,8 +26,8 @@ public class ChatPreviewThrottler {
         }
     }
 
-    public void schedule(ChatPreviewThrottler.Request p_236977_) {
-        this.scheduledRequest.set(p_236977_);
+    public void schedule(ChatPreviewThrottler.Request pRequest) {
+        this.scheduledRequest.set(pRequest);
     }
 
     @FunctionalInterface

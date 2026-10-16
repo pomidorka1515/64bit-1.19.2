@@ -13,11 +13,11 @@ public class CraftingContainer implements Container, StackedContentsCompatible {
     private final int height;
     private final AbstractContainerMenu menu;
 
-    public CraftingContainer(AbstractContainerMenu p_39325_, int p_39326_, int p_39327_) {
-        this.items = NonNullList.withSize(p_39326_ * p_39327_, ItemStack.EMPTY);
-        this.menu = p_39325_;
-        this.width = p_39326_;
-        this.height = p_39327_;
+    public CraftingContainer(AbstractContainerMenu pMenu, int pWidth, int pHeight) {
+        this.items = NonNullList.withSize(pWidth * pHeight, ItemStack.EMPTY);
+        this.menu = pMenu;
+        this.width = pWidth;
+        this.height = pHeight;
     }
 
     public int getContainerSize() {
@@ -34,16 +34,16 @@ public class CraftingContainer implements Container, StackedContentsCompatible {
         return true;
     }
 
-    public ItemStack getItem(int p_39332_) {
-        return p_39332_ >= this.getContainerSize() ? ItemStack.EMPTY : this.items.get(p_39332_);
+    public ItemStack getItem(int pIndex) {
+        return pIndex >= this.getContainerSize() ? ItemStack.EMPTY : this.items.get(pIndex);
     }
 
-    public ItemStack removeItemNoUpdate(int p_39344_) {
-        return ContainerHelper.takeItem(this.items, p_39344_);
+    public ItemStack removeItemNoUpdate(int pIndex) {
+        return ContainerHelper.takeItem(this.items, pIndex);
     }
 
-    public ItemStack removeItem(int p_39334_, int p_39335_) {
-        ItemStack itemstack = ContainerHelper.removeItem(this.items, p_39334_, p_39335_);
+    public ItemStack removeItem(int pIndex, int pCount) {
+        ItemStack itemstack = ContainerHelper.removeItem(this.items, pIndex, pCount);
         if (!itemstack.isEmpty()) {
             this.menu.slotsChanged(this);
         }
@@ -51,15 +51,15 @@ public class CraftingContainer implements Container, StackedContentsCompatible {
         return itemstack;
     }
 
-    public void setItem(int p_39337_, ItemStack p_39338_) {
-        this.items.set(p_39337_, p_39338_);
+    public void setItem(int pIndex, ItemStack pStack) {
+        this.items.set(pIndex, pStack);
         this.menu.slotsChanged(this);
     }
 
     public void setChanged() {
     }
 
-    public boolean stillValid(Player p_39340_) {
+    public boolean stillValid(Player pPlayer) {
         return true;
     }
 
@@ -75,9 +75,9 @@ public class CraftingContainer implements Container, StackedContentsCompatible {
         return this.width;
     }
 
-    public void fillStackedContents(StackedContents p_39342_) {
+    public void fillStackedContents(StackedContents pHelper) {
         for (ItemStack itemstack : this.items) {
-            p_39342_.accountSimpleStack(itemstack);
+            pHelper.accountSimpleStack(itemstack);
         }
     }
 }

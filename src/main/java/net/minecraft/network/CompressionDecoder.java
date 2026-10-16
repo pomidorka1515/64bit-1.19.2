@@ -15,18 +15,18 @@ public class CompressionDecoder extends ByteToMessageDecoder {
     private int threshold;
     private boolean validateDecompressed;
 
-    public CompressionDecoder(int p_182675_, boolean p_182676_) {
-        this.threshold = p_182675_;
-        this.validateDecompressed = p_182676_;
+    public CompressionDecoder(int pThreshold, boolean pValidateDecompressed) {
+        this.threshold = pThreshold;
+        this.validateDecompressed = pValidateDecompressed;
         this.inflater = new Inflater();
     }
 
-    protected void decode(ChannelHandlerContext p_129441_, ByteBuf p_129442_, List<Object> p_129443_) throws Exception {
-        if (p_129442_.readableBytes() != 0) {
-            FriendlyByteBuf friendlybytebuf = new FriendlyByteBuf(p_129442_);
+    protected void decode(ChannelHandlerContext pContext, ByteBuf pIn, List<Object> pOut) throws Exception {
+        if (pIn.readableBytes() != 0) {
+            FriendlyByteBuf friendlybytebuf = new FriendlyByteBuf(pIn);
             int i = friendlybytebuf.readVarInt();
             if (i == 0) {
-                p_129443_.add(friendlybytebuf.readBytes(friendlybytebuf.readableBytes()));
+                pOut.add(friendlybytebuf.readBytes(friendlybytebuf.readableBytes()));
             } else {
                 if (this.validateDecompressed) {
                     if (i < this.threshold) {
@@ -43,14 +43,14 @@ public class CompressionDecoder extends ByteToMessageDecoder {
                 this.inflater.setInput(abyte);
                 byte[] abyte1 = new byte[i];
                 this.inflater.inflate(abyte1);
-                p_129443_.add(Unpooled.wrappedBuffer(abyte1));
+                pOut.add(Unpooled.wrappedBuffer(abyte1));
                 this.inflater.reset();
             }
         }
     }
 
-    public void setThreshold(int p_182678_, boolean p_182679_) {
-        this.threshold = p_182678_;
-        this.validateDecompressed = p_182679_;
+    public void setThreshold(int pThreshold, boolean pValidateDecompressed) {
+        this.threshold = pThreshold;
+        this.validateDecompressed = pValidateDecompressed;
     }
 }

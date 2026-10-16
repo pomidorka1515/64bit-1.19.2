@@ -22,10 +22,10 @@ public class RangedCrossbowAttackGoal<T extends Monster & RangedAttackMob & Cros
     private int attackDelay;
     private int updatePathDelay;
 
-    public RangedCrossbowAttackGoal(T p_25814_, double p_25815_, float p_25816_) {
-        this.mob = p_25814_;
-        this.speedModifier = p_25815_;
-        this.attackRadiusSqr = p_25816_ * p_25816_;
+    public RangedCrossbowAttackGoal(T pMob, double pSpeedModifier, float pAttackRadius) {
+        this.mob = pMob;
+        this.speedModifier = pSpeedModifier;
+        this.attackRadiusSqr = pAttackRadius * pAttackRadius;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 

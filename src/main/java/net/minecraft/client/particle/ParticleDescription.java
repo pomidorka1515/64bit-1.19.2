@@ -16,8 +16,8 @@ public class ParticleDescription {
     @Nullable
     private final List<ResourceLocation> textures;
 
-    private ParticleDescription(@Nullable List<ResourceLocation> p_107281_) {
-        this.textures = p_107281_;
+    private ParticleDescription(@Nullable List<ResourceLocation> pTextures) {
+        this.textures = pTextures;
     }
 
     @Nullable
@@ -25,8 +25,8 @@ public class ParticleDescription {
         return this.textures;
     }
 
-    public static ParticleDescription fromJson(JsonObject p_107286_) {
-        JsonArray jsonarray = GsonHelper.getAsJsonArray(p_107286_, "textures", (JsonArray) null);
+    public static ParticleDescription fromJson(JsonObject pJson) {
+        JsonArray jsonarray = GsonHelper.getAsJsonArray(pJson, "textures", (JsonArray) null);
         List<ResourceLocation> list;
         if (jsonarray != null) {
             list = Streams.stream(jsonarray).map((p_107284_) -> {

@@ -20,9 +20,9 @@ public class PauseScreen extends Screen {
     private static final String URL_BUGS = "https://aka.ms/snapshotbugs?ref=game";
     private final boolean showPauseMenu;
 
-    public PauseScreen(boolean p_96308_) {
-        super(p_96308_ ? Component.translatable("menu.game") : Component.translatable("menu.paused"));
-        this.showPauseMenu = p_96308_;
+    public PauseScreen(boolean pShowPauseMenu) {
+        super(pShowPauseMenu ? Component.translatable("menu.game") : Component.translatable("menu.paused"));
+        this.showPauseMenu = pShowPauseMenu;
     }
 
     protected void init() {
@@ -104,14 +104,14 @@ public class PauseScreen extends Screen {
         super.tick();
     }
 
-    public void render(PoseStack p_96310_, int p_96311_, int p_96312_, float p_96313_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.showPauseMenu) {
-            this.renderBackground(p_96310_);
-            drawCenteredString(p_96310_, this.font, this.title, this.width / 2, 40, 16777215);
+            this.renderBackground(pPoseStack);
+            drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 40, 16777215);
         } else {
-            drawCenteredString(p_96310_, this.font, this.title, this.width / 2, 10, 16777215);
+            drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 10, 16777215);
         }
 
-        super.render(p_96310_, p_96311_, p_96312_, p_96313_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

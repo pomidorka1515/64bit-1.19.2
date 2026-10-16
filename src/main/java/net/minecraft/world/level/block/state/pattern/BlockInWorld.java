@@ -17,10 +17,10 @@ public class BlockInWorld {
     private BlockEntity entity;
     private boolean cachedEntity;
 
-    public BlockInWorld(LevelReader p_61165_, BlockPos p_61166_, boolean p_61167_) {
-        this.level = p_61165_;
-        this.pos = p_61166_.immutable();
-        this.loadChunks = p_61167_;
+    public BlockInWorld(LevelReader pLevel, BlockPos pPos, boolean pLoadChunks) {
+        this.level = pLevel;
+        this.pos = pPos.immutable();
+        this.loadChunks = pLoadChunks;
     }
 
     public BlockState getState() {
@@ -49,9 +49,9 @@ public class BlockInWorld {
         return this.pos;
     }
 
-    public static Predicate<BlockInWorld> hasState(Predicate<BlockState> p_61170_) {
+    public static Predicate<BlockInWorld> hasState(Predicate<BlockState> pState) {
         return (p_61173_) -> {
-            return p_61173_ != null && p_61170_.test(p_61173_.getState());
+            return p_61173_ != null && pState.test(p_61173_.getState());
         };
     }
 }

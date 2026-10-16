@@ -23,19 +23,19 @@ public class FoxRenderer extends MobRenderer<Fox, FoxModel<Fox>> {
         this.addLayer(new FoxHeldItemLayer(this, p_174127_.getItemInHandRenderer()));
     }
 
-    protected void setupRotations(Fox p_114738_, PoseStack p_114739_, float p_114740_, float p_114741_, float p_114742_) {
-        super.setupRotations(p_114738_, p_114739_, p_114740_, p_114741_, p_114742_);
-        if (p_114738_.isPouncing() || p_114738_.isFaceplanted()) {
-            float f = -Mth.lerp(p_114742_, p_114738_.xRotO, p_114738_.getXRot());
-            p_114739_.mulPose(Vector3f.XP.rotationDegrees(f));
+    protected void setupRotations(Fox pEntityLiving, PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks) {
+        super.setupRotations(pEntityLiving, pMatrixStack, pAgeInTicks, pRotationYaw, pPartialTicks);
+        if (pEntityLiving.isPouncing() || pEntityLiving.isFaceplanted()) {
+            float f = -Mth.lerp(pPartialTicks, pEntityLiving.xRotO, pEntityLiving.getXRot());
+            pMatrixStack.mulPose(Vector3f.XP.rotationDegrees(f));
         }
     }
 
-    public ResourceLocation getTextureLocation(Fox p_114736_) {
-        if (p_114736_.getFoxType() == Fox.Type.RED) {
-            return p_114736_.isSleeping() ? RED_FOX_SLEEP_TEXTURE : RED_FOX_TEXTURE;
+    public ResourceLocation getTextureLocation(Fox pEntity) {
+        if (pEntity.getFoxType() == Fox.Type.RED) {
+            return pEntity.isSleeping() ? RED_FOX_SLEEP_TEXTURE : RED_FOX_TEXTURE;
         } else {
-            return p_114736_.isSleeping() ? SNOW_FOX_SLEEP_TEXTURE : SNOW_FOX_TEXTURE;
+            return pEntity.isSleeping() ? SNOW_FOX_SLEEP_TEXTURE : SNOW_FOX_TEXTURE;
         }
     }
 }

@@ -16,5 +16,5 @@ public interface PositionTracker {
 
     BlockPos currentBlockPosition();
 
-    boolean isVisibleBy(LivingEntity p_23739_);
+    boolean isVisibleBy(LivingEntity pEntity);
 }

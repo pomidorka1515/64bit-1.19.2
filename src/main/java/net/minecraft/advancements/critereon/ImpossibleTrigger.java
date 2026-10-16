@@ -13,16 +13,16 @@ public class ImpossibleTrigger implements CriterionTrigger<ImpossibleTrigger.Tri
         return ID;
     }
 
-    public void addPlayerListener(PlayerAdvancements p_41565_, CriterionTrigger.Listener<ImpossibleTrigger.TriggerInstance> p_41566_) {
+    public void addPlayerListener(PlayerAdvancements pPlayerAdvancements, CriterionTrigger.Listener<ImpossibleTrigger.TriggerInstance> pListener) {
     }
 
-    public void removePlayerListener(PlayerAdvancements p_41572_, CriterionTrigger.Listener<ImpossibleTrigger.TriggerInstance> p_41573_) {
+    public void removePlayerListener(PlayerAdvancements pPlayerAdvancements, CriterionTrigger.Listener<ImpossibleTrigger.TriggerInstance> pListener) {
     }
 
-    public void removePlayerListeners(PlayerAdvancements p_41563_) {
+    public void removePlayerListeners(PlayerAdvancements pPlayerAdvancements) {
     }
 
-    public ImpossibleTrigger.TriggerInstance createInstance(JsonObject p_41569_, DeserializationContext p_41570_) {
+    public ImpossibleTrigger.TriggerInstance createInstance(JsonObject pObject, DeserializationContext pConditions) {
         return new ImpossibleTrigger.TriggerInstance();
     }
 
@@ -31,7 +31,7 @@ public class ImpossibleTrigger implements CriterionTrigger<ImpossibleTrigger.Tri
             return ImpossibleTrigger.ID;
         }
 
-        public JsonObject serializeToJson(SerializationContext p_41577_) {
+        public JsonObject serializeToJson(SerializationContext pConditions) {
             return new JsonObject();
         }
     }

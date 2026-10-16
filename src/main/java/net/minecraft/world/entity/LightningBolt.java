@@ -39,16 +39,16 @@ public class LightningBolt extends Entity {
     private final Set<Entity> hitEntities = Sets.newHashSet();
     private int blocksSetOnFire;
 
-    public LightningBolt(EntityType<? extends LightningBolt> p_20865_, Level p_20866_) {
-        super(p_20865_, p_20866_);
+    public LightningBolt(EntityType<? extends LightningBolt> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.noCulling = true;
         this.life = 2;
         this.seed = this.random.nextLong();
         this.flashes = this.random.nextInt(3) + 1;
     }
 
-    public void setVisualOnly(boolean p_20875_) {
-        this.visualOnly = p_20875_;
+    public void setVisualOnly(boolean pVisualOnly) {
+        this.visualOnly = pVisualOnly;
     }
 
     public SoundSource getSoundSource() {
@@ -60,8 +60,8 @@ public class LightningBolt extends Entity {
         return this.cause;
     }
 
-    public void setCause(@Nullable ServerPlayer p_20880_) {
-        this.cause = p_20880_;
+    public void setCause(@Nullable ServerPlayer pCause) {
+        this.cause = pCause;
     }
 
     private void powerLightningRod() {
@@ -137,7 +137,7 @@ public class LightningBolt extends Entity {
         return this.sectorPosition().add(0.0D, -1.0E-6D, 0.0D).blockPosition();
     }
 
-    private void spawnFire(int p_20871_) {
+    private void spawnFire(int pExtraIgnitions) {
         if (!this.visualOnly && !this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_DOFIRETICK)) {
             BlockPos blockpos = this.blockPosition();
             BlockState blockstate = BaseFireBlock.getState(this.level, blockpos);
@@ -146,7 +146,7 @@ public class LightningBolt extends Entity {
                 ++this.blocksSetOnFire;
             }
 
-            for (int i = 0; i < p_20871_; ++i) {
+            for (int i = 0; i < pExtraIgnitions; ++i) {
                 BlockPos blockpos1 = blockpos.offset(this.random.nextInt(3) - 1, this.random.nextInt(3) - 1, this.random.nextInt(3) - 1);
                 blockstate = BaseFireBlock.getState(this.level, blockpos1);
                 if (this.level.getBlockState(blockpos1).isAir() && blockstate.canSurvive(this.level, blockpos1)) {
@@ -157,51 +157,51 @@ public class LightningBolt extends Entity {
         }
     }
 
-    private static void clearCopperOnLightningStrike(Level p_147151_, BlockPos p_147152_) {
-        BlockState blockstate = p_147151_.getBlockState(p_147152_);
+    private static void clearCopperOnLightningStrike(Level pLevel, BlockPos pPos) {
+        BlockState blockstate = pLevel.getBlockState(pPos);
         BlockPos blockpos;
         BlockState blockstate1;
         if (blockstate.is(Blocks.LIGHTNING_ROD)) {
-            blockpos = p_147152_.relative(blockstate.getValue(LightningRodBlock.FACING).getOpposite());
-            blockstate1 = p_147151_.getBlockState(blockpos);
+            blockpos = pPos.relative(blockstate.getValue(LightningRodBlock.FACING).getOpposite());
+            blockstate1 = pLevel.getBlockState(blockpos);
         } else {
-            blockpos = p_147152_;
+            blockpos = pPos;
             blockstate1 = blockstate;
         }
 
         if (blockstate1.getBlock() instanceof WeatheringCopper) {
-            p_147151_.setBlockAndUpdate(blockpos, WeatheringCopper.getFirst(p_147151_.getBlockState(blockpos)));
-            BlockPos.MutableBlockPos blockpos$mutableblockpos = p_147152_.mutable();
-            int i = p_147151_.random.nextInt(3) + 3;
+            pLevel.setBlockAndUpdate(blockpos, WeatheringCopper.getFirst(pLevel.getBlockState(blockpos)));
+            BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable();
+            int i = pLevel.random.nextInt(3) + 3;
 
             for (int j = 0; j < i; ++j) {
-                int k = p_147151_.random.nextInt(8) + 1;
-                randomWalkCleaningCopper(p_147151_, blockpos, blockpos$mutableblockpos, k);
+                int k = pLevel.random.nextInt(8) + 1;
+                randomWalkCleaningCopper(pLevel, blockpos, blockpos$mutableblockpos, k);
             }
         }
     }
 
-    private static void randomWalkCleaningCopper(Level p_147146_, BlockPos p_147147_, BlockPos.MutableBlockPos p_147148_, int p_147149_) {
-        p_147148_.set(p_147147_);
+    private static void randomWalkCleaningCopper(Level pLevel, BlockPos pPos, BlockPos.MutableBlockPos pMutable, int pSteps) {
+        pMutable.set(pPos);
 
-        for (int i = 0; i < p_147149_; ++i) {
-            Optional<BlockPos> optional = randomStepCleaningCopper(p_147146_, p_147148_);
+        for (int i = 0; i < pSteps; ++i) {
+            Optional<BlockPos> optional = randomStepCleaningCopper(pLevel, pMutable);
             if (!optional.isPresent()) {
                 break;
             }
 
-            p_147148_.set(optional.get());
+            pMutable.set(optional.get());
         }
     }
 
-    private static Optional<BlockPos> randomStepCleaningCopper(Level p_147154_, BlockPos p_147155_) {
-        for (BlockPos blockpos : BlockPos.randomInCube(p_147154_.random, 10, p_147155_, 1)) {
-            BlockState blockstate = p_147154_.getBlockState(blockpos);
+    private static Optional<BlockPos> randomStepCleaningCopper(Level pLevel, BlockPos pPos) {
+        for (BlockPos blockpos : BlockPos.randomInCube(pLevel.random, 10, pPos, 1)) {
+            BlockState blockstate = pLevel.getBlockState(blockpos);
             if (blockstate.getBlock() instanceof WeatheringCopper) {
                 WeatheringCopper.getPrevious(blockstate).ifPresent((p_147144_) -> {
-                    p_147154_.setBlockAndUpdate(blockpos, p_147144_);
+                    pLevel.setBlockAndUpdate(blockpos, p_147144_);
                 });
-                p_147154_.levelEvent(3002, blockpos, -1);
+                pLevel.levelEvent(3002, blockpos, -1);
                 return Optional.of(blockpos);
             }
         }
@@ -209,18 +209,18 @@ public class LightningBolt extends Entity {
         return Optional.empty();
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_20869_) {
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
         double d0 = 64.0D * getViewScale();
-        return p_20869_ < d0 * d0;
+        return pDistance < d0 * d0;
     }
 
     protected void defineSynchedData() {
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_20873_) {
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_20877_) {
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
     }
 
     public Packet<?> getAddEntityPacket() {

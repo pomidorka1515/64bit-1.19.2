@@ -23,7 +23,7 @@ public class Carvers {
     public static final Holder<ConfiguredWorldCarver<CanyonCarverConfiguration>> CANYON = register("canyon", WorldCarver.CANYON.configured(new CanyonCarverConfiguration(0.01F, UniformHeight.of(VerticalAnchor.absolute(10), VerticalAnchor.absolute(67)), ConstantFloat.of(3.0F), VerticalAnchor.aboveBottom(8), CarverDebugSettings.of(false, Blocks.WARPED_BUTTON.defaultBlockState()), Registry.BLOCK.getOrCreateTag(BlockTags.OVERWORLD_CARVER_REPLACEABLES), UniformFloat.of(-0.125F, 0.125F), new CanyonCarverConfiguration.CanyonShapeConfiguration(UniformFloat.of(0.75F, 1.0F), TrapezoidFloat.of(0.0F, 6.0F, 2.0F), 3, UniformFloat.of(0.75F, 1.0F), 1.0F, 0.0F))));
     public static final Holder<ConfiguredWorldCarver<CaveCarverConfiguration>> NETHER_CAVE = register("nether_cave", WorldCarver.NETHER_CAVE.configured(new CaveCarverConfiguration(0.2F, UniformHeight.of(VerticalAnchor.absolute(0), VerticalAnchor.belowTop(1)), ConstantFloat.of(0.5F), VerticalAnchor.aboveBottom(10), Registry.BLOCK.getOrCreateTag(BlockTags.NETHER_CARVER_REPLACEABLES), ConstantFloat.of(1.0F), ConstantFloat.of(1.0F), ConstantFloat.of(-0.7F))));
 
-    private static <WC extends CarverConfiguration> Holder<ConfiguredWorldCarver<WC>> register(String p_206431_, ConfiguredWorldCarver<WC> p_206432_) {
-        return BuiltinRegistries.registerExact(BuiltinRegistries.CONFIGURED_CARVER, p_206431_, p_206432_);
+    private static <WC extends CarverConfiguration> Holder<ConfiguredWorldCarver<WC>> register(String pId, ConfiguredWorldCarver<WC> pCarver) {
+        return BuiltinRegistries.registerExact(BuiltinRegistries.CONFIGURED_CARVER, pId, pCarver);
     }
 }

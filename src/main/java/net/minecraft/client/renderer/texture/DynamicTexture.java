@@ -16,8 +16,8 @@ public class DynamicTexture extends AbstractTexture {
     @Nullable
     private NativeImage pixels;
 
-    public DynamicTexture(NativeImage p_117984_) {
-        this.pixels = p_117984_;
+    public DynamicTexture(NativeImage pPixels) {
+        this.pixels = pPixels;
         if (!RenderSystem.isOnRenderThread()) {
             RenderSystem.recordRenderCall(() -> {
                 TextureUtil.prepareImage(this.getId(), this.pixels.getWidth(), this.pixels.getHeight());
@@ -29,13 +29,13 @@ public class DynamicTexture extends AbstractTexture {
         }
     }
 
-    public DynamicTexture(int p_117980_, int p_117981_, boolean p_117982_) {
+    public DynamicTexture(int pWidth, int pHeight, boolean pUseCalloc) {
         RenderSystem.assertOnGameThreadOrInit();
-        this.pixels = new NativeImage(p_117980_, p_117981_, p_117982_);
+        this.pixels = new NativeImage(pWidth, pHeight, pUseCalloc);
         TextureUtil.prepareImage(this.getId(), this.pixels.getWidth(), this.pixels.getHeight());
     }
 
-    public void load(ResourceManager p_117987_) {
+    public void load(ResourceManager pManager) {
     }
 
     public void upload() {
@@ -52,12 +52,12 @@ public class DynamicTexture extends AbstractTexture {
         return this.pixels;
     }
 
-    public void setPixels(NativeImage p_117989_) {
+    public void setPixels(NativeImage pPixels) {
         if (this.pixels != null) {
             this.pixels.close();
         }
 
-        this.pixels = p_117989_;
+        this.pixels = pPixels;
     }
 
     public void close() {

@@ -32,19 +32,19 @@ public class MenuType<T extends AbstractContainerMenu> {
     public static final MenuType<StonecutterMenu> STONECUTTER = register("stonecutter", StonecutterMenu::new);
     private final MenuType.MenuSupplier<T> constructor;
 
-    private static <T extends AbstractContainerMenu> MenuType<T> register(String p_39989_, MenuType.MenuSupplier<T> p_39990_) {
-        return Registry.register(Registry.MENU, p_39989_, new MenuType<>(p_39990_));
+    private static <T extends AbstractContainerMenu> MenuType<T> register(String pKey, MenuType.MenuSupplier<T> pFactory) {
+        return Registry.register(Registry.MENU, pKey, new MenuType<>(pFactory));
     }
 
-    private MenuType(MenuType.MenuSupplier<T> p_39984_) {
-        this.constructor = p_39984_;
+    private MenuType(MenuType.MenuSupplier<T> pConstructor) {
+        this.constructor = pConstructor;
     }
 
-    public T create(int p_39986_, Inventory p_39987_) {
-        return this.constructor.create(p_39986_, p_39987_);
+    public T create(int pContainerId, Inventory pPlayerInventory) {
+        return this.constructor.create(pContainerId, pPlayerInventory);
     }
 
     interface MenuSupplier<T extends AbstractContainerMenu> {
-        T create(int p_39995_, Inventory p_39996_);
+        T create(int pContainerId, Inventory pPlayerInventory);
     }
 }

@@ -21,8 +21,8 @@ public class PiglinBruteSpecificSensor extends Sensor<LivingEntity> {
         return ImmutableSet.of(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryModuleType.NEAREST_VISIBLE_NEMESIS, MemoryModuleType.NEARBY_ADULT_PIGLINS);
     }
 
-    protected void doTick(ServerLevel p_26721_, LivingEntity p_26722_) {
-        Brain<?> brain = p_26722_.getBrain();
+    protected void doTick(ServerLevel pLevel, LivingEntity pEntity) {
+        Brain<?> brain = pEntity.getBrain();
         List<AbstractPiglin> list = Lists.newArrayList();
         NearestVisibleLivingEntities nearestvisiblelivingentities = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).orElse(NearestVisibleLivingEntities.empty());
         Optional<Mob> optional = nearestvisiblelivingentities.findClosest((p_186155_) -> {

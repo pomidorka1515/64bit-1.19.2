@@ -9,14 +9,14 @@ import net.minecraft.world.level.block.entity.TheEndGatewayBlockEntity;
 import net.minecraft.world.level.levelgen.feature.configurations.EndGatewayConfiguration;
 
 public class EndGatewayFeature extends Feature<EndGatewayConfiguration> {
-    public EndGatewayFeature(Codec<EndGatewayConfiguration> p_65682_) {
-        super(p_65682_);
+    public EndGatewayFeature(Codec<EndGatewayConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<EndGatewayConfiguration> p_159715_) {
-        BlockPos blockpos = p_159715_.origin();
-        WorldGenLevel worldgenlevel = p_159715_.level();
-        EndGatewayConfiguration endgatewayconfiguration = p_159715_.config();
+    public boolean place(FeaturePlaceContext<EndGatewayConfiguration> pContext) {
+        BlockPos blockpos = pContext.origin();
+        WorldGenLevel worldgenlevel = pContext.level();
+        EndGatewayConfiguration endgatewayconfiguration = pContext.config();
 
         for (BlockPos blockpos1 : BlockPos.betweenClosed(blockpos.offset(-1, -2, -1), blockpos.offset(1, 2, 1))) {
             boolean flag = blockpos1.getX() == blockpos.getX();

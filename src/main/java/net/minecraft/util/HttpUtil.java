@@ -33,82 +33,82 @@ public class HttpUtil {
     private HttpUtil() {
     }
 
-    public static CompletableFuture<?> downloadTo(File p_216226_, URL p_216227_, Map<String, String> p_216228_, int p_216229_, @Nullable ProgressListener p_216230_, Proxy p_216231_) {
+    public static CompletableFuture<?> downloadTo(File pSaveFile, URL pPackUrl, Map<String, String> pRequestProperties, int pMaxSize, @Nullable ProgressListener pProgressCallback, Proxy pProxy) {
         return CompletableFuture.supplyAsync(() -> {
             HttpURLConnection httpurlconnection = null;
             InputStream inputstream = null;
             OutputStream outputstream = null;
-            if (p_216230_ != null) {
-                p_216230_.progressStart(Component.translatable("resourcepack.downloading"));
-                p_216230_.progressStage(Component.translatable("resourcepack.requesting"));
+            if (pProgressCallback != null) {
+                pProgressCallback.progressStart(Component.translatable("resourcepack.downloading"));
+                pProgressCallback.progressStage(Component.translatable("resourcepack.requesting"));
             }
 
             try {
                 try {
                     byte[] abyte = new byte[4096];
-                    httpurlconnection = (HttpURLConnection) p_216227_.openConnection(p_216231_);
+                    httpurlconnection = (HttpURLConnection) pPackUrl.openConnection(pProxy);
                     httpurlconnection.setInstanceFollowRedirects(true);
                     float f1 = 0.0F;
-                    float f = (float) p_216228_.entrySet().size();
+                    float f = (float) pRequestProperties.entrySet().size();
 
-                    for (Map.Entry<String, String> entry : p_216228_.entrySet()) {
+                    for (Map.Entry<String, String> entry : pRequestProperties.entrySet()) {
                         httpurlconnection.setRequestProperty(entry.getKey(), entry.getValue());
-                        if (p_216230_ != null) {
-                            p_216230_.progressStagePercentage((int) (++f1 / f * 100.0F));
+                        if (pProgressCallback != null) {
+                            pProgressCallback.progressStagePercentage((int) (++f1 / f * 100.0F));
                         }
                     }
 
                     inputstream = httpurlconnection.getInputStream();
                     f = (float) httpurlconnection.getContentLength();
                     int i = httpurlconnection.getContentLength();
-                    if (p_216230_ != null) {
-                        p_216230_.progressStage(Component.translatable("resourcepack.progress", String.format(Locale.ROOT, "%.2f", f / 1000.0F / 1000.0F)));
+                    if (pProgressCallback != null) {
+                        pProgressCallback.progressStage(Component.translatable("resourcepack.progress", String.format(Locale.ROOT, "%.2f", f / 1000.0F / 1000.0F)));
                     }
 
-                    if (p_216226_.exists()) {
-                        long j = p_216226_.length();
+                    if (pSaveFile.exists()) {
+                        long j = pSaveFile.length();
                         if (j == (long) i) {
-                            if (p_216230_ != null) {
-                                p_216230_.stop();
+                            if (pProgressCallback != null) {
+                                pProgressCallback.stop();
                             }
 
                             return null;
                         }
 
-                        LOGGER.warn("Deleting {} as it does not match what we currently have ({} vs our {}).", p_216226_, i, j);
-                        FileUtils.deleteQuietly(p_216226_);
-                    } else if (p_216226_.getParentFile() != null) {
-                        p_216226_.getParentFile().mkdirs();
+                        LOGGER.warn("Deleting {} as it does not match what we currently have ({} vs our {}).", pSaveFile, i, j);
+                        FileUtils.deleteQuietly(pSaveFile);
+                    } else if (pSaveFile.getParentFile() != null) {
+                        pSaveFile.getParentFile().mkdirs();
                     }
 
-                    outputstream = new DataOutputStream(new FileOutputStream(p_216226_));
-                    if (p_216229_ > 0 && f > (float) p_216229_) {
-                        if (p_216230_ != null) {
-                            p_216230_.stop();
+                    outputstream = new DataOutputStream(new FileOutputStream(pSaveFile));
+                    if (pMaxSize > 0 && f > (float) pMaxSize) {
+                        if (pProgressCallback != null) {
+                            pProgressCallback.stop();
                         }
 
-                        throw new IOException("Filesize is bigger than maximum allowed (file is " + f1 + ", limit is " + p_216229_ + ")");
+                        throw new IOException("Filesize is bigger than maximum allowed (file is " + f1 + ", limit is " + pMaxSize + ")");
                     }
 
                     int k;
                     while ((k = inputstream.read(abyte)) >= 0) {
                         f1 += (float) k;
-                        if (p_216230_ != null) {
-                            p_216230_.progressStagePercentage((int) (f1 / f * 100.0F));
+                        if (pProgressCallback != null) {
+                            pProgressCallback.progressStagePercentage((int) (f1 / f * 100.0F));
                         }
 
-                        if (p_216229_ > 0 && f1 > (float) p_216229_) {
-                            if (p_216230_ != null) {
-                                p_216230_.stop();
+                        if (pMaxSize > 0 && f1 > (float) pMaxSize) {
+                            if (pProgressCallback != null) {
+                                pProgressCallback.stop();
                             }
 
-                            throw new IOException("Filesize was bigger than maximum allowed (got >= " + f1 + ", limit was " + p_216229_ + ")");
+                            throw new IOException("Filesize was bigger than maximum allowed (got >= " + f1 + ", limit was " + pMaxSize + ")");
                         }
 
                         if (Thread.interrupted()) {
                             LOGGER.error("INTERRUPTED");
-                            if (p_216230_ != null) {
-                                p_216230_.stop();
+                            if (pProgressCallback != null) {
+                                pProgressCallback.stop();
                             }
 
                             return null;
@@ -117,8 +117,8 @@ public class HttpUtil {
                         outputstream.write(abyte, 0, k);
                     }
 
-                    if (p_216230_ != null) {
-                        p_216230_.stop();
+                    if (pProgressCallback != null) {
+                        pProgressCallback.stop();
                         return null;
                     }
                 } catch (Throwable throwable) {
@@ -133,8 +133,8 @@ public class HttpUtil {
                         }
                     }
 
-                    if (p_216230_ != null) {
-                        p_216230_.stop();
+                    if (pProgressCallback != null) {
+                        pProgressCallback.stop();
                         return null;
                     }
                 }

@@ -34,7 +34,7 @@ public enum GossipType {
     }
 
     @Nullable
-    public static GossipType byId(String p_26292_) {
-        return BY_ID.get(p_26292_);
+    public static GossipType byId(String pId) {
+        return BY_ID.get(pId);
     }
 }

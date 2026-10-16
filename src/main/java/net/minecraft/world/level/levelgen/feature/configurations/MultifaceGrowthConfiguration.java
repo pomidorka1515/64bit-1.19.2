@@ -82,14 +82,14 @@ public class MultifaceGrowthConfiguration implements FeatureConfiguration {
         }
     }
 
-    public List<Direction> getShuffledDirectionsExcept(RandomSource p_225402_, Direction p_225403_) {
+    public List<Direction> getShuffledDirectionsExcept(RandomSource pRandom, Direction pDirection) {
         return Util.toShuffledList(this.validDirections.stream().filter((p_225412_) -> {
-            return p_225412_ != p_225403_;
+            return p_225412_ != pDirection;
         }),
-                p_225402_);
+                pRandom);
     }
 
-    public List<Direction> getShuffledDirections(RandomSource p_225400_) {
-        return Util.shuffledCopy(this.validDirections, p_225400_);
+    public List<Direction> getShuffledDirections(RandomSource pRandom) {
+        return Util.shuffledCopy(this.validDirections, pRandom);
     }
 }

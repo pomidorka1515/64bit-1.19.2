@@ -11,9 +11,9 @@ public class RateKickingConnection extends Connection {
     private static final Component EXCEED_REASON = Component.translatable("disconnect.exceeded_packet_rate");
     private final int rateLimitPacketsPerSecond;
 
-    public RateKickingConnection(int p_130558_) {
+    public RateKickingConnection(int pRateLimitPacketsPerSecond) {
         super(PacketFlow.SERVERBOUND);
-        this.rateLimitPacketsPerSecond = p_130558_;
+        this.rateLimitPacketsPerSecond = pRateLimitPacketsPerSecond;
     }
 
     protected void tickSecond() {

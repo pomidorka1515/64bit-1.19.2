@@ -13,23 +13,23 @@ public class FoodOnAStickItem<T extends Entity & ItemSteerable> extends Item {
     private final EntityType<T> canInteractWith;
     private final int consumeItemDamage;
 
-    public FoodOnAStickItem(Item.Properties p_41307_, EntityType<T> p_41308_, int p_41309_) {
-        super(p_41307_);
-        this.canInteractWith = p_41308_;
-        this.consumeItemDamage = p_41309_;
+    public FoodOnAStickItem(Item.Properties pProperties, EntityType<T> pCanInteractWith, int pConsumeItemDamage) {
+        super(pProperties);
+        this.canInteractWith = pCanInteractWith;
+        this.consumeItemDamage = pConsumeItemDamage;
     }
 
-    public InteractionResultHolder<ItemStack> use(Level p_41314_, Player p_41315_, InteractionHand p_41316_) {
-        ItemStack itemstack = p_41315_.getItemInHand(p_41316_);
-        if (p_41314_.isClientSide) {
+    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
+        if (pLevel.isClientSide) {
             return InteractionResultHolder.pass(itemstack);
         } else {
-            Entity entity = p_41315_.getVehicle();
-            if (p_41315_.isPassenger() && entity instanceof ItemSteerable && entity.getType() == this.canInteractWith) {
+            Entity entity = pPlayer.getVehicle();
+            if (pPlayer.isPassenger() && entity instanceof ItemSteerable && entity.getType() == this.canInteractWith) {
                 ItemSteerable itemsteerable = (ItemSteerable) entity;
                 if (itemsteerable.boost()) {
-                    itemstack.hurtAndBreak(this.consumeItemDamage, p_41315_, (p_41312_) -> {
-                        p_41312_.broadcastBreakEvent(p_41316_);
+                    itemstack.hurtAndBreak(this.consumeItemDamage, pPlayer, (p_41312_) -> {
+                        p_41312_.broadcastBreakEvent(pHand);
                     });
                     if (itemstack.isEmpty()) {
                         ItemStack itemstack1 = new ItemStack(Items.FISHING_ROD);
@@ -41,7 +41,7 @@ public class FoodOnAStickItem<T extends Entity & ItemSteerable> extends Item {
                 }
             }
 
-            p_41315_.awardStat(Stats.ITEM_USED.get(this));
+            pPlayer.awardStat(Stats.ITEM_USED.get(this));
             return InteractionResultHolder.pass(itemstack);
         }
     }

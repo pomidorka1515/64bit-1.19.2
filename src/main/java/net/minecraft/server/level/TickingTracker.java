@@ -26,8 +26,8 @@ public class TickingTracker extends ChunkTracker {
         this.chunks.defaultReturnValue((byte) 33);
     }
 
-    private SortedArraySet<Ticket<?>> getTickets(ChunkPos p_184178_) {
-        return this.tickets.computeIfAbsent(p_184178_, (p_184180_) -> {
+    private SortedArraySet<Ticket<?>> getTickets(ChunkPos pChunkPos) {
+        return this.tickets.computeIfAbsent(pChunkPos, (p_184180_) -> {
             return SortedArraySet.create(4);
         });
     }
@@ -36,32 +36,32 @@ public class TickingTracker extends ChunkTracker {
         return p_184160_.isEmpty() ? 34 : p_184160_.first().getTicketLevel();
     }
 
-    public void addTicket(ChunkPos p_184152_, Ticket<?> p_184153_) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.getTickets(p_184152_);
+    public void addTicket(ChunkPos pChunkPos, Ticket<?> pTicket) {
+        SortedArraySet<Ticket<?>> sortedarrayset = this.getTickets(pChunkPos);
         int i = this.getTicketLevelAt(sortedarrayset);
-        sortedarrayset.add(p_184153_);
-        if (p_184153_.getTicketLevel() < i) {
-            this.update(p_184152_, p_184153_.getTicketLevel(), true);
+        sortedarrayset.add(pTicket);
+        if (pTicket.getTicketLevel() < i) {
+            this.update(pChunkPos, pTicket.getTicketLevel(), true);
         }
     }
 
-    public void removeTicket(ChunkPos p_184166_, Ticket<?> p_184167_) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.getTickets(p_184166_);
-        sortedarrayset.remove(p_184167_);
+    public void removeTicket(ChunkPos pChunkPos, Ticket<?> pTicket) {
+        SortedArraySet<Ticket<?>> sortedarrayset = this.getTickets(pChunkPos);
+        sortedarrayset.remove(pTicket);
         if (sortedarrayset.isEmpty()) {
-            this.tickets.remove(p_184166_);
+            this.tickets.remove(pChunkPos);
         }
 
-        this.update(p_184166_, this.getTicketLevelAt(sortedarrayset), false);
+        this.update(pChunkPos, this.getTicketLevelAt(sortedarrayset), false);
     }
 
-    public <T> void addTicket(TicketType<T> p_184155_, ChunkPos p_184156_, int p_184157_, T p_184158_) {
-        this.addTicket(p_184156_, new Ticket<>(p_184155_, p_184157_, p_184158_));
+    public <T> void addTicket(TicketType<T> pType, ChunkPos pChunkPos, int pTicketLevel, T pKey) {
+        this.addTicket(pChunkPos, new Ticket<>(pType, pTicketLevel, pKey));
     }
 
-    public <T> void removeTicket(TicketType<T> p_184169_, ChunkPos p_184170_, int p_184171_, T p_184172_) {
-        Ticket<T> ticket = new Ticket<>(p_184169_, p_184171_, p_184172_);
-        this.removeTicket(p_184170_, ticket);
+    public <T> void removeTicket(TicketType<T> pType, ChunkPos pChunkPos, int pTicketLevel, T pKey) {
+        Ticket<T> ticket = new Ticket<>(pType, pTicketLevel, pKey);
+        this.removeTicket(pChunkPos, ticket);
     }
 
     public void replacePlayerTicketsLevel(int p_184147_) {
@@ -84,20 +84,20 @@ public class TickingTracker extends ChunkTracker {
         }
     }
 
-    protected int getLevelFromSource(ChunkPos p_184164_) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_184164_);
+    protected int getLevelFromSource(ChunkPos pPos) {
+        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(pPos);
         return sortedarrayset != null && !sortedarrayset.isEmpty() ? sortedarrayset.first().getTicketLevel() : Integer.MAX_VALUE;
     }
 
-    protected int getLevel(ChunkPos p_184174_) {
-        return this.chunks.getByte(p_184174_);
+    protected int getLevel(ChunkPos pChunkPos) {
+        return this.chunks.getByte(pChunkPos);
     }
 
-    protected void setLevel(ChunkPos p_184149_, int p_184150_) {
-        if (p_184150_ > 33) {
-            this.chunks.removeByte(p_184149_);
+    protected void setLevel(ChunkPos pChunkPos, int pLevel) {
+        if (pLevel > 33) {
+            this.chunks.removeByte(pChunkPos);
         } else {
-            this.chunks.put(p_184149_, (byte) p_184150_);
+            this.chunks.put(pChunkPos, (byte) pLevel);
         }
     }
 

@@ -32,14 +32,14 @@ public class SkullBlockEntity extends BlockEntity {
     private int mouthTickCount;
     private boolean isMovingMouth;
 
-    public SkullBlockEntity(BlockPos p_155731_, BlockState p_155732_) {
-        super(BlockEntityType.SKULL, p_155731_, p_155732_);
+    public SkullBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.SKULL, pPos, pBlockState);
     }
 
-    public static void setup(Services p_222886_, Executor p_222887_) {
-        profileCache = p_222886_.profileCache();
-        sessionService = p_222886_.sessionService();
-        mainThreadExecutor = p_222887_;
+    public static void setup(Services pServices, Executor pMainThreadExecutor) {
+        profileCache = pServices.profileCache();
+        sessionService = pServices.sessionService();
+        mainThreadExecutor = pMainThreadExecutor;
     }
 
     public static void clear() {
@@ -48,38 +48,38 @@ public class SkullBlockEntity extends BlockEntity {
         mainThreadExecutor = null;
     }
 
-    protected void saveAdditional(CompoundTag p_187518_) {
-        super.saveAdditional(p_187518_);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
         if (this.owner != null) {
             CompoundTag compoundtag = new CompoundTag();
             NbtUtils.writeGameProfile(compoundtag, this.owner);
-            p_187518_.put("SkullOwner", compoundtag);
+            pTag.put("SkullOwner", compoundtag);
         }
     }
 
-    public void load(CompoundTag p_155745_) {
-        super.load(p_155745_);
-        if (p_155745_.contains("SkullOwner", 10)) {
-            this.setOwner(NbtUtils.readGameProfile(p_155745_.getCompound("SkullOwner")));
-        } else if (p_155745_.contains("ExtraType", 8)) {
-            String s = p_155745_.getString("ExtraType");
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
+        if (pTag.contains("SkullOwner", 10)) {
+            this.setOwner(NbtUtils.readGameProfile(pTag.getCompound("SkullOwner")));
+        } else if (pTag.contains("ExtraType", 8)) {
+            String s = pTag.getString("ExtraType");
             if (!StringUtil.isNullOrEmpty(s)) {
                 this.setOwner(new GameProfile((UUID) null, s));
             }
         }
     }
 
-    public static void dragonHeadAnimation(Level p_155734_, BlockPos p_155735_, BlockState p_155736_, SkullBlockEntity p_155737_) {
-        if (p_155734_.hasNeighborSignal(p_155735_)) {
-            p_155737_.isMovingMouth = true;
-            ++p_155737_.mouthTickCount;
+    public static void dragonHeadAnimation(Level pLevel, BlockPos pPos, BlockState pState, SkullBlockEntity pBlockEntity) {
+        if (pLevel.hasNeighborSignal(pPos)) {
+            pBlockEntity.isMovingMouth = true;
+            ++pBlockEntity.mouthTickCount;
         } else {
-            p_155737_.isMovingMouth = false;
+            pBlockEntity.isMovingMouth = false;
         }
     }
 
-    public float getMouthAnimation(float p_59763_) {
-        return this.isMovingMouth ? (float) this.mouthTickCount + p_59763_ : (float) this.mouthTickCount;
+    public float getMouthAnimation(float pPartialTicks) {
+        return this.isMovingMouth ? (float) this.mouthTickCount + pPartialTicks : (float) this.mouthTickCount;
     }
 
     @Nullable
@@ -95,9 +95,9 @@ public class SkullBlockEntity extends BlockEntity {
         return this.saveWithoutMetadata();
     }
 
-    public void setOwner(@Nullable GameProfile p_59770_) {
+    public void setOwner(@Nullable GameProfile pOwner) {
         synchronized (this) {
-            this.owner = p_59770_;
+            this.owner = pOwner;
         }
 
         this.updateOwnerProfile();
@@ -110,9 +110,9 @@ public class SkullBlockEntity extends BlockEntity {
         });
     }
 
-    public static void updateGameprofile(@Nullable GameProfile p_155739_, Consumer<GameProfile> p_155740_) {
-        if (p_155739_ != null && !StringUtil.isNullOrEmpty(p_155739_.getName()) && (!p_155739_.isComplete() || !p_155739_.getProperties().containsKey("textures")) && profileCache != null && sessionService != null) {
-            profileCache.getAsync(p_155739_.getName(), (p_182470_) -> {
+    public static void updateGameprofile(@Nullable GameProfile pProfile, Consumer<GameProfile> pProfileConsumer) {
+        if (pProfile != null && !StringUtil.isNullOrEmpty(pProfile.getName()) && (!pProfile.isComplete() || !pProfile.getProperties().containsKey("textures")) && profileCache != null && sessionService != null) {
+            profileCache.getAsync(pProfile.getName(), (p_182470_) -> {
                 Util.backgroundExecutor().execute(() -> {
                     Util.ifElse(p_182470_, (p_182479_) -> {
                   Property property = Iterables.getFirst(p_182479_.getProperties().get("textures"), (Property)null);
@@ -123,14 +123,14 @@ public class SkullBlockEntity extends BlockEntity {
                   GameProfile gameprofile = p_182479_;
                   mainThreadExecutor.execute(() -> {
                      profileCache.add(gameprofile);
-                     p_155740_.accept(gameprofile);
+                     pProfileConsumer.accept(gameprofile);
                   }); }, () -> { mainThreadExecutor.execute(() -> {
-                                                                           p_155740_.accept(p_155739_);
+                                                                           pProfileConsumer.accept(pProfile);
                                                                        }); });
                 });
             });
         } else {
-            p_155740_.accept(p_155739_);
+            pProfileConsumer.accept(pProfile);
         }
     }
 }

@@ -34,8 +34,8 @@ public class TeamCommand {
     private static final SimpleCommandExceptionType ERROR_TEAM_DEATH_MESSAGE_VISIBLITY_UNCHANGED = new SimpleCommandExceptionType(Component.translatable("commands.team.option.deathMessageVisibility.unchanged"));
     private static final SimpleCommandExceptionType ERROR_TEAM_COLLISION_UNCHANGED = new SimpleCommandExceptionType(Component.translatable("commands.team.option.collisionRule.unchanged"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138878_) {
-        p_138878_.register(Commands.literal("team").requires((p_183713_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("team").requires((p_183713_) -> {
                                                        return p_183713_.hasPermission(2);
                                                    })
                         .then(Commands.literal("list").executes((p_183711_) -> {
@@ -121,185 +121,185 @@ public class TeamCommand {
                                         }))))));
     }
 
-    private static int leaveTeam(CommandSourceStack p_138918_, Collection<String> p_138919_) {
-        Scoreboard scoreboard = p_138918_.getServer().getScoreboard();
+    private static int leaveTeam(CommandSourceStack pSource, Collection<String> pPlayers) {
+        Scoreboard scoreboard = pSource.getServer().getScoreboard();
 
-        for (String s : p_138919_) {
+        for (String s : pPlayers) {
             scoreboard.removePlayerFromTeam(s);
         }
 
-        if (p_138919_.size() == 1) {
-            p_138918_.sendSuccess(Component.translatable("commands.team.leave.success.single", p_138919_.iterator().next()), true);
+        if (pPlayers.size() == 1) {
+            pSource.sendSuccess(Component.translatable("commands.team.leave.success.single", pPlayers.iterator().next()), true);
         } else {
-            p_138918_.sendSuccess(Component.translatable("commands.team.leave.success.multiple", p_138919_.size()), true);
+            pSource.sendSuccess(Component.translatable("commands.team.leave.success.multiple", pPlayers.size()), true);
         }
 
-        return p_138919_.size();
+        return pPlayers.size();
     }
 
-    private static int joinTeam(CommandSourceStack p_138895_, PlayerTeam p_138896_, Collection<String> p_138897_) {
-        Scoreboard scoreboard = p_138895_.getServer().getScoreboard();
+    private static int joinTeam(CommandSourceStack pSource, PlayerTeam pTeam, Collection<String> pPlayers) {
+        Scoreboard scoreboard = pSource.getServer().getScoreboard();
 
-        for (String s : p_138897_) {
-            scoreboard.addPlayerToTeam(s, p_138896_);
+        for (String s : pPlayers) {
+            scoreboard.addPlayerToTeam(s, pTeam);
         }
 
-        if (p_138897_.size() == 1) {
-            p_138895_.sendSuccess(Component.translatable("commands.team.join.success.single", p_138897_.iterator().next(), p_138896_.getFormattedDisplayName()), true);
+        if (pPlayers.size() == 1) {
+            pSource.sendSuccess(Component.translatable("commands.team.join.success.single", pPlayers.iterator().next(), pTeam.getFormattedDisplayName()), true);
         } else {
-            p_138895_.sendSuccess(Component.translatable("commands.team.join.success.multiple", p_138897_.size(), p_138896_.getFormattedDisplayName()), true);
+            pSource.sendSuccess(Component.translatable("commands.team.join.success.multiple", pPlayers.size(), pTeam.getFormattedDisplayName()), true);
         }
 
-        return p_138897_.size();
+        return pPlayers.size();
     }
 
-    private static int setNametagVisibility(CommandSourceStack p_138891_, PlayerTeam p_138892_, Team.Visibility p_138893_) throws CommandSyntaxException {
-        if (p_138892_.getNameTagVisibility() == p_138893_) {
+    private static int setNametagVisibility(CommandSourceStack pSource, PlayerTeam pTeam, Team.Visibility pVisibility) throws CommandSyntaxException {
+        if (pTeam.getNameTagVisibility() == pVisibility) {
             throw ERROR_TEAM_NAMETAG_VISIBLITY_UNCHANGED.create();
         } else {
-            p_138892_.setNameTagVisibility(p_138893_);
-            p_138891_.sendSuccess(Component.translatable("commands.team.option.nametagVisibility.success", p_138892_.getFormattedDisplayName(), p_138893_.getDisplayName()), true);
+            pTeam.setNameTagVisibility(pVisibility);
+            pSource.sendSuccess(Component.translatable("commands.team.option.nametagVisibility.success", pTeam.getFormattedDisplayName(), pVisibility.getDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setDeathMessageVisibility(CommandSourceStack p_138930_, PlayerTeam p_138931_, Team.Visibility p_138932_) throws CommandSyntaxException {
-        if (p_138931_.getDeathMessageVisibility() == p_138932_) {
+    private static int setDeathMessageVisibility(CommandSourceStack pSource, PlayerTeam pTeam, Team.Visibility pVisibility) throws CommandSyntaxException {
+        if (pTeam.getDeathMessageVisibility() == pVisibility) {
             throw ERROR_TEAM_DEATH_MESSAGE_VISIBLITY_UNCHANGED.create();
         } else {
-            p_138931_.setDeathMessageVisibility(p_138932_);
-            p_138930_.sendSuccess(Component.translatable("commands.team.option.deathMessageVisibility.success", p_138931_.getFormattedDisplayName(), p_138932_.getDisplayName()), true);
+            pTeam.setDeathMessageVisibility(pVisibility);
+            pSource.sendSuccess(Component.translatable("commands.team.option.deathMessageVisibility.success", pTeam.getFormattedDisplayName(), pVisibility.getDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setCollision(CommandSourceStack p_138887_, PlayerTeam p_138888_, Team.CollisionRule p_138889_) throws CommandSyntaxException {
-        if (p_138888_.getCollisionRule() == p_138889_) {
+    private static int setCollision(CommandSourceStack pSource, PlayerTeam pTeam, Team.CollisionRule pRule) throws CommandSyntaxException {
+        if (pTeam.getCollisionRule() == pRule) {
             throw ERROR_TEAM_COLLISION_UNCHANGED.create();
         } else {
-            p_138888_.setCollisionRule(p_138889_);
-            p_138887_.sendSuccess(Component.translatable("commands.team.option.collisionRule.success", p_138888_.getFormattedDisplayName(), p_138889_.getDisplayName()), true);
+            pTeam.setCollisionRule(pRule);
+            pSource.sendSuccess(Component.translatable("commands.team.option.collisionRule.success", pTeam.getFormattedDisplayName(), pRule.getDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setFriendlySight(CommandSourceStack p_138907_, PlayerTeam p_138908_, boolean p_138909_) throws CommandSyntaxException {
-        if (p_138908_.canSeeFriendlyInvisibles() == p_138909_) {
-            if (p_138909_) {
+    private static int setFriendlySight(CommandSourceStack pSource, PlayerTeam pTeam, boolean pValue) throws CommandSyntaxException {
+        if (pTeam.canSeeFriendlyInvisibles() == pValue) {
+            if (pValue) {
                 throw ERROR_TEAM_ALREADY_FRIENDLYINVISIBLES_ENABLED.create();
             } else {
                 throw ERROR_TEAM_ALREADY_FRIENDLYINVISIBLES_DISABLED.create();
             }
         } else {
-            p_138908_.setSeeFriendlyInvisibles(p_138909_);
-            p_138907_.sendSuccess(Component.translatable("commands.team.option.seeFriendlyInvisibles." + (p_138909_ ? "enabled" : "disabled"), p_138908_.getFormattedDisplayName()), true);
+            pTeam.setSeeFriendlyInvisibles(pValue);
+            pSource.sendSuccess(Component.translatable("commands.team.option.seeFriendlyInvisibles." + (pValue ? "enabled" : "disabled"), pTeam.getFormattedDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setFriendlyFire(CommandSourceStack p_138938_, PlayerTeam p_138939_, boolean p_138940_) throws CommandSyntaxException {
-        if (p_138939_.isAllowFriendlyFire() == p_138940_) {
-            if (p_138940_) {
+    private static int setFriendlyFire(CommandSourceStack pSource, PlayerTeam pTeam, boolean pValue) throws CommandSyntaxException {
+        if (pTeam.isAllowFriendlyFire() == pValue) {
+            if (pValue) {
                 throw ERROR_TEAM_ALREADY_FRIENDLYFIRE_ENABLED.create();
             } else {
                 throw ERROR_TEAM_ALREADY_FRIENDLYFIRE_DISABLED.create();
             }
         } else {
-            p_138939_.setAllowFriendlyFire(p_138940_);
-            p_138938_.sendSuccess(Component.translatable("commands.team.option.friendlyfire." + (p_138940_ ? "enabled" : "disabled"), p_138939_.getFormattedDisplayName()), true);
+            pTeam.setAllowFriendlyFire(pValue);
+            pSource.sendSuccess(Component.translatable("commands.team.option.friendlyfire." + (pValue ? "enabled" : "disabled"), pTeam.getFormattedDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setDisplayName(CommandSourceStack p_138903_, PlayerTeam p_138904_, Component p_138905_) throws CommandSyntaxException {
-        if (p_138904_.getDisplayName().equals(p_138905_)) {
+    private static int setDisplayName(CommandSourceStack pSource, PlayerTeam pTeam, Component pValue) throws CommandSyntaxException {
+        if (pTeam.getDisplayName().equals(pValue)) {
             throw ERROR_TEAM_ALREADY_NAME.create();
         } else {
-            p_138904_.setDisplayName(p_138905_);
-            p_138903_.sendSuccess(Component.translatable("commands.team.option.name.success", p_138904_.getFormattedDisplayName()), true);
+            pTeam.setDisplayName(pValue);
+            pSource.sendSuccess(Component.translatable("commands.team.option.name.success", pTeam.getFormattedDisplayName()), true);
             return 0;
         }
     }
 
-    private static int setColor(CommandSourceStack p_138899_, PlayerTeam p_138900_, ChatFormatting p_138901_) throws CommandSyntaxException {
-        if (p_138900_.getColor() == p_138901_) {
+    private static int setColor(CommandSourceStack pSource, PlayerTeam pTeam, ChatFormatting pValue) throws CommandSyntaxException {
+        if (pTeam.getColor() == pValue) {
             throw ERROR_TEAM_ALREADY_COLOR.create();
         } else {
-            p_138900_.setColor(p_138901_);
-            p_138899_.sendSuccess(Component.translatable("commands.team.option.color.success", p_138900_.getFormattedDisplayName(), p_138901_.getName()), true);
+            pTeam.setColor(pValue);
+            pSource.sendSuccess(Component.translatable("commands.team.option.color.success", pTeam.getFormattedDisplayName(), pValue.getName()), true);
             return 0;
         }
     }
 
-    private static int emptyTeam(CommandSourceStack p_138884_, PlayerTeam p_138885_) throws CommandSyntaxException {
-        Scoreboard scoreboard = p_138884_.getServer().getScoreboard();
-        Collection<String> collection = Lists.newArrayList(p_138885_.getPlayers());
+    private static int emptyTeam(CommandSourceStack pSource, PlayerTeam pTeam) throws CommandSyntaxException {
+        Scoreboard scoreboard = pSource.getServer().getScoreboard();
+        Collection<String> collection = Lists.newArrayList(pTeam.getPlayers());
         if (collection.isEmpty()) {
             throw ERROR_TEAM_ALREADY_EMPTY.create();
         } else {
             for (String s : collection) {
-                scoreboard.removePlayerFromTeam(s, p_138885_);
+                scoreboard.removePlayerFromTeam(s, pTeam);
             }
 
-            p_138884_.sendSuccess(Component.translatable("commands.team.empty.success", collection.size(), p_138885_.getFormattedDisplayName()), true);
+            pSource.sendSuccess(Component.translatable("commands.team.empty.success", collection.size(), pTeam.getFormattedDisplayName()), true);
             return collection.size();
         }
     }
 
-    private static int deleteTeam(CommandSourceStack p_138927_, PlayerTeam p_138928_) {
-        Scoreboard scoreboard = p_138927_.getServer().getScoreboard();
-        scoreboard.removePlayerTeam(p_138928_);
-        p_138927_.sendSuccess(Component.translatable("commands.team.remove.success", p_138928_.getFormattedDisplayName()), true);
+    private static int deleteTeam(CommandSourceStack pSource, PlayerTeam pTeam) {
+        Scoreboard scoreboard = pSource.getServer().getScoreboard();
+        scoreboard.removePlayerTeam(pTeam);
+        pSource.sendSuccess(Component.translatable("commands.team.remove.success", pTeam.getFormattedDisplayName()), true);
         return scoreboard.getPlayerTeams().size();
     }
 
-    private static int createTeam(CommandSourceStack p_138911_, String p_138912_) throws CommandSyntaxException {
-        return createTeam(p_138911_, p_138912_, Component.literal(p_138912_));
+    private static int createTeam(CommandSourceStack pSource, String pName) throws CommandSyntaxException {
+        return createTeam(pSource, pName, Component.literal(pName));
     }
 
-    private static int createTeam(CommandSourceStack p_138914_, String p_138915_, Component p_138916_) throws CommandSyntaxException {
-        Scoreboard scoreboard = p_138914_.getServer().getScoreboard();
-        if (scoreboard.getPlayerTeam(p_138915_) != null) {
+    private static int createTeam(CommandSourceStack pSource, String pName, Component pDisplayName) throws CommandSyntaxException {
+        Scoreboard scoreboard = pSource.getServer().getScoreboard();
+        if (scoreboard.getPlayerTeam(pName) != null) {
             throw ERROR_TEAM_ALREADY_EXISTS.create();
         } else {
-            PlayerTeam playerteam = scoreboard.addPlayerTeam(p_138915_);
-            playerteam.setDisplayName(p_138916_);
-            p_138914_.sendSuccess(Component.translatable("commands.team.add.success", playerteam.getFormattedDisplayName()), true);
+            PlayerTeam playerteam = scoreboard.addPlayerTeam(pName);
+            playerteam.setDisplayName(pDisplayName);
+            pSource.sendSuccess(Component.translatable("commands.team.add.success", playerteam.getFormattedDisplayName()), true);
             return scoreboard.getPlayerTeams().size();
         }
     }
 
-    private static int listMembers(CommandSourceStack p_138944_, PlayerTeam p_138945_) {
-        Collection<String> collection = p_138945_.getPlayers();
+    private static int listMembers(CommandSourceStack pSource, PlayerTeam pTeam) {
+        Collection<String> collection = pTeam.getPlayers();
         if (collection.isEmpty()) {
-            p_138944_.sendSuccess(Component.translatable("commands.team.list.members.empty", p_138945_.getFormattedDisplayName()), false);
+            pSource.sendSuccess(Component.translatable("commands.team.list.members.empty", pTeam.getFormattedDisplayName()), false);
         } else {
-            p_138944_.sendSuccess(Component.translatable("commands.team.list.members.success", p_138945_.getFormattedDisplayName(), collection.size(), ComponentUtils.formatList(collection)), false);
+            pSource.sendSuccess(Component.translatable("commands.team.list.members.success", pTeam.getFormattedDisplayName(), collection.size(), ComponentUtils.formatList(collection)), false);
         }
 
         return collection.size();
     }
 
-    private static int listTeams(CommandSourceStack p_138882_) {
-        Collection<PlayerTeam> collection = p_138882_.getServer().getScoreboard().getPlayerTeams();
+    private static int listTeams(CommandSourceStack pSource) {
+        Collection<PlayerTeam> collection = pSource.getServer().getScoreboard().getPlayerTeams();
         if (collection.isEmpty()) {
-            p_138882_.sendSuccess(Component.translatable("commands.team.list.teams.empty"), false);
+            pSource.sendSuccess(Component.translatable("commands.team.list.teams.empty"), false);
         } else {
-            p_138882_.sendSuccess(Component.translatable("commands.team.list.teams.success", collection.size(), ComponentUtils.formatList(collection, PlayerTeam::getFormattedDisplayName)), false);
+            pSource.sendSuccess(Component.translatable("commands.team.list.teams.success", collection.size(), ComponentUtils.formatList(collection, PlayerTeam::getFormattedDisplayName)), false);
         }
 
         return collection.size();
     }
 
-    private static int setPrefix(CommandSourceStack p_138934_, PlayerTeam p_138935_, Component p_138936_) {
-        p_138935_.setPlayerPrefix(p_138936_);
-        p_138934_.sendSuccess(Component.translatable("commands.team.option.prefix.success", p_138936_), false);
+    private static int setPrefix(CommandSourceStack pSource, PlayerTeam pTeam, Component pPrefix) {
+        pTeam.setPlayerPrefix(pPrefix);
+        pSource.sendSuccess(Component.translatable("commands.team.option.prefix.success", pPrefix), false);
         return 1;
     }
 
-    private static int setSuffix(CommandSourceStack p_138947_, PlayerTeam p_138948_, Component p_138949_) {
-        p_138948_.setPlayerSuffix(p_138949_);
-        p_138947_.sendSuccess(Component.translatable("commands.team.option.suffix.success", p_138949_), false);
+    private static int setSuffix(CommandSourceStack pSource, PlayerTeam pTeam, Component pSuffix) {
+        pTeam.setPlayerSuffix(pSuffix);
+        pSource.sendSuccess(Component.translatable("commands.team.option.suffix.success", pSuffix), false);
         return 1;
     }
 }

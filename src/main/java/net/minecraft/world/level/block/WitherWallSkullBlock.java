@@ -13,7 +13,7 @@ public class WitherWallSkullBlock extends WallSkullBlock {
         super(SkullBlock.Types.WITHER_SKELETON, p_58276_);
     }
 
-    public void setPlacedBy(Level p_58278_, BlockPos p_58279_, BlockState p_58280_, @Nullable LivingEntity p_58281_, ItemStack p_58282_) {
-        Blocks.WITHER_SKELETON_SKULL.setPlacedBy(p_58278_, p_58279_, p_58280_, p_58281_, p_58282_);
+    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
+        Blocks.WITHER_SKELETON_SKULL.setPlacedBy(pLevel, pPos, pState, pPlacer, pStack);
     }
 }

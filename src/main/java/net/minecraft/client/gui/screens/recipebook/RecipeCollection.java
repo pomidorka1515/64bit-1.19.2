@@ -21,21 +21,21 @@ public class RecipeCollection {
     private final Set<Recipe<?>> fitsDimensions = Sets.newHashSet();
     private final Set<Recipe<?>> known = Sets.newHashSet();
 
-    public RecipeCollection(List<Recipe<?>> p_100497_) {
-        this.recipes = ImmutableList.copyOf(p_100497_);
-        if (p_100497_.size() <= 1) {
+    public RecipeCollection(List<Recipe<?>> pRecipes) {
+        this.recipes = ImmutableList.copyOf(pRecipes);
+        if (pRecipes.size() <= 1) {
             this.singleResultItem = true;
         } else {
-            this.singleResultItem = allRecipesHaveSameResult(p_100497_);
+            this.singleResultItem = allRecipesHaveSameResult(pRecipes);
         }
     }
 
-    private static boolean allRecipesHaveSameResult(List<Recipe<?>> p_100509_) {
-        int i = p_100509_.size();
-        ItemStack itemstack = p_100509_.get(0).getResultItem();
+    private static boolean allRecipesHaveSameResult(List<Recipe<?>> pRecipes) {
+        int i = pRecipes.size();
+        ItemStack itemstack = pRecipes.get(0).getResultItem();
 
         for (int j = 1; j < i; ++j) {
-            ItemStack itemstack1 = p_100509_.get(j).getResultItem();
+            ItemStack itemstack1 = pRecipes.get(j).getResultItem();
             if (!ItemStack.isSame(itemstack, itemstack1) || !ItemStack.tagMatches(itemstack, itemstack1)) {
                 return false;
             }
@@ -48,24 +48,24 @@ public class RecipeCollection {
         return !this.known.isEmpty();
     }
 
-    public void updateKnownRecipes(RecipeBook p_100500_) {
+    public void updateKnownRecipes(RecipeBook pBook) {
         for (Recipe<?> recipe : this.recipes) {
-            if (p_100500_.contains(recipe)) {
+            if (pBook.contains(recipe)) {
                 this.known.add(recipe);
             }
         }
     }
 
-    public void canCraft(StackedContents p_100502_, int p_100503_, int p_100504_, RecipeBook p_100505_) {
+    public void canCraft(StackedContents pHandler, int pWidth, int pHeight, RecipeBook pBook) {
         for (Recipe<?> recipe : this.recipes) {
-            boolean flag = recipe.canCraftInDimensions(p_100503_, p_100504_) && p_100505_.contains(recipe);
+            boolean flag = recipe.canCraftInDimensions(pWidth, pHeight) && pBook.contains(recipe);
             if (flag) {
                 this.fitsDimensions.add(recipe);
             } else {
                 this.fitsDimensions.remove(recipe);
             }
 
-            if (flag && p_100502_.canCraft(recipe, (IntList) null)) {
+            if (flag && pHandler.canCraft(recipe, (IntList) null)) {
                 this.craftable.add(recipe);
             } else {
                 this.craftable.remove(recipe);
@@ -73,8 +73,8 @@ public class RecipeCollection {
         }
     }
 
-    public boolean isCraftable(Recipe<?> p_100507_) {
-        return this.craftable.contains(p_100507_);
+    public boolean isCraftable(Recipe<?> pRecipe) {
+        return this.craftable.contains(pRecipe);
     }
 
     public boolean hasCraftable() {
@@ -89,9 +89,9 @@ public class RecipeCollection {
         return this.recipes;
     }
 
-    public List<Recipe<?>> getRecipes(boolean p_100511_) {
+    public List<Recipe<?>> getRecipes(boolean pOnlyCraftable) {
         List<Recipe<?>> list = Lists.newArrayList();
-        Set<Recipe<?>> set = p_100511_ ? this.craftable : this.fitsDimensions;
+        Set<Recipe<?>> set = pOnlyCraftable ? this.craftable : this.fitsDimensions;
 
         for (Recipe<?> recipe : this.recipes) {
             if (set.contains(recipe)) {
@@ -102,11 +102,11 @@ public class RecipeCollection {
         return list;
     }
 
-    public List<Recipe<?>> getDisplayRecipes(boolean p_100514_) {
+    public List<Recipe<?>> getDisplayRecipes(boolean pOnlyCraftable) {
         List<Recipe<?>> list = Lists.newArrayList();
 
         for (Recipe<?> recipe : this.recipes) {
-            if (this.fitsDimensions.contains(recipe) && this.craftable.contains(recipe) == p_100514_) {
+            if (this.fitsDimensions.contains(recipe) && this.craftable.contains(recipe) == pOnlyCraftable) {
                 list.add(recipe);
             }
         }

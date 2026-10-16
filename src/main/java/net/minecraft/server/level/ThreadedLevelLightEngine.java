@@ -29,27 +29,27 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
     private volatile int taskPerBatch = 5;
     private final AtomicBoolean scheduled = new AtomicBoolean();
 
-    public ThreadedLevelLightEngine(LightChunkGetter p_9305_, ChunkMap p_9306_, boolean p_9307_, ProcessorMailbox<Runnable> p_9308_, ProcessorHandle<ChunkTaskPriorityQueueSorter.Message<Runnable>> p_9309_) {
-        super(p_9305_, true, p_9307_);
-        this.chunkMap = p_9306_;
-        this.sorterMailbox = p_9309_;
-        this.taskMailbox = p_9308_;
+    public ThreadedLevelLightEngine(LightChunkGetter pLightChunk, ChunkMap pChunkMap, boolean pSkyLight, ProcessorMailbox<Runnable> pTaskMailbox, ProcessorHandle<ChunkTaskPriorityQueueSorter.Message<Runnable>> pSorterMailbox) {
+        super(pLightChunk, true, pSkyLight);
+        this.chunkMap = pChunkMap;
+        this.sorterMailbox = pSorterMailbox;
+        this.taskMailbox = pTaskMailbox;
     }
 
     public void close() {
     }
 
-    public int runUpdates(int p_9324_, boolean p_9325_, boolean p_9326_) {
+    public int runUpdates(int pPos, boolean pIsQueueEmpty, boolean pUpdateBlockLight) {
         throw (UnsupportedOperationException) Util.pauseInIde(new UnsupportedOperationException("Ran automatically on a different thread!"));
     }
 
-    public void onBlockEmissionIncrease(BlockPos p_9359_, int p_9360_) {
+    public void onBlockEmissionIncrease(BlockPos pPos, int pEmissionLevel) {
         throw (UnsupportedOperationException) Util.pauseInIde(new UnsupportedOperationException("Ran automatically on a different thread!"));
     }
 
-    public void checkBlock(BlockPos p_9357_) {
-        BlockPos blockpos = p_9357_.immutable();
-        this.addTask(SectionPos.blockToSectionCoord(p_9357_.getX()), SectionPos.blockToSectionCoord(p_9357_.getZ()), ThreadedLevelLightEngine.TaskType.POST_UPDATE, Util.name(() -> { super.checkBlock(blockpos); }, () -> { return "checkBlock " + blockpos; }));
+    public void checkBlock(BlockPos pPos) {
+        BlockPos blockpos = pPos.immutable();
+        this.addTask(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()), ThreadedLevelLightEngine.TaskType.POST_UPDATE, Util.name(() -> { super.checkBlock(blockpos); }, () -> { return "checkBlock " + blockpos; }));
     }
 
     protected void updateChunkStatus(ChunkPos p_9331_) {
@@ -69,14 +69,14 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
          } }, () -> { return "updateChunkStatus " + p_9331_ + " true"; }));
     }
 
-    public void updateSectionStatus(SectionPos p_9364_, boolean p_9365_) {
-        this.addTask(p_9364_.x(), p_9364_.z(), () -> {
+    public void updateSectionStatus(SectionPos pPos, boolean pIsEmpty) {
+        this.addTask(pPos.x(), pPos.z(), () -> {
             return 0;
-        }, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> { super.updateSectionStatus(p_9364_, p_9365_); }, () -> { return "updateSectionStatus " + p_9364_ + " " + p_9365_; }));
+        }, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> { super.updateSectionStatus(pPos, pIsEmpty); }, () -> { return "updateSectionStatus " + pPos + " " + pIsEmpty; }));
     }
 
-    public void enableLightSources(ChunkPos p_9336_, boolean p_9337_) {
-        this.addTask(p_9336_.x, p_9336_.z, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> { super.enableLightSources(p_9336_, p_9337_); }, () -> { return "enableLight " + p_9336_ + " " + p_9337_; }));
+    public void enableLightSources(ChunkPos pChunkPos, boolean pIsQueueEmpty) {
+        this.addTask(pChunkPos.x, pChunkPos.z, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> { super.enableLightSources(pChunkPos, pIsQueueEmpty); }, () -> { return "enableLight " + pChunkPos + " " + pIsQueueEmpty; }));
     }
 
     public void queueSectionData(LightLayer p_9339_, SectionPos p_9340_, @Nullable DataLayer p_9341_, boolean p_9342_) {
@@ -98,10 +98,10 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
         }, new ChunkPos(p_9318_, p_9319_), p_9320_));
     }
 
-    public void retainData(ChunkPos p_9370_, boolean p_9371_) {
-        this.addTask(p_9370_.x, p_9370_.z, () -> {
+    public void retainData(ChunkPos pPos, boolean pRetain) {
+        this.addTask(pPos.x, pPos.z, () -> {
             return 0;
-        }, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> { super.retainData(p_9370_, p_9371_); }, () -> { return "retainData " + p_9370_; }));
+        }, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> { super.retainData(pPos, pRetain); }, () -> { return "retainData " + pPos; }));
     }
 
     public CompletableFuture<ChunkAccess> retainData(ChunkAccess p_215137_) {
@@ -174,8 +174,8 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
         }
     }
 
-    public void setTaskPerBatch(int p_9311_) {
-        this.taskPerBatch = p_9311_;
+    public void setTaskPerBatch(int pTaskPerBatch) {
+        this.taskPerBatch = pTaskPerBatch;
     }
 
     enum TaskType {

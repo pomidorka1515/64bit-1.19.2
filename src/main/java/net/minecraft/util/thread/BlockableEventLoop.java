@@ -22,14 +22,14 @@ public abstract class BlockableEventLoop<R extends Runnable> implements Profiler
     private final Queue<R> pendingRunnables = Queues.newConcurrentLinkedQueue();
     private int blockingCount;
 
-    protected BlockableEventLoop(String p_18686_) {
-        this.name = p_18686_;
+    protected BlockableEventLoop(String pName) {
+        this.name = pName;
         MetricsRegistry.INSTANCE.add(this);
     }
 
-    protected abstract R wrapRunnable(Runnable p_18704_);
+    protected abstract R wrapRunnable(Runnable pRunnable);
 
-    protected abstract boolean shouldRun(R p_18703_);
+    protected abstract boolean shouldRun(R pRunnable);
 
     public boolean isSameThread() {
         return Thread.currentThread() == this.getRunningThread();
@@ -49,49 +49,49 @@ public abstract class BlockableEventLoop<R extends Runnable> implements Profiler
         return this.name;
     }
 
-    public <V> CompletableFuture<V> submit(Supplier<V> p_18692_) {
-        return this.scheduleExecutables() ? CompletableFuture.supplyAsync(p_18692_, this) : CompletableFuture.completedFuture(p_18692_.get());
+    public <V> CompletableFuture<V> submit(Supplier<V> pSupplier) {
+        return this.scheduleExecutables() ? CompletableFuture.supplyAsync(pSupplier, this) : CompletableFuture.completedFuture(pSupplier.get());
     }
 
-    private CompletableFuture<Void> submitAsync(Runnable p_18690_) {
+    private CompletableFuture<Void> submitAsync(Runnable pTask) {
         return CompletableFuture.supplyAsync(() -> {
-            p_18690_.run();
+            pTask.run();
             return null;
         }, this);
     }
 
-    public CompletableFuture<Void> submit(Runnable p_18708_) {
+    public CompletableFuture<Void> submit(Runnable pTask) {
         if (this.scheduleExecutables()) {
-            return this.submitAsync(p_18708_);
+            return this.submitAsync(pTask);
         } else {
-            p_18708_.run();
+            pTask.run();
             return CompletableFuture.completedFuture((Void) null);
         }
     }
 
-    public void executeBlocking(Runnable p_18710_) {
+    public void executeBlocking(Runnable pTask) {
         if (!this.isSameThread()) {
-            this.submitAsync(p_18710_).join();
+            this.submitAsync(pTask).join();
         } else {
-            p_18710_.run();
+            pTask.run();
         }
     }
 
-    public void tell(R p_18712_) {
-        this.pendingRunnables.add(p_18712_);
+    public void tell(R pTask) {
+        this.pendingRunnables.add(pTask);
         LockSupport.unpark(this.getRunningThread());
     }
 
-    public void execute(Runnable p_18706_) {
+    public void execute(Runnable pTask) {
         if (this.scheduleExecutables()) {
-            this.tell(this.wrapRunnable(p_18706_));
+            this.tell(this.wrapRunnable(pTask));
         } else {
-            p_18706_.run();
+            pTask.run();
         }
     }
 
-    public void executeIfPossible(Runnable p_201937_) {
-        this.execute(p_201937_);
+    public void executeIfPossible(Runnable pTask) {
+        this.execute(pTask);
     }
 
     protected void dropAllTasks() {
@@ -115,11 +115,11 @@ public abstract class BlockableEventLoop<R extends Runnable> implements Profiler
         }
     }
 
-    public void managedBlock(BooleanSupplier p_18702_) {
+    public void managedBlock(BooleanSupplier pIsDone) {
         ++this.blockingCount;
 
         try {
-            while (!p_18702_.getAsBoolean()) {
+            while (!pIsDone.getAsBoolean()) {
                 if (!this.pollTask()) {
                     this.waitForTasks();
                 }
@@ -134,9 +134,9 @@ public abstract class BlockableEventLoop<R extends Runnable> implements Profiler
         LockSupport.parkNanos("waiting for tasks", 100000L);
     }
 
-    protected void doRunTask(R p_18700_) {
+    protected void doRunTask(R pTask) {
         try {
-            p_18700_.run();
+            pTask.run();
         } catch (Exception exception) {
             LOGGER.error(LogUtils.FATAL_MARKER, "Error executing task on {}", this.name(), exception);
         }

@@ -9,19 +9,19 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
 public interface Recipe<C extends Container> {
-    boolean matches(C p_44002_, Level p_44003_);
+    boolean matches(C pContainer, Level pLevel);
 
-    ItemStack assemble(C p_44001_);
+    ItemStack assemble(C pContainer);
 
-    boolean canCraftInDimensions(int p_43999_, int p_44000_);
+    boolean canCraftInDimensions(int pWidth, int pHeight);
 
     ItemStack getResultItem();
 
-    default NonNullList<ItemStack> getRemainingItems(C p_44004_) {
-        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(p_44004_.getContainerSize(), ItemStack.EMPTY);
+    default NonNullList<ItemStack> getRemainingItems(C pContainer) {
+        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(pContainer.getContainerSize(), ItemStack.EMPTY);
 
         for (int i = 0; i < nonnulllist.size(); ++i) {
-            Item item = p_44004_.getItem(i).getItem();
+            Item item = pContainer.getItem(i).getItem();
             if (item.hasCraftingRemainingItem()) {
                 nonnulllist.set(i, new ItemStack(item.getCraftingRemainingItem()));
             }

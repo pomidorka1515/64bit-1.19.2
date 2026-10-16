@@ -25,25 +25,25 @@ public class FungusBlock extends BushBlock implements BonemealableBlock {
         this.feature = p_53601_;
     }
 
-    public VoxelShape getShape(BlockState p_53618_, BlockGetter p_53619_, BlockPos p_53620_, CollisionContext p_53621_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
-    protected boolean mayPlaceOn(BlockState p_53623_, BlockGetter p_53624_, BlockPos p_53625_) {
-        return p_53623_.is(BlockTags.NYLIUM) || p_53623_.is(Blocks.MYCELIUM) || p_53623_.is(Blocks.SOUL_SOIL) || super.mayPlaceOn(p_53623_, p_53624_, p_53625_);
+    protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+        return pState.is(BlockTags.NYLIUM) || pState.is(Blocks.MYCELIUM) || pState.is(Blocks.SOUL_SOIL) || super.mayPlaceOn(pState, pLevel, pPos);
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_53608_, BlockPos p_53609_, BlockState p_53610_, boolean p_53611_) {
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
         Block block = (this.feature.get().value().config()).validBaseState.getBlock();
-        BlockState blockstate = p_53608_.getBlockState(p_53609_.below());
+        BlockState blockstate = pLevel.getBlockState(pPos.below());
         return blockstate.is(block);
     }
 
-    public boolean isBonemealSuccess(Level p_221248_, RandomSource p_221249_, BlockPos p_221250_, BlockState p_221251_) {
-        return (double) p_221249_.nextFloat() < 0.4D;
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        return (double) pRandom.nextFloat() < 0.4D;
     }
 
-    public void performBonemeal(ServerLevel p_221243_, RandomSource p_221244_, BlockPos p_221245_, BlockState p_221246_) {
-        this.feature.get().value().place(p_221243_, p_221243_.getChunkSource().getGenerator(), p_221244_, p_221245_);
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        this.feature.get().value().place(pLevel, pLevel.getChunkSource().getGenerator(), pRandom, pPos);
     }
 }

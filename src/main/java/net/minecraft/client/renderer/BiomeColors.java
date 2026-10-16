@@ -17,19 +17,19 @@ public class BiomeColors {
         return p_108801_.getWaterColor();
     };
 
-    private static int getAverageColor(BlockAndTintGetter p_108797_, BlockPos p_108798_, ColorResolver p_108799_) {
-        return p_108797_.getBlockTint(p_108798_, p_108799_);
+    private static int getAverageColor(BlockAndTintGetter pLevel, BlockPos pBlockPos, ColorResolver pColorResolver) {
+        return pLevel.getBlockTint(pBlockPos, pColorResolver);
     }
 
-    public static int getAverageGrassColor(BlockAndTintGetter p_108794_, BlockPos p_108795_) {
-        return getAverageColor(p_108794_, p_108795_, GRASS_COLOR_RESOLVER);
+    public static int getAverageGrassColor(BlockAndTintGetter pLevel, BlockPos pBlockPos) {
+        return getAverageColor(pLevel, pBlockPos, GRASS_COLOR_RESOLVER);
     }
 
-    public static int getAverageFoliageColor(BlockAndTintGetter p_108805_, BlockPos p_108806_) {
-        return getAverageColor(p_108805_, p_108806_, FOLIAGE_COLOR_RESOLVER);
+    public static int getAverageFoliageColor(BlockAndTintGetter pLevel, BlockPos pBlockPos) {
+        return getAverageColor(pLevel, pBlockPos, FOLIAGE_COLOR_RESOLVER);
     }
 
-    public static int getAverageWaterColor(BlockAndTintGetter p_108812_, BlockPos p_108813_) {
-        return getAverageColor(p_108812_, p_108813_, WATER_COLOR_RESOLVER);
+    public static int getAverageWaterColor(BlockAndTintGetter pLevel, BlockPos pBlockPos) {
+        return getAverageColor(pLevel, pBlockPos, WATER_COLOR_RESOLVER);
     }
 }

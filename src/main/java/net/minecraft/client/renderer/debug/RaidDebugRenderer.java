@@ -17,15 +17,15 @@ public class RaidDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     private final Minecraft minecraft;
     private Collection<BlockPos> raidCenters = Lists.newArrayList();
 
-    public RaidDebugRenderer(Minecraft p_113650_) {
-        this.minecraft = p_113650_;
+    public RaidDebugRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void setRaidCenters(Collection<BlockPos> p_113664_) {
-        this.raidCenters = p_113664_;
+    public void setRaidCenters(Collection<BlockPos> pRaidCenters) {
+        this.raidCenters = pRaidCenters;
     }
 
-    public void render(PoseStack p_113652_, MultiBufferSource p_113653_, double p_113654_, double p_113655_, double p_113656_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         BlockPos blockpos = this.getCamera().getBlockPosition();
 
         for (BlockPos blockpos1 : this.raidCenters) {
@@ -35,17 +35,17 @@ public class RaidDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         }
     }
 
-    private static void highlightRaidCenter(BlockPos p_113658_) {
-        DebugRenderer.renderFilledBox(p_113658_.offset(-0.5D, -0.5D, -0.5D), p_113658_.offset(1.5D, 1.5D, 1.5D), 1.0F, 0.0F, 0.0F, 0.15F);
+    private static void highlightRaidCenter(BlockPos pPos) {
+        DebugRenderer.renderFilledBox(pPos.offset(-0.5D, -0.5D, -0.5D), pPos.offset(1.5D, 1.5D, 1.5D), 1.0F, 0.0F, 0.0F, 0.15F);
         int i = -65536;
-        renderTextOverBlock("Raid center", p_113658_, -65536);
+        renderTextOverBlock("Raid center", pPos, -65536);
     }
 
-    private static void renderTextOverBlock(String p_113660_, BlockPos p_113661_, int p_113662_) {
-        double d0 = (double) p_113661_.getX() + 0.5D;
-        double d1 = (double) p_113661_.getY() + 1.3D;
-        double d2 = (double) p_113661_.getZ() + 0.5D;
-        DebugRenderer.renderFloatingText(p_113660_, d0, d1, d2, p_113662_, 0.04F, true, 0.0F, true);
+    private static void renderTextOverBlock(String pText, BlockPos pPos, int pColor) {
+        double d0 = (double) pPos.getX() + 0.5D;
+        double d1 = (double) pPos.getY() + 1.3D;
+        double d2 = (double) pPos.getZ() + 0.5D;
+        DebugRenderer.renderFloatingText(pText, d0, d1, d2, pColor, 0.04F, true, 0.0F, true);
     }
 
     private Camera getCamera() {

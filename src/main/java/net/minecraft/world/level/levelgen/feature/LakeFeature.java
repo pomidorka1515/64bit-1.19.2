@@ -18,15 +18,15 @@ import net.minecraft.world.level.material.Material;
 public class LakeFeature extends Feature<LakeFeature.Configuration> {
     private static final BlockState AIR = Blocks.CAVE_AIR.defaultBlockState();
 
-    public LakeFeature(Codec<LakeFeature.Configuration> p_66259_) {
-        super(p_66259_);
+    public LakeFeature(Codec<LakeFeature.Configuration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<LakeFeature.Configuration> p_159958_) {
-        BlockPos blockpos = p_159958_.origin();
-        WorldGenLevel worldgenlevel = p_159958_.level();
-        RandomSource randomsource = p_159958_.random();
-        LakeFeature.Configuration lakefeature$configuration = p_159958_.config();
+    public boolean place(FeaturePlaceContext<LakeFeature.Configuration> pContext) {
+        BlockPos blockpos = pContext.origin();
+        WorldGenLevel worldgenlevel = pContext.level();
+        RandomSource randomsource = pContext.random();
+        LakeFeature.Configuration lakefeature$configuration = pContext.config();
         if (blockpos.getY() <= worldgenlevel.getMinBuildHeight() + 4) {
             return false;
         } else {
@@ -130,8 +130,8 @@ public class LakeFeature extends Feature<LakeFeature.Configuration> {
         }
     }
 
-    private boolean canReplaceBlock(BlockState p_190952_) {
-        return !p_190952_.is(BlockTags.FEATURES_CANNOT_REPLACE);
+    private boolean canReplaceBlock(BlockState pState) {
+        return !pState.is(BlockTags.FEATURES_CANNOT_REPLACE);
     }
 
     public static record Configuration(BlockStateProvider fluid, BlockStateProvider barrier) implements FeatureConfiguration {

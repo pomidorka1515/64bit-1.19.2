@@ -12,8 +12,8 @@ public class DragonLandingPhase extends AbstractDragonPhaseInstance {
     @Nullable
     private net.minecraft.world.phys.SectorVec3 targetLocation;
 
-    public DragonLandingPhase(EnderDragon p_31305_) {
-        super(p_31305_);
+    public DragonLandingPhase(EnderDragon pDragon) {
+        super(pDragon);
     }
 
     public void doClientTick() {

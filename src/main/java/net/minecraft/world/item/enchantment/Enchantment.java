@@ -23,21 +23,21 @@ public abstract class Enchantment {
     protected String descriptionId;
 
     @Nullable
-    public static Enchantment byId(int p_44698_) {
-        return Registry.ENCHANTMENT.byId(p_44698_);
+    public static Enchantment byId(int pId) {
+        return Registry.ENCHANTMENT.byId(pId);
     }
 
-    protected Enchantment(Enchantment.Rarity p_44676_, EnchantmentCategory p_44677_, EquipmentSlot[] p_44678_) {
-        this.rarity = p_44676_;
-        this.category = p_44677_;
-        this.slots = p_44678_;
+    protected Enchantment(Enchantment.Rarity pRarity, EnchantmentCategory pCategory, EquipmentSlot[] pApplicableSlots) {
+        this.rarity = pRarity;
+        this.category = pCategory;
+        this.slots = pApplicableSlots;
     }
 
-    public Map<EquipmentSlot, ItemStack> getSlotItems(LivingEntity p_44685_) {
+    public Map<EquipmentSlot, ItemStack> getSlotItems(LivingEntity pEntity) {
         Map<EquipmentSlot, ItemStack> map = Maps.newEnumMap(EquipmentSlot.class);
 
         for (EquipmentSlot equipmentslot : this.slots) {
-            ItemStack itemstack = p_44685_.getItemBySlot(equipmentslot);
+            ItemStack itemstack = pEntity.getItemBySlot(equipmentslot);
             if (!itemstack.isEmpty()) {
                 map.put(equipmentslot, itemstack);
             }
@@ -58,28 +58,28 @@ public abstract class Enchantment {
         return 1;
     }
 
-    public int getMinCost(int p_44679_) {
-        return 1 + p_44679_ * 10;
+    public int getMinCost(int pLevel) {
+        return 1 + pLevel * 10;
     }
 
-    public int getMaxCost(int p_44691_) {
-        return this.getMinCost(p_44691_) + 5;
+    public int getMaxCost(int pLevel) {
+        return this.getMinCost(pLevel) + 5;
     }
 
-    public int getDamageProtection(int p_44680_, DamageSource p_44681_) {
+    public int getDamageProtection(int pLevel, DamageSource pSource) {
         return 0;
     }
 
-    public float getDamageBonus(int p_44682_, MobType p_44683_) {
+    public float getDamageBonus(int pLevel, MobType pType) {
         return 0.0F;
     }
 
-    public final boolean isCompatibleWith(Enchantment p_44696_) {
-        return this.checkCompatibility(p_44696_) && p_44696_.checkCompatibility(this);
+    public final boolean isCompatibleWith(Enchantment pOther) {
+        return this.checkCompatibility(pOther) && pOther.checkCompatibility(this);
     }
 
-    protected boolean checkCompatibility(Enchantment p_44690_) {
-        return this != p_44690_;
+    protected boolean checkCompatibility(Enchantment pOther) {
+        return this != pOther;
     }
 
     protected String getOrCreateDescriptionId() {
@@ -94,7 +94,7 @@ public abstract class Enchantment {
         return this.getOrCreateDescriptionId();
     }
 
-    public Component getFullname(int p_44701_) {
+    public Component getFullname(int pLevel) {
         MutableComponent mutablecomponent = Component.translatable(this.getDescriptionId());
         if (this.isCurse()) {
             mutablecomponent.withStyle(ChatFormatting.RED);
@@ -102,21 +102,21 @@ public abstract class Enchantment {
             mutablecomponent.withStyle(ChatFormatting.GRAY);
         }
 
-        if (p_44701_ != 1 || this.getMaxLevel() != 1) {
-            mutablecomponent.append(" ").append(Component.translatable("enchantment.level." + p_44701_));
+        if (pLevel != 1 || this.getMaxLevel() != 1) {
+            mutablecomponent.append(" ").append(Component.translatable("enchantment.level." + pLevel));
         }
 
         return mutablecomponent;
     }
 
-    public boolean canEnchant(ItemStack p_44689_) {
-        return this.category.canEnchant(p_44689_.getItem());
+    public boolean canEnchant(ItemStack pStack) {
+        return this.category.canEnchant(pStack.getItem());
     }
 
-    public void doPostAttack(LivingEntity p_44686_, Entity p_44687_, int p_44688_) {
+    public void doPostAttack(LivingEntity pAttacker, Entity pTarget, int pLevel) {
     }
 
-    public void doPostHurt(LivingEntity p_44692_, Entity p_44693_, int p_44694_) {
+    public void doPostHurt(LivingEntity pTarget, Entity pAttacker, int pLevel) {
     }
 
     public boolean isTreasureOnly() {

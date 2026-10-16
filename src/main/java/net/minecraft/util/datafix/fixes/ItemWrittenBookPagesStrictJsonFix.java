@@ -14,8 +14,8 @@ import net.minecraft.util.GsonHelper;
 import org.apache.commons.lang3.StringUtils;
 
 public class ItemWrittenBookPagesStrictJsonFix extends DataFix {
-    public ItemWrittenBookPagesStrictJsonFix(Schema p_16164_, boolean p_16165_) {
-        super(p_16164_, p_16165_);
+    public ItemWrittenBookPagesStrictJsonFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_16172_) {

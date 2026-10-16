@@ -17,21 +17,21 @@ public class DeserializationContext {
     private final PredicateManager predicateManager;
     private final Gson predicateGson = Deserializers.createConditionSerializer().create();
 
-    public DeserializationContext(ResourceLocation p_25871_, PredicateManager p_25872_) {
-        this.id = p_25871_;
-        this.predicateManager = p_25872_;
+    public DeserializationContext(ResourceLocation pId, PredicateManager pPredicateManager) {
+        this.id = pId;
+        this.predicateManager = pPredicateManager;
     }
 
-    public final LootItemCondition[] deserializeConditions(JsonArray p_25875_, String p_25876_, LootContextParamSet p_25877_) {
-        LootItemCondition[] alootitemcondition = this.predicateGson.fromJson(p_25875_, LootItemCondition[].class);
-        ValidationContext validationcontext = new ValidationContext(p_25877_, this.predicateManager::get, (p_25883_) -> {
+    public final LootItemCondition[] deserializeConditions(JsonArray pJson, String pId, LootContextParamSet pParameterSet) {
+        LootItemCondition[] alootitemcondition = this.predicateGson.fromJson(pJson, LootItemCondition[].class);
+        ValidationContext validationcontext = new ValidationContext(pParameterSet, this.predicateManager::get, (p_25883_) -> {
             return null;
         });
 
         for (LootItemCondition lootitemcondition : alootitemcondition) {
             lootitemcondition.validate(validationcontext);
             validationcontext.getProblems().forEach((p_25880_, p_25881_) -> {
-                LOGGER.warn("Found validation problem in advancement trigger {}/{}: {}", p_25876_, p_25880_, p_25881_);
+                LOGGER.warn("Found validation problem in advancement trigger {}/{}: {}", pId, p_25880_, p_25881_);
             });
         }
 

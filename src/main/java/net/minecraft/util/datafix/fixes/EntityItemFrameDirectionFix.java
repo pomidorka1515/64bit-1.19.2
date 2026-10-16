@@ -6,8 +6,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class EntityItemFrameDirectionFix extends NamedEntityFix {
-    public EntityItemFrameDirectionFix(Schema p_15468_, boolean p_15469_) {
-        super(p_15468_, p_15469_, "EntityItemFrameDirectionFix", References.ENTITY, "minecraft:item_frame");
+    public EntityItemFrameDirectionFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "EntityItemFrameDirectionFix", References.ENTITY, "minecraft:item_frame");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15475_) {

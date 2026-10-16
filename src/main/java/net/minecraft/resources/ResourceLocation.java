@@ -28,9 +28,9 @@ public class ResourceLocation implements Comparable<ResourceLocation> {
     protected final String namespace;
     protected final String path;
 
-    protected ResourceLocation(String[] p_135814_) {
-        this.namespace = StringUtils.isEmpty(p_135814_[0]) ? "minecraft" : p_135814_[0];
-        this.path = p_135814_[1];
+    protected ResourceLocation(String[] pDecomposedLocation) {
+        this.namespace = StringUtils.isEmpty(pDecomposedLocation[0]) ? "minecraft" : pDecomposedLocation[0];
+        this.path = pDecomposedLocation[1];
         if (!isValidNamespace(this.namespace)) {
             throw new ResourceLocationException("Non [a-z0-9_.-] character in namespace of location: " + this.namespace + ":" + this.path);
         } else if (!isValidPath(this.path)) {
@@ -38,22 +38,22 @@ public class ResourceLocation implements Comparable<ResourceLocation> {
         }
     }
 
-    public ResourceLocation(String p_135809_) {
-        this(decompose(p_135809_, ':'));
+    public ResourceLocation(String pLocation) {
+        this(decompose(pLocation, ':'));
     }
 
-    public ResourceLocation(String p_135811_, String p_135812_) {
-        this(new String[] {p_135811_, p_135812_});
+    public ResourceLocation(String pNamespace, String pPath) {
+        this(new String[] {pNamespace, pPath});
     }
 
-    public static ResourceLocation of(String p_135823_, char p_135824_) {
-        return new ResourceLocation(decompose(p_135823_, p_135824_));
+    public static ResourceLocation of(String pLocation, char pSeparator) {
+        return new ResourceLocation(decompose(pLocation, pSeparator));
     }
 
     @Nullable
-    public static ResourceLocation tryParse(String p_135821_) {
+    public static ResourceLocation tryParse(String pLocation) {
         try {
-            return new ResourceLocation(p_135821_);
+            return new ResourceLocation(pLocation);
         } catch (ResourceLocationException resourcelocationexception) {
             return null;
         }
@@ -68,13 +68,13 @@ public class ResourceLocation implements Comparable<ResourceLocation> {
         }
     }
 
-    protected static String[] decompose(String p_135833_, char p_135834_) {
-        String[] astring = new String[] {"minecraft", p_135833_};
-        int i = p_135833_.indexOf(p_135834_);
+    protected static String[] decompose(String pLocation, char pSeparator) {
+        String[] astring = new String[] {"minecraft", pLocation};
+        int i = pLocation.indexOf(pSeparator);
         if (i >= 0) {
-            astring[1] = p_135833_.substring(i + 1, p_135833_.length());
+            astring[1] = pLocation.substring(i + 1, pLocation.length());
             if (i >= 1) {
-                astring[0] = p_135833_.substring(0, i);
+                astring[0] = pLocation.substring(0, i);
             }
         }
 
@@ -101,13 +101,13 @@ public class ResourceLocation implements Comparable<ResourceLocation> {
         return this.namespace + ":" + this.path;
     }
 
-    public boolean equals(Object p_135846_) {
-        if (this == p_135846_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_135846_ instanceof ResourceLocation)) {
+        } else if (!(pOther instanceof ResourceLocation)) {
             return false;
         } else {
-            ResourceLocation resourcelocation = (ResourceLocation) p_135846_;
+            ResourceLocation resourcelocation = (ResourceLocation) pOther;
             return this.namespace.equals(resourcelocation.namespace) && this.path.equals(resourcelocation.path);
         }
     }
@@ -116,10 +116,10 @@ public class ResourceLocation implements Comparable<ResourceLocation> {
         return 31 * this.namespace.hashCode() + this.path.hashCode();
     }
 
-    public int compareTo(ResourceLocation p_135826_) {
-        int i = this.path.compareTo(p_135826_.path);
+    public int compareTo(ResourceLocation pOther) {
+        int i = this.path.compareTo(pOther.path);
         if (i == 0) {
-            i = this.namespace.compareTo(p_135826_.namespace);
+            i = this.namespace.compareTo(pOther.namespace);
         }
 
         return i;
@@ -141,30 +141,30 @@ public class ResourceLocation implements Comparable<ResourceLocation> {
         return p_214297_ + "." + this.toLanguageKey();
     }
 
-    public static ResourceLocation read(StringReader p_135819_) throws CommandSyntaxException {
-        int i = p_135819_.getCursor();
+    public static ResourceLocation read(StringReader pReader) throws CommandSyntaxException {
+        int i = pReader.getCursor();
 
-        while (p_135819_.canRead() && isAllowedInResourceLocation(p_135819_.peek())) {
-            p_135819_.skip();
+        while (pReader.canRead() && isAllowedInResourceLocation(pReader.peek())) {
+            pReader.skip();
         }
 
-        String s = p_135819_.getString().substring(i, p_135819_.getCursor());
+        String s = pReader.getString().substring(i, pReader.getCursor());
 
         try {
             return new ResourceLocation(s);
         } catch (ResourceLocationException resourcelocationexception) {
-            p_135819_.setCursor(i);
-            throw ERROR_INVALID.createWithContext(p_135819_);
+            pReader.setCursor(i);
+            throw ERROR_INVALID.createWithContext(pReader);
         }
     }
 
-    public static boolean isAllowedInResourceLocation(char p_135817_) {
-        return p_135817_ >= '0' && p_135817_ <= '9' || p_135817_ >= 'a' && p_135817_ <= 'z' || p_135817_ == '_' || p_135817_ == ':' || p_135817_ == '/' || p_135817_ == '.' || p_135817_ == '-';
+    public static boolean isAllowedInResourceLocation(char pCharacter) {
+        return pCharacter >= '0' && pCharacter <= '9' || pCharacter >= 'a' && pCharacter <= 'z' || pCharacter == '_' || pCharacter == ':' || pCharacter == '/' || pCharacter == '.' || pCharacter == '-';
     }
 
-    private static boolean isValidPath(String p_135842_) {
-        for (int i = 0; i < p_135842_.length(); ++i) {
-            if (!validPathChar(p_135842_.charAt(i))) {
+    private static boolean isValidPath(String pPath) {
+        for (int i = 0; i < pPath.length(); ++i) {
+            if (!validPathChar(pPath.charAt(i))) {
                 return false;
             }
         }
@@ -172,9 +172,9 @@ public class ResourceLocation implements Comparable<ResourceLocation> {
         return true;
     }
 
-    private static boolean isValidNamespace(String p_135844_) {
-        for (int i = 0; i < p_135844_.length(); ++i) {
-            if (!validNamespaceChar(p_135844_.charAt(i))) {
+    private static boolean isValidNamespace(String pNamespace) {
+        for (int i = 0; i < pNamespace.length(); ++i) {
+            if (!validNamespaceChar(pNamespace.charAt(i))) {
                 return false;
             }
         }
@@ -182,26 +182,26 @@ public class ResourceLocation implements Comparable<ResourceLocation> {
         return true;
     }
 
-    public static boolean validPathChar(char p_135829_) {
-        return p_135829_ == '_' || p_135829_ == '-' || p_135829_ >= 'a' && p_135829_ <= 'z' || p_135829_ >= '0' && p_135829_ <= '9' || p_135829_ == '/' || p_135829_ == '.';
+    public static boolean validPathChar(char pPathChar) {
+        return pPathChar == '_' || pPathChar == '-' || pPathChar >= 'a' && pPathChar <= 'z' || pPathChar >= '0' && pPathChar <= '9' || pPathChar == '/' || pPathChar == '.';
     }
 
-    private static boolean validNamespaceChar(char p_135836_) {
-        return p_135836_ == '_' || p_135836_ == '-' || p_135836_ >= 'a' && p_135836_ <= 'z' || p_135836_ >= '0' && p_135836_ <= '9' || p_135836_ == '.';
+    private static boolean validNamespaceChar(char pNamespaceChar) {
+        return pNamespaceChar == '_' || pNamespaceChar == '-' || pNamespaceChar >= 'a' && pNamespaceChar <= 'z' || pNamespaceChar >= '0' && pNamespaceChar <= '9' || pNamespaceChar == '.';
     }
 
-    public static boolean isValidResourceLocation(String p_135831_) {
-        String[] astring = decompose(p_135831_, ':');
+    public static boolean isValidResourceLocation(String pLocation) {
+        String[] astring = decompose(pLocation, ':');
         return isValidNamespace(StringUtils.isEmpty(astring[0]) ? "minecraft" : astring[0]) && isValidPath(astring[1]);
     }
 
     public static class Serializer implements JsonDeserializer<ResourceLocation>, JsonSerializer<ResourceLocation> {
-        public ResourceLocation deserialize(JsonElement p_135851_, Type p_135852_, JsonDeserializationContext p_135853_) throws JsonParseException {
-            return new ResourceLocation(GsonHelper.convertToString(p_135851_, "location"));
+        public ResourceLocation deserialize(JsonElement pJson, Type pTypeOfT, JsonDeserializationContext pContext) throws JsonParseException {
+            return new ResourceLocation(GsonHelper.convertToString(pJson, "location"));
         }
 
-        public JsonElement serialize(ResourceLocation p_135855_, Type p_135856_, JsonSerializationContext p_135857_) {
-            return new JsonPrimitive(p_135855_.toString());
+        public JsonElement serialize(ResourceLocation pResourceLocation, Type pTypeOfT, JsonSerializationContext pContext) {
+            return new JsonPrimitive(pResourceLocation.toString());
         }
     }
 }

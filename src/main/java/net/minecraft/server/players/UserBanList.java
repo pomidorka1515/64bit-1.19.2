@@ -6,16 +6,16 @@ import java.io.File;
 import java.util.Objects;
 
 public class UserBanList extends StoredUserList<GameProfile, UserBanListEntry> {
-    public UserBanList(File p_11402_) {
-        super(p_11402_);
+    public UserBanList(File pFile) {
+        super(pFile);
     }
 
-    protected StoredUserEntry<GameProfile> createEntry(JsonObject p_11405_) {
-        return new UserBanListEntry(p_11405_);
+    protected StoredUserEntry<GameProfile> createEntry(JsonObject pEntryData) {
+        return new UserBanListEntry(pEntryData);
     }
 
-    public boolean isBanned(GameProfile p_11407_) {
-        return this.contains(p_11407_);
+    public boolean isBanned(GameProfile pProfile) {
+        return this.contains(pProfile);
     }
 
     public String[] getUserList() {
@@ -24,7 +24,7 @@ public class UserBanList extends StoredUserList<GameProfile, UserBanListEntry> {
         });
     }
 
-    protected String getKeyForUser(GameProfile p_11411_) {
-        return p_11411_.getId().toString();
+    protected String getKeyForUser(GameProfile pObj) {
+        return pObj.getId().toString();
     }
 }

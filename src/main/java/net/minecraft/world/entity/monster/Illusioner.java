@@ -46,8 +46,8 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
     private int clientSideIllusionTicks;
     private final Vec3[][] clientSideIllusionOffsets;
 
-    public Illusioner(EntityType<? extends Illusioner> p_32911_, Level p_32912_) {
-        super(p_32911_, p_32912_);
+    public Illusioner(EntityType<? extends Illusioner> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.xpReward = 5;
         this.clientSideIllusionOffsets = new Vec3[2][4];
 
@@ -77,9 +77,9 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
         return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, 0.5D).add(Attributes.FOLLOW_RANGE, 18.0D).add(Attributes.MAX_HEALTH, 32.0D);
     }
 
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_32921_, DifficultyInstance p_32922_, MobSpawnType p_32923_, @Nullable SpawnGroupData p_32924_, @Nullable CompoundTag p_32925_) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
         this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
-        return super.finalizeSpawn(p_32921_, p_32922_, p_32923_, p_32924_, p_32925_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
     protected void defineSynchedData() {
@@ -130,11 +130,11 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
         return SoundEvents.ILLUSIONER_AMBIENT;
     }
 
-    public Vec3[] getIllusionOffsets(float p_32940_) {
+    public Vec3[] getIllusionOffsets(float pPartialTick) {
         if (this.clientSideIllusionTicks <= 0) {
             return this.clientSideIllusionOffsets[1];
         } else {
-            double d0 = (double) (((float) this.clientSideIllusionTicks - p_32940_) / 3.0F);
+            double d0 = (double) (((float) this.clientSideIllusionTicks - pPartialTick) / 3.0F);
             d0 = Math.pow(d0, 0.25D);
             Vec3[] avec3 = new Vec3[4];
 
@@ -146,11 +146,11 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
         }
     }
 
-    public boolean isAlliedTo(Entity p_32938_) {
-        if (super.isAlliedTo(p_32938_)) {
+    public boolean isAlliedTo(Entity pEntity) {
+        if (super.isAlliedTo(pEntity)) {
             return true;
-        } else if (p_32938_ instanceof LivingEntity && ((LivingEntity) p_32938_).getMobType() == MobType.ILLAGER) {
-            return this.getTeam() == null && p_32938_.getTeam() == null;
+        } else if (pEntity instanceof LivingEntity && ((LivingEntity) pEntity).getMobType() == MobType.ILLAGER) {
+            return this.getTeam() == null && pEntity.getTeam() == null;
         } else {
             return false;
         }
@@ -164,7 +164,7 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
         return SoundEvents.ILLUSIONER_DEATH;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_32930_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.ILLUSIONER_HURT;
     }
 
@@ -172,15 +172,15 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
         return SoundEvents.ILLUSIONER_CAST_SPELL;
     }
 
-    public void applyRaidBuffs(int p_32915_, boolean p_32916_) {
+    public void applyRaidBuffs(int pWave, boolean pUnusedFalse) {
     }
 
-    public void performRangedAttack(LivingEntity p_32918_, float p_32919_) {
+    public void performRangedAttack(LivingEntity pTarget, float pDistanceFactor) {
         ItemStack itemstack = this.getProjectile(this.getItemInHand(ProjectileUtil.getWeaponHoldingHand(this, Items.BOW)));
-        AbstractArrow abstractarrow = ProjectileUtil.getMobArrow(this, itemstack, p_32919_);
-        Vec3 targetDelta = p_32918_.sectorPosition().relativeTo(this.sectorPosition());
+        AbstractArrow abstractarrow = ProjectileUtil.getMobArrow(this, itemstack, pDistanceFactor);
+        Vec3 targetDelta = pTarget.sectorPosition().relativeTo(this.sectorPosition());
         double d0 = targetDelta.x;
-        double d1 = p_32918_.getY(0.3333333333333333D) - abstractarrow.getY();
+        double d1 = pTarget.getY(0.3333333333333333D) - abstractarrow.getY();
         double d2 = targetDelta.z;
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
         abstractarrow.shoot(d0, d1 + d3 * (double) 0.2F, d2, 1.6F, (float) (14 - this.level.getDifficulty().getId() * 4));

@@ -5,9 +5,9 @@ import net.minecraft.network.chat.Component;
 public class LevelStorageException extends RuntimeException {
     private final Component messageComponent;
 
-    public LevelStorageException(Component p_230805_) {
-        super(p_230805_.getString());
-        this.messageComponent = p_230805_;
+    public LevelStorageException(Component pMessageComponent) {
+        super(pMessageComponent.getString());
+        this.messageComponent = pMessageComponent;
     }
 
     public Component getMessageComponent() {

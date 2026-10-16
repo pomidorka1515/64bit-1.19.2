@@ -10,14 +10,14 @@ public class ServerboundCustomQueryPacket implements Packet<ServerLoginPacketLis
     @Nullable
     private final FriendlyByteBuf data;
 
-    public ServerboundCustomQueryPacket(int p_134829_, @Nullable FriendlyByteBuf p_134830_) {
-        this.transactionId = p_134829_;
-        this.data = p_134830_;
+    public ServerboundCustomQueryPacket(int pTransactionId, @Nullable FriendlyByteBuf pData) {
+        this.transactionId = pTransactionId;
+        this.data = pData;
     }
 
-    public ServerboundCustomQueryPacket(FriendlyByteBuf p_179823_) {
-        this.transactionId = p_179823_.readVarInt();
-        this.data = p_179823_.readNullable((p_238039_) -> {
+    public ServerboundCustomQueryPacket(FriendlyByteBuf pBuffer) {
+        this.transactionId = pBuffer.readVarInt();
+        this.data = pBuffer.readNullable((p_238039_) -> {
             int i = p_238039_.readableBytes();
             if (i >= 0 && i <= 1048576) {
                 return new FriendlyByteBuf(p_238039_.readBytes(i));
@@ -27,15 +27,15 @@ public class ServerboundCustomQueryPacket implements Packet<ServerLoginPacketLis
         });
     }
 
-    public void write(FriendlyByteBuf p_134838_) {
-        p_134838_.writeVarInt(this.transactionId);
-        p_134838_.writeNullable(this.data, (p_238036_, p_238037_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.transactionId);
+        pBuffer.writeNullable(this.data, (p_238036_, p_238037_) -> {
             p_238036_.writeBytes(p_238037_.slice());
         });
     }
 
-    public void handle(ServerLoginPacketListener p_134836_) {
-        p_134836_.handleCustomQueryPacket(this);
+    public void handle(ServerLoginPacketListener pHandler) {
+        pHandler.handleCustomQueryPacket(this);
     }
 
     public int getTransactionId() {

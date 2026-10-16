@@ -10,31 +10,31 @@ public class ServerboundSetBeaconPacket implements Packet<ServerGamePacketListen
     private final Optional<MobEffect> primary;
     private final Optional<MobEffect> secondary;
 
-    public ServerboundSetBeaconPacket(Optional<MobEffect> p_237989_, Optional<MobEffect> p_237990_) {
-        this.primary = p_237989_;
-        this.secondary = p_237990_;
+    public ServerboundSetBeaconPacket(Optional<MobEffect> pPrimary, Optional<MobEffect> pSecondary) {
+        this.primary = pPrimary;
+        this.secondary = pSecondary;
     }
 
-    public ServerboundSetBeaconPacket(FriendlyByteBuf p_179749_) {
-        this.primary = p_179749_.readOptional((p_238002_) -> {
+    public ServerboundSetBeaconPacket(FriendlyByteBuf pBuffer) {
+        this.primary = pBuffer.readOptional((p_238002_) -> {
             return p_238002_.readById(Registry.MOB_EFFECT);
         });
-        this.secondary = p_179749_.readOptional((p_237996_) -> {
+        this.secondary = pBuffer.readOptional((p_237996_) -> {
             return p_237996_.readById(Registry.MOB_EFFECT);
         });
     }
 
-    public void write(FriendlyByteBuf p_134486_) {
-        p_134486_.writeOptional(this.primary, (p_237998_, p_237999_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeOptional(this.primary, (p_237998_, p_237999_) -> {
             p_237998_.writeId(Registry.MOB_EFFECT, p_237999_);
         });
-        p_134486_.writeOptional(this.secondary, (p_237992_, p_237993_) -> {
+        pBuffer.writeOptional(this.secondary, (p_237992_, p_237993_) -> {
             p_237992_.writeId(Registry.MOB_EFFECT, p_237993_);
         });
     }
 
-    public void handle(ServerGamePacketListener p_134483_) {
-        p_134483_.handleSetBeaconPacket(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleSetBeaconPacket(this);
     }
 
     public Optional<MobEffect> getPrimary() {

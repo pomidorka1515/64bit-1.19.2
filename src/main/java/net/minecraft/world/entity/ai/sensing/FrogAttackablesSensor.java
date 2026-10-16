@@ -10,13 +10,13 @@ import net.minecraft.world.entity.animal.frog.Frog;
 public class FrogAttackablesSensor extends NearestVisibleLivingEntitySensor {
     public static final float TARGET_DETECTION_DISTANCE = 10.0F;
 
-    protected boolean isMatchingEntity(LivingEntity p_217810_, LivingEntity p_217811_) {
-        return !p_217810_.getBrain().hasMemoryValue(MemoryModuleType.HAS_HUNTING_COOLDOWN) && Sensor.isEntityAttackable(p_217810_, p_217811_) && Frog.canEat(p_217811_) && !this.isUnreachableAttackTarget(p_217810_, p_217811_) ? p_217811_.closerThan(p_217810_, 10.0D) : false;
+    protected boolean isMatchingEntity(LivingEntity pAttacker, LivingEntity pTarget) {
+        return !pAttacker.getBrain().hasMemoryValue(MemoryModuleType.HAS_HUNTING_COOLDOWN) && Sensor.isEntityAttackable(pAttacker, pTarget) && Frog.canEat(pTarget) && !this.isUnreachableAttackTarget(pAttacker, pTarget) ? pTarget.closerThan(pAttacker, 10.0D) : false;
     }
 
-    private boolean isUnreachableAttackTarget(LivingEntity p_238336_, LivingEntity p_238337_) {
-        List<UUID> list = p_238336_.getBrain().getMemory(MemoryModuleType.UNREACHABLE_TONGUE_TARGETS).orElseGet(ArrayList::new);
-        return list.contains(p_238337_.getUUID());
+    private boolean isUnreachableAttackTarget(LivingEntity pAttacker, LivingEntity pTarget) {
+        List<UUID> list = pAttacker.getBrain().getMemory(MemoryModuleType.UNREACHABLE_TONGUE_TARGETS).orElseGet(ArrayList::new);
+        return list.contains(pTarget.getUUID());
     }
 
     protected MemoryModuleType<LivingEntity> getMemory() {

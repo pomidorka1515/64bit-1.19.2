@@ -6,9 +6,9 @@ import java.util.List;
 public interface ProfileResults {
     char PATH_SEPARATOR = '\u001e';
 
-    List<ResultField> getTimes(String p_18574_);
+    List<ResultField> getTimes(String pSectionPath);
 
-    boolean saveResults(Path p_145957_);
+    boolean saveResults(Path pPath);
 
     long getStartTimeNano();
 

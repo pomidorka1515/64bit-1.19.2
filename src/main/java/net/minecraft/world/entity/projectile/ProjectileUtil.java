@@ -100,34 +100,34 @@ public final class ProjectileUtil {
     }
 
     @Nullable
-    public static EntityHitResult getEntityHitResult(Entity p_37288_, Vec3 p_37289_, Vec3 p_37290_, AABB p_37291_, Predicate<Entity> p_37292_, double p_37293_) {
-        if (p_37288_.hasSectorPosition()) {
-            SectorVec3 exactStart = p_37288_.exactEyePosition();
-            Vec3 localDelta = p_37290_.subtract(p_37289_);
+    public static EntityHitResult getEntityHitResult(Entity pShooter, Vec3 pStartVec, Vec3 pEndVec, AABB pBoundingBox, Predicate<Entity> pFilter, double pDistance) {
+        if (pShooter.hasSectorPosition()) {
+            SectorVec3 exactStart = pShooter.exactEyePosition();
+            Vec3 localDelta = pEndVec.subtract(pStartVec);
             SectorVec3 exactEnd = exactStart.add(localDelta.x, localDelta.y, localDelta.z);
-            EntityHitResult result = getSectorEntityHitResult(p_37288_, exactStart, exactEnd, p_37292_, 1.0D,
-                    p_37293_);
+            EntityHitResult result = getSectorEntityHitResult(pShooter, exactStart, exactEnd, pFilter, 1.0D,
+                    pDistance);
             return result;
         }
-        Level level = p_37288_.level;
-        double d0 = p_37293_;
+        Level level = pShooter.level;
+        double d0 = pDistance;
         Entity entity = null;
         Vec3 vec3 = null;
 
-        for (Entity entity1 : level.getEntities(p_37288_, p_37291_, p_37292_)) {
+        for (Entity entity1 : level.getEntities(pShooter, pBoundingBox, pFilter)) {
             AABB aabb = entity1.getBoundingBox().inflate((double) entity1.getPickRadius());
-            Optional<Vec3> optional = aabb.clip(p_37289_, p_37290_);
-            if (aabb.contains(p_37289_)) {
+            Optional<Vec3> optional = aabb.clip(pStartVec, pEndVec);
+            if (aabb.contains(pStartVec)) {
                 if (d0 >= 0.0D) {
                     entity = entity1;
-                    vec3 = optional.orElse(p_37289_);
+                    vec3 = optional.orElse(pStartVec);
                     d0 = 0.0D;
                 }
             } else if (optional.isPresent()) {
                 Vec3 vec31 = optional.get();
-                double d1 = p_37289_.distanceToSqr(vec31);
+                double d1 = pStartVec.distanceToSqr(vec31);
                 if (d1 < d0 || d0 == 0.0D) {
-                    if (entity1.getRootVehicle() == p_37288_.getRootVehicle()) {
+                    if (entity1.getRootVehicle() == pShooter.getRootVehicle()) {
                         if (d0 == 0.0D) {
                             entity = entity1;
                             vec3 = vec31;
@@ -145,20 +145,20 @@ public final class ProjectileUtil {
     }
 
     @Nullable
-    public static EntityHitResult getEntityHitResult(Level p_37305_, Entity p_37306_, Vec3 p_37307_, Vec3 p_37308_, AABB p_37309_, Predicate<Entity> p_37310_) {
-        return getEntityHitResult(p_37305_, p_37306_, p_37307_, p_37308_, p_37309_, p_37310_, 0.3F);
+    public static EntityHitResult getEntityHitResult(Level pLevel, Entity pProjectile, Vec3 pStartVec, Vec3 pEndVec, AABB pBoundingBox, Predicate<Entity> pFilter) {
+        return getEntityHitResult(pLevel, pProjectile, pStartVec, pEndVec, pBoundingBox, pFilter, 0.3F);
     }
 
     @Nullable
-    public static EntityHitResult getEntityHitResult(Level p_150176_, Entity p_150177_, Vec3 p_150178_, Vec3 p_150179_, AABB p_150180_, Predicate<Entity> p_150181_, float p_150182_) {
+    public static EntityHitResult getEntityHitResult(Level pLevel, Entity pProjectile, Vec3 pStartVec, Vec3 pEndVec, AABB pBoundingBox, Predicate<Entity> pFilter, float pInflationAmount) {
         double d0 = Double.MAX_VALUE;
         Entity entity = null;
 
-        for (Entity entity1 : p_150176_.getEntities(p_150177_, p_150180_, p_150181_)) {
-            AABB aabb = entity1.getBoundingBox().inflate((double) p_150182_);
-            Optional<Vec3> optional = aabb.clip(p_150178_, p_150179_);
+        for (Entity entity1 : pLevel.getEntities(pProjectile, pBoundingBox, pFilter)) {
+            AABB aabb = entity1.getBoundingBox().inflate((double) pInflationAmount);
+            Optional<Vec3> optional = aabb.clip(pStartVec, pEndVec);
             if (optional.isPresent()) {
-                double d1 = p_150178_.distanceToSqr(optional.get());
+                double d1 = pStartVec.distanceToSqr(optional.get());
                 if (d1 < d0) {
                     entity = entity1;
                     d0 = d1;
@@ -169,44 +169,44 @@ public final class ProjectileUtil {
         return entity == null ? null : new EntityHitResult(entity);
     }
 
-    public static void rotateTowardsMovement(Entity p_37285_, float p_37286_) {
-        Vec3 vec3 = p_37285_.getDeltaMovement();
+    public static void rotateTowardsMovement(Entity pProjectile, float pRotationSpeed) {
+        Vec3 vec3 = pProjectile.getDeltaMovement();
         if (vec3.lengthSqr() != 0.0D) {
             double d0 = vec3.horizontalDistance();
-            p_37285_.setYRot((float) (Mth.atan2(vec3.z, vec3.x) * (double) (180F / (float) Math.PI)) + 90.0F);
-            p_37285_.setXRot((float) (Mth.atan2(d0, vec3.y) * (double) (180F / (float) Math.PI)) - 90.0F);
+            pProjectile.setYRot((float) (Mth.atan2(vec3.z, vec3.x) * (double) (180F / (float) Math.PI)) + 90.0F);
+            pProjectile.setXRot((float) (Mth.atan2(d0, vec3.y) * (double) (180F / (float) Math.PI)) - 90.0F);
 
-            while (p_37285_.getXRot() - p_37285_.xRotO < -180.0F) {
-                p_37285_.xRotO -= 360.0F;
+            while (pProjectile.getXRot() - pProjectile.xRotO < -180.0F) {
+                pProjectile.xRotO -= 360.0F;
             }
 
-            while (p_37285_.getXRot() - p_37285_.xRotO >= 180.0F) {
-                p_37285_.xRotO += 360.0F;
+            while (pProjectile.getXRot() - pProjectile.xRotO >= 180.0F) {
+                pProjectile.xRotO += 360.0F;
             }
 
-            while (p_37285_.getYRot() - p_37285_.yRotO < -180.0F) {
-                p_37285_.yRotO -= 360.0F;
+            while (pProjectile.getYRot() - pProjectile.yRotO < -180.0F) {
+                pProjectile.yRotO -= 360.0F;
             }
 
-            while (p_37285_.getYRot() - p_37285_.yRotO >= 180.0F) {
-                p_37285_.yRotO += 360.0F;
+            while (pProjectile.getYRot() - pProjectile.yRotO >= 180.0F) {
+                pProjectile.yRotO += 360.0F;
             }
 
-            p_37285_.setXRot(Mth.lerp(p_37286_, p_37285_.xRotO, p_37285_.getXRot()));
-            p_37285_.setYRot(Mth.lerp(p_37286_, p_37285_.yRotO, p_37285_.getYRot()));
+            pProjectile.setXRot(Mth.lerp(pRotationSpeed, pProjectile.xRotO, pProjectile.getXRot()));
+            pProjectile.setYRot(Mth.lerp(pRotationSpeed, pProjectile.yRotO, pProjectile.getYRot()));
         }
     }
 
-    public static InteractionHand getWeaponHoldingHand(LivingEntity p_37298_, Item p_37299_) {
-        return p_37298_.getMainHandItem().is(p_37299_) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+    public static InteractionHand getWeaponHoldingHand(LivingEntity pShooter, Item pWeapon) {
+        return pShooter.getMainHandItem().is(pWeapon) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
     }
 
-    public static AbstractArrow getMobArrow(LivingEntity p_37301_, ItemStack p_37302_, float p_37303_) {
-        ArrowItem arrowitem = (ArrowItem) (p_37302_.getItem() instanceof ArrowItem ? p_37302_.getItem() : Items.ARROW);
-        AbstractArrow abstractarrow = arrowitem.createArrow(p_37301_.level, p_37302_, p_37301_);
-        abstractarrow.setEnchantmentEffectsFromEntity(p_37301_, p_37303_);
-        if (p_37302_.is(Items.TIPPED_ARROW) && abstractarrow instanceof Arrow) {
-            ((Arrow) abstractarrow).setEffectsFromItem(p_37302_);
+    public static AbstractArrow getMobArrow(LivingEntity pShooter, ItemStack pArrowStack, float pVelocity) {
+        ArrowItem arrowitem = (ArrowItem) (pArrowStack.getItem() instanceof ArrowItem ? pArrowStack.getItem() : Items.ARROW);
+        AbstractArrow abstractarrow = arrowitem.createArrow(pShooter.level, pArrowStack, pShooter);
+        abstractarrow.setEnchantmentEffectsFromEntity(pShooter, pVelocity);
+        if (pArrowStack.is(Items.TIPPED_ARROW) && abstractarrow instanceof Arrow) {
+            ((Arrow) abstractarrow).setEffectsFromItem(pArrowStack);
         }
 
         return abstractarrow;

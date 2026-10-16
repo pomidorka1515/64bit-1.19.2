@@ -17,7 +17,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 @FunctionalInterface
 public interface PieceGeneratorSupplier<C extends FeatureConfiguration> {
-    Optional<PieceGenerator<C>> createGenerator(PieceGeneratorSupplier.Context<C> p_197348_);
+    Optional<PieceGenerator<C>> createGenerator(PieceGeneratorSupplier.Context<C> pContext);
 
     static <C extends FeatureConfiguration> PieceGeneratorSupplier<C> simple(Predicate<PieceGeneratorSupplier.Context<C>> p_197350_, PieceGenerator<C> p_197351_) {
         Optional<PieceGenerator<C>> optional = Optional.of(p_197351_);

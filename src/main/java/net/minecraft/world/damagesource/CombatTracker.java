@@ -27,8 +27,8 @@ public class CombatTracker {
     @Nullable
     private String nextLocation;
 
-    public CombatTracker(LivingEntity p_19285_) {
-        this.mob = p_19285_;
+    public CombatTracker(LivingEntity pMob) {
+        this.mob = pMob;
     }
 
     public void prepareForDamage() {
@@ -60,10 +60,10 @@ public class CombatTracker {
         }
     }
 
-    public void recordDamage(DamageSource p_19290_, float p_19291_, float p_19292_) {
+    public void recordDamage(DamageSource pDamageSource, float pHealth, float pDamageAmount) {
         this.recheckStatus();
         this.prepareForDamage();
-        CombatEntry combatentry = new CombatEntry(p_19290_, this.mob.tickCount, p_19291_, p_19292_, this.nextLocation, this.mob.fallDistance);
+        CombatEntry combatentry = new CombatEntry(pDamageSource, this.mob.tickCount, pHealth, pDamageAmount, this.nextLocation, this.mob.fallDistance);
         this.entries.add(combatentry);
         this.lastDamageTime = this.mob.tickCount;
         this.takingDamage = true;
@@ -171,8 +171,8 @@ public class CombatTracker {
         }
     }
 
-    private String getFallLocation(CombatEntry p_19288_) {
-        return p_19288_.getLocation() == null ? "generic" : p_19288_.getLocation();
+    private String getFallLocation(CombatEntry pEntry) {
+        return pEntry.getLocation() == null ? "generic" : pEntry.getLocation();
     }
 
     public boolean isTakingDamage() {

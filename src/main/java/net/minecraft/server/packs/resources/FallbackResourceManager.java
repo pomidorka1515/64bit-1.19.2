@@ -34,44 +34,44 @@ public class FallbackResourceManager implements ResourceManager {
     final PackType type;
     private final String namespace;
 
-    public FallbackResourceManager(PackType p_10605_, String p_10606_) {
-        this.type = p_10605_;
-        this.namespace = p_10606_;
+    public FallbackResourceManager(PackType pType, String pNamespace) {
+        this.type = pType;
+        this.namespace = pNamespace;
     }
 
-    public void push(PackResources p_215378_) {
-        this.pushInternal(p_215378_.getName(), p_215378_, (Predicate<ResourceLocation>) null);
+    public void push(PackResources pResources) {
+        this.pushInternal(pResources.getName(), pResources, (Predicate<ResourceLocation>) null);
     }
 
-    public void push(PackResources p_215383_, Predicate<ResourceLocation> p_215384_) {
-        this.pushInternal(p_215383_.getName(), p_215383_, p_215384_);
+    public void push(PackResources pResources, Predicate<ResourceLocation> pFilter) {
+        this.pushInternal(pResources.getName(), pResources, pFilter);
     }
 
-    public void pushFilterOnly(String p_215400_, Predicate<ResourceLocation> p_215401_) {
-        this.pushInternal(p_215400_, (PackResources) null, p_215401_);
+    public void pushFilterOnly(String pName, Predicate<ResourceLocation> pFilter) {
+        this.pushInternal(pName, (PackResources) null, pFilter);
     }
 
-    private void pushInternal(String p_215396_, @Nullable PackResources p_215397_, @Nullable Predicate<ResourceLocation> p_215398_) {
-        this.fallbacks.add(new FallbackResourceManager.PackEntry(p_215396_, p_215397_, p_215398_));
+    private void pushInternal(String pName, @Nullable PackResources pResources, @Nullable Predicate<ResourceLocation> pFilter) {
+        this.fallbacks.add(new FallbackResourceManager.PackEntry(pName, pResources, pFilter));
     }
 
     public Set<String> getNamespaces() {
         return ImmutableSet.of(this.namespace);
     }
 
-    public Optional<Resource> getResource(ResourceLocation p_215419_) {
-        if (!this.isValidLocation(p_215419_)) {
+    public Optional<Resource> getResource(ResourceLocation pLocation) {
+        if (!this.isValidLocation(pLocation)) {
             return Optional.empty();
         } else {
             for (int i = this.fallbacks.size() - 1; i >= 0; --i) {
                 FallbackResourceManager.PackEntry fallbackresourcemanager$packentry = this.fallbacks.get(i);
                 PackResources packresources = fallbackresourcemanager$packentry.resources;
-                if (packresources != null && packresources.hasResource(this.type, p_215419_)) {
-                    return Optional.of(new Resource(packresources.getName(), this.createResourceGetter(p_215419_, packresources), this.createStackMetadataFinder(p_215419_, i)));
+                if (packresources != null && packresources.hasResource(this.type, pLocation)) {
+                    return Optional.of(new Resource(packresources.getName(), this.createResourceGetter(pLocation, packresources), this.createStackMetadataFinder(pLocation, i)));
                 }
 
-                if (fallbackresourcemanager$packentry.isFiltered(p_215419_)) {
-                    LOGGER.warn("Resource {} not found, but was filtered by pack {}", p_215419_, fallbackresourcemanager$packentry.name);
+                if (fallbackresourcemanager$packentry.isFiltered(pLocation)) {
+                    LOGGER.warn("Resource {} not found, but was filtered by pack {}", pLocation, fallbackresourcemanager$packentry.name);
                     return Optional.empty();
                 }
             }
@@ -80,29 +80,29 @@ public class FallbackResourceManager implements ResourceManager {
         }
     }
 
-    Resource.IoSupplier<InputStream> createResourceGetter(ResourceLocation p_215375_, PackResources p_215376_) {
+    Resource.IoSupplier<InputStream> createResourceGetter(ResourceLocation pLocation, PackResources pResources) {
         return LOGGER.isDebugEnabled() ? () -> {
-            InputStream inputstream = p_215376_.getResource(this.type, p_215375_);
-            return new FallbackResourceManager.LeakedResourceWarningInputStream(inputstream, p_215375_, p_215376_.getName());
+            InputStream inputstream = pResources.getResource(this.type, pLocation);
+            return new FallbackResourceManager.LeakedResourceWarningInputStream(inputstream, pLocation, pResources.getName());
         } : () -> {
-            return p_215376_.getResource(this.type, p_215375_);
+            return pResources.getResource(this.type, pLocation);
         };
     }
 
-    private boolean isValidLocation(ResourceLocation p_10629_) {
-        return !p_10629_.getPath().contains("..");
+    private boolean isValidLocation(ResourceLocation pLocation) {
+        return !pLocation.getPath().contains("..");
     }
 
-    public List<Resource> getResourceStack(ResourceLocation p_215367_) {
-        if (!this.isValidLocation(p_215367_)) {
+    public List<Resource> getResourceStack(ResourceLocation pLocation) {
+        if (!this.isValidLocation(pLocation)) {
             return List.of();
         } else {
             List<FallbackResourceManager.SinglePackResourceThunkSupplier> list = Lists.newArrayList();
-            ResourceLocation resourcelocation = getMetadataLocation(p_215367_);
+            ResourceLocation resourcelocation = getMetadataLocation(pLocation);
             String s = null;
 
             for (FallbackResourceManager.PackEntry fallbackresourcemanager$packentry : this.fallbacks) {
-                if (fallbackresourcemanager$packentry.isFiltered(p_215367_)) {
+                if (fallbackresourcemanager$packentry.isFiltered(pLocation)) {
                     if (!list.isEmpty()) {
                         s = fallbackresourcemanager$packentry.name;
                     }
@@ -113,20 +113,20 @@ public class FallbackResourceManager implements ResourceManager {
                 }
 
                 PackResources packresources = fallbackresourcemanager$packentry.resources;
-                if (packresources != null && packresources.hasResource(this.type, p_215367_)) {
-                    list.add(new FallbackResourceManager.SinglePackResourceThunkSupplier(p_215367_, resourcelocation, packresources));
+                if (packresources != null && packresources.hasResource(this.type, pLocation)) {
+                    list.add(new FallbackResourceManager.SinglePackResourceThunkSupplier(pLocation, resourcelocation, packresources));
                 }
             }
 
             if (list.isEmpty() && s != null) {
-                LOGGER.info("Resource {} was filtered by pack {}", p_215367_, s);
+                LOGGER.info("Resource {} was filtered by pack {}", pLocation, s);
             }
 
             return list.stream().map(FallbackResourceManager.SinglePackResourceThunkSupplier::create).toList();
         }
     }
 
-    public Map<ResourceLocation, Resource> listResources(String p_215413_, Predicate<ResourceLocation> p_215414_) {
+    public Map<ResourceLocation, Resource> listResources(String pPath, Predicate<ResourceLocation> pFilter) {
         Object2IntMap<ResourceLocation> object2intmap = new Object2IntOpenHashMap<>();
         int i = this.fallbacks.size();
 
@@ -134,7 +134,7 @@ public class FallbackResourceManager implements ResourceManager {
             FallbackResourceManager.PackEntry fallbackresourcemanager$packentry = this.fallbacks.get(j);
             fallbackresourcemanager$packentry.filterAll(object2intmap.keySet());
             if (fallbackresourcemanager$packentry.resources != null) {
-                for (ResourceLocation resourcelocation : fallbackresourcemanager$packentry.resources.getResources(this.type, this.namespace, p_215413_, p_215414_)) {
+                for (ResourceLocation resourcelocation : fallbackresourcemanager$packentry.resources.getResources(this.type, this.namespace, pPath, pFilter)) {
                     object2intmap.put(resourcelocation, j);
                 }
             }
@@ -220,12 +220,12 @@ public class FallbackResourceManager implements ResourceManager {
         }
     }
 
-    public Map<ResourceLocation, List<Resource>> listResourceStacks(String p_215416_, Predicate<ResourceLocation> p_215417_) {
+    public Map<ResourceLocation, List<Resource>> listResourceStacks(String pPath, Predicate<ResourceLocation> pFilter) {
         Map<ResourceLocation, FallbackResourceManager.EntryStack> map = Maps.newHashMap();
 
         for (FallbackResourceManager.PackEntry fallbackresourcemanager$packentry : this.fallbacks) {
             applyPackFiltersToExistingResources(fallbackresourcemanager$packentry, map);
-            this.listPackResources(fallbackresourcemanager$packentry, p_215416_, p_215417_, map);
+            this.listPackResources(fallbackresourcemanager$packentry, pPath, pFilter, map);
         }
 
         TreeMap<ResourceLocation, List<Resource>> treemap = Maps.newTreeMap();
@@ -242,8 +242,8 @@ public class FallbackResourceManager implements ResourceManager {
                 .filter(Objects::nonNull);
     }
 
-    static ResourceLocation getMetadataLocation(ResourceLocation p_10625_) {
-        return new ResourceLocation(p_10625_.getNamespace(), p_10625_.getPath() + ".mcmeta");
+    static ResourceLocation getMetadataLocation(ResourceLocation pLocation) {
+        return new ResourceLocation(pLocation.getNamespace(), pLocation.getPath() + ".mcmeta");
     }
 
     static record EntryStack(ResourceLocation metadataLocation, List<FallbackResourceManager.SinglePackResourceThunkSupplier> entries) {
@@ -256,11 +256,11 @@ public class FallbackResourceManager implements ResourceManager {
         private final String message;
         private boolean closed;
 
-        public LeakedResourceWarningInputStream(InputStream p_10633_, ResourceLocation p_10634_, String p_10635_) {
-            super(p_10633_);
+        public LeakedResourceWarningInputStream(InputStream pInputStream, ResourceLocation pResourceLocation, String pPackName) {
+            super(pInputStream);
             ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
             (new Exception()).printStackTrace(new PrintStream(bytearrayoutputstream));
-            this.message = "Leaked resource: '" + p_10634_ + "' loaded from pack: '" + p_10635_ + "'\n" + bytearrayoutputstream;
+            this.message = "Leaked resource: '" + pResourceLocation + "' loaded from pack: '" + pPackName + "'\n" + bytearrayoutputstream;
         }
 
         public void close() throws IOException {
@@ -278,14 +278,14 @@ public class FallbackResourceManager implements ResourceManager {
     }
 
     static record PackEntry(String name, @Nullable PackResources resources, @Nullable Predicate<ResourceLocation> filter) {
-        public void filterAll(Collection<ResourceLocation> p_215443_) {
+        public void filterAll(Collection<ResourceLocation> pLocations) {
             if (this.filter != null) {
-                p_215443_.removeIf(this.filter);
+                pLocations.removeIf(this.filter);
             }
         }
 
-        public boolean isFiltered(ResourceLocation p_215441_) {
-            return this.filter != null && this.filter.test(p_215441_);
+        public boolean isFiltered(ResourceLocation pLocation) {
+            return this.filter != null && this.filter.test(pLocation);
         }
     }
 

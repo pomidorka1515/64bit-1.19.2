@@ -17,16 +17,16 @@ public class SpiderRenderer<T extends Spider> extends MobRenderer<T, SpiderModel
         this(p_174401_, ModelLayers.SPIDER);
     }
 
-    public SpiderRenderer(EntityRendererProvider.Context p_174403_, ModelLayerLocation p_174404_) {
-        super(p_174403_, new SpiderModel<>(p_174403_.bakeLayer(p_174404_)), 0.8F);
+    public SpiderRenderer(EntityRendererProvider.Context pContext, ModelLayerLocation pLayer) {
+        super(pContext, new SpiderModel<>(pContext.bakeLayer(pLayer)), 0.8F);
         this.addLayer(new SpiderEyesLayer<>(this));
     }
 
-    protected float getFlipDegrees(T p_116011_) {
+    protected float getFlipDegrees(T pLivingEntity) {
         return 180.0F;
     }
 
-    public ResourceLocation getTextureLocation(T p_116009_) {
+    public ResourceLocation getTextureLocation(T pEntity) {
         return SPIDER_LOCATION;
     }
 }

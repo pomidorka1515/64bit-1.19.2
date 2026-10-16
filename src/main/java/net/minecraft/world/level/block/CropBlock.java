@@ -26,17 +26,17 @@ public class CropBlock extends BushBlock implements BonemealableBlock {
     public static final IntegerProperty AGE = BlockStateProperties.AGE_7;
     private static final VoxelShape[] SHAPE_BY_AGE = new VoxelShape[] {Block.box(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D), Block.box(0.0D, 0.0D, 0.0D, 16.0D, 4.0D, 16.0D), Block.box(0.0D, 0.0D, 0.0D, 16.0D, 6.0D, 16.0D), Block.box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D), Block.box(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D), Block.box(0.0D, 0.0D, 0.0D, 16.0D, 12.0D, 16.0D), Block.box(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D), Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
 
-    protected CropBlock(BlockBehaviour.Properties p_52247_) {
-        super(p_52247_);
+    protected CropBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(this.getAgeProperty(), Integer.valueOf(0)));
     }
 
-    public VoxelShape getShape(BlockState p_52297_, BlockGetter p_52298_, BlockPos p_52299_, CollisionContext p_52300_) {
-        return SHAPE_BY_AGE[p_52297_.getValue(this.getAgeProperty())];
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return SHAPE_BY_AGE[pState.getValue(this.getAgeProperty())];
     }
 
-    protected boolean mayPlaceOn(BlockState p_52302_, BlockGetter p_52303_, BlockPos p_52304_) {
-        return p_52302_.is(Blocks.FARMLAND);
+    protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+        return pState.is(Blocks.FARMLAND);
     }
 
     public IntegerProperty getAgeProperty() {
@@ -47,56 +47,56 @@ public class CropBlock extends BushBlock implements BonemealableBlock {
         return 7;
     }
 
-    protected int getAge(BlockState p_52306_) {
-        return p_52306_.getValue(this.getAgeProperty());
+    protected int getAge(BlockState pState) {
+        return pState.getValue(this.getAgeProperty());
     }
 
-    public BlockState getStateForAge(int p_52290_) {
-        return this.defaultBlockState().setValue(this.getAgeProperty(), Integer.valueOf(p_52290_));
+    public BlockState getStateForAge(int pAge) {
+        return this.defaultBlockState().setValue(this.getAgeProperty(), Integer.valueOf(pAge));
     }
 
-    public boolean isMaxAge(BlockState p_52308_) {
-        return p_52308_.getValue(this.getAgeProperty()) >= this.getMaxAge();
+    public boolean isMaxAge(BlockState pState) {
+        return pState.getValue(this.getAgeProperty()) >= this.getMaxAge();
     }
 
-    public boolean isRandomlyTicking(BlockState p_52288_) {
-        return !this.isMaxAge(p_52288_);
+    public boolean isRandomlyTicking(BlockState pState) {
+        return !this.isMaxAge(pState);
     }
 
-    public void randomTick(BlockState p_221050_, ServerLevel p_221051_, BlockPos p_221052_, RandomSource p_221053_) {
-        if (p_221051_.getRawBrightness(p_221052_, 0) >= 9) {
-            int i = this.getAge(p_221050_);
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.getRawBrightness(pPos, 0) >= 9) {
+            int i = this.getAge(pState);
             if (i < this.getMaxAge()) {
-                float f = getGrowthSpeed(this, p_221051_, p_221052_);
-                if (p_221053_.nextInt((int) (25.0F / f) + 1) == 0) {
-                    p_221051_.setBlock(p_221052_, this.getStateForAge(i + 1), 2);
+                float f = getGrowthSpeed(this, pLevel, pPos);
+                if (pRandom.nextInt((int) (25.0F / f) + 1) == 0) {
+                    pLevel.setBlock(pPos, this.getStateForAge(i + 1), 2);
                 }
             }
         }
     }
 
-    public void growCrops(Level p_52264_, BlockPos p_52265_, BlockState p_52266_) {
-        int i = this.getAge(p_52266_) + this.getBonemealAgeIncrease(p_52264_);
+    public void growCrops(Level pLevel, BlockPos pPos, BlockState pState) {
+        int i = this.getAge(pState) + this.getBonemealAgeIncrease(pLevel);
         int j = this.getMaxAge();
         if (i > j) {
             i = j;
         }
 
-        p_52264_.setBlock(p_52265_, this.getStateForAge(i), 2);
+        pLevel.setBlock(pPos, this.getStateForAge(i), 2);
     }
 
-    protected int getBonemealAgeIncrease(Level p_52262_) {
-        return Mth.nextInt(p_52262_.random, 2, 5);
+    protected int getBonemealAgeIncrease(Level pLevel) {
+        return Mth.nextInt(pLevel.random, 2, 5);
     }
 
-    protected static float getGrowthSpeed(Block p_52273_, BlockGetter p_52274_, BlockPos p_52275_) {
+    protected static float getGrowthSpeed(Block pBlock, BlockGetter pLevel, BlockPos pPos) {
         float f = 1.0F;
-        BlockPos blockpos = p_52275_.below();
+        BlockPos blockpos = pPos.below();
 
         for (int i = -1; i <= 1; ++i) {
             for (int j = -1; j <= 1; ++j) {
                 float f1 = 0.0F;
-                BlockState blockstate = p_52274_.getBlockState(blockpos.offset(i, 0, j));
+                BlockState blockstate = pLevel.getBlockState(blockpos.offset(i, 0, j));
                 if (blockstate.is(Blocks.FARMLAND)) {
                     f1 = 1.0F;
                     if (blockstate.getValue(FarmBlock.MOISTURE) > 0) {
@@ -112,16 +112,16 @@ public class CropBlock extends BushBlock implements BonemealableBlock {
             }
         }
 
-        BlockPos blockpos1 = p_52275_.north();
-        BlockPos blockpos2 = p_52275_.south();
-        BlockPos blockpos3 = p_52275_.west();
-        BlockPos blockpos4 = p_52275_.east();
-        boolean flag = p_52274_.getBlockState(blockpos3).is(p_52273_) || p_52274_.getBlockState(blockpos4).is(p_52273_);
-        boolean flag1 = p_52274_.getBlockState(blockpos1).is(p_52273_) || p_52274_.getBlockState(blockpos2).is(p_52273_);
+        BlockPos blockpos1 = pPos.north();
+        BlockPos blockpos2 = pPos.south();
+        BlockPos blockpos3 = pPos.west();
+        BlockPos blockpos4 = pPos.east();
+        boolean flag = pLevel.getBlockState(blockpos3).is(pBlock) || pLevel.getBlockState(blockpos4).is(pBlock);
+        boolean flag1 = pLevel.getBlockState(blockpos1).is(pBlock) || pLevel.getBlockState(blockpos2).is(pBlock);
         if (flag && flag1) {
             f /= 2.0F;
         } else {
-            boolean flag2 = p_52274_.getBlockState(blockpos3.north()).is(p_52273_) || p_52274_.getBlockState(blockpos4.north()).is(p_52273_) || p_52274_.getBlockState(blockpos4.south()).is(p_52273_) || p_52274_.getBlockState(blockpos3.south()).is(p_52273_);
+            boolean flag2 = pLevel.getBlockState(blockpos3.north()).is(pBlock) || pLevel.getBlockState(blockpos4.north()).is(pBlock) || pLevel.getBlockState(blockpos4.south()).is(pBlock) || pLevel.getBlockState(blockpos3.south()).is(pBlock);
             if (flag2) {
                 f /= 2.0F;
             }
@@ -130,39 +130,39 @@ public class CropBlock extends BushBlock implements BonemealableBlock {
         return f;
     }
 
-    public boolean canSurvive(BlockState p_52282_, LevelReader p_52283_, BlockPos p_52284_) {
-        return (p_52283_.getRawBrightness(p_52284_, 0) >= 8 || p_52283_.canSeeSky(p_52284_)) && super.canSurvive(p_52282_, p_52283_, p_52284_);
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        return (pLevel.getRawBrightness(pPos, 0) >= 8 || pLevel.canSeeSky(pPos)) && super.canSurvive(pState, pLevel, pPos);
     }
 
-    public void entityInside(BlockState p_52277_, Level p_52278_, BlockPos p_52279_, Entity p_52280_) {
-        if (p_52280_ instanceof Ravager && p_52278_.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
-            p_52278_.destroyBlock(p_52279_, true, p_52280_);
+    public void entityInside(BlockState pState, Level pLevel, BlockPos pPos, Entity pEntity) {
+        if (pEntity instanceof Ravager && pLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
+            pLevel.destroyBlock(pPos, true, pEntity);
         }
 
-        super.entityInside(p_52277_, p_52278_, p_52279_, p_52280_);
+        super.entityInside(pState, pLevel, pPos, pEntity);
     }
 
     protected ItemLike getBaseSeedId() {
         return Items.WHEAT_SEEDS;
     }
 
-    public ItemStack getCloneItemStack(BlockGetter p_52254_, BlockPos p_52255_, BlockState p_52256_) {
+    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
         return new ItemStack(this.getBaseSeedId());
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_52258_, BlockPos p_52259_, BlockState p_52260_, boolean p_52261_) {
-        return !this.isMaxAge(p_52260_);
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
+        return !this.isMaxAge(pState);
     }
 
-    public boolean isBonemealSuccess(Level p_221045_, RandomSource p_221046_, BlockPos p_221047_, BlockState p_221048_) {
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
 
-    public void performBonemeal(ServerLevel p_221040_, RandomSource p_221041_, BlockPos p_221042_, BlockState p_221043_) {
-        this.growCrops(p_221040_, p_221042_, p_221043_);
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        this.growCrops(pLevel, pPos, pState);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_52286_) {
-        p_52286_.add(AGE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(AGE);
     }
 }

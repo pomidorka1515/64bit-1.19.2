@@ -33,36 +33,36 @@ public class StonecutterScreen extends AbstractContainerScreen<StonecutterMenu> 
     private int startIndex;
     private boolean displayRecipes;
 
-    public StonecutterScreen(StonecutterMenu p_99310_, Inventory p_99311_, Component p_99312_) {
-        super(p_99310_, p_99311_, p_99312_);
-        p_99310_.registerUpdateListener(this::containerChanged);
+    public StonecutterScreen(StonecutterMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle);
+        pMenu.registerUpdateListener(this::containerChanged);
         --this.titleLabelY;
     }
 
-    public void render(PoseStack p_99337_, int p_99338_, int p_99339_, float p_99340_) {
-        super.render(p_99337_, p_99338_, p_99339_, p_99340_);
-        this.renderTooltip(p_99337_, p_99338_, p_99339_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
-    protected void renderBg(PoseStack p_99328_, float p_99329_, int p_99330_, int p_99331_) {
-        this.renderBackground(p_99328_);
+    protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
+        this.renderBackground(pPoseStack);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, BG_LOCATION);
         int i = this.leftPos;
         int j = this.topPos;
-        this.blit(p_99328_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        this.blit(pPoseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
         int k = (int) (41.0F * this.scrollOffs);
-        this.blit(p_99328_, i + 119, j + 15 + k, 176 + (this.isScrollBarActive() ? 0 : 12), 0, 12, 15);
+        this.blit(pPoseStack, i + 119, j + 15 + k, 176 + (this.isScrollBarActive() ? 0 : 12), 0, 12, 15);
         int l = this.leftPos + 52;
         int i1 = this.topPos + 14;
         int j1 = this.startIndex + 12;
-        this.renderButtons(p_99328_, p_99330_, p_99331_, l, i1, j1);
+        this.renderButtons(pPoseStack, pX, pY, l, i1, j1);
         this.renderRecipes(l, i1, j1);
     }
 
-    protected void renderTooltip(PoseStack p_99333_, int p_99334_, int p_99335_) {
-        super.renderTooltip(p_99333_, p_99334_, p_99335_);
+    protected void renderTooltip(PoseStack pPoseStack, int pX, int pY) {
+        super.renderTooltip(pPoseStack, pX, pY);
         if (this.displayRecipes) {
             int i = this.leftPos + 52;
             int j = this.topPos + 14;
@@ -73,43 +73,43 @@ public class StonecutterScreen extends AbstractContainerScreen<StonecutterMenu> 
                 int i1 = l - this.startIndex;
                 int j1 = i + i1 % 4 * 16;
                 int k1 = j + i1 / 4 * 18 + 2;
-                if (p_99334_ >= j1 && p_99334_ < j1 + 16 && p_99335_ >= k1 && p_99335_ < k1 + 18) {
-                    this.renderTooltip(p_99333_, list.get(l).getResultItem(), p_99334_, p_99335_);
+                if (pX >= j1 && pX < j1 + 16 && pY >= k1 && pY < k1 + 18) {
+                    this.renderTooltip(pPoseStack, list.get(l).getResultItem(), pX, pY);
                 }
             }
         }
     }
 
-    private void renderButtons(PoseStack p_99342_, int p_99343_, int p_99344_, int p_99345_, int p_99346_, int p_99347_) {
-        for (int i = this.startIndex; i < p_99347_ && i < this.menu.getNumRecipes(); ++i) {
+    private void renderButtons(PoseStack pPoseStack, int pMouseX, int pMouseY, int pX, int pY, int pLastVisibleElementIndex) {
+        for (int i = this.startIndex; i < pLastVisibleElementIndex && i < this.menu.getNumRecipes(); ++i) {
             int j = i - this.startIndex;
-            int k = p_99345_ + j % 4 * 16;
+            int k = pX + j % 4 * 16;
             int l = j / 4;
-            int i1 = p_99346_ + l * 18 + 2;
+            int i1 = pY + l * 18 + 2;
             int j1 = this.imageHeight;
             if (i == this.menu.getSelectedRecipeIndex()) {
                 j1 += 18;
-            } else if (p_99343_ >= k && p_99344_ >= i1 && p_99343_ < k + 16 && p_99344_ < i1 + 18) {
+            } else if (pMouseX >= k && pMouseY >= i1 && pMouseX < k + 16 && pMouseY < i1 + 18) {
                 j1 += 36;
             }
 
-            this.blit(p_99342_, k, i1 - 1, 0, j1, 16, 18);
+            this.blit(pPoseStack, k, i1 - 1, 0, j1, 16, 18);
         }
     }
 
-    private void renderRecipes(int p_99349_, int p_99350_, int p_99351_) {
+    private void renderRecipes(int pLeft, int pTop, int pRecipeIndexOffsetMax) {
         List<StonecutterRecipe> list = this.menu.getRecipes();
 
-        for (int i = this.startIndex; i < p_99351_ && i < this.menu.getNumRecipes(); ++i) {
+        for (int i = this.startIndex; i < pRecipeIndexOffsetMax && i < this.menu.getNumRecipes(); ++i) {
             int j = i - this.startIndex;
-            int k = p_99349_ + j % 4 * 16;
+            int k = pLeft + j % 4 * 16;
             int l = j / 4;
-            int i1 = p_99350_ + l * 18 + 2;
+            int i1 = pTop + l * 18 + 2;
             this.minecraft.getItemRenderer().renderAndDecorateItem(list.get(i).getResultItem(), k, i1);
         }
     }
 
-    public boolean mouseClicked(double p_99318_, double p_99319_, int p_99320_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         this.scrolling = false;
         if (this.displayRecipes) {
             int i = this.leftPos + 52;
@@ -118,8 +118,8 @@ public class StonecutterScreen extends AbstractContainerScreen<StonecutterMenu> 
 
             for (int l = this.startIndex; l < k; ++l) {
                 int i1 = l - this.startIndex;
-                double d0 = p_99318_ - (double) (i + i1 % 4 * 16);
-                double d1 = p_99319_ - (double) (j + i1 / 4 * 18);
+                double d0 = pMouseX - (double) (i + i1 % 4 * 16);
+                double d1 = pMouseY - (double) (j + i1 / 4 * 18);
                 if (d0 >= 0.0D && d1 >= 0.0D && d0 < 16.0D && d1 < 18.0D && this.menu.clickMenuButton(this.minecraft.player, l)) {
                     Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
                     this.minecraft.gameMode.handleInventoryButtonClick((this.menu).containerId, l);
@@ -129,31 +129,31 @@ public class StonecutterScreen extends AbstractContainerScreen<StonecutterMenu> 
 
             i = this.leftPos + 119;
             j = this.topPos + 9;
-            if (p_99318_ >= (double) i && p_99318_ < (double) (i + 12) && p_99319_ >= (double) j && p_99319_ < (double) (j + 54)) {
+            if (pMouseX >= (double) i && pMouseX < (double) (i + 12) && pMouseY >= (double) j && pMouseY < (double) (j + 54)) {
                 this.scrolling = true;
             }
         }
 
-        return super.mouseClicked(p_99318_, p_99319_, p_99320_);
+        return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 
-    public boolean mouseDragged(double p_99322_, double p_99323_, int p_99324_, double p_99325_, double p_99326_) {
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
         if (this.scrolling && this.isScrollBarActive()) {
             int i = this.topPos + 14;
             int j = i + 54;
-            this.scrollOffs = ((float) p_99323_ - (float) i - 7.5F) / ((float) (j - i) - 15.0F);
+            this.scrollOffs = ((float) pMouseY - (float) i - 7.5F) / ((float) (j - i) - 15.0F);
             this.scrollOffs = Mth.clamp(this.scrollOffs, 0.0F, 1.0F);
             this.startIndex = (int) ((double) (this.scrollOffs * (float) this.getOffscreenRows()) + 0.5D) * 4;
             return true;
         } else {
-            return super.mouseDragged(p_99322_, p_99323_, p_99324_, p_99325_, p_99326_);
+            return super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
         }
     }
 
-    public boolean mouseScrolled(double p_99314_, double p_99315_, double p_99316_) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
         if (this.isScrollBarActive()) {
             int i = this.getOffscreenRows();
-            float f = (float) p_99316_ / (float) i;
+            float f = (float) pDelta / (float) i;
             this.scrollOffs = Mth.clamp(this.scrollOffs - f, 0.0F, 1.0F);
             this.startIndex = (int) ((double) (this.scrollOffs * (float) i) + 0.5D) * 4;
         }

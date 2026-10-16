@@ -50,14 +50,14 @@ public class AttachedToLeavesDecorator extends TreeDecorator {
         this.directions = p_225993_;
     }
 
-    public void place(TreeDecorator.Context p_226000_) {
+    public void place(TreeDecorator.Context pContext) {
         Set<BlockPos> set = new HashSet<>();
-        RandomSource randomsource = p_226000_.random();
+        RandomSource randomsource = pContext.random();
 
-        for (BlockPos blockpos : Util.shuffledCopy(p_226000_.leaves(), randomsource)) {
+        for (BlockPos blockpos : Util.shuffledCopy(pContext.leaves(), randomsource)) {
             Direction direction = Util.getRandom(this.directions, randomsource);
             BlockPos blockpos1 = blockpos.relative(direction);
-            if (!set.contains(blockpos1) && randomsource.nextFloat() < this.probability && this.hasRequiredEmptyBlocks(p_226000_, blockpos, direction)) {
+            if (!set.contains(blockpos1) && randomsource.nextFloat() < this.probability && this.hasRequiredEmptyBlocks(pContext, blockpos, direction)) {
                 BlockPos blockpos2 = blockpos1.offset(-this.exclusionRadiusXZ, -this.exclusionRadiusY, -this.exclusionRadiusXZ);
                 BlockPos blockpos3 = blockpos1.offset(this.exclusionRadiusXZ, this.exclusionRadiusY, this.exclusionRadiusXZ);
 
@@ -65,15 +65,15 @@ public class AttachedToLeavesDecorator extends TreeDecorator {
                     set.add(blockpos4.immutable());
                 }
 
-                p_226000_.setBlock(blockpos1, this.blockProvider.getState(randomsource, blockpos1));
+                pContext.setBlock(blockpos1, this.blockProvider.getState(randomsource, blockpos1));
             }
         }
     }
 
-    private boolean hasRequiredEmptyBlocks(TreeDecorator.Context p_226002_, BlockPos p_226003_, Direction p_226004_) {
+    private boolean hasRequiredEmptyBlocks(TreeDecorator.Context pContext, BlockPos pPos, Direction pDirection) {
         for (int i = 1; i <= this.requiredEmptyBlocks; ++i) {
-            BlockPos blockpos = p_226003_.relative(p_226004_, i);
-            if (!p_226002_.isAir(blockpos)) {
+            BlockPos blockpos = pPos.relative(pDirection, i);
+            if (!pContext.isAir(blockpos)) {
                 return false;
             }
         }

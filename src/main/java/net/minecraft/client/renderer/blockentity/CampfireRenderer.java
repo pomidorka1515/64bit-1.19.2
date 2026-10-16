@@ -18,28 +18,28 @@ public class CampfireRenderer implements BlockEntityRenderer<CampfireBlockEntity
     private static final float SIZE = 0.375F;
     private final ItemRenderer itemRenderer;
 
-    public CampfireRenderer(BlockEntityRendererProvider.Context p_173602_) {
-        this.itemRenderer = p_173602_.getItemRenderer();
+    public CampfireRenderer(BlockEntityRendererProvider.Context pContext) {
+        this.itemRenderer = pContext.getItemRenderer();
     }
 
-    public void render(CampfireBlockEntity p_112344_, float p_112345_, PoseStack p_112346_, MultiBufferSource p_112347_, int p_112348_, int p_112349_) {
-        Direction direction = p_112344_.getBlockState().getValue(CampfireBlock.FACING);
-        NonNullList<ItemStack> nonnulllist = p_112344_.getItems();
-        int i = (int) p_112344_.getBlockPos().hashCode();
+    public void render(CampfireBlockEntity pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        Direction direction = pBlockEntity.getBlockState().getValue(CampfireBlock.FACING);
+        NonNullList<ItemStack> nonnulllist = pBlockEntity.getItems();
+        int i = (int) pBlockEntity.getBlockPos().hashCode();
 
         for (int j = 0; j < nonnulllist.size(); ++j) {
             ItemStack itemstack = nonnulllist.get(j);
             if (itemstack != ItemStack.EMPTY) {
-                p_112346_.pushPose();
-                p_112346_.translate(0.5D, 0.44921875D, 0.5D);
+                pPoseStack.pushPose();
+                pPoseStack.translate(0.5D, 0.44921875D, 0.5D);
                 Direction direction1 = Direction.from2DDataValue((j + direction.get2DDataValue()) % 4);
                 float f = -direction1.toYRot();
-                p_112346_.mulPose(Vector3f.YP.rotationDegrees(f));
-                p_112346_.mulPose(Vector3f.XP.rotationDegrees(90.0F));
-                p_112346_.translate(-0.3125D, -0.3125D, 0.0D);
-                p_112346_.scale(0.375F, 0.375F, 0.375F);
-                this.itemRenderer.renderStatic(itemstack, ItemTransforms.TransformType.FIXED, p_112348_, p_112349_, p_112346_, p_112347_, i + j);
-                p_112346_.popPose();
+                pPoseStack.mulPose(Vector3f.YP.rotationDegrees(f));
+                pPoseStack.mulPose(Vector3f.XP.rotationDegrees(90.0F));
+                pPoseStack.translate(-0.3125D, -0.3125D, 0.0D);
+                pPoseStack.scale(0.375F, 0.375F, 0.375F);
+                this.itemRenderer.renderStatic(itemstack, ItemTransforms.TransformType.FIXED, pPackedLight, pPackedOverlay, pPoseStack, pBufferSource, i + j);
+                pPoseStack.popPose();
             }
         }
     }

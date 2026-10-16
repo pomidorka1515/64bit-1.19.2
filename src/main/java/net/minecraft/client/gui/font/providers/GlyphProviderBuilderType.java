@@ -29,16 +29,16 @@ public enum GlyphProviderBuilderType {
         this.factory = p_95412_;
     }
 
-    public static GlyphProviderBuilderType byName(String p_95416_) {
-        GlyphProviderBuilderType glyphproviderbuildertype = BY_NAME.get(p_95416_);
+    public static GlyphProviderBuilderType byName(String pType) {
+        GlyphProviderBuilderType glyphproviderbuildertype = BY_NAME.get(pType);
         if (glyphproviderbuildertype == null) {
-            throw new IllegalArgumentException("Invalid type: " + p_95416_);
+            throw new IllegalArgumentException("Invalid type: " + pType);
         } else {
             return glyphproviderbuildertype;
         }
     }
 
-    public GlyphProviderBuilder create(JsonObject p_95414_) {
-        return this.factory.apply(p_95414_);
+    public GlyphProviderBuilder create(JsonObject pJson) {
+        return this.factory.apply(pJson);
     }
 }

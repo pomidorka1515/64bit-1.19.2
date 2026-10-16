@@ -27,8 +27,8 @@ public class EntityAnchorArgument implements ArgumentType<EntityAnchorArgument.A
         return Component.translatable("argument.anchor.invalid", p_90357_);
     });
 
-    public static EntityAnchorArgument.Anchor getAnchor(CommandContext<CommandSourceStack> p_90354_, String p_90355_) {
-        return p_90354_.getArgument(p_90355_, EntityAnchorArgument.Anchor.class);
+    public static EntityAnchorArgument.Anchor getAnchor(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, EntityAnchorArgument.Anchor.class);
     }
 
     public static EntityAnchorArgument anchor() {
@@ -47,8 +47,8 @@ public class EntityAnchorArgument implements ArgumentType<EntityAnchorArgument.A
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_90360_, SuggestionsBuilder p_90361_) {
-        return SharedSuggestionProvider.suggest(EntityAnchorArgument.Anchor.BY_NAME.keySet(), p_90361_);
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return SharedSuggestionProvider.suggest(EntityAnchorArgument.Anchor.BY_NAME.keySet(), pBuilder);
     }
 
     public Collection<String> getExamples() {
@@ -77,17 +77,17 @@ public class EntityAnchorArgument implements ArgumentType<EntityAnchorArgument.A
         }
 
         @Nullable
-        public static EntityAnchorArgument.Anchor getByName(String p_90385_) {
-            return BY_NAME.get(p_90385_);
+        public static EntityAnchorArgument.Anchor getByName(String pName) {
+            return BY_NAME.get(pName);
         }
 
-        public Vec3 apply(Entity p_90378_) {
-            return this.transform.apply(p_90378_.position(), p_90378_);
+        public Vec3 apply(Entity pEntity) {
+            return this.transform.apply(pEntity.position(), pEntity);
         }
 
-        public Vec3 apply(CommandSourceStack p_90380_) {
-            Entity entity = p_90380_.getEntity();
-            return entity == null ? p_90380_.getPosition() : this.transform.apply(p_90380_.getPosition(), entity);
+        public Vec3 apply(CommandSourceStack pSource) {
+            Entity entity = pSource.getEntity();
+            return entity == null ? pSource.getPosition() : this.transform.apply(pSource.getPosition(), entity);
         }
     }
 }

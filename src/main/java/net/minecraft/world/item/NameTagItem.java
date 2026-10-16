@@ -7,22 +7,22 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 
 public class NameTagItem extends Item {
-    public NameTagItem(Item.Properties p_42952_) {
-        super(p_42952_);
+    public NameTagItem(Item.Properties pProperties) {
+        super(pProperties);
     }
 
-    public InteractionResult interactLivingEntity(ItemStack p_42954_, Player p_42955_, LivingEntity p_42956_, InteractionHand p_42957_) {
-        if (p_42954_.hasCustomHoverName() && !(p_42956_ instanceof Player)) {
-            if (!p_42955_.level.isClientSide && p_42956_.isAlive()) {
-                p_42956_.setCustomName(p_42954_.getHoverName());
-                if (p_42956_ instanceof Mob) {
-                    ((Mob) p_42956_).setPersistenceRequired();
+    public InteractionResult interactLivingEntity(ItemStack pStack, Player pPlayer, LivingEntity pTarget, InteractionHand pHand) {
+        if (pStack.hasCustomHoverName() && !(pTarget instanceof Player)) {
+            if (!pPlayer.level.isClientSide && pTarget.isAlive()) {
+                pTarget.setCustomName(pStack.getHoverName());
+                if (pTarget instanceof Mob) {
+                    ((Mob) pTarget).setPersistenceRequired();
                 }
 
-                p_42954_.shrink(1);
+                pStack.shrink(1);
             }
 
-            return InteractionResult.sidedSuccess(p_42955_.level.isClientSide);
+            return InteractionResult.sidedSuccess(pPlayer.level.isClientSide);
         } else {
             return InteractionResult.PASS;
         }

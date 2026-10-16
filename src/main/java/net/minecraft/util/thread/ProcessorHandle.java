@@ -8,7 +8,7 @@ import java.util.function.Function;
 public interface ProcessorHandle<Msg> extends AutoCloseable {
     String name();
 
-    void tell(Msg p_18713_);
+    void tell(Msg pTask);
 
     default void close() {
     }

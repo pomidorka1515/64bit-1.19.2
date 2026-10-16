@@ -24,8 +24,8 @@ public class LevelFlatGeneratorInfoFix extends DataFix {
     private static final Splitter AMOUNT_SPLITTER = Splitter.on('*').limit(2);
     private static final Splitter BLOCK_SPLITTER = Splitter.on(':').limit(3);
 
-    public LevelFlatGeneratorInfoFix(Schema p_16344_, boolean p_16345_) {
-        super(p_16344_, p_16345_);
+    public LevelFlatGeneratorInfoFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

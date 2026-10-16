@@ -25,42 +25,42 @@ public class OperationArgument implements ArgumentType<OperationArgument.Operati
         return new OperationArgument();
     }
 
-    public static OperationArgument.Operation getOperation(CommandContext<CommandSourceStack> p_103276_, String p_103277_) {
-        return p_103276_.getArgument(p_103277_, OperationArgument.Operation.class);
+    public static OperationArgument.Operation getOperation(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, OperationArgument.Operation.class);
     }
 
-    public OperationArgument.Operation parse(StringReader p_103274_) throws CommandSyntaxException {
-        if (!p_103274_.canRead()) {
+    public OperationArgument.Operation parse(StringReader pReader) throws CommandSyntaxException {
+        if (!pReader.canRead()) {
             throw ERROR_INVALID_OPERATION.create();
         } else {
-            int i = p_103274_.getCursor();
+            int i = pReader.getCursor();
 
-            while (p_103274_.canRead() && p_103274_.peek() != ' ') {
-                p_103274_.skip();
+            while (pReader.canRead() && pReader.peek() != ' ') {
+                pReader.skip();
             }
 
-            return getOperation(p_103274_.getString().substring(i, p_103274_.getCursor()));
+            return getOperation(pReader.getString().substring(i, pReader.getCursor()));
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_103302_, SuggestionsBuilder p_103303_) {
-        return SharedSuggestionProvider.suggest(new String[] {"=", "+=", "-=", "*=", "/=", "%=", "<", ">", "><"}, p_103303_);
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return SharedSuggestionProvider.suggest(new String[] {"=", "+=", "-=", "*=", "/=", "%=", "<", ">", "><"}, pBuilder);
     }
 
     public Collection<String> getExamples() {
         return EXAMPLES;
     }
 
-    private static OperationArgument.Operation getOperation(String p_103282_) throws CommandSyntaxException {
-        return (p_103282_.equals("><") ? (p_103279_, p_103280_) -> {
+    private static OperationArgument.Operation getOperation(String pName) throws CommandSyntaxException {
+        return (pName.equals("><") ? (p_103279_, p_103280_) -> {
             int i = p_103279_.getScore();
             p_103279_.setScore(p_103280_.getScore());
             p_103280_.setScore(i);
-        } : getSimpleOperation(p_103282_));
+        } : getSimpleOperation(pName));
     }
 
-    private static OperationArgument.SimpleOperation getSimpleOperation(String p_103287_) throws CommandSyntaxException {
-        switch (p_103287_) {
+    private static OperationArgument.SimpleOperation getSimpleOperation(String pName) throws CommandSyntaxException {
+        switch (pName) {
             case "=":
                 return (p_103298_, p_103299_) -> {
                     return p_103299_;
@@ -104,15 +104,15 @@ public class OperationArgument implements ArgumentType<OperationArgument.Operati
 
     @FunctionalInterface
     public interface Operation {
-        void apply(Score p_103306_, Score p_103307_) throws CommandSyntaxException;
+        void apply(Score pTargetScore, Score pSourceScore) throws CommandSyntaxException;
     }
 
     @FunctionalInterface
     interface SimpleOperation extends OperationArgument.Operation {
-        int apply(int p_103309_, int p_103310_) throws CommandSyntaxException;
+        int apply(int pTargetScore, int pSourceScore) throws CommandSyntaxException;
 
-        default void apply(Score p_103312_, Score p_103313_) throws CommandSyntaxException {
-            p_103312_.setScore(this.apply(p_103312_.getScore(), p_103313_.getScore()));
+        default void apply(Score pTargetScore, Score pSourceScore) throws CommandSyntaxException {
+            pTargetScore.setScore(this.apply(pTargetScore.getScore(), pSourceScore.getScore()));
         }
     }
 }

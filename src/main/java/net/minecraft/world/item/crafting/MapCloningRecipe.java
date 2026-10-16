@@ -7,16 +7,16 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 public class MapCloningRecipe extends CustomRecipe {
-    public MapCloningRecipe(ResourceLocation p_43968_) {
-        super(p_43968_);
+    public MapCloningRecipe(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_43980_, Level p_43981_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         int i = 0;
         ItemStack itemstack = ItemStack.EMPTY;
 
-        for (int j = 0; j < p_43980_.getContainerSize(); ++j) {
-            ItemStack itemstack1 = p_43980_.getItem(j);
+        for (int j = 0; j < pInv.getContainerSize(); ++j) {
+            ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.is(Items.FILLED_MAP)) {
                     if (!itemstack.isEmpty()) {
@@ -37,12 +37,12 @@ public class MapCloningRecipe extends CustomRecipe {
         return !itemstack.isEmpty() && i > 0;
     }
 
-    public ItemStack assemble(CraftingContainer p_43978_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         int i = 0;
         ItemStack itemstack = ItemStack.EMPTY;
 
-        for (int j = 0; j < p_43978_.getContainerSize(); ++j) {
-            ItemStack itemstack1 = p_43978_.getItem(j);
+        for (int j = 0; j < pInv.getContainerSize(); ++j) {
+            ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.is(Items.FILLED_MAP)) {
                     if (!itemstack.isEmpty()) {
@@ -69,8 +69,8 @@ public class MapCloningRecipe extends CustomRecipe {
         }
     }
 
-    public boolean canCraftInDimensions(int p_43970_, int p_43971_) {
-        return p_43970_ >= 3 && p_43971_ >= 3;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth >= 3 && pHeight >= 3;
     }
 
     public RecipeSerializer<?> getSerializer() {

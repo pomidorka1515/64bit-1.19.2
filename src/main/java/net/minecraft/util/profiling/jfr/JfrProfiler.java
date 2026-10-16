@@ -75,7 +75,7 @@ public class JfrProfiler implements JvmProfiler {
         return INSTANCE;
     }
 
-    public boolean start(Environment p_185307_) {
+    public boolean start(Environment pEnvironment) {
         URL url = JfrProfiler.class.getResource("/flightrecorder-config.jfc");
         if (url == null) {
             LOGGER.warn("Could not find default flight recorder config at {}", (Object) "/flightrecorder-config.jfc");
@@ -86,7 +86,7 @@ public class JfrProfiler implements JvmProfiler {
 
                 boolean flag;
                 try {
-                    flag = this.start(bufferedreader, p_185307_);
+                    flag = this.start(bufferedreader, pEnvironment);
                 } catch (Throwable throwable1) {
                     try {
                         bufferedreader.close();
@@ -125,21 +125,21 @@ public class JfrProfiler implements JvmProfiler {
         return FlightRecorder.isAvailable();
     }
 
-    private boolean start(Reader p_185317_, Environment p_185318_) {
+    private boolean start(Reader pReader, Environment pEnvironment) {
         if (this.isRunning()) {
             LOGGER.warn("Profiling already in progress");
             return false;
         } else {
             try {
-                Configuration configuration = Configuration.create(p_185317_);
+                Configuration configuration = Configuration.create(pReader);
                 String s = DATE_TIME_FORMATTER.format(Instant.now());
                 this.recording = Util.make(new Recording(configuration), (p_185311_) -> {
                     CUSTOM_EVENTS.forEach(p_185311_::enable);
                     p_185311_.setDumpOnExit(true);
                     p_185311_.setToDisk(true);
-                    p_185311_.setName(String.format(Locale.ROOT, "%s-%s-%s", p_185318_.getDescription(), SharedConstants.getCurrentVersion().getName(), s));
+                    p_185311_.setName(String.format(Locale.ROOT, "%s-%s-%s", pEnvironment.getDescription(), SharedConstants.getCurrentVersion().getName(), s));
                 });
-                Path path = Paths.get(String.format(Locale.ROOT, "debug/%s-%s.jfr", p_185318_.getDescription(), s));
+                Path path = Paths.get(String.format(Locale.ROOT, "debug/%s-%s.jfr", pEnvironment.getDescription(), s));
                 if (!Files.exists(path.getParent())) {
                     Files.createDirectories(path.getParent());
                 }
@@ -172,34 +172,34 @@ public class JfrProfiler implements JvmProfiler {
         });
     }
 
-    public void onServerTick(float p_185300_) {
+    public void onServerTick(float pCurrentAverageTickTime) {
         if (ServerTickTimeEvent.TYPE.isEnabled()) {
-            this.currentAverageTickTime = p_185300_;
+            this.currentAverageTickTime = pCurrentAverageTickTime;
         }
     }
 
-    public void onPacketReceived(int p_185302_, int p_185303_, SocketAddress p_185304_, int p_185305_) {
+    public void onPacketReceived(int pProtocolId, int pPacketId, SocketAddress pRemoteAddress, int pBytes) {
         if (PacketReceivedEvent.TYPE.isEnabled()) {
-            (new PacketReceivedEvent(p_185302_, p_185303_, p_185304_, p_185305_)).commit();
+            (new PacketReceivedEvent(pProtocolId, pPacketId, pRemoteAddress, pBytes)).commit();
         }
 
         if (NetworkSummaryEvent.TYPE.isEnabled()) {
-            this.networkStatFor(p_185304_).trackReceivedPacket(p_185305_);
+            this.networkStatFor(pRemoteAddress).trackReceivedPacket(pBytes);
         }
     }
 
-    public void onPacketSent(int p_185323_, int p_185324_, SocketAddress p_185325_, int p_185326_) {
+    public void onPacketSent(int pProtocolId, int pPacketId, SocketAddress pRemoteAddress, int pBytes) {
         if (PacketSentEvent.TYPE.isEnabled()) {
-            (new PacketSentEvent(p_185323_, p_185324_, p_185325_, p_185326_)).commit();
+            (new PacketSentEvent(pProtocolId, pPacketId, pRemoteAddress, pBytes)).commit();
         }
 
         if (NetworkSummaryEvent.TYPE.isEnabled()) {
-            this.networkStatFor(p_185325_).trackSentPacket(p_185326_);
+            this.networkStatFor(pRemoteAddress).trackSentPacket(pBytes);
         }
     }
 
-    private NetworkSummaryEvent.SumAggregation networkStatFor(SocketAddress p_185320_) {
-        return this.networkTrafficByAddress.computeIfAbsent(p_185320_.toString(), NetworkSummaryEvent.SumAggregation::new);
+    private NetworkSummaryEvent.SumAggregation networkStatFor(SocketAddress pRemoteAddress) {
+        return this.networkTrafficByAddress.computeIfAbsent(pRemoteAddress.toString(), NetworkSummaryEvent.SumAggregation::new);
     }
 
     @Nullable
@@ -214,11 +214,11 @@ public class JfrProfiler implements JvmProfiler {
     }
 
     @Nullable
-    public ProfiledDuration onChunkGenerate(ChunkPos p_185313_, ResourceKey<Level> p_185314_, String p_185315_) {
+    public ProfiledDuration onChunkGenerate(ChunkPos pChunkPos, ResourceKey<Level> pLevel, String pName) {
         if (!ChunkGenerationEvent.TYPE.isEnabled()) {
             return null;
         } else {
-            ChunkGenerationEvent chunkgenerationevent = new ChunkGenerationEvent(p_185313_, p_185314_, p_185315_);
+            ChunkGenerationEvent chunkgenerationevent = new ChunkGenerationEvent(pChunkPos, pLevel, pName);
             chunkgenerationevent.begin();
             return chunkgenerationevent::commit;
         }

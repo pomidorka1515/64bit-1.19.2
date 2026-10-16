@@ -9,8 +9,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 
 public class SetWorldSpawnCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> p_138661_) {
-        p_138661_.register(Commands.literal("setworldspawn").requires((p_138665_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("setworldspawn").requires((p_138665_) -> {
                                                                 return p_138665_.hasPermission(2);
                                                             })
                         .executes((p_138673_) -> {
@@ -24,9 +24,9 @@ public class SetWorldSpawnCommand {
                                         }))));
     }
 
-    private static int setSpawn(CommandSourceStack p_138667_, BlockPos p_138668_, float p_138669_) {
-        p_138667_.getLevel().setDefaultSpawnPos(p_138668_, p_138669_);
-        p_138667_.sendSuccess(Component.translatable("commands.setworldspawn.success", p_138668_.getX(), p_138668_.getY(), p_138668_.getZ(), p_138669_), true);
+    private static int setSpawn(CommandSourceStack pSource, BlockPos pPos, float pAngle) {
+        pSource.getLevel().setDefaultSpawnPos(pPos, pAngle);
+        pSource.sendSuccess(Component.translatable("commands.setworldspawn.success", pPos.getX(), pPos.getY(), pPos.getZ(), pAngle), true);
         return 1;
     }
 }

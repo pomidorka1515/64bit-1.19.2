@@ -35,11 +35,11 @@ public class ReportReasonSelectionScreen extends Screen {
     ReportReason currentlySelectedReason;
     private final Consumer<ReportReason> onSelectedReason;
 
-    public ReportReasonSelectionScreen(@Nullable Screen p_239438_, @Nullable ReportReason p_239439_, Consumer<ReportReason> p_239440_) {
+    public ReportReasonSelectionScreen(@Nullable Screen pLastScreen, @Nullable ReportReason pCurrentlySelectedReason, Consumer<ReportReason> pOnSelectedReason) {
         super(REASON_TITLE);
-        this.lastScreen = p_239438_;
-        this.currentlySelectedReason = p_239439_;
-        this.onSelectedReason = p_239440_;
+        this.lastScreen = pLastScreen;
+        this.currentlySelectedReason = pCurrentlySelectedReason;
+        this.onSelectedReason = pOnSelectedReason;
     }
 
     protected void init() {
@@ -70,13 +70,13 @@ public class ReportReasonSelectionScreen extends Screen {
         super.init();
     }
 
-    public void render(PoseStack p_239451_, int p_239452_, int p_239453_, float p_239454_) {
-        this.renderBackground(p_239451_);
-        this.reasonSelectionList.render(p_239451_, p_239452_, p_239453_, p_239454_);
-        drawCenteredString(p_239451_, this.font, this.title, this.width / 2, 16, 16777215);
-        super.render(p_239451_, p_239452_, p_239453_, p_239454_);
-        fill(p_239451_, this.contentLeft(), this.descriptionTop(), this.contentRight(), this.descriptionBottom(), 2130706432);
-        drawString(p_239451_, this.font, REASON_DESCRIPTION, this.contentLeft() + 4, this.descriptionTop() + 4, -8421505);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.reasonSelectionList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 16, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        fill(pPoseStack, this.contentLeft(), this.descriptionTop(), this.contentRight(), this.descriptionBottom(), 2130706432);
+        drawString(pPoseStack, this.font, REASON_DESCRIPTION, this.contentLeft() + 4, this.descriptionTop() + 4, -8421505);
         ReportReasonSelectionScreen.ReasonSelectionList.Entry reportreasonselectionscreen$reasonselectionlist$entry = this.reasonSelectionList.getSelected();
         if (reportreasonselectionscreen$reasonselectionlist$entry != null) {
             int i = this.contentLeft() + 4 + 16;
@@ -127,9 +127,9 @@ public class ReportReasonSelectionScreen extends Screen {
         }
 
         @Nullable
-        public ReportReasonSelectionScreen.ReasonSelectionList.Entry findEntry(ReportReason p_239168_) {
+        public ReportReasonSelectionScreen.ReasonSelectionList.Entry findEntry(ReportReason pReason) {
             return this.children().stream().filter((p_239293_) -> {
-                                               return p_239293_.reason == p_239168_;
+                                               return p_239293_.reason == pReason;
                                            })
                     .findFirst()
                     .orElse((ReportReasonSelectionScreen.ReasonSelectionList.Entry) null);
@@ -147,9 +147,9 @@ public class ReportReasonSelectionScreen extends Screen {
             return ReportReasonSelectionScreen.this.getFocused() == this;
         }
 
-        public void setSelected(@Nullable ReportReasonSelectionScreen.ReasonSelectionList.Entry p_240601_) {
-            super.setSelected(p_240601_);
-            ReportReasonSelectionScreen.this.currentlySelectedReason = p_240601_ != null ? p_240601_.getReason() : null;
+        public void setSelected(@Nullable ReportReasonSelectionScreen.ReasonSelectionList.Entry pSelected) {
+            super.setSelected(pSelected);
+            ReportReasonSelectionScreen.this.currentlySelectedReason = pSelected != null ? pSelected.getReason() : null;
         }
 
         @OnlyIn(Dist.CLIENT)
@@ -160,18 +160,18 @@ public class ReportReasonSelectionScreen extends Screen {
                 this.reason = p_239267_;
             }
 
-            public void render(PoseStack p_239397_, int p_239398_, int p_239399_, int p_239400_, int p_239401_, int p_239402_, int p_239403_, int p_239404_, boolean p_239405_, float p_239406_) {
-                int i = p_239400_ + 1;
-                int j = p_239399_ + (p_239402_ - 9) / 2 + 1;
-                GuiComponent.drawString(p_239397_, ReportReasonSelectionScreen.this.font, this.reason.title(), i, j, -1);
+            public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+                int i = pLeft + 1;
+                int j = pTop + (pHeight - 9) / 2 + 1;
+                GuiComponent.drawString(pPoseStack, ReportReasonSelectionScreen.this.font, this.reason.title(), i, j, -1);
             }
 
             public Component getNarration() {
                 return Component.translatable("gui.abuseReport.reason.narration", this.reason.title(), this.reason.description());
             }
 
-            public boolean mouseClicked(double p_240021_, double p_240022_, int p_240023_) {
-                if (p_240023_ == 0) {
+            public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+                if (pButton == 0) {
                     ReasonSelectionList.this.setSelected(this);
                     return true;
                 } else {

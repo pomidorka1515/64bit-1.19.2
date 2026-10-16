@@ -26,8 +26,8 @@ public class SkeletonHorse extends AbstractHorse {
     private boolean isTrap;
     private int trapTime;
 
-    public SkeletonHorse(EntityType<? extends SkeletonHorse> p_30894_, Level p_30895_) {
-        super(p_30894_, p_30895_);
+    public SkeletonHorse(EntityType<? extends SkeletonHorse> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -51,8 +51,8 @@ public class SkeletonHorse extends AbstractHorse {
         return SoundEvents.SKELETON_HORSE_DEATH;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_30916_) {
-        super.getHurtSound(p_30916_);
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
+        super.getHurtSound(pDamageSource);
         return SoundEvents.SKELETON_HORSE_HURT;
     }
 
@@ -75,11 +75,11 @@ public class SkeletonHorse extends AbstractHorse {
         return SoundEvents.SKELETON_HORSE_SWIM;
     }
 
-    protected void playSwimSound(float p_30911_) {
+    protected void playSwimSound(float pVolume) {
         if (this.onGround) {
             super.playSwimSound(0.3F);
         } else {
-            super.playSwimSound(Math.min(0.1F, p_30911_ * 25.0F));
+            super.playSwimSound(Math.min(0.1F, pVolume * 25.0F));
         }
     }
 
@@ -106,16 +106,16 @@ public class SkeletonHorse extends AbstractHorse {
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_30907_) {
-        super.addAdditionalSaveData(p_30907_);
-        p_30907_.putBoolean("SkeletonTrap", this.isTrap());
-        p_30907_.putInt("SkeletonTrapTime", this.trapTime);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putBoolean("SkeletonTrap", this.isTrap());
+        pCompound.putInt("SkeletonTrapTime", this.trapTime);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_30901_) {
-        super.readAdditionalSaveData(p_30901_);
-        this.setTrap(p_30901_.getBoolean("SkeletonTrap"));
-        this.trapTime = p_30901_.getInt("SkeletonTrapTime");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setTrap(pCompound.getBoolean("SkeletonTrap"));
+        this.trapTime = pCompound.getInt("SkeletonTrapTime");
     }
 
     public boolean rideableUnderWater() {
@@ -130,10 +130,10 @@ public class SkeletonHorse extends AbstractHorse {
         return this.isTrap;
     }
 
-    public void setTrap(boolean p_30924_) {
-        if (p_30924_ != this.isTrap) {
-            this.isTrap = p_30924_;
-            if (p_30924_) {
+    public void setTrap(boolean pIsTrap) {
+        if (pIsTrap != this.isTrap) {
+            this.isTrap = pIsTrap;
+            if (pIsTrap) {
                 this.goalSelector.addGoal(1, this.skeletonTrapGoal);
             } else {
                 this.goalSelector.removeGoal(this.skeletonTrapGoal);
@@ -142,35 +142,35 @@ public class SkeletonHorse extends AbstractHorse {
     }
 
     @Nullable
-    public AgeableMob getBreedOffspring(ServerLevel p_149553_, AgeableMob p_149554_) {
-        return EntityType.SKELETON_HORSE.create(p_149553_);
+    public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+        return EntityType.SKELETON_HORSE.create(pLevel);
     }
 
-    public InteractionResult mobInteract(Player p_30904_, InteractionHand p_30905_) {
-        ItemStack itemstack = p_30904_.getItemInHand(p_30905_);
+    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (!this.isTamed()) {
             return InteractionResult.PASS;
         } else if (this.isBaby()) {
-            return super.mobInteract(p_30904_, p_30905_);
-        } else if (p_30904_.isSecondaryUseActive()) {
-            this.openCustomInventoryScreen(p_30904_);
+            return super.mobInteract(pPlayer, pHand);
+        } else if (pPlayer.isSecondaryUseActive()) {
+            this.openCustomInventoryScreen(pPlayer);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         } else if (this.isVehicle()) {
-            return super.mobInteract(p_30904_, p_30905_);
+            return super.mobInteract(pPlayer, pHand);
         } else {
             if (!itemstack.isEmpty()) {
                 if (itemstack.is(Items.SADDLE) && !this.isSaddled()) {
-                    this.openCustomInventoryScreen(p_30904_);
+                    this.openCustomInventoryScreen(pPlayer);
                     return InteractionResult.sidedSuccess(this.level.isClientSide);
                 }
 
-                InteractionResult interactionresult = itemstack.interactLivingEntity(p_30904_, this, p_30905_);
+                InteractionResult interactionresult = itemstack.interactLivingEntity(pPlayer, this, pHand);
                 if (interactionresult.consumesAction()) {
                     return interactionresult;
                 }
             }
 
-            this.doPlayerRide(p_30904_);
+            this.doPlayerRide(pPlayer);
             return InteractionResult.sidedSuccess(this.level.isClientSide);
         }
     }

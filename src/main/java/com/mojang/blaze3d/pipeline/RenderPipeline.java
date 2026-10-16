@@ -35,12 +35,12 @@ public class RenderPipeline {
         }
     }
 
-    public void recordRenderCall(RenderCall p_166184_) {
+    public void recordRenderCall(RenderCall pRenderCall) {
         if (!this.isRecording) {
             throw new RuntimeException("NOT RECORDING !!!");
         } else {
             ConcurrentLinkedQueue<RenderCall> concurrentlinkedqueue = this.getRecordingQueue();
-            concurrentlinkedqueue.add(p_166184_);
+            concurrentlinkedqueue.add(pRenderCall);
         }
     }
 

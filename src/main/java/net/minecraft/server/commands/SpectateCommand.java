@@ -19,8 +19,8 @@ public class SpectateCommand {
         return Component.translatable("commands.spectate.not_spectator", p_138688_);
     });
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138678_) {
-        p_138678_.register(Commands.literal("spectate").requires((p_138682_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("spectate").requires((p_138682_) -> {
                                                            return p_138682_.hasPermission(2);
                                                        })
                         .executes((p_138692_) -> {
@@ -34,17 +34,17 @@ public class SpectateCommand {
                                         }))));
     }
 
-    private static int spectate(CommandSourceStack p_138684_, @Nullable Entity p_138685_, ServerPlayer p_138686_) throws CommandSyntaxException {
-        if (p_138686_ == p_138685_) {
+    private static int spectate(CommandSourceStack pSource, @Nullable Entity pTarget, ServerPlayer pPlayer) throws CommandSyntaxException {
+        if (pPlayer == pTarget) {
             throw ERROR_SELF.create();
-        } else if (p_138686_.gameMode.getGameModeForPlayer() != GameType.SPECTATOR) {
-            throw ERROR_NOT_SPECTATOR.create(p_138686_.getDisplayName());
+        } else if (pPlayer.gameMode.getGameModeForPlayer() != GameType.SPECTATOR) {
+            throw ERROR_NOT_SPECTATOR.create(pPlayer.getDisplayName());
         } else {
-            p_138686_.setCamera(p_138685_);
-            if (p_138685_ != null) {
-                p_138684_.sendSuccess(Component.translatable("commands.spectate.success.started", p_138685_.getDisplayName()), false);
+            pPlayer.setCamera(pTarget);
+            if (pTarget != null) {
+                pSource.sendSuccess(Component.translatable("commands.spectate.success.started", pTarget.getDisplayName()), false);
             } else {
-                p_138684_.sendSuccess(Component.translatable("commands.spectate.success.stopped"), false);
+                pSource.sendSuccess(Component.translatable("commands.spectate.success.stopped"), false);
             }
 
             return 1;

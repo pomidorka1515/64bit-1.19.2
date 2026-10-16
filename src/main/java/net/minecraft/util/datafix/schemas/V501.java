@@ -6,19 +6,19 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class V501 extends Schema {
-    public V501(int p_17974_, Schema p_17975_) {
-        super(p_17974_, p_17975_);
+    public V501(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    protected static void registerMob(Schema p_17979_, Map<String, Supplier<TypeTemplate>> p_17980_, String p_17981_) {
-        p_17979_.register(p_17980_, p_17981_, () -> {
-            return V100.equipment(p_17979_);
+    protected static void registerMob(Schema pSchema, Map<String, Supplier<TypeTemplate>> pMap, String pName) {
+        pSchema.register(pMap, pName, () -> {
+            return V100.equipment(pSchema);
         });
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema p_17983_) {
-        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(p_17983_);
-        registerMob(p_17983_, map, "PolarBear");
+    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema pSchema) {
+        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(pSchema);
+        registerMob(pSchema, map, "PolarBear");
         return map;
     }
 }

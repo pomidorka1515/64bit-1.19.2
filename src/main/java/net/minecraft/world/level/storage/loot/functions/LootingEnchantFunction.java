@@ -22,10 +22,10 @@ public class LootingEnchantFunction extends LootItemConditionalFunction {
     final NumberProvider value;
     final int limit;
 
-    LootingEnchantFunction(LootItemCondition[] p_165226_, NumberProvider p_165227_, int p_165228_) {
-        super(p_165226_);
-        this.value = p_165227_;
-        this.limit = p_165228_;
+    LootingEnchantFunction(LootItemCondition[] pConditions, NumberProvider pLootingMultiplier, int pCountLimit) {
+        super(pConditions);
+        this.value = pLootingMultiplier;
+        this.limit = pCountLimit;
     }
 
     public LootItemFunctionType getType() {
@@ -40,42 +40,42 @@ public class LootingEnchantFunction extends LootItemConditionalFunction {
         return this.limit > 0;
     }
 
-    public ItemStack run(ItemStack p_80789_, LootContext p_80790_) {
-        Entity entity = p_80790_.getParamOrNull(LootContextParams.KILLER_ENTITY);
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        Entity entity = pContext.getParamOrNull(LootContextParams.KILLER_ENTITY);
         if (entity instanceof LivingEntity) {
             int i = EnchantmentHelper.getMobLooting((LivingEntity) entity);
             if (i == 0) {
-                return p_80789_;
+                return pStack;
             }
 
-            float f = (float) i * this.value.getFloat(p_80790_);
-            p_80789_.grow(Math.round(f));
-            if (this.hasLimit() && p_80789_.getCount() > this.limit) {
-                p_80789_.setCount(this.limit);
+            float f = (float) i * this.value.getFloat(pContext);
+            pStack.grow(Math.round(f));
+            if (this.hasLimit() && pStack.getCount() > this.limit) {
+                pStack.setCount(this.limit);
             }
         }
 
-        return p_80789_;
+        return pStack;
     }
 
-    public static LootingEnchantFunction.Builder lootingMultiplier(NumberProvider p_165230_) {
-        return new LootingEnchantFunction.Builder(p_165230_);
+    public static LootingEnchantFunction.Builder lootingMultiplier(NumberProvider pLootingMultiplier) {
+        return new LootingEnchantFunction.Builder(pLootingMultiplier);
     }
 
     public static class Builder extends LootItemConditionalFunction.Builder<LootingEnchantFunction.Builder> {
         private final NumberProvider count;
         private int limit = 0;
 
-        public Builder(NumberProvider p_165232_) {
-            this.count = p_165232_;
+        public Builder(NumberProvider pLootingMultiplier) {
+            this.count = pLootingMultiplier;
         }
 
         protected LootingEnchantFunction.Builder getThis() {
             return this;
         }
 
-        public LootingEnchantFunction.Builder setLimit(int p_80807_) {
-            this.limit = p_80807_;
+        public LootingEnchantFunction.Builder setLimit(int pLimit) {
+            this.limit = pLimit;
             return this;
         }
 
@@ -85,17 +85,17 @@ public class LootingEnchantFunction extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<LootingEnchantFunction> {
-        public void serialize(JsonObject p_80820_, LootingEnchantFunction p_80821_, JsonSerializationContext p_80822_) {
-            super.serialize(p_80820_, p_80821_, p_80822_);
-            p_80820_.add("count", p_80822_.serialize(p_80821_.value));
-            if (p_80821_.hasLimit()) {
-                p_80820_.add("limit", p_80822_.serialize(p_80821_.limit));
+        public void serialize(JsonObject pJson, LootingEnchantFunction pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            pJson.add("count", pSerializationContext.serialize(pValue.value));
+            if (pValue.hasLimit()) {
+                pJson.add("limit", pSerializationContext.serialize(pValue.limit));
             }
         }
 
-        public LootingEnchantFunction deserialize(JsonObject p_80812_, JsonDeserializationContext p_80813_, LootItemCondition[] p_80814_) {
-            int i = GsonHelper.getAsInt(p_80812_, "limit", 0);
-            return new LootingEnchantFunction(p_80814_, GsonHelper.getAsObject(p_80812_, "count", p_80813_, NumberProvider.class), i);
+        public LootingEnchantFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            int i = GsonHelper.getAsInt(pObject, "limit", 0);
+            return new LootingEnchantFunction(pConditions, GsonHelper.getAsObject(pObject, "count", pDeserializationContext, NumberProvider.class), i);
         }
     }
 }

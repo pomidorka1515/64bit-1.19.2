@@ -45,7 +45,7 @@ public class Enchantments {
     public static final Enchantment MENDING = register("mending", new MendingEnchantment(Enchantment.Rarity.RARE, EquipmentSlot.values()));
     public static final Enchantment VANISHING_CURSE = register("vanishing_curse", new VanishingCurseEnchantment(Enchantment.Rarity.VERY_RARE, EquipmentSlot.values()));
 
-    private static Enchantment register(String p_44993_, Enchantment p_44994_) {
-        return Registry.register(Registry.ENCHANTMENT, p_44993_, p_44994_);
+    private static Enchantment register(String pIdentifier, Enchantment pEnchantment) {
+        return Registry.register(Registry.ENCHANTMENT, pIdentifier, pEnchantment);
     }
 }

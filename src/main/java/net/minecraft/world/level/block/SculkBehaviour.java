@@ -34,22 +34,22 @@ public interface SculkBehaviour {
         return 1;
     }
 
-    default void onDischarged(LevelAccessor p_222026_, BlockState p_222027_, BlockPos p_222028_, RandomSource p_222029_) {
+    default void onDischarged(LevelAccessor pLevel, BlockState pState, BlockPos pPos, RandomSource pRandom) {
     }
 
-    default boolean depositCharge(LevelAccessor p_222031_, BlockPos p_222032_, RandomSource p_222033_) {
+    default boolean depositCharge(LevelAccessor pLevel, BlockPos pPos, RandomSource pRandom) {
         return false;
     }
 
-    default boolean attemptSpreadVein(LevelAccessor p_222034_, BlockPos p_222035_, BlockState p_222036_, @Nullable Collection<Direction> p_222037_, boolean p_222038_) {
-        return ((MultifaceBlock) Blocks.SCULK_VEIN).getSpreader().spreadAll(p_222036_, p_222034_, p_222035_, p_222038_) > 0L;
+    default boolean attemptSpreadVein(LevelAccessor pLevel, BlockPos pPos, BlockState pState, @Nullable Collection<Direction> pDirections, boolean pMarkForPostprocessing) {
+        return ((MultifaceBlock) Blocks.SCULK_VEIN).getSpreader().spreadAll(pState, pLevel, pPos, pMarkForPostprocessing) > 0L;
     }
 
     default boolean canChangeBlockStateOnSpread() {
         return true;
     }
 
-    default int updateDecayDelay(int p_222045_) {
+    default int updateDecayDelay(int pCurrentDecayDelay) {
         return 1;
     }
 

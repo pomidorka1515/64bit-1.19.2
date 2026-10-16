@@ -59,8 +59,8 @@ public class Explosion {
     private final Map<Player, Vec3> hitPlayers = Maps.newHashMap();
 
     /** Legacy absolute-double construction boundary. Prefer the SectorVec3 constructors. */
-    public Explosion(Level p_151471_, @Nullable Entity p_151472_, double p_151473_, double p_151474_, double p_151475_, float p_151476_) {
-        this(p_151471_, p_151472_, SectorVec3.fromApproximate(p_151473_, p_151474_, p_151475_), p_151476_, false, Explosion.BlockInteraction.DESTROY);
+    public Explosion(Level pLevel, @Nullable Entity pSource, double pToBlowX, double pToBlowY, double pToBlowZ, float pRadius) {
+        this(pLevel, pSource, SectorVec3.fromApproximate(pToBlowX, pToBlowY, pToBlowZ), pRadius, false, Explosion.BlockInteraction.DESTROY);
     }
 
     public Explosion(Level level, @Nullable Entity source, SectorVec3 position, float radius) {
@@ -68,8 +68,8 @@ public class Explosion {
     }
 
     /** Legacy absolute-double construction boundary. Prefer the SectorVec3 constructors. */
-    public Explosion(Level p_46024_, @Nullable Entity p_46025_, double p_46026_, double p_46027_, double p_46028_, float p_46029_, List<BlockPos> p_46030_) {
-        this(p_46024_, p_46025_, SectorVec3.fromApproximate(p_46026_, p_46027_, p_46028_), p_46029_, p_46030_);
+    public Explosion(Level pLevel, @Nullable Entity pSource, double pToBlowX, double pToBlowY, double pToBlowZ, float pRadius, List<BlockPos> pPositions) {
+        this(pLevel, pSource, SectorVec3.fromApproximate(pToBlowX, pToBlowY, pToBlowZ), pRadius, pPositions);
     }
 
     public Explosion(Level level, @Nullable Entity source, SectorVec3 position, float radius, List<BlockPos> toBlow) {
@@ -77,8 +77,8 @@ public class Explosion {
     }
 
     /** Legacy absolute-double construction boundary. Prefer the SectorVec3 constructors. */
-    public Explosion(Level p_46041_, @Nullable Entity p_46042_, double p_46043_, double p_46044_, double p_46045_, float p_46046_, boolean p_46047_, Explosion.BlockInteraction p_46048_, List<BlockPos> p_46049_) {
-        this(p_46041_, p_46042_, SectorVec3.fromApproximate(p_46043_, p_46044_, p_46045_), p_46046_, p_46047_, p_46048_, p_46049_);
+    public Explosion(Level pLevel, @Nullable Entity pSource, double pToBlowX, double pToBlowY, double pToBlowZ, float pRadius, boolean pFire, Explosion.BlockInteraction pBlockInteraction, List<BlockPos> pPositions) {
+        this(pLevel, pSource, SectorVec3.fromApproximate(pToBlowX, pToBlowY, pToBlowZ), pRadius, pFire, pBlockInteraction, pPositions);
     }
 
     public Explosion(Level level, @Nullable Entity source, SectorVec3 position, float radius, boolean fire,
@@ -88,8 +88,8 @@ public class Explosion {
     }
 
     /** Legacy absolute-double construction boundary. Prefer the SectorVec3 constructors. */
-    public Explosion(Level p_46032_, @Nullable Entity p_46033_, double p_46034_, double p_46035_, double p_46036_, float p_46037_, boolean p_46038_, Explosion.BlockInteraction p_46039_) {
-        this(p_46032_, p_46033_, SectorVec3.fromApproximate(p_46034_, p_46035_, p_46036_), p_46037_, p_46038_, p_46039_);
+    public Explosion(Level pLevel, @Nullable Entity pSource, double pToBlowX, double pToBlowY, double pToBlowZ, float pRadius, boolean pFire, Explosion.BlockInteraction pBlockInteraction) {
+        this(pLevel, pSource, SectorVec3.fromApproximate(pToBlowX, pToBlowY, pToBlowZ), pRadius, pFire, pBlockInteraction);
     }
 
     public Explosion(Level level, @Nullable Entity source, SectorVec3 position, float radius, boolean fire,
@@ -98,8 +98,8 @@ public class Explosion {
     }
 
     /** Legacy absolute-double construction boundary. Prefer the SectorVec3 constructors. */
-    public Explosion(Level p_46051_, @Nullable Entity p_46052_, @Nullable DamageSource p_46053_, @Nullable ExplosionDamageCalculator p_46054_, double p_46055_, double p_46056_, double p_46057_, float p_46058_, boolean p_46059_, Explosion.BlockInteraction p_46060_) {
-        this(p_46051_, p_46052_, p_46053_, p_46054_, SectorVec3.fromApproximate(p_46055_, p_46056_, p_46057_), p_46058_, p_46059_, p_46060_);
+    public Explosion(Level pLevel, @Nullable Entity pSource, @Nullable DamageSource pDamageSource, @Nullable ExplosionDamageCalculator pDamageCalculator, double pToBlowX, double pToBlowY, double pToBlowZ, float pRadius, boolean pFire, Explosion.BlockInteraction pBlockInteraction) {
+        this(pLevel, pSource, pDamageSource, pDamageCalculator, SectorVec3.fromApproximate(pToBlowX, pToBlowY, pToBlowZ), pRadius, pFire, pBlockInteraction);
     }
 
     public Explosion(Level level, @Nullable Entity source, @Nullable DamageSource damageSource,
@@ -117,8 +117,8 @@ public class Explosion {
         this.damageCalculator = damageCalculator == null ? this.makeDamageCalculator(source) : damageCalculator;
     }
 
-    private ExplosionDamageCalculator makeDamageCalculator(@Nullable Entity p_46063_) {
-        return (ExplosionDamageCalculator) (p_46063_ == null ? EXPLOSION_DAMAGE_CALCULATOR : new EntityBasedExplosionDamageCalculator(p_46063_));
+    private ExplosionDamageCalculator makeDamageCalculator(@Nullable Entity pEntity) {
+        return (ExplosionDamageCalculator) (pEntity == null ? EXPLOSION_DAMAGE_CALCULATOR : new EntityBasedExplosionDamageCalculator(pEntity));
     }
 
     public void explode() {
@@ -282,7 +282,7 @@ public class Explosion {
         return this.position;
     }
 
-    public void finalizeExplosion(boolean p_46076_) {
+    public void finalizeExplosion(boolean pSpawnParticles) {
         if (this.level.isClientSide) {
             // Sound has not yet received an exact origin overload; preserve its legacy boundary.
             Vec3 approximatePosition = this.position.toApproximateVec3();
@@ -292,7 +292,7 @@ public class Explosion {
         }
 
         boolean flag = this.blockInteraction != Explosion.BlockInteraction.NONE;
-        if (p_46076_) {
+        if (pSpawnParticles) {
             if (!(this.radius < 2.0F) && flag) {
                 this.level.addParticle(ParticleTypes.EXPLOSION_EMITTER, this.position, 1.0D, 0.0D, 0.0D);
             } else {
@@ -348,22 +348,22 @@ public class Explosion {
         }
     }
 
-    private static void addBlockDrops(ObjectArrayList<Pair<ItemStack, BlockPos>> p_46068_, ItemStack p_46069_, BlockPos p_46070_) {
-        int i = p_46068_.size();
+    private static void addBlockDrops(ObjectArrayList<Pair<ItemStack, BlockPos>> pDropPositionArray, ItemStack pStack, BlockPos pPos) {
+        int i = pDropPositionArray.size();
 
         for (int j = 0; j < i; ++j) {
-            Pair<ItemStack, BlockPos> pair = p_46068_.get(j);
+            Pair<ItemStack, BlockPos> pair = pDropPositionArray.get(j);
             ItemStack itemstack = pair.getFirst();
-            if (ItemEntity.areMergable(itemstack, p_46069_)) {
-                ItemStack itemstack1 = ItemEntity.merge(itemstack, p_46069_, 16);
-                p_46068_.set(j, Pair.of(itemstack1, pair.getSecond()));
-                if (p_46069_.isEmpty()) {
+            if (ItemEntity.areMergable(itemstack, pStack)) {
+                ItemStack itemstack1 = ItemEntity.merge(itemstack, pStack, 16);
+                pDropPositionArray.set(j, Pair.of(itemstack1, pair.getSecond()));
+                if (pStack.isEmpty()) {
                     return;
                 }
             }
         }
 
-        p_46068_.add(Pair.of(p_46069_, p_46070_));
+        pDropPositionArray.add(Pair.of(pStack, pPos));
     }
 
     public DamageSource getDamageSource() {

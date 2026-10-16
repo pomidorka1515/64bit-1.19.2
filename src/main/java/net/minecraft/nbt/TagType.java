@@ -4,25 +4,25 @@ import java.io.DataInput;
 import java.io.IOException;
 
 public interface TagType<T extends Tag> {
-    T load(DataInput p_129379_, int p_129380_, NbtAccounter p_129381_) throws IOException;
+    T load(DataInput pInput, int pDepth, NbtAccounter pAccounter) throws IOException;
 
-    StreamTagVisitor.ValueResult parse(DataInput p_197578_, StreamTagVisitor p_197579_) throws IOException;
+    StreamTagVisitor.ValueResult parse(DataInput pInput, StreamTagVisitor pVisitor) throws IOException;
 
-    default void parseRoot(DataInput p_197581_, StreamTagVisitor p_197582_) throws IOException {
-        switch (p_197582_.visitRootEntry(this)) {
+    default void parseRoot(DataInput pInput, StreamTagVisitor pVisitor) throws IOException {
+        switch (pVisitor.visitRootEntry(this)) {
             case CONTINUE:
-                this.parse(p_197581_, p_197582_);
+                this.parse(pInput, pVisitor);
             case HALT:
             default:
                 break;
             case BREAK:
-                this.skip(p_197581_);
+                this.skip(pInput);
         }
     }
 
     void skip(DataInput p_197576_, int p_197577_) throws IOException;
 
-    void skip(DataInput p_197575_) throws IOException;
+    void skip(DataInput pInput) throws IOException;
 
     default boolean isValue() {
         return false;
@@ -32,10 +32,10 @@ public interface TagType<T extends Tag> {
 
     String getPrettyName();
 
-    static TagType<EndTag> createInvalid(final int p_129378_) {
+    static TagType<EndTag> createInvalid(final int pId) {
         return new TagType<EndTag>() {
             private IOException createException() {
-                return new IOException("Invalid tag id: " + p_129378_);
+                return new IOException("Invalid tag id: " + pId);
             }
 
             public EndTag load(DataInput p_129387_, int p_129388_, NbtAccounter p_129389_) throws IOException {
@@ -55,11 +55,11 @@ public interface TagType<T extends Tag> {
             }
 
             public String getName() {
-                return "INVALID[" + p_129378_ + "]";
+                return "INVALID[" + pId + "]";
             }
 
             public String getPrettyName() {
-                return "UNKNOWN_" + p_129378_;
+                return "UNKNOWN_" + pId;
             }
         };
     }

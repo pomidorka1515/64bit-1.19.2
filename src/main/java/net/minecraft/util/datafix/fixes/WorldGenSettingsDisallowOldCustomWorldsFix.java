@@ -7,8 +7,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.datafixers.types.Type;
 
 public class WorldGenSettingsDisallowOldCustomWorldsFix extends DataFix {
-    public WorldGenSettingsDisallowOldCustomWorldsFix(Schema p_185157_) {
-        super(p_185157_, false);
+    public WorldGenSettingsDisallowOldCustomWorldsFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     protected TypeRewriteRule makeRule() {

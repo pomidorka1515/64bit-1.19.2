@@ -31,15 +31,15 @@ public class ThrownTrident extends AbstractArrow {
     private boolean dealtDamage;
     public int clientSideReturnTridentTickCount;
 
-    public ThrownTrident(EntityType<? extends ThrownTrident> p_37561_, Level p_37562_) {
-        super(p_37561_, p_37562_);
+    public ThrownTrident(EntityType<? extends ThrownTrident> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public ThrownTrident(Level p_37569_, LivingEntity p_37570_, ItemStack p_37571_) {
-        super(EntityType.TRIDENT, p_37570_, p_37569_);
-        this.tridentItem = p_37571_.copy();
-        this.entityData.set(ID_LOYALTY, (byte) EnchantmentHelper.getLoyalty(p_37571_));
-        this.entityData.set(ID_FOIL, p_37571_.hasFoil());
+    public ThrownTrident(Level pLevel, LivingEntity pShooter, ItemStack pStack) {
+        super(EntityType.TRIDENT, pShooter, pLevel);
+        this.tridentItem = pStack.copy();
+        this.entityData.set(ID_LOYALTY, (byte) EnchantmentHelper.getLoyalty(pStack));
+        this.entityData.set(ID_FOIL, pStack.hasFoil());
     }
 
     protected void defineSynchedData() {
@@ -101,12 +101,12 @@ public class ThrownTrident extends AbstractArrow {
     }
 
     @Nullable
-    protected EntityHitResult findHitEntity(SectorVec3 p_37575_, SectorVec3 p_37576_) {
-        return this.dealtDamage ? null : super.findHitEntity(p_37575_, p_37576_);
+    protected EntityHitResult findHitEntity(SectorVec3 pStartVec, SectorVec3 pEndVec) {
+        return this.dealtDamage ? null : super.findHitEntity(pStartVec, pEndVec);
     }
 
-    protected void onHitEntity(EntityHitResult p_37573_) {
-        Entity entity = p_37573_.getEntity();
+    protected void onHitEntity(EntityHitResult pResult) {
+        Entity entity = pResult.getEntity();
         float f = 8.0F;
         if (entity instanceof LivingEntity livingentity) {
             f += EnchantmentHelper.getDamageBonus(this.tridentItem, livingentity.getMobType());
@@ -153,34 +153,34 @@ public class ThrownTrident extends AbstractArrow {
         return EnchantmentHelper.hasChanneling(this.tridentItem);
     }
 
-    protected boolean tryPickup(Player p_150196_) {
-        return super.tryPickup(p_150196_) || this.isNoPhysics() && this.ownedBy(p_150196_) && p_150196_.getInventory().add(this.getPickupItem());
+    protected boolean tryPickup(Player pPlayer) {
+        return super.tryPickup(pPlayer) || this.isNoPhysics() && this.ownedBy(pPlayer) && pPlayer.getInventory().add(this.getPickupItem());
     }
 
     protected SoundEvent getDefaultHitGroundSoundEvent() {
         return SoundEvents.TRIDENT_HIT_GROUND;
     }
 
-    public void playerTouch(Player p_37580_) {
-        if (this.ownedBy(p_37580_) || this.getOwner() == null) {
-            super.playerTouch(p_37580_);
+    public void playerTouch(Player pEntity) {
+        if (this.ownedBy(pEntity) || this.getOwner() == null) {
+            super.playerTouch(pEntity);
         }
     }
 
-    public void readAdditionalSaveData(CompoundTag p_37578_) {
-        super.readAdditionalSaveData(p_37578_);
-        if (p_37578_.contains("Trident", 10)) {
-            this.tridentItem = ItemStack.of(p_37578_.getCompound("Trident"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("Trident", 10)) {
+            this.tridentItem = ItemStack.of(pCompound.getCompound("Trident"));
         }
 
-        this.dealtDamage = p_37578_.getBoolean("DealtDamage");
+        this.dealtDamage = pCompound.getBoolean("DealtDamage");
         this.entityData.set(ID_LOYALTY, (byte) EnchantmentHelper.getLoyalty(this.tridentItem));
     }
 
-    public void addAdditionalSaveData(CompoundTag p_37582_) {
-        super.addAdditionalSaveData(p_37582_);
-        p_37582_.put("Trident", this.tridentItem.save(new CompoundTag()));
-        p_37582_.putBoolean("DealtDamage", this.dealtDamage);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.put("Trident", this.tridentItem.save(new CompoundTag()));
+        pCompound.putBoolean("DealtDamage", this.dealtDamage);
     }
 
     public void tickDespawn() {
@@ -194,7 +194,7 @@ public class ThrownTrident extends AbstractArrow {
         return 0.99F;
     }
 
-    public boolean shouldRender(double p_37588_, double p_37589_, double p_37590_) {
+    public boolean shouldRender(double pX, double pY, double pZ) {
         return true;
     }
 }

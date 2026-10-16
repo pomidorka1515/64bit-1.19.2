@@ -9,8 +9,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class WaterDropParticle extends TextureSheetParticle {
-    protected WaterDropParticle(ClientLevel p_108484_, double p_108485_, double p_108486_, double p_108487_) {
-        super(p_108484_, p_108485_, p_108486_, p_108487_, 0.0D, 0.0D, 0.0D);
+    protected WaterDropParticle(ClientLevel pLevel, double pX, double pY, double pZ) {
+        super(pLevel, pX, pY, pZ, 0.0D, 0.0D, 0.0D);
         this.xd *= (double) 0.3F;
         this.yd = Math.random() * (double) 0.2F + (double) 0.1F;
         this.zd *= (double) 0.3F;
@@ -57,12 +57,12 @@ public class WaterDropParticle extends TextureSheetParticle {
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public Provider(SpriteSet p_108492_) {
-            this.sprite = p_108492_;
+        public Provider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_108503_, ClientLevel p_108504_, double p_108505_, double p_108506_, double p_108507_, double p_108508_, double p_108509_, double p_108510_) {
-            WaterDropParticle waterdropparticle = new WaterDropParticle(p_108504_, p_108505_, p_108506_, p_108507_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            WaterDropParticle waterdropparticle = new WaterDropParticle(pLevel, pX, pY, pZ);
             waterdropparticle.pickSprite(this.sprite);
             return waterdropparticle;
         }

@@ -27,8 +27,8 @@ public abstract class TrunkPlacer {
     protected final int heightRandA;
     protected final int heightRandB;
 
-    protected static <P extends TrunkPlacer> Products.P3<RecordCodecBuilder.Mu<P>, Integer, Integer, Integer> trunkPlacerParts(RecordCodecBuilder.Instance<P> p_70306_) {
-        return p_70306_.group(Codec.intRange(0, 32).fieldOf("base_height").forGetter((p_70314_) -> {
+    protected static <P extends TrunkPlacer> Products.P3<RecordCodecBuilder.Mu<P>, Integer, Integer, Integer> trunkPlacerParts(RecordCodecBuilder.Instance<P> pInstance) {
+        return pInstance.group(Codec.intRange(0, 32).fieldOf("base_height").forGetter((p_70314_) -> {
             return p_70314_.baseHeight;
         }),
                 Codec.intRange(0, 24).fieldOf("height_rand_a").forGetter((p_70312_) -> {
@@ -39,57 +39,57 @@ public abstract class TrunkPlacer {
                 }));
     }
 
-    public TrunkPlacer(int p_70268_, int p_70269_, int p_70270_) {
-        this.baseHeight = p_70268_;
-        this.heightRandA = p_70269_;
-        this.heightRandB = p_70270_;
+    public TrunkPlacer(int pBaseHeight, int pHeightRandA, int pHeightRandB) {
+        this.baseHeight = pBaseHeight;
+        this.heightRandA = pHeightRandA;
+        this.heightRandB = pHeightRandB;
     }
 
     protected abstract TrunkPlacerType<?> type();
 
-    public abstract List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader p_226157_, BiConsumer<BlockPos, BlockState> p_226158_, RandomSource p_226159_, int p_226160_, BlockPos p_226161_, TreeConfiguration p_226162_);
+    public abstract List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, int pFreeTreeHeight, BlockPos pPos, TreeConfiguration pConfig);
 
-    public int getTreeHeight(RandomSource p_226154_) {
-        return this.baseHeight + p_226154_.nextInt(this.heightRandA + 1) + p_226154_.nextInt(this.heightRandB + 1);
+    public int getTreeHeight(RandomSource pRandom) {
+        return this.baseHeight + pRandom.nextInt(this.heightRandA + 1) + pRandom.nextInt(this.heightRandB + 1);
     }
 
-    private static boolean isDirt(LevelSimulatedReader p_70296_, BlockPos p_70297_) {
-        return p_70296_.isStateAtPosition(p_70297_, (p_70304_) -> {
+    private static boolean isDirt(LevelSimulatedReader pLevel, BlockPos pPos) {
+        return pLevel.isStateAtPosition(pPos, (p_70304_) -> {
             return Feature.isDirt(p_70304_) && !p_70304_.is(Blocks.GRASS_BLOCK) && !p_70304_.is(Blocks.MYCELIUM);
         });
     }
 
-    protected static void setDirtAt(LevelSimulatedReader p_226170_, BiConsumer<BlockPos, BlockState> p_226171_, RandomSource p_226172_, BlockPos p_226173_, TreeConfiguration p_226174_) {
-        if (p_226174_.forceDirt || !isDirt(p_226170_, p_226173_)) {
-            p_226171_.accept(p_226173_, p_226174_.dirtProvider.getState(p_226172_, p_226173_));
+    protected static void setDirtAt(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, BlockPos pPos, TreeConfiguration pConfig) {
+        if (pConfig.forceDirt || !isDirt(pLevel, pPos)) {
+            pBlockSetter.accept(pPos, pConfig.dirtProvider.getState(pRandom, pPos));
         }
     }
 
-    protected boolean placeLog(LevelSimulatedReader p_226188_, BiConsumer<BlockPos, BlockState> p_226189_, RandomSource p_226190_, BlockPos p_226191_, TreeConfiguration p_226192_) {
-        return this.placeLog(p_226188_, p_226189_, p_226190_, p_226191_, p_226192_, Function.identity());
+    protected boolean placeLog(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, BlockPos pPos, TreeConfiguration pConfig) {
+        return this.placeLog(pLevel, pBlockSetter, pRandom, pPos, pConfig, Function.identity());
     }
 
-    protected boolean placeLog(LevelSimulatedReader p_226176_, BiConsumer<BlockPos, BlockState> p_226177_, RandomSource p_226178_, BlockPos p_226179_, TreeConfiguration p_226180_, Function<BlockState, BlockState> p_226181_) {
-        if (this.validTreePos(p_226176_, p_226179_)) {
-            p_226177_.accept(p_226179_, p_226181_.apply(p_226180_.trunkProvider.getState(p_226178_, p_226179_)));
+    protected boolean placeLog(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, BlockPos pPos, TreeConfiguration pConfig, Function<BlockState, BlockState> pPropertySetter) {
+        if (this.validTreePos(pLevel, pPos)) {
+            pBlockSetter.accept(pPos, pPropertySetter.apply(pConfig.trunkProvider.getState(pRandom, pPos)));
             return true;
         } else {
             return false;
         }
     }
 
-    protected void placeLogIfFree(LevelSimulatedReader p_226164_, BiConsumer<BlockPos, BlockState> p_226165_, RandomSource p_226166_, BlockPos.MutableBlockPos p_226167_, TreeConfiguration p_226168_) {
-        if (this.isFree(p_226164_, p_226167_)) {
-            this.placeLog(p_226164_, p_226165_, p_226166_, p_226167_, p_226168_);
+    protected void placeLogIfFree(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, BlockPos.MutableBlockPos pPos, TreeConfiguration pConfig) {
+        if (this.isFree(pLevel, pPos)) {
+            this.placeLog(pLevel, pBlockSetter, pRandom, pPos, pConfig);
         }
     }
 
-    protected boolean validTreePos(LevelSimulatedReader p_226155_, BlockPos p_226156_) {
-        return TreeFeature.validTreePos(p_226155_, p_226156_);
+    protected boolean validTreePos(LevelSimulatedReader pLevel, BlockPos pPos) {
+        return TreeFeature.validTreePos(pLevel, pPos);
     }
 
-    public boolean isFree(LevelSimulatedReader p_226185_, BlockPos p_226186_) {
-        return this.validTreePos(p_226185_, p_226186_) || p_226185_.isStateAtPosition(p_226186_, (p_226183_) -> {
+    public boolean isFree(LevelSimulatedReader pLevel, BlockPos pPos) {
+        return this.validTreePos(pLevel, pPos) || pLevel.isStateAtPosition(pPos, (p_226183_) -> {
             return p_226183_.is(BlockTags.LOGS);
         });
     }

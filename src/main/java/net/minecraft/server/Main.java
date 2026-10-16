@@ -60,7 +60,7 @@ public class Main {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     @DontObfuscate
-    public static void main(String[] p_129699_) {
+    public static void main(String[] pArgs) {
         SharedConstants.tryDetectVersion();
         OptionParser optionparser = new OptionParser();
         OptionSpec<Void> optionspec = optionparser.accepts("nogui");
@@ -80,7 +80,7 @@ public class Main {
         OptionSpec<String> optionspec14 = optionparser.nonOptions();
 
         try {
-            OptionSet optionset = optionparser.parse(p_129699_);
+            OptionSet optionset = optionparser.parse(pArgs);
             if (optionset.has(optionspec7)) {
                 optionparser.printHelpOn(System.err);
                 return;

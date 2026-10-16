@@ -9,8 +9,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class GuardedSerializer {
     private final Gson gson = new Gson();
 
-    public String toJson(ReflectionBasedSerialization p_87414_) {
-        return this.gson.toJson(p_87414_);
+    public String toJson(ReflectionBasedSerialization pReflectionBasedSerialization) {
+        return this.gson.toJson(pReflectionBasedSerialization);
     }
 
     @Nullable

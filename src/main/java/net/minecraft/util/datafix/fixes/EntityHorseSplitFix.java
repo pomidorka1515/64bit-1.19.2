@@ -9,8 +9,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.Objects;
 
 public class EntityHorseSplitFix extends EntityRenameFix {
-    public EntityHorseSplitFix(Schema p_15447_, boolean p_15448_) {
-        super("EntityHorseSplitFix", p_15447_, p_15448_);
+    public EntityHorseSplitFix(Schema pOutputSchema, boolean pChangesType) {
+        super("EntityHorseSplitFix", pOutputSchema, pChangesType);
     }
 
     protected Pair<String, Typed<?>> fix(String p_15451_, Typed<?> p_15452_) {

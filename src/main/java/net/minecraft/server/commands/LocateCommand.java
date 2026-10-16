@@ -49,8 +49,8 @@ public class LocateCommand {
     private static final int BIOME_SAMPLE_RESOLUTION_VERTICAL = 64;
     private static final int POI_SEARCH_RADIUS = 256;
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_137859_) {
-        p_137859_.register(Commands.literal("locate").requires((p_214470_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("locate").requires((p_214470_) -> {
                                                          return p_214470_.hasPermission(2);
                                                      })
                         .then(Commands.literal("structure").then(Commands.argument("structure", ResourceOrTagLocationArgument.resourceOrTag(Registry.STRUCTURE_REGISTRY)).executes((p_214507_) -> {
@@ -72,55 +72,55 @@ public class LocateCommand {
         }, p_214485_::getTag);
     }
 
-    private static int locateStructure(CommandSourceStack p_214472_, ResourceOrTagLocationArgument.Result<Structure> p_214473_) throws CommandSyntaxException {
-        Registry<Structure> registry = p_214472_.getLevel().registryAccess().registryOrThrow(Registry.STRUCTURE_REGISTRY);
-        HolderSet<Structure> holderset = getHolders(p_214473_, registry).orElseThrow(() -> {
-            return ERROR_STRUCTURE_INVALID.create(p_214473_.asPrintable());
+    private static int locateStructure(CommandSourceStack pSource, ResourceOrTagLocationArgument.Result<Structure> pStructure) throws CommandSyntaxException {
+        Registry<Structure> registry = pSource.getLevel().registryAccess().registryOrThrow(Registry.STRUCTURE_REGISTRY);
+        HolderSet<Structure> holderset = getHolders(pStructure, registry).orElseThrow(() -> {
+            return ERROR_STRUCTURE_INVALID.create(pStructure.asPrintable());
         });
-        BlockPos blockpos = p_214472_.getExactPosition().blockPosition();
-        ServerLevel serverlevel = p_214472_.getLevel();
+        BlockPos blockpos = pSource.getExactPosition().blockPosition();
+        ServerLevel serverlevel = pSource.getLevel();
         Pair<BlockPos, Holder<Structure>> pair = serverlevel.getChunkSource().getGenerator().findNearestMapStructure(serverlevel, holderset, blockpos, 100, false);
         if (pair == null) {
-            throw ERROR_STRUCTURE_NOT_FOUND.create(p_214473_.asPrintable());
+            throw ERROR_STRUCTURE_NOT_FOUND.create(pStructure.asPrintable());
         } else {
-            return showLocateResult(p_214472_, p_214473_, blockpos, pair, "commands.locate.structure.success", false);
+            return showLocateResult(pSource, pStructure, blockpos, pair, "commands.locate.structure.success", false);
         }
     }
 
-    private static int locateBiome(CommandSourceStack p_214502_, ResourceOrTagLocationArgument.Result<Biome> p_214503_) throws CommandSyntaxException {
-        BlockPos blockpos = p_214502_.getExactPosition().blockPosition();
-        Pair<BlockPos, Holder<Biome>> pair = p_214502_.getLevel().findClosestBiome3d(p_214503_, blockpos, 6400, 32, 64);
+    private static int locateBiome(CommandSourceStack pSource, ResourceOrTagLocationArgument.Result<Biome> pBiome) throws CommandSyntaxException {
+        BlockPos blockpos = pSource.getExactPosition().blockPosition();
+        Pair<BlockPos, Holder<Biome>> pair = pSource.getLevel().findClosestBiome3d(pBiome, blockpos, 6400, 32, 64);
         if (pair == null) {
-            throw ERROR_BIOME_NOT_FOUND.create(p_214503_.asPrintable());
+            throw ERROR_BIOME_NOT_FOUND.create(pBiome.asPrintable());
         } else {
-            return showLocateResult(p_214502_, p_214503_, blockpos, pair, "commands.locate.biome.success", true);
+            return showLocateResult(pSource, pBiome, blockpos, pair, "commands.locate.biome.success", true);
         }
     }
 
-    private static int locatePoi(CommandSourceStack p_214509_, ResourceOrTagLocationArgument.Result<PoiType> p_214510_) throws CommandSyntaxException {
-        BlockPos blockpos = p_214509_.getExactPosition().blockPosition();
-        ServerLevel serverlevel = p_214509_.getLevel();
-        Optional<Pair<Holder<PoiType>, BlockPos>> optional = serverlevel.getPoiManager().findClosestWithType(p_214510_, blockpos, 256, PoiManager.Occupancy.ANY);
+    private static int locatePoi(CommandSourceStack pSource, ResourceOrTagLocationArgument.Result<PoiType> pPoiType) throws CommandSyntaxException {
+        BlockPos blockpos = pSource.getExactPosition().blockPosition();
+        ServerLevel serverlevel = pSource.getLevel();
+        Optional<Pair<Holder<PoiType>, BlockPos>> optional = serverlevel.getPoiManager().findClosestWithType(pPoiType, blockpos, 256, PoiManager.Occupancy.ANY);
         if (optional.isEmpty()) {
-            throw ERROR_POI_NOT_FOUND.create(p_214510_.asPrintable());
+            throw ERROR_POI_NOT_FOUND.create(pPoiType.asPrintable());
         } else {
-            return showLocateResult(p_214509_, p_214510_, blockpos, optional.get().swap(), "commands.locate.poi.success", false);
+            return showLocateResult(pSource, pPoiType, blockpos, optional.get().swap(), "commands.locate.poi.success", false);
         }
     }
 
-    public static int showLocateResult(CommandSourceStack p_214475_, ResourceOrTagLocationArgument.Result<?> p_214476_, BlockPos p_214477_, Pair<BlockPos, ? extends Holder<?>> p_214478_, String p_214479_, boolean p_214480_) {
-        BlockPos blockpos = p_214478_.getFirst();
-        String s = p_214476_.unwrap().map((p_214498_) -> { return p_214498_.location().toString(); }, (p_214468_) -> { return "#" + p_214468_.location() + " (" + (String) p_214478_.getSecond().unwrapKey().map((p_214463_) -> {
+    public static int showLocateResult(CommandSourceStack pSource, ResourceOrTagLocationArgument.Result<?> pResult, BlockPos pSourcePosition, Pair<BlockPos, ? extends Holder<?>> pResultWithPosition, String pTranslationKey, boolean pAbsoluteY) {
+        BlockPos blockpos = pResultWithPosition.getFirst();
+        String s = pResult.unwrap().map((p_214498_) -> { return p_214498_.location().toString(); }, (p_214468_) -> { return "#" + p_214468_.location() + " (" + (String) pResultWithPosition.getSecond().unwrapKey().map((p_214463_) -> {
                                                                                                                                                                                                                 return p_214463_.location().toString();
                                                                                                                                                                                                             })
                                                                                                                                                                           .orElse("[unregistered]")
                                                                                                                                + ")"; });
-        int i = p_214480_ ? Mth.floor(Mth.sqrt((float) p_214477_.distSqr(blockpos))) : Mth.floor(dist(p_214477_.getX(), p_214477_.getZ(), blockpos.getX(), blockpos.getZ()));
-        String s1 = p_214480_ ? String.valueOf(blockpos.getY()) : "~";
+        int i = pAbsoluteY ? Mth.floor(Mth.sqrt((float) pSourcePosition.distSqr(blockpos))) : Mth.floor(dist(pSourcePosition.getX(), pSourcePosition.getZ(), blockpos.getX(), blockpos.getZ()));
+        String s1 = pAbsoluteY ? String.valueOf(blockpos.getY()) : "~";
         Component component = ComponentUtils.wrapInSquareBrackets(Component.translatable("chat.coordinates", blockpos.getX(), s1, blockpos.getZ())).withStyle((p_214489_) -> {
             return p_214489_.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + blockpos.getX() + " " + s1 + " " + blockpos.getZ())).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.coordinates.tooltip")));
         });
-        p_214475_.sendSuccess(Component.translatable(p_214479_, s, component, i), false);
+        pSource.sendSuccess(Component.translatable(pTranslationKey, s, component, i), false);
         return i;
     }
 

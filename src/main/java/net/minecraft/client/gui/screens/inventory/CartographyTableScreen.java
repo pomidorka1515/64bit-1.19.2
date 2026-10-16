@@ -21,24 +21,24 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class CartographyTableScreen extends AbstractContainerScreen<CartographyTableMenu> {
     private static final ResourceLocation BG_LOCATION = new ResourceLocation("textures/gui/container/cartography_table.png");
 
-    public CartographyTableScreen(CartographyTableMenu p_98349_, Inventory p_98350_, Component p_98351_) {
-        super(p_98349_, p_98350_, p_98351_);
+    public CartographyTableScreen(CartographyTableMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle);
         this.titleLabelY -= 2;
     }
 
-    public void render(PoseStack p_98363_, int p_98364_, int p_98365_, float p_98366_) {
-        super.render(p_98363_, p_98364_, p_98365_, p_98366_);
-        this.renderTooltip(p_98363_, p_98364_, p_98365_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
-    protected void renderBg(PoseStack p_98358_, float p_98359_, int p_98360_, int p_98361_) {
-        this.renderBackground(p_98358_);
+    protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
+        this.renderBackground(pPoseStack);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, BG_LOCATION);
         int i = this.leftPos;
         int j = this.topPos;
-        this.blit(p_98358_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        this.blit(pPoseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
         ItemStack itemstack = this.menu.getSlot(1).getItem();
         boolean flag = itemstack.is(Items.MAP);
         boolean flag1 = itemstack.is(Items.PAPER);
@@ -54,13 +54,13 @@ public class CartographyTableScreen extends AbstractContainerScreen<CartographyT
                 if (mapitemsaveddata.locked) {
                     flag3 = true;
                     if (flag1 || flag2) {
-                        this.blit(p_98358_, i + 35, j + 31, this.imageWidth + 50, 132, 28, 21);
+                        this.blit(pPoseStack, i + 35, j + 31, this.imageWidth + 50, 132, 28, 21);
                     }
                 }
 
                 if (flag1 && mapitemsaveddata.scale >= 4) {
                     flag3 = true;
-                    this.blit(p_98358_, i + 35, j + 31, this.imageWidth + 50, 132, 28, 21);
+                    this.blit(pPoseStack, i + 35, j + 31, this.imageWidth + 50, 132, 28, 21);
                 }
             }
         } else {
@@ -68,47 +68,47 @@ public class CartographyTableScreen extends AbstractContainerScreen<CartographyT
             mapitemsaveddata = null;
         }
 
-        this.renderResultingMap(p_98358_, integer, mapitemsaveddata, flag, flag1, flag2, flag3);
+        this.renderResultingMap(pPoseStack, integer, mapitemsaveddata, flag, flag1, flag2, flag3);
     }
 
-    private void renderResultingMap(PoseStack p_169711_, @Nullable Integer p_169712_, @Nullable MapItemSavedData p_169713_, boolean p_169714_, boolean p_169715_, boolean p_169716_, boolean p_169717_) {
+    private void renderResultingMap(PoseStack pPoseStack, @Nullable Integer pMapId, @Nullable MapItemSavedData pMapData, boolean pHasMap, boolean pHasPaper, boolean pHasGlassPane, boolean pIsMaxSize) {
         int i = this.leftPos;
         int j = this.topPos;
-        if (p_169715_ && !p_169717_) {
-            this.blit(p_169711_, i + 67, j + 13, this.imageWidth, 66, 66, 66);
-            this.renderMap(p_169711_, p_169712_, p_169713_, i + 85, j + 31, 0.226F);
-        } else if (p_169714_) {
-            this.blit(p_169711_, i + 67 + 16, j + 13, this.imageWidth, 132, 50, 66);
-            this.renderMap(p_169711_, p_169712_, p_169713_, i + 86, j + 16, 0.34F);
+        if (pHasPaper && !pIsMaxSize) {
+            this.blit(pPoseStack, i + 67, j + 13, this.imageWidth, 66, 66, 66);
+            this.renderMap(pPoseStack, pMapId, pMapData, i + 85, j + 31, 0.226F);
+        } else if (pHasMap) {
+            this.blit(pPoseStack, i + 67 + 16, j + 13, this.imageWidth, 132, 50, 66);
+            this.renderMap(pPoseStack, pMapId, pMapData, i + 86, j + 16, 0.34F);
             RenderSystem.setShaderTexture(0, BG_LOCATION);
-            p_169711_.pushPose();
-            p_169711_.translate(0.0D, 0.0D, 1.0D);
-            this.blit(p_169711_, i + 67, j + 13 + 16, this.imageWidth, 132, 50, 66);
-            this.renderMap(p_169711_, p_169712_, p_169713_, i + 70, j + 32, 0.34F);
-            p_169711_.popPose();
-        } else if (p_169716_) {
-            this.blit(p_169711_, i + 67, j + 13, this.imageWidth, 0, 66, 66);
-            this.renderMap(p_169711_, p_169712_, p_169713_, i + 71, j + 17, 0.45F);
+            pPoseStack.pushPose();
+            pPoseStack.translate(0.0D, 0.0D, 1.0D);
+            this.blit(pPoseStack, i + 67, j + 13 + 16, this.imageWidth, 132, 50, 66);
+            this.renderMap(pPoseStack, pMapId, pMapData, i + 70, j + 32, 0.34F);
+            pPoseStack.popPose();
+        } else if (pHasGlassPane) {
+            this.blit(pPoseStack, i + 67, j + 13, this.imageWidth, 0, 66, 66);
+            this.renderMap(pPoseStack, pMapId, pMapData, i + 71, j + 17, 0.45F);
             RenderSystem.setShaderTexture(0, BG_LOCATION);
-            p_169711_.pushPose();
-            p_169711_.translate(0.0D, 0.0D, 1.0D);
-            this.blit(p_169711_, i + 66, j + 12, 0, this.imageHeight, 66, 66);
-            p_169711_.popPose();
+            pPoseStack.pushPose();
+            pPoseStack.translate(0.0D, 0.0D, 1.0D);
+            this.blit(pPoseStack, i + 66, j + 12, 0, this.imageHeight, 66, 66);
+            pPoseStack.popPose();
         } else {
-            this.blit(p_169711_, i + 67, j + 13, this.imageWidth, 0, 66, 66);
-            this.renderMap(p_169711_, p_169712_, p_169713_, i + 71, j + 17, 0.45F);
+            this.blit(pPoseStack, i + 67, j + 13, this.imageWidth, 0, 66, 66);
+            this.renderMap(pPoseStack, pMapId, pMapData, i + 71, j + 17, 0.45F);
         }
     }
 
-    private void renderMap(PoseStack p_169704_, @Nullable Integer p_169705_, @Nullable MapItemSavedData p_169706_, int p_169707_, int p_169708_, float p_169709_) {
-        if (p_169705_ != null && p_169706_ != null) {
-            p_169704_.pushPose();
-            p_169704_.translate((double) p_169707_, (double) p_169708_, 1.0D);
-            p_169704_.scale(p_169709_, p_169709_, 1.0F);
+    private void renderMap(PoseStack pPoseStack, @Nullable Integer pMapId, @Nullable MapItemSavedData pMapData, int pX, int pY, float pScale) {
+        if (pMapId != null && pMapData != null) {
+            pPoseStack.pushPose();
+            pPoseStack.translate((double) pX, (double) pY, 1.0D);
+            pPoseStack.scale(pScale, pScale, 1.0F);
             MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-            this.minecraft.gameRenderer.getMapRenderer().render(p_169704_, multibuffersource$buffersource, p_169705_, p_169706_, true, 15728880);
+            this.minecraft.gameRenderer.getMapRenderer().render(pPoseStack, multibuffersource$buffersource, pMapId, pMapData, true, 15728880);
             multibuffersource$buffersource.endBatch();
-            p_169704_.popPose();
+            pPoseStack.popPose();
         }
     }
 }

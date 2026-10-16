@@ -14,9 +14,9 @@ public class LlamaFollowCaravanGoal extends Goal {
     private static final int CARAVAN_LIMIT = 8;
     private int distCheckCounter;
 
-    public LlamaFollowCaravanGoal(Llama p_25501_, double p_25502_) {
-        this.llama = p_25501_;
-        this.speedModifier = p_25502_;
+    public LlamaFollowCaravanGoal(Llama pLlama, double pSpeedModifier) {
+        this.llama = pLlama;
+        this.speedModifier = pSpeedModifier;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
@@ -111,16 +111,16 @@ public class LlamaFollowCaravanGoal extends Goal {
         }
     }
 
-    private boolean firstIsLeashed(Llama p_25507_, int p_25508_) {
-        if (p_25508_ > 8) {
+    private boolean firstIsLeashed(Llama pLlama, int pLeashedQueuePosition) {
+        if (pLeashedQueuePosition > 8) {
             return false;
-        } else if (p_25507_.inCaravan()) {
-            if (p_25507_.getCaravanHead().isLeashed()) {
+        } else if (pLlama.inCaravan()) {
+            if (pLlama.getCaravanHead().isLeashed()) {
                 return true;
             } else {
-                Llama llama = p_25507_.getCaravanHead();
-                ++p_25508_;
-                return this.firstIsLeashed(llama, p_25508_);
+                Llama llama = pLlama.getCaravanHead();
+                ++pLeashedQueuePosition;
+                return this.firstIsLeashed(llama, pLeashedQueuePosition);
             }
         } else {
             return false;

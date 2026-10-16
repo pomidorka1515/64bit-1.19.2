@@ -21,8 +21,8 @@ public class SavedDataFeaturePoolElementFix extends DataFix {
     private static final Set<String> PIECE_TYPE = Sets.newHashSet("minecraft:jigsaw", "minecraft:nvi", "minecraft:pcp", "minecraft:bastionremnant", "minecraft:runtime");
     private static final Set<String> FEATURES = Sets.newHashSet("minecraft:tree", "minecraft:flower", "minecraft:block_pile", "minecraft:random_patch");
 
-    public SavedDataFeaturePoolElementFix(Schema p_145646_) {
-        super(p_145646_, false);
+    public SavedDataFeaturePoolElementFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     public TypeRewriteRule makeRule() {

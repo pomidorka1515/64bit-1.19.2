@@ -14,15 +14,15 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 
 public class RepairItemRecipe extends CustomRecipe {
-    public RepairItemRecipe(ResourceLocation p_44126_) {
-        super(p_44126_);
+    public RepairItemRecipe(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_44138_, Level p_44139_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         List<ItemStack> list = Lists.newArrayList();
 
-        for (int i = 0; i < p_44138_.getContainerSize(); ++i) {
-            ItemStack itemstack = p_44138_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack = pInv.getItem(i);
             if (!itemstack.isEmpty()) {
                 list.add(itemstack);
                 if (list.size() > 1) {
@@ -37,11 +37,11 @@ public class RepairItemRecipe extends CustomRecipe {
         return list.size() == 2;
     }
 
-    public ItemStack assemble(CraftingContainer p_44136_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         List<ItemStack> list = Lists.newArrayList();
 
-        for (int i = 0; i < p_44136_.getContainerSize(); ++i) {
-            ItemStack itemstack = p_44136_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack = pInv.getItem(i);
             if (!itemstack.isEmpty()) {
                 list.add(itemstack);
                 if (list.size() > 1) {
@@ -88,8 +88,8 @@ public class RepairItemRecipe extends CustomRecipe {
         return ItemStack.EMPTY;
     }
 
-    public boolean canCraftInDimensions(int p_44128_, int p_44129_) {
-        return p_44128_ * p_44129_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= 2;
     }
 
     public RecipeSerializer<?> getSerializer() {

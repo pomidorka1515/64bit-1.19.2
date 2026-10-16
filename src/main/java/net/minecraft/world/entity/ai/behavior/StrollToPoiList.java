@@ -21,33 +21,33 @@ public class StrollToPoiList extends Behavior<Villager> {
     @Nullable
     private GlobalPos targetPos;
 
-    public StrollToPoiList(MemoryModuleType<List<GlobalPos>> p_24362_, float p_24363_, int p_24364_, int p_24365_, MemoryModuleType<GlobalPos> p_24366_) {
-        super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, p_24362_, MemoryStatus.VALUE_PRESENT, p_24366_, MemoryStatus.VALUE_PRESENT));
-        this.strollToMemoryType = p_24362_;
-        this.speedModifier = p_24363_;
-        this.closeEnoughDist = p_24364_;
-        this.maxDistanceFromPoi = p_24365_;
-        this.mustBeCloseToMemoryType = p_24366_;
+    public StrollToPoiList(MemoryModuleType<List<GlobalPos>> pStrollMemoryType, float pSpeedModifier, int pCloseEnoughDist, int pMaxDistanceFromPoi, MemoryModuleType<GlobalPos> pMustBeCloseToMemoryType) {
+        super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, pStrollMemoryType, MemoryStatus.VALUE_PRESENT, pMustBeCloseToMemoryType, MemoryStatus.VALUE_PRESENT));
+        this.strollToMemoryType = pStrollMemoryType;
+        this.speedModifier = pSpeedModifier;
+        this.closeEnoughDist = pCloseEnoughDist;
+        this.maxDistanceFromPoi = pMaxDistanceFromPoi;
+        this.mustBeCloseToMemoryType = pMustBeCloseToMemoryType;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_24375_, Villager p_24376_) {
-        Optional<List<GlobalPos>> optional = p_24376_.getBrain().getMemory(this.strollToMemoryType);
-        Optional<GlobalPos> optional1 = p_24376_.getBrain().getMemory(this.mustBeCloseToMemoryType);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, Villager pOwner) {
+        Optional<List<GlobalPos>> optional = pOwner.getBrain().getMemory(this.strollToMemoryType);
+        Optional<GlobalPos> optional1 = pOwner.getBrain().getMemory(this.mustBeCloseToMemoryType);
         if (optional.isPresent() && optional1.isPresent()) {
             List<GlobalPos> list = optional.get();
             if (!list.isEmpty()) {
-                this.targetPos = list.get(p_24375_.getRandom().nextInt(list.size()));
-                return this.targetPos != null && p_24375_.dimension() == this.targetPos.dimension() && optional1.get().pos().closerToCenterThan(p_24376_.sectorPosition(), (double) this.maxDistanceFromPoi);
+                this.targetPos = list.get(pLevel.getRandom().nextInt(list.size()));
+                return this.targetPos != null && pLevel.dimension() == this.targetPos.dimension() && optional1.get().pos().closerToCenterThan(pOwner.sectorPosition(), (double) this.maxDistanceFromPoi);
             }
         }
 
         return false;
     }
 
-    protected void start(ServerLevel p_24378_, Villager p_24379_, long p_24380_) {
-        if (p_24380_ > this.nextOkStartTime && this.targetPos != null) {
-            p_24379_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(this.targetPos.pos(), this.speedModifier, this.closeEnoughDist));
-            this.nextOkStartTime = p_24380_ + 100L;
+    protected void start(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        if (pGameTime > this.nextOkStartTime && this.targetPos != null) {
+            pEntity.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(this.targetPos.pos(), this.speedModifier, this.closeEnoughDist));
+            this.nextOkStartTime = pGameTime + 100L;
         }
     }
 }

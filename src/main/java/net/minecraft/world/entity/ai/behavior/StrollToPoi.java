@@ -17,27 +17,27 @@ public class StrollToPoi extends Behavior<PathfinderMob> {
     private final float speedModifier;
     private long nextOkStartTime;
 
-    public StrollToPoi(MemoryModuleType<GlobalPos> p_24333_, float p_24334_, int p_24335_, int p_24336_) {
-        super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, p_24333_, MemoryStatus.VALUE_PRESENT));
-        this.memoryType = p_24333_;
-        this.speedModifier = p_24334_;
-        this.closeEnoughDist = p_24335_;
-        this.maxDistanceFromPoi = p_24336_;
+    public StrollToPoi(MemoryModuleType<GlobalPos> pMemoryType, float pSpeedModifier, int pCloseEnoughDist, int pMaxDistanceFromPoi) {
+        super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, pMemoryType, MemoryStatus.VALUE_PRESENT));
+        this.memoryType = pMemoryType;
+        this.speedModifier = pSpeedModifier;
+        this.closeEnoughDist = pCloseEnoughDist;
+        this.maxDistanceFromPoi = pMaxDistanceFromPoi;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_24345_, PathfinderMob p_24346_) {
-        Optional<GlobalPos> optional = p_24346_.getBrain().getMemory(this.memoryType);
-        return optional.isPresent() && p_24345_.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(p_24346_.sectorPosition(), (double) this.maxDistanceFromPoi);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, PathfinderMob pOwner) {
+        Optional<GlobalPos> optional = pOwner.getBrain().getMemory(this.memoryType);
+        return optional.isPresent() && pLevel.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(pOwner.sectorPosition(), (double) this.maxDistanceFromPoi);
     }
 
-    protected void start(ServerLevel p_24348_, PathfinderMob p_24349_, long p_24350_) {
-        if (p_24350_ > this.nextOkStartTime) {
-            Brain<?> brain = p_24349_.getBrain();
+    protected void start(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        if (pGameTime > this.nextOkStartTime) {
+            Brain<?> brain = pEntity.getBrain();
             Optional<GlobalPos> optional = brain.getMemory(this.memoryType);
             optional.ifPresent((p_24353_) -> {
                 brain.setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(p_24353_.pos(), this.speedModifier, this.closeEnoughDist));
             });
-            this.nextOkStartTime = p_24350_ + 80L;
+            this.nextOkStartTime = pGameTime + 80L;
         }
     }
 }

@@ -39,28 +39,28 @@ public class MenuScreens {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Map<MenuType<?>, MenuScreens.ScreenConstructor<?, ?>> SCREENS = Maps.newHashMap();
 
-    public static <T extends AbstractContainerMenu> void create(@Nullable MenuType<T> p_96202_, Minecraft p_96203_, int p_96204_, Component p_96205_) {
-        if (p_96202_ == null) {
-            LOGGER.warn("Trying to open invalid screen with name: {}", (Object) p_96205_.getString());
+    public static <T extends AbstractContainerMenu> void create(@Nullable MenuType<T> pType, Minecraft pMc, int pWindowId, Component pTitle) {
+        if (pType == null) {
+            LOGGER.warn("Trying to open invalid screen with name: {}", (Object) pTitle.getString());
         } else {
-            MenuScreens.ScreenConstructor<T, ?> screenconstructor = getConstructor(p_96202_);
+            MenuScreens.ScreenConstructor<T, ?> screenconstructor = getConstructor(pType);
             if (screenconstructor == null) {
-                LOGGER.warn("Failed to create screen for menu type: {}", (Object) Registry.MENU.getKey(p_96202_));
+                LOGGER.warn("Failed to create screen for menu type: {}", (Object) Registry.MENU.getKey(pType));
             } else {
-                screenconstructor.fromPacket(p_96205_, p_96202_, p_96203_, p_96204_);
+                screenconstructor.fromPacket(pTitle, pType, pMc, pWindowId);
             }
         }
     }
 
     @Nullable
-    private static <T extends AbstractContainerMenu> MenuScreens.ScreenConstructor<T, ?> getConstructor(MenuType<T> p_96200_) {
-        return (MenuScreens.ScreenConstructor<T, ?>) SCREENS.get(p_96200_);
+    private static <T extends AbstractContainerMenu> MenuScreens.ScreenConstructor<T, ?> getConstructor(MenuType<T> pType) {
+        return (MenuScreens.ScreenConstructor<T, ?>) SCREENS.get(pType);
     }
 
-    private static <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void register(MenuType<? extends M> p_96207_, MenuScreens.ScreenConstructor<M, U> p_96208_) {
-        MenuScreens.ScreenConstructor<?, ?> screenconstructor = SCREENS.put(p_96207_, p_96208_);
+    private static <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void register(MenuType<? extends M> pType, MenuScreens.ScreenConstructor<M, U> pFactory) {
+        MenuScreens.ScreenConstructor<?, ?> screenconstructor = SCREENS.put(pType, pFactory);
         if (screenconstructor != null) {
-            throw new IllegalStateException("Duplicate registration for " + Registry.MENU.getKey(p_96207_));
+            throw new IllegalStateException("Duplicate registration for " + Registry.MENU.getKey(pType));
         }
     }
 
@@ -106,12 +106,12 @@ public class MenuScreens {
 
     @OnlyIn(Dist.CLIENT)
     interface ScreenConstructor<T extends AbstractContainerMenu, U extends Screen & MenuAccess<T>> {
-        default void fromPacket(Component p_96210_, MenuType<T> p_96211_, Minecraft p_96212_, int p_96213_) {
-            U u = this.create(p_96211_.create(p_96213_, p_96212_.player.getInventory()), p_96212_.player.getInventory(), p_96210_);
-            p_96212_.player.containerMenu = u.getMenu();
-            p_96212_.setScreen(u);
+        default void fromPacket(Component pTitle, MenuType<T> pType, Minecraft pMc, int pWindowId) {
+            U u = this.create(pType.create(pWindowId, pMc.player.getInventory()), pMc.player.getInventory(), pTitle);
+            pMc.player.containerMenu = u.getMenu();
+            pMc.setScreen(u);
         }
 
-        U create(T p_96215_, Inventory p_96216_, Component p_96217_);
+        U create(T pMenu, Inventory pInventory, Component pTitle);
     }
 }

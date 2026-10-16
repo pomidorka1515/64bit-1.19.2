@@ -17,11 +17,11 @@ public class CaveSpiderRenderer extends SpiderRenderer<CaveSpider> {
         this.shadowRadius *= 0.7F;
     }
 
-    protected void scale(CaveSpider p_113974_, PoseStack p_113975_, float p_113976_) {
-        p_113975_.scale(0.7F, 0.7F, 0.7F);
+    protected void scale(CaveSpider pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
+        pMatrixStack.scale(0.7F, 0.7F, 0.7F);
     }
 
-    public ResourceLocation getTextureLocation(CaveSpider p_113972_) {
+    public ResourceLocation getTextureLocation(CaveSpider pEntity) {
         return CAVE_SPIDER_LOCATION;
     }
 }

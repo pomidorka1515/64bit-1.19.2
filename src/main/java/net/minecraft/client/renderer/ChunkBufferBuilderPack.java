@@ -10,8 +10,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ChunkBufferBuilderPack {
     private final Map<RenderType, BufferBuilder> builders = RenderType.chunkBufferLayers().stream().collect(Collectors.toMap((p_108845_) -> { return p_108845_; }, (p_108843_) -> { return new BufferBuilder(p_108843_.bufferSize()); }));
 
-    public BufferBuilder builder(RenderType p_108840_) {
-        return this.builders.get(p_108840_);
+    public BufferBuilder builder(RenderType pRenderType) {
+        return this.builders.get(pRenderType);
     }
 
     public void clearAll() {

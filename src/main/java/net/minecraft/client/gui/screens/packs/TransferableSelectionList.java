@@ -27,16 +27,16 @@ public class TransferableSelectionList extends ObjectSelectionList<TransferableS
     static final Component INCOMPATIBLE_CONFIRM_TITLE = Component.translatable("pack.incompatible.confirm.title");
     private final Component title;
 
-    public TransferableSelectionList(Minecraft p_100058_, int p_100059_, int p_100060_, Component p_100061_) {
-        super(p_100058_, p_100059_, p_100060_, 32, p_100060_ - 55 + 4, 36);
-        this.title = p_100061_;
+    public TransferableSelectionList(Minecraft pMinecraft, int pWidth, int pHeight, Component pTitle) {
+        super(pMinecraft, pWidth, pHeight, 32, pHeight - 55 + 4, 36);
+        this.title = pTitle;
         this.centerListVertically = false;
         this.setRenderHeader(true, (int) (9.0F * 1.5F));
     }
 
-    protected void renderHeader(PoseStack p_100063_, int p_100064_, int p_100065_, Tesselator p_100066_) {
+    protected void renderHeader(PoseStack pPoseStack, int pX, int pY, Tesselator pTesselator) {
         Component component = Component.empty().append(this.title).withStyle(ChatFormatting.UNDERLINE, ChatFormatting.BOLD);
-        this.minecraft.font.draw(p_100063_, component, (float) (p_100064_ + this.width / 2 - this.minecraft.font.width(component) / 2), (float) Math.min(this.y0 + 3, p_100065_), 16777215);
+        this.minecraft.font.draw(pPoseStack, component, (float) (pX + this.width / 2 - this.minecraft.font.width(component) / 2), (float) Math.min(this.y0 + 3, pY), 16777215);
     }
 
     public int getRowWidth() {
@@ -67,55 +67,55 @@ public class TransferableSelectionList extends ObjectSelectionList<TransferableS
         private final FormattedCharSequence incompatibleNameDisplayCache;
         private final MultiLineLabel incompatibleDescriptionDisplayCache;
 
-        public PackEntry(Minecraft p_100084_, TransferableSelectionList p_100085_, Screen p_100086_, PackSelectionModel.Entry p_100087_) {
-            this.minecraft = p_100084_;
-            this.screen = p_100086_;
-            this.pack = p_100087_;
-            this.parent = p_100085_;
-            this.nameDisplayCache = cacheName(p_100084_, p_100087_.getTitle());
-            this.descriptionDisplayCache = cacheDescription(p_100084_, p_100087_.getExtendedDescription());
-            this.incompatibleNameDisplayCache = cacheName(p_100084_, TransferableSelectionList.INCOMPATIBLE_TITLE);
-            this.incompatibleDescriptionDisplayCache = cacheDescription(p_100084_, p_100087_.getCompatibility().getDescription());
+        public PackEntry(Minecraft pMinecraft, TransferableSelectionList pParent, Screen pScreen, PackSelectionModel.Entry pPack) {
+            this.minecraft = pMinecraft;
+            this.screen = pScreen;
+            this.pack = pPack;
+            this.parent = pParent;
+            this.nameDisplayCache = cacheName(pMinecraft, pPack.getTitle());
+            this.descriptionDisplayCache = cacheDescription(pMinecraft, pPack.getExtendedDescription());
+            this.incompatibleNameDisplayCache = cacheName(pMinecraft, TransferableSelectionList.INCOMPATIBLE_TITLE);
+            this.incompatibleDescriptionDisplayCache = cacheDescription(pMinecraft, pPack.getCompatibility().getDescription());
         }
 
-        private static FormattedCharSequence cacheName(Minecraft p_100105_, Component p_100106_) {
-            int i = p_100105_.font.width(p_100106_);
+        private static FormattedCharSequence cacheName(Minecraft pMinecraft, Component pName) {
+            int i = pMinecraft.font.width(pName);
             if (i > 157) {
-                FormattedText formattedtext = FormattedText.composite(p_100105_.font.substrByWidth(p_100106_, 157 - p_100105_.font.width("...")), FormattedText.of("..."));
+                FormattedText formattedtext = FormattedText.composite(pMinecraft.font.substrByWidth(pName, 157 - pMinecraft.font.width("...")), FormattedText.of("..."));
                 return Language.getInstance().getVisualOrder(formattedtext);
             } else {
-                return p_100106_.getVisualOrderText();
+                return pName.getVisualOrderText();
             }
         }
 
-        private static MultiLineLabel cacheDescription(Minecraft p_100110_, Component p_100111_) {
-            return MultiLineLabel.create(p_100110_.font, p_100111_, 157, 2);
+        private static MultiLineLabel cacheDescription(Minecraft pMinecraft, Component pText) {
+            return MultiLineLabel.create(pMinecraft.font, pText, 157, 2);
         }
 
         public Component getNarration() {
             return Component.translatable("narrator.select", this.pack.getTitle());
         }
 
-        public void render(PoseStack p_100094_, int p_100095_, int p_100096_, int p_100097_, int p_100098_, int p_100099_, int p_100100_, int p_100101_, boolean p_100102_, float p_100103_) {
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
             PackCompatibility packcompatibility = this.pack.getCompatibility();
             if (!packcompatibility.isCompatible()) {
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                GuiComponent.fill(p_100094_, p_100097_ - 1, p_100096_ - 1, p_100097_ + p_100098_ - 9, p_100096_ + p_100099_ + 1, -8978432);
+                GuiComponent.fill(pPoseStack, pLeft - 1, pTop - 1, pLeft + pWidth - 9, pTop + pHeight + 1, -8978432);
             }
 
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, this.pack.getIconTexture());
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            GuiComponent.blit(p_100094_, p_100097_, p_100096_, 0.0F, 0.0F, 32, 32, 32, 32);
+            GuiComponent.blit(pPoseStack, pLeft, pTop, 0.0F, 0.0F, 32, 32, 32, 32);
             FormattedCharSequence formattedcharsequence = this.nameDisplayCache;
             MultiLineLabel multilinelabel = this.descriptionDisplayCache;
-            if (this.showHoverOverlay() && (this.minecraft.options.touchscreen().get() || p_100102_)) {
+            if (this.showHoverOverlay() && (this.minecraft.options.touchscreen().get() || pIsMouseOver)) {
                 RenderSystem.setShaderTexture(0, TransferableSelectionList.ICON_OVERLAY_LOCATION);
-                GuiComponent.fill(p_100094_, p_100097_, p_100096_, p_100097_ + 32, p_100096_ + 32, -1601138544);
+                GuiComponent.fill(pPoseStack, pLeft, pTop, pLeft + 32, pTop + 32, -1601138544);
                 RenderSystem.setShader(GameRenderer::getPositionTexShader);
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                int i = p_100100_ - p_100097_;
-                int j = p_100101_ - p_100096_;
+                int i = pMouseX - pLeft;
+                int j = pMouseY - pTop;
                 if (!this.pack.getCompatibility().isCompatible()) {
                     formattedcharsequence = this.incompatibleNameDisplayCache;
                     multilinelabel = this.incompatibleDescriptionDisplayCache;
@@ -123,48 +123,48 @@ public class TransferableSelectionList extends ObjectSelectionList<TransferableS
 
                 if (this.pack.canSelect()) {
                     if (i < 32) {
-                        GuiComponent.blit(p_100094_, p_100097_, p_100096_, 0.0F, 32.0F, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 0.0F, 32.0F, 32, 32, 256, 256);
                     } else {
-                        GuiComponent.blit(p_100094_, p_100097_, p_100096_, 0.0F, 0.0F, 32, 32, 256, 256);
+                        GuiComponent.blit(pPoseStack, pLeft, pTop, 0.0F, 0.0F, 32, 32, 256, 256);
                     }
                 } else {
                     if (this.pack.canUnselect()) {
                         if (i < 16) {
-                            GuiComponent.blit(p_100094_, p_100097_, p_100096_, 32.0F, 32.0F, 32, 32, 256, 256);
+                            GuiComponent.blit(pPoseStack, pLeft, pTop, 32.0F, 32.0F, 32, 32, 256, 256);
                         } else {
-                            GuiComponent.blit(p_100094_, p_100097_, p_100096_, 32.0F, 0.0F, 32, 32, 256, 256);
+                            GuiComponent.blit(pPoseStack, pLeft, pTop, 32.0F, 0.0F, 32, 32, 256, 256);
                         }
                     }
 
                     if (this.pack.canMoveUp()) {
                         if (i < 32 && i > 16 && j < 16) {
-                            GuiComponent.blit(p_100094_, p_100097_, p_100096_, 96.0F, 32.0F, 32, 32, 256, 256);
+                            GuiComponent.blit(pPoseStack, pLeft, pTop, 96.0F, 32.0F, 32, 32, 256, 256);
                         } else {
-                            GuiComponent.blit(p_100094_, p_100097_, p_100096_, 96.0F, 0.0F, 32, 32, 256, 256);
+                            GuiComponent.blit(pPoseStack, pLeft, pTop, 96.0F, 0.0F, 32, 32, 256, 256);
                         }
                     }
 
                     if (this.pack.canMoveDown()) {
                         if (i < 32 && i > 16 && j > 16) {
-                            GuiComponent.blit(p_100094_, p_100097_, p_100096_, 64.0F, 32.0F, 32, 32, 256, 256);
+                            GuiComponent.blit(pPoseStack, pLeft, pTop, 64.0F, 32.0F, 32, 32, 256, 256);
                         } else {
-                            GuiComponent.blit(p_100094_, p_100097_, p_100096_, 64.0F, 0.0F, 32, 32, 256, 256);
+                            GuiComponent.blit(pPoseStack, pLeft, pTop, 64.0F, 0.0F, 32, 32, 256, 256);
                         }
                     }
                 }
             }
 
-            this.minecraft.font.drawShadow(p_100094_, formattedcharsequence, (float) (p_100097_ + 32 + 2), (float) (p_100096_ + 1), 16777215);
-            multilinelabel.renderLeftAligned(p_100094_, p_100097_ + 32 + 2, p_100096_ + 12, 10, 8421504);
+            this.minecraft.font.drawShadow(pPoseStack, formattedcharsequence, (float) (pLeft + 32 + 2), (float) (pTop + 1), 16777215);
+            multilinelabel.renderLeftAligned(pPoseStack, pLeft + 32 + 2, pTop + 12, 10, 8421504);
         }
 
         private boolean showHoverOverlay() {
             return !this.pack.isFixedPosition() || !this.pack.isRequired();
         }
 
-        public boolean mouseClicked(double p_100090_, double p_100091_, int p_100092_) {
-            double d0 = p_100090_ - (double) this.parent.getRowLeft();
-            double d1 = p_100091_ - (double) this.parent.getRowTop(this.parent.children().indexOf(this));
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+            double d0 = pMouseX - (double) this.parent.getRowLeft();
+            double d1 = pMouseY - (double) this.parent.getRowTop(this.parent.children().indexOf(this));
             if (this.showHoverOverlay() && d0 <= 32.0D) {
                 if (this.pack.canSelect()) {
                     PackCompatibility packcompatibility = this.pack.getCompatibility();

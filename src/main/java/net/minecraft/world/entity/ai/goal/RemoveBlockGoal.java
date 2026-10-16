@@ -27,10 +27,10 @@ public class RemoveBlockGoal extends MoveToBlockGoal {
     private int ticksSinceReachedGoal;
     private static final int WAIT_AFTER_BLOCK_FOUND = 20;
 
-    public RemoveBlockGoal(Block p_25840_, PathfinderMob p_25841_, double p_25842_, int p_25843_) {
-        super(p_25841_, p_25842_, 24, p_25843_);
-        this.blockToRemove = p_25840_;
-        this.removerMob = p_25841_;
+    public RemoveBlockGoal(Block pBlockToRemove, PathfinderMob pRemoverMob, double pSpeedModifier, int pSearchRange) {
+        super(pRemoverMob, pSpeedModifier, 24, pSearchRange);
+        this.blockToRemove = pBlockToRemove;
+        this.removerMob = pRemoverMob;
     }
 
     public boolean canUse() {
@@ -62,10 +62,10 @@ public class RemoveBlockGoal extends MoveToBlockGoal {
         this.ticksSinceReachedGoal = 0;
     }
 
-    public void playDestroyProgressSound(LevelAccessor p_25847_, BlockPos p_25848_) {
+    public void playDestroyProgressSound(LevelAccessor pLevel, BlockPos pPos) {
     }
 
-    public void playBreakSound(Level p_25845_, BlockPos p_25846_) {
+    public void playBreakSound(Level pLevel, BlockPos pPos) {
     }
 
     public void tick() {
@@ -111,14 +111,14 @@ public class RemoveBlockGoal extends MoveToBlockGoal {
     }
 
     @Nullable
-    private BlockPos getPosWithBlock(BlockPos p_25853_, BlockGetter p_25854_) {
-        if (p_25854_.getBlockState(p_25853_).is(this.blockToRemove)) {
-            return p_25853_;
+    private BlockPos getPosWithBlock(BlockPos pPos, BlockGetter pLevel) {
+        if (pLevel.getBlockState(pPos).is(this.blockToRemove)) {
+            return pPos;
         } else {
-            BlockPos[] ablockpos = new BlockPos[] {p_25853_.below(), p_25853_.west(), p_25853_.east(), p_25853_.north(), p_25853_.south(), p_25853_.below().below()};
+            BlockPos[] ablockpos = new BlockPos[] {pPos.below(), pPos.west(), pPos.east(), pPos.north(), pPos.south(), pPos.below().below()};
 
             for (BlockPos blockpos : ablockpos) {
-                if (p_25854_.getBlockState(blockpos).is(this.blockToRemove)) {
+                if (pLevel.getBlockState(blockpos).is(this.blockToRemove)) {
                     return blockpos;
                 }
             }
@@ -127,12 +127,12 @@ public class RemoveBlockGoal extends MoveToBlockGoal {
         }
     }
 
-    protected boolean isValidTarget(LevelReader p_25850_, BlockPos p_25851_) {
-        ChunkAccess chunkaccess = p_25850_.getChunk(SectionPos.blockToSectionCoord(p_25851_.getX()), SectionPos.blockToSectionCoord(p_25851_.getZ()), ChunkStatus.FULL, false);
+    protected boolean isValidTarget(LevelReader pLevel, BlockPos pPos) {
+        ChunkAccess chunkaccess = pLevel.getChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()), ChunkStatus.FULL, false);
         if (chunkaccess == null) {
             return false;
         } else {
-            return chunkaccess.getBlockState(p_25851_).is(this.blockToRemove) && chunkaccess.getBlockState(p_25851_.above()).isAir() && chunkaccess.getBlockState(p_25851_.above(2)).isAir();
+            return chunkaccess.getBlockState(pPos).is(this.blockToRemove) && chunkaccess.getBlockState(pPos.above()).isAir() && chunkaccess.getBlockState(pPos.above(2)).isAir();
         }
     }
 }

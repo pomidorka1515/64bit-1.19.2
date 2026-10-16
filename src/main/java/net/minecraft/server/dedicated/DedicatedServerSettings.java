@@ -7,9 +7,9 @@ public class DedicatedServerSettings {
     private final Path source;
     private DedicatedServerProperties properties;
 
-    public DedicatedServerSettings(Path p_180932_) {
-        this.source = p_180932_;
-        this.properties = DedicatedServerProperties.fromFile(p_180932_);
+    public DedicatedServerSettings(Path pSource) {
+        this.source = pSource;
+        this.properties = DedicatedServerProperties.fromFile(pSource);
     }
 
     public DedicatedServerProperties getProperties() {

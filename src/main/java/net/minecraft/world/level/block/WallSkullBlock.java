@@ -18,8 +18,8 @@ public class WallSkullBlock extends AbstractSkullBlock {
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final Map<Direction, VoxelShape> AABBS = Maps.newEnumMap(ImmutableMap.of(Direction.NORTH, Block.box(4.0D, 4.0D, 8.0D, 12.0D, 12.0D, 16.0D), Direction.SOUTH, Block.box(4.0D, 4.0D, 0.0D, 12.0D, 12.0D, 8.0D), Direction.EAST, Block.box(0.0D, 4.0D, 4.0D, 8.0D, 12.0D, 12.0D), Direction.WEST, Block.box(8.0D, 4.0D, 4.0D, 16.0D, 12.0D, 12.0D)));
 
-    protected WallSkullBlock(SkullBlock.Type p_58101_, BlockBehaviour.Properties p_58102_) {
-        super(p_58101_, p_58102_);
+    protected WallSkullBlock(SkullBlock.Type pType, BlockBehaviour.Properties pProperties) {
+        super(pType, pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
@@ -27,21 +27,21 @@ public class WallSkullBlock extends AbstractSkullBlock {
         return this.asItem().getDescriptionId();
     }
 
-    public VoxelShape getShape(BlockState p_58114_, BlockGetter p_58115_, BlockPos p_58116_, CollisionContext p_58117_) {
-        return AABBS.get(p_58114_.getValue(FACING));
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return AABBS.get(pState.getValue(FACING));
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_58104_) {
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
         BlockState blockstate = this.defaultBlockState();
-        BlockGetter blockgetter = p_58104_.getLevel();
-        BlockPos blockpos = p_58104_.getClickedPos();
-        Direction[] adirection = p_58104_.getNearestLookingDirections();
+        BlockGetter blockgetter = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
+        Direction[] adirection = pContext.getNearestLookingDirections();
 
         for (Direction direction : adirection) {
             if (direction.getAxis().isHorizontal()) {
                 Direction direction1 = direction.getOpposite();
                 blockstate = blockstate.setValue(FACING, direction1);
-                if (!blockgetter.getBlockState(blockpos.relative(direction)).canBeReplaced(p_58104_)) {
+                if (!blockgetter.getBlockState(blockpos.relative(direction)).canBeReplaced(pContext)) {
                     return blockstate;
                 }
             }
@@ -50,15 +50,15 @@ public class WallSkullBlock extends AbstractSkullBlock {
         return null;
     }
 
-    public BlockState rotate(BlockState p_58109_, Rotation p_58110_) {
-        return p_58109_.setValue(FACING, p_58110_.rotate(p_58109_.getValue(FACING)));
+    public BlockState rotate(BlockState pState, Rotation pRotation) {
+        return pState.setValue(FACING, pRotation.rotate(pState.getValue(FACING)));
     }
 
-    public BlockState mirror(BlockState p_58106_, Mirror p_58107_) {
-        return p_58106_.rotate(p_58107_.getRotation(p_58106_.getValue(FACING)));
+    public BlockState mirror(BlockState pState, Mirror pMirror) {
+        return pState.rotate(pMirror.getRotation(pState.getValue(FACING)));
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_58112_) {
-        p_58112_.add(FACING);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(FACING);
     }
 }

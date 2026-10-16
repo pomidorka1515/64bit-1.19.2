@@ -8,8 +8,8 @@ public class LandOnOwnersShoulderGoal extends Goal {
     private ServerPlayer owner;
     private boolean isSittingOnShoulder;
 
-    public LandOnOwnersShoulderGoal(ShoulderRidingEntity p_25483_) {
-        this.entity = p_25483_;
+    public LandOnOwnersShoulderGoal(ShoulderRidingEntity pEntity) {
+        this.entity = pEntity;
     }
 
     public boolean canUse() {

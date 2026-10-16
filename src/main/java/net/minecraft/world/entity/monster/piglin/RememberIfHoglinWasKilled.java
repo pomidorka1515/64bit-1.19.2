@@ -13,14 +13,14 @@ public class RememberIfHoglinWasKilled<E extends Piglin> extends Behavior<E> {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT, MemoryModuleType.HUNTED_RECENTLY, MemoryStatus.REGISTERED));
     }
 
-    protected void start(ServerLevel p_35133_, E p_35134_, long p_35135_) {
-        if (this.isAttackTargetDeadHoglin(p_35134_)) {
-            PiglinAi.dontKillAnyMoreHoglinsForAWhile(p_35134_);
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
+        if (this.isAttackTargetDeadHoglin(pEntity)) {
+            PiglinAi.dontKillAnyMoreHoglinsForAWhile(pEntity);
         }
     }
 
-    private boolean isAttackTargetDeadHoglin(E p_35137_) {
-        LivingEntity livingentity = p_35137_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).get();
+    private boolean isAttackTargetDeadHoglin(E pPiglin) {
+        LivingEntity livingentity = pPiglin.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).get();
         return livingentity.getType() == EntityType.HOGLIN && livingentity.isDeadOrDying();
     }
 }

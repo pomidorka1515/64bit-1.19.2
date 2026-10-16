@@ -10,11 +10,11 @@ public class EmptyProfileResults implements ProfileResults {
     private EmptyProfileResults() {
     }
 
-    public List<ResultField> getTimes(String p_18448_) {
+    public List<ResultField> getTimes(String pSectionPath) {
         return Collections.emptyList();
     }
 
-    public boolean saveResults(Path p_145937_) {
+    public boolean saveResults(Path pPath) {
         return false;
     }
 

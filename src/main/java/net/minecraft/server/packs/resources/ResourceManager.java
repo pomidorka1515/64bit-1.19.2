@@ -12,11 +12,11 @@ import net.minecraft.server.packs.PackResources;
 public interface ResourceManager extends ResourceProvider {
     Set<String> getNamespaces();
 
-    List<Resource> getResourceStack(ResourceLocation p_215562_);
+    List<Resource> getResourceStack(ResourceLocation pLocation);
 
-    Map<ResourceLocation, Resource> listResources(String p_215563_, Predicate<ResourceLocation> p_215564_);
+    Map<ResourceLocation, Resource> listResources(String pPath, Predicate<ResourceLocation> pFilter);
 
-    Map<ResourceLocation, List<Resource>> listResourceStacks(String p_215565_, Predicate<ResourceLocation> p_215566_);
+    Map<ResourceLocation, List<Resource>> listResourceStacks(String pPath, Predicate<ResourceLocation> pFilter);
 
     Stream<PackResources> listPacks();
 

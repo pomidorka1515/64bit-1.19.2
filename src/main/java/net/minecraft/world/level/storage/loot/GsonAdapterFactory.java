@@ -17,8 +17,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 
 public class GsonAdapterFactory {
-    public static <E, T extends SerializerType<E>> GsonAdapterFactory.Builder<E, T> builder(Registry<T> p_78802_, String p_78803_, String p_78804_, Function<E, T> p_78805_) {
-        return new GsonAdapterFactory.Builder<>(p_78802_, p_78803_, p_78804_, p_78805_);
+    public static <E, T extends SerializerType<E>> GsonAdapterFactory.Builder<E, T> builder(Registry<T> pRegistry, String pId, String pName, Function<E, T> pTypeFunction) {
+        return new GsonAdapterFactory.Builder<>(pRegistry, pId, pName, pTypeFunction);
     }
 
     public static class Builder<E, T extends SerializerType<E>> {
@@ -31,20 +31,20 @@ public class GsonAdapterFactory {
         @Nullable
         private T defaultType;
 
-        Builder(Registry<T> p_78812_, String p_78813_, String p_78814_, Function<E, T> p_78815_) {
-            this.registry = p_78812_;
-            this.elementName = p_78813_;
-            this.typeKey = p_78814_;
-            this.typeGetter = p_78815_;
+        Builder(Registry<T> pRegistry, String pElementName, String pTypeKey, Function<E, T> pTypeGetter) {
+            this.registry = pRegistry;
+            this.elementName = pElementName;
+            this.typeKey = pTypeKey;
+            this.typeGetter = pTypeGetter;
         }
 
-        public GsonAdapterFactory.Builder<E, T> withInlineSerializer(T p_164987_, GsonAdapterFactory.InlineSerializer<? extends E> p_164988_) {
-            this.inlineType = Pair.of(p_164987_, p_164988_);
+        public GsonAdapterFactory.Builder<E, T> withInlineSerializer(T pInlineType, GsonAdapterFactory.InlineSerializer<? extends E> pInlineSerializer) {
+            this.inlineType = Pair.of(pInlineType, pInlineSerializer);
             return this;
         }
 
-        public GsonAdapterFactory.Builder<E, T> withDefaultType(T p_164985_) {
-            this.defaultType = p_164985_;
+        public GsonAdapterFactory.Builder<E, T> withDefaultType(T pDefaultType) {
+            this.defaultType = pDefaultType;
             return this;
         }
 
@@ -54,9 +54,9 @@ public class GsonAdapterFactory {
     }
 
     public interface InlineSerializer<T> {
-        JsonElement serialize(T p_164991_, JsonSerializationContext p_164992_);
+        JsonElement serialize(T pValue, JsonSerializationContext pContext);
 
-        T deserialize(JsonElement p_164989_, JsonDeserializationContext p_164990_);
+        T deserialize(JsonElement pJson, JsonDeserializationContext pContext);
     }
 
     static class JsonAdapter<E, T extends SerializerType<E>> implements JsonDeserializer<E>, JsonSerializer<E> {
@@ -69,18 +69,18 @@ public class GsonAdapterFactory {
         @Nullable
         private final Pair<T, GsonAdapterFactory.InlineSerializer<? extends E>> inlineType;
 
-        JsonAdapter(Registry<T> p_164995_, String p_164996_, String p_164997_, Function<E, T> p_164998_, @Nullable T p_164999_, @Nullable Pair<T, GsonAdapterFactory.InlineSerializer<? extends E>> p_165000_) {
-            this.registry = p_164995_;
-            this.elementName = p_164996_;
-            this.typeKey = p_164997_;
-            this.typeGetter = p_164998_;
-            this.defaultType = p_164999_;
-            this.inlineType = p_165000_;
+        JsonAdapter(Registry<T> pRegistry, String pElementName, String pTypeKey, Function<E, T> pTypeGetter, @Nullable T pDefaultType, @Nullable Pair<T, GsonAdapterFactory.InlineSerializer<? extends E>> pInlineType) {
+            this.registry = pRegistry;
+            this.elementName = pElementName;
+            this.typeKey = pTypeKey;
+            this.typeGetter = pTypeGetter;
+            this.defaultType = pDefaultType;
+            this.inlineType = pInlineType;
         }
 
-        public E deserialize(JsonElement p_78848_, Type p_78849_, JsonDeserializationContext p_78850_) throws JsonParseException {
-            if (p_78848_.isJsonObject()) {
-                JsonObject jsonobject = GsonHelper.convertToJsonObject(p_78848_, this.elementName);
+        public E deserialize(JsonElement pJson, Type pTypeOfT, JsonDeserializationContext pContext) throws JsonParseException {
+            if (pJson.isJsonObject()) {
+                JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, this.elementName);
                 String s = GsonHelper.getAsString(jsonobject, this.typeKey, "");
                 T t;
                 if (s.isEmpty()) {
@@ -93,25 +93,25 @@ public class GsonAdapterFactory {
                 if (t == null) {
                     throw new JsonSyntaxException("Unknown type '" + s + "'");
                 } else {
-                    return t.getSerializer().deserialize(jsonobject, p_78850_);
+                    return t.getSerializer().deserialize(jsonobject, pContext);
                 }
             } else if (this.inlineType == null) {
-                throw new UnsupportedOperationException("Object " + p_78848_ + " can't be deserialized");
+                throw new UnsupportedOperationException("Object " + pJson + " can't be deserialized");
             } else {
-                return this.inlineType.getSecond().deserialize(p_78848_, p_78850_);
+                return this.inlineType.getSecond().deserialize(pJson, pContext);
             }
         }
 
-        public JsonElement serialize(E p_78852_, Type p_78853_, JsonSerializationContext p_78854_) {
-            T t = this.typeGetter.apply(p_78852_);
+        public JsonElement serialize(E pSrc, Type pTypeOfSrc, JsonSerializationContext pContext) {
+            T t = this.typeGetter.apply(pSrc);
             if (this.inlineType != null && this.inlineType.getFirst() == t) {
-                return ((InlineSerializer<E>) this.inlineType.getSecond()).serialize(p_78852_, p_78854_);
+                return ((InlineSerializer<E>) this.inlineType.getSecond()).serialize(pSrc, pContext);
             } else if (t == null) {
-                throw new JsonSyntaxException("Unknown type: " + p_78852_);
+                throw new JsonSyntaxException("Unknown type: " + pSrc);
             } else {
                 JsonObject jsonobject = new JsonObject();
                 jsonobject.addProperty(this.typeKey, this.registry.getKey(t).toString());
-                ((Serializer<E>) t.getSerializer()).serialize(jsonobject, p_78852_, p_78854_);
+                ((Serializer<E>) t.getSerializer()).serialize(jsonobject, pSrc, pContext);
                 return jsonobject;
             }
         }

@@ -15,16 +15,16 @@ public class ForcedChunksSavedData extends SavedData {
     private static final String TAG_FORCED = "Forced";
     private final ObjectSet<ChunkPos> chunks;
 
-    private ForcedChunksSavedData(ObjectSet<ChunkPos> p_151482_) {
-        this.chunks = p_151482_;
+    private ForcedChunksSavedData(ObjectSet<ChunkPos> pChunks) {
+        this.chunks = pChunks;
     }
 
     public ForcedChunksSavedData() {
         this(new ObjectOpenHashSet<>());
     }
 
-    public static ForcedChunksSavedData load(CompoundTag p_151484_) {
-        return new ForcedChunksSavedData(new ObjectOpenHashSet<>(fromTag(p_151484_.getList("Forced", Tag.TAG_COMPOUND))));
+    public static ForcedChunksSavedData load(CompoundTag pTag) {
+        return new ForcedChunksSavedData(new ObjectOpenHashSet<>(fromTag(pTag.getList("Forced", Tag.TAG_COMPOUND))));
     }
 
     private static ObjectSet<ChunkPos> fromTag(ListTag tags) {
@@ -38,9 +38,9 @@ public class ForcedChunksSavedData extends SavedData {
         return set;
     }
 
-    public CompoundTag save(CompoundTag p_46120_) {
-        p_46120_.put("Forced", toTag(this.chunks));
-        return p_46120_;
+    public CompoundTag save(CompoundTag pCompound) {
+        pCompound.put("Forced", toTag(this.chunks));
+        return pCompound;
     }
 
     private ListTag toTag(ObjectSet<ChunkPos> chunks) {

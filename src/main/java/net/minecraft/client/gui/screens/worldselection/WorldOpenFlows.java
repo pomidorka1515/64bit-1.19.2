@@ -49,41 +49,41 @@ public class WorldOpenFlows {
     private final Minecraft minecraft;
     private final LevelStorageSource levelSource;
 
-    public WorldOpenFlows(Minecraft p_233093_, LevelStorageSource p_233094_) {
-        this.minecraft = p_233093_;
-        this.levelSource = p_233094_;
+    public WorldOpenFlows(Minecraft pMinecraft, LevelStorageSource pLevelSource) {
+        this.minecraft = pMinecraft;
+        this.levelSource = pLevelSource;
     }
 
-    public void loadLevel(Screen p_233134_, String p_233135_) {
-        this.doLoadLevel(p_233134_, p_233135_, false, true);
+    public void loadLevel(Screen pLastScreen, String pLevelName) {
+        this.doLoadLevel(pLastScreen, pLevelName, false, true);
     }
 
-    public void createFreshLevel(String p_233158_, LevelSettings p_233159_, RegistryAccess p_233160_, WorldGenSettings p_233161_) {
-        LevelStorageSource.LevelStorageAccess levelstoragesource$levelstorageaccess = this.createWorldAccess(p_233158_);
+    public void createFreshLevel(String pLevelName, LevelSettings pLevelSettings, RegistryAccess pRegistryAccess, WorldGenSettings pWorldGenSettings) {
+        LevelStorageSource.LevelStorageAccess levelstoragesource$levelstorageaccess = this.createWorldAccess(pLevelName);
         if (levelstoragesource$levelstorageaccess != null) {
             PackRepository packrepository = createPackRepository(levelstoragesource$levelstorageaccess);
-            DataPackConfig datapackconfig = p_233159_.getDataPackConfig();
+            DataPackConfig datapackconfig = pLevelSettings.getDataPackConfig();
 
             try {
                 WorldLoader.PackConfig worldloader$packconfig = new WorldLoader.PackConfig(packrepository, datapackconfig, false);
                 WorldStem worldstem = this.loadWorldStem(worldloader$packconfig, (p_233103_, p_233104_) -> {
-                    return Pair.of(new PrimaryLevelData(p_233159_, p_233161_, Lifecycle.stable()), p_233160_.freeze());
+                    return Pair.of(new PrimaryLevelData(pLevelSettings, pWorldGenSettings, Lifecycle.stable()), pRegistryAccess.freeze());
                 });
-                this.minecraft.doWorldLoad(p_233158_, levelstoragesource$levelstorageaccess, packrepository, worldstem);
+                this.minecraft.doWorldLoad(pLevelName, levelstoragesource$levelstorageaccess, packrepository, worldstem);
             } catch (Exception exception) {
                 LOGGER.warn("Failed to load datapacks, can't proceed with server load", (Throwable) exception);
-                safeCloseAccess(levelstoragesource$levelstorageaccess, p_233158_);
+                safeCloseAccess(levelstoragesource$levelstorageaccess, pLevelName);
             }
         }
     }
 
     @Nullable
-    private LevelStorageSource.LevelStorageAccess createWorldAccess(String p_233156_) {
+    private LevelStorageSource.LevelStorageAccess createWorldAccess(String pLevelName) {
         try {
-            return this.levelSource.createAccess(p_233156_);
+            return this.levelSource.createAccess(pLevelName);
         } catch (IOException ioexception) {
-            LOGGER.warn("Failed to read level {} data", p_233156_, ioexception);
-            SystemToast.onWorldAccessFailure(this.minecraft, p_233156_);
+            LOGGER.warn("Failed to read level {} data", pLevelName, ioexception);
+            SystemToast.onWorldAccessFailure(this.minecraft, pLevelName);
             this.minecraft.setScreen((Screen) null);
             return null;
         }
@@ -99,16 +99,16 @@ public class WorldOpenFlows {
         return new PackRepository(PackType.SERVER_DATA, new ServerPacksSource(), new FolderRepositorySource(p_233106_.getLevelPath(LevelResource.DATAPACK_DIR).toFile(), PackSource.WORLD));
     }
 
-    private WorldStem loadWorldStem(LevelStorageSource.LevelStorageAccess p_233123_, boolean p_233124_, PackRepository p_233125_) throws Exception {
-        DataPackConfig datapackconfig = p_233123_.getDataPacks();
+    private WorldStem loadWorldStem(LevelStorageSource.LevelStorageAccess pLevelStorage, boolean pSafeMode, PackRepository pPackRepository) throws Exception {
+        DataPackConfig datapackconfig = pLevelStorage.getDataPacks();
         if (datapackconfig == null) {
             throw new IllegalStateException("Failed to load data pack config");
         } else {
-            WorldLoader.PackConfig worldloader$packconfig = new WorldLoader.PackConfig(p_233125_, datapackconfig, p_233124_);
+            WorldLoader.PackConfig worldloader$packconfig = new WorldLoader.PackConfig(pPackRepository, datapackconfig, pSafeMode);
             return this.loadWorldStem(worldloader$packconfig, (p_233114_, p_233115_) -> {
                 RegistryAccess.Writable registryaccess$writable = RegistryAccess.builtinCopy();
                 DynamicOps<Tag> dynamicops = RegistryOps.createAndLoad(NbtOps.INSTANCE, registryaccess$writable, p_233114_);
-                WorldData worlddata = p_233123_.getDataTag(dynamicops, p_233115_, registryaccess$writable.allElementsLifecycle());
+                WorldData worlddata = pLevelStorage.getDataTag(dynamicops, p_233115_, registryaccess$writable.allElementsLifecycle());
                 if (worlddata == null) {
                     throw new IllegalStateException("Failed to load world");
                 } else {
@@ -118,9 +118,9 @@ public class WorldOpenFlows {
         }
     }
 
-    public WorldStem loadWorldStem(LevelStorageSource.LevelStorageAccess p_233120_, boolean p_233121_) throws Exception {
-        PackRepository packrepository = createPackRepository(p_233120_);
-        return this.loadWorldStem(p_233120_, p_233121_, packrepository);
+    public WorldStem loadWorldStem(LevelStorageSource.LevelStorageAccess pLevelStorage, boolean pSafeMode) throws Exception {
+        PackRepository packrepository = createPackRepository(pLevelStorage);
+        return this.loadWorldStem(pLevelStorage, pSafeMode, packrepository);
     }
 
     private WorldStem loadWorldStem(WorldLoader.PackConfig p_233097_, WorldLoader.WorldDataSupplier<WorldData> p_233098_) throws Exception {
@@ -130,27 +130,27 @@ public class WorldOpenFlows {
         return completablefuture.get();
     }
 
-    private void doLoadLevel(Screen p_233146_, String p_233147_, boolean p_233148_, boolean p_233149_) {
-        LevelStorageSource.LevelStorageAccess levelstoragesource$levelstorageaccess = this.createWorldAccess(p_233147_);
+    private void doLoadLevel(Screen pLastScreen, String pLevelName, boolean pSafeMode, boolean pCheckAskForBackup) {
+        LevelStorageSource.LevelStorageAccess levelstoragesource$levelstorageaccess = this.createWorldAccess(pLevelName);
         if (levelstoragesource$levelstorageaccess != null) {
             PackRepository packrepository = createPackRepository(levelstoragesource$levelstorageaccess);
 
             WorldStem worldstem;
             try {
-                worldstem = this.loadWorldStem(levelstoragesource$levelstorageaccess, p_233148_, packrepository);
+                worldstem = this.loadWorldStem(levelstoragesource$levelstorageaccess, pSafeMode, packrepository);
             } catch (Exception exception) {
                 LOGGER.warn("Failed to load datapacks, can't proceed with server load", (Throwable) exception);
                 this.minecraft.setScreen(new DatapackLoadFailureScreen(() -> {
-                    this.doLoadLevel(p_233146_, p_233147_, true, p_233149_);
+                    this.doLoadLevel(pLastScreen, pLevelName, true, pCheckAskForBackup);
                 }));
-                safeCloseAccess(levelstoragesource$levelstorageaccess, p_233147_);
+                safeCloseAccess(levelstoragesource$levelstorageaccess, pLevelName);
                 return;
             }
 
             WorldData worlddata = worldstem.worldData();
             boolean flag = worlddata.worldGenSettings().isOldCustomizedWorld();
             boolean flag1 = worlddata.worldGenSettingsLifecycle() != Lifecycle.stable();
-            if (!p_233149_ || !flag && !flag1) {
+            if (!pCheckAskForBackup || !flag && !flag1) {
                 this.minecraft.getClientPackSource().loadBundledResourcePack(levelstoragesource$levelstorageaccess).thenApply((p_233177_) -> {
                                                                                                                        return true;
                                                                                                                    })
@@ -160,12 +160,12 @@ public class WorldOpenFlows {
                         }, this.minecraft)
                         .thenAcceptAsync((p_233168_) -> {
                             if (p_233168_) {
-                                this.minecraft.doWorldLoad(p_233147_, levelstoragesource$levelstorageaccess, packrepository, worldstem);
+                                this.minecraft.doWorldLoad(pLevelName, levelstoragesource$levelstorageaccess, packrepository, worldstem);
                             } else {
                                 worldstem.close();
-                                safeCloseAccess(levelstoragesource$levelstorageaccess, p_233147_);
+                                safeCloseAccess(levelstoragesource$levelstorageaccess, pLevelName);
                                 this.minecraft.getClientPackSource().clearServerPack().thenRunAsync(() -> {
-                                    this.minecraft.setScreen(p_233146_);
+                                    this.minecraft.setScreen(pLastScreen);
                                 }, this.minecraft);
                             }
                         }, this.minecraft)
@@ -174,11 +174,11 @@ public class WorldOpenFlows {
                             return null;
                         });
             } else {
-                this.askForBackup(p_233146_, p_233147_, flag, () -> {
-                    this.doLoadLevel(p_233146_, p_233147_, p_233148_, false);
+                this.askForBackup(pLastScreen, pLevelName, flag, () -> {
+                    this.doLoadLevel(pLastScreen, pLevelName, pSafeMode, false);
                 });
                 worldstem.close();
-                safeCloseAccess(levelstoragesource$levelstorageaccess, p_233147_);
+                safeCloseAccess(levelstoragesource$levelstorageaccess, pLevelName);
             }
         }
     }
@@ -189,11 +189,11 @@ public class WorldOpenFlows {
         return completablefuture;
     }
 
-    private static void safeCloseAccess(LevelStorageSource.LevelStorageAccess p_233117_, String p_233118_) {
+    private static void safeCloseAccess(LevelStorageSource.LevelStorageAccess pLevelStorage, String pLevelName) {
         try {
-            p_233117_.close();
+            pLevelStorage.close();
         } catch (IOException ioexception) {
-            LOGGER.warn("Failed to unlock access to level {}", p_233118_, ioexception);
+            LOGGER.warn("Failed to unlock access to level {}", pLevelName, ioexception);
         }
     }
 

@@ -18,51 +18,51 @@ public class GateBehavior<E extends LivingEntity> extends Behavior<E> {
     private final GateBehavior.RunningPolicy runningPolicy;
     private final ShufflingList<Behavior<? super E>> behaviors = new ShufflingList<>();
 
-    public GateBehavior(Map<MemoryModuleType<?>, MemoryStatus> p_22873_, Set<MemoryModuleType<?>> p_22874_, GateBehavior.OrderPolicy p_22875_, GateBehavior.RunningPolicy p_22876_, List<Pair<Behavior<? super E>, Integer>> p_22877_) {
-        super(p_22873_);
-        this.exitErasedMemories = p_22874_;
-        this.orderPolicy = p_22875_;
-        this.runningPolicy = p_22876_;
-        p_22877_.forEach((p_22892_) -> {
+    public GateBehavior(Map<MemoryModuleType<?>, MemoryStatus> pEntryCondition, Set<MemoryModuleType<?>> pExitErasedMemories, GateBehavior.OrderPolicy pOrderPolicy, GateBehavior.RunningPolicy pRunningPolicy, List<Pair<Behavior<? super E>, Integer>> pDurations) {
+        super(pEntryCondition);
+        this.exitErasedMemories = pExitErasedMemories;
+        this.orderPolicy = pOrderPolicy;
+        this.runningPolicy = pRunningPolicy;
+        pDurations.forEach((p_22892_) -> {
             this.behaviors.add(p_22892_.getFirst(), p_22892_.getSecond());
         });
     }
 
-    protected boolean canStillUse(ServerLevel p_22894_, E p_22895_, long p_22896_) {
+    protected boolean canStillUse(ServerLevel pLevel, E pEntity, long pGameTime) {
         return this.behaviors.stream().filter((p_22920_) -> {
                                           return p_22920_.getStatus() == Behavior.Status.RUNNING;
                                       })
                 .anyMatch((p_22912_) -> {
-                    return p_22912_.canStillUse(p_22894_, p_22895_, p_22896_);
+                    return p_22912_.canStillUse(pLevel, pEntity, pGameTime);
                 });
     }
 
-    protected boolean timedOut(long p_22879_) {
+    protected boolean timedOut(long pGameTime) {
         return false;
     }
 
-    protected void start(ServerLevel p_22881_, E p_22882_, long p_22883_) {
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
         this.orderPolicy.apply(this.behaviors);
-        this.runningPolicy.apply(this.behaviors.stream(), p_22881_, p_22882_, p_22883_);
+        this.runningPolicy.apply(this.behaviors.stream(), pLevel, pEntity, pGameTime);
     }
 
-    protected void tick(ServerLevel p_22916_, E p_22917_, long p_22918_) {
+    protected void tick(ServerLevel pLevel, E pOwner, long pGameTime) {
         this.behaviors.stream().filter((p_22914_) -> {
                                    return p_22914_.getStatus() == Behavior.Status.RUNNING;
                                })
                 .forEach((p_22901_) -> {
-                    p_22901_.tickOrStop(p_22916_, p_22917_, p_22918_);
+                    p_22901_.tickOrStop(pLevel, pOwner, pGameTime);
                 });
     }
 
-    protected void stop(ServerLevel p_22905_, E p_22906_, long p_22907_) {
+    protected void stop(ServerLevel pLevel, E pEntity, long pGameTime) {
         this.behaviors.stream().filter((p_22903_) -> {
                                    return p_22903_.getStatus() == Behavior.Status.RUNNING;
                                })
                 .forEach((p_22888_) -> {
-                    p_22888_.doStop(p_22905_, p_22906_, p_22907_);
+                    p_22888_.doStop(pLevel, pEntity, pGameTime);
                 });
-        this.exitErasedMemories.forEach(p_22906_.getBrain()::eraseMemory);
+        this.exitErasedMemories.forEach(pEntity.getBrain()::eraseMemory);
     }
 
     public String toString() {
@@ -83,8 +83,8 @@ public class GateBehavior<E extends LivingEntity> extends Behavior<E> {
             this.consumer = p_22930_;
         }
 
-        public void apply(ShufflingList<?> p_147528_) {
-            this.consumer.accept(p_147528_);
+        public void apply(ShufflingList<?> pList) {
+            this.consumer.accept(pList);
         }
     }
 
@@ -111,6 +111,6 @@ public class GateBehavior<E extends LivingEntity> extends Behavior<E> {
             }
         };
 
-        public abstract <E extends LivingEntity> void apply(Stream<Behavior<? super E>> p_147532_, ServerLevel p_147533_, E p_147534_, long p_147535_);
+        public abstract <E extends LivingEntity> void apply(Stream<Behavior<? super E>> pBehaviors, ServerLevel pLevel, E pOwner, long pGameTime);
     }
 }

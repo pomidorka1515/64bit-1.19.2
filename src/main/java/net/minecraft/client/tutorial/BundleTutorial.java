@@ -17,9 +17,9 @@ public class BundleTutorial {
     @Nullable
     private TutorialToast toast;
 
-    public BundleTutorial(Tutorial p_175003_, Options p_175004_) {
-        this.tutorial = p_175003_;
-        this.options = p_175004_;
+    public BundleTutorial(Tutorial pTutorial, Options pOptions) {
+        this.tutorial = pTutorial;
+        this.options = pOptions;
     }
 
     private void showToast() {
@@ -45,15 +45,15 @@ public class BundleTutorial {
         }
     }
 
-    public void onInventoryAction(ItemStack p_175007_, ItemStack p_175008_, ClickAction p_175009_) {
+    public void onInventoryAction(ItemStack pCarriedStack, ItemStack pSlottedStack, ClickAction pAction) {
         if (!this.options.hideBundleTutorial) {
-            if (!p_175007_.isEmpty() && p_175008_.is(Items.BUNDLE)) {
-                if (p_175009_ == ClickAction.PRIMARY) {
+            if (!pCarriedStack.isEmpty() && pSlottedStack.is(Items.BUNDLE)) {
+                if (pAction == ClickAction.PRIMARY) {
                     this.showToast();
-                } else if (p_175009_ == ClickAction.SECONDARY) {
+                } else if (pAction == ClickAction.SECONDARY) {
                     this.clearToast();
                 }
-            } else if (p_175007_.is(Items.BUNDLE) && !p_175008_.isEmpty() && p_175009_ == ClickAction.SECONDARY) {
+            } else if (pCarriedStack.is(Items.BUNDLE) && !pSlottedStack.isEmpty() && pAction == ClickAction.SECONDARY) {
                 this.clearToast();
             }
         }

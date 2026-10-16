@@ -58,29 +58,29 @@ public class BookViewScreen extends Screen {
     private PageButton backButton;
     private final boolean playTurnSound;
 
-    public BookViewScreen(BookViewScreen.BookAccess p_98264_) {
-        this(p_98264_, true);
+    public BookViewScreen(BookViewScreen.BookAccess pBookAccess) {
+        this(pBookAccess, true);
     }
 
     public BookViewScreen() {
         this(EMPTY_ACCESS, false);
     }
 
-    private BookViewScreen(BookViewScreen.BookAccess p_98266_, boolean p_98267_) {
+    private BookViewScreen(BookViewScreen.BookAccess pBookAccess, boolean pPlayTurnSound) {
         super(GameNarrator.NO_TITLE);
-        this.bookAccess = p_98266_;
-        this.playTurnSound = p_98267_;
+        this.bookAccess = pBookAccess;
+        this.playTurnSound = pPlayTurnSound;
     }
 
-    public void setBookAccess(BookViewScreen.BookAccess p_98289_) {
-        this.bookAccess = p_98289_;
-        this.currentPage = Mth.clamp(this.currentPage, 0, p_98289_.getPageCount());
+    public void setBookAccess(BookViewScreen.BookAccess pBookAccess) {
+        this.bookAccess = pBookAccess;
+        this.currentPage = Mth.clamp(this.currentPage, 0, pBookAccess.getPageCount());
         this.updateButtonVisibility();
         this.cachedPage = -1;
     }
 
-    public boolean setPage(int p_98276_) {
-        int i = Mth.clamp(p_98276_, 0, this.bookAccess.getPageCount() - 1);
+    public boolean setPage(int pPageNum) {
+        int i = Mth.clamp(pPageNum, 0, this.bookAccess.getPageCount() - 1);
         if (i != this.currentPage) {
             this.currentPage = i;
             this.updateButtonVisibility();
@@ -91,8 +91,8 @@ public class BookViewScreen extends Screen {
         }
     }
 
-    protected boolean forcePage(int p_98295_) {
-        return this.setPage(p_98295_);
+    protected boolean forcePage(int pPageNum) {
+        return this.setPage(pPageNum);
     }
 
     protected void init() {
@@ -143,11 +143,11 @@ public class BookViewScreen extends Screen {
         this.backButton.visible = this.currentPage > 0;
     }
 
-    public boolean keyPressed(int p_98278_, int p_98279_, int p_98280_) {
-        if (super.keyPressed(p_98278_, p_98279_, p_98280_)) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
         } else {
-            switch (p_98278_) {
+            switch (pKeyCode) {
                 case 266:
                     this.backButton.onPress();
                     return true;
@@ -160,14 +160,14 @@ public class BookViewScreen extends Screen {
         }
     }
 
-    public void render(PoseStack p_98282_, int p_98283_, int p_98284_, float p_98285_) {
-        this.renderBackground(p_98282_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, BOOK_LOCATION);
         int i = (this.width - 192) / 2;
         int j = 2;
-        this.blit(p_98282_, i, 2, 0, 0, 192, 192);
+        this.blit(pPoseStack, i, 2, 0, 0, 192, 192);
         if (this.cachedPage != this.currentPage) {
             FormattedText formattedtext = this.bookAccess.getPage(this.currentPage);
             this.cachedPageComponents = this.font.split(formattedtext, 114);
@@ -176,35 +176,35 @@ public class BookViewScreen extends Screen {
 
         this.cachedPage = this.currentPage;
         int i1 = this.font.width(this.pageMsg);
-        this.font.draw(p_98282_, this.pageMsg, (float) (i - i1 + 192 - 44), 18.0F, 0);
+        this.font.draw(pPoseStack, this.pageMsg, (float) (i - i1 + 192 - 44), 18.0F, 0);
         int k = Math.min(128 / 9, this.cachedPageComponents.size());
 
         for (int l = 0; l < k; ++l) {
             FormattedCharSequence formattedcharsequence = this.cachedPageComponents.get(l);
-            this.font.draw(p_98282_, formattedcharsequence, (float) (i + 36), (float) (32 + l * 9), 0);
+            this.font.draw(pPoseStack, formattedcharsequence, (float) (i + 36), (float) (32 + l * 9), 0);
         }
 
-        Style style = this.getClickedComponentStyleAt((double) p_98283_, (double) p_98284_);
+        Style style = this.getClickedComponentStyleAt((double) pMouseX, (double) pMouseY);
         if (style != null) {
-            this.renderComponentHoverEffect(p_98282_, style, p_98283_, p_98284_);
+            this.renderComponentHoverEffect(pPoseStack, style, pMouseX, pMouseY);
         }
 
-        super.render(p_98282_, p_98283_, p_98284_, p_98285_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    public boolean mouseClicked(double p_98272_, double p_98273_, int p_98274_) {
-        if (p_98274_ == 0) {
-            Style style = this.getClickedComponentStyleAt(p_98272_, p_98273_);
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (pButton == 0) {
+            Style style = this.getClickedComponentStyleAt(pMouseX, pMouseY);
             if (style != null && this.handleComponentClicked(style)) {
                 return true;
             }
         }
 
-        return super.mouseClicked(p_98272_, p_98273_, p_98274_);
+        return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 
-    public boolean handleComponentClicked(Style p_98293_) {
-        ClickEvent clickevent = p_98293_.getClickEvent();
+    public boolean handleComponentClicked(Style pStyle) {
+        ClickEvent clickevent = pStyle.getClickEvent();
         if (clickevent == null) {
             return false;
         } else if (clickevent.getAction() == ClickEvent.Action.CHANGE_PAGE) {
@@ -217,7 +217,7 @@ public class BookViewScreen extends Screen {
                 return false;
             }
         } else {
-            boolean flag = super.handleComponentClicked(p_98293_);
+            boolean flag = super.handleComponentClicked(pStyle);
             if (flag && clickevent.getAction() == ClickEvent.Action.RUN_COMMAND) {
                 this.closeScreen();
             }
@@ -231,12 +231,12 @@ public class BookViewScreen extends Screen {
     }
 
     @Nullable
-    public Style getClickedComponentStyleAt(double p_98269_, double p_98270_) {
+    public Style getClickedComponentStyleAt(double pMouseX, double pMouseY) {
         if (this.cachedPageComponents.isEmpty()) {
             return null;
         } else {
-            int i = Mth.floor(p_98269_ - (double) ((this.width - 192) / 2) - 36.0D);
-            int j = Mth.floor(p_98270_ - 2.0D - 30.0D);
+            int i = Mth.floor(pMouseX - (double) ((this.width - 192) / 2) - 36.0D);
+            int j = Mth.floor(pMouseY - 2.0D - 30.0D);
             if (i >= 0 && j >= 0) {
                 int k = Math.min(128 / 9, this.cachedPageComponents.size());
                 if (i <= 114 && j < 9 * k + k) {
@@ -256,17 +256,17 @@ public class BookViewScreen extends Screen {
         }
     }
 
-    static List<String> loadPages(CompoundTag p_169695_) {
+    static List<String> loadPages(CompoundTag pTag) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        loadPages(p_169695_, builder::add);
+        loadPages(pTag, builder::add);
         return builder.build();
     }
 
-    public static void loadPages(CompoundTag p_169697_, Consumer<String> p_169698_) {
-        ListTag listtag = p_169697_.getList("pages", 8).copy();
+    public static void loadPages(CompoundTag pTag, Consumer<String> pConsumer) {
+        ListTag listtag = pTag.getList("pages", 8).copy();
         IntFunction<String> intfunction;
-        if (Minecraft.getInstance().isTextFilteringEnabled() && p_169697_.contains("filtered_pages", 10)) {
-            CompoundTag compoundtag = p_169697_.getCompound("filtered_pages");
+        if (Minecraft.getInstance().isTextFilteringEnabled() && pTag.contains("filtered_pages", 10)) {
+            CompoundTag compoundtag = pTag.getCompound("filtered_pages");
             intfunction = (p_169702_) -> {
                 String s = String.valueOf(p_169702_);
                 return compoundtag.contains(s) ? compoundtag.getString(s) : listtag.getString(p_169702_);
@@ -276,7 +276,7 @@ public class BookViewScreen extends Screen {
         }
 
         for (int i = 0; i < listtag.size(); ++i) {
-            p_169698_.accept(intfunction.apply(i));
+            pConsumer.accept(intfunction.apply(i));
         }
     }
 
@@ -284,17 +284,17 @@ public class BookViewScreen extends Screen {
     public interface BookAccess {
         int getPageCount();
 
-        FormattedText getPageRaw(int p_98307_);
+        FormattedText getPageRaw(int pIndex);
 
-        default FormattedText getPage(int p_98311_) {
-            return p_98311_ >= 0 && p_98311_ < this.getPageCount() ? this.getPageRaw(p_98311_) : FormattedText.EMPTY;
+        default FormattedText getPage(int pPage) {
+            return pPage >= 0 && pPage < this.getPageCount() ? this.getPageRaw(pPage) : FormattedText.EMPTY;
         }
 
-        static BookViewScreen.BookAccess fromItem(ItemStack p_98309_) {
-            if (p_98309_.is(Items.WRITTEN_BOOK)) {
-                return new BookViewScreen.WrittenBookAccess(p_98309_);
+        static BookViewScreen.BookAccess fromItem(ItemStack pStack) {
+            if (pStack.is(Items.WRITTEN_BOOK)) {
+                return new BookViewScreen.WrittenBookAccess(pStack);
             } else {
-                return (BookViewScreen.BookAccess) (p_98309_.is(Items.WRITABLE_BOOK) ? new BookViewScreen.WritableBookAccess(p_98309_) : BookViewScreen.EMPTY_ACCESS);
+                return (BookViewScreen.BookAccess) (pStack.is(Items.WRITABLE_BOOK) ? new BookViewScreen.WritableBookAccess(pStack) : BookViewScreen.EMPTY_ACCESS);
             }
         }
     }
@@ -303,12 +303,12 @@ public class BookViewScreen extends Screen {
     public static class WritableBookAccess implements BookViewScreen.BookAccess {
         private final List<String> pages;
 
-        public WritableBookAccess(ItemStack p_98314_) {
-            this.pages = readPages(p_98314_);
+        public WritableBookAccess(ItemStack pWrittenBookStack) {
+            this.pages = readPages(pWrittenBookStack);
         }
 
-        private static List<String> readPages(ItemStack p_98319_) {
-            CompoundTag compoundtag = p_98319_.getTag();
+        private static List<String> readPages(ItemStack pWrittenBookStack) {
+            CompoundTag compoundtag = pWrittenBookStack.getTag();
             return (List<String>) (compoundtag != null ? BookViewScreen.loadPages(compoundtag) : ImmutableList.of());
         }
 
@@ -316,8 +316,8 @@ public class BookViewScreen extends Screen {
             return this.pages.size();
         }
 
-        public FormattedText getPageRaw(int p_98317_) {
-            return FormattedText.of(this.pages.get(p_98317_));
+        public FormattedText getPageRaw(int pIndex) {
+            return FormattedText.of(this.pages.get(pIndex));
         }
     }
 
@@ -325,12 +325,12 @@ public class BookViewScreen extends Screen {
     public static class WrittenBookAccess implements BookViewScreen.BookAccess {
         private final List<String> pages;
 
-        public WrittenBookAccess(ItemStack p_98322_) {
-            this.pages = readPages(p_98322_);
+        public WrittenBookAccess(ItemStack pWrittenBookStack) {
+            this.pages = readPages(pWrittenBookStack);
         }
 
-        private static List<String> readPages(ItemStack p_98327_) {
-            CompoundTag compoundtag = p_98327_.getTag();
+        private static List<String> readPages(ItemStack pWrittenBookStack) {
+            CompoundTag compoundtag = pWrittenBookStack.getTag();
             return (List<String>) (compoundtag != null && WrittenBookItem.makeSureTagIsValid(compoundtag) ? BookViewScreen.loadPages(compoundtag) : ImmutableList.of(Component.Serializer.toJson(Component.translatable("book.invalid.tag").withStyle(ChatFormatting.DARK_RED))));
         }
 
@@ -338,8 +338,8 @@ public class BookViewScreen extends Screen {
             return this.pages.size();
         }
 
-        public FormattedText getPageRaw(int p_98325_) {
-            String s = this.pages.get(p_98325_);
+        public FormattedText getPageRaw(int pIndex) {
+            String s = this.pages.get(pIndex);
 
             try {
                 FormattedText formattedtext = Component.Serializer.fromJson(s);

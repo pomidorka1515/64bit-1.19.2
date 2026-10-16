@@ -21,18 +21,18 @@ public class CarvingContext extends WorldGenerationContext {
     private final RandomState randomState;
     private final SurfaceRules.RuleSource surfaceRule;
 
-    public CarvingContext(NoiseBasedChunkGenerator p_224845_, RegistryAccess p_224846_, LevelHeightAccessor p_224847_, NoiseChunk p_224848_, RandomState p_224849_, SurfaceRules.RuleSource p_224850_) {
-        super(p_224845_, p_224847_);
-        this.registryAccess = p_224846_;
-        this.noiseChunk = p_224848_;
-        this.randomState = p_224849_;
-        this.surfaceRule = p_224850_;
+    public CarvingContext(NoiseBasedChunkGenerator pGenerator, RegistryAccess pRegistryAccess, LevelHeightAccessor pLevel, NoiseChunk pNoiseChunk, RandomState pRandomState, SurfaceRules.RuleSource pSurfaceRule) {
+        super(pGenerator, pLevel);
+        this.registryAccess = pRegistryAccess;
+        this.noiseChunk = pNoiseChunk;
+        this.randomState = pRandomState;
+        this.surfaceRule = pSurfaceRule;
     }
 
     /** @deprecated */
     @Deprecated
-    public Optional<BlockState> topMaterial(Function<BlockPos, Holder<Biome>> p_190647_, ChunkAccess p_190648_, BlockPos p_190649_, boolean p_190650_) {
-        return this.randomState.surfaceSystem().topMaterial(this.surfaceRule, this, p_190647_, p_190648_, this.noiseChunk, p_190649_, p_190650_);
+    public Optional<BlockState> topMaterial(Function<BlockPos, Holder<Biome>> pBiomeMapper, ChunkAccess pAccess, BlockPos pPos, boolean pHasFluid) {
+        return this.randomState.surfaceSystem().topMaterial(this.surfaceRule, this, pBiomeMapper, pAccess, this.noiseChunk, pPos, pHasFluid);
     }
 
     /** @deprecated */

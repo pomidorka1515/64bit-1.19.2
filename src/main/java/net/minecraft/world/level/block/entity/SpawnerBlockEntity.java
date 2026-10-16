@@ -26,26 +26,26 @@ public class SpawnerBlockEntity extends BlockEntity {
         }
     };
 
-    public SpawnerBlockEntity(BlockPos p_155752_, BlockState p_155753_) {
-        super(BlockEntityType.MOB_SPAWNER, p_155752_, p_155753_);
+    public SpawnerBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.MOB_SPAWNER, pPos, pBlockState);
     }
 
-    public void load(CompoundTag p_155760_) {
-        super.load(p_155760_);
-        this.spawner.load(this.level, this.worldPosition, p_155760_);
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
+        this.spawner.load(this.level, this.worldPosition, pTag);
     }
 
-    protected void saveAdditional(CompoundTag p_187521_) {
-        super.saveAdditional(p_187521_);
-        this.spawner.save(p_187521_);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
+        this.spawner.save(pTag);
     }
 
-    public static void clientTick(Level p_155755_, BlockPos p_155756_, BlockState p_155757_, SpawnerBlockEntity p_155758_) {
-        p_155758_.spawner.clientTick(p_155755_, p_155756_);
+    public static void clientTick(Level pLevel, BlockPos pPos, BlockState pState, SpawnerBlockEntity pBlockEntity) {
+        pBlockEntity.spawner.clientTick(pLevel, pPos);
     }
 
-    public static void serverTick(Level p_155762_, BlockPos p_155763_, BlockState p_155764_, SpawnerBlockEntity p_155765_) {
-        p_155765_.spawner.serverTick((ServerLevel) p_155762_, p_155763_);
+    public static void serverTick(Level pLevel, BlockPos pPos, BlockState pState, SpawnerBlockEntity pBlockEntity) {
+        pBlockEntity.spawner.serverTick((ServerLevel) pLevel, pPos);
     }
 
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -58,8 +58,8 @@ public class SpawnerBlockEntity extends BlockEntity {
         return compoundtag;
     }
 
-    public boolean triggerEvent(int p_59797_, int p_59798_) {
-        return this.spawner.onEventTriggered(this.level, p_59797_) ? true : super.triggerEvent(p_59797_, p_59798_);
+    public boolean triggerEvent(int pId, int pType) {
+        return this.spawner.onEventTriggered(this.level, pId) ? true : super.triggerEvent(pId, pType);
     }
 
     public boolean onlyOpCanSetNbt() {

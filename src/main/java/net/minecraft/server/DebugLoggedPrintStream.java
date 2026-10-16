@@ -11,9 +11,9 @@ public class DebugLoggedPrintStream extends LoggedPrintStream {
         super(p_135934_, p_135935_);
     }
 
-    protected void logLine(String p_135937_) {
+    protected void logLine(String pString) {
         StackTraceElement[] astacktraceelement = Thread.currentThread().getStackTrace();
         StackTraceElement stacktraceelement = astacktraceelement[Math.min(3, astacktraceelement.length)];
-        LOGGER.info("[{}]@.({}:{}): {}", this.name, stacktraceelement.getFileName(), stacktraceelement.getLineNumber(), p_135937_);
+        LOGGER.info("[{}]@.({}:{}): {}", this.name, stacktraceelement.getFileName(), stacktraceelement.getLineNumber(), pString);
     }
 }

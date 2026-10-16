@@ -12,11 +12,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class KeyframeAnimations {
-    public static void animate(HierarchicalModel<?> p_232320_, AnimationDefinition p_232321_, long p_232322_, float p_232323_, Vector3f p_232324_) {
-        float f = getElapsedSeconds(p_232321_, p_232322_);
+    public static void animate(HierarchicalModel<?> pModel, AnimationDefinition pAnimationDefinition, long pAccumulatedTime, float pScale, Vector3f pAnimationVecCache) {
+        float f = getElapsedSeconds(pAnimationDefinition, pAccumulatedTime);
 
-        for (Map.Entry<String, List<AnimationChannel>> entry : p_232321_.boneAnimations().entrySet()) {
-            Optional<ModelPart> optional = p_232320_.getAnyDescendantWithName(entry.getKey());
+        for (Map.Entry<String, List<AnimationChannel>> entry : pAnimationDefinition.boneAnimations().entrySet()) {
+            Optional<ModelPart> optional = pModel.getAnyDescendantWithName(entry.getKey());
             List<AnimationChannel> list = entry.getValue();
             optional.ifPresent((p_232330_) -> {
                 list.forEach((p_232311_) -> {
@@ -29,27 +29,27 @@ public class KeyframeAnimations {
                     Keyframe keyframe1 = akeyframe[j];
                     float f1 = f - keyframe.timestamp();
                     float f2 = Mth.clamp(f1 / (keyframe1.timestamp() - keyframe.timestamp()), 0.0F, 1.0F);
-                    keyframe1.interpolation().apply(p_232324_, f2, akeyframe, i, j, p_232323_);
-                    p_232311_.target().apply(p_232330_, p_232324_);
+                    keyframe1.interpolation().apply(pAnimationVecCache, f2, akeyframe, i, j, pScale);
+                    p_232311_.target().apply(p_232330_, pAnimationVecCache);
                 });
             });
         }
     }
 
-    private static float getElapsedSeconds(AnimationDefinition p_232317_, long p_232318_) {
-        float f = (float) p_232318_ / 1000.0F;
-        return p_232317_.looping() ? f % p_232317_.lengthInSeconds() : f;
+    private static float getElapsedSeconds(AnimationDefinition pAnimationDefinition, long pAccumulatedTime) {
+        float f = (float) pAccumulatedTime / 1000.0F;
+        return pAnimationDefinition.looping() ? f % pAnimationDefinition.lengthInSeconds() : f;
     }
 
-    public static Vector3f posVec(float p_232303_, float p_232304_, float p_232305_) {
-        return new Vector3f(p_232303_, -p_232304_, p_232305_);
+    public static Vector3f posVec(float pX, float pY, float pZ) {
+        return new Vector3f(pX, -pY, pZ);
     }
 
-    public static Vector3f degreeVec(float p_232332_, float p_232333_, float p_232334_) {
-        return new Vector3f(p_232332_ * ((float) Math.PI / 180F), p_232333_ * ((float) Math.PI / 180F), p_232334_ * ((float) Math.PI / 180F));
+    public static Vector3f degreeVec(float pXDegrees, float pYDegrees, float pZDegrees) {
+        return new Vector3f(pXDegrees * ((float) Math.PI / 180F), pYDegrees * ((float) Math.PI / 180F), pZDegrees * ((float) Math.PI / 180F));
     }
 
-    public static Vector3f scaleVec(double p_232299_, double p_232300_, double p_232301_) {
-        return new Vector3f((float) (p_232299_ - 1.0D), (float) (p_232300_ - 1.0D), (float) (p_232301_ - 1.0D));
+    public static Vector3f scaleVec(double pXScale, double pYScale, double pZScale) {
+        return new Vector3f((float) (pXScale - 1.0D), (float) (pYScale - 1.0D), (float) (pZScale - 1.0D));
     }
 }

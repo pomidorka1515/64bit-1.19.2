@@ -10,8 +10,8 @@ public class CompressionEncoder extends MessageToByteEncoder<ByteBuf> {
     private final Deflater deflater;
     private int threshold;
 
-    public CompressionEncoder(int p_129448_) {
-        this.threshold = p_129448_;
+    public CompressionEncoder(int pThreshold) {
+        this.threshold = pThreshold;
         this.deflater = new Deflater();
     }
 
@@ -41,7 +41,7 @@ public class CompressionEncoder extends MessageToByteEncoder<ByteBuf> {
         return this.threshold;
     }
 
-    public void setThreshold(int p_129450_) {
-        this.threshold = p_129450_;
+    public void setThreshold(int pThreshold) {
+        this.threshold = pThreshold;
     }
 }

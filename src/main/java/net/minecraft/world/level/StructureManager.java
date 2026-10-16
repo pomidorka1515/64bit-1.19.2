@@ -33,25 +33,25 @@ public class StructureManager {
     private final WorldGenSettings worldGenSettings;
     private final StructureCheck structureCheck;
 
-    public StructureManager(LevelAccessor p_220464_, WorldGenSettings p_220465_, StructureCheck p_220466_) {
-        this.level = p_220464_;
-        this.worldGenSettings = p_220465_;
-        this.structureCheck = p_220466_;
+    public StructureManager(LevelAccessor pLevel, WorldGenSettings pWorldGenSettings, StructureCheck pStructureCheck) {
+        this.level = pLevel;
+        this.worldGenSettings = pWorldGenSettings;
+        this.structureCheck = pStructureCheck;
     }
 
-    public StructureManager forWorldGenRegion(WorldGenRegion p_220469_) {
-        if (p_220469_.getLevel() != this.level) {
-            throw new IllegalStateException("Using invalid structure manager (source level: " + p_220469_.getLevel() + ", region: " + p_220469_);
+    public StructureManager forWorldGenRegion(WorldGenRegion pRegion) {
+        if (pRegion.getLevel() != this.level) {
+            throw new IllegalStateException("Using invalid structure manager (source level: " + pRegion.getLevel() + ", region: " + pRegion);
         } else {
-            return new StructureManager(p_220469_, this.worldGenSettings, this.structureCheck);
+            return new StructureManager(pRegion, this.worldGenSettings, this.structureCheck);
         }
     }
 
-    public List<StructureStart> startsForStructure(ChunkPos p_220478_, Predicate<Structure> p_220479_) {
-        if (!WorldBounds.isValidChunk(p_220478_.x, p_220478_.z)) {
+    public List<StructureStart> startsForStructure(ChunkPos pChunkPos, Predicate<Structure> pStructurePredicate) {
+        if (!WorldBounds.isValidChunk(pChunkPos.x, pChunkPos.z)) {
             return List.of();
         }
-        ChunkAccess referencesChunk = this.getChunkForStructureQuery(p_220478_.x, p_220478_.z, ChunkStatus.STRUCTURE_REFERENCES);
+        ChunkAccess referencesChunk = this.getChunkForStructureQuery(pChunkPos.x, pChunkPos.z, ChunkStatus.STRUCTURE_REFERENCES);
         if (referencesChunk == null) {
             return List.of();
         }
@@ -60,7 +60,7 @@ public class StructureManager {
 
         for (Entry<Structure, ObjectSet<ChunkPos>> entry : map.entrySet()) {
             Structure structure = entry.getKey();
-            if (p_220479_.test(structure)) {
+            if (pStructurePredicate.test(structure)) {
                 this.fillStartsForStructure(structure, entry.getValue(), builder::add);
             }
         }
@@ -68,21 +68,21 @@ public class StructureManager {
         return builder.build();
     }
 
-    public List<StructureStart> startsForStructure(SectionPos p_220505_, Structure p_220506_) {
-        if (!WorldBounds.isValidChunk(p_220505_.x(), p_220505_.z())) {
+    public List<StructureStart> startsForStructure(SectionPos pSectionPos, Structure pStructure) {
+        if (!WorldBounds.isValidChunk(pSectionPos.x(), pSectionPos.z())) {
             return List.of();
         }
-        ChunkAccess referencesChunk = this.getChunkForStructureQuery(p_220505_.x(), p_220505_.z(), ChunkStatus.STRUCTURE_REFERENCES);
+        ChunkAccess referencesChunk = this.getChunkForStructureQuery(pSectionPos.x(), pSectionPos.z(), ChunkStatus.STRUCTURE_REFERENCES);
         if (referencesChunk == null) {
             return List.of();
         }
-        ObjectSet<ChunkPos> longset = referencesChunk.getReferencesForStructure(p_220506_);
+        ObjectSet<ChunkPos> longset = referencesChunk.getReferencesForStructure(pStructure);
         ImmutableList.Builder<StructureStart> builder = ImmutableList.builder();
-        this.fillStartsForStructure(p_220506_, longset, builder::add);
+        this.fillStartsForStructure(pStructure, longset, builder::add);
         return builder.build();
     }
 
-    public void fillStartsForStructure(Structure p_220481_, ObjectSet<ChunkPos> objectSet, Consumer<StructureStart> p_220483_) {
+    public void fillStartsForStructure(Structure pStructure, ObjectSet<ChunkPos> objectSet, Consumer<StructureStart> pStartConsumer) {
         for (ChunkPos i : objectSet) {
             if (!WorldBounds.isValidChunk(i.x, i.z)) {
                 continue;
@@ -92,24 +92,24 @@ public class StructureManager {
             if (startsChunk == null) {
                 continue;
             }
-            StructureStart structurestart = this.getStartForStructure(sectionpos, p_220481_, startsChunk);
+            StructureStart structurestart = this.getStartForStructure(sectionpos, pStructure, startsChunk);
             if (structurestart != null && structurestart.isValid()) {
-                p_220483_.accept(structurestart);
+                pStartConsumer.accept(structurestart);
             }
         }
     }
 
     @Nullable
-    public StructureStart getStartForStructure(SectionPos p_220513_, Structure p_220514_, StructureAccess p_220515_) {
-        return p_220515_.getStartForStructure(p_220514_);
+    public StructureStart getStartForStructure(SectionPos pSectionPos, Structure pStructure, StructureAccess pStructureAccess) {
+        return pStructureAccess.getStartForStructure(pStructure);
     }
 
-    public void setStartForStructure(SectionPos p_220517_, Structure p_220518_, StructureStart p_220519_, StructureAccess p_220520_) {
-        p_220520_.setStartForStructure(p_220518_, p_220519_);
+    public void setStartForStructure(SectionPos pSectionPos, Structure pStructure, StructureStart pStructureStart, StructureAccess pStructureAccess) {
+        pStructureAccess.setStartForStructure(pStructure, pStructureStart);
     }
 
-    public void addReferenceForStructure(SectionPos p_220508_, Structure p_220509_, ChunkPos p_220510_, StructureAccess p_220511_) {
-        p_220511_.addReferenceForStructure(p_220509_, p_220510_);
+    public void addReferenceForStructure(SectionPos pSectionPos, Structure pStructure, ChunkPos pReference, StructureAccess pStructureAccess) {
+        pStructureAccess.addReferenceForStructure(pStructure, pReference);
     }
 
     /**
@@ -140,9 +140,9 @@ public class StructureManager {
         return this.worldGenSettings.generateStructures();
     }
 
-    public StructureStart getStructureAt(BlockPos p_220495_, Structure p_220496_) {
-        for (StructureStart structurestart : this.startsForStructure(SectionPos.of(p_220495_), p_220496_)) {
-            if (structurestart.getBoundingBox().isInside(p_220495_)) {
+    public StructureStart getStructureAt(BlockPos pPos, Structure pStructure) {
+        for (StructureStart structurestart : this.startsForStructure(SectionPos.of(pPos), pStructure)) {
+            if (structurestart.getBoundingBox().isInside(pPos)) {
                 return structurestart;
             }
         }
@@ -150,21 +150,21 @@ public class StructureManager {
         return StructureStart.INVALID_START;
     }
 
-    public StructureStart getStructureWithPieceAt(BlockPos p_220489_, ResourceKey<Structure> p_220490_) {
-        Structure structure = this.registryAccess().registryOrThrow(Registry.STRUCTURE_REGISTRY).get(p_220490_);
-        return structure == null ? StructureStart.INVALID_START : this.getStructureWithPieceAt(p_220489_, structure);
+    public StructureStart getStructureWithPieceAt(BlockPos pPos, ResourceKey<Structure> pStructureKey) {
+        Structure structure = this.registryAccess().registryOrThrow(Registry.STRUCTURE_REGISTRY).get(pStructureKey);
+        return structure == null ? StructureStart.INVALID_START : this.getStructureWithPieceAt(pPos, structure);
     }
 
-    public StructureStart getStructureWithPieceAt(BlockPos p_220492_, TagKey<Structure> p_220493_) {
+    public StructureStart getStructureWithPieceAt(BlockPos pPos, TagKey<Structure> pStructureTag) {
         Registry<Structure> registry = this.registryAccess().registryOrThrow(Registry.STRUCTURE_REGISTRY);
 
-        for (StructureStart structurestart : this.startsForStructure(new ChunkPos(p_220492_), (p_220503_) -> {
+        for (StructureStart structurestart : this.startsForStructure(new ChunkPos(pPos), (p_220503_) -> {
                  return registry.getHolder(registry.getId(p_220503_)).map((p_220472_) -> {
-                                                                         return p_220472_.is(p_220493_);
+                                                                         return p_220472_.is(pStructureTag);
                                                                      })
                          .orElse(false);
              })) {
-            if (this.structureHasPieceAt(p_220492_, structurestart)) {
+            if (this.structureHasPieceAt(pPos, structurestart)) {
                 return structurestart;
             }
         }
@@ -172,9 +172,9 @@ public class StructureManager {
         return StructureStart.INVALID_START;
     }
 
-    public StructureStart getStructureWithPieceAt(BlockPos p_220525_, Structure p_220526_) {
-        for (StructureStart structurestart : this.startsForStructure(SectionPos.of(p_220525_), p_220526_)) {
-            if (this.structureHasPieceAt(p_220525_, structurestart)) {
+    public StructureStart getStructureWithPieceAt(BlockPos pPos, Structure pStructure) {
+        for (StructureStart structurestart : this.startsForStructure(SectionPos.of(pPos), pStructure)) {
+            if (this.structureHasPieceAt(pPos, structurestart)) {
                 return structurestart;
             }
         }
@@ -182,9 +182,9 @@ public class StructureManager {
         return StructureStart.INVALID_START;
     }
 
-    public boolean structureHasPieceAt(BlockPos p_220498_, StructureStart p_220499_) {
-        for (StructurePiece structurepiece : p_220499_.getPieces()) {
-            if (structurepiece.getBoundingBox().isInside(p_220498_)) {
+    public boolean structureHasPieceAt(BlockPos pPos, StructureStart pStructureStart) {
+        for (StructurePiece structurepiece : pStructureStart.getPieces()) {
+            if (structurepiece.getBoundingBox().isInside(pPos)) {
                 return true;
             }
         }
@@ -192,8 +192,8 @@ public class StructureManager {
         return false;
     }
 
-    public boolean hasAnyStructureAt(BlockPos p_220487_) {
-        SectionPos sectionpos = SectionPos.of(p_220487_);
+    public boolean hasAnyStructureAt(BlockPos pPos) {
+        SectionPos sectionpos = SectionPos.of(pPos);
         if (!WorldBounds.isValidChunk(sectionpos.x(), sectionpos.z())) {
             return false;
         }
@@ -201,8 +201,8 @@ public class StructureManager {
         return referencesChunk != null && referencesChunk.hasAnyStructureReferences();
     }
 
-    public Map<Structure, ObjectSet<ChunkPos>> getAllStructuresAt(BlockPos p_220523_) {
-        SectionPos sectionpos = SectionPos.of(p_220523_);
+    public Map<Structure, ObjectSet<ChunkPos>> getAllStructuresAt(BlockPos pPos) {
+        SectionPos sectionpos = SectionPos.of(pPos);
         if (!WorldBounds.isValidChunk(sectionpos.x(), sectionpos.z())) {
             return Map.of();
         }
@@ -210,13 +210,13 @@ public class StructureManager {
         return referencesChunk == null ? Map.of() : referencesChunk.getAllReferences();
     }
 
-    public StructureCheckResult checkStructurePresence(ChunkPos p_220474_, Structure p_220475_, boolean p_220476_) {
-        return this.structureCheck.checkStart(p_220474_, p_220475_, p_220476_);
+    public StructureCheckResult checkStructurePresence(ChunkPos pChunkPos, Structure pStructure, boolean pSkipKnownStructures) {
+        return this.structureCheck.checkStart(pChunkPos, pStructure, pSkipKnownStructures);
     }
 
-    public void addReference(StructureStart p_220485_) {
-        p_220485_.addReference();
-        this.structureCheck.incrementReference(p_220485_.getChunkPos(), p_220485_.getStructure());
+    public void addReference(StructureStart pStructureStart) {
+        pStructureStart.addReference();
+        this.structureCheck.incrementReference(pStructureStart.getChunkPos(), pStructureStart.getStructure());
     }
 
     public RegistryAccess registryAccess() {

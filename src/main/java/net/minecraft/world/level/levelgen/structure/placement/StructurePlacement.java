@@ -31,12 +31,12 @@ public abstract class StructurePlacement {
         return p_227042_.group(Vec3i.offsetCodec(16).optionalFieldOf("locate_offset", Vec3i.ZERO).forGetter(StructurePlacement::locateOffset), StructurePlacement.FrequencyReductionMethod.CODEC.optionalFieldOf("frequency_reduction_method", StructurePlacement.FrequencyReductionMethod.DEFAULT).forGetter(StructurePlacement::frequencyReductionMethod), Codec.floatRange(0.0F, 1.0F).optionalFieldOf("frequency", 1.0F).forGetter(StructurePlacement::frequency), ExtraCodecs.NON_NEGATIVE_INT.fieldOf("salt").forGetter(StructurePlacement::salt), StructurePlacement.ExclusionZone.CODEC.optionalFieldOf("exclusion_zone").forGetter(StructurePlacement::exclusionZone));
     }
 
-    protected StructurePlacement(Vec3i p_227028_, StructurePlacement.FrequencyReductionMethod p_227029_, float p_227030_, int p_227031_, Optional<StructurePlacement.ExclusionZone> p_227032_) {
-        this.locateOffset = p_227028_;
-        this.frequencyReductionMethod = p_227029_;
-        this.frequency = p_227030_;
-        this.salt = p_227031_;
-        this.exclusionZone = p_227032_;
+    protected StructurePlacement(Vec3i pLocateOffset, StructurePlacement.FrequencyReductionMethod pFrequencyReductionMethod, float pFrequency, int pSalt, Optional<StructurePlacement.ExclusionZone> pExclusionZone) {
+        this.locateOffset = pLocateOffset;
+        this.frequencyReductionMethod = pFrequencyReductionMethod;
+        this.frequency = pFrequency;
+        this.salt = pSalt;
+        this.exclusionZone = pExclusionZone;
     }
 
     protected Vec3i locateOffset() {
@@ -59,20 +59,20 @@ public abstract class StructurePlacement {
         return this.exclusionZone;
     }
 
-    public boolean isStructureChunk(ChunkGenerator p_227055_, RandomState p_227056_, long p_227057_, long p_227058_, long p_227059_) {
-        if (!this.isPlacementChunk(p_227055_, p_227056_, p_227057_, p_227058_, p_227059_)) {
+    public boolean isStructureChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pZ) {
+        if (!this.isPlacementChunk(pGenerator, pRandomState, pSeed, pX, pZ)) {
             return false;
-        } else if (this.frequency < 1.0F && !this.frequencyReductionMethod.shouldGenerate(p_227057_, this.salt, p_227058_, p_227059_, this.frequency)) {
+        } else if (this.frequency < 1.0F && !this.frequencyReductionMethod.shouldGenerate(pSeed, this.salt, pX, pZ, this.frequency)) {
             return false;
         } else {
-            return !this.exclusionZone.isPresent() || !this.exclusionZone.get().isPlacementForbidden(p_227055_, p_227056_, p_227057_, p_227058_, p_227059_);
+            return !this.exclusionZone.isPresent() || !this.exclusionZone.get().isPlacementForbidden(pGenerator, pRandomState, pSeed, pX, pZ);
         }
     }
 
-    protected abstract boolean isPlacementChunk(ChunkGenerator p_227043_, RandomState p_227044_, long p_227045_, long p_227046_, long p_227047_);
+    protected abstract boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pY);
 
-    public BlockPos getLocatePos(ChunkPos p_227040_) {
-        return (new BlockPos(p_227040_.getMinBlockX(), 0, p_227040_.getMinBlockZ())).offset(this.locateOffset());
+    public BlockPos getLocatePos(ChunkPos pChunkPos) {
+        return (new BlockPos(pChunkPos.getMinBlockX(), 0, pChunkPos.getMinBlockZ())).offset(this.locateOffset());
     }
 
     public abstract StructurePlacementType<?> type();
@@ -111,8 +111,8 @@ public abstract class StructurePlacement {
             return p_227086_.group(RegistryFileCodec.create(Registry.STRUCTURE_SET_REGISTRY, StructureSet.DIRECT_CODEC, false).fieldOf("other_set").forGetter(StructurePlacement.ExclusionZone::otherSet), Codec.intRange(1, 16).fieldOf("chunk_count").forGetter(StructurePlacement.ExclusionZone::chunkCount)).apply(p_227086_, StructurePlacement.ExclusionZone::new);
         });
 
-        boolean isPlacementForbidden(ChunkGenerator p_227088_, RandomState p_227089_, long p_227090_, long p_227091_, long p_227092_) {
-            return p_227088_.hasStructureChunkInRange(this.otherSet, p_227089_, p_227090_, p_227091_, p_227092_, this.chunkCount);
+        boolean isPlacementForbidden(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pZ) {
+            return pGenerator.hasStructureChunkInRange(this.otherSet, pRandomState, pSeed, pX, pZ, this.chunkCount);
         }
     }
 

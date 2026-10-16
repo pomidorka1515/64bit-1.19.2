@@ -19,11 +19,11 @@ public class ZombieVillagerRenderer extends HumanoidMobRenderer<ZombieVillager, 
         this.addLayer(new VillagerProfessionLayer<>(this, p_174463_.getResourceManager(), "zombie_villager"));
     }
 
-    public ResourceLocation getTextureLocation(ZombieVillager p_116559_) {
+    public ResourceLocation getTextureLocation(ZombieVillager pEntity) {
         return ZOMBIE_VILLAGER_LOCATION;
     }
 
-    protected boolean isShaking(ZombieVillager p_116561_) {
-        return super.isShaking(p_116561_) || p_116561_.isConverting();
+    protected boolean isShaking(ZombieVillager pEntity) {
+        return super.isShaking(pEntity) || pEntity.isConverting();
     }
 }

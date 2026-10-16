@@ -19,17 +19,17 @@ public class WitchRenderer extends MobRenderer<Witch, WitchModel<Witch>> {
         this.addLayer(new WitchItemLayer<>(this, p_174443_.getItemInHandRenderer()));
     }
 
-    public void render(Witch p_116412_, float p_116413_, float p_116414_, PoseStack p_116415_, MultiBufferSource p_116416_, int p_116417_) {
-        this.model.setHoldingItem(!p_116412_.getMainHandItem().isEmpty());
-        super.render(p_116412_, p_116413_, p_116414_, p_116415_, p_116416_, p_116417_);
+    public void render(Witch pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        this.model.setHoldingItem(!pEntity.getMainHandItem().isEmpty());
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
     }
 
-    public ResourceLocation getTextureLocation(Witch p_116410_) {
+    public ResourceLocation getTextureLocation(Witch pEntity) {
         return WITCH_LOCATION;
     }
 
-    protected void scale(Witch p_116419_, PoseStack p_116420_, float p_116421_) {
+    protected void scale(Witch pLivingEntity, PoseStack pMatrixStack, float pPartialTickTime) {
         float f = 0.9375F;
-        p_116420_.scale(0.9375F, 0.9375F, 0.9375F);
+        pMatrixStack.scale(0.9375F, 0.9375F, 0.9375F);
     }
 }

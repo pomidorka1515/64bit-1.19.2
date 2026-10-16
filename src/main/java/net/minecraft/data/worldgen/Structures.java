@@ -79,27 +79,27 @@ public class Structures {
     public static final Holder<Structure> RUINED_PORTAL_NETHER = register(BuiltinStructures.RUINED_PORTAL_NETHER, new RuinedPortalStructure(structure(BiomeTags.HAS_RUINED_PORTAL_NETHER, TerrainAdjustment.NONE), new RuinedPortalStructure.Setup(RuinedPortalPiece.VerticalPlacement.IN_NETHER, 0.5F, 0.0F, false, false, false, true, 1.0F)));
     public static final Holder<Structure> ANCIENT_CITY = register(BuiltinStructures.ANCIENT_CITY, new JigsawStructure(structure(BiomeTags.HAS_ANCIENT_CITY, Arrays.stream(MobCategory.values()).collect(Collectors.toMap((p_236555_) -> { return p_236555_; }, (p_236551_) -> { return new StructureSpawnOverride(StructureSpawnOverride.BoundingBoxType.STRUCTURE, WeightedRandomList.create()); })), GenerationStep.Decoration.UNDERGROUND_DECORATION, TerrainAdjustment.BEARD_BOX), AncientCityStructurePieces.START, Optional.of(new ResourceLocation("city_anchor")), 7, ConstantHeight.of(VerticalAnchor.absolute(-27)), false, Optional.empty(), 116));
 
-    public static Holder<? extends Structure> bootstrap(Registry<Structure> p_236553_) {
+    public static Holder<? extends Structure> bootstrap(Registry<Structure> pRegistry) {
         return MINESHAFT;
     }
 
-    private static Structure.StructureSettings structure(TagKey<Biome> p_236546_, Map<MobCategory, StructureSpawnOverride> p_236547_, GenerationStep.Decoration p_236548_, TerrainAdjustment p_236549_) {
-        return new Structure.StructureSettings(biomes(p_236546_), p_236547_, p_236548_, p_236549_);
+    private static Structure.StructureSettings structure(TagKey<Biome> pKey, Map<MobCategory, StructureSpawnOverride> pSpawnOverrides, GenerationStep.Decoration pDecoration, TerrainAdjustment pTerrainAdjustment) {
+        return new Structure.StructureSettings(biomes(pKey), pSpawnOverrides, pDecoration, pTerrainAdjustment);
     }
 
-    private static Structure.StructureSettings structure(TagKey<Biome> p_236539_, GenerationStep.Decoration p_236540_, TerrainAdjustment p_236541_) {
-        return structure(p_236539_, Map.of(), p_236540_, p_236541_);
+    private static Structure.StructureSettings structure(TagKey<Biome> pKey, GenerationStep.Decoration pDecoration, TerrainAdjustment pTerrainAdjustment) {
+        return structure(pKey, Map.of(), pDecoration, pTerrainAdjustment);
     }
 
-    private static Structure.StructureSettings structure(TagKey<Biome> p_236543_, TerrainAdjustment p_236544_) {
-        return structure(p_236543_, Map.of(), GenerationStep.Decoration.SURFACE_STRUCTURES, p_236544_);
+    private static Structure.StructureSettings structure(TagKey<Biome> pKey, TerrainAdjustment pTerrainAdjustment) {
+        return structure(pKey, Map.of(), GenerationStep.Decoration.SURFACE_STRUCTURES, pTerrainAdjustment);
     }
 
-    private static Holder<Structure> register(ResourceKey<Structure> p_236534_, Structure p_236535_) {
-        return BuiltinRegistries.register(BuiltinRegistries.STRUCTURES, p_236534_, p_236535_);
+    private static Holder<Structure> register(ResourceKey<Structure> pKey, Structure pStructure) {
+        return BuiltinRegistries.register(BuiltinRegistries.STRUCTURES, pKey, pStructure);
     }
 
-    private static HolderSet<Biome> biomes(TagKey<Biome> p_236537_) {
-        return BuiltinRegistries.BIOME.getOrCreateTag(p_236537_);
+    private static HolderSet<Biome> biomes(TagKey<Biome> pKey) {
+        return BuiltinRegistries.BIOME.getOrCreateTag(pKey);
     }
 }

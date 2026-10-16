@@ -23,11 +23,11 @@ public class SheetedDecalTextureGenerator extends DefaultedVertexConsumer {
     private float ny;
     private float nz;
 
-    public SheetedDecalTextureGenerator(VertexConsumer p_85880_, Matrix4f p_85881_, Matrix3f p_85882_) {
-        this.delegate = p_85880_;
-        this.cameraInversePose = p_85881_.copy();
+    public SheetedDecalTextureGenerator(VertexConsumer pDelegate, Matrix4f pCameraPose, Matrix3f pNormalPose) {
+        this.delegate = pDelegate;
+        this.cameraInversePose = pCameraPose.copy();
         this.cameraInversePose.invert();
-        this.normalInversePose = p_85882_.copy();
+        this.normalInversePose = pNormalPose.copy();
         this.normalInversePose.invert();
         this.resetState();
     }
@@ -59,36 +59,36 @@ public class SheetedDecalTextureGenerator extends DefaultedVertexConsumer {
         this.resetState();
     }
 
-    public VertexConsumer vertex(double p_85885_, double p_85886_, double p_85887_) {
-        this.x = (float) p_85885_;
-        this.y = (float) p_85886_;
-        this.z = (float) p_85887_;
+    public VertexConsumer vertex(double pX, double pY, double pZ) {
+        this.x = (float) pX;
+        this.y = (float) pY;
+        this.z = (float) pZ;
         return this;
     }
 
-    public VertexConsumer color(int p_85895_, int p_85896_, int p_85897_, int p_85898_) {
+    public VertexConsumer color(int pRed, int pGreen, int pBlue, int pAlpha) {
         return this;
     }
 
-    public VertexConsumer uv(float p_85889_, float p_85890_) {
+    public VertexConsumer uv(float pU, float pV) {
         return this;
     }
 
-    public VertexConsumer overlayCoords(int p_85892_, int p_85893_) {
-        this.overlayU = p_85892_;
-        this.overlayV = p_85893_;
+    public VertexConsumer overlayCoords(int pU, int pV) {
+        this.overlayU = pU;
+        this.overlayV = pV;
         return this;
     }
 
-    public VertexConsumer uv2(int p_85904_, int p_85905_) {
-        this.lightCoords = p_85904_ | p_85905_ << 16;
+    public VertexConsumer uv2(int pU, int pV) {
+        this.lightCoords = pU | pV << 16;
         return this;
     }
 
-    public VertexConsumer normal(float p_85900_, float p_85901_, float p_85902_) {
-        this.nx = p_85900_;
-        this.ny = p_85901_;
-        this.nz = p_85902_;
+    public VertexConsumer normal(float pX, float pY, float pZ) {
+        this.nx = pX;
+        this.ny = pY;
+        this.nz = pZ;
         return this;
     }
 }

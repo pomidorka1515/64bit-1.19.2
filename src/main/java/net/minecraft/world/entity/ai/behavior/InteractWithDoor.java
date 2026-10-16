@@ -30,8 +30,8 @@ public class InteractWithDoor extends Behavior<LivingEntity> {
         super(ImmutableMap.of(MemoryModuleType.PATH, MemoryStatus.VALUE_PRESENT, MemoryModuleType.DOORS_TO_CLOSE, MemoryStatus.REGISTERED));
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_23292_, LivingEntity p_23293_) {
-        Path path = p_23293_.getBrain().getMemory(MemoryModuleType.PATH).get();
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, LivingEntity pOwner) {
+        Path path = pOwner.getBrain().getMemory(MemoryModuleType.PATH).get();
         if (!path.notStarted() && !path.isDone()) {
             if (!Objects.equals(this.lastCheckedNode, path.getNextNode())) {
                 this.remainingCooldown = 20;
@@ -48,37 +48,37 @@ public class InteractWithDoor extends Behavior<LivingEntity> {
         }
     }
 
-    protected void start(ServerLevel p_23295_, LivingEntity p_23296_, long p_23297_) {
-        Path path = p_23296_.getBrain().getMemory(MemoryModuleType.PATH).get();
+    protected void start(ServerLevel pLevel, LivingEntity pEntity, long pGameTime) {
+        Path path = pEntity.getBrain().getMemory(MemoryModuleType.PATH).get();
         this.lastCheckedNode = path.getNextNode();
         Node node = path.getPreviousNode();
         Node node1 = path.getNextNode();
         BlockPos blockpos = node.asBlockPos();
-        BlockState blockstate = p_23295_.getBlockState(blockpos);
+        BlockState blockstate = pLevel.getBlockState(blockpos);
         if (blockstate.is(BlockTags.WOODEN_DOORS, (p_201959_) -> {
                 return p_201959_.getBlock() instanceof DoorBlock;
             })) {
             DoorBlock doorblock = (DoorBlock) blockstate.getBlock();
             if (!doorblock.isOpen(blockstate)) {
-                doorblock.setOpen(p_23296_, p_23295_, blockstate, blockpos, true);
+                doorblock.setOpen(pEntity, pLevel, blockstate, blockpos, true);
             }
 
-            this.rememberDoorToClose(p_23295_, p_23296_, blockpos);
+            this.rememberDoorToClose(pLevel, pEntity, blockpos);
         }
 
         BlockPos blockpos1 = node1.asBlockPos();
-        BlockState blockstate1 = p_23295_.getBlockState(blockpos1);
+        BlockState blockstate1 = pLevel.getBlockState(blockpos1);
         if (blockstate1.is(BlockTags.WOODEN_DOORS, (p_201957_) -> {
                 return p_201957_.getBlock() instanceof DoorBlock;
             })) {
             DoorBlock doorblock1 = (DoorBlock) blockstate1.getBlock();
             if (!doorblock1.isOpen(blockstate1)) {
-                doorblock1.setOpen(p_23296_, p_23295_, blockstate1, blockpos1, true);
-                this.rememberDoorToClose(p_23295_, p_23296_, blockpos1);
+                doorblock1.setOpen(pEntity, pLevel, blockstate1, blockpos1, true);
+                this.rememberDoorToClose(pLevel, pEntity, blockpos1);
             }
         }
 
-        closeDoorsThatIHaveOpenedOrPassedThrough(p_23295_, p_23296_, node, node1);
+        closeDoorsThatIHaveOpenedOrPassedThrough(pLevel, pEntity, node, node1);
     }
 
     public static void closeDoorsThatIHaveOpenedOrPassedThrough(ServerLevel p_23299_, LivingEntity p_23300_, @Nullable Node p_23301_, @Nullable Node p_23302_) {
@@ -115,24 +115,24 @@ public class InteractWithDoor extends Behavior<LivingEntity> {
         }
     }
 
-    private static boolean areOtherMobsComingThroughDoor(ServerLevel p_23304_, LivingEntity p_23305_, BlockPos p_23306_) {
-        Brain<?> brain = p_23305_.getBrain();
+    private static boolean areOtherMobsComingThroughDoor(ServerLevel pLevel, LivingEntity pEntity, BlockPos pPos) {
+        Brain<?> brain = pEntity.getBrain();
         return !brain.hasMemoryValue(MemoryModuleType.NEAREST_LIVING_ENTITIES) ? false : brain.getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES).get().stream().filter((p_201950_) -> {
-                                                                                                                                                                     return p_201950_.getType() == p_23305_.getType();
+                                                                                                                                                                     return p_201950_.getType() == pEntity.getType();
                                                                                                                                                                  })
                                                                                                  .filter((p_201955_) -> {
-                                                                                                     return p_23306_.closerToCenterThan(p_201955_.sectorPosition(), 2.0D);
+                                                                                                     return pPos.closerToCenterThan(p_201955_.sectorPosition(), 2.0D);
                                                                                                  })
                                                                                                  .anyMatch((p_201947_) -> {
-                                                                                                     return isMobComingThroughDoor(p_23304_, p_201947_, p_23306_);
+                                                                                                     return isMobComingThroughDoor(pLevel, p_201947_, pPos);
                                                                                                  });
     }
 
-    private static boolean isMobComingThroughDoor(ServerLevel p_23322_, LivingEntity p_23323_, BlockPos p_23324_) {
-        if (!p_23323_.getBrain().hasMemoryValue(MemoryModuleType.PATH)) {
+    private static boolean isMobComingThroughDoor(ServerLevel pLevel, LivingEntity pEntity, BlockPos pPos) {
+        if (!pEntity.getBrain().hasMemoryValue(MemoryModuleType.PATH)) {
             return false;
         } else {
-            Path path = p_23323_.getBrain().getMemory(MemoryModuleType.PATH).get();
+            Path path = pEntity.getBrain().getMemory(MemoryModuleType.PATH).get();
             if (path.isDone()) {
                 return false;
             } else {
@@ -141,19 +141,19 @@ public class InteractWithDoor extends Behavior<LivingEntity> {
                     return false;
                 } else {
                     Node node1 = path.getNextNode();
-                    return p_23324_.equals(node.asBlockPos()) || p_23324_.equals(node1.asBlockPos());
+                    return pPos.equals(node.asBlockPos()) || pPos.equals(node1.asBlockPos());
                 }
             }
         }
     }
 
-    private static boolean isDoorTooFarAway(ServerLevel p_23308_, LivingEntity p_23309_, GlobalPos p_23310_) {
-        return p_23310_.dimension() != p_23308_.dimension() || !p_23310_.pos().closerToCenterThan(p_23309_.sectorPosition(), 2.0D);
+    private static boolean isDoorTooFarAway(ServerLevel pLevel, LivingEntity pEntity, GlobalPos pPos) {
+        return pPos.dimension() != pLevel.dimension() || !pPos.pos().closerToCenterThan(pEntity.sectorPosition(), 2.0D);
     }
 
-    private void rememberDoorToClose(ServerLevel p_23326_, LivingEntity p_23327_, BlockPos p_23328_) {
-        Brain<?> brain = p_23327_.getBrain();
-        GlobalPos globalpos = GlobalPos.of(p_23326_.dimension(), p_23328_);
+    private void rememberDoorToClose(ServerLevel pLevel, LivingEntity pEntity, BlockPos pPos) {
+        Brain<?> brain = pEntity.getBrain();
+        GlobalPos globalpos = GlobalPos.of(pLevel.dimension(), pPos);
         if (brain.getMemory(MemoryModuleType.DOORS_TO_CLOSE).isPresent()) {
             brain.getMemory(MemoryModuleType.DOORS_TO_CLOSE).get().add(globalpos);
         } else {

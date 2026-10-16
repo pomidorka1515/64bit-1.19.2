@@ -22,13 +22,13 @@ public class LevelSummary implements Comparable<LevelSummary> {
     @Nullable
     private Component info;
 
-    public LevelSummary(LevelSettings p_230869_, LevelVersion p_230870_, String p_230871_, boolean p_230872_, boolean p_230873_, Path p_230874_) {
-        this.settings = p_230869_;
-        this.levelVersion = p_230870_;
-        this.levelId = p_230871_;
-        this.locked = p_230873_;
-        this.icon = p_230874_;
-        this.requiresManualConversion = p_230872_;
+    public LevelSummary(LevelSettings pSettings, LevelVersion pLevelVersion, String pLevelId, boolean pRequiresManualConversion, boolean pLocked, Path pIcon) {
+        this.settings = pSettings;
+        this.levelVersion = pLevelVersion;
+        this.levelId = pLevelId;
+        this.locked = pLocked;
+        this.icon = pIcon;
+        this.requiresManualConversion = pRequiresManualConversion;
     }
 
     public String getLevelId() {

@@ -14,9 +14,9 @@ import java.util.function.Function;
 public abstract class AbstractUUIDFix extends DataFix {
     protected DSL.TypeReference typeReference;
 
-    public AbstractUUIDFix(Schema p_14572_, DSL.TypeReference p_14573_) {
-        super(p_14572_, false);
-        this.typeReference = p_14573_;
+    public AbstractUUIDFix(Schema pOutputSchema, DSL.TypeReference pTypeReference) {
+        super(pOutputSchema, false);
+        this.typeReference = pTypeReference;
     }
 
     protected Typed<?> updateNamedChoice(Typed<?> p_14575_, String p_14576_, Function<Dynamic<?>, Dynamic<?>> p_14577_) {

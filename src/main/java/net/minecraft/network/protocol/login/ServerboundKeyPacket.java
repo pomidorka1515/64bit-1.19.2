@@ -16,9 +16,9 @@ public class ServerboundKeyPacket implements Packet<ServerLoginPacketListener> {
     private final byte[] keybytes;
     private final Either<byte[], Crypt.SaltSignaturePair> nonceOrSaltSignature;
 
-    public ServerboundKeyPacket(SecretKey p_134856_, PublicKey p_134857_, byte[] p_134858_) throws CryptException {
-        this.keybytes = Crypt.encryptUsingKey(p_134857_, p_134856_.getEncoded());
-        this.nonceOrSaltSignature = Either.left(Crypt.encryptUsingKey(p_134857_, p_134858_));
+    public ServerboundKeyPacket(SecretKey pSecretKey, PublicKey pPublicKey, byte[] pNonce) throws CryptException {
+        this.keybytes = Crypt.encryptUsingKey(pPublicKey, pSecretKey.getEncoded());
+        this.nonceOrSaltSignature = Either.left(Crypt.encryptUsingKey(pPublicKey, pNonce));
     }
 
     public ServerboundKeyPacket(SecretKey p_238057_, PublicKey p_238058_, long p_238059_, byte[] p_238060_) throws CryptException {
@@ -26,22 +26,22 @@ public class ServerboundKeyPacket implements Packet<ServerLoginPacketListener> {
         this.nonceOrSaltSignature = Either.right(new Crypt.SaltSignaturePair(p_238059_, p_238060_));
     }
 
-    public ServerboundKeyPacket(FriendlyByteBuf p_179829_) {
-        this.keybytes = p_179829_.readByteArray();
-        this.nonceOrSaltSignature = p_179829_.readEither(FriendlyByteBuf::readByteArray, Crypt.SaltSignaturePair::new);
+    public ServerboundKeyPacket(FriendlyByteBuf pBuffer) {
+        this.keybytes = pBuffer.readByteArray();
+        this.nonceOrSaltSignature = pBuffer.readEither(FriendlyByteBuf::readByteArray, Crypt.SaltSignaturePair::new);
     }
 
-    public void write(FriendlyByteBuf p_134870_) {
-        p_134870_.writeByteArray(this.keybytes);
-        p_134870_.writeEither(this.nonceOrSaltSignature, FriendlyByteBuf::writeByteArray, Crypt.SaltSignaturePair::write);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeByteArray(this.keybytes);
+        pBuffer.writeEither(this.nonceOrSaltSignature, FriendlyByteBuf::writeByteArray, Crypt.SaltSignaturePair::write);
     }
 
-    public void handle(ServerLoginPacketListener p_134866_) {
-        p_134866_.handleKey(this);
+    public void handle(ServerLoginPacketListener pHandler) {
+        pHandler.handleKey(this);
     }
 
-    public SecretKey getSecretKey(PrivateKey p_134860_) throws CryptException {
-        return Crypt.decryptByteToSecretKey(p_134860_, this.keybytes);
+    public SecretKey getSecretKey(PrivateKey pKey) throws CryptException {
+        return Crypt.decryptByteToSecretKey(pKey, this.keybytes);
     }
 
     public boolean isChallengeSignatureValid(byte[] p_238072_, ProfilePublicKey p_238073_) {
@@ -51,11 +51,11 @@ public class ServerboundKeyPacket implements Packet<ServerLoginPacketListener> {
                                                                                                 }, p_238064_.signature()); });
     }
 
-    public boolean isNonceValid(byte[] p_238075_, PrivateKey p_238076_) {
+    public boolean isNonceValid(byte[] pNonce, PrivateKey pKey) {
         Optional<byte[]> optional = this.nonceOrSaltSignature.left();
 
         try {
-            return optional.isPresent() && Arrays.equals(p_238075_, Crypt.decryptUsingKey(p_238076_, optional.get()));
+            return optional.isPresent() && Arrays.equals(pNonce, Crypt.decryptUsingKey(pKey, optional.get()));
         } catch (CryptException cryptexception) {
             return false;
         }

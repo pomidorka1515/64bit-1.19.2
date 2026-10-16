@@ -23,11 +23,11 @@ public class BossHealthOverlay extends GuiComponent {
     private final Minecraft minecraft;
     final Map<UUID, LerpingBossEvent> events = Maps.newLinkedHashMap();
 
-    public BossHealthOverlay(Minecraft p_93702_) {
-        this.minecraft = p_93702_;
+    public BossHealthOverlay(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_93705_) {
+    public void render(PoseStack pPoseStack) {
         if (!this.events.isEmpty()) {
             int i = this.minecraft.getWindow().getGuiScaledWidth();
             int j = 12;
@@ -36,12 +36,12 @@ public class BossHealthOverlay extends GuiComponent {
                 int k = i / 2 - 91;
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 RenderSystem.setShaderTexture(0, GUI_BARS_LOCATION);
-                this.drawBar(p_93705_, k, j, lerpingbossevent);
+                this.drawBar(pPoseStack, k, j, lerpingbossevent);
                 Component component = lerpingbossevent.getName();
                 int l = this.minecraft.font.width(component);
                 int i1 = i / 2 - l / 2;
                 int j1 = j - 9;
-                this.minecraft.font.drawShadow(p_93705_, component, (float) i1, (float) j1, 16777215);
+                this.minecraft.font.drawShadow(pPoseStack, component, (float) i1, (float) j1, 16777215);
                 j += 10 + 9;
                 if (j >= this.minecraft.getWindow().getGuiScaledHeight() / 3) {
                     break;
@@ -50,11 +50,11 @@ public class BossHealthOverlay extends GuiComponent {
         }
     }
 
-    private void drawBar(PoseStack p_93707_, int p_93708_, int p_93709_, BossEvent p_93710_) {
-        this.drawBar(p_93707_, p_93708_, p_93709_, p_93710_, 182, 0);
-        int i = (int) (p_93710_.getProgress() * 183.0F);
+    private void drawBar(PoseStack pPoseStack, int pX, int pY, BossEvent pBossEvent) {
+        this.drawBar(pPoseStack, pX, pY, pBossEvent, 182, 0);
+        int i = (int) (pBossEvent.getProgress() * 183.0F);
         if (i > 0) {
-            this.drawBar(p_93707_, p_93708_, p_93709_, p_93710_, i, 5);
+            this.drawBar(pPoseStack, pX, pY, pBossEvent, i, 5);
         }
     }
 
@@ -68,8 +68,8 @@ public class BossHealthOverlay extends GuiComponent {
         }
     }
 
-    public void update(ClientboundBossEventPacket p_93712_) {
-        p_93712_.dispatch(new ClientboundBossEventPacket.Handler() {
+    public void update(ClientboundBossEventPacket pPacket) {
+        pPacket.dispatch(new ClientboundBossEventPacket.Handler() {
             public void add(UUID p_168824_, Component p_168825_, float p_168826_, BossEvent.BossBarColor p_168827_, BossEvent.BossBarOverlay p_168828_, boolean p_168829_, boolean p_168830_, boolean p_168831_) {
                 BossHealthOverlay.this.events.put(p_168824_, new LerpingBossEvent(p_168824_, p_168825_, p_168826_, p_168827_, p_168828_, p_168829_, p_168830_, p_168831_));
             }

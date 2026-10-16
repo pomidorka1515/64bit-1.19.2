@@ -19,9 +19,9 @@ public class LanguageSelectScreen extends OptionsSubScreen {
     private LanguageSelectScreen.LanguageSelectionList packSelectionList;
     final LanguageManager languageManager;
 
-    public LanguageSelectScreen(Screen p_96085_, Options p_96086_, LanguageManager p_96087_) {
-        super(p_96085_, p_96086_, Component.translatable("options.language"));
-        this.languageManager = p_96087_;
+    public LanguageSelectScreen(Screen pLastScreen, Options pOptions, LanguageManager pLanguageManager) {
+        super(pLastScreen, pOptions, Component.translatable("options.language"));
+        this.languageManager = pLanguageManager;
     }
 
     protected void init() {
@@ -42,11 +42,11 @@ public class LanguageSelectScreen extends OptionsSubScreen {
         super.init();
     }
 
-    public void render(PoseStack p_96089_, int p_96090_, int p_96091_, float p_96092_) {
-        this.packSelectionList.render(p_96089_, p_96090_, p_96091_, p_96092_);
-        drawCenteredString(p_96089_, this.font, this.title, this.width / 2, 16, 16777215);
-        drawCenteredString(p_96089_, this.font, WARNING_LABEL, this.width / 2, this.height - 56, 8421504);
-        super.render(p_96089_, p_96090_, p_96091_, p_96092_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.packSelectionList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 16, 16777215);
+        drawCenteredString(pPoseStack, this.font, WARNING_LABEL, this.width / 2, this.height - 56, 8421504);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -75,8 +75,8 @@ public class LanguageSelectScreen extends OptionsSubScreen {
             return super.getRowWidth() + 50;
         }
 
-        protected void renderBackground(PoseStack p_96105_) {
-            LanguageSelectScreen.this.renderBackground(p_96105_);
+        protected void renderBackground(PoseStack pPoseStack) {
+            LanguageSelectScreen.this.renderBackground(pPoseStack);
         }
 
         protected boolean isFocused() {
@@ -91,13 +91,13 @@ public class LanguageSelectScreen extends OptionsSubScreen {
                 this.language = p_96119_;
             }
 
-            public void render(PoseStack p_96126_, int p_96127_, int p_96128_, int p_96129_, int p_96130_, int p_96131_, int p_96132_, int p_96133_, boolean p_96134_, float p_96135_) {
+            public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
                 String s = this.language.toString();
-                LanguageSelectScreen.this.font.drawShadow(p_96126_, s, (float) (LanguageSelectionList.this.width / 2 - LanguageSelectScreen.this.font.width(s) / 2), (float) (p_96128_ + 1), 16777215, true);
+                LanguageSelectScreen.this.font.drawShadow(pPoseStack, s, (float) (LanguageSelectionList.this.width / 2 - LanguageSelectScreen.this.font.width(s) / 2), (float) (pTop + 1), 16777215, true);
             }
 
-            public boolean mouseClicked(double p_96122_, double p_96123_, int p_96124_) {
-                if (p_96124_ == 0) {
+            public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+                if (pButton == 0) {
                     this.select();
                     return true;
                 } else {

@@ -8,15 +8,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class KeyboardInput extends Input {
     private final Options options;
 
-    public KeyboardInput(Options p_108580_) {
-        this.options = p_108580_;
+    public KeyboardInput(Options pOptions) {
+        this.options = pOptions;
     }
 
-    private static float calculateImpulse(boolean p_205578_, boolean p_205579_) {
-        if (p_205578_ == p_205579_) {
+    private static float calculateImpulse(boolean pInput, boolean pOtherInput) {
+        if (pInput == pOtherInput) {
             return 0.0F;
         } else {
-            return p_205578_ ? 1.0F : -1.0F;
+            return pInput ? 1.0F : -1.0F;
         }
     }
 

@@ -13,15 +13,15 @@ public class BlockMaterialPredicate implements Predicate<BlockState> {
     };
     private final Material material;
 
-    BlockMaterialPredicate(Material p_61256_) {
-        this.material = p_61256_;
+    BlockMaterialPredicate(Material pMaterial) {
+        this.material = pMaterial;
     }
 
-    public static BlockMaterialPredicate forMaterial(Material p_61263_) {
-        return p_61263_ == Material.AIR ? AIR : new BlockMaterialPredicate(p_61263_);
+    public static BlockMaterialPredicate forMaterial(Material pMaterial) {
+        return pMaterial == Material.AIR ? AIR : new BlockMaterialPredicate(pMaterial);
     }
 
-    public boolean test(@Nullable BlockState p_61261_) {
-        return p_61261_ != null && p_61261_.getMaterial() == this.material;
+    public boolean test(@Nullable BlockState pState) {
+        return pState != null && pState.getMaterial() == this.material;
     }
 }

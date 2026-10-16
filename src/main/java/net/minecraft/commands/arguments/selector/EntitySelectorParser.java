@@ -120,13 +120,13 @@ public class EntitySelectorParser {
     private boolean hasAdvancements;
     private boolean usesSelectors;
 
-    public EntitySelectorParser(StringReader p_121218_) {
-        this(p_121218_, true);
+    public EntitySelectorParser(StringReader pReader) {
+        this(pReader, true);
     }
 
-    public EntitySelectorParser(StringReader p_121220_, boolean p_121221_) {
-        this.reader = p_121220_;
-        this.allowSelectors = p_121221_;
+    public EntitySelectorParser(StringReader pReader, boolean pAllowSelectors) {
+        this.reader = pReader;
+        this.allowSelectors = pAllowSelectors;
     }
 
     public EntitySelector getSelector() {
@@ -157,16 +157,16 @@ public class EntitySelectorParser {
                 this.exactX, this.y, this.exactZ, aabb, this.order, this.currentEntity, this.playerName, this.entityUUID, this.type, this.usesSelectors);
     }
 
-    private AABB createAabb(double p_121234_, double p_121235_, double p_121236_) {
-        boolean flag = p_121234_ < 0.0D;
-        boolean flag1 = p_121235_ < 0.0D;
-        boolean flag2 = p_121236_ < 0.0D;
-        double d0 = flag ? p_121234_ : 0.0D;
-        double d1 = flag1 ? p_121235_ : 0.0D;
-        double d2 = flag2 ? p_121236_ : 0.0D;
-        double d3 = (flag ? 0.0D : p_121234_) + 1.0D;
-        double d4 = (flag1 ? 0.0D : p_121235_) + 1.0D;
-        double d5 = (flag2 ? 0.0D : p_121236_) + 1.0D;
+    private AABB createAabb(double pSizeX, double pSizeY, double pSizeZ) {
+        boolean flag = pSizeX < 0.0D;
+        boolean flag1 = pSizeY < 0.0D;
+        boolean flag2 = pSizeZ < 0.0D;
+        double d0 = flag ? pSizeX : 0.0D;
+        double d1 = flag1 ? pSizeY : 0.0D;
+        double d2 = flag2 ? pSizeZ : 0.0D;
+        double d3 = (flag ? 0.0D : pSizeX) + 1.0D;
+        double d4 = (flag1 ? 0.0D : pSizeY) + 1.0D;
+        double d5 = (flag2 ? 0.0D : pSizeZ) + 1.0D;
         return new AABB(d0, d1, d2, d3, d4, d5);
     }
 
@@ -186,11 +186,11 @@ public class EntitySelectorParser {
         }
     }
 
-    private Predicate<Entity> createRotationPredicate(WrappedMinMaxBounds p_121255_, ToDoubleFunction<Entity> p_121256_) {
-        double d0 = (double) Mth.wrapDegrees(p_121255_.getMin() == null ? 0.0F : p_121255_.getMin());
-        double d1 = (double) Mth.wrapDegrees(p_121255_.getMax() == null ? 359.0F : p_121255_.getMax());
+    private Predicate<Entity> createRotationPredicate(WrappedMinMaxBounds pAngleBounds, ToDoubleFunction<Entity> pAngleFunction) {
+        double d0 = (double) Mth.wrapDegrees(pAngleBounds.getMin() == null ? 0.0F : pAngleBounds.getMin());
+        double d1 = (double) Mth.wrapDegrees(pAngleBounds.getMax() == null ? 359.0F : pAngleBounds.getMax());
         return (p_175137_) -> {
-            double d2 = Mth.wrapDegrees(p_121256_.applyAsDouble(p_175137_));
+            double d2 = Mth.wrapDegrees(pAngleFunction.applyAsDouble(p_175137_));
             if (d0 > d1) {
                 return d2 >= d0 || d2 <= d1;
             } else {
@@ -344,8 +344,8 @@ public class EntitySelectorParser {
         return this.reader;
     }
 
-    public void addPredicate(Predicate<Entity> p_121273_) {
-        this.predicate = this.predicate.and(p_121273_);
+    public void addPredicate(Predicate<Entity> pPredicate) {
+        this.predicate = this.predicate.and(pPredicate);
     }
 
     public void setWorldLimited() {
@@ -356,32 +356,32 @@ public class EntitySelectorParser {
         return this.distance;
     }
 
-    public void setDistance(MinMaxBounds.Doubles p_175128_) {
-        this.distance = p_175128_;
+    public void setDistance(MinMaxBounds.Doubles pDistance) {
+        this.distance = pDistance;
     }
 
     public MinMaxBounds.Ints getLevel() {
         return this.level;
     }
 
-    public void setLevel(MinMaxBounds.Ints p_121246_) {
-        this.level = p_121246_;
+    public void setLevel(MinMaxBounds.Ints pLevel) {
+        this.level = pLevel;
     }
 
     public WrappedMinMaxBounds getRotX() {
         return this.rotX;
     }
 
-    public void setRotX(WrappedMinMaxBounds p_121253_) {
-        this.rotX = p_121253_;
+    public void setRotX(WrappedMinMaxBounds pRotX) {
+        this.rotX = pRotX;
     }
 
     public WrappedMinMaxBounds getRotY() {
         return this.rotY;
     }
 
-    public void setRotY(WrappedMinMaxBounds p_121290_) {
-        this.rotY = p_121290_;
+    public void setRotY(WrappedMinMaxBounds pRotY) {
+        this.rotY = pRotY;
     }
 
     @Nullable
@@ -408,8 +408,8 @@ public class EntitySelectorParser {
         this.x = Double.parseDouble(value);
     }
 
-    public void setY(double p_121283_) {
-        this.y = p_121283_;
+    public void setY(double pY) {
+        this.y = pY;
     }
 
     public void setZ(double value) {
@@ -421,16 +421,16 @@ public class EntitySelectorParser {
         this.z = Double.parseDouble(value);
     }
 
-    public void setDeltaX(double p_121319_) {
-        this.deltaX = p_121319_;
+    public void setDeltaX(double pDeltaX) {
+        this.deltaX = pDeltaX;
     }
 
-    public void setDeltaY(double p_121332_) {
-        this.deltaY = p_121332_;
+    public void setDeltaY(double pDeltaY) {
+        this.deltaY = pDeltaY;
     }
 
-    public void setDeltaZ(double p_121340_) {
-        this.deltaZ = p_121340_;
+    public void setDeltaZ(double pDeltaZ) {
+        this.deltaZ = pDeltaZ;
     }
 
     @Nullable
@@ -448,20 +448,20 @@ public class EntitySelectorParser {
         return this.deltaZ;
     }
 
-    public void setMaxResults(int p_121238_) {
-        this.maxResults = p_121238_;
+    public void setMaxResults(int pMaxResults) {
+        this.maxResults = pMaxResults;
     }
 
-    public void setIncludesEntities(boolean p_121280_) {
-        this.includesEntities = p_121280_;
+    public void setIncludesEntities(boolean pIncludesEntities) {
+        this.includesEntities = pIncludesEntities;
     }
 
     public BiConsumer<Vec3, List<? extends Entity>> getOrder() {
         return this.order;
     }
 
-    public void setOrder(BiConsumer<Vec3, List<? extends Entity>> p_121269_) {
-        this.order = p_121269_;
+    public void setOrder(BiConsumer<Vec3, List<? extends Entity>> pOrder) {
+        this.order = pOrder;
     }
 
     public EntitySelector parse() throws CommandSyntaxException {
@@ -482,12 +482,12 @@ public class EntitySelectorParser {
         return this.getSelector();
     }
 
-    private static void fillSelectorSuggestions(SuggestionsBuilder p_121248_) {
-        p_121248_.suggest("@p", Component.translatable("argument.entity.selector.nearestPlayer"));
-        p_121248_.suggest("@a", Component.translatable("argument.entity.selector.allPlayers"));
-        p_121248_.suggest("@r", Component.translatable("argument.entity.selector.randomPlayer"));
-        p_121248_.suggest("@s", Component.translatable("argument.entity.selector.self"));
-        p_121248_.suggest("@e", Component.translatable("argument.entity.selector.allEntities"));
+    private static void fillSelectorSuggestions(SuggestionsBuilder pBuilder) {
+        pBuilder.suggest("@p", Component.translatable("argument.entity.selector.nearestPlayer"));
+        pBuilder.suggest("@a", Component.translatable("argument.entity.selector.allPlayers"));
+        pBuilder.suggest("@r", Component.translatable("argument.entity.selector.randomPlayer"));
+        pBuilder.suggest("@s", Component.translatable("argument.entity.selector.self"));
+        pBuilder.suggest("@e", Component.translatable("argument.entity.selector.allEntities"));
     }
 
     private CompletableFuture<Suggestions> suggestNameOrSelector(SuggestionsBuilder p_121287_, Consumer<SuggestionsBuilder> p_121288_) {
@@ -534,89 +534,89 @@ public class EntitySelectorParser {
         return p_121354_.buildFuture();
     }
 
-    private CompletableFuture<Suggestions> suggestEquals(SuggestionsBuilder p_175144_, Consumer<SuggestionsBuilder> p_175145_) {
-        p_175144_.suggest(String.valueOf('='));
-        return p_175144_.buildFuture();
+    private CompletableFuture<Suggestions> suggestEquals(SuggestionsBuilder pBuilder, Consumer<SuggestionsBuilder> pConsumer) {
+        pBuilder.suggest(String.valueOf('='));
+        return pBuilder.buildFuture();
     }
 
     public boolean isCurrentEntity() {
         return this.currentEntity;
     }
 
-    public void setSuggestions(BiFunction<SuggestionsBuilder, Consumer<SuggestionsBuilder>, CompletableFuture<Suggestions>> p_121271_) {
-        this.suggestions = p_121271_;
+    public void setSuggestions(BiFunction<SuggestionsBuilder, Consumer<SuggestionsBuilder>, CompletableFuture<Suggestions>> pSuggestionHandler) {
+        this.suggestions = pSuggestionHandler;
     }
 
-    public CompletableFuture<Suggestions> fillSuggestions(SuggestionsBuilder p_121250_, Consumer<SuggestionsBuilder> p_121251_) {
-        return this.suggestions.apply(p_121250_.createOffset(this.reader.getCursor()), p_121251_);
+    public CompletableFuture<Suggestions> fillSuggestions(SuggestionsBuilder pBuilder, Consumer<SuggestionsBuilder> pConsumer) {
+        return this.suggestions.apply(pBuilder.createOffset(this.reader.getCursor()), pConsumer);
     }
 
     public boolean hasNameEquals() {
         return this.hasNameEquals;
     }
 
-    public void setHasNameEquals(boolean p_121303_) {
-        this.hasNameEquals = p_121303_;
+    public void setHasNameEquals(boolean pHasNameEquals) {
+        this.hasNameEquals = pHasNameEquals;
     }
 
     public boolean hasNameNotEquals() {
         return this.hasNameNotEquals;
     }
 
-    public void setHasNameNotEquals(boolean p_121316_) {
-        this.hasNameNotEquals = p_121316_;
+    public void setHasNameNotEquals(boolean pHasNameNotEquals) {
+        this.hasNameNotEquals = pHasNameNotEquals;
     }
 
     public boolean isLimited() {
         return this.isLimited;
     }
 
-    public void setLimited(boolean p_121329_) {
-        this.isLimited = p_121329_;
+    public void setLimited(boolean pIsLimited) {
+        this.isLimited = pIsLimited;
     }
 
     public boolean isSorted() {
         return this.isSorted;
     }
 
-    public void setSorted(boolean p_121337_) {
-        this.isSorted = p_121337_;
+    public void setSorted(boolean pIsSorted) {
+        this.isSorted = pIsSorted;
     }
 
     public boolean hasGamemodeEquals() {
         return this.hasGamemodeEquals;
     }
 
-    public void setHasGamemodeEquals(boolean p_121345_) {
-        this.hasGamemodeEquals = p_121345_;
+    public void setHasGamemodeEquals(boolean pHasGamemodeEquals) {
+        this.hasGamemodeEquals = pHasGamemodeEquals;
     }
 
     public boolean hasGamemodeNotEquals() {
         return this.hasGamemodeNotEquals;
     }
 
-    public void setHasGamemodeNotEquals(boolean p_121351_) {
-        this.hasGamemodeNotEquals = p_121351_;
+    public void setHasGamemodeNotEquals(boolean pHasGamemodeNotEquals) {
+        this.hasGamemodeNotEquals = pHasGamemodeNotEquals;
     }
 
     public boolean hasTeamEquals() {
         return this.hasTeamEquals;
     }
 
-    public void setHasTeamEquals(boolean p_121357_) {
-        this.hasTeamEquals = p_121357_;
+    public void setHasTeamEquals(boolean pHasTeamEquals) {
+        this.hasTeamEquals = pHasTeamEquals;
     }
 
     public boolean hasTeamNotEquals() {
         return this.hasTeamNotEquals;
     }
 
-    public void setHasTeamNotEquals(boolean p_121360_) {
-        this.hasTeamNotEquals = p_121360_;
+    public void setHasTeamNotEquals(boolean pHasTeamNotEquals) {
+        this.hasTeamNotEquals = pHasTeamNotEquals;
     }
 
-    public void limitToType(EntityType<?> p_121242_) {
-        this.type = p_121242_;
+    public void limitToType(EntityType<?> pType) {
+        this.type = pType;
     }
 
     public void setTypeLimitedInversely() {
@@ -635,15 +635,15 @@ public class EntitySelectorParser {
         return this.hasScores;
     }
 
-    public void setHasScores(boolean p_121366_) {
-        this.hasScores = p_121366_;
+    public void setHasScores(boolean pHasScores) {
+        this.hasScores = pHasScores;
     }
 
     public boolean hasAdvancements() {
         return this.hasAdvancements;
     }
 
-    public void setHasAdvancements(boolean p_121369_) {
-        this.hasAdvancements = p_121369_;
+    public void setHasAdvancements(boolean pHasAdvancements) {
+        this.hasAdvancements = pHasAdvancements;
     }
 }

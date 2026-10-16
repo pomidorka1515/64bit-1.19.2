@@ -19,15 +19,15 @@ public class ScreenManager {
     private final Long2ObjectMap<Monitor> monitors = new Long2ObjectOpenHashMap<>();
     private final MonitorCreator monitorCreator;
 
-    public ScreenManager(MonitorCreator p_85265_) {
+    public ScreenManager(MonitorCreator pMonitorCreator) {
         RenderSystem.assertInInitPhase();
-        this.monitorCreator = p_85265_;
+        this.monitorCreator = pMonitorCreator;
         GLFW.glfwSetMonitorCallback(this::onMonitorChange);
         PointerBuffer pointerbuffer = GLFW.glfwGetMonitors();
         if (pointerbuffer != null) {
             for (int i = 0; i < pointerbuffer.limit(); ++i) {
                 long j = pointerbuffer.get(i);
-                this.monitors.put(j, p_85265_.createMonitor(j));
+                this.monitors.put(j, pMonitorCreator.createMonitor(j));
             }
         }
     }
@@ -44,21 +44,21 @@ public class ScreenManager {
     }
 
     @Nullable
-    public Monitor getMonitor(long p_85272_) {
+    public Monitor getMonitor(long pMonitorID) {
         RenderSystem.assertInInitPhase();
-        return this.monitors.get(p_85272_);
+        return this.monitors.get(pMonitorID);
     }
 
     @Nullable
-    public Monitor findBestMonitor(Window p_85277_) {
-        long i = GLFW.glfwGetWindowMonitor(p_85277_.getWindow());
+    public Monitor findBestMonitor(Window pWindow) {
+        long i = GLFW.glfwGetWindowMonitor(pWindow.getWindow());
         if (i != 0L) {
             return this.getMonitor(i);
         } else {
-            int j = p_85277_.getX();
-            int k = j + p_85277_.getScreenWidth();
-            int l = p_85277_.getY();
-            int i1 = l + p_85277_.getScreenHeight();
+            int j = pWindow.getX();
+            int k = j + pWindow.getScreenWidth();
+            int l = pWindow.getY();
+            int i1 = l + pWindow.getScreenHeight();
             int j1 = -1;
             Monitor monitor = null;
             long k1 = GLFW.glfwGetPrimaryMonitor();
@@ -90,11 +90,11 @@ public class ScreenManager {
         }
     }
 
-    public static int clamp(int p_85268_, int p_85269_, int p_85270_) {
-        if (p_85268_ < p_85269_) {
-            return p_85269_;
+    public static int clamp(int pValue, int pMin, int pMax) {
+        if (pValue < pMin) {
+            return pMin;
         } else {
-            return p_85268_ > p_85270_ ? p_85270_ : p_85268_;
+            return pValue > pMax ? pMax : pValue;
         }
     }
 

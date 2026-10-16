@@ -15,25 +15,25 @@ public abstract class AbstractCookingRecipe implements Recipe<Container> {
     protected final float experience;
     protected final int cookingTime;
 
-    public AbstractCookingRecipe(RecipeType<?> p_43734_, ResourceLocation p_43735_, String p_43736_, Ingredient p_43737_, ItemStack p_43738_, float p_43739_, int p_43740_) {
-        this.type = p_43734_;
-        this.id = p_43735_;
-        this.group = p_43736_;
-        this.ingredient = p_43737_;
-        this.result = p_43738_;
-        this.experience = p_43739_;
-        this.cookingTime = p_43740_;
+    public AbstractCookingRecipe(RecipeType<?> pType, ResourceLocation pId, String pGroup, Ingredient pIngredient, ItemStack pResult, float pExperience, int pCookingTime) {
+        this.type = pType;
+        this.id = pId;
+        this.group = pGroup;
+        this.ingredient = pIngredient;
+        this.result = pResult;
+        this.experience = pExperience;
+        this.cookingTime = pCookingTime;
     }
 
-    public boolean matches(Container p_43748_, Level p_43749_) {
-        return this.ingredient.test(p_43748_.getItem(0));
+    public boolean matches(Container pInv, Level pLevel) {
+        return this.ingredient.test(pInv.getItem(0));
     }
 
-    public ItemStack assemble(Container p_43746_) {
+    public ItemStack assemble(Container pInv) {
         return this.result.copy();
     }
 
-    public boolean canCraftInDimensions(int p_43743_, int p_43744_) {
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
         return true;
     }
 

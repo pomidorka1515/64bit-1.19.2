@@ -18,15 +18,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class DefaultClientPackResources extends VanillaPackResources {
     private final AssetIndex assetIndex;
 
-    public DefaultClientPackResources(PackMetadataSection p_174827_, AssetIndex p_174828_) {
-        super(p_174827_, "minecraft", "realms");
-        this.assetIndex = p_174828_;
+    public DefaultClientPackResources(PackMetadataSection pPackMetadata, AssetIndex pAssetIndex) {
+        super(pPackMetadata, "minecraft", "realms");
+        this.assetIndex = pAssetIndex;
     }
 
     @Nullable
-    protected InputStream getResourceAsStream(PackType p_118621_, ResourceLocation p_118622_) {
-        if (p_118621_ == PackType.CLIENT_RESOURCES) {
-            File file1 = this.assetIndex.getFile(p_118622_);
+    protected InputStream getResourceAsStream(PackType pType, ResourceLocation pLocation) {
+        if (pType == PackType.CLIENT_RESOURCES) {
+            File file1 = this.assetIndex.getFile(pLocation);
             if (file1 != null && file1.exists()) {
                 try {
                     return new FileInputStream(file1);
@@ -35,23 +35,23 @@ public class DefaultClientPackResources extends VanillaPackResources {
             }
         }
 
-        return super.getResourceAsStream(p_118621_, p_118622_);
+        return super.getResourceAsStream(pType, pLocation);
     }
 
-    public boolean hasResource(PackType p_118618_, ResourceLocation p_118619_) {
-        if (p_118618_ == PackType.CLIENT_RESOURCES) {
-            File file1 = this.assetIndex.getFile(p_118619_);
+    public boolean hasResource(PackType pType, ResourceLocation pLocation) {
+        if (pType == PackType.CLIENT_RESOURCES) {
+            File file1 = this.assetIndex.getFile(pLocation);
             if (file1 != null && file1.exists()) {
                 return true;
             }
         }
 
-        return super.hasResource(p_118618_, p_118619_);
+        return super.hasResource(pType, pLocation);
     }
 
     @Nullable
-    protected InputStream getResourceAsStream(String p_118616_) {
-        File file1 = this.assetIndex.getRootFile(p_118616_);
+    protected InputStream getResourceAsStream(String pPath) {
+        File file1 = this.assetIndex.getRootFile(pPath);
         if (file1 != null && file1.exists()) {
             try {
                 return new FileInputStream(file1);
@@ -59,12 +59,12 @@ public class DefaultClientPackResources extends VanillaPackResources {
             }
         }
 
-        return super.getResourceAsStream(p_118616_);
+        return super.getResourceAsStream(pPath);
     }
 
-    public Collection<ResourceLocation> getResources(PackType p_235011_, String p_235012_, String p_235013_, Predicate<ResourceLocation> p_235014_) {
-        Collection<ResourceLocation> collection = super.getResources(p_235011_, p_235012_, p_235013_, p_235014_);
-        collection.addAll(this.assetIndex.getFiles(p_235013_, p_235012_, p_235014_));
+    public Collection<ResourceLocation> getResources(PackType pType, String pNamespace, String pPath, Predicate<ResourceLocation> pFilter) {
+        Collection<ResourceLocation> collection = super.getResources(pType, pNamespace, pPath, pFilter);
+        collection.addAll(this.assetIndex.getFiles(pPath, pNamespace, pFilter));
         return collection;
     }
 }

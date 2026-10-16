@@ -14,25 +14,25 @@ public class UniformGenerator implements NumberProvider {
     final NumberProvider min;
     final NumberProvider max;
 
-    UniformGenerator(NumberProvider p_165777_, NumberProvider p_165778_) {
-        this.min = p_165777_;
-        this.max = p_165778_;
+    UniformGenerator(NumberProvider pMin, NumberProvider pMax) {
+        this.min = pMin;
+        this.max = pMax;
     }
 
     public LootNumberProviderType getType() {
         return NumberProviders.UNIFORM;
     }
 
-    public static UniformGenerator between(float p_165781_, float p_165782_) {
-        return new UniformGenerator(ConstantValue.exactly(p_165781_), ConstantValue.exactly(p_165782_));
+    public static UniformGenerator between(float pMin, float pMax) {
+        return new UniformGenerator(ConstantValue.exactly(pMin), ConstantValue.exactly(pMax));
     }
 
-    public int getInt(LootContext p_165784_) {
-        return Mth.nextInt(p_165784_.getRandom(), this.min.getInt(p_165784_), this.max.getInt(p_165784_));
+    public int getInt(LootContext pLootContext) {
+        return Mth.nextInt(pLootContext.getRandom(), this.min.getInt(pLootContext), this.max.getInt(pLootContext));
     }
 
-    public float getFloat(LootContext p_165787_) {
-        return Mth.nextFloat(p_165787_.getRandom(), this.min.getFloat(p_165787_), this.max.getFloat(p_165787_));
+    public float getFloat(LootContext pLootContext) {
+        return Mth.nextFloat(pLootContext.getRandom(), this.min.getFloat(pLootContext), this.max.getFloat(pLootContext));
     }
 
     public Set<LootContextParam<?>> getReferencedContextParams() {

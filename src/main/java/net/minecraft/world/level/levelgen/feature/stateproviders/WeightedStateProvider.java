@@ -17,19 +17,19 @@ public class WeightedStateProvider extends BlockStateProvider {
         return p_161598_.isEmpty() ? DataResult.error("WeightedStateProvider with no states") : DataResult.success(new WeightedStateProvider(p_161598_));
     }
 
-    public WeightedStateProvider(SimpleWeightedRandomList<BlockState> p_161596_) {
-        this.weightedList = p_161596_;
+    public WeightedStateProvider(SimpleWeightedRandomList<BlockState> pWeightedList) {
+        this.weightedList = pWeightedList;
     }
 
-    public WeightedStateProvider(SimpleWeightedRandomList.Builder<BlockState> p_161594_) {
-        this(p_161594_.build());
+    public WeightedStateProvider(SimpleWeightedRandomList.Builder<BlockState> pBuilder) {
+        this(pBuilder.build());
     }
 
     protected BlockStateProviderType<?> type() {
         return BlockStateProviderType.WEIGHTED_STATE_PROVIDER;
     }
 
-    public BlockState getState(RandomSource p_225966_, BlockPos p_225967_) {
-        return this.weightedList.getRandomValue(p_225966_).orElseThrow(IllegalStateException::new);
+    public BlockState getState(RandomSource pRandom, BlockPos pState) {
+        return this.weightedList.getRandomValue(pRandom).orElseThrow(IllegalStateException::new);
     }
 }

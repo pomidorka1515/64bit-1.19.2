@@ -24,25 +24,25 @@ public class ServerPlaceRecipe<C extends Container> implements PlaceRecipe<Integ
     protected Inventory inventory;
     protected RecipeBookMenu<C> menu;
 
-    public ServerPlaceRecipe(RecipeBookMenu<C> p_135431_) {
-        this.menu = p_135431_;
+    public ServerPlaceRecipe(RecipeBookMenu<C> pMenu) {
+        this.menu = pMenu;
     }
 
-    public void recipeClicked(ServerPlayer p_135435_, @Nullable Recipe<C> p_135436_, boolean p_135437_) {
-        if (p_135436_ != null && p_135435_.getRecipeBook().contains(p_135436_)) {
-            this.inventory = p_135435_.getInventory();
-            if (this.testClearGrid() || p_135435_.isCreative()) {
+    public void recipeClicked(ServerPlayer pPlayer, @Nullable Recipe<C> pRecipe, boolean pPlaceAll) {
+        if (pRecipe != null && pPlayer.getRecipeBook().contains(pRecipe)) {
+            this.inventory = pPlayer.getInventory();
+            if (this.testClearGrid() || pPlayer.isCreative()) {
                 this.stackedContents.clear();
-                p_135435_.getInventory().fillStackedContents(this.stackedContents);
+                pPlayer.getInventory().fillStackedContents(this.stackedContents);
                 this.menu.fillCraftSlotsStackedContents(this.stackedContents);
-                if (this.stackedContents.canCraft(p_135436_, (IntList) null)) {
-                    this.handleRecipeClicked(p_135436_, p_135437_);
+                if (this.stackedContents.canCraft(pRecipe, (IntList) null)) {
+                    this.handleRecipeClicked(pRecipe, pPlaceAll);
                 } else {
                     this.clearGrid(true);
-                    p_135435_.connection.send(new ClientboundPlaceGhostRecipePacket(p_135435_.containerMenu.containerId, p_135436_));
+                    pPlayer.connection.send(new ClientboundPlaceGhostRecipePacket(pPlayer.containerMenu.containerId, pRecipe));
                 }
 
-                p_135435_.getInventory().setChanged();
+                pPlayer.getInventory().setChanged();
             }
         }
     }
@@ -59,9 +59,9 @@ public class ServerPlaceRecipe<C extends Container> implements PlaceRecipe<Integ
         this.menu.clearCraftingContent();
     }
 
-    protected void handleRecipeClicked(Recipe<C> p_135441_, boolean p_135442_) {
-        boolean flag = this.menu.recipeMatches(p_135441_);
-        int i = this.stackedContents.getBiggestCraftableStack(p_135441_, (IntList) null);
+    protected void handleRecipeClicked(Recipe<C> pRecipe, boolean pPlaceAll) {
+        boolean flag = this.menu.recipeMatches(pRecipe);
+        int i = this.stackedContents.getBiggestCraftableStack(pRecipe, (IntList) null);
         if (flag) {
             for (int j = 0; j < this.menu.getGridHeight() * this.menu.getGridWidth() + 1; ++j) {
                 if (j != this.menu.getResultSlotIndex()) {
@@ -73,9 +73,9 @@ public class ServerPlaceRecipe<C extends Container> implements PlaceRecipe<Integ
             }
         }
 
-        int j1 = this.getStackSize(p_135442_, i, flag);
+        int j1 = this.getStackSize(pPlaceAll, i, flag);
         IntList intlist = new IntArrayList();
-        if (this.stackedContents.canCraft(p_135441_, intlist, j1)) {
+        if (this.stackedContents.canCraft(pRecipe, intlist, j1)) {
             int k = j1;
 
             for (int l : intlist) {
@@ -85,28 +85,28 @@ public class ServerPlaceRecipe<C extends Container> implements PlaceRecipe<Integ
                 }
             }
 
-            if (this.stackedContents.canCraft(p_135441_, intlist, k)) {
+            if (this.stackedContents.canCraft(pRecipe, intlist, k)) {
                 this.clearGrid(false);
-                this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), p_135441_, intlist.iterator(), k);
+                this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), pRecipe, intlist.iterator(), k);
             }
         }
     }
 
-    public void addItemToSlot(Iterator<Integer> p_135444_, int p_135445_, int p_135446_, int p_135447_, int p_135448_) {
-        Slot slot = this.menu.getSlot(p_135445_);
-        ItemStack itemstack = StackedContents.fromStackingIndex(p_135444_.next());
+    public void addItemToSlot(Iterator<Integer> pIngredients, int pSlot, int pMaxAmount, int pY, int pX) {
+        Slot slot = this.menu.getSlot(pSlot);
+        ItemStack itemstack = StackedContents.fromStackingIndex(pIngredients.next());
         if (!itemstack.isEmpty()) {
-            for (int i = 0; i < p_135446_; ++i) {
+            for (int i = 0; i < pMaxAmount; ++i) {
                 this.moveItemToGrid(slot, itemstack);
             }
         }
     }
 
-    protected int getStackSize(boolean p_135450_, int p_135451_, boolean p_135452_) {
+    protected int getStackSize(boolean pPlaceAll, int pMaxPossible, boolean pRecipeMatches) {
         int i = 1;
-        if (p_135450_) {
-            i = p_135451_;
-        } else if (p_135452_) {
+        if (pPlaceAll) {
+            i = pMaxPossible;
+        } else if (pRecipeMatches) {
             i = 64;
 
             for (int j = 0; j < this.menu.getGridWidth() * this.menu.getGridHeight() + 1; ++j) {
@@ -126,8 +126,8 @@ public class ServerPlaceRecipe<C extends Container> implements PlaceRecipe<Integ
         return i;
     }
 
-    protected void moveItemToGrid(Slot p_135439_, ItemStack p_135440_) {
-        int i = this.inventory.findSlotMatchingUnusedItem(p_135440_);
+    protected void moveItemToGrid(Slot pSlotToFill, ItemStack pIngredient) {
+        int i = this.inventory.findSlotMatchingUnusedItem(pIngredient);
         if (i != -1) {
             ItemStack itemstack = this.inventory.getItem(i).copy();
             if (!itemstack.isEmpty()) {
@@ -138,10 +138,10 @@ public class ServerPlaceRecipe<C extends Container> implements PlaceRecipe<Integ
                 }
 
                 itemstack.setCount(1);
-                if (p_135439_.getItem().isEmpty()) {
-                    p_135439_.set(itemstack);
+                if (pSlotToFill.getItem().isEmpty()) {
+                    pSlotToFill.set(itemstack);
                 } else {
-                    p_135439_.getItem().grow(1);
+                    pSlotToFill.getItem().grow(1);
                 }
             }
         }

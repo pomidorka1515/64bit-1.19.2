@@ -21,19 +21,19 @@ public class BlockStateData {
     });
     static final String FILTER_ME = "%%FILTER_ME%%";
 
-    private static void register(int p_14943_, String p_14944_, String... p_14945_) {
-        Dynamic<?> dynamic = parse(p_14944_);
-        MAP[p_14943_] = dynamic;
-        int i = p_14943_ >> 4;
+    private static void register(int pId, String pFixedNBT, String... pSourceNBTs) {
+        Dynamic<?> dynamic = parse(pFixedNBT);
+        MAP[pId] = dynamic;
+        int i = pId >> 4;
         if (BLOCK_DEFAULTS[i] == null) {
             BLOCK_DEFAULTS[i] = dynamic;
         }
 
-        for (String s : p_14945_) {
+        for (String s : pSourceNBTs) {
             Dynamic<?> dynamic1 = parse(s);
             String s1 = dynamic1.get("Name").asString("");
-            ID_BY_OLD_NAME.putIfAbsent(s1, p_14943_);
-            ID_BY_OLD.put(dynamic1, p_14943_);
+            ID_BY_OLD_NAME.putIfAbsent(s1, pId);
+            ID_BY_OLD.put(dynamic1, pId);
         }
     }
 
@@ -45,48 +45,48 @@ public class BlockStateData {
         }
     }
 
-    public static Dynamic<?> upgradeBlockStateTag(Dynamic<?> p_14947_) {
-        int i = ID_BY_OLD.getInt(p_14947_);
+    public static Dynamic<?> upgradeBlockStateTag(Dynamic<?> pNbt) {
+        int i = ID_BY_OLD.getInt(pNbt);
         if (i >= 0 && i < MAP.length) {
             Dynamic<?> dynamic = MAP[i];
-            return dynamic == null ? p_14947_ : dynamic;
+            return dynamic == null ? pNbt : dynamic;
         } else {
-            return p_14947_;
+            return pNbt;
         }
     }
 
-    public static String upgradeBlock(String p_14951_) {
-        int i = ID_BY_OLD_NAME.getInt(p_14951_);
+    public static String upgradeBlock(String pName) {
+        int i = ID_BY_OLD_NAME.getInt(pName);
         if (i >= 0 && i < MAP.length) {
             Dynamic<?> dynamic = MAP[i];
-            return dynamic == null ? p_14951_ : dynamic.get("Name").asString("");
+            return dynamic == null ? pName : dynamic.get("Name").asString("");
         } else {
-            return p_14951_;
+            return pName;
         }
     }
 
-    public static String upgradeBlock(int p_14941_) {
-        if (p_14941_ >= 0 && p_14941_ < MAP.length) {
-            Dynamic<?> dynamic = MAP[p_14941_];
+    public static String upgradeBlock(int pId) {
+        if (pId >= 0 && pId < MAP.length) {
+            Dynamic<?> dynamic = MAP[pId];
             return dynamic == null ? "minecraft:air" : dynamic.get("Name").asString("");
         } else {
             return "minecraft:air";
         }
     }
 
-    public static Dynamic<?> parse(String p_14957_) {
+    public static Dynamic<?> parse(String pNbt) {
         try {
-            return new Dynamic<>(NbtOps.INSTANCE, TagParser.parseTag(p_14957_.replace('\'', '"')));
+            return new Dynamic<>(NbtOps.INSTANCE, TagParser.parseTag(pNbt.replace('\'', '"')));
         } catch (Exception exception) {
-            LOGGER.error("Parsing {}", p_14957_, exception);
+            LOGGER.error("Parsing {}", pNbt, exception);
             throw new RuntimeException(exception);
         }
     }
 
-    public static Dynamic<?> getTag(int p_14953_) {
+    public static Dynamic<?> getTag(int pId) {
         Dynamic<?> dynamic = null;
-        if (p_14953_ >= 0 && p_14953_ < MAP.length) {
-            dynamic = MAP[p_14953_];
+        if (pId >= 0 && pId < MAP.length) {
+            dynamic = MAP[pId];
         }
 
         return dynamic == null ? MAP[0] : dynamic;

@@ -43,13 +43,13 @@ public class JfrStatsParser {
     @Nullable
     private Duration worldCreationDuration = null;
 
-    private JfrStatsParser(Stream<RecordedEvent> p_185443_) {
-        this.capture(p_185443_);
+    private JfrStatsParser(Stream<RecordedEvent> pEvents) {
+        this.capture(pEvents);
     }
 
-    public static JfrStatsResult parse(Path p_185448_) {
+    public static JfrStatsResult parse(Path pFile) {
         try {
-            final RecordingFile recordingfile = new RecordingFile(p_185448_);
+            final RecordingFile recordingfile = new RecordingFile(pFile);
 
             JfrStatsResult jfrstatsresult;
             try {
@@ -94,8 +94,8 @@ public class JfrStatsParser {
         return new JfrStatsResult(this.recordingStarted, this.recordingEnded, duration, this.worldCreationDuration, this.tickTimes, this.cpuLoadStat, GcHeapStat.summary(duration, this.gcHeapStats, this.gcTotalDuration, this.garbageCollections), ThreadAllocationStat.summary(this.threadAllocationStats), collectPacketStats(duration, this.receivedPackets), collectPacketStats(duration, this.sentPackets), FileIOStat.summary(duration, this.fileWrites), FileIOStat.summary(duration, this.fileReads), this.chunkGenStats);
     }
 
-    private void capture(Stream<RecordedEvent> p_185455_) {
-        p_185455_.forEach((p_185457_) -> {
+    private void capture(Stream<RecordedEvent> pEvents) {
+        pEvents.forEach((p_185457_) -> {
             if (p_185457_.getEndTime().isAfter(this.recordingEnded) || this.recordingEnded.equals(Instant.EPOCH)) {
                 this.recordingEnded = p_185457_.getEndTime();
             }

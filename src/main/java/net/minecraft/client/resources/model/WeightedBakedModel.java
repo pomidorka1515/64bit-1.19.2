@@ -22,15 +22,15 @@ public class WeightedBakedModel implements BakedModel {
     private final List<WeightedEntry.Wrapper<BakedModel>> list;
     private final BakedModel wrapped;
 
-    public WeightedBakedModel(List<WeightedEntry.Wrapper<BakedModel>> p_119544_) {
-        this.list = p_119544_;
-        this.totalWeight = WeightedRandom.getTotalWeight(p_119544_);
-        this.wrapped = p_119544_.get(0).getData();
+    public WeightedBakedModel(List<WeightedEntry.Wrapper<BakedModel>> pList) {
+        this.list = pList;
+        this.totalWeight = WeightedRandom.getTotalWeight(pList);
+        this.wrapped = pList.get(0).getData();
     }
 
-    public List<BakedQuad> getQuads(@Nullable BlockState p_235058_, @Nullable Direction p_235059_, RandomSource p_235060_) {
-        return WeightedRandom.getWeightedItem(this.list, Math.abs((int) p_235060_.nextLong()) % this.totalWeight).map((p_235065_) -> {
-                                                                                                                     return p_235065_.getData().getQuads(p_235058_, p_235059_, p_235060_);
+    public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pDirection, RandomSource pRandom) {
+        return WeightedRandom.getWeightedItem(this.list, Math.abs((int) pRandom.nextLong()) % this.totalWeight).map((p_235065_) -> {
+                                                                                                                     return p_235065_.getData().getQuads(pState, pDirection, pRandom);
                                                                                                                  })
                 .orElse(Collections.emptyList());
     }
@@ -67,9 +67,9 @@ public class WeightedBakedModel implements BakedModel {
     public static class Builder {
         private final List<WeightedEntry.Wrapper<BakedModel>> list = Lists.newArrayList();
 
-        public WeightedBakedModel.Builder add(@Nullable BakedModel p_119560_, int p_119561_) {
-            if (p_119560_ != null) {
-                this.list.add(WeightedEntry.wrap(p_119560_, p_119561_));
+        public WeightedBakedModel.Builder add(@Nullable BakedModel pModel, int pWeight) {
+            if (pModel != null) {
+                this.list.add(WeightedEntry.wrap(pModel, pWeight));
             }
 
             return this;

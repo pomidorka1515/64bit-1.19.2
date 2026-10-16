@@ -26,15 +26,15 @@ public class EndCrystal extends Entity {
     private static final EntityDataAccessor<Boolean> DATA_SHOW_BOTTOM = SynchedEntityData.defineId(EndCrystal.class, EntityDataSerializers.BOOLEAN);
     public int time;
 
-    public EndCrystal(EntityType<? extends EndCrystal> p_31037_, Level p_31038_) {
-        super(p_31037_, p_31038_);
+    public EndCrystal(EntityType<? extends EndCrystal> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.blocksBuilding = true;
         this.time = this.random.nextInt(100000);
     }
 
-    public EndCrystal(Level p_31040_, double p_31041_, double p_31042_, double p_31043_) {
-        this(EntityType.END_CRYSTAL, p_31040_);
-        this.setPos(p_31041_, p_31042_, p_31043_);
+    public EndCrystal(Level pLevel, double pX, double pY, double pZ) {
+        this(EntityType.END_CRYSTAL, pLevel);
+        this.setPos(pX, pY, pZ);
     }
 
     protected Entity.MovementEmission getMovementEmission() {
@@ -56,21 +56,21 @@ public class EndCrystal extends Entity {
         }
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_31062_) {
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
         if (this.getBeamTarget() != null) {
-            p_31062_.put("BeamTarget", NbtUtils.writeBlockPos(this.getBeamTarget()));
+            pCompound.put("BeamTarget", NbtUtils.writeBlockPos(this.getBeamTarget()));
         }
 
-        p_31062_.putBoolean("ShowBottom", this.showsBottom());
+        pCompound.putBoolean("ShowBottom", this.showsBottom());
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_31055_) {
-        if (p_31055_.contains("BeamTarget", 10)) {
-            this.setBeamTarget(NbtUtils.readBlockPos(p_31055_.getCompound("BeamTarget")));
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        if (pCompound.contains("BeamTarget", 10)) {
+            this.setBeamTarget(NbtUtils.readBlockPos(pCompound.getCompound("BeamTarget")));
         }
 
-        if (p_31055_.contains("ShowBottom", 1)) {
-            this.setShowBottom(p_31055_.getBoolean("ShowBottom"));
+        if (pCompound.contains("ShowBottom", 1)) {
+            this.setShowBottom(pCompound.getBoolean("ShowBottom"));
         }
     }
 
@@ -78,20 +78,20 @@ public class EndCrystal extends Entity {
         return true;
     }
 
-    public boolean hurt(DamageSource p_31050_, float p_31051_) {
-        if (this.isInvulnerableTo(p_31050_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
-        } else if (p_31050_.getEntity() instanceof EnderDragon) {
+        } else if (pSource.getEntity() instanceof EnderDragon) {
             return false;
         } else {
             if (!this.isRemoved() && !this.level.isClientSide) {
                 this.remove(Entity.RemovalReason.KILLED);
-                if (!p_31050_.isExplosion()) {
+                if (!pSource.isExplosion()) {
                     this.level.explode((Entity) null, this.particlePosition(0.0D, 0.0D, 0.0D), 6.0F,
                             Explosion.BlockInteraction.DESTROY);
                 }
 
-                this.onDestroyedBy(p_31050_);
+                this.onDestroyedBy(pSource);
             }
 
             return true;
@@ -103,17 +103,17 @@ public class EndCrystal extends Entity {
         super.kill();
     }
 
-    private void onDestroyedBy(DamageSource p_31048_) {
+    private void onDestroyedBy(DamageSource pSource) {
         if (this.level instanceof ServerLevel) {
             EndDragonFight enddragonfight = ((ServerLevel) this.level).dragonFight();
             if (enddragonfight != null) {
-                enddragonfight.onCrystalDestroyed(this, p_31048_);
+                enddragonfight.onCrystalDestroyed(this, pSource);
             }
         }
     }
 
-    public void setBeamTarget(@Nullable BlockPos p_31053_) {
-        this.getEntityData().set(DATA_BEAM_TARGET, Optional.ofNullable(p_31053_));
+    public void setBeamTarget(@Nullable BlockPos pBeamTarget) {
+        this.getEntityData().set(DATA_BEAM_TARGET, Optional.ofNullable(pBeamTarget));
     }
 
     @Nullable
@@ -121,16 +121,16 @@ public class EndCrystal extends Entity {
         return this.getEntityData().get(DATA_BEAM_TARGET).orElse((BlockPos) null);
     }
 
-    public void setShowBottom(boolean p_31057_) {
-        this.getEntityData().set(DATA_SHOW_BOTTOM, p_31057_);
+    public void setShowBottom(boolean pShowBottom) {
+        this.getEntityData().set(DATA_SHOW_BOTTOM, pShowBottom);
     }
 
     public boolean showsBottom() {
         return this.getEntityData().get(DATA_SHOW_BOTTOM);
     }
 
-    public boolean shouldRenderAtSqrDistance(double p_31046_) {
-        return super.shouldRenderAtSqrDistance(p_31046_) || this.getBeamTarget() != null;
+    public boolean shouldRenderAtSqrDistance(double pDistance) {
+        return super.shouldRenderAtSqrDistance(pDistance) || this.getBeamTarget() != null;
     }
 
     public ItemStack getPickResult() {

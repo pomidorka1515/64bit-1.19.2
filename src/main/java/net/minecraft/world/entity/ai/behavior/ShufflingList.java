@@ -23,14 +23,14 @@ public class ShufflingList<U> {
         this.entries = Lists.newArrayList(p_147921_);
     }
 
-    public static <U> Codec<ShufflingList<U>> codec(Codec<U> p_147928_) {
-        return ShufflingList.WeightedEntry.<U>codec(p_147928_).listOf().xmap(ShufflingList::new, (p_147926_) -> {
+    public static <U> Codec<ShufflingList<U>> codec(Codec<U> pCodec) {
+        return ShufflingList.WeightedEntry.<U>codec(pCodec).listOf().xmap(ShufflingList::new, (p_147926_) -> {
             return p_147926_.entries;
         });
     }
 
-    public ShufflingList<U> add(U p_147930_, int p_147931_) {
-        this.entries.add(new ShufflingList.WeightedEntry<>(p_147930_, p_147931_));
+    public ShufflingList<U> add(U pData, int pWeight) {
+        this.entries.add(new ShufflingList.WeightedEntry<>(pData, pWeight));
         return this;
     }
 
@@ -55,17 +55,17 @@ public class ShufflingList<U> {
         final int weight;
         private double randWeight;
 
-        WeightedEntry(T p_147938_, int p_147939_) {
-            this.weight = p_147939_;
-            this.data = p_147938_;
+        WeightedEntry(T pData, int pWeight) {
+            this.weight = pWeight;
+            this.data = pData;
         }
 
         private double getRandWeight() {
             return this.randWeight;
         }
 
-        void setRandom(float p_147942_) {
-            this.randWeight = -Math.pow((double) p_147942_, (double) (1.0F / (float) this.weight));
+        void setRandom(float pChance) {
+            this.randWeight = -Math.pow((double) pChance, (double) (1.0F / (float) this.weight));
         }
 
         public T getData() {
@@ -80,11 +80,11 @@ public class ShufflingList<U> {
             return this.weight + ":" + this.data;
         }
 
-        public static <E> Codec<ShufflingList.WeightedEntry<E>> codec(final Codec<E> p_147944_) {
+        public static <E> Codec<ShufflingList.WeightedEntry<E>> codec(final Codec<E> pCodec) {
             return new Codec<ShufflingList.WeightedEntry<E>>() {
                 public <T> DataResult<Pair<ShufflingList.WeightedEntry<E>, T>> decode(DynamicOps<T> p_147962_, T p_147963_) {
                     Dynamic<T> dynamic = new Dynamic<>(p_147962_, p_147963_);
-                    return dynamic.get("data").flatMap(p_147944_::parse).map((p_147957_) -> {
+                    return dynamic.get("data").flatMap(pCodec::parse).map((p_147957_) -> {
                                                                             return new ShufflingList.WeightedEntry<>(p_147957_, dynamic.get("weight").asInt(1));
                                                                         })
                             .map((p_147960_) -> {
@@ -93,7 +93,7 @@ public class ShufflingList<U> {
                 }
 
                 public <T> DataResult<T> encode(ShufflingList.WeightedEntry<E> p_147952_, DynamicOps<T> p_147953_, T p_147954_) {
-                    return p_147953_.mapBuilder().add("weight", p_147953_.createInt(p_147952_.weight)).add("data", p_147944_.encodeStart(p_147953_, p_147952_.data)).build(p_147954_);
+                    return p_147953_.mapBuilder().add("weight", p_147953_.createInt(p_147952_.weight)).add("data", pCodec.encodeStart(p_147953_, p_147952_.data)).build(p_147954_);
                 }
             };
         }

@@ -34,17 +34,17 @@ public abstract class RealmsScreen extends Screen {
     protected static final int SKIN_FACE_SIZE = 8;
     private final List<RealmsLabel> labels = Lists.newArrayList();
 
-    public RealmsScreen(Component p_175072_) {
-        super(p_175072_);
+    public RealmsScreen(Component pTitle) {
+        super(pTitle);
     }
 
-    protected static int row(int p_120775_) {
-        return 40 + p_120775_ * 13;
+    protected static int row(int pPosition) {
+        return 40 + pPosition * 13;
     }
 
-    protected RealmsLabel addLabel(RealmsLabel p_175074_) {
-        this.labels.add(p_175074_);
-        return this.addRenderableOnly(p_175074_);
+    protected RealmsLabel addLabel(RealmsLabel pLabel) {
+        this.labels.add(pLabel);
+        return this.addRenderableOnly(pLabel);
     }
 
     public Component createLabelNarration() {

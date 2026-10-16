@@ -13,20 +13,20 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
 public class ThrownEgg extends ThrowableItemProjectile {
-    public ThrownEgg(EntityType<? extends ThrownEgg> p_37473_, Level p_37474_) {
-        super(p_37473_, p_37474_);
+    public ThrownEgg(EntityType<? extends ThrownEgg> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public ThrownEgg(Level p_37481_, LivingEntity p_37482_) {
-        super(EntityType.EGG, p_37482_, p_37481_);
+    public ThrownEgg(Level pLevel, LivingEntity pShooter) {
+        super(EntityType.EGG, pShooter, pLevel);
     }
 
-    public ThrownEgg(Level p_37476_, double p_37477_, double p_37478_, double p_37479_) {
-        super(EntityType.EGG, p_37477_, p_37478_, p_37479_, p_37476_);
+    public ThrownEgg(Level pLevel, double pX, double pY, double pZ) {
+        super(EntityType.EGG, pX, pY, pZ, pLevel);
     }
 
-    public void handleEntityEvent(byte p_37484_) {
-        if (p_37484_ == 3) {
+    public void handleEntityEvent(byte pId) {
+        if (pId == 3) {
             double d0 = 0.08D;
 
             for (int i = 0; i < 8; ++i) {
@@ -38,13 +38,13 @@ public class ThrownEgg extends ThrowableItemProjectile {
         }
     }
 
-    protected void onHitEntity(EntityHitResult p_37486_) {
-        super.onHitEntity(p_37486_);
-        p_37486_.getEntity().hurt(DamageSource.thrown(this, this.getOwner()), 0.0F);
+    protected void onHitEntity(EntityHitResult pResult) {
+        super.onHitEntity(pResult);
+        pResult.getEntity().hurt(DamageSource.thrown(this, this.getOwner()), 0.0F);
     }
 
-    protected void onHit(HitResult p_37488_) {
-        super.onHit(p_37488_);
+    protected void onHit(HitResult pResult) {
+        super.onHit(pResult);
         if (!this.level.isClientSide) {
             if (this.random.nextInt(8) == 0) {
                 int i = 1;

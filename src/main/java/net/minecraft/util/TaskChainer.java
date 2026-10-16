@@ -15,7 +15,7 @@ public interface TaskChainer {
         });
     };
 
-    void append(TaskChainer.DelayedTask p_242206_);
+    void append(TaskChainer.DelayedTask pDelayedTask);
 
     public interface DelayedTask extends Supplier<CompletableFuture<?>> {
     }

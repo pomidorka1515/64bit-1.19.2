@@ -17,22 +17,22 @@ public class EnterBlockTrigger extends SimpleCriterionTrigger<EnterBlockTrigger.
         return ID;
     }
 
-    public EnterBlockTrigger.TriggerInstance createInstance(JsonObject p_31281_, EntityPredicate.Composite p_31282_, DeserializationContext p_31283_) {
-        Block block = deserializeBlock(p_31281_);
-        StatePropertiesPredicate statepropertiespredicate = StatePropertiesPredicate.fromJson(p_31281_.get("state"));
+    public EnterBlockTrigger.TriggerInstance createInstance(JsonObject pJson, EntityPredicate.Composite pEntityPredicate, DeserializationContext pConditionsParser) {
+        Block block = deserializeBlock(pJson);
+        StatePropertiesPredicate statepropertiespredicate = StatePropertiesPredicate.fromJson(pJson.get("state"));
         if (block != null) {
             statepropertiespredicate.checkState(block.getStateDefinition(), (p_31274_) -> {
                 throw new JsonSyntaxException("Block " + block + " has no property " + p_31274_);
             });
         }
 
-        return new EnterBlockTrigger.TriggerInstance(p_31282_, block, statepropertiespredicate);
+        return new EnterBlockTrigger.TriggerInstance(pEntityPredicate, block, statepropertiespredicate);
     }
 
     @Nullable
-    private static Block deserializeBlock(JsonObject p_31279_) {
-        if (p_31279_.has("block")) {
-            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(p_31279_, "block"));
+    private static Block deserializeBlock(JsonObject pJson) {
+        if (pJson.has("block")) {
+            ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.getAsString(pJson, "block"));
             return Registry.BLOCK.getOptional(resourcelocation).orElseThrow(() -> {
                 return new JsonSyntaxException("Unknown block type '" + resourcelocation + "'");
             });
@@ -41,9 +41,9 @@ public class EnterBlockTrigger extends SimpleCriterionTrigger<EnterBlockTrigger.
         }
     }
 
-    public void trigger(ServerPlayer p_31270_, BlockState p_31271_) {
-        this.trigger(p_31270_, (p_31277_) -> {
-            return p_31277_.matches(p_31271_);
+    public void trigger(ServerPlayer pPlayer, BlockState pState) {
+        this.trigger(pPlayer, (p_31277_) -> {
+            return p_31277_.matches(pState);
         });
     }
 
@@ -52,18 +52,18 @@ public class EnterBlockTrigger extends SimpleCriterionTrigger<EnterBlockTrigger.
         private final Block block;
         private final StatePropertiesPredicate state;
 
-        public TriggerInstance(EntityPredicate.Composite p_31294_, @Nullable Block p_31295_, StatePropertiesPredicate p_31296_) {
-            super(EnterBlockTrigger.ID, p_31294_);
-            this.block = p_31295_;
-            this.state = p_31296_;
+        public TriggerInstance(EntityPredicate.Composite pPlayer, @Nullable Block pBlock, StatePropertiesPredicate pState) {
+            super(EnterBlockTrigger.ID, pPlayer);
+            this.block = pBlock;
+            this.state = pState;
         }
 
-        public static EnterBlockTrigger.TriggerInstance entersBlock(Block p_31298_) {
-            return new EnterBlockTrigger.TriggerInstance(EntityPredicate.Composite.ANY, p_31298_, StatePropertiesPredicate.ANY);
+        public static EnterBlockTrigger.TriggerInstance entersBlock(Block pBlock) {
+            return new EnterBlockTrigger.TriggerInstance(EntityPredicate.Composite.ANY, pBlock, StatePropertiesPredicate.ANY);
         }
 
-        public JsonObject serializeToJson(SerializationContext p_31302_) {
-            JsonObject jsonobject = super.serializeToJson(p_31302_);
+        public JsonObject serializeToJson(SerializationContext pConditions) {
+            JsonObject jsonobject = super.serializeToJson(pConditions);
             if (this.block != null) {
                 jsonobject.addProperty("block", Registry.BLOCK.getKey(this.block).toString());
             }
@@ -72,11 +72,11 @@ public class EnterBlockTrigger extends SimpleCriterionTrigger<EnterBlockTrigger.
             return jsonobject;
         }
 
-        public boolean matches(BlockState p_31300_) {
-            if (this.block != null && !p_31300_.is(this.block)) {
+        public boolean matches(BlockState pState) {
+            if (this.block != null && !pState.is(this.block)) {
                 return false;
             } else {
-                return this.state.matches(p_31300_);
+                return this.state.matches(pState);
             }
         }
     }

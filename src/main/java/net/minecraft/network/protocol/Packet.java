@@ -4,9 +4,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.PacketListener;
 
 public interface Packet<T extends PacketListener> {
-    void write(FriendlyByteBuf p_131343_);
+    void write(FriendlyByteBuf pBuffer);
 
-    void handle(T p_131342_);
+    void handle(T pHandler);
 
     default boolean isSkippable() {
         return false;

@@ -17,10 +17,10 @@ public class PufferfishSmallModel<T extends Entity> extends HierarchicalModel<T>
     private final ModelPart leftFin;
     private final ModelPart rightFin;
 
-    public PufferfishSmallModel(ModelPart p_170849_) {
-        this.root = p_170849_;
-        this.leftFin = p_170849_.getChild("left_fin");
-        this.rightFin = p_170849_.getChild("right_fin");
+    public PufferfishSmallModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.leftFin = pRoot.getChild("left_fin");
+        this.rightFin = pRoot.getChild("right_fin");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -40,8 +40,8 @@ public class PufferfishSmallModel<T extends Entity> extends HierarchicalModel<T>
         return this.root;
     }
 
-    public void setupAnim(T p_103486_, float p_103487_, float p_103488_, float p_103489_, float p_103490_, float p_103491_) {
-        this.rightFin.zRot = -0.2F + 0.4F * Mth.sin(p_103489_ * 0.2F);
-        this.leftFin.zRot = 0.2F - 0.4F * Mth.sin(p_103489_ * 0.2F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.rightFin.zRot = -0.2F + 0.4F * Mth.sin(pAgeInTicks * 0.2F);
+        this.leftFin.zRot = 0.2F - 0.4F * Mth.sin(pAgeInTicks * 0.2F);
     }
 }

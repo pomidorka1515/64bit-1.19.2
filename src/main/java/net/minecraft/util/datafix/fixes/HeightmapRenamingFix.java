@@ -10,8 +10,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.Optional;
 
 public class HeightmapRenamingFix extends DataFix {
-    public HeightmapRenamingFix(Schema p_15891_, boolean p_15892_) {
-        super(p_15891_, p_15892_);
+    public HeightmapRenamingFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

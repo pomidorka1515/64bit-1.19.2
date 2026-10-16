@@ -21,25 +21,25 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
 
 public class MagmaCube extends Slime {
-    public MagmaCube(EntityType<? extends MagmaCube> p_32968_, Level p_32969_) {
-        super(p_32968_, p_32969_);
+    public MagmaCube(EntityType<? extends MagmaCube> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, (double) 0.2F);
     }
 
-    public static boolean checkMagmaCubeSpawnRules(EntityType<MagmaCube> p_219003_, LevelAccessor p_219004_, MobSpawnType p_219005_, BlockPos p_219006_, RandomSource p_219007_) {
-        return p_219004_.getDifficulty() != Difficulty.PEACEFUL;
+    public static boolean checkMagmaCubeSpawnRules(EntityType<MagmaCube> pMagmaCube, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getDifficulty() != Difficulty.PEACEFUL;
     }
 
-    public boolean checkSpawnObstruction(LevelReader p_32975_) {
-        return p_32975_.isUnobstructed(this) && !p_32975_.containsAnyLiquid(this.getBoundingBox());
+    public boolean checkSpawnObstruction(LevelReader pLevel) {
+        return pLevel.isUnobstructed(this) && !pLevel.containsAnyLiquid(this.getBoundingBox());
     }
 
-    public void setSize(int p_32972_, boolean p_32973_) {
-        super.setSize(p_32972_, p_32973_);
-        this.getAttribute(Attributes.ARMOR).setBaseValue((double) (p_32972_ * 3));
+    public void setSize(int pSize, boolean pResetHealth) {
+        super.setSize(pSize, pResetHealth);
+        this.getAttribute(Attributes.ARMOR).setBaseValue((double) (pSize * 3));
     }
 
     public float getLightLevelDependentMagicValue() {
@@ -68,17 +68,17 @@ public class MagmaCube extends Slime {
         this.hasImpulse = true;
     }
 
-    protected void jumpInLiquid(TagKey<Fluid> p_204065_) {
-        if (p_204065_ == FluidTags.LAVA) {
+    protected void jumpInLiquid(TagKey<Fluid> pFluidTag) {
+        if (pFluidTag == FluidTags.LAVA) {
             Vec3 vec3 = this.getDeltaMovement();
             this.setDeltaMovement(vec3.x, (double) (0.22F + (float) this.getSize() * 0.05F), vec3.z);
             this.hasImpulse = true;
         } else {
-            super.jumpInLiquid(p_204065_);
+            super.jumpInLiquid(pFluidTag);
         }
     }
 
-    public boolean causeFallDamage(float p_149717_, float p_149718_, DamageSource p_149719_) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return false;
     }
 
@@ -90,7 +90,7 @@ public class MagmaCube extends Slime {
         return super.getAttackDamage() + 2.0F;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_32992_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return this.isTiny() ? SoundEvents.MAGMA_CUBE_HURT_SMALL : SoundEvents.MAGMA_CUBE_HURT;
     }
 

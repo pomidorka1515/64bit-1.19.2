@@ -10,8 +10,8 @@ import java.util.Optional;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class BlockEntityCustomNameToComponentFix extends DataFix {
-    public BlockEntityCustomNameToComponentFix(Schema p_14817_, boolean p_14818_) {
-        super(p_14817_, p_14818_);
+    public BlockEntityCustomNameToComponentFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

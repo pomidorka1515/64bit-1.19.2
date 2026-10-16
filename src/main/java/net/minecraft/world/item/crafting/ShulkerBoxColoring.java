@@ -11,16 +11,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 
 public class ShulkerBoxColoring extends CustomRecipe {
-    public ShulkerBoxColoring(ResourceLocation p_44312_) {
-        super(p_44312_);
+    public ShulkerBoxColoring(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_44324_, Level p_44325_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         int i = 0;
         int j = 0;
 
-        for (int k = 0; k < p_44324_.getContainerSize(); ++k) {
-            ItemStack itemstack = p_44324_.getItem(k);
+        for (int k = 0; k < pInv.getContainerSize(); ++k) {
+            ItemStack itemstack = pInv.getItem(k);
             if (!itemstack.isEmpty()) {
                 if (Block.byItem(itemstack.getItem()) instanceof ShulkerBoxBlock) {
                     ++i;
@@ -41,12 +41,12 @@ public class ShulkerBoxColoring extends CustomRecipe {
         return i == 1 && j == 1;
     }
 
-    public ItemStack assemble(CraftingContainer p_44322_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         ItemStack itemstack = ItemStack.EMPTY;
         DyeItem dyeitem = (DyeItem) Items.WHITE_DYE;
 
-        for (int i = 0; i < p_44322_.getContainerSize(); ++i) {
-            ItemStack itemstack1 = p_44322_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack1 = pInv.getItem(i);
             if (!itemstack1.isEmpty()) {
                 Item item = itemstack1.getItem();
                 if (Block.byItem(item) instanceof ShulkerBoxBlock) {
@@ -65,8 +65,8 @@ public class ShulkerBoxColoring extends CustomRecipe {
         return itemstack2;
     }
 
-    public boolean canCraftInDimensions(int p_44314_, int p_44315_) {
-        return p_44314_ * p_44315_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= 2;
     }
 
     public RecipeSerializer<?> getSerializer() {

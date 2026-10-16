@@ -91,18 +91,18 @@ public class GrindstoneBlock extends FaceAttachedHorizontalDirectionalBlock {
     public static final VoxelShape CEILING_EAST_WEST_GRINDSTONE = Shapes.or(CEILING_EAST_WEST_ALL_LEGS, Block.box(2.0D, 0.0D, 4.0D, 14.0D, 12.0D, 12.0D));
     private static final Component CONTAINER_TITLE = Component.translatable("container.grindstone_title");
 
-    protected GrindstoneBlock(BlockBehaviour.Properties p_53808_) {
-        super(p_53808_);
+    protected GrindstoneBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(FACE, AttachFace.WALL));
     }
 
-    public RenderShape getRenderShape(BlockState p_53840_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
-    private VoxelShape getVoxelShape(BlockState p_53856_) {
-        Direction direction = p_53856_.getValue(FACING);
-        switch ((AttachFace) p_53856_.getValue(FACE)) {
+    private VoxelShape getVoxelShape(BlockState pState) {
+        Direction direction = pState.getValue(FACING);
+        switch ((AttachFace) pState.getValue(FACE)) {
             case FLOOR:
                 if (direction != Direction.NORTH && direction != Direction.SOUTH) {
                     return FLOOR_EAST_WEST_GRINDSTONE;
@@ -132,47 +132,47 @@ public class GrindstoneBlock extends FaceAttachedHorizontalDirectionalBlock {
         }
     }
 
-    public VoxelShape getCollisionShape(BlockState p_53851_, BlockGetter p_53852_, BlockPos p_53853_, CollisionContext p_53854_) {
-        return this.getVoxelShape(p_53851_);
+    public VoxelShape getCollisionShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return this.getVoxelShape(pState);
     }
 
-    public VoxelShape getShape(BlockState p_53842_, BlockGetter p_53843_, BlockPos p_53844_, CollisionContext p_53845_) {
-        return this.getVoxelShape(p_53842_);
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return this.getVoxelShape(pState);
     }
 
-    public boolean canSurvive(BlockState p_53828_, LevelReader p_53829_, BlockPos p_53830_) {
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
         return true;
     }
 
-    public InteractionResult use(BlockState p_53821_, Level p_53822_, BlockPos p_53823_, Player p_53824_, InteractionHand p_53825_, BlockHitResult p_53826_) {
-        if (p_53822_.isClientSide) {
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pLevel.isClientSide) {
             return InteractionResult.SUCCESS;
         } else {
-            p_53824_.openMenu(p_53821_.getMenuProvider(p_53822_, p_53823_));
-            p_53824_.awardStat(Stats.INTERACT_WITH_GRINDSTONE);
+            pPlayer.openMenu(pState.getMenuProvider(pLevel, pPos));
+            pPlayer.awardStat(Stats.INTERACT_WITH_GRINDSTONE);
             return InteractionResult.CONSUME;
         }
     }
 
-    public MenuProvider getMenuProvider(BlockState p_53847_, Level p_53848_, BlockPos p_53849_) {
+    public MenuProvider getMenuProvider(BlockState pState, Level pLevel, BlockPos pPos) {
         return new SimpleMenuProvider((p_53812_, p_53813_, p_53814_) -> {
-            return new GrindstoneMenu(p_53812_, p_53813_, ContainerLevelAccess.create(p_53848_, p_53849_));
+            return new GrindstoneMenu(p_53812_, p_53813_, ContainerLevelAccess.create(pLevel, pPos));
         }, CONTAINER_TITLE);
     }
 
-    public BlockState rotate(BlockState p_53835_, Rotation p_53836_) {
-        return p_53835_.setValue(FACING, p_53836_.rotate(p_53835_.getValue(FACING)));
+    public BlockState rotate(BlockState pState, Rotation pRotation) {
+        return pState.setValue(FACING, pRotation.rotate(pState.getValue(FACING)));
     }
 
-    public BlockState mirror(BlockState p_53832_, Mirror p_53833_) {
-        return p_53832_.rotate(p_53833_.getRotation(p_53832_.getValue(FACING)));
+    public BlockState mirror(BlockState pState, Mirror pMirror) {
+        return pState.rotate(pMirror.getRotation(pState.getValue(FACING)));
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_53838_) {
-        p_53838_.add(FACING, FACE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(FACING, FACE);
     }
 
-    public boolean isPathfindable(BlockState p_53816_, BlockGetter p_53817_, BlockPos p_53818_, PathComputationType p_53819_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 }

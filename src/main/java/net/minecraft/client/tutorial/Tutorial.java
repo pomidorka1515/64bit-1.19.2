@@ -27,32 +27,32 @@ public class Tutorial {
     private final List<Tutorial.TimedToast> timedToasts = Lists.newArrayList();
     private final BundleTutorial bundleTutorial;
 
-    public Tutorial(Minecraft p_175022_, Options p_175023_) {
-        this.minecraft = p_175022_;
-        this.bundleTutorial = new BundleTutorial(this, p_175023_);
+    public Tutorial(Minecraft pMinecraft, Options pOptions) {
+        this.minecraft = pMinecraft;
+        this.bundleTutorial = new BundleTutorial(this, pOptions);
     }
 
-    public void onInput(Input p_120587_) {
+    public void onInput(Input pInput) {
         if (this.instance != null) {
-            this.instance.onInput(p_120587_);
+            this.instance.onInput(pInput);
         }
     }
 
-    public void onMouse(double p_120566_, double p_120567_) {
+    public void onMouse(double pVelocityX, double pVelocityY) {
         if (this.instance != null) {
-            this.instance.onMouse(p_120566_, p_120567_);
+            this.instance.onMouse(pVelocityX, pVelocityY);
         }
     }
 
-    public void onLookAt(@Nullable ClientLevel p_120579_, @Nullable HitResult p_120580_) {
-        if (this.instance != null && p_120580_ != null && p_120579_ != null) {
-            this.instance.onLookAt(p_120579_, p_120580_);
+    public void onLookAt(@Nullable ClientLevel pLevel, @Nullable HitResult pResult) {
+        if (this.instance != null && pResult != null && pLevel != null) {
+            this.instance.onLookAt(pLevel, pResult);
         }
     }
 
-    public void onDestroyBlock(ClientLevel p_120582_, BlockPos p_120583_, BlockState p_120584_, float p_120585_) {
+    public void onDestroyBlock(ClientLevel pLevel, BlockPos pPos, BlockState pState, float pDiggingStage) {
         if (this.instance != null) {
-            this.instance.onDestroyBlock(p_120582_, p_120583_, p_120584_, p_120585_);
+            this.instance.onDestroyBlock(pLevel, pPos, pState, pDiggingStage);
         }
     }
 
@@ -62,9 +62,9 @@ public class Tutorial {
         }
     }
 
-    public void onGetItem(ItemStack p_120569_) {
+    public void onGetItem(ItemStack pStack) {
         if (this.instance != null) {
-            this.instance.onGetItem(p_120569_);
+            this.instance.onGetItem(pStack);
         }
     }
 
@@ -83,16 +83,16 @@ public class Tutorial {
         this.instance = this.minecraft.options.tutorialStep.create(this);
     }
 
-    public void addTimedToast(TutorialToast p_120573_, int p_120574_) {
-        this.timedToasts.add(new Tutorial.TimedToast(p_120573_, p_120574_));
-        this.minecraft.getToasts().addToast(p_120573_);
+    public void addTimedToast(TutorialToast pToast, int pDurationTicks) {
+        this.timedToasts.add(new Tutorial.TimedToast(pToast, pDurationTicks));
+        this.minecraft.getToasts().addToast(pToast);
     }
 
-    public void removeTimedToast(TutorialToast p_120571_) {
+    public void removeTimedToast(TutorialToast pToast) {
         this.timedToasts.removeIf((p_120577_) -> {
-            return p_120577_.toast == p_120571_;
+            return p_120577_.toast == pToast;
         });
-        p_120571_.hide();
+        pToast.hide();
     }
 
     public void tick() {
@@ -108,12 +108,12 @@ public class Tutorial {
         }
     }
 
-    public void setStep(TutorialSteps p_120589_) {
-        this.minecraft.options.tutorialStep = p_120589_;
+    public void setStep(TutorialSteps pStep) {
+        this.minecraft.options.tutorialStep = pStep;
         this.minecraft.options.save();
         if (this.instance != null) {
             this.instance.clear();
-            this.instance = p_120589_.create(this);
+            this.instance = pStep.create(this);
         }
     }
 
@@ -129,12 +129,12 @@ public class Tutorial {
         }
     }
 
-    public static Component key(String p_120593_) {
-        return Component.keybind("key." + p_120593_).withStyle(ChatFormatting.BOLD);
+    public static Component key(String pKeybind) {
+        return Component.keybind("key." + pKeybind).withStyle(ChatFormatting.BOLD);
     }
 
-    public void onInventoryAction(ItemStack p_175025_, ItemStack p_175026_, ClickAction p_175027_) {
-        this.bundleTutorial.onInventoryAction(p_175025_, p_175026_, p_175027_);
+    public void onInventoryAction(ItemStack pCarriedStack, ItemStack pSlottedStack, ClickAction pAction) {
+        this.bundleTutorial.onInventoryAction(pCarriedStack, pSlottedStack, pAction);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -143,9 +143,9 @@ public class Tutorial {
         private final int durationTicks;
         private int progress;
 
-        TimedToast(TutorialToast p_120603_, int p_120604_) {
-            this.toast = p_120603_;
-            this.durationTicks = p_120604_;
+        TimedToast(TutorialToast pToast, int pDurationTicks) {
+            this.toast = pToast;
+            this.durationTicks = pDurationTicks;
         }
 
         private boolean updateProgress() {

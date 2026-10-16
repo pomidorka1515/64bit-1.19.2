@@ -17,8 +17,8 @@ public interface ResourceMetadata {
         }
     };
 
-    static ResourceMetadata fromJsonStream(InputStream p_215581_) throws IOException {
-        BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(p_215581_, StandardCharsets.UTF_8));
+    static ResourceMetadata fromJsonStream(InputStream pStream) throws IOException {
+        BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(pStream, StandardCharsets.UTF_8));
 
         ResourceMetadata resourcemetadata;
         try {
@@ -43,5 +43,5 @@ public interface ResourceMetadata {
         return resourcemetadata;
     }
 
-    <T> Optional<T> getSection(MetadataSectionSerializer<T> p_215579_);
+    <T> Optional<T> getSection(MetadataSectionSerializer<T> pSerializer);
 }

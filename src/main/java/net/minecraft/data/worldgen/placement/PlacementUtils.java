@@ -42,12 +42,12 @@ public class PlacementUtils {
         return Util.getRandom(list, RandomSource.create());
     }
 
-    public static Holder<PlacedFeature> register(String p_206510_, Holder<? extends ConfiguredFeature<?, ?>> p_206511_, List<PlacementModifier> p_206512_) {
-        return BuiltinRegistries.register(BuiltinRegistries.PLACED_FEATURE, p_206510_, new PlacedFeature(Holder.hackyErase(p_206511_), List.copyOf(p_206512_)));
+    public static Holder<PlacedFeature> register(String pName, Holder<? extends ConfiguredFeature<?, ?>> pFeature, List<PlacementModifier> pPlacements) {
+        return BuiltinRegistries.register(BuiltinRegistries.PLACED_FEATURE, pName, new PlacedFeature(Holder.hackyErase(pFeature), List.copyOf(pPlacements)));
     }
 
-    public static Holder<PlacedFeature> register(String p_206514_, Holder<? extends ConfiguredFeature<?, ?>> p_206515_, PlacementModifier... p_206516_) {
-        return register(p_206514_, p_206515_, List.of(p_206516_));
+    public static Holder<PlacedFeature> register(String pName, Holder<? extends ConfiguredFeature<?, ?>> pFeature, PlacementModifier... pPlacement) {
+        return register(pName, pFeature, List.of(pPlacement));
     }
 
     public static PlacementModifier countExtra(int p_195365_, float p_195366_, int p_195367_) {
@@ -64,20 +64,20 @@ public class PlacementUtils {
         return BlockPredicateFilter.forPredicate(BlockPredicate.ONLY_IN_AIR_PREDICATE);
     }
 
-    public static BlockPredicateFilter filteredByBlockSurvival(Block p_206494_) {
-        return BlockPredicateFilter.forPredicate(BlockPredicate.wouldSurvive(p_206494_.defaultBlockState(), BlockPos.ZERO));
+    public static BlockPredicateFilter filteredByBlockSurvival(Block pBlock) {
+        return BlockPredicateFilter.forPredicate(BlockPredicate.wouldSurvive(pBlock.defaultBlockState(), BlockPos.ZERO));
     }
 
-    public static Holder<PlacedFeature> inlinePlaced(Holder<? extends ConfiguredFeature<?, ?>> p_206507_, PlacementModifier... p_206508_) {
-        return Holder.direct(new PlacedFeature(Holder.hackyErase(p_206507_), List.of(p_206508_)));
+    public static Holder<PlacedFeature> inlinePlaced(Holder<? extends ConfiguredFeature<?, ?>> pFeature, PlacementModifier... pPlacements) {
+        return Holder.direct(new PlacedFeature(Holder.hackyErase(pFeature), List.of(pPlacements)));
     }
 
-    public static <FC extends FeatureConfiguration, F extends Feature<FC>> Holder<PlacedFeature> inlinePlaced(F p_206503_, FC p_206504_, PlacementModifier... p_206505_) {
-        return inlinePlaced(Holder.direct(new ConfiguredFeature<>(p_206503_, p_206504_)), p_206505_);
+    public static <FC extends FeatureConfiguration, F extends Feature<FC>> Holder<PlacedFeature> inlinePlaced(F pFeature, FC pConfig, PlacementModifier... pPlacements) {
+        return inlinePlaced(Holder.direct(new ConfiguredFeature<>(pFeature, pConfig)), pPlacements);
     }
 
-    public static <FC extends FeatureConfiguration, F extends Feature<FC>> Holder<PlacedFeature> onlyWhenEmpty(F p_206496_, FC p_206497_) {
-        return filtered(p_206496_, p_206497_, BlockPredicate.ONLY_IN_AIR_PREDICATE);
+    public static <FC extends FeatureConfiguration, F extends Feature<FC>> Holder<PlacedFeature> onlyWhenEmpty(F pFeature, FC pConfig) {
+        return filtered(pFeature, pConfig, BlockPredicate.ONLY_IN_AIR_PREDICATE);
     }
 
     public static <FC extends FeatureConfiguration, F extends Feature<FC>> Holder<PlacedFeature> filtered(F p_206499_, FC p_206500_, BlockPredicate p_206501_) {

@@ -34,8 +34,8 @@ public class ServerStatus {
         return this.description;
     }
 
-    public void setDescription(Component p_134909_) {
-        this.description = p_134909_;
+    public void setDescription(Component pDescription) {
+        this.description = pDescription;
     }
 
     @Nullable
@@ -43,8 +43,8 @@ public class ServerStatus {
         return this.players;
     }
 
-    public void setPlayers(ServerStatus.Players p_134911_) {
-        this.players = p_134911_;
+    public void setPlayers(ServerStatus.Players pPlayers) {
+        this.players = pPlayers;
     }
 
     @Nullable
@@ -52,12 +52,12 @@ public class ServerStatus {
         return this.version;
     }
 
-    public void setVersion(ServerStatus.Version p_134913_) {
-        this.version = p_134913_;
+    public void setVersion(ServerStatus.Version pVersion) {
+        this.version = pVersion;
     }
 
-    public void setFavicon(String p_134907_) {
-        this.favicon = p_134907_;
+    public void setFavicon(String pFaviconBlob) {
+        this.favicon = pFaviconBlob;
     }
 
     @Nullable
@@ -87,9 +87,9 @@ public class ServerStatus {
         @Nullable
         private GameProfile[] sample;
 
-        public Players(int p_134921_, int p_134922_) {
-            this.maxPlayers = p_134921_;
-            this.numPlayers = p_134922_;
+        public Players(int pMaxPlayers, int pNumPlayers) {
+            this.maxPlayers = pMaxPlayers;
+            this.numPlayers = pNumPlayers;
         }
 
         public int getMaxPlayers() {
@@ -105,8 +105,8 @@ public class ServerStatus {
             return this.sample;
         }
 
-        public void setSample(GameProfile[] p_134925_) {
-            this.sample = p_134925_;
+        public void setSample(GameProfile[] pPlayers) {
+            this.sample = pPlayers;
         }
 
         public static class Serializer implements JsonDeserializer<ServerStatus.Players>, JsonSerializer<ServerStatus.Players> {
@@ -214,9 +214,9 @@ public class ServerStatus {
         private final String name;
         private final int protocol;
 
-        public Version(String p_134965_, int p_134966_) {
-            this.name = p_134965_;
-            this.protocol = p_134966_;
+        public Version(String pName, int pProtocol) {
+            this.name = pName;
+            this.protocol = pProtocol;
         }
 
         public String getName() {

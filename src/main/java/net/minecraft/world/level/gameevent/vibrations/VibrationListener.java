@@ -60,17 +60,17 @@ public class VibrationListener implements GameEventListener {
         });
     }
 
-    public VibrationListener(PositionSource p_223760_, int p_223761_, VibrationListener.VibrationListenerConfig p_223762_, @Nullable VibrationListener.ReceivingEvent p_223763_, float p_223764_, int p_223765_) {
-        this.listenerSource = p_223760_;
-        this.listenerRange = p_223761_;
-        this.config = p_223762_;
-        this.receivingEvent = p_223763_;
-        this.receivingDistance = p_223764_;
-        this.travelTimeInTicks = p_223765_;
+    public VibrationListener(PositionSource pListenerSource, int pListenerRange, VibrationListener.VibrationListenerConfig pConfig, @Nullable VibrationListener.ReceivingEvent pReceivingEvent, float pReceivingDistance, int pTravelTimeInTicks) {
+        this.listenerSource = pListenerSource;
+        this.listenerRange = pListenerRange;
+        this.config = pConfig;
+        this.receivingEvent = pReceivingEvent;
+        this.receivingDistance = pReceivingDistance;
+        this.travelTimeInTicks = pTravelTimeInTicks;
     }
 
-    public void tick(Level p_157899_) {
-        if (p_157899_ instanceof ServerLevel serverlevel) {
+    public void tick(Level pLevel) {
+        if (pLevel instanceof ServerLevel serverlevel) {
             if (this.receivingEvent != null) {
                 --this.travelTimeInTicks;
                 if (this.travelTimeInTicks <= 0) {
@@ -90,31 +90,31 @@ public class VibrationListener implements GameEventListener {
         return this.listenerRange;
     }
 
-    public boolean handleGameEvent(ServerLevel p_223767_, GameEvent.Message p_223768_) {
+    public boolean handleGameEvent(ServerLevel pLevel, GameEvent.Message pEventMessage) {
         if (this.receivingEvent != null) {
             return false;
         } else {
-            GameEvent gameevent = p_223768_.gameEvent();
-            GameEvent.Context gameevent$context = p_223768_.context();
+            GameEvent gameevent = pEventMessage.gameEvent();
+            GameEvent.Context gameevent$context = pEventMessage.context();
             if (!this.config.isValidVibration(gameevent, gameevent$context)) {
                 return false;
             } else {
-                Optional<SectorVec3> optional = this.listenerSource.exactPosition(p_223767_);
+                Optional<SectorVec3> optional = this.listenerSource.exactPosition(pLevel);
                 if (optional.isEmpty()) {
                     return false;
                 } else {
-                    Vec3 source = p_223768_.source();
+                    Vec3 source = pEventMessage.source();
                     Entity sourceEntity = gameevent$context.sourceEntity();
                     SectorVec3 exactSource = sourceEntity != null && sourceEntity.exactPosition() != null
                             ? sourceEntity.exactPosition()
                             : SectorVec3.fromApproximate(source.x, source.y, source.z);
                     SectorVec3 listener = optional.get();
-                    if (!this.config.shouldListen(p_223767_, this, exactSource.blockPosition(), gameevent, gameevent$context)) {
+                    if (!this.config.shouldListen(pLevel, this, exactSource.blockPosition(), gameevent, gameevent$context)) {
                         return false;
-                    } else if (isOccluded(p_223767_, source, listener.toApproximateVec3())) {
+                    } else if (isOccluded(pLevel, source, listener.toApproximateVec3())) {
                         return false;
                     } else {
-                        this.scheduleSignal(p_223767_, gameevent, gameevent$context, exactSource, listener);
+                        this.scheduleSignal(pLevel, gameevent, gameevent$context, exactSource, listener);
                         return true;
                     }
                 }
@@ -135,13 +135,13 @@ public class VibrationListener implements GameEventListener {
         this.config.onSignalSchedule();
     }
 
-    private static boolean isOccluded(Level p_223776_, Vec3 p_223777_, Vec3 p_223778_) {
-        Vec3 vec3 = new Vec3((double) Mth.floor(p_223777_.x) + 0.5D, (double) Mth.floor(p_223777_.y) + 0.5D, (double) Mth.floor(p_223777_.z) + 0.5D);
-        Vec3 vec31 = new Vec3((double) Mth.floor(p_223778_.x) + 0.5D, (double) Mth.floor(p_223778_.y) + 0.5D, (double) Mth.floor(p_223778_.z) + 0.5D);
+    private static boolean isOccluded(Level pLevel, Vec3 pFrom, Vec3 pTo) {
+        Vec3 vec3 = new Vec3((double) Mth.floor(pFrom.x) + 0.5D, (double) Mth.floor(pFrom.y) + 0.5D, (double) Mth.floor(pFrom.z) + 0.5D);
+        Vec3 vec31 = new Vec3((double) Mth.floor(pTo.x) + 0.5D, (double) Mth.floor(pTo.y) + 0.5D, (double) Mth.floor(pTo.z) + 0.5D);
 
         for (Direction direction : Direction.values()) {
             Vec3 vec32 = vec3.relative(direction, (double) 1.0E-5F);
-            if (p_223776_.isBlockInLine(new ClipBlockStateContext(vec32, vec31, (p_223780_) -> {
+            if (pLevel.isBlockInLine(new ClipBlockStateContext(vec32, vec31, (p_223780_) -> {
                              return p_223780_.is(BlockTags.OCCLUDES_VIBRATION_SIGNALS);
                          })).getType() != HitResult.Type.BLOCK) {
                 return false;
@@ -164,17 +164,17 @@ public class VibrationListener implements GameEventListener {
                     });
         });
 
-        public ReceivingEvent(GameEvent p_223817_, float p_223818_, Vec3 p_223819_, @Nullable UUID p_223820_, @Nullable UUID p_223821_) {
-            this(p_223817_, p_223818_, p_223819_, p_223820_, p_223821_, (Entity) null);
+        public ReceivingEvent(GameEvent pGameEvent, float pDistance, Vec3 pPos, @Nullable UUID pUuid, @Nullable UUID pProjectileOwnerUuid) {
+            this(pGameEvent, pDistance, pPos, pUuid, pProjectileOwnerUuid, (Entity) null);
         }
 
-        public ReceivingEvent(GameEvent p_223812_, float p_223813_, Vec3 p_223814_, @Nullable Entity p_223815_) {
-            this(p_223812_, p_223813_, p_223814_, p_223815_ == null ? null : p_223815_.getUUID(), getProjectileOwner(p_223815_), p_223815_);
+        public ReceivingEvent(GameEvent pGameEvent, float pDistance, Vec3 pPos, @Nullable Entity pEntity) {
+            this(pGameEvent, pDistance, pPos, pEntity == null ? null : pEntity.getUUID(), getProjectileOwner(pEntity), pEntity);
         }
 
         @Nullable
-        private static UUID getProjectileOwner(@Nullable Entity p_223833_) {
-            if (p_223833_ instanceof Projectile projectile) {
+        private static UUID getProjectileOwner(@Nullable Entity pProjectile) {
+            if (pProjectile instanceof Projectile projectile) {
                 if (projectile.getOwner() != null) {
                     return projectile.getOwner().getUUID();
                 }
@@ -183,14 +183,14 @@ public class VibrationListener implements GameEventListener {
             return null;
         }
 
-        public Optional<Entity> getEntity(ServerLevel p_223831_) {
+        public Optional<Entity> getEntity(ServerLevel pLevel) {
             return Optional.ofNullable(this.entity).or(() -> {
-                return Optional.ofNullable(this.uuid).map(p_223831_::getEntity);
+                return Optional.ofNullable(this.uuid).map(pLevel::getEntity);
             });
         }
 
-        public Optional<Entity> getProjectileOwner(ServerLevel p_223846_) {
-            return this.getEntity(p_223846_).filter((p_223855_) -> {
+        public Optional<Entity> getProjectileOwner(ServerLevel pLevel) {
+            return this.getEntity(pLevel).filter((p_223855_) -> {
                                                 return p_223855_ instanceof Projectile;
                                             })
                     .map((p_223848_) -> {
@@ -198,7 +198,7 @@ public class VibrationListener implements GameEventListener {
                     })
                     .map(Projectile::getOwner)
                     .or(() -> {
-                        return Optional.ofNullable(this.projectileOwnerUuid).map(p_223846_::getEntity);
+                        return Optional.ofNullable(this.projectileOwnerUuid).map(pLevel::getEntity);
                     });
         }
     }
@@ -212,17 +212,17 @@ public class VibrationListener implements GameEventListener {
             return false;
         }
 
-        default boolean isValidVibration(GameEvent p_223878_, GameEvent.Context p_223879_) {
-            if (!p_223878_.is(this.getListenableEvents())) {
+        default boolean isValidVibration(GameEvent pGameEvent, GameEvent.Context pContext) {
+            if (!pGameEvent.is(this.getListenableEvents())) {
                 return false;
             } else {
-                Entity entity = p_223879_.sourceEntity();
+                Entity entity = pContext.sourceEntity();
                 if (entity != null) {
                     if (entity.isSpectator()) {
                         return false;
                     }
 
-                    if (entity.isSteppingCarefully() && p_223878_.is(GameEventTags.IGNORE_VIBRATIONS_SNEAKING)) {
+                    if (entity.isSteppingCarefully() && pGameEvent.is(GameEventTags.IGNORE_VIBRATIONS_SNEAKING)) {
                         if (this.canTriggerAvoidVibration() && entity instanceof ServerPlayer) {
                             ServerPlayer serverplayer = (ServerPlayer) entity;
                             CriteriaTriggers.AVOID_VIBRATION.trigger(serverplayer);
@@ -236,17 +236,17 @@ public class VibrationListener implements GameEventListener {
                     }
                 }
 
-                if (p_223879_.affectedState() != null) {
-                    return !p_223879_.affectedState().is(BlockTags.DAMPENS_VIBRATIONS);
+                if (pContext.affectedState() != null) {
+                    return !pContext.affectedState().is(BlockTags.DAMPENS_VIBRATIONS);
                 } else {
                     return true;
                 }
             }
         }
 
-        boolean shouldListen(ServerLevel p_223872_, GameEventListener p_223873_, BlockPos p_223874_, GameEvent p_223875_, GameEvent.Context p_223876_);
+        boolean shouldListen(ServerLevel pLevel, GameEventListener pListener, BlockPos pPos, GameEvent pGameEvent, GameEvent.Context pContext);
 
-        void onSignalReceive(ServerLevel p_223865_, GameEventListener p_223866_, BlockPos p_223867_, GameEvent p_223868_, @Nullable Entity p_223869_, @Nullable Entity p_223870_, float p_223871_);
+        void onSignalReceive(ServerLevel pLevel, GameEventListener pListener, BlockPos pSourcePos, GameEvent pGameEvent, @Nullable Entity pSourceEntity, @Nullable Entity pProjectileOwner, float pDistance);
 
         default void onSignalSchedule() {
         }

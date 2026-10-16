@@ -161,7 +161,7 @@ public final class BlockTags {
     private BlockTags() {
     }
 
-    private static TagKey<Block> create(String p_203847_) {
-        return TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation(p_203847_));
+    private static TagKey<Block> create(String pName) {
+        return TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation(pName));
     }
 }

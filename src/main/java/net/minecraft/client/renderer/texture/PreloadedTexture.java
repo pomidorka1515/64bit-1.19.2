@@ -15,20 +15,20 @@ public class PreloadedTexture extends SimpleTexture {
     @Nullable
     private CompletableFuture<SimpleTexture.TextureImage> future;
 
-    public PreloadedTexture(ResourceManager p_118102_, ResourceLocation p_118103_, Executor p_118104_) {
-        super(p_118103_);
+    public PreloadedTexture(ResourceManager pResourceManager, ResourceLocation pLocation, Executor pBackgroundExecutor) {
+        super(pLocation);
         this.future = CompletableFuture.supplyAsync(() -> {
-            return SimpleTexture.TextureImage.load(p_118102_, p_118103_);
-        }, p_118104_);
+            return SimpleTexture.TextureImage.load(pResourceManager, pLocation);
+        }, pBackgroundExecutor);
     }
 
-    protected SimpleTexture.TextureImage getTextureImage(ResourceManager p_118126_) {
+    protected SimpleTexture.TextureImage getTextureImage(ResourceManager pResourceManager) {
         if (this.future != null) {
             SimpleTexture.TextureImage simpletexture$textureimage = this.future.join();
             this.future = null;
             return simpletexture$textureimage;
         } else {
-            return SimpleTexture.TextureImage.load(p_118126_, this.location);
+            return SimpleTexture.TextureImage.load(pResourceManager, this.location);
         }
     }
 
@@ -38,18 +38,18 @@ public class PreloadedTexture extends SimpleTexture {
         });
     }
 
-    public void reset(TextureManager p_118114_, ResourceManager p_118115_, ResourceLocation p_118116_, Executor p_118117_) {
+    public void reset(TextureManager pTextureManager, ResourceManager pResourceManager, ResourceLocation pResourceLocation, Executor pExecutor) {
         this.future = CompletableFuture.supplyAsync(() -> {
-            return SimpleTexture.TextureImage.load(p_118115_, this.location);
+            return SimpleTexture.TextureImage.load(pResourceManager, this.location);
         }, Util.backgroundExecutor());
         this.future.thenRunAsync(() -> {
-            p_118114_.register(this.location, this);
-        }, executor(p_118117_));
+            pTextureManager.register(this.location, this);
+        }, executor(pExecutor));
     }
 
-    private static Executor executor(Executor p_118121_) {
+    private static Executor executor(Executor pExecutor) {
         return (p_118124_) -> {
-            p_118121_.execute(() -> {
+            pExecutor.execute(() -> {
                 RenderSystem.recordRenderCall(p_118124_::run);
             });
         };

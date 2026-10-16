@@ -13,39 +13,39 @@ public class ServerboundMoveVehiclePacket implements Packet<ServerGamePacketList
     private final float yRot;
     private final float xRot;
 
-    public ServerboundMoveVehiclePacket(Entity p_134192_) {
-        this.exactPosition = p_134192_.sectorPosition();
+    public ServerboundMoveVehiclePacket(Entity pVehicle) {
+        this.exactPosition = pVehicle.sectorPosition();
         net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
         this.x = approximate.x;
         this.y = approximate.y;
         this.z = approximate.z;
-        this.yRot = p_134192_.getYRot();
-        this.xRot = p_134192_.getXRot();
+        this.yRot = pVehicle.getYRot();
+        this.xRot = pVehicle.getXRot();
     }
 
-    public ServerboundMoveVehiclePacket(FriendlyByteBuf p_179700_) {
-        this.exactPosition = SectorVec3.fromBlockAndFraction(p_179700_.readLong(), p_179700_.readDouble(),
-                p_179700_.readDouble(), p_179700_.readLong(), p_179700_.readDouble());
+    public ServerboundMoveVehiclePacket(FriendlyByteBuf pBuffer) {
+        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
         net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
         this.x = approximate.x;
         this.y = approximate.y;
         this.z = approximate.z;
-        this.yRot = p_179700_.readFloat();
-        this.xRot = p_179700_.readFloat();
+        this.yRot = pBuffer.readFloat();
+        this.xRot = pBuffer.readFloat();
     }
 
-    public void write(FriendlyByteBuf p_134201_) {
-        p_134201_.writeLong(this.exactPosition.blockX());
-        p_134201_.writeDouble(this.exactPosition.subX());
-        p_134201_.writeDouble(this.exactPosition.y());
-        p_134201_.writeLong(this.exactPosition.blockZ());
-        p_134201_.writeDouble(this.exactPosition.subZ());
-        p_134201_.writeFloat(this.yRot);
-        p_134201_.writeFloat(this.xRot);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeLong(this.exactPosition.blockX());
+        pBuffer.writeDouble(this.exactPosition.subX());
+        pBuffer.writeDouble(this.exactPosition.y());
+        pBuffer.writeLong(this.exactPosition.blockZ());
+        pBuffer.writeDouble(this.exactPosition.subZ());
+        pBuffer.writeFloat(this.yRot);
+        pBuffer.writeFloat(this.xRot);
     }
 
-    public void handle(ServerGamePacketListener p_134198_) {
-        p_134198_.handleMoveVehicle(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleMoveVehicle(this);
     }
 
     public SectorVec3 getExactPosition() {

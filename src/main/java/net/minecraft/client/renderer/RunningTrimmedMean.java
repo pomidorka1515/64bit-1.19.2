@@ -9,16 +9,16 @@ public class RunningTrimmedMean {
     private int count;
     private int cursor;
 
-    public RunningTrimmedMean(int p_110711_) {
-        this.values = new long[p_110711_];
+    public RunningTrimmedMean(int pSize) {
+        this.values = new long[pSize];
     }
 
-    public long registerValueAndGetMean(long p_110713_) {
+    public long registerValueAndGetMean(long pValue) {
         if (this.count < this.values.length) {
             ++this.count;
         }
 
-        this.values[this.cursor] = p_110713_;
+        this.values[this.cursor] = pValue;
         this.cursor = (this.cursor + 1) % this.values.length;
         long i = Long.MAX_VALUE;
         long j = Long.MIN_VALUE;

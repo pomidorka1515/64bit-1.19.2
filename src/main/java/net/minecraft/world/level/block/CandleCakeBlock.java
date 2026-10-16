@@ -35,30 +35,30 @@ public class CandleCakeBlock extends AbstractCandleBlock {
     private static final Map<Block, CandleCakeBlock> BY_CANDLE = Maps.newHashMap();
     private static final Iterable<Vec3> PARTICLE_OFFSETS = ImmutableList.of(new Vec3(0.5D, 1.0D, 0.5D));
 
-    protected CandleCakeBlock(Block p_152859_, BlockBehaviour.Properties p_152860_) {
-        super(p_152860_);
+    protected CandleCakeBlock(Block pCandleBlock, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(LIT, Boolean.valueOf(false)));
-        BY_CANDLE.put(p_152859_, this);
+        BY_CANDLE.put(pCandleBlock, this);
     }
 
-    protected Iterable<Vec3> getParticleOffsets(BlockState p_152868_) {
+    protected Iterable<Vec3> getParticleOffsets(BlockState pState) {
         return PARTICLE_OFFSETS;
     }
 
-    public VoxelShape getShape(BlockState p_152875_, BlockGetter p_152876_, BlockPos p_152877_, CollisionContext p_152878_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
-    public InteractionResult use(BlockState p_152884_, Level p_152885_, BlockPos p_152886_, Player p_152887_, InteractionHand p_152888_, BlockHitResult p_152889_) {
-        ItemStack itemstack = p_152887_.getItemInHand(p_152888_);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (!itemstack.is(Items.FLINT_AND_STEEL) && !itemstack.is(Items.FIRE_CHARGE)) {
-            if (candleHit(p_152889_) && p_152887_.getItemInHand(p_152888_).isEmpty() && p_152884_.getValue(LIT)) {
-                extinguish(p_152887_, p_152884_, p_152885_, p_152886_);
-                return InteractionResult.sidedSuccess(p_152885_.isClientSide);
+            if (candleHit(pHit) && pPlayer.getItemInHand(pHand).isEmpty() && pState.getValue(LIT)) {
+                extinguish(pPlayer, pState, pLevel, pPos);
+                return InteractionResult.sidedSuccess(pLevel.isClientSide);
             } else {
-                InteractionResult interactionresult = CakeBlock.eat(p_152885_, p_152886_, Blocks.CAKE.defaultBlockState(), p_152887_);
+                InteractionResult interactionresult = CakeBlock.eat(pLevel, pPos, Blocks.CAKE.defaultBlockState(), pPlayer);
                 if (interactionresult.consumesAction()) {
-                    dropResources(p_152884_, p_152885_, p_152886_);
+                    dropResources(pState, pLevel, pPos);
                 }
 
                 return interactionresult;
@@ -68,45 +68,45 @@ public class CandleCakeBlock extends AbstractCandleBlock {
         }
     }
 
-    private static boolean candleHit(BlockHitResult p_152907_) {
-        return p_152907_.getLocation().y - (double) p_152907_.getBlockPos().getY() > 0.5D;
+    private static boolean candleHit(BlockHitResult pHit) {
+        return pHit.getLocation().y - (double) pHit.getBlockPos().getY() > 0.5D;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_152905_) {
-        p_152905_.add(LIT);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(LIT);
     }
 
-    public ItemStack getCloneItemStack(BlockGetter p_152862_, BlockPos p_152863_, BlockState p_152864_) {
+    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
         return new ItemStack(Blocks.CAKE);
     }
 
-    public BlockState updateShape(BlockState p_152898_, Direction p_152899_, BlockState p_152900_, LevelAccessor p_152901_, BlockPos p_152902_, BlockPos p_152903_) {
-        return p_152899_ == Direction.DOWN && !p_152898_.canSurvive(p_152901_, p_152902_) ? Blocks.AIR.defaultBlockState() : super.updateShape(p_152898_, p_152899_, p_152900_, p_152901_, p_152902_, p_152903_);
+    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+        return pDirection == Direction.DOWN && !pState.canSurvive(pLevel, pCurrentPos) ? Blocks.AIR.defaultBlockState() : super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
     }
 
-    public boolean canSurvive(BlockState p_152891_, LevelReader p_152892_, BlockPos p_152893_) {
-        return p_152892_.getBlockState(p_152893_.below()).getMaterial().isSolid();
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        return pLevel.getBlockState(pPos.below()).getMaterial().isSolid();
     }
 
-    public int getAnalogOutputSignal(BlockState p_152880_, Level p_152881_, BlockPos p_152882_) {
+    public int getAnalogOutputSignal(BlockState pState, Level pLevel, BlockPos pPos) {
         return CakeBlock.FULL_CAKE_SIGNAL;
     }
 
-    public boolean hasAnalogOutputSignal(BlockState p_152909_) {
+    public boolean hasAnalogOutputSignal(BlockState pState) {
         return true;
     }
 
-    public boolean isPathfindable(BlockState p_152870_, BlockGetter p_152871_, BlockPos p_152872_, PathComputationType p_152873_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 
-    public static BlockState byCandle(Block p_152866_) {
-        return BY_CANDLE.get(p_152866_).defaultBlockState();
+    public static BlockState byCandle(Block pCandleBlock) {
+        return BY_CANDLE.get(pCandleBlock).defaultBlockState();
     }
 
-    public static boolean canLight(BlockState p_152911_) {
-        return p_152911_.is(BlockTags.CANDLE_CAKES, (p_152896_) -> {
-            return p_152896_.hasProperty(LIT) && !p_152911_.getValue(LIT);
+    public static boolean canLight(BlockState pState) {
+        return pState.is(BlockTags.CANDLE_CAKES, (p_152896_) -> {
+            return p_152896_.hasProperty(LIT) && !pState.getValue(LIT);
         });
     }
 }

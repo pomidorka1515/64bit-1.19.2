@@ -9,15 +9,15 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class AirBlock extends Block {
-    protected AirBlock(BlockBehaviour.Properties p_48756_) {
-        super(p_48756_);
+    protected AirBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    public RenderShape getRenderShape(BlockState p_48758_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.INVISIBLE;
     }
 
-    public VoxelShape getShape(BlockState p_48760_, BlockGetter p_48761_, BlockPos p_48762_, CollisionContext p_48763_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return Shapes.empty();
     }
 }

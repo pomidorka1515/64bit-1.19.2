@@ -16,11 +16,11 @@ public class RidingMinecartSoundInstance extends AbstractTickableSoundInstance {
     private final AbstractMinecart minecart;
     private final boolean underwaterSound;
 
-    public RidingMinecartSoundInstance(Player p_174940_, AbstractMinecart p_174941_, boolean p_174942_) {
-        super(p_174942_ ? SoundEvents.MINECART_INSIDE_UNDERWATER : SoundEvents.MINECART_INSIDE, SoundSource.NEUTRAL, SoundInstance.createUnseededRandom());
-        this.player = p_174940_;
-        this.minecart = p_174941_;
-        this.underwaterSound = p_174942_;
+    public RidingMinecartSoundInstance(Player pPlayer, AbstractMinecart pMinecart, boolean pUnderwaterSound) {
+        super(pUnderwaterSound ? SoundEvents.MINECART_INSIDE_UNDERWATER : SoundEvents.MINECART_INSIDE, SoundSource.NEUTRAL, SoundInstance.createUnseededRandom());
+        this.player = pPlayer;
+        this.minecart = pMinecart;
+        this.underwaterSound = pUnderwaterSound;
         this.attenuation = SoundInstance.Attenuation.NONE;
         this.looping = true;
         this.delay = 0;

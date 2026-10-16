@@ -12,12 +12,12 @@ public abstract class FloatProvider implements SampledFloat {
                                                                                                           return p_146518_;
                                                                                                       }); }, (p_146513_) -> { return p_146513_.getType() == FloatProviderType.CONSTANT ? Either.left(((ConstantFloat) p_146513_).getValue()) : Either.right(p_146513_); });
 
-    public static Codec<FloatProvider> codec(float p_146506_, float p_146507_) {
+    public static Codec<FloatProvider> codec(float pMinInclusive, float pMaxInclusive) {
         Function<FloatProvider, DataResult<FloatProvider>> function = (p_146511_) -> {
-            if (p_146511_.getMinValue() < p_146506_) {
-                return DataResult.error("Value provider too low: " + p_146506_ + " [" + p_146511_.getMinValue() + "-" + p_146511_.getMaxValue() + "]");
+            if (p_146511_.getMinValue() < pMinInclusive) {
+                return DataResult.error("Value provider too low: " + pMinInclusive + " [" + p_146511_.getMinValue() + "-" + p_146511_.getMaxValue() + "]");
             } else {
-                return p_146511_.getMaxValue() > p_146507_ ? DataResult.error("Value provider too high: " + p_146507_ + " [" + p_146511_.getMinValue() + "-" + p_146511_.getMaxValue() + "]") : DataResult.success(p_146511_);
+                return p_146511_.getMaxValue() > pMaxInclusive ? DataResult.error("Value provider too high: " + pMaxInclusive + " [" + p_146511_.getMinValue() + "-" + p_146511_.getMaxValue() + "]") : DataResult.success(p_146511_);
             }
         };
         return CODEC.flatXmap(function, function);

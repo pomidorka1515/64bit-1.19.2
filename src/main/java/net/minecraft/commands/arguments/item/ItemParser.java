@@ -43,52 +43,52 @@ public class ItemParser {
     private CompoundTag nbt;
     private Function<SuggestionsBuilder, CompletableFuture<Suggestions>> suggestions = SUGGEST_NOTHING;
 
-    private ItemParser(HolderLookup<Item> p_235291_, StringReader p_235292_, boolean p_235293_) {
-        this.items = p_235291_;
-        this.reader = p_235292_;
-        this.allowTags = p_235293_;
+    private ItemParser(HolderLookup<Item> pItems, StringReader pReader, boolean pAllowTags) {
+        this.items = pItems;
+        this.reader = pReader;
+        this.allowTags = pAllowTags;
     }
 
-    public static ItemParser.ItemResult parseForItem(HolderLookup<Item> p_235306_, StringReader p_235307_) throws CommandSyntaxException {
-        int i = p_235307_.getCursor();
+    public static ItemParser.ItemResult parseForItem(HolderLookup<Item> pLookup, StringReader pReader) throws CommandSyntaxException {
+        int i = pReader.getCursor();
 
         try {
-            ItemParser itemparser = new ItemParser(p_235306_, p_235307_, false);
+            ItemParser itemparser = new ItemParser(pLookup, pReader, false);
             itemparser.parse();
             Holder<Item> holder = itemparser.result.left().orElseThrow(() -> {
                 return new IllegalStateException("Parser returned unexpected tag name");
             });
             return new ItemParser.ItemResult(holder, itemparser.nbt);
         } catch (CommandSyntaxException commandsyntaxexception) {
-            p_235307_.setCursor(i);
+            pReader.setCursor(i);
             throw commandsyntaxexception;
         }
     }
 
-    public static Either<ItemParser.ItemResult, ItemParser.TagResult> parseForTesting(HolderLookup<Item> p_235320_, StringReader p_235321_) throws CommandSyntaxException {
-        int i = p_235321_.getCursor();
+    public static Either<ItemParser.ItemResult, ItemParser.TagResult> parseForTesting(HolderLookup<Item> pLookup, StringReader pReader) throws CommandSyntaxException {
+        int i = pReader.getCursor();
 
         try {
-            ItemParser itemparser = new ItemParser(p_235320_, p_235321_, true);
+            ItemParser itemparser = new ItemParser(pLookup, pReader, true);
             itemparser.parse();
             return itemparser.result.mapBoth((p_235301_) -> { return new ItemParser.ItemResult(p_235301_, itemparser.nbt); }, (p_235304_) -> { return new ItemParser.TagResult(p_235304_, itemparser.nbt); });
         } catch (CommandSyntaxException commandsyntaxexception) {
-            p_235321_.setCursor(i);
+            pReader.setCursor(i);
             throw commandsyntaxexception;
         }
     }
 
-    public static CompletableFuture<Suggestions> fillSuggestions(HolderLookup<Item> p_235309_, SuggestionsBuilder p_235310_, boolean p_235311_) {
-        StringReader stringreader = new StringReader(p_235310_.getInput());
-        stringreader.setCursor(p_235310_.getStart());
-        ItemParser itemparser = new ItemParser(p_235309_, stringreader, p_235311_);
+    public static CompletableFuture<Suggestions> fillSuggestions(HolderLookup<Item> pLookup, SuggestionsBuilder pBuilder, boolean pAllowTags) {
+        StringReader stringreader = new StringReader(pBuilder.getInput());
+        stringreader.setCursor(pBuilder.getStart());
+        ItemParser itemparser = new ItemParser(pLookup, stringreader, pAllowTags);
 
         try {
             itemparser.parse();
         } catch (CommandSyntaxException commandsyntaxexception) {
         }
 
-        return itemparser.suggestions.apply(p_235310_.createOffset(stringreader.getCursor()));
+        return itemparser.suggestions.apply(pBuilder.createOffset(stringreader.getCursor()));
     }
 
     private void readItem() throws CommandSyntaxException {

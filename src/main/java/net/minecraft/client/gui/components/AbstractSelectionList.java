@@ -51,25 +51,25 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
     @Nullable
     private E hovered;
 
-    public AbstractSelectionList(Minecraft p_93404_, int p_93405_, int p_93406_, int p_93407_, int p_93408_, int p_93409_) {
-        this.minecraft = p_93404_;
-        this.width = p_93405_;
-        this.height = p_93406_;
-        this.y0 = p_93407_;
-        this.y1 = p_93408_;
-        this.itemHeight = p_93409_;
+    public AbstractSelectionList(Minecraft pMinecraft, int pWidth, int pHeight, int pY0, int pY1, int pItemHeight) {
+        this.minecraft = pMinecraft;
+        this.width = pWidth;
+        this.height = pHeight;
+        this.y0 = pY0;
+        this.y1 = pY1;
+        this.itemHeight = pItemHeight;
         this.x0 = 0;
-        this.x1 = p_93405_;
+        this.x1 = pWidth;
     }
 
-    public void setRenderSelection(boolean p_93472_) {
-        this.renderSelection = p_93472_;
+    public void setRenderSelection(boolean pRenderSelection) {
+        this.renderSelection = pRenderSelection;
     }
 
-    protected void setRenderHeader(boolean p_93474_, int p_93475_) {
-        this.renderHeader = p_93474_;
-        this.headerHeight = p_93475_;
-        if (!p_93474_) {
+    protected void setRenderHeader(boolean pRenderHeader, int pHeaderHeight) {
+        this.renderHeader = pRenderHeader;
+        this.headerHeight = pHeaderHeight;
+        if (!pRenderHeader) {
             this.headerHeight = 0;
         }
     }
@@ -83,16 +83,16 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         return this.selected;
     }
 
-    public void setSelected(@Nullable E p_93462_) {
-        this.selected = p_93462_;
+    public void setSelected(@Nullable E pSelected) {
+        this.selected = pSelected;
     }
 
-    public void setRenderBackground(boolean p_93489_) {
-        this.renderBackground = p_93489_;
+    public void setRenderBackground(boolean pRenderBackground) {
+        this.renderBackground = pRenderBackground;
     }
 
-    public void setRenderTopAndBottom(boolean p_93497_) {
-        this.renderTopAndBottom = p_93497_;
+    public void setRenderTopAndBottom(boolean pRenderTopAndButton) {
+        this.renderTopAndBottom = pRenderTopAndButton;
     }
 
     @Nullable
@@ -108,29 +108,29 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         this.children.clear();
     }
 
-    protected void replaceEntries(Collection<E> p_93470_) {
+    protected void replaceEntries(Collection<E> pEntries) {
         this.children.clear();
-        this.children.addAll(p_93470_);
+        this.children.addAll(pEntries);
     }
 
-    protected E getEntry(int p_93501_) {
-        return this.children().get(p_93501_);
+    protected E getEntry(int pIndex) {
+        return this.children().get(pIndex);
     }
 
-    protected int addEntry(E p_93487_) {
-        this.children.add(p_93487_);
+    protected int addEntry(E pEntry) {
+        this.children.add(pEntry);
         return this.children.size() - 1;
     }
 
-    protected void addEntryToTop(E p_239858_) {
+    protected void addEntryToTop(E pEntry) {
         double d0 = (double) this.getMaxScroll() - this.getScrollAmount();
-        this.children.add(0, p_239858_);
+        this.children.add(0, pEntry);
         this.setScrollAmount((double) this.getMaxScroll() - d0);
     }
 
-    protected boolean removeEntryFromTop(E p_239046_) {
+    protected boolean removeEntryFromTop(E pEntry) {
         double d0 = (double) this.getMaxScroll() - this.getScrollAmount();
-        boolean flag = this.removeEntry(p_239046_);
+        boolean flag = this.removeEntry(pEntry);
         this.setScrollAmount((double) this.getMaxScroll() - d0);
         return flag;
     }
@@ -139,59 +139,59 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         return this.children().size();
     }
 
-    protected boolean isSelectedItem(int p_93504_) {
-        return Objects.equals(this.getSelected(), this.children().get(p_93504_));
+    protected boolean isSelectedItem(int pIndex) {
+        return Objects.equals(this.getSelected(), this.children().get(pIndex));
     }
 
     @Nullable
-    protected final E getEntryAtPosition(double p_93413_, double p_93414_) {
+    protected final E getEntryAtPosition(double pMouseX, double pMouseY) {
         int i = this.getRowWidth() / 2;
         int j = this.x0 + this.width / 2;
         int k = j - i;
         int l = j + i;
-        int i1 = Mth.floor(p_93414_ - (double) this.y0) - this.headerHeight + (int) this.getScrollAmount() - 4;
+        int i1 = Mth.floor(pMouseY - (double) this.y0) - this.headerHeight + (int) this.getScrollAmount() - 4;
         int j1 = i1 / this.itemHeight;
-        return (E) (p_93413_ < (double) this.getScrollbarPosition() && p_93413_ >= (double) k && p_93413_ <= (double) l && j1 >= 0 && i1 >= 0 && j1 < this.getItemCount() ? this.children().get(j1) : null);
+        return (E) (pMouseX < (double) this.getScrollbarPosition() && pMouseX >= (double) k && pMouseX <= (double) l && j1 >= 0 && i1 >= 0 && j1 < this.getItemCount() ? this.children().get(j1) : null);
     }
 
-    public void updateSize(int p_93438_, int p_93439_, int p_93440_, int p_93441_) {
-        this.width = p_93438_;
-        this.height = p_93439_;
-        this.y0 = p_93440_;
-        this.y1 = p_93441_;
+    public void updateSize(int pWidth, int pHeight, int pY0, int pY1) {
+        this.width = pWidth;
+        this.height = pHeight;
+        this.y0 = pY0;
+        this.y1 = pY1;
         this.x0 = 0;
-        this.x1 = p_93438_;
+        this.x1 = pWidth;
     }
 
-    public void setLeftPos(int p_93508_) {
-        this.x0 = p_93508_;
-        this.x1 = p_93508_ + this.width;
+    public void setLeftPos(int pX0) {
+        this.x0 = pX0;
+        this.x1 = pX0 + this.width;
     }
 
     protected int getMaxPosition() {
         return this.getItemCount() * this.itemHeight + this.headerHeight;
     }
 
-    protected void clickedHeader(int p_93431_, int p_93432_) {
+    protected void clickedHeader(int pMouseX, int pMouseY) {
     }
 
-    protected void renderHeader(PoseStack p_93458_, int p_93459_, int p_93460_, Tesselator p_93461_) {
+    protected void renderHeader(PoseStack pPoseStack, int pX, int pY, Tesselator pTesselator) {
     }
 
-    protected void renderBackground(PoseStack p_93442_) {
+    protected void renderBackground(PoseStack pPoseStack) {
     }
 
-    protected void renderDecorations(PoseStack p_93443_, int p_93444_, int p_93445_) {
+    protected void renderDecorations(PoseStack pPoseStack, int pMouseX, int pMouseY) {
     }
 
-    public void render(PoseStack p_93447_, int p_93448_, int p_93449_, float p_93450_) {
-        this.renderBackground(p_93447_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
         int i = this.getScrollbarPosition();
         int j = i + 6;
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-        this.hovered = this.isMouseOver((double) p_93448_, (double) p_93449_) ? this.getEntryAtPosition((double) p_93448_, (double) p_93449_) : null;
+        this.hovered = this.isMouseOver((double) pMouseX, (double) pMouseY) ? this.getEntryAtPosition((double) pMouseX, (double) pMouseY) : null;
         if (this.renderBackground) {
             RenderSystem.setShaderTexture(0, GuiComponent.BACKGROUND_LOCATION);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -207,10 +207,10 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         int j1 = this.getRowLeft();
         int k = this.y0 + 4 - (int) this.getScrollAmount();
         if (this.renderHeader) {
-            this.renderHeader(p_93447_, j1, k, tesselator);
+            this.renderHeader(pPoseStack, j1, k, tesselator);
         }
 
-        this.renderList(p_93447_, p_93448_, p_93449_, p_93450_);
+        this.renderList(pPoseStack, pMouseX, pMouseY, pPartialTick);
         if (this.renderTopAndBottom) {
             RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
             RenderSystem.setShaderTexture(0, GuiComponent.BACKGROUND_LOCATION);
@@ -274,17 +274,17 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
             tesselator.end();
         }
 
-        this.renderDecorations(p_93447_, p_93448_, p_93449_);
+        this.renderDecorations(pPoseStack, pMouseX, pMouseY);
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
     }
 
-    protected void centerScrollOn(E p_93495_) {
-        this.setScrollAmount((double) (this.children().indexOf(p_93495_) * this.itemHeight + this.itemHeight / 2 - (this.y1 - this.y0) / 2));
+    protected void centerScrollOn(E pEntry) {
+        this.setScrollAmount((double) (this.children().indexOf(pEntry) * this.itemHeight + this.itemHeight / 2 - (this.y1 - this.y0) / 2));
     }
 
-    protected void ensureVisible(E p_93499_) {
-        int i = this.getRowTop(this.children().indexOf(p_93499_));
+    protected void ensureVisible(E pEntry) {
+        int i = this.getRowTop(this.children().indexOf(pEntry));
         int j = i - this.y0 - 4 - this.itemHeight;
         if (j < 0) {
             this.scroll(j);
@@ -296,16 +296,16 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         }
     }
 
-    private void scroll(int p_93430_) {
-        this.setScrollAmount(this.getScrollAmount() + (double) p_93430_);
+    private void scroll(int pScroll) {
+        this.setScrollAmount(this.getScrollAmount() + (double) pScroll);
     }
 
     public double getScrollAmount() {
         return this.scrollAmount;
     }
 
-    public void setScrollAmount(double p_93411_) {
-        this.scrollAmount = Mth.clamp(p_93411_, 0.0D, (double) this.getMaxScroll());
+    public void setScrollAmount(double pScroll) {
+        this.scrollAmount = Mth.clamp(pScroll, 0.0D, (double) this.getMaxScroll());
     }
 
     public int getMaxScroll() {
@@ -316,28 +316,28 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         return (int) this.getScrollAmount() - this.height - this.headerHeight;
     }
 
-    protected void updateScrollingState(double p_93482_, double p_93483_, int p_93484_) {
-        this.scrolling = p_93484_ == 0 && p_93482_ >= (double) this.getScrollbarPosition() && p_93482_ < (double) (this.getScrollbarPosition() + 6);
+    protected void updateScrollingState(double pMouseX, double pMouseY, int pButton) {
+        this.scrolling = pButton == 0 && pMouseX >= (double) this.getScrollbarPosition() && pMouseX < (double) (this.getScrollbarPosition() + 6);
     }
 
     protected int getScrollbarPosition() {
         return this.width / 2 + 124;
     }
 
-    public boolean mouseClicked(double p_93420_, double p_93421_, int p_93422_) {
-        this.updateScrollingState(p_93420_, p_93421_, p_93422_);
-        if (!this.isMouseOver(p_93420_, p_93421_)) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        this.updateScrollingState(pMouseX, pMouseY, pButton);
+        if (!this.isMouseOver(pMouseX, pMouseY)) {
             return false;
         } else {
-            E e = this.getEntryAtPosition(p_93420_, p_93421_);
+            E e = this.getEntryAtPosition(pMouseX, pMouseY);
             if (e != null) {
-                if (e.mouseClicked(p_93420_, p_93421_, p_93422_)) {
+                if (e.mouseClicked(pMouseX, pMouseY, pButton)) {
                     this.setFocused(e);
                     this.setDragging(true);
                     return true;
                 }
-            } else if (p_93422_ == 0) {
-                this.clickedHeader((int) (p_93420_ - (double) (this.x0 + this.width / 2 - this.getRowWidth() / 2)), (int) (p_93421_ - (double) this.y0) + (int) this.getScrollAmount() - 4);
+            } else if (pButton == 0) {
+                this.clickedHeader((int) (pMouseX - (double) (this.x0 + this.width / 2 - this.getRowWidth() / 2)), (int) (pMouseY - (double) this.y0) + (int) this.getScrollAmount() - 4);
                 return true;
             }
 
@@ -345,28 +345,28 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         }
     }
 
-    public boolean mouseReleased(double p_93491_, double p_93492_, int p_93493_) {
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
         if (this.getFocused() != null) {
-            this.getFocused().mouseReleased(p_93491_, p_93492_, p_93493_);
+            this.getFocused().mouseReleased(pMouseX, pMouseY, pButton);
         }
 
         return false;
     }
 
-    public boolean mouseDragged(double p_93424_, double p_93425_, int p_93426_, double p_93427_, double p_93428_) {
-        if (super.mouseDragged(p_93424_, p_93425_, p_93426_, p_93427_, p_93428_)) {
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        if (super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY)) {
             return true;
-        } else if (p_93426_ == 0 && this.scrolling) {
-            if (p_93425_ < (double) this.y0) {
+        } else if (pButton == 0 && this.scrolling) {
+            if (pMouseY < (double) this.y0) {
                 this.setScrollAmount(0.0D);
-            } else if (p_93425_ > (double) this.y1) {
+            } else if (pMouseY > (double) this.y1) {
                 this.setScrollAmount((double) this.getMaxScroll());
             } else {
                 double d0 = (double) Math.max(1, this.getMaxScroll());
                 int i = this.y1 - this.y0;
                 int j = Mth.clamp((int) ((float) (i * i) / (float) this.getMaxPosition()), 32, i - 8);
                 double d1 = Math.max(1.0D, d0 / (double) (i - j));
-                this.setScrollAmount(this.getScrollAmount() + p_93428_ * d1);
+                this.setScrollAmount(this.getScrollAmount() + pDragY * d1);
             }
 
             return true;
@@ -375,18 +375,18 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         }
     }
 
-    public boolean mouseScrolled(double p_93416_, double p_93417_, double p_93418_) {
-        this.setScrollAmount(this.getScrollAmount() - p_93418_ * (double) this.itemHeight / 2.0D);
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+        this.setScrollAmount(this.getScrollAmount() - pDelta * (double) this.itemHeight / 2.0D);
         return true;
     }
 
-    public boolean keyPressed(int p_93434_, int p_93435_, int p_93436_) {
-        if (super.keyPressed(p_93434_, p_93435_, p_93436_)) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
-        } else if (p_93434_ == 264) {
+        } else if (pKeyCode == 264) {
             this.moveSelection(AbstractSelectionList.SelectionDirection.DOWN);
             return true;
-        } else if (p_93434_ == 265) {
+        } else if (pKeyCode == 265) {
             this.moveSelection(AbstractSelectionList.SelectionDirection.UP);
             return true;
         } else {
@@ -394,8 +394,8 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         }
     }
 
-    protected void moveSelection(AbstractSelectionList.SelectionDirection p_93463_) {
-        this.moveSelection(p_93463_, (p_93510_) -> {
+    protected void moveSelection(AbstractSelectionList.SelectionDirection pOrdering) {
+        this.moveSelection(pOrdering, (p_93510_) -> {
             return true;
         });
     }
@@ -408,8 +408,8 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         }
     }
 
-    protected boolean moveSelection(AbstractSelectionList.SelectionDirection p_93465_, Predicate<E> p_93466_) {
-        int i = p_93465_ == AbstractSelectionList.SelectionDirection.UP ? -1 : 1;
+    protected boolean moveSelection(AbstractSelectionList.SelectionDirection pDirection, Predicate<E> pSelector) {
+        int i = pDirection == AbstractSelectionList.SelectionDirection.UP ? -1 : 1;
         if (!this.children().isEmpty()) {
             int j = this.children().indexOf(this.getSelected());
 
@@ -420,7 +420,7 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
                 }
 
                 E e = this.children().get(k);
-                if (p_93466_.test(e)) {
+                if (pSelector.test(e)) {
                     this.setSelected(e);
                     this.ensureVisible(e);
                     return true;
@@ -433,11 +433,11 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         return false;
     }
 
-    public boolean isMouseOver(double p_93479_, double p_93480_) {
-        return p_93480_ >= (double) this.y0 && p_93480_ <= (double) this.y1 && p_93479_ >= (double) this.x0 && p_93479_ <= (double) this.x1;
+    public boolean isMouseOver(double pMouseX, double pMouseY) {
+        return pMouseY >= (double) this.y0 && pMouseY <= (double) this.y1 && pMouseX >= (double) this.x0 && pMouseX <= (double) this.x1;
     }
 
-    protected void renderList(PoseStack p_239228_, int p_239229_, int p_239230_, float p_239231_) {
+    protected void renderList(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         int i = this.getRowLeft();
         int j = this.getRowWidth();
         int k = this.itemHeight - 4;
@@ -447,26 +447,26 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
             int j1 = this.getRowTop(i1);
             int k1 = this.getRowBottom(i1);
             if (k1 >= this.y0 && j1 <= this.y1) {
-                this.renderItem(p_239228_, p_239229_, p_239230_, p_239231_, i1, i, j1, j, k);
+                this.renderItem(pPoseStack, pMouseX, pMouseY, pPartialTick, i1, i, j1, j, k);
             }
         }
     }
 
-    protected void renderItem(PoseStack p_238965_, int p_238966_, int p_238967_, float p_238968_, int p_238969_, int p_238970_, int p_238971_, int p_238972_, int p_238973_) {
-        E e = this.getEntry(p_238969_);
-        if (this.renderSelection && this.isSelectedItem(p_238969_)) {
+    protected void renderItem(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick, int pIndex, int pLeft, int pTop, int pWidth, int pHeight) {
+        E e = this.getEntry(pIndex);
+        if (this.renderSelection && this.isSelectedItem(pIndex)) {
             int i = this.isFocused() ? -1 : -8355712;
-            this.renderSelection(p_238965_, p_238971_, p_238972_, p_238973_, i, -16777216);
+            this.renderSelection(pPoseStack, pTop, pWidth, pHeight, i, -16777216);
         }
 
-        e.render(p_238965_, p_238969_, p_238971_, p_238970_, p_238972_, p_238973_, p_238966_, p_238967_, Objects.equals(this.hovered, e), p_238968_);
+        e.render(pPoseStack, pIndex, pTop, pLeft, pWidth, pHeight, pMouseX, pMouseY, Objects.equals(this.hovered, e), pPartialTick);
     }
 
-    protected void renderSelection(PoseStack p_240141_, int p_240142_, int p_240143_, int p_240144_, int p_240145_, int p_240146_) {
-        int i = this.x0 + (this.width - p_240143_) / 2;
-        int j = this.x0 + (this.width + p_240143_) / 2;
-        fill(p_240141_, i, p_240142_ - 2, j, p_240142_ + p_240144_ + 2, p_240145_);
-        fill(p_240141_, i + 1, p_240142_ - 1, j - 1, p_240142_ + p_240144_ + 1, p_240146_);
+    protected void renderSelection(PoseStack pPoseStack, int pTop, int pWidth, int pHeight, int pOuterColor, int pInnerColor) {
+        int i = this.x0 + (this.width - pWidth) / 2;
+        int j = this.x0 + (this.width + pWidth) / 2;
+        fill(pPoseStack, i, pTop - 2, j, pTop + pHeight + 2, pOuterColor);
+        fill(pPoseStack, i + 1, pTop - 1, j - 1, pTop + pHeight + 1, pInnerColor);
     }
 
     public int getRowLeft() {
@@ -477,12 +477,12 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         return this.getRowLeft() + this.getRowWidth();
     }
 
-    protected int getRowTop(int p_93512_) {
-        return this.y0 + 4 - (int) this.getScrollAmount() + p_93512_ * this.itemHeight + this.headerHeight;
+    protected int getRowTop(int pIndex) {
+        return this.y0 + 4 - (int) this.getScrollAmount() + pIndex * this.itemHeight + this.headerHeight;
     }
 
-    private int getRowBottom(int p_93486_) {
-        return this.getRowTop(p_93486_) + this.itemHeight;
+    private int getRowBottom(int pIndex) {
+        return this.getRowTop(pIndex) + this.itemHeight;
     }
 
     protected boolean isFocused() {
@@ -498,14 +498,14 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
     }
 
     @Nullable
-    protected E remove(int p_93515_) {
-        E e = this.children.get(p_93515_);
-        return (E) (this.removeEntry(this.children.get(p_93515_)) ? e : null);
+    protected E remove(int pIndex) {
+        E e = this.children.get(pIndex);
+        return (E) (this.removeEntry(this.children.get(pIndex)) ? e : null);
     }
 
-    protected boolean removeEntry(E p_93503_) {
-        boolean flag = this.children.remove(p_93503_);
-        if (flag && p_93503_ == this.getSelected()) {
+    protected boolean removeEntry(E pEntry) {
+        boolean flag = this.children.remove(pEntry);
+        if (flag && pEntry == this.getSelected()) {
             this.setSelected((E) null);
         }
 
@@ -517,16 +517,16 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         return this.hovered;
     }
 
-    void bindEntryToSelf(AbstractSelectionList.Entry<E> p_93506_) {
-        p_93506_.list = this;
+    void bindEntryToSelf(AbstractSelectionList.Entry<E> pEntry) {
+        pEntry.list = this;
     }
 
-    protected void narrateListElementPosition(NarrationElementOutput p_168791_, E p_168792_) {
+    protected void narrateListElementPosition(NarrationElementOutput pNarrationElementOutput, E pEntry) {
         List<E> list = this.children();
         if (list.size() > 1) {
-            int i = list.indexOf(p_168792_);
+            int i = list.indexOf(pEntry);
             if (i != -1) {
-                p_168791_.add(NarratedElementType.POSITION, Component.translatable("narrator.position.list", i + 1, list.size()));
+                pNarrationElementOutput.add(NarratedElementType.POSITION, Component.translatable("narrator.position.list", i + 1, list.size()));
             }
         }
     }
@@ -537,10 +537,10 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
         @Deprecated
         AbstractSelectionList<E> list;
 
-        public abstract void render(PoseStack p_93523_, int p_93524_, int p_93525_, int p_93526_, int p_93527_, int p_93528_, int p_93529_, int p_93530_, boolean p_93531_, float p_93532_);
+        public abstract void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick);
 
-        public boolean isMouseOver(double p_93537_, double p_93538_) {
-            return Objects.equals(this.list.getEntryAtPosition(p_93537_, p_93538_), this);
+        public boolean isMouseOver(double pMouseX, double pMouseY) {
+            return Objects.equals(this.list.getEntryAtPosition(pMouseX, pMouseY), this);
         }
     }
 
@@ -554,27 +554,27 @@ public abstract class AbstractSelectionList<E extends AbstractSelectionList.Entr
     class TrackedList extends AbstractList<E> {
         private final List<E> delegate = Lists.newArrayList();
 
-        public E get(int p_93557_) {
-            return this.delegate.get(p_93557_);
+        public E get(int pIndex) {
+            return this.delegate.get(pIndex);
         }
 
         public int size() {
             return this.delegate.size();
         }
 
-        public E set(int p_93559_, E p_93560_) {
-            E e = this.delegate.set(p_93559_, p_93560_);
-            AbstractSelectionList.this.bindEntryToSelf(p_93560_);
+        public E set(int pIndex, E pEntry) {
+            E e = this.delegate.set(pIndex, pEntry);
+            AbstractSelectionList.this.bindEntryToSelf(pEntry);
             return e;
         }
 
-        public void add(int p_93567_, E p_93568_) {
-            this.delegate.add(p_93567_, p_93568_);
-            AbstractSelectionList.this.bindEntryToSelf(p_93568_);
+        public void add(int pIndex, E pEntry) {
+            this.delegate.add(pIndex, pEntry);
+            AbstractSelectionList.this.bindEntryToSelf(pEntry);
         }
 
-        public E remove(int p_93565_) {
-            return this.delegate.remove(p_93565_);
+        public E remove(int pIndex) {
+            return this.delegate.remove(pIndex);
         }
     }
 }

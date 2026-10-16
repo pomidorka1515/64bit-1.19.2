@@ -14,35 +14,35 @@ public class ServerboundSetJigsawBlockPacket implements Packet<ServerGamePacketL
     private final String finalState;
     private final JigsawBlockEntity.JointType joint;
 
-    public ServerboundSetJigsawBlockPacket(BlockPos p_134573_, ResourceLocation p_134574_, ResourceLocation p_134575_, ResourceLocation p_134576_, String p_134577_, JigsawBlockEntity.JointType p_134578_) {
-        this.pos = p_134573_;
-        this.name = p_134574_;
-        this.target = p_134575_;
-        this.pool = p_134576_;
-        this.finalState = p_134577_;
-        this.joint = p_134578_;
+    public ServerboundSetJigsawBlockPacket(BlockPos pPos, ResourceLocation pName, ResourceLocation pTarget, ResourceLocation pPool, String pFinalState, JigsawBlockEntity.JointType pJoint) {
+        this.pos = pPos;
+        this.name = pName;
+        this.target = pTarget;
+        this.pool = pPool;
+        this.finalState = pFinalState;
+        this.joint = pJoint;
     }
 
-    public ServerboundSetJigsawBlockPacket(FriendlyByteBuf p_179766_) {
-        this.pos = p_179766_.readBlockPos();
-        this.name = p_179766_.readResourceLocation();
-        this.target = p_179766_.readResourceLocation();
-        this.pool = p_179766_.readResourceLocation();
-        this.finalState = p_179766_.readUtf();
-        this.joint = JigsawBlockEntity.JointType.byName(p_179766_.readUtf()).orElse(JigsawBlockEntity.JointType.ALIGNED);
+    public ServerboundSetJigsawBlockPacket(FriendlyByteBuf pBuffer) {
+        this.pos = pBuffer.readBlockPos();
+        this.name = pBuffer.readResourceLocation();
+        this.target = pBuffer.readResourceLocation();
+        this.pool = pBuffer.readResourceLocation();
+        this.finalState = pBuffer.readUtf();
+        this.joint = JigsawBlockEntity.JointType.byName(pBuffer.readUtf()).orElse(JigsawBlockEntity.JointType.ALIGNED);
     }
 
-    public void write(FriendlyByteBuf p_134587_) {
-        p_134587_.writeBlockPos(this.pos);
-        p_134587_.writeResourceLocation(this.name);
-        p_134587_.writeResourceLocation(this.target);
-        p_134587_.writeResourceLocation(this.pool);
-        p_134587_.writeUtf(this.finalState);
-        p_134587_.writeUtf(this.joint.getSerializedName());
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBlockPos(this.pos);
+        pBuffer.writeResourceLocation(this.name);
+        pBuffer.writeResourceLocation(this.target);
+        pBuffer.writeResourceLocation(this.pool);
+        pBuffer.writeUtf(this.finalState);
+        pBuffer.writeUtf(this.joint.getSerializedName());
     }
 
-    public void handle(ServerGamePacketListener p_134584_) {
-        p_134584_.handleSetJigsawBlock(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleSetJigsawBlock(this);
     }
 
     public BlockPos getPos() {

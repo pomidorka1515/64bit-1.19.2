@@ -10,8 +10,8 @@ import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 
 public class GoalUtils {
-    public static boolean hasGroundPathNavigation(Mob p_26895_) {
-        return p_26895_.getNavigation() instanceof GroundPathNavigation;
+    public static boolean hasGroundPathNavigation(Mob pMob) {
+        return pMob.getNavigation() instanceof GroundPathNavigation;
     }
 
     public static boolean mobRestricted(PathfinderMob mob, int horizontalRange) {
@@ -25,27 +25,27 @@ public class GoalUtils {
         return dx * dx + dy * dy + dz * dz < maxDistance * maxDistance;
     }
 
-    public static boolean isOutsideLimits(BlockPos p_148452_, PathfinderMob p_148453_) {
-        return p_148452_.getY() < p_148453_.level.getMinBuildHeight() || p_148452_.getY() > p_148453_.level.getMaxBuildHeight();
+    public static boolean isOutsideLimits(BlockPos pPos, PathfinderMob pMob) {
+        return pPos.getY() < pMob.level.getMinBuildHeight() || pPos.getY() > pMob.level.getMaxBuildHeight();
     }
 
-    public static boolean isRestricted(boolean p_148455_, PathfinderMob p_148456_, BlockPos p_148457_) {
-        return p_148455_ && !p_148456_.isWithinRestriction(p_148457_);
+    public static boolean isRestricted(boolean pShortCircuit, PathfinderMob pMob, BlockPos pPos) {
+        return pShortCircuit && !pMob.isWithinRestriction(pPos);
     }
 
-    public static boolean isNotStable(PathNavigation p_148449_, BlockPos p_148450_) {
-        return !p_148449_.isStableDestination(p_148450_);
+    public static boolean isNotStable(PathNavigation pNavigation, BlockPos pPos) {
+        return !pNavigation.isStableDestination(pPos);
     }
 
-    public static boolean isWater(PathfinderMob p_148446_, BlockPos p_148447_) {
-        return p_148446_.level.getFluidState(p_148447_).is(FluidTags.WATER);
+    public static boolean isWater(PathfinderMob pMob, BlockPos pPos) {
+        return pMob.level.getFluidState(pPos).is(FluidTags.WATER);
     }
 
-    public static boolean hasMalus(PathfinderMob p_148459_, BlockPos p_148460_) {
-        return p_148459_.getPathfindingMalus(WalkNodeEvaluator.getBlockPathTypeStatic(p_148459_.level, p_148460_.mutable())) != 0.0F;
+    public static boolean hasMalus(PathfinderMob pMob, BlockPos pPos) {
+        return pMob.getPathfindingMalus(WalkNodeEvaluator.getBlockPathTypeStatic(pMob.level, pPos.mutable())) != 0.0F;
     }
 
-    public static boolean isSolid(PathfinderMob p_148462_, BlockPos p_148463_) {
-        return p_148462_.level.getBlockState(p_148463_).getMaterial().isSolid();
+    public static boolean isSolid(PathfinderMob pMob, BlockPos pPos) {
+        return pMob.level.getBlockState(pPos).getMaterial().isSolid();
     }
 }

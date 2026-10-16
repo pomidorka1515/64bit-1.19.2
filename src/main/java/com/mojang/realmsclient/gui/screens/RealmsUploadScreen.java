@@ -74,15 +74,15 @@ public class RealmsUploadScreen extends RealmsScreen {
     private long bytesPersSecond;
     private final Runnable callback;
 
-    public RealmsUploadScreen(long p_90083_, int p_90084_, RealmsResetWorldScreen p_90085_, LevelSummary p_90086_, Runnable p_90087_) {
+    public RealmsUploadScreen(long pWorldId, int pSlotId, RealmsResetWorldScreen pLastScreen, LevelSummary pSelectedLevel, Runnable pCallback) {
         super(GameNarrator.NO_TITLE);
-        this.worldId = p_90083_;
-        this.slotId = p_90084_;
-        this.lastScreen = p_90085_;
-        this.selectedLevel = p_90086_;
+        this.worldId = pWorldId;
+        this.slotId = pSlotId;
+        this.lastScreen = pLastScreen;
+        this.selectedLevel = pSelectedLevel;
         this.uploadStatus = new UploadStatus();
         this.narrationRateLimiter = RateLimiter.create((double) 0.1F);
-        this.callback = p_90087_;
+        this.callback = pCallback;
     }
 
     public void init() {
@@ -122,8 +122,8 @@ public class RealmsUploadScreen extends RealmsScreen {
         this.minecraft.setScreen(this.lastScreen);
     }
 
-    public boolean keyPressed(int p_90089_, int p_90090_, int p_90091_) {
-        if (p_90089_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             if (this.showDots) {
                 this.onCancel();
             } else {
@@ -132,42 +132,42 @@ public class RealmsUploadScreen extends RealmsScreen {
 
             return true;
         } else {
-            return super.keyPressed(p_90089_, p_90090_, p_90091_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    public void render(PoseStack p_90096_, int p_90097_, int p_90098_, float p_90099_) {
-        this.renderBackground(p_90096_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
         if (!this.uploadFinished && this.uploadStatus.bytesWritten != 0L && this.uploadStatus.bytesWritten == this.uploadStatus.totalBytes) {
             this.status = VERIFYING_TEXT;
             this.cancelButton.active = false;
         }
 
-        drawCenteredString(p_90096_, this.font, this.status, this.width / 2, 50, 16777215);
+        drawCenteredString(pPoseStack, this.font, this.status, this.width / 2, 50, 16777215);
         if (this.showDots) {
-            this.drawDots(p_90096_);
+            this.drawDots(pPoseStack);
         }
 
         if (this.uploadStatus.bytesWritten != 0L && !this.cancelled) {
-            this.drawProgressBar(p_90096_);
-            this.drawUploadSpeed(p_90096_);
+            this.drawProgressBar(pPoseStack);
+            this.drawUploadSpeed(pPoseStack);
         }
 
         if (this.errorMessage != null) {
             for (int i = 0; i < this.errorMessage.length; ++i) {
-                drawCenteredString(p_90096_, this.font, this.errorMessage[i], this.width / 2, 110 + 12 * i, 16711680);
+                drawCenteredString(pPoseStack, this.font, this.errorMessage[i], this.width / 2, 110 + 12 * i, 16711680);
             }
         }
 
-        super.render(p_90096_, p_90097_, p_90098_, p_90099_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    private void drawDots(PoseStack p_90116_) {
+    private void drawDots(PoseStack pPoseStack) {
         int i = this.font.width(this.status);
-        this.font.draw(p_90116_, DOTS[this.tickCount / 10 % DOTS.length], (float) (this.width / 2 + i / 2 + 5), 50.0F, 16777215);
+        this.font.draw(pPoseStack, DOTS[this.tickCount / 10 % DOTS.length], (float) (this.width / 2 + i / 2 + 5), 50.0F, 16777215);
     }
 
-    private void drawProgressBar(PoseStack p_90122_) {
+    private void drawProgressBar(PoseStack pPoseStack) {
         double d0 = Math.min((double) this.uploadStatus.bytesWritten / (double) this.uploadStatus.totalBytes, 1.0D);
         this.progress = String.format(Locale.ROOT, "%.1f", d0 * 100.0D);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -188,10 +188,10 @@ public class RealmsUploadScreen extends RealmsScreen {
         bufferbuilder.vertex(d1, 80.0D, 0.0D).color(128, 128, 128, 255).endVertex();
         tesselator.end();
         RenderSystem.enableTexture();
-        drawCenteredString(p_90122_, this.font, this.progress + " %", this.width / 2, 84, 16777215);
+        drawCenteredString(pPoseStack, this.font, this.progress + " %", this.width / 2, 84, 16777215);
     }
 
-    private void drawUploadSpeed(PoseStack p_90125_) {
+    private void drawUploadSpeed(PoseStack pPoseStack) {
         if (this.tickCount % 20 == 0) {
             if (this.previousWrittenBytes != null) {
                 long i = Util.getMillis() - this.previousTimeSnapshot;
@@ -200,21 +200,21 @@ public class RealmsUploadScreen extends RealmsScreen {
                 }
 
                 this.bytesPersSecond = 1000L * (this.uploadStatus.bytesWritten - this.previousWrittenBytes) / i;
-                this.drawUploadSpeed0(p_90125_, this.bytesPersSecond);
+                this.drawUploadSpeed0(pPoseStack, this.bytesPersSecond);
             }
 
             this.previousWrittenBytes = this.uploadStatus.bytesWritten;
             this.previousTimeSnapshot = Util.getMillis();
         } else {
-            this.drawUploadSpeed0(p_90125_, this.bytesPersSecond);
+            this.drawUploadSpeed0(pPoseStack, this.bytesPersSecond);
         }
     }
 
-    private void drawUploadSpeed0(PoseStack p_90101_, long p_90102_) {
-        if (p_90102_ > 0L) {
+    private void drawUploadSpeed0(PoseStack pPoseStack, long pBytesPersSecond) {
+        if (pBytesPersSecond > 0L) {
             int i = this.font.width(this.progress);
-            String s = "(" + Unit.humanReadable(p_90102_) + "/s)";
-            this.font.draw(p_90101_, s, (float) (this.width / 2 + i / 2 + 15), 84.0F, 16777215);
+            String s = "(" + Unit.humanReadable(pBytesPersSecond) + "/s)";
+            this.font.draw(pPoseStack, s, (float) (this.width / 2 + i / 2 + 15), 84.0F, 16777215);
         }
     }
 
@@ -365,8 +365,8 @@ public class RealmsUploadScreen extends RealmsScreen {
         })).start();
     }
 
-    private void setErrorMessage(Component... p_90113_) {
-        this.errorMessage = p_90113_;
+    private void setErrorMessage(Component... pErrorMessage) {
+        this.errorMessage = pErrorMessage;
     }
 
     private void uploadCancelled() {
@@ -374,11 +374,11 @@ public class RealmsUploadScreen extends RealmsScreen {
         LOGGER.debug("Upload was cancelled");
     }
 
-    private boolean verify(File p_90106_) {
-        return p_90106_.length() < 5368709120L;
+    private boolean verify(File pFile) {
+        return pFile.length() < 5368709120L;
     }
 
-    private File tarGzipArchive(File p_90120_) throws IOException {
+    private File tarGzipArchive(File pFile) throws IOException {
         TarArchiveOutputStream tararchiveoutputstream = null;
 
         File file2;
@@ -386,7 +386,7 @@ public class RealmsUploadScreen extends RealmsScreen {
             File file1 = File.createTempFile("realms-upload-file", ".tar.gz");
             tararchiveoutputstream = new TarArchiveOutputStream(new GZIPOutputStream(new FileOutputStream(file1)));
             tararchiveoutputstream.setLongFileMode(3);
-            this.addFileToTarGz(tararchiveoutputstream, p_90120_.getAbsolutePath(), "world", true);
+            this.addFileToTarGz(tararchiveoutputstream, pFile.getAbsolutePath(), "world", true);
             tararchiveoutputstream.finish();
             file2 = file1;
         } finally {

@@ -29,34 +29,34 @@ public class ArmorStandRenderer extends LivingEntityRenderer<ArmorStand, ArmorSt
         this.addLayer(new CustomHeadLayer<>(this, p_173915_.getModelSet(), p_173915_.getItemInHandRenderer()));
     }
 
-    public ResourceLocation getTextureLocation(ArmorStand p_113798_) {
+    public ResourceLocation getTextureLocation(ArmorStand pEntity) {
         return DEFAULT_SKIN_LOCATION;
     }
 
-    protected void setupRotations(ArmorStand p_113800_, PoseStack p_113801_, float p_113802_, float p_113803_, float p_113804_) {
-        p_113801_.mulPose(Vector3f.YP.rotationDegrees(180.0F - p_113803_));
-        float f = (float) (p_113800_.level.getGameTime() - p_113800_.lastHit) + p_113804_;
+    protected void setupRotations(ArmorStand pEntityLiving, PoseStack pMatrixStack, float pAgeInTicks, float pRotationYaw, float pPartialTicks) {
+        pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - pRotationYaw));
+        float f = (float) (pEntityLiving.level.getGameTime() - pEntityLiving.lastHit) + pPartialTicks;
         if (f < 5.0F) {
-            p_113801_.mulPose(Vector3f.YP.rotationDegrees(Mth.sin(f / 1.5F * (float) Math.PI) * 3.0F));
+            pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(Mth.sin(f / 1.5F * (float) Math.PI) * 3.0F));
         }
     }
 
-    protected boolean shouldShowName(ArmorStand p_113815_) {
-        double d0 = this.entityRenderDispatcher.distanceToSqr(p_113815_);
-        float f = p_113815_.isCrouching() ? 32.0F : 64.0F;
-        return d0 >= (double) (f * f) ? false : p_113815_.isCustomNameVisible();
+    protected boolean shouldShowName(ArmorStand pEntity) {
+        double d0 = this.entityRenderDispatcher.distanceToSqr(pEntity);
+        float f = pEntity.isCrouching() ? 32.0F : 64.0F;
+        return d0 >= (double) (f * f) ? false : pEntity.isCustomNameVisible();
     }
 
     @Nullable
-    protected RenderType getRenderType(ArmorStand p_113806_, boolean p_113807_, boolean p_113808_, boolean p_113809_) {
-        if (!p_113806_.isMarker()) {
-            return super.getRenderType(p_113806_, p_113807_, p_113808_, p_113809_);
+    protected RenderType getRenderType(ArmorStand pLivingEntity, boolean pBodyVisible, boolean pTranslucent, boolean pGlowing) {
+        if (!pLivingEntity.isMarker()) {
+            return super.getRenderType(pLivingEntity, pBodyVisible, pTranslucent, pGlowing);
         } else {
-            ResourceLocation resourcelocation = this.getTextureLocation(p_113806_);
-            if (p_113808_) {
+            ResourceLocation resourcelocation = this.getTextureLocation(pLivingEntity);
+            if (pTranslucent) {
                 return RenderType.entityTranslucent(resourcelocation, false);
             } else {
-                return p_113807_ ? RenderType.entityCutoutNoCull(resourcelocation, false) : null;
+                return pBodyVisible ? RenderType.entityCutoutNoCull(resourcelocation, false) : null;
             }
         }
     }

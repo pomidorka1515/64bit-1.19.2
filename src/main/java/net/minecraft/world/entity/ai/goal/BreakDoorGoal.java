@@ -13,14 +13,14 @@ public class BreakDoorGoal extends DoorInteractGoal {
     protected int lastBreakProgress = -1;
     protected int doorBreakTime = -1;
 
-    public BreakDoorGoal(Mob p_25091_, Predicate<Difficulty> p_25092_) {
-        super(p_25091_);
-        this.validDifficulties = p_25092_;
+    public BreakDoorGoal(Mob pMob, Predicate<Difficulty> pValidDifficulties) {
+        super(pMob);
+        this.validDifficulties = pValidDifficulties;
     }
 
-    public BreakDoorGoal(Mob p_25087_, int p_25088_, Predicate<Difficulty> p_25089_) {
-        this(p_25087_, p_25089_);
-        this.doorBreakTime = p_25088_;
+    public BreakDoorGoal(Mob pMob, int pDoorBreakTime, Predicate<Difficulty> pValidDifficulties) {
+        this(pMob, pValidDifficulties);
+        this.doorBreakTime = pDoorBreakTime;
     }
 
     protected int getDoorBreakTime() {
@@ -74,7 +74,7 @@ public class BreakDoorGoal extends DoorInteractGoal {
         }
     }
 
-    private boolean isValidDifficulty(Difficulty p_25095_) {
-        return this.validDifficulties.test(p_25095_);
+    private boolean isValidDifficulty(Difficulty pDifficulty) {
+        return this.validDifficulties.test(pDifficulty);
     }
 }

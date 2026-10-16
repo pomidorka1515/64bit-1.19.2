@@ -31,17 +31,17 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     @Nullable
     private ChunkDebugRenderer.ChunkData data;
 
-    public ChunkDebugRenderer(Minecraft p_113368_) {
-        this.minecraft = p_113368_;
+    public ChunkDebugRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_113370_, MultiBufferSource p_113371_, double p_113372_, double p_113373_, double p_113374_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         double d0 = (double) Util.getNanos();
         if (d0 - this.lastUpdateTime > 3.0E9D) {
             this.lastUpdateTime = d0;
             IntegratedServer integratedserver = this.minecraft.getSingleplayerServer();
             if (integratedserver != null) {
-                this.data = new ChunkDebugRenderer.ChunkData(integratedserver, p_113372_, p_113374_);
+                this.data = new ChunkDebugRenderer.ChunkData(integratedserver, pCamX, pCamZ);
             } else {
                 this.data = null;
             }

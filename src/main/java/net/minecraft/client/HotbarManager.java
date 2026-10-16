@@ -22,9 +22,9 @@ public class HotbarManager {
     private final Hotbar[] hotbars = new Hotbar[9];
     private boolean loaded;
 
-    public HotbarManager(File p_90803_, DataFixer p_90804_) {
-        this.optionsFile = new File(p_90803_, "hotbar.nbt");
-        this.fixerUpper = p_90804_;
+    public HotbarManager(File pGameDirectory, DataFixer pFixerUpper) {
+        this.optionsFile = new File(pGameDirectory, "hotbar.nbt");
+        this.fixerUpper = pFixerUpper;
 
         for (int i = 0; i < 9; ++i) {
             this.hotbars[i] = new Hotbar();
@@ -67,12 +67,12 @@ public class HotbarManager {
         }
     }
 
-    public Hotbar get(int p_90807_) {
+    public Hotbar get(int pIndex) {
         if (!this.loaded) {
             this.load();
             this.loaded = true;
         }
 
-        return this.hotbars[p_90807_];
+        return this.hotbars[pIndex];
     }
 }

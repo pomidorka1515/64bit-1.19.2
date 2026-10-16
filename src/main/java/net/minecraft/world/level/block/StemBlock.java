@@ -27,65 +27,65 @@ public class StemBlock extends BushBlock implements BonemealableBlock {
     private final StemGrownBlock fruit;
     private final Supplier<Item> seedSupplier;
 
-    protected StemBlock(StemGrownBlock p_154728_, Supplier<Item> p_154729_, BlockBehaviour.Properties p_154730_) {
-        super(p_154730_);
-        this.fruit = p_154728_;
-        this.seedSupplier = p_154729_;
+    protected StemBlock(StemGrownBlock pFruit, Supplier<Item> pSeedSupplier, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
+        this.fruit = pFruit;
+        this.seedSupplier = pSeedSupplier;
         this.registerDefaultState(this.stateDefinition.any().setValue(AGE, Integer.valueOf(0)));
     }
 
-    public VoxelShape getShape(BlockState p_57047_, BlockGetter p_57048_, BlockPos p_57049_, CollisionContext p_57050_) {
-        return SHAPE_BY_AGE[p_57047_.getValue(AGE)];
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return SHAPE_BY_AGE[pState.getValue(AGE)];
     }
 
-    protected boolean mayPlaceOn(BlockState p_57053_, BlockGetter p_57054_, BlockPos p_57055_) {
-        return p_57053_.is(Blocks.FARMLAND);
+    protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
+        return pState.is(Blocks.FARMLAND);
     }
 
-    public void randomTick(BlockState p_222538_, ServerLevel p_222539_, BlockPos p_222540_, RandomSource p_222541_) {
-        if (p_222539_.getRawBrightness(p_222540_, 0) >= 9) {
-            float f = CropBlock.getGrowthSpeed(this, p_222539_, p_222540_);
-            if (p_222541_.nextInt((int) (25.0F / f) + 1) == 0) {
-                int i = p_222538_.getValue(AGE);
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.getRawBrightness(pPos, 0) >= 9) {
+            float f = CropBlock.getGrowthSpeed(this, pLevel, pPos);
+            if (pRandom.nextInt((int) (25.0F / f) + 1) == 0) {
+                int i = pState.getValue(AGE);
                 if (i < 7) {
-                    p_222538_ = p_222538_.setValue(AGE, Integer.valueOf(i + 1));
-                    p_222539_.setBlock(p_222540_, p_222538_, 2);
+                    pState = pState.setValue(AGE, Integer.valueOf(i + 1));
+                    pLevel.setBlock(pPos, pState, 2);
                 } else {
-                    Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_222541_);
-                    BlockPos blockpos = p_222540_.relative(direction);
-                    BlockState blockstate = p_222539_.getBlockState(blockpos.below());
-                    if (p_222539_.getBlockState(blockpos).isAir() && (blockstate.is(Blocks.FARMLAND) || blockstate.is(BlockTags.DIRT))) {
-                        p_222539_.setBlockAndUpdate(blockpos, this.fruit.defaultBlockState());
-                        p_222539_.setBlockAndUpdate(p_222540_, this.fruit.getAttachedStem().defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, direction));
+                    Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(pRandom);
+                    BlockPos blockpos = pPos.relative(direction);
+                    BlockState blockstate = pLevel.getBlockState(blockpos.below());
+                    if (pLevel.getBlockState(blockpos).isAir() && (blockstate.is(Blocks.FARMLAND) || blockstate.is(BlockTags.DIRT))) {
+                        pLevel.setBlockAndUpdate(blockpos, this.fruit.defaultBlockState());
+                        pLevel.setBlockAndUpdate(pPos, this.fruit.getAttachedStem().defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, direction));
                     }
                 }
             }
         }
     }
 
-    public ItemStack getCloneItemStack(BlockGetter p_57026_, BlockPos p_57027_, BlockState p_57028_) {
+    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
         return new ItemStack(this.seedSupplier.get());
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_57030_, BlockPos p_57031_, BlockState p_57032_, boolean p_57033_) {
-        return p_57032_.getValue(AGE) != 7;
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
+        return pState.getValue(AGE) != 7;
     }
 
-    public boolean isBonemealSuccess(Level p_222533_, RandomSource p_222534_, BlockPos p_222535_, BlockState p_222536_) {
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
 
-    public void performBonemeal(ServerLevel p_222528_, RandomSource p_222529_, BlockPos p_222530_, BlockState p_222531_) {
-        int i = Math.min(7, p_222531_.getValue(AGE) + Mth.nextInt(p_222528_.random, 2, 5));
-        BlockState blockstate = p_222531_.setValue(AGE, Integer.valueOf(i));
-        p_222528_.setBlock(p_222530_, blockstate, 2);
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        int i = Math.min(7, pState.getValue(AGE) + Mth.nextInt(pLevel.random, 2, 5));
+        BlockState blockstate = pState.setValue(AGE, Integer.valueOf(i));
+        pLevel.setBlock(pPos, blockstate, 2);
         if (i == 7) {
-            blockstate.randomTick(p_222528_, p_222530_, p_222528_.random);
+            blockstate.randomTick(pLevel, pPos, pLevel.random);
         }
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_57040_) {
-        p_57040_.add(AGE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(AGE);
     }
 
     public StemGrownBlock getFruit() {

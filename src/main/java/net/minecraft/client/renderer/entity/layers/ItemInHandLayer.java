@@ -23,34 +23,34 @@ public class ItemInHandLayer<T extends LivingEntity, M extends EntityModel<T> & 
         this.itemInHandRenderer = p_234847_;
     }
 
-    public void render(PoseStack p_117204_, MultiBufferSource p_117205_, int p_117206_, T p_117207_, float p_117208_, float p_117209_, float p_117210_, float p_117211_, float p_117212_, float p_117213_) {
-        boolean flag = p_117207_.getMainArm() == HumanoidArm.RIGHT;
-        ItemStack itemstack = flag ? p_117207_.getOffhandItem() : p_117207_.getMainHandItem();
-        ItemStack itemstack1 = flag ? p_117207_.getMainHandItem() : p_117207_.getOffhandItem();
+    public void render(PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight, T pLivingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        boolean flag = pLivingEntity.getMainArm() == HumanoidArm.RIGHT;
+        ItemStack itemstack = flag ? pLivingEntity.getOffhandItem() : pLivingEntity.getMainHandItem();
+        ItemStack itemstack1 = flag ? pLivingEntity.getMainHandItem() : pLivingEntity.getOffhandItem();
         if (!itemstack.isEmpty() || !itemstack1.isEmpty()) {
-            p_117204_.pushPose();
+            pMatrixStack.pushPose();
             if (this.getParentModel().young) {
                 float f = 0.5F;
-                p_117204_.translate(0.0D, 0.75D, 0.0D);
-                p_117204_.scale(0.5F, 0.5F, 0.5F);
+                pMatrixStack.translate(0.0D, 0.75D, 0.0D);
+                pMatrixStack.scale(0.5F, 0.5F, 0.5F);
             }
 
-            this.renderArmWithItem(p_117207_, itemstack1, ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, HumanoidArm.RIGHT, p_117204_, p_117205_, p_117206_);
-            this.renderArmWithItem(p_117207_, itemstack, ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND, HumanoidArm.LEFT, p_117204_, p_117205_, p_117206_);
-            p_117204_.popPose();
+            this.renderArmWithItem(pLivingEntity, itemstack1, ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, HumanoidArm.RIGHT, pMatrixStack, pBuffer, pPackedLight);
+            this.renderArmWithItem(pLivingEntity, itemstack, ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND, HumanoidArm.LEFT, pMatrixStack, pBuffer, pPackedLight);
+            pMatrixStack.popPose();
         }
     }
 
-    protected void renderArmWithItem(LivingEntity p_117185_, ItemStack p_117186_, ItemTransforms.TransformType p_117187_, HumanoidArm p_117188_, PoseStack p_117189_, MultiBufferSource p_117190_, int p_117191_) {
-        if (!p_117186_.isEmpty()) {
-            p_117189_.pushPose();
-            this.getParentModel().translateToHand(p_117188_, p_117189_);
-            p_117189_.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
-            p_117189_.mulPose(Vector3f.YP.rotationDegrees(180.0F));
-            boolean flag = p_117188_ == HumanoidArm.LEFT;
-            p_117189_.translate((double) ((float) (flag ? -1 : 1) / 16.0F), 0.125D, -0.625D);
-            this.itemInHandRenderer.renderItem(p_117185_, p_117186_, p_117187_, flag, p_117189_, p_117190_, p_117191_);
-            p_117189_.popPose();
+    protected void renderArmWithItem(LivingEntity pLivingEntity, ItemStack pItemStack, ItemTransforms.TransformType pTransformType, HumanoidArm pArm, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight) {
+        if (!pItemStack.isEmpty()) {
+            pPoseStack.pushPose();
+            this.getParentModel().translateToHand(pArm, pPoseStack);
+            pPoseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
+            pPoseStack.mulPose(Vector3f.YP.rotationDegrees(180.0F));
+            boolean flag = pArm == HumanoidArm.LEFT;
+            pPoseStack.translate((double) ((float) (flag ? -1 : 1) / 16.0F), 0.125D, -0.625D);
+            this.itemInHandRenderer.renderItem(pLivingEntity, pItemStack, pTransformType, flag, pPoseStack, pBuffer, pPackedLight);
+            pPoseStack.popPose();
         }
     }
 }

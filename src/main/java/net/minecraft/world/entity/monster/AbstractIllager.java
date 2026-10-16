@@ -9,8 +9,8 @@ import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.level.Level;
 
 public abstract class AbstractIllager extends Raider {
-    protected AbstractIllager(EntityType<? extends AbstractIllager> p_32105_, Level p_32106_) {
-        super(p_32105_, p_32106_);
+    protected AbstractIllager(EntityType<? extends AbstractIllager> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -25,8 +25,8 @@ public abstract class AbstractIllager extends Raider {
         return AbstractIllager.IllagerArmPose.CROSSED;
     }
 
-    public boolean canAttack(LivingEntity p_186270_) {
-        return p_186270_ instanceof AbstractVillager && p_186270_.isBaby() ? false : super.canAttack(p_186270_);
+    public boolean canAttack(LivingEntity pTarget) {
+        return pTarget instanceof AbstractVillager && pTarget.isBaby() ? false : super.canAttack(pTarget);
     }
 
     public static enum IllagerArmPose {

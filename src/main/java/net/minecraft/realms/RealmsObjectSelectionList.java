@@ -8,20 +8,20 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class RealmsObjectSelectionList<E extends ObjectSelectionList.Entry<E>> extends ObjectSelectionList<E> {
-    protected RealmsObjectSelectionList(int p_120745_, int p_120746_, int p_120747_, int p_120748_, int p_120749_) {
-        super(Minecraft.getInstance(), p_120745_, p_120746_, p_120747_, p_120748_, p_120749_);
+    protected RealmsObjectSelectionList(int pWidth, int pHeight, int pY0, int pY1, int pItemHeight) {
+        super(Minecraft.getInstance(), pWidth, pHeight, pY0, pY1, pItemHeight);
     }
 
-    public void setSelectedItem(int p_120768_) {
-        if (p_120768_ == -1) {
+    public void setSelectedItem(int pIndex) {
+        if (pIndex == -1) {
             this.setSelected((E) null);
         } else if (super.getItemCount() != 0) {
-            this.setSelected(this.getEntry(p_120768_));
+            this.setSelected(this.getEntry(pIndex));
         }
     }
 
-    public void selectItem(int p_120750_) {
-        this.setSelectedItem(p_120750_);
+    public void selectItem(int pIndex) {
+        this.setSelectedItem(pIndex);
     }
 
     public void itemClicked(int p_120751_, int p_120752_, double p_120753_, double p_120754_, int p_120755_) {
@@ -39,24 +39,24 @@ public abstract class RealmsObjectSelectionList<E extends ObjectSelectionList.En
         return (int) ((double) this.width * 0.6D);
     }
 
-    public void replaceEntries(Collection<E> p_120759_) {
-        super.replaceEntries(p_120759_);
+    public void replaceEntries(Collection<E> pEntries) {
+        super.replaceEntries(pEntries);
     }
 
     public int getItemCount() {
         return super.getItemCount();
     }
 
-    public int getRowTop(int p_120766_) {
-        return super.getRowTop(p_120766_);
+    public int getRowTop(int pIndex) {
+        return super.getRowTop(pIndex);
     }
 
     public int getRowLeft() {
         return super.getRowLeft();
     }
 
-    public int addEntry(E p_120757_) {
-        return super.addEntry(p_120757_);
+    public int addEntry(E pEntry) {
+        return super.addEntry(pEntry);
     }
 
     public void clear() {

@@ -14,11 +14,11 @@ public abstract class RowButton {
     public final int xOffset;
     public final int yOffset;
 
-    public RowButton(int p_88012_, int p_88013_, int p_88014_, int p_88015_) {
-        this.width = p_88012_;
-        this.height = p_88013_;
-        this.xOffset = p_88014_;
-        this.yOffset = p_88015_;
+    public RowButton(int pWidth, int pHeight, int pXOffset, int pYOffset) {
+        this.width = pWidth;
+        this.height = pHeight;
+        this.xOffset = pXOffset;
+        this.yOffset = pYOffset;
     }
 
     public void drawForRowAt(PoseStack p_88019_, int p_88020_, int p_88021_, int p_88022_, int p_88023_) {
@@ -28,7 +28,7 @@ public abstract class RowButton {
         this.draw(p_88019_, i, j, flag);
     }
 
-    protected abstract void draw(PoseStack p_88024_, int p_88025_, int p_88026_, boolean p_88027_);
+    protected abstract void draw(PoseStack pPoseStack, int pX, int pY, boolean pShowTooltip);
 
     public int getRight() {
         return this.xOffset + this.width;

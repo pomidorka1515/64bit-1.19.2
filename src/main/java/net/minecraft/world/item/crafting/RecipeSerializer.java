@@ -28,13 +28,13 @@ public interface RecipeSerializer<T extends Recipe<?>> {
     RecipeSerializer<StonecutterRecipe> STONECUTTER = register("stonecutting", new SingleItemRecipe.Serializer<>(StonecutterRecipe::new));
     RecipeSerializer<UpgradeRecipe> SMITHING = register("smithing", new UpgradeRecipe.Serializer());
 
-    T fromJson(ResourceLocation p_44103_, JsonObject p_44104_);
+    T fromJson(ResourceLocation pRecipeId, JsonObject pSerializedRecipe);
 
-    T fromNetwork(ResourceLocation p_44105_, FriendlyByteBuf p_44106_);
+    T fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf pBuffer);
 
-    void toNetwork(FriendlyByteBuf p_44101_, T p_44102_);
+    void toNetwork(FriendlyByteBuf pBuffer, T pRecipe);
 
-    static <S extends RecipeSerializer<T>, T extends Recipe<?>> S register(String p_44099_, S p_44100_) {
-        return Registry.register(Registry.RECIPE_SERIALIZER, p_44099_, p_44100_);
+    static <S extends RecipeSerializer<T>, T extends Recipe<?>> S register(String pKey, S pRecipeSerializer) {
+        return Registry.register(Registry.RECIPE_SERIALIZER, pKey, pRecipeSerializer);
     }
 }

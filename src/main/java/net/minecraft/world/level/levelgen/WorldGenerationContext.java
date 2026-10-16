@@ -7,9 +7,9 @@ public class WorldGenerationContext {
     private final int minY;
     private final int height;
 
-    public WorldGenerationContext(ChunkGenerator p_182507_, LevelHeightAccessor p_182508_) {
-        this.minY = Math.max(p_182508_.getMinBuildHeight(), p_182507_.getMinY());
-        this.height = Math.min(p_182508_.getHeight(), p_182507_.getGenDepth());
+    public WorldGenerationContext(ChunkGenerator pGenerator, LevelHeightAccessor pLevel) {
+        this.minY = Math.max(pLevel.getMinBuildHeight(), pGenerator.getMinY());
+        this.height = Math.min(pLevel.getHeight(), pGenerator.getGenDepth());
     }
 
     public int getMinGenY() {

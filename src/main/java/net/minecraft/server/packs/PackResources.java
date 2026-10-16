@@ -14,18 +14,18 @@ public interface PackResources extends AutoCloseable {
     String PACK_META = "pack.mcmeta";
 
     @Nullable
-    InputStream getRootResource(String p_10294_) throws IOException;
+    InputStream getRootResource(String pFileName) throws IOException;
 
-    InputStream getResource(PackType p_10289_, ResourceLocation p_10290_) throws IOException;
+    InputStream getResource(PackType pType, ResourceLocation pLocation) throws IOException;
 
-    Collection<ResourceLocation> getResources(PackType p_215339_, String p_215340_, String p_215341_, Predicate<ResourceLocation> p_215342_);
+    Collection<ResourceLocation> getResources(PackType pType, String pNamespace, String pPath, Predicate<ResourceLocation> pFilter);
 
-    boolean hasResource(PackType p_10292_, ResourceLocation p_10293_);
+    boolean hasResource(PackType pType, ResourceLocation pLocation);
 
-    Set<String> getNamespaces(PackType p_10283_);
+    Set<String> getNamespaces(PackType pType);
 
     @Nullable
-    <T> T getMetadataSection(MetadataSectionSerializer<T> p_10291_) throws IOException;
+    <T> T getMetadataSection(MetadataSectionSerializer<T> pDeserializer) throws IOException;
 
     String getName();
 

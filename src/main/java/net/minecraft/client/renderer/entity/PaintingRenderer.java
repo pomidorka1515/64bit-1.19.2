@@ -23,24 +23,24 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class PaintingRenderer extends EntityRenderer<Painting> {
-    public PaintingRenderer(EntityRendererProvider.Context p_174332_) {
-        super(p_174332_);
+    public PaintingRenderer(EntityRendererProvider.Context pContext) {
+        super(pContext);
     }
 
-    public void render(Painting p_115552_, float p_115553_, float p_115554_, PoseStack p_115555_, MultiBufferSource p_115556_, int p_115557_) {
-        p_115555_.pushPose();
-        p_115555_.mulPose(Vector3f.YP.rotationDegrees(180.0F - p_115553_));
-        PaintingVariant paintingvariant = p_115552_.getVariant().value();
+    public void render(Painting pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        pMatrixStack.pushPose();
+        pMatrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - pEntityYaw));
+        PaintingVariant paintingvariant = pEntity.getVariant().value();
         float f = 0.0625F;
-        p_115555_.scale(0.0625F, 0.0625F, 0.0625F);
-        VertexConsumer vertexconsumer = p_115556_.getBuffer(RenderType.entitySolid(this.getTextureLocation(p_115552_)));
+        pMatrixStack.scale(0.0625F, 0.0625F, 0.0625F);
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.entitySolid(this.getTextureLocation(pEntity)));
         PaintingTextureManager paintingtexturemanager = Minecraft.getInstance().getPaintingTextures();
-        this.renderPainting(p_115555_, vertexconsumer, p_115552_, paintingvariant.getWidth(), paintingvariant.getHeight(), paintingtexturemanager.get(paintingvariant), paintingtexturemanager.getBackSprite());
-        p_115555_.popPose();
-        super.render(p_115552_, p_115553_, p_115554_, p_115555_, p_115556_, p_115557_);
+        this.renderPainting(pMatrixStack, vertexconsumer, pEntity, paintingvariant.getWidth(), paintingvariant.getHeight(), paintingtexturemanager.get(paintingvariant), paintingtexturemanager.getBackSprite());
+        pMatrixStack.popPose();
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
     }
 
-    public ResourceLocation getTextureLocation(Painting p_115550_) {
+    public ResourceLocation getTextureLocation(Painting pEntity) {
         return Minecraft.getInstance().getPaintingTextures().getBackSprite().atlas().location();
     }
 

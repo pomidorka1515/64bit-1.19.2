@@ -24,15 +24,15 @@ public class GameTestBatchRunner {
     private final List<Pair<GameTestBatch, Collection<GameTestInfo>>> batches;
     private final BlockPos.MutableBlockPos nextTestNorthWestCorner;
 
-    public GameTestBatchRunner(Collection<GameTestBatch> p_127563_, BlockPos p_127564_, Rotation p_127565_, ServerLevel p_127566_, GameTestTicker p_127567_, int p_127568_) {
-        this.nextTestNorthWestCorner = p_127564_.mutable();
-        this.firstTestNorthWestCorner = p_127564_;
-        this.level = p_127566_;
-        this.testTicker = p_127567_;
-        this.testsPerRow = p_127568_;
-        this.batches = p_127563_.stream().map((p_177068_) -> {
+    public GameTestBatchRunner(Collection<GameTestBatch> pTestBatches, BlockPos pPos, Rotation pRotation, ServerLevel pServerLevel, GameTestTicker pTestTicker, int pTestsPerRow) {
+        this.nextTestNorthWestCorner = pPos.mutable();
+        this.firstTestNorthWestCorner = pPos;
+        this.level = pServerLevel;
+        this.testTicker = pTestTicker;
+        this.testsPerRow = pTestsPerRow;
+        this.batches = pTestBatches.stream().map((p_177068_) -> {
                                              Collection<GameTestInfo> collection = p_177068_.getTestFunctions().stream().map((p_177072_) -> {
-                                                                                                                            return new GameTestInfo(p_177072_, p_127565_, p_127566_);
+                                                                                                                            return new GameTestInfo(p_177072_, pRotation, pServerLevel);
                                                                                                                         })
                                                                                            .collect(ImmutableList.toImmutableList());
                                              return Pair.of(p_177068_, collection);
@@ -52,9 +52,9 @@ public class GameTestBatchRunner {
         this.runBatch(0);
     }
 
-    void runBatch(final int p_127571_) {
-        if (p_127571_ < this.batches.size()) {
-            Pair<GameTestBatch, Collection<GameTestInfo>> pair = this.batches.get(p_127571_);
+    void runBatch(final int pBatchId) {
+        if (pBatchId < this.batches.size()) {
+            Pair<GameTestBatch, Collection<GameTestInfo>> pair = this.batches.get(pBatchId);
             final GameTestBatch gametestbatch = pair.getFirst();
             Collection<GameTestInfo> collection = pair.getSecond();
             Map<GameTestInfo, BlockPos> map = this.createStructuresForBatch(collection);
@@ -67,7 +67,7 @@ public class GameTestBatchRunner {
                 private void testCompleted() {
                     if (multipletesttracker.isDone()) {
                         gametestbatch.runAfterBatchFunction(GameTestBatchRunner.this.level);
-                        GameTestBatchRunner.this.runBatch(p_127571_ + 1);
+                        GameTestBatchRunner.this.runBatch(pBatchId + 1);
                     }
                 }
 
@@ -89,12 +89,12 @@ public class GameTestBatchRunner {
         }
     }
 
-    private Map<GameTestInfo, BlockPos> createStructuresForBatch(Collection<GameTestInfo> p_177076_) {
+    private Map<GameTestInfo, BlockPos> createStructuresForBatch(Collection<GameTestInfo> pTestInfos) {
         Map<GameTestInfo, BlockPos> map = Maps.newHashMap();
         int i = 0;
         AABB aabb = new AABB(this.nextTestNorthWestCorner);
 
-        for (GameTestInfo gametestinfo : p_177076_) {
+        for (GameTestInfo gametestinfo : pTestInfos) {
             BlockPos blockpos = new BlockPos(this.nextTestNorthWestCorner);
             StructureBlockEntity structureblockentity = StructureUtils.spawnStructure(gametestinfo.getStructureName(), blockpos, gametestinfo.getRotation(), 2, this.level, true);
             AABB aabb1 = StructureUtils.getStructureBounds(structureblockentity);

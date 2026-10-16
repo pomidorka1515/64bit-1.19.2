@@ -9,26 +9,26 @@ public interface PositionSourceType<T extends PositionSource> {
     PositionSourceType<BlockPositionSource> BLOCK = register("block", new BlockPositionSource.Type());
     PositionSourceType<EntityPositionSource> ENTITY = register("entity", new EntityPositionSource.Type());
 
-    T read(FriendlyByteBuf p_157884_);
+    T read(FriendlyByteBuf pByteBuf);
 
-    void write(FriendlyByteBuf p_157880_, T p_157881_);
+    void write(FriendlyByteBuf pByteBuf, T pSource);
 
     Codec<T> codec();
 
-    static <S extends PositionSourceType<T>, T extends PositionSource> S register(String p_157878_, S p_157879_) {
-        return Registry.register(Registry.POSITION_SOURCE_TYPE, p_157878_, p_157879_);
+    static <S extends PositionSourceType<T>, T extends PositionSource> S register(String pId, S pType) {
+        return Registry.register(Registry.POSITION_SOURCE_TYPE, pId, pType);
     }
 
-    static PositionSource fromNetwork(FriendlyByteBuf p_157886_) {
-        ResourceLocation resourcelocation = p_157886_.readResourceLocation();
+    static PositionSource fromNetwork(FriendlyByteBuf pByteBuf) {
+        ResourceLocation resourcelocation = pByteBuf.readResourceLocation();
         return Registry.POSITION_SOURCE_TYPE.getOptional(resourcelocation).orElseThrow(() -> {
                                                                               return new IllegalArgumentException("Unknown position source type " + resourcelocation);
                                                                           })
-                .read(p_157886_);
+                .read(pByteBuf);
     }
 
-    static <T extends PositionSource> void toNetwork(T p_157875_, FriendlyByteBuf p_157876_) {
-        p_157876_.writeResourceLocation(Registry.POSITION_SOURCE_TYPE.getKey(p_157875_.getType()));
-        ((PositionSourceType<T>) p_157875_.getType()).write(p_157876_, p_157875_);
+    static <T extends PositionSource> void toNetwork(T pSource, FriendlyByteBuf pByteBuf) {
+        pByteBuf.writeResourceLocation(Registry.POSITION_SOURCE_TYPE.getKey(pSource.getType()));
+        ((PositionSourceType<T>) pSource.getType()).write(pByteBuf, pSource);
     }
 }

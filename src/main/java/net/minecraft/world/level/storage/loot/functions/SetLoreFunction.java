@@ -28,11 +28,11 @@ public class SetLoreFunction extends LootItemConditionalFunction {
     @Nullable
     final LootContext.EntityTarget resolutionContext;
 
-    public SetLoreFunction(LootItemCondition[] p_81083_, boolean p_81084_, List<Component> p_81085_, @Nullable LootContext.EntityTarget p_81086_) {
-        super(p_81083_);
-        this.replace = p_81084_;
-        this.lore = ImmutableList.copyOf(p_81085_);
-        this.resolutionContext = p_81086_;
+    public SetLoreFunction(LootItemCondition[] pConditions, boolean pReplace, List<Component> pLore, @Nullable LootContext.EntityTarget pResolutionContext) {
+        super(pConditions);
+        this.replace = pReplace;
+        this.lore = ImmutableList.copyOf(pLore);
+        this.resolutionContext = pResolutionContext;
     }
 
     public LootItemFunctionType getType() {
@@ -43,39 +43,39 @@ public class SetLoreFunction extends LootItemConditionalFunction {
         return this.resolutionContext != null ? ImmutableSet.of(this.resolutionContext.getParam()) : ImmutableSet.of();
     }
 
-    public ItemStack run(ItemStack p_81089_, LootContext p_81090_) {
-        ListTag listtag = this.getLoreTag(p_81089_, !this.lore.isEmpty());
+    public ItemStack run(ItemStack pStack, LootContext pContext) {
+        ListTag listtag = this.getLoreTag(pStack, !this.lore.isEmpty());
         if (listtag != null) {
             if (this.replace) {
                 listtag.clear();
             }
 
-            UnaryOperator<Component> unaryoperator = SetNameFunction.createResolver(p_81090_, this.resolutionContext);
+            UnaryOperator<Component> unaryoperator = SetNameFunction.createResolver(pContext, this.resolutionContext);
             this.lore.stream().map(unaryoperator).map(Component.Serializer::toJson).map(StringTag::valueOf).forEach(listtag::add);
         }
 
-        return p_81089_;
+        return pStack;
     }
 
     @Nullable
-    private ListTag getLoreTag(ItemStack p_81092_, boolean p_81093_) {
+    private ListTag getLoreTag(ItemStack pStack, boolean pCreateIfMissing) {
         CompoundTag compoundtag;
-        if (p_81092_.hasTag()) {
-            compoundtag = p_81092_.getTag();
+        if (pStack.hasTag()) {
+            compoundtag = pStack.getTag();
         } else {
-            if (!p_81093_) {
+            if (!pCreateIfMissing) {
                 return null;
             }
 
             compoundtag = new CompoundTag();
-            p_81092_.setTag(compoundtag);
+            pStack.setTag(compoundtag);
         }
 
         CompoundTag compoundtag1;
         if (compoundtag.contains("display", 10)) {
             compoundtag1 = compoundtag.getCompound("display");
         } else {
-            if (!p_81093_) {
+            if (!pCreateIfMissing) {
                 return null;
             }
 
@@ -85,7 +85,7 @@ public class SetLoreFunction extends LootItemConditionalFunction {
 
         if (compoundtag1.contains("Lore", 9)) {
             return compoundtag1.getList("Lore", 8);
-        } else if (p_81093_) {
+        } else if (pCreateIfMissing) {
             ListTag listtag = new ListTag();
             compoundtag1.put("Lore", listtag);
             return listtag;
@@ -103,18 +103,18 @@ public class SetLoreFunction extends LootItemConditionalFunction {
         private LootContext.EntityTarget resolutionContext;
         private final List<Component> lore = Lists.newArrayList();
 
-        public SetLoreFunction.Builder setReplace(boolean p_165454_) {
-            this.replace = p_165454_;
+        public SetLoreFunction.Builder setReplace(boolean pReplace) {
+            this.replace = pReplace;
             return this;
         }
 
-        public SetLoreFunction.Builder setResolutionContext(LootContext.EntityTarget p_165450_) {
-            this.resolutionContext = p_165450_;
+        public SetLoreFunction.Builder setResolutionContext(LootContext.EntityTarget pResolutionContext) {
+            this.resolutionContext = pResolutionContext;
             return this;
         }
 
-        public SetLoreFunction.Builder addLine(Component p_165452_) {
-            this.lore.add(p_165452_);
+        public SetLoreFunction.Builder addLine(Component pLine) {
+            this.lore.add(pLine);
             return this;
         }
 
@@ -128,26 +128,26 @@ public class SetLoreFunction extends LootItemConditionalFunction {
     }
 
     public static class Serializer extends LootItemConditionalFunction.Serializer<SetLoreFunction> {
-        public void serialize(JsonObject p_81111_, SetLoreFunction p_81112_, JsonSerializationContext p_81113_) {
-            super.serialize(p_81111_, p_81112_, p_81113_);
-            p_81111_.addProperty("replace", p_81112_.replace);
+        public void serialize(JsonObject pJson, SetLoreFunction pValue, JsonSerializationContext pSerializationContext) {
+            super.serialize(pJson, pValue, pSerializationContext);
+            pJson.addProperty("replace", pValue.replace);
             JsonArray jsonarray = new JsonArray();
 
-            for (Component component : p_81112_.lore) {
+            for (Component component : pValue.lore) {
                 jsonarray.add(Component.Serializer.toJsonTree(component));
             }
 
-            p_81111_.add("lore", jsonarray);
-            if (p_81112_.resolutionContext != null) {
-                p_81111_.add("entity", p_81113_.serialize(p_81112_.resolutionContext));
+            pJson.add("lore", jsonarray);
+            if (pValue.resolutionContext != null) {
+                pJson.add("entity", pSerializationContext.serialize(pValue.resolutionContext));
             }
         }
 
-        public SetLoreFunction deserialize(JsonObject p_81103_, JsonDeserializationContext p_81104_, LootItemCondition[] p_81105_) {
-            boolean flag = GsonHelper.getAsBoolean(p_81103_, "replace", false);
-            List<Component> list = Streams.stream(GsonHelper.getAsJsonArray(p_81103_, "lore")).map(Component.Serializer::fromJson).collect(ImmutableList.toImmutableList());
-            LootContext.EntityTarget lootcontext$entitytarget = GsonHelper.getAsObject(p_81103_, "entity", (LootContext.EntityTarget) null, p_81104_, LootContext.EntityTarget.class);
-            return new SetLoreFunction(p_81105_, flag, list, lootcontext$entitytarget);
+        public SetLoreFunction deserialize(JsonObject pObject, JsonDeserializationContext pDeserializationContext, LootItemCondition[] pConditions) {
+            boolean flag = GsonHelper.getAsBoolean(pObject, "replace", false);
+            List<Component> list = Streams.stream(GsonHelper.getAsJsonArray(pObject, "lore")).map(Component.Serializer::fromJson).collect(ImmutableList.toImmutableList());
+            LootContext.EntityTarget lootcontext$entitytarget = GsonHelper.getAsObject(pObject, "entity", (LootContext.EntityTarget) null, pDeserializationContext, LootContext.EntityTarget.class);
+            return new SetLoreFunction(pConditions, flag, list, lootcontext$entitytarget);
         }
     }
 }

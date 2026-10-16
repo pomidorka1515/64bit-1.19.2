@@ -25,24 +25,24 @@ public class EntityCollisionContext implements CollisionContext {
     @Nullable
     private final Entity entity;
 
-    protected EntityCollisionContext(boolean p_198916_, double p_198917_, ItemStack p_198918_, Predicate<FluidState> p_198919_, @Nullable Entity p_198920_) {
-        this.descending = p_198916_;
-        this.entityBottom = p_198917_;
-        this.heldItem = p_198918_;
-        this.canStandOnFluid = p_198919_;
-        this.entity = p_198920_;
+    protected EntityCollisionContext(boolean pDescending, double pEntityBottom, ItemStack pHeldItem, Predicate<FluidState> pCanStandOnFluid, @Nullable Entity pEntity) {
+        this.descending = pDescending;
+        this.entityBottom = pEntityBottom;
+        this.heldItem = pHeldItem;
+        this.canStandOnFluid = pCanStandOnFluid;
+        this.entity = pEntity;
     }
 
     /** @deprecated */
     @Deprecated
-    protected EntityCollisionContext(Entity p_82872_) {
-        this(p_82872_.isDescending(), p_82872_.getY(), p_82872_ instanceof LivingEntity ? ((LivingEntity) p_82872_).getMainHandItem() : ItemStack.EMPTY, p_82872_ instanceof LivingEntity ? ((LivingEntity) p_82872_)::canStandOnFluid : (p_205113_) -> {
+    protected EntityCollisionContext(Entity pEntity) {
+        this(pEntity.isDescending(), pEntity.getY(), pEntity instanceof LivingEntity ? ((LivingEntity) pEntity).getMainHandItem() : ItemStack.EMPTY, pEntity instanceof LivingEntity ? ((LivingEntity) pEntity)::canStandOnFluid : (p_205113_) -> {
             return false;
-        }, p_82872_);
+        }, pEntity);
     }
 
-    public boolean isHoldingItem(Item p_82879_) {
-        return this.heldItem.is(p_82879_);
+    public boolean isHoldingItem(Item pItem) {
+        return this.heldItem.is(pItem);
     }
 
     public boolean canStandOnFluid(FluidState p_205115_, FluidState p_205116_) {
@@ -53,8 +53,8 @@ public class EntityCollisionContext implements CollisionContext {
         return this.descending;
     }
 
-    public boolean isAbove(VoxelShape p_82886_, BlockPos p_82887_, boolean p_82888_) {
-        return this.entityBottom > (double) p_82887_.getY() + p_82886_.max(Direction.Axis.Y) - (double) 1.0E-5F;
+    public boolean isAbove(VoxelShape pShape, BlockPos pPos, boolean pCanAscend) {
+        return this.entityBottom > (double) pPos.getY() + pShape.max(Direction.Axis.Y) - (double) 1.0E-5F;
     }
 
     @Nullable

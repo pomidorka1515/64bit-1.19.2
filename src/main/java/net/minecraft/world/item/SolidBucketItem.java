@@ -17,16 +17,16 @@ import net.minecraft.world.phys.BlockHitResult;
 public class SolidBucketItem extends BlockItem implements DispensibleContainerItem {
     private final SoundEvent placeSound;
 
-    public SolidBucketItem(Block p_151187_, SoundEvent p_151188_, Item.Properties p_151189_) {
-        super(p_151187_, p_151189_);
-        this.placeSound = p_151188_;
+    public SolidBucketItem(Block pBlock, SoundEvent pPlaceSound, Item.Properties pProperties) {
+        super(pBlock, pProperties);
+        this.placeSound = pPlaceSound;
     }
 
-    public InteractionResult useOn(UseOnContext p_151197_) {
-        InteractionResult interactionresult = super.useOn(p_151197_);
-        Player player = p_151197_.getPlayer();
+    public InteractionResult useOn(UseOnContext pContext) {
+        InteractionResult interactionresult = super.useOn(pContext);
+        Player player = pContext.getPlayer();
         if (interactionresult.consumesAction() && player != null && !player.isCreative()) {
-            InteractionHand interactionhand = p_151197_.getHand();
+            InteractionHand interactionhand = pContext.getHand();
             player.setItemInHand(interactionhand, Items.BUCKET.getDefaultInstance());
         }
 
@@ -37,18 +37,18 @@ public class SolidBucketItem extends BlockItem implements DispensibleContainerIt
         return this.getOrCreateDescriptionId();
     }
 
-    protected SoundEvent getPlaceSound(BlockState p_151199_) {
+    protected SoundEvent getPlaceSound(BlockState pState) {
         return this.placeSound;
     }
 
-    public boolean emptyContents(@Nullable Player p_151192_, Level p_151193_, BlockPos p_151194_, @Nullable BlockHitResult p_151195_) {
-        if (p_151193_.isInWorldBounds(p_151194_) && p_151193_.isEmptyBlock(p_151194_)) {
-            if (!p_151193_.isClientSide) {
-                p_151193_.setBlock(p_151194_, this.getBlock().defaultBlockState(), 3);
+    public boolean emptyContents(@Nullable Player pPlayer, Level pLevel, BlockPos pPos, @Nullable BlockHitResult pResult) {
+        if (pLevel.isInWorldBounds(pPos) && pLevel.isEmptyBlock(pPos)) {
+            if (!pLevel.isClientSide) {
+                pLevel.setBlock(pPos, this.getBlock().defaultBlockState(), 3);
             }
 
-            p_151193_.gameEvent(p_151192_, GameEvent.FLUID_PLACE, p_151194_);
-            p_151193_.playSound(p_151192_, p_151194_, this.placeSound, SoundSource.BLOCKS, 1.0F, 1.0F);
+            pLevel.gameEvent(pPlayer, GameEvent.FLUID_PLACE, pPos);
+            pLevel.playSound(pPlayer, pPos, this.placeSound, SoundSource.BLOCKS, 1.0F, 1.0F);
             return true;
         } else {
             return false;

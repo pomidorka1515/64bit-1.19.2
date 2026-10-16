@@ -7,8 +7,8 @@ import net.minecraft.world.entity.decoration.PaintingVariant;
 import net.minecraft.world.entity.decoration.PaintingVariants;
 
 public class PaintingVariantTagsProvider extends TagsProvider<PaintingVariant> {
-    public PaintingVariantTagsProvider(DataGenerator p_236431_) {
-        super(p_236431_, Registry.PAINTING_VARIANT);
+    public PaintingVariantTagsProvider(DataGenerator pGenerator) {
+        super(pGenerator, Registry.PAINTING_VARIANT);
     }
 
     protected void addTags() {

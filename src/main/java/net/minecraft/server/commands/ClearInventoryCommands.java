@@ -24,8 +24,8 @@ public class ClearInventoryCommands {
         return Component.translatable("clear.failed.multiple", p_136711_);
     });
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_214421_, CommandBuildContext p_214422_) {
-        p_214421_.register(Commands.literal("clear").requires((p_136704_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher, CommandBuildContext pContext) {
+        pDispatcher.register(Commands.literal("clear").requires((p_136704_) -> {
                                                         return p_136704_.hasPermission(2);
                                                     })
                         .executes((p_136721_) -> {
@@ -38,7 +38,7 @@ public class ClearInventoryCommands {
                                                                                             return true;
                                                                                         }, -1);
                                                                                     })
-                                        .then(Commands.argument("item", ItemPredicateArgument.itemPredicate(p_214422_)).executes((p_136715_) -> {
+                                        .then(Commands.argument("item", ItemPredicateArgument.itemPredicate(pContext)).executes((p_136715_) -> {
                                                                                                                            return clearInventory(p_136715_.getSource(), EntityArgument.getPlayers(p_136715_, "targets"), ItemPredicateArgument.getItemPredicate(p_136715_, "item"), -1);
                                                                                                                        })
                                                         .then(Commands.argument("maxCount", IntegerArgumentType.integer(0)).executes((p_136702_) -> {
@@ -46,32 +46,32 @@ public class ClearInventoryCommands {
                                                         })))));
     }
 
-    private static int clearInventory(CommandSourceStack p_136706_, Collection<ServerPlayer> p_136707_, Predicate<ItemStack> p_136708_, int p_136709_) throws CommandSyntaxException {
+    private static int clearInventory(CommandSourceStack pSource, Collection<ServerPlayer> pTargetPlayers, Predicate<ItemStack> pItemPredicate, int pMaxCount) throws CommandSyntaxException {
         int i = 0;
 
-        for (ServerPlayer serverplayer : p_136707_) {
-            i += serverplayer.getInventory().clearOrCountMatchingItems(p_136708_, p_136709_, serverplayer.inventoryMenu.getCraftSlots());
+        for (ServerPlayer serverplayer : pTargetPlayers) {
+            i += serverplayer.getInventory().clearOrCountMatchingItems(pItemPredicate, pMaxCount, serverplayer.inventoryMenu.getCraftSlots());
             serverplayer.containerMenu.broadcastChanges();
             serverplayer.inventoryMenu.slotsChanged(serverplayer.getInventory());
         }
 
         if (i == 0) {
-            if (p_136707_.size() == 1) {
-                throw ERROR_SINGLE.create(p_136707_.iterator().next().getName());
+            if (pTargetPlayers.size() == 1) {
+                throw ERROR_SINGLE.create(pTargetPlayers.iterator().next().getName());
             } else {
-                throw ERROR_MULTIPLE.create(p_136707_.size());
+                throw ERROR_MULTIPLE.create(pTargetPlayers.size());
             }
         } else {
-            if (p_136709_ == 0) {
-                if (p_136707_.size() == 1) {
-                    p_136706_.sendSuccess(Component.translatable("commands.clear.test.single", i, p_136707_.iterator().next().getDisplayName()), true);
+            if (pMaxCount == 0) {
+                if (pTargetPlayers.size() == 1) {
+                    pSource.sendSuccess(Component.translatable("commands.clear.test.single", i, pTargetPlayers.iterator().next().getDisplayName()), true);
                 } else {
-                    p_136706_.sendSuccess(Component.translatable("commands.clear.test.multiple", i, p_136707_.size()), true);
+                    pSource.sendSuccess(Component.translatable("commands.clear.test.multiple", i, pTargetPlayers.size()), true);
                 }
-            } else if (p_136707_.size() == 1) {
-                p_136706_.sendSuccess(Component.translatable("commands.clear.success.single", i, p_136707_.iterator().next().getDisplayName()), true);
+            } else if (pTargetPlayers.size() == 1) {
+                pSource.sendSuccess(Component.translatable("commands.clear.success.single", i, pTargetPlayers.iterator().next().getDisplayName()), true);
             } else {
-                p_136706_.sendSuccess(Component.translatable("commands.clear.success.multiple", i, p_136707_.size()), true);
+                pSource.sendSuccess(Component.translatable("commands.clear.success.multiple", i, pTargetPlayers.size()), true);
             }
 
             return i;

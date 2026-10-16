@@ -15,9 +15,9 @@ public class DolphinJumpGoal extends JumpGoal {
     private final int interval;
     private boolean breached;
 
-    public DolphinJumpGoal(Dolphin p_25168_, int p_25169_) {
-        this.dolphin = p_25168_;
-        this.interval = reducedTickDelay(p_25169_);
+    public DolphinJumpGoal(Dolphin pDolphin, int pInterval) {
+        this.dolphin = pDolphin;
+        this.interval = reducedTickDelay(pInterval);
     }
 
     public boolean canUse() {
@@ -39,13 +39,13 @@ public class DolphinJumpGoal extends JumpGoal {
         }
     }
 
-    private boolean waterIsClear(BlockPos p_25173_, long p_25174_, long p_25175_, int p_25176_) {
-        BlockPos blockpos = p_25173_.offset(p_25174_ * p_25176_, 0, p_25175_ * p_25176_);
+    private boolean waterIsClear(BlockPos pPos, long pDx, long pDz, int pScale) {
+        BlockPos blockpos = pPos.offset(pDx * pScale, 0, pDz * pScale);
         return this.dolphin.level.getFluidState(blockpos).is(FluidTags.WATER) && !this.dolphin.level.getBlockState(blockpos).getMaterial().blocksMotion();
     }
 
-    private boolean surfaceIsClear(BlockPos p_25179_, long p_25180_, long p_25181_, int p_25182_) {
-        return this.dolphin.level.getBlockState(p_25179_.offset(p_25180_ * p_25182_, 1, p_25181_ * p_25182_)).isAir() && this.dolphin.level.getBlockState(p_25179_.offset(p_25180_ * p_25182_, 2, p_25181_ * p_25182_)).isAir();
+    private boolean surfaceIsClear(BlockPos pPos, long pDx, long pDz, int pScale) {
+        return this.dolphin.level.getBlockState(pPos.offset(pDx * pScale, 1, pDz * pScale)).isAir() && this.dolphin.level.getBlockState(pPos.offset(pDx * pScale, 2, pDz * pScale)).isAir();
     }
 
     public boolean canContinueToUse() {

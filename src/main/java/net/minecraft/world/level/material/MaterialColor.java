@@ -69,21 +69,21 @@ public class MaterialColor {
     public final int col;
     public final int id;
 
-    private MaterialColor(int p_76425_, int p_76426_) {
-        if (p_76425_ >= 0 && p_76425_ <= 63) {
-            this.id = p_76425_;
-            this.col = p_76426_;
-            MATERIAL_COLORS[p_76425_] = this;
+    private MaterialColor(int pId, int pColor) {
+        if (pId >= 0 && pId <= 63) {
+            this.id = pId;
+            this.col = pColor;
+            MATERIAL_COLORS[pId] = this;
         } else {
             throw new IndexOutOfBoundsException("Map colour ID must be between 0 and 63 (inclusive)");
         }
     }
 
-    public int calculateRGBColor(MaterialColor.Brightness p_192922_) {
+    public int calculateRGBColor(MaterialColor.Brightness pBrightness) {
         if (this == NONE) {
             return 0;
         } else {
-            int i = p_192922_.modifier;
+            int i = pBrightness.modifier;
             int j = (this.col >> 16 & 255) * i / 255;
             int k = (this.col >> 8 & 255) * i / 255;
             int l = (this.col & 255) * i / 255;
@@ -91,23 +91,23 @@ public class MaterialColor {
         }
     }
 
-    public static MaterialColor byId(int p_192920_) {
-        Preconditions.checkPositionIndex(p_192920_, MATERIAL_COLORS.length, "material id");
-        return byIdUnsafe(p_192920_);
+    public static MaterialColor byId(int pId) {
+        Preconditions.checkPositionIndex(pId, MATERIAL_COLORS.length, "material id");
+        return byIdUnsafe(pId);
     }
 
-    private static MaterialColor byIdUnsafe(int p_192928_) {
-        MaterialColor materialcolor = MATERIAL_COLORS[p_192928_];
+    private static MaterialColor byIdUnsafe(int pId) {
+        MaterialColor materialcolor = MATERIAL_COLORS[pId];
         return materialcolor != null ? materialcolor : NONE;
     }
 
-    public static int getColorFromPackedId(int p_192924_) {
-        int i = p_192924_ & 255;
+    public static int getColorFromPackedId(int pPacketId) {
+        int i = pPacketId & 255;
         return byIdUnsafe(i >> 2).calculateRGBColor(MaterialColor.Brightness.byIdUnsafe(i & 3));
     }
 
-    public byte getPackedId(MaterialColor.Brightness p_192926_) {
-        return (byte) (this.id << 2 | p_192926_.id & 3);
+    public byte getPackedId(MaterialColor.Brightness pBrightness) {
+        return (byte) (this.id << 2 | pBrightness.id & 3);
     }
 
     public static enum Brightness {
@@ -125,13 +125,13 @@ public class MaterialColor {
             this.modifier = p_192942_;
         }
 
-        public static MaterialColor.Brightness byId(int p_192945_) {
-            Preconditions.checkPositionIndex(p_192945_, VALUES.length, "brightness id");
-            return byIdUnsafe(p_192945_);
+        public static MaterialColor.Brightness byId(int pId) {
+            Preconditions.checkPositionIndex(pId, VALUES.length, "brightness id");
+            return byIdUnsafe(pId);
         }
 
-        static MaterialColor.Brightness byIdUnsafe(int p_192947_) {
-            return VALUES[p_192947_];
+        static MaterialColor.Brightness byIdUnsafe(int pId) {
+            return VALUES[pId];
         }
     }
 }

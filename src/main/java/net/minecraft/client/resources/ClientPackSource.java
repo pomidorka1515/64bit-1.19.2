@@ -72,27 +72,27 @@ public class ClientPackSource implements RepositorySource {
     @Nullable
     private Pack serverPack;
 
-    public ClientPackSource(File p_118553_, AssetIndex p_118554_) {
-        this.serverPackDir = p_118553_;
-        this.assetIndex = p_118554_;
-        this.vanillaPack = new DefaultClientPackResources(BUILT_IN, p_118554_);
+    public ClientPackSource(File pServerPackDir, AssetIndex pAssetIndex) {
+        this.serverPackDir = pServerPackDir;
+        this.assetIndex = pAssetIndex;
+        this.vanillaPack = new DefaultClientPackResources(BUILT_IN, pAssetIndex);
     }
 
-    public void loadPacks(Consumer<Pack> p_118584_, Pack.PackConstructor p_118585_) {
+    public void loadPacks(Consumer<Pack> pInfoConsumer, Pack.PackConstructor pInfoFactory) {
         Pack pack = Pack.create("vanilla", true, () -> {
             return this.vanillaPack;
-        }, p_118585_, Pack.Position.BOTTOM, PackSource.BUILT_IN);
+        }, pInfoFactory, Pack.Position.BOTTOM, PackSource.BUILT_IN);
         if (pack != null) {
-            p_118584_.accept(pack);
+            pInfoConsumer.accept(pack);
         }
 
         if (this.serverPack != null) {
-            p_118584_.accept(this.serverPack);
+            pInfoConsumer.accept(this.serverPack);
         }
 
-        Pack pack1 = this.createProgrammerArtPack(p_118585_);
+        Pack pack1 = this.createProgrammerArtPack(pInfoFactory);
         if (pack1 != null) {
-            p_118584_.accept(pack1);
+            pInfoConsumer.accept(pack1);
         }
     }
 
@@ -111,9 +111,9 @@ public class ClientPackSource implements RepositorySource {
         return map;
     }
 
-    public CompletableFuture<?> downloadAndSelectResourcePack(URL p_235006_, String p_235007_, boolean p_235008_) {
-        String s = Hashing.sha1().hashString(p_235006_.toString(), StandardCharsets.UTF_8).toString();
-        String s1 = SHA1.matcher(p_235007_).matches() ? p_235007_ : "";
+    public CompletableFuture<?> downloadAndSelectResourcePack(URL pUrl, String pHash, boolean pClearScreenAfterStop) {
+        String s = Hashing.sha1().hashString(pUrl.toString(), StandardCharsets.UTF_8).toString();
+        String s1 = SHA1.matcher(pHash).matches() ? pHash : "";
         this.downloadLock.lock();
 
         CompletableFuture completablefuture1;
@@ -124,12 +124,12 @@ public class ClientPackSource implements RepositorySource {
             if (file1.exists()) {
                 completablefuture = CompletableFuture.completedFuture("");
             } else {
-                ProgressScreen progressscreen = new ProgressScreen(p_235008_);
+                ProgressScreen progressscreen = new ProgressScreen(pClearScreenAfterStop);
                 Map<String, String> map = getDownloadHeaders();
                 minecraft.executeBlocking(() -> {
                     minecraft.setScreen(progressscreen);
                 });
-                completablefuture = HttpUtil.downloadTo(file1, p_235006_, map, 262144000, progressscreen, minecraft.getProxy());
+                completablefuture = HttpUtil.downloadTo(file1, pUrl, map, 262144000, progressscreen, minecraft.getProxy());
             }
 
             this.currentDownload = completablefuture.thenCompose((p_174812_) -> {
@@ -137,7 +137,7 @@ public class ClientPackSource implements RepositorySource {
                                                             return Util.failedFuture(new RuntimeException("Hash check failure for file " + file1 + ", see log"));
                                                         } else {
                                                             minecraft.execute(() -> {
-                                                                if (!p_235008_) {
+                                                                if (!pClearScreenAfterStop) {
                                                                     minecraft.setScreen(new GenericDirtMessageScreen(APPLYING_PACK_TEXT));
                                                                 }
                                                             });
@@ -172,11 +172,11 @@ public class ClientPackSource implements RepositorySource {
         return completablefuture1;
     }
 
-    private static void deleteQuietly(File p_118565_) {
+    private static void deleteQuietly(File pFile) {
         try {
-            Files.delete(p_118565_.toPath());
+            Files.delete(pFile.toPath());
         } catch (IOException ioexception) {
-            LOGGER.warn("Failed to delete file {}: {}", p_118565_, ioexception.getMessage());
+            LOGGER.warn("Failed to delete file {}: {}", pFile, ioexception.getMessage());
         }
     }
 
@@ -203,22 +203,22 @@ public class ClientPackSource implements RepositorySource {
         return completablefuture;
     }
 
-    private boolean checkHash(String p_118574_, File p_118575_) {
+    private boolean checkHash(String pExpectedHash, File pFile) {
         try {
-            String s = com.google.common.io.Files.asByteSource(p_118575_).hash(Hashing.sha1()).toString();
-            if (p_118574_.isEmpty()) {
-                LOGGER.info("Found file {} without verification hash", (Object) p_118575_);
+            String s = com.google.common.io.Files.asByteSource(pFile).hash(Hashing.sha1()).toString();
+            if (pExpectedHash.isEmpty()) {
+                LOGGER.info("Found file {} without verification hash", (Object) pFile);
                 return true;
             }
 
-            if (s.toLowerCase(Locale.ROOT).equals(p_118574_.toLowerCase(Locale.ROOT))) {
-                LOGGER.info("Found file {} matching requested hash {}", p_118575_, p_118574_);
+            if (s.toLowerCase(Locale.ROOT).equals(pExpectedHash.toLowerCase(Locale.ROOT))) {
+                LOGGER.info("Found file {} matching requested hash {}", pFile, pExpectedHash);
                 return true;
             }
 
-            LOGGER.warn("File {} had wrong hash (expected {}, found {}).", p_118575_, p_118574_, s);
+            LOGGER.warn("File {} had wrong hash (expected {}, found {}).", pFile, pExpectedHash, s);
         } catch (IOException ioexception) {
-            LOGGER.warn("File {} couldn't be hashed.", p_118575_, ioexception);
+            LOGGER.warn("File {} couldn't be hashed.", pFile, ioexception);
         }
 
         return false;
@@ -248,10 +248,10 @@ public class ClientPackSource implements RepositorySource {
         return Files.exists(path) && !Files.isDirectory(path) ? this.setServerPack(path.toFile(), PackSource.WORLD) : CompletableFuture.completedFuture((Void) null);
     }
 
-    public CompletableFuture<Void> setServerPack(File p_118567_, PackSource p_118568_) {
+    public CompletableFuture<Void> setServerPack(File pFile, PackSource pPackSource) {
         PackMetadataSection packmetadatasection;
         try {
-            FilePackResources filepackresources = new FilePackResources(p_118567_);
+            FilePackResources filepackresources = new FilePackResources(pFile);
 
             try {
                 packmetadatasection = filepackresources.getMetadataSection(PackMetadataSection.SERIALIZER);
@@ -267,22 +267,22 @@ public class ClientPackSource implements RepositorySource {
 
             filepackresources.close();
         } catch (IOException ioexception) {
-            return Util.failedFuture(new IOException(String.format(Locale.ROOT, "Invalid resourcepack at %s", p_118567_), ioexception));
+            return Util.failedFuture(new IOException(String.format(Locale.ROOT, "Invalid resourcepack at %s", pFile), ioexception));
         }
 
-        LOGGER.info("Applying server pack {}", (Object) p_118567_);
+        LOGGER.info("Applying server pack {}", (Object) pFile);
         this.serverPack = new Pack("server", true, () -> {
-            return new FilePackResources(p_118567_);
-        }, Component.translatable("resourcePack.server.name"), packmetadatasection.getDescription(), PackCompatibility.forMetadata(packmetadatasection, PackType.CLIENT_RESOURCES), Pack.Position.TOP, true, p_118568_);
+            return new FilePackResources(pFile);
+        }, Component.translatable("resourcePack.server.name"), packmetadatasection.getDescription(), PackCompatibility.forMetadata(packmetadatasection, PackType.CLIENT_RESOURCES), Pack.Position.TOP, true, pPackSource);
         return Minecraft.getInstance().delayTextureReload();
     }
 
     @Nullable
-    private Pack createProgrammerArtPack(Pack.PackConstructor p_118557_) {
+    private Pack createProgrammerArtPack(Pack.PackConstructor pPackConstructor) {
         Pack pack = null;
         File file1 = this.assetIndex.getFile(new ResourceLocation("resourcepacks/programmer_art.zip"));
         if (file1 != null && file1.isFile()) {
-            pack = createProgrammerArtPack(p_118557_, () -> {
+            pack = createProgrammerArtPack(pPackConstructor, () -> {
                 return createProgrammerArtZipPack(file1);
             });
         }
@@ -290,7 +290,7 @@ public class ClientPackSource implements RepositorySource {
         if (pack == null && SharedConstants.IS_RUNNING_IN_IDE) {
             File file2 = this.assetIndex.getRootFile("../resourcepacks/programmer_art");
             if (file2 != null && file2.isDirectory()) {
-                pack = createProgrammerArtPack(p_118557_, () -> {
+                pack = createProgrammerArtPack(pPackConstructor, () -> {
                     return createProgrammerArtDirPack(file2);
                 });
             }
@@ -300,20 +300,20 @@ public class ClientPackSource implements RepositorySource {
     }
 
     @Nullable
-    private static Pack createProgrammerArtPack(Pack.PackConstructor p_118559_, Supplier<PackResources> p_118560_) {
-        return Pack.create("programer_art", false, p_118560_, p_118559_, Pack.Position.TOP, PackSource.BUILT_IN);
+    private static Pack createProgrammerArtPack(Pack.PackConstructor pPackConstructor, Supplier<PackResources> pResources) {
+        return Pack.create("programer_art", false, pResources, pPackConstructor, Pack.Position.TOP, PackSource.BUILT_IN);
     }
 
-    private static FolderPackResources createProgrammerArtDirPack(File p_118588_) {
-        return new FolderPackResources(p_118588_) {
+    private static FolderPackResources createProgrammerArtDirPack(File pFile) {
+        return new FolderPackResources(pFile) {
             public String getName() {
                 return "Programmer Art";
             }
         };
     }
 
-    private static PackResources createProgrammerArtZipPack(File p_118591_) {
-        return new FilePackResources(p_118591_) {
+    private static PackResources createProgrammerArtZipPack(File pFile) {
+        return new FilePackResources(pFile) {
             public String getName() {
                 return "Programmer Art";
             }

@@ -45,9 +45,9 @@ public class RealmsPendingInvitesScreen extends RealmsScreen {
     private Button acceptButton;
     private Button rejectButton;
 
-    public RealmsPendingInvitesScreen(Screen p_88890_) {
+    public RealmsPendingInvitesScreen(Screen pLastScreen) {
         super(Component.translatable("mco.invites.title"));
-        this.lastScreen = p_88890_;
+        this.lastScreen = pLastScreen;
     }
 
     public void init() {
@@ -90,28 +90,28 @@ public class RealmsPendingInvitesScreen extends RealmsScreen {
         this.updateButtonStates();
     }
 
-    public boolean keyPressed(int p_88895_, int p_88896_, int p_88897_) {
-        if (p_88895_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(new RealmsMainScreen(this.lastScreen));
             return true;
         } else {
-            return super.keyPressed(p_88895_, p_88896_, p_88897_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    void updateList(int p_88893_) {
-        this.pendingInvitationSelectionList.removeAtIndex(p_88893_);
+    void updateList(int pIndex) {
+        this.pendingInvitationSelectionList.removeAtIndex(pIndex);
     }
 
-    void reject(final int p_88923_) {
-        if (p_88923_ < this.pendingInvitationSelectionList.getItemCount()) {
+    void reject(final int pIndex) {
+        if (pIndex < this.pendingInvitationSelectionList.getItemCount()) {
             (new Thread("Realms-reject-invitation") {
                 public void run() {
                     try {
                         RealmsClient realmsclient = RealmsClient.create();
-                        realmsclient.rejectInvitation((RealmsPendingInvitesScreen.this.pendingInvitationSelectionList.children().get(p_88923_)).pendingInvite.invitationId);
+                        realmsclient.rejectInvitation((RealmsPendingInvitesScreen.this.pendingInvitationSelectionList.children().get(pIndex)).pendingInvite.invitationId);
                         RealmsPendingInvitesScreen.this.minecraft.execute(() -> {
-                            RealmsPendingInvitesScreen.this.updateList(p_88923_);
+                            RealmsPendingInvitesScreen.this.updateList(pIndex);
                         });
                     } catch (RealmsServiceException realmsserviceexception) {
                         RealmsPendingInvitesScreen.LOGGER.error("Couldn't reject invite");
@@ -121,15 +121,15 @@ public class RealmsPendingInvitesScreen extends RealmsScreen {
         }
     }
 
-    void accept(final int p_88933_) {
-        if (p_88933_ < this.pendingInvitationSelectionList.getItemCount()) {
+    void accept(final int pIndex) {
+        if (pIndex < this.pendingInvitationSelectionList.getItemCount()) {
             (new Thread("Realms-accept-invitation") {
                 public void run() {
                     try {
                         RealmsClient realmsclient = RealmsClient.create();
-                        realmsclient.acceptInvitation((RealmsPendingInvitesScreen.this.pendingInvitationSelectionList.children().get(p_88933_)).pendingInvite.invitationId);
+                        realmsclient.acceptInvitation((RealmsPendingInvitesScreen.this.pendingInvitationSelectionList.children().get(pIndex)).pendingInvite.invitationId);
                         RealmsPendingInvitesScreen.this.minecraft.execute(() -> {
-                            RealmsPendingInvitesScreen.this.updateList(p_88933_);
+                            RealmsPendingInvitesScreen.this.updateList(pIndex);
                         });
                     } catch (RealmsServiceException realmsserviceexception) {
                         RealmsPendingInvitesScreen.LOGGER.error("Couldn't accept invite");
@@ -139,29 +139,29 @@ public class RealmsPendingInvitesScreen extends RealmsScreen {
         }
     }
 
-    public void render(PoseStack p_88899_, int p_88900_, int p_88901_, float p_88902_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.toolTip = null;
-        this.renderBackground(p_88899_);
-        this.pendingInvitationSelectionList.render(p_88899_, p_88900_, p_88901_, p_88902_);
-        drawCenteredString(p_88899_, this.font, this.title, this.width / 2, 12, 16777215);
+        this.renderBackground(pPoseStack);
+        this.pendingInvitationSelectionList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 12, 16777215);
         if (this.toolTip != null) {
-            this.renderMousehoverTooltip(p_88899_, this.toolTip, p_88900_, p_88901_);
+            this.renderMousehoverTooltip(pPoseStack, this.toolTip, pMouseX, pMouseY);
         }
 
         if (this.pendingInvitationSelectionList.getItemCount() == 0 && this.loaded) {
-            drawCenteredString(p_88899_, this.font, NO_PENDING_INVITES_TEXT, this.width / 2, this.height / 2 - 20, 16777215);
+            drawCenteredString(pPoseStack, this.font, NO_PENDING_INVITES_TEXT, this.width / 2, this.height / 2 - 20, 16777215);
         }
 
-        super.render(p_88899_, p_88900_, p_88901_, p_88902_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    protected void renderMousehoverTooltip(PoseStack p_88904_, @Nullable Component p_88905_, int p_88906_, int p_88907_) {
-        if (p_88905_ != null) {
-            int i = p_88906_ + 12;
-            int j = p_88907_ - 12;
-            int k = this.font.width(p_88905_);
-            this.fillGradient(p_88904_, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
-            this.font.drawShadow(p_88904_, p_88905_, (float) i, (float) j, 16777215);
+    protected void renderMousehoverTooltip(PoseStack pPoseStack, @Nullable Component pToolTip, int pMouseX, int pMouseY) {
+        if (pToolTip != null) {
+            int i = pMouseX + 12;
+            int j = pMouseY - 12;
+            int k = this.font.width(pToolTip);
+            this.fillGradient(pPoseStack, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
+            this.font.drawShadow(pPoseStack, pToolTip, (float) i, (float) j, 16777215);
         }
     }
 
@@ -185,12 +185,12 @@ public class RealmsPendingInvitesScreen extends RealmsScreen {
             this.rowButtons = Arrays.asList(new RealmsPendingInvitesScreen.Entry.AcceptRowButton(), new RealmsPendingInvitesScreen.Entry.RejectRowButton());
         }
 
-        public void render(PoseStack p_89006_, int p_89007_, int p_89008_, int p_89009_, int p_89010_, int p_89011_, int p_89012_, int p_89013_, boolean p_89014_, float p_89015_) {
-            this.renderPendingInvitationItem(p_89006_, this.pendingInvite, p_89009_, p_89008_, p_89012_, p_89013_);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            this.renderPendingInvitationItem(pPoseStack, this.pendingInvite, pLeft, pTop, pMouseX, pMouseY);
         }
 
-        public boolean mouseClicked(double p_88998_, double p_88999_, int p_89000_) {
-            RowButton.rowButtonMouseClicked(RealmsPendingInvitesScreen.this.pendingInvitationSelectionList, this, this.rowButtons, p_89000_, p_88998_, p_88999_);
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+            RowButton.rowButtonMouseClicked(RealmsPendingInvitesScreen.this.pendingInvitationSelectionList, this, this.rowButtons, pButton, pMouseX, pMouseY);
             return true;
         }
 
@@ -259,8 +259,8 @@ public class RealmsPendingInvitesScreen extends RealmsScreen {
             super(RealmsPendingInvitesScreen.this.width, RealmsPendingInvitesScreen.this.height, 32, RealmsPendingInvitesScreen.this.height - 40, 36);
         }
 
-        public void removeAtIndex(int p_89058_) {
-            this.remove(p_89058_);
+        public void removeAtIndex(int pIndex) {
+            this.remove(pIndex);
         }
 
         public int getMaxPosition() {
@@ -275,13 +275,13 @@ public class RealmsPendingInvitesScreen extends RealmsScreen {
             return RealmsPendingInvitesScreen.this.getFocused() == this;
         }
 
-        public void renderBackground(PoseStack p_89051_) {
-            RealmsPendingInvitesScreen.this.renderBackground(p_89051_);
+        public void renderBackground(PoseStack pPoseStack) {
+            RealmsPendingInvitesScreen.this.renderBackground(pPoseStack);
         }
 
-        public void selectItem(int p_89049_) {
-            super.selectItem(p_89049_);
-            this.selectInviteListItem(p_89049_);
+        public void selectItem(int pIndex) {
+            super.selectItem(pIndex);
+            this.selectInviteListItem(pIndex);
         }
 
         public void selectInviteListItem(int p_89061_) {
@@ -289,9 +289,9 @@ public class RealmsPendingInvitesScreen extends RealmsScreen {
             RealmsPendingInvitesScreen.this.updateButtonStates();
         }
 
-        public void setSelected(@Nullable RealmsPendingInvitesScreen.Entry p_89053_) {
-            super.setSelected(p_89053_);
-            RealmsPendingInvitesScreen.this.selectedInvite = this.children().indexOf(p_89053_);
+        public void setSelected(@Nullable RealmsPendingInvitesScreen.Entry pSelected) {
+            super.setSelected(pSelected);
+            RealmsPendingInvitesScreen.this.selectedInvite = this.children().indexOf(pSelected);
             RealmsPendingInvitesScreen.this.updateButtonStates();
         }
     }

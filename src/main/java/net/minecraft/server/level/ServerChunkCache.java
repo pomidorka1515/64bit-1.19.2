@@ -67,17 +67,17 @@ public class ServerChunkCache extends ChunkSource {
     @VisibleForDebug
     private NaturalSpawner.SpawnState lastSpawnState;
 
-    public ServerChunkCache(ServerLevel p_214982_, LevelStorageSource.LevelStorageAccess p_214983_, DataFixer p_214984_, StructureTemplateManager p_214985_, Executor p_214986_, ChunkGenerator p_214987_, int p_214988_, int p_214989_, boolean p_214990_, ChunkProgressListener p_214991_, ChunkStatusUpdateListener p_214992_, Supplier<DimensionDataStorage> p_214993_) {
-        this.level = p_214982_;
-        this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(p_214982_);
+    public ServerChunkCache(ServerLevel pLevel, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, DataFixer pFixerUpper, StructureTemplateManager pStructureManager, Executor pDispatcher, ChunkGenerator pGenerator, int pViewDistance, int pSimulationDistance, boolean pSync, ChunkProgressListener pProgressListener, ChunkStatusUpdateListener pChunkStatusListener, Supplier<DimensionDataStorage> pOverworldDataStorage) {
+        this.level = pLevel;
+        this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(pLevel);
         this.mainThread = Thread.currentThread();
-        File file1 = p_214983_.getDimensionPath(p_214982_.dimension()).resolve("data").toFile();
+        File file1 = pLevelStorageAccess.getDimensionPath(pLevel.dimension()).resolve("data").toFile();
         file1.mkdirs();
-        this.dataStorage = new DimensionDataStorage(file1, p_214984_);
-        this.chunkMap = new ChunkMap(p_214982_, p_214983_, p_214984_, p_214985_, p_214986_, this.mainThreadProcessor, this, p_214987_, p_214991_, p_214992_, p_214993_, p_214988_, p_214990_);
+        this.dataStorage = new DimensionDataStorage(file1, pFixerUpper);
+        this.chunkMap = new ChunkMap(pLevel, pLevelStorageAccess, pFixerUpper, pStructureManager, pDispatcher, this.mainThreadProcessor, this, pGenerator, pProgressListener, pChunkStatusListener, pOverworldDataStorage, pViewDistance, pSync);
         this.lightEngine = this.chunkMap.getLightEngine();
         this.distanceManager = this.chunkMap.getDistanceManager();
-        this.distanceManager.updateSimulationDistance(p_214989_);
+        this.distanceManager.updateSimulationDistance(pSimulationDistance);
         this.clearCache();
     }
 
@@ -99,57 +99,57 @@ public class ServerChunkCache extends ChunkSource {
         return this.chunkMap.getTickingGenerated();
     }
 
-    private void storeInCache(ChunkPos p_8367_, ChunkAccess p_8368_, ChunkStatus p_8369_) {
+    private void storeInCache(ChunkPos pChunkPos, ChunkAccess pChunk, ChunkStatus pChunkStatus) {
         for (int i = 3; i > 0; --i) {
             this.lastChunkPos[i] = this.lastChunkPos[i - 1];
             this.lastChunkStatus[i] = this.lastChunkStatus[i - 1];
             this.lastChunk[i] = this.lastChunk[i - 1];
         }
 
-        this.lastChunkPos[0] = p_8367_;
-        this.lastChunkStatus[0] = p_8369_;
-        this.lastChunk[0] = p_8368_;
+        this.lastChunkPos[0] = pChunkPos;
+        this.lastChunkStatus[0] = pChunkStatus;
+        this.lastChunk[0] = pChunk;
     }
 
     @Nullable
-    public ChunkAccess getChunk(long p_8360_, long p_8361_, ChunkStatus p_8362_, boolean p_8363_) {
-        if (!WorldBounds.isValidChunk(p_8360_, p_8361_))
+    public ChunkAccess getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
+        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ))
             return null;
         if (Thread.currentThread() != this.mainThread) {
             return CompletableFuture.supplyAsync(() -> {
-                                        return this.getChunk(p_8360_, p_8361_, p_8362_, p_8363_);
+                                        return this.getChunk(pChunkX, pChunkZ, pRequiredStatus, pLoad);
                                     }, this.mainThreadProcessor).join();
         } else {
             ProfilerFiller profilerfiller = this.level.getProfiler();
             profilerfiller.incrementCounter("getChunk");
-            ChunkPos i = new ChunkPos(p_8360_, p_8361_);
+            ChunkPos i = new ChunkPos(pChunkX, pChunkZ);
 
             for (int j = 0; j < 4; ++j) {
-                if (i.equals(this.lastChunkPos[j]) && p_8362_ == this.lastChunkStatus[j]) {
+                if (i.equals(this.lastChunkPos[j]) && pRequiredStatus == this.lastChunkStatus[j]) {
                     ChunkAccess chunkaccess = this.lastChunk[j];
-                    if (chunkaccess != null || !p_8363_) {
+                    if (chunkaccess != null || !pLoad) {
                         return chunkaccess;
                     }
                 }
             }
 
             profilerfiller.incrementCounter("getChunkCacheMiss");
-            CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture = this.getChunkFutureMainThread(p_8360_, p_8361_, p_8362_, p_8363_);
+            CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture = this.getChunkFutureMainThread(pChunkX, pChunkZ, pRequiredStatus, pLoad);
             this.mainThreadProcessor.managedBlock(completablefuture::isDone);
             ChunkAccess chunkaccess1 = completablefuture.join().map((p_8406_) -> { return p_8406_; }, (p_8423_) -> {
-            if (p_8363_) {
+            if (pLoad) {
                throw (IllegalStateException)Util.pauseInIde(new IllegalStateException("Chunk not there when requested: " + p_8423_));
             } else {
                return null;
             } });
-            this.storeInCache(i, chunkaccess1, p_8362_);
+            this.storeInCache(i, chunkaccess1, pRequiredStatus);
             return chunkaccess1;
         }
     }
 
     @Nullable
-    public LevelChunk getChunkNow(long p_8357_, long p_8358_) {
-        ChunkAccess chunkaccess = this.getChunkNow(p_8357_, p_8358_, ChunkStatus.FULL);
+    public LevelChunk getChunkNow(long pChunkX, long pChunkZ) {
+        ChunkAccess chunkaccess = this.getChunkNow(pChunkX, pChunkZ, ChunkStatus.FULL);
         return chunkaccess instanceof LevelChunk ? (LevelChunk) chunkaccess : null;
     }
 
@@ -160,13 +160,13 @@ public class ServerChunkCache extends ChunkSource {
     * such as advancement structure checks.
     */
     @Nullable
-    public ChunkAccess getChunkNow(long p_8357_, long p_8358_, ChunkStatus status) {
-        if (!WorldBounds.isValidChunk(p_8357_, p_8358_) || Thread.currentThread() != this.mainThread) {
+    public ChunkAccess getChunkNow(long pChunkX, long pChunkZ, ChunkStatus status) {
+        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ) || Thread.currentThread() != this.mainThread) {
             return null;
         }
 
         this.level.getProfiler().incrementCounter("getChunkNow");
-        ChunkPos chunkPos = new ChunkPos(p_8357_, p_8358_);
+        ChunkPos chunkPos = new ChunkPos(pChunkX, pChunkZ);
         for (int i = 0; i < 4; ++i) {
             if (chunkPos.equals(this.lastChunkPos[i]) && this.lastChunkStatus[i] == status) {
                 return this.lastChunk[i];
@@ -241,18 +241,18 @@ public class ServerChunkCache extends ChunkSource {
         return p_8417_ == null || p_8417_.getTicketLevel() > p_8418_;
     }
 
-    public boolean hasChunk(long p_8429_, long p_8430_) {
-        if (!WorldBounds.isValidChunk(p_8429_, p_8430_))
+    public boolean hasChunk(long pX, long pZ) {
+        if (!WorldBounds.isValidChunk(pX, pZ))
             return false;
-        ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(p_8429_, p_8430_));
+        ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(pX, pZ));
         int i = 33 + ChunkStatus.getDistance(ChunkStatus.FULL);
         return !this.chunkAbsent(chunkholder, i);
     }
 
-    public BlockGetter getChunkForLighting(long p_8454_, long p_8455_) {
-        if (!WorldBounds.isValidChunk(p_8454_, p_8455_))
+    public BlockGetter getChunkForLighting(long pChunkX, long pChunkZ) {
+        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ))
             return null;
-        ChunkPos i = new ChunkPos(p_8454_, p_8455_);
+        ChunkPos i = new ChunkPos(pChunkX, pChunkZ);
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
         if (chunkholder == null) {
             return null;
@@ -294,11 +294,11 @@ public class ServerChunkCache extends ChunkSource {
         }
     }
 
-    public boolean isPositionTicking(ChunkPos p_143240_) {
-        ChunkHolder chunkholder = this.getVisibleChunkIfPresent(p_143240_);
+    public boolean isPositionTicking(ChunkPos pChunkPos) {
+        ChunkHolder chunkholder = this.getVisibleChunkIfPresent(pChunkPos);
         if (chunkholder == null) {
             return false;
-        } else if (!this.level.shouldTickBlocksAt(p_143240_)) {
+        } else if (!this.level.shouldTickBlocksAt(pChunkPos)) {
             return false;
         } else {
             Either<LevelChunk, ChunkHolder.ChunkLoadingFailure> either = chunkholder.getTickingChunkFuture().getNow((Either<LevelChunk, ChunkHolder.ChunkLoadingFailure>) null);
@@ -306,9 +306,9 @@ public class ServerChunkCache extends ChunkSource {
         }
     }
 
-    public void save(boolean p_8420_) {
+    public void save(boolean pFlush) {
         this.runDistanceManagerUpdates();
-        this.chunkMap.saveAllChunks(p_8420_);
+        this.chunkMap.saveAllChunks(pFlush);
     }
 
     public void close() throws IOException {
@@ -317,17 +317,17 @@ public class ServerChunkCache extends ChunkSource {
         this.chunkMap.close();
     }
 
-    public void tick(BooleanSupplier p_201913_, boolean p_201914_) {
+    public void tick(BooleanSupplier pHasTimeLeft, boolean pTickChunks) {
         this.level.getProfiler().push("purge");
         this.distanceManager.purgeStaleTickets();
         this.runDistanceManagerUpdates();
         this.level.getProfiler().popPush("chunks");
-        if (p_201914_) {
+        if (pTickChunks) {
             this.tickChunks();
         }
 
         this.level.getProfiler().popPush("unload");
-        this.chunkMap.tick(p_201913_);
+        this.chunkMap.tick(pHasTimeLeft);
         this.level.getProfiler().pop();
         this.clearCache();
     }
@@ -421,73 +421,73 @@ public class ServerChunkCache extends ChunkSource {
         return this.chunkMap.size();
     }
 
-    public void blockChanged(BlockPos p_8451_) {
-        long i = SectionPos.blockToSectionCoord(p_8451_.getX());
-        long j = SectionPos.blockToSectionCoord(p_8451_.getZ());
+    public void blockChanged(BlockPos pPos) {
+        long i = SectionPos.blockToSectionCoord(pPos.getX());
+        long j = SectionPos.blockToSectionCoord(pPos.getZ());
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(i, j));
         if (chunkholder != null) {
-            chunkholder.blockChanged(p_8451_);
+            chunkholder.blockChanged(pPos);
         }
     }
 
-    public void onLightUpdate(LightLayer p_8403_, SectionPos p_8404_) {
+    public void onLightUpdate(LightLayer pType, SectionPos pPos) {
         this.mainThreadProcessor.execute(() -> {
-            ChunkHolder chunkholder = this.getVisibleChunkIfPresent(p_8404_.chunk());
+            ChunkHolder chunkholder = this.getVisibleChunkIfPresent(pPos.chunk());
             if (chunkholder != null) {
-                chunkholder.sectionLightChanged(p_8403_, p_8404_.y());
+                chunkholder.sectionLightChanged(pType, pPos.y());
             }
         });
     }
 
-    public <T> void addRegionTicket(TicketType<T> p_8388_, ChunkPos p_8389_, int p_8390_, T p_8391_) {
-        this.distanceManager.addRegionTicket(p_8388_, p_8389_, p_8390_, p_8391_);
+    public <T> void addRegionTicket(TicketType<T> pType, ChunkPos pPos, int pDistance, T pValue) {
+        this.distanceManager.addRegionTicket(pType, pPos, pDistance, pValue);
     }
 
-    public <T> void removeRegionTicket(TicketType<T> p_8439_, ChunkPos p_8440_, int p_8441_, T p_8442_) {
-        this.distanceManager.removeRegionTicket(p_8439_, p_8440_, p_8441_, p_8442_);
+    public <T> void removeRegionTicket(TicketType<T> pType, ChunkPos pPos, int pDistance, T pValue) {
+        this.distanceManager.removeRegionTicket(pType, pPos, pDistance, pValue);
     }
 
-    public void updateChunkForced(ChunkPos p_8400_, boolean p_8401_) {
-        this.distanceManager.updateChunkForced(p_8400_, p_8401_);
+    public void updateChunkForced(ChunkPos pPos, boolean pAdd) {
+        this.distanceManager.updateChunkForced(pPos, pAdd);
     }
 
-    public void move(ServerPlayer p_8386_) {
-        if (!p_8386_.isRemoved()) {
-            this.chunkMap.move(p_8386_);
+    public void move(ServerPlayer pPlayer) {
+        if (!pPlayer.isRemoved()) {
+            this.chunkMap.move(pPlayer);
         }
     }
 
-    public void removeEntity(Entity p_8444_) {
-        this.chunkMap.removeEntity(p_8444_);
+    public void removeEntity(Entity pEntity) {
+        this.chunkMap.removeEntity(pEntity);
     }
 
-    public void addEntity(Entity p_8464_) {
-        this.chunkMap.addEntity(p_8464_);
+    public void addEntity(Entity pEntity) {
+        this.chunkMap.addEntity(pEntity);
     }
 
-    public void broadcastAndSend(Entity p_8395_, Packet<?> p_8396_) {
-        this.chunkMap.broadcastAndSend(p_8395_, p_8396_);
+    public void broadcastAndSend(Entity pEntity, Packet<?> pPacket) {
+        this.chunkMap.broadcastAndSend(pEntity, pPacket);
     }
 
-    public void broadcast(Entity p_8446_, Packet<?> p_8447_) {
-        this.chunkMap.broadcast(p_8446_, p_8447_);
+    public void broadcast(Entity pEntity, Packet<?> pPacket) {
+        this.chunkMap.broadcast(pEntity, pPacket);
     }
 
-    public void setViewDistance(int p_8355_) {
-        this.chunkMap.setViewDistance(p_8355_);
+    public void setViewDistance(int pViewDistance) {
+        this.chunkMap.setViewDistance(pViewDistance);
     }
 
-    public void setSimulationDistance(int p_184027_) {
-        this.distanceManager.updateSimulationDistance(p_184027_);
+    public void setSimulationDistance(int pSimulationDistance) {
+        this.distanceManager.updateSimulationDistance(pSimulationDistance);
     }
 
-    public void setSpawnSettings(boolean p_8425_, boolean p_8426_) {
-        this.spawnEnemies = p_8425_;
-        this.spawnFriendlies = p_8426_;
+    public void setSpawnSettings(boolean pHostile, boolean pPeaceful) {
+        this.spawnEnemies = pHostile;
+        this.spawnFriendlies = pPeaceful;
     }
 
-    public String getChunkDebugData(ChunkPos p_8449_) {
-        return this.chunkMap.getChunkDebugData(p_8449_);
+    public String getChunkDebugData(ChunkPos pChunkPos) {
+        return this.chunkMap.getChunkDebugData(pChunkPos);
     }
 
     public DimensionDataStorage getDataStorage() {
@@ -520,11 +520,11 @@ public class ServerChunkCache extends ChunkSource {
             super("Chunk source main thread executor for " + p_8494_.dimension().location());
         }
 
-        protected Runnable wrapRunnable(Runnable p_8506_) {
-            return p_8506_;
+        protected Runnable wrapRunnable(Runnable pRunnable) {
+            return pRunnable;
         }
 
-        protected boolean shouldRun(Runnable p_8504_) {
+        protected boolean shouldRun(Runnable pRunnable) {
             return true;
         }
 
@@ -536,9 +536,9 @@ public class ServerChunkCache extends ChunkSource {
             return ServerChunkCache.this.mainThread;
         }
 
-        protected void doRunTask(Runnable p_8502_) {
+        protected void doRunTask(Runnable pTask) {
             ServerChunkCache.this.level.getProfiler().incrementCounter("runTask");
-            super.doRunTask(p_8502_);
+            super.doRunTask(pTask);
         }
 
         public boolean pollTask() {

@@ -35,8 +35,8 @@ public record ScheduledTick<T>(T type, BlockPos pos, long triggerTick, TickPrior
         }
     };
 
-    public ScheduledTick(T p_193383_, BlockPos p_193384_, long p_193385_, long p_193386_) {
-        this(p_193383_, p_193384_, p_193385_, TickPriority.NORMAL, p_193386_);
+    public ScheduledTick(T pType, BlockPos pPos, long pTriggerTick, long pSubTickOrder) {
+        this(pType, pPos, pTriggerTick, TickPriority.NORMAL, pSubTickOrder);
     }
 
     public ScheduledTick {

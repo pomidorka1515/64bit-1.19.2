@@ -10,7 +10,7 @@ public class FlatLevelGeneratorPresetTags {
     private FlatLevelGeneratorPresetTags() {
     }
 
-    private static TagKey<FlatLevelGeneratorPreset> create(String p_215852_) {
-        return TagKey.create(Registry.FLAT_LEVEL_GENERATOR_PRESET_REGISTRY, new ResourceLocation(p_215852_));
+    private static TagKey<FlatLevelGeneratorPreset> create(String pName) {
+        return TagKey.create(Registry.FLAT_LEVEL_GENERATOR_PRESET_REGISTRY, new ResourceLocation(pName));
     }
 }

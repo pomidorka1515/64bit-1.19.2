@@ -27,26 +27,26 @@ public class ResultContainer implements Container, RecipeHolder {
         return true;
     }
 
-    public ItemStack getItem(int p_40147_) {
+    public ItemStack getItem(int pIndex) {
         return this.itemStacks.get(0);
     }
 
-    public ItemStack removeItem(int p_40149_, int p_40150_) {
+    public ItemStack removeItem(int pIndex, int pCount) {
         return ContainerHelper.takeItem(this.itemStacks, 0);
     }
 
-    public ItemStack removeItemNoUpdate(int p_40160_) {
+    public ItemStack removeItemNoUpdate(int pIndex) {
         return ContainerHelper.takeItem(this.itemStacks, 0);
     }
 
-    public void setItem(int p_40152_, ItemStack p_40153_) {
-        this.itemStacks.set(0, p_40153_);
+    public void setItem(int pIndex, ItemStack pStack) {
+        this.itemStacks.set(0, pStack);
     }
 
     public void setChanged() {
     }
 
-    public boolean stillValid(Player p_40155_) {
+    public boolean stillValid(Player pPlayer) {
         return true;
     }
 
@@ -54,8 +54,8 @@ public class ResultContainer implements Container, RecipeHolder {
         this.itemStacks.clear();
     }
 
-    public void setRecipeUsed(@Nullable Recipe<?> p_40157_) {
-        this.recipeUsed = p_40157_;
+    public void setRecipeUsed(@Nullable Recipe<?> pRecipe) {
+        this.recipeUsed = pRecipe;
     }
 
     @Nullable

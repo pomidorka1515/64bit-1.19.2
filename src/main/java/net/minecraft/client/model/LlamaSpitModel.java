@@ -15,8 +15,8 @@ public class LlamaSpitModel<T extends Entity> extends HierarchicalModel<T> {
     private static final String MAIN = "main";
     private final ModelPart root;
 
-    public LlamaSpitModel(ModelPart p_170730_) {
-        this.root = p_170730_;
+    public LlamaSpitModel(ModelPart pRoot) {
+        this.root = pRoot;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -27,7 +27,7 @@ public class LlamaSpitModel<T extends Entity> extends HierarchicalModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
-    public void setupAnim(T p_103090_, float p_103091_, float p_103092_, float p_103093_, float p_103094_, float p_103095_) {
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
     }
 
     public ModelPart root() {

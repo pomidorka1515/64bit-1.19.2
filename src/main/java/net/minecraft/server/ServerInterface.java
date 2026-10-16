@@ -23,5 +23,5 @@ public interface ServerInterface {
 
     String getPluginNames();
 
-    String runCommand(String p_136143_);
+    String runCommand(String pCommand);
 }

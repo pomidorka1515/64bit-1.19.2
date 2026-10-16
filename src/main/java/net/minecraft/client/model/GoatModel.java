@@ -12,8 +12,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class GoatModel<T extends Goat> extends QuadrupedModel<T> {
-    public GoatModel(ModelPart p_170578_) {
-        super(p_170578_, true, 19.0F, 1.0F, 2.5F, 2.0F, 24);
+    public GoatModel(ModelPart pRoot) {
+        super(pRoot, true, 19.0F, 1.0F, 2.5F, 2.0F, 24);
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -31,11 +31,11 @@ public class GoatModel<T extends Goat> extends QuadrupedModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 64);
     }
 
-    public void setupAnim(T p_170587_, float p_170588_, float p_170589_, float p_170590_, float p_170591_, float p_170592_) {
-        this.head.getChild("left_horn").visible = p_170587_.hasLeftHorn();
-        this.head.getChild("right_horn").visible = p_170587_.hasRightHorn();
-        super.setupAnim(p_170587_, p_170588_, p_170589_, p_170590_, p_170591_, p_170592_);
-        float f = p_170587_.getRammingXHeadRot();
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.getChild("left_horn").visible = pEntity.hasLeftHorn();
+        this.head.getChild("right_horn").visible = pEntity.hasRightHorn();
+        super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
+        float f = pEntity.getRammingXHeadRot();
         if (f != 0.0F) {
             this.head.xRot = f;
         }

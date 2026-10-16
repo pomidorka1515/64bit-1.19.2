@@ -26,8 +26,8 @@ public class LecternScreen extends BookViewScreen implements MenuAccess<LecternM
         }
     };
 
-    public LecternScreen(LecternMenu p_99020_, Inventory p_99021_, Component p_99022_) {
-        this.menu = p_99020_;
+    public LecternScreen(LecternMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        this.menu = pMenu;
     }
 
     public LecternMenu getMenu() {
@@ -70,17 +70,17 @@ public class LecternScreen extends BookViewScreen implements MenuAccess<LecternM
         this.sendButtonClick(2);
     }
 
-    protected boolean forcePage(int p_99031_) {
-        if (p_99031_ != this.menu.getPage()) {
-            this.sendButtonClick(100 + p_99031_);
+    protected boolean forcePage(int pPageNum) {
+        if (pPageNum != this.menu.getPage()) {
+            this.sendButtonClick(100 + pPageNum);
             return true;
         } else {
             return false;
         }
     }
 
-    private void sendButtonClick(int p_99037_) {
-        this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, p_99037_);
+    private void sendButtonClick(int pPageData) {
+        this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, pPageData);
     }
 
     public boolean isPauseScreen() {

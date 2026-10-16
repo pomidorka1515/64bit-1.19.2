@@ -7,8 +7,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class RedstoneWireConnectionsFix extends DataFix {
-    public RedstoneWireConnectionsFix(Schema p_16749_) {
-        super(p_16749_, false);
+    public RedstoneWireConnectionsFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     protected TypeRewriteRule makeRule() {

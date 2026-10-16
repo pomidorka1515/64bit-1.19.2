@@ -27,24 +27,24 @@ public class WitherBossModel<T extends WitherBoss> extends HierarchicalModel<T> 
     private final ModelPart ribcage;
     private final ModelPart tail;
 
-    public WitherBossModel(ModelPart p_171070_) {
-        this.root = p_171070_;
-        this.ribcage = p_171070_.getChild("ribcage");
-        this.tail = p_171070_.getChild("tail");
-        this.centerHead = p_171070_.getChild("center_head");
-        this.rightHead = p_171070_.getChild("right_head");
-        this.leftHead = p_171070_.getChild("left_head");
+    public WitherBossModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.ribcage = pRoot.getChild("ribcage");
+        this.tail = pRoot.getChild("tail");
+        this.centerHead = pRoot.getChild("center_head");
+        this.rightHead = pRoot.getChild("right_head");
+        this.leftHead = pRoot.getChild("left_head");
     }
 
-    public static LayerDefinition createBodyLayer(CubeDeformation p_171076_) {
+    public static LayerDefinition createBodyLayer(CubeDeformation pCubeDeformation) {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
-        partdefinition.addOrReplaceChild("shoulders", CubeListBuilder.create().texOffs(0, 16).addBox(-10.0F, 3.9F, -0.5F, 20.0F, 3.0F, 3.0F, p_171076_), PartPose.ZERO);
+        partdefinition.addOrReplaceChild("shoulders", CubeListBuilder.create().texOffs(0, 16).addBox(-10.0F, 3.9F, -0.5F, 20.0F, 3.0F, 3.0F, pCubeDeformation), PartPose.ZERO);
         float f = 0.20420352F;
-        partdefinition.addOrReplaceChild("ribcage", CubeListBuilder.create().texOffs(0, 22).addBox(0.0F, 0.0F, 0.0F, 3.0F, 10.0F, 3.0F, p_171076_).texOffs(24, 22).addBox(-4.0F, 1.5F, 0.5F, 11.0F, 2.0F, 2.0F, p_171076_).texOffs(24, 22).addBox(-4.0F, 4.0F, 0.5F, 11.0F, 2.0F, 2.0F, p_171076_).texOffs(24, 22).addBox(-4.0F, 6.5F, 0.5F, 11.0F, 2.0F, 2.0F, p_171076_), PartPose.offsetAndRotation(-2.0F, 6.9F, -0.5F, 0.20420352F, 0.0F, 0.0F));
-        partdefinition.addOrReplaceChild("tail", CubeListBuilder.create().texOffs(12, 22).addBox(0.0F, 0.0F, 0.0F, 3.0F, 6.0F, 3.0F, p_171076_), PartPose.offsetAndRotation(-2.0F, 6.9F + Mth.cos(0.20420352F) * 10.0F, -0.5F + Mth.sin(0.20420352F) * 10.0F, 0.83252203F, 0.0F, 0.0F));
-        partdefinition.addOrReplaceChild("center_head", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, -4.0F, 8.0F, 8.0F, 8.0F, p_171076_), PartPose.ZERO);
-        CubeListBuilder cubelistbuilder = CubeListBuilder.create().texOffs(32, 0).addBox(-4.0F, -4.0F, -4.0F, 6.0F, 6.0F, 6.0F, p_171076_);
+        partdefinition.addOrReplaceChild("ribcage", CubeListBuilder.create().texOffs(0, 22).addBox(0.0F, 0.0F, 0.0F, 3.0F, 10.0F, 3.0F, pCubeDeformation).texOffs(24, 22).addBox(-4.0F, 1.5F, 0.5F, 11.0F, 2.0F, 2.0F, pCubeDeformation).texOffs(24, 22).addBox(-4.0F, 4.0F, 0.5F, 11.0F, 2.0F, 2.0F, pCubeDeformation).texOffs(24, 22).addBox(-4.0F, 6.5F, 0.5F, 11.0F, 2.0F, 2.0F, pCubeDeformation), PartPose.offsetAndRotation(-2.0F, 6.9F, -0.5F, 0.20420352F, 0.0F, 0.0F));
+        partdefinition.addOrReplaceChild("tail", CubeListBuilder.create().texOffs(12, 22).addBox(0.0F, 0.0F, 0.0F, 3.0F, 6.0F, 3.0F, pCubeDeformation), PartPose.offsetAndRotation(-2.0F, 6.9F + Mth.cos(0.20420352F) * 10.0F, -0.5F + Mth.sin(0.20420352F) * 10.0F, 0.83252203F, 0.0F, 0.0F));
+        partdefinition.addOrReplaceChild("center_head", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, -4.0F, 8.0F, 8.0F, 8.0F, pCubeDeformation), PartPose.ZERO);
+        CubeListBuilder cubelistbuilder = CubeListBuilder.create().texOffs(32, 0).addBox(-4.0F, -4.0F, -4.0F, 6.0F, 6.0F, 6.0F, pCubeDeformation);
         partdefinition.addOrReplaceChild("right_head", cubelistbuilder, PartPose.offset(-8.0F, 4.0F, 0.0F));
         partdefinition.addOrReplaceChild("left_head", cubelistbuilder, PartPose.offset(10.0F, 4.0F, 0.0F));
         return LayerDefinition.create(meshdefinition, 64, 64);
@@ -54,18 +54,18 @@ public class WitherBossModel<T extends WitherBoss> extends HierarchicalModel<T> 
         return this.root;
     }
 
-    public void setupAnim(T p_104100_, float p_104101_, float p_104102_, float p_104103_, float p_104104_, float p_104105_) {
-        float f = Mth.cos(p_104103_ * 0.1F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        float f = Mth.cos(pAgeInTicks * 0.1F);
         this.ribcage.xRot = (0.065F + 0.05F * f) * (float) Math.PI;
         this.tail.setPos(-2.0F, 6.9F + Mth.cos(this.ribcage.xRot) * 10.0F, -0.5F + Mth.sin(this.ribcage.xRot) * 10.0F);
         this.tail.xRot = (0.265F + 0.1F * f) * (float) Math.PI;
-        this.centerHead.yRot = p_104104_ * ((float) Math.PI / 180F);
-        this.centerHead.xRot = p_104105_ * ((float) Math.PI / 180F);
+        this.centerHead.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.centerHead.xRot = pHeadPitch * ((float) Math.PI / 180F);
     }
 
-    public void prepareMobModel(T p_104095_, float p_104096_, float p_104097_, float p_104098_) {
-        setupHeadRotation(p_104095_, this.rightHead, 0);
-        setupHeadRotation(p_104095_, this.leftHead, 1);
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
+        setupHeadRotation(pEntity, this.rightHead, 0);
+        setupHeadRotation(pEntity, this.leftHead, 1);
     }
 
     private static <T extends WitherBoss> void setupHeadRotation(T p_171072_, ModelPart p_171073_, int p_171074_) {

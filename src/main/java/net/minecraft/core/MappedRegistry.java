@@ -55,11 +55,11 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
     private List<Holder.Reference<T>> holdersInOrder;
     private int nextId;
 
-    public MappedRegistry(ResourceKey<? extends Registry<T>> p_205849_, Lifecycle p_205850_, @Nullable Function<T, Holder.Reference<T>> p_205851_) {
-        super(p_205849_, p_205850_);
-        this.elementsLifecycle = p_205850_;
-        this.customHolderProvider = p_205851_;
-        if (p_205851_ != null) {
+    public MappedRegistry(ResourceKey<? extends Registry<T>> pKey, Lifecycle pLifecycle, @Nullable Function<T, Holder.Reference<T>> pCustomHolderProvider) {
+        super(pKey, pLifecycle);
+        this.elementsLifecycle = pLifecycle;
+        this.customHolderProvider = pCustomHolderProvider;
+        if (pCustomHolderProvider != null) {
             this.intrusiveHolderCache = new IdentityHashMap<>();
         }
     }
@@ -72,73 +72,73 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         return this.holdersInOrder;
     }
 
-    private void validateWrite(ResourceKey<T> p_205922_) {
+    private void validateWrite(ResourceKey<T> pKey) {
         if (this.frozen) {
-            throw new IllegalStateException("Registry is already frozen (trying to add key " + p_205922_ + ")");
+            throw new IllegalStateException("Registry is already frozen (trying to add key " + pKey + ")");
         }
     }
 
-    public Holder<T> registerMapping(int p_205853_, ResourceKey<T> p_205854_, T p_205855_, Lifecycle p_205856_) {
-        return this.registerMapping(p_205853_, p_205854_, p_205855_, p_205856_, true);
+    public Holder<T> registerMapping(int pId, ResourceKey<T> pKey, T pValue, Lifecycle pLifecycle) {
+        return this.registerMapping(pId, pKey, pValue, pLifecycle, true);
     }
 
-    private Holder<T> registerMapping(int p_205858_, ResourceKey<T> p_205859_, T p_205860_, Lifecycle p_205861_, boolean p_205862_) {
-        this.validateWrite(p_205859_);
-        Validate.notNull(p_205859_);
-        Validate.notNull(p_205860_);
-        this.byId.size(Math.max(this.byId.size(), p_205858_ + 1));
-        this.toId.put(p_205860_, p_205858_);
+    private Holder<T> registerMapping(int pId, ResourceKey<T> pKey, T pValue, Lifecycle pLifecycle, boolean pLogDuplicateKeys) {
+        this.validateWrite(pKey);
+        Validate.notNull(pKey);
+        Validate.notNull(pValue);
+        this.byId.size(Math.max(this.byId.size(), pId + 1));
+        this.toId.put(pValue, pId);
         this.holdersInOrder = null;
-        if (p_205862_ && this.byKey.containsKey(p_205859_)) {
-            Util.logAndPauseIfInIde("Adding duplicate key '" + p_205859_ + "' to registry");
+        if (pLogDuplicateKeys && this.byKey.containsKey(pKey)) {
+            Util.logAndPauseIfInIde("Adding duplicate key '" + pKey + "' to registry");
         }
 
-        if (this.byValue.containsKey(p_205860_)) {
-            Util.logAndPauseIfInIde("Adding duplicate value '" + p_205860_ + "' to registry");
+        if (this.byValue.containsKey(pValue)) {
+            Util.logAndPauseIfInIde("Adding duplicate value '" + pValue + "' to registry");
         }
 
-        this.lifecycles.put(p_205860_, p_205861_);
-        this.elementsLifecycle = this.elementsLifecycle.add(p_205861_);
-        if (this.nextId <= p_205858_) {
-            this.nextId = p_205858_ + 1;
+        this.lifecycles.put(pValue, pLifecycle);
+        this.elementsLifecycle = this.elementsLifecycle.add(pLifecycle);
+        if (this.nextId <= pId) {
+            this.nextId = pId + 1;
         }
 
         Holder.Reference<T> reference;
         if (this.customHolderProvider != null) {
-            reference = this.customHolderProvider.apply(p_205860_);
-            Holder.Reference<T> reference1 = this.byKey.put(p_205859_, reference);
+            reference = this.customHolderProvider.apply(pValue);
+            Holder.Reference<T> reference1 = this.byKey.put(pKey, reference);
             if (reference1 != null && reference1 != reference) {
-                throw new IllegalStateException("Invalid holder present for key " + p_205859_);
+                throw new IllegalStateException("Invalid holder present for key " + pKey);
             }
         } else {
-            reference = this.byKey.computeIfAbsent(p_205859_, (p_205927_) -> {
+            reference = this.byKey.computeIfAbsent(pKey, (p_205927_) -> {
                 return Holder.Reference.createStandAlone(this, p_205927_);
             });
         }
 
-        this.byLocation.put(p_205859_.location(), reference);
-        this.byValue.put(p_205860_, reference);
-        reference.bind(p_205859_, p_205860_);
-        this.byId.set(p_205858_, reference);
+        this.byLocation.put(pKey.location(), reference);
+        this.byValue.put(pValue, reference);
+        reference.bind(pKey, pValue);
+        this.byId.set(pId, reference);
         return reference;
     }
 
-    public Holder<T> register(ResourceKey<T> p_205891_, T p_205892_, Lifecycle p_205893_) {
-        return this.registerMapping(this.nextId, p_205891_, p_205892_, p_205893_);
+    public Holder<T> register(ResourceKey<T> pKey, T pValue, Lifecycle pLifecycle) {
+        return this.registerMapping(this.nextId, pKey, pValue, pLifecycle);
     }
 
-    public Holder<T> registerOrOverride(OptionalInt p_205884_, ResourceKey<T> p_205885_, T p_205886_, Lifecycle p_205887_) {
-        this.validateWrite(p_205885_);
-        Validate.notNull(p_205885_);
-        Validate.notNull(p_205886_);
-        Holder<T> holder = this.byKey.get(p_205885_);
+    public Holder<T> registerOrOverride(OptionalInt pId, ResourceKey<T> pKey, T pValue, Lifecycle pLifecycle) {
+        this.validateWrite(pKey);
+        Validate.notNull(pKey);
+        Validate.notNull(pValue);
+        Holder<T> holder = this.byKey.get(pKey);
         T t = (T) (holder != null && holder.isBound() ? holder.value() : null);
         int i;
         if (t == null) {
-            i = p_205884_.orElse(this.nextId);
+            i = pId.orElse(this.nextId);
         } else {
             i = this.toId.getInt(t);
-            if (p_205884_.isPresent() && p_205884_.getAsInt() != i) {
+            if (pId.isPresent() && pId.getAsInt() != i) {
                 throw new IllegalStateException("ID mismatch");
             }
 
@@ -147,43 +147,43 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
             this.byValue.remove(t);
         }
 
-        return this.registerMapping(i, p_205885_, p_205886_, p_205887_, false);
+        return this.registerMapping(i, pKey, pValue, pLifecycle, false);
     }
 
     @Nullable
-    public ResourceLocation getKey(T p_122746_) {
-        Holder.Reference<T> reference = this.byValue.get(p_122746_);
+    public ResourceLocation getKey(T pValue) {
+        Holder.Reference<T> reference = this.byValue.get(pValue);
         return reference != null ? reference.key().location() : null;
     }
 
-    public Optional<ResourceKey<T>> getResourceKey(T p_122755_) {
-        return Optional.ofNullable(this.byValue.get(p_122755_)).map(Holder.Reference::key);
+    public Optional<ResourceKey<T>> getResourceKey(T pValue) {
+        return Optional.ofNullable(this.byValue.get(pValue)).map(Holder.Reference::key);
     }
 
-    public int getId(@Nullable T p_122706_) {
-        return this.toId.getInt(p_122706_);
-    }
-
-    @Nullable
-    public T get(@Nullable ResourceKey<T> p_122714_) {
-        return getValueFromNullable(this.byKey.get(p_122714_));
+    public int getId(@Nullable T pValue) {
+        return this.toId.getInt(pValue);
     }
 
     @Nullable
-    public T byId(int p_122684_) {
-        return (T) (p_122684_ >= 0 && p_122684_ < this.byId.size() ? getValueFromNullable(this.byId.get(p_122684_)) : null);
+    public T get(@Nullable ResourceKey<T> pKey) {
+        return getValueFromNullable(this.byKey.get(pKey));
     }
 
-    public Optional<Holder<T>> getHolder(int p_205907_) {
-        return p_205907_ >= 0 && p_205907_ < this.byId.size() ? Optional.ofNullable(this.byId.get(p_205907_)) : Optional.empty();
+    @Nullable
+    public T byId(int pId) {
+        return (T) (pId >= 0 && pId < this.byId.size() ? getValueFromNullable(this.byId.get(pId)) : null);
     }
 
-    public Optional<Holder<T>> getHolder(ResourceKey<T> p_205905_) {
-        return Optional.ofNullable(this.byKey.get(p_205905_));
+    public Optional<Holder<T>> getHolder(int pId) {
+        return pId >= 0 && pId < this.byId.size() ? Optional.ofNullable(this.byId.get(pId)) : Optional.empty();
     }
 
-    public Holder<T> getOrCreateHolderOrThrow(ResourceKey<T> p_235718_) {
-        return this.byKey.computeIfAbsent(p_235718_, (p_235723_) -> {
+    public Optional<Holder<T>> getHolder(ResourceKey<T> pKey) {
+        return Optional.ofNullable(this.byKey.get(pKey));
+    }
+
+    public Holder<T> getOrCreateHolderOrThrow(ResourceKey<T> pKey) {
+        return this.byKey.computeIfAbsent(pKey, (p_235723_) -> {
             if (this.customHolderProvider != null) {
                 throw new IllegalStateException("This registry can't create new holders without value");
             } else {
@@ -193,19 +193,19 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         });
     }
 
-    public DataResult<Holder<T>> getOrCreateHolder(ResourceKey<T> p_235720_) {
-        Holder.Reference<T> reference = this.byKey.get(p_235720_);
+    public DataResult<Holder<T>> getOrCreateHolder(ResourceKey<T> pKey) {
+        Holder.Reference<T> reference = this.byKey.get(pKey);
         if (reference == null) {
             if (this.customHolderProvider != null) {
-                return DataResult.error("This registry can't create new holders without value (requested key: " + p_235720_ + ")");
+                return DataResult.error("This registry can't create new holders without value (requested key: " + pKey + ")");
             }
 
             if (this.frozen) {
-                return DataResult.error("Registry is already frozen (requested key: " + p_235720_ + ")");
+                return DataResult.error("Registry is already frozen (requested key: " + pKey + ")");
             }
 
-            reference = Holder.Reference.createStandAlone(this, p_235720_);
-            this.byKey.put(p_235720_, reference);
+            reference = Holder.Reference.createStandAlone(this, pKey);
+            this.byKey.put(pKey, reference);
         }
 
         return DataResult.success(reference);
@@ -215,8 +215,8 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         return this.byKey.size();
     }
 
-    public Lifecycle lifecycle(T p_122764_) {
-        return this.lifecycles.get(p_122764_);
+    public Lifecycle lifecycle(T pValue) {
+        return this.lifecycles.get(pValue);
     }
 
     public Lifecycle elementsLifecycle() {
@@ -228,8 +228,8 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
     }
 
     @Nullable
-    public T get(@Nullable ResourceLocation p_122739_) {
-        Holder.Reference<T> reference = this.byLocation.get(p_122739_);
+    public T get(@Nullable ResourceLocation pName) {
+        Holder.Reference<T> reference = this.byLocation.get(pName);
         return getValueFromNullable(reference);
     }
 
@@ -254,8 +254,8 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         return this.holdersInOrder().stream();
     }
 
-    public boolean isKnownTagName(TagKey<T> p_205864_) {
-        return this.tags.containsKey(p_205864_);
+    public boolean isKnownTagName(TagKey<T> pKey) {
+        return this.tags.containsKey(pKey);
     }
 
     public Stream<Pair<TagKey<T>, HolderSet.Named<T>>> getTags() {
@@ -264,12 +264,12 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         });
     }
 
-    public HolderSet.Named<T> getOrCreateTag(TagKey<T> p_205895_) {
-        HolderSet.Named<T> named = this.tags.get(p_205895_);
+    public HolderSet.Named<T> getOrCreateTag(TagKey<T> pKey) {
+        HolderSet.Named<T> named = this.tags.get(pKey);
         if (named == null) {
-            named = this.createTag(p_205895_);
+            named = this.createTag(pKey);
             Map<TagKey<T>, HolderSet.Named<T>> map = new IdentityHashMap<>(this.tags);
-            map.put(p_205895_, named);
+            map.put(pKey, named);
             this.tags = map;
         }
 
@@ -288,16 +288,16 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         return this.byKey.isEmpty();
     }
 
-    public Optional<Holder<T>> getRandom(RandomSource p_235716_) {
-        return Util.getRandomSafe(this.holdersInOrder(), p_235716_).map(Holder::hackyErase);
+    public Optional<Holder<T>> getRandom(RandomSource pRandom) {
+        return Util.getRandomSafe(this.holdersInOrder(), pRandom).map(Holder::hackyErase);
     }
 
-    public boolean containsKey(ResourceLocation p_122761_) {
-        return this.byLocation.containsKey(p_122761_);
+    public boolean containsKey(ResourceLocation pName) {
+        return this.byLocation.containsKey(pName);
     }
 
-    public boolean containsKey(ResourceKey<T> p_175392_) {
-        return this.byKey.containsKey(p_175392_);
+    public boolean containsKey(ResourceKey<T> pKey) {
+        return this.byKey.containsKey(pKey);
     }
 
     public Registry<T> freeze() {
@@ -329,11 +329,11 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         }
     }
 
-    public Holder.Reference<T> createIntrusiveHolder(T p_205915_) {
+    public Holder.Reference<T> createIntrusiveHolder(T pValue) {
         if (this.customHolderProvider == null) {
             throw new IllegalStateException("This registry can't create intrusive holders");
         } else if (!this.frozen && this.intrusiveHolderCache != null) {
-            return this.intrusiveHolderCache.computeIfAbsent(p_205915_, (p_211813_) -> {
+            return this.intrusiveHolderCache.computeIfAbsent(pValue, (p_211813_) -> {
                 return Holder.Reference.createIntrusive(this, p_211813_);
             });
         } else {
@@ -341,16 +341,16 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         }
     }
 
-    public Optional<HolderSet.Named<T>> getTag(TagKey<T> p_205909_) {
-        return Optional.ofNullable(this.tags.get(p_205909_));
+    public Optional<HolderSet.Named<T>> getTag(TagKey<T> pKey) {
+        return Optional.ofNullable(this.tags.get(pKey));
     }
 
-    public void bindTags(Map<TagKey<T>, List<Holder<T>>> p_205875_) {
+    public void bindTags(Map<TagKey<T>, List<Holder<T>>> pTagMap) {
         Map<Holder.Reference<T>, List<TagKey<T>>> map = new IdentityHashMap<>();
         this.byKey.values().forEach((p_211801_) -> {
             map.put(p_211801_, new ArrayList<>());
         });
-        p_205875_.forEach((p_211806_, p_211807_) -> {
+        pTagMap.forEach((p_211806_, p_211807_) -> {
             for (Holder<T> holder : p_211807_) {
                 if (!holder.isValidInRegistry(this)) {
                     throw new IllegalStateException("Can't create named set " + p_211806_ + " containing value " + holder + " from outside registry " + this);
@@ -364,7 +364,7 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
                 map.get(reference).add(p_211806_);
             }
         });
-        Set<TagKey<T>> set = Sets.difference(this.tags.keySet(), p_205875_.keySet());
+        Set<TagKey<T>> set = Sets.difference(this.tags.keySet(), pTagMap.keySet());
         if (!set.isEmpty()) {
             LOGGER.warn("Not all defined tags for registry {} are present in data pack: {}", this.key(), set.stream().map((p_211811_) -> {
                                                                                                                          return p_211811_.location().toString();
@@ -374,7 +374,7 @@ public class MappedRegistry<T> extends WritableRegistry<T> {
         }
 
         Map<TagKey<T>, HolderSet.Named<T>> map1 = new IdentityHashMap<>(this.tags);
-        p_205875_.forEach((p_211797_, p_211798_) -> {
+        pTagMap.forEach((p_211797_, p_211798_) -> {
             map1.computeIfAbsent(p_211797_, this::createTag).bind(p_211798_);
         });
         map.forEach(Holder.Reference::bindTags);

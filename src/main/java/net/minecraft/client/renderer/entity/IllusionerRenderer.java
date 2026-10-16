@@ -28,27 +28,27 @@ public class IllusionerRenderer extends IllagerRenderer<Illusioner> {
         this.model.getHat().visible = true;
     }
 
-    public ResourceLocation getTextureLocation(Illusioner p_114950_) {
+    public ResourceLocation getTextureLocation(Illusioner pEntity) {
         return ILLUSIONER;
     }
 
-    public void render(Illusioner p_114952_, float p_114953_, float p_114954_, PoseStack p_114955_, MultiBufferSource p_114956_, int p_114957_) {
-        if (p_114952_.isInvisible()) {
-            Vec3[] avec3 = p_114952_.getIllusionOffsets(p_114954_);
-            float f = this.getBob(p_114952_, p_114954_);
+    public void render(Illusioner pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        if (pEntity.isInvisible()) {
+            Vec3[] avec3 = pEntity.getIllusionOffsets(pPartialTicks);
+            float f = this.getBob(pEntity, pPartialTicks);
 
             for (int i = 0; i < avec3.length; ++i) {
-                p_114955_.pushPose();
-                p_114955_.translate(avec3[i].x + (double) Mth.cos((float) i + f * 0.5F) * 0.025D, avec3[i].y + (double) Mth.cos((float) i + f * 0.75F) * 0.0125D, avec3[i].z + (double) Mth.cos((float) i + f * 0.7F) * 0.025D);
-                super.render(p_114952_, p_114953_, p_114954_, p_114955_, p_114956_, p_114957_);
-                p_114955_.popPose();
+                pMatrixStack.pushPose();
+                pMatrixStack.translate(avec3[i].x + (double) Mth.cos((float) i + f * 0.5F) * 0.025D, avec3[i].y + (double) Mth.cos((float) i + f * 0.75F) * 0.0125D, avec3[i].z + (double) Mth.cos((float) i + f * 0.7F) * 0.025D);
+                super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
+                pMatrixStack.popPose();
             }
         } else {
-            super.render(p_114952_, p_114953_, p_114954_, p_114955_, p_114956_, p_114957_);
+            super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
         }
     }
 
-    protected boolean isBodyVisible(Illusioner p_114959_) {
+    protected boolean isBodyVisible(Illusioner pLivingEntity) {
         return true;
     }
 }

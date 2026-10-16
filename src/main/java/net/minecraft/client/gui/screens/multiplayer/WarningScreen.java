@@ -19,18 +19,18 @@ public abstract class WarningScreen extends Screen {
     protected Checkbox stopShowing;
     private MultiLineLabel message = MultiLineLabel.EMPTY;
 
-    protected WarningScreen(Component p_239894_, Component p_239895_, Component p_239896_) {
-        this(p_239894_, p_239895_, (Component) null, p_239896_);
+    protected WarningScreen(Component pTitle, Component pContent, Component pNarration) {
+        this(pTitle, pContent, (Component) null, pNarration);
     }
 
-    protected WarningScreen(Component p_232852_, Component p_232853_, @Nullable Component p_232854_, Component p_232855_) {
-        super(p_232852_);
-        this.content = p_232853_;
-        this.check = p_232854_;
-        this.narration = p_232855_;
+    protected WarningScreen(Component pTitle, Component pContent, @Nullable Component pCheck, Component pNarration) {
+        super(pTitle);
+        this.content = pContent;
+        this.check = pCheck;
+        this.narration = pNarration;
     }
 
-    protected abstract void initButtons(int p_210922_);
+    protected abstract void initButtons(int pYOffset);
 
     protected void init() {
         super.init();
@@ -49,16 +49,16 @@ public abstract class WarningScreen extends Screen {
         return this.narration;
     }
 
-    public void render(PoseStack p_210924_, int p_210925_, int p_210926_, float p_210927_) {
-        this.renderBackground(p_210924_);
-        this.renderTitle(p_210924_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.renderTitle(pPoseStack);
         int i = this.width / 2 - this.message.getWidth() / 2;
-        this.message.renderLeftAligned(p_210924_, i, 70, this.getLineHeight(), 16777215);
-        super.render(p_210924_, p_210925_, p_210926_, p_210927_);
+        this.message.renderLeftAligned(pPoseStack, i, 70, this.getLineHeight(), 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    protected void renderTitle(PoseStack p_239251_) {
-        drawString(p_239251_, this.font, this.title, 25, 30, 16777215);
+    protected void renderTitle(PoseStack pPoseStack) {
+        drawString(pPoseStack, this.font, this.title, 25, 30, 16777215);
     }
 
     protected int getLineHeight() {

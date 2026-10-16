@@ -42,8 +42,8 @@ public class Pufferfish extends AbstractFish {
     public static final int STATE_MID = 1;
     public static final int STATE_FULL = 2;
 
-    public Pufferfish(EntityType<? extends Pufferfish> p_29602_, Level p_29603_) {
-        super(p_29602_, p_29603_);
+    public Pufferfish(EntityType<? extends Pufferfish> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.refreshDimensions();
     }
 
@@ -56,26 +56,26 @@ public class Pufferfish extends AbstractFish {
         return this.entityData.get(PUFF_STATE);
     }
 
-    public void setPuffState(int p_29619_) {
-        this.entityData.set(PUFF_STATE, p_29619_);
+    public void setPuffState(int pPuffState) {
+        this.entityData.set(PUFF_STATE, pPuffState);
     }
 
-    public void onSyncedDataUpdated(EntityDataAccessor<?> p_29615_) {
-        if (PUFF_STATE.equals(p_29615_)) {
+    public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
+        if (PUFF_STATE.equals(pKey)) {
             this.refreshDimensions();
         }
 
-        super.onSyncedDataUpdated(p_29615_);
+        super.onSyncedDataUpdated(pKey);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_29624_) {
-        super.addAdditionalSaveData(p_29624_);
-        p_29624_.putInt("PuffState", this.getPuffState());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("PuffState", this.getPuffState());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_29613_) {
-        super.readAdditionalSaveData(p_29613_);
-        this.setPuffState(Math.min(p_29613_.getInt("PuffState"), 2));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setPuffState(Math.min(pCompound.getInt("PuffState"), 2));
     }
 
     public ItemStack getBucketItemStack() {
@@ -128,22 +128,22 @@ public class Pufferfish extends AbstractFish {
         }
     }
 
-    private void touch(Mob p_29606_) {
+    private void touch(Mob pMob) {
         int i = this.getPuffState();
-        if (p_29606_.hurt(DamageSource.mobAttack(this), (float) (1 + i))) {
-            p_29606_.addEffect(new MobEffectInstance(MobEffects.POISON, 60 * i, 0), this);
+        if (pMob.hurt(DamageSource.mobAttack(this), (float) (1 + i))) {
+            pMob.addEffect(new MobEffectInstance(MobEffects.POISON, 60 * i, 0), this);
             this.playSound(SoundEvents.PUFFER_FISH_STING, 1.0F, 1.0F);
         }
     }
 
-    public void playerTouch(Player p_29617_) {
+    public void playerTouch(Player pEntity) {
         int i = this.getPuffState();
-        if (p_29617_ instanceof ServerPlayer && i > 0 && p_29617_.hurt(DamageSource.mobAttack(this), (float) (1 + i))) {
+        if (pEntity instanceof ServerPlayer && i > 0 && pEntity.hurt(DamageSource.mobAttack(this), (float) (1 + i))) {
             if (!this.isSilent()) {
-                ((ServerPlayer) p_29617_).connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.PUFFER_FISH_STING, 0.0F));
+                ((ServerPlayer) pEntity).connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.PUFFER_FISH_STING, 0.0F));
             }
 
-            p_29617_.addEffect(new MobEffectInstance(MobEffects.POISON, 60 * i, 0), this);
+            pEntity.addEffect(new MobEffectInstance(MobEffects.POISON, 60 * i, 0), this);
         }
     }
 
@@ -155,7 +155,7 @@ public class Pufferfish extends AbstractFish {
         return SoundEvents.PUFFER_FISH_DEATH;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_29628_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.PUFFER_FISH_HURT;
     }
 
@@ -163,12 +163,12 @@ public class Pufferfish extends AbstractFish {
         return SoundEvents.PUFFER_FISH_FLOP;
     }
 
-    public EntityDimensions getDimensions(Pose p_29608_) {
-        return super.getDimensions(p_29608_).scale(getScale(this.getPuffState()));
+    public EntityDimensions getDimensions(Pose pPose) {
+        return super.getDimensions(pPose).scale(getScale(this.getPuffState()));
     }
 
-    private static float getScale(int p_29639_) {
-        switch (p_29639_) {
+    private static float getScale(int pPuffState) {
+        switch (pPuffState) {
             case 0:
                 return 0.5F;
             case 1:
@@ -181,8 +181,8 @@ public class Pufferfish extends AbstractFish {
     static class PufferfishPuffGoal extends Goal {
         private final Pufferfish fish;
 
-        public PufferfishPuffGoal(Pufferfish p_29642_) {
-            this.fish = p_29642_;
+        public PufferfishPuffGoal(Pufferfish pFish) {
+            this.fish = pFish;
         }
 
         public boolean canUse() {

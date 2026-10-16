@@ -86,17 +86,17 @@ public class FlatLevelGeneratorSettings {
         }
     }
 
-    public FlatLevelGeneratorSettings(Optional<HolderSet<StructureSet>> p_209797_, Registry<Biome> p_209798_) {
-        this.biomes = p_209798_;
-        this.structureOverrides = p_209797_;
-        this.biome = p_209798_.getOrCreateHolderOrThrow(Biomes.PLAINS);
+    public FlatLevelGeneratorSettings(Optional<HolderSet<StructureSet>> pStructureOverrides, Registry<Biome> pBiomes) {
+        this.biomes = pBiomes;
+        this.structureOverrides = pStructureOverrides;
+        this.biome = pBiomes.getOrCreateHolderOrThrow(Biomes.PLAINS);
         this.layers = Lists.newArrayList();
     }
 
-    public FlatLevelGeneratorSettings withLayers(List<FlatLayerInfo> p_209804_, Optional<HolderSet<StructureSet>> p_209805_) {
-        FlatLevelGeneratorSettings flatlevelgeneratorsettings = new FlatLevelGeneratorSettings(p_209805_, this.biomes);
+    public FlatLevelGeneratorSettings withLayers(List<FlatLayerInfo> pLayersInfo, Optional<HolderSet<StructureSet>> pStructureOverrides) {
+        FlatLevelGeneratorSettings flatlevelgeneratorsettings = new FlatLevelGeneratorSettings(pStructureOverrides, this.biomes);
 
-        for (FlatLayerInfo flatlayerinfo : p_209804_) {
+        for (FlatLayerInfo flatlayerinfo : pLayersInfo) {
             flatlevelgeneratorsettings.layersInfo.add(new FlatLayerInfo(flatlayerinfo.getHeight(), flatlayerinfo.getBlockState().getBlock()));
             flatlevelgeneratorsettings.updateLayers();
         }
@@ -167,8 +167,8 @@ public class FlatLevelGeneratorSettings {
         return this.biome;
     }
 
-    public void setBiome(Holder<Biome> p_204919_) {
-        this.biome = p_204919_;
+    public void setBiome(Holder<Biome> pBiome) {
+        this.biome = pBiome;
     }
 
     public List<FlatLayerInfo> getLayersInfo() {
@@ -193,10 +193,10 @@ public class FlatLevelGeneratorSettings {
         });
     }
 
-    public static FlatLevelGeneratorSettings getDefault(Registry<Biome> p_211735_, Registry<StructureSet> p_211736_) {
-        HolderSet<StructureSet> holderset = HolderSet.direct(p_211736_.getHolderOrThrow(BuiltinStructureSets.STRONGHOLDS), p_211736_.getHolderOrThrow(BuiltinStructureSets.VILLAGES));
-        FlatLevelGeneratorSettings flatlevelgeneratorsettings = new FlatLevelGeneratorSettings(Optional.of(holderset), p_211735_);
-        flatlevelgeneratorsettings.biome = p_211735_.getOrCreateHolderOrThrow(Biomes.PLAINS);
+    public static FlatLevelGeneratorSettings getDefault(Registry<Biome> pBiomes, Registry<StructureSet> pStructureSets) {
+        HolderSet<StructureSet> holderset = HolderSet.direct(pStructureSets.getHolderOrThrow(BuiltinStructureSets.STRONGHOLDS), pStructureSets.getHolderOrThrow(BuiltinStructureSets.VILLAGES));
+        FlatLevelGeneratorSettings flatlevelgeneratorsettings = new FlatLevelGeneratorSettings(Optional.of(holderset), pBiomes);
+        flatlevelgeneratorsettings.biome = pBiomes.getOrCreateHolderOrThrow(Biomes.PLAINS);
         flatlevelgeneratorsettings.getLayersInfo().add(new FlatLayerInfo(1, Blocks.BEDROCK));
         flatlevelgeneratorsettings.getLayersInfo().add(new FlatLayerInfo(2, Blocks.DIRT));
         flatlevelgeneratorsettings.getLayersInfo().add(new FlatLayerInfo(1, Blocks.GRASS_BLOCK));

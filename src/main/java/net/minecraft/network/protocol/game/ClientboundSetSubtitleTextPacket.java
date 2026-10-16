@@ -7,20 +7,20 @@ import net.minecraft.network.protocol.Packet;
 public class ClientboundSetSubtitleTextPacket implements Packet<ClientGamePacketListener> {
     private final Component text;
 
-    public ClientboundSetSubtitleTextPacket(Component p_179378_) {
-        this.text = p_179378_;
+    public ClientboundSetSubtitleTextPacket(Component pText) {
+        this.text = pText;
     }
 
-    public ClientboundSetSubtitleTextPacket(FriendlyByteBuf p_179376_) {
-        this.text = p_179376_.readComponent();
+    public ClientboundSetSubtitleTextPacket(FriendlyByteBuf pBuffer) {
+        this.text = pBuffer.readComponent();
     }
 
-    public void write(FriendlyByteBuf p_179380_) {
-        p_179380_.writeComponent(this.text);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeComponent(this.text);
     }
 
-    public void handle(ClientGamePacketListener p_179384_) {
-        p_179384_.setSubtitleText(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.setSubtitleText(this);
     }
 
     public Component getText() {

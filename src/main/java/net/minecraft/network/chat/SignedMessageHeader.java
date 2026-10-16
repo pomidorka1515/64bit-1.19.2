@@ -8,15 +8,15 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.SignatureUpdater;
 
 public record SignedMessageHeader(@Nullable MessageSignature previousSignature, UUID sender) {
-    public SignedMessageHeader(FriendlyByteBuf p_241381_) {
-        this(p_241381_.readNullable(MessageSignature::new), p_241381_.readUUID());
+    public SignedMessageHeader(FriendlyByteBuf pBuffer) {
+        this(pBuffer.readNullable(MessageSignature::new), pBuffer.readUUID());
     }
 
-    public void write(FriendlyByteBuf p_241567_) {
-        p_241567_.writeNullable(this.previousSignature, (p_241348_, p_241289_) -> {
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeNullable(this.previousSignature, (p_241348_, p_241289_) -> {
             p_241289_.write(p_241348_);
         });
-        p_241567_.writeUUID(this.sender);
+        pBuffer.writeUUID(this.sender);
     }
 
     public void updateSignature(SignatureUpdater.Output p_241383_, byte[] p_241564_) throws SignatureException {

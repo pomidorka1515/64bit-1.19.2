@@ -30,16 +30,16 @@ public class BoatModel extends ListModel<Boat> {
     private final ModelPart waterPatch;
     private final ImmutableList<ModelPart> parts;
 
-    public BoatModel(ModelPart p_233345_, boolean p_233346_) {
-        this.leftPaddle = p_233345_.getChild("left_paddle");
-        this.rightPaddle = p_233345_.getChild("right_paddle");
-        this.waterPatch = p_233345_.getChild("water_patch");
+    public BoatModel(ModelPart pRoot, boolean pWithChest) {
+        this.leftPaddle = pRoot.getChild("left_paddle");
+        this.rightPaddle = pRoot.getChild("right_paddle");
+        this.waterPatch = pRoot.getChild("water_patch");
         ImmutableList.Builder<ModelPart> builder = new ImmutableList.Builder<>();
-        builder.add(p_233345_.getChild("bottom"), p_233345_.getChild("back"), p_233345_.getChild("front"), p_233345_.getChild("right"), p_233345_.getChild("left"), this.leftPaddle, this.rightPaddle);
-        if (p_233346_) {
-            builder.add(p_233345_.getChild("chest_bottom"));
-            builder.add(p_233345_.getChild("chest_lid"));
-            builder.add(p_233345_.getChild("chest_lock"));
+        builder.add(pRoot.getChild("bottom"), pRoot.getChild("back"), pRoot.getChild("front"), pRoot.getChild("right"), pRoot.getChild("left"), this.leftPaddle, this.rightPaddle);
+        if (pWithChest) {
+            builder.add(pRoot.getChild("chest_bottom"));
+            builder.add(pRoot.getChild("chest_lid"));
+            builder.add(pRoot.getChild("chest_lock"));
         }
 
         this.parts = builder.build();
@@ -74,9 +74,9 @@ public class BoatModel extends ListModel<Boat> {
         return LayerDefinition.create(meshdefinition, 128, p_233348_ ? 128 : 64);
     }
 
-    public void setupAnim(Boat p_102269_, float p_102270_, float p_102271_, float p_102272_, float p_102273_, float p_102274_) {
-        animatePaddle(p_102269_, 0, this.leftPaddle, p_102270_);
-        animatePaddle(p_102269_, 1, this.rightPaddle, p_102270_);
+    public void setupAnim(Boat pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        animatePaddle(pEntity, 0, this.leftPaddle, pLimbSwing);
+        animatePaddle(pEntity, 1, this.rightPaddle, pLimbSwing);
     }
 
     public ImmutableList<ModelPart> parts() {
@@ -87,12 +87,12 @@ public class BoatModel extends ListModel<Boat> {
         return this.waterPatch;
     }
 
-    private static void animatePaddle(Boat p_170465_, int p_170466_, ModelPart p_170467_, float p_170468_) {
-        float f = p_170465_.getRowingTime(p_170466_, p_170468_);
-        p_170467_.xRot = Mth.clampedLerp((-(float) Math.PI / 3F), -0.2617994F, (Mth.sin(-f) + 1.0F) / 2.0F);
-        p_170467_.yRot = Mth.clampedLerp((-(float) Math.PI / 4F), ((float) Math.PI / 4F), (Mth.sin(-f + 1.0F) + 1.0F) / 2.0F);
-        if (p_170466_ == 1) {
-            p_170467_.yRot = (float) Math.PI - p_170467_.yRot;
+    private static void animatePaddle(Boat pBoat, int pSide, ModelPart pPaddle, float pLimbSwing) {
+        float f = pBoat.getRowingTime(pSide, pLimbSwing);
+        pPaddle.xRot = Mth.clampedLerp((-(float) Math.PI / 3F), -0.2617994F, (Mth.sin(-f) + 1.0F) / 2.0F);
+        pPaddle.yRot = Mth.clampedLerp((-(float) Math.PI / 4F), ((float) Math.PI / 4F), (Mth.sin(-f + 1.0F) + 1.0F) / 2.0F);
+        if (pSide == 1) {
+            pPaddle.yRot = (float) Math.PI - pPaddle.yRot;
         }
     }
 }

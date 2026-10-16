@@ -83,13 +83,13 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
     private int tickCount;
     private boolean handlingFault;
 
-    public Connection(PacketFlow p_129482_) {
-        this.receiving = p_129482_;
+    public Connection(PacketFlow pReceiving) {
+        this.receiving = pReceiving;
     }
 
-    public void channelActive(ChannelHandlerContext p_129525_) throws Exception {
-        super.channelActive(p_129525_);
-        this.channel = p_129525_.channel();
+    public void channelActive(ChannelHandlerContext pContext) throws Exception {
+        super.channelActive(pContext);
+        this.channel = pContext.channel();
         this.address = this.channel.remoteAddress();
 
         try {
@@ -99,30 +99,30 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
         }
     }
 
-    public void setProtocol(ConnectionProtocol p_129499_) {
-        this.channel.attr(ATTRIBUTE_PROTOCOL).set(p_129499_);
+    public void setProtocol(ConnectionProtocol pNewState) {
+        this.channel.attr(ATTRIBUTE_PROTOCOL).set(pNewState);
         this.channel.config().setAutoRead(true);
         LOGGER.debug("Enabled auto read");
     }
 
-    public void channelInactive(ChannelHandlerContext p_129527_) {
+    public void channelInactive(ChannelHandlerContext pContext) {
         this.disconnect(Component.translatable("disconnect.endOfStream"));
     }
 
-    public void exceptionCaught(ChannelHandlerContext p_129533_, Throwable p_129534_) {
-        if (p_129534_ instanceof SkipPacketException) {
-            LOGGER.debug("Skipping packet due to errors", p_129534_.getCause());
+    public void exceptionCaught(ChannelHandlerContext pContext, Throwable pException) {
+        if (pException instanceof SkipPacketException) {
+            LOGGER.debug("Skipping packet due to errors", pException.getCause());
         } else {
             boolean flag = !this.handlingFault;
             this.handlingFault = true;
             if (this.channel.isOpen()) {
-                if (p_129534_ instanceof TimeoutException) {
-                    LOGGER.debug("Timeout", p_129534_);
+                if (pException instanceof TimeoutException) {
+                    LOGGER.debug("Timeout", pException);
                     this.disconnect(Component.translatable("disconnect.timeout"));
                 } else {
-                    Component component = Component.translatable("disconnect.genericReason", "Internal Exception: " + p_129534_);
+                    Component component = Component.translatable("disconnect.genericReason", "Internal Exception: " + pException);
                     if (flag) {
-                        LOGGER.debug("Failed to sent packet", p_129534_);
+                        LOGGER.debug("Failed to sent packet", pException);
                         ConnectionProtocol connectionprotocol = this.getCurrentProtocol();
                         Packet<?> packet = (Packet<?>) (connectionprotocol == ConnectionProtocol.LOGIN ? new ClientboundLoginDisconnectPacket(component) : new ClientboundDisconnectPacket(component));
                         this.send(packet, PacketSendListener.thenRun(() -> {
@@ -130,7 +130,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
                         }));
                         this.setReadOnly();
                     } else {
-                        LOGGER.debug("Double fault", p_129534_);
+                        LOGGER.debug("Double fault", pException);
                         this.disconnect(component);
                     }
                 }
@@ -138,15 +138,15 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
         }
     }
 
-    protected void channelRead0(ChannelHandlerContext p_129487_, Packet<?> p_129488_) {
+    protected void channelRead0(ChannelHandlerContext pContext, Packet<?> pPacket) {
         if (this.channel.isOpen()) {
             try {
-                genericsFtw(p_129488_, this.packetListener);
+                genericsFtw(pPacket, this.packetListener);
             } catch (RunningOnDifferentThreadException runningondifferentthreadexception) {
             } catch (RejectedExecutionException rejectedexecutionexception) {
                 this.disconnect(Component.translatable("multiplayer.disconnect.server_shutdown"));
             } catch (ClassCastException classcastexception) {
-                LOGGER.error("Received {} that couldn't be processed", p_129488_.getClass(), classcastexception);
+                LOGGER.error("Received {} that couldn't be processed", pPacket.getClass(), classcastexception);
                 this.disconnect(Component.translatable("multiplayer.disconnect.invalid_packet"));
             }
 
@@ -154,30 +154,30 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
         }
     }
 
-    private static <T extends PacketListener> void genericsFtw(Packet<T> p_129518_, PacketListener p_129519_) {
-        p_129518_.handle((T) p_129519_);
+    private static <T extends PacketListener> void genericsFtw(Packet<T> pPacket, PacketListener pListener) {
+        pPacket.handle((T) pListener);
     }
 
-    public void setListener(PacketListener p_129506_) {
-        Validate.notNull(p_129506_, "packetListener");
-        this.packetListener = p_129506_;
+    public void setListener(PacketListener pHandler) {
+        Validate.notNull(pHandler, "packetListener");
+        this.packetListener = pHandler;
     }
 
-    public void send(Packet<?> p_129513_) {
-        this.send(p_129513_, (PacketSendListener) null);
+    public void send(Packet<?> pPacket) {
+        this.send(pPacket, (PacketSendListener) null);
     }
 
-    public void send(Packet<?> p_243248_, @Nullable PacketSendListener p_243316_) {
+    public void send(Packet<?> pPacket, @Nullable PacketSendListener pSendListener) {
         if (this.isConnected()) {
             this.flushQueue();
-            this.sendPacket(p_243248_, p_243316_);
+            this.sendPacket(pPacket, pSendListener);
         } else {
-            this.queue.add(new Connection.PacketHolder(p_243248_, p_243316_));
+            this.queue.add(new Connection.PacketHolder(pPacket, pSendListener));
         }
     }
 
-    private void sendPacket(Packet<?> p_129521_, @Nullable PacketSendListener p_243246_) {
-        ConnectionProtocol connectionprotocol = ConnectionProtocol.getProtocolForPacket(p_129521_);
+    private void sendPacket(Packet<?> pPacket, @Nullable PacketSendListener pSendListener) {
+        ConnectionProtocol connectionprotocol = ConnectionProtocol.getProtocolForPacket(pPacket);
         ConnectionProtocol connectionprotocol1 = this.getCurrentProtocol();
         ++this.sentPackets;
         if (connectionprotocol1 != connectionprotocol) {
@@ -186,26 +186,26 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
         }
 
         if (this.channel.eventLoop().inEventLoop()) {
-            this.doSendPacket(p_129521_, p_243246_, connectionprotocol, connectionprotocol1);
+            this.doSendPacket(pPacket, pSendListener, connectionprotocol, connectionprotocol1);
         } else {
             this.channel.eventLoop().execute(() -> {
-                this.doSendPacket(p_129521_, p_243246_, connectionprotocol, connectionprotocol1);
+                this.doSendPacket(pPacket, pSendListener, connectionprotocol, connectionprotocol1);
             });
         }
     }
 
-    private void doSendPacket(Packet<?> p_243260_, @Nullable PacketSendListener p_243290_, ConnectionProtocol p_243203_, ConnectionProtocol p_243307_) {
-        if (p_243203_ != p_243307_) {
-            this.setProtocol(p_243203_);
+    private void doSendPacket(Packet<?> pPacket, @Nullable PacketSendListener pSendListener, ConnectionProtocol pNewProtocol, ConnectionProtocol pCurrentProtocol) {
+        if (pNewProtocol != pCurrentProtocol) {
+            this.setProtocol(pNewProtocol);
         }
 
-        ChannelFuture channelfuture = this.channel.writeAndFlush(p_243260_);
-        if (p_243290_ != null) {
+        ChannelFuture channelfuture = this.channel.writeAndFlush(pPacket);
+        if (pSendListener != null) {
             channelfuture.addListener((p_243167_) -> {
                 if (p_243167_.isSuccess()) {
-                    p_243290_.onSuccess();
+                    pSendListener.onSuccess();
                 } else {
-                    Packet<?> packet = p_243290_.onFailure();
+                    Packet<?> packet = pSendListener.onFailure();
                     if (packet != null) {
                         ChannelFuture channelfuture1 = this.channel.writeAndFlush(packet);
                         channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
@@ -263,10 +263,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
         return this.address;
     }
 
-    public void disconnect(Component p_129508_) {
+    public void disconnect(Component pMessage) {
         if (this.channel.isOpen()) {
             this.channel.close().awaitUninterruptibly();
-            this.disconnectedReason = p_129508_;
+            this.disconnectedReason = pMessage;
         }
     }
 
@@ -282,11 +282,11 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
         return this.receiving.getOpposite();
     }
 
-    public static Connection connectToServer(InetSocketAddress p_178301_, boolean p_178302_) {
+    public static Connection connectToServer(InetSocketAddress pAddress, boolean pUseEpollIfAvailable) {
         final Connection connection = new Connection(PacketFlow.CLIENTBOUND);
         Class<? extends SocketChannel> oclass;
         LazyLoadedValue<? extends EventLoopGroup> lazyloadedvalue;
-        if (Epoll.isAvailable() && p_178302_) {
+        if (Epoll.isAvailable() && pUseEpollIfAvailable) {
             oclass = EpollSocketChannel.class;
             lazyloadedvalue = NETWORK_EPOLL_WORKER_GROUP;
         } else {
@@ -305,12 +305,12 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
                                                           }
                                                       })
                 .channel(oclass)
-                .connect(p_178301_.getAddress(), p_178301_.getPort())
+                .connect(pAddress.getAddress(), pAddress.getPort())
                 .syncUninterruptibly();
         return connection;
     }
 
-    public static Connection connectToLocalServer(SocketAddress p_129494_) {
+    public static Connection connectToLocalServer(SocketAddress pAddress) {
         final Connection connection = new Connection(PacketFlow.CLIENTBOUND);
         (new Bootstrap()).group(LOCAL_WORKER_GROUP.get()).handler(new ChannelInitializer<Channel>() {
                                                              protected void initChannel(Channel p_129557_) {
@@ -318,15 +318,15 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
                                                              }
                                                          })
                 .channel(LocalChannel.class)
-                .connect(p_129494_)
+                .connect(pAddress)
                 .syncUninterruptibly();
         return connection;
     }
 
-    public void setEncryptionKey(Cipher p_129496_, Cipher p_129497_) {
+    public void setEncryptionKey(Cipher pDecryptingCipher, Cipher pEncryptingCipher) {
         this.encrypted = true;
-        this.channel.pipeline().addBefore("splitter", "decrypt", new CipherDecoder(p_129496_));
-        this.channel.pipeline().addBefore("prepender", "encrypt", new CipherEncoder(p_129497_));
+        this.channel.pipeline().addBefore("splitter", "decrypt", new CipherDecoder(pDecryptingCipher));
+        this.channel.pipeline().addBefore("prepender", "encrypt", new CipherEncoder(pEncryptingCipher));
     }
 
     public boolean isEncrypted() {
@@ -354,18 +354,18 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
         this.channel.config().setAutoRead(false);
     }
 
-    public void setupCompression(int p_129485_, boolean p_182682_) {
-        if (p_129485_ >= 0) {
+    public void setupCompression(int pThreshold, boolean pValidateDecompressed) {
+        if (pThreshold >= 0) {
             if (this.channel.pipeline().get("decompress") instanceof CompressionDecoder) {
-                ((CompressionDecoder) this.channel.pipeline().get("decompress")).setThreshold(p_129485_, p_182682_);
+                ((CompressionDecoder) this.channel.pipeline().get("decompress")).setThreshold(pThreshold, pValidateDecompressed);
             } else {
-                this.channel.pipeline().addBefore("decoder", "decompress", new CompressionDecoder(p_129485_, p_182682_));
+                this.channel.pipeline().addBefore("decoder", "decompress", new CompressionDecoder(pThreshold, pValidateDecompressed));
             }
 
             if (this.channel.pipeline().get("compress") instanceof CompressionEncoder) {
-                ((CompressionEncoder) this.channel.pipeline().get("compress")).setThreshold(p_129485_);
+                ((CompressionEncoder) this.channel.pipeline().get("compress")).setThreshold(pThreshold);
             } else {
-                this.channel.pipeline().addBefore("encoder", "compress", new CompressionEncoder(p_129485_));
+                this.channel.pipeline().addBefore("encoder", "compress", new CompressionEncoder(pThreshold));
             }
         } else {
             if (this.channel.pipeline().get("decompress") instanceof CompressionDecoder) {
@@ -406,9 +406,9 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
         @Nullable
         final PacketSendListener listener;
 
-        public PacketHolder(Packet<?> p_243302_, @Nullable PacketSendListener p_243266_) {
-            this.packet = p_243302_;
-            this.listener = p_243266_;
+        public PacketHolder(Packet<?> pPacket, @Nullable PacketSendListener pListener) {
+            this.packet = pPacket;
+            this.listener = pListener;
         }
     }
 }

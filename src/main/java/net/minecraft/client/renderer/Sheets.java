@@ -107,76 +107,76 @@ public class Sheets {
         return TRANSLUCENT_CULL_BLOCK_SHEET;
     }
 
-    public static void getAllMaterials(Consumer<Material> p_110781_) {
-        p_110781_.accept(DEFAULT_SHULKER_TEXTURE_LOCATION);
-        SHULKER_TEXTURE_LOCATION.forEach(p_110781_);
-        BANNER_MATERIALS.values().forEach(p_110781_);
-        SHIELD_MATERIALS.values().forEach(p_110781_);
-        SIGN_MATERIALS.values().forEach(p_110781_);
+    public static void getAllMaterials(Consumer<Material> pMaterialConsumer) {
+        pMaterialConsumer.accept(DEFAULT_SHULKER_TEXTURE_LOCATION);
+        SHULKER_TEXTURE_LOCATION.forEach(pMaterialConsumer);
+        BANNER_MATERIALS.values().forEach(pMaterialConsumer);
+        SHIELD_MATERIALS.values().forEach(pMaterialConsumer);
+        SIGN_MATERIALS.values().forEach(pMaterialConsumer);
 
         for (Material material : BED_TEXTURES) {
-            p_110781_.accept(material);
+            pMaterialConsumer.accept(material);
         }
 
-        p_110781_.accept(CHEST_TRAP_LOCATION);
-        p_110781_.accept(CHEST_TRAP_LOCATION_LEFT);
-        p_110781_.accept(CHEST_TRAP_LOCATION_RIGHT);
-        p_110781_.accept(CHEST_XMAS_LOCATION);
-        p_110781_.accept(CHEST_XMAS_LOCATION_LEFT);
-        p_110781_.accept(CHEST_XMAS_LOCATION_RIGHT);
-        p_110781_.accept(CHEST_LOCATION);
-        p_110781_.accept(CHEST_LOCATION_LEFT);
-        p_110781_.accept(CHEST_LOCATION_RIGHT);
-        p_110781_.accept(ENDER_CHEST_LOCATION);
+        pMaterialConsumer.accept(CHEST_TRAP_LOCATION);
+        pMaterialConsumer.accept(CHEST_TRAP_LOCATION_LEFT);
+        pMaterialConsumer.accept(CHEST_TRAP_LOCATION_RIGHT);
+        pMaterialConsumer.accept(CHEST_XMAS_LOCATION);
+        pMaterialConsumer.accept(CHEST_XMAS_LOCATION_LEFT);
+        pMaterialConsumer.accept(CHEST_XMAS_LOCATION_RIGHT);
+        pMaterialConsumer.accept(CHEST_LOCATION);
+        pMaterialConsumer.accept(CHEST_LOCATION_LEFT);
+        pMaterialConsumer.accept(CHEST_LOCATION_RIGHT);
+        pMaterialConsumer.accept(ENDER_CHEST_LOCATION);
     }
 
     private static Material createSignMaterial(WoodType p_173386_) {
         return new Material(SIGN_SHEET, new ResourceLocation("entity/signs/" + p_173386_.name()));
     }
 
-    public static Material getSignMaterial(WoodType p_173382_) {
-        return SIGN_MATERIALS.get(p_173382_);
+    public static Material getSignMaterial(WoodType pWoodType) {
+        return SIGN_MATERIALS.get(pWoodType);
     }
 
     private static Material createBannerMaterial(ResourceKey<BannerPattern> p_234352_) {
         return new Material(BANNER_SHEET, BannerPattern.location(p_234352_, true));
     }
 
-    public static Material getBannerMaterial(ResourceKey<BannerPattern> p_234348_) {
-        return BANNER_MATERIALS.get(p_234348_);
+    public static Material getBannerMaterial(ResourceKey<BannerPattern> pBannerPattern) {
+        return BANNER_MATERIALS.get(pBannerPattern);
     }
 
     private static Material createShieldMaterial(ResourceKey<BannerPattern> p_234354_) {
         return new Material(SHIELD_SHEET, BannerPattern.location(p_234354_, false));
     }
 
-    public static Material getShieldMaterial(ResourceKey<BannerPattern> p_234350_) {
-        return SHIELD_MATERIALS.get(p_234350_);
+    public static Material getShieldMaterial(ResourceKey<BannerPattern> pBannerPattern) {
+        return SHIELD_MATERIALS.get(pBannerPattern);
     }
 
-    private static Material chestMaterial(String p_110779_) {
-        return new Material(CHEST_SHEET, new ResourceLocation("entity/chest/" + p_110779_));
+    private static Material chestMaterial(String pChestName) {
+        return new Material(CHEST_SHEET, new ResourceLocation("entity/chest/" + pChestName));
     }
 
-    public static Material chooseMaterial(BlockEntity p_110768_, ChestType p_110769_, boolean p_110770_) {
-        if (p_110768_ instanceof EnderChestBlockEntity) {
+    public static Material chooseMaterial(BlockEntity pBlockEntity, ChestType pChestType, boolean pHoliday) {
+        if (pBlockEntity instanceof EnderChestBlockEntity) {
             return ENDER_CHEST_LOCATION;
-        } else if (p_110770_) {
-            return chooseMaterial(p_110769_, CHEST_XMAS_LOCATION, CHEST_XMAS_LOCATION_LEFT, CHEST_XMAS_LOCATION_RIGHT);
+        } else if (pHoliday) {
+            return chooseMaterial(pChestType, CHEST_XMAS_LOCATION, CHEST_XMAS_LOCATION_LEFT, CHEST_XMAS_LOCATION_RIGHT);
         } else {
-            return p_110768_ instanceof TrappedChestBlockEntity ? chooseMaterial(p_110769_, CHEST_TRAP_LOCATION, CHEST_TRAP_LOCATION_LEFT, CHEST_TRAP_LOCATION_RIGHT) : chooseMaterial(p_110769_, CHEST_LOCATION, CHEST_LOCATION_LEFT, CHEST_LOCATION_RIGHT);
+            return pBlockEntity instanceof TrappedChestBlockEntity ? chooseMaterial(pChestType, CHEST_TRAP_LOCATION, CHEST_TRAP_LOCATION_LEFT, CHEST_TRAP_LOCATION_RIGHT) : chooseMaterial(pChestType, CHEST_LOCATION, CHEST_LOCATION_LEFT, CHEST_LOCATION_RIGHT);
         }
     }
 
-    private static Material chooseMaterial(ChestType p_110772_, Material p_110773_, Material p_110774_, Material p_110775_) {
-        switch (p_110772_) {
+    private static Material chooseMaterial(ChestType pChestType, Material pDoubleMaterial, Material pLeftMaterial, Material pRightMaterial) {
+        switch (pChestType) {
             case LEFT:
-                return p_110774_;
+                return pLeftMaterial;
             case RIGHT:
-                return p_110775_;
+                return pRightMaterial;
             case SINGLE:
             default:
-                return p_110773_;
+                return pDoubleMaterial;
         }
     }
 }

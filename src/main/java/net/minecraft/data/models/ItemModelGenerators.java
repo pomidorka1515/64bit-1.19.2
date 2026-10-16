@@ -15,20 +15,20 @@ import net.minecraft.world.item.Items;
 public class ItemModelGenerators {
     private final BiConsumer<ResourceLocation, Supplier<JsonElement>> output;
 
-    public ItemModelGenerators(BiConsumer<ResourceLocation, Supplier<JsonElement>> p_125082_) {
-        this.output = p_125082_;
+    public ItemModelGenerators(BiConsumer<ResourceLocation, Supplier<JsonElement>> pOutput) {
+        this.output = pOutput;
     }
 
-    private void generateFlatItem(Item p_125089_, ModelTemplate p_125090_) {
-        p_125090_.create(ModelLocationUtils.getModelLocation(p_125089_), TextureMapping.layer0(p_125089_), this.output);
+    private void generateFlatItem(Item pItem, ModelTemplate pModelTemplate) {
+        pModelTemplate.create(ModelLocationUtils.getModelLocation(pItem), TextureMapping.layer0(pItem), this.output);
     }
 
-    private void generateFlatItem(Item p_125092_, String p_125093_, ModelTemplate p_125094_) {
-        p_125094_.create(ModelLocationUtils.getModelLocation(p_125092_, p_125093_), TextureMapping.layer0(TextureMapping.getItemTexture(p_125092_, p_125093_)), this.output);
+    private void generateFlatItem(Item pItem, String pModelLocationSuffix, ModelTemplate pModelTemplate) {
+        pModelTemplate.create(ModelLocationUtils.getModelLocation(pItem, pModelLocationSuffix), TextureMapping.layer0(TextureMapping.getItemTexture(pItem, pModelLocationSuffix)), this.output);
     }
 
-    private void generateFlatItem(Item p_125085_, Item p_125086_, ModelTemplate p_125087_) {
-        p_125087_.create(ModelLocationUtils.getModelLocation(p_125085_), TextureMapping.layer0(p_125086_), this.output);
+    private void generateFlatItem(Item pItem, Item pLayerZeroItem, ModelTemplate pModelTemplate) {
+        pModelTemplate.create(ModelLocationUtils.getModelLocation(pItem), TextureMapping.layer0(pLayerZeroItem), this.output);
     }
 
     private void generateCompassItem(Item p_236322_) {

@@ -5,8 +5,8 @@ import com.mojang.datafixers.Typed;
 import com.mojang.datafixers.schemas.Schema;
 
 public class EntityGoatMissingStateFix extends NamedEntityFix {
-    public EntityGoatMissingStateFix(Schema p_238339_) {
-        super(p_238339_, false, "EntityGoatMissingStateFix", References.ENTITY, "minecraft:goat");
+    public EntityGoatMissingStateFix(Schema pOutputSchema) {
+        super(pOutputSchema, false, "EntityGoatMissingStateFix", References.ENTITY, "minecraft:goat");
     }
 
     protected Typed<?> fix(Typed<?> p_238295_) {

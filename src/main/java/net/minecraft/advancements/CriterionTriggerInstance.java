@@ -7,5 +7,5 @@ import net.minecraft.resources.ResourceLocation;
 public interface CriterionTriggerInstance {
     ResourceLocation getCriterion();
 
-    JsonObject serializeToJson(SerializationContext p_14485_);
+    JsonObject serializeToJson(SerializationContext pContext);
 }

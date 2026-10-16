@@ -53,29 +53,29 @@ public class FrogAi {
     private static final float MAX_JUMP_VELOCITY = 1.5F;
     private static final float SPEED_MULTIPLIER_WHEN_TEMPTED = 1.25F;
 
-    protected static void initMemories(Frog p_218580_, RandomSource p_218581_) {
-        p_218580_.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, TIME_BETWEEN_LONG_JUMPS.sample(p_218581_));
+    protected static void initMemories(Frog pFrog, RandomSource pRandom) {
+        pFrog.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, TIME_BETWEEN_LONG_JUMPS.sample(pRandom));
     }
 
-    protected static Brain<?> makeBrain(Brain<Frog> p_218576_) {
-        initCoreActivity(p_218576_);
-        initIdleActivity(p_218576_);
-        initSwimActivity(p_218576_);
-        initLaySpawnActivity(p_218576_);
-        initTongueActivity(p_218576_);
-        initJumpActivity(p_218576_);
-        p_218576_.setCoreActivities(ImmutableSet.of(Activity.CORE));
-        p_218576_.setDefaultActivity(Activity.IDLE);
-        p_218576_.useDefaultActivity();
-        return p_218576_;
+    protected static Brain<?> makeBrain(Brain<Frog> pBrain) {
+        initCoreActivity(pBrain);
+        initIdleActivity(pBrain);
+        initSwimActivity(pBrain);
+        initLaySpawnActivity(pBrain);
+        initTongueActivity(pBrain);
+        initJumpActivity(pBrain);
+        pBrain.setCoreActivities(ImmutableSet.of(Activity.CORE));
+        pBrain.setDefaultActivity(Activity.IDLE);
+        pBrain.useDefaultActivity();
+        return pBrain;
     }
 
-    private static void initCoreActivity(Brain<Frog> p_218587_) {
-        p_218587_.addActivity(Activity.CORE, 0, ImmutableList.of(new AnimalPanic(2.0F), new LookAtTargetSink(45, 90), new MoveToTargetSink(), new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS), new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS)));
+    private static void initCoreActivity(Brain<Frog> pBrain) {
+        pBrain.addActivity(Activity.CORE, 0, ImmutableList.of(new AnimalPanic(2.0F), new LookAtTargetSink(45, 90), new MoveToTargetSink(), new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS), new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS)));
     }
 
-    private static void initIdleActivity(Brain<Frog> p_218591_) {
-        p_218591_.addActivityWithConditions(Activity.IDLE, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(0, new AnimalMakeLove(EntityType.FROG, 1.0F)), Pair.of(1, new FollowTemptation((p_218585_) -> {
+    private static void initIdleActivity(Brain<Frog> pBrain) {
+        pBrain.addActivityWithConditions(Activity.IDLE, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(0, new AnimalMakeLove(EntityType.FROG, 1.0F)), Pair.of(1, new FollowTemptation((p_218585_) -> {
             return 1.25F;
         })),
                                                                    Pair.of(2, new StartAttacking<>(FrogAi::canAttack, (p_218605_) -> {
@@ -84,8 +84,8 @@ public class FrogAi {
                 ImmutableSet.of(Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.IS_IN_WATER, MemoryStatus.VALUE_ABSENT)));
     }
 
-    private static void initSwimActivity(Brain<Frog> p_218595_) {
-        p_218595_.addActivityWithConditions(Activity.SWIM, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(1, new FollowTemptation((p_218574_) -> {
+    private static void initSwimActivity(Brain<Frog> pBrain) {
+        pBrain.addActivityWithConditions(Activity.SWIM, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(1, new FollowTemptation((p_218574_) -> {
             return 1.25F;
         })),
                                                                    Pair.of(2, new StartAttacking<>(FrogAi::canAttack, (p_218601_) -> {
@@ -94,26 +94,26 @@ public class FrogAi {
                 ImmutableSet.of(Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.IS_IN_WATER, MemoryStatus.VALUE_PRESENT)));
     }
 
-    private static void initLaySpawnActivity(Brain<Frog> p_218599_) {
-        p_218599_.addActivityWithConditions(Activity.LAY_SPAWN, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(1, new StartAttacking<>(FrogAi::canAttack, (p_218597_) -> {
+    private static void initLaySpawnActivity(Brain<Frog> pBrain) {
+        pBrain.addActivityWithConditions(Activity.LAY_SPAWN, ImmutableList.of(Pair.of(0, new RunSometimes<>(new SetEntityLookTarget(EntityType.PLAYER, 6.0F), UniformInt.of(30, 60))), Pair.of(1, new StartAttacking<>(FrogAi::canAttack, (p_218597_) -> {
             return p_218597_.getBrain().getMemory(MemoryModuleType.NEAREST_ATTACKABLE);
         })), Pair.of(2, new TryFindLandNearWater(8, 1.0F)), Pair.of(3, new TryLaySpawnOnWaterNearLand(Blocks.FROGSPAWN, MemoryModuleType.IS_PREGNANT)), Pair.of(4, new RunOne<>(ImmutableList.of(Pair.of(new RandomStroll(1.0F), 2), Pair.of(new SetWalkTargetFromLookTarget(1.0F, 3), 1), Pair.of(new Croak(), 2), Pair.of(new RunIf<>(Entity::isOnGround, new DoNothing(5, 20)), 1))))), ImmutableSet.of(Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.IS_PREGNANT, MemoryStatus.VALUE_PRESENT)));
     }
 
-    private static void initJumpActivity(Brain<Frog> p_218603_) {
-        p_218603_.addActivityWithConditions(Activity.LONG_JUMP, ImmutableList.of(Pair.of(0, new LongJumpMidJump(TIME_BETWEEN_LONG_JUMPS, SoundEvents.FROG_STEP)), Pair.of(1, new LongJumpToPreferredBlock<>(TIME_BETWEEN_LONG_JUMPS, 2, 4, 1.5F, (p_218593_) -> { return SoundEvents.FROG_LONG_JUMP; }, BlockTags.FROG_PREFER_JUMP_TO, 0.5F, (p_218583_) -> { return p_218583_.is(Blocks.LILY_PAD); }))), ImmutableSet.of(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.IS_IN_WATER, MemoryStatus.VALUE_ABSENT)));
+    private static void initJumpActivity(Brain<Frog> pBrain) {
+        pBrain.addActivityWithConditions(Activity.LONG_JUMP, ImmutableList.of(Pair.of(0, new LongJumpMidJump(TIME_BETWEEN_LONG_JUMPS, SoundEvents.FROG_STEP)), Pair.of(1, new LongJumpToPreferredBlock<>(TIME_BETWEEN_LONG_JUMPS, 2, 4, 1.5F, (p_218593_) -> { return SoundEvents.FROG_LONG_JUMP; }, BlockTags.FROG_PREFER_JUMP_TO, 0.5F, (p_218583_) -> { return p_218583_.is(Blocks.LILY_PAD); }))), ImmutableSet.of(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.IS_IN_WATER, MemoryStatus.VALUE_ABSENT)));
     }
 
-    private static void initTongueActivity(Brain<Frog> p_218607_) {
-        p_218607_.addActivityAndRemoveMemoryWhenStopped(Activity.TONGUE, 0, ImmutableList.of(new StopAttackingIfTargetInvalid<>(), new ShootTongue(SoundEvents.FROG_TONGUE, SoundEvents.FROG_EAT)), MemoryModuleType.ATTACK_TARGET);
+    private static void initTongueActivity(Brain<Frog> pBrain) {
+        pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.TONGUE, 0, ImmutableList.of(new StopAttackingIfTargetInvalid<>(), new ShootTongue(SoundEvents.FROG_TONGUE, SoundEvents.FROG_EAT)), MemoryModuleType.ATTACK_TARGET);
     }
 
     private static boolean canAttack(Frog p_218589_) {
         return !BehaviorUtils.isBreeding(p_218589_);
     }
 
-    public static void updateActivity(Frog p_218578_) {
-        p_218578_.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.TONGUE, Activity.LAY_SPAWN, Activity.LONG_JUMP, Activity.SWIM, Activity.IDLE));
+    public static void updateActivity(Frog pFrog) {
+        pFrog.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.TONGUE, Activity.LAY_SPAWN, Activity.LONG_JUMP, Activity.SWIM, Activity.IDLE));
     }
 
     public static Ingredient getTemptations() {

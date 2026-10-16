@@ -41,12 +41,12 @@ public enum SymmetricGroup3 {
         this.transformation.set(2, this.permutation(2), 1.0F);
     }
 
-    public SymmetricGroup3 compose(SymmetricGroup3 p_109183_) {
-        return cayleyTable[this.ordinal()][p_109183_.ordinal()];
+    public SymmetricGroup3 compose(SymmetricGroup3 pOther) {
+        return cayleyTable[this.ordinal()][pOther.ordinal()];
     }
 
-    public int permutation(int p_109181_) {
-        return this.permutation[p_109181_];
+    public int permutation(int pElement) {
+        return this.permutation[pElement];
     }
 
     public Matrix3f transformation() {

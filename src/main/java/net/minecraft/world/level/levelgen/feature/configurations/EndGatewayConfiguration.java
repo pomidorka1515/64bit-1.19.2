@@ -23,8 +23,8 @@ public class EndGatewayConfiguration implements FeatureConfiguration {
         this.exact = p_67645_;
     }
 
-    public static EndGatewayConfiguration knownExit(BlockPos p_67651_, boolean p_67652_) {
-        return new EndGatewayConfiguration(Optional.of(p_67651_), p_67652_);
+    public static EndGatewayConfiguration knownExit(BlockPos pExit, boolean pExact) {
+        return new EndGatewayConfiguration(Optional.of(pExit), pExact);
     }
 
     public static EndGatewayConfiguration delayedExitSearch() {

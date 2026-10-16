@@ -232,22 +232,22 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     private final LastSeenMessagesValidator lastSeenMessagesValidator = new LastSeenMessagesValidator();
     private final FutureChain chatMessageChain;
 
-    public ServerGamePacketListenerImpl(MinecraftServer p_9770_, Connection p_9771_, ServerPlayer p_9772_) {
-        this.server = p_9770_;
-        this.connection = p_9771_;
-        p_9771_.setListener(this);
-        this.player = p_9772_;
-        p_9772_.connection = this;
+    public ServerGamePacketListenerImpl(MinecraftServer pServer, Connection pConnection, ServerPlayer pPlayer) {
+        this.server = pServer;
+        this.connection = pConnection;
+        pConnection.setListener(this);
+        this.player = pPlayer;
+        pPlayer.connection = this;
         this.keepAliveTime = Util.getMillis();
-        p_9772_.getTextFilter().join();
-        ProfilePublicKey profilepublickey = p_9772_.getProfilePublicKey();
+        pPlayer.getTextFilter().join();
+        ProfilePublicKey profilepublickey = pPlayer.getProfilePublicKey();
         if (profilepublickey != null) {
             this.signedMessageDecoder = (new SignedMessageChain()).decoder();
         } else {
             this.signedMessageDecoder = SignedMessageChain.Decoder.UNSIGNED;
         }
 
-        this.chatMessageChain = new FutureChain(p_9770_);
+        this.chatMessageChain = new FutureChain(pServer);
     }
 
     public void tick() {
@@ -355,9 +355,9 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         return this.server.isSingleplayerOwner(this.player.getGameProfile());
     }
 
-    public void disconnect(Component p_9943_) {
-        this.connection.send(new ClientboundDisconnectPacket(p_9943_), PacketSendListener.thenRun(() -> {
-            this.connection.disconnect(p_9943_);
+    public void disconnect(Component pTextComponent) {
+        this.connection.send(new ClientboundDisconnectPacket(pTextComponent), PacketSendListener.thenRun(() -> {
+            this.connection.disconnect(pTextComponent);
         }));
         this.connection.setReadOnly();
         this.server.executeBlocking(this.connection::handleDisconnection);
@@ -374,17 +374,17 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         });
     }
 
-    private CompletableFuture<FilteredText> filterTextPacket(String p_243213_) {
-        return this.filterTextPacket(p_243213_, TextFilter::processStreamMessage);
+    private CompletableFuture<FilteredText> filterTextPacket(String pText) {
+        return this.filterTextPacket(pText, TextFilter::processStreamMessage);
     }
 
-    private CompletableFuture<List<FilteredText>> filterTextPacket(List<String> p_243258_) {
-        return this.filterTextPacket(p_243258_, TextFilter::processMessageBundle);
+    private CompletableFuture<List<FilteredText>> filterTextPacket(List<String> pTexts) {
+        return this.filterTextPacket(pTexts, TextFilter::processMessageBundle);
     }
 
-    public void handlePlayerInput(ServerboundPlayerInputPacket p_9893_) {
-        PacketUtils.ensureRunningOnSameThread(p_9893_, this, this.player.getLevel());
-        this.player.setPlayerInput(p_9893_.getXxa(), p_9893_.getZza(), p_9893_.isJumping(), p_9893_.isShiftKeyDown());
+    public void handlePlayerInput(ServerboundPlayerInputPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        this.player.setPlayerInput(pPacket.getXxa(), pPacket.getZza(), pPacket.isJumping(), pPacket.isShiftKeyDown());
     }
 
     private static boolean containsInvalidValues(double p_143664_, double p_143665_, double p_143666_, float p_143667_, float p_143668_) {
@@ -392,18 +392,18 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 || !Floats.isFinite(p_143668_) || !Floats.isFinite(p_143667_);
     }
 
-    private static double clampHorizontal(double p_143610_) {
-        return WorldBounds.clampAbsoluteDouble(p_143610_);
+    private static double clampHorizontal(double pValue) {
+        return WorldBounds.clampAbsoluteDouble(pValue);
     }
 
-    private static double clampVertical(double p_143654_) {
-        return WorldBounds.clampVerticalDouble(p_143654_);
+    private static double clampVertical(double pValue) {
+        return WorldBounds.clampVerticalDouble(pValue);
     }
 
-    public void handleMoveVehicle(ServerboundMoveVehiclePacket p_9876_) {
-        PacketUtils.ensureRunningOnSameThread(p_9876_, this, this.player.getLevel());
-        SectorVec3 target = p_9876_.getExactPosition();
-        if (!target.isFinite() || !Floats.isFinite(p_9876_.getYRot()) || !Floats.isFinite(p_9876_.getXRot())) {
+    public void handleMoveVehicle(ServerboundMoveVehiclePacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        SectorVec3 target = pPacket.getExactPosition();
+        if (!target.isFinite() || !Floats.isFinite(pPacket.getYRot()) || !Floats.isFinite(pPacket.getXRot())) {
             this.disconnect(Component.translatable("multiplayer.disconnect.invalid_vehicle_movement"));
             return;
         }
@@ -416,8 +416,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
         ServerLevel serverlevel = this.player.getLevel();
         SectorVec3 before = entity.sectorPosition();
-        float yRot = Mth.wrapDegrees(p_9876_.getYRot());
-        float xRot = Mth.wrapDegrees(p_9876_.getXRot());
+        float yRot = Mth.wrapDegrees(pPacket.getYRot());
+        float xRot = Mth.wrapDegrees(pPacket.getXRot());
         Vec3 firstDelta = target.relativeTo(this.vehicleFirstGoodSector);
         double speedSqr = entity.getDeltaMovement().lengthSqr();
         double firstDistanceSqr = firstDelta.lengthSqr();
@@ -478,9 +478,9 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         return true;
     }
 
-    public void handleAcceptTeleportPacket(ServerboundAcceptTeleportationPacket p_9835_) {
-        PacketUtils.ensureRunningOnSameThread(p_9835_, this, this.player.getLevel());
-        if (p_9835_.getId() == this.awaitingTeleport) {
+    public void handleAcceptTeleportPacket(ServerboundAcceptTeleportationPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        if (pPacket.getId() == this.awaitingTeleport) {
             if (this.awaitingPositionFromClient == null) {
                 this.disconnect(Component.translatable("multiplayer.disconnect.invalid_player_movement"));
                 return;
@@ -505,20 +505,20 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleRecipeBookSeenRecipePacket(ServerboundRecipeBookSeenRecipePacket p_9897_) {
-        PacketUtils.ensureRunningOnSameThread(p_9897_, this, this.player.getLevel());
-        this.server.getRecipeManager().byKey(p_9897_.getRecipe()).ifPresent(this.player.getRecipeBook()::removeHighlight);
+    public void handleRecipeBookSeenRecipePacket(ServerboundRecipeBookSeenRecipePacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        this.server.getRecipeManager().byKey(pPacket.getRecipe()).ifPresent(this.player.getRecipeBook()::removeHighlight);
     }
 
-    public void handleRecipeBookChangeSettingsPacket(ServerboundRecipeBookChangeSettingsPacket p_9895_) {
-        PacketUtils.ensureRunningOnSameThread(p_9895_, this, this.player.getLevel());
-        this.player.getRecipeBook().setBookSetting(p_9895_.getBookType(), p_9895_.isOpen(), p_9895_.isFiltering());
+    public void handleRecipeBookChangeSettingsPacket(ServerboundRecipeBookChangeSettingsPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        this.player.getRecipeBook().setBookSetting(pPacket.getBookType(), pPacket.isOpen(), pPacket.isFiltering());
     }
 
-    public void handleSeenAdvancements(ServerboundSeenAdvancementsPacket p_9903_) {
-        PacketUtils.ensureRunningOnSameThread(p_9903_, this, this.player.getLevel());
-        if (p_9903_.getAction() == ServerboundSeenAdvancementsPacket.Action.OPENED_TAB) {
-            ResourceLocation resourcelocation = p_9903_.getTab();
+    public void handleSeenAdvancements(ServerboundSeenAdvancementsPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        if (pPacket.getAction() == ServerboundSeenAdvancementsPacket.Action.OPENED_TAB) {
+            ResourceLocation resourcelocation = pPacket.getTab();
             Advancement advancement = this.server.getAdvancements().getAdvancement(resourcelocation);
             if (advancement != null) {
                 this.player.getAdvancements().setSelectedTab(advancement);
@@ -526,21 +526,21 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleCustomCommandSuggestions(ServerboundCommandSuggestionPacket p_9847_) {
-        PacketUtils.ensureRunningOnSameThread(p_9847_, this, this.player.getLevel());
-        StringReader stringreader = new StringReader(p_9847_.getCommand());
+    public void handleCustomCommandSuggestions(ServerboundCommandSuggestionPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        StringReader stringreader = new StringReader(pPacket.getCommand());
         if (stringreader.canRead() && stringreader.peek() == '/') {
             stringreader.skip();
         }
 
         ParseResults<CommandSourceStack> parseresults = this.server.getCommands().getDispatcher().parse(stringreader, this.player.createCommandSourceStack());
         this.server.getCommands().getDispatcher().getCompletionSuggestions(parseresults).thenAccept((p_238197_) -> {
-            this.connection.send(new ClientboundCommandSuggestionsPacket(p_9847_.getId(), p_238197_));
+            this.connection.send(new ClientboundCommandSuggestionsPacket(pPacket.getId(), p_238197_));
         });
     }
 
-    public void handleSetCommandBlock(ServerboundSetCommandBlockPacket p_9911_) {
-        PacketUtils.ensureRunningOnSameThread(p_9911_, this, this.player.getLevel());
+    public void handleSetCommandBlock(ServerboundSetCommandBlockPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (!this.server.isCommandBlockEnabled()) {
             this.player.sendSystemMessage(Component.translatable("advMode.notEnabled"));
         } else if (!this.player.canUseGameMasterBlocks()) {
@@ -548,7 +548,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         } else {
             BaseCommandBlock basecommandblock = null;
             CommandBlockEntity commandblockentity = null;
-            BlockPos blockpos = p_9911_.getPos();
+            BlockPos blockpos = pPacket.getPos();
             if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ()))
                 return;
             BlockEntity blockentity = this.player.level.getBlockEntity(blockpos);
@@ -557,14 +557,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 basecommandblock = commandblockentity.getCommandBlock();
             }
 
-            String s = p_9911_.getCommand();
-            boolean flag = p_9911_.isTrackOutput();
+            String s = pPacket.getCommand();
+            boolean flag = pPacket.isTrackOutput();
             if (basecommandblock != null) {
                 CommandBlockEntity.Mode commandblockentity$mode = commandblockentity.getMode();
                 BlockState blockstate = this.player.level.getBlockState(blockpos);
                 Direction direction = blockstate.getValue(CommandBlock.FACING);
                 BlockState blockstate1;
-                switch (p_9911_.getMode()) {
+                switch (pPacket.getMode()) {
                     case SEQUENCE:
                         blockstate1 = Blocks.CHAIN_COMMAND_BLOCK.defaultBlockState();
                         break;
@@ -576,7 +576,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                         blockstate1 = Blocks.COMMAND_BLOCK.defaultBlockState();
                 }
 
-                BlockState blockstate2 = blockstate1.setValue(CommandBlock.FACING, direction).setValue(CommandBlock.CONDITIONAL, Boolean.valueOf(p_9911_.isConditional()));
+                BlockState blockstate2 = blockstate1.setValue(CommandBlock.FACING, direction).setValue(CommandBlock.CONDITIONAL, Boolean.valueOf(pPacket.isConditional()));
                 if (blockstate2 != blockstate) {
                     this.player.level.setBlock(blockpos, blockstate2, 2);
                     blockentity.setBlockState(blockstate2);
@@ -589,8 +589,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                     basecommandblock.setLastOutput((Component) null);
                 }
 
-                commandblockentity.setAutomatic(p_9911_.isAutomatic());
-                if (commandblockentity$mode != p_9911_.getMode()) {
+                commandblockentity.setAutomatic(pPacket.isAutomatic());
+                if (commandblockentity$mode != pPacket.getMode()) {
                     commandblockentity.onModeSwitch();
                 }
 
@@ -602,37 +602,37 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleSetCommandMinecart(ServerboundSetCommandMinecartPacket p_9913_) {
-        PacketUtils.ensureRunningOnSameThread(p_9913_, this, this.player.getLevel());
+    public void handleSetCommandMinecart(ServerboundSetCommandMinecartPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (!this.server.isCommandBlockEnabled()) {
             this.player.sendSystemMessage(Component.translatable("advMode.notEnabled"));
         } else if (!this.player.canUseGameMasterBlocks()) {
             this.player.sendSystemMessage(Component.translatable("advMode.notAllowed"));
         } else {
-            BaseCommandBlock basecommandblock = p_9913_.getCommandBlock(this.player.level);
+            BaseCommandBlock basecommandblock = pPacket.getCommandBlock(this.player.level);
             if (basecommandblock != null) {
-                basecommandblock.setCommand(p_9913_.getCommand());
-                basecommandblock.setTrackOutput(p_9913_.isTrackOutput());
-                if (!p_9913_.isTrackOutput()) {
+                basecommandblock.setCommand(pPacket.getCommand());
+                basecommandblock.setTrackOutput(pPacket.isTrackOutput());
+                if (!pPacket.isTrackOutput()) {
                     basecommandblock.setLastOutput((Component) null);
                 }
 
                 basecommandblock.onUpdated();
-                this.player.sendSystemMessage(Component.translatable("advMode.setCommand.success", p_9913_.getCommand()));
+                this.player.sendSystemMessage(Component.translatable("advMode.setCommand.success", pPacket.getCommand()));
             }
         }
     }
 
-    public void handlePickItem(ServerboundPickItemPacket p_9880_) {
-        PacketUtils.ensureRunningOnSameThread(p_9880_, this, this.player.getLevel());
-        this.player.getInventory().pickSlot(p_9880_.getSlot());
+    public void handlePickItem(ServerboundPickItemPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        this.player.getInventory().pickSlot(pPacket.getSlot());
         this.player.connection.send(new ClientboundContainerSetSlotPacket(-2, 0, this.player.getInventory().selected, this.player.getInventory().getItem(this.player.getInventory().selected)));
-        this.player.connection.send(new ClientboundContainerSetSlotPacket(-2, 0, p_9880_.getSlot(), this.player.getInventory().getItem(p_9880_.getSlot())));
+        this.player.connection.send(new ClientboundContainerSetSlotPacket(-2, 0, pPacket.getSlot(), this.player.getInventory().getItem(pPacket.getSlot())));
         this.player.connection.send(new ClientboundSetCarriedItemPacket(this.player.getInventory().selected));
     }
 
-    public void handleRenameItem(ServerboundRenameItemPacket p_9899_) {
-        PacketUtils.ensureRunningOnSameThread(p_9899_, this, this.player.getLevel());
+    public void handleRenameItem(ServerboundRenameItemPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         AbstractContainerMenu $$2 = this.player.containerMenu;
         if ($$2 instanceof AnvilMenu anvilmenu) {
             if (!anvilmenu.stillValid(this.player)) {
@@ -640,15 +640,15 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 return;
             }
 
-            String s = SharedConstants.filterText(p_9899_.getName());
+            String s = SharedConstants.filterText(pPacket.getName());
             if (s.length() <= 50) {
                 anvilmenu.setItemName(s);
             }
         }
     }
 
-    public void handleSetBeaconPacket(ServerboundSetBeaconPacket p_9907_) {
-        PacketUtils.ensureRunningOnSameThread(p_9907_, this, this.player.getLevel());
+    public void handleSetBeaconPacket(ServerboundSetBeaconPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         AbstractContainerMenu abstractcontainermenu = this.player.containerMenu;
         if (abstractcontainermenu instanceof BeaconMenu beaconmenu) {
             if (!this.player.containerMenu.stillValid(this.player)) {
@@ -656,39 +656,39 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 return;
             }
 
-            beaconmenu.updateEffects(p_9907_.getPrimary(), p_9907_.getSecondary());
+            beaconmenu.updateEffects(pPacket.getPrimary(), pPacket.getSecondary());
         }
     }
 
-    public void handleSetStructureBlock(ServerboundSetStructureBlockPacket p_9919_) {
-        PacketUtils.ensureRunningOnSameThread(p_9919_, this, this.player.getLevel());
+    public void handleSetStructureBlock(ServerboundSetStructureBlockPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.canUseGameMasterBlocks()) {
-            BlockPos blockpos = p_9919_.getPos();
+            BlockPos blockpos = pPacket.getPos();
             BlockState blockstate = this.player.level.getBlockState(blockpos);
             BlockEntity blockentity = this.player.level.getBlockEntity(blockpos);
             if (blockentity instanceof StructureBlockEntity) {
                 StructureBlockEntity structureblockentity = (StructureBlockEntity) blockentity;
-                structureblockentity.setMode(p_9919_.getMode());
-                structureblockentity.setStructureName(p_9919_.getName());
-                structureblockentity.setStructurePos(p_9919_.getOffset());
-                structureblockentity.setStructureSize(p_9919_.getSize());
-                structureblockentity.setMirror(p_9919_.getMirror());
-                structureblockentity.setRotation(p_9919_.getRotation());
-                structureblockentity.setMetaData(p_9919_.getData());
-                structureblockentity.setIgnoreEntities(p_9919_.isIgnoreEntities());
-                structureblockentity.setShowAir(p_9919_.isShowAir());
-                structureblockentity.setShowBoundingBox(p_9919_.isShowBoundingBox());
-                structureblockentity.setIntegrity(p_9919_.getIntegrity());
-                structureblockentity.setSeed(p_9919_.getSeed());
+                structureblockentity.setMode(pPacket.getMode());
+                structureblockentity.setStructureName(pPacket.getName());
+                structureblockentity.setStructurePos(pPacket.getOffset());
+                structureblockentity.setStructureSize(pPacket.getSize());
+                structureblockentity.setMirror(pPacket.getMirror());
+                structureblockentity.setRotation(pPacket.getRotation());
+                structureblockentity.setMetaData(pPacket.getData());
+                structureblockentity.setIgnoreEntities(pPacket.isIgnoreEntities());
+                structureblockentity.setShowAir(pPacket.isShowAir());
+                structureblockentity.setShowBoundingBox(pPacket.isShowBoundingBox());
+                structureblockentity.setIntegrity(pPacket.getIntegrity());
+                structureblockentity.setSeed(pPacket.getSeed());
                 if (structureblockentity.hasStructureName()) {
                     String s = structureblockentity.getStructureName();
-                    if (p_9919_.getUpdateType() == StructureBlockEntity.UpdateType.SAVE_AREA) {
+                    if (pPacket.getUpdateType() == StructureBlockEntity.UpdateType.SAVE_AREA) {
                         if (structureblockentity.saveStructure()) {
                             this.player.displayClientMessage(Component.translatable("structure_block.save_success", s), false);
                         } else {
                             this.player.displayClientMessage(Component.translatable("structure_block.save_failure", s), false);
                         }
-                    } else if (p_9919_.getUpdateType() == StructureBlockEntity.UpdateType.LOAD_AREA) {
+                    } else if (pPacket.getUpdateType() == StructureBlockEntity.UpdateType.LOAD_AREA) {
                         if (!structureblockentity.isStructureLoadable()) {
                             this.player.displayClientMessage(Component.translatable("structure_block.load_not_found", s), false);
                         } else if (structureblockentity.loadStructure(this.player.getLevel())) {
@@ -696,7 +696,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                         } else {
                             this.player.displayClientMessage(Component.translatable("structure_block.load_prepare", s), false);
                         }
-                    } else if (p_9919_.getUpdateType() == StructureBlockEntity.UpdateType.SCAN_AREA) {
+                    } else if (pPacket.getUpdateType() == StructureBlockEntity.UpdateType.SCAN_AREA) {
                         if (structureblockentity.detectSize()) {
                             this.player.displayClientMessage(Component.translatable("structure_block.size_success", s), false);
                         } else {
@@ -704,7 +704,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                         }
                     }
                 } else {
-                    this.player.displayClientMessage(Component.translatable("structure_block.invalid_structure_name", p_9919_.getName()), false);
+                    this.player.displayClientMessage(Component.translatable("structure_block.invalid_structure_name", pPacket.getName()), false);
                 }
 
                 structureblockentity.setChanged();
@@ -713,40 +713,40 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleSetJigsawBlock(ServerboundSetJigsawBlockPacket p_9917_) {
-        PacketUtils.ensureRunningOnSameThread(p_9917_, this, this.player.getLevel());
+    public void handleSetJigsawBlock(ServerboundSetJigsawBlockPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.canUseGameMasterBlocks()) {
-            BlockPos blockpos = p_9917_.getPos();
+            BlockPos blockpos = pPacket.getPos();
             BlockState blockstate = this.player.level.getBlockState(blockpos);
             BlockEntity blockentity = this.player.level.getBlockEntity(blockpos);
             if (blockentity instanceof JigsawBlockEntity) {
                 JigsawBlockEntity jigsawblockentity = (JigsawBlockEntity) blockentity;
-                jigsawblockentity.setName(p_9917_.getName());
-                jigsawblockentity.setTarget(p_9917_.getTarget());
-                jigsawblockentity.setPool(ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, p_9917_.getPool()));
-                jigsawblockentity.setFinalState(p_9917_.getFinalState());
-                jigsawblockentity.setJoint(p_9917_.getJoint());
+                jigsawblockentity.setName(pPacket.getName());
+                jigsawblockentity.setTarget(pPacket.getTarget());
+                jigsawblockentity.setPool(ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, pPacket.getPool()));
+                jigsawblockentity.setFinalState(pPacket.getFinalState());
+                jigsawblockentity.setJoint(pPacket.getJoint());
                 jigsawblockentity.setChanged();
                 this.player.level.sendBlockUpdated(blockpos, blockstate, blockstate, 3);
             }
         }
     }
 
-    public void handleJigsawGenerate(ServerboundJigsawGeneratePacket p_9868_) {
-        PacketUtils.ensureRunningOnSameThread(p_9868_, this, this.player.getLevel());
+    public void handleJigsawGenerate(ServerboundJigsawGeneratePacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.canUseGameMasterBlocks()) {
-            BlockPos blockpos = p_9868_.getPos();
+            BlockPos blockpos = pPacket.getPos();
             BlockEntity blockentity = this.player.level.getBlockEntity(blockpos);
             if (blockentity instanceof JigsawBlockEntity) {
                 JigsawBlockEntity jigsawblockentity = (JigsawBlockEntity) blockentity;
-                jigsawblockentity.generate(this.player.getLevel(), p_9868_.levels(), p_9868_.keepJigsaws());
+                jigsawblockentity.generate(this.player.getLevel(), pPacket.levels(), pPacket.keepJigsaws());
             }
         }
     }
 
-    public void handleSelectTrade(ServerboundSelectTradePacket p_9905_) {
-        PacketUtils.ensureRunningOnSameThread(p_9905_, this, this.player.getLevel());
-        int i = p_9905_.getItem();
+    public void handleSelectTrade(ServerboundSelectTradePacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        int i = pPacket.getItem();
         AbstractContainerMenu abstractcontainermenu = this.player.containerMenu;
         if (abstractcontainermenu instanceof MerchantMenu merchantmenu) {
             if (!merchantmenu.stillValid(this.player)) {
@@ -759,13 +759,13 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleEditBook(ServerboundEditBookPacket p_9862_) {
-        int i = p_9862_.getSlot();
+    public void handleEditBook(ServerboundEditBookPacket pPacket) {
+        int i = pPacket.getSlot();
         if (Inventory.isHotbarSlot(i) || i == 40) {
             List<String> list = Lists.newArrayList();
-            Optional<String> optional = p_9862_.getTitle();
+            Optional<String> optional = pPacket.getTitle();
             optional.ifPresent(list::add);
-            p_9862_.getPages().stream().limit(100L).forEach(list::add);
+            pPacket.getPages().stream().limit(100L).forEach(list::add);
             Consumer<List<FilteredText>> consumer = optional.isPresent() ? (p_238198_) -> {
                 this.signBook(p_238198_.get(0), p_238198_.subList(1, p_238198_.size()), i);
             } : (p_143627_) -> {
@@ -782,8 +782,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    private void signBook(FilteredText p_215209_, List<FilteredText> p_215210_, int p_215211_) {
-        ItemStack itemstack = this.player.getInventory().getItem(p_215211_);
+    private void signBook(FilteredText pTitle, List<FilteredText> pPages, int pIndex) {
+        ItemStack itemstack = this.player.getInventory().getItem(pIndex);
         if (itemstack.is(Items.WRITABLE_BOOK)) {
             ItemStack itemstack1 = new ItemStack(Items.WRITTEN_BOOK);
             CompoundTag compoundtag = itemstack.getTag();
@@ -793,16 +793,16 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
             itemstack1.addTagElement("author", StringTag.valueOf(this.player.getName().getString()));
             if (this.player.isTextFilteringEnabled()) {
-                itemstack1.addTagElement("title", StringTag.valueOf(p_215209_.filteredOrEmpty()));
+                itemstack1.addTagElement("title", StringTag.valueOf(pTitle.filteredOrEmpty()));
             } else {
-                itemstack1.addTagElement("filtered_title", StringTag.valueOf(p_215209_.filteredOrEmpty()));
-                itemstack1.addTagElement("title", StringTag.valueOf(p_215209_.raw()));
+                itemstack1.addTagElement("filtered_title", StringTag.valueOf(pTitle.filteredOrEmpty()));
+                itemstack1.addTagElement("title", StringTag.valueOf(pTitle.raw()));
             }
 
-            this.updateBookPages(p_215210_, (p_238206_) -> {
+            this.updateBookPages(pPages, (p_238206_) -> {
                 return Component.Serializer.toJson(Component.literal(p_238206_));
             }, itemstack1);
-            this.player.getInventory().setItem(p_215211_, itemstack1);
+            this.player.getInventory().setItem(pIndex, itemstack1);
         }
     }
 
@@ -834,29 +834,29 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         p_143637_.addTagElement("pages", listtag);
     }
 
-    public void handleEntityTagQuery(ServerboundEntityTagQuery p_9864_) {
-        PacketUtils.ensureRunningOnSameThread(p_9864_, this, this.player.getLevel());
+    public void handleEntityTagQuery(ServerboundEntityTagQuery pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.hasPermissions(2)) {
-            Entity entity = this.player.getLevel().getEntity(p_9864_.getEntityId());
+            Entity entity = this.player.getLevel().getEntity(pPacket.getEntityId());
             if (entity != null) {
                 CompoundTag compoundtag = entity.saveWithoutId(new CompoundTag());
-                this.player.connection.send(new ClientboundTagQueryPacket(p_9864_.getTransactionId(), compoundtag));
+                this.player.connection.send(new ClientboundTagQueryPacket(pPacket.getTransactionId(), compoundtag));
             }
         }
     }
 
-    public void handleBlockEntityTagQuery(ServerboundBlockEntityTagQuery p_9837_) {
-        PacketUtils.ensureRunningOnSameThread(p_9837_, this, this.player.getLevel());
+    public void handleBlockEntityTagQuery(ServerboundBlockEntityTagQuery pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.hasPermissions(2)) {
-            BlockEntity blockentity = this.player.getLevel().getBlockEntity(p_9837_.getPos());
+            BlockEntity blockentity = this.player.getLevel().getBlockEntity(pPacket.getPos());
             CompoundTag compoundtag = blockentity != null ? blockentity.saveWithoutMetadata() : null;
-            this.player.connection.send(new ClientboundTagQueryPacket(p_9837_.getTransactionId(), compoundtag));
+            this.player.connection.send(new ClientboundTagQueryPacket(pPacket.getTransactionId(), compoundtag));
         }
     }
 
-    public void handleMovePlayer(ServerboundMovePlayerPacket p_9874_) {
-        PacketUtils.ensureRunningOnSameThread(p_9874_, this, this.player.getLevel());
-        if (containsInvalidValues(p_9874_.getX(0.0D), p_9874_.getY(0.0D), p_9874_.getZ(0.0D), p_9874_.getYRot(0.0F), p_9874_.getXRot(0.0F))) {
+    public void handleMovePlayer(ServerboundMovePlayerPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        if (containsInvalidValues(pPacket.getX(0.0D), pPacket.getY(0.0D), pPacket.getZ(0.0D), pPacket.getYRot(0.0F), pPacket.getXRot(0.0F))) {
             this.disconnect(Component.translatable("multiplayer.disconnect.invalid_player_movement"));
         } else {
             ServerLevel serverlevel = this.player.getLevel();
@@ -882,14 +882,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
                 } else {
                     this.awaitingTeleportTime = this.tickCount;
-                    SectorVec3 packetSector = p_9874_.hasExactPosition() && this.player.hasSectorPosition()
-                            ? p_9874_.getExactPosition(p_9874_.getY(this.player.getY()))
+                    SectorVec3 packetSector = pPacket.hasExactPosition() && this.player.hasSectorPosition()
+                            ? pPacket.getExactPosition(pPacket.getY(this.player.getY()))
                             : null;
-                    double d0 = packetSector == null ? clampHorizontal(p_9874_.getX(this.player.getX())) : this.player.getX();
-                    double d1 = clampVertical(p_9874_.getY(this.player.getY()));
-                    double d2 = packetSector == null ? clampHorizontal(p_9874_.getZ(this.player.getZ())) : this.player.getZ();
-                    float f = Mth.wrapDegrees(p_9874_.getYRot(this.player.getYRot()));
-                    float f1 = Mth.wrapDegrees(p_9874_.getXRot(this.player.getXRot()));
+                    double d0 = packetSector == null ? clampHorizontal(pPacket.getX(this.player.getX())) : this.player.getX();
+                    double d1 = clampVertical(pPacket.getY(this.player.getY()));
+                    double d2 = packetSector == null ? clampHorizontal(pPacket.getZ(this.player.getZ())) : this.player.getZ();
+                    float f = Mth.wrapDegrees(pPacket.getYRot(this.player.getYRot()));
+                    float f1 = Mth.wrapDegrees(pPacket.getXRot(this.player.getXRot()));
                     if (this.player.isPassenger()) {
                         this.player.absMoveTo(this.player.sectorPosition(), f, f1);
                         this.player.getLevel().getChunkSource().move(this.player);
@@ -956,7 +956,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                                 d9 = d2 - this.lastGoodZ;
                             }
                             boolean flag = d8 > 0.0D;
-                            if (this.player.isOnGround() && !p_9874_.isOnGround() && flag) {
+                            if (this.player.isOnGround() && !pPacket.isOnGround() && flag) {
                                 this.player.jumpFromGround();
                             }
 
@@ -993,8 +993,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                             if (this.player.noPhysics || this.player.isSleeping() || (!flag2 || !this.player.hasExactNoCollision()) && !this.isPlayerCollidingWithAnythingNew(serverlevel, aabb)) {
                                 this.clientIsFloating = d8 >= -0.03125D && !flag1 && this.player.gameMode.getGameModeForPlayer() != GameType.SPECTATOR && !this.server.isFlightAllowed() && !this.player.getAbilities().mayfly && !this.player.hasEffect(MobEffects.LEVITATION) && !this.player.isFallFlying() && !this.player.isAutoSpinAttack() && this.noBlocksAround(this.player);
                                 this.player.getLevel().getChunkSource().move(this.player);
-                                this.player.doCheckFallDamage(this.player.getY() - d6, p_9874_.isOnGround());
-                                this.player.setOnGround(p_9874_.isOnGround());
+                                this.player.doCheckFallDamage(this.player.getY() - d6, pPacket.isOnGround());
+                                this.player.setOnGround(pPacket.isOnGround());
                                 if (flag) {
                                     this.player.resetFallDistance();
                                 }
@@ -1043,8 +1043,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         return false;
     }
 
-    public void dismount(double p_143612_, double p_143613_, double p_143614_, float p_143615_, float p_143616_) {
-        this.teleport(p_143612_, p_143613_, p_143614_, p_143615_, p_143616_, Collections.emptySet(), true);
+    public void dismount(double pX, double pY, double pZ, float pYaw, float pPitch) {
+        this.teleport(pX, pY, pZ, pYaw, pPitch, Collections.emptySet(), true);
     }
 
     private void teleportPlayerToCurrentPosition(float yRot, float xRot) {
@@ -1074,12 +1074,12 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 Collections.emptySet(), this.awaitingTeleport, false));
     }
 
-    public void teleport(double p_9775_, double p_9776_, double p_9777_, float p_9778_, float p_9779_) {
-        this.teleport(p_9775_, p_9776_, p_9777_, p_9778_, p_9779_, Collections.emptySet(), false);
+    public void teleport(double pX, double pY, double pZ, float pYaw, float pPitch) {
+        this.teleport(pX, pY, pZ, pYaw, pPitch, Collections.emptySet(), false);
     }
 
-    public void teleport(double p_9781_, double p_9782_, double p_9783_, float p_9784_, float p_9785_, Set<ClientboundPlayerPositionPacket.RelativeArgument> p_9786_) {
-        this.teleport(p_9781_, p_9782_, p_9783_, p_9784_, p_9785_, p_9786_, false);
+    public void teleport(double pX, double pY, double pZ, float pYaw, float pPitch, Set<ClientboundPlayerPositionPacket.RelativeArgument> pRelativeSet) {
+        this.teleport(pX, pY, pZ, pYaw, pPitch, pRelativeSet, false);
     }
 
     public void teleportExact(SectorVec3 position, float yRot, float xRot) {
@@ -1092,12 +1092,12 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         this.teleportExactAbsolute(position, yRot, xRot);
     }
 
-    public void teleport(double p_143618_, double p_143619_, double p_143620_, float p_143621_, float p_143622_, Set<ClientboundPlayerPositionPacket.RelativeArgument> p_143623_, boolean p_143624_) {
-        double d0 = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.X) ? this.player.getX() : 0.0D;
-        double d1 = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y) ? this.player.getY() : 0.0D;
-        double d2 = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Z) ? this.player.getZ() : 0.0D;
-        float f = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y_ROT) ? this.player.getYRot() : 0.0F;
-        float f1 = p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT) ? this.player.getXRot() : 0.0F;
+    public void teleport(double pX, double pY, double pZ, float pYaw, float pPitch, Set<ClientboundPlayerPositionPacket.RelativeArgument> pRelativeSet, boolean pDismountVehicle) {
+        double d0 = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.X) ? this.player.getX() : 0.0D;
+        double d1 = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y) ? this.player.getY() : 0.0D;
+        double d2 = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Z) ? this.player.getZ() : 0.0D;
+        float f = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y_ROT) ? this.player.getYRot() : 0.0F;
+        float f1 = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT) ? this.player.getXRot() : 0.0F;
         SectorVec3 exactTarget = null;
         if (this.player.hasSectorPosition()) {
             SectorVec3 current = this.player.sectorPosition();
@@ -1107,19 +1107,19 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             // Adding them here made /tp ~ ~ ~ apply the current position twice,
             // most visibly in Y.
             exactTarget = current;
-            if (!p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.X)) {
-                double floorX = Math.floor(p_143618_);
-                exactTarget = exactTarget.withX((long) floorX, p_143618_ - floorX);
+            if (!pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.X)) {
+                double floorX = Math.floor(pX);
+                exactTarget = exactTarget.withX((long) floorX, pX - floorX);
             }
-            if (!p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Z)) {
-                double floorZ = Math.floor(p_143620_);
-                exactTarget = exactTarget.withZ((long) floorZ, p_143620_ - floorZ);
+            if (!pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Z)) {
+                double floorZ = Math.floor(pZ);
+                exactTarget = exactTarget.withZ((long) floorZ, pZ - floorZ);
             }
-            if (!p_143623_.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y)) {
-                exactTarget = exactTarget.withY(p_143619_);
+            if (!pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y)) {
+                exactTarget = exactTarget.withY(pY);
             }
         }
-        this.awaitingPositionFromClient = new Vec3(p_143618_, p_143619_, p_143620_);
+        this.awaitingPositionFromClient = new Vec3(pX, pY, pZ);
         this.awaitingSectorPositionFromClient = exactTarget;
         if (++this.awaitingTeleport == Integer.MAX_VALUE) {
             this.awaitingTeleport = 0;
@@ -1129,24 +1129,24 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         if (this.player.hasSectorPosition()) {
             exactTarget = this.awaitingSectorPositionFromClient;
             this.player.applyExactPosition(exactTarget);
-            this.player.setYRot(p_143621_);
-            this.player.setXRot(p_143622_);
-            this.player.connection.send(new ClientboundPlayerPositionPacket(exactTarget, p_143621_ - f, p_143622_ - f1,
-                    p_143623_, this.awaitingTeleport, p_143624_));
+            this.player.setYRot(pYaw);
+            this.player.setXRot(pPitch);
+            this.player.connection.send(new ClientboundPlayerPositionPacket(exactTarget, pYaw - f, pPitch - f1,
+                    pRelativeSet, this.awaitingTeleport, pDismountVehicle));
         } else {
-            this.player.absMoveTo(p_143618_, p_143619_, p_143620_, p_143621_, p_143622_);
-            this.player.connection.send(new ClientboundPlayerPositionPacket(p_143618_ - d0, p_143619_ - d1, p_143620_ - d2,
-                    p_143621_ - f, p_143622_ - f1, p_143623_, this.awaitingTeleport, p_143624_));
+            this.player.absMoveTo(pX, pY, pZ, pYaw, pPitch);
+            this.player.connection.send(new ClientboundPlayerPositionPacket(pX - d0, pY - d1, pZ - d2,
+                    pYaw - f, pPitch - f1, pRelativeSet, this.awaitingTeleport, pDismountVehicle));
         }
     }
 
-    public void handlePlayerAction(ServerboundPlayerActionPacket p_9889_) {
-        PacketUtils.ensureRunningOnSameThread(p_9889_, this, this.player.getLevel());
-        BlockPos blockpos = p_9889_.getPos();
+    public void handlePlayerAction(ServerboundPlayerActionPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        BlockPos blockpos = pPacket.getPos();
         if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ()))
             return;
         this.player.resetLastActionTime();
-        ServerboundPlayerActionPacket.Action serverboundplayeractionpacket$action = p_9889_.getAction();
+        ServerboundPlayerActionPacket.Action serverboundplayeractionpacket$action = pPacket.getAction();
         switch (serverboundplayeractionpacket$action) {
             case SWAP_ITEM_WITH_OFFHAND:
                 if (!this.player.isSpectator()) {
@@ -1175,30 +1175,30 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             case START_DESTROY_BLOCK:
             case ABORT_DESTROY_BLOCK:
             case STOP_DESTROY_BLOCK:
-                this.player.gameMode.handleBlockBreakAction(blockpos, serverboundplayeractionpacket$action, p_9889_.getDirection(), this.player.level.getMaxBuildHeight(), p_9889_.getSequence());
-                this.player.connection.ackBlockChangesUpTo(p_9889_.getSequence());
+                this.player.gameMode.handleBlockBreakAction(blockpos, serverboundplayeractionpacket$action, pPacket.getDirection(), this.player.level.getMaxBuildHeight(), pPacket.getSequence());
+                this.player.connection.ackBlockChangesUpTo(pPacket.getSequence());
                 return;
             default:
                 throw new IllegalArgumentException("Invalid player action");
         }
     }
 
-    private static boolean wasBlockPlacementAttempt(ServerPlayer p_9791_, ItemStack p_9792_) {
-        if (p_9792_.isEmpty()) {
+    private static boolean wasBlockPlacementAttempt(ServerPlayer pPlayer, ItemStack pStack) {
+        if (pStack.isEmpty()) {
             return false;
         } else {
-            Item item = p_9792_.getItem();
-            return (item instanceof BlockItem || item instanceof BucketItem) && !p_9791_.getCooldowns().isOnCooldown(item);
+            Item item = pStack.getItem();
+            return (item instanceof BlockItem || item instanceof BucketItem) && !pPlayer.getCooldowns().isOnCooldown(item);
         }
     }
 
-    public void handleUseItemOn(ServerboundUseItemOnPacket p_9930_) {
-        PacketUtils.ensureRunningOnSameThread(p_9930_, this, this.player.getLevel());
-        this.player.connection.ackBlockChangesUpTo(p_9930_.getSequence());
+    public void handleUseItemOn(ServerboundUseItemOnPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        this.player.connection.ackBlockChangesUpTo(pPacket.getSequence());
         ServerLevel serverlevel = this.player.getLevel();
-        InteractionHand interactionhand = p_9930_.getHand();
+        InteractionHand interactionhand = pPacket.getHand();
         ItemStack itemstack = this.player.getItemInHand(interactionhand);
-        BlockHitResult blockhitresult = p_9930_.getHitResult();
+        BlockHitResult blockhitresult = pPacket.getHitResult();
         Vec3 vec3 = blockhitresult.getLocation();
         BlockPos blockpos = blockhitresult.getBlockPos();
         if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ()))
@@ -1238,11 +1238,11 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleUseItem(ServerboundUseItemPacket p_9932_) {
-        PacketUtils.ensureRunningOnSameThread(p_9932_, this, this.player.getLevel());
-        this.ackBlockChangesUpTo(p_9932_.getSequence());
+    public void handleUseItem(ServerboundUseItemPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        this.ackBlockChangesUpTo(pPacket.getSequence());
         ServerLevel serverlevel = this.player.getLevel();
-        InteractionHand interactionhand = p_9932_.getHand();
+        InteractionHand interactionhand = pPacket.getHand();
         ItemStack itemstack = this.player.getItemInHand(interactionhand);
         this.player.resetLastActionTime();
         if (!itemstack.isEmpty()) {
@@ -1253,11 +1253,11 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleTeleportToEntityPacket(ServerboundTeleportToEntityPacket p_9928_) {
-        PacketUtils.ensureRunningOnSameThread(p_9928_, this, this.player.getLevel());
+    public void handleTeleportToEntityPacket(ServerboundTeleportToEntityPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.isSpectator()) {
             for (ServerLevel serverlevel : this.server.getAllLevels()) {
-                Entity entity = p_9928_.getEntity(serverlevel);
+                Entity entity = pPacket.getEntity(serverlevel);
                 if (entity != null) {
                     this.player.teleportTo(serverlevel, entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
                     return;
@@ -1266,27 +1266,27 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleResourcePackResponse(ServerboundResourcePackPacket p_9901_) {
-        PacketUtils.ensureRunningOnSameThread(p_9901_, this, this.player.getLevel());
-        if (p_9901_.getAction() == ServerboundResourcePackPacket.Action.DECLINED && this.server.isResourcePackRequired()) {
+    public void handleResourcePackResponse(ServerboundResourcePackPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        if (pPacket.getAction() == ServerboundResourcePackPacket.Action.DECLINED && this.server.isResourcePackRequired()) {
             LOGGER.info("Disconnecting {} due to resource pack rejection", (Object) this.player.getName());
             this.disconnect(Component.translatable("multiplayer.requiredTexturePrompt.disconnect"));
         }
     }
 
-    public void handlePaddleBoat(ServerboundPaddleBoatPacket p_9878_) {
-        PacketUtils.ensureRunningOnSameThread(p_9878_, this, this.player.getLevel());
+    public void handlePaddleBoat(ServerboundPaddleBoatPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         Entity entity = this.player.getVehicle();
         if (entity instanceof Boat) {
-            ((Boat) entity).setPaddleState(p_9878_.getLeft(), p_9878_.getRight());
+            ((Boat) entity).setPaddleState(pPacket.getLeft(), pPacket.getRight());
         }
     }
 
-    public void handlePong(ServerboundPongPacket p_143652_) {
+    public void handlePong(ServerboundPongPacket pPacket) {
     }
 
-    public void onDisconnect(Component p_9825_) {
-        LOGGER.info("{} lost connection: {}", this.player.getName().getString(), p_9825_.getString());
+    public void onDisconnect(Component pReason) {
+        LOGGER.info("{} lost connection: {}", this.player.getName().getString(), pReason.getString());
         this.server.invalidateStatus();
         this.server.getPlayerList().broadcastSystemMessage(Component.translatable("multiplayer.player.left", this.player.getDisplayName()).withStyle(ChatFormatting.YELLOW), false);
         this.player.disconnect();
@@ -1306,44 +1306,44 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void send(Packet<?> p_9830_) {
-        this.send(p_9830_, (PacketSendListener) null);
+    public void send(Packet<?> pPacket) {
+        this.send(pPacket, (PacketSendListener) null);
     }
 
-    public void send(Packet<?> p_243227_, @Nullable PacketSendListener p_243273_) {
+    public void send(Packet<?> pPacket, @Nullable PacketSendListener pListener) {
         try {
-            this.connection.send(p_243227_, p_243273_);
+            this.connection.send(pPacket, pListener);
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Sending packet");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Packet being sent");
             crashreportcategory.setDetail("Packet class", () -> {
-                return p_243227_.getClass().getCanonicalName();
+                return pPacket.getClass().getCanonicalName();
             });
             throw new ReportedException(crashreport);
         }
     }
 
-    public void handleSetCarriedItem(ServerboundSetCarriedItemPacket p_9909_) {
-        PacketUtils.ensureRunningOnSameThread(p_9909_, this, this.player.getLevel());
-        if (p_9909_.getSlot() >= 0 && p_9909_.getSlot() < Inventory.getSelectionSize()) {
-            if (this.player.getInventory().selected != p_9909_.getSlot() && this.player.getUsedItemHand() == InteractionHand.MAIN_HAND) {
+    public void handleSetCarriedItem(ServerboundSetCarriedItemPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        if (pPacket.getSlot() >= 0 && pPacket.getSlot() < Inventory.getSelectionSize()) {
+            if (this.player.getInventory().selected != pPacket.getSlot() && this.player.getUsedItemHand() == InteractionHand.MAIN_HAND) {
                 this.player.stopUsingItem();
             }
 
-            this.player.getInventory().selected = p_9909_.getSlot();
+            this.player.getInventory().selected = pPacket.getSlot();
             this.player.resetLastActionTime();
         } else {
             LOGGER.warn("{} tried to set an invalid carried item", (Object) this.player.getName().getString());
         }
     }
 
-    public void handleChat(ServerboundChatPacket p_9841_) {
-        if (isChatMessageIllegal(p_9841_.message())) {
+    public void handleChat(ServerboundChatPacket pPacket) {
+        if (isChatMessageIllegal(pPacket.message())) {
             this.disconnect(Component.translatable("multiplayer.disconnect.illegal_characters"));
         } else {
-            if (this.tryHandleChat(p_9841_.message(), p_9841_.timeStamp(), p_9841_.lastSeenMessages())) {
+            if (this.tryHandleChat(pPacket.message(), pPacket.timeStamp(), pPacket.lastSeenMessages())) {
                 this.server.submit(() -> {
-                    PlayerChatMessage playerchatmessage = this.getSignedMessage(p_9841_);
+                    PlayerChatMessage playerchatmessage = this.getSignedMessage(pPacket);
                     if (this.verifyChatMessage(playerchatmessage)) {
                         this.chatMessageChain.append(() -> {
                             CompletableFuture<FilteredText> completablefuture = this.filterTextPacket(playerchatmessage.signedContent().plain());
@@ -1360,22 +1360,22 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleChatCommand(ServerboundChatCommandPacket p_215225_) {
-        if (isChatMessageIllegal(p_215225_.command())) {
+    public void handleChatCommand(ServerboundChatCommandPacket pPacket) {
+        if (isChatMessageIllegal(pPacket.command())) {
             this.disconnect(Component.translatable("multiplayer.disconnect.illegal_characters"));
         } else {
-            if (this.tryHandleChat(p_215225_.command(), p_215225_.timeStamp(), p_215225_.lastSeenMessages())) {
+            if (this.tryHandleChat(pPacket.command(), pPacket.timeStamp(), pPacket.lastSeenMessages())) {
                 this.server.submit(() -> {
-                    this.performChatCommand(p_215225_);
+                    this.performChatCommand(pPacket);
                     this.detectRateSpam();
                 });
             }
         }
     }
 
-    private void performChatCommand(ServerboundChatCommandPacket p_242859_) {
-        ParseResults<CommandSourceStack> parseresults = this.parseCommand(p_242859_.command());
-        Map<String, PlayerChatMessage> map = this.collectSignedArguments(p_242859_, PreviewableCommand.of(parseresults));
+    private void performChatCommand(ServerboundChatCommandPacket pPacket) {
+        ParseResults<CommandSourceStack> parseresults = this.parseCommand(pPacket.command());
+        Map<String, PlayerChatMessage> map = this.collectSignedArguments(pPacket, PreviewableCommand.of(parseresults));
 
         for (PlayerChatMessage playerchatmessage : map.values()) {
             if (!this.verifyChatMessage(playerchatmessage)) {
@@ -1387,22 +1387,22 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         parseresults = Commands.mapSource(parseresults, (p_242749_) -> {
             return p_242749_.withSigningContext(commandsigningcontext);
         });
-        this.server.getCommands().performCommand(parseresults, p_242859_.command());
+        this.server.getCommands().performCommand(parseresults, pPacket.command());
     }
 
-    private Map<String, PlayerChatMessage> collectSignedArguments(ServerboundChatCommandPacket p_242876_, PreviewableCommand<?> p_242848_) {
-        Component component = this.chatPreviewCache.pull(p_242876_.command());
-        MessageSigner messagesigner = new MessageSigner(this.player.getUUID(), p_242876_.timeStamp(), p_242876_.salt());
-        LastSeenMessages lastseenmessages = p_242876_.lastSeenMessages().lastSeen();
+    private Map<String, PlayerChatMessage> collectSignedArguments(ServerboundChatCommandPacket pPacket, PreviewableCommand<?> pCommand) {
+        Component component = this.chatPreviewCache.pull(pPacket.command());
+        MessageSigner messagesigner = new MessageSigner(this.player.getUUID(), pPacket.timeStamp(), pPacket.salt());
+        LastSeenMessages lastseenmessages = pPacket.lastSeenMessages().lastSeen();
         Map<String, PlayerChatMessage> map = new Object2ObjectOpenHashMap<>();
         SignedMessageChain.Decoder signedmessagechain$decoder = this.player.connection.signedMessageDecoder();
 
-        for (Pair<String, String> pair : ArgumentSignatures.collectPlainSignableArguments(p_242848_)) {
+        for (Pair<String, String> pair : ArgumentSignatures.collectPlainSignableArguments(pCommand)) {
             String s = pair.getFirst();
             String s1 = pair.getSecond();
-            MessageSignature messagesignature = p_242876_.argumentSignatures().get(s);
+            MessageSignature messagesignature = pPacket.argumentSignatures().get(s);
             ChatMessageContent chatmessagecontent;
-            if (p_242876_.signedPreview() && component != null) {
+            if (pPacket.signedPreview() && component != null) {
                 chatmessagecontent = new ChatMessageContent(s1, component);
             } else {
                 chatmessagecontent = new ChatMessageContent(s1);
@@ -1415,9 +1415,9 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         return map;
     }
 
-    private ParseResults<CommandSourceStack> parseCommand(String p_242938_) {
+    private ParseResults<CommandSourceStack> parseCommand(String pCommand) {
         CommandDispatcher<CommandSourceStack> commanddispatcher = this.server.getCommands().getDispatcher();
-        return commanddispatcher.parse(p_242938_, this.player.createCommandSourceStack());
+        return commanddispatcher.parse(pCommand, this.player.createCommandSourceStack());
     }
 
     private boolean tryHandleChat(String p_242372_, Instant p_242311_, LastSeenMessages.Update p_242217_) {
@@ -1444,21 +1444,21 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    private boolean updateChatOrder(Instant p_215237_) {
+    private boolean updateChatOrder(Instant pTimestamp) {
         Instant instant;
         do {
             instant = this.lastChatTimeStamp.get();
-            if (p_215237_.isBefore(instant)) {
+            if (pTimestamp.isBefore(instant)) {
                 return false;
             }
-        } while (!this.lastChatTimeStamp.compareAndSet(instant, p_215237_));
+        } while (!this.lastChatTimeStamp.compareAndSet(instant, pTimestamp));
 
         return true;
     }
 
-    private static boolean isChatMessageIllegal(String p_215215_) {
-        for (int i = 0; i < p_215215_.length(); ++i) {
-            if (!SharedConstants.isAllowedChatCharacter(p_215215_.charAt(i))) {
+    private static boolean isChatMessageIllegal(String pMessage) {
+        for (int i = 0; i < pMessage.length(); ++i) {
+            if (!SharedConstants.isAllowedChatCharacter(pMessage.charAt(i))) {
                 return true;
             }
         }
@@ -1466,25 +1466,25 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         return false;
     }
 
-    private PlayerChatMessage getSignedMessage(ServerboundChatPacket p_242875_) {
-        MessageSigner messagesigner = p_242875_.getSigner(this.player);
-        SignedMessageChain.Link signedmessagechain$link = new SignedMessageChain.Link(p_242875_.signature());
-        LastSeenMessages lastseenmessages = p_242875_.lastSeenMessages().lastSeen();
-        ChatMessageContent chatmessagecontent = this.getSignedContent(p_242875_);
+    private PlayerChatMessage getSignedMessage(ServerboundChatPacket pPacket) {
+        MessageSigner messagesigner = pPacket.getSigner(this.player);
+        SignedMessageChain.Link signedmessagechain$link = new SignedMessageChain.Link(pPacket.signature());
+        LastSeenMessages lastseenmessages = pPacket.lastSeenMessages().lastSeen();
+        ChatMessageContent chatmessagecontent = this.getSignedContent(pPacket);
         return this.signedMessageDecoder.unpack(signedmessagechain$link, messagesigner, chatmessagecontent, lastseenmessages);
     }
 
-    private ChatMessageContent getSignedContent(ServerboundChatPacket p_242906_) {
-        Component component = this.chatPreviewCache.pull(p_242906_.message());
-        return p_242906_.signedPreview() && component != null ? new ChatMessageContent(p_242906_.message(), component) : new ChatMessageContent(p_242906_.message());
+    private ChatMessageContent getSignedContent(ServerboundChatPacket pPacket) {
+        Component component = this.chatPreviewCache.pull(pPacket.message());
+        return pPacket.signedPreview() && component != null ? new ChatMessageContent(pPacket.message(), component) : new ChatMessageContent(pPacket.message());
     }
 
-    private void broadcastChatMessage(PlayerChatMessage p_243277_) {
-        this.server.getPlayerList().broadcastChatMessage(p_243277_, this.player, ChatType.bind(ChatType.CHAT, this.player));
+    private void broadcastChatMessage(PlayerChatMessage pMessage) {
+        this.server.getPlayerList().broadcastChatMessage(pMessage, this.player, ChatType.bind(ChatType.CHAT, this.player));
         this.detectRateSpam();
     }
 
-    private boolean verifyChatMessage(PlayerChatMessage p_242942_) {
+    private boolean verifyChatMessage(PlayerChatMessage pMessage) {
         ChatSender chatsender = this.player.asChatSender();
         ProfilePublicKey profilepublickey = chatsender.profilePublicKey();
         if (profilepublickey != null) {
@@ -1493,14 +1493,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 return false;
             }
 
-            if (!p_242942_.verify(chatsender)) {
+            if (!pMessage.verify(chatsender)) {
                 this.disconnect(Component.translatable("multiplayer.disconnect.unsigned_chat"));
                 return false;
             }
         }
 
-        if (p_242942_.hasExpiredServer(Instant.now())) {
-            LOGGER.warn("{} sent expired chat: '{}'. Is the client/server system time unsynchronized?", this.player.getName().getString(), p_242942_.signedContent().plain());
+        if (pMessage.hasExpiredServer(Instant.now())) {
+            LOGGER.warn("{} sent expired chat: '{}'. Is the client/server system time unsynchronized?", this.player.getName().getString(), pMessage.signedContent().plain());
         }
 
         return true;
@@ -1513,11 +1513,11 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleChatPreview(ServerboundChatPreviewPacket p_215230_) {
+    public void handleChatPreview(ServerboundChatPreviewPacket pPacket) {
         if (this.handlesPreviewRequests()) {
             this.chatPreviewThrottler.schedule(() -> {
-                int i = p_215230_.queryId();
-                String s = p_215230_.query();
+                int i = pPacket.queryId();
+                String s = pPacket.query();
                 return this.queryPreview(s).thenAccept((p_238195_) -> {
                     this.sendPreviewResponse(i, p_238195_);
                 });
@@ -1529,40 +1529,40 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         return this.server.previewsChat() || this.connection.isMemoryConnection();
     }
 
-    private void sendPreviewResponse(int p_238389_, Component p_238390_) {
-        this.send(new ClientboundChatPreviewPacket(p_238389_, p_238390_), PacketSendListener.exceptionallySend(() -> {
-            return new ClientboundChatPreviewPacket(p_238389_, (Component) null);
+    private void sendPreviewResponse(int pQueryId, Component pPreview) {
+        this.send(new ClientboundChatPreviewPacket(pQueryId, pPreview), PacketSendListener.exceptionallySend(() -> {
+            return new ClientboundChatPreviewPacket(pQueryId, (Component) null);
         }));
     }
 
-    private CompletableFuture<Component> queryPreview(String p_215235_) {
-        String s = StringUtils.normalizeSpace(p_215235_);
-        return s.startsWith("/") ? this.queryCommandPreview(s.substring(1)) : this.queryChatPreview(p_215235_);
+    private CompletableFuture<Component> queryPreview(String pMessage) {
+        String s = StringUtils.normalizeSpace(pMessage);
+        return s.startsWith("/") ? this.queryCommandPreview(s.substring(1)) : this.queryChatPreview(pMessage);
     }
 
-    private CompletableFuture<Component> queryChatPreview(String p_215247_) {
-        Component component = Component.literal(p_215247_);
+    private CompletableFuture<Component> queryChatPreview(String pMessage) {
+        Component component = Component.literal(pMessage);
         CompletableFuture<Component> completablefuture = this.server.getChatDecorator().decorate(this.player, component).thenApply((p_238202_) -> {
             return !component.equals(p_238202_) ? p_238202_ : null;
         });
         completablefuture.thenAcceptAsync((p_242747_) -> {
-            this.chatPreviewCache.set(p_215247_, p_242747_);
+            this.chatPreviewCache.set(pMessage, p_242747_);
         }, this.server);
         return completablefuture;
     }
 
-    private CompletableFuture<Component> queryCommandPreview(String p_215249_) {
+    private CompletableFuture<Component> queryCommandPreview(String pCommand) {
         CommandSourceStack commandsourcestack = this.player.createCommandSourceStack();
-        ParseResults<CommandSourceStack> parseresults = this.server.getCommands().getDispatcher().parse(p_215249_, commandsourcestack);
+        ParseResults<CommandSourceStack> parseresults = this.server.getCommands().getDispatcher().parse(pCommand, commandsourcestack);
         CompletableFuture<Component> completablefuture = this.getPreviewedArgument(commandsourcestack, PreviewableCommand.of(parseresults));
         completablefuture.thenAcceptAsync((p_242743_) -> {
-            this.chatPreviewCache.set(p_215249_, p_242743_);
+            this.chatPreviewCache.set(pCommand, p_242743_);
         }, this.server);
         return completablefuture;
     }
 
-    private CompletableFuture<Component> getPreviewedArgument(CommandSourceStack p_242862_, PreviewableCommand<CommandSourceStack> p_242851_) {
-        List<PreviewableCommand.Argument<CommandSourceStack>> list = p_242851_.arguments();
+    private CompletableFuture<Component> getPreviewedArgument(CommandSourceStack pSource, PreviewableCommand<CommandSourceStack> pCommand) {
+        List<PreviewableCommand.Argument<CommandSourceStack>> list = pCommand.arguments();
         if (list.isEmpty()) {
             return CompletableFuture.completedFuture((Component) null);
         } else {
@@ -1570,7 +1570,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 PreviewableCommand.Argument<CommandSourceStack> argument = list.get(i);
 
                 try {
-                    CompletableFuture<Component> completablefuture = argument.previewType().resolvePreview(p_242862_, argument.parsedValue());
+                    CompletableFuture<Component> completablefuture = argument.previewType().resolvePreview(pSource, argument.parsedValue());
                     if (completablefuture != null) {
                         return completablefuture;
                     }
@@ -1583,10 +1583,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleChatAck(ServerboundChatAckPacket p_242387_) {
+    public void handleChatAck(ServerboundChatAckPacket pPacket) {
         Set<LastSeenMessagesValidator.ErrorCondition> set;
         synchronized (this.lastSeenMessagesValidator) {
-            set = this.lastSeenMessagesValidator.validateAndUpdate(p_242387_.lastSeenMessages());
+            set = this.lastSeenMessagesValidator.validateAndUpdate(pPacket.lastSeenMessages());
         }
 
         if (!set.isEmpty()) {
@@ -1594,21 +1594,21 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    private void handleValidationFailure(Set<LastSeenMessagesValidator.ErrorCondition> p_242382_) {
-        LOGGER.warn("Failed to validate message from {}, reasons: {}", this.player.getName().getString(), p_242382_.stream().map(LastSeenMessagesValidator.ErrorCondition::message).collect(Collectors.joining(",")));
+    private void handleValidationFailure(Set<LastSeenMessagesValidator.ErrorCondition> pErrorConditions) {
+        LOGGER.warn("Failed to validate message from {}, reasons: {}", this.player.getName().getString(), pErrorConditions.stream().map(LastSeenMessagesValidator.ErrorCondition::message).collect(Collectors.joining(",")));
         this.disconnect(Component.translatable("multiplayer.disconnect.chat_validation_failed"));
     }
 
-    public void handleAnimate(ServerboundSwingPacket p_9926_) {
-        PacketUtils.ensureRunningOnSameThread(p_9926_, this, this.player.getLevel());
+    public void handleAnimate(ServerboundSwingPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         this.player.resetLastActionTime();
-        this.player.swing(p_9926_.getHand());
+        this.player.swing(pPacket.getHand());
     }
 
-    public void handlePlayerCommand(ServerboundPlayerCommandPacket p_9891_) {
-        PacketUtils.ensureRunningOnSameThread(p_9891_, this, this.player.getLevel());
+    public void handlePlayerCommand(ServerboundPlayerCommandPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         this.player.resetLastActionTime();
-        switch (p_9891_.getAction()) {
+        switch (pPacket.getAction()) {
             case PRESS_SHIFT_KEY:
                 this.player.setShiftKeyDown(true);
                 break;
@@ -1633,7 +1633,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             case START_RIDING_JUMP:
                 if (this.player.getVehicle() instanceof PlayerRideableJumping) {
                     PlayerRideableJumping playerrideablejumping1 = (PlayerRideableJumping) this.player.getVehicle();
-                    int i = p_9891_.getData();
+                    int i = pPacket.getData();
                     if (playerrideablejumping1.canJump() && i > 0) {
                         playerrideablejumping1.handleStartJump(i);
                     }
@@ -1665,8 +1665,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         return this.signedMessageDecoder;
     }
 
-    public void addPendingMessage(PlayerChatMessage p_242439_) {
-        LastSeenMessages.Entry lastseenmessages$entry = p_242439_.toLastSeenEntry();
+    public void addPendingMessage(PlayerChatMessage pMessage) {
+        LastSeenMessages.Entry lastseenmessages$entry = pMessage.toLastSeenEntry();
         if (lastseenmessages$entry != null) {
             int i;
             synchronized (this.lastSeenMessagesValidator) {
@@ -1680,12 +1680,12 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleInteract(ServerboundInteractPacket p_9866_) {
-        PacketUtils.ensureRunningOnSameThread(p_9866_, this, this.player.getLevel());
+    public void handleInteract(ServerboundInteractPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         ServerLevel serverlevel = this.player.getLevel();
-        final Entity entity = p_9866_.getTarget(serverlevel);
+        final Entity entity = pPacket.getTarget(serverlevel);
         this.player.resetLastActionTime();
-        this.player.setShiftKeyDown(p_9866_.isUsingSecondaryAction());
+        this.player.setShiftKeyDown(pPacket.isUsingSecondaryAction());
         if (entity != null) {
             if (!serverlevel.getWorldBorder().isWithinBounds(entity.blockPosition())) {
                 return;
@@ -1700,7 +1700,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             if (targetPosition != null
                             ? this.player.exactDistanceToSqr(targetPosition) < MAX_INTERACTION_DISTANCE
                             : entity.distanceToSqr(this.player.getEyePosition()) < MAX_INTERACTION_DISTANCE) {
-                p_9866_.dispatch(new ServerboundInteractPacket.Handler() {
+                pPacket.dispatch(new ServerboundInteractPacket.Handler() {
                     private void performInteraction(InteractionHand p_143679_, ServerGamePacketListenerImpl.EntityInteraction p_143680_) {
                         ItemStack itemstack = ServerGamePacketListenerImpl.this.player.getItemInHand(p_143679_).copy();
                         InteractionResult interactionresult = p_143680_.run(ServerGamePacketListenerImpl.this.player, entity, p_143679_);
@@ -1735,10 +1735,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleClientCommand(ServerboundClientCommandPacket p_9843_) {
-        PacketUtils.ensureRunningOnSameThread(p_9843_, this, this.player.getLevel());
+    public void handleClientCommand(ServerboundClientCommandPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         this.player.resetLastActionTime();
-        ServerboundClientCommandPacket.Action serverboundclientcommandpacket$action = p_9843_.getAction();
+        ServerboundClientCommandPacket.Action serverboundclientcommandpacket$action = pPacket.getAction();
         switch (serverboundclientcommandpacket$action) {
             case PERFORM_RESPAWN:
                 if (this.player.wonGame) {
@@ -1762,33 +1762,33 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleContainerClose(ServerboundContainerClosePacket p_9858_) {
-        PacketUtils.ensureRunningOnSameThread(p_9858_, this, this.player.getLevel());
+    public void handleContainerClose(ServerboundContainerClosePacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         this.player.doCloseContainer();
     }
 
-    public void handleContainerClick(ServerboundContainerClickPacket p_9856_) {
-        PacketUtils.ensureRunningOnSameThread(p_9856_, this, this.player.getLevel());
+    public void handleContainerClick(ServerboundContainerClickPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         this.player.resetLastActionTime();
-        if (this.player.containerMenu.containerId == p_9856_.getContainerId()) {
+        if (this.player.containerMenu.containerId == pPacket.getContainerId()) {
             if (this.player.isSpectator()) {
                 this.player.containerMenu.sendAllDataToRemote();
             } else if (!this.player.containerMenu.stillValid(this.player)) {
                 LOGGER.debug("Player {} interacted with invalid menu {}", this.player, this.player.containerMenu);
             } else {
-                int i = p_9856_.getSlotNum();
+                int i = pPacket.getSlotNum();
                 if (!this.player.containerMenu.isValidSlotIndex(i)) {
                     LOGGER.debug("Player {} clicked invalid slot index: {}, available slots: {}", this.player.getName(), i, this.player.containerMenu.slots.size());
                 } else {
-                    boolean flag = p_9856_.getStateId() != this.player.containerMenu.getStateId();
+                    boolean flag = pPacket.getStateId() != this.player.containerMenu.getStateId();
                     this.player.containerMenu.suppressRemoteUpdates();
-                    this.player.containerMenu.clicked(i, p_9856_.getButtonNum(), p_9856_.getClickType(), this.player);
+                    this.player.containerMenu.clicked(i, pPacket.getButtonNum(), pPacket.getClickType(), this.player);
 
-                    for (Int2ObjectMap.Entry<ItemStack> entry : Int2ObjectMaps.fastIterable(p_9856_.getChangedSlots())) {
+                    for (Int2ObjectMap.Entry<ItemStack> entry : Int2ObjectMaps.fastIterable(pPacket.getChangedSlots())) {
                         this.player.containerMenu.setRemoteSlotNoCopy(entry.getIntKey(), entry.getValue());
                     }
 
-                    this.player.containerMenu.setRemoteCarried(p_9856_.getCarriedItem());
+                    this.player.containerMenu.setRemoteCarried(pPacket.getCarriedItem());
                     this.player.containerMenu.resumeRemoteUpdates();
                     if (flag) {
                         this.player.containerMenu.broadcastFullState();
@@ -1800,28 +1800,28 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handlePlaceRecipe(ServerboundPlaceRecipePacket p_9882_) {
-        PacketUtils.ensureRunningOnSameThread(p_9882_, this, this.player.getLevel());
+    public void handlePlaceRecipe(ServerboundPlaceRecipePacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         this.player.resetLastActionTime();
-        if (!this.player.isSpectator() && this.player.containerMenu.containerId == p_9882_.getContainerId() && this.player.containerMenu instanceof RecipeBookMenu) {
+        if (!this.player.isSpectator() && this.player.containerMenu.containerId == pPacket.getContainerId() && this.player.containerMenu instanceof RecipeBookMenu) {
             if (!this.player.containerMenu.stillValid(this.player)) {
                 LOGGER.debug("Player {} interacted with invalid menu {}", this.player, this.player.containerMenu);
             } else {
-                this.server.getRecipeManager().byKey(p_9882_.getRecipe()).ifPresent((p_238200_) -> {
-                    ((RecipeBookMenu) this.player.containerMenu).handlePlacement(p_9882_.isShiftDown(), p_238200_, this.player);
+                this.server.getRecipeManager().byKey(pPacket.getRecipe()).ifPresent((p_238200_) -> {
+                    ((RecipeBookMenu) this.player.containerMenu).handlePlacement(pPacket.isShiftDown(), p_238200_, this.player);
                 });
             }
         }
     }
 
-    public void handleContainerButtonClick(ServerboundContainerButtonClickPacket p_9854_) {
-        PacketUtils.ensureRunningOnSameThread(p_9854_, this, this.player.getLevel());
+    public void handleContainerButtonClick(ServerboundContainerButtonClickPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         this.player.resetLastActionTime();
-        if (this.player.containerMenu.containerId == p_9854_.getContainerId() && !this.player.isSpectator()) {
+        if (this.player.containerMenu.containerId == pPacket.getContainerId() && !this.player.isSpectator()) {
             if (!this.player.containerMenu.stillValid(this.player)) {
                 LOGGER.debug("Player {} interacted with invalid menu {}", this.player, this.player.containerMenu);
             } else {
-                boolean flag = this.player.containerMenu.clickMenuButton(this.player, p_9854_.getButtonId());
+                boolean flag = this.player.containerMenu.clickMenuButton(this.player, pPacket.getButtonId());
                 if (flag) {
                     this.player.containerMenu.broadcastChanges();
                 }
@@ -1829,11 +1829,11 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleSetCreativeModeSlot(ServerboundSetCreativeModeSlotPacket p_9915_) {
-        PacketUtils.ensureRunningOnSameThread(p_9915_, this, this.player.getLevel());
+    public void handleSetCreativeModeSlot(ServerboundSetCreativeModeSlotPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.gameMode.isCreative()) {
-            boolean flag = p_9915_.getSlotNum() < 0;
-            ItemStack itemstack = p_9915_.getItem();
+            boolean flag = pPacket.getSlotNum() < 0;
+            ItemStack itemstack = pPacket.getItem();
             CompoundTag compoundtag = BlockItem.getBlockEntityData(itemstack);
             if (!itemstack.isEmpty() && compoundtag != null && compoundtag.contains("x") && compoundtag.contains("y") && compoundtag.contains("z")) {
                 BlockPos blockpos = BlockEntity.getPosFromTag(compoundtag);
@@ -1845,10 +1845,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 }
             }
 
-            boolean flag1 = p_9915_.getSlotNum() >= 1 && p_9915_.getSlotNum() <= 45;
+            boolean flag1 = pPacket.getSlotNum() >= 1 && pPacket.getSlotNum() <= 45;
             boolean flag2 = itemstack.isEmpty() || itemstack.getDamageValue() >= 0 && itemstack.getCount() <= 64 && !itemstack.isEmpty();
             if (flag1 && flag2) {
-                this.player.inventoryMenu.getSlot(p_9915_.getSlotNum()).set(itemstack);
+                this.player.inventoryMenu.getSlot(pPacket.getSlotNum()).set(itemstack);
                 this.player.inventoryMenu.broadcastChanges();
             } else if (flag && flag2 && this.dropSpamTickCount < 200) {
                 this.dropSpamTickCount += 20;
@@ -1857,10 +1857,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleSignUpdate(ServerboundSignUpdatePacket p_9921_) {
-        List<String> list = Stream.of(p_9921_.getLines()).map(ChatFormatting::stripFormatting).collect(Collectors.toList());
+    public void handleSignUpdate(ServerboundSignUpdatePacket pPacket) {
+        List<String> list = Stream.of(pPacket.getLines()).map(ChatFormatting::stripFormatting).collect(Collectors.toList());
         this.filterTextPacket(list).thenAcceptAsync((p_215245_) -> {
-            this.updateSignText(p_9921_, p_215245_);
+            this.updateSignText(pPacket, p_215245_);
         }, this.server);
     }
 
@@ -1895,8 +1895,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handleKeepAlive(ServerboundKeepAlivePacket p_9870_) {
-        if (this.keepAlivePending && p_9870_.getId() == this.keepAliveChallenge) {
+    public void handleKeepAlive(ServerboundKeepAlivePacket pPacket) {
+        if (this.keepAlivePending && pPacket.getId() == this.keepAliveChallenge) {
             int i = (int) (Util.getMillis() - this.keepAliveTime);
             this.player.latency = (this.player.latency * 3 + i) / 4;
             this.keepAlivePending = false;
@@ -1905,30 +1905,30 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public void handlePlayerAbilities(ServerboundPlayerAbilitiesPacket p_9887_) {
-        PacketUtils.ensureRunningOnSameThread(p_9887_, this, this.player.getLevel());
-        this.player.getAbilities().flying = p_9887_.isFlying() && this.player.getAbilities().mayfly;
+    public void handlePlayerAbilities(ServerboundPlayerAbilitiesPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        this.player.getAbilities().flying = pPacket.isFlying() && this.player.getAbilities().mayfly;
     }
 
-    public void handleClientInformation(ServerboundClientInformationPacket p_9845_) {
-        PacketUtils.ensureRunningOnSameThread(p_9845_, this, this.player.getLevel());
-        this.player.updateOptions(p_9845_);
+    public void handleClientInformation(ServerboundClientInformationPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+        this.player.updateOptions(pPacket);
     }
 
-    public void handleCustomPayload(ServerboundCustomPayloadPacket p_9860_) {
+    public void handleCustomPayload(ServerboundCustomPayloadPacket pPacket) {
     }
 
-    public void handleChangeDifficulty(ServerboundChangeDifficultyPacket p_9839_) {
-        PacketUtils.ensureRunningOnSameThread(p_9839_, this, this.player.getLevel());
+    public void handleChangeDifficulty(ServerboundChangeDifficultyPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.hasPermissions(2) || this.isSingleplayerOwner()) {
-            this.server.setDifficulty(p_9839_.getDifficulty(), false);
+            this.server.setDifficulty(pPacket.getDifficulty(), false);
         }
     }
 
-    public void handleLockDifficulty(ServerboundLockDifficultyPacket p_9872_) {
-        PacketUtils.ensureRunningOnSameThread(p_9872_, this, this.player.getLevel());
+    public void handleLockDifficulty(ServerboundLockDifficultyPacket pPacket) {
+        PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         if (this.player.hasPermissions(2) || this.isSingleplayerOwner()) {
-            this.server.setDifficultyLocked(p_9872_.isLocked());
+            this.server.setDifficultyLocked(pPacket.isLocked());
         }
     }
 

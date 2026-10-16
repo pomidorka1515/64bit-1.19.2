@@ -24,28 +24,28 @@ public class SingleItemRecipeBuilder implements RecipeBuilder {
     private String group;
     private final RecipeSerializer<?> type;
 
-    public SingleItemRecipeBuilder(RecipeSerializer<?> p_126309_, Ingredient p_126310_, ItemLike p_126311_, int p_126312_) {
-        this.type = p_126309_;
-        this.result = p_126311_.asItem();
-        this.ingredient = p_126310_;
-        this.count = p_126312_;
+    public SingleItemRecipeBuilder(RecipeSerializer<?> pType, Ingredient pIngredient, ItemLike pResult, int pCount) {
+        this.type = pType;
+        this.result = pResult.asItem();
+        this.ingredient = pIngredient;
+        this.count = pCount;
     }
 
-    public static SingleItemRecipeBuilder stonecutting(Ingredient p_126314_, ItemLike p_126315_) {
-        return new SingleItemRecipeBuilder(RecipeSerializer.STONECUTTER, p_126314_, p_126315_, 1);
+    public static SingleItemRecipeBuilder stonecutting(Ingredient pIngredient, ItemLike pResult) {
+        return new SingleItemRecipeBuilder(RecipeSerializer.STONECUTTER, pIngredient, pResult, 1);
     }
 
-    public static SingleItemRecipeBuilder stonecutting(Ingredient p_126317_, ItemLike p_126318_, int p_126319_) {
-        return new SingleItemRecipeBuilder(RecipeSerializer.STONECUTTER, p_126317_, p_126318_, p_126319_);
+    public static SingleItemRecipeBuilder stonecutting(Ingredient pIngredient, ItemLike pResult, int pCount) {
+        return new SingleItemRecipeBuilder(RecipeSerializer.STONECUTTER, pIngredient, pResult, pCount);
     }
 
-    public SingleItemRecipeBuilder unlockedBy(String p_176810_, CriterionTriggerInstance p_176811_) {
-        this.advancement.addCriterion(p_176810_, p_176811_);
+    public SingleItemRecipeBuilder unlockedBy(String pCriterionName, CriterionTriggerInstance pCriterionTrigger) {
+        this.advancement.addCriterion(pCriterionName, pCriterionTrigger);
         return this;
     }
 
-    public SingleItemRecipeBuilder group(@Nullable String p_176808_) {
-        this.group = p_176808_;
+    public SingleItemRecipeBuilder group(@Nullable String pGroupName) {
+        this.group = pGroupName;
         return this;
     }
 
@@ -53,15 +53,15 @@ public class SingleItemRecipeBuilder implements RecipeBuilder {
         return this.result;
     }
 
-    public void save(Consumer<FinishedRecipe> p_126327_, ResourceLocation p_126328_) {
-        this.ensureValid(p_126328_);
-        this.advancement.parent(ROOT_RECIPE_ADVANCEMENT).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(p_126328_)).rewards(AdvancementRewards.Builder.recipe(p_126328_)).requirements(RequirementsStrategy.OR);
-        p_126327_.accept(new SingleItemRecipeBuilder.Result(p_126328_, this.type, this.group == null ? "" : this.group, this.ingredient, this.result, this.count, this.advancement, new ResourceLocation(p_126328_.getNamespace(), "recipes/" + this.result.getItemCategory().getRecipeFolderName() + "/" + p_126328_.getPath())));
+    public void save(Consumer<FinishedRecipe> pFinishedRecipeConsumer, ResourceLocation pRecipeId) {
+        this.ensureValid(pRecipeId);
+        this.advancement.parent(ROOT_RECIPE_ADVANCEMENT).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(pRecipeId)).rewards(AdvancementRewards.Builder.recipe(pRecipeId)).requirements(RequirementsStrategy.OR);
+        pFinishedRecipeConsumer.accept(new SingleItemRecipeBuilder.Result(pRecipeId, this.type, this.group == null ? "" : this.group, this.ingredient, this.result, this.count, this.advancement, new ResourceLocation(pRecipeId.getNamespace(), "recipes/" + this.result.getItemCategory().getRecipeFolderName() + "/" + pRecipeId.getPath())));
     }
 
-    private void ensureValid(ResourceLocation p_126330_) {
+    private void ensureValid(ResourceLocation pId) {
         if (this.advancement.getCriteria().isEmpty()) {
-            throw new IllegalStateException("No way of obtaining recipe " + p_126330_);
+            throw new IllegalStateException("No way of obtaining recipe " + pId);
         }
     }
 
@@ -75,25 +75,25 @@ public class SingleItemRecipeBuilder implements RecipeBuilder {
         private final ResourceLocation advancementId;
         private final RecipeSerializer<?> type;
 
-        public Result(ResourceLocation p_126340_, RecipeSerializer<?> p_126341_, String p_126342_, Ingredient p_126343_, Item p_126344_, int p_126345_, Advancement.Builder p_126346_, ResourceLocation p_126347_) {
-            this.id = p_126340_;
-            this.type = p_126341_;
-            this.group = p_126342_;
-            this.ingredient = p_126343_;
-            this.result = p_126344_;
-            this.count = p_126345_;
-            this.advancement = p_126346_;
-            this.advancementId = p_126347_;
+        public Result(ResourceLocation pId, RecipeSerializer<?> pType, String pGroup, Ingredient pIngredient, Item pResult, int pCount, Advancement.Builder pAdvancement, ResourceLocation pAdvancementId) {
+            this.id = pId;
+            this.type = pType;
+            this.group = pGroup;
+            this.ingredient = pIngredient;
+            this.result = pResult;
+            this.count = pCount;
+            this.advancement = pAdvancement;
+            this.advancementId = pAdvancementId;
         }
 
-        public void serializeRecipeData(JsonObject p_126349_) {
+        public void serializeRecipeData(JsonObject pJson) {
             if (!this.group.isEmpty()) {
-                p_126349_.addProperty("group", this.group);
+                pJson.addProperty("group", this.group);
             }
 
-            p_126349_.add("ingredient", this.ingredient.toJson());
-            p_126349_.addProperty("result", Registry.ITEM.getKey(this.result).toString());
-            p_126349_.addProperty("count", this.count);
+            pJson.add("ingredient", this.ingredient.toJson());
+            pJson.addProperty("result", Registry.ITEM.getKey(this.result).toString());
+            pJson.addProperty("count", this.count);
         }
 
         public ResourceLocation getId() {

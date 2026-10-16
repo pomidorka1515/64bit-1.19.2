@@ -33,9 +33,9 @@ public class TexturedModel {
     private final TextureMapping mapping;
     private final ModelTemplate template;
 
-    private TexturedModel(TextureMapping p_125930_, ModelTemplate p_125931_) {
-        this.mapping = p_125930_;
-        this.template = p_125931_;
+    private TexturedModel(TextureMapping pMapping, ModelTemplate pTemplate) {
+        this.mapping = pMapping;
+        this.template = pTemplate;
     }
 
     public ModelTemplate getTemplate() {
@@ -46,44 +46,44 @@ public class TexturedModel {
         return this.mapping;
     }
 
-    public TexturedModel updateTextures(Consumer<TextureMapping> p_125941_) {
-        p_125941_.accept(this.mapping);
+    public TexturedModel updateTextures(Consumer<TextureMapping> pTextureMappingConsumer) {
+        pTextureMappingConsumer.accept(this.mapping);
         return this;
     }
 
-    public ResourceLocation create(Block p_125938_, BiConsumer<ResourceLocation, Supplier<JsonElement>> p_125939_) {
-        return this.template.create(p_125938_, this.mapping, p_125939_);
+    public ResourceLocation create(Block pModelBlock, BiConsumer<ResourceLocation, Supplier<JsonElement>> pModelOutput) {
+        return this.template.create(pModelBlock, this.mapping, pModelOutput);
     }
 
-    public ResourceLocation createWithSuffix(Block p_125934_, String p_125935_, BiConsumer<ResourceLocation, Supplier<JsonElement>> p_125936_) {
-        return this.template.createWithSuffix(p_125934_, p_125935_, this.mapping, p_125936_);
+    public ResourceLocation createWithSuffix(Block pModelBlock, String pModelLocationSuffix, BiConsumer<ResourceLocation, Supplier<JsonElement>> pModelOutput) {
+        return this.template.createWithSuffix(pModelBlock, pModelLocationSuffix, this.mapping, pModelOutput);
     }
 
-    private static TexturedModel.Provider createDefault(Function<Block, TextureMapping> p_125943_, ModelTemplate p_125944_) {
+    private static TexturedModel.Provider createDefault(Function<Block, TextureMapping> pBlockToTextureMapping, ModelTemplate pModelTemplate) {
         return (p_125948_) -> {
-            return new TexturedModel(p_125943_.apply(p_125948_), p_125944_);
+            return new TexturedModel(pBlockToTextureMapping.apply(p_125948_), pModelTemplate);
         };
     }
 
-    public static TexturedModel createAllSame(ResourceLocation p_125950_) {
-        return new TexturedModel(TextureMapping.cube(p_125950_), ModelTemplates.CUBE_ALL);
+    public static TexturedModel createAllSame(ResourceLocation pAllTextureLocation) {
+        return new TexturedModel(TextureMapping.cube(pAllTextureLocation), ModelTemplates.CUBE_ALL);
     }
 
     @FunctionalInterface
     public interface Provider {
-        TexturedModel get(Block p_125965_);
+        TexturedModel get(Block pBlock);
 
-        default ResourceLocation create(Block p_125957_, BiConsumer<ResourceLocation, Supplier<JsonElement>> p_125958_) {
-            return this.get(p_125957_).create(p_125957_, p_125958_);
+        default ResourceLocation create(Block pModelBlock, BiConsumer<ResourceLocation, Supplier<JsonElement>> pModelOutput) {
+            return this.get(pModelBlock).create(pModelBlock, pModelOutput);
         }
 
-        default ResourceLocation createWithSuffix(Block p_125953_, String p_125954_, BiConsumer<ResourceLocation, Supplier<JsonElement>> p_125955_) {
-            return this.get(p_125953_).createWithSuffix(p_125953_, p_125954_, p_125955_);
+        default ResourceLocation createWithSuffix(Block pModelBlock, String pModelLocationSuffix, BiConsumer<ResourceLocation, Supplier<JsonElement>> pModelOutput) {
+            return this.get(pModelBlock).createWithSuffix(pModelBlock, pModelLocationSuffix, pModelOutput);
         }
 
-        default TexturedModel.Provider updateTexture(Consumer<TextureMapping> p_125960_) {
+        default TexturedModel.Provider updateTexture(Consumer<TextureMapping> pTextureMappingConsumer) {
             return (p_125963_) -> {
-                return this.get(p_125963_).updateTextures(p_125960_);
+                return this.get(p_125963_).updateTextures(pTextureMappingConsumer);
             };
         }
     }

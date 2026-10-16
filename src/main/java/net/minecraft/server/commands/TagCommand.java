@@ -19,8 +19,8 @@ public class TagCommand {
     private static final SimpleCommandExceptionType ERROR_ADD_FAILED = new SimpleCommandExceptionType(Component.translatable("commands.tag.add.failed"));
     private static final SimpleCommandExceptionType ERROR_REMOVE_FAILED = new SimpleCommandExceptionType(Component.translatable("commands.tag.remove.failed"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138837_) {
-        p_138837_.register(Commands.literal("tag").requires((p_138844_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("tag").requires((p_138844_) -> {
                                                       return p_138844_.hasPermission(2);
                                                   })
                         .then(Commands.argument("targets", EntityArgument.entities()).then(Commands.literal("add").then(Commands.argument("name", StringArgumentType.word()).executes((p_138861_) -> {
@@ -37,21 +37,21 @@ public class TagCommand {
                                         }))));
     }
 
-    private static Collection<String> getTags(Collection<? extends Entity> p_138853_) {
+    private static Collection<String> getTags(Collection<? extends Entity> pEntities) {
         Set<String> set = Sets.newHashSet();
 
-        for (Entity entity : p_138853_) {
+        for (Entity entity : pEntities) {
             set.addAll(entity.getTags());
         }
 
         return set;
     }
 
-    private static int addTag(CommandSourceStack p_138849_, Collection<? extends Entity> p_138850_, String p_138851_) throws CommandSyntaxException {
+    private static int addTag(CommandSourceStack pSource, Collection<? extends Entity> pEntities, String pTagName) throws CommandSyntaxException {
         int i = 0;
 
-        for (Entity entity : p_138850_) {
-            if (entity.addTag(p_138851_)) {
+        for (Entity entity : pEntities) {
+            if (entity.addTag(pTagName)) {
                 ++i;
             }
         }
@@ -59,21 +59,21 @@ public class TagCommand {
         if (i == 0) {
             throw ERROR_ADD_FAILED.create();
         } else {
-            if (p_138850_.size() == 1) {
-                p_138849_.sendSuccess(Component.translatable("commands.tag.add.success.single", p_138851_, p_138850_.iterator().next().getDisplayName()), true);
+            if (pEntities.size() == 1) {
+                pSource.sendSuccess(Component.translatable("commands.tag.add.success.single", pTagName, pEntities.iterator().next().getDisplayName()), true);
             } else {
-                p_138849_.sendSuccess(Component.translatable("commands.tag.add.success.multiple", p_138851_, p_138850_.size()), true);
+                pSource.sendSuccess(Component.translatable("commands.tag.add.success.multiple", pTagName, pEntities.size()), true);
             }
 
             return i;
         }
     }
 
-    private static int removeTag(CommandSourceStack p_138857_, Collection<? extends Entity> p_138858_, String p_138859_) throws CommandSyntaxException {
+    private static int removeTag(CommandSourceStack pSource, Collection<? extends Entity> pEntities, String pTagName) throws CommandSyntaxException {
         int i = 0;
 
-        for (Entity entity : p_138858_) {
-            if (entity.removeTag(p_138859_)) {
+        for (Entity entity : pEntities) {
+            if (entity.removeTag(pTagName)) {
                 ++i;
             }
         }
@@ -81,34 +81,34 @@ public class TagCommand {
         if (i == 0) {
             throw ERROR_REMOVE_FAILED.create();
         } else {
-            if (p_138858_.size() == 1) {
-                p_138857_.sendSuccess(Component.translatable("commands.tag.remove.success.single", p_138859_, p_138858_.iterator().next().getDisplayName()), true);
+            if (pEntities.size() == 1) {
+                pSource.sendSuccess(Component.translatable("commands.tag.remove.success.single", pTagName, pEntities.iterator().next().getDisplayName()), true);
             } else {
-                p_138857_.sendSuccess(Component.translatable("commands.tag.remove.success.multiple", p_138859_, p_138858_.size()), true);
+                pSource.sendSuccess(Component.translatable("commands.tag.remove.success.multiple", pTagName, pEntities.size()), true);
             }
 
             return i;
         }
     }
 
-    private static int listTags(CommandSourceStack p_138846_, Collection<? extends Entity> p_138847_) {
+    private static int listTags(CommandSourceStack pSource, Collection<? extends Entity> pEntities) {
         Set<String> set = Sets.newHashSet();
 
-        for (Entity entity : p_138847_) {
+        for (Entity entity : pEntities) {
             set.addAll(entity.getTags());
         }
 
-        if (p_138847_.size() == 1) {
-            Entity entity1 = p_138847_.iterator().next();
+        if (pEntities.size() == 1) {
+            Entity entity1 = pEntities.iterator().next();
             if (set.isEmpty()) {
-                p_138846_.sendSuccess(Component.translatable("commands.tag.list.single.empty", entity1.getDisplayName()), false);
+                pSource.sendSuccess(Component.translatable("commands.tag.list.single.empty", entity1.getDisplayName()), false);
             } else {
-                p_138846_.sendSuccess(Component.translatable("commands.tag.list.single.success", entity1.getDisplayName(), set.size(), ComponentUtils.formatList(set)), false);
+                pSource.sendSuccess(Component.translatable("commands.tag.list.single.success", entity1.getDisplayName(), set.size(), ComponentUtils.formatList(set)), false);
             }
         } else if (set.isEmpty()) {
-            p_138846_.sendSuccess(Component.translatable("commands.tag.list.multiple.empty", p_138847_.size()), false);
+            pSource.sendSuccess(Component.translatable("commands.tag.list.multiple.empty", pEntities.size()), false);
         } else {
-            p_138846_.sendSuccess(Component.translatable("commands.tag.list.multiple.success", p_138847_.size(), set.size(), ComponentUtils.formatList(set)), false);
+            pSource.sendSuccess(Component.translatable("commands.tag.list.multiple.success", pEntities.size(), set.size(), ComponentUtils.formatList(set)), false);
         }
 
         return set.size();

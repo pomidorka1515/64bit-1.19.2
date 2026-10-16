@@ -9,18 +9,18 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ToggleKeyMapping extends KeyMapping {
     private final BooleanSupplier needsToggle;
 
-    public ToggleKeyMapping(String p_92529_, int p_92530_, String p_92531_, BooleanSupplier p_92532_) {
-        super(p_92529_, InputConstants.Type.KEYSYM, p_92530_, p_92531_);
-        this.needsToggle = p_92532_;
+    public ToggleKeyMapping(String pName, int pKeyCode, String pCategory, BooleanSupplier pNeedsToggle) {
+        super(pName, InputConstants.Type.KEYSYM, pKeyCode, pCategory);
+        this.needsToggle = pNeedsToggle;
     }
 
-    public void setDown(boolean p_92534_) {
+    public void setDown(boolean pValue) {
         if (this.needsToggle.getAsBoolean()) {
-            if (p_92534_) {
+            if (pValue) {
                 super.setDown(!this.isDown());
             }
         } else {
-            super.setDown(p_92534_);
+            super.setDown(pValue);
         }
     }
 }

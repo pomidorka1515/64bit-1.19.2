@@ -20,44 +20,44 @@ public class WrappedMinMaxBounds {
     @Nullable
     private final Float max;
 
-    public WrappedMinMaxBounds(@Nullable Float p_75356_, @Nullable Float p_75357_) {
-        this.min = p_75356_;
-        this.max = p_75357_;
+    public WrappedMinMaxBounds(@Nullable Float pMin, @Nullable Float pMax) {
+        this.min = pMin;
+        this.max = pMax;
     }
 
-    public static WrappedMinMaxBounds exactly(float p_164403_) {
-        return new WrappedMinMaxBounds(p_164403_, p_164403_);
+    public static WrappedMinMaxBounds exactly(float pValue) {
+        return new WrappedMinMaxBounds(pValue, pValue);
     }
 
-    public static WrappedMinMaxBounds between(float p_164405_, float p_164406_) {
-        return new WrappedMinMaxBounds(p_164405_, p_164406_);
+    public static WrappedMinMaxBounds between(float pMin, float pMax) {
+        return new WrappedMinMaxBounds(pMin, pMax);
     }
 
-    public static WrappedMinMaxBounds atLeast(float p_164415_) {
-        return new WrappedMinMaxBounds(p_164415_, (Float) null);
+    public static WrappedMinMaxBounds atLeast(float pMin) {
+        return new WrappedMinMaxBounds(pMin, (Float) null);
     }
 
-    public static WrappedMinMaxBounds atMost(float p_164418_) {
-        return new WrappedMinMaxBounds((Float) null, p_164418_);
+    public static WrappedMinMaxBounds atMost(float pMax) {
+        return new WrappedMinMaxBounds((Float) null, pMax);
     }
 
-    public boolean matches(float p_164420_) {
-        if (this.min != null && this.max != null && this.min > this.max && this.min > p_164420_ && this.max < p_164420_) {
+    public boolean matches(float pValue) {
+        if (this.min != null && this.max != null && this.min > this.max && this.min > pValue && this.max < pValue) {
             return false;
-        } else if (this.min != null && this.min > p_164420_) {
+        } else if (this.min != null && this.min > pValue) {
             return false;
         } else {
-            return this.max == null || !(this.max < p_164420_);
+            return this.max == null || !(this.max < pValue);
         }
     }
 
-    public boolean matchesSqr(double p_164401_) {
-        if (this.min != null && this.max != null && this.min > this.max && (double) (this.min * this.min) > p_164401_ && (double) (this.max * this.max) < p_164401_) {
+    public boolean matchesSqr(double pValue) {
+        if (this.min != null && this.max != null && this.min > this.max && (double) (this.min * this.min) > pValue && (double) (this.max * this.max) < pValue) {
             return false;
-        } else if (this.min != null && (double) (this.min * this.min) > p_164401_) {
+        } else if (this.min != null && (double) (this.min * this.min) > pValue) {
             return false;
         } else {
-            return this.max == null || !((double) (this.max * this.max) < p_164401_);
+            return this.max == null || !((double) (this.max * this.max) < pValue);
         }
     }
 
@@ -90,13 +90,13 @@ public class WrappedMinMaxBounds {
         }
     }
 
-    public static WrappedMinMaxBounds fromJson(@Nullable JsonElement p_164408_) {
-        if (p_164408_ != null && !p_164408_.isJsonNull()) {
-            if (GsonHelper.isNumberValue(p_164408_)) {
-                float f2 = GsonHelper.convertToFloat(p_164408_, "value");
+    public static WrappedMinMaxBounds fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            if (GsonHelper.isNumberValue(pJson)) {
+                float f2 = GsonHelper.convertToFloat(pJson, "value");
                 return new WrappedMinMaxBounds(f2, f2);
             } else {
-                JsonObject jsonobject = GsonHelper.convertToJsonObject(p_164408_, "value");
+                JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "value");
                 Float f = jsonobject.has("min") ? GsonHelper.getAsFloat(jsonobject, "min") : null;
                 Float f1 = jsonobject.has("max") ? GsonHelper.getAsFloat(jsonobject, "max") : null;
                 return new WrappedMinMaxBounds(f, f1);
@@ -106,39 +106,39 @@ public class WrappedMinMaxBounds {
         }
     }
 
-    public static WrappedMinMaxBounds fromReader(StringReader p_164410_, boolean p_164411_) throws CommandSyntaxException {
-        return fromReader(p_164410_, p_164411_, (p_164413_) -> {
+    public static WrappedMinMaxBounds fromReader(StringReader pReader, boolean pIsFloatingPoint) throws CommandSyntaxException {
+        return fromReader(pReader, pIsFloatingPoint, (p_164413_) -> {
             return p_164413_;
         });
     }
 
-    public static WrappedMinMaxBounds fromReader(StringReader p_75360_, boolean p_75361_, Function<Float, Float> p_75362_) throws CommandSyntaxException {
-        if (!p_75360_.canRead()) {
-            throw MinMaxBounds.ERROR_EMPTY.createWithContext(p_75360_);
+    public static WrappedMinMaxBounds fromReader(StringReader pReader, boolean pIsFloatingPoint, Function<Float, Float> pValueFactory) throws CommandSyntaxException {
+        if (!pReader.canRead()) {
+            throw MinMaxBounds.ERROR_EMPTY.createWithContext(pReader);
         } else {
-            int i = p_75360_.getCursor();
-            Float f = optionallyFormat(readNumber(p_75360_, p_75361_), p_75362_);
+            int i = pReader.getCursor();
+            Float f = optionallyFormat(readNumber(pReader, pIsFloatingPoint), pValueFactory);
             Float f1;
-            if (p_75360_.canRead(2) && p_75360_.peek() == '.' && p_75360_.peek(1) == '.') {
-                p_75360_.skip();
-                p_75360_.skip();
-                f1 = optionallyFormat(readNumber(p_75360_, p_75361_), p_75362_);
+            if (pReader.canRead(2) && pReader.peek() == '.' && pReader.peek(1) == '.') {
+                pReader.skip();
+                pReader.skip();
+                f1 = optionallyFormat(readNumber(pReader, pIsFloatingPoint), pValueFactory);
                 if (f == null && f1 == null) {
-                    p_75360_.setCursor(i);
-                    throw MinMaxBounds.ERROR_EMPTY.createWithContext(p_75360_);
+                    pReader.setCursor(i);
+                    throw MinMaxBounds.ERROR_EMPTY.createWithContext(pReader);
                 }
             } else {
-                if (!p_75361_ && p_75360_.canRead() && p_75360_.peek() == '.') {
-                    p_75360_.setCursor(i);
-                    throw ERROR_INTS_ONLY.createWithContext(p_75360_);
+                if (!pIsFloatingPoint && pReader.canRead() && pReader.peek() == '.') {
+                    pReader.setCursor(i);
+                    throw ERROR_INTS_ONLY.createWithContext(pReader);
                 }
 
                 f1 = f;
             }
 
             if (f == null && f1 == null) {
-                p_75360_.setCursor(i);
-                throw MinMaxBounds.ERROR_EMPTY.createWithContext(p_75360_);
+                pReader.setCursor(i);
+                throw MinMaxBounds.ERROR_EMPTY.createWithContext(pReader);
             } else {
                 return new WrappedMinMaxBounds(f, f1);
             }
@@ -146,34 +146,34 @@ public class WrappedMinMaxBounds {
     }
 
     @Nullable
-    private static Float readNumber(StringReader p_75368_, boolean p_75369_) throws CommandSyntaxException {
-        int i = p_75368_.getCursor();
+    private static Float readNumber(StringReader pReader, boolean pIsFloatingPoint) throws CommandSyntaxException {
+        int i = pReader.getCursor();
 
-        while (p_75368_.canRead() && isAllowedNumber(p_75368_, p_75369_)) {
-            p_75368_.skip();
+        while (pReader.canRead() && isAllowedNumber(pReader, pIsFloatingPoint)) {
+            pReader.skip();
         }
 
-        String s = p_75368_.getString().substring(i, p_75368_.getCursor());
+        String s = pReader.getString().substring(i, pReader.getCursor());
         if (s.isEmpty()) {
             return null;
         } else {
             try {
                 return Float.parseFloat(s);
             } catch (NumberFormatException numberformatexception) {
-                if (p_75369_) {
-                    throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerInvalidDouble().createWithContext(p_75368_, s);
+                if (pIsFloatingPoint) {
+                    throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerInvalidDouble().createWithContext(pReader, s);
                 } else {
-                    throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerInvalidInt().createWithContext(p_75368_, s);
+                    throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerInvalidInt().createWithContext(pReader, s);
                 }
             }
         }
     }
 
-    private static boolean isAllowedNumber(StringReader p_75371_, boolean p_75372_) {
-        char c0 = p_75371_.peek();
+    private static boolean isAllowedNumber(StringReader pReader, boolean pIsFloatingPoint) {
+        char c0 = pReader.peek();
         if ((c0 < '0' || c0 > '9') && c0 != '-') {
-            if (p_75372_ && c0 == '.') {
-                return !p_75371_.canRead(2) || p_75371_.peek(1) != '.';
+            if (pIsFloatingPoint && c0 == '.') {
+                return !pReader.canRead(2) || pReader.peek(1) != '.';
             } else {
                 return false;
             }
@@ -183,7 +183,7 @@ public class WrappedMinMaxBounds {
     }
 
     @Nullable
-    private static Float optionallyFormat(@Nullable Float p_75364_, Function<Float, Float> p_75365_) {
-        return p_75364_ == null ? null : p_75365_.apply(p_75364_);
+    private static Float optionallyFormat(@Nullable Float pValue, Function<Float, Float> pValueFactory) {
+        return pValue == null ? null : pValueFactory.apply(pValue);
     }
 }

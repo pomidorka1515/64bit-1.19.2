@@ -55,9 +55,9 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
         }
     };
 
-    public LevelTicks(Predicate<ChunkPos> p_193211_, Supplier<ProfilerFiller> p_193212_) {
-        this.tickCheck = p_193211_;
-        this.profiler = p_193212_;
+    public LevelTicks(Predicate<ChunkPos> pTickCheck, Supplier<ProfilerFiller> pProfiler) {
+        this.tickCheck = pTickCheck;
+        this.profiler = pProfiler;
     }
 
     public void addContainer(ChunkPos p_193232_, LevelChunkTicks<T> p_193233_) {
@@ -78,13 +78,13 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
         }
     }
 
-    public void schedule(ScheduledTick<T> p_193252_) {
-        BlockPos i = p_193252_.pos();
+    public void schedule(ScheduledTick<T> pTick) {
+        BlockPos i = pTick.pos();
         LevelChunkTicks<T> levelchunkticks = this.allContainers.get(new ChunkPos(i));
         if (levelchunkticks == null) {
-            Util.pauseInIde(new IllegalStateException("Trying to schedule tick in not loaded position " + p_193252_.pos()));
+            Util.pauseInIde(new IllegalStateException("Trying to schedule tick in not loaded position " + pTick.pos()));
         } else {
-            levelchunkticks.schedule(p_193252_);
+            levelchunkticks.schedule(pTick);
         }
     }
 
@@ -177,8 +177,8 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
         }
     }
 
-    private void scheduleForThisTick(ScheduledTick<T> p_193286_) {
-        this.toRunThisTick.add(p_193286_);
+    private void scheduleForThisTick(ScheduledTick<T> pTick) {
+        this.toRunThisTick.add(pTick);
     }
 
     private boolean canScheduleMoreTicks(int p_193215_) {

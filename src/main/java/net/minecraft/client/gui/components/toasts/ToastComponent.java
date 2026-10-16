@@ -24,15 +24,15 @@ public class ToastComponent extends GuiComponent {
     private final BitSet occupiedSlots = new BitSet(5);
     private final Deque<Toast> queued = Queues.newArrayDeque();
 
-    public ToastComponent(Minecraft p_94918_) {
-        this.minecraft = p_94918_;
+    public ToastComponent(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_94921_) {
+    public void render(PoseStack pPoseStack) {
         if (!this.minecraft.options.hideGui) {
             int i = this.minecraft.getWindow().getGuiScaledWidth();
             this.visible.removeIf((p_243286_) -> {
-                if (p_243286_ != null && p_243286_.render(i, p_94921_)) {
+                if (p_243286_ != null && p_243286_.render(i, pPoseStack)) {
                     this.occupiedSlots.clear(p_243286_.index, p_243286_.index + p_243286_.slotCount);
                     return true;
                 } else {
@@ -55,8 +55,8 @@ public class ToastComponent extends GuiComponent {
         }
     }
 
-    private int findFreeIndex(int p_243272_) {
-        if (this.freeSlots() >= p_243272_) {
+    private int findFreeIndex(int pSlotCount) {
+        if (this.freeSlots() >= pSlotCount) {
             int i = 0;
 
             for (int j = 0; j < 5; ++j) {
@@ -64,7 +64,7 @@ public class ToastComponent extends GuiComponent {
                     i = 0;
                 } else {
                     ++i;
-                    if (i == p_243272_) {
+                    if (i == pSlotCount) {
                         return j + 1 - i;
                     }
                 }
@@ -79,15 +79,15 @@ public class ToastComponent extends GuiComponent {
     }
 
     @Nullable
-    public <T extends Toast> T getToast(Class<? extends T> p_94927_, Object p_94928_) {
+    public <T extends Toast> T getToast(Class<? extends T> pToastClass, Object pToken) {
         for (ToastComponent.ToastInstance<?> toastinstance : this.visible) {
-            if (toastinstance != null && p_94927_.isAssignableFrom(toastinstance.getToast().getClass()) && toastinstance.getToast().getToken().equals(p_94928_)) {
+            if (toastinstance != null && pToastClass.isAssignableFrom(toastinstance.getToast().getClass()) && toastinstance.getToast().getToken().equals(pToken)) {
                 return (T) toastinstance.getToast();
             }
         }
 
         for (Toast toast : this.queued) {
-            if (p_94927_.isAssignableFrom(toast.getClass()) && toast.getToken().equals(p_94928_)) {
+            if (pToastClass.isAssignableFrom(toast.getClass()) && toast.getToken().equals(pToken)) {
                 return (T) toast;
             }
         }
@@ -101,8 +101,8 @@ public class ToastComponent extends GuiComponent {
         this.queued.clear();
     }
 
-    public void addToast(Toast p_94923_) {
-        this.queued.add(p_94923_);
+    public void addToast(Toast pToast) {
+        this.queued.add(pToast);
     }
 
     public Minecraft getMinecraft() {
@@ -129,13 +129,13 @@ public class ToastComponent extends GuiComponent {
             return this.toast;
         }
 
-        private float getVisibility(long p_94948_) {
-            float f = Mth.clamp((float) (p_94948_ - this.animationTime) / 600.0F, 0.0F, 1.0F);
+        private float getVisibility(long pTime) {
+            float f = Mth.clamp((float) (pTime - this.animationTime) / 600.0F, 0.0F, 1.0F);
             f *= f;
             return this.visibility == Toast.Visibility.HIDE ? 1.0F - f : f;
         }
 
-        public boolean render(int p_243301_, PoseStack p_243329_) {
+        public boolean render(int pScreenWidth, PoseStack pPoseStack) {
             long i = Util.getMillis();
             if (this.animationTime == -1L) {
                 this.animationTime = i;
@@ -148,9 +148,9 @@ public class ToastComponent extends GuiComponent {
 
             PoseStack posestack = RenderSystem.getModelViewStack();
             posestack.pushPose();
-            posestack.translate((double) ((float) p_243301_ - (float) this.toast.width() * this.getVisibility(i)), (double) (this.index * 32), 800.0D);
+            posestack.translate((double) ((float) pScreenWidth - (float) this.toast.width() * this.getVisibility(i)), (double) (this.index * 32), 800.0D);
             RenderSystem.applyModelViewMatrix();
-            Toast.Visibility toast$visibility = this.toast.render(p_243329_, ToastComponent.this, i - this.visibleTime);
+            Toast.Visibility toast$visibility = this.toast.render(pPoseStack, ToastComponent.this, i - this.visibleTime);
             posestack.popPose();
             RenderSystem.applyModelViewMatrix();
             if (toast$visibility != this.visibility) {

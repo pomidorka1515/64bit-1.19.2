@@ -30,12 +30,12 @@ public class NoiseBasedCountPlacement extends RepeatingPlacement {
         this.noiseOffset = p_191730_;
     }
 
-    public static NoiseBasedCountPlacement of(int p_191732_, double p_191733_, double p_191734_) {
-        return new NoiseBasedCountPlacement(p_191732_, p_191733_, p_191734_);
+    public static NoiseBasedCountPlacement of(int pNoiseToCountRatio, double pNoiseFactor, double pNoiseOffset) {
+        return new NoiseBasedCountPlacement(pNoiseToCountRatio, pNoiseFactor, pNoiseOffset);
     }
 
-    protected int count(RandomSource p_226352_, BlockPos p_226353_) {
-        double d0 = Biome.BIOME_INFO_NOISE.getValue(FarlandsMode.scaledNoiseCoordinate(p_226353_.getX(), 1.0D / this.noiseFactor), FarlandsMode.scaledNoiseCoordinate(p_226353_.getZ(), 1.0D / this.noiseFactor), false);
+    protected int count(RandomSource pRandom, BlockPos pPos) {
+        double d0 = Biome.BIOME_INFO_NOISE.getValue(FarlandsMode.scaledNoiseCoordinate(pPos.getX(), 1.0D / this.noiseFactor), FarlandsMode.scaledNoiseCoordinate(pPos.getZ(), 1.0D / this.noiseFactor), false);
         return (int) Math.ceil((d0 + this.noiseOffset) * (double) this.noiseToCountRatio);
     }
 

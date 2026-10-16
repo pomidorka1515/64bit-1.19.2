@@ -13,8 +13,8 @@ public class KeybindContents implements ComponentContents {
     @Nullable
     private Supplier<Component> nameResolver;
 
-    public KeybindContents(String p_237347_) {
-        this.name = p_237347_;
+    public KeybindContents(String pName) {
+        this.name = pName;
     }
 
     private Component getNestedComponent() {
@@ -25,20 +25,20 @@ public class KeybindContents implements ComponentContents {
         return this.nameResolver.get();
     }
 
-    public <T> Optional<T> visit(FormattedText.ContentConsumer<T> p_237350_) {
-        return this.getNestedComponent().visit(p_237350_);
+    public <T> Optional<T> visit(FormattedText.ContentConsumer<T> pContentConsumer) {
+        return this.getNestedComponent().visit(pContentConsumer);
     }
 
-    public <T> Optional<T> visit(FormattedText.StyledContentConsumer<T> p_237352_, Style p_237353_) {
-        return this.getNestedComponent().visit(p_237352_, p_237353_);
+    public <T> Optional<T> visit(FormattedText.StyledContentConsumer<T> pStyledContentConsumer, Style pStyle) {
+        return this.getNestedComponent().visit(pStyledContentConsumer, pStyle);
     }
 
-    public boolean equals(Object p_237356_) {
-        if (this == p_237356_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            if (p_237356_ instanceof KeybindContents) {
-                KeybindContents keybindcontents = (KeybindContents) p_237356_;
+            if (pOther instanceof KeybindContents) {
+                KeybindContents keybindcontents = (KeybindContents) pOther;
                 if (this.name.equals(keybindcontents.name)) {
                     return true;
                 }

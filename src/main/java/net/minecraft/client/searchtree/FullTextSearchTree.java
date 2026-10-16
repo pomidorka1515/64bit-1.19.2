@@ -26,14 +26,14 @@ public class FullTextSearchTree<T> extends IdSearchTree<T> {
         this.plainTextSearchTree = PlainTextSearchTree.create(this.contents, this.filler);
     }
 
-    protected List<T> searchPlainText(String p_235160_) {
-        return this.plainTextSearchTree.search(p_235160_);
+    protected List<T> searchPlainText(String pQuery) {
+        return this.plainTextSearchTree.search(pQuery);
     }
 
-    protected List<T> searchResourceLocation(String p_235162_, String p_235163_) {
-        List<T> list = this.resourceLocationSearchTree.searchNamespace(p_235162_);
-        List<T> list1 = this.resourceLocationSearchTree.searchPath(p_235163_);
-        List<T> list2 = this.plainTextSearchTree.search(p_235163_);
+    protected List<T> searchResourceLocation(String pNamespace, String pPath) {
+        List<T> list = this.resourceLocationSearchTree.searchNamespace(pNamespace);
+        List<T> list1 = this.resourceLocationSearchTree.searchPath(pPath);
+        List<T> list2 = this.plainTextSearchTree.search(pPath);
         Iterator<T> iterator = new MergingUniqueIterator<>(list1.iterator(), list2.iterator(), this.additionOrder);
         return ImmutableList.copyOf(new IntersectionIterator<>(list.iterator(), iterator, this.additionOrder));
     }

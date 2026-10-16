@@ -28,11 +28,11 @@ public class RealmsInviteScreen extends RealmsScreen {
     @Nullable
     private Component errorMsg;
 
-    public RealmsInviteScreen(RealmsConfigureWorldScreen p_88703_, Screen p_88704_, RealmsServer p_88705_) {
+    public RealmsInviteScreen(RealmsConfigureWorldScreen pConfigureScreen, Screen pLastScreen, RealmsServer pServerData) {
         super(GameNarrator.NO_TITLE);
-        this.configureScreen = p_88703_;
-        this.lastScreen = p_88704_;
-        this.serverData = p_88705_;
+        this.configureScreen = pConfigureScreen;
+        this.lastScreen = pLastScreen;
+        this.serverData = pServerData;
     }
 
     public void tick() {
@@ -77,28 +77,28 @@ public class RealmsInviteScreen extends RealmsScreen {
         }
     }
 
-    private void showError(Component p_88718_) {
-        this.errorMsg = p_88718_;
-        this.minecraft.getNarrator().sayNow(p_88718_);
+    private void showError(Component pErrorMsg) {
+        this.errorMsg = pErrorMsg;
+        this.minecraft.getNarrator().sayNow(pErrorMsg);
     }
 
-    public boolean keyPressed(int p_88707_, int p_88708_, int p_88709_) {
-        if (p_88707_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.lastScreen);
             return true;
         } else {
-            return super.keyPressed(p_88707_, p_88708_, p_88709_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    public void render(PoseStack p_88711_, int p_88712_, int p_88713_, float p_88714_) {
-        this.renderBackground(p_88711_);
-        this.font.draw(p_88711_, NAME_LABEL, (float) (this.width / 2 - 100), (float) row(1), 10526880);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.font.draw(pPoseStack, NAME_LABEL, (float) (this.width / 2 - 100), (float) row(1), 10526880);
         if (this.errorMsg != null) {
-            drawCenteredString(p_88711_, this.font, this.errorMsg, this.width / 2, row(5), 16711680);
+            drawCenteredString(pPoseStack, this.font, this.errorMsg, this.width / 2, row(5), 16711680);
         }
 
-        this.profileName.render(p_88711_, p_88712_, p_88713_, p_88714_);
-        super.render(p_88711_, p_88712_, p_88713_, p_88714_);
+        this.profileName.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

@@ -3,8 +3,8 @@ package net.minecraft;
 public class ReportedException extends RuntimeException {
     private final CrashReport report;
 
-    public ReportedException(CrashReport p_134760_) {
-        this.report = p_134760_;
+    public ReportedException(CrashReport pReport) {
+        this.report = pReport;
     }
 
     public CrashReport getReport() {

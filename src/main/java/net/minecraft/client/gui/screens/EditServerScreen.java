@@ -24,11 +24,11 @@ public class EditServerScreen extends Screen {
     private EditBox nameEdit;
     private final Screen lastScreen;
 
-    public EditServerScreen(Screen p_96017_, BooleanConsumer p_96018_, ServerData p_96019_) {
+    public EditServerScreen(Screen pLastScreen, BooleanConsumer pCallback, ServerData pServerData) {
         super(Component.translatable("addServer.title"));
-        this.lastScreen = p_96017_;
-        this.callback = p_96018_;
-        this.serverData = p_96019_;
+        this.lastScreen = pLastScreen;
+        this.callback = pCallback;
+        this.serverData = pServerData;
     }
 
     public void tick() {
@@ -64,10 +64,10 @@ public class EditServerScreen extends Screen {
         this.updateAddButtonStatus();
     }
 
-    public void resize(Minecraft p_96026_, int p_96027_, int p_96028_) {
+    public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
         String s = this.ipEdit.getValue();
         String s1 = this.nameEdit.getValue();
-        this.init(p_96026_, p_96027_, p_96028_);
+        this.init(pMinecraft, pWidth, pHeight);
         this.ipEdit.setValue(s);
         this.nameEdit.setValue(s1);
     }
@@ -90,13 +90,13 @@ public class EditServerScreen extends Screen {
         this.addButton.active = ServerAddress.isValidAddress(this.ipEdit.getValue()) && !this.nameEdit.getValue().isEmpty();
     }
 
-    public void render(PoseStack p_96021_, int p_96022_, int p_96023_, float p_96024_) {
-        this.renderBackground(p_96021_);
-        drawCenteredString(p_96021_, this.font, this.title, this.width / 2, 17, 16777215);
-        drawString(p_96021_, this.font, NAME_LABEL, this.width / 2 - 100, 53, 10526880);
-        drawString(p_96021_, this.font, IP_LABEL, this.width / 2 - 100, 94, 10526880);
-        this.nameEdit.render(p_96021_, p_96022_, p_96023_, p_96024_);
-        this.ipEdit.render(p_96021_, p_96022_, p_96023_, p_96024_);
-        super.render(p_96021_, p_96022_, p_96023_, p_96024_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 17, 16777215);
+        drawString(pPoseStack, this.font, NAME_LABEL, this.width / 2 - 100, 53, 10526880);
+        drawString(pPoseStack, this.font, IP_LABEL, this.width / 2 - 100, 94, 10526880);
+        this.nameEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.ipEdit.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

@@ -18,9 +18,9 @@ public class RealmsParentalConsentScreen extends RealmsScreen {
     private final Screen nextScreen;
     private MultiLineLabel messageLines = MultiLineLabel.EMPTY;
 
-    public RealmsParentalConsentScreen(Screen p_88861_) {
+    public RealmsParentalConsentScreen(Screen pNextScreen) {
         super(GameNarrator.NO_TITLE);
-        this.nextScreen = p_88861_;
+        this.nextScreen = pNextScreen;
     }
 
     public void init() {
@@ -45,9 +45,9 @@ public class RealmsParentalConsentScreen extends RealmsScreen {
         return MESSAGE;
     }
 
-    public void render(PoseStack p_88863_, int p_88864_, int p_88865_, float p_88866_) {
-        this.renderBackground(p_88863_);
-        this.messageLines.renderCentered(p_88863_, this.width / 2, 15, 15, 16777215);
-        super.render(p_88863_, p_88864_, p_88865_, p_88866_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.messageLines.renderCentered(pPoseStack, this.width / 2, 15, 15, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

@@ -23,10 +23,10 @@ public abstract class AbstractFurnaceScreen<T extends AbstractFurnaceMenu> exten
     private boolean widthTooNarrow;
     private final ResourceLocation texture;
 
-    public AbstractFurnaceScreen(T p_97825_, AbstractFurnaceRecipeBookComponent p_97826_, Inventory p_97827_, Component p_97828_, ResourceLocation p_97829_) {
-        super(p_97825_, p_97827_, p_97828_);
-        this.recipeBookComponent = p_97826_;
-        this.texture = p_97829_;
+    public AbstractFurnaceScreen(T pMenu, AbstractFurnaceRecipeBookComponent pRecipeBookComponent, Inventory pPlayerInventory, Component pTitle, ResourceLocation pTexture) {
+        super(pMenu, pPlayerInventory, pTitle);
+        this.recipeBookComponent = pRecipeBookComponent;
+        this.texture = pTexture;
     }
 
     public void init() {
@@ -47,61 +47,61 @@ public abstract class AbstractFurnaceScreen<T extends AbstractFurnaceMenu> exten
         this.recipeBookComponent.tick();
     }
 
-    public void render(PoseStack p_97858_, int p_97859_, int p_97860_, float p_97861_) {
-        this.renderBackground(p_97858_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
         if (this.recipeBookComponent.isVisible() && this.widthTooNarrow) {
-            this.renderBg(p_97858_, p_97861_, p_97859_, p_97860_);
-            this.recipeBookComponent.render(p_97858_, p_97859_, p_97860_, p_97861_);
+            this.renderBg(pPoseStack, pPartialTick, pMouseX, pMouseY);
+            this.recipeBookComponent.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         } else {
-            this.recipeBookComponent.render(p_97858_, p_97859_, p_97860_, p_97861_);
-            super.render(p_97858_, p_97859_, p_97860_, p_97861_);
-            this.recipeBookComponent.renderGhostRecipe(p_97858_, this.leftPos, this.topPos, true, p_97861_);
+            this.recipeBookComponent.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.recipeBookComponent.renderGhostRecipe(pPoseStack, this.leftPos, this.topPos, true, pPartialTick);
         }
 
-        this.renderTooltip(p_97858_, p_97859_, p_97860_);
-        this.recipeBookComponent.renderTooltip(p_97858_, this.leftPos, this.topPos, p_97859_, p_97860_);
+        this.renderTooltip(pPoseStack, pMouseX, pMouseY);
+        this.recipeBookComponent.renderTooltip(pPoseStack, this.leftPos, this.topPos, pMouseX, pMouseY);
     }
 
-    protected void renderBg(PoseStack p_97853_, float p_97854_, int p_97855_, int p_97856_) {
+    protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, this.texture);
         int i = this.leftPos;
         int j = this.topPos;
-        this.blit(p_97853_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        this.blit(pPoseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
         if (this.menu.isLit()) {
             int k = this.menu.getLitProgress();
-            this.blit(p_97853_, i + 56, j + 36 + 12 - k, 176, 12 - k, 14, k + 1);
+            this.blit(pPoseStack, i + 56, j + 36 + 12 - k, 176, 12 - k, 14, k + 1);
         }
 
         int l = this.menu.getBurnProgress();
-        this.blit(p_97853_, i + 79, j + 34, 176, 14, l + 1, 16);
+        this.blit(pPoseStack, i + 79, j + 34, 176, 14, l + 1, 16);
     }
 
-    public boolean mouseClicked(double p_97834_, double p_97835_, int p_97836_) {
-        if (this.recipeBookComponent.mouseClicked(p_97834_, p_97835_, p_97836_)) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (this.recipeBookComponent.mouseClicked(pMouseX, pMouseY, pButton)) {
             return true;
         } else {
-            return this.widthTooNarrow && this.recipeBookComponent.isVisible() ? true : super.mouseClicked(p_97834_, p_97835_, p_97836_);
+            return this.widthTooNarrow && this.recipeBookComponent.isVisible() ? true : super.mouseClicked(pMouseX, pMouseY, pButton);
         }
     }
 
-    protected void slotClicked(Slot p_97848_, int p_97849_, int p_97850_, ClickType p_97851_) {
-        super.slotClicked(p_97848_, p_97849_, p_97850_, p_97851_);
-        this.recipeBookComponent.slotClicked(p_97848_);
+    protected void slotClicked(Slot pSlot, int pSlotId, int pMouseButton, ClickType pType) {
+        super.slotClicked(pSlot, pSlotId, pMouseButton, pType);
+        this.recipeBookComponent.slotClicked(pSlot);
     }
 
-    public boolean keyPressed(int p_97844_, int p_97845_, int p_97846_) {
-        return this.recipeBookComponent.keyPressed(p_97844_, p_97845_, p_97846_) ? false : super.keyPressed(p_97844_, p_97845_, p_97846_);
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        return this.recipeBookComponent.keyPressed(pKeyCode, pScanCode, pModifiers) ? false : super.keyPressed(pKeyCode, pScanCode, pModifiers);
     }
 
-    protected boolean hasClickedOutside(double p_97838_, double p_97839_, int p_97840_, int p_97841_, int p_97842_) {
-        boolean flag = p_97838_ < (double) p_97840_ || p_97839_ < (double) p_97841_ || p_97838_ >= (double) (p_97840_ + this.imageWidth) || p_97839_ >= (double) (p_97841_ + this.imageHeight);
-        return this.recipeBookComponent.hasClickedOutside(p_97838_, p_97839_, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, p_97842_) && flag;
+    protected boolean hasClickedOutside(double pMouseX, double pMouseY, int pGuiLeft, int pGuiTop, int pMouseButton) {
+        boolean flag = pMouseX < (double) pGuiLeft || pMouseY < (double) pGuiTop || pMouseX >= (double) (pGuiLeft + this.imageWidth) || pMouseY >= (double) (pGuiTop + this.imageHeight);
+        return this.recipeBookComponent.hasClickedOutside(pMouseX, pMouseY, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, pMouseButton) && flag;
     }
 
-    public boolean charTyped(char p_97831_, int p_97832_) {
-        return this.recipeBookComponent.charTyped(p_97831_, p_97832_) ? true : super.charTyped(p_97831_, p_97832_);
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        return this.recipeBookComponent.charTyped(pCodePoint, pModifiers) ? true : super.charTyped(pCodePoint, pModifiers);
     }
 
     public void recipesUpdated() {

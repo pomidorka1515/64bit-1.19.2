@@ -13,9 +13,9 @@ import net.minecraft.util.datafix.schemas.NamespacedSchema;
 public abstract class ItemRenameFix extends DataFix {
     private final String name;
 
-    public ItemRenameFix(Schema p_16001_, String p_16002_) {
-        super(p_16001_, false);
-        this.name = p_16002_;
+    public ItemRenameFix(Schema pOutputSchema, String pName) {
+        super(pOutputSchema, false);
+        this.name = pName;
     }
 
     public TypeRewriteRule makeRule() {

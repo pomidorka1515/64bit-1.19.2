@@ -24,11 +24,11 @@ public class SubtitleOverlay extends GuiComponent implements SoundEventListener 
     private final List<SubtitleOverlay.Subtitle> subtitles = Lists.newArrayList();
     private boolean isListening;
 
-    public SubtitleOverlay(Minecraft p_94641_) {
-        this.minecraft = p_94641_;
+    public SubtitleOverlay(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_94643_) {
+    public void render(PoseStack pPoseStack) {
         if (!this.isListening && this.minecraft.options.showSubtitles().get()) {
             this.minecraft.getSoundManager().addListener(this);
             this.isListening = true;
@@ -73,21 +73,21 @@ public class SubtitleOverlay extends GuiComponent implements SoundEventListener 
                 int k1 = this.minecraft.font.width(component);
                 int l1 = Mth.floor(Mth.clampedLerp(255.0F, 75.0F, (float) (Util.getMillis() - subtitleoverlay$subtitle1.getTime()) / 3000.0F));
                 int i2 = l1 << 16 | l1 << 8 | l1;
-                p_94643_.pushPose();
-                p_94643_.translate((double) ((float) this.minecraft.getWindow().getGuiScaledWidth() - (float) l * 1.0F - 2.0F), (double) ((float) (this.minecraft.getWindow().getGuiScaledHeight() - 35) - (float) (i * (i1 + 1)) * 1.0F), 0.0D);
-                p_94643_.scale(1.0F, 1.0F, 1.0F);
-                fill(p_94643_, -l - 1, -j1 - 1, l + 1, j1 + 1, this.minecraft.options.getBackgroundColor(0.8F));
+                pPoseStack.pushPose();
+                pPoseStack.translate((double) ((float) this.minecraft.getWindow().getGuiScaledWidth() - (float) l * 1.0F - 2.0F), (double) ((float) (this.minecraft.getWindow().getGuiScaledHeight() - 35) - (float) (i * (i1 + 1)) * 1.0F), 0.0D);
+                pPoseStack.scale(1.0F, 1.0F, 1.0F);
+                fill(pPoseStack, -l - 1, -j1 - 1, l + 1, j1 + 1, this.minecraft.options.getBackgroundColor(0.8F));
                 RenderSystem.enableBlend();
                 if (!flag) {
                     if (d0 > 0.0D) {
-                        this.minecraft.font.draw(p_94643_, ">", (float) (l - this.minecraft.font.width(">")), (float) (-j1), i2 + -16777216);
+                        this.minecraft.font.draw(pPoseStack, ">", (float) (l - this.minecraft.font.width(">")), (float) (-j1), i2 + -16777216);
                     } else if (d0 < 0.0D) {
-                        this.minecraft.font.draw(p_94643_, "<", (float) (-l), (float) (-j1), i2 + -16777216);
+                        this.minecraft.font.draw(pPoseStack, "<", (float) (-l), (float) (-j1), i2 + -16777216);
                     }
                 }
 
-                this.minecraft.font.draw(p_94643_, component, (float) (-k1 / 2), (float) (-j1), i2 + -16777216);
-                p_94643_.popPose();
+                this.minecraft.font.draw(pPoseStack, component, (float) (-k1 / 2), (float) (-j1), i2 + -16777216);
+                pPoseStack.popPose();
                 ++i;
             }
 
@@ -95,19 +95,19 @@ public class SubtitleOverlay extends GuiComponent implements SoundEventListener 
         }
     }
 
-    public void onPlaySound(SoundInstance p_94645_, WeighedSoundEvents p_94646_) {
-        if (p_94646_.getSubtitle() != null) {
-            Component component = p_94646_.getSubtitle();
+    public void onPlaySound(SoundInstance pSound, WeighedSoundEvents pAccessor) {
+        if (pAccessor.getSubtitle() != null) {
+            Component component = pAccessor.getSubtitle();
             if (!this.subtitles.isEmpty()) {
                 for (SubtitleOverlay.Subtitle subtitleoverlay$subtitle : this.subtitles) {
                     if (subtitleoverlay$subtitle.getText().equals(component)) {
-                        subtitleoverlay$subtitle.refresh(new Vec3(p_94645_.getX(), p_94645_.getY(), p_94645_.getZ()));
+                        subtitleoverlay$subtitle.refresh(new Vec3(pSound.getX(), pSound.getY(), pSound.getZ()));
                         return;
                     }
                 }
             }
 
-            this.subtitles.add(new SubtitleOverlay.Subtitle(component, new Vec3(p_94645_.getX(), p_94645_.getY(), p_94645_.getZ())));
+            this.subtitles.add(new SubtitleOverlay.Subtitle(component, new Vec3(pSound.getX(), pSound.getY(), pSound.getZ())));
         }
     }
 
@@ -117,9 +117,9 @@ public class SubtitleOverlay extends GuiComponent implements SoundEventListener 
         private long time;
         private Vec3 location;
 
-        public Subtitle(Component p_169072_, Vec3 p_169073_) {
-            this.text = p_169072_;
-            this.location = p_169073_;
+        public Subtitle(Component pText, Vec3 pLocation) {
+            this.text = pText;
+            this.location = pLocation;
             this.time = Util.getMillis();
         }
 
@@ -135,8 +135,8 @@ public class SubtitleOverlay extends GuiComponent implements SoundEventListener 
             return this.location;
         }
 
-        public void refresh(Vec3 p_94657_) {
-            this.location = p_94657_;
+        public void refresh(Vec3 pLocation) {
+            this.location = pLocation;
             this.time = Util.getMillis();
         }
     }

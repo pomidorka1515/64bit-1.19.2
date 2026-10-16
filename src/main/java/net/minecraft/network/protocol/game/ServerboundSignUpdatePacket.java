@@ -9,30 +9,30 @@ public class ServerboundSignUpdatePacket implements Packet<ServerGamePacketListe
     private final BlockPos pos;
     private final String[] lines;
 
-    public ServerboundSignUpdatePacket(BlockPos p_134649_, String p_134650_, String p_134651_, String p_134652_, String p_134653_) {
-        this.pos = p_134649_;
-        this.lines = new String[] {p_134650_, p_134651_, p_134652_, p_134653_};
+    public ServerboundSignUpdatePacket(BlockPos pPos, String pLine0, String pLine1, String pLine2, String pLine3) {
+        this.pos = pPos;
+        this.lines = new String[] {pLine0, pLine1, pLine2, pLine3};
     }
 
-    public ServerboundSignUpdatePacket(FriendlyByteBuf p_179790_) {
-        this.pos = p_179790_.readBlockPos();
+    public ServerboundSignUpdatePacket(FriendlyByteBuf pBuffer) {
+        this.pos = pBuffer.readBlockPos();
         this.lines = new String[4];
 
         for (int i = 0; i < 4; ++i) {
-            this.lines[i] = p_179790_.readUtf(384);
+            this.lines[i] = pBuffer.readUtf(384);
         }
     }
 
-    public void write(FriendlyByteBuf p_134662_) {
-        p_134662_.writeBlockPos(this.pos);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBlockPos(this.pos);
 
         for (int i = 0; i < 4; ++i) {
-            p_134662_.writeUtf(this.lines[i]);
+            pBuffer.writeUtf(this.lines[i]);
         }
     }
 
-    public void handle(ServerGamePacketListener p_134659_) {
-        p_134659_.handleSignUpdate(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleSignUpdate(this);
     }
 
     public BlockPos getPos() {

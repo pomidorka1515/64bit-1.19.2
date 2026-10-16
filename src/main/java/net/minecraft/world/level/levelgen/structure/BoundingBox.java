@@ -29,51 +29,51 @@ public class BoundingBox {
     private int maxY;
     private long maxZ;
 
-    public BoundingBox(BlockPos p_162364_) {
-        this(p_162364_.getX(), p_162364_.getY(), p_162364_.getZ(), p_162364_.getX(), p_162364_.getY(), p_162364_.getZ());
+    public BoundingBox(BlockPos pPos) {
+        this(pPos.getX(), pPos.getY(), pPos.getZ(), pPos.getX(), pPos.getY(), pPos.getZ());
     }
 
-    public BoundingBox(long p_71001_, int p_71002_, long p_71003_, long p_71004_, int p_71005_, long p_71006_) {
-        this.minX = WorldBounds.minBlockCoordinate(p_71001_, p_71004_);
-        this.minY = Math.min(p_71002_, p_71005_);
-        this.minZ = WorldBounds.minBlockCoordinate(p_71003_, p_71006_);
-        this.maxX = WorldBounds.maxBlockCoordinate(p_71001_, p_71004_);
-        this.maxY = Math.max(p_71002_, p_71005_);
-        this.maxZ = WorldBounds.maxBlockCoordinate(p_71003_, p_71006_);
+    public BoundingBox(long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long pMaxZ) {
+        this.minX = WorldBounds.minBlockCoordinate(pMinX, pMaxX);
+        this.minY = Math.min(pMinY, pMaxY);
+        this.minZ = WorldBounds.minBlockCoordinate(pMinZ, pMaxZ);
+        this.maxX = WorldBounds.maxBlockCoordinate(pMinX, pMaxX);
+        this.maxY = Math.max(pMinY, pMaxY);
+        this.maxZ = WorldBounds.maxBlockCoordinate(pMinZ, pMaxZ);
     }
 
-    public static BoundingBox fromCorners(Vec3i p_162376_, Vec3i p_162377_) {
-        return new BoundingBox(p_162376_.getX(), p_162376_.getY(), p_162376_.getZ(), p_162377_.getX(), p_162377_.getY(), p_162377_.getZ());
+    public static BoundingBox fromCorners(Vec3i pFirst, Vec3i pSecond) {
+        return new BoundingBox(pFirst.getX(), pFirst.getY(), pFirst.getZ(), pSecond.getX(), pSecond.getY(), pSecond.getZ());
     }
 
     public static BoundingBox infinite() {
         return new BoundingBox(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
-    public static BoundingBox orientBox(long p_71032_, int p_71033_, long p_71034_, int p_71035_, int p_71036_, int p_71037_, int p_71038_, int p_71039_, int p_71040_, Direction p_71041_) {
-        switch (p_71041_) {
+    public static BoundingBox orientBox(long pStructureMinX, int pStructureMinY, long pStructureMinZ, int pXMin, int pYMin, int pZMin, int pXMax, int pYMax, int pZMax, Direction pFacing) {
+        switch (pFacing) {
             case SOUTH:
             default:
-                return new BoundingBox(WorldBounds.addBlockOffset(p_71032_, p_71035_), p_71033_ + p_71036_, WorldBounds.addBlockOffset(p_71034_, p_71037_), WorldBounds.addBlockOffset(p_71032_, (long) p_71038_ - 1L + p_71035_), p_71033_ + p_71039_ - 1, WorldBounds.addBlockOffset(p_71034_, (long) p_71040_ - 1L + p_71037_));
+                return new BoundingBox(WorldBounds.addBlockOffset(pStructureMinX, pXMin), pStructureMinY + pYMin, WorldBounds.addBlockOffset(pStructureMinZ, pZMin), WorldBounds.addBlockOffset(pStructureMinX, (long) pXMax - 1L + pXMin), pStructureMinY + pYMax - 1, WorldBounds.addBlockOffset(pStructureMinZ, (long) pZMax - 1L + pZMin));
             case NORTH:
-                return new BoundingBox(WorldBounds.addBlockOffset(p_71032_, p_71035_), p_71033_ + p_71036_, WorldBounds.addBlockOffset(p_71034_, -(long) p_71040_ + 1L + p_71037_), WorldBounds.addBlockOffset(p_71032_, (long) p_71038_ - 1L + p_71035_), p_71033_ + p_71039_ - 1, WorldBounds.addBlockOffset(p_71034_, p_71037_));
+                return new BoundingBox(WorldBounds.addBlockOffset(pStructureMinX, pXMin), pStructureMinY + pYMin, WorldBounds.addBlockOffset(pStructureMinZ, -(long) pZMax + 1L + pZMin), WorldBounds.addBlockOffset(pStructureMinX, (long) pXMax - 1L + pXMin), pStructureMinY + pYMax - 1, WorldBounds.addBlockOffset(pStructureMinZ, pZMin));
             case WEST:
-                return new BoundingBox(WorldBounds.addBlockOffset(p_71032_, -(long) p_71040_ + 1L + p_71037_), p_71033_ + p_71036_, WorldBounds.addBlockOffset(p_71034_, p_71035_), WorldBounds.addBlockOffset(p_71032_, p_71037_), p_71033_ + p_71039_ - 1, WorldBounds.addBlockOffset(p_71034_, (long) p_71038_ - 1L + p_71035_));
+                return new BoundingBox(WorldBounds.addBlockOffset(pStructureMinX, -(long) pZMax + 1L + pZMin), pStructureMinY + pYMin, WorldBounds.addBlockOffset(pStructureMinZ, pXMin), WorldBounds.addBlockOffset(pStructureMinX, pZMin), pStructureMinY + pYMax - 1, WorldBounds.addBlockOffset(pStructureMinZ, (long) pXMax - 1L + pXMin));
             case EAST:
-                return new BoundingBox(WorldBounds.addBlockOffset(p_71032_, p_71037_), p_71033_ + p_71036_, WorldBounds.addBlockOffset(p_71034_, p_71035_), WorldBounds.addBlockOffset(p_71032_, (long) p_71040_ - 1L + p_71037_), p_71033_ + p_71039_ - 1, WorldBounds.addBlockOffset(p_71034_, (long) p_71038_ - 1L + p_71035_));
+                return new BoundingBox(WorldBounds.addBlockOffset(pStructureMinX, pZMin), pStructureMinY + pYMin, WorldBounds.addBlockOffset(pStructureMinZ, pXMin), WorldBounds.addBlockOffset(pStructureMinX, (long) pZMax - 1L + pZMin), pStructureMinY + pYMax - 1, WorldBounds.addBlockOffset(pStructureMinZ, (long) pXMax - 1L + pXMin));
         }
     }
 
-    public boolean intersects(BoundingBox p_71050_) {
-        return WorldBounds.blockRangesOverlap(this.minX, this.maxX, p_71050_.minX, p_71050_.maxX) && WorldBounds.blockRangesOverlap(this.minZ, this.maxZ, p_71050_.minZ, p_71050_.maxZ) && this.maxY >= p_71050_.minY && this.minY <= p_71050_.maxY;
+    public boolean intersects(BoundingBox pBox) {
+        return WorldBounds.blockRangesOverlap(this.minX, this.maxX, pBox.minX, pBox.maxX) && WorldBounds.blockRangesOverlap(this.minZ, this.maxZ, pBox.minZ, pBox.maxZ) && this.maxY >= pBox.minY && this.minY <= pBox.maxY;
     }
 
-    public boolean intersects(long p_71020_, long p_71021_, long p_71022_, long p_71023_) {
-        return WorldBounds.blockRangesOverlap(this.minX, this.maxX, p_71020_, p_71022_) && WorldBounds.blockRangesOverlap(this.minZ, this.maxZ, p_71021_, p_71023_);
+    public boolean intersects(long pMinX, long pMinZ, long pMaxX, long pMaxZ) {
+        return WorldBounds.blockRangesOverlap(this.minX, this.maxX, pMinX, pMaxX) && WorldBounds.blockRangesOverlap(this.minZ, this.maxZ, pMinZ, pMaxZ);
     }
 
-    public static Optional<BoundingBox> encapsulatingPositions(Iterable<BlockPos> p_162379_) {
-        Iterator<BlockPos> iterator = p_162379_.iterator();
+    public static Optional<BoundingBox> encapsulatingPositions(Iterable<BlockPos> pPositions) {
+        Iterator<BlockPos> iterator = pPositions.iterator();
         if (!iterator.hasNext()) {
             return Optional.empty();
         } else {
@@ -83,8 +83,8 @@ public class BoundingBox {
         }
     }
 
-    public static Optional<BoundingBox> encapsulatingBoxes(Iterable<BoundingBox> p_162389_) {
-        Iterator<BoundingBox> iterator = p_162389_.iterator();
+    public static Optional<BoundingBox> encapsulatingBoxes(Iterable<BoundingBox> pBoxes) {
+        Iterator<BoundingBox> iterator = pBoxes.iterator();
         if (!iterator.hasNext()) {
             return Optional.empty();
         } else {
@@ -121,32 +121,32 @@ public class BoundingBox {
 
     /** @deprecated */
     @Deprecated
-    public BoundingBox move(long p_162368_, int p_162369_, long p_162370_) {
-        this.minX = WorldBounds.addBlockOffset(this.minX, p_162368_);
-        this.minY += p_162369_;
-        this.minZ = WorldBounds.addBlockOffset(this.minZ, p_162370_);
-        this.maxX = WorldBounds.addBlockOffset(this.maxX, p_162368_);
-        this.maxY += p_162369_;
-        this.maxZ = WorldBounds.addBlockOffset(this.maxZ, p_162370_);
+    public BoundingBox move(long pX, int pY, long pZ) {
+        this.minX = WorldBounds.addBlockOffset(this.minX, pX);
+        this.minY += pY;
+        this.minZ = WorldBounds.addBlockOffset(this.minZ, pZ);
+        this.maxX = WorldBounds.addBlockOffset(this.maxX, pX);
+        this.maxY += pY;
+        this.maxZ = WorldBounds.addBlockOffset(this.maxZ, pZ);
         return this;
     }
 
     /** @deprecated */
     @Deprecated
-    public BoundingBox move(Vec3i p_162374_) {
-        return this.move(p_162374_.getX(), p_162374_.getY(), p_162374_.getZ());
+    public BoundingBox move(Vec3i pVector) {
+        return this.move(pVector.getX(), pVector.getY(), pVector.getZ());
     }
 
-    public BoundingBox moved(int p_71046_, int p_71047_, int p_71048_) {
-        return new BoundingBox(WorldBounds.addBlockOffset(this.minX, p_71046_), this.minY + p_71047_, WorldBounds.addBlockOffset(this.minZ, p_71048_), WorldBounds.addBlockOffset(this.maxX, p_71046_), this.maxY + p_71047_, WorldBounds.addBlockOffset(this.maxZ, p_71048_));
+    public BoundingBox moved(int pX, int pY, int pZ) {
+        return new BoundingBox(WorldBounds.addBlockOffset(this.minX, pX), this.minY + pY, WorldBounds.addBlockOffset(this.minZ, pZ), WorldBounds.addBlockOffset(this.maxX, pX), this.maxY + pY, WorldBounds.addBlockOffset(this.maxZ, pZ));
     }
 
-    public BoundingBox inflatedBy(int p_191962_) {
-        return new BoundingBox(WorldBounds.addBlockOffset(this.minX, -(long) p_191962_), this.minY - p_191962_, WorldBounds.addBlockOffset(this.minZ, -(long) p_191962_), WorldBounds.addBlockOffset(this.maxX, p_191962_), this.maxY + p_191962_, WorldBounds.addBlockOffset(this.maxZ, p_191962_));
+    public BoundingBox inflatedBy(int pValue) {
+        return new BoundingBox(WorldBounds.addBlockOffset(this.minX, -(long) pValue), this.minY - pValue, WorldBounds.addBlockOffset(this.minZ, -(long) pValue), WorldBounds.addBlockOffset(this.maxX, pValue), this.maxY + pValue, WorldBounds.addBlockOffset(this.maxZ, pValue));
     }
 
-    public boolean isInside(Vec3i p_71052_) {
-        return WorldBounds.isWithinBlockRange(p_71052_.getX(), this.minX, this.maxX) && WorldBounds.isWithinBlockRange(p_71052_.getZ(), this.minZ, this.maxZ) && p_71052_.getY() >= this.minY && p_71052_.getY() <= this.maxY;
+    public boolean isInside(Vec3i pVector) {
+        return WorldBounds.isWithinBlockRange(pVector.getX(), this.minX, this.maxX) && WorldBounds.isWithinBlockRange(pVector.getZ(), this.minZ, this.maxZ) && pVector.getY() >= this.minY && pVector.getY() <= this.maxY;
     }
 
     public Vec3i getLength() {
@@ -177,29 +177,29 @@ public class BoundingBox {
         return WorldBounds.middleBlockCoordinate(min, max);
     }
 
-    public void forAllCorners(Consumer<BlockPos> p_162381_) {
+    public void forAllCorners(Consumer<BlockPos> pPos) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        p_162381_.accept(blockpos$mutableblockpos.set(this.maxX, this.maxY, this.maxZ));
-        p_162381_.accept(blockpos$mutableblockpos.set(this.minX, this.maxY, this.maxZ));
-        p_162381_.accept(blockpos$mutableblockpos.set(this.maxX, this.minY, this.maxZ));
-        p_162381_.accept(blockpos$mutableblockpos.set(this.minX, this.minY, this.maxZ));
-        p_162381_.accept(blockpos$mutableblockpos.set(this.maxX, this.maxY, this.minZ));
-        p_162381_.accept(blockpos$mutableblockpos.set(this.minX, this.maxY, this.minZ));
-        p_162381_.accept(blockpos$mutableblockpos.set(this.maxX, this.minY, this.minZ));
-        p_162381_.accept(blockpos$mutableblockpos.set(this.minX, this.minY, this.minZ));
+        pPos.accept(blockpos$mutableblockpos.set(this.maxX, this.maxY, this.maxZ));
+        pPos.accept(blockpos$mutableblockpos.set(this.minX, this.maxY, this.maxZ));
+        pPos.accept(blockpos$mutableblockpos.set(this.maxX, this.minY, this.maxZ));
+        pPos.accept(blockpos$mutableblockpos.set(this.minX, this.minY, this.maxZ));
+        pPos.accept(blockpos$mutableblockpos.set(this.maxX, this.maxY, this.minZ));
+        pPos.accept(blockpos$mutableblockpos.set(this.minX, this.maxY, this.minZ));
+        pPos.accept(blockpos$mutableblockpos.set(this.maxX, this.minY, this.minZ));
+        pPos.accept(blockpos$mutableblockpos.set(this.minX, this.minY, this.minZ));
     }
 
     public String toString() {
         return MoreObjects.toStringHelper(this).add("minX", this.minX).add("minY", this.minY).add("minZ", this.minZ).add("maxX", this.maxX).add("maxY", this.maxY).add("maxZ", this.maxZ).toString();
     }
 
-    public boolean equals(Object p_162393_) {
-        if (this == p_162393_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_162393_ instanceof BoundingBox)) {
+        } else if (!(pOther instanceof BoundingBox)) {
             return false;
         } else {
-            BoundingBox boundingbox = (BoundingBox) p_162393_;
+            BoundingBox boundingbox = (BoundingBox) pOther;
             return this.minX == boundingbox.minX && this.minY == boundingbox.minY && this.minZ == boundingbox.minZ && this.maxX == boundingbox.maxX && this.maxY == boundingbox.maxY && this.maxZ == boundingbox.maxZ;
         }
     }

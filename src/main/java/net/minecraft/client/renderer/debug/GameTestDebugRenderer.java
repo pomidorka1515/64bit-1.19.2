@@ -16,15 +16,15 @@ public class GameTestDebugRenderer implements DebugRenderer.SimpleDebugRenderer 
     private static final float PADDING = 0.02F;
     private final Map<BlockPos, GameTestDebugRenderer.Marker> markers = Maps.newHashMap();
 
-    public void addMarker(BlockPos p_113525_, int p_113526_, String p_113527_, int p_113528_) {
-        this.markers.put(p_113525_, new GameTestDebugRenderer.Marker(p_113526_, p_113527_, Util.getMillis() + (long) p_113528_));
+    public void addMarker(BlockPos pPos, int pColor, String pText, int pRemoveAfter) {
+        this.markers.put(pPos, new GameTestDebugRenderer.Marker(pColor, pText, Util.getMillis() + (long) pRemoveAfter));
     }
 
     public void clear() {
         this.markers.clear();
     }
 
-    public void render(PoseStack p_113519_, MultiBufferSource p_113520_, double p_113521_, double p_113522_, double p_113523_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         long i = Util.getMillis();
         this.markers.entrySet().removeIf((p_113517_) -> {
             return i > (p_113517_.getValue()).removeAtTime;
@@ -55,10 +55,10 @@ public class GameTestDebugRenderer implements DebugRenderer.SimpleDebugRenderer 
         public String text;
         public long removeAtTime;
 
-        public Marker(int p_113536_, String p_113537_, long p_113538_) {
-            this.color = p_113536_;
-            this.text = p_113537_;
-            this.removeAtTime = p_113538_;
+        public Marker(int pColor, String pText, long pRemoveAtTime) {
+            this.color = pColor;
+            this.text = pText;
+            this.removeAtTime = pRemoveAtTime;
         }
 
         public float getR() {

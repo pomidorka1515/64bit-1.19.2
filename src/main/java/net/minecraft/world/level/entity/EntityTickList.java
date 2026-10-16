@@ -27,21 +27,21 @@ public class EntityTickList {
         }
     }
 
-    public void add(Entity p_156909_) {
+    public void add(Entity pEntity) {
         this.ensureActiveIsNotIterated();
-        this.active.put(p_156909_.getId(), p_156909_);
+        this.active.put(pEntity.getId(), pEntity);
     }
 
-    public void remove(Entity p_156913_) {
+    public void remove(Entity pEntity) {
         this.ensureActiveIsNotIterated();
-        this.active.remove(p_156913_.getId());
+        this.active.remove(pEntity.getId());
     }
 
-    public boolean contains(Entity p_156915_) {
-        return this.active.containsKey(p_156915_.getId());
+    public boolean contains(Entity pEntity) {
+        return this.active.containsKey(pEntity.getId());
     }
 
-    public void forEach(Consumer<Entity> p_156911_) {
+    public void forEach(Consumer<Entity> pEntity) {
         if (this.iterated != null) {
             throw new UnsupportedOperationException("Only one concurrent iteration supported");
         } else {
@@ -49,7 +49,7 @@ public class EntityTickList {
 
             try {
                 for (Entity entity : this.active.values()) {
-                    p_156911_.accept(entity);
+                    pEntity.accept(entity);
                 }
             } finally {
                 this.iterated = null;

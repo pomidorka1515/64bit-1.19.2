@@ -11,16 +11,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public class ArmorDyeRecipe extends CustomRecipe {
-    public ArmorDyeRecipe(ResourceLocation p_43757_) {
-        super(p_43757_);
+    public ArmorDyeRecipe(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_43769_, Level p_43770_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         ItemStack itemstack = ItemStack.EMPTY;
         List<ItemStack> list = Lists.newArrayList();
 
-        for (int i = 0; i < p_43769_.getContainerSize(); ++i) {
-            ItemStack itemstack1 = p_43769_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack1 = pInv.getItem(i);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.getItem() instanceof DyeableLeatherItem) {
                     if (!itemstack.isEmpty()) {
@@ -41,12 +41,12 @@ public class ArmorDyeRecipe extends CustomRecipe {
         return !itemstack.isEmpty() && !list.isEmpty();
     }
 
-    public ItemStack assemble(CraftingContainer p_43767_) {
+    public ItemStack assemble(CraftingContainer pInv) {
         List<DyeItem> list = Lists.newArrayList();
         ItemStack itemstack = ItemStack.EMPTY;
 
-        for (int i = 0; i < p_43767_.getContainerSize(); ++i) {
-            ItemStack itemstack1 = p_43767_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack1 = pInv.getItem(i);
             if (!itemstack1.isEmpty()) {
                 Item item = itemstack1.getItem();
                 if (item instanceof DyeableLeatherItem) {
@@ -68,8 +68,8 @@ public class ArmorDyeRecipe extends CustomRecipe {
         return !itemstack.isEmpty() && !list.isEmpty() ? DyeableLeatherItem.dyeArmor(itemstack, list) : ItemStack.EMPTY;
     }
 
-    public boolean canCraftInDimensions(int p_43759_, int p_43760_) {
-        return p_43759_ * p_43760_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= 2;
     }
 
     public RecipeSerializer<?> getSerializer() {

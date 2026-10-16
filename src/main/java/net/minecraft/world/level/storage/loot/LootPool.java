@@ -39,14 +39,14 @@ public class LootPool {
     final NumberProvider rolls;
     final NumberProvider bonusRolls;
 
-    LootPool(LootPoolEntryContainer[] p_165128_, LootItemCondition[] p_165129_, LootItemFunction[] p_165130_, NumberProvider p_165131_, NumberProvider p_165132_) {
-        this.entries = p_165128_;
-        this.conditions = p_165129_;
-        this.compositeCondition = LootItemConditions.andConditions(p_165129_);
-        this.functions = p_165130_;
-        this.compositeFunction = LootItemFunctions.compose(p_165130_);
-        this.rolls = p_165131_;
-        this.bonusRolls = p_165132_;
+    LootPool(LootPoolEntryContainer[] pEntries, LootItemCondition[] pConditions, LootItemFunction[] pFunctions, NumberProvider pRolls, NumberProvider pBonusRolls) {
+        this.entries = pEntries;
+        this.conditions = pConditions;
+        this.compositeCondition = LootItemConditions.andConditions(pConditions);
+        this.functions = pFunctions;
+        this.compositeFunction = LootItemFunctions.compose(pFunctions);
+        this.rolls = pRolls;
+        this.bonusRolls = pBonusRolls;
     }
 
     private void addRandomItem(Consumer<ItemStack> p_79059_, LootContext p_79060_) {
@@ -82,32 +82,32 @@ public class LootPool {
         }
     }
 
-    public void addRandomItems(Consumer<ItemStack> p_79054_, LootContext p_79055_) {
-        if (this.compositeCondition.test(p_79055_)) {
-            Consumer<ItemStack> consumer = LootItemFunction.decorate(this.compositeFunction, p_79054_, p_79055_);
-            int i = this.rolls.getInt(p_79055_) + Mth.floor(this.bonusRolls.getFloat(p_79055_) * p_79055_.getLuck());
+    public void addRandomItems(Consumer<ItemStack> pStackConsumer, LootContext pLootContext) {
+        if (this.compositeCondition.test(pLootContext)) {
+            Consumer<ItemStack> consumer = LootItemFunction.decorate(this.compositeFunction, pStackConsumer, pLootContext);
+            int i = this.rolls.getInt(pLootContext) + Mth.floor(this.bonusRolls.getFloat(pLootContext) * pLootContext.getLuck());
 
             for (int j = 0; j < i; ++j) {
-                this.addRandomItem(consumer, p_79055_);
+                this.addRandomItem(consumer, pLootContext);
             }
         }
     }
 
-    public void validate(ValidationContext p_79052_) {
+    public void validate(ValidationContext pContext) {
         for (int i = 0; i < this.conditions.length; ++i) {
-            this.conditions[i].validate(p_79052_.forChild(".condition[" + i + "]"));
+            this.conditions[i].validate(pContext.forChild(".condition[" + i + "]"));
         }
 
         for (int j = 0; j < this.functions.length; ++j) {
-            this.functions[j].validate(p_79052_.forChild(".functions[" + j + "]"));
+            this.functions[j].validate(pContext.forChild(".functions[" + j + "]"));
         }
 
         for (int k = 0; k < this.entries.length; ++k) {
-            this.entries[k].validate(p_79052_.forChild(".entries[" + k + "]"));
+            this.entries[k].validate(pContext.forChild(".entries[" + k + "]"));
         }
 
-        this.rolls.validate(p_79052_.forChild(".rolls"));
-        this.bonusRolls.validate(p_79052_.forChild(".bonusRolls"));
+        this.rolls.validate(pContext.forChild(".rolls"));
+        this.bonusRolls.validate(pContext.forChild(".bonusRolls"));
     }
 
     public static LootPool.Builder lootPool() {
@@ -121,8 +121,8 @@ public class LootPool {
         private NumberProvider rolls = ConstantValue.exactly(1.0F);
         private NumberProvider bonusRolls = ConstantValue.exactly(0.0F);
 
-        public LootPool.Builder setRolls(NumberProvider p_165134_) {
-            this.rolls = p_165134_;
+        public LootPool.Builder setRolls(NumberProvider pRolls) {
+            this.rolls = pRolls;
             return this;
         }
 
@@ -130,23 +130,23 @@ public class LootPool {
             return this;
         }
 
-        public LootPool.Builder setBonusRolls(NumberProvider p_165136_) {
-            this.bonusRolls = p_165136_;
+        public LootPool.Builder setBonusRolls(NumberProvider pBonusRolls) {
+            this.bonusRolls = pBonusRolls;
             return this;
         }
 
-        public LootPool.Builder add(LootPoolEntryContainer.Builder<?> p_79077_) {
-            this.entries.add(p_79077_.build());
+        public LootPool.Builder add(LootPoolEntryContainer.Builder<?> pEntriesBuilder) {
+            this.entries.add(pEntriesBuilder.build());
             return this;
         }
 
-        public LootPool.Builder when(LootItemCondition.Builder p_79081_) {
-            this.conditions.add(p_79081_.build());
+        public LootPool.Builder when(LootItemCondition.Builder pConditionBuilder) {
+            this.conditions.add(pConditionBuilder.build());
             return this;
         }
 
-        public LootPool.Builder apply(LootItemFunction.Builder p_79079_) {
-            this.functions.add(p_79079_.build());
+        public LootPool.Builder apply(LootItemFunction.Builder pFunctionBuilder) {
+            this.functions.add(pFunctionBuilder.build());
             return this;
         }
 

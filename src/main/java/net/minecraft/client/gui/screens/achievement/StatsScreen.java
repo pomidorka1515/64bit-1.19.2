@@ -61,10 +61,10 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
     private static final int SORT_DOWN = -1;
     private static final int SORT_UP = 1;
 
-    public StatsScreen(Screen p_96906_, StatsCounter p_96907_) {
+    public StatsScreen(Screen pLastScreen, StatsCounter pStats) {
         super(Component.translatable("gui.stats"));
-        this.lastScreen = p_96906_;
-        this.stats = p_96907_;
+        this.lastScreen = pLastScreen;
+        this.stats = pStats;
     }
 
     protected void init() {
@@ -100,15 +100,15 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
         }
     }
 
-    public void render(PoseStack p_96913_, int p_96914_, int p_96915_, float p_96916_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.isLoading) {
-            this.renderBackground(p_96913_);
-            drawCenteredString(p_96913_, this.font, PENDING_TEXT, this.width / 2, this.height / 2, 16777215);
-            drawCenteredString(p_96913_, this.font, LOADING_SYMBOLS[(int) (Util.getMillis() / 150L % (long) LOADING_SYMBOLS.length)], this.width / 2, this.height / 2 + 9 * 2, 16777215);
+            this.renderBackground(pPoseStack);
+            drawCenteredString(pPoseStack, this.font, PENDING_TEXT, this.width / 2, this.height / 2, 16777215);
+            drawCenteredString(pPoseStack, this.font, LOADING_SYMBOLS[(int) (Util.getMillis() / 150L % (long) LOADING_SYMBOLS.length)], this.width / 2, this.height / 2 + 9 * 2, 16777215);
         } else {
-            this.getActiveList().render(p_96913_, p_96914_, p_96915_, p_96916_);
-            drawCenteredString(p_96913_, this.font, this.title, this.width / 2, 20, 16777215);
-            super.render(p_96913_, p_96914_, p_96915_, p_96916_);
+            this.getActiveList().render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 20, 16777215);
+            super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
     }
 
@@ -130,35 +130,35 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
         return this.activeList;
     }
 
-    public void setActiveList(@Nullable ObjectSelectionList<?> p_96925_) {
+    public void setActiveList(@Nullable ObjectSelectionList<?> pActiveList) {
         if (this.activeList != null) {
             this.removeWidget(this.activeList);
         }
 
-        if (p_96925_ != null) {
-            this.addWidget(p_96925_);
-            this.activeList = p_96925_;
+        if (pActiveList != null) {
+            this.addWidget(pActiveList);
+            this.activeList = pActiveList;
         }
     }
 
-    static String getTranslationKey(Stat<ResourceLocation> p_96947_) {
-        return "stat." + p_96947_.getValue().toString().replace(':', '.');
+    static String getTranslationKey(Stat<ResourceLocation> pStat) {
+        return "stat." + pStat.getValue().toString().replace(':', '.');
     }
 
-    int getColumnX(int p_96909_) {
-        return 115 + 40 * p_96909_;
+    int getColumnX(int pIndex) {
+        return 115 + 40 * pIndex;
     }
 
-    void blitSlot(PoseStack p_96918_, int p_96919_, int p_96920_, Item p_96921_) {
-        this.blitSlotIcon(p_96918_, p_96919_ + 1, p_96920_ + 1, 0, 0);
-        this.itemRenderer.renderGuiItem(p_96921_.getDefaultInstance(), p_96919_ + 2, p_96920_ + 2);
+    void blitSlot(PoseStack pPoseStack, int pX, int pY, Item pItem) {
+        this.blitSlotIcon(pPoseStack, pX + 1, pY + 1, 0, 0);
+        this.itemRenderer.renderGuiItem(pItem.getDefaultInstance(), pX + 2, pY + 2);
     }
 
-    void blitSlotIcon(PoseStack p_96953_, int p_96954_, int p_96955_, int p_96956_, int p_96957_) {
+    void blitSlotIcon(PoseStack pPoseStack, int pX, int pY, int pUOffset, int pVOffset) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, STATS_ICON_LOCATION);
-        blit(p_96953_, p_96954_, p_96955_, this.getBlitOffset(), (float) p_96956_, (float) p_96957_, 18, 18, 128, 128);
+        blit(pPoseStack, pX, pY, this.getBlitOffset(), (float) pUOffset, (float) pVOffset, 18, 18, 128, 128);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -175,8 +175,8 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
             }
         }
 
-        protected void renderBackground(PoseStack p_96999_) {
-            StatsScreen.this.renderBackground(p_96999_);
+        protected void renderBackground(PoseStack pPoseStack) {
+            StatsScreen.this.renderBackground(pPoseStack);
         }
 
         @OnlyIn(Dist.CLIENT)
@@ -193,10 +193,10 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
                 return this.stat.format(StatsScreen.this.stats.getValue(this.stat));
             }
 
-            public void render(PoseStack p_97011_, int p_97012_, int p_97013_, int p_97014_, int p_97015_, int p_97016_, int p_97017_, int p_97018_, boolean p_97019_, float p_97020_) {
-                GuiComponent.drawString(p_97011_, StatsScreen.this.font, this.statDisplay, p_97014_ + 2, p_97013_ + 1, p_97012_ % 2 == 0 ? 16777215 : 9474192);
+            public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+                GuiComponent.drawString(pPoseStack, StatsScreen.this.font, this.statDisplay, pLeft + 2, pTop + 1, pIndex % 2 == 0 ? 16777215 : 9474192);
                 String s = this.getValueText();
-                GuiComponent.drawString(p_97011_, StatsScreen.this.font, s, p_97014_ + 2 + 213 - StatsScreen.this.font.width(s), p_97013_ + 1, p_97012_ % 2 == 0 ? 16777215 : 9474192);
+                GuiComponent.drawString(pPoseStack, StatsScreen.this.font, s, pLeft + 2 + 213 - StatsScreen.this.font.width(s), pTop + 1, pIndex % 2 == 0 ? 16777215 : 9474192);
             }
 
             public Component getNarration() {
@@ -259,24 +259,24 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
             }
         }
 
-        protected void renderHeader(PoseStack p_97049_, int p_97050_, int p_97051_, Tesselator p_97052_) {
+        protected void renderHeader(PoseStack pPoseStack, int pX, int pY, Tesselator pTesselator) {
             if (!this.minecraft.mouseHandler.isLeftPressed()) {
                 this.headerPressed = -1;
             }
 
             for (int i = 0; i < this.iconOffsets.length; ++i) {
-                StatsScreen.this.blitSlotIcon(p_97049_, p_97050_ + StatsScreen.this.getColumnX(i) - 18, p_97051_ + 1, 0, this.headerPressed == i ? 0 : 18);
+                StatsScreen.this.blitSlotIcon(pPoseStack, pX + StatsScreen.this.getColumnX(i) - 18, pY + 1, 0, this.headerPressed == i ? 0 : 18);
             }
 
             if (this.sortColumn != null) {
                 int k = StatsScreen.this.getColumnX(this.getColumnIndex(this.sortColumn)) - 36;
                 int j = this.sortOrder == 1 ? 2 : 1;
-                StatsScreen.this.blitSlotIcon(p_97049_, p_97050_ + k, p_97051_ + 1, 18 * j, 0);
+                StatsScreen.this.blitSlotIcon(pPoseStack, pX + k, pY + 1, 18 * j, 0);
             }
 
             for (int l = 0; l < this.iconOffsets.length; ++l) {
                 int i1 = this.headerPressed == l ? 1 : 0;
-                StatsScreen.this.blitSlotIcon(p_97049_, p_97050_ + StatsScreen.this.getColumnX(l) - 18 + i1, p_97051_ + 1 + i1, 18 * this.iconOffsets[l], 18);
+                StatsScreen.this.blitSlotIcon(pPoseStack, pX + StatsScreen.this.getColumnX(l) - 18 + i1, pY + 1 + i1, 18 * this.iconOffsets[l], 18);
             }
         }
 
@@ -288,15 +288,15 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
             return this.width / 2 + 140;
         }
 
-        protected void renderBackground(PoseStack p_97043_) {
-            StatsScreen.this.renderBackground(p_97043_);
+        protected void renderBackground(PoseStack pPoseStack) {
+            StatsScreen.this.renderBackground(pPoseStack);
         }
 
-        protected void clickedHeader(int p_97036_, int p_97037_) {
+        protected void clickedHeader(int pMouseX, int pMouseY) {
             this.headerPressed = -1;
 
             for (int i = 0; i < this.iconOffsets.length; ++i) {
-                int j = p_97036_ - StatsScreen.this.getColumnX(i);
+                int j = pMouseX - StatsScreen.this.getColumnX(i);
                 if (j >= -36 && j <= 0) {
                     this.headerPressed = i;
                     break;
@@ -309,34 +309,34 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
             }
         }
 
-        private StatType<?> getColumn(int p_97034_) {
-            return p_97034_ < this.blockColumns.size() ? this.blockColumns.get(p_97034_) : this.itemColumns.get(p_97034_ - this.blockColumns.size());
+        private StatType<?> getColumn(int pIndex) {
+            return pIndex < this.blockColumns.size() ? this.blockColumns.get(pIndex) : this.itemColumns.get(pIndex - this.blockColumns.size());
         }
 
-        private int getColumnIndex(StatType<?> p_97059_) {
-            int i = this.blockColumns.indexOf(p_97059_);
+        private int getColumnIndex(StatType<?> pStatType) {
+            int i = this.blockColumns.indexOf(pStatType);
             if (i >= 0) {
                 return i;
             } else {
-                int j = this.itemColumns.indexOf(p_97059_);
+                int j = this.itemColumns.indexOf(pStatType);
                 return j >= 0 ? j + this.blockColumns.size() : -1;
             }
         }
 
-        protected void renderDecorations(PoseStack p_97045_, int p_97046_, int p_97047_) {
-            if (p_97047_ >= this.y0 && p_97047_ <= this.y1) {
+        protected void renderDecorations(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+            if (pMouseY >= this.y0 && pMouseY <= this.y1) {
                 StatsScreen.ItemStatisticsList.ItemRow statsscreen$itemstatisticslist$itemrow = this.getHovered();
                 int i = (this.width - this.getRowWidth()) / 2;
                 if (statsscreen$itemstatisticslist$itemrow != null) {
-                    if (p_97046_ < i + 40 || p_97046_ > i + 40 + 20) {
+                    if (pMouseX < i + 40 || pMouseX > i + 40 + 20) {
                         return;
                     }
 
                     Item item = statsscreen$itemstatisticslist$itemrow.getItem();
-                    this.renderMousehoverTooltip(p_97045_, this.getString(item), p_97046_, p_97047_);
+                    this.renderMousehoverTooltip(pPoseStack, this.getString(item), pMouseX, pMouseY);
                 } else {
                     Component component = null;
-                    int j = p_97046_ - i;
+                    int j = pMouseX - i;
 
                     for (int k = 0; k < this.iconOffsets.length; ++k) {
                         int l = StatsScreen.this.getColumnX(k);
@@ -346,31 +346,31 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
                         }
                     }
 
-                    this.renderMousehoverTooltip(p_97045_, component, p_97046_, p_97047_);
+                    this.renderMousehoverTooltip(pPoseStack, component, pMouseX, pMouseY);
                 }
             }
         }
 
-        protected void renderMousehoverTooltip(PoseStack p_97054_, @Nullable Component p_97055_, int p_97056_, int p_97057_) {
-            if (p_97055_ != null) {
-                int i = p_97056_ + 12;
-                int j = p_97057_ - 12;
-                int k = StatsScreen.this.font.width(p_97055_);
-                this.fillGradient(p_97054_, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
-                p_97054_.pushPose();
-                p_97054_.translate(0.0D, 0.0D, 400.0D);
-                StatsScreen.this.font.drawShadow(p_97054_, p_97055_, (float) i, (float) j, -1);
-                p_97054_.popPose();
+        protected void renderMousehoverTooltip(PoseStack pPoseStack, @Nullable Component pComponent, int pMouseX, int pMouseY) {
+            if (pComponent != null) {
+                int i = pMouseX + 12;
+                int j = pMouseY - 12;
+                int k = StatsScreen.this.font.width(pComponent);
+                this.fillGradient(pPoseStack, i - 3, j - 3, i + k + 3, j + 8 + 3, -1073741824, -1073741824);
+                pPoseStack.pushPose();
+                pPoseStack.translate(0.0D, 0.0D, 400.0D);
+                StatsScreen.this.font.drawShadow(pPoseStack, pComponent, (float) i, (float) j, -1);
+                pPoseStack.popPose();
             }
         }
 
-        protected Component getString(Item p_97041_) {
-            return p_97041_.getDescription();
+        protected Component getString(Item pItem) {
+            return pItem.getDescription();
         }
 
-        protected void sortByColumn(StatType<?> p_97039_) {
-            if (p_97039_ != this.sortColumn) {
-                this.sortColumn = p_97039_;
+        protected void sortByColumn(StatType<?> pStatType) {
+            if (pStatType != this.sortColumn) {
+                this.sortColumn = pStatType;
                 this.sortOrder = -1;
             } else if (this.sortOrder == -1) {
                 this.sortOrder = 1;
@@ -394,8 +394,8 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
                 return this.item;
             }
 
-            public void render(PoseStack p_97081_, int p_97082_, int p_97083_, int p_97084_, int p_97085_, int p_97086_, int p_97087_, int p_97088_, boolean p_97089_, float p_97090_) {
-                StatsScreen.this.blitSlot(p_97081_, p_97084_ + 40, p_97083_, this.item);
+            public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+                StatsScreen.this.blitSlot(pPoseStack, pLeft + 40, pTop, this.item);
 
                 for (int i = 0; i < StatsScreen.this.itemStatsList.blockColumns.size(); ++i) {
                     Stat<Block> stat;
@@ -405,11 +405,11 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
                         stat = null;
                     }
 
-                    this.renderStat(p_97081_, stat, p_97084_ + StatsScreen.this.getColumnX(i), p_97083_, p_97082_ % 2 == 0);
+                    this.renderStat(pPoseStack, stat, pLeft + StatsScreen.this.getColumnX(i), pTop, pIndex % 2 == 0);
                 }
 
                 for (int j = 0; j < StatsScreen.this.itemStatsList.itemColumns.size(); ++j) {
-                    this.renderStat(p_97081_, StatsScreen.this.itemStatsList.itemColumns.get(j).get(this.item), p_97084_ + StatsScreen.this.getColumnX(j + StatsScreen.this.itemStatsList.blockColumns.size()), p_97083_, p_97082_ % 2 == 0);
+                    this.renderStat(pPoseStack, StatsScreen.this.itemStatsList.itemColumns.get(j).get(this.item), pLeft + StatsScreen.this.getColumnX(j + StatsScreen.this.itemStatsList.blockColumns.size()), pTop, pIndex % 2 == 0);
                 }
             }
 
@@ -425,9 +425,9 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
 
         @OnlyIn(Dist.CLIENT)
         class ItemRowComparator implements Comparator<StatsScreen.ItemStatisticsList.ItemRow> {
-            public int compare(StatsScreen.ItemStatisticsList.ItemRow p_169524_, StatsScreen.ItemStatisticsList.ItemRow p_169525_) {
-                Item item = p_169524_.getItem();
-                Item item1 = p_169525_.getItem();
+            public int compare(StatsScreen.ItemStatisticsList.ItemRow pRow1, StatsScreen.ItemStatisticsList.ItemRow pRow2) {
+                Item item = pRow1.getItem();
+                Item item1 = pRow2.getItem();
                 int i;
                 int j;
                 if (ItemStatisticsList.this.sortColumn == null) {
@@ -460,8 +460,8 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
             }
         }
 
-        protected void renderBackground(PoseStack p_97102_) {
-            StatsScreen.this.renderBackground(p_97102_);
+        protected void renderBackground(PoseStack pPoseStack) {
+            StatsScreen.this.renderBackground(pPoseStack);
         }
 
         @OnlyIn(Dist.CLIENT)
@@ -493,10 +493,10 @@ public class StatsScreen extends Screen implements StatsUpdateListener {
                 }
             }
 
-            public void render(PoseStack p_97114_, int p_97115_, int p_97116_, int p_97117_, int p_97118_, int p_97119_, int p_97120_, int p_97121_, boolean p_97122_, float p_97123_) {
-                GuiComponent.drawString(p_97114_, StatsScreen.this.font, this.mobName, p_97117_ + 2, p_97116_ + 1, 16777215);
-                GuiComponent.drawString(p_97114_, StatsScreen.this.font, this.kills, p_97117_ + 2 + 10, p_97116_ + 1 + 9, this.hasKills ? 9474192 : 6316128);
-                GuiComponent.drawString(p_97114_, StatsScreen.this.font, this.killedBy, p_97117_ + 2 + 10, p_97116_ + 1 + 9 * 2, this.wasKilledBy ? 9474192 : 6316128);
+            public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+                GuiComponent.drawString(pPoseStack, StatsScreen.this.font, this.mobName, pLeft + 2, pTop + 1, 16777215);
+                GuiComponent.drawString(pPoseStack, StatsScreen.this.font, this.kills, pLeft + 2 + 10, pTop + 1 + 9, this.hasKills ? 9474192 : 6316128);
+                GuiComponent.drawString(pPoseStack, StatsScreen.this.font, this.killedBy, pLeft + 2 + 10, pTop + 1 + 9 * 2, this.wasKilledBy ? 9474192 : 6316128);
             }
 
             public Component getNarration() {

@@ -15,57 +15,57 @@ public final class DataLayer {
     public DataLayer() {
     }
 
-    public DataLayer(byte[] p_62556_) {
-        this.data = p_62556_;
-        if (p_62556_.length != 2048) {
-            throw (IllegalArgumentException) Util.pauseInIde(new IllegalArgumentException("DataLayer should be 2048 bytes not: " + p_62556_.length));
+    public DataLayer(byte[] pData) {
+        this.data = pData;
+        if (pData.length != 2048) {
+            throw (IllegalArgumentException) Util.pauseInIde(new IllegalArgumentException("DataLayer should be 2048 bytes not: " + pData.length));
         }
     }
 
-    protected DataLayer(int p_62554_) {
-        this.data = new byte[p_62554_];
+    protected DataLayer(int pSize) {
+        this.data = new byte[pSize];
     }
 
-    public int get(int p_62561_, int p_62562_, int p_62563_) {
-        return this.get(getIndex(p_62561_, p_62562_, p_62563_));
+    public int get(int pX, int pY, int pZ) {
+        return this.get(getIndex(pX, pY, pZ));
     }
 
-    public void set(int p_62565_, int p_62566_, int p_62567_, int p_62568_) {
-        this.set(getIndex(p_62565_, p_62566_, p_62567_), p_62568_);
+    public void set(int pX, int pY, int pZ, int pValue) {
+        this.set(getIndex(pX, pY, pZ), pValue);
     }
 
-    private static int getIndex(int p_62572_, int p_62573_, int p_62574_) {
-        return p_62573_ << 8 | p_62574_ << 4 | p_62572_;
+    private static int getIndex(int pX, int pY, int pZ) {
+        return pY << 8 | pZ << 4 | pX;
     }
 
-    private int get(int p_62571_) {
+    private int get(int pIndex) {
         if (this.data == null) {
             return 0;
         } else {
-            int i = getByteIndex(p_62571_);
-            int j = getNibbleIndex(p_62571_);
+            int i = getByteIndex(pIndex);
+            int j = getNibbleIndex(pIndex);
             return this.data[i] >> 4 * j & 15;
         }
     }
 
-    private void set(int p_62558_, int p_62559_) {
+    private void set(int pIndex, int pValue) {
         if (this.data == null) {
             this.data = new byte[2048];
         }
 
-        int i = getByteIndex(p_62558_);
-        int j = getNibbleIndex(p_62558_);
+        int i = getByteIndex(pIndex);
+        int j = getNibbleIndex(pIndex);
         int k = ~(15 << 4 * j);
-        int l = (p_62559_ & 15) << 4 * j;
+        int l = (pValue & 15) << 4 * j;
         this.data[i] = (byte) (this.data[i] & k | l);
     }
 
-    private static int getNibbleIndex(int p_182482_) {
-        return p_182482_ & 1;
+    private static int getNibbleIndex(int pIndex) {
+        return pIndex & 1;
     }
 
-    private static int getByteIndex(int p_62579_) {
-        return p_62579_ >> 1;
+    private static int getByteIndex(int pIndex) {
+        return pIndex >> 1;
     }
 
     public byte[] getData() {
@@ -98,7 +98,7 @@ public final class DataLayer {
     }
 
     @VisibleForDebug
-    public String layerToString(int p_156342_) {
+    public String layerToString(int pUnused) {
         StringBuilder stringbuilder = new StringBuilder();
 
         for (int i = 0; i < 256; ++i) {

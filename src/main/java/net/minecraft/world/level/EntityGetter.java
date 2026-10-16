@@ -24,16 +24,16 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public interface EntityGetter {
-    List<Entity> getEntities(@Nullable Entity p_45936_, AABB p_45937_, Predicate<? super Entity> p_45938_);
+    List<Entity> getEntities(@Nullable Entity pEntity, AABB pArea, Predicate<? super Entity> pPredicate);
 
-    <T extends Entity> List<T> getEntities(EntityTypeTest<Entity, T> p_151464_, AABB p_151465_, Predicate<? super T> p_151466_);
+    <T extends Entity> List<T> getEntities(EntityTypeTest<Entity, T> pEntityTypeTest, AABB pArea, Predicate<? super T> pPredicate);
 
-    default<T extends Entity> List<T> getEntitiesOfClass(Class<T> p_45979_, AABB p_45980_, Predicate<? super T> p_45981_) {
-        SectorAABB exactBox = p_45980_.getSectorBounds();
+    default<T extends Entity> List<T> getEntitiesOfClass(Class<T> pClazz, AABB pArea, Predicate<? super T> pFilter) {
+        SectorAABB exactBox = pArea.getSectorBounds();
         if (exactBox != null) {
-            return this.getSectorEntities(EntityTypeTest.forClass(p_45979_), exactBox, p_45981_);
+            return this.getSectorEntities(EntityTypeTest.forClass(pClazz), exactBox, pFilter);
         }
-        return this.getEntities(EntityTypeTest.forClass(p_45979_), p_45980_, p_45981_);
+        return this.getEntities(EntityTypeTest.forClass(pClazz), pArea, pFilter);
     }
 
     List<? extends Player> players();
@@ -48,8 +48,8 @@ public interface EntityGetter {
         return null;
     }
 
-    default List<Entity> getEntities(@Nullable Entity p_45934_, AABB p_45935_) {
-        return this.getEntitiesExactAware(p_45934_, p_45935_, EntitySelector.NO_SPECTATORS);
+    default List<Entity> getEntities(@Nullable Entity pEntity, AABB pArea) {
+        return this.getEntitiesExactAware(pEntity, pArea, EntitySelector.NO_SPECTATORS);
     }
 
     /** Uses exact metadata when an entity-centered AABB carries it. */
@@ -78,12 +78,12 @@ public interface EntityGetter {
         return result;
     }
 
-    default boolean isUnobstructed(@Nullable Entity p_45939_, VoxelShape p_45940_) {
-        if (p_45940_.isEmpty()) {
+    default boolean isUnobstructed(@Nullable Entity pEntity, VoxelShape pShape) {
+        if (pShape.isEmpty()) {
             return true;
         } else {
-            for (Entity entity : this.getEntities(p_45939_, p_45940_.bounds())) {
-                if (!entity.isRemoved() && entity.blocksBuilding && (p_45939_ == null || !entity.isPassengerOfSameVehicle(p_45939_)) && Shapes.joinIsNotEmpty(p_45940_, Shapes.create(entity.getBoundingBox()), BooleanOp.AND)) {
+            for (Entity entity : this.getEntities(pEntity, pShape.bounds())) {
+                if (!entity.isRemoved() && entity.blocksBuilding && (pEntity == null || !entity.isPassengerOfSameVehicle(pEntity)) && Shapes.joinIsNotEmpty(pShape, Shapes.create(entity.getBoundingBox()), BooleanOp.AND)) {
                     return false;
                 }
             }
@@ -92,16 +92,16 @@ public interface EntityGetter {
         }
     }
 
-    default<T extends Entity> List<T> getEntitiesOfClass(Class<T> p_45977_, AABB p_45978_) {
-        return this.getEntitiesOfClass(p_45977_, p_45978_, EntitySelector.NO_SPECTATORS);
+    default<T extends Entity> List<T> getEntitiesOfClass(Class<T> pEntityClass, AABB pArea) {
+        return this.getEntitiesOfClass(pEntityClass, pArea, EntitySelector.NO_SPECTATORS);
     }
 
-    default List<VoxelShape> getEntityCollisions(@Nullable Entity p_186451_, AABB p_186452_) {
-        if (p_186452_.getSize() < 1.0E-7D) {
+    default List<VoxelShape> getEntityCollisions(@Nullable Entity pEntity, AABB pCollisionBox) {
+        if (pCollisionBox.getSize() < 1.0E-7D) {
             return List.of();
         } else {
-            Predicate<Entity> predicate = p_186451_ == null ? EntitySelector.CAN_BE_COLLIDED_WITH : EntitySelector.NO_SPECTATORS.and(p_186451_::canCollideWith);
-            List<Entity> list = this.getEntities(p_186451_, p_186452_.inflate(1.0E-7D), predicate);
+            Predicate<Entity> predicate = pEntity == null ? EntitySelector.CAN_BE_COLLIDED_WITH : EntitySelector.NO_SPECTATORS.and(pEntity::canCollideWith);
+            List<Entity> list = this.getEntities(pEntity, pCollisionBox.inflate(1.0E-7D), predicate);
             if (list.isEmpty()) {
                 return List.of();
             } else {
@@ -214,14 +214,14 @@ public interface EntityGetter {
     }
 
     @Nullable
-    default Player getNearestPlayer(double p_45919_, double p_45920_, double p_45921_, double p_45922_, @Nullable Predicate<Entity> p_45923_) {
+    default Player getNearestPlayer(double pX, double pY, double pZ, double pDistance, @Nullable Predicate<Entity> pPredicate) {
         double d0 = -1.0D;
         Player player = null;
 
         for (Player player1 : this.players()) {
-            if (p_45923_ == null || p_45923_.test(player1)) {
-                double d1 = player1.distanceToSqr(p_45919_, p_45920_, p_45921_);
-                if ((p_45922_ < 0.0D || d1 < p_45922_ * p_45922_) && (d0 == -1.0D || d1 < d0)) {
+            if (pPredicate == null || pPredicate.test(player1)) {
+                double d1 = player1.distanceToSqr(pX, pY, pZ);
+                if ((pDistance < 0.0D || d1 < pDistance * pDistance) && (d0 == -1.0D || d1 < d0)) {
                     d0 = d1;
                     player = player1;
                 }
@@ -248,16 +248,16 @@ public interface EntityGetter {
     }
 
     @Nullable
-    default Player getNearestPlayer(double p_45925_, double p_45926_, double p_45927_, double p_45928_, boolean p_45929_) {
-        Predicate<Entity> predicate = p_45929_ ? EntitySelector.NO_CREATIVE_OR_SPECTATOR : EntitySelector.NO_SPECTATORS;
-        return this.getNearestPlayer(p_45925_, p_45926_, p_45927_, p_45928_, predicate);
+    default Player getNearestPlayer(double pX, double pY, double pZ, double pDistance, boolean pCreativePlayers) {
+        Predicate<Entity> predicate = pCreativePlayers ? EntitySelector.NO_CREATIVE_OR_SPECTATOR : EntitySelector.NO_SPECTATORS;
+        return this.getNearestPlayer(pX, pY, pZ, pDistance, predicate);
     }
 
-    default boolean hasNearbyAlivePlayer(double p_45915_, double p_45916_, double p_45917_, double p_45918_) {
+    default boolean hasNearbyAlivePlayer(double pX, double pY, double pZ, double pDistance) {
         for (Player player : this.players()) {
             if (EntitySelector.NO_SPECTATORS.test(player) && EntitySelector.LIVING_ENTITY_STILL_ALIVE.test(player)) {
-                double d0 = player.distanceToSqr(p_45915_, p_45916_, p_45917_);
-                if (p_45918_ < 0.0D || d0 < p_45918_ * p_45918_) {
+                double d0 = player.distanceToSqr(pX, pY, pZ);
+                if (pDistance < 0.0D || d0 < pDistance * pDistance) {
                     return true;
                 }
             }
@@ -272,20 +272,20 @@ public interface EntityGetter {
     }
 
     @Nullable
-    default Player getNearestPlayer(TargetingConditions p_45950_, LivingEntity p_45951_, double p_45952_, double p_45953_, double p_45954_) {
-        return this.getNearestEntity(this.players(), p_45950_, p_45951_, p_45952_, p_45953_, p_45954_);
+    default Player getNearestPlayer(TargetingConditions pPredicate, LivingEntity pTarget, double pX, double pY, double pZ) {
+        return this.getNearestEntity(this.players(), pPredicate, pTarget, pX, pY, pZ);
     }
 
     @Nullable
-    default Player getNearestPlayer(TargetingConditions p_45942_, double p_45943_, double p_45944_, double p_45945_) {
-        return this.getNearestEntity(this.players(), p_45942_, (LivingEntity) null, p_45943_, p_45944_, p_45945_);
+    default Player getNearestPlayer(TargetingConditions pPredicate, double pX, double pY, double pZ) {
+        return this.getNearestEntity(this.players(), pPredicate, (LivingEntity) null, pX, pY, pZ);
     }
 
     @Nullable
-    default<T extends LivingEntity> T getNearestEntity(Class<? extends T> p_45964_, TargetingConditions p_45965_, @Nullable LivingEntity p_45966_, double p_45967_, double p_45968_, double p_45969_, AABB p_45970_) {
-        return this.getNearestEntity(this.getEntitiesOfClass(p_45964_, p_45970_, (p_186454_) -> {
+    default<T extends LivingEntity> T getNearestEntity(Class<? extends T> pEntityClazz, TargetingConditions pConditions, @Nullable LivingEntity pTarget, double pX, double pY, double pZ, AABB pBoundingBox) {
+        return this.getNearestEntity(this.getEntitiesOfClass(pEntityClazz, pBoundingBox, (p_186454_) -> {
             return true;
-        }), p_45965_, p_45966_, p_45967_, p_45968_, p_45969_);
+        }), pConditions, pTarget, pX, pY, pZ);
     }
 
     @Nullable
@@ -307,15 +307,15 @@ public interface EntityGetter {
     }
 
     @Nullable
-    default<T extends LivingEntity> T getNearestEntity(List<? extends T> p_45983_, TargetingConditions p_45984_, @Nullable LivingEntity p_45985_, double p_45986_, double p_45987_, double p_45988_) {
-        if (p_45985_ != null)
-            return this.getNearestEntity(p_45983_, p_45984_, p_45985_);
+    default<T extends LivingEntity> T getNearestEntity(List<? extends T> pEntities, TargetingConditions pPredicate, @Nullable LivingEntity pTarget, double pX, double pY, double pZ) {
+        if (pTarget != null)
+            return this.getNearestEntity(pEntities, pPredicate, pTarget);
         double d0 = -1.0D;
         T t = null;
 
-        for (T t1 : p_45983_) {
-            if (p_45984_.test(null, t1)) {
-                double d1 = t1.distanceToSqr(p_45986_, p_45987_, p_45988_);
+        for (T t1 : pEntities) {
+            if (pPredicate.test(null, t1)) {
+                double d1 = t1.distanceToSqr(pX, pY, pZ);
                 if (d0 == -1.0D || d1 < d0) {
                     d0 = d1;
                     t = t1;
@@ -326,11 +326,11 @@ public interface EntityGetter {
         return t;
     }
 
-    default List<Player> getNearbyPlayers(TargetingConditions p_45956_, LivingEntity p_45957_, AABB p_45958_) {
+    default List<Player> getNearbyPlayers(TargetingConditions pPredicate, LivingEntity pTarget, AABB pArea) {
         List<Player> list = Lists.newArrayList();
 
         for (Player player : this.players()) {
-            if (p_45958_.contains(player.getX(), player.getY(), player.getZ()) && p_45956_.test(p_45957_, player)) {
+            if (pArea.contains(player.getX(), player.getY(), player.getZ()) && pPredicate.test(pTarget, player)) {
                 list.add(player);
             }
         }
@@ -338,14 +338,14 @@ public interface EntityGetter {
         return list;
     }
 
-    default<T extends LivingEntity> List<T> getNearbyEntities(Class<T> p_45972_, TargetingConditions p_45973_, LivingEntity p_45974_, AABB p_45975_) {
-        List<T> list = this.getEntitiesOfClass(p_45972_, p_45975_, (p_186450_) -> {
+    default<T extends LivingEntity> List<T> getNearbyEntities(Class<T> pEntityClazz, TargetingConditions pEntityPredicate, LivingEntity pEntity, AABB pArea) {
+        List<T> list = this.getEntitiesOfClass(pEntityClazz, pArea, (p_186450_) -> {
             return true;
         });
         List<T> list1 = Lists.newArrayList();
 
         for (T t : list) {
-            if (p_45973_.test(p_45974_, t)) {
+            if (pEntityPredicate.test(pEntity, t)) {
                 list1.add(t);
             }
         }
@@ -354,10 +354,10 @@ public interface EntityGetter {
     }
 
     @Nullable
-    default Player getPlayerByUUID(UUID p_46004_) {
+    default Player getPlayerByUUID(UUID pUniqueId) {
         for (int i = 0; i < this.players().size(); ++i) {
             Player player = this.players().get(i);
-            if (p_46004_.equals(player.getUUID())) {
+            if (pUniqueId.equals(player.getUUID())) {
                 return player;
             }
         }

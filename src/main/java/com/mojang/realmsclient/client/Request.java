@@ -23,18 +23,18 @@ public abstract class Request<T extends Request<T>> {
     private static final int DEFAULT_READ_TIMEOUT = 60000;
     private static final int DEFAULT_CONNECT_TIMEOUT = 5000;
 
-    public Request(String p_87310_, int p_87311_, int p_87312_) {
+    public Request(String pUrl, int pConnectTimeout, int pReadTimeout) {
         try {
-            this.url = p_87310_;
+            this.url = pUrl;
             Proxy proxy = RealmsClientConfig.getProxy();
             if (proxy != null) {
-                this.connection = (HttpURLConnection) (new URL(p_87310_)).openConnection(proxy);
+                this.connection = (HttpURLConnection) (new URL(pUrl)).openConnection(proxy);
             } else {
-                this.connection = (HttpURLConnection) (new URL(p_87310_)).openConnection();
+                this.connection = (HttpURLConnection) (new URL(pUrl)).openConnection();
             }
 
-            this.connection.setConnectTimeout(p_87311_);
-            this.connection.setReadTimeout(p_87312_);
+            this.connection.setConnectTimeout(pConnectTimeout);
+            this.connection.setReadTimeout(pReadTimeout);
         } catch (MalformedURLException malformedurlexception) {
             throw new RealmsHttpException(malformedurlexception.getMessage(), malformedurlexception);
         } catch (IOException ioexception) {
@@ -42,16 +42,16 @@ public abstract class Request<T extends Request<T>> {
         }
     }
 
-    public void cookie(String p_87323_, String p_87324_) {
-        cookie(this.connection, p_87323_, p_87324_);
+    public void cookie(String pKey, String pValue) {
+        cookie(this.connection, pKey, pValue);
     }
 
-    public static void cookie(HttpURLConnection p_87336_, String p_87337_, String p_87338_) {
-        String s = p_87336_.getRequestProperty("Cookie");
+    public static void cookie(HttpURLConnection pConnection, String pKey, String pValue) {
+        String s = pConnection.getRequestProperty("Cookie");
         if (s == null) {
-            p_87336_.setRequestProperty("Cookie", p_87337_ + "=" + p_87338_);
+            pConnection.setRequestProperty("Cookie", pKey + "=" + pValue);
         } else {
-            p_87336_.setRequestProperty("Cookie", s + ";" + p_87337_ + "=" + p_87338_);
+            pConnection.setRequestProperty("Cookie", s + ";" + pKey + "=" + pValue);
         }
     }
 
@@ -64,8 +64,8 @@ public abstract class Request<T extends Request<T>> {
         return getRetryAfterHeader(this.connection);
     }
 
-    public static int getRetryAfterHeader(HttpURLConnection p_87331_) {
-        String s = p_87331_.getHeaderField("Retry-After");
+    public static int getRetryAfterHeader(HttpURLConnection pConnection) {
+        String s = pConnection.getHeaderField("Retry-After");
 
         try {
             return Integer.valueOf(s);
@@ -158,41 +158,41 @@ public abstract class Request<T extends Request<T>> {
 
     protected abstract T doConnect();
 
-    public static Request<?> get(String p_87317_) {
-        return new Request.Get(p_87317_, 5000, 60000);
+    public static Request<?> get(String pUrl) {
+        return new Request.Get(pUrl, 5000, 60000);
     }
 
-    public static Request<?> get(String p_87319_, int p_87320_, int p_87321_) {
-        return new Request.Get(p_87319_, p_87320_, p_87321_);
+    public static Request<?> get(String pUrl, int pConnectTimeout, int pReadTimeout) {
+        return new Request.Get(pUrl, pConnectTimeout, pReadTimeout);
     }
 
-    public static Request<?> post(String p_87343_, String p_87344_) {
-        return new Request.Post(p_87343_, p_87344_, 5000, 60000);
+    public static Request<?> post(String pUrl, String pContent) {
+        return new Request.Post(pUrl, pContent, 5000, 60000);
     }
 
-    public static Request<?> post(String p_87326_, String p_87327_, int p_87328_, int p_87329_) {
-        return new Request.Post(p_87326_, p_87327_, p_87328_, p_87329_);
+    public static Request<?> post(String pUrl, String pContent, int pConnectTimeout, int pReadTimeout) {
+        return new Request.Post(pUrl, pContent, pConnectTimeout, pReadTimeout);
     }
 
-    public static Request<?> delete(String p_87341_) {
-        return new Request.Delete(p_87341_, 5000, 60000);
+    public static Request<?> delete(String pUrl) {
+        return new Request.Delete(pUrl, 5000, 60000);
     }
 
-    public static Request<?> put(String p_87354_, String p_87355_) {
-        return new Request.Put(p_87354_, p_87355_, 5000, 60000);
+    public static Request<?> put(String pUrl, String pContent) {
+        return new Request.Put(pUrl, pContent, 5000, 60000);
     }
 
-    public static Request<?> put(String p_87346_, String p_87347_, int p_87348_, int p_87349_) {
-        return new Request.Put(p_87346_, p_87347_, p_87348_, p_87349_);
+    public static Request<?> put(String pUrl, String pContent, int pConnectTimeout, int pReadTimeout) {
+        return new Request.Put(pUrl, pContent, pConnectTimeout, pReadTimeout);
     }
 
-    public String getHeader(String p_87352_) {
-        return getHeader(this.connection, p_87352_);
+    public String getHeader(String pName) {
+        return getHeader(this.connection, pName);
     }
 
-    public static String getHeader(HttpURLConnection p_87333_, String p_87334_) {
+    public static String getHeader(HttpURLConnection pConnection, String pName) {
         try {
-            return p_87333_.getHeaderField(p_87334_);
+            return pConnection.getHeaderField(pName);
         } catch (Exception exception) {
             return "";
         }
@@ -239,9 +239,9 @@ public abstract class Request<T extends Request<T>> {
     public static class Post extends Request<Request.Post> {
         private final String content;
 
-        public Post(String p_87372_, String p_87373_, int p_87374_, int p_87375_) {
-            super(p_87372_, p_87374_, p_87375_);
-            this.content = p_87373_;
+        public Post(String pUrl, String pContent, int pConnectTimeout, int pReadTimeout) {
+            super(pUrl, pConnectTimeout, pReadTimeout);
+            this.content = pContent;
         }
 
         public Request.Post doConnect() {
@@ -270,9 +270,9 @@ public abstract class Request<T extends Request<T>> {
     public static class Put extends Request<Request.Put> {
         private final String content;
 
-        public Put(String p_87380_, String p_87381_, int p_87382_, int p_87383_) {
-            super(p_87380_, p_87382_, p_87383_);
-            this.content = p_87381_;
+        public Put(String pUrl, String pContent, int pConnectTimeout, int pReadTimeout) {
+            super(pUrl, pConnectTimeout, pReadTimeout);
+            this.content = pContent;
         }
 
         public Request.Put doConnect() {

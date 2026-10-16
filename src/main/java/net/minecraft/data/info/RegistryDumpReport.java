@@ -14,32 +14,32 @@ import net.minecraft.resources.ResourceLocation;
 public class RegistryDumpReport implements DataProvider {
     private final DataGenerator generator;
 
-    public RegistryDumpReport(DataGenerator p_124053_) {
-        this.generator = p_124053_;
+    public RegistryDumpReport(DataGenerator pGenerator) {
+        this.generator = pGenerator;
     }
 
-    public void run(CachedOutput p_236201_) throws IOException {
+    public void run(CachedOutput pOutput) throws IOException {
         JsonObject jsonobject = new JsonObject();
         Registry.REGISTRY.holders().forEach((p_211088_) -> {
             jsonobject.add(p_211088_.key().location().toString(), dumpRegistry(p_211088_.value()));
         });
         Path path = this.generator.getOutputFolder(DataGenerator.Target.REPORTS).resolve("registries.json");
-        DataProvider.saveStable(p_236201_, jsonobject, path);
+        DataProvider.saveStable(pOutput, jsonobject, path);
     }
 
-    private static <T> JsonElement dumpRegistry(Registry<T> p_124059_) {
+    private static <T> JsonElement dumpRegistry(Registry<T> pRegistry) {
         JsonObject jsonobject = new JsonObject();
-        if (p_124059_ instanceof DefaultedRegistry) {
-            ResourceLocation resourcelocation = ((DefaultedRegistry) p_124059_).getDefaultKey();
+        if (pRegistry instanceof DefaultedRegistry) {
+            ResourceLocation resourcelocation = ((DefaultedRegistry) pRegistry).getDefaultKey();
             jsonobject.addProperty("default", resourcelocation.toString());
         }
 
-        int i = ((Registry) Registry.REGISTRY).getId(p_124059_);
+        int i = ((Registry) Registry.REGISTRY).getId(pRegistry);
         jsonobject.addProperty("protocol_id", i);
         JsonObject jsonobject1 = new JsonObject();
-        p_124059_.holders().forEach((p_211092_) -> {
+        pRegistry.holders().forEach((p_211092_) -> {
             T t = p_211092_.value();
-            int j = p_124059_.getId(t);
+            int j = pRegistry.getId(t);
             JsonObject jsonobject2 = new JsonObject();
             jsonobject2.addProperty("protocol_id", j);
             jsonobject1.add(p_211092_.key().location().toString(), jsonobject2);

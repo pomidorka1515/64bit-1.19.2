@@ -18,37 +18,37 @@ public class StateSwitchingButton extends AbstractWidget {
     protected int xDiffTex;
     protected int yDiffTex;
 
-    public StateSwitchingButton(int p_94615_, int p_94616_, int p_94617_, int p_94618_, boolean p_94619_) {
-        super(p_94615_, p_94616_, p_94617_, p_94618_, CommonComponents.EMPTY);
-        this.isStateTriggered = p_94619_;
+    public StateSwitchingButton(int pX, int pY, int pWidth, int pHeight, boolean pInitialState) {
+        super(pX, pY, pWidth, pHeight, CommonComponents.EMPTY);
+        this.isStateTriggered = pInitialState;
     }
 
-    public void initTextureValues(int p_94625_, int p_94626_, int p_94627_, int p_94628_, ResourceLocation p_94629_) {
-        this.xTexStart = p_94625_;
-        this.yTexStart = p_94626_;
-        this.xDiffTex = p_94627_;
-        this.yDiffTex = p_94628_;
-        this.resourceLocation = p_94629_;
+    public void initTextureValues(int pXTexStart, int pYTexStart, int pXDiffTex, int pYDiffTex, ResourceLocation pResourceLocation) {
+        this.xTexStart = pXTexStart;
+        this.yTexStart = pYTexStart;
+        this.xDiffTex = pXDiffTex;
+        this.yDiffTex = pYDiffTex;
+        this.resourceLocation = pResourceLocation;
     }
 
-    public void setStateTriggered(boolean p_94636_) {
-        this.isStateTriggered = p_94636_;
+    public void setStateTriggered(boolean pTriggered) {
+        this.isStateTriggered = pTriggered;
     }
 
     public boolean isStateTriggered() {
         return this.isStateTriggered;
     }
 
-    public void setPosition(int p_94622_, int p_94623_) {
-        this.x = p_94622_;
-        this.y = p_94623_;
+    public void setPosition(int pX, int pY) {
+        this.x = pX;
+        this.y = pY;
     }
 
-    public void updateNarration(NarrationElementOutput p_169069_) {
-        this.defaultButtonNarrationText(p_169069_);
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+        this.defaultButtonNarrationText(pNarrationElementOutput);
     }
 
-    public void renderButton(PoseStack p_94631_, int p_94632_, int p_94633_, float p_94634_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, this.resourceLocation);
         RenderSystem.disableDepthTest();
@@ -62,7 +62,7 @@ public class StateSwitchingButton extends AbstractWidget {
             j += this.yDiffTex;
         }
 
-        this.blit(p_94631_, this.x, this.y, i, j, this.width, this.height);
+        this.blit(pPoseStack, this.x, this.y, i, j, this.width, this.height);
         RenderSystem.enableDepthTest();
     }
 }

@@ -73,21 +73,21 @@ public final class NbtUtils {
     }
 
     @Nullable
-    public static GameProfile readGameProfile(CompoundTag p_129229_) {
+    public static GameProfile readGameProfile(CompoundTag pTag) {
         String s = null;
         UUID uuid = null;
-        if (p_129229_.contains("Name", 8)) {
-            s = p_129229_.getString("Name");
+        if (pTag.contains("Name", 8)) {
+            s = pTag.getString("Name");
         }
 
-        if (p_129229_.hasUUID("Id")) {
-            uuid = p_129229_.getUUID("Id");
+        if (pTag.hasUUID("Id")) {
+            uuid = pTag.getUUID("Id");
         }
 
         try {
             GameProfile gameprofile = new GameProfile(uuid, s);
-            if (p_129229_.contains("Properties", 10)) {
-                CompoundTag compoundtag = p_129229_.getCompound("Properties");
+            if (pTag.contains("Properties", 10)) {
+                CompoundTag compoundtag = pTag.getCompound("Properties");
 
                 for (String s1 : compoundtag.getAllKeys()) {
                     ListTag listtag = compoundtag.getList(s1, 10);
@@ -110,22 +110,22 @@ public final class NbtUtils {
         }
     }
 
-    public static CompoundTag writeGameProfile(CompoundTag p_129231_, GameProfile p_129232_) {
-        if (!StringUtil.isNullOrEmpty(p_129232_.getName())) {
-            p_129231_.putString("Name", p_129232_.getName());
+    public static CompoundTag writeGameProfile(CompoundTag pTag, GameProfile pProfile) {
+        if (!StringUtil.isNullOrEmpty(pProfile.getName())) {
+            pTag.putString("Name", pProfile.getName());
         }
 
-        if (p_129232_.getId() != null) {
-            p_129231_.putUUID("Id", p_129232_.getId());
+        if (pProfile.getId() != null) {
+            pTag.putUUID("Id", pProfile.getId());
         }
 
-        if (!p_129232_.getProperties().isEmpty()) {
+        if (!pProfile.getProperties().isEmpty()) {
             CompoundTag compoundtag = new CompoundTag();
 
-            for (String s : p_129232_.getProperties().keySet()) {
+            for (String s : pProfile.getProperties().keySet()) {
                 ListTag listtag = new ListTag();
 
-                for (com.mojang.authlib.properties.Property property : p_129232_.getProperties().get(s)) {
+                for (com.mojang.authlib.properties.Property property : pProfile.getProperties().get(s)) {
                     CompoundTag compoundtag1 = new CompoundTag();
                     compoundtag1.putString("Value", property.getValue());
                     if (property.hasSignature()) {
@@ -138,37 +138,37 @@ public final class NbtUtils {
                 compoundtag.put(s, listtag);
             }
 
-            p_129231_.put("Properties", compoundtag);
+            pTag.put("Properties", compoundtag);
         }
 
-        return p_129231_;
+        return pTag;
     }
 
     @VisibleForTesting
-    public static boolean compareNbt(@Nullable Tag p_129236_, @Nullable Tag p_129237_, boolean p_129238_) {
-        if (p_129236_ == p_129237_) {
+    public static boolean compareNbt(@Nullable Tag pTag, @Nullable Tag pOther, boolean pCompareListTag) {
+        if (pTag == pOther) {
             return true;
-        } else if (p_129236_ == null) {
+        } else if (pTag == null) {
             return true;
-        } else if (p_129237_ == null) {
+        } else if (pOther == null) {
             return false;
-        } else if (!p_129236_.getClass().equals(p_129237_.getClass())) {
+        } else if (!pTag.getClass().equals(pOther.getClass())) {
             return false;
-        } else if (p_129236_ instanceof CompoundTag) {
-            CompoundTag compoundtag = (CompoundTag) p_129236_;
-            CompoundTag compoundtag1 = (CompoundTag) p_129237_;
+        } else if (pTag instanceof CompoundTag) {
+            CompoundTag compoundtag = (CompoundTag) pTag;
+            CompoundTag compoundtag1 = (CompoundTag) pOther;
 
             for (String s : compoundtag.getAllKeys()) {
                 Tag tag1 = compoundtag.get(s);
-                if (!compareNbt(tag1, compoundtag1.get(s), p_129238_)) {
+                if (!compareNbt(tag1, compoundtag1.get(s), pCompareListTag)) {
                     return false;
                 }
             }
 
             return true;
-        } else if (p_129236_ instanceof ListTag && p_129238_) {
-            ListTag listtag = (ListTag) p_129236_;
-            ListTag listtag1 = (ListTag) p_129237_;
+        } else if (pTag instanceof ListTag && pCompareListTag) {
+            ListTag listtag = (ListTag) pTag;
+            ListTag listtag1 = (ListTag) pOther;
             if (listtag.isEmpty()) {
                 return listtag1.isEmpty();
             } else {
@@ -177,7 +177,7 @@ public final class NbtUtils {
                     boolean flag = false;
 
                     for (int j = 0; j < listtag1.size(); ++j) {
-                        if (compareNbt(tag, listtag1.get(j), p_129238_)) {
+                        if (compareNbt(tag, listtag1.get(j), pCompareListTag)) {
                             flag = true;
                             break;
                         }
@@ -191,19 +191,19 @@ public final class NbtUtils {
                 return true;
             }
         } else {
-            return p_129236_.equals(p_129237_);
+            return pTag.equals(pOther);
         }
     }
 
-    public static IntArrayTag createUUID(UUID p_129227_) {
-        return new IntArrayTag(UUIDUtil.uuidToIntArray(p_129227_));
+    public static IntArrayTag createUUID(UUID pUuid) {
+        return new IntArrayTag(UUIDUtil.uuidToIntArray(pUuid));
     }
 
-    public static UUID loadUUID(Tag p_129234_) {
-        if (p_129234_.getType() != IntArrayTag.TYPE) {
-            throw new IllegalArgumentException("Expected UUID-Tag to be of type " + IntArrayTag.TYPE.getName() + ", but found " + p_129234_.getType().getName() + ".");
+    public static UUID loadUUID(Tag pTag) {
+        if (pTag.getType() != IntArrayTag.TYPE) {
+            throw new IllegalArgumentException("Expected UUID-Tag to be of type " + IntArrayTag.TYPE.getName() + ", but found " + pTag.getType().getName() + ".");
         } else {
-            int[] aint = ((IntArrayTag) p_129234_).getAsIntArray();
+            int[] aint = ((IntArrayTag) pTag).getAsIntArray();
             if (aint.length != 4) {
                 throw new IllegalArgumentException("Expected UUID-Array to be of length 4, but found " + aint.length + ".");
             } else {
@@ -212,32 +212,32 @@ public final class NbtUtils {
         }
     }
 
-    public static BlockPos readBlockPos(CompoundTag p_129240_) {
-        return new BlockPos(p_129240_.getInt("X"), p_129240_.getInt("Y"), p_129240_.getInt("Z"));
+    public static BlockPos readBlockPos(CompoundTag pTag) {
+        return new BlockPos(pTag.getInt("X"), pTag.getInt("Y"), pTag.getInt("Z"));
     }
 
-    public static CompoundTag writeBlockPos(BlockPos p_129225_) {
+    public static CompoundTag writeBlockPos(BlockPos pPos) {
         CompoundTag compoundtag = new CompoundTag();
-        compoundtag.putInt("X", p_129225_.getX());
-        compoundtag.putInt("Y", p_129225_.getY());
-        compoundtag.putInt("Z", p_129225_.getZ());
+        compoundtag.putInt("X", pPos.getX());
+        compoundtag.putInt("Y", pPos.getY());
+        compoundtag.putInt("Z", pPos.getZ());
         return compoundtag;
     }
 
-    public static BlockState readBlockState(CompoundTag p_129242_) {
-        if (!p_129242_.contains("Name", 8)) {
+    public static BlockState readBlockState(CompoundTag pTag) {
+        if (!pTag.contains("Name", 8)) {
             return Blocks.AIR.defaultBlockState();
         } else {
-            Block block = Registry.BLOCK.get(new ResourceLocation(p_129242_.getString("Name")));
+            Block block = Registry.BLOCK.get(new ResourceLocation(pTag.getString("Name")));
             BlockState blockstate = block.defaultBlockState();
-            if (p_129242_.contains("Properties", 10)) {
-                CompoundTag compoundtag = p_129242_.getCompound("Properties");
+            if (pTag.contains("Properties", 10)) {
+                CompoundTag compoundtag = pTag.getCompound("Properties");
                 StateDefinition<Block, BlockState> statedefinition = block.getStateDefinition();
 
                 for (String s : compoundtag.getAllKeys()) {
                     Property<?> property = statedefinition.getProperty(s);
                     if (property != null) {
-                        blockstate = setValueHelper(blockstate, property, s, compoundtag, p_129242_);
+                        blockstate = setValueHelper(blockstate, property, s, compoundtag, pTag);
                     }
                 }
             }
@@ -246,20 +246,20 @@ public final class NbtUtils {
         }
     }
 
-    private static <S extends StateHolder<?, S>, T extends Comparable<T>> S setValueHelper(S p_129205_, Property<T> p_129206_, String p_129207_, CompoundTag p_129208_, CompoundTag p_129209_) {
-        Optional<T> optional = p_129206_.getValue(p_129208_.getString(p_129207_));
+    private static <S extends StateHolder<?, S>, T extends Comparable<T>> S setValueHelper(S pStateHolder, Property<T> pProperty, String pPropertyName, CompoundTag pPropertiesTag, CompoundTag pBlockStateTag) {
+        Optional<T> optional = pProperty.getValue(pPropertiesTag.getString(pPropertyName));
         if (optional.isPresent()) {
-            return p_129205_.setValue(p_129206_, optional.get());
+            return pStateHolder.setValue(pProperty, optional.get());
         } else {
-            LOGGER.warn("Unable to read property: {} with value: {} for blockstate: {}", p_129207_, p_129208_.getString(p_129207_), p_129209_.toString());
-            return p_129205_;
+            LOGGER.warn("Unable to read property: {} with value: {} for blockstate: {}", pPropertyName, pPropertiesTag.getString(pPropertyName), pBlockStateTag.toString());
+            return pStateHolder;
         }
     }
 
-    public static CompoundTag writeBlockState(BlockState p_129203_) {
+    public static CompoundTag writeBlockState(BlockState pState) {
         CompoundTag compoundtag = new CompoundTag();
-        compoundtag.putString("Name", Registry.BLOCK.getKey(p_129203_.getBlock()).toString());
-        ImmutableMap<Property<?>, Comparable<?>> immutablemap = p_129203_.getValues();
+        compoundtag.putString("Name", Registry.BLOCK.getKey(pState.getBlock()).toString());
+        ImmutableMap<Property<?>, Comparable<?>> immutablemap = pState.getValues();
         if (!immutablemap.isEmpty()) {
             CompoundTag compoundtag1 = new CompoundTag();
 
@@ -274,10 +274,10 @@ public final class NbtUtils {
         return compoundtag;
     }
 
-    public static CompoundTag writeFluidState(FluidState p_178023_) {
+    public static CompoundTag writeFluidState(FluidState pState) {
         CompoundTag compoundtag = new CompoundTag();
-        compoundtag.putString("Name", Registry.FLUID.getKey(p_178023_.getType()).toString());
-        ImmutableMap<Property<?>, Comparable<?>> immutablemap = p_178023_.getValues();
+        compoundtag.putString("Name", Registry.FLUID.getKey(pState.getType()).toString());
+        ImmutableMap<Property<?>, Comparable<?>> immutablemap = pState.getValues();
         if (!immutablemap.isEmpty()) {
             CompoundTag compoundtag1 = new CompoundTag();
 
@@ -292,20 +292,20 @@ public final class NbtUtils {
         return compoundtag;
     }
 
-    private static <T extends Comparable<T>> String getName(Property<T> p_129211_, Comparable<?> p_129212_) {
-        return p_129211_.getName((T) p_129212_);
+    private static <T extends Comparable<T>> String getName(Property<T> pProperty, Comparable<?> pValue) {
+        return pProperty.getName((T) pValue);
     }
 
-    public static String prettyPrint(Tag p_178058_) {
-        return prettyPrint(p_178058_, false);
+    public static String prettyPrint(Tag pTag) {
+        return prettyPrint(pTag, false);
     }
 
-    public static String prettyPrint(Tag p_178051_, boolean p_178052_) {
-        return prettyPrint(new StringBuilder(), p_178051_, 0, p_178052_).toString();
+    public static String prettyPrint(Tag pTag, boolean pPrettyPrintArray) {
+        return prettyPrint(new StringBuilder(), pTag, 0, pPrettyPrintArray).toString();
     }
 
-    public static StringBuilder prettyPrint(StringBuilder p_178027_, Tag p_178028_, int p_178029_, boolean p_178030_) {
-        switch (p_178028_.getId()) {
+    public static StringBuilder prettyPrint(StringBuilder pStringBuilder, Tag pTag, int pIndentLevel, boolean pPrettyPrintArray) {
+        switch (pTag.getId()) {
             case 0:
                 break;
             case 1:
@@ -315,72 +315,72 @@ public final class NbtUtils {
             case 5:
             case 6:
             case 8:
-                p_178027_.append((Object) p_178028_);
+                pStringBuilder.append((Object) pTag);
                 break;
             case 7:
-                ByteArrayTag bytearraytag = (ByteArrayTag) p_178028_;
+                ByteArrayTag bytearraytag = (ByteArrayTag) pTag;
                 byte[] abyte = bytearraytag.getAsByteArray();
                 int k1 = abyte.length;
-                indent(p_178029_, p_178027_).append("byte[").append(k1).append("] {\n");
-                if (!p_178030_) {
-                    indent(p_178029_ + 1, p_178027_).append(" // Skipped, supply withBinaryBlobs true");
+                indent(pIndentLevel, pStringBuilder).append("byte[").append(k1).append("] {\n");
+                if (!pPrettyPrintArray) {
+                    indent(pIndentLevel + 1, pStringBuilder).append(" // Skipped, supply withBinaryBlobs true");
                 } else {
-                    indent(p_178029_ + 1, p_178027_);
+                    indent(pIndentLevel + 1, pStringBuilder);
 
                     for (int i2 = 0; i2 < abyte.length; ++i2) {
                         if (i2 != 0) {
-                            p_178027_.append(',');
+                            pStringBuilder.append(',');
                         }
 
                         if (i2 % 16 == 0 && i2 / 16 > 0) {
-                            p_178027_.append('\n');
+                            pStringBuilder.append('\n');
                             if (i2 < abyte.length) {
-                                indent(p_178029_ + 1, p_178027_);
+                                indent(pIndentLevel + 1, pStringBuilder);
                             }
                         } else if (i2 != 0) {
-                            p_178027_.append(' ');
+                            pStringBuilder.append(' ');
                         }
 
-                        p_178027_.append(String.format(Locale.ROOT, "0x%02X", abyte[i2] & 255));
+                        pStringBuilder.append(String.format(Locale.ROOT, "0x%02X", abyte[i2] & 255));
                     }
                 }
 
-                p_178027_.append('\n');
-                indent(p_178029_, p_178027_).append('}');
+                pStringBuilder.append('\n');
+                indent(pIndentLevel, pStringBuilder).append('}');
                 break;
             case 9:
-                ListTag listtag = (ListTag) p_178028_;
+                ListTag listtag = (ListTag) pTag;
                 int k = listtag.size();
                 int j1 = listtag.getElementType();
                 String s1 = j1 == 0 ? "undefined" : TagTypes.getType(j1).getPrettyName();
-                indent(p_178029_, p_178027_).append("list<").append(s1).append(">[").append(k).append("] [");
+                indent(pIndentLevel, pStringBuilder).append("list<").append(s1).append(">[").append(k).append("] [");
                 if (k != 0) {
-                    p_178027_.append('\n');
+                    pStringBuilder.append('\n');
                 }
 
                 for (int i3 = 0; i3 < k; ++i3) {
                     if (i3 != 0) {
-                        p_178027_.append(",\n");
+                        pStringBuilder.append(",\n");
                     }
 
-                    indent(p_178029_ + 1, p_178027_);
-                    prettyPrint(p_178027_, listtag.get(i3), p_178029_ + 1, p_178030_);
+                    indent(pIndentLevel + 1, pStringBuilder);
+                    prettyPrint(pStringBuilder, listtag.get(i3), pIndentLevel + 1, pPrettyPrintArray);
                 }
 
                 if (k != 0) {
-                    p_178027_.append('\n');
+                    pStringBuilder.append('\n');
                 }
 
-                indent(p_178029_, p_178027_).append(']');
+                indent(pIndentLevel, pStringBuilder).append(']');
                 break;
             case 10:
-                CompoundTag compoundtag = (CompoundTag) p_178028_;
+                CompoundTag compoundtag = (CompoundTag) pTag;
                 List<String> list = Lists.newArrayList(compoundtag.getAllKeys());
                 Collections.sort(list);
-                indent(p_178029_, p_178027_).append('{');
-                if (p_178027_.length() - p_178027_.lastIndexOf("\n") > 2 * (p_178029_ + 1)) {
-                    p_178027_.append('\n');
-                    indent(p_178029_ + 1, p_178027_);
+                indent(pIndentLevel, pStringBuilder).append('{');
+                if (pStringBuilder.length() - pStringBuilder.lastIndexOf("\n") > 2 * (pIndentLevel + 1)) {
+                    pStringBuilder.append('\n');
+                    indent(pIndentLevel + 1, pStringBuilder);
                 }
 
                 int i1 = list.stream().mapToInt(String::length).max().orElse(0);
@@ -388,22 +388,22 @@ public final class NbtUtils {
 
                 for (int l2 = 0; l2 < list.size(); ++l2) {
                     if (l2 != 0) {
-                        p_178027_.append(",\n");
+                        pStringBuilder.append(",\n");
                     }
 
                     String s2 = list.get(l2);
-                    indent(p_178029_ + 1, p_178027_).append('"').append(s2).append('"').append((CharSequence) s, 0, s.length() - s2.length()).append(": ");
-                    prettyPrint(p_178027_, compoundtag.get(s2), p_178029_ + 1, p_178030_);
+                    indent(pIndentLevel + 1, pStringBuilder).append('"').append(s2).append('"').append((CharSequence) s, 0, s.length() - s2.length()).append(": ");
+                    prettyPrint(pStringBuilder, compoundtag.get(s2), pIndentLevel + 1, pPrettyPrintArray);
                 }
 
                 if (!list.isEmpty()) {
-                    p_178027_.append('\n');
+                    pStringBuilder.append('\n');
                 }
 
-                indent(p_178029_, p_178027_).append('}');
+                indent(pIndentLevel, pStringBuilder).append('}');
                 break;
             case 11:
-                IntArrayTag intarraytag = (IntArrayTag) p_178028_;
+                IntArrayTag intarraytag = (IntArrayTag) pTag;
                 int[] aint = intarraytag.getAsIntArray();
                 int l = 0;
 
@@ -412,35 +412,35 @@ public final class NbtUtils {
                 }
 
                 int l1 = aint.length;
-                indent(p_178029_, p_178027_).append("int[").append(l1).append("] {\n");
-                if (!p_178030_) {
-                    indent(p_178029_ + 1, p_178027_).append(" // Skipped, supply withBinaryBlobs true");
+                indent(pIndentLevel, pStringBuilder).append("int[").append(l1).append("] {\n");
+                if (!pPrettyPrintArray) {
+                    indent(pIndentLevel + 1, pStringBuilder).append(" // Skipped, supply withBinaryBlobs true");
                 } else {
-                    indent(p_178029_ + 1, p_178027_);
+                    indent(pIndentLevel + 1, pStringBuilder);
 
                     for (int k2 = 0; k2 < aint.length; ++k2) {
                         if (k2 != 0) {
-                            p_178027_.append(',');
+                            pStringBuilder.append(',');
                         }
 
                         if (k2 % 16 == 0 && k2 / 16 > 0) {
-                            p_178027_.append('\n');
+                            pStringBuilder.append('\n');
                             if (k2 < aint.length) {
-                                indent(p_178029_ + 1, p_178027_);
+                                indent(pIndentLevel + 1, pStringBuilder);
                             }
                         } else if (k2 != 0) {
-                            p_178027_.append(' ');
+                            pStringBuilder.append(' ');
                         }
 
-                        p_178027_.append(String.format(Locale.ROOT, "0x%0" + l + "X", aint[k2]));
+                        pStringBuilder.append(String.format(Locale.ROOT, "0x%0" + l + "X", aint[k2]));
                     }
                 }
 
-                p_178027_.append('\n');
-                indent(p_178029_, p_178027_).append('}');
+                pStringBuilder.append('\n');
+                indent(pIndentLevel, pStringBuilder).append('}');
                 break;
             case 12:
-                LongArrayTag longarraytag = (LongArrayTag) p_178028_;
+                LongArrayTag longarraytag = (LongArrayTag) pTag;
                 long[] along = longarraytag.getAsLongArray();
                 long i = 0L;
 
@@ -449,86 +449,86 @@ public final class NbtUtils {
                 }
 
                 long j2 = (long) along.length;
-                indent(p_178029_, p_178027_).append("long[").append(j2).append("] {\n");
-                if (!p_178030_) {
-                    indent(p_178029_ + 1, p_178027_).append(" // Skipped, supply withBinaryBlobs true");
+                indent(pIndentLevel, pStringBuilder).append("long[").append(j2).append("] {\n");
+                if (!pPrettyPrintArray) {
+                    indent(pIndentLevel + 1, pStringBuilder).append(" // Skipped, supply withBinaryBlobs true");
                 } else {
-                    indent(p_178029_ + 1, p_178027_);
+                    indent(pIndentLevel + 1, pStringBuilder);
 
                     for (int j3 = 0; j3 < along.length; ++j3) {
                         if (j3 != 0) {
-                            p_178027_.append(',');
+                            pStringBuilder.append(',');
                         }
 
                         if (j3 % 16 == 0 && j3 / 16 > 0) {
-                            p_178027_.append('\n');
+                            pStringBuilder.append('\n');
                             if (j3 < along.length) {
-                                indent(p_178029_ + 1, p_178027_);
+                                indent(pIndentLevel + 1, pStringBuilder);
                             }
                         } else if (j3 != 0) {
-                            p_178027_.append(' ');
+                            pStringBuilder.append(' ');
                         }
 
-                        p_178027_.append(String.format(Locale.ROOT, "0x%0" + i + "X", along[j3]));
+                        pStringBuilder.append(String.format(Locale.ROOT, "0x%0" + i + "X", along[j3]));
                     }
                 }
 
-                p_178027_.append('\n');
-                indent(p_178029_, p_178027_).append('}');
+                pStringBuilder.append('\n');
+                indent(pIndentLevel, pStringBuilder).append('}');
                 break;
             default:
-                p_178027_.append("<UNKNOWN :(>");
+                pStringBuilder.append("<UNKNOWN :(>");
         }
 
-        return p_178027_;
+        return pStringBuilder;
     }
 
-    private static StringBuilder indent(int p_178020_, StringBuilder p_178021_) {
-        int i = p_178021_.lastIndexOf("\n") + 1;
-        int j = p_178021_.length() - i;
+    private static StringBuilder indent(int pIndentLevel, StringBuilder pStringBuilder) {
+        int i = pStringBuilder.lastIndexOf("\n") + 1;
+        int j = pStringBuilder.length() - i;
 
-        for (int k = 0; k < 2 * p_178020_ - j; ++k) {
-            p_178021_.append(' ');
+        for (int k = 0; k < 2 * pIndentLevel - j; ++k) {
+            pStringBuilder.append(' ');
         }
 
-        return p_178021_;
+        return pStringBuilder;
     }
 
-    public static CompoundTag update(DataFixer p_129214_, DataFixTypes p_129215_, CompoundTag p_129216_, int p_129217_) {
-        return update(p_129214_, p_129215_, p_129216_, p_129217_, SharedConstants.getCurrentVersion().getWorldVersion());
+    public static CompoundTag update(DataFixer pDataFixer, DataFixTypes pType, CompoundTag pCompoundTag, int pVersion) {
+        return update(pDataFixer, pType, pCompoundTag, pVersion, SharedConstants.getCurrentVersion().getWorldVersion());
     }
 
-    public static CompoundTag update(DataFixer p_129219_, DataFixTypes p_129220_, CompoundTag p_129221_, int p_129222_, int p_129223_) {
-        return (CompoundTag) p_129219_.update(p_129220_.getType(), new Dynamic<>(NbtOps.INSTANCE, p_129221_), p_129222_, p_129223_).getValue();
+    public static CompoundTag update(DataFixer pDataFixer, DataFixTypes pType, CompoundTag pCompoundTag, int pVersion, int pNewVersion) {
+        return (CompoundTag) pDataFixer.update(pType.getType(), new Dynamic<>(NbtOps.INSTANCE, pCompoundTag), pVersion, pNewVersion).getValue();
     }
 
-    public static Component toPrettyComponent(Tag p_178062_) {
-        return (new TextComponentTagVisitor("", 0)).visit(p_178062_);
+    public static Component toPrettyComponent(Tag pTag) {
+        return (new TextComponentTagVisitor("", 0)).visit(pTag);
     }
 
-    public static String structureToSnbt(CompoundTag p_178064_) {
-        return (new SnbtPrinterTagVisitor()).visit(packStructureTemplate(p_178064_));
+    public static String structureToSnbt(CompoundTag pTag) {
+        return (new SnbtPrinterTagVisitor()).visit(packStructureTemplate(pTag));
     }
 
-    public static CompoundTag snbtToStructure(String p_178025_) throws CommandSyntaxException {
-        return unpackStructureTemplate(TagParser.parseTag(p_178025_));
+    public static CompoundTag snbtToStructure(String pText) throws CommandSyntaxException {
+        return unpackStructureTemplate(TagParser.parseTag(pText));
     }
 
     @VisibleForTesting
-    static CompoundTag packStructureTemplate(CompoundTag p_178068_) {
-        boolean flag = p_178068_.contains("palettes", 9);
+    static CompoundTag packStructureTemplate(CompoundTag pTag) {
+        boolean flag = pTag.contains("palettes", 9);
         ListTag listtag;
         if (flag) {
-            listtag = p_178068_.getList("palettes", 9).getList(0);
+            listtag = pTag.getList("palettes", 9).getList(0);
         } else {
-            listtag = p_178068_.getList("palette", 10);
+            listtag = pTag.getList("palette", 10);
         }
 
         ListTag listtag1 = listtag.stream().map(CompoundTag.class ::cast).map(NbtUtils::packBlockState).map(StringTag::valueOf).collect(Collectors.toCollection(ListTag::new));
-        p_178068_.put("palette", listtag1);
+        pTag.put("palette", listtag1);
         if (flag) {
             ListTag listtag2 = new ListTag();
-            ListTag listtag3 = p_178068_.getList("palettes", 9);
+            ListTag listtag3 = pTag.getList("palettes", 9);
             listtag3.stream().map(ListTag.class ::cast).forEach((p_178049_) -> {
                 CompoundTag compoundtag = new CompoundTag();
 
@@ -538,43 +538,43 @@ public final class NbtUtils {
 
                 listtag2.add(compoundtag);
             });
-            p_178068_.put("palettes", listtag2);
+            pTag.put("palettes", listtag2);
         }
 
-        if (p_178068_.contains("entities", 10)) {
-            ListTag listtag4 = p_178068_.getList("entities", 10);
+        if (pTag.contains("entities", 10)) {
+            ListTag listtag4 = pTag.getList("entities", 10);
             ListTag listtag6 = listtag4.stream().map(CompoundTag.class ::cast).sorted(Comparator.comparing((p_178080_) -> {
                                                                                   return p_178080_.getList("pos", 6);
                                                                               }, YXZ_LISTTAG_DOUBLE_COMPARATOR)).collect(Collectors.toCollection(ListTag::new));
-            p_178068_.put("entities", listtag6);
+            pTag.put("entities", listtag6);
         }
 
-        ListTag listtag5 = p_178068_.getList("blocks", 10).stream().map(CompoundTag.class ::cast).sorted(Comparator.comparing((p_178078_) -> {
+        ListTag listtag5 = pTag.getList("blocks", 10).stream().map(CompoundTag.class ::cast).sorted(Comparator.comparing((p_178078_) -> {
                                                                                                      return p_178078_.getList("pos", 3);
                                                                                                  }, YXZ_LISTTAG_INT_COMPARATOR)).peek((p_178045_) -> {
                                                                                                                                     p_178045_.putString("state", listtag1.getString(p_178045_.getInt("state")));
                                                                                                                                 })
                                    .collect(Collectors.toCollection(ListTag::new));
-        p_178068_.put("data", listtag5);
-        p_178068_.remove("blocks");
-        return p_178068_;
+        pTag.put("data", listtag5);
+        pTag.remove("blocks");
+        return pTag;
     }
 
     @VisibleForTesting
-    static CompoundTag unpackStructureTemplate(CompoundTag p_178072_) {
-        ListTag listtag = p_178072_.getList("palette", 8);
+    static CompoundTag unpackStructureTemplate(CompoundTag pTag) {
+        ListTag listtag = pTag.getList("palette", 8);
         Map<String, Tag> map = listtag.stream().map(StringTag.class ::cast).map(StringTag::getAsString).collect(ImmutableMap.toImmutableMap(Function.identity(), NbtUtils::unpackBlockState));
-        if (p_178072_.contains("palettes", 9)) {
-            p_178072_.put("palettes", p_178072_.getList("palettes", 10).stream().map(CompoundTag.class ::cast).map((p_178033_) -> {
+        if (pTag.contains("palettes", 9)) {
+            pTag.put("palettes", pTag.getList("palettes", 10).stream().map(CompoundTag.class ::cast).map((p_178033_) -> {
                                                                                                                   return map.keySet().stream().map(p_178033_::getString).map(NbtUtils::unpackBlockState).collect(Collectors.toCollection(ListTag::new));
                                                                                                               })
                                               .collect(Collectors.toCollection(ListTag::new)));
-            p_178072_.remove("palette");
+            pTag.remove("palette");
         } else {
-            p_178072_.put("palette", map.values().stream().collect(Collectors.toCollection(ListTag::new)));
+            pTag.put("palette", map.values().stream().collect(Collectors.toCollection(ListTag::new)));
         }
 
-        if (p_178072_.contains("data", 9)) {
+        if (pTag.contains("data", 9)) {
             Object2IntMap<String> object2intmap = new Object2IntOpenHashMap<>();
             object2intmap.defaultReturnValue(-1);
 
@@ -582,7 +582,7 @@ public final class NbtUtils {
                 object2intmap.put(listtag.getString(i), i);
             }
 
-            ListTag listtag1 = p_178072_.getList("data", 10);
+            ListTag listtag1 = pTag.getList("data", 10);
 
             for (int j = 0; j < listtag1.size(); ++j) {
                 CompoundTag compoundtag = listtag1.getCompound(j);
@@ -595,11 +595,11 @@ public final class NbtUtils {
                 compoundtag.putInt("state", k);
             }
 
-            p_178072_.put("blocks", listtag1);
-            p_178072_.remove("data");
+            pTag.put("blocks", listtag1);
+            pTag.remove("data");
         }
 
-        return p_178072_;
+        return pTag;
     }
 
     @VisibleForTesting

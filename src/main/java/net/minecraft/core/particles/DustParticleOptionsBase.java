@@ -14,30 +14,30 @@ public abstract class DustParticleOptionsBase implements ParticleOptions {
     protected final Vector3f color;
     protected final float scale;
 
-    public DustParticleOptionsBase(Vector3f p_175803_, float p_175804_) {
-        this.color = p_175803_;
-        this.scale = Mth.clamp(p_175804_, 0.01F, 4.0F);
+    public DustParticleOptionsBase(Vector3f pColor, float pScale) {
+        this.color = pColor;
+        this.scale = Mth.clamp(pScale, 0.01F, 4.0F);
     }
 
-    public static Vector3f readVector3f(StringReader p_175807_) throws CommandSyntaxException {
-        p_175807_.expect(' ');
-        float f = p_175807_.readFloat();
-        p_175807_.expect(' ');
-        float f1 = p_175807_.readFloat();
-        p_175807_.expect(' ');
-        float f2 = p_175807_.readFloat();
+    public static Vector3f readVector3f(StringReader pStringInput) throws CommandSyntaxException {
+        pStringInput.expect(' ');
+        float f = pStringInput.readFloat();
+        pStringInput.expect(' ');
+        float f1 = pStringInput.readFloat();
+        pStringInput.expect(' ');
+        float f2 = pStringInput.readFloat();
         return new Vector3f(f, f1, f2);
     }
 
-    public static Vector3f readVector3f(FriendlyByteBuf p_175811_) {
-        return new Vector3f(p_175811_.readFloat(), p_175811_.readFloat(), p_175811_.readFloat());
+    public static Vector3f readVector3f(FriendlyByteBuf pBuffer) {
+        return new Vector3f(pBuffer.readFloat(), pBuffer.readFloat(), pBuffer.readFloat());
     }
 
-    public void writeToNetwork(FriendlyByteBuf p_175809_) {
-        p_175809_.writeFloat(this.color.x());
-        p_175809_.writeFloat(this.color.y());
-        p_175809_.writeFloat(this.color.z());
-        p_175809_.writeFloat(this.scale);
+    public void writeToNetwork(FriendlyByteBuf pBuffer) {
+        pBuffer.writeFloat(this.color.x());
+        pBuffer.writeFloat(this.color.y());
+        pBuffer.writeFloat(this.color.z());
+        pBuffer.writeFloat(this.scale);
     }
 
     public String writeToString() {

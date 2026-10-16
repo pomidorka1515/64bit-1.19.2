@@ -92,14 +92,14 @@ public class Boat extends Entity {
     private float bubbleAngle;
     private float bubbleAngleO;
 
-    public Boat(EntityType<? extends Boat> p_38290_, Level p_38291_) {
-        super(p_38290_, p_38291_);
+    public Boat(EntityType<? extends Boat> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.blocksBuilding = true;
     }
 
-    public Boat(Level p_38293_, double p_38294_, double p_38295_, double p_38296_) {
-        this(EntityType.BOAT, p_38293_);
-        this.setPos(p_38294_, p_38295_, p_38296_);
+    public Boat(Level pLevel, double pX, double pY, double pZ) {
+        this(EntityType.BOAT, pLevel);
+        this.setPos(pX, pY, pZ);
         this.setOldPosAndRot();
     }
 
@@ -110,8 +110,8 @@ public class Boat extends Entity {
         this.setOldPosAndRot();
     }
 
-    protected float getEyeHeight(Pose p_38327_, EntityDimensions p_38328_) {
-        return p_38328_.height;
+    protected float getEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return pSize.height;
     }
 
     protected Entity.MovementEmission getMovementEmission() {
@@ -128,12 +128,12 @@ public class Boat extends Entity {
         this.entityData.define(DATA_ID_BUBBLE_TIME, 0);
     }
 
-    public boolean canCollideWith(Entity p_38376_) {
-        return canVehicleCollide(this, p_38376_);
+    public boolean canCollideWith(Entity pEntity) {
+        return canVehicleCollide(this, pEntity);
     }
 
-    public static boolean canVehicleCollide(Entity p_38324_, Entity p_38325_) {
-        return (p_38325_.canBeCollidedWith() || p_38325_.isPushable()) && !p_38324_.isPassengerOfSameVehicle(p_38325_);
+    public static boolean canVehicleCollide(Entity pVehicle, Entity pEntity) {
+        return (pEntity.canBeCollidedWith() || pEntity.isPushable()) && !pVehicle.isPassengerOfSameVehicle(pEntity);
     }
 
     public boolean canBeCollidedWith() {
@@ -144,27 +144,27 @@ public class Boat extends Entity {
         return true;
     }
 
-    protected Vec3 getRelativePortalPosition(Direction.Axis p_38335_, BlockUtil.FoundRectangle p_38336_) {
-        return LivingEntity.resetForwardDirectionOfRelativePortalPosition(super.getRelativePortalPosition(p_38335_, p_38336_));
+    protected Vec3 getRelativePortalPosition(Direction.Axis pAxis, BlockUtil.FoundRectangle pPortal) {
+        return LivingEntity.resetForwardDirectionOfRelativePortalPosition(super.getRelativePortalPosition(pAxis, pPortal));
     }
 
     public double getPassengersRidingOffset() {
         return -0.1D;
     }
 
-    public boolean hurt(DamageSource p_38319_, float p_38320_) {
-        if (this.isInvulnerableTo(p_38319_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else if (!this.level.isClientSide && !this.isRemoved()) {
             this.setHurtDir(-this.getHurtDir());
             this.setHurtTime(10);
-            this.setDamage(this.getDamage() + p_38320_ * 10.0F);
+            this.setDamage(this.getDamage() + pAmount * 10.0F);
             this.markHurt();
-            this.gameEvent(GameEvent.ENTITY_DAMAGE, p_38319_.getEntity());
-            boolean flag = p_38319_.getEntity() instanceof Player && ((Player) p_38319_.getEntity()).getAbilities().instabuild;
+            this.gameEvent(GameEvent.ENTITY_DAMAGE, pSource.getEntity());
+            boolean flag = pSource.getEntity() instanceof Player && ((Player) pSource.getEntity()).getAbilities().instabuild;
             if (flag || this.getDamage() > 40.0F) {
                 if (!flag && this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-                    this.destroy(p_38319_);
+                    this.destroy(pSource);
                 }
 
                 this.discard();
@@ -176,14 +176,14 @@ public class Boat extends Entity {
         }
     }
 
-    protected void destroy(DamageSource p_219862_) {
+    protected void destroy(DamageSource pDamageSource) {
         this.spawnAtLocation(this.getDropItem());
     }
 
-    public void onAboveBubbleCol(boolean p_38381_) {
+    public void onAboveBubbleCol(boolean pDownwards) {
         if (!this.level.isClientSide) {
             this.isAboveBubbleColumn = true;
-            this.bubbleColumnDirectionIsDown = p_38381_;
+            this.bubbleColumnDirectionIsDown = pDownwards;
             if (this.getBubbleTime() == 0) {
                 this.setBubbleTime(60);
             }
@@ -196,13 +196,13 @@ public class Boat extends Entity {
         }
     }
 
-    public void push(Entity p_38373_) {
-        if (p_38373_ instanceof Boat) {
-            if (p_38373_.getBoundingBox().minY < this.getBoundingBox().maxY) {
-                super.push(p_38373_);
+    public void push(Entity pEntity) {
+        if (pEntity instanceof Boat) {
+            if (pEntity.getBoundingBox().minY < this.getBoundingBox().maxY) {
+                super.push(pEntity);
             }
-        } else if (p_38373_.getBoundingBox().minY <= this.getBoundingBox().minY) {
-            super.push(p_38373_);
+        } else if (pEntity.getBoundingBox().minY <= this.getBoundingBox().minY) {
+            super.push(pEntity);
         }
     }
 
@@ -236,13 +236,13 @@ public class Boat extends Entity {
         return !this.isRemoved();
     }
 
-    public void lerpTo(double p_38299_, double p_38300_, double p_38301_, float p_38302_, float p_38303_, int p_38304_, boolean p_38305_) {
+    public void lerpTo(double pX, double pY, double pZ, float pYaw, float pPitch, int pPosRotationIncrements, boolean pTeleport) {
         this.exactLerpTarget = null;
-        this.lerpX = p_38299_;
-        this.lerpY = p_38300_;
-        this.lerpZ = p_38301_;
-        this.lerpYRot = (double) p_38302_;
-        this.lerpXRot = (double) p_38303_;
+        this.lerpX = pX;
+        this.lerpY = pY;
+        this.lerpZ = pZ;
+        this.lerpYRot = (double) pYaw;
+        this.lerpXRot = (double) pPitch;
         this.lerpSteps = 10;
     }
 
@@ -417,13 +417,13 @@ public class Boat extends Entity {
         }
     }
 
-    public void setPaddleState(boolean p_38340_, boolean p_38341_) {
-        this.entityData.set(DATA_ID_PADDLE_LEFT, p_38340_);
-        this.entityData.set(DATA_ID_PADDLE_RIGHT, p_38341_);
+    public void setPaddleState(boolean pLeft, boolean pRight) {
+        this.entityData.set(DATA_ID_PADDLE_LEFT, pLeft);
+        this.entityData.set(DATA_ID_PADDLE_RIGHT, pRight);
     }
 
-    public float getRowingTime(int p_38316_, float p_38317_) {
-        return this.getPaddleState(p_38316_) ? Mth.clampedLerp(this.paddlePositions[p_38316_] - ((float) Math.PI / 8F), this.paddlePositions[p_38316_], p_38317_) : 0.0F;
+    public float getRowingTime(int pSide, float pLimbSwing) {
+        return this.getPaddleState(pSide) ? Mth.clampedLerp(this.paddlePositions[pSide] - ((float) Math.PI / 8F), this.paddlePositions[pSide], pLimbSwing) : 0.0F;
     }
 
     private Boat.Status getStatus() {
@@ -654,38 +654,38 @@ public class Boat extends Entity {
         return 0.0F;
     }
 
-    public void positionRider(Entity p_38379_) {
-        if (this.hasPassenger(p_38379_)) {
+    public void positionRider(Entity pPassenger) {
+        if (this.hasPassenger(pPassenger)) {
             float f = this.getSinglePassengerXOffset();
-            float f1 = (float) ((this.isRemoved() ? (double) 0.01F : this.getPassengersRidingOffset()) + p_38379_.getMyRidingOffset());
+            float f1 = (float) ((this.isRemoved() ? (double) 0.01F : this.getPassengersRidingOffset()) + pPassenger.getMyRidingOffset());
             if (this.getPassengers().size() > 1) {
-                int i = this.getPassengers().indexOf(p_38379_);
+                int i = this.getPassengers().indexOf(pPassenger);
                 if (i == 0) {
                     f = 0.2F;
                 } else {
                     f = -0.6F;
                 }
 
-                if (p_38379_ instanceof Animal) {
+                if (pPassenger instanceof Animal) {
                     f += 0.2F;
                 }
             }
 
             Vec3 vec3 = (new Vec3((double) f, 0.0D, 0.0D)).yRot(-this.getYRot() * ((float) Math.PI / 180F) - ((float) Math.PI / 2F));
-            p_38379_.applyExactPosition(this.sectorPosition().add(vec3.x, (double) f1, vec3.z));
-            p_38379_.setYRot(p_38379_.getYRot() + this.deltaRotation);
-            p_38379_.setYHeadRot(p_38379_.getYHeadRot() + this.deltaRotation);
-            this.clampRotation(p_38379_);
-            if (p_38379_ instanceof Animal && this.getPassengers().size() == this.getMaxPassengers()) {
-                int j = p_38379_.getId() % 2 == 0 ? 90 : 270;
-                p_38379_.setYBodyRot(((Animal) p_38379_).yBodyRot + (float) j);
-                p_38379_.setYHeadRot(p_38379_.getYHeadRot() + (float) j);
+            pPassenger.applyExactPosition(this.sectorPosition().add(vec3.x, (double) f1, vec3.z));
+            pPassenger.setYRot(pPassenger.getYRot() + this.deltaRotation);
+            pPassenger.setYHeadRot(pPassenger.getYHeadRot() + this.deltaRotation);
+            this.clampRotation(pPassenger);
+            if (pPassenger instanceof Animal && this.getPassengers().size() == this.getMaxPassengers()) {
+                int j = pPassenger.getId() % 2 == 0 ? 90 : 270;
+                pPassenger.setYBodyRot(((Animal) pPassenger).yBodyRot + (float) j);
+                pPassenger.setYHeadRot(pPassenger.getYHeadRot() + (float) j);
             }
         }
     }
 
-    public Vec3 getDismountLocationForPassenger(LivingEntity p_38357_) {
-        Vec3 vec3 = getCollisionHorizontalEscapeVector((double) (this.getBbWidth() * Mth.SQRT_OF_TWO), (double) p_38357_.getBbWidth(), p_38357_.getYRot());
+    public Vec3 getDismountLocationForPassenger(LivingEntity pLivingEntity) {
+        Vec3 vec3 = getCollisionHorizontalEscapeVector((double) (this.getBbWidth() * Mth.SQRT_OF_TWO), (double) pLivingEntity.getBbWidth(), pLivingEntity.getYRot());
         double d0 = this.getX() + vec3.x;
         double d1 = this.getZ() + vec3.z;
         BlockPos blockpos = new BlockPos(d0, this.getBoundingBox().maxY, d1);
@@ -702,17 +702,17 @@ public class Boat extends Entity {
                 list.add(new Vec3(d0, (double) blockpos1.getY() + d3, d1));
             }
 
-            for (Pose pose : p_38357_.getDismountPoses()) {
+            for (Pose pose : pLivingEntity.getDismountPoses()) {
                 for (Vec3 vec31 : list) {
-                    if (DismountHelper.canDismountTo(this.level, vec31, p_38357_, pose)) {
-                        p_38357_.setPose(pose);
+                    if (DismountHelper.canDismountTo(this.level, vec31, pLivingEntity, pose)) {
+                        pLivingEntity.setPose(pose);
                         return vec31;
                     }
                 }
             }
         }
 
-        return super.getDismountLocationForPassenger(p_38357_);
+        return super.getDismountLocationForPassenger(pLivingEntity);
     }
 
     /** Exact split-coordinate boat dismount target; local escape offsets never pass through global doubles. */
@@ -758,35 +758,35 @@ public class Boat extends Entity {
         return false;
     }
 
-    protected void clampRotation(Entity p_38322_) {
-        p_38322_.setYBodyRot(this.getYRot());
-        float f = Mth.wrapDegrees(p_38322_.getYRot() - this.getYRot());
+    protected void clampRotation(Entity pEntityToUpdate) {
+        pEntityToUpdate.setYBodyRot(this.getYRot());
+        float f = Mth.wrapDegrees(pEntityToUpdate.getYRot() - this.getYRot());
         float f1 = Mth.clamp(f, -105.0F, 105.0F);
-        p_38322_.yRotO += f1 - f;
-        p_38322_.setYRot(p_38322_.getYRot() + f1 - f);
-        p_38322_.setYHeadRot(p_38322_.getYRot());
+        pEntityToUpdate.yRotO += f1 - f;
+        pEntityToUpdate.setYRot(pEntityToUpdate.getYRot() + f1 - f);
+        pEntityToUpdate.setYHeadRot(pEntityToUpdate.getYRot());
     }
 
-    public void onPassengerTurned(Entity p_38383_) {
-        this.clampRotation(p_38383_);
+    public void onPassengerTurned(Entity pEntityToUpdate) {
+        this.clampRotation(pEntityToUpdate);
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_38359_) {
-        p_38359_.putString("Type", this.getBoatType().getName());
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        pCompound.putString("Type", this.getBoatType().getName());
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_38338_) {
-        if (p_38338_.contains("Type", 8)) {
-            this.setType(Boat.Type.byName(p_38338_.getString("Type")));
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        if (pCompound.contains("Type", 8)) {
+            this.setType(Boat.Type.byName(pCompound.getString("Type")));
         }
     }
 
-    public InteractionResult interact(Player p_38330_, InteractionHand p_38331_) {
-        if (p_38330_.isSecondaryUseActive()) {
+    public InteractionResult interact(Player pPlayer, InteractionHand pHand) {
+        if (pPlayer.isSecondaryUseActive()) {
             return InteractionResult.PASS;
         } else if (this.outOfControlTicks < 60.0F) {
             if (!this.level.isClientSide) {
-                return p_38330_.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
+                return pPlayer.startRiding(this) ? InteractionResult.CONSUME : InteractionResult.PASS;
             } else {
                 return InteractionResult.SUCCESS;
             }
@@ -795,10 +795,10 @@ public class Boat extends Entity {
         }
     }
 
-    protected void checkFallDamage(double p_38307_, boolean p_38308_, BlockState p_38309_, BlockPos p_38310_) {
+    protected void checkFallDamage(double pY, boolean pOnGround, BlockState pState, BlockPos pPos) {
         this.lastYd = this.getDeltaMovement().y;
         if (!this.isPassenger()) {
-            if (p_38308_) {
+            if (pOnGround) {
                 if (this.fallDistance > 3.0F) {
                     if (this.status != Boat.Status.ON_LAND) {
                         this.resetFallDistance();
@@ -821,61 +821,61 @@ public class Boat extends Entity {
                 }
 
                 this.resetFallDistance();
-            } else if (!this.level.getFluidState(this.blockPosition().below()).is(FluidTags.WATER) && p_38307_ < 0.0D) {
-                this.fallDistance -= (float) p_38307_;
+            } else if (!this.level.getFluidState(this.blockPosition().below()).is(FluidTags.WATER) && pY < 0.0D) {
+                this.fallDistance -= (float) pY;
             }
         }
     }
 
-    public boolean getPaddleState(int p_38314_) {
-        return this.entityData.<Boolean>get(p_38314_ == 0 ? DATA_ID_PADDLE_LEFT : DATA_ID_PADDLE_RIGHT) && this.getControllingPassenger() != null;
+    public boolean getPaddleState(int pSide) {
+        return this.entityData.<Boolean>get(pSide == 0 ? DATA_ID_PADDLE_LEFT : DATA_ID_PADDLE_RIGHT) && this.getControllingPassenger() != null;
     }
 
-    public void setDamage(float p_38312_) {
-        this.entityData.set(DATA_ID_DAMAGE, p_38312_);
+    public void setDamage(float pDamageTaken) {
+        this.entityData.set(DATA_ID_DAMAGE, pDamageTaken);
     }
 
     public float getDamage() {
         return this.entityData.get(DATA_ID_DAMAGE);
     }
 
-    public void setHurtTime(int p_38355_) {
-        this.entityData.set(DATA_ID_HURT, p_38355_);
+    public void setHurtTime(int pHurtTime) {
+        this.entityData.set(DATA_ID_HURT, pHurtTime);
     }
 
     public int getHurtTime() {
         return this.entityData.get(DATA_ID_HURT);
     }
 
-    private void setBubbleTime(int p_38367_) {
-        this.entityData.set(DATA_ID_BUBBLE_TIME, p_38367_);
+    private void setBubbleTime(int pBubbleTime) {
+        this.entityData.set(DATA_ID_BUBBLE_TIME, pBubbleTime);
     }
 
     private int getBubbleTime() {
         return this.entityData.get(DATA_ID_BUBBLE_TIME);
     }
 
-    public float getBubbleAngle(float p_38353_) {
-        return Mth.lerp(p_38353_, this.bubbleAngleO, this.bubbleAngle);
+    public float getBubbleAngle(float pPartialTicks) {
+        return Mth.lerp(pPartialTicks, this.bubbleAngleO, this.bubbleAngle);
     }
 
-    public void setHurtDir(int p_38363_) {
-        this.entityData.set(DATA_ID_HURTDIR, p_38363_);
+    public void setHurtDir(int pHurtDirection) {
+        this.entityData.set(DATA_ID_HURTDIR, pHurtDirection);
     }
 
     public int getHurtDir() {
         return this.entityData.get(DATA_ID_HURTDIR);
     }
 
-    public void setType(Boat.Type p_38333_) {
-        this.entityData.set(DATA_ID_TYPE, p_38333_.ordinal());
+    public void setType(Boat.Type pBoatType) {
+        this.entityData.set(DATA_ID_TYPE, pBoatType.ordinal());
     }
 
     public Boat.Type getBoatType() {
         return Boat.Type.byId(this.entityData.get(DATA_ID_TYPE));
     }
 
-    protected boolean canAddPassenger(Entity p_38390_) {
+    protected boolean canAddPassenger(Entity pPassenger) {
         return this.getPassengers().size() < this.getMaxPassengers() && !this.isEyeInFluid(FluidTags.WATER);
     }
 
@@ -888,11 +888,11 @@ public class Boat extends Entity {
         return this.getFirstPassenger();
     }
 
-    public void setInput(boolean p_38343_, boolean p_38344_, boolean p_38345_, boolean p_38346_) {
-        this.inputLeft = p_38343_;
-        this.inputRight = p_38344_;
-        this.inputUp = p_38345_;
-        this.inputDown = p_38346_;
+    public void setInput(boolean pInputLeft, boolean pInputRight, boolean pInputUp, boolean pInputDown) {
+        this.inputLeft = pInputLeft;
+        this.inputRight = pInputRight;
+        this.inputUp = pInputUp;
+        this.inputDown = pInputDown;
     }
 
     public Packet<?> getAddEntityPacket() {
@@ -944,20 +944,20 @@ public class Boat extends Entity {
             return this.name;
         }
 
-        public static Boat.Type byId(int p_38431_) {
+        public static Boat.Type byId(int pId) {
             Boat.Type[] aboat$type = values();
-            if (p_38431_ < 0 || p_38431_ >= aboat$type.length) {
-                p_38431_ = 0;
+            if (pId < 0 || pId >= aboat$type.length) {
+                pId = 0;
             }
 
-            return aboat$type[p_38431_];
+            return aboat$type[pId];
         }
 
-        public static Boat.Type byName(String p_38433_) {
+        public static Boat.Type byName(String pName) {
             Boat.Type[] aboat$type = values();
 
             for (int i = 0; i < aboat$type.length; ++i) {
-                if (aboat$type[i].getName().equals(p_38433_)) {
+                if (aboat$type[i].getName().equals(pName)) {
                     return aboat$type[i];
                 }
             }

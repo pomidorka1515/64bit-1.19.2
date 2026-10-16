@@ -24,25 +24,25 @@ public class RecordItem extends Item {
     private final SoundEvent sound;
     private final int lengthInTicks;
 
-    protected RecordItem(int p_239614_, SoundEvent p_239615_, Item.Properties p_239616_, int p_239617_) {
-        super(p_239616_);
-        this.analogOutput = p_239614_;
-        this.sound = p_239615_;
-        this.lengthInTicks = p_239617_ * 20;
+    protected RecordItem(int pAnalogOutput, SoundEvent pSound, Item.Properties pProperties, int pLengthInSeconds) {
+        super(pProperties);
+        this.analogOutput = pAnalogOutput;
+        this.sound = pSound;
+        this.lengthInTicks = pLengthInSeconds * 20;
         BY_NAME.put(this.sound, this);
     }
 
-    public InteractionResult useOn(UseOnContext p_43048_) {
-        Level level = p_43048_.getLevel();
-        BlockPos blockpos = p_43048_.getClickedPos();
+    public InteractionResult useOn(UseOnContext pContext) {
+        Level level = pContext.getLevel();
+        BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
         if (blockstate.is(Blocks.JUKEBOX) && !blockstate.getValue(JukeboxBlock.HAS_RECORD)) {
-            ItemStack itemstack = p_43048_.getItemInHand();
+            ItemStack itemstack = pContext.getItemInHand();
             if (!level.isClientSide) {
-                ((JukeboxBlock) Blocks.JUKEBOX).setRecord(p_43048_.getPlayer(), level, blockpos, blockstate, itemstack);
+                ((JukeboxBlock) Blocks.JUKEBOX).setRecord(pContext.getPlayer(), level, blockpos, blockstate, itemstack);
                 level.levelEvent((Player) null, 1010, blockpos, Item.getId(this));
                 itemstack.shrink(1);
-                Player player = p_43048_.getPlayer();
+                Player player = pContext.getPlayer();
                 if (player != null) {
                     player.awardStat(Stats.PLAY_RECORD);
                 }
@@ -58,8 +58,8 @@ public class RecordItem extends Item {
         return this.analogOutput;
     }
 
-    public void appendHoverText(ItemStack p_43043_, @Nullable Level p_43044_, List<Component> p_43045_, TooltipFlag p_43046_) {
-        p_43045_.add(this.getDisplayName().withStyle(ChatFormatting.GRAY));
+    public void appendHoverText(ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
+        pTooltip.add(this.getDisplayName().withStyle(ChatFormatting.GRAY));
     }
 
     public MutableComponent getDisplayName() {
@@ -67,8 +67,8 @@ public class RecordItem extends Item {
     }
 
     @Nullable
-    public static RecordItem getBySound(SoundEvent p_43041_) {
-        return BY_NAME.get(p_43041_);
+    public static RecordItem getBySound(SoundEvent pSound) {
+        return BY_NAME.get(pSound);
     }
 
     public SoundEvent getSound() {

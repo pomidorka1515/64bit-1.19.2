@@ -13,27 +13,27 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class BlockUtil {
-    public static BlockUtil.FoundRectangle getLargestRectangleAround(BlockPos p_124335_, Direction.Axis p_124336_, int p_124337_, Direction.Axis p_124338_, int p_124339_, Predicate<BlockPos> p_124340_) {
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_124335_.mutable();
-        Direction direction = Direction.get(Direction.AxisDirection.NEGATIVE, p_124336_);
+    public static BlockUtil.FoundRectangle getLargestRectangleAround(BlockPos pCenterPos, Direction.Axis pAxis1, int pMax1, Direction.Axis pAxis2, int pMax2, Predicate<BlockPos> pPosPredicate) {
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = pCenterPos.mutable();
+        Direction direction = Direction.get(Direction.AxisDirection.NEGATIVE, pAxis1);
         Direction direction1 = direction.getOpposite();
-        Direction direction2 = Direction.get(Direction.AxisDirection.NEGATIVE, p_124338_);
+        Direction direction2 = Direction.get(Direction.AxisDirection.NEGATIVE, pAxis2);
         Direction direction3 = direction2.getOpposite();
-        int i = getLimit(p_124340_, blockpos$mutableblockpos.set(p_124335_), direction, p_124337_);
-        int j = getLimit(p_124340_, blockpos$mutableblockpos.set(p_124335_), direction1, p_124337_);
+        int i = getLimit(pPosPredicate, blockpos$mutableblockpos.set(pCenterPos), direction, pMax1);
+        int j = getLimit(pPosPredicate, blockpos$mutableblockpos.set(pCenterPos), direction1, pMax1);
         int k = i;
         BlockUtil.IntBounds[] ablockutil$intbounds = new BlockUtil.IntBounds[i + 1 + j];
-        ablockutil$intbounds[i] = new BlockUtil.IntBounds(getLimit(p_124340_, blockpos$mutableblockpos.set(p_124335_), direction2, p_124339_), getLimit(p_124340_, blockpos$mutableblockpos.set(p_124335_), direction3, p_124339_));
+        ablockutil$intbounds[i] = new BlockUtil.IntBounds(getLimit(pPosPredicate, blockpos$mutableblockpos.set(pCenterPos), direction2, pMax2), getLimit(pPosPredicate, blockpos$mutableblockpos.set(pCenterPos), direction3, pMax2));
         int l = ablockutil$intbounds[i].min;
 
         for (int i1 = 1; i1 <= i; ++i1) {
             BlockUtil.IntBounds blockutil$intbounds = ablockutil$intbounds[k - (i1 - 1)];
-            ablockutil$intbounds[k - i1] = new BlockUtil.IntBounds(getLimit(p_124340_, blockpos$mutableblockpos.set(p_124335_).move(direction, i1), direction2, blockutil$intbounds.min), getLimit(p_124340_, blockpos$mutableblockpos.set(p_124335_).move(direction, i1), direction3, blockutil$intbounds.max));
+            ablockutil$intbounds[k - i1] = new BlockUtil.IntBounds(getLimit(pPosPredicate, blockpos$mutableblockpos.set(pCenterPos).move(direction, i1), direction2, blockutil$intbounds.min), getLimit(pPosPredicate, blockpos$mutableblockpos.set(pCenterPos).move(direction, i1), direction3, blockutil$intbounds.max));
         }
 
         for (int l2 = 1; l2 <= j; ++l2) {
             BlockUtil.IntBounds blockutil$intbounds2 = ablockutil$intbounds[k + l2 - 1];
-            ablockutil$intbounds[k + l2] = new BlockUtil.IntBounds(getLimit(p_124340_, blockpos$mutableblockpos.set(p_124335_).move(direction1, l2), direction2, blockutil$intbounds2.min), getLimit(p_124340_, blockpos$mutableblockpos.set(p_124335_).move(direction1, l2), direction3, blockutil$intbounds2.max));
+            ablockutil$intbounds[k + l2] = new BlockUtil.IntBounds(getLimit(pPosPredicate, blockpos$mutableblockpos.set(pCenterPos).move(direction1, l2), direction2, blockutil$intbounds2.min), getLimit(pPosPredicate, blockpos$mutableblockpos.set(pCenterPos).move(direction1, l2), direction3, blockutil$intbounds2.max));
         }
 
         int i3 = 0;
@@ -62,30 +62,30 @@ public class BlockUtil {
             }
         }
 
-        return new BlockUtil.FoundRectangle(p_124335_.relative(p_124336_, i3 - k).relative(p_124338_, j3 - l), j1, k1);
+        return new BlockUtil.FoundRectangle(pCenterPos.relative(pAxis1, i3 - k).relative(pAxis2, j3 - l), j1, k1);
     }
 
-    private static int getLimit(Predicate<BlockPos> p_124342_, BlockPos.MutableBlockPos p_124343_, Direction p_124344_, int p_124345_) {
+    private static int getLimit(Predicate<BlockPos> pPosPredicate, BlockPos.MutableBlockPos pCenterPos, Direction pDirection, int pMax) {
         int i;
-        for (i = 0; i < p_124345_ && p_124342_.test(p_124343_.move(p_124344_)); ++i) {
+        for (i = 0; i < pMax && pPosPredicate.test(pCenterPos.move(pDirection)); ++i) {
         }
 
         return i;
     }
 
     @VisibleForTesting
-    static Pair<BlockUtil.IntBounds, Integer> getMaxRectangleLocation(int[] p_124347_) {
+    static Pair<BlockUtil.IntBounds, Integer> getMaxRectangleLocation(int[] pHeights) {
         int i = 0;
         int j = 0;
         int k = 0;
         IntStack intstack = new IntArrayList();
         intstack.push(0);
 
-        for (int l = 1; l <= p_124347_.length; ++l) {
-            int i1 = l == p_124347_.length ? 0 : p_124347_[l];
+        for (int l = 1; l <= pHeights.length; ++l) {
+            int i1 = l == pHeights.length ? 0 : pHeights[l];
 
             while (!intstack.isEmpty()) {
-                int j1 = p_124347_[intstack.topInt()];
+                int j1 = pHeights[intstack.topInt()];
                 if (i1 >= j1) {
                     intstack.push(l);
                     break;
@@ -108,16 +108,16 @@ public class BlockUtil {
         return new Pair<>(new BlockUtil.IntBounds(i, j - 1), k);
     }
 
-    public static Optional<BlockPos> getTopConnectedBlock(BlockGetter p_177846_, BlockPos p_177847_, Block p_177848_, Direction p_177849_, Block p_177850_) {
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_177847_.mutable();
+    public static Optional<BlockPos> getTopConnectedBlock(BlockGetter pGetter, BlockPos pPos, Block pBaseBlock, Direction pDirection, Block pEndBlock) {
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable();
 
         BlockState blockstate;
         do {
-            blockpos$mutableblockpos.move(p_177849_);
-            blockstate = p_177846_.getBlockState(blockpos$mutableblockpos);
-        } while (blockstate.is(p_177848_));
+            blockpos$mutableblockpos.move(pDirection);
+            blockstate = pGetter.getBlockState(blockpos$mutableblockpos);
+        } while (blockstate.is(pBaseBlock));
 
-        return blockstate.is(p_177850_) ? Optional.of(blockpos$mutableblockpos) : Optional.empty();
+        return blockstate.is(pEndBlock) ? Optional.of(blockpos$mutableblockpos) : Optional.empty();
     }
 
     public static class FoundRectangle {
@@ -125,10 +125,10 @@ public class BlockUtil {
         public final int axis1Size;
         public final int axis2Size;
 
-        public FoundRectangle(BlockPos p_124352_, int p_124353_, int p_124354_) {
-            this.minCorner = p_124352_;
-            this.axis1Size = p_124353_;
-            this.axis2Size = p_124354_;
+        public FoundRectangle(BlockPos pMinCorner, int pAxis1Size, int pAxis2Size) {
+            this.minCorner = pMinCorner;
+            this.axis1Size = pAxis1Size;
+            this.axis2Size = pAxis2Size;
         }
     }
 
@@ -136,9 +136,9 @@ public class BlockUtil {
         public final int min;
         public final int max;
 
-        public IntBounds(int p_124358_, int p_124359_) {
-            this.min = p_124358_;
-            this.max = p_124359_;
+        public IntBounds(int pMin, int pMax) {
+            this.min = pMin;
+            this.max = pMax;
         }
 
         public String toString() {

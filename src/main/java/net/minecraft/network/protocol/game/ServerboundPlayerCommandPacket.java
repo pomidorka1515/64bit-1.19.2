@@ -9,30 +9,30 @@ public class ServerboundPlayerCommandPacket implements Packet<ServerGamePacketLi
     private final ServerboundPlayerCommandPacket.Action action;
     private final int data;
 
-    public ServerboundPlayerCommandPacket(Entity p_134306_, ServerboundPlayerCommandPacket.Action p_134307_) {
-        this(p_134306_, p_134307_, 0);
+    public ServerboundPlayerCommandPacket(Entity pEntity, ServerboundPlayerCommandPacket.Action pAction) {
+        this(pEntity, pAction, 0);
     }
 
-    public ServerboundPlayerCommandPacket(Entity p_134309_, ServerboundPlayerCommandPacket.Action p_134310_, int p_134311_) {
-        this.id = p_134309_.getId();
-        this.action = p_134310_;
-        this.data = p_134311_;
+    public ServerboundPlayerCommandPacket(Entity pEntity, ServerboundPlayerCommandPacket.Action pAction, int pData) {
+        this.id = pEntity.getId();
+        this.action = pAction;
+        this.data = pData;
     }
 
-    public ServerboundPlayerCommandPacket(FriendlyByteBuf p_179714_) {
-        this.id = p_179714_.readVarInt();
-        this.action = p_179714_.readEnum(ServerboundPlayerCommandPacket.Action.class);
-        this.data = p_179714_.readVarInt();
+    public ServerboundPlayerCommandPacket(FriendlyByteBuf pBuffer) {
+        this.id = pBuffer.readVarInt();
+        this.action = pBuffer.readEnum(ServerboundPlayerCommandPacket.Action.class);
+        this.data = pBuffer.readVarInt();
     }
 
-    public void write(FriendlyByteBuf p_134319_) {
-        p_134319_.writeVarInt(this.id);
-        p_134319_.writeEnum(this.action);
-        p_134319_.writeVarInt(this.data);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.id);
+        pBuffer.writeEnum(this.action);
+        pBuffer.writeVarInt(this.data);
     }
 
-    public void handle(ServerGamePacketListener p_134317_) {
-        p_134317_.handlePlayerCommand(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handlePlayerCommand(this);
     }
 
     public int getId() {

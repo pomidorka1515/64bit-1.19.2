@@ -21,8 +21,8 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
     private final Long exactBlockZ;
     private final double exactSubZ;
 
-    protected ServerboundMovePlayerPacket(double p_179675_, double p_179676_, double p_179677_, float p_179678_, float p_179679_, boolean p_179680_, boolean p_179681_, boolean p_179682_) {
-        this(p_179675_, p_179676_, p_179677_, p_179678_, p_179679_, p_179680_, p_179681_, p_179682_, null);
+    protected ServerboundMovePlayerPacket(double pX, double pY, double pZ, float pYRot, float pXRot, boolean pOnGround, boolean pHasPos, boolean pHasRot) {
+        this(pX, pY, pZ, pYRot, pXRot, pOnGround, pHasPos, pHasRot, null);
     }
 
     protected ServerboundMovePlayerPacket(double x, double y, double z, float yRot, float xRot, boolean onGround,
@@ -47,20 +47,20 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         return this.exactBlockX == null ? null : SectorVec3.fromBlockAndFraction(this.exactBlockX, this.exactSubX, fallbackY, this.exactBlockZ, this.exactSubZ);
     }
 
-    public void handle(ServerGamePacketListener p_134138_) {
-        p_134138_.handleMovePlayer(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleMovePlayer(this);
     }
 
-    public double getX(double p_134130_) {
-        return this.hasPos ? this.x : p_134130_;
+    public double getX(double pDefaultValue) {
+        return this.hasPos ? this.x : pDefaultValue;
     }
 
-    public double getY(double p_134141_) {
-        return this.hasPos ? this.y : p_134141_;
+    public double getY(double pDefaultValue) {
+        return this.hasPos ? this.y : pDefaultValue;
     }
 
-    public double getZ(double p_134147_) {
-        return this.hasPos ? this.z : p_134147_;
+    public double getZ(double pDefaultValue) {
+        return this.hasPos ? this.z : pDefaultValue;
     }
 
     public boolean hasExactPosition() {
@@ -80,12 +80,12 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         return this.exactSubZ;
     }
 
-    public float getYRot(float p_134132_) {
-        return this.hasRot ? this.yRot : p_134132_;
+    public float getYRot(float pDefaultValue) {
+        return this.hasRot ? this.yRot : pDefaultValue;
     }
 
-    public float getXRot(float p_134143_) {
-        return this.hasRot ? this.xRot : p_134143_;
+    public float getXRot(float pDefaultValue) {
+        return this.hasRot ? this.xRot : pDefaultValue;
     }
 
     public boolean isOnGround() {
@@ -167,36 +167,36 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
     }
 
     public static class Rot extends ServerboundMovePlayerPacket {
-        public Rot(float p_134176_, float p_134177_, boolean p_134178_) {
-            super(0.0D, 0.0D, 0.0D, p_134176_, p_134177_, p_134178_, false, true);
+        public Rot(float pYRot, float pXRot, boolean pOnGround) {
+            super(0.0D, 0.0D, 0.0D, pYRot, pXRot, pOnGround, false, true);
         }
 
-        public static ServerboundMovePlayerPacket.Rot read(FriendlyByteBuf p_179690_) {
-            float f = p_179690_.readFloat();
-            float f1 = p_179690_.readFloat();
-            boolean flag = p_179690_.readUnsignedByte() != 0;
+        public static ServerboundMovePlayerPacket.Rot read(FriendlyByteBuf pBuffer) {
+            float f = pBuffer.readFloat();
+            float f1 = pBuffer.readFloat();
+            boolean flag = pBuffer.readUnsignedByte() != 0;
             return new ServerboundMovePlayerPacket.Rot(f, f1, flag);
         }
 
-        public void write(FriendlyByteBuf p_134184_) {
-            p_134184_.writeFloat(this.yRot);
-            p_134184_.writeFloat(this.xRot);
-            p_134184_.writeByte(this.onGround ? 1 : 0);
+        public void write(FriendlyByteBuf pBuffer) {
+            pBuffer.writeFloat(this.yRot);
+            pBuffer.writeFloat(this.xRot);
+            pBuffer.writeByte(this.onGround ? 1 : 0);
         }
     }
 
     public static class StatusOnly extends ServerboundMovePlayerPacket {
-        public StatusOnly(boolean p_179692_) {
-            super(0.0D, 0.0D, 0.0D, 0.0F, 0.0F, p_179692_, false, false);
+        public StatusOnly(boolean pOnGround) {
+            super(0.0D, 0.0D, 0.0D, 0.0F, 0.0F, pOnGround, false, false);
         }
 
-        public static ServerboundMovePlayerPacket.StatusOnly read(FriendlyByteBuf p_179698_) {
-            boolean flag = p_179698_.readUnsignedByte() != 0;
+        public static ServerboundMovePlayerPacket.StatusOnly read(FriendlyByteBuf pBuffer) {
+            boolean flag = pBuffer.readUnsignedByte() != 0;
             return new ServerboundMovePlayerPacket.StatusOnly(flag);
         }
 
-        public void write(FriendlyByteBuf p_179694_) {
-            p_179694_.writeByte(this.onGround ? 1 : 0);
+        public void write(FriendlyByteBuf pBuffer) {
+            pBuffer.writeByte(this.onGround ? 1 : 0);
         }
     }
 }

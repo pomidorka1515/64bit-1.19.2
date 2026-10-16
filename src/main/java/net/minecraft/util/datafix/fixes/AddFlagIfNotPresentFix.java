@@ -13,12 +13,12 @@ public class AddFlagIfNotPresentFix extends DataFix {
     private final String flagKey;
     private final DSL.TypeReference typeReference;
 
-    public AddFlagIfNotPresentFix(Schema p_184810_, DSL.TypeReference p_184811_, String p_184812_, boolean p_184813_) {
-        super(p_184810_, true);
-        this.flagValue = p_184813_;
-        this.flagKey = p_184812_;
-        this.name = "AddFlagIfNotPresentFix_" + this.flagKey + "=" + this.flagValue + " for " + p_184810_.getVersionKey();
-        this.typeReference = p_184811_;
+    public AddFlagIfNotPresentFix(Schema pOutputSchema, DSL.TypeReference pTypeReference, String pFlagKey, boolean pFlagValue) {
+        super(pOutputSchema, true);
+        this.flagValue = pFlagValue;
+        this.flagKey = pFlagKey;
+        this.name = "AddFlagIfNotPresentFix_" + this.flagKey + "=" + this.flagValue + " for " + pOutputSchema.getVersionKey();
+        this.typeReference = pTypeReference;
     }
 
     protected TypeRewriteRule makeRule() {

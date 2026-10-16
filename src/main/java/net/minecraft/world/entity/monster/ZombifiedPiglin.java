@@ -51,13 +51,13 @@ public class ZombifiedPiglin extends Zombie implements NeutralMob {
     private static final UniformInt ALERT_INTERVAL = TimeUtil.rangeOfSeconds(4, 6);
     private int ticksUntilNextAlert;
 
-    public ZombifiedPiglin(EntityType<? extends ZombifiedPiglin> p_34427_, Level p_34428_) {
-        super(p_34427_, p_34428_);
+    public ZombifiedPiglin(EntityType<? extends ZombifiedPiglin> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.LAVA, 8.0F);
     }
 
-    public void setPersistentAngerTarget(@Nullable UUID p_34444_) {
-        this.persistentAngerTarget = p_34444_;
+    public void setPersistentAngerTarget(@Nullable UUID pTarget) {
+        this.persistentAngerTarget = pTarget;
     }
 
     public double getMyRidingOffset() {
@@ -146,43 +146,43 @@ public class ZombifiedPiglin extends Zombie implements NeutralMob {
         this.playSound(SoundEvents.ZOMBIFIED_PIGLIN_ANGRY, this.getSoundVolume() * 2.0F, this.getVoicePitch() * 1.8F);
     }
 
-    public void setTarget(@Nullable LivingEntity p_34478_) {
-        if (this.getTarget() == null && p_34478_ != null) {
+    public void setTarget(@Nullable LivingEntity pLivingEntity) {
+        if (this.getTarget() == null && pLivingEntity != null) {
             this.playFirstAngerSoundIn = FIRST_ANGER_SOUND_DELAY.sample(this.random);
             this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
         }
 
-        if (p_34478_ instanceof Player) {
-            this.setLastHurtByPlayer((Player) p_34478_);
+        if (pLivingEntity instanceof Player) {
+            this.setLastHurtByPlayer((Player) pLivingEntity);
         }
 
-        super.setTarget(p_34478_);
+        super.setTarget(pLivingEntity);
     }
 
     public void startPersistentAngerTimer() {
         this.setRemainingPersistentAngerTime(PERSISTENT_ANGER_TIME.sample(this.random));
     }
 
-    public static boolean checkZombifiedPiglinSpawnRules(EntityType<ZombifiedPiglin> p_219174_, LevelAccessor p_219175_, MobSpawnType p_219176_, BlockPos p_219177_, RandomSource p_219178_) {
-        return p_219175_.getDifficulty() != Difficulty.PEACEFUL && !p_219175_.getBlockState(p_219177_.below()).is(Blocks.NETHER_WART_BLOCK);
+    public static boolean checkZombifiedPiglinSpawnRules(EntityType<ZombifiedPiglin> pZombifiedPiglin, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getDifficulty() != Difficulty.PEACEFUL && !pLevel.getBlockState(pPos.below()).is(Blocks.NETHER_WART_BLOCK);
     }
 
-    public boolean checkSpawnObstruction(LevelReader p_34442_) {
-        return p_34442_.isUnobstructed(this) && !p_34442_.containsAnyLiquid(this.getBoundingBox());
+    public boolean checkSpawnObstruction(LevelReader pLevel) {
+        return pLevel.isUnobstructed(this) && !pLevel.containsAnyLiquid(this.getBoundingBox());
     }
 
-    public void addAdditionalSaveData(CompoundTag p_34458_) {
-        super.addAdditionalSaveData(p_34458_);
-        this.addPersistentAngerSaveData(p_34458_);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        this.addPersistentAngerSaveData(pCompound);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_34446_) {
-        super.readAdditionalSaveData(p_34446_);
-        this.readPersistentAngerSaveData(this.level, p_34446_);
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.readPersistentAngerSaveData(this.level, pCompound);
     }
 
-    public void setRemainingPersistentAngerTime(int p_34448_) {
-        this.remainingPersistentAngerTime = p_34448_;
+    public void setRemainingPersistentAngerTime(int pTime) {
+        this.remainingPersistentAngerTime = pTime;
     }
 
     public int getRemainingPersistentAngerTime() {
@@ -193,7 +193,7 @@ public class ZombifiedPiglin extends Zombie implements NeutralMob {
         return this.isAngry() ? SoundEvents.ZOMBIFIED_PIGLIN_ANGRY : SoundEvents.ZOMBIFIED_PIGLIN_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_34466_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.ZOMBIFIED_PIGLIN_HURT;
     }
 
@@ -201,7 +201,7 @@ public class ZombifiedPiglin extends Zombie implements NeutralMob {
         return SoundEvents.ZOMBIFIED_PIGLIN_DEATH;
     }
 
-    protected void populateDefaultEquipmentSlots(RandomSource p_219171_, DifficultyInstance p_219172_) {
+    protected void populateDefaultEquipmentSlots(RandomSource pRandom, DifficultyInstance pDifficulty) {
         this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
     }
 
@@ -218,11 +218,11 @@ public class ZombifiedPiglin extends Zombie implements NeutralMob {
         return this.persistentAngerTarget;
     }
 
-    public boolean isPreventingPlayerRest(Player p_34475_) {
-        return this.isAngryAt(p_34475_);
+    public boolean isPreventingPlayerRest(Player pPlayer) {
+        return this.isAngryAt(pPlayer);
     }
 
-    public boolean wantsToPickUp(ItemStack p_182402_) {
-        return this.canHoldItem(p_182402_);
+    public boolean wantsToPickUp(ItemStack pStack) {
+        return this.canHoldItem(pStack);
     }
 }

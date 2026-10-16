@@ -31,27 +31,27 @@ public record PlacedFeature(Holder<ConfiguredFeature<?, ?>> feature, List<Placem
     public static final Codec<HolderSet<PlacedFeature>> LIST_CODEC = RegistryCodecs.homogeneousList(Registry.PLACED_FEATURE_REGISTRY, DIRECT_CODEC);
     public static final Codec<List<HolderSet<PlacedFeature>>> LIST_OF_LISTS_CODEC = RegistryCodecs.homogeneousList(Registry.PLACED_FEATURE_REGISTRY, DIRECT_CODEC, true).listOf();
 
-    public boolean place(WorldGenLevel p_226358_, ChunkGenerator p_226359_, RandomSource p_226360_, BlockPos p_226361_) {
-        return this.placeWithContext(new PlacementContext(p_226358_, p_226359_, Optional.empty()), p_226360_, p_226361_);
+    public boolean place(WorldGenLevel pLevel, ChunkGenerator pGenerator, RandomSource pRandom, BlockPos pPos) {
+        return this.placeWithContext(new PlacementContext(pLevel, pGenerator, Optional.empty()), pRandom, pPos);
     }
 
-    public boolean placeWithBiomeCheck(WorldGenLevel p_226378_, ChunkGenerator p_226379_, RandomSource p_226380_, BlockPos p_226381_) {
-        return this.placeWithContext(new PlacementContext(p_226378_, p_226379_, Optional.of(this)), p_226380_, p_226381_);
+    public boolean placeWithBiomeCheck(WorldGenLevel pLevel, ChunkGenerator pGenerator, RandomSource pRandom, BlockPos pPos) {
+        return this.placeWithContext(new PlacementContext(pLevel, pGenerator, Optional.of(this)), pRandom, pPos);
     }
 
-    private boolean placeWithContext(PlacementContext p_226369_, RandomSource p_226370_, BlockPos p_226371_) {
-        Stream<BlockPos> stream = Stream.of(p_226371_);
+    private boolean placeWithContext(PlacementContext pContext, RandomSource pSource, BlockPos pPos) {
+        Stream<BlockPos> stream = Stream.of(pPos);
 
         for (PlacementModifier placementmodifier : this.placement) {
             stream = stream.flatMap((p_226376_) -> {
-                return placementmodifier.getPositions(p_226369_, p_226370_, p_226376_);
+                return placementmodifier.getPositions(pContext, pSource, p_226376_);
             });
         }
 
         ConfiguredFeature<?, ?> configuredfeature = this.feature.value();
         MutableBoolean mutableboolean = new MutableBoolean();
         stream.forEach((p_226367_) -> {
-            if (configuredfeature.place(p_226369_.getLevel(), p_226369_.generator(), p_226370_, p_226367_)) {
+            if (configuredfeature.place(pContext.getLevel(), pContext.generator(), pSource, p_226367_)) {
                 mutableboolean.setTrue();
             }
         });

@@ -17,8 +17,8 @@ public class TagMatchTest extends RuleTest {
         this.tag = p_205063_;
     }
 
-    public boolean test(BlockState p_230452_, RandomSource p_230453_) {
-        return p_230452_.is(this.tag);
+    public boolean test(BlockState pState, RandomSource pRandom) {
+        return pState.is(this.tag);
     }
 
     protected RuleTestType<?> getType() {

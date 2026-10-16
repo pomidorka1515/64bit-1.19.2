@@ -10,13 +10,13 @@ public interface ChatDecorator {
         return CompletableFuture.completedFuture(p_236951_);
     };
 
-    CompletableFuture<Component> decorate(@Nullable ServerPlayer p_236962_, Component p_236963_);
+    CompletableFuture<Component> decorate(@Nullable ServerPlayer pSender, Component pMessage);
 
-    default CompletableFuture<PlayerChatMessage> decorate(@Nullable ServerPlayer p_243328_, PlayerChatMessage p_243294_) {
-        return p_243294_.signedContent().isDecorated() ? CompletableFuture.completedFuture(p_243294_) : this.decorate(p_243328_, p_243294_.serverContent()).thenApply(p_243294_::withUnsignedContent);
+    default CompletableFuture<PlayerChatMessage> decorate(@Nullable ServerPlayer pSender, PlayerChatMessage pMessage) {
+        return pMessage.signedContent().isDecorated() ? CompletableFuture.completedFuture(pMessage) : this.decorate(pSender, pMessage.serverContent()).thenApply(pMessage::withUnsignedContent);
     }
 
-    static PlayerChatMessage attachIfNotDecorated(PlayerChatMessage p_243303_, Component p_243232_) {
-        return !p_243303_.signedContent().isDecorated() ? p_243303_.withUnsignedContent(p_243232_) : p_243303_;
+    static PlayerChatMessage attachIfNotDecorated(PlayerChatMessage pMessage, Component pDecorated) {
+        return !pMessage.signedContent().isDecorated() ? pMessage.withUnsignedContent(pDecorated) : pMessage;
     }
 }

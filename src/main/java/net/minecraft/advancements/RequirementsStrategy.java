@@ -17,5 +17,5 @@ public interface RequirementsStrategy {
         return new String[][] {p_15982_.toArray(new String[0])};
     };
 
-    String[][] createRequirements(Collection<String> p_15986_);
+    String[][] createRequirements(Collection<String> pRequirements);
 }

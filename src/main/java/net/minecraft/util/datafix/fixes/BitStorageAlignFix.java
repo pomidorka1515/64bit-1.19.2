@@ -22,8 +22,8 @@ public class BitStorageAlignFix extends DataFix {
     private static final int HEIGHTMAP_BITS = 9;
     private static final int HEIGHTMAP_SIZE = 256;
 
-    public BitStorageAlignFix(Schema p_14736_) {
-        super(p_14736_, false);
+    public BitStorageAlignFix(Schema pOutputSchema) {
+        super(pOutputSchema, false);
     }
 
     protected TypeRewriteRule makeRule() {

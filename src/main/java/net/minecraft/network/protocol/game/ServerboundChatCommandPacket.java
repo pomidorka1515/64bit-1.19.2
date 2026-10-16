@@ -12,20 +12,20 @@ public record ServerboundChatCommandPacket(String command, Instant timeStamp, lo
         command = StringUtil.trimChatMessage(command);
     }
 
-    public ServerboundChatCommandPacket(FriendlyByteBuf p_237932_) {
-        this(p_237932_.readUtf(256), p_237932_.readInstant(), p_237932_.readLong(), new ArgumentSignatures(p_237932_), p_237932_.readBoolean(), new LastSeenMessages.Update(p_237932_));
+    public ServerboundChatCommandPacket(FriendlyByteBuf pBuffer) {
+        this(pBuffer.readUtf(256), pBuffer.readInstant(), pBuffer.readLong(), new ArgumentSignatures(pBuffer), pBuffer.readBoolean(), new LastSeenMessages.Update(pBuffer));
     }
 
-    public void write(FriendlyByteBuf p_237936_) {
-        p_237936_.writeUtf(this.command, 256);
-        p_237936_.writeInstant(this.timeStamp);
-        p_237936_.writeLong(this.salt);
-        this.argumentSignatures.write(p_237936_);
-        p_237936_.writeBoolean(this.signedPreview);
-        this.lastSeenMessages.write(p_237936_);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeUtf(this.command, 256);
+        pBuffer.writeInstant(this.timeStamp);
+        pBuffer.writeLong(this.salt);
+        this.argumentSignatures.write(pBuffer);
+        pBuffer.writeBoolean(this.signedPreview);
+        this.lastSeenMessages.write(pBuffer);
     }
 
-    public void handle(ServerGamePacketListener p_237940_) {
-        p_237940_.handleChatCommand(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleChatCommand(this);
     }
 }

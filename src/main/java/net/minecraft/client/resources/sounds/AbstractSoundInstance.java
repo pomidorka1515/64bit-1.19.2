@@ -29,22 +29,22 @@ public abstract class AbstractSoundInstance implements SoundInstance {
     protected boolean relative;
     protected RandomSource random;
 
-    protected AbstractSoundInstance(SoundEvent p_235072_, SoundSource p_235073_, RandomSource p_235074_) {
-        this(p_235072_.getLocation(), p_235073_, p_235074_);
+    protected AbstractSoundInstance(SoundEvent pSoundEvent, SoundSource pSource, RandomSource pRandom) {
+        this(pSoundEvent.getLocation(), pSource, pRandom);
     }
 
-    protected AbstractSoundInstance(ResourceLocation p_235068_, SoundSource p_235069_, RandomSource p_235070_) {
-        this.location = p_235068_;
-        this.source = p_235069_;
-        this.random = p_235070_;
+    protected AbstractSoundInstance(ResourceLocation pLocation, SoundSource pSource, RandomSource pRandom) {
+        this.location = pLocation;
+        this.source = pSource;
+        this.random = pRandom;
     }
 
     public ResourceLocation getLocation() {
         return this.location;
     }
 
-    public WeighedSoundEvents resolve(SoundManager p_119591_) {
-        WeighedSoundEvents weighedsoundevents = p_119591_.getSoundEvent(this.location);
+    public WeighedSoundEvents resolve(SoundManager pHandler) {
+        WeighedSoundEvents weighedsoundevents = pHandler.getSoundEvent(this.location);
         if (weighedsoundevents == null) {
             this.sound = SoundManager.EMPTY_SOUND;
         } else {

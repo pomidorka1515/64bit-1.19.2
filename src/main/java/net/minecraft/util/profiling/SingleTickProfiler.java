@@ -15,10 +15,10 @@ public class SingleTickProfiler {
     private final File location;
     private ProfileCollector profiler = InactiveProfiler.INSTANCE;
 
-    public SingleTickProfiler(LongSupplier p_145963_, String p_145964_, long p_145965_) {
-        this.realTime = p_145963_;
-        this.location = new File("debug", p_145964_);
-        this.saveThreshold = p_145965_;
+    public SingleTickProfiler(LongSupplier pRealTime, String pLocation, long pSaveThreshold) {
+        this.realTime = pRealTime;
+        this.location = new File("debug", pLocation);
+        this.saveThreshold = pSaveThreshold;
     }
 
     public ProfilerFiller startTick() {

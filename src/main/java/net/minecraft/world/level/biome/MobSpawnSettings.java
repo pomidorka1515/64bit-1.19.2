@@ -48,13 +48,13 @@ public class MobSpawnSettings {
         this.mobSpawnCosts = ImmutableMap.copyOf(p_196691_);
     }
 
-    public WeightedRandomList<MobSpawnSettings.SpawnerData> getMobs(MobCategory p_151799_) {
-        return this.spawners.getOrDefault(p_151799_, EMPTY_MOB_LIST);
+    public WeightedRandomList<MobSpawnSettings.SpawnerData> getMobs(MobCategory pCategory) {
+        return this.spawners.getOrDefault(pCategory, EMPTY_MOB_LIST);
     }
 
     @Nullable
-    public MobSpawnSettings.MobSpawnCost getMobSpawnCost(EntityType<?> p_48346_) {
-        return this.mobSpawnCosts.get(p_48346_);
+    public MobSpawnSettings.MobSpawnCost getMobSpawnCost(EntityType<?> pEntityType) {
+        return this.mobSpawnCosts.get(pEntityType);
     }
 
     public float getCreatureProbability() {
@@ -66,18 +66,18 @@ public class MobSpawnSettings {
         private final Map<EntityType<?>, MobSpawnSettings.MobSpawnCost> mobSpawnCosts = Maps.newLinkedHashMap();
         private float creatureGenerationProbability = 0.1F;
 
-        public MobSpawnSettings.Builder addSpawn(MobCategory p_48377_, MobSpawnSettings.SpawnerData p_48378_) {
-            this.spawners.get(p_48377_).add(p_48378_);
+        public MobSpawnSettings.Builder addSpawn(MobCategory pClassification, MobSpawnSettings.SpawnerData pSpawner) {
+            this.spawners.get(pClassification).add(pSpawner);
             return this;
         }
 
-        public MobSpawnSettings.Builder addMobCharge(EntityType<?> p_48371_, double p_48372_, double p_48373_) {
-            this.mobSpawnCosts.put(p_48371_, new MobSpawnSettings.MobSpawnCost(p_48373_, p_48372_));
+        public MobSpawnSettings.Builder addMobCharge(EntityType<?> pEntityType, double pCharge, double pEnergyBudget) {
+            this.mobSpawnCosts.put(pEntityType, new MobSpawnSettings.MobSpawnCost(pEnergyBudget, pCharge));
             return this;
         }
 
-        public MobSpawnSettings.Builder creatureGenerationProbability(float p_48369_) {
-            this.creatureGenerationProbability = p_48369_;
+        public MobSpawnSettings.Builder creatureGenerationProbability(float pProbability) {
+            this.creatureGenerationProbability = pProbability;
             return this;
         }
 
@@ -132,8 +132,8 @@ public class MobSpawnSettings {
         public final int minCount;
         public final int maxCount;
 
-        public SpawnerData(EntityType<?> p_48409_, int p_48410_, int p_48411_, int p_48412_) {
-            this(p_48409_, Weight.of(p_48410_), p_48411_, p_48412_);
+        public SpawnerData(EntityType<?> pType, int pWeight, int pMinCount, int pMaxCount) {
+            this(pType, Weight.of(pWeight), pMinCount, pMaxCount);
         }
 
         public SpawnerData(EntityType<?> p_151815_, Weight p_151816_, int p_151817_, int p_151818_) {

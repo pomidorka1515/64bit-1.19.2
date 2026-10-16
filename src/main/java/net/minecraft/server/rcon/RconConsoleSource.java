@@ -15,8 +15,8 @@ public class RconConsoleSource implements CommandSource {
     private final StringBuffer buffer = new StringBuffer();
     private final MinecraftServer server;
 
-    public RconConsoleSource(MinecraftServer p_11505_) {
-        this.server = p_11505_;
+    public RconConsoleSource(MinecraftServer pServer) {
+        this.server = pServer;
     }
 
     public void prepareForCommand() {
@@ -32,8 +32,8 @@ public class RconConsoleSource implements CommandSource {
         return new CommandSourceStack(this, Vec3.atLowerCornerOf(serverlevel.getSharedSpawnPos()), Vec2.ZERO, serverlevel, 4, "Rcon", RCON_COMPONENT, this.server, (Entity) null);
     }
 
-    public void sendSystemMessage(Component p_215653_) {
-        this.buffer.append(p_215653_.getString());
+    public void sendSystemMessage(Component pComponent) {
+        this.buffer.append(pComponent.getString());
     }
 
     public boolean acceptsSuccess() {

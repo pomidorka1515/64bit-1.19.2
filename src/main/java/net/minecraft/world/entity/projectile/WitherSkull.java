@@ -24,12 +24,12 @@ import net.minecraft.world.phys.HitResult;
 public class WitherSkull extends AbstractHurtingProjectile {
     private static final EntityDataAccessor<Boolean> DATA_DANGEROUS = SynchedEntityData.defineId(WitherSkull.class, EntityDataSerializers.BOOLEAN);
 
-    public WitherSkull(EntityType<? extends WitherSkull> p_37598_, Level p_37599_) {
-        super(p_37598_, p_37599_);
+    public WitherSkull(EntityType<? extends WitherSkull> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public WitherSkull(Level p_37609_, LivingEntity p_37610_, double p_37611_, double p_37612_, double p_37613_) {
-        super(EntityType.WITHER_SKULL, p_37610_, p_37611_, p_37612_, p_37613_, p_37609_);
+    public WitherSkull(Level pLevel, LivingEntity pShooter, double pOffsetX, double pOffsetY, double pOffsetZ) {
+        super(EntityType.WITHER_SKULL, pShooter, pOffsetX, pOffsetY, pOffsetZ, pLevel);
     }
 
     protected float getInertia() {
@@ -40,14 +40,14 @@ public class WitherSkull extends AbstractHurtingProjectile {
         return false;
     }
 
-    public float getBlockExplosionResistance(Explosion p_37619_, BlockGetter p_37620_, BlockPos p_37621_, BlockState p_37622_, FluidState p_37623_, float p_37624_) {
-        return this.isDangerous() && WitherBoss.canDestroy(p_37622_) ? Math.min(0.8F, p_37624_) : p_37624_;
+    public float getBlockExplosionResistance(Explosion pExplosion, BlockGetter pLevel, BlockPos pPos, BlockState pBlockState, FluidState pFluidState, float pExplosionPower) {
+        return this.isDangerous() && WitherBoss.canDestroy(pBlockState) ? Math.min(0.8F, pExplosionPower) : pExplosionPower;
     }
 
-    protected void onHitEntity(EntityHitResult p_37626_) {
-        super.onHitEntity(p_37626_);
+    protected void onHitEntity(EntityHitResult pResult) {
+        super.onHitEntity(pResult);
         if (!this.level.isClientSide) {
-            Entity entity = p_37626_.getEntity();
+            Entity entity = pResult.getEntity();
             Entity entity1 = this.getOwner();
             boolean flag;
             if (entity1 instanceof LivingEntity) {
@@ -79,8 +79,8 @@ public class WitherSkull extends AbstractHurtingProjectile {
         }
     }
 
-    protected void onHit(HitResult p_37628_) {
-        super.onHit(p_37628_);
+    protected void onHit(HitResult pResult) {
+        super.onHit(pResult);
         if (!this.level.isClientSide) {
             Explosion.BlockInteraction explosion$blockinteraction = this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) ? Explosion.BlockInteraction.DESTROY : Explosion.BlockInteraction.NONE;
             this.level.explode(this, this.particlePosition(0.0D, 0.0D, 0.0D), 1.0F, false,
@@ -93,7 +93,7 @@ public class WitherSkull extends AbstractHurtingProjectile {
         return false;
     }
 
-    public boolean hurt(DamageSource p_37616_, float p_37617_) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
         return false;
     }
 
@@ -105,8 +105,8 @@ public class WitherSkull extends AbstractHurtingProjectile {
         return this.entityData.get(DATA_DANGEROUS);
     }
 
-    public void setDangerous(boolean p_37630_) {
-        this.entityData.set(DATA_DANGEROUS, p_37630_);
+    public void setDangerous(boolean pInvulnerable) {
+        this.entityData.set(DATA_DANGEROUS, pInvulnerable);
     }
 
     protected boolean shouldBurn() {

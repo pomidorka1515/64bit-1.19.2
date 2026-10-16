@@ -16,11 +16,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class WaterDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     private final Minecraft minecraft;
 
-    public WaterDebugRenderer(Minecraft p_113717_) {
-        this.minecraft = p_113717_;
+    public WaterDebugRenderer(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void render(PoseStack p_113719_, MultiBufferSource p_113720_, double p_113721_, double p_113722_, double p_113723_) {
+    public void render(PoseStack pPoseStack, MultiBufferSource pBufferSource, double pCamX, double pCamY, double pCamZ) {
         BlockPos blockpos = this.minecraft.player.blockPosition();
         LevelReader levelreader = this.minecraft.player.level;
         RenderSystem.enableBlend();
@@ -33,7 +33,7 @@ public class WaterDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
             FluidState fluidstate = levelreader.getFluidState(blockpos1);
             if (fluidstate.is(FluidTags.WATER)) {
                 double d0 = (double) ((float) blockpos1.getY() + fluidstate.getHeight(levelreader, blockpos1));
-                DebugRenderer.renderFilledBox((new AABB((double) ((float) blockpos1.getX() + 0.01F), (double) ((float) blockpos1.getY() + 0.01F), (double) ((float) blockpos1.getZ() + 0.01F), (double) ((float) blockpos1.getX() + 0.99F), d0, (double) ((float) blockpos1.getZ() + 0.99F))).move(-p_113721_, -p_113722_, -p_113723_), 1.0F, 1.0F, 1.0F, 0.2F);
+                DebugRenderer.renderFilledBox((new AABB((double) ((float) blockpos1.getX() + 0.01F), (double) ((float) blockpos1.getY() + 0.01F), (double) ((float) blockpos1.getZ() + 0.01F), (double) ((float) blockpos1.getX() + 0.99F), d0, (double) ((float) blockpos1.getZ() + 0.99F))).move(-pCamX, -pCamY, -pCamZ), 1.0F, 1.0F, 1.0F, 0.2F);
             }
         }
 

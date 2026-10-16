@@ -5,7 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 
 public interface LootPoolEntry {
-    int getWeight(float p_79632_);
+    int getWeight(float pLuck);
 
-    void createItemStack(Consumer<ItemStack> p_79633_, LootContext p_79634_);
+    void createItemStack(Consumer<ItemStack> pStackConsumer, LootContext pLootContext);
 }

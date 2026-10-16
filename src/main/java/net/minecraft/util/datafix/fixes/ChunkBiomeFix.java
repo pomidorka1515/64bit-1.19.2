@@ -11,8 +11,8 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 public class ChunkBiomeFix extends DataFix {
-    public ChunkBiomeFix(Schema p_15014_, boolean p_15015_) {
-        super(p_15014_, p_15015_);
+    public ChunkBiomeFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

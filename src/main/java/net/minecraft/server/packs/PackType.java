@@ -18,7 +18,7 @@ public enum PackType {
         return this.directory;
     }
 
-    public int getVersion(GameVersion p_143757_) {
-        return p_143757_.getPackVersion(this.bridgeType);
+    public int getVersion(GameVersion pGameVersion) {
+        return pGameVersion.getPackVersion(this.bridgeType);
     }
 }

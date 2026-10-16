@@ -17,59 +17,59 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public abstract class GrowingPlantBodyBlock extends GrowingPlantBlock implements BonemealableBlock {
-    protected GrowingPlantBodyBlock(BlockBehaviour.Properties p_53886_, Direction p_53887_, VoxelShape p_53888_, boolean p_53889_) {
-        super(p_53886_, p_53887_, p_53888_, p_53889_);
+    protected GrowingPlantBodyBlock(BlockBehaviour.Properties pProperties, Direction pGrowthDirection, VoxelShape pShape, boolean pScheduleFluidTicks) {
+        super(pProperties, pGrowthDirection, pShape, pScheduleFluidTicks);
     }
 
-    protected BlockState updateHeadAfterConvertedFromBody(BlockState p_153326_, BlockState p_153327_) {
-        return p_153327_;
+    protected BlockState updateHeadAfterConvertedFromBody(BlockState pHead, BlockState pBody) {
+        return pBody;
     }
 
-    public BlockState updateShape(BlockState p_53913_, Direction p_53914_, BlockState p_53915_, LevelAccessor p_53916_, BlockPos p_53917_, BlockPos p_53918_) {
-        if (p_53914_ == this.growthDirection.getOpposite() && !p_53913_.canSurvive(p_53916_, p_53917_)) {
-            p_53916_.scheduleTick(p_53917_, this, 1);
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pFacing == this.growthDirection.getOpposite() && !pState.canSurvive(pLevel, pCurrentPos)) {
+            pLevel.scheduleTick(pCurrentPos, this, 1);
         }
 
         GrowingPlantHeadBlock growingplantheadblock = this.getHeadBlock();
-        if (p_53914_ == this.growthDirection && !p_53915_.is(this) && !p_53915_.is(growingplantheadblock)) {
-            return this.updateHeadAfterConvertedFromBody(p_53913_, growingplantheadblock.getStateForPlacement(p_53916_));
+        if (pFacing == this.growthDirection && !pFacingState.is(this) && !pFacingState.is(growingplantheadblock)) {
+            return this.updateHeadAfterConvertedFromBody(pState, growingplantheadblock.getStateForPlacement(pLevel));
         } else {
             if (this.scheduleFluidTicks) {
-                p_53916_.scheduleTick(p_53917_, Fluids.WATER, Fluids.WATER.getTickDelay(p_53916_));
+                pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
             }
 
-            return super.updateShape(p_53913_, p_53914_, p_53915_, p_53916_, p_53917_, p_53918_);
+            return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
         }
     }
 
-    public ItemStack getCloneItemStack(BlockGetter p_53896_, BlockPos p_53897_, BlockState p_53898_) {
+    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
         return new ItemStack(this.getHeadBlock());
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_53900_, BlockPos p_53901_, BlockState p_53902_, boolean p_53903_) {
-        Optional<BlockPos> optional = this.getHeadPos(p_53900_, p_53901_, p_53902_.getBlock());
-        return optional.isPresent() && this.getHeadBlock().canGrowInto(p_53900_.getBlockState(optional.get().relative(this.growthDirection)));
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
+        Optional<BlockPos> optional = this.getHeadPos(pLevel, pPos, pState.getBlock());
+        return optional.isPresent() && this.getHeadBlock().canGrowInto(pLevel.getBlockState(optional.get().relative(this.growthDirection)));
     }
 
-    public boolean isBonemealSuccess(Level p_221290_, RandomSource p_221291_, BlockPos p_221292_, BlockState p_221293_) {
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
 
-    public void performBonemeal(ServerLevel p_221285_, RandomSource p_221286_, BlockPos p_221287_, BlockState p_221288_) {
-        Optional<BlockPos> optional = this.getHeadPos(p_221285_, p_221287_, p_221288_.getBlock());
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        Optional<BlockPos> optional = this.getHeadPos(pLevel, pPos, pState.getBlock());
         if (optional.isPresent()) {
-            BlockState blockstate = p_221285_.getBlockState(optional.get());
-            ((GrowingPlantHeadBlock) blockstate.getBlock()).performBonemeal(p_221285_, p_221286_, optional.get(), blockstate);
+            BlockState blockstate = pLevel.getBlockState(optional.get());
+            ((GrowingPlantHeadBlock) blockstate.getBlock()).performBonemeal(pLevel, pRandom, optional.get(), blockstate);
         }
     }
 
-    private Optional<BlockPos> getHeadPos(BlockGetter p_153323_, BlockPos p_153324_, Block p_153325_) {
-        return BlockUtil.getTopConnectedBlock(p_153323_, p_153324_, p_153325_, this.growthDirection, this.getHeadBlock());
+    private Optional<BlockPos> getHeadPos(BlockGetter pLevel, BlockPos pPos, Block pBlock) {
+        return BlockUtil.getTopConnectedBlock(pLevel, pPos, pBlock, this.growthDirection, this.getHeadBlock());
     }
 
-    public boolean canBeReplaced(BlockState p_53910_, BlockPlaceContext p_53911_) {
-        boolean flag = super.canBeReplaced(p_53910_, p_53911_);
-        return flag && p_53911_.getItemInHand().is(this.getHeadBlock().asItem()) ? false : flag;
+    public boolean canBeReplaced(BlockState pState, BlockPlaceContext pUseContext) {
+        boolean flag = super.canBeReplaced(pState, pUseContext);
+        return flag && pUseContext.getItemInHand().is(this.getHeadBlock().asItem()) ? false : flag;
     }
 
     protected Block getBodyBlock() {

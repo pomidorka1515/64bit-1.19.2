@@ -29,20 +29,20 @@ public class Pack {
     private final PackSource packSource;
 
     @Nullable
-    public static Pack create(String p_10431_, boolean p_10432_, Supplier<PackResources> p_10433_, Pack.PackConstructor p_10434_, Pack.Position p_10435_, PackSource p_10436_) {
+    public static Pack create(String pId, boolean pRequired, Supplier<PackResources> pSupplier, Pack.PackConstructor pFactory, Pack.Position pDefaultPosition, PackSource pPackSource) {
         try {
-            PackResources packresources = p_10433_.get();
+            PackResources packresources = pSupplier.get();
 
             Pack pack;
         label54: {
             try {
                 PackMetadataSection packmetadatasection = packresources.getMetadataSection(PackMetadataSection.SERIALIZER);
                 if (packmetadatasection != null) {
-                    pack = p_10434_.create(p_10431_, Component.literal(packresources.getName()), p_10432_, p_10433_, packmetadatasection, p_10435_, p_10436_);
+                    pack = pFactory.create(pId, Component.literal(packresources.getName()), pRequired, pSupplier, packmetadatasection, pDefaultPosition, pPackSource);
                     break label54;
                 }
 
-                LOGGER.warn("Couldn't find pack meta for pack {}", (Object) p_10431_);
+                LOGGER.warn("Couldn't find pack meta for pack {}", (Object) pId);
             } catch (Throwable throwable1) {
                 if (packresources != null) {
                     try {
@@ -73,20 +73,20 @@ public class Pack {
         }
     }
 
-    public Pack(String p_10420_, boolean p_10421_, Supplier<PackResources> p_10422_, Component p_10423_, Component p_10424_, PackCompatibility p_10425_, Pack.Position p_10426_, boolean p_10427_, PackSource p_10428_) {
-        this.id = p_10420_;
-        this.supplier = p_10422_;
-        this.title = p_10423_;
-        this.description = p_10424_;
-        this.compatibility = p_10425_;
-        this.required = p_10421_;
-        this.defaultPosition = p_10426_;
-        this.fixedPosition = p_10427_;
-        this.packSource = p_10428_;
+    public Pack(String pId, boolean pRequired, Supplier<PackResources> pSupplier, Component pTitle, Component pDescription, PackCompatibility pCompatibility, Pack.Position pDefaultPosition, boolean pFixedPosition, PackSource pPackSource) {
+        this.id = pId;
+        this.supplier = pSupplier;
+        this.title = pTitle;
+        this.description = pDescription;
+        this.compatibility = pCompatibility;
+        this.required = pRequired;
+        this.defaultPosition = pDefaultPosition;
+        this.fixedPosition = pFixedPosition;
+        this.packSource = pPackSource;
     }
 
-    public Pack(String p_143865_, Component p_143866_, boolean p_143867_, Supplier<PackResources> p_143868_, PackMetadataSection p_143869_, PackType p_143870_, Pack.Position p_143871_, PackSource p_143872_) {
-        this(p_143865_, p_143867_, p_143868_, p_143866_, p_143869_.getDescription(), PackCompatibility.forMetadata(p_143869_, p_143870_), p_143871_, false, p_143872_);
+    public Pack(String pId, Component pTitle, boolean pRequired, Supplier<PackResources> pSupplier, PackMetadataSection pMetadata, PackType pType, Pack.Position pDefaultPosition, PackSource pPackSource) {
+        this(pId, pRequired, pSupplier, pTitle, pMetadata.getDescription(), PackCompatibility.forMetadata(pMetadata, pType), pDefaultPosition, false, pPackSource);
     }
 
     public Component getTitle() {
@@ -97,9 +97,9 @@ public class Pack {
         return this.description;
     }
 
-    public Component getChatLink(boolean p_10438_) {
+    public Component getChatLink(boolean pGreen) {
         return ComponentUtils.wrapInSquareBrackets(this.packSource.decorate(Component.literal(this.id))).withStyle((p_10441_) -> {
-            return p_10441_.withColor(p_10438_ ? ChatFormatting.GREEN : ChatFormatting.RED).withInsertion(StringArgumentType.escapeIfRequired(this.id)).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.empty().append(this.title).append("\n").append(this.description)));
+            return p_10441_.withColor(pGreen ? ChatFormatting.GREEN : ChatFormatting.RED).withInsertion(StringArgumentType.escapeIfRequired(this.id)).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.empty().append(this.title).append("\n").append(this.description)));
         });
     }
 
@@ -131,13 +131,13 @@ public class Pack {
         return this.packSource;
     }
 
-    public boolean equals(Object p_10448_) {
-        if (this == p_10448_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_10448_ instanceof Pack)) {
+        } else if (!(pOther instanceof Pack)) {
             return false;
         } else {
-            Pack pack = (Pack) p_10448_;
+            Pack pack = (Pack) pOther;
             return this.id.equals(pack.id);
         }
     }
@@ -149,7 +149,7 @@ public class Pack {
     @FunctionalInterface
     public interface PackConstructor {
         @Nullable
-        Pack create(String p_143874_, Component p_143875_, boolean p_143876_, Supplier<PackResources> p_143877_, PackMetadataSection p_143878_, Pack.Position p_143879_, PackSource p_143880_);
+        Pack create(String pId, Component pTitle, boolean pRequired, Supplier<PackResources> pSupplier, PackMetadataSection pMetadata, Pack.Position pDefaultPosition, PackSource pPackSource);
     }
 
     public static enum Position {

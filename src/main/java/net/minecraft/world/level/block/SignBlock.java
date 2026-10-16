@@ -36,20 +36,20 @@ public abstract class SignBlock extends BaseEntityBlock implements SimpleWaterlo
     protected static final VoxelShape SHAPE = Block.box(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D);
     private final WoodType type;
 
-    protected SignBlock(BlockBehaviour.Properties p_56273_, WoodType p_56274_) {
-        super(p_56273_);
-        this.type = p_56274_;
+    protected SignBlock(BlockBehaviour.Properties pProperties, WoodType pType) {
+        super(pProperties);
+        this.type = pType;
     }
 
-    public BlockState updateShape(BlockState p_56285_, Direction p_56286_, BlockState p_56287_, LevelAccessor p_56288_, BlockPos p_56289_, BlockPos p_56290_) {
-        if (p_56285_.getValue(WATERLOGGED)) {
-            p_56288_.scheduleTick(p_56289_, Fluids.WATER, Fluids.WATER.getTickDelay(p_56288_));
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return super.updateShape(p_56285_, p_56286_, p_56287_, p_56288_, p_56289_, p_56290_);
+        return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    public VoxelShape getShape(BlockState p_56293_, BlockGetter p_56294_, BlockPos p_56295_, CollisionContext p_56296_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
@@ -57,21 +57,21 @@ public abstract class SignBlock extends BaseEntityBlock implements SimpleWaterlo
         return true;
     }
 
-    public BlockEntity newBlockEntity(BlockPos p_154556_, BlockState p_154557_) {
-        return new SignBlockEntity(p_154556_, p_154557_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new SignBlockEntity(pPos, pState);
     }
 
-    public InteractionResult use(BlockState p_56278_, Level p_56279_, BlockPos p_56280_, Player p_56281_, InteractionHand p_56282_, BlockHitResult p_56283_) {
-        ItemStack itemstack = p_56281_.getItemInHand(p_56282_);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         Item item = itemstack.getItem();
         boolean flag = item instanceof DyeItem;
         boolean flag1 = itemstack.is(Items.GLOW_INK_SAC);
         boolean flag2 = itemstack.is(Items.INK_SAC);
-        boolean flag3 = (flag1 || flag || flag2) && p_56281_.getAbilities().mayBuild;
-        if (p_56279_.isClientSide) {
+        boolean flag3 = (flag1 || flag || flag2) && pPlayer.getAbilities().mayBuild;
+        if (pLevel.isClientSide) {
             return flag3 ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         } else {
-            BlockEntity blockentity = p_56279_.getBlockEntity(p_56280_);
+            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
             if (!(blockentity instanceof SignBlockEntity)) {
                 return InteractionResult.PASS;
             } else {
@@ -81,29 +81,29 @@ public abstract class SignBlock extends BaseEntityBlock implements SimpleWaterlo
                     if (flag3) {
                         boolean flag5;
                         if (flag1) {
-                            p_56279_.playSound((Player) null, p_56280_, SoundEvents.GLOW_INK_SAC_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                            pLevel.playSound((Player) null, pPos, SoundEvents.GLOW_INK_SAC_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
                             flag5 = signblockentity.setHasGlowingText(true);
-                            if (p_56281_ instanceof ServerPlayer) {
-                                CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer) p_56281_, p_56280_, itemstack);
+                            if (pPlayer instanceof ServerPlayer) {
+                                CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer) pPlayer, pPos, itemstack);
                             }
                         } else if (flag2) {
-                            p_56279_.playSound((Player) null, p_56280_, SoundEvents.INK_SAC_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                            pLevel.playSound((Player) null, pPos, SoundEvents.INK_SAC_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
                             flag5 = signblockentity.setHasGlowingText(false);
                         } else {
-                            p_56279_.playSound((Player) null, p_56280_, SoundEvents.DYE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                            pLevel.playSound((Player) null, pPos, SoundEvents.DYE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
                             flag5 = signblockentity.setColor(((DyeItem) item).getDyeColor());
                         }
 
                         if (flag5) {
-                            if (!p_56281_.isCreative()) {
+                            if (!pPlayer.isCreative()) {
                                 itemstack.shrink(1);
                             }
 
-                            p_56281_.awardStat(Stats.ITEM_USED.get(item));
+                            pPlayer.awardStat(Stats.ITEM_USED.get(item));
                         }
                     }
 
-                    return signblockentity.executeClickCommands((ServerPlayer) p_56281_) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                    return signblockentity.executeClickCommands((ServerPlayer) pPlayer) ? InteractionResult.SUCCESS : InteractionResult.PASS;
                 } else {
                     return InteractionResult.PASS;
                 }
@@ -111,8 +111,8 @@ public abstract class SignBlock extends BaseEntityBlock implements SimpleWaterlo
         }
     }
 
-    public FluidState getFluidState(BlockState p_56299_) {
-        return p_56299_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_56299_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
     public WoodType type() {

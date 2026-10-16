@@ -12,9 +12,9 @@ public interface StructurePoolElementType<P extends StructurePoolElement> {
 
     Codec<P> codec();
 
-    static <P extends StructurePoolElement> StructurePoolElementType<P> register(String p_210551_, Codec<P> p_210552_) {
-        return Registry.register(Registry.STRUCTURE_POOL_ELEMENT, p_210551_, () -> {
-            return p_210552_;
+    static <P extends StructurePoolElement> StructurePoolElementType<P> register(String pName, Codec<P> pCodec) {
+        return Registry.register(Registry.STRUCTURE_POOL_ELEMENT, pName, () -> {
+            return pCodec;
         });
     }
 }

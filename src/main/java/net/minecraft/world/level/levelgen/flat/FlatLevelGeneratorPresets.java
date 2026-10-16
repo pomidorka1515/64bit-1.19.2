@@ -29,12 +29,12 @@ public class FlatLevelGeneratorPresets {
     public static final ResourceKey<FlatLevelGeneratorPreset> REDSTONE_READY = register("redstone_ready");
     public static final ResourceKey<FlatLevelGeneratorPreset> THE_VOID = register("the_void");
 
-    public static Holder<FlatLevelGeneratorPreset> bootstrap(Registry<FlatLevelGeneratorPreset> p_226275_) {
-        return (new FlatLevelGeneratorPresets.Bootstrap(p_226275_)).run();
+    public static Holder<FlatLevelGeneratorPreset> bootstrap(Registry<FlatLevelGeneratorPreset> pRegistry) {
+        return (new FlatLevelGeneratorPresets.Bootstrap(pRegistry)).run();
     }
 
-    private static ResourceKey<FlatLevelGeneratorPreset> register(String p_226277_) {
-        return ResourceKey.create(Registry.FLAT_LEVEL_GENERATOR_PRESET_REGISTRY, new ResourceLocation(p_226277_));
+    private static ResourceKey<FlatLevelGeneratorPreset> register(String pName) {
+        return ResourceKey.create(Registry.FLAT_LEVEL_GENERATOR_PRESET_REGISTRY, new ResourceLocation(pName));
     }
 
     static class Bootstrap {
@@ -42,30 +42,30 @@ public class FlatLevelGeneratorPresets {
         private final Registry<Biome> biomes = BuiltinRegistries.BIOME;
         private final Registry<StructureSet> structureSets = BuiltinRegistries.STRUCTURE_SETS;
 
-        Bootstrap(Registry<FlatLevelGeneratorPreset> p_226282_) {
-            this.presets = p_226282_;
+        Bootstrap(Registry<FlatLevelGeneratorPreset> pPresets) {
+            this.presets = pPresets;
         }
 
-        private Holder<FlatLevelGeneratorPreset> register(ResourceKey<FlatLevelGeneratorPreset> p_226287_, ItemLike p_226288_, ResourceKey<Biome> p_226289_, Set<ResourceKey<StructureSet>> p_226290_, boolean p_226291_, boolean p_226292_, FlatLayerInfo... p_226293_) {
-            HolderSet.Direct<StructureSet> direct = HolderSet.direct(p_226290_.stream().flatMap((p_226285_) -> {
+        private Holder<FlatLevelGeneratorPreset> register(ResourceKey<FlatLevelGeneratorPreset> pPresets, ItemLike pDisplayItem, ResourceKey<Biome> pBiomeKey, Set<ResourceKey<StructureSet>> pStructureKeys, boolean pSetDecoration, boolean pAddLakes, FlatLayerInfo... pFlatLayerInfo) {
+            HolderSet.Direct<StructureSet> direct = HolderSet.direct(pStructureKeys.stream().flatMap((p_226285_) -> {
                                                                                            return this.structureSets.getHolder(p_226285_).stream();
                                                                                        })
                             .collect(Collectors.toList()));
             FlatLevelGeneratorSettings flatlevelgeneratorsettings = new FlatLevelGeneratorSettings(Optional.of(direct), this.biomes);
-            if (p_226291_) {
+            if (pSetDecoration) {
                 flatlevelgeneratorsettings.setDecoration();
             }
 
-            if (p_226292_) {
+            if (pAddLakes) {
                 flatlevelgeneratorsettings.setAddLakes();
             }
 
-            for (int i = p_226293_.length - 1; i >= 0; --i) {
-                flatlevelgeneratorsettings.getLayersInfo().add(p_226293_[i]);
+            for (int i = pFlatLayerInfo.length - 1; i >= 0; --i) {
+                flatlevelgeneratorsettings.getLayersInfo().add(pFlatLayerInfo[i]);
             }
 
-            flatlevelgeneratorsettings.setBiome(this.biomes.getOrCreateHolderOrThrow(p_226289_));
-            return BuiltinRegistries.register(this.presets, p_226287_, new FlatLevelGeneratorPreset(p_226288_.asItem().builtInRegistryHolder(), flatlevelgeneratorsettings));
+            flatlevelgeneratorsettings.setBiome(this.biomes.getOrCreateHolderOrThrow(pBiomeKey));
+            return BuiltinRegistries.register(this.presets, pPresets, new FlatLevelGeneratorPreset(pDisplayItem.asItem().builtInRegistryHolder(), flatlevelgeneratorsettings));
         }
 
         public Holder<FlatLevelGeneratorPreset> run() {

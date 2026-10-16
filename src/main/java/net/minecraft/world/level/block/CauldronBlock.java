@@ -19,47 +19,47 @@ public class CauldronBlock extends AbstractCauldronBlock {
         super(p_51403_, CauldronInteraction.EMPTY);
     }
 
-    public boolean isFull(BlockState p_152947_) {
+    public boolean isFull(BlockState pState) {
         return false;
     }
 
-    protected static boolean shouldHandlePrecipitation(Level p_182451_, Biome.Precipitation p_182452_) {
-        if (p_182452_ == Biome.Precipitation.RAIN) {
-            return p_182451_.getRandom().nextFloat() < 0.05F;
-        } else if (p_182452_ == Biome.Precipitation.SNOW) {
-            return p_182451_.getRandom().nextFloat() < 0.1F;
+    protected static boolean shouldHandlePrecipitation(Level pLevel, Biome.Precipitation pPrecipitation) {
+        if (pPrecipitation == Biome.Precipitation.RAIN) {
+            return pLevel.getRandom().nextFloat() < 0.05F;
+        } else if (pPrecipitation == Biome.Precipitation.SNOW) {
+            return pLevel.getRandom().nextFloat() < 0.1F;
         } else {
             return false;
         }
     }
 
-    public void handlePrecipitation(BlockState p_152935_, Level p_152936_, BlockPos p_152937_, Biome.Precipitation p_152938_) {
-        if (shouldHandlePrecipitation(p_152936_, p_152938_)) {
-            if (p_152938_ == Biome.Precipitation.RAIN) {
-                p_152936_.setBlockAndUpdate(p_152937_, Blocks.WATER_CAULDRON.defaultBlockState());
-                p_152936_.gameEvent((Entity) null, GameEvent.BLOCK_CHANGE, p_152937_);
-            } else if (p_152938_ == Biome.Precipitation.SNOW) {
-                p_152936_.setBlockAndUpdate(p_152937_, Blocks.POWDER_SNOW_CAULDRON.defaultBlockState());
-                p_152936_.gameEvent((Entity) null, GameEvent.BLOCK_CHANGE, p_152937_);
+    public void handlePrecipitation(BlockState pState, Level pLevel, BlockPos pPos, Biome.Precipitation pPrecipitation) {
+        if (shouldHandlePrecipitation(pLevel, pPrecipitation)) {
+            if (pPrecipitation == Biome.Precipitation.RAIN) {
+                pLevel.setBlockAndUpdate(pPos, Blocks.WATER_CAULDRON.defaultBlockState());
+                pLevel.gameEvent((Entity) null, GameEvent.BLOCK_CHANGE, pPos);
+            } else if (pPrecipitation == Biome.Precipitation.SNOW) {
+                pLevel.setBlockAndUpdate(pPos, Blocks.POWDER_SNOW_CAULDRON.defaultBlockState());
+                pLevel.gameEvent((Entity) null, GameEvent.BLOCK_CHANGE, pPos);
             }
         }
     }
 
-    protected boolean canReceiveStalactiteDrip(Fluid p_152945_) {
+    protected boolean canReceiveStalactiteDrip(Fluid pFluid) {
         return true;
     }
 
-    protected void receiveStalactiteDrip(BlockState p_152940_, Level p_152941_, BlockPos p_152942_, Fluid p_152943_) {
-        if (p_152943_ == Fluids.WATER) {
+    protected void receiveStalactiteDrip(BlockState pState, Level pLevel, BlockPos pPos, Fluid pFluid) {
+        if (pFluid == Fluids.WATER) {
             BlockState blockstate = Blocks.WATER_CAULDRON.defaultBlockState();
-            p_152941_.setBlockAndUpdate(p_152942_, blockstate);
-            p_152941_.gameEvent(GameEvent.BLOCK_CHANGE, p_152942_, GameEvent.Context.of(blockstate));
-            p_152941_.levelEvent(1047, p_152942_, 0);
-        } else if (p_152943_ == Fluids.LAVA) {
+            pLevel.setBlockAndUpdate(pPos, blockstate);
+            pLevel.gameEvent(GameEvent.BLOCK_CHANGE, pPos, GameEvent.Context.of(blockstate));
+            pLevel.levelEvent(1047, pPos, 0);
+        } else if (pFluid == Fluids.LAVA) {
             BlockState blockstate1 = Blocks.LAVA_CAULDRON.defaultBlockState();
-            p_152941_.setBlockAndUpdate(p_152942_, blockstate1);
-            p_152941_.gameEvent(GameEvent.BLOCK_CHANGE, p_152942_, GameEvent.Context.of(blockstate1));
-            p_152941_.levelEvent(1046, p_152942_, 0);
+            pLevel.setBlockAndUpdate(pPos, blockstate1);
+            pLevel.gameEvent(GameEvent.BLOCK_CHANGE, pPos, GameEvent.Context.of(blockstate1));
+            pLevel.levelEvent(1046, pPos, 0);
         }
     }
 }

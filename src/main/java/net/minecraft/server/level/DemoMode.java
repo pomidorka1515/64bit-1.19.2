@@ -19,8 +19,8 @@ public class DemoMode extends ServerPlayerGameMode {
     private int demoEndedReminder;
     private int gameModeTicks;
 
-    public DemoMode(ServerPlayer p_143204_) {
-        super(p_143204_);
+    public DemoMode(ServerPlayer pPlayer) {
+        super(pPlayer);
     }
 
     public void tick() {
@@ -66,29 +66,29 @@ public class DemoMode extends ServerPlayerGameMode {
         }
     }
 
-    public void handleBlockBreakAction(BlockPos p_214976_, ServerboundPlayerActionPacket.Action p_214977_, Direction p_214978_, int p_214979_, int p_214980_) {
+    public void handleBlockBreakAction(BlockPos pPos, ServerboundPlayerActionPacket.Action pAction, Direction pFace, int pMaxBuildHeight, int pSequence) {
         if (this.demoHasEnded) {
             this.outputDemoReminder();
         } else {
-            super.handleBlockBreakAction(p_214976_, p_214977_, p_214978_, p_214979_, p_214980_);
+            super.handleBlockBreakAction(pPos, pAction, pFace, pMaxBuildHeight, pSequence);
         }
     }
 
-    public InteractionResult useItem(ServerPlayer p_140742_, Level p_140743_, ItemStack p_140744_, InteractionHand p_140745_) {
+    public InteractionResult useItem(ServerPlayer pPlayer, Level pLevel, ItemStack pStack, InteractionHand pHand) {
         if (this.demoHasEnded) {
             this.outputDemoReminder();
             return InteractionResult.PASS;
         } else {
-            return super.useItem(p_140742_, p_140743_, p_140744_, p_140745_);
+            return super.useItem(pPlayer, pLevel, pStack, pHand);
         }
     }
 
-    public InteractionResult useItemOn(ServerPlayer p_140747_, Level p_140748_, ItemStack p_140749_, InteractionHand p_140750_, BlockHitResult p_140751_) {
+    public InteractionResult useItemOn(ServerPlayer pPlayer, Level pLevel, ItemStack pStack, InteractionHand pHand, BlockHitResult pHitResult) {
         if (this.demoHasEnded) {
             this.outputDemoReminder();
             return InteractionResult.PASS;
         } else {
-            return super.useItemOn(p_140747_, p_140748_, p_140749_, p_140750_, p_140751_);
+            return super.useItemOn(pPlayer, pLevel, pStack, pHand, pHitResult);
         }
     }
 }

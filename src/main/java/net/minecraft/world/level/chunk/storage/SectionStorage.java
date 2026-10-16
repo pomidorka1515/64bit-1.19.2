@@ -51,18 +51,18 @@ public class SectionStorage<R> implements AutoCloseable {
     private final RegistryAccess registryAccess;
     protected final LevelHeightAccessor levelHeightAccessor;
 
-    public SectionStorage(Path p_223509_, Function<Runnable, Codec<R>> p_223510_, Function<Runnable, R> p_223511_, DataFixer p_223512_, DataFixTypes p_223513_, boolean p_223514_, RegistryAccess p_223515_, LevelHeightAccessor p_223516_) {
-        this.codec = p_223510_;
-        this.factory = p_223511_;
-        this.fixerUpper = p_223512_;
-        this.type = p_223513_;
-        this.registryAccess = p_223515_;
-        this.levelHeightAccessor = p_223516_;
-        this.worker = new IOWorker(p_223509_, p_223514_, p_223509_.getFileName().toString());
+    public SectionStorage(Path pFolder, Function<Runnable, Codec<R>> pCodec, Function<Runnable, R> pFactory, DataFixer pFixerUpper, DataFixTypes pType, boolean pSync, RegistryAccess pRegistryAccess, LevelHeightAccessor pLevelHeightAccessor) {
+        this.codec = pCodec;
+        this.factory = pFactory;
+        this.fixerUpper = pFixerUpper;
+        this.type = pType;
+        this.registryAccess = pRegistryAccess;
+        this.levelHeightAccessor = pLevelHeightAccessor;
+        this.worker = new IOWorker(pFolder, pSync, pFolder.getFileName().toString());
     }
 
-    protected void tick(BooleanSupplier p_63812_) {
-        while (this.hasWork() && p_63812_.getAsBoolean()) {
+    protected void tick(BooleanSupplier pAheadOfTime) {
+        while (this.hasWork() && pAheadOfTime.getAsBoolean()) {
             ChunkPos chunkpos = this.dirty.first().chunk();
             this.writeColumn(chunkpos);
         }
@@ -73,20 +73,20 @@ public class SectionStorage<R> implements AutoCloseable {
     }
 
     @Nullable
-    protected Optional<R> get(SectionPos p_63819_) {
-        return this.storage.get(p_63819_);
+    protected Optional<R> get(SectionPos pSectionKey) {
+        return this.storage.get(pSectionKey);
     }
 
-    protected Optional<R> getOrLoad(SectionPos p_63824_) {
-        if (this.outsideStoredRange(p_63824_)) {
+    protected Optional<R> getOrLoad(SectionPos pSectionKey) {
+        if (this.outsideStoredRange(pSectionKey)) {
             return Optional.empty();
         } else {
-            Optional<R> optional = this.get(p_63824_);
+            Optional<R> optional = this.get(pSectionKey);
             if (optional != null) {
                 return optional;
             } else {
-                this.readColumn(p_63824_.chunk());
-                optional = this.get(p_63824_);
+                this.readColumn(pSectionKey.chunk());
+                optional = this.get(pSectionKey);
                 if (optional == null) {
                     throw (IllegalStateException) Util.pauseInIde(new IllegalStateException());
                 } else {
@@ -96,38 +96,38 @@ public class SectionStorage<R> implements AutoCloseable {
         }
     }
 
-    protected boolean outsideStoredRange(SectionPos p_156631_) {
-        int i = SectionPos.sectionToBlockCoord(p_156631_.y());
+    protected boolean outsideStoredRange(SectionPos pSectionKey) {
+        int i = SectionPos.sectionToBlockCoord(pSectionKey.y());
         return this.levelHeightAccessor.isOutsideBuildHeight(i);
     }
 
-    protected R getOrCreate(SectionPos p_63828_) {
-        if (this.outsideStoredRange(p_63828_)) {
+    protected R getOrCreate(SectionPos pSectionKey) {
+        if (this.outsideStoredRange(pSectionKey)) {
             throw (IllegalArgumentException) Util.pauseInIde(new IllegalArgumentException("sectionPos out of bounds"));
         } else {
-            Optional<R> optional = this.getOrLoad(p_63828_);
+            Optional<R> optional = this.getOrLoad(pSectionKey);
             if (optional.isPresent()) {
                 return optional.get();
             } else {
                 R r = this.factory.apply(() -> {
-                    this.setDirty(p_63828_);
+                    this.setDirty(pSectionKey);
                 });
-                this.storage.put(p_63828_, Optional.of(r));
+                this.storage.put(pSectionKey, Optional.of(r));
                 return r;
             }
         }
     }
 
-    private void readColumn(ChunkPos p_63815_) {
-        Optional<CompoundTag> optional = this.tryRead(p_63815_).join();
+    private void readColumn(ChunkPos pChunkPos) {
+        Optional<CompoundTag> optional = this.tryRead(pChunkPos).join();
         RegistryOps<Tag> registryops = RegistryOps.create(NbtOps.INSTANCE, this.registryAccess);
-        this.readColumn(p_63815_, registryops, optional.orElse((CompoundTag) null));
+        this.readColumn(pChunkPos, registryops, optional.orElse((CompoundTag) null));
     }
 
-    private CompletableFuture<Optional<CompoundTag>> tryRead(ChunkPos p_223533_) {
-        return this.worker.loadAsync(p_223533_).exceptionally((p_223526_) -> {
+    private CompletableFuture<Optional<CompoundTag>> tryRead(ChunkPos pChunkPos) {
+        return this.worker.loadAsync(pChunkPos).exceptionally((p_223526_) -> {
             if (p_223526_ instanceof IOException ioexception) {
-                LOGGER.error("Error reading chunk {} data from disk", p_223533_, ioexception);
+                LOGGER.error("Error reading chunk {} data from disk", pChunkPos, ioexception);
                 return Optional.empty();
             } else {
                 throw new CompletionException(p_223526_);
@@ -135,13 +135,13 @@ public class SectionStorage<R> implements AutoCloseable {
         });
     }
 
-    private <T> void readColumn(ChunkPos p_63802_, DynamicOps<T> p_63803_, @Nullable T p_63804_) {
-        if (p_63804_ == null) {
+    private <T> void readColumn(ChunkPos pChunkPos, DynamicOps<T> pOps, @Nullable T pValue) {
+        if (pValue == null) {
             for (int i = this.levelHeightAccessor.getMinSection(); i < this.levelHeightAccessor.getMaxSection(); ++i) {
-                this.storage.put(getKey(p_63802_, i), Optional.empty());
+                this.storage.put(getKey(pChunkPos, i), Optional.empty());
             }
         } else {
-            Dynamic<T> dynamic1 = new Dynamic<>(p_63803_, p_63804_);
+            Dynamic<T> dynamic1 = new Dynamic<>(pOps, pValue);
             int j = getVersion(dynamic1);
             int k = SharedConstants.getCurrentVersion().getWorldVersion();
             boolean flag = j != k;
@@ -149,7 +149,7 @@ public class SectionStorage<R> implements AutoCloseable {
             OptionalDynamic<T> optionaldynamic = dynamic.get("Sections");
 
             for (int l = this.levelHeightAccessor.getMinSection(); l < this.levelHeightAccessor.getMaxSection(); ++l) {
-                SectionPos i1 = getKey(p_63802_, l);
+                SectionPos i1 = getKey(pChunkPos, l);
                 Optional<R> optional = optionaldynamic.get(Integer.toString(l)).result().flatMap((p_223519_) -> {
                     return this.codec.apply(() -> {
                                          this.setDirty(i1);
@@ -168,65 +168,65 @@ public class SectionStorage<R> implements AutoCloseable {
         }
     }
 
-    private void writeColumn(ChunkPos p_63826_) {
+    private void writeColumn(ChunkPos pChunkPos) {
         RegistryOps<Tag> registryops = RegistryOps.create(NbtOps.INSTANCE, this.registryAccess);
-        Dynamic<Tag> dynamic = this.writeColumn(p_63826_, registryops);
+        Dynamic<Tag> dynamic = this.writeColumn(pChunkPos, registryops);
         Tag tag = dynamic.getValue();
         if (tag instanceof CompoundTag) {
-            this.worker.store(p_63826_, (CompoundTag) tag);
+            this.worker.store(pChunkPos, (CompoundTag) tag);
         } else {
             LOGGER.error("Expected compound tag, got {}", (Object) tag);
         }
     }
 
-    private <T> Dynamic<T> writeColumn(ChunkPos p_63799_, DynamicOps<T> p_63800_) {
+    private <T> Dynamic<T> writeColumn(ChunkPos pChunkPos, DynamicOps<T> pOps) {
         Map<T, T> map = Maps.newHashMap();
 
         for (int i = this.levelHeightAccessor.getMinSection(); i < this.levelHeightAccessor.getMaxSection(); ++i) {
-            SectionPos j = getKey(p_63799_, i);
+            SectionPos j = getKey(pChunkPos, i);
             this.dirty.remove(j);
             Optional<R> optional = this.storage.get(j);
             if (optional != null && optional.isPresent()) {
                 DataResult<T> dataresult = this.codec.apply(() -> {
                                                          this.setDirty(j);
                                                      })
-                                                   .encodeStart(p_63800_, optional.get());
+                                                   .encodeStart(pOps, optional.get());
                 String s = Integer.toString(i);
                 dataresult.resultOrPartial(LOGGER::error).ifPresent((p_223531_) -> {
-                    map.put(p_63800_.createString(s), p_223531_);
+                    map.put(pOps.createString(s), p_223531_);
                 });
             }
         }
 
-        return new Dynamic<>(p_63800_, p_63800_.createMap(ImmutableMap.of(p_63800_.createString("Sections"), p_63800_.createMap(map), p_63800_.createString("DataVersion"), p_63800_.createInt(SharedConstants.getCurrentVersion().getWorldVersion()))));
+        return new Dynamic<>(pOps, pOps.createMap(ImmutableMap.of(pOps.createString("Sections"), pOps.createMap(map), pOps.createString("DataVersion"), pOps.createInt(SharedConstants.getCurrentVersion().getWorldVersion()))));
     }
 
-    private static SectionPos getKey(ChunkPos p_156628_, int p_156629_) {
-        return SectionPos.of(p_156628_.x, p_156629_, p_156628_.z);
+    private static SectionPos getKey(ChunkPos pChunkPos, int pSectionY) {
+        return SectionPos.of(pChunkPos.x, pSectionY, pChunkPos.z);
     }
 
-    protected void onSectionLoad(SectionPos p_63813_) {
+    protected void onSectionLoad(SectionPos pSectionKey) {
     }
 
-    protected void setDirty(SectionPos p_63788_) {
-        Optional<R> optional = this.storage.get(p_63788_);
+    protected void setDirty(SectionPos pSectionPos) {
+        Optional<R> optional = this.storage.get(pSectionPos);
         if (optional != null && optional.isPresent()) {
-            this.dirty.add(p_63788_);
+            this.dirty.add(pSectionPos);
         } else {
-            LOGGER.warn("No data for position: {}", p_63788_);
+            LOGGER.warn("No data for position: {}", pSectionPos);
         }
     }
 
-    private static int getVersion(Dynamic<?> p_63806_) {
-        return p_63806_.get("DataVersion").asInt(1945);
+    private static int getVersion(Dynamic<?> pColumnData) {
+        return pColumnData.get("DataVersion").asInt(1945);
     }
 
-    public void flush(ChunkPos p_63797_) {
+    public void flush(ChunkPos pChunkPos) {
         if (this.hasWork()) {
             for (int i = this.levelHeightAccessor.getMinSection(); i < this.levelHeightAccessor.getMaxSection(); ++i) {
-                SectionPos j = getKey(p_63797_, i);
+                SectionPos j = getKey(pChunkPos, i);
                 if (this.dirty.contains(j)) {
-                    this.writeColumn(p_63797_);
+                    this.writeColumn(pChunkPos);
                     return;
                 }
             }

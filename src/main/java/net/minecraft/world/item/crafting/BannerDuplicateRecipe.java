@@ -11,17 +11,17 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 
 public class BannerDuplicateRecipe extends CustomRecipe {
-    public BannerDuplicateRecipe(ResourceLocation p_43773_) {
-        super(p_43773_);
+    public BannerDuplicateRecipe(ResourceLocation pId) {
+        super(pId);
     }
 
-    public boolean matches(CraftingContainer p_43785_, Level p_43786_) {
+    public boolean matches(CraftingContainer pInv, Level pLevel) {
         DyeColor dyecolor = null;
         ItemStack itemstack = null;
         ItemStack itemstack1 = null;
 
-        for (int i = 0; i < p_43785_.getContainerSize(); ++i) {
-            ItemStack itemstack2 = p_43785_.getItem(i);
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack2 = pInv.getItem(i);
             if (!itemstack2.isEmpty()) {
                 Item item = itemstack2.getItem();
                 if (!(item instanceof BannerItem)) {
@@ -59,9 +59,9 @@ public class BannerDuplicateRecipe extends CustomRecipe {
         return itemstack != null && itemstack1 != null;
     }
 
-    public ItemStack assemble(CraftingContainer p_43783_) {
-        for (int i = 0; i < p_43783_.getContainerSize(); ++i) {
-            ItemStack itemstack = p_43783_.getItem(i);
+    public ItemStack assemble(CraftingContainer pInv) {
+        for (int i = 0; i < pInv.getContainerSize(); ++i) {
+            ItemStack itemstack = pInv.getItem(i);
             if (!itemstack.isEmpty()) {
                 int j = BannerBlockEntity.getPatternCount(itemstack);
                 if (j > 0 && j <= 6) {
@@ -75,11 +75,11 @@ public class BannerDuplicateRecipe extends CustomRecipe {
         return ItemStack.EMPTY;
     }
 
-    public NonNullList<ItemStack> getRemainingItems(CraftingContainer p_43791_) {
-        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(p_43791_.getContainerSize(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingContainer pInv) {
+        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(pInv.getContainerSize(), ItemStack.EMPTY);
 
         for (int i = 0; i < nonnulllist.size(); ++i) {
-            ItemStack itemstack = p_43791_.getItem(i);
+            ItemStack itemstack = pInv.getItem(i);
             if (!itemstack.isEmpty()) {
                 if (itemstack.getItem().hasCraftingRemainingItem()) {
                     nonnulllist.set(i, new ItemStack(itemstack.getItem().getCraftingRemainingItem()));
@@ -98,7 +98,7 @@ public class BannerDuplicateRecipe extends CustomRecipe {
         return RecipeSerializer.BANNER_DUPLICATE;
     }
 
-    public boolean canCraftInDimensions(int p_43775_, int p_43776_) {
-        return p_43775_ * p_43776_ >= 2;
+    public boolean canCraftInDimensions(int pWidth, int pHeight) {
+        return pWidth * pHeight >= 2;
     }
 }

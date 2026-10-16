@@ -10,15 +10,15 @@ public class EntityTheRenameningFix extends SimplestEntityRenameFix {
     public static final Map<String, String> RENAMED_ITEMS = ImmutableMap.<String, String>builder().putAll(RENAMED_BLOCKS).put("minecraft:clownfish", "minecraft:tropical_fish").put("minecraft:chorus_fruit_popped", "minecraft:popped_chorus_fruit").put("minecraft:evocation_illager_spawn_egg", "minecraft:evoker_spawn_egg").put("minecraft:vindication_illager_spawn_egg", "minecraft:vindicator_spawn_egg").build();
     private static final String MINECRAFT_BRED = "minecraft:bred_";
 
-    public EntityTheRenameningFix(Schema p_15706_, boolean p_15707_) {
-        super("EntityTheRenameningBlock", p_15706_, p_15707_);
+    public EntityTheRenameningFix(Schema pOutputSchema, boolean pChangesType) {
+        super("EntityTheRenameningBlock", pOutputSchema, pChangesType);
     }
 
-    protected String rename(String p_15709_) {
-        if (p_15709_.startsWith("minecraft:bred_")) {
-            p_15709_ = "minecraft:" + p_15709_.substring("minecraft:bred_".length());
+    protected String rename(String pName) {
+        if (pName.startsWith("minecraft:bred_")) {
+            pName = "minecraft:" + pName.substring("minecraft:bred_".length());
         }
 
-        return RENAMED_IDS.getOrDefault(p_15709_, p_15709_);
+        return RENAMED_IDS.getOrDefault(pName, pName);
     }
 }

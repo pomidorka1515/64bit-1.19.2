@@ -21,18 +21,18 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 
 public class RegistryCodecs {
-    private static <T> MapCodec<RegistryCodecs.RegistryEntry<T>> withNameAndId(ResourceKey<? extends Registry<T>> p_206304_, MapCodec<T> p_206305_) {
+    private static <T> MapCodec<RegistryCodecs.RegistryEntry<T>> withNameAndId(ResourceKey<? extends Registry<T>> pRegistryKey, MapCodec<T> pElementCodec) {
         return RecordCodecBuilder.mapCodec((p_206309_) -> {
-            return p_206309_.group(ResourceKey.codec(p_206304_).fieldOf("name").forGetter(RegistryCodecs.RegistryEntry::key), Codec.INT.fieldOf("id").forGetter(RegistryCodecs.RegistryEntry::id), p_206305_.forGetter(RegistryCodecs.RegistryEntry::value)).apply(p_206309_, RegistryCodecs.RegistryEntry::new);
+            return p_206309_.group(ResourceKey.codec(pRegistryKey).fieldOf("name").forGetter(RegistryCodecs.RegistryEntry::key), Codec.INT.fieldOf("id").forGetter(RegistryCodecs.RegistryEntry::id), pElementCodec.forGetter(RegistryCodecs.RegistryEntry::value)).apply(p_206309_, RegistryCodecs.RegistryEntry::new);
         });
     }
 
-    public static <T> Codec<Registry<T>> networkCodec(ResourceKey<? extends Registry<T>> p_206292_, Lifecycle p_206293_, Codec<T> p_206294_) {
-        return withNameAndId(p_206292_, p_206294_.fieldOf("element")).codec().listOf().xmap((p_206298_) -> {
-         WritableRegistry<T> writableregistry = new MappedRegistry<>(p_206292_, p_206293_, (Function<T, Holder.Reference<T>>)null);
+    public static <T> Codec<Registry<T>> networkCodec(ResourceKey<? extends Registry<T>> pRegistryKey, Lifecycle pLifecycle, Codec<T> pElementCodec) {
+        return withNameAndId(pRegistryKey, pElementCodec.fieldOf("element")).codec().listOf().xmap((p_206298_) -> {
+         WritableRegistry<T> writableregistry = new MappedRegistry<>(pRegistryKey, pLifecycle, (Function<T, Holder.Reference<T>>)null);
 
          for(RegistryCodecs.RegistryEntry<T> registryentry : p_206298_) {
-            writableregistry.registerMapping(registryentry.id(), registryentry.key(), registryentry.value(), p_206293_);
+            writableregistry.registerMapping(registryentry.id(), registryentry.key(), registryentry.value(), pLifecycle);
          }
 
          return writableregistry; }, (p_206314_) -> {
@@ -45,19 +45,19 @@ public class RegistryCodecs {
          return builder.build(); });
     }
 
-    public static <E> Codec<Registry<E>> dataPackAwareCodec(ResourceKey<? extends Registry<E>> p_206319_, Lifecycle p_206320_, Codec<E> p_206321_) {
-        Codec<Map<ResourceKey<E>, E>> codec = directCodec(p_206319_, p_206321_);
+    public static <E> Codec<Registry<E>> dataPackAwareCodec(ResourceKey<? extends Registry<E>> pRegistryKey, Lifecycle pLifecycle, Codec<E> pElementCodec) {
+        Codec<Map<ResourceKey<E>, E>> codec = directCodec(pRegistryKey, pElementCodec);
         Encoder<Registry<E>> encoder = codec.comap((p_206271_) -> {
             return ImmutableMap.copyOf(p_206271_.entrySet());
         });
-        return Codec.of(encoder, dataPackAwareDecoder(p_206319_, p_206321_, codec, p_206320_), "DataPackRegistryCodec for " + p_206319_);
+        return Codec.of(encoder, dataPackAwareDecoder(pRegistryKey, pElementCodec, codec, pLifecycle), "DataPackRegistryCodec for " + pRegistryKey);
     }
 
-    private static <E> Decoder<Registry<E>> dataPackAwareDecoder(final ResourceKey<? extends Registry<E>> p_206283_, final Codec<E> p_206284_, Decoder<Map<ResourceKey<E>, E>> p_206285_, Lifecycle p_206286_) {
-        final Decoder<WritableRegistry<E>> decoder = p_206285_.map((p_206302_) -> {
-            WritableRegistry<E> writableregistry = new MappedRegistry<>(p_206283_, p_206286_, (Function<E, Holder.Reference<E>>) null);
+    private static <E> Decoder<Registry<E>> dataPackAwareDecoder(final ResourceKey<? extends Registry<E>> pRegistryKey, final Codec<E> pElementCodec, Decoder<Map<ResourceKey<E>, E>> pDirectDecoder, Lifecycle pLifecycle) {
+        final Decoder<WritableRegistry<E>> decoder = pDirectDecoder.map((p_206302_) -> {
+            WritableRegistry<E> writableregistry = new MappedRegistry<>(pRegistryKey, pLifecycle, (Function<E, Holder.Reference<E>>) null);
             p_206302_.forEach((p_206275_, p_206276_) -> {
-                writableregistry.register(p_206275_, p_206276_, p_206286_);
+                writableregistry.register(p_206275_, p_206276_, pLifecycle);
             });
             return writableregistry;
         });
@@ -82,7 +82,7 @@ public class RegistryCodecs {
 
             private <T> DataResult<Pair<Registry<E>, T>> overrideFromResources(DataResult<Pair<WritableRegistry<E>, T>> p_206340_, RegistryOps<?> p_206341_, RegistryLoader p_206342_) {
                 return p_206340_.flatMap((p_206350_) -> {
-                    return p_206342_.overrideRegistryFromResources(p_206350_.getFirst(), p_206283_, p_206284_, p_206341_.getAsJson()).map((p_206334_) -> {
+                    return p_206342_.overrideRegistryFromResources(p_206350_.getFirst(), pRegistryKey, pElementCodec, p_206341_.getAsJson()).map((p_206334_) -> {
                         return Pair.of(p_206334_, (T) p_206350_.getSecond());
                     });
                 });
@@ -90,24 +90,24 @@ public class RegistryCodecs {
         };
     }
 
-    private static <T> Codec<Map<ResourceKey<T>, T>> directCodec(ResourceKey<? extends Registry<T>> p_206316_, Codec<T> p_206317_) {
-        return Codec.unboundedMap(ResourceKey.codec(p_206316_), p_206317_);
+    private static <T> Codec<Map<ResourceKey<T>, T>> directCodec(ResourceKey<? extends Registry<T>> pRegistryKey, Codec<T> pElementCodec) {
+        return Codec.unboundedMap(ResourceKey.codec(pRegistryKey), pElementCodec);
     }
 
-    public static <E> Codec<HolderSet<E>> homogeneousList(ResourceKey<? extends Registry<E>> p_206280_, Codec<E> p_206281_) {
-        return homogeneousList(p_206280_, p_206281_, false);
+    public static <E> Codec<HolderSet<E>> homogeneousList(ResourceKey<? extends Registry<E>> pRegistryKey, Codec<E> pElementCodec) {
+        return homogeneousList(pRegistryKey, pElementCodec, false);
     }
 
-    public static <E> Codec<HolderSet<E>> homogeneousList(ResourceKey<? extends Registry<E>> p_206288_, Codec<E> p_206289_, boolean p_206290_) {
-        return HolderSetCodec.create(p_206288_, RegistryFileCodec.create(p_206288_, p_206289_), p_206290_);
+    public static <E> Codec<HolderSet<E>> homogeneousList(ResourceKey<? extends Registry<E>> pRegistryKey, Codec<E> pElementCodec, boolean pDisallowInline) {
+        return HolderSetCodec.create(pRegistryKey, RegistryFileCodec.create(pRegistryKey, pElementCodec), pDisallowInline);
     }
 
-    public static <E> Codec<HolderSet<E>> homogeneousList(ResourceKey<? extends Registry<E>> p_206278_) {
-        return homogeneousList(p_206278_, false);
+    public static <E> Codec<HolderSet<E>> homogeneousList(ResourceKey<? extends Registry<E>> pRegistryKey) {
+        return homogeneousList(pRegistryKey, false);
     }
 
-    public static <E> Codec<HolderSet<E>> homogeneousList(ResourceKey<? extends Registry<E>> p_206311_, boolean p_206312_) {
-        return HolderSetCodec.create(p_206311_, RegistryFixedCodec.create(p_206311_), p_206312_);
+    public static <E> Codec<HolderSet<E>> homogeneousList(ResourceKey<? extends Registry<E>> pRegistryKey, boolean pDisallowInline) {
+        return HolderSetCodec.create(pRegistryKey, RegistryFixedCodec.create(pRegistryKey), pDisallowInline);
     }
 
     static record RegistryEntry<T>(ResourceKey<T> key, int id, T value) {

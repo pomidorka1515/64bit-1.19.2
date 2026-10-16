@@ -19,12 +19,12 @@ public class RealmsServerPlayerList extends ValueObject {
     public long serverId;
     public List<String> players;
 
-    public static RealmsServerPlayerList parse(JsonObject p_87591_) {
+    public static RealmsServerPlayerList parse(JsonObject pJson) {
         RealmsServerPlayerList realmsserverplayerlist = new RealmsServerPlayerList();
 
         try {
-            realmsserverplayerlist.serverId = JsonUtils.getLongOr("serverId", p_87591_, -1L);
-            String s = JsonUtils.getStringOr("playerList", p_87591_, (String) null);
+            realmsserverplayerlist.serverId = JsonUtils.getLongOr("serverId", pJson, -1L);
+            String s = JsonUtils.getStringOr("playerList", pJson, (String) null);
             if (s != null) {
                 JsonElement jsonelement = JSON_PARSER.parse(s);
                 if (jsonelement.isJsonArray()) {
@@ -42,10 +42,10 @@ public class RealmsServerPlayerList extends ValueObject {
         return realmsserverplayerlist;
     }
 
-    private static List<String> parsePlayers(JsonArray p_87589_) {
+    private static List<String> parsePlayers(JsonArray pJsonArray) {
         List<String> list = Lists.newArrayList();
 
-        for (JsonElement jsonelement : p_87589_) {
+        for (JsonElement jsonelement : pJsonArray) {
             try {
                 list.add(jsonelement.getAsString());
             } catch (Exception exception) {

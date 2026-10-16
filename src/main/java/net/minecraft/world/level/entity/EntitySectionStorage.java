@@ -38,20 +38,20 @@ public class EntitySectionStorage<T extends EntityAccess> {
         }
     });
 
-    public EntitySectionStorage(Class<T> p_156855_, Object2ObjectFunction<ChunkPos, Visibility> p_156856_) {
-        this.entityClass = p_156855_;
-        this.intialSectionVisibility = p_156856_;
+    public EntitySectionStorage(Class<T> pEntityClass, Object2ObjectFunction<ChunkPos, Visibility> pInitialSectionVisibility) {
+        this.entityClass = pEntityClass;
+        this.intialSectionVisibility = pInitialSectionVisibility;
     }
 
-    public void forEachAccessibleNonEmptySection(AABB p_188363_, Consumer<EntitySection<T>> p_188364_) {
-        long minSectionX = SectionPos.posToSectionCoord(p_188363_.minX - 2.0D);
-        int minSectionY = (int) SectionPos.posToSectionCoord(p_188363_.minY - 4.0D);
-        long minSectionZ = SectionPos.posToSectionCoord(p_188363_.minZ - 2.0D);
-        long maxSectionX = SectionPos.posToSectionCoord(p_188363_.maxX + 2.0D);
-        int maxSectionY = (int) SectionPos.posToSectionCoord(p_188363_.maxY);
-        long maxSectionZ = SectionPos.posToSectionCoord(p_188363_.maxZ + 2.0D);
+    public void forEachAccessibleNonEmptySection(AABB pBoundingBox, Consumer<EntitySection<T>> pConsumer) {
+        long minSectionX = SectionPos.posToSectionCoord(pBoundingBox.minX - 2.0D);
+        int minSectionY = (int) SectionPos.posToSectionCoord(pBoundingBox.minY - 4.0D);
+        long minSectionZ = SectionPos.posToSectionCoord(pBoundingBox.minZ - 2.0D);
+        long maxSectionX = SectionPos.posToSectionCoord(pBoundingBox.maxX + 2.0D);
+        int maxSectionY = (int) SectionPos.posToSectionCoord(pBoundingBox.maxY);
+        long maxSectionZ = SectionPos.posToSectionCoord(pBoundingBox.maxZ + 2.0D);
         this.forEachAccessibleNonEmptySection(minSectionX, maxSectionX, minSectionY, maxSectionY,
-                minSectionZ, maxSectionZ, p_188364_);
+                minSectionZ, maxSectionZ, pConsumer);
     }
 
     private void forEachAccessibleNonEmptySection(long minSectionX, long maxSectionX,
@@ -113,21 +113,21 @@ public class EntitySectionStorage<T extends EntityAccess> {
         return positions == null ? Stream.empty() : positions.stream();
     }
 
-    public Stream<EntitySection<T>> getExistingSectionsInChunk(ChunkPos p_156889_) {
-        return this.getExistingSectionPositionsInChunk(p_156889_).map(this.sections::get).filter(Objects::nonNull);
+    public Stream<EntitySection<T>> getExistingSectionsInChunk(ChunkPos pPos) {
+        return this.getExistingSectionPositionsInChunk(pPos).map(this.sections::get).filter(Objects::nonNull);
     }
 
-    private static ChunkPos getChunkKeyFromSectionKey(SectionPos p_156900_) {
-        return new ChunkPos(p_156900_.x(), p_156900_.z());
+    private static ChunkPos getChunkKeyFromSectionKey(SectionPos pPos) {
+        return new ChunkPos(pPos.x(), pPos.z());
     }
 
-    public EntitySection<T> getOrCreateSection(SectionPos p_156894_) {
-        return this.sections.computeIfAbsent(p_156894_, this::createSection);
+    public EntitySection<T> getOrCreateSection(SectionPos pSectionPos) {
+        return this.sections.computeIfAbsent(pSectionPos, this::createSection);
     }
 
     @Nullable
-    public EntitySection<T> getSection(SectionPos p_156896_) {
-        return this.sections.get(p_156896_);
+    public EntitySection<T> getSection(SectionPos pSectionPos) {
+        return this.sections.get(pSectionPos);
     }
 
     private EntitySection<T> createSection(SectionPos sectionPos) {
@@ -149,15 +149,15 @@ public class EntitySectionStorage<T extends EntityAccess> {
                 minSectionZ, maxSectionZ, section -> section.getEntities().forEach(consumer));
     }
 
-    public void getEntities(AABB p_156891_, Consumer<T> p_156892_) {
-        this.forEachAccessibleNonEmptySection(p_156891_, (p_188368_) -> {
-            p_188368_.getEntities(p_156891_, p_156892_);
+    public void getEntities(AABB pBounds, Consumer<T> pConsumer) {
+        this.forEachAccessibleNonEmptySection(pBounds, (p_188368_) -> {
+            p_188368_.getEntities(pBounds, pConsumer);
         });
     }
 
-    public <U extends T> void getEntities(EntityTypeTest<T, U> p_156864_, AABB p_156865_, Consumer<U> p_156866_) {
-        this.forEachAccessibleNonEmptySection(p_156865_, (p_188361_) -> {
-            p_188361_.getEntities(p_156864_, p_156865_, p_156866_);
+    public <U extends T> void getEntities(EntityTypeTest<T, U> pTest, AABB pBounds, Consumer<U> pConsumer) {
+        this.forEachAccessibleNonEmptySection(pBounds, (p_188361_) -> {
+            p_188361_.getEntities(pTest, pBounds, pConsumer);
         });
     }
 

@@ -17,9 +17,9 @@ public class CommandFunction {
     private final CommandFunction.Entry[] entries;
     final ResourceLocation id;
 
-    public CommandFunction(ResourceLocation p_77979_, CommandFunction.Entry[] p_77980_) {
-        this.id = p_77979_;
-        this.entries = p_77980_;
+    public CommandFunction(ResourceLocation pId, CommandFunction.Entry[] pEntries) {
+        this.id = pId;
+        this.entries = pEntries;
     }
 
     public ResourceLocation getId() {
@@ -30,12 +30,12 @@ public class CommandFunction {
         return this.entries;
     }
 
-    public static CommandFunction fromLines(ResourceLocation p_77985_, CommandDispatcher<CommandSourceStack> p_77986_, CommandSourceStack p_77987_, List<String> p_77988_) {
-        List<CommandFunction.Entry> list = Lists.newArrayListWithCapacity(p_77988_.size());
+    public static CommandFunction fromLines(ResourceLocation pId, CommandDispatcher<CommandSourceStack> pDispatcher, CommandSourceStack pSource, List<String> pLines) {
+        List<CommandFunction.Entry> list = Lists.newArrayListWithCapacity(pLines.size());
 
-        for (int i = 0; i < p_77988_.size(); ++i) {
+        for (int i = 0; i < pLines.size(); ++i) {
             int j = i + 1;
-            String s = p_77988_.get(i).trim();
+            String s = pLines.get(i).trim();
             StringReader stringreader = new StringReader(s);
             if (stringreader.canRead() && stringreader.peek() != '#') {
                 if (stringreader.peek() == '/') {
@@ -49,7 +49,7 @@ public class CommandFunction {
                 }
 
                 try {
-                    ParseResults<CommandSourceStack> parseresults = p_77986_.parse(stringreader, p_77987_);
+                    ParseResults<CommandSourceStack> parseresults = pDispatcher.parse(stringreader, pSource);
                     if (parseresults.getReader().canRead()) {
                         throw Commands.getParseException(parseresults);
                     }
@@ -61,7 +61,7 @@ public class CommandFunction {
             }
         }
 
-        return new CommandFunction(p_77985_, list.toArray(new CommandFunction.Entry[0]));
+        return new CommandFunction(pId, list.toArray(new CommandFunction.Entry[0]));
     }
 
     public static class CacheableFunction {
@@ -71,20 +71,20 @@ public class CommandFunction {
         private boolean resolved;
         private Optional<CommandFunction> function = Optional.empty();
 
-        public CacheableFunction(@Nullable ResourceLocation p_77998_) {
-            this.id = p_77998_;
+        public CacheableFunction(@Nullable ResourceLocation pId) {
+            this.id = pId;
         }
 
-        public CacheableFunction(CommandFunction p_77996_) {
+        public CacheableFunction(CommandFunction pFunction) {
             this.resolved = true;
             this.id = null;
-            this.function = Optional.of(p_77996_);
+            this.function = Optional.of(pFunction);
         }
 
-        public Optional<CommandFunction> get(ServerFunctionManager p_78003_) {
+        public Optional<CommandFunction> get(ServerFunctionManager pFunctionManager) {
             if (!this.resolved) {
                 if (this.id != null) {
-                    this.function = p_78003_.get(this.id);
+                    this.function = pFunctionManager.get(this.id);
                 }
 
                 this.resolved = true;
@@ -105,24 +105,24 @@ public class CommandFunction {
     public static class CommandEntry implements CommandFunction.Entry {
         private final ParseResults<CommandSourceStack> parse;
 
-        public CommandEntry(ParseResults<CommandSourceStack> p_78006_) {
-            this.parse = p_78006_;
+        public CommandEntry(ParseResults<CommandSourceStack> pParse) {
+            this.parse = pParse;
         }
 
-        public void execute(ServerFunctionManager p_164879_, CommandSourceStack p_164880_, Deque<ServerFunctionManager.QueuedCommand> p_164881_, int p_164882_, int p_164883_, @Nullable ServerFunctionManager.TraceCallbacks p_164884_) throws CommandSyntaxException {
-            if (p_164884_ != null) {
+        public void execute(ServerFunctionManager pFunctionManager, CommandSourceStack pSource, Deque<ServerFunctionManager.QueuedCommand> pQueuedCommands, int pCommandLimit, int pDepth, @Nullable ServerFunctionManager.TraceCallbacks pTracer) throws CommandSyntaxException {
+            if (pTracer != null) {
                 String s = this.parse.getReader().getString();
-                p_164884_.onCommand(p_164883_, s);
-                int i = this.execute(p_164879_, p_164880_);
-                p_164884_.onReturn(p_164883_, s, i);
+                pTracer.onCommand(pDepth, s);
+                int i = this.execute(pFunctionManager, pSource);
+                pTracer.onReturn(pDepth, s, i);
             } else {
-                this.execute(p_164879_, p_164880_);
+                this.execute(pFunctionManager, pSource);
             }
         }
 
-        private int execute(ServerFunctionManager p_164876_, CommandSourceStack p_164877_) throws CommandSyntaxException {
-            return p_164876_.getDispatcher().execute(Commands.mapSource(this.parse, (p_242934_) -> {
-                return p_164877_;
+        private int execute(ServerFunctionManager pFunctionManager, CommandSourceStack pSource) throws CommandSyntaxException {
+            return pFunctionManager.getDispatcher().execute(Commands.mapSource(this.parse, (p_242934_) -> {
+                return pSource;
             }));
         }
 
@@ -133,31 +133,31 @@ public class CommandFunction {
 
     @FunctionalInterface
     public interface Entry {
-        void execute(ServerFunctionManager p_164885_, CommandSourceStack p_164886_, Deque<ServerFunctionManager.QueuedCommand> p_164887_, int p_164888_, int p_164889_, @Nullable ServerFunctionManager.TraceCallbacks p_164890_) throws CommandSyntaxException;
+        void execute(ServerFunctionManager pFunctionManager, CommandSourceStack pSource, Deque<ServerFunctionManager.QueuedCommand> pQueuedCommands, int pCommandLimit, int pDepth, @Nullable ServerFunctionManager.TraceCallbacks pTracer) throws CommandSyntaxException;
     }
 
     public static class FunctionEntry implements CommandFunction.Entry {
         private final CommandFunction.CacheableFunction function;
 
-        public FunctionEntry(CommandFunction p_78019_) {
-            this.function = new CommandFunction.CacheableFunction(p_78019_);
+        public FunctionEntry(CommandFunction pFunction) {
+            this.function = new CommandFunction.CacheableFunction(pFunction);
         }
 
-        public void execute(ServerFunctionManager p_164902_, CommandSourceStack p_164903_, Deque<ServerFunctionManager.QueuedCommand> p_164904_, int p_164905_, int p_164906_, @Nullable ServerFunctionManager.TraceCallbacks p_164907_) {
-            Util.ifElse(this.function.get(p_164902_), (p_164900_) -> {
+        public void execute(ServerFunctionManager pFunctionManager, CommandSourceStack pSource, Deque<ServerFunctionManager.QueuedCommand> pQueuedCommands, int pCommandLimit, int pDepth, @Nullable ServerFunctionManager.TraceCallbacks pTracer) {
+            Util.ifElse(this.function.get(pFunctionManager), (p_164900_) -> {
                 CommandFunction.Entry[] acommandfunction$entry = p_164900_.getEntries();
-                if (p_164907_ != null) {
-                    p_164907_.onCall(p_164906_, p_164900_.getId(), acommandfunction$entry.length);
+                if (pTracer != null) {
+                    pTracer.onCall(pDepth, p_164900_.getId(), acommandfunction$entry.length);
                 }
 
-                int i = p_164905_ - p_164904_.size();
+                int i = pCommandLimit - pQueuedCommands.size();
                 int j = Math.min(acommandfunction$entry.length, i);
 
                 for (int k = j - 1; k >= 0; --k) {
-                    p_164904_.addFirst(new ServerFunctionManager.QueuedCommand(p_164903_, p_164906_ + 1, acommandfunction$entry[k]));
+                    pQueuedCommands.addFirst(new ServerFunctionManager.QueuedCommand(pSource, pDepth + 1, acommandfunction$entry[k]));
                 } }, () -> {
-                if (p_164907_ != null) {
-                    p_164907_.onCall(p_164906_, this.function.getId(), -1);
+                if (pTracer != null) {
+                    pTracer.onCall(pDepth, this.function.getId(), -1);
                 } });
         }
 

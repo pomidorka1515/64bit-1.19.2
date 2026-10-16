@@ -14,8 +14,8 @@ public class OpenInventoryTutorialStep implements TutorialStepInstance {
     private TutorialToast toast;
     private int timeWaiting;
 
-    public OpenInventoryTutorialStep(Tutorial p_120537_) {
-        this.tutorial = p_120537_;
+    public OpenInventoryTutorialStep(Tutorial pTutorial) {
+        this.tutorial = pTutorial;
     }
 
     public void tick() {

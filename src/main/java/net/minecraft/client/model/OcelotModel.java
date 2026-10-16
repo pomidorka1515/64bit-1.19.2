@@ -45,29 +45,29 @@ public class OcelotModel<T extends Entity> extends AgeableListModel<T> {
     protected final ModelPart body;
     protected int state = 1;
 
-    public OcelotModel(ModelPart p_170767_) {
+    public OcelotModel(ModelPart pRoot) {
         super(true, 10.0F, 4.0F);
-        this.head = p_170767_.getChild("head");
-        this.body = p_170767_.getChild("body");
-        this.tail1 = p_170767_.getChild("tail1");
-        this.tail2 = p_170767_.getChild("tail2");
-        this.leftHindLeg = p_170767_.getChild("left_hind_leg");
-        this.rightHindLeg = p_170767_.getChild("right_hind_leg");
-        this.leftFrontLeg = p_170767_.getChild("left_front_leg");
-        this.rightFrontLeg = p_170767_.getChild("right_front_leg");
+        this.head = pRoot.getChild("head");
+        this.body = pRoot.getChild("body");
+        this.tail1 = pRoot.getChild("tail1");
+        this.tail2 = pRoot.getChild("tail2");
+        this.leftHindLeg = pRoot.getChild("left_hind_leg");
+        this.rightHindLeg = pRoot.getChild("right_hind_leg");
+        this.leftFrontLeg = pRoot.getChild("left_front_leg");
+        this.rightFrontLeg = pRoot.getChild("right_front_leg");
     }
 
-    public static MeshDefinition createBodyMesh(CubeDeformation p_170769_) {
+    public static MeshDefinition createBodyMesh(CubeDeformation pCubeDeformation) {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
-        partdefinition.addOrReplaceChild("head", CubeListBuilder.create().addBox("main", -2.5F, -2.0F, -3.0F, 5.0F, 4.0F, 5.0F, p_170769_).addBox("nose", -1.5F, -0.001F, -4.0F, 3, 2, 2, p_170769_, 0, 24).addBox("ear1", -2.0F, -3.0F, 0.0F, 1, 1, 2, p_170769_, 0, 10).addBox("ear2", 1.0F, -3.0F, 0.0F, 1, 1, 2, p_170769_, 6, 10), PartPose.offset(0.0F, 15.0F, -9.0F));
-        partdefinition.addOrReplaceChild("body", CubeListBuilder.create().texOffs(20, 0).addBox(-2.0F, 3.0F, -8.0F, 4.0F, 16.0F, 6.0F, p_170769_), PartPose.offsetAndRotation(0.0F, 12.0F, -10.0F, ((float) Math.PI / 2F), 0.0F, 0.0F));
-        partdefinition.addOrReplaceChild("tail1", CubeListBuilder.create().texOffs(0, 15).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 8.0F, 1.0F, p_170769_), PartPose.offsetAndRotation(0.0F, 15.0F, 8.0F, 0.9F, 0.0F, 0.0F));
-        partdefinition.addOrReplaceChild("tail2", CubeListBuilder.create().texOffs(4, 15).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 8.0F, 1.0F, p_170769_), PartPose.offset(0.0F, 20.0F, 14.0F));
-        CubeListBuilder cubelistbuilder = CubeListBuilder.create().texOffs(8, 13).addBox(-1.0F, 0.0F, 1.0F, 2.0F, 6.0F, 2.0F, p_170769_);
+        partdefinition.addOrReplaceChild("head", CubeListBuilder.create().addBox("main", -2.5F, -2.0F, -3.0F, 5.0F, 4.0F, 5.0F, pCubeDeformation).addBox("nose", -1.5F, -0.001F, -4.0F, 3, 2, 2, pCubeDeformation, 0, 24).addBox("ear1", -2.0F, -3.0F, 0.0F, 1, 1, 2, pCubeDeformation, 0, 10).addBox("ear2", 1.0F, -3.0F, 0.0F, 1, 1, 2, pCubeDeformation, 6, 10), PartPose.offset(0.0F, 15.0F, -9.0F));
+        partdefinition.addOrReplaceChild("body", CubeListBuilder.create().texOffs(20, 0).addBox(-2.0F, 3.0F, -8.0F, 4.0F, 16.0F, 6.0F, pCubeDeformation), PartPose.offsetAndRotation(0.0F, 12.0F, -10.0F, ((float) Math.PI / 2F), 0.0F, 0.0F));
+        partdefinition.addOrReplaceChild("tail1", CubeListBuilder.create().texOffs(0, 15).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 8.0F, 1.0F, pCubeDeformation), PartPose.offsetAndRotation(0.0F, 15.0F, 8.0F, 0.9F, 0.0F, 0.0F));
+        partdefinition.addOrReplaceChild("tail2", CubeListBuilder.create().texOffs(4, 15).addBox(-0.5F, 0.0F, 0.0F, 1.0F, 8.0F, 1.0F, pCubeDeformation), PartPose.offset(0.0F, 20.0F, 14.0F));
+        CubeListBuilder cubelistbuilder = CubeListBuilder.create().texOffs(8, 13).addBox(-1.0F, 0.0F, 1.0F, 2.0F, 6.0F, 2.0F, pCubeDeformation);
         partdefinition.addOrReplaceChild("left_hind_leg", cubelistbuilder, PartPose.offset(1.1F, 18.0F, 5.0F));
         partdefinition.addOrReplaceChild("right_hind_leg", cubelistbuilder, PartPose.offset(-1.1F, 18.0F, 5.0F));
-        CubeListBuilder cubelistbuilder1 = CubeListBuilder.create().texOffs(40, 0).addBox(-1.0F, 0.0F, 0.0F, 2.0F, 10.0F, 2.0F, p_170769_);
+        CubeListBuilder cubelistbuilder1 = CubeListBuilder.create().texOffs(40, 0).addBox(-1.0F, 0.0F, 0.0F, 2.0F, 10.0F, 2.0F, pCubeDeformation);
         partdefinition.addOrReplaceChild("left_front_leg", cubelistbuilder1, PartPose.offset(1.2F, 14.1F, -5.0F));
         partdefinition.addOrReplaceChild("right_front_leg", cubelistbuilder1, PartPose.offset(-1.2F, 14.1F, -5.0F));
         return meshdefinition;
@@ -81,32 +81,32 @@ public class OcelotModel<T extends Entity> extends AgeableListModel<T> {
         return ImmutableList.of(this.body, this.leftHindLeg, this.rightHindLeg, this.leftFrontLeg, this.rightFrontLeg, this.tail1, this.tail2);
     }
 
-    public void setupAnim(T p_103147_, float p_103148_, float p_103149_, float p_103150_, float p_103151_, float p_103152_) {
-        this.head.xRot = p_103152_ * ((float) Math.PI / 180F);
-        this.head.yRot = p_103151_ * ((float) Math.PI / 180F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
         if (this.state != 3) {
             this.body.xRot = ((float) Math.PI / 2F);
             if (this.state == 2) {
-                this.leftHindLeg.xRot = Mth.cos(p_103148_ * 0.6662F) * p_103149_;
-                this.rightHindLeg.xRot = Mth.cos(p_103148_ * 0.6662F + 0.3F) * p_103149_;
-                this.leftFrontLeg.xRot = Mth.cos(p_103148_ * 0.6662F + (float) Math.PI + 0.3F) * p_103149_;
-                this.rightFrontLeg.xRot = Mth.cos(p_103148_ * 0.6662F + (float) Math.PI) * p_103149_;
-                this.tail2.xRot = 1.7278761F + ((float) Math.PI / 10F) * Mth.cos(p_103148_) * p_103149_;
+                this.leftHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * pLimbSwingAmount;
+                this.rightHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + 0.3F) * pLimbSwingAmount;
+                this.leftFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI + 0.3F) * pLimbSwingAmount;
+                this.rightFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * pLimbSwingAmount;
+                this.tail2.xRot = 1.7278761F + ((float) Math.PI / 10F) * Mth.cos(pLimbSwing) * pLimbSwingAmount;
             } else {
-                this.leftHindLeg.xRot = Mth.cos(p_103148_ * 0.6662F) * p_103149_;
-                this.rightHindLeg.xRot = Mth.cos(p_103148_ * 0.6662F + (float) Math.PI) * p_103149_;
-                this.leftFrontLeg.xRot = Mth.cos(p_103148_ * 0.6662F + (float) Math.PI) * p_103149_;
-                this.rightFrontLeg.xRot = Mth.cos(p_103148_ * 0.6662F) * p_103149_;
+                this.leftHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * pLimbSwingAmount;
+                this.rightHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * pLimbSwingAmount;
+                this.leftFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * pLimbSwingAmount;
+                this.rightFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * pLimbSwingAmount;
                 if (this.state == 1) {
-                    this.tail2.xRot = 1.7278761F + ((float) Math.PI / 4F) * Mth.cos(p_103148_) * p_103149_;
+                    this.tail2.xRot = 1.7278761F + ((float) Math.PI / 4F) * Mth.cos(pLimbSwing) * pLimbSwingAmount;
                 } else {
-                    this.tail2.xRot = 1.7278761F + 0.47123894F * Mth.cos(p_103148_) * p_103149_;
+                    this.tail2.xRot = 1.7278761F + 0.47123894F * Mth.cos(pLimbSwing) * pLimbSwingAmount;
                 }
             }
         }
     }
 
-    public void prepareMobModel(T p_103142_, float p_103143_, float p_103144_, float p_103145_) {
+    public void prepareMobModel(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTick) {
         this.body.y = 12.0F;
         this.body.z = -10.0F;
         this.head.y = 15.0F;
@@ -124,7 +124,7 @@ public class OcelotModel<T extends Entity> extends AgeableListModel<T> {
         this.rightHindLeg.y = 18.0F;
         this.rightHindLeg.z = 5.0F;
         this.tail1.xRot = 0.9F;
-        if (p_103142_.isCrouching()) {
+        if (pEntity.isCrouching()) {
             ++this.body.y;
             this.head.y += 2.0F;
             ++this.tail1.y;
@@ -133,7 +133,7 @@ public class OcelotModel<T extends Entity> extends AgeableListModel<T> {
             this.tail1.xRot = ((float) Math.PI / 2F);
             this.tail2.xRot = ((float) Math.PI / 2F);
             this.state = 0;
-        } else if (p_103142_.isSprinting()) {
+        } else if (pEntity.isSprinting()) {
             this.tail2.y = this.tail1.y;
             this.tail2.z += 2.0F;
             this.tail1.xRot = ((float) Math.PI / 2F);

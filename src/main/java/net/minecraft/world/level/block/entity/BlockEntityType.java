@@ -60,60 +60,60 @@ public class BlockEntityType<T extends BlockEntity> {
     private final Type<?> dataType;
 
     @Nullable
-    public static ResourceLocation getKey(BlockEntityType<?> p_58955_) {
-        return Registry.BLOCK_ENTITY_TYPE.getKey(p_58955_);
+    public static ResourceLocation getKey(BlockEntityType<?> pBlockEntityType) {
+        return Registry.BLOCK_ENTITY_TYPE.getKey(pBlockEntityType);
     }
 
-    private static <T extends BlockEntity> BlockEntityType<T> register(String p_58957_, BlockEntityType.Builder<T> p_58958_) {
-        if (p_58958_.validBlocks.isEmpty()) {
-            LOGGER.warn("Block entity type {} requires at least one valid block to be defined!", (Object) p_58957_);
+    private static <T extends BlockEntity> BlockEntityType<T> register(String pKey, BlockEntityType.Builder<T> pBuilder) {
+        if (pBuilder.validBlocks.isEmpty()) {
+            LOGGER.warn("Block entity type {} requires at least one valid block to be defined!", (Object) pKey);
         }
 
-        Type<?> type = Util.fetchChoiceType(References.BLOCK_ENTITY, p_58957_);
-        return Registry.register(Registry.BLOCK_ENTITY_TYPE, p_58957_, p_58958_.build(type));
+        Type<?> type = Util.fetchChoiceType(References.BLOCK_ENTITY, pKey);
+        return Registry.register(Registry.BLOCK_ENTITY_TYPE, pKey, pBuilder.build(type));
     }
 
-    public BlockEntityType(BlockEntityType.BlockEntitySupplier<? extends T> p_155259_, Set<Block> p_155260_, Type<?> p_155261_) {
-        this.factory = p_155259_;
-        this.validBlocks = p_155260_;
-        this.dataType = p_155261_;
-    }
-
-    @Nullable
-    public T create(BlockPos p_155265_, BlockState p_155266_) {
-        return this.factory.create(p_155265_, p_155266_);
-    }
-
-    public boolean isValid(BlockState p_155263_) {
-        return this.validBlocks.contains(p_155263_.getBlock());
+    public BlockEntityType(BlockEntityType.BlockEntitySupplier<? extends T> pFactory, Set<Block> pValidBlocks, Type<?> pDataType) {
+        this.factory = pFactory;
+        this.validBlocks = pValidBlocks;
+        this.dataType = pDataType;
     }
 
     @Nullable
-    public T getBlockEntity(BlockGetter p_58950_, BlockPos p_58951_) {
-        BlockEntity blockentity = p_58950_.getBlockEntity(p_58951_);
+    public T create(BlockPos pPos, BlockState pState) {
+        return this.factory.create(pPos, pState);
+    }
+
+    public boolean isValid(BlockState pState) {
+        return this.validBlocks.contains(pState.getBlock());
+    }
+
+    @Nullable
+    public T getBlockEntity(BlockGetter pLevel, BlockPos pPos) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         return (T) (blockentity != null && blockentity.getType() == this ? blockentity : null);
     }
 
     @FunctionalInterface
     interface BlockEntitySupplier<T extends BlockEntity> {
-        T create(BlockPos p_155268_, BlockState p_155269_);
+        T create(BlockPos pPos, BlockState pState);
     }
 
     public static final class Builder<T extends BlockEntity> {
         private final BlockEntityType.BlockEntitySupplier<? extends T> factory;
         final Set<Block> validBlocks;
 
-        private Builder(BlockEntityType.BlockEntitySupplier<? extends T> p_155271_, Set<Block> p_155272_) {
-            this.factory = p_155271_;
-            this.validBlocks = p_155272_;
+        private Builder(BlockEntityType.BlockEntitySupplier<? extends T> pFactory, Set<Block> pValidBlocks) {
+            this.factory = pFactory;
+            this.validBlocks = pValidBlocks;
         }
 
-        public static <T extends BlockEntity> BlockEntityType.Builder<T> of(BlockEntityType.BlockEntitySupplier<? extends T> p_155274_, Block... p_155275_) {
-            return new BlockEntityType.Builder<>(p_155274_, ImmutableSet.copyOf(p_155275_));
+        public static <T extends BlockEntity> BlockEntityType.Builder<T> of(BlockEntityType.BlockEntitySupplier<? extends T> pFactory, Block... pValidBlocks) {
+            return new BlockEntityType.Builder<>(pFactory, ImmutableSet.copyOf(pValidBlocks));
         }
 
-        public BlockEntityType<T> build(Type<?> p_58967_) {
-            return new BlockEntityType<>(this.factory, this.validBlocks, p_58967_);
+        public BlockEntityType<T> build(Type<?> pDataType) {
+            return new BlockEntityType<>(this.factory, this.validBlocks, pDataType);
         }
     }
 }

@@ -9,7 +9,7 @@ public class StoneButtonBlock extends ButtonBlock {
         super(false, p_57060_);
     }
 
-    protected SoundEvent getSound(boolean p_57062_) {
-        return p_57062_ ? SoundEvents.STONE_BUTTON_CLICK_ON : SoundEvents.STONE_BUTTON_CLICK_OFF;
+    protected SoundEvent getSound(boolean pIsOn) {
+        return pIsOn ? SoundEvents.STONE_BUTTON_CLICK_ON : SoundEvents.STONE_BUTTON_CLICK_OFF;
     }
 }

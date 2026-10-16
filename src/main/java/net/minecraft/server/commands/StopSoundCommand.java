@@ -17,7 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 
 public class StopSoundCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> p_138795_) {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
         RequiredArgumentBuilder<CommandSourceStack, EntitySelector> requiredargumentbuilder = Commands.argument("targets", EntityArgument.players()).executes((p_138809_) -> {
                                                                                                                                                         return stopSound(p_138809_.getSource(), EntityArgument.getPlayers(p_138809_, "targets"), (SoundSource) null, (ResourceLocation) null);
                                                                                                                                                     })
@@ -34,31 +34,31 @@ public class StopSoundCommand {
                             })));
         }
 
-        p_138795_.register(Commands.literal("stopsound").requires((p_138799_) -> {
+        pDispatcher.register(Commands.literal("stopsound").requires((p_138799_) -> {
                                                             return p_138799_.hasPermission(2);
                                                         })
                         .then(requiredargumentbuilder));
     }
 
-    private static int stopSound(CommandSourceStack p_138801_, Collection<ServerPlayer> p_138802_, @Nullable SoundSource p_138803_, @Nullable ResourceLocation p_138804_) {
-        ClientboundStopSoundPacket clientboundstopsoundpacket = new ClientboundStopSoundPacket(p_138804_, p_138803_);
+    private static int stopSound(CommandSourceStack pSource, Collection<ServerPlayer> pTargets, @Nullable SoundSource pCategory, @Nullable ResourceLocation pSound) {
+        ClientboundStopSoundPacket clientboundstopsoundpacket = new ClientboundStopSoundPacket(pSound, pCategory);
 
-        for (ServerPlayer serverplayer : p_138802_) {
+        for (ServerPlayer serverplayer : pTargets) {
             serverplayer.connection.send(clientboundstopsoundpacket);
         }
 
-        if (p_138803_ != null) {
-            if (p_138804_ != null) {
-                p_138801_.sendSuccess(Component.translatable("commands.stopsound.success.source.sound", p_138804_, p_138803_.getName()), true);
+        if (pCategory != null) {
+            if (pSound != null) {
+                pSource.sendSuccess(Component.translatable("commands.stopsound.success.source.sound", pSound, pCategory.getName()), true);
             } else {
-                p_138801_.sendSuccess(Component.translatable("commands.stopsound.success.source.any", p_138803_.getName()), true);
+                pSource.sendSuccess(Component.translatable("commands.stopsound.success.source.any", pCategory.getName()), true);
             }
-        } else if (p_138804_ != null) {
-            p_138801_.sendSuccess(Component.translatable("commands.stopsound.success.sourceless.sound", p_138804_), true);
+        } else if (pSound != null) {
+            pSource.sendSuccess(Component.translatable("commands.stopsound.success.sourceless.sound", pSound), true);
         } else {
-            p_138801_.sendSuccess(Component.translatable("commands.stopsound.success.sourceless.any"), true);
+            pSource.sendSuccess(Component.translatable("commands.stopsound.success.sourceless.any"), true);
         }
 
-        return p_138802_.size();
+        return pTargets.size();
     }
 }

@@ -39,10 +39,10 @@ public class LegacyUnicodeBitmapsProvider implements GlyphProvider {
     private final String texturePattern;
     private final Map<ResourceLocation, NativeImage> textures = Maps.newHashMap();
 
-    public LegacyUnicodeBitmapsProvider(ResourceManager p_95429_, byte[] p_95430_, String p_95431_) {
-        this.resourceManager = p_95429_;
-        this.sizes = p_95430_;
-        this.texturePattern = p_95431_;
+    public LegacyUnicodeBitmapsProvider(ResourceManager pResourceManager, byte[] pSizes, String pTexturePattern) {
+        this.resourceManager = pResourceManager;
+        this.sizes = pSizes;
+        this.texturePattern = pTexturePattern;
 
         for (int i = 0; i < 256; ++i) {
             int j = i * 256;
@@ -66,9 +66,9 @@ public class LegacyUnicodeBitmapsProvider implements GlyphProvider {
                                     break label104;
                                 }
 
-                                byte b0 = p_95430_[j + k];
+                                byte b0 = pSizes[j + k];
                                 if (b0 != 0 && getLeft(b0) > getRight(b0)) {
-                                    p_95430_[j + k] = 0;
+                                    pSizes[j + k] = 0;
                                 }
 
                                 ++k;
@@ -119,7 +119,7 @@ public class LegacyUnicodeBitmapsProvider implements GlyphProvider {
             } catch (IOException ioexception) {
             }
 
-            Arrays.fill(p_95430_, j, j + 256, (byte) 0);
+            Arrays.fill(pSizes, j, j + 256, (byte) 0);
         }
     }
 
@@ -133,14 +133,14 @@ public class LegacyUnicodeBitmapsProvider implements GlyphProvider {
     }
 
     @Nullable
-    public GlyphInfo getGlyph(int p_232668_) {
-        if (p_232668_ >= 0 && p_232668_ < this.sizes.length) {
-            byte b0 = this.sizes[p_232668_];
+    public GlyphInfo getGlyph(int pCharacter) {
+        if (pCharacter >= 0 && pCharacter < this.sizes.length) {
+            byte b0 = this.sizes[pCharacter];
             if (b0 != 0) {
-                NativeImage nativeimage = this.textures.computeIfAbsent(this.getSheetLocation(p_232668_), this::loadTexture);
+                NativeImage nativeimage = this.textures.computeIfAbsent(this.getSheetLocation(pCharacter), this::loadTexture);
                 if (nativeimage != null) {
                     int i = getLeft(b0);
-                    return new LegacyUnicodeBitmapsProvider.Glyph(p_232668_ % 16 * 16 + i, (p_232668_ & 255) / 16 * 16, getRight(b0) - i, 16, nativeimage);
+                    return new LegacyUnicodeBitmapsProvider.Glyph(pCharacter % 16 * 16 + i, (pCharacter & 255) / 16 * 16, getRight(b0) - i, 16, nativeimage);
                 }
             }
 
@@ -206,17 +206,17 @@ public class LegacyUnicodeBitmapsProvider implements GlyphProvider {
         private final ResourceLocation metadata;
         private final String texturePattern;
 
-        public Builder(ResourceLocation p_95448_, String p_95449_) {
-            this.metadata = p_95448_;
-            this.texturePattern = p_95449_;
+        public Builder(ResourceLocation pMetadata, String pTexturePattern) {
+            this.metadata = pMetadata;
+            this.texturePattern = pTexturePattern;
         }
 
-        public static GlyphProviderBuilder fromJson(JsonObject p_95453_) {
-            return new LegacyUnicodeBitmapsProvider.Builder(new ResourceLocation(GsonHelper.getAsString(p_95453_, "sizes")), getTemplate(p_95453_));
+        public static GlyphProviderBuilder fromJson(JsonObject pJson) {
+            return new LegacyUnicodeBitmapsProvider.Builder(new ResourceLocation(GsonHelper.getAsString(pJson, "sizes")), getTemplate(pJson));
         }
 
-        private static String getTemplate(JsonObject p_182570_) {
-            String s = GsonHelper.getAsString(p_182570_, "template");
+        private static String getTemplate(JsonObject pJson) {
+            String s = GsonHelper.getAsString(pJson, "template");
 
             try {
                 String.format(Locale.ROOT, s, "");
@@ -227,14 +227,14 @@ public class LegacyUnicodeBitmapsProvider implements GlyphProvider {
         }
 
         @Nullable
-        public GlyphProvider create(ResourceManager p_95451_) {
+        public GlyphProvider create(ResourceManager pResourceManager) {
             try {
                 InputStream inputstream = Minecraft.getInstance().getResourceManager().open(this.metadata);
 
                 LegacyUnicodeBitmapsProvider legacyunicodebitmapsprovider;
                 try {
                     byte[] abyte = inputstream.readNBytes(65536);
-                    legacyunicodebitmapsprovider = new LegacyUnicodeBitmapsProvider(p_95451_, abyte, this.texturePattern);
+                    legacyunicodebitmapsprovider = new LegacyUnicodeBitmapsProvider(pResourceManager, abyte, this.texturePattern);
                 } catch (Throwable throwable1) {
                     if (inputstream != null) {
                         try {

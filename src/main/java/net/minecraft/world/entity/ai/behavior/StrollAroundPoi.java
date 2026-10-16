@@ -20,25 +20,25 @@ public class StrollAroundPoi extends Behavior<PathfinderMob> {
     private final int maxDistanceFromPoi;
     private final float speedModifier;
 
-    public StrollAroundPoi(MemoryModuleType<GlobalPos> p_24308_, float p_24309_, int p_24310_) {
-        super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, p_24308_, MemoryStatus.VALUE_PRESENT));
-        this.memoryType = p_24308_;
-        this.speedModifier = p_24309_;
-        this.maxDistanceFromPoi = p_24310_;
+    public StrollAroundPoi(MemoryModuleType<GlobalPos> pMemoryType, float pSpeedModifier, int pMaxDistanceFromPoi) {
+        super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, pMemoryType, MemoryStatus.VALUE_PRESENT));
+        this.memoryType = pMemoryType;
+        this.speedModifier = pSpeedModifier;
+        this.maxDistanceFromPoi = pMaxDistanceFromPoi;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_24319_, PathfinderMob p_24320_) {
-        Optional<GlobalPos> optional = p_24320_.getBrain().getMemory(this.memoryType);
-        return optional.isPresent() && p_24319_.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(p_24320_.sectorPosition(), (double) this.maxDistanceFromPoi);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, PathfinderMob pOwner) {
+        Optional<GlobalPos> optional = pOwner.getBrain().getMemory(this.memoryType);
+        return optional.isPresent() && pLevel.dimension() == optional.get().dimension() && optional.get().pos().closerToCenterThan(pOwner.sectorPosition(), (double) this.maxDistanceFromPoi);
     }
 
-    protected void start(ServerLevel p_24322_, PathfinderMob p_24323_, long p_24324_) {
-        if (p_24324_ > this.nextOkStartTime) {
-            Optional<SectorVec3> optional = Optional.ofNullable(LandRandomPos.getSectorPos(p_24323_, 8, 6));
-            p_24323_.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_24326_) -> {
+    protected void start(ServerLevel pLevel, PathfinderMob pEntity, long pGameTime) {
+        if (pGameTime > this.nextOkStartTime) {
+            Optional<SectorVec3> optional = Optional.ofNullable(LandRandomPos.getSectorPos(pEntity, 8, 6));
+            pEntity.getBrain().setMemory(MemoryModuleType.WALK_TARGET, optional.map((p_24326_) -> {
                 return new WalkTarget(p_24326_, this.speedModifier, 1);
             }));
-            this.nextOkStartTime = p_24324_ + 180L;
+            this.nextOkStartTime = pGameTime + 180L;
         }
     }
 }

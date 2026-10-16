@@ -28,12 +28,12 @@ public class MinecartFurnace extends AbstractMinecart {
     public double zPush;
     private static final Ingredient INGREDIENT = Ingredient.of(Items.COAL, Items.CHARCOAL);
 
-    public MinecartFurnace(EntityType<? extends MinecartFurnace> p_38552_, Level p_38553_) {
-        super(p_38552_, p_38553_);
+    public MinecartFurnace(EntityType<? extends MinecartFurnace> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public MinecartFurnace(Level p_38555_, double p_38556_, double p_38557_, double p_38558_) {
-        super(EntityType.FURNACE_MINECART, p_38555_, p_38556_, p_38557_, p_38558_);
+    public MinecartFurnace(Level pLevel, double pX, double pY, double pZ) {
+        super(EntityType.FURNACE_MINECART, pLevel, pX, pY, pZ);
     }
 
     public AbstractMinecart.Type getMinecartType() {
@@ -74,10 +74,10 @@ public class MinecartFurnace extends AbstractMinecart {
         return Items.FURNACE_MINECART;
     }
 
-    protected void moveAlongTrack(BlockPos p_38569_, BlockState p_38570_) {
+    protected void moveAlongTrack(BlockPos pPos, BlockState pState) {
         double d0 = 1.0E-4D;
         double d1 = 0.001D;
-        super.moveAlongTrack(p_38569_, p_38570_);
+        super.moveAlongTrack(pPos, pState);
         Vec3 vec3 = this.getDeltaMovement();
         double d2 = vec3.horizontalDistanceSqr();
         double d3 = this.xPush * this.xPush + this.zPush * this.zPush;
@@ -108,10 +108,10 @@ public class MinecartFurnace extends AbstractMinecart {
         super.applyNaturalSlowdown();
     }
 
-    public InteractionResult interact(Player p_38562_, InteractionHand p_38563_) {
-        ItemStack itemstack = p_38562_.getItemInHand(p_38563_);
+    public InteractionResult interact(Player pPlayer, InteractionHand pHand) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (INGREDIENT.test(itemstack) && this.fuel + 3600 <= 32000) {
-            if (!p_38562_.getAbilities().instabuild) {
+            if (!pPlayer.getAbilities().instabuild) {
                 itemstack.shrink(1);
             }
 
@@ -119,7 +119,7 @@ public class MinecartFurnace extends AbstractMinecart {
         }
 
         if (this.fuel > 0) {
-            Vec3 pushDirection = this.sectorPosition().relativeTo(p_38562_.sectorPosition());
+            Vec3 pushDirection = this.sectorPosition().relativeTo(pPlayer.sectorPosition());
             this.xPush = pushDirection.x;
             this.zPush = pushDirection.z;
         }
@@ -127,26 +127,26 @@ public class MinecartFurnace extends AbstractMinecart {
         return InteractionResult.sidedSuccess(this.level.isClientSide);
     }
 
-    protected void addAdditionalSaveData(CompoundTag p_38567_) {
-        super.addAdditionalSaveData(p_38567_);
-        p_38567_.putDouble("PushX", this.xPush);
-        p_38567_.putDouble("PushZ", this.zPush);
-        p_38567_.putShort("Fuel", (short) this.fuel);
+    protected void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putDouble("PushX", this.xPush);
+        pCompound.putDouble("PushZ", this.zPush);
+        pCompound.putShort("Fuel", (short) this.fuel);
     }
 
-    protected void readAdditionalSaveData(CompoundTag p_38565_) {
-        super.readAdditionalSaveData(p_38565_);
-        this.xPush = p_38565_.getDouble("PushX");
-        this.zPush = p_38565_.getDouble("PushZ");
-        this.fuel = p_38565_.getShort("Fuel");
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.xPush = pCompound.getDouble("PushX");
+        this.zPush = pCompound.getDouble("PushZ");
+        this.fuel = pCompound.getShort("Fuel");
     }
 
     protected boolean hasFuel() {
         return this.entityData.get(DATA_ID_FUEL);
     }
 
-    protected void setHasFuel(boolean p_38577_) {
-        this.entityData.set(DATA_ID_FUEL, p_38577_);
+    protected void setHasFuel(boolean pHasFuel) {
+        this.entityData.set(DATA_ID_FUEL, pHasFuel);
     }
 
     public BlockState getDefaultDisplayBlockState() {

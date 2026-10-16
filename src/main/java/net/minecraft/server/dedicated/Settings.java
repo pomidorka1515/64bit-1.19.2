@@ -21,15 +21,15 @@ public abstract class Settings<T extends Settings<T>> {
     private static final Logger LOGGER = LogUtils.getLogger();
     protected final Properties properties;
 
-    public Settings(Properties p_139801_) {
-        this.properties = p_139801_;
+    public Settings(Properties pProperties) {
+        this.properties = pProperties;
     }
 
-    public static Properties loadFromFile(Path p_139840_) {
+    public static Properties loadFromFile(Path pPath) {
         Properties properties = new Properties();
 
         try {
-            InputStream inputstream = Files.newInputStream(p_139840_);
+            InputStream inputstream = Files.newInputStream(pPath);
 
             try {
                 properties.load(inputstream);
@@ -49,15 +49,15 @@ public abstract class Settings<T extends Settings<T>> {
                 inputstream.close();
             }
         } catch (IOException ioexception) {
-            LOGGER.error("Failed to load properties from file: {}", (Object) p_139840_);
+            LOGGER.error("Failed to load properties from file: {}", (Object) pPath);
         }
 
         return properties;
     }
 
-    public void store(Path p_139877_) {
+    public void store(Path pPath) {
         try {
-            OutputStream outputstream = Files.newOutputStream(p_139877_);
+            OutputStream outputstream = Files.newOutputStream(pPath);
 
             try {
                 this.properties.store(outputstream, "Minecraft server properties");
@@ -77,33 +77,33 @@ public abstract class Settings<T extends Settings<T>> {
                 outputstream.close();
             }
         } catch (IOException ioexception) {
-            LOGGER.error("Failed to store properties to file: {}", (Object) p_139877_);
+            LOGGER.error("Failed to store properties to file: {}", (Object) pPath);
         }
     }
 
-    private static <V extends Number> Function<String, V> wrapNumberDeserializer(Function<String, V> p_139842_) {
+    private static <V extends Number> Function<String, V> wrapNumberDeserializer(Function<String, V> pParseFunc) {
         return (p_139845_) -> {
             try {
-                return p_139842_.apply(p_139845_);
+                return pParseFunc.apply(p_139845_);
             } catch (NumberFormatException numberformatexception) {
                 return (V) null;
             }
         };
     }
 
-    protected static <V> Function<String, V> dispatchNumberOrString(IntFunction<V> p_139851_, Function<String, V> p_139852_) {
+    protected static <V> Function<String, V> dispatchNumberOrString(IntFunction<V> pById, Function<String, V> pByName) {
         return (p_139856_) -> {
             try {
-                return p_139851_.apply(Integer.parseInt(p_139856_));
+                return pById.apply(Integer.parseInt(p_139856_));
             } catch (NumberFormatException numberformatexception) {
-                return p_139852_.apply(p_139856_);
+                return pByName.apply(p_139856_);
             }
         };
     }
 
     @Nullable
-    private String getStringRaw(String p_139879_) {
-        return (String) this.properties.get(p_139879_);
+    private String getStringRaw(String pKey) {
+        return (String) this.properties.get(pKey);
     }
 
     @Nullable
@@ -146,8 +146,8 @@ public abstract class Settings<T extends Settings<T>> {
         return this.getMutable(p_139865_, p_139866_, Objects::toString, p_139867_);
     }
 
-    protected String get(String p_139812_, String p_139813_) {
-        return this.get(p_139812_, Function.identity(), Function.identity(), p_139813_);
+    protected String get(String pKey, String pValue) {
+        return this.get(pKey, Function.identity(), Function.identity(), pValue);
     }
 
     @Nullable
@@ -155,33 +155,33 @@ public abstract class Settings<T extends Settings<T>> {
         return this.getLegacy(p_139804_, Function.identity());
     }
 
-    protected int get(String p_139806_, int p_139807_) {
-        return this.get(p_139806_, wrapNumberDeserializer(Integer::parseInt), p_139807_);
+    protected int get(String pKey, int pValue) {
+        return this.get(pKey, wrapNumberDeserializer(Integer::parseInt), pValue);
     }
 
-    protected Settings<T>.MutableValue<Integer> getMutable(String p_139862_, int p_139863_) {
-        return this.getMutable(p_139862_, wrapNumberDeserializer(Integer::parseInt), p_139863_);
+    protected Settings<T>.MutableValue<Integer> getMutable(String pKey, int pValue) {
+        return this.getMutable(pKey, wrapNumberDeserializer(Integer::parseInt), pValue);
     }
 
     protected int get(String p_139833_, UnaryOperator<Integer> p_139834_, int p_139835_) {
         return this.get(p_139833_, wrapNumberDeserializer(Integer::parseInt), p_139834_, Objects::toString, p_139835_);
     }
 
-    protected long get(String p_139809_, long p_139810_) {
-        return this.get(p_139809_, wrapNumberDeserializer(Long::parseLong), p_139810_);
+    protected long get(String pKey, long pValue) {
+        return this.get(pKey, wrapNumberDeserializer(Long::parseLong), pValue);
     }
 
-    protected boolean get(String p_139837_, boolean p_139838_) {
-        return this.get(p_139837_, Boolean::valueOf, p_139838_);
+    protected boolean get(String pKey, boolean pValue) {
+        return this.get(pKey, Boolean::valueOf, pValue);
     }
 
-    protected Settings<T>.MutableValue<Boolean> getMutable(String p_139874_, boolean p_139875_) {
-        return this.getMutable(p_139874_, Boolean::valueOf, p_139875_);
+    protected Settings<T>.MutableValue<Boolean> getMutable(String pKey, boolean pValue) {
+        return this.getMutable(pKey, Boolean::valueOf, pValue);
     }
 
     @Nullable
-    protected Boolean getLegacyBoolean(String p_139860_) {
-        return this.getLegacy(p_139860_, Boolean::valueOf);
+    protected Boolean getLegacyBoolean(String pKey) {
+        return this.getLegacy(pKey, Boolean::valueOf);
     }
 
     protected Properties cloneProperties() {
@@ -190,7 +190,7 @@ public abstract class Settings<T extends Settings<T>> {
         return properties;
     }
 
-    protected abstract T reload(RegistryAccess p_139857_, Properties p_139858_);
+    protected abstract T reload(RegistryAccess pRegistryAccess, Properties pProperties);
 
     public class MutableValue<V> implements Supplier<V> {
         private final String key;

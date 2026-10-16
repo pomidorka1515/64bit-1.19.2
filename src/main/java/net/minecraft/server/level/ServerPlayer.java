@@ -235,22 +235,22 @@ public class ServerPlayer extends Player {
     public int latency;
     public boolean wonGame;
 
-    public ServerPlayer(MinecraftServer p_215088_, ServerLevel p_215089_, GameProfile p_215090_, @Nullable ProfilePublicKey p_215091_) {
-        super(p_215089_, p_215089_.getSharedSpawnPos(), p_215089_.getSharedSpawnAngle(), p_215090_, p_215091_);
-        this.textFilter = p_215088_.createTextFilterForPlayer(this);
-        this.gameMode = p_215088_.createGameModeForPlayer(this);
-        this.server = p_215088_;
-        this.stats = p_215088_.getPlayerList().getPlayerStats(this);
-        this.advancements = p_215088_.getPlayerList().getPlayerAdvancements(this);
+    public ServerPlayer(MinecraftServer pServer, ServerLevel pLevel, GameProfile pProfile, @Nullable ProfilePublicKey pProfilePublicKey) {
+        super(pLevel, pLevel.getSharedSpawnPos(), pLevel.getSharedSpawnAngle(), pProfile, pProfilePublicKey);
+        this.textFilter = pServer.createTextFilterForPlayer(this);
+        this.gameMode = pServer.createGameModeForPlayer(this);
+        this.server = pServer;
+        this.stats = pServer.getPlayerList().getPlayerStats(this);
+        this.advancements = pServer.getPlayerList().getPlayerAdvancements(this);
         this.maxUpStep = 1.0F;
-        this.fudgeSpawnLocation(p_215089_);
+        this.fudgeSpawnLocation(pLevel);
     }
 
-    private void fudgeSpawnLocation(ServerLevel p_9202_) {
-        BlockPos blockpos = p_9202_.getSharedSpawnPos();
-        if (p_9202_.dimensionType().hasSkyLight() && p_9202_.getServer().getWorldData().getGameType() != GameType.ADVENTURE) {
-            int i = Math.max(0, this.server.getSpawnRadius(p_9202_));
-            int j = Mth.floor(p_9202_.getWorldBorder().getDistanceToBorder((double) blockpos.getX(), (double) blockpos.getZ()));
+    private void fudgeSpawnLocation(ServerLevel pLevel) {
+        BlockPos blockpos = pLevel.getSharedSpawnPos();
+        if (pLevel.dimensionType().hasSkyLight() && pLevel.getServer().getWorldData().getGameType() != GameType.ADVENTURE) {
+            int i = Math.max(0, this.server.getSpawnRadius(pLevel));
+            int j = Mth.floor(pLevel.getWorldBorder().getDistanceToBorder((double) blockpos.getX(), (double) blockpos.getZ()));
             if (j < i) {
                 i = j;
             }
@@ -269,10 +269,10 @@ public class ServerPlayer extends Player {
                 int i2 = (k1 + j1 * l1) % i1;
                 int j2 = i2 % (i * 2 + 1);
                 int k2 = i2 / (i * 2 + 1);
-                BlockPos blockpos1 = PlayerRespawnLogic.getOverworldRespawnPos(p_9202_, blockpos.getX() + j2 - i, blockpos.getZ() + k2 - i);
+                BlockPos blockpos1 = PlayerRespawnLogic.getOverworldRespawnPos(pLevel, blockpos.getX() + j2 - i, blockpos.getZ() + k2 - i);
                 if (blockpos1 != null) {
                     this.moveTo(blockpos1, 0.0F, 0.0F);
-                    if (p_9202_.noCollision(this)) {
+                    if (pLevel.noCollision(this)) {
                         break;
                     }
                 }
@@ -280,7 +280,7 @@ public class ServerPlayer extends Player {
         } else {
             this.moveTo(blockpos, 0.0F, 0.0F);
 
-            while (!p_9202_.noCollision(this) && this.getY() < (double) (p_9202_.getMaxBuildHeight() - 1)) {
+            while (!pLevel.noCollision(this) && this.getY() < (double) (pLevel.getMaxBuildHeight() - 1)) {
                 this.applyExactPosition(this.sectorPosition().withY(this.getY() + 1.0D));
             }
         }
@@ -290,42 +290,42 @@ public class ServerPlayer extends Player {
         return p_9238_ <= 16 ? p_9238_ - 1 : 17;
     }
 
-    public void readAdditionalSaveData(CompoundTag p_9131_) {
-        super.readAdditionalSaveData(p_9131_);
-        if (p_9131_.contains("enteredNetherPosition", 10)) {
-            CompoundTag compoundtag = p_9131_.getCompound("enteredNetherPosition");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("enteredNetherPosition", 10)) {
+            CompoundTag compoundtag = pCompound.getCompound("enteredNetherPosition");
             this.enteredNetherPosition = new Vec3(compoundtag.getDouble("x"), compoundtag.getDouble("y"), compoundtag.getDouble("z"));
         }
 
-        this.seenCredits = p_9131_.getBoolean("seenCredits");
-        if (p_9131_.contains("recipeBook", 10)) {
-            this.recipeBook.fromNbt(p_9131_.getCompound("recipeBook"), this.server.getRecipeManager());
+        this.seenCredits = pCompound.getBoolean("seenCredits");
+        if (pCompound.contains("recipeBook", 10)) {
+            this.recipeBook.fromNbt(pCompound.getCompound("recipeBook"), this.server.getRecipeManager());
         }
 
         if (this.isSleeping()) {
             this.stopSleeping();
         }
 
-        if (p_9131_.contains("SpawnX", 99) && p_9131_.contains("SpawnY", 99) && p_9131_.contains("SpawnZ", 99)) {
-            this.respawnPosition = new BlockPos(p_9131_.getInt("SpawnX"), p_9131_.getInt("SpawnY"), p_9131_.getInt("SpawnZ"));
-            this.respawnForced = p_9131_.getBoolean("SpawnForced");
-            this.respawnAngle = p_9131_.getFloat("SpawnAngle");
-            if (p_9131_.contains("SpawnDimension")) {
-                this.respawnDimension = Level.RESOURCE_KEY_CODEC.parse(NbtOps.INSTANCE, p_9131_.get("SpawnDimension")).resultOrPartial(LOGGER::error).orElse(Level.OVERWORLD);
+        if (pCompound.contains("SpawnX", 99) && pCompound.contains("SpawnY", 99) && pCompound.contains("SpawnZ", 99)) {
+            this.respawnPosition = new BlockPos(pCompound.getInt("SpawnX"), pCompound.getInt("SpawnY"), pCompound.getInt("SpawnZ"));
+            this.respawnForced = pCompound.getBoolean("SpawnForced");
+            this.respawnAngle = pCompound.getFloat("SpawnAngle");
+            if (pCompound.contains("SpawnDimension")) {
+                this.respawnDimension = Level.RESOURCE_KEY_CODEC.parse(NbtOps.INSTANCE, pCompound.get("SpawnDimension")).resultOrPartial(LOGGER::error).orElse(Level.OVERWORLD);
             }
         }
     }
 
-    public void addAdditionalSaveData(CompoundTag p_9197_) {
-        super.addAdditionalSaveData(p_9197_);
-        this.storeGameTypes(p_9197_);
-        p_9197_.putBoolean("seenCredits", this.seenCredits);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        this.storeGameTypes(pCompound);
+        pCompound.putBoolean("seenCredits", this.seenCredits);
         if (this.enteredNetherPosition != null) {
             CompoundTag compoundtag = new CompoundTag();
             compoundtag.putDouble("x", this.enteredNetherPosition.x);
             compoundtag.putDouble("y", this.enteredNetherPosition.y);
             compoundtag.putDouble("z", this.enteredNetherPosition.z);
-            p_9197_.put("enteredNetherPosition", compoundtag);
+            pCompound.put("enteredNetherPosition", compoundtag);
         }
 
         Entity entity1 = this.getRootVehicle();
@@ -336,48 +336,48 @@ public class ServerPlayer extends Player {
             entity1.save(compoundtag2);
             compoundtag1.putUUID("Attach", entity.getUUID());
             compoundtag1.put("Entity", compoundtag2);
-            p_9197_.put("RootVehicle", compoundtag1);
+            pCompound.put("RootVehicle", compoundtag1);
         }
 
-        p_9197_.put("recipeBook", this.recipeBook.toNbt());
-        p_9197_.putString("Dimension", this.level.dimension().location().toString());
+        pCompound.put("recipeBook", this.recipeBook.toNbt());
+        pCompound.putString("Dimension", this.level.dimension().location().toString());
         if (this.respawnPosition != null) {
-            p_9197_.putInt("SpawnX", this.respawnPosition.getX());
-            p_9197_.putInt("SpawnY", this.respawnPosition.getY());
-            p_9197_.putInt("SpawnZ", this.respawnPosition.getZ());
-            p_9197_.putBoolean("SpawnForced", this.respawnForced);
-            p_9197_.putFloat("SpawnAngle", this.respawnAngle);
+            pCompound.putInt("SpawnX", this.respawnPosition.getX());
+            pCompound.putInt("SpawnY", this.respawnPosition.getY());
+            pCompound.putInt("SpawnZ", this.respawnPosition.getZ());
+            pCompound.putBoolean("SpawnForced", this.respawnForced);
+            pCompound.putFloat("SpawnAngle", this.respawnAngle);
             ResourceLocation.CODEC.encodeStart(NbtOps.INSTANCE, this.respawnDimension.location()).resultOrPartial(LOGGER::error).ifPresent((p_9134_) -> {
-                p_9197_.put("SpawnDimension", p_9134_);
+                pCompound.put("SpawnDimension", p_9134_);
             });
         }
     }
 
-    public void setExperiencePoints(int p_8986_) {
+    public void setExperiencePoints(int pExperiencePoints) {
         float f = (float) this.getXpNeededForNextLevel();
         float f1 = (f - 1.0F) / f;
-        this.experienceProgress = Mth.clamp((float) p_8986_ / f, 0.0F, f1);
+        this.experienceProgress = Mth.clamp((float) pExperiencePoints / f, 0.0F, f1);
         this.lastSentExp = -1;
     }
 
-    public void setExperienceLevels(int p_9175_) {
-        this.experienceLevel = p_9175_;
+    public void setExperienceLevels(int pLevel) {
+        this.experienceLevel = pLevel;
         this.lastSentExp = -1;
     }
 
-    public void giveExperienceLevels(int p_9200_) {
-        super.giveExperienceLevels(p_9200_);
+    public void giveExperienceLevels(int pLevels) {
+        super.giveExperienceLevels(pLevels);
         this.lastSentExp = -1;
     }
 
-    public void onEnchantmentPerformed(ItemStack p_9079_, int p_9080_) {
-        super.onEnchantmentPerformed(p_9079_, p_9080_);
+    public void onEnchantmentPerformed(ItemStack pEnchantedItem, int pCost) {
+        super.onEnchantmentPerformed(pEnchantedItem, pCost);
         this.lastSentExp = -1;
     }
 
-    private void initMenu(AbstractContainerMenu p_143400_) {
-        p_143400_.addSlotListener(this.containerListener);
-        p_143400_.setSynchronizer(this.containerSynchronizer);
+    private void initMenu(AbstractContainerMenu pMenu) {
+        pMenu.addSlotListener(this.containerListener);
+        pMenu.setSynchronizer(this.containerSynchronizer);
     }
 
     public void initInventoryMenu() {
@@ -394,8 +394,8 @@ public class ServerPlayer extends Player {
         this.connection.send(new ClientboundPlayerCombatEndPacket(this.getCombatTracker()));
     }
 
-    protected void onInsideBlock(BlockState p_9103_) {
-        CriteriaTriggers.ENTER_BLOCK.trigger(this, p_9103_);
+    protected void onInsideBlock(BlockState pState) {
+        CriteriaTriggers.ENTER_BLOCK.trigger(this, pState);
     }
 
     protected ItemCooldowns createItemCooldowns() {
@@ -537,13 +537,13 @@ public class ServerPlayer extends Player {
         }
     }
 
-    private void updateScoreForCriteria(ObjectiveCriteria p_9105_, int p_9106_) {
-        this.getScoreboard().forAllObjectives(p_9105_, this.getScoreboardName(), (p_9178_) -> {
-            p_9178_.setScore(p_9106_);
+    private void updateScoreForCriteria(ObjectiveCriteria pCriteria, int pPoints) {
+        this.getScoreboard().forAllObjectives(pCriteria, this.getScoreboardName(), (p_9178_) -> {
+            p_9178_.setScore(pPoints);
         });
     }
 
-    public void die(DamageSource p_9035_) {
+    public void die(DamageSource pCause) {
         this.gameEvent(GameEvent.ENTITY_DIE);
         boolean flag = this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES);
         if (flag) {
@@ -577,14 +577,14 @@ public class ServerPlayer extends Player {
         }
 
         if (!this.isSpectator()) {
-            this.dropAllDeathLoot(p_9035_);
+            this.dropAllDeathLoot(pCause);
         }
 
         this.getScoreboard().forAllObjectives(ObjectiveCriteria.DEATH_COUNT, this.getScoreboardName(), Score::increment);
         LivingEntity livingentity = this.getKillCredit();
         if (livingentity != null) {
             this.awardStat(Stats.ENTITY_KILLED_BY.get(livingentity.getType()));
-            livingentity.awardKillScore(this, this.deathScore, p_9035_);
+            livingentity.awardKillScore(this, this.deathScore, pCause);
             this.createWitherRose(livingentity);
         }
 
@@ -609,14 +609,14 @@ public class ServerPlayer extends Player {
                 });
     }
 
-    public void awardKillScore(Entity p_9050_, int p_9051_, DamageSource p_9052_) {
-        if (p_9050_ != this) {
-            super.awardKillScore(p_9050_, p_9051_, p_9052_);
-            this.increaseScore(p_9051_);
+    public void awardKillScore(Entity pKilled, int pScoreValue, DamageSource pDamageSource) {
+        if (pKilled != this) {
+            super.awardKillScore(pKilled, pScoreValue, pDamageSource);
+            this.increaseScore(pScoreValue);
             String s = this.getScoreboardName();
-            String s1 = p_9050_.getScoreboardName();
+            String s1 = pKilled.getScoreboardName();
             this.getScoreboard().forAllObjectives(ObjectiveCriteria.KILL_COUNT_ALL, s, Score::increment);
-            if (p_9050_ instanceof Player) {
+            if (pKilled instanceof Player) {
                 this.awardStat(Stats.PLAYER_KILLS);
                 this.getScoreboard().forAllObjectives(ObjectiveCriteria.KILL_COUNT_PLAYERS, s, Score::increment);
             } else {
@@ -625,7 +625,7 @@ public class ServerPlayer extends Player {
 
             this.handleTeamKill(s, s1, ObjectiveCriteria.TEAM_KILL);
             this.handleTeamKill(s1, s, ObjectiveCriteria.KILLED_BY_TEAM);
-            CriteriaTriggers.PLAYER_KILLED_ENTITY.trigger(this, p_9050_, p_9052_);
+            CriteriaTriggers.PLAYER_KILLED_ENTITY.trigger(this, pKilled, pDamageSource);
         }
     }
 
@@ -639,16 +639,16 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public boolean hurt(DamageSource p_9037_, float p_9038_) {
-        if (this.isInvulnerableTo(p_9037_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else {
-            boolean flag = this.server.isDedicatedServer() && this.isPvpAllowed() && "fall".equals(p_9037_.msgId);
-            if (!flag && this.spawnInvulnerableTime > 0 && p_9037_ != DamageSource.OUT_OF_WORLD) {
+            boolean flag = this.server.isDedicatedServer() && this.isPvpAllowed() && "fall".equals(pSource.msgId);
+            if (!flag && this.spawnInvulnerableTime > 0 && pSource != DamageSource.OUT_OF_WORLD) {
                 return false;
             } else {
-                if (p_9037_ instanceof EntityDamageSource) {
-                    Entity entity = p_9037_.getEntity();
+                if (pSource instanceof EntityDamageSource) {
+                    Entity entity = pSource.getEntity();
                     if (entity instanceof Player && !this.canHarmPlayer((Player) entity)) {
                         return false;
                     }
@@ -662,13 +662,13 @@ public class ServerPlayer extends Player {
                     }
                 }
 
-                return super.hurt(p_9037_, p_9038_);
+                return super.hurt(pSource, pAmount);
             }
         }
     }
 
-    public boolean canHarmPlayer(Player p_9064_) {
-        return !this.isPvpAllowed() ? false : super.canHarmPlayer(p_9064_);
+    public boolean canHarmPlayer(Player pOther) {
+        return !this.isPvpAllowed() ? false : super.canHarmPlayer(pOther);
     }
 
     private boolean isPvpAllowed() {
@@ -676,9 +676,9 @@ public class ServerPlayer extends Player {
     }
 
     @Nullable
-    protected PortalInfo findDimensionEntryPoint(ServerLevel p_8998_) {
-        PortalInfo portalinfo = super.findDimensionEntryPoint(p_8998_);
-        if (portalinfo != null && this.level.dimension() == Level.OVERWORLD && p_8998_.dimension() == Level.END) {
+    protected PortalInfo findDimensionEntryPoint(ServerLevel pDestination) {
+        PortalInfo portalinfo = super.findDimensionEntryPoint(pDestination);
+        if (portalinfo != null && this.level.dimension() == Level.OVERWORLD && pDestination.dimension() == Level.END) {
             Vec3 vec3 = portalinfo.pos.add(0.0D, -1.0D, 0.0D);
             return new PortalInfo(vec3, Vec3.ZERO, 90.0F, 0.0F);
         } else {
@@ -687,11 +687,11 @@ public class ServerPlayer extends Player {
     }
 
     @Nullable
-    public Entity changeDimension(ServerLevel p_9180_) {
+    public Entity changeDimension(ServerLevel pServer) {
         this.isChangingDimension = true;
         ServerLevel serverlevel = this.getLevel();
         ResourceKey<Level> resourcekey = serverlevel.dimension();
-        if (resourcekey == Level.END && p_9180_.dimension() == Level.OVERWORLD) {
+        if (resourcekey == Level.END && pServer.dimension() == Level.OVERWORLD) {
             this.unRide();
             this.getLevel().removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
             if (!this.wonGame) {
@@ -702,32 +702,32 @@ public class ServerPlayer extends Player {
 
             return this;
         } else {
-            LevelData leveldata = p_9180_.getLevelData();
-            this.connection.send(new ClientboundRespawnPacket(p_9180_.dimensionTypeId(), p_9180_.dimension(), BiomeManager.obfuscateSeed(p_9180_.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), p_9180_.isDebug(), p_9180_.isFlat(), true, this.getLastDeathLocation()));
+            LevelData leveldata = pServer.getLevelData();
+            this.connection.send(new ClientboundRespawnPacket(pServer.dimensionTypeId(), pServer.dimension(), BiomeManager.obfuscateSeed(pServer.getSeed()), this.gameMode.getGameModeForPlayer(), this.gameMode.getPreviousGameModeForPlayer(), pServer.isDebug(), pServer.isFlat(), true, this.getLastDeathLocation()));
             this.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
             PlayerList playerlist = this.server.getPlayerList();
             playerlist.sendPlayerPermissionLevel(this);
             serverlevel.removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
             this.unsetRemoved();
-            PortalInfo portalinfo = this.findDimensionEntryPoint(p_9180_);
+            PortalInfo portalinfo = this.findDimensionEntryPoint(pServer);
             if (portalinfo != null) {
                 serverlevel.getProfiler().push("moving");
-                if (resourcekey == Level.OVERWORLD && p_9180_.dimension() == Level.NETHER) {
+                if (resourcekey == Level.OVERWORLD && pServer.dimension() == Level.NETHER) {
                     this.enteredNetherPosition = this.position();
-                } else if (p_9180_.dimension() == Level.END) {
-                    this.createEndPlatform(p_9180_, new BlockPos(portalinfo.pos));
+                } else if (pServer.dimension() == Level.END) {
+                    this.createEndPlatform(pServer, new BlockPos(portalinfo.pos));
                 }
 
                 serverlevel.getProfiler().pop();
                 serverlevel.getProfiler().push("placing");
-                this.setLevel(p_9180_);
-                p_9180_.addDuringPortalTeleport(this);
+                this.setLevel(pServer);
+                pServer.addDuringPortalTeleport(this);
                 this.setRot(portalinfo.yRot, portalinfo.xRot);
                 this.moveTo(portalinfo.pos.x, portalinfo.pos.y, portalinfo.pos.z);
                 serverlevel.getProfiler().pop();
                 this.triggerDimensionChangeTriggers(serverlevel);
                 this.connection.send(new ClientboundPlayerAbilitiesPacket(this.getAbilities()));
-                playerlist.sendLevelInfo(this, p_9180_);
+                playerlist.sendLevelInfo(this, pServer);
                 playerlist.sendAllPlayerInfo(this);
 
                 for (MobEffectInstance mobeffectinstance : this.getActiveEffects()) {
@@ -744,26 +744,26 @@ public class ServerPlayer extends Player {
         }
     }
 
-    private void createEndPlatform(ServerLevel p_9007_, BlockPos p_9008_) {
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_9008_.mutable();
+    private void createEndPlatform(ServerLevel pLevel, BlockPos pPos) {
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable();
 
         for (int i = -2; i <= 2; ++i) {
             for (int j = -2; j <= 2; ++j) {
                 for (int k = -1; k < 3; ++k) {
                     BlockState blockstate = k == -1 ? Blocks.OBSIDIAN.defaultBlockState() : Blocks.AIR.defaultBlockState();
-                    p_9007_.setBlockAndUpdate(blockpos$mutableblockpos.set(p_9008_).move(j, k, i), blockstate);
+                    pLevel.setBlockAndUpdate(blockpos$mutableblockpos.set(pPos).move(j, k, i), blockstate);
                 }
             }
         }
     }
 
-    protected Optional<BlockUtil.FoundRectangle> getExitPortal(ServerLevel p_184131_, BlockPos p_184132_, boolean p_184133_, WorldBorder p_184134_) {
-        Optional<BlockUtil.FoundRectangle> optional = super.getExitPortal(p_184131_, p_184132_, p_184133_, p_184134_);
+    protected Optional<BlockUtil.FoundRectangle> getExitPortal(ServerLevel pDestination, BlockPos pFindFrom, boolean pIsToNether, WorldBorder pWorldBorder) {
+        Optional<BlockUtil.FoundRectangle> optional = super.getExitPortal(pDestination, pFindFrom, pIsToNether, pWorldBorder);
         if (optional.isPresent()) {
             return optional;
         } else {
             Direction.Axis direction$axis = this.level.getBlockState(this.portalEntrancePos).getOptionalValue(NetherPortalBlock.AXIS).orElse(Direction.Axis.X);
-            Optional<BlockUtil.FoundRectangle> optional1 = p_184131_.getPortalForcer().createPortal(p_184132_, direction$axis);
+            Optional<BlockUtil.FoundRectangle> optional1 = pDestination.getPortalForcer().createPortal(pFindFrom, direction$axis);
             if (!optional1.isPresent()) {
                 LOGGER.error("Unable to create a portal, likely target out of worldborder");
             }
@@ -772,8 +772,8 @@ public class ServerPlayer extends Player {
         }
     }
 
-    private void triggerDimensionChangeTriggers(ServerLevel p_9210_) {
-        ResourceKey<Level> resourcekey = p_9210_.dimension();
+    private void triggerDimensionChangeTriggers(ServerLevel pLevel) {
+        ResourceKey<Level> resourcekey = pLevel.dimension();
         ResourceKey<Level> resourcekey1 = this.level.dimension();
         CriteriaTriggers.CHANGED_DIMENSION.trigger(this, resourcekey, resourcekey1);
         if (resourcekey == Level.NETHER && resourcekey1 == Level.OVERWORLD && this.enteredNetherPosition != null) {
@@ -785,37 +785,37 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public boolean broadcastToPlayer(ServerPlayer p_9014_) {
-        if (p_9014_.isSpectator()) {
+    public boolean broadcastToPlayer(ServerPlayer pPlayer) {
+        if (pPlayer.isSpectator()) {
             return this.getCamera() == this;
         } else {
-            return this.isSpectator() ? false : super.broadcastToPlayer(p_9014_);
+            return this.isSpectator() ? false : super.broadcastToPlayer(pPlayer);
         }
     }
 
-    public void take(Entity p_9047_, int p_9048_) {
-        super.take(p_9047_, p_9048_);
+    public void take(Entity pEntity, int pQuantity) {
+        super.take(pEntity, pQuantity);
         this.containerMenu.broadcastChanges();
     }
 
-    public Either<Player.BedSleepingProblem, Unit> startSleepInBed(BlockPos p_9115_) {
-        Direction direction = this.level.getBlockState(p_9115_).getValue(HorizontalDirectionalBlock.FACING);
+    public Either<Player.BedSleepingProblem, Unit> startSleepInBed(BlockPos pAt) {
+        Direction direction = this.level.getBlockState(pAt).getValue(HorizontalDirectionalBlock.FACING);
         if (!this.isSleeping() && this.isAlive()) {
             if (!this.level.dimensionType().natural()) {
                 return Either.left(Player.BedSleepingProblem.NOT_POSSIBLE_HERE);
-            } else if (!this.bedInRange(p_9115_, direction)) {
+            } else if (!this.bedInRange(pAt, direction)) {
                 return Either.left(Player.BedSleepingProblem.TOO_FAR_AWAY);
-            } else if (this.bedBlocked(p_9115_, direction)) {
+            } else if (this.bedBlocked(pAt, direction)) {
                 return Either.left(Player.BedSleepingProblem.OBSTRUCTED);
             } else {
-                this.setRespawnPosition(this.level.dimension(), p_9115_, this.getYRot(), false, true);
+                this.setRespawnPosition(this.level.dimension(), pAt, this.getYRot(), false, true);
                 if (this.level.isDay()) {
                     return Either.left(Player.BedSleepingProblem.NOT_POSSIBLE_NOW);
                 } else {
                     if (!this.isCreative()) {
                         double d0 = 8.0D;
                         double d1 = 5.0D;
-                        Vec3 vec3 = Vec3.atBottomCenterOf(p_9115_);
+                        Vec3 vec3 = Vec3.atBottomCenterOf(pAt);
                         List<Monster> list = this.level.getEntitiesOfClass(Monster.class, new AABB(vec3.x() - 8.0D, vec3.y() - 5.0D, vec3.z() - 8.0D, vec3.x() + 8.0D, vec3.y() + 5.0D, vec3.z() + 8.0D), (p_9062_) -> {
                             return p_9062_.isPreventingPlayerRest(this);
                         });
@@ -824,7 +824,7 @@ public class ServerPlayer extends Player {
                         }
                     }
 
-                    Either<Player.BedSleepingProblem, Unit> either = super.startSleepInBed(p_9115_).ifRight((p_9029_) -> {
+                    Either<Player.BedSleepingProblem, Unit> either = super.startSleepInBed(pAt).ifRight((p_9029_) -> {
                         this.awardStat(Stats.SLEEP_IN_BED);
                         CriteriaTriggers.SLEPT_IN_BED.trigger(this);
                     });
@@ -841,31 +841,31 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public void startSleeping(BlockPos p_9190_) {
+    public void startSleeping(BlockPos pPos) {
         this.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_REST));
-        super.startSleeping(p_9190_);
+        super.startSleeping(pPos);
     }
 
-    private boolean bedInRange(BlockPos p_9117_, Direction p_9118_) {
-        return this.isReachableBedBlock(p_9117_) || this.isReachableBedBlock(p_9117_.relative(p_9118_.getOpposite()));
+    private boolean bedInRange(BlockPos pPos, Direction pDirection) {
+        return this.isReachableBedBlock(pPos) || this.isReachableBedBlock(pPos.relative(pDirection.getOpposite()));
     }
 
-    private boolean isReachableBedBlock(BlockPos p_9223_) {
-        Vec3 vec3 = Vec3.atBottomCenterOf(p_9223_);
+    private boolean isReachableBedBlock(BlockPos pPos) {
+        Vec3 vec3 = Vec3.atBottomCenterOf(pPos);
         return Math.abs(this.getX() - vec3.x()) <= 3.0D && Math.abs(this.getY() - vec3.y()) <= 2.0D && Math.abs(this.getZ() - vec3.z()) <= 3.0D;
     }
 
-    private boolean bedBlocked(BlockPos p_9192_, Direction p_9193_) {
-        BlockPos blockpos = p_9192_.above();
-        return !this.freeAt(blockpos) || !this.freeAt(blockpos.relative(p_9193_.getOpposite()));
+    private boolean bedBlocked(BlockPos pPos, Direction pDirection) {
+        BlockPos blockpos = pPos.above();
+        return !this.freeAt(blockpos) || !this.freeAt(blockpos.relative(pDirection.getOpposite()));
     }
 
-    public void stopSleepInBed(boolean p_9165_, boolean p_9166_) {
+    public void stopSleepInBed(boolean pWakeImmediately, boolean pUpdateLevelForSleepingPlayers) {
         if (this.isSleeping()) {
             this.getLevel().getChunkSource().broadcastAndSend(this, new ClientboundAnimatePacket(this, 2));
         }
 
-        super.stopSleepInBed(p_9165_, p_9166_);
+        super.stopSleepInBed(pWakeImmediately, pUpdateLevelForSleepingPlayers);
         if (this.connection != null) {
             if (this.hasSectorPosition()) {
                 this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
@@ -875,9 +875,9 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public boolean startRiding(Entity p_9054_, boolean p_9055_) {
+    public boolean startRiding(Entity pEntity, boolean pForce) {
         Entity entity = this.getVehicle();
-        if (!super.startRiding(p_9054_, p_9055_)) {
+        if (!super.startRiding(pEntity, pForce)) {
             return false;
         } else {
             Entity entity1 = this.getVehicle();
@@ -907,10 +907,10 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public void dismountTo(double p_143389_, double p_143390_, double p_143391_) {
+    public void dismountTo(double pX, double pY, double pZ) {
         this.removeVehicle();
         if (this.connection != null) {
-            this.connection.dismount(p_143389_, p_143390_, p_143391_, this.getYRot(), this.getXRot());
+            this.connection.dismount(pX, pY, pZ, this.getYRot(), this.getXRot());
         }
     }
 
@@ -922,38 +922,38 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public boolean isInvulnerableTo(DamageSource p_9182_) {
-        return super.isInvulnerableTo(p_9182_) || this.isChangingDimension() || this.getAbilities().invulnerable && p_9182_ == DamageSource.WITHER;
+    public boolean isInvulnerableTo(DamageSource pSource) {
+        return super.isInvulnerableTo(pSource) || this.isChangingDimension() || this.getAbilities().invulnerable && pSource == DamageSource.WITHER;
     }
 
-    protected void checkFallDamage(double p_8976_, boolean p_8977_, BlockState p_8978_, BlockPos p_8979_) {
+    protected void checkFallDamage(double pY, boolean pOnGround, BlockState pState, BlockPos pPos) {
     }
 
-    protected void onChangedBlock(BlockPos p_9206_) {
+    protected void onChangedBlock(BlockPos pPos) {
         if (!this.isSpectator()) {
-            super.onChangedBlock(p_9206_);
+            super.onChangedBlock(pPos);
         }
     }
 
-    public void doCheckFallDamage(double p_8973_, boolean p_8974_) {
+    public void doCheckFallDamage(double pY, boolean pOnGround) {
         if (!this.touchingUnloadedChunk()) {
             BlockPos blockpos = this.getOnPosLegacy();
-            super.checkFallDamage(p_8973_, p_8974_, this.level.getBlockState(blockpos), blockpos);
+            super.checkFallDamage(pY, pOnGround, this.level.getBlockState(blockpos), blockpos);
         }
     }
 
-    public void openTextEdit(SignBlockEntity p_9101_) {
-        p_9101_.setAllowedPlayerEditor(this.getUUID());
-        this.connection.send(new ClientboundBlockUpdatePacket(this.level, p_9101_.getBlockPos()));
-        this.connection.send(new ClientboundOpenSignEditorPacket(p_9101_.getBlockPos()));
+    public void openTextEdit(SignBlockEntity pSignBlockEntity) {
+        pSignBlockEntity.setAllowedPlayerEditor(this.getUUID());
+        this.connection.send(new ClientboundBlockUpdatePacket(this.level, pSignBlockEntity.getBlockPos()));
+        this.connection.send(new ClientboundOpenSignEditorPacket(pSignBlockEntity.getBlockPos()));
     }
 
     private void nextContainerCounter() {
         this.containerCounter = this.containerCounter % 100 + 1;
     }
 
-    public OptionalInt openMenu(@Nullable MenuProvider p_9033_) {
-        if (p_9033_ == null) {
+    public OptionalInt openMenu(@Nullable MenuProvider pMenu) {
+        if (pMenu == null) {
             return OptionalInt.empty();
         } else {
             if (this.containerMenu != this.inventoryMenu) {
@@ -961,7 +961,7 @@ public class ServerPlayer extends Player {
             }
 
             this.nextContainerCounter();
-            AbstractContainerMenu abstractcontainermenu = p_9033_.createMenu(this.containerCounter, this.getInventory(), this);
+            AbstractContainerMenu abstractcontainermenu = pMenu.createMenu(this.containerCounter, this.getInventory(), this);
             if (abstractcontainermenu == null) {
                 if (this.isSpectator()) {
                     this.displayClientMessage(Component.translatable("container.spectatorCantOpen").withStyle(ChatFormatting.RED), true);
@@ -969,7 +969,7 @@ public class ServerPlayer extends Player {
 
                 return OptionalInt.empty();
             } else {
-                this.connection.send(new ClientboundOpenScreenPacket(abstractcontainermenu.containerId, abstractcontainermenu.getType(), p_9033_.getDisplayName()));
+                this.connection.send(new ClientboundOpenScreenPacket(abstractcontainermenu.containerId, abstractcontainermenu.getType(), pMenu.getDisplayName()));
                 this.initMenu(abstractcontainermenu);
                 this.containerMenu = abstractcontainermenu;
                 return OptionalInt.of(this.containerCounter);
@@ -977,33 +977,33 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public void sendMerchantOffers(int p_8988_, MerchantOffers p_8989_, int p_8990_, int p_8991_, boolean p_8992_, boolean p_8993_) {
-        this.connection.send(new ClientboundMerchantOffersPacket(p_8988_, p_8989_, p_8990_, p_8991_, p_8992_, p_8993_));
+    public void sendMerchantOffers(int pContainerId, MerchantOffers pOffers, int pLevel, int pXp, boolean pShowProgress, boolean pCanRestock) {
+        this.connection.send(new ClientboundMerchantOffersPacket(pContainerId, pOffers, pLevel, pXp, pShowProgress, pCanRestock));
     }
 
-    public void openHorseInventory(AbstractHorse p_9059_, Container p_9060_) {
+    public void openHorseInventory(AbstractHorse pHorse, Container pInventory) {
         if (this.containerMenu != this.inventoryMenu) {
             this.closeContainer();
         }
 
         this.nextContainerCounter();
-        this.connection.send(new ClientboundHorseScreenOpenPacket(this.containerCounter, p_9060_.getContainerSize(), p_9059_.getId()));
-        this.containerMenu = new HorseInventoryMenu(this.containerCounter, this.getInventory(), p_9060_, p_9059_);
+        this.connection.send(new ClientboundHorseScreenOpenPacket(this.containerCounter, pInventory.getContainerSize(), pHorse.getId()));
+        this.containerMenu = new HorseInventoryMenu(this.containerCounter, this.getInventory(), pInventory, pHorse);
         this.initMenu(this.containerMenu);
     }
 
-    public void openItemGui(ItemStack p_9082_, InteractionHand p_9083_) {
-        if (p_9082_.is(Items.WRITTEN_BOOK)) {
-            if (WrittenBookItem.resolveBookComponents(p_9082_, this.createCommandSourceStack(), this)) {
+    public void openItemGui(ItemStack pStack, InteractionHand pHand) {
+        if (pStack.is(Items.WRITTEN_BOOK)) {
+            if (WrittenBookItem.resolveBookComponents(pStack, this.createCommandSourceStack(), this)) {
                 this.containerMenu.broadcastChanges();
             }
 
-            this.connection.send(new ClientboundOpenBookPacket(p_9083_));
+            this.connection.send(new ClientboundOpenBookPacket(pHand));
         }
     }
 
-    public void openCommandBlock(CommandBlockEntity p_9099_) {
-        this.connection.send(ClientboundBlockEntityDataPacket.create(p_9099_, BlockEntity::saveWithoutMetadata));
+    public void openCommandBlock(CommandBlockEntity pCommandBlock) {
+        this.connection.send(ClientboundBlockEntityDataPacket.create(pCommandBlock, BlockEntity::saveWithoutMetadata));
     }
 
     public void closeContainer() {
@@ -1017,53 +1017,53 @@ public class ServerPlayer extends Player {
         this.containerMenu = this.inventoryMenu;
     }
 
-    public void setPlayerInput(float p_8981_, float p_8982_, boolean p_8983_, boolean p_8984_) {
+    public void setPlayerInput(float pStrafe, float pForward, boolean pJumping, boolean pSneaking) {
         if (this.isPassenger()) {
-            if (p_8981_ >= -1.0F && p_8981_ <= 1.0F) {
-                this.xxa = p_8981_;
+            if (pStrafe >= -1.0F && pStrafe <= 1.0F) {
+                this.xxa = pStrafe;
             }
 
-            if (p_8982_ >= -1.0F && p_8982_ <= 1.0F) {
-                this.zza = p_8982_;
+            if (pForward >= -1.0F && pForward <= 1.0F) {
+                this.zza = pForward;
             }
 
-            this.jumping = p_8983_;
-            this.setShiftKeyDown(p_8984_);
+            this.jumping = pJumping;
+            this.setShiftKeyDown(pSneaking);
         }
     }
 
-    public void awardStat(Stat<?> p_9026_, int p_9027_) {
-        this.stats.increment(this, p_9026_, p_9027_);
-        this.getScoreboard().forAllObjectives(p_9026_, this.getScoreboardName(), (p_8996_) -> {
-            p_8996_.add(p_9027_);
+    public void awardStat(Stat<?> pStat, int pAmount) {
+        this.stats.increment(this, pStat, pAmount);
+        this.getScoreboard().forAllObjectives(pStat, this.getScoreboardName(), (p_8996_) -> {
+            p_8996_.add(pAmount);
         });
     }
 
-    public void resetStat(Stat<?> p_9024_) {
-        this.stats.setValue(this, p_9024_, 0);
-        this.getScoreboard().forAllObjectives(p_9024_, this.getScoreboardName(), Score::reset);
+    public void resetStat(Stat<?> pStat) {
+        this.stats.setValue(this, pStat, 0);
+        this.getScoreboard().forAllObjectives(pStat, this.getScoreboardName(), Score::reset);
     }
 
-    public int awardRecipes(Collection<Recipe<?>> p_9129_) {
-        return this.recipeBook.addRecipes(p_9129_, this);
+    public int awardRecipes(Collection<Recipe<?>> pRecipes) {
+        return this.recipeBook.addRecipes(pRecipes, this);
     }
 
-    public void awardRecipesByKey(ResourceLocation[] p_9168_) {
+    public void awardRecipesByKey(ResourceLocation[] pRecipesKeys) {
         List<Recipe<?>> list = Lists.newArrayList();
 
-        for (ResourceLocation resourcelocation : p_9168_) {
+        for (ResourceLocation resourcelocation : pRecipesKeys) {
             this.server.getRecipeManager().byKey(resourcelocation).ifPresent(list::add);
         }
 
         this.awardRecipes(list);
     }
 
-    public int resetRecipes(Collection<Recipe<?>> p_9195_) {
-        return this.recipeBook.removeRecipes(p_9195_, this);
+    public int resetRecipes(Collection<Recipe<?>> pRecipes) {
+        return this.recipeBook.removeRecipes(pRecipes, this);
     }
 
-    public void giveExperiencePoints(int p_9208_) {
-        super.giveExperiencePoints(p_9208_);
+    public void giveExperiencePoints(int pXpPoints) {
+        super.giveExperiencePoints(pXpPoints);
         this.lastSentExp = -1;
     }
 
@@ -1083,8 +1083,8 @@ public class ServerPlayer extends Player {
         this.lastSentHealth = -1.0E8F;
     }
 
-    public void displayClientMessage(Component p_9154_, boolean p_9155_) {
-        this.sendSystemMessage(p_9154_, p_9155_);
+    public void displayClientMessage(Component pChatComponent, boolean pActionBar) {
+        this.sendSystemMessage(pChatComponent, pActionBar);
     }
 
     protected void completeUsingItem() {
@@ -1094,88 +1094,88 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public void lookAt(EntityAnchorArgument.Anchor p_9112_, Vec3 p_9113_) {
-        super.lookAt(p_9112_, p_9113_);
-        this.connection.send(new ClientboundPlayerLookAtPacket(p_9112_, p_9113_.x, p_9113_.y, p_9113_.z));
+    public void lookAt(EntityAnchorArgument.Anchor pAnchor, Vec3 pTarget) {
+        super.lookAt(pAnchor, pTarget);
+        this.connection.send(new ClientboundPlayerLookAtPacket(pAnchor, pTarget.x, pTarget.y, pTarget.z));
     }
 
-    public void lookAt(EntityAnchorArgument.Anchor p_9108_, Entity p_9109_, EntityAnchorArgument.Anchor p_9110_) {
-        Vec3 vec3 = p_9110_.apply(p_9109_);
-        super.lookAt(p_9108_, vec3);
-        this.connection.send(new ClientboundPlayerLookAtPacket(p_9108_, p_9109_, p_9110_));
+    public void lookAt(EntityAnchorArgument.Anchor pFromAnchor, Entity pEntity, EntityAnchorArgument.Anchor pToAnchor) {
+        Vec3 vec3 = pToAnchor.apply(pEntity);
+        super.lookAt(pFromAnchor, vec3);
+        this.connection.send(new ClientboundPlayerLookAtPacket(pFromAnchor, pEntity, pToAnchor));
     }
 
-    public void restoreFrom(ServerPlayer p_9016_, boolean p_9017_) {
-        this.textFilteringEnabled = p_9016_.textFilteringEnabled;
-        this.gameMode.setGameModeForPlayer(p_9016_.gameMode.getGameModeForPlayer(), p_9016_.gameMode.getPreviousGameModeForPlayer());
-        if (p_9017_) {
-            this.getInventory().replaceWith(p_9016_.getInventory());
-            this.setHealth(p_9016_.getHealth());
-            this.foodData = p_9016_.foodData;
-            this.experienceLevel = p_9016_.experienceLevel;
-            this.totalExperience = p_9016_.totalExperience;
-            this.experienceProgress = p_9016_.experienceProgress;
-            this.setScore(p_9016_.getScore());
-            this.portalEntrancePos = p_9016_.portalEntrancePos;
-        } else if (this.level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || p_9016_.isSpectator()) {
-            this.getInventory().replaceWith(p_9016_.getInventory());
-            this.experienceLevel = p_9016_.experienceLevel;
-            this.totalExperience = p_9016_.totalExperience;
-            this.experienceProgress = p_9016_.experienceProgress;
-            this.setScore(p_9016_.getScore());
+    public void restoreFrom(ServerPlayer pThat, boolean pKeepEverything) {
+        this.textFilteringEnabled = pThat.textFilteringEnabled;
+        this.gameMode.setGameModeForPlayer(pThat.gameMode.getGameModeForPlayer(), pThat.gameMode.getPreviousGameModeForPlayer());
+        if (pKeepEverything) {
+            this.getInventory().replaceWith(pThat.getInventory());
+            this.setHealth(pThat.getHealth());
+            this.foodData = pThat.foodData;
+            this.experienceLevel = pThat.experienceLevel;
+            this.totalExperience = pThat.totalExperience;
+            this.experienceProgress = pThat.experienceProgress;
+            this.setScore(pThat.getScore());
+            this.portalEntrancePos = pThat.portalEntrancePos;
+        } else if (this.level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || pThat.isSpectator()) {
+            this.getInventory().replaceWith(pThat.getInventory());
+            this.experienceLevel = pThat.experienceLevel;
+            this.totalExperience = pThat.totalExperience;
+            this.experienceProgress = pThat.experienceProgress;
+            this.setScore(pThat.getScore());
         }
 
-        this.enchantmentSeed = p_9016_.enchantmentSeed;
-        this.enderChestInventory = p_9016_.enderChestInventory;
-        this.getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, p_9016_.getEntityData().get(DATA_PLAYER_MODE_CUSTOMISATION));
+        this.enchantmentSeed = pThat.enchantmentSeed;
+        this.enderChestInventory = pThat.enderChestInventory;
+        this.getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, pThat.getEntityData().get(DATA_PLAYER_MODE_CUSTOMISATION));
         this.lastSentExp = -1;
         this.lastSentHealth = -1.0F;
         this.lastSentFood = -1;
-        this.recipeBook.copyOverData(p_9016_.recipeBook);
-        this.seenCredits = p_9016_.seenCredits;
-        this.enteredNetherPosition = p_9016_.enteredNetherPosition;
-        this.setShoulderEntityLeft(p_9016_.getShoulderEntityLeft());
-        this.setShoulderEntityRight(p_9016_.getShoulderEntityRight());
-        this.setLastDeathLocation(p_9016_.getLastDeathLocation());
+        this.recipeBook.copyOverData(pThat.recipeBook);
+        this.seenCredits = pThat.seenCredits;
+        this.enteredNetherPosition = pThat.enteredNetherPosition;
+        this.setShoulderEntityLeft(pThat.getShoulderEntityLeft());
+        this.setShoulderEntityRight(pThat.getShoulderEntityRight());
+        this.setLastDeathLocation(pThat.getLastDeathLocation());
     }
 
-    protected void onEffectAdded(MobEffectInstance p_143393_, @Nullable Entity p_143394_) {
-        super.onEffectAdded(p_143393_, p_143394_);
-        this.connection.send(new ClientboundUpdateMobEffectPacket(this.getId(), p_143393_));
-        if (p_143393_.getEffect() == MobEffects.LEVITATION) {
+    protected void onEffectAdded(MobEffectInstance pInstance, @Nullable Entity pEntity) {
+        super.onEffectAdded(pInstance, pEntity);
+        this.connection.send(new ClientboundUpdateMobEffectPacket(this.getId(), pInstance));
+        if (pInstance.getEffect() == MobEffects.LEVITATION) {
             this.levitationStartTime = this.tickCount;
             this.levitationStartPos = this.position();
         }
 
-        CriteriaTriggers.EFFECTS_CHANGED.trigger(this, p_143394_);
+        CriteriaTriggers.EFFECTS_CHANGED.trigger(this, pEntity);
     }
 
-    protected void onEffectUpdated(MobEffectInstance p_143396_, boolean p_143397_, @Nullable Entity p_143398_) {
-        super.onEffectUpdated(p_143396_, p_143397_, p_143398_);
-        this.connection.send(new ClientboundUpdateMobEffectPacket(this.getId(), p_143396_));
-        CriteriaTriggers.EFFECTS_CHANGED.trigger(this, p_143398_);
+    protected void onEffectUpdated(MobEffectInstance pEffectInstance, boolean pForced, @Nullable Entity pEntity) {
+        super.onEffectUpdated(pEffectInstance, pForced, pEntity);
+        this.connection.send(new ClientboundUpdateMobEffectPacket(this.getId(), pEffectInstance));
+        CriteriaTriggers.EFFECTS_CHANGED.trigger(this, pEntity);
     }
 
-    protected void onEffectRemoved(MobEffectInstance p_9184_) {
-        super.onEffectRemoved(p_9184_);
-        this.connection.send(new ClientboundRemoveMobEffectPacket(this.getId(), p_9184_.getEffect()));
-        if (p_9184_.getEffect() == MobEffects.LEVITATION) {
+    protected void onEffectRemoved(MobEffectInstance pEffect) {
+        super.onEffectRemoved(pEffect);
+        this.connection.send(new ClientboundRemoveMobEffectPacket(this.getId(), pEffect.getEffect()));
+        if (pEffect.getEffect() == MobEffects.LEVITATION) {
             this.levitationStartPos = null;
         }
 
         CriteriaTriggers.EFFECTS_CHANGED.trigger(this, (Entity) null);
     }
 
-    public void teleportTo(double p_8969_, double p_8970_, double p_8971_) {
-        this.connection.teleport(p_8969_, p_8970_, p_8971_, this.getYRot(), this.getXRot());
+    public void teleportTo(double pX, double pY, double pZ) {
+        this.connection.teleport(pX, pY, pZ, this.getYRot(), this.getXRot());
     }
 
     public void teleportTo(SectorVec3 position) {
         this.connection.teleportExact(position, this.getYRot(), this.getXRot());
     }
 
-    public void moveTo(double p_9171_, double p_9172_, double p_9173_) {
-        this.teleportTo(p_9171_, p_9172_, p_9173_);
+    public void moveTo(double pX, double pY, double pZ) {
+        this.teleportTo(pX, pY, pZ);
         this.connection.resetPosition();
     }
 
@@ -1184,12 +1184,12 @@ public class ServerPlayer extends Player {
         this.connection.resetPosition();
     }
 
-    public void crit(Entity p_9045_) {
-        this.getLevel().getChunkSource().broadcastAndSend(this, new ClientboundAnimatePacket(p_9045_, 4));
+    public void crit(Entity pEntityHit) {
+        this.getLevel().getChunkSource().broadcastAndSend(this, new ClientboundAnimatePacket(pEntityHit, 4));
     }
 
-    public void magicCrit(Entity p_9186_) {
-        this.getLevel().getChunkSource().broadcastAndSend(this, new ClientboundAnimatePacket(p_9186_, 5));
+    public void magicCrit(Entity pEntityHit) {
+        this.getLevel().getChunkSource().broadcastAndSend(this, new ClientboundAnimatePacket(pEntityHit, 5));
     }
 
     public void onUpdateAbilities() {
@@ -1203,12 +1203,12 @@ public class ServerPlayer extends Player {
         return (ServerLevel) this.level;
     }
 
-    public boolean setGameMode(GameType p_143404_) {
-        if (!this.gameMode.changeGameModeForPlayer(p_143404_)) {
+    public boolean setGameMode(GameType pGameMode) {
+        if (!this.gameMode.changeGameModeForPlayer(pGameMode)) {
             return false;
         } else {
-            this.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, (float) p_143404_.getId()));
-            if (p_143404_ == GameType.SPECTATOR) {
+            this.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, (float) pGameMode.getId()));
+            if (pGameMode == GameType.SPECTATOR) {
                 this.removeEntitiesOnShoulder();
                 this.stopRiding();
             } else {
@@ -1229,16 +1229,16 @@ public class ServerPlayer extends Player {
         return this.gameMode.getGameModeForPlayer() == GameType.CREATIVE;
     }
 
-    public void sendSystemMessage(Component p_215097_) {
-        this.sendSystemMessage(p_215097_, false);
+    public void sendSystemMessage(Component pComponent) {
+        this.sendSystemMessage(pComponent, false);
     }
 
-    public void sendSystemMessage(Component p_240560_, boolean p_240545_) {
-        if (this.acceptsSystemMessages(p_240545_)) {
-            this.connection.send(new ClientboundSystemChatPacket(p_240560_, p_240545_), PacketSendListener.exceptionallySend(() -> {
+    public void sendSystemMessage(Component pComponent, boolean pBypassHiddenChat) {
+        if (this.acceptsSystemMessages(pBypassHiddenChat)) {
+            this.connection.send(new ClientboundSystemChatPacket(pComponent, pBypassHiddenChat), PacketSendListener.exceptionallySend(() -> {
                 if (this.acceptsSystemMessages(false)) {
                     int i = 256;
-                    String s = p_240560_.getString(256);
+                    String s = pComponent.getString(256);
                     Component component = Component.literal(s).withStyle(ChatFormatting.YELLOW);
                     return new ClientboundSystemChatPacket(Component.translatable("multiplayer.message_not_delivered", component).withStyle(ChatFormatting.RED), false);
                 } else {
@@ -1248,15 +1248,15 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public void sendChatMessage(OutgoingPlayerChatMessage p_243284_, boolean p_243285_, ChatType.Bound p_243314_) {
+    public void sendChatMessage(OutgoingPlayerChatMessage pMessage, boolean pShouldFilter, ChatType.Bound pBoundChatType) {
         if (this.acceptsChatMessages()) {
-            p_243284_.sendToPlayer(this, p_243285_, p_243314_);
+            pMessage.sendToPlayer(this, pShouldFilter, pBoundChatType);
         }
     }
 
-    public void sendChatHeader(SignedMessageHeader p_241477_, MessageSignature p_241450_, byte[] p_241356_) {
+    public void sendChatHeader(SignedMessageHeader pHeader, MessageSignature pHeaderSignature, byte[] pBodyDigest) {
         if (this.acceptsChatMessages()) {
-            this.connection.send(new ClientboundPlayerChatHeaderPacket(p_241477_, p_241450_, p_241356_));
+            this.connection.send(new ClientboundPlayerChatHeaderPacket(pHeader, pHeaderSignature, pBodyDigest));
         }
     }
 
@@ -1266,13 +1266,13 @@ public class ServerPlayer extends Player {
         return s.substring(0, s.indexOf(":"));
     }
 
-    public void updateOptions(ServerboundClientInformationPacket p_9157_) {
-        this.chatVisibility = p_9157_.chatVisibility();
-        this.canChatColor = p_9157_.chatColors();
-        this.textFilteringEnabled = p_9157_.textFilteringEnabled();
-        this.allowsListing = p_9157_.allowsListing();
-        this.getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) p_9157_.modelCustomisation());
-        this.getEntityData().set(DATA_PLAYER_MAIN_HAND, (byte) (p_9157_.mainHand() == HumanoidArm.LEFT ? 0 : 1));
+    public void updateOptions(ServerboundClientInformationPacket pPacket) {
+        this.chatVisibility = pPacket.chatVisibility();
+        this.canChatColor = pPacket.chatColors();
+        this.textFilteringEnabled = pPacket.textFilteringEnabled();
+        this.allowsListing = pPacket.allowsListing();
+        this.getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) pPacket.modelCustomisation());
+        this.getEntityData().set(DATA_PLAYER_MAIN_HAND, (byte) (pPacket.mainHand() == HumanoidArm.LEFT ? 0 : 1));
     }
 
     public boolean canChatInColor() {
@@ -1283,16 +1283,16 @@ public class ServerPlayer extends Player {
         return this.chatVisibility;
     }
 
-    private boolean acceptsSystemMessages(boolean p_240568_) {
-        return this.chatVisibility == ChatVisiblity.HIDDEN ? p_240568_ : true;
+    private boolean acceptsSystemMessages(boolean pBypassHiddenChat) {
+        return this.chatVisibility == ChatVisiblity.HIDDEN ? pBypassHiddenChat : true;
     }
 
     private boolean acceptsChatMessages() {
         return this.chatVisibility == ChatVisiblity.FULL;
     }
 
-    public void sendTexturePack(String p_143409_, String p_143410_, boolean p_143411_, @Nullable Component p_143412_) {
-        this.connection.send(new ClientboundResourcePackPacket(p_143409_, p_143410_, p_143411_, p_143412_));
+    public void sendTexturePack(String pUrl, String pHash, boolean pRequired, @Nullable Component pPrompt) {
+        this.connection.send(new ClientboundResourcePackPacket(pUrl, pHash, pRequired, pPrompt));
     }
 
     public void sendServerStatus(ServerStatus p_215110_) {
@@ -1328,9 +1328,9 @@ public class ServerPlayer extends Player {
         return (Entity) (this.camera == null ? this : this.camera);
     }
 
-    public void setCamera(@Nullable Entity p_9214_) {
+    public void setCamera(@Nullable Entity pEntityToSpectate) {
         Entity entity = this.getCamera();
-        this.camera = (Entity) (p_9214_ == null ? this : p_9214_);
+        this.camera = (Entity) (pEntityToSpectate == null ? this : pEntityToSpectate);
         if (entity != this.camera) {
             this.connection.send(new ClientboundSetCameraPacket(this.camera));
             this.teleportTo(this.camera.getX(), this.camera.getY(), this.camera.getZ());
@@ -1343,11 +1343,11 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public void attack(Entity p_9220_) {
+    public void attack(Entity pTargetEntity) {
         if (this.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
-            this.setCamera(p_9220_);
+            this.setCamera(pTargetEntity);
         } else {
-            super.attack(p_9220_);
+            super.attack(pTargetEntity);
         }
     }
 
@@ -1360,8 +1360,8 @@ public class ServerPlayer extends Player {
         return null;
     }
 
-    public void swing(InteractionHand p_9031_) {
-        super.swing(p_9031_);
+    public void swing(InteractionHand pHand) {
+        super.swing(pHand);
         this.resetAttackStrengthTicker();
     }
 
@@ -1377,13 +1377,13 @@ public class ServerPlayer extends Player {
         return this.advancements;
     }
 
-    public void teleportTo(ServerLevel p_9000_, double p_9001_, double p_9002_, double p_9003_, float p_9004_, float p_9005_) {
+    public void teleportTo(ServerLevel pNewLevel, double pX, double pY, double pZ, float pYaw, float pPitch) {
         if (this.hasSectorPosition()) {
-            this.teleportTo(p_9000_, SectorVec3.fromApproximate(p_9001_, p_9002_, p_9003_), p_9004_, p_9005_);
+            this.teleportTo(pNewLevel, SectorVec3.fromApproximate(pX, pY, pZ), pYaw, pPitch);
             return;
         }
 
-        this.teleportToVanilla(p_9000_, p_9001_, p_9002_, p_9003_, p_9004_, p_9005_);
+        this.teleportToVanilla(pNewLevel, pX, pY, pZ, pYaw, pPitch);
     }
 
     /**
@@ -1464,17 +1464,17 @@ public class ServerPlayer extends Player {
         return this.respawnForced;
     }
 
-    public void setRespawnPosition(ResourceKey<Level> p_9159_, @Nullable BlockPos p_9160_, float p_9161_, boolean p_9162_, boolean p_9163_) {
-        if (p_9160_ != null) {
-            boolean flag = p_9160_.equals(this.respawnPosition) && p_9159_.equals(this.respawnDimension);
-            if (p_9163_ && !flag) {
+    public void setRespawnPosition(ResourceKey<Level> pDimension, @Nullable BlockPos pPosition, float pAngle, boolean pForced, boolean pSendMessage) {
+        if (pPosition != null) {
+            boolean flag = pPosition.equals(this.respawnPosition) && pDimension.equals(this.respawnDimension);
+            if (pSendMessage && !flag) {
                 this.sendSystemMessage(Component.translatable("block.minecraft.set_spawn"));
             }
 
-            this.respawnPosition = p_9160_;
-            this.respawnDimension = p_9159_;
-            this.respawnAngle = p_9161_;
-            this.respawnForced = p_9162_;
+            this.respawnPosition = pPosition;
+            this.respawnDimension = pDimension;
+            this.respawnAngle = pAngle;
+            this.respawnForced = pForced;
         } else {
             this.respawnPosition = null;
             this.respawnDimension = Level.OVERWORLD;
@@ -1483,13 +1483,13 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public void trackChunk(ChunkPos p_184136_, Packet<?> p_184137_) {
-        this.connection.send(p_184137_);
+    public void trackChunk(ChunkPos pChunkPos, Packet<?> pPacket) {
+        this.connection.send(pPacket);
     }
 
-    public void untrackChunk(ChunkPos p_9089_) {
+    public void untrackChunk(ChunkPos pChunkPos) {
         if (this.isAlive()) {
-            this.connection.send(new ClientboundForgetLevelChunkPacket(p_9089_.x, p_9089_.z));
+            this.connection.send(new ClientboundForgetLevelChunkPacket(pChunkPos.x, pChunkPos.z));
         }
     }
 
@@ -1497,28 +1497,28 @@ public class ServerPlayer extends Player {
         return this.lastSectionPos;
     }
 
-    public void setLastSectionPos(SectionPos p_9120_) {
-        this.lastSectionPos = p_9120_;
+    public void setLastSectionPos(SectionPos pSectionPos) {
+        this.lastSectionPos = pSectionPos;
     }
 
-    public void playNotifySound(SoundEvent p_9019_, SoundSource p_9020_, float p_9021_, float p_9022_) {
-        this.connection.send(new ClientboundSoundPacket(p_9019_, p_9020_, this.sectorPosition(), p_9021_, p_9022_, this.random.nextLong()));
+    public void playNotifySound(SoundEvent pSound, SoundSource pSource, float pVolume, float pPitch) {
+        this.connection.send(new ClientboundSoundPacket(pSound, pSource, this.sectorPosition(), pVolume, pPitch, this.random.nextLong()));
     }
 
     public Packet<?> getAddEntityPacket() {
         return new ClientboundAddPlayerPacket(this);
     }
 
-    public ItemEntity drop(ItemStack p_9085_, boolean p_9086_, boolean p_9087_) {
-        ItemEntity itementity = super.drop(p_9085_, p_9086_, p_9087_);
+    public ItemEntity drop(ItemStack pDroppedItem, boolean pDropAround, boolean pTraceItem) {
+        ItemEntity itementity = super.drop(pDroppedItem, pDropAround, pTraceItem);
         if (itementity == null) {
             return null;
         } else {
             this.level.addFreshEntity(itementity);
             ItemStack itemstack = itementity.getItem();
-            if (p_9087_) {
+            if (pTraceItem) {
                 if (!itemstack.isEmpty()) {
-                    this.awardStat(Stats.ITEM_DROPPED.get(itemstack.getItem()), p_9085_.getCount());
+                    this.awardStat(Stats.ITEM_DROPPED.get(itemstack.getItem()), pDroppedItem.getCount());
                 }
 
                 this.awardStat(Stats.DROP);
@@ -1532,9 +1532,9 @@ public class ServerPlayer extends Player {
         return this.textFilter;
     }
 
-    public void setLevel(ServerLevel p_143426_) {
-        this.level = p_143426_;
-        this.gameMode.setLevel(p_143426_);
+    public void setLevel(ServerLevel pLevel) {
+        this.level = pLevel;
+        this.gameMode.setLevel(pLevel);
     }
 
     @Nullable
@@ -1551,15 +1551,15 @@ public class ServerPlayer extends Player {
         }
     }
 
-    public void loadGameTypes(@Nullable CompoundTag p_143428_) {
-        this.gameMode.setGameModeForPlayer(this.calculateGameModeForNewPlayer(readPlayerMode(p_143428_, "playerGameType")), readPlayerMode(p_143428_, "previousPlayerGameType"));
+    public void loadGameTypes(@Nullable CompoundTag pTag) {
+        this.gameMode.setGameModeForPlayer(this.calculateGameModeForNewPlayer(readPlayerMode(pTag, "playerGameType")), readPlayerMode(pTag, "previousPlayerGameType"));
     }
 
-    private void storeGameTypes(CompoundTag p_143431_) {
-        p_143431_.putInt("playerGameType", this.gameMode.getGameModeForPlayer().getId());
+    private void storeGameTypes(CompoundTag pTag) {
+        pTag.putInt("playerGameType", this.gameMode.getGameModeForPlayer().getId());
         GameType gametype = this.gameMode.getPreviousGameModeForPlayer();
         if (gametype != null) {
-            p_143431_.putInt("previousPlayerGameType", gametype.getId());
+            pTag.putInt("previousPlayerGameType", gametype.getId());
         }
     }
 
@@ -1567,26 +1567,26 @@ public class ServerPlayer extends Player {
         return this.textFilteringEnabled;
     }
 
-    public boolean shouldFilterMessageTo(ServerPlayer p_143422_) {
-        if (p_143422_ == this) {
+    public boolean shouldFilterMessageTo(ServerPlayer pPlayer) {
+        if (pPlayer == this) {
             return false;
         } else {
-            return this.textFilteringEnabled || p_143422_.textFilteringEnabled;
+            return this.textFilteringEnabled || pPlayer.textFilteringEnabled;
         }
     }
 
-    public boolean mayInteract(Level p_143406_, BlockPos p_143407_) {
-        return super.mayInteract(p_143406_, p_143407_) && p_143406_.mayInteract(this, p_143407_);
+    public boolean mayInteract(Level pLevel, BlockPos pPos) {
+        return super.mayInteract(pLevel, pPos) && pLevel.mayInteract(this, pPos);
     }
 
-    protected void updateUsingItem(ItemStack p_143402_) {
-        CriteriaTriggers.USING_ITEM.trigger(this, p_143402_);
-        super.updateUsingItem(p_143402_);
+    protected void updateUsingItem(ItemStack pUsingItem) {
+        CriteriaTriggers.USING_ITEM.trigger(this, pUsingItem);
+        super.updateUsingItem(pUsingItem);
     }
 
-    public boolean drop(boolean p_182295_) {
+    public boolean drop(boolean pDropStack) {
         Inventory inventory = this.getInventory();
-        ItemStack itemstack = inventory.removeFromSelected(p_182295_);
+        ItemStack itemstack = inventory.removeFromSelected(pDropStack);
         this.containerMenu.findSlot(inventory, inventory.selected).ifPresent((p_182293_) -> {
             this.containerMenu.setRemoteSlot(p_182293_, inventory.getSelected());
         });
@@ -1597,11 +1597,11 @@ public class ServerPlayer extends Player {
         return this.allowsListing;
     }
 
-    public void onItemPickup(ItemEntity p_215095_) {
-        super.onItemPickup(p_215095_);
-        Entity entity = p_215095_.getThrower() != null ? this.getLevel().getEntity(p_215095_.getThrower()) : null;
+    public void onItemPickup(ItemEntity pItemEntity) {
+        super.onItemPickup(pItemEntity);
+        Entity entity = pItemEntity.getThrower() != null ? this.getLevel().getEntity(pItemEntity.getThrower()) : null;
         if (entity != null) {
-            CriteriaTriggers.THROWN_ITEM_PICKED_UP_BY_PLAYER.trigger(this, p_215095_.getItem(), entity);
+            CriteriaTriggers.THROWN_ITEM_PICKED_UP_BY_PLAYER.trigger(this, pItemEntity.getItem(), entity);
         }
     }
 }

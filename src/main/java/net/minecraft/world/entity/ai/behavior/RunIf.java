@@ -14,56 +14,56 @@ public class RunIf<E extends LivingEntity> extends Behavior<E> {
     private final Behavior<? super E> wrappedBehavior;
     private final boolean checkWhileRunningAlso;
 
-    public RunIf(Map<MemoryModuleType<?>, MemoryStatus> p_23799_, Predicate<E> p_23800_, Behavior<? super E> p_23801_, boolean p_23802_) {
-        super(mergeMaps(p_23799_, p_23801_.entryCondition));
-        this.predicate = p_23800_;
-        this.wrappedBehavior = p_23801_;
-        this.checkWhileRunningAlso = p_23802_;
+    public RunIf(Map<MemoryModuleType<?>, MemoryStatus> pBehaviorConditions, Predicate<E> pPredicate, Behavior<? super E> pWrappedBehavior, boolean pCheckWhileRunningAlso) {
+        super(mergeMaps(pBehaviorConditions, pWrappedBehavior.entryCondition));
+        this.predicate = pPredicate;
+        this.wrappedBehavior = pWrappedBehavior;
+        this.checkWhileRunningAlso = pCheckWhileRunningAlso;
     }
 
-    private static Map<MemoryModuleType<?>, MemoryStatus> mergeMaps(Map<MemoryModuleType<?>, MemoryStatus> p_23816_, Map<MemoryModuleType<?>, MemoryStatus> p_23817_) {
+    private static Map<MemoryModuleType<?>, MemoryStatus> mergeMaps(Map<MemoryModuleType<?>, MemoryStatus> pMap, Map<MemoryModuleType<?>, MemoryStatus> pOther) {
         Map<MemoryModuleType<?>, MemoryStatus> map = Maps.newHashMap();
-        map.putAll(p_23816_);
-        map.putAll(p_23817_);
+        map.putAll(pMap);
+        map.putAll(pOther);
         return map;
     }
 
-    public RunIf(Predicate<E> p_147868_, Behavior<? super E> p_147869_, boolean p_147870_) {
-        this(ImmutableMap.of(), p_147868_, p_147869_, p_147870_);
+    public RunIf(Predicate<E> pPredicate, Behavior<? super E> pWrappedBehavior, boolean pCheckWhileRunningAlso) {
+        this(ImmutableMap.of(), pPredicate, pWrappedBehavior, pCheckWhileRunningAlso);
     }
 
-    public RunIf(Predicate<E> p_23804_, Behavior<? super E> p_23805_) {
-        this(ImmutableMap.of(), p_23804_, p_23805_, false);
+    public RunIf(Predicate<E> pPredicate, Behavior<? super E> pWrappedBehavior) {
+        this(ImmutableMap.of(), pPredicate, pWrappedBehavior, false);
     }
 
-    public RunIf(Map<MemoryModuleType<?>, MemoryStatus> p_147865_, Behavior<? super E> p_147866_) {
-        this(p_147865_, (p_147872_) -> {
+    public RunIf(Map<MemoryModuleType<?>, MemoryStatus> pEntryConditions, Behavior<? super E> pWrappedBehavior) {
+        this(pEntryConditions, (p_147872_) -> {
             return true;
-        }, p_147866_, false);
+        }, pWrappedBehavior, false);
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel p_23809_, E p_23810_) {
-        return this.predicate.test(p_23810_) && this.wrappedBehavior.checkExtraStartConditions(p_23809_, p_23810_);
+    protected boolean checkExtraStartConditions(ServerLevel pLevel, E pOwner) {
+        return this.predicate.test(pOwner) && this.wrappedBehavior.checkExtraStartConditions(pLevel, pOwner);
     }
 
-    protected boolean canStillUse(ServerLevel p_23819_, E p_23820_, long p_23821_) {
-        return this.checkWhileRunningAlso && this.predicate.test(p_23820_) && this.wrappedBehavior.canStillUse(p_23819_, p_23820_, p_23821_);
+    protected boolean canStillUse(ServerLevel pLevel, E pEntity, long pGameTime) {
+        return this.checkWhileRunningAlso && this.predicate.test(pEntity) && this.wrappedBehavior.canStillUse(pLevel, pEntity, pGameTime);
     }
 
-    protected boolean timedOut(long p_23807_) {
+    protected boolean timedOut(long pGameTime) {
         return false;
     }
 
-    protected void start(ServerLevel p_23812_, E p_23813_, long p_23814_) {
-        this.wrappedBehavior.start(p_23812_, p_23813_, p_23814_);
+    protected void start(ServerLevel pLevel, E pEntity, long pGameTime) {
+        this.wrappedBehavior.start(pLevel, pEntity, pGameTime);
     }
 
-    protected void tick(ServerLevel p_23827_, E p_23828_, long p_23829_) {
-        this.wrappedBehavior.tick(p_23827_, p_23828_, p_23829_);
+    protected void tick(ServerLevel pLevel, E pOwner, long pGameTime) {
+        this.wrappedBehavior.tick(pLevel, pOwner, pGameTime);
     }
 
-    protected void stop(ServerLevel p_23823_, E p_23824_, long p_23825_) {
-        this.wrappedBehavior.stop(p_23823_, p_23824_, p_23825_);
+    protected void stop(ServerLevel pLevel, E pEntity, long pGameTime) {
+        this.wrappedBehavior.stop(pLevel, pEntity, pGameTime);
     }
 
     public String toString() {

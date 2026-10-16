@@ -12,11 +12,11 @@ public class LanguageInfo implements Language, Comparable<LanguageInfo> {
     private final String name;
     private final boolean bidirectional;
 
-    public LanguageInfo(String p_118948_, String p_118949_, String p_118950_, boolean p_118951_) {
-        this.code = p_118948_;
-        this.region = p_118949_;
-        this.name = p_118950_;
-        this.bidirectional = p_118951_;
+    public LanguageInfo(String pCode, String pRegion, String pName, boolean pBidirectional) {
+        this.code = pCode;
+        this.region = pRegion;
+        this.name = pName;
+        this.bidirectional = pBidirectional;
     }
 
     public String getCode() {
@@ -39,11 +39,11 @@ public class LanguageInfo implements Language, Comparable<LanguageInfo> {
         return String.format(Locale.ROOT, "%s (%s)", this.name, this.region);
     }
 
-    public boolean equals(Object p_118958_) {
-        if (this == p_118958_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return !(p_118958_ instanceof LanguageInfo) ? false : this.code.equals(((LanguageInfo) p_118958_).code);
+            return !(pOther instanceof LanguageInfo) ? false : this.code.equals(((LanguageInfo) pOther).code);
         }
     }
 

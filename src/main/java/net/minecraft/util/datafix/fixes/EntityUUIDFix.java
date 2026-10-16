@@ -20,8 +20,8 @@ public class EntityUUIDFix extends AbstractUUIDFix {
     private static final Set<String> LIVING_ENTITIES = Sets.newHashSet();
     private static final Set<String> PROJECTILES = Sets.newHashSet();
 
-    public EntityUUIDFix(Schema p_15723_) {
-        super(p_15723_, References.ENTITY);
+    public EntityUUIDFix(Schema pOutputSchema) {
+        super(pOutputSchema, References.ENTITY);
     }
 
     protected TypeRewriteRule makeRule() {

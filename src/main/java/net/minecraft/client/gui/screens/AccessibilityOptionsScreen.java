@@ -13,12 +13,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class AccessibilityOptionsScreen extends SimpleOptionsSubScreen {
     private static final String GUIDE_LINK = "https://aka.ms/MinecraftJavaAccessibility";
 
-    private static OptionInstance<?>[] options(Options p_232691_) {
-        return new OptionInstance[] {p_232691_.narrator(), p_232691_.showSubtitles(), p_232691_.textBackgroundOpacity(), p_232691_.backgroundForChatOnly(), p_232691_.chatOpacity(), p_232691_.chatLineSpacing(), p_232691_.chatDelay(), p_232691_.autoJump(), p_232691_.toggleCrouch(), p_232691_.toggleSprint(), p_232691_.screenEffectScale(), p_232691_.fovEffectScale(), p_232691_.darkMojangStudiosBackground(), p_232691_.hideLightningFlash(), p_232691_.darknessEffectScale()};
+    private static OptionInstance<?>[] options(Options pOptions) {
+        return new OptionInstance[] {pOptions.narrator(), pOptions.showSubtitles(), pOptions.textBackgroundOpacity(), pOptions.backgroundForChatOnly(), pOptions.chatOpacity(), pOptions.chatLineSpacing(), pOptions.chatDelay(), pOptions.autoJump(), pOptions.toggleCrouch(), pOptions.toggleSprint(), pOptions.screenEffectScale(), pOptions.fovEffectScale(), pOptions.darkMojangStudiosBackground(), pOptions.hideLightningFlash(), pOptions.darknessEffectScale()};
     }
 
-    public AccessibilityOptionsScreen(Screen p_95504_, Options p_95505_) {
-        super(p_95504_, p_95505_, Component.translatable("options.accessibility.title"), options(p_95505_));
+    public AccessibilityOptionsScreen(Screen pLastScreen, Options pOptions) {
+        super(pLastScreen, pOptions, Component.translatable("options.accessibility.title"), options(pOptions));
     }
 
     protected void createFooter() {

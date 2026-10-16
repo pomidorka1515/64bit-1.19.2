@@ -55,12 +55,12 @@ public class WorldUpgrader {
     private static final Pattern REGEX = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
     private final DimensionDataStorage overworldDataStorage;
 
-    public WorldUpgrader(LevelStorageSource.LevelStorageAccess p_185927_, DataFixer p_185928_, WorldGenSettings p_185929_, boolean p_185930_) {
-        this.worldGenSettings = p_185929_;
-        this.eraseCache = p_185930_;
-        this.dataFixer = p_185928_;
-        this.levelStorage = p_185927_;
-        this.overworldDataStorage = new DimensionDataStorage(this.levelStorage.getDimensionPath(Level.OVERWORLD).resolve("data").toFile(), p_185928_);
+    public WorldUpgrader(LevelStorageSource.LevelStorageAccess pLevelStorage, DataFixer pDataFixer, WorldGenSettings pWorldGenSettings, boolean pEraseCache) {
+        this.worldGenSettings = pWorldGenSettings;
+        this.eraseCache = pEraseCache;
+        this.dataFixer = pDataFixer;
+        this.levelStorage = pLevelStorage;
+        this.overworldDataStorage = new DimensionDataStorage(this.levelStorage.getDimensionPath(Level.OVERWORLD).resolve("data").toFile(), pDataFixer);
         this.thread = THREAD_FACTORY.newThread(this::work);
         this.thread.setUncaughtExceptionHandler((p_18825_, p_18826_) -> {
             LOGGER.error("Error upgrading world", p_18826_);

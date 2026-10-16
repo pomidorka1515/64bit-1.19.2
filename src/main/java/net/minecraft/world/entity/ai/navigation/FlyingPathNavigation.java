@@ -11,14 +11,14 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.PathFinder;
 
 public class FlyingPathNavigation extends PathNavigation {
-    public FlyingPathNavigation(Mob p_26424_, Level p_26425_) {
-        super(p_26424_, p_26425_);
+    public FlyingPathNavigation(Mob pMob, Level pLevel) {
+        super(pMob, pLevel);
     }
 
-    protected PathFinder createPathFinder(int p_26428_) {
+    protected PathFinder createPathFinder(int pMaxVisitedNodes) {
         this.nodeEvaluator = new FlyNodeEvaluator();
         this.nodeEvaluator.setCanPassDoors(true);
-        return new PathFinder(this.nodeEvaluator, p_26428_);
+        return new PathFinder(this.nodeEvaluator, pMaxVisitedNodes);
     }
 
     protected boolean canUpdatePath() {
@@ -30,8 +30,8 @@ public class FlyingPathNavigation extends PathNavigation {
         return this.mob.sectorPosition();
     }
 
-    public Path createPath(Entity p_26430_, int p_26431_) {
-        return this.createPath(p_26430_.blockPosition(), p_26431_);
+    public Path createPath(Entity pEntity, int pAccuracy) {
+        return this.createPath(pEntity.blockPosition(), pAccuracy);
     }
 
     public void tick() {
@@ -58,23 +58,23 @@ public class FlyingPathNavigation extends PathNavigation {
         }
     }
 
-    public void setCanOpenDoors(boolean p_26441_) {
-        this.nodeEvaluator.setCanOpenDoors(p_26441_);
+    public void setCanOpenDoors(boolean pCanOpenDoors) {
+        this.nodeEvaluator.setCanOpenDoors(pCanOpenDoors);
     }
 
     public boolean canPassDoors() {
         return this.nodeEvaluator.canPassDoors();
     }
 
-    public void setCanPassDoors(boolean p_26444_) {
-        this.nodeEvaluator.setCanPassDoors(p_26444_);
+    public void setCanPassDoors(boolean pCanEnterDoors) {
+        this.nodeEvaluator.setCanPassDoors(pCanEnterDoors);
     }
 
     public boolean canOpenDoors() {
         return this.nodeEvaluator.canPassDoors();
     }
 
-    public boolean isStableDestination(BlockPos p_26439_) {
-        return this.level.getBlockState(p_26439_).entityCanStandOn(this.level, p_26439_, this.mob);
+    public boolean isStableDestination(BlockPos pPos) {
+        return this.level.getBlockState(pPos).entityCanStandOn(this.level, pPos, this.mob);
     }
 }

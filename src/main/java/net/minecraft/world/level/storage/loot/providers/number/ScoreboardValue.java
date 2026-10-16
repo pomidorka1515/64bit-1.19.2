@@ -17,10 +17,10 @@ public class ScoreboardValue implements NumberProvider {
     final String score;
     final float scale;
 
-    ScoreboardValue(ScoreboardNameProvider p_165745_, String p_165746_, float p_165747_) {
-        this.target = p_165745_;
-        this.score = p_165746_;
-        this.scale = p_165747_;
+    ScoreboardValue(ScoreboardNameProvider pTarget, String pScore, float pScale) {
+        this.target = pTarget;
+        this.score = pScore;
+        this.scale = pScale;
     }
 
     public LootNumberProviderType getType() {
@@ -31,20 +31,20 @@ public class ScoreboardValue implements NumberProvider {
         return this.target.getReferencedContextParams();
     }
 
-    public static ScoreboardValue fromScoreboard(LootContext.EntityTarget p_165750_, String p_165751_) {
-        return fromScoreboard(p_165750_, p_165751_, 1.0F);
+    public static ScoreboardValue fromScoreboard(LootContext.EntityTarget pEntityTarget, String pScore) {
+        return fromScoreboard(pEntityTarget, pScore, 1.0F);
     }
 
-    public static ScoreboardValue fromScoreboard(LootContext.EntityTarget p_165753_, String p_165754_, float p_165755_) {
-        return new ScoreboardValue(ContextScoreboardNameProvider.forTarget(p_165753_), p_165754_, p_165755_);
+    public static ScoreboardValue fromScoreboard(LootContext.EntityTarget pEntityTarget, String pScore, float pScale) {
+        return new ScoreboardValue(ContextScoreboardNameProvider.forTarget(pEntityTarget), pScore, pScale);
     }
 
-    public float getFloat(LootContext p_165758_) {
-        String s = this.target.getScoreboardName(p_165758_);
+    public float getFloat(LootContext pLootContext) {
+        String s = this.target.getScoreboardName(pLootContext);
         if (s == null) {
             return 0.0F;
         } else {
-            Scoreboard scoreboard = p_165758_.getLevel().getScoreboard();
+            Scoreboard scoreboard = pLootContext.getLevel().getScoreboard();
             Objective objective = scoreboard.getObjective(this.score);
             if (objective == null) {
                 return 0.0F;

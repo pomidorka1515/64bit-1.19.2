@@ -33,19 +33,19 @@ public class VideoSettingsScreen extends OptionsSubScreen {
     private final GpuWarnlistManager gpuWarnlistManager;
     private final int oldMipmaps;
 
-    private static OptionInstance<?>[] options(Options p_232812_) {
-        return new OptionInstance[] {p_232812_.graphicsMode(), p_232812_.renderDistance(), p_232812_.prioritizeChunkUpdates(), p_232812_.simulationDistance(), p_232812_.ambientOcclusion(), p_232812_.framerateLimit(), p_232812_.enableVsync(), p_232812_.bobView(), p_232812_.guiScale(), p_232812_.attackIndicator(), p_232812_.gamma(), p_232812_.cloudStatus(), p_232812_.fullscreen(), p_232812_.particles(), p_232812_.mipmapLevels(), p_232812_.entityShadows(), p_232812_.screenEffectScale(), p_232812_.entityDistanceScaling(), p_232812_.fovEffectScale(), p_232812_.showAutosaveIndicator()};
+    private static OptionInstance<?>[] options(Options pOptions) {
+        return new OptionInstance[] {pOptions.graphicsMode(), pOptions.renderDistance(), pOptions.prioritizeChunkUpdates(), pOptions.simulationDistance(), pOptions.ambientOcclusion(), pOptions.framerateLimit(), pOptions.enableVsync(), pOptions.bobView(), pOptions.guiScale(), pOptions.attackIndicator(), pOptions.gamma(), pOptions.cloudStatus(), pOptions.fullscreen(), pOptions.particles(), pOptions.mipmapLevels(), pOptions.entityShadows(), pOptions.screenEffectScale(), pOptions.entityDistanceScaling(), pOptions.fovEffectScale(), pOptions.showAutosaveIndicator()};
     }
 
-    public VideoSettingsScreen(Screen p_96806_, Options p_96807_) {
-        super(p_96806_, p_96807_, Component.translatable("options.videoTitle"));
-        this.gpuWarnlistManager = p_96806_.minecraft.getGpuWarnlistManager();
+    public VideoSettingsScreen(Screen pLastScreen, Options pOptions) {
+        super(pLastScreen, pOptions, Component.translatable("options.videoTitle"));
+        this.gpuWarnlistManager = pLastScreen.minecraft.getGpuWarnlistManager();
         this.gpuWarnlistManager.resetWarnings();
-        if (p_96807_.graphicsMode().get() == GraphicsStatus.FABULOUS) {
+        if (pOptions.graphicsMode().get() == GraphicsStatus.FABULOUS) {
             this.gpuWarnlistManager.dismissWarning();
         }
 
-        this.oldMipmaps = p_96807_.mipmapLevels().get();
+        this.oldMipmaps = pOptions.mipmapLevels().get();
     }
 
     protected void init() {
@@ -90,9 +90,9 @@ public class VideoSettingsScreen extends OptionsSubScreen {
         super.removed();
     }
 
-    public boolean mouseClicked(double p_96809_, double p_96810_, int p_96811_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         int i = this.options.guiScale().get();
-        if (super.mouseClicked(p_96809_, p_96810_, p_96811_)) {
+        if (super.mouseClicked(pMouseX, pMouseY, pButton)) {
             if (this.options.guiScale().get() != i) {
                 this.minecraft.resizeDisplay();
             }
@@ -134,11 +134,11 @@ public class VideoSettingsScreen extends OptionsSubScreen {
         }
     }
 
-    public boolean mouseReleased(double p_96823_, double p_96824_, int p_96825_) {
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
         int i = this.options.guiScale().get();
-        if (super.mouseReleased(p_96823_, p_96824_, p_96825_)) {
+        if (super.mouseReleased(pMouseX, pMouseY, pButton)) {
             return true;
-        } else if (this.list.mouseReleased(p_96823_, p_96824_, p_96825_)) {
+        } else if (this.list.mouseReleased(pMouseX, pMouseY, pButton)) {
             if (this.options.guiScale().get() != i) {
                 this.minecraft.resizeDisplay();
             }
@@ -149,12 +149,12 @@ public class VideoSettingsScreen extends OptionsSubScreen {
         }
     }
 
-    public void render(PoseStack p_96813_, int p_96814_, int p_96815_, float p_96816_) {
-        this.renderBackground(p_96813_);
-        this.list.render(p_96813_, p_96814_, p_96815_, p_96816_);
-        drawCenteredString(p_96813_, this.font, this.title, this.width / 2, 5, 16777215);
-        super.render(p_96813_, p_96814_, p_96815_, p_96816_);
-        List<FormattedCharSequence> list = tooltipAt(this.list, p_96814_, p_96815_);
-        this.renderTooltip(p_96813_, list, p_96814_, p_96815_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.list.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 5, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        List<FormattedCharSequence> list = tooltipAt(this.list, pMouseX, pMouseY);
+        this.renderTooltip(pPoseStack, list, pMouseX, pMouseY);
     }
 }

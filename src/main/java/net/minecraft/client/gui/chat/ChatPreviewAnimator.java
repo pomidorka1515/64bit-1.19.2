@@ -13,25 +13,25 @@ public class ChatPreviewAnimator {
     private long fadeTime;
     private long lastTime;
 
-    public void reset(long p_242307_) {
+    public void reset(long pLastTime) {
         this.residualPreview = null;
         this.fadeTime = 0L;
-        this.lastTime = p_242307_;
+        this.lastTime = pLastTime;
     }
 
-    public ChatPreviewAnimator.State get(long p_242415_, @Nullable Component p_242349_) {
-        long i = p_242415_ - this.lastTime;
-        this.lastTime = p_242415_;
-        return p_242349_ != null ? this.getEnabled(i, p_242349_) : this.getDisabled(i);
+    public ChatPreviewAnimator.State get(long pMillis, @Nullable Component pPreview) {
+        long i = pMillis - this.lastTime;
+        this.lastTime = pMillis;
+        return pPreview != null ? this.getEnabled(i, pPreview) : this.getDisabled(i);
     }
 
-    private ChatPreviewAnimator.State getEnabled(long p_242198_, Component p_242208_) {
-        this.residualPreview = p_242208_;
+    private ChatPreviewAnimator.State getEnabled(long pResidualPreview, Component pPreview) {
+        this.residualPreview = pPreview;
         if (this.fadeTime < 200L) {
-            this.fadeTime = Math.min(this.fadeTime + p_242198_, 200L);
+            this.fadeTime = Math.min(this.fadeTime + pResidualPreview, 200L);
         }
 
-        return new ChatPreviewAnimator.State(p_242208_, alpha(this.fadeTime));
+        return new ChatPreviewAnimator.State(pPreview, alpha(this.fadeTime));
     }
 
     private ChatPreviewAnimator.State getDisabled(long p_242440_) {
@@ -42,8 +42,8 @@ public class ChatPreviewAnimator {
         return this.fadeTime > 0L ? new ChatPreviewAnimator.State(this.residualPreview, alpha(this.fadeTime)) : ChatPreviewAnimator.State.DISABLED;
     }
 
-    private static float alpha(long p_242250_) {
-        return (float) p_242250_ / 200.0F;
+    private static float alpha(long pFadeTime) {
+        return (float) pFadeTime / 200.0F;
     }
 
     @OnlyIn(Dist.CLIENT)

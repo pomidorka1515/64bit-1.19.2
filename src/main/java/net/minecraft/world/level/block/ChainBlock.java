@@ -25,13 +25,13 @@ public class ChainBlock extends RotatedPillarBlock implements SimpleWaterloggedB
     protected static final VoxelShape Z_AXIS_AABB = Block.box(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
     protected static final VoxelShape X_AXIS_AABB = Block.box(0.0D, 6.5D, 6.5D, 16.0D, 9.5D, 9.5D);
 
-    public ChainBlock(BlockBehaviour.Properties p_51452_) {
-        super(p_51452_);
+    public ChainBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, Boolean.valueOf(false)).setValue(AXIS, Direction.Axis.Y));
     }
 
-    public VoxelShape getShape(BlockState p_51470_, BlockGetter p_51471_, BlockPos p_51472_, CollisionContext p_51473_) {
-        switch ((Direction.Axis) p_51470_.getValue(AXIS)) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        switch ((Direction.Axis) pState.getValue(AXIS)) {
             case X:
             default:
                 return X_AXIS_AABB;
@@ -43,29 +43,29 @@ public class ChainBlock extends RotatedPillarBlock implements SimpleWaterloggedB
     }
 
     @Nullable
-    public BlockState getStateForPlacement(BlockPlaceContext p_51454_) {
-        FluidState fluidstate = p_51454_.getLevel().getFluidState(p_51454_.getClickedPos());
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        FluidState fluidstate = pContext.getLevel().getFluidState(pContext.getClickedPos());
         boolean flag = fluidstate.getType() == Fluids.WATER;
-        return super.getStateForPlacement(p_51454_).setValue(WATERLOGGED, Boolean.valueOf(flag));
+        return super.getStateForPlacement(pContext).setValue(WATERLOGGED, Boolean.valueOf(flag));
     }
 
-    public BlockState updateShape(BlockState p_51461_, Direction p_51462_, BlockState p_51463_, LevelAccessor p_51464_, BlockPos p_51465_, BlockPos p_51466_) {
-        if (p_51461_.getValue(WATERLOGGED)) {
-            p_51464_.scheduleTick(p_51465_, Fluids.WATER, Fluids.WATER.getTickDelay(p_51464_));
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return super.updateShape(p_51461_, p_51462_, p_51463_, p_51464_, p_51465_, p_51466_);
+        return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_51468_) {
-        p_51468_.add(WATERLOGGED).add(AXIS);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(WATERLOGGED).add(AXIS);
     }
 
-    public FluidState getFluidState(BlockState p_51475_) {
-        return p_51475_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_51475_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public boolean isPathfindable(BlockState p_51456_, BlockGetter p_51457_, BlockPos p_51458_, PathComputationType p_51459_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 }

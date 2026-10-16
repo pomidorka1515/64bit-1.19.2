@@ -12,35 +12,35 @@ public class ClientboundMerchantOffersPacket implements Packet<ClientGamePacketL
     private final boolean showProgress;
     private final boolean canRestock;
 
-    public ClientboundMerchantOffersPacket(int p_132456_, MerchantOffers p_132457_, int p_132458_, int p_132459_, boolean p_132460_, boolean p_132461_) {
-        this.containerId = p_132456_;
-        this.offers = p_132457_;
-        this.villagerLevel = p_132458_;
-        this.villagerXp = p_132459_;
-        this.showProgress = p_132460_;
-        this.canRestock = p_132461_;
+    public ClientboundMerchantOffersPacket(int pContainerId, MerchantOffers pOffers, int pVillagerLevel, int pVillagerXp, boolean pShowProgress, boolean pCanRestock) {
+        this.containerId = pContainerId;
+        this.offers = pOffers;
+        this.villagerLevel = pVillagerLevel;
+        this.villagerXp = pVillagerXp;
+        this.showProgress = pShowProgress;
+        this.canRestock = pCanRestock;
     }
 
-    public ClientboundMerchantOffersPacket(FriendlyByteBuf p_178985_) {
-        this.containerId = p_178985_.readVarInt();
-        this.offers = MerchantOffers.createFromStream(p_178985_);
-        this.villagerLevel = p_178985_.readVarInt();
-        this.villagerXp = p_178985_.readVarInt();
-        this.showProgress = p_178985_.readBoolean();
-        this.canRestock = p_178985_.readBoolean();
+    public ClientboundMerchantOffersPacket(FriendlyByteBuf pBuffer) {
+        this.containerId = pBuffer.readVarInt();
+        this.offers = MerchantOffers.createFromStream(pBuffer);
+        this.villagerLevel = pBuffer.readVarInt();
+        this.villagerXp = pBuffer.readVarInt();
+        this.showProgress = pBuffer.readBoolean();
+        this.canRestock = pBuffer.readBoolean();
     }
 
-    public void write(FriendlyByteBuf p_132470_) {
-        p_132470_.writeVarInt(this.containerId);
-        this.offers.writeToStream(p_132470_);
-        p_132470_.writeVarInt(this.villagerLevel);
-        p_132470_.writeVarInt(this.villagerXp);
-        p_132470_.writeBoolean(this.showProgress);
-        p_132470_.writeBoolean(this.canRestock);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.containerId);
+        this.offers.writeToStream(pBuffer);
+        pBuffer.writeVarInt(this.villagerLevel);
+        pBuffer.writeVarInt(this.villagerXp);
+        pBuffer.writeBoolean(this.showProgress);
+        pBuffer.writeBoolean(this.canRestock);
     }
 
-    public void handle(ClientGamePacketListener p_132467_) {
-        p_132467_.handleMerchantOffers(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleMerchantOffers(this);
     }
 
     public int getContainerId() {

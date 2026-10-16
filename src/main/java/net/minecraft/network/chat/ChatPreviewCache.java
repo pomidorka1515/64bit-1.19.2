@@ -6,14 +6,14 @@ public class ChatPreviewCache {
     @Nullable
     private ChatPreviewCache.Result result;
 
-    public void set(String p_242847_, Component p_242916_) {
-        this.result = new ChatPreviewCache.Result(p_242847_, p_242916_);
+    public void set(String pQuery, Component pPreview) {
+        this.result = new ChatPreviewCache.Result(pQuery, pPreview);
     }
 
     @Nullable
-    public Component pull(String p_242864_) {
+    public Component pull(String pQuery) {
         ChatPreviewCache.Result chatpreviewcache$result = this.result;
-        if (chatpreviewcache$result != null && chatpreviewcache$result.matches(p_242864_)) {
+        if (chatpreviewcache$result != null && chatpreviewcache$result.matches(pQuery)) {
             this.result = null;
             return chatpreviewcache$result.preview();
         } else {
@@ -22,8 +22,8 @@ public class ChatPreviewCache {
     }
 
     static record Result(String query, Component preview) {
-        public boolean matches(String p_242915_) {
-            return this.query.equals(p_242915_);
+        public boolean matches(String pQuery) {
+            return this.query.equals(pQuery);
         }
     }
 }

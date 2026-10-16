@@ -18,29 +18,29 @@ import net.minecraft.world.level.block.state.BlockState;
 public class DropperBlock extends DispenserBlock {
     private static final DispenseItemBehavior DISPENSE_BEHAVIOUR = new DefaultDispenseItemBehavior();
 
-    public DropperBlock(BlockBehaviour.Properties p_52942_) {
-        super(p_52942_);
+    public DropperBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    protected DispenseItemBehavior getDispenseMethod(ItemStack p_52947_) {
+    protected DispenseItemBehavior getDispenseMethod(ItemStack pStack) {
         return DISPENSE_BEHAVIOUR;
     }
 
-    public BlockEntity newBlockEntity(BlockPos p_153179_, BlockState p_153180_) {
-        return new DropperBlockEntity(p_153179_, p_153180_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new DropperBlockEntity(pPos, pState);
     }
 
-    protected void dispenseFrom(ServerLevel p_52944_, BlockPos p_52945_) {
-        BlockSourceImpl blocksourceimpl = new BlockSourceImpl(p_52944_, p_52945_);
+    protected void dispenseFrom(ServerLevel pLevel, BlockPos pPos) {
+        BlockSourceImpl blocksourceimpl = new BlockSourceImpl(pLevel, pPos);
         DispenserBlockEntity dispenserblockentity = blocksourceimpl.getEntity();
-        int i = dispenserblockentity.getRandomSlot(p_52944_.random);
+        int i = dispenserblockentity.getRandomSlot(pLevel.random);
         if (i < 0) {
-            p_52944_.levelEvent(1001, p_52945_, 0);
+            pLevel.levelEvent(1001, pPos, 0);
         } else {
             ItemStack itemstack = dispenserblockentity.getItem(i);
             if (!itemstack.isEmpty()) {
-                Direction direction = p_52944_.getBlockState(p_52945_).getValue(FACING);
-                Container container = HopperBlockEntity.getContainerAt(p_52944_, p_52945_.relative(direction));
+                Direction direction = pLevel.getBlockState(pPos).getValue(FACING);
+                Container container = HopperBlockEntity.getContainerAt(pLevel, pPos.relative(direction));
                 ItemStack itemstack1;
                 if (container == null) {
                     itemstack1 = DISPENSE_BEHAVIOUR.dispense(blocksourceimpl, itemstack);

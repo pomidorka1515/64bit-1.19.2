@@ -23,19 +23,19 @@ public class EntitySummonArgument implements ArgumentType<ResourceLocation> {
         return new EntitySummonArgument();
     }
 
-    public static ResourceLocation getSummonableEntity(CommandContext<CommandSourceStack> p_93339_, String p_93340_) throws CommandSyntaxException {
-        return verifyCanSummon(p_93339_.getArgument(p_93340_, ResourceLocation.class));
+    public static ResourceLocation getSummonableEntity(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        return verifyCanSummon(pContext.getArgument(pName, ResourceLocation.class));
     }
 
-    private static ResourceLocation verifyCanSummon(ResourceLocation p_93344_) throws CommandSyntaxException {
-        Registry.ENTITY_TYPE.getOptional(p_93344_).filter(EntityType::canSummon).orElseThrow(() -> {
-            return ERROR_UNKNOWN_ENTITY.create(p_93344_);
+    private static ResourceLocation verifyCanSummon(ResourceLocation pId) throws CommandSyntaxException {
+        Registry.ENTITY_TYPE.getOptional(pId).filter(EntityType::canSummon).orElseThrow(() -> {
+            return ERROR_UNKNOWN_ENTITY.create(pId);
         });
-        return p_93344_;
+        return pId;
     }
 
-    public ResourceLocation parse(StringReader p_93337_) throws CommandSyntaxException {
-        return verifyCanSummon(ResourceLocation.read(p_93337_));
+    public ResourceLocation parse(StringReader pReader) throws CommandSyntaxException {
+        return verifyCanSummon(ResourceLocation.read(pReader));
     }
 
     public Collection<String> getExamples() {

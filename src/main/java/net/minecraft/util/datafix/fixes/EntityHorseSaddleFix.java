@@ -11,8 +11,8 @@ import java.util.Optional;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class EntityHorseSaddleFix extends NamedEntityFix {
-    public EntityHorseSaddleFix(Schema p_15442_, boolean p_15443_) {
-        super(p_15442_, p_15443_, "EntityHorseSaddleFix", References.ENTITY, "EntityHorse");
+    public EntityHorseSaddleFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "EntityHorseSaddleFix", References.ENTITY, "EntityHorse");
     }
 
     protected Typed<?> fix(Typed<?> p_15445_) {

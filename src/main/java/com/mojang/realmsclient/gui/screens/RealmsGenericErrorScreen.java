@@ -19,39 +19,39 @@ public class RealmsGenericErrorScreen extends RealmsScreen {
     private final Pair<Component, Component> lines;
     private MultiLineLabel line2Split = MultiLineLabel.EMPTY;
 
-    public RealmsGenericErrorScreen(RealmsServiceException p_88669_, Screen p_88670_) {
+    public RealmsGenericErrorScreen(RealmsServiceException pServiceException, Screen pNextScreen) {
         super(GameNarrator.NO_TITLE);
-        this.nextScreen = p_88670_;
-        this.lines = errorMessage(p_88669_);
+        this.nextScreen = pNextScreen;
+        this.lines = errorMessage(pServiceException);
     }
 
-    public RealmsGenericErrorScreen(Component p_88672_, Screen p_88673_) {
+    public RealmsGenericErrorScreen(Component pServiceException, Screen pNextScreen) {
         super(GameNarrator.NO_TITLE);
-        this.nextScreen = p_88673_;
-        this.lines = errorMessage(p_88672_);
+        this.nextScreen = pNextScreen;
+        this.lines = errorMessage(pServiceException);
     }
 
-    public RealmsGenericErrorScreen(Component p_88675_, Component p_88676_, Screen p_88677_) {
+    public RealmsGenericErrorScreen(Component pLine1, Component pLine2, Screen pNextScreen) {
         super(GameNarrator.NO_TITLE);
-        this.nextScreen = p_88677_;
-        this.lines = errorMessage(p_88675_, p_88676_);
+        this.nextScreen = pNextScreen;
+        this.lines = errorMessage(pLine1, pLine2);
     }
 
-    private static Pair<Component, Component> errorMessage(RealmsServiceException p_200950_) {
-        if (p_200950_.realmsError == null) {
-            return Pair.of(Component.literal("An error occurred (" + p_200950_.httpResultCode + "):"), Component.literal(p_200950_.rawResponse));
+    private static Pair<Component, Component> errorMessage(RealmsServiceException pException) {
+        if (pException.realmsError == null) {
+            return Pair.of(Component.literal("An error occurred (" + pException.httpResultCode + "):"), Component.literal(pException.rawResponse));
         } else {
-            String s = "mco.errorMessage." + p_200950_.realmsError.getErrorCode();
-            return Pair.of(Component.literal("Realms (" + p_200950_.realmsError + "):"), (Component) (I18n.exists(s) ? Component.translatable(s) : Component.nullToEmpty(p_200950_.realmsError.getErrorMessage())));
+            String s = "mco.errorMessage." + pException.realmsError.getErrorCode();
+            return Pair.of(Component.literal("Realms (" + pException.realmsError + "):"), (Component) (I18n.exists(s) ? Component.translatable(s) : Component.nullToEmpty(pException.realmsError.getErrorMessage())));
         }
     }
 
-    private static Pair<Component, Component> errorMessage(Component p_200952_) {
-        return Pair.of(Component.literal("An error occurred: "), p_200952_);
+    private static Pair<Component, Component> errorMessage(Component pLine2) {
+        return Pair.of(Component.literal("An error occurred: "), pLine2);
     }
 
-    private static Pair<Component, Component> errorMessage(Component p_200954_, Component p_200955_) {
-        return Pair.of(p_200954_, p_200955_);
+    private static Pair<Component, Component> errorMessage(Component pLine1, Component pLine2) {
+        return Pair.of(pLine1, pLine2);
     }
 
     public void init() {
@@ -65,10 +65,10 @@ public class RealmsGenericErrorScreen extends RealmsScreen {
         return Component.empty().append(this.lines.getFirst()).append(": ").append(this.lines.getSecond());
     }
 
-    public void render(PoseStack p_88679_, int p_88680_, int p_88681_, float p_88682_) {
-        this.renderBackground(p_88679_);
-        drawCenteredString(p_88679_, this.font, this.lines.getFirst(), this.width / 2, 80, 16777215);
-        this.line2Split.renderCentered(p_88679_, this.width / 2, 100, 9, 16711680);
-        super.render(p_88679_, p_88680_, p_88681_, p_88682_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.lines.getFirst(), this.width / 2, 80, 16777215);
+        this.line2Split.renderCentered(pPoseStack, this.width / 2, 100, 9, 16711680);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

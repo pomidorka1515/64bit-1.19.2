@@ -11,14 +11,14 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 public class BasaltPillarFeature extends Feature<NoneFeatureConfiguration> {
-    public BasaltPillarFeature(Codec<NoneFeatureConfiguration> p_65190_) {
-        super(p_65190_);
+    public BasaltPillarFeature(Codec<NoneFeatureConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> p_159446_) {
-        BlockPos blockpos = p_159446_.origin();
-        WorldGenLevel worldgenlevel = p_159446_.level();
-        RandomSource randomsource = p_159446_.random();
+    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> pContext) {
+        BlockPos blockpos = pContext.origin();
+        WorldGenLevel worldgenlevel = pContext.level();
+        RandomSource randomsource = pContext.random();
         if (worldgenlevel.isEmptyBlock(blockpos) && !worldgenlevel.isEmptyBlock(blockpos.above())) {
             BlockPos.MutableBlockPos blockpos$mutableblockpos = blockpos.mutable();
             BlockPos.MutableBlockPos blockpos$mutableblockpos1 = blockpos.mutable();
@@ -76,15 +76,15 @@ public class BasaltPillarFeature extends Feature<NoneFeatureConfiguration> {
         }
     }
 
-    private void placeBaseHangOff(LevelAccessor p_224937_, RandomSource p_224938_, BlockPos p_224939_) {
-        if (p_224938_.nextBoolean()) {
-            p_224937_.setBlock(p_224939_, Blocks.BASALT.defaultBlockState(), 2);
+    private void placeBaseHangOff(LevelAccessor pLevel, RandomSource pRandom, BlockPos pPos) {
+        if (pRandom.nextBoolean()) {
+            pLevel.setBlock(pPos, Blocks.BASALT.defaultBlockState(), 2);
         }
     }
 
-    private boolean placeHangOff(LevelAccessor p_224941_, RandomSource p_224942_, BlockPos p_224943_) {
-        if (p_224942_.nextInt(10) != 0) {
-            p_224941_.setBlock(p_224943_, Blocks.BASALT.defaultBlockState(), 2);
+    private boolean placeHangOff(LevelAccessor pLevel, RandomSource pRandom, BlockPos pPos) {
+        if (pRandom.nextInt(10) != 0) {
+            pLevel.setBlock(pPos, Blocks.BASALT.defaultBlockState(), 2);
             return true;
         } else {
             return false;

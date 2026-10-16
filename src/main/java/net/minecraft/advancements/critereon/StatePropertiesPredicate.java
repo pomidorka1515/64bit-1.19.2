@@ -23,30 +23,30 @@ public class StatePropertiesPredicate {
     public static final StatePropertiesPredicate ANY = new StatePropertiesPredicate(ImmutableList.of());
     private final List<StatePropertiesPredicate.PropertyMatcher> properties;
 
-    private static StatePropertiesPredicate.PropertyMatcher fromJson(String p_67687_, JsonElement p_67688_) {
-        if (p_67688_.isJsonPrimitive()) {
-            String s2 = p_67688_.getAsString();
-            return new StatePropertiesPredicate.ExactPropertyMatcher(p_67687_, s2);
+    private static StatePropertiesPredicate.PropertyMatcher fromJson(String pName, JsonElement pJson) {
+        if (pJson.isJsonPrimitive()) {
+            String s2 = pJson.getAsString();
+            return new StatePropertiesPredicate.ExactPropertyMatcher(pName, s2);
         } else {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_67688_, "value");
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "value");
             String s = jsonobject.has("min") ? getStringOrNull(jsonobject.get("min")) : null;
             String s1 = jsonobject.has("max") ? getStringOrNull(jsonobject.get("max")) : null;
-            return (StatePropertiesPredicate.PropertyMatcher) (s != null && s.equals(s1) ? new StatePropertiesPredicate.ExactPropertyMatcher(p_67687_, s) : new StatePropertiesPredicate.RangedPropertyMatcher(p_67687_, s, s1));
+            return (StatePropertiesPredicate.PropertyMatcher) (s != null && s.equals(s1) ? new StatePropertiesPredicate.ExactPropertyMatcher(pName, s) : new StatePropertiesPredicate.RangedPropertyMatcher(pName, s, s1));
         }
     }
 
     @Nullable
-    private static String getStringOrNull(JsonElement p_67690_) {
-        return p_67690_.isJsonNull() ? null : p_67690_.getAsString();
+    private static String getStringOrNull(JsonElement pJson) {
+        return pJson.isJsonNull() ? null : pJson.getAsString();
     }
 
-    StatePropertiesPredicate(List<StatePropertiesPredicate.PropertyMatcher> p_67662_) {
-        this.properties = ImmutableList.copyOf(p_67662_);
+    StatePropertiesPredicate(List<StatePropertiesPredicate.PropertyMatcher> pProperties) {
+        this.properties = ImmutableList.copyOf(pProperties);
     }
 
-    public <S extends StateHolder<?, S>> boolean matches(StateDefinition<?, S> p_67670_, S p_67671_) {
+    public <S extends StateHolder<?, S>> boolean matches(StateDefinition<?, S> pProperties, S pTargetProperty) {
         for (StatePropertiesPredicate.PropertyMatcher statepropertiespredicate$propertymatcher : this.properties) {
-            if (!statepropertiespredicate$propertymatcher.match(p_67670_, p_67671_)) {
+            if (!statepropertiespredicate$propertymatcher.match(pProperties, pTargetProperty)) {
                 return false;
             }
         }
@@ -54,23 +54,23 @@ public class StatePropertiesPredicate {
         return true;
     }
 
-    public boolean matches(BlockState p_67668_) {
-        return this.matches(p_67668_.getBlock().getStateDefinition(), p_67668_);
+    public boolean matches(BlockState pState) {
+        return this.matches(pState.getBlock().getStateDefinition(), pState);
     }
 
-    public boolean matches(FluidState p_67685_) {
-        return this.matches(p_67685_.getType().getStateDefinition(), p_67685_);
+    public boolean matches(FluidState pState) {
+        return this.matches(pState.getType().getStateDefinition(), pState);
     }
 
-    public void checkState(StateDefinition<?, ?> p_67673_, Consumer<String> p_67674_) {
+    public void checkState(StateDefinition<?, ?> pProperties, Consumer<String> pPropertyConsumer) {
         this.properties.forEach((p_67678_) -> {
-            p_67678_.checkState(p_67673_, p_67674_);
+            p_67678_.checkState(pProperties, pPropertyConsumer);
         });
     }
 
-    public static StatePropertiesPredicate fromJson(@Nullable JsonElement p_67680_) {
-        if (p_67680_ != null && !p_67680_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_67680_, "properties");
+    public static StatePropertiesPredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "properties");
             List<StatePropertiesPredicate.PropertyMatcher> list = Lists.newArrayList();
 
             for (Map.Entry<String, JsonElement> entry : jsonobject.entrySet()) {
@@ -108,21 +108,21 @@ public class StatePropertiesPredicate {
             return new StatePropertiesPredicate.Builder();
         }
 
-        public StatePropertiesPredicate.Builder hasProperty(Property<?> p_67701_, String p_67702_) {
-            this.matchers.add(new StatePropertiesPredicate.ExactPropertyMatcher(p_67701_.getName(), p_67702_));
+        public StatePropertiesPredicate.Builder hasProperty(Property<?> pProperty, String pValue) {
+            this.matchers.add(new StatePropertiesPredicate.ExactPropertyMatcher(pProperty.getName(), pValue));
             return this;
         }
 
-        public StatePropertiesPredicate.Builder hasProperty(Property<Integer> p_67695_, int p_67696_) {
-            return this.hasProperty(p_67695_, Integer.toString(p_67696_));
+        public StatePropertiesPredicate.Builder hasProperty(Property<Integer> pProperty, int pValue) {
+            return this.hasProperty(pProperty, Integer.toString(pValue));
         }
 
-        public StatePropertiesPredicate.Builder hasProperty(Property<Boolean> p_67704_, boolean p_67705_) {
-            return this.hasProperty(p_67704_, Boolean.toString(p_67705_));
+        public StatePropertiesPredicate.Builder hasProperty(Property<Boolean> pProperty, boolean pValue) {
+            return this.hasProperty(pProperty, Boolean.toString(pValue));
         }
 
-        public <T extends Comparable<T> & StringRepresentable> StatePropertiesPredicate.Builder hasProperty(Property<T> p_67698_, T p_67699_) {
-            return this.hasProperty(p_67698_, p_67699_.getSerializedName());
+        public <T extends Comparable<T> & StringRepresentable> StatePropertiesPredicate.Builder hasProperty(Property<T> pProperty, T pValue) {
+            return this.hasProperty(pProperty, pValue.getSerializedName());
         }
 
         public StatePropertiesPredicate build() {
@@ -133,14 +133,14 @@ public class StatePropertiesPredicate {
     static class ExactPropertyMatcher extends StatePropertiesPredicate.PropertyMatcher {
         private final String value;
 
-        public ExactPropertyMatcher(String p_67709_, String p_67710_) {
-            super(p_67709_);
-            this.value = p_67710_;
+        public ExactPropertyMatcher(String pName, String pValue) {
+            super(pName);
+            this.value = pValue;
         }
 
-        protected <T extends Comparable<T>> boolean match(StateHolder<?, ?> p_67713_, Property<T> p_67714_) {
-            T t = p_67713_.getValue(p_67714_);
-            Optional<T> optional = p_67714_.getValue(this.value);
+        protected <T extends Comparable<T>> boolean match(StateHolder<?, ?> pProperties, Property<T> pPropertyTarget) {
+            T t = pProperties.getValue(pPropertyTarget);
+            Optional<T> optional = pPropertyTarget.getValue(this.value);
             return optional.isPresent() && t.compareTo(optional.get()) == 0;
         }
 
@@ -152,16 +152,16 @@ public class StatePropertiesPredicate {
     abstract static class PropertyMatcher {
         private final String name;
 
-        public PropertyMatcher(String p_67717_) {
-            this.name = p_67717_;
+        public PropertyMatcher(String pName) {
+            this.name = pName;
         }
 
-        public <S extends StateHolder<?, S>> boolean match(StateDefinition<?, S> p_67719_, S p_67720_) {
-            Property<?> property = p_67719_.getProperty(this.name);
-            return property == null ? false : this.match(p_67720_, property);
+        public <S extends StateHolder<?, S>> boolean match(StateDefinition<?, S> pProperties, S pPropertyToMatch) {
+            Property<?> property = pProperties.getProperty(this.name);
+            return property == null ? false : this.match(pPropertyToMatch, property);
         }
 
-        protected abstract <T extends Comparable<T>> boolean match(StateHolder<?, ?> p_67724_, Property<T> p_67725_);
+        protected abstract <T extends Comparable<T>> boolean match(StateHolder<?, ?> pProperties, Property<T> pProperty);
 
         public abstract JsonElement toJson();
 
@@ -169,10 +169,10 @@ public class StatePropertiesPredicate {
             return this.name;
         }
 
-        public void checkState(StateDefinition<?, ?> p_67722_, Consumer<String> p_67723_) {
-            Property<?> property = p_67722_.getProperty(this.name);
+        public void checkState(StateDefinition<?, ?> pProperties, Consumer<String> pPropertyConsumer) {
+            Property<?> property = pProperties.getProperty(this.name);
             if (property == null) {
-                p_67723_.accept(this.name);
+                pPropertyConsumer.accept(this.name);
             }
         }
     }
@@ -183,23 +183,23 @@ public class StatePropertiesPredicate {
         @Nullable
         private final String maxValue;
 
-        public RangedPropertyMatcher(String p_67730_, @Nullable String p_67731_, @Nullable String p_67732_) {
-            super(p_67730_);
-            this.minValue = p_67731_;
-            this.maxValue = p_67732_;
+        public RangedPropertyMatcher(String pName, @Nullable String pMinValue, @Nullable String pMaxValue) {
+            super(pName);
+            this.minValue = pMinValue;
+            this.maxValue = pMaxValue;
         }
 
-        protected <T extends Comparable<T>> boolean match(StateHolder<?, ?> p_67735_, Property<T> p_67736_) {
-            T t = p_67735_.getValue(p_67736_);
+        protected <T extends Comparable<T>> boolean match(StateHolder<?, ?> pProperties, Property<T> pPropertyTarget) {
+            T t = pProperties.getValue(pPropertyTarget);
             if (this.minValue != null) {
-                Optional<T> optional = p_67736_.getValue(this.minValue);
+                Optional<T> optional = pPropertyTarget.getValue(this.minValue);
                 if (!optional.isPresent() || t.compareTo(optional.get()) < 0) {
                     return false;
                 }
             }
 
             if (this.maxValue != null) {
-                Optional<T> optional1 = p_67736_.getValue(this.maxValue);
+                Optional<T> optional1 = pPropertyTarget.getValue(this.maxValue);
                 if (!optional1.isPresent() || t.compareTo(optional1.get()) > 0) {
                     return false;
                 }

@@ -13,31 +13,31 @@ import net.minecraft.world.level.material.Fluids;
 public class CoralWallFanBlock extends BaseCoralWallFanBlock {
     private final Block deadBlock;
 
-    protected CoralWallFanBlock(Block p_52202_, BlockBehaviour.Properties p_52203_) {
-        super(p_52203_);
-        this.deadBlock = p_52202_;
+    protected CoralWallFanBlock(Block pDeadBlock, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
+        this.deadBlock = pDeadBlock;
     }
 
-    public void onPlace(BlockState p_52217_, Level p_52218_, BlockPos p_52219_, BlockState p_52220_, boolean p_52221_) {
-        this.tryScheduleDieTick(p_52217_, p_52218_, p_52219_);
+    public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
+        this.tryScheduleDieTick(pState, pLevel, pPos);
     }
 
-    public void tick(BlockState p_221035_, ServerLevel p_221036_, BlockPos p_221037_, RandomSource p_221038_) {
-        if (!scanForWater(p_221035_, p_221036_, p_221037_)) {
-            p_221036_.setBlock(p_221037_, this.deadBlock.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(false)).setValue(FACING, p_221035_.getValue(FACING)), 2);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (!scanForWater(pState, pLevel, pPos)) {
+            pLevel.setBlock(pPos, this.deadBlock.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(false)).setValue(FACING, pState.getValue(FACING)), 2);
         }
     }
 
-    public BlockState updateShape(BlockState p_52210_, Direction p_52211_, BlockState p_52212_, LevelAccessor p_52213_, BlockPos p_52214_, BlockPos p_52215_) {
-        if (p_52211_.getOpposite() == p_52210_.getValue(FACING) && !p_52210_.canSurvive(p_52213_, p_52214_)) {
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pFacing.getOpposite() == pState.getValue(FACING) && !pState.canSurvive(pLevel, pCurrentPos)) {
             return Blocks.AIR.defaultBlockState();
         } else {
-            if (p_52210_.getValue(WATERLOGGED)) {
-                p_52213_.scheduleTick(p_52214_, Fluids.WATER, Fluids.WATER.getTickDelay(p_52213_));
+            if (pState.getValue(WATERLOGGED)) {
+                pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
             }
 
-            this.tryScheduleDieTick(p_52210_, p_52213_, p_52214_);
-            return super.updateShape(p_52210_, p_52211_, p_52212_, p_52213_, p_52214_, p_52215_);
+            this.tryScheduleDieTick(pState, pLevel, pCurrentPos);
+            return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
         }
     }
 }

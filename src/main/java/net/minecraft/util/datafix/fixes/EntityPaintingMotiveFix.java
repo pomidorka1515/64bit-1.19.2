@@ -18,8 +18,8 @@ public class EntityPaintingMotiveFix extends NamedEntityFix {
         p_15532_.put("skullandroses", "skull_and_roses");
     });
 
-    public EntityPaintingMotiveFix(Schema p_15525_, boolean p_15526_) {
-        super(p_15525_, p_15526_, "EntityPaintingMotiveFix", References.ENTITY, "minecraft:painting");
+    public EntityPaintingMotiveFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "EntityPaintingMotiveFix", References.ENTITY, "minecraft:painting");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15530_) {

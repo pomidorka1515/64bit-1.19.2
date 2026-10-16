@@ -31,5 +31,5 @@ public enum SupportType {
         }
     };
 
-    public abstract boolean isSupporting(BlockState p_57209_, BlockGetter p_57210_, BlockPos p_57211_, Direction p_57212_);
+    public abstract boolean isSupporting(BlockState pState, BlockGetter pLevel, BlockPos pPos, Direction pFace);
 }

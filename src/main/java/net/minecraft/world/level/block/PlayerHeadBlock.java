@@ -20,13 +20,13 @@ public class PlayerHeadBlock extends SkullBlock {
         super(SkullBlock.Types.PLAYER, p_55177_);
     }
 
-    public void setPlacedBy(Level p_55179_, BlockPos p_55180_, BlockState p_55181_, @Nullable LivingEntity p_55182_, ItemStack p_55183_) {
-        super.setPlacedBy(p_55179_, p_55180_, p_55181_, p_55182_, p_55183_);
-        BlockEntity blockentity = p_55179_.getBlockEntity(p_55180_);
+    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
+        super.setPlacedBy(pLevel, pPos, pState, pPlacer, pStack);
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof SkullBlockEntity skullblockentity) {
             GameProfile gameprofile = null;
-            if (p_55183_.hasTag()) {
-                CompoundTag compoundtag = p_55183_.getTag();
+            if (pStack.hasTag()) {
+                CompoundTag compoundtag = pStack.getTag();
                 if (compoundtag.contains("SkullOwner", 10)) {
                     gameprofile = NbtUtils.readGameProfile(compoundtag.getCompound("SkullOwner"));
                 } else if (compoundtag.contains("SkullOwner", 8) && !StringUtils.isBlank(compoundtag.getString("SkullOwner"))) {

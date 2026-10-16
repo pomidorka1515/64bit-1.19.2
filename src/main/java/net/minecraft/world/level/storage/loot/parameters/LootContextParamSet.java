@@ -11,13 +11,13 @@ public class LootContextParamSet {
     private final Set<LootContextParam<?>> required;
     private final Set<LootContextParam<?>> all;
 
-    LootContextParamSet(Set<LootContextParam<?>> p_81388_, Set<LootContextParam<?>> p_81389_) {
-        this.required = ImmutableSet.copyOf(p_81388_);
-        this.all = ImmutableSet.copyOf(Sets.union(p_81388_, p_81389_));
+    LootContextParamSet(Set<LootContextParam<?>> pRequired, Set<LootContextParam<?>> pOptional) {
+        this.required = ImmutableSet.copyOf(pRequired);
+        this.all = ImmutableSet.copyOf(Sets.union(pRequired, pOptional));
     }
 
-    public boolean isAllowed(LootContextParam<?> p_165476_) {
-        return this.all.contains(p_165476_);
+    public boolean isAllowed(LootContextParam<?> pParam) {
+        return this.all.contains(pParam);
     }
 
     public Set<LootContextParam<?>> getRequired() {
@@ -36,11 +36,11 @@ public class LootContextParamSet {
                 + "]";
     }
 
-    public void validateUser(ValidationContext p_81396_, LootContextUser p_81397_) {
-        Set<LootContextParam<?>> set = p_81397_.getReferencedContextParams();
+    public void validateUser(ValidationContext pValidationContext, LootContextUser pLootContextUser) {
+        Set<LootContextParam<?>> set = pLootContextUser.getReferencedContextParams();
         Set<LootContextParam<?>> set1 = Sets.difference(set, this.all);
         if (!set1.isEmpty()) {
-            p_81396_.reportProblem("Parameters " + set1 + " are not provided in this context");
+            pValidationContext.reportProblem("Parameters " + set1 + " are not provided in this context");
         }
     }
 
@@ -52,20 +52,20 @@ public class LootContextParamSet {
         private final Set<LootContextParam<?>> required = Sets.newIdentityHashSet();
         private final Set<LootContextParam<?>> optional = Sets.newIdentityHashSet();
 
-        public LootContextParamSet.Builder required(LootContextParam<?> p_81407_) {
-            if (this.optional.contains(p_81407_)) {
-                throw new IllegalArgumentException("Parameter " + p_81407_.getName() + " is already optional");
+        public LootContextParamSet.Builder required(LootContextParam<?> pParameter) {
+            if (this.optional.contains(pParameter)) {
+                throw new IllegalArgumentException("Parameter " + pParameter.getName() + " is already optional");
             } else {
-                this.required.add(p_81407_);
+                this.required.add(pParameter);
                 return this;
             }
         }
 
-        public LootContextParamSet.Builder optional(LootContextParam<?> p_81409_) {
-            if (this.required.contains(p_81409_)) {
-                throw new IllegalArgumentException("Parameter " + p_81409_.getName() + " is already required");
+        public LootContextParamSet.Builder optional(LootContextParam<?> pParameter) {
+            if (this.required.contains(pParameter)) {
+                throw new IllegalArgumentException("Parameter " + pParameter.getName() + " is already required");
             } else {
-                this.optional.add(p_81409_);
+                this.optional.add(pParameter);
                 return this;
             }
         }

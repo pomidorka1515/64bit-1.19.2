@@ -29,7 +29,7 @@ public class ConstantInt extends IntProvider {
         return this.value;
     }
 
-    public int sample(RandomSource p_216854_) {
+    public int sample(RandomSource pRandom) {
         return this.value;
     }
 

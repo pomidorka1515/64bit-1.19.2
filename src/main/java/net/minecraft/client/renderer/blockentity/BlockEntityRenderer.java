@@ -10,9 +10,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface BlockEntityRenderer<T extends BlockEntity> {
-    void render(T p_112307_, float p_112308_, PoseStack p_112309_, MultiBufferSource p_112310_, int p_112311_, int p_112312_);
+    void render(T pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay);
 
-    default boolean shouldRenderOffScreen(T p_112306_) {
+    default boolean shouldRenderOffScreen(T pBlockEntity) {
         return false;
     }
 
@@ -25,11 +25,11 @@ public interface BlockEntityRenderer<T extends BlockEntity> {
     * split-coordinate frame.  Block entities are addressed by {@link BlockPos},
     * so constructing their center from that position preserves X/Z precision.
     */
-    default boolean shouldRender(T p_173568_, SectorVec3 p_173569_) {
-        BlockPos blockpos = p_173568_.getBlockPos();
+    default boolean shouldRender(T pBlockEntity, SectorVec3 pCameraPos) {
+        BlockPos blockpos = pBlockEntity.getBlockPos();
         return SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double) blockpos.getY() + 0.5D,
                                  blockpos.getZ(), 0.5D)
-                       .relativeTo(p_173569_)
+                       .relativeTo(pCameraPos)
                        .lengthSqr()
                 < (double) this.getViewDistance() * (double) this.getViewDistance();
     }

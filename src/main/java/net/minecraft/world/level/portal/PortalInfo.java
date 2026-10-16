@@ -8,10 +8,10 @@ public class PortalInfo {
     public final float yRot;
     public final float xRot;
 
-    public PortalInfo(Vec3 p_77681_, Vec3 p_77682_, float p_77683_, float p_77684_) {
-        this.pos = p_77681_;
-        this.speed = p_77682_;
-        this.yRot = p_77683_;
-        this.xRot = p_77684_;
+    public PortalInfo(Vec3 pPos, Vec3 pSpeed, float pYRot, float pXRot) {
+        this.pos = pPos;
+        this.speed = pSpeed;
+        this.yRot = pYRot;
+        this.xRot = pXRot;
     }
 }

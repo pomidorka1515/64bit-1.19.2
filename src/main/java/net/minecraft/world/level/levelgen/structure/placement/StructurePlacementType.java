@@ -9,9 +9,9 @@ public interface StructurePlacementType<SP extends StructurePlacement> {
 
     Codec<SP> codec();
 
-    private static <SP extends StructurePlacement> StructurePlacementType<SP> register(String p_205047_, Codec<SP> p_205048_) {
-        return Registry.register(Registry.STRUCTURE_PLACEMENT_TYPE, p_205047_, () -> {
-            return p_205048_;
+    private static <SP extends StructurePlacement> StructurePlacementType<SP> register(String pName, Codec<SP> pCodec) {
+        return Registry.register(Registry.STRUCTURE_PLACEMENT_TYPE, pName, () -> {
+            return pCodec;
         });
     }
 }

@@ -20,12 +20,12 @@ public class VexModel extends HumanoidModel<Vex> {
     private final ModelPart leftWing;
     private final ModelPart rightWing;
 
-    public VexModel(ModelPart p_171045_) {
-        super(p_171045_);
+    public VexModel(ModelPart pRoot) {
+        super(pRoot);
         this.leftLeg.visible = false;
         this.hat.visible = false;
-        this.rightWing = p_171045_.getChild("right_wing");
-        this.leftWing = p_171045_.getChild("left_wing");
+        this.rightWing = pRoot.getChild("right_wing");
+        this.leftWing = pRoot.getChild("left_wing");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -41,13 +41,13 @@ public class VexModel extends HumanoidModel<Vex> {
         return Iterables.concat(super.bodyParts(), ImmutableList.of(this.rightWing, this.leftWing));
     }
 
-    public void setupAnim(Vex p_104028_, float p_104029_, float p_104030_, float p_104031_, float p_104032_, float p_104033_) {
-        super.setupAnim(p_104028_, p_104029_, p_104030_, p_104031_, p_104032_, p_104033_);
-        if (p_104028_.isCharging()) {
-            if (p_104028_.getMainHandItem().isEmpty()) {
+    public void setupAnim(Vex pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
+        if (pEntity.isCharging()) {
+            if (pEntity.getMainHandItem().isEmpty()) {
                 this.rightArm.xRot = ((float) Math.PI * 1.5F);
                 this.leftArm.xRot = ((float) Math.PI * 1.5F);
-            } else if (p_104028_.getMainArm() == HumanoidArm.RIGHT) {
+            } else if (pEntity.getMainArm() == HumanoidArm.RIGHT) {
                 this.rightArm.xRot = 3.7699115F;
             } else {
                 this.leftArm.xRot = 3.7699115F;
@@ -59,7 +59,7 @@ public class VexModel extends HumanoidModel<Vex> {
         this.leftWing.z = 2.0F;
         this.rightWing.y = 1.0F;
         this.leftWing.y = 1.0F;
-        this.rightWing.yRot = 0.47123894F + Mth.cos(p_104031_ * 45.836624F * ((float) Math.PI / 180F)) * (float) Math.PI * 0.05F;
+        this.rightWing.yRot = 0.47123894F + Mth.cos(pAgeInTicks * 45.836624F * ((float) Math.PI / 180F)) * (float) Math.PI * 0.05F;
         this.leftWing.yRot = -this.rightWing.yRot;
         this.leftWing.zRot = -0.47123894F;
         this.leftWing.xRot = 0.47123894F;

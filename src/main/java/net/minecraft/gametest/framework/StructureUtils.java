@@ -53,8 +53,8 @@ public class StructureUtils {
     public static String testStructuresDir = "gameteststructures";
     private static final int HOW_MANY_CHUNKS_TO_LOAD_IN_EACH_DIRECTION_OF_STRUCTURE = 4;
 
-    public static Rotation getRotationForRotationSteps(int p_127836_) {
-        switch (p_127836_) {
+    public static Rotation getRotationForRotationSteps(int pRotationSteps) {
+        switch (pRotationSteps) {
             case 0:
                 return Rotation.NONE;
             case 1:
@@ -64,12 +64,12 @@ public class StructureUtils {
             case 3:
                 return Rotation.COUNTERCLOCKWISE_90;
             default:
-                throw new IllegalArgumentException("rotationSteps must be a value from 0-3. Got value " + p_127836_);
+                throw new IllegalArgumentException("rotationSteps must be a value from 0-3. Got value " + pRotationSteps);
         }
     }
 
-    public static int getRotationStepsForRotation(Rotation p_177752_) {
-        switch (p_177752_) {
+    public static int getRotationStepsForRotation(Rotation pRotation) {
+        switch (pRotation) {
             case NONE:
                 return 0;
             case CLOCKWISE_90:
@@ -79,11 +79,11 @@ public class StructureUtils {
             case COUNTERCLOCKWISE_90:
                 return 3;
             default:
-                throw new IllegalArgumentException("Unknown rotation value, don't know how many steps it represents: " + p_177752_);
+                throw new IllegalArgumentException("Unknown rotation value, don't know how many steps it represents: " + pRotation);
         }
     }
 
-    public static void main(String[] p_177771_) throws IOException {
+    public static void main(String[] pArgs) throws IOException {
         Bootstrap.bootStrap();
         Files.walk(Paths.get(testStructuresDir)).filter((p_177775_) -> {
                                                     return p_177775_.toString().endsWith(".snbt");
@@ -100,17 +100,17 @@ public class StructureUtils {
                 });
     }
 
-    public static AABB getStructureBounds(StructureBlockEntity p_127848_) {
-        BlockPos blockpos = p_127848_.getBlockPos();
-        BlockPos blockpos1 = blockpos.offset(p_127848_.getStructureSize().offset(-1, -1, -1));
-        BlockPos blockpos2 = StructureTemplate.transform(blockpos1, Mirror.NONE, p_127848_.getRotation(), blockpos);
+    public static AABB getStructureBounds(StructureBlockEntity pStructureBlockEntity) {
+        BlockPos blockpos = pStructureBlockEntity.getBlockPos();
+        BlockPos blockpos1 = blockpos.offset(pStructureBlockEntity.getStructureSize().offset(-1, -1, -1));
+        BlockPos blockpos2 = StructureTemplate.transform(blockpos1, Mirror.NONE, pStructureBlockEntity.getRotation(), blockpos);
         return new AABB(blockpos, blockpos2);
     }
 
-    public static BoundingBox getStructureBoundingBox(StructureBlockEntity p_127905_) {
-        BlockPos blockpos = p_127905_.getBlockPos();
-        BlockPos blockpos1 = blockpos.offset(p_127905_.getStructureSize().offset(-1, -1, -1));
-        BlockPos blockpos2 = StructureTemplate.transform(blockpos1, Mirror.NONE, p_127905_.getRotation(), blockpos);
+    public static BoundingBox getStructureBoundingBox(StructureBlockEntity pStructureBlockEntity) {
+        BlockPos blockpos = pStructureBlockEntity.getBlockPos();
+        BlockPos blockpos1 = blockpos.offset(pStructureBlockEntity.getStructureSize().offset(-1, -1, -1));
+        BlockPos blockpos2 = StructureTemplate.transform(blockpos1, Mirror.NONE, pStructureBlockEntity.getRotation(), blockpos);
         return BoundingBox.fromCorners(blockpos, blockpos2);
     }
 
@@ -123,14 +123,14 @@ public class StructureUtils {
         p_127879_.setBlockAndUpdate(blockpos1, Blocks.STONE_BUTTON.defaultBlockState().rotate(p_127878_));
     }
 
-    public static void createNewEmptyStructureBlock(String p_177765_, BlockPos p_177766_, Vec3i p_177767_, Rotation p_177768_, ServerLevel p_177769_) {
-        BoundingBox boundingbox = getStructureBoundingBox(p_177766_, p_177767_, p_177768_);
-        clearSpaceForStructure(boundingbox, p_177766_.getY(), p_177769_);
-        p_177769_.setBlockAndUpdate(p_177766_, Blocks.STRUCTURE_BLOCK.defaultBlockState());
-        StructureBlockEntity structureblockentity = (StructureBlockEntity) p_177769_.getBlockEntity(p_177766_);
+    public static void createNewEmptyStructureBlock(String pStructureName, BlockPos pPos, Vec3i pSize, Rotation pRotation, ServerLevel pServerLevel) {
+        BoundingBox boundingbox = getStructureBoundingBox(pPos, pSize, pRotation);
+        clearSpaceForStructure(boundingbox, pPos.getY(), pServerLevel);
+        pServerLevel.setBlockAndUpdate(pPos, Blocks.STRUCTURE_BLOCK.defaultBlockState());
+        StructureBlockEntity structureblockentity = (StructureBlockEntity) pServerLevel.getBlockEntity(pPos);
         structureblockentity.setIgnoreEntities(false);
-        structureblockentity.setStructureName(new ResourceLocation(p_177765_));
-        structureblockentity.setStructureSize(p_177767_);
+        structureblockentity.setStructureName(new ResourceLocation(pStructureName));
+        structureblockentity.setStructureSize(pSize);
         structureblockentity.setMode(StructureMode.SAVE);
         structureblockentity.setShowBoundingBox(true);
     }
@@ -161,14 +161,14 @@ public class StructureUtils {
         return structureblockentity;
     }
 
-    private static void forceLoadChunks(BlockPos p_127858_, ServerLevel p_127859_) {
-        ChunkPos chunkpos = new ChunkPos(p_127858_);
+    private static void forceLoadChunks(BlockPos pPos, ServerLevel pServerLevel) {
+        ChunkPos chunkpos = new ChunkPos(pPos);
 
         for (int i = -1; i < 4; ++i) {
             for (int j = -1; j < 4; ++j) {
                 long k = chunkpos.x + i;
                 long l = chunkpos.z + j;
-                p_127859_.setChunkForced(k, l, true);
+                pServerLevel.setChunkForced(k, l, true);
             }
         }
     }
@@ -187,13 +187,13 @@ public class StructureUtils {
         list.forEach(Entity::discard);
     }
 
-    public static BoundingBox getStructureBoundingBox(BlockPos p_177761_, Vec3i p_177762_, Rotation p_177763_) {
-        BlockPos blockpos = p_177761_.offset(p_177762_).offset(-1, -1, -1);
-        BlockPos blockpos1 = StructureTemplate.transform(blockpos, Mirror.NONE, p_177763_, p_177761_);
-        BoundingBox boundingbox = BoundingBox.fromCorners(p_177761_, blockpos1);
+    public static BoundingBox getStructureBoundingBox(BlockPos pPos, Vec3i pOffset, Rotation pRotation) {
+        BlockPos blockpos = pPos.offset(pOffset).offset(-1, -1, -1);
+        BlockPos blockpos1 = StructureTemplate.transform(blockpos, Mirror.NONE, pRotation, pPos);
+        BoundingBox boundingbox = BoundingBox.fromCorners(pPos, blockpos1);
         long i = Math.min(boundingbox.minX(), boundingbox.maxX());
         long j = Math.min(boundingbox.minZ(), boundingbox.maxZ());
-        return boundingbox.move(WorldBounds.subtractBlockOffset(p_177761_.getX(), i), 0, WorldBounds.subtractBlockOffset(p_177761_.getZ(), j));
+        return boundingbox.move(WorldBounds.subtractBlockOffset(pPos.getX(), i), 0, WorldBounds.subtractBlockOffset(pPos.getZ(), j));
     }
 
     public static Optional<BlockPos> findStructureBlockContainingPos(BlockPos p_127854_, int p_127855_, ServerLevel p_127856_) {
@@ -233,13 +233,13 @@ public class StructureUtils {
         return collection;
     }
 
-    private static StructureTemplate getStructureTemplate(String p_127881_, ServerLevel p_127882_) {
-        StructureTemplateManager structuretemplatemanager = p_127882_.getStructureManager();
-        Optional<StructureTemplate> optional = structuretemplatemanager.get(new ResourceLocation(p_127881_));
+    private static StructureTemplate getStructureTemplate(String pStructureName, ServerLevel pServerLevel) {
+        StructureTemplateManager structuretemplatemanager = pServerLevel.getStructureManager();
+        Optional<StructureTemplate> optional = structuretemplatemanager.get(new ResourceLocation(pStructureName));
         if (optional.isPresent()) {
             return optional.get();
         } else {
-            String s = p_127881_ + ".snbt";
+            String s = pStructureName + ".snbt";
             Path path = Paths.get(testStructuresDir, s);
             CompoundTag compoundtag = tryLoadStructure(path);
             if (compoundtag == null) {
@@ -272,15 +272,15 @@ public class StructureUtils {
     }
 
     @Nullable
-    private static CompoundTag tryLoadStructure(Path p_127903_) {
+    private static CompoundTag tryLoadStructure(Path pPathToStructure) {
         try {
-            BufferedReader bufferedreader = Files.newBufferedReader(p_127903_);
+            BufferedReader bufferedreader = Files.newBufferedReader(pPathToStructure);
             String s = IOUtils.toString((Reader) bufferedreader);
             return NbtUtils.snbtToStructure(s);
         } catch (IOException ioexception) {
             return null;
         } catch (CommandSyntaxException commandsyntaxexception) {
-            throw new RuntimeException("Error while trying to load structure " + p_127903_, commandsyntaxexception);
+            throw new RuntimeException("Error while trying to load structure " + pPathToStructure, commandsyntaxexception);
         }
     }
 
@@ -302,9 +302,9 @@ public class StructureUtils {
         p_127844_.blockUpdated(p_127843_, blockstate.getBlock());
     }
 
-    private static boolean doesStructureContain(BlockPos p_127868_, BlockPos p_127869_, ServerLevel p_127870_) {
-        StructureBlockEntity structureblockentity = (StructureBlockEntity) p_127870_.getBlockEntity(p_127868_);
+    private static boolean doesStructureContain(BlockPos pStructureBlockPos, BlockPos pPosToTest, ServerLevel pServerLevel) {
+        StructureBlockEntity structureblockentity = (StructureBlockEntity) pServerLevel.getBlockEntity(pStructureBlockPos);
         AABB aabb = getStructureBounds(structureblockentity).inflate(1.0D);
-        return aabb.contains(Vec3.atCenterOf(p_127869_));
+        return aabb.contains(Vec3.atCenterOf(pPosToTest));
     }
 }

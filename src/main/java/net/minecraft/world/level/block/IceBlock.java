@@ -17,41 +17,41 @@ import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.material.PushReaction;
 
 public class IceBlock extends HalfTransparentBlock {
-    public IceBlock(BlockBehaviour.Properties p_54155_) {
-        super(p_54155_);
+    public IceBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    public void playerDestroy(Level p_54157_, Player p_54158_, BlockPos p_54159_, BlockState p_54160_, @Nullable BlockEntity p_54161_, ItemStack p_54162_) {
-        super.playerDestroy(p_54157_, p_54158_, p_54159_, p_54160_, p_54161_, p_54162_);
-        if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, p_54162_) == 0) {
-            if (p_54157_.dimensionType().ultraWarm()) {
-                p_54157_.removeBlock(p_54159_, false);
+    public void playerDestroy(Level pLevel, Player pPlayer, BlockPos pPos, BlockState pState, @Nullable BlockEntity pTe, ItemStack pStack) {
+        super.playerDestroy(pLevel, pPlayer, pPos, pState, pTe, pStack);
+        if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, pStack) == 0) {
+            if (pLevel.dimensionType().ultraWarm()) {
+                pLevel.removeBlock(pPos, false);
                 return;
             }
 
-            Material material = p_54157_.getBlockState(p_54159_.below()).getMaterial();
+            Material material = pLevel.getBlockState(pPos.below()).getMaterial();
             if (material.blocksMotion() || material.isLiquid()) {
-                p_54157_.setBlockAndUpdate(p_54159_, Blocks.WATER.defaultBlockState());
+                pLevel.setBlockAndUpdate(pPos, Blocks.WATER.defaultBlockState());
             }
         }
     }
 
-    public void randomTick(BlockState p_221355_, ServerLevel p_221356_, BlockPos p_221357_, RandomSource p_221358_) {
-        if (p_221356_.getBrightness(LightLayer.BLOCK, p_221357_) > 11 - p_221355_.getLightBlock(p_221356_, p_221357_)) {
-            this.melt(p_221355_, p_221356_, p_221357_);
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.getBrightness(LightLayer.BLOCK, pPos) > 11 - pState.getLightBlock(pLevel, pPos)) {
+            this.melt(pState, pLevel, pPos);
         }
     }
 
-    protected void melt(BlockState p_54169_, Level p_54170_, BlockPos p_54171_) {
-        if (p_54170_.dimensionType().ultraWarm()) {
-            p_54170_.removeBlock(p_54171_, false);
+    protected void melt(BlockState pState, Level pLevel, BlockPos pPos) {
+        if (pLevel.dimensionType().ultraWarm()) {
+            pLevel.removeBlock(pPos, false);
         } else {
-            p_54170_.setBlockAndUpdate(p_54171_, Blocks.WATER.defaultBlockState());
-            p_54170_.neighborChanged(p_54171_, Blocks.WATER, p_54171_);
+            pLevel.setBlockAndUpdate(pPos, Blocks.WATER.defaultBlockState());
+            pLevel.neighborChanged(pPos, Blocks.WATER, pPos);
         }
     }
 
-    public PushReaction getPistonPushReaction(BlockState p_54173_) {
+    public PushReaction getPistonPushReaction(BlockState pState) {
         return PushReaction.NORMAL;
     }
 }

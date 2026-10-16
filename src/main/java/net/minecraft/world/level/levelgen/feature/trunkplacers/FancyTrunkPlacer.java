@@ -35,36 +35,36 @@ public class FancyTrunkPlacer extends TrunkPlacer {
         return TrunkPlacerType.FANCY_TRUNK_PLACER;
     }
 
-    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader p_226093_, BiConsumer<BlockPos, BlockState> p_226094_, RandomSource p_226095_, int p_226096_, BlockPos p_226097_, TreeConfiguration p_226098_) {
+    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, int pFreeTreeHeight, BlockPos pPos, TreeConfiguration pConfig) {
         int i = 5;
-        int j = p_226096_ + 2;
+        int j = pFreeTreeHeight + 2;
         int k = Mth.floor((double) j * 0.618D);
-        setDirtAt(p_226093_, p_226094_, p_226095_, p_226097_.below(), p_226098_);
+        setDirtAt(pLevel, pBlockSetter, pRandom, pPos.below(), pConfig);
         double d0 = 1.0D;
         int l = Math.min(1, Mth.floor(1.382D + Math.pow(1.0D * (double) j / 13.0D, 2.0D)));
-        int i1 = p_226097_.getY() + k;
+        int i1 = pPos.getY() + k;
         int j1 = j - 5;
         List<FancyTrunkPlacer.FoliageCoords> list = Lists.newArrayList();
-        list.add(new FancyTrunkPlacer.FoliageCoords(p_226097_.above(j1), i1));
+        list.add(new FancyTrunkPlacer.FoliageCoords(pPos.above(j1), i1));
 
         for (; j1 >= 0; --j1) {
             float f = treeShape(j, j1);
             if (!(f < 0.0F)) {
                 for (int k1 = 0; k1 < l; ++k1) {
                     double d1 = 1.0D;
-                    double d2 = 1.0D * (double) f * ((double) p_226095_.nextFloat() + 0.328D);
-                    double d3 = (double) (p_226095_.nextFloat() * 2.0F) * Math.PI;
+                    double d2 = 1.0D * (double) f * ((double) pRandom.nextFloat() + 0.328D);
+                    double d3 = (double) (pRandom.nextFloat() * 2.0F) * Math.PI;
                     double d4 = d2 * Math.sin(d3) + 0.5D;
                     double d5 = d2 * Math.cos(d3) + 0.5D;
-                    BlockPos blockpos = offsetLocal(p_226097_, d4, (double) (j1 - 1), d5);
+                    BlockPos blockpos = offsetLocal(pPos, d4, (double) (j1 - 1), d5);
                     BlockPos blockpos1 = blockpos.above(5);
-                    if (this.makeLimb(p_226093_, p_226094_, p_226095_, blockpos, blockpos1, false, p_226098_)) {
-                        double l1 = WorldBounds.signedDifference(p_226097_.getX(), blockpos.getX());
-                        double i2 = WorldBounds.signedDifference(p_226097_.getZ(), blockpos.getZ());
+                    if (this.makeLimb(pLevel, pBlockSetter, pRandom, blockpos, blockpos1, false, pConfig)) {
+                        double l1 = WorldBounds.signedDifference(pPos.getX(), blockpos.getX());
+                        double i2 = WorldBounds.signedDifference(pPos.getZ(), blockpos.getZ());
                         double d6 = (double) blockpos.getY() - Math.sqrt(l1 * l1 + i2 * i2) * 0.381D;
                         int j2 = d6 > (double) i1 ? i1 : (int) d6;
-                        BlockPos blockpos2 = new BlockPos(p_226097_.getX(), j2, p_226097_.getZ());
-                        if (this.makeLimb(p_226093_, p_226094_, p_226095_, blockpos2, blockpos, false, p_226098_)) {
+                        BlockPos blockpos2 = new BlockPos(pPos.getX(), j2, pPos.getZ());
+                        if (this.makeLimb(pLevel, pBlockSetter, pRandom, blockpos2, blockpos, false, pConfig)) {
                             list.add(new FancyTrunkPlacer.FoliageCoords(blockpos, blockpos2.getY()));
                         }
                     }
@@ -72,12 +72,12 @@ public class FancyTrunkPlacer extends TrunkPlacer {
             }
         }
 
-        this.makeLimb(p_226093_, p_226094_, p_226095_, p_226097_, p_226097_.above(k), true, p_226098_);
-        this.makeBranches(p_226093_, p_226094_, p_226095_, j, p_226097_, list, p_226098_);
+        this.makeLimb(pLevel, pBlockSetter, pRandom, pPos, pPos.above(k), true, pConfig);
+        this.makeBranches(pLevel, pBlockSetter, pRandom, j, pPos, list, pConfig);
         List<FoliagePlacer.FoliageAttachment> list1 = Lists.newArrayList();
 
         for (FancyTrunkPlacer.FoliageCoords fancytrunkplacer$foliagecoords : list) {
-            if (this.trimBranches(j, fancytrunkplacer$foliagecoords.getBranchBase() - p_226097_.getY())) {
+            if (this.trimBranches(j, fancytrunkplacer$foliagecoords.getBranchBase() - pPos.getY())) {
                 list1.add(fancytrunkplacer$foliagecoords.attachment);
             }
         }
@@ -118,17 +118,17 @@ public class FancyTrunkPlacer extends TrunkPlacer {
         }
     }
 
-    private long getSteps(BlockPos p_70128_) {
-        long i = Math.abs(p_70128_.getX());
-        long j = Math.abs(p_70128_.getY());
-        long k = Math.abs(p_70128_.getZ());
+    private long getSteps(BlockPos pPos) {
+        long i = Math.abs(pPos.getX());
+        long j = Math.abs(pPos.getY());
+        long k = Math.abs(pPos.getZ());
         return Math.max(i, Math.max(j, k));
     }
 
-    private Direction.Axis getLogAxis(BlockPos p_70130_, BlockPos p_70131_) {
+    private Direction.Axis getLogAxis(BlockPos pPos, BlockPos pOtherPos) {
         Direction.Axis direction$axis = Direction.Axis.Y;
-        double i = WorldBounds.distance(p_70131_.getX(), p_70130_.getX());
-        double j = WorldBounds.distance(p_70131_.getZ(), p_70130_.getZ());
+        double i = WorldBounds.distance(pOtherPos.getX(), pPos.getX());
+        double j = WorldBounds.distance(pOtherPos.getZ(), pPos.getZ());
         double k = Math.max(i, j);
         if (k > 0.0D) {
             if (i == k) {
@@ -176,9 +176,9 @@ public class FancyTrunkPlacer extends TrunkPlacer {
         final FoliagePlacer.FoliageAttachment attachment;
         private final int branchBase;
 
-        public FoliageCoords(BlockPos p_70140_, int p_70141_) {
-            this.attachment = new FoliagePlacer.FoliageAttachment(p_70140_, 0, false);
-            this.branchBase = p_70141_;
+        public FoliageCoords(BlockPos pAttachmentPos, int pBranchBase) {
+            this.attachment = new FoliagePlacer.FoliageAttachment(pAttachmentPos, 0, false);
+            this.branchBase = pBranchBase;
         }
 
         public int getBranchBase() {

@@ -31,11 +31,11 @@ public class ChaseServer {
     private ServerSocket serverSocket;
     private final CopyOnWriteArrayList<Socket> clientSockets = new CopyOnWriteArrayList<>();
 
-    public ChaseServer(String p_196032_, int p_196033_, PlayerList p_196034_, int p_196035_) {
-        this.serverBindAddress = p_196032_;
-        this.serverPort = p_196033_;
-        this.playerList = p_196034_;
-        this.broadcastIntervalMs = p_196035_;
+    public ChaseServer(String pServerBindAddress, int pServerPort, PlayerList pPlayerList, int pBroadcastIntervalMs) {
+        this.serverBindAddress = pServerBindAddress;
+        this.serverPort = pServerPort;
+        this.playerList = pPlayerList;
+        this.broadcastIntervalMs = pBroadcastIntervalMs;
     }
 
     public void start() throws IOException {

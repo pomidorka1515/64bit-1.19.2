@@ -13,35 +13,35 @@ public record ChatTypeDecoration(String translationKey, List<ChatTypeDecoration.
         return p_239989_.group(Codec.STRING.fieldOf("translation_key").forGetter(ChatTypeDecoration::translationKey), ChatTypeDecoration.Parameter.CODEC.listOf().fieldOf("parameters").forGetter(ChatTypeDecoration::parameters), Style.FORMATTING_CODEC.optionalFieldOf("style", Style.EMPTY).forGetter(ChatTypeDecoration::style)).apply(p_239989_, ChatTypeDecoration::new);
     });
 
-    public static ChatTypeDecoration withSender(String p_239223_) {
-        return new ChatTypeDecoration(p_239223_, List.of(ChatTypeDecoration.Parameter.SENDER, ChatTypeDecoration.Parameter.CONTENT), Style.EMPTY);
+    public static ChatTypeDecoration withSender(String pTranslationKey) {
+        return new ChatTypeDecoration(pTranslationKey, List.of(ChatTypeDecoration.Parameter.SENDER, ChatTypeDecoration.Parameter.CONTENT), Style.EMPTY);
     }
 
-    public static ChatTypeDecoration incomingDirectMessage(String p_239425_) {
+    public static ChatTypeDecoration incomingDirectMessage(String pTranslationKey) {
         Style style = Style.EMPTY.withColor(ChatFormatting.GRAY).withItalic(true);
-        return new ChatTypeDecoration(p_239425_, List.of(ChatTypeDecoration.Parameter.SENDER, ChatTypeDecoration.Parameter.CONTENT), style);
+        return new ChatTypeDecoration(pTranslationKey, List.of(ChatTypeDecoration.Parameter.SENDER, ChatTypeDecoration.Parameter.CONTENT), style);
     }
 
-    public static ChatTypeDecoration outgoingDirectMessage(String p_240772_) {
+    public static ChatTypeDecoration outgoingDirectMessage(String pTranslationKey) {
         Style style = Style.EMPTY.withColor(ChatFormatting.GRAY).withItalic(true);
-        return new ChatTypeDecoration(p_240772_, List.of(ChatTypeDecoration.Parameter.TARGET, ChatTypeDecoration.Parameter.CONTENT), style);
+        return new ChatTypeDecoration(pTranslationKey, List.of(ChatTypeDecoration.Parameter.TARGET, ChatTypeDecoration.Parameter.CONTENT), style);
     }
 
-    public static ChatTypeDecoration teamMessage(String p_239095_) {
-        return new ChatTypeDecoration(p_239095_, List.of(ChatTypeDecoration.Parameter.TARGET, ChatTypeDecoration.Parameter.SENDER, ChatTypeDecoration.Parameter.CONTENT), Style.EMPTY);
+    public static ChatTypeDecoration teamMessage(String pTranslationKey) {
+        return new ChatTypeDecoration(pTranslationKey, List.of(ChatTypeDecoration.Parameter.TARGET, ChatTypeDecoration.Parameter.SENDER, ChatTypeDecoration.Parameter.CONTENT), Style.EMPTY);
     }
 
-    public Component decorate(Component p_241301_, ChatType.Bound p_241391_) {
-        Object[] aobject = this.resolveParameters(p_241301_, p_241391_);
+    public Component decorate(Component pContent, ChatType.Bound pBoundChatType) {
+        Object[] aobject = this.resolveParameters(pContent, pBoundChatType);
         return Component.translatable(this.translationKey, aobject).withStyle(this.style);
     }
 
-    private Component[] resolveParameters(Component p_241365_, ChatType.Bound p_241559_) {
+    private Component[] resolveParameters(Component pContent, ChatType.Bound pBoundChatType) {
         Component[] acomponent = new Component[this.parameters.size()];
 
         for (int i = 0; i < acomponent.length; ++i) {
             ChatTypeDecoration.Parameter chattypedecoration$parameter = this.parameters.get(i);
-            acomponent[i] = chattypedecoration$parameter.select(p_241365_, p_241559_);
+            acomponent[i] = chattypedecoration$parameter.select(pContent, pBoundChatType);
         }
 
         return acomponent;
@@ -67,8 +67,8 @@ public record ChatTypeDecoration(String translationKey, List<ChatTypeDecoration.
             this.selector = p_239589_;
         }
 
-        public Component select(Component p_241369_, ChatType.Bound p_241509_) {
-            Component component = this.selector.select(p_241369_, p_241509_);
+        public Component select(Component pContent, ChatType.Bound pBoundChatType) {
+            Component component = this.selector.select(pContent, pBoundChatType);
             return Objects.requireNonNullElse(component, CommonComponents.EMPTY);
         }
 
@@ -78,7 +78,7 @@ public record ChatTypeDecoration(String translationKey, List<ChatTypeDecoration.
 
         public interface Selector {
             @Nullable
-            Component select(Component p_239620_, ChatType.Bound p_241499_);
+            Component select(Component pContent, ChatType.Bound pBoundChatType);
         }
     }
 }

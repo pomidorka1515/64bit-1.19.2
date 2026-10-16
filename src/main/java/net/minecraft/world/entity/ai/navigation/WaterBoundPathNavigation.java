@@ -11,14 +11,14 @@ import net.minecraft.world.phys.Vec3;
 public class WaterBoundPathNavigation extends PathNavigation {
     private boolean allowBreaching;
 
-    public WaterBoundPathNavigation(Mob p_26594_, Level p_26595_) {
-        super(p_26594_, p_26595_);
+    public WaterBoundPathNavigation(Mob pMob, Level pLevel) {
+        super(pMob, pLevel);
     }
 
-    protected PathFinder createPathFinder(int p_26598_) {
+    protected PathFinder createPathFinder(int pMaxVisitedNodes) {
         this.allowBreaching = this.mob.getType() == EntityType.DOLPHIN;
         this.nodeEvaluator = new SwimNodeEvaluator(this.allowBreaching);
-        return new PathFinder(this.nodeEvaluator, p_26598_);
+        return new PathFinder(this.nodeEvaluator, pMaxVisitedNodes);
     }
 
     protected boolean canUpdatePath() {
@@ -30,8 +30,8 @@ public class WaterBoundPathNavigation extends PathNavigation {
         return this.mob.sectorPosition().add(0.0D, (double) this.mob.getBbHeight() * 0.5D, 0.0D);
     }
 
-    protected double getGroundY(Vec3 p_186136_) {
-        return p_186136_.y;
+    protected double getGroundY(Vec3 pVec) {
+        return pVec.y;
     }
 
     @Override
@@ -39,8 +39,8 @@ public class WaterBoundPathNavigation extends PathNavigation {
         return targetY;
     }
 
-    protected boolean canMoveDirectly(Vec3 p_186138_, Vec3 p_186139_) {
-        return isClearForMovementBetween(this.mob, p_186138_, p_186139_);
+    protected boolean canMoveDirectly(Vec3 pPosVec31, Vec3 pPosVec32) {
+        return isClearForMovementBetween(this.mob, pPosVec31, pPosVec32);
     }
 
     @Override
@@ -55,10 +55,10 @@ public class WaterBoundPathNavigation extends PathNavigation {
                 == net.minecraft.world.phys.HitResult.Type.MISS;
     }
 
-    public boolean isStableDestination(BlockPos p_26608_) {
-        return !this.level.getBlockState(p_26608_).isSolidRender(this.level, p_26608_);
+    public boolean isStableDestination(BlockPos pPos) {
+        return !this.level.getBlockState(pPos).isSolidRender(this.level, pPos);
     }
 
-    public void setCanFloat(boolean p_26612_) {
+    public void setCanFloat(boolean pCanSwim) {
     }
 }

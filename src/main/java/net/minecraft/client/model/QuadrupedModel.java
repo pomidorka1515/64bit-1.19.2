@@ -21,14 +21,14 @@ public class QuadrupedModel<T extends Entity> extends AgeableListModel<T> {
     protected final ModelPart rightFrontLeg;
     protected final ModelPart leftFrontLeg;
 
-    protected QuadrupedModel(ModelPart p_170857_, boolean p_170858_, float p_170859_, float p_170860_, float p_170861_, float p_170862_, int p_170863_) {
-        super(p_170858_, p_170859_, p_170860_, p_170861_, p_170862_, (float) p_170863_);
-        this.head = p_170857_.getChild("head");
-        this.body = p_170857_.getChild("body");
-        this.rightHindLeg = p_170857_.getChild("right_hind_leg");
-        this.leftHindLeg = p_170857_.getChild("left_hind_leg");
-        this.rightFrontLeg = p_170857_.getChild("right_front_leg");
-        this.leftFrontLeg = p_170857_.getChild("left_front_leg");
+    protected QuadrupedModel(ModelPart pRoot, boolean pScaleHead, float pBabyYHeadOffset, float pBabyZHeadOffset, float pBabyHeadScale, float pBabyBodyScale, int pBodyYOffset) {
+        super(pScaleHead, pBabyYHeadOffset, pBabyZHeadOffset, pBabyHeadScale, pBabyBodyScale, (float) pBodyYOffset);
+        this.head = pRoot.getChild("head");
+        this.body = pRoot.getChild("body");
+        this.rightHindLeg = pRoot.getChild("right_hind_leg");
+        this.leftHindLeg = pRoot.getChild("left_hind_leg");
+        this.rightFrontLeg = pRoot.getChild("right_front_leg");
+        this.leftFrontLeg = pRoot.getChild("left_front_leg");
     }
 
     public static MeshDefinition createBodyMesh(int p_170865_, CubeDeformation p_170866_) {
@@ -52,12 +52,12 @@ public class QuadrupedModel<T extends Entity> extends AgeableListModel<T> {
         return ImmutableList.of(this.body, this.rightHindLeg, this.leftHindLeg, this.rightFrontLeg, this.leftFrontLeg);
     }
 
-    public void setupAnim(T p_103509_, float p_103510_, float p_103511_, float p_103512_, float p_103513_, float p_103514_) {
-        this.head.xRot = p_103514_ * ((float) Math.PI / 180F);
-        this.head.yRot = p_103513_ * ((float) Math.PI / 180F);
-        this.rightHindLeg.xRot = Mth.cos(p_103510_ * 0.6662F) * 1.4F * p_103511_;
-        this.leftHindLeg.xRot = Mth.cos(p_103510_ * 0.6662F + (float) Math.PI) * 1.4F * p_103511_;
-        this.rightFrontLeg.xRot = Mth.cos(p_103510_ * 0.6662F + (float) Math.PI) * 1.4F * p_103511_;
-        this.leftFrontLeg.xRot = Mth.cos(p_103510_ * 0.6662F) * 1.4F * p_103511_;
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.rightHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * 1.4F * pLimbSwingAmount;
+        this.leftHindLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * 1.4F * pLimbSwingAmount;
+        this.rightFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * 1.4F * pLimbSwingAmount;
+        this.leftFrontLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * 1.4F * pLimbSwingAmount;
     }
 }

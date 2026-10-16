@@ -124,19 +124,19 @@ public class ModelTemplates {
     public static final ModelTemplate CANDLE_CAKE = create("template_cake_with_candle", TextureSlot.CANDLE, TextureSlot.BOTTOM, TextureSlot.SIDE, TextureSlot.TOP, TextureSlot.PARTICLE);
     public static final ModelTemplate SCULK_SHRIEKER = create("template_sculk_shrieker", TextureSlot.BOTTOM, TextureSlot.SIDE, TextureSlot.TOP, TextureSlot.PARTICLE, TextureSlot.INNER_TOP);
 
-    private static ModelTemplate create(TextureSlot... p_125727_) {
-        return new ModelTemplate(Optional.empty(), Optional.empty(), p_125727_);
+    private static ModelTemplate create(TextureSlot... pRequiredSlots) {
+        return new ModelTemplate(Optional.empty(), Optional.empty(), pRequiredSlots);
     }
 
-    private static ModelTemplate create(String p_125724_, TextureSlot... p_125725_) {
-        return new ModelTemplate(Optional.of(new ResourceLocation("minecraft", "block/" + p_125724_)), Optional.empty(), p_125725_);
+    private static ModelTemplate create(String pBlockModelLocation, TextureSlot... pRequiredSlots) {
+        return new ModelTemplate(Optional.of(new ResourceLocation("minecraft", "block/" + pBlockModelLocation)), Optional.empty(), pRequiredSlots);
     }
 
-    private static ModelTemplate createItem(String p_125731_, TextureSlot... p_125732_) {
-        return new ModelTemplate(Optional.of(new ResourceLocation("minecraft", "item/" + p_125731_)), Optional.empty(), p_125732_);
+    private static ModelTemplate createItem(String pItemModelLocation, TextureSlot... pRequiredSlots) {
+        return new ModelTemplate(Optional.of(new ResourceLocation("minecraft", "item/" + pItemModelLocation)), Optional.empty(), pRequiredSlots);
     }
 
-    private static ModelTemplate create(String p_125720_, String p_125721_, TextureSlot... p_125722_) {
-        return new ModelTemplate(Optional.of(new ResourceLocation("minecraft", "block/" + p_125720_)), Optional.of(p_125721_), p_125722_);
+    private static ModelTemplate create(String pBlockModelLocation, String pSuffix, TextureSlot... pRequiredSlots) {
+        return new ModelTemplate(Optional.of(new ResourceLocation("minecraft", "block/" + pBlockModelLocation)), Optional.of(pSuffix), pRequiredSlots);
     }
 }

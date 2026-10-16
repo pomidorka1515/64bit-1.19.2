@@ -21,10 +21,10 @@ public class BatModel extends HierarchicalModel<Bat> {
     private final ModelPart rightWingTip;
     private final ModelPart leftWingTip;
 
-    public BatModel(ModelPart p_170427_) {
-        this.root = p_170427_;
-        this.head = p_170427_.getChild("head");
-        this.body = p_170427_.getChild("body");
+    public BatModel(ModelPart pRoot) {
+        this.root = pRoot;
+        this.head = pRoot.getChild("head");
+        this.body = pRoot.getChild("body");
         this.rightWing = this.body.getChild("right_wing");
         this.rightWingTip = this.rightWing.getChild("right_wing_tip");
         this.leftWing = this.body.getChild("left_wing");
@@ -49,10 +49,10 @@ public class BatModel extends HierarchicalModel<Bat> {
         return this.root;
     }
 
-    public void setupAnim(Bat p_102200_, float p_102201_, float p_102202_, float p_102203_, float p_102204_, float p_102205_) {
-        if (p_102200_.isResting()) {
-            this.head.xRot = p_102205_ * ((float) Math.PI / 180F);
-            this.head.yRot = (float) Math.PI - p_102204_ * ((float) Math.PI / 180F);
+    public void setupAnim(Bat pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        if (pEntity.isResting()) {
+            this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+            this.head.yRot = (float) Math.PI - pNetHeadYaw * ((float) Math.PI / 180F);
             this.head.zRot = (float) Math.PI;
             this.head.setPos(0.0F, -2.0F, 0.0F);
             this.rightWing.setPos(-3.0F, 0.0F, 3.0F);
@@ -65,15 +65,15 @@ public class BatModel extends HierarchicalModel<Bat> {
             this.leftWing.yRot = -this.rightWing.yRot;
             this.leftWingTip.yRot = -this.rightWingTip.yRot;
         } else {
-            this.head.xRot = p_102205_ * ((float) Math.PI / 180F);
-            this.head.yRot = p_102204_ * ((float) Math.PI / 180F);
+            this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+            this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
             this.head.zRot = 0.0F;
             this.head.setPos(0.0F, 0.0F, 0.0F);
             this.rightWing.setPos(0.0F, 0.0F, 0.0F);
             this.leftWing.setPos(0.0F, 0.0F, 0.0F);
-            this.body.xRot = ((float) Math.PI / 4F) + Mth.cos(p_102203_ * 0.1F) * 0.15F;
+            this.body.xRot = ((float) Math.PI / 4F) + Mth.cos(pAgeInTicks * 0.1F) * 0.15F;
             this.body.yRot = 0.0F;
-            this.rightWing.yRot = Mth.cos(p_102203_ * 74.48451F * ((float) Math.PI / 180F)) * (float) Math.PI * 0.25F;
+            this.rightWing.yRot = Mth.cos(pAgeInTicks * 74.48451F * ((float) Math.PI / 180F)) * (float) Math.PI * 0.25F;
             this.leftWing.yRot = -this.rightWing.yRot;
             this.rightWingTip.yRot = this.rightWing.yRot * 0.5F;
             this.leftWingTip.yRot = -this.rightWing.yRot * 0.5F;

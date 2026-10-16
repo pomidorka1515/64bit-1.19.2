@@ -13,8 +13,8 @@ import java.util.Optional;
 import net.minecraft.util.datafix.schemas.NamespacedSchema;
 
 public class ItemWaterPotionFix extends DataFix {
-    public ItemWaterPotionFix(Schema p_16156_, boolean p_16157_) {
-        super(p_16156_, p_16157_);
+    public ItemWaterPotionFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

@@ -37,17 +37,17 @@ public class EnvironmentScanPlacement extends PlacementModifier {
         this.maxSteps = p_191648_;
     }
 
-    public static EnvironmentScanPlacement scanningFor(Direction p_191658_, BlockPredicate p_191659_, BlockPredicate p_191660_, int p_191661_) {
-        return new EnvironmentScanPlacement(p_191658_, p_191659_, p_191660_, p_191661_);
+    public static EnvironmentScanPlacement scanningFor(Direction pDirectionOfSearch, BlockPredicate pTargetCondition, BlockPredicate pAllowedSearchCondition, int pMaxSteps) {
+        return new EnvironmentScanPlacement(pDirectionOfSearch, pTargetCondition, pAllowedSearchCondition, pMaxSteps);
     }
 
-    public static EnvironmentScanPlacement scanningFor(Direction p_191654_, BlockPredicate p_191655_, int p_191656_) {
-        return scanningFor(p_191654_, p_191655_, BlockPredicate.alwaysTrue(), p_191656_);
+    public static EnvironmentScanPlacement scanningFor(Direction pDirectionOfSearch, BlockPredicate pTargetCondition, int pMaxSteps) {
+        return scanningFor(pDirectionOfSearch, pTargetCondition, BlockPredicate.alwaysTrue(), pMaxSteps);
     }
 
-    public Stream<BlockPos> getPositions(PlacementContext p_226336_, RandomSource p_226337_, BlockPos p_226338_) {
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_226338_.mutable();
-        WorldGenLevel worldgenlevel = p_226336_.getLevel();
+    public Stream<BlockPos> getPositions(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = pPos.mutable();
+        WorldGenLevel worldgenlevel = pContext.getLevel();
         if (!this.allowedSearchCondition.test(worldgenlevel, blockpos$mutableblockpos)) {
             return Stream.of();
         } else {

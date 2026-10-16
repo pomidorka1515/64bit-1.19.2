@@ -32,7 +32,7 @@ public enum ParticleStatus implements OptionEnum {
         return this.id;
     }
 
-    public static ParticleStatus byId(int p_92197_) {
-        return BY_ID[Mth.positiveModulo(p_92197_, BY_ID.length)];
+    public static ParticleStatus byId(int pId) {
+        return BY_ID[Mth.positiveModulo(pId, BY_ID.length)];
     }
 }

@@ -30,111 +30,111 @@ public class SectionPos extends Vec3i {
     private static final int RELATIVE_Y_SHIFT = 0;
     private static final int RELATIVE_Z_SHIFT = 4;
 
-    SectionPos(long p_123162_, int p_123163_, long p_123164_) {
-        super(p_123162_, p_123163_, p_123164_);
+    SectionPos(long pX, int pY, long pZ) {
+        super(pX, pY, pZ);
     }
 
-    public static SectionPos of(long p_123174_, int p_123175_, long p_123176_) {
-        return new SectionPos(p_123174_, p_123175_, p_123176_);
+    public static SectionPos of(long pChunkX, int pChunkY, long pChunkZ) {
+        return new SectionPos(pChunkX, pChunkY, pChunkZ);
     }
 
-    public static SectionPos of(BlockPos p_123200_) {
-        return new SectionPos(blockToSectionCoord(p_123200_.getX()), (int) blockToSectionCoord(p_123200_.getY()), blockToSectionCoord(p_123200_.getZ()));
+    public static SectionPos of(BlockPos pPos) {
+        return new SectionPos(blockToSectionCoord(pPos.getX()), (int) blockToSectionCoord(pPos.getY()), blockToSectionCoord(pPos.getZ()));
     }
 
-    public static SectionPos of(ChunkPos p_123197_, int p_123198_) {
-        return new SectionPos(p_123197_.x, p_123198_, p_123197_.z);
+    public static SectionPos of(ChunkPos pChunkPos, int pY) {
+        return new SectionPos(pChunkPos.x, pY, pChunkPos.z);
     }
 
-    public static SectionPos of(EntityAccess p_235862_) {
-        return of(p_235862_.blockPosition());
+    public static SectionPos of(EntityAccess pEntity) {
+        return of(pEntity.blockPosition());
     }
 
-    public static SectionPos of(Position p_235864_) {
-        return new SectionPos(blockToSectionCoord(p_235864_.x()), blockToSectionCoord(p_235864_.y()), blockToSectionCoord(p_235864_.z()));
+    public static SectionPos of(Position pPosition) {
+        return new SectionPos(blockToSectionCoord(pPosition.x()), blockToSectionCoord(pPosition.y()), blockToSectionCoord(pPosition.z()));
     }
 
-    public static SectionPos bottomOf(ChunkAccess p_175563_) {
-        return of(p_175563_.getPos(), p_175563_.getMinSection());
+    public static SectionPos bottomOf(ChunkAccess pChunk) {
+        return of(pChunk.getPos(), pChunk.getMinSection());
     }
 
-    public static long posToSectionCoord(double p_175553_) {
-        return blockToSectionCoord(Mth.lfloor(WorldBounds.clampAbsoluteDouble(p_175553_)));
+    public static long posToSectionCoord(double pPos) {
+        return blockToSectionCoord(Mth.lfloor(WorldBounds.clampAbsoluteDouble(pPos)));
     }
 
-    public static long blockToSectionCoord(long p_123172_) {
-        return p_123172_ >> 4L;
+    public static long blockToSectionCoord(long pBlockCoord) {
+        return pBlockCoord >> 4L;
     }
 
-    public static int blockToSectionCoord(int p_123172_) {
-        return p_123172_ >> 4;
+    public static int blockToSectionCoord(int pBlockCoord) {
+        return pBlockCoord >> 4;
     }
 
-    public static int blockToSectionCoord(double p_235866_) {
-        return Mth.floor(p_235866_) >> 4;
+    public static int blockToSectionCoord(double pCoord) {
+        return Mth.floor(pCoord) >> 4;
     }
 
-    public static int sectionRelative(long p_123208_) {
-        return (int) (p_123208_ & 15);
+    public static int sectionRelative(long pRel) {
+        return (int) (pRel & 15);
     }
 
-    public static int sectionRelative(int p_123208_) {
-        return p_123208_ & 15;
+    public static int sectionRelative(int pRel) {
+        return pRel & 15;
     }
 
     public static SectionPos blockToSection(long packedBlockPos) {
         return new SectionPos(blockToSectionCoord(BlockPos.getX(packedBlockPos)), blockToSectionCoord(BlockPos.getY(packedBlockPos)), blockToSectionCoord(BlockPos.getZ(packedBlockPos)));
     }
 
-    public static short sectionRelativePos(BlockPos p_123219_) {
-        long i = sectionRelative(p_123219_.getX());
-        int j = sectionRelative(p_123219_.getY());
-        long k = sectionRelative(p_123219_.getZ());
+    public static short sectionRelativePos(BlockPos pPos) {
+        long i = sectionRelative(pPos.getX());
+        int j = sectionRelative(pPos.getY());
+        long k = sectionRelative(pPos.getZ());
         return (short) (i << 8 | k << 4 | j << 0);
     }
 
-    public static int sectionRelativeX(short p_123205_) {
-        return p_123205_ >>> 8 & 15;
+    public static int sectionRelativeX(short pX) {
+        return pX >>> 8 & 15;
     }
 
-    public static int sectionRelativeY(short p_123221_) {
-        return p_123221_ >>> 0 & 15;
+    public static int sectionRelativeY(short pY) {
+        return pY >>> 0 & 15;
     }
 
-    public static int sectionRelativeZ(short p_123228_) {
-        return p_123228_ >>> 4 & 15;
+    public static int sectionRelativeZ(short pZ) {
+        return pZ >>> 4 & 15;
     }
 
-    public long relativeToBlockX(short p_123233_) {
-        return WorldBounds.addBlockOffset(this.minBlockX(), sectionRelativeX(p_123233_));
+    public long relativeToBlockX(short pX) {
+        return WorldBounds.addBlockOffset(this.minBlockX(), sectionRelativeX(pX));
     }
 
-    public int relativeToBlockY(short p_123238_) {
-        return this.minBlockY() + sectionRelativeY(p_123238_);
+    public int relativeToBlockY(short pY) {
+        return this.minBlockY() + sectionRelativeY(pY);
     }
 
-    public long relativeToBlockZ(short p_123243_) {
-        return WorldBounds.addBlockOffset(this.minBlockZ(), sectionRelativeZ(p_123243_));
+    public long relativeToBlockZ(short pZ) {
+        return WorldBounds.addBlockOffset(this.minBlockZ(), sectionRelativeZ(pZ));
     }
 
-    public BlockPos relativeToBlockPos(short p_123246_) {
-        return new BlockPos(this.relativeToBlockX(p_123246_), this.relativeToBlockY(p_123246_), this.relativeToBlockZ(p_123246_));
+    public BlockPos relativeToBlockPos(short pPos) {
+        return new BlockPos(this.relativeToBlockX(pPos), this.relativeToBlockY(pPos), this.relativeToBlockZ(pPos));
     }
 
-    public static int sectionToBlockCoord(int p_123224_) {
-        return p_123224_ << 4;
+    public static int sectionToBlockCoord(int pSectionCoord) {
+        return pSectionCoord << 4;
     }
 
-    public static long sectionToBlockCoord(long p_123224_) {
-        return WorldBounds.chunkToBlock(p_123224_);
+    public static long sectionToBlockCoord(long pSectionCoord) {
+        return WorldBounds.chunkToBlock(pSectionCoord);
     }
 
-    public static int sectionToBlockCoord(int p_175555_, int p_175556_) {
-        return sectionToBlockCoord(p_175555_) + p_175556_;
+    public static int sectionToBlockCoord(int pPos, int pOffset) {
+        return sectionToBlockCoord(pPos) + pOffset;
     }
 
-    public static long sectionToBlockCoord(long p_175555_, long p_175556_) {
-        return WorldBounds.addBlockOffset(sectionToBlockCoord(p_175555_), p_175556_);
+    public static long sectionToBlockCoord(long pPos, long pOffset) {
+        return WorldBounds.addBlockOffset(sectionToBlockCoord(pPos), pOffset);
     }
 
     public long x() {
@@ -190,34 +190,34 @@ public class SectionPos extends Vec3i {
         return new ChunkPos(this.x(), this.z());
     }
 
-    public SectionPos offset(long p_175571_, int p_175572_, long p_175573_) {
-        return p_175571_ == 0 && p_175572_ == 0 && p_175573_ == 0 ? this : new SectionPos(WorldBounds.addChunkOffset(this.x(), p_175571_), this.y() + p_175572_, WorldBounds.addChunkOffset(this.z(), p_175573_));
+    public SectionPos offset(long pDx, int pDy, long pDz) {
+        return pDx == 0 && pDy == 0 && pDz == 0 ? this : new SectionPos(WorldBounds.addChunkOffset(this.x(), pDx), this.y() + pDy, WorldBounds.addChunkOffset(this.z(), pDz));
     }
 
     public Stream<BlockPos> blocksInside() {
         return BlockPos.betweenClosedStream(this.minBlockX(), this.minBlockY(), this.minBlockZ(), this.maxBlockX(), this.maxBlockY(), this.maxBlockZ());
     }
 
-    public static Stream<SectionPos> cube(SectionPos p_123202_, int p_123203_) {
-        long i = p_123202_.x();
-        int j = p_123202_.y();
-        long k = p_123202_.z();
-        return betweenClosedStream(WorldBounds.addChunkOffset(i, -(long) p_123203_), j - p_123203_, WorldBounds.addChunkOffset(k, -(long) p_123203_),
-                WorldBounds.addChunkOffset(i, p_123203_), j + p_123203_, WorldBounds.addChunkOffset(k, p_123203_));
+    public static Stream<SectionPos> cube(SectionPos pCenter, int pRadius) {
+        long i = pCenter.x();
+        int j = pCenter.y();
+        long k = pCenter.z();
+        return betweenClosedStream(WorldBounds.addChunkOffset(i, -(long) pRadius), j - pRadius, WorldBounds.addChunkOffset(k, -(long) pRadius),
+                WorldBounds.addChunkOffset(i, pRadius), j + pRadius, WorldBounds.addChunkOffset(k, pRadius));
     }
 
-    public static Stream<SectionPos> aroundChunk(ChunkPos p_175558_, int p_175559_, int p_175560_, int p_175561_) {
-        long i = p_175558_.x;
-        long j = p_175558_.z;
-        return betweenClosedStream(WorldBounds.addChunkOffset(i, -(long) p_175559_), p_175560_, WorldBounds.addChunkOffset(j, -(long) p_175559_),
-                WorldBounds.addChunkOffset(i, p_175559_), p_175561_ - 1, WorldBounds.addChunkOffset(j, p_175559_));
+    public static Stream<SectionPos> aroundChunk(ChunkPos pChunkPos, int pX, int pY, int pZ) {
+        long i = pChunkPos.x;
+        long j = pChunkPos.z;
+        return betweenClosedStream(WorldBounds.addChunkOffset(i, -(long) pX), pY, WorldBounds.addChunkOffset(j, -(long) pX),
+                WorldBounds.addChunkOffset(i, pX), pZ - 1, WorldBounds.addChunkOffset(j, pX));
     }
 
-    public static Stream<SectionPos> betweenClosedStream(final long p_123178_, final int p_123179_, final long p_123180_, final long p_123181_, final int p_123182_, final long p_123183_) {
-        long size = p_123178_ > p_123181_ || p_123179_ > p_123182_ || p_123180_ > p_123183_ ? 0L
-                : Math.multiplyExact(Math.multiplyExact(Math.addExact(Math.subtractExact(p_123181_, p_123178_), 1L), (long) p_123182_ - p_123179_ + 1L), Math.addExact(Math.subtractExact(p_123183_, p_123180_), 1L));
+    public static Stream<SectionPos> betweenClosedStream(final long pX1, final int pY1, final long pZ1, final long pX2, final int pY2, final long pZ2) {
+        long size = pX1 > pX2 || pY1 > pY2 || pZ1 > pZ2 ? 0L
+                : Math.multiplyExact(Math.multiplyExact(Math.addExact(Math.subtractExact(pX2, pX1), 1L), (long) pY2 - pY1 + 1L), Math.addExact(Math.subtractExact(pZ2, pZ1), 1L));
         return StreamSupport.stream(new Spliterators.AbstractSpliterator<SectionPos>(size, 64) {
-            final Cursor3D cursor = new Cursor3D(p_123178_, p_123179_, p_123180_, p_123181_, p_123182_, p_123183_);
+            final Cursor3D cursor = new Cursor3D(pX1, pY1, pZ1, pX2, pY2, pZ2);
 
          public boolean tryAdvance(Consumer<? super SectionPos> p_123271_) {
              if (this.cursor.advance()) {
@@ -230,28 +230,28 @@ public class SectionPos extends Vec3i {
         }, false);
     }
 
-    public static void aroundAndAtBlockPos(BlockPos p_194643_, Consumer<SectionPos> p_194644_) {
-        aroundAndAtBlockPos(p_194643_.getX(), p_194643_.getY(), p_194643_.getZ(), p_194644_);
+    public static void aroundAndAtBlockPos(BlockPos pPos, Consumer<SectionPos> pConsumer) {
+        aroundAndAtBlockPos(pPos.getX(), pPos.getY(), pPos.getZ(), pConsumer);
     }
 
-    public static void aroundAndAtBlockPos(long p_194640_, Consumer<SectionPos> p_194641_) {
-        aroundAndAtBlockPos(BlockPos.getX(p_194640_), BlockPos.getY(p_194640_), BlockPos.getZ(p_194640_), p_194641_);
+    public static void aroundAndAtBlockPos(long pPos, Consumer<SectionPos> pConsumer) {
+        aroundAndAtBlockPos(BlockPos.getX(pPos), BlockPos.getY(pPos), BlockPos.getZ(pPos), pConsumer);
     }
 
-    public static void aroundAndAtBlockPos(long p_194635_, int p_194636_, long p_194637_, Consumer<SectionPos> p_194638_) {
-        long i = blockToSectionCoord(WorldBounds.addBlockOffset(p_194635_, -1L));
-        long j = blockToSectionCoord(WorldBounds.addBlockOffset(p_194635_, 1L));
-        int k = blockToSectionCoord(p_194636_ - 1);
-        int l = blockToSectionCoord(p_194636_ + 1);
-        long i1 = blockToSectionCoord(WorldBounds.addBlockOffset(p_194637_, -1L));
-        long j1 = blockToSectionCoord(WorldBounds.addBlockOffset(p_194637_, 1L));
+    public static void aroundAndAtBlockPos(long pX, int pY, long pZ, Consumer<SectionPos> pConsumer) {
+        long i = blockToSectionCoord(WorldBounds.addBlockOffset(pX, -1L));
+        long j = blockToSectionCoord(WorldBounds.addBlockOffset(pX, 1L));
+        int k = blockToSectionCoord(pY - 1);
+        int l = blockToSectionCoord(pY + 1);
+        long i1 = blockToSectionCoord(WorldBounds.addBlockOffset(pZ, -1L));
+        long j1 = blockToSectionCoord(WorldBounds.addBlockOffset(pZ, 1L));
         if (i == j && k == l && i1 == j1) {
-            p_194638_.accept(new SectionPos(i, k, i1));
+            pConsumer.accept(new SectionPos(i, k, i1));
         } else {
             for (long k1 = i;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
                 for (int l1 = k; l1 <= l; ++l1) {
                     for (long i2 = i1;; i2 = WorldBounds.addChunkOffset(i2, 1L)) {
-                        p_194638_.accept(new SectionPos(k1, l1, i2));
+                        pConsumer.accept(new SectionPos(k1, l1, i2));
                         if (i2 == j1)
                             break;
                     }

@@ -37,8 +37,8 @@ import net.minecraft.world.phys.Vec3;
 public class TeleportCommand {
     private static final SimpleCommandExceptionType INVALID_POSITION = new SimpleCommandExceptionType(Component.translatable("commands.teleport.invalidPosition"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_139009_) {
-        LiteralCommandNode<CommandSourceStack> literalcommandnode = p_139009_.register(Commands.literal("teleport").requires((p_139039_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        LiteralCommandNode<CommandSourceStack> literalcommandnode = pDispatcher.register(Commands.literal("teleport").requires((p_139039_) -> {
                                                                                                                        return p_139039_.hasPermission(2);
                                                                                                                    })
                         .then(Commands.argument("location", Vec3Argument.vec3()).executes((p_139051_) -> {
@@ -65,71 +65,71 @@ public class TeleportCommand {
                                         .then(Commands.argument("destination", EntityArgument.entity()).executes((p_139011_) -> {
                                             return teleportToEntity(p_139011_.getSource(), EntityArgument.getEntities(p_139011_, "targets"), EntityArgument.getEntity(p_139011_, "destination"));
                                         }))));
-        p_139009_.register(Commands.literal("tp").requires((p_139013_) -> {
+        pDispatcher.register(Commands.literal("tp").requires((p_139013_) -> {
                                                      return p_139013_.hasPermission(2);
                                                  })
                         .redirect(literalcommandnode));
     }
 
-    private static int teleportToEntity(CommandSourceStack p_139033_, Collection<? extends Entity> p_139034_, Entity p_139035_) throws CommandSyntaxException {
-        for (Entity entity : p_139034_) {
-            performTeleport(p_139033_, entity, (ServerLevel) p_139035_.level, p_139035_.exactPosition(), p_139035_.position(), EnumSet.noneOf(ClientboundPlayerPositionPacket.RelativeArgument.class), p_139035_.getYRot(), p_139035_.getXRot(), (TeleportCommand.LookAt) null);
+    private static int teleportToEntity(CommandSourceStack pSource, Collection<? extends Entity> pTargets, Entity pDestination) throws CommandSyntaxException {
+        for (Entity entity : pTargets) {
+            performTeleport(pSource, entity, (ServerLevel) pDestination.level, pDestination.exactPosition(), pDestination.position(), EnumSet.noneOf(ClientboundPlayerPositionPacket.RelativeArgument.class), pDestination.getYRot(), pDestination.getXRot(), (TeleportCommand.LookAt) null);
         }
 
-        if (p_139034_.size() == 1) {
-            p_139033_.sendSuccess(Component.translatable("commands.teleport.success.entity.single", p_139034_.iterator().next().getDisplayName(), p_139035_.getDisplayName()), true);
+        if (pTargets.size() == 1) {
+            pSource.sendSuccess(Component.translatable("commands.teleport.success.entity.single", pTargets.iterator().next().getDisplayName(), pDestination.getDisplayName()), true);
         } else {
-            p_139033_.sendSuccess(Component.translatable("commands.teleport.success.entity.multiple", p_139034_.size(), p_139035_.getDisplayName()), true);
+            pSource.sendSuccess(Component.translatable("commands.teleport.success.entity.multiple", pTargets.size(), pDestination.getDisplayName()), true);
         }
 
-        return p_139034_.size();
+        return pTargets.size();
     }
 
-    private static int teleportToPos(CommandSourceStack p_139026_, Collection<? extends Entity> p_139027_, ServerLevel p_139028_, Coordinates p_139029_, @Nullable Coordinates p_139030_, @Nullable TeleportCommand.LookAt p_139031_) throws CommandSyntaxException {
-        SectorVec3 exact = p_139029_.getExactPosition(p_139026_);
+    private static int teleportToPos(CommandSourceStack pSource, Collection<? extends Entity> pTargets, ServerLevel pLevel, Coordinates pPosition, @Nullable Coordinates pRotation, @Nullable TeleportCommand.LookAt pFacing) throws CommandSyntaxException {
+        SectorVec3 exact = pPosition.getExactPosition(pSource);
         Vec3 vec3 = exact.toApproximateVec3();
-        Vec2 vec2 = p_139030_ == null ? null : p_139030_.getRotation(p_139026_);
+        Vec2 vec2 = pRotation == null ? null : pRotation.getRotation(pSource);
         Set<ClientboundPlayerPositionPacket.RelativeArgument> set = EnumSet.noneOf(ClientboundPlayerPositionPacket.RelativeArgument.class);
-        if (p_139029_.isXRelative()) {
+        if (pPosition.isXRelative()) {
             set.add(ClientboundPlayerPositionPacket.RelativeArgument.X);
         }
 
-        if (p_139029_.isYRelative()) {
+        if (pPosition.isYRelative()) {
             set.add(ClientboundPlayerPositionPacket.RelativeArgument.Y);
         }
 
-        if (p_139029_.isZRelative()) {
+        if (pPosition.isZRelative()) {
             set.add(ClientboundPlayerPositionPacket.RelativeArgument.Z);
         }
 
-        if (p_139030_ == null) {
+        if (pRotation == null) {
             set.add(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT);
             set.add(ClientboundPlayerPositionPacket.RelativeArgument.Y_ROT);
         } else {
-            if (p_139030_.isXRelative()) {
+            if (pRotation.isXRelative()) {
                 set.add(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT);
             }
 
-            if (p_139030_.isYRelative()) {
+            if (pRotation.isYRelative()) {
                 set.add(ClientboundPlayerPositionPacket.RelativeArgument.Y_ROT);
             }
         }
 
-        for (Entity entity : p_139027_) {
-            if (p_139030_ == null) {
-                performTeleport(p_139026_, entity, p_139028_, exact, vec3, set, entity.getYRot(), entity.getXRot(), p_139031_);
+        for (Entity entity : pTargets) {
+            if (pRotation == null) {
+                performTeleport(pSource, entity, pLevel, exact, vec3, set, entity.getYRot(), entity.getXRot(), pFacing);
             } else {
-                performTeleport(p_139026_, entity, p_139028_, exact, vec3, set, vec2.y, vec2.x, p_139031_);
+                performTeleport(pSource, entity, pLevel, exact, vec3, set, vec2.y, vec2.x, pFacing);
             }
         }
 
-        if (p_139027_.size() == 1) {
-            p_139026_.sendSuccess(Component.translatable("commands.teleport.success.location.single", p_139027_.iterator().next().getDisplayName(), exact.formatX(6), formatDouble(exact.y()), exact.formatZ(6)), true);
+        if (pTargets.size() == 1) {
+            pSource.sendSuccess(Component.translatable("commands.teleport.success.location.single", pTargets.iterator().next().getDisplayName(), exact.formatX(6), formatDouble(exact.y()), exact.formatZ(6)), true);
         } else {
-            p_139026_.sendSuccess(Component.translatable("commands.teleport.success.location.multiple", p_139027_.size(), exact.formatX(6), formatDouble(exact.y()), exact.formatZ(6)), true);
+            pSource.sendSuccess(Component.translatable("commands.teleport.success.location.multiple", pTargets.size(), exact.formatX(6), formatDouble(exact.y()), exact.formatZ(6)), true);
         }
 
-        return p_139027_.size();
+        return pTargets.size();
     }
 
     private static String formatDouble(double value) {
@@ -215,10 +215,10 @@ public class TeleportCommand {
             this.position = this.exactPosition == null ? anchor.apply(entity) : this.exactPosition.toApproximateVec3();
         }
 
-        public LookAt(Vec3 p_139059_) {
+        public LookAt(Vec3 pPosition) {
             this.entity = null;
             this.exactPosition = null;
-            this.position = p_139059_;
+            this.position = pPosition;
             this.anchor = null;
         }
 
@@ -229,17 +229,17 @@ public class TeleportCommand {
             this.anchor = null;
         }
 
-        public void perform(CommandSourceStack p_139061_, Entity p_139062_) {
+        public void perform(CommandSourceStack pSource, Entity pEntity) {
             if (this.entity != null) {
-                if (p_139062_ instanceof ServerPlayer) {
-                    ((ServerPlayer) p_139062_).lookAt(p_139061_.getAnchor(), this.entity, this.anchor);
+                if (pEntity instanceof ServerPlayer) {
+                    ((ServerPlayer) pEntity).lookAt(pSource.getAnchor(), this.entity, this.anchor);
                 } else {
-                    p_139062_.lookAt(p_139061_.getAnchor(), this.position);
+                    pEntity.lookAt(pSource.getAnchor(), this.position);
                 }
-            } else if (this.exactPosition != null && p_139062_.hasSectorPosition()) {
-                p_139062_.lookAt(p_139061_.getAnchor(), this.exactPosition.toApproximateVec3());
+            } else if (this.exactPosition != null && pEntity.hasSectorPosition()) {
+                pEntity.lookAt(pSource.getAnchor(), this.exactPosition.toApproximateVec3());
             } else {
-                p_139062_.lookAt(p_139061_.getAnchor(), this.position);
+                pEntity.lookAt(pSource.getAnchor(), this.position);
             }
         }
     }

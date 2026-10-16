@@ -8,9 +8,9 @@ public class PlayerListComponent extends JList<String> {
     private final MinecraftServer server;
     private int tickCount;
 
-    public PlayerListComponent(MinecraftServer p_139953_) {
-        this.server = p_139953_;
-        p_139953_.addTickable(this::tick);
+    public PlayerListComponent(MinecraftServer pServer) {
+        this.server = pServer;
+        pServer.addTickable(this::tick);
     }
 
     public void tick() {

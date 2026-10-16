@@ -22,11 +22,11 @@ public class DataGenerator {
     private final WorldVersion version;
     private final boolean alwaysGenerate;
 
-    public DataGenerator(Path p_236030_, Collection<Path> p_236031_, WorldVersion p_236032_, boolean p_236033_) {
-        this.outputFolder = p_236030_;
-        this.inputFolders = p_236031_;
-        this.version = p_236032_;
-        this.alwaysGenerate = p_236033_;
+    public DataGenerator(Path pOutputFolder, Collection<Path> pInputFolders, WorldVersion pVersion, boolean pAlwaysGenerate) {
+        this.outputFolder = pOutputFolder;
+        this.inputFolders = pInputFolders;
+        this.version = pVersion;
+        this.alwaysGenerate = pAlwaysGenerate;
     }
 
     public Collection<Path> getInputFolders() {
@@ -37,8 +37,8 @@ public class DataGenerator {
         return this.outputFolder;
     }
 
-    public Path getOutputFolder(DataGenerator.Target p_236035_) {
-        return this.getOutputFolder().resolve(p_236035_.directory);
+    public Path getOutputFolder(DataGenerator.Target pTarget) {
+        return this.getOutputFolder().resolve(pTarget.directory);
     }
 
     public void run() throws IOException {
@@ -63,16 +63,16 @@ public class DataGenerator {
         hashcache.purgeStaleAndWrite();
     }
 
-    public void addProvider(boolean p_236040_, DataProvider p_236041_) {
-        if (p_236040_) {
-            this.providersToRun.add(p_236041_);
+    public void addProvider(boolean pRun, DataProvider pProvider) {
+        if (pRun) {
+            this.providersToRun.add(pProvider);
         }
 
-        this.allProviders.add(p_236041_);
+        this.allProviders.add(pProvider);
     }
 
-    public DataGenerator.PathProvider createPathProvider(DataGenerator.Target p_236037_, String p_236038_) {
-        return new DataGenerator.PathProvider(this, p_236037_, p_236038_);
+    public DataGenerator.PathProvider createPathProvider(DataGenerator.Target pTarget, String pKind) {
+        return new DataGenerator.PathProvider(this, pTarget, pKind);
     }
 
     static {
@@ -83,17 +83,17 @@ public class DataGenerator {
         private final Path root;
         private final String kind;
 
-        PathProvider(DataGenerator p_236045_, DataGenerator.Target p_236046_, String p_236047_) {
-            this.root = p_236045_.getOutputFolder(p_236046_);
-            this.kind = p_236047_;
+        PathProvider(DataGenerator pGenerator, DataGenerator.Target pTarget, String pKind) {
+            this.root = pGenerator.getOutputFolder(pTarget);
+            this.kind = pKind;
         }
 
-        public Path file(ResourceLocation p_236051_, String p_236052_) {
-            return this.root.resolve(p_236051_.getNamespace()).resolve(this.kind).resolve(p_236051_.getPath() + "." + p_236052_);
+        public Path file(ResourceLocation pLocation, String pExtension) {
+            return this.root.resolve(pLocation.getNamespace()).resolve(this.kind).resolve(pLocation.getPath() + "." + pExtension);
         }
 
-        public Path json(ResourceLocation p_236049_) {
-            return this.root.resolve(p_236049_.getNamespace()).resolve(this.kind).resolve(p_236049_.getPath() + ".json");
+        public Path json(ResourceLocation pLocation) {
+            return this.root.resolve(pLocation.getNamespace()).resolve(this.kind).resolve(pLocation.getPath() + ".json");
         }
     }
 

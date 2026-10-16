@@ -8,23 +8,23 @@ public class ServerboundUseItemPacket implements Packet<ServerGamePacketListener
     private final InteractionHand hand;
     private final int sequence;
 
-    public ServerboundUseItemPacket(InteractionHand p_238011_, int p_238012_) {
-        this.hand = p_238011_;
-        this.sequence = p_238012_;
+    public ServerboundUseItemPacket(InteractionHand pHand, int pSequence) {
+        this.hand = pHand;
+        this.sequence = pSequence;
     }
 
-    public ServerboundUseItemPacket(FriendlyByteBuf p_179798_) {
-        this.hand = p_179798_.readEnum(InteractionHand.class);
-        this.sequence = p_179798_.readVarInt();
+    public ServerboundUseItemPacket(FriendlyByteBuf pBuffer) {
+        this.hand = pBuffer.readEnum(InteractionHand.class);
+        this.sequence = pBuffer.readVarInt();
     }
 
-    public void write(FriendlyByteBuf p_134719_) {
-        p_134719_.writeEnum(this.hand);
-        p_134719_.writeVarInt(this.sequence);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeEnum(this.hand);
+        pBuffer.writeVarInt(this.sequence);
     }
 
-    public void handle(ServerGamePacketListener p_134716_) {
-        p_134716_.handleUseItem(this);
+    public void handle(ServerGamePacketListener pHandler) {
+        pHandler.handleUseItem(this);
     }
 
     public InteractionHand getHand() {

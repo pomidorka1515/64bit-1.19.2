@@ -24,15 +24,15 @@ public class ChickenModel<T extends Entity> extends AgeableListModel<T> {
     private final ModelPart beak;
     private final ModelPart redThing;
 
-    public ChickenModel(ModelPart p_170490_) {
-        this.head = p_170490_.getChild("head");
-        this.beak = p_170490_.getChild("beak");
-        this.redThing = p_170490_.getChild("red_thing");
-        this.body = p_170490_.getChild("body");
-        this.rightLeg = p_170490_.getChild("right_leg");
-        this.leftLeg = p_170490_.getChild("left_leg");
-        this.rightWing = p_170490_.getChild("right_wing");
-        this.leftWing = p_170490_.getChild("left_wing");
+    public ChickenModel(ModelPart pRoot) {
+        this.head = pRoot.getChild("head");
+        this.beak = pRoot.getChild("beak");
+        this.redThing = pRoot.getChild("red_thing");
+        this.body = pRoot.getChild("body");
+        this.rightLeg = pRoot.getChild("right_leg");
+        this.leftLeg = pRoot.getChild("left_leg");
+        this.rightWing = pRoot.getChild("right_wing");
+        this.leftWing = pRoot.getChild("left_wing");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -59,16 +59,16 @@ public class ChickenModel<T extends Entity> extends AgeableListModel<T> {
         return ImmutableList.of(this.body, this.rightLeg, this.leftLeg, this.rightWing, this.leftWing);
     }
 
-    public void setupAnim(T p_102392_, float p_102393_, float p_102394_, float p_102395_, float p_102396_, float p_102397_) {
-        this.head.xRot = p_102397_ * ((float) Math.PI / 180F);
-        this.head.yRot = p_102396_ * ((float) Math.PI / 180F);
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
         this.beak.xRot = this.head.xRot;
         this.beak.yRot = this.head.yRot;
         this.redThing.xRot = this.head.xRot;
         this.redThing.yRot = this.head.yRot;
-        this.rightLeg.xRot = Mth.cos(p_102393_ * 0.6662F) * 1.4F * p_102394_;
-        this.leftLeg.xRot = Mth.cos(p_102393_ * 0.6662F + (float) Math.PI) * 1.4F * p_102394_;
-        this.rightWing.zRot = p_102395_;
-        this.leftWing.zRot = -p_102395_;
+        this.rightLeg.xRot = Mth.cos(pLimbSwing * 0.6662F) * 1.4F * pLimbSwingAmount;
+        this.leftLeg.xRot = Mth.cos(pLimbSwing * 0.6662F + (float) Math.PI) * 1.4F * pLimbSwingAmount;
+        this.rightWing.zRot = pAgeInTicks;
+        this.leftWing.zRot = -pAgeInTicks;
     }
 }

@@ -18,8 +18,8 @@ public class PathfindToRaidGoal<T extends Raider> extends Goal {
     private final T mob;
     private int recruitmentTick;
 
-    public PathfindToRaidGoal(T p_25706_) {
-        this.mob = p_25706_;
+    public PathfindToRaidGoal(T pMob) {
+        this.mob = pMob;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
@@ -51,16 +51,16 @@ public class PathfindToRaidGoal<T extends Raider> extends Goal {
         }
     }
 
-    private void recruitNearby(Raid p_25709_) {
-        if (p_25709_.isActive()) {
+    private void recruitNearby(Raid pRaid) {
+        if (pRaid.isActive()) {
             Set<Raider> set = Sets.newHashSet();
             List<Raider> list = this.mob.level.getEntitiesOfClass(Raider.class, this.mob.getBoundingBox().inflate(16.0D), (p_25712_) -> {
-                return !p_25712_.hasActiveRaid() && Raids.canJoinRaid(p_25712_, p_25709_);
+                return !p_25712_.hasActiveRaid() && Raids.canJoinRaid(p_25712_, pRaid);
             });
             set.addAll(list);
 
             for (Raider raider : set) {
-                p_25709_.joinRaid(p_25709_.getGroupsSpawned(), raider, (BlockPos) null, true);
+                pRaid.joinRaid(pRaid.getGroupsSpawned(), raider, (BlockPos) null, true);
             }
         }
     }

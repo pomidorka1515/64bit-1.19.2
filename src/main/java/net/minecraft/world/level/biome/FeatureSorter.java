@@ -116,8 +116,8 @@ public class FeatureSorter {
     }
 
     public static record StepFeatureData(List<PlacedFeature> features, ToIntFunction<PlacedFeature> indexMapping) {
-        StepFeatureData(List<PlacedFeature> p_220627_) {
-            this(p_220627_, Util.createIndexLookup(p_220627_, (p_220633_) -> {
+        StepFeatureData(List<PlacedFeature> pFeatures) {
+            this(pFeatures, Util.createIndexLookup(pFeatures, (p_220633_) -> {
                 return new Object2IntOpenCustomHashMap<>(p_220633_, Util.identityStrategy());
             }));
         }

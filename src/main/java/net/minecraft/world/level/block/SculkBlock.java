@@ -13,8 +13,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
 
 public class SculkBlock extends DropExperienceBlock implements SculkBehaviour {
-    public SculkBlock(BlockBehaviour.Properties p_222063_) {
-        super(p_222063_, ConstantInt.of(1));
+    public SculkBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties, ConstantInt.of(1));
     }
 
     public int attemptUseCharge(SculkSpreader.ChargeCursor p_222073_, LevelAccessor p_222074_, BlockPos p_222075_, RandomSource p_222076_, SculkSpreader p_222077_, boolean p_222078_) {
@@ -48,24 +48,24 @@ public class SculkBlock extends DropExperienceBlock implements SculkBehaviour {
         return Math.max(1, (int) ((float) p_222083_ * f1 * 0.5F));
     }
 
-    private BlockState getRandomGrowthState(LevelAccessor p_222068_, BlockPos p_222069_, RandomSource p_222070_, boolean p_222071_) {
+    private BlockState getRandomGrowthState(LevelAccessor pLevel, BlockPos pPos, RandomSource pRandom, boolean pIsWorldGeneration) {
         BlockState blockstate;
-        if (p_222070_.nextInt(11) == 0) {
-            blockstate = Blocks.SCULK_SHRIEKER.defaultBlockState().setValue(SculkShriekerBlock.CAN_SUMMON, Boolean.valueOf(p_222071_));
+        if (pRandom.nextInt(11) == 0) {
+            blockstate = Blocks.SCULK_SHRIEKER.defaultBlockState().setValue(SculkShriekerBlock.CAN_SUMMON, Boolean.valueOf(pIsWorldGeneration));
         } else {
             blockstate = Blocks.SCULK_SENSOR.defaultBlockState();
         }
 
-        return blockstate.hasProperty(BlockStateProperties.WATERLOGGED) && !p_222068_.getFluidState(p_222069_).isEmpty() ? blockstate.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(true)) : blockstate;
+        return blockstate.hasProperty(BlockStateProperties.WATERLOGGED) && !pLevel.getFluidState(pPos).isEmpty() ? blockstate.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(true)) : blockstate;
     }
 
-    private static boolean canPlaceGrowth(LevelAccessor p_222065_, BlockPos p_222066_) {
-        BlockState blockstate = p_222065_.getBlockState(p_222066_.above());
+    private static boolean canPlaceGrowth(LevelAccessor pLevel, BlockPos pPos) {
+        BlockState blockstate = pLevel.getBlockState(pPos.above());
         if (blockstate.isAir() || blockstate.is(Blocks.WATER) && blockstate.getFluidState().is(Fluids.WATER)) {
             int i = 0;
 
-            for (BlockPos blockpos : BlockPos.betweenClosed(p_222066_.offset(-4, 0, -4), p_222066_.offset(4, 2, 4))) {
-                BlockState blockstate1 = p_222065_.getBlockState(blockpos);
+            for (BlockPos blockpos : BlockPos.betweenClosed(pPos.offset(-4, 0, -4), pPos.offset(4, 2, 4))) {
+                BlockState blockstate1 = pLevel.getBlockState(blockpos);
                 if (blockstate1.is(Blocks.SCULK_SENSOR) || blockstate1.is(Blocks.SCULK_SHRIEKER)) {
                     ++i;
                 }

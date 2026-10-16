@@ -11,8 +11,8 @@ import net.minecraft.server.players.BanListEntry;
 import net.minecraft.server.players.PlayerList;
 
 public class BanListCommands {
-    public static void register(CommandDispatcher<CommandSourceStack> p_136544_) {
-        p_136544_.register(Commands.literal("banlist").requires((p_136548_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("banlist").requires((p_136548_) -> {
                                                           return p_136548_.hasPermission(3);
                                                       })
                         .executes((p_136555_) -> {
@@ -27,17 +27,17 @@ public class BanListCommands {
                         })));
     }
 
-    private static int showList(CommandSourceStack p_136550_, Collection<? extends BanListEntry<?>> p_136551_) {
-        if (p_136551_.isEmpty()) {
-            p_136550_.sendSuccess(Component.translatable("commands.banlist.none"), false);
+    private static int showList(CommandSourceStack pSource, Collection<? extends BanListEntry<?>> pBannedPlayerList) {
+        if (pBannedPlayerList.isEmpty()) {
+            pSource.sendSuccess(Component.translatable("commands.banlist.none"), false);
         } else {
-            p_136550_.sendSuccess(Component.translatable("commands.banlist.list", p_136551_.size()), false);
+            pSource.sendSuccess(Component.translatable("commands.banlist.list", pBannedPlayerList.size()), false);
 
-            for (BanListEntry<?> banlistentry : p_136551_) {
-                p_136550_.sendSuccess(Component.translatable("commands.banlist.entry", banlistentry.getDisplayName(), banlistentry.getSource(), banlistentry.getReason()), false);
+            for (BanListEntry<?> banlistentry : pBannedPlayerList) {
+                pSource.sendSuccess(Component.translatable("commands.banlist.entry", banlistentry.getDisplayName(), banlistentry.getSource(), banlistentry.getReason()), false);
             }
         }
 
-        return p_136551_.size();
+        return pBannedPlayerList.size();
     }
 }

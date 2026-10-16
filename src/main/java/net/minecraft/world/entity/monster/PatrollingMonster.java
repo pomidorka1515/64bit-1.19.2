@@ -28,8 +28,8 @@ public abstract class PatrollingMonster extends Monster {
     private boolean patrolLeader;
     private boolean patrolling;
 
-    protected PatrollingMonster(EntityType<? extends PatrollingMonster> p_33046_, Level p_33047_) {
-        super(p_33046_, p_33047_);
+    protected PatrollingMonster(EntityType<? extends PatrollingMonster> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     protected void registerGoals() {
@@ -37,24 +37,24 @@ public abstract class PatrollingMonster extends Monster {
         this.goalSelector.addGoal(4, new PatrollingMonster.LongDistancePatrolGoal<>(this, 0.7D, 0.595D));
     }
 
-    public void addAdditionalSaveData(CompoundTag p_33063_) {
-        super.addAdditionalSaveData(p_33063_);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
         if (this.patrolTarget != null) {
-            p_33063_.put("PatrolTarget", NbtUtils.writeBlockPos(this.patrolTarget));
+            pCompound.put("PatrolTarget", NbtUtils.writeBlockPos(this.patrolTarget));
         }
 
-        p_33063_.putBoolean("PatrolLeader", this.patrolLeader);
-        p_33063_.putBoolean("Patrolling", this.patrolling);
+        pCompound.putBoolean("PatrolLeader", this.patrolLeader);
+        pCompound.putBoolean("Patrolling", this.patrolling);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_33055_) {
-        super.readAdditionalSaveData(p_33055_);
-        if (p_33055_.contains("PatrolTarget")) {
-            this.patrolTarget = NbtUtils.readBlockPos(p_33055_.getCompound("PatrolTarget"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("PatrolTarget")) {
+            this.patrolTarget = NbtUtils.readBlockPos(pCompound.getCompound("PatrolTarget"));
         }
 
-        this.patrolLeader = p_33055_.getBoolean("PatrolLeader");
-        this.patrolling = p_33055_.getBoolean("Patrolling");
+        this.patrolLeader = pCompound.getBoolean("PatrolLeader");
+        this.patrolling = pCompound.getBoolean("Patrolling");
     }
 
     public double getMyRidingOffset() {
@@ -66,8 +66,8 @@ public abstract class PatrollingMonster extends Monster {
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_33049_, DifficultyInstance p_33050_, MobSpawnType p_33051_, @Nullable SpawnGroupData p_33052_, @Nullable CompoundTag p_33053_) {
-        if (p_33051_ != MobSpawnType.PATROL && p_33051_ != MobSpawnType.EVENT && p_33051_ != MobSpawnType.STRUCTURE && p_33049_.getRandom().nextFloat() < 0.06F && this.canBeLeader()) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        if (pReason != MobSpawnType.PATROL && pReason != MobSpawnType.EVENT && pReason != MobSpawnType.STRUCTURE && pLevel.getRandom().nextFloat() < 0.06F && this.canBeLeader()) {
             this.patrolLeader = true;
         }
 
@@ -76,23 +76,23 @@ public abstract class PatrollingMonster extends Monster {
             this.setDropChance(EquipmentSlot.HEAD, 2.0F);
         }
 
-        if (p_33051_ == MobSpawnType.PATROL) {
+        if (pReason == MobSpawnType.PATROL) {
             this.patrolling = true;
         }
 
-        return super.finalizeSpawn(p_33049_, p_33050_, p_33051_, p_33052_, p_33053_);
+        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
     }
 
-    public static boolean checkPatrollingMonsterSpawnRules(EntityType<? extends PatrollingMonster> p_219026_, LevelAccessor p_219027_, MobSpawnType p_219028_, BlockPos p_219029_, RandomSource p_219030_) {
-        return p_219027_.getBrightness(LightLayer.BLOCK, p_219029_) > 8 ? false : checkAnyLightMonsterSpawnRules(p_219026_, p_219027_, p_219028_, p_219029_, p_219030_);
+    public static boolean checkPatrollingMonsterSpawnRules(EntityType<? extends PatrollingMonster> pPatrollingMonster, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        return pLevel.getBrightness(LightLayer.BLOCK, pPos) > 8 ? false : checkAnyLightMonsterSpawnRules(pPatrollingMonster, pLevel, pSpawnType, pPos, pRandom);
     }
 
-    public boolean removeWhenFarAway(double p_33073_) {
-        return !this.patrolling || p_33073_ > 16384.0D;
+    public boolean removeWhenFarAway(double pDistanceToClosestPlayer) {
+        return !this.patrolling || pDistanceToClosestPlayer > 16384.0D;
     }
 
-    public void setPatrolTarget(BlockPos p_33071_) {
-        this.patrolTarget = p_33071_;
+    public void setPatrolTarget(BlockPos pPatrolTarget) {
+        this.patrolTarget = pPatrolTarget;
         this.patrolling = true;
     }
 
@@ -104,8 +104,8 @@ public abstract class PatrollingMonster extends Monster {
         return this.patrolTarget != null;
     }
 
-    public void setPatrolLeader(boolean p_33076_) {
-        this.patrolLeader = p_33076_;
+    public void setPatrolLeader(boolean pPatrolLeader) {
+        this.patrolLeader = pPatrolLeader;
         this.patrolling = true;
     }
 
@@ -126,8 +126,8 @@ public abstract class PatrollingMonster extends Monster {
         return this.patrolling;
     }
 
-    protected void setPatrolling(boolean p_33078_) {
-        this.patrolling = p_33078_;
+    protected void setPatrolling(boolean pPatrolling) {
+        this.patrolling = pPatrolling;
     }
 
     public static class LongDistancePatrolGoal<T extends PatrollingMonster> extends Goal {
@@ -137,10 +137,10 @@ public abstract class PatrollingMonster extends Monster {
         private final double leaderSpeedModifier;
         private long cooldownUntil;
 
-        public LongDistancePatrolGoal(T p_33084_, double p_33085_, double p_33086_) {
-            this.mob = p_33084_;
-            this.speedModifier = p_33085_;
-            this.leaderSpeedModifier = p_33086_;
+        public LongDistancePatrolGoal(T pMob, double pSpeedModifier, double pLeaderSpeedModifier) {
+            this.mob = pMob;
+            this.speedModifier = pSpeedModifier;
+            this.leaderSpeedModifier = pLeaderSpeedModifier;
             this.cooldownUntil = -1L;
             this.setFlags(EnumSet.of(Goal.Flag.MOVE));
         }

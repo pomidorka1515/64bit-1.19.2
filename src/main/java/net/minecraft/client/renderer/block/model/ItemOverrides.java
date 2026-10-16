@@ -32,8 +32,8 @@ public class ItemOverrides {
         this.properties = new ResourceLocation[0];
     }
 
-    public ItemOverrides(ModelBakery p_111740_, BlockModel p_111741_, Function<ResourceLocation, UnbakedModel> p_111742_, List<ItemOverride> p_111743_) {
-        this.properties = p_111743_.stream().flatMap(ItemOverride::getPredicates).map(ItemOverride.Predicate::getProperty).distinct().toArray((p_173479_) -> {
+    public ItemOverrides(ModelBakery pBakery, BlockModel pModel, Function<ResourceLocation, UnbakedModel> pModelGetter, List<ItemOverride> pOverrides) {
+        this.properties = pOverrides.stream().flatMap(ItemOverride::getPredicates).map(ItemOverride.Predicate::getProperty).distinct().toArray((p_173479_) -> {
             return new ResourceLocation[p_173479_];
         });
         Object2IntMap<ResourceLocation> object2intmap = new Object2IntOpenHashMap<>();
@@ -44,9 +44,9 @@ public class ItemOverrides {
 
         List<ItemOverrides.BakedOverride> list = Lists.newArrayList();
 
-        for (int j = p_111743_.size() - 1; j >= 0; --j) {
-            ItemOverride itemoverride = p_111743_.get(j);
-            BakedModel bakedmodel = this.bakeModel(p_111740_, p_111741_, p_111742_, itemoverride);
+        for (int j = pOverrides.size() - 1; j >= 0; --j) {
+            ItemOverride itemoverride = pOverrides.get(j);
+            BakedModel bakedmodel = this.bakeModel(pBakery, pModel, pModelGetter, itemoverride);
             ItemOverrides.PropertyMatcher[] aitemoverrides$propertymatcher = itemoverride.getPredicates().map((p_173477_) -> {
                                                                                                              int k = object2intmap.getInt(p_173477_.getProperty());
                                                                                                              return new ItemOverrides.PropertyMatcher(k, p_173477_.getValue());
@@ -61,15 +61,15 @@ public class ItemOverrides {
     }
 
     @Nullable
-    private BakedModel bakeModel(ModelBakery p_173471_, BlockModel p_173472_, Function<ResourceLocation, UnbakedModel> p_173473_, ItemOverride p_173474_) {
-        UnbakedModel unbakedmodel = p_173473_.apply(p_173474_.getModel());
-        return Objects.equals(unbakedmodel, p_173472_) ? null : p_173471_.bake(p_173474_.getModel(), BlockModelRotation.X0_Y0);
+    private BakedModel bakeModel(ModelBakery pBakery, BlockModel pModel, Function<ResourceLocation, UnbakedModel> pModelGetter, ItemOverride pOverride) {
+        UnbakedModel unbakedmodel = pModelGetter.apply(pOverride.getModel());
+        return Objects.equals(unbakedmodel, pModel) ? null : pBakery.bake(pOverride.getModel(), BlockModelRotation.X0_Y0);
     }
 
     @Nullable
-    public BakedModel resolve(BakedModel p_173465_, ItemStack p_173466_, @Nullable ClientLevel p_173467_, @Nullable LivingEntity p_173468_, int p_173469_) {
+    public BakedModel resolve(BakedModel pModel, ItemStack pStack, @Nullable ClientLevel pLevel, @Nullable LivingEntity pEntity, int pSeed) {
         if (this.overrides.length != 0) {
-            Item item = p_173466_.getItem();
+            Item item = pStack.getItem();
             int i = this.properties.length;
             float[] afloat = new float[i];
 
@@ -77,7 +77,7 @@ public class ItemOverrides {
                 ResourceLocation resourcelocation = this.properties[j];
                 ItemPropertyFunction itempropertyfunction = ItemProperties.getProperty(item, resourcelocation);
                 if (itempropertyfunction != null) {
-                    afloat[j] = itempropertyfunction.call(p_173466_, p_173467_, p_173468_, p_173469_);
+                    afloat[j] = itempropertyfunction.call(pStack, pLevel, pEntity, pSeed);
                 } else {
                     afloat[j] = Float.NEGATIVE_INFINITY;
                 }
@@ -87,7 +87,7 @@ public class ItemOverrides {
                 if (itemoverrides$bakedoverride.test(afloat)) {
                     BakedModel bakedmodel = itemoverrides$bakedoverride.model;
                     if (bakedmodel == null) {
-                        return p_173465_;
+                        return pModel;
                     }
 
                     return bakedmodel;
@@ -95,7 +95,7 @@ public class ItemOverrides {
             }
         }
 
-        return p_173465_;
+        return pModel;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -104,14 +104,14 @@ public class ItemOverrides {
         @Nullable
         final BakedModel model;
 
-        BakedOverride(ItemOverrides.PropertyMatcher[] p_173483_, @Nullable BakedModel p_173484_) {
-            this.matchers = p_173483_;
-            this.model = p_173484_;
+        BakedOverride(ItemOverrides.PropertyMatcher[] pMatchers, @Nullable BakedModel pModel) {
+            this.matchers = pMatchers;
+            this.model = pModel;
         }
 
-        boolean test(float[] p_173486_) {
+        boolean test(float[] pProperties) {
             for (ItemOverrides.PropertyMatcher itemoverrides$propertymatcher : this.matchers) {
-                float f = p_173486_[itemoverrides$propertymatcher.index];
+                float f = pProperties[itemoverrides$propertymatcher.index];
                 if (f < itemoverrides$propertymatcher.value) {
                     return false;
                 }
@@ -126,9 +126,9 @@ public class ItemOverrides {
         public final int index;
         public final float value;
 
-        PropertyMatcher(int p_173490_, float p_173491_) {
-            this.index = p_173490_;
-            this.value = p_173491_;
+        PropertyMatcher(int pIndex, float pValue) {
+            this.index = pIndex;
+            this.value = pValue;
         }
     }
 }

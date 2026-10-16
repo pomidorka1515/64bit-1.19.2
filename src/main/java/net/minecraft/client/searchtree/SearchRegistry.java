@@ -18,18 +18,18 @@ public class SearchRegistry implements ResourceManagerReloadListener {
     public static final SearchRegistry.Key<RecipeCollection> RECIPE_COLLECTIONS = new SearchRegistry.Key<>();
     private final Map<SearchRegistry.Key<?>, SearchRegistry.TreeEntry<?>> searchTrees = new HashMap<>();
 
-    public void onResourceManagerReload(ResourceManager p_119948_) {
+    public void onResourceManagerReload(ResourceManager pResourceManager) {
         for (SearchRegistry.TreeEntry<?> treeentry : this.searchTrees.values()) {
             treeentry.refresh();
         }
     }
 
-    public <T> void register(SearchRegistry.Key<T> p_235233_, SearchRegistry.TreeBuilderSupplier<T> p_235234_) {
-        this.searchTrees.put(p_235233_, new SearchRegistry.TreeEntry<>(p_235234_));
+    public <T> void register(SearchRegistry.Key<T> pKey, SearchRegistry.TreeBuilderSupplier<T> pFactory) {
+        this.searchTrees.put(pKey, new SearchRegistry.TreeEntry<>(pFactory));
     }
 
-    private <T> SearchRegistry.TreeEntry<T> getSupplier(SearchRegistry.Key<T> p_235239_) {
-        SearchRegistry.TreeEntry<T> treeentry = (SearchRegistry.TreeEntry<T>) this.searchTrees.get(p_235239_);
+    private <T> SearchRegistry.TreeEntry<T> getSupplier(SearchRegistry.Key<T> pKey) {
+        SearchRegistry.TreeEntry<T> treeentry = (SearchRegistry.TreeEntry<T>) this.searchTrees.get(pKey);
         if (treeentry == null) {
             throw new IllegalStateException("Tree builder not registered");
         } else {
@@ -37,12 +37,12 @@ public class SearchRegistry implements ResourceManagerReloadListener {
         }
     }
 
-    public <T> void populate(SearchRegistry.Key<T> p_235236_, List<T> p_235237_) {
-        this.getSupplier(p_235236_).populate(p_235237_);
+    public <T> void populate(SearchRegistry.Key<T> pKey, List<T> pValues) {
+        this.getSupplier(pKey).populate(pValues);
     }
 
-    public <T> SearchTree<T> getTree(SearchRegistry.Key<T> p_235231_) {
-        return this.getSupplier(p_235231_).tree;
+    public <T> SearchTree<T> getTree(SearchRegistry.Key<T> pKey) {
+        return this.getSupplier(pKey).tree;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -58,12 +58,12 @@ public class SearchRegistry implements ResourceManagerReloadListener {
         private final SearchRegistry.TreeBuilderSupplier<T> factory;
         RefreshableSearchTree<T> tree = RefreshableSearchTree.empty();
 
-        TreeEntry(SearchRegistry.TreeBuilderSupplier<T> p_235243_) {
-            this.factory = p_235243_;
+        TreeEntry(SearchRegistry.TreeBuilderSupplier<T> pFactory) {
+            this.factory = pFactory;
         }
 
-        void populate(List<T> p_235246_) {
-            this.tree = this.factory.apply(p_235246_);
+        void populate(List<T> pValues) {
+            this.tree = this.factory.apply(pValues);
             this.tree.refresh();
         }
 

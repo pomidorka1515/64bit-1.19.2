@@ -43,8 +43,8 @@ public class BlockEntitySignTextStrictJsonFix extends NamedEntityFix {
                                                            }
                                                        }).create();
 
-    public BlockEntitySignTextStrictJsonFix(Schema p_14864_, boolean p_14865_) {
-        super(p_14864_, p_14865_, "BlockEntitySignTextStrictJsonFix", References.BLOCK_ENTITY, "Sign");
+    public BlockEntitySignTextStrictJsonFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "BlockEntitySignTextStrictJsonFix", References.BLOCK_ENTITY, "Sign");
     }
 
     private Dynamic<?> updateLine(Dynamic<?> p_14871_, String p_14872_) {

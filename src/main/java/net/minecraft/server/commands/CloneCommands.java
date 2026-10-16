@@ -37,8 +37,8 @@ public class CloneCommands {
         return !p_136762_.getState().isAir();
     };
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_214424_, CommandBuildContext p_214425_) {
-        p_214424_.register(Commands.literal("clone").requires((p_136734_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher, CommandBuildContext pContext) {
+        pDispatcher.register(Commands.literal("clone").requires((p_136734_) -> {
                                                         return p_136734_.hasPermission(2);
                                                     })
                         .then(Commands.argument("begin", BlockPosArgument.blockPos()).then(Commands.argument("end", BlockPosArgument.blockPos()).then(Commands.argument("destination", BlockPosArgument.blockPos()).executes((p_136778_) -> {
@@ -78,7 +78,7 @@ public class CloneCommands {
                                                         .then(Commands.literal("normal").executes((p_136760_) -> {
                                                             return clone(p_136760_.getSource(), BlockPosArgument.getLoadedBlockPos(p_136760_, "begin"), BlockPosArgument.getLoadedBlockPos(p_136760_, "end"), BlockPosArgument.getLoadedBlockPos(p_136760_, "destination"), FILTER_AIR, CloneCommands.Mode.NORMAL);
                                                         })))
-                                        .then(Commands.literal("filtered").then(Commands.argument("filter", BlockPredicateArgument.blockPredicate(p_214425_)).executes((p_136756_) -> {
+                                        .then(Commands.literal("filtered").then(Commands.argument("filter", BlockPredicateArgument.blockPredicate(pContext)).executes((p_136756_) -> {
                                                                                                                                                                  return clone(p_136756_.getSource(), BlockPosArgument.getLoadedBlockPos(p_136756_, "begin"), BlockPosArgument.getLoadedBlockPos(p_136756_, "end"), BlockPosArgument.getLoadedBlockPos(p_136756_, "destination"), BlockPredicateArgument.getBlockPredicate(p_136756_, "filter"), CloneCommands.Mode.NORMAL);
                                                                                                                                                              })
                                                         .then(Commands.literal("force").executes((p_136752_) -> {
@@ -92,11 +92,11 @@ public class CloneCommands {
                                                         }))))))));
     }
 
-    private static int clone(CommandSourceStack p_136736_, BlockPos p_136737_, BlockPos p_136738_, BlockPos p_136739_, Predicate<BlockInWorld> p_136740_, CloneCommands.Mode p_136741_) throws CommandSyntaxException {
-        BoundingBox boundingbox = BoundingBox.fromCorners(p_136737_, p_136738_);
-        BlockPos blockpos = p_136739_.offset(boundingbox.getLength());
-        BoundingBox boundingbox1 = BoundingBox.fromCorners(p_136739_, blockpos);
-        if (!p_136741_.canOverlap() && boundingbox1.intersects(boundingbox)) {
+    private static int clone(CommandSourceStack pSource, BlockPos pBeginPos, BlockPos pEndPos, BlockPos pDestPos, Predicate<BlockInWorld> pFilterPredicate, CloneCommands.Mode pCloneMode) throws CommandSyntaxException {
+        BoundingBox boundingbox = BoundingBox.fromCorners(pBeginPos, pEndPos);
+        BlockPos blockpos = pDestPos.offset(boundingbox.getLength());
+        BoundingBox boundingbox1 = BoundingBox.fromCorners(pDestPos, blockpos);
+        if (!pCloneMode.canOverlap() && boundingbox1.intersects(boundingbox)) {
             throw ERROR_OVERLAP.create();
         } else {
             long xSpan = boundingbox.getXSpan();
@@ -107,8 +107,8 @@ public class CloneCommands {
             if (i > 32768) {
                 throw ERROR_AREA_TOO_LARGE.create(32768, i);
             } else {
-                ServerLevel serverlevel = p_136736_.getLevel();
-                if (serverlevel.hasChunksAt(p_136737_, p_136738_) && serverlevel.hasChunksAt(p_136739_, blockpos)) {
+                ServerLevel serverlevel = pSource.getLevel();
+                if (serverlevel.hasChunksAt(pBeginPos, pEndPos) && serverlevel.hasChunksAt(pDestPos, blockpos)) {
                     List<CloneCommands.CloneBlockInfo> list = Lists.newArrayList();
                     List<CloneCommands.CloneBlockInfo> list1 = Lists.newArrayList();
                     List<CloneCommands.CloneBlockInfo> list2 = Lists.newArrayList();
@@ -122,7 +122,7 @@ public class CloneCommands {
                                         boundingbox1.minY() + (k - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.subtractBlockOffset(j, boundingbox.minZ())));
                                 BlockInWorld blockinworld = new BlockInWorld(serverlevel, blockpos2, false);
                                 BlockState blockstate = blockinworld.getState();
-                                if (p_136740_.test(blockinworld)) {
+                                if (pFilterPredicate.test(blockinworld)) {
                                     BlockEntity blockentity = serverlevel.getBlockEntity(blockpos2);
                                     if (blockentity != null) {
                                         CompoundTag compoundtag = blockentity.saveWithoutMetadata();
@@ -144,7 +144,7 @@ public class CloneCommands {
                             break;
                     }
 
-                    if (p_136741_ == CloneCommands.Mode.MOVE) {
+                    if (pCloneMode == CloneCommands.Mode.MOVE) {
                         for (BlockPos blockpos4 : deque) {
                             BlockEntity blockentity1 = serverlevel.getBlockEntity(blockpos4);
                             Clearable.tryClear(blockentity1);
@@ -190,11 +190,11 @@ public class CloneCommands {
                         serverlevel.blockUpdated(clonecommands$cloneblockinfo3.pos, clonecommands$cloneblockinfo3.state.getBlock());
                     }
 
-                    serverlevel.getBlockTicks().copyAreaTo(boundingbox, p_136739_);
+                    serverlevel.getBlockTicks().copyAreaTo(boundingbox, pDestPos);
                     if (i1 == 0) {
                         throw ERROR_FAILED.create();
                     } else {
-                        p_136736_.sendSuccess(Component.translatable("commands.clone.success", i1), true);
+                        pSource.sendSuccess(Component.translatable("commands.clone.success", i1), true);
                         return i1;
                     }
                 } else {
@@ -210,10 +210,10 @@ public class CloneCommands {
         @Nullable
         public final CompoundTag tag;
 
-        public CloneBlockInfo(BlockPos p_136783_, BlockState p_136784_, @Nullable CompoundTag p_136785_) {
-            this.pos = p_136783_;
-            this.state = p_136784_;
-            this.tag = p_136785_;
+        public CloneBlockInfo(BlockPos pPos, BlockState pState, @Nullable CompoundTag pTag) {
+            this.pos = pPos;
+            this.state = pState;
+            this.tag = pTag;
         }
     }
 

@@ -39,12 +39,12 @@ public class RealmsSelectFileToUploadScreen extends RealmsScreen {
     RealmsSelectFileToUploadScreen.WorldSelectionList worldSelectionList;
     private final Runnable callback;
 
-    public RealmsSelectFileToUploadScreen(long p_89498_, int p_89499_, RealmsResetWorldScreen p_89500_, Runnable p_89501_) {
+    public RealmsSelectFileToUploadScreen(long pWorldId, int pSlotId, RealmsResetWorldScreen pLastScreen, Runnable pCallback) {
         super(Component.translatable("mco.upload.select.world.title"));
-        this.lastScreen = p_89500_;
-        this.worldId = p_89498_;
-        this.slotId = p_89499_;
-        this.callback = p_89501_;
+        this.lastScreen = pLastScreen;
+        this.worldId = pWorldId;
+        this.slotId = pSlotId;
+        this.callback = pCallback;
     }
 
     private void loadLevelList() throws Exception {
@@ -100,28 +100,28 @@ public class RealmsSelectFileToUploadScreen extends RealmsScreen {
         }
     }
 
-    public void render(PoseStack p_89515_, int p_89516_, int p_89517_, float p_89518_) {
-        this.renderBackground(p_89515_);
-        this.worldSelectionList.render(p_89515_, p_89516_, p_89517_, p_89518_);
-        drawCenteredString(p_89515_, this.font, this.title, this.width / 2, 13, 16777215);
-        super.render(p_89515_, p_89516_, p_89517_, p_89518_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        this.worldSelectionList.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 13, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
-    public boolean keyPressed(int p_89506_, int p_89507_, int p_89508_) {
-        if (p_89506_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.lastScreen);
             return true;
         } else {
-            return super.keyPressed(p_89506_, p_89507_, p_89508_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
-    static Component gameModeName(LevelSummary p_89535_) {
-        return p_89535_.getGameMode().getLongDisplayName();
+    static Component gameModeName(LevelSummary pLevelSummary) {
+        return pLevelSummary.getGameMode().getLongDisplayName();
     }
 
-    static String formatLastPlayed(LevelSummary p_89539_) {
-        return DATE_FORMAT.format(new Date(p_89539_.getLastPlayed()));
+    static String formatLastPlayed(LevelSummary pLevelSummary) {
+        return DATE_FORMAT.format(new Date(pLevelSummary.getLastPlayed()));
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -149,26 +149,26 @@ public class RealmsSelectFileToUploadScreen extends RealmsScreen {
             this.info = component;
         }
 
-        public void render(PoseStack p_89566_, int p_89567_, int p_89568_, int p_89569_, int p_89570_, int p_89571_, int p_89572_, int p_89573_, boolean p_89574_, float p_89575_) {
-            this.renderItem(p_89566_, p_89567_, p_89569_, p_89568_);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            this.renderItem(pPoseStack, pIndex, pLeft, pTop);
         }
 
-        public boolean mouseClicked(double p_89562_, double p_89563_, int p_89564_) {
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
             RealmsSelectFileToUploadScreen.this.worldSelectionList.selectItem(RealmsSelectFileToUploadScreen.this.levelList.indexOf(this.levelSummary));
             return true;
         }
 
-        protected void renderItem(PoseStack p_167475_, int p_167476_, int p_167477_, int p_167478_) {
+        protected void renderItem(PoseStack pPoseStack, int pIndex, int pX, int pY) {
             String s;
             if (this.name.isEmpty()) {
-                s = RealmsSelectFileToUploadScreen.WORLD_TEXT + " " + (p_167476_ + 1);
+                s = RealmsSelectFileToUploadScreen.WORLD_TEXT + " " + (pIndex + 1);
             } else {
                 s = this.name;
             }
 
-            RealmsSelectFileToUploadScreen.this.font.draw(p_167475_, s, (float) (p_167477_ + 2), (float) (p_167478_ + 1), 16777215);
-            RealmsSelectFileToUploadScreen.this.font.draw(p_167475_, this.id, (float) (p_167477_ + 2), (float) (p_167478_ + 12), 8421504);
-            RealmsSelectFileToUploadScreen.this.font.draw(p_167475_, this.info, (float) (p_167477_ + 2), (float) (p_167478_ + 12 + 10), 8421504);
+            RealmsSelectFileToUploadScreen.this.font.draw(pPoseStack, s, (float) (pX + 2), (float) (pY + 1), 16777215);
+            RealmsSelectFileToUploadScreen.this.font.draw(pPoseStack, this.id, (float) (pX + 2), (float) (pY + 12), 8421504);
+            RealmsSelectFileToUploadScreen.this.font.draw(pPoseStack, this.info, (float) (pX + 2), (float) (pY + 12 + 10), 8421504);
         }
 
         public Component getNarration() {
@@ -183,8 +183,8 @@ public class RealmsSelectFileToUploadScreen extends RealmsScreen {
             super(RealmsSelectFileToUploadScreen.this.width, RealmsSelectFileToUploadScreen.this.height, RealmsSelectFileToUploadScreen.row(0), RealmsSelectFileToUploadScreen.this.height - 40, 36);
         }
 
-        public void addEntry(LevelSummary p_89588_) {
-            this.addEntry(RealmsSelectFileToUploadScreen.this.new Entry(p_89588_));
+        public void addEntry(LevelSummary pLevelSummary) {
+            this.addEntry(RealmsSelectFileToUploadScreen.this.new Entry(pLevelSummary));
         }
 
         public int getMaxPosition() {
@@ -195,13 +195,13 @@ public class RealmsSelectFileToUploadScreen extends RealmsScreen {
             return RealmsSelectFileToUploadScreen.this.getFocused() == this;
         }
 
-        public void renderBackground(PoseStack p_89590_) {
-            RealmsSelectFileToUploadScreen.this.renderBackground(p_89590_);
+        public void renderBackground(PoseStack pPoseStack) {
+            RealmsSelectFileToUploadScreen.this.renderBackground(pPoseStack);
         }
 
-        public void setSelected(@Nullable RealmsSelectFileToUploadScreen.Entry p_89592_) {
-            super.setSelected(p_89592_);
-            RealmsSelectFileToUploadScreen.this.selectedWorld = this.children().indexOf(p_89592_);
+        public void setSelected(@Nullable RealmsSelectFileToUploadScreen.Entry pSelected) {
+            super.setSelected(pSelected);
+            RealmsSelectFileToUploadScreen.this.selectedWorld = this.children().indexOf(pSelected);
             RealmsSelectFileToUploadScreen.this.uploadButton.active = RealmsSelectFileToUploadScreen.this.selectedWorld >= 0 && RealmsSelectFileToUploadScreen.this.selectedWorld < this.getItemCount() && !RealmsSelectFileToUploadScreen.this.levelList.get(RealmsSelectFileToUploadScreen.this.selectedWorld).isHardcore();
         }
     }

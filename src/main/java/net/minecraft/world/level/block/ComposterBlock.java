@@ -157,151 +157,151 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
         add(1.0F, Items.PUMPKIN_PIE);
     }
 
-    private static void add(float p_51921_, ItemLike p_51922_) {
-        COMPOSTABLES.put(p_51922_.asItem(), p_51921_);
+    private static void add(float pChance, ItemLike pItem) {
+        COMPOSTABLES.put(pItem.asItem(), pChance);
     }
 
-    public ComposterBlock(BlockBehaviour.Properties p_51919_) {
-        super(p_51919_);
+    public ComposterBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(LEVEL, Integer.valueOf(0)));
     }
 
-    public static void handleFill(Level p_51924_, BlockPos p_51925_, boolean p_51926_) {
-        BlockState blockstate = p_51924_.getBlockState(p_51925_);
-        p_51924_.playLocalSound((double) p_51925_.getX(), (double) p_51925_.getY(), (double) p_51925_.getZ(), p_51926_ ? SoundEvents.COMPOSTER_FILL_SUCCESS : SoundEvents.COMPOSTER_FILL, SoundSource.BLOCKS, 1.0F, 1.0F, false);
-        double d0 = blockstate.getShape(p_51924_, p_51925_).max(Direction.Axis.Y, 0.5D, 0.5D) + 0.03125D;
+    public static void handleFill(Level pLevel, BlockPos pPos, boolean pSuccess) {
+        BlockState blockstate = pLevel.getBlockState(pPos);
+        pLevel.playLocalSound((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), pSuccess ? SoundEvents.COMPOSTER_FILL_SUCCESS : SoundEvents.COMPOSTER_FILL, SoundSource.BLOCKS, 1.0F, 1.0F, false);
+        double d0 = blockstate.getShape(pLevel, pPos).max(Direction.Axis.Y, 0.5D, 0.5D) + 0.03125D;
         double d1 = (double) 0.13125F;
         double d2 = (double) 0.7375F;
-        RandomSource randomsource = p_51924_.getRandom();
+        RandomSource randomsource = pLevel.getRandom();
 
         for (int i = 0; i < 10; ++i) {
             double d3 = randomsource.nextGaussian() * 0.02D;
             double d4 = randomsource.nextGaussian() * 0.02D;
             double d5 = randomsource.nextGaussian() * 0.02D;
-            p_51924_.addParticle(ParticleTypes.COMPOSTER, SectorVec3.fromBlockAndFraction(p_51925_.getX(), (double) 0.13125F + (double) 0.7375F * (double) randomsource.nextFloat(), (double) p_51925_.getY() + d0 + (double) randomsource.nextFloat() * (1.0D - d0), p_51925_.getZ(), (double) 0.13125F + (double) 0.7375F * (double) randomsource.nextFloat()),
+            pLevel.addParticle(ParticleTypes.COMPOSTER, SectorVec3.fromBlockAndFraction(pPos.getX(), (double) 0.13125F + (double) 0.7375F * (double) randomsource.nextFloat(), (double) pPos.getY() + d0 + (double) randomsource.nextFloat() * (1.0D - d0), pPos.getZ(), (double) 0.13125F + (double) 0.7375F * (double) randomsource.nextFloat()),
                     d3, d4, d5);
         }
     }
 
-    public VoxelShape getShape(BlockState p_51973_, BlockGetter p_51974_, BlockPos p_51975_, CollisionContext p_51976_) {
-        return SHAPES[p_51973_.getValue(LEVEL)];
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return SHAPES[pState.getValue(LEVEL)];
     }
 
-    public VoxelShape getInteractionShape(BlockState p_51969_, BlockGetter p_51970_, BlockPos p_51971_) {
+    public VoxelShape getInteractionShape(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
         return OUTER_SHAPE;
     }
 
-    public VoxelShape getCollisionShape(BlockState p_51990_, BlockGetter p_51991_, BlockPos p_51992_, CollisionContext p_51993_) {
+    public VoxelShape getCollisionShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPES[0];
     }
 
-    public void onPlace(BlockState p_51978_, Level p_51979_, BlockPos p_51980_, BlockState p_51981_, boolean p_51982_) {
-        if (p_51978_.getValue(LEVEL) == 7) {
-            p_51979_.scheduleTick(p_51980_, p_51978_.getBlock(), 20);
+    public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
+        if (pState.getValue(LEVEL) == 7) {
+            pLevel.scheduleTick(pPos, pState.getBlock(), 20);
         }
     }
 
-    public InteractionResult use(BlockState p_51949_, Level p_51950_, BlockPos p_51951_, Player p_51952_, InteractionHand p_51953_, BlockHitResult p_51954_) {
-        int i = p_51949_.getValue(LEVEL);
-        ItemStack itemstack = p_51952_.getItemInHand(p_51953_);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        int i = pState.getValue(LEVEL);
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (i < 8 && COMPOSTABLES.containsKey(itemstack.getItem())) {
-            if (i < 7 && !p_51950_.isClientSide) {
-                BlockState blockstate = addItem(p_51949_, p_51950_, p_51951_, itemstack);
-                p_51950_.levelEvent(1500, p_51951_, p_51949_ != blockstate ? 1 : 0);
-                p_51952_.awardStat(Stats.ITEM_USED.get(itemstack.getItem()));
-                if (!p_51952_.getAbilities().instabuild) {
+            if (i < 7 && !pLevel.isClientSide) {
+                BlockState blockstate = addItem(pState, pLevel, pPos, itemstack);
+                pLevel.levelEvent(1500, pPos, pState != blockstate ? 1 : 0);
+                pPlayer.awardStat(Stats.ITEM_USED.get(itemstack.getItem()));
+                if (!pPlayer.getAbilities().instabuild) {
                     itemstack.shrink(1);
                 }
             }
 
-            return InteractionResult.sidedSuccess(p_51950_.isClientSide);
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         } else if (i == 8) {
-            extractProduce(p_51949_, p_51950_, p_51951_);
-            return InteractionResult.sidedSuccess(p_51950_.isClientSide);
+            extractProduce(pState, pLevel, pPos);
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         } else {
             return InteractionResult.PASS;
         }
     }
 
-    public static BlockState insertItem(BlockState p_51930_, ServerLevel p_51931_, ItemStack p_51932_, BlockPos p_51933_) {
-        int i = p_51930_.getValue(LEVEL);
-        if (i < 7 && COMPOSTABLES.containsKey(p_51932_.getItem())) {
-            BlockState blockstate = addItem(p_51930_, p_51931_, p_51933_, p_51932_);
-            p_51932_.shrink(1);
+    public static BlockState insertItem(BlockState pState, ServerLevel pLevel, ItemStack pStack, BlockPos pPos) {
+        int i = pState.getValue(LEVEL);
+        if (i < 7 && COMPOSTABLES.containsKey(pStack.getItem())) {
+            BlockState blockstate = addItem(pState, pLevel, pPos, pStack);
+            pStack.shrink(1);
             return blockstate;
         } else {
-            return p_51930_;
+            return pState;
         }
     }
 
-    public static BlockState extractProduce(BlockState p_51999_, Level p_52000_, BlockPos p_52001_) {
-        if (!p_52000_.isClientSide) {
+    public static BlockState extractProduce(BlockState pState, Level pLevel, BlockPos pPos) {
+        if (!pLevel.isClientSide) {
             float f = 0.7F;
-            double d0 = (double) (p_52000_.random.nextFloat() * 0.7F) + (double) 0.15F;
-            double d1 = (double) (p_52000_.random.nextFloat() * 0.7F) + (double) 0.060000002F + 0.6D;
-            double d2 = (double) (p_52000_.random.nextFloat() * 0.7F) + (double) 0.15F;
-            ItemEntity itementity = new ItemEntity(p_52000_, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_52001_.getX(), d0, (double) p_52001_.getY() + d1, p_52001_.getZ(), d2), new ItemStack(Items.BONE_MEAL));
+            double d0 = (double) (pLevel.random.nextFloat() * 0.7F) + (double) 0.15F;
+            double d1 = (double) (pLevel.random.nextFloat() * 0.7F) + (double) 0.060000002F + 0.6D;
+            double d2 = (double) (pLevel.random.nextFloat() * 0.7F) + (double) 0.15F;
+            ItemEntity itementity = new ItemEntity(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), d0, (double) pPos.getY() + d1, pPos.getZ(), d2), new ItemStack(Items.BONE_MEAL));
             itementity.setDefaultPickUpDelay();
-            p_52000_.addFreshEntity(itementity);
+            pLevel.addFreshEntity(itementity);
         }
 
-        BlockState blockstate = empty(p_51999_, p_52000_, p_52001_);
-        p_52000_.playSound((Player) null, p_52001_, SoundEvents.COMPOSTER_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+        BlockState blockstate = empty(pState, pLevel, pPos);
+        pLevel.playSound((Player) null, pPos, SoundEvents.COMPOSTER_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
         return blockstate;
     }
 
-    static BlockState empty(BlockState p_52003_, LevelAccessor p_52004_, BlockPos p_52005_) {
-        BlockState blockstate = p_52003_.setValue(LEVEL, Integer.valueOf(0));
-        p_52004_.setBlock(p_52005_, blockstate, 3);
+    static BlockState empty(BlockState pState, LevelAccessor pLevel, BlockPos pPos) {
+        BlockState blockstate = pState.setValue(LEVEL, Integer.valueOf(0));
+        pLevel.setBlock(pPos, blockstate, 3);
         return blockstate;
     }
 
-    static BlockState addItem(BlockState p_51984_, LevelAccessor p_51985_, BlockPos p_51986_, ItemStack p_51987_) {
-        int i = p_51984_.getValue(LEVEL);
-        float f = COMPOSTABLES.getFloat(p_51987_.getItem());
-        if ((i != 0 || !(f > 0.0F)) && !(p_51985_.getRandom().nextDouble() < (double) f)) {
-            return p_51984_;
+    static BlockState addItem(BlockState pState, LevelAccessor pLevel, BlockPos pPos, ItemStack pStack) {
+        int i = pState.getValue(LEVEL);
+        float f = COMPOSTABLES.getFloat(pStack.getItem());
+        if ((i != 0 || !(f > 0.0F)) && !(pLevel.getRandom().nextDouble() < (double) f)) {
+            return pState;
         } else {
             int j = i + 1;
-            BlockState blockstate = p_51984_.setValue(LEVEL, Integer.valueOf(j));
-            p_51985_.setBlock(p_51986_, blockstate, 3);
+            BlockState blockstate = pState.setValue(LEVEL, Integer.valueOf(j));
+            pLevel.setBlock(pPos, blockstate, 3);
             if (j == 7) {
-                p_51985_.scheduleTick(p_51986_, p_51984_.getBlock(), 20);
+                pLevel.scheduleTick(pPos, pState.getBlock(), 20);
             }
 
             return blockstate;
         }
     }
 
-    public void tick(BlockState p_221015_, ServerLevel p_221016_, BlockPos p_221017_, RandomSource p_221018_) {
-        if (p_221015_.getValue(LEVEL) == 7) {
-            p_221016_.setBlock(p_221017_, p_221015_.cycle(LEVEL), 3);
-            p_221016_.playSound((Player) null, p_221017_, SoundEvents.COMPOSTER_READY, SoundSource.BLOCKS, 1.0F, 1.0F);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pState.getValue(LEVEL) == 7) {
+            pLevel.setBlock(pPos, pState.cycle(LEVEL), 3);
+            pLevel.playSound((Player) null, pPos, SoundEvents.COMPOSTER_READY, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
     }
 
-    public boolean hasAnalogOutputSignal(BlockState p_51928_) {
+    public boolean hasAnalogOutputSignal(BlockState pState) {
         return true;
     }
 
-    public int getAnalogOutputSignal(BlockState p_51945_, Level p_51946_, BlockPos p_51947_) {
-        return p_51945_.getValue(LEVEL);
+    public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos) {
+        return pBlockState.getValue(LEVEL);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_51965_) {
-        p_51965_.add(LEVEL);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(LEVEL);
     }
 
-    public boolean isPathfindable(BlockState p_51940_, BlockGetter p_51941_, BlockPos p_51942_, PathComputationType p_51943_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 
-    public WorldlyContainer getContainer(BlockState p_51956_, LevelAccessor p_51957_, BlockPos p_51958_) {
-        int i = p_51956_.getValue(LEVEL);
+    public WorldlyContainer getContainer(BlockState pState, LevelAccessor pLevel, BlockPos pPos) {
+        int i = pState.getValue(LEVEL);
         if (i == 8) {
-            return new ComposterBlock.OutputContainer(p_51956_, p_51957_, p_51958_, new ItemStack(Items.BONE_MEAL));
+            return new ComposterBlock.OutputContainer(pState, pLevel, pPos, new ItemStack(Items.BONE_MEAL));
         } else {
-            return (WorldlyContainer) (i < 7 ? new ComposterBlock.InputContainer(p_51956_, p_51957_, p_51958_) : new ComposterBlock.EmptyContainer());
+            return (WorldlyContainer) (i < 7 ? new ComposterBlock.InputContainer(pState, pLevel, pPos) : new ComposterBlock.EmptyContainer());
         }
     }
 
@@ -310,15 +310,15 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
             super(0);
         }
 
-        public int[] getSlotsForFace(Direction p_52012_) {
+        public int[] getSlotsForFace(Direction pSide) {
             return new int[0];
         }
 
-        public boolean canPlaceItemThroughFace(int p_52008_, ItemStack p_52009_, @Nullable Direction p_52010_) {
+        public boolean canPlaceItemThroughFace(int pIndex, ItemStack pItemStack, @Nullable Direction pDirection) {
             return false;
         }
 
-        public boolean canTakeItemThroughFace(int p_52014_, ItemStack p_52015_, Direction p_52016_) {
+        public boolean canTakeItemThroughFace(int pIndex, ItemStack pStack, Direction pDirection) {
             return false;
         }
     }
@@ -329,26 +329,26 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
         private final BlockPos pos;
         private boolean changed;
 
-        public InputContainer(BlockState p_52022_, LevelAccessor p_52023_, BlockPos p_52024_) {
+        public InputContainer(BlockState pState, LevelAccessor pLevel, BlockPos pPos) {
             super(1);
-            this.state = p_52022_;
-            this.level = p_52023_;
-            this.pos = p_52024_;
+            this.state = pState;
+            this.level = pLevel;
+            this.pos = pPos;
         }
 
         public int getMaxStackSize() {
             return 1;
         }
 
-        public int[] getSlotsForFace(Direction p_52032_) {
-            return p_52032_ == Direction.UP ? new int[] {0} : new int[0];
+        public int[] getSlotsForFace(Direction pSide) {
+            return pSide == Direction.UP ? new int[] {0} : new int[0];
         }
 
-        public boolean canPlaceItemThroughFace(int p_52028_, ItemStack p_52029_, @Nullable Direction p_52030_) {
-            return !this.changed && p_52030_ == Direction.UP && ComposterBlock.COMPOSTABLES.containsKey(p_52029_.getItem());
+        public boolean canPlaceItemThroughFace(int pIndex, ItemStack pItemStack, @Nullable Direction pDirection) {
+            return !this.changed && pDirection == Direction.UP && ComposterBlock.COMPOSTABLES.containsKey(pItemStack.getItem());
         }
 
-        public boolean canTakeItemThroughFace(int p_52034_, ItemStack p_52035_, Direction p_52036_) {
+        public boolean canTakeItemThroughFace(int pIndex, ItemStack pStack, Direction pDirection) {
             return false;
         }
 
@@ -369,27 +369,27 @@ public class ComposterBlock extends Block implements WorldlyContainerHolder {
         private final BlockPos pos;
         private boolean changed;
 
-        public OutputContainer(BlockState p_52042_, LevelAccessor p_52043_, BlockPos p_52044_, ItemStack p_52045_) {
-            super(p_52045_);
-            this.state = p_52042_;
-            this.level = p_52043_;
-            this.pos = p_52044_;
+        public OutputContainer(BlockState pState, LevelAccessor pLevel, BlockPos pPos, ItemStack pStack) {
+            super(pStack);
+            this.state = pState;
+            this.level = pLevel;
+            this.pos = pPos;
         }
 
         public int getMaxStackSize() {
             return 1;
         }
 
-        public int[] getSlotsForFace(Direction p_52053_) {
-            return p_52053_ == Direction.DOWN ? new int[] {0} : new int[0];
+        public int[] getSlotsForFace(Direction pSide) {
+            return pSide == Direction.DOWN ? new int[] {0} : new int[0];
         }
 
-        public boolean canPlaceItemThroughFace(int p_52049_, ItemStack p_52050_, @Nullable Direction p_52051_) {
+        public boolean canPlaceItemThroughFace(int pIndex, ItemStack pItemStack, @Nullable Direction pDirection) {
             return false;
         }
 
-        public boolean canTakeItemThroughFace(int p_52055_, ItemStack p_52056_, Direction p_52057_) {
-            return !this.changed && p_52057_ == Direction.DOWN && p_52056_.is(Items.BONE_MEAL);
+        public boolean canTakeItemThroughFace(int pIndex, ItemStack pStack, Direction pDirection) {
+            return !this.changed && pDirection == Direction.DOWN && pStack.is(Items.BONE_MEAL);
         }
 
         public void setChanged() {

@@ -39,12 +39,12 @@ public final class MissingTextureAtlasSprite extends TextureAtlasSprite {
     });
     private static final TextureAtlasSprite.Info INFO = new TextureAtlasSprite.Info(MISSING_TEXTURE_LOCATION, 16, 16, new AnimationMetadataSection(ImmutableList.of(new AnimationFrame(0, -1)), 16, 16, 1, false));
 
-    private MissingTextureAtlasSprite(TextureAtlas p_118065_, int p_118066_, int p_118067_, int p_118068_, int p_118069_, int p_118070_) {
-        super(p_118065_, INFO, p_118066_, p_118067_, p_118068_, p_118069_, p_118070_, MISSING_IMAGE_DATA.get());
+    private MissingTextureAtlasSprite(TextureAtlas pAtlas, int pMipLevel, int pStorageX, int pStorageY, int pX, int pY) {
+        super(pAtlas, INFO, pMipLevel, pStorageX, pStorageY, pX, pY, MISSING_IMAGE_DATA.get());
     }
 
-    public static MissingTextureAtlasSprite newInstance(TextureAtlas p_118073_, int p_118074_, int p_118075_, int p_118076_, int p_118077_, int p_118078_) {
-        return new MissingTextureAtlasSprite(p_118073_, p_118074_, p_118075_, p_118076_, p_118077_, p_118078_);
+    public static MissingTextureAtlasSprite newInstance(TextureAtlas pAtlas, int pMipLevel, int pStorageX, int pStorageY, int pX, int pY) {
+        return new MissingTextureAtlasSprite(pAtlas, pMipLevel, pStorageX, pStorageY, pX, pY);
     }
 
     public static ResourceLocation getLocation() {

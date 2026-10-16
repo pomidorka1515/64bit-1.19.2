@@ -35,12 +35,12 @@ public class ProcessorRule {
     @Nullable
     private final CompoundTag outputTag;
 
-    public ProcessorRule(RuleTest p_74223_, RuleTest p_74224_, BlockState p_74225_) {
-        this(p_74223_, p_74224_, PosAlwaysTrueTest.INSTANCE, p_74225_, Optional.empty());
+    public ProcessorRule(RuleTest pInputPredicate, RuleTest pLocPredicate, BlockState pOutputState) {
+        this(pInputPredicate, pLocPredicate, PosAlwaysTrueTest.INSTANCE, pOutputState, Optional.empty());
     }
 
-    public ProcessorRule(RuleTest p_74227_, RuleTest p_74228_, PosRuleTest p_74229_, BlockState p_74230_) {
-        this(p_74227_, p_74228_, p_74229_, p_74230_, Optional.empty());
+    public ProcessorRule(RuleTest pInputPredicate, RuleTest pLocPredicate, PosRuleTest pPosPredicate, BlockState pOutputState) {
+        this(pInputPredicate, pLocPredicate, pPosPredicate, pOutputState, Optional.empty());
     }
 
     public ProcessorRule(RuleTest p_74232_, RuleTest p_74233_, PosRuleTest p_74234_, BlockState p_74235_, Optional<CompoundTag> p_74236_) {
@@ -51,8 +51,8 @@ public class ProcessorRule {
         this.outputTag = p_74236_.orElse((CompoundTag) null);
     }
 
-    public boolean test(BlockState p_230310_, BlockState p_230311_, BlockPos p_230312_, BlockPos p_230313_, BlockPos p_230314_, RandomSource p_230315_) {
-        return this.inputPredicate.test(p_230310_, p_230315_) && this.locPredicate.test(p_230311_, p_230315_) && this.posPredicate.test(p_230312_, p_230313_, p_230314_, p_230315_);
+    public boolean test(BlockState pInputState, BlockState pExistingState, BlockPos pLocalPos, BlockPos pRelativePos, BlockPos pStructurePos, RandomSource pRandom) {
+        return this.inputPredicate.test(pInputState, pRandom) && this.locPredicate.test(pExistingState, pRandom) && this.posPredicate.test(pLocalPos, pRelativePos, pStructurePos, pRandom);
     }
 
     public BlockState getOutputState() {

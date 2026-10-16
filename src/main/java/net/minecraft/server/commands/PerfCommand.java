@@ -30,8 +30,8 @@ public class PerfCommand {
     private static final SimpleCommandExceptionType ERROR_NOT_RUNNING = new SimpleCommandExceptionType(Component.translatable("commands.perf.notRunning"));
     private static final SimpleCommandExceptionType ERROR_ALREADY_RUNNING = new SimpleCommandExceptionType(Component.translatable("commands.perf.alreadyRunning"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_180438_) {
-        p_180438_.register(Commands.literal("perf").requires((p_180462_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("perf").requires((p_180462_) -> {
                                                        return p_180462_.hasPermission(4);
                                                    })
                         .then(Commands.literal("start").executes((p_180455_) -> {
@@ -42,25 +42,25 @@ public class PerfCommand {
                         })));
     }
 
-    private static int startProfilingDedicatedServer(CommandSourceStack p_180442_) throws CommandSyntaxException {
-        MinecraftServer minecraftserver = p_180442_.getServer();
+    private static int startProfilingDedicatedServer(CommandSourceStack pSource) throws CommandSyntaxException {
+        MinecraftServer minecraftserver = pSource.getServer();
         if (minecraftserver.isRecordingMetrics()) {
             throw ERROR_ALREADY_RUNNING.create();
         } else {
             Consumer<ProfileResults> consumer = (p_180460_) -> {
-                whenStopped(p_180442_, p_180460_);
+                whenStopped(pSource, p_180460_);
             };
             Consumer<Path> consumer1 = (p_180453_) -> {
-                saveResults(p_180442_, p_180453_, minecraftserver);
+                saveResults(pSource, p_180453_, minecraftserver);
             };
             minecraftserver.startRecordingMetrics(consumer, consumer1);
-            p_180442_.sendSuccess(Component.translatable("commands.perf.started"), false);
+            pSource.sendSuccess(Component.translatable("commands.perf.started"), false);
             return 0;
         }
     }
 
-    private static int stopProfilingDedicatedServer(CommandSourceStack p_180457_) throws CommandSyntaxException {
-        MinecraftServer minecraftserver = p_180457_.getServer();
+    private static int stopProfilingDedicatedServer(CommandSourceStack pSource) throws CommandSyntaxException {
+        MinecraftServer minecraftserver = pSource.getServer();
         if (!minecraftserver.isRecordingMetrics()) {
             throw ERROR_NOT_RUNNING.create();
         } else {
@@ -107,11 +107,11 @@ public class PerfCommand {
         p_180447_.sendSuccess(Component.translatable("commands.perf.reportSaved", s1), false);
     }
 
-    private static void whenStopped(CommandSourceStack p_180444_, ProfileResults p_180445_) {
-        if (p_180445_ != EmptyProfileResults.EMPTY) {
-            int i = p_180445_.getTickDuration();
-            double d0 = (double) p_180445_.getNanoDuration() / (double) TimeUtil.NANOSECONDS_PER_SECOND;
-            p_180444_.sendSuccess(Component.translatable("commands.perf.stopped", String.format(Locale.ROOT, "%.2f", d0), i, String.format(Locale.ROOT, "%.2f", (double) i / d0)), false);
+    private static void whenStopped(CommandSourceStack pSource, ProfileResults pResults) {
+        if (pResults != EmptyProfileResults.EMPTY) {
+            int i = pResults.getTickDuration();
+            double d0 = (double) pResults.getNanoDuration() / (double) TimeUtil.NANOSECONDS_PER_SECOND;
+            pSource.sendSuccess(Component.translatable("commands.perf.stopped", String.format(Locale.ROOT, "%.2f", d0), i, String.format(Locale.ROOT, "%.2f", (double) i / d0)), false);
         }
     }
 }

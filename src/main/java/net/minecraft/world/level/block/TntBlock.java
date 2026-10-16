@@ -28,96 +28,96 @@ import net.minecraft.world.phys.BlockHitResult;
 public class TntBlock extends Block {
     public static final BooleanProperty UNSTABLE = BlockStateProperties.UNSTABLE;
 
-    public TntBlock(BlockBehaviour.Properties p_57422_) {
-        super(p_57422_);
+    public TntBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.defaultBlockState().setValue(UNSTABLE, Boolean.valueOf(false)));
     }
 
-    public void onPlace(BlockState p_57466_, Level p_57467_, BlockPos p_57468_, BlockState p_57469_, boolean p_57470_) {
-        if (!p_57469_.is(p_57466_.getBlock())) {
-            if (p_57467_.hasNeighborSignal(p_57468_)) {
-                explode(p_57467_, p_57468_);
-                p_57467_.removeBlock(p_57468_, false);
+    public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
+        if (!pOldState.is(pState.getBlock())) {
+            if (pLevel.hasNeighborSignal(pPos)) {
+                explode(pLevel, pPos);
+                pLevel.removeBlock(pPos, false);
             }
         }
     }
 
-    public void neighborChanged(BlockState p_57457_, Level p_57458_, BlockPos p_57459_, Block p_57460_, BlockPos p_57461_, boolean p_57462_) {
-        if (p_57458_.hasNeighborSignal(p_57459_)) {
-            explode(p_57458_, p_57459_);
-            p_57458_.removeBlock(p_57459_, false);
+    public void neighborChanged(BlockState pState, Level pLevel, BlockPos pPos, Block pBlock, BlockPos pFromPos, boolean pIsMoving) {
+        if (pLevel.hasNeighborSignal(pPos)) {
+            explode(pLevel, pPos);
+            pLevel.removeBlock(pPos, false);
         }
     }
 
-    public void playerWillDestroy(Level p_57445_, BlockPos p_57446_, BlockState p_57447_, Player p_57448_) {
-        if (!p_57445_.isClientSide() && !p_57448_.isCreative() && p_57447_.getValue(UNSTABLE)) {
-            explode(p_57445_, p_57446_);
+    public void playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+        if (!pLevel.isClientSide() && !pPlayer.isCreative() && pState.getValue(UNSTABLE)) {
+            explode(pLevel, pPos);
         }
 
-        super.playerWillDestroy(p_57445_, p_57446_, p_57447_, p_57448_);
+        super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
     }
 
-    public void wasExploded(Level p_57441_, BlockPos p_57442_, Explosion p_57443_) {
-        if (!p_57441_.isClientSide) {
-            PrimedTnt primedtnt = new PrimedTnt(p_57441_, (double) p_57442_.getX() + 0.5D, (double) p_57442_.getY(), (double) p_57442_.getZ() + 0.5D, p_57443_.getSourceMob());
+    public void wasExploded(Level pLevel, BlockPos pPos, Explosion pExplosion) {
+        if (!pLevel.isClientSide) {
+            PrimedTnt primedtnt = new PrimedTnt(pLevel, (double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D, pExplosion.getSourceMob());
             int i = primedtnt.getFuse();
-            primedtnt.setFuse((short) (p_57441_.random.nextInt(i / 4) + i / 8));
-            p_57441_.addFreshEntity(primedtnt);
+            primedtnt.setFuse((short) (pLevel.random.nextInt(i / 4) + i / 8));
+            pLevel.addFreshEntity(primedtnt);
         }
     }
 
-    public static void explode(Level p_57434_, BlockPos p_57435_) {
-        explode(p_57434_, p_57435_, (LivingEntity) null);
+    public static void explode(Level pLevel, BlockPos pPos) {
+        explode(pLevel, pPos, (LivingEntity) null);
     }
 
-    private static void explode(Level p_57437_, BlockPos p_57438_, @Nullable LivingEntity p_57439_) {
-        if (!p_57437_.isClientSide) {
-            PrimedTnt primedtnt = new PrimedTnt(p_57437_, (double) p_57438_.getX() + 0.5D, (double) p_57438_.getY(), (double) p_57438_.getZ() + 0.5D, p_57439_);
-            p_57437_.addFreshEntity(primedtnt);
-            p_57437_.playSound((Player) null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
-            p_57437_.gameEvent(p_57439_, GameEvent.PRIME_FUSE, p_57438_);
+    private static void explode(Level pLevel, BlockPos pPos, @Nullable LivingEntity pEntity) {
+        if (!pLevel.isClientSide) {
+            PrimedTnt primedtnt = new PrimedTnt(pLevel, (double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D, pEntity);
+            pLevel.addFreshEntity(primedtnt);
+            pLevel.playSound((Player) null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+            pLevel.gameEvent(pEntity, GameEvent.PRIME_FUSE, pPos);
         }
     }
 
-    public InteractionResult use(BlockState p_57450_, Level p_57451_, BlockPos p_57452_, Player p_57453_, InteractionHand p_57454_, BlockHitResult p_57455_) {
-        ItemStack itemstack = p_57453_.getItemInHand(p_57454_);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (!itemstack.is(Items.FLINT_AND_STEEL) && !itemstack.is(Items.FIRE_CHARGE)) {
-            return super.use(p_57450_, p_57451_, p_57452_, p_57453_, p_57454_, p_57455_);
+            return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
         } else {
-            explode(p_57451_, p_57452_, p_57453_);
-            p_57451_.setBlock(p_57452_, Blocks.AIR.defaultBlockState(), 11);
+            explode(pLevel, pPos, pPlayer);
+            pLevel.setBlock(pPos, Blocks.AIR.defaultBlockState(), 11);
             Item item = itemstack.getItem();
-            if (!p_57453_.isCreative()) {
+            if (!pPlayer.isCreative()) {
                 if (itemstack.is(Items.FLINT_AND_STEEL)) {
-                    itemstack.hurtAndBreak(1, p_57453_, (p_57425_) -> {
-                        p_57425_.broadcastBreakEvent(p_57454_);
+                    itemstack.hurtAndBreak(1, pPlayer, (p_57425_) -> {
+                        p_57425_.broadcastBreakEvent(pHand);
                     });
                 } else {
                     itemstack.shrink(1);
                 }
             }
 
-            p_57453_.awardStat(Stats.ITEM_USED.get(item));
-            return InteractionResult.sidedSuccess(p_57451_.isClientSide);
+            pPlayer.awardStat(Stats.ITEM_USED.get(item));
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         }
     }
 
-    public void onProjectileHit(Level p_57429_, BlockState p_57430_, BlockHitResult p_57431_, Projectile p_57432_) {
-        if (!p_57429_.isClientSide) {
-            BlockPos blockpos = p_57431_.getBlockPos();
-            Entity entity = p_57432_.getOwner();
-            if (p_57432_.isOnFire() && p_57432_.mayInteract(p_57429_, blockpos)) {
-                explode(p_57429_, blockpos, entity instanceof LivingEntity ? (LivingEntity) entity : null);
-                p_57429_.removeBlock(blockpos, false);
+    public void onProjectileHit(Level pLevel, BlockState pState, BlockHitResult pHit, Projectile pProjectile) {
+        if (!pLevel.isClientSide) {
+            BlockPos blockpos = pHit.getBlockPos();
+            Entity entity = pProjectile.getOwner();
+            if (pProjectile.isOnFire() && pProjectile.mayInteract(pLevel, blockpos)) {
+                explode(pLevel, blockpos, entity instanceof LivingEntity ? (LivingEntity) entity : null);
+                pLevel.removeBlock(blockpos, false);
             }
         }
     }
 
-    public boolean dropFromExplosion(Explosion p_57427_) {
+    public boolean dropFromExplosion(Explosion pExplosion) {
         return false;
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_57464_) {
-        p_57464_.add(UNSTABLE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(UNSTABLE);
     }
 }

@@ -30,8 +30,8 @@ public class BlockRotProcessor extends StructureProcessor {
         this(Optional.of(Registry.BLOCK.getOrCreateTag(p_230281_)), p_230282_);
     }
 
-    public BlockRotProcessor(float p_74078_) {
-        this(Optional.empty(), p_74078_);
+    public BlockRotProcessor(float pIntegrity) {
+        this(Optional.empty(), pIntegrity);
     }
 
     private BlockRotProcessor(Optional<HolderSet<Block>> p_230284_, float p_230285_) {

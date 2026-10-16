@@ -23,10 +23,10 @@ public class ReceivingLevelScreen extends Screen {
         return false;
     }
 
-    public void render(PoseStack p_96530_, int p_96531_, int p_96532_, float p_96533_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.renderDirtBackground(0);
-        drawCenteredString(p_96530_, this.font, DOWNLOADING_TERRAIN_TEXT, this.width / 2, this.height / 2 - 50, 16777215);
-        super.render(p_96530_, p_96531_, p_96532_, p_96533_);
+        drawCenteredString(pPoseStack, this.font, DOWNLOADING_TERRAIN_TEXT, this.width / 2, this.height / 2 - 50, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public void tick() {

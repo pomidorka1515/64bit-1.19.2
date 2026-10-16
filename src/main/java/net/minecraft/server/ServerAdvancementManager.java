@@ -32,9 +32,9 @@ public class ServerAdvancementManager extends SimpleJsonResourceReloadListener {
         this.predicateManager = p_136027_;
     }
 
-    protected void apply(Map<ResourceLocation, JsonElement> p_136034_, ResourceManager p_136035_, ProfilerFiller p_136036_) {
+    protected void apply(Map<ResourceLocation, JsonElement> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
         Map<ResourceLocation, Advancement.Builder> map = Maps.newHashMap();
-        p_136034_.forEach((p_136039_, p_136040_) -> {
+        pObject.forEach((p_136039_, p_136040_) -> {
             try {
                 JsonObject jsonobject = GsonHelper.convertToJsonObject(p_136040_, "advancement");
                 Advancement.Builder advancement$builder = Advancement.Builder.fromJson(jsonobject, new DeserializationContext(p_136039_, this.predicateManager));
@@ -56,8 +56,8 @@ public class ServerAdvancementManager extends SimpleJsonResourceReloadListener {
     }
 
     @Nullable
-    public Advancement getAdvancement(ResourceLocation p_136042_) {
-        return this.advancements.get(p_136042_);
+    public Advancement getAdvancement(ResourceLocation pId) {
+        return this.advancements.get(pId);
     }
 
     public Collection<Advancement> getAllAdvancements() {

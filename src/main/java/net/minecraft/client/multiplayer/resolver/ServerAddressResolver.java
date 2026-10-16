@@ -23,5 +23,5 @@ public interface ServerAddressResolver {
         }
     };
 
-    Optional<ResolvedServerAddress> resolve(ServerAddress p_171880_);
+    Optional<ResolvedServerAddress> resolve(ServerAddress pServerAddress);
 }

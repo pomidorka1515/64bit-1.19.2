@@ -14,7 +14,7 @@ public record PoiType(Set<BlockState> matchingStates, int maxTickets, int validR
         matchingStates = Set.copyOf(matchingStates);
     }
 
-    public boolean is(BlockState p_148693_) {
-        return this.matchingStates.contains(p_148693_);
+    public boolean is(BlockState pState) {
+        return this.matchingStates.contains(pState);
     }
 }

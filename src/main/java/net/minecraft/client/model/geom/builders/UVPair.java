@@ -8,9 +8,9 @@ public class UVPair {
     private final float u;
     private final float v;
 
-    public UVPair(float p_171610_, float p_171611_) {
-        this.u = p_171610_;
-        this.v = p_171611_;
+    public UVPair(float pU, float pV) {
+        this.u = pU;
+        this.v = pV;
     }
 
     public float u() {

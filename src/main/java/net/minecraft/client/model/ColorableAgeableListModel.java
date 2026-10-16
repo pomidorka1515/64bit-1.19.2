@@ -12,13 +12,13 @@ public abstract class ColorableAgeableListModel<E extends Entity> extends Ageabl
     private float g = 1.0F;
     private float b = 1.0F;
 
-    public void setColor(float p_102420_, float p_102421_, float p_102422_) {
-        this.r = p_102420_;
-        this.g = p_102421_;
-        this.b = p_102422_;
+    public void setColor(float pR, float pG, float pB) {
+        this.r = pR;
+        this.g = pG;
+        this.b = pB;
     }
 
-    public void renderToBuffer(PoseStack p_102424_, VertexConsumer p_102425_, int p_102426_, int p_102427_, float p_102428_, float p_102429_, float p_102430_, float p_102431_) {
-        super.renderToBuffer(p_102424_, p_102425_, p_102426_, p_102427_, this.r * p_102428_, this.g * p_102429_, this.b * p_102430_, p_102431_);
+    public void renderToBuffer(PoseStack pPoseStack, VertexConsumer pBuffer, int pPackedLight, int pPackedOverlay, float pRed, float pGreen, float pBlue, float pAlpha) {
+        super.renderToBuffer(pPoseStack, pBuffer, pPackedLight, pPackedOverlay, this.r * pRed, this.g * pGreen, this.b * pBlue, pAlpha);
     }
 }

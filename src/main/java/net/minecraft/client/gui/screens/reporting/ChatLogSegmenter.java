@@ -16,17 +16,17 @@ public class ChatLogSegmenter<T extends LoggedChatMessage> {
     @Nullable
     private ChatLogSegmenter.MessageType segmentType;
 
-    public ChatLogSegmenter(Function<ChatLog.Entry<T>, ChatLogSegmenter.MessageType> p_239532_) {
-        this.typeFunction = p_239532_;
+    public ChatLogSegmenter(Function<ChatLog.Entry<T>, ChatLogSegmenter.MessageType> pTypeFunction) {
+        this.typeFunction = pTypeFunction;
     }
 
-    public boolean accept(ChatLog.Entry<T> p_242182_) {
-        ChatLogSegmenter.MessageType chatlogsegmenter$messagetype = this.typeFunction.apply(p_242182_);
+    public boolean accept(ChatLog.Entry<T> pEntry) {
+        ChatLogSegmenter.MessageType chatlogsegmenter$messagetype = this.typeFunction.apply(pEntry);
         if (this.segmentType != null && chatlogsegmenter$messagetype != this.segmentType) {
             return false;
         } else {
             this.segmentType = chatlogsegmenter$messagetype;
-            this.messages.add(p_242182_);
+            this.messages.add(pEntry);
             return true;
         }
     }

@@ -14,11 +14,11 @@ public abstract class BossEvent {
     protected boolean playBossMusic;
     protected boolean createWorldFog;
 
-    public BossEvent(UUID p_18849_, Component p_18850_, BossEvent.BossBarColor p_18851_, BossEvent.BossBarOverlay p_18852_) {
-        this.id = p_18849_;
-        this.name = p_18850_;
-        this.color = p_18851_;
-        this.overlay = p_18852_;
+    public BossEvent(UUID pId, Component pName, BossEvent.BossBarColor pColor, BossEvent.BossBarOverlay pOverlay) {
+        this.id = pId;
+        this.name = pName;
+        this.color = pColor;
+        this.overlay = pOverlay;
         this.progress = 1.0F;
     }
 
@@ -30,40 +30,40 @@ public abstract class BossEvent {
         return this.name;
     }
 
-    public void setName(Component p_18856_) {
-        this.name = p_18856_;
+    public void setName(Component pName) {
+        this.name = pName;
     }
 
     public float getProgress() {
         return this.progress;
     }
 
-    public void setProgress(float p_146639_) {
-        this.progress = p_146639_;
+    public void setProgress(float pProgress) {
+        this.progress = pProgress;
     }
 
     public BossEvent.BossBarColor getColor() {
         return this.color;
     }
 
-    public void setColor(BossEvent.BossBarColor p_18854_) {
-        this.color = p_18854_;
+    public void setColor(BossEvent.BossBarColor pColor) {
+        this.color = pColor;
     }
 
     public BossEvent.BossBarOverlay getOverlay() {
         return this.overlay;
     }
 
-    public void setOverlay(BossEvent.BossBarOverlay p_18855_) {
-        this.overlay = p_18855_;
+    public void setOverlay(BossEvent.BossBarOverlay pOverlay) {
+        this.overlay = pOverlay;
     }
 
     public boolean shouldDarkenScreen() {
         return this.darkenScreen;
     }
 
-    public BossEvent setDarkenScreen(boolean p_18857_) {
-        this.darkenScreen = p_18857_;
+    public BossEvent setDarkenScreen(boolean pDarkenSky) {
+        this.darkenScreen = pDarkenSky;
         return this;
     }
 
@@ -71,13 +71,13 @@ public abstract class BossEvent {
         return this.playBossMusic;
     }
 
-    public BossEvent setPlayBossMusic(boolean p_18858_) {
-        this.playBossMusic = p_18858_;
+    public BossEvent setPlayBossMusic(boolean pPlayEndBossMusic) {
+        this.playBossMusic = pPlayEndBossMusic;
         return this;
     }
 
-    public BossEvent setCreateWorldFog(boolean p_18859_) {
-        this.createWorldFog = p_18859_;
+    public BossEvent setCreateWorldFog(boolean pCreateFog) {
+        this.createWorldFog = pCreateFog;
         return this;
     }
 
@@ -110,9 +110,9 @@ public abstract class BossEvent {
             return this.name;
         }
 
-        public static BossEvent.BossBarColor byName(String p_18885_) {
+        public static BossEvent.BossBarColor byName(String pName) {
             for (BossEvent.BossBarColor bossevent$bossbarcolor : values()) {
-                if (bossevent$bossbarcolor.name.equals(p_18885_)) {
+                if (bossevent$bossbarcolor.name.equals(pName)) {
                     return bossevent$bossbarcolor;
                 }
             }
@@ -138,9 +138,9 @@ public abstract class BossEvent {
             return this.name;
         }
 
-        public static BossEvent.BossBarOverlay byName(String p_18904_) {
+        public static BossEvent.BossBarOverlay byName(String pName) {
             for (BossEvent.BossBarOverlay bossevent$bossbaroverlay : values()) {
-                if (bossevent$bossbaroverlay.name.equals(p_18904_)) {
+                if (bossevent$bossbaroverlay.name.equals(pName)) {
                     return bossevent$bossbaroverlay;
                 }
             }

@@ -132,8 +132,8 @@ public class ChunkPalettedStorageFix extends DataFix {
     static final Dynamic<?> AIR;
     private static final int SIZE = 4096;
 
-    public ChunkPalettedStorageFix(Schema p_15058_, boolean p_15059_) {
-        super(p_15058_, p_15059_);
+    public ChunkPalettedStorageFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     private static void mapSkull(Map<String, Dynamic<?>> p_15078_, int p_15079_, String p_15080_, String p_15081_) {
@@ -368,10 +368,10 @@ public class ChunkPalettedStorageFix extends DataFix {
             this.data = new byte[2048];
         }
 
-        public DataLayer(byte[] p_15132_) {
-            this.data = p_15132_;
-            if (p_15132_.length != 2048) {
-                throw new IllegalArgumentException("ChunkNibbleArrays should be 2048 bytes not: " + p_15132_.length);
+        public DataLayer(byte[] pData) {
+            this.data = pData;
+            if (pData.length != 2048) {
+                throw new IllegalArgumentException("ChunkNibbleArrays should be 2048 bytes not: " + pData.length);
             }
         }
 
@@ -446,16 +446,16 @@ public class ChunkPalettedStorageFix extends DataFix {
         private final Set<Dynamic<?>> seen = Sets.newIdentityHashSet();
         private final int[] buffer = new int[4096];
 
-        public Section(Dynamic<?> p_15195_) {
+        public Section(Dynamic<?> pSection) {
             this.listTag = Lists.newArrayList();
-            this.section = p_15195_;
-            this.y = p_15195_.get("Y").asInt(0);
-            this.hasData = p_15195_.get("Blocks").result().isPresent();
+            this.section = pSection;
+            this.y = pSection.get("Y").asInt(0);
+            this.hasData = pSection.get("Blocks").result().isPresent();
         }
 
-        public Dynamic<?> getBlock(int p_15198_) {
-            if (p_15198_ >= 0 && p_15198_ <= 4095) {
-                Dynamic<?> dynamic = this.palette.byId(this.buffer[p_15198_]);
+        public Dynamic<?> getBlock(int pId) {
+            if (pId >= 0 && pId <= 4095) {
+                Dynamic<?> dynamic = this.palette.byId(this.buffer[pId]);
                 return dynamic == null ? ChunkPalettedStorageFix.AIR : dynamic;
             } else {
                 return ChunkPalettedStorageFix.AIR;
@@ -553,11 +553,11 @@ public class ChunkPalettedStorageFix extends DataFix {
         private final int z;
         private final Int2ObjectMap<Dynamic<?>> blockEntities = new Int2ObjectLinkedOpenHashMap<>(16);
 
-        public UpgradeChunk(Dynamic<?> p_15222_) {
-            this.level = p_15222_;
-            this.x = p_15222_.get("xPos").asInt(0) << 4;
-            this.z = p_15222_.get("zPos").asInt(0) << 4;
-            p_15222_.get("TileEntities").asStreamOpt().result().ifPresent((p_15241_) -> {
+        public UpgradeChunk(Dynamic<?> pLevel) {
+            this.level = pLevel;
+            this.x = pLevel.get("xPos").asInt(0) << 4;
+            this.z = pLevel.get("zPos").asInt(0) << 4;
+            pLevel.get("TileEntities").asStreamOpt().result().ifPresent((p_15241_) -> {
                 p_15241_.forEach((p_145228_) -> {
                     int l3 = p_145228_.get("x").asInt(0) - this.x & 15;
                     int i4 = p_145228_.get("y").asInt(0);
@@ -568,8 +568,8 @@ public class ChunkPalettedStorageFix extends DataFix {
                     }
                 });
             });
-            boolean flag = p_15222_.get("convertedFromAlphaFormat").asBoolean(false);
-            p_15222_.get("Sections").asStreamOpt().result().ifPresent((p_15235_) -> {
+            boolean flag = pLevel.get("convertedFromAlphaFormat").asBoolean(false);
+            pLevel.get("Sections").asStreamOpt().result().ifPresent((p_15235_) -> {
                 p_15235_.forEach((p_145226_) -> {
                     ChunkPalettedStorageFix.Section chunkpalettedstoragefix$section1 = new ChunkPalettedStorageFix.Section(p_145226_);
                     this.sides = chunkpalettedstoragefix$section1.upgrade(this.sides);

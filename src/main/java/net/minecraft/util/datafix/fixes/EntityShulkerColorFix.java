@@ -6,8 +6,8 @@ import com.mojang.datafixers.schemas.Schema;
 import com.mojang.serialization.Dynamic;
 
 public class EntityShulkerColorFix extends NamedEntityFix {
-    public EntityShulkerColorFix(Schema p_15673_, boolean p_15674_) {
-        super(p_15673_, p_15674_, "EntityShulkerColorFix", References.ENTITY, "minecraft:shulker");
+    public EntityShulkerColorFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "EntityShulkerColorFix", References.ENTITY, "minecraft:shulker");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_15678_) {

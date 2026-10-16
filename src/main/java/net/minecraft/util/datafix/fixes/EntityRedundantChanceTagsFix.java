@@ -11,8 +11,8 @@ import java.util.List;
 public class EntityRedundantChanceTagsFix extends DataFix {
     private static final Codec<List<Float>> FLOAT_LIST_CODEC = Codec.FLOAT.listOf();
 
-    public EntityRedundantChanceTagsFix(Schema p_15601_, boolean p_15602_) {
-        super(p_15601_, p_15602_);
+    public EntityRedundantChanceTagsFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     public TypeRewriteRule makeRule() {

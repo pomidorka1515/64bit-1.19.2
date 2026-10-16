@@ -32,8 +32,8 @@ public class ShriekParticleOption implements ParticleOptions {
         this.delay = p_235949_;
     }
 
-    public void writeToNetwork(FriendlyByteBuf p_235956_) {
-        p_235956_.writeVarInt(this.delay);
+    public void writeToNetwork(FriendlyByteBuf pBuffer) {
+        pBuffer.writeVarInt(this.delay);
     }
 
     public String writeToString() {

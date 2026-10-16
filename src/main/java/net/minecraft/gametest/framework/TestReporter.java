@@ -1,9 +1,9 @@
 package net.minecraft.gametest.framework;
 
 public interface TestReporter {
-    void onTestFailed(GameTestInfo p_128100_);
+    void onTestFailed(GameTestInfo pTestInfo);
 
-    void onTestSuccess(GameTestInfo p_177831_);
+    void onTestSuccess(GameTestInfo pTestInfo);
 
     default void finish() {
     }

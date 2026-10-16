@@ -12,11 +12,11 @@ public abstract class NamedEntityFix extends DataFix {
     private final String entityName;
     private final DSL.TypeReference type;
 
-    public NamedEntityFix(Schema p_16465_, boolean p_16466_, String p_16467_, DSL.TypeReference p_16468_, String p_16469_) {
-        super(p_16465_, p_16466_);
-        this.name = p_16467_;
-        this.type = p_16468_;
-        this.entityName = p_16469_;
+    public NamedEntityFix(Schema pOutputSchema, boolean pChangesType, String pName, DSL.TypeReference pType, String pEntityName) {
+        super(pOutputSchema, pChangesType);
+        this.name = pName;
+        this.type = pType;
+        this.entityName = pEntityName;
     }
 
     public TypeRewriteRule makeRule() {

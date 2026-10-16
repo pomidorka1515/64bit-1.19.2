@@ -31,11 +31,11 @@ public class RealmsTermsScreen extends RealmsScreen {
     private boolean onLink;
     private final String realmsToSUrl = "https://aka.ms/MinecraftRealmsTerms";
 
-    public RealmsTermsScreen(Screen p_90033_, RealmsMainScreen p_90034_, RealmsServer p_90035_) {
+    public RealmsTermsScreen(Screen pLastScreen, RealmsMainScreen pMainScreen, RealmsServer pRealmsServer) {
         super(TITLE);
-        this.lastScreen = p_90033_;
-        this.mainScreen = p_90034_;
-        this.realmsServer = p_90035_;
+        this.lastScreen = pLastScreen;
+        this.mainScreen = pMainScreen;
+        this.realmsServer = pRealmsServer;
     }
 
     public void init() {
@@ -53,12 +53,12 @@ public class RealmsTermsScreen extends RealmsScreen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
-    public boolean keyPressed(int p_90041_, int p_90042_, int p_90043_) {
-        if (p_90041_ == 256) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
             this.minecraft.setScreen(this.lastScreen);
             return true;
         } else {
-            return super.keyPressed(p_90041_, p_90042_, p_90043_);
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
         }
     }
 
@@ -73,13 +73,13 @@ public class RealmsTermsScreen extends RealmsScreen {
         }
     }
 
-    public boolean mouseClicked(double p_90037_, double p_90038_, int p_90039_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (this.onLink) {
             this.minecraft.keyboardHandler.setClipboard("https://aka.ms/MinecraftRealmsTerms");
             Util.getPlatform().openUri("https://aka.ms/MinecraftRealmsTerms");
             return true;
         } else {
-            return super.mouseClicked(p_90037_, p_90038_, p_90039_);
+            return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
     }
 
@@ -87,17 +87,17 @@ public class RealmsTermsScreen extends RealmsScreen {
         return CommonComponents.joinForNarration(super.getNarrationMessage(), TERMS_STATIC_TEXT).append(" ").append(TERMS_LINK_TEXT);
     }
 
-    public void render(PoseStack p_90045_, int p_90046_, int p_90047_, float p_90048_) {
-        this.renderBackground(p_90045_);
-        drawCenteredString(p_90045_, this.font, this.title, this.width / 2, 17, 16777215);
-        this.font.draw(p_90045_, TERMS_STATIC_TEXT, (float) (this.width / 2 - 120), (float) row(5), 16777215);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 17, 16777215);
+        this.font.draw(pPoseStack, TERMS_STATIC_TEXT, (float) (this.width / 2 - 120), (float) row(5), 16777215);
         int i = this.font.width(TERMS_STATIC_TEXT);
         int j = this.width / 2 - 121 + i;
         int k = row(5);
         int l = j + this.font.width(TERMS_LINK_TEXT) + 1;
         int i1 = k + 1 + 9;
-        this.onLink = j <= p_90046_ && p_90046_ <= l && k <= p_90047_ && p_90047_ <= i1;
-        this.font.draw(p_90045_, TERMS_LINK_TEXT, (float) (this.width / 2 - 120 + i), (float) row(5), this.onLink ? 7107012 : 3368635);
-        super.render(p_90045_, p_90046_, p_90047_, p_90048_);
+        this.onLink = j <= pMouseX && pMouseX <= l && k <= pMouseY && pMouseY <= i1;
+        this.font.draw(pPoseStack, TERMS_LINK_TEXT, (float) (this.width / 2 - 120 + i), (float) row(5), this.onLink ? 7107012 : 3368635);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

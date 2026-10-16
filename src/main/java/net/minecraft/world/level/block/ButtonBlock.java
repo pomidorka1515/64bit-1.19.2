@@ -51,20 +51,20 @@ public abstract class ButtonBlock extends FaceAttachedHorizontalDirectionalBlock
     protected static final VoxelShape PRESSED_EAST_AABB = Block.box(0.0D, 6.0D, 5.0D, 1.0D, 10.0D, 11.0D);
     private final boolean sensitive;
 
-    protected ButtonBlock(boolean p_51065_, BlockBehaviour.Properties p_51066_) {
-        super(p_51066_);
+    protected ButtonBlock(boolean pSensitive, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, Boolean.valueOf(false)).setValue(FACE, AttachFace.WALL));
-        this.sensitive = p_51065_;
+        this.sensitive = pSensitive;
     }
 
     private int getPressDuration() {
         return this.sensitive ? 30 : 20;
     }
 
-    public VoxelShape getShape(BlockState p_51104_, BlockGetter p_51105_, BlockPos p_51106_, CollisionContext p_51107_) {
-        Direction direction = p_51104_.getValue(FACING);
-        boolean flag = p_51104_.getValue(POWERED);
-        switch ((AttachFace) p_51104_.getValue(FACE)) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        Direction direction = pState.getValue(FACING);
+        boolean flag = pState.getValue(POWERED);
+        switch ((AttachFace) pState.getValue(FACE)) {
             case FLOOR:
                 if (direction.getAxis() == Direction.Axis.X) {
                     return flag ? PRESSED_FLOOR_AABB_X : FLOOR_AABB_X;
@@ -93,92 +93,92 @@ public abstract class ButtonBlock extends FaceAttachedHorizontalDirectionalBlock
         }
     }
 
-    public InteractionResult use(BlockState p_51088_, Level p_51089_, BlockPos p_51090_, Player p_51091_, InteractionHand p_51092_, BlockHitResult p_51093_) {
-        if (p_51088_.getValue(POWERED)) {
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pState.getValue(POWERED)) {
             return InteractionResult.CONSUME;
         } else {
-            this.press(p_51088_, p_51089_, p_51090_);
-            this.playSound(p_51091_, p_51089_, p_51090_, true);
-            p_51089_.gameEvent(p_51091_, GameEvent.BLOCK_ACTIVATE, p_51090_);
-            return InteractionResult.sidedSuccess(p_51089_.isClientSide);
+            this.press(pState, pLevel, pPos);
+            this.playSound(pPlayer, pLevel, pPos, true);
+            pLevel.gameEvent(pPlayer, GameEvent.BLOCK_ACTIVATE, pPos);
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         }
     }
 
-    public void press(BlockState p_51117_, Level p_51118_, BlockPos p_51119_) {
-        p_51118_.setBlock(p_51119_, p_51117_.setValue(POWERED, Boolean.valueOf(true)), 3);
-        this.updateNeighbours(p_51117_, p_51118_, p_51119_);
-        p_51118_.scheduleTick(p_51119_, this, this.getPressDuration());
+    public void press(BlockState pState, Level pLevel, BlockPos pPos) {
+        pLevel.setBlock(pPos, pState.setValue(POWERED, Boolean.valueOf(true)), 3);
+        this.updateNeighbours(pState, pLevel, pPos);
+        pLevel.scheduleTick(pPos, this, this.getPressDuration());
     }
 
-    protected void playSound(@Nullable Player p_51068_, LevelAccessor p_51069_, BlockPos p_51070_, boolean p_51071_) {
-        p_51069_.playSound(p_51071_ ? p_51068_ : null, p_51070_, this.getSound(p_51071_), SoundSource.BLOCKS, 0.3F, p_51071_ ? 0.6F : 0.5F);
+    protected void playSound(@Nullable Player pPlayer, LevelAccessor pLevel, BlockPos pPos, boolean pHitByArrow) {
+        pLevel.playSound(pHitByArrow ? pPlayer : null, pPos, this.getSound(pHitByArrow), SoundSource.BLOCKS, 0.3F, pHitByArrow ? 0.6F : 0.5F);
     }
 
-    protected abstract SoundEvent getSound(boolean p_51102_);
+    protected abstract SoundEvent getSound(boolean pIsOn);
 
-    public void onRemove(BlockState p_51095_, Level p_51096_, BlockPos p_51097_, BlockState p_51098_, boolean p_51099_) {
-        if (!p_51099_ && !p_51095_.is(p_51098_.getBlock())) {
-            if (p_51095_.getValue(POWERED)) {
-                this.updateNeighbours(p_51095_, p_51096_, p_51097_);
+    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+        if (!pIsMoving && !pState.is(pNewState.getBlock())) {
+            if (pState.getValue(POWERED)) {
+                this.updateNeighbours(pState, pLevel, pPos);
             }
 
-            super.onRemove(p_51095_, p_51096_, p_51097_, p_51098_, p_51099_);
+            super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
         }
     }
 
-    public int getSignal(BlockState p_51078_, BlockGetter p_51079_, BlockPos p_51080_, Direction p_51081_) {
-        return p_51078_.getValue(POWERED) ? 15 : 0;
+    public int getSignal(BlockState pBlockState, BlockGetter pBlockAccess, BlockPos pPos, Direction pSide) {
+        return pBlockState.getValue(POWERED) ? 15 : 0;
     }
 
-    public int getDirectSignal(BlockState p_51109_, BlockGetter p_51110_, BlockPos p_51111_, Direction p_51112_) {
-        return p_51109_.getValue(POWERED) && getConnectedDirection(p_51109_) == p_51112_ ? 15 : 0;
+    public int getDirectSignal(BlockState pBlockState, BlockGetter pBlockAccess, BlockPos pPos, Direction pSide) {
+        return pBlockState.getValue(POWERED) && getConnectedDirection(pBlockState) == pSide ? 15 : 0;
     }
 
-    public boolean isSignalSource(BlockState p_51114_) {
+    public boolean isSignalSource(BlockState pState) {
         return true;
     }
 
-    public void tick(BlockState p_220903_, ServerLevel p_220904_, BlockPos p_220905_, RandomSource p_220906_) {
-        if (p_220903_.getValue(POWERED)) {
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pState.getValue(POWERED)) {
             if (this.sensitive) {
-                this.checkPressed(p_220903_, p_220904_, p_220905_);
+                this.checkPressed(pState, pLevel, pPos);
             } else {
-                p_220904_.setBlock(p_220905_, p_220903_.setValue(POWERED, Boolean.valueOf(false)), 3);
-                this.updateNeighbours(p_220903_, p_220904_, p_220905_);
-                this.playSound((Player) null, p_220904_, p_220905_, false);
-                p_220904_.gameEvent((Entity) null, GameEvent.BLOCK_DEACTIVATE, p_220905_);
+                pLevel.setBlock(pPos, pState.setValue(POWERED, Boolean.valueOf(false)), 3);
+                this.updateNeighbours(pState, pLevel, pPos);
+                this.playSound((Player) null, pLevel, pPos, false);
+                pLevel.gameEvent((Entity) null, GameEvent.BLOCK_DEACTIVATE, pPos);
             }
         }
     }
 
-    public void entityInside(BlockState p_51083_, Level p_51084_, BlockPos p_51085_, Entity p_51086_) {
-        if (!p_51084_.isClientSide && this.sensitive && !p_51083_.getValue(POWERED)) {
-            this.checkPressed(p_51083_, p_51084_, p_51085_);
+    public void entityInside(BlockState pState, Level pLevel, BlockPos pPos, Entity pEntity) {
+        if (!pLevel.isClientSide && this.sensitive && !pState.getValue(POWERED)) {
+            this.checkPressed(pState, pLevel, pPos);
         }
     }
 
-    private void checkPressed(BlockState p_51121_, Level p_51122_, BlockPos p_51123_) {
-        List<? extends Entity> list = p_51122_.getEntitiesOfClass(AbstractArrow.class, p_51121_.getShape(p_51122_, p_51123_).bounds().move(p_51123_));
+    private void checkPressed(BlockState pState, Level pLevel, BlockPos pPos) {
+        List<? extends Entity> list = pLevel.getEntitiesOfClass(AbstractArrow.class, pState.getShape(pLevel, pPos).bounds().move(pPos));
         boolean flag = !list.isEmpty();
-        boolean flag1 = p_51121_.getValue(POWERED);
+        boolean flag1 = pState.getValue(POWERED);
         if (flag != flag1) {
-            p_51122_.setBlock(p_51123_, p_51121_.setValue(POWERED, Boolean.valueOf(flag)), 3);
-            this.updateNeighbours(p_51121_, p_51122_, p_51123_);
-            this.playSound((Player) null, p_51122_, p_51123_, flag);
-            p_51122_.gameEvent(list.stream().findFirst().orElse(null), flag ? GameEvent.BLOCK_ACTIVATE : GameEvent.BLOCK_DEACTIVATE, p_51123_);
+            pLevel.setBlock(pPos, pState.setValue(POWERED, Boolean.valueOf(flag)), 3);
+            this.updateNeighbours(pState, pLevel, pPos);
+            this.playSound((Player) null, pLevel, pPos, flag);
+            pLevel.gameEvent(list.stream().findFirst().orElse(null), flag ? GameEvent.BLOCK_ACTIVATE : GameEvent.BLOCK_DEACTIVATE, pPos);
         }
 
         if (flag) {
-            p_51122_.scheduleTick(new BlockPos(p_51123_), this, this.getPressDuration());
+            pLevel.scheduleTick(new BlockPos(pPos), this, this.getPressDuration());
         }
     }
 
-    private void updateNeighbours(BlockState p_51125_, Level p_51126_, BlockPos p_51127_) {
-        p_51126_.updateNeighborsAt(p_51127_, this);
-        p_51126_.updateNeighborsAt(p_51127_.relative(getConnectedDirection(p_51125_).getOpposite()), this);
+    private void updateNeighbours(BlockState pState, Level pLevel, BlockPos pPos) {
+        pLevel.updateNeighborsAt(pPos, this);
+        pLevel.updateNeighborsAt(pPos.relative(getConnectedDirection(pState).getOpposite()), this);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_51101_) {
-        p_51101_.add(FACING, POWERED, FACE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(FACING, POWERED, FACE);
     }
 }

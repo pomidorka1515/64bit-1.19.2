@@ -29,29 +29,29 @@ public class Screenshot {
     private final int height;
     private File file;
 
-    public static void grab(File p_92290_, RenderTarget p_92293_, Consumer<Component> p_92294_) {
-        grab(p_92290_, (String) null, p_92293_, p_92294_);
+    public static void grab(File pGameDirectory, RenderTarget pBuffer, Consumer<Component> pMessageConsumer) {
+        grab(pGameDirectory, (String) null, pBuffer, pMessageConsumer);
     }
 
-    public static void grab(File p_92296_, @Nullable String p_92297_, RenderTarget p_92300_, Consumer<Component> p_92301_) {
+    public static void grab(File pGameDirectory, @Nullable String pScreenshotName, RenderTarget pBuffer, Consumer<Component> pMessageConsumer) {
         if (!RenderSystem.isOnRenderThread()) {
             RenderSystem.recordRenderCall(() -> {
-                _grab(p_92296_, p_92297_, p_92300_, p_92301_);
+                _grab(pGameDirectory, pScreenshotName, pBuffer, pMessageConsumer);
             });
         } else {
-            _grab(p_92296_, p_92297_, p_92300_, p_92301_);
+            _grab(pGameDirectory, pScreenshotName, pBuffer, pMessageConsumer);
         }
     }
 
-    private static void _grab(File p_92306_, @Nullable String p_92307_, RenderTarget p_92310_, Consumer<Component> p_92311_) {
-        NativeImage nativeimage = takeScreenshot(p_92310_);
-        File file1 = new File(p_92306_, "screenshots");
+    private static void _grab(File pGameDirectory, @Nullable String pScreenshotName, RenderTarget pBuffer, Consumer<Component> pMessageConsumer) {
+        NativeImage nativeimage = takeScreenshot(pBuffer);
+        File file1 = new File(pGameDirectory, "screenshots");
         file1.mkdir();
         File file2;
-        if (p_92307_ == null) {
+        if (pScreenshotName == null) {
             file2 = getFile(file1);
         } else {
-            file2 = new File(file1, p_92307_);
+            file2 = new File(file1, pScreenshotName);
         }
 
         Util.ioPool().execute(() -> {
@@ -60,32 +60,32 @@ public class Screenshot {
                 Component component = Component.literal(file2.getName()).withStyle(ChatFormatting.UNDERLINE).withStyle((p_168608_) -> {
                     return p_168608_.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file2.getAbsolutePath()));
                 });
-                p_92311_.accept(Component.translatable("screenshot.success", component));
+                pMessageConsumer.accept(Component.translatable("screenshot.success", component));
             } catch (Exception exception) {
                 LOGGER.warn("Couldn't save screenshot", (Throwable) exception);
-                p_92311_.accept(Component.translatable("screenshot.failure", exception.getMessage()));
+                pMessageConsumer.accept(Component.translatable("screenshot.failure", exception.getMessage()));
             } finally {
                 nativeimage.close();
             }
         });
     }
 
-    public static NativeImage takeScreenshot(RenderTarget p_92282_) {
-        int i = p_92282_.width;
-        int j = p_92282_.height;
+    public static NativeImage takeScreenshot(RenderTarget pFramebuffer) {
+        int i = pFramebuffer.width;
+        int j = pFramebuffer.height;
         NativeImage nativeimage = new NativeImage(i, j, false);
-        RenderSystem.bindTexture(p_92282_.getColorTextureId());
+        RenderSystem.bindTexture(pFramebuffer.getColorTextureId());
         nativeimage.downloadTexture(0, true);
         nativeimage.flipY();
         return nativeimage;
     }
 
-    private static File getFile(File p_92288_) {
+    private static File getFile(File pGameDirectory) {
         String s = Util.getFilenameFormattedDateTime();
         int i = 1;
 
         while (true) {
-            File file1 = new File(p_92288_, s + (i == 1 ? "" : "_" + i) + ".png");
+            File file1 = new File(pGameDirectory, s + (i == 1 ? "" : "_" + i) + ".png");
             if (!file1.exists()) {
                 return file1;
             }
@@ -94,11 +94,11 @@ public class Screenshot {
         }
     }
 
-    public Screenshot(File p_168601_, int p_168602_, int p_168603_, int p_168604_) throws IOException {
-        this.width = p_168602_;
-        this.height = p_168603_;
-        this.rowHeight = p_168604_;
-        File file1 = new File(p_168601_, "screenshots");
+    public Screenshot(File pGameDirectory, int pWidth, int pHeight, int pRowHeight) throws IOException {
+        this.width = pWidth;
+        this.height = pHeight;
+        this.rowHeight = pRowHeight;
+        File file1 = new File(pGameDirectory, "screenshots");
         file1.mkdir();
         String s = "huge_" + Util.getFilenameFormattedDateTime();
 
@@ -107,33 +107,33 @@ public class Screenshot {
 
         byte[] abyte = new byte[18];
         abyte[2] = 2;
-        abyte[12] = (byte) (p_168602_ % 256);
-        abyte[13] = (byte) (p_168602_ / 256);
-        abyte[14] = (byte) (p_168603_ % 256);
-        abyte[15] = (byte) (p_168603_ / 256);
+        abyte[12] = (byte) (pWidth % 256);
+        abyte[13] = (byte) (pWidth / 256);
+        abyte[14] = (byte) (pHeight % 256);
+        abyte[15] = (byte) (pHeight / 256);
         abyte[16] = 24;
-        this.bytes = new byte[p_168602_ * p_168604_ * 3];
+        this.bytes = new byte[pWidth * pRowHeight * 3];
         this.outputStream = new DataOutputStream(new FileOutputStream(this.file));
         this.outputStream.write(abyte);
     }
 
-    public void addRegion(ByteBuffer p_168610_, int p_168611_, int p_168612_, int p_168613_, int p_168614_) {
-        int i = p_168613_;
-        int j = p_168614_;
-        if (p_168613_ > this.width - p_168611_) {
-            i = this.width - p_168611_;
+    public void addRegion(ByteBuffer pBuffer, int pWidth, int pHeight, int pRowWidth, int pRowHeight) {
+        int i = pRowWidth;
+        int j = pRowHeight;
+        if (pRowWidth > this.width - pWidth) {
+            i = this.width - pWidth;
         }
 
-        if (p_168614_ > this.height - p_168612_) {
-            j = this.height - p_168612_;
+        if (pRowHeight > this.height - pHeight) {
+            j = this.height - pHeight;
         }
 
         this.rowHeight = j;
 
         for (int k = 0; k < j; ++k) {
-            p_168610_.position((p_168614_ - j) * p_168613_ * 3 + k * p_168613_ * 3);
-            int l = (p_168611_ + k * this.width) * 3;
-            p_168610_.get(this.bytes, l, i * 3);
+            pBuffer.position((pRowHeight - j) * pRowWidth * 3 + k * pRowWidth * 3);
+            int l = (pWidth + k * this.width) * 3;
+            pBuffer.get(this.bytes, l, i * 3);
         }
     }
 

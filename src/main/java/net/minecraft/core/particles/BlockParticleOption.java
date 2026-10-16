@@ -23,17 +23,17 @@ public class BlockParticleOption implements ParticleOptions {
     private final ParticleType<BlockParticleOption> type;
     private final BlockState state;
 
-    public static Codec<BlockParticleOption> codec(ParticleType<BlockParticleOption> p_123635_) {
-        return BlockState.CODEC.xmap((p_123638_) -> { return new BlockParticleOption(p_123635_, p_123638_); }, (p_123633_) -> { return p_123633_.state; });
+    public static Codec<BlockParticleOption> codec(ParticleType<BlockParticleOption> pType) {
+        return BlockState.CODEC.xmap((p_123638_) -> { return new BlockParticleOption(pType, p_123638_); }, (p_123633_) -> { return p_123633_.state; });
     }
 
-    public BlockParticleOption(ParticleType<BlockParticleOption> p_123629_, BlockState p_123630_) {
-        this.type = p_123629_;
-        this.state = p_123630_;
+    public BlockParticleOption(ParticleType<BlockParticleOption> pType, BlockState pState) {
+        this.type = pType;
+        this.state = pState;
     }
 
-    public void writeToNetwork(FriendlyByteBuf p_123640_) {
-        p_123640_.writeId(Block.BLOCK_STATE_REGISTRY, this.state);
+    public void writeToNetwork(FriendlyByteBuf pBuffer) {
+        pBuffer.writeId(Block.BLOCK_STATE_REGISTRY, this.state);
     }
 
     public String writeToString() {

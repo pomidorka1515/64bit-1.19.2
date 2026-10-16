@@ -74,10 +74,10 @@ public class SoundEngine {
     private final List<TickableSoundInstance> queuedTickableSounds = Lists.newArrayList();
     private final List<Sound> preloadQueue = Lists.newArrayList();
 
-    public SoundEngine(SoundManager p_120236_, Options p_120237_, ResourceManager p_120238_) {
-        this.soundManager = p_120236_;
-        this.options = p_120237_;
-        this.soundBuffers = new SoundBufferLibrary(p_120238_);
+    public SoundEngine(SoundManager pSoundManager, Options pOptions, ResourceManager pResourceManager) {
+        this.soundManager = pSoundManager;
+        this.options = pOptions;
+        this.soundBuffers = new SoundBufferLibrary(pResourceManager);
     }
 
     public void reload() {
@@ -111,14 +111,14 @@ public class SoundEngine {
         }
     }
 
-    private float getVolume(@Nullable SoundSource p_120259_) {
-        return p_120259_ != null && p_120259_ != SoundSource.MASTER ? this.options.getSoundSourceVolume(p_120259_) : 1.0F;
+    private float getVolume(@Nullable SoundSource pCategory) {
+        return pCategory != null && pCategory != SoundSource.MASTER ? this.options.getSoundSourceVolume(pCategory) : 1.0F;
     }
 
-    public void updateCategoryVolume(SoundSource p_120261_, float p_120262_) {
+    public void updateCategoryVolume(SoundSource pCategory, float pVolume) {
         if (this.loaded) {
-            if (p_120261_ == SoundSource.MASTER) {
-                this.listener.setGain(p_120262_);
+            if (pCategory == SoundSource.MASTER) {
+                this.listener.setGain(pVolume);
             } else {
                 this.instanceToChannel.forEach((p_120280_, p_120281_) -> {
                     float f = this.calculateVolume(p_120280_);
@@ -143,9 +143,9 @@ public class SoundEngine {
         }
     }
 
-    public void stop(SoundInstance p_120275_) {
+    public void stop(SoundInstance pSound) {
         if (this.loaded) {
-            ChannelAccess.ChannelHandle channelaccess$channelhandle = this.instanceToChannel.get(p_120275_);
+            ChannelAccess.ChannelHandle channelaccess$channelhandle = this.instanceToChannel.get(pSound);
             if (channelaccess$channelhandle != null) {
                 channelaccess$channelhandle.execute(Channel::stop);
             }
@@ -168,12 +168,12 @@ public class SoundEngine {
         }
     }
 
-    public void addEventListener(SoundEventListener p_120296_) {
-        this.listeners.add(p_120296_);
+    public void addEventListener(SoundEventListener pListener) {
+        this.listeners.add(pListener);
     }
 
-    public void removeEventListener(SoundEventListener p_120308_) {
-        this.listeners.remove(p_120308_);
+    public void removeEventListener(SoundEventListener pListener) {
+        this.listeners.remove(pListener);
     }
 
     private boolean shouldChangeDevice() {
@@ -207,12 +207,12 @@ public class SoundEngine {
         }
     }
 
-    public void tick(boolean p_120303_) {
+    public void tick(boolean pIsGamePaused) {
         if (this.shouldChangeDevice()) {
             this.reload();
         }
 
-        if (!p_120303_) {
+        if (!pIsGamePaused) {
             this.tickNonPaused();
         }
 
@@ -353,23 +353,23 @@ public class SoundEngine {
         }
     }
 
-    private static boolean requiresManualLooping(SoundInstance p_120316_) {
-        return p_120316_.getDelay() > 0;
+    private static boolean requiresManualLooping(SoundInstance pSound) {
+        return pSound.getDelay() > 0;
     }
 
-    private static boolean shouldLoopManually(SoundInstance p_120319_) {
-        return p_120319_.isLooping() && requiresManualLooping(p_120319_);
+    private static boolean shouldLoopManually(SoundInstance pSound) {
+        return pSound.isLooping() && requiresManualLooping(pSound);
     }
 
-    private static boolean shouldLoopAutomatically(SoundInstance p_120322_) {
-        return p_120322_.isLooping() && !requiresManualLooping(p_120322_);
+    private static boolean shouldLoopAutomatically(SoundInstance pSound) {
+        return pSound.isLooping() && !requiresManualLooping(pSound);
     }
 
-    public boolean isActive(SoundInstance p_120306_) {
+    public boolean isActive(SoundInstance pSound) {
         if (!this.loaded) {
             return false;
         } else {
-            return this.soundDeleteTime.containsKey(p_120306_) && this.soundDeleteTime.get(p_120306_) <= this.tickCount ? true : this.instanceToChannel.containsKey(p_120306_);
+            return this.soundDeleteTime.containsKey(pSound) && this.soundDeleteTime.get(pSound) <= this.tickCount ? true : this.instanceToChannel.containsKey(pSound);
         }
     }
 
@@ -471,20 +471,20 @@ public class SoundEngine {
         }
     }
 
-    public void queueTickingSound(TickableSoundInstance p_120283_) {
-        this.queuedTickableSounds.add(p_120283_);
+    public void queueTickingSound(TickableSoundInstance pTickableSound) {
+        this.queuedTickableSounds.add(pTickableSound);
     }
 
-    public void requestPreload(Sound p_120273_) {
-        this.preloadQueue.add(p_120273_);
+    public void requestPreload(Sound pSound) {
+        this.preloadQueue.add(pSound);
     }
 
-    private float calculatePitch(SoundInstance p_120325_) {
-        return Mth.clamp(p_120325_.getPitch(), 0.5F, 2.0F);
+    private float calculatePitch(SoundInstance pSound) {
+        return Mth.clamp(pSound.getPitch(), 0.5F, 2.0F);
     }
 
-    private float calculateVolume(SoundInstance p_120328_) {
-        return this.calculateVolume(p_120328_.getVolume(), p_120328_.getSource());
+    private float calculateVolume(SoundInstance pSound) {
+        return this.calculateVolume(pSound.getVolume(), pSound.getSource());
     }
 
     private float calculateVolume(float p_235258_, SoundSource p_235259_) {
@@ -507,14 +507,14 @@ public class SoundEngine {
         }
     }
 
-    public void playDelayed(SoundInstance p_120277_, int p_120278_) {
-        this.queuedSounds.put(p_120277_, this.tickCount + p_120278_);
+    public void playDelayed(SoundInstance pSound, int pDelay) {
+        this.queuedSounds.put(pSound, this.tickCount + pDelay);
     }
 
-    public void updateSource(Camera p_120271_) {
-        if (this.loaded && p_120271_.isInitialized()) {
-            SectorVec3 exactPosition = p_120271_.exactPosition();
-            Vec3 legacyPosition = p_120271_.getPosition();
+    public void updateSource(Camera pRenderInfo) {
+        if (this.loaded && pRenderInfo.isInitialized()) {
+            SectorVec3 exactPosition = pRenderInfo.exactPosition();
+            Vec3 legacyPosition = pRenderInfo.getPosition();
             // Old cameras/mods may not expose a split position. That compatibility
             // frame is still safe for ordinary double worlds.
             this.listenerPosition = exactPosition == null
@@ -522,8 +522,8 @@ public class SoundEngine {
                     : exactPosition;
             // Camera owns mutable vectors and may update them before this work is
             // consumed by the audio thread; copy the six floats at submission.
-            Vector3f look = p_120271_.getLookVector();
-            Vector3f up = p_120271_.getUpVector();
+            Vector3f look = pRenderInfo.getLookVector();
+            Vector3f up = pRenderInfo.getUpVector();
             Vector3f vector3f = new Vector3f(look.x(), look.y(), look.z());
             Vector3f vector3f1 = new Vector3f(up.x(), up.y(), up.z());
             this.executor.execute(() -> {
@@ -542,18 +542,18 @@ public class SoundEngine {
         }
     }
 
-    public void stop(@Nullable ResourceLocation p_120300_, @Nullable SoundSource p_120301_) {
-        if (p_120301_ != null) {
-            for (SoundInstance soundinstance : this.instanceBySource.get(p_120301_)) {
-                if (p_120300_ == null || soundinstance.getLocation().equals(p_120300_)) {
+    public void stop(@Nullable ResourceLocation pSoundName, @Nullable SoundSource pCategory) {
+        if (pCategory != null) {
+            for (SoundInstance soundinstance : this.instanceBySource.get(pCategory)) {
+                if (pSoundName == null || soundinstance.getLocation().equals(pSoundName)) {
                     this.stop(soundinstance);
                 }
             }
-        } else if (p_120300_ == null) {
+        } else if (pSoundName == null) {
             this.stopAll();
         } else {
             for (SoundInstance soundinstance1 : this.instanceToChannel.keySet()) {
-                if (soundinstance1.getLocation().equals(p_120300_)) {
+                if (soundinstance1.getLocation().equals(pSoundName)) {
                     this.stop(soundinstance1);
                 }
             }

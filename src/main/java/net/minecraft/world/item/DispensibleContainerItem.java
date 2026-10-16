@@ -7,8 +7,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 
 public interface DispensibleContainerItem {
-    default void checkExtraContent(@Nullable Player p_150817_, Level p_150818_, ItemStack p_150819_, BlockPos p_150820_) {
+    default void checkExtraContent(@Nullable Player pPlayer, Level pLevel, ItemStack pContainerStack, BlockPos pPos) {
     }
 
-    boolean emptyContents(@Nullable Player p_150821_, Level p_150822_, BlockPos p_150823_, @Nullable BlockHitResult p_150824_);
+    boolean emptyContents(@Nullable Player pPlayer, Level pLevel, BlockPos pPos, @Nullable BlockHitResult pResult);
 }

@@ -11,17 +11,17 @@ public class EnchantmentTableParticle extends TextureSheetParticle {
     private final double yStart;
     private final double zStart;
 
-    EnchantmentTableParticle(ClientLevel p_106464_, double p_106465_, double p_106466_, double p_106467_, double p_106468_, double p_106469_, double p_106470_) {
-        super(p_106464_, p_106465_, p_106466_, p_106467_);
-        this.xd = p_106468_;
-        this.yd = p_106469_;
-        this.zd = p_106470_;
-        this.xStart = p_106465_;
-        this.yStart = p_106466_;
-        this.zStart = p_106467_;
-        this.xo = p_106465_ + p_106468_;
-        this.yo = p_106466_ + p_106469_;
-        this.zo = p_106467_ + p_106470_;
+    EnchantmentTableParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+        super(pLevel, pX, pY, pZ);
+        this.xd = pXSpeed;
+        this.yd = pYSpeed;
+        this.zd = pZSpeed;
+        this.xStart = pX;
+        this.yStart = pY;
+        this.zStart = pZ;
+        this.xo = pX + pXSpeed;
+        this.yo = pY + pYSpeed;
+        this.zo = pZ + pZSpeed;
         this.x = this.xo;
         this.y = this.yo;
         this.z = this.zo;
@@ -38,13 +38,13 @@ public class EnchantmentTableParticle extends TextureSheetParticle {
         return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
     }
 
-    public void move(double p_106482_, double p_106483_, double p_106484_) {
-        this.setBoundingBox(this.getBoundingBox().move(p_106482_, p_106483_, p_106484_));
+    public void move(double pX, double pY, double pZ) {
+        this.setBoundingBox(this.getBoundingBox().move(pX, pY, pZ));
         this.setLocationFromBoundingbox();
     }
 
-    public int getLightColor(float p_106486_) {
-        int i = super.getLightColor(p_106486_);
+    public int getLightColor(float pPartialTick) {
+        int i = super.getLightColor(pPartialTick);
         float f = (float) this.age / (float) this.lifetime;
         f *= f;
         f *= f;
@@ -80,12 +80,12 @@ public class EnchantmentTableParticle extends TextureSheetParticle {
     public static class NautilusProvider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public NautilusProvider(SpriteSet p_106490_) {
-            this.sprite = p_106490_;
+        public NautilusProvider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_106501_, ClientLevel p_106502_, double p_106503_, double p_106504_, double p_106505_, double p_106506_, double p_106507_, double p_106508_) {
-            EnchantmentTableParticle enchantmenttableparticle = new EnchantmentTableParticle(p_106502_, p_106503_, p_106504_, p_106505_, p_106506_, p_106507_, p_106508_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            EnchantmentTableParticle enchantmenttableparticle = new EnchantmentTableParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
             enchantmenttableparticle.pickSprite(this.sprite);
             return enchantmenttableparticle;
         }
@@ -95,12 +95,12 @@ public class EnchantmentTableParticle extends TextureSheetParticle {
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
-        public Provider(SpriteSet p_106511_) {
-            this.sprite = p_106511_;
+        public Provider(SpriteSet pSprites) {
+            this.sprite = pSprites;
         }
 
-        public Particle createParticle(SimpleParticleType p_106522_, ClientLevel p_106523_, double p_106524_, double p_106525_, double p_106526_, double p_106527_, double p_106528_, double p_106529_) {
-            EnchantmentTableParticle enchantmenttableparticle = new EnchantmentTableParticle(p_106523_, p_106524_, p_106525_, p_106526_, p_106527_, p_106528_, p_106529_);
+        public Particle createParticle(SimpleParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+            EnchantmentTableParticle enchantmenttableparticle = new EnchantmentTableParticle(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed);
             enchantmenttableparticle.pickSprite(this.sprite);
             return enchantmenttableparticle;
         }

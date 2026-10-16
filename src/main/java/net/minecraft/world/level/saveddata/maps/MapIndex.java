@@ -13,24 +13,24 @@ public class MapIndex extends SavedData {
         this.usedAuxIds.defaultReturnValue(-1);
     }
 
-    public static MapIndex load(CompoundTag p_164763_) {
+    public static MapIndex load(CompoundTag pCompoundTag) {
         MapIndex mapindex = new MapIndex();
 
-        for (String s : p_164763_.getAllKeys()) {
-            if (p_164763_.contains(s, 99)) {
-                mapindex.usedAuxIds.put(s, p_164763_.getInt(s));
+        for (String s : pCompoundTag.getAllKeys()) {
+            if (pCompoundTag.contains(s, 99)) {
+                mapindex.usedAuxIds.put(s, pCompoundTag.getInt(s));
             }
         }
 
         return mapindex;
     }
 
-    public CompoundTag save(CompoundTag p_77884_) {
+    public CompoundTag save(CompoundTag pCompound) {
         for (Object2IntMap.Entry<String> entry : this.usedAuxIds.object2IntEntrySet()) {
-            p_77884_.putInt(entry.getKey(), entry.getIntValue());
+            pCompound.putInt(entry.getKey(), entry.getIntValue());
         }
 
-        return p_77884_;
+        return pCompound;
     }
 
     public int getFreeAuxValueForMap() {

@@ -11,9 +11,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ErrorScreen extends Screen {
     private final Component message;
 
-    public ErrorScreen(Component p_96049_, Component p_96050_) {
-        super(p_96049_);
-        this.message = p_96050_;
+    public ErrorScreen(Component pTitle, Component pMessage) {
+        super(pTitle);
+        this.message = pMessage;
     }
 
     protected void init() {
@@ -23,11 +23,11 @@ public class ErrorScreen extends Screen {
         }));
     }
 
-    public void render(PoseStack p_96052_, int p_96053_, int p_96054_, float p_96055_) {
-        this.fillGradient(p_96052_, 0, 0, this.width, this.height, -12574688, -11530224);
-        drawCenteredString(p_96052_, this.font, this.title, this.width / 2, 90, 16777215);
-        drawCenteredString(p_96052_, this.font, this.message, this.width / 2, 110, 16777215);
-        super.render(p_96052_, p_96053_, p_96054_, p_96055_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.fillGradient(pPoseStack, 0, 0, this.width, this.height, -12574688, -11530224);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 90, 16777215);
+        drawCenteredString(pPoseStack, this.font, this.message, this.width / 2, 110, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 
     public boolean shouldCloseOnEsc() {

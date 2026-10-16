@@ -16,28 +16,28 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
     private final int diameter;
     private boolean started;
 
-    public StoringChunkProgressListener(int p_9661_) {
-        this.delegate = new LoggerChunkProgressListener(p_9661_);
-        this.fullDiameter = p_9661_ * 2 + 1;
-        this.radius = p_9661_ + ChunkStatus.maxDistance();
+    public StoringChunkProgressListener(int pRadius) {
+        this.delegate = new LoggerChunkProgressListener(pRadius);
+        this.fullDiameter = pRadius * 2 + 1;
+        this.radius = pRadius + ChunkStatus.maxDistance();
         this.diameter = this.radius * 2 + 1;
         this.statuses = new Object2ObjectOpenHashMap<>();
     }
 
-    public void updateSpawnPos(ChunkPos p_9667_) {
+    public void updateSpawnPos(ChunkPos pCenter) {
         if (this.started) {
-            this.delegate.updateSpawnPos(p_9667_);
-            this.spawnPos = p_9667_;
+            this.delegate.updateSpawnPos(pCenter);
+            this.spawnPos = pCenter;
         }
     }
 
-    public void onStatusChange(ChunkPos p_9669_, @Nullable ChunkStatus p_9670_) {
+    public void onStatusChange(ChunkPos pChunkPosition, @Nullable ChunkStatus pNewStatus) {
         if (this.started) {
-            this.delegate.onStatusChange(p_9669_, p_9670_);
-            if (p_9670_ == null) {
-                this.statuses.remove(p_9669_);
+            this.delegate.onStatusChange(pChunkPosition, pNewStatus);
+            if (pNewStatus == null) {
+                this.statuses.remove(pChunkPosition);
             } else {
-                this.statuses.put(p_9669_, p_9670_);
+                this.statuses.put(pChunkPosition, pNewStatus);
             }
         }
     }
@@ -66,7 +66,7 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
     }
 
     @Nullable
-    public ChunkStatus getStatus(int p_9664_, int p_9665_) {
-        return this.statuses.get(new ChunkPos(p_9664_ + this.spawnPos.x - this.radius, p_9665_ + this.spawnPos.z - this.radius));
+    public ChunkStatus getStatus(int pX, int pZ) {
+        return this.statuses.get(new ChunkPos(pX + this.spawnPos.x - this.radius, pZ + this.spawnPos.z - this.radius));
     }
 }

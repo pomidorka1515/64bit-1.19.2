@@ -34,16 +34,16 @@ public class ShortTag extends NumericTag {
     };
     private final short data;
 
-    ShortTag(short p_129248_) {
-        this.data = p_129248_;
+    ShortTag(short pData) {
+        this.data = pData;
     }
 
-    public static ShortTag valueOf(short p_129259_) {
-        return p_129259_ >= -128 && p_129259_ <= 1024 ? ShortTag.Cache.cache[p_129259_ - -128] : new ShortTag(p_129259_);
+    public static ShortTag valueOf(short pData) {
+        return pData >= -128 && pData <= 1024 ? ShortTag.Cache.cache[pData - -128] : new ShortTag(pData);
     }
 
-    public void write(DataOutput p_129254_) throws IOException {
-        p_129254_.writeShort(this.data);
+    public void write(DataOutput pOutput) throws IOException {
+        pOutput.writeShort(this.data);
     }
 
     public byte getId() {
@@ -58,11 +58,11 @@ public class ShortTag extends NumericTag {
         return this;
     }
 
-    public boolean equals(Object p_129265_) {
-        if (this == p_129265_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_129265_ instanceof ShortTag && this.data == ((ShortTag) p_129265_).data;
+            return pOther instanceof ShortTag && this.data == ((ShortTag) pOther).data;
         }
     }
 
@@ -70,8 +70,8 @@ public class ShortTag extends NumericTag {
         return this.data;
     }
 
-    public void accept(TagVisitor p_178084_) {
-        p_178084_.visitShort(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitShort(this);
     }
 
     public long getAsLong() {
@@ -102,8 +102,8 @@ public class ShortTag extends NumericTag {
         return this.data;
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197515_) {
-        return p_197515_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 
     static class Cache {

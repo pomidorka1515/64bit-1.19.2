@@ -27,20 +27,20 @@ public class ClientAdvancements {
     @Nullable
     private Advancement selectedTab;
 
-    public ClientAdvancements(Minecraft p_104395_) {
-        this.minecraft = p_104395_;
+    public ClientAdvancements(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void update(ClientboundUpdateAdvancementsPacket p_104400_) {
-        if (p_104400_.shouldReset()) {
+    public void update(ClientboundUpdateAdvancementsPacket pPacket) {
+        if (pPacket.shouldReset()) {
             this.advancements.clear();
             this.progress.clear();
         }
 
-        this.advancements.remove(p_104400_.getRemoved());
-        this.advancements.add(p_104400_.getAdded());
+        this.advancements.remove(pPacket.getRemoved());
+        this.advancements.add(pPacket.getAdded());
 
-        for (Map.Entry<ResourceLocation, AdvancementProgress> entry : p_104400_.getProgress().entrySet()) {
+        for (Map.Entry<ResourceLocation, AdvancementProgress> entry : pPacket.getProgress().entrySet()) {
             Advancement advancement = this.advancements.get(entry.getKey());
             if (advancement != null) {
                 AdvancementProgress advancementprogress = entry.getValue();
@@ -50,7 +50,7 @@ public class ClientAdvancements {
                     this.listener.onUpdateAdvancementProgress(advancement, advancementprogress);
                 }
 
-                if (!p_104400_.shouldReset() && advancementprogress.isDone() && advancement.getDisplay() != null && advancement.getDisplay().shouldShowToast()) {
+                if (!pPacket.shouldReset() && advancementprogress.isDone() && advancement.getDisplay() != null && advancement.getDisplay().shouldShowToast()) {
                     this.minecraft.getToasts().addToast(new AdvancementToast(advancement));
                 }
             } else {
@@ -63,36 +63,36 @@ public class ClientAdvancements {
         return this.advancements;
     }
 
-    public void setSelectedTab(@Nullable Advancement p_104402_, boolean p_104403_) {
+    public void setSelectedTab(@Nullable Advancement pAdvancement, boolean pTellServer) {
         ClientPacketListener clientpacketlistener = this.minecraft.getConnection();
-        if (clientpacketlistener != null && p_104402_ != null && p_104403_) {
-            clientpacketlistener.send(ServerboundSeenAdvancementsPacket.openedTab(p_104402_));
+        if (clientpacketlistener != null && pAdvancement != null && pTellServer) {
+            clientpacketlistener.send(ServerboundSeenAdvancementsPacket.openedTab(pAdvancement));
         }
 
-        if (this.selectedTab != p_104402_) {
-            this.selectedTab = p_104402_;
+        if (this.selectedTab != pAdvancement) {
+            this.selectedTab = pAdvancement;
             if (this.listener != null) {
-                this.listener.onSelectedTabChanged(p_104402_);
+                this.listener.onSelectedTabChanged(pAdvancement);
             }
         }
     }
 
-    public void setListener(@Nullable ClientAdvancements.Listener p_104398_) {
-        this.listener = p_104398_;
-        this.advancements.setListener(p_104398_);
-        if (p_104398_ != null) {
+    public void setListener(@Nullable ClientAdvancements.Listener pListener) {
+        this.listener = pListener;
+        this.advancements.setListener(pListener);
+        if (pListener != null) {
             for (Map.Entry<Advancement, AdvancementProgress> entry : this.progress.entrySet()) {
-                p_104398_.onUpdateAdvancementProgress(entry.getKey(), entry.getValue());
+                pListener.onUpdateAdvancementProgress(entry.getKey(), entry.getValue());
             }
 
-            p_104398_.onSelectedTabChanged(this.selectedTab);
+            pListener.onSelectedTabChanged(this.selectedTab);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
     public interface Listener extends AdvancementList.Listener {
-        void onUpdateAdvancementProgress(Advancement p_104404_, AdvancementProgress p_104405_);
+        void onUpdateAdvancementProgress(Advancement pAdvancement, AdvancementProgress pProgress);
 
-        void onSelectedTabChanged(@Nullable Advancement p_104406_);
+        void onSelectedTabChanged(@Nullable Advancement pAdvancement);
     }
 }

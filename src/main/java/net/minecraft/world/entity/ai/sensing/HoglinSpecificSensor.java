@@ -20,9 +20,9 @@ public class HoglinSpecificSensor extends Sensor<Hoglin> {
         return ImmutableSet.of(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryModuleType.NEAREST_REPELLENT, MemoryModuleType.NEAREST_VISIBLE_ADULT_PIGLIN, MemoryModuleType.NEAREST_VISIBLE_ADULT_HOGLINS, MemoryModuleType.VISIBLE_ADULT_PIGLIN_COUNT, MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT);
     }
 
-    protected void doTick(ServerLevel p_26659_, Hoglin p_26660_) {
-        Brain<?> brain = p_26660_.getBrain();
-        brain.setMemory(MemoryModuleType.NEAREST_REPELLENT, this.findNearestRepellent(p_26659_, p_26660_));
+    protected void doTick(ServerLevel pLevel, Hoglin pEntity) {
+        Brain<?> brain = pEntity.getBrain();
+        brain.setMemory(MemoryModuleType.NEAREST_REPELLENT, this.findNearestRepellent(pLevel, pEntity));
         Optional<Piglin> optional = Optional.empty();
         int i = 0;
         List<Hoglin> list = Lists.newArrayList();
@@ -49,9 +49,9 @@ public class HoglinSpecificSensor extends Sensor<Hoglin> {
         brain.setMemory(MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT, list.size());
     }
 
-    private Optional<BlockPos> findNearestRepellent(ServerLevel p_26665_, Hoglin p_26666_) {
-        return BlockPos.findClosestMatch(p_26666_.blockPosition(), 8, 4, (p_186148_) -> {
-            return p_26665_.getBlockState(p_186148_).is(BlockTags.HOGLIN_REPELLENTS);
+    private Optional<BlockPos> findNearestRepellent(ServerLevel pLevel, Hoglin pHoglin) {
+        return BlockPos.findClosestMatch(pHoglin.blockPosition(), 8, 4, (p_186148_) -> {
+            return pLevel.getBlockState(p_186148_).is(BlockTags.HOGLIN_REPELLENTS);
         });
     }
 }

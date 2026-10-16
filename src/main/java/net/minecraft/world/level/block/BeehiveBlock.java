@@ -59,101 +59,101 @@ public class BeehiveBlock extends BaseEntityBlock {
     public static final int MAX_HONEY_LEVELS = 5;
     private static final int SHEARED_HONEYCOMB_COUNT = 3;
 
-    public BeehiveBlock(BlockBehaviour.Properties p_49568_) {
-        super(p_49568_);
+    public BeehiveBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(HONEY_LEVEL, Integer.valueOf(0)).setValue(FACING, Direction.NORTH));
     }
 
-    public boolean hasAnalogOutputSignal(BlockState p_49618_) {
+    public boolean hasAnalogOutputSignal(BlockState pState) {
         return true;
     }
 
-    public int getAnalogOutputSignal(BlockState p_49620_, Level p_49621_, BlockPos p_49622_) {
-        return p_49620_.getValue(HONEY_LEVEL);
+    public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos) {
+        return pBlockState.getValue(HONEY_LEVEL);
     }
 
-    public void playerDestroy(Level p_49584_, Player p_49585_, BlockPos p_49586_, BlockState p_49587_, @Nullable BlockEntity p_49588_, ItemStack p_49589_) {
-        super.playerDestroy(p_49584_, p_49585_, p_49586_, p_49587_, p_49588_, p_49589_);
-        if (!p_49584_.isClientSide && p_49588_ instanceof BeehiveBlockEntity beehiveblockentity) {
-            if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, p_49589_) == 0) {
-                beehiveblockentity.emptyAllLivingFromHive(p_49585_, p_49587_, BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
-                p_49584_.updateNeighbourForOutputSignal(p_49586_, this);
-                this.angerNearbyBees(p_49584_, p_49586_);
+    public void playerDestroy(Level pLevel, Player pPlayer, BlockPos pPos, BlockState pState, @Nullable BlockEntity pTe, ItemStack pStack) {
+        super.playerDestroy(pLevel, pPlayer, pPos, pState, pTe, pStack);
+        if (!pLevel.isClientSide && pTe instanceof BeehiveBlockEntity beehiveblockentity) {
+            if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, pStack) == 0) {
+                beehiveblockentity.emptyAllLivingFromHive(pPlayer, pState, BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
+                pLevel.updateNeighbourForOutputSignal(pPos, this);
+                this.angerNearbyBees(pLevel, pPos);
             }
 
-            CriteriaTriggers.BEE_NEST_DESTROYED.trigger((ServerPlayer) p_49585_, p_49587_, p_49589_, beehiveblockentity.getOccupantCount());
+            CriteriaTriggers.BEE_NEST_DESTROYED.trigger((ServerPlayer) pPlayer, pState, pStack, beehiveblockentity.getOccupantCount());
         }
     }
 
-    private void angerNearbyBees(Level p_49650_, BlockPos p_49651_) {
-        List<Bee> list = p_49650_.getEntitiesOfClass(Bee.class, (new AABB(p_49651_)).inflate(8.0D, 6.0D, 8.0D));
+    private void angerNearbyBees(Level pLevel, BlockPos pPos) {
+        List<Bee> list = pLevel.getEntitiesOfClass(Bee.class, (new AABB(pPos)).inflate(8.0D, 6.0D, 8.0D));
         if (!list.isEmpty()) {
-            List<Player> list1 = p_49650_.getEntitiesOfClass(Player.class, (new AABB(p_49651_)).inflate(8.0D, 6.0D, 8.0D));
+            List<Player> list1 = pLevel.getEntitiesOfClass(Player.class, (new AABB(pPos)).inflate(8.0D, 6.0D, 8.0D));
             int i = list1.size();
 
             for (Bee bee : list) {
                 if (bee.getTarget() == null) {
-                    bee.setTarget(list1.get(p_49650_.random.nextInt(i)));
+                    bee.setTarget(list1.get(pLevel.random.nextInt(i)));
                 }
             }
         }
     }
 
-    public static void dropHoneycomb(Level p_49601_, BlockPos p_49602_) {
-        popResource(p_49601_, p_49602_, new ItemStack(Items.HONEYCOMB, 3));
+    public static void dropHoneycomb(Level pLevel, BlockPos pPos) {
+        popResource(pLevel, pPos, new ItemStack(Items.HONEYCOMB, 3));
     }
 
-    public InteractionResult use(BlockState p_49624_, Level p_49625_, BlockPos p_49626_, Player p_49627_, InteractionHand p_49628_, BlockHitResult p_49629_) {
-        ItemStack itemstack = p_49627_.getItemInHand(p_49628_);
-        int i = p_49624_.getValue(HONEY_LEVEL);
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
+        int i = pState.getValue(HONEY_LEVEL);
         boolean flag = false;
         if (i >= 5) {
             Item item = itemstack.getItem();
             if (itemstack.is(Items.SHEARS)) {
-                p_49625_.playSound(p_49627_, p_49627_.getX(), p_49627_.getY(), p_49627_.getZ(), SoundEvents.BEEHIVE_SHEAR, SoundSource.NEUTRAL, 1.0F, 1.0F);
-                dropHoneycomb(p_49625_, p_49626_);
-                itemstack.hurtAndBreak(1, p_49627_, (p_49571_) -> {
-                    p_49571_.broadcastBreakEvent(p_49628_);
+                pLevel.playSound(pPlayer, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.BEEHIVE_SHEAR, SoundSource.NEUTRAL, 1.0F, 1.0F);
+                dropHoneycomb(pLevel, pPos);
+                itemstack.hurtAndBreak(1, pPlayer, (p_49571_) -> {
+                    p_49571_.broadcastBreakEvent(pHand);
                 });
                 flag = true;
-                p_49625_.gameEvent(p_49627_, GameEvent.SHEAR, p_49626_);
+                pLevel.gameEvent(pPlayer, GameEvent.SHEAR, pPos);
             } else if (itemstack.is(Items.GLASS_BOTTLE)) {
                 itemstack.shrink(1);
-                p_49625_.playSound(p_49627_, p_49627_.getX(), p_49627_.getY(), p_49627_.getZ(), SoundEvents.BOTTLE_FILL, SoundSource.NEUTRAL, 1.0F, 1.0F);
+                pLevel.playSound(pPlayer, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.BOTTLE_FILL, SoundSource.NEUTRAL, 1.0F, 1.0F);
                 if (itemstack.isEmpty()) {
-                    p_49627_.setItemInHand(p_49628_, new ItemStack(Items.HONEY_BOTTLE));
-                } else if (!p_49627_.getInventory().add(new ItemStack(Items.HONEY_BOTTLE))) {
-                    p_49627_.drop(new ItemStack(Items.HONEY_BOTTLE), false);
+                    pPlayer.setItemInHand(pHand, new ItemStack(Items.HONEY_BOTTLE));
+                } else if (!pPlayer.getInventory().add(new ItemStack(Items.HONEY_BOTTLE))) {
+                    pPlayer.drop(new ItemStack(Items.HONEY_BOTTLE), false);
                 }
 
                 flag = true;
-                p_49625_.gameEvent(p_49627_, GameEvent.FLUID_PICKUP, p_49626_);
+                pLevel.gameEvent(pPlayer, GameEvent.FLUID_PICKUP, pPos);
             }
 
-            if (!p_49625_.isClientSide() && flag) {
-                p_49627_.awardStat(Stats.ITEM_USED.get(item));
+            if (!pLevel.isClientSide() && flag) {
+                pPlayer.awardStat(Stats.ITEM_USED.get(item));
             }
         }
 
         if (flag) {
-            if (!CampfireBlock.isSmokeyPos(p_49625_, p_49626_)) {
-                if (this.hiveContainsBees(p_49625_, p_49626_)) {
-                    this.angerNearbyBees(p_49625_, p_49626_);
+            if (!CampfireBlock.isSmokeyPos(pLevel, pPos)) {
+                if (this.hiveContainsBees(pLevel, pPos)) {
+                    this.angerNearbyBees(pLevel, pPos);
                 }
 
-                this.releaseBeesAndResetHoneyLevel(p_49625_, p_49624_, p_49626_, p_49627_, BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
+                this.releaseBeesAndResetHoneyLevel(pLevel, pState, pPos, pPlayer, BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
             } else {
-                this.resetHoneyLevel(p_49625_, p_49624_, p_49626_);
+                this.resetHoneyLevel(pLevel, pState, pPos);
             }
 
-            return InteractionResult.sidedSuccess(p_49625_.isClientSide);
+            return InteractionResult.sidedSuccess(pLevel.isClientSide);
         } else {
-            return super.use(p_49624_, p_49625_, p_49626_, p_49627_, p_49628_, p_49629_);
+            return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
         }
     }
 
-    private boolean hiveContainsBees(Level p_49655_, BlockPos p_49656_) {
-        BlockEntity blockentity = p_49655_.getBlockEntity(p_49656_);
+    private boolean hiveContainsBees(Level pLevel, BlockPos pPos) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof BeehiveBlockEntity beehiveblockentity) {
             return !beehiveblockentity.isEmpty();
         } else {
@@ -161,87 +161,87 @@ public class BeehiveBlock extends BaseEntityBlock {
         }
     }
 
-    public void releaseBeesAndResetHoneyLevel(Level p_49595_, BlockState p_49596_, BlockPos p_49597_, @Nullable Player p_49598_, BeehiveBlockEntity.BeeReleaseStatus p_49599_) {
-        this.resetHoneyLevel(p_49595_, p_49596_, p_49597_);
-        BlockEntity blockentity = p_49595_.getBlockEntity(p_49597_);
+    public void releaseBeesAndResetHoneyLevel(Level pLevel, BlockState pState, BlockPos pPos, @Nullable Player pPlayer, BeehiveBlockEntity.BeeReleaseStatus pBeeReleaseStatus) {
+        this.resetHoneyLevel(pLevel, pState, pPos);
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof BeehiveBlockEntity beehiveblockentity) {
-            beehiveblockentity.emptyAllLivingFromHive(p_49598_, p_49596_, p_49599_);
+            beehiveblockentity.emptyAllLivingFromHive(pPlayer, pState, pBeeReleaseStatus);
         }
     }
 
-    public void resetHoneyLevel(Level p_49591_, BlockState p_49592_, BlockPos p_49593_) {
-        p_49591_.setBlock(p_49593_, p_49592_.setValue(HONEY_LEVEL, Integer.valueOf(0)), 3);
+    public void resetHoneyLevel(Level pLevel, BlockState pState, BlockPos pPos) {
+        pLevel.setBlock(pPos, pState.setValue(HONEY_LEVEL, Integer.valueOf(0)), 3);
     }
 
-    public void animateTick(BlockState p_220773_, Level p_220774_, BlockPos p_220775_, RandomSource p_220776_) {
-        if (p_220773_.getValue(HONEY_LEVEL) >= 5) {
-            for (int i = 0; i < p_220776_.nextInt(1) + 1; ++i) {
-                this.trySpawnDripParticles(p_220774_, p_220775_, p_220773_);
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pState.getValue(HONEY_LEVEL) >= 5) {
+            for (int i = 0; i < pRandom.nextInt(1) + 1; ++i) {
+                this.trySpawnDripParticles(pLevel, pPos, pState);
             }
         }
     }
 
-    private void trySpawnDripParticles(Level p_49604_, BlockPos p_49605_, BlockState p_49606_) {
-        if (p_49606_.getFluidState().isEmpty() && !(p_49604_.random.nextFloat() < 0.3F)) {
-            VoxelShape voxelshape = p_49606_.getCollisionShape(p_49604_, p_49605_);
+    private void trySpawnDripParticles(Level pLevel, BlockPos pPos, BlockState pState) {
+        if (pState.getFluidState().isEmpty() && !(pLevel.random.nextFloat() < 0.3F)) {
+            VoxelShape voxelshape = pState.getCollisionShape(pLevel, pPos);
             double d0 = voxelshape.max(Direction.Axis.Y);
-            if (d0 >= 1.0D && !p_49606_.is(BlockTags.IMPERMEABLE)) {
+            if (d0 >= 1.0D && !pState.is(BlockTags.IMPERMEABLE)) {
                 double d1 = voxelshape.min(Direction.Axis.Y);
                 if (d1 > 0.0D) {
-                    this.spawnParticle(p_49604_, p_49605_, voxelshape, (double) p_49605_.getY() + d1 - 0.05D);
+                    this.spawnParticle(pLevel, pPos, voxelshape, (double) pPos.getY() + d1 - 0.05D);
                 } else {
-                    BlockPos blockpos = p_49605_.below();
-                    BlockState blockstate = p_49604_.getBlockState(blockpos);
-                    VoxelShape voxelshape1 = blockstate.getCollisionShape(p_49604_, blockpos);
+                    BlockPos blockpos = pPos.below();
+                    BlockState blockstate = pLevel.getBlockState(blockpos);
+                    VoxelShape voxelshape1 = blockstate.getCollisionShape(pLevel, blockpos);
                     double d2 = voxelshape1.max(Direction.Axis.Y);
-                    if ((d2 < 1.0D || !blockstate.isCollisionShapeFullBlock(p_49604_, blockpos)) && blockstate.getFluidState().isEmpty()) {
-                        this.spawnParticle(p_49604_, p_49605_, voxelshape, (double) p_49605_.getY() - 0.05D);
+                    if ((d2 < 1.0D || !blockstate.isCollisionShapeFullBlock(pLevel, blockpos)) && blockstate.getFluidState().isEmpty()) {
+                        this.spawnParticle(pLevel, pPos, voxelshape, (double) pPos.getY() - 0.05D);
                     }
                 }
             }
         }
     }
 
-    private void spawnParticle(Level p_49613_, BlockPos p_49614_, VoxelShape p_49615_, double p_49616_) {
-        this.spawnFluidParticle(p_49613_, p_49614_, p_49615_.min(Direction.Axis.X),
-                p_49615_.max(Direction.Axis.X), p_49615_.min(Direction.Axis.Z),
-                p_49615_.max(Direction.Axis.Z), p_49616_);
+    private void spawnParticle(Level pLevel, BlockPos pPos, VoxelShape pShape, double pY) {
+        this.spawnFluidParticle(pLevel, pPos, pShape.min(Direction.Axis.X),
+                pShape.max(Direction.Axis.X), pShape.min(Direction.Axis.Z),
+                pShape.max(Direction.Axis.Z), pY);
     }
 
-    private void spawnFluidParticle(Level p_49577_, BlockPos position, double minX, double maxX, double minZ,
+    private void spawnFluidParticle(Level pParticleData, BlockPos position, double minX, double maxX, double minZ,
             double maxZ, double y) {
-        p_49577_.addParticle(ParticleTypes.DRIPPING_HONEY, SectorVec3.fromBlockAndFraction(position.getX(), Mth.lerp(p_49577_.random.nextDouble(), minX, maxX), y, position.getZ(), Mth.lerp(p_49577_.random.nextDouble(), minZ, maxZ)), 0.0D, 0.0D, 0.0D);
+        pParticleData.addParticle(ParticleTypes.DRIPPING_HONEY, SectorVec3.fromBlockAndFraction(position.getX(), Mth.lerp(pParticleData.random.nextDouble(), minX, maxX), y, position.getZ(), Mth.lerp(pParticleData.random.nextDouble(), minZ, maxZ)), 0.0D, 0.0D, 0.0D);
     }
 
-    public BlockState getStateForPlacement(BlockPlaceContext p_49573_) {
-        return this.defaultBlockState().setValue(FACING, p_49573_.getHorizontalDirection().getOpposite());
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        return this.defaultBlockState().setValue(FACING, pContext.getHorizontalDirection().getOpposite());
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_49646_) {
-        p_49646_.add(HONEY_LEVEL, FACING);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(HONEY_LEVEL, FACING);
     }
 
-    public RenderShape getRenderShape(BlockState p_49653_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
     @Nullable
-    public BlockEntity newBlockEntity(BlockPos p_152184_, BlockState p_152185_) {
-        return new BeehiveBlockEntity(p_152184_, p_152185_);
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new BeehiveBlockEntity(pPos, pState);
     }
 
     @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_152180_, BlockState p_152181_, BlockEntityType<T> p_152182_) {
-        return p_152180_.isClientSide ? null : createTickerHelper(p_152182_, BlockEntityType.BEEHIVE, BeehiveBlockEntity::serverTick);
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
+        return pLevel.isClientSide ? null : createTickerHelper(pBlockEntityType, BlockEntityType.BEEHIVE, BeehiveBlockEntity::serverTick);
     }
 
-    public void playerWillDestroy(Level p_49608_, BlockPos p_49609_, BlockState p_49610_, Player p_49611_) {
-        if (!p_49608_.isClientSide && p_49611_.isCreative() && p_49608_.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
-            BlockEntity blockentity = p_49608_.getBlockEntity(p_49609_);
+    public void playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+        if (!pLevel.isClientSide && pPlayer.isCreative() && pLevel.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
+            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
             if (blockentity instanceof BeehiveBlockEntity) {
                 BeehiveBlockEntity beehiveblockentity = (BeehiveBlockEntity) blockentity;
                 ItemStack itemstack = new ItemStack(this);
-                int i = p_49610_.getValue(HONEY_LEVEL);
+                int i = pState.getValue(HONEY_LEVEL);
                 boolean flag = !beehiveblockentity.isEmpty();
                 if (flag || i > 0) {
                     if (flag) {
@@ -253,38 +253,38 @@ public class BeehiveBlock extends BaseEntityBlock {
                     CompoundTag compoundtag1 = new CompoundTag();
                     compoundtag1.putInt("honey_level", i);
                     itemstack.addTagElement("BlockStateTag", compoundtag1);
-                    ItemEntity itementity = new ItemEntity(p_49608_, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_49609_.getX(), 0.0D, (double) p_49609_.getY(), p_49609_.getZ(), 0.0D), itemstack);
+                    ItemEntity itementity = new ItemEntity(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, (double) pPos.getY(), pPos.getZ(), 0.0D), itemstack);
                     itementity.setDefaultPickUpDelay();
-                    p_49608_.addFreshEntity(itementity);
+                    pLevel.addFreshEntity(itementity);
                 }
             }
         }
 
-        super.playerWillDestroy(p_49608_, p_49609_, p_49610_, p_49611_);
+        super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
     }
 
-    public List<ItemStack> getDrops(BlockState p_49636_, LootContext.Builder p_49637_) {
-        Entity entity = p_49637_.getOptionalParameter(LootContextParams.THIS_ENTITY);
+    public List<ItemStack> getDrops(BlockState pState, LootContext.Builder pBuilder) {
+        Entity entity = pBuilder.getOptionalParameter(LootContextParams.THIS_ENTITY);
         if (entity instanceof PrimedTnt || entity instanceof Creeper || entity instanceof WitherSkull || entity instanceof WitherBoss || entity instanceof MinecartTNT) {
-            BlockEntity blockentity = p_49637_.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
+            BlockEntity blockentity = pBuilder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
             if (blockentity instanceof BeehiveBlockEntity) {
                 BeehiveBlockEntity beehiveblockentity = (BeehiveBlockEntity) blockentity;
-                beehiveblockentity.emptyAllLivingFromHive((Player) null, p_49636_, BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
+                beehiveblockentity.emptyAllLivingFromHive((Player) null, pState, BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
             }
         }
 
-        return super.getDrops(p_49636_, p_49637_);
+        return super.getDrops(pState, pBuilder);
     }
 
-    public BlockState updateShape(BlockState p_49639_, Direction p_49640_, BlockState p_49641_, LevelAccessor p_49642_, BlockPos p_49643_, BlockPos p_49644_) {
-        if (p_49642_.getBlockState(p_49644_).getBlock() instanceof FireBlock) {
-            BlockEntity blockentity = p_49642_.getBlockEntity(p_49643_);
+    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pFacingPos) {
+        if (pLevel.getBlockState(pFacingPos).getBlock() instanceof FireBlock) {
+            BlockEntity blockentity = pLevel.getBlockEntity(pCurrentPos);
             if (blockentity instanceof BeehiveBlockEntity) {
                 BeehiveBlockEntity beehiveblockentity = (BeehiveBlockEntity) blockentity;
-                beehiveblockentity.emptyAllLivingFromHive((Player) null, p_49639_, BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
+                beehiveblockentity.emptyAllLivingFromHive((Player) null, pState, BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
             }
         }
 
-        return super.updateShape(p_49639_, p_49640_, p_49641_, p_49642_, p_49643_, p_49644_);
+        return super.updateShape(pState, pFacing, pFacingState, pLevel, pCurrentPos, pFacingPos);
     }
 }

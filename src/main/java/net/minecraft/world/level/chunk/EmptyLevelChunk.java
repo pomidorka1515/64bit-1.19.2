@@ -16,47 +16,47 @@ import net.minecraft.world.level.material.Fluids;
 public class EmptyLevelChunk extends LevelChunk {
     private final Holder<Biome> biome;
 
-    public EmptyLevelChunk(Level p_204422_, ChunkPos p_204423_, Holder<Biome> p_204424_) {
-        super(p_204422_, p_204423_);
-        this.biome = p_204424_;
+    public EmptyLevelChunk(Level pLevel, ChunkPos pPos, Holder<Biome> pBiome) {
+        super(pLevel, pPos);
+        this.biome = pBiome;
     }
 
-    public BlockState getBlockState(BlockPos p_62625_) {
+    public BlockState getBlockState(BlockPos pPos) {
         return Blocks.VOID_AIR.defaultBlockState();
     }
 
     @Nullable
-    public BlockState setBlockState(BlockPos p_62605_, BlockState p_62606_, boolean p_62607_) {
+    public BlockState setBlockState(BlockPos pPos, BlockState pState, boolean pIsMoving) {
         return null;
     }
 
-    public FluidState getFluidState(BlockPos p_62621_) {
+    public FluidState getFluidState(BlockPos pPos) {
         return Fluids.EMPTY.defaultFluidState();
     }
 
-    public int getLightEmission(BlockPos p_62628_) {
+    public int getLightEmission(BlockPos pPos) {
         return 0;
     }
 
     @Nullable
-    public BlockEntity getBlockEntity(BlockPos p_62609_, LevelChunk.EntityCreationType p_62610_) {
+    public BlockEntity getBlockEntity(BlockPos pPos, LevelChunk.EntityCreationType pCreationType) {
         return null;
     }
 
-    public void addAndRegisterBlockEntity(BlockEntity p_156346_) {
+    public void addAndRegisterBlockEntity(BlockEntity pBlockEntity) {
     }
 
-    public void setBlockEntity(BlockEntity p_156344_) {
+    public void setBlockEntity(BlockEntity pBlockEntity) {
     }
 
-    public void removeBlockEntity(BlockPos p_62623_) {
+    public void removeBlockEntity(BlockPos pPos) {
     }
 
     public boolean isEmpty() {
         return true;
     }
 
-    public boolean isYSpaceEmpty(int p_62587_, int p_62588_) {
+    public boolean isYSpaceEmpty(int pStartY, int pEndY) {
         return true;
     }
 
@@ -64,7 +64,7 @@ public class EmptyLevelChunk extends LevelChunk {
         return ChunkHolder.FullChunkStatus.BORDER;
     }
 
-    public Holder<Biome> getNoiseBiome(int p_204426_, int p_204427_, int p_204428_) {
+    public Holder<Biome> getNoiseBiome(int pX, int pY, int pZ) {
         return this.biome;
     }
 }

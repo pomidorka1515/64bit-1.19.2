@@ -14,9 +14,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FormattedBidiReorder {
-    public static FormattedCharSequence reorder(FormattedText p_118932_, boolean p_118933_) {
-        SubStringSource substringsource = SubStringSource.create(p_118932_, UCharacter::getMirror, FormattedBidiReorder::shape);
-        Bidi bidi = new Bidi(substringsource.getPlainText(), p_118933_ ? 127 : 126);
+    public static FormattedCharSequence reorder(FormattedText pText, boolean pDefaultRightToLeft) {
+        SubStringSource substringsource = SubStringSource.create(pText, UCharacter::getMirror, FormattedBidiReorder::shape);
+        Bidi bidi = new Bidi(substringsource.getPlainText(), pDefaultRightToLeft ? 127 : 126);
         bidi.setReorderingMode(0);
         List<FormattedCharSequence> list = Lists.newArrayList();
         int i = bidi.countRuns();

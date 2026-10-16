@@ -19,25 +19,25 @@ public class ComponentArgument implements ArgumentType<Component> {
     private ComponentArgument() {
     }
 
-    public static Component getComponent(CommandContext<CommandSourceStack> p_87118_, String p_87119_) {
-        return p_87118_.getArgument(p_87119_, Component.class);
+    public static Component getComponent(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, Component.class);
     }
 
     public static ComponentArgument textComponent() {
         return new ComponentArgument();
     }
 
-    public Component parse(StringReader p_87116_) throws CommandSyntaxException {
+    public Component parse(StringReader pReader) throws CommandSyntaxException {
         try {
-            Component component = Component.Serializer.fromJson(p_87116_);
+            Component component = Component.Serializer.fromJson(pReader);
             if (component == null) {
-                throw ERROR_INVALID_JSON.createWithContext(p_87116_, "empty");
+                throw ERROR_INVALID_JSON.createWithContext(pReader, "empty");
             } else {
                 return component;
             }
         } catch (Exception exception) {
             String s = exception.getCause() != null ? exception.getCause().getMessage() : exception.getMessage();
-            throw ERROR_INVALID_JSON.createWithContext(p_87116_, s);
+            throw ERROR_INVALID_JSON.createWithContext(pReader, s);
         }
     }
 

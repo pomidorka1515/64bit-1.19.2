@@ -39,26 +39,26 @@ public abstract class StateHolder<O, S> {
     private Table<Property<?>, Comparable<?>, S> neighbours;
     protected final MapCodec<S> propertiesCodec;
 
-    protected StateHolder(O p_61117_, ImmutableMap<Property<?>, Comparable<?>> p_61118_, MapCodec<S> p_61119_) {
-        this.owner = p_61117_;
-        this.values = p_61118_;
-        this.propertiesCodec = p_61119_;
+    protected StateHolder(O pOwner, ImmutableMap<Property<?>, Comparable<?>> pValues, MapCodec<S> pPropertiesCodec) {
+        this.owner = pOwner;
+        this.values = pValues;
+        this.propertiesCodec = pPropertiesCodec;
     }
 
-    public <T extends Comparable<T>> S cycle(Property<T> p_61123_) {
-        return this.setValue(p_61123_, findNextInCollection(p_61123_.getPossibleValues(), this.getValue(p_61123_)));
+    public <T extends Comparable<T>> S cycle(Property<T> pProperty) {
+        return this.setValue(pProperty, findNextInCollection(pProperty.getPossibleValues(), this.getValue(pProperty)));
     }
 
-    protected static <T> T findNextInCollection(Collection<T> p_61131_, T p_61132_) {
-        Iterator<T> iterator = p_61131_.iterator();
+    protected static <T> T findNextInCollection(Collection<T> pCollection, T pValue) {
+        Iterator<T> iterator = pCollection.iterator();
 
         while (iterator.hasNext()) {
-            if (iterator.next().equals(p_61132_)) {
+            if (iterator.next().equals(pValue)) {
                 if (iterator.hasNext()) {
                     return iterator.next();
                 }
 
-                return p_61131_.iterator().next();
+                return pCollection.iterator().next();
             }
         }
 
@@ -81,41 +81,41 @@ public abstract class StateHolder<O, S> {
         return Collections.unmodifiableCollection(this.values.keySet());
     }
 
-    public <T extends Comparable<T>> boolean hasProperty(Property<T> p_61139_) {
-        return this.values.containsKey(p_61139_);
+    public <T extends Comparable<T>> boolean hasProperty(Property<T> pProperty) {
+        return this.values.containsKey(pProperty);
     }
 
-    public <T extends Comparable<T>> T getValue(Property<T> p_61144_) {
-        Comparable<?> comparable = this.values.get(p_61144_);
+    public <T extends Comparable<T>> T getValue(Property<T> pProperty) {
+        Comparable<?> comparable = this.values.get(pProperty);
         if (comparable == null) {
-            throw new IllegalArgumentException("Cannot get property " + p_61144_ + " as it does not exist in " + this.owner);
+            throw new IllegalArgumentException("Cannot get property " + pProperty + " as it does not exist in " + this.owner);
         } else {
-            return p_61144_.getValueClass().cast(comparable);
+            return pProperty.getValueClass().cast(comparable);
         }
     }
 
-    public <T extends Comparable<T>> Optional<T> getOptionalValue(Property<T> p_61146_) {
-        Comparable<?> comparable = this.values.get(p_61146_);
-        return comparable == null ? Optional.empty() : Optional.of(p_61146_.getValueClass().cast(comparable));
+    public <T extends Comparable<T>> Optional<T> getOptionalValue(Property<T> pProperty) {
+        Comparable<?> comparable = this.values.get(pProperty);
+        return comparable == null ? Optional.empty() : Optional.of(pProperty.getValueClass().cast(comparable));
     }
 
-    public <T extends Comparable<T>, V extends T> S setValue(Property<T> p_61125_, V p_61126_) {
-        Comparable<?> comparable = this.values.get(p_61125_);
+    public <T extends Comparable<T>, V extends T> S setValue(Property<T> pProperty, V pValue) {
+        Comparable<?> comparable = this.values.get(pProperty);
         if (comparable == null) {
-            throw new IllegalArgumentException("Cannot set property " + p_61125_ + " as it does not exist in " + this.owner);
-        } else if (comparable == p_61126_) {
+            throw new IllegalArgumentException("Cannot set property " + pProperty + " as it does not exist in " + this.owner);
+        } else if (comparable == pValue) {
             return (S) this;
         } else {
-            S s = this.neighbours.get(p_61125_, p_61126_);
+            S s = this.neighbours.get(pProperty, pValue);
             if (s == null) {
-                throw new IllegalArgumentException("Cannot set property " + p_61125_ + " to " + p_61126_ + " on " + this.owner + ", it is not an allowed value");
+                throw new IllegalArgumentException("Cannot set property " + pProperty + " to " + pValue + " on " + this.owner + ", it is not an allowed value");
             } else {
                 return s;
             }
         }
     }
 
-    public void populateNeighbours(Map<Map<Property<?>, Comparable<?>>, S> p_61134_) {
+    public void populateNeighbours(Map<Map<Property<?>, Comparable<?>>, S> pPossibleStateMap) {
         if (this.neighbours != null) {
             throw new IllegalStateException();
         } else {
@@ -126,7 +126,7 @@ public abstract class StateHolder<O, S> {
 
                 for (Comparable<?> comparable : property.getPossibleValues()) {
                     if (comparable != entry.getValue()) {
-                        table.put(property, comparable, p_61134_.get(this.makeNeighbourValues(property, comparable)));
+                        table.put(property, comparable, pPossibleStateMap.get(this.makeNeighbourValues(property, comparable)));
                     }
                 }
             }
@@ -135,9 +135,9 @@ public abstract class StateHolder<O, S> {
         }
     }
 
-    private Map<Property<?>, Comparable<?>> makeNeighbourValues(Property<?> p_61141_, Comparable<?> p_61142_) {
+    private Map<Property<?>, Comparable<?>> makeNeighbourValues(Property<?> pProperty, Comparable<?> pValue) {
         Map<Property<?>, Comparable<?>> map = Maps.newHashMap(this.values);
-        map.put(p_61141_, p_61142_);
+        map.put(pProperty, pValue);
         return map;
     }
 
@@ -145,9 +145,9 @@ public abstract class StateHolder<O, S> {
         return this.values;
     }
 
-    protected static <O, S extends StateHolder<O, S>> Codec<S> codec(Codec<O> p_61128_, Function<O, S> p_61129_) {
-        return p_61128_.dispatch("Name", (p_61121_) -> { return p_61121_.owner; }, (p_187547_) -> {
-         S s = p_61129_.apply(p_187547_);
+    protected static <O, S extends StateHolder<O, S>> Codec<S> codec(Codec<O> pPropertyMap, Function<O, S> pHolderFunction) {
+        return pPropertyMap.dispatch("Name", (p_61121_) -> { return p_61121_.owner; }, (p_187547_) -> {
+         S s = pHolderFunction.apply(p_187547_);
          return s.getValues().isEmpty() ? Codec.unit(s) : s.propertiesCodec.codec().optionalFieldOf("Properties").xmap((p_187544_) -> {
             return p_187544_.orElse(s);
          }, Optional::of).codec(); });

@@ -8,9 +8,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class TextureMetadataSectionSerializer implements MetadataSectionSerializer<TextureMetadataSection> {
-    public TextureMetadataSection fromJson(JsonObject p_119122_) {
-        boolean flag = GsonHelper.getAsBoolean(p_119122_, "blur", false);
-        boolean flag1 = GsonHelper.getAsBoolean(p_119122_, "clamp", false);
+    public TextureMetadataSection fromJson(JsonObject pJson) {
+        boolean flag = GsonHelper.getAsBoolean(pJson, "blur", false);
+        boolean flag1 = GsonHelper.getAsBoolean(pJson, "clamp", false);
         return new TextureMetadataSection(flag, flag1);
     }
 

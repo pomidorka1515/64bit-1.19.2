@@ -15,9 +15,9 @@ public class ValueCheckCondition implements LootItemCondition {
     final NumberProvider provider;
     final IntRange range;
 
-    ValueCheckCondition(NumberProvider p_165523_, IntRange p_165524_) {
-        this.provider = p_165523_;
-        this.range = p_165524_;
+    ValueCheckCondition(NumberProvider pNumberProvider, IntRange pRange) {
+        this.provider = pNumberProvider;
+        this.range = pRange;
     }
 
     public LootItemConditionType getType() {
@@ -32,9 +32,9 @@ public class ValueCheckCondition implements LootItemCondition {
         return this.range.test(p_165527_, this.provider.getInt(p_165527_));
     }
 
-    public static LootItemCondition.Builder hasValue(NumberProvider p_165529_, IntRange p_165530_) {
+    public static LootItemCondition.Builder hasValue(NumberProvider pProvider, IntRange pRange) {
         return () -> {
-            return new ValueCheckCondition(p_165529_, p_165530_);
+            return new ValueCheckCondition(pProvider, pRange);
         };
     }
 

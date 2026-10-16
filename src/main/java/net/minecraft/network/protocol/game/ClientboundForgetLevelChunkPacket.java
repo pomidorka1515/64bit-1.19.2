@@ -7,23 +7,23 @@ public class ClientboundForgetLevelChunkPacket implements Packet<ClientGamePacke
     private final long x;
     private final long z;
 
-    public ClientboundForgetLevelChunkPacket(long p_132141_, long p_132142_) {
-        this.x = p_132141_;
-        this.z = p_132142_;
+    public ClientboundForgetLevelChunkPacket(long pX, long pZ) {
+        this.x = pX;
+        this.z = pZ;
     }
 
-    public ClientboundForgetLevelChunkPacket(FriendlyByteBuf p_178858_) {
-        this.x = p_178858_.readLong();
-        this.z = p_178858_.readLong();
+    public ClientboundForgetLevelChunkPacket(FriendlyByteBuf pBuffer) {
+        this.x = pBuffer.readLong();
+        this.z = pBuffer.readLong();
     }
 
-    public void write(FriendlyByteBuf p_132151_) {
-        p_132151_.writeLong(this.x);
-        p_132151_.writeLong(this.z);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeLong(this.x);
+        pBuffer.writeLong(this.z);
     }
 
-    public void handle(ClientGamePacketListener p_132148_) {
-        p_132148_.handleForgetLevelChunk(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleForgetLevelChunk(this);
     }
 
     public long getX() {

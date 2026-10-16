@@ -27,19 +27,19 @@ public class MobEffectArgument implements ArgumentType<MobEffect> {
         return new MobEffectArgument();
     }
 
-    public static MobEffect getEffect(CommandContext<CommandSourceStack> p_98430_, String p_98431_) {
-        return p_98430_.getArgument(p_98431_, MobEffect.class);
+    public static MobEffect getEffect(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, MobEffect.class);
     }
 
-    public MobEffect parse(StringReader p_98428_) throws CommandSyntaxException {
-        ResourceLocation resourcelocation = ResourceLocation.read(p_98428_);
+    public MobEffect parse(StringReader pReader) throws CommandSyntaxException {
+        ResourceLocation resourcelocation = ResourceLocation.read(pReader);
         return Registry.MOB_EFFECT.getOptional(resourcelocation).orElseThrow(() -> {
             return ERROR_UNKNOWN_EFFECT.create(resourcelocation);
         });
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_98438_, SuggestionsBuilder p_98439_) {
-        return SharedSuggestionProvider.suggestResource(Registry.MOB_EFFECT.keySet(), p_98439_);
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return SharedSuggestionProvider.suggestResource(Registry.MOB_EFFECT.keySet(), pBuilder);
     }
 
     public Collection<String> getExamples() {

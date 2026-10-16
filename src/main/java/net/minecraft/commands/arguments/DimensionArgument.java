@@ -33,8 +33,8 @@ public class DimensionArgument implements ArgumentType<ResourceLocation> {
         return ResourceLocation.read(p_88807_);
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_88817_, SuggestionsBuilder p_88818_) {
-        return p_88817_.getSource() instanceof SharedSuggestionProvider ? SharedSuggestionProvider.suggestResource(((SharedSuggestionProvider) p_88817_.getSource()).levels().stream().map(ResourceKey::location), p_88818_) : Suggestions.empty();
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return pContext.getSource() instanceof SharedSuggestionProvider ? SharedSuggestionProvider.suggestResource(((SharedSuggestionProvider) pContext.getSource()).levels().stream().map(ResourceKey::location), pBuilder) : Suggestions.empty();
     }
 
     public Collection<String> getExamples() {
@@ -45,10 +45,10 @@ public class DimensionArgument implements ArgumentType<ResourceLocation> {
         return new DimensionArgument();
     }
 
-    public static ServerLevel getDimension(CommandContext<CommandSourceStack> p_88809_, String p_88810_) throws CommandSyntaxException {
-        ResourceLocation resourcelocation = p_88809_.getArgument(p_88810_, ResourceLocation.class);
+    public static ServerLevel getDimension(CommandContext<CommandSourceStack> pContext, String pName) throws CommandSyntaxException {
+        ResourceLocation resourcelocation = pContext.getArgument(pName, ResourceLocation.class);
         ResourceKey<Level> resourcekey = ResourceKey.create(Registry.DIMENSION_REGISTRY, resourcelocation);
-        ServerLevel serverlevel = p_88809_.getSource().getServer().getLevel(resourcekey);
+        ServerLevel serverlevel = pContext.getSource().getServer().getLevel(resourcekey);
         if (serverlevel == null) {
             throw ERROR_INVALID_VALUE.create(resourcelocation);
         } else {

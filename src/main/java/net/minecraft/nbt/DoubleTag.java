@@ -36,16 +36,16 @@ public class DoubleTag extends NumericTag {
     };
     private final double data;
 
-    private DoubleTag(double p_128498_) {
-        this.data = p_128498_;
+    private DoubleTag(double pData) {
+        this.data = pData;
     }
 
-    public static DoubleTag valueOf(double p_128501_) {
-        return p_128501_ == 0.0D ? ZERO : new DoubleTag(p_128501_);
+    public static DoubleTag valueOf(double pData) {
+        return pData == 0.0D ? ZERO : new DoubleTag(pData);
     }
 
-    public void write(DataOutput p_128503_) throws IOException {
-        p_128503_.writeDouble(this.data);
+    public void write(DataOutput pOutput) throws IOException {
+        pOutput.writeDouble(this.data);
     }
 
     public byte getId() {
@@ -60,11 +60,11 @@ public class DoubleTag extends NumericTag {
         return this;
     }
 
-    public boolean equals(Object p_128512_) {
-        if (this == p_128512_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_128512_ instanceof DoubleTag && this.data == ((DoubleTag) p_128512_).data;
+            return pOther instanceof DoubleTag && this.data == ((DoubleTag) pOther).data;
         }
     }
 
@@ -73,8 +73,8 @@ public class DoubleTag extends NumericTag {
         return (int) (i ^ i >>> 32);
     }
 
-    public void accept(TagVisitor p_177860_) {
-        p_177860_.visitDouble(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitDouble(this);
     }
 
     public long getAsLong() {
@@ -105,7 +105,7 @@ public class DoubleTag extends NumericTag {
         return this.data;
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197452_) {
-        return p_197452_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 }

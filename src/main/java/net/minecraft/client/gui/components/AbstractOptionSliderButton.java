@@ -9,8 +9,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public abstract class AbstractOptionSliderButton extends AbstractSliderButton {
     protected final Options options;
 
-    protected AbstractOptionSliderButton(Options p_93379_, int p_93380_, int p_93381_, int p_93382_, int p_93383_, double p_93384_) {
-        super(p_93380_, p_93381_, p_93382_, p_93383_, CommonComponents.EMPTY, p_93384_);
-        this.options = p_93379_;
+    protected AbstractOptionSliderButton(Options pOptions, int pX, int pY, int pWidth, int pHeight, double pValue) {
+        super(pX, pY, pWidth, pHeight, CommonComponents.EMPTY, pValue);
+        this.options = pOptions;
     }
 }

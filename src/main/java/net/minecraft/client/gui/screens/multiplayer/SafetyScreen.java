@@ -16,13 +16,13 @@ public class SafetyScreen extends WarningScreen {
     private static final Component NARRATION = TITLE.copy().append("\n").append(CONTENT);
     private final Screen previous;
 
-    public SafetyScreen(Screen p_99743_) {
+    public SafetyScreen(Screen pPrevious) {
         super(TITLE, CONTENT, CHECK, NARRATION);
-        this.previous = p_99743_;
+        this.previous = pPrevious;
     }
 
-    protected void initButtons(int p_210904_) {
-        this.addRenderableWidget(new Button(this.width / 2 - 155, 100 + p_210904_, 150, 20, CommonComponents.GUI_PROCEED, (p_210908_) -> {
+    protected void initButtons(int pYOffset) {
+        this.addRenderableWidget(new Button(this.width / 2 - 155, 100 + pYOffset, 150, 20, CommonComponents.GUI_PROCEED, (p_210908_) -> {
             if (this.stopShowing.selected()) {
                 this.minecraft.options.skipMultiplayerWarning = true;
                 this.minecraft.options.save();
@@ -30,7 +30,7 @@ public class SafetyScreen extends WarningScreen {
 
             this.minecraft.setScreen(new JoinMultiplayerScreen(this.previous));
         }));
-        this.addRenderableWidget(new Button(this.width / 2 - 155 + 160, 100 + p_210904_, 150, 20, CommonComponents.GUI_BACK, (p_210906_) -> {
+        this.addRenderableWidget(new Button(this.width / 2 - 155 + 160, 100 + pYOffset, 150, 20, CommonComponents.GUI_BACK, (p_210906_) -> {
             this.minecraft.setScreen(this.previous);
         }));
     }

@@ -23,8 +23,8 @@ public class DragonHoldingPatternPhase extends AbstractDragonPhaseInstance {
     private net.minecraft.world.phys.SectorVec3 targetLocation;
     private boolean clockwise;
 
-    public DragonHoldingPatternPhase(EnderDragon p_31230_) {
-        super(p_31230_);
+    public DragonHoldingPatternPhase(EnderDragon pDragon) {
+        super(pDragon);
     }
 
     public EnderDragonPhase<DragonHoldingPatternPhase> getPhase() {
@@ -107,9 +107,9 @@ public class DragonHoldingPatternPhase extends AbstractDragonPhaseInstance {
         this.navigateToNextPathNode();
     }
 
-    private void strafePlayer(Player p_31237_) {
+    private void strafePlayer(Player pPlayer) {
         this.dragon.getPhaseManager().setPhase(EnderDragonPhase.STRAFE_PLAYER);
-        this.dragon.getPhaseManager().getPhase(EnderDragonPhase.STRAFE_PLAYER).setTarget(p_31237_);
+        this.dragon.getPhaseManager().getPhase(EnderDragonPhase.STRAFE_PLAYER).setTarget(pPlayer);
     }
 
     private void navigateToNextPathNode() {
@@ -126,9 +126,9 @@ public class DragonHoldingPatternPhase extends AbstractDragonPhaseInstance {
         }
     }
 
-    public void onCrystalDestroyed(EndCrystal p_31232_, BlockPos p_31233_, DamageSource p_31234_, @Nullable Player p_31235_) {
-        if (p_31235_ != null && this.dragon.canAttack(p_31235_)) {
-            this.strafePlayer(p_31235_);
+    public void onCrystalDestroyed(EndCrystal pCrystal, BlockPos pPos, DamageSource pDmgSrc, @Nullable Player pPlyr) {
+        if (pPlyr != null && this.dragon.canAttack(pPlyr)) {
+            this.strafePlayer(pPlyr);
         }
     }
 }

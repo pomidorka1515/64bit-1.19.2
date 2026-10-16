@@ -86,7 +86,7 @@ public final class ItemTags {
     private ItemTags() {
     }
 
-    private static TagKey<Item> bind(String p_203855_) {
-        return TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(p_203855_));
+    private static TagKey<Item> bind(String pName) {
+        return TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(pName));
     }
 }

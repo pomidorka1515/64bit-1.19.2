@@ -44,25 +44,25 @@ public class StringTag implements Tag {
     private static final char NOT_SET = '\u0000';
     private final String data;
 
-    public static void skipString(DataInput p_197564_) throws IOException {
-        p_197564_.skipBytes(p_197564_.readUnsignedShort());
+    public static void skipString(DataInput pInput) throws IOException {
+        pInput.skipBytes(pInput.readUnsignedShort());
     }
 
-    private StringTag(String p_129293_) {
-        Objects.requireNonNull(p_129293_, "Null string not allowed");
-        this.data = p_129293_;
+    private StringTag(String pData) {
+        Objects.requireNonNull(pData, "Null string not allowed");
+        this.data = pData;
     }
 
-    public static StringTag valueOf(String p_129298_) {
-        return p_129298_.isEmpty() ? EMPTY : new StringTag(p_129298_);
+    public static StringTag valueOf(String pData) {
+        return pData.isEmpty() ? EMPTY : new StringTag(pData);
     }
 
-    public void write(DataOutput p_129296_) throws IOException {
+    public void write(DataOutput pOutput) throws IOException {
         try {
-            p_129296_.writeUTF(this.data);
+            pOutput.writeUTF(this.data);
         } catch (UTFDataFormatException utfdataformatexception) {
             Util.logAndPauseIfInIde("Failed to write NBT String", utfdataformatexception);
-            p_129296_.writeUTF("");
+            pOutput.writeUTF("");
         }
     }
 
@@ -82,11 +82,11 @@ public class StringTag implements Tag {
         return this;
     }
 
-    public boolean equals(Object p_129308_) {
-        if (this == p_129308_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
         } else {
-            return p_129308_ instanceof StringTag && Objects.equals(this.data, ((StringTag) p_129308_).data);
+            return pOther instanceof StringTag && Objects.equals(this.data, ((StringTag) pOther).data);
         }
     }
 
@@ -98,16 +98,16 @@ public class StringTag implements Tag {
         return this.data;
     }
 
-    public void accept(TagVisitor p_178154_) {
-        p_178154_.visitString(this);
+    public void accept(TagVisitor pVisitor) {
+        pVisitor.visitString(this);
     }
 
-    public static String quoteAndEscape(String p_129304_) {
+    public static String quoteAndEscape(String pText) {
         StringBuilder stringbuilder = new StringBuilder(" ");
         char c0 = 0;
 
-        for (int i = 0; i < p_129304_.length(); ++i) {
-            char c1 = p_129304_.charAt(i);
+        for (int i = 0; i < pText.length(); ++i) {
+            char c1 = pText.charAt(i);
             if (c1 == '\\') {
                 stringbuilder.append('\\');
             } else if (c1 == '"' || c1 == '\'') {
@@ -132,7 +132,7 @@ public class StringTag implements Tag {
         return stringbuilder.toString();
     }
 
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor p_197566_) {
-        return p_197566_.visit(this.data);
+    public StreamTagVisitor.ValueResult accept(StreamTagVisitor pVisitor) {
+        return pVisitor.visit(this.data);
     }
 }

@@ -32,10 +32,10 @@ public class GuardianModel extends HierarchicalModel<Guardian> {
     private final ModelPart[] spikeParts;
     private final ModelPart[] tailParts;
 
-    public GuardianModel(ModelPart p_170600_) {
-        this.root = p_170600_;
+    public GuardianModel(ModelPart pRoot) {
+        this.root = pRoot;
         this.spikeParts = new ModelPart[12];
-        this.head = p_170600_.getChild("head");
+        this.head = pRoot.getChild("head");
 
         for (int i = 0; i < this.spikeParts.length; ++i) {
             this.spikeParts[i] = this.head.getChild(createSpikeName(i));
@@ -48,8 +48,8 @@ public class GuardianModel extends HierarchicalModel<Guardian> {
         this.tailParts[2] = this.tailParts[1].getChild("tail2");
     }
 
-    private static String createSpikeName(int p_170603_) {
-        return "spike" + p_170603_;
+    private static String createSpikeName(int pIndex) {
+        return "spike" + pIndex;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -79,20 +79,20 @@ public class GuardianModel extends HierarchicalModel<Guardian> {
         return this.root;
     }
 
-    public void setupAnim(Guardian p_102719_, float p_102720_, float p_102721_, float p_102722_, float p_102723_, float p_102724_) {
-        float f = p_102722_ - (float) p_102719_.tickCount;
-        this.head.yRot = p_102723_ * ((float) Math.PI / 180F);
-        this.head.xRot = p_102724_ * ((float) Math.PI / 180F);
-        float f1 = (1.0F - p_102719_.getSpikesAnimation(f)) * 0.55F;
-        this.setupSpikes(p_102722_, f1);
+    public void setupAnim(Guardian pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
+        float f = pAgeInTicks - (float) pEntity.tickCount;
+        this.head.yRot = pNetHeadYaw * ((float) Math.PI / 180F);
+        this.head.xRot = pHeadPitch * ((float) Math.PI / 180F);
+        float f1 = (1.0F - pEntity.getSpikesAnimation(f)) * 0.55F;
+        this.setupSpikes(pAgeInTicks, f1);
         Entity entity = Minecraft.getInstance().getCameraEntity();
-        if (p_102719_.hasActiveAttackTarget()) {
-            entity = p_102719_.getActiveAttackTarget();
+        if (pEntity.hasActiveAttackTarget()) {
+            entity = pEntity.getActiveAttackTarget();
         }
 
         if (entity != null) {
             Vec3 vec3 = entity.getEyePosition(0.0F);
-            Vec3 vec31 = p_102719_.getEyePosition(0.0F);
+            Vec3 vec31 = pEntity.getEyePosition(0.0F);
             double d0 = vec3.y - vec31.y;
             if (d0 > 0.0D) {
                 this.eye.y = 0.0F;
@@ -100,7 +100,7 @@ public class GuardianModel extends HierarchicalModel<Guardian> {
                 this.eye.y = 1.0F;
             }
 
-            Vec3 vec32 = p_102719_.getViewVector(0.0F);
+            Vec3 vec32 = pEntity.getViewVector(0.0F);
             vec32 = new Vec3(vec32.x, 0.0D, vec32.z);
             Vec3 vec33 = (new Vec3(vec31.x - vec3.x, 0.0D, vec31.z - vec3.z)).normalize().yRot(((float) Math.PI / 2F));
             double d1 = vec32.dot(vec33);
@@ -108,7 +108,7 @@ public class GuardianModel extends HierarchicalModel<Guardian> {
         }
 
         this.eye.visible = true;
-        float f2 = p_102719_.getTailAnimation(f);
+        float f2 = pEntity.getTailAnimation(f);
         this.tailParts[0].yRot = Mth.sin(f2) * (float) Math.PI * 0.05F;
         this.tailParts[1].yRot = Mth.sin(f2) * (float) Math.PI * 0.1F;
         this.tailParts[2].yRot = Mth.sin(f2) * (float) Math.PI * 0.15F;

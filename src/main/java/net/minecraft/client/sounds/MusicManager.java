@@ -19,8 +19,8 @@ public class MusicManager {
     private SoundInstance currentMusic;
     private int nextSongDelay = 100;
 
-    public MusicManager(Minecraft p_120182_) {
-        this.minecraft = p_120182_;
+    public MusicManager(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
     public void tick() {
@@ -43,8 +43,8 @@ public class MusicManager {
         }
     }
 
-    public void startPlaying(Music p_120185_) {
-        this.currentMusic = SimpleSoundInstance.forMusic(p_120185_.getEvent());
+    public void startPlaying(Music pSelector) {
+        this.currentMusic = SimpleSoundInstance.forMusic(pSelector.getEvent());
         if (this.currentMusic.getSound() != SoundManager.EMPTY_SOUND) {
             this.minecraft.getSoundManager().play(this.currentMusic);
         }
@@ -61,7 +61,7 @@ public class MusicManager {
         this.nextSongDelay += 100;
     }
 
-    public boolean isPlayingMusic(Music p_120188_) {
-        return this.currentMusic == null ? false : p_120188_.getEvent().getLocation().equals(this.currentMusic.getLocation());
+    public boolean isPlayingMusic(Music pSelector) {
+        return this.currentMusic == null ? false : pSelector.getEvent().getLocation().equals(this.currentMusic.getLocation());
     }
 }

@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 public interface JvmProfiler {
     JvmProfiler INSTANCE = (JvmProfiler) (Runtime.class.getModule().getLayer().findModule("jdk.jfr").isPresent() ? JfrProfiler.getInstance() : new JvmProfiler.NoOpProfiler());
 
-    boolean start(Environment p_185347_);
+    boolean start(Environment pEnvironment);
 
     Path stop();
 
@@ -21,17 +21,17 @@ public interface JvmProfiler {
 
     boolean isAvailable();
 
-    void onServerTick(float p_185342_);
+    void onServerTick(float pCurrentAverageTickTime);
 
-    void onPacketReceived(int p_185343_, int p_185344_, SocketAddress p_185345_, int p_185346_);
+    void onPacketReceived(int pProtocolId, int pPacketId, SocketAddress pRemoteAddress, int pBytes);
 
-    void onPacketSent(int p_185351_, int p_185352_, SocketAddress p_185353_, int p_185354_);
+    void onPacketSent(int pProtocolId, int pPacketId, SocketAddress pRemoteAddress, int pBytes);
 
     @Nullable
     ProfiledDuration onWorldLoadedStarted();
 
     @Nullable
-    ProfiledDuration onChunkGenerate(ChunkPos p_185348_, ResourceKey<Level> p_185349_, String p_185350_);
+    ProfiledDuration onChunkGenerate(ChunkPos pChunkPos, ResourceKey<Level> pLevel, String pName);
 
     public static class NoOpProfiler implements JvmProfiler {
         private static final Logger LOGGER = LogUtils.getLogger();

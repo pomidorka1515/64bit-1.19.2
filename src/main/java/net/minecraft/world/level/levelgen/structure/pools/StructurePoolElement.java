@@ -34,11 +34,11 @@ public abstract class StructurePoolElement {
         return StructureTemplatePool.Projection.CODEC.fieldOf("projection").forGetter(StructurePoolElement::getProjection);
     }
 
-    protected StructurePoolElement(StructureTemplatePool.Projection p_210471_) {
-        this.projection = p_210471_;
+    protected StructurePoolElement(StructureTemplatePool.Projection pProjection) {
+        this.projection = pProjection;
     }
 
-    public abstract Vec3i getSize(StructureTemplateManager p_227346_, Rotation p_227347_);
+    public abstract Vec3i getSize(StructureTemplateManager pStructureTemplateManager, Rotation pRotation);
 
     public abstract List<StructureTemplate.StructureBlockInfo> getShuffledJigsawBlocks(StructureTemplateManager p_227351_, BlockPos p_227352_, Rotation p_227353_, RandomSource p_227354_);
 
@@ -48,11 +48,11 @@ public abstract class StructurePoolElement {
 
     public abstract StructurePoolElementType<?> getType();
 
-    public void handleDataMarker(LevelAccessor p_227330_, StructureTemplate.StructureBlockInfo p_227331_, BlockPos p_227332_, Rotation p_227333_, RandomSource p_227334_, BoundingBox p_227335_) {
+    public void handleDataMarker(LevelAccessor pLevel, StructureTemplate.StructureBlockInfo pBlockInfo, BlockPos pPos, Rotation pRotation, RandomSource pRandom, BoundingBox pBox) {
     }
 
-    public StructurePoolElement setProjection(StructureTemplatePool.Projection p_210479_) {
-        this.projection = p_210479_;
+    public StructurePoolElement setProjection(StructureTemplatePool.Projection pProjection) {
+        this.projection = pProjection;
         return this;
     }
 

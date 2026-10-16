@@ -39,24 +39,24 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
     @Nullable
     MobEffect secondary;
 
-    public BeaconScreen(final BeaconMenu p_97912_, Inventory p_97913_, Component p_97914_) {
-        super(p_97912_, p_97913_, p_97914_);
+    public BeaconScreen(final BeaconMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+        super(pMenu, pPlayerInventory, pTitle);
         this.imageWidth = 230;
         this.imageHeight = 219;
-        p_97912_.addSlotListener(new ContainerListener() {
+        pMenu.addSlotListener(new ContainerListener() {
             public void slotChanged(AbstractContainerMenu p_97973_, int p_97974_, ItemStack p_97975_) {
             }
 
             public void dataChanged(AbstractContainerMenu p_169628_, int p_169629_, int p_169630_) {
-                BeaconScreen.this.primary = p_97912_.getPrimaryEffect();
-                BeaconScreen.this.secondary = p_97912_.getSecondaryEffect();
+                BeaconScreen.this.primary = pMenu.getPrimaryEffect();
+                BeaconScreen.this.secondary = pMenu.getSecondaryEffect();
             }
         });
     }
 
-    private <T extends AbstractWidget & BeaconScreen.BeaconButton> void addBeaconButton(T p_169617_) {
-        this.addRenderableWidget(p_169617_);
-        this.beaconButtons.add(p_169617_);
+    private <T extends AbstractWidget & BeaconScreen.BeaconButton> void addBeaconButton(T pBeaconButton) {
+        this.addRenderableWidget(pBeaconButton);
+        this.beaconButtons.add(pBeaconButton);
     }
 
     protected void init() {
@@ -105,25 +105,25 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
         });
     }
 
-    protected void renderLabels(PoseStack p_97935_, int p_97936_, int p_97937_) {
-        drawCenteredString(p_97935_, this.font, PRIMARY_EFFECT_LABEL, 62, 10, 14737632);
-        drawCenteredString(p_97935_, this.font, SECONDARY_EFFECT_LABEL, 169, 10, 14737632);
+    protected void renderLabels(PoseStack pPoseStack, int pX, int pY) {
+        drawCenteredString(pPoseStack, this.font, PRIMARY_EFFECT_LABEL, 62, 10, 14737632);
+        drawCenteredString(pPoseStack, this.font, SECONDARY_EFFECT_LABEL, 169, 10, 14737632);
 
         for (BeaconScreen.BeaconButton beaconscreen$beaconbutton : this.beaconButtons) {
             if (beaconscreen$beaconbutton.isShowingTooltip()) {
-                beaconscreen$beaconbutton.renderToolTip(p_97935_, p_97936_ - this.leftPos, p_97937_ - this.topPos);
+                beaconscreen$beaconbutton.renderToolTip(pPoseStack, pX - this.leftPos, pY - this.topPos);
                 break;
             }
         }
     }
 
-    protected void renderBg(PoseStack p_97916_, float p_97917_, int p_97918_, int p_97919_) {
+    protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, BEACON_LOCATION);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        this.blit(p_97916_, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        this.blit(pPoseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
         this.itemRenderer.blitOffset = 100.0F;
         this.itemRenderer.renderAndDecorateItem(new ItemStack(Items.NETHERITE_INGOT), i + 20, j + 109);
         this.itemRenderer.renderAndDecorateItem(new ItemStack(Items.EMERALD), i + 41, j + 109);
@@ -133,19 +133,19 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
         this.itemRenderer.blitOffset = 0.0F;
     }
 
-    public void render(PoseStack p_97921_, int p_97922_, int p_97923_, float p_97924_) {
-        this.renderBackground(p_97921_);
-        super.render(p_97921_, p_97922_, p_97923_, p_97924_);
-        this.renderTooltip(p_97921_, p_97922_, p_97923_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        this.renderTooltip(pPoseStack, pMouseX, pMouseY);
     }
 
     @OnlyIn(Dist.CLIENT)
     interface BeaconButton {
         boolean isShowingTooltip();
 
-        void renderToolTip(PoseStack p_169632_, int p_169633_, int p_169634_);
+        void renderToolTip(PoseStack pPoseStack, int pRelativeMouseX, int pRelativeMouseY);
 
-        void updateStatus(int p_169631_);
+        void updateStatus(int pBeaconTier);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -158,7 +158,7 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
             BeaconScreen.this.minecraft.player.closeContainer();
         }
 
-        public void updateStatus(int p_169636_) {
+        public void updateStatus(int pBeaconTier) {
         }
     }
 
@@ -173,7 +173,7 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
             BeaconScreen.this.minecraft.player.closeContainer();
         }
 
-        public void updateStatus(int p_169638_) {
+        public void updateStatus(int pBeaconTier) {
             this.active = BeaconScreen.this.menu.hasPayment() && BeaconScreen.this.primary != null;
         }
     }
@@ -193,14 +193,14 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
             this.setEffect(p_169644_);
         }
 
-        protected void setEffect(MobEffect p_169650_) {
-            this.effect = p_169650_;
-            this.sprite = Minecraft.getInstance().getMobEffectTextures().get(p_169650_);
-            this.tooltip = this.createEffectDescription(p_169650_);
+        protected void setEffect(MobEffect pEffect) {
+            this.effect = pEffect;
+            this.sprite = Minecraft.getInstance().getMobEffectTextures().get(pEffect);
+            this.tooltip = this.createEffectDescription(pEffect);
         }
 
-        protected MutableComponent createEffectDescription(MobEffect p_169652_) {
-            return Component.translatable(p_169652_.getDescriptionId());
+        protected MutableComponent createEffectDescription(MobEffect pEffect) {
+            return Component.translatable(pEffect.getDescriptionId());
         }
 
         public void onPress() {
@@ -215,17 +215,17 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
             }
         }
 
-        public void renderToolTip(PoseStack p_98016_, int p_98017_, int p_98018_) {
-            BeaconScreen.this.renderTooltip(p_98016_, this.tooltip, p_98017_, p_98018_);
+        public void renderToolTip(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+            BeaconScreen.this.renderTooltip(pPoseStack, this.tooltip, pMouseX, pMouseY);
         }
 
-        protected void renderIcon(PoseStack p_98014_) {
+        protected void renderIcon(PoseStack pPoseStack) {
             RenderSystem.setShaderTexture(0, this.sprite.atlas().location());
-            blit(p_98014_, this.x + 2, this.y + 2, this.getBlitOffset(), 18, 18, this.sprite);
+            blit(pPoseStack, this.x + 2, this.y + 2, this.getBlitOffset(), 18, 18, this.sprite);
         }
 
-        public void updateStatus(int p_169648_) {
-            this.active = this.tier < p_169648_;
+        public void updateStatus(int pBeaconTier) {
+            this.active = this.tier < pBeaconTier;
             this.setSelected(this.effect == (this.isPrimary ? BeaconScreen.this.primary : BeaconScreen.this.secondary));
         }
 
@@ -238,15 +238,15 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
     abstract static class BeaconScreenButton extends AbstractButton implements BeaconScreen.BeaconButton {
         private boolean selected;
 
-        protected BeaconScreenButton(int p_98022_, int p_98023_) {
-            super(p_98022_, p_98023_, 22, 22, CommonComponents.EMPTY);
+        protected BeaconScreenButton(int pX, int pY) {
+            super(pX, pY, 22, 22, CommonComponents.EMPTY);
         }
 
-        protected BeaconScreenButton(int p_169654_, int p_169655_, Component p_169656_) {
-            super(p_169654_, p_169655_, 22, 22, p_169656_);
+        protected BeaconScreenButton(int pX, int pY, Component pMessage) {
+            super(pX, pY, 22, 22, pMessage);
         }
 
-        public void renderButton(PoseStack p_98027_, int p_98028_, int p_98029_, float p_98030_) {
+        public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, BeaconScreen.BEACON_LOCATION);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -260,26 +260,26 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
                 j += this.width * 3;
             }
 
-            this.blit(p_98027_, this.x, this.y, j, 219, this.width, this.height);
-            this.renderIcon(p_98027_);
+            this.blit(pPoseStack, this.x, this.y, j, 219, this.width, this.height);
+            this.renderIcon(pPoseStack);
         }
 
-        protected abstract void renderIcon(PoseStack p_98025_);
+        protected abstract void renderIcon(PoseStack pPoseStack);
 
         public boolean isSelected() {
             return this.selected;
         }
 
-        public void setSelected(boolean p_98032_) {
-            this.selected = p_98032_;
+        public void setSelected(boolean pSelected) {
+            this.selected = pSelected;
         }
 
         public boolean isShowingTooltip() {
             return this.isHovered;
         }
 
-        public void updateNarration(NarrationElementOutput p_169659_) {
-            this.defaultButtonNarrationText(p_169659_);
+        public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+            this.defaultButtonNarrationText(pNarrationElementOutput);
         }
     }
 
@@ -294,12 +294,12 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
             this.iconY = p_169666_;
         }
 
-        protected void renderIcon(PoseStack p_98041_) {
-            this.blit(p_98041_, this.x + 2, this.y + 2, this.iconX, this.iconY, 18, 18);
+        protected void renderIcon(PoseStack pPoseStack) {
+            this.blit(pPoseStack, this.x + 2, this.y + 2, this.iconX, this.iconY, 18, 18);
         }
 
-        public void renderToolTip(PoseStack p_169669_, int p_169670_, int p_169671_) {
-            BeaconScreen.this.renderTooltip(p_169669_, BeaconScreen.this.title, p_169670_, p_169671_);
+        public void renderToolTip(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+            BeaconScreen.this.renderTooltip(pPoseStack, BeaconScreen.this.title, pMouseX, pMouseY);
         }
     }
 
@@ -309,15 +309,15 @@ public class BeaconScreen extends AbstractContainerScreen<BeaconMenu> {
             super(p_169675_, p_169676_, p_169677_, false, 3);
         }
 
-        protected MutableComponent createEffectDescription(MobEffect p_169681_) {
-            return Component.translatable(p_169681_.getDescriptionId()).append(" II");
+        protected MutableComponent createEffectDescription(MobEffect pEffect) {
+            return Component.translatable(pEffect.getDescriptionId()).append(" II");
         }
 
-        public void updateStatus(int p_169679_) {
+        public void updateStatus(int pBeaconTier) {
             if (BeaconScreen.this.primary != null) {
                 this.visible = true;
                 this.setEffect(BeaconScreen.this.primary);
-                super.updateStatus(p_169679_);
+                super.updateStatus(pBeaconTier);
             } else {
                 this.visible = false;
             }

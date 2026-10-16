@@ -69,21 +69,21 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
     private boolean visible;
     private boolean widthTooNarrow;
 
-    public void init(int p_100310_, int p_100311_, Minecraft p_100312_, boolean p_100313_, RecipeBookMenu<?> p_100314_) {
-        this.minecraft = p_100312_;
-        this.width = p_100310_;
-        this.height = p_100311_;
-        this.menu = p_100314_;
-        this.widthTooNarrow = p_100313_;
-        p_100312_.player.containerMenu = p_100314_;
-        this.book = p_100312_.player.getRecipeBook();
-        this.timesInventoryChanged = p_100312_.player.getInventory().getTimesChanged();
+    public void init(int pWidth, int pHeight, Minecraft pMinecraft, boolean pWidthTooNarrow, RecipeBookMenu<?> pMenu) {
+        this.minecraft = pMinecraft;
+        this.width = pWidth;
+        this.height = pHeight;
+        this.menu = pMenu;
+        this.widthTooNarrow = pWidthTooNarrow;
+        pMinecraft.player.containerMenu = pMenu;
+        this.book = pMinecraft.player.getRecipeBook();
+        this.timesInventoryChanged = pMinecraft.player.getInventory().getTimesChanged();
         this.visible = this.isVisibleAccordingToBookData();
         if (this.visible) {
             this.initVisuals();
         }
 
-        p_100312_.keyboardHandler.setSendRepeatsToGui(true);
+        pMinecraft.keyboardHandler.setSendRepeatsToGui(true);
     }
 
     public void initVisuals() {
@@ -127,7 +127,7 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         this.updateTabs();
     }
 
-    public boolean changeFocus(boolean p_100372_) {
+    public boolean changeFocus(boolean pFocus) {
         return false;
     }
 
@@ -162,22 +162,22 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         return this.book.isOpen(this.menu.getRecipeBookType());
     }
 
-    protected void setVisible(boolean p_100370_) {
-        if (p_100370_) {
+    protected void setVisible(boolean pVisible) {
+        if (pVisible) {
             this.initVisuals();
         }
 
-        this.visible = p_100370_;
-        this.book.setOpen(this.menu.getRecipeBookType(), p_100370_);
-        if (!p_100370_) {
+        this.visible = pVisible;
+        this.book.setOpen(this.menu.getRecipeBookType(), pVisible);
+        if (!pVisible) {
             this.recipeBookPage.setInvisible();
         }
 
         this.sendUpdateSettings();
     }
 
-    public void slotClicked(@Nullable Slot p_100315_) {
-        if (p_100315_ != null && p_100315_.index < this.menu.getSize()) {
+    public void slotClicked(@Nullable Slot pSlot) {
+        if (pSlot != null && pSlot.index < this.menu.getSize()) {
             this.ghostRecipe.clear();
             if (this.isVisible()) {
                 this.updateStackedContents();
@@ -257,43 +257,43 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         this.updateCollections(false);
     }
 
-    public void render(PoseStack p_100319_, int p_100320_, int p_100321_, float p_100322_) {
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (this.isVisible()) {
-            p_100319_.pushPose();
-            p_100319_.translate(0.0D, 0.0D, 100.0D);
+            pPoseStack.pushPose();
+            pPoseStack.translate(0.0D, 0.0D, 100.0D);
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, RECIPE_BOOK_LOCATION);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             int i = (this.width - 147) / 2 - this.xOffset;
             int j = (this.height - 166) / 2;
-            this.blit(p_100319_, i, j, 1, 1, 147, 166);
+            this.blit(pPoseStack, i, j, 1, 1, 147, 166);
             if (!this.searchBox.isFocused() && this.searchBox.getValue().isEmpty()) {
-                drawString(p_100319_, this.minecraft.font, SEARCH_HINT, i + 25, j + 14, -1);
+                drawString(pPoseStack, this.minecraft.font, SEARCH_HINT, i + 25, j + 14, -1);
             } else {
-                this.searchBox.render(p_100319_, p_100320_, p_100321_, p_100322_);
+                this.searchBox.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             }
 
             for (RecipeBookTabButton recipebooktabbutton : this.tabButtons) {
-                recipebooktabbutton.render(p_100319_, p_100320_, p_100321_, p_100322_);
+                recipebooktabbutton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
             }
 
-            this.filterButton.render(p_100319_, p_100320_, p_100321_, p_100322_);
-            this.recipeBookPage.render(p_100319_, i, j, p_100320_, p_100321_, p_100322_);
-            p_100319_.popPose();
+            this.filterButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.recipeBookPage.render(pPoseStack, i, j, pMouseX, pMouseY, pPartialTick);
+            pPoseStack.popPose();
         }
     }
 
-    public void renderTooltip(PoseStack p_100362_, int p_100363_, int p_100364_, int p_100365_, int p_100366_) {
+    public void renderTooltip(PoseStack pPoseStack, int pRenderX, int pRenderY, int pMouseX, int pMouseY) {
         if (this.isVisible()) {
-            this.recipeBookPage.renderTooltip(p_100362_, p_100365_, p_100366_);
+            this.recipeBookPage.renderTooltip(pPoseStack, pMouseX, pMouseY);
             if (this.filterButton.isHoveredOrFocused()) {
                 Component component = this.getFilterButtonTooltip();
                 if (this.minecraft.screen != null) {
-                    this.minecraft.screen.renderTooltip(p_100362_, component, p_100365_, p_100366_);
+                    this.minecraft.screen.renderTooltip(pPoseStack, component, pMouseX, pMouseY);
                 }
             }
 
-            this.renderGhostRecipeTooltip(p_100362_, p_100363_, p_100364_, p_100365_, p_100366_);
+            this.renderGhostRecipeTooltip(pPoseStack, pRenderX, pRenderY, pMouseX, pMouseY);
         }
     }
 
@@ -326,9 +326,9 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         this.ghostRecipe.render(p_100323_, this.minecraft, p_100324_, p_100325_, p_100326_, p_100327_);
     }
 
-    public boolean mouseClicked(double p_100294_, double p_100295_, int p_100296_) {
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (this.isVisible() && !this.minecraft.player.isSpectator()) {
-            if (this.recipeBookPage.mouseClicked(p_100294_, p_100295_, p_100296_, (this.width - 147) / 2 - this.xOffset, (this.height - 166) / 2, 147, 166)) {
+            if (this.recipeBookPage.mouseClicked(pMouseX, pMouseY, pButton, (this.width - 147) / 2 - this.xOffset, (this.height - 166) / 2, 147, 166)) {
                 Recipe<?> recipe = this.recipeBookPage.getLastClickedRecipe();
                 RecipeCollection recipecollection = this.recipeBookPage.getLastClickedRecipeCollection();
                 if (recipe != null && recipecollection != null) {
@@ -344,9 +344,9 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
                 }
 
                 return true;
-            } else if (this.searchBox.mouseClicked(p_100294_, p_100295_, p_100296_)) {
+            } else if (this.searchBox.mouseClicked(pMouseX, pMouseY, pButton)) {
                 return true;
-            } else if (this.filterButton.mouseClicked(p_100294_, p_100295_, p_100296_)) {
+            } else if (this.filterButton.mouseClicked(pMouseX, pMouseY, pButton)) {
                 boolean flag = this.toggleFiltering();
                 this.filterButton.setStateTriggered(flag);
                 this.sendUpdateSettings();
@@ -354,7 +354,7 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
                 return true;
             } else {
                 for (RecipeBookTabButton recipebooktabbutton : this.tabButtons) {
-                    if (recipebooktabbutton.mouseClicked(p_100294_, p_100295_, p_100296_)) {
+                    if (recipebooktabbutton.mouseClicked(pMouseX, pMouseY, pButton)) {
                         if (this.selectedTab != recipebooktabbutton) {
                             if (this.selectedTab != null) {
                                 this.selectedTab.setStateTriggered(false);
@@ -393,18 +393,18 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         }
     }
 
-    public boolean keyPressed(int p_100306_, int p_100307_, int p_100308_) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         this.ignoreTextInput = false;
         if (this.isVisible() && !this.minecraft.player.isSpectator()) {
-            if (p_100306_ == 256 && !this.isOffsetNextToMainGUI()) {
+            if (pKeyCode == 256 && !this.isOffsetNextToMainGUI()) {
                 this.setVisible(false);
                 return true;
-            } else if (this.searchBox.keyPressed(p_100306_, p_100307_, p_100308_)) {
+            } else if (this.searchBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
                 this.checkSearchStringUpdate();
                 return true;
-            } else if (this.searchBox.isFocused() && this.searchBox.isVisible() && p_100306_ != 256) {
+            } else if (this.searchBox.isFocused() && this.searchBox.isVisible() && pKeyCode != 256) {
                 return true;
-            } else if (this.minecraft.options.keyChat.matches(p_100306_, p_100307_) && !this.searchBox.isFocused()) {
+            } else if (this.minecraft.options.keyChat.matches(pKeyCode, pScanCode) && !this.searchBox.isFocused()) {
                 this.ignoreTextInput = true;
                 this.searchBox.setFocus(true);
                 return true;
@@ -416,27 +416,27 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         }
     }
 
-    public boolean keyReleased(int p_100356_, int p_100357_, int p_100358_) {
+    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
         this.ignoreTextInput = false;
-        return GuiEventListener.super.keyReleased(p_100356_, p_100357_, p_100358_);
+        return GuiEventListener.super.keyReleased(pKeyCode, pScanCode, pModifiers);
     }
 
-    public boolean charTyped(char p_100291_, int p_100292_) {
+    public boolean charTyped(char pCodePoint, int pModifiers) {
         if (this.ignoreTextInput) {
             return false;
         } else if (this.isVisible() && !this.minecraft.player.isSpectator()) {
-            if (this.searchBox.charTyped(p_100291_, p_100292_)) {
+            if (this.searchBox.charTyped(pCodePoint, pModifiers)) {
                 this.checkSearchStringUpdate();
                 return true;
             } else {
-                return GuiEventListener.super.charTyped(p_100291_, p_100292_);
+                return GuiEventListener.super.charTyped(pCodePoint, pModifiers);
             }
         } else {
             return false;
         }
     }
 
-    public boolean isMouseOver(double p_100353_, double p_100354_) {
+    public boolean isMouseOver(double pMouseX, double pMouseY) {
         return false;
     }
 
@@ -449,8 +449,8 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         }
     }
 
-    private void pirateSpeechForThePeople(String p_100336_) {
-        if ("excitedze".equals(p_100336_)) {
+    private void pirateSpeechForThePeople(String pText) {
+        if ("excitedze".equals(pText)) {
             LanguageManager languagemanager = this.minecraft.getLanguageManager();
             LanguageInfo languageinfo = languagemanager.getLanguage("en_pt");
             if (languagemanager.getSelected().compareTo(languageinfo) == 0) {
@@ -475,23 +475,23 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         }
     }
 
-    public void recipesShown(List<Recipe<?>> p_100344_) {
-        for (Recipe<?> recipe : p_100344_) {
+    public void recipesShown(List<Recipe<?>> pRecipes) {
+        for (Recipe<?> recipe : pRecipes) {
             this.minecraft.player.removeRecipeHighlight(recipe);
         }
     }
 
-    public void setupGhostRecipe(Recipe<?> p_100316_, List<Slot> p_100317_) {
-        ItemStack itemstack = p_100316_.getResultItem();
-        this.ghostRecipe.setRecipe(p_100316_);
-        this.ghostRecipe.addIngredient(Ingredient.of(itemstack), (p_100317_.get(0)).x, (p_100317_.get(0)).y);
-        this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), p_100316_, p_100316_.getIngredients().iterator(), 0);
+    public void setupGhostRecipe(Recipe<?> pRecipe, List<Slot> pSlots) {
+        ItemStack itemstack = pRecipe.getResultItem();
+        this.ghostRecipe.setRecipe(pRecipe);
+        this.ghostRecipe.addIngredient(Ingredient.of(itemstack), (pSlots.get(0)).x, (pSlots.get(0)).y);
+        this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), pRecipe, pRecipe.getIngredients().iterator(), 0);
     }
 
-    public void addItemToSlot(Iterator<Ingredient> p_100338_, int p_100339_, int p_100340_, int p_100341_, int p_100342_) {
-        Ingredient ingredient = p_100338_.next();
+    public void addItemToSlot(Iterator<Ingredient> pIngredients, int pSlot, int pMaxAmount, int pY, int pX) {
+        Ingredient ingredient = pIngredients.next();
         if (!ingredient.isEmpty()) {
-            Slot slot = this.menu.slots.get(p_100339_);
+            Slot slot = this.menu.slots.get(pSlot);
             this.ghostRecipe.addIngredient(ingredient, slot.x, slot.y);
         }
     }
@@ -509,7 +509,7 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         return this.visible ? NarratableEntry.NarrationPriority.HOVERED : NarratableEntry.NarrationPriority.NONE;
     }
 
-    public void updateNarration(NarrationElementOutput p_170046_) {
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
         List<NarratableEntry> list = Lists.newArrayList();
         this.recipeBookPage.listButtons((p_170049_) -> {
             if (p_170049_.isActive()) {
@@ -521,7 +521,7 @@ public class RecipeBookComponent extends GuiComponent implements PlaceRecipe<Ing
         list.addAll(this.tabButtons);
         Screen.NarratableSearchResult screen$narratablesearchresult = Screen.findNarratableWidget(list, (NarratableEntry) null);
         if (screen$narratablesearchresult != null) {
-            screen$narratablesearchresult.entry.updateNarration(p_170046_.nest());
+            screen$narratablesearchresult.entry.updateNarration(pNarrationElementOutput.nest());
         }
     }
 }

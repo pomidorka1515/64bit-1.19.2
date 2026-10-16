@@ -7,13 +7,13 @@ public class ServerboundStatusRequestPacket implements Packet<ServerStatusPacket
     public ServerboundStatusRequestPacket() {
     }
 
-    public ServerboundStatusRequestPacket(FriendlyByteBuf p_179840_) {
+    public ServerboundStatusRequestPacket(FriendlyByteBuf pBuffer) {
     }
 
-    public void write(FriendlyByteBuf p_135009_) {
+    public void write(FriendlyByteBuf pBuffer) {
     }
 
-    public void handle(ServerStatusPacketListener p_135007_) {
-        p_135007_.handleStatusRequest(this);
+    public void handle(ServerStatusPacketListener pHandler) {
+        pHandler.handleStatusRequest(this);
     }
 }

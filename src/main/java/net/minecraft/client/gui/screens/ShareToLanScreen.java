@@ -19,9 +19,9 @@ public class ShareToLanScreen extends Screen {
     private GameType gameMode = GameType.SURVIVAL;
     private boolean commands;
 
-    public ShareToLanScreen(Screen p_96650_) {
+    public ShareToLanScreen(Screen pLastScreen) {
         super(Component.translatable("lanServer.title"));
-        this.lastScreen = p_96650_;
+        this.lastScreen = pLastScreen;
     }
 
     protected void init() {
@@ -49,10 +49,10 @@ public class ShareToLanScreen extends Screen {
         }));
     }
 
-    public void render(PoseStack p_96652_, int p_96653_, int p_96654_, float p_96655_) {
-        this.renderBackground(p_96652_);
-        drawCenteredString(p_96652_, this.font, this.title, this.width / 2, 50, 16777215);
-        drawCenteredString(p_96652_, this.font, INFO_TEXT, this.width / 2, 82, 16777215);
-        super.render(p_96652_, p_96653_, p_96654_, p_96655_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 50, 16777215);
+        drawCenteredString(pPoseStack, this.font, INFO_TEXT, this.width / 2, 82, 16777215);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

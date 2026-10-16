@@ -16,13 +16,13 @@ public abstract class ResettingWorldTask extends LongRunningTask {
     private final Component title;
     private final Runnable callback;
 
-    public ResettingWorldTask(long p_167676_, Component p_167677_, Runnable p_167678_) {
-        this.serverId = p_167676_;
-        this.title = p_167677_;
-        this.callback = p_167678_;
+    public ResettingWorldTask(long pServerId, Component pTitle, Runnable pCallback) {
+        this.serverId = pServerId;
+        this.title = pTitle;
+        this.callback = pCallback;
     }
 
-    protected abstract void sendResetRequest(RealmsClient p_167679_, long p_167680_) throws RealmsServiceException;
+    protected abstract void sendResetRequest(RealmsClient pClient, long pServerId) throws RealmsServiceException;
 
     public void run() {
         RealmsClient realmsclient = RealmsClient.create();

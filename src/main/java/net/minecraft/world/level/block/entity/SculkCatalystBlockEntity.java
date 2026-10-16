@@ -23,8 +23,8 @@ public class SculkCatalystBlockEntity extends BlockEntity implements GameEventLi
     private final BlockPositionSource blockPosSource = new BlockPositionSource(this.worldPosition);
     private final SculkSpreader sculkSpreader = SculkSpreader.createLevelSpreader();
 
-    public SculkCatalystBlockEntity(BlockPos p_222774_, BlockState p_222775_) {
-        super(BlockEntityType.SCULK_CATALYST, p_222774_, p_222775_);
+    public SculkCatalystBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(BlockEntityType.SCULK_CATALYST, pPos, pBlockState);
     }
 
     public boolean handleEventsImmediately() {
@@ -39,19 +39,19 @@ public class SculkCatalystBlockEntity extends BlockEntity implements GameEventLi
         return 8;
     }
 
-    public boolean handleGameEvent(ServerLevel p_222777_, GameEvent.Message p_222778_) {
+    public boolean handleGameEvent(ServerLevel pLevel, GameEvent.Message pEventMessage) {
         if (this.isRemoved()) {
             return false;
         } else {
-            GameEvent.Context gameevent$context = p_222778_.context();
-            if (p_222778_.gameEvent() == GameEvent.ENTITY_DIE) {
+            GameEvent.Context gameevent$context = pEventMessage.context();
+            if (pEventMessage.gameEvent() == GameEvent.ENTITY_DIE) {
                 Entity $$4 = gameevent$context.sourceEntity();
                 if ($$4 instanceof LivingEntity) {
                     LivingEntity livingentity = (LivingEntity) $$4;
                     if (!livingentity.wasExperienceConsumed()) {
                         int i = livingentity.getExperienceReward();
                         if (livingentity.shouldDropExperience() && i > 0) {
-                            this.sculkSpreader.addCursors(new BlockPos(p_222778_.source().relative(Direction.UP, 0.5D)), i);
+                            this.sculkSpreader.addCursors(new BlockPos(pEventMessage.source().relative(Direction.UP, 0.5D)), i);
                             LivingEntity livingentity1 = livingentity.getLastHurtByMob();
                             if (livingentity1 instanceof ServerPlayer) {
                                 ServerPlayer serverplayer = (ServerPlayer) livingentity1;
@@ -61,7 +61,7 @@ public class SculkCatalystBlockEntity extends BlockEntity implements GameEventLi
                         }
 
                         livingentity.skipDropExperience();
-                        SculkCatalystBlock.bloom(p_222777_, this.worldPosition, this.getBlockState(), p_222777_.getRandom());
+                        SculkCatalystBlock.bloom(pLevel, this.worldPosition, this.getBlockState(), pLevel.getRandom());
                     }
 
                     return true;
@@ -72,18 +72,18 @@ public class SculkCatalystBlockEntity extends BlockEntity implements GameEventLi
         }
     }
 
-    public static void serverTick(Level p_222780_, BlockPos p_222781_, BlockState p_222782_, SculkCatalystBlockEntity p_222783_) {
-        p_222783_.sculkSpreader.updateCursors(p_222780_, p_222781_, p_222780_.getRandom(), true);
+    public static void serverTick(Level pLevel, BlockPos pPos, BlockState pState, SculkCatalystBlockEntity pSculkCatalyst) {
+        pSculkCatalyst.sculkSpreader.updateCursors(pLevel, pPos, pLevel.getRandom(), true);
     }
 
-    public void load(CompoundTag p_222787_) {
-        super.load(p_222787_);
-        this.sculkSpreader.load(p_222787_);
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
+        this.sculkSpreader.load(pTag);
     }
 
-    protected void saveAdditional(CompoundTag p_222789_) {
-        this.sculkSpreader.save(p_222789_);
-        super.saveAdditional(p_222789_);
+    protected void saveAdditional(CompoundTag pTag) {
+        this.sculkSpreader.save(pTag);
+        super.saveAdditional(pTag);
     }
 
     @VisibleForTesting

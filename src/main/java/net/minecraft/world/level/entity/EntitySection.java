@@ -14,34 +14,34 @@ public class EntitySection<T extends EntityAccess> {
     private final ClassInstanceMultiMap<T> storage;
     private Visibility chunkStatus;
 
-    public EntitySection(Class<T> p_156831_, Visibility p_156832_) {
-        this.chunkStatus = p_156832_;
-        this.storage = new ClassInstanceMultiMap<>(p_156831_);
+    public EntitySection(Class<T> pEntityClazz, Visibility pChunkStatus) {
+        this.chunkStatus = pChunkStatus;
+        this.storage = new ClassInstanceMultiMap<>(pEntityClazz);
     }
 
-    public void add(T p_188347_) {
-        this.storage.add(p_188347_);
+    public void add(T pEntity) {
+        this.storage.add(pEntity);
     }
 
-    public boolean remove(T p_188356_) {
-        return this.storage.remove(p_188356_);
+    public boolean remove(T pEntity) {
+        return this.storage.remove(pEntity);
     }
 
-    public void getEntities(AABB p_188353_, Consumer<T> p_188354_) {
+    public void getEntities(AABB pBounds, Consumer<T> pConsumer) {
         for (T t : this.storage) {
-            if (t.getBoundingBox().intersects(p_188353_)) {
-                p_188354_.accept(t);
+            if (t.getBoundingBox().intersects(pBounds)) {
+                pConsumer.accept(t);
             }
         }
     }
 
-    public <U extends T> void getEntities(EntityTypeTest<T, U> p_188349_, AABB p_188350_, Consumer<? super U> p_188351_) {
-        Collection<? extends T> collection = this.storage.find(p_188349_.getBaseClass());
+    public <U extends T> void getEntities(EntityTypeTest<T, U> pTest, AABB pBounds, Consumer<? super U> pConsumer) {
+        Collection<? extends T> collection = this.storage.find(pTest.getBaseClass());
         if (!collection.isEmpty()) {
             for (T t : collection) {
-                U u = (U) ((EntityAccess) p_188349_.tryCast(t));
-                if (u != null && t.getBoundingBox().intersects(p_188350_)) {
-                    p_188351_.accept(u);
+                U u = (U) ((EntityAccess) pTest.tryCast(t));
+                if (u != null && t.getBoundingBox().intersects(pBounds)) {
+                    pConsumer.accept(u);
                 }
             }
         }
@@ -59,9 +59,9 @@ public class EntitySection<T extends EntityAccess> {
         return this.chunkStatus;
     }
 
-    public Visibility updateChunkStatus(Visibility p_156839_) {
+    public Visibility updateChunkStatus(Visibility pChunkStatus) {
         Visibility visibility = this.chunkStatus;
-        this.chunkStatus = p_156839_;
+        this.chunkStatus = pChunkStatus;
         return visibility;
     }
 

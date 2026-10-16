@@ -20,15 +20,15 @@ public class Program {
     private final String name;
     private int id;
 
-    protected Program(Program.Type p_85540_, int p_85541_, String p_85542_) {
-        this.type = p_85540_;
-        this.id = p_85541_;
-        this.name = p_85542_;
+    protected Program(Program.Type pType, int pId, String pName) {
+        this.type = pType;
+        this.id = pId;
+        this.name = pName;
     }
 
-    public void attachToShader(Shader p_166611_) {
+    public void attachToShader(Shader pShader) {
         RenderSystem.assertOnRenderThread();
-        GlStateManager.glAttachShader(p_166611_.getId(), this.getId());
+        GlStateManager.glAttachShader(pShader.getId(), this.getId());
     }
 
     public void close() {
@@ -44,25 +44,25 @@ public class Program {
         return this.name;
     }
 
-    public static Program compileShader(Program.Type p_166605_, String p_166606_, InputStream p_166607_, String p_166608_, GlslPreprocessor p_166609_) throws IOException {
+    public static Program compileShader(Program.Type pType, String pName, InputStream pShaderData, String pSourceName, GlslPreprocessor pPreprocessor) throws IOException {
         RenderSystem.assertOnRenderThread();
-        int i = compileShaderInternal(p_166605_, p_166606_, p_166607_, p_166608_, p_166609_);
-        Program program = new Program(p_166605_, i, p_166606_);
-        p_166605_.getPrograms().put(p_166606_, program);
+        int i = compileShaderInternal(pType, pName, pShaderData, pSourceName, pPreprocessor);
+        Program program = new Program(pType, i, pName);
+        pType.getPrograms().put(pName, program);
         return program;
     }
 
-    protected static int compileShaderInternal(Program.Type p_166613_, String p_166614_, InputStream p_166615_, String p_166616_, GlslPreprocessor p_166617_) throws IOException {
-        String s = IOUtils.toString(p_166615_, StandardCharsets.UTF_8);
+    protected static int compileShaderInternal(Program.Type pType, String pName, InputStream pShaderData, String pSourceName, GlslPreprocessor pPreprocessor) throws IOException {
+        String s = IOUtils.toString(pShaderData, StandardCharsets.UTF_8);
         if (s == null) {
-            throw new IOException("Could not load program " + p_166613_.getName());
+            throw new IOException("Could not load program " + pType.getName());
         } else {
-            int i = GlStateManager.glCreateShader(p_166613_.getGlType());
-            GlStateManager.glShaderSource(i, p_166617_.process(s));
+            int i = GlStateManager.glCreateShader(pType.getGlType());
+            GlStateManager.glShaderSource(i, pPreprocessor.process(s));
             GlStateManager.glCompileShader(i);
             if (GlStateManager.glGetShaderi(i, 35713) == 0) {
                 String s1 = StringUtils.trim(GlStateManager.glGetShaderInfoLog(i, 32768));
-                throw new IOException("Couldn't compile " + p_166613_.getName() + " program (" + p_166616_ + ", " + p_166614_ + ") : " + s1);
+                throw new IOException("Couldn't compile " + pType.getName() + " program (" + pSourceName + ", " + pName + ") : " + s1);
             } else {
                 return i;
             }

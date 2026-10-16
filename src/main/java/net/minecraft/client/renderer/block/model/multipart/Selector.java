@@ -26,14 +26,14 @@ public class Selector {
     private final Condition condition;
     private final MultiVariant variant;
 
-    public Selector(Condition p_112018_, MultiVariant p_112019_) {
-        if (p_112018_ == null) {
+    public Selector(Condition pCondition, MultiVariant pVariant) {
+        if (pCondition == null) {
             throw new IllegalArgumentException("Missing condition for selector");
-        } else if (p_112019_ == null) {
+        } else if (pVariant == null) {
             throw new IllegalArgumentException("Missing variant for selector");
         } else {
-            this.condition = p_112018_;
-            this.variant = p_112019_;
+            this.condition = pCondition;
+            this.variant = pVariant;
         }
     }
 
@@ -41,12 +41,12 @@ public class Selector {
         return this.variant;
     }
 
-    public Predicate<BlockState> getPredicate(StateDefinition<Block, BlockState> p_112022_) {
-        return this.condition.getPredicate(p_112022_);
+    public Predicate<BlockState> getPredicate(StateDefinition<Block, BlockState> pDefinition) {
+        return this.condition.getPredicate(pDefinition);
     }
 
-    public boolean equals(Object p_112024_) {
-        return this == p_112024_;
+    public boolean equals(Object pOther) {
+        return this == pOther;
     }
 
     public int hashCode() {
@@ -55,29 +55,29 @@ public class Selector {
 
     @OnlyIn(Dist.CLIENT)
     public static class Deserializer implements JsonDeserializer<Selector> {
-        public Selector deserialize(JsonElement p_112030_, Type p_112031_, JsonDeserializationContext p_112032_) throws JsonParseException {
-            JsonObject jsonobject = p_112030_.getAsJsonObject();
-            return new Selector(this.getSelector(jsonobject), p_112032_.deserialize(jsonobject.get("apply"), MultiVariant.class));
+        public Selector deserialize(JsonElement pJson, Type pType, JsonDeserializationContext pContext) throws JsonParseException {
+            JsonObject jsonobject = pJson.getAsJsonObject();
+            return new Selector(this.getSelector(jsonobject), pContext.deserialize(jsonobject.get("apply"), MultiVariant.class));
         }
 
-        private Condition getSelector(JsonObject p_112040_) {
-            return p_112040_.has("when") ? getCondition(GsonHelper.getAsJsonObject(p_112040_, "when")) : Condition.TRUE;
+        private Condition getSelector(JsonObject pJson) {
+            return pJson.has("when") ? getCondition(GsonHelper.getAsJsonObject(pJson, "when")) : Condition.TRUE;
         }
 
         @VisibleForTesting
-        static Condition getCondition(JsonObject p_112034_) {
-            Set<Map.Entry<String, JsonElement>> set = p_112034_.entrySet();
+        static Condition getCondition(JsonObject pJson) {
+            Set<Map.Entry<String, JsonElement>> set = pJson.entrySet();
             if (set.isEmpty()) {
                 throw new JsonParseException("No elements found in selector");
             } else if (set.size() == 1) {
-                if (p_112034_.has("OR")) {
-                    List<Condition> list1 = Streams.stream(GsonHelper.getAsJsonArray(p_112034_, "OR")).map((p_112038_) -> {
+                if (pJson.has("OR")) {
+                    List<Condition> list1 = Streams.stream(GsonHelper.getAsJsonArray(pJson, "OR")).map((p_112038_) -> {
                                                                                                           return getCondition(p_112038_.getAsJsonObject());
                                                                                                       })
                                                     .collect(Collectors.toList());
                     return new OrCondition(list1);
-                } else if (p_112034_.has("AND")) {
-                    List<Condition> list = Streams.stream(GsonHelper.getAsJsonArray(p_112034_, "AND")).map((p_112028_) -> {
+                } else if (pJson.has("AND")) {
+                    List<Condition> list = Streams.stream(GsonHelper.getAsJsonArray(pJson, "AND")).map((p_112028_) -> {
                                                                                                           return getCondition(p_112028_.getAsJsonObject());
                                                                                                       })
                                                    .collect(Collectors.toList());

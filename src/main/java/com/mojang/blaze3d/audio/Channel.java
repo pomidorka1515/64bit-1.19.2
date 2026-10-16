@@ -31,8 +31,8 @@ public class Channel {
         return OpenAlUtil.checkALError("Allocate new source") ? null : new Channel(aint[0]);
     }
 
-    private Channel(int p_83648_) {
-        this.source = p_83648_;
+    private Channel(int pSource) {
+        this.source = pSource;
     }
 
     public void destroy() {
@@ -95,8 +95,8 @@ public class Channel {
     * accepts finite floats; saturating here also protects the native driver if
     * a non-audible source was queued before its range check completed.
     */
-    public void setSelfPosition(Vec3 p_83655_) {
-        this.setSelfPosition(p_83655_.x, p_83655_.y, p_83655_.z);
+    public void setSelfPosition(Vec3 pSource) {
+        this.setSelfPosition(pSource.x, pSource.y, pSource.z);
     }
 
     public void setSelfPosition(double x, double y, double z) {
@@ -113,54 +113,54 @@ public class Channel {
         return (float) value;
     }
 
-    public void setPitch(float p_83651_) {
-        AL10.alSourcef(this.source, 4099, p_83651_);
+    public void setPitch(float pPitch) {
+        AL10.alSourcef(this.source, 4099, pPitch);
     }
 
-    public void setLooping(boolean p_83664_) {
-        AL10.alSourcei(this.source, 4103, p_83664_ ? 1 : 0);
+    public void setLooping(boolean pLooping) {
+        AL10.alSourcei(this.source, 4103, pLooping ? 1 : 0);
     }
 
-    public void setVolume(float p_83667_) {
-        AL10.alSourcef(this.source, 4106, p_83667_);
+    public void setVolume(float pVolume) {
+        AL10.alSourcef(this.source, 4106, pVolume);
     }
 
     public void disableAttenuation() {
         AL10.alSourcei(this.source, 53248, 0);
     }
 
-    public void linearAttenuation(float p_83674_) {
+    public void linearAttenuation(float pLinearAttenuation) {
         AL10.alSourcei(this.source, 53248, 53251);
-        AL10.alSourcef(this.source, 4131, p_83674_);
+        AL10.alSourcef(this.source, 4131, pLinearAttenuation);
         AL10.alSourcef(this.source, 4129, 1.0F);
         AL10.alSourcef(this.source, 4128, 0.0F);
     }
 
-    public void setRelative(boolean p_83671_) {
-        AL10.alSourcei(this.source, 514, p_83671_ ? 1 : 0);
+    public void setRelative(boolean pRelative) {
+        AL10.alSourcei(this.source, 514, pRelative ? 1 : 0);
     }
 
-    public void attachStaticBuffer(SoundBuffer p_83657_) {
-        p_83657_.getAlBuffer().ifPresent((p_83676_) -> {
+    public void attachStaticBuffer(SoundBuffer pBuffer) {
+        pBuffer.getAlBuffer().ifPresent((p_83676_) -> {
             AL10.alSourcei(this.source, 4105, p_83676_);
         });
     }
 
-    public void attachBufferStream(AudioStream p_83659_) {
-        this.stream = p_83659_;
-        AudioFormat audioformat = p_83659_.getFormat();
+    public void attachBufferStream(AudioStream pStream) {
+        this.stream = pStream;
+        AudioFormat audioformat = pStream.getFormat();
         this.streamingBufferSize = calculateBufferSize(audioformat, 1);
         this.pumpBuffers(4);
     }
 
-    private static int calculateBufferSize(AudioFormat p_83661_, int p_83662_) {
-        return (int) ((float) (p_83662_ * p_83661_.getSampleSizeInBits()) / 8.0F * (float) p_83661_.getChannels() * p_83661_.getSampleRate());
+    private static int calculateBufferSize(AudioFormat pFormat, int pSampleAmount) {
+        return (int) ((float) (pSampleAmount * pFormat.getSampleSizeInBits()) / 8.0F * (float) pFormat.getChannels() * pFormat.getSampleRate());
     }
 
-    private void pumpBuffers(int p_83653_) {
+    private void pumpBuffers(int pReadCount) {
         if (this.stream != null) {
             try {
-                for (int i = 0; i < p_83653_; ++i) {
+                for (int i = 0; i < pReadCount; ++i) {
                     ByteBuffer bytebuffer = this.stream.read(this.streamingBufferSize);
                     if (bytebuffer != null) {
                         (new SoundBuffer(bytebuffer, this.stream.getFormat())).releaseAlBuffer().ifPresent((p_83669_) -> {

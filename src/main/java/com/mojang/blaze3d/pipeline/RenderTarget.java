@@ -35,31 +35,31 @@ public abstract class RenderTarget {
     });
     public int filterMode;
 
-    public RenderTarget(boolean p_166199_) {
-        this.useDepth = p_166199_;
+    public RenderTarget(boolean pUseDepth) {
+        this.useDepth = pUseDepth;
         this.frameBufferId = -1;
         this.colorTextureId = -1;
         this.depthBufferId = -1;
     }
 
-    public void resize(int p_83942_, int p_83943_, boolean p_83944_) {
+    public void resize(int pWidth, int pHeight, boolean pClearError) {
         if (!RenderSystem.isOnRenderThread()) {
             RenderSystem.recordRenderCall(() -> {
-                this._resize(p_83942_, p_83943_, p_83944_);
+                this._resize(pWidth, pHeight, pClearError);
             });
         } else {
-            this._resize(p_83942_, p_83943_, p_83944_);
+            this._resize(pWidth, pHeight, pClearError);
         }
     }
 
-    private void _resize(int p_83965_, int p_83966_, boolean p_83967_) {
+    private void _resize(int pWidth, int pHeight, boolean pClearError) {
         RenderSystem.assertOnRenderThreadOrInit();
         GlStateManager._enableDepthTest();
         if (this.frameBufferId >= 0) {
             this.destroyBuffers();
         }
 
-        this.createBuffers(p_83965_, p_83966_, p_83967_);
+        this.createBuffers(pWidth, pHeight, pClearError);
         GlStateManager._glBindFramebuffer(36160, 0);
     }
 
@@ -84,22 +84,22 @@ public abstract class RenderTarget {
         }
     }
 
-    public void copyDepthFrom(RenderTarget p_83946_) {
+    public void copyDepthFrom(RenderTarget pOtherTarget) {
         RenderSystem.assertOnRenderThreadOrInit();
-        GlStateManager._glBindFramebuffer(36008, p_83946_.frameBufferId);
+        GlStateManager._glBindFramebuffer(36008, pOtherTarget.frameBufferId);
         GlStateManager._glBindFramebuffer(36009, this.frameBufferId);
-        GlStateManager._glBlitFrameBuffer(0, 0, p_83946_.width, p_83946_.height, 0, 0, this.width, this.height, 256, 9728);
+        GlStateManager._glBlitFrameBuffer(0, 0, pOtherTarget.width, pOtherTarget.height, 0, 0, this.width, this.height, 256, 9728);
         GlStateManager._glBindFramebuffer(36160, 0);
     }
 
-    public void createBuffers(int p_83951_, int p_83952_, boolean p_83953_) {
+    public void createBuffers(int pWidth, int pHeight, boolean pClearError) {
         RenderSystem.assertOnRenderThreadOrInit();
         int i = RenderSystem.maxSupportedTextureSize();
-        if (p_83951_ > 0 && p_83951_ <= i && p_83952_ > 0 && p_83952_ <= i) {
-            this.viewWidth = p_83951_;
-            this.viewHeight = p_83952_;
-            this.width = p_83951_;
-            this.height = p_83952_;
+        if (pWidth > 0 && pWidth <= i && pHeight > 0 && pHeight <= i) {
+            this.viewWidth = pWidth;
+            this.viewHeight = pHeight;
+            this.width = pWidth;
+            this.height = pHeight;
             this.frameBufferId = GlStateManager.glGenFramebuffers();
             this.colorTextureId = TextureUtil.generateTextureId();
             if (this.useDepth) {
@@ -125,19 +125,19 @@ public abstract class RenderTarget {
             }
 
             this.checkStatus();
-            this.clear(p_83953_);
+            this.clear(pClearError);
             this.unbindRead();
         } else {
-            throw new IllegalArgumentException("Window " + p_83951_ + "x" + p_83952_ + " size out of bounds (max. size: " + i + ")");
+            throw new IllegalArgumentException("Window " + pWidth + "x" + pHeight + " size out of bounds (max. size: " + i + ")");
         }
     }
 
-    public void setFilterMode(int p_83937_) {
+    public void setFilterMode(int pFilterMode) {
         RenderSystem.assertOnRenderThreadOrInit();
-        this.filterMode = p_83937_;
+        this.filterMode = pFilterMode;
         GlStateManager._bindTexture(this.colorTextureId);
-        GlStateManager._texParameter(3553, 10241, p_83937_);
-        GlStateManager._texParameter(3553, 10240, p_83937_);
+        GlStateManager._texParameter(3553, 10241, pFilterMode);
+        GlStateManager._texParameter(3553, 10240, pFilterMode);
         GlStateManager._bindTexture(0);
     }
 
@@ -173,20 +173,20 @@ public abstract class RenderTarget {
         GlStateManager._bindTexture(0);
     }
 
-    public void bindWrite(boolean p_83948_) {
+    public void bindWrite(boolean pSetViewport) {
         if (!RenderSystem.isOnRenderThread()) {
             RenderSystem.recordRenderCall(() -> {
-                this._bindWrite(p_83948_);
+                this._bindWrite(pSetViewport);
             });
         } else {
-            this._bindWrite(p_83948_);
+            this._bindWrite(pSetViewport);
         }
     }
 
-    private void _bindWrite(boolean p_83962_) {
+    private void _bindWrite(boolean pSetViewport) {
         RenderSystem.assertOnRenderThreadOrInit();
         GlStateManager._glBindFramebuffer(36160, this.frameBufferId);
-        if (p_83962_) {
+        if (pSetViewport) {
             GlStateManager._viewport(0, 0, this.viewWidth, this.viewHeight);
         }
     }
@@ -201,42 +201,42 @@ public abstract class RenderTarget {
         }
     }
 
-    public void setClearColor(float p_83932_, float p_83933_, float p_83934_, float p_83935_) {
-        this.clearChannels[0] = p_83932_;
-        this.clearChannels[1] = p_83933_;
-        this.clearChannels[2] = p_83934_;
-        this.clearChannels[3] = p_83935_;
+    public void setClearColor(float pRed, float pGreen, float pBlue, float pAlpha) {
+        this.clearChannels[0] = pRed;
+        this.clearChannels[1] = pGreen;
+        this.clearChannels[2] = pBlue;
+        this.clearChannels[3] = pAlpha;
     }
 
-    public void blitToScreen(int p_83939_, int p_83940_) {
-        this.blitToScreen(p_83939_, p_83940_, true);
+    public void blitToScreen(int pWidth, int pHeight) {
+        this.blitToScreen(pWidth, pHeight, true);
     }
 
-    public void blitToScreen(int p_83958_, int p_83959_, boolean p_83960_) {
+    public void blitToScreen(int pWidth, int pHeight, boolean pDisableBlend) {
         RenderSystem.assertOnGameThreadOrInit();
         if (!RenderSystem.isInInitPhase()) {
             RenderSystem.recordRenderCall(() -> {
-                this._blitToScreen(p_83958_, p_83959_, p_83960_);
+                this._blitToScreen(pWidth, pHeight, pDisableBlend);
             });
         } else {
-            this._blitToScreen(p_83958_, p_83959_, p_83960_);
+            this._blitToScreen(pWidth, pHeight, pDisableBlend);
         }
     }
 
-    private void _blitToScreen(int p_83972_, int p_83973_, boolean p_83974_) {
+    private void _blitToScreen(int pWidth, int pHeight, boolean pDisableBlend) {
         RenderSystem.assertOnRenderThread();
         GlStateManager._colorMask(true, true, true, false);
         GlStateManager._disableDepthTest();
         GlStateManager._depthMask(false);
-        GlStateManager._viewport(0, 0, p_83972_, p_83973_);
-        if (p_83974_) {
+        GlStateManager._viewport(0, 0, pWidth, pHeight);
+        if (pDisableBlend) {
             GlStateManager._disableBlend();
         }
 
         Minecraft minecraft = Minecraft.getInstance();
         ShaderInstance shaderinstance = minecraft.gameRenderer.blitShader;
         shaderinstance.setSampler("DiffuseSampler", this.colorTextureId);
-        Matrix4f matrix4f = Matrix4f.orthographic((float) p_83972_, (float) (-p_83973_), 1000.0F, 3000.0F);
+        Matrix4f matrix4f = Matrix4f.orthographic((float) pWidth, (float) (-pHeight), 1000.0F, 3000.0F);
         RenderSystem.setProjectionMatrix(matrix4f);
         if (shaderinstance.MODEL_VIEW_MATRIX != null) {
             shaderinstance.MODEL_VIEW_MATRIX.set(Matrix4f.createTranslateMatrix(0.0F, 0.0F, -2000.0F));
@@ -247,8 +247,8 @@ public abstract class RenderTarget {
         }
 
         shaderinstance.apply();
-        float f = (float) p_83972_;
-        float f1 = (float) p_83973_;
+        float f = (float) pWidth;
+        float f1 = (float) pHeight;
         float f2 = (float) this.viewWidth / (float) this.width;
         float f3 = (float) this.viewHeight / (float) this.height;
         Tesselator tesselator = RenderSystem.renderThreadTesselator();
@@ -264,7 +264,7 @@ public abstract class RenderTarget {
         GlStateManager._colorMask(true, true, true, true);
     }
 
-    public void clear(boolean p_83955_) {
+    public void clear(boolean pClearError) {
         RenderSystem.assertOnRenderThreadOrInit();
         this.bindWrite(true);
         GlStateManager._clearColor(this.clearChannels[0], this.clearChannels[1], this.clearChannels[2], this.clearChannels[3]);
@@ -274,7 +274,7 @@ public abstract class RenderTarget {
             i |= 256;
         }
 
-        GlStateManager._clear(i, p_83955_);
+        GlStateManager._clear(i, pClearError);
         this.unbindWrite();
     }
 

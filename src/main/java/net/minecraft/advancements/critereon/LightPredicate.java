@@ -12,17 +12,17 @@ public class LightPredicate {
     public static final LightPredicate ANY = new LightPredicate(MinMaxBounds.Ints.ANY);
     private final MinMaxBounds.Ints composite;
 
-    LightPredicate(MinMaxBounds.Ints p_51339_) {
-        this.composite = p_51339_;
+    LightPredicate(MinMaxBounds.Ints pComposite) {
+        this.composite = pComposite;
     }
 
-    public boolean matches(ServerLevel p_51342_, BlockPos p_51343_) {
+    public boolean matches(ServerLevel pLevel, BlockPos pPos) {
         if (this == ANY) {
             return true;
-        } else if (!p_51342_.isLoaded(p_51343_)) {
+        } else if (!pLevel.isLoaded(pPos)) {
             return false;
         } else {
-            return this.composite.matches(p_51342_.getMaxLocalRawBrightness(p_51343_));
+            return this.composite.matches(pLevel.getMaxLocalRawBrightness(pPos));
         }
     }
 
@@ -36,9 +36,9 @@ public class LightPredicate {
         }
     }
 
-    public static LightPredicate fromJson(@Nullable JsonElement p_51345_) {
-        if (p_51345_ != null && !p_51345_.isJsonNull()) {
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_51345_, "light");
+    public static LightPredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "light");
             MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(jsonobject.get("light"));
             return new LightPredicate(minmaxbounds$ints);
         } else {
@@ -53,8 +53,8 @@ public class LightPredicate {
             return new LightPredicate.Builder();
         }
 
-        public LightPredicate.Builder setComposite(MinMaxBounds.Ints p_153105_) {
-            this.composite = p_153105_;
+        public LightPredicate.Builder setComposite(MinMaxBounds.Ints pComposite) {
+            this.composite = pComposite;
             return this;
         }
 

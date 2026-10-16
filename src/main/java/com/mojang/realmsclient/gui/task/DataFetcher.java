@@ -23,10 +23,10 @@ public class DataFetcher {
     final TimeUnit resolution;
     final TimeSource timeSource;
 
-    public DataFetcher(Executor p_239381_, TimeUnit p_239382_, TimeSource p_239383_) {
-        this.executor = p_239381_;
-        this.resolution = p_239382_;
-        this.timeSource = p_239383_;
+    public DataFetcher(Executor pExecutor, TimeUnit pResolution, TimeSource pTimeSource) {
+        this.executor = pExecutor;
+        this.resolution = pResolution;
+        this.timeSource = pTimeSource;
     }
 
     public <T> DataFetcher.Task<T> createTask(String p_239623_, Callable<T> p_239624_, Duration p_239625_, RepeatedDelayStrategy p_239626_) {

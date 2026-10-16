@@ -7,8 +7,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.Optional;
 
 public class OminousBannerBlockEntityRenameFix extends NamedEntityFix {
-    public OminousBannerBlockEntityRenameFix(Schema p_16548_, boolean p_16549_) {
-        super(p_16548_, p_16549_, "OminousBannerBlockEntityRenameFix", References.BLOCK_ENTITY, "minecraft:banner");
+    public OminousBannerBlockEntityRenameFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "OminousBannerBlockEntityRenameFix", References.BLOCK_ENTITY, "minecraft:banner");
     }
 
     protected Typed<?> fix(Typed<?> p_16551_) {

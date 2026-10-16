@@ -60,24 +60,24 @@ public class EntitySelector {
     private EntityTypeTest<Entity, ?> type;
     private final boolean usesSelector;
 
-    public EntitySelector(int p_121125_, boolean p_121126_, boolean p_121127_, Predicate<Entity> p_121128_, MinMaxBounds.Doubles p_121129_, Function<Vec3, Vec3> p_121130_, @Nullable String exactX, @Nullable Double exactY, @Nullable String exactZ, @Nullable AABB p_121131_, BiConsumer<Vec3, List<? extends Entity>> p_121132_, boolean p_121133_, @Nullable String p_121134_, @Nullable UUID p_121135_, @Nullable EntityType<?> p_121136_, boolean p_121137_) {
-        this.maxResults = p_121125_;
-        this.includesEntities = p_121126_;
-        this.worldLimited = p_121127_;
-        this.predicate = p_121128_;
-        this.range = p_121129_;
-        this.position = p_121130_;
+    public EntitySelector(int pMaxResults, boolean pIncludeEntities, boolean pWorldLimited, Predicate<Entity> pPredicate, MinMaxBounds.Doubles pRange, Function<Vec3, Vec3> pPositions, @Nullable String exactX, @Nullable Double exactY, @Nullable String exactZ, @Nullable AABB pAabb, BiConsumer<Vec3, List<? extends Entity>> pOrder, boolean pCurrentEntity, @Nullable String pPlayerName, @Nullable UUID pEntityUUID, @Nullable EntityType<?> pType, boolean pUsesSelector) {
+        this.maxResults = pMaxResults;
+        this.includesEntities = pIncludeEntities;
+        this.worldLimited = pWorldLimited;
+        this.predicate = pPredicate;
+        this.range = pRange;
+        this.position = pPositions;
         this.exactX = exactX;
         this.exactY = exactY;
         this.exactZ = exactZ;
-        this.aabb = p_121131_;
-        this.order = p_121132_;
+        this.aabb = pAabb;
+        this.order = pOrder;
         this.exactCoordinateSelector = exactX != null || exactZ != null;
-        this.currentEntity = p_121133_;
-        this.playerName = p_121134_;
-        this.entityUUID = p_121135_;
-        this.type = (EntityTypeTest<Entity, ?>) (p_121136_ == null ? ANY_TYPE : p_121136_);
-        this.usesSelector = p_121137_;
+        this.currentEntity = pCurrentEntity;
+        this.playerName = pPlayerName;
+        this.entityUUID = pEntityUUID;
+        this.type = (EntityTypeTest<Entity, ?>) (pType == null ? ANY_TYPE : pType);
+        this.usesSelector = pUsesSelector;
     }
 
     public int getMaxResults() {
@@ -100,15 +100,15 @@ public class EntitySelector {
         return this.usesSelector;
     }
 
-    private void checkPermissions(CommandSourceStack p_121169_) throws CommandSyntaxException {
-        if (this.usesSelector && !p_121169_.hasPermission(2)) {
+    private void checkPermissions(CommandSourceStack pSource) throws CommandSyntaxException {
+        if (this.usesSelector && !pSource.hasPermission(2)) {
             throw EntityArgument.ERROR_SELECTORS_NOT_ALLOWED.create();
         }
     }
 
-    public Entity findSingleEntity(CommandSourceStack p_121140_) throws CommandSyntaxException {
-        this.checkPermissions(p_121140_);
-        List<? extends Entity> list = this.findEntities(p_121140_);
+    public Entity findSingleEntity(CommandSourceStack pSource) throws CommandSyntaxException {
+        this.checkPermissions(pSource);
+        List<? extends Entity> list = this.findEntities(pSource);
         if (list.isEmpty()) {
             throw EntityArgument.NO_ENTITIES_FOUND.create();
         } else if (list.size() > 1) {
@@ -118,15 +118,15 @@ public class EntitySelector {
         }
     }
 
-    public List<? extends Entity> findEntities(CommandSourceStack p_121161_) throws CommandSyntaxException {
-        this.checkPermissions(p_121161_);
+    public List<? extends Entity> findEntities(CommandSourceStack pSource) throws CommandSyntaxException {
+        this.checkPermissions(pSource);
         if (!this.includesEntities) {
-            return this.findPlayers(p_121161_);
+            return this.findPlayers(pSource);
         } else if (this.playerName != null) {
-            ServerPlayer serverplayer = p_121161_.getServer().getPlayerList().getPlayerByName(this.playerName);
+            ServerPlayer serverplayer = pSource.getServer().getPlayerList().getPlayerByName(this.playerName);
          return (List<? extends Entity>)(serverplayer == null ? Collections.emptyList() : Lists.newArrayList(serverplayer));
         } else if (this.entityUUID != null) {
-            for (ServerLevel serverlevel1 : p_121161_.getServer().getAllLevels()) {
+            for (ServerLevel serverlevel1 : pSource.getServer().getAllLevels()) {
                 Entity entity = serverlevel1.getEntity(this.entityUUID);
                 if (entity != null) {
                     return Lists.newArrayList(entity);
@@ -135,18 +135,18 @@ public class EntitySelector {
 
             return Collections.emptyList();
         } else {
-            Vec3 vec3 = this.position.apply(p_121161_.getPosition());
-            SectorVec3 exactOrigin = this.exactOrigin(p_121161_);
+            Vec3 vec3 = this.position.apply(pSource.getPosition());
+            SectorVec3 exactOrigin = this.exactOrigin(pSource);
             this.exactOriginForSorting = exactOrigin;
             Predicate<Entity> predicate = this.getPredicate(vec3, exactOrigin);
             if (this.currentEntity) {
-            return (List<? extends Entity>)(p_121161_.getEntity() != null && predicate.test(p_121161_.getEntity()) ? Lists.newArrayList(p_121161_.getEntity()) : Collections.emptyList());
+            return (List<? extends Entity>)(pSource.getEntity() != null && predicate.test(pSource.getEntity()) ? Lists.newArrayList(pSource.getEntity()) : Collections.emptyList());
             } else {
                 List<Entity> list = Lists.newArrayList();
                 if (this.isWorldLimited()) {
-                    this.addEntities(list, p_121161_.getLevel(), vec3, predicate);
+                    this.addEntities(list, pSource.getLevel(), vec3, predicate);
                 } else {
-                    for (ServerLevel serverlevel : p_121161_.getServer().getAllLevels()) {
+                    for (ServerLevel serverlevel : pSource.getServer().getAllLevels()) {
                         this.addEntities(list, serverlevel, vec3, predicate);
                     }
                 }
@@ -156,17 +156,17 @@ public class EntitySelector {
         }
     }
 
-    private void addEntities(List<Entity> p_121155_, ServerLevel p_121156_, Vec3 p_121157_, Predicate<Entity> p_121158_) {
+    private void addEntities(List<Entity> pResult, ServerLevel pLevel, Vec3 pPos, Predicate<Entity> pPredicate) {
         if (this.aabb != null) {
-            p_121155_.addAll(p_121156_.getEntities(this.type, this.aabb.move(p_121157_), p_121158_));
+            pResult.addAll(pLevel.getEntities(this.type, this.aabb.move(pPos), pPredicate));
         } else {
-            p_121155_.addAll(p_121156_.getEntities(this.type, p_121158_));
+            pResult.addAll(pLevel.getEntities(this.type, pPredicate));
         }
     }
 
-    public ServerPlayer findSinglePlayer(CommandSourceStack p_121164_) throws CommandSyntaxException {
-        this.checkPermissions(p_121164_);
-        List<ServerPlayer> list = this.findPlayers(p_121164_);
+    public ServerPlayer findSinglePlayer(CommandSourceStack pSource) throws CommandSyntaxException {
+        this.checkPermissions(pSource);
+        List<ServerPlayer> list = this.findPlayers(pSource);
         if (list.size() != 1) {
             throw EntityArgument.NO_PLAYERS_FOUND.create();
         } else {
@@ -174,22 +174,22 @@ public class EntitySelector {
         }
     }
 
-    public List<ServerPlayer> findPlayers(CommandSourceStack p_121167_) throws CommandSyntaxException {
-        this.checkPermissions(p_121167_);
+    public List<ServerPlayer> findPlayers(CommandSourceStack pSource) throws CommandSyntaxException {
+        this.checkPermissions(pSource);
         if (this.playerName != null) {
-            ServerPlayer serverplayer2 = p_121167_.getServer().getPlayerList().getPlayerByName(this.playerName);
+            ServerPlayer serverplayer2 = pSource.getServer().getPlayerList().getPlayerByName(this.playerName);
             return (List<ServerPlayer>) (serverplayer2 == null ? Collections.emptyList() : Lists.newArrayList(serverplayer2));
         } else if (this.entityUUID != null) {
-            ServerPlayer serverplayer1 = p_121167_.getServer().getPlayerList().getPlayer(this.entityUUID);
+            ServerPlayer serverplayer1 = pSource.getServer().getPlayerList().getPlayer(this.entityUUID);
             return (List<ServerPlayer>) (serverplayer1 == null ? Collections.emptyList() : Lists.newArrayList(serverplayer1));
         } else {
-            Vec3 vec3 = this.position.apply(p_121167_.getPosition());
-            SectorVec3 exactOrigin = this.exactOrigin(p_121167_);
+            Vec3 vec3 = this.position.apply(pSource.getPosition());
+            SectorVec3 exactOrigin = this.exactOrigin(pSource);
             this.exactOriginForSorting = exactOrigin;
             Predicate<Entity> predicate = this.getPredicate(vec3, exactOrigin);
             if (this.currentEntity) {
-                if (p_121167_.getEntity() instanceof ServerPlayer) {
-                    ServerPlayer serverplayer3 = (ServerPlayer) p_121167_.getEntity();
+                if (pSource.getEntity() instanceof ServerPlayer) {
+                    ServerPlayer serverplayer3 = (ServerPlayer) pSource.getEntity();
                     if (predicate.test(serverplayer3)) {
                         return Lists.newArrayList(serverplayer3);
                     }
@@ -199,11 +199,11 @@ public class EntitySelector {
             } else {
                 List<ServerPlayer> list;
                 if (this.isWorldLimited()) {
-                    list = p_121167_.getLevel().getPlayers(predicate);
+                    list = pSource.getLevel().getPlayers(predicate);
                 } else {
                     list = Lists.newArrayList();
 
-                    for (ServerPlayer serverplayer : p_121167_.getServer().getPlayerList().getPlayers()) {
+                    for (ServerPlayer serverplayer : pSource.getServer().getPlayerList().getPlayers()) {
                         if (predicate.test(serverplayer)) {
                             list.add(serverplayer);
                         }
@@ -224,10 +224,10 @@ public class EntitySelector {
         return this.exactY == null ? result : result.withY(this.exactY);
     }
 
-    private Predicate<Entity> getPredicate(Vec3 p_121145_, SectorVec3 exactOrigin) {
+    private Predicate<Entity> getPredicate(Vec3 pPos, SectorVec3 exactOrigin) {
         Predicate<Entity> predicate = this.predicate;
         if (this.aabb != null) {
-            AABB aabb = this.aabb.move(p_121145_);
+            AABB aabb = this.aabb.move(pPos);
             predicate = predicate.and((entity) -> {
                 if (entity.exactPosition() == null)
                     return aabb.intersects(entity.getBoundingBox());
@@ -246,7 +246,7 @@ public class EntitySelector {
             predicate = predicate.and((entity) -> {
                 double distance = entity.exactPosition() != null
                         ? entity.exactPosition().relativeTo(exactOrigin).lengthSqr()
-                        : entity.distanceToSqr(p_121145_);
+                        : entity.distanceToSqr(pPos);
                 return this.range.matchesSqr(distance);
             });
         }
@@ -275,7 +275,7 @@ public class EntitySelector {
         return entity.exactPosition() != null ? entity.exactPosition().relativeTo(origin).lengthSqr() : entity.distanceToSqr(origin.toApproximateVec3());
     }
 
-    public static Component joinNames(List<? extends Entity> p_175104_) {
-        return ComponentUtils.formatList(p_175104_, Entity::getDisplayName);
+    public static Component joinNames(List<? extends Entity> pNames) {
+        return ComponentUtils.formatList(pNames, Entity::getDisplayName);
     }
 }

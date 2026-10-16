@@ -12,15 +12,15 @@ import net.minecraft.world.level.levelgen.structure.StructureStart;
 
 public interface StructureAccess {
     @Nullable
-    StructureStart getStartForStructure(Structure p_223434_);
+    StructureStart getStartForStructure(Structure pStructure);
 
-    void setStartForStructure(Structure p_223437_, StructureStart p_223438_);
+    void setStartForStructure(Structure pStructure, StructureStart pStructureStart);
 
-    ObjectSet<ChunkPos> getReferencesForStructure(Structure p_223439_);
+    ObjectSet<ChunkPos> getReferencesForStructure(Structure pStructure);
 
-    void addReferenceForStructure(Structure p_223435_, ChunkPos p_223436_);
+    void addReferenceForStructure(Structure pStructure, ChunkPos pReference);
 
     Map<Structure, ObjectSet<ChunkPos>> getAllReferences();
 
-    void setAllReferences(Map<Structure, ObjectSet<ChunkPos>> p_223440_);
+    void setAllReferences(Map<Structure, ObjectSet<ChunkPos>> pStructureReferencesMap);
 }

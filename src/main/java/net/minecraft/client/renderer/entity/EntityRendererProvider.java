@@ -14,7 +14,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @FunctionalInterface
 @OnlyIn(Dist.CLIENT)
 public interface EntityRendererProvider<T extends Entity> {
-    EntityRenderer<T> create(EntityRendererProvider.Context p_174010_);
+    EntityRenderer<T> create(EntityRendererProvider.Context pContext);
 
     @OnlyIn(Dist.CLIENT)
     public static class Context {
@@ -26,14 +26,14 @@ public interface EntityRendererProvider<T extends Entity> {
         private final EntityModelSet modelSet;
         private final Font font;
 
-        public Context(EntityRenderDispatcher p_234590_, ItemRenderer p_234591_, BlockRenderDispatcher p_234592_, ItemInHandRenderer p_234593_, ResourceManager p_234594_, EntityModelSet p_234595_, Font p_234596_) {
-            this.entityRenderDispatcher = p_234590_;
-            this.itemRenderer = p_234591_;
-            this.blockRenderDispatcher = p_234592_;
-            this.itemInHandRenderer = p_234593_;
-            this.resourceManager = p_234594_;
-            this.modelSet = p_234595_;
-            this.font = p_234596_;
+        public Context(EntityRenderDispatcher pEntityRenderDispatcher, ItemRenderer pItemRenderer, BlockRenderDispatcher pBlockRenderDispatcher, ItemInHandRenderer pItemInHandRenderer, ResourceManager pResourceManager, EntityModelSet pModelSet, Font pFont) {
+            this.entityRenderDispatcher = pEntityRenderDispatcher;
+            this.itemRenderer = pItemRenderer;
+            this.blockRenderDispatcher = pBlockRenderDispatcher;
+            this.itemInHandRenderer = pItemInHandRenderer;
+            this.resourceManager = pResourceManager;
+            this.modelSet = pModelSet;
+            this.font = pFont;
         }
 
         public EntityRenderDispatcher getEntityRenderDispatcher() {
@@ -60,8 +60,8 @@ public interface EntityRendererProvider<T extends Entity> {
             return this.modelSet;
         }
 
-        public ModelPart bakeLayer(ModelLayerLocation p_174024_) {
-            return this.modelSet.bakeLayer(p_174024_);
+        public ModelPart bakeLayer(ModelLayerLocation pLayer) {
+            return this.modelSet.bakeLayer(pLayer);
         }
 
         public Font getFont() {

@@ -14,8 +14,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class SlimeModel<T extends Entity> extends HierarchicalModel<T> {
     private final ModelPart root;
 
-    public SlimeModel(ModelPart p_170955_) {
-        this.root = p_170955_;
+    public SlimeModel(ModelPart pRoot) {
+        this.root = pRoot;
     }
 
     public static LayerDefinition createOuterBodyLayer() {
@@ -35,7 +35,7 @@ public class SlimeModel<T extends Entity> extends HierarchicalModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
-    public void setupAnim(T p_103831_, float p_103832_, float p_103833_, float p_103834_, float p_103835_, float p_103836_) {
+    public void setupAnim(T pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch) {
     }
 
     public ModelPart root() {

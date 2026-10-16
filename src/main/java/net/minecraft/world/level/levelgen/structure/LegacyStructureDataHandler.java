@@ -54,10 +54,10 @@ public class LegacyStructureDataHandler {
     private final List<String> legacyKeys;
     private final List<String> currentKeys;
 
-    public LegacyStructureDataHandler(@Nullable DimensionDataStorage p_71308_, List<String> p_71309_, List<String> p_71310_) {
-        this.legacyKeys = p_71309_;
-        this.currentKeys = p_71310_;
-        this.populateCaches(p_71308_);
+    public LegacyStructureDataHandler(@Nullable DimensionDataStorage pStorage, List<String> pLegacyKeys, List<String> pCurrentKeys) {
+        this.legacyKeys = pLegacyKeys;
+        this.currentKeys = pCurrentKeys;
+        this.populateCaches(pStorage);
         boolean flag = false;
 
         for (String s : this.currentKeys) {
@@ -67,21 +67,21 @@ public class LegacyStructureDataHandler {
         this.hasLegacyData = flag;
     }
 
-    public void removeIndex(ChunkPos p_71319_) {
+    public void removeIndex(ChunkPos pPackedChunkPos) {
         for (String s : this.legacyKeys) {
             StructureFeatureIndexSavedData structurefeatureindexsaveddata = this.indexMap.get(s);
-            if (structurefeatureindexsaveddata != null && structurefeatureindexsaveddata.hasUnhandledIndex(p_71319_)) {
-                structurefeatureindexsaveddata.removeIndex(p_71319_);
+            if (structurefeatureindexsaveddata != null && structurefeatureindexsaveddata.hasUnhandledIndex(pPackedChunkPos)) {
+                structurefeatureindexsaveddata.removeIndex(pPackedChunkPos);
                 structurefeatureindexsaveddata.setDirty();
             }
         }
     }
 
-    public CompoundTag updateFromLegacy(CompoundTag p_71327_) {
-        CompoundTag compoundtag = p_71327_.getCompound("Level");
+    public CompoundTag updateFromLegacy(CompoundTag pTag) {
+        CompoundTag compoundtag = pTag.getCompound("Level");
         ChunkPos chunkpos = new ChunkPos(compoundtag.getInt("xPos"), compoundtag.getInt("zPos"));
         if (this.isUnhandledStructureStart(chunkpos.x, chunkpos.z)) {
-            p_71327_ = this.updateStructureStart(p_71327_, chunkpos);
+            pTag = this.updateStructureStart(pTag, chunkpos);
         }
 
         CompoundTag compoundtag1 = compoundtag.getCompound("Structures");
@@ -120,8 +120,8 @@ public class LegacyStructureDataHandler {
 
         compoundtag1.put("References", compoundtag2);
         compoundtag.put("Structures", compoundtag1);
-        p_71327_.put("Level", compoundtag);
-        return p_71327_;
+        pTag.put("Level", compoundtag);
+        return pTag;
     }
 
     private ListTag toTag(ObjectList<ChunkPos> longlist) {
@@ -134,20 +134,20 @@ public class LegacyStructureDataHandler {
         return tag;
     }
 
-    private boolean hasLegacyStart(long p_71315_, long p_71316_, String p_71317_) {
+    private boolean hasLegacyStart(long pChunkX, long pChunkZ, String pKey) {
         if (!this.hasLegacyData) {
             return false;
         } else {
-            return this.dataMap.get(p_71317_) != null && this.indexMap.get(CURRENT_TO_LEGACY_MAP.get(p_71317_)).hasStartIndex(new ChunkPos(p_71315_, p_71316_));
+            return this.dataMap.get(pKey) != null && this.indexMap.get(CURRENT_TO_LEGACY_MAP.get(pKey)).hasStartIndex(new ChunkPos(pChunkX, pChunkZ));
         }
     }
 
-    private boolean isUnhandledStructureStart(long p_71312_, long p_71313_) {
+    private boolean isUnhandledStructureStart(long pChunkX, long pChunkZ) {
         if (!this.hasLegacyData) {
             return false;
         } else {
             for (String s : this.currentKeys) {
-                if (this.dataMap.get(s) != null && this.indexMap.get(CURRENT_TO_LEGACY_MAP.get(s)).hasUnhandledIndex(new ChunkPos(p_71312_, p_71313_))) {
+                if (this.dataMap.get(s) != null && this.indexMap.get(CURRENT_TO_LEGACY_MAP.get(s)).hasUnhandledIndex(new ChunkPos(pChunkX, pChunkZ))) {
                     return true;
                 }
             }
@@ -156,16 +156,16 @@ public class LegacyStructureDataHandler {
         }
     }
 
-    private CompoundTag updateStructureStart(CompoundTag p_71329_, ChunkPos p_71330_) {
-        CompoundTag compoundtag = p_71329_.getCompound("Level");
+    private CompoundTag updateStructureStart(CompoundTag pTag, ChunkPos pChunkPos) {
+        CompoundTag compoundtag = pTag.getCompound("Level");
         CompoundTag compoundtag1 = compoundtag.getCompound("Structures");
         CompoundTag compoundtag2 = compoundtag1.getCompound("Starts");
 
         for (String s : this.currentKeys) {
             Object2ObjectMap<ChunkPos, CompoundTag> long2objectmap = this.dataMap.get(s);
             if (long2objectmap != null) {
-                if (this.indexMap.get(CURRENT_TO_LEGACY_MAP.get(s)).hasUnhandledIndex(p_71330_)) {
-                    CompoundTag compoundtag3 = long2objectmap.get(p_71330_);
+                if (this.indexMap.get(CURRENT_TO_LEGACY_MAP.get(s)).hasUnhandledIndex(pChunkPos)) {
+                    CompoundTag compoundtag3 = long2objectmap.get(pChunkPos);
                     if (compoundtag3 != null) {
                         compoundtag2.put(s, compoundtag3);
                     }
@@ -175,17 +175,17 @@ public class LegacyStructureDataHandler {
 
         compoundtag1.put("Starts", compoundtag2);
         compoundtag.put("Structures", compoundtag1);
-        p_71329_.put("Level", compoundtag);
-        return p_71329_;
+        pTag.put("Level", compoundtag);
+        return pTag;
     }
 
-    private void populateCaches(@Nullable DimensionDataStorage p_71321_) {
-        if (p_71321_ != null) {
+    private void populateCaches(@Nullable DimensionDataStorage pStorage) {
+        if (pStorage != null) {
             for (String s : this.legacyKeys) {
                 CompoundTag compoundtag = new CompoundTag();
 
                 try {
-                    compoundtag = p_71321_.readTagFromDisk(s, 1493).getCompound("data").getCompound("Features");
+                    compoundtag = pStorage.readTagFromDisk(s, 1493).getCompound("data").getCompound("Features");
                     if (compoundtag.isEmpty()) {
                         continue;
                     }
@@ -211,7 +211,7 @@ public class LegacyStructureDataHandler {
                 }
 
                 String s5 = s + "_index";
-                StructureFeatureIndexSavedData structurefeatureindexsaveddata = p_71321_.computeIfAbsent(StructureFeatureIndexSavedData::load, StructureFeatureIndexSavedData::new, s5);
+                StructureFeatureIndexSavedData structurefeatureindexsaveddata = pStorage.computeIfAbsent(StructureFeatureIndexSavedData::load, StructureFeatureIndexSavedData::new, s5);
                 if (!structurefeatureindexsaveddata.getAll().isEmpty()) {
                     this.indexMap.put(s, structurefeatureindexsaveddata);
                 } else {
@@ -229,17 +229,17 @@ public class LegacyStructureDataHandler {
         }
     }
 
-    public static LegacyStructureDataHandler getLegacyStructureHandler(ResourceKey<Level> p_71332_, @Nullable DimensionDataStorage p_71333_) {
-        if (p_71332_ == Level.OVERWORLD) {
-            return new LegacyStructureDataHandler(p_71333_, ImmutableList.of("Monument", "Stronghold", "Village", "Mineshaft", "Temple", "Mansion"), ImmutableList.of("Village", "Mineshaft", "Mansion", "Igloo", "Desert_Pyramid", "Jungle_Pyramid", "Swamp_Hut", "Stronghold", "Monument"));
-        } else if (p_71332_ == Level.NETHER) {
+    public static LegacyStructureDataHandler getLegacyStructureHandler(ResourceKey<Level> pLevel, @Nullable DimensionDataStorage pStorage) {
+        if (pLevel == Level.OVERWORLD) {
+            return new LegacyStructureDataHandler(pStorage, ImmutableList.of("Monument", "Stronghold", "Village", "Mineshaft", "Temple", "Mansion"), ImmutableList.of("Village", "Mineshaft", "Mansion", "Igloo", "Desert_Pyramid", "Jungle_Pyramid", "Swamp_Hut", "Stronghold", "Monument"));
+        } else if (pLevel == Level.NETHER) {
             List<String> list1 = ImmutableList.of("Fortress");
-            return new LegacyStructureDataHandler(p_71333_, list1, list1);
-        } else if (p_71332_ == Level.END) {
+            return new LegacyStructureDataHandler(pStorage, list1, list1);
+        } else if (pLevel == Level.END) {
             List<String> list = ImmutableList.of("EndCity");
-            return new LegacyStructureDataHandler(p_71333_, list, list);
+            return new LegacyStructureDataHandler(pStorage, list, list);
         } else {
-            throw new RuntimeException(String.format(Locale.ROOT, "Unknown dimension type : %s", p_71332_));
+            throw new RuntimeException(String.format(Locale.ROOT, "Unknown dimension type : %s", pLevel));
         }
     }
 }

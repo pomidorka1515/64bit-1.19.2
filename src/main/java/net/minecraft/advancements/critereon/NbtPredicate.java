@@ -20,23 +20,23 @@ public class NbtPredicate {
     @Nullable
     private final CompoundTag tag;
 
-    public NbtPredicate(@Nullable CompoundTag p_57475_) {
-        this.tag = p_57475_;
+    public NbtPredicate(@Nullable CompoundTag pTag) {
+        this.tag = pTag;
     }
 
-    public boolean matches(ItemStack p_57480_) {
-        return this == ANY ? true : this.matches(p_57480_.getTag());
+    public boolean matches(ItemStack pStack) {
+        return this == ANY ? true : this.matches(pStack.getTag());
     }
 
-    public boolean matches(Entity p_57478_) {
-        return this == ANY ? true : this.matches(getEntityTagToCompare(p_57478_));
+    public boolean matches(Entity pEntity) {
+        return this == ANY ? true : this.matches(getEntityTagToCompare(pEntity));
     }
 
-    public boolean matches(@Nullable Tag p_57484_) {
-        if (p_57484_ == null) {
+    public boolean matches(@Nullable Tag pTag) {
+        if (pTag == null) {
             return this == ANY;
         } else {
-            return this.tag == null || NbtUtils.compareNbt(this.tag, p_57484_, true);
+            return this.tag == null || NbtUtils.compareNbt(this.tag, pTag, true);
         }
     }
 
@@ -44,11 +44,11 @@ public class NbtPredicate {
         return (JsonElement) (this != ANY && this.tag != null ? new JsonPrimitive(this.tag.toString()) : JsonNull.INSTANCE);
     }
 
-    public static NbtPredicate fromJson(@Nullable JsonElement p_57482_) {
-        if (p_57482_ != null && !p_57482_.isJsonNull()) {
+    public static NbtPredicate fromJson(@Nullable JsonElement pJson) {
+        if (pJson != null && !pJson.isJsonNull()) {
             CompoundTag compoundtag;
             try {
-                compoundtag = TagParser.parseTag(GsonHelper.convertToString(p_57482_, "nbt"));
+                compoundtag = TagParser.parseTag(GsonHelper.convertToString(pJson, "nbt"));
             } catch (CommandSyntaxException commandsyntaxexception) {
                 throw new JsonSyntaxException("Invalid nbt tag: " + commandsyntaxexception.getMessage());
             }
@@ -59,10 +59,10 @@ public class NbtPredicate {
         }
     }
 
-    public static CompoundTag getEntityTagToCompare(Entity p_57486_) {
-        CompoundTag compoundtag = p_57486_.saveWithoutId(new CompoundTag());
-        if (p_57486_ instanceof Player) {
-            ItemStack itemstack = ((Player) p_57486_).getInventory().getSelected();
+    public static CompoundTag getEntityTagToCompare(Entity pEntity) {
+        CompoundTag compoundtag = pEntity.saveWithoutId(new CompoundTag());
+        if (pEntity instanceof Player) {
+            ItemStack itemstack = ((Player) pEntity).getInventory().getSelected();
             if (!itemstack.isEmpty()) {
                 compoundtag.put("SelectedItem", itemstack.save(new CompoundTag()));
             }

@@ -17,8 +17,8 @@ public class PublishCommand {
         return Component.translatable("commands.publish.alreadyPublished", p_138194_);
     });
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_138185_) {
-        p_138185_.register(Commands.literal("publish").requires((p_138189_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("publish").requires((p_138189_) -> {
                                                           return p_138189_.hasPermission(4);
                                                       })
                         .executes((p_138196_) -> {
@@ -29,14 +29,14 @@ public class PublishCommand {
                         })));
     }
 
-    private static int publish(CommandSourceStack p_138191_, int p_138192_) throws CommandSyntaxException {
-        if (p_138191_.getServer().isPublished()) {
-            throw ERROR_ALREADY_PUBLISHED.create(p_138191_.getServer().getPort());
-        } else if (!p_138191_.getServer().publishServer((GameType) null, false, p_138192_)) {
+    private static int publish(CommandSourceStack pSource, int pPort) throws CommandSyntaxException {
+        if (pSource.getServer().isPublished()) {
+            throw ERROR_ALREADY_PUBLISHED.create(pSource.getServer().getPort());
+        } else if (!pSource.getServer().publishServer((GameType) null, false, pPort)) {
             throw ERROR_FAILED.create();
         } else {
-            p_138191_.sendSuccess(Component.translatable("commands.publish.success", p_138192_), true);
-            return p_138192_;
+            pSource.sendSuccess(Component.translatable("commands.publish.success", pPort), true);
+            return pPort;
         }
     }
 }

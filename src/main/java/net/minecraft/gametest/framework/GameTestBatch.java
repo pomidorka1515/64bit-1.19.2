@@ -14,14 +14,14 @@ public class GameTestBatch {
     @Nullable
     private final Consumer<ServerLevel> afterBatchFunction;
 
-    public GameTestBatch(String p_177059_, Collection<TestFunction> p_177060_, @Nullable Consumer<ServerLevel> p_177061_, @Nullable Consumer<ServerLevel> p_177062_) {
-        if (p_177060_.isEmpty()) {
+    public GameTestBatch(String pName, Collection<TestFunction> pTestFunctions, @Nullable Consumer<ServerLevel> pBeforeBatchFunction, @Nullable Consumer<ServerLevel> pAfterBatchFunction) {
+        if (pTestFunctions.isEmpty()) {
             throw new IllegalArgumentException("A GameTestBatch must include at least one TestFunction!");
         } else {
-            this.name = p_177059_;
-            this.testFunctions = p_177060_;
-            this.beforeBatchFunction = p_177061_;
-            this.afterBatchFunction = p_177062_;
+            this.name = pName;
+            this.testFunctions = pTestFunctions;
+            this.beforeBatchFunction = pBeforeBatchFunction;
+            this.afterBatchFunction = pAfterBatchFunction;
         }
     }
 
@@ -33,15 +33,15 @@ public class GameTestBatch {
         return this.testFunctions;
     }
 
-    public void runBeforeBatchFunction(ServerLevel p_127548_) {
+    public void runBeforeBatchFunction(ServerLevel pServerLevel) {
         if (this.beforeBatchFunction != null) {
-            this.beforeBatchFunction.accept(p_127548_);
+            this.beforeBatchFunction.accept(pServerLevel);
         }
     }
 
-    public void runAfterBatchFunction(ServerLevel p_177064_) {
+    public void runAfterBatchFunction(ServerLevel pServerLevel) {
         if (this.afterBatchFunction != null) {
-            this.afterBatchFunction.accept(p_177064_);
+            this.afterBatchFunction.accept(pServerLevel);
         }
     }
 }

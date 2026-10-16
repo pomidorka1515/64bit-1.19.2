@@ -29,12 +29,12 @@ public class ResourceOrTagLocationArgument<T> implements ArgumentType<ResourceOr
     private static final Collection<String> EXAMPLES = Arrays.asList("foo", "foo:bar", "012", "#skeletons", "#minecraft:skeletons");
     final ResourceKey<? extends Registry<T>> registryKey;
 
-    public ResourceOrTagLocationArgument(ResourceKey<? extends Registry<T>> p_210949_) {
-        this.registryKey = p_210949_;
+    public ResourceOrTagLocationArgument(ResourceKey<? extends Registry<T>> pRegistryKey) {
+        this.registryKey = pRegistryKey;
     }
 
-    public static <T> ResourceOrTagLocationArgument<T> resourceOrTag(ResourceKey<? extends Registry<T>> p_210969_) {
-        return new ResourceOrTagLocationArgument<>(p_210969_);
+    public static <T> ResourceOrTagLocationArgument<T> resourceOrTag(ResourceKey<? extends Registry<T>> pRegistryKey) {
+        return new ResourceOrTagLocationArgument<>(pRegistryKey);
     }
 
     public static <T> ResourceOrTagLocationArgument.Result<T> getRegistryType(CommandContext<CommandSourceStack> p_210956_, String p_210957_, ResourceKey<Registry<T>> p_210958_, DynamicCommandExceptionType p_210959_) throws CommandSyntaxException {
@@ -63,12 +63,12 @@ public class ResourceOrTagLocationArgument<T> implements ArgumentType<ResourceOr
         }
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_210977_, SuggestionsBuilder p_210978_) {
-        Object object = p_210977_.getSource();
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        Object object = pContext.getSource();
         if (object instanceof SharedSuggestionProvider sharedsuggestionprovider) {
-            return sharedsuggestionprovider.suggestRegistryElements(this.registryKey, SharedSuggestionProvider.ElementSuggestionType.ALL, p_210978_, p_210977_);
+            return sharedsuggestionprovider.suggestRegistryElements(this.registryKey, SharedSuggestionProvider.ElementSuggestionType.ALL, pBuilder, pContext);
         } else {
-            return p_210978_.buildFuture();
+            return pBuilder.buildFuture();
         }
     }
 
@@ -77,21 +77,21 @@ public class ResourceOrTagLocationArgument<T> implements ArgumentType<ResourceOr
     }
 
     public static class Info<T> implements ArgumentTypeInfo<ResourceOrTagLocationArgument<T>, ResourceOrTagLocationArgument.Info<T>.Template> {
-        public void serializeToNetwork(ResourceOrTagLocationArgument.Info<T>.Template p_233414_, FriendlyByteBuf p_233415_) {
-            p_233415_.writeResourceLocation(p_233414_.registryKey.location());
+        public void serializeToNetwork(ResourceOrTagLocationArgument.Info<T>.Template pTemplate, FriendlyByteBuf pBuffer) {
+            pBuffer.writeResourceLocation(pTemplate.registryKey.location());
         }
 
-        public ResourceOrTagLocationArgument.Info<T>.Template deserializeFromNetwork(FriendlyByteBuf p_233425_) {
-            ResourceLocation resourcelocation = p_233425_.readResourceLocation();
+        public ResourceOrTagLocationArgument.Info<T>.Template deserializeFromNetwork(FriendlyByteBuf pBuffer) {
+            ResourceLocation resourcelocation = pBuffer.readResourceLocation();
             return new ResourceOrTagLocationArgument.Info.Template(ResourceKey.createRegistryKey(resourcelocation));
         }
 
-        public void serializeToJson(ResourceOrTagLocationArgument.Info<T>.Template p_233411_, JsonObject p_233412_) {
-            p_233412_.addProperty("registry", p_233411_.registryKey.location().toString());
+        public void serializeToJson(ResourceOrTagLocationArgument.Info<T>.Template pTemplate, JsonObject pJson) {
+            pJson.addProperty("registry", pTemplate.registryKey.location().toString());
         }
 
-        public ResourceOrTagLocationArgument.Info<T>.Template unpack(ResourceOrTagLocationArgument<T> p_233417_) {
-            return new ResourceOrTagLocationArgument.Info.Template(p_233417_.registryKey);
+        public ResourceOrTagLocationArgument.Info<T>.Template unpack(ResourceOrTagLocationArgument<T> pArgument) {
+            return new ResourceOrTagLocationArgument.Info.Template(pArgument.registryKey);
         }
 
         public final class Template implements ArgumentTypeInfo.Template<ResourceOrTagLocationArgument<T>> {
@@ -101,7 +101,7 @@ public class ResourceOrTagLocationArgument<T> implements ArgumentType<ResourceOr
                 this.registryKey = p_233432_;
             }
 
-            public ResourceOrTagLocationArgument<T> instantiate(CommandBuildContext p_233435_) {
+            public ResourceOrTagLocationArgument<T> instantiate(CommandBuildContext pContext) {
                 return new ResourceOrTagLocationArgument<>(this.registryKey);
             }
 
@@ -116,12 +116,12 @@ public class ResourceOrTagLocationArgument<T> implements ArgumentType<ResourceOr
             return Either.left(this.key);
         }
 
-      public <E> Optional<ResourceOrTagLocationArgument.Result<E>> cast(ResourceKey<? extends Registry<E>> p_210988_) {
-          return this.key.cast(p_210988_).map(ResourceOrTagLocationArgument.ResourceResult::new);
+      public <E> Optional<ResourceOrTagLocationArgument.Result<E>> cast(ResourceKey<? extends Registry<E>> pRegistryKey) {
+          return this.key.cast(pRegistryKey).map(ResourceOrTagLocationArgument.ResourceResult::new);
       }
 
-      public boolean test(Holder<T> p_210986_) {
-          return p_210986_.is(this.key);
+      public boolean test(Holder<T> pHolder) {
+          return pHolder.is(this.key);
       }
 
       public String asPrintable() {
@@ -132,7 +132,7 @@ public class ResourceOrTagLocationArgument<T> implements ArgumentType<ResourceOr
     public interface Result<T> extends Predicate<Holder<T>> {
         Either<ResourceKey<T>, TagKey<T>> unwrap();
 
-        <E> Optional<ResourceOrTagLocationArgument.Result<E>> cast(ResourceKey<? extends Registry<E>> p_210997_);
+        <E> Optional<ResourceOrTagLocationArgument.Result<E>> cast(ResourceKey<? extends Registry<E>> pRegistryKey);
 
         String asPrintable();
     }
@@ -142,12 +142,12 @@ public class ResourceOrTagLocationArgument<T> implements ArgumentType<ResourceOr
             return Either.right(this.key);
         }
 
-      public <E> Optional<ResourceOrTagLocationArgument.Result<E>> cast(ResourceKey<? extends Registry<E>> p_211022_) {
-          return this.key.cast(p_211022_).map(ResourceOrTagLocationArgument.TagResult::new);
+      public <E> Optional<ResourceOrTagLocationArgument.Result<E>> cast(ResourceKey<? extends Registry<E>> pRegistryKey) {
+          return this.key.cast(pRegistryKey).map(ResourceOrTagLocationArgument.TagResult::new);
       }
 
-      public boolean test(Holder<T> p_211020_) {
-          return p_211020_.is(this.key);
+      public boolean test(Holder<T> pHolder) {
+          return pHolder.is(this.key);
       }
 
       public String asPrintable() {

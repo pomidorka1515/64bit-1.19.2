@@ -25,8 +25,8 @@ public class JfrCommand {
     private JfrCommand() {
     }
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_183646_) {
-        p_183646_.register(Commands.literal("jfr").requires((p_183661_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("jfr").requires((p_183661_) -> {
                                                       return p_183661_.hasPermission(4);
                                                   })
                         .then(Commands.literal("start").executes((p_183657_) -> {
@@ -37,24 +37,24 @@ public class JfrCommand {
                         })));
     }
 
-    private static int startJfr(CommandSourceStack p_183650_) throws CommandSyntaxException {
-        Environment environment = Environment.from(p_183650_.getServer());
+    private static int startJfr(CommandSourceStack pSource) throws CommandSyntaxException {
+        Environment environment = Environment.from(pSource.getServer());
         if (!JvmProfiler.INSTANCE.start(environment)) {
             throw START_FAILED.create();
         } else {
-            p_183650_.sendSuccess(Component.translatable("commands.jfr.started"), false);
+            pSource.sendSuccess(Component.translatable("commands.jfr.started"), false);
             return 1;
         }
     }
 
-    private static int stopJfr(CommandSourceStack p_183659_) throws CommandSyntaxException {
+    private static int stopJfr(CommandSourceStack pSource) throws CommandSyntaxException {
         try {
             Path path = Paths.get(".").relativize(JvmProfiler.INSTANCE.stop().normalize());
-            Path path1 = p_183659_.getServer().isPublished() && !SharedConstants.IS_RUNNING_IN_IDE ? path : path.toAbsolutePath();
+            Path path1 = pSource.getServer().isPublished() && !SharedConstants.IS_RUNNING_IN_IDE ? path : path.toAbsolutePath();
             Component component = Component.literal(path.toString()).withStyle(ChatFormatting.UNDERLINE).withStyle((p_183655_) -> {
                 return p_183655_.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, path1.toString())).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.copy.click")));
             });
-            p_183659_.sendSuccess(Component.translatable("commands.jfr.stopped", component), false);
+            pSource.sendSuccess(Component.translatable("commands.jfr.stopped", component), false);
             return 1;
         } catch (Throwable throwable) {
             throw DUMP_FAILED.create(throwable.getMessage());

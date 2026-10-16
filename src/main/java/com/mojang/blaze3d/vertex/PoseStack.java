@@ -20,33 +20,33 @@ public class PoseStack {
         p_85848_.add(new PoseStack.Pose(matrix4f, matrix3f));
     });
 
-    public void translate(double p_85838_, double p_85839_, double p_85840_) {
+    public void translate(double pX, double pY, double pZ) {
         PoseStack.Pose posestack$pose = this.poseStack.getLast();
-        posestack$pose.pose.multiplyWithTranslation((float) p_85838_, (float) p_85839_, (float) p_85840_);
+        posestack$pose.pose.multiplyWithTranslation((float) pX, (float) pY, (float) pZ);
     }
 
-    public void scale(float p_85842_, float p_85843_, float p_85844_) {
+    public void scale(float pX, float pY, float pZ) {
         PoseStack.Pose posestack$pose = this.poseStack.getLast();
-        posestack$pose.pose.multiply(Matrix4f.createScaleMatrix(p_85842_, p_85843_, p_85844_));
-        if (p_85842_ == p_85843_ && p_85843_ == p_85844_) {
-            if (p_85842_ > 0.0F) {
+        posestack$pose.pose.multiply(Matrix4f.createScaleMatrix(pX, pY, pZ));
+        if (pX == pY && pY == pZ) {
+            if (pX > 0.0F) {
                 return;
             }
 
             posestack$pose.normal.mul(-1.0F);
         }
 
-        float f = 1.0F / p_85842_;
-        float f1 = 1.0F / p_85843_;
-        float f2 = 1.0F / p_85844_;
+        float f = 1.0F / pX;
+        float f1 = 1.0F / pY;
+        float f2 = 1.0F / pZ;
         float f3 = Mth.fastInvCubeRoot(f * f1 * f2);
         posestack$pose.normal.mul(Matrix3f.createScaleMatrix(f3 * f, f3 * f1, f3 * f2));
     }
 
-    public void mulPose(Quaternion p_85846_) {
+    public void mulPose(Quaternion pQuaternion) {
         PoseStack.Pose posestack$pose = this.poseStack.getLast();
-        posestack$pose.pose.multiply(p_85846_);
-        posestack$pose.normal.mul(p_85846_);
+        posestack$pose.pose.multiply(pQuaternion);
+        posestack$pose.normal.mul(pQuaternion);
     }
 
     public void pushPose() {
@@ -72,8 +72,8 @@ public class PoseStack {
         posestack$pose.normal.setIdentity();
     }
 
-    public void mulPoseMatrix(Matrix4f p_166855_) {
-        (this.poseStack.getLast()).pose.multiply(p_166855_);
+    public void mulPoseMatrix(Matrix4f pMatrix) {
+        (this.poseStack.getLast()).pose.multiply(pMatrix);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -81,9 +81,9 @@ public class PoseStack {
         final Matrix4f pose;
         final Matrix3f normal;
 
-        Pose(Matrix4f p_85855_, Matrix3f p_85856_) {
-            this.pose = p_85855_;
-            this.normal = p_85856_;
+        Pose(Matrix4f pPose, Matrix3f pNormal) {
+            this.pose = pPose;
+            this.normal = pNormal;
         }
 
         public Matrix4f pose() {

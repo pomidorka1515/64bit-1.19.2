@@ -26,8 +26,8 @@ public class ChaseCommand {
     @Nullable
     private static ChaseClient chaseClient;
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_196078_) {
-        p_196078_.register(Commands.literal("chase").then(Commands.literal("follow").then(Commands.argument("host", StringArgumentType.string()).executes((p_196104_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("chase").then(Commands.literal("follow").then(Commands.argument("host", StringArgumentType.string()).executes((p_196104_) -> {
                                                                                                                                                     return follow(p_196104_.getSource(), StringArgumentType.getString(p_196104_, "host"), 10000);
                                                                                                                                                 })
                                                                                                     .then(Commands.argument("port", IntegerArgumentType.integer(1, 65535)).executes((p_196102_) -> {
@@ -50,46 +50,46 @@ public class ChaseCommand {
                         })));
     }
 
-    private static int stop(CommandSourceStack p_196082_) {
+    private static int stop(CommandSourceStack pSource) {
         if (chaseClient != null) {
             chaseClient.stop();
-            p_196082_.sendSuccess(Component.literal("You have now stopped chasing"), false);
+            pSource.sendSuccess(Component.literal("You have now stopped chasing"), false);
             chaseClient = null;
         }
 
         if (chaseServer != null) {
             chaseServer.stop();
-            p_196082_.sendSuccess(Component.literal("You are no longer being chased"), false);
+            pSource.sendSuccess(Component.literal("You are no longer being chased"), false);
             chaseServer = null;
         }
 
         return 0;
     }
 
-    private static boolean alreadyRunning(CommandSourceStack p_196090_) {
+    private static boolean alreadyRunning(CommandSourceStack pSource) {
         if (chaseServer != null) {
-            p_196090_.sendFailure(Component.literal("Chase server is already running. Stop it using /chase stop"));
+            pSource.sendFailure(Component.literal("Chase server is already running. Stop it using /chase stop"));
             return true;
         } else if (chaseClient != null) {
-            p_196090_.sendFailure(Component.literal("You are already chasing someone. Stop it using /chase stop"));
+            pSource.sendFailure(Component.literal("You are already chasing someone. Stop it using /chase stop"));
             return true;
         } else {
             return false;
         }
     }
 
-    private static int lead(CommandSourceStack p_196084_, String p_196085_, int p_196086_) {
-        if (alreadyRunning(p_196084_)) {
+    private static int lead(CommandSourceStack pSource, String pBindAddress, int pPort) {
+        if (alreadyRunning(pSource)) {
             return 0;
         } else {
-            chaseServer = new ChaseServer(p_196085_, p_196086_, p_196084_.getServer().getPlayerList(), 100);
+            chaseServer = new ChaseServer(pBindAddress, pPort, pSource.getServer().getPlayerList(), 100);
 
             try {
                 chaseServer.start();
-                p_196084_.sendSuccess(Component.literal("Chase server is now running on port " + p_196086_ + ". Clients can follow you using /chase follow <ip> <port>"), false);
+                pSource.sendSuccess(Component.literal("Chase server is now running on port " + pPort + ". Clients can follow you using /chase follow <ip> <port>"), false);
             } catch (IOException ioexception) {
                 ioexception.printStackTrace();
-                p_196084_.sendFailure(Component.literal("Failed to start chase server on port " + p_196086_));
+                pSource.sendFailure(Component.literal("Failed to start chase server on port " + pPort));
                 chaseServer = null;
             }
 
@@ -97,13 +97,13 @@ public class ChaseCommand {
         }
     }
 
-    private static int follow(CommandSourceStack p_196092_, String p_196093_, int p_196094_) {
-        if (alreadyRunning(p_196092_)) {
+    private static int follow(CommandSourceStack pSource, String pHost, int pPort) {
+        if (alreadyRunning(pSource)) {
             return 0;
         } else {
-            chaseClient = new ChaseClient(p_196093_, p_196094_, p_196092_.getServer());
+            chaseClient = new ChaseClient(pHost, pPort, pSource.getServer());
             chaseClient.start();
-            p_196092_.sendSuccess(Component.literal("You are now chasing " + p_196093_ + ":" + p_196094_ + ". If that server does '/chase lead' then you will automatically go to the same position. Use '/chase stop' to stop chasing."), false);
+            pSource.sendSuccess(Component.literal("You are now chasing " + pHost + ":" + pPort + ". If that server does '/chase lead' then you will automatically go to the same position. Use '/chase stop' to stop chasing."), false);
             return 0;
         }
     }

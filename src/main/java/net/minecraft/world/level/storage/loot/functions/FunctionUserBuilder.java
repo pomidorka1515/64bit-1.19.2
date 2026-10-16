@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.function.Function;
 
 public interface FunctionUserBuilder<T extends FunctionUserBuilder<T>> {
-    T apply(LootItemFunction.Builder p_230990_);
+    T apply(LootItemFunction.Builder pFunctionBuilder);
 
     default<E> T apply(Iterable<E> p_230985_, Function<E, LootItemFunction.Builder> p_230986_) {
         T t = this.unwrap();

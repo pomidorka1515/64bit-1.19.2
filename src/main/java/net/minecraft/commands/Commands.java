@@ -122,13 +122,13 @@ public class Commands {
     public static final int LEVEL_OWNERS = 4;
     private final CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
 
-    public Commands(Commands.CommandSelection p_230943_, CommandBuildContext p_230944_) {
+    public Commands(Commands.CommandSelection pSelection, CommandBuildContext pContext) {
         AdvancementCommands.register(this.dispatcher);
         AttributeCommand.register(this.dispatcher);
-        ExecuteCommand.register(this.dispatcher, p_230944_);
+        ExecuteCommand.register(this.dispatcher, pContext);
         BossBarCommands.register(this.dispatcher);
-        ClearInventoryCommands.register(this.dispatcher, p_230944_);
-        CloneCommands.register(this.dispatcher, p_230944_);
+        ClearInventoryCommands.register(this.dispatcher, pContext);
+        CloneCommands.register(this.dispatcher, pContext);
         DataCommands.register(this.dispatcher);
         DataPackCommand.register(this.dispatcher);
         DebugCommand.register(this.dispatcher);
@@ -139,21 +139,21 @@ public class Commands {
         EndRingsCommand.register(this.dispatcher);
         EnchantCommand.register(this.dispatcher);
         ExperienceCommand.register(this.dispatcher);
-        FillCommand.register(this.dispatcher, p_230944_);
+        FillCommand.register(this.dispatcher, pContext);
         ForceLoadCommand.register(this.dispatcher);
         FrustumCommand.register(this.dispatcher);
         FarlandsCommand.register(this.dispatcher);
         FunctionCommand.register(this.dispatcher);
         GameModeCommand.register(this.dispatcher);
         GameRuleCommand.register(this.dispatcher);
-        GiveCommand.register(this.dispatcher, p_230944_);
+        GiveCommand.register(this.dispatcher, pContext);
         HelpCommand.register(this.dispatcher);
-        ItemCommands.register(this.dispatcher, p_230944_);
+        ItemCommands.register(this.dispatcher, pContext);
         KickCommand.register(this.dispatcher);
         KillCommand.register(this.dispatcher);
         ListPlayersCommand.register(this.dispatcher);
         LocateCommand.register(this.dispatcher);
-        LootCommand.register(this.dispatcher, p_230944_);
+        LootCommand.register(this.dispatcher, pContext);
         MsgCommand.register(this.dispatcher);
         ParticleCommand.register(this.dispatcher);
         PlaceCommand.register(this.dispatcher);
@@ -163,8 +163,8 @@ public class Commands {
         SayCommand.register(this.dispatcher);
         ScheduleCommand.register(this.dispatcher);
         ScoreboardCommand.register(this.dispatcher);
-        SeedCommand.register(this.dispatcher, p_230943_ != Commands.CommandSelection.INTEGRATED);
-        SetBlockCommand.register(this.dispatcher, p_230944_);
+        SeedCommand.register(this.dispatcher, pSelection != Commands.CommandSelection.INTEGRATED);
+        SetBlockCommand.register(this.dispatcher, pContext);
         SetSpawnCommand.register(this.dispatcher);
         SetWorldSpawnCommand.register(this.dispatcher);
         SpectateCommand.register(this.dispatcher);
@@ -190,7 +190,7 @@ public class Commands {
             TestCommand.register(this.dispatcher);
         }
 
-        if (p_230943_.includeDedicated) {
+        if (pSelection.includeDedicated) {
             BanIpCommands.register(this.dispatcher);
             BanListCommands.register(this.dispatcher);
             BanPlayerCommands.register(this.dispatcher);
@@ -207,7 +207,7 @@ public class Commands {
             WhitelistCommand.register(this.dispatcher);
         }
 
-        if (p_230943_.includeIntegrated) {
+        if (pSelection.includeIntegrated) {
             PublishCommand.register(this.dispatcher);
         }
 
@@ -222,20 +222,20 @@ public class Commands {
         return new ParseResults<>(commandcontextbuilder1, p_242928_.getReader(), p_242928_.getExceptions());
     }
 
-    public int performPrefixedCommand(CommandSourceStack p_230958_, String p_230959_) {
-        p_230959_ = p_230959_.startsWith("/") ? p_230959_.substring(1) : p_230959_;
-        return this.performCommand(this.dispatcher.parse(p_230959_, p_230958_), p_230959_);
+    public int performPrefixedCommand(CommandSourceStack pSource, String pCommand) {
+        pCommand = pCommand.startsWith("/") ? pCommand.substring(1) : pCommand;
+        return this.performCommand(this.dispatcher.parse(pCommand, pSource), pCommand);
     }
 
-    public int performCommand(ParseResults<CommandSourceStack> p_242844_, String p_242841_) {
-        CommandSourceStack commandsourcestack = p_242844_.getContext().getSource();
+    public int performCommand(ParseResults<CommandSourceStack> pParseResults, String pCommand) {
+        CommandSourceStack commandsourcestack = pParseResults.getContext().getSource();
         commandsourcestack.getServer().getProfiler().push(() -> {
-            return "/" + p_242841_;
+            return "/" + pCommand;
         });
 
         try {
             try {
-                return this.dispatcher.execute(p_242844_);
+                return this.dispatcher.execute(pParseResults);
             } catch (CommandRuntimeException commandruntimeexception) {
                 commandsourcestack.sendFailure(commandruntimeexception.getComponent());
                 return 0;
@@ -244,7 +244,7 @@ public class Commands {
                 if (commandsyntaxexception.getInput() != null && commandsyntaxexception.getCursor() >= 0) {
                     int j = Math.min(commandsyntaxexception.getInput().length(), commandsyntaxexception.getCursor());
                     MutableComponent mutablecomponent1 = Component.empty().withStyle(ChatFormatting.GRAY).withStyle((p_82134_) -> {
-                        return p_82134_.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + p_242841_));
+                        return p_82134_.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + pCommand));
                     });
                     if (j > 10) {
                         mutablecomponent1.append(CommonComponents.ELLIPSIS);
@@ -262,7 +262,7 @@ public class Commands {
             } catch (Exception exception) {
                 MutableComponent mutablecomponent = Component.literal(exception.getMessage() == null ? exception.getClass().getName() : exception.getMessage());
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.error("Command exception: /{}", p_242841_, exception);
+                    LOGGER.error("Command exception: /{}", pCommand, exception);
                     StackTraceElement[] astacktraceelement = exception.getStackTrace();
 
                     for (int i = 0; i < Math.min(astacktraceelement.length, 3); ++i) {
@@ -275,7 +275,7 @@ public class Commands {
                 }));
                 if (SharedConstants.IS_RUNNING_IN_IDE) {
                     commandsourcestack.sendFailure(Component.literal(Util.describeError(exception)));
-                    LOGGER.error("'/{}' threw an exception", p_242841_, exception);
+                    LOGGER.error("'/{}' threw an exception", pCommand, exception);
                 }
 
                 return 0;
@@ -287,17 +287,17 @@ public class Commands {
         }
     }
 
-    public void sendCommands(ServerPlayer p_82096_) {
+    public void sendCommands(ServerPlayer pPlayer) {
         Map<CommandNode<CommandSourceStack>, CommandNode<SharedSuggestionProvider>> map = Maps.newHashMap();
         RootCommandNode<SharedSuggestionProvider> rootcommandnode = new RootCommandNode<>();
         map.put(this.dispatcher.getRoot(), rootcommandnode);
-        this.fillUsableCommands(this.dispatcher.getRoot(), rootcommandnode, p_82096_.createCommandSourceStack(), map);
-        p_82096_.connection.send(new ClientboundCommandsPacket(rootcommandnode));
+        this.fillUsableCommands(this.dispatcher.getRoot(), rootcommandnode, pPlayer.createCommandSourceStack(), map);
+        pPlayer.connection.send(new ClientboundCommandsPacket(rootcommandnode));
     }
 
-    private void fillUsableCommands(CommandNode<CommandSourceStack> p_82113_, CommandNode<SharedSuggestionProvider> p_82114_, CommandSourceStack p_82115_, Map<CommandNode<CommandSourceStack>, CommandNode<SharedSuggestionProvider>> p_82116_) {
-        for (CommandNode<CommandSourceStack> commandnode : p_82113_.getChildren()) {
-            if (commandnode.canUse(p_82115_)) {
+    private void fillUsableCommands(CommandNode<CommandSourceStack> pRootCommandSource, CommandNode<SharedSuggestionProvider> pRootSuggestion, CommandSourceStack pSource, Map<CommandNode<CommandSourceStack>, CommandNode<SharedSuggestionProvider>> pCommandNodeToSuggestionNode) {
+        for (CommandNode<CommandSourceStack> commandnode : pRootCommandSource.getChildren()) {
+            if (commandnode.canUse(pSource)) {
                 ArgumentBuilder<SharedSuggestionProvider, ?> argumentbuilder = (ArgumentBuilder) commandnode.createBuilder();
                 argumentbuilder.requires((p_82126_) -> {
                     return true;
@@ -316,31 +316,31 @@ public class Commands {
                 }
 
                 if (argumentbuilder.getRedirect() != null) {
-                    argumentbuilder.redirect(p_82116_.get(argumentbuilder.getRedirect()));
+                    argumentbuilder.redirect(pCommandNodeToSuggestionNode.get(argumentbuilder.getRedirect()));
                 }
 
                 CommandNode<SharedSuggestionProvider> commandnode1 = argumentbuilder.build();
-                p_82116_.put(commandnode, commandnode1);
-                p_82114_.addChild(commandnode1);
+                pCommandNodeToSuggestionNode.put(commandnode, commandnode1);
+                pRootSuggestion.addChild(commandnode1);
                 if (!commandnode.getChildren().isEmpty()) {
-                    this.fillUsableCommands(commandnode, commandnode1, p_82115_, p_82116_);
+                    this.fillUsableCommands(commandnode, commandnode1, pSource, pCommandNodeToSuggestionNode);
                 }
             }
         }
     }
 
-    public static LiteralArgumentBuilder<CommandSourceStack> literal(String p_82128_) {
-        return LiteralArgumentBuilder.literal(p_82128_);
+    public static LiteralArgumentBuilder<CommandSourceStack> literal(String pName) {
+        return LiteralArgumentBuilder.literal(pName);
     }
 
-    public static <T> RequiredArgumentBuilder<CommandSourceStack, T> argument(String p_82130_, ArgumentType<T> p_82131_) {
-        return RequiredArgumentBuilder.argument(p_82130_, p_82131_);
+    public static <T> RequiredArgumentBuilder<CommandSourceStack, T> argument(String pName, ArgumentType<T> pType) {
+        return RequiredArgumentBuilder.argument(pName, pType);
     }
 
-    public static Predicate<String> createValidator(Commands.ParseFunction p_82121_) {
+    public static Predicate<String> createValidator(Commands.ParseFunction pParser) {
         return (p_82124_) -> {
             try {
-                p_82121_.parse(new StringReader(p_82124_));
+                pParser.parse(new StringReader(p_82124_));
                 return true;
             } catch (CommandSyntaxException commandsyntaxexception) {
                 return false;
@@ -353,13 +353,13 @@ public class Commands {
     }
 
     @Nullable
-    public static <S> CommandSyntaxException getParseException(ParseResults<S> p_82098_) {
-        if (!p_82098_.getReader().canRead()) {
+    public static <S> CommandSyntaxException getParseException(ParseResults<S> pResult) {
+        if (!pResult.getReader().canRead()) {
             return null;
-        } else if (p_82098_.getExceptions().size() == 1) {
-            return p_82098_.getExceptions().values().iterator().next();
+        } else if (pResult.getExceptions().size() == 1) {
+            return pResult.getExceptions().values().iterator().next();
         } else {
-            return p_82098_.getContext().getRange().isEmpty() ? CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand().createWithContext(p_82098_.getReader()) : CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(p_82098_.getReader());
+            return pResult.getContext().getRange().isEmpty() ? CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand().createWithContext(pResult.getReader()) : CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().createWithContext(pResult.getReader());
         }
     }
 
@@ -401,6 +401,6 @@ public class Commands {
 
     @FunctionalInterface
     public interface ParseFunction {
-        void parse(StringReader p_82161_) throws CommandSyntaxException;
+        void parse(StringReader pInput) throws CommandSyntaxException;
     }
 }

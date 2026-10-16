@@ -27,17 +27,17 @@ public class BlockStateArgument implements ArgumentType<BlockInput> {
         return new BlockStateArgument(p_234651_);
     }
 
-    public BlockInput parse(StringReader p_116122_) throws CommandSyntaxException {
-        BlockStateParser.BlockResult blockstateparser$blockresult = BlockStateParser.parseForBlock(this.blocks, p_116122_, true);
+    public BlockInput parse(StringReader pReader) throws CommandSyntaxException {
+        BlockStateParser.BlockResult blockstateparser$blockresult = BlockStateParser.parseForBlock(this.blocks, pReader, true);
         return new BlockInput(blockstateparser$blockresult.blockState(), blockstateparser$blockresult.properties().keySet(), blockstateparser$blockresult.nbt());
     }
 
-    public static BlockInput getBlock(CommandContext<CommandSourceStack> p_116124_, String p_116125_) {
-        return p_116124_.getArgument(p_116125_, BlockInput.class);
+    public static BlockInput getBlock(CommandContext<CommandSourceStack> pContext, String pName) {
+        return pContext.getArgument(pName, BlockInput.class);
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> p_116128_, SuggestionsBuilder p_116129_) {
-        return BlockStateParser.fillSuggestions(this.blocks, p_116129_, false, true);
+    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> pContext, SuggestionsBuilder pBuilder) {
+        return BlockStateParser.fillSuggestions(this.blocks, pBuilder, false, true);
     }
 
     public Collection<String> getExamples() {

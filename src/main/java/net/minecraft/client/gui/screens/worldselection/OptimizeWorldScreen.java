@@ -39,15 +39,15 @@ public class OptimizeWorldScreen extends Screen {
     private final WorldUpgrader upgrader;
 
     @Nullable
-    public static OptimizeWorldScreen create(Minecraft p_101316_, BooleanConsumer p_101317_, DataFixer p_101318_, LevelStorageSource.LevelStorageAccess p_101319_, boolean p_101320_) {
+    public static OptimizeWorldScreen create(Minecraft pMinecraft, BooleanConsumer pCallback, DataFixer pDataFixer, LevelStorageSource.LevelStorageAccess pLevelStorage, boolean pEraseCache) {
         try {
-            WorldStem worldstem = p_101316_.createWorldOpenFlows().loadWorldStem(p_101319_, false);
+            WorldStem worldstem = pMinecraft.createWorldOpenFlows().loadWorldStem(pLevelStorage, false);
 
             OptimizeWorldScreen optimizeworldscreen;
             try {
                 WorldData worlddata = worldstem.worldData();
-                p_101319_.saveDataTag(worldstem.registryAccess(), worlddata);
-                optimizeworldscreen = new OptimizeWorldScreen(p_101317_, p_101318_, p_101319_, worlddata.getLevelSettings(), p_101320_, worlddata.worldGenSettings());
+                pLevelStorage.saveDataTag(worldstem.registryAccess(), worlddata);
+                optimizeworldscreen = new OptimizeWorldScreen(pCallback, pDataFixer, pLevelStorage, worlddata.getLevelSettings(), pEraseCache, worlddata.worldGenSettings());
             } catch (Throwable throwable1) {
                 if (worldstem != null) {
                     try {
@@ -71,10 +71,10 @@ public class OptimizeWorldScreen extends Screen {
         }
     }
 
-    private OptimizeWorldScreen(BooleanConsumer p_194064_, DataFixer p_194065_, LevelStorageSource.LevelStorageAccess p_194066_, LevelSettings p_194067_, boolean p_194068_, WorldGenSettings p_194069_) {
-        super(Component.translatable("optimizeWorld.title", p_194067_.levelName()));
-        this.callback = p_194064_;
-        this.upgrader = new WorldUpgrader(p_194066_, p_194065_, p_194069_, p_194068_);
+    private OptimizeWorldScreen(BooleanConsumer pCallback, DataFixer pDataFixer, LevelStorageSource.LevelStorageAccess pLevelStorage, LevelSettings pLevelSettings, boolean pEraseCache, WorldGenSettings pLevels) {
+        super(Component.translatable("optimizeWorld.title", pLevelSettings.levelName()));
+        this.callback = pCallback;
+        this.upgrader = new WorldUpgrader(pLevelStorage, pDataFixer, pLevels, pEraseCache);
     }
 
     protected void init() {
@@ -99,32 +99,32 @@ public class OptimizeWorldScreen extends Screen {
         this.upgrader.cancel();
     }
 
-    public void render(PoseStack p_101311_, int p_101312_, int p_101313_, float p_101314_) {
-        this.renderBackground(p_101311_);
-        drawCenteredString(p_101311_, this.font, this.title, this.width / 2, 20, 16777215);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, 20, 16777215);
         int i = this.width / 2 - 150;
         int j = this.width / 2 + 150;
         int k = this.height / 4 + 100;
         int l = k + 10;
-        drawCenteredString(p_101311_, this.font, this.upgrader.getStatus(), this.width / 2, k - 9 - 2, 10526880);
+        drawCenteredString(pPoseStack, this.font, this.upgrader.getStatus(), this.width / 2, k - 9 - 2, 10526880);
         if (this.upgrader.getTotalChunks() > 0) {
-            fill(p_101311_, i - 1, k - 1, j + 1, l + 1, -16777216);
-            drawString(p_101311_, this.font, Component.translatable("optimizeWorld.info.converted", this.upgrader.getConverted()), i, 40, 10526880);
-            drawString(p_101311_, this.font, Component.translatable("optimizeWorld.info.skipped", this.upgrader.getSkipped()), i, 40 + 9 + 3, 10526880);
-            drawString(p_101311_, this.font, Component.translatable("optimizeWorld.info.total", this.upgrader.getTotalChunks()), i, 40 + (9 + 3) * 2, 10526880);
+            fill(pPoseStack, i - 1, k - 1, j + 1, l + 1, -16777216);
+            drawString(pPoseStack, this.font, Component.translatable("optimizeWorld.info.converted", this.upgrader.getConverted()), i, 40, 10526880);
+            drawString(pPoseStack, this.font, Component.translatable("optimizeWorld.info.skipped", this.upgrader.getSkipped()), i, 40 + 9 + 3, 10526880);
+            drawString(pPoseStack, this.font, Component.translatable("optimizeWorld.info.total", this.upgrader.getTotalChunks()), i, 40 + (9 + 3) * 2, 10526880);
             int i1 = 0;
 
             for (ResourceKey<Level> resourcekey : this.upgrader.levels()) {
                 int j1 = Mth.floor(this.upgrader.dimensionProgress(resourcekey) * (float) (j - i));
-                fill(p_101311_, i + i1, k, i + i1 + j1, l, DIMENSION_COLORS.getInt(resourcekey));
+                fill(pPoseStack, i + i1, k, i + i1 + j1, l, DIMENSION_COLORS.getInt(resourcekey));
                 i1 += j1;
             }
 
             int k1 = this.upgrader.getConverted() + this.upgrader.getSkipped();
-            drawCenteredString(p_101311_, this.font, k1 + " / " + this.upgrader.getTotalChunks(), this.width / 2, k + 2 * 9 + 2, 10526880);
-            drawCenteredString(p_101311_, this.font, Mth.floor(this.upgrader.getProgress() * 100.0F) + "%", this.width / 2, k + (l - k) / 2 - 9 / 2, 10526880);
+            drawCenteredString(pPoseStack, this.font, k1 + " / " + this.upgrader.getTotalChunks(), this.width / 2, k + 2 * 9 + 2, 10526880);
+            drawCenteredString(pPoseStack, this.font, Mth.floor(this.upgrader.getProgress() * 100.0F) + "%", this.width / 2, k + (l - k) / 2 - 9 / 2, 10526880);
         }
 
-        super.render(p_101311_, p_101312_, p_101313_, p_101314_);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

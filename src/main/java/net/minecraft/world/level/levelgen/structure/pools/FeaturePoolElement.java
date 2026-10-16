@@ -51,7 +51,7 @@ public class FeaturePoolElement extends StructurePoolElement {
         return compoundtag;
     }
 
-    public Vec3i getSize(StructureTemplateManager p_227192_, Rotation p_227193_) {
+    public Vec3i getSize(StructureTemplateManager pStructureTemplateManager, Rotation pRotation) {
         return Vec3i.ZERO;
     }
 

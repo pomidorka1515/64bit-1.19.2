@@ -37,8 +37,8 @@ public class Bat extends AmbientCreature {
     @Nullable
     private BlockPos targetPosition;
 
-    public Bat(EntityType<? extends Bat> p_27412_, Level p_27413_) {
-        super(p_27412_, p_27413_);
+    public Bat(EntityType<? extends Bat> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.setResting(true);
     }
 
@@ -64,7 +64,7 @@ public class Bat extends AmbientCreature {
         return this.isResting() && this.random.nextInt(4) != 0 ? null : SoundEvents.BAT_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_27451_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.BAT_HURT;
     }
 
@@ -76,7 +76,7 @@ public class Bat extends AmbientCreature {
         return false;
     }
 
-    protected void doPush(Entity p_27415_) {
+    protected void doPush(Entity pEntity) {
     }
 
     protected void pushEntities() {
@@ -90,9 +90,9 @@ public class Bat extends AmbientCreature {
         return (this.entityData.get(DATA_ID_FLAGS) & 1) != 0;
     }
 
-    public void setResting(boolean p_27457_) {
+    public void setResting(boolean pIsResting) {
         byte b0 = this.entityData.get(DATA_ID_FLAGS);
-        if (p_27457_) {
+        if (pIsResting) {
             this.entityData.set(DATA_ID_FLAGS, (byte) (b0 | 1));
         } else {
             this.entityData.set(DATA_ID_FLAGS, (byte) (b0 & -2));
@@ -167,52 +167,52 @@ public class Bat extends AmbientCreature {
         return Entity.MovementEmission.EVENTS;
     }
 
-    public boolean causeFallDamage(float p_148702_, float p_148703_, DamageSource p_148704_) {
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return false;
     }
 
-    protected void checkFallDamage(double p_27419_, boolean p_27420_, BlockState p_27421_, BlockPos p_27422_) {
+    protected void checkFallDamage(double pY, boolean pOnGround, BlockState pState, BlockPos pPos) {
     }
 
     public boolean isIgnoringBlockTriggers() {
         return true;
     }
 
-    public boolean hurt(DamageSource p_27424_, float p_27425_) {
-        if (this.isInvulnerableTo(p_27424_)) {
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        if (this.isInvulnerableTo(pSource)) {
             return false;
         } else {
             if (!this.level.isClientSide && this.isResting()) {
                 this.setResting(false);
             }
 
-            return super.hurt(p_27424_, p_27425_);
+            return super.hurt(pSource, pAmount);
         }
     }
 
-    public void readAdditionalSaveData(CompoundTag p_27427_) {
-        super.readAdditionalSaveData(p_27427_);
-        this.entityData.set(DATA_ID_FLAGS, p_27427_.getByte("BatFlags"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.entityData.set(DATA_ID_FLAGS, pCompound.getByte("BatFlags"));
     }
 
-    public void addAdditionalSaveData(CompoundTag p_27443_) {
-        super.addAdditionalSaveData(p_27443_);
-        p_27443_.putByte("BatFlags", this.entityData.get(DATA_ID_FLAGS));
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putByte("BatFlags", this.entityData.get(DATA_ID_FLAGS));
     }
 
-    public static boolean checkBatSpawnRules(EntityType<Bat> p_218099_, LevelAccessor p_218100_, MobSpawnType p_218101_, BlockPos p_218102_, RandomSource p_218103_) {
-        if (p_218102_.getY() >= p_218100_.getSeaLevel()) {
+    public static boolean checkBatSpawnRules(EntityType<Bat> pBat, LevelAccessor pLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        if (pPos.getY() >= pLevel.getSeaLevel()) {
             return false;
         } else {
-            int i = p_218100_.getMaxLocalRawBrightness(p_218102_);
+            int i = pLevel.getMaxLocalRawBrightness(pPos);
             int j = 4;
             if (isHalloween()) {
                 j = 7;
-            } else if (p_218103_.nextBoolean()) {
+            } else if (pRandom.nextBoolean()) {
                 return false;
             }
 
-            return i > p_218103_.nextInt(j) ? false : checkMobSpawnRules(p_218099_, p_218100_, p_218101_, p_218102_, p_218103_);
+            return i > pRandom.nextInt(j) ? false : checkMobSpawnRules(pBat, pLevel, pSpawnType, pPos, pRandom);
         }
     }
 
@@ -223,7 +223,7 @@ public class Bat extends AmbientCreature {
         return j == 10 && i >= 20 || j == 11 && i <= 3;
     }
 
-    protected float getStandingEyeHeight(Pose p_27440_, EntityDimensions p_27441_) {
-        return p_27441_.height / 2.0F;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return pSize.height / 2.0F;
     }
 }

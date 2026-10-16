@@ -16,12 +16,12 @@ public class PendingInvitesList extends ValueObject {
     private static final Logger LOGGER = LogUtils.getLogger();
     public List<PendingInvite> pendingInvites = Lists.newArrayList();
 
-    public static PendingInvitesList parse(String p_87437_) {
+    public static PendingInvitesList parse(String pJson) {
         PendingInvitesList pendinginviteslist = new PendingInvitesList();
 
         try {
             JsonParser jsonparser = new JsonParser();
-            JsonObject jsonobject = jsonparser.parse(p_87437_).getAsJsonObject();
+            JsonObject jsonobject = jsonparser.parse(pJson).getAsJsonObject();
             if (jsonobject.get("invites").isJsonArray()) {
                 Iterator<JsonElement> iterator = jsonobject.get("invites").getAsJsonArray().iterator();
 

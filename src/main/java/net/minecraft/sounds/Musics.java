@@ -14,7 +14,7 @@ public class Musics {
     public static final Music UNDER_WATER = createGameMusic(SoundEvents.MUSIC_UNDER_WATER);
     public static final Music GAME = createGameMusic(SoundEvents.MUSIC_GAME);
 
-    public static Music createGameMusic(SoundEvent p_11654_) {
-        return new Music(p_11654_, 12000, 24000, false);
+    public static Music createGameMusic(SoundEvent pSoundEvent) {
+        return new Music(pSoundEvent, 12000, 24000, false);
     }
 }

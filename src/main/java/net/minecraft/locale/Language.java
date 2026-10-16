@@ -100,9 +100,9 @@ public abstract class Language {
         instance = p_128115_;
     }
 
-    public abstract String getOrDefault(String p_128111_);
+    public abstract String getOrDefault(String pId);
 
-    public abstract boolean has(String p_128117_);
+    public abstract boolean has(String pId);
 
     public abstract boolean isDefaultRightToLeft();
 

@@ -5,8 +5,8 @@ import com.mojang.datafixers.Typed;
 import com.mojang.datafixers.schemas.Schema;
 
 public class ColorlessShulkerEntityFix extends NamedEntityFix {
-    public ColorlessShulkerEntityFix(Schema p_15315_, boolean p_15316_) {
-        super(p_15315_, p_15316_, "Colorless shulker entity fix", References.ENTITY, "minecraft:shulker");
+    public ColorlessShulkerEntityFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType, "Colorless shulker entity fix", References.ENTITY, "minecraft:shulker");
     }
 
     protected Typed<?> fix(Typed<?> p_15318_) {

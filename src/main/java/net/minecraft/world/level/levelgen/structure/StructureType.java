@@ -39,9 +39,9 @@ public interface StructureType<S extends Structure> {
 
     Codec<S> codec();
 
-    private static <S extends Structure> StructureType<S> register(String p_226882_, Codec<S> p_226883_) {
-        return Registry.register(Registry.STRUCTURE_TYPES, p_226882_, () -> {
-            return p_226883_;
+    private static <S extends Structure> StructureType<S> register(String pName, Codec<S> pCodec) {
+        return Registry.register(Registry.STRUCTURE_TYPES, pName, () -> {
+            return pCodec;
         });
     }
 }

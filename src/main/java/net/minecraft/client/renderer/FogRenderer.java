@@ -37,12 +37,12 @@ public class FogRenderer {
     private static int previousBiomeFog = -1;
     private static long biomeChangedTime = -1L;
 
-    public static void setupColor(Camera p_109019_, float p_109020_, ClientLevel p_109021_, int p_109022_, float p_109023_) {
-        FogType fogtype = p_109019_.getFluidInCamera();
-        Entity entity = p_109019_.getEntity();
+    public static void setupColor(Camera pActiveRenderInfo, float pPartialTicks, ClientLevel pLevel, int pRenderDistanceChunks, float pBossColorModifier) {
+        FogType fogtype = pActiveRenderInfo.getFluidInCamera();
+        Entity entity = pActiveRenderInfo.getEntity();
         if (fogtype == FogType.WATER) {
             long i = Util.getMillis();
-            int j = p_109021_.getBiome(new BlockPos(p_109019_.getPosition())).value().getWaterFogColor();
+            int j = pLevel.getBiome(new BlockPos(pActiveRenderInfo.getPosition())).value().getWaterFogColor();
             if (biomeChangedTime < 0L) {
                 targetBiomeFog = j;
                 previousBiomeFog = j;
@@ -79,31 +79,31 @@ public class FogRenderer {
             biomeChangedTime = -1L;
             RenderSystem.clearColor(fogRed, fogGreen, fogBlue, 0.0F);
         } else {
-            float f4 = 0.25F + 0.75F * (float) p_109022_ / 32.0F;
+            float f4 = 0.25F + 0.75F * (float) pRenderDistanceChunks / 32.0F;
             f4 = 1.0F - (float) Math.pow((double) f4, 0.25D);
-            Vec3 vec3 = p_109021_.getSkyColor(p_109019_.getPosition(), p_109020_);
+            Vec3 vec3 = pLevel.getSkyColor(pActiveRenderInfo.getPosition(), pPartialTicks);
             float f6 = (float) vec3.x;
             float f8 = (float) vec3.y;
             float f10 = (float) vec3.z;
-            float f11 = Mth.clamp(Mth.cos(p_109021_.getTimeOfDay(p_109020_) * ((float) Math.PI * 2F)) * 2.0F + 0.5F, 0.0F, 1.0F);
-            BiomeManager biomemanager = p_109021_.getBiomeManager();
-            Vec3 vec31 = p_109019_.getPosition().subtract(2.0D, 2.0D, 2.0D).scale(0.25D);
+            float f11 = Mth.clamp(Mth.cos(pLevel.getTimeOfDay(pPartialTicks) * ((float) Math.PI * 2F)) * 2.0F + 0.5F, 0.0F, 1.0F);
+            BiomeManager biomemanager = pLevel.getBiomeManager();
+            Vec3 vec31 = pActiveRenderInfo.getPosition().subtract(2.0D, 2.0D, 2.0D).scale(0.25D);
             Vec3 vec32 = CubicSampler.gaussianSampleVec3(vec31, (p_109033_, p_109034_, p_109035_) -> {
-                return p_109021_.effects().getBrightnessDependentFogColor(Vec3.fromRGB24(biomemanager.getNoiseBiomeAtQuart(p_109033_, p_109034_, p_109035_).value().getFogColor()), f11);
+                return pLevel.effects().getBrightnessDependentFogColor(Vec3.fromRGB24(biomemanager.getNoiseBiomeAtQuart(p_109033_, p_109034_, p_109035_).value().getFogColor()), f11);
             });
             fogRed = (float) vec32.x();
             fogGreen = (float) vec32.y();
             fogBlue = (float) vec32.z();
-            if (p_109022_ >= 4) {
-                float f12 = Mth.sin(p_109021_.getSunAngle(p_109020_)) > 0.0F ? -1.0F : 1.0F;
+            if (pRenderDistanceChunks >= 4) {
+                float f12 = Mth.sin(pLevel.getSunAngle(pPartialTicks)) > 0.0F ? -1.0F : 1.0F;
                 Vector3f vector3f = new Vector3f(f12, 0.0F, 0.0F);
-                float f16 = p_109019_.getLookVector().dot(vector3f);
+                float f16 = pActiveRenderInfo.getLookVector().dot(vector3f);
                 if (f16 < 0.0F) {
                     f16 = 0.0F;
                 }
 
                 if (f16 > 0.0F) {
-                    float[] afloat = p_109021_.effects().getSunriseColor(p_109021_.getTimeOfDay(p_109020_), p_109020_);
+                    float[] afloat = pLevel.effects().getSunriseColor(pLevel.getTimeOfDay(pPartialTicks), pPartialTicks);
                     if (afloat != null) {
                         f16 *= afloat[3];
                         fogRed = fogRed * (1.0F - f16) + afloat[0] * f16;
@@ -116,7 +116,7 @@ public class FogRenderer {
             fogRed += (f6 - fogRed) * f4;
             fogGreen += (f8 - fogGreen) * f4;
             fogBlue += (f10 - fogBlue) * f4;
-            float f13 = p_109021_.getRainLevel(p_109020_);
+            float f13 = pLevel.getRainLevel(pPartialTicks);
             if (f13 > 0.0F) {
                 float f14 = 1.0F - f13 * 0.5F;
                 float f17 = 1.0F - f13 * 0.4F;
@@ -125,7 +125,7 @@ public class FogRenderer {
                 fogBlue *= f17;
             }
 
-            float f15 = p_109021_.getThunderLevel(p_109020_);
+            float f15 = pLevel.getThunderLevel(pPartialTicks);
             if (f15 > 0.0F) {
                 float f18 = 1.0F - f15 * 0.5F;
                 fogRed *= f18;
@@ -136,11 +136,11 @@ public class FogRenderer {
             biomeChangedTime = -1L;
         }
 
-        float f5 = ((float) p_109019_.getPosition().y - (float) p_109021_.getMinBuildHeight()) * p_109021_.getLevelData().getClearColorScale();
-        FogRenderer.MobEffectFogFunction fogrenderer$mobeffectfogfunction = getPriorityFogFunction(entity, p_109020_);
+        float f5 = ((float) pActiveRenderInfo.getPosition().y - (float) pLevel.getMinBuildHeight()) * pLevel.getLevelData().getClearColorScale();
+        FogRenderer.MobEffectFogFunction fogrenderer$mobeffectfogfunction = getPriorityFogFunction(entity, pPartialTicks);
         if (fogrenderer$mobeffectfogfunction != null) {
             LivingEntity livingentity = (LivingEntity) entity;
-            f5 = fogrenderer$mobeffectfogfunction.getModifiedVoidDarkness(livingentity, livingentity.getEffect(fogrenderer$mobeffectfogfunction.getMobEffect()), f5, p_109020_);
+            f5 = fogrenderer$mobeffectfogfunction.getModifiedVoidDarkness(livingentity, livingentity.getEffect(fogrenderer$mobeffectfogfunction.getMobEffect()), f5, pPartialTicks);
         }
 
         if (f5 < 1.0F && fogtype != FogType.LAVA && fogtype != FogType.POWDER_SNOW) {
@@ -154,10 +154,10 @@ public class FogRenderer {
             fogBlue *= f5;
         }
 
-        if (p_109023_ > 0.0F) {
-            fogRed = fogRed * (1.0F - p_109023_) + fogRed * 0.7F * p_109023_;
-            fogGreen = fogGreen * (1.0F - p_109023_) + fogGreen * 0.6F * p_109023_;
-            fogBlue = fogBlue * (1.0F - p_109023_) + fogBlue * 0.6F * p_109023_;
+        if (pBossColorModifier > 0.0F) {
+            fogRed = fogRed * (1.0F - pBossColorModifier) + fogRed * 0.7F * pBossColorModifier;
+            fogGreen = fogGreen * (1.0F - pBossColorModifier) + fogGreen * 0.6F * pBossColorModifier;
+            fogBlue = fogBlue * (1.0F - pBossColorModifier) + fogBlue * 0.6F * pBossColorModifier;
         }
 
         float f7;
@@ -172,7 +172,7 @@ public class FogRenderer {
             if (entity instanceof LivingEntity) {
                 LivingEntity livingentity1 = (LivingEntity) entity;
                 if (livingentity1.hasEffect(MobEffects.NIGHT_VISION) && !livingentity1.hasEffect(MobEffects.DARKNESS)) {
-                    f7 = GameRenderer.getNightVisionScale(livingentity1, p_109020_);
+                    f7 = GameRenderer.getNightVisionScale(livingentity1, pPartialTicks);
                     break label86;
                 }
             }
@@ -265,8 +265,8 @@ public class FogRenderer {
         public float end;
         public FogShape shape = FogShape.SPHERE;
 
-        public FogData(FogRenderer.FogMode p_234204_) {
-            this.mode = p_234204_;
+        public FogData(FogRenderer.FogMode pMode) {
+            this.mode = pMode;
         }
     }
 

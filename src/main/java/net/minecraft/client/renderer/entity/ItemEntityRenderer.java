@@ -30,42 +30,42 @@ public class ItemEntityRenderer extends EntityRenderer<ItemEntity> {
     private final ItemRenderer itemRenderer;
     private final RandomSource random = RandomSource.create();
 
-    public ItemEntityRenderer(EntityRendererProvider.Context p_174198_) {
-        super(p_174198_);
-        this.itemRenderer = p_174198_.getItemRenderer();
+    public ItemEntityRenderer(EntityRendererProvider.Context pContext) {
+        super(pContext);
+        this.itemRenderer = pContext.getItemRenderer();
         this.shadowRadius = 0.15F;
         this.shadowStrength = 0.75F;
     }
 
-    private int getRenderAmount(ItemStack p_115043_) {
+    private int getRenderAmount(ItemStack pStack) {
         int i = 1;
-        if (p_115043_.getCount() > 48) {
+        if (pStack.getCount() > 48) {
             i = 5;
-        } else if (p_115043_.getCount() > 32) {
+        } else if (pStack.getCount() > 32) {
             i = 4;
-        } else if (p_115043_.getCount() > 16) {
+        } else if (pStack.getCount() > 16) {
             i = 3;
-        } else if (p_115043_.getCount() > 1) {
+        } else if (pStack.getCount() > 1) {
             i = 2;
         }
 
         return i;
     }
 
-    public void render(ItemEntity p_115036_, float p_115037_, float p_115038_, PoseStack p_115039_, MultiBufferSource p_115040_, int p_115041_) {
-        p_115039_.pushPose();
-        ItemStack itemstack = p_115036_.getItem();
+    public void render(ItemEntity pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
+        pMatrixStack.pushPose();
+        ItemStack itemstack = pEntity.getItem();
         int i = itemstack.isEmpty() ? 187 : Item.getId(itemstack.getItem()) + itemstack.getDamageValue();
         this.random.setSeed((long) i);
-        BakedModel bakedmodel = this.itemRenderer.getModel(itemstack, p_115036_.level, (LivingEntity) null, p_115036_.getId());
+        BakedModel bakedmodel = this.itemRenderer.getModel(itemstack, pEntity.level, (LivingEntity) null, pEntity.getId());
         boolean flag = bakedmodel.isGui3d();
         int j = this.getRenderAmount(itemstack);
         float f = 0.25F;
-        float f1 = Mth.sin(((float) p_115036_.getAge() + p_115038_) / 10.0F + p_115036_.bobOffs) * 0.1F + 0.1F;
+        float f1 = Mth.sin(((float) pEntity.getAge() + pPartialTicks) / 10.0F + pEntity.bobOffs) * 0.1F + 0.1F;
         float f2 = bakedmodel.getTransforms().getTransform(ItemTransforms.TransformType.GROUND).scale.y();
-        p_115039_.translate(0.0D, (double) (f1 + 0.25F * f2), 0.0D);
-        float f3 = p_115036_.getSpin(p_115038_);
-        p_115039_.mulPose(Vector3f.YP.rotation(f3));
+        pMatrixStack.translate(0.0D, (double) (f1 + 0.25F * f2), 0.0D);
+        float f3 = pEntity.getSpin(pPartialTicks);
+        pMatrixStack.mulPose(Vector3f.YP.rotation(f3));
         float f4 = bakedmodel.getTransforms().ground.scale.x();
         float f5 = bakedmodel.getTransforms().ground.scale.y();
         float f6 = bakedmodel.getTransforms().ground.scale.z();
@@ -73,36 +73,36 @@ public class ItemEntityRenderer extends EntityRenderer<ItemEntity> {
             float f7 = -0.0F * (float) (j - 1) * 0.5F * f4;
             float f8 = -0.0F * (float) (j - 1) * 0.5F * f5;
             float f9 = -0.09375F * (float) (j - 1) * 0.5F * f6;
-            p_115039_.translate((double) f7, (double) f8, (double) f9);
+            pMatrixStack.translate((double) f7, (double) f8, (double) f9);
         }
 
         for (int k = 0; k < j; ++k) {
-            p_115039_.pushPose();
+            pMatrixStack.pushPose();
             if (k > 0) {
                 if (flag) {
                     float f11 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.15F;
                     float f13 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.15F;
                     float f10 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.15F;
-                    p_115039_.translate((double) f11, (double) f13, (double) f10);
+                    pMatrixStack.translate((double) f11, (double) f13, (double) f10);
                 } else {
                     float f12 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.15F * 0.5F;
                     float f14 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.15F * 0.5F;
-                    p_115039_.translate((double) f12, (double) f14, 0.0D);
+                    pMatrixStack.translate((double) f12, (double) f14, 0.0D);
                 }
             }
 
-            this.itemRenderer.render(itemstack, ItemTransforms.TransformType.GROUND, false, p_115039_, p_115040_, p_115041_, OverlayTexture.NO_OVERLAY, bakedmodel);
-            p_115039_.popPose();
+            this.itemRenderer.render(itemstack, ItemTransforms.TransformType.GROUND, false, pMatrixStack, pBuffer, pPackedLight, OverlayTexture.NO_OVERLAY, bakedmodel);
+            pMatrixStack.popPose();
             if (!flag) {
-                p_115039_.translate((double) (0.0F * f4), (double) (0.0F * f5), (double) (0.09375F * f6));
+                pMatrixStack.translate((double) (0.0F * f4), (double) (0.0F * f5), (double) (0.09375F * f6));
             }
         }
 
-        p_115039_.popPose();
-        super.render(p_115036_, p_115037_, p_115038_, p_115039_, p_115040_, p_115041_);
+        pMatrixStack.popPose();
+        super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
     }
 
-    public ResourceLocation getTextureLocation(ItemEntity p_115034_) {
+    public ResourceLocation getTextureLocation(ItemEntity pEntity) {
         return TextureAtlas.LOCATION_BLOCKS;
     }
 }

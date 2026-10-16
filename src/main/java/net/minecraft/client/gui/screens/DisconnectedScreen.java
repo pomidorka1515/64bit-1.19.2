@@ -14,10 +14,10 @@ public class DisconnectedScreen extends Screen {
     private final Screen parent;
     private int textHeight;
 
-    public DisconnectedScreen(Screen p_95993_, Component p_95994_, Component p_95995_) {
-        super(p_95994_);
-        this.parent = p_95993_;
-        this.reason = p_95995_;
+    public DisconnectedScreen(Screen pParent, Component pTitle, Component pReason) {
+        super(pTitle);
+        this.parent = pParent;
+        this.reason = pReason;
     }
 
     public boolean shouldCloseOnEsc() {
@@ -32,10 +32,10 @@ public class DisconnectedScreen extends Screen {
         }));
     }
 
-    public void render(PoseStack p_95997_, int p_95998_, int p_95999_, float p_96000_) {
-        this.renderBackground(p_95997_);
-        drawCenteredString(p_95997_, this.font, this.title, this.width / 2, this.height / 2 - this.textHeight / 2 - 9 * 2, 11184810);
-        this.message.renderCentered(p_95997_, this.width / 2, this.height / 2 - this.textHeight / 2);
-        super.render(p_95997_, p_95998_, p_95999_, p_96000_);
+    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+        this.renderBackground(pPoseStack);
+        drawCenteredString(pPoseStack, this.font, this.title, this.width / 2, this.height / 2 - this.textHeight / 2 - 9 * 2, 11184810);
+        this.message.renderCentered(pPoseStack, this.width / 2, this.height / 2 - this.textHeight / 2);
+        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
     }
 }

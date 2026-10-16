@@ -51,22 +51,22 @@ public class UpwardsBranchingTrunkPlacer extends TrunkPlacer {
         return TrunkPlacerType.UPWARDS_BRANCHING_TRUNK_PLACER;
     }
 
-    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader p_226225_, BiConsumer<BlockPos, BlockState> p_226226_, RandomSource p_226227_, int p_226228_, BlockPos p_226229_, TreeConfiguration p_226230_) {
+    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, int pFreeTreeHeight, BlockPos pPos, TreeConfiguration pConfig) {
         List<FoliagePlacer.FoliageAttachment> list = Lists.newArrayList();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-        for (int i = 0; i < p_226228_; ++i) {
-            int j = p_226229_.getY() + i;
-            if (this.placeLog(p_226225_, p_226226_, p_226227_, blockpos$mutableblockpos.set(p_226229_.getX(), j, p_226229_.getZ()), p_226230_) && i < p_226228_ - 1 && p_226227_.nextFloat() < this.placeBranchPerLogProbability) {
-                Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_226227_);
-                int k = this.extraBranchLength.sample(p_226227_);
-                int l = Math.max(0, k - this.extraBranchLength.sample(p_226227_) - 1);
-                int i1 = this.extraBranchSteps.sample(p_226227_);
-                this.placeBranch(p_226225_, p_226226_, p_226227_, p_226228_, p_226230_, list, blockpos$mutableblockpos, j, direction, l, i1);
+        for (int i = 0; i < pFreeTreeHeight; ++i) {
+            int j = pPos.getY() + i;
+            if (this.placeLog(pLevel, pBlockSetter, pRandom, blockpos$mutableblockpos.set(pPos.getX(), j, pPos.getZ()), pConfig) && i < pFreeTreeHeight - 1 && pRandom.nextFloat() < this.placeBranchPerLogProbability) {
+                Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(pRandom);
+                int k = this.extraBranchLength.sample(pRandom);
+                int l = Math.max(0, k - this.extraBranchLength.sample(pRandom) - 1);
+                int i1 = this.extraBranchSteps.sample(pRandom);
+                this.placeBranch(pLevel, pBlockSetter, pRandom, pFreeTreeHeight, pConfig, list, blockpos$mutableblockpos, j, direction, l, i1);
             }
 
-            if (i == p_226228_ - 1) {
-                list.add(new FoliagePlacer.FoliageAttachment(blockpos$mutableblockpos.set(p_226229_.getX(), j + 1, p_226229_.getZ()), 0, false));
+            if (i == pFreeTreeHeight - 1) {
+                list.add(new FoliagePlacer.FoliageAttachment(blockpos$mutableblockpos.set(pPos.getX(), j + 1, pPos.getZ()), 0, false));
             }
         }
 
@@ -101,8 +101,8 @@ public class UpwardsBranchingTrunkPlacer extends TrunkPlacer {
         }
     }
 
-    protected boolean validTreePos(LevelSimulatedReader p_226210_, BlockPos p_226211_) {
-        return super.validTreePos(p_226210_, p_226211_) || p_226210_.isStateAtPosition(p_226211_, (p_226232_) -> {
+    protected boolean validTreePos(LevelSimulatedReader pLevel, BlockPos pPos) {
+        return super.validTreePos(pLevel, pPos) || pLevel.isStateAtPosition(pPos, (p_226232_) -> {
             return p_226232_.is(this.canGrowThrough);
         });
     }

@@ -29,9 +29,9 @@ public class ChunkTaskPriorityQueue<T> {
     private final ObjectSet<ChunkPos> acquired = new ObjectOpenHashSet<>();
     private final int maxTasks;
 
-    public ChunkTaskPriorityQueue(String p_140516_, int p_140517_) {
-        this.name = p_140516_;
-        this.maxTasks = p_140517_;
+    public ChunkTaskPriorityQueue(String pName, int pMaxTasks) {
+        this.name = pName;
+        this.maxTasks = pMaxTasks;
     }
 
     protected void resortChunkTasks(int p_140522_, ChunkPos p_140523_, int p_140524_) {
@@ -53,18 +53,18 @@ public class ChunkTaskPriorityQueue<T> {
         }
     }
 
-    protected void submit(Optional<T> p_140536_, ChunkPos p_140537_, int p_140538_) {
-        this.taskQueue.get(p_140538_).computeIfAbsent(p_140537_, (p_140545_) -> {
+    protected void submit(Optional<T> pTask, ChunkPos pChunkPos, int pChunkLevel) {
+        this.taskQueue.get(pChunkLevel).computeIfAbsent(pChunkPos, (p_140545_) -> {
                                          return Lists.newArrayList();
-                                     }).add(p_140536_);
-        this.firstQueue = Math.min(this.firstQueue, p_140538_);
+                                     }).add(pTask);
+        this.firstQueue = Math.min(this.firstQueue, pChunkLevel);
     }
 
-    protected void release(ChunkPos p_140531_, boolean p_140532_) {
+    protected void release(ChunkPos pChunkPos, boolean pFullClear) {
         for (Object2ObjectLinkedOpenHashMap<ChunkPos, List<Optional<T>>> long2objectlinkedopenhashmap : this.taskQueue) {
-            List<Optional<T>> list = long2objectlinkedopenhashmap.get(p_140531_);
+            List<Optional<T>> list = long2objectlinkedopenhashmap.get(pChunkPos);
             if (list != null) {
-                if (p_140532_) {
+                if (pFullClear) {
                     list.clear();
                 } else {
                     list.removeIf((p_140534_) -> {
@@ -73,7 +73,7 @@ public class ChunkTaskPriorityQueue<T> {
                 }
 
                 if (list.isEmpty()) {
-                    long2objectlinkedopenhashmap.remove(p_140531_);
+                    long2objectlinkedopenhashmap.remove(pChunkPos);
                 }
             }
         }
@@ -82,7 +82,7 @@ public class ChunkTaskPriorityQueue<T> {
             ++this.firstQueue;
         }
 
-        this.acquired.remove(p_140531_);
+        this.acquired.remove(pChunkPos);
     }
 
     private Runnable acquire(ChunkPos p_140526_) {

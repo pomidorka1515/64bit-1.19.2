@@ -38,8 +38,8 @@ public class RenderBuffers {
     private final MultiBufferSource.BufferSource crumblingBufferSource = MultiBufferSource.immediate(new BufferBuilder(256));
     private final OutlineBufferSource outlineBufferSource = new OutlineBufferSource(this.bufferSource);
 
-    private static void put(Object2ObjectLinkedOpenHashMap<RenderType, BufferBuilder> p_110102_, RenderType p_110103_) {
-        p_110102_.put(p_110103_, new BufferBuilder(p_110103_.bufferSize()));
+    private static void put(Object2ObjectLinkedOpenHashMap<RenderType, BufferBuilder> pMapBuilders, RenderType pRenderType) {
+        pMapBuilders.put(pRenderType, new BufferBuilder(pRenderType.bufferSize()));
     }
 
     public ChunkBufferBuilderPack fixedBufferPack() {

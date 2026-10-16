@@ -65,13 +65,13 @@ public class WardenSpawnTracker {
         this.cooldownTicks = 0;
     }
 
-    public static OptionalInt tryWarn(ServerLevel p_219578_, BlockPos p_219579_, ServerPlayer p_219580_) {
-        if (hasNearbyWarden(p_219578_, p_219579_)) {
+    public static OptionalInt tryWarn(ServerLevel pLevel, BlockPos pPos, ServerPlayer pPlayer) {
+        if (hasNearbyWarden(pLevel, pPos)) {
             return OptionalInt.empty();
         } else {
-            List<ServerPlayer> list = getNearbyPlayers(p_219578_, p_219579_);
-            if (!list.contains(p_219580_)) {
-                list.add(p_219580_);
+            List<ServerPlayer> list = getNearbyPlayers(pLevel, pPos);
+            if (!list.contains(pPlayer)) {
+                list.add(pPlayer);
             }
 
             if (list.stream().anyMatch((p_219582_) -> {
@@ -96,20 +96,20 @@ public class WardenSpawnTracker {
         return this.cooldownTicks > 0;
     }
 
-    private static boolean hasNearbyWarden(ServerLevel p_219575_, BlockPos p_219576_) {
-        net.minecraft.world.phys.SectorVec3 center = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_219576_.getX(), 0.5D,
-                (double) p_219576_.getY() + 0.5D, p_219576_.getZ(), 0.5D);
+    private static boolean hasNearbyWarden(ServerLevel pLevel, BlockPos pPos) {
+        net.minecraft.world.phys.SectorVec3 center = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D,
+                (double) pPos.getY() + 0.5D, pPos.getZ(), 0.5D);
         AABB aabb = AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(center.add(0.0D, -24.0D, 0.0D), 48.0D, 48.0D));
-        return !p_219575_.getEntitiesOfClass(Warden.class, aabb).isEmpty();
+        return !pLevel.getEntitiesOfClass(Warden.class, aabb).isEmpty();
     }
 
-    private static List<ServerPlayer> getNearbyPlayers(ServerLevel p_219595_, BlockPos p_219596_) {
-        net.minecraft.world.phys.SectorVec3 vec3 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_219596_.getX(), 0.5D,
-                (double) p_219596_.getY() + 0.5D, p_219596_.getZ(), 0.5D);
+    private static List<ServerPlayer> getNearbyPlayers(ServerLevel pLevel, BlockPos pPos) {
+        net.minecraft.world.phys.SectorVec3 vec3 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D,
+                (double) pPos.getY() + 0.5D, pPos.getZ(), 0.5D);
         Predicate<ServerPlayer> predicate = (p_219592_) -> {
             return p_219592_.exactPositionDistanceToSqr(vec3) < 256.0D;
         };
-        return p_219595_.getPlayers(predicate.and(LivingEntity::isAlive).and(EntitySelector.NO_SPECTATORS));
+        return pLevel.getPlayers(predicate.and(LivingEntity::isAlive).and(EntitySelector.NO_SPECTATORS));
     }
 
     private void increaseWarningLevel() {
@@ -124,17 +124,17 @@ public class WardenSpawnTracker {
         this.setWarningLevel(this.getWarningLevel() - 1);
     }
 
-    public void setWarningLevel(int p_219573_) {
-        this.warningLevel = Mth.clamp(p_219573_, 0, 4);
+    public void setWarningLevel(int pWarningLevel) {
+        this.warningLevel = Mth.clamp(pWarningLevel, 0, 4);
     }
 
     public int getWarningLevel() {
         return this.warningLevel;
     }
 
-    private void copyData(WardenSpawnTracker p_219584_) {
-        this.warningLevel = p_219584_.warningLevel;
-        this.cooldownTicks = p_219584_.cooldownTicks;
-        this.ticksSinceLastWarning = p_219584_.ticksSinceLastWarning;
+    private void copyData(WardenSpawnTracker pOther) {
+        this.warningLevel = pOther.warningLevel;
+        this.cooldownTicks = pOther.cooldownTicks;
+        this.ticksSinceLastWarning = pOther.ticksSinceLastWarning;
     }
 }

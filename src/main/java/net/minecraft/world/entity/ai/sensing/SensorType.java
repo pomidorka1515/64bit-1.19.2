@@ -38,15 +38,15 @@ public class SensorType<U extends Sensor<?>> {
     public static final SensorType<WardenEntitySensor> WARDEN_ENTITY_SENSOR = register("warden_entity_sensor", WardenEntitySensor::new);
     private final Supplier<U> factory;
 
-    private SensorType(Supplier<U> p_26826_) {
-        this.factory = p_26826_;
+    private SensorType(Supplier<U> pFactory) {
+        this.factory = pFactory;
     }
 
     public U create() {
         return this.factory.get();
     }
 
-    private static <U extends Sensor<?>> SensorType<U> register(String p_26829_, Supplier<U> p_26830_) {
-        return Registry.register(Registry.SENSOR_TYPE, new ResourceLocation(p_26829_), new SensorType<>(p_26830_));
+    private static <U extends Sensor<?>> SensorType<U> register(String pKey, Supplier<U> pSensorSupplier) {
+        return Registry.register(Registry.SENSOR_TYPE, new ResourceLocation(pKey), new SensorType<>(pSensorSupplier));
     }
 }

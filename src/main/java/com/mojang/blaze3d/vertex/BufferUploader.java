@@ -21,53 +21,53 @@ public class BufferUploader {
         lastImmediateBuffer = null;
     }
 
-    public static void drawWithShader(BufferBuilder.RenderedBuffer p_231203_) {
+    public static void drawWithShader(BufferBuilder.RenderedBuffer pBuffer) {
         if (!RenderSystem.isOnRenderThreadOrInit()) {
             RenderSystem.recordRenderCall(() -> {
-                _drawWithShader(p_231203_);
+                _drawWithShader(pBuffer);
             });
         } else {
-            _drawWithShader(p_231203_);
+            _drawWithShader(pBuffer);
         }
     }
 
-    private static void _drawWithShader(BufferBuilder.RenderedBuffer p_231212_) {
-        VertexBuffer vertexbuffer = upload(p_231212_);
+    private static void _drawWithShader(BufferBuilder.RenderedBuffer pBuffer) {
+        VertexBuffer vertexbuffer = upload(pBuffer);
         if (vertexbuffer != null) {
             vertexbuffer.drawWithShader(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
         }
     }
 
-    public static void draw(BufferBuilder.RenderedBuffer p_231210_) {
-        VertexBuffer vertexbuffer = upload(p_231210_);
+    public static void draw(BufferBuilder.RenderedBuffer pBuffer) {
+        VertexBuffer vertexbuffer = upload(pBuffer);
         if (vertexbuffer != null) {
             vertexbuffer.draw();
         }
     }
 
     @Nullable
-    private static VertexBuffer upload(BufferBuilder.RenderedBuffer p_231214_) {
+    private static VertexBuffer upload(BufferBuilder.RenderedBuffer pBuffer) {
         RenderSystem.assertOnRenderThread();
-        if (p_231214_.isEmpty()) {
-            p_231214_.release();
+        if (pBuffer.isEmpty()) {
+            pBuffer.release();
             return null;
         } else {
-            VertexBuffer vertexbuffer = bindImmediateBuffer(p_231214_.drawState().format());
-            vertexbuffer.upload(p_231214_);
+            VertexBuffer vertexbuffer = bindImmediateBuffer(pBuffer.drawState().format());
+            vertexbuffer.upload(pBuffer);
             return vertexbuffer;
         }
     }
 
-    private static VertexBuffer bindImmediateBuffer(VertexFormat p_231207_) {
-        VertexBuffer vertexbuffer = p_231207_.getImmediateDrawVertexBuffer();
+    private static VertexBuffer bindImmediateBuffer(VertexFormat pFormat) {
+        VertexBuffer vertexbuffer = pFormat.getImmediateDrawVertexBuffer();
         bindImmediateBuffer(vertexbuffer);
         return vertexbuffer;
     }
 
-    private static void bindImmediateBuffer(VertexBuffer p_231205_) {
-        if (p_231205_ != lastImmediateBuffer) {
-            p_231205_.bind();
-            lastImmediateBuffer = p_231205_;
+    private static void bindImmediateBuffer(VertexBuffer pBuffer) {
+        if (pBuffer != lastImmediateBuffer) {
+            pBuffer.bind();
+            lastImmediateBuffer = pBuffer;
         }
     }
 }

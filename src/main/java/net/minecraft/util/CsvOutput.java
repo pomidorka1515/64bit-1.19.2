@@ -15,26 +15,26 @@ public class CsvOutput {
     private final Writer output;
     private final int columnCount;
 
-    CsvOutput(Writer p_13613_, List<String> p_13614_) throws IOException {
-        this.output = p_13613_;
-        this.columnCount = p_13614_.size();
-        this.writeLine(p_13614_.stream());
+    CsvOutput(Writer pOutput, List<String> pFirstRow) throws IOException {
+        this.output = pOutput;
+        this.columnCount = pFirstRow.size();
+        this.writeLine(pFirstRow.stream());
     }
 
     public static CsvOutput.Builder builder() {
         return new CsvOutput.Builder();
     }
 
-    public void writeRow(Object... p_13625_) throws IOException {
-        if (p_13625_.length != this.columnCount) {
-            throw new IllegalArgumentException("Invalid number of columns, expected " + this.columnCount + ", but got " + p_13625_.length);
+    public void writeRow(Object... pData) throws IOException {
+        if (pData.length != this.columnCount) {
+            throw new IllegalArgumentException("Invalid number of columns, expected " + this.columnCount + ", but got " + pData.length);
         } else {
-            this.writeLine(Stream.of(p_13625_));
+            this.writeLine(Stream.of(pData));
         }
     }
 
-    private void writeLine(Stream<?> p_13623_) throws IOException {
-        this.output.write((String) p_13623_.map(CsvOutput::getStringValue).collect(Collectors.joining(",")) + "\r\n");
+    private void writeLine(Stream<?> pData) throws IOException {
+        this.output.write((String) pData.map(CsvOutput::getStringValue).collect(Collectors.joining(",")) + "\r\n");
     }
 
     private static String getStringValue(@Nullable Object p_13621_) {
@@ -49,8 +49,8 @@ public class CsvOutput {
             return this;
         }
 
-        public CsvOutput build(Writer p_13629_) throws IOException {
-            return new CsvOutput(p_13629_, this.headers);
+        public CsvOutput build(Writer pOutput) throws IOException {
+            return new CsvOutput(pOutput, this.headers);
         }
     }
 }

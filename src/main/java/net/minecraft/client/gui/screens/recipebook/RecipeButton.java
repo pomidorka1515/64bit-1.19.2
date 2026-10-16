@@ -39,15 +39,15 @@ public class RecipeButton extends AbstractWidget {
         super(0, 0, 25, 25, CommonComponents.EMPTY);
     }
 
-    public void init(RecipeCollection p_100480_, RecipeBookPage p_100481_) {
-        this.collection = p_100480_;
-        this.menu = (RecipeBookMenu) p_100481_.getMinecraft().player.containerMenu;
-        this.book = p_100481_.getRecipeBook();
-        List<Recipe<?>> list = p_100480_.getRecipes(this.book.isFiltering(this.menu));
+    public void init(RecipeCollection pCollection, RecipeBookPage pRecipeBookPage) {
+        this.collection = pCollection;
+        this.menu = (RecipeBookMenu) pRecipeBookPage.getMinecraft().player.containerMenu;
+        this.book = pRecipeBookPage.getRecipeBook();
+        List<Recipe<?>> list = pCollection.getRecipes(this.book.isFiltering(this.menu));
 
         for (Recipe<?> recipe : list) {
             if (this.book.willHighlight(recipe)) {
-                p_100481_.recipesShown(list);
+                pRecipeBookPage.recipesShown(list);
                 this.animationTime = 15.0F;
                 break;
             }
@@ -58,14 +58,14 @@ public class RecipeButton extends AbstractWidget {
         return this.collection;
     }
 
-    public void setPosition(int p_100475_, int p_100476_) {
-        this.x = p_100475_;
-        this.y = p_100476_;
+    public void setPosition(int pX, int pY) {
+        this.x = pX;
+        this.y = pY;
     }
 
-    public void renderButton(PoseStack p_100484_, int p_100485_, int p_100486_, float p_100487_) {
+    public void renderButton(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         if (!Screen.hasControlDown()) {
-            this.time += p_100487_;
+            this.time += pPartialTick;
         }
 
         Minecraft minecraft = Minecraft.getInstance();
@@ -90,10 +90,10 @@ public class RecipeButton extends AbstractWidget {
             posestack.scale(f, f, 1.0F);
             posestack.translate((double) (-(this.x + 8)), (double) (-(this.y + 12)), 0.0D);
             RenderSystem.applyModelViewMatrix();
-            this.animationTime -= p_100487_;
+            this.animationTime -= pPartialTick;
         }
 
-        this.blit(p_100484_, this.x, this.y, i, j, this.width, this.height);
+        this.blit(pPoseStack, this.x, this.y, i, j, this.width, this.height);
         List<Recipe<?>> list = this.getOrderedRecipes();
         this.currentIndex = Mth.floor(this.time / 30.0F) % list.size();
         ItemStack itemstack = list.get(this.currentIndex).getResultItem();
@@ -128,9 +128,9 @@ public class RecipeButton extends AbstractWidget {
         return list.get(this.currentIndex);
     }
 
-    public List<Component> getTooltipText(Screen p_100478_) {
+    public List<Component> getTooltipText(Screen pScreen) {
         ItemStack itemstack = this.getOrderedRecipes().get(this.currentIndex).getResultItem();
-        List<Component> list = Lists.newArrayList(p_100478_.getTooltipFromItem(itemstack));
+        List<Component> list = Lists.newArrayList(pScreen.getTooltipFromItem(itemstack));
         if (this.collection.getRecipes(this.book.isFiltering(this.menu)).size() > 1) {
             list.add(MORE_RECIPES_TOOLTIP);
         }
@@ -138,13 +138,13 @@ public class RecipeButton extends AbstractWidget {
         return list;
     }
 
-    public void updateNarration(NarrationElementOutput p_170060_) {
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
         ItemStack itemstack = this.getOrderedRecipes().get(this.currentIndex).getResultItem();
-        p_170060_.add(NarratedElementType.TITLE, Component.translatable("narration.recipe", itemstack.getHoverName()));
+        pNarrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("narration.recipe", itemstack.getHoverName()));
         if (this.collection.getRecipes(this.book.isFiltering(this.menu)).size() > 1) {
-            p_170060_.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.hovered"), Component.translatable("narration.recipe.usage.more"));
+            pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.hovered"), Component.translatable("narration.recipe.usage.more"));
         } else {
-            p_170060_.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.hovered"));
+            pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.hovered"));
         }
     }
 
@@ -152,7 +152,7 @@ public class RecipeButton extends AbstractWidget {
         return 25;
     }
 
-    protected boolean isValidClickButton(int p_100473_) {
-        return p_100473_ == 0 || p_100473_ == 1;
+    protected boolean isValidClickButton(int pButton) {
+        return pButton == 0 || pButton == 1;
     }
 }

@@ -28,8 +28,8 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 
 public class WitherSkeleton extends AbstractSkeleton {
-    public WitherSkeleton(EntityType<? extends WitherSkeleton> p_34166_, Level p_34167_) {
-        super(p_34166_, p_34167_);
+    public WitherSkeleton(EntityType<? extends WitherSkeleton> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.setPathfindingMalus(BlockPathTypes.LAVA, 8.0F);
     }
 
@@ -42,7 +42,7 @@ public class WitherSkeleton extends AbstractSkeleton {
         return SoundEvents.WITHER_SKELETON_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_34195_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.WITHER_SKELETON_HURT;
     }
 
@@ -54,9 +54,9 @@ public class WitherSkeleton extends AbstractSkeleton {
         return SoundEvents.WITHER_SKELETON_STEP;
     }
 
-    protected void dropCustomDeathLoot(DamageSource p_34174_, int p_34175_, boolean p_34176_) {
-        super.dropCustomDeathLoot(p_34174_, p_34175_, p_34176_);
-        Entity entity = p_34174_.getEntity();
+    protected void dropCustomDeathLoot(DamageSource pSource, int pLooting, boolean pRecentlyHit) {
+        super.dropCustomDeathLoot(pSource, pLooting, pRecentlyHit);
+        Entity entity = pSource.getEntity();
         if (entity instanceof Creeper creeper) {
             if (creeper.canDropMobsSkull()) {
                 creeper.increaseDroppedSkulls();
@@ -65,44 +65,44 @@ public class WitherSkeleton extends AbstractSkeleton {
         }
     }
 
-    protected void populateDefaultEquipmentSlots(RandomSource p_219154_, DifficultyInstance p_219155_) {
+    protected void populateDefaultEquipmentSlots(RandomSource pRandom, DifficultyInstance pDifficulty) {
         this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
     }
 
-    protected void populateDefaultEquipmentEnchantments(RandomSource p_219157_, DifficultyInstance p_219158_) {
+    protected void populateDefaultEquipmentEnchantments(RandomSource pRandom, DifficultyInstance pDifficulty) {
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_34178_, DifficultyInstance p_34179_, MobSpawnType p_34180_, @Nullable SpawnGroupData p_34181_, @Nullable CompoundTag p_34182_) {
-        SpawnGroupData spawngroupdata = super.finalizeSpawn(p_34178_, p_34179_, p_34180_, p_34181_, p_34182_);
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
+        SpawnGroupData spawngroupdata = super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
         this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
         this.reassessWeaponGoal();
         return spawngroupdata;
     }
 
-    protected float getStandingEyeHeight(Pose p_34186_, EntityDimensions p_34187_) {
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
         return 2.1F;
     }
 
-    public boolean doHurtTarget(Entity p_34169_) {
-        if (!super.doHurtTarget(p_34169_)) {
+    public boolean doHurtTarget(Entity pEntity) {
+        if (!super.doHurtTarget(pEntity)) {
             return false;
         } else {
-            if (p_34169_ instanceof LivingEntity) {
-                ((LivingEntity) p_34169_).addEffect(new MobEffectInstance(MobEffects.WITHER, 200), this);
+            if (pEntity instanceof LivingEntity) {
+                ((LivingEntity) pEntity).addEffect(new MobEffectInstance(MobEffects.WITHER, 200), this);
             }
 
             return true;
         }
     }
 
-    protected AbstractArrow getArrow(ItemStack p_34189_, float p_34190_) {
-        AbstractArrow abstractarrow = super.getArrow(p_34189_, p_34190_);
+    protected AbstractArrow getArrow(ItemStack pArrowStack, float pDistanceFactor) {
+        AbstractArrow abstractarrow = super.getArrow(pArrowStack, pDistanceFactor);
         abstractarrow.setSecondsOnFire(100);
         return abstractarrow;
     }
 
-    public boolean canBeAffected(MobEffectInstance p_34192_) {
-        return p_34192_.getEffect() == MobEffects.WITHER ? false : super.canBeAffected(p_34192_);
+    public boolean canBeAffected(MobEffectInstance pPotioneffect) {
+        return pPotioneffect.getEffect() == MobEffects.WITHER ? false : super.canBeAffected(pPotioneffect);
     }
 }

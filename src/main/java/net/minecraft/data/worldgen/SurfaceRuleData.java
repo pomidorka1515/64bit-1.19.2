@@ -45,8 +45,8 @@ public class SurfaceRuleData {
     private static final SurfaceRules.RuleSource CRIMSON_NYLIUM = makeStateRule(Blocks.CRIMSON_NYLIUM);
     private static final SurfaceRules.RuleSource ENDSTONE = makeStateRule(Blocks.END_STONE);
 
-    private static SurfaceRules.RuleSource makeStateRule(Block p_194811_) {
-        return SurfaceRules.state(p_194811_.defaultBlockState());
+    private static SurfaceRules.RuleSource makeStateRule(Block pBlock) {
+        return SurfaceRules.state(pBlock.defaultBlockState());
     }
 
     public static SurfaceRules.RuleSource overworld() {

@@ -9,8 +9,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 public class Salmon extends AbstractSchoolingFish {
-    public Salmon(EntityType<? extends Salmon> p_29790_, Level p_29791_) {
-        super(p_29790_, p_29791_);
+    public Salmon(EntityType<? extends Salmon> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
     public int getMaxSchoolSize() {
@@ -29,7 +29,7 @@ public class Salmon extends AbstractSchoolingFish {
         return SoundEvents.SALMON_DEATH;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_29795_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.SALMON_HURT;
     }
 

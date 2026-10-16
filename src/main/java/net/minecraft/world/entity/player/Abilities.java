@@ -11,7 +11,7 @@ public class Abilities {
     private float flyingSpeed = 0.05F;
     private float walkingSpeed = 0.1F;
 
-    public void addSaveData(CompoundTag p_35946_) {
+    public void addSaveData(CompoundTag pCompound) {
         CompoundTag compoundtag = new CompoundTag();
         compoundtag.putBoolean("invulnerable", this.invulnerable);
         compoundtag.putBoolean("flying", this.flying);
@@ -20,12 +20,12 @@ public class Abilities {
         compoundtag.putBoolean("mayBuild", this.mayBuild);
         compoundtag.putFloat("flySpeed", this.flyingSpeed);
         compoundtag.putFloat("walkSpeed", this.walkingSpeed);
-        p_35946_.put("abilities", compoundtag);
+        pCompound.put("abilities", compoundtag);
     }
 
-    public void loadSaveData(CompoundTag p_35951_) {
-        if (p_35951_.contains("abilities", 10)) {
-            CompoundTag compoundtag = p_35951_.getCompound("abilities");
+    public void loadSaveData(CompoundTag pCompound) {
+        if (pCompound.contains("abilities", 10)) {
+            CompoundTag compoundtag = pCompound.getCompound("abilities");
             this.invulnerable = compoundtag.getBoolean("invulnerable");
             this.flying = compoundtag.getBoolean("flying");
             this.mayfly = compoundtag.getBoolean("mayfly");
@@ -45,15 +45,15 @@ public class Abilities {
         return this.flyingSpeed;
     }
 
-    public void setFlyingSpeed(float p_35944_) {
-        this.flyingSpeed = p_35944_;
+    public void setFlyingSpeed(float pFlyingSpeed) {
+        this.flyingSpeed = pFlyingSpeed;
     }
 
     public float getWalkingSpeed() {
         return this.walkingSpeed;
     }
 
-    public void setWalkingSpeed(float p_35949_) {
-        this.walkingSpeed = p_35949_;
+    public void setWalkingSpeed(float pWalkingSpeed) {
+        this.walkingSpeed = pWalkingSpeed;
     }
 }

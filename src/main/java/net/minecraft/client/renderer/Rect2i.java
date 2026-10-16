@@ -10,22 +10,22 @@ public class Rect2i {
     private int width;
     private int height;
 
-    public Rect2i(int p_110081_, int p_110082_, int p_110083_, int p_110084_) {
-        this.xPos = p_110081_;
-        this.yPos = p_110082_;
-        this.width = p_110083_;
-        this.height = p_110084_;
+    public Rect2i(int pXPos, int pYPos, int pWidth, int pHeight) {
+        this.xPos = pXPos;
+        this.yPos = pYPos;
+        this.width = pWidth;
+        this.height = pHeight;
     }
 
-    public Rect2i intersect(Rect2i p_173053_) {
+    public Rect2i intersect(Rect2i pOther) {
         int i = this.xPos;
         int j = this.yPos;
         int k = this.xPos + this.width;
         int l = this.yPos + this.height;
-        int i1 = p_173053_.getX();
-        int j1 = p_173053_.getY();
-        int k1 = i1 + p_173053_.getWidth();
-        int l1 = j1 + p_173053_.getHeight();
+        int i1 = pOther.getX();
+        int j1 = pOther.getY();
+        int k1 = i1 + pOther.getWidth();
+        int l1 = j1 + pOther.getHeight();
         this.xPos = Math.max(i, i1);
         this.yPos = Math.max(j, j1);
         this.width = Math.max(0, Math.min(k, k1) - this.xPos);
@@ -41,12 +41,12 @@ public class Rect2i {
         return this.yPos;
     }
 
-    public void setX(int p_173048_) {
-        this.xPos = p_173048_;
+    public void setX(int pXPos) {
+        this.xPos = pXPos;
     }
 
-    public void setY(int p_173055_) {
-        this.yPos = p_173055_;
+    public void setY(int pYPos) {
+        this.yPos = pYPos;
     }
 
     public int getWidth() {
@@ -57,20 +57,20 @@ public class Rect2i {
         return this.height;
     }
 
-    public void setWidth(int p_173057_) {
-        this.width = p_173057_;
+    public void setWidth(int pWidth) {
+        this.width = pWidth;
     }
 
-    public void setHeight(int p_173059_) {
-        this.height = p_173059_;
+    public void setHeight(int pHeight) {
+        this.height = pHeight;
     }
 
-    public void setPosition(int p_173050_, int p_173051_) {
-        this.xPos = p_173050_;
-        this.yPos = p_173051_;
+    public void setPosition(int pXPos, int pYPos) {
+        this.xPos = pXPos;
+        this.yPos = pYPos;
     }
 
-    public boolean contains(int p_110088_, int p_110089_) {
-        return p_110088_ >= this.xPos && p_110088_ <= this.xPos + this.width && p_110089_ >= this.yPos && p_110089_ <= this.yPos + this.height;
+    public boolean contains(int pX, int pY) {
+        return pX >= this.xPos && pX <= this.xPos + this.width && pY >= this.yPos && pY <= this.yPos + this.height;
     }
 }

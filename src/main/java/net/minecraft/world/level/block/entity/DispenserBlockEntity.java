@@ -17,25 +17,25 @@ public class DispenserBlockEntity extends RandomizableContainerBlockEntity {
     public static final int CONTAINER_SIZE = 9;
     private NonNullList<ItemStack> items = NonNullList.withSize(9, ItemStack.EMPTY);
 
-    protected DispenserBlockEntity(BlockEntityType<?> p_155489_, BlockPos p_155490_, BlockState p_155491_) {
-        super(p_155489_, p_155490_, p_155491_);
+    protected DispenserBlockEntity(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState) {
+        super(pType, pPos, pBlockState);
     }
 
-    public DispenserBlockEntity(BlockPos p_155493_, BlockState p_155494_) {
-        this(BlockEntityType.DISPENSER, p_155493_, p_155494_);
+    public DispenserBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        this(BlockEntityType.DISPENSER, pPos, pBlockState);
     }
 
     public int getContainerSize() {
         return 9;
     }
 
-    public int getRandomSlot(RandomSource p_222762_) {
+    public int getRandomSlot(RandomSource pRandom) {
         this.unpackLootTable((Player) null);
         int i = -1;
         int j = 1;
 
         for (int k = 0; k < this.items.size(); ++k) {
-            if (!this.items.get(k).isEmpty() && p_222762_.nextInt(j++) == 0) {
+            if (!this.items.get(k).isEmpty() && pRandom.nextInt(j++) == 0) {
                 i = k;
             }
         }
@@ -43,10 +43,10 @@ public class DispenserBlockEntity extends RandomizableContainerBlockEntity {
         return i;
     }
 
-    public int addItem(ItemStack p_59238_) {
+    public int addItem(ItemStack pStack) {
         for (int i = 0; i < this.items.size(); ++i) {
             if (this.items.get(i).isEmpty()) {
-                this.setItem(i, p_59238_);
+                this.setItem(i, pStack);
                 return i;
             }
         }
@@ -58,18 +58,18 @@ public class DispenserBlockEntity extends RandomizableContainerBlockEntity {
         return Component.translatable("container.dispenser");
     }
 
-    public void load(CompoundTag p_155496_) {
-        super.load(p_155496_);
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        if (!this.tryLoadLootTable(p_155496_)) {
-            ContainerHelper.loadAllItems(p_155496_, this.items);
+        if (!this.tryLoadLootTable(pTag)) {
+            ContainerHelper.loadAllItems(pTag, this.items);
         }
     }
 
-    protected void saveAdditional(CompoundTag p_187498_) {
-        super.saveAdditional(p_187498_);
-        if (!this.trySaveLootTable(p_187498_)) {
-            ContainerHelper.saveAllItems(p_187498_, this.items);
+    protected void saveAdditional(CompoundTag pTag) {
+        super.saveAdditional(pTag);
+        if (!this.trySaveLootTable(pTag)) {
+            ContainerHelper.saveAllItems(pTag, this.items);
         }
     }
 
@@ -77,11 +77,11 @@ public class DispenserBlockEntity extends RandomizableContainerBlockEntity {
         return this.items;
     }
 
-    protected void setItems(NonNullList<ItemStack> p_59243_) {
-        this.items = p_59243_;
+    protected void setItems(NonNullList<ItemStack> pItems) {
+        this.items = pItems;
     }
 
-    protected AbstractContainerMenu createMenu(int p_59235_, Inventory p_59236_) {
-        return new DispenserMenu(p_59235_, p_59236_, this);
+    protected AbstractContainerMenu createMenu(int pId, Inventory pPlayer) {
+        return new DispenserMenu(pId, pPlayer, this);
     }
 }

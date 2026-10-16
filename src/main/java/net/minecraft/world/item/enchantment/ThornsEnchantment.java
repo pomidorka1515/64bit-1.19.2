@@ -12,51 +12,51 @@ import net.minecraft.world.item.ItemStack;
 public class ThornsEnchantment extends Enchantment {
     private static final float CHANCE_PER_LEVEL = 0.15F;
 
-    public ThornsEnchantment(Enchantment.Rarity p_45196_, EquipmentSlot... p_45197_) {
-        super(p_45196_, EnchantmentCategory.ARMOR_CHEST, p_45197_);
+    public ThornsEnchantment(Enchantment.Rarity pRarity, EquipmentSlot... pApplicableSlots) {
+        super(pRarity, EnchantmentCategory.ARMOR_CHEST, pApplicableSlots);
     }
 
-    public int getMinCost(int p_45200_) {
-        return 10 + 20 * (p_45200_ - 1);
+    public int getMinCost(int pEnchantmentLevel) {
+        return 10 + 20 * (pEnchantmentLevel - 1);
     }
 
-    public int getMaxCost(int p_45210_) {
-        return super.getMinCost(p_45210_) + 50;
+    public int getMaxCost(int pEnchantmentLevel) {
+        return super.getMinCost(pEnchantmentLevel) + 50;
     }
 
     public int getMaxLevel() {
         return 3;
     }
 
-    public boolean canEnchant(ItemStack p_45205_) {
-        return p_45205_.getItem() instanceof ArmorItem ? true : super.canEnchant(p_45205_);
+    public boolean canEnchant(ItemStack pStack) {
+        return pStack.getItem() instanceof ArmorItem ? true : super.canEnchant(pStack);
     }
 
-    public void doPostHurt(LivingEntity p_45215_, Entity p_45216_, int p_45217_) {
-        RandomSource randomsource = p_45215_.getRandom();
-        Map.Entry<EquipmentSlot, ItemStack> entry = EnchantmentHelper.getRandomItemWith(Enchantments.THORNS, p_45215_);
-        if (shouldHit(p_45217_, randomsource)) {
-            if (p_45216_ != null) {
-                p_45216_.hurt(DamageSource.thorns(p_45215_), (float) getDamage(p_45217_, randomsource));
+    public void doPostHurt(LivingEntity pUser, Entity pAttacker, int pLevel) {
+        RandomSource randomsource = pUser.getRandom();
+        Map.Entry<EquipmentSlot, ItemStack> entry = EnchantmentHelper.getRandomItemWith(Enchantments.THORNS, pUser);
+        if (shouldHit(pLevel, randomsource)) {
+            if (pAttacker != null) {
+                pAttacker.hurt(DamageSource.thorns(pUser), (float) getDamage(pLevel, randomsource));
             }
 
             if (entry != null) {
-                entry.getValue().hurtAndBreak(2, p_45215_, (p_45208_) -> {
+                entry.getValue().hurtAndBreak(2, pUser, (p_45208_) -> {
                     p_45208_.broadcastBreakEvent(entry.getKey());
                 });
             }
         }
     }
 
-    public static boolean shouldHit(int p_220317_, RandomSource p_220318_) {
-        if (p_220317_ <= 0) {
+    public static boolean shouldHit(int pLevel, RandomSource pRandom) {
+        if (pLevel <= 0) {
             return false;
         } else {
-            return p_220318_.nextFloat() < 0.15F * (float) p_220317_;
+            return pRandom.nextFloat() < 0.15F * (float) pLevel;
         }
     }
 
-    public static int getDamage(int p_220320_, RandomSource p_220321_) {
-        return p_220320_ > 10 ? p_220320_ - 10 : 1 + p_220321_.nextInt(4);
+    public static int getDamage(int pLevel, RandomSource pRandom) {
+        return pLevel > 10 ? pLevel - 10 : 1 + pRandom.nextInt(4);
     }
 }

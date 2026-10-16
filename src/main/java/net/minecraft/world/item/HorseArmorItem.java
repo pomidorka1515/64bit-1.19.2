@@ -7,10 +7,10 @@ public class HorseArmorItem extends Item {
     private final int protection;
     private final String texture;
 
-    public HorseArmorItem(int p_41364_, String p_41365_, Item.Properties p_41366_) {
-        super(p_41366_);
-        this.protection = p_41364_;
-        this.texture = "textures/entity/horse/armor/horse_armor_" + p_41365_ + ".png";
+    public HorseArmorItem(int pProtection, String pIdentifier, Item.Properties pProperties) {
+        super(pProperties);
+        this.protection = pProtection;
+        this.texture = "textures/entity/horse/armor/horse_armor_" + pIdentifier + ".png";
     }
 
     public ResourceLocation getTexture() {

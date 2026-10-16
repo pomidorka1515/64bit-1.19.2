@@ -35,64 +35,64 @@ public class LootContext {
     private final Map<LootContextParam<?>, Object> params;
     private final Map<ResourceLocation, LootContext.DynamicDrop> dynamicDrops;
 
-    LootContext(RandomSource p_230900_, float p_230901_, ServerLevel p_230902_, Function<ResourceLocation, LootTable> p_230903_, Function<ResourceLocation, LootItemCondition> p_230904_, Map<LootContextParam<?>, Object> p_230905_, Map<ResourceLocation, LootContext.DynamicDrop> p_230906_) {
-        this.random = p_230900_;
-        this.luck = p_230901_;
-        this.level = p_230902_;
-        this.lootTables = p_230903_;
-        this.conditions = p_230904_;
-        this.params = ImmutableMap.copyOf(p_230905_);
-        this.dynamicDrops = ImmutableMap.copyOf(p_230906_);
+    LootContext(RandomSource pRandom, float pLuck, ServerLevel pLevel, Function<ResourceLocation, LootTable> pLootTables, Function<ResourceLocation, LootItemCondition> pConditions, Map<LootContextParam<?>, Object> pParams, Map<ResourceLocation, LootContext.DynamicDrop> pDynamicDrops) {
+        this.random = pRandom;
+        this.luck = pLuck;
+        this.level = pLevel;
+        this.lootTables = pLootTables;
+        this.conditions = pConditions;
+        this.params = ImmutableMap.copyOf(pParams);
+        this.dynamicDrops = ImmutableMap.copyOf(pDynamicDrops);
     }
 
-    public boolean hasParam(LootContextParam<?> p_78937_) {
-        return this.params.containsKey(p_78937_);
+    public boolean hasParam(LootContextParam<?> pParameter) {
+        return this.params.containsKey(pParameter);
     }
 
-    public <T> T getParam(LootContextParam<T> p_165125_) {
-        T t = (T) this.params.get(p_165125_);
+    public <T> T getParam(LootContextParam<T> pParam) {
+        T t = (T) this.params.get(pParam);
         if (t == null) {
-            throw new NoSuchElementException(p_165125_.getName().toString());
+            throw new NoSuchElementException(pParam.getName().toString());
         } else {
             return t;
         }
     }
 
-    public void addDynamicDrops(ResourceLocation p_78943_, Consumer<ItemStack> p_78944_) {
-        LootContext.DynamicDrop lootcontext$dynamicdrop = this.dynamicDrops.get(p_78943_);
+    public void addDynamicDrops(ResourceLocation pName, Consumer<ItemStack> pConsumer) {
+        LootContext.DynamicDrop lootcontext$dynamicdrop = this.dynamicDrops.get(pName);
         if (lootcontext$dynamicdrop != null) {
-            lootcontext$dynamicdrop.add(this, p_78944_);
+            lootcontext$dynamicdrop.add(this, pConsumer);
         }
     }
 
     @Nullable
-    public <T> T getParamOrNull(LootContextParam<T> p_78954_) {
-        return (T) this.params.get(p_78954_);
+    public <T> T getParamOrNull(LootContextParam<T> pParameter) {
+        return (T) this.params.get(pParameter);
     }
 
-    public boolean addVisitedTable(LootTable p_78935_) {
-        return this.visitedTables.add(p_78935_);
+    public boolean addVisitedTable(LootTable pLootTable) {
+        return this.visitedTables.add(pLootTable);
     }
 
-    public void removeVisitedTable(LootTable p_78947_) {
-        this.visitedTables.remove(p_78947_);
+    public void removeVisitedTable(LootTable pLootTable) {
+        this.visitedTables.remove(pLootTable);
     }
 
-    public boolean addVisitedCondition(LootItemCondition p_78939_) {
-        return this.visitedConditions.add(p_78939_);
+    public boolean addVisitedCondition(LootItemCondition pCondition) {
+        return this.visitedConditions.add(pCondition);
     }
 
-    public void removeVisitedCondition(LootItemCondition p_78949_) {
-        this.visitedConditions.remove(p_78949_);
+    public void removeVisitedCondition(LootItemCondition pCondition) {
+        this.visitedConditions.remove(pCondition);
     }
 
-    public LootTable getLootTable(ResourceLocation p_78941_) {
-        return this.lootTables.apply(p_78941_);
+    public LootTable getLootTable(ResourceLocation pTableId) {
+        return this.lootTables.apply(pTableId);
     }
 
     @Nullable
-    public LootItemCondition getCondition(ResourceLocation p_78951_) {
-        return this.conditions.apply(p_78951_);
+    public LootItemCondition getCondition(ResourceLocation pConditionId) {
+        return this.conditions.apply(pConditionId);
     }
 
     public RandomSource getRandom() {
@@ -114,55 +114,55 @@ public class LootContext {
         private RandomSource random;
         private float luck;
 
-        public Builder(ServerLevel p_78961_) {
-            this.level = p_78961_;
+        public Builder(ServerLevel pLevel) {
+            this.level = pLevel;
         }
 
-        public LootContext.Builder withRandom(RandomSource p_230912_) {
-            this.random = p_230912_;
+        public LootContext.Builder withRandom(RandomSource pRandom) {
+            this.random = pRandom;
             return this;
         }
 
-        public LootContext.Builder withOptionalRandomSeed(long p_78966_) {
-            if (p_78966_ != 0L) {
-                this.random = RandomSource.create(p_78966_);
+        public LootContext.Builder withOptionalRandomSeed(long pSeed) {
+            if (pSeed != 0L) {
+                this.random = RandomSource.create(pSeed);
             }
 
             return this;
         }
 
-        public LootContext.Builder withOptionalRandomSeed(long p_230909_, RandomSource p_230910_) {
-            if (p_230909_ == 0L) {
-                this.random = p_230910_;
+        public LootContext.Builder withOptionalRandomSeed(long pSeed, RandomSource pRandom) {
+            if (pSeed == 0L) {
+                this.random = pRandom;
             } else {
-                this.random = RandomSource.create(p_230909_);
+                this.random = RandomSource.create(pSeed);
             }
 
             return this;
         }
 
-        public LootContext.Builder withLuck(float p_78964_) {
-            this.luck = p_78964_;
+        public LootContext.Builder withLuck(float pLuck) {
+            this.luck = pLuck;
             return this;
         }
 
-        public <T> LootContext.Builder withParameter(LootContextParam<T> p_78973_, T p_78974_) {
-            this.params.put(p_78973_, p_78974_);
+        public <T> LootContext.Builder withParameter(LootContextParam<T> pParameter, T pValue) {
+            this.params.put(pParameter, pValue);
             return this;
         }
 
-        public <T> LootContext.Builder withOptionalParameter(LootContextParam<T> p_78985_, @Nullable T p_78986_) {
-            if (p_78986_ == null) {
-                this.params.remove(p_78985_);
+        public <T> LootContext.Builder withOptionalParameter(LootContextParam<T> pParameter, @Nullable T pValue) {
+            if (pValue == null) {
+                this.params.remove(pParameter);
             } else {
-                this.params.put(p_78985_, p_78986_);
+                this.params.put(pParameter, pValue);
             }
 
             return this;
         }
 
-        public LootContext.Builder withDynamicDrop(ResourceLocation p_78980_, LootContext.DynamicDrop p_78981_) {
-            LootContext.DynamicDrop lootcontext$dynamicdrop = this.dynamicDrops.put(p_78980_, p_78981_);
+        public LootContext.Builder withDynamicDrop(ResourceLocation pDynamicDropId, LootContext.DynamicDrop pDynamicDrop) {
+            LootContext.DynamicDrop lootcontext$dynamicdrop = this.dynamicDrops.put(pDynamicDropId, pDynamicDrop);
             if (lootcontext$dynamicdrop != null) {
                 throw new IllegalStateException("Duplicated dynamic drop '" + this.dynamicDrops + "'");
             } else {
@@ -174,26 +174,26 @@ public class LootContext {
             return this.level;
         }
 
-        public <T> T getParameter(LootContextParam<T> p_78971_) {
-            T t = (T) this.params.get(p_78971_);
+        public <T> T getParameter(LootContextParam<T> pParameter) {
+            T t = (T) this.params.get(pParameter);
             if (t == null) {
-                throw new IllegalArgumentException("No parameter " + p_78971_);
+                throw new IllegalArgumentException("No parameter " + pParameter);
             } else {
                 return t;
             }
         }
 
         @Nullable
-        public <T> T getOptionalParameter(LootContextParam<T> p_78983_) {
-            return (T) this.params.get(p_78983_);
+        public <T> T getOptionalParameter(LootContextParam<T> pParameter) {
+            return (T) this.params.get(pParameter);
         }
 
-        public LootContext create(LootContextParamSet p_78976_) {
-            Set<LootContextParam<?>> set = Sets.difference(this.params.keySet(), p_78976_.getAllowed());
+        public LootContext create(LootContextParamSet pParameterSet) {
+            Set<LootContextParam<?>> set = Sets.difference(this.params.keySet(), pParameterSet.getAllowed());
             if (!set.isEmpty()) {
                 throw new IllegalArgumentException("Parameters not allowed in this parameter set: " + set);
             } else {
-                Set<LootContextParam<?>> set1 = Sets.difference(p_78976_.getRequired(), this.params.keySet());
+                Set<LootContextParam<?>> set1 = Sets.difference(pParameterSet.getRequired(), this.params.keySet());
                 if (!set1.isEmpty()) {
                     throw new IllegalArgumentException("Missing required parameters: " + set1);
                 } else {
@@ -211,7 +211,7 @@ public class LootContext {
 
     @FunctionalInterface
     public interface DynamicDrop {
-        void add(LootContext p_78988_, Consumer<ItemStack> p_78989_);
+        void add(LootContext pLootContext, Consumer<ItemStack> pStackConsumer);
     }
 
     public static enum EntityTarget {
@@ -232,23 +232,23 @@ public class LootContext {
             return this.param;
         }
 
-        public static LootContext.EntityTarget getByName(String p_79007_) {
+        public static LootContext.EntityTarget getByName(String pName) {
             for (LootContext.EntityTarget lootcontext$entitytarget : values()) {
-                if (lootcontext$entitytarget.name.equals(p_79007_)) {
+                if (lootcontext$entitytarget.name.equals(pName)) {
                     return lootcontext$entitytarget;
                 }
             }
 
-            throw new IllegalArgumentException("Invalid entity target " + p_79007_);
+            throw new IllegalArgumentException("Invalid entity target " + pName);
         }
 
         public static class Serializer extends TypeAdapter<LootContext.EntityTarget> {
-            public void write(JsonWriter p_79015_, LootContext.EntityTarget p_79016_) throws IOException {
-                p_79015_.value(p_79016_.name);
+            public void write(JsonWriter pWriter, LootContext.EntityTarget pEntityTarget) throws IOException {
+                pWriter.value(pEntityTarget.name);
             }
 
-            public LootContext.EntityTarget read(JsonReader p_79013_) throws IOException {
-                return LootContext.EntityTarget.getByName(p_79013_.nextString());
+            public LootContext.EntityTarget read(JsonReader pReader) throws IOException {
+                return LootContext.EntityTarget.getByName(pReader.nextString());
             }
         }
     }

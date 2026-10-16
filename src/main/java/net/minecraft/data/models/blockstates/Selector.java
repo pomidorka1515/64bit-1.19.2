@@ -13,28 +13,28 @@ public final class Selector {
     });
     private final List<Property.Value<?>> values;
 
-    public Selector extend(Property.Value<?> p_125487_) {
-        return new Selector(ImmutableList.<Property.Value<?>>builder().addAll(this.values).add(p_125487_).build());
+    public Selector extend(Property.Value<?> pValue) {
+        return new Selector(ImmutableList.<Property.Value<?>>builder().addAll(this.values).add(pValue).build());
     }
 
-    public Selector extend(Selector p_125489_) {
-        return new Selector(ImmutableList.<Property.Value<?>>builder().addAll(this.values).addAll(p_125489_.values).build());
+    public Selector extend(Selector pSelector) {
+        return new Selector(ImmutableList.<Property.Value<?>>builder().addAll(this.values).addAll(pSelector.values).build());
     }
 
-    private Selector(List<Property.Value<?>> p_125484_) {
-        this.values = p_125484_;
+    private Selector(List<Property.Value<?>> pValues) {
+        this.values = pValues;
     }
 
     public static Selector empty() {
         return EMPTY;
     }
 
-    public static Selector of(Property.Value<?>... p_125491_) {
-        return new Selector(ImmutableList.copyOf(p_125491_));
+    public static Selector of(Property.Value<?>... pValues) {
+        return new Selector(ImmutableList.copyOf(pValues));
     }
 
-    public boolean equals(Object p_125496_) {
-        return this == p_125496_ || p_125496_ instanceof Selector && this.values.equals(((Selector) p_125496_).values);
+    public boolean equals(Object pOther) {
+        return this == pOther || pOther instanceof Selector && this.values.equals(((Selector) pOther).values);
     }
 
     public int hashCode() {

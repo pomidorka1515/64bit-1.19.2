@@ -9,15 +9,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class UploadTokenCache {
     private static final Long2ObjectMap<String> TOKEN_CACHE = new Long2ObjectOpenHashMap<>();
 
-    public static String get(long p_90293_) {
-        return TOKEN_CACHE.get(p_90293_);
+    public static String get(long pWorldId) {
+        return TOKEN_CACHE.get(pWorldId);
     }
 
-    public static void invalidate(long p_90298_) {
-        TOKEN_CACHE.remove(p_90298_);
+    public static void invalidate(long pWorldId) {
+        TOKEN_CACHE.remove(pWorldId);
     }
 
-    public static void put(long p_90295_, String p_90296_) {
-        TOKEN_CACHE.put(p_90295_, p_90296_);
+    public static void put(long pWorldId, String pToken) {
+        TOKEN_CACHE.put(pWorldId, pToken);
     }
 }

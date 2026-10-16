@@ -76,38 +76,38 @@ public class BlockColors {
         return blockcolors;
     }
 
-    public int getColor(BlockState p_92583_, Level p_92584_, BlockPos p_92585_) {
-        BlockColor blockcolor = this.blockColors.byId(Registry.BLOCK.getId(p_92583_.getBlock()));
+    public int getColor(BlockState pState, Level pLevel, BlockPos pPos) {
+        BlockColor blockcolor = this.blockColors.byId(Registry.BLOCK.getId(pState.getBlock()));
         if (blockcolor != null) {
-            return blockcolor.getColor(p_92583_, (BlockAndTintGetter) null, (BlockPos) null, 0);
+            return blockcolor.getColor(pState, (BlockAndTintGetter) null, (BlockPos) null, 0);
         } else {
-            MaterialColor materialcolor = p_92583_.getMapColor(p_92584_, p_92585_);
+            MaterialColor materialcolor = pState.getMapColor(pLevel, pPos);
             return materialcolor != null ? materialcolor.col : -1;
         }
     }
 
-    public int getColor(BlockState p_92578_, @Nullable BlockAndTintGetter p_92579_, @Nullable BlockPos p_92580_, int p_92581_) {
-        BlockColor blockcolor = this.blockColors.byId(Registry.BLOCK.getId(p_92578_.getBlock()));
-        return blockcolor == null ? -1 : blockcolor.getColor(p_92578_, p_92579_, p_92580_, p_92581_);
+    public int getColor(BlockState pState, @Nullable BlockAndTintGetter pLevel, @Nullable BlockPos pPos, int pTintIndex) {
+        BlockColor blockcolor = this.blockColors.byId(Registry.BLOCK.getId(pState.getBlock()));
+        return blockcolor == null ? -1 : blockcolor.getColor(pState, pLevel, pPos, pTintIndex);
     }
 
-    public void register(BlockColor p_92590_, Block... p_92591_) {
-        for (Block block : p_92591_) {
-            this.blockColors.addMapping(p_92590_, Registry.BLOCK.getId(block));
+    public void register(BlockColor pBlockColor, Block... pBlocks) {
+        for (Block block : pBlocks) {
+            this.blockColors.addMapping(pBlockColor, Registry.BLOCK.getId(block));
         }
     }
 
-    private void addColoringStates(Set<Property<?>> p_92593_, Block... p_92594_) {
-        for (Block block : p_92594_) {
-            this.coloringStates.put(block, p_92593_);
+    private void addColoringStates(Set<Property<?>> pProperties, Block... pBlocks) {
+        for (Block block : pBlocks) {
+            this.coloringStates.put(block, pProperties);
         }
     }
 
-    private void addColoringState(Property<?> p_92587_, Block... p_92588_) {
-        this.addColoringStates(ImmutableSet.of(p_92587_), p_92588_);
+    private void addColoringState(Property<?> pProperty, Block... pBlocks) {
+        this.addColoringStates(ImmutableSet.of(pProperty), pBlocks);
     }
 
-    public Set<Property<?>> getColoringProperties(Block p_92576_) {
-        return this.coloringStates.getOrDefault(p_92576_, ImmutableSet.of());
+    public Set<Property<?>> getColoringProperties(Block pBlock) {
+        return this.coloringStates.getOrDefault(pBlock, ImmutableSet.of());
     }
 }

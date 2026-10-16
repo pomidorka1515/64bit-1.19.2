@@ -21,64 +21,64 @@ public class StackedContents {
     private static final int EMPTY = 0;
     public final Int2IntMap contents = new Int2IntOpenHashMap();
 
-    public void accountSimpleStack(ItemStack p_36467_) {
-        if (!p_36467_.isDamaged() && !p_36467_.isEnchanted() && !p_36467_.hasCustomHoverName()) {
-            this.accountStack(p_36467_);
+    public void accountSimpleStack(ItemStack pStack) {
+        if (!pStack.isDamaged() && !pStack.isEnchanted() && !pStack.hasCustomHoverName()) {
+            this.accountStack(pStack);
         }
     }
 
-    public void accountStack(ItemStack p_36492_) {
-        this.accountStack(p_36492_, 64);
+    public void accountStack(ItemStack pStack) {
+        this.accountStack(pStack, 64);
     }
 
-    public void accountStack(ItemStack p_36469_, int p_36470_) {
-        if (!p_36469_.isEmpty()) {
-            int i = getStackingIndex(p_36469_);
-            int j = Math.min(p_36470_, p_36469_.getCount());
+    public void accountStack(ItemStack pStack, int pAmount) {
+        if (!pStack.isEmpty()) {
+            int i = getStackingIndex(pStack);
+            int j = Math.min(pAmount, pStack.getCount());
             this.put(i, j);
         }
     }
 
-    public static int getStackingIndex(ItemStack p_36497_) {
-        return Registry.ITEM.getId(p_36497_.getItem());
+    public static int getStackingIndex(ItemStack pStack) {
+        return Registry.ITEM.getId(pStack.getItem());
     }
 
-    boolean has(int p_36483_) {
-        return this.contents.get(p_36483_) > 0;
+    boolean has(int pStackingIndex) {
+        return this.contents.get(pStackingIndex) > 0;
     }
 
-    int take(int p_36457_, int p_36458_) {
-        int i = this.contents.get(p_36457_);
-        if (i >= p_36458_) {
-            this.contents.put(p_36457_, i - p_36458_);
-            return p_36457_;
+    int take(int pStackingIndex, int pAmount) {
+        int i = this.contents.get(pStackingIndex);
+        if (i >= pAmount) {
+            this.contents.put(pStackingIndex, i - pAmount);
+            return pStackingIndex;
         } else {
             return 0;
         }
     }
 
-    void put(int p_36485_, int p_36486_) {
-        this.contents.put(p_36485_, this.contents.get(p_36485_) + p_36486_);
+    void put(int pStackingIndex, int pIncrement) {
+        this.contents.put(pStackingIndex, this.contents.get(pStackingIndex) + pIncrement);
     }
 
-    public boolean canCraft(Recipe<?> p_36476_, @Nullable IntList p_36477_) {
-        return this.canCraft(p_36476_, p_36477_, 1);
+    public boolean canCraft(Recipe<?> pRecipe, @Nullable IntList pStackingIndexList) {
+        return this.canCraft(pRecipe, pStackingIndexList, 1);
     }
 
-    public boolean canCraft(Recipe<?> p_36479_, @Nullable IntList p_36480_, int p_36481_) {
-        return (new StackedContents.RecipePicker(p_36479_)).tryPick(p_36481_, p_36480_);
+    public boolean canCraft(Recipe<?> pRecipe, @Nullable IntList pStackingIndexList, int pAmount) {
+        return (new StackedContents.RecipePicker(pRecipe)).tryPick(pAmount, pStackingIndexList);
     }
 
-    public int getBiggestCraftableStack(Recipe<?> p_36494_, @Nullable IntList p_36495_) {
-        return this.getBiggestCraftableStack(p_36494_, Integer.MAX_VALUE, p_36495_);
+    public int getBiggestCraftableStack(Recipe<?> pRecipe, @Nullable IntList pStackingIndexList) {
+        return this.getBiggestCraftableStack(pRecipe, Integer.MAX_VALUE, pStackingIndexList);
     }
 
-    public int getBiggestCraftableStack(Recipe<?> p_36472_, int p_36473_, @Nullable IntList p_36474_) {
-        return (new StackedContents.RecipePicker(p_36472_)).tryPickAll(p_36473_, p_36474_);
+    public int getBiggestCraftableStack(Recipe<?> pRecipe, int pAmount, @Nullable IntList pStackingIndexList) {
+        return (new StackedContents.RecipePicker(pRecipe)).tryPickAll(pAmount, pStackingIndexList);
     }
 
-    public static ItemStack fromStackingIndex(int p_36455_) {
-        return p_36455_ == 0 ? ItemStack.EMPTY : new ItemStack(Item.byId(p_36455_));
+    public static ItemStack fromStackingIndex(int pStackingIndex) {
+        return pStackingIndex == 0 ? ItemStack.EMPTY : new ItemStack(Item.byId(pStackingIndex));
     }
 
     public void clear() {
@@ -114,13 +114,13 @@ public class StackedContents {
             }
         }
 
-        public boolean tryPick(int p_36513_, @Nullable IntList p_36514_) {
-            if (p_36513_ <= 0) {
+        public boolean tryPick(int pAmount, @Nullable IntList pStackingIndexList) {
+            if (pAmount <= 0) {
                 return true;
             } else {
                 int i;
-                for (i = 0; this.dfs(p_36513_); ++i) {
-                    StackedContents.this.take(this.items[this.path.getInt(0)], p_36513_);
+                for (i = 0; this.dfs(pAmount); ++i) {
+                    StackedContents.this.take(this.items[this.path.getInt(0)], pAmount);
                     int j = this.path.size() - 1;
                     this.setSatisfied(this.path.getInt(j));
 
@@ -133,9 +133,9 @@ public class StackedContents {
                 }
 
                 boolean flag = i == this.ingredientCount;
-                boolean flag1 = flag && p_36514_ != null;
+                boolean flag1 = flag && pStackingIndexList != null;
                 if (flag1) {
-                    p_36514_.clear();
+                    pStackingIndexList.clear();
                 }
 
                 this.data.clear(0, this.ingredientCount + this.itemCount + this.ingredientCount);
@@ -144,14 +144,14 @@ public class StackedContents {
 
                 for (int i1 = 0; i1 < list.size(); ++i1) {
                     if (flag1 && list.get(i1).isEmpty()) {
-                        p_36514_.add(0);
+                        pStackingIndexList.add(0);
                     } else {
                         for (int j1 = 0; j1 < this.itemCount; ++j1) {
                             if (this.hasResidual(false, l, j1)) {
                                 this.toggleResidual(true, j1, l);
-                                StackedContents.this.put(this.items[j1], p_36513_);
+                                StackedContents.this.put(this.items[j1], pAmount);
                                 if (flag1) {
-                                    p_36514_.add(this.items[j1]);
+                                    pStackingIndexList.add(this.items[j1]);
                                 }
                             }
                         }
@@ -182,11 +182,11 @@ public class StackedContents {
             return intcollection.toIntArray();
         }
 
-        private boolean dfs(int p_36511_) {
+        private boolean dfs(int pAmount) {
             int i = this.itemCount;
 
             for (int j = 0; j < i; ++j) {
-                if (StackedContents.this.contents.get(this.items[j]) >= p_36511_) {
+                if (StackedContents.this.contents.get(this.items[j]) >= pAmount) {
                     this.visit(false, j);
 
                     while (!this.path.isEmpty()) {
@@ -221,58 +221,58 @@ public class StackedContents {
             return false;
         }
 
-        private boolean isSatisfied(int p_36524_) {
-            return this.data.get(this.getSatisfiedIndex(p_36524_));
+        private boolean isSatisfied(int pStackingIndex) {
+            return this.data.get(this.getSatisfiedIndex(pStackingIndex));
         }
 
-        private void setSatisfied(int p_36536_) {
-            this.data.set(this.getSatisfiedIndex(p_36536_));
+        private void setSatisfied(int pStackingIndex) {
+            this.data.set(this.getSatisfiedIndex(pStackingIndex));
         }
 
-        private int getSatisfiedIndex(int p_36545_) {
-            return this.ingredientCount + this.itemCount + p_36545_;
+        private int getSatisfiedIndex(int pStackingIndex) {
+            return this.ingredientCount + this.itemCount + pStackingIndex;
         }
 
-        private boolean hasConnection(boolean p_36519_, int p_36520_, int p_36521_) {
-            return this.data.get(this.getIndex(p_36519_, p_36520_, p_36521_));
+        private boolean hasConnection(boolean pIsIngredientPath, int pStackingIndex, int pPathIndex) {
+            return this.data.get(this.getIndex(pIsIngredientPath, pStackingIndex, pPathIndex));
         }
 
-        private boolean hasResidual(boolean p_36532_, int p_36533_, int p_36534_) {
-            return p_36532_ != this.data.get(1 + this.getIndex(p_36532_, p_36533_, p_36534_));
+        private boolean hasResidual(boolean pIsIngredientPath, int pStackingIndex, int pPathIndex) {
+            return pIsIngredientPath != this.data.get(1 + this.getIndex(pIsIngredientPath, pStackingIndex, pPathIndex));
         }
 
-        private void toggleResidual(boolean p_36541_, int p_36542_, int p_36543_) {
-            this.data.flip(1 + this.getIndex(p_36541_, p_36542_, p_36543_));
+        private void toggleResidual(boolean pIsIngredientPath, int pStackingIndex, int pPathIndex) {
+            this.data.flip(1 + this.getIndex(pIsIngredientPath, pStackingIndex, pPathIndex));
         }
 
-        private int getIndex(boolean p_36547_, int p_36548_, int p_36549_) {
-            int i = p_36547_ ? p_36548_ * this.ingredientCount + p_36549_ : p_36549_ * this.ingredientCount + p_36548_;
+        private int getIndex(boolean pIsIngredientPath, int pStackingIndex, int pPathIndex) {
+            int i = pIsIngredientPath ? pStackingIndex * this.ingredientCount + pPathIndex : pPathIndex * this.ingredientCount + pStackingIndex;
             return this.ingredientCount + this.itemCount + this.ingredientCount + 2 * i;
         }
 
-        private void visit(boolean p_36516_, int p_36517_) {
-            this.data.set(this.getVisitedIndex(p_36516_, p_36517_));
-            this.path.add(p_36517_);
+        private void visit(boolean pIsIngredientPath, int pPathIndex) {
+            this.data.set(this.getVisitedIndex(pIsIngredientPath, pPathIndex));
+            this.path.add(pPathIndex);
         }
 
-        private boolean hasVisited(boolean p_36529_, int p_36530_) {
-            return this.data.get(this.getVisitedIndex(p_36529_, p_36530_));
+        private boolean hasVisited(boolean pIsIngredientPath, int pPathIndex) {
+            return this.data.get(this.getVisitedIndex(pIsIngredientPath, pPathIndex));
         }
 
-        private int getVisitedIndex(boolean p_36538_, int p_36539_) {
-            return (p_36538_ ? 0 : this.ingredientCount) + p_36539_;
+        private int getVisitedIndex(boolean pIsIngredientPath, int pPathIndex) {
+            return (pIsIngredientPath ? 0 : this.ingredientCount) + pPathIndex;
         }
 
-        public int tryPickAll(int p_36526_, @Nullable IntList p_36527_) {
+        public int tryPickAll(int pAmount, @Nullable IntList pStackingIndexList) {
             int i = 0;
-            int j = Math.min(p_36526_, this.getMinIngredientCount()) + 1;
+            int j = Math.min(pAmount, this.getMinIngredientCount()) + 1;
 
             while (true) {
                 int k = (i + j) / 2;
                 if (this.tryPick(k, (IntList) null)) {
                     if (j - i <= 1) {
                         if (k > 0) {
-                            this.tryPick(k, p_36527_);
+                            this.tryPick(k, pStackingIndexList);
                         }
 
                         return k;

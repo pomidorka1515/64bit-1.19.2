@@ -6,11 +6,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 public abstract class AmbientCreature extends Mob {
-    protected AmbientCreature(EntityType<? extends AmbientCreature> p_27403_, Level p_27404_) {
-        super(p_27403_, p_27404_);
+    protected AmbientCreature(EntityType<? extends AmbientCreature> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
     }
 
-    public boolean canBeLeashed(Player p_27406_) {
+    public boolean canBeLeashed(Player pPlayer) {
         return false;
     }
 }

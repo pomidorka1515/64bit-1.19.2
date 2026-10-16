@@ -25,28 +25,28 @@ public class GiantTrunkPlacer extends TrunkPlacer {
         return TrunkPlacerType.GIANT_TRUNK_PLACER;
     }
 
-    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader p_226123_, BiConsumer<BlockPos, BlockState> p_226124_, RandomSource p_226125_, int p_226126_, BlockPos p_226127_, TreeConfiguration p_226128_) {
-        BlockPos blockpos = p_226127_.below();
-        setDirtAt(p_226123_, p_226124_, p_226125_, blockpos, p_226128_);
-        setDirtAt(p_226123_, p_226124_, p_226125_, blockpos.east(), p_226128_);
-        setDirtAt(p_226123_, p_226124_, p_226125_, blockpos.south(), p_226128_);
-        setDirtAt(p_226123_, p_226124_, p_226125_, blockpos.south().east(), p_226128_);
+    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, int pFreeTreeHeight, BlockPos pPos, TreeConfiguration pConfig) {
+        BlockPos blockpos = pPos.below();
+        setDirtAt(pLevel, pBlockSetter, pRandom, blockpos, pConfig);
+        setDirtAt(pLevel, pBlockSetter, pRandom, blockpos.east(), pConfig);
+        setDirtAt(pLevel, pBlockSetter, pRandom, blockpos.south(), pConfig);
+        setDirtAt(pLevel, pBlockSetter, pRandom, blockpos.south().east(), pConfig);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-        for (int i = 0; i < p_226126_; ++i) {
-            this.placeLogIfFreeWithOffset(p_226123_, p_226124_, p_226125_, blockpos$mutableblockpos, p_226128_, p_226127_, 0, i, 0);
-            if (i < p_226126_ - 1) {
-                this.placeLogIfFreeWithOffset(p_226123_, p_226124_, p_226125_, blockpos$mutableblockpos, p_226128_, p_226127_, 1, i, 0);
-                this.placeLogIfFreeWithOffset(p_226123_, p_226124_, p_226125_, blockpos$mutableblockpos, p_226128_, p_226127_, 1, i, 1);
-                this.placeLogIfFreeWithOffset(p_226123_, p_226124_, p_226125_, blockpos$mutableblockpos, p_226128_, p_226127_, 0, i, 1);
+        for (int i = 0; i < pFreeTreeHeight; ++i) {
+            this.placeLogIfFreeWithOffset(pLevel, pBlockSetter, pRandom, blockpos$mutableblockpos, pConfig, pPos, 0, i, 0);
+            if (i < pFreeTreeHeight - 1) {
+                this.placeLogIfFreeWithOffset(pLevel, pBlockSetter, pRandom, blockpos$mutableblockpos, pConfig, pPos, 1, i, 0);
+                this.placeLogIfFreeWithOffset(pLevel, pBlockSetter, pRandom, blockpos$mutableblockpos, pConfig, pPos, 1, i, 1);
+                this.placeLogIfFreeWithOffset(pLevel, pBlockSetter, pRandom, blockpos$mutableblockpos, pConfig, pPos, 0, i, 1);
             }
         }
 
-        return ImmutableList.of(new FoliagePlacer.FoliageAttachment(p_226127_.above(p_226126_), 0, true));
+        return ImmutableList.of(new FoliagePlacer.FoliageAttachment(pPos.above(pFreeTreeHeight), 0, true));
     }
 
-    private void placeLogIfFreeWithOffset(LevelSimulatedReader p_226130_, BiConsumer<BlockPos, BlockState> p_226131_, RandomSource p_226132_, BlockPos.MutableBlockPos p_226133_, TreeConfiguration p_226134_, BlockPos p_226135_, int p_226136_, int p_226137_, int p_226138_) {
-        p_226133_.setWithOffset(p_226135_, p_226136_, p_226137_, p_226138_);
-        this.placeLogIfFree(p_226130_, p_226131_, p_226132_, p_226133_, p_226134_);
+    private void placeLogIfFreeWithOffset(LevelSimulatedReader pLevel, BiConsumer<BlockPos, BlockState> pBlockSetter, RandomSource pRandom, BlockPos.MutableBlockPos pPos, TreeConfiguration pConfig, BlockPos pOffsetPos, int pOffsetX, int pOffsetY, int pOffsetZ) {
+        pPos.setWithOffset(pOffsetPos, pOffsetX, pOffsetY, pOffsetZ);
+        this.placeLogIfFree(pLevel, pBlockSetter, pRandom, pPos, pConfig);
     }
 }

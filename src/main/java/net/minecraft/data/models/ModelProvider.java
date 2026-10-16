@@ -29,12 +29,12 @@ public class ModelProvider implements DataProvider {
     private final DataGenerator.PathProvider blockStatePathProvider;
     private final DataGenerator.PathProvider modelPathProvider;
 
-    public ModelProvider(DataGenerator p_125100_) {
-        this.blockStatePathProvider = p_125100_.createPathProvider(DataGenerator.Target.RESOURCE_PACK, "blockstates");
-        this.modelPathProvider = p_125100_.createPathProvider(DataGenerator.Target.RESOURCE_PACK, "models");
+    public ModelProvider(DataGenerator pGenerator) {
+        this.blockStatePathProvider = pGenerator.createPathProvider(DataGenerator.Target.RESOURCE_PACK, "blockstates");
+        this.modelPathProvider = pGenerator.createPathProvider(DataGenerator.Target.RESOURCE_PACK, "models");
     }
 
-    public void run(CachedOutput p_236330_) {
+    public void run(CachedOutput pOutput) {
         Map<Block, BlockStateGenerator> map = Maps.newHashMap();
         Consumer<BlockStateGenerator> consumer = (p_125120_) -> {
             Block block = p_125120_.getBlock();
@@ -74,19 +74,19 @@ public class ModelProvider implements DataProvider {
                     }
                 }
             });
-            this.saveCollection(p_236330_, map, (p_236328_) -> {
+            this.saveCollection(pOutput, map, (p_236328_) -> {
                 return this.blockStatePathProvider.json(p_236328_.builtInRegistryHolder().key().location());
             });
-            this.saveCollection(p_236330_, map1, this.modelPathProvider::json);
+            this.saveCollection(pOutput, map1, this.modelPathProvider::json);
         }
     }
 
-    private <T> void saveCollection(CachedOutput p_236332_, Map<T, ? extends Supplier<JsonElement>> p_236333_, Function<T, Path> p_236334_) {
-        p_236333_.forEach((p_236338_, p_236339_) -> {
-            Path path = p_236334_.apply(p_236338_);
+    private <T> void saveCollection(CachedOutput pOutput, Map<T, ? extends Supplier<JsonElement>> pObjectToJsonMap, Function<T, Path> pResolveObjectPath) {
+        pObjectToJsonMap.forEach((p_236338_, p_236339_) -> {
+            Path path = pResolveObjectPath.apply(p_236338_);
 
             try {
-                DataProvider.saveStable(p_236332_, p_236339_.get(), path);
+                DataProvider.saveStable(pOutput, p_236339_.get(), path);
             } catch (Exception exception) {
                 LOGGER.error("Couldn't save {}", path, exception);
             }

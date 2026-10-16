@@ -8,8 +8,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.Optional;
 
 public class CauldronRenameFix extends DataFix {
-    public CauldronRenameFix(Schema p_145196_, boolean p_145197_) {
-        super(p_145196_, p_145197_);
+    public CauldronRenameFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     private static Dynamic<?> fix(Dynamic<?> p_145201_) {

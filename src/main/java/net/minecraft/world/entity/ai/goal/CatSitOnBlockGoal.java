@@ -14,9 +14,9 @@ import net.minecraft.world.level.block.state.properties.BedPart;
 public class CatSitOnBlockGoal extends MoveToBlockGoal {
     private final Cat cat;
 
-    public CatSitOnBlockGoal(Cat p_25149_, double p_25150_) {
-        super(p_25149_, p_25150_, 8);
-        this.cat = p_25149_;
+    public CatSitOnBlockGoal(Cat pCat, double pSpeedModifier) {
+        super(pCat, pSpeedModifier, 8);
+        this.cat = pCat;
     }
 
     public boolean canUse() {
@@ -38,13 +38,13 @@ public class CatSitOnBlockGoal extends MoveToBlockGoal {
         this.cat.setInSittingPose(this.isReachedTarget());
     }
 
-    protected boolean isValidTarget(LevelReader p_25153_, BlockPos p_25154_) {
-        if (!p_25153_.isEmptyBlock(p_25154_.above())) {
+    protected boolean isValidTarget(LevelReader pLevel, BlockPos pPos) {
+        if (!pLevel.isEmptyBlock(pPos.above())) {
             return false;
         } else {
-            BlockState blockstate = p_25153_.getBlockState(p_25154_);
+            BlockState blockstate = pLevel.getBlockState(pPos);
             if (blockstate.is(Blocks.CHEST)) {
-                return ChestBlockEntity.getOpenCount(p_25153_, p_25154_) < 1;
+                return ChestBlockEntity.getOpenCount(pLevel, pPos) < 1;
             } else {
                 return blockstate.is(Blocks.FURNACE) && blockstate.getValue(FurnaceBlock.LIT) ? true : blockstate.is(BlockTags.BEDS, (p_25156_) -> {
                     return p_25156_.<BedPart>getOptionalValue(BedBlock.PART).map((p_148084_) -> {

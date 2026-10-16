@@ -12,29 +12,29 @@ public class ClientboundBlockEventPacket implements Packet<ClientGamePacketListe
     private final int b1;
     private final Block block;
 
-    public ClientboundBlockEventPacket(BlockPos p_131715_, Block p_131716_, int p_131717_, int p_131718_) {
-        this.pos = p_131715_;
-        this.block = p_131716_;
-        this.b0 = p_131717_;
-        this.b1 = p_131718_;
+    public ClientboundBlockEventPacket(BlockPos pPos, Block pBlock, int pB0, int pB1) {
+        this.pos = pPos;
+        this.block = pBlock;
+        this.b0 = pB0;
+        this.b1 = pB1;
     }
 
-    public ClientboundBlockEventPacket(FriendlyByteBuf p_178623_) {
-        this.pos = p_178623_.readBlockPos();
-        this.b0 = p_178623_.readUnsignedByte();
-        this.b1 = p_178623_.readUnsignedByte();
-        this.block = p_178623_.readById(Registry.BLOCK);
+    public ClientboundBlockEventPacket(FriendlyByteBuf pBuffer) {
+        this.pos = pBuffer.readBlockPos();
+        this.b0 = pBuffer.readUnsignedByte();
+        this.b1 = pBuffer.readUnsignedByte();
+        this.block = pBuffer.readById(Registry.BLOCK);
     }
 
-    public void write(FriendlyByteBuf p_131727_) {
-        p_131727_.writeBlockPos(this.pos);
-        p_131727_.writeByte(this.b0);
-        p_131727_.writeByte(this.b1);
-        p_131727_.writeId(Registry.BLOCK, this.block);
+    public void write(FriendlyByteBuf pBuffer) {
+        pBuffer.writeBlockPos(this.pos);
+        pBuffer.writeByte(this.b0);
+        pBuffer.writeByte(this.b1);
+        pBuffer.writeId(Registry.BLOCK, this.block);
     }
 
-    public void handle(ClientGamePacketListener p_131724_) {
-        p_131724_.handleBlockEvent(this);
+    public void handle(ClientGamePacketListener pHandler) {
+        pHandler.handleBlockEvent(this);
     }
 
     public BlockPos getPos() {

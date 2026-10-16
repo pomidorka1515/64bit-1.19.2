@@ -20,8 +20,8 @@ public class DebugPathCommand {
     private static final SimpleCommandExceptionType ERROR_NO_PATH = new SimpleCommandExceptionType(Component.literal("Path not found"));
     private static final SimpleCommandExceptionType ERROR_NOT_COMPLETE = new SimpleCommandExceptionType(Component.literal("Target not reached"));
 
-    public static void register(CommandDispatcher<CommandSourceStack> p_180124_) {
-        p_180124_.register(Commands.literal("debugpath").requires((p_180128_) -> {
+    public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
+        pDispatcher.register(Commands.literal("debugpath").requires((p_180128_) -> {
                                                             return p_180128_.hasPermission(2);
                                                         })
                         .then(Commands.argument("to", BlockPosArgument.blockPos()).executes((p_180126_) -> {
@@ -29,20 +29,20 @@ public class DebugPathCommand {
                         })));
     }
 
-    private static int fillBlocks(CommandSourceStack p_180130_, BlockPos p_180131_) throws CommandSyntaxException {
-        Entity entity = p_180130_.getEntity();
+    private static int fillBlocks(CommandSourceStack pStack, BlockPos pPos) throws CommandSyntaxException {
+        Entity entity = pStack.getEntity();
         if (!(entity instanceof Mob mob)) {
             throw ERROR_NOT_MOB.create();
         } else {
-            PathNavigation pathnavigation = new GroundPathNavigation(mob, p_180130_.getLevel());
-            Path path = pathnavigation.createPath(p_180131_, 0);
-            DebugPackets.sendPathFindingPacket(p_180130_.getLevel(), mob, path, pathnavigation.getMaxDistanceToWaypoint());
+            PathNavigation pathnavigation = new GroundPathNavigation(mob, pStack.getLevel());
+            Path path = pathnavigation.createPath(pPos, 0);
+            DebugPackets.sendPathFindingPacket(pStack.getLevel(), mob, path, pathnavigation.getMaxDistanceToWaypoint());
             if (path == null) {
                 throw ERROR_NO_PATH.create();
             } else if (!path.canReach()) {
                 throw ERROR_NOT_COMPLETE.create();
             } else {
-                p_180130_.sendSuccess(Component.literal("Made path"), true);
+                pStack.sendSuccess(Component.literal("Made path"), true);
                 return 1;
             }
         }

@@ -13,16 +13,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class AtlasSet implements AutoCloseable {
     private final Map<ResourceLocation, TextureAtlas> atlases;
 
-    public AtlasSet(Collection<TextureAtlas> p_117970_) {
-        this.atlases = p_117970_.stream().collect(Collectors.toMap(TextureAtlas::location, Function.identity()));
+    public AtlasSet(Collection<TextureAtlas> pAtlases) {
+        this.atlases = pAtlases.stream().collect(Collectors.toMap(TextureAtlas::location, Function.identity()));
     }
 
-    public TextureAtlas getAtlas(ResourceLocation p_117974_) {
-        return this.atlases.get(p_117974_);
+    public TextureAtlas getAtlas(ResourceLocation pLocation) {
+        return this.atlases.get(pLocation);
     }
 
-    public TextureAtlasSprite getSprite(Material p_117972_) {
-        return this.atlases.get(p_117972_.atlasLocation()).getSprite(p_117972_.texture());
+    public TextureAtlasSprite getSprite(Material pMaterial) {
+        return this.atlases.get(pMaterial.atlasLocation()).getSprite(pMaterial.texture());
     }
 
     public void close() {

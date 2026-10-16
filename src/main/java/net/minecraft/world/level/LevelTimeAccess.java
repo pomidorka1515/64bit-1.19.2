@@ -9,7 +9,7 @@ public interface LevelTimeAccess extends LevelReader {
         return DimensionType.MOON_BRIGHTNESS_PER_PHASE[this.dimensionType().moonPhase(this.dayTime())];
     }
 
-    default float getTimeOfDay(float p_46943_) {
+    default float getTimeOfDay(float pPartialTick) {
         return this.dimensionType().timeOfDay(this.dayTime());
     }
 

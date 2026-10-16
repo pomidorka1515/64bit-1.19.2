@@ -12,8 +12,8 @@ import com.mojang.serialization.DynamicOps;
 import java.util.List;
 
 public class SpawnerDataFix extends DataFix {
-    public SpawnerDataFix(Schema p_185133_) {
-        super(p_185133_, true);
+    public SpawnerDataFix(Schema pOutputSchema) {
+        super(pOutputSchema, true);
     }
 
     protected TypeRewriteRule makeRule() {

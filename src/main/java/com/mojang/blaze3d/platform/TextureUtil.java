@@ -40,46 +40,46 @@ public class TextureUtil {
         }
     }
 
-    public static void releaseTextureId(int p_85282_) {
+    public static void releaseTextureId(int pTextureId) {
         RenderSystem.assertOnRenderThreadOrInit();
-        GlStateManager._deleteTexture(p_85282_);
+        GlStateManager._deleteTexture(pTextureId);
     }
 
-    public static void prepareImage(int p_85284_, int p_85285_, int p_85286_) {
-        prepareImage(NativeImage.InternalGlFormat.RGBA, p_85284_, 0, p_85285_, p_85286_);
+    public static void prepareImage(int pTextureId, int pWidth, int pHeight) {
+        prepareImage(NativeImage.InternalGlFormat.RGBA, pTextureId, 0, pWidth, pHeight);
     }
 
-    public static void prepareImage(NativeImage.InternalGlFormat p_85293_, int p_85294_, int p_85295_, int p_85296_) {
-        prepareImage(p_85293_, p_85294_, 0, p_85295_, p_85296_);
+    public static void prepareImage(NativeImage.InternalGlFormat pPixelFormat, int pTextureId, int pWidth, int pHeight) {
+        prepareImage(pPixelFormat, pTextureId, 0, pWidth, pHeight);
     }
 
-    public static void prepareImage(int p_85288_, int p_85289_, int p_85290_, int p_85291_) {
-        prepareImage(NativeImage.InternalGlFormat.RGBA, p_85288_, p_85289_, p_85290_, p_85291_);
+    public static void prepareImage(int pTextureId, int pMipmapLevel, int pWidth, int pHeight) {
+        prepareImage(NativeImage.InternalGlFormat.RGBA, pTextureId, pMipmapLevel, pWidth, pHeight);
     }
 
-    public static void prepareImage(NativeImage.InternalGlFormat p_85298_, int p_85299_, int p_85300_, int p_85301_, int p_85302_) {
+    public static void prepareImage(NativeImage.InternalGlFormat pPixelFormat, int pTextureId, int pMipmapLevel, int pWidth, int pHeight) {
         RenderSystem.assertOnRenderThreadOrInit();
-        bind(p_85299_);
-        if (p_85300_ >= 0) {
-            GlStateManager._texParameter(3553, 33085, p_85300_);
+        bind(pTextureId);
+        if (pMipmapLevel >= 0) {
+            GlStateManager._texParameter(3553, 33085, pMipmapLevel);
             GlStateManager._texParameter(3553, 33082, 0);
-            GlStateManager._texParameter(3553, 33083, p_85300_);
+            GlStateManager._texParameter(3553, 33083, pMipmapLevel);
             GlStateManager._texParameter(3553, 34049, 0.0F);
         }
 
-        for (int i = 0; i <= p_85300_; ++i) {
-            GlStateManager._texImage2D(3553, i, p_85298_.glFormat(), p_85301_ >> i, p_85302_ >> i, 0, 6408, 5121, (IntBuffer) null);
+        for (int i = 0; i <= pMipmapLevel; ++i) {
+            GlStateManager._texImage2D(3553, i, pPixelFormat.glFormat(), pWidth >> i, pHeight >> i, 0, 6408, 5121, (IntBuffer) null);
         }
     }
 
-    private static void bind(int p_85310_) {
+    private static void bind(int pTextureId) {
         RenderSystem.assertOnRenderThreadOrInit();
-        GlStateManager._bindTexture(p_85310_);
+        GlStateManager._bindTexture(pTextureId);
     }
 
-    public static ByteBuffer readResource(InputStream p_85304_) throws IOException {
+    public static ByteBuffer readResource(InputStream pInputStream) throws IOException {
         ByteBuffer bytebuffer;
-        if (p_85304_ instanceof FileInputStream fileinputstream) {
+        if (pInputStream instanceof FileInputStream fileinputstream) {
             FileChannel filechannel = fileinputstream.getChannel();
             bytebuffer = MemoryUtil.memAlloc((int) filechannel.size() + 1);
 
@@ -87,7 +87,7 @@ public class TextureUtil {
             }
         } else {
             bytebuffer = MemoryUtil.memAlloc(8192);
-            ReadableByteChannel readablebytechannel = Channels.newChannel(p_85304_);
+            ReadableByteChannel readablebytechannel = Channels.newChannel(pInputStream);
 
             while (readablebytechannel.read(bytebuffer) != -1) {
                 if (bytebuffer.remaining() == 0) {
@@ -99,14 +99,14 @@ public class TextureUtil {
         return bytebuffer;
     }
 
-    public static void writeAsPNG(String p_157135_, int p_157136_, int p_157137_, int p_157138_, int p_157139_) {
+    public static void writeAsPNG(String pTextureName, int pTextureId, int pAmount, int pWidth, int pHeight) {
         RenderSystem.assertOnRenderThread();
-        bind(p_157136_);
+        bind(pTextureId);
 
-        for (int i = 0; i <= p_157137_; ++i) {
-            String s = p_157135_ + "_" + i + ".png";
-            int j = p_157138_ >> i;
-            int k = p_157139_ >> i;
+        for (int i = 0; i <= pAmount; ++i) {
+            String s = pTextureName + "_" + i + ".png";
+            int j = pWidth >> i;
+            int k = pHeight >> i;
 
             try {
                 NativeImage nativeimage = new NativeImage(j, k, false);
@@ -132,7 +132,7 @@ public class TextureUtil {
         }
     }
 
-    public static void initTexture(IntBuffer p_85306_, int p_85307_, int p_85308_) {
+    public static void initTexture(IntBuffer pBuffer, int pWidth, int pHeight) {
         RenderSystem.assertOnRenderThread();
         GL11.glPixelStorei(3312, 0);
         GL11.glPixelStorei(3313, 0);
@@ -140,7 +140,7 @@ public class TextureUtil {
         GL11.glPixelStorei(3315, 0);
         GL11.glPixelStorei(3316, 0);
         GL11.glPixelStorei(3317, 4);
-        GL11.glTexImage2D(3553, 0, 6408, p_85307_, p_85308_, 0, 32993, 33639, p_85306_);
+        GL11.glTexImage2D(3553, 0, 6408, pWidth, pHeight, 0, 32993, 33639, pBuffer);
         GL11.glTexParameteri(3553, 10240, 9728);
         GL11.glTexParameteri(3553, 10241, 9729);
     }

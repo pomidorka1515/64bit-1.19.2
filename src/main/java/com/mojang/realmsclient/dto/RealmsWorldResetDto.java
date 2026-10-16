@@ -15,10 +15,10 @@ public class RealmsWorldResetDto extends ValueObject implements ReflectionBasedS
     @SerializedName("generateStructures")
     private final boolean generateStructures;
 
-    public RealmsWorldResetDto(String p_87643_, long p_87644_, int p_87645_, boolean p_87646_) {
-        this.seed = p_87643_;
-        this.worldTemplateId = p_87644_;
-        this.levelType = p_87645_;
-        this.generateStructures = p_87646_;
+    public RealmsWorldResetDto(String pSeed, long pWorldTemplateId, int pLevelType, boolean pGenerateStructures) {
+        this.seed = pSeed;
+        this.worldTemplateId = pWorldTemplateId;
+        this.levelType = pLevelType;
+        this.generateStructures = pGenerateStructures;
     }
 }

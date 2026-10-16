@@ -11,16 +11,16 @@ public interface VerticalAnchor {
     VerticalAnchor BOTTOM = aboveBottom(0);
     VerticalAnchor TOP = belowTop(0);
 
-    static VerticalAnchor absolute(int p_158923_) {
-        return new VerticalAnchor.Absolute(p_158923_);
+    static VerticalAnchor absolute(int pValue) {
+        return new VerticalAnchor.Absolute(pValue);
     }
 
-    static VerticalAnchor aboveBottom(int p_158931_) {
-        return new VerticalAnchor.AboveBottom(p_158931_);
+    static VerticalAnchor aboveBottom(int pValue) {
+        return new VerticalAnchor.AboveBottom(pValue);
     }
 
-    static VerticalAnchor belowTop(int p_158936_) {
-        return new VerticalAnchor.BelowTop(p_158936_);
+    static VerticalAnchor belowTop(int pValue) {
+        return new VerticalAnchor.BelowTop(pValue);
     }
 
     static VerticalAnchor bottom() {
@@ -41,7 +41,7 @@ public interface VerticalAnchor {
         return p_158927_ instanceof VerticalAnchor.Absolute ? Either.left((VerticalAnchor.Absolute) p_158927_) : Either.right(p_158927_ instanceof VerticalAnchor.AboveBottom ? Either.left((VerticalAnchor.AboveBottom) p_158927_) : Either.right((VerticalAnchor.BelowTop) p_158927_));
     }
 
-    int resolveY(WorldGenerationContext p_158928_);
+    int resolveY(WorldGenerationContext pContext);
 
     public static record AboveBottom(int offset) implements VerticalAnchor {
         public static final Codec<VerticalAnchor.AboveBottom> CODEC = Codec.intRange(DimensionType.MIN_Y, DimensionType.MAX_Y).fieldOf("above_bottom").xmap(VerticalAnchor.AboveBottom::new, VerticalAnchor.AboveBottom::offset).codec();

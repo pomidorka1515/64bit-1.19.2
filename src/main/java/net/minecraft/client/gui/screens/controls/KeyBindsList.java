@@ -25,10 +25,10 @@ public class KeyBindsList extends ContainerObjectSelectionList<KeyBindsList.Entr
     final KeyBindsScreen keyBindsScreen;
     int maxNameWidth;
 
-    public KeyBindsList(KeyBindsScreen p_193861_, Minecraft p_193862_) {
-        super(p_193862_, p_193861_.width + 45, p_193861_.height, 20, p_193861_.height - 32, 20);
-        this.keyBindsScreen = p_193861_;
-        KeyMapping[] akeymapping = ArrayUtils.clone((KeyMapping[]) p_193862_.options.keyMappings);
+    public KeyBindsList(KeyBindsScreen pKeyBindsScreen, Minecraft pMinecraft) {
+        super(pMinecraft, pKeyBindsScreen.width + 45, pKeyBindsScreen.height, 20, pKeyBindsScreen.height - 32, 20);
+        this.keyBindsScreen = pKeyBindsScreen;
+        KeyMapping[] akeymapping = ArrayUtils.clone((KeyMapping[]) pMinecraft.options.keyMappings);
         Arrays.sort((Object[]) akeymapping);
         String s = null;
 
@@ -40,7 +40,7 @@ public class KeyBindsList extends ContainerObjectSelectionList<KeyBindsList.Entr
             }
 
             Component component = Component.translatable(keymapping.getName());
-            int i = p_193862_.font.width(component);
+            int i = pMinecraft.font.width(component);
             if (i > this.maxNameWidth) {
                 this.maxNameWidth = i;
             }
@@ -67,11 +67,11 @@ public class KeyBindsList extends ContainerObjectSelectionList<KeyBindsList.Entr
             this.width = KeyBindsList.this.minecraft.font.width(this.name);
         }
 
-        public void render(PoseStack p_193888_, int p_193889_, int p_193890_, int p_193891_, int p_193892_, int p_193893_, int p_193894_, int p_193895_, boolean p_193896_, float p_193897_) {
-            KeyBindsList.this.minecraft.font.draw(p_193888_, this.name, (float) (KeyBindsList.this.minecraft.screen.width / 2 - this.width / 2), (float) (p_193890_ + p_193893_ - 9 - 1), 16777215);
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
+            KeyBindsList.this.minecraft.font.draw(pPoseStack, this.name, (float) (KeyBindsList.this.minecraft.screen.width / 2 - this.width / 2), (float) (pTop + pHeight - 9 - 1), 16777215);
         }
 
-        public boolean changeFocus(boolean p_193900_) {
+        public boolean changeFocus(boolean pFocus) {
             return false;
         }
 
@@ -123,16 +123,16 @@ public class KeyBindsList extends ContainerObjectSelectionList<KeyBindsList.Entr
             };
         }
 
-        public void render(PoseStack p_193923_, int p_193924_, int p_193925_, int p_193926_, int p_193927_, int p_193928_, int p_193929_, int p_193930_, boolean p_193931_, float p_193932_) {
+        public void render(PoseStack pPoseStack, int pIndex, int pTop, int pLeft, int pWidth, int pHeight, int pMouseX, int pMouseY, boolean pIsMouseOver, float pPartialTick) {
             boolean flag = KeyBindsList.this.keyBindsScreen.selectedKey == this.key;
-            float f = (float) (p_193926_ + 90 - KeyBindsList.this.maxNameWidth);
-            KeyBindsList.this.minecraft.font.draw(p_193923_, this.name, f, (float) (p_193925_ + p_193928_ / 2 - 9 / 2), 16777215);
-            this.resetButton.x = p_193926_ + 190;
-            this.resetButton.y = p_193925_;
+            float f = (float) (pLeft + 90 - KeyBindsList.this.maxNameWidth);
+            KeyBindsList.this.minecraft.font.draw(pPoseStack, this.name, f, (float) (pTop + pHeight / 2 - 9 / 2), 16777215);
+            this.resetButton.x = pLeft + 190;
+            this.resetButton.y = pTop;
             this.resetButton.active = !this.key.isDefault();
-            this.resetButton.render(p_193923_, p_193929_, p_193930_, p_193932_);
-            this.changeButton.x = p_193926_ + 105;
-            this.changeButton.y = p_193925_;
+            this.resetButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+            this.changeButton.x = pLeft + 105;
+            this.changeButton.y = pTop;
             this.changeButton.setMessage(this.key.getTranslatedKeyMessage());
             boolean flag1 = false;
             if (!this.key.isUnbound()) {
@@ -150,7 +150,7 @@ public class KeyBindsList extends ContainerObjectSelectionList<KeyBindsList.Entr
                 this.changeButton.setMessage(this.changeButton.getMessage().copy().withStyle(ChatFormatting.RED));
             }
 
-            this.changeButton.render(p_193923_, p_193929_, p_193930_, p_193932_);
+            this.changeButton.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         }
 
         public List<? extends GuiEventListener> children() {
@@ -161,16 +161,16 @@ public class KeyBindsList extends ContainerObjectSelectionList<KeyBindsList.Entr
             return ImmutableList.of(this.changeButton, this.resetButton);
         }
 
-        public boolean mouseClicked(double p_193919_, double p_193920_, int p_193921_) {
-            if (this.changeButton.mouseClicked(p_193919_, p_193920_, p_193921_)) {
+        public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+            if (this.changeButton.mouseClicked(pMouseX, pMouseY, pButton)) {
                 return true;
             } else {
-                return this.resetButton.mouseClicked(p_193919_, p_193920_, p_193921_);
+                return this.resetButton.mouseClicked(pMouseX, pMouseY, pButton);
             }
         }
 
-        public boolean mouseReleased(double p_193941_, double p_193942_, int p_193943_) {
-            return this.changeButton.mouseReleased(p_193941_, p_193942_, p_193943_) || this.resetButton.mouseReleased(p_193941_, p_193942_, p_193943_);
+        public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+            return this.changeButton.mouseReleased(pMouseX, pMouseY, pButton) || this.resetButton.mouseReleased(pMouseX, pMouseY, pButton);
         }
     }
 }

@@ -130,9 +130,9 @@ public class RealmsTextureManager {
         }
     }
 
-    private static int getTextureId(String p_90197_, String p_90198_) {
-        RealmsTextureManager.RealmsTexture realmstexturemanager$realmstexture = TEXTURES.get(p_90197_);
-        if (realmstexturemanager$realmstexture != null && realmstexturemanager$realmstexture.image.equals(p_90198_)) {
+    private static int getTextureId(String pName, String pImage) {
+        RealmsTextureManager.RealmsTexture realmstexturemanager$realmstexture = TEXTURES.get(pName);
+        if (realmstexturemanager$realmstexture != null && realmstexturemanager$realmstexture.image.equals(pImage)) {
             return realmstexturemanager$realmstexture.textureId;
         } else {
             int i;
@@ -142,11 +142,11 @@ public class RealmsTextureManager {
                 i = GlStateManager._genTexture();
             }
 
-            RealmsTextureManager.TextureData realmstexturemanager$texturedata = RealmsTextureManager.TextureData.load(p_90198_);
+            RealmsTextureManager.TextureData realmstexturemanager$texturedata = RealmsTextureManager.TextureData.load(pImage);
             RenderSystem.activeTexture(33984);
             RenderSystem.bindTextureForSetup(i);
             TextureUtil.initTexture(realmstexturemanager$texturedata.data, realmstexturemanager$texturedata.width, realmstexturemanager$texturedata.height);
-            TEXTURES.put(p_90197_, new RealmsTextureManager.RealmsTexture(p_90198_, i));
+            TEXTURES.put(pName, new RealmsTextureManager.RealmsTexture(pImage, i));
             return i;
         }
     }
@@ -156,9 +156,9 @@ public class RealmsTextureManager {
         final String image;
         final int textureId;
 
-        public RealmsTexture(String p_90208_, int p_90209_) {
-            this.image = p_90208_;
-            this.textureId = p_90209_;
+        public RealmsTexture(String pImage, int pTextureId) {
+            this.image = pImage;
+            this.textureId = pTextureId;
         }
     }
 
@@ -187,10 +187,10 @@ public class RealmsTextureManager {
             return new RealmsTextureManager.TextureData(16, 16, intbuffer);
         });
 
-        private TextureData(int p_193524_, int p_193525_, IntBuffer p_193526_) {
-            this.width = p_193524_;
-            this.height = p_193525_;
-            this.data = p_193526_;
+        private TextureData(int pWidth, int pHeight, IntBuffer pData) {
+            this.width = pWidth;
+            this.height = pHeight;
+            this.data = pData;
         }
 
         public static RealmsTextureManager.TextureData load(String p_193529_) {

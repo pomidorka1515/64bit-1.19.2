@@ -16,9 +16,9 @@ public class TimeCheck implements LootItemCondition {
     final Long period;
     final IntRange value;
 
-    TimeCheck(@Nullable Long p_165507_, IntRange p_165508_) {
-        this.period = p_165507_;
-        this.value = p_165508_;
+    TimeCheck(@Nullable Long pPeriod, IntRange pRange) {
+        this.period = pPeriod;
+        this.value = pRange;
     }
 
     public LootItemConditionType getType() {
@@ -39,8 +39,8 @@ public class TimeCheck implements LootItemCondition {
         return this.value.test(p_82033_, (int) i);
     }
 
-    public static TimeCheck.Builder time(IntRange p_165510_) {
-        return new TimeCheck.Builder(p_165510_);
+    public static TimeCheck.Builder time(IntRange pTimeRange) {
+        return new TimeCheck.Builder(pTimeRange);
     }
 
     public static class Builder implements LootItemCondition.Builder {
@@ -48,12 +48,12 @@ public class TimeCheck implements LootItemCondition {
         private Long period;
         private final IntRange value;
 
-        public Builder(IntRange p_165515_) {
-            this.value = p_165515_;
+        public Builder(IntRange pTimeRange) {
+            this.value = pTimeRange;
         }
 
-        public TimeCheck.Builder setPeriod(long p_165517_) {
-            this.period = p_165517_;
+        public TimeCheck.Builder setPeriod(long pPeriod) {
+            this.period = pPeriod;
             return this;
         }
 

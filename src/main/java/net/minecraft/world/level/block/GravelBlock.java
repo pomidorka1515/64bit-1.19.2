@@ -6,11 +6,11 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class GravelBlock extends FallingBlock {
-    public GravelBlock(BlockBehaviour.Properties p_53736_) {
-        super(p_53736_);
+    public GravelBlock(BlockBehaviour.Properties pProperties) {
+        super(pProperties);
     }
 
-    public int getDustColor(BlockState p_53738_, BlockGetter p_53739_, BlockPos p_53740_) {
+    public int getDustColor(BlockState pState, BlockGetter pReader, BlockPos pPos) {
         return -8356741;
     }
 }

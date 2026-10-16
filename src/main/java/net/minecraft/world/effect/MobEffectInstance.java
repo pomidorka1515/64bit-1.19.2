@@ -27,95 +27,95 @@ public class MobEffectInstance implements Comparable<MobEffectInstance> {
     private MobEffectInstance hiddenEffect;
     private Optional<MobEffectInstance.FactorData> factorData;
 
-    public MobEffectInstance(MobEffect p_19513_) {
-        this(p_19513_, 0, 0);
+    public MobEffectInstance(MobEffect pEffect) {
+        this(pEffect, 0, 0);
     }
 
-    public MobEffectInstance(MobEffect p_19515_, int p_19516_) {
-        this(p_19515_, p_19516_, 0);
+    public MobEffectInstance(MobEffect pEffect, int pDuration) {
+        this(pEffect, pDuration, 0);
     }
 
-    public MobEffectInstance(MobEffect p_19518_, int p_19519_, int p_19520_) {
-        this(p_19518_, p_19519_, p_19520_, false, true);
+    public MobEffectInstance(MobEffect pEffect, int pDuration, int pAmplifier) {
+        this(pEffect, pDuration, pAmplifier, false, true);
     }
 
-    public MobEffectInstance(MobEffect p_19522_, int p_19523_, int p_19524_, boolean p_19525_, boolean p_19526_) {
-        this(p_19522_, p_19523_, p_19524_, p_19525_, p_19526_, p_19526_);
+    public MobEffectInstance(MobEffect pEffect, int pDuration, int pAmplifier, boolean pAmbient, boolean pVisible) {
+        this(pEffect, pDuration, pAmplifier, pAmbient, pVisible, pVisible);
     }
 
-    public MobEffectInstance(MobEffect p_19528_, int p_19529_, int p_19530_, boolean p_19531_, boolean p_19532_, boolean p_19533_) {
-        this(p_19528_, p_19529_, p_19530_, p_19531_, p_19532_, p_19533_, (MobEffectInstance) null, p_19528_.createFactorData());
+    public MobEffectInstance(MobEffect pEffect, int pDuration, int pAmplifier, boolean pAmbient, boolean pVisible, boolean pShowIcon) {
+        this(pEffect, pDuration, pAmplifier, pAmbient, pVisible, pShowIcon, (MobEffectInstance) null, pEffect.createFactorData());
     }
 
-    public MobEffectInstance(MobEffect p_216887_, int p_216888_, int p_216889_, boolean p_216890_, boolean p_216891_, boolean p_216892_, @Nullable MobEffectInstance p_216893_, Optional<MobEffectInstance.FactorData> p_216894_) {
-        this.effect = p_216887_;
-        this.duration = p_216888_;
-        this.amplifier = p_216889_;
-        this.ambient = p_216890_;
-        this.visible = p_216891_;
-        this.showIcon = p_216892_;
-        this.hiddenEffect = p_216893_;
-        this.factorData = p_216894_;
+    public MobEffectInstance(MobEffect pEffect, int pDuration, int pAmplifier, boolean pAmbient, boolean pVisible, boolean pShowIcon, @Nullable MobEffectInstance pHiddenEffect, Optional<MobEffectInstance.FactorData> pFactorData) {
+        this.effect = pEffect;
+        this.duration = pDuration;
+        this.amplifier = pAmplifier;
+        this.ambient = pAmbient;
+        this.visible = pVisible;
+        this.showIcon = pShowIcon;
+        this.hiddenEffect = pHiddenEffect;
+        this.factorData = pFactorData;
     }
 
-    public MobEffectInstance(MobEffectInstance p_19543_) {
-        this.effect = p_19543_.effect;
+    public MobEffectInstance(MobEffectInstance pOther) {
+        this.effect = pOther.effect;
         this.factorData = this.effect.createFactorData();
-        this.setDetailsFrom(p_19543_);
+        this.setDetailsFrom(pOther);
     }
 
     public Optional<MobEffectInstance.FactorData> getFactorData() {
         return this.factorData;
     }
 
-    void setDetailsFrom(MobEffectInstance p_19549_) {
-        this.duration = p_19549_.duration;
-        this.amplifier = p_19549_.amplifier;
-        this.ambient = p_19549_.ambient;
-        this.visible = p_19549_.visible;
-        this.showIcon = p_19549_.showIcon;
+    void setDetailsFrom(MobEffectInstance pEffectInstance) {
+        this.duration = pEffectInstance.duration;
+        this.amplifier = pEffectInstance.amplifier;
+        this.ambient = pEffectInstance.ambient;
+        this.visible = pEffectInstance.visible;
+        this.showIcon = pEffectInstance.showIcon;
     }
 
-    public boolean update(MobEffectInstance p_19559_) {
-        if (this.effect != p_19559_.effect) {
+    public boolean update(MobEffectInstance pOther) {
+        if (this.effect != pOther.effect) {
             LOGGER.warn("This method should only be called for matching effects!");
         }
 
         int i = this.duration;
         boolean flag = false;
-        if (p_19559_.amplifier > this.amplifier) {
-            if (p_19559_.duration < this.duration) {
+        if (pOther.amplifier > this.amplifier) {
+            if (pOther.duration < this.duration) {
                 MobEffectInstance mobeffectinstance = this.hiddenEffect;
                 this.hiddenEffect = new MobEffectInstance(this);
                 this.hiddenEffect.hiddenEffect = mobeffectinstance;
             }
 
-            this.amplifier = p_19559_.amplifier;
-            this.duration = p_19559_.duration;
+            this.amplifier = pOther.amplifier;
+            this.duration = pOther.duration;
             flag = true;
-        } else if (p_19559_.duration > this.duration) {
-            if (p_19559_.amplifier == this.amplifier) {
-                this.duration = p_19559_.duration;
+        } else if (pOther.duration > this.duration) {
+            if (pOther.amplifier == this.amplifier) {
+                this.duration = pOther.duration;
                 flag = true;
             } else if (this.hiddenEffect == null) {
-                this.hiddenEffect = new MobEffectInstance(p_19559_);
+                this.hiddenEffect = new MobEffectInstance(pOther);
             } else {
-                this.hiddenEffect.update(p_19559_);
+                this.hiddenEffect.update(pOther);
             }
         }
 
-        if (!p_19559_.ambient && this.ambient || flag) {
-            this.ambient = p_19559_.ambient;
+        if (!pOther.ambient && this.ambient || flag) {
+            this.ambient = pOther.ambient;
             flag = true;
         }
 
-        if (p_19559_.visible != this.visible) {
-            this.visible = p_19559_.visible;
+        if (pOther.visible != this.visible) {
+            this.visible = pOther.visible;
             flag = true;
         }
 
-        if (p_19559_.showIcon != this.showIcon) {
-            this.showIcon = p_19559_.showIcon;
+        if (pOther.showIcon != this.showIcon) {
+            this.showIcon = pOther.showIcon;
             flag = true;
         }
 
@@ -153,17 +153,17 @@ public class MobEffectInstance implements Comparable<MobEffectInstance> {
         return this.showIcon;
     }
 
-    public boolean tick(LivingEntity p_19553_, Runnable p_19554_) {
+    public boolean tick(LivingEntity pEntity, Runnable pOnExpirationRunnable) {
         if (this.duration > 0) {
             if (this.effect.isDurationEffectTick(this.duration, this.amplifier)) {
-                this.applyEffect(p_19553_);
+                this.applyEffect(pEntity);
             }
 
             this.tickDownDuration();
             if (this.duration == 0 && this.hiddenEffect != null) {
                 this.setDetailsFrom(this.hiddenEffect);
                 this.hiddenEffect = this.hiddenEffect.hiddenEffect;
-                p_19554_.run();
+                pOnExpirationRunnable.run();
             }
         }
 
@@ -181,9 +181,9 @@ public class MobEffectInstance implements Comparable<MobEffectInstance> {
         return --this.duration;
     }
 
-    public void applyEffect(LivingEntity p_19551_) {
+    public void applyEffect(LivingEntity pEntity) {
         if (this.duration > 0) {
-            this.effect.applyEffectTick(p_19551_, this.amplifier);
+            this.effect.applyEffectTick(pEntity, this.amplifier);
         }
     }
 
@@ -210,13 +210,13 @@ public class MobEffectInstance implements Comparable<MobEffectInstance> {
         return s;
     }
 
-    public boolean equals(Object p_19574_) {
-        if (this == p_19574_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (!(p_19574_ instanceof MobEffectInstance)) {
+        } else if (!(pOther instanceof MobEffectInstance)) {
             return false;
         } else {
-            MobEffectInstance mobeffectinstance = (MobEffectInstance) p_19574_;
+            MobEffectInstance mobeffectinstance = (MobEffectInstance) pOther;
             return this.duration == mobeffectinstance.duration && this.amplifier == mobeffectinstance.amplifier && this.ambient == mobeffectinstance.ambient && this.effect.equals(mobeffectinstance.effect);
         }
     }
@@ -228,78 +228,78 @@ public class MobEffectInstance implements Comparable<MobEffectInstance> {
         return 31 * i + (this.ambient ? 1 : 0);
     }
 
-    public CompoundTag save(CompoundTag p_19556_) {
-        p_19556_.putInt("Id", MobEffect.getId(this.getEffect()));
-        this.writeDetailsTo(p_19556_);
-        return p_19556_;
+    public CompoundTag save(CompoundTag pNbt) {
+        pNbt.putInt("Id", MobEffect.getId(this.getEffect()));
+        this.writeDetailsTo(pNbt);
+        return pNbt;
     }
 
-    private void writeDetailsTo(CompoundTag p_19568_) {
-        p_19568_.putByte("Amplifier", (byte) this.getAmplifier());
-        p_19568_.putInt("Duration", this.getDuration());
-        p_19568_.putBoolean("Ambient", this.isAmbient());
-        p_19568_.putBoolean("ShowParticles", this.isVisible());
-        p_19568_.putBoolean("ShowIcon", this.showIcon());
+    private void writeDetailsTo(CompoundTag pNbt) {
+        pNbt.putByte("Amplifier", (byte) this.getAmplifier());
+        pNbt.putInt("Duration", this.getDuration());
+        pNbt.putBoolean("Ambient", this.isAmbient());
+        pNbt.putBoolean("ShowParticles", this.isVisible());
+        pNbt.putBoolean("ShowIcon", this.showIcon());
         if (this.hiddenEffect != null) {
             CompoundTag compoundtag = new CompoundTag();
             this.hiddenEffect.save(compoundtag);
-            p_19568_.put("HiddenEffect", compoundtag);
+            pNbt.put("HiddenEffect", compoundtag);
         }
 
         this.factorData.ifPresent((p_216903_) -> {
             MobEffectInstance.FactorData.CODEC.encodeStart(NbtOps.INSTANCE, p_216903_).resultOrPartial(LOGGER::error).ifPresent((p_216906_) -> {
-                p_19568_.put("FactorCalculationData", p_216906_);
+                pNbt.put("FactorCalculationData", p_216906_);
             });
         });
     }
 
     @Nullable
-    public static MobEffectInstance load(CompoundTag p_19561_) {
-        int i = p_19561_.getInt("Id");
+    public static MobEffectInstance load(CompoundTag pNbt) {
+        int i = pNbt.getInt("Id");
         MobEffect mobeffect = MobEffect.byId(i);
-        return mobeffect == null ? null : loadSpecifiedEffect(mobeffect, p_19561_);
+        return mobeffect == null ? null : loadSpecifiedEffect(mobeffect, pNbt);
     }
 
-    private static MobEffectInstance loadSpecifiedEffect(MobEffect p_19546_, CompoundTag p_19547_) {
-        int i = p_19547_.getByte("Amplifier");
-        int j = p_19547_.getInt("Duration");
-        boolean flag = p_19547_.getBoolean("Ambient");
+    private static MobEffectInstance loadSpecifiedEffect(MobEffect pEffect, CompoundTag pNbt) {
+        int i = pNbt.getByte("Amplifier");
+        int j = pNbt.getInt("Duration");
+        boolean flag = pNbt.getBoolean("Ambient");
         boolean flag1 = true;
-        if (p_19547_.contains("ShowParticles", 1)) {
-            flag1 = p_19547_.getBoolean("ShowParticles");
+        if (pNbt.contains("ShowParticles", 1)) {
+            flag1 = pNbt.getBoolean("ShowParticles");
         }
 
         boolean flag2 = flag1;
-        if (p_19547_.contains("ShowIcon", 1)) {
-            flag2 = p_19547_.getBoolean("ShowIcon");
+        if (pNbt.contains("ShowIcon", 1)) {
+            flag2 = pNbt.getBoolean("ShowIcon");
         }
 
         MobEffectInstance mobeffectinstance = null;
-        if (p_19547_.contains("HiddenEffect", 10)) {
-            mobeffectinstance = loadSpecifiedEffect(p_19546_, p_19547_.getCompound("HiddenEffect"));
+        if (pNbt.contains("HiddenEffect", 10)) {
+            mobeffectinstance = loadSpecifiedEffect(pEffect, pNbt.getCompound("HiddenEffect"));
         }
 
         Optional<MobEffectInstance.FactorData> optional;
-        if (p_19547_.contains("FactorCalculationData", 10)) {
-            optional = MobEffectInstance.FactorData.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, p_19547_.getCompound("FactorCalculationData"))).resultOrPartial(LOGGER::error);
+        if (pNbt.contains("FactorCalculationData", 10)) {
+            optional = MobEffectInstance.FactorData.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, pNbt.getCompound("FactorCalculationData"))).resultOrPartial(LOGGER::error);
         } else {
             optional = Optional.empty();
         }
 
-        return new MobEffectInstance(p_19546_, j, Math.max(i, 0), flag, flag1, flag2, mobeffectinstance, optional);
+        return new MobEffectInstance(pEffect, j, Math.max(i, 0), flag, flag1, flag2, mobeffectinstance, optional);
     }
 
-    public void setNoCounter(boolean p_19563_) {
-        this.noCounter = p_19563_;
+    public void setNoCounter(boolean pMaxDuration) {
+        this.noCounter = pMaxDuration;
     }
 
     public boolean isNoCounter() {
         return this.noCounter;
     }
 
-    public int compareTo(MobEffectInstance p_19566_) {
+    public int compareTo(MobEffectInstance pOther) {
         int i = 32147;
-        return (this.getDuration() <= 32147 || p_19566_.getDuration() <= 32147) && (!this.isAmbient() || !p_19566_.isAmbient()) ? ComparisonChain.start().compare(this.isAmbient(), p_19566_.isAmbient()).compare(this.getDuration(), p_19566_.getDuration()).compare(this.getEffect().getColor(), p_19566_.getEffect().getColor()).result() : ComparisonChain.start().compare(this.isAmbient(), p_19566_.isAmbient()).compare(this.getEffect().getColor(), p_19566_.getEffect().getColor()).result();
+        return (this.getDuration() <= 32147 || pOther.getDuration() <= 32147) && (!this.isAmbient() || !pOther.isAmbient()) ? ComparisonChain.start().compare(this.isAmbient(), pOther.isAmbient()).compare(this.getDuration(), pOther.getDuration()).compare(this.getEffect().getColor(), pOther.getEffect().getColor()).result() : ComparisonChain.start().compare(this.isAmbient(), pOther.isAmbient()).compare(this.getEffect().getColor(), pOther.getEffect().getColor()).result();
     }
 
     public static class FactorData {

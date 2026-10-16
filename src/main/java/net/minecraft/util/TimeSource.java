@@ -5,7 +5,7 @@ import java.util.function.LongSupplier;
 
 @FunctionalInterface
 public interface TimeSource {
-    long get(TimeUnit p_239337_);
+    long get(TimeUnit pUnit);
 
     public interface NanoTimeSource extends TimeSource, LongSupplier {
         default long get(TimeUnit p_239379_) {

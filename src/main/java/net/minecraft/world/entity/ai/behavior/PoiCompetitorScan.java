@@ -13,17 +13,17 @@ import net.minecraft.world.entity.npc.VillagerProfession;
 public class PoiCompetitorScan extends Behavior<Villager> {
     final VillagerProfession profession;
 
-    public PoiCompetitorScan(VillagerProfession p_23710_) {
+    public PoiCompetitorScan(VillagerProfession pProfession) {
         super(ImmutableMap.of(MemoryModuleType.JOB_SITE, MemoryStatus.VALUE_PRESENT, MemoryModuleType.NEAREST_LIVING_ENTITIES, MemoryStatus.VALUE_PRESENT));
-        this.profession = p_23710_;
+        this.profession = pProfession;
     }
 
-    protected void start(ServerLevel p_23716_, Villager p_23717_, long p_23718_) {
-        GlobalPos globalpos = p_23717_.getBrain().getMemory(MemoryModuleType.JOB_SITE).get();
-        p_23716_.getPoiManager().getType(globalpos.pos()).ifPresent((p_217328_) -> {
-            BehaviorUtils.getNearbyVillagersWithCondition(p_23717_, (p_217339_) -> {
+    protected void start(ServerLevel pLevel, Villager pEntity, long pGameTime) {
+        GlobalPos globalpos = pEntity.getBrain().getMemory(MemoryModuleType.JOB_SITE).get();
+        pLevel.getPoiManager().getType(globalpos.pos()).ifPresent((p_217328_) -> {
+            BehaviorUtils.getNearbyVillagersWithCondition(pEntity, (p_217339_) -> {
                              return this.competesForSameJobsite(globalpos, p_217328_, p_217339_);
-                         }).reduce(p_23717_, PoiCompetitorScan::selectWinner);
+                         }).reduce(pEntity, PoiCompetitorScan::selectWinner);
         });
     }
 
@@ -42,15 +42,15 @@ public class PoiCompetitorScan extends Behavior<Villager> {
         return villager;
     }
 
-    private boolean competesForSameJobsite(GlobalPos p_217330_, Holder<PoiType> p_217331_, Villager p_217332_) {
-        return this.hasJobSite(p_217332_) && p_217330_.equals(p_217332_.getBrain().getMemory(MemoryModuleType.JOB_SITE).get()) && this.hasMatchingProfession(p_217331_, p_217332_.getVillagerData().getProfession());
+    private boolean competesForSameJobsite(GlobalPos pJobSitePos, Holder<PoiType> pPoiType, Villager pVillager) {
+        return this.hasJobSite(pVillager) && pJobSitePos.equals(pVillager.getBrain().getMemory(MemoryModuleType.JOB_SITE).get()) && this.hasMatchingProfession(pPoiType, pVillager.getVillagerData().getProfession());
     }
 
-    private boolean hasMatchingProfession(Holder<PoiType> p_217334_, VillagerProfession p_217335_) {
-        return p_217335_.heldJobSite().test(p_217334_);
+    private boolean hasMatchingProfession(Holder<PoiType> pPoiType, VillagerProfession pProfession) {
+        return pProfession.heldJobSite().test(pPoiType);
     }
 
-    private boolean hasJobSite(Villager p_23723_) {
-        return p_23723_.getBrain().getMemory(MemoryModuleType.JOB_SITE).isPresent();
+    private boolean hasJobSite(Villager pVillager) {
+        return pVillager.getBrain().getMemory(MemoryModuleType.JOB_SITE).isPresent();
     }
 }

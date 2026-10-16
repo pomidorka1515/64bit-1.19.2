@@ -9,21 +9,21 @@ import org.lwjgl.system.MemoryUtil;
 public class MemoryTracker {
     private static final MemoryUtil.MemoryAllocator ALLOCATOR = MemoryUtil.getAllocator(false);
 
-    public static ByteBuffer create(int p_182528_) {
-        long i = ALLOCATOR.malloc((long) p_182528_);
+    public static ByteBuffer create(int pSize) {
+        long i = ALLOCATOR.malloc((long) pSize);
         if (i == 0L) {
-            throw new OutOfMemoryError("Failed to allocate " + p_182528_ + " bytes");
+            throw new OutOfMemoryError("Failed to allocate " + pSize + " bytes");
         } else {
-            return MemoryUtil.memByteBuffer(i, p_182528_);
+            return MemoryUtil.memByteBuffer(i, pSize);
         }
     }
 
-    public static ByteBuffer resize(ByteBuffer p_182530_, int p_182531_) {
-        long i = ALLOCATOR.realloc(MemoryUtil.memAddress0(p_182530_), (long) p_182531_);
+    public static ByteBuffer resize(ByteBuffer pBuffer, int pByteSize) {
+        long i = ALLOCATOR.realloc(MemoryUtil.memAddress0(pBuffer), (long) pByteSize);
         if (i == 0L) {
-            throw new OutOfMemoryError("Failed to resize buffer from " + p_182530_.capacity() + " bytes to " + p_182531_ + " bytes");
+            throw new OutOfMemoryError("Failed to resize buffer from " + pBuffer.capacity() + " bytes to " + pByteSize + " bytes");
         } else {
-            return MemoryUtil.memByteBuffer(i, p_182531_);
+            return MemoryUtil.memByteBuffer(i, pByteSize);
         }
     }
 }

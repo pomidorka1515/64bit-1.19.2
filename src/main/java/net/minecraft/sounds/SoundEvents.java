@@ -1326,8 +1326,8 @@ public class SoundEvents {
         return Registry.register(Registry.SOUND_EVENT, p_215786_, new SoundEvent(new ResourceLocation(p_215786_), p_215787_));
     }
 
-    private static SoundEvent register(String p_12657_) {
-        return Registry.register(Registry.SOUND_EVENT, p_12657_, new SoundEvent(new ResourceLocation(p_12657_)));
+    private static SoundEvent register(String pKey) {
+        return Registry.register(Registry.SOUND_EVENT, pKey, new SoundEvent(new ResourceLocation(pKey)));
     }
 
     private static ImmutableList<SoundEvent> registerGoatHornSoundVariants() {

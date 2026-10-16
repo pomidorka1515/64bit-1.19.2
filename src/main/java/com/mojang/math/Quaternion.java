@@ -9,72 +9,72 @@ public final class Quaternion {
     private float k;
     private float r;
 
-    public Quaternion(float p_80125_, float p_80126_, float p_80127_, float p_80128_) {
-        this.i = p_80125_;
-        this.j = p_80126_;
-        this.k = p_80127_;
-        this.r = p_80128_;
+    public Quaternion(float pI, float pJ, float pK, float pR) {
+        this.i = pI;
+        this.j = pJ;
+        this.k = pK;
+        this.r = pR;
     }
 
-    public Quaternion(Vector3f p_80137_, float p_80138_, boolean p_80139_) {
-        if (p_80139_) {
-            p_80138_ *= ((float) Math.PI / 180F);
+    public Quaternion(Vector3f pRotationAxis, float pRotationAngle, boolean pDegrees) {
+        if (pDegrees) {
+            pRotationAngle *= ((float) Math.PI / 180F);
         }
 
-        float f = sin(p_80138_ / 2.0F);
-        this.i = p_80137_.x() * f;
-        this.j = p_80137_.y() * f;
-        this.k = p_80137_.z() * f;
-        this.r = cos(p_80138_ / 2.0F);
+        float f = sin(pRotationAngle / 2.0F);
+        this.i = pRotationAxis.x() * f;
+        this.j = pRotationAxis.y() * f;
+        this.k = pRotationAxis.z() * f;
+        this.r = cos(pRotationAngle / 2.0F);
     }
 
-    public Quaternion(float p_80130_, float p_80131_, float p_80132_, boolean p_80133_) {
-        if (p_80133_) {
-            p_80130_ *= ((float) Math.PI / 180F);
-            p_80131_ *= ((float) Math.PI / 180F);
-            p_80132_ *= ((float) Math.PI / 180F);
+    public Quaternion(float pX, float pY, float pZ, boolean pDegrees) {
+        if (pDegrees) {
+            pX *= ((float) Math.PI / 180F);
+            pY *= ((float) Math.PI / 180F);
+            pZ *= ((float) Math.PI / 180F);
         }
 
-        float f = sin(0.5F * p_80130_);
-        float f1 = cos(0.5F * p_80130_);
-        float f2 = sin(0.5F * p_80131_);
-        float f3 = cos(0.5F * p_80131_);
-        float f4 = sin(0.5F * p_80132_);
-        float f5 = cos(0.5F * p_80132_);
+        float f = sin(0.5F * pX);
+        float f1 = cos(0.5F * pX);
+        float f2 = sin(0.5F * pY);
+        float f3 = cos(0.5F * pY);
+        float f4 = sin(0.5F * pZ);
+        float f5 = cos(0.5F * pZ);
         this.i = f * f3 * f5 + f1 * f2 * f4;
         this.j = f1 * f2 * f5 - f * f3 * f4;
         this.k = f * f2 * f5 + f1 * f3 * f4;
         this.r = f1 * f3 * f5 - f * f2 * f4;
     }
 
-    public Quaternion(Quaternion p_80135_) {
-        this.i = p_80135_.i;
-        this.j = p_80135_.j;
-        this.k = p_80135_.k;
-        this.r = p_80135_.r;
+    public Quaternion(Quaternion pOther) {
+        this.i = pOther.i;
+        this.j = pOther.j;
+        this.k = pOther.k;
+        this.r = pOther.r;
     }
 
-    public static Quaternion fromYXZ(float p_175219_, float p_175220_, float p_175221_) {
+    public static Quaternion fromYXZ(float pY, float pX, float pZ) {
         Quaternion quaternion = ONE.copy();
-        quaternion.mul(new Quaternion(0.0F, (float) Math.sin((double) (p_175219_ / 2.0F)), 0.0F, (float) Math.cos((double) (p_175219_ / 2.0F))));
-        quaternion.mul(new Quaternion((float) Math.sin((double) (p_175220_ / 2.0F)), 0.0F, 0.0F, (float) Math.cos((double) (p_175220_ / 2.0F))));
-        quaternion.mul(new Quaternion(0.0F, 0.0F, (float) Math.sin((double) (p_175221_ / 2.0F)), (float) Math.cos((double) (p_175221_ / 2.0F))));
+        quaternion.mul(new Quaternion(0.0F, (float) Math.sin((double) (pY / 2.0F)), 0.0F, (float) Math.cos((double) (pY / 2.0F))));
+        quaternion.mul(new Quaternion((float) Math.sin((double) (pX / 2.0F)), 0.0F, 0.0F, (float) Math.cos((double) (pX / 2.0F))));
+        quaternion.mul(new Quaternion(0.0F, 0.0F, (float) Math.sin((double) (pZ / 2.0F)), (float) Math.cos((double) (pZ / 2.0F))));
         return quaternion;
     }
 
-    public static Quaternion fromXYZDegrees(Vector3f p_175226_) {
-        return fromXYZ((float) Math.toRadians((double) p_175226_.x()), (float) Math.toRadians((double) p_175226_.y()), (float) Math.toRadians((double) p_175226_.z()));
+    public static Quaternion fromXYZDegrees(Vector3f pDegreesVector) {
+        return fromXYZ((float) Math.toRadians((double) pDegreesVector.x()), (float) Math.toRadians((double) pDegreesVector.y()), (float) Math.toRadians((double) pDegreesVector.z()));
     }
 
-    public static Quaternion fromXYZ(Vector3f p_175233_) {
-        return fromXYZ(p_175233_.x(), p_175233_.y(), p_175233_.z());
+    public static Quaternion fromXYZ(Vector3f pRadiansVector) {
+        return fromXYZ(pRadiansVector.x(), pRadiansVector.y(), pRadiansVector.z());
     }
 
-    public static Quaternion fromXYZ(float p_175229_, float p_175230_, float p_175231_) {
+    public static Quaternion fromXYZ(float pX, float pY, float pZ) {
         Quaternion quaternion = ONE.copy();
-        quaternion.mul(new Quaternion((float) Math.sin((double) (p_175229_ / 2.0F)), 0.0F, 0.0F, (float) Math.cos((double) (p_175229_ / 2.0F))));
-        quaternion.mul(new Quaternion(0.0F, (float) Math.sin((double) (p_175230_ / 2.0F)), 0.0F, (float) Math.cos((double) (p_175230_ / 2.0F))));
-        quaternion.mul(new Quaternion(0.0F, 0.0F, (float) Math.sin((double) (p_175231_ / 2.0F)), (float) Math.cos((double) (p_175231_ / 2.0F))));
+        quaternion.mul(new Quaternion((float) Math.sin((double) (pX / 2.0F)), 0.0F, 0.0F, (float) Math.cos((double) (pX / 2.0F))));
+        quaternion.mul(new Quaternion(0.0F, (float) Math.sin((double) (pY / 2.0F)), 0.0F, (float) Math.cos((double) (pY / 2.0F))));
+        quaternion.mul(new Quaternion(0.0F, 0.0F, (float) Math.sin((double) (pZ / 2.0F)), (float) Math.cos((double) (pZ / 2.0F))));
         return quaternion;
     }
 
@@ -110,11 +110,11 @@ public final class Quaternion {
         return new Vector3f((float) Math.toDegrees((double) vector3f.x()), (float) Math.toDegrees((double) vector3f.y()), (float) Math.toDegrees((double) vector3f.z()));
     }
 
-    public boolean equals(Object p_80159_) {
-        if (this == p_80159_) {
+    public boolean equals(Object pOther) {
+        if (this == pOther) {
             return true;
-        } else if (p_80159_ != null && this.getClass() == p_80159_.getClass()) {
-            Quaternion quaternion = (Quaternion) p_80159_;
+        } else if (pOther != null && this.getClass() == pOther.getClass()) {
+            Quaternion quaternion = (Quaternion) pOther;
             if (Float.compare(quaternion.i, this.i) != 0) {
                 return false;
             } else if (Float.compare(quaternion.j, this.j) != 0) {
@@ -161,26 +161,26 @@ public final class Quaternion {
         return this.r;
     }
 
-    public void mul(Quaternion p_80149_) {
+    public void mul(Quaternion pOther) {
         float f = this.i();
         float f1 = this.j();
         float f2 = this.k();
         float f3 = this.r();
-        float f4 = p_80149_.i();
-        float f5 = p_80149_.j();
-        float f6 = p_80149_.k();
-        float f7 = p_80149_.r();
+        float f4 = pOther.i();
+        float f5 = pOther.j();
+        float f6 = pOther.k();
+        float f7 = pOther.r();
         this.i = f3 * f4 + f * f7 + f1 * f6 - f2 * f5;
         this.j = f3 * f5 - f * f6 + f1 * f7 + f2 * f4;
         this.k = f3 * f6 + f * f5 - f1 * f4 + f2 * f7;
         this.r = f3 * f7 - f * f4 - f1 * f5 - f2 * f6;
     }
 
-    public void mul(float p_80142_) {
-        this.i *= p_80142_;
-        this.j *= p_80142_;
-        this.k *= p_80142_;
-        this.r *= p_80142_;
+    public void mul(float pMultiplier) {
+        this.i *= pMultiplier;
+        this.j *= pMultiplier;
+        this.k *= pMultiplier;
+        this.r *= pMultiplier;
     }
 
     public void conj() {
@@ -189,19 +189,19 @@ public final class Quaternion {
         this.k = -this.k;
     }
 
-    public void set(float p_80144_, float p_80145_, float p_80146_, float p_80147_) {
-        this.i = p_80144_;
-        this.j = p_80145_;
-        this.k = p_80146_;
-        this.r = p_80147_;
+    public void set(float pI, float pJ, float pK, float pR) {
+        this.i = pI;
+        this.j = pJ;
+        this.k = pK;
+        this.r = pR;
     }
 
-    private static float cos(float p_80152_) {
-        return (float) Math.cos((double) p_80152_);
+    private static float cos(float pAngle) {
+        return (float) Math.cos((double) pAngle);
     }
 
-    private static float sin(float p_80155_) {
-        return (float) Math.sin((double) p_80155_);
+    private static float sin(float pAngle) {
+        return (float) Math.sin((double) pAngle);
     }
 
     public void normalize() {
@@ -220,7 +220,7 @@ public final class Quaternion {
         }
     }
 
-    public void slerp(Quaternion p_175223_, float p_175224_) {
+    public void slerp(Quaternion pOther, float pPercentage) {
         throw new UnsupportedOperationException();
     }
 

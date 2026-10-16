@@ -37,10 +37,10 @@ public class ServerData {
     private boolean chatPreviewEnabled = true;
     private boolean enforcesSecureChat;
 
-    public ServerData(String p_105375_, String p_105376_, boolean p_105377_) {
-        this.name = p_105375_;
-        this.ip = p_105376_;
-        this.lan = p_105377_;
+    public ServerData(String pName, String pIp, boolean pLan) {
+        this.name = pName;
+        this.ip = pIp;
+        this.lan = pLan;
     }
 
     public CompoundTag write() {
@@ -70,18 +70,18 @@ public class ServerData {
         return this.packStatus;
     }
 
-    public void setResourcePackStatus(ServerData.ServerPackStatus p_105380_) {
-        this.packStatus = p_105380_;
+    public void setResourcePackStatus(ServerData.ServerPackStatus pPackStatus) {
+        this.packStatus = pPackStatus;
     }
 
-    public static ServerData read(CompoundTag p_105386_) {
-        ServerData serverdata = new ServerData(p_105386_.getString("name"), p_105386_.getString("ip"), false);
-        if (p_105386_.contains("icon", 8)) {
-            serverdata.setIconB64(p_105386_.getString("icon"));
+    public static ServerData read(CompoundTag pNbtCompound) {
+        ServerData serverdata = new ServerData(pNbtCompound.getString("name"), pNbtCompound.getString("ip"), false);
+        if (pNbtCompound.contains("icon", 8)) {
+            serverdata.setIconB64(pNbtCompound.getString("icon"));
         }
 
-        if (p_105386_.contains("acceptTextures", 1)) {
-            if (p_105386_.getBoolean("acceptTextures")) {
+        if (pNbtCompound.contains("acceptTextures", 1)) {
+            if (pNbtCompound.getBoolean("acceptTextures")) {
                 serverdata.setResourcePackStatus(ServerData.ServerPackStatus.ENABLED);
             } else {
                 serverdata.setResourcePackStatus(ServerData.ServerPackStatus.DISABLED);
@@ -90,8 +90,8 @@ public class ServerData {
             serverdata.setResourcePackStatus(ServerData.ServerPackStatus.PROMPT);
         }
 
-        if (p_105386_.contains("chatPreview", 10)) {
-            ServerData.ChatPreview.CODEC.parse(NbtOps.INSTANCE, p_105386_.getCompound("chatPreview")).resultOrPartial(LOGGER::error).ifPresent((p_233807_) -> {
+        if (pNbtCompound.contains("chatPreview", 10)) {
+            ServerData.ChatPreview.CODEC.parse(NbtOps.INSTANCE, pNbtCompound.getCompound("chatPreview")).resultOrPartial(LOGGER::error).ifPresent((p_233807_) -> {
                 serverdata.chatPreview = p_233807_;
             });
         }
@@ -112,18 +112,18 @@ public class ServerData {
         }
     }
 
-    public void setIconB64(@Nullable String p_105384_) {
-        this.iconB64 = p_105384_;
+    public void setIconB64(@Nullable String pIconB64) {
+        this.iconB64 = pIconB64;
     }
 
     public boolean isLan() {
         return this.lan;
     }
 
-    public void setPreviewsChat(boolean p_233814_) {
-        if (p_233814_ && this.chatPreview == null) {
+    public void setPreviewsChat(boolean pPreviewsChat) {
+        if (pPreviewsChat && this.chatPreview == null) {
             this.chatPreview = new ServerData.ChatPreview(false, false);
-        } else if (!p_233814_ && this.chatPreview != null) {
+        } else if (!pPreviewsChat && this.chatPreview != null) {
             this.chatPreview = null;
         }
     }
@@ -133,34 +133,34 @@ public class ServerData {
         return this.chatPreview;
     }
 
-    public void setChatPreviewEnabled(boolean p_233816_) {
-        this.chatPreviewEnabled = p_233816_;
+    public void setChatPreviewEnabled(boolean pChatPreviewEnabled) {
+        this.chatPreviewEnabled = pChatPreviewEnabled;
     }
 
     public boolean previewsChat() {
         return this.chatPreviewEnabled && this.chatPreview != null;
     }
 
-    public void setEnforcesSecureChat(boolean p_242972_) {
-        this.enforcesSecureChat = p_242972_;
+    public void setEnforcesSecureChat(boolean pEnforcesSecureChat) {
+        this.enforcesSecureChat = pEnforcesSecureChat;
     }
 
     public boolean enforcesSecureChat() {
         return this.enforcesSecureChat;
     }
 
-    public void copyNameIconFrom(ServerData p_233804_) {
-        this.ip = p_233804_.ip;
-        this.name = p_233804_.name;
-        this.iconB64 = p_233804_.iconB64;
+    public void copyNameIconFrom(ServerData pOther) {
+        this.ip = pOther.ip;
+        this.name = pOther.name;
+        this.iconB64 = pOther.iconB64;
     }
 
-    public void copyFrom(ServerData p_105382_) {
-        this.copyNameIconFrom(p_105382_);
-        this.setResourcePackStatus(p_105382_.getResourcePackStatus());
-        this.lan = p_105382_.lan;
-        this.chatPreview = Util.mapNullable(p_105382_.chatPreview, ServerData.ChatPreview::copy);
-        this.enforcesSecureChat = p_105382_.enforcesSecureChat;
+    public void copyFrom(ServerData pServerData) {
+        this.copyNameIconFrom(pServerData);
+        this.setResourcePackStatus(pServerData.getResourcePackStatus());
+        this.lan = pServerData.lan;
+        this.chatPreview = Util.mapNullable(pServerData.chatPreview, ServerData.ChatPreview::copy);
+        this.enforcesSecureChat = pServerData.enforcesSecureChat;
     }
 
     @OnlyIn(Dist.CLIENT)

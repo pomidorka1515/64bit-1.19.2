@@ -7,19 +7,19 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class AbstractButton extends AbstractWidget {
-    public AbstractButton(int p_93365_, int p_93366_, int p_93367_, int p_93368_, Component p_93369_) {
-        super(p_93365_, p_93366_, p_93367_, p_93368_, p_93369_);
+    public AbstractButton(int pX, int pY, int pWidth, int pHeight, Component pMessage) {
+        super(pX, pY, pWidth, pHeight, pMessage);
     }
 
     public abstract void onPress();
 
-    public void onClick(double p_93371_, double p_93372_) {
+    public void onClick(double pMouseX, double pMouseY) {
         this.onPress();
     }
 
-    public boolean keyPressed(int p_93374_, int p_93375_, int p_93376_) {
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (this.active && this.visible) {
-            if (p_93374_ != 257 && p_93374_ != 32 && p_93374_ != 335) {
+            if (pKeyCode != 257 && pKeyCode != 32 && pKeyCode != 335) {
                 return false;
             } else {
                 this.playDownSound(Minecraft.getInstance().getSoundManager());

@@ -42,26 +42,26 @@ import net.minecraft.world.level.levelgen.Heightmap;
 public class SpawnPlacements {
     private static final Map<EntityType<?>, SpawnPlacements.Data> DATA_BY_TYPE = Maps.newHashMap();
 
-    private static <T extends Mob> void register(EntityType<T> p_21755_, SpawnPlacements.Type p_21756_, Heightmap.Types p_21757_, SpawnPlacements.SpawnPredicate<T> p_21758_) {
-        SpawnPlacements.Data spawnplacements$data = DATA_BY_TYPE.put(p_21755_, new SpawnPlacements.Data(p_21757_, p_21756_, p_21758_));
+    private static <T extends Mob> void register(EntityType<T> pEntityType, SpawnPlacements.Type pDecoratorType, Heightmap.Types pHeightMapType, SpawnPlacements.SpawnPredicate<T> pDecoratorPredicate) {
+        SpawnPlacements.Data spawnplacements$data = DATA_BY_TYPE.put(pEntityType, new SpawnPlacements.Data(pHeightMapType, pDecoratorType, pDecoratorPredicate));
         if (spawnplacements$data != null) {
-            throw new IllegalStateException("Duplicate registration for type " + Registry.ENTITY_TYPE.getKey(p_21755_));
+            throw new IllegalStateException("Duplicate registration for type " + Registry.ENTITY_TYPE.getKey(pEntityType));
         }
     }
 
-    public static SpawnPlacements.Type getPlacementType(EntityType<?> p_21753_) {
-        SpawnPlacements.Data spawnplacements$data = DATA_BY_TYPE.get(p_21753_);
+    public static SpawnPlacements.Type getPlacementType(EntityType<?> pEntityType) {
+        SpawnPlacements.Data spawnplacements$data = DATA_BY_TYPE.get(pEntityType);
         return spawnplacements$data == null ? SpawnPlacements.Type.NO_RESTRICTIONS : spawnplacements$data.placement;
     }
 
-    public static Heightmap.Types getHeightmapType(@Nullable EntityType<?> p_21766_) {
-        SpawnPlacements.Data spawnplacements$data = DATA_BY_TYPE.get(p_21766_);
+    public static Heightmap.Types getHeightmapType(@Nullable EntityType<?> pEntityType) {
+        SpawnPlacements.Data spawnplacements$data = DATA_BY_TYPE.get(pEntityType);
         return spawnplacements$data == null ? Heightmap.Types.MOTION_BLOCKING_NO_LEAVES : spawnplacements$data.heightMap;
     }
 
-    public static <T extends Entity> boolean checkSpawnRules(EntityType<T> p_217075_, ServerLevelAccessor p_217076_, MobSpawnType p_217077_, BlockPos p_217078_, RandomSource p_217079_) {
-        SpawnPlacements.Data spawnplacements$data = DATA_BY_TYPE.get(p_217075_);
-        return spawnplacements$data == null || spawnplacements$data.predicate.test((EntityType) p_217075_, p_217076_, p_217077_, p_217078_, p_217079_);
+    public static <T extends Entity> boolean checkSpawnRules(EntityType<T> pEntityType, ServerLevelAccessor pServerLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom) {
+        SpawnPlacements.Data spawnplacements$data = DATA_BY_TYPE.get(pEntityType);
+        return spawnplacements$data == null || spawnplacements$data.predicate.test((EntityType) pEntityType, pServerLevel, pSpawnType, pPos, pRandom);
     }
 
     static {
@@ -144,16 +144,16 @@ public class SpawnPlacements {
         final SpawnPlacements.Type placement;
         final SpawnPlacements.SpawnPredicate<?> predicate;
 
-        public Data(Heightmap.Types p_21771_, SpawnPlacements.Type p_21772_, SpawnPlacements.SpawnPredicate<?> p_21773_) {
-            this.heightMap = p_21771_;
-            this.placement = p_21772_;
-            this.predicate = p_21773_;
+        public Data(Heightmap.Types pHeightMap, SpawnPlacements.Type pPlacement, SpawnPlacements.SpawnPredicate<?> pPredicate) {
+            this.heightMap = pHeightMap;
+            this.placement = pPlacement;
+            this.predicate = pPredicate;
         }
     }
 
     @FunctionalInterface
     public interface SpawnPredicate<T extends Entity> {
-        boolean test(EntityType<T> p_217081_, ServerLevelAccessor p_217082_, MobSpawnType p_217083_, BlockPos p_217084_, RandomSource p_217085_);
+        boolean test(EntityType<T> pEntityType, ServerLevelAccessor pServerLevel, MobSpawnType pSpawnType, BlockPos pPos, RandomSource pRandom);
     }
 
     public static enum Type {

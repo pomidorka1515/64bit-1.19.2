@@ -23,10 +23,10 @@ public class FeatureUtils {
         return Util.getRandom(list, RandomSource.create());
     }
 
-    private static BlockPredicate simplePatchPredicate(List<Block> p_195009_) {
+    private static BlockPredicate simplePatchPredicate(List<Block> pBlocks) {
         BlockPredicate blockpredicate;
-        if (!p_195009_.isEmpty()) {
-            blockpredicate = BlockPredicate.allOf(BlockPredicate.ONLY_IN_AIR_PREDICATE, BlockPredicate.matchesBlocks(Direction.DOWN.getNormal(), p_195009_));
+        if (!pBlocks.isEmpty()) {
+            blockpredicate = BlockPredicate.allOf(BlockPredicate.ONLY_IN_AIR_PREDICATE, BlockPredicate.matchesBlocks(Direction.DOWN.getNormal(), pBlocks));
         } else {
             blockpredicate = BlockPredicate.ONLY_IN_AIR_PREDICATE;
         }
@@ -34,8 +34,8 @@ public class FeatureUtils {
         return blockpredicate;
     }
 
-    public static RandomPatchConfiguration simpleRandomPatchConfiguration(int p_206471_, Holder<PlacedFeature> p_206472_) {
-        return new RandomPatchConfiguration(p_206471_, 7, 3, p_206472_);
+    public static RandomPatchConfiguration simpleRandomPatchConfiguration(int pTries, Holder<PlacedFeature> pFeature) {
+        return new RandomPatchConfiguration(pTries, 7, 3, pFeature);
     }
 
     public static <FC extends FeatureConfiguration, F extends Feature<FC>> RandomPatchConfiguration simplePatchConfiguration(F p_206481_, FC p_206482_, List<Block> p_206483_, int p_206484_) {
@@ -46,15 +46,15 @@ public class FeatureUtils {
         return simplePatchConfiguration(p_206477_, p_206478_, p_206479_, 96);
     }
 
-    public static <FC extends FeatureConfiguration, F extends Feature<FC>> RandomPatchConfiguration simplePatchConfiguration(F p_206474_, FC p_206475_) {
-        return simplePatchConfiguration(p_206474_, p_206475_, List.of(), 96);
+    public static <FC extends FeatureConfiguration, F extends Feature<FC>> RandomPatchConfiguration simplePatchConfiguration(F pFeature, FC pConfig) {
+        return simplePatchConfiguration(pFeature, pConfig, List.of(), 96);
     }
 
-    public static Holder<ConfiguredFeature<NoneFeatureConfiguration, ?>> register(String p_206486_, Feature<NoneFeatureConfiguration> p_206487_) {
-        return register(p_206486_, p_206487_, FeatureConfiguration.NONE);
+    public static Holder<ConfiguredFeature<NoneFeatureConfiguration, ?>> register(String pName, Feature<NoneFeatureConfiguration> pFeature) {
+        return register(pName, pFeature, FeatureConfiguration.NONE);
     }
 
-    public static <FC extends FeatureConfiguration, F extends Feature<FC>> Holder<ConfiguredFeature<FC, ?>> register(String p_206489_, F p_206490_, FC p_206491_) {
-        return BuiltinRegistries.registerExact(BuiltinRegistries.CONFIGURED_FEATURE, p_206489_, new ConfiguredFeature<>(p_206490_, p_206491_));
+    public static <FC extends FeatureConfiguration, F extends Feature<FC>> Holder<ConfiguredFeature<FC, ?>> register(String pName, F pFeature, FC pConfig) {
+        return BuiltinRegistries.registerExact(BuiltinRegistries.CONFIGURED_FEATURE, pName, new ConfiguredFeature<>(pFeature, pConfig));
     }
 }

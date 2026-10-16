@@ -20,15 +20,15 @@ public class Sound implements Weighted<Sound> {
     private final boolean preload;
     private final int attenuationDistance;
 
-    public Sound(String p_235134_, SampledFloat p_235135_, SampledFloat p_235136_, int p_235137_, Sound.Type p_235138_, boolean p_235139_, boolean p_235140_, int p_235141_) {
-        this.location = new ResourceLocation(p_235134_);
-        this.volume = p_235135_;
-        this.pitch = p_235136_;
-        this.weight = p_235137_;
-        this.type = p_235138_;
-        this.stream = p_235139_;
-        this.preload = p_235140_;
-        this.attenuationDistance = p_235141_;
+    public Sound(String pPath, SampledFloat pVolume, SampledFloat pPitch, int pWeight, Sound.Type pType, boolean pStream, boolean pPreload, int pAttenuationDistance) {
+        this.location = new ResourceLocation(pPath);
+        this.volume = pVolume;
+        this.pitch = pPitch;
+        this.weight = pWeight;
+        this.type = pType;
+        this.stream = pStream;
+        this.preload = pPreload;
+        this.attenuationDistance = pAttenuationDistance;
     }
 
     public ResourceLocation getLocation() {
@@ -55,9 +55,9 @@ public class Sound implements Weighted<Sound> {
         return this;
     }
 
-    public void preloadIfRequired(SoundEngine p_119789_) {
+    public void preloadIfRequired(SoundEngine pEngine) {
         if (this.preload) {
-            p_119789_.requestPreload(this);
+            pEngine.requestPreload(this);
         }
     }
 
@@ -93,9 +93,9 @@ public class Sound implements Weighted<Sound> {
         }
 
         @Nullable
-        public static Sound.Type getByName(String p_119811_) {
+        public static Sound.Type getByName(String pName) {
             for (Sound.Type sound$type : values()) {
-                if (sound$type.name.equals(p_119811_)) {
+                if (sound$type.name.equals(pName)) {
                     return sound$type;
                 }
             }

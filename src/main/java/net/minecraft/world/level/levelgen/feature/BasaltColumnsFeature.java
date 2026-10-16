@@ -21,16 +21,16 @@ public class BasaltColumnsFeature extends Feature<ColumnFeatureConfiguration> {
     private static final int UNCLUSTERED_REACH = 8;
     private static final int UNCLUSTERED_SIZE = 15;
 
-    public BasaltColumnsFeature(Codec<ColumnFeatureConfiguration> p_65153_) {
-        super(p_65153_);
+    public BasaltColumnsFeature(Codec<ColumnFeatureConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<ColumnFeatureConfiguration> p_159444_) {
-        int i = p_159444_.chunkGenerator().getSeaLevel();
-        BlockPos blockpos = p_159444_.origin();
-        WorldGenLevel worldgenlevel = p_159444_.level();
-        RandomSource randomsource = p_159444_.random();
-        ColumnFeatureConfiguration columnfeatureconfiguration = p_159444_.config();
+    public boolean place(FeaturePlaceContext<ColumnFeatureConfiguration> pContext) {
+        int i = pContext.chunkGenerator().getSeaLevel();
+        BlockPos blockpos = pContext.origin();
+        WorldGenLevel worldgenlevel = pContext.level();
+        RandomSource randomsource = pContext.random();
+        ColumnFeatureConfiguration columnfeatureconfiguration = pContext.config();
         if (!canPlaceAt(worldgenlevel, i, blockpos.mutable())) {
             return false;
         } else {
@@ -51,22 +51,22 @@ public class BasaltColumnsFeature extends Feature<ColumnFeatureConfiguration> {
         }
     }
 
-    private boolean placeColumn(LevelAccessor p_65168_, int p_65169_, BlockPos p_65170_, int p_65171_, int p_65172_) {
+    private boolean placeColumn(LevelAccessor pLevel, int pSeaLevel, BlockPos pPos, int pDistance, int pReach) {
         boolean flag = false;
 
-        for (BlockPos blockpos : BlockPos.betweenClosed(WorldBounds.subtractBlockOffset(p_65170_.getX(), p_65172_), p_65170_.getY(), WorldBounds.subtractBlockOffset(p_65170_.getZ(), p_65172_), WorldBounds.addBlockOffset(p_65170_.getX(), p_65172_), p_65170_.getY(), WorldBounds.addBlockOffset(p_65170_.getZ(), p_65172_))) {
-            int i = blockpos.distManhattan(p_65170_);
-            BlockPos blockpos1 = isAirOrLavaOcean(p_65168_, p_65169_, blockpos) ? findSurface(p_65168_, p_65169_, blockpos.mutable(), i) : findAir(p_65168_, blockpos.mutable(), i);
+        for (BlockPos blockpos : BlockPos.betweenClosed(WorldBounds.subtractBlockOffset(pPos.getX(), pReach), pPos.getY(), WorldBounds.subtractBlockOffset(pPos.getZ(), pReach), WorldBounds.addBlockOffset(pPos.getX(), pReach), pPos.getY(), WorldBounds.addBlockOffset(pPos.getZ(), pReach))) {
+            int i = blockpos.distManhattan(pPos);
+            BlockPos blockpos1 = isAirOrLavaOcean(pLevel, pSeaLevel, blockpos) ? findSurface(pLevel, pSeaLevel, blockpos.mutable(), i) : findAir(pLevel, blockpos.mutable(), i);
             if (blockpos1 != null) {
-                int j = p_65171_ - i / 2;
+                int j = pDistance - i / 2;
 
                 for (BlockPos.MutableBlockPos blockpos$mutableblockpos = blockpos1.mutable(); j >= 0; --j) {
-                    if (isAirOrLavaOcean(p_65168_, p_65169_, blockpos$mutableblockpos)) {
-                        this.setBlock(p_65168_, blockpos$mutableblockpos, Blocks.BASALT.defaultBlockState());
+                    if (isAirOrLavaOcean(pLevel, pSeaLevel, blockpos$mutableblockpos)) {
+                        this.setBlock(pLevel, blockpos$mutableblockpos, Blocks.BASALT.defaultBlockState());
                         blockpos$mutableblockpos.move(Direction.UP);
                         flag = true;
                     } else {
-                        if (!p_65168_.getBlockState(blockpos$mutableblockpos).is(Blocks.BASALT)) {
+                        if (!pLevel.getBlockState(blockpos$mutableblockpos).is(Blocks.BASALT)) {
                             break;
                         }
 
@@ -80,50 +80,50 @@ public class BasaltColumnsFeature extends Feature<ColumnFeatureConfiguration> {
     }
 
     @Nullable
-    private static BlockPos findSurface(LevelAccessor p_65159_, int p_65160_, BlockPos.MutableBlockPos p_65161_, int p_65162_) {
-        while (p_65161_.getY() > p_65159_.getMinBuildHeight() + 1 && p_65162_ > 0) {
-            --p_65162_;
-            if (canPlaceAt(p_65159_, p_65160_, p_65161_)) {
-                return p_65161_;
+    private static BlockPos findSurface(LevelAccessor pLevel, int pSeaLevel, BlockPos.MutableBlockPos pPos, int pDistance) {
+        while (pPos.getY() > pLevel.getMinBuildHeight() + 1 && pDistance > 0) {
+            --pDistance;
+            if (canPlaceAt(pLevel, pSeaLevel, pPos)) {
+                return pPos;
             }
 
-            p_65161_.move(Direction.DOWN);
+            pPos.move(Direction.DOWN);
         }
 
         return null;
     }
 
-    private static boolean canPlaceAt(LevelAccessor p_65155_, int p_65156_, BlockPos.MutableBlockPos p_65157_) {
-        if (!isAirOrLavaOcean(p_65155_, p_65156_, p_65157_)) {
+    private static boolean canPlaceAt(LevelAccessor pLevel, int pSeaLevel, BlockPos.MutableBlockPos pPos) {
+        if (!isAirOrLavaOcean(pLevel, pSeaLevel, pPos)) {
             return false;
         } else {
-            BlockState blockstate = p_65155_.getBlockState(p_65157_.move(Direction.DOWN));
-            p_65157_.move(Direction.UP);
+            BlockState blockstate = pLevel.getBlockState(pPos.move(Direction.DOWN));
+            pPos.move(Direction.UP);
             return !blockstate.isAir() && !CANNOT_PLACE_ON.contains(blockstate.getBlock());
         }
     }
 
     @Nullable
-    private static BlockPos findAir(LevelAccessor p_65174_, BlockPos.MutableBlockPos p_65175_, int p_65176_) {
-        while (p_65175_.getY() < p_65174_.getMaxBuildHeight() && p_65176_ > 0) {
-            --p_65176_;
-            BlockState blockstate = p_65174_.getBlockState(p_65175_);
+    private static BlockPos findAir(LevelAccessor pLevel, BlockPos.MutableBlockPos pPos, int pDistance) {
+        while (pPos.getY() < pLevel.getMaxBuildHeight() && pDistance > 0) {
+            --pDistance;
+            BlockState blockstate = pLevel.getBlockState(pPos);
             if (CANNOT_PLACE_ON.contains(blockstate.getBlock())) {
                 return null;
             }
 
             if (blockstate.isAir()) {
-                return p_65175_;
+                return pPos;
             }
 
-            p_65175_.move(Direction.UP);
+            pPos.move(Direction.UP);
         }
 
         return null;
     }
 
-    private static boolean isAirOrLavaOcean(LevelAccessor p_65164_, int p_65165_, BlockPos p_65166_) {
-        BlockState blockstate = p_65164_.getBlockState(p_65166_);
-        return blockstate.isAir() || blockstate.is(Blocks.LAVA) && p_65166_.getY() <= p_65165_;
+    private static boolean isAirOrLavaOcean(LevelAccessor pLevel, int pSeaLevel, BlockPos pPos) {
+        BlockState blockstate = pLevel.getBlockState(pPos);
+        return blockstate.isAir() || blockstate.is(Blocks.LAVA) && pPos.getY() <= pSeaLevel;
     }
 }

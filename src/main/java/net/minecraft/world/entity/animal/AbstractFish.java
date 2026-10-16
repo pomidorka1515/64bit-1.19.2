@@ -34,13 +34,13 @@ import net.minecraft.world.phys.Vec3;
 public abstract class AbstractFish extends WaterAnimal implements Bucketable {
     private static final EntityDataAccessor<Boolean> FROM_BUCKET = SynchedEntityData.defineId(AbstractFish.class, EntityDataSerializers.BOOLEAN);
 
-    public AbstractFish(EntityType<? extends AbstractFish> p_27461_, Level p_27462_) {
-        super(p_27461_, p_27462_);
+    public AbstractFish(EntityType<? extends AbstractFish> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.moveControl = new AbstractFish.FishMoveControl(this);
     }
 
-    protected float getStandingEyeHeight(Pose p_27474_, EntityDimensions p_27475_) {
-        return p_27475_.height * 0.65F;
+    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        return pSize.height * 0.65F;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -51,7 +51,7 @@ public abstract class AbstractFish extends WaterAnimal implements Bucketable {
         return super.requiresCustomPersistence() || this.fromBucket();
     }
 
-    public boolean removeWhenFarAway(double p_27492_) {
+    public boolean removeWhenFarAway(double pDistanceToClosestPlayer) {
         return !this.fromBucket() && !this.hasCustomName();
     }
 
@@ -68,18 +68,18 @@ public abstract class AbstractFish extends WaterAnimal implements Bucketable {
         return this.entityData.get(FROM_BUCKET);
     }
 
-    public void setFromBucket(boolean p_27498_) {
-        this.entityData.set(FROM_BUCKET, p_27498_);
+    public void setFromBucket(boolean pFromBucket) {
+        this.entityData.set(FROM_BUCKET, pFromBucket);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_27485_) {
-        super.addAdditionalSaveData(p_27485_);
-        p_27485_.putBoolean("FromBucket", this.fromBucket());
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putBoolean("FromBucket", this.fromBucket());
     }
 
-    public void readAdditionalSaveData(CompoundTag p_27465_) {
-        super.readAdditionalSaveData(p_27465_);
-        this.setFromBucket(p_27465_.getBoolean("FromBucket"));
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.setFromBucket(pCompound.getBoolean("FromBucket"));
     }
 
     protected void registerGoals() {
@@ -89,20 +89,20 @@ public abstract class AbstractFish extends WaterAnimal implements Bucketable {
         this.goalSelector.addGoal(4, new AbstractFish.FishSwimGoal(this));
     }
 
-    protected PathNavigation createNavigation(Level p_27480_) {
-        return new WaterBoundPathNavigation(this, p_27480_);
+    protected PathNavigation createNavigation(Level pLevel) {
+        return new WaterBoundPathNavigation(this, pLevel);
     }
 
-    public void travel(Vec3 p_27490_) {
+    public void travel(Vec3 pTravelVector) {
         if (this.isEffectiveAi() && this.isInWater()) {
-            this.moveRelative(0.01F, p_27490_);
+            this.moveRelative(0.01F, pTravelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
             if (this.getTarget() == null) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.005D, 0.0D));
             }
         } else {
-            super.travel(p_27490_);
+            super.travel(pTravelVector);
         }
     }
 
@@ -117,16 +117,16 @@ public abstract class AbstractFish extends WaterAnimal implements Bucketable {
         super.aiStep();
     }
 
-    protected InteractionResult mobInteract(Player p_27477_, InteractionHand p_27478_) {
-        return Bucketable.bucketMobPickup(p_27477_, p_27478_, this).orElse(super.mobInteract(p_27477_, p_27478_));
+    protected InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
+        return Bucketable.bucketMobPickup(pPlayer, pHand, this).orElse(super.mobInteract(pPlayer, pHand));
     }
 
-    public void saveToBucketTag(ItemStack p_27494_) {
-        Bucketable.saveDefaultDataToBucketTag(this, p_27494_);
+    public void saveToBucketTag(ItemStack pStack) {
+        Bucketable.saveDefaultDataToBucketTag(this, pStack);
     }
 
-    public void loadFromBucketTag(CompoundTag p_148708_) {
-        Bucketable.loadDefaultDataFromBucketTag(this, p_148708_);
+    public void loadFromBucketTag(CompoundTag pTag) {
+        Bucketable.loadDefaultDataFromBucketTag(this, pTag);
     }
 
     public SoundEvent getPickupSound() {
@@ -143,15 +143,15 @@ public abstract class AbstractFish extends WaterAnimal implements Bucketable {
         return SoundEvents.FISH_SWIM;
     }
 
-    protected void playStepSound(BlockPos p_27482_, BlockState p_27483_) {
+    protected void playStepSound(BlockPos pPos, BlockState pBlock) {
     }
 
     static class FishMoveControl extends MoveControl {
         private final AbstractFish fish;
 
-        FishMoveControl(AbstractFish p_27501_) {
-            super(p_27501_);
-            this.fish = p_27501_;
+        FishMoveControl(AbstractFish pFish) {
+            super(pFish);
+            this.fish = pFish;
         }
 
         public void tick() {
@@ -189,9 +189,9 @@ public abstract class AbstractFish extends WaterAnimal implements Bucketable {
     static class FishSwimGoal extends RandomSwimmingGoal {
         private final AbstractFish fish;
 
-        public FishSwimGoal(AbstractFish p_27505_) {
-            super(p_27505_, 1.0D, 40);
-            this.fish = p_27505_;
+        public FishSwimGoal(AbstractFish pFish) {
+            super(pFish, 1.0D, 40);
+            this.fish = pFish;
         }
 
         public boolean canUse() {

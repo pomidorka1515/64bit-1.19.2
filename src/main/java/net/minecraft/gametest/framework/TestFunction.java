@@ -15,29 +15,29 @@ public class TestFunction {
     private final long setupTicks;
     private final Rotation rotation;
 
-    public TestFunction(String p_177801_, String p_177802_, String p_177803_, int p_177804_, long p_177805_, boolean p_177806_, Consumer<GameTestHelper> p_177807_) {
-        this(p_177801_, p_177802_, p_177803_, Rotation.NONE, p_177804_, p_177805_, p_177806_, 1, 1, p_177807_);
+    public TestFunction(String pBatchName, String pTestName, String pStructureName, int pMaxTicks, long pSetupTicks, boolean pRequired, Consumer<GameTestHelper> pFunction) {
+        this(pBatchName, pTestName, pStructureName, Rotation.NONE, pMaxTicks, pSetupTicks, pRequired, 1, 1, pFunction);
     }
 
-    public TestFunction(String p_177820_, String p_177821_, String p_177822_, Rotation p_177823_, int p_177824_, long p_177825_, boolean p_177826_, Consumer<GameTestHelper> p_177827_) {
-        this(p_177820_, p_177821_, p_177822_, p_177823_, p_177824_, p_177825_, p_177826_, 1, 1, p_177827_);
+    public TestFunction(String pBatchName, String pTestName, String pStructureName, Rotation pRotation, int pMaxTicks, long pSetupTicks, boolean pRequired, Consumer<GameTestHelper> pFunction) {
+        this(pBatchName, pTestName, pStructureName, pRotation, pMaxTicks, pSetupTicks, pRequired, 1, 1, pFunction);
     }
 
-    public TestFunction(String p_177809_, String p_177810_, String p_177811_, Rotation p_177812_, int p_177813_, long p_177814_, boolean p_177815_, int p_177816_, int p_177817_, Consumer<GameTestHelper> p_177818_) {
-        this.batchName = p_177809_;
-        this.testName = p_177810_;
-        this.structureName = p_177811_;
-        this.rotation = p_177812_;
-        this.maxTicks = p_177813_;
-        this.required = p_177815_;
-        this.requiredSuccesses = p_177816_;
-        this.maxAttempts = p_177817_;
-        this.function = p_177818_;
-        this.setupTicks = p_177814_;
+    public TestFunction(String pBatchName, String pTestName, String pStructureName, Rotation pRotation, int pMaxTicks, long pSetupTicks, boolean pRequired, int pRequiredSuccesses, int pMaxAttempts, Consumer<GameTestHelper> pFunction) {
+        this.batchName = pBatchName;
+        this.testName = pTestName;
+        this.structureName = pStructureName;
+        this.rotation = pRotation;
+        this.maxTicks = pMaxTicks;
+        this.required = pRequired;
+        this.requiredSuccesses = pRequiredSuccesses;
+        this.maxAttempts = pMaxAttempts;
+        this.function = pFunction;
+        this.setupTicks = pSetupTicks;
     }
 
-    public void run(GameTestHelper p_128077_) {
-        this.function.accept(p_128077_);
+    public void run(GameTestHelper pGameTestHelper) {
+        this.function.accept(pGameTestHelper);
     }
 
     public String getTestName() {

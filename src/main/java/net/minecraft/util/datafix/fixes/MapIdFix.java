@@ -11,8 +11,8 @@ import com.mojang.datafixers.types.Type;
 import java.util.Optional;
 
 public class MapIdFix extends DataFix {
-    public MapIdFix(Schema p_16396_, boolean p_16397_) {
-        super(p_16396_, p_16397_);
+    public MapIdFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

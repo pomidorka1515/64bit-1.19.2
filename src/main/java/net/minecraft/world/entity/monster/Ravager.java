@@ -60,8 +60,8 @@ public class Ravager extends Raider {
     private int stunnedTick;
     private int roarTick;
 
-    public Ravager(EntityType<? extends Ravager> p_33325_, Level p_33326_) {
-        super(p_33325_, p_33326_);
+    public Ravager(EntityType<? extends Ravager> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
         this.maxUpStep = 1.0F;
         this.xpReward = 20;
     }
@@ -94,26 +94,26 @@ public class Ravager extends Raider {
         return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 100.0D).add(Attributes.MOVEMENT_SPEED, 0.3D).add(Attributes.KNOCKBACK_RESISTANCE, 0.75D).add(Attributes.ATTACK_DAMAGE, 12.0D).add(Attributes.ATTACK_KNOCKBACK, 1.5D).add(Attributes.FOLLOW_RANGE, 32.0D);
     }
 
-    public void addAdditionalSaveData(CompoundTag p_33353_) {
-        super.addAdditionalSaveData(p_33353_);
-        p_33353_.putInt("AttackTick", this.attackTick);
-        p_33353_.putInt("StunTick", this.stunnedTick);
-        p_33353_.putInt("RoarTick", this.roarTick);
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putInt("AttackTick", this.attackTick);
+        pCompound.putInt("StunTick", this.stunnedTick);
+        pCompound.putInt("RoarTick", this.roarTick);
     }
 
-    public void readAdditionalSaveData(CompoundTag p_33344_) {
-        super.readAdditionalSaveData(p_33344_);
-        this.attackTick = p_33344_.getInt("AttackTick");
-        this.stunnedTick = p_33344_.getInt("StunTick");
-        this.roarTick = p_33344_.getInt("RoarTick");
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.attackTick = pCompound.getInt("AttackTick");
+        this.stunnedTick = pCompound.getInt("StunTick");
+        this.roarTick = pCompound.getInt("RoarTick");
     }
 
     public SoundEvent getCelebrateSound() {
         return SoundEvents.RAVAGER_CELEBRATE;
     }
 
-    protected PathNavigation createNavigation(Level p_33348_) {
-        return new Ravager.RavagerNavigation(this, p_33348_);
+    protected PathNavigation createNavigation(Level pLevel) {
+        return new Ravager.RavagerNavigation(this, pLevel);
     }
 
     public int getMaxHeadYRot() {
@@ -195,22 +195,22 @@ public class Ravager extends Raider {
         return super.isImmobile() || this.attackTick > 0 || this.stunnedTick > 0 || this.roarTick > 0;
     }
 
-    public boolean hasLineOfSight(Entity p_149755_) {
-        return this.stunnedTick <= 0 && this.roarTick <= 0 ? super.hasLineOfSight(p_149755_) : false;
+    public boolean hasLineOfSight(Entity pEntity) {
+        return this.stunnedTick <= 0 && this.roarTick <= 0 ? super.hasLineOfSight(pEntity) : false;
     }
 
-    protected void blockedByShield(LivingEntity p_33361_) {
+    protected void blockedByShield(LivingEntity pEntity) {
         if (this.roarTick == 0) {
             if (this.random.nextDouble() < 0.5D) {
                 this.stunnedTick = 40;
                 this.playSound(SoundEvents.RAVAGER_STUNNED, 1.0F, 1.0F);
                 this.level.broadcastEntityEvent(this, (byte) 39);
-                p_33361_.push(this);
+                pEntity.push(this);
             } else {
-                this.strongKnockback(p_33361_);
+                this.strongKnockback(pEntity);
             }
 
-            p_33361_.hurtMarked = true;
+            pEntity.hurtMarked = true;
         }
     }
 
@@ -241,15 +241,15 @@ public class Ravager extends Raider {
         target.push(delta.x / distanceSqr * 4.0D, 0.2D, delta.z / distanceSqr * 4.0D);
     }
 
-    public void handleEntityEvent(byte p_33335_) {
-        if (p_33335_ == 4) {
+    public void handleEntityEvent(byte pId) {
+        if (pId == 4) {
             this.attackTick = 10;
             this.playSound(SoundEvents.RAVAGER_ATTACK, 1.0F, 1.0F);
-        } else if (p_33335_ == 39) {
+        } else if (pId == 39) {
             this.stunnedTick = 40;
         }
 
-        super.handleEntityEvent(p_33335_);
+        super.handleEntityEvent(pId);
     }
 
     public int getAttackTick() {
@@ -264,11 +264,11 @@ public class Ravager extends Raider {
         return this.roarTick;
     }
 
-    public boolean doHurtTarget(Entity p_33328_) {
+    public boolean doHurtTarget(Entity pEntity) {
         this.attackTick = 10;
         this.level.broadcastEntityEvent(this, (byte) 4);
         this.playSound(SoundEvents.RAVAGER_ATTACK, 1.0F, 1.0F);
-        return super.doHurtTarget(p_33328_);
+        return super.doHurtTarget(pEntity);
     }
 
     @Nullable
@@ -276,7 +276,7 @@ public class Ravager extends Raider {
         return SoundEvents.RAVAGER_AMBIENT;
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_33359_) {
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
         return SoundEvents.RAVAGER_HURT;
     }
 
@@ -284,15 +284,15 @@ public class Ravager extends Raider {
         return SoundEvents.RAVAGER_DEATH;
     }
 
-    protected void playStepSound(BlockPos p_33350_, BlockState p_33351_) {
+    protected void playStepSound(BlockPos pPos, BlockState pBlock) {
         this.playSound(SoundEvents.RAVAGER_STEP, 0.15F, 1.0F);
     }
 
-    public boolean checkSpawnObstruction(LevelReader p_33342_) {
-        return !p_33342_.containsAnyLiquid(this.getBoundingBox());
+    public boolean checkSpawnObstruction(LevelReader pLevel) {
+        return !pLevel.containsAnyLiquid(this.getBoundingBox());
     }
 
-    public void applyRaidBuffs(int p_33337_, boolean p_33338_) {
+    public void applyRaidBuffs(int pWave, boolean pUnusedFalse) {
     }
 
     public boolean canBeLeader() {
@@ -304,9 +304,9 @@ public class Ravager extends Raider {
             super(Ravager.this, 1.0D, true);
         }
 
-        protected double getAttackReachSqr(LivingEntity p_33377_) {
+        protected double getAttackReachSqr(LivingEntity pAttackTarget) {
             float f = Ravager.this.getBbWidth() - 0.1F;
-            return (double) (f * 2.0F * f * 2.0F + p_33377_.getBbWidth());
+            return (double) (f * 2.0F * f * 2.0F + pAttackTarget.getBbWidth());
         }
     }
 
@@ -322,8 +322,8 @@ public class Ravager extends Raider {
     }
 
     static class RavagerNodeEvaluator extends WalkNodeEvaluator {
-        protected BlockPathTypes evaluateBlockPathType(BlockGetter p_33387_, boolean p_33388_, boolean p_33389_, BlockPos p_33390_, BlockPathTypes p_33391_) {
-            return p_33391_ == BlockPathTypes.LEAVES ? BlockPathTypes.OPEN : super.evaluateBlockPathType(p_33387_, p_33388_, p_33389_, p_33390_, p_33391_);
+        protected BlockPathTypes evaluateBlockPathType(BlockGetter pLevel, boolean pCanOpenDoors, boolean pCanEnterDoors, BlockPos pPos, BlockPathTypes pNodeType) {
+            return pNodeType == BlockPathTypes.LEAVES ? BlockPathTypes.OPEN : super.evaluateBlockPathType(pLevel, pCanOpenDoors, pCanEnterDoors, pPos, pNodeType);
         }
     }
 }

@@ -14,18 +14,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.SculkPatchConfiguration;
 
 public class SculkPatchFeature extends Feature<SculkPatchConfiguration> {
-    public SculkPatchFeature(Codec<SculkPatchConfiguration> p_225237_) {
-        super(p_225237_);
+    public SculkPatchFeature(Codec<SculkPatchConfiguration> pCodec) {
+        super(pCodec);
     }
 
-    public boolean place(FeaturePlaceContext<SculkPatchConfiguration> p_225242_) {
-        WorldGenLevel worldgenlevel = p_225242_.level();
-        BlockPos blockpos = p_225242_.origin();
+    public boolean place(FeaturePlaceContext<SculkPatchConfiguration> pContext) {
+        WorldGenLevel worldgenlevel = pContext.level();
+        BlockPos blockpos = pContext.origin();
         if (!this.canSpreadFrom(worldgenlevel, blockpos)) {
             return false;
         } else {
-            SculkPatchConfiguration sculkpatchconfiguration = p_225242_.config();
-            RandomSource randomsource = p_225242_.random();
+            SculkPatchConfiguration sculkpatchconfiguration = pContext.config();
+            RandomSource randomsource = pContext.random();
             SculkSpreader sculkspreader = SculkSpreader.createWorldGenSpreader();
             int i = sculkpatchconfiguration.spreadRounds() + sculkpatchconfiguration.growthRounds();
 
@@ -61,13 +61,13 @@ public class SculkPatchFeature extends Feature<SculkPatchConfiguration> {
         }
     }
 
-    private boolean canSpreadFrom(LevelAccessor p_225239_, BlockPos p_225240_) {
-        BlockState blockstate = p_225239_.getBlockState(p_225240_);
+    private boolean canSpreadFrom(LevelAccessor pLevel, BlockPos pPos) {
+        BlockState blockstate = pLevel.getBlockState(pPos);
         if (blockstate.getBlock() instanceof SculkBehaviour) {
             return true;
         } else {
-            return !blockstate.isAir() && (!blockstate.is(Blocks.WATER) || !blockstate.getFluidState().isSource()) ? false : Direction.stream().map(p_225240_::relative).anyMatch((p_225245_) -> {
-                return p_225239_.getBlockState(p_225245_).isCollisionShapeFullBlock(p_225239_, p_225245_);
+            return !blockstate.isAir() && (!blockstate.is(Blocks.WATER) || !blockstate.getFluidState().isSource()) ? false : Direction.stream().map(pPos::relative).anyMatch((p_225245_) -> {
+                return pLevel.getBlockState(p_225245_).isCollisionShapeFullBlock(pLevel, p_225245_);
             });
         }
     }

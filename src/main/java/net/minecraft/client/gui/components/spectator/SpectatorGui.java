@@ -27,14 +27,14 @@ public class SpectatorGui extends GuiComponent implements SpectatorMenuListener 
     @Nullable
     private SpectatorMenu menu;
 
-    public SpectatorGui(Minecraft p_94767_) {
-        this.minecraft = p_94767_;
+    public SpectatorGui(Minecraft pMinecraft) {
+        this.minecraft = pMinecraft;
     }
 
-    public void onHotbarSelected(int p_94772_) {
+    public void onHotbarSelected(int pSlot) {
         this.lastSelectionTime = Util.getMillis();
         if (this.menu != null) {
-            this.menu.selectSlot(p_94772_);
+            this.menu.selectSlot(pSlot);
         } else {
             this.menu = new SpectatorMenu(this);
         }
@@ -45,7 +45,7 @@ public class SpectatorGui extends GuiComponent implements SpectatorMenuListener 
         return Mth.clamp((float) i / 2000.0F, 0.0F, 1.0F);
     }
 
-    public void renderHotbar(PoseStack p_193838_) {
+    public void renderHotbar(PoseStack pPoseStack) {
         if (this.menu != null) {
             float f = this.getHotbarAlpha();
             if (f <= 0.0F) {
@@ -56,47 +56,47 @@ public class SpectatorGui extends GuiComponent implements SpectatorMenuListener 
                 this.setBlitOffset(-90);
                 int k = Mth.floor((float) this.minecraft.getWindow().getGuiScaledHeight() - 22.0F * f);
                 SpectatorPage spectatorpage = this.menu.getCurrentPage();
-                this.renderPage(p_193838_, f, i, k, spectatorpage);
+                this.renderPage(pPoseStack, f, i, k, spectatorpage);
                 this.setBlitOffset(j);
             }
         }
     }
 
-    protected void renderPage(PoseStack p_94779_, float p_94780_, int p_94781_, int p_94782_, SpectatorPage p_94783_) {
+    protected void renderPage(PoseStack pPoseStack, float pAlpha, int pX, int pY, SpectatorPage pSpectatorPage) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, p_94780_);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, pAlpha);
         RenderSystem.setShaderTexture(0, WIDGETS_LOCATION);
-        this.blit(p_94779_, p_94781_ - 91, p_94782_, 0, 0, 182, 22);
-        if (p_94783_.getSelectedSlot() >= 0) {
-            this.blit(p_94779_, p_94781_ - 91 - 1 + p_94783_.getSelectedSlot() * 20, p_94782_ - 1, 0, 22, 24, 22);
+        this.blit(pPoseStack, pX - 91, pY, 0, 0, 182, 22);
+        if (pSpectatorPage.getSelectedSlot() >= 0) {
+            this.blit(pPoseStack, pX - 91 - 1 + pSpectatorPage.getSelectedSlot() * 20, pY - 1, 0, 22, 24, 22);
         }
 
         for (int i = 0; i < 9; ++i) {
-            this.renderSlot(p_94779_, i, this.minecraft.getWindow().getGuiScaledWidth() / 2 - 90 + i * 20 + 2, (float) (p_94782_ + 3), p_94780_, p_94783_.getItem(i));
+            this.renderSlot(pPoseStack, i, this.minecraft.getWindow().getGuiScaledWidth() / 2 - 90 + i * 20 + 2, (float) (pY + 3), pAlpha, pSpectatorPage.getItem(i));
         }
 
         RenderSystem.disableBlend();
     }
 
-    private void renderSlot(PoseStack p_94785_, int p_94786_, int p_94787_, float p_94788_, float p_94789_, SpectatorMenuItem p_94790_) {
+    private void renderSlot(PoseStack pPoseStack, int pSlot, int pX, float pY, float pAlpha, SpectatorMenuItem pSpectatorMenuItem) {
         RenderSystem.setShaderTexture(0, SPECTATOR_LOCATION);
-        if (p_94790_ != SpectatorMenu.EMPTY_SLOT) {
-            int i = (int) (p_94789_ * 255.0F);
-            p_94785_.pushPose();
-            p_94785_.translate((double) p_94787_, (double) p_94788_, 0.0D);
-            float f = p_94790_.isEnabled() ? 1.0F : 0.25F;
-            RenderSystem.setShaderColor(f, f, f, p_94789_);
-            p_94790_.renderIcon(p_94785_, f, i);
-            p_94785_.popPose();
-            if (i > 3 && p_94790_.isEnabled()) {
-                Component component = this.minecraft.options.keyHotbarSlots[p_94786_].getTranslatedKeyMessage();
-                this.minecraft.font.drawShadow(p_94785_, component, (float) (p_94787_ + 19 - 2 - this.minecraft.font.width(component)), p_94788_ + 6.0F + 3.0F, 16777215 + (i << 24));
+        if (pSpectatorMenuItem != SpectatorMenu.EMPTY_SLOT) {
+            int i = (int) (pAlpha * 255.0F);
+            pPoseStack.pushPose();
+            pPoseStack.translate((double) pX, (double) pY, 0.0D);
+            float f = pSpectatorMenuItem.isEnabled() ? 1.0F : 0.25F;
+            RenderSystem.setShaderColor(f, f, f, pAlpha);
+            pSpectatorMenuItem.renderIcon(pPoseStack, f, i);
+            pPoseStack.popPose();
+            if (i > 3 && pSpectatorMenuItem.isEnabled()) {
+                Component component = this.minecraft.options.keyHotbarSlots[pSlot].getTranslatedKeyMessage();
+                this.minecraft.font.drawShadow(pPoseStack, component, (float) (pX + 19 - 2 - this.minecraft.font.width(component)), pY + 6.0F + 3.0F, 16777215 + (i << 24));
             }
         }
     }
 
-    public void renderTooltip(PoseStack p_94774_) {
+    public void renderTooltip(PoseStack pPoseStack) {
         int i = (int) (this.getHotbarAlpha() * 255.0F);
         if (i > 3 && this.menu != null) {
             SpectatorMenuItem spectatormenuitem = this.menu.getSelectedItem();
@@ -106,13 +106,13 @@ public class SpectatorGui extends GuiComponent implements SpectatorMenuListener 
                 int k = this.minecraft.getWindow().getGuiScaledHeight() - 35;
                 RenderSystem.enableBlend();
                 RenderSystem.defaultBlendFunc();
-                this.minecraft.font.drawShadow(p_94774_, component, (float) j, (float) k, 16777215 + (i << 24));
+                this.minecraft.font.drawShadow(pPoseStack, component, (float) j, (float) k, 16777215 + (i << 24));
                 RenderSystem.disableBlend();
             }
         }
     }
 
-    public void onSpectatorMenuClosed(SpectatorMenu p_94792_) {
+    public void onSpectatorMenuClosed(SpectatorMenu pMenu) {
         this.menu = null;
         this.lastSelectionTime = 0L;
     }
@@ -121,9 +121,9 @@ public class SpectatorGui extends GuiComponent implements SpectatorMenuListener 
         return this.menu != null;
     }
 
-    public void onMouseScrolled(int p_205381_) {
+    public void onMouseScrolled(int pAmount) {
         int i;
-        for (i = this.menu.getSelectedSlot() + p_205381_; i >= 0 && i <= 8 && (this.menu.getItem(i) == SpectatorMenu.EMPTY_SLOT || !this.menu.getItem(i).isEnabled()); i += p_205381_) {
+        for (i = this.menu.getSelectedSlot() + pAmount; i >= 0 && i <= 8 && (this.menu.getItem(i) == SpectatorMenu.EMPTY_SLOT || !this.menu.getItem(i).isEnabled()); i += pAmount) {
         }
 
         if (i >= 0 && i <= 8) {

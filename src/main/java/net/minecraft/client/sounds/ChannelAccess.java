@@ -20,15 +20,15 @@ public class ChannelAccess {
     final Library library;
     final Executor executor;
 
-    public ChannelAccess(Library p_120125_, Executor p_120126_) {
-        this.library = p_120125_;
-        this.executor = p_120126_;
+    public ChannelAccess(Library pLibrary, Executor pExecutor) {
+        this.library = pLibrary;
+        this.executor = pExecutor;
     }
 
-    public CompletableFuture<ChannelAccess.ChannelHandle> createHandle(Library.Pool p_120129_) {
+    public CompletableFuture<ChannelAccess.ChannelHandle> createHandle(Library.Pool pSystemMode) {
         CompletableFuture<ChannelAccess.ChannelHandle> completablefuture = new CompletableFuture<>();
         this.executor.execute(() -> {
-            Channel channel = this.library.acquireChannel(p_120129_);
+            Channel channel = this.library.acquireChannel(pSystemMode);
             if (channel != null) {
                 ChannelAccess.ChannelHandle channelaccess$channelhandle = new ChannelAccess.ChannelHandle(channel);
                 this.channels.add(channelaccess$channelhandle);
@@ -40,9 +40,9 @@ public class ChannelAccess {
         return completablefuture;
     }
 
-    public void executeOnChannels(Consumer<Stream<Channel>> p_120138_) {
+    public void executeOnChannels(Consumer<Stream<Channel>> pSourceStreamConsumer) {
         this.executor.execute(() -> {
-            p_120138_.accept(this.channels.stream().map((p_174978_) -> {
+            pSourceStreamConsumer.accept(this.channels.stream().map((p_174978_) -> {
                                                        return p_174978_.channel;
                                                    })
                             .filter(Objects::nonNull));
@@ -83,10 +83,10 @@ public class ChannelAccess {
             this.channel = p_120150_;
         }
 
-        public void execute(Consumer<Channel> p_120155_) {
+        public void execute(Consumer<Channel> pSoundConsumer) {
             ChannelAccess.this.executor.execute(() -> {
                 if (this.channel != null) {
-                    p_120155_.accept(this.channel);
+                    pSoundConsumer.accept(this.channel);
                 }
             });
         }

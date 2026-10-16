@@ -65,11 +65,11 @@ public class IndirectMerger implements IndexMerger {
         }
     }
 
-    public boolean forMergedIndexes(IndexMerger.IndexConsumer p_83007_) {
+    public boolean forMergedIndexes(IndexMerger.IndexConsumer pConsumer) {
         int i = this.resultLength - 1;
 
         for (int j = 0; j < i; ++j) {
-            if (!p_83007_.merge(this.firstIndices[j], this.secondIndices[j], j)) {
+            if (!pConsumer.merge(this.firstIndices[j], this.secondIndices[j], j)) {
                 return false;
             }
         }

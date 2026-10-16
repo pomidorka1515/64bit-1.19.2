@@ -43,13 +43,13 @@ public class PlayerPredicate implements EntitySubPredicate {
     private final Map<ResourceLocation, PlayerPredicate.AdvancementPredicate> advancements;
     private final EntityPredicate lookingAt;
 
-    private static PlayerPredicate.AdvancementPredicate advancementPredicateFromJson(JsonElement p_62290_) {
-        if (p_62290_.isJsonPrimitive()) {
-            boolean flag = p_62290_.getAsBoolean();
+    private static PlayerPredicate.AdvancementPredicate advancementPredicateFromJson(JsonElement pJson) {
+        if (pJson.isJsonPrimitive()) {
+            boolean flag = pJson.getAsBoolean();
             return new PlayerPredicate.AdvancementDonePredicate(flag);
         } else {
             Object2BooleanMap<String> object2booleanmap = new Object2BooleanOpenHashMap<>();
-            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_62290_, "criterion data");
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(pJson, "criterion data");
             jsonobject.entrySet().forEach((p_62288_) -> {
                 boolean flag1 = GsonHelper.convertToBoolean(p_62288_.getValue(), "criterion test");
                 object2booleanmap.put(p_62288_.getKey(), flag1);
@@ -58,13 +58,13 @@ public class PlayerPredicate implements EntitySubPredicate {
         }
     }
 
-    PlayerPredicate(MinMaxBounds.Ints p_156746_, @Nullable GameType p_156747_, Map<Stat<?>, MinMaxBounds.Ints> p_156748_, Object2BooleanMap<ResourceLocation> p_156749_, Map<ResourceLocation, PlayerPredicate.AdvancementPredicate> p_156750_, EntityPredicate p_156751_) {
-        this.level = p_156746_;
-        this.gameType = p_156747_;
-        this.stats = p_156748_;
-        this.recipes = p_156749_;
-        this.advancements = p_156750_;
-        this.lookingAt = p_156751_;
+    PlayerPredicate(MinMaxBounds.Ints pLevel, @Nullable GameType pGameType, Map<Stat<?>, MinMaxBounds.Ints> pStats, Object2BooleanMap<ResourceLocation> pRecipes, Map<ResourceLocation, PlayerPredicate.AdvancementPredicate> pAdvancements, EntityPredicate pLookingAt) {
+        this.level = pLevel;
+        this.gameType = pGameType;
+        this.stats = pStats;
+        this.recipes = pRecipes;
+        this.advancements = pAdvancements;
+        this.lookingAt = pLookingAt;
     }
 
     public boolean matches(Entity p_222484_, ServerLevel p_222485_, @Nullable Vec3 p_222486_) {
@@ -125,12 +125,12 @@ public class PlayerPredicate implements EntitySubPredicate {
         }
     }
 
-    public static PlayerPredicate fromJson(JsonObject p_222492_) {
-        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(p_222492_.get("level"));
-        String s = GsonHelper.getAsString(p_222492_, "gamemode", "");
+    public static PlayerPredicate fromJson(JsonObject pJson) {
+        MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromJson(pJson.get("level"));
+        String s = GsonHelper.getAsString(pJson, "gamemode", "");
         GameType gametype = GameType.byName(s, (GameType) null);
         Map<Stat<?>, MinMaxBounds.Ints> map = Maps.newHashMap();
-        JsonArray jsonarray = GsonHelper.getAsJsonArray(p_222492_, "stats", (JsonArray) null);
+        JsonArray jsonarray = GsonHelper.getAsJsonArray(pJson, "stats", (JsonArray) null);
         if (jsonarray != null) {
             for (JsonElement jsonelement : jsonarray) {
                 JsonObject jsonobject = GsonHelper.convertToJsonObject(jsonelement, "stats entry");
@@ -148,7 +148,7 @@ public class PlayerPredicate implements EntitySubPredicate {
         }
 
         Object2BooleanMap<ResourceLocation> object2booleanmap = new Object2BooleanOpenHashMap<>();
-        JsonObject jsonobject1 = GsonHelper.getAsJsonObject(p_222492_, "recipes", new JsonObject());
+        JsonObject jsonobject1 = GsonHelper.getAsJsonObject(pJson, "recipes", new JsonObject());
 
         for (Map.Entry<String, JsonElement> entry : jsonobject1.entrySet()) {
             ResourceLocation resourcelocation2 = new ResourceLocation(entry.getKey());
@@ -157,7 +157,7 @@ public class PlayerPredicate implements EntitySubPredicate {
         }
 
         Map<ResourceLocation, PlayerPredicate.AdvancementPredicate> map1 = Maps.newHashMap();
-        JsonObject jsonobject2 = GsonHelper.getAsJsonObject(p_222492_, "advancements", new JsonObject());
+        JsonObject jsonobject2 = GsonHelper.getAsJsonObject(pJson, "advancements", new JsonObject());
 
         for (Map.Entry<String, JsonElement> entry1 : jsonobject2.entrySet()) {
             ResourceLocation resourcelocation3 = new ResourceLocation(entry1.getKey());
@@ -165,22 +165,22 @@ public class PlayerPredicate implements EntitySubPredicate {
             map1.put(resourcelocation3, playerpredicate$advancementpredicate);
         }
 
-        EntityPredicate entitypredicate = EntityPredicate.fromJson(p_222492_.get("looking_at"));
+        EntityPredicate entitypredicate = EntityPredicate.fromJson(pJson.get("looking_at"));
         return new PlayerPredicate(minmaxbounds$ints, gametype, map, object2booleanmap, map1, entitypredicate);
     }
 
-    private static <T> Stat<T> getStat(StatType<T> p_62268_, ResourceLocation p_62269_) {
-        Registry<T> registry = p_62268_.getRegistry();
-        T t = registry.get(p_62269_);
+    private static <T> Stat<T> getStat(StatType<T> pType, ResourceLocation pId) {
+        Registry<T> registry = pType.getRegistry();
+        T t = registry.get(pId);
         if (t == null) {
-            throw new JsonParseException("Unknown object " + p_62269_ + " for stat type " + Registry.STAT_TYPE.getKey(p_62268_));
+            throw new JsonParseException("Unknown object " + pId + " for stat type " + Registry.STAT_TYPE.getKey(pType));
         } else {
-            return p_62268_.get(t);
+            return pType.get(t);
         }
     }
 
-    private static <T> ResourceLocation getStatValueId(Stat<T> p_62266_) {
-        return p_62266_.getType().getRegistry().getKey(p_62266_.getValue());
+    private static <T> ResourceLocation getStatValueId(Stat<T> pStat) {
+        return pStat.getType().getRegistry().getKey(pStat.getValue());
     }
 
     public JsonObject serializeCustomData() {
@@ -229,8 +229,8 @@ public class PlayerPredicate implements EntitySubPredicate {
     static class AdvancementCriterionsPredicate implements PlayerPredicate.AdvancementPredicate {
         private final Object2BooleanMap<String> criterions;
 
-        public AdvancementCriterionsPredicate(Object2BooleanMap<String> p_62293_) {
-            this.criterions = p_62293_;
+        public AdvancementCriterionsPredicate(Object2BooleanMap<String> pCriterions) {
+            this.criterions = pCriterions;
         }
 
         public JsonElement toJson() {
@@ -254,8 +254,8 @@ public class PlayerPredicate implements EntitySubPredicate {
     static class AdvancementDonePredicate implements PlayerPredicate.AdvancementPredicate {
         private final boolean state;
 
-        public AdvancementDonePredicate(boolean p_62301_) {
-            this.state = p_62301_;
+        public AdvancementDonePredicate(boolean pState) {
+            this.state = pState;
         }
 
         public JsonElement toJson() {
@@ -284,38 +284,38 @@ public class PlayerPredicate implements EntitySubPredicate {
             return new PlayerPredicate.Builder();
         }
 
-        public PlayerPredicate.Builder setLevel(MinMaxBounds.Ints p_156776_) {
-            this.level = p_156776_;
+        public PlayerPredicate.Builder setLevel(MinMaxBounds.Ints pLevel) {
+            this.level = pLevel;
             return this;
         }
 
-        public PlayerPredicate.Builder addStat(Stat<?> p_156769_, MinMaxBounds.Ints p_156770_) {
-            this.stats.put(p_156769_, p_156770_);
+        public PlayerPredicate.Builder addStat(Stat<?> pStat, MinMaxBounds.Ints pValue) {
+            this.stats.put(pStat, pValue);
             return this;
         }
 
-        public PlayerPredicate.Builder addRecipe(ResourceLocation p_156781_, boolean p_156782_) {
-            this.recipes.put(p_156781_, p_156782_);
+        public PlayerPredicate.Builder addRecipe(ResourceLocation pRecipe, boolean pUnlocked) {
+            this.recipes.put(pRecipe, pUnlocked);
             return this;
         }
 
-        public PlayerPredicate.Builder setGameType(GameType p_156774_) {
-            this.gameType = p_156774_;
+        public PlayerPredicate.Builder setGameType(GameType pGameType) {
+            this.gameType = pGameType;
             return this;
         }
 
-        public PlayerPredicate.Builder setLookingAt(EntityPredicate p_156772_) {
-            this.lookingAt = p_156772_;
+        public PlayerPredicate.Builder setLookingAt(EntityPredicate pLookingAt) {
+            this.lookingAt = pLookingAt;
             return this;
         }
 
-        public PlayerPredicate.Builder checkAdvancementDone(ResourceLocation p_156784_, boolean p_156785_) {
-            this.advancements.put(p_156784_, new PlayerPredicate.AdvancementDonePredicate(p_156785_));
+        public PlayerPredicate.Builder checkAdvancementDone(ResourceLocation pAdvancement, boolean pDone) {
+            this.advancements.put(pAdvancement, new PlayerPredicate.AdvancementDonePredicate(pDone));
             return this;
         }
 
-        public PlayerPredicate.Builder checkAdvancementCriterions(ResourceLocation p_156778_, Map<String, Boolean> p_156779_) {
-            this.advancements.put(p_156778_, new PlayerPredicate.AdvancementCriterionsPredicate(new Object2BooleanOpenHashMap<>(p_156779_)));
+        public PlayerPredicate.Builder checkAdvancementCriterions(ResourceLocation pAdvancement, Map<String, Boolean> pCriterions) {
+            this.advancements.put(pAdvancement, new PlayerPredicate.AdvancementCriterionsPredicate(new Object2BooleanOpenHashMap<>(pCriterions)));
             return this;
         }
 

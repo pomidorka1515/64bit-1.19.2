@@ -9,9 +9,9 @@ public abstract class CollectionTag<T extends Tag> extends AbstractList<T> imple
 
     public abstract T remove(int p_128313_);
 
-    public abstract boolean setTag(int p_128305_, Tag p_128306_);
+    public abstract boolean setTag(int pIndex, Tag pTag);
 
-    public abstract boolean addTag(int p_128310_, Tag p_128311_);
+    public abstract boolean addTag(int pIndex, Tag pTag);
 
     public abstract byte getElementType();
 }

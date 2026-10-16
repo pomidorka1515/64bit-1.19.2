@@ -18,18 +18,18 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ComponentRenderUtils {
     private static final FormattedCharSequence INDENT = FormattedCharSequence.codepoint(32, Style.EMPTY);
 
-    private static String stripColor(String p_94000_) {
-        return Minecraft.getInstance().options.chatColors().get() ? p_94000_ : ChatFormatting.stripFormatting(p_94000_);
+    private static String stripColor(String pText) {
+        return Minecraft.getInstance().options.chatColors().get() ? pText : ChatFormatting.stripFormatting(pText);
     }
 
-    public static List<FormattedCharSequence> wrapComponents(FormattedText p_94006_, int p_94007_, Font p_94008_) {
+    public static List<FormattedCharSequence> wrapComponents(FormattedText pComponent, int pMaxWidth, Font pFont) {
         ComponentCollector componentcollector = new ComponentCollector();
-        p_94006_.visit((p_93997_, p_93998_) -> {
+        pComponent.visit((p_93997_, p_93998_) -> {
             componentcollector.append(FormattedText.of(stripColor(p_93998_), p_93997_));
             return Optional.empty();
         }, Style.EMPTY);
         List<FormattedCharSequence> list = Lists.newArrayList();
-        p_94008_.getSplitter().splitLines(componentcollector.getResultOrEmpty(), p_94007_, Style.EMPTY, (p_94003_, p_94004_) -> {
+        pFont.getSplitter().splitLines(componentcollector.getResultOrEmpty(), pMaxWidth, Style.EMPTY, (p_94003_, p_94004_) -> {
             FormattedCharSequence formattedcharsequence = Language.getInstance().getVisualOrder(p_94003_);
             list.add(p_94004_ ? FormattedCharSequence.composite(INDENT, formattedcharsequence) : formattedcharsequence);
         });

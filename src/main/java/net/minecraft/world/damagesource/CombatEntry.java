@@ -14,13 +14,13 @@ public class CombatEntry {
     private final String location;
     private final float fallDistance;
 
-    public CombatEntry(DamageSource p_19257_, int p_19258_, float p_19259_, float p_19260_, @Nullable String p_19261_, float p_19262_) {
-        this.source = p_19257_;
-        this.time = p_19258_;
-        this.damage = p_19260_;
-        this.health = p_19259_;
-        this.location = p_19261_;
-        this.fallDistance = p_19262_;
+    public CombatEntry(DamageSource pSource, int pTime, float pHealth, float pDamage, @Nullable String pLocation, float pFallDistance) {
+        this.source = pSource;
+        this.time = pTime;
+        this.damage = pDamage;
+        this.health = pHealth;
+        this.location = pLocation;
+        this.fallDistance = pFallDistance;
     }
 
     public DamageSource getSource() {

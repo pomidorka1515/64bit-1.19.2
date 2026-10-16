@@ -20,43 +20,43 @@ public class SaplingBlock extends BushBlock implements BonemealableBlock {
     protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D);
     private final AbstractTreeGrower treeGrower;
 
-    protected SaplingBlock(AbstractTreeGrower p_55978_, BlockBehaviour.Properties p_55979_) {
-        super(p_55979_);
-        this.treeGrower = p_55978_;
+    protected SaplingBlock(AbstractTreeGrower pTreeGrower, BlockBehaviour.Properties pProperties) {
+        super(pProperties);
+        this.treeGrower = pTreeGrower;
         this.registerDefaultState(this.stateDefinition.any().setValue(STAGE, Integer.valueOf(0)));
     }
 
-    public VoxelShape getShape(BlockState p_56008_, BlockGetter p_56009_, BlockPos p_56010_, CollisionContext p_56011_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
-    public void randomTick(BlockState p_222011_, ServerLevel p_222012_, BlockPos p_222013_, RandomSource p_222014_) {
-        if (p_222012_.getMaxLocalRawBrightness(p_222013_.above()) >= 9 && p_222014_.nextInt(7) == 0) {
-            this.advanceTree(p_222012_, p_222013_, p_222011_, p_222014_);
+    public void randomTick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (pLevel.getMaxLocalRawBrightness(pPos.above()) >= 9 && pRandom.nextInt(7) == 0) {
+            this.advanceTree(pLevel, pPos, pState, pRandom);
         }
     }
 
-    public void advanceTree(ServerLevel p_222001_, BlockPos p_222002_, BlockState p_222003_, RandomSource p_222004_) {
-        if (p_222003_.getValue(STAGE) == 0) {
-            p_222001_.setBlock(p_222002_, p_222003_.cycle(STAGE), 4);
+    public void advanceTree(ServerLevel pLevel, BlockPos pPos, BlockState pState, RandomSource pRandom) {
+        if (pState.getValue(STAGE) == 0) {
+            pLevel.setBlock(pPos, pState.cycle(STAGE), 4);
         } else {
-            this.treeGrower.growTree(p_222001_, p_222001_.getChunkSource().getGenerator(), p_222002_, p_222003_, p_222004_);
+            this.treeGrower.growTree(pLevel, pLevel.getChunkSource().getGenerator(), pPos, pState, pRandom);
         }
     }
 
-    public boolean isValidBonemealTarget(BlockGetter p_55991_, BlockPos p_55992_, BlockState p_55993_, boolean p_55994_) {
+    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
         return true;
     }
 
-    public boolean isBonemealSuccess(Level p_222006_, RandomSource p_222007_, BlockPos p_222008_, BlockState p_222009_) {
-        return (double) p_222006_.random.nextFloat() < 0.45D;
+    public boolean isBonemealSuccess(Level pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        return (double) pLevel.random.nextFloat() < 0.45D;
     }
 
-    public void performBonemeal(ServerLevel p_221996_, RandomSource p_221997_, BlockPos p_221998_, BlockState p_221999_) {
-        this.advanceTree(p_221996_, p_221998_, p_221999_, p_221997_);
+    public void performBonemeal(ServerLevel pLevel, RandomSource pRandom, BlockPos pPos, BlockState pState) {
+        this.advanceTree(pLevel, pPos, pState, pRandom);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_56001_) {
-        p_56001_.add(STAGE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(STAGE);
     }
 }

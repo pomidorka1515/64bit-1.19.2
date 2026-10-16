@@ -10,35 +10,35 @@ public class FurnaceResultSlot extends Slot {
     private final Player player;
     private int removeCount;
 
-    public FurnaceResultSlot(Player p_39542_, Container p_39543_, int p_39544_, int p_39545_, int p_39546_) {
-        super(p_39543_, p_39544_, p_39545_, p_39546_);
-        this.player = p_39542_;
+    public FurnaceResultSlot(Player pPlayer, Container pContainer, int pSlot, int pXPosition, int pYPosition) {
+        super(pContainer, pSlot, pXPosition, pYPosition);
+        this.player = pPlayer;
     }
 
-    public boolean mayPlace(ItemStack p_39553_) {
+    public boolean mayPlace(ItemStack pStack) {
         return false;
     }
 
-    public ItemStack remove(int p_39548_) {
+    public ItemStack remove(int pAmount) {
         if (this.hasItem()) {
-            this.removeCount += Math.min(p_39548_, this.getItem().getCount());
+            this.removeCount += Math.min(pAmount, this.getItem().getCount());
         }
 
-        return super.remove(p_39548_);
+        return super.remove(pAmount);
     }
 
-    public void onTake(Player p_150563_, ItemStack p_150564_) {
-        this.checkTakeAchievements(p_150564_);
-        super.onTake(p_150563_, p_150564_);
+    public void onTake(Player pPlayer, ItemStack pStack) {
+        this.checkTakeAchievements(pStack);
+        super.onTake(pPlayer, pStack);
     }
 
-    protected void onQuickCraft(ItemStack p_39555_, int p_39556_) {
-        this.removeCount += p_39556_;
-        this.checkTakeAchievements(p_39555_);
+    protected void onQuickCraft(ItemStack pStack, int pAmount) {
+        this.removeCount += pAmount;
+        this.checkTakeAchievements(pStack);
     }
 
-    protected void checkTakeAchievements(ItemStack p_39558_) {
-        p_39558_.onCraftedBy(this.player.level, this.player, this.removeCount);
+    protected void checkTakeAchievements(ItemStack pStack) {
+        pStack.onCraftedBy(this.player.level, this.player, this.removeCount);
         if (this.player instanceof ServerPlayer && this.container instanceof AbstractFurnaceBlockEntity) {
             ((AbstractFurnaceBlockEntity) this.container).awardUsedRecipesAndPopExperience((ServerPlayer) this.player);
         }

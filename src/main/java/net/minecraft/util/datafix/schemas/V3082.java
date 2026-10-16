@@ -8,14 +8,14 @@ import java.util.function.Supplier;
 import net.minecraft.util.datafix.fixes.References;
 
 public class V3082 extends NamespacedSchema {
-    public V3082(int p_216797_, Schema p_216798_) {
-        super(p_216797_, p_216798_);
+    public V3082(int pVersionKey, Schema pParent) {
+        super(pVersionKey, pParent);
     }
 
-    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema p_216803_) {
-        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(p_216803_);
-        p_216803_.register(map, "minecraft:chest_boat", (p_216801_) -> {
-            return DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(p_216803_)));
+    public Map<String, Supplier<TypeTemplate>> registerEntities(Schema pSchema) {
+        Map<String, Supplier<TypeTemplate>> map = super.registerEntities(pSchema);
+        pSchema.register(map, "minecraft:chest_boat", (p_216801_) -> {
+            return DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(pSchema)));
         });
         return map;
     }

@@ -6,8 +6,8 @@ import com.mojang.datafixers.TypeRewriteRule;
 import com.mojang.datafixers.schemas.Schema;
 
 public class PlayerUUIDFix extends AbstractUUIDFix {
-    public PlayerUUIDFix(Schema p_16684_) {
-        super(p_16684_, References.PLAYER);
+    public PlayerUUIDFix(Schema pOutputSchema) {
+        super(pOutputSchema, References.PLAYER);
     }
 
     protected TypeRewriteRule makeRule() {

@@ -37,11 +37,11 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {
     public final boolean active;
     private final Player owner;
 
-    public InventoryMenu(Inventory p_39706_, boolean p_39707_, final Player p_39708_) {
+    public InventoryMenu(Inventory pPlayerInventory, boolean pActive, final Player pOwner) {
         super((MenuType<?>) null, 0);
-        this.active = p_39707_;
-        this.owner = p_39708_;
-        this.addSlot(new ResultSlot(p_39706_.player, this.craftSlots, this.resultSlots, 0, 154, 28));
+        this.active = pActive;
+        this.owner = pOwner;
+        this.addSlot(new ResultSlot(pPlayerInventory.player, this.craftSlots, this.resultSlots, 0, 154, 28));
 
         for (int i = 0; i < 2; ++i) {
             for (int j = 0; j < 2; ++j) {
@@ -51,11 +51,11 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {
 
         for (int k = 0; k < 4; ++k) {
             final EquipmentSlot equipmentslot = SLOT_IDS[k];
-            this.addSlot(new Slot(p_39706_, 39 - k, 8, 8 + k * 18) {
+            this.addSlot(new Slot(pPlayerInventory, 39 - k, 8, 8 + k * 18) {
                 public void set(ItemStack p_219985_) {
                     ItemStack itemstack = this.getItem();
                     super.set(p_219985_);
-                    p_39708_.onEquipItem(equipmentslot, itemstack, p_219985_);
+                    pOwner.onEquipItem(equipmentslot, itemstack, p_219985_);
                 }
 
                 public int getMaxStackSize() {
@@ -79,27 +79,27 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {
 
         for (int l = 0; l < 3; ++l) {
             for (int j1 = 0; j1 < 9; ++j1) {
-                this.addSlot(new Slot(p_39706_, j1 + (l + 1) * 9, 8 + j1 * 18, 84 + l * 18));
+                this.addSlot(new Slot(pPlayerInventory, j1 + (l + 1) * 9, 8 + j1 * 18, 84 + l * 18));
             }
         }
 
         for (int i1 = 0; i1 < 9; ++i1) {
-            this.addSlot(new Slot(p_39706_, i1, 8 + i1 * 18, 142));
+            this.addSlot(new Slot(pPlayerInventory, i1, 8 + i1 * 18, 142));
         }
 
-        this.addSlot(new Slot(p_39706_, 40, 77, 62) {
+        this.addSlot(new Slot(pPlayerInventory, 40, 77, 62) {
             public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
                 return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
             }
         });
     }
 
-    public static boolean isHotbarSlot(int p_150593_) {
-        return p_150593_ >= 36 && p_150593_ < 45 || p_150593_ == 45;
+    public static boolean isHotbarSlot(int pIndex) {
+        return pIndex >= 36 && pIndex < 45 || pIndex == 45;
     }
 
-    public void fillCraftSlotsStackedContents(StackedContents p_39714_) {
-        this.craftSlots.fillStackedContents(p_39714_);
+    public void fillCraftSlotsStackedContents(StackedContents pItemHelper) {
+        this.craftSlots.fillStackedContents(pItemHelper);
     }
 
     public void clearCraftingContent() {
@@ -107,44 +107,44 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {
         this.craftSlots.clearContent();
     }
 
-    public boolean recipeMatches(Recipe<? super CraftingContainer> p_39719_) {
-        return p_39719_.matches(this.craftSlots, this.owner.level);
+    public boolean recipeMatches(Recipe<? super CraftingContainer> pRecipe) {
+        return pRecipe.matches(this.craftSlots, this.owner.level);
     }
 
-    public void slotsChanged(Container p_39710_) {
+    public void slotsChanged(Container pInventory) {
         CraftingMenu.slotChangedCraftingGrid(this, this.owner.level, this.owner, this.craftSlots, this.resultSlots);
     }
 
-    public void removed(Player p_39721_) {
-        super.removed(p_39721_);
+    public void removed(Player pPlayer) {
+        super.removed(pPlayer);
         this.resultSlots.clearContent();
-        if (!p_39721_.level.isClientSide) {
-            this.clearContainer(p_39721_, this.craftSlots);
+        if (!pPlayer.level.isClientSide) {
+            this.clearContainer(pPlayer, this.craftSlots);
         }
     }
 
-    public boolean stillValid(Player p_39712_) {
+    public boolean stillValid(Player pPlayer) {
         return true;
     }
 
-    public ItemStack quickMoveStack(Player p_39723_, int p_39724_) {
+    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(p_39724_);
+        Slot slot = this.slots.get(pIndex);
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             EquipmentSlot equipmentslot = Mob.getEquipmentSlotForItem(itemstack);
-            if (p_39724_ == 0) {
+            if (pIndex == 0) {
                 if (!this.moveItemStackTo(itemstack1, 9, 45, true)) {
                     return ItemStack.EMPTY;
                 }
 
                 slot.onQuickCraft(itemstack1, itemstack);
-            } else if (p_39724_ >= 1 && p_39724_ < 5) {
+            } else if (pIndex >= 1 && pIndex < 5) {
                 if (!this.moveItemStackTo(itemstack1, 9, 45, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (p_39724_ >= 5 && p_39724_ < 9) {
+            } else if (pIndex >= 5 && pIndex < 9) {
                 if (!this.moveItemStackTo(itemstack1, 9, 45, false)) {
                     return ItemStack.EMPTY;
                 }
@@ -157,11 +157,11 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {
                 if (!this.moveItemStackTo(itemstack1, 45, 46, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (p_39724_ >= 9 && p_39724_ < 36) {
+            } else if (pIndex >= 9 && pIndex < 36) {
                 if (!this.moveItemStackTo(itemstack1, 36, 45, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (p_39724_ >= 36 && p_39724_ < 45) {
+            } else if (pIndex >= 36 && pIndex < 45) {
                 if (!this.moveItemStackTo(itemstack1, 9, 36, false)) {
                     return ItemStack.EMPTY;
                 }
@@ -179,17 +179,17 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(p_39723_, itemstack1);
-            if (p_39724_ == 0) {
-                p_39723_.drop(itemstack1, false);
+            slot.onTake(pPlayer, itemstack1);
+            if (pIndex == 0) {
+                pPlayer.drop(itemstack1, false);
             }
         }
 
         return itemstack;
     }
 
-    public boolean canTakeItemForPickAll(ItemStack p_39716_, Slot p_39717_) {
-        return p_39717_.container != this.resultSlots && super.canTakeItemForPickAll(p_39716_, p_39717_);
+    public boolean canTakeItemForPickAll(ItemStack pStack, Slot pSlot) {
+        return pSlot.container != this.resultSlots && super.canTakeItemForPickAll(pStack, pSlot);
     }
 
     public int getResultSlotIndex() {
@@ -216,7 +216,7 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {
         return RecipeBookType.CRAFTING;
     }
 
-    public boolean shouldMoveToInventory(int p_150591_) {
-        return p_150591_ != this.getResultSlotIndex();
+    public boolean shouldMoveToInventory(int pSlotIndex) {
+        return pSlotIndex != this.getResultSlotIndex();
     }
 }

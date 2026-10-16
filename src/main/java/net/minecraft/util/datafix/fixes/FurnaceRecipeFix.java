@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class FurnaceRecipeFix extends DataFix {
-    public FurnaceRecipeFix(Schema p_15837_, boolean p_15838_) {
-        super(p_15837_, p_15838_);
+    public FurnaceRecipeFix(Schema pOutputSchema, boolean pChangesType) {
+        super(pOutputSchema, pChangesType);
     }
 
     protected TypeRewriteRule makeRule() {

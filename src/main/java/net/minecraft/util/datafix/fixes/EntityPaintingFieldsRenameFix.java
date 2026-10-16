@@ -8,8 +8,8 @@ import com.mojang.serialization.Dynamic;
 import java.util.Optional;
 
 public class EntityPaintingFieldsRenameFix extends NamedEntityFix {
-    public EntityPaintingFieldsRenameFix(Schema p_216606_) {
-        super(p_216606_, false, "EntityPaintingFieldsRenameFix", References.ENTITY, "minecraft:painting");
+    public EntityPaintingFieldsRenameFix(Schema pOutputSchema) {
+        super(pOutputSchema, false, "EntityPaintingFieldsRenameFix", References.ENTITY, "minecraft:painting");
     }
 
     public Dynamic<?> fixTag(Dynamic<?> p_216610_) {

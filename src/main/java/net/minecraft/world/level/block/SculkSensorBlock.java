@@ -95,10 +95,10 @@ public class SculkSensorBlock extends BaseEntityBlock implements SimpleWaterlogg
     protected static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
     private final int listenerRange;
 
-    public SculkSensorBlock(BlockBehaviour.Properties p_154393_, int p_154394_) {
-        super(p_154393_);
+    public SculkSensorBlock(BlockBehaviour.Properties pProperties, int pListenerRange) {
+        super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(PHASE, SculkSensorPhase.INACTIVE).setValue(POWER, Integer.valueOf(0)).setValue(WATERLOGGED, Boolean.valueOf(false)));
-        this.listenerRange = p_154394_;
+        this.listenerRange = pListenerRange;
     }
 
     public int getListenerRange() {
@@ -106,179 +106,179 @@ public class SculkSensorBlock extends BaseEntityBlock implements SimpleWaterlogg
     }
 
     @Nullable
-    public BlockState getStateForPlacement(BlockPlaceContext p_154396_) {
-        BlockPos blockpos = p_154396_.getClickedPos();
-        FluidState fluidstate = p_154396_.getLevel().getFluidState(blockpos);
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+        BlockPos blockpos = pContext.getClickedPos();
+        FluidState fluidstate = pContext.getLevel().getFluidState(blockpos);
         return this.defaultBlockState().setValue(WATERLOGGED, Boolean.valueOf(fluidstate.getType() == Fluids.WATER));
     }
 
-    public FluidState getFluidState(BlockState p_154479_) {
-        return p_154479_.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(p_154479_);
+    public FluidState getFluidState(BlockState pState) {
+        return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
     }
 
-    public void tick(BlockState p_222137_, ServerLevel p_222138_, BlockPos p_222139_, RandomSource p_222140_) {
-        if (getPhase(p_222137_) != SculkSensorPhase.ACTIVE) {
-            if (getPhase(p_222137_) == SculkSensorPhase.COOLDOWN) {
-                p_222138_.setBlock(p_222139_, p_222137_.setValue(PHASE, SculkSensorPhase.INACTIVE), 3);
+    public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (getPhase(pState) != SculkSensorPhase.ACTIVE) {
+            if (getPhase(pState) == SculkSensorPhase.COOLDOWN) {
+                pLevel.setBlock(pPos, pState.setValue(PHASE, SculkSensorPhase.INACTIVE), 3);
             }
 
         } else {
-            deactivate(p_222138_, p_222139_, p_222137_);
+            deactivate(pLevel, pPos, pState);
         }
     }
 
-    public void stepOn(Level p_222132_, BlockPos p_222133_, BlockState p_222134_, Entity p_222135_) {
-        if (!p_222132_.isClientSide() && canActivate(p_222134_) && p_222135_.getType() != EntityType.WARDEN) {
-            BlockEntity blockentity = p_222132_.getBlockEntity(p_222133_);
+    public void stepOn(Level pLevel, BlockPos pPos, BlockState pState, Entity pEntity) {
+        if (!pLevel.isClientSide() && canActivate(pState) && pEntity.getType() != EntityType.WARDEN) {
+            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
             if (blockentity instanceof SculkSensorBlockEntity) {
                 SculkSensorBlockEntity sculksensorblockentity = (SculkSensorBlockEntity) blockentity;
                 sculksensorblockentity.setLastVibrationFrequency(VIBRATION_FREQUENCY_FOR_EVENT.get(GameEvent.STEP));
             }
 
-            activate(p_222135_, p_222132_, p_222133_, p_222134_, 15);
+            activate(pEntity, pLevel, pPos, pState, 15);
         }
 
-        super.stepOn(p_222132_, p_222133_, p_222134_, p_222135_);
+        super.stepOn(pLevel, pPos, pState, pEntity);
     }
 
-    public void onPlace(BlockState p_154471_, Level p_154472_, BlockPos p_154473_, BlockState p_154474_, boolean p_154475_) {
-        if (!p_154472_.isClientSide() && !p_154471_.is(p_154474_.getBlock())) {
-            if (p_154471_.getValue(POWER) > 0 && !p_154472_.getBlockTicks().hasScheduledTick(p_154473_, this)) {
-                p_154472_.setBlock(p_154473_, p_154471_.setValue(POWER, Integer.valueOf(0)), 18);
+    public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
+        if (!pLevel.isClientSide() && !pState.is(pOldState.getBlock())) {
+            if (pState.getValue(POWER) > 0 && !pLevel.getBlockTicks().hasScheduledTick(pPos, this)) {
+                pLevel.setBlock(pPos, pState.setValue(POWER, Integer.valueOf(0)), 18);
             }
 
-            p_154472_.scheduleTick(new BlockPos(p_154473_), p_154471_.getBlock(), 1);
+            pLevel.scheduleTick(new BlockPos(pPos), pState.getBlock(), 1);
         }
     }
 
-    public void onRemove(BlockState p_154446_, Level p_154447_, BlockPos p_154448_, BlockState p_154449_, boolean p_154450_) {
-        if (!p_154446_.is(p_154449_.getBlock())) {
-            if (getPhase(p_154446_) == SculkSensorPhase.ACTIVE) {
-                updateNeighbours(p_154447_, p_154448_);
+    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+        if (!pState.is(pNewState.getBlock())) {
+            if (getPhase(pState) == SculkSensorPhase.ACTIVE) {
+                updateNeighbours(pLevel, pPos);
             }
 
-            super.onRemove(p_154446_, p_154447_, p_154448_, p_154449_, p_154450_);
+            super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
         }
     }
 
-    public BlockState updateShape(BlockState p_154457_, Direction p_154458_, BlockState p_154459_, LevelAccessor p_154460_, BlockPos p_154461_, BlockPos p_154462_) {
-        if (p_154457_.getValue(WATERLOGGED)) {
-            p_154460_.scheduleTick(p_154461_, Fluids.WATER, Fluids.WATER.getTickDelay(p_154460_));
+    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+        if (pState.getValue(WATERLOGGED)) {
+            pLevel.scheduleTick(pCurrentPos, Fluids.WATER, Fluids.WATER.getTickDelay(pLevel));
         }
 
-        return super.updateShape(p_154457_, p_154458_, p_154459_, p_154460_, p_154461_, p_154462_);
+        return super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
     }
 
-    private static void updateNeighbours(Level p_154405_, BlockPos p_154406_) {
-        p_154405_.updateNeighborsAt(p_154406_, Blocks.SCULK_SENSOR);
-        p_154405_.updateNeighborsAt(p_154406_.relative(Direction.UP.getOpposite()), Blocks.SCULK_SENSOR);
-    }
-
-    @Nullable
-    public BlockEntity newBlockEntity(BlockPos p_154466_, BlockState p_154467_) {
-        return new SculkSensorBlockEntity(p_154466_, p_154467_);
+    private static void updateNeighbours(Level pLevel, BlockPos pPos) {
+        pLevel.updateNeighborsAt(pPos, Blocks.SCULK_SENSOR);
+        pLevel.updateNeighborsAt(pPos.relative(Direction.UP.getOpposite()), Blocks.SCULK_SENSOR);
     }
 
     @Nullable
-    public <T extends BlockEntity> GameEventListener getListener(ServerLevel p_222123_, T p_222124_) {
-        return p_222124_ instanceof SculkSensorBlockEntity ? ((SculkSensorBlockEntity) p_222124_).getListener() : null;
+    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return new SculkSensorBlockEntity(pPos, pState);
     }
 
     @Nullable
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_154401_, BlockState p_154402_, BlockEntityType<T> p_154403_) {
-        return !p_154401_.isClientSide ? createTickerHelper(p_154403_, BlockEntityType.SCULK_SENSOR, (p_154417_, p_154418_, p_154419_, p_154420_) -> {
+    public <T extends BlockEntity> GameEventListener getListener(ServerLevel pLevel, T pBlockEntity) {
+        return pBlockEntity instanceof SculkSensorBlockEntity ? ((SculkSensorBlockEntity) pBlockEntity).getListener() : null;
+    }
+
+    @Nullable
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
+        return !pLevel.isClientSide ? createTickerHelper(pBlockEntityType, BlockEntityType.SCULK_SENSOR, (p_154417_, p_154418_, p_154419_, p_154420_) -> {
             p_154420_.getListener().tick(p_154417_);
         }) : null;
     }
 
-    public RenderShape getRenderShape(BlockState p_154477_) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
-    public VoxelShape getShape(BlockState p_154432_, BlockGetter p_154433_, BlockPos p_154434_, CollisionContext p_154435_) {
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return SHAPE;
     }
 
-    public boolean isSignalSource(BlockState p_154484_) {
+    public boolean isSignalSource(BlockState pState) {
         return true;
     }
 
-    public int getSignal(BlockState p_154437_, BlockGetter p_154438_, BlockPos p_154439_, Direction p_154440_) {
-        return p_154437_.getValue(POWER);
+    public int getSignal(BlockState pState, BlockGetter pLevel, BlockPos pPos, Direction pDirection) {
+        return pState.getValue(POWER);
     }
 
-    public static SculkSensorPhase getPhase(BlockState p_154488_) {
-        return p_154488_.getValue(PHASE);
+    public static SculkSensorPhase getPhase(BlockState pState) {
+        return pState.getValue(PHASE);
     }
 
-    public static boolean canActivate(BlockState p_154490_) {
-        return getPhase(p_154490_) == SculkSensorPhase.INACTIVE;
+    public static boolean canActivate(BlockState pState) {
+        return getPhase(pState) == SculkSensorPhase.INACTIVE;
     }
 
-    public static void deactivate(Level p_154408_, BlockPos p_154409_, BlockState p_154410_) {
-        p_154408_.setBlock(p_154409_, p_154410_.setValue(PHASE, SculkSensorPhase.COOLDOWN).setValue(POWER, Integer.valueOf(0)), 3);
-        p_154408_.scheduleTick(p_154409_, p_154410_.getBlock(), 1);
-        if (!p_154410_.getValue(WATERLOGGED)) {
-            p_154408_.playSound((Player) null, p_154409_, SoundEvents.SCULK_CLICKING_STOP, SoundSource.BLOCKS, 1.0F, p_154408_.random.nextFloat() * 0.2F + 0.8F);
+    public static void deactivate(Level pLevel, BlockPos pPos, BlockState pState) {
+        pLevel.setBlock(pPos, pState.setValue(PHASE, SculkSensorPhase.COOLDOWN).setValue(POWER, Integer.valueOf(0)), 3);
+        pLevel.scheduleTick(pPos, pState.getBlock(), 1);
+        if (!pState.getValue(WATERLOGGED)) {
+            pLevel.playSound((Player) null, pPos, SoundEvents.SCULK_CLICKING_STOP, SoundSource.BLOCKS, 1.0F, pLevel.random.nextFloat() * 0.2F + 0.8F);
         }
 
-        updateNeighbours(p_154408_, p_154409_);
+        updateNeighbours(pLevel, pPos);
     }
 
-    public static void activate(@Nullable Entity p_222126_, Level p_222127_, BlockPos p_222128_, BlockState p_222129_, int p_222130_) {
-        p_222127_.setBlock(p_222128_, p_222129_.setValue(PHASE, SculkSensorPhase.ACTIVE).setValue(POWER, Integer.valueOf(p_222130_)), 3);
-        p_222127_.scheduleTick(p_222128_, p_222129_.getBlock(), 40);
-        updateNeighbours(p_222127_, p_222128_);
-        p_222127_.gameEvent(p_222126_, GameEvent.SCULK_SENSOR_TENDRILS_CLICKING, p_222128_);
-        if (!p_222129_.getValue(WATERLOGGED)) {
-            p_222127_.playSound((Player) null, (double) p_222128_.getX() + 0.5D, (double) p_222128_.getY() + 0.5D, (double) p_222128_.getZ() + 0.5D, SoundEvents.SCULK_CLICKING, SoundSource.BLOCKS, 1.0F, p_222127_.random.nextFloat() * 0.2F + 0.8F);
+    public static void activate(@Nullable Entity pEntity, Level pLevel, BlockPos pPos, BlockState pState, int pPower) {
+        pLevel.setBlock(pPos, pState.setValue(PHASE, SculkSensorPhase.ACTIVE).setValue(POWER, Integer.valueOf(pPower)), 3);
+        pLevel.scheduleTick(pPos, pState.getBlock(), 40);
+        updateNeighbours(pLevel, pPos);
+        pLevel.gameEvent(pEntity, GameEvent.SCULK_SENSOR_TENDRILS_CLICKING, pPos);
+        if (!pState.getValue(WATERLOGGED)) {
+            pLevel.playSound((Player) null, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, SoundEvents.SCULK_CLICKING, SoundSource.BLOCKS, 1.0F, pLevel.random.nextFloat() * 0.2F + 0.8F);
         }
     }
 
-    public void animateTick(BlockState p_222148_, Level p_222149_, BlockPos p_222150_, RandomSource p_222151_) {
-        if (getPhase(p_222148_) == SculkSensorPhase.ACTIVE) {
-            Direction direction = Direction.getRandom(p_222151_);
+    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
+        if (getPhase(pState) == SculkSensorPhase.ACTIVE) {
+            Direction direction = Direction.getRandom(pRandom);
             if (direction != Direction.UP && direction != Direction.DOWN) {
-                double d0 = 0.5D + (direction.getStepX() == 0 ? 0.5D - p_222151_.nextDouble() : (double) direction.getStepX() * 0.6D);
-                double d1 = (double) p_222150_.getY() + 0.25D;
-                double d2 = 0.5D + (direction.getStepZ() == 0 ? 0.5D - p_222151_.nextDouble() : (double) direction.getStepZ() * 0.6D);
-                double d3 = (double) p_222151_.nextFloat() * 0.04D;
-                p_222149_.addParticle(DustColorTransitionOptions.SCULK_TO_REDSTONE,
-                        SectorVec3.fromBlockAndFraction(p_222150_.getX(), d0, d1, p_222150_.getZ(), d2),
+                double d0 = 0.5D + (direction.getStepX() == 0 ? 0.5D - pRandom.nextDouble() : (double) direction.getStepX() * 0.6D);
+                double d1 = (double) pPos.getY() + 0.25D;
+                double d2 = 0.5D + (direction.getStepZ() == 0 ? 0.5D - pRandom.nextDouble() : (double) direction.getStepZ() * 0.6D);
+                double d3 = (double) pRandom.nextFloat() * 0.04D;
+                pLevel.addParticle(DustColorTransitionOptions.SCULK_TO_REDSTONE,
+                        SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2),
                         0.0D, d3, 0.0D);
             }
         }
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_154464_) {
-        p_154464_.add(PHASE, POWER, WATERLOGGED);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(PHASE, POWER, WATERLOGGED);
     }
 
-    public boolean hasAnalogOutputSignal(BlockState p_154481_) {
+    public boolean hasAnalogOutputSignal(BlockState pState) {
         return true;
     }
 
-    public int getAnalogOutputSignal(BlockState p_154442_, Level p_154443_, BlockPos p_154444_) {
-        BlockEntity blockentity = p_154443_.getBlockEntity(p_154444_);
+    public int getAnalogOutputSignal(BlockState pState, Level pLevel, BlockPos pPos) {
+        BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof SculkSensorBlockEntity sculksensorblockentity) {
-            return getPhase(p_154442_) == SculkSensorPhase.ACTIVE ? sculksensorblockentity.getLastVibrationFrequency() : 0;
+            return getPhase(pState) == SculkSensorPhase.ACTIVE ? sculksensorblockentity.getLastVibrationFrequency() : 0;
         } else {
             return 0;
         }
     }
 
-    public boolean isPathfindable(BlockState p_154427_, BlockGetter p_154428_, BlockPos p_154429_, PathComputationType p_154430_) {
+    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
 
-    public boolean useShapeForLightOcclusion(BlockState p_154486_) {
+    public boolean useShapeForLightOcclusion(BlockState pState) {
         return true;
     }
 
-    public void spawnAfterBreak(BlockState p_222142_, ServerLevel p_222143_, BlockPos p_222144_, ItemStack p_222145_, boolean p_222146_) {
-        super.spawnAfterBreak(p_222142_, p_222143_, p_222144_, p_222145_, p_222146_);
-        if (p_222146_) {
-            this.tryDropExperience(p_222143_, p_222144_, p_222145_, ConstantInt.of(5));
+    public void spawnAfterBreak(BlockState pState, ServerLevel pLevel, BlockPos pPos, ItemStack pStack, boolean pDropExperience) {
+        super.spawnAfterBreak(pState, pLevel, pPos, pStack, pDropExperience);
+        if (pDropExperience) {
+            this.tryDropExperience(pLevel, pPos, pStack, ConstantInt.of(5));
         }
     }
 }

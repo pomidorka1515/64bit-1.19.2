@@ -16,17 +16,17 @@ public class StructureFeatureIndexSavedData extends SavedData {
     private final ObjectSet<ChunkPos> all;
     private final ObjectSet<ChunkPos> remaining;
 
-    private StructureFeatureIndexSavedData(ObjectSet<ChunkPos> p_163532_, ObjectSet<ChunkPos> p_163533_) {
-        this.all = p_163532_;
-        this.remaining = p_163533_;
+    private StructureFeatureIndexSavedData(ObjectSet<ChunkPos> pAll, ObjectSet<ChunkPos> pRemaining) {
+        this.all = pAll;
+        this.remaining = pRemaining;
     }
 
     public StructureFeatureIndexSavedData() {
         this(new ObjectOpenHashSet<>(), new ObjectOpenHashSet<>());
     }
 
-    public static StructureFeatureIndexSavedData load(CompoundTag p_163535_) {
-        return new StructureFeatureIndexSavedData(fromTag(p_163535_.getList("All", Tag.TAG_COMPOUND)), fromTag(p_163535_.getList("Remaining", Tag.TAG_COMPOUND)));
+    public static StructureFeatureIndexSavedData load(CompoundTag pTag) {
+        return new StructureFeatureIndexSavedData(fromTag(pTag.getList("All", Tag.TAG_COMPOUND)), fromTag(pTag.getList("Remaining", Tag.TAG_COMPOUND)));
     }
 
     private static ObjectSet<ChunkPos> fromTag(ListTag tags) {
@@ -40,10 +40,10 @@ public class StructureFeatureIndexSavedData extends SavedData {
         return set;
     }
 
-    public CompoundTag save(CompoundTag p_73372_) {
-        p_73372_.put("All", toTag(this.all));
-        p_73372_.put("Remaining", toTag(this.remaining));
-        return p_73372_;
+    public CompoundTag save(CompoundTag pCompoundTag) {
+        pCompoundTag.put("All", toTag(this.all));
+        pCompoundTag.put("Remaining", toTag(this.remaining));
+        return pCompoundTag;
     }
 
     private ListTag toTag(ObjectSet<ChunkPos> set) {
@@ -56,21 +56,21 @@ public class StructureFeatureIndexSavedData extends SavedData {
         return tag;
     }
 
-    public void addIndex(ChunkPos p_73366_) {
-        this.all.add(p_73366_);
-        this.remaining.add(p_73366_);
+    public void addIndex(ChunkPos pIndex) {
+        this.all.add(pIndex);
+        this.remaining.add(pIndex);
     }
 
-    public boolean hasStartIndex(ChunkPos p_73370_) {
-        return this.all.contains(p_73370_);
+    public boolean hasStartIndex(ChunkPos pIndex) {
+        return this.all.contains(pIndex);
     }
 
-    public boolean hasUnhandledIndex(ChunkPos p_73374_) {
-        return this.remaining.contains(p_73374_);
+    public boolean hasUnhandledIndex(ChunkPos pIndex) {
+        return this.remaining.contains(pIndex);
     }
 
-    public void removeIndex(ChunkPos p_73376_) {
-        this.remaining.remove(p_73376_);
+    public void removeIndex(ChunkPos pIndex) {
+        this.remaining.remove(pIndex);
     }
 
     public ObjectSet<ChunkPos> getAll() {

@@ -79,7 +79,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public double compute(DensityFunction.FunctionContext pContext) {
-        if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(pContext.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(pContext.blockZ()))) {
+        if (FarlandsMode.usesPreciseCoordinates() && (this.needsPreciseSampling(pContext.blockX()) || this.needsPreciseSampling(pContext.blockZ()))) {
             return this.computePrecise(pContext);
         }
 
@@ -144,6 +144,13 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         }
 
         return d17;
+    }
+
+    private boolean needsPreciseSampling(long coordinate) {
+        // Blended noise expands block coordinates before sampling. Test the largest
+        // horizontal scale too: its double loses lattice precision well before 2^53 blocks.
+        double largestScale = Math.max(this.xzMultiplier, this.xzMultiplier / this.xzFactor);
+        return PreciseNoiseCoordinate.needsPrecisePath(coordinate) || Math.abs((double) coordinate * largestScale) >= 0x1.0p53;
     }
 
     private double computePrecise(DensityFunction.FunctionContext context) {

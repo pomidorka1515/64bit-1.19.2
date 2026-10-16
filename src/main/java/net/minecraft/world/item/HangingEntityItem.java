@@ -16,62 +16,62 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 
 public class HangingEntityItem extends Item {
-   private final EntityType<? extends HangingEntity> type;
+    private final EntityType<? extends HangingEntity> type;
 
-   public HangingEntityItem(EntityType<? extends HangingEntity> p_41324_, Item.Properties p_41325_) {
-      super(p_41325_);
-      this.type = p_41324_;
-   }
+    public HangingEntityItem(EntityType<? extends HangingEntity> p_41324_, Item.Properties p_41325_) {
+        super(p_41325_);
+        this.type = p_41324_;
+    }
 
-   public InteractionResult useOn(UseOnContext p_41331_) {
-      BlockPos blockpos = p_41331_.getClickedPos();
-      Direction direction = p_41331_.getClickedFace();
-      BlockPos blockpos1 = blockpos.relative(direction);
-      Player player = p_41331_.getPlayer();
-      ItemStack itemstack = p_41331_.getItemInHand();
-      if (player != null && !this.mayPlace(player, direction, itemstack, blockpos1)) {
-         return InteractionResult.FAIL;
-      } else {
-         Level level = p_41331_.getLevel();
-         HangingEntity hangingentity;
-         if (this.type == EntityType.PAINTING) {
-            Optional<Painting> optional = Painting.create(level, blockpos1, direction);
-            if (optional.isEmpty()) {
-               return InteractionResult.CONSUME;
+    public InteractionResult useOn(UseOnContext p_41331_) {
+        BlockPos blockpos = p_41331_.getClickedPos();
+        Direction direction = p_41331_.getClickedFace();
+        BlockPos blockpos1 = blockpos.relative(direction);
+        Player player = p_41331_.getPlayer();
+        ItemStack itemstack = p_41331_.getItemInHand();
+        if (player != null && !this.mayPlace(player, direction, itemstack, blockpos1)) {
+            return InteractionResult.FAIL;
+        } else {
+            Level level = p_41331_.getLevel();
+            HangingEntity hangingentity;
+            if (this.type == EntityType.PAINTING) {
+                Optional<Painting> optional = Painting.create(level, blockpos1, direction);
+                if (optional.isEmpty()) {
+                    return InteractionResult.CONSUME;
+                }
+
+                hangingentity = optional.get();
+            } else if (this.type == EntityType.ITEM_FRAME) {
+                hangingentity = new ItemFrame(level, blockpos1, direction);
+            } else {
+                if (this.type != EntityType.GLOW_ITEM_FRAME) {
+                    return InteractionResult.sidedSuccess(level.isClientSide);
+                }
+
+                hangingentity = new GlowItemFrame(level, blockpos1, direction);
             }
 
-            hangingentity = optional.get();
-         } else if (this.type == EntityType.ITEM_FRAME) {
-            hangingentity = new ItemFrame(level, blockpos1, direction);
-         } else {
-            if (this.type != EntityType.GLOW_ITEM_FRAME) {
-               return InteractionResult.sidedSuccess(level.isClientSide);
+            CompoundTag compoundtag = itemstack.getTag();
+            if (compoundtag != null) {
+                EntityType.updateCustomEntityTag(level, player, hangingentity, compoundtag);
             }
 
-            hangingentity = new GlowItemFrame(level, blockpos1, direction);
-         }
+            if (hangingentity.survives()) {
+                if (!level.isClientSide) {
+                    hangingentity.playPlacementSound();
+                    level.gameEvent(player, GameEvent.ENTITY_PLACE, hangingentity.position());
+                    level.addFreshEntity(hangingentity);
+                }
 
-         CompoundTag compoundtag = itemstack.getTag();
-         if (compoundtag != null) {
-            EntityType.updateCustomEntityTag(level, player, hangingentity, compoundtag);
-         }
-
-         if (hangingentity.survives()) {
-            if (!level.isClientSide) {
-               hangingentity.playPlacementSound();
-               level.gameEvent(player, GameEvent.ENTITY_PLACE, hangingentity.position());
-               level.addFreshEntity(hangingentity);
+                itemstack.shrink(1);
+                return InteractionResult.sidedSuccess(level.isClientSide);
+            } else {
+                return InteractionResult.CONSUME;
             }
+        }
+    }
 
-            itemstack.shrink(1);
-            return InteractionResult.sidedSuccess(level.isClientSide);
-         } else {
-            return InteractionResult.CONSUME;
-         }
-      }
-   }
-
-   protected boolean mayPlace(Player p_41326_, Direction p_41327_, ItemStack p_41328_, BlockPos p_41329_) {
-      return !p_41327_.getAxis().isVertical() && p_41326_.mayUseItemAt(p_41329_, p_41327_, p_41328_);
-   }
+    protected boolean mayPlace(Player p_41326_, Direction p_41327_, ItemStack p_41328_, BlockPos p_41329_) {
+        return !p_41327_.getAxis().isVertical() && p_41326_.mayUseItemAt(p_41329_, p_41327_, p_41328_);
+    }
 }

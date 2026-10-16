@@ -19,41 +19,41 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public class CaveSpider extends Spider {
-   public CaveSpider(EntityType<? extends CaveSpider> p_32254_, Level p_32255_) {
-      super(p_32254_, p_32255_);
-   }
+    public CaveSpider(EntityType<? extends CaveSpider> p_32254_, Level p_32255_) {
+        super(p_32254_, p_32255_);
+    }
 
-   public static AttributeSupplier.Builder createCaveSpider() {
-      return Spider.createAttributes().add(Attributes.MAX_HEALTH, 12.0D);
-   }
+    public static AttributeSupplier.Builder createCaveSpider() {
+        return Spider.createAttributes().add(Attributes.MAX_HEALTH, 12.0D);
+    }
 
-   public boolean doHurtTarget(Entity p_32257_) {
-      if (super.doHurtTarget(p_32257_)) {
-         if (p_32257_ instanceof LivingEntity) {
-            int i = 0;
-            if (this.level.getDifficulty() == Difficulty.NORMAL) {
-               i = 7;
-            } else if (this.level.getDifficulty() == Difficulty.HARD) {
-               i = 15;
+    public boolean doHurtTarget(Entity p_32257_) {
+        if (super.doHurtTarget(p_32257_)) {
+            if (p_32257_ instanceof LivingEntity) {
+                int i = 0;
+                if (this.level.getDifficulty() == Difficulty.NORMAL) {
+                    i = 7;
+                } else if (this.level.getDifficulty() == Difficulty.HARD) {
+                    i = 15;
+                }
+
+                if (i > 0) {
+                    ((LivingEntity) p_32257_).addEffect(new MobEffectInstance(MobEffects.POISON, i * 20, 0), this);
+                }
             }
 
-            if (i > 0) {
-               ((LivingEntity)p_32257_).addEffect(new MobEffectInstance(MobEffects.POISON, i * 20, 0), this);
-            }
-         }
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-         return true;
-      } else {
-         return false;
-      }
-   }
+    @Nullable
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_32259_, DifficultyInstance p_32260_, MobSpawnType p_32261_, @Nullable SpawnGroupData p_32262_, @Nullable CompoundTag p_32263_) {
+        return p_32262_;
+    }
 
-   @Nullable
-   public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_32259_, DifficultyInstance p_32260_, MobSpawnType p_32261_, @Nullable SpawnGroupData p_32262_, @Nullable CompoundTag p_32263_) {
-      return p_32262_;
-   }
-
-   protected float getStandingEyeHeight(Pose p_32265_, EntityDimensions p_32266_) {
-      return 0.45F;
-   }
+    protected float getStandingEyeHeight(Pose p_32265_, EntityDimensions p_32266_) {
+        return 0.45F;
+    }
 }

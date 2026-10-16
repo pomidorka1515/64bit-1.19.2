@@ -20,64 +20,61 @@ import net.minecraft.world.level.levelgen.structure.pieces.PiecesContainer;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
 
 public class WoodlandMansionStructure extends Structure {
-   public static final Codec<WoodlandMansionStructure> CODEC = simpleCodec(WoodlandMansionStructure::new);
+    public static final Codec<WoodlandMansionStructure> CODEC = simpleCodec(WoodlandMansionStructure::new);
 
-   public WoodlandMansionStructure(Structure.StructureSettings p_230225_) {
-      super(p_230225_);
-   }
+    public WoodlandMansionStructure(Structure.StructureSettings p_230225_) {
+        super(p_230225_);
+    }
 
-   public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_230235_) {
-      Rotation rotation = Rotation.getRandom(p_230235_.random());
-      BlockPos blockpos = this.getLowestYIn5by5BoxOffset7Blocks(p_230235_, rotation);
-      return blockpos.getY() < 60 ? Optional.empty() : Optional.of(new Structure.GenerationStub(blockpos, (p_230240_) -> {
-         this.generatePieces(p_230240_, p_230235_, blockpos, rotation);
-      }));
-   }
+    public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_230235_) {
+        Rotation rotation = Rotation.getRandom(p_230235_.random());
+        BlockPos blockpos = this.getLowestYIn5by5BoxOffset7Blocks(p_230235_, rotation);
+        return blockpos.getY() < 60 ? Optional.empty() : Optional.of(new Structure.GenerationStub(blockpos, (p_230240_) -> { this.generatePieces(p_230240_, p_230235_, blockpos, rotation); }));
+    }
 
-   private void generatePieces(StructurePiecesBuilder p_230242_, Structure.GenerationContext p_230243_, BlockPos p_230244_, Rotation p_230245_) {
-      List<WoodlandMansionPieces.WoodlandMansionPiece> list = Lists.newLinkedList();
-      WoodlandMansionPieces.generateMansion(p_230243_.structureTemplateManager(), p_230244_, p_230245_, list, p_230243_.random());
-      list.forEach(p_230242_::addPiece);
-   }
+    private void generatePieces(StructurePiecesBuilder p_230242_, Structure.GenerationContext p_230243_, BlockPos p_230244_, Rotation p_230245_) {
+        List<WoodlandMansionPieces.WoodlandMansionPiece> list = Lists.newLinkedList();
+        WoodlandMansionPieces.generateMansion(p_230243_.structureTemplateManager(), p_230244_, p_230245_, list, p_230243_.random());
+        list.forEach(p_230242_::addPiece);
+    }
 
-   public void afterPlace(WorldGenLevel p_230227_, StructureManager p_230228_, ChunkGenerator p_230229_, RandomSource p_230230_, BoundingBox p_230231_, ChunkPos p_230232_, PiecesContainer p_230233_) {
-      BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-      int i = p_230227_.getMinBuildHeight();
-      BoundingBox boundingbox = p_230233_.calculateBoundingBox();
-      int j = boundingbox.minY();
+    public void afterPlace(WorldGenLevel p_230227_, StructureManager p_230228_, ChunkGenerator p_230229_, RandomSource p_230230_, BoundingBox p_230231_, ChunkPos p_230232_, PiecesContainer p_230233_) {
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+        int i = p_230227_.getMinBuildHeight();
+        BoundingBox boundingbox = p_230233_.calculateBoundingBox();
+        int j = boundingbox.minY();
 
-      long k = p_230231_.minX();
-      long l = p_230231_.maxX();
-      long i1 = p_230231_.minZ();
-      long j1 = p_230231_.maxZ();
+        long k = p_230231_.minX();
+        long l = p_230231_.maxX();
+        long i1 = p_230231_.minZ();
+        long j1 = p_230231_.maxZ();
 
-      for(long k1 = k; ; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
-         for(long l1 = i1; ; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
-            blockpos$mutableblockpos.set(k1, j, l1);
-            if (!p_230227_.isEmptyBlock(blockpos$mutableblockpos) && boundingbox.isInside(blockpos$mutableblockpos) && p_230233_.isInsidePiece(blockpos$mutableblockpos)) {
-               for(int i2 = j - 1; i2 > i; --i2) {
-                  blockpos$mutableblockpos.setY(i2);
-                  if (!p_230227_.isEmptyBlock(blockpos$mutableblockpos) && !p_230227_.getBlockState(blockpos$mutableblockpos).getMaterial().isLiquid()) {
-                     break;
-                  }
+        for (long k1 = k;; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
+            for (long l1 = i1;; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
+                blockpos$mutableblockpos.set(k1, j, l1);
+                if (!p_230227_.isEmptyBlock(blockpos$mutableblockpos) && boundingbox.isInside(blockpos$mutableblockpos) && p_230233_.isInsidePiece(blockpos$mutableblockpos)) {
+                    for (int i2 = j - 1; i2 > i; --i2) {
+                        blockpos$mutableblockpos.setY(i2);
+                        if (!p_230227_.isEmptyBlock(blockpos$mutableblockpos) && !p_230227_.getBlockState(blockpos$mutableblockpos).getMaterial().isLiquid()) {
+                            break;
+                        }
 
-                  p_230227_.setBlock(blockpos$mutableblockpos, Blocks.COBBLESTONE.defaultBlockState(), 2);
-               }
+                        p_230227_.setBlock(blockpos$mutableblockpos, Blocks.COBBLESTONE.defaultBlockState(), 2);
+                    }
+                }
+
+                if (l1 == j1) {
+                    break;
+                }
             }
 
-            if (l1 == j1) {
-               break;
+            if (k1 == l) {
+                break;
             }
-         }
+        }
+    }
 
-         if (k1 == l) {
-            break;
-         }
-      }
-
-   }
-
-   public StructureType<?> type() {
-      return StructureType.WOODLAND_MANSION;
-   }
+    public StructureType<?> type() {
+        return StructureType.WOODLAND_MANSION;
+    }
 }

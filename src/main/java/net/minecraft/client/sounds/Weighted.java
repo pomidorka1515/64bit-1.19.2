@@ -6,9 +6,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface Weighted<T> {
-   int getWeight();
+    int getWeight();
 
-   T getSound(RandomSource p_235268_);
+    T getSound(RandomSource p_235268_);
 
-   void preloadIfRequired(SoundEngine p_120456_);
+    void preloadIfRequired(SoundEngine p_120456_);
 }

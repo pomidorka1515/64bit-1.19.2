@@ -5,6 +5,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RealmsServerPing extends ValueObject {
-   public volatile String nrOfPlayers = "0";
-   public volatile String playerList = "";
+    public volatile String nrOfPlayers = "0";
+    public volatile String playerList = "";
 }

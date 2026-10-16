@@ -9,18 +9,19 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.server.level.ServerPlayer;
 
 public class TellRawCommand {
-   public static void register(CommandDispatcher<CommandSourceStack> p_139064_) {
-      p_139064_.register(Commands.literal("tellraw").requires((p_139068_) -> {
-         return p_139068_.hasPermission(2);
-      }).then(Commands.argument("targets", EntityArgument.players()).then(Commands.argument("message", ComponentArgument.textComponent()).executes((p_139066_) -> {
-         int i = 0;
+    public static void register(CommandDispatcher<CommandSourceStack> p_139064_) {
+        p_139064_.register(Commands.literal("tellraw").requires((p_139068_) -> {
+                                                          return p_139068_.hasPermission(2);
+                                                      })
+                        .then(Commands.argument("targets", EntityArgument.players()).then(Commands.argument("message", ComponentArgument.textComponent()).executes((p_139066_) -> {
+                            int i = 0;
 
-         for(ServerPlayer serverplayer : EntityArgument.getPlayers(p_139066_, "targets")) {
-            serverplayer.sendSystemMessage(ComponentUtils.updateForEntity(p_139066_.getSource(), ComponentArgument.getComponent(p_139066_, "message"), serverplayer, 0), false);
-            ++i;
-         }
+                            for (ServerPlayer serverplayer : EntityArgument.getPlayers(p_139066_, "targets")) {
+                                serverplayer.sendSystemMessage(ComponentUtils.updateForEntity(p_139066_.getSource(), ComponentArgument.getComponent(p_139066_, "message"), serverplayer, 0), false);
+                                ++i;
+                            }
 
-         return i;
-      }))));
-   }
+                            return i;
+                        }))));
+    }
 }

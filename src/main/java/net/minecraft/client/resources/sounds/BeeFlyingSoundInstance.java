@@ -8,15 +8,15 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class BeeFlyingSoundInstance extends BeeSoundInstance {
-   public BeeFlyingSoundInstance(Bee p_119615_) {
-      super(p_119615_, SoundEvents.BEE_LOOP, SoundSource.NEUTRAL);
-   }
+    public BeeFlyingSoundInstance(Bee p_119615_) {
+        super(p_119615_, SoundEvents.BEE_LOOP, SoundSource.NEUTRAL);
+    }
 
-   protected AbstractTickableSoundInstance getAlternativeSoundInstance() {
-      return new BeeAggressiveSoundInstance(this.bee);
-   }
+    protected AbstractTickableSoundInstance getAlternativeSoundInstance() {
+        return new BeeAggressiveSoundInstance(this.bee);
+    }
 
-   protected boolean shouldSwitchSounds() {
-      return this.bee.isAngry();
-   }
+    protected boolean shouldSwitchSounds() {
+        return this.bee.isAngry();
+    }
 }

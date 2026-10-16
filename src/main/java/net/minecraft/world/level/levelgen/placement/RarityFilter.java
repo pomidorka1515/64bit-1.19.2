@@ -6,24 +6,24 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.RandomSource;
 
 public class RarityFilter extends PlacementFilter {
-   public static final Codec<RarityFilter> CODEC = ExtraCodecs.POSITIVE_INT.fieldOf("chance").xmap(RarityFilter::new, (p_191907_) -> {
-      return p_191907_.chance;
-   }).codec();
-   private final int chance;
+    public static final Codec<RarityFilter> CODEC = ExtraCodecs.POSITIVE_INT.fieldOf("chance").xmap(RarityFilter::new, (p_191907_) -> {
+                                                                                                  return p_191907_.chance;
+                                                                                              }).codec();
+    private final int chance;
 
-   private RarityFilter(int p_191899_) {
-      this.chance = p_191899_;
-   }
+    private RarityFilter(int p_191899_) {
+        this.chance = p_191899_;
+    }
 
-   public static RarityFilter onAverageOnceEvery(int p_191901_) {
-      return new RarityFilter(p_191901_);
-   }
+    public static RarityFilter onAverageOnceEvery(int p_191901_) {
+        return new RarityFilter(p_191901_);
+    }
 
-   protected boolean shouldPlace(PlacementContext p_226397_, RandomSource p_226398_, BlockPos p_226399_) {
-      return p_226398_.nextFloat() < 1.0F / (float)this.chance;
-   }
+    protected boolean shouldPlace(PlacementContext p_226397_, RandomSource p_226398_, BlockPos p_226399_) {
+        return p_226398_.nextFloat() < 1.0F / (float) this.chance;
+    }
 
-   public PlacementModifierType<?> type() {
-      return PlacementModifierType.RARITY_FILTER;
-   }
+    public PlacementModifierType<?> type() {
+        return PlacementModifierType.RARITY_FILTER;
+    }
 }

@@ -4,25 +4,25 @@ import net.minecraft.util.profiling.InactiveProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 public class InactiveMetricsRecorder implements MetricsRecorder {
-   public static final MetricsRecorder INSTANCE = new InactiveMetricsRecorder();
+    public static final MetricsRecorder INSTANCE = new InactiveMetricsRecorder();
 
-   public void end() {
-   }
+    public void end() {
+    }
 
-   public void cancel() {
-   }
+    public void cancel() {
+    }
 
-   public void startTick() {
-   }
+    public void startTick() {
+    }
 
-   public boolean isRecording() {
-      return false;
-   }
+    public boolean isRecording() {
+        return false;
+    }
 
-   public ProfilerFiller getProfiler() {
-      return InactiveProfiler.INSTANCE;
-   }
+    public ProfilerFiller getProfiler() {
+        return InactiveProfiler.INSTANCE;
+    }
 
-   public void endTick() {
-   }
+    public void endTick() {
+    }
 }

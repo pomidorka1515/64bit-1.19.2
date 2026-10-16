@@ -5,17 +5,17 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public interface BlockSource extends Position {
-   double x();
+    double x();
 
-   double y();
+    double y();
 
-   double z();
+    double z();
 
-   BlockPos getPos();
+    BlockPos getPos();
 
-   BlockState getBlockState();
+    BlockState getBlockState();
 
-   <T extends BlockEntity> T getEntity();
+    <T extends BlockEntity> T getEntity();
 
-   ServerLevel getLevel();
+    ServerLevel getLevel();
 }

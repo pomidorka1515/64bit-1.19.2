@@ -10,48 +10,48 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class LegacyStuffWrapper {
-   /** @deprecated */
-   @Deprecated
-   public static int[] getPixels(ResourceManager p_118727_, ResourceLocation p_118728_) throws IOException {
-      InputStream inputstream = p_118727_.open(p_118728_);
+    /** @deprecated */
+    @Deprecated
+    public static int[] getPixels(ResourceManager p_118727_, ResourceLocation p_118728_) throws IOException {
+        InputStream inputstream = p_118727_.open(p_118728_);
 
-      int[] aint;
-      try {
-         NativeImage nativeimage = NativeImage.read(inputstream);
+        int[] aint;
+        try {
+            NativeImage nativeimage = NativeImage.read(inputstream);
 
-         try {
-            aint = nativeimage.makePixelArray();
-         } catch (Throwable throwable2) {
-            if (nativeimage != null) {
-               try {
-                  nativeimage.close();
-               } catch (Throwable throwable1) {
-                  throwable2.addSuppressed(throwable1);
-               }
-            }
-
-            throw throwable2;
-         }
-
-         if (nativeimage != null) {
-            nativeimage.close();
-         }
-      } catch (Throwable throwable3) {
-         if (inputstream != null) {
             try {
-               inputstream.close();
-            } catch (Throwable throwable) {
-               throwable3.addSuppressed(throwable);
+                aint = nativeimage.makePixelArray();
+            } catch (Throwable throwable2) {
+                if (nativeimage != null) {
+                    try {
+                        nativeimage.close();
+                    } catch (Throwable throwable1) {
+                        throwable2.addSuppressed(throwable1);
+                    }
+                }
+
+                throw throwable2;
             }
-         }
 
-         throw throwable3;
-      }
+            if (nativeimage != null) {
+                nativeimage.close();
+            }
+        } catch (Throwable throwable3) {
+            if (inputstream != null) {
+                try {
+                    inputstream.close();
+                } catch (Throwable throwable) {
+                    throwable3.addSuppressed(throwable);
+                }
+            }
 
-      if (inputstream != null) {
-         inputstream.close();
-      }
+            throw throwable3;
+        }
 
-      return aint;
-   }
+        if (inputstream != null) {
+            inputstream.close();
+        }
+
+        return aint;
+    }
 }

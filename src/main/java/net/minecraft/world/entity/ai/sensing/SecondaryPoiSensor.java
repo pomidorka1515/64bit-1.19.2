@@ -14,39 +14,38 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.level.Level;
 
 public class SecondaryPoiSensor extends Sensor<Villager> {
-   private static final int SCAN_RATE = 40;
+    private static final int SCAN_RATE = 40;
 
-   public SecondaryPoiSensor() {
-      super(40);
-   }
+    public SecondaryPoiSensor() {
+        super(40);
+    }
 
-   protected void doTick(ServerLevel p_26754_, Villager p_26755_) {
-      ResourceKey<Level> resourcekey = p_26754_.dimension();
-      BlockPos blockpos = p_26755_.blockPosition();
-      List<GlobalPos> list = Lists.newArrayList();
-      int i = 4;
+    protected void doTick(ServerLevel p_26754_, Villager p_26755_) {
+        ResourceKey<Level> resourcekey = p_26754_.dimension();
+        BlockPos blockpos = p_26755_.blockPosition();
+        List<GlobalPos> list = Lists.newArrayList();
+        int i = 4;
 
-      for(int j = -4; j <= 4; ++j) {
-         for(int k = -2; k <= 2; ++k) {
-            for(int l = -4; l <= 4; ++l) {
-               BlockPos blockpos1 = blockpos.offset(j, k, l);
-               if (p_26755_.getVillagerData().getProfession().secondaryPoi().contains(p_26754_.getBlockState(blockpos1).getBlock())) {
-                  list.add(GlobalPos.of(resourcekey, blockpos1));
-               }
+        for (int j = -4; j <= 4; ++j) {
+            for (int k = -2; k <= 2; ++k) {
+                for (int l = -4; l <= 4; ++l) {
+                    BlockPos blockpos1 = blockpos.offset(j, k, l);
+                    if (p_26755_.getVillagerData().getProfession().secondaryPoi().contains(p_26754_.getBlockState(blockpos1).getBlock())) {
+                        list.add(GlobalPos.of(resourcekey, blockpos1));
+                    }
+                }
             }
-         }
-      }
+        }
 
-      Brain<?> brain = p_26755_.getBrain();
-      if (!list.isEmpty()) {
-         brain.setMemory(MemoryModuleType.SECONDARY_JOB_SITE, list);
-      } else {
-         brain.eraseMemory(MemoryModuleType.SECONDARY_JOB_SITE);
-      }
+        Brain<?> brain = p_26755_.getBrain();
+        if (!list.isEmpty()) {
+            brain.setMemory(MemoryModuleType.SECONDARY_JOB_SITE, list);
+        } else {
+            brain.eraseMemory(MemoryModuleType.SECONDARY_JOB_SITE);
+        }
+    }
 
-   }
-
-   public Set<MemoryModuleType<?>> requires() {
-      return ImmutableSet.of(MemoryModuleType.SECONDARY_JOB_SITE);
-   }
+    public Set<MemoryModuleType<?>> requires() {
+        return ImmutableSet.of(MemoryModuleType.SECONDARY_JOB_SITE);
+    }
 }

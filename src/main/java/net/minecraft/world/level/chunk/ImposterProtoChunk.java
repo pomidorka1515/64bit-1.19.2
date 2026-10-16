@@ -30,210 +30,206 @@ import net.minecraft.world.ticks.BlackholeTickAccess;
 import net.minecraft.world.ticks.TickContainerAccess;
 
 public class ImposterProtoChunk extends ProtoChunk {
-   private final LevelChunk wrapped;
-   private final boolean allowWrites;
+    private final LevelChunk wrapped;
+    private final boolean allowWrites;
 
-   public ImposterProtoChunk(LevelChunk p_187920_, boolean p_187921_) {
-      super(p_187920_.getPos(), UpgradeData.EMPTY, p_187920_.levelHeightAccessor, p_187920_.getLevel().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), p_187920_.getBlendingData());
-      this.wrapped = p_187920_;
-      this.allowWrites = p_187921_;
-   }
+    public ImposterProtoChunk(LevelChunk p_187920_, boolean p_187921_) {
+        super(p_187920_.getPos(), UpgradeData.EMPTY, p_187920_.levelHeightAccessor, p_187920_.getLevel().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), p_187920_.getBlendingData());
+        this.wrapped = p_187920_;
+        this.allowWrites = p_187921_;
+    }
 
-   @Nullable
-   public BlockEntity getBlockEntity(BlockPos p_62744_) {
-      return this.wrapped.getBlockEntity(p_62744_);
-   }
+    @Nullable
+    public BlockEntity getBlockEntity(BlockPos p_62744_) {
+        return this.wrapped.getBlockEntity(p_62744_);
+    }
 
-   public BlockState getBlockState(BlockPos p_62749_) {
-      return this.wrapped.getBlockState(p_62749_);
-   }
+    public BlockState getBlockState(BlockPos p_62749_) {
+        return this.wrapped.getBlockState(p_62749_);
+    }
 
-   public FluidState getFluidState(BlockPos p_62736_) {
-      return this.wrapped.getFluidState(p_62736_);
-   }
+    public FluidState getFluidState(BlockPos p_62736_) {
+        return this.wrapped.getFluidState(p_62736_);
+    }
 
-   public int getMaxLightLevel() {
-      return this.wrapped.getMaxLightLevel();
-   }
+    public int getMaxLightLevel() {
+        return this.wrapped.getMaxLightLevel();
+    }
 
-   public LevelChunkSection getSection(int p_187932_) {
-      return this.allowWrites ? this.wrapped.getSection(p_187932_) : super.getSection(p_187932_);
-   }
+    public LevelChunkSection getSection(int p_187932_) {
+        return this.allowWrites ? this.wrapped.getSection(p_187932_) : super.getSection(p_187932_);
+    }
 
-   @Nullable
-   public BlockState setBlockState(BlockPos p_62722_, BlockState p_62723_, boolean p_62724_) {
-      return this.allowWrites ? this.wrapped.setBlockState(p_62722_, p_62723_, p_62724_) : null;
-   }
+    @Nullable
+    public BlockState setBlockState(BlockPos p_62722_, BlockState p_62723_, boolean p_62724_) {
+        return this.allowWrites ? this.wrapped.setBlockState(p_62722_, p_62723_, p_62724_) : null;
+    }
 
-   public void setBlockEntity(BlockEntity p_156358_) {
-      if (this.allowWrites) {
-         this.wrapped.setBlockEntity(p_156358_);
-      }
+    public void setBlockEntity(BlockEntity p_156358_) {
+        if (this.allowWrites) {
+            this.wrapped.setBlockEntity(p_156358_);
+        }
+    }
 
-   }
+    public void addEntity(Entity p_62692_) {
+        if (this.allowWrites) {
+            this.wrapped.addEntity(p_62692_);
+        }
+    }
 
-   public void addEntity(Entity p_62692_) {
-      if (this.allowWrites) {
-         this.wrapped.addEntity(p_62692_);
-      }
+    public void setStatus(ChunkStatus p_62698_) {
+        if (this.allowWrites) {
+            super.setStatus(p_62698_);
+        }
+    }
 
-   }
+    public LevelChunkSection[] getSections() {
+        return this.wrapped.getSections();
+    }
 
-   public void setStatus(ChunkStatus p_62698_) {
-      if (this.allowWrites) {
-         super.setStatus(p_62698_);
-      }
+    public void setHeightmap(Heightmap.Types p_62706_, long[] p_62707_) {
+    }
 
-   }
+    private Heightmap.Types fixType(Heightmap.Types p_62742_) {
+        if (p_62742_ == Heightmap.Types.WORLD_SURFACE_WG) {
+            return Heightmap.Types.WORLD_SURFACE;
+        } else {
+            return p_62742_ == Heightmap.Types.OCEAN_FLOOR_WG ? Heightmap.Types.OCEAN_FLOOR : p_62742_;
+        }
+    }
 
-   public LevelChunkSection[] getSections() {
-      return this.wrapped.getSections();
-   }
+    public Heightmap getOrCreateHeightmapUnprimed(Heightmap.Types p_187928_) {
+        return this.wrapped.getOrCreateHeightmapUnprimed(p_187928_);
+    }
 
-   public void setHeightmap(Heightmap.Types p_62706_, long[] p_62707_) {
-   }
+    public int getHeight(Heightmap.Types p_62702_, int p_62703_, int p_62704_) {
+        return this.wrapped.getHeight(this.fixType(p_62702_), p_62703_, p_62704_);
+    }
 
-   private Heightmap.Types fixType(Heightmap.Types p_62742_) {
-      if (p_62742_ == Heightmap.Types.WORLD_SURFACE_WG) {
-         return Heightmap.Types.WORLD_SURFACE;
-      } else {
-         return p_62742_ == Heightmap.Types.OCEAN_FLOOR_WG ? Heightmap.Types.OCEAN_FLOOR : p_62742_;
-      }
-   }
+    public Holder<Biome> getNoiseBiome(int p_204430_, int p_204431_, int p_204432_) {
+        return this.wrapped.getNoiseBiome(p_204430_, p_204431_, p_204432_);
+    }
 
-   public Heightmap getOrCreateHeightmapUnprimed(Heightmap.Types p_187928_) {
-      return this.wrapped.getOrCreateHeightmapUnprimed(p_187928_);
-   }
+    public ChunkPos getPos() {
+        return this.wrapped.getPos();
+    }
 
-   public int getHeight(Heightmap.Types p_62702_, int p_62703_, int p_62704_) {
-      return this.wrapped.getHeight(this.fixType(p_62702_), p_62703_, p_62704_);
-   }
+    @Nullable
+    public StructureStart getStartForStructure(Structure p_223400_) {
+        return this.wrapped.getStartForStructure(p_223400_);
+    }
 
-   public Holder<Biome> getNoiseBiome(int p_204430_, int p_204431_, int p_204432_) {
-      return this.wrapped.getNoiseBiome(p_204430_, p_204431_, p_204432_);
-   }
+    public void setStartForStructure(Structure p_223405_, StructureStart p_223406_) {
+    }
 
-   public ChunkPos getPos() {
-      return this.wrapped.getPos();
-   }
+    public Map<Structure, StructureStart> getAllStarts() {
+        return this.wrapped.getAllStarts();
+    }
 
-   @Nullable
-   public StructureStart getStartForStructure(Structure p_223400_) {
-      return this.wrapped.getStartForStructure(p_223400_);
-   }
+    public void setAllStarts(Map<Structure, StructureStart> p_62726_) {
+    }
 
-   public void setStartForStructure(Structure p_223405_, StructureStart p_223406_) {
-   }
+    public ObjectSet<ChunkPos> getReferencesForStructure(Structure p_223408_) {
+        return this.wrapped.getReferencesForStructure(p_223408_);
+    }
 
-   public Map<Structure, StructureStart> getAllStarts() {
-      return this.wrapped.getAllStarts();
-   }
+    public void addReferenceForStructure(Structure p_223402_, long p_223403_) {
+    }
 
-   public void setAllStarts(Map<Structure, StructureStart> p_62726_) {
-   }
+    public Map<Structure, ObjectSet<ChunkPos>> getAllReferences() {
+        return this.wrapped.getAllReferences();
+    }
 
-   public ObjectSet<ChunkPos> getReferencesForStructure(Structure p_223408_) {
-      return this.wrapped.getReferencesForStructure(p_223408_);
-   }
+    public void setAllReferences(Map<Structure, ObjectSet<ChunkPos>> p_62738_) {
+    }
 
-   public void addReferenceForStructure(Structure p_223402_, long p_223403_) {
-   }
+    public void setUnsaved(boolean p_62730_) {
+        this.wrapped.setUnsaved(p_62730_);
+    }
 
-   public Map<Structure, ObjectSet<ChunkPos>> getAllReferences() {
-      return this.wrapped.getAllReferences();
-   }
+    public boolean isUnsaved() {
+        return false;
+    }
 
-   public void setAllReferences(Map<Structure, ObjectSet<ChunkPos>> p_62738_) {
-   }
+    public ChunkStatus getStatus() {
+        return this.wrapped.getStatus();
+    }
 
-   public void setUnsaved(boolean p_62730_) {
-      this.wrapped.setUnsaved(p_62730_);
-   }
+    public void removeBlockEntity(BlockPos p_62747_) {
+    }
 
-   public boolean isUnsaved() {
-      return false;
-   }
+    public void markPosForPostprocessing(BlockPos p_62752_) {
+    }
 
-   public ChunkStatus getStatus() {
-      return this.wrapped.getStatus();
-   }
+    public void setBlockEntityNbt(CompoundTag p_62728_) {
+    }
 
-   public void removeBlockEntity(BlockPos p_62747_) {
-   }
+    @Nullable
+    public CompoundTag getBlockEntityNbt(BlockPos p_62757_) {
+        return this.wrapped.getBlockEntityNbt(p_62757_);
+    }
 
-   public void markPosForPostprocessing(BlockPos p_62752_) {
-   }
+    @Nullable
+    public CompoundTag getBlockEntityNbtForSaving(BlockPos p_62760_) {
+        return this.wrapped.getBlockEntityNbtForSaving(p_62760_);
+    }
 
-   public void setBlockEntityNbt(CompoundTag p_62728_) {
-   }
+    public Stream<BlockPos> getLights() {
+        return this.wrapped.getLights();
+    }
 
-   @Nullable
-   public CompoundTag getBlockEntityNbt(BlockPos p_62757_) {
-      return this.wrapped.getBlockEntityNbt(p_62757_);
-   }
+    public TickContainerAccess<Block> getBlockTicks() {
+        return this.allowWrites ? this.wrapped.getBlockTicks() : BlackholeTickAccess.emptyContainer();
+    }
 
-   @Nullable
-   public CompoundTag getBlockEntityNbtForSaving(BlockPos p_62760_) {
-      return this.wrapped.getBlockEntityNbtForSaving(p_62760_);
-   }
+    public TickContainerAccess<Fluid> getFluidTicks() {
+        return this.allowWrites ? this.wrapped.getFluidTicks() : BlackholeTickAccess.emptyContainer();
+    }
 
-   public Stream<BlockPos> getLights() {
-      return this.wrapped.getLights();
-   }
+    public ChunkAccess.TicksToSave getTicksForSerialization() {
+        return this.wrapped.getTicksForSerialization();
+    }
 
-   public TickContainerAccess<Block> getBlockTicks() {
-      return this.allowWrites ? this.wrapped.getBlockTicks() : BlackholeTickAccess.emptyContainer();
-   }
+    @Nullable
+    public BlendingData getBlendingData() {
+        return this.wrapped.getBlendingData();
+    }
 
-   public TickContainerAccess<Fluid> getFluidTicks() {
-      return this.allowWrites ? this.wrapped.getFluidTicks() : BlackholeTickAccess.emptyContainer();
-   }
+    public void setBlendingData(BlendingData p_187930_) {
+        this.wrapped.setBlendingData(p_187930_);
+    }
 
-   public ChunkAccess.TicksToSave getTicksForSerialization() {
-      return this.wrapped.getTicksForSerialization();
-   }
+    public CarvingMask getCarvingMask(GenerationStep.Carving p_187926_) {
+        if (this.allowWrites) {
+            return super.getCarvingMask(p_187926_);
+        } else {
+            throw (UnsupportedOperationException) Util.pauseInIde(new UnsupportedOperationException("Meaningless in this context"));
+        }
+    }
 
-   @Nullable
-   public BlendingData getBlendingData() {
-      return this.wrapped.getBlendingData();
-   }
+    public CarvingMask getOrCreateCarvingMask(GenerationStep.Carving p_187934_) {
+        if (this.allowWrites) {
+            return super.getOrCreateCarvingMask(p_187934_);
+        } else {
+            throw (UnsupportedOperationException) Util.pauseInIde(new UnsupportedOperationException("Meaningless in this context"));
+        }
+    }
 
-   public void setBlendingData(BlendingData p_187930_) {
-      this.wrapped.setBlendingData(p_187930_);
-   }
+    public LevelChunk getWrapped() {
+        return this.wrapped;
+    }
 
-   public CarvingMask getCarvingMask(GenerationStep.Carving p_187926_) {
-      if (this.allowWrites) {
-         return super.getCarvingMask(p_187926_);
-      } else {
-         throw (UnsupportedOperationException)Util.pauseInIde(new UnsupportedOperationException("Meaningless in this context"));
-      }
-   }
+    public boolean isLightCorrect() {
+        return this.wrapped.isLightCorrect();
+    }
 
-   public CarvingMask getOrCreateCarvingMask(GenerationStep.Carving p_187934_) {
-      if (this.allowWrites) {
-         return super.getOrCreateCarvingMask(p_187934_);
-      } else {
-         throw (UnsupportedOperationException)Util.pauseInIde(new UnsupportedOperationException("Meaningless in this context"));
-      }
-   }
+    public void setLightCorrect(boolean p_62740_) {
+        this.wrapped.setLightCorrect(p_62740_);
+    }
 
-   public LevelChunk getWrapped() {
-      return this.wrapped;
-   }
-
-   public boolean isLightCorrect() {
-      return this.wrapped.isLightCorrect();
-   }
-
-   public void setLightCorrect(boolean p_62740_) {
-      this.wrapped.setLightCorrect(p_62740_);
-   }
-
-   public void fillBiomesFromNoise(BiomeResolver p_187923_, Climate.Sampler p_187924_) {
-      if (this.allowWrites) {
-         this.wrapped.fillBiomesFromNoise(p_187923_, p_187924_);
-      }
-
-   }
+    public void fillBiomesFromNoise(BiomeResolver p_187923_, Climate.Sampler p_187924_) {
+        if (this.allowWrites) {
+            this.wrapped.fillBiomesFromNoise(p_187923_, p_187924_);
+        }
+    }
 }

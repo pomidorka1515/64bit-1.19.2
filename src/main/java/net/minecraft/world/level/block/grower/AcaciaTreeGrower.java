@@ -6,7 +6,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
 public class AcaciaTreeGrower extends AbstractTreeGrower {
-   protected Holder<? extends ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource p_222913_, boolean p_222914_) {
-      return TreeFeatures.ACACIA;
-   }
+    protected Holder<? extends ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource p_222913_, boolean p_222914_) {
+        return TreeFeatures.ACACIA;
+    }
 }

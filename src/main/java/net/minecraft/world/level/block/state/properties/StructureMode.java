@@ -4,24 +4,24 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 
 public enum StructureMode implements StringRepresentable {
-   SAVE("save"),
-   LOAD("load"),
-   CORNER("corner"),
-   DATA("data");
+    SAVE("save"),
+    LOAD("load"),
+    CORNER("corner"),
+    DATA("data");
 
-   private final String name;
-   private final Component displayName;
+    private final String name;
+    private final Component displayName;
 
-   private StructureMode(String p_61809_) {
-      this.name = p_61809_;
-      this.displayName = Component.translatable("structure_block.mode_info." + p_61809_);
-   }
+    private StructureMode(String p_61809_) {
+        this.name = p_61809_;
+        this.displayName = Component.translatable("structure_block.mode_info." + p_61809_);
+    }
 
-   public String getSerializedName() {
-      return this.name;
-   }
+    public String getSerializedName() {
+        return this.name;
+    }
 
-   public Component getDisplayName() {
-      return this.displayName;
-   }
+    public Component getDisplayName() {
+        return this.displayName;
+    }
 }

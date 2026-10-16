@@ -6,9 +6,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface ErrorCallback {
-   void error(Component p_87793_);
+    void error(Component p_87793_);
 
-   default void error(String p_87792_) {
-      this.error(Component.literal(p_87792_));
-   }
+    default void error(String p_87792_) {
+        this.error(Component.literal(p_87792_));
+    }
 }

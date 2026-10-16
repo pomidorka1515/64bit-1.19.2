@@ -12,37 +12,37 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
 public abstract class AbstractTreeGrower {
-   @Nullable
-   protected abstract Holder<? extends ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource p_222910_, boolean p_222911_);
+    @Nullable
+    protected abstract Holder<? extends ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource p_222910_, boolean p_222911_);
 
-   public boolean growTree(ServerLevel p_222905_, ChunkGenerator p_222906_, BlockPos p_222907_, BlockState p_222908_, RandomSource p_222909_) {
-      Holder<? extends ConfiguredFeature<?, ?>> holder = this.getConfiguredFeature(p_222909_, this.hasFlowers(p_222905_, p_222907_));
-      if (holder == null) {
-         return false;
-      } else {
-         ConfiguredFeature<?, ?> configuredfeature = holder.value();
-         BlockState blockstate = p_222905_.getFluidState(p_222907_).createLegacyBlock();
-         p_222905_.setBlock(p_222907_, blockstate, 4);
-         if (configuredfeature.place(p_222905_, p_222906_, p_222909_, p_222907_)) {
-            if (p_222905_.getBlockState(p_222907_) == blockstate) {
-               p_222905_.sendBlockUpdated(p_222907_, p_222908_, blockstate, 2);
-            }
-
-            return true;
-         } else {
-            p_222905_.setBlock(p_222907_, p_222908_, 4);
+    public boolean growTree(ServerLevel p_222905_, ChunkGenerator p_222906_, BlockPos p_222907_, BlockState p_222908_, RandomSource p_222909_) {
+        Holder<? extends ConfiguredFeature<?, ?>> holder = this.getConfiguredFeature(p_222909_, this.hasFlowers(p_222905_, p_222907_));
+        if (holder == null) {
             return false;
-         }
-      }
-   }
+        } else {
+            ConfiguredFeature<?, ?> configuredfeature = holder.value();
+            BlockState blockstate = p_222905_.getFluidState(p_222907_).createLegacyBlock();
+            p_222905_.setBlock(p_222907_, blockstate, 4);
+            if (configuredfeature.place(p_222905_, p_222906_, p_222909_, p_222907_)) {
+                if (p_222905_.getBlockState(p_222907_) == blockstate) {
+                    p_222905_.sendBlockUpdated(p_222907_, p_222908_, blockstate, 2);
+                }
 
-   private boolean hasFlowers(LevelAccessor p_60012_, BlockPos p_60013_) {
-      for(BlockPos blockpos : BlockPos.MutableBlockPos.betweenClosed(p_60013_.below().north(2).west(2), p_60013_.above().south(2).east(2))) {
-         if (p_60012_.getBlockState(blockpos).is(BlockTags.FLOWERS)) {
-            return true;
-         }
-      }
+                return true;
+            } else {
+                p_222905_.setBlock(p_222907_, p_222908_, 4);
+                return false;
+            }
+        }
+    }
 
-      return false;
-   }
+    private boolean hasFlowers(LevelAccessor p_60012_, BlockPos p_60013_) {
+        for (BlockPos blockpos : BlockPos.MutableBlockPos.betweenClosed(p_60013_.below().north(2).west(2), p_60013_.above().south(2).east(2))) {
+            if (p_60012_.getBlockState(blockpos).is(BlockTags.FLOWERS)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

@@ -10,19 +10,19 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class SmokerBlockEntity extends AbstractFurnaceBlockEntity {
-   public SmokerBlockEntity(BlockPos p_155749_, BlockState p_155750_) {
-      super(BlockEntityType.SMOKER, p_155749_, p_155750_, RecipeType.SMOKING);
-   }
+    public SmokerBlockEntity(BlockPos p_155749_, BlockState p_155750_) {
+        super(BlockEntityType.SMOKER, p_155749_, p_155750_, RecipeType.SMOKING);
+    }
 
-   protected Component getDefaultName() {
-      return Component.translatable("container.smoker");
-   }
+    protected Component getDefaultName() {
+        return Component.translatable("container.smoker");
+    }
 
-   protected int getBurnDuration(ItemStack p_59786_) {
-      return super.getBurnDuration(p_59786_) / 2;
-   }
+    protected int getBurnDuration(ItemStack p_59786_) {
+        return super.getBurnDuration(p_59786_) / 2;
+    }
 
-   protected AbstractContainerMenu createMenu(int p_59783_, Inventory p_59784_) {
-      return new SmokerMenu(p_59783_, p_59784_, this, this.dataAccess);
-   }
+    protected AbstractContainerMenu createMenu(int p_59783_, Inventory p_59784_) {
+        return new SmokerMenu(p_59783_, p_59784_, this, this.dataAccess);
+    }
 }

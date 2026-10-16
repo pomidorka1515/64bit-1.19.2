@@ -40,300 +40,294 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 
 public class Vex extends Monster {
-   public static final float FLAP_DEGREES_PER_TICK = 45.836624F;
-   public static final int TICKS_PER_FLAP = Mth.ceil(3.9269907F);
-   protected static final EntityDataAccessor<Byte> DATA_FLAGS_ID = SynchedEntityData.defineId(Vex.class, EntityDataSerializers.BYTE);
-   private static final int FLAG_IS_CHARGING = 1;
-   @Nullable
-   Mob owner;
-   @Nullable
-   private BlockPos boundOrigin;
-   private boolean hasLimitedLife;
-   private int limitedLifeTicks;
+    public static final float FLAP_DEGREES_PER_TICK = 45.836624F;
+    public static final int TICKS_PER_FLAP = Mth.ceil(3.9269907F);
+    protected static final EntityDataAccessor<Byte> DATA_FLAGS_ID = SynchedEntityData.defineId(Vex.class, EntityDataSerializers.BYTE);
+    private static final int FLAG_IS_CHARGING = 1;
+    @Nullable
+    Mob owner;
+    @Nullable
+    private BlockPos boundOrigin;
+    private boolean hasLimitedLife;
+    private int limitedLifeTicks;
 
-   public Vex(EntityType<? extends Vex> p_33984_, Level p_33985_) {
-      super(p_33984_, p_33985_);
-      this.moveControl = new Vex.VexMoveControl(this);
-      this.xpReward = 3;
-   }
+    public Vex(EntityType<? extends Vex> p_33984_, Level p_33985_) {
+        super(p_33984_, p_33985_);
+        this.moveControl = new Vex.VexMoveControl(this);
+        this.xpReward = 3;
+    }
 
-   public boolean isFlapping() {
-      return this.tickCount % TICKS_PER_FLAP == 0;
-   }
+    public boolean isFlapping() {
+        return this.tickCount % TICKS_PER_FLAP == 0;
+    }
 
-   public void move(MoverType p_33997_, Vec3 p_33998_) {
-      super.move(p_33997_, p_33998_);
-      this.checkInsideBlocks();
-   }
+    public void move(MoverType p_33997_, Vec3 p_33998_) {
+        super.move(p_33997_, p_33998_);
+        this.checkInsideBlocks();
+    }
 
-   public void tick() {
-      this.noPhysics = true;
-      super.tick();
-      this.noPhysics = false;
-      this.setNoGravity(true);
-      if (this.hasLimitedLife && --this.limitedLifeTicks <= 0) {
-         this.limitedLifeTicks = 20;
-         this.hurt(DamageSource.STARVE, 1.0F);
-      }
+    public void tick() {
+        this.noPhysics = true;
+        super.tick();
+        this.noPhysics = false;
+        this.setNoGravity(true);
+        if (this.hasLimitedLife && --this.limitedLifeTicks <= 0) {
+            this.limitedLifeTicks = 20;
+            this.hurt(DamageSource.STARVE, 1.0F);
+        }
+    }
 
-   }
+    protected void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(4, new Vex.VexChargeAttackGoal());
+        this.goalSelector.addGoal(8, new Vex.VexRandomMoveGoal());
+        this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F));
+        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, Raider.class)).setAlertOthers());
+        this.targetSelector.addGoal(2, new Vex.VexCopyOwnerTargetGoal(this));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    }
 
-   protected void registerGoals() {
-      super.registerGoals();
-      this.goalSelector.addGoal(0, new FloatGoal(this));
-      this.goalSelector.addGoal(4, new Vex.VexChargeAttackGoal());
-      this.goalSelector.addGoal(8, new Vex.VexRandomMoveGoal());
-      this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F));
-      this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
-      this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, Raider.class)).setAlertOthers());
-      this.targetSelector.addGoal(2, new Vex.VexCopyOwnerTargetGoal(this));
-      this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
-   }
+    public static AttributeSupplier.Builder createAttributes() {
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 14.0D).add(Attributes.ATTACK_DAMAGE, 4.0D);
+    }
 
-   public static AttributeSupplier.Builder createAttributes() {
-      return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 14.0D).add(Attributes.ATTACK_DAMAGE, 4.0D);
-   }
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_FLAGS_ID, (byte) 0);
+    }
 
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(DATA_FLAGS_ID, (byte)0);
-   }
+    public void readAdditionalSaveData(CompoundTag p_34008_) {
+        super.readAdditionalSaveData(p_34008_);
+        if (p_34008_.contains("BoundX")) {
+            this.boundOrigin = new BlockPos(p_34008_.getInt("BoundX"), p_34008_.getInt("BoundY"), p_34008_.getInt("BoundZ"));
+        }
 
-   public void readAdditionalSaveData(CompoundTag p_34008_) {
-      super.readAdditionalSaveData(p_34008_);
-      if (p_34008_.contains("BoundX")) {
-         this.boundOrigin = new BlockPos(p_34008_.getInt("BoundX"), p_34008_.getInt("BoundY"), p_34008_.getInt("BoundZ"));
-      }
+        if (p_34008_.contains("LifeTicks")) {
+            this.setLimitedLife(p_34008_.getInt("LifeTicks"));
+        }
+    }
 
-      if (p_34008_.contains("LifeTicks")) {
-         this.setLimitedLife(p_34008_.getInt("LifeTicks"));
-      }
+    public void addAdditionalSaveData(CompoundTag p_34015_) {
+        super.addAdditionalSaveData(p_34015_);
+        if (this.boundOrigin != null) {
+            p_34015_.putInt("BoundX", this.boundOrigin.getX());
+            p_34015_.putInt("BoundY", this.boundOrigin.getY());
+            p_34015_.putInt("BoundZ", this.boundOrigin.getZ());
+        }
 
-   }
+        if (this.hasLimitedLife) {
+            p_34015_.putInt("LifeTicks", this.limitedLifeTicks);
+        }
+    }
 
-   public void addAdditionalSaveData(CompoundTag p_34015_) {
-      super.addAdditionalSaveData(p_34015_);
-      if (this.boundOrigin != null) {
-         p_34015_.putInt("BoundX", this.boundOrigin.getX());
-         p_34015_.putInt("BoundY", this.boundOrigin.getY());
-         p_34015_.putInt("BoundZ", this.boundOrigin.getZ());
-      }
+    @Nullable
+    public Mob getOwner() {
+        return this.owner;
+    }
 
-      if (this.hasLimitedLife) {
-         p_34015_.putInt("LifeTicks", this.limitedLifeTicks);
-      }
+    @Nullable
+    public BlockPos getBoundOrigin() {
+        return this.boundOrigin;
+    }
 
-   }
+    public void setBoundOrigin(@Nullable BlockPos p_34034_) {
+        this.boundOrigin = p_34034_;
+    }
 
-   @Nullable
-   public Mob getOwner() {
-      return this.owner;
-   }
+    private boolean getVexFlag(int p_34011_) {
+        int i = this.entityData.get(DATA_FLAGS_ID);
+        return (i & p_34011_) != 0;
+    }
 
-   @Nullable
-   public BlockPos getBoundOrigin() {
-      return this.boundOrigin;
-   }
+    private void setVexFlag(int p_33990_, boolean p_33991_) {
+        int i = this.entityData.get(DATA_FLAGS_ID);
+        if (p_33991_) {
+            i |= p_33990_;
+        } else {
+            i &= ~p_33990_;
+        }
 
-   public void setBoundOrigin(@Nullable BlockPos p_34034_) {
-      this.boundOrigin = p_34034_;
-   }
+        this.entityData.set(DATA_FLAGS_ID, (byte) (i & 255));
+    }
 
-   private boolean getVexFlag(int p_34011_) {
-      int i = this.entityData.get(DATA_FLAGS_ID);
-      return (i & p_34011_) != 0;
-   }
+    public boolean isCharging() {
+        return this.getVexFlag(1);
+    }
 
-   private void setVexFlag(int p_33990_, boolean p_33991_) {
-      int i = this.entityData.get(DATA_FLAGS_ID);
-      if (p_33991_) {
-         i |= p_33990_;
-      } else {
-         i &= ~p_33990_;
-      }
+    public void setIsCharging(boolean p_34043_) {
+        this.setVexFlag(1, p_34043_);
+    }
 
-      this.entityData.set(DATA_FLAGS_ID, (byte)(i & 255));
-   }
+    public void setOwner(Mob p_33995_) {
+        this.owner = p_33995_;
+    }
 
-   public boolean isCharging() {
-      return this.getVexFlag(1);
-   }
+    public void setLimitedLife(int p_33988_) {
+        this.hasLimitedLife = true;
+        this.limitedLifeTicks = p_33988_;
+    }
 
-   public void setIsCharging(boolean p_34043_) {
-      this.setVexFlag(1, p_34043_);
-   }
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.VEX_AMBIENT;
+    }
 
-   public void setOwner(Mob p_33995_) {
-      this.owner = p_33995_;
-   }
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.VEX_DEATH;
+    }
 
-   public void setLimitedLife(int p_33988_) {
-      this.hasLimitedLife = true;
-      this.limitedLifeTicks = p_33988_;
-   }
+    protected SoundEvent getHurtSound(DamageSource p_34023_) {
+        return SoundEvents.VEX_HURT;
+    }
 
-   protected SoundEvent getAmbientSound() {
-      return SoundEvents.VEX_AMBIENT;
-   }
+    public float getLightLevelDependentMagicValue() {
+        return 1.0F;
+    }
 
-   protected SoundEvent getDeathSound() {
-      return SoundEvents.VEX_DEATH;
-   }
+    @Nullable
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_34002_, DifficultyInstance p_34003_, MobSpawnType p_34004_, @Nullable SpawnGroupData p_34005_, @Nullable CompoundTag p_34006_) {
+        RandomSource randomsource = p_34002_.getRandom();
+        this.populateDefaultEquipmentSlots(randomsource, p_34003_);
+        this.populateDefaultEquipmentEnchantments(randomsource, p_34003_);
+        return super.finalizeSpawn(p_34002_, p_34003_, p_34004_, p_34005_, p_34006_);
+    }
 
-   protected SoundEvent getHurtSound(DamageSource p_34023_) {
-      return SoundEvents.VEX_HURT;
-   }
+    protected void populateDefaultEquipmentSlots(RandomSource p_219135_, DifficultyInstance p_219136_) {
+        this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+        this.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
+    }
 
-   public float getLightLevelDependentMagicValue() {
-      return 1.0F;
-   }
+    class VexChargeAttackGoal extends Goal {
+        public VexChargeAttackGoal() {
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
+        }
 
-   @Nullable
-   public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_34002_, DifficultyInstance p_34003_, MobSpawnType p_34004_, @Nullable SpawnGroupData p_34005_, @Nullable CompoundTag p_34006_) {
-      RandomSource randomsource = p_34002_.getRandom();
-      this.populateDefaultEquipmentSlots(randomsource, p_34003_);
-      this.populateDefaultEquipmentEnchantments(randomsource, p_34003_);
-      return super.finalizeSpawn(p_34002_, p_34003_, p_34004_, p_34005_, p_34006_);
-   }
+        public boolean canUse() {
+            LivingEntity livingentity = Vex.this.getTarget();
+            if (livingentity != null && livingentity.isAlive() && !Vex.this.getMoveControl().hasWanted() && Vex.this.random.nextInt(reducedTickDelay(7)) == 0) {
+                return Vex.this.distanceToSqr(livingentity) > 4.0D;
+            } else {
+                return false;
+            }
+        }
 
-   protected void populateDefaultEquipmentSlots(RandomSource p_219135_, DifficultyInstance p_219136_) {
-      this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
-      this.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
-   }
+        public boolean canContinueToUse() {
+            return Vex.this.getMoveControl().hasWanted() && Vex.this.isCharging() && Vex.this.getTarget() != null && Vex.this.getTarget().isAlive();
+        }
 
-   class VexChargeAttackGoal extends Goal {
-      public VexChargeAttackGoal() {
-         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
-      }
+        public void start() {
+            LivingEntity livingentity = Vex.this.getTarget();
+            if (livingentity != null) {
+                Vex.this.moveControl.setWantedPosition(livingentity.exactEyePosition(), 1.0D);
+            }
 
-      public boolean canUse() {
-         LivingEntity livingentity = Vex.this.getTarget();
-         if (livingentity != null && livingentity.isAlive() && !Vex.this.getMoveControl().hasWanted() && Vex.this.random.nextInt(reducedTickDelay(7)) == 0) {
-            return Vex.this.distanceToSqr(livingentity) > 4.0D;
-         } else {
+            Vex.this.setIsCharging(true);
+            Vex.this.playSound(SoundEvents.VEX_CHARGE, 1.0F, 1.0F);
+        }
+
+        public void stop() {
+            Vex.this.setIsCharging(false);
+        }
+
+        public boolean requiresUpdateEveryTick() {
+            return true;
+        }
+
+        public void tick() {
+            LivingEntity livingentity = Vex.this.getTarget();
+            if (livingentity != null) {
+                if (Vex.this.getBoundingBox().intersects(livingentity.getBoundingBox())) {
+                    Vex.this.doHurtTarget(livingentity);
+                    Vex.this.setIsCharging(false);
+                } else {
+                    double d0 = Vex.this.distanceToSqr(livingentity);
+                    if (d0 < 9.0D) {
+                        Vex.this.moveControl.setWantedPosition(livingentity.exactEyePosition(), 1.0D);
+                    }
+                }
+            }
+        }
+    }
+
+    class VexCopyOwnerTargetGoal extends TargetGoal {
+        private final TargetingConditions copyOwnerTargeting = TargetingConditions.forNonCombat().ignoreLineOfSight().ignoreInvisibilityTesting();
+
+        public VexCopyOwnerTargetGoal(PathfinderMob p_34056_) {
+            super(p_34056_, false);
+        }
+
+        public boolean canUse() {
+            return Vex.this.owner != null && Vex.this.owner.getTarget() != null && this.canAttack(Vex.this.owner.getTarget(), this.copyOwnerTargeting);
+        }
+
+        public void start() {
+            Vex.this.setTarget(Vex.this.owner.getTarget());
+            super.start();
+        }
+    }
+
+    class VexMoveControl extends MoveControl {
+        public VexMoveControl(Vex p_34062_) {
+            super(p_34062_);
+        }
+
+        public void tick() {
+            if (this.operation == MoveControl.Operation.MOVE_TO) {
+                Vec3 vec3 = this.wantedDelta();
+                double d0 = vec3.length();
+                if (d0 < Vex.this.getBoundingBox().getSize()) {
+                    this.operation = MoveControl.Operation.WAIT;
+                    Vex.this.setDeltaMovement(Vex.this.getDeltaMovement().scale(0.5D));
+                } else {
+                    Vex.this.setDeltaMovement(Vex.this.getDeltaMovement().add(vec3.scale(this.speedModifier * 0.05D / d0)));
+                    if (Vex.this.getTarget() == null) {
+                        Vec3 vec31 = Vex.this.getDeltaMovement();
+                        Vex.this.setYRot(-((float) Mth.atan2(vec31.x, vec31.z)) * (180F / (float) Math.PI));
+                        Vex.this.yBodyRot = Vex.this.getYRot();
+                    } else {
+                        Vec3 targetDelta = Vex.this.getTarget().sectorPosition().relativeTo(Vex.this.sectorPosition());
+                        double d2 = targetDelta.x;
+                        double d1 = targetDelta.z;
+                        Vex.this.setYRot(-((float) Mth.atan2(d2, d1)) * (180F / (float) Math.PI));
+                        Vex.this.yBodyRot = Vex.this.getYRot();
+                    }
+                }
+            }
+        }
+    }
+
+    class VexRandomMoveGoal extends Goal {
+        public VexRandomMoveGoal() {
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
+        }
+
+        public boolean canUse() {
+            return !Vex.this.getMoveControl().hasWanted() && Vex.this.random.nextInt(reducedTickDelay(7)) == 0;
+        }
+
+        public boolean canContinueToUse() {
             return false;
-         }
-      }
+        }
 
-      public boolean canContinueToUse() {
-         return Vex.this.getMoveControl().hasWanted() && Vex.this.isCharging() && Vex.this.getTarget() != null && Vex.this.getTarget().isAlive();
-      }
-
-      public void start() {
-         LivingEntity livingentity = Vex.this.getTarget();
-         if (livingentity != null) {
-            Vex.this.moveControl.setWantedPosition(livingentity.exactEyePosition(), 1.0D);
-         }
-
-         Vex.this.setIsCharging(true);
-         Vex.this.playSound(SoundEvents.VEX_CHARGE, 1.0F, 1.0F);
-      }
-
-      public void stop() {
-         Vex.this.setIsCharging(false);
-      }
-
-      public boolean requiresUpdateEveryTick() {
-         return true;
-      }
-
-      public void tick() {
-         LivingEntity livingentity = Vex.this.getTarget();
-         if (livingentity != null) {
-            if (Vex.this.getBoundingBox().intersects(livingentity.getBoundingBox())) {
-               Vex.this.doHurtTarget(livingentity);
-               Vex.this.setIsCharging(false);
-            } else {
-               double d0 = Vex.this.distanceToSqr(livingentity);
-               if (d0 < 9.0D) {
-                  Vex.this.moveControl.setWantedPosition(livingentity.exactEyePosition(), 1.0D);
-               }
+        public void tick() {
+            BlockPos blockpos = Vex.this.getBoundOrigin();
+            if (blockpos == null) {
+                blockpos = Vex.this.blockPosition();
             }
 
-         }
-      }
-   }
-
-   class VexCopyOwnerTargetGoal extends TargetGoal {
-      private final TargetingConditions copyOwnerTargeting = TargetingConditions.forNonCombat().ignoreLineOfSight().ignoreInvisibilityTesting();
-
-      public VexCopyOwnerTargetGoal(PathfinderMob p_34056_) {
-         super(p_34056_, false);
-      }
-
-      public boolean canUse() {
-         return Vex.this.owner != null && Vex.this.owner.getTarget() != null && this.canAttack(Vex.this.owner.getTarget(), this.copyOwnerTargeting);
-      }
-
-      public void start() {
-         Vex.this.setTarget(Vex.this.owner.getTarget());
-         super.start();
-      }
-   }
-
-   class VexMoveControl extends MoveControl {
-      public VexMoveControl(Vex p_34062_) {
-         super(p_34062_);
-      }
-
-      public void tick() {
-         if (this.operation == MoveControl.Operation.MOVE_TO) {
-            Vec3 vec3 = this.wantedDelta();
-            double d0 = vec3.length();
-            if (d0 < Vex.this.getBoundingBox().getSize()) {
-               this.operation = MoveControl.Operation.WAIT;
-               Vex.this.setDeltaMovement(Vex.this.getDeltaMovement().scale(0.5D));
-            } else {
-               Vex.this.setDeltaMovement(Vex.this.getDeltaMovement().add(vec3.scale(this.speedModifier * 0.05D / d0)));
-               if (Vex.this.getTarget() == null) {
-                  Vec3 vec31 = Vex.this.getDeltaMovement();
-                  Vex.this.setYRot(-((float)Mth.atan2(vec31.x, vec31.z)) * (180F / (float)Math.PI));
-                  Vex.this.yBodyRot = Vex.this.getYRot();
-               } else {
-                  Vec3 targetDelta = Vex.this.getTarget().sectorPosition().relativeTo(Vex.this.sectorPosition());
-                  double d2 = targetDelta.x;
-                  double d1 = targetDelta.z;
-                  Vex.this.setYRot(-((float)Mth.atan2(d2, d1)) * (180F / (float)Math.PI));
-                  Vex.this.yBodyRot = Vex.this.getYRot();
-               }
+            for (int i = 0; i < 3; ++i) {
+                BlockPos blockpos1 = blockpos.offset(Vex.this.random.nextInt(15) - 7, Vex.this.random.nextInt(11) - 5, Vex.this.random.nextInt(15) - 7);
+                if (Vex.this.level.isEmptyBlock(blockpos1)) {
+                    net.minecraft.world.phys.SectorVec3 target = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D,
+                            (double) blockpos1.getY() + 0.5D, blockpos1.getZ(), 0.5D);
+                    Vex.this.moveControl.setWantedPosition(target, 0.25D);
+                    if (Vex.this.getTarget() == null) {
+                        Vex.this.getLookControl().setLookAtExact(target, 180.0F, 20.0F);
+                    }
+                    break;
+                }
             }
-
-         }
-      }
-   }
-
-   class VexRandomMoveGoal extends Goal {
-      public VexRandomMoveGoal() {
-         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
-      }
-
-      public boolean canUse() {
-         return !Vex.this.getMoveControl().hasWanted() && Vex.this.random.nextInt(reducedTickDelay(7)) == 0;
-      }
-
-      public boolean canContinueToUse() {
-         return false;
-      }
-
-      public void tick() {
-         BlockPos blockpos = Vex.this.getBoundOrigin();
-         if (blockpos == null) {
-            blockpos = Vex.this.blockPosition();
-         }
-
-         for(int i = 0; i < 3; ++i) {
-            BlockPos blockpos1 = blockpos.offset(Vex.this.random.nextInt(15) - 7, Vex.this.random.nextInt(11) - 5, Vex.this.random.nextInt(15) - 7);
-            if (Vex.this.level.isEmptyBlock(blockpos1)) {
-               net.minecraft.world.phys.SectorVec3 target = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D,
-                     (double)blockpos1.getY() + 0.5D, blockpos1.getZ(), 0.5D);
-               Vex.this.moveControl.setWantedPosition(target, 0.25D);
-               if (Vex.this.getTarget() == null) {
-                  Vex.this.getLookControl().setLookAtExact(target, 180.0F, 20.0F);
-               }
-               break;
-            }
-         }
-
-      }
-   }
+        }
+    }
 }

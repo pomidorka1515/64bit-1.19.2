@@ -14,6 +14,6 @@ import net.minecraft.obfuscate.DontObfuscate;
 @StackTrace(false)
 @DontObfuscate
 public class WorldLoadFinishedEvent extends Event {
-   public static final String EVENT_NAME = "minecraft.LoadWorld";
-   public static final EventType TYPE = EventType.getEventType(WorldLoadFinishedEvent.class);
+    public static final String EVENT_NAME = "minecraft.LoadWorld";
+    public static final EventType TYPE = EventType.getEventType(WorldLoadFinishedEvent.class);
 }

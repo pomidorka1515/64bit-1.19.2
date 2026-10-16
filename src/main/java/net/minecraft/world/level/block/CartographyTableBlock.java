@@ -17,26 +17,26 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class CartographyTableBlock extends Block {
-   private static final Component CONTAINER_TITLE = Component.translatable("container.cartography_table");
+    private static final Component CONTAINER_TITLE = Component.translatable("container.cartography_table");
 
-   protected CartographyTableBlock(BlockBehaviour.Properties p_51349_) {
-      super(p_51349_);
-   }
+    protected CartographyTableBlock(BlockBehaviour.Properties p_51349_) {
+        super(p_51349_);
+    }
 
-   public InteractionResult use(BlockState p_51357_, Level p_51358_, BlockPos p_51359_, Player p_51360_, InteractionHand p_51361_, BlockHitResult p_51362_) {
-      if (p_51358_.isClientSide) {
-         return InteractionResult.SUCCESS;
-      } else {
-         p_51360_.openMenu(p_51357_.getMenuProvider(p_51358_, p_51359_));
-         p_51360_.awardStat(Stats.INTERACT_WITH_CARTOGRAPHY_TABLE);
-         return InteractionResult.CONSUME;
-      }
-   }
+    public InteractionResult use(BlockState p_51357_, Level p_51358_, BlockPos p_51359_, Player p_51360_, InteractionHand p_51361_, BlockHitResult p_51362_) {
+        if (p_51358_.isClientSide) {
+            return InteractionResult.SUCCESS;
+        } else {
+            p_51360_.openMenu(p_51357_.getMenuProvider(p_51358_, p_51359_));
+            p_51360_.awardStat(Stats.INTERACT_WITH_CARTOGRAPHY_TABLE);
+            return InteractionResult.CONSUME;
+        }
+    }
 
-   @Nullable
-   public MenuProvider getMenuProvider(BlockState p_51364_, Level p_51365_, BlockPos p_51366_) {
-      return new SimpleMenuProvider((p_51353_, p_51354_, p_51355_) -> {
-         return new CartographyTableMenu(p_51353_, p_51354_, ContainerLevelAccess.create(p_51365_, p_51366_));
-      }, CONTAINER_TITLE);
-   }
+    @Nullable
+    public MenuProvider getMenuProvider(BlockState p_51364_, Level p_51365_, BlockPos p_51366_) {
+        return new SimpleMenuProvider((p_51353_, p_51354_, p_51355_) -> {
+            return new CartographyTableMenu(p_51353_, p_51354_, ContainerLevelAccess.create(p_51365_, p_51366_));
+        }, CONTAINER_TITLE);
+    }
 }

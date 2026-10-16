@@ -36,205 +36,198 @@ import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class AbstractVillager extends AgeableMob implements InventoryCarrier, Npc, Merchant {
-   private static final EntityDataAccessor<Integer> DATA_UNHAPPY_COUNTER = SynchedEntityData.defineId(AbstractVillager.class, EntityDataSerializers.INT);
-   public static final int VILLAGER_SLOT_OFFSET = 300;
-   private static final int VILLAGER_INVENTORY_SIZE = 8;
-   @Nullable
-   private Player tradingPlayer;
-   @Nullable
-   protected MerchantOffers offers;
-   private final SimpleContainer inventory = new SimpleContainer(8);
+    private static final EntityDataAccessor<Integer> DATA_UNHAPPY_COUNTER = SynchedEntityData.defineId(AbstractVillager.class, EntityDataSerializers.INT);
+    public static final int VILLAGER_SLOT_OFFSET = 300;
+    private static final int VILLAGER_INVENTORY_SIZE = 8;
+    @Nullable
+    private Player tradingPlayer;
+    @Nullable
+    protected MerchantOffers offers;
+    private final SimpleContainer inventory = new SimpleContainer(8);
 
-   public AbstractVillager(EntityType<? extends AbstractVillager> p_35267_, Level p_35268_) {
-      super(p_35267_, p_35268_);
-      this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
-      this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
-   }
+    public AbstractVillager(EntityType<? extends AbstractVillager> p_35267_, Level p_35268_) {
+        super(p_35267_, p_35268_);
+        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
+        this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
+    }
 
-   public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_35282_, DifficultyInstance p_35283_, MobSpawnType p_35284_, @Nullable SpawnGroupData p_35285_, @Nullable CompoundTag p_35286_) {
-      if (p_35285_ == null) {
-         p_35285_ = new AgeableMob.AgeableMobGroupData(false);
-      }
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_35282_, DifficultyInstance p_35283_, MobSpawnType p_35284_, @Nullable SpawnGroupData p_35285_, @Nullable CompoundTag p_35286_) {
+        if (p_35285_ == null) {
+            p_35285_ = new AgeableMob.AgeableMobGroupData(false);
+        }
 
-      return super.finalizeSpawn(p_35282_, p_35283_, p_35284_, p_35285_, p_35286_);
-   }
+        return super.finalizeSpawn(p_35282_, p_35283_, p_35284_, p_35285_, p_35286_);
+    }
 
-   public int getUnhappyCounter() {
-      return this.entityData.get(DATA_UNHAPPY_COUNTER);
-   }
+    public int getUnhappyCounter() {
+        return this.entityData.get(DATA_UNHAPPY_COUNTER);
+    }
 
-   public void setUnhappyCounter(int p_35320_) {
-      this.entityData.set(DATA_UNHAPPY_COUNTER, p_35320_);
-   }
+    public void setUnhappyCounter(int p_35320_) {
+        this.entityData.set(DATA_UNHAPPY_COUNTER, p_35320_);
+    }
 
-   public int getVillagerXp() {
-      return 0;
-   }
+    public int getVillagerXp() {
+        return 0;
+    }
 
-   protected float getStandingEyeHeight(Pose p_35297_, EntityDimensions p_35298_) {
-      return this.isBaby() ? 0.81F : 1.62F;
-   }
+    protected float getStandingEyeHeight(Pose p_35297_, EntityDimensions p_35298_) {
+        return this.isBaby() ? 0.81F : 1.62F;
+    }
 
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(DATA_UNHAPPY_COUNTER, 0);
-   }
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_UNHAPPY_COUNTER, 0);
+    }
 
-   public void setTradingPlayer(@Nullable Player p_35314_) {
-      this.tradingPlayer = p_35314_;
-   }
+    public void setTradingPlayer(@Nullable Player p_35314_) {
+        this.tradingPlayer = p_35314_;
+    }
 
-   @Nullable
-   public Player getTradingPlayer() {
-      return this.tradingPlayer;
-   }
+    @Nullable
+    public Player getTradingPlayer() {
+        return this.tradingPlayer;
+    }
 
-   public boolean isTrading() {
-      return this.tradingPlayer != null;
-   }
+    public boolean isTrading() {
+        return this.tradingPlayer != null;
+    }
 
-   public MerchantOffers getOffers() {
-      if (this.offers == null) {
-         this.offers = new MerchantOffers();
-         this.updateTrades();
-      }
+    public MerchantOffers getOffers() {
+        if (this.offers == null) {
+            this.offers = new MerchantOffers();
+            this.updateTrades();
+        }
 
-      return this.offers;
-   }
+        return this.offers;
+    }
 
-   public void overrideOffers(@Nullable MerchantOffers p_35276_) {
-   }
+    public void overrideOffers(@Nullable MerchantOffers p_35276_) {
+    }
 
-   public void overrideXp(int p_35322_) {
-   }
+    public void overrideXp(int p_35322_) {
+    }
 
-   public void notifyTrade(MerchantOffer p_35274_) {
-      p_35274_.increaseUses();
-      this.ambientSoundTime = -this.getAmbientSoundInterval();
-      this.rewardTradeXp(p_35274_);
-      if (this.tradingPlayer instanceof ServerPlayer) {
-         CriteriaTriggers.TRADE.trigger((ServerPlayer)this.tradingPlayer, this, p_35274_.getResult());
-      }
+    public void notifyTrade(MerchantOffer p_35274_) {
+        p_35274_.increaseUses();
+        this.ambientSoundTime = -this.getAmbientSoundInterval();
+        this.rewardTradeXp(p_35274_);
+        if (this.tradingPlayer instanceof ServerPlayer) {
+            CriteriaTriggers.TRADE.trigger((ServerPlayer) this.tradingPlayer, this, p_35274_.getResult());
+        }
+    }
 
-   }
+    protected abstract void rewardTradeXp(MerchantOffer p_35299_);
 
-   protected abstract void rewardTradeXp(MerchantOffer p_35299_);
+    public boolean showProgressBar() {
+        return true;
+    }
 
-   public boolean showProgressBar() {
-      return true;
-   }
+    public void notifyTradeUpdated(ItemStack p_35316_) {
+        if (!this.level.isClientSide && this.ambientSoundTime > -this.getAmbientSoundInterval() + 20) {
+            this.ambientSoundTime = -this.getAmbientSoundInterval();
+            this.playSound(this.getTradeUpdatedSound(!p_35316_.isEmpty()), this.getSoundVolume(), this.getVoicePitch());
+        }
+    }
 
-   public void notifyTradeUpdated(ItemStack p_35316_) {
-      if (!this.level.isClientSide && this.ambientSoundTime > -this.getAmbientSoundInterval() + 20) {
-         this.ambientSoundTime = -this.getAmbientSoundInterval();
-         this.playSound(this.getTradeUpdatedSound(!p_35316_.isEmpty()), this.getSoundVolume(), this.getVoicePitch());
-      }
+    public SoundEvent getNotifyTradeSound() {
+        return SoundEvents.VILLAGER_YES;
+    }
 
-   }
+    protected SoundEvent getTradeUpdatedSound(boolean p_35323_) {
+        return p_35323_ ? SoundEvents.VILLAGER_YES : SoundEvents.VILLAGER_NO;
+    }
 
-   public SoundEvent getNotifyTradeSound() {
-      return SoundEvents.VILLAGER_YES;
-   }
+    public void playCelebrateSound() {
+        this.playSound(SoundEvents.VILLAGER_CELEBRATE, this.getSoundVolume(), this.getVoicePitch());
+    }
 
-   protected SoundEvent getTradeUpdatedSound(boolean p_35323_) {
-      return p_35323_ ? SoundEvents.VILLAGER_YES : SoundEvents.VILLAGER_NO;
-   }
+    public void addAdditionalSaveData(CompoundTag p_35301_) {
+        super.addAdditionalSaveData(p_35301_);
+        MerchantOffers merchantoffers = this.getOffers();
+        if (!merchantoffers.isEmpty()) {
+            p_35301_.put("Offers", merchantoffers.createTag());
+        }
 
-   public void playCelebrateSound() {
-      this.playSound(SoundEvents.VILLAGER_CELEBRATE, this.getSoundVolume(), this.getVoicePitch());
-   }
+        p_35301_.put("Inventory", this.inventory.createTag());
+    }
 
-   public void addAdditionalSaveData(CompoundTag p_35301_) {
-      super.addAdditionalSaveData(p_35301_);
-      MerchantOffers merchantoffers = this.getOffers();
-      if (!merchantoffers.isEmpty()) {
-         p_35301_.put("Offers", merchantoffers.createTag());
-      }
+    public void readAdditionalSaveData(CompoundTag p_35290_) {
+        super.readAdditionalSaveData(p_35290_);
+        if (p_35290_.contains("Offers", 10)) {
+            this.offers = new MerchantOffers(p_35290_.getCompound("Offers"));
+        }
 
-      p_35301_.put("Inventory", this.inventory.createTag());
-   }
+        this.inventory.fromTag(p_35290_.getList("Inventory", 10));
+    }
 
-   public void readAdditionalSaveData(CompoundTag p_35290_) {
-      super.readAdditionalSaveData(p_35290_);
-      if (p_35290_.contains("Offers", 10)) {
-         this.offers = new MerchantOffers(p_35290_.getCompound("Offers"));
-      }
+    @Nullable
+    public Entity changeDimension(ServerLevel p_35295_) {
+        this.stopTrading();
+        return super.changeDimension(p_35295_);
+    }
 
-      this.inventory.fromTag(p_35290_.getList("Inventory", 10));
-   }
+    protected void stopTrading() {
+        this.setTradingPlayer((Player) null);
+    }
 
-   @Nullable
-   public Entity changeDimension(ServerLevel p_35295_) {
-      this.stopTrading();
-      return super.changeDimension(p_35295_);
-   }
+    public void die(DamageSource p_35270_) {
+        super.die(p_35270_);
+        this.stopTrading();
+    }
 
-   protected void stopTrading() {
-      this.setTradingPlayer((Player)null);
-   }
+    protected void addParticlesAroundSelf(ParticleOptions p_35288_) {
+        for (int i = 0; i < 5; ++i) {
+            double d0 = this.random.nextGaussian() * 0.02D;
+            double d1 = this.random.nextGaussian() * 0.02D;
+            double d2 = this.random.nextGaussian() * 0.02D;
+            this.level.addParticle(p_35288_, this.particlePosition((this.random.nextDouble() * 2.0D - 1.0D) * (double) this.getBbWidth(), this.random.nextDouble() * (double) this.getBbHeight() + 1.0D, (this.random.nextDouble() * 2.0D - 1.0D) * (double) this.getBbWidth()), d0, d1, d2);
+        }
+    }
 
-   public void die(DamageSource p_35270_) {
-      super.die(p_35270_);
-      this.stopTrading();
-   }
+    public boolean canBeLeashed(Player p_35272_) {
+        return false;
+    }
 
-   protected void addParticlesAroundSelf(ParticleOptions p_35288_) {
-      for(int i = 0; i < 5; ++i) {
-         double d0 = this.random.nextGaussian() * 0.02D;
-         double d1 = this.random.nextGaussian() * 0.02D;
-         double d2 = this.random.nextGaussian() * 0.02D;
-         this.level.addParticle(p_35288_, this.particlePosition(
-               (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.getBbWidth(),
-               this.random.nextDouble() * (double)this.getBbHeight() + 1.0D,
-               (this.random.nextDouble() * 2.0D - 1.0D) * (double)this.getBbWidth()), d0, d1, d2);
-      }
+    public SimpleContainer getInventory() {
+        return this.inventory;
+    }
 
-   }
+    public SlotAccess getSlot(int p_149995_) {
+        int i = p_149995_ - 300;
+        return i >= 0 && i < this.inventory.getContainerSize() ? SlotAccess.forContainer(this.inventory, i) : super.getSlot(p_149995_);
+    }
 
-   public boolean canBeLeashed(Player p_35272_) {
-      return false;
-   }
+    protected abstract void updateTrades();
 
-   public SimpleContainer getInventory() {
-      return this.inventory;
-   }
+    protected void addOffersFromItemListings(MerchantOffers p_35278_, VillagerTrades.ItemListing[] p_35279_, int p_35280_) {
+        Set<Integer> set = Sets.newHashSet();
+        if (p_35279_.length > p_35280_) {
+            while (set.size() < p_35280_) {
+                set.add(this.random.nextInt(p_35279_.length));
+            }
+        } else {
+            for (int i = 0; i < p_35279_.length; ++i) {
+                set.add(i);
+            }
+        }
 
-   public SlotAccess getSlot(int p_149995_) {
-      int i = p_149995_ - 300;
-      return i >= 0 && i < this.inventory.getContainerSize() ? SlotAccess.forContainer(this.inventory, i) : super.getSlot(p_149995_);
-   }
+        for (Integer integer : set) {
+            VillagerTrades.ItemListing villagertrades$itemlisting = p_35279_[integer];
+            MerchantOffer merchantoffer = villagertrades$itemlisting.getOffer(this, this.random);
+            if (merchantoffer != null) {
+                p_35278_.add(merchantoffer);
+            }
+        }
+    }
 
-   protected abstract void updateTrades();
+    public Vec3 getRopeHoldPosition(float p_35318_) {
+        float f = Mth.lerp(p_35318_, this.yBodyRotO, this.yBodyRot) * ((float) Math.PI / 180F);
+        Vec3 vec3 = new Vec3(0.0D, this.getBoundingBox().getYsize() - 1.0D, 0.2D);
+        return this.getPosition(p_35318_).add(vec3.yRot(-f));
+    }
 
-   protected void addOffersFromItemListings(MerchantOffers p_35278_, VillagerTrades.ItemListing[] p_35279_, int p_35280_) {
-      Set<Integer> set = Sets.newHashSet();
-      if (p_35279_.length > p_35280_) {
-         while(set.size() < p_35280_) {
-            set.add(this.random.nextInt(p_35279_.length));
-         }
-      } else {
-         for(int i = 0; i < p_35279_.length; ++i) {
-            set.add(i);
-         }
-      }
-
-      for(Integer integer : set) {
-         VillagerTrades.ItemListing villagertrades$itemlisting = p_35279_[integer];
-         MerchantOffer merchantoffer = villagertrades$itemlisting.getOffer(this, this.random);
-         if (merchantoffer != null) {
-            p_35278_.add(merchantoffer);
-         }
-      }
-
-   }
-
-   public Vec3 getRopeHoldPosition(float p_35318_) {
-      float f = Mth.lerp(p_35318_, this.yBodyRotO, this.yBodyRot) * ((float)Math.PI / 180F);
-      Vec3 vec3 = new Vec3(0.0D, this.getBoundingBox().getYsize() - 1.0D, 0.2D);
-      return this.getPosition(p_35318_).add(vec3.yRot(-f));
-   }
-
-   public boolean isClientSide() {
-      return this.level.isClientSide;
-   }
+    public boolean isClientSide() {
+        return this.level.isClientSide;
+    }
 }

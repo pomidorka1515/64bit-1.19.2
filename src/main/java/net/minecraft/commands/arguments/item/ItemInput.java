@@ -13,51 +13,52 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class ItemInput implements Predicate<ItemStack> {
-   private static final Dynamic2CommandExceptionType ERROR_STACK_TOO_BIG = new Dynamic2CommandExceptionType((p_120986_, p_120987_) -> {
-      return Component.translatable("arguments.item.overstacked", p_120986_, p_120987_);
-   });
-   private final Holder<Item> item;
-   @Nullable
-   private final CompoundTag tag;
+    private static final Dynamic2CommandExceptionType ERROR_STACK_TOO_BIG = new Dynamic2CommandExceptionType((p_120986_, p_120987_) -> {
+        return Component.translatable("arguments.item.overstacked", p_120986_, p_120987_);
+    });
+    private final Holder<Item> item;
+    @Nullable
+    private final CompoundTag tag;
 
-   public ItemInput(Holder<Item> p_235282_, @Nullable CompoundTag p_235283_) {
-      this.item = p_235282_;
-      this.tag = p_235283_;
-   }
+    public ItemInput(Holder<Item> p_235282_, @Nullable CompoundTag p_235283_) {
+        this.item = p_235282_;
+        this.tag = p_235283_;
+    }
 
-   public Item getItem() {
-      return this.item.value();
-   }
+    public Item getItem() {
+        return this.item.value();
+    }
 
-   public boolean test(ItemStack p_120984_) {
-      return p_120984_.is(this.item) && NbtUtils.compareNbt(this.tag, p_120984_.getTag(), true);
-   }
+    public boolean test(ItemStack p_120984_) {
+        return p_120984_.is(this.item) && NbtUtils.compareNbt(this.tag, p_120984_.getTag(), true);
+    }
 
-   public ItemStack createItemStack(int p_120981_, boolean p_120982_) throws CommandSyntaxException {
-      ItemStack itemstack = new ItemStack(this.item, p_120981_);
-      if (this.tag != null) {
-         itemstack.setTag(this.tag);
-      }
+    public ItemStack createItemStack(int p_120981_, boolean p_120982_) throws CommandSyntaxException {
+        ItemStack itemstack = new ItemStack(this.item, p_120981_);
+        if (this.tag != null) {
+            itemstack.setTag(this.tag);
+        }
 
-      if (p_120982_ && p_120981_ > itemstack.getMaxStackSize()) {
-         throw ERROR_STACK_TOO_BIG.create(this.getItemName(), itemstack.getMaxStackSize());
-      } else {
-         return itemstack;
-      }
-   }
+        if (p_120982_ && p_120981_ > itemstack.getMaxStackSize()) {
+            throw ERROR_STACK_TOO_BIG.create(this.getItemName(), itemstack.getMaxStackSize());
+        } else {
+            return itemstack;
+        }
+    }
 
-   public String serialize() {
-      StringBuilder stringbuilder = new StringBuilder(this.getItemName());
-      if (this.tag != null) {
-         stringbuilder.append((Object)this.tag);
-      }
+    public String serialize() {
+        StringBuilder stringbuilder = new StringBuilder(this.getItemName());
+        if (this.tag != null) {
+            stringbuilder.append((Object) this.tag);
+        }
 
-      return stringbuilder.toString();
-   }
+        return stringbuilder.toString();
+    }
 
-   private String getItemName() {
-      return this.item.unwrapKey().<Object>map(ResourceKey::location).orElseGet(() -> {
-         return "unknown[" + this.item + "]";
-      }).toString();
-   }
+    private String getItemName() {
+        return this.item.unwrapKey().<Object>map(ResourceKey::location).orElseGet(() -> {
+                                                                           return "unknown[" + this.item + "]";
+                                                                       })
+                .toString();
+    }
 }

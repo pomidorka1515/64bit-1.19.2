@@ -24,94 +24,90 @@ import org.slf4j.Logger;
 
 @OnlyIn(Dist.CLIENT)
 public class RealmsConnect {
-   static final Logger LOGGER = LogUtils.getLogger();
-   final Screen onlineScreen;
-   volatile boolean aborted;
-   @Nullable
-   Connection connection;
+    static final Logger LOGGER = LogUtils.getLogger();
+    final Screen onlineScreen;
+    volatile boolean aborted;
+    @Nullable
+    Connection connection;
 
-   public RealmsConnect(Screen p_120693_) {
-      this.onlineScreen = p_120693_;
-   }
+    public RealmsConnect(Screen p_120693_) {
+        this.onlineScreen = p_120693_;
+    }
 
-   public void connect(final RealmsServer p_175032_, ServerAddress p_175033_) {
-      final Minecraft minecraft = Minecraft.getInstance();
-      minecraft.setConnectedToRealms(true);
-      minecraft.prepareForMultiplayer();
-      minecraft.getNarrator().sayNow(Component.translatable("mco.connect.success"));
-      final CompletableFuture<Optional<ProfilePublicKey.Data>> completablefuture = minecraft.getProfileKeyPairManager().preparePublicKey();
-      final String s = p_175033_.getHost();
-      final int i = p_175033_.getPort();
-      (new Thread("Realms-connect-task") {
-         public void run() {
-            InetSocketAddress inetsocketaddress = null;
+    public void connect(final RealmsServer p_175032_, ServerAddress p_175033_) {
+        final Minecraft minecraft = Minecraft.getInstance();
+        minecraft.setConnectedToRealms(true);
+        minecraft.prepareForMultiplayer();
+        minecraft.getNarrator().sayNow(Component.translatable("mco.connect.success"));
+        final CompletableFuture<Optional<ProfilePublicKey.Data>> completablefuture = minecraft.getProfileKeyPairManager().preparePublicKey();
+        final String s = p_175033_.getHost();
+        final int i = p_175033_.getPort();
+        (new Thread("Realms-connect-task") {
+            public void run() {
+                InetSocketAddress inetsocketaddress = null;
 
-            try {
-               inetsocketaddress = new InetSocketAddress(s, i);
-               if (RealmsConnect.this.aborted) {
-                  return;
-               }
+                try {
+                    inetsocketaddress = new InetSocketAddress(s, i);
+                    if (RealmsConnect.this.aborted) {
+                        return;
+                    }
 
-               RealmsConnect.this.connection = Connection.connectToServer(inetsocketaddress, minecraft.options.useNativeTransport());
-               if (RealmsConnect.this.aborted) {
-                  return;
-               }
+                    RealmsConnect.this.connection = Connection.connectToServer(inetsocketaddress, minecraft.options.useNativeTransport());
+                    if (RealmsConnect.this.aborted) {
+                        return;
+                    }
 
-               RealmsConnect.this.connection.setListener(new ClientHandshakePacketListenerImpl(RealmsConnect.this.connection, minecraft, RealmsConnect.this.onlineScreen, (p_120726_) -> {
-               }));
-               if (RealmsConnect.this.aborted) {
-                  return;
-               }
+                    RealmsConnect.this.connection.setListener(new ClientHandshakePacketListenerImpl(RealmsConnect.this.connection, minecraft, RealmsConnect.this.onlineScreen, (p_120726_) -> {}));
+                    if (RealmsConnect.this.aborted) {
+                        return;
+                    }
 
-               RealmsConnect.this.connection.send(new ClientIntentionPacket(s, i, ConnectionProtocol.LOGIN));
-               if (RealmsConnect.this.aborted) {
-                  return;
-               }
+                    RealmsConnect.this.connection.send(new ClientIntentionPacket(s, i, ConnectionProtocol.LOGIN));
+                    if (RealmsConnect.this.aborted) {
+                        return;
+                    }
 
-               String s1 = minecraft.getUser().getName();
-               UUID uuid = minecraft.getUser().getProfileId();
-               RealmsConnect.this.connection.send(new ServerboundHelloPacket(s1, completablefuture.join(), Optional.ofNullable(uuid)));
-               minecraft.setCurrentServer(p_175032_, s);
-            } catch (Exception exception) {
-               minecraft.getClientPackSource().clearServerPack();
-               if (RealmsConnect.this.aborted) {
-                  return;
-               }
+                    String s1 = minecraft.getUser().getName();
+                    UUID uuid = minecraft.getUser().getProfileId();
+                    RealmsConnect.this.connection.send(new ServerboundHelloPacket(s1, completablefuture.join(), Optional.ofNullable(uuid)));
+                    minecraft.setCurrentServer(p_175032_, s);
+                } catch (Exception exception) {
+                    minecraft.getClientPackSource().clearServerPack();
+                    if (RealmsConnect.this.aborted) {
+                        return;
+                    }
 
-               RealmsConnect.LOGGER.error("Couldn't connect to world", (Throwable)exception);
-               String s2 = exception.toString();
-               if (inetsocketaddress != null) {
-                  String s3 = inetsocketaddress + ":" + i;
-                  s2 = s2.replaceAll(s3, "");
-               }
+                    RealmsConnect.LOGGER.error("Couldn't connect to world", (Throwable) exception);
+                    String s2 = exception.toString();
+                    if (inetsocketaddress != null) {
+                        String s3 = inetsocketaddress + ":" + i;
+                        s2 = s2.replaceAll(s3, "");
+                    }
 
-               DisconnectedRealmsScreen disconnectedrealmsscreen = new DisconnectedRealmsScreen(RealmsConnect.this.onlineScreen, CommonComponents.CONNECT_FAILED, Component.translatable("disconnect.genericReason", s2));
-               minecraft.execute(() -> {
-                  minecraft.setScreen(disconnectedrealmsscreen);
-               });
+                    DisconnectedRealmsScreen disconnectedrealmsscreen = new DisconnectedRealmsScreen(RealmsConnect.this.onlineScreen, CommonComponents.CONNECT_FAILED, Component.translatable("disconnect.genericReason", s2));
+                    minecraft.execute(() -> {
+                        minecraft.setScreen(disconnectedrealmsscreen);
+                    });
+                }
             }
+        }).start();
+    }
 
-         }
-      }).start();
-   }
-
-   public void abort() {
-      this.aborted = true;
-      if (this.connection != null && this.connection.isConnected()) {
-         this.connection.disconnect(Component.translatable("disconnect.genericReason"));
-         this.connection.handleDisconnection();
-      }
-
-   }
-
-   public void tick() {
-      if (this.connection != null) {
-         if (this.connection.isConnected()) {
-            this.connection.tick();
-         } else {
+    public void abort() {
+        this.aborted = true;
+        if (this.connection != null && this.connection.isConnected()) {
+            this.connection.disconnect(Component.translatable("disconnect.genericReason"));
             this.connection.handleDisconnection();
-         }
-      }
+        }
+    }
 
-   }
+    public void tick() {
+        if (this.connection != null) {
+            if (this.connection.isConnected()) {
+                this.connection.tick();
+            } else {
+                this.connection.handleDisconnection();
+            }
+        }
+    }
 }

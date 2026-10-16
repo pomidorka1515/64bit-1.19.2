@@ -13,26 +13,26 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class ClientboundSoundPacketTest {
-   @BeforeAll
-   static void bootstrapMinecraft() {
-      SharedConstants.tryDetectVersion();
-      Bootstrap.bootStrap();
-   }
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
 
-   @Test
-   void preservesSplitSoundOriginBeyondIntAndDoublePrecision() {
-      SectorVec3 position = SectorVec3.fromBlockAndFraction((1L << 53) + 37L, 0.375D, 72.25D,
-            -((1L << 53) + 41L), 0.625D);
-      ClientboundSoundPacket sent = new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS,
-            position, 1.25F, 0.75F, 918273645L);
+    @Test
+    void preservesSplitSoundOriginBeyondIntAndDoublePrecision() {
+        SectorVec3 position = SectorVec3.fromBlockAndFraction((1L << 53) + 37L, 0.375D, 72.25D,
+                -((1L << 53) + 41L), 0.625D);
+        ClientboundSoundPacket sent = new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS,
+                position, 1.25F, 0.75F, 918273645L);
 
-      FriendlyByteBuf bytes = new FriendlyByteBuf(Unpooled.buffer());
-      sent.write(bytes);
-      ClientboundSoundPacket received = new ClientboundSoundPacket(bytes);
+        FriendlyByteBuf bytes = new FriendlyByteBuf(Unpooled.buffer());
+        sent.write(bytes);
+        ClientboundSoundPacket received = new ClientboundSoundPacket(bytes);
 
-      assertEquals(position, received.getExactPosition());
-      assertEquals(1.25F, received.getVolume());
-      assertEquals(0.75F, received.getPitch());
-      assertEquals(918273645L, received.getSeed());
-   }
+        assertEquals(position, received.getExactPosition());
+        assertEquals(1.25F, received.getVolume());
+        assertEquals(0.75F, received.getPitch());
+        assertEquals(918273645L, received.getSeed());
+    }
 }

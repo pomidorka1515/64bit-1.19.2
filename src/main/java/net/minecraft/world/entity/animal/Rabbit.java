@@ -62,514 +62,507 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
 public class Rabbit extends Animal {
-   public static final double STROLL_SPEED_MOD = 0.6D;
-   public static final double BREED_SPEED_MOD = 0.8D;
-   public static final double FOLLOW_SPEED_MOD = 1.0D;
-   public static final double FLEE_SPEED_MOD = 2.2D;
-   public static final double ATTACK_SPEED_MOD = 1.4D;
-   private static final EntityDataAccessor<Integer> DATA_TYPE_ID = SynchedEntityData.defineId(Rabbit.class, EntityDataSerializers.INT);
-   public static final int TYPE_BROWN = 0;
-   public static final int TYPE_WHITE = 1;
-   public static final int TYPE_BLACK = 2;
-   public static final int TYPE_WHITE_SPLOTCHED = 3;
-   public static final int TYPE_GOLD = 4;
-   public static final int TYPE_SALT = 5;
-   public static final int TYPE_EVIL = 99;
-   private static final ResourceLocation KILLER_BUNNY = new ResourceLocation("killer_bunny");
-   public static final int EVIL_ATTACK_POWER = 8;
-   public static final int EVIL_ARMOR_VALUE = 8;
-   private static final int MORE_CARROTS_DELAY = 40;
-   private int jumpTicks;
-   private int jumpDuration;
-   private boolean wasOnGround;
-   private int jumpDelayTicks;
-   int moreCarrotTicks;
+    public static final double STROLL_SPEED_MOD = 0.6D;
+    public static final double BREED_SPEED_MOD = 0.8D;
+    public static final double FOLLOW_SPEED_MOD = 1.0D;
+    public static final double FLEE_SPEED_MOD = 2.2D;
+    public static final double ATTACK_SPEED_MOD = 1.4D;
+    private static final EntityDataAccessor<Integer> DATA_TYPE_ID = SynchedEntityData.defineId(Rabbit.class, EntityDataSerializers.INT);
+    public static final int TYPE_BROWN = 0;
+    public static final int TYPE_WHITE = 1;
+    public static final int TYPE_BLACK = 2;
+    public static final int TYPE_WHITE_SPLOTCHED = 3;
+    public static final int TYPE_GOLD = 4;
+    public static final int TYPE_SALT = 5;
+    public static final int TYPE_EVIL = 99;
+    private static final ResourceLocation KILLER_BUNNY = new ResourceLocation("killer_bunny");
+    public static final int EVIL_ATTACK_POWER = 8;
+    public static final int EVIL_ARMOR_VALUE = 8;
+    private static final int MORE_CARROTS_DELAY = 40;
+    private int jumpTicks;
+    private int jumpDuration;
+    private boolean wasOnGround;
+    private int jumpDelayTicks;
+    int moreCarrotTicks;
 
-   public Rabbit(EntityType<? extends Rabbit> p_29656_, Level p_29657_) {
-      super(p_29656_, p_29657_);
-      this.jumpControl = new Rabbit.RabbitJumpControl(this);
-      this.moveControl = new Rabbit.RabbitMoveControl(this);
-      this.setSpeedModifier(0.0D);
-   }
+    public Rabbit(EntityType<? extends Rabbit> p_29656_, Level p_29657_) {
+        super(p_29656_, p_29657_);
+        this.jumpControl = new Rabbit.RabbitJumpControl(this);
+        this.moveControl = new Rabbit.RabbitMoveControl(this);
+        this.setSpeedModifier(0.0D);
+    }
 
-   protected void registerGoals() {
-      this.goalSelector.addGoal(1, new FloatGoal(this));
-      this.goalSelector.addGoal(1, new ClimbOnTopOfPowderSnowGoal(this, this.level));
-      this.goalSelector.addGoal(1, new Rabbit.RabbitPanicGoal(this, 2.2D));
-      this.goalSelector.addGoal(2, new BreedGoal(this, 0.8D));
-      this.goalSelector.addGoal(3, new TemptGoal(this, 1.0D, Ingredient.of(Items.CARROT, Items.GOLDEN_CARROT, Blocks.DANDELION), false));
-      this.goalSelector.addGoal(4, new Rabbit.RabbitAvoidEntityGoal<>(this, Player.class, 8.0F, 2.2D, 2.2D));
-      this.goalSelector.addGoal(4, new Rabbit.RabbitAvoidEntityGoal<>(this, Wolf.class, 10.0F, 2.2D, 2.2D));
-      this.goalSelector.addGoal(4, new Rabbit.RabbitAvoidEntityGoal<>(this, Monster.class, 4.0F, 2.2D, 2.2D));
-      this.goalSelector.addGoal(5, new Rabbit.RaidGardenGoal(this));
-      this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 0.6D));
-      this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 10.0F));
-   }
+    protected void registerGoals() {
+        this.goalSelector.addGoal(1, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new ClimbOnTopOfPowderSnowGoal(this, this.level));
+        this.goalSelector.addGoal(1, new Rabbit.RabbitPanicGoal(this, 2.2D));
+        this.goalSelector.addGoal(2, new BreedGoal(this, 0.8D));
+        this.goalSelector.addGoal(3, new TemptGoal(this, 1.0D, Ingredient.of(Items.CARROT, Items.GOLDEN_CARROT, Blocks.DANDELION), false));
+        this.goalSelector.addGoal(4, new Rabbit.RabbitAvoidEntityGoal<>(this, Player.class, 8.0F, 2.2D, 2.2D));
+        this.goalSelector.addGoal(4, new Rabbit.RabbitAvoidEntityGoal<>(this, Wolf.class, 10.0F, 2.2D, 2.2D));
+        this.goalSelector.addGoal(4, new Rabbit.RabbitAvoidEntityGoal<>(this, Monster.class, 4.0F, 2.2D, 2.2D));
+        this.goalSelector.addGoal(5, new Rabbit.RaidGardenGoal(this));
+        this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 0.6D));
+        this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 10.0F));
+    }
 
-   protected float getJumpPower() {
-      if (!this.horizontalCollision && (!this.moveControl.hasWanted() || !(this.moveControl.getWantedY() > this.getY() + 0.5D))) {
-         Path path = this.navigation.getPath();
-         if (path != null && !path.isDone()) {
-            Vec3 vec3 = path.getNextEntityPos(this);
-            if (vec3.y > this.getY() + 0.5D) {
-               return 0.5F;
+    protected float getJumpPower() {
+        if (!this.horizontalCollision && (!this.moveControl.hasWanted() || !(this.moveControl.getWantedY() > this.getY() + 0.5D))) {
+            Path path = this.navigation.getPath();
+            if (path != null && !path.isDone()) {
+                Vec3 vec3 = path.getNextEntityPos(this);
+                if (vec3.y > this.getY() + 0.5D) {
+                    return 0.5F;
+                }
             }
-         }
 
-         return this.moveControl.getSpeedModifier() <= 0.6D ? 0.2F : 0.3F;
-      } else {
-         return 0.5F;
-      }
-   }
+            return this.moveControl.getSpeedModifier() <= 0.6D ? 0.2F : 0.3F;
+        } else {
+            return 0.5F;
+        }
+    }
 
-   protected void jumpFromGround() {
-      super.jumpFromGround();
-      double d0 = this.moveControl.getSpeedModifier();
-      if (d0 > 0.0D) {
-         double d1 = this.getDeltaMovement().horizontalDistanceSqr();
-         if (d1 < 0.01D) {
-            this.moveRelative(0.1F, new Vec3(0.0D, 0.0D, 1.0D));
-         }
-      }
+    protected void jumpFromGround() {
+        super.jumpFromGround();
+        double d0 = this.moveControl.getSpeedModifier();
+        if (d0 > 0.0D) {
+            double d1 = this.getDeltaMovement().horizontalDistanceSqr();
+            if (d1 < 0.01D) {
+                this.moveRelative(0.1F, new Vec3(0.0D, 0.0D, 1.0D));
+            }
+        }
 
-      if (!this.level.isClientSide) {
-         this.level.broadcastEntityEvent(this, (byte)1);
-      }
+        if (!this.level.isClientSide) {
+            this.level.broadcastEntityEvent(this, (byte) 1);
+        }
+    }
 
-   }
+    public float getJumpCompletion(float p_29736_) {
+        return this.jumpDuration == 0 ? 0.0F : ((float) this.jumpTicks + p_29736_) / (float) this.jumpDuration;
+    }
 
-   public float getJumpCompletion(float p_29736_) {
-      return this.jumpDuration == 0 ? 0.0F : ((float)this.jumpTicks + p_29736_) / (float)this.jumpDuration;
-   }
+    public void setSpeedModifier(double p_29726_) {
+        this.getNavigation().setSpeedModifier(p_29726_);
+        this.moveControl.setWantedPosition(this.moveControl.getExactWantedPosition(), p_29726_);
+    }
 
-   public void setSpeedModifier(double p_29726_) {
-      this.getNavigation().setSpeedModifier(p_29726_);
-      this.moveControl.setWantedPosition(this.moveControl.getExactWantedPosition(), p_29726_);
-   }
+    public void setJumping(boolean p_29732_) {
+        super.setJumping(p_29732_);
+        if (p_29732_) {
+            this.playSound(this.getJumpSound(), this.getSoundVolume(), ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) * 0.8F);
+        }
+    }
 
-   public void setJumping(boolean p_29732_) {
-      super.setJumping(p_29732_);
-      if (p_29732_) {
-         this.playSound(this.getJumpSound(), this.getSoundVolume(), ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) * 0.8F);
-      }
+    public void startJumping() {
+        this.setJumping(true);
+        this.jumpDuration = 10;
+        this.jumpTicks = 0;
+    }
 
-   }
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_TYPE_ID, 0);
+    }
 
-   public void startJumping() {
-      this.setJumping(true);
-      this.jumpDuration = 10;
-      this.jumpTicks = 0;
-   }
+    public void customServerAiStep() {
+        if (this.jumpDelayTicks > 0) {
+            --this.jumpDelayTicks;
+        }
 
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(DATA_TYPE_ID, 0);
-   }
+        if (this.moreCarrotTicks > 0) {
+            this.moreCarrotTicks -= this.random.nextInt(3);
+            if (this.moreCarrotTicks < 0) {
+                this.moreCarrotTicks = 0;
+            }
+        }
 
-   public void customServerAiStep() {
-      if (this.jumpDelayTicks > 0) {
-         --this.jumpDelayTicks;
-      }
+        if (this.onGround) {
+            if (!this.wasOnGround) {
+                this.setJumping(false);
+                this.checkLandingDelay();
+            }
 
-      if (this.moreCarrotTicks > 0) {
-         this.moreCarrotTicks -= this.random.nextInt(3);
-         if (this.moreCarrotTicks < 0) {
-            this.moreCarrotTicks = 0;
-         }
-      }
+            if (this.getRabbitType() == 99 && this.jumpDelayTicks == 0) {
+                LivingEntity livingentity = this.getTarget();
+                if (livingentity != null && this.distanceToSqr(livingentity) < 16.0D) {
+                    this.faceDelta(livingentity.sectorPosition().relativeTo(this.sectorPosition()));
+                    this.moveControl.setWantedPosition(livingentity.sectorPosition(), this.moveControl.getSpeedModifier());
+                    this.startJumping();
+                    this.wasOnGround = true;
+                }
+            }
 
-      if (this.onGround) {
-         if (!this.wasOnGround) {
+            Rabbit.RabbitJumpControl rabbit$rabbitjumpcontrol = (Rabbit.RabbitJumpControl) this.jumpControl;
+            if (!rabbit$rabbitjumpcontrol.wantJump()) {
+                if (this.moveControl.hasWanted() && this.jumpDelayTicks == 0) {
+                    Path path = this.navigation.getPath();
+                    Vec3 vec3 = this.moveControl.wantedDelta();
+                    if (path != null && !path.isDone()) {
+                        vec3 = path.getNextExactEntityPos(this).relativeTo(this.sectorPosition());
+                    }
+
+                    this.faceDelta(vec3);
+                    this.startJumping();
+                }
+            } else if (!rabbit$rabbitjumpcontrol.canJump()) {
+                this.enableJumpControl();
+            }
+        }
+
+        this.wasOnGround = this.onGround;
+    }
+
+    public boolean canSpawnSprintParticle() {
+        return false;
+    }
+
+    private void faceDelta(Vec3 delta) {
+        this.setYRot((float) (Mth.atan2(delta.z, delta.x) * (double) (180F / (float) Math.PI)) - 90.0F);
+    }
+
+    private void enableJumpControl() {
+        ((Rabbit.RabbitJumpControl) this.jumpControl).setCanJump(true);
+    }
+
+    private void disableJumpControl() {
+        ((Rabbit.RabbitJumpControl) this.jumpControl).setCanJump(false);
+    }
+
+    private void setLandingDelay() {
+        if (this.moveControl.getSpeedModifier() < 2.2D) {
+            this.jumpDelayTicks = 10;
+        } else {
+            this.jumpDelayTicks = 1;
+        }
+    }
+
+    private void checkLandingDelay() {
+        this.setLandingDelay();
+        this.disableJumpControl();
+    }
+
+    public void aiStep() {
+        super.aiStep();
+        if (this.jumpTicks != this.jumpDuration) {
+            ++this.jumpTicks;
+        } else if (this.jumpDuration != 0) {
+            this.jumpTicks = 0;
+            this.jumpDuration = 0;
             this.setJumping(false);
-            this.checkLandingDelay();
-         }
+        }
+    }
 
-         if (this.getRabbitType() == 99 && this.jumpDelayTicks == 0) {
-            LivingEntity livingentity = this.getTarget();
-            if (livingentity != null && this.distanceToSqr(livingentity) < 16.0D) {
-               this.faceDelta(livingentity.sectorPosition().relativeTo(this.sectorPosition()));
-               this.moveControl.setWantedPosition(livingentity.sectorPosition(), this.moveControl.getSpeedModifier());
-               this.startJumping();
-               this.wasOnGround = true;
+    public static AttributeSupplier.Builder createAttributes() {
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 3.0D).add(Attributes.MOVEMENT_SPEED, (double) 0.3F);
+    }
+
+    public void addAdditionalSaveData(CompoundTag p_29697_) {
+        super.addAdditionalSaveData(p_29697_);
+        p_29697_.putInt("RabbitType", this.getRabbitType());
+        p_29697_.putInt("MoreCarrotTicks", this.moreCarrotTicks);
+    }
+
+    public void readAdditionalSaveData(CompoundTag p_29684_) {
+        super.readAdditionalSaveData(p_29684_);
+        this.setRabbitType(p_29684_.getInt("RabbitType"));
+        this.moreCarrotTicks = p_29684_.getInt("MoreCarrotTicks");
+    }
+
+    protected SoundEvent getJumpSound() {
+        return SoundEvents.RABBIT_JUMP;
+    }
+
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.RABBIT_AMBIENT;
+    }
+
+    protected SoundEvent getHurtSound(DamageSource p_29715_) {
+        return SoundEvents.RABBIT_HURT;
+    }
+
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.RABBIT_DEATH;
+    }
+
+    public boolean doHurtTarget(Entity p_29659_) {
+        if (this.getRabbitType() == 99) {
+            this.playSound(SoundEvents.RABBIT_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
+            return p_29659_.hurt(DamageSource.mobAttack(this), 8.0F);
+        } else {
+            return p_29659_.hurt(DamageSource.mobAttack(this), 3.0F);
+        }
+    }
+
+    public SoundSource getSoundSource() {
+        return this.getRabbitType() == 99 ? SoundSource.HOSTILE : SoundSource.NEUTRAL;
+    }
+
+    private static boolean isTemptingItem(ItemStack p_149038_) {
+        return p_149038_.is(Items.CARROT) || p_149038_.is(Items.GOLDEN_CARROT) || p_149038_.is(Blocks.DANDELION.asItem());
+    }
+
+    public Rabbit getBreedOffspring(ServerLevel p_149035_, AgeableMob p_149036_) {
+        Rabbit rabbit = EntityType.RABBIT.create(p_149035_);
+        int i = this.getRandomRabbitType(p_149035_);
+        if (this.random.nextInt(20) != 0) {
+            if (p_149036_ instanceof Rabbit && this.random.nextBoolean()) {
+                i = ((Rabbit) p_149036_).getRabbitType();
+            } else {
+                i = this.getRabbitType();
             }
-         }
+        }
 
-         Rabbit.RabbitJumpControl rabbit$rabbitjumpcontrol = (Rabbit.RabbitJumpControl)this.jumpControl;
-         if (!rabbit$rabbitjumpcontrol.wantJump()) {
-            if (this.moveControl.hasWanted() && this.jumpDelayTicks == 0) {
-               Path path = this.navigation.getPath();
-               Vec3 vec3 = this.moveControl.wantedDelta();
-               if (path != null && !path.isDone()) {
-                  vec3 = path.getNextExactEntityPos(this).relativeTo(this.sectorPosition());
-               }
+        rabbit.setRabbitType(i);
+        return rabbit;
+    }
 
-               this.faceDelta(vec3);
-               this.startJumping();
+    public boolean isFood(ItemStack p_29729_) {
+        return isTemptingItem(p_29729_);
+    }
+
+    public int getRabbitType() {
+        return this.entityData.get(DATA_TYPE_ID);
+    }
+
+    public void setRabbitType(int p_29734_) {
+        if (p_29734_ == 99) {
+            this.getAttribute(Attributes.ARMOR).setBaseValue(8.0D);
+            this.goalSelector.addGoal(4, new Rabbit.EvilRabbitAttackGoal(this));
+            this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
+            this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+            this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Wolf.class, true));
+            if (!this.hasCustomName()) {
+                this.setCustomName(Component.translatable(Util.makeDescriptionId("entity", KILLER_BUNNY)));
             }
-         } else if (!rabbit$rabbitjumpcontrol.canJump()) {
-            this.enableJumpControl();
-         }
-      }
+        }
 
-      this.wasOnGround = this.onGround;
-   }
+        this.entityData.set(DATA_TYPE_ID, p_29734_);
+    }
 
-   public boolean canSpawnSprintParticle() {
-      return false;
-   }
+    @Nullable
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_29678_, DifficultyInstance p_29679_, MobSpawnType p_29680_, @Nullable SpawnGroupData p_29681_, @Nullable CompoundTag p_29682_) {
+        int i = this.getRandomRabbitType(p_29678_);
+        if (p_29681_ instanceof Rabbit.RabbitGroupData) {
+            i = ((Rabbit.RabbitGroupData) p_29681_).rabbitType;
+        } else {
+            p_29681_ = new Rabbit.RabbitGroupData(i);
+        }
 
-   private void faceDelta(Vec3 delta) {
-      this.setYRot((float)(Mth.atan2(delta.z, delta.x) * (double)(180F / (float)Math.PI)) - 90.0F);
-   }
+        this.setRabbitType(i);
+        return super.finalizeSpawn(p_29678_, p_29679_, p_29680_, p_29681_, p_29682_);
+    }
 
-   private void enableJumpControl() {
-      ((Rabbit.RabbitJumpControl)this.jumpControl).setCanJump(true);
-   }
+    private int getRandomRabbitType(LevelAccessor p_29676_) {
+        Holder<Biome> holder = p_29676_.getBiome(this.blockPosition());
+        int i = p_29676_.getRandom().nextInt(100);
+        if (holder.value().getPrecipitation() == Biome.Precipitation.SNOW) {
+            return i < 80 ? 1 : 3;
+        } else if (holder.is(BiomeTags.ONLY_ALLOWS_SNOW_AND_GOLD_RABBITS)) {
+            return 4;
+        } else {
+            return i < 50 ? 0 : (i < 90 ? 5 : 2);
+        }
+    }
 
-   private void disableJumpControl() {
-      ((Rabbit.RabbitJumpControl)this.jumpControl).setCanJump(false);
-   }
+    public static boolean checkRabbitSpawnRules(EntityType<Rabbit> p_218256_, LevelAccessor p_218257_, MobSpawnType p_218258_, BlockPos p_218259_, RandomSource p_218260_) {
+        return p_218257_.getBlockState(p_218259_.below()).is(BlockTags.RABBITS_SPAWNABLE_ON) && isBrightEnoughToSpawn(p_218257_, p_218259_);
+    }
 
-   private void setLandingDelay() {
-      if (this.moveControl.getSpeedModifier() < 2.2D) {
-         this.jumpDelayTicks = 10;
-      } else {
-         this.jumpDelayTicks = 1;
-      }
+    boolean wantsMoreFood() {
+        return this.moreCarrotTicks == 0;
+    }
 
-   }
+    public void handleEntityEvent(byte p_29663_) {
+        if (p_29663_ == 1) {
+            this.spawnSprintParticle();
+            this.jumpDuration = 10;
+            this.jumpTicks = 0;
+        } else {
+            super.handleEntityEvent(p_29663_);
+        }
+    }
 
-   private void checkLandingDelay() {
-      this.setLandingDelay();
-      this.disableJumpControl();
-   }
+    public Vec3 getLeashOffset() {
+        return new Vec3(0.0D, (double) (0.6F * this.getEyeHeight()), (double) (this.getBbWidth() * 0.4F));
+    }
 
-   public void aiStep() {
-      super.aiStep();
-      if (this.jumpTicks != this.jumpDuration) {
-         ++this.jumpTicks;
-      } else if (this.jumpDuration != 0) {
-         this.jumpTicks = 0;
-         this.jumpDuration = 0;
-         this.setJumping(false);
-      }
+    static class EvilRabbitAttackGoal extends MeleeAttackGoal {
+        public EvilRabbitAttackGoal(Rabbit p_29738_) {
+            super(p_29738_, 1.4D, true);
+        }
 
-   }
+        protected double getAttackReachSqr(LivingEntity p_29740_) {
+            return (double) (4.0F + p_29740_.getBbWidth());
+        }
+    }
 
-   public static AttributeSupplier.Builder createAttributes() {
-      return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 3.0D).add(Attributes.MOVEMENT_SPEED, (double)0.3F);
-   }
+    static class RabbitAvoidEntityGoal<T extends LivingEntity> extends AvoidEntityGoal<T> {
+        private final Rabbit rabbit;
 
-   public void addAdditionalSaveData(CompoundTag p_29697_) {
-      super.addAdditionalSaveData(p_29697_);
-      p_29697_.putInt("RabbitType", this.getRabbitType());
-      p_29697_.putInt("MoreCarrotTicks", this.moreCarrotTicks);
-   }
+        public RabbitAvoidEntityGoal(Rabbit p_29743_, Class<T> p_29744_, float p_29745_, double p_29746_, double p_29747_) {
+            super(p_29743_, p_29744_, p_29745_, p_29746_, p_29747_);
+            this.rabbit = p_29743_;
+        }
 
-   public void readAdditionalSaveData(CompoundTag p_29684_) {
-      super.readAdditionalSaveData(p_29684_);
-      this.setRabbitType(p_29684_.getInt("RabbitType"));
-      this.moreCarrotTicks = p_29684_.getInt("MoreCarrotTicks");
-   }
+        public boolean canUse() {
+            return this.rabbit.getRabbitType() != 99 && super.canUse();
+        }
+    }
 
-   protected SoundEvent getJumpSound() {
-      return SoundEvents.RABBIT_JUMP;
-   }
+    public static class RabbitGroupData extends AgeableMob.AgeableMobGroupData {
+        public final int rabbitType;
 
-   protected SoundEvent getAmbientSound() {
-      return SoundEvents.RABBIT_AMBIENT;
-   }
+        public RabbitGroupData(int p_29751_) {
+            super(1.0F);
+            this.rabbitType = p_29751_;
+        }
+    }
 
-   protected SoundEvent getHurtSound(DamageSource p_29715_) {
-      return SoundEvents.RABBIT_HURT;
-   }
+    public static class RabbitJumpControl extends JumpControl {
+        private final Rabbit rabbit;
+        private boolean canJump;
 
-   protected SoundEvent getDeathSound() {
-      return SoundEvents.RABBIT_DEATH;
-   }
+        public RabbitJumpControl(Rabbit p_186229_) {
+            super(p_186229_);
+            this.rabbit = p_186229_;
+        }
 
-   public boolean doHurtTarget(Entity p_29659_) {
-      if (this.getRabbitType() == 99) {
-         this.playSound(SoundEvents.RABBIT_ATTACK, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
-         return p_29659_.hurt(DamageSource.mobAttack(this), 8.0F);
-      } else {
-         return p_29659_.hurt(DamageSource.mobAttack(this), 3.0F);
-      }
-   }
+        public boolean wantJump() {
+            return this.jump;
+        }
 
-   public SoundSource getSoundSource() {
-      return this.getRabbitType() == 99 ? SoundSource.HOSTILE : SoundSource.NEUTRAL;
-   }
+        public boolean canJump() {
+            return this.canJump;
+        }
 
-   private static boolean isTemptingItem(ItemStack p_149038_) {
-      return p_149038_.is(Items.CARROT) || p_149038_.is(Items.GOLDEN_CARROT) || p_149038_.is(Blocks.DANDELION.asItem());
-   }
+        public void setCanJump(boolean p_29759_) {
+            this.canJump = p_29759_;
+        }
 
-   public Rabbit getBreedOffspring(ServerLevel p_149035_, AgeableMob p_149036_) {
-      Rabbit rabbit = EntityType.RABBIT.create(p_149035_);
-      int i = this.getRandomRabbitType(p_149035_);
-      if (this.random.nextInt(20) != 0) {
-         if (p_149036_ instanceof Rabbit && this.random.nextBoolean()) {
-            i = ((Rabbit)p_149036_).getRabbitType();
-         } else {
-            i = this.getRabbitType();
-         }
-      }
+        public void tick() {
+            if (this.jump) {
+                this.rabbit.startJumping();
+                this.jump = false;
+            }
+        }
+    }
 
-      rabbit.setRabbitType(i);
-      return rabbit;
-   }
+    static class RabbitMoveControl extends MoveControl {
+        private final Rabbit rabbit;
+        private double nextJumpSpeed;
 
-   public boolean isFood(ItemStack p_29729_) {
-      return isTemptingItem(p_29729_);
-   }
+        public RabbitMoveControl(Rabbit p_29766_) {
+            super(p_29766_);
+            this.rabbit = p_29766_;
+        }
 
-   public int getRabbitType() {
-      return this.entityData.get(DATA_TYPE_ID);
-   }
-
-   public void setRabbitType(int p_29734_) {
-      if (p_29734_ == 99) {
-         this.getAttribute(Attributes.ARMOR).setBaseValue(8.0D);
-         this.goalSelector.addGoal(4, new Rabbit.EvilRabbitAttackGoal(this));
-         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
-         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
-         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Wolf.class, true));
-         if (!this.hasCustomName()) {
-            this.setCustomName(Component.translatable(Util.makeDescriptionId("entity", KILLER_BUNNY)));
-         }
-      }
-
-      this.entityData.set(DATA_TYPE_ID, p_29734_);
-   }
-
-   @Nullable
-   public SpawnGroupData finalizeSpawn(ServerLevelAccessor p_29678_, DifficultyInstance p_29679_, MobSpawnType p_29680_, @Nullable SpawnGroupData p_29681_, @Nullable CompoundTag p_29682_) {
-      int i = this.getRandomRabbitType(p_29678_);
-      if (p_29681_ instanceof Rabbit.RabbitGroupData) {
-         i = ((Rabbit.RabbitGroupData)p_29681_).rabbitType;
-      } else {
-         p_29681_ = new Rabbit.RabbitGroupData(i);
-      }
-
-      this.setRabbitType(i);
-      return super.finalizeSpawn(p_29678_, p_29679_, p_29680_, p_29681_, p_29682_);
-   }
-
-   private int getRandomRabbitType(LevelAccessor p_29676_) {
-      Holder<Biome> holder = p_29676_.getBiome(this.blockPosition());
-      int i = p_29676_.getRandom().nextInt(100);
-      if (holder.value().getPrecipitation() == Biome.Precipitation.SNOW) {
-         return i < 80 ? 1 : 3;
-      } else if (holder.is(BiomeTags.ONLY_ALLOWS_SNOW_AND_GOLD_RABBITS)) {
-         return 4;
-      } else {
-         return i < 50 ? 0 : (i < 90 ? 5 : 2);
-      }
-   }
-
-   public static boolean checkRabbitSpawnRules(EntityType<Rabbit> p_218256_, LevelAccessor p_218257_, MobSpawnType p_218258_, BlockPos p_218259_, RandomSource p_218260_) {
-      return p_218257_.getBlockState(p_218259_.below()).is(BlockTags.RABBITS_SPAWNABLE_ON) && isBrightEnoughToSpawn(p_218257_, p_218259_);
-   }
-
-   boolean wantsMoreFood() {
-      return this.moreCarrotTicks == 0;
-   }
-
-   public void handleEntityEvent(byte p_29663_) {
-      if (p_29663_ == 1) {
-         this.spawnSprintParticle();
-         this.jumpDuration = 10;
-         this.jumpTicks = 0;
-      } else {
-         super.handleEntityEvent(p_29663_);
-      }
-
-   }
-
-   public Vec3 getLeashOffset() {
-      return new Vec3(0.0D, (double)(0.6F * this.getEyeHeight()), (double)(this.getBbWidth() * 0.4F));
-   }
-
-   static class EvilRabbitAttackGoal extends MeleeAttackGoal {
-      public EvilRabbitAttackGoal(Rabbit p_29738_) {
-         super(p_29738_, 1.4D, true);
-      }
-
-      protected double getAttackReachSqr(LivingEntity p_29740_) {
-         return (double)(4.0F + p_29740_.getBbWidth());
-      }
-   }
-
-   static class RabbitAvoidEntityGoal<T extends LivingEntity> extends AvoidEntityGoal<T> {
-      private final Rabbit rabbit;
-
-      public RabbitAvoidEntityGoal(Rabbit p_29743_, Class<T> p_29744_, float p_29745_, double p_29746_, double p_29747_) {
-         super(p_29743_, p_29744_, p_29745_, p_29746_, p_29747_);
-         this.rabbit = p_29743_;
-      }
-
-      public boolean canUse() {
-         return this.rabbit.getRabbitType() != 99 && super.canUse();
-      }
-   }
-
-   public static class RabbitGroupData extends AgeableMob.AgeableMobGroupData {
-      public final int rabbitType;
-
-      public RabbitGroupData(int p_29751_) {
-         super(1.0F);
-         this.rabbitType = p_29751_;
-      }
-   }
-
-   public static class RabbitJumpControl extends JumpControl {
-      private final Rabbit rabbit;
-      private boolean canJump;
-
-      public RabbitJumpControl(Rabbit p_186229_) {
-         super(p_186229_);
-         this.rabbit = p_186229_;
-      }
-
-      public boolean wantJump() {
-         return this.jump;
-      }
-
-      public boolean canJump() {
-         return this.canJump;
-      }
-
-      public void setCanJump(boolean p_29759_) {
-         this.canJump = p_29759_;
-      }
-
-      public void tick() {
-         if (this.jump) {
-            this.rabbit.startJumping();
-            this.jump = false;
-         }
-
-      }
-   }
-
-   static class RabbitMoveControl extends MoveControl {
-      private final Rabbit rabbit;
-      private double nextJumpSpeed;
-
-      public RabbitMoveControl(Rabbit p_29766_) {
-         super(p_29766_);
-         this.rabbit = p_29766_;
-      }
-
-      public void tick() {
-         if (this.rabbit.onGround && !this.rabbit.jumping && !((Rabbit.RabbitJumpControl)this.rabbit.jumpControl).wantJump()) {
-            this.rabbit.setSpeedModifier(0.0D);
-         } else if (this.hasWanted()) {
-            this.rabbit.setSpeedModifier(this.nextJumpSpeed);
-         }
-
-         super.tick();
-      }
-
-      public void setWantedPosition(double p_29769_, double p_29770_, double p_29771_, double p_29772_) {
-         this.setWantedPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(p_29769_, p_29770_, p_29771_), p_29772_);
-      }
-
-      public void setWantedPosition(net.minecraft.world.phys.SectorVec3 position, double p_29772_) {
-         if (this.rabbit.isInWater()) {
-            p_29772_ = 1.5D;
-         }
-
-         super.setWantedPosition(position, p_29772_);
-         if (p_29772_ > 0.0D) {
-            this.nextJumpSpeed = p_29772_;
-         }
-
-      }
-   }
-
-   static class RabbitPanicGoal extends PanicGoal {
-      private final Rabbit rabbit;
-
-      public RabbitPanicGoal(Rabbit p_29775_, double p_29776_) {
-         super(p_29775_, p_29776_);
-         this.rabbit = p_29775_;
-      }
-
-      public void tick() {
-         super.tick();
-         this.rabbit.setSpeedModifier(this.speedModifier);
-      }
-   }
-
-   static class RaidGardenGoal extends MoveToBlockGoal {
-      private final Rabbit rabbit;
-      private boolean wantsToRaid;
-      private boolean canRaid;
-
-      public RaidGardenGoal(Rabbit p_29782_) {
-         super(p_29782_, (double)0.7F, 16);
-         this.rabbit = p_29782_;
-      }
-
-      public boolean canUse() {
-         if (this.nextStartTick <= 0) {
-            if (!this.rabbit.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
-               return false;
+        public void tick() {
+            if (this.rabbit.onGround && !this.rabbit.jumping && !((Rabbit.RabbitJumpControl) this.rabbit.jumpControl).wantJump()) {
+                this.rabbit.setSpeedModifier(0.0D);
+            } else if (this.hasWanted()) {
+                this.rabbit.setSpeedModifier(this.nextJumpSpeed);
             }
 
-            this.canRaid = false;
-            this.wantsToRaid = this.rabbit.wantsMoreFood();
-            this.wantsToRaid = true;
-         }
+            super.tick();
+        }
 
-         return super.canUse();
-      }
+        public void setWantedPosition(double p_29769_, double p_29770_, double p_29771_, double p_29772_) {
+            this.setWantedPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(p_29769_, p_29770_, p_29771_), p_29772_);
+        }
 
-      public boolean canContinueToUse() {
-         return this.canRaid && super.canContinueToUse();
-      }
-
-      public void tick() {
-         super.tick();
-         this.rabbit.getLookControl().setLookAtExact(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.blockPos.getX(),
-               0.5D, (double)(this.blockPos.getY() + 1), this.blockPos.getZ(), 0.5D), 10.0F, (float)this.rabbit.getMaxHeadXRot());
-         if (this.isReachedTarget()) {
-            Level level = this.rabbit.level;
-            BlockPos blockpos = this.blockPos.above();
-            BlockState blockstate = level.getBlockState(blockpos);
-            Block block = blockstate.getBlock();
-            if (this.canRaid && block instanceof CarrotBlock) {
-               int i = blockstate.getValue(CarrotBlock.AGE);
-               if (i == 0) {
-                  level.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 2);
-                  level.destroyBlock(blockpos, true, this.rabbit);
-               } else {
-                  level.setBlock(blockpos, blockstate.setValue(CarrotBlock.AGE, Integer.valueOf(i - 1)), 2);
-                  level.levelEvent(2001, blockpos, Block.getId(blockstate));
-               }
-
-               this.rabbit.moreCarrotTicks = 40;
+        public void setWantedPosition(net.minecraft.world.phys.SectorVec3 position, double p_29772_) {
+            if (this.rabbit.isInWater()) {
+                p_29772_ = 1.5D;
             }
 
-            this.canRaid = false;
-            this.nextStartTick = 10;
-         }
-
-      }
-
-      protected boolean isValidTarget(LevelReader p_29785_, BlockPos p_29786_) {
-         BlockState blockstate = p_29785_.getBlockState(p_29786_);
-         if (blockstate.is(Blocks.FARMLAND) && this.wantsToRaid && !this.canRaid) {
-            blockstate = p_29785_.getBlockState(p_29786_.above());
-            if (blockstate.getBlock() instanceof CarrotBlock && ((CarrotBlock)blockstate.getBlock()).isMaxAge(blockstate)) {
-               this.canRaid = true;
-               return true;
+            super.setWantedPosition(position, p_29772_);
+            if (p_29772_ > 0.0D) {
+                this.nextJumpSpeed = p_29772_;
             }
-         }
+        }
+    }
 
-         return false;
-      }
-   }
+    static class RabbitPanicGoal extends PanicGoal {
+        private final Rabbit rabbit;
+
+        public RabbitPanicGoal(Rabbit p_29775_, double p_29776_) {
+            super(p_29775_, p_29776_);
+            this.rabbit = p_29775_;
+        }
+
+        public void tick() {
+            super.tick();
+            this.rabbit.setSpeedModifier(this.speedModifier);
+        }
+    }
+
+    static class RaidGardenGoal extends MoveToBlockGoal {
+        private final Rabbit rabbit;
+        private boolean wantsToRaid;
+        private boolean canRaid;
+
+        public RaidGardenGoal(Rabbit p_29782_) {
+            super(p_29782_, (double) 0.7F, 16);
+            this.rabbit = p_29782_;
+        }
+
+        public boolean canUse() {
+            if (this.nextStartTick <= 0) {
+                if (!this.rabbit.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
+                    return false;
+                }
+
+                this.canRaid = false;
+                this.wantsToRaid = this.rabbit.wantsMoreFood();
+                this.wantsToRaid = true;
+            }
+
+            return super.canUse();
+        }
+
+        public boolean canContinueToUse() {
+            return this.canRaid && super.canContinueToUse();
+        }
+
+        public void tick() {
+            super.tick();
+            this.rabbit.getLookControl().setLookAtExact(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.blockPos.getX(),
+                                                                0.5D, (double) (this.blockPos.getY() + 1), this.blockPos.getZ(), 0.5D),
+                    10.0F, (float) this.rabbit.getMaxHeadXRot());
+            if (this.isReachedTarget()) {
+                Level level = this.rabbit.level;
+                BlockPos blockpos = this.blockPos.above();
+                BlockState blockstate = level.getBlockState(blockpos);
+                Block block = blockstate.getBlock();
+                if (this.canRaid && block instanceof CarrotBlock) {
+                    int i = blockstate.getValue(CarrotBlock.AGE);
+                    if (i == 0) {
+                        level.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 2);
+                        level.destroyBlock(blockpos, true, this.rabbit);
+                    } else {
+                        level.setBlock(blockpos, blockstate.setValue(CarrotBlock.AGE, Integer.valueOf(i - 1)), 2);
+                        level.levelEvent(2001, blockpos, Block.getId(blockstate));
+                    }
+
+                    this.rabbit.moreCarrotTicks = 40;
+                }
+
+                this.canRaid = false;
+                this.nextStartTick = 10;
+            }
+        }
+
+        protected boolean isValidTarget(LevelReader p_29785_, BlockPos p_29786_) {
+            BlockState blockstate = p_29785_.getBlockState(p_29786_);
+            if (blockstate.is(Blocks.FARMLAND) && this.wantsToRaid && !this.canRaid) {
+                blockstate = p_29785_.getBlockState(p_29786_.above());
+                if (blockstate.getBlock() instanceof CarrotBlock && ((CarrotBlock) blockstate.getBlock()).isMaxAge(blockstate)) {
+                    this.canRaid = true;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 }

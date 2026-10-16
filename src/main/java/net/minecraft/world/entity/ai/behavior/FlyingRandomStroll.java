@@ -6,17 +6,17 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class FlyingRandomStroll extends RandomStroll {
-   public FlyingRandomStroll(float p_217182_) {
-      this(p_217182_, true);
-   }
+    public FlyingRandomStroll(float p_217182_) {
+        this(p_217182_, true);
+    }
 
-   public FlyingRandomStroll(float p_217184_, boolean p_217185_) {
-      super(p_217184_, p_217185_);
-   }
+    public FlyingRandomStroll(float p_217184_, boolean p_217185_) {
+        super(p_217184_, p_217185_);
+    }
 
-   protected SectorVec3 getTargetPos(PathfinderMob p_217187_) {
-      Vec3 vec3 = p_217187_.getViewVector(0.0F);
-      return AirAndWaterRandomPos.getSectorPos(p_217187_, this.maxHorizontalDistance,
-            this.maxVerticalDistance, -2, vec3.x, vec3.z, (double)((float)Math.PI / 2F));
-   }
+    protected SectorVec3 getTargetPos(PathfinderMob p_217187_) {
+        Vec3 vec3 = p_217187_.getViewVector(0.0F);
+        return AirAndWaterRandomPos.getSectorPos(p_217187_, this.maxHorizontalDistance,
+                this.maxVerticalDistance, -2, vec3.x, vec3.z, (double) ((float) Math.PI / 2F));
+    }
 }

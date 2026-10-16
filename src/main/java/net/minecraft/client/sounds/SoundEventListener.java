@@ -6,5 +6,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface SoundEventListener {
-   void onPlaySound(SoundInstance p_120342_, WeighedSoundEvents p_120343_);
+    void onPlaySound(SoundInstance p_120342_, WeighedSoundEvents p_120343_);
 }

@@ -10,14 +10,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class PigRenderer extends MobRenderer<Pig, PigModel<Pig>> {
-   private static final ResourceLocation PIG_LOCATION = new ResourceLocation("textures/entity/pig/pig.png");
+    private static final ResourceLocation PIG_LOCATION = new ResourceLocation("textures/entity/pig/pig.png");
 
-   public PigRenderer(EntityRendererProvider.Context p_174340_) {
-      super(p_174340_, new PigModel<>(p_174340_.bakeLayer(ModelLayers.PIG)), 0.7F);
-      this.addLayer(new SaddleLayer<>(this, new PigModel<>(p_174340_.bakeLayer(ModelLayers.PIG_SADDLE)), new ResourceLocation("textures/entity/pig/pig_saddle.png")));
-   }
+    public PigRenderer(EntityRendererProvider.Context p_174340_) {
+        super(p_174340_, new PigModel<>(p_174340_.bakeLayer(ModelLayers.PIG)), 0.7F);
+        this.addLayer(new SaddleLayer<>(this, new PigModel<>(p_174340_.bakeLayer(ModelLayers.PIG_SADDLE)), new ResourceLocation("textures/entity/pig/pig_saddle.png")));
+    }
 
-   public ResourceLocation getTextureLocation(Pig p_115697_) {
-      return PIG_LOCATION;
-   }
+    public ResourceLocation getTextureLocation(Pig p_115697_) {
+        return PIG_LOCATION;
+    }
 }

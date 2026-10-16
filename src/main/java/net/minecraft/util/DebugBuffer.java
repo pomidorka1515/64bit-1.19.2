@@ -6,39 +6,39 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class DebugBuffer<T> {
-   private final AtomicReferenceArray<T> data;
-   private final AtomicInteger index;
+    private final AtomicReferenceArray<T> data;
+    private final AtomicInteger index;
 
-   public DebugBuffer(int p_144623_) {
-      this.data = new AtomicReferenceArray<>(p_144623_);
-      this.index = new AtomicInteger(0);
-   }
+    public DebugBuffer(int p_144623_) {
+        this.data = new AtomicReferenceArray<>(p_144623_);
+        this.index = new AtomicInteger(0);
+    }
 
-   public void push(T p_144626_) {
-      int i = this.data.length();
+    public void push(T p_144626_) {
+        int i = this.data.length();
 
-      int j;
-      int k;
-      do {
-         j = this.index.get();
-         k = (j + 1) % i;
-      } while(!this.index.compareAndSet(j, k));
+        int j;
+        int k;
+        do {
+            j = this.index.get();
+            k = (j + 1) % i;
+        } while (!this.index.compareAndSet(j, k));
 
-      this.data.set(k, p_144626_);
-   }
+        this.data.set(k, p_144626_);
+    }
 
-   public List<T> dump() {
-      int i = this.index.get();
-      ImmutableList.Builder<T> builder = ImmutableList.builder();
+    public List<T> dump() {
+        int i = this.index.get();
+        ImmutableList.Builder<T> builder = ImmutableList.builder();
 
-      for(int j = 0; j < this.data.length(); ++j) {
-         int k = Math.floorMod(i - j, this.data.length());
-         T t = this.data.get(k);
-         if (t != null) {
-            builder.add(t);
-         }
-      }
+        for (int j = 0; j < this.data.length(); ++j) {
+            int k = Math.floorMod(i - j, this.data.length());
+            T t = this.data.get(k);
+            if (t != null) {
+                builder.add(t);
+            }
+        }
 
-      return builder.build();
-   }
+        return builder.build();
+    }
 }

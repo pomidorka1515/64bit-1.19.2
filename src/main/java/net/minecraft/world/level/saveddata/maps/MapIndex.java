@@ -6,37 +6,37 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 
 public class MapIndex extends SavedData {
-   public static final String FILE_NAME = "idcounts";
-   private final Object2IntMap<String> usedAuxIds = new Object2IntOpenHashMap<>();
+    public static final String FILE_NAME = "idcounts";
+    private final Object2IntMap<String> usedAuxIds = new Object2IntOpenHashMap<>();
 
-   public MapIndex() {
-      this.usedAuxIds.defaultReturnValue(-1);
-   }
+    public MapIndex() {
+        this.usedAuxIds.defaultReturnValue(-1);
+    }
 
-   public static MapIndex load(CompoundTag p_164763_) {
-      MapIndex mapindex = new MapIndex();
+    public static MapIndex load(CompoundTag p_164763_) {
+        MapIndex mapindex = new MapIndex();
 
-      for(String s : p_164763_.getAllKeys()) {
-         if (p_164763_.contains(s, 99)) {
-            mapindex.usedAuxIds.put(s, p_164763_.getInt(s));
-         }
-      }
+        for (String s : p_164763_.getAllKeys()) {
+            if (p_164763_.contains(s, 99)) {
+                mapindex.usedAuxIds.put(s, p_164763_.getInt(s));
+            }
+        }
 
-      return mapindex;
-   }
+        return mapindex;
+    }
 
-   public CompoundTag save(CompoundTag p_77884_) {
-      for(Object2IntMap.Entry<String> entry : this.usedAuxIds.object2IntEntrySet()) {
-         p_77884_.putInt(entry.getKey(), entry.getIntValue());
-      }
+    public CompoundTag save(CompoundTag p_77884_) {
+        for (Object2IntMap.Entry<String> entry : this.usedAuxIds.object2IntEntrySet()) {
+            p_77884_.putInt(entry.getKey(), entry.getIntValue());
+        }
 
-      return p_77884_;
-   }
+        return p_77884_;
+    }
 
-   public int getFreeAuxValueForMap() {
-      int i = this.usedAuxIds.getInt("map") + 1;
-      this.usedAuxIds.put("map", i);
-      this.setDirty();
-      return i;
-   }
+    public int getFreeAuxValueForMap() {
+        int i = this.usedAuxIds.getInt("map") + 1;
+        this.usedAuxIds.put("map", i);
+        this.setDirty();
+        return i;
+    }
 }

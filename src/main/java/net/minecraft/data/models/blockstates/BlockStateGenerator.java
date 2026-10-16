@@ -5,5 +5,5 @@ import java.util.function.Supplier;
 import net.minecraft.world.level.block.Block;
 
 public interface BlockStateGenerator extends Supplier<JsonElement> {
-   Block getBlock();
+    Block getBlock();
 }

@@ -10,24 +10,24 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 
 public interface PackResources extends AutoCloseable {
-   String METADATA_EXTENSION = ".mcmeta";
-   String PACK_META = "pack.mcmeta";
+    String METADATA_EXTENSION = ".mcmeta";
+    String PACK_META = "pack.mcmeta";
 
-   @Nullable
-   InputStream getRootResource(String p_10294_) throws IOException;
+    @Nullable
+    InputStream getRootResource(String p_10294_) throws IOException;
 
-   InputStream getResource(PackType p_10289_, ResourceLocation p_10290_) throws IOException;
+    InputStream getResource(PackType p_10289_, ResourceLocation p_10290_) throws IOException;
 
-   Collection<ResourceLocation> getResources(PackType p_215339_, String p_215340_, String p_215341_, Predicate<ResourceLocation> p_215342_);
+    Collection<ResourceLocation> getResources(PackType p_215339_, String p_215340_, String p_215341_, Predicate<ResourceLocation> p_215342_);
 
-   boolean hasResource(PackType p_10292_, ResourceLocation p_10293_);
+    boolean hasResource(PackType p_10292_, ResourceLocation p_10293_);
 
-   Set<String> getNamespaces(PackType p_10283_);
+    Set<String> getNamespaces(PackType p_10283_);
 
-   @Nullable
-   <T> T getMetadataSection(MetadataSectionSerializer<T> p_10291_) throws IOException;
+    @Nullable
+    <T> T getMetadataSection(MetadataSectionSerializer<T> p_10291_) throws IOException;
 
-   String getName();
+    String getName();
 
-   void close();
+    void close();
 }

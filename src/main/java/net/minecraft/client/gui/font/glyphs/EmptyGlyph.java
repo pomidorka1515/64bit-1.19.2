@@ -9,12 +9,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class EmptyGlyph extends BakedGlyph {
-   public static final EmptyGlyph INSTANCE = new EmptyGlyph();
+    public static final EmptyGlyph INSTANCE = new EmptyGlyph();
 
-   public EmptyGlyph() {
-      super(RenderType.text(new ResourceLocation("")), RenderType.textSeeThrough(new ResourceLocation("")), RenderType.textPolygonOffset(new ResourceLocation("")), 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-   }
+    public EmptyGlyph() {
+        super(RenderType.text(new ResourceLocation("")), RenderType.textSeeThrough(new ResourceLocation("")), RenderType.textPolygonOffset(new ResourceLocation("")), 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+    }
 
-   public void render(boolean p_95278_, float p_95279_, float p_95280_, Matrix4f p_95281_, VertexConsumer p_95282_, float p_95283_, float p_95284_, float p_95285_, float p_95286_, int p_95287_) {
-   }
+    public void render(boolean p_95278_, float p_95279_, float p_95280_, Matrix4f p_95281_, VertexConsumer p_95282_, float p_95283_, float p_95284_, float p_95285_, float p_95286_, int p_95287_) {
+    }
 }

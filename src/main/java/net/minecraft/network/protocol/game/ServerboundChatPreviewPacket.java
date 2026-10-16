@@ -5,20 +5,20 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.util.StringUtil;
 
 public record ServerboundChatPreviewPacket(int queryId, String query) implements Packet<ServerGamePacketListener> {
-   public ServerboundChatPreviewPacket {
-      query = StringUtil.trimChatMessage(query);
-   }
+    public ServerboundChatPreviewPacket {
+        query = StringUtil.trimChatMessage(query);
+    }
 
-   public ServerboundChatPreviewPacket(FriendlyByteBuf p_237968_) {
-      this(p_237968_.readInt(), p_237968_.readUtf(256));
-   }
+    public ServerboundChatPreviewPacket(FriendlyByteBuf p_237968_) {
+        this(p_237968_.readInt(), p_237968_.readUtf(256));
+    }
 
-   public void write(FriendlyByteBuf p_237970_) {
-      p_237970_.writeInt(this.queryId);
-      p_237970_.writeUtf(this.query, 256);
-   }
+    public void write(FriendlyByteBuf p_237970_) {
+        p_237970_.writeInt(this.queryId);
+        p_237970_.writeUtf(this.query, 256);
+    }
 
-   public void handle(ServerGamePacketListener p_237974_) {
-      p_237974_.handleChatPreview(this);
-   }
+    public void handle(ServerGamePacketListener p_237974_) {
+        p_237974_.handleChatPreview(this);
+    }
 }

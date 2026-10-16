@@ -8,19 +8,19 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface GameTest {
-   int timeoutTicks() default 100;
+    int timeoutTicks() default 100;
 
-   String batch() default "defaultBatch";
+    String batch() default "defaultBatch";
 
-   int rotationSteps() default 0;
+    int rotationSteps() default 0;
 
-   boolean required() default true;
+    boolean required() default true;
 
-   String template() default "";
+    String template() default "";
 
-   long setupTicks() default 0L;
+    long setupTicks() default 0L;
 
-   int attempts() default 1;
+    int attempts() default 1;
 
-   int requiredSuccesses() default 1;
+    int requiredSuccesses() default 1;
 }

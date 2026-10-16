@@ -6,5 +6,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface ItemColor {
-   int getColor(ItemStack p_92672_, int p_92673_);
+    int getColor(ItemStack p_92672_, int p_92673_);
 }

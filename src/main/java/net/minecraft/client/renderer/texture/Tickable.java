@@ -5,5 +5,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface Tickable {
-   void tick();
+    void tick();
 }

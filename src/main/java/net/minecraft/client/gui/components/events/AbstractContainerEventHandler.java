@@ -7,24 +7,24 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class AbstractContainerEventHandler extends GuiComponent implements ContainerEventHandler {
-   @Nullable
-   private GuiEventListener focused;
-   private boolean isDragging;
+    @Nullable
+    private GuiEventListener focused;
+    private boolean isDragging;
 
-   public final boolean isDragging() {
-      return this.isDragging;
-   }
+    public final boolean isDragging() {
+        return this.isDragging;
+    }
 
-   public final void setDragging(boolean p_94681_) {
-      this.isDragging = p_94681_;
-   }
+    public final void setDragging(boolean p_94681_) {
+        this.isDragging = p_94681_;
+    }
 
-   @Nullable
-   public GuiEventListener getFocused() {
-      return this.focused;
-   }
+    @Nullable
+    public GuiEventListener getFocused() {
+        return this.focused;
+    }
 
-   public void setFocused(@Nullable GuiEventListener p_94677_) {
-      this.focused = p_94677_;
-   }
+    public void setFocused(@Nullable GuiEventListener p_94677_) {
+        this.focused = p_94677_;
+    }
 }

@@ -12,72 +12,69 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class AbstractTexture implements AutoCloseable {
-   public static final int NOT_ASSIGNED = -1;
-   protected int id = -1;
-   protected boolean blur;
-   protected boolean mipmap;
+    public static final int NOT_ASSIGNED = -1;
+    protected int id = -1;
+    protected boolean blur;
+    protected boolean mipmap;
 
-   public void setFilter(boolean p_117961_, boolean p_117962_) {
-      RenderSystem.assertOnRenderThreadOrInit();
-      this.blur = p_117961_;
-      this.mipmap = p_117962_;
-      int i;
-      int j;
-      if (p_117961_) {
-         i = p_117962_ ? 9987 : 9729;
-         j = 9729;
-      } else {
-         i = p_117962_ ? 9986 : 9728;
-         j = 9728;
-      }
+    public void setFilter(boolean p_117961_, boolean p_117962_) {
+        RenderSystem.assertOnRenderThreadOrInit();
+        this.blur = p_117961_;
+        this.mipmap = p_117962_;
+        int i;
+        int j;
+        if (p_117961_) {
+            i = p_117962_ ? 9987 : 9729;
+            j = 9729;
+        } else {
+            i = p_117962_ ? 9986 : 9728;
+            j = 9728;
+        }
 
-      this.bind();
-      GlStateManager._texParameter(3553, 10241, i);
-      GlStateManager._texParameter(3553, 10240, j);
-   }
+        this.bind();
+        GlStateManager._texParameter(3553, 10241, i);
+        GlStateManager._texParameter(3553, 10240, j);
+    }
 
-   public int getId() {
-      RenderSystem.assertOnRenderThreadOrInit();
-      if (this.id == -1) {
-         this.id = TextureUtil.generateTextureId();
-      }
+    public int getId() {
+        RenderSystem.assertOnRenderThreadOrInit();
+        if (this.id == -1) {
+            this.id = TextureUtil.generateTextureId();
+        }
 
-      return this.id;
-   }
+        return this.id;
+    }
 
-   public void releaseId() {
-      if (!RenderSystem.isOnRenderThread()) {
-         RenderSystem.recordRenderCall(() -> {
-            if (this.id != -1) {
-               TextureUtil.releaseTextureId(this.id);
-               this.id = -1;
-            }
+    public void releaseId() {
+        if (!RenderSystem.isOnRenderThread()) {
+            RenderSystem.recordRenderCall(() -> {
+                if (this.id != -1) {
+                    TextureUtil.releaseTextureId(this.id);
+                    this.id = -1;
+                }
+            });
+        } else if (this.id != -1) {
+            TextureUtil.releaseTextureId(this.id);
+            this.id = -1;
+        }
+    }
 
-         });
-      } else if (this.id != -1) {
-         TextureUtil.releaseTextureId(this.id);
-         this.id = -1;
-      }
+    public abstract void load(ResourceManager p_117955_) throws IOException;
 
-   }
-
-   public abstract void load(ResourceManager p_117955_) throws IOException;
-
-   public void bind() {
-      if (!RenderSystem.isOnRenderThreadOrInit()) {
-         RenderSystem.recordRenderCall(() -> {
+    public void bind() {
+        if (!RenderSystem.isOnRenderThreadOrInit()) {
+            RenderSystem.recordRenderCall(() -> {
+                GlStateManager._bindTexture(this.getId());
+            });
+        } else {
             GlStateManager._bindTexture(this.getId());
-         });
-      } else {
-         GlStateManager._bindTexture(this.getId());
-      }
+        }
+    }
 
-   }
+    public void reset(TextureManager p_117956_, ResourceManager p_117957_, ResourceLocation p_117958_, Executor p_117959_) {
+        p_117956_.register(p_117958_, this);
+    }
 
-   public void reset(TextureManager p_117956_, ResourceManager p_117957_, ResourceLocation p_117958_, Executor p_117959_) {
-      p_117956_.register(p_117958_, this);
-   }
-
-   public void close() {
-   }
+    public void close() {
+    }
 }

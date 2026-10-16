@@ -5,7 +5,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface RecipeUpdateListener {
-   void recipesUpdated();
+    void recipesUpdated();
 
-   RecipeBookComponent getRecipeBookComponent();
+    RecipeBookComponent getRecipeBookComponent();
 }

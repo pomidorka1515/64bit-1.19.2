@@ -6,10 +6,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientBrandRetriever {
-   public static final String VANILLA_NAME = "vanilla";
+    public static final String VANILLA_NAME = "vanilla";
 
-   @DontObfuscate
-   public static String getClientModName() {
-      return "64bit-mcp";
-   }
+    @DontObfuscate
+    public static String getClientModName() {
+        return "64bit-mcp";
+    }
 }

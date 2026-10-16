@@ -8,6 +8,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface GlyphProviderBuilder {
-   @Nullable
-   GlyphProvider create(ResourceManager p_95399_);
+    @Nullable
+    GlyphProvider create(ResourceManager p_95399_);
 }

@@ -7,38 +7,38 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.LevelHeightAccessor;
 
 public interface LevelData {
-   long getXSpawn();
+    long getXSpawn();
 
-   int getYSpawn();
+    int getYSpawn();
 
-   long getZSpawn();
+    long getZSpawn();
 
-   float getSpawnAngle();
+    float getSpawnAngle();
 
-   long getGameTime();
+    long getGameTime();
 
-   long getDayTime();
+    long getDayTime();
 
-   boolean isThundering();
+    boolean isThundering();
 
-   boolean isRaining();
+    boolean isRaining();
 
-   void setRaining(boolean p_78171_);
+    void setRaining(boolean p_78171_);
 
-   boolean isHardcore();
+    boolean isHardcore();
 
-   GameRules getGameRules();
+    GameRules getGameRules();
 
-   Difficulty getDifficulty();
+    Difficulty getDifficulty();
 
-   boolean isDifficultyLocked();
+    boolean isDifficultyLocked();
 
-   default void fillCrashReportCategory(CrashReportCategory p_164873_, LevelHeightAccessor p_164874_) {
-      p_164873_.setDetail("Level spawn location", () -> {
-         return CrashReportCategory.formatLocation(p_164874_, this.getXSpawn(), this.getYSpawn(), this.getZSpawn());
-      });
-      p_164873_.setDetail("Level time", () -> {
-         return String.format(Locale.ROOT, "%d game time, %d day time", this.getGameTime(), this.getDayTime());
-      });
-   }
+    default void fillCrashReportCategory(CrashReportCategory p_164873_, LevelHeightAccessor p_164874_) {
+        p_164873_.setDetail("Level spawn location", () -> {
+            return CrashReportCategory.formatLocation(p_164874_, this.getXSpawn(), this.getYSpawn(), this.getZSpawn());
+        });
+        p_164873_.setDetail("Level time", () -> {
+            return String.format(Locale.ROOT, "%d game time, %d day time", this.getGameTime(), this.getDayTime());
+        });
+    }
 }

@@ -16,61 +16,60 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 
 public abstract class WaterAnimal extends PathfinderMob {
-   protected WaterAnimal(EntityType<? extends WaterAnimal> p_30341_, Level p_30342_) {
-      super(p_30341_, p_30342_);
-      this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-   }
+    protected WaterAnimal(EntityType<? extends WaterAnimal> p_30341_, Level p_30342_) {
+        super(p_30341_, p_30342_);
+        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+    }
 
-   public boolean canBreatheUnderwater() {
-      return true;
-   }
+    public boolean canBreatheUnderwater() {
+        return true;
+    }
 
-   public MobType getMobType() {
-      return MobType.WATER;
-   }
+    public MobType getMobType() {
+        return MobType.WATER;
+    }
 
-   public boolean checkSpawnObstruction(LevelReader p_30348_) {
-      return p_30348_.isUnobstructed(this);
-   }
+    public boolean checkSpawnObstruction(LevelReader p_30348_) {
+        return p_30348_.isUnobstructed(this);
+    }
 
-   public int getAmbientSoundInterval() {
-      return 120;
-   }
+    public int getAmbientSoundInterval() {
+        return 120;
+    }
 
-   public int getExperienceReward() {
-      return 1 + this.level.random.nextInt(3);
-   }
+    public int getExperienceReward() {
+        return 1 + this.level.random.nextInt(3);
+    }
 
-   protected void handleAirSupply(int p_30344_) {
-      if (this.isAlive() && !this.isInWaterOrBubble()) {
-         this.setAirSupply(p_30344_ - 1);
-         if (this.getAirSupply() == -20) {
-            this.setAirSupply(0);
-            this.hurt(DamageSource.DROWN, 2.0F);
-         }
-      } else {
-         this.setAirSupply(300);
-      }
+    protected void handleAirSupply(int p_30344_) {
+        if (this.isAlive() && !this.isInWaterOrBubble()) {
+            this.setAirSupply(p_30344_ - 1);
+            if (this.getAirSupply() == -20) {
+                this.setAirSupply(0);
+                this.hurt(DamageSource.DROWN, 2.0F);
+            }
+        } else {
+            this.setAirSupply(300);
+        }
+    }
 
-   }
+    public void baseTick() {
+        int i = this.getAirSupply();
+        super.baseTick();
+        this.handleAirSupply(i);
+    }
 
-   public void baseTick() {
-      int i = this.getAirSupply();
-      super.baseTick();
-      this.handleAirSupply(i);
-   }
+    public boolean isPushedByFluid() {
+        return false;
+    }
 
-   public boolean isPushedByFluid() {
-      return false;
-   }
+    public boolean canBeLeashed(Player p_30346_) {
+        return false;
+    }
 
-   public boolean canBeLeashed(Player p_30346_) {
-      return false;
-   }
-
-   public static boolean checkSurfaceWaterAnimalSpawnRules(EntityType<? extends WaterAnimal> p_218283_, LevelAccessor p_218284_, MobSpawnType p_218285_, BlockPos p_218286_, RandomSource p_218287_) {
-      int i = p_218284_.getSeaLevel();
-      int j = i - 13;
-      return p_218286_.getY() >= j && p_218286_.getY() <= i && p_218284_.getFluidState(p_218286_.below()).is(FluidTags.WATER) && p_218284_.getBlockState(p_218286_.above()).is(Blocks.WATER);
-   }
+    public static boolean checkSurfaceWaterAnimalSpawnRules(EntityType<? extends WaterAnimal> p_218283_, LevelAccessor p_218284_, MobSpawnType p_218285_, BlockPos p_218286_, RandomSource p_218287_) {
+        int i = p_218284_.getSeaLevel();
+        int j = i - 13;
+        return p_218286_.getY() >= j && p_218286_.getY() <= i && p_218284_.getFluidState(p_218286_.below()).is(FluidTags.WATER) && p_218284_.getBlockState(p_218286_.above()).is(Blocks.WATER);
+    }
 }

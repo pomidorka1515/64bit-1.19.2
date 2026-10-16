@@ -5,13 +5,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface Shader {
-   int getId();
+    int getId();
 
-   void markDirty();
+    void markDirty();
 
-   Program getVertexProgram();
+    Program getVertexProgram();
 
-   Program getFragmentProgram();
+    Program getFragmentProgram();
 
-   void attachToProgram();
+    void attachToProgram();
 }

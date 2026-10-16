@@ -20,146 +20,146 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class BlockPredicate {
-   public static final BlockPredicate ANY = new BlockPredicate((TagKey<Block>)null, (Set<Block>)null, StatePropertiesPredicate.ANY, NbtPredicate.ANY);
-   @Nullable
-   private final TagKey<Block> tag;
-   @Nullable
-   private final Set<Block> blocks;
-   private final StatePropertiesPredicate properties;
-   private final NbtPredicate nbt;
+    public static final BlockPredicate ANY = new BlockPredicate((TagKey<Block>) null, (Set<Block>) null, StatePropertiesPredicate.ANY, NbtPredicate.ANY);
+    @Nullable
+    private final TagKey<Block> tag;
+    @Nullable
+    private final Set<Block> blocks;
+    private final StatePropertiesPredicate properties;
+    private final NbtPredicate nbt;
 
-   public BlockPredicate(@Nullable TagKey<Block> p_204023_, @Nullable Set<Block> p_204024_, StatePropertiesPredicate p_204025_, NbtPredicate p_204026_) {
-      this.tag = p_204023_;
-      this.blocks = p_204024_;
-      this.properties = p_204025_;
-      this.nbt = p_204026_;
-   }
+    public BlockPredicate(@Nullable TagKey<Block> p_204023_, @Nullable Set<Block> p_204024_, StatePropertiesPredicate p_204025_, NbtPredicate p_204026_) {
+        this.tag = p_204023_;
+        this.blocks = p_204024_;
+        this.properties = p_204025_;
+        this.nbt = p_204026_;
+    }
 
-   public boolean matches(ServerLevel p_17915_, BlockPos p_17916_) {
-      if (this == ANY) {
-         return true;
-      } else if (!p_17915_.isLoaded(p_17916_)) {
-         return false;
-      } else {
-         BlockState blockstate = p_17915_.getBlockState(p_17916_);
-         if (this.tag != null && !blockstate.is(this.tag)) {
-            return false;
-         } else if (this.blocks != null && !this.blocks.contains(blockstate.getBlock())) {
-            return false;
-         } else if (!this.properties.matches(blockstate)) {
-            return false;
-         } else {
-            if (this.nbt != NbtPredicate.ANY) {
-               BlockEntity blockentity = p_17915_.getBlockEntity(p_17916_);
-               if (blockentity == null || !this.nbt.matches(blockentity.saveWithFullMetadata())) {
-                  return false;
-               }
-            }
-
+    public boolean matches(ServerLevel p_17915_, BlockPos p_17916_) {
+        if (this == ANY) {
             return true;
-         }
-      }
-   }
+        } else if (!p_17915_.isLoaded(p_17916_)) {
+            return false;
+        } else {
+            BlockState blockstate = p_17915_.getBlockState(p_17916_);
+            if (this.tag != null && !blockstate.is(this.tag)) {
+                return false;
+            } else if (this.blocks != null && !this.blocks.contains(blockstate.getBlock())) {
+                return false;
+            } else if (!this.properties.matches(blockstate)) {
+                return false;
+            } else {
+                if (this.nbt != NbtPredicate.ANY) {
+                    BlockEntity blockentity = p_17915_.getBlockEntity(p_17916_);
+                    if (blockentity == null || !this.nbt.matches(blockentity.saveWithFullMetadata())) {
+                        return false;
+                    }
+                }
 
-   public static BlockPredicate fromJson(@Nullable JsonElement p_17918_) {
-      if (p_17918_ != null && !p_17918_.isJsonNull()) {
-         JsonObject jsonobject = GsonHelper.convertToJsonObject(p_17918_, "block");
-         NbtPredicate nbtpredicate = NbtPredicate.fromJson(jsonobject.get("nbt"));
-         Set<Block> set = null;
-         JsonArray jsonarray = GsonHelper.getAsJsonArray(jsonobject, "blocks", (JsonArray)null);
-         if (jsonarray != null) {
-            ImmutableSet.Builder<Block> builder = ImmutableSet.builder();
+                return true;
+            }
+        }
+    }
 
-            for(JsonElement jsonelement : jsonarray) {
-               ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.convertToString(jsonelement, "block"));
-               builder.add(Registry.BLOCK.getOptional(resourcelocation).orElseThrow(() -> {
-                  return new JsonSyntaxException("Unknown block id '" + resourcelocation + "'");
-               }));
+    public static BlockPredicate fromJson(@Nullable JsonElement p_17918_) {
+        if (p_17918_ != null && !p_17918_.isJsonNull()) {
+            JsonObject jsonobject = GsonHelper.convertToJsonObject(p_17918_, "block");
+            NbtPredicate nbtpredicate = NbtPredicate.fromJson(jsonobject.get("nbt"));
+            Set<Block> set = null;
+            JsonArray jsonarray = GsonHelper.getAsJsonArray(jsonobject, "blocks", (JsonArray) null);
+            if (jsonarray != null) {
+                ImmutableSet.Builder<Block> builder = ImmutableSet.builder();
+
+                for (JsonElement jsonelement : jsonarray) {
+                    ResourceLocation resourcelocation = new ResourceLocation(GsonHelper.convertToString(jsonelement, "block"));
+                    builder.add(Registry.BLOCK.getOptional(resourcelocation).orElseThrow(() -> {
+                        return new JsonSyntaxException("Unknown block id '" + resourcelocation + "'");
+                    }));
+                }
+
+                set = builder.build();
             }
 
-            set = builder.build();
-         }
-
-         TagKey<Block> tagkey = null;
-         if (jsonobject.has("tag")) {
-            ResourceLocation resourcelocation1 = new ResourceLocation(GsonHelper.getAsString(jsonobject, "tag"));
-            tagkey = TagKey.create(Registry.BLOCK_REGISTRY, resourcelocation1);
-         }
-
-         StatePropertiesPredicate statepropertiespredicate = StatePropertiesPredicate.fromJson(jsonobject.get("state"));
-         return new BlockPredicate(tagkey, set, statepropertiespredicate, nbtpredicate);
-      } else {
-         return ANY;
-      }
-   }
-
-   public JsonElement serializeToJson() {
-      if (this == ANY) {
-         return JsonNull.INSTANCE;
-      } else {
-         JsonObject jsonobject = new JsonObject();
-         if (this.blocks != null) {
-            JsonArray jsonarray = new JsonArray();
-
-            for(Block block : this.blocks) {
-               jsonarray.add(Registry.BLOCK.getKey(block).toString());
+            TagKey<Block> tagkey = null;
+            if (jsonobject.has("tag")) {
+                ResourceLocation resourcelocation1 = new ResourceLocation(GsonHelper.getAsString(jsonobject, "tag"));
+                tagkey = TagKey.create(Registry.BLOCK_REGISTRY, resourcelocation1);
             }
 
-            jsonobject.add("blocks", jsonarray);
-         }
+            StatePropertiesPredicate statepropertiespredicate = StatePropertiesPredicate.fromJson(jsonobject.get("state"));
+            return new BlockPredicate(tagkey, set, statepropertiespredicate, nbtpredicate);
+        } else {
+            return ANY;
+        }
+    }
 
-         if (this.tag != null) {
-            jsonobject.addProperty("tag", this.tag.location().toString());
-         }
+    public JsonElement serializeToJson() {
+        if (this == ANY) {
+            return JsonNull.INSTANCE;
+        } else {
+            JsonObject jsonobject = new JsonObject();
+            if (this.blocks != null) {
+                JsonArray jsonarray = new JsonArray();
 
-         jsonobject.add("nbt", this.nbt.serializeToJson());
-         jsonobject.add("state", this.properties.serializeToJson());
-         return jsonobject;
-      }
-   }
+                for (Block block : this.blocks) {
+                    jsonarray.add(Registry.BLOCK.getKey(block).toString());
+                }
 
-   public static class Builder {
-      @Nullable
-      private Set<Block> blocks;
-      @Nullable
-      private TagKey<Block> tag;
-      private StatePropertiesPredicate properties = StatePropertiesPredicate.ANY;
-      private NbtPredicate nbt = NbtPredicate.ANY;
+                jsonobject.add("blocks", jsonarray);
+            }
 
-      private Builder() {
-      }
+            if (this.tag != null) {
+                jsonobject.addProperty("tag", this.tag.location().toString());
+            }
 
-      public static BlockPredicate.Builder block() {
-         return new BlockPredicate.Builder();
-      }
+            jsonobject.add("nbt", this.nbt.serializeToJson());
+            jsonobject.add("state", this.properties.serializeToJson());
+            return jsonobject;
+        }
+    }
 
-      public BlockPredicate.Builder of(Block... p_146727_) {
-         this.blocks = ImmutableSet.copyOf(p_146727_);
-         return this;
-      }
+    public static class Builder {
+        @Nullable
+        private Set<Block> blocks;
+        @Nullable
+        private TagKey<Block> tag;
+        private StatePropertiesPredicate properties = StatePropertiesPredicate.ANY;
+        private NbtPredicate nbt = NbtPredicate.ANY;
 
-      public BlockPredicate.Builder of(Iterable<Block> p_146723_) {
-         this.blocks = ImmutableSet.copyOf(p_146723_);
-         return this;
-      }
+        private Builder() {
+        }
 
-      public BlockPredicate.Builder of(TagKey<Block> p_204028_) {
-         this.tag = p_204028_;
-         return this;
-      }
+        public static BlockPredicate.Builder block() {
+            return new BlockPredicate.Builder();
+        }
 
-      public BlockPredicate.Builder hasNbt(CompoundTag p_146725_) {
-         this.nbt = new NbtPredicate(p_146725_);
-         return this;
-      }
+        public BlockPredicate.Builder of(Block... p_146727_) {
+            this.blocks = ImmutableSet.copyOf(p_146727_);
+            return this;
+        }
 
-      public BlockPredicate.Builder setProperties(StatePropertiesPredicate p_17930_) {
-         this.properties = p_17930_;
-         return this;
-      }
+        public BlockPredicate.Builder of(Iterable<Block> p_146723_) {
+            this.blocks = ImmutableSet.copyOf(p_146723_);
+            return this;
+        }
 
-      public BlockPredicate build() {
-         return new BlockPredicate(this.tag, this.blocks, this.properties, this.nbt);
-      }
-   }
+        public BlockPredicate.Builder of(TagKey<Block> p_204028_) {
+            this.tag = p_204028_;
+            return this;
+        }
+
+        public BlockPredicate.Builder hasNbt(CompoundTag p_146725_) {
+            this.nbt = new NbtPredicate(p_146725_);
+            return this;
+        }
+
+        public BlockPredicate.Builder setProperties(StatePropertiesPredicate p_17930_) {
+            this.properties = p_17930_;
+            return this;
+        }
+
+        public BlockPredicate build() {
+            return new BlockPredicate(this.tag, this.blocks, this.properties, this.nbt);
+        }
+    }
 }

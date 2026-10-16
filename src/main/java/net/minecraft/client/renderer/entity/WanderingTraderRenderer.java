@@ -12,20 +12,20 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class WanderingTraderRenderer extends MobRenderer<WanderingTrader, VillagerModel<WanderingTrader>> {
-   private static final ResourceLocation VILLAGER_BASE_SKIN = new ResourceLocation("textures/entity/wandering_trader.png");
+    private static final ResourceLocation VILLAGER_BASE_SKIN = new ResourceLocation("textures/entity/wandering_trader.png");
 
-   public WanderingTraderRenderer(EntityRendererProvider.Context p_174441_) {
-      super(p_174441_, new VillagerModel<>(p_174441_.bakeLayer(ModelLayers.WANDERING_TRADER)), 0.5F);
-      this.addLayer(new CustomHeadLayer<>(this, p_174441_.getModelSet(), p_174441_.getItemInHandRenderer()));
-      this.addLayer(new CrossedArmsItemLayer<>(this, p_174441_.getItemInHandRenderer()));
-   }
+    public WanderingTraderRenderer(EntityRendererProvider.Context p_174441_) {
+        super(p_174441_, new VillagerModel<>(p_174441_.bakeLayer(ModelLayers.WANDERING_TRADER)), 0.5F);
+        this.addLayer(new CustomHeadLayer<>(this, p_174441_.getModelSet(), p_174441_.getItemInHandRenderer()));
+        this.addLayer(new CrossedArmsItemLayer<>(this, p_174441_.getItemInHandRenderer()));
+    }
 
-   public ResourceLocation getTextureLocation(WanderingTrader p_116373_) {
-      return VILLAGER_BASE_SKIN;
-   }
+    public ResourceLocation getTextureLocation(WanderingTrader p_116373_) {
+        return VILLAGER_BASE_SKIN;
+    }
 
-   protected void scale(WanderingTrader p_116375_, PoseStack p_116376_, float p_116377_) {
-      float f = 0.9375F;
-      p_116376_.scale(0.9375F, 0.9375F, 0.9375F);
-   }
+    protected void scale(WanderingTrader p_116375_, PoseStack p_116376_, float p_116377_) {
+        float f = 0.9375F;
+        p_116376_.scale(0.9375F, 0.9375F, 0.9375F);
+    }
 }

@@ -11,37 +11,37 @@ import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import net.minecraft.util.GsonHelper;
 
 public interface ResourceMetadata {
-   ResourceMetadata EMPTY = new ResourceMetadata() {
-      public <T> Optional<T> getSection(MetadataSectionSerializer<T> p_215584_) {
-         return Optional.empty();
-      }
-   };
+    ResourceMetadata EMPTY = new ResourceMetadata() {
+        public <T> Optional<T> getSection(MetadataSectionSerializer<T> p_215584_) {
+            return Optional.empty();
+        }
+    };
 
-   static ResourceMetadata fromJsonStream(InputStream p_215581_) throws IOException {
-      BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(p_215581_, StandardCharsets.UTF_8));
+    static ResourceMetadata fromJsonStream(InputStream p_215581_) throws IOException {
+        BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(p_215581_, StandardCharsets.UTF_8));
 
-      ResourceMetadata resourcemetadata;
-      try {
-         final JsonObject jsonobject = GsonHelper.parse(bufferedreader);
-         resourcemetadata = new ResourceMetadata() {
-            public <T> Optional<T> getSection(MetadataSectionSerializer<T> p_215589_) {
-               String s = p_215589_.getMetadataSectionName();
-               return jsonobject.has(s) ? Optional.of(p_215589_.fromJson(GsonHelper.getAsJsonObject(jsonobject, s))) : Optional.empty();
+        ResourceMetadata resourcemetadata;
+        try {
+            final JsonObject jsonobject = GsonHelper.parse(bufferedreader);
+            resourcemetadata = new ResourceMetadata() {
+                public <T> Optional<T> getSection(MetadataSectionSerializer<T> p_215589_) {
+                    String s = p_215589_.getMetadataSectionName();
+                    return jsonobject.has(s) ? Optional.of(p_215589_.fromJson(GsonHelper.getAsJsonObject(jsonobject, s))) : Optional.empty();
+                }
+            };
+        } catch (Throwable throwable1) {
+            try {
+                bufferedreader.close();
+            } catch (Throwable throwable) {
+                throwable1.addSuppressed(throwable);
             }
-         };
-      } catch (Throwable throwable1) {
-         try {
-            bufferedreader.close();
-         } catch (Throwable throwable) {
-            throwable1.addSuppressed(throwable);
-         }
 
-         throw throwable1;
-      }
+            throw throwable1;
+        }
 
-      bufferedreader.close();
-      return resourcemetadata;
-   }
+        bufferedreader.close();
+        return resourcemetadata;
+    }
 
-   <T> Optional<T> getSection(MetadataSectionSerializer<T> p_215579_);
+    <T> Optional<T> getSection(MetadataSectionSerializer<T> p_215579_);
 }

@@ -7,23 +7,23 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 
 public interface EntityAccess {
-   int getId();
+    int getId();
 
-   UUID getUUID();
+    UUID getUUID();
 
-   BlockPos blockPosition();
+    BlockPos blockPosition();
 
-   AABB getBoundingBox();
+    AABB getBoundingBox();
 
-   void setLevelCallback(EntityInLevelCallback p_156797_);
+    void setLevelCallback(EntityInLevelCallback p_156797_);
 
-   Stream<? extends EntityAccess> getSelfAndPassengers();
+    Stream<? extends EntityAccess> getSelfAndPassengers();
 
-   Stream<? extends EntityAccess> getPassengersAndSelf();
+    Stream<? extends EntityAccess> getPassengersAndSelf();
 
-   void setRemoved(Entity.RemovalReason p_156798_);
+    void setRemoved(Entity.RemovalReason p_156798_);
 
-   boolean shouldBeSaved();
+    boolean shouldBeSaved();
 
-   boolean isAlwaysTicking();
+    boolean isAlwaysTicking();
 }

@@ -5,7 +5,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public enum Whence {
-   ABSOLUTE,
-   RELATIVE,
-   END;
+    ABSOLUTE,
+    RELATIVE,
+    END;
 }

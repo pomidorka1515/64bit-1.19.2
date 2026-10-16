@@ -20,43 +20,43 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SpaceProvider implements GlyphProvider {
-   private final Int2ObjectMap<GlyphInfo.SpaceGlyphInfo> glyphs;
+    private final Int2ObjectMap<GlyphInfo.SpaceGlyphInfo> glyphs;
 
-   public SpaceProvider(Int2FloatMap p_231100_) {
-      this.glyphs = new Int2ObjectOpenHashMap<>(p_231100_.size());
-      Int2FloatMaps.fastForEach(p_231100_, (p_231109_) -> {
-         float f = p_231109_.getFloatValue();
-         this.glyphs.put(p_231109_.getIntKey(), () -> {
-            return f;
-         });
-      });
-   }
+    public SpaceProvider(Int2FloatMap p_231100_) {
+        this.glyphs = new Int2ObjectOpenHashMap<>(p_231100_.size());
+        Int2FloatMaps.fastForEach(p_231100_, (p_231109_) -> {
+            float f = p_231109_.getFloatValue();
+            this.glyphs.put(p_231109_.getIntKey(), () -> {
+                return f;
+            });
+        });
+    }
 
-   @Nullable
-   public GlyphInfo getGlyph(int p_231105_) {
-      return this.glyphs.get(p_231105_);
-   }
+    @Nullable
+    public GlyphInfo getGlyph(int p_231105_) {
+        return this.glyphs.get(p_231105_);
+    }
 
-   public IntSet getSupportedGlyphs() {
-      return IntSets.unmodifiable(this.glyphs.keySet());
-   }
+    public IntSet getSupportedGlyphs() {
+        return IntSets.unmodifiable(this.glyphs.keySet());
+    }
 
-   public static GlyphProviderBuilder builderFromJson(JsonObject p_231107_) {
-      Int2FloatMap int2floatmap = new Int2FloatOpenHashMap();
-      JsonObject jsonobject = GsonHelper.getAsJsonObject(p_231107_, "advances");
+    public static GlyphProviderBuilder builderFromJson(JsonObject p_231107_) {
+        Int2FloatMap int2floatmap = new Int2FloatOpenHashMap();
+        JsonObject jsonobject = GsonHelper.getAsJsonObject(p_231107_, "advances");
 
-      for(Map.Entry<String, JsonElement> entry : jsonobject.entrySet()) {
-         int[] aint = entry.getKey().codePoints().toArray();
-         if (aint.length != 1) {
-            throw new JsonParseException("Expected single codepoint, got " + Arrays.toString(aint));
-         }
+        for (Map.Entry<String, JsonElement> entry : jsonobject.entrySet()) {
+            int[] aint = entry.getKey().codePoints().toArray();
+            if (aint.length != 1) {
+                throw new JsonParseException("Expected single codepoint, got " + Arrays.toString(aint));
+            }
 
-         float f = GsonHelper.convertToFloat(entry.getValue(), "advance");
-         int2floatmap.put(aint[0], f);
-      }
+            float f = GsonHelper.convertToFloat(entry.getValue(), "advance");
+            int2floatmap.put(aint[0], f);
+        }
 
-      return (p_231112_) -> {
-         return new SpaceProvider(int2floatmap);
-      };
-   }
+        return (p_231112_) -> {
+            return new SpaceProvider(int2floatmap);
+        };
+    }
 }

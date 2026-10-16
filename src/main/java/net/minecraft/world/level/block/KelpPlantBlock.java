@@ -12,27 +12,27 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.Shapes;
 
 public class KelpPlantBlock extends GrowingPlantBodyBlock implements LiquidBlockContainer {
-   protected KelpPlantBlock(BlockBehaviour.Properties p_54323_) {
-      super(p_54323_, Direction.UP, Shapes.block(), true);
-   }
+    protected KelpPlantBlock(BlockBehaviour.Properties p_54323_) {
+        super(p_54323_, Direction.UP, Shapes.block(), true);
+    }
 
-   protected GrowingPlantHeadBlock getHeadBlock() {
-      return (GrowingPlantHeadBlock)Blocks.KELP;
-   }
+    protected GrowingPlantHeadBlock getHeadBlock() {
+        return (GrowingPlantHeadBlock) Blocks.KELP;
+    }
 
-   public FluidState getFluidState(BlockState p_54336_) {
-      return Fluids.WATER.getSource(false);
-   }
+    public FluidState getFluidState(BlockState p_54336_) {
+        return Fluids.WATER.getSource(false);
+    }
 
-   protected boolean canAttachTo(BlockState p_153457_) {
-      return this.getHeadBlock().canAttachTo(p_153457_);
-   }
+    protected boolean canAttachTo(BlockState p_153457_) {
+        return this.getHeadBlock().canAttachTo(p_153457_);
+    }
 
-   public boolean canPlaceLiquid(BlockGetter p_54325_, BlockPos p_54326_, BlockState p_54327_, Fluid p_54328_) {
-      return false;
-   }
+    public boolean canPlaceLiquid(BlockGetter p_54325_, BlockPos p_54326_, BlockState p_54327_, Fluid p_54328_) {
+        return false;
+    }
 
-   public boolean placeLiquid(LevelAccessor p_54330_, BlockPos p_54331_, BlockState p_54332_, FluidState p_54333_) {
-      return false;
-   }
+    public boolean placeLiquid(LevelAccessor p_54330_, BlockPos p_54331_, BlockState p_54332_, FluidState p_54333_) {
+        return false;
+    }
 }

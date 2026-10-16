@@ -15,115 +15,115 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class FarlandsModeTest {
-   @BeforeAll
-   static void bootstrapMinecraft() {
-      SharedConstants.tryDetectVersion();
-      Bootstrap.bootStrap();
-   }
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
 
-   @AfterEach
-   void restoreDefaultMode() {
-      FarlandsMode.setMode(FarlandsMode.Mode.BIT_32);
-   }
+    @AfterEach
+    void restoreDefaultMode() {
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_32);
+    }
 
-   @Test
-   void noFarlandsSafeguardsIncludePreciseMode() {
-      long coordinate = Long.MAX_VALUE;
-      double scale = 684.412D;
-      double legacy = (double)coordinate * scale;
+    @Test
+    void noFarlandsSafeguardsIncludePreciseMode() {
+        long coordinate = Long.MAX_VALUE;
+        double scale = 684.412D;
+        double legacy = (double) coordinate * scale;
 
-      FarlandsMode.setMode(FarlandsMode.Mode.BIT_32);
-      assertEquals(legacy, FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
-      assertTrue(FarlandsMode.isEnabled());
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_32);
+        assertEquals(legacy, FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
+        assertTrue(FarlandsMode.isEnabled());
 
-      FarlandsMode.setMode(FarlandsMode.Mode.BIT_32_HYBRID);
-      assertEquals(legacy, FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
-      assertFalse(FarlandsMode.isEnabled());
-      assertTrue(FarlandsMode.usesLegacyBlendedNoise());
-      assertFalse(FarlandsMode.isOff());
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_32_HYBRID);
+        assertEquals(legacy, FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
+        assertFalse(FarlandsMode.isEnabled());
+        assertTrue(FarlandsMode.usesLegacyBlendedNoise());
+        assertFalse(FarlandsMode.isOff());
 
-      FarlandsMode.setMode(FarlandsMode.Mode.BIT_64);
-      assertEquals(legacy, FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
-      assertFalse(FarlandsMode.isEnabled());
-      assertFalse(FarlandsMode.usesLegacyBlendedNoise());
-      assertFalse(FarlandsMode.isOff());
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64);
+        assertEquals(legacy, FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
+        assertFalse(FarlandsMode.isEnabled());
+        assertFalse(FarlandsMode.usesLegacyBlendedNoise());
+        assertFalse(FarlandsMode.isOff());
 
-      FarlandsMode.setMode(FarlandsMode.Mode.OFF);
-      assertEquals(WorldBounds.scaledNoiseCoordinate(coordinate, scale), FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
-      assertFalse(FarlandsMode.isEnabled());
-      assertTrue(FarlandsMode.isOff());
-      assertTrue(FarlandsMode.usesNoFarlandsSafeguards());
-      assertFalse(FarlandsMode.usesPreciseCoordinates());
-      assertEquals("64-bit (no farlands)", FarlandsMode.getMode().generatorDescription());
+        FarlandsMode.setMode(FarlandsMode.Mode.OFF);
+        assertEquals(WorldBounds.scaledNoiseCoordinate(coordinate, scale), FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
+        assertFalse(FarlandsMode.isEnabled());
+        assertTrue(FarlandsMode.isOff());
+        assertTrue(FarlandsMode.usesNoFarlandsSafeguards());
+        assertFalse(FarlandsMode.usesPreciseCoordinates());
+        assertEquals("64-bit (no farlands)", FarlandsMode.getMode().generatorDescription());
 
-      FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
-      assertEquals(WorldBounds.scaledNoiseCoordinate(coordinate, scale), FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
-      assertFalse(FarlandsMode.isEnabled());
-      assertFalse(FarlandsMode.isOff());
-      assertTrue(FarlandsMode.usesNoFarlandsSafeguards());
-      assertTrue(FarlandsMode.usesPreciseCoordinates());
-      assertEquals("64-bit (exact lattice)", FarlandsMode.getMode().generatorDescription());
-   }
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+        assertEquals(WorldBounds.scaledNoiseCoordinate(coordinate, scale), FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
+        assertFalse(FarlandsMode.isEnabled());
+        assertFalse(FarlandsMode.isOff());
+        assertTrue(FarlandsMode.usesNoFarlandsSafeguards());
+        assertTrue(FarlandsMode.usesPreciseCoordinates());
+        assertEquals("64-bit (exact lattice)", FarlandsMode.getMode().generatorDescription());
+    }
 
-   @Test
-   void serializedModesPreserveOldBooleanWorlds() {
-      assertEquals(FarlandsMode.Mode.BIT_32, FarlandsMode.fromSerializedName("32bit"));
-      assertEquals(FarlandsMode.Mode.BIT_32_HYBRID, FarlandsMode.fromSerializedName("32bit-hybrid"));
-      assertEquals(FarlandsMode.Mode.BIT_64, FarlandsMode.fromSerializedName("64bit"));
-      assertEquals(FarlandsMode.Mode.OFF, FarlandsMode.fromSerializedName("off"));
-      assertEquals(FarlandsMode.Mode.BIT_64_PRECISE, FarlandsMode.fromSerializedName("64bit-precise"));
-      assertEquals(FarlandsMode.Mode.BIT_32, FarlandsMode.fromSerializedName("true"));
-      assertEquals(FarlandsMode.Mode.BIT_64, FarlandsMode.fromSerializedName("false"));
-      assertEquals(FarlandsMode.Mode.BIT_32, FarlandsMode.fromSerializedName("unknown"));
-      assertEquals("32bit-hybrid", FarlandsMode.Mode.BIT_32_HYBRID.serializedName());
-      assertEquals("off", FarlandsMode.Mode.OFF.serializedName());
-   }
+    @Test
+    void serializedModesPreserveOldBooleanWorlds() {
+        assertEquals(FarlandsMode.Mode.BIT_32, FarlandsMode.fromSerializedName("32bit"));
+        assertEquals(FarlandsMode.Mode.BIT_32_HYBRID, FarlandsMode.fromSerializedName("32bit-hybrid"));
+        assertEquals(FarlandsMode.Mode.BIT_64, FarlandsMode.fromSerializedName("64bit"));
+        assertEquals(FarlandsMode.Mode.OFF, FarlandsMode.fromSerializedName("off"));
+        assertEquals(FarlandsMode.Mode.BIT_64_PRECISE, FarlandsMode.fromSerializedName("64bit-precise"));
+        assertEquals(FarlandsMode.Mode.BIT_32, FarlandsMode.fromSerializedName("true"));
+        assertEquals(FarlandsMode.Mode.BIT_64, FarlandsMode.fromSerializedName("false"));
+        assertEquals(FarlandsMode.Mode.BIT_32, FarlandsMode.fromSerializedName("unknown"));
+        assertEquals("32bit-hybrid", FarlandsMode.Mode.BIT_32_HYBRID.serializedName());
+        assertEquals("off", FarlandsMode.Mode.OFF.serializedName());
+    }
 
-   @Test
-   void hybridUsesLegacyArithmeticOnlyForBlendedNoise() {
-      double coordinate = 16_000_000_000.0D;
-      ImprovedNoise improvednoise = new ImprovedNoise(new LegacyRandomSource(1234L));
-      BlendedNoise blendednoise = new BlendedNoise(new LegacyRandomSource(1234L), 0.25D, 0.125D, 80.0D, 160.0D, 8.0D);
-      DensityFunction.SinglePointContext context = new DensityFunction.SinglePointContext((long)coordinate, 0, 0L);
+    @Test
+    void hybridUsesLegacyArithmeticOnlyForBlendedNoise() {
+        double coordinate = 16_000_000_000.0D;
+        ImprovedNoise improvednoise = new ImprovedNoise(new LegacyRandomSource(1234L));
+        BlendedNoise blendednoise = new BlendedNoise(new LegacyRandomSource(1234L), 0.25D, 0.125D, 80.0D, 160.0D, 8.0D);
+        DensityFunction.SinglePointContext context = new DensityFunction.SinglePointContext((long) coordinate, 0, 0L);
 
-      FarlandsMode.setMode(FarlandsMode.Mode.BIT_32_HYBRID);
-      assertFalse(FarlandsMode.isEnabled());
-      assertTrue(FarlandsMode.usesLegacyBlendedNoise());
-      ImprovedNoise.beginDebugCapture();
-      double hybridOrdinaryNoise;
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_32_HYBRID);
+        assertFalse(FarlandsMode.isEnabled());
+        assertTrue(FarlandsMode.usesLegacyBlendedNoise());
+        ImprovedNoise.beginDebugCapture();
+        double hybridOrdinaryNoise;
 
-      try {
-         hybridOrdinaryNoise = improvednoise.noise(coordinate, 0.0D, 0.0D);
-      } finally {
-         ImprovedNoise.endDebugCapture();
-      }
+        try {
+            hybridOrdinaryNoise = improvednoise.noise(coordinate, 0.0D, 0.0D);
+        } finally {
+            ImprovedNoise.endDebugCapture();
+        }
 
-      assertUnitCellOffset(ImprovedNoise.getDebugString2());
-      assertTrue(Double.isFinite(hybridOrdinaryNoise));
-      double hybridBlendedNoise = blendednoise.compute(context);
+        assertUnitCellOffset(ImprovedNoise.getDebugString2());
+        assertTrue(Double.isFinite(hybridOrdinaryNoise));
+        double hybridBlendedNoise = blendednoise.compute(context);
 
-      FarlandsMode.setMode(FarlandsMode.Mode.BIT_32);
-      assertTrue(FarlandsMode.isEnabled());
-      assertTrue(FarlandsMode.usesLegacyBlendedNoise());
-      double legacyBlendedNoise = blendednoise.compute(context);
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_32);
+        assertTrue(FarlandsMode.isEnabled());
+        assertTrue(FarlandsMode.usesLegacyBlendedNoise());
+        double legacyBlendedNoise = blendednoise.compute(context);
 
-      FarlandsMode.setMode(FarlandsMode.Mode.BIT_64);
-      assertFalse(FarlandsMode.usesLegacyBlendedNoise());
-      double sixtyFourBitOrdinaryNoise = improvednoise.noise(coordinate, 0.0D, 0.0D);
-      double sixtyFourBitBlendedNoise = blendednoise.compute(context);
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64);
+        assertFalse(FarlandsMode.usesLegacyBlendedNoise());
+        double sixtyFourBitOrdinaryNoise = improvednoise.noise(coordinate, 0.0D, 0.0D);
+        double sixtyFourBitBlendedNoise = blendednoise.compute(context);
 
-      assertEquals(sixtyFourBitOrdinaryNoise, hybridOrdinaryNoise);
-      assertEquals(legacyBlendedNoise, hybridBlendedNoise);
-      assertTrue(Double.isFinite(hybridBlendedNoise));
-      assertTrue(Double.isFinite(sixtyFourBitBlendedNoise));
-      assertNotEquals(sixtyFourBitBlendedNoise, hybridBlendedNoise);
-   }
+        assertEquals(sixtyFourBitOrdinaryNoise, hybridOrdinaryNoise);
+        assertEquals(legacyBlendedNoise, hybridBlendedNoise);
+        assertTrue(Double.isFinite(hybridBlendedNoise));
+        assertTrue(Double.isFinite(sixtyFourBitBlendedNoise));
+        assertNotEquals(sixtyFourBitBlendedNoise, hybridBlendedNoise);
+    }
 
-   private static void assertUnitCellOffset(String debugString) {
-      String[] astring = debugString.split(" ");
-      double cellOffset = Double.parseDouble(astring[2]);
-      double smoothedOffset = Double.parseDouble(astring[5]);
-      assertTrue(cellOffset >= 0.0D && cellOffset <= 1.0D);
-      assertTrue(smoothedOffset >= 0.0D && smoothedOffset <= 1.0D);
-   }
+    private static void assertUnitCellOffset(String debugString) {
+        String[] astring = debugString.split(" ");
+        double cellOffset = Double.parseDouble(astring[2]);
+        double smoothedOffset = Double.parseDouble(astring[5]);
+        assertTrue(cellOffset >= 0.0D && cellOffset <= 1.0D);
+        assertTrue(smoothedOffset >= 0.0D && smoothedOffset <= 1.0D);
+    }
 }

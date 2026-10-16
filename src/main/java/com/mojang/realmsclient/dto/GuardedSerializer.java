@@ -7,14 +7,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class GuardedSerializer {
-   private final Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
-   public String toJson(ReflectionBasedSerialization p_87414_) {
-      return this.gson.toJson(p_87414_);
-   }
+    public String toJson(ReflectionBasedSerialization p_87414_) {
+        return this.gson.toJson(p_87414_);
+    }
 
-   @Nullable
-   public <T extends ReflectionBasedSerialization> T fromJson(String p_87416_, Class<T> p_87417_) {
-      return this.gson.fromJson(p_87416_, p_87417_);
-   }
+    @Nullable
+    public <T extends ReflectionBasedSerialization> T fromJson(String p_87416_, Class<T> p_87417_) {
+        return this.gson.fromJson(p_87416_, p_87417_);
+    }
 }

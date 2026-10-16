@@ -10,14 +10,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class PillagerRenderer extends IllagerRenderer<Pillager> {
-   private static final ResourceLocation PILLAGER = new ResourceLocation("textures/entity/illager/pillager.png");
+    private static final ResourceLocation PILLAGER = new ResourceLocation("textures/entity/illager/pillager.png");
 
-   public PillagerRenderer(EntityRendererProvider.Context p_174354_) {
-      super(p_174354_, new IllagerModel<>(p_174354_.bakeLayer(ModelLayers.PILLAGER)), 0.5F);
-      this.addLayer(new ItemInHandLayer<>(this, p_174354_.getItemInHandRenderer()));
-   }
+    public PillagerRenderer(EntityRendererProvider.Context p_174354_) {
+        super(p_174354_, new IllagerModel<>(p_174354_.bakeLayer(ModelLayers.PILLAGER)), 0.5F);
+        this.addLayer(new ItemInHandLayer<>(this, p_174354_.getItemInHandRenderer()));
+    }
 
-   public ResourceLocation getTextureLocation(Pillager p_115720_) {
-      return PILLAGER;
-   }
+    public ResourceLocation getTextureLocation(Pillager p_115720_) {
+        return PILLAGER;
+    }
 }

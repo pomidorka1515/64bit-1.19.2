@@ -9,13 +9,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SmokingRecipeBookComponent extends AbstractFurnaceRecipeBookComponent {
-   private static final Component FILTER_NAME = Component.translatable("gui.recipebook.toggleRecipes.smokable");
+    private static final Component FILTER_NAME = Component.translatable("gui.recipebook.toggleRecipes.smokable");
 
-   protected Component getRecipeFilterName() {
-      return FILTER_NAME;
-   }
+    protected Component getRecipeFilterName() {
+        return FILTER_NAME;
+    }
 
-   protected Set<Item> getFuelItems() {
-      return AbstractFurnaceBlockEntity.getFuel().keySet();
-   }
+    protected Set<Item> getFuelItems() {
+        return AbstractFurnaceBlockEntity.getFuel().keySet();
+    }
 }

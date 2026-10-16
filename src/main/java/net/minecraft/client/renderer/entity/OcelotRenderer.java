@@ -9,13 +9,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class OcelotRenderer extends MobRenderer<Ocelot, OcelotModel<Ocelot>> {
-   private static final ResourceLocation CAT_OCELOT_LOCATION = new ResourceLocation("textures/entity/cat/ocelot.png");
+    private static final ResourceLocation CAT_OCELOT_LOCATION = new ResourceLocation("textures/entity/cat/ocelot.png");
 
-   public OcelotRenderer(EntityRendererProvider.Context p_174330_) {
-      super(p_174330_, new OcelotModel<>(p_174330_.bakeLayer(ModelLayers.OCELOT)), 0.4F);
-   }
+    public OcelotRenderer(EntityRendererProvider.Context p_174330_) {
+        super(p_174330_, new OcelotModel<>(p_174330_.bakeLayer(ModelLayers.OCELOT)), 0.4F);
+    }
 
-   public ResourceLocation getTextureLocation(Ocelot p_115524_) {
-      return CAT_OCELOT_LOCATION;
-   }
+    public ResourceLocation getTextureLocation(Ocelot p_115524_) {
+        return CAT_OCELOT_LOCATION;
+    }
 }

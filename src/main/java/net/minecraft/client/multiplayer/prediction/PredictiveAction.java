@@ -8,5 +8,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @FunctionalInterface
 @OnlyIn(Dist.CLIENT)
 public interface PredictiveAction {
-   Packet<ServerGamePacketListener> predict(int p_233886_);
+    Packet<ServerGamePacketListener> predict(int p_233886_);
 }

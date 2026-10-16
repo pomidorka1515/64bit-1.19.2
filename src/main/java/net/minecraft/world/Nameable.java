@@ -4,18 +4,18 @@ import javax.annotation.Nullable;
 import net.minecraft.network.chat.Component;
 
 public interface Nameable {
-   Component getName();
+    Component getName();
 
-   default boolean hasCustomName() {
-      return this.getCustomName() != null;
-   }
+    default boolean hasCustomName() {
+        return this.getCustomName() != null;
+    }
 
-   default Component getDisplayName() {
-      return this.getName();
-   }
+    default Component getDisplayName() {
+        return this.getName();
+    }
 
-   @Nullable
-   default Component getCustomName() {
-      return null;
-   }
+    @Nullable
+    default Component getCustomName() {
+        return null;
+    }
 }

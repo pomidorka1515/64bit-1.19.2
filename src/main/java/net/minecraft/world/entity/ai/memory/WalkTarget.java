@@ -9,41 +9,41 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class WalkTarget {
-   private final PositionTracker target;
-   private final float speedModifier;
-   private final int closeEnoughDist;
+    private final PositionTracker target;
+    private final float speedModifier;
+    private final int closeEnoughDist;
 
-   public WalkTarget(BlockPos p_26417_, float p_26418_, int p_26419_) {
-      this(new BlockPosTracker(p_26417_), p_26418_, p_26419_);
-   }
+    public WalkTarget(BlockPos p_26417_, float p_26418_, int p_26419_) {
+        this(new BlockPosTracker(p_26417_), p_26418_, p_26419_);
+    }
 
-   public WalkTarget(Vec3 p_26413_, float p_26414_, int p_26415_) {
-      this(SectorVec3.fromApproximate(p_26413_.x, p_26413_.y, p_26413_.z), p_26414_, p_26415_);
-   }
+    public WalkTarget(Vec3 p_26413_, float p_26414_, int p_26415_) {
+        this(SectorVec3.fromApproximate(p_26413_.x, p_26413_.y, p_26413_.z), p_26414_, p_26415_);
+    }
 
-   public WalkTarget(SectorVec3 position, float speedModifier, int closeEnoughDist) {
-      this(new BlockPosTracker(position), speedModifier, closeEnoughDist);
-   }
+    public WalkTarget(SectorVec3 position, float speedModifier, int closeEnoughDist) {
+        this(new BlockPosTracker(position), speedModifier, closeEnoughDist);
+    }
 
-   public WalkTarget(Entity p_148209_, float p_148210_, int p_148211_) {
-      this(new EntityTracker(p_148209_, false), p_148210_, p_148211_);
-   }
+    public WalkTarget(Entity p_148209_, float p_148210_, int p_148211_) {
+        this(new EntityTracker(p_148209_, false), p_148210_, p_148211_);
+    }
 
-   public WalkTarget(PositionTracker p_26409_, float p_26410_, int p_26411_) {
-      this.target = p_26409_;
-      this.speedModifier = p_26410_;
-      this.closeEnoughDist = p_26411_;
-   }
+    public WalkTarget(PositionTracker p_26409_, float p_26410_, int p_26411_) {
+        this.target = p_26409_;
+        this.speedModifier = p_26410_;
+        this.closeEnoughDist = p_26411_;
+    }
 
-   public PositionTracker getTarget() {
-      return this.target;
-   }
+    public PositionTracker getTarget() {
+        return this.target;
+    }
 
-   public float getSpeedModifier() {
-      return this.speedModifier;
-   }
+    public float getSpeedModifier() {
+        return this.speedModifier;
+    }
 
-   public int getCloseEnoughDist() {
-      return this.closeEnoughDist;
-   }
+    public int getCloseEnoughDist() {
+        return this.closeEnoughDist;
+    }
 }

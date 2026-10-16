@@ -14,19 +14,19 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface BakedModel {
-   List<BakedQuad> getQuads(@Nullable BlockState p_235039_, @Nullable Direction p_235040_, RandomSource p_235041_);
+    List<BakedQuad> getQuads(@Nullable BlockState p_235039_, @Nullable Direction p_235040_, RandomSource p_235041_);
 
-   boolean useAmbientOcclusion();
+    boolean useAmbientOcclusion();
 
-   boolean isGui3d();
+    boolean isGui3d();
 
-   boolean usesBlockLight();
+    boolean usesBlockLight();
 
-   boolean isCustomRenderer();
+    boolean isCustomRenderer();
 
-   TextureAtlasSprite getParticleIcon();
+    TextureAtlasSprite getParticleIcon();
 
-   ItemTransforms getTransforms();
+    ItemTransforms getTransforms();
 
-   ItemOverrides getOverrides();
+    ItemOverrides getOverrides();
 }

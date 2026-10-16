@@ -23,81 +23,79 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class GoAndGiveItemsToTarget<E extends LivingEntity & InventoryCarrier> extends Behavior<E> {
-   private static final int CLOSE_ENOUGH_DISTANCE_TO_TARGET = 3;
-   private static final int ITEM_PICKUP_COOLDOWN_AFTER_THROWING = 60;
-   private final Function<LivingEntity, Optional<PositionTracker>> targetPositionGetter;
-   private final float speedModifier;
+    private static final int CLOSE_ENOUGH_DISTANCE_TO_TARGET = 3;
+    private static final int ITEM_PICKUP_COOLDOWN_AFTER_THROWING = 60;
+    private final Function<LivingEntity, Optional<PositionTracker>> targetPositionGetter;
+    private final float speedModifier;
 
-   public GoAndGiveItemsToTarget(Function<LivingEntity, Optional<PositionTracker>> p_217193_, float p_217194_) {
-      super(Map.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, MemoryStatus.REGISTERED));
-      this.targetPositionGetter = p_217193_;
-      this.speedModifier = p_217194_;
-   }
+    public GoAndGiveItemsToTarget(Function<LivingEntity, Optional<PositionTracker>> p_217193_, float p_217194_) {
+        super(Map.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, MemoryStatus.REGISTERED));
+        this.targetPositionGetter = p_217193_;
+        this.speedModifier = p_217194_;
+    }
 
-   protected boolean checkExtraStartConditions(ServerLevel p_217196_, E p_217197_) {
-      return this.canThrowItemToTarget(p_217197_);
-   }
+    protected boolean checkExtraStartConditions(ServerLevel p_217196_, E p_217197_) {
+        return this.canThrowItemToTarget(p_217197_);
+    }
 
-   protected boolean canStillUse(ServerLevel p_217218_, E p_217219_, long p_217220_) {
-      return this.canThrowItemToTarget(p_217219_);
-   }
+    protected boolean canStillUse(ServerLevel p_217218_, E p_217219_, long p_217220_) {
+        return this.canThrowItemToTarget(p_217219_);
+    }
 
-   protected void start(ServerLevel p_217199_, E p_217200_, long p_217201_) {
-      this.targetPositionGetter.apply(p_217200_).ifPresent((p_217206_) -> {
-         BehaviorUtils.setWalkAndLookTargetMemories(p_217200_, p_217206_, this.speedModifier, 3);
-      });
-   }
+    protected void start(ServerLevel p_217199_, E p_217200_, long p_217201_) {
+        this.targetPositionGetter.apply(p_217200_).ifPresent((p_217206_) -> {
+            BehaviorUtils.setWalkAndLookTargetMemories(p_217200_, p_217206_, this.speedModifier, 3);
+        });
+    }
 
-   protected void tick(ServerLevel p_217226_, E p_217227_, long p_217228_) {
-      Optional<PositionTracker> optional = this.targetPositionGetter.apply(p_217227_);
-      if (!optional.isEmpty()) {
-         PositionTracker positiontracker = optional.get();
-         double d0 = p_217227_.exactEyePosition().relativeTo(positiontracker.currentExactPosition()).length();
-         if (d0 < 3.0D) {
-            ItemStack itemstack = p_217227_.getInventory().removeItem(0, 1);
-            if (!itemstack.isEmpty()) {
-               throwItem(p_217227_, itemstack, getThrowPosition(positiontracker));
-               if (p_217227_ instanceof Allay) {
-                  Allay allay = (Allay)p_217227_;
-                  AllayAi.getLikedPlayer(allay).ifPresent((p_217224_) -> {
-                     this.triggerDropItemOnBlock(positiontracker, itemstack, p_217224_);
-                  });
-               }
+    protected void tick(ServerLevel p_217226_, E p_217227_, long p_217228_) {
+        Optional<PositionTracker> optional = this.targetPositionGetter.apply(p_217227_);
+        if (!optional.isEmpty()) {
+            PositionTracker positiontracker = optional.get();
+            double d0 = p_217227_.exactEyePosition().relativeTo(positiontracker.currentExactPosition()).length();
+            if (d0 < 3.0D) {
+                ItemStack itemstack = p_217227_.getInventory().removeItem(0, 1);
+                if (!itemstack.isEmpty()) {
+                    throwItem(p_217227_, itemstack, getThrowPosition(positiontracker));
+                    if (p_217227_ instanceof Allay) {
+                        Allay allay = (Allay) p_217227_;
+                        AllayAi.getLikedPlayer(allay).ifPresent((p_217224_) -> {
+                            this.triggerDropItemOnBlock(positiontracker, itemstack, p_217224_);
+                        });
+                    }
 
-               p_217227_.getBrain().setMemory(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, 60);
+                    p_217227_.getBrain().setMemory(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, 60);
+                }
             }
-         }
+        }
+    }
 
-      }
-   }
+    private void triggerDropItemOnBlock(PositionTracker p_217214_, ItemStack p_217215_, ServerPlayer p_217216_) {
+        BlockPos blockpos = p_217214_.currentBlockPosition().below();
+        CriteriaTriggers.ALLAY_DROP_ITEM_ON_BLOCK.trigger(p_217216_, blockpos, p_217215_);
+    }
 
-   private void triggerDropItemOnBlock(PositionTracker p_217214_, ItemStack p_217215_, ServerPlayer p_217216_) {
-      BlockPos blockpos = p_217214_.currentBlockPosition().below();
-      CriteriaTriggers.ALLAY_DROP_ITEM_ON_BLOCK.trigger(p_217216_, blockpos, p_217215_);
-   }
+    private boolean canThrowItemToTarget(E p_217203_) {
+        if (p_217203_.getInventory().isEmpty()) {
+            return false;
+        } else {
+            Optional<PositionTracker> optional = this.targetPositionGetter.apply(p_217203_);
+            return optional.isPresent();
+        }
+    }
 
-   private boolean canThrowItemToTarget(E p_217203_) {
-      if (p_217203_.getInventory().isEmpty()) {
-         return false;
-      } else {
-         Optional<PositionTracker> optional = this.targetPositionGetter.apply(p_217203_);
-         return optional.isPresent();
-      }
-   }
+    private static Vec3 getThrowPosition(PositionTracker p_217212_) {
+        SectorVec3 exact = p_217212_.currentExactPosition().add(0.0D, 1.0D, 0.0D);
+        return exact.toApproximateVec3();
+    }
 
-   private static Vec3 getThrowPosition(PositionTracker p_217212_) {
-      SectorVec3 exact = p_217212_.currentExactPosition().add(0.0D, 1.0D, 0.0D);
-      return exact.toApproximateVec3();
-   }
-
-   public static void throwItem(LivingEntity p_217208_, ItemStack p_217209_, Vec3 p_217210_) {
-      Vec3 vec3 = new Vec3((double)0.2F, (double)0.3F, (double)0.2F);
-      BehaviorUtils.throwItem(p_217208_, p_217209_, p_217210_, vec3, 0.2F);
-      Level level = p_217208_.level;
-      if (level.getGameTime() % 7L == 0L && level.random.nextDouble() < 0.9D) {
-         float f = Util.getRandom(Allay.THROW_SOUND_PITCHES, level.getRandom());
-         level.playSound((Player)null, p_217208_, SoundEvents.ALLAY_THROW, SoundSource.NEUTRAL, 1.0F, f);
-      }
-
-   }
+    public static void throwItem(LivingEntity p_217208_, ItemStack p_217209_, Vec3 p_217210_) {
+        Vec3 vec3 = new Vec3((double) 0.2F, (double) 0.3F, (double) 0.2F);
+        BehaviorUtils.throwItem(p_217208_, p_217209_, p_217210_, vec3, 0.2F);
+        Level level = p_217208_.level;
+        if (level.getGameTime() % 7L == 0L && level.random.nextDouble() < 0.9D) {
+            float f = Util.getRandom(Allay.THROW_SOUND_PITCHES, level.getRandom());
+            level.playSound((Player) null, p_217208_, SoundEvents.ALLAY_THROW, SoundSource.NEUTRAL, 1.0F, f);
+        }
+    }
 }

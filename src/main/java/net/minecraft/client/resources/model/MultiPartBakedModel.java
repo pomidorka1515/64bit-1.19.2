@@ -22,95 +22,95 @@ import org.apache.commons.lang3.tuple.Pair;
 
 @OnlyIn(Dist.CLIENT)
 public class MultiPartBakedModel implements BakedModel {
-   private final List<Pair<Predicate<BlockState>, BakedModel>> selectors;
-   protected final boolean hasAmbientOcclusion;
-   protected final boolean isGui3d;
-   protected final boolean usesBlockLight;
-   protected final TextureAtlasSprite particleIcon;
-   protected final ItemTransforms transforms;
-   protected final ItemOverrides overrides;
-   private final Map<BlockState, BitSet> selectorCache = new Object2ObjectOpenCustomHashMap<>(Util.identityStrategy());
+    private final List<Pair<Predicate<BlockState>, BakedModel>> selectors;
+    protected final boolean hasAmbientOcclusion;
+    protected final boolean isGui3d;
+    protected final boolean usesBlockLight;
+    protected final TextureAtlasSprite particleIcon;
+    protected final ItemTransforms transforms;
+    protected final ItemOverrides overrides;
+    private final Map<BlockState, BitSet> selectorCache = new Object2ObjectOpenCustomHashMap<>(Util.identityStrategy());
 
-   public MultiPartBakedModel(List<Pair<Predicate<BlockState>, BakedModel>> p_119462_) {
-      this.selectors = p_119462_;
-      BakedModel bakedmodel = p_119462_.iterator().next().getRight();
-      this.hasAmbientOcclusion = bakedmodel.useAmbientOcclusion();
-      this.isGui3d = bakedmodel.isGui3d();
-      this.usesBlockLight = bakedmodel.usesBlockLight();
-      this.particleIcon = bakedmodel.getParticleIcon();
-      this.transforms = bakedmodel.getTransforms();
-      this.overrides = bakedmodel.getOverrides();
-   }
+    public MultiPartBakedModel(List<Pair<Predicate<BlockState>, BakedModel>> p_119462_) {
+        this.selectors = p_119462_;
+        BakedModel bakedmodel = p_119462_.iterator().next().getRight();
+        this.hasAmbientOcclusion = bakedmodel.useAmbientOcclusion();
+        this.isGui3d = bakedmodel.isGui3d();
+        this.usesBlockLight = bakedmodel.usesBlockLight();
+        this.particleIcon = bakedmodel.getParticleIcon();
+        this.transforms = bakedmodel.getTransforms();
+        this.overrides = bakedmodel.getOverrides();
+    }
 
-   public List<BakedQuad> getQuads(@Nullable BlockState p_235050_, @Nullable Direction p_235051_, RandomSource p_235052_) {
-      if (p_235050_ == null) {
-         return Collections.emptyList();
-      } else {
-         BitSet bitset = this.selectorCache.get(p_235050_);
-         if (bitset == null) {
-            bitset = new BitSet();
+    public List<BakedQuad> getQuads(@Nullable BlockState p_235050_, @Nullable Direction p_235051_, RandomSource p_235052_) {
+        if (p_235050_ == null) {
+            return Collections.emptyList();
+        } else {
+            BitSet bitset = this.selectorCache.get(p_235050_);
+            if (bitset == null) {
+                bitset = new BitSet();
 
-            for(int i = 0; i < this.selectors.size(); ++i) {
-               Pair<Predicate<BlockState>, BakedModel> pair = this.selectors.get(i);
-               if (pair.getLeft().test(p_235050_)) {
-                  bitset.set(i);
-               }
+                for (int i = 0; i < this.selectors.size(); ++i) {
+                    Pair<Predicate<BlockState>, BakedModel> pair = this.selectors.get(i);
+                    if (pair.getLeft().test(p_235050_)) {
+                        bitset.set(i);
+                    }
+                }
+
+                this.selectorCache.put(p_235050_, bitset);
             }
 
-            this.selectorCache.put(p_235050_, bitset);
-         }
+            List<BakedQuad> list = Lists.newArrayList();
+            long k = p_235052_.nextLong();
 
-         List<BakedQuad> list = Lists.newArrayList();
-         long k = p_235052_.nextLong();
-
-         for(int j = 0; j < bitset.length(); ++j) {
-            if (bitset.get(j)) {
-               list.addAll(this.selectors.get(j).getRight().getQuads(p_235050_, p_235051_, RandomSource.create(k)));
+            for (int j = 0; j < bitset.length(); ++j) {
+                if (bitset.get(j)) {
+                    list.addAll(this.selectors.get(j).getRight().getQuads(p_235050_, p_235051_, RandomSource.create(k)));
+                }
             }
-         }
 
-         return list;
-      }
-   }
+            return list;
+        }
+    }
 
-   public boolean useAmbientOcclusion() {
-      return this.hasAmbientOcclusion;
-   }
+    public boolean useAmbientOcclusion() {
+        return this.hasAmbientOcclusion;
+    }
 
-   public boolean isGui3d() {
-      return this.isGui3d;
-   }
+    public boolean isGui3d() {
+        return this.isGui3d;
+    }
 
-   public boolean usesBlockLight() {
-      return this.usesBlockLight;
-   }
+    public boolean usesBlockLight() {
+        return this.usesBlockLight;
+    }
 
-   public boolean isCustomRenderer() {
-      return false;
-   }
+    public boolean isCustomRenderer() {
+        return false;
+    }
 
-   public TextureAtlasSprite getParticleIcon() {
-      return this.particleIcon;
-   }
+    public TextureAtlasSprite getParticleIcon() {
+        return this.particleIcon;
+    }
 
-   public ItemTransforms getTransforms() {
-      return this.transforms;
-   }
+    public ItemTransforms getTransforms() {
+        return this.transforms;
+    }
 
-   public ItemOverrides getOverrides() {
-      return this.overrides;
-   }
+    public ItemOverrides getOverrides() {
+        return this.overrides;
+    }
 
-   @OnlyIn(Dist.CLIENT)
-   public static class Builder {
-      private final List<Pair<Predicate<BlockState>, BakedModel>> selectors = Lists.newArrayList();
+    @OnlyIn(Dist.CLIENT)
+    public static class Builder {
+        private final List<Pair<Predicate<BlockState>, BakedModel>> selectors = Lists.newArrayList();
 
-      public void add(Predicate<BlockState> p_119478_, BakedModel p_119479_) {
-         this.selectors.add(Pair.of(p_119478_, p_119479_));
-      }
+        public void add(Predicate<BlockState> p_119478_, BakedModel p_119479_) {
+            this.selectors.add(Pair.of(p_119478_, p_119479_));
+        }
 
-      public BakedModel build() {
-         return new MultiPartBakedModel(this.selectors);
-      }
-   }
+        public BakedModel build() {
+            return new MultiPartBakedModel(this.selectors);
+        }
+    }
 }

@@ -9,19 +9,19 @@ import net.minecraft.resources.ResourceLocation;
 
 @FunctionalInterface
 public interface ResourceProvider {
-   Optional<Resource> getResource(ResourceLocation p_215592_);
+    Optional<Resource> getResource(ResourceLocation p_215592_);
 
-   default Resource getResourceOrThrow(ResourceLocation p_215594_) throws FileNotFoundException {
-      return this.getResource(p_215594_).orElseThrow(() -> {
-         return new FileNotFoundException(p_215594_.toString());
-      });
-   }
+    default Resource getResourceOrThrow(ResourceLocation p_215594_) throws FileNotFoundException {
+        return this.getResource(p_215594_).orElseThrow(() -> {
+            return new FileNotFoundException(p_215594_.toString());
+        });
+    }
 
-   default InputStream open(ResourceLocation p_215596_) throws IOException {
-      return this.getResourceOrThrow(p_215596_).open();
-   }
+    default InputStream open(ResourceLocation p_215596_) throws IOException {
+        return this.getResourceOrThrow(p_215596_).open();
+    }
 
-   default BufferedReader openAsReader(ResourceLocation p_215598_) throws IOException {
-      return this.getResourceOrThrow(p_215598_).openAsReader();
-   }
+    default BufferedReader openAsReader(ResourceLocation p_215598_) throws IOException {
+        return this.getResourceOrThrow(p_215598_).openAsReader();
+    }
 }

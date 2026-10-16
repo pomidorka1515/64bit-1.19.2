@@ -24,174 +24,172 @@ import org.slf4j.Logger;
 
 @OnlyIn(Dist.CLIENT)
 public class PlayerInfo {
-   private static final Logger LOGGER = LogUtils.getLogger();
-   private final GameProfile profile;
-   private final Map<MinecraftProfileTexture.Type, ResourceLocation> textureLocations = Maps.newEnumMap(MinecraftProfileTexture.Type.class);
-   private GameType gameMode;
-   private int latency;
-   private boolean pendingTextures;
-   @Nullable
-   private String skinModel;
-   @Nullable
-   private Component tabListDisplayName;
-   private int lastHealth;
-   private int displayHealth;
-   private long lastHealthTime;
-   private long healthBlinkTime;
-   private long renderVisibilityId;
-   @Nullable
-   private final ProfilePublicKey profilePublicKey;
-   private final SignedMessageValidator messageValidator;
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private final GameProfile profile;
+    private final Map<MinecraftProfileTexture.Type, ResourceLocation> textureLocations = Maps.newEnumMap(MinecraftProfileTexture.Type.class);
+    private GameType gameMode;
+    private int latency;
+    private boolean pendingTextures;
+    @Nullable
+    private String skinModel;
+    @Nullable
+    private Component tabListDisplayName;
+    private int lastHealth;
+    private int displayHealth;
+    private long lastHealthTime;
+    private long healthBlinkTime;
+    private long renderVisibilityId;
+    @Nullable
+    private final ProfilePublicKey profilePublicKey;
+    private final SignedMessageValidator messageValidator;
 
-   public PlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate p_233762_, SignatureValidator p_233763_, boolean p_242970_) {
-      this.profile = p_233762_.getProfile();
-      this.gameMode = p_233762_.getGameMode();
-      this.latency = p_233762_.getLatency();
-      this.tabListDisplayName = p_233762_.getDisplayName();
-      ProfilePublicKey profilepublickey = null;
+    public PlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate p_233762_, SignatureValidator p_233763_, boolean p_242970_) {
+        this.profile = p_233762_.getProfile();
+        this.gameMode = p_233762_.getGameMode();
+        this.latency = p_233762_.getLatency();
+        this.tabListDisplayName = p_233762_.getDisplayName();
+        ProfilePublicKey profilepublickey = null;
 
-      try {
-         ProfilePublicKey.Data profilepublickey$data = p_233762_.getProfilePublicKey();
-         if (profilepublickey$data != null) {
-            profilepublickey = ProfilePublicKey.createValidated(p_233763_, this.profile.getId(), profilepublickey$data, ProfilePublicKey.EXPIRY_GRACE_PERIOD);
-         }
-      } catch (Exception exception) {
-         LOGGER.error("Failed to validate publicKey property for profile {}", this.profile.getId(), exception);
-      }
+        try {
+            ProfilePublicKey.Data profilepublickey$data = p_233762_.getProfilePublicKey();
+            if (profilepublickey$data != null) {
+                profilepublickey = ProfilePublicKey.createValidated(p_233763_, this.profile.getId(), profilepublickey$data, ProfilePublicKey.EXPIRY_GRACE_PERIOD);
+            }
+        } catch (Exception exception) {
+            LOGGER.error("Failed to validate publicKey property for profile {}", this.profile.getId(), exception);
+        }
 
-      this.profilePublicKey = profilepublickey;
-      this.messageValidator = SignedMessageValidator.create(profilepublickey, p_242970_);
-   }
+        this.profilePublicKey = profilepublickey;
+        this.messageValidator = SignedMessageValidator.create(profilepublickey, p_242970_);
+    }
 
-   public GameProfile getProfile() {
-      return this.profile;
-   }
+    public GameProfile getProfile() {
+        return this.profile;
+    }
 
-   @Nullable
-   public ProfilePublicKey getProfilePublicKey() {
-      return this.profilePublicKey;
-   }
+    @Nullable
+    public ProfilePublicKey getProfilePublicKey() {
+        return this.profilePublicKey;
+    }
 
-   public SignedMessageValidator getMessageValidator() {
-      return this.messageValidator;
-   }
+    public SignedMessageValidator getMessageValidator() {
+        return this.messageValidator;
+    }
 
-   @Nullable
-   public GameType getGameMode() {
-      return this.gameMode;
-   }
+    @Nullable
+    public GameType getGameMode() {
+        return this.gameMode;
+    }
 
-   protected void setGameMode(GameType p_105318_) {
-      this.gameMode = p_105318_;
-   }
+    protected void setGameMode(GameType p_105318_) {
+        this.gameMode = p_105318_;
+    }
 
-   public int getLatency() {
-      return this.latency;
-   }
+    public int getLatency() {
+        return this.latency;
+    }
 
-   protected void setLatency(int p_105314_) {
-      this.latency = p_105314_;
-   }
+    protected void setLatency(int p_105314_) {
+        this.latency = p_105314_;
+    }
 
-   public boolean isCapeLoaded() {
-      return this.getCapeLocation() != null;
-   }
+    public boolean isCapeLoaded() {
+        return this.getCapeLocation() != null;
+    }
 
-   public boolean isSkinLoaded() {
-      return this.getSkinLocation() != null;
-   }
+    public boolean isSkinLoaded() {
+        return this.getSkinLocation() != null;
+    }
 
-   public String getModelName() {
-      return this.skinModel == null ? DefaultPlayerSkin.getSkinModelName(this.profile.getId()) : this.skinModel;
-   }
+    public String getModelName() {
+        return this.skinModel == null ? DefaultPlayerSkin.getSkinModelName(this.profile.getId()) : this.skinModel;
+    }
 
-   public ResourceLocation getSkinLocation() {
-      this.registerTextures();
-      return MoreObjects.firstNonNull(this.textureLocations.get(Type.SKIN), DefaultPlayerSkin.getDefaultSkin(this.profile.getId()));
-   }
+    public ResourceLocation getSkinLocation() {
+        this.registerTextures();
+        return MoreObjects.firstNonNull(this.textureLocations.get(Type.SKIN), DefaultPlayerSkin.getDefaultSkin(this.profile.getId()));
+    }
 
-   @Nullable
-   public ResourceLocation getCapeLocation() {
-      this.registerTextures();
-      return this.textureLocations.get(Type.CAPE);
-   }
+    @Nullable
+    public ResourceLocation getCapeLocation() {
+        this.registerTextures();
+        return this.textureLocations.get(Type.CAPE);
+    }
 
-   @Nullable
-   public ResourceLocation getElytraLocation() {
-      this.registerTextures();
-      return this.textureLocations.get(Type.ELYTRA);
-   }
+    @Nullable
+    public ResourceLocation getElytraLocation() {
+        this.registerTextures();
+        return this.textureLocations.get(Type.ELYTRA);
+    }
 
-   @Nullable
-   public PlayerTeam getTeam() {
-      return Minecraft.getInstance().level.getScoreboard().getPlayersTeam(this.getProfile().getName());
-   }
+    @Nullable
+    public PlayerTeam getTeam() {
+        return Minecraft.getInstance().level.getScoreboard().getPlayersTeam(this.getProfile().getName());
+    }
 
-   protected void registerTextures() {
-      synchronized(this) {
-         if (!this.pendingTextures) {
-            this.pendingTextures = true;
-            Minecraft.getInstance().getSkinManager().registerSkins(this.profile, (p_105320_, p_105321_, p_105322_) -> {
-               this.textureLocations.put(p_105320_, p_105321_);
-               if (p_105320_ == Type.SKIN) {
-                  this.skinModel = p_105322_.getMetadata("model");
-                  if (this.skinModel == null) {
-                     this.skinModel = "default";
-                  }
-               }
+    protected void registerTextures() {
+        synchronized (this) {
+            if (!this.pendingTextures) {
+                this.pendingTextures = true;
+                Minecraft.getInstance().getSkinManager().registerSkins(this.profile, (p_105320_, p_105321_, p_105322_) -> {
+                    this.textureLocations.put(p_105320_, p_105321_);
+                    if (p_105320_ == Type.SKIN) {
+                        this.skinModel = p_105322_.getMetadata("model");
+                        if (this.skinModel == null) {
+                            this.skinModel = "default";
+                        }
+                    }
+                }, true);
+            }
+        }
+    }
 
-            }, true);
-         }
+    public void setTabListDisplayName(@Nullable Component p_105324_) {
+        this.tabListDisplayName = p_105324_;
+    }
 
-      }
-   }
+    @Nullable
+    public Component getTabListDisplayName() {
+        return this.tabListDisplayName;
+    }
 
-   public void setTabListDisplayName(@Nullable Component p_105324_) {
-      this.tabListDisplayName = p_105324_;
-   }
+    public int getLastHealth() {
+        return this.lastHealth;
+    }
 
-   @Nullable
-   public Component getTabListDisplayName() {
-      return this.tabListDisplayName;
-   }
+    public void setLastHealth(int p_105327_) {
+        this.lastHealth = p_105327_;
+    }
 
-   public int getLastHealth() {
-      return this.lastHealth;
-   }
+    public int getDisplayHealth() {
+        return this.displayHealth;
+    }
 
-   public void setLastHealth(int p_105327_) {
-      this.lastHealth = p_105327_;
-   }
+    public void setDisplayHealth(int p_105332_) {
+        this.displayHealth = p_105332_;
+    }
 
-   public int getDisplayHealth() {
-      return this.displayHealth;
-   }
+    public long getLastHealthTime() {
+        return this.lastHealthTime;
+    }
 
-   public void setDisplayHealth(int p_105332_) {
-      this.displayHealth = p_105332_;
-   }
+    public void setLastHealthTime(long p_105316_) {
+        this.lastHealthTime = p_105316_;
+    }
 
-   public long getLastHealthTime() {
-      return this.lastHealthTime;
-   }
+    public long getHealthBlinkTime() {
+        return this.healthBlinkTime;
+    }
 
-   public void setLastHealthTime(long p_105316_) {
-      this.lastHealthTime = p_105316_;
-   }
+    public void setHealthBlinkTime(long p_105329_) {
+        this.healthBlinkTime = p_105329_;
+    }
 
-   public long getHealthBlinkTime() {
-      return this.healthBlinkTime;
-   }
+    public long getRenderVisibilityId() {
+        return this.renderVisibilityId;
+    }
 
-   public void setHealthBlinkTime(long p_105329_) {
-      this.healthBlinkTime = p_105329_;
-   }
-
-   public long getRenderVisibilityId() {
-      return this.renderVisibilityId;
-   }
-
-   public void setRenderVisibilityId(long p_105334_) {
-      this.renderVisibilityId = p_105334_;
-   }
+    public void setRenderVisibilityId(long p_105334_) {
+        this.renderVisibilityId = p_105334_;
+    }
 }

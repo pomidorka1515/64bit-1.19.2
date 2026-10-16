@@ -48,33 +48,33 @@ import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.Team;
 
 public class EntitySelectorOptions {
-   private static final Map<String, EntitySelectorOptions.Option> OPTIONS = Maps.newHashMap();
-   public static final DynamicCommandExceptionType ERROR_UNKNOWN_OPTION = new DynamicCommandExceptionType((p_121520_) -> {
-      return Component.translatable("argument.entity.options.unknown", p_121520_);
-   });
-   public static final DynamicCommandExceptionType ERROR_INAPPLICABLE_OPTION = new DynamicCommandExceptionType((p_121516_) -> {
-      return Component.translatable("argument.entity.options.inapplicable", p_121516_);
-   });
-   public static final SimpleCommandExceptionType ERROR_RANGE_NEGATIVE = new SimpleCommandExceptionType(Component.translatable("argument.entity.options.distance.negative"));
-   public static final SimpleCommandExceptionType ERROR_LEVEL_NEGATIVE = new SimpleCommandExceptionType(Component.translatable("argument.entity.options.level.negative"));
-   public static final SimpleCommandExceptionType ERROR_LIMIT_TOO_SMALL = new SimpleCommandExceptionType(Component.translatable("argument.entity.options.limit.toosmall"));
-   public static final DynamicCommandExceptionType ERROR_SORT_UNKNOWN = new DynamicCommandExceptionType((p_121508_) -> {
-      return Component.translatable("argument.entity.options.sort.irreversible", p_121508_);
-   });
-   public static final DynamicCommandExceptionType ERROR_GAME_MODE_INVALID = new DynamicCommandExceptionType((p_121493_) -> {
-      return Component.translatable("argument.entity.options.mode.invalid", p_121493_);
-   });
-   public static final DynamicCommandExceptionType ERROR_ENTITY_TYPE_INVALID = new DynamicCommandExceptionType((p_121452_) -> {
-      return Component.translatable("argument.entity.options.type.invalid", p_121452_);
-   });
+    private static final Map<String, EntitySelectorOptions.Option> OPTIONS = Maps.newHashMap();
+    public static final DynamicCommandExceptionType ERROR_UNKNOWN_OPTION = new DynamicCommandExceptionType((p_121520_) -> {
+        return Component.translatable("argument.entity.options.unknown", p_121520_);
+    });
+    public static final DynamicCommandExceptionType ERROR_INAPPLICABLE_OPTION = new DynamicCommandExceptionType((p_121516_) -> {
+        return Component.translatable("argument.entity.options.inapplicable", p_121516_);
+    });
+    public static final SimpleCommandExceptionType ERROR_RANGE_NEGATIVE = new SimpleCommandExceptionType(Component.translatable("argument.entity.options.distance.negative"));
+    public static final SimpleCommandExceptionType ERROR_LEVEL_NEGATIVE = new SimpleCommandExceptionType(Component.translatable("argument.entity.options.level.negative"));
+    public static final SimpleCommandExceptionType ERROR_LIMIT_TOO_SMALL = new SimpleCommandExceptionType(Component.translatable("argument.entity.options.limit.toosmall"));
+    public static final DynamicCommandExceptionType ERROR_SORT_UNKNOWN = new DynamicCommandExceptionType((p_121508_) -> {
+        return Component.translatable("argument.entity.options.sort.irreversible", p_121508_);
+    });
+    public static final DynamicCommandExceptionType ERROR_GAME_MODE_INVALID = new DynamicCommandExceptionType((p_121493_) -> {
+        return Component.translatable("argument.entity.options.mode.invalid", p_121493_);
+    });
+    public static final DynamicCommandExceptionType ERROR_ENTITY_TYPE_INVALID = new DynamicCommandExceptionType((p_121452_) -> {
+        return Component.translatable("argument.entity.options.type.invalid", p_121452_);
+    });
 
-   private static void register(String p_121454_, EntitySelectorOptions.Modifier p_121455_, Predicate<EntitySelectorParser> p_121456_, Component p_121457_) {
-      OPTIONS.put(p_121454_, new EntitySelectorOptions.Option(p_121455_, p_121456_, p_121457_));
-   }
+    private static void register(String p_121454_, EntitySelectorOptions.Modifier p_121455_, Predicate<EntitySelectorParser> p_121456_, Component p_121457_) {
+        OPTIONS.put(p_121454_, new EntitySelectorOptions.Option(p_121455_, p_121456_, p_121457_));
+    }
 
-   public static void bootStrap() {
-      if (OPTIONS.isEmpty()) {
-         register("name", (p_121425_) -> {
+    public static void bootStrap() {
+        if (OPTIONS.isEmpty()) {
+            register("name", (p_121425_) -> {
             int i = p_121425_.getReader().getCursor();
             boolean flag = p_121425_.shouldInvertValue();
             String s = p_121425_.getReader().readString();
@@ -91,11 +91,8 @@ public class EntitySelectorOptions {
                p_121425_.addPredicate((p_175209_) -> {
                   return p_175209_.getName().getString().equals(s) != flag;
                });
-            }
-         }, (p_121423_) -> {
-            return !p_121423_.hasNameEquals();
-         }, Component.translatable("argument.entity.options.name.description"));
-         register("distance", (p_121421_) -> {
+            } }, (p_121423_) -> { return !p_121423_.hasNameEquals(); }, Component.translatable("argument.entity.options.name.description"));
+            register("distance", (p_121421_) -> {
             int i = p_121421_.getReader().getCursor();
             MinMaxBounds.Doubles minmaxbounds$doubles = MinMaxBounds.Doubles.fromReader(p_121421_.getReader());
             if ((minmaxbounds$doubles.getMin() == null || !(minmaxbounds$doubles.getMin() < 0.0D)) && (minmaxbounds$doubles.getMax() == null || !(minmaxbounds$doubles.getMax() < 0.0D))) {
@@ -104,11 +101,8 @@ public class EntitySelectorOptions {
             } else {
                p_121421_.getReader().setCursor(i);
                throw ERROR_RANGE_NEGATIVE.createWithContext(p_121421_.getReader());
-            }
-         }, (p_121419_) -> {
-            return p_121419_.getDistance().isAny();
-         }, Component.translatable("argument.entity.options.distance.description"));
-         register("level", (p_121417_) -> {
+            } }, (p_121419_) -> { return p_121419_.getDistance().isAny(); }, Component.translatable("argument.entity.options.distance.description"));
+            register("level", (p_121417_) -> {
             int i = p_121417_.getReader().getCursor();
             MinMaxBounds.Ints minmaxbounds$ints = MinMaxBounds.Ints.fromReader(p_121417_.getReader());
             if ((minmaxbounds$ints.getMin() == null || minmaxbounds$ints.getMin() >= 0) && (minmaxbounds$ints.getMax() == null || minmaxbounds$ints.getMax() >= 0)) {
@@ -117,11 +111,8 @@ public class EntitySelectorOptions {
             } else {
                p_121417_.getReader().setCursor(i);
                throw ERROR_LEVEL_NEGATIVE.createWithContext(p_121417_.getReader());
-            }
-         }, (p_121415_) -> {
-            return p_121415_.getLevel().isAny();
-         }, Component.translatable("argument.entity.options.level.description"));
-         register("x", (p_121413_) -> {
+            } }, (p_121415_) -> { return p_121415_.getLevel().isAny(); }, Component.translatable("argument.entity.options.level.description"));
+            register("x", (p_121413_) -> {
             p_121413_.setWorldLimited();
             int start = p_121413_.getReader().getCursor();
             while (p_121413_.getReader().canRead() && p_121413_.getReader().peek() != ',' && p_121413_.getReader().peek() != ']') p_121413_.getReader().skip();
@@ -131,17 +122,11 @@ public class EntitySelectorOptions {
             } catch (NumberFormatException exception) {
                p_121413_.getReader().setCursor(start);
                throw EntitySelectorParser.ERROR_EXPECTED_OPTION_VALUE.createWithContext(p_121413_.getReader(), "x");
-            }
-         }, (p_121411_) -> {
-            return p_121411_.getX() == null;
-         }, Component.translatable("argument.entity.options.x.description"));
-         register("y", (p_121409_) -> {
+            } }, (p_121411_) -> { return p_121411_.getX() == null; }, Component.translatable("argument.entity.options.x.description"));
+            register("y", (p_121409_) -> {
             p_121409_.setWorldLimited();
-            p_121409_.setY(p_121409_.getReader().readDouble());
-         }, (p_121407_) -> {
-            return p_121407_.getY() == null;
-         }, Component.translatable("argument.entity.options.y.description"));
-         register("z", (p_121405_) -> {
+            p_121409_.setY(p_121409_.getReader().readDouble()); }, (p_121407_) -> { return p_121407_.getY() == null; }, Component.translatable("argument.entity.options.y.description"));
+            register("z", (p_121405_) -> {
             p_121405_.setWorldLimited();
             int start = p_121405_.getReader().getCursor();
             while (p_121405_.getReader().canRead() && p_121405_.getReader().peek() != ',' && p_121405_.getReader().peek() != ']') p_121405_.getReader().skip();
@@ -151,39 +136,19 @@ public class EntitySelectorOptions {
             } catch (NumberFormatException exception) {
                p_121405_.getReader().setCursor(start);
                throw EntitySelectorParser.ERROR_EXPECTED_OPTION_VALUE.createWithContext(p_121405_.getReader(), "z");
-            }
-         }, (p_121403_) -> {
-            return p_121403_.getZ() == null;
-         }, Component.translatable("argument.entity.options.z.description"));
-         register("dx", (p_121401_) -> {
+            } }, (p_121403_) -> { return p_121403_.getZ() == null; }, Component.translatable("argument.entity.options.z.description"));
+            register("dx", (p_121401_) -> {
             p_121401_.setWorldLimited();
-            p_121401_.setDeltaX(p_121401_.getReader().readDouble());
-         }, (p_121399_) -> {
-            return p_121399_.getDeltaX() == null;
-         }, Component.translatable("argument.entity.options.dx.description"));
-         register("dy", (p_121397_) -> {
+            p_121401_.setDeltaX(p_121401_.getReader().readDouble()); }, (p_121399_) -> { return p_121399_.getDeltaX() == null; }, Component.translatable("argument.entity.options.dx.description"));
+            register("dy", (p_121397_) -> {
             p_121397_.setWorldLimited();
-            p_121397_.setDeltaY(p_121397_.getReader().readDouble());
-         }, (p_121395_) -> {
-            return p_121395_.getDeltaY() == null;
-         }, Component.translatable("argument.entity.options.dy.description"));
-         register("dz", (p_121562_) -> {
+            p_121397_.setDeltaY(p_121397_.getReader().readDouble()); }, (p_121395_) -> { return p_121395_.getDeltaY() == null; }, Component.translatable("argument.entity.options.dy.description"));
+            register("dz", (p_121562_) -> {
             p_121562_.setWorldLimited();
-            p_121562_.setDeltaZ(p_121562_.getReader().readDouble());
-         }, (p_121560_) -> {
-            return p_121560_.getDeltaZ() == null;
-         }, Component.translatable("argument.entity.options.dz.description"));
-         register("x_rotation", (p_121558_) -> {
-            p_121558_.setRotX(WrappedMinMaxBounds.fromReader(p_121558_.getReader(), true, Mth::wrapDegrees));
-         }, (p_121556_) -> {
-            return p_121556_.getRotX() == WrappedMinMaxBounds.ANY;
-         }, Component.translatable("argument.entity.options.x_rotation.description"));
-         register("y_rotation", (p_121554_) -> {
-            p_121554_.setRotY(WrappedMinMaxBounds.fromReader(p_121554_.getReader(), true, Mth::wrapDegrees));
-         }, (p_121552_) -> {
-            return p_121552_.getRotY() == WrappedMinMaxBounds.ANY;
-         }, Component.translatable("argument.entity.options.y_rotation.description"));
-         register("limit", (p_121550_) -> {
+            p_121562_.setDeltaZ(p_121562_.getReader().readDouble()); }, (p_121560_) -> { return p_121560_.getDeltaZ() == null; }, Component.translatable("argument.entity.options.dz.description"));
+            register("x_rotation", (p_121558_) -> { p_121558_.setRotX(WrappedMinMaxBounds.fromReader(p_121558_.getReader(), true, Mth::wrapDegrees)); }, (p_121556_) -> { return p_121556_.getRotX() == WrappedMinMaxBounds.ANY; }, Component.translatable("argument.entity.options.x_rotation.description"));
+            register("y_rotation", (p_121554_) -> { p_121554_.setRotY(WrappedMinMaxBounds.fromReader(p_121554_.getReader(), true, Mth::wrapDegrees)); }, (p_121552_) -> { return p_121552_.getRotY() == WrappedMinMaxBounds.ANY; }, Component.translatable("argument.entity.options.y_rotation.description"));
+            register("limit", (p_121550_) -> {
             int i = p_121550_.getReader().getCursor();
             int j = p_121550_.getReader().readInt();
             if (j < 1) {
@@ -192,11 +157,8 @@ public class EntitySelectorOptions {
             } else {
                p_121550_.setMaxResults(j);
                p_121550_.setLimited(true);
-            }
-         }, (p_121548_) -> {
-            return !p_121548_.isCurrentEntity() && !p_121548_.isLimited();
-         }, Component.translatable("argument.entity.options.limit.description"));
-         register("sort", (p_121546_) -> {
+            } }, (p_121548_) -> { return !p_121548_.isCurrentEntity() && !p_121548_.isLimited(); }, Component.translatable("argument.entity.options.limit.description"));
+            register("sort", (p_121546_) -> {
             int i = p_121546_.getReader().getCursor();
             String s = p_121546_.getReader().readUnquotedString();
             p_121546_.setSuggestions((p_175153_, p_175154_) -> {
@@ -222,11 +184,8 @@ public class EntitySelectorOptions {
             }
 
             p_121546_.setOrder(biconsumer);
-            p_121546_.setSorted(true);
-         }, (p_121544_) -> {
-            return !p_121544_.isCurrentEntity() && !p_121544_.isSorted();
-         }, Component.translatable("argument.entity.options.sort.description"));
-         register("gamemode", (p_121542_) -> {
+            p_121546_.setSorted(true); }, (p_121544_) -> { return !p_121544_.isCurrentEntity() && !p_121544_.isSorted(); }, Component.translatable("argument.entity.options.sort.description"));
+            register("gamemode", (p_121542_) -> {
             p_121542_.setSuggestions((p_175193_, p_175194_) -> {
                String s1 = p_175193_.getRemaining().toLowerCase(Locale.ROOT);
                boolean flag1 = !p_121542_.hasGamemodeNotEquals();
@@ -282,32 +241,25 @@ public class EntitySelectorOptions {
                   }
 
                }
-            }
-         }, (p_121540_) -> {
-            return !p_121540_.hasGamemodeEquals();
-         }, Component.translatable("argument.entity.options.gamemode.description"));
-         register("team", (p_121538_) -> {
-            boolean flag = p_121538_.shouldInvertValue();
-            String s = p_121538_.getReader().readUnquotedString();
-            p_121538_.addPredicate((p_175198_) -> {
-               if (!(p_175198_ instanceof LivingEntity)) {
-                  return false;
-               } else {
-                  Team team = p_175198_.getTeam();
-                  String s1 = team == null ? "" : team.getName();
-                  return s1.equals(s) != flag;
-               }
-            });
-            if (flag) {
-               p_121538_.setHasTeamNotEquals(true);
-            } else {
-               p_121538_.setHasTeamEquals(true);
-            }
-
-         }, (p_121536_) -> {
-            return !p_121536_.hasTeamEquals();
-         }, Component.translatable("argument.entity.options.team.description"));
-         register("type", (p_121534_) -> {
+            } }, (p_121540_) -> { return !p_121540_.hasGamemodeEquals(); }, Component.translatable("argument.entity.options.gamemode.description"));
+            register("team", (p_121538_) -> {
+                boolean flag = p_121538_.shouldInvertValue();
+                String s = p_121538_.getReader().readUnquotedString();
+                p_121538_.addPredicate((p_175198_) -> {
+                    if (!(p_175198_ instanceof LivingEntity)) {
+                        return false;
+                    } else {
+                        Team team = p_175198_.getTeam();
+                        String s1 = team == null ? "" : team.getName();
+                        return s1.equals(s) != flag;
+                    }
+                });
+                if (flag) {
+                    p_121538_.setHasTeamNotEquals(true);
+                } else {
+                    p_121538_.setHasTeamEquals(true);
+                } }, (p_121536_) -> { return !p_121536_.hasTeamEquals(); }, Component.translatable("argument.entity.options.team.description"));
+            register("type", (p_121534_) -> {
             p_121534_.setSuggestions((p_175161_, p_175162_) -> {
                SharedSuggestionProvider.suggestResource(Registry.ENTITY_TYPE.keySet(), p_175161_, String.valueOf('!'));
                SharedSuggestionProvider.suggestResource(Registry.ENTITY_TYPE.getTagNames().map(TagKey::location), p_175161_, "!#");
@@ -351,11 +303,8 @@ public class EntitySelectorOptions {
                   }
                }
 
-            }
-         }, (p_121532_) -> {
-            return !p_121532_.isTypeLimited();
-         }, Component.translatable("argument.entity.options.type.description"));
-         register("tag", (p_121530_) -> {
+            } }, (p_121532_) -> { return !p_121532_.isTypeLimited(); }, Component.translatable("argument.entity.options.type.description"));
+            register("tag", (p_121530_) -> {
             boolean flag = p_121530_.shouldInvertValue();
             String s = p_121530_.getReader().readUnquotedString();
             p_121530_.addPredicate((p_175166_) -> {
@@ -364,11 +313,8 @@ public class EntitySelectorOptions {
                } else {
                   return p_175166_.getTags().contains(s) != flag;
                }
-            });
-         }, (p_121528_) -> {
-            return true;
-         }, Component.translatable("argument.entity.options.tag.description"));
-         register("nbt", (p_121526_) -> {
+            }); }, (p_121528_) -> { return true; }, Component.translatable("argument.entity.options.tag.description"));
+            register("nbt", (p_121526_) -> {
             boolean flag = p_121526_.shouldInvertValue();
             CompoundTag compoundtag = (new TagParser(p_121526_.getReader())).readStruct();
             p_121526_.addPredicate((p_175176_) -> {
@@ -381,11 +327,8 @@ public class EntitySelectorOptions {
                }
 
                return NbtUtils.compareNbt(compoundtag, compoundtag1, true) != flag;
-            });
-         }, (p_121524_) -> {
-            return true;
-         }, Component.translatable("argument.entity.options.nbt.description"));
-         register("scores", (p_121522_) -> {
+            }); }, (p_121524_) -> { return true; }, Component.translatable("argument.entity.options.nbt.description"));
+            register("scores", (p_121522_) -> {
             StringReader stringreader = p_121522_.getReader();
             Map<String, MinMaxBounds.Ints> map = Maps.newHashMap();
             stringreader.expect('{');
@@ -432,11 +375,8 @@ public class EntitySelectorOptions {
                });
             }
 
-            p_121522_.setHasScores(true);
-         }, (p_121518_) -> {
-            return !p_121518_.hasScores();
-         }, Component.translatable("argument.entity.options.scores.description"));
-         register("advancements", (p_121514_) -> {
+            p_121522_.setHasScores(true); }, (p_121518_) -> { return !p_121518_.hasScores(); }, Component.translatable("argument.entity.options.scores.description"));
+            register("advancements", (p_121514_) -> {
             StringReader stringreader = p_121514_.getReader();
             Map<ResourceLocation, Predicate<AdvancementProgress>> map = Maps.newHashMap();
             stringreader.expect('{');
@@ -518,11 +458,8 @@ public class EntitySelectorOptions {
                p_121514_.setIncludesEntities(false);
             }
 
-            p_121514_.setHasAdvancements(true);
-         }, (p_121506_) -> {
-            return !p_121506_.hasAdvancements();
-         }, Component.translatable("argument.entity.options.advancements.description"));
-         register("predicate", (p_121487_) -> {
+            p_121514_.setHasAdvancements(true); }, (p_121506_) -> { return !p_121506_.hasAdvancements(); }, Component.translatable("argument.entity.options.advancements.description"));
+            register("predicate", (p_121487_) -> {
             boolean flag = p_121487_.shouldInvertValue();
             ResourceLocation resourcelocation = ResourceLocation.read(p_121487_.getReader());
             p_121487_.addPredicate((p_175180_) -> {
@@ -538,51 +475,47 @@ public class EntitySelectorOptions {
                      return flag ^ lootitemcondition.test(lootcontext);
                   }
                }
-            });
-         }, (p_121435_) -> {
-            return true;
-         }, Component.translatable("argument.entity.options.predicate.description"));
-      }
-   }
+            }); }, (p_121435_) -> { return true; }, Component.translatable("argument.entity.options.predicate.description"));
+        }
+    }
 
-   public static EntitySelectorOptions.Modifier get(EntitySelectorParser p_121448_, String p_121449_, int p_121450_) throws CommandSyntaxException {
-      EntitySelectorOptions.Option entityselectoroptions$option = OPTIONS.get(p_121449_);
-      if (entityselectoroptions$option != null) {
-         if (entityselectoroptions$option.predicate.test(p_121448_)) {
-            return entityselectoroptions$option.modifier;
-         } else {
-            throw ERROR_INAPPLICABLE_OPTION.createWithContext(p_121448_.getReader(), p_121449_);
-         }
-      } else {
-         p_121448_.getReader().setCursor(p_121450_);
-         throw ERROR_UNKNOWN_OPTION.createWithContext(p_121448_.getReader(), p_121449_);
-      }
-   }
+    public static EntitySelectorOptions.Modifier get(EntitySelectorParser p_121448_, String p_121449_, int p_121450_) throws CommandSyntaxException {
+        EntitySelectorOptions.Option entityselectoroptions$option = OPTIONS.get(p_121449_);
+        if (entityselectoroptions$option != null) {
+            if (entityselectoroptions$option.predicate.test(p_121448_)) {
+                return entityselectoroptions$option.modifier;
+            } else {
+                throw ERROR_INAPPLICABLE_OPTION.createWithContext(p_121448_.getReader(), p_121449_);
+            }
+        } else {
+            p_121448_.getReader().setCursor(p_121450_);
+            throw ERROR_UNKNOWN_OPTION.createWithContext(p_121448_.getReader(), p_121449_);
+        }
+    }
 
-   public static void suggestNames(EntitySelectorParser p_121441_, SuggestionsBuilder p_121442_) {
-      String s = p_121442_.getRemaining().toLowerCase(Locale.ROOT);
+    public static void suggestNames(EntitySelectorParser p_121441_, SuggestionsBuilder p_121442_) {
+        String s = p_121442_.getRemaining().toLowerCase(Locale.ROOT);
 
-      for(Map.Entry<String, EntitySelectorOptions.Option> entry : OPTIONS.entrySet()) {
-         if ((entry.getValue()).predicate.test(p_121441_) && entry.getKey().toLowerCase(Locale.ROOT).startsWith(s)) {
-            p_121442_.suggest((String)entry.getKey() + "=", (entry.getValue()).description);
-         }
-      }
+        for (Map.Entry<String, EntitySelectorOptions.Option> entry : OPTIONS.entrySet()) {
+            if ((entry.getValue()).predicate.test(p_121441_) && entry.getKey().toLowerCase(Locale.ROOT).startsWith(s)) {
+                p_121442_.suggest((String) entry.getKey() + "=", (entry.getValue()).description);
+            }
+        }
+    }
 
-   }
+    public interface Modifier {
+        void handle(EntitySelectorParser p_121564_) throws CommandSyntaxException;
+    }
 
-   public interface Modifier {
-      void handle(EntitySelectorParser p_121564_) throws CommandSyntaxException;
-   }
+    static class Option {
+        public final EntitySelectorOptions.Modifier modifier;
+        public final Predicate<EntitySelectorParser> predicate;
+        public final Component description;
 
-   static class Option {
-      public final EntitySelectorOptions.Modifier modifier;
-      public final Predicate<EntitySelectorParser> predicate;
-      public final Component description;
-
-      Option(EntitySelectorOptions.Modifier p_121569_, Predicate<EntitySelectorParser> p_121570_, Component p_121571_) {
-         this.modifier = p_121569_;
-         this.predicate = p_121570_;
-         this.description = p_121571_;
-      }
-   }
+        Option(EntitySelectorOptions.Modifier p_121569_, Predicate<EntitySelectorParser> p_121570_, Component p_121571_) {
+            this.modifier = p_121569_;
+            this.predicate = p_121570_;
+            this.description = p_121571_;
+        }
+    }
 }

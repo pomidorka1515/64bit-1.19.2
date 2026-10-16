@@ -11,12 +11,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class AllMissingGlyphProvider implements GlyphProvider {
-   @Nullable
-   public GlyphInfo getGlyph(int p_232553_) {
-      return SpecialGlyphs.MISSING;
-   }
+    @Nullable
+    public GlyphInfo getGlyph(int p_232553_) {
+        return SpecialGlyphs.MISSING;
+    }
 
-   public IntSet getSupportedGlyphs() {
-      return IntSets.EMPTY_SET;
-   }
+    public IntSet getSupportedGlyphs() {
+        return IntSets.EMPTY_SET;
+    }
 }

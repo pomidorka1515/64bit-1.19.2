@@ -7,5 +7,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface TooltipAccessor {
-   List<FormattedCharSequence> getTooltip();
+    List<FormattedCharSequence> getTooltip();
 }

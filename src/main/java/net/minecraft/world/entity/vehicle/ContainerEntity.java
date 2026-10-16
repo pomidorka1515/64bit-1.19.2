@@ -31,156 +31,151 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 
 public interface ContainerEntity extends Container, MenuProvider {
-   Vec3 position();
+    Vec3 position();
 
-   net.minecraft.world.phys.SectorVec3 sectorPosition();
+    net.minecraft.world.phys.SectorVec3 sectorPosition();
 
-   @Nullable
-   ResourceLocation getLootTable();
+    @Nullable
+    ResourceLocation getLootTable();
 
-   void setLootTable(@Nullable ResourceLocation p_219926_);
+    void setLootTable(@Nullable ResourceLocation p_219926_);
 
-   long getLootTableSeed();
+    long getLootTableSeed();
 
-   void setLootTableSeed(long p_219925_);
+    void setLootTableSeed(long p_219925_);
 
-   NonNullList<ItemStack> getItemStacks();
+    NonNullList<ItemStack> getItemStacks();
 
-   void clearItemStacks();
+    void clearItemStacks();
 
-   Level getLevel();
+    Level getLevel();
 
-   boolean isRemoved();
+    boolean isRemoved();
 
-   default boolean isEmpty() {
-      return this.isChestVehicleEmpty();
-   }
+    default boolean isEmpty() {
+        return this.isChestVehicleEmpty();
+    }
 
-   default void addChestVehicleSaveData(CompoundTag p_219944_) {
-      if (this.getLootTable() != null) {
-         p_219944_.putString("LootTable", this.getLootTable().toString());
-         if (this.getLootTableSeed() != 0L) {
-            p_219944_.putLong("LootTableSeed", this.getLootTableSeed());
-         }
-      } else {
-         ContainerHelper.saveAllItems(p_219944_, this.getItemStacks());
-      }
-
-   }
-
-   default void readChestVehicleSaveData(CompoundTag p_219935_) {
-      this.clearItemStacks();
-      if (p_219935_.contains("LootTable", 8)) {
-         this.setLootTable(new ResourceLocation(p_219935_.getString("LootTable")));
-         this.setLootTableSeed(p_219935_.getLong("LootTableSeed"));
-      } else {
-         ContainerHelper.loadAllItems(p_219935_, this.getItemStacks());
-      }
-
-   }
-
-   default void chestVehicleDestroyed(DamageSource p_219928_, Level p_219929_, Entity p_219930_) {
-      if (p_219929_.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-         Containers.dropContents(p_219929_, p_219930_, this);
-         if (!p_219929_.isClientSide) {
-            Entity entity = p_219928_.getDirectEntity();
-            if (entity != null && entity.getType() == EntityType.PLAYER) {
-               PiglinAi.angerNearbyPiglins((Player)entity, true);
+    default void addChestVehicleSaveData(CompoundTag p_219944_) {
+        if (this.getLootTable() != null) {
+            p_219944_.putString("LootTable", this.getLootTable().toString());
+            if (this.getLootTableSeed() != 0L) {
+                p_219944_.putLong("LootTableSeed", this.getLootTableSeed());
             }
-         }
+        } else {
+            ContainerHelper.saveAllItems(p_219944_, this.getItemStacks());
+        }
+    }
 
-      }
-   }
+    default void readChestVehicleSaveData(CompoundTag p_219935_) {
+        this.clearItemStacks();
+        if (p_219935_.contains("LootTable", 8)) {
+            this.setLootTable(new ResourceLocation(p_219935_.getString("LootTable")));
+            this.setLootTableSeed(p_219935_.getLong("LootTableSeed"));
+        } else {
+            ContainerHelper.loadAllItems(p_219935_, this.getItemStacks());
+        }
+    }
 
-   default InteractionResult interactWithChestVehicle(BiConsumer<GameEvent, Entity> p_219932_, Player p_219933_) {
-      p_219933_.openMenu(this);
-      if (!p_219933_.level.isClientSide) {
-         p_219932_.accept(GameEvent.CONTAINER_OPEN, p_219933_);
-         PiglinAi.angerNearbyPiglins(p_219933_, true);
-         return InteractionResult.CONSUME;
-      } else {
-         return InteractionResult.SUCCESS;
-      }
-   }
+    default void chestVehicleDestroyed(DamageSource p_219928_, Level p_219929_, Entity p_219930_) {
+        if (p_219929_.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+            Containers.dropContents(p_219929_, p_219930_, this);
+            if (!p_219929_.isClientSide) {
+                Entity entity = p_219928_.getDirectEntity();
+                if (entity != null && entity.getType() == EntityType.PLAYER) {
+                    PiglinAi.angerNearbyPiglins((Player) entity, true);
+                }
+            }
+        }
+    }
 
-   default void unpackChestVehicleLootTable(@Nullable Player p_219950_) {
-      MinecraftServer minecraftserver = this.getLevel().getServer();
-      if (this.getLootTable() != null && minecraftserver != null) {
-         LootTable loottable = minecraftserver.getLootTables().get(this.getLootTable());
-         if (p_219950_ != null) {
-            CriteriaTriggers.GENERATE_LOOT.trigger((ServerPlayer)p_219950_, this.getLootTable());
-         }
+    default InteractionResult interactWithChestVehicle(BiConsumer<GameEvent, Entity> p_219932_, Player p_219933_) {
+        p_219933_.openMenu(this);
+        if (!p_219933_.level.isClientSide) {
+            p_219932_.accept(GameEvent.CONTAINER_OPEN, p_219933_);
+            PiglinAi.angerNearbyPiglins(p_219933_, true);
+            return InteractionResult.CONSUME;
+        } else {
+            return InteractionResult.SUCCESS;
+        }
+    }
 
-         this.setLootTable((ResourceLocation)null);
-         LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel)this.getLevel())).withParameter(LootContextParams.ORIGIN, this.position()).withOptionalRandomSeed(this.getLootTableSeed());
-         if (p_219950_ != null) {
-            lootcontext$builder.withLuck(p_219950_.getLuck()).withParameter(LootContextParams.THIS_ENTITY, p_219950_);
-         }
+    default void unpackChestVehicleLootTable(@Nullable Player p_219950_) {
+        MinecraftServer minecraftserver = this.getLevel().getServer();
+        if (this.getLootTable() != null && minecraftserver != null) {
+            LootTable loottable = minecraftserver.getLootTables().get(this.getLootTable());
+            if (p_219950_ != null) {
+                CriteriaTriggers.GENERATE_LOOT.trigger((ServerPlayer) p_219950_, this.getLootTable());
+            }
 
-         loottable.fill(this, lootcontext$builder.create(LootContextParamSets.CHEST));
-      }
+            this.setLootTable((ResourceLocation) null);
+            LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.getLevel())).withParameter(LootContextParams.ORIGIN, this.position()).withOptionalRandomSeed(this.getLootTableSeed());
+            if (p_219950_ != null) {
+                lootcontext$builder.withLuck(p_219950_.getLuck()).withParameter(LootContextParams.THIS_ENTITY, p_219950_);
+            }
 
-   }
+            loottable.fill(this, lootcontext$builder.create(LootContextParamSets.CHEST));
+        }
+    }
 
-   default void clearChestVehicleContent() {
-      this.unpackChestVehicleLootTable((Player)null);
-      this.getItemStacks().clear();
-   }
+    default void clearChestVehicleContent() {
+        this.unpackChestVehicleLootTable((Player) null);
+        this.getItemStacks().clear();
+    }
 
-   default boolean isChestVehicleEmpty() {
-      for(ItemStack itemstack : this.getItemStacks()) {
-         if (!itemstack.isEmpty()) {
-            return false;
-         }
-      }
+    default boolean isChestVehicleEmpty() {
+        for (ItemStack itemstack : this.getItemStacks()) {
+            if (!itemstack.isEmpty()) {
+                return false;
+            }
+        }
 
-      return true;
-   }
+        return true;
+    }
 
-   default ItemStack removeChestVehicleItemNoUpdate(int p_219946_) {
-      this.unpackChestVehicleLootTable((Player)null);
-      ItemStack itemstack = this.getItemStacks().get(p_219946_);
-      if (itemstack.isEmpty()) {
-         return ItemStack.EMPTY;
-      } else {
-         this.getItemStacks().set(p_219946_, ItemStack.EMPTY);
-         return itemstack;
-      }
-   }
+    default ItemStack removeChestVehicleItemNoUpdate(int p_219946_) {
+        this.unpackChestVehicleLootTable((Player) null);
+        ItemStack itemstack = this.getItemStacks().get(p_219946_);
+        if (itemstack.isEmpty()) {
+            return ItemStack.EMPTY;
+        } else {
+            this.getItemStacks().set(p_219946_, ItemStack.EMPTY);
+            return itemstack;
+        }
+    }
 
-   default ItemStack getChestVehicleItem(int p_219948_) {
-      this.unpackChestVehicleLootTable((Player)null);
-      return this.getItemStacks().get(p_219948_);
-   }
+    default ItemStack getChestVehicleItem(int p_219948_) {
+        this.unpackChestVehicleLootTable((Player) null);
+        return this.getItemStacks().get(p_219948_);
+    }
 
-   default ItemStack removeChestVehicleItem(int p_219937_, int p_219938_) {
-      this.unpackChestVehicleLootTable((Player)null);
-      return ContainerHelper.removeItem(this.getItemStacks(), p_219937_, p_219938_);
-   }
+    default ItemStack removeChestVehicleItem(int p_219937_, int p_219938_) {
+        this.unpackChestVehicleLootTable((Player) null);
+        return ContainerHelper.removeItem(this.getItemStacks(), p_219937_, p_219938_);
+    }
 
-   default void setChestVehicleItem(int p_219941_, ItemStack p_219942_) {
-      this.unpackChestVehicleLootTable((Player)null);
-      this.getItemStacks().set(p_219941_, p_219942_);
-      if (!p_219942_.isEmpty() && p_219942_.getCount() > this.getMaxStackSize()) {
-         p_219942_.setCount(this.getMaxStackSize());
-      }
+    default void setChestVehicleItem(int p_219941_, ItemStack p_219942_) {
+        this.unpackChestVehicleLootTable((Player) null);
+        this.getItemStacks().set(p_219941_, p_219942_);
+        if (!p_219942_.isEmpty() && p_219942_.getCount() > this.getMaxStackSize()) {
+            p_219942_.setCount(this.getMaxStackSize());
+        }
+    }
 
-   }
+    default SlotAccess getChestVehicleSlot(final int p_219952_) {
+        return p_219952_ >= 0 && p_219952_ < this.getContainerSize() ? new SlotAccess() {
+            public ItemStack get() {
+                return ContainerEntity.this.getChestVehicleItem(p_219952_);
+            }
 
-   default SlotAccess getChestVehicleSlot(final int p_219952_) {
-      return p_219952_ >= 0 && p_219952_ < this.getContainerSize() ? new SlotAccess() {
-         public ItemStack get() {
-            return ContainerEntity.this.getChestVehicleItem(p_219952_);
-         }
+            public boolean set(ItemStack p_219964_) {
+                ContainerEntity.this.setChestVehicleItem(p_219952_, p_219964_);
+                return true;
+            }
+        } : SlotAccess.NULL;
+    }
 
-         public boolean set(ItemStack p_219964_) {
-            ContainerEntity.this.setChestVehicleItem(p_219952_, p_219964_);
-            return true;
-         }
-      } : SlotAccess.NULL;
-   }
-
-   default boolean isChestVehicleStillValid(Player p_219955_) {
-      return !this.isRemoved() && this.sectorPosition().relativeTo(p_219955_.sectorPosition()).lengthSqr() < 64.0D;
-   }
+    default boolean isChestVehicleStillValid(Player p_219955_) {
+        return !this.isRemoved() && this.sectorPosition().relativeTo(p_219955_.sectorPosition()).lengthSqr() < 64.0D;
+    }
 }

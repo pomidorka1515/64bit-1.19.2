@@ -11,63 +11,63 @@ import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.timers.TimerQueue;
 
 public interface ServerLevelData extends WritableLevelData {
-   String getLevelName();
+    String getLevelName();
 
-   void setThundering(boolean p_78623_);
+    void setThundering(boolean p_78623_);
 
-   int getRainTime();
+    int getRainTime();
 
-   void setRainTime(int p_78627_);
+    void setRainTime(int p_78627_);
 
-   void setThunderTime(int p_78626_);
+    void setThunderTime(int p_78626_);
 
-   int getThunderTime();
+    int getThunderTime();
 
-   default void fillCrashReportCategory(CrashReportCategory p_164976_, LevelHeightAccessor p_164977_) {
-      WritableLevelData.super.fillCrashReportCategory(p_164976_, p_164977_);
-      p_164976_.setDetail("Level name", this::getLevelName);
-      p_164976_.setDetail("Level game mode", () -> {
-         return String.format(Locale.ROOT, "Game mode: %s (ID %d). Hardcore: %b. Cheats: %b", this.getGameType().getName(), this.getGameType().getId(), this.isHardcore(), this.getAllowCommands());
-      });
-      p_164976_.setDetail("Level weather", () -> {
-         return String.format(Locale.ROOT, "Rain time: %d (now: %b), thunder time: %d (now: %b)", this.getRainTime(), this.isRaining(), this.getThunderTime(), this.isThundering());
-      });
-   }
+    default void fillCrashReportCategory(CrashReportCategory p_164976_, LevelHeightAccessor p_164977_) {
+        WritableLevelData.super.fillCrashReportCategory(p_164976_, p_164977_);
+        p_164976_.setDetail("Level name", this::getLevelName);
+        p_164976_.setDetail("Level game mode", () -> {
+            return String.format(Locale.ROOT, "Game mode: %s (ID %d). Hardcore: %b. Cheats: %b", this.getGameType().getName(), this.getGameType().getId(), this.isHardcore(), this.getAllowCommands());
+        });
+        p_164976_.setDetail("Level weather", () -> {
+            return String.format(Locale.ROOT, "Rain time: %d (now: %b), thunder time: %d (now: %b)", this.getRainTime(), this.isRaining(), this.getThunderTime(), this.isThundering());
+        });
+    }
 
-   int getClearWeatherTime();
+    int getClearWeatherTime();
 
-   void setClearWeatherTime(int p_78616_);
+    void setClearWeatherTime(int p_78616_);
 
-   int getWanderingTraderSpawnDelay();
+    int getWanderingTraderSpawnDelay();
 
-   void setWanderingTraderSpawnDelay(int p_78628_);
+    void setWanderingTraderSpawnDelay(int p_78628_);
 
-   int getWanderingTraderSpawnChance();
+    int getWanderingTraderSpawnChance();
 
-   void setWanderingTraderSpawnChance(int p_78629_);
+    void setWanderingTraderSpawnChance(int p_78629_);
 
-   @Nullable
-   UUID getWanderingTraderId();
+    @Nullable
+    UUID getWanderingTraderId();
 
-   void setWanderingTraderId(UUID p_78620_);
+    void setWanderingTraderId(UUID p_78620_);
 
-   GameType getGameType();
+    GameType getGameType();
 
-   void setWorldBorder(WorldBorder.Settings p_78619_);
+    void setWorldBorder(WorldBorder.Settings p_78619_);
 
-   WorldBorder.Settings getWorldBorder();
+    WorldBorder.Settings getWorldBorder();
 
-   boolean isInitialized();
+    boolean isInitialized();
 
-   void setInitialized(boolean p_78625_);
+    void setInitialized(boolean p_78625_);
 
-   boolean getAllowCommands();
+    boolean getAllowCommands();
 
-   void setGameType(GameType p_78618_);
+    void setGameType(GameType p_78618_);
 
-   TimerQueue<MinecraftServer> getScheduledEvents();
+    TimerQueue<MinecraftServer> getScheduledEvents();
 
-   void setGameTime(long p_78617_);
+    void setGameTime(long p_78617_);
 
-   void setDayTime(long p_78624_);
+    void setDayTime(long p_78624_);
 }

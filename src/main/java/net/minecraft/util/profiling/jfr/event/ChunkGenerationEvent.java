@@ -19,45 +19,45 @@ import net.minecraft.world.level.Level;
 @Enabled(false)
 @DontObfuscate
 public class ChunkGenerationEvent extends Event {
-   public static final String EVENT_NAME = "minecraft.ChunkGeneration";
-   public static final EventType TYPE = EventType.getEventType(ChunkGenerationEvent.class);
-   @Name("worldPosX")
-   @Label("First Block X World Position")
-   public final long worldPosX;
-   @Name("worldPosZ")
-   @Label("First Block Z World Position")
-   public final long worldPosZ;
-   @Name("chunkPosX")
-   @Label("Chunk X Position")
-   public final long chunkPosX;
-   @Name("chunkPosZ")
-   @Label("Chunk Z Position")
-   public final long chunkPosZ;
-   @Name("status")
-   @Label("Status")
-   public final String targetStatus;
-   @Name("level")
-   @Label("Level")
-   public final String level;
+    public static final String EVENT_NAME = "minecraft.ChunkGeneration";
+    public static final EventType TYPE = EventType.getEventType(ChunkGenerationEvent.class);
+    @Name("worldPosX")
+    @Label("First Block X World Position")
+    public final long worldPosX;
+    @Name("worldPosZ")
+    @Label("First Block Z World Position")
+    public final long worldPosZ;
+    @Name("chunkPosX")
+    @Label("Chunk X Position")
+    public final long chunkPosX;
+    @Name("chunkPosZ")
+    @Label("Chunk Z Position")
+    public final long chunkPosZ;
+    @Name("status")
+    @Label("Status")
+    public final String targetStatus;
+    @Name("level")
+    @Label("Level")
+    public final String level;
 
-   public ChunkGenerationEvent(ChunkPos p_195543_, ResourceKey<Level> p_195544_, String p_195545_) {
-      this.targetStatus = p_195545_;
-      this.level = p_195544_.toString();
-      this.chunkPosX = p_195543_.x;
-      this.chunkPosZ = p_195543_.z;
-      this.worldPosX = p_195543_.getMinBlockX();
-      this.worldPosZ = p_195543_.getMinBlockZ();
-   }
+    public ChunkGenerationEvent(ChunkPos p_195543_, ResourceKey<Level> p_195544_, String p_195545_) {
+        this.targetStatus = p_195545_;
+        this.level = p_195544_.toString();
+        this.chunkPosX = p_195543_.x;
+        this.chunkPosZ = p_195543_.z;
+        this.worldPosX = p_195543_.getMinBlockX();
+        this.worldPosZ = p_195543_.getMinBlockZ();
+    }
 
-   public static class Fields {
-      public static final String WORLD_POS_X = "worldPosX";
-      public static final String WORLD_POS_Z = "worldPosZ";
-      public static final String CHUNK_POS_X = "chunkPosX";
-      public static final String CHUNK_POS_Z = "chunkPosZ";
-      public static final String STATUS = "status";
-      public static final String LEVEL = "level";
+    public static class Fields {
+        public static final String WORLD_POS_X = "worldPosX";
+        public static final String WORLD_POS_Z = "worldPosZ";
+        public static final String CHUNK_POS_X = "chunkPosX";
+        public static final String CHUNK_POS_Z = "chunkPosZ";
+        public static final String STATUS = "status";
+        public static final String LEVEL = "level";
 
-      private Fields() {
-      }
-   }
+        private Fields() {
+        }
+    }
 }

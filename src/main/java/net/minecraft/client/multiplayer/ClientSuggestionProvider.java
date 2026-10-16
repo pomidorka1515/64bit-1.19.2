@@ -33,136 +33,135 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientSuggestionProvider implements SharedSuggestionProvider {
-   private final ClientPacketListener connection;
-   private final Minecraft minecraft;
-   private int pendingSuggestionsId = -1;
-   @Nullable
-   private CompletableFuture<Suggestions> pendingSuggestionsFuture;
-   private final Set<String> customCompletionSuggestions = new HashSet<>();
+    private final ClientPacketListener connection;
+    private final Minecraft minecraft;
+    private int pendingSuggestionsId = -1;
+    @Nullable
+    private CompletableFuture<Suggestions> pendingSuggestionsFuture;
+    private final Set<String> customCompletionSuggestions = new HashSet<>();
 
-   public ClientSuggestionProvider(ClientPacketListener p_105165_, Minecraft p_105166_) {
-      this.connection = p_105165_;
-      this.minecraft = p_105166_;
-   }
+    public ClientSuggestionProvider(ClientPacketListener p_105165_, Minecraft p_105166_) {
+        this.connection = p_105165_;
+        this.minecraft = p_105166_;
+    }
 
-   public Collection<String> getOnlinePlayerNames() {
-      List<String> list = Lists.newArrayList();
+    public Collection<String> getOnlinePlayerNames() {
+        List<String> list = Lists.newArrayList();
 
-      for(PlayerInfo playerinfo : this.connection.getOnlinePlayers()) {
-         list.add(playerinfo.getProfile().getName());
-      }
+        for (PlayerInfo playerinfo : this.connection.getOnlinePlayers()) {
+            list.add(playerinfo.getProfile().getName());
+        }
 
-      return list;
-   }
+        return list;
+    }
 
-   public Collection<String> getCustomTabSugggestions() {
-      if (this.customCompletionSuggestions.isEmpty()) {
-         return this.getOnlinePlayerNames();
-      } else {
-         Set<String> set = new HashSet<>(this.getOnlinePlayerNames());
-         set.addAll(this.customCompletionSuggestions);
-         return set;
-      }
-   }
+    public Collection<String> getCustomTabSugggestions() {
+        if (this.customCompletionSuggestions.isEmpty()) {
+            return this.getOnlinePlayerNames();
+        } else {
+            Set<String> set = new HashSet<>(this.getOnlinePlayerNames());
+            set.addAll(this.customCompletionSuggestions);
+            return set;
+        }
+    }
 
-   public Collection<String> getSelectedEntities() {
-      return (Collection<String>)(this.minecraft.hitResult != null && this.minecraft.hitResult.getType() == HitResult.Type.ENTITY ? Collections.singleton(((EntityHitResult)this.minecraft.hitResult).getEntity().getStringUUID()) : Collections.emptyList());
-   }
+    public Collection<String> getSelectedEntities() {
+        return (Collection<String>) (this.minecraft.hitResult != null && this.minecraft.hitResult.getType() == HitResult.Type.ENTITY ? Collections.singleton(((EntityHitResult) this.minecraft.hitResult).getEntity().getStringUUID()) : Collections.emptyList());
+    }
 
-   public Collection<String> getAllTeams() {
-      return this.connection.getLevel().getScoreboard().getTeamNames();
-   }
+    public Collection<String> getAllTeams() {
+        return this.connection.getLevel().getScoreboard().getTeamNames();
+    }
 
-   public Collection<ResourceLocation> getAvailableSoundEvents() {
-      return this.minecraft.getSoundManager().getAvailableSounds();
-   }
+    public Collection<ResourceLocation> getAvailableSoundEvents() {
+        return this.minecraft.getSoundManager().getAvailableSounds();
+    }
 
-   public Stream<ResourceLocation> getRecipeNames() {
-      return this.connection.getRecipeManager().getRecipeIds();
-   }
+    public Stream<ResourceLocation> getRecipeNames() {
+        return this.connection.getRecipeManager().getRecipeIds();
+    }
 
-   public boolean hasPermission(int p_105178_) {
-      LocalPlayer localplayer = this.minecraft.player;
-      return localplayer != null ? localplayer.hasPermissions(p_105178_) : p_105178_ == 0;
-   }
+    public boolean hasPermission(int p_105178_) {
+        LocalPlayer localplayer = this.minecraft.player;
+        return localplayer != null ? localplayer.hasPermissions(p_105178_) : p_105178_ == 0;
+    }
 
-   public CompletableFuture<Suggestions> suggestRegistryElements(ResourceKey<? extends Registry<?>> p_212429_, SharedSuggestionProvider.ElementSuggestionType p_212430_, SuggestionsBuilder p_212431_, CommandContext<?> p_212432_) {
-      return this.registryAccess().registry(p_212429_).map((p_212427_) -> {
-         this.suggestRegistryElements(p_212427_, p_212430_, p_212431_);
-         return p_212431_.buildFuture();
-      }).orElseGet(() -> {
-         return this.customSuggestion(p_212432_);
-      });
-   }
+    public CompletableFuture<Suggestions> suggestRegistryElements(ResourceKey<? extends Registry<?>> p_212429_, SharedSuggestionProvider.ElementSuggestionType p_212430_, SuggestionsBuilder p_212431_, CommandContext<?> p_212432_) {
+        return this.registryAccess().registry(p_212429_).map((p_212427_) -> {
+                                                            this.suggestRegistryElements(p_212427_, p_212430_, p_212431_);
+                                                            return p_212431_.buildFuture();
+                                                        })
+                .orElseGet(() -> {
+                    return this.customSuggestion(p_212432_);
+                });
+    }
 
-   public CompletableFuture<Suggestions> customSuggestion(CommandContext<?> p_212423_) {
-      if (this.pendingSuggestionsFuture != null) {
-         this.pendingSuggestionsFuture.cancel(false);
-      }
+    public CompletableFuture<Suggestions> customSuggestion(CommandContext<?> p_212423_) {
+        if (this.pendingSuggestionsFuture != null) {
+            this.pendingSuggestionsFuture.cancel(false);
+        }
 
-      this.pendingSuggestionsFuture = new CompletableFuture<>();
-      int i = ++this.pendingSuggestionsId;
-      this.connection.send(new ServerboundCommandSuggestionPacket(i, p_212423_.getInput()));
-      return this.pendingSuggestionsFuture;
-   }
+        this.pendingSuggestionsFuture = new CompletableFuture<>();
+        int i = ++this.pendingSuggestionsId;
+        this.connection.send(new ServerboundCommandSuggestionPacket(i, p_212423_.getInput()));
+        return this.pendingSuggestionsFuture;
+    }
 
-   private static String prettyPrint(double p_105168_) {
-      return String.format(Locale.ROOT, "%.2f", p_105168_);
-   }
+    private static String prettyPrint(double p_105168_) {
+        return String.format(Locale.ROOT, "%.2f", p_105168_);
+    }
 
-   private static String prettyPrint(int p_105170_) {
-      return Integer.toString(p_105170_);
-   }
+    private static String prettyPrint(int p_105170_) {
+        return Integer.toString(p_105170_);
+    }
 
-   public Collection<SharedSuggestionProvider.TextCoordinates> getRelevantCoordinates() {
-      HitResult hitresult = this.minecraft.hitResult;
-      if (hitresult != null && hitresult.getType() == HitResult.Type.BLOCK) {
-         BlockPos blockpos = ((BlockHitResult)hitresult).getBlockPos();
-         return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(prettyPrint(blockpos.getX()), prettyPrint(blockpos.getY()), prettyPrint(blockpos.getZ())));
-      } else {
-         return SharedSuggestionProvider.super.getRelevantCoordinates();
-      }
-   }
+    public Collection<SharedSuggestionProvider.TextCoordinates> getRelevantCoordinates() {
+        HitResult hitresult = this.minecraft.hitResult;
+        if (hitresult != null && hitresult.getType() == HitResult.Type.BLOCK) {
+            BlockPos blockpos = ((BlockHitResult) hitresult).getBlockPos();
+            return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(prettyPrint(blockpos.getX()), prettyPrint(blockpos.getY()), prettyPrint(blockpos.getZ())));
+        } else {
+            return SharedSuggestionProvider.super.getRelevantCoordinates();
+        }
+    }
 
-   public Collection<SharedSuggestionProvider.TextCoordinates> getAbsoluteCoordinates() {
-      HitResult hitresult = this.minecraft.hitResult;
-      if (hitresult != null && hitresult.getType() == HitResult.Type.BLOCK) {
-         Vec3 vec3 = hitresult.getLocation();
-         return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(prettyPrint(vec3.x), prettyPrint(vec3.y), prettyPrint(vec3.z)));
-      } else {
-         return SharedSuggestionProvider.super.getAbsoluteCoordinates();
-      }
-   }
+    public Collection<SharedSuggestionProvider.TextCoordinates> getAbsoluteCoordinates() {
+        HitResult hitresult = this.minecraft.hitResult;
+        if (hitresult != null && hitresult.getType() == HitResult.Type.BLOCK) {
+            Vec3 vec3 = hitresult.getLocation();
+            return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(prettyPrint(vec3.x), prettyPrint(vec3.y), prettyPrint(vec3.z)));
+        } else {
+            return SharedSuggestionProvider.super.getAbsoluteCoordinates();
+        }
+    }
 
-   public Set<ResourceKey<Level>> levels() {
-      return this.connection.levels();
-   }
+    public Set<ResourceKey<Level>> levels() {
+        return this.connection.levels();
+    }
 
-   public RegistryAccess registryAccess() {
-      return this.connection.registryAccess();
-   }
+    public RegistryAccess registryAccess() {
+        return this.connection.registryAccess();
+    }
 
-   public void completeCustomSuggestions(int p_105172_, Suggestions p_105173_) {
-      if (p_105172_ == this.pendingSuggestionsId) {
-         this.pendingSuggestionsFuture.complete(p_105173_);
-         this.pendingSuggestionsFuture = null;
-         this.pendingSuggestionsId = -1;
-      }
+    public void completeCustomSuggestions(int p_105172_, Suggestions p_105173_) {
+        if (p_105172_ == this.pendingSuggestionsId) {
+            this.pendingSuggestionsFuture.complete(p_105173_);
+            this.pendingSuggestionsFuture = null;
+            this.pendingSuggestionsId = -1;
+        }
+    }
 
-   }
-
-   public void modifyCustomCompletions(ClientboundCustomChatCompletionsPacket.Action p_240810_, List<String> p_240765_) {
-      switch (p_240810_) {
-         case ADD:
-            this.customCompletionSuggestions.addAll(p_240765_);
-            break;
-         case REMOVE:
-            p_240765_.forEach(this.customCompletionSuggestions::remove);
-            break;
-         case SET:
-            this.customCompletionSuggestions.clear();
-            this.customCompletionSuggestions.addAll(p_240765_);
-      }
-
-   }
+    public void modifyCustomCompletions(ClientboundCustomChatCompletionsPacket.Action p_240810_, List<String> p_240765_) {
+        switch (p_240810_) {
+            case ADD:
+                this.customCompletionSuggestions.addAll(p_240765_);
+                break;
+            case REMOVE:
+                p_240765_.forEach(this.customCompletionSuggestions::remove);
+                break;
+            case SET:
+                this.customCompletionSuggestions.clear();
+                this.customCompletionSuggestions.addAll(p_240765_);
+        }
+    }
 }

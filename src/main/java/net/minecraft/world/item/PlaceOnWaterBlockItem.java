@@ -11,18 +11,18 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class PlaceOnWaterBlockItem extends BlockItem {
-   public PlaceOnWaterBlockItem(Block p_220226_, Item.Properties p_220227_) {
-      super(p_220226_, p_220227_);
-   }
+    public PlaceOnWaterBlockItem(Block p_220226_, Item.Properties p_220227_) {
+        super(p_220226_, p_220227_);
+    }
 
-   public InteractionResult useOn(UseOnContext p_220229_) {
-      return InteractionResult.PASS;
-   }
+    public InteractionResult useOn(UseOnContext p_220229_) {
+        return InteractionResult.PASS;
+    }
 
-   public InteractionResultHolder<ItemStack> use(Level p_220231_, Player p_220232_, InteractionHand p_220233_) {
-      BlockHitResult blockhitresult = getPlayerPOVHitResult(p_220231_, p_220232_, ClipContext.Fluid.SOURCE_ONLY);
-      BlockHitResult blockhitresult1 = blockhitresult.withPosition(blockhitresult.getBlockPos().above());
-      InteractionResult interactionresult = super.useOn(new UseOnContext(p_220232_, p_220233_, blockhitresult1));
-      return new InteractionResultHolder<>(interactionresult, p_220232_.getItemInHand(p_220233_));
-   }
+    public InteractionResultHolder<ItemStack> use(Level p_220231_, Player p_220232_, InteractionHand p_220233_) {
+        BlockHitResult blockhitresult = getPlayerPOVHitResult(p_220231_, p_220232_, ClipContext.Fluid.SOURCE_ONLY);
+        BlockHitResult blockhitresult1 = blockhitresult.withPosition(blockhitresult.getBlockPos().above());
+        InteractionResult interactionresult = super.useOn(new UseOnContext(p_220232_, p_220233_, blockhitresult1));
+        return new InteractionResultHolder<>(interactionresult, p_220232_.getItemInHand(p_220233_));
+    }
 }

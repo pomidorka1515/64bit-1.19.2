@@ -7,9 +7,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class MeshDefinition {
-   private PartDefinition root = new PartDefinition(ImmutableList.of(), PartPose.ZERO);
+    private PartDefinition root = new PartDefinition(ImmutableList.of(), PartPose.ZERO);
 
-   public PartDefinition getRoot() {
-      return this.root;
-   }
+    public PartDefinition getRoot() {
+        return this.root;
+    }
 }

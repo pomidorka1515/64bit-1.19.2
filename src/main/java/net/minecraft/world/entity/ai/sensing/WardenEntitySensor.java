@@ -14,34 +14,30 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.monster.warden.Warden;
 
 public class WardenEntitySensor extends NearestLivingEntitySensor<Warden> {
-   public Set<MemoryModuleType<?>> requires() {
-      return ImmutableSet.copyOf(Iterables.concat(super.requires(), List.of(MemoryModuleType.NEAREST_ATTACKABLE)));
-   }
+    public Set<MemoryModuleType<?>> requires() {
+        return ImmutableSet.copyOf(Iterables.concat(super.requires(), List.of(MemoryModuleType.NEAREST_ATTACKABLE)));
+    }
 
-   protected void doTick(ServerLevel p_217833_, Warden p_217834_) {
-      super.doTick(p_217833_, p_217834_);
-      getClosest(p_217834_, (p_217847_) -> {
-         return p_217847_.getType() == EntityType.PLAYER;
-      }).or(() -> {
-         return getClosest(p_217834_, (p_217836_) -> {
-            return p_217836_.getType() != EntityType.PLAYER;
-         });
-      }).ifPresentOrElse((p_217841_) -> {
-         p_217834_.getBrain().setMemory(MemoryModuleType.NEAREST_ATTACKABLE, p_217841_);
-      }, () -> {
-         p_217834_.getBrain().eraseMemory(MemoryModuleType.NEAREST_ATTACKABLE);
-      });
-   }
+    protected void doTick(ServerLevel p_217833_, Warden p_217834_) {
+        super.doTick(p_217833_, p_217834_);
+        getClosest(p_217834_, (p_217847_) -> {
+            return p_217847_.getType() == EntityType.PLAYER;
+        }).or(() -> {
+              return getClosest(p_217834_, (p_217836_) -> {
+                  return p_217836_.getType() != EntityType.PLAYER;
+              });
+          }).ifPresentOrElse((p_217841_) -> { p_217834_.getBrain().setMemory(MemoryModuleType.NEAREST_ATTACKABLE, p_217841_); }, () -> { p_217834_.getBrain().eraseMemory(MemoryModuleType.NEAREST_ATTACKABLE); });
+    }
 
-   private static Optional<LivingEntity> getClosest(Warden p_217843_, Predicate<LivingEntity> p_217844_) {
-      return p_217843_.getBrain().getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES).stream().flatMap(Collection::stream).filter(p_217843_::canTargetEntity).filter(p_217844_).findFirst();
-   }
+    private static Optional<LivingEntity> getClosest(Warden p_217843_, Predicate<LivingEntity> p_217844_) {
+        return p_217843_.getBrain().getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES).stream().flatMap(Collection::stream).filter(p_217843_::canTargetEntity).filter(p_217844_).findFirst();
+    }
 
-   protected int radiusXZ() {
-      return 24;
-   }
+    protected int radiusXZ() {
+        return 24;
+    }
 
-   protected int radiusY() {
-      return 24;
-   }
+    protected int radiusY() {
+        return 24;
+    }
 }

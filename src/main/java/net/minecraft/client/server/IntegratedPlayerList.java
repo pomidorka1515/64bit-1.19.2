@@ -13,30 +13,30 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class IntegratedPlayerList extends PlayerList {
-   private CompoundTag playerData;
+    private CompoundTag playerData;
 
-   public IntegratedPlayerList(IntegratedServer p_205649_, RegistryAccess.Frozen p_205650_, PlayerDataStorage p_205651_) {
-      super(p_205649_, p_205650_, p_205651_, 8);
-      this.setViewDistance(10);
-   }
+    public IntegratedPlayerList(IntegratedServer p_205649_, RegistryAccess.Frozen p_205650_, PlayerDataStorage p_205651_) {
+        super(p_205649_, p_205650_, p_205651_, 8);
+        this.setViewDistance(10);
+    }
 
-   protected void save(ServerPlayer p_120011_) {
-      if (this.getServer().isSingleplayerOwner(p_120011_.getGameProfile())) {
-         this.playerData = p_120011_.saveWithoutId(new CompoundTag());
-      }
+    protected void save(ServerPlayer p_120011_) {
+        if (this.getServer().isSingleplayerOwner(p_120011_.getGameProfile())) {
+            this.playerData = p_120011_.saveWithoutId(new CompoundTag());
+        }
 
-      super.save(p_120011_);
-   }
+        super.save(p_120011_);
+    }
 
-   public Component canPlayerLogin(SocketAddress p_120007_, GameProfile p_120008_) {
-      return (Component)(this.getServer().isSingleplayerOwner(p_120008_) && this.getPlayerByName(p_120008_.getName()) != null ? Component.translatable("multiplayer.disconnect.name_taken") : super.canPlayerLogin(p_120007_, p_120008_));
-   }
+    public Component canPlayerLogin(SocketAddress p_120007_, GameProfile p_120008_) {
+        return (Component) (this.getServer().isSingleplayerOwner(p_120008_) && this.getPlayerByName(p_120008_.getName()) != null ? Component.translatable("multiplayer.disconnect.name_taken") : super.canPlayerLogin(p_120007_, p_120008_));
+    }
 
-   public IntegratedServer getServer() {
-      return (IntegratedServer)super.getServer();
-   }
+    public IntegratedServer getServer() {
+        return (IntegratedServer) super.getServer();
+    }
 
-   public CompoundTag getSingleplayerData() {
-      return this.playerData;
-   }
+    public CompoundTag getSingleplayerData() {
+        return this.playerData;
+    }
 }

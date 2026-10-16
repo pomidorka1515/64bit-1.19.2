@@ -12,23 +12,23 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class CreeperPowerLayer extends EnergySwirlLayer<Creeper, CreeperModel<Creeper>> {
-   private static final ResourceLocation POWER_LOCATION = new ResourceLocation("textures/entity/creeper/creeper_armor.png");
-   private final CreeperModel<Creeper> model;
+    private static final ResourceLocation POWER_LOCATION = new ResourceLocation("textures/entity/creeper/creeper_armor.png");
+    private final CreeperModel<Creeper> model;
 
-   public CreeperPowerLayer(RenderLayerParent<Creeper, CreeperModel<Creeper>> p_174471_, EntityModelSet p_174472_) {
-      super(p_174471_);
-      this.model = new CreeperModel<>(p_174472_.bakeLayer(ModelLayers.CREEPER_ARMOR));
-   }
+    public CreeperPowerLayer(RenderLayerParent<Creeper, CreeperModel<Creeper>> p_174471_, EntityModelSet p_174472_) {
+        super(p_174471_);
+        this.model = new CreeperModel<>(p_174472_.bakeLayer(ModelLayers.CREEPER_ARMOR));
+    }
 
-   protected float xOffset(float p_116683_) {
-      return p_116683_ * 0.01F;
-   }
+    protected float xOffset(float p_116683_) {
+        return p_116683_ * 0.01F;
+    }
 
-   protected ResourceLocation getTextureLocation() {
-      return POWER_LOCATION;
-   }
+    protected ResourceLocation getTextureLocation() {
+        return POWER_LOCATION;
+    }
 
-   protected EntityModel<Creeper> model() {
-      return this.model;
-   }
+    protected EntityModel<Creeper> model() {
+        return this.model;
+    }
 }

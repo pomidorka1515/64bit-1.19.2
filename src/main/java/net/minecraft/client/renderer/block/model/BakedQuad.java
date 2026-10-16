@@ -7,41 +7,41 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class BakedQuad {
-   protected final int[] vertices;
-   protected final int tintIndex;
-   protected final Direction direction;
-   protected final TextureAtlasSprite sprite;
-   private final boolean shade;
+    protected final int[] vertices;
+    protected final int tintIndex;
+    protected final Direction direction;
+    protected final TextureAtlasSprite sprite;
+    private final boolean shade;
 
-   public BakedQuad(int[] p_111298_, int p_111299_, Direction p_111300_, TextureAtlasSprite p_111301_, boolean p_111302_) {
-      this.vertices = p_111298_;
-      this.tintIndex = p_111299_;
-      this.direction = p_111300_;
-      this.sprite = p_111301_;
-      this.shade = p_111302_;
-   }
+    public BakedQuad(int[] p_111298_, int p_111299_, Direction p_111300_, TextureAtlasSprite p_111301_, boolean p_111302_) {
+        this.vertices = p_111298_;
+        this.tintIndex = p_111299_;
+        this.direction = p_111300_;
+        this.sprite = p_111301_;
+        this.shade = p_111302_;
+    }
 
-   public TextureAtlasSprite getSprite() {
-      return this.sprite;
-   }
+    public TextureAtlasSprite getSprite() {
+        return this.sprite;
+    }
 
-   public int[] getVertices() {
-      return this.vertices;
-   }
+    public int[] getVertices() {
+        return this.vertices;
+    }
 
-   public boolean isTinted() {
-      return this.tintIndex != -1;
-   }
+    public boolean isTinted() {
+        return this.tintIndex != -1;
+    }
 
-   public int getTintIndex() {
-      return this.tintIndex;
-   }
+    public int getTintIndex() {
+        return this.tintIndex;
+    }
 
-   public Direction getDirection() {
-      return this.direction;
-   }
+    public Direction getDirection() {
+        return this.direction;
+    }
 
-   public boolean isShade() {
-      return this.shade;
-   }
+    public boolean isShade() {
+        return this.shade;
+    }
 }

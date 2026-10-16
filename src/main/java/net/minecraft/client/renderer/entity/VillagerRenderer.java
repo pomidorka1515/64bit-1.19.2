@@ -13,28 +13,28 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class VillagerRenderer extends MobRenderer<Villager, VillagerModel<Villager>> {
-   private static final ResourceLocation VILLAGER_BASE_SKIN = new ResourceLocation("textures/entity/villager/villager.png");
+    private static final ResourceLocation VILLAGER_BASE_SKIN = new ResourceLocation("textures/entity/villager/villager.png");
 
-   public VillagerRenderer(EntityRendererProvider.Context p_174437_) {
-      super(p_174437_, new VillagerModel<>(p_174437_.bakeLayer(ModelLayers.VILLAGER)), 0.5F);
-      this.addLayer(new CustomHeadLayer<>(this, p_174437_.getModelSet(), p_174437_.getItemInHandRenderer()));
-      this.addLayer(new VillagerProfessionLayer<>(this, p_174437_.getResourceManager(), "villager"));
-      this.addLayer(new CrossedArmsItemLayer<>(this, p_174437_.getItemInHandRenderer()));
-   }
+    public VillagerRenderer(EntityRendererProvider.Context p_174437_) {
+        super(p_174437_, new VillagerModel<>(p_174437_.bakeLayer(ModelLayers.VILLAGER)), 0.5F);
+        this.addLayer(new CustomHeadLayer<>(this, p_174437_.getModelSet(), p_174437_.getItemInHandRenderer()));
+        this.addLayer(new VillagerProfessionLayer<>(this, p_174437_.getResourceManager(), "villager"));
+        this.addLayer(new CrossedArmsItemLayer<>(this, p_174437_.getItemInHandRenderer()));
+    }
 
-   public ResourceLocation getTextureLocation(Villager p_116312_) {
-      return VILLAGER_BASE_SKIN;
-   }
+    public ResourceLocation getTextureLocation(Villager p_116312_) {
+        return VILLAGER_BASE_SKIN;
+    }
 
-   protected void scale(Villager p_116314_, PoseStack p_116315_, float p_116316_) {
-      float f = 0.9375F;
-      if (p_116314_.isBaby()) {
-         f *= 0.5F;
-         this.shadowRadius = 0.25F;
-      } else {
-         this.shadowRadius = 0.5F;
-      }
+    protected void scale(Villager p_116314_, PoseStack p_116315_, float p_116316_) {
+        float f = 0.9375F;
+        if (p_116314_.isBaby()) {
+            f *= 0.5F;
+            this.shadowRadius = 0.25F;
+        } else {
+            this.shadowRadius = 0.5F;
+        }
 
-      p_116315_.scale(f, f, f);
-   }
+        p_116315_.scale(f, f, f);
+    }
 }

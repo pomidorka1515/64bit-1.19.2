@@ -7,28 +7,28 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface LoggedChatMessageLink extends LoggedChatEvent {
-   static LoggedChatMessageLink.Header header(SignedMessageHeader p_242461_, MessageSignature p_242167_, byte[] p_242320_) {
-      return new LoggedChatMessageLink.Header(p_242461_, p_242167_, p_242320_);
-   }
+    static LoggedChatMessageLink.Header header(SignedMessageHeader p_242461_, MessageSignature p_242167_, byte[] p_242320_) {
+        return new LoggedChatMessageLink.Header(p_242461_, p_242167_, p_242320_);
+    }
 
-   SignedMessageHeader header();
+    SignedMessageHeader header();
 
-   MessageSignature headerSignature();
+    MessageSignature headerSignature();
 
-   byte[] bodyDigest();
+    byte[] bodyDigest();
 
-   @OnlyIn(Dist.CLIENT)
-   public static record Header(SignedMessageHeader header, MessageSignature headerSignature, byte[] bodyDigest) implements LoggedChatMessageLink {
-      public SignedMessageHeader header() {
-         return this.header;
-      }
+    @OnlyIn(Dist.CLIENT)
+    public static record Header(SignedMessageHeader header, MessageSignature headerSignature, byte[] bodyDigest) implements LoggedChatMessageLink {
+        public SignedMessageHeader header() {
+            return this.header;
+        }
 
-      public MessageSignature headerSignature() {
-         return this.headerSignature;
-      }
+        public MessageSignature headerSignature() {
+            return this.headerSignature;
+        }
 
-      public byte[] bodyDigest() {
-         return this.bodyDigest;
-      }
-   }
+        public byte[] bodyDigest() {
+            return this.bodyDigest;
+        }
+    }
 }

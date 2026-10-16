@@ -21,58 +21,58 @@ import net.minecraft.world.level.levelgen.structure.pieces.PiecesContainer;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
 
 public class OceanMonumentStructure extends Structure {
-   public static final Codec<OceanMonumentStructure> CODEC = simpleCodec(OceanMonumentStructure::new);
+    public static final Codec<OceanMonumentStructure> CODEC = simpleCodec(OceanMonumentStructure::new);
 
-   public OceanMonumentStructure(Structure.StructureSettings p_228955_) {
-      super(p_228955_);
-   }
+    public OceanMonumentStructure(Structure.StructureSettings p_228955_) {
+        super(p_228955_);
+    }
 
-   public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_228964_) {
-	  long i = p_228964_.chunkPos().getBlockX(9);
-	  long j = p_228964_.chunkPos().getBlockZ(9);
+    public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_228964_) {
+        long i = p_228964_.chunkPos().getBlockX(9);
+        long j = p_228964_.chunkPos().getBlockZ(9);
 
-      for(Holder<Biome> holder : p_228964_.biomeSource().getBiomesWithin(i, p_228964_.chunkGenerator().getSeaLevel(), j, 29, p_228964_.randomState().sampler())) {
-         if (!holder.is(BiomeTags.REQUIRED_OCEAN_MONUMENT_SURROUNDING)) {
-            return Optional.empty();
-         }
-      }
+        for (Holder<Biome> holder : p_228964_.biomeSource().getBiomesWithin(i, p_228964_.chunkGenerator().getSeaLevel(), j, 29, p_228964_.randomState().sampler())) {
+            if (!holder.is(BiomeTags.REQUIRED_OCEAN_MONUMENT_SURROUNDING)) {
+                return Optional.empty();
+            }
+        }
 
-      return onTopOfChunkCenter(p_228964_, Heightmap.Types.OCEAN_FLOOR_WG, (p_228967_) -> {
-         generatePieces(p_228967_, p_228964_);
-      });
-   }
+        return onTopOfChunkCenter(p_228964_, Heightmap.Types.OCEAN_FLOOR_WG, (p_228967_) -> {
+            generatePieces(p_228967_, p_228964_);
+        });
+    }
 
-   private static StructurePiece createTopPiece(ChunkPos p_228961_, WorldgenRandom p_228962_) {
-      long i = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockX(), 29L);
-      long j = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockZ(), 29L);
-      Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_228962_);
-      return new OceanMonumentPieces.MonumentBuilding(p_228962_, i, j, direction);
-   }
+    private static StructurePiece createTopPiece(ChunkPos p_228961_, WorldgenRandom p_228962_) {
+        long i = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockX(), 29L);
+        long j = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockZ(), 29L);
+        Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_228962_);
+        return new OceanMonumentPieces.MonumentBuilding(p_228962_, i, j, direction);
+    }
 
-   private static void generatePieces(StructurePiecesBuilder p_228969_, Structure.GenerationContext p_228970_) {
-      p_228969_.addPiece(createTopPiece(p_228970_.chunkPos(), p_228970_.random()));
-   }
+    private static void generatePieces(StructurePiecesBuilder p_228969_, Structure.GenerationContext p_228970_) {
+        p_228969_.addPiece(createTopPiece(p_228970_.chunkPos(), p_228970_.random()));
+    }
 
-   public static PiecesContainer regeneratePiecesAfterLoad(ChunkPos p_228957_, long p_228958_, PiecesContainer p_228959_) {
-      if (p_228959_.isEmpty()) {
-         return p_228959_;
-      } else {
-         WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
-         worldgenrandom.setLargeFeatureSeed(p_228958_, p_228957_.x, p_228957_.z);
-         StructurePiece structurepiece = p_228959_.pieces().get(0);
-         BoundingBox boundingbox = structurepiece.getBoundingBox();
-         long i = boundingbox.minX();
-         long j = boundingbox.minZ();
-         Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(worldgenrandom);
-         Direction direction1 = Objects.requireNonNullElse(structurepiece.getOrientation(), direction);
-         StructurePiece structurepiece1 = new OceanMonumentPieces.MonumentBuilding(worldgenrandom, i, j, direction1);
-         StructurePiecesBuilder structurepiecesbuilder = new StructurePiecesBuilder();
-         structurepiecesbuilder.addPiece(structurepiece1);
-         return structurepiecesbuilder.build();
-      }
-   }
+    public static PiecesContainer regeneratePiecesAfterLoad(ChunkPos p_228957_, long p_228958_, PiecesContainer p_228959_) {
+        if (p_228959_.isEmpty()) {
+            return p_228959_;
+        } else {
+            WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
+            worldgenrandom.setLargeFeatureSeed(p_228958_, p_228957_.x, p_228957_.z);
+            StructurePiece structurepiece = p_228959_.pieces().get(0);
+            BoundingBox boundingbox = structurepiece.getBoundingBox();
+            long i = boundingbox.minX();
+            long j = boundingbox.minZ();
+            Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(worldgenrandom);
+            Direction direction1 = Objects.requireNonNullElse(structurepiece.getOrientation(), direction);
+            StructurePiece structurepiece1 = new OceanMonumentPieces.MonumentBuilding(worldgenrandom, i, j, direction1);
+            StructurePiecesBuilder structurepiecesbuilder = new StructurePiecesBuilder();
+            structurepiecesbuilder.addPiece(structurepiece1);
+            return structurepiecesbuilder.build();
+        }
+    }
 
-   public StructureType<?> type() {
-      return StructureType.OCEAN_MONUMENT;
-   }
+    public StructureType<?> type() {
+        return StructureType.OCEAN_MONUMENT;
+    }
 }

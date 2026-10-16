@@ -13,27 +13,27 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class ClientboundCustomSoundPacketTest {
-   @BeforeAll
-   static void bootstrapMinecraft() {
-      SharedConstants.tryDetectVersion();
-      Bootstrap.bootStrap();
-   }
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
 
-   @Test
-   void preservesSplitCustomSoundOriginBeyondIntAndDoublePrecision() {
-      SectorVec3 position = SectorVec3.fromBlockAndFraction((1L << 53) + 19L, 0.125D, 64.5D,
-            -((1L << 53) + 23L), 0.875D);
-      ClientboundCustomSoundPacket sent = new ClientboundCustomSoundPacket(new ResourceLocation("test", "far_sound"),
-            SoundSource.AMBIENT, position, 0.5F, 1.5F, 192837465L);
+    @Test
+    void preservesSplitCustomSoundOriginBeyondIntAndDoublePrecision() {
+        SectorVec3 position = SectorVec3.fromBlockAndFraction((1L << 53) + 19L, 0.125D, 64.5D,
+                -((1L << 53) + 23L), 0.875D);
+        ClientboundCustomSoundPacket sent = new ClientboundCustomSoundPacket(new ResourceLocation("test", "far_sound"),
+                SoundSource.AMBIENT, position, 0.5F, 1.5F, 192837465L);
 
-      FriendlyByteBuf bytes = new FriendlyByteBuf(Unpooled.buffer());
-      sent.write(bytes);
-      ClientboundCustomSoundPacket received = new ClientboundCustomSoundPacket(bytes);
+        FriendlyByteBuf bytes = new FriendlyByteBuf(Unpooled.buffer());
+        sent.write(bytes);
+        ClientboundCustomSoundPacket received = new ClientboundCustomSoundPacket(bytes);
 
-      assertEquals(position, received.getExactPosition());
-      assertEquals(new ResourceLocation("test", "far_sound"), received.getName());
-      assertEquals(0.5F, received.getVolume());
-      assertEquals(1.5F, received.getPitch());
-      assertEquals(192837465L, received.getSeed());
-   }
+        assertEquals(position, received.getExactPosition());
+        assertEquals(new ResourceLocation("test", "far_sound"), received.getName());
+        assertEquals(0.5F, received.getVolume());
+        assertEquals(1.5F, received.getPitch());
+        assertEquals(192837465L, received.getSeed());
+    }
 }

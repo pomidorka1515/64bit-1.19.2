@@ -10,18 +10,18 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class EntityModelSet implements ResourceManagerReloadListener {
-   private Map<ModelLayerLocation, LayerDefinition> roots = ImmutableMap.of();
+    private Map<ModelLayerLocation, LayerDefinition> roots = ImmutableMap.of();
 
-   public ModelPart bakeLayer(ModelLayerLocation p_171104_) {
-      LayerDefinition layerdefinition = this.roots.get(p_171104_);
-      if (layerdefinition == null) {
-         throw new IllegalArgumentException("No model for layer " + p_171104_);
-      } else {
-         return layerdefinition.bakeRoot();
-      }
-   }
+    public ModelPart bakeLayer(ModelLayerLocation p_171104_) {
+        LayerDefinition layerdefinition = this.roots.get(p_171104_);
+        if (layerdefinition == null) {
+            throw new IllegalArgumentException("No model for layer " + p_171104_);
+        } else {
+            return layerdefinition.bakeRoot();
+        }
+    }
 
-   public void onResourceManagerReload(ResourceManager p_171102_) {
-      this.roots = ImmutableMap.copyOf(LayerDefinitions.createRoots());
-   }
+    public void onResourceManagerReload(ResourceManager p_171102_) {
+        this.roots = ImmutableMap.copyOf(LayerDefinitions.createRoots());
+    }
 }

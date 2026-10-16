@@ -9,11 +9,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FrogRenderer extends MobRenderer<Frog, FrogModel<Frog>> {
-   public FrogRenderer(EntityRendererProvider.Context p_234619_) {
-      super(p_234619_, new FrogModel<>(p_234619_.bakeLayer(ModelLayers.FROG)), 0.3F);
-   }
+    public FrogRenderer(EntityRendererProvider.Context p_234619_) {
+        super(p_234619_, new FrogModel<>(p_234619_.bakeLayer(ModelLayers.FROG)), 0.3F);
+    }
 
-   public ResourceLocation getTextureLocation(Frog p_234623_) {
-      return p_234623_.getVariant().texture();
-   }
+    public ResourceLocation getTextureLocation(Frog p_234623_) {
+        return p_234623_.getVariant().texture();
+    }
 }

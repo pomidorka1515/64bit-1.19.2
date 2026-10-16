@@ -21,160 +21,153 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class EyeOfEnder extends Entity implements ItemSupplier {
-   private static final EntityDataAccessor<ItemStack> DATA_ITEM_STACK = SynchedEntityData.defineId(EyeOfEnder.class, EntityDataSerializers.ITEM_STACK);
-   @javax.annotation.Nullable
-   private SectorVec3 targetPosition;
-   private double ty;
-   private int life;
-   private boolean surviveAfterDeath;
+    private static final EntityDataAccessor<ItemStack> DATA_ITEM_STACK = SynchedEntityData.defineId(EyeOfEnder.class, EntityDataSerializers.ITEM_STACK);
+    @javax.annotation.Nullable
+    private SectorVec3 targetPosition;
+    private double ty;
+    private int life;
+    private boolean surviveAfterDeath;
 
-   public EyeOfEnder(EntityType<? extends EyeOfEnder> p_36957_, Level p_36958_) {
-      super(p_36957_, p_36958_);
-   }
+    public EyeOfEnder(EntityType<? extends EyeOfEnder> p_36957_, Level p_36958_) {
+        super(p_36957_, p_36958_);
+    }
 
-   public EyeOfEnder(Level p_36960_, double p_36961_, double p_36962_, double p_36963_) {
-      this(EntityType.EYE_OF_ENDER, p_36960_);
-      this.setPos(p_36961_, p_36962_, p_36963_);
-   }
+    public EyeOfEnder(Level p_36960_, double p_36961_, double p_36962_, double p_36963_) {
+        this(EntityType.EYE_OF_ENDER, p_36960_);
+        this.setPos(p_36961_, p_36962_, p_36963_);
+    }
 
-   public void setItem(ItemStack p_36973_) {
-      if (!p_36973_.is(Items.ENDER_EYE) || p_36973_.hasTag()) {
-         this.getEntityData().set(DATA_ITEM_STACK, Util.make(p_36973_.copy(), (p_36978_) -> {
-            p_36978_.setCount(1);
-         }));
-      }
+    public void setItem(ItemStack p_36973_) {
+        if (!p_36973_.is(Items.ENDER_EYE) || p_36973_.hasTag()) {
+            this.getEntityData().set(DATA_ITEM_STACK, Util.make(p_36973_.copy(), (p_36978_) -> {
+                p_36978_.setCount(1);
+            }));
+        }
+    }
 
-   }
+    private ItemStack getItemRaw() {
+        return this.getEntityData().get(DATA_ITEM_STACK);
+    }
 
-   private ItemStack getItemRaw() {
-      return this.getEntityData().get(DATA_ITEM_STACK);
-   }
+    public ItemStack getItem() {
+        ItemStack itemstack = this.getItemRaw();
+        return itemstack.isEmpty() ? new ItemStack(Items.ENDER_EYE) : itemstack;
+    }
 
-   public ItemStack getItem() {
-      ItemStack itemstack = this.getItemRaw();
-      return itemstack.isEmpty() ? new ItemStack(Items.ENDER_EYE) : itemstack;
-   }
+    protected void defineSynchedData() {
+        this.getEntityData().define(DATA_ITEM_STACK, ItemStack.EMPTY);
+    }
 
-   protected void defineSynchedData() {
-      this.getEntityData().define(DATA_ITEM_STACK, ItemStack.EMPTY);
-   }
+    public boolean shouldRenderAtSqrDistance(double p_36966_) {
+        double d0 = this.getBoundingBox().getSize() * 4.0D;
+        if (Double.isNaN(d0)) {
+            d0 = 4.0D;
+        }
 
-   public boolean shouldRenderAtSqrDistance(double p_36966_) {
-      double d0 = this.getBoundingBox().getSize() * 4.0D;
-      if (Double.isNaN(d0)) {
-         d0 = 4.0D;
-      }
+        d0 *= 64.0D;
+        return p_36966_ < d0 * d0;
+    }
 
-      d0 *= 64.0D;
-      return p_36966_ < d0 * d0;
-   }
+    public void signalTo(BlockPos p_36968_) {
+        SectorVec3 target = SectorVec3.fromBlockAndFraction(p_36968_.getX(), 0.0D, (double) p_36968_.getY(),
+                p_36968_.getZ(), 0.0D);
+        Vec3 delta = target.relativeTo(this.sectorPosition());
+        double horizontalDistance = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
+        if (horizontalDistance > 12.0D) {
+            this.targetPosition = this.sectorPosition().add(delta.x / horizontalDistance * 12.0D, 8.0D,
+                    delta.z / horizontalDistance * 12.0D);
+        } else {
+            this.targetPosition = target;
+        }
 
-   public void signalTo(BlockPos p_36968_) {
-      SectorVec3 target = SectorVec3.fromBlockAndFraction(p_36968_.getX(), 0.0D, (double)p_36968_.getY(),
-            p_36968_.getZ(), 0.0D);
-      Vec3 delta = target.relativeTo(this.sectorPosition());
-      double horizontalDistance = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
-      if (horizontalDistance > 12.0D) {
-         this.targetPosition = this.sectorPosition().add(delta.x / horizontalDistance * 12.0D, 8.0D,
-               delta.z / horizontalDistance * 12.0D);
-      } else {
-         this.targetPosition = target;
-      }
+        this.ty = this.targetPosition.y();
+        this.life = 0;
+        this.surviveAfterDeath = this.random.nextInt(5) > 0;
+    }
 
-      this.ty = this.targetPosition.y();
-      this.life = 0;
-      this.surviveAfterDeath = this.random.nextInt(5) > 0;
-   }
+    public void lerpMotion(double p_36984_, double p_36985_, double p_36986_) {
+        this.setDeltaMovement(p_36984_, p_36985_, p_36986_);
+        if (this.xRotO == 0.0F && this.yRotO == 0.0F) {
+            double d0 = Math.sqrt(p_36984_ * p_36984_ + p_36986_ * p_36986_);
+            this.setYRot((float) (Mth.atan2(p_36984_, p_36986_) * (double) (180F / (float) Math.PI)));
+            this.setXRot((float) (Mth.atan2(p_36985_, d0) * (double) (180F / (float) Math.PI)));
+            this.yRotO = this.getYRot();
+            this.xRotO = this.getXRot();
+        }
+    }
 
-   public void lerpMotion(double p_36984_, double p_36985_, double p_36986_) {
-      this.setDeltaMovement(p_36984_, p_36985_, p_36986_);
-      if (this.xRotO == 0.0F && this.yRotO == 0.0F) {
-         double d0 = Math.sqrt(p_36984_ * p_36984_ + p_36986_ * p_36986_);
-         this.setYRot((float)(Mth.atan2(p_36984_, p_36986_) * (double)(180F / (float)Math.PI)));
-         this.setXRot((float)(Mth.atan2(p_36985_, d0) * (double)(180F / (float)Math.PI)));
-         this.yRotO = this.getYRot();
-         this.xRotO = this.getXRot();
-      }
-
-   }
-
-   public void tick() {
-      super.tick();
-      Vec3 vec3 = this.getDeltaMovement();
-      SectorVec3 nextPosition = this.sectorPosition().add(vec3.x, vec3.y, vec3.z);
-      double d3 = vec3.horizontalDistance();
-      this.setXRot(Projectile.lerpRotation(this.xRotO, (float)(Mth.atan2(vec3.y, d3) * (double)(180F / (float)Math.PI))));
-      this.setYRot(Projectile.lerpRotation(this.yRotO, (float)(Mth.atan2(vec3.x, vec3.z) * (double)(180F / (float)Math.PI))));
-      if (!this.level.isClientSide && this.targetPosition != null) {
-         Vec3 targetDelta = this.targetPosition.relativeTo(nextPosition);
-         double d4 = targetDelta.x;
-         double d5 = targetDelta.z;
-         float f = (float)Math.sqrt(d4 * d4 + d5 * d5);
-         float f1 = (float)Mth.atan2(d5, d4);
-         double d6 = Mth.lerp(0.0025D, d3, (double)f);
-         double d7 = vec3.y;
-         if (f < 1.0F) {
-            d6 *= 0.8D;
-            d7 *= 0.8D;
-         }
-
-         int j = this.getY() < this.ty ? 1 : -1;
-         vec3 = new Vec3(Math.cos((double)f1) * d6, d7 + ((double)j - d7) * (double)0.015F, Math.sin((double)f1) * d6);
-         this.setDeltaMovement(vec3);
-      }
-
-      float f2 = 0.25F;
-      if (this.isInWater()) {
-         for(int i = 0; i < 4; ++i) {
-            this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(vec3.x * 0.75D,
-                  vec3.y * 0.75D, vec3.z * 0.75D), vec3.x, vec3.y, vec3.z);
-         }
-      } else {
-         this.level.addParticle(ParticleTypes.PORTAL, this.particlePosition(vec3.x * 0.75D
-               + this.random.nextDouble() * 0.6D - 0.3D, vec3.y * 0.75D - 0.5D,
-               vec3.z * 0.75D + this.random.nextDouble() * 0.6D - 0.3D), vec3.x, vec3.y, vec3.z);
-      }
-
-      // The newly selected homing velocity applies on the next tick, matching vanilla ordering.
-      this.applyExactPosition(this.sectorPosition().add(vec3.x, vec3.y, vec3.z));
-      if (!this.level.isClientSide) {
-         ++this.life;
-         if (this.life > 80) {
-            this.playSound(SoundEvents.ENDER_EYE_DEATH, 1.0F, 1.0F);
-            this.discard();
-            if (this.surviveAfterDeath) {
-               ItemEntity item = new ItemEntity(this.level, this.sectorPosition(), this.getItem());
-               this.level.addFreshEntity(item);
-            } else {
-               this.level.levelEvent(2003, this.blockPosition(), 0);
+    public void tick() {
+        super.tick();
+        Vec3 vec3 = this.getDeltaMovement();
+        SectorVec3 nextPosition = this.sectorPosition().add(vec3.x, vec3.y, vec3.z);
+        double d3 = vec3.horizontalDistance();
+        this.setXRot(Projectile.lerpRotation(this.xRotO, (float) (Mth.atan2(vec3.y, d3) * (double) (180F / (float) Math.PI))));
+        this.setYRot(Projectile.lerpRotation(this.yRotO, (float) (Mth.atan2(vec3.x, vec3.z) * (double) (180F / (float) Math.PI))));
+        if (!this.level.isClientSide && this.targetPosition != null) {
+            Vec3 targetDelta = this.targetPosition.relativeTo(nextPosition);
+            double d4 = targetDelta.x;
+            double d5 = targetDelta.z;
+            float f = (float) Math.sqrt(d4 * d4 + d5 * d5);
+            float f1 = (float) Mth.atan2(d5, d4);
+            double d6 = Mth.lerp(0.0025D, d3, (double) f);
+            double d7 = vec3.y;
+            if (f < 1.0F) {
+                d6 *= 0.8D;
+                d7 *= 0.8D;
             }
-         }
-      }
 
-   }
+            int j = this.getY() < this.ty ? 1 : -1;
+            vec3 = new Vec3(Math.cos((double) f1) * d6, d7 + ((double) j - d7) * (double) 0.015F, Math.sin((double) f1) * d6);
+            this.setDeltaMovement(vec3);
+        }
 
-   public void addAdditionalSaveData(CompoundTag p_36975_) {
-      ItemStack itemstack = this.getItemRaw();
-      if (!itemstack.isEmpty()) {
-         p_36975_.put("Item", itemstack.save(new CompoundTag()));
-      }
+        float f2 = 0.25F;
+        if (this.isInWater()) {
+            for (int i = 0; i < 4; ++i) {
+                this.level.addParticle(ParticleTypes.BUBBLE, this.particlePosition(vec3.x * 0.75D, vec3.y * 0.75D, vec3.z * 0.75D), vec3.x, vec3.y, vec3.z);
+            }
+        } else {
+            this.level.addParticle(ParticleTypes.PORTAL, this.particlePosition(vec3.x * 0.75D + this.random.nextDouble() * 0.6D - 0.3D, vec3.y * 0.75D - 0.5D, vec3.z * 0.75D + this.random.nextDouble() * 0.6D - 0.3D), vec3.x, vec3.y, vec3.z);
+        }
 
-   }
+        // The newly selected homing velocity applies on the next tick, matching vanilla ordering.
+        this.applyExactPosition(this.sectorPosition().add(vec3.x, vec3.y, vec3.z));
+        if (!this.level.isClientSide) {
+            ++this.life;
+            if (this.life > 80) {
+                this.playSound(SoundEvents.ENDER_EYE_DEATH, 1.0F, 1.0F);
+                this.discard();
+                if (this.surviveAfterDeath) {
+                    ItemEntity item = new ItemEntity(this.level, this.sectorPosition(), this.getItem());
+                    this.level.addFreshEntity(item);
+                } else {
+                    this.level.levelEvent(2003, this.blockPosition(), 0);
+                }
+            }
+        }
+    }
 
-   public void readAdditionalSaveData(CompoundTag p_36970_) {
-      ItemStack itemstack = ItemStack.of(p_36970_.getCompound("Item"));
-      this.setItem(itemstack);
-   }
+    public void addAdditionalSaveData(CompoundTag p_36975_) {
+        ItemStack itemstack = this.getItemRaw();
+        if (!itemstack.isEmpty()) {
+            p_36975_.put("Item", itemstack.save(new CompoundTag()));
+        }
+    }
 
-   public float getLightLevelDependentMagicValue() {
-      return 1.0F;
-   }
+    public void readAdditionalSaveData(CompoundTag p_36970_) {
+        ItemStack itemstack = ItemStack.of(p_36970_.getCompound("Item"));
+        this.setItem(itemstack);
+    }
 
-   public boolean isAttackable() {
-      return false;
-   }
+    public float getLightLevelDependentMagicValue() {
+        return 1.0F;
+    }
 
-   public Packet<?> getAddEntityPacket() {
-      return new ClientboundAddEntityPacket(this);
-   }
+    public boolean isAttackable() {
+        return false;
+    }
+
+    public Packet<?> getAddEntityPacket() {
+        return new ClientboundAddEntityPacket(this);
+    }
 }

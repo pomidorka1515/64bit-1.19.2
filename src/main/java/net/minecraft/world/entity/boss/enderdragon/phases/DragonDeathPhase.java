@@ -9,61 +9,59 @@ import net.minecraft.world.level.levelgen.feature.EndPodiumFeature;
 import net.minecraft.world.phys.Vec3;
 
 public class DragonDeathPhase extends AbstractDragonPhaseInstance {
-   @Nullable
-   private net.minecraft.world.phys.SectorVec3 targetLocation;
-   private int time;
+    @Nullable
+    private net.minecraft.world.phys.SectorVec3 targetLocation;
+    private int time;
 
-   public DragonDeathPhase(EnderDragon p_31217_) {
-      super(p_31217_);
-   }
+    public DragonDeathPhase(EnderDragon p_31217_) {
+        super(p_31217_);
+    }
 
-   public void doClientTick() {
-      if (this.time++ % 10 == 0) {
-         float f = (this.dragon.getRandom().nextFloat() - 0.5F) * 8.0F;
-         float f1 = (this.dragon.getRandom().nextFloat() - 0.5F) * 4.0F;
-         float f2 = (this.dragon.getRandom().nextFloat() - 0.5F) * 8.0F;
-         this.dragon.level.addParticle(ParticleTypes.EXPLOSION_EMITTER,
-               this.dragon.particlePosition((double)f, 2.0D + (double)f1, (double)f2),
-               0.0D, 0.0D, 0.0D);
-      }
+    public void doClientTick() {
+        if (this.time++ % 10 == 0) {
+            float f = (this.dragon.getRandom().nextFloat() - 0.5F) * 8.0F;
+            float f1 = (this.dragon.getRandom().nextFloat() - 0.5F) * 4.0F;
+            float f2 = (this.dragon.getRandom().nextFloat() - 0.5F) * 8.0F;
+            this.dragon.level.addParticle(ParticleTypes.EXPLOSION_EMITTER,
+                    this.dragon.particlePosition((double) f, 2.0D + (double) f1, (double) f2),
+                    0.0D, 0.0D, 0.0D);
+        }
+    }
 
-   }
+    public void doServerTick() {
+        ++this.time;
+        if (this.targetLocation == null) {
+            BlockPos blockpos = this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, EndPodiumFeature.END_PODIUM_LOCATION);
+            this.targetLocation = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double) blockpos.getY(), blockpos.getZ(), 0.5D);
+        }
 
-   public void doServerTick() {
-      ++this.time;
-      if (this.targetLocation == null) {
-         BlockPos blockpos = this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, EndPodiumFeature.END_PODIUM_LOCATION);
-         this.targetLocation = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double)blockpos.getY(), blockpos.getZ(), 0.5D);
-      }
+        double d0 = this.targetLocation.relativeTo(this.dragon.sectorPosition()).lengthSqr();
+        if (!(d0 < 100.0D) && !(d0 > 22500.0D) && !this.dragon.horizontalCollision && !this.dragon.verticalCollision) {
+            this.dragon.setHealth(1.0F);
+        } else {
+            this.dragon.setHealth(0.0F);
+        }
+    }
 
-      double d0 = this.targetLocation.relativeTo(this.dragon.sectorPosition()).lengthSqr();
-      if (!(d0 < 100.0D) && !(d0 > 22500.0D) && !this.dragon.horizontalCollision && !this.dragon.verticalCollision) {
-         this.dragon.setHealth(1.0F);
-      } else {
-         this.dragon.setHealth(0.0F);
-      }
+    public void begin() {
+        this.targetLocation = null;
+        this.time = 0;
+    }
 
-   }
+    public float getFlySpeed() {
+        return 3.0F;
+    }
 
-   public void begin() {
-      this.targetLocation = null;
-      this.time = 0;
-   }
+    @Nullable
+    public Vec3 getFlyTargetLocation() {
+        return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+    }
 
-   public float getFlySpeed() {
-      return 3.0F;
-   }
+    public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
+        return this.targetLocation;
+    }
 
-   @Nullable
-   public Vec3 getFlyTargetLocation() {
-      return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
-   }
-
-   public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
-      return this.targetLocation;
-   }
-
-   public EnderDragonPhase<DragonDeathPhase> getPhase() {
-      return EnderDragonPhase.DYING;
-   }
+    public EnderDragonPhase<DragonDeathPhase> getPhase() {
+        return EnderDragonPhase.DYING;
+    }
 }

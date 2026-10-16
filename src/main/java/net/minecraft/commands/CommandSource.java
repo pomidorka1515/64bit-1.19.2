@@ -3,32 +3,32 @@ package net.minecraft.commands;
 import net.minecraft.network.chat.Component;
 
 public interface CommandSource {
-   CommandSource NULL = new CommandSource() {
-      public void sendSystemMessage(Component p_230799_) {
-      }
+    CommandSource NULL = new CommandSource() {
+        public void sendSystemMessage(Component p_230799_) {
+        }
 
-      public boolean acceptsSuccess() {
-         return false;
-      }
+        public boolean acceptsSuccess() {
+            return false;
+        }
 
-      public boolean acceptsFailure() {
-         return false;
-      }
+        public boolean acceptsFailure() {
+            return false;
+        }
 
-      public boolean shouldInformAdmins() {
-         return false;
-      }
-   };
+        public boolean shouldInformAdmins() {
+            return false;
+        }
+    };
 
-   void sendSystemMessage(Component p_230797_);
+    void sendSystemMessage(Component p_230797_);
 
-   boolean acceptsSuccess();
+    boolean acceptsSuccess();
 
-   boolean acceptsFailure();
+    boolean acceptsFailure();
 
-   boolean shouldInformAdmins();
+    boolean shouldInformAdmins();
 
-   default boolean alwaysAccepts() {
-      return false;
-   }
+    default boolean alwaysAccepts() {
+        return false;
+    }
 }

@@ -6,31 +6,31 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface ResolvedServerAddress {
-   String getHostName();
+    String getHostName();
 
-   String getHostIp();
+    String getHostIp();
 
-   int getPort();
+    int getPort();
 
-   InetSocketAddress asInetSocketAddress();
+    InetSocketAddress asInetSocketAddress();
 
-   static ResolvedServerAddress from(final InetSocketAddress p_171846_) {
-      return new ResolvedServerAddress() {
-         public String getHostName() {
-            return p_171846_.getAddress().getHostName();
-         }
+    static ResolvedServerAddress from(final InetSocketAddress p_171846_) {
+        return new ResolvedServerAddress() {
+            public String getHostName() {
+                return p_171846_.getAddress().getHostName();
+            }
 
-         public String getHostIp() {
-            return p_171846_.getAddress().getHostAddress();
-         }
+            public String getHostIp() {
+                return p_171846_.getAddress().getHostAddress();
+            }
 
-         public int getPort() {
-            return p_171846_.getPort();
-         }
+            public int getPort() {
+                return p_171846_.getPort();
+            }
 
-         public InetSocketAddress asInetSocketAddress() {
-            return p_171846_;
-         }
-      };
-   }
+            public InetSocketAddress asInetSocketAddress() {
+                return p_171846_;
+            }
+        };
+    }
 }

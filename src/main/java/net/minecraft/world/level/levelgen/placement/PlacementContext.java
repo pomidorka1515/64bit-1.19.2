@@ -13,42 +13,42 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
 
 public class PlacementContext extends WorldGenerationContext {
-   private final WorldGenLevel level;
-   private final ChunkGenerator generator;
-   private final Optional<PlacedFeature> topFeature;
+    private final WorldGenLevel level;
+    private final ChunkGenerator generator;
+    private final Optional<PlacedFeature> topFeature;
 
-   public PlacementContext(WorldGenLevel p_191818_, ChunkGenerator p_191819_, Optional<PlacedFeature> p_191820_) {
-      super(p_191819_, p_191818_);
-      this.level = p_191818_;
-      this.generator = p_191819_;
-      this.topFeature = p_191820_;
-   }
+    public PlacementContext(WorldGenLevel p_191818_, ChunkGenerator p_191819_, Optional<PlacedFeature> p_191820_) {
+        super(p_191819_, p_191818_);
+        this.level = p_191818_;
+        this.generator = p_191819_;
+        this.topFeature = p_191820_;
+    }
 
-   public int getHeight(Heightmap.Types p_191825_, long p_191826_, long p_191827_) {
-      return this.level.getHeight(p_191825_, p_191826_, p_191827_);
-   }
+    public int getHeight(Heightmap.Types p_191825_, long p_191826_, long p_191827_) {
+        return this.level.getHeight(p_191825_, p_191826_, p_191827_);
+    }
 
-   public CarvingMask getCarvingMask(ChunkPos p_191822_, GenerationStep.Carving p_191823_) {
-      return ((ProtoChunk)this.level.getChunk(p_191822_.x, p_191822_.z)).getOrCreateCarvingMask(p_191823_);
-   }
+    public CarvingMask getCarvingMask(ChunkPos p_191822_, GenerationStep.Carving p_191823_) {
+        return ((ProtoChunk) this.level.getChunk(p_191822_.x, p_191822_.z)).getOrCreateCarvingMask(p_191823_);
+    }
 
-   public BlockState getBlockState(BlockPos p_191829_) {
-      return this.level.getBlockState(p_191829_);
-   }
+    public BlockState getBlockState(BlockPos p_191829_) {
+        return this.level.getBlockState(p_191829_);
+    }
 
-   public int getMinBuildHeight() {
-      return this.level.getMinBuildHeight();
-   }
+    public int getMinBuildHeight() {
+        return this.level.getMinBuildHeight();
+    }
 
-   public WorldGenLevel getLevel() {
-      return this.level;
-   }
+    public WorldGenLevel getLevel() {
+        return this.level;
+    }
 
-   public Optional<PlacedFeature> topFeature() {
-      return this.topFeature;
-   }
+    public Optional<PlacedFeature> topFeature() {
+        return this.topFeature;
+    }
 
-   public ChunkGenerator generator() {
-      return this.generator;
-   }
+    public ChunkGenerator generator() {
+        return this.generator;
+    }
 }

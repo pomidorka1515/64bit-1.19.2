@@ -16,73 +16,73 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class KeyBindsScreen extends OptionsSubScreen {
-   @Nullable
-   public KeyMapping selectedKey;
-   public long lastKeySelection;
-   private KeyBindsList keyBindsList;
-   private Button resetButton;
+    @Nullable
+    public KeyMapping selectedKey;
+    public long lastKeySelection;
+    private KeyBindsList keyBindsList;
+    private Button resetButton;
 
-   public KeyBindsScreen(Screen p_193980_, Options p_193981_) {
-      super(p_193980_, p_193981_, Component.translatable("controls.keybinds.title"));
-   }
+    public KeyBindsScreen(Screen p_193980_, Options p_193981_) {
+        super(p_193980_, p_193981_, Component.translatable("controls.keybinds.title"));
+    }
 
-   protected void init() {
-      this.keyBindsList = new KeyBindsList(this, this.minecraft);
-      this.addWidget(this.keyBindsList);
-      this.resetButton = this.addRenderableWidget(new Button(this.width / 2 - 155, this.height - 29, 150, 20, Component.translatable("controls.resetAll"), (p_193999_) -> {
-         for(KeyMapping keymapping : this.options.keyMappings) {
-            keymapping.setKey(keymapping.getDefaultKey());
-         }
+    protected void init() {
+        this.keyBindsList = new KeyBindsList(this, this.minecraft);
+        this.addWidget(this.keyBindsList);
+        this.resetButton = this.addRenderableWidget(new Button(this.width / 2 - 155, this.height - 29, 150, 20, Component.translatable("controls.resetAll"), (p_193999_) -> {
+            for (KeyMapping keymapping : this.options.keyMappings) {
+                keymapping.setKey(keymapping.getDefaultKey());
+            }
 
-         KeyMapping.resetMapping();
-      }));
-      this.addRenderableWidget(new Button(this.width / 2 - 155 + 160, this.height - 29, 150, 20, CommonComponents.GUI_DONE, (p_193996_) -> {
-         this.minecraft.setScreen(this.lastScreen);
-      }));
-   }
+            KeyMapping.resetMapping();
+        }));
+        this.addRenderableWidget(new Button(this.width / 2 - 155 + 160, this.height - 29, 150, 20, CommonComponents.GUI_DONE, (p_193996_) -> {
+            this.minecraft.setScreen(this.lastScreen);
+        }));
+    }
 
-   public boolean mouseClicked(double p_193983_, double p_193984_, int p_193985_) {
-      if (this.selectedKey != null) {
-         this.options.setKey(this.selectedKey, InputConstants.Type.MOUSE.getOrCreate(p_193985_));
-         this.selectedKey = null;
-         KeyMapping.resetMapping();
-         return true;
-      } else {
-         return super.mouseClicked(p_193983_, p_193984_, p_193985_);
-      }
-   }
+    public boolean mouseClicked(double p_193983_, double p_193984_, int p_193985_) {
+        if (this.selectedKey != null) {
+            this.options.setKey(this.selectedKey, InputConstants.Type.MOUSE.getOrCreate(p_193985_));
+            this.selectedKey = null;
+            KeyMapping.resetMapping();
+            return true;
+        } else {
+            return super.mouseClicked(p_193983_, p_193984_, p_193985_);
+        }
+    }
 
-   public boolean keyPressed(int p_193987_, int p_193988_, int p_193989_) {
-      if (this.selectedKey != null) {
-         if (p_193987_ == 256) {
-            this.options.setKey(this.selectedKey, InputConstants.UNKNOWN);
-         } else {
-            this.options.setKey(this.selectedKey, InputConstants.getKey(p_193987_, p_193988_));
-         }
+    public boolean keyPressed(int p_193987_, int p_193988_, int p_193989_) {
+        if (this.selectedKey != null) {
+            if (p_193987_ == 256) {
+                this.options.setKey(this.selectedKey, InputConstants.UNKNOWN);
+            } else {
+                this.options.setKey(this.selectedKey, InputConstants.getKey(p_193987_, p_193988_));
+            }
 
-         this.selectedKey = null;
-         this.lastKeySelection = Util.getMillis();
-         KeyMapping.resetMapping();
-         return true;
-      } else {
-         return super.keyPressed(p_193987_, p_193988_, p_193989_);
-      }
-   }
+            this.selectedKey = null;
+            this.lastKeySelection = Util.getMillis();
+            KeyMapping.resetMapping();
+            return true;
+        } else {
+            return super.keyPressed(p_193987_, p_193988_, p_193989_);
+        }
+    }
 
-   public void render(PoseStack p_193991_, int p_193992_, int p_193993_, float p_193994_) {
-      this.renderBackground(p_193991_);
-      this.keyBindsList.render(p_193991_, p_193992_, p_193993_, p_193994_);
-      drawCenteredString(p_193991_, this.font, this.title, this.width / 2, 8, 16777215);
-      boolean flag = false;
+    public void render(PoseStack p_193991_, int p_193992_, int p_193993_, float p_193994_) {
+        this.renderBackground(p_193991_);
+        this.keyBindsList.render(p_193991_, p_193992_, p_193993_, p_193994_);
+        drawCenteredString(p_193991_, this.font, this.title, this.width / 2, 8, 16777215);
+        boolean flag = false;
 
-      for(KeyMapping keymapping : this.options.keyMappings) {
-         if (!keymapping.isDefault()) {
-            flag = true;
-            break;
-         }
-      }
+        for (KeyMapping keymapping : this.options.keyMappings) {
+            if (!keymapping.isDefault()) {
+                flag = true;
+                break;
+            }
+        }
 
-      this.resetButton.active = flag;
-      super.render(p_193991_, p_193992_, p_193993_, p_193994_);
-   }
+        this.resetButton.active = flag;
+        super.render(p_193991_, p_193992_, p_193993_, p_193994_);
+    }
 }

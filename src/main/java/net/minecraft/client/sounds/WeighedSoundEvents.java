@@ -12,62 +12,61 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class WeighedSoundEvents implements Weighted<Sound> {
-   private final List<Weighted<Sound>> list = Lists.newArrayList();
-   private final RandomSource random = RandomSource.create();
-   private final ResourceLocation location;
-   @Nullable
-   private final Component subtitle;
+    private final List<Weighted<Sound>> list = Lists.newArrayList();
+    private final RandomSource random = RandomSource.create();
+    private final ResourceLocation location;
+    @Nullable
+    private final Component subtitle;
 
-   public WeighedSoundEvents(ResourceLocation p_120446_, @Nullable String p_120447_) {
-      this.location = p_120446_;
-      this.subtitle = p_120447_ == null ? null : Component.translatable(p_120447_);
-   }
+    public WeighedSoundEvents(ResourceLocation p_120446_, @Nullable String p_120447_) {
+        this.location = p_120446_;
+        this.subtitle = p_120447_ == null ? null : Component.translatable(p_120447_);
+    }
 
-   public int getWeight() {
-      int i = 0;
+    public int getWeight() {
+        int i = 0;
 
-      for(Weighted<Sound> weighted : this.list) {
-         i += weighted.getWeight();
-      }
+        for (Weighted<Sound> weighted : this.list) {
+            i += weighted.getWeight();
+        }
 
-      return i;
-   }
+        return i;
+    }
 
-   public Sound getSound(RandomSource p_235265_) {
-      int i = this.getWeight();
-      if (!this.list.isEmpty() && i != 0) {
-         int j = p_235265_.nextInt(i);
+    public Sound getSound(RandomSource p_235265_) {
+        int i = this.getWeight();
+        if (!this.list.isEmpty() && i != 0) {
+            int j = p_235265_.nextInt(i);
 
-         for(Weighted<Sound> weighted : this.list) {
-            j -= weighted.getWeight();
-            if (j < 0) {
-               return weighted.getSound(p_235265_);
+            for (Weighted<Sound> weighted : this.list) {
+                j -= weighted.getWeight();
+                if (j < 0) {
+                    return weighted.getSound(p_235265_);
+                }
             }
-         }
 
-         return SoundManager.EMPTY_SOUND;
-      } else {
-         return SoundManager.EMPTY_SOUND;
-      }
-   }
+            return SoundManager.EMPTY_SOUND;
+        } else {
+            return SoundManager.EMPTY_SOUND;
+        }
+    }
 
-   public void addSound(Weighted<Sound> p_120452_) {
-      this.list.add(p_120452_);
-   }
+    public void addSound(Weighted<Sound> p_120452_) {
+        this.list.add(p_120452_);
+    }
 
-   public ResourceLocation getResourceLocation() {
-      return this.location;
-   }
+    public ResourceLocation getResourceLocation() {
+        return this.location;
+    }
 
-   @Nullable
-   public Component getSubtitle() {
-      return this.subtitle;
-   }
+    @Nullable
+    public Component getSubtitle() {
+        return this.subtitle;
+    }
 
-   public void preloadIfRequired(SoundEngine p_120450_) {
-      for(Weighted<Sound> weighted : this.list) {
-         weighted.preloadIfRequired(p_120450_);
-      }
-
-   }
+    public void preloadIfRequired(SoundEngine p_120450_) {
+        for (Weighted<Sound> weighted : this.list) {
+            weighted.preloadIfRequired(p_120450_);
+        }
+    }
 }

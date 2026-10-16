@@ -12,10 +12,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface UnbakedModel {
-   Collection<ResourceLocation> getDependencies();
+    Collection<ResourceLocation> getDependencies();
 
-   Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> p_119538_, Set<Pair<String, String>> p_119539_);
+    Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> p_119538_, Set<Pair<String, String>> p_119539_);
 
-   @Nullable
-   BakedModel bake(ModelBakery p_119534_, Function<Material, TextureAtlasSprite> p_119535_, ModelState p_119536_, ResourceLocation p_119537_);
+    @Nullable
+    BakedModel bake(ModelBakery p_119534_, Function<Material, TextureAtlasSprite> p_119535_, ModelState p_119536_, ResourceLocation p_119537_);
 }

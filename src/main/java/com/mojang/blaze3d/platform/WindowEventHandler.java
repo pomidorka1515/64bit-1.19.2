@@ -5,9 +5,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface WindowEventHandler {
-   void setWindowActive(boolean p_85477_);
+    void setWindowActive(boolean p_85477_);
 
-   void resizeDisplay();
+    void resizeDisplay();
 
-   void cursorEntered();
+    void cursorEntered();
 }

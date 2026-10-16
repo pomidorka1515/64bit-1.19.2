@@ -26,99 +26,96 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.SectorVec3;
 
 public abstract class WaterFluid extends FlowingFluid {
-   public Fluid getFlowing() {
-      return Fluids.FLOWING_WATER;
-   }
+    public Fluid getFlowing() {
+        return Fluids.FLOWING_WATER;
+    }
 
-   public Fluid getSource() {
-      return Fluids.WATER;
-   }
+    public Fluid getSource() {
+        return Fluids.WATER;
+    }
 
-   public Item getBucket() {
-      return Items.WATER_BUCKET;
-   }
+    public Item getBucket() {
+        return Items.WATER_BUCKET;
+    }
 
-   public void animateTick(Level p_230606_, BlockPos p_230607_, FluidState p_230608_, RandomSource p_230609_) {
-      if (!p_230608_.isSource() && !p_230608_.getValue(FALLING)) {
-         if (p_230609_.nextInt(64) == 0) {
-            p_230606_.playLocalSound((double)p_230607_.getX() + 0.5D, (double)p_230607_.getY() + 0.5D, (double)p_230607_.getZ() + 0.5D, SoundEvents.WATER_AMBIENT, SoundSource.BLOCKS, p_230609_.nextFloat() * 0.25F + 0.75F, p_230609_.nextFloat() + 0.5F, false);
-         }
-      } else if (p_230609_.nextInt(10) == 0) {
-         p_230606_.addParticle(ParticleTypes.UNDERWATER, SectorVec3.fromBlockAndFraction(p_230607_.getX(),
-               p_230609_.nextDouble(), (double)p_230607_.getY() + p_230609_.nextDouble(),
-               p_230607_.getZ(), p_230609_.nextDouble()), 0.0D, 0.0D, 0.0D);
-      }
+    public void animateTick(Level p_230606_, BlockPos p_230607_, FluidState p_230608_, RandomSource p_230609_) {
+        if (!p_230608_.isSource() && !p_230608_.getValue(FALLING)) {
+            if (p_230609_.nextInt(64) == 0) {
+                p_230606_.playLocalSound((double) p_230607_.getX() + 0.5D, (double) p_230607_.getY() + 0.5D, (double) p_230607_.getZ() + 0.5D, SoundEvents.WATER_AMBIENT, SoundSource.BLOCKS, p_230609_.nextFloat() * 0.25F + 0.75F, p_230609_.nextFloat() + 0.5F, false);
+            }
+        } else if (p_230609_.nextInt(10) == 0) {
+            p_230606_.addParticle(ParticleTypes.UNDERWATER, SectorVec3.fromBlockAndFraction(p_230607_.getX(), p_230609_.nextDouble(), (double) p_230607_.getY() + p_230609_.nextDouble(), p_230607_.getZ(), p_230609_.nextDouble()), 0.0D, 0.0D, 0.0D);
+        }
+    }
 
-   }
+    @Nullable
+    public ParticleOptions getDripParticle() {
+        return ParticleTypes.DRIPPING_WATER;
+    }
 
-   @Nullable
-   public ParticleOptions getDripParticle() {
-      return ParticleTypes.DRIPPING_WATER;
-   }
+    protected boolean canConvertToSource() {
+        return true;
+    }
 
-   protected boolean canConvertToSource() {
-      return true;
-   }
+    protected void beforeDestroyingBlock(LevelAccessor p_76450_, BlockPos p_76451_, BlockState p_76452_) {
+        BlockEntity blockentity = p_76452_.hasBlockEntity() ? p_76450_.getBlockEntity(p_76451_) : null;
+        Block.dropResources(p_76452_, p_76450_, p_76451_, blockentity);
+    }
 
-   protected void beforeDestroyingBlock(LevelAccessor p_76450_, BlockPos p_76451_, BlockState p_76452_) {
-      BlockEntity blockentity = p_76452_.hasBlockEntity() ? p_76450_.getBlockEntity(p_76451_) : null;
-      Block.dropResources(p_76452_, p_76450_, p_76451_, blockentity);
-   }
+    public int getSlopeFindDistance(LevelReader p_76464_) {
+        return 4;
+    }
 
-   public int getSlopeFindDistance(LevelReader p_76464_) {
-      return 4;
-   }
+    public BlockState createLegacyBlock(FluidState p_76466_) {
+        return Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, Integer.valueOf(getLegacyLevel(p_76466_)));
+    }
 
-   public BlockState createLegacyBlock(FluidState p_76466_) {
-      return Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, Integer.valueOf(getLegacyLevel(p_76466_)));
-   }
+    public boolean isSame(Fluid p_76456_) {
+        return p_76456_ == Fluids.WATER || p_76456_ == Fluids.FLOWING_WATER;
+    }
 
-   public boolean isSame(Fluid p_76456_) {
-      return p_76456_ == Fluids.WATER || p_76456_ == Fluids.FLOWING_WATER;
-   }
+    public int getDropOff(LevelReader p_76469_) {
+        return 1;
+    }
 
-   public int getDropOff(LevelReader p_76469_) {
-      return 1;
-   }
+    public int getTickDelay(LevelReader p_76454_) {
+        return 5;
+    }
 
-   public int getTickDelay(LevelReader p_76454_) {
-      return 5;
-   }
+    public boolean canBeReplacedWith(FluidState p_76458_, BlockGetter p_76459_, BlockPos p_76460_, Fluid p_76461_, Direction p_76462_) {
+        return p_76462_ == Direction.DOWN && !p_76461_.is(FluidTags.WATER);
+    }
 
-   public boolean canBeReplacedWith(FluidState p_76458_, BlockGetter p_76459_, BlockPos p_76460_, Fluid p_76461_, Direction p_76462_) {
-      return p_76462_ == Direction.DOWN && !p_76461_.is(FluidTags.WATER);
-   }
+    protected float getExplosionResistance() {
+        return 100.0F;
+    }
 
-   protected float getExplosionResistance() {
-      return 100.0F;
-   }
+    public Optional<SoundEvent> getPickupSound() {
+        return Optional.of(SoundEvents.BUCKET_FILL);
+    }
 
-   public Optional<SoundEvent> getPickupSound() {
-      return Optional.of(SoundEvents.BUCKET_FILL);
-   }
+    public static class Flowing extends WaterFluid {
+        protected void createFluidStateDefinition(StateDefinition.Builder<Fluid, FluidState> p_76476_) {
+            super.createFluidStateDefinition(p_76476_);
+            p_76476_.add(LEVEL);
+        }
 
-   public static class Flowing extends WaterFluid {
-      protected void createFluidStateDefinition(StateDefinition.Builder<Fluid, FluidState> p_76476_) {
-         super.createFluidStateDefinition(p_76476_);
-         p_76476_.add(LEVEL);
-      }
+        public int getAmount(FluidState p_76480_) {
+            return p_76480_.getValue(LEVEL);
+        }
 
-      public int getAmount(FluidState p_76480_) {
-         return p_76480_.getValue(LEVEL);
-      }
+        public boolean isSource(FluidState p_76478_) {
+            return false;
+        }
+    }
 
-      public boolean isSource(FluidState p_76478_) {
-         return false;
-      }
-   }
+    public static class Source extends WaterFluid {
+        public int getAmount(FluidState p_76485_) {
+            return 8;
+        }
 
-   public static class Source extends WaterFluid {
-      public int getAmount(FluidState p_76485_) {
-         return 8;
-      }
-
-      public boolean isSource(FluidState p_76483_) {
-         return true;
-      }
-   }
+        public boolean isSource(FluidState p_76483_) {
+            return true;
+        }
+    }
 }

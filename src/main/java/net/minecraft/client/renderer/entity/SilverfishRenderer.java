@@ -9,17 +9,17 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SilverfishRenderer extends MobRenderer<Silverfish, SilverfishModel<Silverfish>> {
-   private static final ResourceLocation SILVERFISH_LOCATION = new ResourceLocation("textures/entity/silverfish.png");
+    private static final ResourceLocation SILVERFISH_LOCATION = new ResourceLocation("textures/entity/silverfish.png");
 
-   public SilverfishRenderer(EntityRendererProvider.Context p_174378_) {
-      super(p_174378_, new SilverfishModel<>(p_174378_.bakeLayer(ModelLayers.SILVERFISH)), 0.3F);
-   }
+    public SilverfishRenderer(EntityRendererProvider.Context p_174378_) {
+        super(p_174378_, new SilverfishModel<>(p_174378_.bakeLayer(ModelLayers.SILVERFISH)), 0.3F);
+    }
 
-   protected float getFlipDegrees(Silverfish p_115927_) {
-      return 180.0F;
-   }
+    protected float getFlipDegrees(Silverfish p_115927_) {
+        return 180.0F;
+    }
 
-   public ResourceLocation getTextureLocation(Silverfish p_115929_) {
-      return SILVERFISH_LOCATION;
-   }
+    public ResourceLocation getTextureLocation(Silverfish p_115929_) {
+        return SILVERFISH_LOCATION;
+    }
 }

@@ -13,41 +13,41 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.configurations.ProbabilityFeatureConfiguration;
 
 public class SeagrassFeature extends Feature<ProbabilityFeatureConfiguration> {
-   public SeagrassFeature(Codec<ProbabilityFeatureConfiguration> p_66768_) {
-      super(p_66768_);
-   }
+    public SeagrassFeature(Codec<ProbabilityFeatureConfiguration> p_66768_) {
+        super(p_66768_);
+    }
 
-   public boolean place(FeaturePlaceContext<ProbabilityFeatureConfiguration> p_160318_) {
-      boolean flag = false;
-      RandomSource randomsource = p_160318_.random();
-      WorldGenLevel worldgenlevel = p_160318_.level();
-      BlockPos blockpos = p_160318_.origin();
-      ProbabilityFeatureConfiguration probabilityfeatureconfiguration = p_160318_.config();
-      int i = randomsource.nextInt(8) - randomsource.nextInt(8);
-      int j = randomsource.nextInt(8) - randomsource.nextInt(8);
-      long k = WorldBounds.addBlockOffset(blockpos.getX(), i);
-      long l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
-      int i1 = worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR, k, l);
-      BlockPos blockpos1 = new BlockPos(k, i1, l);
-      if (worldgenlevel.getBlockState(blockpos1).is(Blocks.WATER)) {
-         boolean flag1 = randomsource.nextDouble() < (double)probabilityfeatureconfiguration.probability;
-         BlockState blockstate = flag1 ? Blocks.TALL_SEAGRASS.defaultBlockState() : Blocks.SEAGRASS.defaultBlockState();
-         if (blockstate.canSurvive(worldgenlevel, blockpos1)) {
-            if (flag1) {
-               BlockState blockstate1 = blockstate.setValue(TallSeagrassBlock.HALF, DoubleBlockHalf.UPPER);
-               BlockPos blockpos2 = blockpos1.above();
-               if (worldgenlevel.getBlockState(blockpos2).is(Blocks.WATER)) {
-                  worldgenlevel.setBlock(blockpos1, blockstate, 2);
-                  worldgenlevel.setBlock(blockpos2, blockstate1, 2);
-               }
-            } else {
-               worldgenlevel.setBlock(blockpos1, blockstate, 2);
+    public boolean place(FeaturePlaceContext<ProbabilityFeatureConfiguration> p_160318_) {
+        boolean flag = false;
+        RandomSource randomsource = p_160318_.random();
+        WorldGenLevel worldgenlevel = p_160318_.level();
+        BlockPos blockpos = p_160318_.origin();
+        ProbabilityFeatureConfiguration probabilityfeatureconfiguration = p_160318_.config();
+        int i = randomsource.nextInt(8) - randomsource.nextInt(8);
+        int j = randomsource.nextInt(8) - randomsource.nextInt(8);
+        long k = WorldBounds.addBlockOffset(blockpos.getX(), i);
+        long l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
+        int i1 = worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR, k, l);
+        BlockPos blockpos1 = new BlockPos(k, i1, l);
+        if (worldgenlevel.getBlockState(blockpos1).is(Blocks.WATER)) {
+            boolean flag1 = randomsource.nextDouble() < (double) probabilityfeatureconfiguration.probability;
+            BlockState blockstate = flag1 ? Blocks.TALL_SEAGRASS.defaultBlockState() : Blocks.SEAGRASS.defaultBlockState();
+            if (blockstate.canSurvive(worldgenlevel, blockpos1)) {
+                if (flag1) {
+                    BlockState blockstate1 = blockstate.setValue(TallSeagrassBlock.HALF, DoubleBlockHalf.UPPER);
+                    BlockPos blockpos2 = blockpos1.above();
+                    if (worldgenlevel.getBlockState(blockpos2).is(Blocks.WATER)) {
+                        worldgenlevel.setBlock(blockpos1, blockstate, 2);
+                        worldgenlevel.setBlock(blockpos2, blockstate1, 2);
+                    }
+                } else {
+                    worldgenlevel.setBlock(blockpos1, blockstate, 2);
+                }
+
+                flag = true;
             }
+        }
 
-            flag = true;
-         }
-      }
-
-      return flag;
-   }
+        return flag;
+    }
 }

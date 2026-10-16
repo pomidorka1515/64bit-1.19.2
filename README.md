@@ -39,7 +39,7 @@ If you want to help and contribute, dm me on discord! `@pomidorka1515`
 ```
 ==== history ====
 1.0.0:
-	  Inital release [+]
+      Inital release [+]
 =================
 1.0.1:
       Add floating point precision display. [+]

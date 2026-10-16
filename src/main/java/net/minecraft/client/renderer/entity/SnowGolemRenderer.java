@@ -10,14 +10,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SnowGolemRenderer extends MobRenderer<SnowGolem, SnowGolemModel<SnowGolem>> {
-   private static final ResourceLocation SNOW_GOLEM_LOCATION = new ResourceLocation("textures/entity/snow_golem.png");
+    private static final ResourceLocation SNOW_GOLEM_LOCATION = new ResourceLocation("textures/entity/snow_golem.png");
 
-   public SnowGolemRenderer(EntityRendererProvider.Context p_174393_) {
-      super(p_174393_, new SnowGolemModel<>(p_174393_.bakeLayer(ModelLayers.SNOW_GOLEM)), 0.5F);
-      this.addLayer(new SnowGolemHeadLayer(this, p_174393_.getBlockRenderDispatcher(), p_174393_.getItemRenderer()));
-   }
+    public SnowGolemRenderer(EntityRendererProvider.Context p_174393_) {
+        super(p_174393_, new SnowGolemModel<>(p_174393_.bakeLayer(ModelLayers.SNOW_GOLEM)), 0.5F);
+        this.addLayer(new SnowGolemHeadLayer(this, p_174393_.getBlockRenderDispatcher(), p_174393_.getItemRenderer()));
+    }
 
-   public ResourceLocation getTextureLocation(SnowGolem p_115993_) {
-      return SNOW_GOLEM_LOCATION;
-   }
+    public ResourceLocation getTextureLocation(SnowGolem p_115993_) {
+        return SNOW_GOLEM_LOCATION;
+    }
 }

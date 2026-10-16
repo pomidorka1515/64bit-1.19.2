@@ -11,17 +11,17 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class FoliageColorReloadListener extends SimplePreparableReloadListener<int[]> {
-   private static final ResourceLocation LOCATION = new ResourceLocation("textures/colormap/foliage.png");
+    private static final ResourceLocation LOCATION = new ResourceLocation("textures/colormap/foliage.png");
 
-   protected int[] prepare(ResourceManager p_118660_, ProfilerFiller p_118661_) {
-      try {
-         return LegacyStuffWrapper.getPixels(p_118660_, LOCATION);
-      } catch (IOException ioexception) {
-         throw new IllegalStateException("Failed to load foliage color texture", ioexception);
-      }
-   }
+    protected int[] prepare(ResourceManager p_118660_, ProfilerFiller p_118661_) {
+        try {
+            return LegacyStuffWrapper.getPixels(p_118660_, LOCATION);
+        } catch (IOException ioexception) {
+            throw new IllegalStateException("Failed to load foliage color texture", ioexception);
+        }
+    }
 
-   protected void apply(int[] p_118667_, ResourceManager p_118668_, ProfilerFiller p_118669_) {
-      FoliageColor.init(p_118667_);
-   }
+    protected void apply(int[] p_118667_, ResourceManager p_118668_, ProfilerFiller p_118669_) {
+        FoliageColor.init(p_118667_);
+    }
 }

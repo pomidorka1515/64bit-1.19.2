@@ -9,7 +9,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface AudioStream extends Closeable {
-   AudioFormat getFormat();
+    AudioFormat getFormat();
 
-   ByteBuffer read(int p_120120_) throws IOException;
+    ByteBuffer read(int p_120120_) throws IOException;
 }

@@ -12,55 +12,55 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.Vec3;
 
 public class BreathAirGoal extends Goal {
-   private final PathfinderMob mob;
+    private final PathfinderMob mob;
 
-   public BreathAirGoal(PathfinderMob p_25103_) {
-      this.mob = p_25103_;
-      this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
-   }
+    public BreathAirGoal(PathfinderMob p_25103_) {
+        this.mob = p_25103_;
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+    }
 
-   public boolean canUse() {
-      return this.mob.getAirSupply() < 140;
-   }
+    public boolean canUse() {
+        return this.mob.getAirSupply() < 140;
+    }
 
-   public boolean canContinueToUse() {
-      return this.canUse();
-   }
+    public boolean canContinueToUse() {
+        return this.canUse();
+    }
 
-   public boolean isInterruptable() {
-      return false;
-   }
+    public boolean isInterruptable() {
+        return false;
+    }
 
-   public void start() {
-      this.findAirPosition();
-   }
+    public void start() {
+        this.findAirPosition();
+    }
 
-   private void findAirPosition() {
-      Iterable<BlockPos> iterable = BlockPos.betweenClosed(this.mob.sectorPosition().add(-1.0D, 0.0D, -1.0D).blockPosition(), this.mob.sectorPosition().add(1.0D, 8.0D, 1.0D).blockPosition());
-      BlockPos blockpos = null;
+    private void findAirPosition() {
+        Iterable<BlockPos> iterable = BlockPos.betweenClosed(this.mob.sectorPosition().add(-1.0D, 0.0D, -1.0D).blockPosition(), this.mob.sectorPosition().add(1.0D, 8.0D, 1.0D).blockPosition());
+        BlockPos blockpos = null;
 
-      for(BlockPos blockpos1 : iterable) {
-         if (this.givesAir(this.mob.level, blockpos1)) {
-            blockpos = blockpos1;
-            break;
-         }
-      }
+        for (BlockPos blockpos1 : iterable) {
+            if (this.givesAir(this.mob.level, blockpos1)) {
+                blockpos = blockpos1;
+                break;
+            }
+        }
 
-      if (blockpos == null) {
-         blockpos = this.mob.blockPosition().above(8);
-      }
+        if (blockpos == null) {
+            blockpos = this.mob.blockPosition().above(8);
+        }
 
-      this.mob.getNavigation().moveTo(blockpos.above(), 1.0D);
-   }
+        this.mob.getNavigation().moveTo(blockpos.above(), 1.0D);
+    }
 
-   public void tick() {
-      this.findAirPosition();
-      this.mob.moveRelative(0.02F, new Vec3((double)this.mob.xxa, (double)this.mob.yya, (double)this.mob.zza));
-      this.mob.move(MoverType.SELF, this.mob.getDeltaMovement());
-   }
+    public void tick() {
+        this.findAirPosition();
+        this.mob.moveRelative(0.02F, new Vec3((double) this.mob.xxa, (double) this.mob.yya, (double) this.mob.zza));
+        this.mob.move(MoverType.SELF, this.mob.getDeltaMovement());
+    }
 
-   private boolean givesAir(LevelReader p_25107_, BlockPos p_25108_) {
-      BlockState blockstate = p_25107_.getBlockState(p_25108_);
-      return (p_25107_.getFluidState(p_25108_).isEmpty() || blockstate.is(Blocks.BUBBLE_COLUMN)) && blockstate.isPathfindable(p_25107_, p_25108_, PathComputationType.LAND);
-   }
+    private boolean givesAir(LevelReader p_25107_, BlockPos p_25108_) {
+        BlockState blockstate = p_25107_.getBlockState(p_25108_);
+        return (p_25107_.getFluidState(p_25108_).isEmpty() || blockstate.is(Blocks.BUBBLE_COLUMN)) && blockstate.isPathfindable(p_25107_, p_25108_, PathComputationType.LAND);
+    }
 }

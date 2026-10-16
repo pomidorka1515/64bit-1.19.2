@@ -14,58 +14,58 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.configurations.ProbabilityFeatureConfiguration;
 
 public class BambooFeature extends Feature<ProbabilityFeatureConfiguration> {
-   private static final BlockState BAMBOO_TRUNK = Blocks.BAMBOO.defaultBlockState().setValue(BambooBlock.AGE, Integer.valueOf(1)).setValue(BambooBlock.LEAVES, BambooLeaves.NONE).setValue(BambooBlock.STAGE, Integer.valueOf(0));
-   private static final BlockState BAMBOO_FINAL_LARGE = BAMBOO_TRUNK.setValue(BambooBlock.LEAVES, BambooLeaves.LARGE).setValue(BambooBlock.STAGE, Integer.valueOf(1));
-   private static final BlockState BAMBOO_TOP_LARGE = BAMBOO_TRUNK.setValue(BambooBlock.LEAVES, BambooLeaves.LARGE);
-   private static final BlockState BAMBOO_TOP_SMALL = BAMBOO_TRUNK.setValue(BambooBlock.LEAVES, BambooLeaves.SMALL);
+    private static final BlockState BAMBOO_TRUNK = Blocks.BAMBOO.defaultBlockState().setValue(BambooBlock.AGE, Integer.valueOf(1)).setValue(BambooBlock.LEAVES, BambooLeaves.NONE).setValue(BambooBlock.STAGE, Integer.valueOf(0));
+    private static final BlockState BAMBOO_FINAL_LARGE = BAMBOO_TRUNK.setValue(BambooBlock.LEAVES, BambooLeaves.LARGE).setValue(BambooBlock.STAGE, Integer.valueOf(1));
+    private static final BlockState BAMBOO_TOP_LARGE = BAMBOO_TRUNK.setValue(BambooBlock.LEAVES, BambooLeaves.LARGE);
+    private static final BlockState BAMBOO_TOP_SMALL = BAMBOO_TRUNK.setValue(BambooBlock.LEAVES, BambooLeaves.SMALL);
 
-   public BambooFeature(Codec<ProbabilityFeatureConfiguration> p_65137_) {
-      super(p_65137_);
-   }
+    public BambooFeature(Codec<ProbabilityFeatureConfiguration> p_65137_) {
+        super(p_65137_);
+    }
 
-   public boolean place(FeaturePlaceContext<ProbabilityFeatureConfiguration> p_159438_) {
-      int i = 0;
-      BlockPos blockpos = p_159438_.origin();
-      WorldGenLevel worldgenlevel = p_159438_.level();
-      RandomSource randomsource = p_159438_.random();
-      ProbabilityFeatureConfiguration probabilityfeatureconfiguration = p_159438_.config();
-      BlockPos.MutableBlockPos blockpos$mutableblockpos = blockpos.mutable();
-      BlockPos.MutableBlockPos blockpos$mutableblockpos1 = blockpos.mutable();
-      if (worldgenlevel.isEmptyBlock(blockpos$mutableblockpos)) {
-         if (Blocks.BAMBOO.defaultBlockState().canSurvive(worldgenlevel, blockpos$mutableblockpos)) {
-            int j = randomsource.nextInt(12) + 5;
-            if (randomsource.nextFloat() < probabilityfeatureconfiguration.probability) {
-               int k = randomsource.nextInt(4) + 1;
+    public boolean place(FeaturePlaceContext<ProbabilityFeatureConfiguration> p_159438_) {
+        int i = 0;
+        BlockPos blockpos = p_159438_.origin();
+        WorldGenLevel worldgenlevel = p_159438_.level();
+        RandomSource randomsource = p_159438_.random();
+        ProbabilityFeatureConfiguration probabilityfeatureconfiguration = p_159438_.config();
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = blockpos.mutable();
+        BlockPos.MutableBlockPos blockpos$mutableblockpos1 = blockpos.mutable();
+        if (worldgenlevel.isEmptyBlock(blockpos$mutableblockpos)) {
+            if (Blocks.BAMBOO.defaultBlockState().canSurvive(worldgenlevel, blockpos$mutableblockpos)) {
+                int j = randomsource.nextInt(12) + 5;
+                if (randomsource.nextFloat() < probabilityfeatureconfiguration.probability) {
+                    int k = randomsource.nextInt(4) + 1;
 
-               for(int l = -k; l <= k; ++l) {
-                  long i1 = WorldBounds.addBlockOffset(blockpos.getX(), l);
-                  for(int j1 = -k; j1 <= k; ++j1) {
-                     long k1 = WorldBounds.addBlockOffset(blockpos.getZ(), j1);
-                     if (l * l + j1 * j1 <= k * k) {
-                        blockpos$mutableblockpos1.set(i1, worldgenlevel.getHeight(Heightmap.Types.WORLD_SURFACE, i1, k1) - 1, k1);
-                        if (isDirt(worldgenlevel.getBlockState(blockpos$mutableblockpos1))) {
-                           worldgenlevel.setBlock(blockpos$mutableblockpos1, Blocks.PODZOL.defaultBlockState(), 2);
+                    for (int l = -k; l <= k; ++l) {
+                        long i1 = WorldBounds.addBlockOffset(blockpos.getX(), l);
+                        for (int j1 = -k; j1 <= k; ++j1) {
+                            long k1 = WorldBounds.addBlockOffset(blockpos.getZ(), j1);
+                            if (l * l + j1 * j1 <= k * k) {
+                                blockpos$mutableblockpos1.set(i1, worldgenlevel.getHeight(Heightmap.Types.WORLD_SURFACE, i1, k1) - 1, k1);
+                                if (isDirt(worldgenlevel.getBlockState(blockpos$mutableblockpos1))) {
+                                    worldgenlevel.setBlock(blockpos$mutableblockpos1, Blocks.PODZOL.defaultBlockState(), 2);
+                                }
+                            }
                         }
-                     }
-                  }
-               }
+                    }
+                }
+
+                for (int l1 = 0; l1 < j && worldgenlevel.isEmptyBlock(blockpos$mutableblockpos); ++l1) {
+                    worldgenlevel.setBlock(blockpos$mutableblockpos, BAMBOO_TRUNK, 2);
+                    blockpos$mutableblockpos.move(Direction.UP, 1);
+                }
+
+                if (blockpos$mutableblockpos.getY() - blockpos.getY() >= 3) {
+                    worldgenlevel.setBlock(blockpos$mutableblockpos, BAMBOO_FINAL_LARGE, 2);
+                    worldgenlevel.setBlock(blockpos$mutableblockpos.move(Direction.DOWN, 1), BAMBOO_TOP_LARGE, 2);
+                    worldgenlevel.setBlock(blockpos$mutableblockpos.move(Direction.DOWN, 1), BAMBOO_TOP_SMALL, 2);
+                }
             }
 
-            for(int l1 = 0; l1 < j && worldgenlevel.isEmptyBlock(blockpos$mutableblockpos); ++l1) {
-               worldgenlevel.setBlock(blockpos$mutableblockpos, BAMBOO_TRUNK, 2);
-               blockpos$mutableblockpos.move(Direction.UP, 1);
-            }
+            ++i;
+        }
 
-            if (blockpos$mutableblockpos.getY() - blockpos.getY() >= 3) {
-               worldgenlevel.setBlock(blockpos$mutableblockpos, BAMBOO_FINAL_LARGE, 2);
-               worldgenlevel.setBlock(blockpos$mutableblockpos.move(Direction.DOWN, 1), BAMBOO_TOP_LARGE, 2);
-               worldgenlevel.setBlock(blockpos$mutableblockpos.move(Direction.DOWN, 1), BAMBOO_TOP_SMALL, 2);
-            }
-         }
-
-         ++i;
-      }
-
-      return i > 0;
-   }
+        return i > 0;
+    }
 }

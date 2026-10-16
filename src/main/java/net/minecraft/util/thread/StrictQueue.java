@@ -7,101 +7,100 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 
 public interface StrictQueue<T, F> {
-   @Nullable
-   F pop();
+    @Nullable
+    F pop();
 
-   boolean push(T p_18770_);
+    boolean push(T p_18770_);
 
-   boolean isEmpty();
+    boolean isEmpty();
 
-   int size();
+    int size();
 
-   public static final class FixedPriorityQueue implements StrictQueue<StrictQueue.IntRunnable, Runnable> {
-      private final Queue<Runnable>[] queues;
-      private final AtomicInteger size = new AtomicInteger();
+    public static final class FixedPriorityQueue implements StrictQueue<StrictQueue.IntRunnable, Runnable> {
+        private final Queue<Runnable>[] queues;
+        private final AtomicInteger size = new AtomicInteger();
 
-      public FixedPriorityQueue(int p_18773_) {
-         this.queues = new Queue[p_18773_];
+        public FixedPriorityQueue(int p_18773_) {
+            this.queues = new Queue[p_18773_];
 
-         for(int i = 0; i < p_18773_; ++i) {
-            this.queues[i] = Queues.newConcurrentLinkedQueue();
-         }
-
-      }
-
-      @Nullable
-      public Runnable pop() {
-         for(Queue<Runnable> queue : this.queues) {
-            Runnable runnable = queue.poll();
-            if (runnable != null) {
-               this.size.decrementAndGet();
-               return runnable;
+            for (int i = 0; i < p_18773_; ++i) {
+                this.queues[i] = Queues.newConcurrentLinkedQueue();
             }
-         }
+        }
 
-         return null;
-      }
+        @Nullable
+        public Runnable pop() {
+            for (Queue<Runnable> queue : this.queues) {
+                Runnable runnable = queue.poll();
+                if (runnable != null) {
+                    this.size.decrementAndGet();
+                    return runnable;
+                }
+            }
 
-      public boolean push(StrictQueue.IntRunnable p_18778_) {
-         int i = p_18778_.priority;
-         if (i < this.queues.length && i >= 0) {
-            this.queues[i].add(p_18778_);
-            this.size.incrementAndGet();
-            return true;
-         } else {
-            throw new IndexOutOfBoundsException(String.format(Locale.ROOT, "Priority %d not supported. Expected range [0-%d]", i, this.queues.length - 1));
-         }
-      }
+            return null;
+        }
 
-      public boolean isEmpty() {
-         return this.size.get() == 0;
-      }
+        public boolean push(StrictQueue.IntRunnable p_18778_) {
+            int i = p_18778_.priority;
+            if (i < this.queues.length && i >= 0) {
+                this.queues[i].add(p_18778_);
+                this.size.incrementAndGet();
+                return true;
+            } else {
+                throw new IndexOutOfBoundsException(String.format(Locale.ROOT, "Priority %d not supported. Expected range [0-%d]", i, this.queues.length - 1));
+            }
+        }
 
-      public int size() {
-         return this.size.get();
-      }
-   }
+        public boolean isEmpty() {
+            return this.size.get() == 0;
+        }
 
-   public static final class IntRunnable implements Runnable {
-      final int priority;
-      private final Runnable task;
+        public int size() {
+            return this.size.get();
+        }
+    }
 
-      public IntRunnable(int p_18786_, Runnable p_18787_) {
-         this.priority = p_18786_;
-         this.task = p_18787_;
-      }
+    public static final class IntRunnable implements Runnable {
+        final int priority;
+        private final Runnable task;
 
-      public void run() {
-         this.task.run();
-      }
+        public IntRunnable(int p_18786_, Runnable p_18787_) {
+            this.priority = p_18786_;
+            this.task = p_18787_;
+        }
 
-      public int getPriority() {
-         return this.priority;
-      }
-   }
+        public void run() {
+            this.task.run();
+        }
 
-   public static final class QueueStrictQueue<T> implements StrictQueue<T, T> {
-      private final Queue<T> queue;
+        public int getPriority() {
+            return this.priority;
+        }
+    }
 
-      public QueueStrictQueue(Queue<T> p_18792_) {
-         this.queue = p_18792_;
-      }
+    public static final class QueueStrictQueue<T> implements StrictQueue<T, T> {
+        private final Queue<T> queue;
 
-      @Nullable
-      public T pop() {
-         return this.queue.poll();
-      }
+        public QueueStrictQueue(Queue<T> p_18792_) {
+            this.queue = p_18792_;
+        }
 
-      public boolean push(T p_18795_) {
-         return this.queue.add(p_18795_);
-      }
+        @Nullable
+        public T pop() {
+            return this.queue.poll();
+        }
 
-      public boolean isEmpty() {
-         return this.queue.isEmpty();
-      }
+        public boolean push(T p_18795_) {
+            return this.queue.add(p_18795_);
+        }
 
-      public int size() {
-         return this.queue.size();
-      }
-   }
+        public boolean isEmpty() {
+            return this.queue.isEmpty();
+        }
+
+        public int size() {
+            return this.queue.size();
+        }
+    }
 }

@@ -8,13 +8,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.Property;
 
 public class BlockState extends BlockBehaviour.BlockStateBase {
-   public static final Codec<BlockState> CODEC = codec(Registry.BLOCK.byNameCodec(), Block::defaultBlockState).stable();
+    public static final Codec<BlockState> CODEC = codec(Registry.BLOCK.byNameCodec(), Block::defaultBlockState).stable();
 
-   public BlockState(Block p_61042_, ImmutableMap<Property<?>, Comparable<?>> p_61043_, MapCodec<BlockState> p_61044_) {
-      super(p_61042_, p_61043_, p_61044_);
-   }
+    public BlockState(Block p_61042_, ImmutableMap<Property<?>, Comparable<?>> p_61043_, MapCodec<BlockState> p_61044_) {
+        super(p_61042_, p_61043_, p_61044_);
+    }
 
-   protected BlockState asState() {
-      return this;
-   }
+    protected BlockState asState() {
+        return this;
+    }
 }

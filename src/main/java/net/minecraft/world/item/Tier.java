@@ -3,15 +3,15 @@ package net.minecraft.world.item;
 import net.minecraft.world.item.crafting.Ingredient;
 
 public interface Tier {
-   int getUses();
+    int getUses();
 
-   float getSpeed();
+    float getSpeed();
 
-   float getAttackDamageBonus();
+    float getAttackDamageBonus();
 
-   int getLevel();
+    int getLevel();
 
-   int getEnchantmentValue();
+    int getEnchantmentValue();
 
-   Ingredient getRepairIngredient();
+    Ingredient getRepairIngredient();
 }

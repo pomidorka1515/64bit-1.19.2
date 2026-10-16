@@ -5,13 +5,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 
 public final class FluidTags {
-   public static final TagKey<Fluid> WATER = create("water");
-   public static final TagKey<Fluid> LAVA = create("lava");
+    public static final TagKey<Fluid> WATER = create("water");
+    public static final TagKey<Fluid> LAVA = create("lava");
 
-   private FluidTags() {
-   }
+    private FluidTags() {
+    }
 
-   private static TagKey<Fluid> create(String p_203851_) {
-      return TagKey.create(Registry.FLUID_REGISTRY, new ResourceLocation(p_203851_));
-   }
+    private static TagKey<Fluid> create(String p_203851_) {
+        return TagKey.create(Registry.FLUID_REGISTRY, new ResourceLocation(p_203851_));
+    }
 }

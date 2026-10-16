@@ -6,15 +6,15 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public interface PositionTracker {
-   SectorVec3 currentExactPosition();
+    SectorVec3 currentExactPosition();
 
-   /** Compatibility conversion; exact AI code should use currentExactPosition(). */
-   @Deprecated
-   default Vec3 currentPosition() {
-      return this.currentExactPosition().toApproximateVec3();
-   }
+    /** Compatibility conversion; exact AI code should use currentExactPosition(). */
+    @Deprecated
+    default Vec3 currentPosition() {
+        return this.currentExactPosition().toApproximateVec3();
+    }
 
-   BlockPos currentBlockPosition();
+    BlockPos currentBlockPosition();
 
-   boolean isVisibleBy(LivingEntity p_23739_);
+    boolean isVisibleBy(LivingEntity p_23739_);
 }

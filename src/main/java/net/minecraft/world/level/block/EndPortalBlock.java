@@ -21,44 +21,41 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class EndPortalBlock extends BaseEntityBlock {
-   protected static final VoxelShape SHAPE = Block.box(0.0D, 6.0D, 0.0D, 16.0D, 12.0D, 16.0D);
+    protected static final VoxelShape SHAPE = Block.box(0.0D, 6.0D, 0.0D, 16.0D, 12.0D, 16.0D);
 
-   protected EndPortalBlock(BlockBehaviour.Properties p_53017_) {
-      super(p_53017_);
-   }
+    protected EndPortalBlock(BlockBehaviour.Properties p_53017_) {
+        super(p_53017_);
+    }
 
-   public BlockEntity newBlockEntity(BlockPos p_153196_, BlockState p_153197_) {
-      return new TheEndPortalBlockEntity(p_153196_, p_153197_);
-   }
+    public BlockEntity newBlockEntity(BlockPos p_153196_, BlockState p_153197_) {
+        return new TheEndPortalBlockEntity(p_153196_, p_153197_);
+    }
 
-   public VoxelShape getShape(BlockState p_53038_, BlockGetter p_53039_, BlockPos p_53040_, CollisionContext p_53041_) {
-      return SHAPE;
-   }
+    public VoxelShape getShape(BlockState p_53038_, BlockGetter p_53039_, BlockPos p_53040_, CollisionContext p_53041_) {
+        return SHAPE;
+    }
 
-   public void entityInside(BlockState p_53025_, Level p_53026_, BlockPos p_53027_, Entity p_53028_) {
-      if (p_53026_ instanceof ServerLevel && !p_53028_.isPassenger() && !p_53028_.isVehicle() && p_53028_.canChangeDimensions() && Shapes.joinIsNotEmpty(Shapes.create(p_53028_.getBoundingBox().move((double)(-p_53027_.getX()), (double)(-p_53027_.getY()), (double)(-p_53027_.getZ()))), p_53025_.getShape(p_53026_, p_53027_), BooleanOp.AND)) {
-         ResourceKey<Level> resourcekey = p_53026_.dimension() == Level.END ? Level.OVERWORLD : Level.END;
-         ServerLevel serverlevel = ((ServerLevel)p_53026_).getServer().getLevel(resourcekey);
-         if (serverlevel == null) {
-            return;
-         }
+    public void entityInside(BlockState p_53025_, Level p_53026_, BlockPos p_53027_, Entity p_53028_) {
+        if (p_53026_ instanceof ServerLevel && !p_53028_.isPassenger() && !p_53028_.isVehicle() && p_53028_.canChangeDimensions() && Shapes.joinIsNotEmpty(Shapes.create(p_53028_.getBoundingBox().move((double) (-p_53027_.getX()), (double) (-p_53027_.getY()), (double) (-p_53027_.getZ()))), p_53025_.getShape(p_53026_, p_53027_), BooleanOp.AND)) {
+            ResourceKey<Level> resourcekey = p_53026_.dimension() == Level.END ? Level.OVERWORLD : Level.END;
+            ServerLevel serverlevel = ((ServerLevel) p_53026_).getServer().getLevel(resourcekey);
+            if (serverlevel == null) {
+                return;
+            }
 
-         p_53028_.changeDimension(serverlevel);
-      }
+            p_53028_.changeDimension(serverlevel);
+        }
+    }
 
-   }
+    public void animateTick(BlockState p_221102_, Level p_221103_, BlockPos p_221104_, RandomSource p_221105_) {
+        p_221103_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_221104_.getX(), p_221105_.nextDouble(), (double) p_221104_.getY() + 0.8D, p_221104_.getZ(), p_221105_.nextDouble()), 0.0D, 0.0D, 0.0D);
+    }
 
-   public void animateTick(BlockState p_221102_, Level p_221103_, BlockPos p_221104_, RandomSource p_221105_) {
-      p_221103_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_221104_.getX(),
-            p_221105_.nextDouble(), (double)p_221104_.getY() + 0.8D, p_221104_.getZ(),
-            p_221105_.nextDouble()), 0.0D, 0.0D, 0.0D);
-   }
+    public ItemStack getCloneItemStack(BlockGetter p_53021_, BlockPos p_53022_, BlockState p_53023_) {
+        return ItemStack.EMPTY;
+    }
 
-   public ItemStack getCloneItemStack(BlockGetter p_53021_, BlockPos p_53022_, BlockState p_53023_) {
-      return ItemStack.EMPTY;
-   }
-
-   public boolean canBeReplaced(BlockState p_53035_, Fluid p_53036_) {
-      return false;
-   }
+    public boolean canBeReplaced(BlockState p_53035_, Fluid p_53036_) {
+        return false;
+    }
 }

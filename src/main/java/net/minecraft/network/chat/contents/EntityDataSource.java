@@ -13,49 +13,49 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 
 public record EntityDataSource(String selectorPattern, @Nullable EntitySelector compiledSelector) implements DataSource {
-   public EntityDataSource(String p_237330_) {
-      this(p_237330_, compileSelector(p_237330_));
-   }
+    public EntityDataSource(String p_237330_) {
+        this(p_237330_, compileSelector(p_237330_));
+    }
 
-   @Nullable
-   private static EntitySelector compileSelector(String p_237336_) {
-      try {
-         EntitySelectorParser entityselectorparser = new EntitySelectorParser(new StringReader(p_237336_));
-         return entityselectorparser.parse();
-      } catch (CommandSyntaxException commandsyntaxexception) {
-         return null;
-      }
-   }
+    @Nullable
+    private static EntitySelector compileSelector(String p_237336_) {
+        try {
+            EntitySelectorParser entityselectorparser = new EntitySelectorParser(new StringReader(p_237336_));
+            return entityselectorparser.parse();
+        } catch (CommandSyntaxException commandsyntaxexception) {
+            return null;
+        }
+    }
 
-   public Stream<CompoundTag> getData(CommandSourceStack p_237341_) throws CommandSyntaxException {
-      if (this.compiledSelector != null) {
-         List<? extends Entity> list = this.compiledSelector.findEntities(p_237341_);
-         return list.stream().map(NbtPredicate::getEntityTagToCompare);
-      } else {
-         return Stream.empty();
-      }
-   }
+    public Stream<CompoundTag> getData(CommandSourceStack p_237341_) throws CommandSyntaxException {
+        if (this.compiledSelector != null) {
+            List<? extends Entity> list = this.compiledSelector.findEntities(p_237341_);
+            return list.stream().map(NbtPredicate::getEntityTagToCompare);
+        } else {
+            return Stream.empty();
+        }
+    }
 
-   public String toString() {
-      return "entity=" + this.selectorPattern;
-   }
+    public String toString() {
+        return "entity=" + this.selectorPattern;
+    }
 
-   public boolean equals(Object p_237339_) {
-      if (this == p_237339_) {
-         return true;
-      } else {
-         if (p_237339_ instanceof EntityDataSource) {
-            EntityDataSource entitydatasource = (EntityDataSource)p_237339_;
-            if (this.selectorPattern.equals(entitydatasource.selectorPattern)) {
-               return true;
+    public boolean equals(Object p_237339_) {
+        if (this == p_237339_) {
+            return true;
+        } else {
+            if (p_237339_ instanceof EntityDataSource) {
+                EntityDataSource entitydatasource = (EntityDataSource) p_237339_;
+                if (this.selectorPattern.equals(entitydatasource.selectorPattern)) {
+                    return true;
+                }
             }
-         }
 
-         return false;
-      }
-   }
+            return false;
+        }
+    }
 
-   public int hashCode() {
-      return this.selectorPattern.hashCode();
-   }
+    public int hashCode() {
+        return this.selectorPattern.hashCode();
+    }
 }

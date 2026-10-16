@@ -5,23 +5,23 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class UVPair {
-   private final float u;
-   private final float v;
+    private final float u;
+    private final float v;
 
-   public UVPair(float p_171610_, float p_171611_) {
-      this.u = p_171610_;
-      this.v = p_171611_;
-   }
+    public UVPair(float p_171610_, float p_171611_) {
+        this.u = p_171610_;
+        this.v = p_171611_;
+    }
 
-   public float u() {
-      return this.u;
-   }
+    public float u() {
+        return this.u;
+    }
 
-   public float v() {
-      return this.v;
-   }
+    public float v() {
+        return this.v;
+    }
 
-   public String toString() {
-      return "(" + this.u + "," + this.v + ")";
-   }
+    public String toString() {
+        return "(" + this.u + "," + this.v + ")";
+    }
 }

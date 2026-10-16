@@ -20,38 +20,33 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class WitherRoseBlock extends FlowerBlock {
-   public WitherRoseBlock(MobEffect p_58235_, BlockBehaviour.Properties p_58236_) {
-      super(p_58235_, 8, p_58236_);
-   }
+    public WitherRoseBlock(MobEffect p_58235_, BlockBehaviour.Properties p_58236_) {
+        super(p_58235_, 8, p_58236_);
+    }
 
-   protected boolean mayPlaceOn(BlockState p_58248_, BlockGetter p_58249_, BlockPos p_58250_) {
-      return super.mayPlaceOn(p_58248_, p_58249_, p_58250_) || p_58248_.is(Blocks.NETHERRACK) || p_58248_.is(Blocks.SOUL_SAND) || p_58248_.is(Blocks.SOUL_SOIL);
-   }
+    protected boolean mayPlaceOn(BlockState p_58248_, BlockGetter p_58249_, BlockPos p_58250_) {
+        return super.mayPlaceOn(p_58248_, p_58249_, p_58250_) || p_58248_.is(Blocks.NETHERRACK) || p_58248_.is(Blocks.SOUL_SAND) || p_58248_.is(Blocks.SOUL_SOIL);
+    }
 
-   public void animateTick(BlockState p_222687_, Level p_222688_, BlockPos p_222689_, RandomSource p_222690_) {
-      VoxelShape voxelshape = this.getShape(p_222687_, p_222688_, p_222689_, CollisionContext.empty());
-      Vec3 vec3 = voxelshape.bounds().getCenter();
+    public void animateTick(BlockState p_222687_, Level p_222688_, BlockPos p_222689_, RandomSource p_222690_) {
+        VoxelShape voxelshape = this.getShape(p_222687_, p_222688_, p_222689_, CollisionContext.empty());
+        Vec3 vec3 = voxelshape.bounds().getCenter();
 
-      for(int i = 0; i < 3; ++i) {
-         if (p_222690_.nextBoolean()) {
-            p_222688_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_222689_.getX(),
-                  vec3.x + p_222690_.nextDouble() / 5.0D,
-                  (double)p_222689_.getY() + (0.5D - p_222690_.nextDouble()), p_222689_.getZ(),
-                  vec3.z + p_222690_.nextDouble() / 5.0D), 0.0D, 0.0D, 0.0D);
-         }
-      }
-
-   }
-
-   public void entityInside(BlockState p_58238_, Level p_58239_, BlockPos p_58240_, Entity p_58241_) {
-      if (!p_58239_.isClientSide && p_58239_.getDifficulty() != Difficulty.PEACEFUL) {
-         if (p_58241_ instanceof LivingEntity) {
-            LivingEntity livingentity = (LivingEntity)p_58241_;
-            if (!livingentity.isInvulnerableTo(DamageSource.WITHER)) {
-               livingentity.addEffect(new MobEffectInstance(MobEffects.WITHER, 40));
+        for (int i = 0; i < 3; ++i) {
+            if (p_222690_.nextBoolean()) {
+                p_222688_.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(p_222689_.getX(), vec3.x + p_222690_.nextDouble() / 5.0D, (double) p_222689_.getY() + (0.5D - p_222690_.nextDouble()), p_222689_.getZ(), vec3.z + p_222690_.nextDouble() / 5.0D), 0.0D, 0.0D, 0.0D);
             }
-         }
+        }
+    }
 
-      }
-   }
+    public void entityInside(BlockState p_58238_, Level p_58239_, BlockPos p_58240_, Entity p_58241_) {
+        if (!p_58239_.isClientSide && p_58239_.getDifficulty() != Difficulty.PEACEFUL) {
+            if (p_58241_ instanceof LivingEntity) {
+                LivingEntity livingentity = (LivingEntity) p_58241_;
+                if (!livingentity.isInvulnerableTo(DamageSource.WITHER)) {
+                    livingentity.addEffect(new MobEffectInstance(MobEffects.WITHER, 40));
+                }
+            }
+        }
+    }
 }

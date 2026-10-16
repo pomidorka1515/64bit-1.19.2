@@ -6,5 +6,5 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface MenuAccess<T extends AbstractContainerMenu> {
-   T getMenu();
+    T getMenu();
 }

@@ -6,9 +6,9 @@ import net.minecraft.Util;
 import net.minecraft.world.entity.player.ProfilePublicKey;
 
 public record ChatSender(UUID profileId, @Nullable ProfilePublicKey profilePublicKey) {
-   public static final ChatSender SYSTEM = new ChatSender(Util.NIL_UUID, (ProfilePublicKey)null);
+    public static final ChatSender SYSTEM = new ChatSender(Util.NIL_UUID, (ProfilePublicKey) null);
 
-   public boolean isSystem() {
-      return SYSTEM.equals(this);
-   }
+    public boolean isSystem() {
+        return SYSTEM.equals(this);
+    }
 }

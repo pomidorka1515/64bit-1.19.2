@@ -15,53 +15,52 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class BulkSectionAccess implements AutoCloseable {
-   private final LevelAccessor level;
-   private final Object2ObjectMap<SectionPos, LevelChunkSection> acquiredSections = new Object2ObjectOpenHashMap<>();
-   @Nullable
-   private LevelChunkSection lastSection;
-   private SectionPos lastSectionKey;
+    private final LevelAccessor level;
+    private final Object2ObjectMap<SectionPos, LevelChunkSection> acquiredSections = new Object2ObjectOpenHashMap<>();
+    @Nullable
+    private LevelChunkSection lastSection;
+    private SectionPos lastSectionKey;
 
-   public BulkSectionAccess(LevelAccessor p_156103_) {
-      this.level = p_156103_;
-   }
+    public BulkSectionAccess(LevelAccessor p_156103_) {
+        this.level = p_156103_;
+    }
 
-   @Nullable
-   public LevelChunkSection getSection(BlockPos p_156105_) {
-      int i = this.level.getSectionIndex(p_156105_.getY());
-      if (i >= 0 && i < this.level.getSectionsCount()) {
-         SectionPos j = SectionPos.of(p_156105_);
-         if (this.lastSection == null || Util.safeCompare(j, lastSectionKey)) {
-            this.lastSection = this.acquiredSections.computeIfAbsent(j, (p_156109_) -> {
-               ChunkAccess chunkaccess = this.level.getChunk(SectionPos.blockToSectionCoord(p_156105_.getX()), SectionPos.blockToSectionCoord(p_156105_.getZ()));
-               LevelChunkSection levelchunksection = chunkaccess.getSection(i);
-               levelchunksection.acquire();
-               return levelchunksection;
-            });
-            this.lastSectionKey = j;
-         }
+    @Nullable
+    public LevelChunkSection getSection(BlockPos p_156105_) {
+        int i = this.level.getSectionIndex(p_156105_.getY());
+        if (i >= 0 && i < this.level.getSectionsCount()) {
+            SectionPos j = SectionPos.of(p_156105_);
+            if (this.lastSection == null || Util.safeCompare(j, lastSectionKey)) {
+                this.lastSection = this.acquiredSections.computeIfAbsent(j, (p_156109_) -> {
+                    ChunkAccess chunkaccess = this.level.getChunk(SectionPos.blockToSectionCoord(p_156105_.getX()), SectionPos.blockToSectionCoord(p_156105_.getZ()));
+                    LevelChunkSection levelchunksection = chunkaccess.getSection(i);
+                    levelchunksection.acquire();
+                    return levelchunksection;
+                });
+                this.lastSectionKey = j;
+            }
 
-         return this.lastSection;
-      } else {
-         return null;
-      }
-   }
+            return this.lastSection;
+        } else {
+            return null;
+        }
+    }
 
-   public BlockState getBlockState(BlockPos p_156111_) {
-      LevelChunkSection levelchunksection = this.getSection(p_156111_);
-      if (levelchunksection == null) {
-         return Blocks.AIR.defaultBlockState();
-      } else {
-         int i = SectionPos.sectionRelative(p_156111_.getX());
-         int j = SectionPos.sectionRelative(p_156111_.getY());
-         int k = SectionPos.sectionRelative(p_156111_.getZ());
-         return levelchunksection.getBlockState(i, j, k);
-      }
-   }
+    public BlockState getBlockState(BlockPos p_156111_) {
+        LevelChunkSection levelchunksection = this.getSection(p_156111_);
+        if (levelchunksection == null) {
+            return Blocks.AIR.defaultBlockState();
+        } else {
+            int i = SectionPos.sectionRelative(p_156111_.getX());
+            int j = SectionPos.sectionRelative(p_156111_.getY());
+            int k = SectionPos.sectionRelative(p_156111_.getZ());
+            return levelchunksection.getBlockState(i, j, k);
+        }
+    }
 
-   public void close() {
-      for(LevelChunkSection levelchunksection : this.acquiredSections.values()) {
-         levelchunksection.release();
-      }
-
-   }
+    public void close() {
+        for (LevelChunkSection levelchunksection : this.acquiredSections.values()) {
+            levelchunksection.release();
+        }
+    }
 }

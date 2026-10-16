@@ -10,14 +10,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class DolphinRenderer extends MobRenderer<Dolphin, DolphinModel<Dolphin>> {
-   private static final ResourceLocation DOLPHIN_LOCATION = new ResourceLocation("textures/entity/dolphin.png");
+    private static final ResourceLocation DOLPHIN_LOCATION = new ResourceLocation("textures/entity/dolphin.png");
 
-   public DolphinRenderer(EntityRendererProvider.Context p_173960_) {
-      super(p_173960_, new DolphinModel<>(p_173960_.bakeLayer(ModelLayers.DOLPHIN)), 0.7F);
-      this.addLayer(new DolphinCarryingItemLayer(this, p_173960_.getItemInHandRenderer()));
-   }
+    public DolphinRenderer(EntityRendererProvider.Context p_173960_) {
+        super(p_173960_, new DolphinModel<>(p_173960_.bakeLayer(ModelLayers.DOLPHIN)), 0.7F);
+        this.addLayer(new DolphinCarryingItemLayer(this, p_173960_.getItemInHandRenderer()));
+    }
 
-   public ResourceLocation getTextureLocation(Dolphin p_114059_) {
-      return DOLPHIN_LOCATION;
-   }
+    public ResourceLocation getTextureLocation(Dolphin p_114059_) {
+        return DOLPHIN_LOCATION;
+    }
 }

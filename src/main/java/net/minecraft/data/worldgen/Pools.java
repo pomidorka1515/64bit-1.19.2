@@ -9,24 +9,24 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 
 public class Pools {
-   public static final ResourceKey<StructureTemplatePool> EMPTY = ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, new ResourceLocation("empty"));
-   private static final Holder<StructureTemplatePool> BUILTIN_EMPTY = register(new StructureTemplatePool(EMPTY.location(), EMPTY.location(), ImmutableList.of(), StructureTemplatePool.Projection.RIGID));
+    public static final ResourceKey<StructureTemplatePool> EMPTY = ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, new ResourceLocation("empty"));
+    private static final Holder<StructureTemplatePool> BUILTIN_EMPTY = register(new StructureTemplatePool(EMPTY.location(), EMPTY.location(), ImmutableList.of(), StructureTemplatePool.Projection.RIGID));
 
-   public static Holder<StructureTemplatePool> register(StructureTemplatePool p_211104_) {
-      return BuiltinRegistries.register(BuiltinRegistries.TEMPLATE_POOL, p_211104_.getName(), p_211104_);
-   }
+    public static Holder<StructureTemplatePool> register(StructureTemplatePool p_211104_) {
+        return BuiltinRegistries.register(BuiltinRegistries.TEMPLATE_POOL, p_211104_.getName(), p_211104_);
+    }
 
-   /** @deprecated */
-   @Deprecated
-   public static void forceBootstrap() {
-      bootstrap(BuiltinRegistries.TEMPLATE_POOL);
-   }
+    /** @deprecated */
+    @Deprecated
+    public static void forceBootstrap() {
+        bootstrap(BuiltinRegistries.TEMPLATE_POOL);
+    }
 
-   public static Holder<StructureTemplatePool> bootstrap(Registry<StructureTemplatePool> p_236492_) {
-      BastionPieces.bootstrap();
-      PillagerOutpostPools.bootstrap();
-      VillagePools.bootstrap();
-      AncientCityStructurePieces.bootstrap();
-      return BUILTIN_EMPTY;
-   }
+    public static Holder<StructureTemplatePool> bootstrap(Registry<StructureTemplatePool> p_236492_) {
+        BastionPieces.bootstrap();
+        PillagerOutpostPools.bootstrap();
+        VillagePools.bootstrap();
+        AncientCityStructurePieces.bootstrap();
+        return BUILTIN_EMPTY;
+    }
 }

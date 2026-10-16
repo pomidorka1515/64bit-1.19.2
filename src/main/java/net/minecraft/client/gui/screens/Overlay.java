@@ -7,7 +7,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class Overlay extends GuiComponent implements Widget {
-   public boolean isPauseScreen() {
-      return true;
-   }
+    public boolean isPauseScreen() {
+        return true;
+    }
 }

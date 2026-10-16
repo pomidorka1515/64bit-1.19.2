@@ -18,114 +18,110 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.ChunkPos;
 
 public class LevelChunkTicks<T> implements SerializableTickContainer<T>, TickContainerAccess<T> {
-   private final Queue<ScheduledTick<T>> tickQueue = new PriorityQueue<>(ScheduledTick.DRAIN_ORDER);
-   @Nullable
-   private List<SavedTick<T>> pendingTicks;
-   private final Set<ScheduledTick<?>> ticksPerPosition = new ObjectOpenCustomHashSet<>(ScheduledTick.UNIQUE_TICK_HASH);
-   @Nullable
-   private BiConsumer<LevelChunkTicks<T>, ScheduledTick<T>> onTickAdded;
+    private final Queue<ScheduledTick<T>> tickQueue = new PriorityQueue<>(ScheduledTick.DRAIN_ORDER);
+    @Nullable
+    private List<SavedTick<T>> pendingTicks;
+    private final Set<ScheduledTick<?>> ticksPerPosition = new ObjectOpenCustomHashSet<>(ScheduledTick.UNIQUE_TICK_HASH);
+    @Nullable
+    private BiConsumer<LevelChunkTicks<T>, ScheduledTick<T>> onTickAdded;
 
-   public LevelChunkTicks() {
-   }
+    public LevelChunkTicks() {
+    }
 
-   public LevelChunkTicks(List<SavedTick<T>> p_193169_) {
-      this.pendingTicks = p_193169_;
+    public LevelChunkTicks(List<SavedTick<T>> p_193169_) {
+        this.pendingTicks = p_193169_;
 
-      for(SavedTick<T> savedtick : p_193169_) {
-         this.ticksPerPosition.add(ScheduledTick.probe(savedtick.type(), savedtick.pos()));
-      }
+        for (SavedTick<T> savedtick : p_193169_) {
+            this.ticksPerPosition.add(ScheduledTick.probe(savedtick.type(), savedtick.pos()));
+        }
+    }
 
-   }
+    public void setOnTickAdded(@Nullable BiConsumer<LevelChunkTicks<T>, ScheduledTick<T>> p_193182_) {
+        this.onTickAdded = p_193182_;
+    }
 
-   public void setOnTickAdded(@Nullable BiConsumer<LevelChunkTicks<T>, ScheduledTick<T>> p_193182_) {
-      this.onTickAdded = p_193182_;
-   }
+    @Nullable
+    public ScheduledTick<T> peek() {
+        return this.tickQueue.peek();
+    }
 
-   @Nullable
-   public ScheduledTick<T> peek() {
-      return this.tickQueue.peek();
-   }
-
-   @Nullable
-   public ScheduledTick<T> poll() {
-      ScheduledTick<T> scheduledtick = this.tickQueue.poll();
-      if (scheduledtick != null) {
-         this.ticksPerPosition.remove(scheduledtick);
-      }
-
-      return scheduledtick;
-   }
-
-   public void schedule(ScheduledTick<T> p_193177_) {
-      if (this.ticksPerPosition.add(p_193177_)) {
-         this.scheduleUnchecked(p_193177_);
-      }
-
-   }
-
-   private void scheduleUnchecked(ScheduledTick<T> p_193194_) {
-      this.tickQueue.add(p_193194_);
-      if (this.onTickAdded != null) {
-         this.onTickAdded.accept(this, p_193194_);
-      }
-
-   }
-
-   public boolean hasScheduledTick(BlockPos p_193179_, T p_193180_) {
-      return this.ticksPerPosition.contains(ScheduledTick.probe(p_193180_, p_193179_));
-   }
-
-   public void removeIf(Predicate<ScheduledTick<T>> p_193184_) {
-      Iterator<ScheduledTick<T>> iterator = this.tickQueue.iterator();
-
-      while(iterator.hasNext()) {
-         ScheduledTick<T> scheduledtick = iterator.next();
-         if (p_193184_.test(scheduledtick)) {
-            iterator.remove();
+    @Nullable
+    public ScheduledTick<T> poll() {
+        ScheduledTick<T> scheduledtick = this.tickQueue.poll();
+        if (scheduledtick != null) {
             this.ticksPerPosition.remove(scheduledtick);
-         }
-      }
+        }
 
-   }
+        return scheduledtick;
+    }
 
-   public Stream<ScheduledTick<T>> getAll() {
-      return this.tickQueue.stream();
-   }
+    public void schedule(ScheduledTick<T> p_193177_) {
+        if (this.ticksPerPosition.add(p_193177_)) {
+            this.scheduleUnchecked(p_193177_);
+        }
+    }
 
-   public int count() {
-      return this.tickQueue.size() + (this.pendingTicks != null ? this.pendingTicks.size() : 0);
-   }
+    private void scheduleUnchecked(ScheduledTick<T> p_193194_) {
+        this.tickQueue.add(p_193194_);
+        if (this.onTickAdded != null) {
+            this.onTickAdded.accept(this, p_193194_);
+        }
+    }
 
-   public ListTag save(long p_193174_, Function<T, String> p_193175_) {
-      ListTag listtag = new ListTag();
-      if (this.pendingTicks != null) {
-         for(SavedTick<T> savedtick : this.pendingTicks) {
-            listtag.add(savedtick.save(p_193175_));
-         }
-      }
+    public boolean hasScheduledTick(BlockPos p_193179_, T p_193180_) {
+        return this.ticksPerPosition.contains(ScheduledTick.probe(p_193180_, p_193179_));
+    }
 
-      for(ScheduledTick<T> scheduledtick : this.tickQueue) {
-         listtag.add(SavedTick.saveTick(scheduledtick, p_193175_, p_193174_));
-      }
+    public void removeIf(Predicate<ScheduledTick<T>> p_193184_) {
+        Iterator<ScheduledTick<T>> iterator = this.tickQueue.iterator();
 
-      return listtag;
-   }
+        while (iterator.hasNext()) {
+            ScheduledTick<T> scheduledtick = iterator.next();
+            if (p_193184_.test(scheduledtick)) {
+                iterator.remove();
+                this.ticksPerPosition.remove(scheduledtick);
+            }
+        }
+    }
 
-   public void unpack(long p_193172_) {
-      if (this.pendingTicks != null) {
-         int i = -this.pendingTicks.size();
+    public Stream<ScheduledTick<T>> getAll() {
+        return this.tickQueue.stream();
+    }
 
-         for(SavedTick<T> savedtick : this.pendingTicks) {
-            this.scheduleUnchecked(savedtick.unpack(p_193172_, (long)(i++)));
-         }
-      }
+    public int count() {
+        return this.tickQueue.size() + (this.pendingTicks != null ? this.pendingTicks.size() : 0);
+    }
 
-      this.pendingTicks = null;
-   }
+    public ListTag save(long p_193174_, Function<T, String> p_193175_) {
+        ListTag listtag = new ListTag();
+        if (this.pendingTicks != null) {
+            for (SavedTick<T> savedtick : this.pendingTicks) {
+                listtag.add(savedtick.save(p_193175_));
+            }
+        }
 
-   public static <T> LevelChunkTicks<T> load(ListTag p_193186_, Function<String, Optional<T>> p_193187_, ChunkPos p_193188_) {
-      ImmutableList.Builder<SavedTick<T>> builder = ImmutableList.builder();
-      SavedTick.loadTickList(p_193186_, p_193187_, p_193188_, builder::add);
-      return new LevelChunkTicks<>(builder.build());
-   }
+        for (ScheduledTick<T> scheduledtick : this.tickQueue) {
+            listtag.add(SavedTick.saveTick(scheduledtick, p_193175_, p_193174_));
+        }
+
+        return listtag;
+    }
+
+    public void unpack(long p_193172_) {
+        if (this.pendingTicks != null) {
+            int i = -this.pendingTicks.size();
+
+            for (SavedTick<T> savedtick : this.pendingTicks) {
+                this.scheduleUnchecked(savedtick.unpack(p_193172_, (long) (i++)));
+            }
+        }
+
+        this.pendingTicks = null;
+    }
+
+    public static <T> LevelChunkTicks<T> load(ListTag p_193186_, Function<String, Optional<T>> p_193187_, ChunkPos p_193188_) {
+        ImmutableList.Builder<SavedTick<T>> builder = ImmutableList.builder();
+        SavedTick.loadTickList(p_193186_, p_193187_, p_193188_, builder::add);
+        return new LevelChunkTicks<>(builder.build());
+    }
 }

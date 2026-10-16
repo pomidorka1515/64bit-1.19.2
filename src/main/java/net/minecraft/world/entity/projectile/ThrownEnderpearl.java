@@ -18,79 +18,76 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
 public class ThrownEnderpearl extends ThrowableItemProjectile {
-   public ThrownEnderpearl(EntityType<? extends ThrownEnderpearl> p_37491_, Level p_37492_) {
-      super(p_37491_, p_37492_);
-   }
+    public ThrownEnderpearl(EntityType<? extends ThrownEnderpearl> p_37491_, Level p_37492_) {
+        super(p_37491_, p_37492_);
+    }
 
-   public ThrownEnderpearl(Level p_37499_, LivingEntity p_37500_) {
-      super(EntityType.ENDER_PEARL, p_37500_, p_37499_);
-   }
+    public ThrownEnderpearl(Level p_37499_, LivingEntity p_37500_) {
+        super(EntityType.ENDER_PEARL, p_37500_, p_37499_);
+    }
 
-   protected Item getDefaultItem() {
-      return Items.ENDER_PEARL;
-   }
+    protected Item getDefaultItem() {
+        return Items.ENDER_PEARL;
+    }
 
-   protected void onHitEntity(EntityHitResult p_37502_) {
-      super.onHitEntity(p_37502_);
-      p_37502_.getEntity().hurt(DamageSource.thrown(this, this.getOwner()), 0.0F);
-   }
+    protected void onHitEntity(EntityHitResult p_37502_) {
+        super.onHitEntity(p_37502_);
+        p_37502_.getEntity().hurt(DamageSource.thrown(this, this.getOwner()), 0.0F);
+    }
 
-   protected void onHit(HitResult p_37504_) {
-      super.onHit(p_37504_);
+    protected void onHit(HitResult p_37504_) {
+        super.onHit(p_37504_);
 
-      for(int i = 0; i < 32; ++i) {
-         this.level.addParticle(ParticleTypes.PORTAL, this.particlePosition(0.0D,
-               this.random.nextDouble() * 2.0D, 0.0D), this.random.nextGaussian(), 0.0D,
-               this.random.nextGaussian());
-      }
+        for (int i = 0; i < 32; ++i) {
+            this.level.addParticle(ParticleTypes.PORTAL, this.particlePosition(0.0D, this.random.nextDouble() * 2.0D, 0.0D), this.random.nextGaussian(), 0.0D,
+                    this.random.nextGaussian());
+        }
 
-      if (!this.level.isClientSide && !this.isRemoved()) {
-         Entity entity = this.getOwner();
-         if (entity instanceof ServerPlayer) {
-            ServerPlayer serverplayer = (ServerPlayer)entity;
-            if (serverplayer.connection.getConnection().isConnected() && serverplayer.level == this.level && !serverplayer.isSleeping()) {
-               if (this.random.nextFloat() < 0.05F && this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
-                  Endermite endermite = EntityType.ENDERMITE.create(this.level);
-                  endermite.moveTo(entity.sectorPosition(), entity.getYRot(), entity.getXRot());
-                  this.level.addFreshEntity(endermite);
-               }
+        if (!this.level.isClientSide && !this.isRemoved()) {
+            Entity entity = this.getOwner();
+            if (entity instanceof ServerPlayer) {
+                ServerPlayer serverplayer = (ServerPlayer) entity;
+                if (serverplayer.connection.getConnection().isConnected() && serverplayer.level == this.level && !serverplayer.isSleeping()) {
+                    if (this.random.nextFloat() < 0.05F && this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
+                        Endermite endermite = EntityType.ENDERMITE.create(this.level);
+                        endermite.moveTo(entity.sectorPosition(), entity.getYRot(), entity.getXRot());
+                        this.level.addFreshEntity(endermite);
+                    }
 
-               if (entity.isPassenger()) {
-                  serverplayer.dismountToExact(this.sectorPosition());
-               } else {
-                  entity.teleportTo(this.sectorPosition());
-               }
+                    if (entity.isPassenger()) {
+                        serverplayer.dismountToExact(this.sectorPosition());
+                    } else {
+                        entity.teleportTo(this.sectorPosition());
+                    }
 
-               entity.resetFallDistance();
-               entity.hurt(DamageSource.FALL, 5.0F);
+                    entity.resetFallDistance();
+                    entity.hurt(DamageSource.FALL, 5.0F);
+                }
+            } else if (entity != null) {
+                entity.teleportTo(this.sectorPosition());
+                entity.resetFallDistance();
             }
-         } else if (entity != null) {
-            entity.teleportTo(this.sectorPosition());
-            entity.resetFallDistance();
-         }
 
-         this.discard();
-      }
+            this.discard();
+        }
+    }
 
-   }
+    public void tick() {
+        Entity entity = this.getOwner();
+        if (entity instanceof Player && !entity.isAlive()) {
+            this.discard();
+        } else {
+            super.tick();
+        }
+    }
 
-   public void tick() {
-      Entity entity = this.getOwner();
-      if (entity instanceof Player && !entity.isAlive()) {
-         this.discard();
-      } else {
-         super.tick();
-      }
+    @Nullable
+    public Entity changeDimension(ServerLevel p_37506_) {
+        Entity entity = this.getOwner();
+        if (entity != null && entity.level.dimension() != p_37506_.dimension()) {
+            this.setOwner((Entity) null);
+        }
 
-   }
-
-   @Nullable
-   public Entity changeDimension(ServerLevel p_37506_) {
-      Entity entity = this.getOwner();
-      if (entity != null && entity.level.dimension() != p_37506_.dimension()) {
-         this.setOwner((Entity)null);
-      }
-
-      return super.changeDimension(p_37506_);
-   }
+        return super.changeDimension(p_37506_);
+    }
 }

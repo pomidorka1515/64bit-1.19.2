@@ -7,7 +7,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface SpectatorMenuCategory {
-   List<SpectatorMenuItem> getItems();
+    List<SpectatorMenuItem> getItems();
 
-   Component getPrompt();
+    Component getPrompt();
 }

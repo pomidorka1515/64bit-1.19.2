@@ -50,298 +50,297 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import org.slf4j.Logger;
 
 public class RuinedPortalPiece extends TemplateStructurePiece {
-   private static final Logger LOGGER = LogUtils.getLogger();
-   private static final float PROBABILITY_OF_GOLD_GONE = 0.3F;
-   private static final float PROBABILITY_OF_MAGMA_INSTEAD_OF_NETHERRACK = 0.07F;
-   private static final float PROBABILITY_OF_MAGMA_INSTEAD_OF_LAVA = 0.2F;
-   private final RuinedPortalPiece.VerticalPlacement verticalPlacement;
-   private final RuinedPortalPiece.Properties properties;
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final float PROBABILITY_OF_GOLD_GONE = 0.3F;
+    private static final float PROBABILITY_OF_MAGMA_INSTEAD_OF_NETHERRACK = 0.07F;
+    private static final float PROBABILITY_OF_MAGMA_INSTEAD_OF_LAVA = 0.2F;
+    private final RuinedPortalPiece.VerticalPlacement verticalPlacement;
+    private final RuinedPortalPiece.Properties properties;
 
-   public RuinedPortalPiece(StructureTemplateManager p_229105_, BlockPos p_229106_, RuinedPortalPiece.VerticalPlacement p_229107_, RuinedPortalPiece.Properties p_229108_, ResourceLocation p_229109_, StructureTemplate p_229110_, Rotation p_229111_, Mirror p_229112_, BlockPos p_229113_) {
-      super(StructurePieceType.RUINED_PORTAL, 0, p_229105_, p_229109_, p_229109_.toString(), makeSettings(p_229112_, p_229111_, p_229107_, p_229113_, p_229108_), p_229106_);
-      this.verticalPlacement = p_229107_;
-      this.properties = p_229108_;
-   }
+    public RuinedPortalPiece(StructureTemplateManager p_229105_, BlockPos p_229106_, RuinedPortalPiece.VerticalPlacement p_229107_, RuinedPortalPiece.Properties p_229108_, ResourceLocation p_229109_, StructureTemplate p_229110_, Rotation p_229111_, Mirror p_229112_, BlockPos p_229113_) {
+        super(StructurePieceType.RUINED_PORTAL, 0, p_229105_, p_229109_, p_229109_.toString(), makeSettings(p_229112_, p_229111_, p_229107_, p_229113_, p_229108_), p_229106_);
+        this.verticalPlacement = p_229107_;
+        this.properties = p_229108_;
+    }
 
-   public RuinedPortalPiece(StructureTemplateManager p_229115_, CompoundTag p_229116_) {
-      super(StructurePieceType.RUINED_PORTAL, p_229116_, p_229115_, (p_229188_) -> {
-         return makeSettings(p_229115_, p_229116_, p_229188_);
-      });
-      this.verticalPlacement = RuinedPortalPiece.VerticalPlacement.byName(p_229116_.getString("VerticalPlacement"));
-      this.properties = RuinedPortalPiece.Properties.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, p_229116_.get("Properties"))).getOrThrow(true, LOGGER::error);
-   }
+    public RuinedPortalPiece(StructureTemplateManager p_229115_, CompoundTag p_229116_) {
+        super(StructurePieceType.RUINED_PORTAL, p_229116_, p_229115_, (p_229188_) -> {
+            return makeSettings(p_229115_, p_229116_, p_229188_);
+        });
+        this.verticalPlacement = RuinedPortalPiece.VerticalPlacement.byName(p_229116_.getString("VerticalPlacement"));
+        this.properties = RuinedPortalPiece.Properties.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, p_229116_.get("Properties"))).getOrThrow(true, LOGGER::error);
+    }
 
-   protected void addAdditionalSaveData(StructurePieceSerializationContext p_229158_, CompoundTag p_229159_) {
-      super.addAdditionalSaveData(p_229158_, p_229159_);
-      p_229159_.putString("Rotation", this.placeSettings.getRotation().name());
-      p_229159_.putString("Mirror", this.placeSettings.getMirror().name());
-      p_229159_.putString("VerticalPlacement", this.verticalPlacement.getName());
-      RuinedPortalPiece.Properties.CODEC.encodeStart(NbtOps.INSTANCE, this.properties).resultOrPartial(LOGGER::error).ifPresent((p_229177_) -> {
-         p_229159_.put("Properties", p_229177_);
-      });
-   }
+    protected void addAdditionalSaveData(StructurePieceSerializationContext p_229158_, CompoundTag p_229159_) {
+        super.addAdditionalSaveData(p_229158_, p_229159_);
+        p_229159_.putString("Rotation", this.placeSettings.getRotation().name());
+        p_229159_.putString("Mirror", this.placeSettings.getMirror().name());
+        p_229159_.putString("VerticalPlacement", this.verticalPlacement.getName());
+        RuinedPortalPiece.Properties.CODEC.encodeStart(NbtOps.INSTANCE, this.properties).resultOrPartial(LOGGER::error).ifPresent((p_229177_) -> {
+            p_229159_.put("Properties", p_229177_);
+        });
+    }
 
-   private static StructurePlaceSettings makeSettings(StructureTemplateManager p_229166_, CompoundTag p_229167_, ResourceLocation p_229168_) {
-      StructureTemplate structuretemplate = p_229166_.getOrCreate(p_229168_);
-      BlockPos blockpos = new BlockPos(structuretemplate.getSize().getX() / 2, 0, structuretemplate.getSize().getZ() / 2);
-      return makeSettings(Mirror.valueOf(p_229167_.getString("Mirror")), Rotation.valueOf(p_229167_.getString("Rotation")), RuinedPortalPiece.VerticalPlacement.byName(p_229167_.getString("VerticalPlacement")), blockpos, RuinedPortalPiece.Properties.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, p_229167_.get("Properties"))).getOrThrow(true, LOGGER::error));
-   }
+    private static StructurePlaceSettings makeSettings(StructureTemplateManager p_229166_, CompoundTag p_229167_, ResourceLocation p_229168_) {
+        StructureTemplate structuretemplate = p_229166_.getOrCreate(p_229168_);
+        BlockPos blockpos = new BlockPos(structuretemplate.getSize().getX() / 2, 0, structuretemplate.getSize().getZ() / 2);
+        return makeSettings(Mirror.valueOf(p_229167_.getString("Mirror")), Rotation.valueOf(p_229167_.getString("Rotation")), RuinedPortalPiece.VerticalPlacement.byName(p_229167_.getString("VerticalPlacement")), blockpos, RuinedPortalPiece.Properties.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, p_229167_.get("Properties"))).getOrThrow(true, LOGGER::error));
+    }
 
-   private static StructurePlaceSettings makeSettings(Mirror p_229152_, Rotation p_229153_, RuinedPortalPiece.VerticalPlacement p_229154_, BlockPos p_229155_, RuinedPortalPiece.Properties p_229156_) {
-      BlockIgnoreProcessor blockignoreprocessor = p_229156_.airPocket ? BlockIgnoreProcessor.STRUCTURE_BLOCK : BlockIgnoreProcessor.STRUCTURE_AND_AIR;
-      List<ProcessorRule> list = Lists.newArrayList();
-      list.add(getBlockReplaceRule(Blocks.GOLD_BLOCK, 0.3F, Blocks.AIR));
-      list.add(getLavaProcessorRule(p_229154_, p_229156_));
-      if (!p_229156_.cold) {
-         list.add(getBlockReplaceRule(Blocks.NETHERRACK, 0.07F, Blocks.MAGMA_BLOCK));
-      }
+    private static StructurePlaceSettings makeSettings(Mirror p_229152_, Rotation p_229153_, RuinedPortalPiece.VerticalPlacement p_229154_, BlockPos p_229155_, RuinedPortalPiece.Properties p_229156_) {
+        BlockIgnoreProcessor blockignoreprocessor = p_229156_.airPocket ? BlockIgnoreProcessor.STRUCTURE_BLOCK : BlockIgnoreProcessor.STRUCTURE_AND_AIR;
+        List<ProcessorRule> list = Lists.newArrayList();
+        list.add(getBlockReplaceRule(Blocks.GOLD_BLOCK, 0.3F, Blocks.AIR));
+        list.add(getLavaProcessorRule(p_229154_, p_229156_));
+        if (!p_229156_.cold) {
+            list.add(getBlockReplaceRule(Blocks.NETHERRACK, 0.07F, Blocks.MAGMA_BLOCK));
+        }
 
-      StructurePlaceSettings structureplacesettings = (new StructurePlaceSettings()).setRotation(p_229153_).setMirror(p_229152_).setRotationPivot(p_229155_).addProcessor(blockignoreprocessor).addProcessor(new RuleProcessor(list)).addProcessor(new BlockAgeProcessor(p_229156_.mossiness)).addProcessor(new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)).addProcessor(new LavaSubmergedBlockProcessor());
-      if (p_229156_.replaceWithBlackstone) {
-         structureplacesettings.addProcessor(BlackstoneReplaceProcessor.INSTANCE);
-      }
+        StructurePlaceSettings structureplacesettings = (new StructurePlaceSettings()).setRotation(p_229153_).setMirror(p_229152_).setRotationPivot(p_229155_).addProcessor(blockignoreprocessor).addProcessor(new RuleProcessor(list)).addProcessor(new BlockAgeProcessor(p_229156_.mossiness)).addProcessor(new ProtectedBlockProcessor(BlockTags.FEATURES_CANNOT_REPLACE)).addProcessor(new LavaSubmergedBlockProcessor());
+        if (p_229156_.replaceWithBlackstone) {
+            structureplacesettings.addProcessor(BlackstoneReplaceProcessor.INSTANCE);
+        }
 
-      return structureplacesettings;
-   }
+        return structureplacesettings;
+    }
 
-   private static ProcessorRule getLavaProcessorRule(RuinedPortalPiece.VerticalPlacement p_229163_, RuinedPortalPiece.Properties p_229164_) {
-      if (p_229163_ == RuinedPortalPiece.VerticalPlacement.ON_OCEAN_FLOOR) {
-         return getBlockReplaceRule(Blocks.LAVA, Blocks.MAGMA_BLOCK);
-      } else {
-         return p_229164_.cold ? getBlockReplaceRule(Blocks.LAVA, Blocks.NETHERRACK) : getBlockReplaceRule(Blocks.LAVA, 0.2F, Blocks.MAGMA_BLOCK);
-      }
-   }
+    private static ProcessorRule getLavaProcessorRule(RuinedPortalPiece.VerticalPlacement p_229163_, RuinedPortalPiece.Properties p_229164_) {
+        if (p_229163_ == RuinedPortalPiece.VerticalPlacement.ON_OCEAN_FLOOR) {
+            return getBlockReplaceRule(Blocks.LAVA, Blocks.MAGMA_BLOCK);
+        } else {
+            return p_229164_.cold ? getBlockReplaceRule(Blocks.LAVA, Blocks.NETHERRACK) : getBlockReplaceRule(Blocks.LAVA, 0.2F, Blocks.MAGMA_BLOCK);
+        }
+    }
 
-   public void postProcess(WorldGenLevel p_229137_, StructureManager p_229138_, ChunkGenerator p_229139_, RandomSource p_229140_, BoundingBox p_229141_, ChunkPos p_229142_, BlockPos p_229143_) {
-      BoundingBox boundingbox = this.template.getBoundingBox(this.placeSettings, this.templatePosition);
-      if (p_229141_.isInside(boundingbox.getCenter())) {
-         p_229141_.encapsulate(boundingbox);
-         super.postProcess(p_229137_, p_229138_, p_229139_, p_229140_, p_229141_, p_229142_, p_229143_);
-         this.spreadNetherrack(p_229140_, p_229137_);
-         this.addNetherrackDripColumnsBelowPortal(p_229140_, p_229137_);
-         if (this.properties.vines || this.properties.overgrown) {
-            BlockPos.betweenClosedStream(this.getBoundingBox()).forEach((p_229127_) -> {
-               if (this.properties.vines) {
-                  this.maybeAddVines(p_229140_, p_229137_, p_229127_);
-               }
+    public void postProcess(WorldGenLevel p_229137_, StructureManager p_229138_, ChunkGenerator p_229139_, RandomSource p_229140_, BoundingBox p_229141_, ChunkPos p_229142_, BlockPos p_229143_) {
+        BoundingBox boundingbox = this.template.getBoundingBox(this.placeSettings, this.templatePosition);
+        if (p_229141_.isInside(boundingbox.getCenter())) {
+            p_229141_.encapsulate(boundingbox);
+            super.postProcess(p_229137_, p_229138_, p_229139_, p_229140_, p_229141_, p_229142_, p_229143_);
+            this.spreadNetherrack(p_229140_, p_229137_);
+            this.addNetherrackDripColumnsBelowPortal(p_229140_, p_229137_);
+            if (this.properties.vines || this.properties.overgrown) {
+                BlockPos.betweenClosedStream(this.getBoundingBox()).forEach((p_229127_) -> {
+                    if (this.properties.vines) {
+                        this.maybeAddVines(p_229140_, p_229137_, p_229127_);
+                    }
 
-               if (this.properties.overgrown) {
-                  this.maybeAddLeavesAbove(p_229140_, p_229137_, p_229127_);
-               }
-
-            });
-         }
-
-      }
-   }
-
-   protected void handleDataMarker(String p_229170_, BlockPos p_229171_, ServerLevelAccessor p_229172_, RandomSource p_229173_, BoundingBox p_229174_) {
-   }
-
-   private void maybeAddVines(RandomSource p_229121_, LevelAccessor p_229122_, BlockPos p_229123_) {
-      BlockState blockstate = p_229122_.getBlockState(p_229123_);
-      if (!blockstate.isAir() && !blockstate.is(Blocks.VINE)) {
-         Direction direction = getRandomHorizontalDirection(p_229121_);
-         BlockPos blockpos = p_229123_.relative(direction);
-         BlockState blockstate1 = p_229122_.getBlockState(blockpos);
-         if (blockstate1.isAir()) {
-            if (Block.isFaceFull(blockstate.getCollisionShape(p_229122_, p_229123_), direction)) {
-               BooleanProperty booleanproperty = VineBlock.getPropertyForFace(direction.getOpposite());
-               p_229122_.setBlock(blockpos, Blocks.VINE.defaultBlockState().setValue(booleanproperty, Boolean.valueOf(true)), 3);
+                    if (this.properties.overgrown) {
+                        this.maybeAddLeavesAbove(p_229140_, p_229137_, p_229127_);
+                    }
+                });
             }
-         }
-      }
-   }
+        }
+    }
 
-   private void maybeAddLeavesAbove(RandomSource p_229182_, LevelAccessor p_229183_, BlockPos p_229184_) {
-      if (p_229182_.nextFloat() < 0.5F && p_229183_.getBlockState(p_229184_).is(Blocks.NETHERRACK) && p_229183_.getBlockState(p_229184_.above()).isAir()) {
-         p_229183_.setBlock(p_229184_.above(), Blocks.JUNGLE_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, Boolean.valueOf(true)), 3);
-      }
+    protected void handleDataMarker(String p_229170_, BlockPos p_229171_, ServerLevelAccessor p_229172_, RandomSource p_229173_, BoundingBox p_229174_) {
+    }
 
-   }
-
-   private void addNetherrackDripColumnsBelowPortal(RandomSource p_229118_, LevelAccessor p_229119_) {
-      long i = WorldBounds.addBlockOffset(this.boundingBox.minX(), 1L);
-      long j = WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L);
-      long k = WorldBounds.addBlockOffset(this.boundingBox.minZ(), 1L);
-      long l = WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L);
-      if (i > j || k > l) {
-         return;
-      }
-
-      for(long i1 = i; ; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
-         for(long j1 = k; ; j1 = WorldBounds.addBlockOffset(j1, 1L)) {
-            BlockPos blockpos = new BlockPos(i1, this.boundingBox.minY(), j1);
-            if (p_229119_.getBlockState(blockpos).is(Blocks.NETHERRACK)) {
-               this.addNetherrackDripColumn(p_229118_, p_229119_, blockpos.below());
+    private void maybeAddVines(RandomSource p_229121_, LevelAccessor p_229122_, BlockPos p_229123_) {
+        BlockState blockstate = p_229122_.getBlockState(p_229123_);
+        if (!blockstate.isAir() && !blockstate.is(Blocks.VINE)) {
+            Direction direction = getRandomHorizontalDirection(p_229121_);
+            BlockPos blockpos = p_229123_.relative(direction);
+            BlockState blockstate1 = p_229122_.getBlockState(blockpos);
+            if (blockstate1.isAir()) {
+                if (Block.isFaceFull(blockstate.getCollisionShape(p_229122_, p_229123_), direction)) {
+                    BooleanProperty booleanproperty = VineBlock.getPropertyForFace(direction.getOpposite());
+                    p_229122_.setBlock(blockpos, Blocks.VINE.defaultBlockState().setValue(booleanproperty, Boolean.valueOf(true)), 3);
+                }
             }
+        }
+    }
 
-            if (j1 == l) {
-               break;
-            }
-         }
+    private void maybeAddLeavesAbove(RandomSource p_229182_, LevelAccessor p_229183_, BlockPos p_229184_) {
+        if (p_229182_.nextFloat() < 0.5F && p_229183_.getBlockState(p_229184_).is(Blocks.NETHERRACK) && p_229183_.getBlockState(p_229184_.above()).isAir()) {
+            p_229183_.setBlock(p_229184_.above(), Blocks.JUNGLE_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, Boolean.valueOf(true)), 3);
+        }
+    }
 
-         if (i1 == j) {
-            break;
-         }
-      }
+    private void addNetherrackDripColumnsBelowPortal(RandomSource p_229118_, LevelAccessor p_229119_) {
+        long i = WorldBounds.addBlockOffset(this.boundingBox.minX(), 1L);
+        long j = WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L);
+        long k = WorldBounds.addBlockOffset(this.boundingBox.minZ(), 1L);
+        long l = WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L);
+        if (i > j || k > l) {
+            return;
+        }
 
-   }
+        for (long i1 = i;; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
+            for (long j1 = k;; j1 = WorldBounds.addBlockOffset(j1, 1L)) {
+                BlockPos blockpos = new BlockPos(i1, this.boundingBox.minY(), j1);
+                if (p_229119_.getBlockState(blockpos).is(Blocks.NETHERRACK)) {
+                    this.addNetherrackDripColumn(p_229118_, p_229119_, blockpos.below());
+                }
 
-   private void addNetherrackDripColumn(RandomSource p_229190_, LevelAccessor p_229191_, BlockPos p_229192_) {
-      BlockPos.MutableBlockPos blockpos$mutableblockpos = p_229192_.mutable();
-      this.placeNetherrackOrMagma(p_229190_, p_229191_, blockpos$mutableblockpos);
-      int i = 8;
-
-      while(i > 0 && p_229190_.nextFloat() < 0.5F) {
-         blockpos$mutableblockpos.move(Direction.DOWN);
-         --i;
-         this.placeNetherrackOrMagma(p_229190_, p_229191_, blockpos$mutableblockpos);
-      }
-
-   }
-
-   private void spreadNetherrack(RandomSource p_229179_, LevelAccessor p_229180_) {
-      boolean flag = this.verticalPlacement == RuinedPortalPiece.VerticalPlacement.ON_LAND_SURFACE || this.verticalPlacement == RuinedPortalPiece.VerticalPlacement.ON_OCEAN_FLOOR;
-      BlockPos blockpos = this.boundingBox.getCenter();
-      long i = blockpos.getX();
-      long j = blockpos.getZ();
-      float[] afloat = new float[]{1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.9F, 0.9F, 0.8F, 0.7F, 0.6F, 0.4F, 0.2F};
-      int k = afloat.length;
-      int l = (int) ((this.boundingBox.getXSpan() + this.boundingBox.getZSpan()) / 2); // TODO: i
-      int i1 = p_229179_.nextInt(Math.max(1, 8 - l / 2));
-      int j1 = 3;
-      BlockPos.MutableBlockPos blockpos$mutableblockpos = BlockPos.ZERO.mutable();
-
-      long k1 = WorldBounds.subtractBlockOffset(i, k);
-      long l1 = WorldBounds.addBlockOffset(i, k);
-      long i2 = WorldBounds.subtractBlockOffset(j, k);
-      long j2 = WorldBounds.addBlockOffset(j, k);
-
-      for(long k2 = k1; ; k2 = WorldBounds.addBlockOffset(k2, 1L)) {
-         for(long l2 = i2; ; l2 = WorldBounds.addBlockOffset(l2, 1L)) {
-            double i3 = WorldBounds.distance(k2, i) + WorldBounds.distance(l2, j);
-            double j3 = Math.max(0.0D, i3 + (double)i1);
-            if (j3 < (double)k) {
-               float f = afloat[(int)j3];
-               if (p_229179_.nextDouble() < (double)f) {
-                  int k3 = getSurfaceY(p_229180_, k2, l2, this.verticalPlacement);
-                  int l3 = flag ? k3 : Math.min(this.boundingBox.minY(), k3);
-                  blockpos$mutableblockpos.set(k2, l3, l2);
-                  if (Math.abs(l3 - this.boundingBox.minY()) <= 3 && this.canBlockBeReplacedByNetherrackOrMagma(p_229180_, blockpos$mutableblockpos)) {
-                     this.placeNetherrackOrMagma(p_229179_, p_229180_, blockpos$mutableblockpos);
-                     if (this.properties.overgrown) {
-                        this.maybeAddLeavesAbove(p_229179_, p_229180_, blockpos$mutableblockpos);
-                     }
-
-                     this.addNetherrackDripColumn(p_229179_, p_229180_, blockpos$mutableblockpos.below());
-                  }
-               }
+                if (j1 == l) {
+                    break;
+                }
             }
 
-            if (l2 == j2) {
-               break;
+            if (i1 == j) {
+                break;
             }
-         }
+        }
+    }
 
-         if (k2 == l1) {
-            break;
-         }
-      }
+    private void addNetherrackDripColumn(RandomSource p_229190_, LevelAccessor p_229191_, BlockPos p_229192_) {
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = p_229192_.mutable();
+        this.placeNetherrackOrMagma(p_229190_, p_229191_, blockpos$mutableblockpos);
+        int i = 8;
 
-   }
+        while (i > 0 && p_229190_.nextFloat() < 0.5F) {
+            blockpos$mutableblockpos.move(Direction.DOWN);
+            --i;
+            this.placeNetherrackOrMagma(p_229190_, p_229191_, blockpos$mutableblockpos);
+        }
+    }
 
-   private boolean canBlockBeReplacedByNetherrackOrMagma(LevelAccessor p_229134_, BlockPos p_229135_) {
-      BlockState blockstate = p_229134_.getBlockState(p_229135_);
-      return !blockstate.is(Blocks.AIR) && !blockstate.is(Blocks.OBSIDIAN) && !blockstate.is(BlockTags.FEATURES_CANNOT_REPLACE) && (this.verticalPlacement == RuinedPortalPiece.VerticalPlacement.IN_NETHER || !blockstate.is(Blocks.LAVA));
-   }
+    private void spreadNetherrack(RandomSource p_229179_, LevelAccessor p_229180_) {
+        boolean flag = this.verticalPlacement == RuinedPortalPiece.VerticalPlacement.ON_LAND_SURFACE || this.verticalPlacement == RuinedPortalPiece.VerticalPlacement.ON_OCEAN_FLOOR;
+        BlockPos blockpos = this.boundingBox.getCenter();
+        long i = blockpos.getX();
+        long j = blockpos.getZ();
+        float[] afloat = new float[] {1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.9F, 0.9F, 0.8F, 0.7F, 0.6F, 0.4F, 0.2F};
+        int k = afloat.length;
+        int l = (int) ((this.boundingBox.getXSpan() + this.boundingBox.getZSpan()) / 2); // TODO: i
+        int i1 = p_229179_.nextInt(Math.max(1, 8 - l / 2));
+        int j1 = 3;
+        BlockPos.MutableBlockPos blockpos$mutableblockpos = BlockPos.ZERO.mutable();
 
-   private void placeNetherrackOrMagma(RandomSource p_229194_, LevelAccessor p_229195_, BlockPos p_229196_) {
-      if (!this.properties.cold && p_229194_.nextFloat() < 0.07F) {
-         p_229195_.setBlock(p_229196_, Blocks.MAGMA_BLOCK.defaultBlockState(), 3);
-      } else {
-         p_229195_.setBlock(p_229196_, Blocks.NETHERRACK.defaultBlockState(), 3);
-      }
+        long k1 = WorldBounds.subtractBlockOffset(i, k);
+        long l1 = WorldBounds.addBlockOffset(i, k);
+        long i2 = WorldBounds.subtractBlockOffset(j, k);
+        long j2 = WorldBounds.addBlockOffset(j, k);
 
-   }
+        for (long k2 = k1;; k2 = WorldBounds.addBlockOffset(k2, 1L)) {
+            for (long l2 = i2;; l2 = WorldBounds.addBlockOffset(l2, 1L)) {
+                double i3 = WorldBounds.distance(k2, i) + WorldBounds.distance(l2, j);
+                double j3 = Math.max(0.0D, i3 + (double) i1);
+                if (j3 < (double) k) {
+                    float f = afloat[(int) j3];
+                    if (p_229179_.nextDouble() < (double) f) {
+                        int k3 = getSurfaceY(p_229180_, k2, l2, this.verticalPlacement);
+                        int l3 = flag ? k3 : Math.min(this.boundingBox.minY(), k3);
+                        blockpos$mutableblockpos.set(k2, l3, l2);
+                        if (Math.abs(l3 - this.boundingBox.minY()) <= 3 && this.canBlockBeReplacedByNetherrackOrMagma(p_229180_, blockpos$mutableblockpos)) {
+                            this.placeNetherrackOrMagma(p_229179_, p_229180_, blockpos$mutableblockpos);
+                            if (this.properties.overgrown) {
+                                this.maybeAddLeavesAbove(p_229179_, p_229180_, blockpos$mutableblockpos);
+                            }
 
-   private static int getSurfaceY(LevelAccessor p_229129_, long p_229130_, long p_229131_, RuinedPortalPiece.VerticalPlacement p_229132_) {
-      return p_229129_.getHeight(getHeightMapType(p_229132_), p_229130_, p_229131_) - 1;
-   }
+                            this.addNetherrackDripColumn(p_229179_, p_229180_, blockpos$mutableblockpos.below());
+                        }
+                    }
+                }
 
-   public static Heightmap.Types getHeightMapType(RuinedPortalPiece.VerticalPlacement p_229161_) {
-      return p_229161_ == RuinedPortalPiece.VerticalPlacement.ON_OCEAN_FLOOR ? Heightmap.Types.OCEAN_FLOOR_WG : Heightmap.Types.WORLD_SURFACE_WG;
-   }
+                if (l2 == j2) {
+                    break;
+                }
+            }
 
-   private static ProcessorRule getBlockReplaceRule(Block p_229145_, float p_229146_, Block p_229147_) {
-      return new ProcessorRule(new RandomBlockMatchTest(p_229145_, p_229146_), AlwaysTrueTest.INSTANCE, p_229147_.defaultBlockState());
-   }
+            if (k2 == l1) {
+                break;
+            }
+        }
+    }
 
-   private static ProcessorRule getBlockReplaceRule(Block p_229149_, Block p_229150_) {
-      return new ProcessorRule(new BlockMatchTest(p_229149_), AlwaysTrueTest.INSTANCE, p_229150_.defaultBlockState());
-   }
+    private boolean canBlockBeReplacedByNetherrackOrMagma(LevelAccessor p_229134_, BlockPos p_229135_) {
+        BlockState blockstate = p_229134_.getBlockState(p_229135_);
+        return !blockstate.is(Blocks.AIR) && !blockstate.is(Blocks.OBSIDIAN) && !blockstate.is(BlockTags.FEATURES_CANNOT_REPLACE) && (this.verticalPlacement == RuinedPortalPiece.VerticalPlacement.IN_NETHER || !blockstate.is(Blocks.LAVA));
+    }
 
-   public static class Properties {
-      public static final Codec<RuinedPortalPiece.Properties> CODEC = RecordCodecBuilder.create((p_229214_) -> {
-         return p_229214_.group(Codec.BOOL.fieldOf("cold").forGetter((p_229226_) -> {
-            return p_229226_.cold;
-         }), Codec.FLOAT.fieldOf("mossiness").forGetter((p_229224_) -> {
-            return p_229224_.mossiness;
-         }), Codec.BOOL.fieldOf("air_pocket").forGetter((p_229222_) -> {
-            return p_229222_.airPocket;
-         }), Codec.BOOL.fieldOf("overgrown").forGetter((p_229220_) -> {
-            return p_229220_.overgrown;
-         }), Codec.BOOL.fieldOf("vines").forGetter((p_229218_) -> {
-            return p_229218_.vines;
-         }), Codec.BOOL.fieldOf("replace_with_blackstone").forGetter((p_229216_) -> {
-            return p_229216_.replaceWithBlackstone;
-         })).apply(p_229214_, RuinedPortalPiece.Properties::new);
-      });
-      public boolean cold;
-      public float mossiness;
-      public boolean airPocket;
-      public boolean overgrown;
-      public boolean vines;
-      public boolean replaceWithBlackstone;
+    private void placeNetherrackOrMagma(RandomSource p_229194_, LevelAccessor p_229195_, BlockPos p_229196_) {
+        if (!this.properties.cold && p_229194_.nextFloat() < 0.07F) {
+            p_229195_.setBlock(p_229196_, Blocks.MAGMA_BLOCK.defaultBlockState(), 3);
+        } else {
+            p_229195_.setBlock(p_229196_, Blocks.NETHERRACK.defaultBlockState(), 3);
+        }
+    }
 
-      public Properties() {
-      }
+    private static int getSurfaceY(LevelAccessor p_229129_, long p_229130_, long p_229131_, RuinedPortalPiece.VerticalPlacement p_229132_) {
+        return p_229129_.getHeight(getHeightMapType(p_229132_), p_229130_, p_229131_) - 1;
+    }
 
-      public Properties(boolean p_229207_, float p_229208_, boolean p_229209_, boolean p_229210_, boolean p_229211_, boolean p_229212_) {
-         this.cold = p_229207_;
-         this.mossiness = p_229208_;
-         this.airPocket = p_229209_;
-         this.overgrown = p_229210_;
-         this.vines = p_229211_;
-         this.replaceWithBlackstone = p_229212_;
-      }
-   }
+    public static Heightmap.Types getHeightMapType(RuinedPortalPiece.VerticalPlacement p_229161_) {
+        return p_229161_ == RuinedPortalPiece.VerticalPlacement.ON_OCEAN_FLOOR ? Heightmap.Types.OCEAN_FLOOR_WG : Heightmap.Types.WORLD_SURFACE_WG;
+    }
 
-   public static enum VerticalPlacement implements StringRepresentable {
-      ON_LAND_SURFACE("on_land_surface"),
-      PARTLY_BURIED("partly_buried"),
-      ON_OCEAN_FLOOR("on_ocean_floor"),
-      IN_MOUNTAIN("in_mountain"),
-      UNDERGROUND("underground"),
-      IN_NETHER("in_nether");
+    private static ProcessorRule getBlockReplaceRule(Block p_229145_, float p_229146_, Block p_229147_) {
+        return new ProcessorRule(new RandomBlockMatchTest(p_229145_, p_229146_), AlwaysTrueTest.INSTANCE, p_229147_.defaultBlockState());
+    }
 
-      public static final StringRepresentable.EnumCodec<RuinedPortalPiece.VerticalPlacement> CODEC = StringRepresentable.fromEnum(RuinedPortalPiece.VerticalPlacement::values);
-      private final String name;
+    private static ProcessorRule getBlockReplaceRule(Block p_229149_, Block p_229150_) {
+        return new ProcessorRule(new BlockMatchTest(p_229149_), AlwaysTrueTest.INSTANCE, p_229150_.defaultBlockState());
+    }
 
-      private VerticalPlacement(String p_229240_) {
-         this.name = p_229240_;
-      }
+    public static class Properties {
+        public static final Codec<RuinedPortalPiece.Properties> CODEC = RecordCodecBuilder.create((p_229214_) -> {
+            return p_229214_.group(Codec.BOOL.fieldOf("cold").forGetter((p_229226_) -> {
+                                return p_229226_.cold;
+                            }),
+                                    Codec.FLOAT.fieldOf("mossiness").forGetter((p_229224_) -> {
+                                        return p_229224_.mossiness;
+                                    }),
+                                    Codec.BOOL.fieldOf("air_pocket").forGetter((p_229222_) -> {
+                                        return p_229222_.airPocket;
+                                    }),
+                                    Codec.BOOL.fieldOf("overgrown").forGetter((p_229220_) -> {
+                                        return p_229220_.overgrown;
+                                    }),
+                                    Codec.BOOL.fieldOf("vines").forGetter((p_229218_) -> {
+                                        return p_229218_.vines;
+                                    }),
+                                    Codec.BOOL.fieldOf("replace_with_blackstone").forGetter((p_229216_) -> {
+                                        return p_229216_.replaceWithBlackstone;
+                                    }))
+                    .apply(p_229214_, RuinedPortalPiece.Properties::new);
+        });
+        public boolean cold;
+        public float mossiness;
+        public boolean airPocket;
+        public boolean overgrown;
+        public boolean vines;
+        public boolean replaceWithBlackstone;
 
-      public String getName() {
-         return this.name;
-      }
+        public Properties() {
+        }
 
-      public static RuinedPortalPiece.VerticalPlacement byName(String p_229243_) {
-         return CODEC.byName(p_229243_);
-      }
+        public Properties(boolean p_229207_, float p_229208_, boolean p_229209_, boolean p_229210_, boolean p_229211_, boolean p_229212_) {
+            this.cold = p_229207_;
+            this.mossiness = p_229208_;
+            this.airPocket = p_229209_;
+            this.overgrown = p_229210_;
+            this.vines = p_229211_;
+            this.replaceWithBlackstone = p_229212_;
+        }
+    }
 
-      public String getSerializedName() {
-         return this.name;
-      }
-   }
+    public static enum VerticalPlacement implements StringRepresentable {
+        ON_LAND_SURFACE("on_land_surface"),
+        PARTLY_BURIED("partly_buried"),
+        ON_OCEAN_FLOOR("on_ocean_floor"),
+        IN_MOUNTAIN("in_mountain"),
+        UNDERGROUND("underground"),
+        IN_NETHER("in_nether");
+
+        public static final StringRepresentable.EnumCodec<RuinedPortalPiece.VerticalPlacement> CODEC = StringRepresentable.fromEnum(RuinedPortalPiece.VerticalPlacement::values);
+        private final String name;
+
+        private VerticalPlacement(String p_229240_) {
+            this.name = p_229240_;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public static RuinedPortalPiece.VerticalPlacement byName(String p_229243_) {
+            return CODEC.byName(p_229243_);
+        }
+
+        public String getSerializedName() {
+            return this.name;
+        }
+    }
 }

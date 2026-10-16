@@ -8,18 +8,18 @@ import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 public class SimpleRandomFeatureConfiguration implements FeatureConfiguration {
-   public static final Codec<SimpleRandomFeatureConfiguration> CODEC = ExtraCodecs.nonEmptyHolderSet(PlacedFeature.LIST_CODEC).fieldOf("features").xmap(SimpleRandomFeatureConfiguration::new, (p_204844_) -> {
-      return p_204844_.features;
-   }).codec();
-   public final HolderSet<PlacedFeature> features;
+    public static final Codec<SimpleRandomFeatureConfiguration> CODEC = ExtraCodecs.nonEmptyHolderSet(PlacedFeature.LIST_CODEC).fieldOf("features").xmap(SimpleRandomFeatureConfiguration::new, (p_204844_) -> {
+                                                                                                                                                       return p_204844_.features;
+                                                                                                                                                   }).codec();
+    public final HolderSet<PlacedFeature> features;
 
-   public SimpleRandomFeatureConfiguration(HolderSet<PlacedFeature> p_204842_) {
-      this.features = p_204842_;
-   }
+    public SimpleRandomFeatureConfiguration(HolderSet<PlacedFeature> p_204842_) {
+        this.features = p_204842_;
+    }
 
-   public Stream<ConfiguredFeature<?, ?>> getFeatures() {
-      return this.features.stream().flatMap((p_204846_) -> {
-         return p_204846_.value().getFeatures();
-      });
-   }
+    public Stream<ConfiguredFeature<?, ?>> getFeatures() {
+        return this.features.stream().flatMap((p_204846_) -> {
+            return p_204846_.value().getFeatures();
+        });
+    }
 }

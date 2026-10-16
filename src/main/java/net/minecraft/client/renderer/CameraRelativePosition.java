@@ -12,79 +12,78 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  */
 @OnlyIn(Dist.CLIENT)
 public final class CameraRelativePosition {
-   private final long baseX;
-   private final int baseY;
-   private final long baseZ;
-   private final double fractionX;
-   private final double fractionY;
-   private final double fractionZ;
+    private final long baseX;
+    private final int baseY;
+    private final long baseZ;
+    private final double fractionX;
+    private final double fractionY;
+    private final double fractionZ;
 
-   private CameraRelativePosition(long baseX, int baseY, long baseZ,
-                                  double fractionX, double fractionY, double fractionZ) {
-      this.baseX = baseX;
-      this.baseY = baseY;
-      this.baseZ = baseZ;
-      this.fractionX = fractionX;
-      this.fractionY = fractionY;
-      this.fractionZ = fractionZ;
-   }
+    private CameraRelativePosition(long baseX, int baseY, long baseZ,
+            double fractionX, double fractionY, double fractionZ) {
+        this.baseX = baseX;
+        this.baseY = baseY;
+        this.baseZ = baseZ;
+        this.fractionX = fractionX;
+        this.fractionY = fractionY;
+        this.fractionZ = fractionZ;
+    }
 
-   public static CameraRelativePosition of(SectorVec3 exact) {
-      return new CameraRelativePosition(
-         exact.blockX(),
-         exact.blockPosition().getY(),
-         exact.blockZ(),
-         exact.subX(),
-         exact.y() - (double)exact.blockPosition().getY(),
-         exact.subZ()
-      );
-   }
+    public static CameraRelativePosition of(SectorVec3 exact) {
+        return new CameraRelativePosition(
+                exact.blockX(),
+                exact.blockPosition().getY(),
+                exact.blockZ(),
+                exact.subX(),
+                exact.y() - (double) exact.blockPosition().getY(),
+                exact.subZ());
+    }
 
-   public long baseX() {
-      return this.baseX;
-   }
+    public long baseX() {
+        return this.baseX;
+    }
 
-   public int baseY() {
-      return this.baseY;
-   }
+    public int baseY() {
+        return this.baseY;
+    }
 
-   public long baseZ() {
-      return this.baseZ;
-   }
+    public long baseZ() {
+        return this.baseZ;
+    }
 
-   public double fractionX() {
-      return this.fractionX;
-   }
+    public double fractionX() {
+        return this.fractionX;
+    }
 
-   public double fractionY() {
-      return this.fractionY;
-   }
+    public double fractionY() {
+        return this.fractionY;
+    }
 
-   public double fractionZ() {
-      return this.fractionZ;
-   }
+    public double fractionZ() {
+        return this.fractionZ;
+    }
 
-   public double relativeX(long blockX) {
-      return WorldBounds.signedDifference(blockX, this.baseX) - this.fractionX;
-   }
+    public double relativeX(long blockX) {
+        return WorldBounds.signedDifference(blockX, this.baseX) - this.fractionX;
+    }
 
-   public double relativeY(int blockY) {
-      return (double)(blockY - this.baseY) - this.fractionY;
-   }
+    public double relativeY(int blockY) {
+        return (double) (blockY - this.baseY) - this.fractionY;
+    }
 
-   public double relativeZ(long blockZ) {
-      return WorldBounds.signedDifference(blockZ, this.baseZ) - this.fractionZ;
-   }
+    public double relativeZ(long blockZ) {
+        return WorldBounds.signedDifference(blockZ, this.baseZ) - this.fractionZ;
+    }
 
-   public double cameraRelativeToX(long blockX) {
-      return -this.relativeX(blockX);
-   }
+    public double cameraRelativeToX(long blockX) {
+        return -this.relativeX(blockX);
+    }
 
-   public double cameraRelativeToY(int blockY) {
-      return -this.relativeY(blockY);
-   }
+    public double cameraRelativeToY(int blockY) {
+        return -this.relativeY(blockY);
+    }
 
-   public double cameraRelativeToZ(long blockZ) {
-      return -this.relativeZ(blockZ);
-   }
+    public double cameraRelativeToZ(long blockZ) {
+        return -this.relativeZ(blockZ);
+    }
 }

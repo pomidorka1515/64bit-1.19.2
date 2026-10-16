@@ -7,8 +7,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
 public class AzaleaTreeGrower extends AbstractTreeGrower {
-   @Nullable
-   protected Holder<? extends ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource p_222916_, boolean p_222917_) {
-      return TreeFeatures.AZALEA_TREE;
-   }
+    @Nullable
+    protected Holder<? extends ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource p_222916_, boolean p_222917_) {
+        return TreeFeatures.AZALEA_TREE;
+    }
 }

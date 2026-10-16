@@ -5,11 +5,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Instrument;
 
 public interface InstrumentTags {
-   TagKey<Instrument> REGULAR_GOAT_HORNS = create("regular_goat_horns");
-   TagKey<Instrument> SCREAMING_GOAT_HORNS = create("screaming_goat_horns");
-   TagKey<Instrument> GOAT_HORNS = create("goat_horns");
+    TagKey<Instrument> REGULAR_GOAT_HORNS = create("regular_goat_horns");
+    TagKey<Instrument> SCREAMING_GOAT_HORNS = create("screaming_goat_horns");
+    TagKey<Instrument> GOAT_HORNS = create("goat_horns");
 
-   private static TagKey<Instrument> create(String p_215861_) {
-      return TagKey.create(Registry.INSTRUMENT_REGISTRY, new ResourceLocation(p_215861_));
-   }
+    private static TagKey<Instrument> create(String p_215861_) {
+        return TagKey.create(Registry.INSTRUMENT_REGISTRY, new ResourceLocation(p_215861_));
+    }
 }

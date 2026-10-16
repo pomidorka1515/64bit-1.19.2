@@ -1,14 +1,14 @@
 {
-    "java.jdt.ls.java.home": "/opt/jdk21",
-    "java.import.gradle.java.home": "/opt/jdk17",
-    "java.configuration.runtimes": [
-        {
-            "name": "JavaSE-17",
-            "path": "/opt/jdk17",
-            "default": true
-        }
-    ],
-    "java.compile.nullAnalysis.mode": "disabled",
-    "java.configuration.updateBuildConfiguration": "automatic",
-	"editor.renderControlCharacters": true
+  "java.jdt.ls.java.home": "/opt/jdk21",
+  "java.import.gradle.java.home": "/opt/jdk17",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "/opt/jdk17",
+      "default": true
+    }
+  ],
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "editor.renderControlCharacters": true
 }

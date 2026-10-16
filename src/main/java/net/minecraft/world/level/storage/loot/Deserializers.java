@@ -15,15 +15,15 @@ import net.minecraft.world.level.storage.loot.providers.score.ScoreboardNameProv
 import net.minecraft.world.level.storage.loot.providers.score.ScoreboardNameProviders;
 
 public class Deserializers {
-   public static GsonBuilder createConditionSerializer() {
-      return (new GsonBuilder()).registerTypeAdapter(IntRange.class, new IntRange.Serializer()).registerTypeHierarchyAdapter(NumberProvider.class, NumberProviders.createGsonAdapter()).registerTypeHierarchyAdapter(LootItemCondition.class, LootItemConditions.createGsonAdapter()).registerTypeHierarchyAdapter(ScoreboardNameProvider.class, ScoreboardNameProviders.createGsonAdapter()).registerTypeHierarchyAdapter(LootContext.EntityTarget.class, new LootContext.EntityTarget.Serializer());
-   }
+    public static GsonBuilder createConditionSerializer() {
+        return (new GsonBuilder()).registerTypeAdapter(IntRange.class, new IntRange.Serializer()).registerTypeHierarchyAdapter(NumberProvider.class, NumberProviders.createGsonAdapter()).registerTypeHierarchyAdapter(LootItemCondition.class, LootItemConditions.createGsonAdapter()).registerTypeHierarchyAdapter(ScoreboardNameProvider.class, ScoreboardNameProviders.createGsonAdapter()).registerTypeHierarchyAdapter(LootContext.EntityTarget.class, new LootContext.EntityTarget.Serializer());
+    }
 
-   public static GsonBuilder createFunctionSerializer() {
-      return createConditionSerializer().registerTypeHierarchyAdapter(LootPoolEntryContainer.class, LootPoolEntries.createGsonAdapter()).registerTypeHierarchyAdapter(LootItemFunction.class, LootItemFunctions.createGsonAdapter()).registerTypeHierarchyAdapter(NbtProvider.class, NbtProviders.createGsonAdapter());
-   }
+    public static GsonBuilder createFunctionSerializer() {
+        return createConditionSerializer().registerTypeHierarchyAdapter(LootPoolEntryContainer.class, LootPoolEntries.createGsonAdapter()).registerTypeHierarchyAdapter(LootItemFunction.class, LootItemFunctions.createGsonAdapter()).registerTypeHierarchyAdapter(NbtProvider.class, NbtProviders.createGsonAdapter());
+    }
 
-   public static GsonBuilder createLootTableSerializer() {
-      return createFunctionSerializer().registerTypeAdapter(LootPool.class, new LootPool.Serializer()).registerTypeAdapter(LootTable.class, new LootTable.Serializer());
-   }
+    public static GsonBuilder createLootTableSerializer() {
+        return createFunctionSerializer().registerTypeAdapter(LootPool.class, new LootPool.Serializer()).registerTypeAdapter(LootTable.class, new LootTable.Serializer());
+    }
 }

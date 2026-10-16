@@ -21,64 +21,63 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class RepeaterBlock extends DiodeBlock {
-   public static final BooleanProperty LOCKED = BlockStateProperties.LOCKED;
-   public static final IntegerProperty DELAY = BlockStateProperties.DELAY;
+    public static final BooleanProperty LOCKED = BlockStateProperties.LOCKED;
+    public static final IntegerProperty DELAY = BlockStateProperties.DELAY;
 
-   protected RepeaterBlock(BlockBehaviour.Properties p_55801_) {
-      super(p_55801_);
-      this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(DELAY, Integer.valueOf(1)).setValue(LOCKED, Boolean.valueOf(false)).setValue(POWERED, Boolean.valueOf(false)));
-   }
+    protected RepeaterBlock(BlockBehaviour.Properties p_55801_) {
+        super(p_55801_);
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(DELAY, Integer.valueOf(1)).setValue(LOCKED, Boolean.valueOf(false)).setValue(POWERED, Boolean.valueOf(false)));
+    }
 
-   public InteractionResult use(BlockState p_55809_, Level p_55810_, BlockPos p_55811_, Player p_55812_, InteractionHand p_55813_, BlockHitResult p_55814_) {
-      if (!p_55812_.getAbilities().mayBuild) {
-         return InteractionResult.PASS;
-      } else {
-         p_55810_.setBlock(p_55811_, p_55809_.cycle(DELAY), 3);
-         return InteractionResult.sidedSuccess(p_55810_.isClientSide);
-      }
-   }
+    public InteractionResult use(BlockState p_55809_, Level p_55810_, BlockPos p_55811_, Player p_55812_, InteractionHand p_55813_, BlockHitResult p_55814_) {
+        if (!p_55812_.getAbilities().mayBuild) {
+            return InteractionResult.PASS;
+        } else {
+            p_55810_.setBlock(p_55811_, p_55809_.cycle(DELAY), 3);
+            return InteractionResult.sidedSuccess(p_55810_.isClientSide);
+        }
+    }
 
-   protected int getDelay(BlockState p_55830_) {
-      return p_55830_.getValue(DELAY) * 2;
-   }
+    protected int getDelay(BlockState p_55830_) {
+        return p_55830_.getValue(DELAY) * 2;
+    }
 
-   public BlockState getStateForPlacement(BlockPlaceContext p_55803_) {
-      BlockState blockstate = super.getStateForPlacement(p_55803_);
-      return blockstate.setValue(LOCKED, Boolean.valueOf(this.isLocked(p_55803_.getLevel(), p_55803_.getClickedPos(), blockstate)));
-   }
+    public BlockState getStateForPlacement(BlockPlaceContext p_55803_) {
+        BlockState blockstate = super.getStateForPlacement(p_55803_);
+        return blockstate.setValue(LOCKED, Boolean.valueOf(this.isLocked(p_55803_.getLevel(), p_55803_.getClickedPos(), blockstate)));
+    }
 
-   public BlockState updateShape(BlockState p_55821_, Direction p_55822_, BlockState p_55823_, LevelAccessor p_55824_, BlockPos p_55825_, BlockPos p_55826_) {
-      return !p_55824_.isClientSide() && p_55822_.getAxis() != p_55821_.getValue(FACING).getAxis() ? p_55821_.setValue(LOCKED, Boolean.valueOf(this.isLocked(p_55824_, p_55825_, p_55821_))) : super.updateShape(p_55821_, p_55822_, p_55823_, p_55824_, p_55825_, p_55826_);
-   }
+    public BlockState updateShape(BlockState p_55821_, Direction p_55822_, BlockState p_55823_, LevelAccessor p_55824_, BlockPos p_55825_, BlockPos p_55826_) {
+        return !p_55824_.isClientSide() && p_55822_.getAxis() != p_55821_.getValue(FACING).getAxis() ? p_55821_.setValue(LOCKED, Boolean.valueOf(this.isLocked(p_55824_, p_55825_, p_55821_))) : super.updateShape(p_55821_, p_55822_, p_55823_, p_55824_, p_55825_, p_55826_);
+    }
 
-   public boolean isLocked(LevelReader p_55805_, BlockPos p_55806_, BlockState p_55807_) {
-      return this.getAlternateSignal(p_55805_, p_55806_, p_55807_) > 0;
-   }
+    public boolean isLocked(LevelReader p_55805_, BlockPos p_55806_, BlockState p_55807_) {
+        return this.getAlternateSignal(p_55805_, p_55806_, p_55807_) > 0;
+    }
 
-   protected boolean isAlternateInput(BlockState p_55832_) {
-      return isDiode(p_55832_);
-   }
+    protected boolean isAlternateInput(BlockState p_55832_) {
+        return isDiode(p_55832_);
+    }
 
-   public void animateTick(BlockState p_221964_, Level p_221965_, BlockPos p_221966_, RandomSource p_221967_) {
-      if (p_221964_.getValue(POWERED)) {
-         Direction direction = p_221964_.getValue(FACING);
-         double d0 = 0.5D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
-         double d1 = (double)p_221966_.getY() + 0.4D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
-         double d2 = 0.5D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
-         float f = -5.0F;
-         if (p_221967_.nextBoolean()) {
-            f = (float)(p_221964_.getValue(DELAY) * 2 - 1);
-         }
+    public void animateTick(BlockState p_221964_, Level p_221965_, BlockPos p_221966_, RandomSource p_221967_) {
+        if (p_221964_.getValue(POWERED)) {
+            Direction direction = p_221964_.getValue(FACING);
+            double d0 = 0.5D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
+            double d1 = (double) p_221966_.getY() + 0.4D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
+            double d2 = 0.5D + (p_221967_.nextDouble() - 0.5D) * 0.2D;
+            float f = -5.0F;
+            if (p_221967_.nextBoolean()) {
+                f = (float) (p_221964_.getValue(DELAY) * 2 - 1);
+            }
 
-         f /= 16.0F;
-         double d3 = (double)(f * (float)direction.getStepX());
-         double d4 = (double)(f * (float)direction.getStepZ());
-         p_221965_.addParticle(DustParticleOptions.REDSTONE, SectorVec3.fromBlockAndFraction(
-               p_221966_.getX(), d0 + d3, d1, p_221966_.getZ(), d2 + d4), 0.0D, 0.0D, 0.0D);
-      }
-   }
+            f /= 16.0F;
+            double d3 = (double) (f * (float) direction.getStepX());
+            double d4 = (double) (f * (float) direction.getStepZ());
+            p_221965_.addParticle(DustParticleOptions.REDSTONE, SectorVec3.fromBlockAndFraction(p_221966_.getX(), d0 + d3, d1, p_221966_.getZ(), d2 + d4), 0.0D, 0.0D, 0.0D);
+        }
+    }
 
-   protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_55828_) {
-      p_55828_.add(FACING, DELAY, LOCKED, POWERED);
-   }
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> p_55828_) {
+        p_55828_.add(FACING, DELAY, LOCKED, POWERED);
+    }
 }

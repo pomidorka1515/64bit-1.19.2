@@ -9,43 +9,43 @@ import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.phys.SectorVec3;
 
 public class EntityTracker implements PositionTracker {
-   private final Entity entity;
-   private final boolean trackEyeHeight;
+    private final Entity entity;
+    private final boolean trackEyeHeight;
 
-   public EntityTracker(Entity p_22849_, boolean p_22850_) {
-      this.entity = p_22849_;
-      this.trackEyeHeight = p_22850_;
-   }
+    public EntityTracker(Entity p_22849_, boolean p_22850_) {
+        this.entity = p_22849_;
+        this.trackEyeHeight = p_22850_;
+    }
 
-   public SectorVec3 currentExactPosition() {
-      return this.trackEyeHeight
-            ? this.entity.sectorPosition().add(0.0D, (double)this.entity.getEyeHeight(), 0.0D)
-            : this.entity.sectorPosition();
-   }
+    public SectorVec3 currentExactPosition() {
+        return this.trackEyeHeight
+                ? this.entity.sectorPosition().add(0.0D, (double) this.entity.getEyeHeight(), 0.0D)
+                : this.entity.sectorPosition();
+    }
 
-   public BlockPos currentBlockPosition() {
-      return this.entity.blockPosition();
-   }
+    public BlockPos currentBlockPosition() {
+        return this.entity.blockPosition();
+    }
 
-   public boolean isVisibleBy(LivingEntity p_22853_) {
-      Entity $$3 = this.entity;
-      if ($$3 instanceof LivingEntity livingentity) {
-         if (!livingentity.isAlive()) {
-            return false;
-         } else {
-            Optional<NearestVisibleLivingEntities> optional = p_22853_.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
-            return optional.isPresent() && optional.get().contains(livingentity);
-         }
-      } else {
-         return true;
-      }
-   }
+    public boolean isVisibleBy(LivingEntity p_22853_) {
+        Entity $$3 = this.entity;
+        if ($$3 instanceof LivingEntity livingentity) {
+            if (!livingentity.isAlive()) {
+                return false;
+            } else {
+                Optional<NearestVisibleLivingEntities> optional = p_22853_.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES);
+                return optional.isPresent() && optional.get().contains(livingentity);
+            }
+        } else {
+            return true;
+        }
+    }
 
-   public Entity getEntity() {
-      return this.entity;
-   }
+    public Entity getEntity() {
+        return this.entity;
+    }
 
-   public String toString() {
-      return "EntityTracker for " + this.entity;
-   }
+    public String toString() {
+        return "EntityTracker for " + this.entity;
+    }
 }

@@ -10,26 +10,26 @@ import net.minecraft.core.IdMap;
 import net.minecraft.network.FriendlyByteBuf;
 
 public interface PalettedContainerRO<T> {
-   T get(long p_238291_, int p_238292_, long p_238293_);
+    T get(long p_238291_, int p_238292_, long p_238293_);
 
-   void getAll(Consumer<T> p_238353_);
+    void getAll(Consumer<T> p_238353_);
 
-   void write(FriendlyByteBuf p_238417_);
+    void write(FriendlyByteBuf p_238417_);
 
-   int getSerializedSize();
+    int getSerializedSize();
 
-   boolean maybeHas(Predicate<T> p_238437_);
+    boolean maybeHas(Predicate<T> p_238437_);
 
-   void count(PalettedContainer.CountConsumer<T> p_238355_);
+    void count(PalettedContainer.CountConsumer<T> p_238355_);
 
-   PalettedContainer<T> recreate();
+    PalettedContainer<T> recreate();
 
-   PalettedContainerRO.PackedData<T> pack(IdMap<T> p_238441_, PalettedContainer.Strategy p_238442_);
+    PalettedContainerRO.PackedData<T> pack(IdMap<T> p_238441_, PalettedContainer.Strategy p_238442_);
 
-   public static record PackedData<T>(List<T> paletteEntries, Optional<LongStream> storage) {
-   }
+    public static record PackedData<T>(List<T> paletteEntries, Optional<LongStream> storage) {
+    }
 
-   public interface Unpacker<T, C extends PalettedContainerRO<T>> {
-      DataResult<C> read(IdMap<T> p_238364_, PalettedContainer.Strategy p_238365_, PalettedContainerRO.PackedData<T> p_238366_);
-   }
+    public interface Unpacker<T, C extends PalettedContainerRO<T>> {
+        DataResult<C> read(IdMap<T> p_238364_, PalettedContainer.Strategy p_238365_, PalettedContainerRO.PackedData<T> p_238366_);
+    }
 }

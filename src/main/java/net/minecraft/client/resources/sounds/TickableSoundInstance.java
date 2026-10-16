@@ -5,7 +5,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface TickableSoundInstance extends SoundInstance {
-   boolean isStopped();
+    boolean isStopped();
 
-   void tick();
+    void tick();
 }

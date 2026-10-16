@@ -29,203 +29,201 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public class Bat extends AmbientCreature {
-   public static final float FLAP_DEGREES_PER_TICK = 74.48451F;
-   public static final int TICKS_PER_FLAP = Mth.ceil(2.4166098F);
-   private static final EntityDataAccessor<Byte> DATA_ID_FLAGS = SynchedEntityData.defineId(Bat.class, EntityDataSerializers.BYTE);
-   private static final int FLAG_RESTING = 1;
-   private static final TargetingConditions BAT_RESTING_TARGETING = TargetingConditions.forNonCombat().range(4.0D);
-   @Nullable
-   private BlockPos targetPosition;
+    public static final float FLAP_DEGREES_PER_TICK = 74.48451F;
+    public static final int TICKS_PER_FLAP = Mth.ceil(2.4166098F);
+    private static final EntityDataAccessor<Byte> DATA_ID_FLAGS = SynchedEntityData.defineId(Bat.class, EntityDataSerializers.BYTE);
+    private static final int FLAG_RESTING = 1;
+    private static final TargetingConditions BAT_RESTING_TARGETING = TargetingConditions.forNonCombat().range(4.0D);
+    @Nullable
+    private BlockPos targetPosition;
 
-   public Bat(EntityType<? extends Bat> p_27412_, Level p_27413_) {
-      super(p_27412_, p_27413_);
-      this.setResting(true);
-   }
+    public Bat(EntityType<? extends Bat> p_27412_, Level p_27413_) {
+        super(p_27412_, p_27413_);
+        this.setResting(true);
+    }
 
-   public boolean isFlapping() {
-      return !this.isResting() && this.tickCount % TICKS_PER_FLAP == 0;
-   }
+    public boolean isFlapping() {
+        return !this.isResting() && this.tickCount % TICKS_PER_FLAP == 0;
+    }
 
-   protected void defineSynchedData() {
-      super.defineSynchedData();
-      this.entityData.define(DATA_ID_FLAGS, (byte)0);
-   }
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_ID_FLAGS, (byte) 0);
+    }
 
-   protected float getSoundVolume() {
-      return 0.1F;
-   }
+    protected float getSoundVolume() {
+        return 0.1F;
+    }
 
-   public float getVoicePitch() {
-      return super.getVoicePitch() * 0.95F;
-   }
+    public float getVoicePitch() {
+        return super.getVoicePitch() * 0.95F;
+    }
 
-   @Nullable
-   public SoundEvent getAmbientSound() {
-      return this.isResting() && this.random.nextInt(4) != 0 ? null : SoundEvents.BAT_AMBIENT;
-   }
+    @Nullable
+    public SoundEvent getAmbientSound() {
+        return this.isResting() && this.random.nextInt(4) != 0 ? null : SoundEvents.BAT_AMBIENT;
+    }
 
-   protected SoundEvent getHurtSound(DamageSource p_27451_) {
-      return SoundEvents.BAT_HURT;
-   }
+    protected SoundEvent getHurtSound(DamageSource p_27451_) {
+        return SoundEvents.BAT_HURT;
+    }
 
-   protected SoundEvent getDeathSound() {
-      return SoundEvents.BAT_DEATH;
-   }
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.BAT_DEATH;
+    }
 
-   public boolean isPushable() {
-      return false;
-   }
+    public boolean isPushable() {
+        return false;
+    }
 
-   protected void doPush(Entity p_27415_) {
-   }
+    protected void doPush(Entity p_27415_) {
+    }
 
-   protected void pushEntities() {
-   }
+    protected void pushEntities() {
+    }
 
-   public static AttributeSupplier.Builder createAttributes() {
-      return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 6.0D);
-   }
+    public static AttributeSupplier.Builder createAttributes() {
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 6.0D);
+    }
 
-   public boolean isResting() {
-      return (this.entityData.get(DATA_ID_FLAGS) & 1) != 0;
-   }
+    public boolean isResting() {
+        return (this.entityData.get(DATA_ID_FLAGS) & 1) != 0;
+    }
 
-   public void setResting(boolean p_27457_) {
-      byte b0 = this.entityData.get(DATA_ID_FLAGS);
-      if (p_27457_) {
-         this.entityData.set(DATA_ID_FLAGS, (byte)(b0 | 1));
-      } else {
-         this.entityData.set(DATA_ID_FLAGS, (byte)(b0 & -2));
-      }
+    public void setResting(boolean p_27457_) {
+        byte b0 = this.entityData.get(DATA_ID_FLAGS);
+        if (p_27457_) {
+            this.entityData.set(DATA_ID_FLAGS, (byte) (b0 | 1));
+        } else {
+            this.entityData.set(DATA_ID_FLAGS, (byte) (b0 & -2));
+        }
+    }
 
-   }
+    public void tick() {
+        super.tick();
+        if (this.isResting()) {
+            this.setDeltaMovement(Vec3.ZERO);
+            this.applyExactPosition(this.sectorPosition().withY((double) Mth.floor(this.getY()) + 1.0D - (double) this.getBbHeight()));
+        } else {
+            this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.6D, 1.0D));
+        }
+    }
 
-   public void tick() {
-      super.tick();
-      if (this.isResting()) {
-         this.setDeltaMovement(Vec3.ZERO);
-         this.applyExactPosition(this.sectorPosition().withY((double)Mth.floor(this.getY()) + 1.0D - (double)this.getBbHeight()));
-      } else {
-         this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.6D, 1.0D));
-      }
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+        BlockPos blockpos = this.blockPosition();
+        BlockPos blockpos1 = blockpos.above();
+        if (this.isResting()) {
+            boolean flag = this.isSilent();
+            if (this.level.getBlockState(blockpos1).isRedstoneConductor(this.level, blockpos)) {
+                if (this.random.nextInt(200) == 0) {
+                    this.yHeadRot = (float) this.random.nextInt(360);
+                }
 
-   }
-
-   protected void customServerAiStep() {
-      super.customServerAiStep();
-      BlockPos blockpos = this.blockPosition();
-      BlockPos blockpos1 = blockpos.above();
-      if (this.isResting()) {
-         boolean flag = this.isSilent();
-         if (this.level.getBlockState(blockpos1).isRedstoneConductor(this.level, blockpos)) {
-            if (this.random.nextInt(200) == 0) {
-               this.yHeadRot = (float)this.random.nextInt(360);
+                if (this.level.getNearestPlayer(BAT_RESTING_TARGETING, this) != null) {
+                    this.setResting(false);
+                    if (!flag) {
+                        this.level.levelEvent((Player) null, 1025, blockpos, 0);
+                    }
+                }
+            } else {
+                this.setResting(false);
+                if (!flag) {
+                    this.level.levelEvent((Player) null, 1025, blockpos, 0);
+                }
+            }
+        } else {
+            if (this.targetPosition != null && (!this.level.isEmptyBlock(this.targetPosition) || this.targetPosition.getY() <= this.level.getMinBuildHeight())) {
+                this.targetPosition = null;
             }
 
-            if (this.level.getNearestPlayer(BAT_RESTING_TARGETING, this) != null) {
-               this.setResting(false);
-               if (!flag) {
-                  this.level.levelEvent((Player)null, 1025, blockpos, 0);
-               }
+            if (this.targetPosition == null || this.random.nextInt(30) == 0 || this.targetPosition.closerToCenterThan(this.sectorPosition(), 2.0D)) {
+                this.targetPosition = this.blockPosition().offset(
+                        (long) this.random.nextInt(7) - (long) this.random.nextInt(7),
+                        this.random.nextInt(6) - 2,
+                        (long) this.random.nextInt(7) - (long) this.random.nextInt(7));
             }
-         } else {
-            this.setResting(false);
-            if (!flag) {
-               this.level.levelEvent((Player)null, 1025, blockpos, 0);
+
+            Vec3 targetDelta = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.targetPosition.getX(),
+                                                                          0.5D, (double) this.targetPosition.getY() + 0.1D, this.targetPosition.getZ(), 0.5D)
+                                       .relativeTo(this.sectorPosition());
+            double d2 = targetDelta.x;
+            double d0 = targetDelta.y;
+            double d1 = targetDelta.z;
+            Vec3 vec3 = this.getDeltaMovement();
+            Vec3 vec31 = vec3.add((Math.signum(d2) * 0.5D - vec3.x) * (double) 0.1F, (Math.signum(d0) * (double) 0.7F - vec3.y) * (double) 0.1F, (Math.signum(d1) * 0.5D - vec3.z) * (double) 0.1F);
+            this.setDeltaMovement(vec31);
+            float f = (float) (Mth.atan2(vec31.z, vec31.x) * (double) (180F / (float) Math.PI)) - 90.0F;
+            float f1 = Mth.wrapDegrees(f - this.getYRot());
+            this.zza = 0.5F;
+            this.setYRot(this.getYRot() + f1);
+            if (this.random.nextInt(100) == 0 && this.level.getBlockState(blockpos1).isRedstoneConductor(this.level, blockpos1)) {
+                this.setResting(true);
             }
-         }
-      } else {
-         if (this.targetPosition != null && (!this.level.isEmptyBlock(this.targetPosition) || this.targetPosition.getY() <= this.level.getMinBuildHeight())) {
-            this.targetPosition = null;
-         }
+        }
+    }
 
-         if (this.targetPosition == null || this.random.nextInt(30) == 0 || this.targetPosition.closerToCenterThan(this.sectorPosition(), 2.0D)) {
-            this.targetPosition = this.blockPosition().offset(
-                  (long)this.random.nextInt(7) - (long)this.random.nextInt(7),
-                  this.random.nextInt(6) - 2,
-                  (long)this.random.nextInt(7) - (long)this.random.nextInt(7));
-         }
+    protected Entity.MovementEmission getMovementEmission() {
+        return Entity.MovementEmission.EVENTS;
+    }
 
-         Vec3 targetDelta = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.targetPosition.getX(),
-               0.5D, (double)this.targetPosition.getY() + 0.1D, this.targetPosition.getZ(), 0.5D).relativeTo(this.sectorPosition());
-         double d2 = targetDelta.x;
-         double d0 = targetDelta.y;
-         double d1 = targetDelta.z;
-         Vec3 vec3 = this.getDeltaMovement();
-         Vec3 vec31 = vec3.add((Math.signum(d2) * 0.5D - vec3.x) * (double)0.1F, (Math.signum(d0) * (double)0.7F - vec3.y) * (double)0.1F, (Math.signum(d1) * 0.5D - vec3.z) * (double)0.1F);
-         this.setDeltaMovement(vec31);
-         float f = (float)(Mth.atan2(vec31.z, vec31.x) * (double)(180F / (float)Math.PI)) - 90.0F;
-         float f1 = Mth.wrapDegrees(f - this.getYRot());
-         this.zza = 0.5F;
-         this.setYRot(this.getYRot() + f1);
-         if (this.random.nextInt(100) == 0 && this.level.getBlockState(blockpos1).isRedstoneConductor(this.level, blockpos1)) {
-            this.setResting(true);
-         }
-      }
+    public boolean causeFallDamage(float p_148702_, float p_148703_, DamageSource p_148704_) {
+        return false;
+    }
 
-   }
+    protected void checkFallDamage(double p_27419_, boolean p_27420_, BlockState p_27421_, BlockPos p_27422_) {
+    }
 
-   protected Entity.MovementEmission getMovementEmission() {
-      return Entity.MovementEmission.EVENTS;
-   }
+    public boolean isIgnoringBlockTriggers() {
+        return true;
+    }
 
-   public boolean causeFallDamage(float p_148702_, float p_148703_, DamageSource p_148704_) {
-      return false;
-   }
-
-   protected void checkFallDamage(double p_27419_, boolean p_27420_, BlockState p_27421_, BlockPos p_27422_) {
-   }
-
-   public boolean isIgnoringBlockTriggers() {
-      return true;
-   }
-
-   public boolean hurt(DamageSource p_27424_, float p_27425_) {
-      if (this.isInvulnerableTo(p_27424_)) {
-         return false;
-      } else {
-         if (!this.level.isClientSide && this.isResting()) {
-            this.setResting(false);
-         }
-
-         return super.hurt(p_27424_, p_27425_);
-      }
-   }
-
-   public void readAdditionalSaveData(CompoundTag p_27427_) {
-      super.readAdditionalSaveData(p_27427_);
-      this.entityData.set(DATA_ID_FLAGS, p_27427_.getByte("BatFlags"));
-   }
-
-   public void addAdditionalSaveData(CompoundTag p_27443_) {
-      super.addAdditionalSaveData(p_27443_);
-      p_27443_.putByte("BatFlags", this.entityData.get(DATA_ID_FLAGS));
-   }
-
-   public static boolean checkBatSpawnRules(EntityType<Bat> p_218099_, LevelAccessor p_218100_, MobSpawnType p_218101_, BlockPos p_218102_, RandomSource p_218103_) {
-      if (p_218102_.getY() >= p_218100_.getSeaLevel()) {
-         return false;
-      } else {
-         int i = p_218100_.getMaxLocalRawBrightness(p_218102_);
-         int j = 4;
-         if (isHalloween()) {
-            j = 7;
-         } else if (p_218103_.nextBoolean()) {
+    public boolean hurt(DamageSource p_27424_, float p_27425_) {
+        if (this.isInvulnerableTo(p_27424_)) {
             return false;
-         }
+        } else {
+            if (!this.level.isClientSide && this.isResting()) {
+                this.setResting(false);
+            }
 
-         return i > p_218103_.nextInt(j) ? false : checkMobSpawnRules(p_218099_, p_218100_, p_218101_, p_218102_, p_218103_);
-      }
-   }
+            return super.hurt(p_27424_, p_27425_);
+        }
+    }
 
-   private static boolean isHalloween() {
-      LocalDate localdate = LocalDate.now();
-      int i = localdate.get(ChronoField.DAY_OF_MONTH);
-      int j = localdate.get(ChronoField.MONTH_OF_YEAR);
-      return j == 10 && i >= 20 || j == 11 && i <= 3;
-   }
+    public void readAdditionalSaveData(CompoundTag p_27427_) {
+        super.readAdditionalSaveData(p_27427_);
+        this.entityData.set(DATA_ID_FLAGS, p_27427_.getByte("BatFlags"));
+    }
 
-   protected float getStandingEyeHeight(Pose p_27440_, EntityDimensions p_27441_) {
-      return p_27441_.height / 2.0F;
-   }
+    public void addAdditionalSaveData(CompoundTag p_27443_) {
+        super.addAdditionalSaveData(p_27443_);
+        p_27443_.putByte("BatFlags", this.entityData.get(DATA_ID_FLAGS));
+    }
+
+    public static boolean checkBatSpawnRules(EntityType<Bat> p_218099_, LevelAccessor p_218100_, MobSpawnType p_218101_, BlockPos p_218102_, RandomSource p_218103_) {
+        if (p_218102_.getY() >= p_218100_.getSeaLevel()) {
+            return false;
+        } else {
+            int i = p_218100_.getMaxLocalRawBrightness(p_218102_);
+            int j = 4;
+            if (isHalloween()) {
+                j = 7;
+            } else if (p_218103_.nextBoolean()) {
+                return false;
+            }
+
+            return i > p_218103_.nextInt(j) ? false : checkMobSpawnRules(p_218099_, p_218100_, p_218101_, p_218102_, p_218103_);
+        }
+    }
+
+    private static boolean isHalloween() {
+        LocalDate localdate = LocalDate.now();
+        int i = localdate.get(ChronoField.DAY_OF_MONTH);
+        int j = localdate.get(ChronoField.MONTH_OF_YEAR);
+        return j == 10 && i >= 20 || j == 11 && i <= 3;
+    }
+
+    protected float getStandingEyeHeight(Pose p_27440_, EntityDimensions p_27441_) {
+        return p_27441_.height / 2.0F;
+    }
 }

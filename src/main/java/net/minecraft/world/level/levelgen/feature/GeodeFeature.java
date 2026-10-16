@@ -28,149 +28,149 @@ import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 import net.minecraft.world.level.material.FluidState;
 
 public class GeodeFeature extends Feature<GeodeConfiguration> {
-   private static final Direction[] DIRECTIONS = Direction.values();
+    private static final Direction[] DIRECTIONS = Direction.values();
 
-   public GeodeFeature(Codec<GeodeConfiguration> p_159834_) {
-      super(p_159834_);
-   }
+    public GeodeFeature(Codec<GeodeConfiguration> p_159834_) {
+        super(p_159834_);
+    }
 
-   public boolean place(FeaturePlaceContext<GeodeConfiguration> p_159836_) {
-      GeodeConfiguration geodeconfiguration = p_159836_.config();
-      RandomSource randomsource = p_159836_.random();
-      BlockPos blockpos = p_159836_.origin();
-      WorldGenLevel worldgenlevel = p_159836_.level();
-      int i = geodeconfiguration.minGenOffset;
-      int j = geodeconfiguration.maxGenOffset;
-      List<Pair<BlockPos, Integer>> list = Lists.newLinkedList();
-      int k = geodeconfiguration.distributionPoints.sample(randomsource);
-      WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(worldgenlevel.getSeed()));
-      NormalNoise normalnoise = NormalNoise.create(worldgenrandom, -4, 1.0D);
-      List<BlockPos> list1 = Lists.newLinkedList();
-      double d0 = (double)k / (double)geodeconfiguration.outerWallDistance.getMaxValue();
-      GeodeLayerSettings geodelayersettings = geodeconfiguration.geodeLayerSettings;
-      GeodeBlockSettings geodeblocksettings = geodeconfiguration.geodeBlockSettings;
-      GeodeCrackSettings geodecracksettings = geodeconfiguration.geodeCrackSettings;
-      double d1 = 1.0D / Math.sqrt(geodelayersettings.filling);
-      double d2 = 1.0D / Math.sqrt(geodelayersettings.innerLayer + d0);
-      double d3 = 1.0D / Math.sqrt(geodelayersettings.middleLayer + d0);
-      double d4 = 1.0D / Math.sqrt(geodelayersettings.outerLayer + d0);
-      double d5 = 1.0D / Math.sqrt(geodecracksettings.baseCrackSize + randomsource.nextDouble() / 2.0D + (k > 3 ? d0 : 0.0D));
-      boolean flag = (double)randomsource.nextFloat() < geodecracksettings.generateCrackChance;
-      int l = 0;
+    public boolean place(FeaturePlaceContext<GeodeConfiguration> p_159836_) {
+        GeodeConfiguration geodeconfiguration = p_159836_.config();
+        RandomSource randomsource = p_159836_.random();
+        BlockPos blockpos = p_159836_.origin();
+        WorldGenLevel worldgenlevel = p_159836_.level();
+        int i = geodeconfiguration.minGenOffset;
+        int j = geodeconfiguration.maxGenOffset;
+        List<Pair<BlockPos, Integer>> list = Lists.newLinkedList();
+        int k = geodeconfiguration.distributionPoints.sample(randomsource);
+        WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(worldgenlevel.getSeed()));
+        NormalNoise normalnoise = NormalNoise.create(worldgenrandom, -4, 1.0D);
+        List<BlockPos> list1 = Lists.newLinkedList();
+        double d0 = (double) k / (double) geodeconfiguration.outerWallDistance.getMaxValue();
+        GeodeLayerSettings geodelayersettings = geodeconfiguration.geodeLayerSettings;
+        GeodeBlockSettings geodeblocksettings = geodeconfiguration.geodeBlockSettings;
+        GeodeCrackSettings geodecracksettings = geodeconfiguration.geodeCrackSettings;
+        double d1 = 1.0D / Math.sqrt(geodelayersettings.filling);
+        double d2 = 1.0D / Math.sqrt(geodelayersettings.innerLayer + d0);
+        double d3 = 1.0D / Math.sqrt(geodelayersettings.middleLayer + d0);
+        double d4 = 1.0D / Math.sqrt(geodelayersettings.outerLayer + d0);
+        double d5 = 1.0D / Math.sqrt(geodecracksettings.baseCrackSize + randomsource.nextDouble() / 2.0D + (k > 3 ? d0 : 0.0D));
+        boolean flag = (double) randomsource.nextFloat() < geodecracksettings.generateCrackChance;
+        int l = 0;
 
-      for(int i1 = 0; i1 < k; ++i1) {
-         int j1 = geodeconfiguration.outerWallDistance.sample(randomsource);
-         int k1 = geodeconfiguration.outerWallDistance.sample(randomsource);
-         int l1 = geodeconfiguration.outerWallDistance.sample(randomsource);
-         BlockPos blockpos1 = blockpos.offset(j1, k1, l1);
-         BlockState blockstate = worldgenlevel.getBlockState(blockpos1);
-         if (blockstate.isAir() || blockstate.is(BlockTags.GEODE_INVALID_BLOCKS)) {
-            ++l;
-            if (l > geodeconfiguration.invalidBlocksThreshold) {
-               return false;
-            }
-         }
-
-         list.add(Pair.of(blockpos1, geodeconfiguration.pointOffset.sample(randomsource)));
-      }
-
-      if (flag) {
-         int i2 = randomsource.nextInt(4);
-         int j2 = k * 2 + 1;
-         if (i2 == 0) {
-            list1.add(blockpos.offset(j2, 7, 0));
-            list1.add(blockpos.offset(j2, 5, 0));
-            list1.add(blockpos.offset(j2, 1, 0));
-         } else if (i2 == 1) {
-            list1.add(blockpos.offset(0, 7, j2));
-            list1.add(blockpos.offset(0, 5, j2));
-            list1.add(blockpos.offset(0, 1, j2));
-         } else if (i2 == 2) {
-            list1.add(blockpos.offset(j2, 7, j2));
-            list1.add(blockpos.offset(j2, 5, j2));
-            list1.add(blockpos.offset(j2, 1, j2));
-         } else {
-            list1.add(blockpos.offset(0, 7, 0));
-            list1.add(blockpos.offset(0, 5, 0));
-            list1.add(blockpos.offset(0, 1, 0));
-         }
-      }
-
-      List<BlockPos> list2 = Lists.newArrayList();
-      Predicate<BlockState> predicate = isReplaceable(geodeconfiguration.geodeBlockSettings.cannotReplace);
-
-      for(BlockPos blockpos3 : BlockPos.betweenClosed(blockpos.offset(i, i, i), blockpos.offset(j, j, j))) {
-         long blockX = blockpos3.getX();
-         long blockZ = blockpos3.getZ();
-         double d8 = FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))
-            ? normalnoise.getValueScaled(blockX, 1.0D, blockpos3.getY(), 1.0D, blockZ) * geodeconfiguration.noiseMultiplier
-            : normalnoise.getValue((double)blockX, (double)blockpos3.getY(), (double)blockZ) * geodeconfiguration.noiseMultiplier;
-         double d6 = 0.0D;
-         double d7 = 0.0D;
-
-         for(Pair<BlockPos, Integer> pair : list) {
-            d6 += Mth.fastInvSqrt(blockpos3.distSqr(pair.getFirst()) + (double)pair.getSecond().intValue()) + d8;
-         }
-
-         for(BlockPos blockpos6 : list1) {
-            d7 += Mth.fastInvSqrt(blockpos3.distSqr(blockpos6) + (double)geodecracksettings.crackPointOffset) + d8;
-         }
-
-         if (!(d6 < d4)) {
-            if (flag && d7 >= d5 && d6 < d1) {
-               this.safeSetBlock(worldgenlevel, blockpos3, Blocks.AIR.defaultBlockState(), predicate);
-
-               for(Direction direction1 : DIRECTIONS) {
-                  BlockPos blockpos2 = blockpos3.relative(direction1);
-                  FluidState fluidstate = worldgenlevel.getFluidState(blockpos2);
-                  if (!fluidstate.isEmpty()) {
-                     worldgenlevel.scheduleTick(blockpos2, fluidstate.getType(), 0);
-                  }
-               }
-            } else if (d6 >= d1) {
-               this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.fillingProvider.getState(randomsource, blockpos3), predicate);
-            } else if (d6 >= d2) {
-               boolean flag1 = (double)randomsource.nextFloat() < geodeconfiguration.useAlternateLayer0Chance;
-               if (flag1) {
-                  this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.alternateInnerLayerProvider.getState(randomsource, blockpos3), predicate);
-               } else {
-                  this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.innerLayerProvider.getState(randomsource, blockpos3), predicate);
-               }
-
-               if ((!geodeconfiguration.placementsRequireLayer0Alternate || flag1) && (double)randomsource.nextFloat() < geodeconfiguration.usePotentialPlacementsChance) {
-                  list2.add(blockpos3.immutable());
-               }
-            } else if (d6 >= d3) {
-               this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.middleLayerProvider.getState(randomsource, blockpos3), predicate);
-            } else if (d6 >= d4) {
-               this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.outerLayerProvider.getState(randomsource, blockpos3), predicate);
-            }
-         }
-      }
-
-      List<BlockState> list3 = geodeblocksettings.innerPlacements;
-
-      for(BlockPos blockpos4 : list2) {
-         BlockState blockstate1 = Util.getRandom(list3, randomsource);
-
-         for(Direction direction : DIRECTIONS) {
-            if (blockstate1.hasProperty(BlockStateProperties.FACING)) {
-               blockstate1 = blockstate1.setValue(BlockStateProperties.FACING, direction);
+        for (int i1 = 0; i1 < k; ++i1) {
+            int j1 = geodeconfiguration.outerWallDistance.sample(randomsource);
+            int k1 = geodeconfiguration.outerWallDistance.sample(randomsource);
+            int l1 = geodeconfiguration.outerWallDistance.sample(randomsource);
+            BlockPos blockpos1 = blockpos.offset(j1, k1, l1);
+            BlockState blockstate = worldgenlevel.getBlockState(blockpos1);
+            if (blockstate.isAir() || blockstate.is(BlockTags.GEODE_INVALID_BLOCKS)) {
+                ++l;
+                if (l > geodeconfiguration.invalidBlocksThreshold) {
+                    return false;
+                }
             }
 
-            BlockPos blockpos5 = blockpos4.relative(direction);
-            BlockState blockstate2 = worldgenlevel.getBlockState(blockpos5);
-            if (blockstate1.hasProperty(BlockStateProperties.WATERLOGGED)) {
-               blockstate1 = blockstate1.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(blockstate2.getFluidState().isSource()));
+            list.add(Pair.of(blockpos1, geodeconfiguration.pointOffset.sample(randomsource)));
+        }
+
+        if (flag) {
+            int i2 = randomsource.nextInt(4);
+            int j2 = k * 2 + 1;
+            if (i2 == 0) {
+                list1.add(blockpos.offset(j2, 7, 0));
+                list1.add(blockpos.offset(j2, 5, 0));
+                list1.add(blockpos.offset(j2, 1, 0));
+            } else if (i2 == 1) {
+                list1.add(blockpos.offset(0, 7, j2));
+                list1.add(blockpos.offset(0, 5, j2));
+                list1.add(blockpos.offset(0, 1, j2));
+            } else if (i2 == 2) {
+                list1.add(blockpos.offset(j2, 7, j2));
+                list1.add(blockpos.offset(j2, 5, j2));
+                list1.add(blockpos.offset(j2, 1, j2));
+            } else {
+                list1.add(blockpos.offset(0, 7, 0));
+                list1.add(blockpos.offset(0, 5, 0));
+                list1.add(blockpos.offset(0, 1, 0));
+            }
+        }
+
+        List<BlockPos> list2 = Lists.newArrayList();
+        Predicate<BlockState> predicate = isReplaceable(geodeconfiguration.geodeBlockSettings.cannotReplace);
+
+        for (BlockPos blockpos3 : BlockPos.betweenClosed(blockpos.offset(i, i, i), blockpos.offset(j, j, j))) {
+            long blockX = blockpos3.getX();
+            long blockZ = blockpos3.getZ();
+            double d8 = FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))
+                    ? normalnoise.getValueScaled(blockX, 1.0D, blockpos3.getY(), 1.0D, blockZ) * geodeconfiguration.noiseMultiplier
+                    : normalnoise.getValue((double) blockX, (double) blockpos3.getY(), (double) blockZ) * geodeconfiguration.noiseMultiplier;
+            double d6 = 0.0D;
+            double d7 = 0.0D;
+
+            for (Pair<BlockPos, Integer> pair : list) {
+                d6 += Mth.fastInvSqrt(blockpos3.distSqr(pair.getFirst()) + (double) pair.getSecond().intValue()) + d8;
             }
 
-            if (BuddingAmethystBlock.canClusterGrowAtState(blockstate2)) {
-               this.safeSetBlock(worldgenlevel, blockpos5, blockstate1, predicate);
-               break;
+            for (BlockPos blockpos6 : list1) {
+                d7 += Mth.fastInvSqrt(blockpos3.distSqr(blockpos6) + (double) geodecracksettings.crackPointOffset) + d8;
             }
-         }
-      }
 
-      return true;
-   }
+            if (!(d6 < d4)) {
+                if (flag && d7 >= d5 && d6 < d1) {
+                    this.safeSetBlock(worldgenlevel, blockpos3, Blocks.AIR.defaultBlockState(), predicate);
+
+                    for (Direction direction1 : DIRECTIONS) {
+                        BlockPos blockpos2 = blockpos3.relative(direction1);
+                        FluidState fluidstate = worldgenlevel.getFluidState(blockpos2);
+                        if (!fluidstate.isEmpty()) {
+                            worldgenlevel.scheduleTick(blockpos2, fluidstate.getType(), 0);
+                        }
+                    }
+                } else if (d6 >= d1) {
+                    this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.fillingProvider.getState(randomsource, blockpos3), predicate);
+                } else if (d6 >= d2) {
+                    boolean flag1 = (double) randomsource.nextFloat() < geodeconfiguration.useAlternateLayer0Chance;
+                    if (flag1) {
+                        this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.alternateInnerLayerProvider.getState(randomsource, blockpos3), predicate);
+                    } else {
+                        this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.innerLayerProvider.getState(randomsource, blockpos3), predicate);
+                    }
+
+                    if ((!geodeconfiguration.placementsRequireLayer0Alternate || flag1) && (double) randomsource.nextFloat() < geodeconfiguration.usePotentialPlacementsChance) {
+                        list2.add(blockpos3.immutable());
+                    }
+                } else if (d6 >= d3) {
+                    this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.middleLayerProvider.getState(randomsource, blockpos3), predicate);
+                } else if (d6 >= d4) {
+                    this.safeSetBlock(worldgenlevel, blockpos3, geodeblocksettings.outerLayerProvider.getState(randomsource, blockpos3), predicate);
+                }
+            }
+        }
+
+        List<BlockState> list3 = geodeblocksettings.innerPlacements;
+
+        for (BlockPos blockpos4 : list2) {
+            BlockState blockstate1 = Util.getRandom(list3, randomsource);
+
+            for (Direction direction : DIRECTIONS) {
+                if (blockstate1.hasProperty(BlockStateProperties.FACING)) {
+                    blockstate1 = blockstate1.setValue(BlockStateProperties.FACING, direction);
+                }
+
+                BlockPos blockpos5 = blockpos4.relative(direction);
+                BlockState blockstate2 = worldgenlevel.getBlockState(blockpos5);
+                if (blockstate1.hasProperty(BlockStateProperties.WATERLOGGED)) {
+                    blockstate1 = blockstate1.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(blockstate2.getFluidState().isSource()));
+                }
+
+                if (BuddingAmethystBlock.canClusterGrowAtState(blockstate2)) {
+                    this.safeSetBlock(worldgenlevel, blockpos5, blockstate1, predicate);
+                    break;
+                }
+            }
+        }
+
+        return true;
+    }
 }

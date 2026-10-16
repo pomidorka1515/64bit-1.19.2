@@ -6,12 +6,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface RefreshableSearchTree<T> extends SearchTree<T> {
-   static <T> RefreshableSearchTree<T> empty() {
-      return (p_235203_) -> {
-         return List.of();
-      };
-   }
+    static <T> RefreshableSearchTree<T> empty() {
+        return (p_235203_) -> {
+            return List.of();
+        };
+    }
 
-   default void refresh() {
-   }
+    default void refresh() {
+    }
 }

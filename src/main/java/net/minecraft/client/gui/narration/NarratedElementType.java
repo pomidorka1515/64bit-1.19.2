@@ -5,8 +5,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public enum NarratedElementType {
-   TITLE,
-   POSITION,
-   HINT,
-   USAGE;
+    TITLE,
+    POSITION,
+    HINT,
+    USAGE;
 }

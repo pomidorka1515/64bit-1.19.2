@@ -11,18 +11,19 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.monster.warden.Warden;
 
 public class SetWardenLookTarget extends Behavior<Warden> {
-   public SetWardenLookTarget() {
-      super(ImmutableMap.of(MemoryModuleType.DISTURBANCE_LOCATION, MemoryStatus.REGISTERED, MemoryModuleType.ROAR_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT));
-   }
+    public SetWardenLookTarget() {
+        super(ImmutableMap.of(MemoryModuleType.DISTURBANCE_LOCATION, MemoryStatus.REGISTERED, MemoryModuleType.ROAR_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT));
+    }
 
-   protected boolean checkExtraStartConditions(ServerLevel p_217636_, Warden p_217637_) {
-      return p_217637_.getBrain().hasMemoryValue(MemoryModuleType.DISTURBANCE_LOCATION) || p_217637_.getBrain().hasMemoryValue(MemoryModuleType.ROAR_TARGET);
-   }
+    protected boolean checkExtraStartConditions(ServerLevel p_217636_, Warden p_217637_) {
+        return p_217637_.getBrain().hasMemoryValue(MemoryModuleType.DISTURBANCE_LOCATION) || p_217637_.getBrain().hasMemoryValue(MemoryModuleType.ROAR_TARGET);
+    }
 
-   protected void start(ServerLevel p_217639_, Warden p_217640_, long p_217641_) {
-      BlockPos blockpos = p_217640_.getBrain().getMemory(MemoryModuleType.ROAR_TARGET).map(Entity::blockPosition).or(() -> {
-         return p_217640_.getBrain().getMemory(MemoryModuleType.DISTURBANCE_LOCATION);
-      }).get();
-      p_217640_.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(blockpos));
-   }
+    protected void start(ServerLevel p_217639_, Warden p_217640_, long p_217641_) {
+        BlockPos blockpos = p_217640_.getBrain().getMemory(MemoryModuleType.ROAR_TARGET).map(Entity::blockPosition).or(() -> {
+                                                                                                                       return p_217640_.getBrain().getMemory(MemoryModuleType.DISTURBANCE_LOCATION);
+                                                                                                                   })
+                                    .get();
+        p_217640_.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(blockpos));
+    }
 }

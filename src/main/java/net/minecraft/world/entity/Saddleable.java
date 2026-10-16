@@ -4,9 +4,9 @@ import javax.annotation.Nullable;
 import net.minecraft.sounds.SoundSource;
 
 public interface Saddleable {
-   boolean isSaddleable();
+    boolean isSaddleable();
 
-   void equipSaddle(@Nullable SoundSource p_21748_);
+    void equipSaddle(@Nullable SoundSource p_21748_);
 
-   boolean isSaddled();
+    boolean isSaddled();
 }

@@ -17,21 +17,21 @@ import net.minecraft.obfuscate.DontObfuscate;
 @Period("1 s")
 @DontObfuscate
 public class ServerTickTimeEvent extends Event {
-   public static final String EVENT_NAME = "minecraft.ServerTickTime";
-   public static final EventType TYPE = EventType.getEventType(ServerTickTimeEvent.class);
-   @Name("averageTickDuration")
-   @Label("Average Server Tick Duration")
-   @Timespan
-   public final long averageTickDurationNanos;
+    public static final String EVENT_NAME = "minecraft.ServerTickTime";
+    public static final EventType TYPE = EventType.getEventType(ServerTickTimeEvent.class);
+    @Name("averageTickDuration")
+    @Label("Average Server Tick Duration")
+    @Timespan
+    public final long averageTickDurationNanos;
 
-   public ServerTickTimeEvent(float p_195602_) {
-      this.averageTickDurationNanos = (long)(1000000.0F * p_195602_);
-   }
+    public ServerTickTimeEvent(float p_195602_) {
+        this.averageTickDurationNanos = (long) (1000000.0F * p_195602_);
+    }
 
-   public static class Fields {
-      public static final String AVERAGE_TICK_DURATION = "averageTickDuration";
+    public static class Fields {
+        public static final String AVERAGE_TICK_DURATION = "averageTickDuration";
 
-      private Fields() {
-      }
-   }
+        private Fields() {
+        }
+    }
 }

@@ -5,16 +5,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public enum AdvancementWidgetType {
-   OBTAINED(0),
-   UNOBTAINED(1);
+    OBTAINED(0),
+    UNOBTAINED(1);
 
-   private final int y;
+    private final int y;
 
-   private AdvancementWidgetType(int p_97324_) {
-      this.y = p_97324_;
-   }
+    private AdvancementWidgetType(int p_97324_) {
+        this.y = p_97324_;
+    }
 
-   public int getIndex() {
-      return this.y;
-   }
+    public int getIndex() {
+        return this.y;
+    }
 }

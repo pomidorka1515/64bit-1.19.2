@@ -9,69 +9,64 @@ import net.minecraft.world.level.levelgen.feature.EndPodiumFeature;
 import net.minecraft.world.phys.Vec3;
 
 public class DragonLandingPhase extends AbstractDragonPhaseInstance {
-   @Nullable
-   private net.minecraft.world.phys.SectorVec3 targetLocation;
+    @Nullable
+    private net.minecraft.world.phys.SectorVec3 targetLocation;
 
-   public DragonLandingPhase(EnderDragon p_31305_) {
-      super(p_31305_);
-   }
+    public DragonLandingPhase(EnderDragon p_31305_) {
+        super(p_31305_);
+    }
 
-   public void doClientTick() {
-      Vec3 vec3 = this.dragon.getHeadLookVector(1.0F).normalize();
-      vec3.yRot((-(float)Math.PI / 4F));
-      Vec3 headRelative = this.dragon.head.sectorPosition().relativeTo(this.dragon.sectorPosition());
+    public void doClientTick() {
+        Vec3 vec3 = this.dragon.getHeadLookVector(1.0F).normalize();
+        vec3.yRot((-(float) Math.PI / 4F));
+        Vec3 headRelative = this.dragon.head.sectorPosition().relativeTo(this.dragon.sectorPosition());
 
-      for(int i = 0; i < 8; ++i) {
-         RandomSource randomsource = this.dragon.getRandom();
-         Vec3 vec31 = this.dragon.getDeltaMovement();
-         this.dragon.level.addParticle(ParticleTypes.DRAGON_BREATH, this.dragon.particlePosition(
-               headRelative.x + randomsource.nextGaussian() / 2.0D,
-               headRelative.y + (double)this.dragon.getBbHeight() * 0.5D + randomsource.nextGaussian() / 2.0D,
-               headRelative.z + randomsource.nextGaussian() / 2.0D),
-               -vec3.x * (double)0.08F + vec31.x, -vec3.y * (double)0.3F + vec31.y,
-               -vec3.z * (double)0.08F + vec31.z);
-         vec3.yRot(0.19634955F);
-      }
+        for (int i = 0; i < 8; ++i) {
+            RandomSource randomsource = this.dragon.getRandom();
+            Vec3 vec31 = this.dragon.getDeltaMovement();
+            this.dragon.level.addParticle(ParticleTypes.DRAGON_BREATH, this.dragon.particlePosition(headRelative.x + randomsource.nextGaussian() / 2.0D, headRelative.y + (double) this.dragon.getBbHeight() * 0.5D + randomsource.nextGaussian() / 2.0D, headRelative.z + randomsource.nextGaussian() / 2.0D),
+                    -vec3.x * (double) 0.08F + vec31.x, -vec3.y * (double) 0.3F + vec31.y,
+                    -vec3.z * (double) 0.08F + vec31.z);
+            vec3.yRot(0.19634955F);
+        }
+    }
 
-   }
+    public void doServerTick() {
+        if (this.targetLocation == null) {
+            net.minecraft.core.BlockPos target = this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EndPodiumFeature.END_PODIUM_LOCATION);
+            this.targetLocation = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(target.getX(), 0.5D, (double) target.getY(), target.getZ(), 0.5D);
+        }
 
-   public void doServerTick() {
-      if (this.targetLocation == null) {
-         net.minecraft.core.BlockPos target = this.dragon.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EndPodiumFeature.END_PODIUM_LOCATION);
-         this.targetLocation = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(target.getX(), 0.5D, (double)target.getY(), target.getZ(), 0.5D);
-      }
+        if (this.targetLocation.relativeTo(this.dragon.sectorPosition()).lengthSqr() < 1.0D) {
+            this.dragon.getPhaseManager().getPhase(EnderDragonPhase.SITTING_FLAMING).resetFlameCount();
+            this.dragon.getPhaseManager().setPhase(EnderDragonPhase.SITTING_SCANNING);
+        }
+    }
 
-      if (this.targetLocation.relativeTo(this.dragon.sectorPosition()).lengthSqr() < 1.0D) {
-         this.dragon.getPhaseManager().getPhase(EnderDragonPhase.SITTING_FLAMING).resetFlameCount();
-         this.dragon.getPhaseManager().setPhase(EnderDragonPhase.SITTING_SCANNING);
-      }
+    public float getFlySpeed() {
+        return 1.5F;
+    }
 
-   }
+    public float getTurnSpeed() {
+        float f = (float) this.dragon.getDeltaMovement().horizontalDistance() + 1.0F;
+        float f1 = Math.min(f, 40.0F);
+        return f1 / f;
+    }
 
-   public float getFlySpeed() {
-      return 1.5F;
-   }
+    public void begin() {
+        this.targetLocation = null;
+    }
 
-   public float getTurnSpeed() {
-      float f = (float)this.dragon.getDeltaMovement().horizontalDistance() + 1.0F;
-      float f1 = Math.min(f, 40.0F);
-      return f1 / f;
-   }
+    @Nullable
+    public Vec3 getFlyTargetLocation() {
+        return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+    }
 
-   public void begin() {
-      this.targetLocation = null;
-   }
+    public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
+        return this.targetLocation;
+    }
 
-   @Nullable
-   public Vec3 getFlyTargetLocation() {
-      return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
-   }
-
-   public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
-      return this.targetLocation;
-   }
-
-   public EnderDragonPhase<DragonLandingPhase> getPhase() {
-      return EnderDragonPhase.LANDING;
-   }
+    public EnderDragonPhase<DragonLandingPhase> getPhase() {
+        return EnderDragonPhase.LANDING;
+    }
 }

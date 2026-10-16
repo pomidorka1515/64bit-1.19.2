@@ -12,58 +12,58 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface SoundInstance {
-   ResourceLocation getLocation();
+    ResourceLocation getLocation();
 
-   @Nullable
-   WeighedSoundEvents resolve(SoundManager p_119841_);
+    @Nullable
+    WeighedSoundEvents resolve(SoundManager p_119841_);
 
-   Sound getSound();
+    Sound getSound();
 
-   SoundSource getSource();
+    SoundSource getSource();
 
-   boolean isLooping();
+    boolean isLooping();
 
-   boolean isRelative();
+    boolean isRelative();
 
-   int getDelay();
+    int getDelay();
 
-   float getVolume();
+    float getVolume();
 
-   float getPitch();
+    float getPitch();
 
-   double getX();
+    double getX();
 
-   double getY();
+    double getY();
 
-   double getZ();
+    double getZ();
 
-   /**
+    /**
     * Exact world position when this is a positional sound.  {@code null}
     * denotes a legacy/local source, whose getX/Y/Z values are used only as a
     * listener-space offset when it is not OpenAL-relative.
     */
-   @Nullable
-   default SectorVec3 getExactPosition() {
-      return null;
-   }
+    @Nullable
+    default SectorVec3 getExactPosition() {
+        return null;
+    }
 
-   SoundInstance.Attenuation getAttenuation();
+    SoundInstance.Attenuation getAttenuation();
 
-   default boolean canStartSilent() {
-      return false;
-   }
+    default boolean canStartSilent() {
+        return false;
+    }
 
-   default boolean canPlaySound() {
-      return true;
-   }
+    default boolean canPlaySound() {
+        return true;
+    }
 
-   static RandomSource createUnseededRandom() {
-      return RandomSource.create();
-   }
+    static RandomSource createUnseededRandom() {
+        return RandomSource.create();
+    }
 
-   @OnlyIn(Dist.CLIENT)
-   public static enum Attenuation {
-      NONE,
-      LINEAR;
-   }
+    @OnlyIn(Dist.CLIENT)
+    public static enum Attenuation {
+        NONE,
+        LINEAR;
+    }
 }

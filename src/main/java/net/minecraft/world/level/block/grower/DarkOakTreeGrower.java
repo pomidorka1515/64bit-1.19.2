@@ -7,13 +7,13 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
 public class DarkOakTreeGrower extends AbstractMegaTreeGrower {
-   @Nullable
-   protected Holder<? extends ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource p_222924_, boolean p_222925_) {
-      return null;
-   }
+    @Nullable
+    protected Holder<? extends ConfiguredFeature<?, ?>> getConfiguredFeature(RandomSource p_222924_, boolean p_222925_) {
+        return null;
+    }
 
-   @Nullable
-   protected Holder<? extends ConfiguredFeature<?, ?>> getConfiguredMegaFeature(RandomSource p_222922_) {
-      return TreeFeatures.DARK_OAK;
-   }
+    @Nullable
+    protected Holder<? extends ConfiguredFeature<?, ?>> getConfiguredMegaFeature(RandomSource p_222922_) {
+        return TreeFeatures.DARK_OAK;
+    }
 }

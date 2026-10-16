@@ -9,18 +9,18 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class DeadBushBlock extends BushBlock {
-   protected static final float AABB_OFFSET = 6.0F;
-   protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
+    protected static final float AABB_OFFSET = 6.0F;
+    protected static final VoxelShape SHAPE = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D);
 
-   protected DeadBushBlock(BlockBehaviour.Properties p_52417_) {
-      super(p_52417_);
-   }
+    protected DeadBushBlock(BlockBehaviour.Properties p_52417_) {
+        super(p_52417_);
+    }
 
-   public VoxelShape getShape(BlockState p_52419_, BlockGetter p_52420_, BlockPos p_52421_, CollisionContext p_52422_) {
-      return SHAPE;
-   }
+    public VoxelShape getShape(BlockState p_52419_, BlockGetter p_52420_, BlockPos p_52421_, CollisionContext p_52422_) {
+        return SHAPE;
+    }
 
-   protected boolean mayPlaceOn(BlockState p_52424_, BlockGetter p_52425_, BlockPos p_52426_) {
-      return p_52424_.is(BlockTags.DEAD_BUSH_MAY_PLACE_ON);
-   }
+    protected boolean mayPlaceOn(BlockState p_52424_, BlockGetter p_52425_, BlockPos p_52426_) {
+        return p_52424_.is(BlockTags.DEAD_BUSH_MAY_PLACE_ON);
+    }
 }

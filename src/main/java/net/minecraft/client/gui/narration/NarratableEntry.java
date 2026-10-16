@@ -5,20 +5,20 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public interface NarratableEntry extends NarrationSupplier {
-   NarratableEntry.NarrationPriority narrationPriority();
+    NarratableEntry.NarrationPriority narrationPriority();
 
-   default boolean isActive() {
-      return true;
-   }
+    default boolean isActive() {
+        return true;
+    }
 
-   @OnlyIn(Dist.CLIENT)
-   public static enum NarrationPriority {
-      NONE,
-      HOVERED,
-      FOCUSED;
+    @OnlyIn(Dist.CLIENT)
+    public static enum NarrationPriority {
+        NONE,
+        HOVERED,
+        FOCUSED;
 
-      public boolean isTerminal() {
-         return this == FOCUSED;
-      }
-   }
+        public boolean isTerminal() {
+            return this == FOCUSED;
+        }
+    }
 }

@@ -63,7 +63,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.level.gameevent.vibrations.VibrationListener;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -417,13 +417,13 @@ public class Allay extends PathfinderMob implements InventoryCarrier {
     }
 
     public Iterable<BlockPos> iteratePathfindingStartNodeCandidatePositions() {
-        AABB aabb = this.getBoundingBox();
-        int i = Mth.floor(aabb.minX - 0.5D);
-        int j = Mth.floor(aabb.maxX + 0.5D);
-        int k = Mth.floor(aabb.minZ - 0.5D);
-        int l = Mth.floor(aabb.maxZ + 0.5D);
-        int i1 = Mth.floor(aabb.minY - 0.5D);
-        int j1 = Mth.floor(aabb.maxY + 0.5D);
+        SectorAABB aabb = this.getSectorBoundingBox().inflate(0.5D, 0.5D, 0.5D);
+        long i = aabb.minBlockXForRange();
+        long j = aabb.maxBlockX();
+        long k = aabb.minBlockZForRange();
+        long l = aabb.maxBlockZ();
+        int i1 = Mth.floor(aabb.minY());
+        int j1 = Mth.floor(aabb.maxY());
         return BlockPos.betweenClosed(i, i1, k, j, j1, l);
     }
 

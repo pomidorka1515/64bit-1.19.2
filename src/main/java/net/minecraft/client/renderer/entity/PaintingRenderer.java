@@ -79,19 +79,19 @@ public class PaintingRenderer extends EntityRenderer<Painting> {
                 long k1 = p_115561_.getBlockZ();
                 Direction direction = p_115561_.getDirection();
                 if (direction == Direction.NORTH) {
-                    i1 = Mth.floor(p_115561_.getX() + (double) ((f15 + f16) / 2.0F / 16.0F));
+                    i1 = Mth.lfloor(p_115561_.getX() + (double) ((f15 + f16) / 2.0F / 16.0F));
                 }
 
                 if (direction == Direction.WEST) {
-                    k1 = Mth.floor(p_115561_.getZ() - (double) ((f15 + f16) / 2.0F / 16.0F));
+                    k1 = Mth.lfloor(p_115561_.getZ() - (double) ((f15 + f16) / 2.0F / 16.0F));
                 }
 
                 if (direction == Direction.SOUTH) {
-                    i1 = Mth.floor(p_115561_.getX() - (double) ((f15 + f16) / 2.0F / 16.0F));
+                    i1 = Mth.lfloor(p_115561_.getX() - (double) ((f15 + f16) / 2.0F / 16.0F));
                 }
 
                 if (direction == Direction.EAST) {
-                    k1 = Mth.floor(p_115561_.getZ() + (double) ((f15 + f16) / 2.0F / 16.0F));
+                    k1 = Mth.lfloor(p_115561_.getZ() + (double) ((f15 + f16) / 2.0F / 16.0F));
                 }
 
                 int l1 = LevelRenderer.getLightColor(p_115561_.level, new BlockPos(i1, j1, k1));

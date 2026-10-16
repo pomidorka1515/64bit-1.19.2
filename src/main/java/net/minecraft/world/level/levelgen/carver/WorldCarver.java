@@ -65,13 +65,13 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
         if (!(Math.abs(pX - d0) > d2) && !(Math.abs(pZ - d1) > d2)) {
             long i = chunkpos.getMinBlockX();
             long j = chunkpos.getMinBlockZ();
-            long k = Math.max(Mth.floor(pX - pHorizontalRadius) - i - 1, 0);
-            long l = Math.min(Mth.floor(pX + pHorizontalRadius) - i, 15);
+            long k = Math.max(WorldBounds.subtractBlockOffset(WorldBounds.subtractBlockOffset(Mth.lfloor(pX - pHorizontalRadius), i), 1L), 0);
+            long l = Math.min(WorldBounds.subtractBlockOffset(Mth.lfloor(pX + pHorizontalRadius), i), 15);
             int i1 = Math.max(Mth.floor(pY - pVerticalRadius) - 1, pContext.getMinGenY() + 1);
             int j1 = pChunk.isUpgrading() ? 0 : 7;
             int k1 = Math.min(Mth.floor(pY + pVerticalRadius) + 1, pContext.getMinGenY() + pContext.getGenDepth() - 1 - j1);
-            long l1 = Math.max(Mth.floor(pZ - pHorizontalRadius) - j - 1, 0);
-            long i2 = Math.min(Mth.floor(pZ + pHorizontalRadius) - j, 15);
+            long l1 = Math.max(WorldBounds.subtractBlockOffset(WorldBounds.subtractBlockOffset(Mth.lfloor(pZ - pHorizontalRadius), j), 1L), 0);
+            long i2 = Math.min(WorldBounds.subtractBlockOffset(Mth.lfloor(pZ + pHorizontalRadius), j), 15);
             if (!WorldBounds.isAscendingBlockRange(k, l) || !WorldBounds.isAscendingBlockRange(l1, i2)) {
                 return false;
             }

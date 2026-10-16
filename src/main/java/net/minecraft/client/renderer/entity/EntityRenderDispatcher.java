@@ -269,12 +269,12 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
         double d2 = Mth.lerp((double) pPartialTicks, pEntity.xOld, pEntity.getX());
         double d0 = Mth.lerp((double) pPartialTicks, pEntity.yOld, pEntity.getY());
         double d1 = Mth.lerp((double) pPartialTicks, pEntity.zOld, pEntity.getZ());
-        int i = Mth.floor(d2 - (double) f);
-        int j = Mth.floor(d2 + (double) f);
+        long i = Mth.lfloor(d2 - (double) f);
+        long j = Mth.lfloor(d2 + (double) f);
         int k = Mth.floor(d0 - (double) f);
         int l = Mth.floor(d0);
-        int i1 = Mth.floor(d1 - (double) f);
-        int j1 = Mth.floor(d1 + (double) f);
+        long i1 = Mth.lfloor(d1 - (double) f);
+        long j1 = Mth.lfloor(d1 + (double) f);
         PoseStack.Pose posestack$pose = pMatrixStack.last();
         VertexConsumer vertexconsumer = pBuffer.getBuffer(SHADOW_RENDER_TYPE);
 

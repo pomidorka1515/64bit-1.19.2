@@ -136,8 +136,8 @@ public class VibrationListener implements GameEventListener {
     }
 
     private static boolean isOccluded(Level pLevel, Vec3 pFrom, Vec3 pTo) {
-        Vec3 vec3 = new Vec3((double) Mth.floor(pFrom.x) + 0.5D, (double) Mth.floor(pFrom.y) + 0.5D, (double) Mth.floor(pFrom.z) + 0.5D);
-        Vec3 vec31 = new Vec3((double) Mth.floor(pTo.x) + 0.5D, (double) Mth.floor(pTo.y) + 0.5D, (double) Mth.floor(pTo.z) + 0.5D);
+        Vec3 vec3 = new Vec3((double) Mth.lfloor(pFrom.x) + 0.5D, (double) Mth.floor(pFrom.y) + 0.5D, (double) Mth.lfloor(pFrom.z) + 0.5D);
+        Vec3 vec31 = new Vec3((double) Mth.lfloor(pTo.x) + 0.5D, (double) Mth.floor(pTo.y) + 0.5D, (double) Mth.lfloor(pTo.z) + 0.5D);
 
         for (Direction direction : Direction.values()) {
             Vec3 vec32 = vec3.relative(direction, (double) 1.0E-5F);

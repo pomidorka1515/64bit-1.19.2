@@ -216,9 +216,9 @@ public class Vec3 implements Position {
     }
 
     public Vec3 align(EnumSet<Direction.Axis> pAxes) {
-        double d0 = pAxes.contains(Direction.Axis.X) ? (double) Mth.floor(this.x) : this.x;
+        double d0 = pAxes.contains(Direction.Axis.X) ? (double) Mth.lfloor(this.x) : this.x;
         double d1 = pAxes.contains(Direction.Axis.Y) ? (double) Mth.floor(this.y) : this.y;
-        double d2 = pAxes.contains(Direction.Axis.Z) ? (double) Mth.floor(this.z) : this.z;
+        double d2 = pAxes.contains(Direction.Axis.Z) ? (double) Mth.lfloor(this.z) : this.z;
         return new Vec3(d0, d1, d2);
     }
 

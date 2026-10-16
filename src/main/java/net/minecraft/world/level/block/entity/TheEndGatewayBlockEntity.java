@@ -249,7 +249,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
     }
 
     private static LevelChunk getChunk(Level pLevel, Vec3 pPos) {
-        return pLevel.getChunk(Mth.floor(pPos.x / 16.0D), Mth.floor(pPos.z / 16.0D));
+        return pLevel.getChunk(Mth.lfloor(pPos.x / 16.0D), Mth.lfloor(pPos.z / 16.0D));
     }
 
     @Nullable

@@ -274,9 +274,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         if (!(f <= 0.0F)) {
             pLightTexture.turnOnLightLayer();
             Level level = this.minecraft.level;
-            int i = Mth.floor(pCamX);
+            long i = Mth.lfloor(pCamX);
             int j = Mth.floor(pCamY);
-            int k = Mth.floor(pCamZ);
+            long k = Mth.lfloor(pCamZ);
             Tesselator tesselator = Tesselator.getInstance();
             BufferBuilder bufferbuilder = tesselator.getBuilder();
             RenderSystem.disableCull();
@@ -295,12 +295,14 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-            for (int j1 = k - l; j1 <= k + l; ++j1) {
-                for (int k1 = i - l; k1 <= i + l; ++k1) {
-                    int l1 = (j1 - k + 16) * 32 + k1 - i + 16;
+            for (int zOffset = -l; zOffset <= l; ++zOffset) {
+                long j1 = WorldBounds.addBlockOffset(k, zOffset);
+                for (int xOffset = -l; xOffset <= l; ++xOffset) {
+                    long k1 = WorldBounds.addBlockOffset(i, xOffset);
+                    int l1 = (zOffset + 16) * 32 + xOffset + 16;
                     double d0 = (double) this.rainSizeX[l1] * 0.5D;
                     double d1 = (double) this.rainSizeZ[l1] * 0.5D;
-                    blockpos$mutableblockpos.set((double) k1, pCamY, (double) j1);
+                    blockpos$mutableblockpos.set(k1, j, j1);
                     Biome biome = level.getBiome(blockpos$mutableblockpos).value();
                     if (biome.getPrecipitation() != Biome.Precipitation.NONE) {
                         int i2 = level.getHeight(Heightmap.Types.MOTION_BLOCKING, k1, j1);
@@ -320,7 +322,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                         }
 
                         if (j2 != k2) {
-                            RandomSource randomsource = RandomSource.create((long) (k1 * k1 * 3121 + k1 * 45238971 ^ j1 * j1 * 418711 + j1 * 13761));
+                            int seedX = (int) k1;
+                            int seedZ = (int) j1;
+                            RandomSource randomsource = RandomSource.create((long) (seedX * seedX * 3121 + seedX * 45238971 ^ seedZ * seedZ * 418711 + seedZ * 13761));
                             blockpos$mutableblockpos.set(k1, j2, j1);
                             if (biome.warmEnoughToRain(blockpos$mutableblockpos)) {
                                 if (i1 != 0) {
@@ -333,7 +337,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                                     bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
                                 }
 
-                                int i3 = this.ticks + k1 * k1 * 3121 + k1 * 45238971 + j1 * j1 * 418711 + j1 * 13761 & 31;
+                                int i3 = this.ticks + seedX * seedX * 3121 + seedX * 45238971 + seedZ * seedZ * 418711 + seedZ * 13761 & 31;
                                 float f2 = -((float) i3 + pPartialTick) / 32.0F * (3.0F + randomsource.nextFloat());
                                 double d2 = (double) k1 + 0.5D - pCamX;
                                 double d4 = (double) j1 + 0.5D - pCamZ;

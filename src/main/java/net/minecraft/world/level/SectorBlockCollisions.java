@@ -148,6 +148,16 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
             int blockY = this.cursor.nextY();
             long blockZ = this.cursor.nextZ();
             int type = this.cursor.getNextType();
+            // At a world edge the one-block safety margin is saturated onto
+            // the last real block. It is not an outer padding face: ordinary
+            // blocks there must still contribute collision shapes. Correct each
+            // clipped axis independently, including at X/Z world corners.
+            if (blockX == WorldBounds.MIN_BLOCK || blockX == WorldBounds.MAX_BLOCK) {
+                --type;
+            }
+            if (blockZ == WorldBounds.MIN_BLOCK || blockZ == WorldBounds.MAX_BLOCK) {
+                --type;
+            }
             if (!WorldBounds.isValidBlock(blockX, blockZ))
                 continue;
             if (type == Cursor3D.TYPE_CORNER) {

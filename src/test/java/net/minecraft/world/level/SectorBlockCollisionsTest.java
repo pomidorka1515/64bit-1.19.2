@@ -55,6 +55,31 @@ class SectorBlockCollisionsTest {
     }
 
     @Test
+    void findsSolidBlocksAtClippedWorldEdgesAndCorners() {
+        long[][] coordinates = {
+                {Long.MIN_VALUE, 0L}, {Long.MAX_VALUE, 0L},
+                {0L, Long.MIN_VALUE}, {0L, Long.MAX_VALUE},
+                {Long.MIN_VALUE, Long.MIN_VALUE}, {Long.MIN_VALUE, Long.MAX_VALUE},
+                {Long.MAX_VALUE, Long.MIN_VALUE}, {Long.MAX_VALUE, Long.MAX_VALUE}
+        };
+        for (long[] coordinate : coordinates) {
+            long x = coordinate[0];
+            long z = coordinate[1];
+            CollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, z));
+            SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, z);
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(x, 0.5D, 64.0D, z, 0.5D);
+            SectorAABB box = SectorAABB.around(position, 0.6D, 1.8D);
+            List<VoxelShape> shapes = new java.util.ArrayList<>();
+            for (VoxelShape shape : level.getSectorBlockCollisions(null, box, box.toLocalAABB(origin), origin)) {
+                shapes.add(shape);
+            }
+
+            assertEquals(1, shapes.size(), "Collision at " + x + ", " + z);
+            assertEquals(new AABB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D), shapes.get(0).bounds());
+        }
+    }
+
+    @Test
     void rejectsAWorldSpanningSweepWithoutIterating() {
         SectorAABB box = new SectorAABB(Long.MIN_VALUE, 0.25D, 64.0D, 0L, 0.25D,
                 Long.MAX_VALUE, Math.nextDown(1.0D), 65.8D, 0L, 0.75D);

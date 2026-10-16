@@ -1333,7 +1333,11 @@ public class ServerPlayer extends Player {
         this.camera = (Entity) (pEntityToSpectate == null ? this : pEntityToSpectate);
         if (entity != this.camera) {
             this.connection.send(new ClientboundSetCameraPacket(this.camera));
-            this.teleportTo(this.camera.getX(), this.camera.getY(), this.camera.getZ());
+            if (this.camera.hasSectorPosition()) {
+                this.teleportTo(this.camera.sectorPosition());
+            } else {
+                this.teleportTo(this.camera.getX(), this.camera.getY(), this.camera.getZ());
+            }
         }
     }
 

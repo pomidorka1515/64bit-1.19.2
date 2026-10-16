@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.blending.Blender;
 import net.minecraft.world.level.levelgen.material.MaterialRuleList;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 
 public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunction.FunctionContext {
     private final NoiseSettings noiseSettings;
@@ -39,6 +40,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     final List<NoiseChunk.CacheAllInCell> cellCaches;
     private final Map<DensityFunction, DensityFunction> wrapped = new HashMap<>();
     private final Object2IntMap<ChunkPos> preliminarySurfaceLevel = new Object2IntOpenHashMap<>();
+    private final Object2IntMap<ColumnPos> exactPreliminarySurfaceLevel = new Object2IntOpenHashMap<>();
     private final Aquifer aquifer;
     private final DensityFunction initialDensityNoJaggedness;
     private final NoiseChunk.BlockStateFiller blockStateRule;
@@ -168,12 +170,19 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     public int preliminarySurfaceLevel(long pX, long pZ) {
         long i = QuartPos.toBlock(QuartPos.fromBlock(pX));
         long j = QuartPos.toBlock(QuartPos.fromBlock(pZ));
+        if (FarlandsMode.usesPreciseCoordinates()) {
+            // ChunkPos clamps to the chunk domain; these are block-column keys.
+            return this.exactPreliminarySurfaceLevel.computeIfAbsent(new ColumnPos(i, j),
+                    (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x(), column.z()));
+        }
         return this.preliminarySurfaceLevel.computeIfAbsent(new ChunkPos(i, j), (ToIntFunction<ChunkPos>) this::computePreliminarySurfaceLevel);
     }
 
     private int computePreliminarySurfaceLevel(ChunkPos p_198250_) {
-        long i = p_198250_.x;
-        long j = p_198250_.z;
+        return this.computePreliminarySurfaceLevel(p_198250_.x, p_198250_.z);
+    }
+
+    private int computePreliminarySurfaceLevel(long i, long j) {
         int k = this.noiseSettings.minY();
 
         for (int l = k + this.noiseSettings.height(); l >= k; l -= this.cellHeight) {
@@ -456,6 +465,8 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     static class Cache2D implements DensityFunctions.MarkerOrMarked, NoiseChunk.NoiseChunkDensityFunction {
         private final DensityFunction function;
         private ChunkPos lastPos2D = ChunkPos.INVALID_CHUNK_POS;
+        private ColumnPos lastExactPos2D;
+        private double lastExactValue;
         private double lastValue;
 
         Cache2D(DensityFunction pFunction) {
@@ -465,6 +476,14 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         public double compute(DensityFunction.FunctionContext pContext) {
             long i = pContext.blockX();
             long j = pContext.blockZ();
+            if (FarlandsMode.usesPreciseCoordinates()) {
+                ColumnPos column = new ColumnPos(i, j);
+                if (!column.equals(this.lastExactPos2D)) {
+                    this.lastExactPos2D = column;
+                    this.lastExactValue = this.function.compute(pContext);
+                }
+                return this.lastExactValue;
+            }
             ChunkPos k = new ChunkPos(i, j);
             if (k.equals(lastPos2D)) {
                 return this.lastValue;

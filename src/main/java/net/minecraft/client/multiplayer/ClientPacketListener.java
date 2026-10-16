@@ -483,13 +483,13 @@ public class ClientPacketListener implements ClientGamePacketListener {
         Entity entity = this.level.getEntity(pPacket.getId());
         if (entity != null) {
             SectorVec3 exactPosition = pPacket.getExactPosition();
+            entity.getPositionCodec().setBase(exactPosition);
             if (!entity.isControlledByLocalInstance()) {
                 float f = (float) (pPacket.getyRot() * 360) / 256.0F;
                 float f1 = (float) (pPacket.getxRot() * 360) / 256.0F;
                 // An absolute teleport establishes the next relative-packet base.
                 // Set it to the packet target, never to the entity's in-progress
                 // render interpolation position.
-                entity.getPositionCodec().setBase(exactPosition);
                 entity.lerpTo(exactPosition, f, f1, 3, true);
                 entity.setOnGround(pPacket.isOnGround());
             }
@@ -507,11 +507,15 @@ public class ClientPacketListener implements ClientGamePacketListener {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         Entity entity = pPacket.getEntity(this.level);
         if (entity != null) {
+            VecDeltaCodec vecdeltacodec = entity.getPositionCodec();
+            SectorVec3 exactPosition = pPacket.hasPosition()
+                    ? vecdeltacodec.decodeExact((long) pPacket.getXa(), (long) pPacket.getYa(), (long) pPacket.getZa())
+                    : entity.sectorPosition();
+            if (pPacket.hasPosition()) {
+                vecdeltacodec.setBase(exactPosition);
+            }
             if (!entity.isControlledByLocalInstance()) {
                 if (pPacket.hasPosition()) {
-                    VecDeltaCodec vecdeltacodec = entity.getPositionCodec();
-                    SectorVec3 exactPosition = vecdeltacodec.decodeExact((long) pPacket.getXa(), (long) pPacket.getYa(), (long) pPacket.getZa());
-                    vecdeltacodec.setBase(exactPosition);
                     float f = pPacket.hasRotation() ? (float) (pPacket.getyRot() * 360) / 256.0F : entity.getYRot();
                     float f1 = pPacket.hasRotation() ? (float) (pPacket.getxRot() * 360) / 256.0F : entity.getXRot();
                     entity.lerpTo(exactPosition, f, f1, 3, false);

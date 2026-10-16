@@ -1,6 +1,7 @@
 package net.minecraft.world.entity.vehicle;
 
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
 
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -445,7 +446,8 @@ public class Boat extends Entity {
     }
 
     public float getWaterLevelAbove() {
-        AABB aabb = this.getBoundingBox();
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(this.sectorPosition().blockX(), 0, this.sectorPosition().blockZ());
+        AABB aabb = this.getLocalBoundingBox(origin);
         int i = Mth.floor(aabb.minX);
         int j = Mth.ceil(aabb.maxX);
         int k = Mth.floor(aabb.maxY);
@@ -460,7 +462,7 @@ public class Boat extends Entity {
 
             for (int l1 = i; l1 < j; ++l1) {
                 for (int i2 = i1; i2 < j1; ++i2) {
-                    blockpos$mutableblockpos.set(l1, k1, i2);
+                    blockpos$mutableblockpos.set(WorldBounds.addBlockOffset(origin.originBlockX(), l1), k1, WorldBounds.addBlockOffset(origin.originBlockZ(), i2));
                     FluidState fluidstate = this.level.getFluidState(blockpos$mutableblockpos);
                     if (fluidstate.is(FluidTags.WATER)) {
                         f = Math.max(f, fluidstate.getHeight(this.level, blockpos$mutableblockpos));
@@ -481,7 +483,8 @@ public class Boat extends Entity {
     }
 
     public float getGroundFriction() {
-        AABB aabb = this.getBoundingBox();
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(this.sectorPosition().blockX(), 0, this.sectorPosition().blockZ());
+        AABB aabb = this.getLocalBoundingBox(origin);
         AABB aabb1 = new AABB(aabb.minX, aabb.minY - 0.001D, aabb.minZ, aabb.maxX, aabb.minY, aabb.maxZ);
         int i = Mth.floor(aabb1.minX) - 1;
         int j = Mth.ceil(aabb1.maxX) + 1;
@@ -500,7 +503,7 @@ public class Boat extends Entity {
                 if (j2 != 2) {
                     for (int k2 = k; k2 < l; ++k2) {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
-                            blockpos$mutableblockpos.set(l1, k2, i2);
+                            blockpos$mutableblockpos.set(WorldBounds.addBlockOffset(origin.originBlockX(), l1), k2, WorldBounds.addBlockOffset(origin.originBlockZ(), i2));
                             BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos);
                             if (!(blockstate.getBlock() instanceof WaterlilyBlock) && Shapes.joinIsNotEmpty(blockstate.getCollisionShape(this.level, blockpos$mutableblockpos).move((double) l1, (double) k2, (double) i2), voxelshape, BooleanOp.AND)) {
                                 f += blockstate.getBlock().getFriction();
@@ -512,11 +515,12 @@ public class Boat extends Entity {
             }
         }
 
-        return f / (float) k1;
+        return k1 == 0 ? 0.0F : f / (float) k1;
     }
 
     private boolean checkInWater() {
-        AABB aabb = this.getBoundingBox();
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(this.sectorPosition().blockX(), 0, this.sectorPosition().blockZ());
+        AABB aabb = this.getLocalBoundingBox(origin);
         int i = Mth.floor(aabb.minX);
         int j = Mth.ceil(aabb.maxX);
         int k = Mth.floor(aabb.minY);
@@ -530,7 +534,7 @@ public class Boat extends Entity {
         for (int k1 = i; k1 < j; ++k1) {
             for (int l1 = k; l1 < l; ++l1) {
                 for (int i2 = i1; i2 < j1; ++i2) {
-                    blockpos$mutableblockpos.set(k1, l1, i2);
+                    blockpos$mutableblockpos.set(WorldBounds.addBlockOffset(origin.originBlockX(), k1), l1, WorldBounds.addBlockOffset(origin.originBlockZ(), i2));
                     FluidState fluidstate = this.level.getFluidState(blockpos$mutableblockpos);
                     if (fluidstate.is(FluidTags.WATER)) {
                         float f = (float) l1 + fluidstate.getHeight(this.level, blockpos$mutableblockpos);
@@ -546,7 +550,8 @@ public class Boat extends Entity {
 
     @Nullable
     private Boat.Status isUnderwater() {
-        AABB aabb = this.getBoundingBox();
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(this.sectorPosition().blockX(), 0, this.sectorPosition().blockZ());
+        AABB aabb = this.getLocalBoundingBox(origin);
         double d0 = aabb.maxY + 0.001D;
         int i = Mth.floor(aabb.minX);
         int j = Mth.ceil(aabb.maxX);
@@ -560,7 +565,7 @@ public class Boat extends Entity {
         for (int k1 = i; k1 < j; ++k1) {
             for (int l1 = k; l1 < l; ++l1) {
                 for (int i2 = i1; i2 < j1; ++i2) {
-                    blockpos$mutableblockpos.set(k1, l1, i2);
+                    blockpos$mutableblockpos.set(WorldBounds.addBlockOffset(origin.originBlockX(), k1), l1, WorldBounds.addBlockOffset(origin.originBlockZ(), i2));
                     FluidState fluidstate = this.level.getFluidState(blockpos$mutableblockpos);
                     if (fluidstate.is(FluidTags.WATER) && d0 < (double) ((float) blockpos$mutableblockpos.getY() + fluidstate.getHeight(this.level, blockpos$mutableblockpos))) {
                         if (!fluidstate.isSource()) {

@@ -79,8 +79,7 @@ public class FogRenderer {
             biomeChangedTime = -1L;
             RenderSystem.clearColor(fogRed, fogGreen, fogBlue, 0.0F);
         } else {
-            float f4 = 0.25F + 0.75F * (float) pRenderDistanceChunks / 32.0F;
-            f4 = 1.0F - (float) Math.pow((double) f4, 0.25D);
+            float f4 = getSkyBlendFactor(pLevel.effects(), pRenderDistanceChunks);
             Vec3 vec3 = pLevel.getSkyColor(pActiveRenderInfo.getPosition(), pPartialTicks);
             float f6 = (float) vec3.x;
             float f8 = (float) vec3.y;
@@ -94,7 +93,7 @@ public class FogRenderer {
             fogRed = (float) vec32.x();
             fogGreen = (float) vec32.y();
             fogBlue = (float) vec32.z();
-            if (pRenderDistanceChunks >= 4) {
+            if (pRenderDistanceChunks >= 4 && pLevel.effects().skyType() != DimensionSpecialEffects.SkyType.NONE) {
                 float f12 = Mth.sin(pLevel.getSunAngle(pPartialTicks)) > 0.0F ? -1.0F : 1.0F;
                 Vector3f vector3f = new Vector3f(f12, 0.0F, 0.0F);
                 float f16 = pActiveRenderInfo.getLookVector().dot(vector3f);
@@ -189,6 +188,16 @@ public class FogRenderer {
         }
 
         RenderSystem.clearColor(fogRed, fogGreen, fogBlue, 0.0F);
+    }
+
+    static float getSkyBlendFactor(DimensionSpecialEffects effects, int renderDistanceChunks) {
+        // Skyless dimensions use the biome fog colour as their background, even
+        // when terrain fog is disabled. Their unused sky colour must not tint it.
+        if (effects.skyType() == DimensionSpecialEffects.SkyType.NONE) {
+            return 0.0F;
+        }
+        float distance = 0.25F + 0.75F * (float) renderDistanceChunks / 32.0F;
+        return 1.0F - (float) Math.pow((double) distance, 0.25D);
     }
 
     public static void setupNoFog() {

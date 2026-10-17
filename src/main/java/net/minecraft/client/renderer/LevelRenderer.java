@@ -23,7 +23,6 @@ import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import com.mojang.logging.LogUtils;
 import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3d;
 import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -152,7 +151,6 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     private static final float SKY_DISC_RADIUS = 512.0F;
     private static final int MINIMUM_ADVANCED_CULLING_DISTANCE = 60;
     private static final double CEILED_SECTION_DIAGONAL = Math.ceil(Math.sqrt(3.0D) * 16.0D);
-    private static final double FIRST_INEXACT_CHUNK_COORDINATE = 0x1.0p53;
     private static final int MIN_FOG_DISTANCE = 32;
     private static final int RAIN_RADIUS = 10;
     private static final int RAIN_DIAMETER = 21;
@@ -238,7 +236,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     @Nullable
     private Frustum capturedFrustum;
     private final Vector4f[] frustumPoints = new Vector4f[8];
-    private final Vector3d frustumPos = new Vector3d(0.0D, 0.0D, 0.0D);
+    private SectorVec3 exactFrustumPosition;
     private double xTransparentOld;
     private double yTransparentOld;
     private double zTransparentOld;
@@ -274,9 +272,12 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         if (!(f <= 0.0F)) {
             pLightTexture.turnOnLightLayer();
             Level level = this.minecraft.level;
-            long i = Mth.lfloor(pCamX);
-            int j = Mth.floor(pCamY);
-            long k = Mth.lfloor(pCamZ);
+            SectorVec3 exactCamera = this.minecraft.gameRenderer.getMainCamera().exactPosition();
+            CameraRelativePosition weatherCamera = CameraRelativePosition.of(exactCamera != null
+                    ? exactCamera : SectorVec3.fromApproximate(pCamX, pCamY, pCamZ));
+            long i = weatherCamera.baseX();
+            int j = weatherCamera.baseY();
+            long k = weatherCamera.baseZ();
             Tesselator tesselator = Tesselator.getInstance();
             BufferBuilder bufferbuilder = tesselator.getBuilder();
             RenderSystem.disableCull();
@@ -299,6 +300,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                 long j1 = WorldBounds.addBlockOffset(k, zOffset);
                 for (int xOffset = -l; xOffset <= l; ++xOffset) {
                     long k1 = WorldBounds.addBlockOffset(i, xOffset);
+                    // Subtract integral coordinates before converting to floating point.
+                    double relativeX = weatherCamera.relativeX(k1) + 0.5D;
+                    double relativeZ = weatherCamera.relativeZ(j1) + 0.5D;
                     int l1 = (zOffset + 16) * 32 + xOffset + 16;
                     double d0 = (double) this.rainSizeX[l1] * 0.5D;
                     double d1 = (double) this.rainSizeZ[l1] * 0.5D;
@@ -339,16 +343,16 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
                                 int i3 = this.ticks + seedX * seedX * 3121 + seedX * 45238971 + seedZ * seedZ * 418711 + seedZ * 13761 & 31;
                                 float f2 = -((float) i3 + pPartialTick) / 32.0F * (3.0F + randomsource.nextFloat());
-                                double d2 = (double) k1 + 0.5D - pCamX;
-                                double d4 = (double) j1 + 0.5D - pCamZ;
+                                double d2 = relativeX;
+                                double d4 = relativeZ;
                                 float f3 = (float) Math.sqrt(d2 * d2 + d4 * d4) / (float) l;
                                 float f4 = ((1.0F - f3 * f3) * 0.5F + 0.5F) * f;
                                 blockpos$mutableblockpos.set(k1, l2, j1);
                                 int j3 = getLightColor(level, blockpos$mutableblockpos);
-                                bufferbuilder.vertex((double) k1 - pCamX - d0 + 0.5D, (double) k2 - pCamY, (double) j1 - pCamZ - d1 + 0.5D).uv(0.0F, (float) j2 * 0.25F + f2).color(1.0F, 1.0F, 1.0F, f4).uv2(j3).endVertex();
-                                bufferbuilder.vertex((double) k1 - pCamX + d0 + 0.5D, (double) k2 - pCamY, (double) j1 - pCamZ + d1 + 0.5D).uv(1.0F, (float) j2 * 0.25F + f2).color(1.0F, 1.0F, 1.0F, f4).uv2(j3).endVertex();
-                                bufferbuilder.vertex((double) k1 - pCamX + d0 + 0.5D, (double) j2 - pCamY, (double) j1 - pCamZ + d1 + 0.5D).uv(1.0F, (float) k2 * 0.25F + f2).color(1.0F, 1.0F, 1.0F, f4).uv2(j3).endVertex();
-                                bufferbuilder.vertex((double) k1 - pCamX - d0 + 0.5D, (double) j2 - pCamY, (double) j1 - pCamZ - d1 + 0.5D).uv(0.0F, (float) k2 * 0.25F + f2).color(1.0F, 1.0F, 1.0F, f4).uv2(j3).endVertex();
+                                bufferbuilder.vertex(relativeX - d0, weatherCamera.relativeY(k2), relativeZ - d1).uv(0.0F, (float) j2 * 0.25F + f2).color(1.0F, 1.0F, 1.0F, f4).uv2(j3).endVertex();
+                                bufferbuilder.vertex(relativeX + d0, weatherCamera.relativeY(k2), relativeZ + d1).uv(1.0F, (float) j2 * 0.25F + f2).color(1.0F, 1.0F, 1.0F, f4).uv2(j3).endVertex();
+                                bufferbuilder.vertex(relativeX + d0, weatherCamera.relativeY(j2), relativeZ + d1).uv(1.0F, (float) k2 * 0.25F + f2).color(1.0F, 1.0F, 1.0F, f4).uv2(j3).endVertex();
+                                bufferbuilder.vertex(relativeX - d0, weatherCamera.relativeY(j2), relativeZ - d1).uv(0.0F, (float) k2 * 0.25F + f2).color(1.0F, 1.0F, 1.0F, f4).uv2(j3).endVertex();
                             } else {
                                 if (i1 != 1) {
                                     if (i1 >= 0) {
@@ -363,8 +367,8 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                                 float f5 = -((float) (this.ticks & 511) + pPartialTick) / 512.0F;
                                 float f6 = (float) (randomsource.nextDouble() + (double) f1 * 0.01D * (double) ((float) randomsource.nextGaussian()));
                                 float f7 = (float) (randomsource.nextDouble() + (double) (f1 * (float) randomsource.nextGaussian()) * 0.001D);
-                                double d3 = (double) k1 + 0.5D - pCamX;
-                                double d5 = (double) j1 + 0.5D - pCamZ;
+                                double d3 = relativeX;
+                                double d5 = relativeZ;
                                 float f8 = (float) Math.sqrt(d3 * d3 + d5 * d5) / (float) l;
                                 float f9 = ((1.0F - f8 * f8) * 0.3F + 0.5F) * f;
                                 blockpos$mutableblockpos.set(k1, l2, j1);
@@ -373,10 +377,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                                 int i4 = k3 & '\uffff';
                                 int j4 = (l3 * 3 + 240) / 4;
                                 int k4 = (i4 * 3 + 240) / 4;
-                                bufferbuilder.vertex((double) k1 - pCamX - d0 + 0.5D, (double) k2 - pCamY, (double) j1 - pCamZ - d1 + 0.5D).uv(0.0F + f6, (float) j2 * 0.25F + f5 + f7).color(1.0F, 1.0F, 1.0F, f9).uv2(k4, j4).endVertex();
-                                bufferbuilder.vertex((double) k1 - pCamX + d0 + 0.5D, (double) k2 - pCamY, (double) j1 - pCamZ + d1 + 0.5D).uv(1.0F + f6, (float) j2 * 0.25F + f5 + f7).color(1.0F, 1.0F, 1.0F, f9).uv2(k4, j4).endVertex();
-                                bufferbuilder.vertex((double) k1 - pCamX + d0 + 0.5D, (double) j2 - pCamY, (double) j1 - pCamZ + d1 + 0.5D).uv(1.0F + f6, (float) k2 * 0.25F + f5 + f7).color(1.0F, 1.0F, 1.0F, f9).uv2(k4, j4).endVertex();
-                                bufferbuilder.vertex((double) k1 - pCamX - d0 + 0.5D, (double) j2 - pCamY, (double) j1 - pCamZ - d1 + 0.5D).uv(0.0F + f6, (float) k2 * 0.25F + f5 + f7).color(1.0F, 1.0F, 1.0F, f9).uv2(k4, j4).endVertex();
+                                bufferbuilder.vertex(relativeX - d0, weatherCamera.relativeY(k2), relativeZ - d1).uv(0.0F + f6, (float) j2 * 0.25F + f5 + f7).color(1.0F, 1.0F, 1.0F, f9).uv2(k4, j4).endVertex();
+                                bufferbuilder.vertex(relativeX + d0, weatherCamera.relativeY(k2), relativeZ + d1).uv(1.0F + f6, (float) j2 * 0.25F + f5 + f7).color(1.0F, 1.0F, 1.0F, f9).uv2(k4, j4).endVertex();
+                                bufferbuilder.vertex(relativeX + d0, weatherCamera.relativeY(j2), relativeZ + d1).uv(1.0F + f6, (float) k2 * 0.25F + f5 + f7).color(1.0F, 1.0F, 1.0F, f9).uv2(k4, j4).endVertex();
+                                bufferbuilder.vertex(relativeX - d0, weatherCamera.relativeY(j2), relativeZ - d1).uv(0.0F + f6, (float) k2 * 0.25F + f5 + f7).color(1.0F, 1.0F, 1.0F, f9).uv2(k4, j4).endVertex();
                             }
                         }
                     }
@@ -973,8 +977,6 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         long cameraSectionZ = cameraBlockZ - Math.floorMod(cameraBlockZ, 16L);
         BlockPos blockpos = new BlockPos(cameraSectionX, cameraSectionY, cameraSectionZ);
         BlockPos blockpos1 = blockpos.offset(8, 8, 8);
-        boolean flag3 = Math.abs(pViewVector.x) >= FIRST_INEXACT_CHUNK_COORDINATE
-                || Math.abs(pViewVector.z) >= FIRST_INEXACT_CHUNK_COORDINATE;
         Entity.setViewScale(Mth.clamp((double) this.minecraft.options.getEffectiveRenderDistance() / 8.0D, 1.0D, 2.5D) * this.minecraft.options.entityDistanceScaling().get());
 
         while (!pInfoQueue.isEmpty()) {
@@ -1004,7 +1006,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                         }
                     }
 
-                    if (pShouldCull && flag && !flag3) {
+                    if (pShouldCull && flag) {
                         BlockPos blockpos2;
                         byte b0;
                     label126: {
@@ -1062,17 +1064,22 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                     }
 
                         BlockPos blockpos3 = blockpos2.offset(b0, b1, b2);
-                        Vec3 vec31 = new Vec3((double) blockpos3.getX(), (double) blockpos3.getY(), (double) blockpos3.getZ());
-                        Vec3 vec3 = pViewVector.subtract(vec31).normalize().scale(CEILED_SECTION_DIAGONAL);
+                        SectorVec3 traversalCamera = camExact != null ? camExact
+                                : SectorVec3.fromApproximate(pViewVector.x, pViewVector.y, pViewVector.z);
+                        SectorVec3 traversalOrigin = SectorVec3.fromBlockAndFraction(blockpos3.getX(), 0.0D,
+                                blockpos3.getY(), blockpos3.getZ(), 0.0D);
+                        Vec3 vec31 = traversalOrigin.relativeTo(traversalCamera);
+                        Vec3 vec3 = vec31.scale(-1.0D).normalize().scale(CEILED_SECTION_DIAGONAL);
                         boolean flag2 = true;
 
-                        while (pViewVector.subtract(vec31).lengthSqr() > 3600.0D) {
+                        while (vec31.lengthSqr() > 3600.0D) {
                             vec31 = vec31.add(vec3);
-                            if (vec31.y > (double) this.level.getMaxBuildHeight() || vec31.y < (double) this.level.getMinBuildHeight()) {
+                            SectorVec3 traversalPosition = traversalCamera.add(vec31.x, vec31.y, vec31.z);
+                            if (traversalPosition.y() > (double) this.level.getMaxBuildHeight() || traversalPosition.y() < (double) this.level.getMinBuildHeight()) {
                                 break;
                             }
 
-                            ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk2 = this.viewArea.getRenderChunkAt(new BlockPos(vec31.x, vec31.y, vec31.z));
+                            ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk2 = this.viewArea.getRenderChunkAt(traversalPosition.blockPosition());
                             if (chunkrenderdispatcher$renderchunk2 == null || pInfoMap.get(chunkrenderdispatcher$renderchunk2) == null) {
                                 flag2 = false;
                                 break;
@@ -1126,12 +1133,13 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
     private void captureFrustum(Matrix4f pViewMatrix, Matrix4f pProjectionMatrix, double pCamX, double pCamY, double pCamZ, Frustum pFrustum) {
         this.capturedFrustum = pFrustum;
+        Camera camera = this.minecraft.gameRenderer.getMainCamera();
+        this.exactFrustumPosition = camera.exactPosition() != null ? camera.exactPosition()
+                : SectorVec3.fromApproximate(pCamX, pCamY, pCamZ);
+        this.capturedFrustum.prepare(camera);
         Matrix4f matrix4f = pProjectionMatrix.copy();
         matrix4f.multiply(pViewMatrix);
         matrix4f.invert();
-        this.frustumPos.x = pCamX;
-        this.frustumPos.y = pCamY;
-        this.frustumPos.z = pCamZ;
         this.frustumPoints[0] = new Vector4f(-1.0F, -1.0F, -1.0F, 1.0F);
         this.frustumPoints[1] = new Vector4f(1.0F, -1.0F, -1.0F, 1.0F);
         this.frustumPoints[2] = new Vector4f(1.0F, 1.0F, -1.0F, 1.0F);
@@ -1186,7 +1194,6 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         Frustum frustum;
         if (flag1) {
             frustum = this.capturedFrustum;
-            frustum.prepare(this.frustumPos.x, this.frustumPos.y, this.frustumPos.z);
         } else {
             frustum = this.cullingFrustum;
         }
@@ -1633,9 +1640,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         if (this.minecraft.chunkPath || this.minecraft.chunkVisibility) {
-            double d0 = pCamera.getPosition().x();
-            double d1 = pCamera.getPosition().y();
-            double d2 = pCamera.getPosition().z();
+            SectorVec3 exactCamera = pCamera.exactPosition();
+            Vec3 cameraPosition = pCamera.getPosition();
+            CameraRelativePosition debugCamera = CameraRelativePosition.of(exactCamera != null
+                    ? exactCamera : SectorVec3.fromApproximate(cameraPosition.x, cameraPosition.y, cameraPosition.z));
             RenderSystem.depthMask(true);
             RenderSystem.disableCull();
             RenderSystem.enableBlend();
@@ -1647,7 +1655,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                 BlockPos blockpos = chunkrenderdispatcher$renderchunk.getOrigin();
                 PoseStack posestack = RenderSystem.getModelViewStack();
                 posestack.pushPose();
-                posestack.translate((double) blockpos.getX() - d0, (double) blockpos.getY() - d1, (double) blockpos.getZ() - d2);
+                posestack.translate(debugCamera.relativeX(blockpos.getX()), debugCamera.relativeY(blockpos.getY()), debugCamera.relativeZ(blockpos.getZ()));
                 RenderSystem.applyModelViewMatrix();
                 RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
                 if (this.minecraft.chunkPath) {
@@ -1741,7 +1749,13 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             RenderSystem.setShader(GameRenderer::getPositionColorShader);
             PoseStack posestack1 = RenderSystem.getModelViewStack();
             posestack1.pushPose();
-            posestack1.translate((double) ((float) (this.frustumPos.x - pCamera.getPosition().x)), (double) ((float) (this.frustumPos.y - pCamera.getPosition().y)), (double) ((float) (this.frustumPos.z - pCamera.getPosition().z)));
+            SectorVec3 cameraPosition = pCamera.exactPosition();
+            if (cameraPosition == null) {
+                Vec3 approximate = pCamera.getPosition();
+                cameraPosition = SectorVec3.fromApproximate(approximate.x, approximate.y, approximate.z);
+            }
+            Vec3 frustumOffset = this.exactFrustumPosition.relativeTo(cameraPosition);
+            posestack1.translate(frustumOffset.x, frustumOffset.y, frustumOffset.z);
             RenderSystem.applyModelViewMatrix();
             RenderSystem.depthMask(true);
             bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
@@ -3070,7 +3084,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                     this.level.addParticle(new ShriekParticleOption(j * 5), false, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + SculkShriekerBlock.TOP_Y, pPos.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);
                 }
 
-                this.level.playLocalSound((double) pPos.getX() + 0.5D, (double) pPos.getY() + SculkShriekerBlock.TOP_Y, (double) pPos.getZ() + 0.5D, SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.BLOCKS, 2.0F, 0.6F + this.level.random.nextFloat() * 0.4F, false);
+                this.level.playLocalSound(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D,
+                        (double) pPos.getY() + SculkShriekerBlock.TOP_Y, pPos.getZ(), 0.5D),
+                        SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.BLOCKS, 2.0F, 0.6F + this.level.random.nextFloat() * 0.4F, false);
         }
     }
 

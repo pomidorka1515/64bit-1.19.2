@@ -40,13 +40,21 @@ public class RemotePlayer extends AbstractClientPlayer {
 
     public void aiStep() {
         if (this.lerpSteps > 0) {
-            double d0 = this.getX() + (this.lerpX - this.getX()) / (double) this.lerpSteps;
-            double d1 = this.getY() + (this.lerpY - this.getY()) / (double) this.lerpSteps;
-            double d2 = this.getZ() + (this.lerpZ - this.getZ()) / (double) this.lerpSteps;
             this.setYRot(this.getYRot() + (float) Mth.wrapDegrees(this.lerpYRot - (double) this.getYRot()) / (float) this.lerpSteps);
             this.setXRot(this.getXRot() + (float) (this.lerpXRot - (double) this.getXRot()) / (float) this.lerpSteps);
+            if (this.exactLerpTarget != null) {
+                net.minecraft.world.phys.Vec3 delta = this.exactLerpTarget.relativeTo(this.sectorPosition());
+                this.applyExactPosition(this.sectorPosition().add(delta.x / (double) this.lerpSteps,
+                        delta.y / (double) this.lerpSteps, delta.z / (double) this.lerpSteps));
+            } else {
+                double d0 = this.getX() + (this.lerpX - this.getX()) / (double) this.lerpSteps;
+                double d1 = this.getY() + (this.lerpY - this.getY()) / (double) this.lerpSteps;
+                double d2 = this.getZ() + (this.lerpZ - this.getZ()) / (double) this.lerpSteps;
+                this.setPos(d0, d1, d2);
+            }
             --this.lerpSteps;
-            this.setPos(d0, d1, d2);
+            if (this.lerpSteps == 0)
+                this.exactLerpTarget = null;
             this.setRot(this.getYRot(), this.getXRot());
         }
 

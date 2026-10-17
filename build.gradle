@@ -80,7 +80,48 @@ patcher {
 
 def buildCommit = System.getenv('GIT_COMMIT') ?: 'dev'
 
+// Package the same compiled sources as the client, with libraries and vanilla
+// data resources included so the dedicated server can run without a launcher.
+def serverJar = tasks.register('serverJar', Jar) {
+    group = 'build'
+    description = 'Builds a standalone dedicated server from the main sources'
+    archiveFileName = "${buildCommit}-server.jar"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes 'Main-Class': 'net.minecraft.server.Main',
+                'Multi-Release': 'true'
+    }
+    from sourceSets.main.output
+    // Log4j's binary plugin index must come from core, rather than a smaller
+    // index supplied by another library in the flattened archive.
+    from({
+        configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts
+                .findAll { it.name == 'log4j-core' }.collect { zipTree(it.file) }
+    }) {
+        include 'META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat'
+    }
+    from({
+        configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts
+                .findAll { it.moduleVersion.id.group != 'net.minecraft' }
+                .collect { zipTree(it.file) }
+    }) {
+        exclude 'META-INF/MANIFEST.MF', 'META-INF/*.SF', 'META-INF/*.RSA',
+                'META-INF/*.DSA', 'META-INF/INDEX.LIST', 'module-info.class',
+                'META-INF/versions/**/module-info.class'
+    }
+    // The vanilla client dependency also contains the shared server datapacks,
+    // version metadata and language resources. Never include its obfuscated code.
+    from({
+        configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts
+                .findAll { it.moduleVersion.id.group == 'net.minecraft' && it.name == 'client' }
+                .collect { zipTree(it.file) }
+    }) {
+        exclude '**/*.class', 'META-INF/**'
+    }
+}
+
 jar {
+    dependsOn serverJar
     archiveFileName = "${buildCommit}.jar"
 
     configurations.shade.each { dep ->

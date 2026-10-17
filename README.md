@@ -109,6 +109,32 @@ In game, `/farlands help` prints the generator modes. A mode change is saved wit
 
 ## Source
 
+### Building the client and dedicated server
+
+With Java 17 installed, run:
+
+```bash
+./gradlew jar
+```
+
+This builds both artifacts from `src/main/`:
+
+- `build/libs/dev.jar` — the client jar for the launcher instructions above.
+- `build/libs/dev-server.jar` — a standalone dedicated server, including runtime libraries and vanilla data resources.
+
+If `GIT_COMMIT` is set, its value replaces `dev` in both filenames.
+To build only the dedicated server, use `./gradlew serverJar`.
+
+Copy the server jar into your server directory and launch it with Java 17:
+
+```bash
+java -Xmx2G -jar dev-server.jar nogui
+```
+
+On first launch, review `eula.txt` and set `eula=true` if you agree to the Minecraft EULA, then launch again. Server configuration and worlds are stored in the current working directory. Multiplayer clients need the matching modified client jar because the coordinate protocol differs from vanilla.
+
+If new terrain takes a long time to load and then arrives in a burst, set `sync-chunk-writes=false` in `server.properties` and restart the server. The dedicated server defaults to synchronous region-file writes, which can hold up chunk generation on slower storage. The internal server defaults to asynchronous writes on Linux. Asynchronous writes improve throughput but can lose recent saves if the OS crashes or power is lost.
+
 The only real source is [the Forgejo repo](https://git.pomi.site/pomi/64bit-1.19.2). GitHub is a read-only mirror.
 
 ## Original mod history

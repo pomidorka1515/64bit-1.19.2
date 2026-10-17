@@ -14,6 +14,32 @@ import org.junit.jupiter.api.Test;
 
 class SectorEntityCoordinatesTest {
     @Test
+    void lookTargetPacketAndRotationRetainSubBlockOffsetsAtLongEdges() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        Entity entity = new TestEntity();
+        SectorVec3 origin = SectorVec3.fromBlockAndFraction(Long.MAX_VALUE - 4L, 0.25D, 10.0D,
+                Long.MIN_VALUE + 4L, 0.5D);
+        entity.applyExactPosition(origin);
+        SectorVec3 target = origin.add(0.5D, 0.0D, 0.0D);
+        net.minecraft.commands.arguments.EntityAnchorArgument.Anchor anchor =
+                net.minecraft.commands.arguments.EntityAnchorArgument.Anchor.FEET;
+        net.minecraft.network.FriendlyByteBuf buffer = new net.minecraft.network.FriendlyByteBuf(
+                io.netty.buffer.Unpooled.buffer());
+        try {
+            new net.minecraft.network.protocol.game.ClientboundPlayerLookAtPacket(anchor, target).write(buffer);
+            var decoded = new net.minecraft.network.protocol.game.ClientboundPlayerLookAtPacket(buffer);
+            assertEquals(target, decoded.getExactPosition(null));
+            assertEquals(0, buffer.readableBytes());
+            entity.lookAt(decoded.getFromAnchor(), decoded.getExactPosition(null));
+            assertEquals(-90.0F, entity.getYRot(), 0.001F);
+            assertEquals(0.0F, entity.getXRot(), 0.001F);
+        } finally {
+            buffer.release();
+        }
+    }
+
+    @Test
     void exactAndLegacyDistanceTargetsUseSplitEntityPosition() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();

@@ -234,10 +234,10 @@ public class TeleportCommand {
                 if (pEntity instanceof ServerPlayer) {
                     ((ServerPlayer) pEntity).lookAt(pSource.getAnchor(), this.entity, this.anchor);
                 } else {
-                    pEntity.lookAt(pSource.getAnchor(), this.position);
+                    pEntity.lookAt(pSource.getAnchor(), this.anchor.applyExact(this.entity));
                 }
             } else if (this.exactPosition != null && pEntity.hasSectorPosition()) {
-                pEntity.lookAt(pSource.getAnchor(), this.exactPosition.toApproximateVec3());
+                pEntity.lookAt(pSource.getAnchor(), this.exactPosition);
             } else {
                 pEntity.lookAt(pSource.getAnchor(), this.position);
             }

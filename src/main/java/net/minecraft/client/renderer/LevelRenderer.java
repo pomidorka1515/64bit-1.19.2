@@ -398,7 +398,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         if (!(f <= 0.0F)) {
             RandomSource randomsource = RandomSource.create((long) this.ticks * 312987231L);
             LevelReader levelreader = this.minecraft.level;
-            BlockPos blockpos = new BlockPos(pCamera.getPosition());
+            BlockPos blockpos = pCamera.getBlockPosition();
             BlockPos blockpos1 = null;
             int i = (int) (100.0F * f * f) / (this.minecraft.options.particles().get() == ParticleStatus.DECREASED ? 2 : 1);
 
@@ -2657,25 +2657,23 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             case 1038:
                 Camera camera = this.minecraft.gameRenderer.getMainCamera();
                 if (camera.isInitialized()) {
-                    double d0 = (double) pPos.getX() - camera.getPosition().x;
-                    double d1 = (double) pPos.getY() - camera.getPosition().y;
-                    double d2 = (double) pPos.getZ() - camera.getPosition().z;
+                    SectorVec3 cameraPosition = camera.getExactPosition();
+                    Vec3 delta = SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D).relativeTo(cameraPosition);
+                    double d0 = delta.x;
+                    double d1 = delta.y;
+                    double d2 = delta.z;
                     double d3 = Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
-                    double d4 = camera.getPosition().x;
-                    double d5 = camera.getPosition().y;
-                    double d6 = camera.getPosition().z;
+                    SectorVec3 soundPosition = cameraPosition;
                     if (d3 > 0.0D) {
-                        d4 += d0 / d3 * 2.0D;
-                        d5 += d1 / d3 * 2.0D;
-                        d6 += d2 / d3 * 2.0D;
+                        soundPosition = cameraPosition.add(d0 / d3 * 2.0D, d1 / d3 * 2.0D, d2 / d3 * 2.0D);
                     }
 
                     if (pType == 1023) {
-                        this.level.playLocalSound(d4, d5, d6, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 1.0F, 1.0F, false);
+                        this.level.playLocalSound(soundPosition, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 1.0F, 1.0F, false);
                     } else if (pType == 1038) {
-                        this.level.playLocalSound(d4, d5, d6, SoundEvents.END_PORTAL_SPAWN, SoundSource.HOSTILE, 1.0F, 1.0F, false);
+                        this.level.playLocalSound(soundPosition, SoundEvents.END_PORTAL_SPAWN, SoundSource.HOSTILE, 1.0F, 1.0F, false);
                     } else {
-                        this.level.playLocalSound(d4, d5, d6, SoundEvents.ENDER_DRAGON_DEATH, SoundSource.HOSTILE, 5.0F, 1.0F, false);
+                        this.level.playLocalSound(soundPosition, SoundEvents.ENDER_DRAGON_DEATH, SoundSource.HOSTILE, 5.0F, 1.0F, false);
                     }
                 }
             default:

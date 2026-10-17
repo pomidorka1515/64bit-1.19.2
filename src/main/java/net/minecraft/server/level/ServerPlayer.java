@@ -1095,12 +1095,16 @@ public class ServerPlayer extends Player {
     }
 
     public void lookAt(EntityAnchorArgument.Anchor pAnchor, Vec3 pTarget) {
+        this.lookAt(pAnchor, SectorVec3.fromApproximate(pTarget));
+    }
+
+    public void lookAt(EntityAnchorArgument.Anchor pAnchor, SectorVec3 pTarget) {
         super.lookAt(pAnchor, pTarget);
-        this.connection.send(new ClientboundPlayerLookAtPacket(pAnchor, pTarget.x, pTarget.y, pTarget.z));
+        this.connection.send(new ClientboundPlayerLookAtPacket(pAnchor, pTarget));
     }
 
     public void lookAt(EntityAnchorArgument.Anchor pFromAnchor, Entity pEntity, EntityAnchorArgument.Anchor pToAnchor) {
-        Vec3 vec3 = pToAnchor.apply(pEntity);
+        SectorVec3 vec3 = pToAnchor.applyExact(pEntity);
         super.lookAt(pFromAnchor, vec3);
         this.connection.send(new ClientboundPlayerLookAtPacket(pFromAnchor, pEntity, pToAnchor));
     }

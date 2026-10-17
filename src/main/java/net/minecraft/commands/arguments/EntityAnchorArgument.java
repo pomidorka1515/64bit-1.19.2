@@ -20,6 +20,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class EntityAnchorArgument implements ArgumentType<EntityAnchorArgument.Anchor> {
     private static final Collection<String> EXAMPLES = Arrays.asList("eyes", "feet");
@@ -83,6 +84,11 @@ public class EntityAnchorArgument implements ArgumentType<EntityAnchorArgument.A
 
         public Vec3 apply(Entity pEntity) {
             return this.transform.apply(pEntity.position(), pEntity);
+        }
+
+        public SectorVec3 applyExact(Entity entity) {
+            SectorVec3 position = entity.exactPosition();
+            return this == EYES ? position.add(0.0D, entity.getEyeHeight(), 0.0D) : position;
         }
 
         public Vec3 apply(CommandSourceStack pSource) {

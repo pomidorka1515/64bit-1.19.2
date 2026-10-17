@@ -7,21 +7,22 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketListener> {
-    private final double x;
-    private final double y;
-    private final double z;
+    private final SectorVec3 position;
     private final int entity;
     private final EntityAnchorArgument.Anchor fromAnchor;
     private final EntityAnchorArgument.Anchor toAnchor;
     private final boolean atEntity;
 
     public ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor pFromAnchor, double pX, double pY, double pZ) {
+        this(pFromAnchor, SectorVec3.fromApproximate(pX, pY, pZ));
+    }
+
+    public ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor pFromAnchor, SectorVec3 position) {
         this.fromAnchor = pFromAnchor;
-        this.x = pX;
-        this.y = pY;
-        this.z = pZ;
+        this.position = position;
         this.entity = 0;
         this.atEntity = false;
         this.toAnchor = null;
@@ -31,18 +32,14 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
         this.fromAnchor = pFromAnchor;
         this.entity = pEntity.getId();
         this.toAnchor = pToAnchor;
-        Vec3 vec3 = pToAnchor.apply(pEntity);
-        this.x = vec3.x;
-        this.y = vec3.y;
-        this.z = vec3.z;
+        this.position = pToAnchor.applyExact(pEntity);
         this.atEntity = true;
     }
 
     public ClientboundPlayerLookAtPacket(FriendlyByteBuf pBuffer) {
         this.fromAnchor = pBuffer.readEnum(EntityAnchorArgument.Anchor.class);
-        this.x = pBuffer.readDouble();
-        this.y = pBuffer.readDouble();
-        this.z = pBuffer.readDouble();
+        this.position = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
         this.atEntity = pBuffer.readBoolean();
         if (this.atEntity) {
             this.entity = pBuffer.readVarInt();
@@ -55,9 +52,11 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
 
     public void write(FriendlyByteBuf pBuffer) {
         pBuffer.writeEnum(this.fromAnchor);
-        pBuffer.writeDouble(this.x);
-        pBuffer.writeDouble(this.y);
-        pBuffer.writeDouble(this.z);
+        pBuffer.writeLong(this.position.blockX());
+        pBuffer.writeDouble(this.position.subX());
+        pBuffer.writeDouble(this.position.y());
+        pBuffer.writeLong(this.position.blockZ());
+        pBuffer.writeDouble(this.position.subZ());
         pBuffer.writeBoolean(this.atEntity);
         if (this.atEntity) {
             pBuffer.writeVarInt(this.entity);
@@ -75,11 +74,15 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
 
     @Nullable
     public Vec3 getPosition(Level pLevel) {
+        return this.getExactPosition(pLevel).toApproximateVec3();
+    }
+
+    public SectorVec3 getExactPosition(Level pLevel) {
         if (this.atEntity) {
             Entity entity = pLevel.getEntity(this.entity);
-            return entity == null ? new Vec3(this.x, this.y, this.z) : this.toAnchor.apply(entity);
+            return entity == null ? this.position : this.toAnchor.applyExact(entity);
         } else {
-            return new Vec3(this.x, this.y, this.z);
+            return this.position;
         }
     }
 }

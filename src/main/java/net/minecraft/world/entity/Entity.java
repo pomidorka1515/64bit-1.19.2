@@ -3379,10 +3379,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public void lookAt(EntityAnchorArgument.Anchor pAnchor, Vec3 pTarget) {
-        Vec3 vec3 = pAnchor.apply(this);
-        double d0 = pTarget.x - vec3.x;
-        double d1 = pTarget.y - vec3.y;
-        double d2 = pTarget.z - vec3.z;
+        this.lookAt(pAnchor, SectorVec3.fromApproximate(pTarget));
+    }
+
+    public void lookAt(EntityAnchorArgument.Anchor pAnchor, SectorVec3 pTarget) {
+        Vec3 delta = pTarget.relativeTo(pAnchor.applyExact(this));
+        double d0 = delta.x;
+        double d1 = delta.y;
+        double d2 = delta.z;
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
         this.setXRot(Mth.wrapDegrees((float) (-(Mth.atan2(d1, d3) * (double) (180F / (float) Math.PI)))));
         this.setYRot(Mth.wrapDegrees((float) (Mth.atan2(d2, d0) * (double) (180F / (float) Math.PI)) - 90.0F));

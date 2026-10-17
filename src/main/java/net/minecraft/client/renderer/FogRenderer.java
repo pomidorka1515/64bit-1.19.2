@@ -42,7 +42,7 @@ public class FogRenderer {
         Entity entity = pActiveRenderInfo.getEntity();
         if (fogtype == FogType.WATER) {
             long i = Util.getMillis();
-            int j = pLevel.getBiome(new BlockPos(pActiveRenderInfo.getPosition())).value().getWaterFogColor();
+            int j = pLevel.getBiome(pActiveRenderInfo.getBlockPosition()).value().getWaterFogColor();
             if (biomeChangedTime < 0L) {
                 targetBiomeFog = j;
                 previousBiomeFog = j;

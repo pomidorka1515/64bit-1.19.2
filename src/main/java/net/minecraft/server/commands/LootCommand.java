@@ -33,6 +33,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -108,7 +109,7 @@ public class LootCommand {
                                }))).then(Commands.literal("give").then(p_137904_.construct(Commands.argument("players", EntityArgument.players()), (p_137992_, p_137993_, p_137994_) -> {
                                        return playerGive(EntityArgument.getPlayers(p_137992_, "players"), p_137993_, p_137994_);
                                    }))).then(Commands.literal("spawn").then(p_137904_.construct(Commands.argument("targetPos", Vec3Argument.vec3()), (p_137918_, p_137919_, p_137920_) -> {
-            return dropInWorld(p_137918_.getSource(), Vec3Argument.getCoordinates(p_137918_, "targetPos").getPosition(p_137918_.getSource()), p_137919_, p_137920_);
+            return dropInWorld(p_137918_.getSource(), Vec3Argument.getExactVec3(p_137918_, "targetPos"), p_137919_, p_137920_);
         })));
     }
 
@@ -228,10 +229,10 @@ public class LootCommand {
         return list.size();
     }
 
-    private static int dropInWorld(CommandSourceStack pSource, Vec3 pPos, List<ItemStack> pItems, LootCommand.Callback pCallback) throws CommandSyntaxException {
+    private static int dropInWorld(CommandSourceStack pSource, SectorVec3 pPos, List<ItemStack> pItems, LootCommand.Callback pCallback) throws CommandSyntaxException {
         ServerLevel serverlevel = pSource.getLevel();
         pItems.forEach((p_137884_) -> {
-            ItemEntity itementity = new ItemEntity(serverlevel, pPos.x, pPos.y, pPos.z, p_137884_.copy());
+            ItemEntity itementity = new ItemEntity(serverlevel, pPos, p_137884_.copy());
             itementity.setDefaultPickUpDelay();
             serverlevel.addFreshEntity(itementity);
         });

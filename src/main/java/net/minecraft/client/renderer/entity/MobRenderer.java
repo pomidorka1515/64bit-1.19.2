@@ -66,8 +66,8 @@ public abstract class MobRenderer<T extends Mob, M extends EntityModel<T>> exten
         float f4 = Mth.fastInvSqrt(f * f + f2 * f2) * 0.025F / 2.0F;
         float f5 = f2 * f4;
         float f6 = f * f4;
-        BlockPos blockpos = new BlockPos(pEntityLiving.getEyePosition(pPartialTicks));
-        BlockPos blockpos1 = new BlockPos(pLeashHolder.getEyePosition(pPartialTicks));
+        BlockPos blockpos = pEntityLiving.interpolatedExactPosition(pPartialTicks).add(0.0D, pEntityLiving.getEyeHeight(), 0.0D).blockPosition();
+        BlockPos blockpos1 = pLeashHolder.interpolatedExactPosition(pPartialTicks).add(0.0D, pLeashHolder.getEyeHeight(), 0.0D).blockPosition();
         int i = this.getBlockLightLevel(pEntityLiving, blockpos);
         int j = this.entityRenderDispatcher.getRenderer(pLeashHolder).getBlockLightLevel(pLeashHolder, blockpos1);
         int k = pEntityLiving.level.getBrightness(LightLayer.SKY, blockpos);

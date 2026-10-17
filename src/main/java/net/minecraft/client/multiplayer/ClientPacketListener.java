@@ -1259,7 +1259,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleLookAt(ClientboundPlayerLookAtPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
-        Vec3 vec3 = pPacket.getPosition(this.level);
+        SectorVec3 vec3 = pPacket.getExactPosition(this.level);
         if (vec3 != null) {
             this.minecraft.player.lookAt(pPacket.getFromAnchor(), vec3);
         }

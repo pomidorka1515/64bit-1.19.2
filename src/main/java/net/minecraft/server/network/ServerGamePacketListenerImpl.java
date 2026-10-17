@@ -882,8 +882,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
                 } else {
                     this.awaitingTeleportTime = this.tickCount;
-                    SectorVec3 packetSector = pPacket.hasExactPosition() && this.player.hasSectorPosition()
-                            ? pPacket.getExactPosition(pPacket.getY(this.player.getY()))
+                    SectorVec3 packetSector = this.player.hasSectorPosition()
+                            ? pPacket.getExactPosition(this.player.sectorPosition())
                             : null;
                     double d0 = packetSector == null ? clampHorizontal(pPacket.getX(this.player.getX())) : this.player.getX();
                     double d1 = clampVertical(pPacket.getY(this.player.getY()));

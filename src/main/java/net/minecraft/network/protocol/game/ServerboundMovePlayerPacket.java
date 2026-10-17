@@ -47,6 +47,12 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         return this.exactBlockX == null ? null : SectorVec3.fromBlockAndFraction(this.exactBlockX, this.exactSubX, fallbackY, this.exactBlockZ, this.exactSubZ);
     }
 
+    /** Positionless updates retain the server's exact position, including its fractions. */
+    @Nullable
+    public SectorVec3 getExactPosition(SectorVec3 currentPosition) {
+        return this.hasPos ? this.getExactPosition(this.getY(currentPosition.y())) : currentPosition;
+    }
+
     public void handle(ServerGamePacketListener pHandler) {
         pHandler.handleMovePlayer(this);
     }

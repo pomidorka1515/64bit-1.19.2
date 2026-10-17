@@ -54,7 +54,7 @@ public class RandomSpreadStructurePlacement extends StructurePlacement {
         int k = this.spacing - this.separation;
         int l = this.spreadType.evaluate(worldgenrandom, k);
         int i1 = this.spreadType.evaluate(worldgenrandom, k);
-        return new ChunkPos(i * this.spacing + l, j * this.spacing + i1);
+        return new ChunkPos(net.minecraft.world.level.WorldBounds.addBlockOffset(net.minecraft.world.level.WorldBounds.multiplySaturated(i, this.spacing), l), net.minecraft.world.level.WorldBounds.addBlockOffset(net.minecraft.world.level.WorldBounds.multiplySaturated(j, this.spacing), i1));
     }
 
     protected boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pY) {

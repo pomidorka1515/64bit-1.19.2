@@ -126,17 +126,17 @@ public class RandomPos {
             boolean eastOfRestriction = mob.getBlockX() > restriction.getX()
                     || mob.getBlockX() == restriction.getX() && mob.sectorPosition().subX() > 0.0D;
             if (eastOfRestriction) {
-                offsetX -= random.nextInt(horizontalRange / 2);
+                offsetX = WorldBounds.subtractBlockOffset(offsetX, random.nextInt(horizontalRange / 2));
             } else {
-                offsetX += random.nextInt(horizontalRange / 2);
+                offsetX = WorldBounds.addBlockOffset(offsetX, random.nextInt(horizontalRange / 2));
             }
 
             boolean southOfRestriction = mob.getBlockZ() > restriction.getZ()
                     || mob.getBlockZ() == restriction.getZ() && mob.sectorPosition().subZ() > 0.0D;
             if (southOfRestriction) {
-                offsetZ -= random.nextInt(horizontalRange / 2);
+                offsetZ = WorldBounds.subtractBlockOffset(offsetZ, random.nextInt(horizontalRange / 2));
             } else {
-                offsetZ += random.nextInt(horizontalRange / 2);
+                offsetZ = WorldBounds.addBlockOffset(offsetZ, random.nextInt(horizontalRange / 2));
             }
         }
 

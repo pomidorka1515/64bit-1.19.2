@@ -85,11 +85,11 @@ public final class FarlandsMode {
     }
 
     static double floorSum(long first, long second, boolean farlands) {
-        return farlands ? (double) ((int) first + (int) second) : (double) (first + second);
+        return farlands ? (double) ((int) first + (int) second) : (double) first + (double) second;
     }
 
     static double floorSum(long first, long second, long third, boolean farlands) {
-        return farlands ? (double) ((int) first + (int) second + (int) third) : (double) (first + second + third);
+        return farlands ? (double) ((int) first + (int) second + (int) third) : (double) first + (double) second + (double) third;
     }
 
     public enum Mode {

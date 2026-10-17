@@ -40,19 +40,19 @@ public abstract class BiomeSource implements BiomeResolver {
     }
 
     public Set<Holder<Biome>> getBiomesWithin(long pX, int pY, long pZ, int pRadius, Climate.Sampler pSampler) {
-        long i = QuartPos.fromBlock(pX - pRadius);
+        long i = QuartPos.fromBlock(net.minecraft.world.level.WorldBounds.subtractBlockOffset(pX, pRadius));
         int j = QuartPos.fromBlock(pY - pRadius);
-        long k = QuartPos.fromBlock(pZ - pRadius);
-        long l = QuartPos.fromBlock(pX + pRadius);
+        long k = QuartPos.fromBlock(net.minecraft.world.level.WorldBounds.subtractBlockOffset(pZ, pRadius));
+        long l = QuartPos.fromBlock(net.minecraft.world.level.WorldBounds.addBlockOffset(pX, pRadius));
         int i1 = QuartPos.fromBlock(pY + pRadius);
-        long j1 = QuartPos.fromBlock(pZ + pRadius);
+        long j1 = QuartPos.fromBlock(net.minecraft.world.level.WorldBounds.addBlockOffset(pZ, pRadius));
         long k1 = l - i + 1;
         int l1 = i1 - j + 1;
         long i2 = j1 - k + 1;
         Set<Holder<Biome>> set = Sets.newHashSet();
 
-        for (int j2 = 0; j2 < i2; ++j2) {
-            for (int k2 = 0; k2 < k1; ++k2) {
+        for (long j2 = 0; j2 < i2; ++j2) {
+            for (long k2 = 0; k2 < k1; ++k2) {
                 for (int l2 = 0; l2 < l1; ++l2) {
                     long i3 = i + k2;
                     int j3 = j + l2;

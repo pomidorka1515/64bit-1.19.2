@@ -24,7 +24,7 @@ public class Vec3i implements Comparable<Vec3i> {
 
     private static Function<Vec3i, DataResult<Vec3i>> checkOffsetAxes(int p_194646_) {
         return (p_194649_) -> {
-            return Math.abs(p_194649_.getX()) < p_194646_ && Math.abs(p_194649_.getY()) < p_194646_ && Math.abs(p_194649_.getZ()) < p_194646_ ? DataResult.success(p_194649_) : DataResult.error("Position out of range, expected at most " + p_194646_ + ": " + p_194649_);
+            return p_194649_.getX() > -(long) p_194646_ && p_194649_.getX() < p_194646_ && p_194649_.getY() > -(long) p_194646_ && p_194649_.getY() < p_194646_ && p_194649_.getZ() > -(long) p_194646_ && p_194649_.getZ() < p_194646_ ? DataResult.success(p_194649_) : DataResult.error("Position out of range, expected at most " + p_194646_ + ": " + p_194649_);
         };
     }
 
@@ -65,9 +65,9 @@ public class Vec3i implements Comparable<Vec3i> {
 
     public int compareTo(Vec3i pOther) {
         if (this.getY() == pOther.getY()) {
-            return (int) (this.getZ() == pOther.getZ() ? this.getX() - pOther.getX() : this.getZ() - pOther.getZ());
+            return this.getZ() == pOther.getZ() ? Long.compare(this.getX(), pOther.getX()) : Long.compare(this.getZ(), pOther.getZ());
         } else {
-            return this.getY() - pOther.getY();
+            return Integer.compare(this.getY(), pOther.getY());
         }
     }
 
@@ -99,7 +99,7 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i offset(double pDx, double pDy, double pDz) {
-        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new Vec3i((double) this.getX() + pDx, (double) this.getY() + pDy, (double) this.getZ() + pDz);
+        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new Vec3i(WorldBounds.addDoubleBlockOffset(this.getX(), pDx), Mth.floor((double) this.getY() + pDy), WorldBounds.addDoubleBlockOffset(this.getZ(), pDz));
     }
 
     public Vec3i offset(long pDx, int pDy, long pDz) {
@@ -111,14 +111,14 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i subtract(Vec3i pVector) {
-        return this.offset(-pVector.getX(), -pVector.getY(), -pVector.getZ());
+        return new Vec3i(WorldBounds.subtractBlockOffset(this.getX(), pVector.getX()), this.getY() - pVector.getY(), WorldBounds.subtractBlockOffset(this.getZ(), pVector.getZ()));
     }
 
     public Vec3i multiply(int pScalar) {
         if (pScalar == 1) {
             return this;
         } else {
-            return pScalar == 0 ? ZERO : new Vec3i(this.getX() * pScalar, this.getY() * pScalar, this.getZ() * pScalar);
+            return pScalar == 0 ? ZERO : new Vec3i(WorldBounds.multiplySaturated(this.getX(), pScalar), this.getY() * pScalar, WorldBounds.multiplySaturated(this.getZ(), pScalar));
         }
     }
 
@@ -175,7 +175,7 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i relative(Direction pDirection, int pDistance) {
-        return pDistance == 0 ? this : new Vec3i(this.getX() + pDirection.getStepX() * pDistance, this.getY() + pDirection.getStepY() * pDistance, this.getZ() + pDirection.getStepZ() * pDistance);
+        return pDistance == 0 ? this : new Vec3i(WorldBounds.addBlockOffset(this.getX(), (long) pDirection.getStepX() * pDistance), this.getY() + pDirection.getStepY() * pDistance, WorldBounds.addBlockOffset(this.getZ(), (long) pDirection.getStepZ() * pDistance));
     }
 
     public Vec3i relative(Direction.Axis pAxis, int pAmount) {
@@ -190,7 +190,7 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i cross(Vec3i pVector) {
-        return new Vec3i(this.getY() * pVector.getZ() - this.getZ() * pVector.getY(), this.getZ() * pVector.getX() - this.getX() * pVector.getZ(), this.getX() * pVector.getY() - this.getY() * pVector.getX());
+        return new Vec3i(WorldBounds.crossComponent(this.getY(), pVector.getZ(), this.getZ(), pVector.getY()), (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, WorldBounds.crossComponent(this.getZ(), pVector.getX(), this.getX(), pVector.getZ()))), WorldBounds.crossComponent(this.getX(), pVector.getY(), this.getY(), pVector.getX()));
     }
 
     public boolean closerThan(Vec3i pVector, double pDistance) {
@@ -238,9 +238,9 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public int distManhattan(Vec3i pVector) {
-        float f = (float) Math.abs(pVector.getX() - this.getX());
-        float f1 = (float) Math.abs(pVector.getY() - this.getY());
-        float f2 = (float) Math.abs(pVector.getZ() - this.getZ());
+        double f = WorldBounds.distance(pVector.getX(), this.getX());
+        double f1 = Math.abs((double) pVector.getY() - this.getY());
+        double f2 = WorldBounds.distance(pVector.getZ(), this.getZ());
         return (int) (f + f1 + f2);
     }
 

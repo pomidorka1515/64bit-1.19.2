@@ -46,7 +46,7 @@ public class TheEndBiomeSource extends BiomeSource {
         long k = QuartPos.toBlock(pZ);
         long l = SectionPos.blockToSectionCoord(i);
         long i1 = SectionPos.blockToSectionCoord(k);
-        if ((long) l * (long) l + (long) i1 * (long) i1 <= 4096L) {
+        if (l >= -64L && l <= 64L && i1 >= -64L && i1 <= 64L && l * l + i1 * i1 <= 4096L) {
             return this.end;
         } else {
             long j1 = (SectionPos.blockToSectionCoord(i) * 2 + 1) * 8;

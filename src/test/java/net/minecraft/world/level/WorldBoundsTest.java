@@ -170,8 +170,12 @@ class WorldBoundsTest {
     }
 
     @Test
-    void cursorRejectsOverflowingRanges() {
-        assertThrows(ArithmeticException.class, () -> new Cursor3D(Long.MIN_VALUE, 0, 0L, Long.MAX_VALUE, 0, 0L));
+    void cursorTraversesOverflowingRangesLazily() {
+        Cursor3D cursor = new Cursor3D(Long.MIN_VALUE, 0, 0L, Long.MAX_VALUE, 0, 0L);
+        assertTrue(cursor.advance());
+        assertEquals(Long.MIN_VALUE, cursor.nextX());
+        assertTrue(cursor.advance());
+        assertEquals(Long.MIN_VALUE + 1L, cursor.nextX());
     }
 
     @Test

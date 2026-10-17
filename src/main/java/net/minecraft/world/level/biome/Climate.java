@@ -432,8 +432,8 @@ public class Climate {
             BlockPos blockpos = this.result.location();
 
             while (f1 <= pMax) {
-                long i = blockpos.getX() + (int) (Math.sin((double) f) * (double) f1);
-                long j = blockpos.getZ() + (int) (Math.cos((double) f) * (double) f1);
+                long i = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), (int) (Math.sin((double) f) * (double) f1));
+                long j = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), (int) (Math.cos((double) f) * (double) f1));
                 Climate.SpawnFinder.Result climate$spawnfinder$result = getSpawnPositionAndFitness(pPoint, pSampler, i, j);
                 if (climate$spawnfinder$result.fitness() < this.result.fitness()) {
                     this.result = climate$spawnfinder$result;

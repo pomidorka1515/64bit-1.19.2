@@ -751,7 +751,7 @@ public class Mth {
     }
 
     public static long square(long pValue) {
-        return pValue * pValue;
+        return net.minecraft.world.level.WorldBounds.multiplySaturated(pValue, pValue);
     }
 
     public static float cube(float p_216300_) {

@@ -93,7 +93,7 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
         long i = blockpos.getX();
         int j = blockpos.getY();
         long k = blockpos.getZ();
-        this.jumpCandidates = BlockPos.betweenClosedStream(i - this.maxLongJumpWidth, j - this.maxLongJumpHeight, k - this.maxLongJumpWidth, i + this.maxLongJumpWidth, j + this.maxLongJumpHeight, k + this.maxLongJumpWidth).filter((p_217317_) -> {
+        this.jumpCandidates = BlockPos.betweenClosedStream(net.minecraft.world.level.WorldBounds.subtractBlockOffset(i, this.maxLongJumpWidth), j - this.maxLongJumpHeight, net.minecraft.world.level.WorldBounds.subtractBlockOffset(k, this.maxLongJumpWidth), net.minecraft.world.level.WorldBounds.addBlockOffset(i, this.maxLongJumpWidth), j + this.maxLongJumpHeight, net.minecraft.world.level.WorldBounds.addBlockOffset(k, this.maxLongJumpWidth)).filter((p_217317_) -> {
                                                                                                                                                                                                                                   return !p_217317_.equals(blockpos);
                                                                                                                                                                                                                               })
                                       .map((p_217314_) -> {

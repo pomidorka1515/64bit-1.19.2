@@ -436,10 +436,10 @@ public class StructureTemplate {
         boolean flag = true;
         switch (pMirror) {
             case LEFT_RIGHT:
-                k = -k;
+                k = WorldBounds.subtractBlockOffset(0L, k);
                 break;
             case FRONT_BACK:
-                i = -i;
+                i = WorldBounds.subtractBlockOffset(0L, i);
                 break;
             default:
                 flag = false;
@@ -449,11 +449,11 @@ public class StructureTemplate {
         long i1 = pOffset.getZ();
         switch (pRotation) {
             case COUNTERCLOCKWISE_90:
-                return new BlockPos(l - i1 + k, j, l + i1 - i);
+                return new BlockPos(WorldBounds.addSubtract(l, k, i1), j, WorldBounds.addSubtract(l, i1, i));
             case CLOCKWISE_90:
-                return new BlockPos(l + i1 - k, j, i1 - l + i);
+                return new BlockPos(WorldBounds.addSubtract(l, i1, k), j, WorldBounds.addSubtract(i1, i, l));
             case CLOCKWISE_180:
-                return new BlockPos(l + l - i, j, i1 + i1 - k);
+                return new BlockPos(WorldBounds.addSubtract(l, l, i), j, WorldBounds.addSubtract(i1, i1, k));
             default:
                 return flag ? new BlockPos(i, j, k) : pTargetPos;
         }

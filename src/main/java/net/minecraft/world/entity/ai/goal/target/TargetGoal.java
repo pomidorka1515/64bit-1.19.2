@@ -120,9 +120,9 @@ public abstract class TargetGoal extends Goal {
             if (node == null) {
                 return false;
             } else {
-                long i = node.x - pTarget.getBlockX();
-                long j = node.z - pTarget.getBlockZ();
-                return (double) (i * i + j * j) <= 2.25D;
+                double i = net.minecraft.world.level.WorldBounds.signedDifference(node.x, pTarget.getBlockX());
+                double j = net.minecraft.world.level.WorldBounds.signedDifference(node.z, pTarget.getBlockZ());
+                return i * i + j * j <= 2.25D;
             }
         }
     }

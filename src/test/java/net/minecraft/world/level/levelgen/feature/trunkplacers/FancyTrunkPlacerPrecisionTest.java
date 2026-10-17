@@ -59,12 +59,12 @@ class FancyTrunkPlacerPrecisionTest {
     }
 
     @Test
-    void otherModesStillRoundHugeCoordinatesThroughDouble() {
+    void otherModesAlsoPreserveLocalBlockOffsets() {
         FarlandsMode.setMode(FarlandsMode.Mode.OFF);
         Map<BlockPos, BlockState> placed = placeFancyTrunk(HUGE_X, ORIGIN_Y, HUGE_Z, 12L);
         assertFalse(placed.isEmpty(), "the trunk placer must emit logs");
-        assertTrue(countSidewaysColumnLogs(placed, HUGE_X, HUGE_Z) > 0 || !hasVerticalColumn(placed, HUGE_X, HUGE_Z),
-                "legacy double offsets at this coordinate still smear the trunk off axis y");
+        assertTrue(hasVerticalColumn(placed, HUGE_X, HUGE_Z));
+        assertEquals(0, countSidewaysColumnLogs(placed, HUGE_X, HUGE_Z));
     }
 
     @Test

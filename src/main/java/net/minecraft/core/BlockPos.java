@@ -79,7 +79,7 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos offset(double pDx, double pDy, double pDz) {
-        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new BlockPos((double) this.getX() + pDx, (double) this.getY() + pDy, (double) this.getZ() + pDz);
+        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new BlockPos(WorldBounds.addDoubleBlockOffset(this.getX(), pDx), Mth.floor((double) this.getY() + pDy), WorldBounds.addDoubleBlockOffset(this.getZ(), pDz));
     }
 
     public BlockPos offset(long pDx, int pDy, long pDz) {
@@ -91,14 +91,14 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos subtract(Vec3i pVector) {
-        return this.offset(-pVector.getX(), -pVector.getY(), -pVector.getZ());
+        return new BlockPos(WorldBounds.subtractBlockOffset(this.getX(), pVector.getX()), this.getY() - pVector.getY(), WorldBounds.subtractBlockOffset(this.getZ(), pVector.getZ()));
     }
 
     public BlockPos multiply(int pScalar) {
         if (pScalar == 1) {
             return this;
         } else {
-            return pScalar == 0 ? ZERO : new BlockPos(this.getX() * pScalar, this.getY() * pScalar, this.getZ() * pScalar);
+            return pScalar == 0 ? ZERO : new BlockPos(WorldBounds.multiplySaturated(this.getX(), pScalar), this.getY() * pScalar, WorldBounds.multiplySaturated(this.getZ(), pScalar));
         }
     }
 
@@ -177,16 +177,16 @@ public class BlockPos extends Vec3i {
             default:
                 return this;
             case CLOCKWISE_90:
-                return new BlockPos(-this.getZ(), this.getY(), this.getX());
+                return new BlockPos(WorldBounds.subtractBlockOffset(0L, this.getZ()), this.getY(), this.getX());
             case CLOCKWISE_180:
-                return new BlockPos(-this.getX(), this.getY(), -this.getZ());
+                return new BlockPos(WorldBounds.subtractBlockOffset(0L, this.getX()), this.getY(), WorldBounds.subtractBlockOffset(0L, this.getZ()));
             case COUNTERCLOCKWISE_90:
-                return new BlockPos(this.getZ(), this.getY(), -this.getX());
+                return new BlockPos(this.getZ(), this.getY(), WorldBounds.subtractBlockOffset(0L, this.getX()));
         }
     }
 
     public BlockPos cross(Vec3i pVector) {
-        return new BlockPos(this.getY() * pVector.getZ() - this.getZ() * pVector.getY(), this.getZ() * pVector.getX() - this.getX() * pVector.getZ(), this.getX() * pVector.getY() - this.getY() * pVector.getX());
+        return new BlockPos(WorldBounds.crossComponent(this.getY(), pVector.getZ(), this.getZ(), pVector.getY()), (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, WorldBounds.crossComponent(this.getZ(), pVector.getX(), this.getX(), pVector.getZ()))), WorldBounds.crossComponent(this.getX(), pVector.getY(), this.getY(), pVector.getX()));
     }
 
     public BlockPos atY(int pY) {
@@ -206,25 +206,36 @@ public class BlockPos extends Vec3i {
     }
 
     public static Iterable<BlockPos> randomBetweenClosed(RandomSource pRandom, int pAmount, long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long o) {
-        long i = pMaxX - pMinX + 1;
+        long i = WorldBounds.inclusiveBlockSpan(pMinX, pMaxX);
         int j = pMaxY - pMinY + 1;
-        long k = o - pMinZ + 1;
+        long k = WorldBounds.inclusiveBlockSpan(pMinZ, o);
         return () -> {
             return new AbstractIterator<BlockPos>() {
                 final BlockPos.MutableBlockPos nextPos = new BlockPos.MutableBlockPos();
                 int counter = pAmount;
 
                 protected BlockPos computeNext() {
-                    if (this.counter <= 0) {
+                    if (this.counter <= 0 || i == 0L || j <= 0 || k == 0L) {
                         return this.endOfData();
                     } else {
-                        BlockPos blockpos = this.nextPos.set(pMinX + pRandom.nextLong() % i, pMinY + pRandom.nextInt(j), pMinZ + pRandom.nextLong() % k);
+                        BlockPos blockpos = this.nextPos.set(randomCoordinate(pRandom, pMinX, pMaxX, i), pMinY + pRandom.nextInt(j), randomCoordinate(pRandom, pMinZ, o, k));
                         --this.counter;
                         return blockpos;
                     }
                 }
             };
         };
+    }
+
+    private static long randomCoordinate(RandomSource random, long min, long max, long span) {
+        if (span == Long.MAX_VALUE) {
+            long coordinate;
+            do {
+                coordinate = random.nextLong();
+            } while (coordinate < min || coordinate > max);
+            return coordinate;
+        }
+        return WorldBounds.addBlockOffset(min, Math.floorMod(random.nextLong(), span));
     }
 
     public static Iterable<BlockPos> withinManhattan(BlockPos pPos, int pXSize, int pYSize, int pZSize) {
@@ -245,7 +256,7 @@ public class BlockPos extends Vec3i {
                 protected BlockPos computeNext() {
                     if (this.zMirror) {
                         this.zMirror = false;
-                        this.cursor.setZ(l - (WorldBounds.subtractBlockOffset(this.cursor.getZ(), l)));
+                        this.cursor.setZ(WorldBounds.subtractBlockOffset(l, WorldBounds.subtractBlockOffset(this.cursor.getZ(), l)));
                         return this.cursor;
                     } else {
                         BlockPos blockpos;
@@ -271,7 +282,7 @@ public class BlockPos extends Vec3i {
                             int k1 = this.currentDepth - Math.abs(i1) - Math.abs(j1);
                             if (k1 <= pZSize) {
                                 this.zMirror = k1 != 0;
-                                blockpos = this.cursor.set(j + i1, k + j1, l + k1);
+                                blockpos = this.cursor.set(WorldBounds.addBlockOffset(j, i1), k + j1, WorldBounds.addBlockOffset(l, k1));
                             }
                         }
 

@@ -69,6 +69,35 @@ public final class WorldBounds {
                                                                                            : (int) result;
     }
 
+    /** Saturating multiplication in the horizontal coordinate domain. */
+    public static long multiplySaturated(long first, long second) {
+        try {
+            return Math.multiplyExact(first, second);
+        } catch (ArithmeticException overflow) {
+            return (first ^ second) < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
+        }
+    }
+
+    /** Computes a determinant before clamping, preserving cancellation. */
+    public static long crossComponent(long a, long b, long c, long d) {
+        java.math.BigInteger result = java.math.BigInteger.valueOf(a).multiply(java.math.BigInteger.valueOf(b))
+                .subtract(java.math.BigInteger.valueOf(c).multiply(java.math.BigInteger.valueOf(d)));
+        return result.max(java.math.BigInteger.valueOf(Long.MIN_VALUE))
+                .min(java.math.BigInteger.valueOf(Long.MAX_VALUE)).longValue();
+    }
+
+    /** Adds two coordinates and subtracts a third, clamping only the final result. */
+    public static long addSubtract(long first, long second, long subtrahend) {
+        try {
+            return Math.subtractExact(Math.addExact(first, second), subtrahend);
+        } catch (ArithmeticException overflow) {
+            java.math.BigInteger result = java.math.BigInteger.valueOf(first).add(java.math.BigInteger.valueOf(second))
+                    .subtract(java.math.BigInteger.valueOf(subtrahend));
+            return result.max(java.math.BigInteger.valueOf(Long.MIN_VALUE))
+                    .min(java.math.BigInteger.valueOf(Long.MAX_VALUE)).longValue();
+        }
+    }
+
     /**
     * Noise is expected to be normalized.  Far-away coordinates can make the
     * legacy noise implementation produce very large values, so do not allow
@@ -227,7 +256,7 @@ public final class WorldBounds {
         if (offset == 0.0D || !Double.isFinite(offset))
             return block;
         long whole = (long) offset;
-        if (offset < (double) whole) {
+        if (offset < (double) whole && whole != Long.MIN_VALUE) {
             --whole;
         }
 
@@ -322,7 +351,7 @@ public final class WorldBounds {
 
     /** Returns the upper center of an inclusive block-coordinate interval. */
     public static long middleBlockCoordinate(long min, long max) {
-        if (min < 0L && max > 0L) {
+        if (min < 0L && max >= 0L) {
             long sum = min + max;
             return sum >= 0L ? sum / 2L + sum % 2L : sum / 2L;
         }

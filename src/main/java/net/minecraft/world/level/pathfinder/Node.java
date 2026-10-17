@@ -50,50 +50,50 @@ public class Node {
     }
 
     public float distanceTo(Node pPathpoint) {
-        float f = (float) (pPathpoint.x - this.x);
+        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.x, this.x);
         float f1 = (float) (pPathpoint.y - this.y);
-        float f2 = (float) (pPathpoint.z - this.z);
+        float f2 = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.z, this.z);
         return Mth.sqrt(f * f + f1 * f1 + f2 * f2);
     }
 
     public float distanceToXZ(Node p_230614_) {
-        float f = (float) (p_230614_.x - this.x);
-        float f1 = (float) (p_230614_.z - this.z);
+        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(p_230614_.x, this.x);
+        float f1 = (float) net.minecraft.world.level.WorldBounds.signedDifference(p_230614_.z, this.z);
         return Mth.sqrt(f * f + f1 * f1);
     }
 
     public float distanceTo(BlockPos pPos) {
-        float f = (float) (pPos.getX() - this.x);
+        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPos.getX(), this.x);
         float f1 = (float) (pPos.getY() - this.y);
-        float f2 = (float) (pPos.getZ() - this.z);
+        float f2 = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPos.getZ(), this.z);
         return Mth.sqrt(f * f + f1 * f1 + f2 * f2);
     }
 
     public float distanceToSqr(Node pPathpoint) {
-        float f = (float) (pPathpoint.x - this.x);
+        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.x, this.x);
         float f1 = (float) (pPathpoint.y - this.y);
-        float f2 = (float) (pPathpoint.z - this.z);
+        float f2 = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.z, this.z);
         return f * f + f1 * f1 + f2 * f2;
     }
 
     public float distanceToSqr(BlockPos pPos) {
-        float f = (float) (pPos.getX() - this.x);
+        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPos.getX(), this.x);
         float f1 = (float) (pPos.getY() - this.y);
-        float f2 = (float) (pPos.getZ() - this.z);
+        float f2 = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPos.getZ(), this.z);
         return f * f + f1 * f1 + f2 * f2;
     }
 
     public float distanceManhattan(Node pPathpoint) {
-        float f = (float) Math.abs(pPathpoint.x - this.x);
-        float f1 = (float) Math.abs(pPathpoint.y - this.y);
-        float f2 = (float) Math.abs(pPathpoint.z - this.z);
+        float f = (float) net.minecraft.world.level.WorldBounds.distance(pPathpoint.x, this.x);
+        float f1 = (float) Math.abs((double) pPathpoint.y - this.y);
+        float f2 = (float) net.minecraft.world.level.WorldBounds.distance(pPathpoint.z, this.z);
         return f + f1 + f2;
     }
 
     public float distanceManhattan(BlockPos pPos) {
-        float f = (float) Math.abs(pPos.getX() - this.x);
-        float f1 = (float) Math.abs(pPos.getY() - this.y);
-        float f2 = (float) Math.abs(pPos.getZ() - this.z);
+        float f = (float) net.minecraft.world.level.WorldBounds.distance(pPos.getX(), this.x);
+        float f1 = (float) Math.abs((double) pPos.getY() - this.y);
+        float f2 = (float) net.minecraft.world.level.WorldBounds.distance(pPos.getZ(), this.z);
         return f + f1 + f2;
     }
 

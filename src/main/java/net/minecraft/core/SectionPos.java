@@ -215,7 +215,7 @@ public class SectionPos extends Vec3i {
 
     public static Stream<SectionPos> betweenClosedStream(final long pX1, final int pY1, final long pZ1, final long pX2, final int pY2, final long pZ2) {
         long size = pX1 > pX2 || pY1 > pY2 || pZ1 > pZ2 ? 0L
-                : Math.multiplyExact(Math.multiplyExact(Math.addExact(Math.subtractExact(pX2, pX1), 1L), (long) pY2 - pY1 + 1L), Math.addExact(Math.subtractExact(pZ2, pZ1), 1L));
+                : WorldBounds.multiplySaturated(WorldBounds.multiplySaturated(WorldBounds.inclusiveBlockSpan(pX1, pX2), (long) pY2 - pY1 + 1L), WorldBounds.inclusiveBlockSpan(pZ1, pZ2));
         return StreamSupport.stream(new Spliterators.AbstractSpliterator<SectionPos>(size, 64) {
             final Cursor3D cursor = new Cursor3D(pX1, pY1, pZ1, pX2, pY2, pZ2);
 

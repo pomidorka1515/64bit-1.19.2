@@ -115,7 +115,6 @@ public class SeaPickleBlock extends BushBlock implements BonemealableBlock, Simp
             int j = 1;
             int k = 2;
             int l = 0;
-            long i1 = WorldBounds.subtractBlockOffset(pPos.getX(), 2);
             int j1 = 0;
 
             for (int k1 = 0; k1 < 5; ++k1) {
@@ -123,7 +122,7 @@ public class SeaPickleBlock extends BushBlock implements BonemealableBlock, Simp
                     int i2 = 2 + pPos.getY() - 1;
 
                     for (int j2 = i2 - 2; j2 < i2; ++j2) {
-                        BlockPos blockpos = new BlockPos(i1 + k1, j2, pPos.getZ() - j1 + l1);
+                        BlockPos blockpos = new BlockPos(WorldBounds.addBlockOffset(pPos.getX(), k1 - 2), j2, WorldBounds.addBlockOffset(pPos.getZ(), l1 - j1));
                         if (blockpos != pPos && pRandom.nextInt(6) == 0 && pLevel.getBlockState(blockpos).is(Blocks.WATER)) {
                             BlockState blockstate = pLevel.getBlockState(blockpos.below());
                             if (blockstate.is(BlockTags.CORAL_BLOCKS)) {

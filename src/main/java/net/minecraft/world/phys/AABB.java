@@ -77,7 +77,7 @@ public class AABB {
     }
 
     public static AABB of(BoundingBox pMutableBox) {
-        return new AABB((double) pMutableBox.minX(), (double) pMutableBox.minY(), (double) pMutableBox.minZ(), (double) (pMutableBox.maxX() + 1), (double) (pMutableBox.maxY() + 1), (double) (pMutableBox.maxZ() + 1));
+        return new AABB((double) pMutableBox.minX(), (double) pMutableBox.minY(), (double) pMutableBox.minZ(), (double) net.minecraft.world.level.WorldBounds.addBlockOffset(pMutableBox.maxX(), 1L), (double) pMutableBox.maxY() + 1.0D, (double) net.minecraft.world.level.WorldBounds.addBlockOffset(pMutableBox.maxZ(), 1L));
     }
 
     public static AABB unitCubeFromLowerCorner(Vec3 pVector) {

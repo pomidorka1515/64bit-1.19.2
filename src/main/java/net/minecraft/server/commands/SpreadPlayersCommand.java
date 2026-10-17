@@ -176,8 +176,8 @@ public class SpreadPlayersCommand {
                 spreadplayerscommand$position = pPositions[i++];
             }
 
-            long blockX = Math.addExact(center.blockX(), (long) Math.floor(spreadplayerscommand$position.x));
-            long blockZ = Math.addExact(center.blockZ(), (long) Math.floor(spreadplayerscommand$position.z));
+            long blockX = net.minecraft.world.level.WorldBounds.addDoubleBlockOffset(center.blockX(), spreadplayerscommand$position.x);
+            long blockZ = net.minecraft.world.level.WorldBounds.addDoubleBlockOffset(center.blockZ(), spreadplayerscommand$position.z);
             SectorVec3 target = SectorVec3.fromBlockAndFraction(blockX, 0.5D, spreadplayerscommand$position.getSpawnY(pLevel, pMaxHeight), blockZ, 0.5D);
             if (entity.hasSectorPosition())
                 entity.absMoveTo(target, entity.getYRot(), entity.getXRot());

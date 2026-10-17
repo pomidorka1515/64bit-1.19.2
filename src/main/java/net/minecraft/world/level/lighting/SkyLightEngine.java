@@ -30,7 +30,7 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
         if (opacity.getValue() >= 15)
             return 15;
 
-        Direction direction = Direction.fromNormal(Long.signum(target.getX() - source.getX()), Integer.signum(target.getY() - source.getY()), Long.signum(target.getZ() - source.getZ()));
+        Direction direction = Direction.fromNormal(Long.compare(target.getX(), source.getX()), Integer.compare(target.getY(), source.getY()), Long.compare(target.getZ(), source.getZ()));
         if (direction == null)
             return level;
 

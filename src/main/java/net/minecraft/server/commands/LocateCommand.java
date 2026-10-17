@@ -125,8 +125,8 @@ public class LocateCommand {
     }
 
     private static float dist(long x0, long z0, long x1, long z1) {
-        long dx = Math.subtractExact(x1, x0);
-        long dz = Math.subtractExact(z1, z0);
-        return (float) Math.sqrt((double) dx * (double) dx + (double) dz * (double) dz);
+        double dx = net.minecraft.world.level.WorldBounds.signedDifference(x1, x0);
+        double dz = net.minecraft.world.level.WorldBounds.signedDifference(z1, z0);
+        return (float) Math.hypot(dx, dz);
     }
 }

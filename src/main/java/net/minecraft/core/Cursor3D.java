@@ -1,7 +1,5 @@
 package net.minecraft.core;
 
-import net.minecraft.world.level.WorldBounds;
-
 public class Cursor3D {
     public static final int TYPE_INSIDE = 0;
     public static final int TYPE_FACE = 1;
@@ -10,72 +8,64 @@ public class Cursor3D {
     private final long originX;
     private final int originY;
     private final long originZ;
-    private final long width;
-    private final int height;
-    private final long depth;
-    private final long end;
-    private long index;
+    private final long endX;
+    private final int endY;
+    private final long endZ;
     private long x;
     private int y;
     private long z;
+    private boolean started;
+    private boolean done;
 
     public Cursor3D(long pOriginX, int pOriginY, long pOriginZ, long pEndX, int pEndY, long pEndZ) {
-        this.originX = pOriginX;
-        this.originY = pOriginY;
-        this.originZ = pOriginZ;
-        if (pEndX < pOriginX || pEndY < pOriginY || pEndZ < pOriginZ) {
-            this.width = 0L;
-            this.height = 0;
-            this.depth = 0L;
-            this.end = 0L;
-            return;
-        }
-
-        this.width = Math.addExact(Math.subtractExact(pEndX, pOriginX), 1L);
-        this.height = Math.addExact(Math.subtractExact(pEndY, pOriginY), 1);
-        this.depth = Math.addExact(Math.subtractExact(pEndZ, pOriginZ), 1L);
-        this.end = Math.multiplyExact(Math.multiplyExact(this.width, this.height), this.depth);
+        this.originX = this.x = pOriginX;
+        this.originY = this.y = pOriginY;
+        this.originZ = this.z = pOriginZ;
+        this.endX = pEndX;
+        this.endY = pEndY;
+        this.endZ = pEndZ;
+        this.done = pEndX < pOriginX || pEndY < pOriginY || pEndZ < pOriginZ;
     }
 
     public boolean advance() {
-        if (this.index == this.end) {
+        if (this.done) {
             return false;
-        } else {
-            this.x = this.index % this.width;
-            long i = this.index / this.width;
-            this.y = (int) (i % this.height); // TODO: int casting
-            this.z = i / this.height;
-            ++this.index;
-            return true;
         }
+        if (!this.started) {
+            this.started = true;
+        } else if (this.x < this.endX) {
+            ++this.x;
+        } else if (this.y < this.endY) {
+            this.x = this.originX;
+            ++this.y;
+        } else if (this.z < this.endZ) {
+            this.x = this.originX;
+            this.y = this.originY;
+            ++this.z;
+        } else {
+            this.done = true;
+            return false;
+        }
+        return true;
     }
 
     public long nextX() {
-        return WorldBounds.addBlockOffset(this.originX, this.x);
+        return this.x;
     }
 
     public int nextY() {
-        return Math.addExact(this.originY, this.y);
+        return this.y;
     }
 
     public long nextZ() {
-        return WorldBounds.addBlockOffset(this.originZ, this.z);
+        return this.z;
     }
 
     public int getNextType() {
-        int i = 0;
-        if (this.x == 0 || this.x == this.width - 1) {
-            ++i;
-        }
-
-        if (this.y == 0 || this.y == this.height - 1) {
-            ++i;
-        }
-
-        if (this.z == 0 || this.z == this.depth - 1) {
-            ++i;
-        }
-
-        return i;
+        int type = 0;
+        if (this.x == this.originX || this.x == this.endX) ++type;
+        if (this.y == this.originY || this.y == this.endY) ++type;
+        if (this.z == this.originZ || this.z == this.endZ) ++type;
+        return type;
     }
 }

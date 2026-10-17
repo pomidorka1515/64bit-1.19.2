@@ -1,5 +1,7 @@
 package net.minecraft.world.level.block;
 
+import net.minecraft.world.level.WorldBounds;
+
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -194,7 +196,7 @@ public class ChorusFlowerBlock extends Block {
             for (int k = 0; k < l; ++k) {
                 Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(pRandom);
                 BlockPos blockpos1 = pBranchPos.above(i).relative(direction);
-                if (Math.abs(blockpos1.getX() - pOriginalBranchPos.getX()) < pMaxHorizontalDistance && Math.abs(blockpos1.getZ() - pOriginalBranchPos.getZ()) < pMaxHorizontalDistance && pLevel.isEmptyBlock(blockpos1) && pLevel.isEmptyBlock(blockpos1.below()) && allNeighborsEmpty(pLevel, blockpos1, direction.getOpposite())) {
+                if (WorldBounds.distance(blockpos1.getX(), pOriginalBranchPos.getX()) < pMaxHorizontalDistance && WorldBounds.distance(blockpos1.getZ(), pOriginalBranchPos.getZ()) < pMaxHorizontalDistance && pLevel.isEmptyBlock(blockpos1) && pLevel.isEmptyBlock(blockpos1.below()) && allNeighborsEmpty(pLevel, blockpos1, direction.getOpposite())) {
                     flag = true;
                     pLevel.setBlock(blockpos1, chorusplantblock.getStateForPlacement(pLevel, blockpos1), 2);
                     pLevel.setBlock(blockpos1.relative(direction.getOpposite()), chorusplantblock.getStateForPlacement(pLevel, blockpos1.relative(direction.getOpposite())), 2);

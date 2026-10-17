@@ -259,7 +259,7 @@ public class BedBlock extends HorizontalDirectionalBlock implements EntityBlock 
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (int[] aint : pOffsets) {
-            blockpos$mutableblockpos.set(pPos.getX() + aint[0], pPos.getY(), pPos.getZ() + aint[1]);
+            blockpos$mutableblockpos.setWithOffset(pPos, aint[0], 0, aint[1]);
             Vec3 vec3 = DismountHelper.findSafeDismountLocation(pEntityType, pCollisionGetter, blockpos$mutableblockpos, pSimulate);
             if (vec3 != null) {
                 return Optional.of(vec3);

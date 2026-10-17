@@ -623,8 +623,8 @@ public class Raid {
 
         for (int i1 = 0; i1 < pMaxTry; ++i1) {
             float f = this.level.random.nextFloat() * ((float) Math.PI * 2F);
-            long j = this.center.getX() + Mth.floor(Mth.cos(f) * 32.0F * (float) i) + this.level.random.nextInt(5);
-            long l = this.center.getZ() + Mth.floor(Mth.sin(f) * 32.0F * (float) i) + this.level.random.nextInt(5);
+            long j = WorldBounds.addBlockOffset(this.center.getX(), (long) Mth.floor(Mth.cos(f) * 32.0F * (float) i) + this.level.random.nextInt(5));
+            long l = WorldBounds.addBlockOffset(this.center.getZ(), (long) Mth.floor(Mth.sin(f) * 32.0F * (float) i) + this.level.random.nextInt(5));
             int k = this.level.getHeight(Heightmap.Types.WORLD_SURFACE, j, l);
             blockpos$mutableblockpos.set(j, k, l);
             if (!this.level.isVillage(blockpos$mutableblockpos) || pOffsetMultiplier >= 2) {

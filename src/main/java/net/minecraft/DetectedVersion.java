@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.UUID;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.storage.DataVersion;
+import net.minecraft.world.level.storage.ForkSaveFormat;
 import org.slf4j.Logger;
 
 public class DetectedVersion implements WorldVersion {
@@ -31,7 +32,7 @@ public class DetectedVersion implements WorldVersion {
         this.id = UUID.randomUUID().toString().replaceAll("-", "");
         this.name = "1.19.2";
         this.stable = true;
-        this.worldVersion = new DataVersion(3120, "main");
+        this.worldVersion = new DataVersion(3120, ForkSaveFormat.SERIES);
         this.protocolVersion = SharedConstants.getProtocolVersion();
         this.resourcePackVersion = 9;
         this.dataPackVersion = 10;
@@ -44,8 +45,8 @@ public class DetectedVersion implements WorldVersion {
         this.name = GsonHelper.getAsString(pJson, "name");
         this.releaseTarget = GsonHelper.getAsString(pJson, "release_target");
         this.stable = GsonHelper.getAsBoolean(pJson, "stable");
-        this.worldVersion = new DataVersion(GsonHelper.getAsInt(pJson, "world_version"), GsonHelper.getAsString(pJson, "series_id", DataVersion.MAIN_SERIES));
-        this.protocolVersion = GsonHelper.getAsInt(pJson, "protocol_version");
+        this.worldVersion = new DataVersion(GsonHelper.getAsInt(pJson, "world_version"), ForkSaveFormat.SERIES);
+        this.protocolVersion = SharedConstants.getProtocolVersion();
         JsonObject jsonobject = GsonHelper.getAsJsonObject(pJson, "pack_version");
         this.resourcePackVersion = GsonHelper.getAsInt(jsonobject, "resource");
         this.dataPackVersion = GsonHelper.getAsInt(jsonobject, "data");

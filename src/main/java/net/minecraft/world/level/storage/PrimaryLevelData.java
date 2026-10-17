@@ -117,7 +117,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
     }
 
     public PrimaryLevelData(LevelSettings pLevelSettings, WorldGenSettings pWorldGenSettings, Lifecycle pWorldGenSettingsLifecycle) {
-        this((DataFixer) null, SharedConstants.getCurrentVersion().getWorldVersion(), (CompoundTag) null, false, 0, 0, 0, 0.0F, 0L, 0L, 19133, 0, 0, false, 0, false, false, false, WorldBorder.DEFAULT_SETTINGS, 0, 0, (UUID) null, Sets.newLinkedHashSet(), new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS), (CompoundTag) null, new CompoundTag(), pLevelSettings.copy(), pWorldGenSettings, pWorldGenSettingsLifecycle);
+        this((DataFixer) null, SharedConstants.getCurrentVersion().getWorldVersion(), (CompoundTag) null, false, 0, 0, 0, 0.0F, 0L, 0L, ForkSaveFormat.STORAGE_VERSION, 0, 0, false, 0, false, false, false, WorldBorder.DEFAULT_SETTINGS, 0, 0, (UUID) null, Sets.newLinkedHashSet(), new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS), (CompoundTag) null, new CompoundTag(), pLevelSettings.copy(), pWorldGenSettings, pWorldGenSettingsLifecycle);
     }
 
     public static PrimaryLevelData parse(Dynamic<Tag> pDynamic, DataFixer pDataFixer, int pVersion, @Nullable CompoundTag pPlayerNBT, LevelSettings pLevelSettings, LevelVersion pVersionData, WorldGenSettings pGeneratorSettings, Lifecycle pLifecycle) {
@@ -173,7 +173,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         pNbt.putLong("DayTime", this.dayTime);
         pNbt.putLong("LastPlayed", Util.getEpochMillis());
         pNbt.putString("LevelName", this.settings.levelName());
-        pNbt.putInt("version", 19133);
+        pNbt.putInt("version", ForkSaveFormat.STORAGE_VERSION);
         pNbt.putInt("clearWeatherTime", this.clearWeatherTime);
         pNbt.putInt("rainTime", this.rainTime);
         pNbt.putBoolean("raining", this.raining);

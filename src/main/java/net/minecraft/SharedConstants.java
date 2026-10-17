@@ -27,7 +27,7 @@ public class SharedConstants {
     public static final String RELEASE_TARGET = "1.19.2";
     /** @deprecated */
     @Deprecated
-    public static final int RELEASE_NETWORK_PROTOCOL_VERSION = 760;
+    public static final int RELEASE_NETWORK_PROTOCOL_VERSION = 0x4C534301;
     /** @deprecated */
     @Deprecated
     public static final int SNAPSHOT_NETWORK_PROTOCOL_VERSION = 103;
@@ -183,7 +183,7 @@ public class SharedConstants {
     }
 
     public static int getProtocolVersion() {
-        return 760;
+        return RELEASE_NETWORK_PROTOCOL_VERSION;
     }
 
     public static boolean debugVoidTerrain(ChunkPos pChunkPos) {

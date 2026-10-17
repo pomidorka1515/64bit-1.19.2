@@ -167,7 +167,7 @@ public class LevelStorageSource {
     }
 
     private int getStorageVersion() {
-        return 19133;
+        return ForkSaveFormat.STORAGE_VERSION;
     }
 
     @Nullable
@@ -236,8 +236,9 @@ public class LevelStorageSource {
                     Dynamic<Tag> dynamic = p_230827_.update(DataFixTypes.LEVEL.getType(), new Dynamic<>(NbtOps.INSTANCE, compoundtag1), i, SharedConstants.getCurrentVersion().getWorldVersion());
                     LevelVersion levelversion = LevelVersion.parse(dynamic);
                     int j = levelversion.levelDataVersion();
-                    if (j == 19132 || j == 19133) {
-                        boolean flag = j != this.getStorageVersion();
+                    if (j == ForkSaveFormat.STORAGE_VERSION || j == 19132 || j == 19133) {
+                        // Foreign storage versions are incompatible, never conversion candidates.
+                        boolean flag = false;
                         Path path = pLevelDirectory.iconFile();
                         DataPackConfig datapackconfig = dynamic.get("DataPacks").result().map(LevelStorageSource::readDataPackConfig).orElse(DataPackConfig.DEFAULT);
                         LevelSettings levelsettings = LevelSettings.parse(dynamic, datapackconfig);
@@ -260,6 +261,16 @@ public class LevelStorageSource {
         SkipFields skipfields = new SkipFields(new FieldSelector("Data", CompoundTag.TYPE, "Player"), new FieldSelector("Data", CompoundTag.TYPE, "WorldGenSettings"));
         NbtIo.parseCompressed(p_230837_.toFile(), skipfields);
         return skipfields.getResult();
+    }
+
+    private static void validateSaveFile(Path path) throws IOException {
+        if (Files.exists(path)) {
+            Tag tag = readLightweightData(path);
+            if (!(tag instanceof CompoundTag root)) {
+                throw new IOException("Invalid world metadata: " + path);
+            }
+            ForkSaveFormat.validate(root.getCompound("Data"));
+        }
     }
 
     public boolean isNewLevelIdAcceptable(String pSaveName) {
@@ -338,6 +349,10 @@ public class LevelStorageSource {
         public LevelStorageAccess(String p_78276_) throws IOException {
             this.levelId = p_78276_;
             this.levelDirectory = new LevelStorageSource.LevelDirectory(LevelStorageSource.this.baseDir.resolve(p_78276_));
+            // Reject before acquiring the lock or allowing a failed read to become a new world.
+            // Validate both files so backup recovery cannot bypass the compatibility boundary.
+            validateSaveFile(this.levelDirectory.dataFile());
+            validateSaveFile(this.levelDirectory.oldDataFile());
             this.lock = DirectoryLock.create(this.levelDirectory.path());
         }
 

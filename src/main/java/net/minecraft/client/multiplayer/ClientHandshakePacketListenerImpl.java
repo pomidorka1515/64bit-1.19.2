@@ -24,6 +24,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.protocol.login.ClientLoginPacketListener;
 import net.minecraft.network.protocol.login.ClientboundCustomQueryPacket;
 import net.minecraft.network.protocol.login.ClientboundGameProfilePacket;
@@ -146,7 +147,15 @@ public class ClientHandshakePacketListenerImpl implements ClientLoginPacketListe
     }
 
     public void handleDisconnect(ClientboundLoginDisconnectPacket pPacket) {
-        this.connection.disconnect(pPacket.getReason());
+        Component reason = pPacket.getReason();
+        if (reason.getContents() instanceof TranslatableContents contents
+                && (contents.getKey().equals("multiplayer.disconnect.incompatible")
+                || contents.getKey().equals("multiplayer.disconnect.outdated_client")
+                || contents.getKey().equals("multiplayer.disconnect.outdated_server"))) {
+            LOGGER.info("Server rejected network protocol: {}", reason.getString());
+            reason = Component.literal("Incompatible server\n\nThis client requires a server running the same fork.\nVanilla Minecraft servers are not supported.");
+        }
+        this.connection.disconnect(reason);
     }
 
     public void handleCompression(ClientboundLoginCompressionPacket pPacket) {

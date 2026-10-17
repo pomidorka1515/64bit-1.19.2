@@ -115,7 +115,8 @@ public class LevelSummary implements Comparable<LevelSummary> {
     }
 
     public boolean isCompatible() {
-        return SharedConstants.getCurrentVersion().getDataVersion().isCompatible(this.levelVersion.minecraftVersion());
+        return this.levelVersion.levelDataVersion() == ForkSaveFormat.STORAGE_VERSION
+                && SharedConstants.getCurrentVersion().getDataVersion().isCompatible(this.levelVersion.minecraftVersion());
     }
 
     public Component getInfo() {

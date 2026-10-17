@@ -24,12 +24,7 @@ public class ServerHandshakePacketListenerImpl implements ServerHandshakePacketL
             case LOGIN:
                 this.connection.setProtocol(ConnectionProtocol.LOGIN);
                 if (pPacket.getProtocolVersion() != SharedConstants.getCurrentVersion().getProtocolVersion()) {
-                    Component component;
-                    if (pPacket.getProtocolVersion() < 754) {
-                        component = Component.translatable("multiplayer.disconnect.outdated_client", SharedConstants.getCurrentVersion().getName());
-                    } else {
-                        component = Component.translatable("multiplayer.disconnect.incompatible", SharedConstants.getCurrentVersion().getName());
-                    }
+                    Component component = Component.literal("Incompatible client\n\nThis server requires a client running the same fork.\nVanilla Minecraft clients are not supported.");
 
                     this.connection.send(new ClientboundLoginDisconnectPacket(component));
                     this.connection.disconnect(component);

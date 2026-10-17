@@ -22,6 +22,29 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public final class SectorClipper {
     private SectorClipper() {}
 
+    /** Player-camera ray in an unclamped local frame; space beyond long bounds is air. */
+    public static double clipCameraDistance(BlockGetter level, SectorVec3 anchor, Vec3 fromOffset,
+            Vec3 toOffset, Entity entity) {
+        SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(anchor);
+        Vec3 eye = anchor.toLocal(origin.originBlockX(), origin.originBlockY(), origin.originBlockZ());
+        Vec3 from = eye.add(fromOffset);
+        Vec3 to = eye.add(toOffset);
+        ClipContext context = new ClipContext(from, to, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, entity);
+        if (from.equals(to))
+            return Double.POSITIVE_INFINITY;
+        BlockHitResult hit = BlockGetter.traverseBlocks(from, safeDdaEnd(from, to), context,
+                (ignored, pos) -> {
+                    try {
+                        Math.addExact(origin.originBlockX(), pos.getX());
+                        Math.addExact(origin.originBlockZ(), pos.getZ());
+                    } catch (ArithmeticException outsideWorld) {
+                        return null;
+                    }
+                    return clipBlock(level, context, origin, pos);
+                }, ignored -> null);
+        return hit == null ? Double.POSITIVE_INFINITY : hit.getExactLocation().relativeTo(anchor).length();
+    }
+
     public static BlockHitResult clip(BlockGetter level, SectorVec3 from, SectorVec3 to, Entity entity,
             ClipContext.Block blockMode, ClipContext.Fluid fluidMode) {
         SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(from);

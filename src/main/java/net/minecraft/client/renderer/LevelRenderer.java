@@ -911,6 +911,22 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                 ? CameraRelativePosition.of(camExact)
                 : CameraRelativePosition.of(SectorVec3.fromApproximate(vec3.x, vec3.y, vec3.z));
         BlockPos blockpos = camExact != null ? camExact.blockPosition() : pCamera.getBlockPosition();
+        if (camExact != null && !camExact.isInsideWorld()) {
+            // Seed only the exposed boundary columns, then use the normal
+            // visibility walk to reject sections behind opaque terrain.
+            for (ChunkRenderDispatcher.RenderChunk chunk : this.viewArea.chunks) {
+                BlockPos origin = chunk.getOrigin();
+                Direction inward = null;
+                if (camExact.subX() < 0.0D && origin.getX() == Long.MIN_VALUE) inward = Direction.EAST;
+                if (camExact.subX() >= 1.0D && origin.getX() == Long.MAX_VALUE - 15L) inward = Direction.WEST;
+                if (camExact.subZ() < 0.0D && origin.getZ() == Long.MIN_VALUE) inward = Direction.SOUTH;
+                if (camExact.subZ() >= 1.0D && origin.getZ() == Long.MAX_VALUE - 15L) inward = Direction.NORTH;
+                if (inward != null) {
+                    pInfoQueue.add(new LevelRenderer.RenderChunkInfo(chunk, inward, 0));
+                }
+            }
+            return;
+        }
         ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = this.viewArea.getRenderChunkAt(blockpos);
         if (chunkrenderdispatcher$renderchunk == null) {
             boolean flag = blockpos.getY() > this.level.getMinBuildHeight();

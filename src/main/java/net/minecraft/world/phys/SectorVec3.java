@@ -265,6 +265,23 @@ public final class SectorVec3 {
         return new SectorVec3(this.blockX, this.subX, y, this.blockZ, this.subZ);
     }
 
+    /**
+     * Render-only displacement. Retains any displacement beyond the long world
+     * edge in the local component; never use this to move an entity.
+     */
+    public SectorVec3 offsetCamera(double dx, double dy, double dz) {
+        SectorVec3 bounded = this.add(dx, dy, dz);
+        Vec3 applied = bounded.relativeTo(this);
+        return new SectorVec3(bounded.blockX, bounded.subX + (dx - applied.x),
+                bounded.y, bounded.blockZ, bounded.subZ + (dz - applied.z));
+    }
+
+    /** Whether this render-only position has a representable block address. */
+    public boolean isInsideWorld() {
+        return this.subX >= 0.0D && this.subX < 1.0D
+                && this.subZ >= 0.0D && this.subZ < 1.0D;
+    }
+
     /** Returns this position with an independently supplied normalized X component. */
     public SectorVec3 withX(long blockX, double subX) {
         SectorVec3 normalized = fromBlockAndFraction(blockX, subX, this.y, this.blockZ, this.subZ);

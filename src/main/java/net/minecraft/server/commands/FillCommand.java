@@ -65,7 +65,11 @@ public class FillCommand {
     }
 
     private static int fillBlocks(CommandSourceStack pSource, BoundingBox pArea, BlockInput pNewBlock, FillCommand.Mode pMode, @Nullable Predicate<BlockInWorld> pReplacingPredicate) throws CommandSyntaxException {
-        long i = pArea.getXSpan() * pArea.getYSpan() * pArea.getZSpan();
+        long xSpan = pArea.getXSpan();
+        long zSpan = pArea.getZSpan();
+        long ySpan = pArea.getYSpan();
+        long i = xSpan > Long.MAX_VALUE / zSpan || xSpan * zSpan > Long.MAX_VALUE / ySpan
+                ? Long.MAX_VALUE : xSpan * zSpan * ySpan;
         if (i > 32768) {
             throw ERROR_AREA_TOO_LARGE.create(32768, i);
         } else {

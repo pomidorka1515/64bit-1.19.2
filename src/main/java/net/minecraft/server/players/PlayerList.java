@@ -438,7 +438,7 @@ public abstract class PlayerList {
             if (!blockstate.is(BlockTags.BEDS) && !flag1) {
                 f1 = f;
             } else {
-                Vec3 vec31 = Vec3.atBottomCenterOf(blockpos).subtract(exact.toApproximateVec3()).normalize();
+                Vec3 vec31 = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, blockpos.getY(), blockpos.getZ(), 0.5D).relativeTo(exact).normalize();
                 f1 = (float) Mth.wrapDegrees(Mth.atan2(vec31.z, vec31.x) * (double) (180F / (float) Math.PI) - 90.0D);
             }
 

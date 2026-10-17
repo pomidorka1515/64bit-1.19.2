@@ -9,12 +9,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
 
 public class NearestLivingEntitySensor<T extends LivingEntity> extends Sensor<T> {
     protected void doTick(ServerLevel pLevel, T pEntity) {
-        AABB aabb = pEntity.getBoundingBox().inflate((double) this.radiusXZ(), (double) this.radiusY(), (double) this.radiusXZ());
-        List<LivingEntity> list = pLevel.getEntitiesOfClass(LivingEntity.class, aabb, (p_26717_) -> {
+        SectorAABB aabb = pEntity.getSectorBoundingBox().inflate((double) this.radiusXZ(), (double) this.radiusY(), (double) this.radiusXZ());
+        List<LivingEntity> list = pLevel.getSectorEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(LivingEntity.class), aabb, (p_26717_) -> {
             return p_26717_ != pEntity && p_26717_.isAlive();
         });
         list.sort(Comparator.comparingDouble(pEntity::distanceToSqr));

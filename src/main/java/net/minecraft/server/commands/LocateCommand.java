@@ -115,18 +115,18 @@ public class LocateCommand {
                                                                                                                                                                                                             })
                                                                                                                                                                           .orElse("[unregistered]")
                                                                                                                                + ")"; });
-        int i = pAbsoluteY ? Mth.floor(Mth.sqrt((float) pSourcePosition.distSqr(blockpos))) : Mth.floor(dist(pSourcePosition.getX(), pSourcePosition.getZ(), blockpos.getX(), blockpos.getZ()));
+        double i = Math.floor(pAbsoluteY ? Math.sqrt(pSourcePosition.distSqr(blockpos)) : dist(pSourcePosition.getX(), pSourcePosition.getZ(), blockpos.getX(), blockpos.getZ()));
         String s1 = pAbsoluteY ? String.valueOf(blockpos.getY()) : "~";
         Component component = ComponentUtils.wrapInSquareBrackets(Component.translatable("chat.coordinates", blockpos.getX(), s1, blockpos.getZ())).withStyle((p_214489_) -> {
             return p_214489_.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + blockpos.getX() + " " + s1 + " " + blockpos.getZ())).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.coordinates.tooltip")));
         });
         pSource.sendSuccess(Component.translatable(pTranslationKey, s, component, i), false);
-        return i;
+        return (int) i;
     }
 
-    private static float dist(long x0, long z0, long x1, long z1) {
+    private static double dist(long x0, long z0, long x1, long z1) {
         double dx = net.minecraft.world.level.WorldBounds.signedDifference(x1, x0);
         double dz = net.minecraft.world.level.WorldBounds.signedDifference(z1, z0);
-        return (float) Math.hypot(dx, dz);
+        return Math.hypot(dx, dz);
     }
 }

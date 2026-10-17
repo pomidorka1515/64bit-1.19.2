@@ -802,10 +802,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
     public void destroyBlockProgress(int pBreakerId, BlockPos pPos, int pProgress) {
         for (ServerPlayer serverplayer : this.server.getPlayerList().getPlayers()) {
             if (serverplayer != null && serverplayer.level == this && serverplayer.getId() != pBreakerId) {
-                double d0 = (double) pPos.getX() - serverplayer.getX();
-                double d1 = (double) pPos.getY() - serverplayer.getY();
-                double d2 = (double) pPos.getZ() - serverplayer.getZ();
-                if (d0 * d0 + d1 * d1 + d2 * d2 < 1024.0D) {
+                if (serverplayer.distanceToSqr(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D)) < 1024.0D) {
                     serverplayer.connection.send(new ClientboundBlockDestructionPacket(pBreakerId, pPos, pProgress));
                 }
             }
@@ -841,8 +838,14 @@ public class ServerLevel extends Level implements WorldGenLevel {
     }
 
     public void gameEvent(GameEvent pEvent, Vec3 pPosition, GameEvent.Context pContext) {
+        this.gameEvent(pEvent, SectorVec3.fromApproximate(pPosition), pContext);
+    }
+
+    @Override
+    public void gameEvent(GameEvent pEvent, SectorVec3 exactPosition, GameEvent.Context pContext) {
+        Vec3 pPosition = exactPosition.toApproximateVec3();
         int i = pEvent.getNotificationRadius();
-        BlockPos blockpos = new BlockPos(pPosition);
+        BlockPos blockpos = new BlockPos(exactPosition.blockX(), Mth.floor(exactPosition.y()), exactPosition.blockZ());
         long j = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getX(), i));
         int k = SectionPos.blockToSectionCoord(blockpos.getY() - i);
         long l = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getZ(), i));
@@ -859,7 +862,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
                 ChunkAccess chunkaccess = this.getChunkSource().getChunkNow(l1, i2);
                 if (chunkaccess != null) {
                     for (int j2 = k; j2 <= j1; ++j2) {
-                        flag |= chunkaccess.getEventDispatcher(j2).walkListeners(pEvent, pPosition, pContext, (p_215067_, p_215068_) -> {
+                        flag |= chunkaccess.getEventDispatcher(j2).walkListeners(pEvent, exactPosition, pContext, (p_215067_, p_215068_) -> {
                             (p_215067_.handleEventsImmediately() ? list : this.gameEventMessages).add(new GameEvent.Message(pEvent, pPosition, pContext, p_215067_, p_215068_));
                         });
                     }

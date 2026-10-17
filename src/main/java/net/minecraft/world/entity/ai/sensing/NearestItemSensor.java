@@ -22,7 +22,7 @@ public class NearestItemSensor extends Sensor<Mob> {
 
     protected void doTick(ServerLevel pLevel, Mob pEntity) {
         Brain<?> brain = pEntity.getBrain();
-        List<ItemEntity> list = pLevel.getEntitiesOfClass(ItemEntity.class, pEntity.getBoundingBox().inflate(32.0D, 16.0D, 32.0D), (p_26703_) -> {
+        List<ItemEntity> list = pLevel.getSectorEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(ItemEntity.class), pEntity.getSectorBoundingBox().inflate(32.0D, 16.0D, 32.0D), (p_26703_) -> {
             return true;
         });
         list.sort(Comparator.comparingDouble(pEntity::distanceToSqr));

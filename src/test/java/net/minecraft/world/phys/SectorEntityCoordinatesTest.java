@@ -14,6 +14,27 @@ import org.junit.jupiter.api.Test;
 
 class SectorEntityCoordinatesTest {
     @Test
+    void exactAndLegacyDistanceTargetsUseSplitEntityPosition() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        Entity entity = new TestEntity();
+        long coordinate = 1L << 60;
+        SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D, coordinate, 0.5D);
+        entity.applyExactPosition(position);
+        assertEquals(0.3125D, entity.distanceToSqr((double) coordinate, 10.0D, (double) coordinate));
+        assertEquals(0.3125D, entity.distanceToSqr(new Vec3(coordinate, 10.0D, coordinate)));
+        assertEquals(0.015625D, entity.distanceToSqr(position.add(0.125D, 0.0D, 0.0D)));
+    }
+
+    @Test
+    void portalDestinationRetainsFractionsAtLongEdges() {
+        SectorVec3 destination = SectorVec3.fromBlockAndFraction(Long.MAX_VALUE - 2L, 0.5D, 64.0D, Long.MIN_VALUE + 2L, 0.25D);
+        net.minecraft.world.level.portal.PortalInfo portal = new net.minecraft.world.level.portal.PortalInfo(destination, Vec3.ZERO, 90.0F, 0.0F);
+        assertEquals(destination, portal.exactPos);
+        assertEquals(new BlockPos(Long.MAX_VALUE - 2L, 64, Long.MIN_VALUE + 2L), portal.exactPos.blockPosition());
+    }
+
+    @Test
     void nonPlayerEntityMovementKeepsExactCoordinatesAndBounds() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();

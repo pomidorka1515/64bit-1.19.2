@@ -1227,7 +1227,8 @@ public abstract class LivingEntity extends Entity {
             Vec3 vec32 = pDamageSource.getSourcePosition();
             if (vec32 != null) {
                 Vec3 vec3 = this.getViewVector(1.0F);
-                Vec3 vec31 = vec32.vectorTo(this.position()).normalize();
+                Entity source = pDamageSource.getDirectEntity();
+                Vec3 vec31 = this.sectorPosition().relativeTo(source != null ? source.sectorPosition() : SectorVec3.fromApproximate(vec32)).normalize();
                 vec31 = new Vec3(vec31.x, 0.0D, vec31.z);
                 if (vec31.dot(vec3) < 0.0D) {
                     return true;

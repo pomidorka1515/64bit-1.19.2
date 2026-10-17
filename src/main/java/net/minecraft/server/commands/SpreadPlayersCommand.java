@@ -137,7 +137,7 @@ public class SpreadPlayersCommand {
 
             if (!flag) {
                 for (SpreadPlayersCommand.Position spreadplayerscommand$position3 : pPositions) {
-                    if (!spreadplayerscommand$position3.isSafe(pLevel, pMaxHeight)) {
+                    if (!spreadplayerscommand$position3.isSafe(pLevel, pMaxHeight, center)) {
                         spreadplayerscommand$position3.randomize(pRandom, pMinX, pMinZ, pMaxX, pMaxZ);
                         flag = true;
                     }
@@ -176,9 +176,8 @@ public class SpreadPlayersCommand {
                 spreadplayerscommand$position = pPositions[i++];
             }
 
-            long blockX = net.minecraft.world.level.WorldBounds.addDoubleBlockOffset(center.blockX(), spreadplayerscommand$position.x);
-            long blockZ = net.minecraft.world.level.WorldBounds.addDoubleBlockOffset(center.blockZ(), spreadplayerscommand$position.z);
-            SectorVec3 target = SectorVec3.fromBlockAndFraction(blockX, 0.5D, spreadplayerscommand$position.getSpawnY(pLevel, pMaxHeight), blockZ, 0.5D);
+            BlockPos column = center.add(spreadplayerscommand$position.x, 0.0D, spreadplayerscommand$position.z).blockPosition();
+            SectorVec3 target = SectorVec3.fromBlockAndFraction(column.getX(), 0.5D, spreadplayerscommand$position.getSpawnY(pLevel, pMaxHeight, center), column.getZ(), 0.5D);
             if (entity.hasSectorPosition())
                 entity.absMoveTo(target, entity.getYRot(), entity.getXRot());
             else
@@ -256,8 +255,9 @@ public class SpreadPlayersCommand {
             return flag;
         }
 
-        public int getSpawnY(BlockGetter pLevel, int pY) {
-            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(this.x, (double) (pY + 1), this.z);
+        public int getSpawnY(BlockGetter pLevel, int pY, SectorVec3 center) {
+            BlockPos column = center.add(this.x, 0.0D, this.z).blockPosition();
+            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(column.getX(), pY + 1, column.getZ());
             boolean flag = pLevel.getBlockState(blockpos$mutableblockpos).isAir();
             blockpos$mutableblockpos.move(Direction.DOWN);
 
@@ -275,8 +275,9 @@ public class SpreadPlayersCommand {
             return pY + 1;
         }
 
-        public boolean isSafe(BlockGetter pLevel, int pY) {
-            BlockPos blockpos = new BlockPos(this.x, (double) (this.getSpawnY(pLevel, pY) - 1), this.z);
+        public boolean isSafe(BlockGetter pLevel, int pY, SectorVec3 center) {
+            BlockPos column = center.add(this.x, 0.0D, this.z).blockPosition();
+            BlockPos blockpos = new BlockPos(column.getX(), this.getSpawnY(pLevel, pY, center) - 1, column.getZ());
             BlockState blockstate = pLevel.getBlockState(blockpos);
             Material material = blockstate.getMaterial();
             return blockpos.getY() < pY && !material.isLiquid() && material != Material.FIRE;

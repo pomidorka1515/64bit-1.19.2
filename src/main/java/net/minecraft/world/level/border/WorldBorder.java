@@ -76,6 +76,14 @@ public class WorldBorder {
         return Math.min(d4, d1);
     }
 
+    public double getDistanceToBorder(net.minecraft.world.phys.SectorVec3 position) {
+        net.minecraft.world.phys.SectorVec3 min = net.minecraft.world.phys.SectorVec3.fromApproximate(this.getMinX(), 0.0D, this.getMinZ());
+        net.minecraft.world.phys.SectorVec3 max = net.minecraft.world.phys.SectorVec3.fromApproximate(this.getMaxX(), 0.0D, this.getMaxZ());
+        net.minecraft.world.phys.Vec3 fromMin = position.relativeTo(min);
+        net.minecraft.world.phys.Vec3 toMax = max.relativeTo(position);
+        return Math.min(Math.min(fromMin.x, fromMin.z), Math.min(toMax.x, toMax.z));
+    }
+
     public boolean isInsideCloseToBorder(Entity pEntity, AABB pBounds) {
         double d0 = Math.max(Mth.absMax(pBounds.getXsize(), pBounds.getZsize()), 1.0D);
         return this.getDistanceToBorder(pEntity) < d0 * 2.0D && this.isWithinBounds(pEntity.getX(), pEntity.getZ(), d0);

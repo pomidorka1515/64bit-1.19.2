@@ -250,7 +250,7 @@ public class ServerPlayer extends Player {
         BlockPos blockpos = pLevel.getSharedSpawnPos();
         if (pLevel.dimensionType().hasSkyLight() && pLevel.getServer().getWorldData().getGameType() != GameType.ADVENTURE) {
             int i = Math.max(0, this.server.getSpawnRadius(pLevel));
-            int j = Mth.floor(pLevel.getWorldBorder().getDistanceToBorder((double) blockpos.getX(), (double) blockpos.getZ()));
+            int j = Mth.floor(pLevel.getWorldBorder().getDistanceToBorder(SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, blockpos.getY(), blockpos.getZ(), 0.0D)));
             if (j < i) {
                 i = j;
             }
@@ -269,7 +269,7 @@ public class ServerPlayer extends Player {
                 int i2 = (k1 + j1 * l1) % i1;
                 int j2 = i2 % (i * 2 + 1);
                 int k2 = i2 / (i * 2 + 1);
-                BlockPos blockpos1 = PlayerRespawnLogic.getOverworldRespawnPos(pLevel, blockpos.getX() + j2 - i, blockpos.getZ() + k2 - i);
+                BlockPos blockpos1 = PlayerRespawnLogic.getOverworldRespawnPos(pLevel, net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), (long) j2 - i), net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), (long) k2 - i));
                 if (blockpos1 != null) {
                     this.moveTo(blockpos1, 0.0F, 0.0F);
                     if (pLevel.noCollision(this)) {
@@ -679,7 +679,7 @@ public class ServerPlayer extends Player {
     protected PortalInfo findDimensionEntryPoint(ServerLevel pDestination) {
         PortalInfo portalinfo = super.findDimensionEntryPoint(pDestination);
         if (portalinfo != null && this.level.dimension() == Level.OVERWORLD && pDestination.dimension() == Level.END) {
-            Vec3 vec3 = portalinfo.pos.add(0.0D, -1.0D, 0.0D);
+            SectorVec3 vec3 = portalinfo.exactPos.add(0.0D, -1.0D, 0.0D);
             return new PortalInfo(vec3, Vec3.ZERO, 90.0F, 0.0F);
         } else {
             return portalinfo;
@@ -715,7 +715,7 @@ public class ServerPlayer extends Player {
                 if (resourcekey == Level.OVERWORLD && pServer.dimension() == Level.NETHER) {
                     this.enteredNetherPosition = this.position();
                 } else if (pServer.dimension() == Level.END) {
-                    this.createEndPlatform(pServer, new BlockPos(portalinfo.pos));
+                    this.createEndPlatform(pServer, portalinfo.exactPos.blockPosition());
                 }
 
                 serverlevel.getProfiler().pop();
@@ -723,7 +723,7 @@ public class ServerPlayer extends Player {
                 this.setLevel(pServer);
                 pServer.addDuringPortalTeleport(this);
                 this.setRot(portalinfo.yRot, portalinfo.xRot);
-                this.moveTo(portalinfo.pos.x, portalinfo.pos.y, portalinfo.pos.z);
+                this.moveTo(portalinfo.exactPos, portalinfo.yRot, portalinfo.xRot);
                 serverlevel.getProfiler().pop();
                 this.triggerDimensionChangeTriggers(serverlevel);
                 this.connection.send(new ClientboundPlayerAbilitiesPacket(this.getAbilities()));
@@ -851,8 +851,8 @@ public class ServerPlayer extends Player {
     }
 
     private boolean isReachableBedBlock(BlockPos pPos) {
-        Vec3 vec3 = Vec3.atBottomCenterOf(pPos);
-        return Math.abs(this.getX() - vec3.x()) <= 3.0D && Math.abs(this.getY() - vec3.y()) <= 2.0D && Math.abs(this.getZ() - vec3.z()) <= 3.0D;
+        Vec3 delta = this.sectorPosition().relativeTo(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY(), pPos.getZ(), 0.5D));
+        return Math.abs(delta.x) <= 3.0D && Math.abs(delta.y) <= 2.0D && Math.abs(delta.z) <= 3.0D;
     }
 
     private boolean bedBlocked(BlockPos pPos, Direction pDirection) {

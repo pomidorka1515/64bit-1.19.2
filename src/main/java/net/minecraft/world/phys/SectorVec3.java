@@ -143,6 +143,10 @@ public final class SectorVec3 {
     }
 
     /** Creates an exact split position from an ordinary double position. This is necessarily limited by the input doubles. */
+    public static SectorVec3 fromApproximate(Vec3 position) {
+        return fromApproximate(position.x, position.y, position.z);
+    }
+
     public static SectorVec3 fromApproximate(double x, double y, double z) {
         requireFinite(x, "x");
         requireFinite(y, "y");

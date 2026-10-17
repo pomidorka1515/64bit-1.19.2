@@ -45,6 +45,11 @@ public class EuclideanGameEventDispatcher implements GameEventDispatcher {
     }
 
     public boolean walkListeners(GameEvent p_223692_, Vec3 p_223693_, GameEvent.Context p_223694_, BiConsumer<GameEventListener, Vec3> p_223695_) {
+        return this.walkListeners(p_223692_, net.minecraft.world.phys.SectorVec3.fromApproximate(p_223693_), p_223694_, p_223695_);
+    }
+
+    @Override
+    public boolean walkListeners(GameEvent p_223692_, net.minecraft.world.phys.SectorVec3 p_223693_, GameEvent.Context p_223694_, BiConsumer<GameEventListener, Vec3> p_223695_) {
         this.processing = true;
         boolean flag = false;
 
@@ -80,14 +85,14 @@ public class EuclideanGameEventDispatcher implements GameEventDispatcher {
         return flag;
     }
 
-    private static Optional<Vec3> getPostableListenerPosition(ServerLevel p_223688_, Vec3 p_223689_, GameEventListener p_223690_) {
-        Optional<Vec3> optional = p_223690_.getListenerSource().getPosition(p_223688_);
+    private static Optional<Vec3> getPostableListenerPosition(ServerLevel p_223688_, net.minecraft.world.phys.SectorVec3 p_223689_, GameEventListener p_223690_) {
+        Optional<net.minecraft.world.phys.SectorVec3> optional = p_223690_.getListenerSource().exactPosition(p_223688_);
         if (optional.isEmpty()) {
             return Optional.empty();
         } else {
-            double d0 = optional.get().distanceToSqr(p_223689_);
+            double d0 = optional.get().relativeTo(p_223689_).lengthSqr();
             int i = p_223690_.getListenerRadius() * p_223690_.getListenerRadius();
-            return d0 > (double) i ? Optional.empty() : optional;
+            return d0 > (double) i ? Optional.empty() : optional.map(net.minecraft.world.phys.SectorVec3::toApproximateVec3);
         }
     }
 }

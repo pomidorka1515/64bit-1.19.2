@@ -118,6 +118,6 @@ public interface LevelAccessor extends CommonLevelAccessor, LevelTimeAccess {
     }
 
     default void gameEvent(GameEvent pEvent, BlockPos pPos, GameEvent.Context pContext) {
-        this.gameEvent(pEvent, Vec3.atCenterOf(pPos), pContext);
+        this.gameEvent(pEvent, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 0.5D, pPos.getZ(), 0.5D), pContext);
     }
 }

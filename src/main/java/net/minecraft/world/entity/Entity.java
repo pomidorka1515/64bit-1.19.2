@@ -1738,10 +1738,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public double distanceToSqr(double pX, double pY, double pZ) {
-        double d0 = this.getX() - pX;
-        double d1 = this.getY() - pY;
-        double d2 = this.getZ() - pZ;
-        return d0 * d0 + d1 * d1 + d2 * d2;
+        return this.distanceToSqr(SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     public double distanceToSqr(Entity pEntity) {
@@ -1749,10 +1746,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public double distanceToSqr(Vec3 pVec) {
-        double d0 = this.getX() - pVec.x;
-        double d1 = this.getY() - pVec.y;
-        double d2 = this.getZ() - pVec.z;
-        return d0 * d0 + d1 * d1 + d2 * d2;
+        return this.distanceToSqr(SectorVec3.fromApproximate(pVec));
+    }
+
+    public double distanceToSqr(SectorVec3 position) {
+        return position.relativeTo(this.sectorPosition()).lengthSqr();
     }
 
     public void playerTouch(Player pPlayer) {
@@ -2833,7 +2831,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 Entity entity = this.getType().create(pDestination);
                 if (entity != null) {
                     entity.restoreFrom(this);
-                    entity.moveTo(portalinfo.pos.x, portalinfo.pos.y, portalinfo.pos.z, portalinfo.yRot, entity.getXRot());
+                    entity.moveTo(portalinfo.exactPos, portalinfo.yRot, entity.getXRot());
                     entity.setDeltaMovement(portalinfo.speed);
                     pDestination.addDuringTeleport(entity);
                     if (pDestination.dimension() == Level.END) {
@@ -2868,7 +2866,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             } else {
                 WorldBorder worldborder = pDestination.getWorldBorder();
                 double d0 = DimensionType.getTeleportationScale(this.level.dimensionType(), pDestination.dimensionType());
-                BlockPos blockpos1 = worldborder.clampToBounds(this.getX() * d0, this.getY(), this.getZ() * d0);
+                SectorVec3 origin = this.sectorPosition();
+                java.math.BigDecimal scale = java.math.BigDecimal.valueOf(d0);
+                SectorVec3 destination = SectorVec3.fromDecimal(
+                        java.math.BigDecimal.valueOf(origin.blockX()).add(java.math.BigDecimal.valueOf(origin.subX())).multiply(scale).max(java.math.BigDecimal.valueOf(Long.MIN_VALUE)).min(java.math.BigDecimal.valueOf(Long.MAX_VALUE)).toPlainString(),
+                        origin.y(),
+                        java.math.BigDecimal.valueOf(origin.blockZ()).add(java.math.BigDecimal.valueOf(origin.subZ())).multiply(scale).max(java.math.BigDecimal.valueOf(Long.MIN_VALUE)).min(java.math.BigDecimal.valueOf(Long.MAX_VALUE)).toPlainString());
+                BlockPos blockpos1 = destination.blockPosition();
                 return this.getExitPortal(pDestination, blockpos1, flag2, worldborder).map((p_185941_) -> {
                                                                                       BlockState blockstate = this.level.getBlockState(this.portalEntrancePos);
                                                                                       Direction.Axis direction$axis;
@@ -2896,12 +2900,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 blockpos = pDestination.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pDestination.getSharedSpawnPos());
             }
 
-            return new PortalInfo(new Vec3((double) blockpos.getX() + 0.5D, (double) blockpos.getY(), (double) blockpos.getZ() + 0.5D), this.getDeltaMovement(), this.getYRot(), this.getXRot());
+            return new PortalInfo(SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, blockpos.getY(), blockpos.getZ(), 0.5D), this.getDeltaMovement(), this.getYRot(), this.getXRot());
         }
     }
 
     protected Vec3 getRelativePortalPosition(Direction.Axis pAxis, BlockUtil.FoundRectangle pPortal) {
-        return PortalShape.getRelativePosition(pPortal, pAxis, this.position(), this.getDimensions(this.getPose()));
+        return PortalShape.getRelativePosition(pPortal, pAxis, this.sectorPosition(), this.getDimensions(this.getPose()));
     }
 
     protected Optional<BlockUtil.FoundRectangle> getExitPortal(ServerLevel pDestination, BlockPos pFindFrom, boolean pIsToNether, WorldBorder pWorldBorder) {

@@ -170,12 +170,17 @@ public class PortalShape {
     }
 
     public static Vec3 getRelativePosition(BlockUtil.FoundRectangle p_77739_, Direction.Axis p_77740_, Vec3 p_77741_, EntityDimensions p_77742_) {
+        return getRelativePosition(p_77739_, p_77740_, net.minecraft.world.phys.SectorVec3.fromApproximate(p_77741_), p_77742_);
+    }
+
+    public static Vec3 getRelativePosition(BlockUtil.FoundRectangle p_77739_, Direction.Axis p_77740_, net.minecraft.world.phys.SectorVec3 position, EntityDimensions p_77742_) {
+        Vec3 p_77741_ = position.relativeTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(p_77739_.minCorner.getX(), 0.0D, p_77739_.minCorner.getY(), p_77739_.minCorner.getZ(), 0.0D));
         double d0 = (double) p_77739_.axis1Size - (double) p_77742_.width;
         double d1 = (double) p_77739_.axis2Size - (double) p_77742_.height;
         BlockPos blockpos = p_77739_.minCorner;
         double d2;
         if (d0 > 0.0D) {
-            float f = (float) blockpos.get(p_77740_) + p_77742_.width / 2.0F;
+            float f = p_77742_.width / 2.0F;
             d2 = Mth.clamp(Mth.inverseLerp(p_77741_.get(p_77740_) - (double) f, 0.0D, d0), 0.0D, 1.0D);
         } else {
             d2 = 0.5D;
@@ -184,13 +189,13 @@ public class PortalShape {
         double d4;
         if (d1 > 0.0D) {
             Direction.Axis direction$axis = Direction.Axis.Y;
-            d4 = Mth.clamp(Mth.inverseLerp(p_77741_.get(direction$axis) - (double) blockpos.get(direction$axis), 0.0D, d1), 0.0D, 1.0D);
+            d4 = Mth.clamp(Mth.inverseLerp(p_77741_.get(direction$axis), 0.0D, d1), 0.0D, 1.0D);
         } else {
             d4 = 0.0D;
         }
 
         Direction.Axis direction$axis1 = p_77740_ == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
-        double d3 = p_77741_.get(direction$axis1) - ((double) blockpos.get(direction$axis1) + 0.5D);
+        double d3 = p_77741_.get(direction$axis1) - 0.5D;
         return new Vec3(d2, d4, d3);
     }
 
@@ -206,7 +211,7 @@ public class PortalShape {
         double d3 = (d1 - (double) p_77704_.height) * p_77703_.y();
         double d4 = 0.5D + p_77703_.z();
         boolean flag = direction$axis == Direction.Axis.X;
-        Vec3 vec31 = new Vec3((double) blockpos.getX() + (flag ? d2 : d4), (double) blockpos.getY() + d3, (double) blockpos.getZ() + (flag ? d4 : d2));
+        net.minecraft.world.phys.SectorVec3 vec31 = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), flag ? d2 : d4, (double) blockpos.getY() + d3, blockpos.getZ(), flag ? d4 : d2);
         return new PortalInfo(vec31, vec3, p_77706_ + (float) i, p_77707_);
     }
 }

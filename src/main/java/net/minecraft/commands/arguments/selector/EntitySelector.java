@@ -231,14 +231,7 @@ public class EntitySelector {
             predicate = predicate.and((entity) -> {
                 if (entity.exactPosition() == null)
                     return aabb.intersects(entity.getBoundingBox());
-                Vec3 delta = entity.exactPosition().relativeTo(exactOrigin);
-                AABB box = entity.getBoundingBox();
-                return delta.x + box.minX - entity.getX() < this.aabb.maxX
-                        && delta.x + box.maxX - entity.getX() > this.aabb.minX
-                        && delta.y + box.minY - entity.getY() < this.aabb.maxY
-                        && delta.y + box.maxY - entity.getY() > this.aabb.minY
-                        && delta.z + box.minZ - entity.getZ() < this.aabb.maxZ
-                        && delta.z + box.maxZ - entity.getZ() > this.aabb.minZ;
+                return entity.getSectorBoundingBox().toLocalAABB(exactOrigin).intersects(this.aabb);
             });
         }
 

@@ -366,9 +366,9 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
             return false;
         } else {
             BlockPos blockpos = pLevel.getSharedSpawnPos();
-            long i = Math.abs(pPos.getX() - blockpos.getX());
-            long j = Math.abs(pPos.getZ() - blockpos.getZ());
-            long k = Math.max(i, j);
+            double i = net.minecraft.world.level.WorldBounds.distance(pPos.getX(), blockpos.getX());
+            double j = net.minecraft.world.level.WorldBounds.distance(pPos.getZ(), blockpos.getZ());
+            double k = Math.max(i, j);
             return k <= this.getSpawnProtectionRadius();
         }
     }

@@ -1629,6 +1629,9 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
     }
 
     public void tick() {
+        if (this.getConnection() != null) {
+            this.getConnection().updateWorldgenDebugSubscription(this.options.renderDebug && !this.options.hideGui);
+        }
         if (this.rightClickDelay > 0) {
             --this.rightClickDelay;
         }

@@ -250,7 +250,12 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         this.chatMessageChain = new FutureChain(pServer);
     }
 
+    private boolean worldgenDebugSubscribed;
+
     public void tick() {
+        if (this.worldgenDebugSubscribed) {
+            this.send(net.minecraft.network.protocol.game.WorldgenDebug.sample(this.player));
+        }
         if (this.ackBlockChangesUpTo > -1) {
             this.send(new ClientboundBlockChangedAckPacket(this.ackBlockChangesUpTo));
             this.ackBlockChangesUpTo = -1;
@@ -1916,6 +1921,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     }
 
     public void handleCustomPayload(ServerboundCustomPayloadPacket pPacket) {
+        if (net.minecraft.network.protocol.game.WorldgenDebug.CHANNEL.equals(pPacket.getIdentifier())) {
+            PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
+            this.worldgenDebugSubscribed = pPacket.getData().readBoolean();
+        }
     }
 
     public void handleChangeDifficulty(ServerboundChangeDifficultyPacket pPacket) {

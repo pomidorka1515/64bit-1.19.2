@@ -1695,6 +1695,25 @@ public class ClientPacketListener implements ClientGamePacketListener {
         }
     }
 
+    private boolean worldgenDebugSubscribed;
+    private ResourceLocation worldgenDebugDimension;
+    private java.util.List<String> worldgenDebugLines = java.util.List.of();
+
+    public void updateWorldgenDebugSubscription(boolean enabled) {
+        if (enabled != this.worldgenDebugSubscribed) {
+            this.worldgenDebugSubscribed = enabled;
+            this.worldgenDebugLines = java.util.List.of();
+            FriendlyByteBuf data = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+            data.writeBoolean(enabled);
+            this.send(new ServerboundCustomPayloadPacket(net.minecraft.network.protocol.game.WorldgenDebug.CHANNEL, data));
+        }
+    }
+
+    public java.util.List<String> getWorldgenDebugLines() {
+        return this.minecraft.level != null && this.minecraft.level.dimension().location().equals(this.worldgenDebugDimension)
+            ? this.worldgenDebugLines : java.util.List.of();
+    }
+
     public void handleCustomPayload(ClientboundCustomPayloadPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         ResourceLocation resourcelocation = pPacket.getIdentifier();
@@ -1702,7 +1721,14 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
         try {
             friendlybytebuf = pPacket.getData();
-            if (ClientboundCustomPayloadPacket.FRUSTUM_TOGGLE.equals(resourcelocation)) {
+            if (net.minecraft.network.protocol.game.WorldgenDebug.CHANNEL.equals(resourcelocation)) {
+                this.worldgenDebugDimension = friendlybytebuf.readResourceLocation();
+                int count = friendlybytebuf.readVarInt();
+                if (count < 0 || count > 64) throw new IllegalArgumentException("Invalid worldgen debug line count");
+                java.util.List<String> lines = new java.util.ArrayList<>();
+                for (int i = 0; i < count; i++) lines.add(friendlybytebuf.readUtf());
+                this.worldgenDebugLines = java.util.List.copyOf(lines);
+            } else if (ClientboundCustomPayloadPacket.FRUSTUM_TOGGLE.equals(resourcelocation)) {
                 Frustum.setEnabled(!Frustum.isEnabled());
             } else if (ClientboundCustomPayloadPacket.BRAND.equals(resourcelocation)) {
                 String s = friendlybytebuf.readUtf();

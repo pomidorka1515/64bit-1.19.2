@@ -118,6 +118,10 @@ public final class ImprovedNoise {
     }
 
     public static void beginDebugCapture() {
+        debugSamplePoint = Double.NaN;
+        debugCellOffset = Double.NaN;
+        debugSmoothedOffset = Double.NaN;
+        debugGridIndex = 0;
         debugCaptureThread = Thread.currentThread();
     }
 
@@ -126,6 +130,7 @@ public final class ImprovedNoise {
     }
 
     public static String getDebugString() {
+        if (Double.isNaN(debugSamplePoint)) return "Not evaluated at this position";
         return String.format(Locale.ROOT, "Sample Point: %.3f Grid Index: %d", debugSamplePoint, debugGridIndex);
     }
 

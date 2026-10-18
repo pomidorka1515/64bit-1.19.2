@@ -212,6 +212,11 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public static void beginDebugCapture() {
+        debugScaledX = Double.NaN;
+        debugSelectorLerp = Double.NaN;
+        debugMinLimit = Double.NaN;
+        debugMaxLimit = Double.NaN;
+        debugBlendedDensity = Double.NaN;
         debugCaptureThread = Thread.currentThread();
     }
 
@@ -220,6 +225,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public static String getDebugString() {
+        if (Double.isNaN(debugScaledX)) return "Not evaluated at this position";
         return String.format(Locale.ROOT, "Scaled X: %.3f Selector Lerp: %s", debugScaledX, formatDebugValue(debugSelectorLerp));
     }
 

@@ -7,6 +7,35 @@ import org.junit.jupiter.api.Test;
 
 class SectorAABBTest {
     @Test
+    void blockFactoriesAndMergesRetainHugeExactBounds() {
+        long huge = 1L << 60;
+        AABB first = new AABB(new net.minecraft.core.BlockPos(huge, 64, -huge));
+        AABB second = new AABB(new net.minecraft.core.BlockPos(huge + 1, 64, -huge));
+        assertEquals(huge + 1, first.getSectorBounds().maxBlockX());
+        assertEquals(-huge + 1, first.getSectorBounds().maxBlockZ());
+        SectorAABB merged = first.minmax(second).getSectorBounds();
+        assertEquals(huge, merged.minBlockX());
+        assertEquals(huge + 2, merged.maxBlockX());
+        SectorAABB intersection = first.inflate(0.5D).intersect(second).getSectorBounds();
+        assertEquals(huge + 1, intersection.minBlockX());
+        assertEquals(huge + 1, intersection.maxBlockX());
+        assertEquals(0.5D, intersection.maxSubX());
+        SectorAABB structure = AABB.of(new net.minecraft.world.level.levelgen.structure.BoundingBox(
+                huge, 64, -huge, huge + 2, 66, -huge + 2)).getSectorBounds();
+        assertEquals(huge + 3, structure.maxBlockX());
+        assertEquals(-huge + 3, structure.maxBlockZ());
+    }
+
+    @Test
+    void blockFactoryClampsAtSignedLongEdge() {
+        SectorAABB box = new AABB(new net.minecraft.core.BlockPos(Long.MAX_VALUE, 64, Long.MIN_VALUE))
+                .getSectorBounds();
+        assertEquals(Long.MAX_VALUE, box.maxBlockX());
+        assertEquals(Math.nextDown(1.0D), box.maxSubX());
+        assertEquals(Long.MIN_VALUE + 1, box.maxBlockZ());
+    }
+
+    @Test
     void convertsHugeBoxToLocalCoordinates() {
         long huge = 1_000_000_000_000_000_000L;
         SectorAABB box = new SectorAABB(huge, 0.25D, 64.0D, -huge, 0.5D,

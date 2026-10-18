@@ -20,6 +20,7 @@ import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
 
 public class EntitySectionStorage<T extends EntityAccess> {
     private final Class<T> entityClass;
@@ -44,6 +45,17 @@ public class EntitySectionStorage<T extends EntityAccess> {
     }
 
     public void forEachAccessibleNonEmptySection(AABB pBoundingBox, Consumer<EntitySection<T>> pConsumer) {
+        SectorAABB exact = pBoundingBox.getSectorBounds();
+        if (exact != null) {
+            this.forEachAccessibleNonEmptySection(
+                    SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(exact.minBlockXForRange(), -2)),
+                    SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(exact.maxBlockX(), 2)),
+                    (int) SectionPos.posToSectionCoord(exact.minY() - 4.0D),
+                    (int) SectionPos.posToSectionCoord(exact.maxY()),
+                    SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(exact.minBlockZForRange(), -2)),
+                    SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(exact.maxBlockZ(), 2)), pConsumer);
+            return;
+        }
         long minSectionX = SectionPos.posToSectionCoord(pBoundingBox.minX - 2.0D);
         int minSectionY = (int) SectionPos.posToSectionCoord(pBoundingBox.minY - 4.0D);
         long minSectionZ = SectionPos.posToSectionCoord(pBoundingBox.minZ - 2.0D);

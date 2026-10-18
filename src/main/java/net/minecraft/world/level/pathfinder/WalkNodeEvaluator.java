@@ -14,6 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.PathNavigationRegion;
@@ -146,42 +147,42 @@ public class WalkNodeEvaluator extends NodeEvaluator {
         }
 
         double d0 = this.getFloorLevel(new BlockPos(p_77641_.x, p_77641_.y, p_77641_.z));
-        Node node = this.findAcceptedNode(p_77641_.x, p_77641_.y, p_77641_.z + 1, j, d0, Direction.SOUTH, blockpathtypes1);
+        Node node = this.findAcceptedNode(p_77641_.x, p_77641_.y, WorldBounds.addBlockOffset(p_77641_.z, 1), j, d0, Direction.SOUTH, blockpathtypes1);
         if (this.isNeighborValid(node, p_77641_)) {
             p_77640_[i++] = node;
         }
 
-        Node node1 = this.findAcceptedNode(p_77641_.x - 1, p_77641_.y, p_77641_.z, j, d0, Direction.WEST, blockpathtypes1);
+        Node node1 = this.findAcceptedNode(WorldBounds.addBlockOffset(p_77641_.x, -1), p_77641_.y, p_77641_.z, j, d0, Direction.WEST, blockpathtypes1);
         if (this.isNeighborValid(node1, p_77641_)) {
             p_77640_[i++] = node1;
         }
 
-        Node node2 = this.findAcceptedNode(p_77641_.x + 1, p_77641_.y, p_77641_.z, j, d0, Direction.EAST, blockpathtypes1);
+        Node node2 = this.findAcceptedNode(WorldBounds.addBlockOffset(p_77641_.x, 1), p_77641_.y, p_77641_.z, j, d0, Direction.EAST, blockpathtypes1);
         if (this.isNeighborValid(node2, p_77641_)) {
             p_77640_[i++] = node2;
         }
 
-        Node node3 = this.findAcceptedNode(p_77641_.x, p_77641_.y, p_77641_.z - 1, j, d0, Direction.NORTH, blockpathtypes1);
+        Node node3 = this.findAcceptedNode(p_77641_.x, p_77641_.y, WorldBounds.addBlockOffset(p_77641_.z, -1), j, d0, Direction.NORTH, blockpathtypes1);
         if (this.isNeighborValid(node3, p_77641_)) {
             p_77640_[i++] = node3;
         }
 
-        Node node4 = this.findAcceptedNode(p_77641_.x - 1, p_77641_.y, p_77641_.z - 1, j, d0, Direction.NORTH, blockpathtypes1);
+        Node node4 = this.findAcceptedNode(WorldBounds.addBlockOffset(p_77641_.x, -1), p_77641_.y, WorldBounds.addBlockOffset(p_77641_.z, -1), j, d0, Direction.NORTH, blockpathtypes1);
         if (this.isDiagonalValid(p_77641_, node1, node3, node4)) {
             p_77640_[i++] = node4;
         }
 
-        Node node5 = this.findAcceptedNode(p_77641_.x + 1, p_77641_.y, p_77641_.z - 1, j, d0, Direction.NORTH, blockpathtypes1);
+        Node node5 = this.findAcceptedNode(WorldBounds.addBlockOffset(p_77641_.x, 1), p_77641_.y, WorldBounds.addBlockOffset(p_77641_.z, -1), j, d0, Direction.NORTH, blockpathtypes1);
         if (this.isDiagonalValid(p_77641_, node2, node3, node5)) {
             p_77640_[i++] = node5;
         }
 
-        Node node6 = this.findAcceptedNode(p_77641_.x - 1, p_77641_.y, p_77641_.z + 1, j, d0, Direction.SOUTH, blockpathtypes1);
+        Node node6 = this.findAcceptedNode(WorldBounds.addBlockOffset(p_77641_.x, -1), p_77641_.y, WorldBounds.addBlockOffset(p_77641_.z, 1), j, d0, Direction.SOUTH, blockpathtypes1);
         if (this.isDiagonalValid(p_77641_, node1, node, node6)) {
             p_77640_[i++] = node6;
         }
 
-        Node node7 = this.findAcceptedNode(p_77641_.x + 1, p_77641_.y, p_77641_.z + 1, j, d0, Direction.SOUTH, blockpathtypes1);
+        Node node7 = this.findAcceptedNode(WorldBounds.addBlockOffset(p_77641_.x, 1), p_77641_.y, WorldBounds.addBlockOffset(p_77641_.z, 1), j, d0, Direction.SOUTH, blockpathtypes1);
         if (this.isDiagonalValid(p_77641_, node2, node, node7)) {
             p_77640_[i++] = node7;
         }
@@ -271,8 +272,8 @@ public class WalkNodeEvaluator extends NodeEvaluator {
                 if ((node == null || node.costMalus < 0.0F) && p_164729_ > 0 && blockpathtypes != BlockPathTypes.FENCE && blockpathtypes != BlockPathTypes.UNPASSABLE_RAIL && blockpathtypes != BlockPathTypes.TRAPDOOR && blockpathtypes != BlockPathTypes.POWDER_SNOW) {
                     node = this.findAcceptedNode(p_164726_, p_164727_ + 1, p_164728_, p_164729_ - 1, p_164730_, p_164731_, p_164732_);
                     if (node != null && (node.type == BlockPathTypes.OPEN || node.type == BlockPathTypes.WALKABLE) && this.mob.getBbWidth() < 1.0F) {
-                        long previousX = p_164726_ - (long) p_164731_.getStepX();
-                        long previousZ = p_164728_ - (long) p_164731_.getStepZ();
+                        long previousX = WorldBounds.subtractBlockOffset(p_164726_, p_164731_.getStepX());
+                        long previousZ = WorldBounds.subtractBlockOffset(p_164728_, p_164731_.getStepZ());
                         double minY = getFloorLevel(this.level,
                                               blockpos$mutableblockpos.set(previousX, p_164727_ + 1, previousZ))
                                 + 0.001D;
@@ -414,9 +415,9 @@ public class WalkNodeEvaluator extends NodeEvaluator {
         for (int i = 0; i < pXSize; ++i) {
             for (int j = 0; j < pYSize; ++j) {
                 for (int k = 0; k < pZSize; ++k) {
-                    long l = i + pX;
+                    long l = WorldBounds.addBlockOffset(pX, i);
                     int i1 = j + pY;
-                    long j1 = k + pZ;
+                    long j1 = WorldBounds.addBlockOffset(pZ, k);
                     BlockPathTypes blockpathtypes = this.getBlockPathType(pLevel, l, i1, j1);
                     blockpathtypes = this.evaluateBlockPathType(pLevel, pCanOpenDoors, pCanEnterDoors, pPos, blockpathtypes);
                     if (i == 0 && j == 0 && k == 0) {
@@ -510,7 +511,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
             for (int i1 = -1; i1 <= 1; ++i1) {
                 for (int j1 = -1; j1 <= 1; ++j1) {
                     if (l != 0 || j1 != 0) {
-                        pCenterPos.set(i + l, j + i1, k + j1);
+                        pCenterPos.set(WorldBounds.addBlockOffset(i, l), j + i1, WorldBounds.addBlockOffset(k, j1));
                         BlockState blockstate = pLevel.getBlockState(pCenterPos);
                         if (blockstate.is(Blocks.CACTUS)) {
                             return BlockPathTypes.DANGER_CACTUS;

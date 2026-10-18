@@ -9,6 +9,7 @@ import java.util.EnumSet;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.PathNavigationRegion;
@@ -66,22 +67,22 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
 
     public int getNeighbors(Node[] p_77266_, Node p_77267_) {
         int i = 0;
-        Node node = this.getNode(p_77267_.x, p_77267_.y, p_77267_.z + 1);
+        Node node = this.getNode(p_77267_.x, p_77267_.y, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node)) {
             p_77266_[i++] = node;
         }
 
-        Node node1 = this.getNode(p_77267_.x - 1, p_77267_.y, p_77267_.z);
+        Node node1 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y, p_77267_.z);
         if (this.isOpen(node1)) {
             p_77266_[i++] = node1;
         }
 
-        Node node2 = this.getNode(p_77267_.x + 1, p_77267_.y, p_77267_.z);
+        Node node2 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y, p_77267_.z);
         if (this.isOpen(node2)) {
             p_77266_[i++] = node2;
         }
 
-        Node node3 = this.getNode(p_77267_.x, p_77267_.y, p_77267_.z - 1);
+        Node node3 = this.getNode(p_77267_.x, p_77267_.y, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node3)) {
             p_77266_[i++] = node3;
         }
@@ -96,102 +97,102 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
             p_77266_[i++] = node5;
         }
 
-        Node node6 = this.getNode(p_77267_.x, p_77267_.y + 1, p_77267_.z + 1);
+        Node node6 = this.getNode(p_77267_.x, p_77267_.y + 1, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node6) && this.hasMalus(node) && this.hasMalus(node4)) {
             p_77266_[i++] = node6;
         }
 
-        Node node7 = this.getNode(p_77267_.x - 1, p_77267_.y + 1, p_77267_.z);
+        Node node7 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y + 1, p_77267_.z);
         if (this.isOpen(node7) && this.hasMalus(node1) && this.hasMalus(node4)) {
             p_77266_[i++] = node7;
         }
 
-        Node node8 = this.getNode(p_77267_.x + 1, p_77267_.y + 1, p_77267_.z);
+        Node node8 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y + 1, p_77267_.z);
         if (this.isOpen(node8) && this.hasMalus(node2) && this.hasMalus(node4)) {
             p_77266_[i++] = node8;
         }
 
-        Node node9 = this.getNode(p_77267_.x, p_77267_.y + 1, p_77267_.z - 1);
+        Node node9 = this.getNode(p_77267_.x, p_77267_.y + 1, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node9) && this.hasMalus(node3) && this.hasMalus(node4)) {
             p_77266_[i++] = node9;
         }
 
-        Node node10 = this.getNode(p_77267_.x, p_77267_.y - 1, p_77267_.z + 1);
+        Node node10 = this.getNode(p_77267_.x, p_77267_.y - 1, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node10) && this.hasMalus(node) && this.hasMalus(node5)) {
             p_77266_[i++] = node10;
         }
 
-        Node node11 = this.getNode(p_77267_.x - 1, p_77267_.y - 1, p_77267_.z);
+        Node node11 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y - 1, p_77267_.z);
         if (this.isOpen(node11) && this.hasMalus(node1) && this.hasMalus(node5)) {
             p_77266_[i++] = node11;
         }
 
-        Node node12 = this.getNode(p_77267_.x + 1, p_77267_.y - 1, p_77267_.z);
+        Node node12 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y - 1, p_77267_.z);
         if (this.isOpen(node12) && this.hasMalus(node2) && this.hasMalus(node5)) {
             p_77266_[i++] = node12;
         }
 
-        Node node13 = this.getNode(p_77267_.x, p_77267_.y - 1, p_77267_.z - 1);
+        Node node13 = this.getNode(p_77267_.x, p_77267_.y - 1, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node13) && this.hasMalus(node3) && this.hasMalus(node5)) {
             p_77266_[i++] = node13;
         }
 
-        Node node14 = this.getNode(p_77267_.x + 1, p_77267_.y, p_77267_.z - 1);
+        Node node14 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node14) && this.hasMalus(node3) && this.hasMalus(node2)) {
             p_77266_[i++] = node14;
         }
 
-        Node node15 = this.getNode(p_77267_.x + 1, p_77267_.y, p_77267_.z + 1);
+        Node node15 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node15) && this.hasMalus(node) && this.hasMalus(node2)) {
             p_77266_[i++] = node15;
         }
 
-        Node node16 = this.getNode(p_77267_.x - 1, p_77267_.y, p_77267_.z - 1);
+        Node node16 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node16) && this.hasMalus(node3) && this.hasMalus(node1)) {
             p_77266_[i++] = node16;
         }
 
-        Node node17 = this.getNode(p_77267_.x - 1, p_77267_.y, p_77267_.z + 1);
+        Node node17 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node17) && this.hasMalus(node) && this.hasMalus(node1)) {
             p_77266_[i++] = node17;
         }
 
-        Node node18 = this.getNode(p_77267_.x + 1, p_77267_.y + 1, p_77267_.z - 1);
+        Node node18 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y + 1, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node18) && this.hasMalus(node14) && this.hasMalus(node3) && this.hasMalus(node2) && this.hasMalus(node4) && this.hasMalus(node9) && this.hasMalus(node8)) {
             p_77266_[i++] = node18;
         }
 
-        Node node19 = this.getNode(p_77267_.x + 1, p_77267_.y + 1, p_77267_.z + 1);
+        Node node19 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y + 1, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node19) && this.hasMalus(node15) && this.hasMalus(node) && this.hasMalus(node2) && this.hasMalus(node4) && this.hasMalus(node6) && this.hasMalus(node8)) {
             p_77266_[i++] = node19;
         }
 
-        Node node20 = this.getNode(p_77267_.x - 1, p_77267_.y + 1, p_77267_.z - 1);
+        Node node20 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y + 1, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node20) && this.hasMalus(node16) && this.hasMalus(node3) && this.hasMalus(node1) && this.hasMalus(node4) && this.hasMalus(node9) && this.hasMalus(node7)) {
             p_77266_[i++] = node20;
         }
 
-        Node node21 = this.getNode(p_77267_.x - 1, p_77267_.y + 1, p_77267_.z + 1);
+        Node node21 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y + 1, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node21) && this.hasMalus(node17) && this.hasMalus(node) && this.hasMalus(node1) && this.hasMalus(node4) && this.hasMalus(node6) && this.hasMalus(node7)) {
             p_77266_[i++] = node21;
         }
 
-        Node node22 = this.getNode(p_77267_.x + 1, p_77267_.y - 1, p_77267_.z - 1);
+        Node node22 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y - 1, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node22) && this.hasMalus(node14) && this.hasMalus(node3) && this.hasMalus(node2) && this.hasMalus(node5) && this.hasMalus(node13) && this.hasMalus(node12)) {
             p_77266_[i++] = node22;
         }
 
-        Node node23 = this.getNode(p_77267_.x + 1, p_77267_.y - 1, p_77267_.z + 1);
+        Node node23 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, 1), p_77267_.y - 1, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node23) && this.hasMalus(node15) && this.hasMalus(node) && this.hasMalus(node2) && this.hasMalus(node5) && this.hasMalus(node10) && this.hasMalus(node12)) {
             p_77266_[i++] = node23;
         }
 
-        Node node24 = this.getNode(p_77267_.x - 1, p_77267_.y - 1, p_77267_.z - 1);
+        Node node24 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y - 1, WorldBounds.addBlockOffset(p_77267_.z, -1));
         if (this.isOpen(node24) && this.hasMalus(node16) && this.hasMalus(node3) && this.hasMalus(node1) && this.hasMalus(node5) && this.hasMalus(node13) && this.hasMalus(node11)) {
             p_77266_[i++] = node24;
         }
 
-        Node node25 = this.getNode(p_77267_.x - 1, p_77267_.y - 1, p_77267_.z + 1);
+        Node node25 = this.getNode(WorldBounds.addBlockOffset(p_77267_.x, -1), p_77267_.y - 1, WorldBounds.addBlockOffset(p_77267_.z, 1));
         if (this.isOpen(node25) && this.hasMalus(node17) && this.hasMalus(node) && this.hasMalus(node1) && this.hasMalus(node5) && this.hasMalus(node10) && this.hasMalus(node11)) {
             p_77266_[i++] = node25;
         }

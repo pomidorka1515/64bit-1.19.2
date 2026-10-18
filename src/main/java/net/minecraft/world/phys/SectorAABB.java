@@ -49,6 +49,26 @@ public final class SectorAABB {
                 maxX.block, maxX.fraction, position.y() + height, maxZ.block, maxZ.fraction);
     }
 
+    public SectorAABB intersect(SectorAABB other) {
+        return fromEndpoints(this.minX.compareTo(other.minX) >= 0 ? this.minX : other.minX,
+                Math.max(this.minY, other.minY), this.minZ.compareTo(other.minZ) >= 0 ? this.minZ : other.minZ,
+                this.maxX.compareTo(other.maxX) <= 0 ? this.maxX : other.maxX,
+                Math.min(this.maxY, other.maxY), this.maxZ.compareTo(other.maxZ) <= 0 ? this.maxZ : other.maxZ);
+    }
+
+    public SectorAABB minmax(SectorAABB other) {
+        return fromEndpoints(this.minX.compareTo(other.minX) <= 0 ? this.minX : other.minX,
+                Math.min(this.minY, other.minY), this.minZ.compareTo(other.minZ) <= 0 ? this.minZ : other.minZ,
+                this.maxX.compareTo(other.maxX) >= 0 ? this.maxX : other.maxX,
+                Math.max(this.maxY, other.maxY), this.maxZ.compareTo(other.maxZ) >= 0 ? this.maxZ : other.maxZ);
+    }
+
+    private static SectorAABB fromEndpoints(Endpoint minX, double minY, Endpoint minZ,
+            Endpoint maxX, double maxY, Endpoint maxZ) {
+        return new SectorAABB(minX.block, minX.fraction, minY, minZ.block, minZ.fraction,
+                maxX.block, maxX.fraction, maxY, maxZ.block, maxZ.fraction);
+    }
+
     public long minBlockX() {
         return this.minX.block;
     }

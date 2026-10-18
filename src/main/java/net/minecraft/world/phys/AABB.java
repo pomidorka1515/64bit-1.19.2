@@ -65,7 +65,9 @@ public class AABB {
     }
 
     public AABB(BlockPos pPos) {
-        this((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), (double) (WorldBounds.addBlockOffset(pPos.getX(), 1)), (double) (pPos.getY() + 1), (double) (WorldBounds.addBlockOffset(pPos.getZ(), 1)));
+        this((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), (double) (WorldBounds.addBlockOffset(pPos.getX(), 1)), (double) pPos.getY() + 1.0D, (double) (WorldBounds.addBlockOffset(pPos.getZ(), 1)),
+                new SectorAABB(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D,
+                        pPos.getX(), 0.0D, pPos.getY() + 1.0D, pPos.getZ(), 0.0D).expandTowards(1.0D, 0.0D, 1.0D));
     }
 
     public AABB(BlockPos pStart, BlockPos pEnd) {
@@ -77,7 +79,9 @@ public class AABB {
     }
 
     public static AABB of(BoundingBox pMutableBox) {
-        return new AABB((double) pMutableBox.minX(), (double) pMutableBox.minY(), (double) pMutableBox.minZ(), (double) net.minecraft.world.level.WorldBounds.addBlockOffset(pMutableBox.maxX(), 1L), (double) pMutableBox.maxY() + 1.0D, (double) net.minecraft.world.level.WorldBounds.addBlockOffset(pMutableBox.maxZ(), 1L));
+        return fromSectorBounds(new SectorAABB(pMutableBox.minX(), 0.0D, pMutableBox.minY(), pMutableBox.minZ(), 0.0D,
+                pMutableBox.maxX(), 0.0D, pMutableBox.maxY() + 1.0D, pMutableBox.maxZ(), 0.0D)
+                .expandTowards(1.0D, 0.0D, 1.0D));
     }
 
     public static AABB unitCubeFromLowerCorner(Vec3 pVector) {
@@ -234,6 +238,9 @@ public class AABB {
     }
 
     public AABB intersect(AABB pOther) {
+        if (this.sectorBounds != null || pOther.sectorBounds != null) {
+            return fromSectorBounds(this.exactBounds().intersect(pOther.exactBounds()));
+        }
         double d0 = Math.max(this.minX, pOther.minX);
         double d1 = Math.max(this.minY, pOther.minY);
         double d2 = Math.max(this.minZ, pOther.minZ);
@@ -244,6 +251,9 @@ public class AABB {
     }
 
     public AABB minmax(AABB pOther) {
+        if (this.sectorBounds != null || pOther.sectorBounds != null) {
+            return fromSectorBounds(this.exactBounds().minmax(pOther.exactBounds()));
+        }
         double d0 = Math.min(this.minX, pOther.minX);
         double d1 = Math.min(this.minY, pOther.minY);
         double d2 = Math.min(this.minZ, pOther.minZ);
@@ -251,6 +261,14 @@ public class AABB {
         double d4 = Math.max(this.maxY, pOther.maxY);
         double d5 = Math.max(this.maxZ, pOther.maxZ);
         return new AABB(d0, d1, d2, d3, d4, d5);
+    }
+
+    private SectorAABB exactBounds() {
+        if (this.sectorBounds != null) return this.sectorBounds;
+        SectorVec3 min = SectorVec3.fromApproximate(this.minX, this.minY, this.minZ);
+        SectorVec3 max = SectorVec3.fromApproximate(this.maxX, this.maxY, this.maxZ);
+        return new SectorAABB(min.blockX(), min.subX(), min.y(), min.blockZ(), min.subZ(),
+                max.blockX(), max.subX(), max.y(), max.blockZ(), max.subZ());
     }
 
     public AABB move(double pX, double pY, double pZ) {

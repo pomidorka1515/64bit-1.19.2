@@ -278,9 +278,9 @@ public class EnderMan extends Monster implements NeutralMob {
         boolean flag1 = blockstate.getFluidState().is(FluidTags.WATER);
         if (flag && !flag1) {
             SectorVec3 before = this.sectorPosition();
-            SectorVec3 landing = target.withY((double) blockpos$mutableblockpos.getY());
+            SectorVec3 landing = target.withY((double) blockpos$mutableblockpos.getY() + 1.0D);
             this.teleportTo(landing);
-            if (this.hasExactNoCollision()) {
+            if (this.hasExactNoCollision() && !this.sectorContainsAnyLiquid(this.getSectorBoundingBox())) {
                 this.level.gameEvent(GameEvent.TELEPORT, before.toApproximateVec3(), GameEvent.Context.of(this));
                 if (!this.isSilent()) {
                     this.level.playSound((Player) null, this.xo, this.yo, this.zo, SoundEvents.ENDERMAN_TELEPORT, this.getSoundSource(), 1.0F, 1.0F);

@@ -93,6 +93,11 @@ public abstract class PathNavigation {
     }
 
     @Nullable
+    public final Path createPath(long pX, int pY, long pZ, int pAccuracy) {
+        return this.createPath(new BlockPos(pX, pY, pZ), pAccuracy);
+    }
+
+    @Nullable
     public final Path createPath(double pX, double pY, double pZ, int pAccuracy) {
         return this.createPath(new BlockPos(pX, pY, pZ), pAccuracy);
     }

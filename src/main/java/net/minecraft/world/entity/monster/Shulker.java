@@ -303,7 +303,7 @@ public class Shulker extends AbstractGolem implements Enemy {
         if (this.isPassenger()) {
             super.setPos(pX, pY, pZ);
         } else {
-            super.setPos((double) Mth.floor(pX) + 0.5D, (double) Mth.floor(pY + 0.5D), (double) Mth.floor(pZ) + 0.5D);
+            this.applyExactPosition(SectorVec3.fromBlockAndFraction(Mth.lfloor(pX), 0.5D, (double) Mth.floor(pY + 0.5D), Mth.lfloor(pZ), 0.5D));
         }
 
         if (this.tickCount != 0) {

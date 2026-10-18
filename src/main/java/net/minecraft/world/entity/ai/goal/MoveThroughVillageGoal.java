@@ -105,7 +105,7 @@ public class MoveThroughVillageGoal extends Goal {
                                 Node node = this.path.getNode(i);
                                 BlockPos blockpos1 = new BlockPos(node.x, node.y + 1, node.z);
                                 if (DoorBlock.isWoodenDoor(this.mob.level, blockpos1)) {
-                                    this.path = this.mob.getNavigation().createPath((double) node.x, (double) node.y, (double) node.z, 0);
+                                    this.path = this.mob.getNavigation().createPath(new BlockPos(node.x, node.y, node.z), 0);
                                     break;
                                 }
                             }

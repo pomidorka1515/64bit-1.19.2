@@ -41,7 +41,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
 import net.minecraft.world.phys.Vec3;
 
 public class Ravager extends Raider {
@@ -147,9 +147,9 @@ public class Ravager extends Raider {
 
             if (this.horizontalCollision && this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
                 boolean flag = false;
-                AABB aabb = this.getBoundingBox().inflate(0.2D);
+                SectorAABB aabb = this.getSectorBoundingBox().inflate(0.2D, 0.2D, 0.2D);
 
-                for (BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(aabb.minX), Mth.floor(aabb.minY), Mth.floor(aabb.minZ), Mth.floor(aabb.maxX), Mth.floor(aabb.maxY), Mth.floor(aabb.maxZ))) {
+                for (BlockPos blockpos : BlockPos.betweenClosed(aabb.minBlockXForRange(), aabb.minBlockYForRange(), aabb.minBlockZForRange(), aabb.maxBlockXForRangeInclusive(), Mth.floor(aabb.maxY()), aabb.maxBlockZForRangeInclusive())) {
                     BlockState blockstate = this.level.getBlockState(blockpos);
                     Block block = blockstate.getBlock();
                     if (block instanceof LeavesBlock) {

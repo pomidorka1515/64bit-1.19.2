@@ -144,6 +144,9 @@ public final class SectorVec3 {
 
     /** Creates an exact split position from an ordinary double position. This is necessarily limited by the input doubles. */
     public static SectorVec3 fromApproximate(Vec3 position) {
+        if (position instanceof ExactVec3) {
+            return ExactVec3.position(position);
+        }
         return fromApproximate(position.x, position.y, position.z);
     }
 

@@ -311,10 +311,6 @@ public class FallingBlockEntity extends Entity {
         super.recreateFromPacket(pPacket);
         this.blockState = Block.stateById(pPacket.getData());
         this.blocksBuilding = true;
-        double d0 = pPacket.getX();
-        double d1 = pPacket.getY();
-        double d2 = pPacket.getZ();
-        this.setPos(d0, d1, d2);
         this.setStartPos(this.blockPosition());
     }
 }

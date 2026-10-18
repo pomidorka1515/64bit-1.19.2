@@ -192,7 +192,7 @@ public class Boat extends Entity {
 
         this.level.addParticle(ParticleTypes.SPLASH, this.particlePosition((double) this.random.nextFloat(), 0.7D, (double) this.random.nextFloat()), 0.0D, 0.0D, 0.0D);
         if (this.random.nextInt(20) == 0) {
-            this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), this.getSwimSplashSound(), this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat(), false);
+            this.level.playLocalSound(this.sectorPosition(), this.getSwimSplashSound(), this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat(), false);
             this.gameEvent(GameEvent.SPLASH, this.getControllingPassenger());
         }
     }
@@ -310,7 +310,7 @@ public class Boat extends Entity {
                         Vec3 vec3 = this.getViewVector(1.0F);
                         double d0 = i == 1 ? -vec3.z : vec3.z;
                         double d1 = i == 1 ? vec3.x : -vec3.x;
-                        this.level.playSound((Player) null, this.getX() + d0, this.getY(), this.getZ() + d1, soundevent, this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat());
+                        this.level.playSound((Player) null, this.particlePosition(d0, 0.0D, d1), soundevent, this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat());
                     }
                 }
 

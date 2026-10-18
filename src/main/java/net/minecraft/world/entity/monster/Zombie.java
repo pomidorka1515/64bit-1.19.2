@@ -284,7 +284,7 @@ public class Zombie extends Monster {
                     SpawnPlacements.Type spawnplacements$type = SpawnPlacements.getPlacementType(entitytype);
                     if (NaturalSpawner.isSpawnPositionOk(spawnplacements$type, this.level, blockpos, entitytype) && SpawnPlacements.checkSpawnRules(entitytype, serverlevel, MobSpawnType.REINFORCEMENT, blockpos, this.level.random)) {
                         zombie.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(i1, 0.0D, (double) j1, k1, 0.0D));
-                        if (!this.level.hasNearbyAlivePlayer((double) i1, (double) j1, (double) k1, 7.0D) && this.level.isUnobstructed(zombie) && this.level.noCollision(zombie) && !this.level.containsAnyLiquid(zombie.getBoundingBox())) {
+                        if (!this.level.hasNearbyAlivePlayer(zombie.sectorPosition(), 7.0D) && this.level.isUnobstructed(zombie) && this.level.noCollision(zombie) && !this.level.containsAnyLiquid(zombie.getBoundingBox())) {
                             zombie.setTarget(livingentity);
                             zombie.finalizeSpawn(serverlevel, this.level.getCurrentDifficultyAt(zombie.blockPosition()), MobSpawnType.REINFORCEMENT, (SpawnGroupData) null, (CompoundTag) null);
                             serverlevel.addFreshEntityWithPassengers(zombie);

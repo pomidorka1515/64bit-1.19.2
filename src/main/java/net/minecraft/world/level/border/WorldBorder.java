@@ -59,7 +59,7 @@ public class WorldBorder {
     }
 
     public double getDistanceToBorder(Entity pEntity) {
-        return this.getDistanceToBorder(pEntity.getX(), pEntity.getZ());
+        return this.getDistanceToBorder(pEntity.sectorPosition());
     }
 
     public VoxelShape getCollisionShape() {

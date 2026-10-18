@@ -287,6 +287,11 @@ public class AABB {
     }
 
     public boolean intersects(AABB pOther) {
+        if (this.sectorBounds != null || pOther.sectorBounds != null) {
+            SectorAABB exact = this.exactBounds();
+            SectorPhysicsOrigin origin = new SectorPhysicsOrigin(exact.minBlockXForRange(), exact.minBlockYForRange(), exact.minBlockZForRange());
+            return exact.toLocalAABB(origin).intersects(pOther.exactBounds().toLocalAABB(origin));
+        }
         return this.intersects(pOther.minX, pOther.minY, pOther.minZ, pOther.maxX, pOther.maxY, pOther.maxZ);
     }
 
@@ -314,6 +319,10 @@ public class AABB {
     }
 
     public double getXsize() {
+        if (this.sectorBounds != null) {
+            return WorldBounds.signedDifference(this.sectorBounds.maxBlockX(), this.sectorBounds.minBlockX())
+                    + this.sectorBounds.maxSubX() - this.sectorBounds.minSubX();
+        }
         return this.maxX - this.minX;
     }
 
@@ -322,6 +331,10 @@ public class AABB {
     }
 
     public double getZsize() {
+        if (this.sectorBounds != null) {
+            return WorldBounds.signedDifference(this.sectorBounds.maxBlockZ(), this.sectorBounds.minBlockZ())
+                    + this.sectorBounds.maxSubZ() - this.sectorBounds.minSubZ();
+        }
         return this.maxZ - this.minZ;
     }
 

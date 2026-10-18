@@ -87,16 +87,16 @@ public class EntityPredicate {
                 if (this.distanceToPlayer != DistancePredicate.ANY) {
                     return false;
                 }
-            } else if (!this.distanceToPlayer.matches(pPosition.x, pPosition.y, pPosition.z, pEntity.getX(), pEntity.getY(), pEntity.getZ())) {
+            } else if (!matchesDistance(this.distanceToPlayer, pPosition, pEntity)) {
                 return false;
             }
 
-            if (!this.location.matches(pLevel, pEntity.getX(), pEntity.getY(), pEntity.getZ())) {
+            if (!this.location.matches(pLevel, pEntity.sectorPosition())) {
                 return false;
             } else {
                 if (this.steppingOnLocation != LocationPredicate.ANY) {
-                    Vec3 vec3 = Vec3.atCenterOf(pEntity.getOnPosLegacy());
-                    if (!this.steppingOnLocation.matches(pLevel, vec3.x(), vec3.y(), vec3.z())) {
+                    net.minecraft.core.BlockPos pos = pEntity.getOnPosLegacy();
+                    if (!this.steppingOnLocation.matches(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pos.getX(), 0.5D, pos.getY() + 0.5D, pos.getZ(), 0.5D))) {
                         return false;
                     }
                 }
@@ -131,6 +131,11 @@ public class EntityPredicate {
                 }
             }
         }
+    }
+
+    private static boolean matchesDistance(DistancePredicate predicate, Vec3 origin, Entity entity) {
+        Vec3 delta = entity.sectorPosition().relativeTo(net.minecraft.world.phys.ExactVec3.position(origin));
+        return predicate.matches(0.0D, 0.0D, 0.0D, delta.x, delta.y, delta.z);
     }
 
     public static EntityPredicate fromJson(@Nullable JsonElement pJson) {

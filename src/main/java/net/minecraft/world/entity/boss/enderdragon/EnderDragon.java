@@ -120,7 +120,7 @@ public class EnderDragon extends Mob implements Enemy {
 
     public void onFlap() {
         if (this.level.isClientSide && !this.isSilent()) {
-            this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ENDER_DRAGON_FLAP, this.getSoundSource(), 5.0F, 0.8F + this.random.nextFloat() * 0.3F, false);
+            this.level.playLocalSound(this.sectorPosition(), SoundEvents.ENDER_DRAGON_FLAP, this.getSoundSource(), 5.0F, 0.8F + this.random.nextFloat() * 0.3F, false);
         }
     }
 
@@ -153,7 +153,7 @@ public class EnderDragon extends Mob implements Enemy {
         if (this.level.isClientSide) {
             this.setHealth(this.getHealth());
             if (!this.isSilent() && !this.phaseManager.getCurrentPhase().isSitting() && --this.growlTime < 0) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ENDER_DRAGON_GROWL, this.getSoundSource(), 2.5F, 0.8F + this.random.nextFloat() * 0.3F, false);
+                this.level.playLocalSound(this.sectorPosition(), SoundEvents.ENDER_DRAGON_GROWL, this.getSoundSource(), 2.5F, 0.8F + this.random.nextFloat() * 0.3F, false);
                 this.growlTime = 200 + this.random.nextInt(200);
             }
         }
@@ -418,37 +418,11 @@ public class EnderDragon extends Mob implements Enemy {
                 this.level.levelEvent(2008, removed, 0);
             return blocked;
         }
-        int i = Mth.floor(pArea.minX);
-        int j = Mth.floor(pArea.minY);
-        int k = Mth.floor(pArea.minZ);
-        int l = Mth.floor(pArea.maxX);
-        int i1 = Mth.floor(pArea.maxY);
-        int j1 = Mth.floor(pArea.maxZ);
-        boolean flag = false;
-        boolean flag1 = false;
-
-        for (int k1 = i; k1 <= l; ++k1) {
-            for (int l1 = j; l1 <= i1; ++l1) {
-                for (int i2 = k; i2 <= j1; ++i2) {
-                    BlockPos blockpos = new BlockPos(k1, l1, i2);
-                    BlockState blockstate = this.level.getBlockState(blockpos);
-                    if (!blockstate.isAir() && !blockstate.is(BlockTags.DRAGON_TRANSPARENT)) {
-                        if (this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) && !blockstate.is(BlockTags.DRAGON_IMMUNE)) {
-                            flag1 = this.level.removeBlock(blockpos, false) || flag1;
-                        } else {
-                            flag = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (flag1) {
-            BlockPos blockpos1 = new BlockPos(i + this.random.nextInt(l - i + 1), j + this.random.nextInt(i1 - j + 1), k + this.random.nextInt(j1 - k + 1));
-            this.level.levelEvent(2008, blockpos1, 0);
-        }
-
-        return flag;
+        net.minecraft.world.phys.SectorVec3 min = net.minecraft.world.phys.SectorVec3.fromApproximate(pArea.minX, pArea.minY, pArea.minZ);
+        net.minecraft.world.phys.SectorVec3 max = net.minecraft.world.phys.SectorVec3.fromApproximate(pArea.maxX, pArea.maxY, pArea.maxZ);
+        return this.checkWalls(AABB.fromSectorBounds(new net.minecraft.world.phys.SectorAABB(
+                min.blockX(), min.subX(), min.y(), min.blockZ(), min.subZ(),
+                max.blockX(), max.subX(), max.y(), max.blockZ(), max.subZ())));
     }
 
     public boolean hurt(EnderDragonPart pPart, DamageSource pSource, float pDamage) {
@@ -782,7 +756,7 @@ public class EnderDragon extends Mob implements Enemy {
             }
         } else {
             BlockPos blockpos = this.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EndPodiumFeature.END_PODIUM_LOCATION);
-            double d1 = Math.max(Math.sqrt(blockpos.distToCenterSqr(this.position())) / 4.0D, 1.0D);
+            double d1 = Math.max(Math.sqrt(blockpos.distToCenterSqr(this.sectorPosition())) / 4.0D, 1.0D);
             d0 = (double) pPartIndex / d1;
         }
 
@@ -805,7 +779,7 @@ public class EnderDragon extends Mob implements Enemy {
             }
         } else {
             BlockPos blockpos = this.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EndPodiumFeature.END_PODIUM_LOCATION);
-            float f = Math.max((float) Math.sqrt(blockpos.distToCenterSqr(this.position())) / 4.0F, 1.0F);
+            float f = Math.max((float) Math.sqrt(blockpos.distToCenterSqr(this.sectorPosition())) / 4.0F, 1.0F);
             float f1 = 6.0F / f;
             float f2 = this.getXRot();
             float f3 = 1.5F;

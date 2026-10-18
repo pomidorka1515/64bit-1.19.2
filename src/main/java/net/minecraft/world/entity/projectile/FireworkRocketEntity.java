@@ -147,7 +147,7 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
 
         this.updateRotation();
         if (this.life == 0 && !this.isSilent()) {
-            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.FIREWORK_ROCKET_LAUNCH, SoundSource.AMBIENT, 3.0F, 1.0F);
+            this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.FIREWORK_ROCKET_LAUNCH, SoundSource.AMBIENT, 3.0F, 1.0F);
         }
 
         ++this.life;

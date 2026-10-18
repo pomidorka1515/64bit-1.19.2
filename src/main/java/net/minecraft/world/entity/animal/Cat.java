@@ -542,7 +542,7 @@ public class Cat extends TamableAnimal {
                     false);
             blockpos$mutableblockpos.set(this.cat.blockPosition());
             LootTable loottable = this.cat.level.getServer().getLootTables().get(BuiltInLootTables.CAT_MORNING_GIFT);
-            LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.cat.level)).withParameter(LootContextParams.ORIGIN, this.cat.position()).withParameter(LootContextParams.THIS_ENTITY, this.cat).withRandom(randomsource);
+            LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.cat.level)).withParameter(LootContextParams.ORIGIN, new net.minecraft.world.phys.ExactVec3(this.cat.sectorPosition())).withParameter(LootContextParams.THIS_ENTITY, this.cat).withRandom(randomsource);
 
             for (ItemStack itemstack : loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.GIFT))) {
                 this.cat.level.addFreshEntity(new ItemEntity(this.cat.level,

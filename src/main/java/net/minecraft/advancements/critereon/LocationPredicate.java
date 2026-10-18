@@ -66,6 +66,13 @@ public class LocationPredicate {
     }
 
     public boolean matches(ServerLevel pLevel, double pX, double pY, double pZ) {
+        return this.matches(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ));
+    }
+
+    public boolean matches(ServerLevel pLevel, net.minecraft.world.phys.SectorVec3 position) {
+        double pX = position.toApproximateVec3().x;
+        double pY = position.y();
+        double pZ = position.toApproximateVec3().z;
         if (!this.x.matches(pX)) {
             return false;
         } else if (!this.y.matches(pY)) {
@@ -75,7 +82,7 @@ public class LocationPredicate {
         } else if (this.dimension != null && this.dimension != pLevel.dimension()) {
             return false;
         } else {
-            BlockPos blockpos = new BlockPos(pX, pY, pZ);
+            BlockPos blockpos = position.blockPosition();
             boolean flag = pLevel.isLoaded(blockpos);
             if (this.biome == null || flag && pLevel.getBiome(blockpos).is(this.biome)) {
                 if (this.structure == null || flag && pLevel.structureManager().getStructureWithPieceAt(blockpos, this.structure).isValid()) {

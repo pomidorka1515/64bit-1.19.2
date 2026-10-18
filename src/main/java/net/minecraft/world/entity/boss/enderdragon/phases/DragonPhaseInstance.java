@@ -32,7 +32,7 @@ public interface DragonPhaseInstance {
     @Nullable
     default net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
         Vec3 target = this.getFlyTargetLocation();
-        return target == null ? null : net.minecraft.world.phys.SectorVec3.fromApproximate(target.x, target.y, target.z);
+        return target == null ? null : net.minecraft.world.phys.ExactVec3.position(target);
     }
 
     float onHurt(DamageSource pDamageSource, float pAmount);

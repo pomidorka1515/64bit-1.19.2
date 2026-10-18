@@ -74,7 +74,7 @@ public class Path {
     }
 
     public Vec3 getEntityPosAtNode(Entity pEntity, int pIndex) {
-        return this.getExactEntityPosAtNode(pEntity, pIndex).toApproximateVec3();
+        return new net.minecraft.world.phys.ExactVec3(this.getExactEntityPosAtNode(pEntity, pIndex));
     }
 
     public SectorVec3 getExactEntityPosAtNode(Entity entity, int index) {

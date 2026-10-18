@@ -298,25 +298,33 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
 
     @Nullable
     private static Container getSourceContainer(Level pLevel, Hopper pHopper) {
-        return getContainerAt(pLevel, pHopper.getLevelX(), pHopper.getLevelY() + 1.0D, pHopper.getLevelZ());
+        return getContainerAt(pLevel, pHopper.getExactHopperPosition().add(0.0D, 1.0D, 0.0D));
     }
 
     public static List<ItemEntity> getItemsAtAndAbove(Level pLevel, Hopper pHopper) {
         return pHopper.getSuckShape().toAabbs().stream().flatMap((p_155558_) -> {
-                                                              return pLevel.getEntitiesOfClass(ItemEntity.class, p_155558_.move(pHopper.getLevelX() - 0.5D, pHopper.getLevelY() - 0.5D, pHopper.getLevelZ() - 0.5D), EntitySelector.ENTITY_STILL_ALIVE).stream();
+                                                              net.minecraft.world.phys.SectorVec3 origin = pHopper.getExactHopperPosition().add(-0.5D, -0.5D, -0.5D);
+                                                              net.minecraft.world.phys.SectorVec3 min = origin.add(p_155558_.minX, p_155558_.minY, p_155558_.minZ);
+                                                              net.minecraft.world.phys.SectorVec3 max = origin.add(p_155558_.maxX, p_155558_.maxY, p_155558_.maxZ);
+                                                              return pLevel.getEntitiesOfClass(ItemEntity.class, net.minecraft.world.phys.AABB.fromSectorBounds(new net.minecraft.world.phys.SectorAABB(min.blockX(), min.subX(), min.y(), min.blockZ(), min.subZ(), max.blockX(), max.subX(), max.y(), max.blockZ(), max.subZ())), EntitySelector.ENTITY_STILL_ALIVE).stream();
                                                           })
                 .collect(Collectors.toList());
     }
 
     @Nullable
     public static Container getContainerAt(Level pLevel, BlockPos pPos) {
-        return getContainerAt(pLevel, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D);
+        return getContainerAt(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 0.5D, pPos.getZ(), 0.5D));
     }
 
     @Nullable
     private static Container getContainerAt(Level pLevel, double pX, double pY, double pZ) {
+        return getContainerAt(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ));
+    }
+
+    @Nullable
+    private static Container getContainerAt(Level pLevel, net.minecraft.world.phys.SectorVec3 position) {
         Container container = null;
-        BlockPos blockpos = new BlockPos(pX, pY, pZ);
+        BlockPos blockpos = position.blockPosition();
         BlockState blockstate = pLevel.getBlockState(blockpos);
         Block block = blockstate.getBlock();
         if (block instanceof WorldlyContainerHolder) {
@@ -332,7 +340,7 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         }
 
         if (container == null) {
-            List<Entity> list = pLevel.getEntities((Entity) null, new AABB(pX - 0.5D, pY - 0.5D, pZ - 0.5D, pX + 0.5D, pY + 0.5D, pZ + 0.5D), EntitySelector.CONTAINER_ENTITY_SELECTOR);
+            List<Entity> list = pLevel.getEntities((Entity) null, AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(position.add(0.0D, -0.5D, 0.0D), 1.0D, 1.0D)), EntitySelector.CONTAINER_ENTITY_SELECTOR);
             if (!list.isEmpty()) {
                 container = (Container) list.get(pLevel.random.nextInt(list.size()));
             }

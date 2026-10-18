@@ -172,32 +172,7 @@ public class Pig extends Animal implements ItemSteerable, Saddleable {
     }
 
     public Vec3 getDismountLocationForPassenger(LivingEntity pLivingEntity) {
-        Direction direction = this.getMotionDirection();
-        if (direction.getAxis() == Direction.Axis.Y) {
-            return super.getDismountLocationForPassenger(pLivingEntity);
-        } else {
-            int[][] aint = DismountHelper.offsetsForDirection(direction);
-            BlockPos blockpos = this.blockPosition();
-            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-
-            for (Pose pose : pLivingEntity.getDismountPoses()) {
-                AABB aabb = pLivingEntity.getLocalBoundsForPose(pose);
-
-                for (int[] aint1 : aint) {
-                    blockpos$mutableblockpos.set(blockpos.getX() + aint1[0], blockpos.getY(), blockpos.getZ() + aint1[1]);
-                    double d0 = this.level.getBlockFloorHeight(blockpos$mutableblockpos);
-                    if (DismountHelper.isBlockFloorValid(d0)) {
-                        Vec3 vec3 = Vec3.upFromBottomCenterOf(blockpos$mutableblockpos, d0);
-                        if (DismountHelper.canDismountTo(this.level, pLivingEntity, aabb.move(vec3))) {
-                            pLivingEntity.setPose(pose);
-                            return vec3;
-                        }
-                    }
-                }
-            }
-
-            return super.getDismountLocationForPassenger(pLivingEntity);
-        }
+        return new net.minecraft.world.phys.ExactVec3(this.getExactDismountLocationForPassenger(pLivingEntity));
     }
 
     /** Exact split-coordinate pig dismount target from long block offsets only. */

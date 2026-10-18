@@ -29,9 +29,10 @@ public class CapeLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<Abs
             if (!itemstack.is(Items.ELYTRA)) {
                 pMatrixStack.pushPose();
                 pMatrixStack.translate(0.0D, 0.0D, 0.125D);
-                double d0 = Mth.lerp((double) pPartialTicks, pLivingEntity.xCloakO, pLivingEntity.xCloak) - Mth.lerp((double) pPartialTicks, pLivingEntity.xo, pLivingEntity.getX());
-                double d1 = Mth.lerp((double) pPartialTicks, pLivingEntity.yCloakO, pLivingEntity.yCloak) - Mth.lerp((double) pPartialTicks, pLivingEntity.yo, pLivingEntity.getY());
-                double d2 = Mth.lerp((double) pPartialTicks, pLivingEntity.zCloakO, pLivingEntity.zCloak) - Mth.lerp((double) pPartialTicks, pLivingEntity.zo, pLivingEntity.getZ());
+                net.minecraft.world.phys.Vec3 cloakOffset = pLivingEntity.getExactCloakOffset(pPartialTicks);
+                double d0 = cloakOffset.x;
+                double d1 = cloakOffset.y;
+                double d2 = cloakOffset.z;
                 float f = pLivingEntity.yBodyRotO + (pLivingEntity.yBodyRot - pLivingEntity.yBodyRotO);
                 double d3 = (double) Mth.sin(f * ((float) Math.PI / 180F));
                 double d4 = (double) (-Mth.cos(f * ((float) Math.PI / 180F)));

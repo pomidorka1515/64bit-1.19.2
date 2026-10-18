@@ -1264,7 +1264,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             for (ServerLevel serverlevel : this.server.getAllLevels()) {
                 Entity entity = pPacket.getEntity(serverlevel);
                 if (entity != null) {
-                    this.player.teleportTo(serverlevel, entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
+                    this.player.teleportTo(serverlevel, entity.sectorPosition(), entity.getYRot(), entity.getXRot());
                     return;
                 }
             }

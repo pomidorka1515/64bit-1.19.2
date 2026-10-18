@@ -45,7 +45,7 @@ public abstract class EntityRenderer<T extends Entity> {
     }
 
     public boolean shouldRender(T pLivingEntity, Frustum pCamera, double pCamX, double pCamY, double pCamZ) {
-        if (!pLivingEntity.shouldRender(pCamX, pCamY, pCamZ)) {
+        if (!pLivingEntity.shouldRender(this.entityRenderDispatcher.camera.getExactPosition())) {
             return false;
         } else if (pLivingEntity.noCulling) {
             return true;

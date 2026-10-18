@@ -222,7 +222,7 @@ public class Warden extends Monster implements VibrationListener.VibrationListen
             if (this.tickCount % this.getHeartBeatDelay() == 0) {
                 this.heartAnimation = 10;
                 if (!this.isSilent()) {
-                    this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.WARDEN_HEARTBEAT, this.getSoundSource(), 5.0F, this.getVoicePitch(), false);
+                    this.level.playLocalSound(this.sectorPosition(), SoundEvents.WARDEN_HEARTBEAT, this.getSoundSource(), 5.0F, this.getVoicePitch(), false);
                 }
             }
 

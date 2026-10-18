@@ -173,12 +173,12 @@ public class Squid extends WaterAnimal {
 
     private void spawnInk() {
         this.playSound(this.getSquirtSound(), this.getSoundVolume(), this.getVoicePitch());
-        Vec3 vec3 = this.rotateVector(new Vec3(0.0D, -1.0D, 0.0D)).add(this.getX(), this.getY(), this.getZ());
+        Vec3 vec3 = this.rotateVector(new Vec3(0.0D, -1.0D, 0.0D));
 
         for (int i = 0; i < 30; ++i) {
             Vec3 vec31 = this.rotateVector(new Vec3((double) this.random.nextFloat() * 0.6D - 0.3D, -1.0D, (double) this.random.nextFloat() * 0.6D - 0.3D));
             Vec3 vec32 = vec31.scale(0.3D + (double) (this.random.nextFloat() * 2.0F));
-            ((ServerLevel) this.level).sendParticles(this.getInkParticle(), vec3.x, vec3.y + 0.5D, vec3.z, 0, vec32.x, vec32.y, vec32.z, (double) 0.1F);
+            ((ServerLevel) this.level).sendParticles(this.getInkParticle(), this.sectorPosition().add(vec3.x, vec3.y + 0.5D, vec3.z), 0, vec32.x, vec32.y, vec32.z, (double) 0.1F);
         }
     }
 

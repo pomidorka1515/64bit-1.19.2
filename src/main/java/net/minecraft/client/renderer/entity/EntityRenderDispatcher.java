@@ -334,7 +334,7 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
     }
 
     public double distanceToSqr(Entity pEntity) {
-        return this.camera.getPosition().distanceToSqr(pEntity.position());
+        return pEntity.sectorPosition().relativeTo(this.camera.getExactPosition()).lengthSqr();
     }
 
     public double distanceToSqr(double pX, double pY, double pZ) {

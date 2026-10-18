@@ -47,7 +47,7 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos(Vec3 pVector) {
-        this(pVector.x, pVector.y, pVector.z);
+        this(net.minecraft.world.phys.ExactVec3.position(pVector).blockX(), Mth.floor(pVector.y), net.minecraft.world.phys.ExactVec3.position(pVector).blockZ());
     }
 
     public BlockPos(Position pPos) {

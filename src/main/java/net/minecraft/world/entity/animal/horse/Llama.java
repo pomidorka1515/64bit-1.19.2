@@ -214,7 +214,7 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         if (flag && !this.isSilent()) {
             SoundEvent soundevent = this.getEatingSound();
             if (soundevent != null) {
-                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), this.getEatingSound(), this.getSoundSource(), 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F);
+                this.level.playSound((Player) null, this.sectorPosition(), this.getEatingSound(), this.getSoundSource(), 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F);
             }
         }
 
@@ -364,7 +364,7 @@ public class Llama extends AbstractChestedHorse implements RangedAttackMob {
         double d3 = Math.sqrt(d0 * d0 + d2 * d2) * (double) 0.2F;
         llamaspit.shoot(d0, d1 + d3, d2, 1.5F, 10.0F);
         if (!this.isSilent()) {
-            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.LLAMA_SPIT, this.getSoundSource(), 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F);
+            this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.LLAMA_SPIT, this.getSoundSource(), 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F);
         }
 
         this.level.addFreshEntity(llamaspit);

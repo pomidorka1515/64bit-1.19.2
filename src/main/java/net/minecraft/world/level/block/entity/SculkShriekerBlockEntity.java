@@ -167,7 +167,8 @@ public class SculkShriekerBlockEntity extends BlockEntity implements VibrationLi
                 this.playWardenReplySound();
             }
 
-            Warden.applyDarknessAround(pLevel, Vec3.atCenterOf(this.getBlockPos()), (Entity) null, 40);
+            BlockPos pos = this.getBlockPos();
+            Warden.applyDarknessAround(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pos.getX(), 0.5D, pos.getY() + 0.5D, pos.getZ(), 0.5D), (Entity) null, 40);
         }
     }
 

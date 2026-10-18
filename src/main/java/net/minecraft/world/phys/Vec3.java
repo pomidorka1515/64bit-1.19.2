@@ -70,6 +70,9 @@ public class Vec3 implements Position {
     }
 
     public Vec3 subtract(Vec3 pVec) {
+        if (this instanceof ExactVec3 || pVec instanceof ExactVec3) {
+            return ExactVec3.position(this).relativeTo(ExactVec3.position(pVec));
+        }
         return this.subtract(pVec.x, pVec.y, pVec.z);
     }
 
@@ -97,6 +100,9 @@ public class Vec3 implements Position {
     }
 
     public double distanceToSqr(Vec3 pVec) {
+        if (this instanceof ExactVec3 || pVec instanceof ExactVec3) {
+            return ExactVec3.position(this).relativeTo(ExactVec3.position(pVec)).lengthSqr();
+        }
         double d0 = pVec.x - this.x;
         double d1 = pVec.y - this.y;
         double d2 = pVec.z - this.z;

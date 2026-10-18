@@ -170,7 +170,7 @@ public class PortalShape {
     }
 
     public static Vec3 getRelativePosition(BlockUtil.FoundRectangle p_77739_, Direction.Axis p_77740_, Vec3 p_77741_, EntityDimensions p_77742_) {
-        return getRelativePosition(p_77739_, p_77740_, net.minecraft.world.phys.SectorVec3.fromApproximate(p_77741_), p_77742_);
+        return getRelativePosition(p_77739_, p_77740_, net.minecraft.world.phys.ExactVec3.position(p_77741_), p_77742_);
     }
 
     public static Vec3 getRelativePosition(BlockUtil.FoundRectangle p_77739_, Direction.Axis p_77740_, net.minecraft.world.phys.SectorVec3 position, EntityDimensions p_77742_) {

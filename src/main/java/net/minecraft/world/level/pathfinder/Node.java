@@ -101,10 +101,6 @@ public class Node {
         return new BlockPos(this.x, this.y, this.z);
     }
 
-    public Vec3 asVec3() {
-        return new Vec3((double) this.x, (double) this.y, (double) this.z);
-    }
-
     public boolean equals(Object pOther) {
         if (!(pOther instanceof Node node)) {
             return false;

@@ -1867,6 +1867,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public final Vec3 getPosition(float pPartialTicks) {
+        if (this.hasSectorPosition()) {
+            return new net.minecraft.world.phys.ExactVec3(this.interpolatedExactPosition(pPartialTicks));
+        }
         double d0 = Mth.lerp((double) pPartialTicks, this.xo, this.getX());
         double d1 = Mth.lerp((double) pPartialTicks, this.yo, this.getY());
         double d2 = Mth.lerp((double) pPartialTicks, this.zo, this.getZ());
@@ -1907,11 +1910,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public boolean shouldRender(double pX, double pY, double pZ) {
-        double d0 = this.getX() - pX;
-        double d1 = this.getY() - pY;
-        double d2 = this.getZ() - pZ;
-        double d3 = d0 * d0 + d1 * d1 + d2 * d2;
-        return this.shouldRenderAtSqrDistance(d3);
+        return this.shouldRender(SectorVec3.fromApproximate(pX, pY, pZ));
+    }
+
+    public boolean shouldRender(SectorVec3 camera) {
+        return this.shouldRenderAtSqrDistance(this.sectorPosition().relativeTo(camera).lengthSqr());
     }
 
     public boolean shouldRenderAtSqrDistance(double pDistance) {
@@ -2941,7 +2944,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             return this.getName().getString();
         });
         pCategory.setDetail("Entity's Exact location", String.format(Locale.ROOT, "%.2f, %.2f, %.2f", this.getX(), this.getY(), this.getZ()));
-        pCategory.setDetail("Entity's Block location", CrashReportCategory.formatLocation(this.level, Mth.floor(this.getX()), Mth.floor(this.getY()), Mth.floor(this.getZ())));
+        pCategory.setDetail("Entity's Block location", CrashReportCategory.formatLocation(this.level, this.getBlockX(), this.getBlockY(), this.getBlockZ()));
         Vec3 vec3 = this.getDeltaMovement();
         pCategory.setDetail("Entity's Momentum", String.format(Locale.ROOT, "%.2f, %.2f, %.2f", vec3.x, vec3.y, vec3.z));
         pCategory.setDetail("Entity's Passengers", () -> {
@@ -3325,7 +3328,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public Vec3 getDismountLocationForPassenger(LivingEntity pPassenger) {
-        return new Vec3(this.getX(), this.getBoundingBox().maxY, this.getZ());
+        return new net.minecraft.world.phys.ExactVec3(this.getExactDismountLocationForPassenger(pPassenger));
     }
 
     /**
@@ -3668,7 +3671,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public double getX(double pScale) {
-        return this.position.x + (double) this.getBbWidth() * pScale;
+        return this.sectorPosition().add((double) this.getBbWidth() * pScale, 0.0D, 0.0D).toApproximateVec3().x;
     }
 
     public double getRandomX(double pScale) {
@@ -3704,7 +3707,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public double getZ(double pScale) {
-        return this.position.z + (double) this.getBbWidth() * pScale;
+        return this.sectorPosition().add(0.0D, 0.0D, (double) this.getBbWidth() * pScale).toApproximateVec3().z;
     }
 
     public double getRandomZ(double pScale) {

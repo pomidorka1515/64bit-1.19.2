@@ -197,4 +197,9 @@ public class ThrownTrident extends AbstractArrow {
     public boolean shouldRender(double pX, double pY, double pZ) {
         return true;
     }
+
+    @Override
+    public boolean shouldRender(net.minecraft.world.phys.SectorVec3 camera) {
+        return true;
+    }
 }

@@ -46,7 +46,7 @@ public class EnchantmentTableBlockEntity extends BlockEntity implements Nameable
     public static void bookAnimationTick(Level pLevel, BlockPos pPos, BlockState pState, EnchantmentTableBlockEntity pBlockEntity) {
         pBlockEntity.oOpen = pBlockEntity.open;
         pBlockEntity.oRot = pBlockEntity.rot;
-        Player player = pLevel.getNearestPlayer((double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, 3.0D, false);
+        Player player = pLevel.getNearestPlayer(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 0.5D, pPos.getZ(), 0.5D), 3.0D, false);
         if (player != null) {
             double d0 = player.getX() - ((double) pPos.getX() + 0.5D);
             double d1 = player.getZ() - ((double) pPos.getZ() + 0.5D);

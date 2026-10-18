@@ -178,7 +178,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
                 }
 
                 entity.setPortalCooldown();
-                entity.teleportToWithTicket((double) blockpos1.getX() + 0.5D, (double) blockpos1.getY(), (double) blockpos1.getZ() + 0.5D);
+                entity.teleportToWithTicket(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D, blockpos1.getY(), blockpos1.getZ(), 0.5D));
             }
 
             triggerCooldown(pLevel, pPos, pState, pBlockEntity);
@@ -192,11 +192,11 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
     }
 
     private static BlockPos findOrCreateValidTeleportPos(ServerLevel pLevel, BlockPos pPos) {
-        Vec3 vec3 = findExitPortalXZPosTentative(pLevel, pPos);
+        net.minecraft.world.phys.SectorVec3 vec3 = findExitPortalXZPosTentative(pLevel, pPos);
         LevelChunk levelchunk = getChunk(pLevel, vec3);
         BlockPos blockpos = findValidSpawnInChunk(levelchunk);
         if (blockpos == null) {
-            blockpos = new BlockPos(vec3.x + 0.5D, 75.0D, vec3.z + 0.5D);
+            blockpos = vec3.add(0.5D, 0.0D, 0.5D).withY(75.0D).blockPosition();
             LOGGER.debug("Failed to find a suitable block to teleport to, spawning an island on {}", (Object) blockpos);
             EndFeatures.END_ISLAND.value().place(pLevel, pLevel.getChunkSource().getGenerator(), RandomSource.create(blockpos.hashCode()), blockpos);
         } else {
@@ -206,16 +206,16 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
         return findTallestBlock(pLevel, blockpos, 16, true);
     }
 
-    private static Vec3 findExitPortalXZPosTentative(ServerLevel pLevel, BlockPos pPos) {
+    private static net.minecraft.world.phys.SectorVec3 findExitPortalXZPosTentative(ServerLevel pLevel, BlockPos pPos) {
         Vec3 vec3 = (new Vec3((double) pPos.getX(), 0.0D, (double) pPos.getZ())).normalize();
         int i = 1024;
-        Vec3 vec31 = vec3.scale(1024.0D);
+        net.minecraft.world.phys.SectorVec3 vec31 = net.minecraft.world.phys.SectorVec3.fromApproximate(vec3.scale(1024.0D));
 
-        for (int j = 16; !isChunkEmpty(pLevel, vec31) && j-- > 0; vec31 = vec31.add(vec3.scale(-16.0D))) {
+        for (int j = 16; !isChunkEmpty(pLevel, vec31) && j-- > 0; vec31 = vec31.add(vec3.x * -16.0D, 0.0D, vec3.z * -16.0D)) {
             LOGGER.debug("Skipping backwards past nonempty chunk at {}", (Object) vec31);
         }
 
-        for (int k = 16; isChunkEmpty(pLevel, vec31) && k-- > 0; vec31 = vec31.add(vec3.scale(16.0D))) {
+        for (int k = 16; isChunkEmpty(pLevel, vec31) && k-- > 0; vec31 = vec31.add(vec3.x * 16.0D, 0.0D, vec3.z * 16.0D)) {
             LOGGER.debug("Skipping forward past empty chunk at {}", (Object) vec31);
         }
 
@@ -223,7 +223,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
         return vec31;
     }
 
-    private static boolean isChunkEmpty(ServerLevel pLevel, Vec3 pPos) {
+    private static boolean isChunkEmpty(ServerLevel pLevel, net.minecraft.world.phys.SectorVec3 pPos) {
         return getChunk(pLevel, pPos).getHighestSectionPosition() <= pLevel.getMinBuildHeight();
     }
 
@@ -248,8 +248,8 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
         return blockpos == null ? pPos : blockpos;
     }
 
-    private static LevelChunk getChunk(Level pLevel, Vec3 pPos) {
-        return pLevel.getChunk(Mth.lfloor(pPos.x / 16.0D), Mth.lfloor(pPos.z / 16.0D));
+    private static LevelChunk getChunk(Level pLevel, net.minecraft.world.phys.SectorVec3 pPos) {
+        return pLevel.getChunk(pPos.blockX() >> 4, pPos.blockZ() >> 4);
     }
 
     @Nullable

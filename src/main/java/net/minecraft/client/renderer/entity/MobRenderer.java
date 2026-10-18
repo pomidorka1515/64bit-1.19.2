@@ -53,13 +53,11 @@ public abstract class MobRenderer<T extends Mob, M extends EntityModel<T>> exten
         Vec3 vec31 = pEntityLiving.getLeashOffset();
         double d1 = Math.cos(d0) * vec31.z + Math.sin(d0) * vec31.x;
         double d2 = Math.sin(d0) * vec31.z - Math.cos(d0) * vec31.x;
-        double d3 = Mth.lerp((double) pPartialTicks, pEntityLiving.xo, pEntityLiving.getX()) + d1;
-        double d4 = Mth.lerp((double) pPartialTicks, pEntityLiving.yo, pEntityLiving.getY()) + vec31.y;
-        double d5 = Mth.lerp((double) pPartialTicks, pEntityLiving.zo, pEntityLiving.getZ()) + d2;
+        Vec3 leashDelta = net.minecraft.world.phys.ExactVec3.position(vec3).relativeTo(pEntityLiving.interpolatedExactPosition(pPartialTicks).add(d1, vec31.y, d2));
         pMatrixStack.translate(d1, vec31.y, d2);
-        float f = (float) (vec3.x - d3);
-        float f1 = (float) (vec3.y - d4);
-        float f2 = (float) (vec3.z - d5);
+        float f = (float) leashDelta.x;
+        float f1 = (float) leashDelta.y;
+        float f2 = (float) leashDelta.z;
         float f3 = 0.025F;
         VertexConsumer vertexconsumer = pBuffer.getBuffer(RenderType.leash());
         Matrix4f matrix4f = pMatrixStack.last().pose();

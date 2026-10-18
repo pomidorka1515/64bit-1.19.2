@@ -120,7 +120,7 @@ public class LeashFenceKnotEntity extends HangingEntity {
         int j = pPos.getY();
         long k = pPos.getZ();
 
-        for (LeashFenceKnotEntity leashfenceknotentity : pLevel.getEntitiesOfClass(LeashFenceKnotEntity.class, new AABB((double) i - 1.0D, (double) j - 1.0D, (double) k - 1.0D, (double) i + 1.0D, (double) j + 1.0D, (double) k + 1.0D))) {
+        for (LeashFenceKnotEntity leashfenceknotentity : pLevel.getEntitiesOfClass(LeashFenceKnotEntity.class, AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(i, 0.0D, j - 1.0D, k, 0.0D), 2.0D, 2.0D)))) {
             if (leashfenceknotentity.getPos().equals(pPos)) {
                 return leashfenceknotentity;
             }

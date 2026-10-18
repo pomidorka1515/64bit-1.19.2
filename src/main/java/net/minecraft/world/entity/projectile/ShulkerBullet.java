@@ -274,7 +274,7 @@ public class ShulkerBullet extends Projectile {
 
     protected void onHitBlock(BlockHitResult pResult) {
         super.onHitBlock(pResult);
-        ((ServerLevel) this.level).sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY(), this.getZ(), 2, 0.2D, 0.2D, 0.2D, 0.0D);
+        ((ServerLevel) this.level).sendParticles(ParticleTypes.EXPLOSION, this.sectorPosition(), 2, 0.2D, 0.2D, 0.2D, 0.0D);
         this.playSound(SoundEvents.SHULKER_BULLET_HIT, 1.0F, 1.0F);
     }
 
@@ -290,7 +290,7 @@ public class ShulkerBullet extends Projectile {
     public boolean hurt(DamageSource pSource, float pAmount) {
         if (!this.level.isClientSide) {
             this.playSound(SoundEvents.SHULKER_BULLET_HURT, 1.0F, 1.0F);
-            ((ServerLevel) this.level).sendParticles(ParticleTypes.CRIT, this.getX(), this.getY(), this.getZ(), 15, 0.2D, 0.2D, 0.2D, 0.0D);
+            ((ServerLevel) this.level).sendParticles(ParticleTypes.CRIT, this.sectorPosition(), 15, 0.2D, 0.2D, 0.2D, 0.0D);
             this.discard();
         }
 

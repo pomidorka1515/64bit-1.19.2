@@ -36,7 +36,7 @@ public class EndPortalBlock extends BaseEntityBlock {
     }
 
     public void entityInside(BlockState pState, Level pLevel, BlockPos pPos, Entity pEntity) {
-        if (pLevel instanceof ServerLevel && !pEntity.isPassenger() && !pEntity.isVehicle() && pEntity.canChangeDimensions() && Shapes.joinIsNotEmpty(Shapes.create(pEntity.getBoundingBox().move((double) (-pPos.getX()), (double) (-pPos.getY()), (double) (-pPos.getZ()))), pState.getShape(pLevel, pPos), BooleanOp.AND)) {
+        if (pLevel instanceof ServerLevel && !pEntity.isPassenger() && !pEntity.isVehicle() && pEntity.canChangeDimensions() && Shapes.joinIsNotEmpty(Shapes.create(pEntity.getSectorBoundingBox().toLocalAABB(new net.minecraft.world.phys.SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ()))), pState.getShape(pLevel, pPos), BooleanOp.AND)) {
             ResourceKey<Level> resourcekey = pLevel.dimension() == Level.END ? Level.OVERWORLD : Level.END;
             ServerLevel serverlevel = ((ServerLevel) pLevel).getServer().getLevel(resourcekey);
             if (serverlevel == null) {

@@ -318,46 +318,43 @@ public abstract class Player extends LivingEntity {
     }
 
     private void moveCloak() {
-        this.xCloakO = this.xCloak;
-        this.yCloakO = this.yCloak;
-        this.zCloakO = this.zCloak;
-        double d0 = this.getX() - this.xCloak;
-        double d1 = this.getY() - this.yCloak;
-        double d2 = this.getZ() - this.zCloak;
-        double d3 = 10.0D;
-        if (d0 > 10.0D) {
-            this.xCloak = this.getX();
-            this.xCloakO = this.xCloak;
-        }
+        this.moveExactCloak();
+        Vec3 old = this.exactCloakOld.toApproximateVec3();
+        Vec3 current = this.exactCloak.toApproximateVec3();
+        this.xCloakO = old.x;
+        this.yCloakO = old.y;
+        this.zCloakO = old.z;
+        this.xCloak = current.x;
+        this.yCloak = current.y;
+        this.zCloak = current.z;
+    }
 
-        if (d2 > 10.0D) {
-            this.zCloak = this.getZ();
-            this.zCloakO = this.zCloak;
-        }
+    private net.minecraft.world.phys.SectorVec3 exactCloak;
+    private net.minecraft.world.phys.SectorVec3 exactCloakOld;
 
-        if (d1 > 10.0D) {
-            this.yCloak = this.getY();
-            this.yCloakO = this.yCloak;
+    private void moveExactCloak() {
+        net.minecraft.world.phys.SectorVec3 position = this.sectorPosition();
+        if (this.exactCloak == null) {
+            this.exactCloak = position;
         }
+        this.exactCloakOld = this.exactCloak;
+        Vec3 delta = position.relativeTo(this.exactCloak);
+        double dx = Math.abs(delta.x) > 10.0D ? delta.x : 0.0D;
+        double dy = Math.abs(delta.y) > 10.0D ? delta.y : 0.0D;
+        double dz = Math.abs(delta.z) > 10.0D ? delta.z : 0.0D;
+        this.exactCloak = this.exactCloak.add(dx, dy, dz);
+        this.exactCloakOld = this.exactCloakOld.add(dx, dy, dz);
+        delta = position.relativeTo(this.exactCloak);
+        this.exactCloak = this.exactCloak.add(delta.x * 0.25D, delta.y * 0.25D, delta.z * 0.25D);
+    }
 
-        if (d0 < -10.0D) {
-            this.xCloak = this.getX();
-            this.xCloakO = this.xCloak;
+    public Vec3 getExactCloakOffset(float partialTick) {
+        if (this.exactCloak == null || this.exactCloakOld == null) {
+            return Vec3.ZERO;
         }
-
-        if (d2 < -10.0D) {
-            this.zCloak = this.getZ();
-            this.zCloakO = this.zCloak;
-        }
-
-        if (d1 < -10.0D) {
-            this.yCloak = this.getY();
-            this.yCloakO = this.yCloak;
-        }
-
-        this.xCloak += d0 * 0.25D;
-        this.zCloak += d2 * 0.25D;
-        this.yCloak += d1 * 0.25D;
+        Vec3 movement = this.exactCloak.relativeTo(this.exactCloakOld);
+        return this.exactCloakOld.add(movement.x * partialTick, movement.y * partialTick, movement.z * partialTick)
+                .relativeTo(this.interpolatedExactPosition(partialTick));
     }
 
     protected void updatePlayerPose() {

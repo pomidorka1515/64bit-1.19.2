@@ -25,7 +25,7 @@ public class LocationCheck implements LootItemCondition {
 
     public boolean test(LootContext p_81731_) {
         Vec3 vec3 = p_81731_.getParamOrNull(LootContextParams.ORIGIN);
-        return vec3 != null && this.predicate.matches(p_81731_.getLevel(), vec3.x() + (double) this.offset.getX(), vec3.y() + (double) this.offset.getY(), vec3.z() + (double) this.offset.getZ());
+        return vec3 != null && this.predicate.matches(p_81731_.getLevel(), net.minecraft.world.phys.ExactVec3.position(vec3).add((double) this.offset.getX(), (double) this.offset.getY(), (double) this.offset.getZ()));
     }
 
     public static LootItemCondition.Builder checkLocation(LocationPredicate.Builder pLocationPredicateBuilder) {

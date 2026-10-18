@@ -393,7 +393,7 @@ public abstract class AbstractArrow extends Projectile {
         this.lastState = this.level.getBlockState(pResult.getBlockPos());
         super.onHitBlock(pResult);
         SectorVec3 exactHit = pResult.getExactLocation();
-        Vec3 vec3 = exactHit == null ? pResult.getLocation().subtract(this.getX(), this.getY(), this.getZ())
+        Vec3 vec3 = exactHit == null ? net.minecraft.world.phys.ExactVec3.position(pResult.getLocation()).relativeTo(this.sectorPosition())
                                      : exactHit.relativeTo(this.sectorPosition());
         this.setDeltaMovement(vec3);
         Vec3 vec31 = vec3.normalize().scale((double) 0.05F);

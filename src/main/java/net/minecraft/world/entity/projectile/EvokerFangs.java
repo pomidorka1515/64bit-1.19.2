@@ -129,7 +129,7 @@ public class EvokerFangs extends Entity {
         if (pId == 4) {
             this.clientSideAttackStarted = true;
             if (!this.isSilent()) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.EVOKER_FANGS_ATTACK, this.getSoundSource(), 1.0F, this.random.nextFloat() * 0.2F + 0.85F, false);
+                this.level.playLocalSound(this.sectorPosition(), SoundEvents.EVOKER_FANGS_ATTACK, this.getSoundSource(), 1.0F, this.random.nextFloat() * 0.2F + 0.85F, false);
             }
         }
     }

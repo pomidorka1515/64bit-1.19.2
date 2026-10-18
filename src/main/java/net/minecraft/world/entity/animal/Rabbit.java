@@ -110,8 +110,8 @@ public class Rabbit extends Animal {
         if (!this.horizontalCollision && (!this.moveControl.hasWanted() || !(this.moveControl.getWantedY() > this.getY() + 0.5D))) {
             Path path = this.navigation.getPath();
             if (path != null && !path.isDone()) {
-                Vec3 vec3 = path.getNextEntityPos(this);
-                if (vec3.y > this.getY() + 0.5D) {
+                net.minecraft.world.phys.SectorVec3 vec3 = path.getNextExactEntityPos(this);
+                if (vec3.y() > this.getY() + 0.5D) {
                     return 0.5F;
                 }
             }

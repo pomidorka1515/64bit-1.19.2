@@ -815,8 +815,8 @@ public class ServerPlayer extends Player {
                     if (!this.isCreative()) {
                         double d0 = 8.0D;
                         double d1 = 5.0D;
-                        Vec3 vec3 = Vec3.atBottomCenterOf(pAt);
-                        List<Monster> list = this.level.getEntitiesOfClass(Monster.class, new AABB(vec3.x() - 8.0D, vec3.y() - 5.0D, vec3.z() - 8.0D, vec3.x() + 8.0D, vec3.y() + 5.0D, vec3.z() + 8.0D), (p_9062_) -> {
+                        SectorVec3 center = SectorVec3.fromBlockAndFraction(pAt.getX(), 0.5D, pAt.getY() - 5.0D, pAt.getZ(), 0.5D);
+                        List<Monster> list = this.level.getEntitiesOfClass(Monster.class, AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(center, 16.0D, 10.0D)), (p_9062_) -> {
                             return p_9062_.isPreventingPlayerRest(this);
                         });
                         if (!list.isEmpty()) {

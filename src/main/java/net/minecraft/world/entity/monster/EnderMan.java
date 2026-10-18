@@ -155,7 +155,7 @@ public class EnderMan extends Monster implements NeutralMob {
         if (this.tickCount >= this.lastStareSound + 400) {
             this.lastStareSound = this.tickCount;
             if (!this.isSilent()) {
-                this.level.playLocalSound(this.getX(), this.getEyeY(), this.getZ(), SoundEvents.ENDERMAN_STARE, this.getSoundSource(), 2.5F, 1.0F, false);
+                this.level.playLocalSound(this.exactEyePosition(), SoundEvents.ENDERMAN_STARE, this.getSoundSource(), 2.5F, 1.0F, false);
             }
         }
     }
@@ -283,7 +283,7 @@ public class EnderMan extends Monster implements NeutralMob {
             if (this.hasExactNoCollision() && !this.sectorContainsAnyLiquid(this.getSectorBoundingBox())) {
                 this.level.gameEvent(GameEvent.TELEPORT, before.toApproximateVec3(), GameEvent.Context.of(this));
                 if (!this.isSilent()) {
-                    this.level.playSound((Player) null, this.xo, this.yo, this.zo, SoundEvents.ENDERMAN_TELEPORT, this.getSoundSource(), 1.0F, 1.0F);
+                    this.level.playSound((Player) null, before, SoundEvents.ENDERMAN_TELEPORT, this.getSoundSource(), 1.0F, 1.0F);
                     this.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
                 }
 
@@ -295,10 +295,6 @@ public class EnderMan extends Monster implements NeutralMob {
         } else {
             return false;
         }
-    }
-
-    private boolean teleport(double pX, double pY, double pZ) {
-        return this.teleportExact(SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     protected SoundEvent getAmbientSound() {

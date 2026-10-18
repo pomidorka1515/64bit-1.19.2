@@ -288,25 +288,26 @@ public class FishingHook extends Projectile {
                 float f = this.fishAngle * ((float) Math.PI / 180F);
                 float f1 = Mth.sin(f);
                 float f2 = Mth.cos(f);
-                double d0 = this.getX() + (double) (f1 * (float) this.timeUntilHooked * 0.1F);
+                double d0 = (double) (f1 * (float) this.timeUntilHooked * 0.1F);
                 double d1 = (double) ((float) Mth.floor(this.getY()) + 1.0F);
-                double d2 = this.getZ() + (double) (f2 * (float) this.timeUntilHooked * 0.1F);
-                BlockState blockstate = serverlevel.getBlockState(new BlockPos(d0, d1 - 1.0D, d2));
+                double d2 = (double) (f2 * (float) this.timeUntilHooked * 0.1F);
+                net.minecraft.world.phys.SectorVec3 wake = this.sectorPosition().add(d0, 0.0D, d2).withY(d1);
+                BlockState blockstate = serverlevel.getBlockState(wake.add(0.0D, -1.0D, 0.0D).blockPosition());
                 if (blockstate.is(Blocks.WATER)) {
                     if (this.random.nextFloat() < 0.15F) {
-                        serverlevel.sendParticles(ParticleTypes.BUBBLE, d0, d1 - (double) 0.1F, d2, 1, (double) f1, 0.1D, (double) f2, 0.0D);
+                        serverlevel.sendParticles(ParticleTypes.BUBBLE, wake.add(0.0D, -(double) 0.1F, 0.0D), 1, (double) f1, 0.1D, (double) f2, 0.0D);
                     }
 
                     float f3 = f1 * 0.04F;
                     float f4 = f2 * 0.04F;
-                    serverlevel.sendParticles(ParticleTypes.FISHING, d0, d1, d2, 0, (double) f4, 0.01D, (double) (-f3), 1.0D);
-                    serverlevel.sendParticles(ParticleTypes.FISHING, d0, d1, d2, 0, (double) (-f4), 0.01D, (double) f3, 1.0D);
+                    serverlevel.sendParticles(ParticleTypes.FISHING, wake, 0, (double) f4, 0.01D, (double) (-f3), 1.0D);
+                    serverlevel.sendParticles(ParticleTypes.FISHING, wake, 0, (double) (-f4), 0.01D, (double) f3, 1.0D);
                 }
             } else {
                 this.playSound(SoundEvents.FISHING_BOBBER_SPLASH, 0.25F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.4F);
                 double d3 = this.getY() + 0.5D;
-                serverlevel.sendParticles(ParticleTypes.BUBBLE, this.getX(), d3, this.getZ(), (int) (1.0F + this.getBbWidth() * 20.0F), (double) this.getBbWidth(), 0.0D, (double) this.getBbWidth(), (double) 0.2F);
-                serverlevel.sendParticles(ParticleTypes.FISHING, this.getX(), d3, this.getZ(), (int) (1.0F + this.getBbWidth() * 20.0F), (double) this.getBbWidth(), 0.0D, (double) this.getBbWidth(), (double) 0.2F);
+                serverlevel.sendParticles(ParticleTypes.BUBBLE, this.sectorPosition().withY(d3), (int) (1.0F + this.getBbWidth() * 20.0F), (double) this.getBbWidth(), 0.0D, (double) this.getBbWidth(), (double) 0.2F);
+                serverlevel.sendParticles(ParticleTypes.FISHING, this.sectorPosition().withY(d3), (int) (1.0F + this.getBbWidth() * 20.0F), (double) this.getBbWidth(), 0.0D, (double) this.getBbWidth(), (double) 0.2F);
                 this.nibble = Mth.nextInt(this.random, 20, 40);
                 this.getEntityData().set(DATA_BITING, true);
             }
@@ -324,12 +325,13 @@ public class FishingHook extends Projectile {
             if (this.random.nextFloat() < f5) {
                 float f6 = Mth.nextFloat(this.random, 0.0F, 360.0F) * ((float) Math.PI / 180F);
                 float f7 = Mth.nextFloat(this.random, 25.0F, 60.0F);
-                double d4 = this.getX() + (double) (Mth.sin(f6) * f7) * 0.1D;
+                double d4 = (double) (Mth.sin(f6) * f7) * 0.1D;
                 double d5 = (double) ((float) Mth.floor(this.getY()) + 1.0F);
-                double d6 = this.getZ() + (double) (Mth.cos(f6) * f7) * 0.1D;
-                BlockState blockstate1 = serverlevel.getBlockState(new BlockPos(d4, d5 - 1.0D, d6));
+                double d6 = (double) (Mth.cos(f6) * f7) * 0.1D;
+                net.minecraft.world.phys.SectorVec3 splash = this.sectorPosition().add(d4, 0.0D, d6).withY(d5);
+                BlockState blockstate1 = serverlevel.getBlockState(splash.add(0.0D, -1.0D, 0.0D).blockPosition());
                 if (blockstate1.is(Blocks.WATER)) {
-                    serverlevel.sendParticles(ParticleTypes.SPLASH, d4, d5, d6, 2 + this.random.nextInt(2), (double) 0.1F, 0.0D, (double) 0.1F, 0.0D);
+                    serverlevel.sendParticles(ParticleTypes.SPLASH, splash, 2 + this.random.nextInt(2), (double) 0.1F, 0.0D, (double) 0.1F, 0.0D);
                 }
             }
 
@@ -405,7 +407,7 @@ public class FishingHook extends Projectile {
                 this.level.broadcastEntityEvent(this, (byte) 31);
                 i = this.hookedIn instanceof ItemEntity ? 3 : 5;
             } else if (this.nibble > 0) {
-                LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.level)).withParameter(LootContextParams.ORIGIN, this.position()).withParameter(LootContextParams.TOOL, pStack).withParameter(LootContextParams.THIS_ENTITY, this).withRandom(this.random).withLuck((float) this.luck + player.getLuck());
+                LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.level)).withParameter(LootContextParams.ORIGIN, new net.minecraft.world.phys.ExactVec3(this.sectorPosition())).withParameter(LootContextParams.TOOL, pStack).withParameter(LootContextParams.THIS_ENTITY, this).withRandom(this.random).withLuck((float) this.luck + player.getLuck());
                 LootTable loottable = this.level.getServer().getLootTables().get(BuiltInLootTables.FISHING);
                 List<ItemStack> list = loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.FISHING));
                 CriteriaTriggers.FISHING_ROD_HOOKED.trigger((ServerPlayer) player, pStack, this, list);

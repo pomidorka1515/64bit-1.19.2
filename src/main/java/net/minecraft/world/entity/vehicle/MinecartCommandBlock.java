@@ -108,7 +108,7 @@ public class MinecartCommandBlock extends AbstractMinecart {
         }
 
         public Vec3 getPosition() {
-            return MinecartCommandBlock.this.position();
+            return new net.minecraft.world.phys.ExactVec3(MinecartCommandBlock.this.sectorPosition());
         }
 
         public MinecartCommandBlock getMinecart() {
@@ -116,7 +116,7 @@ public class MinecartCommandBlock extends AbstractMinecart {
         }
 
         public CommandSourceStack createCommandSourceStack() {
-            return new CommandSourceStack(this, MinecartCommandBlock.this.position(), MinecartCommandBlock.this.getRotationVector(), this.getLevel(), 2, this.getName().getString(), MinecartCommandBlock.this.getDisplayName(), this.getLevel().getServer(), MinecartCommandBlock.this);
+            return new CommandSourceStack(this, MinecartCommandBlock.this.position(), MinecartCommandBlock.this.getRotationVector(), this.getLevel(), 2, this.getName().getString(), MinecartCommandBlock.this.getDisplayName(), this.getLevel().getServer(), MinecartCommandBlock.this).withExactPosition(MinecartCommandBlock.this.sectorPosition());
         }
     }
 }

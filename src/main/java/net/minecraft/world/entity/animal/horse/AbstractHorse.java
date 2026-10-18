@@ -238,7 +238,7 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
         if (!this.isSilent()) {
             SoundEvent soundevent = this.getEatingSound();
             if (soundevent != null) {
-                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), soundevent, this.getSoundSource(), 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F);
+                this.level.playSound((Player) null, this.sectorPosition(), soundevent, this.getSoundSource(), 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F);
             }
         }
     }
@@ -960,42 +960,6 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
         return null;
     }
 
-    @Nullable
-    private Vec3 getDismountLocationInDirection(Vec3 pDirection, LivingEntity pPassenger) {
-        double d0 = this.getX() + pDirection.x;
-        double d1 = this.getBoundingBox().minY;
-        double d2 = this.getZ() + pDirection.z;
-        BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-
-        for (Pose pose : pPassenger.getDismountPoses()) {
-            blockpos$mutableblockpos.set(d0, d1, d2);
-            double d3 = this.getBoundingBox().maxY + 0.75D;
-
-            while (true) {
-                double d4 = this.level.getBlockFloorHeight(blockpos$mutableblockpos);
-                if ((double) blockpos$mutableblockpos.getY() + d4 > d3) {
-                    break;
-                }
-
-                if (DismountHelper.isBlockFloorValid(d4)) {
-                    AABB aabb = pPassenger.getLocalBoundsForPose(pose);
-                    Vec3 vec3 = new Vec3(d0, (double) blockpos$mutableblockpos.getY() + d4, d2);
-                    if (DismountHelper.canDismountTo(this.level, pPassenger, aabb.move(vec3))) {
-                        pPassenger.setPose(pose);
-                        return vec3;
-                    }
-                }
-
-                blockpos$mutableblockpos.move(Direction.UP);
-                if (!((double) blockpos$mutableblockpos.getY() < d3)) {
-                    break;
-                }
-            }
-        }
-
-        return null;
-    }
-
     /** Exact variant: horizontal escape offsets are applied in split-coordinate space. */
     @Nullable
     private SectorVec3 getExactDismountLocationInDirection(Vec3 escape, LivingEntity passenger) {
@@ -1041,15 +1005,7 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
     }
 
     public Vec3 getDismountLocationForPassenger(LivingEntity pLivingEntity) {
-        Vec3 vec3 = getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) pLivingEntity.getBbWidth(), this.getYRot() + (pLivingEntity.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F));
-        Vec3 vec31 = this.getDismountLocationInDirection(vec3, pLivingEntity);
-        if (vec31 != null) {
-            return vec31;
-        } else {
-            Vec3 vec32 = getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) pLivingEntity.getBbWidth(), this.getYRot() + (pLivingEntity.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F));
-            Vec3 vec33 = this.getDismountLocationInDirection(vec32, pLivingEntity);
-            return vec33 != null ? vec33 : this.position();
-        }
+        return new net.minecraft.world.phys.ExactVec3(this.getExactDismountLocationForPassenger(pLivingEntity));
     }
 
     /** Exact split-coordinate horse dismount target. */

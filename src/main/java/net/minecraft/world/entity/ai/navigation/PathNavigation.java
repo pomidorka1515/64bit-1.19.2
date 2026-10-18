@@ -381,8 +381,10 @@ public abstract class PathNavigation {
     }
 
     protected static boolean isClearForMovementBetween(Mob p_217804_, Vec3 p_217805_, Vec3 p_217806_) {
-        Vec3 vec3 = new Vec3(p_217806_.x, p_217806_.y + (double) p_217804_.getBbHeight() * 0.5D, p_217806_.z);
-        return p_217804_.level.clip(new ClipContext(p_217805_, vec3, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, p_217804_)).getType() == HitResult.Type.MISS;
+        return net.minecraft.world.level.SectorClipper.clip(p_217804_.level,
+                net.minecraft.world.phys.ExactVec3.position(p_217805_),
+                net.minecraft.world.phys.ExactVec3.position(p_217806_).add(0.0D, p_217804_.getBbHeight() * 0.5D, 0.0D),
+                p_217804_, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE).getType() == HitResult.Type.MISS;
     }
 
     public boolean isStableDestination(BlockPos pPos) {

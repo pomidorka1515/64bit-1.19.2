@@ -340,30 +340,6 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
         this.bossEvent.removePlayer(pPlayer);
     }
 
-    private double getHeadX(int pHead) {
-        if (pHead <= 0) {
-            return this.getX();
-        } else {
-            float f = (this.yBodyRot + (float) (180 * (pHead - 1))) * ((float) Math.PI / 180F);
-            float f1 = Mth.cos(f);
-            return this.getX() + (double) f1 * 1.3D;
-        }
-    }
-
-    private double getHeadY(int pHead) {
-        return pHead <= 0 ? this.getY() + 3.0D : this.getY() + 2.2D;
-    }
-
-    private double getHeadZ(int pHead) {
-        if (pHead <= 0) {
-            return this.getZ();
-        } else {
-            float f = (this.yBodyRot + (float) (180 * (pHead - 1))) * ((float) Math.PI / 180F);
-            float f1 = Mth.sin(f);
-            return this.getZ() + (double) f1 * 1.3D;
-        }
-    }
-
     private float rotlerp(float p_31443_, float p_31444_, float p_31445_) {
         float f = Mth.wrapDegrees(p_31444_ - p_31443_);
         if (f > p_31445_) {
@@ -379,10 +355,6 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
 
     private void performRangedAttack(int pHead, LivingEntity pTarget) {
         this.performRangedAttack(pHead, pTarget.sectorPosition().add(0.0D, (double) pTarget.getEyeHeight() * 0.5D, 0.0D), pHead == 0 && this.random.nextFloat() < 0.001F);
-    }
-
-    private void performRangedAttack(int pHead, double pX, double pY, double pZ, boolean pIsDangerous) {
-        this.performRangedAttack(pHead, SectorVec3.fromApproximate(pX, pY, pZ), pIsDangerous);
     }
 
     private void performRangedAttack(int pHead, SectorVec3 target, boolean pIsDangerous) {

@@ -12,7 +12,7 @@ public class DragonSittingAttackingPhase extends AbstractDragonSittingPhase {
     }
 
     public void doClientTick() {
-        this.dragon.level.playLocalSound(this.dragon.getX(), this.dragon.getY(), this.dragon.getZ(), SoundEvents.ENDER_DRAGON_GROWL, this.dragon.getSoundSource(), 2.5F, 0.8F + this.dragon.getRandom().nextFloat() * 0.3F, false);
+        this.dragon.level.playLocalSound(this.dragon.sectorPosition(), SoundEvents.ENDER_DRAGON_GROWL, this.dragon.getSoundSource(), 2.5F, 0.8F + this.dragon.getRandom().nextFloat() * 0.3F, false);
     }
 
     public void doServerTick() {

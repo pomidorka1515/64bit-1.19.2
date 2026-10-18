@@ -219,7 +219,7 @@ public class Parrot extends ShoulderRidingEntity implements FlyingAnimal {
                 Mob mob = list.get(pLevel.random.nextInt(list.size()));
                 if (!mob.isSilent()) {
                     SoundEvent soundevent = getImitatedSound(mob.getType());
-                    pLevel.playSound((Player) null, pParrot.getX(), pParrot.getY(), pParrot.getZ(), soundevent, pParrot.getSoundSource(), 0.7F, getPitch(pLevel.random));
+                    pLevel.playSound((Player) null, pParrot.sectorPosition(), soundevent, pParrot.getSoundSource(), 0.7F, getPitch(pLevel.random));
                     return true;
                 }
             }
@@ -238,7 +238,7 @@ public class Parrot extends ShoulderRidingEntity implements FlyingAnimal {
             }
 
             if (!this.isSilent()) {
-                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PARROT_EAT, this.getSoundSource(), 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F);
+                this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PARROT_EAT, this.getSoundSource(), 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F);
             }
 
             if (!this.level.isClientSide) {

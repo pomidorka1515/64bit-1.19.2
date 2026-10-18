@@ -190,7 +190,7 @@ public class Guardian extends Monster {
                     this.clientSideTailAnimationSpeed = 2.0F;
                     Vec3 vec3 = this.getDeltaMovement();
                     if (vec3.y > 0.0D && this.clientSideTouchedGround && !this.isSilent()) {
-                        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), this.getFlopSound(), this.getSoundSource(), 1.0F, 1.0F, false);
+                        this.level.playLocalSound(this.sectorPosition(), this.getFlopSound(), this.getSoundSource(), 1.0F, 1.0F, false);
                     }
 
                     this.clientSideTouchedGround = vec3.y < 0.0D && this.level.loadedAndEntityCanStandOn(this.blockPosition().below(), this);

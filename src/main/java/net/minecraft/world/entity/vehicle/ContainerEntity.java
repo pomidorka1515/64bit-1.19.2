@@ -109,7 +109,7 @@ public interface ContainerEntity extends Container, MenuProvider {
             }
 
             this.setLootTable((ResourceLocation) null);
-            LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.getLevel())).withParameter(LootContextParams.ORIGIN, this.position()).withOptionalRandomSeed(this.getLootTableSeed());
+            LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) this.getLevel())).withParameter(LootContextParams.ORIGIN, new net.minecraft.world.phys.ExactVec3(((net.minecraft.world.entity.Entity) this).sectorPosition())).withOptionalRandomSeed(this.getLootTableSeed());
             if (pPlayer != null) {
                 lootcontext$builder.withLuck(pPlayer.getLuck()).withParameter(LootContextParams.THIS_ENTITY, pPlayer);
             }

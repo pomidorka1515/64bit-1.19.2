@@ -179,7 +179,7 @@ public class ZombieVillager extends Zombie implements VillagerDataHolder {
     public void handleEntityEvent(byte pId) {
         if (pId == 16) {
             if (!this.isSilent()) {
-                this.level.playLocalSound(this.getX(), this.getEyeY(), this.getZ(), SoundEvents.ZOMBIE_VILLAGER_CURE, this.getSoundSource(), 1.0F + this.random.nextFloat(), this.random.nextFloat() * 0.7F + 0.3F, false);
+                this.level.playLocalSound(this.exactEyePosition(), SoundEvents.ZOMBIE_VILLAGER_CURE, this.getSoundSource(), 1.0F + this.random.nextFloat(), this.random.nextFloat() * 0.7F + 0.3F, false);
             }
 
         } else {

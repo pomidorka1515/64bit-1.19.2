@@ -1,4 +1,5 @@
 package net.minecraft.world.entity.boss.enderdragon;
+import net.minecraft.world.phys.SectorVec3;
 
 import com.google.common.collect.Lists;
 import com.mojang.logging.LogUtils;
@@ -196,14 +197,15 @@ public class EnderDragon extends Mob implements Enemy {
                 this.positions[this.posPointer][1] = this.getY();
                 if (this.level.isClientSide) {
                     if (this.lerpSteps > 0) {
-                        double d6 = this.getX() + (this.lerpX - this.getX()) / (double) this.lerpSteps;
-                        double d0 = this.getY() + (this.lerpY - this.getY()) / (double) this.lerpSteps;
-                        double d1 = this.getZ() + (this.lerpZ - this.getZ()) / (double) this.lerpSteps;
+                        SectorVec3 target = this.exactLerpTarget != null ? this.exactLerpTarget
+                                : SectorVec3.fromApproximate(this.lerpX, this.lerpY, this.lerpZ);
+                        SectorVec3 interpolated = this.sectorPosition().lerpTo(target, 1.0D / (double) this.lerpSteps);
                         double d2 = Mth.wrapDegrees(this.lerpYRot - (double) this.getYRot());
                         this.setYRot(this.getYRot() + (float) d2 / (float) this.lerpSteps);
                         this.setXRot(this.getXRot() + (float) (this.lerpXRot - (double) this.getXRot()) / (float) this.lerpSteps);
                         --this.lerpSteps;
-                        this.setPos(d6, d0, d1);
+                        this.applyExactPosition(interpolated);
+                        if (this.lerpSteps == 0) this.exactLerpTarget = null;
                         this.setRot(this.getYRot(), this.getXRot());
                     }
 
@@ -257,10 +259,10 @@ public class EnderDragon extends Mob implements Enemy {
                 }
 
                 this.yBodyRot = this.getYRot();
-                Vec3[] avec3 = new Vec3[this.subEntities.length];
+                SectorVec3[] avec3 = new SectorVec3[this.subEntities.length];
 
                 for (int j = 0; j < this.subEntities.length; ++j) {
-                    avec3[j] = new Vec3(this.subEntities[j].getX(), this.subEntities[j].getY(), this.subEntities[j].getZ());
+                    avec3[j] = this.subEntities[j].sectorPosition();
                 }
 
                 float f12 = (float) (this.getLatencyPos(5, 1.0F)[1] - this.getLatencyPos(10, 1.0F)[1]) * 10.0F * ((float) Math.PI / 180F);
@@ -317,12 +319,7 @@ public class EnderDragon extends Mob implements Enemy {
                 }
 
                 for (int l = 0; l < this.subEntities.length; ++l) {
-                    this.subEntities[l].xo = avec3[l].x;
-                    this.subEntities[l].yo = avec3[l].y;
-                    this.subEntities[l].zo = avec3[l].z;
-                    this.subEntities[l].xOld = avec3[l].x;
-                    this.subEntities[l].yOld = avec3[l].y;
-                    this.subEntities[l].zOld = avec3[l].z;
+                    this.subEntities[l].setOldExactPosition(avec3[l]);
                 }
             }
         }

@@ -1,4 +1,5 @@
 package net.minecraft.world.entity.monster;
+import net.minecraft.world.level.WorldBounds;
 
 import net.minecraft.world.phys.SectorAABB;
 
@@ -512,9 +513,9 @@ public class Shulker extends AbstractGolem implements Enemy {
             double d0 = (double) ((float) this.clientSideTeleportInterpolation - pPartial) / 6.0D;
             d0 *= d0;
             BlockPos blockpos = this.blockPosition();
-            double d1 = (double) (blockpos.getX() - this.clientOldAttachPosition.getX()) * d0;
+            double d1 = WorldBounds.signedDifference(blockpos.getX(), this.clientOldAttachPosition.getX()) * d0;
             double d2 = (double) (blockpos.getY() - this.clientOldAttachPosition.getY()) * d0;
-            double d3 = (double) (blockpos.getZ() - this.clientOldAttachPosition.getZ()) * d0;
+            double d3 = WorldBounds.signedDifference(blockpos.getZ(), this.clientOldAttachPosition.getZ()) * d0;
             return Optional.of(new Vec3(-d1, -d2, -d3));
         } else {
             return Optional.empty();

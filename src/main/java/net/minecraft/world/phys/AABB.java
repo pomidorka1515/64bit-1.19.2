@@ -89,27 +89,57 @@ public class AABB {
     }
 
     public AABB setMinX(double pMinX) {
+        if (this.sectorBounds != null) return this.withExactEndpoint(0, pMinX);
         return new AABB(pMinX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
     }
 
     public AABB setMinY(double pMinY) {
+        if (this.sectorBounds != null) return this.withExactEndpoint(1, pMinY);
         return new AABB(this.minX, pMinY, this.minZ, this.maxX, this.maxY, this.maxZ);
     }
 
     public AABB setMinZ(double pMinZ) {
+        if (this.sectorBounds != null) return this.withExactEndpoint(2, pMinZ);
         return new AABB(this.minX, this.minY, pMinZ, this.maxX, this.maxY, this.maxZ);
     }
 
     public AABB setMaxX(double pMaxX) {
+        if (this.sectorBounds != null) return this.withExactEndpoint(3, pMaxX);
         return new AABB(this.minX, this.minY, this.minZ, pMaxX, this.maxY, this.maxZ);
     }
 
     public AABB setMaxY(double pMaxY) {
+        if (this.sectorBounds != null) return this.withExactEndpoint(4, pMaxY);
         return new AABB(this.minX, this.minY, this.minZ, this.maxX, pMaxY, this.maxZ);
     }
 
     public AABB setMaxZ(double pMaxZ) {
+        if (this.sectorBounds != null) return this.withExactEndpoint(5, pMaxZ);
         return new AABB(this.minX, this.minY, this.minZ, this.maxX, this.maxY, pMaxZ);
+    }
+
+    private AABB withExactEndpoint(int endpoint, double value) {
+        SectorAABB b = this.sectorBounds;
+        double previous = switch (endpoint) {
+            case 0 -> this.minX;
+            case 1 -> this.minY;
+            case 2 -> this.minZ;
+            case 3 -> this.maxX;
+            case 4 -> this.maxY;
+            default -> this.maxZ;
+        };
+        if (value == previous) return this;
+        SectorVec3 replacement = SectorVec3.fromApproximate(
+                endpoint == 0 || endpoint == 3 ? value : 0.0D,
+                endpoint == 1 || endpoint == 4 ? value : 0.0D,
+                endpoint == 2 || endpoint == 5 ? value : 0.0D);
+        return fromSectorBounds(new SectorAABB(
+                endpoint == 0 ? replacement.blockX() : b.minBlockX(), endpoint == 0 ? replacement.subX() : b.minSubX(),
+                endpoint == 1 ? value : b.minY(),
+                endpoint == 2 ? replacement.blockZ() : b.minBlockZ(), endpoint == 2 ? replacement.subZ() : b.minSubZ(),
+                endpoint == 3 ? replacement.blockX() : b.maxBlockX(), endpoint == 3 ? replacement.subX() : b.maxSubX(),
+                endpoint == 4 ? value : b.maxY(),
+                endpoint == 5 ? replacement.blockZ() : b.maxBlockZ(), endpoint == 5 ? replacement.subZ() : b.maxSubZ()));
     }
 
     public double min(Direction.Axis pAxis) {

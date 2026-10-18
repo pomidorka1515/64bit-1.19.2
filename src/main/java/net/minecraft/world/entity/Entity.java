@@ -393,6 +393,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public final void setPos(Vec3 pPos) {
+        if (pPos instanceof net.minecraft.world.phys.ExactVec3) {
+            this.applyExactPosition(net.minecraft.world.phys.ExactVec3.position(pPos));
+            return;
+        }
         this.setPos(pPos.x(), pPos.y(), pPos.z());
     }
 
@@ -1675,6 +1679,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public void moveTo(Vec3 pVec) {
+        if (pVec instanceof net.minecraft.world.phys.ExactVec3) {
+            this.moveTo(net.minecraft.world.phys.ExactVec3.position(pVec), this.getYRot(), this.getXRot());
+            return;
+        }
         this.moveTo(pVec.x, pVec.y, pVec.z);
     }
 

@@ -7,6 +7,30 @@ import org.junit.jupiter.api.Test;
 
 class SectorAABBTest {
     @Test
+    void compatibilitySettersPreserveUntouchedHugeEndpoints() {
+        long huge = 1L << 60;
+        AABB box = AABB.fromSectorBounds(new SectorAABB(huge, 0.25D, 64.0D, -huge, 0.5D,
+                huge + 1, 0.75D, 66.0D, -huge + 1, 0.875D));
+        SectorAABB changed = box.setMinY(63.0D).setMaxY(67.0D)
+                .setMinX(box.minX).setMaxX(box.maxX)
+                .setMinZ(box.minZ).setMaxZ(box.maxZ).getSectorBounds();
+        assertEquals(huge, changed.minBlockX());
+        assertEquals(0.25D, changed.minSubX());
+        assertEquals(huge + 1, changed.maxBlockX());
+        assertEquals(0.75D, changed.maxSubX());
+        assertEquals(-huge, changed.minBlockZ());
+        assertEquals(0.5D, changed.minSubZ());
+        assertEquals(-huge + 1, changed.maxBlockZ());
+        assertEquals(0.875D, changed.maxSubZ());
+        assertEquals(63.0D, changed.minY());
+        assertEquals(67.0D, changed.maxY());
+        SectorAABB replaced = box.setMinX((double) huge - 256.0D).getSectorBounds();
+        assertEquals(huge - 256, replaced.minBlockX());
+        assertEquals(0.75D, replaced.maxSubX());
+        assertEquals(0.5D, replaced.minSubZ());
+    }
+
+    @Test
     void blockFactoriesAndMergesRetainHugeExactBounds() {
         long huge = 1L << 60;
         AABB first = new AABB(new net.minecraft.core.BlockPos(huge, 64, -huge));

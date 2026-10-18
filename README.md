@@ -99,7 +99,7 @@ Vanilla's `int` positions and `double` physics were not patched in one place. Th
 
 ## Playing this
 
-- Download the jar from the [latest release](https://git.pomi.site/pomi/64bit-1.19.2/releases).
+- Download the jar from the [latest release](https://github.com/pomidorka1515/64bit-1.19.2/releases).
 - Install [Prism Launcher](https://prismlauncher.org) if you do not have it.
 - Create a **vanilla** 1.19.2 instance.
 - Open its settings, then Version.
@@ -135,8 +135,6 @@ On first launch, review `eula.txt` and set `eula=true` if you agree to the Minec
 
 If new terrain takes a long time to load and then arrives in a burst, set `sync-chunk-writes=false` in `server.properties` and restart the server. The dedicated server defaults to synchronous region-file writes, which can hold up chunk generation on slower storage. The internal server defaults to asynchronous writes on Linux. Asynchronous writes improve throughput but can lose recent saves if the OS crashes or power is lost.
 
-The only real source is [the Forgejo repo](https://git.pomi.site/pomi/64bit-1.19.2). GitHub is a read-only mirror.
-
 ## Original mod history
 
 Backport status of mckuhei's releases. `[+]` is in this fork. `[+/-]` was only partly fixed upstream and is rewritten here.
@@ -161,6 +159,6 @@ Backport status of mckuhei's releases. `[+]` is in this fork. `[+/-]` was only p
 =================
 1.0.4:
        Fix game stuck at "Saving level..." screen. [+]
-       Fix cannot interact with entity. [+/-]
+       Fix cannot interact with entity. [+]
 =================
 ```

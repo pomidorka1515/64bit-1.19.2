@@ -31,6 +31,28 @@ class BlendedNoisePrecisionTest {
     }
 
     @Test
+    void preciseSamplingCapturesF3DiagnosticsWithoutChangingDensity() {
+        BlendedNoise noise = netherNoise();
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+        for (long coordinate : new long[] {1L << 50, -(1L << 50), Long.MAX_VALUE, Long.MIN_VALUE}) {
+            DensityFunction.FunctionContext context = new DensityFunction.SinglePointContext(coordinate, 64, coordinate);
+            double expected = noise.compute(context);
+            BlendedNoise.beginDebugCapture();
+            ImprovedNoise.beginDebugCapture();
+            try {
+                assertEquals(expected, noise.compute(context));
+                for (String line : new String[] {BlendedNoise.getDebugString(), BlendedNoise.getDebugString2(),
+                        ImprovedNoise.getDebugString(), ImprovedNoise.getDebugString2()}) {
+                    assertTrue(!line.contains("NaN") && !line.contains("Not evaluated"), line);
+                }
+            } finally {
+                ImprovedNoise.endDebugCapture();
+                BlendedNoise.endDebugCapture();
+            }
+        }
+    }
+
+    @Test
     void scaledNetherCoordinatesUsePreciseSamplingBeforeBlockPrecisionLimit() throws Exception {
         BlendedNoise noise = netherNoise();
         Method precise = BlendedNoise.class.getDeclaredMethod("computePrecise", DensityFunction.FunctionContext.class);

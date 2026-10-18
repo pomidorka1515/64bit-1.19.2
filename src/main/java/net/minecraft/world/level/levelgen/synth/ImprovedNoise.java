@@ -95,6 +95,12 @@ public final class ImprovedNoise {
         double fx = x - Math.floor(x);
         double fy = y - Math.floor(y);
         double fz = z - Math.floor(z);
+        if (Thread.currentThread() == debugCaptureThread) {
+            debugSamplePoint = (double) xCell + fx;
+            debugGridIndex = xCell;
+            debugCellOffset = fx;
+            debugSmoothedOffset = Mth.smoothstep(fx);
+        }
         double smear = 0.0D;
         if (smearScale != 0.0D) {
             double smearInput = smearOffset >= 0.0D && smearOffset < fy ? smearOffset : fy;

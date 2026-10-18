@@ -208,7 +208,17 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
             octave /= 2.0D;
         }
 
-        return Mth.clampedLerp(min / 512.0D, max / 512.0D, selectorLerp) / 128.0D;
+        double density = Mth.clampedLerp(min / 512.0D, max / 512.0D, selectorLerp) / 128.0D;
+        if (Thread.currentThread() == debugCaptureThread) {
+            PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
+            PreciseNoiseCoordinate.scale(context.blockX(), this.xzMultiplier, scratch);
+            debugScaledX = (double) scratch.lattice + scratch.fraction;
+            debugSelectorLerp = selectorLerp;
+            debugMinLimit = min / 512.0D;
+            debugMaxLimit = max / 512.0D;
+            debugBlendedDensity = density;
+        }
+        return density;
     }
 
     public static void beginDebugCapture() {

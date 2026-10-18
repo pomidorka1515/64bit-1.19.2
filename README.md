@@ -1,143 +1,144 @@
-# 64-bit Minecraft. It's real!
+# 64-bit minecraft
 
-A playable Minecraft 1.19.2 where horizontal coordinates are `long`, not `int` or a lossy `double`. 
-The world border is gone. X/Z run to the ends of a signed 64-bit integer, and movement, collision, rendering, sound, and terrain no longer fall apart once doubles stop being able to count whole blocks.
+a playable minecraft 1.19.2 where horizontal coordinates are `long`, not `int` and not a lossy `double`.
 
-The original, incomplete mod was made by mckuhei. Their sites are now down. The pre-fork code is commit `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af`. That version does not really run. Use this fork.
+the world border is gone. X/Z run to the very ends of a signed 64-bit integer, and movement, collision, rendering, sound and terrain gen keep working long after doubles stop being able to count whole blocks.
 
-## Key features
+the original unfinished mod was written by mckuhei, whose sites are dead now. code before the fork is commit `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af` (it barely works)
 
-- **A world the size of a `long`.** Block X/Z go from `Long.MIN_VALUE` to `Long.MAX_VALUE`. Y stays the normal build height. Chunk and region math saturates instead of wrapping to the opposite edge.
-- **Exact positions past the double limit.** `SectorVec3` stores X/Z as a block coordinate plus a fraction in `[0, 1)`. Physics never subtracts two huge world doubles.
-- **Collision that still works out there.** Movement is solved in a small local frame, then applied back to the exact position. This includes the last representable block, not just "pretty far".
-- **Every entity and block entity is exact.** Players, mobs, vehicles, projectiles, and block entities keep a real position. Spawn, AI, pathfinding, riding, and dismount use that position.
-- **Camera-relative client.** Terrain, block entities, particles, explosions, the sky, clouds, and audio are drawn and heard relative to the camera, so the view does not jitter into noise.
-- **Five terrain modes, saved with the world.** `/farlands` switches them. Confirm with `/farlands confirm`.
-  - `32bit` — original mod behavior. Far Lands at 12,550,824.
-  - `32bit-hybrid` — those classic Far Lands, but the noise router, caves, aquifers, and ores use 64-bit math.
-  - `64bit` — 64-bit generator. Far Lands show up where double noise loses integer steps, around 2^53.
-  - `off` — same 64-bit generator with the Far Lands patched out.
+## highlights
+
+- a world the size of a `long`. block X/Z span `Long.MIN_VALUE` to `Long.MAX_VALUE`, Y keeps the usual build height. chunk and region math saturates instead of wrapping around to the far side of the world.
+- positions stay lossless past the double limit. `SectorVec3` keeps X/Z as a block coordinate plus a fraction in `[0, 1)`, so physics never subtracts two gigantic world doubles.
+- collision still works out there. movement gets solved in a tiny local frame, then applied back to the real position — including on the last representable block, not just "pretty far out".
+- every entity and block entity keeps a true position: players, mobs, vehicles, projectiles, all of them. spawning, AI, pathfinding, riding and dismounting use it.
+- camera-relative client. terrain, block entities, particles, explosions, sky, clouds and audio are drawn and heard relative to the camera, so the view doesn't dissolve into jitter.
+- five terrain modes, stored with the world. `/farlands` switches them, `/farlands confirm` applies.
+  - `32bit` — how the original mod behaved. far lands at 12,550,824.
+  - `32bit-hybrid` — the classic far lands, but the noise router, caves, aquifers and ores run on 64-bit math.
+  - `64bit` — 64-bit generator. far lands show up where double noise loses integer steps, around 2^53.
+  - `off` — same generator with the far lands patched out.
   - `64bit-precise` — like `off`, but noise keeps an exact lattice past the 53-bit double limit.
-- **End rings are optional.** `/endrings` turns the outer End rings on or off. Disabling asks for `/endrings confirm`.
-- **Debug that tells the truth at range.** F3 shows precision, separates block and region coordinates, and prints the generator mode. `/wraprouter` dumps NoiseRouter overflow. `/frustum` toggles frustum culling when the cull is wrong.
+- outer end rings are optional. `/endrings` flips them on or off; turning them off asks for `/endrings confirm`.
+- debug that isn't lying to you at range. F3 shows precision, splits block vs region coords, and prints the generator mode. `/wraprouter` dumps NoiseRouter overflow. `/frustum` toggles frustum culling when the cull turns out wrong.
 
-## What was rewritten
+## what got redone
 
-Vanilla's `int` positions and `double` physics were not patched in one place. These systems were replaced or rewritten so they never build a huge world X/Z double.
+vanilla's `int` positions and `double` physics couldn't be patched in one spot. these systems were swapped out or rebuilt so a huge world X/Z double never gets built in the first place.
 
-### Coordinates and world limits
+### coords and world limits
 
-- `Vec3i`, `BlockPos`, `ChunkPos`, and `SectionPos`: X/Z are `long`. Y stays `int`.
-- `WorldBounds`: one set of block, chunk, and region limits, with saturating add/multiply so an edge request cannot overflow into the other side of the world.
-- Chunk tickets, chunk cache, region-file indexing, and "chunk out of bounds" handling.
-- The world border. It is removed, not pushed outward.
-- Level save/load. Exact positions are stored as split coordinates. They used to be written back out of the lossy doubles.
+- `Vec3i`, `BlockPos`, `ChunkPos`, `SectionPos`: X/Z are `long`, Y stays `int`.
+- `WorldBounds`: one set of block, chunk and region limits, with saturating add/multiply so an edge request can't overflow into the other side of the world.
+- chunk tickets, chunk cache, region-file indexing, "chunk out of bounds" handling.
+- the world border — removed, not just pushed further out.
+- level save/load. true positions are stored as split coordinates; they used to be written back from the lossy doubles.
 
-### Movement and collision
+### movement and collision
 
-- `SectorVec3`, `SectorAABB`, and `SectorPhysicsOrigin`. Exact position, exact box, one fixed local origin per collision solve.
-- `SectorBlockCollisions`. Block shapes are translated by a small origin-relative offset. They are not moved by a global double.
-- Entity `move()`, stepping, fluids, suffocation, and edge back-off for sector entities.
-- `SectorClipper`. Block raycasts walk long block addresses. Hit positions stay exact.
-- Block placing, breaking, outlines, and the break animation.
-- Boundary collision, including the last `2^63` block. The old failure mode was quicksand.
+- `SectorVec3`, `SectorAABB`, `SectorPhysicsOrigin`: lossless position, lossless box, one fixed local origin per collision solve.
+- `SectorBlockCollisions`: block shapes get shifted by a small origin-relative offset, not by a global double.
+- entity `move()`, stepping, fluids, suffocation, edge back-off for sector entities.
+- `SectorClipper`: block raycasts walk long block addresses, hit positions stay true.
+- block placing, breaking, outlines, the break animation.
+- boundary collision, the last `2^63` block included. it used to behave like quicksand.
 
-### Entities, AI, and vehicles
+### entities, ai, vehicles
 
-- `Entity` exact position, old position, eye position, and distance checks. Legacy `getX()` / `getZ()` remain approximate compatibility mirrors.
-- Every entity type, not just the player. Spawn eggs and natural spawning included.
-- Every block entity.
-- Mob AI targeting, look goals, and villager pathfinding. Navigation nodes use exact coordinates.
-- Boats, minecarts, horses, and dismount. Dismount offsets are split-coordinate math, not `double` subtraction.
-- Projectiles, explosions, experience orbs, and container drops.
-- Entity interaction, which the original mod only half-fixed.
+- `Entity` position, previous position, eye position, distance checks. legacy `getX()` / `getZ()` stay behind as approximate compatibility mirrors.
+- every entity type, not just the player — spawn eggs and natural spawning included.
+- every block entity.
+- mob targeting, look goals, villager pathfinding. navigation nodes carry real coordinates.
+- boats, minecarts, horses, dismounting. dismount offsets are split-coordinate math rather than `double` subtraction.
+- projectiles, explosions, xp orbs, container drops.
+- entity interaction, which the old mod only half fixed.
 
-### Networking
+### networking
 
-- Relative movement codec (`VecDeltaCodec`). Deltas apply to the last exact network base, not an interpolated render position.
-- Player movement packets on the server. The tick baseline is the exact position.
-- World-boundary checks at the packet layer, so a bad coordinate cannot ask for a chunk that does not exist.
-- Sound, particle, and explosion packets. They carry positions that survive the trip to the client.
+- relative movement codec (`VecDeltaCodec`): deltas apply to the last true network base, not an interpolated render position.
+- player movement packets on the server: the tick baseline is the real position.
+- world-boundary checks at the packet layer, so a bogus coordinate can't ask for a chunk that doesn't exist.
+- sound, particle and explosion packets carry positions that survive the trip to the client.
 
-### Terrain
+### terrain
 
-- Noise itself: improved, Perlin, simplex, blended, and normal noise, plus the noise router and density functions.
-- `PreciseNoiseCoordinate`. One 64-by-53-bit product, split into a lattice and a fraction, so the precise generator does not collapse onto a chunk grid past 2^53.
-- `FarlandsMode`, including the old boolean save format.
-- Surface rules and `SurfaceSystem`.
-- Ores, ore veins, and heightmaps.
-- Structures and jigsaw placement, including mineshafts. Structure starts used to crash on the boundary with no log.
-- `WorldGenRegion` cache indexing. Bad indexes deadlocked the server thread.
-- Nether generation and the Nether sky.
-- End generation, end islands, and the end-ring toggle.
-- Chunk stripelands. Fixed. The old stripe-land behavior is not the default.
+- the noise itself: improved, perlin, simplex, blended and normal noise, plus the noise router and density functions.
+- `PreciseNoiseCoordinate`: one 64-by-53-bit product, split into a lattice and a fraction, so the precise generator doesn't collapse onto a chunk grid past 2^53.
+- `FarlandsMode`, old boolean save format included.
+- surface rules and `SurfaceSystem`.
+- ores, ore veins, heightmaps.
+- structures and jigsaw placement, mineshafts among them. structure starts used to crash on the boundary with no log.
+- `WorldGenRegion` cache indexing. bad indexes deadlocked the server thread.
+- nether generation and the nether sky.
+- end generation, end islands, the end-ring toggle.
+- chunk stripelands — fixed. stripe-land behavior is no longer the default.
 
-### Lighting
+### lighting
 
-- The lighting engine, so section coordinates do not overflow at the world edge.
-- Light updates after a chunk reload. They used to flash a black outline.
-- Grass and foliage tint. Boundary samples used to go dark.
+- the lighting engine, so section coords don't overflow at the world edge.
+- light updates after a chunk reload; they used to flash a black outline.
+- grass and foliage tint — boundary samples used to go dark.
 
-### Rendering
+### rendering
 
-- `LevelRenderer` and the camera. World rendering is camera-relative, and the render loop does not overflow its chunk walk.
-- Block-entity poses. The long block position is subtracted before it hits the float matrix stack.
-- The skybox. It was a flat color; it is a real per-dimension sky again, with long-safe world math.
-- Clouds.
-- Particles, including the particle limiter, which now runs in camera space.
-- Frustum culling. The old cull both froze the game and could pin hundreds of thousands of chunks in memory.
+- `LevelRenderer` and the camera. world drawing is camera-relative, and the render loop no longer overflows its chunk walk.
+- block-entity poses: the long block position is subtracted before it reaches the float matrix stack.
+- the skybox used to be a flat color; it's a proper per-dimension sky again, with long-safe world math.
+- clouds.
+- particles, the particle limiter included, which now runs in camera space.
+- frustum culling. the old cull froze the game and could pin hundreds of thousands of chunks in memory.
 - F3 and F3+G chunk borders.
 
-### Audio
+### audio
 
-- `SoundEngine`. A world sound is converted into the listener's sector before it is queued for OpenAL. UI sounds stay local.
+- `SoundEngine`: a world sound gets moved into the listener's sector before it's queued for OpenAL. UI sounds stay local.
 
-### Commands
+### commands
 
-- Teleport and the other position commands. They move sector positions instead of adding to `getX()` / `getZ()`.
-- `/farlands`, `/endrings`, `/frustum`, and `/wraprouter`. These did not exist in vanilla.
+- teleport and the other position commands move sector positions instead of adding to `getX()` / `getZ()`.
+- `/farlands`, `/endrings`, `/frustum`, `/wraprouter`.
 
-## Playing this
+## installing
 
-- Download the jar from the [latest release](https://github.com/pomidorka1515/64bit-1.19.2/releases).
-- Install [Prism Launcher](https://prismlauncher.org) if you do not have it.
-- Create a **vanilla** 1.19.2 instance.
-- Open its settings, then Version.
-- Add to Minecraft.jar, and select the jar you downloaded.
+- grab the jar from the [latest release](https://github.com/pomidorka1515/64bit-1.19.2/releases)
+- get [prism launcher](https://prismlauncher.org) if you don't have it already
+- make a **vanilla** 1.19.2 instance
+- open its settings, then Version
+- "Add to Minecraft.jar" and pick the jar you downloaded
 
-In game, `/farlands help` prints the generator modes. A mode change is saved with the world and only applies after `/farlands confirm`.
+in game, `/farlands help` lists the generator modes. mode changes are saved with the world and only kick in after `/farlands confirm`.
 
-## Source
+## source
 
-### Building the client and dedicated server
+### building the client and dedicated server
 
-With Java 17 installed, run:
+with java 17 installed:
 
 ```bash
 ./gradlew jar
 ```
 
-This builds both artifacts from `src/main/`:
+both artifacts come out of `src/main/`:
 
-- `build/libs/dev.jar` — the client jar for the launcher instructions above.
-- `build/libs/dev-server.jar` — a standalone dedicated server, including runtime libraries and vanilla data resources.
+- `build/libs/dev.jar` — the client jar for the launcher steps above
+- `build/libs/dev-server.jar` — a standalone dedicated server, runtime libraries and vanilla data resources included
 
-If `GIT_COMMIT` is set, its value replaces `dev` in both filenames.
-To build only the dedicated server, use `./gradlew serverJar`.
+if `GIT_COMMIT` is set, its value replaces `dev` in both filenames.
+want just the server? `./gradlew serverJar`.
 
-Copy the server jar into your server directory and launch it with Java 17:
+drop the server jar into your server folder and start it with java 17:
 
 ```bash
 java -Xmx2G -jar dev-server.jar nogui
 ```
 
-On first launch, review `eula.txt` and set `eula=true` if you agree to the Minecraft EULA, then launch again. Server configuration and worlds are stored in the current working directory. Multiplayer clients need the matching modified client jar because the coordinate protocol differs from vanilla.
+on first boot, read `eula.txt` and set `eula=true` if you're okay with the minecraft EULA, then start it again. server config and worlds live in the current working directory. multiplayer clients need the matching modified client jar, since the coordinate protocol differs from vanilla.
 
-If new terrain takes a long time to load and then arrives in a burst, set `sync-chunk-writes=false` in `server.properties` and restart the server. The dedicated server defaults to synchronous region-file writes, which can hold up chunk generation on slower storage. The internal server defaults to asynchronous writes on Linux. Asynchronous writes improve throughput but can lose recent saves if the OS crashes or power is lost.
+if fresh terrain takes ages to load and then shows up all at once, put `sync-chunk-writes=false` in `server.properties` and restart. the dedicated server defaults to synchronous region-file writes, which can hold up chunk generation on slower drives. the internal server defaults to asynchronous writes on linux. async writes are faster but can lose recent saves if the OS crashes or the power cuts out.
 
-## Original mod history
+## original mod history
 
-Backport status of mckuhei's releases. `[+]` is in this fork. `[+/-]` was only partly fixed upstream and is rewritten here.
+how mckuhei's releases carried over into this fork. `[+]` means it's in here, `[+/-]` was only partly fixed upstream and is redone here.
 
 ```
 ==== history ====

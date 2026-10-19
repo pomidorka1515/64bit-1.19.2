@@ -362,7 +362,7 @@ public final class SectorVec3 {
     }
 
     private static double approximateCoordinate(long block, double fraction) {
-        return WorldBounds.clampAbsoluteDouble((double) block + fraction);
+        return Math.min(Math.nextDown(0x1.0p63), (double) block + fraction);
     }
 
     private static double signedDifference(long value, long origin) {

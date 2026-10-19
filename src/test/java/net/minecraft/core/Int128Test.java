@@ -253,6 +253,34 @@ class Int128Test {
     }
 
     @Test
+    void doubleRoundingCoversEveryBinadeAndHalfwayTie() {
+        // Random full-width values rarely exercise the rounding ties in smaller binades.
+        for (int exponent = 53; exponent < 127; ++exponent) {
+            BigInteger power = BigInteger.ONE.shiftLeft(exponent);
+            BigInteger halfUlp = BigInteger.ONE.shiftLeft(exponent - 53);
+            for (int parity = 0; parity < 2; ++parity) {
+                BigInteger midpoint = power.add(halfUlp.multiply(BigInteger.valueOf(2L * parity + 1L)));
+                for (int delta = -1; delta <= 1; ++delta) {
+                    BigInteger magnitude = midpoint.add(BigInteger.valueOf(delta));
+                    for (int sign : new int[] {-1, 1}) {
+                        BigInteger expected = magnitude.multiply(BigInteger.valueOf(sign));
+                        Int128 value = Int128.parseDecimal(expected.toString());
+                        assertEquals(expected.doubleValue(), value.toDoubleSaturated(), 0.0,
+                            "rounding " + expected);
+                    }
+                }
+            }
+        }
+        for (int exponent = -1074; exponent <= 127; ++exponent) {
+            double power = Math.scalb(1.0, exponent);
+            for (double value : new double[] {Math.nextDown(power), power, Math.nextUp(power)}) {
+                assertFloor(value);
+                assertFloor(-value);
+            }
+        }
+    }
+
+    @Test
     void decimalAndHexRoundTrip() {
         assertEquals(Int128.MIN, Int128.parseDecimal(Int128.MIN.toDecimalString()));
         assertEquals(Int128.MAX, Int128.parseDecimal(Int128.MAX.toDecimalString()));

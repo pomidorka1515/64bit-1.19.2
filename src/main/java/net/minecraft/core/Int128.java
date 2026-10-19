@@ -1,5 +1,6 @@
 package net.minecraft.core;
 
+import it.unimi.dsi.fastutil.HashCommon;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -167,6 +168,145 @@ public final class Int128 implements Comparable<Int128> {
         return Math.multiplyHigh(a, b) + (a < 0L ? b : 0L) + (b < 0L ? a : 0L);
     }
 
+    /**
+     * Floors toward negative infinity and saturates into the signed 128-bit range.
+     * {@code NaN} becomes {@code 0}. Infinities and magnitudes at {@code ±2^127} saturate.
+     * The long-range cast truncates toward zero and is then corrected; it is not the floor.
+     */
+    public static Int128 fromDoubleFloorSaturated(double value) {
+        if (Double.isNaN(value)) {
+            return ZERO;
+        }
+        if (value >= 0x1p127) {
+            return MAX;
+        }
+        if (value <= -0x1p127) {
+            return MIN;
+        }
+        if (value >= -0x1p63 && value < 0x1p63) {
+            long truncated = (long) value;
+            return fromLong(value < truncated ? truncated - 1L : truncated);
+        }
+        return fromHugeFiniteDouble(value);
+    }
+
+    /**
+     * Lossy monotone projection into {@code [-2^127, 2^127]}. Never {@code NaN} or infinite.
+     *
+     * <p>{@code MIN} is exact. {@code MAX} ({@code 2^127 - 1}) rounds up to {@code 2^127}.
+     * The top {@code 2^73} values, {@code [2^127 - 2^73, MAX]}, collapse to {@code 2^127},
+     * and {@code [MIN, MIN + 2^73]} collapses to {@code -2^127}. Do not use this for bounds
+     * tests, equality, hashing, persistence, or round-tripping. Debug, F3, and render or
+     * audio hints only.</p>
+     */
+    public double toDoubleSaturated() {
+        if (this.hi == Long.MIN_VALUE && this.lo == 0L) {
+            return -0x1p127;
+        }
+        boolean negative = this.hi < 0L;
+        long magHi = negative ? ~this.hi + (this.lo == 0L ? 1L : 0L) : this.hi;
+        long magLo = negative ? -this.lo : this.lo;
+        double magnitude = unsignedToDouble(magHi, magLo);
+        return negative ? -magnitude : magnitude;
+    }
+
+    /** Low 64 bits, without sign extension. */
+    public long toLongLow() {
+        return this.lo;
+    }
+
+    /** Decimal form. Cold path; not for hot loops. */
+    public String toDecimalString() {
+        return toDecimal(this.hi, this.lo);
+    }
+
+    /**
+     * Parses a base-10 integer. Cold path. Rejects surrounding whitespace and values outside
+     * {@code [MIN, MAX]}.
+     */
+    public static Int128 parseDecimal(String text) {
+        if (text == null || text.isEmpty()) {
+            throw new NumberFormatException("empty decimal");
+        }
+        int index = 0;
+        boolean negative = false;
+        char sign = text.charAt(0);
+        if (sign == '+' || sign == '-') {
+            negative = sign == '-';
+            if (++index == text.length()) {
+                throw new NumberFormatException(text);
+            }
+        }
+        long hi = 0L;
+        long lo = 0L;
+        for (; index < text.length(); ++index) {
+            char c = text.charAt(index);
+            if (c < '0' || c > '9') {
+                throw new NumberFormatException(text);
+            }
+            int digit = c - '0';
+            if (hi < 0L) {
+                throw new NumberFormatException(text);
+            }
+            long productLo = lo * 10L;
+            long loHigh = unsignedMultiplyHigh(lo, 10L);
+            long hiLow = hi * 10L;
+            long hiHigh = unsignedMultiplyHigh(hi, 10L);
+            long nextLo = productLo + digit;
+            long carry = Long.compareUnsigned(nextLo, productLo) < 0 ? 1L : 0L;
+            long mid = loHigh + hiLow;
+            long midCarry = Long.compareUnsigned(mid, loHigh) < 0 ? 1L : 0L;
+            long nextHi = mid + carry;
+            long top = hiHigh + midCarry + (Long.compareUnsigned(nextHi, mid) < 0 ? 1L : 0L);
+            if (top != 0L || nextHi < 0L && !(nextHi == Long.MIN_VALUE && nextLo == 0L)) {
+                throw new NumberFormatException(text);
+            }
+            hi = nextHi;
+            lo = nextLo;
+        }
+        if (hi == Long.MIN_VALUE) {
+            if (!negative) {
+                throw new NumberFormatException(text);
+            }
+            return MIN;
+        }
+        if (!negative || hi == 0L && lo == 0L) {
+            return new Int128(hi, lo);
+        }
+        return new Int128(~hi + (lo == 0L ? 1L : 0L), -lo);
+    }
+
+    /** 32 lowercase hex characters, high half first. Cold path. */
+    public String toHex() {
+        char[] chars = new char[32];
+        writeHex(chars, 0, this.hi);
+        writeHex(chars, 16, this.lo);
+        return new String(chars);
+    }
+
+    /** Inverse of {@link #toHex()}. Exactly 32 hex digits; either case. Cold path. */
+    public static Int128 fromHex(String text) {
+        if (text == null || text.length() != 32) {
+            throw new NumberFormatException("hex width");
+        }
+        return of(parseHexHalf(text, 0), parseHexHalf(text, 16));
+    }
+
+    /** Map hash: {@code mix(hi) ^ rotateLeft(mix(lo), 32)}. */
+    public long hash() {
+        return hash(this.hi, this.lo);
+    }
+
+    /** Allocation-free form of {@link #hash()}. */
+    public static long hash(long hi, long lo) {
+        return mix(hi) ^ Long.rotateLeft(mix(lo), 32);
+    }
+
+    /** fastutil finalizer. Sequential keys must not land in adjacent map slots. */
+    public static long mix(long value) {
+        return HashCommon.mix(value);
+    }
+
     /** Signed high half, then unsigned low half. */
     @Override
     public int compareTo(Int128 other) {
@@ -194,7 +334,7 @@ public final class Int128 implements Comparable<Int128> {
     /** Decimal form. Cold path; not for hot loops. */
     @Override
     public String toString() {
-        return toDecimal(this.hi, this.lo);
+        return this.toDecimalString();
     }
 
     private static String toDecimal(long hi, long lo) {
@@ -244,5 +384,97 @@ public final class Int128 implements Comparable<Int128> {
         quotient[0] = quotientHi;
         quotient[1] = (q1 << 32) | q0;
         return remainder;
+    }
+
+    /** {@code |value| >= 2^63} and {@code |value| < 2^127}, so the double is already an integer. */
+    private static Int128 fromHugeFiniteDouble(double value) {
+        long bits = Double.doubleToRawLongBits(value);
+        int shift = (int) ((bits >>> 52) & 0x7FFL) - 1075;
+        long significand = (bits & 0xFFFFFFFFFFFFFL) | 0x10000000000000L;
+        long magHi;
+        long magLo;
+        if (shift >= 64) {
+            magHi = significand << (shift - 64);
+            magLo = 0L;
+        } else {
+            magHi = significand >>> (64 - shift);
+            magLo = significand << shift;
+        }
+        return bits < 0L ? new Int128(~magHi + (magLo == 0L ? 1L : 0L), -magLo) : new Int128(magHi, magLo);
+    }
+
+    private static double unsignedToDouble(long hi, long lo) {
+        if (hi == 0L && lo >= 0L) {
+            return (double) lo;
+        }
+        int bitLength = hi == 0L ? 64 - Long.numberOfLeadingZeros(lo) : 128 - Long.numberOfLeadingZeros(hi);
+        int shift = bitLength - 53;
+        long significand = extractBits(hi, lo, shift, 53);
+        if (roundUp(hi, lo, shift, significand)) {
+            ++significand;
+        }
+        int exponent = bitLength - 1;
+        if (significand == 1L << 53) {
+            significand >>>= 1;
+            ++exponent;
+        }
+        long encoded = ((long) (exponent + 1023) << 52) | (significand & 0xFFFFFFFFFFFFFL);
+        return Double.longBitsToDouble(encoded);
+    }
+
+    private static boolean roundUp(long hi, long lo, int shift, long significand) {
+        if (!bit(hi, lo, shift - 1)) {
+            return false;
+        }
+        return bitsBelow(hi, lo, shift - 1) || (significand & 1L) != 0L;
+    }
+
+    private static long extractBits(long hi, long lo, int lowBit, int count) {
+        if (lowBit >= 64) {
+            return (hi >>> (lowBit - 64)) & lowMask(count);
+        }
+        int lowCount = 64 - lowBit;
+        if (count <= lowCount) {
+            return (lo >>> lowBit) & lowMask(count);
+        }
+        return (lo >>> lowBit) | ((hi & lowMask(count - lowCount)) << lowCount);
+    }
+
+    private static boolean bit(long hi, long lo, int index) {
+        return index < 64 ? (lo & (1L << index)) != 0L : (hi & (1L << (index - 64))) != 0L;
+    }
+
+    private static boolean bitsBelow(long hi, long lo, int index) {
+        if (index <= 0) {
+            return false;
+        }
+        if (index <= 64) {
+            return (lo & lowMask(index)) != 0L;
+        }
+        return lo != 0L || (hi & lowMask(index - 64)) != 0L;
+    }
+
+    private static long lowMask(int bits) {
+        return bits >= 64 ? -1L : (1L << bits) - 1L;
+    }
+
+    private static void writeHex(char[] chars, int offset, long value) {
+        for (int i = 15; i >= 0; --i) {
+            int digit = (int) (value & 0xFL);
+            chars[offset + i] = (char) (digit < 10 ? '0' + digit : 'a' + digit - 10);
+            value >>>= 4;
+        }
+    }
+
+    private static long parseHexHalf(String text, int offset) {
+        long value = 0L;
+        for (int i = 0; i < 16; ++i) {
+            int digit = Character.digit(text.charAt(offset + i), 16);
+            if (digit < 0) {
+                throw new NumberFormatException(text);
+            }
+            value = (value << 4) | digit;
+        }
+        return value;
     }
 }

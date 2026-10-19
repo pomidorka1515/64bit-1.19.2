@@ -35,6 +35,91 @@ class WorldBoundsTest {
     }
 
     @Test
+    void relativeDifferencesUseTheSpanRatherThanHighHalfEquality() {
+        Int128 boundary = Int128.of(123L, 0L);
+        Int128 before = boundary.subtract(Int128.ONE);
+        assertEquals(1.0D, WorldBounds.signedDifferenceExact(boundary, before));
+        assertEquals(-1.0D, WorldBounds.signedDifferenceExact(before, boundary));
+        assertEquals(-2.0D, WorldBounds.signedDifference(Int128.of(5L, 3L), Int128.of(5L, 5L)));
+        assertEquals(Long.MAX_VALUE, WorldBounds.signedDifferenceAsLong(Int128.of(0L, Long.MIN_VALUE), Int128.ZERO));
+        assertEquals(Long.MIN_VALUE, WorldBounds.signedDifferenceAsLong(Int128.MIN, Int128.MAX));
+        boolean[] exact = new boolean[1];
+        for (long delta : new long[] {-WorldBounds.MAX_SAFE_LOCAL_SPAN - 1L, -WorldBounds.MAX_SAFE_LOCAL_SPAN,
+                -1L, 0L, 1L, WorldBounds.MAX_SAFE_LOCAL_SPAN, WorldBounds.MAX_SAFE_LOCAL_SPAN + 1L}) {
+            Int128 value = boundary.add(Int128.fromLong(delta));
+            assertEquals((double) delta, WorldBounds.signedDifference(value, boundary, exact));
+            assertEquals(Math.abs(delta) <= WorldBounds.MAX_SAFE_LOCAL_SPAN, exact[0]);
+            assertEquals(!exact[0], Double.isNaN(WorldBounds.signedDifferenceExact(value, boundary)));
+        }
+        assertTrue(WorldBounds.localSpanExceeds(Int128.of(5L, 0L), Int128.of(5L, 1L << 62)));
+    }
+
+    @Test
+    void fullWidthRangesAndDifferencesMatchBigInteger() {
+        Int128[] edges = {Int128.MIN, Int128.MIN.add(Int128.ONE), Int128.fromLong(Long.MIN_VALUE),
+                Int128.fromLong(-1L), Int128.ZERO, Int128.ONE, Int128.fromLong(Long.MAX_VALUE),
+                Int128.of(0L, Long.MIN_VALUE), Int128.of(0L, -1L), Int128.of(1L, 0L), Int128.MAX};
+        for (Int128 a : edges) {
+            for (Int128 b : edges) {
+                assertFullWidthRange(a, b);
+            }
+        }
+        Random random = new Random(0x5203L);
+        for (int i = 0; i < 1000; ++i) {
+            Int128 a = Int128.of(random.nextLong(), random.nextLong());
+            assertFullWidthRange(a, Int128.of(random.nextLong(), random.nextLong()));
+            assertFullWidthRange(a, Int128.of(a.hi(), random.nextLong()));
+            assertFullWidthRange(a, a.addSaturated(Int128.fromLong(random.nextInt(1 << 22) - (1 << 21))));
+        }
+        assertEquals(0x1p128, WorldBounds.inclusiveBlockSpanDouble(Int128.MIN, Int128.MAX));
+        assertEquals(Int128.ZERO, WorldBounds.middleBlockCoordinate(Int128.MIN, Int128.MAX));
+        assertEquals(Int128.ZERO, WorldBounds.blockOffsetInRange(Int128.ZERO, Int128.MAX, Int128.MIN));
+    }
+
+    private static void assertFullWidthRange(Int128 a, Int128 b) {
+        BigInteger first = wide(a);
+        BigInteger second = wide(b);
+        BigInteger difference = first.subtract(second);
+        long clamped = clampLong(difference);
+        assertEquals(clamped, WorldBounds.signedDifferenceAsLong(a, b));
+        assertEquals((double) clamped, WorldBounds.signedDifference(a, b));
+        assertEquals(Math.abs((double) clamped), WorldBounds.distance(a, b));
+        boolean ascending = first.compareTo(second) <= 0;
+        assertEquals(ascending, WorldBounds.isAscendingBlockRange(a, b));
+        assertEquals(first.compareTo(second) < 0, WorldBounds.canAdvanceBlock(a, b));
+        assertEquals(ascending, WorldBounds.isWithinBlockRange(a, a, b));
+        assertEquals(ascending, WorldBounds.isWithinBlockRange(b, a, b));
+        BigInteger span = ascending ? second.subtract(first).add(BigInteger.ONE) : BigInteger.ZERO;
+        assertEquals(clamp128(span).toString(), WorldBounds.inclusiveBlockSpan(a, b).toString());
+        assertEquals(span.doubleValue(), WorldBounds.inclusiveBlockSpanDouble(a, b), Math.ulp(span.doubleValue()));
+        BigInteger midpoint = first.add(second).add(BigInteger.ONE).shiftRight(1);
+        assertEquals(midpoint.toString(), WorldBounds.middleBlockCoordinate(a, b).toString());
+        BigInteger offset = ascending ? second.subtract(first) : BigInteger.ZERO;
+        assertEquals(clamp128(offset).toString(), WorldBounds.blockOffsetInRange(b, a, b).toString());
+        assertEquals(Int128.ZERO, WorldBounds.blockOffsetInRange(a, a, b));
+        if (ascending) {
+            Int128 middle = WorldBounds.middleBlockCoordinate(a, b);
+            assertTrue(WorldBounds.isWithinBlockRange(middle, a, b));
+            assertEquals(clamp128(wide(middle).subtract(first)).toString(),
+                    WorldBounds.blockOffsetInRange(middle, a, b).toString());
+        }
+    }
+
+    @Test
+    void fullWidthDoubleOffsetsPreserveTheAnchorAndFloorTheDelta() {
+        Int128 anchor = Int128.of(123456789L, -19L);
+        for (double offset : new double[] {-0x1p100, -0x1p63, -1.1D, -0.5D, 0.0D, 0.5D, 3.9D, 0x1p63, 0x1p100}) {
+            BigInteger delta = new java.math.BigDecimal(offset).setScale(0, java.math.RoundingMode.FLOOR).toBigIntegerExact();
+            assertEquals(clamp128(wide(anchor).add(delta)).toString(), WorldBounds.addDoubleBlockOffset(anchor, offset).toString());
+        }
+        for (double offset : new double[] {Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
+            assertEquals(anchor, WorldBounds.addDoubleBlockOffset(anchor, offset));
+        }
+        assertEquals(Int128.MAX, WorldBounds.addDoubleBlockOffset(Int128.MAX, 1.0D));
+        assertEquals(Int128.MIN, WorldBounds.addDoubleBlockOffset(Int128.MIN, -0.1D));
+    }
+
+    @Test
     void fullWidthArithmeticMatchesBigInteger() {
         Int128[] edges = {Int128.MIN, Int128.MIN.add(Int128.ONE), Int128.fromLong(Long.MIN_VALUE),
                 Int128.fromLong(-1L), Int128.ZERO, Int128.ONE, Int128.fromLong(Long.MAX_VALUE),

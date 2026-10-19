@@ -26,6 +26,92 @@ public final class WorldBounds {
     private WorldBounds() {
     }
 
+    public static final long MAX_SAFE_LOCAL_SPAN = 1L << 20;
+
+    /** Exact integer subtraction followed by signed-long saturation; never projects absolute coordinates. */
+    public static long signedDifferenceAsLong(Int128 value, Int128 origin) {
+        long low = value.lo() - origin.lo();
+        long borrow = Long.compareUnsigned(value.lo(), origin.lo()) < 0 ? 1L : 0L;
+        long high = value.hi() - origin.hi() - borrow;
+        if ((value.hi() < 0L) != (origin.hi() < 0L) && (high < 0L) != (value.hi() < 0L))
+            return value.hi() < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
+        if (high == (low < 0L ? -1L : 0L))
+            return low;
+        return high < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
+    }
+
+    public static boolean localSpanExceeds(Int128 value, Int128 origin) {
+        long difference = signedDifferenceAsLong(value, origin);
+        return difference < -MAX_SAFE_LOCAL_SPAN || difference > MAX_SAFE_LOCAL_SPAN;
+    }
+
+    /** Local differences are exact; distant hints saturate to signed-long sentinels. */
+    public static double signedDifference(Int128 value, Int128 origin) {
+        return (double) signedDifferenceAsLong(value, origin);
+    }
+
+    /** Reports physics-local exactness separately from the approximate distance hint. */
+    public static double signedDifference(Int128 value, Int128 origin, boolean[] exactOut) {
+        exactOut[0] = !localSpanExceeds(value, origin);
+        return signedDifference(value, origin);
+    }
+
+    public static double signedDifferenceExact(Int128 value, Int128 origin) {
+        return localSpanExceeds(value, origin) ? Double.NaN : signedDifference(value, origin);
+    }
+
+    public static double distance(Int128 first, Int128 second) {
+        return Math.abs(signedDifference(first, second));
+    }
+
+    public static boolean isAscendingBlockRange(Int128 first, Int128 last) {
+        return first.compareTo(last) <= 0;
+    }
+
+    public static boolean isWithinBlockRange(Int128 coordinate, Int128 min, Int128 max) {
+        return isAscendingBlockRange(min, max) && coordinate.compareTo(min) >= 0 && coordinate.compareTo(max) <= 0;
+    }
+
+    public static boolean canAdvanceBlock(Int128 coordinate, Int128 last) {
+        return coordinate.compareTo(last) < 0;
+    }
+
+    /** Inclusive count, saturated to the signed 128-bit domain. */
+    public static Int128 inclusiveBlockSpan(Int128 min, Int128 max) {
+        return isAscendingBlockRange(min, max) ? max.subtractSaturated(min).addSaturated(Int128.ONE) : Int128.ZERO;
+    }
+
+    /** Approximate count retaining the magnitude even when the signed count saturates. */
+    public static double inclusiveBlockSpanDouble(Int128 min, Int128 max) {
+        if (!isAscendingBlockRange(min, max))
+            return 0.0D;
+        long low = max.lo() - min.lo();
+        long high = max.hi() - min.hi() - (Long.compareUnsigned(max.lo(), min.lo()) < 0 ? 1L : 0L);
+        double unsignedLow = (double) (low >>> 1) * 2.0D + (low & 1L);
+        double unsignedHigh = (double) (high >>> 1) * 2.0D + (high & 1L);
+        return Math.scalb(unsignedHigh, 64) + unsignedLow + 1.0D;
+    }
+
+    /** Clamped non-negative offset; an unordered range has no local offsets. */
+    public static Int128 blockOffsetInRange(Int128 coordinate, Int128 min, Int128 max) {
+        if (!isAscendingBlockRange(min, max) || coordinate.compareTo(min) <= 0)
+            return Int128.ZERO;
+        return (coordinate.compareTo(max) >= 0 ? max : coordinate).subtractSaturated(min);
+    }
+
+    /** Upper midpoint without overflowing either a sum or a difference. */
+    public static Int128 middleBlockCoordinate(Int128 min, Int128 max) {
+        Int128 halves = min.shiftRight(1).add(max.shiftRight(1));
+        return halves.add(Int128.fromLong((min.lo() & 1L) | (max.lo() & 1L)));
+    }
+
+    /** Floors the offset independently, preserving every bit of the absolute coordinate. */
+    public static Int128 addDoubleBlockOffset(Int128 block, double offset) {
+        if (!Double.isFinite(offset) || offset == 0.0D)
+            return block;
+        return block.addSaturated(Int128.fromDoubleFloorSaturated(offset));
+    }
+
     public static Int128 clampChunk(Int128 chunk) {
         if (chunk.compareTo(MIN_CHUNK_128) < 0)
             return MIN_CHUNK_128;

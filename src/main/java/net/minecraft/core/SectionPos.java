@@ -82,8 +82,8 @@ public class SectionPos extends Vec3i {
         return pRel & 15;
     }
 
-    public static SectionPos blockToSection(long packedBlockPos) {
-        return new SectionPos(blockToSectionCoord(BlockPos.getX(packedBlockPos)), blockToSectionCoord(BlockPos.getY(packedBlockPos)), blockToSectionCoord(BlockPos.getZ(packedBlockPos)));
+    public static SectionPos blockToSection(BlockPos pPos) {
+        return of(pPos);
     }
 
     public static short sectionRelativePos(BlockPos pPos) {
@@ -232,10 +232,6 @@ public class SectionPos extends Vec3i {
 
     public static void aroundAndAtBlockPos(BlockPos pPos, Consumer<SectionPos> pConsumer) {
         aroundAndAtBlockPos(pPos.getX(), pPos.getY(), pPos.getZ(), pConsumer);
-    }
-
-    public static void aroundAndAtBlockPos(long pPos, Consumer<SectionPos> pConsumer) {
-        aroundAndAtBlockPos(BlockPos.getX(pPos), BlockPos.getY(pPos), BlockPos.getZ(pPos), pConsumer);
     }
 
     public static void aroundAndAtBlockPos(long pX, int pY, long pZ, Consumer<SectionPos> pConsumer) {

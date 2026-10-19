@@ -58,26 +58,6 @@ public class BlockPos extends Vec3i {
         this(pVector.getX(), pVector.getY(), pVector.getZ());
     }
 
-    public static int getX(long pPackedPos) {
-        return (int) (pPackedPos << 64 - X_OFFSET - PACKED_X_LENGTH >> 64 - PACKED_X_LENGTH);
-    }
-
-    public static int getY(long pPackedPos) {
-        return (int) (pPackedPos << 64 - PACKED_Y_LENGTH >> 64 - PACKED_Y_LENGTH);
-    }
-
-    public static int getZ(long pPackedPos) {
-        return (int) (pPackedPos << 64 - Z_OFFSET - PACKED_Z_LENGTH >> 64 - PACKED_Z_LENGTH);
-    }
-
-    public static BlockPos of(long pPackedPos) {
-        return new BlockPos(getX(pPackedPos), getY(pPackedPos), getZ(pPackedPos));
-    }
-
-    public static long getFlatIndex(long pPackedPos) {
-        return pPackedPos & -16L;
-    }
-
     public BlockPos offset(double pDx, double pDy, double pDz) {
         return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new BlockPos(WorldBounds.addDoubleBlockOffset(this.getX(), pDx), Mth.floor((double) this.getY() + pDy), WorldBounds.addDoubleBlockOffset(this.getZ(), pDz));
     }
@@ -452,10 +432,6 @@ public class BlockPos extends Vec3i {
 
         public BlockPos.MutableBlockPos set(Vec3i pVector) {
             return this.set(pVector.getX(), pVector.getY(), pVector.getZ());
-        }
-
-        public BlockPos.MutableBlockPos set(long pPackedPos) {
-            return this.set(getX(pPackedPos), getY(pPackedPos), getZ(pPackedPos));
         }
 
         public BlockPos.MutableBlockPos set(AxisCycle pCycle, int pX, int pY, int pZ) {

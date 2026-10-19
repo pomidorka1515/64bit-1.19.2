@@ -14,17 +14,22 @@ import net.minecraft.world.level.WorldBounds;
 
 @Immutable
 public class Vec3i implements Comparable<Vec3i> {
+    // Temporary low-word codec projection; the strict five-long shape lands with the core codecs.
     public static final Codec<Vec3i> CODEC = Codec.LONG_STREAM.comapFlatMap((p_123318_) -> { return Util.fixedSize(p_123318_, 3).map((p_175586_) -> {
-                                                                                                 return new Vec3i(p_175586_[0], p_175586_[1], p_175586_[2]);
-                                                                                             }); }, (p_123313_) -> { return LongStream.of(p_123313_.getX(), p_123313_.getY(), p_123313_.getZ()); });
+                                                                                                 return new Vec3i(p_175586_[0], (int) p_175586_[1], p_175586_[2]);
+                                                                                             }); }, (p_123313_) -> { return LongStream.of(p_123313_.getXLo(), p_123313_.getY(), p_123313_.getZLo()); });
     public static final Vec3i ZERO = new Vec3i(0, 0, 0);
-    private long x;
+    private long xHi;
+    private long xLo;
     private int y;
-    private long z;
+    private long zHi;
+    private long zLo;
 
     private static Function<Vec3i, DataResult<Vec3i>> checkOffsetAxes(int p_194646_) {
         return (p_194649_) -> {
-            return p_194649_.getX() > -(long) p_194646_ && p_194649_.getX() < p_194646_ && p_194649_.getY() > -(long) p_194646_ && p_194649_.getY() < p_194646_ && p_194649_.getZ() > -(long) p_194646_ && p_194649_.getZ() < p_194646_ ? DataResult.success(p_194649_) : DataResult.error("Position out of range, expected at most " + p_194646_ + ": " + p_194649_);
+            Int128 min = Int128.fromLong(-(long) p_194646_);
+            Int128 max = Int128.fromLong(p_194646_);
+            return p_194649_.getX().compareTo(min) > 0 && p_194649_.getX().compareTo(max) < 0 && p_194649_.getY() > -(long) p_194646_ && p_194649_.getY() < p_194646_ && p_194649_.getZ().compareTo(min) > 0 && p_194649_.getZ().compareTo(max) < 0 ? DataResult.success(p_194649_) : DataResult.error("Position out of range, expected at most " + p_194646_ + ": " + p_194649_);
         };
     }
 
@@ -33,13 +38,19 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i(long pX, int pY, long pZ) {
-        this.x = pX;
+        this(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    public Vec3i(Int128 pX, int pY, Int128 pZ) {
+        this.xHi = pX.hi();
+        this.xLo = pX.lo();
         this.y = pY;
-        this.z = pZ;
+        this.zHi = pZ.hi();
+        this.zLo = pZ.lo();
     }
 
     public Vec3i(double pX, double pY, double pZ) {
-        this(Mth.lfloor(pX), Mth.floor(pY), Mth.lfloor(pZ));
+        this(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ));
     }
 
     public boolean equals(Object pOther) {
@@ -49,42 +60,57 @@ public class Vec3i implements Comparable<Vec3i> {
             return false;
         } else {
             Vec3i vec3i = (Vec3i) pOther;
-            if (this.getX() != vec3i.getX()) {
+            if (!this.getX().equals(vec3i.getX())) {
                 return false;
             } else if (this.getY() != vec3i.getY()) {
                 return false;
             } else {
-                return this.getZ() == vec3i.getZ();
+                return this.getZ().equals(vec3i.getZ());
             }
         }
     }
 
     public int hashCode() {
-        return (int) ((this.getY() + this.getZ() * 31) * 31 + this.getX());
+        return (this.getY() + this.getZ().hashCode() * 31) * 31 + this.getX().hashCode();
     }
 
     public int compareTo(Vec3i pOther) {
-        if (this.getY() == pOther.getY()) {
-            return this.getZ() == pOther.getZ() ? Long.compare(this.getX(), pOther.getX()) : Long.compare(this.getZ(), pOther.getZ());
-        } else {
-            return Integer.compare(this.getY(), pOther.getY());
-        }
+        int result = this.getX().compareTo(pOther.getX());
+        if (result == 0) result = Integer.compare(this.getY(), pOther.getY());
+        return result == 0 ? this.getZ().compareTo(pOther.getZ()) : result;
     }
 
-    public long getX() {
-        return this.x;
+    public Int128 getX() {
+        return Int128.of(this.xHi, this.xLo);
     }
 
     public int getY() {
         return this.y;
     }
 
-    public long getZ() {
-        return this.z;
+    public Int128 getZ() {
+        return Int128.of(this.zHi, this.zLo);
     }
 
+    public Int128 x() { return this.getX(); }
+    public int y() { return this.getY(); }
+    public Int128 z() { return this.getZ(); }
+    public long getXHi() { return this.xHi; }
+    public long getXLo() { return this.xLo; }
+    public long getZHi() { return this.zHi; }
+    public long getZLo() { return this.zLo; }
+    public long xHi() { return this.getXHi(); }
+    public long xLo() { return this.getXLo(); }
+    public long zHi() { return this.getZHi(); }
+    public long zLo() { return this.getZLo(); }
+
     protected Vec3i setX(long pX) {
-        this.x = pX;
+        return this.setX(Int128.fromLong(pX));
+    }
+
+    protected Vec3i setX(Int128 pX) {
+        this.xHi = pX.hi();
+        this.xLo = pX.lo();
         return this;
     }
 
@@ -94,7 +120,12 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     protected Vec3i setZ(long pZ) {
-        this.z = pZ;
+        return this.setZ(Int128.fromLong(pZ));
+    }
+
+    protected Vec3i setZ(Int128 pZ) {
+        this.zHi = pZ.hi();
+        this.zLo = pZ.lo();
         return this;
     }
 
@@ -110,8 +141,12 @@ public class Vec3i implements Comparable<Vec3i> {
         return this.offset(pVector.getX(), pVector.getY(), pVector.getZ());
     }
 
+    public Vec3i offset(Int128 pDx, int pDy, Int128 pDz) {
+        return pDx.equals(Int128.ZERO) && pDy == 0 && pDz.equals(Int128.ZERO) ? this : new Vec3i(this.getX().addSaturated(pDx), this.getY() + pDy, this.getZ().addSaturated(pDz));
+    }
+
     public Vec3i subtract(Vec3i pVector) {
-        return new Vec3i(WorldBounds.subtractBlockOffset(this.getX(), pVector.getX()), this.getY() - pVector.getY(), WorldBounds.subtractBlockOffset(this.getZ(), pVector.getZ()));
+        return new Vec3i(this.getX().subtractSaturated(pVector.getX()), this.getY() - pVector.getY(), this.getZ().subtractSaturated(pVector.getZ()));
     }
 
     public Vec3i multiply(int pScalar) {
@@ -190,7 +225,50 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i cross(Vec3i pVector) {
-        return new Vec3i(WorldBounds.crossComponent(this.getY(), pVector.getZ(), this.getZ(), pVector.getY()), (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, WorldBounds.crossComponent(this.getZ(), pVector.getX(), this.getX(), pVector.getZ()))), WorldBounds.crossComponent(this.getX(), pVector.getY(), this.getY(), pVector.getX()));
+        return new Vec3i(WorldBounds.crossComponent(pVector.getZ(), this.getY(), this.getZ(), pVector.getY()), crossY(this.getZ(), pVector.getX(), this.getX(), pVector.getZ()), WorldBounds.crossComponent(this.getX(), pVector.getY(), pVector.getX(), this.getY()));
+    }
+
+    // Keep the complete 256-bit determinant until the final vertical int clamp.
+    private static int crossY(Int128 a, Int128 b, Int128 c, Int128 d) {
+        long[] first = wideProduct(a, b);
+        long[] second = wideProduct(c, d);
+        long borrow = 0L;
+        for (int i = 0; i < 4; i++) {
+            long difference = first[i] - second[i];
+            long nextBorrow = Long.compareUnsigned(first[i], second[i]) < 0 ? 1L : 0L;
+            long result = difference - borrow;
+            if (Long.compareUnsigned(difference, borrow) < 0) nextBorrow = 1L;
+            first[i] = result;
+            borrow = nextBorrow;
+        }
+        long sign = first[3] >> 63;
+        if (first[3] != sign || first[2] != sign || first[1] != sign || first[0] != (long) (int) first[0]) {
+            return sign < 0 ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        }
+        return (int) first[0];
+    }
+
+    private static long[] wideProduct(Int128 a, Int128 b) {
+        long[] result = new long[4];
+        long[] shifted = {a.lo(), a.hi(), a.hi() >> 63, a.hi() >> 63};
+        for (int bit = 0; bit < 128; bit++) {
+            if (b.testBit(bit)) {
+                long carry = 0L;
+                for (int i = 0; i < 4; i++) {
+                    long operand = bit == 127 ? ~shifted[i] : shifted[i];
+                    if (bit == 127 && i == 0) carry = 1L;
+                    long sum = result[i] + operand;
+                    long nextCarry = Long.compareUnsigned(sum, result[i]) < 0 ? 1L : 0L;
+                    long total = sum + carry;
+                    if (Long.compareUnsigned(total, sum) < 0) nextCarry = 1L;
+                    result[i] = total;
+                    carry = nextCarry;
+                }
+            }
+            for (int i = 3; i > 0; i--) shifted[i] = (shifted[i] << 1) | (shifted[i - 1] >>> 63);
+            shifted[0] <<= 1;
+        }
+        return result;
     }
 
     public boolean closerThan(Vec3i pVector, double pDistance) {
@@ -206,10 +284,10 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public double distToCenterSqr(net.minecraft.world.phys.SectorVec3 position) {
-        return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.getX(), 0.5D,
-                                                          (double) this.getY() + 0.5D, this.getZ(), 0.5D)
-                .relativeTo(position)
-                .lengthSqr();
+        double dx = WorldBounds.signedDifference(this.getX(), Int128.fromLong(position.blockX())) + 0.5D - position.subX();
+        double dy = this.getY() + 0.5D - position.y();
+        double dz = WorldBounds.signedDifference(this.getZ(), Int128.fromLong(position.blockZ())) + 0.5D - position.subZ();
+        return dx * dx + dy * dy + dz * dz;
     }
 
     public double distSqr(Vec3i pVector) {
@@ -224,16 +302,16 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public double distToCenterSqr(double pX, double pY, double pZ) {
-        double d0 = (double) this.getX() + 0.5D - pX;
+        double d0 = differenceFromDouble(this.getX(), pX) + 0.5D;
         double d1 = (double) this.getY() + 0.5D - pY;
-        double d2 = (double) this.getZ() + 0.5D - pZ;
+        double d2 = differenceFromDouble(this.getZ(), pZ) + 0.5D;
         return d0 * d0 + d1 * d1 + d2 * d2;
     }
 
     public double distToLowCornerSqr(double pX, double pY, double pZ) {
-        double d0 = (double) this.getX() - pX;
+        double d0 = differenceFromDouble(this.getX(), pX);
         double d1 = (double) this.getY() - pY;
-        double d2 = (double) this.getZ() - pZ;
+        double d2 = differenceFromDouble(this.getZ(), pZ);
         return d0 * d0 + d1 * d1 + d2 * d2;
     }
 
@@ -244,8 +322,15 @@ public class Vec3i implements Comparable<Vec3i> {
         return (int) (f + f1 + f2);
     }
 
-    public long get(Direction.Axis pAxis) {
-        return pAxis.choose(this.x, this.y, this.z);
+    private static double differenceFromDouble(Int128 coordinate, double value) {
+        if (!Double.isFinite(value) || value < -0x1.0p127 || value >= 0x1.0p127) {
+            return coordinate.toDoubleSaturated() - value;
+        }
+        return WorldBounds.signedDifference(coordinate, Int128.fromDoubleFloorSaturated(value)) - (value - Math.floor(value));
+    }
+
+    public Int128 get(Direction.Axis pAxis) {
+        return pAxis == Direction.Axis.X ? this.getX() : pAxis == Direction.Axis.Z ? this.getZ() : Int128.fromLong(this.getY());
     }
 
     public String toString() {

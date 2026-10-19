@@ -375,7 +375,7 @@ public class Mth {
     }
 
     public static long getSeed(Vec3i pPos) {
-        return getSeed(pPos.getX(), pPos.getY(), pPos.getZ());
+        return getSeed(pPos.getXHi(), pPos.getXLo(), pPos.getY(), pPos.getZHi(), pPos.getZLo());
     }
 
     public static long getSeed(long pX, int pY, long pZ) {

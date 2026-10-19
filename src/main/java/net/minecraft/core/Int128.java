@@ -49,6 +49,124 @@ public final class Int128 implements Comparable<Int128> {
         return this.lo;
     }
 
+    /** Adds modulo {@code 2^128}. */
+    public Int128 add(Int128 other) {
+        long low = this.lo + other.lo;
+        long carry = Long.compareUnsigned(low, this.lo) < 0 ? 1L : 0L;
+        return new Int128(this.hi + other.hi + carry, low);
+    }
+
+    /** Subtracts modulo {@code 2^128}. */
+    public Int128 subtract(Int128 other) {
+        long low = this.lo - other.lo;
+        long borrow = Long.compareUnsigned(this.lo, other.lo) < 0 ? 1L : 0L;
+        return new Int128(this.hi - other.hi - borrow, low);
+    }
+
+    public Int128 addSaturated(Int128 other) {
+        Int128 result = this.add(other);
+        return ((this.hi ^ result.hi) & (other.hi ^ result.hi)) < 0L
+            ? (this.hi < 0L ? MIN : MAX) : result;
+    }
+
+    public Int128 subtractSaturated(Int128 other) {
+        Int128 result = this.subtract(other);
+        return ((this.hi ^ other.hi) & (this.hi ^ result.hi)) < 0L
+            ? (this.hi < 0L ? MIN : MAX) : result;
+    }
+
+    /** Negates with saturation: {@code MIN} becomes {@code MAX}. */
+    public Int128 negate() {
+        if (this.hi == Long.MIN_VALUE && this.lo == 0L) {
+            return MAX;
+        }
+        return new Int128(~this.hi + (this.lo == 0L ? 1L : 0L), -this.lo);
+    }
+
+    public Int128 absSaturated() {
+        return this.hi < 0L ? this.negate() : this;
+    }
+
+    /** Arithmetic right shift (floor division). Counts above 127 sign-fill both halves. */
+    public Int128 shiftRight(int bits) {
+        if (bits < 0) {
+            throw new IllegalArgumentException("Negative shift count: " + bits);
+        }
+        if (bits == 0) {
+            return this;
+        }
+        if (bits < 64) {
+            return new Int128(this.hi >> bits, (this.lo >>> bits) | (this.hi << (64 - bits)));
+        }
+        return new Int128(this.hi >> 63, bits < 128 ? this.hi >> (bits - 64) : this.hi >> 63);
+    }
+
+    /** Multiplies by {@code 2^bits}, saturating toward the original sign on overflow. */
+    public Int128 shiftLeftSaturated(int bits) {
+        if (bits < 0) {
+            throw new IllegalArgumentException("Negative shift count: " + bits);
+        }
+        if (bits == 0) {
+            return this;
+        }
+        if (bits >= 128) {
+            return this.hi == 0L && this.lo == 0L ? ZERO : (this.hi < 0L ? MIN : MAX);
+        }
+        long low = bits < 64 ? this.lo << bits : 0L;
+        long high = bits < 64 ? (this.hi << bits) | (this.lo >>> (64 - bits)) : this.lo << (bits - 64);
+        Int128 result = new Int128(high, low);
+        return result.shiftRight(bits).equals(this) ? result : (this.hi < 0L ? MIN : MAX);
+    }
+
+    public Int128 and(Int128 other) {
+        return new Int128(this.hi & other.hi, this.lo & other.lo);
+    }
+
+    public Int128 or(Int128 other) {
+        return new Int128(this.hi | other.hi, this.lo | other.lo);
+    }
+
+    public Int128 xor(Int128 other) {
+        return new Int128(this.hi ^ other.hi, this.lo ^ other.lo);
+    }
+
+    public Int128 not() {
+        return new Int128(~this.hi, ~this.lo);
+    }
+
+    /** Tests a bit numbered from 0 (least significant) through 127 (sign). */
+    public boolean testBit(int bit) {
+        if (bit < 0 || bit >= 128) {
+            throw new IndexOutOfBoundsException("Bit index: " + bit);
+        }
+        return bit < 64 ? (this.lo & (1L << bit)) != 0L : (this.hi & (1L << (bit - 64))) != 0L;
+    }
+
+    /** Signed multiplication, clamped to the 128-bit range; no big-integer allocation. */
+    public Int128 multiplySaturated(long factor) {
+        boolean negative = (this.hi < 0L) != (factor < 0L);
+        // Unsigned magnitudes preserve MIN and Long.MIN_VALUE without saturating them.
+        long low = this.hi < 0L ? -this.lo : this.lo;
+        long high = this.hi < 0L ? ~this.hi + (this.lo == 0L ? 1L : 0L) : this.hi;
+        long magnitude = factor < 0L ? -factor : factor;
+        long resultLow = low * magnitude;
+        long carry = unsignedMultiplyHigh(low, magnitude);
+        long middle = high * magnitude;
+        long resultHigh = middle + carry;
+        long top = unsignedMultiplyHigh(high, magnitude) + (Long.compareUnsigned(resultHigh, middle) < 0 ? 1L : 0L);
+        boolean overflow = top != 0L || resultHigh < 0L
+            && !(negative && resultHigh == Long.MIN_VALUE && resultLow == 0L);
+        if (overflow) {
+            return negative ? MIN : MAX;
+        }
+        return negative ? new Int128(~resultHigh + (resultLow == 0L ? 1L : 0L), -resultLow)
+            : new Int128(resultHigh, resultLow);
+    }
+
+    private static long unsignedMultiplyHigh(long a, long b) {
+        return Math.multiplyHigh(a, b) + (a < 0L ? b : 0L) + (b < 0L ? a : 0L);
+    }
+
     /** Signed high half, then unsigned low half. */
     @Override
     public int compareTo(Int128 other) {

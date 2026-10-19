@@ -119,6 +119,83 @@ class Int128Test {
         }
     }
 
+    @Test
+    void arithmeticAndBitsMatchBigInteger() {
+        Int128[] edges = {Int128.ZERO, Int128.ONE, Int128.fromLong(-1L), Int128.MIN, Int128.MAX,
+            Int128.of(0L, -1L), Int128.of(-1L, 0L), Int128.fromLong(Long.MIN_VALUE),
+            Int128.fromLong(Long.MAX_VALUE), Int128.MIN.add(Int128.ONE), Int128.MAX.subtract(Int128.ONE)};
+        long[] factors = {0L, 1L, -1L, 2L, -2L, Long.MIN_VALUE, Long.MAX_VALUE};
+        int[] shifts = {0, 1, 3, 4, 63, 64, 65, 126, 127, 128, 129, Integer.MAX_VALUE};
+        for (Int128 a : edges) {
+            for (Int128 b : edges) {
+                assertOperations(a, b);
+            }
+            for (long factor : factors) {
+                assertEquals(clamp(toBigInteger(a).multiply(BigInteger.valueOf(factor))), toBigInteger(a.multiplySaturated(factor)));
+            }
+            for (int shift : shifts) {
+                assertShifts(a, shift);
+            }
+            for (int bit = 0; bit < 128; ++bit) {
+                assertEquals(toBigInteger(a).testBit(bit), a.testBit(bit));
+            }
+        }
+        Random random = new Random(0x12802L);
+        for (int i = 0; i < 10000; ++i) {
+            Int128 a = Int128.of(random.nextLong(), random.nextLong());
+            Int128 b = Int128.of(random.nextLong(), random.nextLong());
+            assertOperations(a, b);
+            long factor = i % 2 == 0 ? random.nextLong() : random.nextInt(33) - 16L;
+            assertEquals(clamp(toBigInteger(a).multiply(BigInteger.valueOf(factor))), toBigInteger(a.multiplySaturated(factor)));
+            Int128 small = Int128.fromLong(random.nextLong());
+            assertEquals(clamp(toBigInteger(small).multiply(BigInteger.valueOf(factor))), toBigInteger(small.multiplySaturated(factor)));
+            Int128 reduced = a.shiftRight(random.nextInt(128));
+            assertEquals(clamp(toBigInteger(reduced).multiply(BigInteger.valueOf(factor))), toBigInteger(reduced.multiplySaturated(factor)));
+            assertShifts(a, random.nextInt(140));
+            int bit = random.nextInt(128);
+            assertEquals(toBigInteger(a).testBit(bit), a.testBit(bit));
+        }
+    }
+
+    @Test
+    void invalidShiftAndBitIndicesAreRejected() {
+        assertThrows(IllegalArgumentException.class, () -> Int128.ONE.shiftRight(-1));
+        assertThrows(IllegalArgumentException.class, () -> Int128.ONE.shiftLeftSaturated(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> Int128.ONE.testBit(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> Int128.ONE.testBit(128));
+    }
+
+    private static void assertOperations(Int128 a, Int128 b) {
+        BigInteger x = toBigInteger(a);
+        BigInteger y = toBigInteger(b);
+        assertEquals(wrap(x.add(y)), toBigInteger(a.add(b)));
+        assertEquals(wrap(x.subtract(y)), toBigInteger(a.subtract(b)));
+        assertEquals(clamp(x.add(y)), toBigInteger(a.addSaturated(b)));
+        assertEquals(clamp(x.subtract(y)), toBigInteger(a.subtractSaturated(b)));
+        assertEquals(clamp(x.negate()), toBigInteger(a.negate()));
+        assertEquals(clamp(x.abs()), toBigInteger(a.absSaturated()));
+        assertEquals(x.and(y), toBigInteger(a.and(b)));
+        assertEquals(x.or(y), toBigInteger(a.or(b)));
+        assertEquals(x.xor(y), toBigInteger(a.xor(b)));
+        assertEquals(x.not(), toBigInteger(a.not()));
+    }
+
+    private static void assertShifts(Int128 value, int bits) {
+        BigInteger expected = toBigInteger(value);
+        assertEquals(expected.shiftRight(Math.min(bits, 128)), toBigInteger(value.shiftRight(bits)));
+        assertEquals(clamp(expected.shiftLeft(Math.min(bits, 128))), toBigInteger(value.shiftLeftSaturated(bits)));
+    }
+
+    private static BigInteger clamp(BigInteger value) {
+        return value.max(toBigInteger(Int128.MIN)).min(toBigInteger(Int128.MAX));
+    }
+
+    private static BigInteger wrap(BigInteger value) {
+        BigInteger modulus = BigInteger.ONE.shiftLeft(128);
+        BigInteger unsigned = value.mod(modulus);
+        return unsigned.testBit(127) ? unsigned.subtract(modulus) : unsigned;
+    }
+
     private static void assertMatches(Int128 value) {
         BigInteger expected = toBigInteger(value);
         assertEquals(expected.toString(), value.toString());
